@@ -2,6 +2,16 @@ using Forge.Domain.Navigation;
 
 namespace Forge.Application.Navigation;
 
+public sealed record WaypointArrivalResolution(
+    ArrivalFacingMode Facing,
+    double DirectionDegrees,
+    string? TargetId,
+    string? Animation,
+    double WaitSeconds,
+    string? Interaction,
+    string? Callback,
+    bool AuthorityGranted);
+
 public static class WaypointRouteService
 {
     public static WaypointProfile Validate(WaypointProfile waypoint)
@@ -17,7 +27,13 @@ public static class WaypointRouteService
     {
         ValidateIdentity(route.Id, route.SchemaVersion, route.Provenance);
         if (route.Points.Count == 0 || route.Points.Select(point => point.Id).Distinct().Count() != route.Points.Count ||
-            route.Points.Any(point => point.Id == Guid.Empty || point.WaitSeconds < 0 || point.Speed <= 0 || point.Weight < 0))
+            route.Points.Any(point => point.Id == Guid.Empty || point.WaitSeconds < 0 || point.Speed <= 0 || point.Weight < 0) ||
+            route.Edges.Count != Math.Max(0, route.Points.Count - 1) ||
+            route.Edges.Select(edge => edge.Id).Distinct().Count() != route.Edges.Count ||
+            route.Edges.Any(edge => edge.Id == Guid.Empty ||
+                route.Points.All(point => point.Id != edge.FromPointId) ||
+                route.Points.All(point => point.Id != edge.ToPointId)) ||
+            route.Traversal == PatrolTraversalPolicy.Scripted && string.IsNullOrWhiteSpace(route.ScriptHandler))
             throw new InvalidOperationException("WAYPOINT_ROUTE_INVALID");
         return route;
     }
@@ -32,13 +48,15 @@ public static class WaypointRouteService
     {
         Validate(route);
         var count = route.Points.Count;
+        if (cursor.Index < 0 || cursor.Index >= count || cursor.Direction is < -1 or > 1)
+            throw new InvalidOperationException("WAYPOINT_CURSOR_INVALID");
         if (cursor.Complete || count == 1) return cursor with { Complete = route.Traversal == PatrolTraversalPolicy.Once };
         return route.Traversal switch
         {
             PatrolTraversalPolicy.Loop => new((cursor.Index + 1) % count, 1, false),
             PatrolTraversalPolicy.Once => cursor.Index == count - 1 ? cursor with { Complete = true } : new(cursor.Index + 1, 1, false),
             PatrolTraversalPolicy.PingPong => PingPong(cursor, count),
-            PatrolTraversalPolicy.Random => new(Math.Abs(deterministicRoll) % count, 1, false),
+            PatrolTraversalPolicy.Random => new((int)(Math.Abs((long)deterministicRoll) % count), 1, false),
             PatrolTraversalPolicy.Weighted => new(Weighted(route.Points, deterministicRoll), 1, false),
             PatrolTraversalPolicy.Scripted => cursor,
             _ => cursor
@@ -52,27 +70,89 @@ public static class WaypointRouteService
                 (string.IsNullOrWhiteSpace(query) || locator.Name.Contains(query, StringComparison.OrdinalIgnoreCase) || locator.Tags.Any(tag => tag.Contains(query, StringComparison.OrdinalIgnoreCase))))
             .OrderBy(locator => locator.Name, StringComparer.Ordinal).ThenBy(locator => locator.Id).ToArray();
 
+    public static WaypointArrivalResolution ResolveArrival(ArrivalBehavior arrival,
+        bool authorityGranted = true)
+    {
+        ArgumentNullException.ThrowIfNull(arrival);
+        if (!authorityGranted)
+            return new(arrival.Facing, arrival.DirectionDegrees, arrival.TargetId, null, 0, null, null, false);
+        return new(arrival.Facing, arrival.DirectionDegrees, arrival.TargetId, arrival.Animation,
+            arrival.WaitSeconds, arrival.Interaction, arrival.Callback, true);
+    }
+
+    public static IReadOnlyList<GenericLocator> ResolveCollection(AnchorCollection collection,
+        IReadOnlyList<GenericLocator> locators)
+    {
+        ArgumentNullException.ThrowIfNull(collection);
+        ArgumentNullException.ThrowIfNull(locators);
+        var memberOrder = (collection.LocatorIds ?? []).Select((id, index) => (id, index))
+            .ToDictionary(item => item.id, item => item.index);
+        var matches = locators.Where(locator =>
+                (memberOrder.Count == 0 || memberOrder.ContainsKey(locator.Id)) &&
+                (collection.Purpose is null || locator.Purpose == collection.Purpose) &&
+                (string.IsNullOrWhiteSpace(collection.Query) ||
+                 locator.Name.Contains(collection.Query, StringComparison.OrdinalIgnoreCase) ||
+                 locator.Tags.Any(tag => tag.Contains(collection.Query, StringComparison.OrdinalIgnoreCase))) &&
+                (collection.RequiredTags ?? Array.Empty<string>()).All(required =>
+                    locator.Tags.Contains(required, StringComparer.OrdinalIgnoreCase)))
+            .OrderBy(locator => memberOrder.GetValueOrDefault(locator.Id, int.MaxValue))
+            .ThenBy(locator => locator.Name, StringComparer.Ordinal).ThenBy(locator => locator.Id).ToArray();
+        return collection.Selection switch
+        {
+            LocatorSelectionMode.Nearest when collection.Origin is { } origin =>
+                Nearest(matches, origin) is { } nearest ? [nearest] : [],
+            LocatorSelectionMode.RandomDeterministic =>
+                RandomDeterministic(matches, collection.Seed) is { } random ? [random] : [],
+            _ => matches,
+        };
+    }
+
     public static GenericLocator? Nearest(IReadOnlyList<GenericLocator> locators, Forge.Domain.Spatial.Vector3Value origin) =>
         locators.OrderBy(locator => Distance(locator.Position, origin)).ThenBy(locator => locator.Id).FirstOrDefault();
 
     public static GenericLocator? RandomDeterministic(IReadOnlyList<GenericLocator> locators, int seed) =>
-        locators.Count == 0 ? null : locators.OrderBy(locator => locator.Id).ElementAt(Math.Abs(seed) % locators.Count);
+        locators.Count == 0 ? null : locators.OrderBy(locator => locator.Id)
+            .ElementAt((int)(Math.Abs((long)seed) % locators.Count));
 
-    public static IReadOnlyList<RouteSegmentDiagnostic> AnalyzeRoute(PatrolRoute route, IReadOnlySet<Guid>? navProjected = null)
+    public static IReadOnlyList<RouteSegmentDiagnostic> AnalyzeRoute(PatrolRoute route,
+        IReadOnlySet<Guid>? navProjected = null, IReadOnlySet<Guid>? knownPointIds = null,
+        double costPerMeter = 1)
     {
         Validate(route);
         var result = new List<RouteSegmentDiagnostic>();
         for (var index = 0; index < route.Points.Count - 1; index++)
         {
-            var from = route.Points[index]; var to = route.Points[index + 1]; var distance = Distance(from.Position, to.Position);
-            result.Add(new(from.Id, to.Id, 1, distance, from.WaitSeconds + distance / from.Speed, from.Action, false, navProjected?.Contains(to.Id) ?? false));
+            AddSegment(result, route, index, index + 1, 1, navProjected, knownPointIds, costPerMeter);
         }
         if (route.Traversal == PatrolTraversalPolicy.Loop && route.Points.Count > 1)
         {
-            var from = route.Points[^1]; var to = route.Points[0]; var distance = Distance(from.Position, to.Position);
-            result.Add(new(from.Id, to.Id, 1, distance, from.WaitSeconds + distance / from.Speed, from.Action, false, navProjected?.Contains(to.Id) ?? false));
+            AddSegment(result, route, route.Points.Count - 1, 0, 1, navProjected, knownPointIds,
+                costPerMeter);
+        }
+        else if (route.Traversal == PatrolTraversalPolicy.PingPong)
+        {
+            for (var index = route.Points.Count - 1; index > 0; index--)
+                AddSegment(result, route, index, index - 1, -1, navProjected, knownPointIds,
+                    costPerMeter);
         }
         return result;
+    }
+
+    private static void AddSegment(ICollection<RouteSegmentDiagnostic> result, PatrolRoute route,
+        int fromIndex, int toIndex, int direction, IReadOnlySet<Guid>? navProjected,
+        IReadOnlySet<Guid>? knownPointIds, double costPerMeter)
+    {
+        var from = route.Points[fromIndex];
+        var to = route.Points[toIndex];
+        var distance = Distance(from.Position, to.Position);
+        var edge = route.Edges.FirstOrDefault(item => item.FromPointId == from.Id && item.ToPointId == to.Id) ??
+                   route.Edges.FirstOrDefault(item => item.FromPointId == to.Id && item.ToPointId == from.Id);
+        var broken = knownPointIds is not null &&
+            (!knownPointIds.Contains(from.Id) || !knownPointIds.Contains(to.Id));
+        var cost = distance * Math.Max(0, costPerMeter) * Math.Max(edge?.Weight ?? 1, .01);
+        result.Add(new(from.Id, to.Id, direction, distance, cost,
+            from.WaitSeconds + distance / from.Speed, from.Action, broken,
+            navProjected?.Contains(to.Id) ?? false));
     }
 
     private static PatrolCursor PingPong(PatrolCursor cursor, int count)
@@ -88,7 +168,7 @@ public static class WaypointRouteService
     {
         var total = points.Sum(point => point.Weight);
         if (total <= 0) return 0;
-        var target = Math.Abs(roll % 10_000) / 10_000d * total;
+        var target = Math.Abs((long)roll % 10_000) / 10_000d * total;
         var running = 0d;
         for (var index = 0; index < points.Count; index++) { running += points[index].Weight; if (target < running) return index; }
         return points.Count - 1;

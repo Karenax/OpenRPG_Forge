@@ -20,7 +20,9 @@ public sealed record TriggerWorldProfile(
     TriggerWorldProfile.NarrativeCuePolicy? Narrative,
     TriggerWorldProfile.DirectorPolicy? Director,
     TriggerWorldProfile.FoundationPolicy? Foundation = null,
-    bool FoundationRequiredAtRuntime = false)
+    bool FoundationRequiredAtRuntime = false,
+    TriggerAdvancedProfile? Advanced = null,
+    bool AdvancedRequiredAtRuntime = false)
 {
     public enum DiscoveryScope { Player, Party, World }
     public enum ShapeKind { ExtrudedPolygon2D, Box3D, Sphere3D, Capsule3D, ConvexHull3D }

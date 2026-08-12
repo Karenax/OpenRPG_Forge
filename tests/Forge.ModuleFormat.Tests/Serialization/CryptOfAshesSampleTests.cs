@@ -2,12 +2,14 @@ using Forge.Domain.Blueprints;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Areas;
 using Forge.Domain.Entities;
+using Forge.Domain.Creatures;
 using Forge.Domain.Navigation;
 using Forge.Domain.Quests;
 using Forge.Application.Projects;
 using Forge.Domain.Projects;
 using Forge.Domain.Validation;
 using Forge.Domain.WorldFeatures;
+using Forge.ModuleFormat.Serialization;
 using Forge.ModuleFormat.Workspaces;
 
 namespace Forge.ModuleFormat.Tests.Serialization;
@@ -63,6 +65,15 @@ public sealed class CryptOfAshesSampleTests
         Assert.Equal(5, bossBlueprint.Combat!.Stats.MaximumHealth);
         Assert.Equal("hostile", bossBlueprint.Combat.Stats.Team);
         Assert.Equal("warden-ember", Assert.Single(bossBlueprint.Combat.Loot).ItemSlug);
+        var eventAi = Assert.IsType<CreatureEventAiCompositionProfile>(
+            bossBlueprint.CreatureFoundation!.EventAiComposition);
+        Assert.True(bossBlueprint.CreatureFoundation.EventAiCompositionRequiredAtRuntime);
+        Assert.Equal(CreatureEventAiControllerKind.Utility, eventAi.Controller.Kind);
+        Assert.Equal(3, eventAi.Controller.Blackboard.Count);
+        Assert.Equal("OnPerceptionDetected", eventAi.Perception.Detected.Handler);
+        Assert.Equal("OnPhysicalAttacked", eventAi.PhysicalAttack.Resolved.Handler);
+        Assert.Equal("OnSpellCastAt", eventAi.Ability.Impacted.Handler);
+        Assert.Equal("OnBlocked", eventAi.Blocked.Blocked.Handler);
     }
 
     [Fact]
@@ -82,10 +93,63 @@ public sealed class CryptOfAshesSampleTests
         Assert.Single(catalog.VehicleRoutes);
         Assert.Single(catalog.Merchants);
         Assert.Single(catalog.Companions);
+        var encounter = catalog.Encounters[0];
+        Assert.True(encounter.CompositionRequiredAtRuntime);
+        Assert.Equal(EncounterDifficultyBand.Hard, encounter.Composition!.Difficulty.Band);
+        Assert.Equal(36, encounter.Composition.Difficulty.EffectiveBudget);
+        Assert.Equal((2, 4), (encounter.Composition.Groups[0].Minimum,
+            encounter.Composition.Groups[0].Maximum));
+        Assert.Equal("party:forge-generic", encounter.Composition.Selection.PartyAssessmentProviderId);
+        Assert.Equal(EncounterActivationMode.PopulationMaintained, encounter.Composition.Activation.Mode);
+        Assert.True(encounter.ScenarioRequiredAtRuntime);
+        Assert.Equal("anchor:crypt-north", Assert.Single(encounter.Scenario!.SpawnAnchors).AnchorId);
+        Assert.Equal(EncounterNetworkAuthority.Server, encounter.Scenario.Activator.RequiredAuthority);
+        Assert.Equal("EncounterEntered", encounter.Scenario.Lifecycle.Entered.Binding);
+        Assert.Equal("EncounterExited", encounter.Scenario.Lifecycle.Exited.Binding);
+        Assert.Equal("EncounterExhausted", encounter.Scenario.Lifecycle.Exhausted.Binding);
+        Assert.Equal(2, Assert.Single(encounter.Scenario.Phases).Waves.Count);
+        var roundTrip = ProjectJsonSerializer.Deserialize(ProjectJsonSerializer.Serialize(configured));
+        Assert.Equal("challenge-rating",
+            roundTrip.Module.WorldFeatures.Encounters[0].Composition!.Selection.Strategy);
+        Assert.Equal("audio:encounter-warden-fallen",
+            roundTrip.Module.WorldFeatures.Encounters[0].Scenario!.Phases[0].Waves[1].VoiceCueId);
+        Assert.Equal(project.Quests.Single().Id.Value,
+            roundTrip.Module.WorldFeatures.Encounters[0].Scenario!.Phases[0].Waves[1].QuestId);
+        var compositionEvents = Assert.IsType<PlaceableCompositionEventsProfile>(
+            catalog.Placeables[0].CompositionEvents);
+        Assert.True(catalog.Placeables[0].CompositionEventsRequiredAtRuntime);
+        Assert.Equal("DamageApplied", compositionEvents.DamageEvents.DamagedBinding);
+        Assert.Equal("EntityDestroyed", compositionEvents.DamageEvents.DestroyedBinding);
+        Assert.Equal("lever", Assert.Single(compositionEvents.Sockets).SocketId);
+        Assert.Equal("prefab:crypt-pillar-lever", Assert.Single(compositionEvents.Attachments).PrefabId);
+        Assert.Equal(8, compositionEvents.MultiVerb.Verbs.Count);
+        Assert.Equal("custom-ring", compositionEvents.MultiVerb.Verbs[^1].VerbId);
+        Assert.Equal("prefab:crypt-pillar-lever", roundTrip.Module.WorldFeatures.Placeables[0]
+            .CompositionEvents!.Attachments.Single().PrefabId);
+        Assert.Equal("RingRequested", roundTrip.Module.WorldFeatures.Placeables[0]
+            .CompositionEvents!.MultiVerb.Verbs.Single(item => item.VerbId == "custom-ring").EventBinding);
+        var advancedTrigger = Assert.IsType<TriggerAdvancedProfile>(catalog.Triggers[0].Advanced);
+        Assert.True(catalog.Triggers[0].AdvancedRequiredAtRuntime);
+        Assert.Equal("damage:ember-burst", advancedTrigger.Trap.PayloadId);
+        Assert.True(advancedTrigger.TargetFilter.PlayersOnly);
+        Assert.Equal(10, advancedTrigger.GameplayVolumes.Count);
+        Assert.Equal(10, advancedTrigger.GameplayVolumes.Select(item => item.Kind).Distinct().Count());
+        Assert.Equal("TrapTriggered", advancedTrigger.Trap.TriggeredBinding);
+        Assert.Equal(100, advancedTrigger.OccupancyDebug.MaximumTraceEntries);
+        Assert.Equal("DamageVolumeEntered", roundTrip.Module.WorldFeatures.Triggers[0].Advanced!
+            .GameplayVolumes.Single(item => item.Kind == TriggerGameplayVolumeKind.Damage).EnterBinding);
+        Assert.True(encounter.StatisticsRequiredAtRuntime);
+        Assert.Equal(64, encounter.Statistics!.Runs);
+        Assert.Equal([.5, .9, .99], encounter.Statistics.Percentiles);
+        Assert.Equal("duration:actors-linear",
+            roundTrip.Module.WorldFeatures.Encounters[0].Statistics!.DurationEstimatorId);
+        Assert.Equal(840, roundTrip.Module.WorldFeatures.Encounters[0].Statistics!.BaseSeed);
         var companion = catalog.Companions[0];
         Assert.NotNull(companion.Validation);
         Assert.True(companion.ValidationRequiredAtRuntime);
-        Assert.Equal(["follow", "hold", "attack", "interact"], companion.Validation!.CommandIds);
+        Assert.Equal(
+            ["move", "follow", "hold", "rally", "guard", "interact", "attack", "defend", "focus-fire", "protect", "disengage", "use-ability"],
+            companion.Validation!.CommandIds);
         Assert.Equal(2, companion.Validation.DialogueContexts.Count);
         Assert.Equal("recoverable-corpse", companion.Validation.Death.Mode);
         var resolved = CompanionValidationRuntimeResolver.Resolve(companion, destinationAreaId: null);
@@ -101,6 +165,16 @@ public sealed class CryptOfAshesSampleTests
         Assert.True(WorldFeatureRuntimeResolver.ResolvePlaceableAccess(catalog.Placeables[0],
             new HashSet<string> { "key:ember" }, new HashSet<string>(), 3).Allowed);
         Assert.True(WorldFeatureRuntimeResolver.ApplyDoorDamage(catalog.Doors[0], 40, 100).Breached);
+        var doorAccess = DoorAccessEventProfileValidator.Resolve(catalog.Doors[0]);
+        Assert.True(doorAccess.Available);
+        Assert.Equal("key:ember", doorAccess.Profile!.Lock.CredentialIds.Single());
+        Assert.Equal("DoorOpenRejected", doorAccess.Profile.Rejection.EventBinding);
+        Assert.Equal("damage:ember-burst", doorAccess.Profile.Trap.PayloadId);
+        Assert.Equal("PortalUseRequested", doorAccess.Profile.PortalUse.RequestedBinding);
+        Assert.Equal("DoorClosed", doorAccess.Profile.StateEvents.ClosedBinding);
+        Assert.True(doorAccess.Profile.LockStateEventsRequiredAtRuntime);
+        Assert.Equal("DoorLocked", doorAccess.Profile.LockStateEvents!.LockedBinding);
+        Assert.Equal("DoorUnlocked", doorAccess.Profile.LockStateEvents.UnlockedBinding);
         Assert.NotNull(WorldFeatureRuntimeResolver.ResolveScript(catalog.Scripts, "door.ash", "opened").ScriptId);
     }
 

@@ -12,18 +12,42 @@ public sealed record ProjectLocalizedMetadata
 
     public string Credits { get; }
 
+    public string Installation { get; }
+
+    public string Rules { get; }
+
+    public string Controls { get; }
+
+    public string Licenses { get; }
+
+    public string Warnings { get; }
+
+    public string Compatibility { get; }
+
     public ProjectLocalizedMetadata(
         string locale,
         string name,
         string summary,
         string description,
-        string credits)
+        string credits,
+        string installation = "",
+        string rules = "",
+        string controls = "",
+        string licenses = "",
+        string warnings = "",
+        string compatibility = "")
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(locale);
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentNullException.ThrowIfNull(summary);
         ArgumentNullException.ThrowIfNull(description);
         ArgumentNullException.ThrowIfNull(credits);
+        ArgumentNullException.ThrowIfNull(installation);
+        ArgumentNullException.ThrowIfNull(rules);
+        ArgumentNullException.ThrowIfNull(controls);
+        ArgumentNullException.ThrowIfNull(licenses);
+        ArgumentNullException.ThrowIfNull(warnings);
+        ArgumentNullException.ThrowIfNull(compatibility);
         var normalizedLocale = locale.Trim();
         if (!IsValidLocale(normalizedLocale))
         {
@@ -37,6 +61,12 @@ public sealed record ProjectLocalizedMetadata
         Summary = summary.Trim();
         Description = description.Trim();
         Credits = credits.Trim();
+        Installation = installation.Trim();
+        Rules = rules.Trim();
+        Controls = controls.Trim();
+        Licenses = licenses.Trim();
+        Warnings = warnings.Trim();
+        Compatibility = compatibility.Trim();
     }
 
     private static bool IsValidLocale(string locale)

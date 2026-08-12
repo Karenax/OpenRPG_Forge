@@ -184,6 +184,123 @@ public sealed class NativeForgeScriptRuntimeTests
     }
 
     [Fact]
+    public void Deferred_action_combat_and_effect_apis_compile_and_emit_typed_intents()
+    {
+        const string source = """
+            void main()
+            {
+                EntityRef hero = spawn("hero");
+                EntityRef target = spawn("warden");
+                ScriptTaskRef attackTask = action_enqueue(hero, "attack", 100);
+                action_complete(attackTask, "hit");
+                ScriptTaskRef moveTask = action_enqueue(hero, "move", 20);
+                action_cancel(moveTask);
+                bool hit = combat_attack(hero, target, "slash", 12.0f, 97);
+                EffectHandle burning = effect_apply(hero, target, "burning", 2.0f, 10.0f);
+                effect_dispel(target, "fire");
+                release_effect(burning);
+            }
+            """;
+
+        var compilation = _runtime.Compile(source);
+        var result = _runtime.Execute(Assert.IsType<ForgeScriptArtifact>(compilation.Artifact));
+
+        Assert.True(compilation.Success,
+            string.Join(Environment.NewLine, compilation.Diagnostics.Select(item => item.Message)));
+        Assert.Equal(ForgeScriptExecutionStatus.Completed, result.Status);
+        Assert.Equal(2, result.Events.Count(item => item.Kind == "action.queued"));
+        Assert.Contains(result.Events, item => item.Kind == "action.completed");
+        Assert.Contains(result.Events, item => item.Kind == "action.cancelled");
+        Assert.Contains(result.Events, item => item.Kind == "combat.attack");
+        Assert.Contains(result.Events, item => item.Kind == "effect.applied");
+        Assert.Contains(result.Events, item => item.Kind == "effect.dispelled");
+        Assert.Empty(result.Diagnostics);
+    }
+
+    [Fact]
+    public void Inventory_quest_dialogue_faction_and_perception_apis_emit_typed_world_intents()
+    {
+        const string source = """
+            void main()
+            {
+                EntityRef chest = spawn("chest");
+                EntityRef hero = spawn("hero");
+                EntityRef warden = spawn("warden");
+                InventoryResultRef loot = inventory_transfer(chest, hero, "key", 1);
+                QuestResultRef quest = quest_transition("crypt", "party:1", "active", "completed", "find-key", 1, "found");
+                DialogueSessionRef talk = dialogue_start("graph:intro", warden, hero);
+                dialogue_complete(talk, "accepted");
+                FactionResultRef faction = faction_reputation(hero, "wardens", 25, true, "module", "rescued");
+                PerceptionResultRef seen = perception_query(warden, hero, "sight", 2.0f, 10.0f, true, 0.8f, 98);
+            }
+            """;
+
+        var compilation = _runtime.Compile(source);
+        var result = _runtime.Execute(Assert.IsType<ForgeScriptArtifact>(compilation.Artifact));
+
+        Assert.True(compilation.Success,
+            string.Join(Environment.NewLine, compilation.Diagnostics.Select(item => item.Message)));
+        Assert.Equal(ForgeScriptExecutionStatus.Completed, result.Status);
+        Assert.Contains(result.Events, item => item.Kind == "inventory.transfer");
+        Assert.Contains(result.Events, item => item.Kind == "quest.transition");
+        Assert.Contains(result.Events, item => item.Kind == "dialogue.started");
+        Assert.Contains(result.Events, item => item.Kind == "dialogue.completed");
+        Assert.Contains(result.Events, item => item.Kind == "faction.reputation");
+        Assert.Contains(result.Events, item => item.Kind == "perception.query");
+        Assert.Empty(result.Diagnostics);
+    }
+
+    [Fact]
+    public void Audio_time_custom_event_hot_reload_and_debugger_apis_emit_typed_tool_intents()
+    {
+        const string source = """
+            void main()
+            {
+                EntityRef hero = spawn("hero");
+                AudioEmitterRef music = audio_emitter("music:dawn");
+                audio_start(music);
+                bool active = audio_is_active(music);
+                audio_pause(music);
+                audio_resume(music);
+                audio_fade(music, 0.25f, 2.0f);
+                AudioCaptionRef caption = audio_caption(music, "fr");
+                audio_snapshot("combat");
+                audio_listener(hero, "player");
+                audio_complete(music, "finished");
+                WorldClockRef clock = world_clock();
+                int64 calendar = world_calendar_ms(clock);
+                TimerRef timer = timer_schedule(1000, 5000, "OnTick", "daily");
+                timer_cancel(timer);
+                deterministic_delay(250, "OnReady");
+                event_subscribe("forge.damage", 1, "OnDamage");
+                CustomEventRef evt = custom_event("forge.damage", 1, "amount=4");
+                event_publish(evt);
+                HotReloadRef reload = hot_reload_request("module", 2, "sha256:new");
+                DebugSessionRef debug = debug_break("session:1", "local-author");
+                debug_step(debug, "over");
+            }
+            """;
+
+        var compilation = _runtime.Compile(source);
+        var result = _runtime.Execute(Assert.IsType<ForgeScriptArtifact>(compilation.Artifact));
+
+        Assert.True(compilation.Success,
+            string.Join(Environment.NewLine, compilation.Diagnostics.Select(item => item.Message)));
+        Assert.Equal(ForgeScriptExecutionStatus.Completed, result.Status);
+        Assert.Contains(result.Events, item => item.Kind == "audio.started");
+        Assert.Contains(result.Events, item => item.Kind == "audio.faded");
+        Assert.Contains(result.Events, item => item.Kind == "audio.completed");
+        Assert.Contains(result.Events, item => item.Kind == "time.clock");
+        Assert.Contains(result.Events, item => item.Kind == "time.timer.scheduled");
+        Assert.Contains(result.Events, item => item.Kind == "time.delay");
+        Assert.Contains(result.Events, item => item.Kind == "event.published");
+        Assert.Contains(result.Events, item => item.Kind == "hot-reload.requested");
+        Assert.Contains(result.Events, item => item.Kind == "debug.break");
+        Assert.Contains(result.Events, item => item.Kind == "debug.step");
+        Assert.Empty(result.Diagnostics);
+    }
+
+    [Fact]
     public void Bounded_regex_abuse_is_interrupted_and_does_not_poison_the_runtime()
     {
         var abusivePattern = new string('a', ForgeScriptCapabilityManifest.MaximumRegexPatternBytes + 1);

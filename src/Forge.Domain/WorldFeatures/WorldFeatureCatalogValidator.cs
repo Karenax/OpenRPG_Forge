@@ -16,6 +16,7 @@ public static class WorldFeatureCatalogValidator
         var areas = project.Areas.Select(item => item.Id).ToHashSet();
         var dialogues = project.Dialogues.Select(item => item.Id.Value).ToHashSet();
         var quests = project.Quests.Select(item => item.Id.Value).ToHashSet();
+        var encounters = catalog.Encounters.Select(item => item.Id).ToHashSet();
 
         if (catalog.Id != project.Module.Id.Value)
             Add(diagnostics, "world.catalog.id_mismatch", "The world-feature catalog ID must match the module ID.", "module/worldFeatures/id");
@@ -50,6 +51,11 @@ public static class WorldFeatureCatalogValidator
                 string.IsNullOrWhiteSpace(physics.Authority)))
                 Add(diagnostics, "world.placeable.physics_invalid", "Dynamic physics requires mass, sleep policy and authority.", $"{path}/physics");
             ValidatePlaceableFoundation(profile, path, diagnostics);
+            ValidatePlaceableOperations(profile, path, diagnostics);
+            ValidatePlaceableSecurityEvents(profile, path,
+                blueprints.Keys.Select(item => item.Value).ToHashSet(), diagnostics);
+            ValidatePlaceableCompositionEvents(profile, path,
+                blueprints.Keys.Select(item => item.Value).ToHashSet(), diagnostics);
         }
 
         foreach (var profile in catalog.Doors)
@@ -136,10 +142,35 @@ public static class WorldFeatureCatalogValidator
                                                       traversable.Contains(item.Id) && item.CollisionEnabled))
                         Add(diagnostics, "world.door.navigation_state_mismatch",
                             "Navigation state sets must be disjoint, reference known states and match collision.",
-                            $"{foundationPath}/navigation/states");
+                             $"{foundationPath}/navigation/states");
                 }
             }
+            if (profile.AccessEvents is { } accessEvents)
+                diagnostics.AddRange(DoorAccessEventProfileValidator.Validate(accessEvents, $"{path}/accessEvents"));
+            else if (profile.AccessEventsRequiredAtRuntime)
+                Add(diagnostics, "world.door.access_events_required",
+                    "Door access/events are required by this runtime profile.", $"{path}/accessEvents");
         }
+
+        var doorAccessComponentIds = catalog.Doors.Where(item => item.AccessEvents is not null)
+            .SelectMany(item => new (Guid DoorId, Guid? ComponentId)[]
+            {
+                (DoorId: item.Id, ComponentId: item.AccessEvents!.Id),
+                (DoorId: item.Id, ComponentId: item.AccessEvents.Lock.Id),
+                (DoorId: item.Id, ComponentId: item.AccessEvents.Rejection.Id),
+                (DoorId: item.Id, ComponentId: item.AccessEvents.Trap.Id),
+                (DoorId: item.Id, ComponentId: item.AccessEvents.PortalUse.Id),
+                (DoorId: item.Id, ComponentId: item.AccessEvents.StateEvents.Id),
+                (DoorId: item.Id, ComponentId: item.AccessEvents.LockStateEvents?.Id),
+            })
+            .Where(item => item.ComponentId.HasValue)
+            .Select(item => (item.DoorId, ComponentId: item.ComponentId!.Value))
+            .GroupBy(item => item.ComponentId)
+            .Where(group => group.Count() > 1);
+        foreach (var duplicate in doorAccessComponentIds)
+            Add(diagnostics, "world.door.access_events_uuid_duplicate",
+                "Door access/event component UUID is reused by multiple door profiles.",
+                $"module/worldFeatures/doors/{duplicate.First().DoorId}/accessEvents/{duplicate.Key}");
 
         foreach (var profile in catalog.Triggers)
         {
@@ -162,6 +193,7 @@ public static class WorldFeatureCatalogValidator
             if (profile.Narrative is { } narrative && !dialogues.Contains(narrative.DialogueId))
                 Add(diagnostics, "world.reference.dialogue_missing", "Narrative trigger dialogue reference is missing.", $"{path}/narrative/dialogueId");
             ValidateTriggerFoundation(profile, path, diagnostics);
+            ValidateTriggerAdvanced(profile, path, diagnostics);
         }
 
         foreach (var profile in catalog.Encounters)
@@ -180,6 +212,24 @@ public static class WorldFeatureCatalogValidator
                 Add(diagnostics, "world.encounter.reinforcement_invalid", "Reinforcements require route, cap and delay.", $"{path}/reinforcements");
             if (profile.Visibility.MinimumCameraDistance < 0)
                 Add(diagnostics, "world.encounter.visibility_invalid", "Visibility distance cannot be negative.", $"{path}/visibility");
+            if (profile.Composition is { } composition)
+                diagnostics.AddRange(EncounterCompositionProfileValidator.Validate(composition, profile.Foundation,
+                    $"{path}/composition"));
+            else if (profile.CompositionRequiredAtRuntime)
+                Add(diagnostics, "world.encounter.composition_required",
+                    "Encounter composition is required by this runtime profile.", $"{path}/composition");
+            if (profile.Scenario is { } scenario)
+                diagnostics.AddRange(EncounterScenarioProfileValidator.Validate(scenario, profile.Foundation,
+                    profile.Composition, $"{path}/scenario", encounters, quests, profile.Id));
+            else if (profile.ScenarioRequiredAtRuntime)
+                Add(diagnostics, "world.encounter.scenario_required",
+                    "Encounter scenario is required by this runtime profile.", $"{path}/scenario");
+            if (profile.Statistics is { } statistics)
+                diagnostics.AddRange(EncounterStatisticsProfileValidator.Validate(statistics,
+                    $"{path}/statistics"));
+            else if (profile.StatisticsRequiredAtRuntime)
+                Add(diagnostics, "world.encounter.statistics_required",
+                    "Encounter statistics are required by this runtime profile.", $"{path}/statistics");
             if (profile.Foundation is not { } foundation)
             {
                 Add(diagnostics, "world.encounter.foundation_missing",
@@ -238,6 +288,51 @@ public static class WorldFeatureCatalogValidator
                     "Candidate limits must fit the authoritative network actor cap.", $"{foundationPath}/networkActorCap");
         }
 
+        var encounterCompositionIds = catalog.Encounters.Where(item => item.Composition is not null)
+            .SelectMany(item => new[]
+            {
+                (EncounterId: item.Id, ComponentId: item.Composition!.Id),
+                (EncounterId: item.Id, ComponentId: item.Composition.Difficulty.Id),
+                (EncounterId: item.Id, ComponentId: item.Composition.Selection.Id),
+                (EncounterId: item.Id, ComponentId: item.Composition.Activation.Id),
+            }.Concat(item.Composition.Groups.Select(group => (EncounterId: item.Id, ComponentId: group.Id))))
+            .GroupBy(item => item.ComponentId)
+            .Where(group => group.Count() > 1);
+        foreach (var duplicate in encounterCompositionIds)
+            Add(diagnostics, "world.encounter.composition_uuid_duplicate",
+                "Encounter composition component UUID is reused by multiple encounter profiles.",
+                $"module/worldFeatures/encounters/{duplicate.First().EncounterId}/composition/{duplicate.Key}");
+
+        var encounterScenarioIds = catalog.Encounters.Where(item => item.Scenario is not null)
+            .SelectMany(item => new[]
+            {
+                (EncounterId: item.Id, ComponentId: item.Scenario!.Id),
+                (EncounterId: item.Id, ComponentId: item.Scenario.Activator.Id),
+                (EncounterId: item.Id, ComponentId: item.Scenario.Lifecycle.Id),
+                (EncounterId: item.Id, ComponentId: item.Scenario.Lifecycle.Entered.Id),
+                (EncounterId: item.Id, ComponentId: item.Scenario.Lifecycle.Exited.Id),
+                (EncounterId: item.Id, ComponentId: item.Scenario.Lifecycle.Exhausted.Id),
+            }.Concat(item.Scenario.SpawnAnchors.Select(anchor =>
+                    (EncounterId: item.Id, ComponentId: anchor.Id)))
+                .Concat(item.Scenario.Phases.Select(phase =>
+                    (EncounterId: item.Id, ComponentId: phase.Id)))
+                .Concat(item.Scenario.Phases.SelectMany(phase => phase.Waves).Select(wave =>
+                    (EncounterId: item.Id, ComponentId: wave.Id))))
+            .GroupBy(item => item.ComponentId)
+            .Where(group => group.Count() > 1);
+        foreach (var duplicate in encounterScenarioIds)
+            Add(diagnostics, "world.encounter.scenario_uuid_duplicate",
+                "Encounter scenario component UUID is reused by multiple encounter profiles.",
+                $"module/worldFeatures/encounters/{duplicate.First().EncounterId}/scenario/{duplicate.Key}");
+
+        var encounterStatisticsIds = catalog.Encounters.Where(item => item.Statistics is not null)
+            .GroupBy(item => item.Statistics!.Id)
+            .Where(group => group.Key == Guid.Empty || group.Count() > 1);
+        foreach (var duplicate in encounterStatisticsIds)
+            Add(diagnostics, "world.encounter.statistics_uuid_duplicate",
+                "Encounter statistics UUID is reused by multiple encounter profiles.",
+                $"module/worldFeatures/encounters/{duplicate.First().Id}/statistics/{duplicate.Key}");
+
         foreach (var route in catalog.VehicleRoutes)
         {
             var path = $"module/worldFeatures/vehicleRoutes/{route.Id}";
@@ -269,6 +364,8 @@ public static class WorldFeatureCatalogValidator
             if (profile.Services.Any(item => item.Id == Guid.Empty || !currencyIds.Contains(item.CurrencyId) || item.Price < 0))
                 Add(diagnostics, "world.merchant.service_invalid", "Services require IDs, known currencies and valid prices.", $"{path}/services");
             ValidateMerchantTransactions(profile, blueprints, currencyIds, path, diagnostics);
+            ValidateMerchantFoundation(profile, blueprints, dialogues, currencyIds, path, diagnostics);
+            ValidateMerchantExperience(profile, path, diagnostics);
         }
 
         foreach (var profile in catalog.Companions)
@@ -362,6 +459,443 @@ public static class WorldFeatureCatalogValidator
             Add(diagnostics, "world.placeable.scripts_invalid",
                 "Placeable script event and route bindings are required.", $"{foundationPath}/components/scriptBindings");
         ValidatePlaceableRuntimeContracts(foundation, foundationPath, diagnostics);
+    }
+
+    private static void ValidatePlaceableOperations(PlaceableWorldProfile profile, string path,
+        List<DomainDiagnostic> diagnostics)
+    {
+        var operationsPath = $"{path}/operations";
+        if (profile.Operations is null)
+        {
+            if (profile.OperationsRequiredAtRuntime)
+                Add(diagnostics, "world.placeable.operations_required_missing",
+                    "Required placeable operations profile is missing.", operationsPath);
+            return;
+        }
+
+        var operations = profile.Operations;
+        Identity(operations.Id, operations.SchemaVersion, operations.Provenance, operationsPath, diagnostics);
+        if (profile.Foundation is null)
+            Add(diagnostics, "world.placeable.operations_foundation_missing",
+                "Placeable operations require the canonical foundation.", operationsPath);
+
+        var ids = new List<Guid> { profile.Id, operations.Id };
+        if (profile.Foundation is { } foundation)
+        {
+            ids.Add(foundation.Id);
+            if (foundation.Components.HasContainer && operations.Container is null)
+                Add(diagnostics, "world.placeable.container_required_missing",
+                    "Container component requires a canonical container profile.", $"{operationsPath}/container");
+            if (foundation.Components.HasHealth && operations.Damageable is null)
+                Add(diagnostics, "world.placeable.damageable_required_missing",
+                    "Health component requires a canonical damageable profile.", $"{operationsPath}/damageable");
+            if (foundation.Components.HasLock && operations.Lock is null)
+                Add(diagnostics, "world.placeable.lock_required_missing",
+                    "Lock component requires a canonical lock profile.", $"{operationsPath}/lock");
+        }
+
+        if (operations.Container is { } container)
+        {
+            ids.Add(container.Id);
+            if (container.Id == Guid.Empty || container.CapacitySlots < 1 ||
+                !double.IsFinite(container.CapacityMass) || container.CapacityMass < 0 ||
+                string.IsNullOrWhiteSpace(container.OwnershipPolicy) ||
+                container.AccessPermissions.Any(string.IsNullOrWhiteSpace) ||
+                container.AccessPermissions.Distinct(StringComparer.Ordinal).Count() != container.AccessPermissions.Count ||
+                string.IsNullOrWhiteSpace(container.LootPolicyId) || string.IsNullOrWhiteSpace(container.UiProfileId) ||
+                string.IsNullOrWhiteSpace(container.InventoryId))
+                Add(diagnostics, "world.placeable.container_invalid",
+                    "Container requires capacity, ownership, access, persistence, loot, UI, replication and inventory.",
+                    $"{operationsPath}/container");
+        }
+
+        if (operations.StateMachine is { } machine)
+        {
+            ids.Add(machine.Id);
+            ids.AddRange(machine.States.Select(item => item.Id));
+            ids.AddRange(machine.Transitions.Select(item => item.Id));
+            var stateIds = machine.States.Select(item => item.StateId).ToArray();
+            var requiredStates = new[] { "idle", "open", "closed", "broken", "active", "custom" };
+            if (machine.Id == Guid.Empty || string.IsNullOrWhiteSpace(machine.InitialStateId) ||
+                !stateIds.Contains(machine.InitialStateId, StringComparer.Ordinal) ||
+                requiredStates.Except(stateIds, StringComparer.Ordinal).Any() ||
+                stateIds.Any(string.IsNullOrWhiteSpace) ||
+                stateIds.Distinct(StringComparer.Ordinal).Count() != stateIds.Length ||
+                machine.States.Any(item => item.Id == Guid.Empty || string.IsNullOrWhiteSpace(item.AnimationId) ||
+                    string.IsNullOrWhiteSpace(item.VisualOverrideId)) ||
+                machine.Transitions.Any(item => item.Id == Guid.Empty ||
+                    !stateIds.Contains(item.FromStateId, StringComparer.Ordinal) ||
+                    !stateIds.Contains(item.ToStateId, StringComparer.Ordinal) ||
+                    string.IsNullOrWhiteSpace(item.Trigger) || !double.IsFinite(item.DurationSeconds) ||
+                    item.DurationSeconds < 0 || item.Condition is { Length: 0 }))
+                Add(diagnostics, "world.placeable.state_machine_invalid",
+                    "Visual state machine requires idle, open, closed, broken, active and custom states with valid transitions.",
+                    $"{operationsPath}/stateMachine");
+        }
+        else
+            Add(diagnostics, "world.placeable.state_machine_required_missing",
+                "Placeable operations require a visual state machine.", $"{operationsPath}/stateMachine");
+
+        if (operations.Damageable is { } damageable)
+        {
+            ids.Add(damageable.Id);
+            if (damageable.Id == Guid.Empty || !double.IsFinite(damageable.MaximumHealth) ||
+                damageable.MaximumHealth <= 0 || !double.IsFinite(damageable.CurrentHealth) ||
+                damageable.CurrentHealth is < 0 || damageable.CurrentHealth > damageable.MaximumHealth ||
+                !double.IsFinite(damageable.Armor) || damageable.Armor < 0 ||
+                damageable.Resistances.Count == 0 || damageable.Resistances.Any(item =>
+                    string.IsNullOrWhiteSpace(item.Key) || !double.IsFinite(item.Value) || item.Value is < 0 or > 1) ||
+                damageable.VisualStageThresholds.Count == 0 || damageable.VisualStageThresholds.Any(item =>
+                    !double.IsFinite(item) || item is < 0 or > 1) ||
+                damageable.VisualStageThresholds.Distinct().Count() != damageable.VisualStageThresholds.Count ||
+                string.IsNullOrWhiteSpace(damageable.DestructionEffectId) ||
+                string.IsNullOrWhiteSpace(damageable.DebrisDefinitionId) ||
+                !double.IsFinite(damageable.RepairCost) || damageable.RepairCost < 0)
+                Add(diagnostics, "world.placeable.damageable_invalid",
+                    "Damageable profile requires bounded health, armor, resistances, stages, destruction, debris and repair.",
+                    $"{operationsPath}/damageable");
+        }
+
+        if (operations.Protection is { } protection)
+        {
+            ids.Add(protection.Id);
+            if (protection.Id == Guid.Empty || protection.ProtectedActions.Count == 0 ||
+                protection.ProtectedActions.Any(string.IsNullOrWhiteSpace) ||
+                protection.ProtectedActions.Distinct(StringComparer.Ordinal).Count() != protection.ProtectedActions.Count ||
+                protection.RequiredPermissions.Any(string.IsNullOrWhiteSpace) ||
+                protection.RequiredPermissions.Distinct(StringComparer.Ordinal).Count() != protection.RequiredPermissions.Count ||
+                string.IsNullOrWhiteSpace(protection.Feedback) || string.IsNullOrWhiteSpace(protection.AuditBinding))
+                Add(diagnostics, "world.placeable.protection_invalid",
+                    "Protection requires actions, permissions, feedback and an audited GM override binding.",
+                    $"{operationsPath}/protection");
+        }
+        else
+            Add(diagnostics, "world.placeable.protection_required_missing",
+                "Placeable operations require an explicit protection policy.", $"{operationsPath}/protection");
+
+        if (operations.Lock is { } lockProfile)
+        {
+            ids.Add(lockProfile.Id);
+            var mechanisms = lockProfile.CredentialIds.Count + lockProfile.RequiredPermissions.Count +
+                (string.IsNullOrWhiteSpace(lockProfile.SkillId) ? 0 : 1) +
+                (string.IsNullOrWhiteSpace(lockProfile.CodeHash) ? 0 : 1) + (lockProfile.Hackable ? 1 : 0);
+            if (lockProfile.Id == Guid.Empty || mechanisms == 0 ||
+                lockProfile.CredentialIds.Any(string.IsNullOrWhiteSpace) ||
+                lockProfile.CredentialIds.Distinct(StringComparer.Ordinal).Count() != lockProfile.CredentialIds.Count ||
+                lockProfile.RequiredPermissions.Any(string.IsNullOrWhiteSpace) ||
+                lockProfile.RequiredPermissions.Distinct(StringComparer.Ordinal).Count() != lockProfile.RequiredPermissions.Count ||
+                lockProfile.SkillId is { Length: 0 } || lockProfile.CodeHash is { Length: 0 } ||
+                !double.IsFinite(lockProfile.Difficulty) || lockProfile.Difficulty < 0 ||
+                lockProfile.Hackable && string.IsNullOrWhiteSpace(lockProfile.SkillId))
+                Add(diagnostics, "world.placeable.lock_invalid",
+                    "Lock requires a state and valid credential, skill, code, hacking, relock, jam or permission policy.",
+                    $"{operationsPath}/lock");
+        }
+
+        if (ids.Any(id => id == Guid.Empty) || ids.Distinct().Count() != ids.Count)
+            Add(diagnostics, "world.placeable.operations_identity_conflict",
+                "Placeable operation identities must be non-empty and unique.", operationsPath);
+    }
+
+    private static void ValidatePlaceableSecurityEvents(PlaceableWorldProfile profile, string path,
+        IReadOnlySet<Guid> blueprintIds, List<DomainDiagnostic> diagnostics)
+    {
+        var eventsPath = $"{path}/securityEvents";
+        if (profile.SecurityEvents is null)
+        {
+            if (profile.SecurityEventsRequiredAtRuntime)
+                Add(diagnostics, "world.placeable.security_events_required_missing",
+                    "Required placeable security and event profile is missing.", eventsPath);
+            return;
+        }
+
+        var events = profile.SecurityEvents;
+        Identity(events.Id, events.SchemaVersion, events.Provenance, eventsPath, diagnostics);
+        if (profile.Foundation is null)
+            Add(diagnostics, "world.placeable.security_events_foundation_missing",
+                "Placeable security and events require the canonical foundation.", eventsPath);
+        else if (!profile.Foundation.Components.HasTrap)
+            Add(diagnostics, "world.placeable.trap_component_missing",
+                "Authored trap data requires the placeable trap component.", $"{eventsPath}/trap");
+        if (profile.Operations is null)
+            Add(diagnostics, "world.placeable.security_events_operations_missing",
+                "Placeable security and events require the canonical operations profile.", eventsPath);
+
+        var ids = new List<Guid>
+        {
+            profile.Id,
+            events.Id,
+            events.Trap.Id,
+            events.Loot.Id,
+            events.Loot.LootTable.Id,
+            events.ContainerEvents.Id,
+            events.LockEvents.Id,
+            events.ContentsChanged.Id,
+        };
+        if (profile.Foundation is not null) ids.Add(profile.Foundation.Id);
+        if (profile.Operations is not null) ids.Add(profile.Operations.Id);
+
+        var trap = events.Trap;
+        if (trap.Id == Guid.Empty || string.IsNullOrWhiteSpace(trap.TriggerId) ||
+            string.IsNullOrWhiteSpace(trap.PayloadId) || !double.IsFinite(trap.DetectionDifficulty) ||
+            trap.DetectionDifficulty < 0 || !double.IsFinite(trap.DisarmDifficulty) ||
+            trap.DisarmDifficulty < 0 || !double.IsFinite(trap.ResetDelaySeconds) ||
+            trap.ResetDelaySeconds < 0 || string.IsNullOrWhiteSpace(trap.OwnerId) ||
+            string.IsNullOrWhiteSpace(trap.VisualEffectId) || string.IsNullOrWhiteSpace(trap.FriendlyPolicy))
+            Add(diagnostics, "world.placeable.trap_invalid",
+                "Trap requires trigger, payload, detection, disarm, reset, ownership, VFX and friendly policy.",
+                $"{eventsPath}/trap");
+
+        var loot = events.Loot;
+        var lootTable = loot.LootTable;
+        if (loot.Id == Guid.Empty || loot.LootTableId == Guid.Empty || loot.LootTableId != lootTable.Id ||
+            lootTable.Id == Guid.Empty || lootTable.SchemaVersion != 1 ||
+            string.IsNullOrWhiteSpace(lootTable.Provenance) || loot.Generation < 0 ||
+            lootTable.Entries.Count == 0 || lootTable.Entries.Any(item => item.ItemDefinitionId == Guid.Empty ||
+                string.IsNullOrWhiteSpace(item.Group) || !double.IsFinite(item.Weight) || item.Weight <= 0 ||
+                item.MinimumQuantity < 0 || item.MaximumQuantity < item.MinimumQuantity || item.MinimumQuality < 0) ||
+            loot.SavedResults.Any(item => item.ItemDefinitionId == Guid.Empty || item.Quantity < 1 ||
+                item.Quality < 0 || string.IsNullOrWhiteSpace(item.Group)))
+            Add(diagnostics, "world.placeable.loot_spawner_invalid",
+                "Loot spawner requires a valid table, timing, seed, generation and persisted results.",
+                $"{eventsPath}/loot");
+        foreach (var entry in lootTable.Entries.Where(item => !blueprintIds.Contains(item.ItemDefinitionId)))
+            Add(diagnostics, "world.placeable.loot_item_reference_missing",
+                "Placeable loot entry references a missing item blueprint.",
+                $"{eventsPath}/loot/lootTable/entries/{entry.ItemDefinitionId}");
+
+        var containerEvents = events.ContainerEvents;
+        if (containerEvents.Id == Guid.Empty || string.IsNullOrWhiteSpace(containerEvents.ForgeScriptApiVersion) ||
+            string.IsNullOrWhiteSpace(containerEvents.OpenedBinding) ||
+            string.IsNullOrWhiteSpace(containerEvents.ClosedBinding) || !containerEvents.IncludeActor ||
+            !containerEvents.IncludeResult || !containerEvents.IncludePreviousState ||
+            !containerEvents.IncludeAuthority)
+            Add(diagnostics, "world.placeable.container_events_invalid",
+                "Container open and close events require bindings, actor, result, previous state and authority.",
+                $"{eventsPath}/containerEvents");
+
+        var lockEvents = events.LockEvents;
+        if (lockEvents.Id == Guid.Empty || profile.Operations?.Lock is null ||
+            string.IsNullOrWhiteSpace(lockEvents.ForgeScriptApiVersion) ||
+            string.IsNullOrWhiteSpace(lockEvents.ChangingBinding) ||
+            string.IsNullOrWhiteSpace(lockEvents.ChangedBinding) || !lockEvents.IncludeMethod ||
+            !lockEvents.IncludeCredential || !lockEvents.IncludeActor || !lockEvents.ControlledVeto)
+            Add(diagnostics, "world.placeable.lock_events_invalid",
+                "Lock events require before/after bindings, method, credential, actor and controlled veto.",
+                $"{eventsPath}/lockEvents");
+
+        var disturbed = events.ContentsChanged;
+        if (disturbed.Id == Guid.Empty || string.IsNullOrWhiteSpace(disturbed.ForgeScriptApiVersion) ||
+            string.IsNullOrWhiteSpace(disturbed.EventBinding) || !disturbed.IncludeTransactionalDelta ||
+            !disturbed.IncludeCause || !disturbed.IncludeRevision || !disturbed.IncludeActor)
+            Add(diagnostics, "world.placeable.contents_changed_invalid",
+                "Container contents event requires transactional delta, cause, revisions and actor.",
+                $"{eventsPath}/contentsChanged");
+
+        if (ids.Any(id => id == Guid.Empty) || ids.Distinct().Count() != ids.Count)
+            Add(diagnostics, "world.placeable.security_events_identity_conflict",
+                "Placeable security and event identities must be non-empty and unique.", eventsPath);
+    }
+
+    private static void ValidatePlaceableCompositionEvents(PlaceableWorldProfile profile, string path,
+        IReadOnlySet<Guid> blueprintIds, List<DomainDiagnostic> diagnostics)
+    {
+        var compositionPath = $"{path}/compositionEvents";
+        if (profile.CompositionEvents is null)
+        {
+            if (profile.CompositionEventsRequiredAtRuntime)
+                Add(diagnostics, "world.placeable.composition_events_required_missing",
+                    "Required placeable damage, socket and multi-verb profile is missing.", compositionPath);
+            return;
+        }
+
+        var composition = profile.CompositionEvents;
+        Identity(composition.Id, composition.SchemaVersion, composition.Provenance, compositionPath,
+            diagnostics);
+        if (profile.Foundation is null)
+            Add(diagnostics, "world.placeable.composition_events_foundation_missing",
+                "Placeable composition events require the canonical foundation.", compositionPath);
+        else if (!profile.Foundation.Collision.Enabled)
+            Add(diagnostics, "world.placeable.composition_events_collision_missing",
+                "Placeable sockets require canonical collision geometry.", $"{compositionPath}/sockets");
+        if (profile.Operations?.Damageable is null)
+            Add(diagnostics, "world.placeable.damage_events_damageable_missing",
+                "Placeable damage and destruction events require the canonical damageable profile.",
+                $"{compositionPath}/damageEvents");
+
+        var ids = new List<Guid>
+        {
+            profile.Id,
+            composition.Id,
+            composition.DamageEvents.Id,
+            composition.MultiVerb.Id,
+        };
+        ids.AddRange(composition.Sockets.Select(item => item.Id));
+        ids.AddRange(composition.Attachments.Select(item => item.Id));
+        ids.AddRange(composition.MultiVerb.Verbs.Select(item => item.Id));
+
+        var damage = composition.DamageEvents;
+        if (damage.Id == Guid.Empty || string.IsNullOrWhiteSpace(damage.ForgeScriptApiVersion) ||
+            string.IsNullOrWhiteSpace(damage.DamagedBinding) ||
+            string.IsNullOrWhiteSpace(damage.DestroyedBinding) || !damage.IncludeSource ||
+            !damage.IncludeAmount || !damage.IncludeDamageType || !damage.IncludePreviousHealth ||
+            !damage.IncludeCurrentHealth || !damage.IncludeContext)
+            Add(diagnostics, "world.placeable.damage_events_invalid",
+                "Damage events require uniform source, amount, type, health and context payloads.",
+                $"{compositionPath}/damageEvents");
+
+        var socketIds = composition.Sockets.Select(item => item.SocketId).ToArray();
+        if (composition.Sockets.Count == 0 || socketIds.Any(string.IsNullOrWhiteSpace) ||
+            socketIds.Distinct(StringComparer.Ordinal).Count() != socketIds.Length ||
+            composition.Sockets.Any(socket => socket.Id == Guid.Empty || string.IsNullOrWhiteSpace(socket.Kind) ||
+                socket.AllowedAttachmentTags.Count == 0 ||
+                socket.AllowedAttachmentTags.Any(string.IsNullOrWhiteSpace) ||
+                socket.AllowedAttachmentTags.Distinct(StringComparer.Ordinal).Count() !=
+                socket.AllowedAttachmentTags.Count || socket.MaximumAttachments < 1 ||
+                InvalidCompositionTransform(socket.LocalTransform)))
+            Add(diagnostics, "world.placeable.attachment_sockets_invalid",
+                "Attachment sockets require unique identity, kind, bounded transform, tags and capacity.",
+                $"{compositionPath}/sockets");
+
+        foreach (var attachment in composition.Attachments)
+        {
+            var socket = composition.Sockets.FirstOrDefault(item => item.SocketId == attachment.SocketId);
+            if (attachment.Id == Guid.Empty || socket is null ||
+                !blueprintIds.Contains(attachment.ChildBlueprintId.Value) || attachment.Tags.Count == 0 ||
+                attachment.Tags.Any(string.IsNullOrWhiteSpace) ||
+                attachment.Tags.Distinct(StringComparer.Ordinal).Count() != attachment.Tags.Count ||
+                InvalidCompositionTransform(attachment.Transform) ||
+                socket is not null && !socket.AllowedAttachmentTags.Intersect(attachment.Tags,
+                    StringComparer.Ordinal).Any())
+                Add(diagnostics, "world.placeable.attachment_invalid",
+                    "Attachment requires a compatible socket, resolved blueprint, tags and bounded transform.",
+                    $"{compositionPath}/attachments/{attachment.Id}");
+        }
+
+        foreach (var socket in composition.Sockets.Where(socket =>
+                     composition.Attachments.Count(item => item.SocketId == socket.SocketId) >
+                     socket.MaximumAttachments))
+            Add(diagnostics, "world.placeable.attachment_socket_capacity_exceeded",
+                "Authored attachments exceed socket capacity.",
+                $"{compositionPath}/sockets/{socket.Id}/maximumAttachments");
+
+        var verbs = composition.MultiVerb.Verbs;
+        var verbIds = verbs.Select(item => item.VerbId).ToArray();
+        var requiredStandardVerbs = new[] { "inspect", "use", "open", "talk", "take", "push", "climb" };
+        var hasCustomVerb = verbs.Any(item => !requiredStandardVerbs.Contains(item.VerbId,
+            StringComparer.OrdinalIgnoreCase));
+        if (composition.MultiVerb.Id == Guid.Empty || verbs.Count < 8 ||
+            verbIds.Any(string.IsNullOrWhiteSpace) ||
+            verbIds.Distinct(StringComparer.OrdinalIgnoreCase).Count() != verbIds.Length ||
+            requiredStandardVerbs.Any(required => !verbIds.Contains(required,
+                StringComparer.OrdinalIgnoreCase)) || !hasCustomVerb ||
+            verbs.Any(verb => verb.Id == Guid.Empty || string.IsNullOrWhiteSpace(verb.LabelKey) ||
+                string.IsNullOrWhiteSpace(verb.EventBinding) || verb.RequiredContext.Any(string.IsNullOrWhiteSpace) ||
+                verb.ForbiddenContext.Any(string.IsNullOrWhiteSpace) ||
+                verb.RequiredContext.Intersect(verb.ForbiddenContext, StringComparer.Ordinal).Any()))
+            Add(diagnostics, "world.placeable.multi_verb_invalid",
+                "Multi-verb interaction requires Inspect, Use, Open, Talk, Take, Push, Climb and one custom contextual verb.",
+                $"{compositionPath}/multiVerb");
+
+        if (ids.Any(id => id == Guid.Empty) || ids.Distinct().Count() != ids.Count)
+            Add(diagnostics, "world.placeable.composition_events_identity_conflict",
+                "Placeable composition identities must be non-empty and unique.", compositionPath);
+    }
+
+    private static bool InvalidCompositionTransform(PlaceableWorldProfile.TransformPolicy transform)
+        => transform.Scale.X is <= .01f or > 100 || transform.Scale.Y is <= .01f or > 100 ||
+           transform.Scale.Z is <= .01f or > 100 || !double.IsFinite(transform.SnapIncrement) ||
+           transform.SnapIncrement is < 0 or > 10000 ||
+           new[]
+           {
+               transform.Position.X, transform.Position.Y, transform.Position.Z,
+               transform.Pivot.X, transform.Pivot.Y, transform.Pivot.Z,
+           }.Any(value => Math.Abs(value) > 1_000_000);
+
+    private static void ValidateTriggerAdvanced(TriggerWorldProfile profile, string path,
+        List<DomainDiagnostic> diagnostics)
+    {
+        var advancedPath = $"{path}/advanced";
+        if (profile.Advanced is null)
+        {
+            if (profile.AdvancedRequiredAtRuntime)
+                Add(diagnostics, "world.trigger.advanced_required",
+                    "Required trigger trap, query, gameplay-volume and occupancy-debug profile is missing.",
+                    advancedPath);
+            return;
+        }
+
+        var advanced = profile.Advanced;
+        Identity(advanced.Id, advanced.SchemaVersion, advanced.Provenance, advancedPath, diagnostics);
+        if (profile.Foundation is null)
+            Add(diagnostics, "world.trigger.advanced_foundation_missing",
+                "Advanced trigger capabilities require canonical trigger geometry and transform.", advancedPath);
+        if (string.IsNullOrWhiteSpace(advanced.ForgeScriptApiVersion))
+            Add(diagnostics, "world.trigger.advanced_api_invalid",
+                "Advanced trigger capabilities require a ForgeScript API version.", $"{advancedPath}/forgeScriptApiVersion");
+
+        var trap = advanced.Trap;
+        var trapBindings = new[] { trap.DetectedBinding, trap.DisarmedBinding, trap.TriggeredBinding,
+            trap.ResetBinding };
+        if (trap.Id == Guid.Empty || string.IsNullOrWhiteSpace(trap.TriggerId) ||
+            string.IsNullOrWhiteSpace(trap.PayloadId) || !double.IsFinite(trap.DetectionDifficulty) ||
+            trap.DetectionDifficulty < 0 || !double.IsFinite(trap.DisarmDifficulty) ||
+            trap.DisarmDifficulty < 0 || !double.IsFinite(trap.ResetDelaySeconds) ||
+            trap.ResetDelaySeconds < 0 || string.IsNullOrWhiteSpace(trap.OwnerId) ||
+            string.IsNullOrWhiteSpace(trap.VisualEffectId) || string.IsNullOrWhiteSpace(trap.FriendlyPolicy) ||
+            !trap.VisualizationColor.StartsWith('#') || trap.VisualizationColor.Length is not (4 or 7 or 9) ||
+            trapBindings.Any(string.IsNullOrWhiteSpace) ||
+            trapBindings.Distinct(StringComparer.Ordinal).Count() != trapBindings.Length)
+            Add(diagnostics, "world.trigger.trap_invalid",
+                "Trap requires detection, disarm, payload, reset, ownership, GM visualization and unique bindings.",
+                $"{advancedPath}/trap");
+
+        var query = advanced.TargetFilter;
+        var queryLists = new IReadOnlyList<string>[] { query.RequiredTags, query.ExcludedTags,
+            query.RequiredComponents };
+        if (query.Id == Guid.Empty || queryLists.Any(values => values.Any(string.IsNullOrWhiteSpace) ||
+                values.Distinct(StringComparer.Ordinal).Count() != values.Count) ||
+            query.RequiredTags.Intersect(query.ExcludedTags, StringComparer.Ordinal).Any() ||
+            query.FactionIds.Any(id => id == Guid.Empty) || query.FactionIds.Distinct().Count() != query.FactionIds.Count ||
+            query.OwnerId is { Length: 0 } || query.TeamId is { Length: 0 } ||
+            query.SandboxPredicate is { } predicate &&
+            (predicate.Split("==", StringSplitOptions.TrimEntries).Length != 2 ||
+             predicate.Split("==", StringSplitOptions.TrimEntries).Any(string.IsNullOrWhiteSpace)))
+            Add(diagnostics, "world.trigger.target_filter_invalid",
+                "Typed target query tags, factions, components, owner, team and sandbox predicate must be valid.",
+                $"{advancedPath}/targetFilter");
+
+        var volumes = advanced.GameplayVolumes;
+        var volumeKinds = Enum.GetValues<TriggerGameplayVolumeKind>();
+        if (volumes.Count != volumeKinds.Length || volumes.Any(item => item.Id == Guid.Empty || !item.Enabled ||
+                item.NumericParameters.Count + item.TextParameters.Count == 0 ||
+                item.NumericParameters.Any(parameter => string.IsNullOrWhiteSpace(parameter.Key) ||
+                    !double.IsFinite(parameter.Value)) ||
+                item.TextParameters.Any(parameter => string.IsNullOrWhiteSpace(parameter.Key) ||
+                    string.IsNullOrWhiteSpace(parameter.Value)) ||
+                !string.Equals(item.EnterBinding, $"{item.Kind}VolumeEntered", StringComparison.Ordinal) ||
+                !string.Equals(item.ExitBinding, $"{item.Kind}VolumeExited", StringComparison.Ordinal)) ||
+            volumes.Select(item => item.Id).Distinct().Count() != volumes.Count ||
+            volumes.Select(item => item.Kind).Distinct().Count() != volumeKinds.Length ||
+            volumeKinds.Any(kind => volumes.All(item => item.Kind != kind)))
+            Add(diagnostics, "world.trigger.gameplay_volumes_invalid",
+                "Gameplay volume library must define all ten typed, enabled and uniquely bound volume kinds.",
+                $"{advancedPath}/gameplayVolumes");
+
+        var debug = advanced.OccupancyDebug;
+        if (debug.Id == Guid.Empty || !debug.Enabled || !debug.ShowOccupants || !debug.ShowLastFires ||
+            !debug.ShowCooldowns || !debug.ShowFilters || !debug.ShowEventTrace ||
+            debug.MaximumTraceEntries is < 1 or > 1000)
+            Add(diagnostics, "world.trigger.occupancy_debug_invalid",
+                "Occupancy debug must expose occupants, fires, cooldowns, filters and a bounded event trace.",
+                $"{advancedPath}/occupancyDebug");
+
+        var componentIds = new[] { advanced.Id, trap.Id, query.Id, debug.Id }
+            .Concat(volumes.Select(item => item.Id)).ToArray();
+        if (componentIds.Any(id => id == Guid.Empty) || componentIds.Distinct().Count() != componentIds.Length ||
+            profile.Foundation is { } foundation && componentIds.Contains(foundation.Id))
+            Add(diagnostics, "world.trigger.advanced_uuid_duplicate",
+                "Advanced trigger component UUIDs must be non-empty and unique.", advancedPath);
     }
 
     private static void ValidateTriggerFoundation(TriggerWorldProfile profile, string path,
@@ -592,6 +1126,162 @@ public static class WorldFeatureCatalogValidator
         }
     }
 
+    private static void ValidateMerchantFoundation(
+        MerchantWorldProfile profile,
+        IReadOnlyDictionary<BlueprintId, BlueprintDefinition> blueprints,
+        IReadOnlySet<Guid> dialogues,
+        IReadOnlySet<string> currencyIds,
+        string path,
+        List<DomainDiagnostic> diagnostics)
+    {
+        var foundationPath = $"{path}/foundation";
+        if (profile.Foundation is null)
+        {
+            if (profile.FoundationRequiredAtRuntime)
+                Add(diagnostics, "world.merchant.foundation_required_missing",
+                    "Required merchant foundation profile is missing.", foundationPath);
+            return;
+        }
+
+        var foundation = profile.Foundation;
+        Identity(foundation.Id, foundation.SchemaVersion, foundation.Provenance, foundationPath, diagnostics);
+        if (string.IsNullOrWhiteSpace(foundation.Slug) || string.IsNullOrWhiteSpace(foundation.DisplayNameKey) ||
+            foundation.Locales.Count == 0 || foundation.Locales.Any(string.IsNullOrWhiteSpace) ||
+            foundation.Locales.Distinct(StringComparer.OrdinalIgnoreCase).Count() != foundation.Locales.Count)
+            Add(diagnostics, "world.merchant.foundation_identity_invalid",
+                "Store slug, display-name key and unique locales are required.", foundationPath);
+
+        var vendorIds = foundation.Vendors.Select(item => item.Id).ToArray();
+        if (foundation.Vendors.Count == 0 || vendorIds.Any(id => id == Guid.Empty) ||
+            vendorIds.Distinct().Count() != vendorIds.Length)
+            Add(diagnostics, "world.merchant.vendor_identity_invalid",
+                "At least one uniquely identified vendor binding is required.", $"{foundationPath}/vendors");
+        foreach (var vendor in foundation.Vendors)
+        {
+            var vendorPath = $"{foundationPath}/vendors/{vendor.Id}";
+            if (!blueprints.TryGetValue(vendor.VendorBlueprintId, out var blueprint) ||
+                blueprint.Kind != BlueprintKind.Creature)
+                Add(diagnostics, "world.merchant.vendor_reference_missing",
+                    "Vendor binding must reference a creature blueprint.", $"{vendorPath}/vendorBlueprintId");
+            if (!dialogues.Contains(vendor.DialogueId))
+                Add(diagnostics, "world.merchant.dialogue_reference_missing",
+                    "Vendor binding must reference an existing dialogue.", $"{vendorPath}/dialogueId");
+            if (string.IsNullOrWhiteSpace(vendor.DialogueChoiceId) ||
+                string.IsNullOrWhiteSpace(vendor.InteractionId) || string.IsNullOrWhiteSpace(vendor.Channel))
+                Add(diagnostics, "world.merchant.vendor_binding_invalid",
+                    "Vendor dialogue choice, interaction and channel are required.", vendorPath);
+        }
+
+        Identity(foundation.Wizard.Id, foundation.Wizard.SchemaVersion, foundation.Wizard.Provenance,
+            $"{foundationPath}/wizard", diagnostics);
+        if (!foundation.Wizard.CreateStoreDefinition || !foundation.Wizard.CreateVendorBinding ||
+            !foundation.Wizard.CreateDialogueChoice || !foundation.Wizard.CreateInteraction ||
+            !foundation.Wizard.CreateTests || string.IsNullOrWhiteSpace(foundation.Wizard.TestFixtureId))
+            Add(diagnostics, "world.merchant.wizard_incomplete",
+                "Store wizard must generate the definition, vendor, dialogue choice, interaction and tests.",
+                $"{foundationPath}/wizard");
+
+        var stockIds = foundation.Stock.Select(item => item.Id).ToArray();
+        if (stockIds.Any(id => id == Guid.Empty) || stockIds.Distinct().Count() != stockIds.Length)
+            Add(diagnostics, "world.merchant.foundation_stock_identity_invalid",
+                "Store stock entries require unique stable identities.", $"{foundationPath}/stock");
+        foreach (var entry in foundation.Stock)
+        {
+            var stockPath = $"{foundationPath}/stock/{entry.Id}";
+            if (!blueprints.TryGetValue(entry.ItemBlueprintId, out var blueprint) ||
+                blueprint.Kind != BlueprintKind.Item)
+                Add(diagnostics, "world.merchant.foundation_stock_item_missing",
+                    "Store stock entry must reference an item blueprint.", $"{stockPath}/itemBlueprintId");
+            if (string.IsNullOrWhiteSpace(entry.VariantId) || entry.Quantity < 0 || entry.RestockWorldHours < 0 ||
+                entry.DisplayOrder < 0 || entry.BaseValue < 0 || !currencyIds.Contains(entry.CurrencyId) ||
+                entry.HiddenConditions.Any(string.IsNullOrWhiteSpace) ||
+                entry.HiddenConditions.Distinct(StringComparer.Ordinal).Count() != entry.HiddenConditions.Count)
+                Add(diagnostics, "world.merchant.foundation_stock_values_invalid",
+                    "Stock supply, quantity, restock, order, price, currency and hidden conditions are invalid.", stockPath);
+            if (entry.Supply == MerchantSupplyPolicy.Finite && entry.Quantity < 1)
+                Add(diagnostics, "world.merchant.finite_stock_empty",
+                    "Finite stock requires a positive quantity.", $"{stockPath}/quantity");
+        }
+
+        var pricing = foundation.Pricing;
+        var pricingPath = $"{foundationPath}/pricing";
+        Identity(pricing.Id, pricing.SchemaVersion, pricing.Provenance, pricingPath, diagnostics);
+        if (pricing.BuyMultiplier < 0 || pricing.SellMultiplier < 0 || pricing.MinimumPrice < 0 ||
+            pricing.MaximumPrice < pricing.MinimumPrice ||
+            pricing.CurrencyRates.Count == 0 || pricing.CurrencyRates.Any(item =>
+                !currencyIds.Contains(item.Key) || item.Value <= 0) ||
+            new[] { pricing.ReputationFactor, pricing.ScarcityFactor, pricing.ConditionFactor,
+                pricing.NegotiationFactor }.Any(value => value < 0) ||
+            !ValidCurve(pricing.BuyCurve) || !ValidCurve(pricing.SellCurve))
+            Add(diagnostics, "world.merchant.foundation_pricing_invalid",
+                "Pricing curves, currencies, factors and bounds are invalid.", pricingPath);
+
+        var query = foundation.Restrictions;
+        var queryPath = $"{foundationPath}/restrictions";
+        Identity(query.Id, query.SchemaVersion, query.Provenance, queryPath, diagnostics);
+        var filterValues = query.WhitelistTypes.Concat(query.WhitelistTags).Concat(query.BlacklistTags)
+            .Concat(query.Provenances).ToArray();
+        if (query.MinimumQuality < 0 || query.MaximumQuality < query.MinimumQuality ||
+            query.MinimumCondition is < 0 or > 1 || filterValues.Any(string.IsNullOrWhiteSpace) ||
+            query.WhitelistTags.Intersect(query.BlacklistTags, StringComparer.OrdinalIgnoreCase).Any() ||
+            query.CustomRuleBinding is { Length: 0 })
+            Add(diagnostics, "world.merchant.foundation_query_invalid",
+                "Whitelist, blacklist, quality, provenance, condition, owner and custom rule are invalid.", queryPath);
+    }
+
+    private static bool ValidCurve(IReadOnlyList<MerchantPriceCurvePoint> points)
+    {
+        if (points.Count == 0 || points.Any(item => item.BaseValue < 0 || item.Multiplier <= 0)) return false;
+        var ordered = points.OrderBy(item => item.BaseValue).ToArray();
+        return ordered.Select(item => item.BaseValue).Distinct().Count() == ordered.Length &&
+               ordered.SequenceEqual(points);
+    }
+
+    private static void ValidateMerchantExperience(
+        MerchantWorldProfile profile,
+        string path,
+        List<DomainDiagnostic> diagnostics)
+    {
+        var experiencePath = $"{path}/experience";
+        if (profile.Experience is null)
+        {
+            if (profile.ExperienceRequiredAtRuntime)
+                Add(diagnostics, "world.merchant.experience_required_missing",
+                    "Required merchant store experience profile is missing.", experiencePath);
+            return;
+        }
+
+        var experience = profile.Experience;
+        Identity(experience.Id, experience.SchemaVersion, experience.Provenance, experiencePath, diagnostics);
+        var sessions = experience.Sessions;
+        var sessionsPath = $"{experiencePath}/sessions";
+        Identity(sessions.Id, sessions.SchemaVersion, sessions.Provenance, sessionsPath, diagnostics);
+        if (!Version.TryParse(sessions.ForgeScriptApiVersion, out _) ||
+            string.IsNullOrWhiteSpace(sessions.OpenEventBinding) ||
+            string.IsNullOrWhiteSpace(sessions.CloseEventBinding) ||
+            sessions.OpenEventBinding == sessions.CloseEventBinding ||
+            !sessions.IncludeCustomer || !sessions.IncludeVendor || !sessions.IncludePriceContext ||
+            !sessions.IncludeTransactionSummary)
+            Add(diagnostics, "world.merchant.session_events_invalid",
+                "Store session events require an API version, distinct bindings, customer, vendor, price context and transaction summary.",
+                sessionsPath);
+
+        var ui = experience.Ui;
+        var uiPath = $"{experiencePath}/ui";
+        Identity(ui.Id, ui.SchemaVersion, ui.Provenance, uiPath, diagnostics);
+        if (!ui.KeyboardNavigation || !ui.GamepadNavigation || !ui.Compare || !ui.Filters || !ui.Cart ||
+            !ui.Confirmation || !ui.ScreenReaderLabels || !ui.HighContrast || ui.Columns.Count < 3 ||
+            ui.Columns.Any(string.IsNullOrWhiteSpace) ||
+            ui.Columns.Distinct(StringComparer.OrdinalIgnoreCase).Count() != ui.Columns.Count)
+            Add(diagnostics, "world.merchant.store_ui_invalid",
+                "Store UI requires keyboard/gamepad navigation, compare, filters, cart, confirmation, accessibility and unique columns.",
+                uiPath);
+
+        if (new[] { experience.Id, sessions.Id, ui.Id }.Distinct().Count() != 3)
+            Add(diagnostics, "world.merchant.experience_identity_conflict",
+                "Store experience, session and UI identities must be distinct.", experiencePath);
+    }
+
     private static void ValidateCompanion(
         ProjectDefinition project,
         CompanionWorldProfile profile,
@@ -600,6 +1290,9 @@ public static class WorldFeatureCatalogValidator
         string path,
         List<DomainDiagnostic> diagnostics)
     {
+        ValidateCompanionFoundation(profile, dialogues, path, diagnostics);
+        ValidateCompanionControl(profile, path, diagnostics);
+        ValidateCompanionExperience(profile, path, diagnostics);
         if (profile.Validation is null)
         {
             if (profile.ValidationRequiredAtRuntime)
@@ -673,6 +1366,268 @@ public static class WorldFeatureCatalogValidator
             Add(diagnostics, "world.companion.cross_zone_unreachable",
                 "Allowed companion areas are not connected by the authored portal graph.",
                 $"{validationPath}/crossZoneNavigation/allowedAreaIds");
+    }
+
+    private static void ValidateCompanionFoundation(
+        CompanionWorldProfile profile,
+        IReadOnlySet<Guid> dialogues,
+        string path,
+        List<DomainDiagnostic> diagnostics)
+    {
+        var foundation = profile.Foundation;
+        var foundationPath = $"{path}/foundation";
+        if (foundation is null)
+        {
+            if (profile.FoundationRequiredAtRuntime)
+                Add(diagnostics, "world.companion.foundation_required",
+                    "Required companion foundation profile is missing.", foundationPath);
+            return;
+        }
+
+        Identity(foundation.Id, foundation.SchemaVersion, foundation.Provenance, foundationPath, diagnostics);
+        var identities = new[]
+        {
+            (foundation.Recruitable.Id, foundation.Recruitable.SchemaVersion, foundation.Recruitable.Provenance,
+                $"{foundationPath}/recruitable"),
+            (foundation.PreRecruitment.Id, foundation.PreRecruitment.SchemaVersion,
+                foundation.PreRecruitment.Provenance, $"{foundationPath}/preRecruitment"),
+            (foundation.OwnerDialogue.Id, foundation.OwnerDialogue.SchemaVersion,
+                foundation.OwnerDialogue.Provenance, $"{foundationPath}/ownerDialogue"),
+            (foundation.Membership.Id, foundation.Membership.SchemaVersion, foundation.Membership.Provenance,
+                $"{foundationPath}/membership"),
+            (foundation.Party.Id, foundation.Party.SchemaVersion, foundation.Party.Provenance,
+                $"{foundationPath}/party"),
+        };
+        foreach (var identity in identities)
+            Identity(identity.Id, identity.SchemaVersion, identity.Provenance, identity.Item4, diagnostics);
+        if (identities.Select(item => item.Id).Append(foundation.Id).Distinct().Count() != identities.Length + 1)
+            Add(diagnostics, "world.companion.foundation_identity_duplicate",
+                "Companion foundation identities must be unique.", foundationPath);
+
+        var recruitable = foundation.Recruitable;
+        if (!recruitable.Enabled || (!recruitable.AllowDialogue && !recruitable.AllowScript) ||
+            recruitable.AllowScript && !SafeIdentifier(recruitable.ScriptId) || recruitable.Cost < 0 ||
+            recruitable.MinimumReputation is < -1 or > 1 ||
+            recruitable.Cost > 0 && !SafeIdentifier(recruitable.CurrencyId) ||
+            recruitable.Conditions.Distinct(StringComparer.Ordinal).Count() != recruitable.Conditions.Count ||
+            recruitable.Conditions.Any(item => !SafeIdentifier(item)) ||
+            recruitable.ConsequenceIds.Distinct(StringComparer.Ordinal).Count() != recruitable.ConsequenceIds.Count ||
+            recruitable.ConsequenceIds.Any(item => !SafeIdentifier(item)))
+            Add(diagnostics, "world.companion.recruitable_invalid",
+                "Recruitable creature requires governed paths, cost, reputation, conditions and consequences.",
+                $"{foundationPath}/recruitable");
+
+        var preRecruitment = foundation.PreRecruitment;
+        if (!dialogues.Contains(preRecruitment.DialogueId) ||
+            !string.Equals(preRecruitment.ContextId, "not-recruited", StringComparison.Ordinal) ||
+            !SafeIdentifier(preRecruitment.OfferNodeId) || !SafeIdentifier(preRecruitment.RefusalNodeId) ||
+            preRecruitment.Conditions.Distinct(StringComparer.Ordinal).Count() != preRecruitment.Conditions.Count ||
+            preRecruitment.Conditions.Any(item => !SafeIdentifier(item)) ||
+            preRecruitment.ConsequenceIds.Distinct(StringComparer.Ordinal).Count() !=
+            preRecruitment.ConsequenceIds.Count ||
+            preRecruitment.ConsequenceIds.Any(item => !SafeIdentifier(item)))
+            Add(diagnostics, "world.companion.pre_recruitment_dialogue_invalid",
+                "Pre-recruitment dialogue must resolve its context, offer, refusal, conditions and consequences.",
+                $"{foundationPath}/preRecruitment");
+
+        var ownerDialogue = foundation.OwnerDialogue;
+        var validatedCommands = profile.Validation?.CommandIds;
+        if (!dialogues.Contains(ownerDialogue.DialogueId) ||
+            !string.Equals(ownerDialogue.ContextId, "recruited-by-speaker", StringComparison.Ordinal) ||
+            ownerDialogue.CommandIds.Count == 0 ||
+            ownerDialogue.CommandIds.Distinct(StringComparer.Ordinal).Count() != ownerDialogue.CommandIds.Count ||
+            ownerDialogue.CommandIds.Any(item => !SafeIdentifier(item) ||
+                validatedCommands is not null && !validatedCommands.Contains(item, StringComparer.Ordinal)) ||
+            !ownerDialogue.ExposeRelationship || !ownerDialogue.ExposeEquipment ||
+            !ownerDialogue.ExposeProgression || !SafeIdentifier(ownerDialogue.DepartureActionId))
+            Add(diagnostics, "world.companion.owner_dialogue_invalid",
+                "Owner dialogue must expose governed commands, relationship, equipment, progression and departure.",
+                $"{foundationPath}/ownerDialogue");
+
+        var membership = foundation.Membership;
+        if (!membership.Atomic || !membership.EnforcePartyCapacity || !membership.TransferOwnership ||
+            !membership.TransferInventory || !membership.PreserveDismissPosition ||
+            !SafeIdentifier(membership.InventoryId) || !SafeIdentifier(membership.DismissAnchorTag))
+            Add(diagnostics, "world.companion.membership_transaction_invalid",
+                "Recruit and dismiss transactions must atomically preserve capacity, ownership, inventory, position and persistence.",
+                $"{foundationPath}/membership");
+
+        var party = foundation.Party;
+        if (party.CompanionSlots < 1 || party.SummonSlots < 0 || party.PetSlots < 0 ||
+            party.TemporaryAllySlots < 0 || party.ServerActorLimit < party.CompanionSlots ||
+            party.RoleLimits.Count == 0 || party.RoleLimits.Any(item => !SafeIdentifier(item.Key) ||
+                item.Value < 0 || item.Value > party.CompanionSlots))
+            Add(diagnostics, "world.companion.party_policy_invalid",
+                "Party policy requires bounded companion, summon, pet, ally, role and server slots.",
+                $"{foundationPath}/party");
+    }
+
+    private static void ValidateCompanionControl(
+        CompanionWorldProfile profile,
+        string path,
+        List<DomainDiagnostic> diagnostics)
+    {
+        var control = profile.Control;
+        var controlPath = $"{path}/control";
+        if (control is null)
+        {
+            if (profile.ControlRequiredAtRuntime)
+                Add(diagnostics, "world.companion.control_required",
+                    "Required companion control profile is missing.", controlPath);
+            return;
+        }
+
+        Identity(control.Id, control.SchemaVersion, control.Provenance, controlPath, diagnostics);
+        var identities = new[]
+        {
+            (control.Ownership.Id, control.Ownership.SchemaVersion, control.Ownership.Provenance,
+                $"{controlPath}/ownership"),
+            (control.Movement.Id, control.Movement.SchemaVersion, control.Movement.Provenance,
+                $"{controlPath}/movement"),
+            (control.Tactical.Id, control.Tactical.SchemaVersion, control.Tactical.Provenance,
+                $"{controlPath}/tactical"),
+            (control.Ai.Id, control.Ai.SchemaVersion, control.Ai.Provenance, $"{controlPath}/ai"),
+            (control.Equipment.Id, control.Equipment.SchemaVersion, control.Equipment.Provenance,
+                $"{controlPath}/equipment"),
+        };
+        foreach (var identity in identities)
+            Identity(identity.Id, identity.SchemaVersion, identity.Provenance, identity.Item4, diagnostics);
+        if (identities.Select(item => item.Id).Append(control.Id).Distinct().Count() != identities.Length + 1)
+            Add(diagnostics, "world.companion.control_identity_duplicate",
+                "Companion control identities must be unique.", controlPath);
+
+        var ownership = control.Ownership;
+        var ownershipKinds = new HashSet<string>(["individual", "party", "shared", "ai-only", "game-master"],
+            StringComparer.Ordinal);
+        if (!ownershipKinds.Contains(ownership.Kind) || ownership.ControllerIds.Count == 0 ||
+            ownership.ControllerIds.Distinct(StringComparer.Ordinal).Count() != ownership.ControllerIds.Count ||
+            ownership.ControllerIds.Any(item => !SafeIdentifier(item)) || ownership.Revision < 0 ||
+            ownership.TransferAllowed && (ownership.AllowedTargetKinds.Count == 0 ||
+                ownership.AllowedTargetKinds.Distinct(StringComparer.Ordinal).Count() !=
+                ownership.AllowedTargetKinds.Count || ownership.AllowedTargetKinds.Any(item =>
+                    !ownershipKinds.Contains(item) || string.Equals(item, ownership.Kind, StringComparison.Ordinal))))
+            Add(diagnostics, "world.companion.ownership_invalid",
+                "Ownership requires a supported kind, controllers, revision and bounded transfer targets.",
+                $"{controlPath}/ownership");
+
+        var movement = control.Movement;
+        var movementKinds = new HashSet<string>(["move", "follow", "hold", "rally", "guard", "interact"],
+            StringComparer.Ordinal);
+        if (!SetEquals(movement.CommandKinds, movementKinds) || !SafeIdentifier(movement.DefaultFormationId) ||
+            !SafeIdentifier(movement.WaypointQuery) || movement.MinimumPriority < 0 ||
+            movement.MaximumPriority < movement.MinimumPriority)
+            Add(diagnostics, "world.companion.movement_commands_invalid",
+                "Movement commands require Move, Follow, Hold, Rally, Guard and Interact with bounded priorities.",
+                $"{controlPath}/movement");
+
+        var tactical = control.Tactical;
+        var tacticalKinds = new HashSet<string>(
+            ["attack", "defend", "focus-fire", "protect", "disengage", "use-ability"], StringComparer.Ordinal);
+        var stances = new HashSet<string>(["passive", "defensive", "balanced", "aggressive"],
+            StringComparer.Ordinal);
+        var validationCommands = profile.Validation?.CommandIds;
+        if (!SetEquals(tactical.CommandKinds, tacticalKinds) || !SetEquals(tactical.Stances, stances) ||
+            tactical.AbilityIds.Count == 0 || tactical.AbilityIds.Distinct(StringComparer.Ordinal).Count() !=
+            tactical.AbilityIds.Count || tactical.AbilityIds.Any(item => !SafeIdentifier(item)) ||
+            validationCommands is not null && tactical.CommandKinds.Any(command =>
+                !validationCommands.Contains(command.Replace("-", string.Empty, StringComparison.Ordinal),
+                    StringComparer.Ordinal) && !validationCommands.Contains(command, StringComparer.Ordinal)) ||
+            tactical.MinimumPriority < 0 || tactical.MaximumPriority < tactical.MinimumPriority)
+            Add(diagnostics, "world.companion.tactical_commands_invalid",
+                "Tactical commands require targets, stances, abilities and bounded priorities.",
+                $"{controlPath}/tactical");
+
+        var ai = control.Ai;
+        if (ai.Autonomy is < 0 or > 1 || ai.RiskTolerance is < 0 or > 1 || ai.ResourceUsage is < 0 or > 1 ||
+            ai.FollowDistance < 0 || !SafeIdentifier(ai.Role) || ai.AllowedAbilityTags.Count == 0 ||
+            ai.AllowedAbilityTags.Distinct(StringComparer.Ordinal).Count() != ai.AllowedAbilityTags.Count ||
+            ai.AllowedAbilityTags.Any(item => !SafeIdentifier(item)) || ai.PlanId == Guid.Empty ||
+            ai.TransactionId == Guid.Empty || ai.PlanId == ai.TransactionId ||
+            !ai.SemanticDiff.Contains("companion/control/ai", StringComparison.Ordinal) ||
+            !SafeIdentifier(ai.AuthorizationLevel))
+            Add(diagnostics, "world.companion.ai_control_invalid",
+                "Companion AI requires bounded autonomy, risk, resources, role, abilities and governed plan metadata.",
+                $"{controlPath}/ai");
+
+        var equipment = control.Equipment;
+        var permissions = new HashSet<string>(["none", "view", "suggest", "equip", "full"],
+            StringComparer.Ordinal);
+        if (!permissions.Contains(equipment.Permission) || !equipment.AllowCompare ||
+            !SafeIdentifier(equipment.InventoryOwnerId) || equipment.LockedItemIds.Any(item => item == Guid.Empty) ||
+            equipment.LockedItemIds.Distinct().Count() != equipment.LockedItemIds.Count ||
+            equipment.SuggestedLoadout.Count == 0 || equipment.SuggestedLoadout.Any(item =>
+                !SafeIdentifier(item.Key) || item.Value == Guid.Empty))
+            Add(diagnostics, "world.companion.equipment_control_invalid",
+                "Companion equipment requires permissions, locks, suggested loadout, comparison and ownership.",
+                $"{controlPath}/equipment");
+    }
+
+    private static bool SetEquals(IReadOnlyList<string> values, IReadOnlySet<string> expected) =>
+        values.Count == expected.Count && values.Distinct(StringComparer.Ordinal).Count() == values.Count &&
+        values.All(expected.Contains);
+
+    private static void ValidateCompanionExperience(
+        CompanionWorldProfile profile,
+        string path,
+        List<DomainDiagnostic> diagnostics)
+    {
+        var experience = profile.Experience;
+        var experiencePath = $"{path}/experience";
+        if (experience is null)
+        {
+            if (profile.ExperienceRequiredAtRuntime)
+                Add(diagnostics, "world.companion.experience_required",
+                    "Required companion experience profile is missing.", experiencePath);
+            return;
+        }
+
+        Identity(experience.Id, experience.SchemaVersion, experience.Provenance, experiencePath, diagnostics);
+        var identities = new[]
+        {
+            (experience.Death.Id, experience.Death.SchemaVersion, experience.Death.Provenance,
+                $"{experiencePath}/death"),
+            (experience.Cohesion.Id, experience.Cohesion.SchemaVersion, experience.Cohesion.Provenance,
+                $"{experiencePath}/cohesion"),
+            (experience.Hud.Id, experience.Hud.SchemaVersion, experience.Hud.Provenance,
+                $"{experiencePath}/hud"),
+        };
+        foreach (var identity in identities)
+            Identity(identity.Id, identity.SchemaVersion, identity.Provenance, identity.Item4, diagnostics);
+        if (identities.Select(item => item.Id).Append(experience.Id).Distinct().Count() != identities.Length + 1)
+            Add(diagnostics, "world.companion.experience_identity_duplicate",
+                "Companion experience identities must be unique.", experiencePath);
+
+        var death = experience.Death;
+        var deathModes = new HashSet<string>(
+            ["downed", "permanent-death", "recoverable-corpse", "resurrection", "replacement", "memorial"],
+            StringComparer.Ordinal);
+        if (!deathModes.Contains(death.Mode) || death.DownedDurationSeconds < 0 ||
+            death.Mode == "downed" && death.DownedDurationSeconds <= 0 ||
+            death.Mode == "resurrection" && !SafeIdentifier(death.ResurrectionResourceId ?? string.Empty) ||
+            death.Mode == "replacement" && !SafeIdentifier(death.ReplacementCreatureId ?? string.Empty) ||
+            death.Mode == "memorial" && !SafeIdentifier(death.MemorialId ?? string.Empty))
+            Add(diagnostics, "world.companion.death_experience_invalid",
+                "Death experience requires a complete downed, death, corpse, resurrection, replacement or memorial policy.",
+                $"{experiencePath}/death");
+
+        var cohesion = experience.Cohesion;
+        if (cohesion.NavigateThreshold < 0 || cohesion.PortalThreshold < cohesion.NavigateThreshold ||
+            cohesion.TeleportThreshold < cohesion.PortalThreshold ||
+            cohesion.AllowSafeTeleport && (cohesion.SafeAnchorTags.Count == 0 ||
+                cohesion.SafeAnchorTags.Distinct(StringComparer.Ordinal).Count() != cohesion.SafeAnchorTags.Count ||
+                cohesion.SafeAnchorTags.Any(item => !SafeIdentifier(item))))
+            Add(diagnostics, "world.companion.cohesion_experience_invalid",
+                "Cohesion requires ordered distance thresholds, portal policy and safe teleport anchors.",
+                $"{experiencePath}/cohesion");
+
+        var hud = experience.Hud;
+        if ((!hud.Keyboard && !hud.Gamepad) || !hud.ScreenReaderLabels || !hud.Portraits || !hud.Health ||
+            !hud.Statuses || !hud.QuickCommands || hud.VisibleResourceIds.Count == 0 ||
+            hud.VisibleResourceIds.Distinct(StringComparer.Ordinal).Count() != hud.VisibleResourceIds.Count ||
+            hud.VisibleResourceIds.Any(item => !SafeIdentifier(item)))
+            Add(diagnostics, "world.companion.party_hud_inaccessible",
+                "Party HUD requires portraits, health, statuses, commands, accessible labels, navigation and resources.",
+                $"{experiencePath}/hud");
     }
 
     private static bool AreasAreConnected(ProjectDefinition project, IReadOnlyList<AreaId> allowed)

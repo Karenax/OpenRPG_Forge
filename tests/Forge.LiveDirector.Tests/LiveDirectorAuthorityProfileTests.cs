@@ -1,0 +1,11 @@
+using Forge.LiveDirector.Authoring;
+using Forge.Network.Operations;
+
+namespace Forge.LiveDirector.Tests;
+
+public sealed class LiveDirectorAuthorityProfileTests
+{
+    [Fact] public void R127_ImpersonationProtectionCurrencyExperienceAndDoors_AreGoverned() { var p = LiveDirectorAuthorityProfile.CreateDefault(); Assert.Equal(4, p.ImpersonationModes.Count); Assert.True(p.ImpersonationDisclosure && p.ProtectionIndicator); Assert.True(p.PersistentWalletAdapter && p.PersistentProgressionAdapter && p.RulesetLevelProjection); Assert.Equal(5, p.DoorStates.Count); Assert.True(p.PortalRelink && p.DoorRuntimeAdapter); Assert.Empty(LiveDirectorAuthorityValidator.Validate(p)); }
+    [Fact] public void R127_TransactionRoundTripRuntimeAndScripts_AreCanonical() { var i = LiveDirectorAuthorityProfile.CreateDefault(); var c = i with { ServerRevision = 1, MaximumCurrencyAdjustment = 120_000 }; var h = new LiveDirectorAuthorityHistory(i); var cmd = new LiveDirectorAuthorityCommand(Guid.NewGuid(), 1, "test:r127", 0, "gm:karen", NetworkRole.GameMaster, false, c); Assert.False(h.Execute(cmd).Applied); Assert.True(h.Execute(cmd with { Apply = true }).Applied); Assert.Equal(i, h.Undo("gm:karen", NetworkRole.GameMaster).Profile); Assert.Equal(c, h.Redo("gm:karen", NetworkRole.GameMaster).Profile); var s = new LiveDirectorAuthorityStore(); Assert.Equal(s.Serialize(c), s.Serialize(s.Deserialize(s.Serialize(c)))); Assert.Empty(LiveDirectorAuthorityRuntimeAdapter.Resolve(null, false).Diagnostics); Assert.Equal("LIVE_AUTHORITY_REQUIRED_MISSING", Assert.Single(LiveDirectorAuthorityRuntimeAdapter.Resolve(null, true).Diagnostics).Code); Assert.Equal(5, new LiveDirectorAuthorityScriptService(i).Read(new(i.Id, 1)).DoorStates); }
+    [Fact] public void R127_InvalidPolicyPermissionAndRevision_AreLocalized() { var i = LiveDirectorAuthorityProfile.CreateDefault(); var invalid = i with { ServerRevision = 1, MaximumProtectionMinutes = 0 }; Assert.Contains(LiveDirectorAuthorityValidator.Validate(invalid), x => x.Code == "LIVE_PROTECTION_POLICY_INVALID"); var r = new LiveDirectorAuthorityHistory(i).Execute(new(Guid.NewGuid(), 1, "test:r127", 9, "player", NetworkRole.Player, true, invalid)); Assert.Contains(r.Diagnostics, x => x.Code == "LIVE_AUTHORITY_PERMISSION_DENIED"); Assert.Contains(r.Diagnostics, x => x.Code == "LIVE_AUTHORITY_REVISION_STALE"); }
+}

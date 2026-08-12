@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.15.0",
+  "formatVersion": "1.28.0",
   "project": {
     "id": "4d410f21-2d47-4f08-b5d0-2d2e5e43796a",
     "title": "Les \u00CEles Bris\u00E9es",
@@ -19,7 +19,13 @@
             "name": "Les \u00CEles Bris\u00E9es",
             "summary": "Un archipel \u00E0 reconstruire.",
             "description": "Un archipel \u00E0 reconstruire.",
-            "credits": ""
+            "credits": "",
+            "installation": "",
+            "rules": "",
+            "controls": "",
+            "licenses": "",
+            "warnings": "",
+            "compatibility": ""
           }
         ],
         "author": "Non renseign\u00E9",
@@ -189,7 +195,12 @@
         "locales": [
           "fr"
         ],
-        "messages": []
+        "messages": [],
+        "packageNamespace": "project.localization",
+        "licenseSpdx": "CC0-1.0",
+        "provenance": "project-author",
+        "platformByteBudget": 4194304,
+        "contentSha256": "4ab4ee7b2d46dc7b37370204c43bfb58cfdf1b63a54b4fbe12eebac5f70bbd18"
       },
       "content": {
         "id": "0a8d1557-b84b-424b-8857-e8f0a7ac2765",
@@ -209,7 +220,14 @@
         },
         "dataTables": [],
         "mergePolicy": "preserveBoth",
-        "provenance": "project-author"
+        "provenance": "project-author",
+        "packages": {
+          "id": "0a8d1557-b84b-424b-8857-e8f0a7ac2765",
+          "schemaVersion": 1,
+          "provenance": "project-author",
+          "conflictPolicy": "highestPriority",
+          "packages": []
+        }
       },
       "artisticStyle": {
         "id": "0a8d1557-b84b-424b-8857-e8f0a7ac2765",
@@ -542,6 +560,416 @@
               "serverAuthoritative": true
             }
           },
+          "foundation": {
+            "id": "706ab101-6f80-56b4-a81c-7f45ccc17d14",
+            "schemaVersion": 1,
+            "provenance": "migration-default",
+            "groundedMovement": {
+              "id": "a52cf9be-7ec6-5494-bc13-03436e13ed78",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "enabled": true,
+              "required": true,
+              "walkSpeed": 2.5,
+              "runSpeed": 5.5,
+              "acceleration": 24,
+              "deceleration": 30,
+              "maximumSlopeDegrees": 48,
+              "stepHeight": 0.45,
+              "jumpVelocity": 9,
+              "crouchSpeedMultiplier": 0.45,
+              "rootMotion": false,
+              "networkPrediction": true
+            },
+            "interaction": {
+              "id": "593bcb94-340c-57f6-bfa2-d0e19aad438d",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "enabled": true,
+              "required": true,
+              "inputAction": "interact",
+              "targeting": "viewCone",
+              "focusDistance": 3,
+              "viewAngleDegrees": 100,
+              "showPrompt": true,
+              "verbs": [
+                {
+                  "id": "06a6ef1f-e932-5ae3-9b0a-bb3b9e6d4758",
+                  "key": "interact",
+                  "label": "Interagir",
+                  "command": "interact",
+                  "holdSeconds": 0,
+                  "targetTags": [
+                    "creature",
+                    "door",
+                    "placeable",
+                    "item"
+                  ],
+                  "serverAuthoritative": true
+                },
+                {
+                  "id": "8b4cb850-3f81-581e-b64d-cc604e2491e7",
+                  "key": "inspect",
+                  "label": "Examiner",
+                  "command": "inspect",
+                  "holdSeconds": 0.35,
+                  "targetTags": [
+                    "world"
+                  ],
+                  "serverAuthoritative": false
+                }
+              ]
+            },
+            "cameras": {
+              "id": "82d2f7af-a3b0-59a7-961c-2cef2676d5fb",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "required": true,
+              "defaultProfileKey": "orbit",
+              "profiles": [
+                {
+                  "id": "715ce43d-6c69-52cb-aa72-23e0daef7378",
+                  "key": "isometric",
+                  "displayName": "Isom\u00E9trique",
+                  "mode": "isometric",
+                  "fieldOfViewDegrees": 52,
+                  "distance": 18,
+                  "minimumDistance": 1.5,
+                  "maximumDistance": 40,
+                  "pitchDegrees": 32,
+                  "focusOffset": {
+                    "x": 0,
+                    "y": 1.25,
+                    "z": 0
+                  },
+                  "collisionAvoidance": true,
+                  "alignCharacterFacing": false
+                },
+                {
+                  "id": "eeb27f3c-f8b1-52df-81a9-7c2a4b29a5dc",
+                  "key": "orbit",
+                  "displayName": "Orbite",
+                  "mode": "orbit",
+                  "fieldOfViewDegrees": 60,
+                  "distance": 14,
+                  "minimumDistance": 1.5,
+                  "maximumDistance": 40,
+                  "pitchDegrees": 24,
+                  "focusOffset": {
+                    "x": 0,
+                    "y": 1.25,
+                    "z": 0
+                  },
+                  "collisionAvoidance": true,
+                  "alignCharacterFacing": true
+                },
+                {
+                  "id": "6c182d15-67fe-54f5-8570-4c66286adb20",
+                  "key": "shoulder",
+                  "displayName": "\u00C9paule",
+                  "mode": "shoulder",
+                  "fieldOfViewDegrees": 68,
+                  "distance": 4,
+                  "minimumDistance": 1.5,
+                  "maximumDistance": 40,
+                  "pitchDegrees": 12,
+                  "focusOffset": {
+                    "x": 0,
+                    "y": 1.25,
+                    "z": 0
+                  },
+                  "collisionAvoidance": true,
+                  "alignCharacterFacing": true
+                },
+                {
+                  "id": "8c40e908-c81b-5b11-a53a-f2b3bffd7d2e",
+                  "key": "first-person",
+                  "displayName": "Premi\u00E8re personne",
+                  "mode": "firstPerson",
+                  "fieldOfViewDegrees": 75,
+                  "distance": 0,
+                  "minimumDistance": 0,
+                  "maximumDistance": 0.1,
+                  "pitchDegrees": 0,
+                  "focusOffset": {
+                    "x": 0,
+                    "y": 1.25,
+                    "z": 0
+                  },
+                  "collisionAvoidance": true,
+                  "alignCharacterFacing": true
+                },
+                {
+                  "id": "465eb9d0-7554-5023-97a3-8645b3dfc910",
+                  "key": "top-down",
+                  "displayName": "Vue du dessus",
+                  "mode": "topDown",
+                  "fieldOfViewDegrees": 50,
+                  "distance": 20,
+                  "minimumDistance": 1.5,
+                  "maximumDistance": 40,
+                  "pitchDegrees": 70,
+                  "focusOffset": {
+                    "x": 0,
+                    "y": 1.25,
+                    "z": 0
+                  },
+                  "collisionAvoidance": true,
+                  "alignCharacterFacing": false
+                },
+                {
+                  "id": "ff492be4-fb65-5f1f-a1a7-a9b5eec927b0",
+                  "key": "free",
+                  "displayName": "Libre",
+                  "mode": "free",
+                  "fieldOfViewDegrees": 65,
+                  "distance": 10,
+                  "minimumDistance": 1.5,
+                  "maximumDistance": 40,
+                  "pitchDegrees": 20,
+                  "focusOffset": {
+                    "x": 0,
+                    "y": 1.25,
+                    "z": 0
+                  },
+                  "collisionAvoidance": true,
+                  "alignCharacterFacing": false
+                },
+                {
+                  "id": "6e916471-7e7b-5718-8056-a91d041aff3a",
+                  "key": "vehicle",
+                  "displayName": "V\u00E9hicule",
+                  "mode": "vehicle",
+                  "fieldOfViewDegrees": 70,
+                  "distance": 9,
+                  "minimumDistance": 1.5,
+                  "maximumDistance": 40,
+                  "pitchDegrees": 18,
+                  "focusOffset": {
+                    "x": 0,
+                    "y": 1.25,
+                    "z": 0
+                  },
+                  "collisionAvoidance": true,
+                  "alignCharacterFacing": true
+                },
+                {
+                  "id": "bf90af51-bd4c-54bd-b385-d2b008f76cef",
+                  "key": "cinematic",
+                  "displayName": "Cin\u00E9matique",
+                  "mode": "cinematic",
+                  "fieldOfViewDegrees": 50,
+                  "distance": 8,
+                  "minimumDistance": 1.5,
+                  "maximumDistance": 40,
+                  "pitchDegrees": 15,
+                  "focusOffset": {
+                    "x": 0,
+                    "y": 1.25,
+                    "z": 0
+                  },
+                  "collisionAvoidance": true,
+                  "alignCharacterFacing": false
+                }
+              ]
+            },
+            "input": {
+              "id": "662c0ea6-19bc-5361-819e-6a7fbdefece5",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "required": true,
+              "allowRebinding": true,
+              "perPlayerLocal": true,
+              "contexts": [
+                "exploration",
+                "dialogue",
+                "combat",
+                "system"
+              ],
+              "actions": [
+                {
+                  "id": "6cdc7a9e-5817-55c8-843d-9db0a9c43d27",
+                  "key": "move_forward",
+                  "label": "Avancer",
+                  "context": "exploration",
+                  "accessibilityRequired": true
+                },
+                {
+                  "id": "c15735bf-8df8-5eba-bfd1-51c69f7ccb0d",
+                  "key": "move_back",
+                  "label": "Reculer",
+                  "context": "exploration",
+                  "accessibilityRequired": true
+                },
+                {
+                  "id": "c743a3bb-c54e-5504-b86d-2dfdb290bf82",
+                  "key": "move_left",
+                  "label": "Aller \u00E0 gauche",
+                  "context": "exploration",
+                  "accessibilityRequired": true
+                },
+                {
+                  "id": "24112053-f624-565b-a982-330d46168acc",
+                  "key": "move_right",
+                  "label": "Aller \u00E0 droite",
+                  "context": "exploration",
+                  "accessibilityRequired": true
+                },
+                {
+                  "id": "8c85a642-de7f-535d-8aeb-ff217c959bed",
+                  "key": "interact",
+                  "label": "Interagir",
+                  "context": "exploration",
+                  "accessibilityRequired": true
+                },
+                {
+                  "id": "de628fee-b376-5186-bb59-05da54f8bff6",
+                  "key": "jump",
+                  "label": "Sauter",
+                  "context": "exploration",
+                  "accessibilityRequired": true
+                },
+                {
+                  "id": "294e8134-8201-5e94-9ae8-247c7dcb977a",
+                  "key": "quick_save",
+                  "label": "Sauvegarde rapide",
+                  "context": "system",
+                  "accessibilityRequired": true
+                },
+                {
+                  "id": "e9f0f285-f700-57a0-9e5b-f0829a8c538a",
+                  "key": "quick_load",
+                  "label": "Chargement rapide",
+                  "context": "system",
+                  "accessibilityRequired": true
+                },
+                {
+                  "id": "c4e08cd9-4cf6-5a3a-923e-95b437a4c771",
+                  "key": "camera_left",
+                  "label": "Tourner la cam\u00E9ra \u00E0 gauche",
+                  "context": "exploration",
+                  "accessibilityRequired": false
+                },
+                {
+                  "id": "2ec4aefc-5610-5375-8126-afe0823e4661",
+                  "key": "camera_right",
+                  "label": "Tourner la cam\u00E9ra \u00E0 droite",
+                  "context": "exploration",
+                  "accessibilityRequired": false
+                }
+              ],
+              "bindings": [
+                {
+                  "id": "fc544927-2893-5eaf-9a15-65abd70cf0d7",
+                  "actionKey": "move_forward",
+                  "device": "keyboardMouse",
+                  "binding": "W",
+                  "glyph": "key-w",
+                  "primary": true
+                },
+                {
+                  "id": "6ab433c4-4796-5c91-94e6-6a171f6982ba",
+                  "actionKey": "move_back",
+                  "device": "keyboardMouse",
+                  "binding": "S",
+                  "glyph": "key-s",
+                  "primary": true
+                },
+                {
+                  "id": "90d9e289-add2-5f3c-aac3-1d01b5d974d7",
+                  "actionKey": "move_left",
+                  "device": "keyboardMouse",
+                  "binding": "A",
+                  "glyph": "key-a",
+                  "primary": true
+                },
+                {
+                  "id": "1b65306e-b17c-5085-8cd4-ef4a04702d05",
+                  "actionKey": "move_right",
+                  "device": "keyboardMouse",
+                  "binding": "D",
+                  "glyph": "key-d",
+                  "primary": true
+                },
+                {
+                  "id": "f1704fc1-2093-5d0c-9eb5-55ecf80df3e6",
+                  "actionKey": "interact",
+                  "device": "keyboardMouse",
+                  "binding": "E",
+                  "glyph": "key-e",
+                  "primary": true
+                },
+                {
+                  "id": "1cfb302b-c9b6-51c6-bd89-7a328340ca0e",
+                  "actionKey": "interact",
+                  "device": "gamepad",
+                  "binding": "A",
+                  "glyph": "pad-a",
+                  "primary": true
+                },
+                {
+                  "id": "c2519373-013b-5122-990d-06c5b48d264a",
+                  "actionKey": "jump",
+                  "device": "keyboardMouse",
+                  "binding": "Space",
+                  "glyph": "key-space",
+                  "primary": true
+                },
+                {
+                  "id": "8d5b5be1-4186-5c2e-af34-c22361be7f5f",
+                  "actionKey": "jump",
+                  "device": "gamepad",
+                  "binding": "B",
+                  "glyph": "pad-b",
+                  "primary": true
+                },
+                {
+                  "id": "88d94c85-5cf9-56cc-a770-5e62ccdf8fbe",
+                  "actionKey": "quick_save",
+                  "device": "keyboardMouse",
+                  "binding": "F5",
+                  "glyph": "key-f5",
+                  "primary": true
+                },
+                {
+                  "id": "f136bbc0-27e9-5bef-9c40-bb8039ec3e7e",
+                  "actionKey": "quick_load",
+                  "device": "keyboardMouse",
+                  "binding": "F9",
+                  "glyph": "key-f9",
+                  "primary": true
+                },
+                {
+                  "id": "ea42d5a1-ee91-558b-8998-08a791b74e97",
+                  "actionKey": "camera_left",
+                  "device": "keyboardMouse",
+                  "binding": "Home",
+                  "glyph": "key-home",
+                  "primary": true
+                },
+                {
+                  "id": "26e88f15-17c6-58fc-b677-353adc416c19",
+                  "actionKey": "camera_right",
+                  "device": "keyboardMouse",
+                  "binding": "End",
+                  "glyph": "key-end",
+                  "primary": true
+                }
+              ]
+            },
+            "save": {
+              "id": "c43bdf2e-cd12-5c01-bf4c-aaacec5b337f",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "required": true,
+              "chunkBytes": 65536,
+              "autosaveIntervalSeconds": 60,
+              "rollbackSlots": 3,
+              "checksumAlgorithm": "SHA-256",
+              "allowMigrations": true,
+              "requireModuleDependencies": true
+            }
+          },
           "provenance": "migration-default"
         },
         "rules": {
@@ -636,6 +1064,52 @@
                   "accessibility",
                   "story"
                 ]
+              }
+            ],
+            "provenance": "migration-default"
+          },
+          "plugins": {
+            "id": "d0aa15d5-e4b7-d7fc-4f56-f792fb5d7e76",
+            "schemaVersion": 1,
+            "enabled": true,
+            "requiredAtRuntime": true,
+            "activePackageKey": "forge.generic",
+            "packages": [
+              {
+                "id": "1cfc0b0f-39f6-f651-2e58-8c1322b27488",
+                "schemaVersion": 1,
+                "key": "forge.generic",
+                "version": "1.0.0",
+                "contentPackageId": "content.core",
+                "attributes": [
+                  "ability",
+                  "armor_class",
+                  "health",
+                  "level"
+                ],
+                "effects": [
+                  "damage",
+                  "healing",
+                  "status"
+                ],
+                "abilities": [
+                  "attack",
+                  "interact",
+                  "use_item"
+                ],
+                "inventories": [
+                  "equipment",
+                  "inventory"
+                ],
+                "progressionTracks": [
+                  "character_level"
+                ],
+                "uiPanels": [
+                  "character_sheet",
+                  "inventory",
+                  "progression"
+                ],
+                "provenance": "migration-default"
               }
             ],
             "provenance": "migration-default"
@@ -898,6 +1372,87 @@
                 "requireNoPathEscape": true,
                 "provenance": "migration-default"
               },
+              "clickableDiagnostics": {
+                "id": "65e7b356-5bd3-5bec-bfff-131e23ba6c2e",
+                "schemaVersion": 1,
+                "activeProfile": "authoring",
+                "categories": [
+                  "geometry",
+                  "graph",
+                  "license",
+                  "navigation",
+                  "reference",
+                  "runtime",
+                  "schema"
+                ],
+                "severities": [
+                  "error",
+                  "info",
+                  "warning"
+                ],
+                "enableQuickFixes": true,
+                "provenance": "migration-default"
+              },
+              "maliciousFixtures": {
+                "id": "152884c7-bfa4-5db0-9079-b16e0b5482ba",
+                "schemaVersion": 1,
+                "catalogPath": "tests/fixtures/qa/malicious-modules.json",
+                "families": [
+                  "bad-reference",
+                  "huge-array",
+                  "infinite-script",
+                  "injection-text",
+                  "invalid-asset",
+                  "path-traversal",
+                  "zip-bomb"
+                ],
+                "maximumArrayEntries": 65536,
+                "rejectInjectionText": true,
+                "rejectInvalidAssets": true,
+                "provenance": "migration-default"
+              },
+              "auroraParityCoverage": {
+                "id": "0e7c32e9-e6d0-5270-b179-a5d3c498f049",
+                "schemaVersion": 1,
+                "trackerPath": "tracking/project/AURORA_PARITY_COVERAGE.csv",
+                "allowedStatuses": [
+                  "Deferred",
+                  "Designed",
+                  "Implemented",
+                  "NotStarted",
+                  "Rejected",
+                  "Researched",
+                  "Tested"
+                ],
+                "expectedFeatureCount": 717,
+                "requireEvidenceForTested": true,
+                "provenance": "migration-default"
+              },
+              "acceptanceGates": {
+                "id": "c166d714-2869-5573-95bd-47c222ac04dc",
+                "schemaVersion": 1,
+                "gateMatrixPath": "tracking/project/AURORA_GATE_MATRIX.csv",
+                "requiredGates": [
+                  "G0",
+                  "G1",
+                  "G2",
+                  "G3",
+                  "G4",
+                  "G5",
+                  "G6",
+                  "G7",
+                  "G8",
+                  "G9",
+                  "G10",
+                  "G11",
+                  "G12",
+                  "G13"
+                ],
+                "requireLinkedTests": true,
+                "requireLinkedDocumentation": true,
+                "requireFeatureEvidence": true,
+                "provenance": "migration-default"
+              },
               "provenance": "migration-default"
             },
             "provenance": "migration-default"
@@ -992,9 +1547,454 @@
             },
             "provenance": "migration-default"
           },
+          "postLaunch": {
+            "id": "4f36a98b-8d16-5a6c-9d6d-045b05737cfb",
+            "schemaVersion": 1,
+            "gameplay": {
+              "id": "33d7d23b-72fd-5247-b078-51ff4bc8ef5d",
+              "schemaVersion": 1,
+              "zeroGravity": {
+                "id": "249aa5f6-1f49-539d-9978-fe7a354db362",
+                "enabled": false,
+                "thrusterAcceleration": 12,
+                "maximumSpeed": 24,
+                "linearDrag": 0.15,
+                "orientationAssist": true,
+                "preserveMomentum": true
+              },
+              "vehicles": {
+                "id": "816b92f2-8087-5efe-8784-d38683da4160",
+                "enabled": false,
+                "maximumSeats": 4,
+                "motionMode": "kinematic",
+                "maximumIntegrity": 1000,
+                "allowPossession": true,
+                "replicateAuthoritatively": true
+              },
+              "mounts": {
+                "id": "4df94bf0-11f2-5951-8528-f85348ea6860",
+                "enabled": false,
+                "allowCombat": false,
+                "allowInventory": true,
+                "persistRiderState": true,
+                "dismountPolicy": "safe-ground"
+              },
+              "achievements": [],
+              "curatedPacks": {
+                "id": "262df0fe-049f-5da3-90ec-86ae81e88910",
+                "channel": "stable",
+                "compatibility": "1.x",
+                "allowedLicenses": [
+                  "CC0-1.0"
+                ],
+                "requireTrustedSignature": true,
+                "allowOfflineFallback": true
+              },
+              "provenance": "migration-default"
+            },
+            "liveDirector": {
+              "id": "1e607b51-ad1f-54e1-b5af-83a25f544cde",
+              "schemaVersion": 1,
+              "forcedRest": {
+                "id": "211264a6-7a60-5c14-83a2-6f133cbe5d73",
+                "enabled": false,
+                "allowRulesOverride": false,
+                "emitCompletedEvent": true,
+                "maximumTargets": 32
+              },
+              "levelAdjustment": {
+                "id": "b1d34430-cdbb-56b8-9c08-66e82d210073",
+                "enabled": false,
+                "maximumDelta": 5,
+                "requireRebuild": true,
+                "requireRollbackSnapshot": true
+              },
+              "savedGroups": [],
+              "appearanceOverrides": {
+                "id": "761b4982-bb56-576c-9510-69e9c599e19d",
+                "enabled": false,
+                "minimumScale": 0.5,
+                "maximumScale": 2,
+                "maximumDurationSeconds": 3600,
+                "validateAssets": true
+              },
+              "sessionRecording": {
+                "id": "7d16dd3d-3eab-543a-a094-0f462f70f7d2",
+                "enabled": false,
+                "recordCommands": true,
+                "recordEvents": true,
+                "allowBookmarks": true,
+                "redactPrivateData": true,
+                "exportFormat": "orp-replay",
+                "maximumMinutes": 240
+              },
+              "provenance": "migration-default"
+            },
+            "network": {
+              "id": "6d36fbed-fb8b-52af-a923-4e8ccfa1312e",
+              "schemaVersion": 1,
+              "voice": {
+                "id": "7c8415b2-17f3-5281-aed6-6245cae6927f",
+                "enabled": false,
+                "codec": "opus",
+                "maximumBitrateKbps": 64,
+                "positional": true,
+                "pushToTalk": true,
+                "moderationEnabled": true
+              },
+              "shards": [],
+              "hotReload": {
+                "id": "147a7163-b790-551e-b210-e9db6d7e235f",
+                "enabled": false,
+                "atomicSwap": true,
+                "requireRollback": true,
+                "maximumPackageMegabytes": 512,
+                "drainTimeoutSeconds": 60
+              },
+              "serverExtensions": {
+                "id": "a9a7b32e-a899-5269-b838-e66d3cee3ee6",
+                "enabled": false,
+                "requireSignature": true,
+                "isolateProcesses": true,
+                "allowedCapabilities": [],
+                "cpuBudgetMilliseconds": 50
+              },
+              "protocol": {
+                "id": "0c8ed3ed-d11e-57f3-9b39-13fd7ca06a31",
+                "protocolFamily": "openrpg-net",
+                "minimumVersion": 1,
+                "maximumVersion": 1,
+                "platforms": [
+                  "linux",
+                  "macos",
+                  "windows"
+                ],
+                "rejectUnknownFields": true
+              },
+              "provenance": "migration-default"
+            },
+            "creatorExperience": {
+              "id": "6cd55775-7f7b-5813-bcff-90e5dec84551",
+              "schemaVersion": 1,
+              "water": {
+                "id": "738aca2f-c830-597f-9081-c306a72936ca",
+                "refraction": true,
+                "screenSpaceReflections": true,
+                "depthColor": true,
+                "fallbackQuality": "medium"
+              },
+              "deviceQueries": {
+                "id": "ffb59eae-449f-5ec6-8a1c-ebc6ed318406",
+                "enabled": false,
+                "allowedQueries": [
+                  "graphics-tier",
+                  "input-family"
+                ],
+                "requireConsent": true,
+                "redactStableIdentifiers": true
+              },
+              "resourceCommands": {
+                "id": "bfd20765-abd2-582b-ad48-cf7eac407e9d",
+                "enabled": true,
+                "maximumResults": 256,
+                "maximumBytes": 67108864,
+                "allowedNamespaces": [
+                  "content",
+                  "module",
+                  "runtime"
+                ]
+              },
+              "dynamicAreas": {
+                "id": "b9ad179e-0d66-5fa1-8a44-fe951e01391f",
+                "enabled": false,
+                "maximumInstances": 16,
+                "lifetimeSeconds": 3600,
+                "requireServerAuthority": true,
+                "resolveDependencies": true
+              },
+              "partyControl": {
+                "id": "3245f65e-75f5-58f6-b6df-d5ee5269b551",
+                "enabled": true,
+                "maximumControlledMembers": 8,
+                "allowDirectSwitch": true,
+                "commands": [
+                  "focus",
+                  "follow",
+                  "hold",
+                  "regroup"
+                ]
+              },
+              "progressionTracks": {
+                "id": "782e3698-21a4-56ef-8546-bbfb534f87de",
+                "maximumTracks": 64,
+                "dataDriven": true,
+                "supportLargeSetUi": true
+              },
+              "repositoryMetadata": {
+                "id": "e0234961-f85c-512b-8b8e-9205ce595d30",
+                "channel": "stable",
+                "compatibility": "1.x",
+                "requireSignature": true,
+                "requireChangeNotes": true
+              },
+              "observability": {
+                "id": "b8e74b56-87ce-5349-a6e9-b22cd6ba13de",
+                "enabled": false,
+                "tracyCompatible": true,
+                "openTelemetryCompatible": true,
+                "maximumCaptureSeconds": 60,
+                "includeScripts": true
+              },
+              "graphics": {
+                "id": "fb498bba-1629-5b98-809d-a5a262164c6f",
+                "antiAliasing": "msaa4",
+                "anisotropicLevel": 8,
+                "upscaling": "native",
+                "capabilityFallback": true
+              },
+              "provenance": "migration-default"
+            },
+            "production": {
+              "id": "a073b575-0c1c-5eea-8314-3052446f0fb0",
+              "schemaVersion": 1,
+              "mediaGeneration": {
+                "id": "e5b9d027-220e-5b58-8a77-d499c9049b34",
+                "enabled": false,
+                "mediaKinds": [
+                  "audio",
+                  "image",
+                  "vfx"
+                ],
+                "providers": [],
+                "requireRightsMetadata": true,
+                "requireHumanReview": true,
+                "stageBeforeImport": true,
+                "maximumJobs": 8,
+                "maximumBytesPerJob": 268435456,
+                "moduleIndependentFallback": true
+              },
+              "soakTests": {
+                "id": "98049919-582d-5db5-9e6b-7ca1805f36e8",
+                "enabled": false,
+                "durationMinutes": 60,
+                "virtualPlayers": 32,
+                "sampleIntervalSeconds": 10,
+                "maximumMemoryGrowthMegabytes": 128,
+                "maximumHandleGrowth": 100,
+                "maximumP95LatencyMilliseconds": 250,
+                "assertDatabaseHealth": true
+              },
+              "provenance": "migration-default"
+            },
+            "provenance": "migration-default"
+          },
           "provenance": "migration-default"
         },
+        "gameplayEvents": {
+          "id": "0a8d1557-b84b-424b-8857-e8f0a7ac2765",
+          "schemaVersion": 1,
+          "provenance": "migration-default:r051",
+          "enabled": true,
+          "requiredAtRuntime": false,
+          "useDownedState": true,
+          "autoRespawn": true,
+          "replicateEquipmentAndProgression": true,
+          "bindings": [
+            {
+              "id": "d0a8f99c-3c21-5223-8d17-de86e8118f6d",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "ability.activated",
+              "handler": "OnAbilityActivated",
+              "authority": "server"
+            },
+            {
+              "id": "31c89b15-39b0-59ab-83d2-1053f463d797",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "equipment.changed",
+              "handler": "OnEquipmentChanged",
+              "authority": "server"
+            },
+            {
+              "id": "52fbd894-c97c-5aae-a89c-0b2e21d8ec45",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "inventory.changed",
+              "handler": "OnInventoryChanged",
+              "authority": "server"
+            },
+            {
+              "id": "0c4c7f5a-1250-578a-9054-45b92e34bd73",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "item.used",
+              "handler": "OnItemUsed",
+              "authority": "server"
+            },
+            {
+              "id": "d46def37-7f0f-5a41-8583-7eedba7e409a",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "life.dead",
+              "handler": "OnLifeDead",
+              "authority": "server"
+            },
+            {
+              "id": "5b145b93-d320-5579-909b-595fe261b61a",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "life.downed",
+              "handler": "OnLifeDowned",
+              "authority": "server"
+            },
+            {
+              "id": "26d1bb3e-3e80-5522-83c7-f10b16764e52",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "life.dying",
+              "handler": "OnLifeDying",
+              "authority": "server"
+            },
+            {
+              "id": "e06551f7-e522-503e-bf01-d6b0c811edf0",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "life.respawned",
+              "handler": "OnLifeRespawned",
+              "authority": "server"
+            },
+            {
+              "id": "7fa6345c-b10b-5394-afad-51b8454cc420",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "life.respawnrequested",
+              "handler": "OnLifeRespawnrequested",
+              "authority": "server"
+            },
+            {
+              "id": "028e62c0-6bb9-5fe3-9d25-c8b1a42088be",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "player.disconnected",
+              "handler": "OnPlayerDisconnected",
+              "authority": "server"
+            },
+            {
+              "id": "77bc2064-fa69-52ab-a871-55c7baebd3f4",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "player.joining",
+              "handler": "OnPlayerJoining",
+              "authority": "server"
+            },
+            {
+              "id": "ab3db977-02fd-54c4-8b8b-704a1d902793",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "player.leaving",
+              "handler": "OnPlayerLeaving",
+              "authority": "server"
+            },
+            {
+              "id": "834498fe-a016-505d-9d6c-64e4ff45ebc9",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "player.ready",
+              "handler": "OnPlayerReady",
+              "authority": "server"
+            },
+            {
+              "id": "62adaf13-3e88-5536-814f-0b2b3906a5a6",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "progression.changed",
+              "handler": "OnProgressionChanged",
+              "authority": "server"
+            }
+          ]
+        },
+        "world": {
+          "id": "0a8d1557-b84b-424b-8857-e8f0a7ac2765",
+          "schemaVersion": 1,
+          "provenance": "migration-default:r052",
+          "enabled": true,
+          "requiredAtRuntime": false,
+          "customEvents": [],
+          "clock": {
+            "id": "fa0f96a8-e965-5f7f-8be8-b1fbff4644df",
+            "schemaVersion": 1,
+            "provenance": "migration-default:r052",
+            "daysPerMonth": 28,
+            "monthsPerYear": 12,
+            "hoursPerDay": 24,
+            "minutesPerHour": 60,
+            "speed": 1,
+            "paused": false,
+            "initialMinute": 0,
+            "areaTimeZoneOffsets": {},
+            "astronomicalMinutes": {
+              "dawn": 360,
+              "sunrise": 420,
+              "sunset": 1080,
+              "dusk": 1140,
+              "midnight": 0
+            }
+          }
+        },
         "provenance": "migration-default"
+      },
+      "factions": {
+        "factions": [],
+        "relationships": [],
+        "bands": [],
+        "members": [],
+        "advanced": null,
+        "requireAdvancedRuntime": false
+      },
+      "worldFeatures": {
+        "id": "0a8d1557-b84b-424b-8857-e8f0a7ac2765",
+        "schemaVersion": 1,
+        "provenance": "migration:world-features-empty",
+        "placeables": [],
+        "doors": [],
+        "triggers": [],
+        "encounters": [],
+        "vehicleRoutes": [],
+        "merchants": [],
+        "companions": [],
+        "scripts": {
+          "id": "0a8d1557-b84b-424b-8857-e8f0a7ac2765",
+          "schemaVersion": 1,
+          "provenance": "migration:world-features-empty",
+          "camera": {
+            "shots": [],
+            "abortRecovery": "restore-camera-and-control",
+            "restorePlayerControl": true,
+            "accessibilitySkipEnabled": true
+          },
+          "tagRouting": {
+            "enabled": false,
+            "explicitOnly": true,
+            "routes": []
+          },
+          "moduleFlags": [],
+          "aiSettings": []
+        }
       }
     },
     "blueprints": [
@@ -1012,9 +2012,32 @@
           "author": "Project author",
           "licenseSpdx": "UNLICENSED",
           "contentHash": "unverified",
+          "permissionEvidence": "project-author",
           "isAiGenerated": false,
           "modifications": []
-        }
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.les.iles.brisees.floor",
+          "manifestPath": "content/blueprints/ba1e3949-af2a-409a-af27-8c6698694111/les-iles-brisees-floor.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/ba1e3949-af2a-409a-af27-8c6698694111/les-iles-brisees-floor.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.les.iles.brisees.floor",
+          "styles": [],
+          "compatibility": [],
+          "tags": []
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
       },
       {
         "id": "46d891e5-a116-48df-8b2e-0fdebf16bc52",
@@ -1030,16 +2053,39 @@
           "author": "Project author",
           "licenseSpdx": "UNLICENSED",
           "contentHash": "unverified",
+          "permissionEvidence": "project-author",
           "isAiGenerated": false,
           "modifications": []
-        }
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.player.spawn",
+          "manifestPath": "content/blueprints/46d891e5-a116-48df-8b2e-0fdebf16bc52/player-spawn.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/46d891e5-a116-48df-8b2e-0fdebf16bc52/player-spawn.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.player.spawn",
+          "styles": [],
+          "compatibility": [],
+          "tags": []
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
       }
     ],
     "areas": [
       {
         "id": "ea40d07f-3e30-46a5-a39d-f4f14a25d23a",
         "slug": "archipel-oublie",
-        "documentPath": "areas/ea40d07f-3e30-46a5-a39d-f4f14a25d23a-edeb5ebc7ea6bc2e.json"
+        "documentPath": "areas/ea40d07f-3e30-46a5-a39d-f4f14a25d23a-3b9aa90d957e8423.json"
       }
     ],
     "dialogues": [],

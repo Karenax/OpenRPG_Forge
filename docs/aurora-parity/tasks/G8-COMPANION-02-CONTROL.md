@@ -9,6 +9,13 @@ ordres Attack, Defend, FocusFire, Protect, Disengage et UseAbility. L'autorisati
 ownership. `CompanionAiProfile` borne autonomie, risque, usage de ressources, tir allié, rôle,
 distance de suivi et capacités autorisées.
 
-Preuves : `CompanionControlServiceTests`, suite RPG Kit et solution globale.
+R074 rattache `PartyPolicy` au document de monde pour les quotas compagnons, invocations, familiers,
+alliés temporaires, rôles et population serveur. R075 rattache maintenant propriété, transferts,
+ordres, autonomie et équipement au même document canonique, avec UI transactionnelle, persistance,
+ForgeScript, MCP, diagnostics pré-build et adaptateurs moteur.
 
-La prochaine tranche unique est **G8 COMPANION-03**.
+Preuves : `CompanionControlServiceTests`, `CompanionFoundationServiceTests`,
+`CompanionControlFoundationServiceTests`, `P1-R074-COMPANION-FOUNDATION-ACCEPTANCE.md` et
+`P1-R075-COMPANION-CONTROL-ACCEPTANCE.md`.
+
+La prochaine tranche unique est **R076 / FC-COMPANION-P1-03**, limitée à cinq fonctions.

@@ -20,7 +20,7 @@ public sealed class ForgeScriptAgentService
     public ForgeScriptApiDescription GetApi() => new(
         _runtime.VirtualMachineVersion,
         _runtime.ApiVersion,
-        "EntityRef, AreaRef, AssetId, EffectHandle and MovementTaskRef are opaque typed 64-bit generational handles validated on every call. Scripts expose void main().",
+        "EntityRef, AreaRef, AssetId, EffectHandle, task/result references, audio, clock, timer, custom-event, hot-reload and debug-session references are opaque typed 64-bit generational handles validated on every call. Scripts expose void main().",
         ForgeScriptApiCatalog.Signatures,
         ForgeScriptSourceDocument.Language,
         ForgeScriptSourceDocument.DialectVersion,
@@ -35,7 +35,19 @@ public sealed class ForgeScriptAgentService
         ForgeScriptApiCompatibility.Migrations,
         ForgeScriptModulePermissionPolicy.RelativePath,
         ForgeScriptModulePermissionPolicy.CurrentSchemaVersion,
-        "deny-default;server-enforced;signed-production;module-kit-event capability intersection");
+        "deny-default;server-enforced;signed-production;module-kit-event capability intersection")
+    {
+        QualityTools =
+        [
+            "unit-tests:testworld-fixtures-mocks-assertions-ci",
+            "profiler:cpu-instructions-allocations-hotspots-call-graph-alerts",
+            "generated-docs:examples-availability-mcp-resources",
+            "static-analysis:heartbeat-query-null-deprecated-authority",
+            "script-state:registered-components-migration-validation-no-vm-pointers",
+        ],
+        GeneratedReference = ForgeScriptQualityService.GenerateDocumentation(
+            ForgeScriptApiCatalog.Registrations, "1.0"),
+    };
 
     public ForgeScriptCompileResponse Compile(string source)
     {
@@ -114,7 +126,11 @@ public sealed record ForgeScriptApiDescription(
     IReadOnlyList<ForgeScriptApiMigration> Migrations,
     string ModulePermissionPath,
     int ModulePermissionSchemaVersion,
-    string ModulePermissionContract);
+    string ModulePermissionContract)
+{
+    public IReadOnlyList<string> QualityTools { get; init; } = [];
+    public GeneratedApiDocument? GeneratedReference { get; init; }
+}
 
 public sealed record ForgeScriptCompileResponse(
     bool Succeeded,

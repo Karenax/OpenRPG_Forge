@@ -2,8 +2,99 @@ namespace Forge.Scripting;
 
 public static class ForgeScriptApiCatalog
 {
+    private static IReadOnlyList<ApiRegistration> ScriptP1GameplayRegistrations { get; } =
+    [
+        Api("action_enqueue", "ScriptTaskRef action_enqueue(EntityRef owner, const string &in action, int priority)", "Ajoute une action typée à la file déterministe de l'entité.", "ScriptTaskRef task = action_enqueue(hero, \"attack\", 100)", "server", "rpg-kit"),
+        Api("action_cancel", "void action_cancel(ScriptTaskRef task)", "Annule une action par son handle opaque et publie son résultat.", "action_cancel(task)", "server", "rpg-kit"),
+        Api("action_complete", "void action_complete(ScriptTaskRef task, const string &in value)", "Termine une action en conservant une valeur de complétion bornée.", "action_complete(task, \"hit\")", "server", "rpg-kit"),
+        Api("combat_attack", "bool combat_attack(EntityRef attacker, EntityRef target, const string &in ability, float amount, int seed)", "Émet une attaque attribuée, seedée et autoritaire vers le service de combat.", "combat_attack(hero, target, \"slash\", 12.0f, 97)", "server", "rpg-kit"),
+        Api("effect_apply", "EffectHandle effect_apply(EntityRef source, EntityRef target, const string &in effect_id, float magnitude, float duration_seconds)", "Applique un effet typé borné et retourne un handle générationnel.", "EffectHandle burning = effect_apply(hero, target, \"burning\", 2.0f, 10.0f)", "server", "rpg-kit"),
+        Api("effect_dispel", "void effect_dispel(EntityRef target, const string &in tag)", "Dissipe les effets autorisés partageant le tag demandé.", "effect_dispel(target, \"fire\")", "server", "rpg-kit"),
+    ];
+
+    private static IReadOnlyList<ApiRegistration> ScriptP1WorldRegistrations { get; } =
+    [
+        Api("inventory_transfer", "InventoryResultRef inventory_transfer(EntityRef from, EntityRef to, const string &in item_id, int quantity)", "Transfère un item par transaction autoritaire avec capacité, rollback et audit.", "InventoryResultRef loot = inventory_transfer(chest, hero, \"crypt-key\", 1)", "server", "rpg-kit"),
+        Api("quest_transition", "QuestResultRef quest_transition(const string &in quest_id, const string &in scope_id, const string &in from_status, const string &in to_status, const string &in objective_id, int delta, const string &in cause)", "Applique une transition de quête scoped avec objectif, historique et cause.", "QuestResultRef step = quest_transition(\"crypt\", \"party:1\", \"active\", \"completed\", \"find-key\", 1, \"found\")", "server", "rpg-kit"),
+        Api("dialogue_start", "DialogueSessionRef dialogue_start(const string &in graph_id, EntityRef speaker, EntityRef listener)", "Démarre un graphe de dialogue avec participants explicites.", "DialogueSessionRef talk = dialogue_start(\"intro\", warden, hero)", "server", "rpg-kit"),
+        Api("dialogue_complete", "void dialogue_complete(DialogueSessionRef session, const string &in outcome)", "Termine une session de dialogue avec un résultat borné.", "dialogue_complete(talk, \"accepted\")", "server", "rpg-kit"),
+        Api("faction_reputation", "FactionResultRef faction_reputation(EntityRef actor, const string &in faction_id, int delta, bool join, const string &in scope, const string &in cause)", "Modifie adhésion et réputation avec scope, cause et bornes autoritaires.", "FactionResultRef standing = faction_reputation(hero, \"wardens\", 25, true, \"module\", \"rescued-member\")", "server", "rpg-kit"),
+        Api("perception_query", "PerceptionResultRef perception_query(EntityRef observer, EntityRef target, const string &in sense, float distance, float range, bool line_of_sight, float signal, int seed)", "Évalue une perception déterministe avec sens, portée, LOS, stimulus et trace.", "PerceptionResultRef seen = perception_query(guard, hero, \"sight\", 2.0f, 10.0f, true, 0.8f, 42)", "server", "rpg-kit"),
+    ];
+
+    private static IReadOnlyList<ApiRegistration> ScriptP1RuntimeToolRegistrations { get; } =
+    [
+        Api("audio_snapshot", "void audio_snapshot(const string &in snapshot)", "Active un snapshot de mixage validé sans exposer le moteur audio.", "audio_snapshot(\"combat\")", "server"),
+        Api("audio_listener", "void audio_listener(EntityRef listener, const string &in policy)", "Applique une politique d'écoute camera, entity, player ou every-listener.", "audio_listener(hero, \"player\")", "server"),
+        Api("audio_complete", "void audio_complete(AudioEmitterRef emitter, const string &in outcome)", "Clôt une lecture et publie son résultat de complétion.", "audio_complete(music, \"finished\")", "server"),
+        Api("world_clock", "WorldClockRef world_clock()", "Obtient l'horloge monde opaque liée au temps de simulation.", "WorldClockRef clock = world_clock()", "server", "client"),
+        Api("world_calendar_ms", "int64 world_calendar_ms(WorldClockRef clock)", "Lit le calendrier déterministe dérivé de l'horloge monde.", "int64 calendar = world_calendar_ms(clock)", "server", "client"),
+        Api("timer_schedule", "TimerRef timer_schedule(int64 delay_ms, int64 repeat_ms, const string &in handler, const string &in schedule)", "Planifie un timer ou schedule déterministe sous quota.", "TimerRef timer = timer_schedule(1000, 5000, \"OnTick\", \"daily\")", "server"),
+        Api("timer_cancel", "void timer_cancel(TimerRef timer)", "Annule un timer par son handle générationnel.", "timer_cancel(timer)", "server"),
+        Api("deterministic_delay", "void deterministic_delay(int64 delay_ms, const string &in handler)", "Planifie un délai dans le temps de simulation, jamais sur l'horloge système.", "deterministic_delay(250, \"OnReady\")", "server"),
+        Api("event_subscribe", "void event_subscribe(const string &in name, int version, const string &in handler)", "Abonne un handler à un événement namespacé et versionné.", "event_subscribe(\"forge.damage\", 1, \"OnDamage\")", "server"),
+        Api("custom_event", "CustomEventRef custom_event(const string &in name, int version, const string &in payload)", "Construit un événement custom borné après validation du schéma de payload.", "CustomEventRef evt = custom_event(\"forge.damage\", 1, \"amount=4\")", "server"),
+        Api("event_publish", "void event_publish(CustomEventRef event_ref)", "Publie un événement custom autoritaire avec corrélation et trace.", "event_publish(evt)", "server"),
+        Api("hot_reload_request", "HotReloadRef hot_reload_request(const string &in module_id, int version, const string &in source_hash)", "Prépare un reload sûr à la frontière d'un handler avec migration et invalidation.", "HotReloadRef reload = hot_reload_request(\"module\", 2, \"sha256:new\")", "server"),
+        Api("debug_break", "DebugSessionRef debug_break(const string &in session_id, const string &in authority)", "Ouvre une session de débogage locale ou serveur permissionnée.", "DebugSessionRef debug = debug_break(\"session:1\", \"local-author\")", "server", "client"),
+        Api("debug_step", "void debug_step(DebugSessionRef session, const string &in mode)", "Exécute into, over, out ou continue sur une session suspendue.", "debug_step(debug, \"over\")", "server", "client"),
+    ];
+
+    private static IReadOnlyList<ApiRegistration> AudioControlRegistrations { get; } =
+    [
+        Api("audio_start", "void audio_start(AudioEmitterRef emitter)", "Démarre une instance selon la politique configurée.", "audio_start(emitter)", "server"),
+        Api("audio_stop", "void audio_stop(AudioEmitterRef emitter)", "Arrête toutes les instances autorisées.", "audio_stop(emitter)", "server"),
+        Api("audio_pause", "void audio_pause(AudioEmitterRef emitter)", "Suspend une lecture sans perdre son handle typé.", "audio_pause(emitter)", "server"),
+        Api("audio_resume", "void audio_resume(AudioEmitterRef emitter)", "Reprend une lecture suspendue.", "audio_resume(emitter)", "server"),
+        Api("audio_fade", "void audio_fade(AudioEmitterRef emitter, float gain, float seconds)", "Applique un fondu borné et publie son événement.", "audio_fade(emitter, 0.0f, 1.5f)", "server"),
+        Api("audio_caption", "AudioCaptionRef audio_caption(AudioEmitterRef emitter, const string &in locale)", "Lit une caption localisée sans exposer le HUD ou le nœud audio.", "audio_caption(emitter, \"fr\")", "server", "client"),
+        Api("waypoint", "WaypointRef waypoint(AreaRef area, const string &in id)", "Obtient un handle de waypoint typé et générationnel.", "WaypointRef marker = waypoint(area, \"a064...\")", "server", "client"),
+        Api("waypoint_reveal", "bool waypoint_reveal(WaypointRef waypoint, const string &in scope, const string &in event_name)", "Révèle un marqueur par la commande runtime autoritaire.", "waypoint_reveal(marker, \"party\", \"quest.crypt.found\")", "server"),
+        Api("patrol_next", "PatrolStepRef patrol_next(PatrolRouteRef route, int deterministic_roll)", "Avance une patrouille déterministe selon sa politique canonique.", "PatrolStepRef step = patrol_next(route, 42)", "server"),
+        Api("waypoint_arrive", "ArrivalRef waypoint_arrive(WaypointRef waypoint)", "Exécute orientation, animation, attente, interaction et callback sous autorité.", "ArrivalRef arrival = waypoint_arrive(marker)", "server"),
+        Api("locator", "LocatorRef locator(AreaRef area, const string &in id)", "Obtient une ancre audio, VFX, spawn, objectif ou gameplay typée.", "LocatorRef fire = locator(area, \"a065...\")", "server", "client"),
+        Api("locator_collection", "LocatorCollectionRef locator_collection(AreaRef area, const string &in id)", "Résout une collection par requête avec ordre stable ou sélection déterministe.", "LocatorCollectionRef anchors = locator_collection(area, \"a065...\")", "server", "client"),
+        Api("route_diagnostics", "RouteDiagnosticsRef route_diagnostics(PatrolRouteRef route)", "Lit segments, sens, coûts, actions, liens cassés, projection navigation et timing.", "RouteDiagnosticsRef debug = route_diagnostics(route)", "server", "client"),
+    ];
+
+    private static IReadOnlyList<ApiRegistration> GameplaySimulationRegistrations { get; } =
+    [
+        Api("flight_simulation", "FlightSimulationRef flight_simulation()", "Obtient le profil de vol 3D type sans exposer le noeud moteur.", "FlightSimulationRef flight = flight_simulation()", "server", "client"),
+        Api("projectile_launch", "ProjectileRef projectile_launch(ProjectileSimulationRef profile, const Vec3 &in origin, const Vec3 &in target)", "Lance un projectile valide sous autorite et revision serveur.", "ProjectileRef bolt = projectile_launch(projectile_simulation(), origin, target)", "server"),
+        Api("physics_scene", "PhysicsSimulationRef physics_scene()", "Obtient la scene physique canonique et ses corps et liaisons types.", "PhysicsSimulationRef physics = physics_scene()", "server", "client"),
+        Api("target_preview", "TargetPreviewRef target_preview(TargetingSimulationRef profile, const Vec3 &in origin, const Vec3 &in direction)", "Previsualise une forme de ciblage et sa validite sans mutation.", "TargetPreviewRef preview = target_preview(targeting_simulation(), origin, direction)", "server", "client"),
+        Api("world_time", "WorldTimeSimulationRef world_time()", "Obtient l'horloge, le calendrier et les planifications par handle type.", "WorldTimeSimulationRef clock = world_time()", "server", "client"),
+    ];
+
+    private static IReadOnlyList<ApiRegistration> GameplaySessionRegistrations { get; } =
+    [
+        Api("gameplay_session", "GameplaySessionRef gameplay_session()", "Obtient la session gameplay canonique par handle generationnel.", "GameplaySessionRef session = gameplay_session()", "server", "client"),
+        Api("save_policy", "PersistencePolicyRef save_policy(GameplaySessionRef session)", "Lit portee, autorite, conflits, cloud et confidentialite sans acces fichier.", "PersistencePolicyRef saves = save_policy(session)", "server", "client"),
+        Api("checkpoint_respawn", "RespawnResult checkpoint_respawn(CheckpointRef checkpoint, EntityRef actor)", "Demande un respawn valide avec cout, groupe, cadavre et spawn sur.", "RespawnResult result = checkpoint_respawn(checkpoint, hero)", "server"),
+        Api("runtime_shell", "RuntimeShellRef runtime_shell(GameplaySessionRef session)", "Lit le shell carte, journal et HUD fourni par le kit.", "RuntimeShellRef shell = runtime_shell(session)", "server", "client"),
+        Api("control_context", "ControlLockRef control_context(GameplaySessionRef session)", "Lit la pile de controles avec proprietaire et restauration garantie.", "ControlLockRef controls = control_context(session)", "server", "client"),
+        Api("replay_test", "ReplayReportRef replay_test(ReplayTestRef replay)", "Execute le replay headless autoritaire et produit un rapport borne.", "ReplayReportRef report = replay_test(replay)", "server"),
+    ];
+
+    private static IReadOnlyList<ApiRegistration> DialogueAuthoringRegistrations { get; } =
+    [
+        Api("dialogue_authoring", "DialogueAuthoringRef dialogue_authoring(DialogueGraphRef graph)", "Lit tokens, participants, modes, sources du wizard et notes sans exposer le document.", "DialogueAuthoringRef authoring = dialogue_authoring(graph)", "server", "client", "rpg-kit"),
+        Api("dialogue_experience", "DialogueExperienceRef dialogue_experience(DialogueGraphRef graph)", "Lit cycle fin/abandon, recherche, revue, mémoire et checks de compétence par handle typé.", "DialogueExperienceRef experience = dialogue_experience(graph)", "server", "client", "rpg-kit"),
+        Api("dialogue_tokens", "array<DialogueTokenRef> dialogue_tokens(DialogueNodeRef node)", "Lit les tokens types du noeud par handles generationnels.", "array<DialogueTokenRef> tokens = dialogue_tokens(node)", "server", "client", "rpg-kit"),
+        Api("dialogue_participant", "DialogueParticipantRef dialogue_participant(DialogueNodeRef node)", "Lit le participant resolu par role, query, tag ou entite et son fallback.", "DialogueParticipantRef speaker = dialogue_participant(node)", "server", "client", "rpg-kit"),
+        Api("dialogue_evaluation", "DialogueEvaluationRef dialogue_evaluation(DialogueNodeRef node)", "Lit le mode d'evaluation explicite et les poids deterministes.", "DialogueEvaluationRef evaluation = dialogue_evaluation(node)", "server", "client", "rpg-kit"),
+        Api("dialogue_notes", "DialogueNotesRef dialogue_notes(DialogueNodeRef node)", "Lit intentions, emotion, source, statut, TODO et auteur sans les afficher au joueur.", "DialogueNotesRef notes = dialogue_notes(node)", "server", "client", "rpg-kit"),
+    ];
+
     public static IReadOnlyList<ApiRegistration> Registrations { get; } =
     [
+        .. ScriptP1GameplayRegistrations,
+        .. ScriptP1WorldRegistrations,
+        .. ScriptP1RuntimeToolRegistrations,
+        .. AudioControlRegistrations,
+        .. GameplaySimulationRegistrations,
+        .. GameplaySessionRegistrations,
+        .. DialogueAuthoringRegistrations,
         Api("health", "int health(EntityRef target)", "Lit les points de vie courants.", "health(hero)", "server", "client"),
         Api("variable", "void variable(const string &in key, const string &in value)", "Modifie une variable autorisée.", "variable(\"door\", \"open\")", "server"),
         Api("say", "void say(const string &in text)", "Publie une réplique localisable.", "say(\"Bienvenue\")", "server", "client"),

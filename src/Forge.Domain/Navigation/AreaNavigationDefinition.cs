@@ -22,6 +22,8 @@ public sealed record AreaNavigationDefinition
 
     public AnchorCatalog Anchors { get; }
 
+    public WaypointAuthoringProfile Waypoints { get; }
+
     public AreaNavigationDefinition(
         AreaNavigationDefinitionId id,
         float cellSize,
@@ -29,7 +31,8 @@ public sealed record AreaNavigationDefinition
         IReadOnlyList<OffMeshNavigationLink>? offMeshLinks,
         string provenance,
         int schemaVersion = CurrentSchemaVersion,
-        AnchorCatalog? anchors = null)
+        AnchorCatalog? anchors = null,
+        WaypointAuthoringProfile? waypoints = null)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentNullException.ThrowIfNull(agentProfiles);
@@ -70,6 +73,7 @@ public sealed record AreaNavigationDefinition
         OffMeshLinks = links;
         Provenance = provenance.Trim();
         Anchors = anchors ?? AnchorCatalog.CreateDefault(AreaId.From(id.Value));
+        Waypoints = waypoints ?? WaypointAuthoringProfile.CreateDefault(Anchors.AreaId);
     }
 
     public static AreaNavigationDefinition CreateDefault(AreaId areaId)
@@ -86,7 +90,8 @@ public sealed record AreaNavigationDefinition
             ],
             [],
             "migration-default",
-            anchors: AnchorCatalog.CreateDefault(areaId));
+            anchors: AnchorCatalog.CreateDefault(areaId),
+            waypoints: WaypointAuthoringProfile.CreateDefault(areaId));
     }
 
     public static AreaNavigationDefinition CloneForArea(AreaNavigationDefinition source, AreaId destinationAreaId)
@@ -115,11 +120,15 @@ public sealed record AreaNavigationDefinition
                 link.MaximumAgentRadius,
                 "area-clone")).ToArray(),
             "area-clone",
-            anchors: AnchorCatalog.CloneForArea(source.Anchors, destinationAreaId));
+            anchors: AnchorCatalog.CloneForArea(source.Anchors, destinationAreaId),
+            waypoints: WaypointAuthoringProfile.CloneForArea(source.Waypoints, destinationAreaId));
     }
 
     public AreaNavigationDefinition WithAnchors(AnchorCatalog anchors) => new(
-        Id, CellSize, AgentProfiles, OffMeshLinks, Provenance, SchemaVersion, anchors);
+        Id, CellSize, AgentProfiles, OffMeshLinks, Provenance, SchemaVersion, anchors, Waypoints);
+
+    public AreaNavigationDefinition WithWaypoints(WaypointAuthoringProfile waypoints) => new(
+        Id, CellSize, AgentProfiles, OffMeshLinks, Provenance, SchemaVersion, Anchors, waypoints);
 
     private static NavigationAgentProfile Agent(
         AreaId areaId,

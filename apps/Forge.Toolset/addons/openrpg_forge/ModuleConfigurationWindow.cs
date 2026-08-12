@@ -43,6 +43,12 @@ public partial class ModuleConfigurationWindow : Window
     private LineEdit? _summary;
     private TextEdit? _description;
     private TextEdit? _credits;
+    private TextEdit? _installation;
+    private TextEdit? _rules;
+    private TextEdit? _controls;
+    private TextEdit? _licenses;
+    private TextEdit? _warnings;
+    private TextEdit? _compatibility;
     private ItemList? _variableList;
     private LineEdit? _variableKey;
     private OptionButton? _variableKind;
@@ -87,6 +93,13 @@ public partial class ModuleConfigurationWindow : Window
         capture ??= OS.GetCmdlineUserArgs().FirstOrDefault(value =>
             value.StartsWith("--blackboard-ui-capture=", StringComparison.Ordinal));
         if (_captureMarker == "BLACKBOARD") capturePrefix = "--blackboard-ui-capture=";
+        capture ??= OS.GetCmdlineUserArgs().FirstOrDefault(value =>
+            value.StartsWith("--r052-project-docs-ui-capture=", StringComparison.Ordinal));
+        if (capture is not null && capture.StartsWith("--r052-project-docs-ui-capture=", StringComparison.Ordinal))
+        {
+            capturePrefix = "--r052-project-docs-ui-capture=";
+            _captureMarker = "R052_PROJECT_DOCS";
+        }
         if (capture is not null)
         {
             _capturePath = capture[capturePrefix.Length..];
@@ -278,13 +291,17 @@ public partial class ModuleConfigurationWindow : Window
         _locale = AddField(localization, "Langue", "fr ou en-US");
         _localizedName = AddField(localization, "Nom", "Nom public du module");
         _summary = AddField(localization, "Résumé", "Une phrase courte");
-        localization.AddChild(new Label { Text = "Description & instructions joueur" });
-        _description = new TextEdit { CustomMinimumSize = new Vector2(0, 72), WrapMode = TextEdit.LineWrappingMode.Boundary };
-        _description.TooltipText = "Structure conseillée : synopsis, installation, règles, contrôles, avertissements et compatibilité.";
-        localization.AddChild(_description);
-        localization.AddChild(new Label { Text = "Crédits localisés" });
-        _credits = new TextEdit { CustomMinimumSize = new Vector2(0, 58), WrapMode = TextEdit.LineWrappingMode.Boundary };
-        localization.AddChild(_credits);
+        localization.AddChild(new Label { Text = "Pages joueur localisées" });
+        var pages = new TabContainer { CustomMinimumSize = new Vector2(0, 155), SizeFlagsVertical = Control.SizeFlags.ExpandFill };
+        localization.AddChild(pages);
+        _description = AddPage(pages, "Synopsis");
+        _installation = AddPage(pages, "Installation");
+        _rules = AddPage(pages, "Règles");
+        _controls = AddPage(pages, "Contrôles");
+        _credits = AddPage(pages, "Crédits");
+        _licenses = AddPage(pages, "Licences");
+        _warnings = AddPage(pages, "Avertissements");
+        _compatibility = AddPage(pages, "Compatibilité");
         var localizationActions = new HBoxContainer();
         localizationActions.AddThemeConstantOverride("separation", 8);
         localization.AddChild(localizationActions);
@@ -404,7 +421,13 @@ public partial class ModuleConfigurationWindow : Window
                 _localizedName!.Text,
                 _summary!.Text,
                 _description!.Text,
-                _credits!.Text);
+                _credits!.Text,
+                _installation!.Text,
+                _rules!.Text,
+                _controls!.Text,
+                _licenses!.Text,
+                _warnings!.Text,
+                _compatibility!.Text);
             var index = _localizations.FindIndex(item =>
                 string.Equals(item.Locale, draft.Locale, StringComparison.OrdinalIgnoreCase));
             if (index >= 0) _localizations[index] = draft;
@@ -498,6 +521,10 @@ public partial class ModuleConfigurationWindow : Window
                 _classification!.Text,
                 "creator-command",
                 foundation: _foundation);
+            var documentationDiagnostic = ProjectDocumentationValidator.Validate(_approvedMetadata).FirstOrDefault();
+            if (documentationDiagnostic is not null)
+                throw new ArgumentException(
+                    $"{documentationDiagnostic.Code} · {documentationDiagnostic.Path} · {documentationDiagnostic.Message}");
             _approvedVariables = _variables.ToArray();
             _applyButton!.Disabled = false;
             _previewSummary!.Text =
@@ -556,6 +583,12 @@ public partial class ModuleConfigurationWindow : Window
         _summary!.Text = item.Summary;
         _description!.Text = item.Description;
         _credits!.Text = item.Credits;
+        _installation!.Text = item.Installation;
+        _rules!.Text = item.Rules;
+        _controls!.Text = item.Controls;
+        _licenses!.Text = item.Licenses;
+        _warnings!.Text = item.Warnings;
+        _compatibility!.Text = item.Compatibility;
     }
 
     private void LoadVariable(int index)
@@ -580,6 +613,12 @@ public partial class ModuleConfigurationWindow : Window
         _summary!.Text = string.Empty;
         _description!.Text = string.Empty;
         _credits!.Text = string.Empty;
+        _installation!.Text = string.Empty;
+        _rules!.Text = string.Empty;
+        _controls!.Text = string.Empty;
+        _licenses!.Text = string.Empty;
+        _warnings!.Text = string.Empty;
+        _compatibility!.Text = string.Empty;
     }
 
     private void ClearVariableDraft()
@@ -616,6 +655,18 @@ public partial class ModuleConfigurationWindow : Window
         var field = new LineEdit { PlaceholderText = placeholder };
         parent.AddChild(field);
         return field;
+    }
+
+    private static TextEdit AddPage(TabContainer pages, string name)
+    {
+        var edit = new TextEdit
+        {
+            Name = name,
+            WrapMode = TextEdit.LineWrappingMode.Boundary,
+            PlaceholderText = $"Page {name.ToLowerInvariant()} en Markdown",
+        };
+        pages.AddChild(edit);
+        return edit;
     }
 
     private static Label Section(string text)

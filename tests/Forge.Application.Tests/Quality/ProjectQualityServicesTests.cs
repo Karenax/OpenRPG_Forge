@@ -7,6 +7,7 @@ using Forge.Domain.Localization;
 using Forge.Domain.Projects;
 using Forge.Domain.Quests;
 using Forge.Domain.Spatial;
+using Forge.Domain.Assistant;
 
 namespace Forge.Application.Tests.Quality;
 
@@ -55,6 +56,45 @@ public sealed class ProjectQualityServicesTests
         Assert.Equal(encountersA.Areas[0].Runs.Select(run => run.SelectedEntities),
             encountersB.Areas[0].Runs.Select(run => run.SelectedEntities));
         Assert.All(encountersA.Areas[0].Runs, run => Assert.True(run.NavigationPassed && run.CleanupPassed));
+    }
+
+    [Fact]
+    public void R120_AssistantScenarioAgentUsesOnlyGameplayActionsAndReportsCoverageDeterministically()
+    {
+        var project = Project();
+        var profile = AssistantTestAutomationProfile.CreateDefault();
+
+        var first = AssistantScenarioTestService.Run(project, profile);
+        var second = AssistantScenarioTestService.Run(project, profile);
+
+        Assert.True(first.Succeeded);
+        Assert.Equal(project.Dialogues.Count, first.Coverage.Dialogues);
+        Assert.Equal(first.Coverage.DialogueNodesTotal, first.Coverage.DialogueNodesCovered);
+        Assert.Equal(project.Quests.Count, first.Coverage.Quests);
+        Assert.Equal(first.Coverage.QuestTransitionsTotal, first.Coverage.QuestTransitionsCovered);
+        Assert.All(first.GameplayActions,
+            action => Assert.Contains(action, AssistantTestAutomationProfile.SupportedGameplayActions));
+        Assert.Equal(first.Fingerprint, second.Fingerprint);
+        Assert.DoesNotContain(first.GameplayActions, action => action.Contains("shell", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void R120_AssistantScenarioAgentReportsContradictionsRewardCyclesAndCitedNarrativeConflicts()
+    {
+        var project = ProjectWithNarrativeFailures();
+
+        var report = AssistantScenarioTestService.Run(project, AssistantTestAutomationProfile.CreateDefault());
+
+        Assert.False(report.Succeeded);
+        Assert.Contains(report.Findings, item =>
+            item.Code == AssistantScenarioTestService.DialogueConditionContradictionCode &&
+            item.SuggestedTransaction is not null && item.ReproductionSteps.Count > 0);
+        Assert.Contains(report.Findings, item =>
+            item.Code == AssistantScenarioTestService.QuestRewardExploitCode &&
+            item.Severity == AssistantScenarioFindingSeverity.Blocking);
+        Assert.Contains(report.Findings, item =>
+            item.Code == AssistantScenarioTestService.NarrativeConflictCode && item.Citations.Count == 2 &&
+            item.SuggestedTransaction!.StartsWith("localization.resolve_conflict", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -124,6 +164,45 @@ public sealed class ProjectQualityServicesTests
                 new BlueprintDefinition(spawnBlueprint, "spawn", "Spawn", BlueprintKind.PlayerSpawn),
                 new BlueprintDefinition(creatureBlueprint, "creature", "Creature", BlueprintKind.Creature),
             ], [area], [dialogue], [quest]);
+    }
+
+    private static ProjectDefinition ProjectWithNarrativeFailures()
+    {
+        var baseline = Project();
+        var dialogue = Assert.Single(baseline.Dialogues);
+        var entry = dialogue.Nodes[0];
+        var contradictory = new DialogueChoice(
+            DialogueChoiceId.From(Guid.Parse("e1530000-0000-4000-8000-000000000001")),
+            new LocalizedText("narrative.shared", "First truth"),
+            [
+                new DialogueCondition(DialogueConditionKind.VariableEquals, "ready", "true"),
+                new DialogueCondition(DialogueConditionKind.VariableEquals, "ready", "false"),
+            ]);
+        var brokenDialogue = new DialogueDefinition(dialogue.Id, dialogue.Slug, dialogue.DisplayName,
+            dialogue.EntryNodeId,
+            [new DialogueNode(entry.Id, entry.SpeakerBlueprintId, entry.Text, entry.OnEnterActions, [contradictory])],
+            metadata: dialogue.Metadata);
+
+        var stateA = QuestStateId.From(Guid.Parse("e1530000-0000-4000-8000-000000000010"));
+        var stateB = QuestStateId.From(Guid.Parse("e1530000-0000-4000-8000-000000000011"));
+        var rewardQuest = new QuestDefinition(
+            QuestId.From(Guid.Parse("e1530000-0000-4000-8000-000000000012")),
+            QuestDefinition.CurrentSchemaVersion, "test:r120", "reward-cycle", "Reward cycle",
+            new LocalizedText("narrative.shared", "Second truth"),
+            new LocalizedText("quest.reward.description", "Cycle"), "test", 10, "test", false,
+            new QuestInstancePolicy(QuestProgressScope.Player, [QuestProgressScope.Player], false), stateA,
+            [
+                new QuestStateDefinition(stateA, "A", new QuestJournalEntry("quest.reward.a", "A")),
+                new QuestStateDefinition(stateB, "B", new QuestJournalEntry("quest.reward.b", "B")),
+            ],
+            [
+                new QuestTransition(QuestTransitionId.From(Guid.Parse("e1530000-0000-4000-8000-000000000013")),
+                    stateA, stateB, actions: [new QuestAction(QuestActionKind.GiveItem, "gem", "1")]),
+                new QuestTransition(QuestTransitionId.From(Guid.Parse("e1530000-0000-4000-8000-000000000014")),
+                    stateB, stateA),
+            ]);
+        return new ProjectDefinition(baseline.Id, baseline.Title, baseline.Module, baseline.Blueprints,
+            baseline.Areas, [brokenDialogue], [rewardQuest]);
     }
 
     private static TransformValue Transform(float x, float z) => new(new Vector3Value(x, 0, z),

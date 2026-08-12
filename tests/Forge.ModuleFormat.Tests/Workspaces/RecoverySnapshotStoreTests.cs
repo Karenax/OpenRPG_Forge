@@ -1,6 +1,8 @@
 using Forge.ModuleFormat.Serialization;
 using Forge.ModuleFormat.Tests.Serialization;
 using Forge.ModuleFormat.Workspaces;
+using Forge.Domain.Projects;
+using Forge.Domain.RuntimeExtensions;
 
 namespace Forge.ModuleFormat.Tests.Workspaces;
 
@@ -59,6 +61,34 @@ public sealed class RecoverySnapshotStoreTests : IDisposable
         Assert.True(File.Exists(inspection.QuarantinePath));
         Assert.False(File.Exists(snapshot.SnapshotPath));
         Assert.Empty(store.List(_root));
+    }
+
+    [Fact]
+    public void Interrupted_session_and_selective_preview_are_explicit_and_clear_preserves_marker()
+    {
+        Directory.CreateDirectory(_root);
+        var project = TestProjectFactory.CreateValid();
+        var current = new ProjectDefinition(project.Id, "Unsaved title", project.Module, project.Blueprints,
+            project.Areas, project.Dialogues, project.Quests);
+        var sessions = new RecoverySessionStore();
+        var first = sessions.Begin(_root, project.Id, DateTimeOffset.UnixEpoch, 1001, "test:r060");
+        var second = sessions.Begin(_root, project.Id, DateTimeOffset.UnixEpoch.AddMinutes(1), 1002, "test:r060");
+        var store = new RecoverySnapshotStore();
+        var snapshot = store.Capture(_root, project, 4, DateTimeOffset.UnixEpoch.AddMinutes(2));
+        var selection = new RecoveryRestoreSelection(Guid.NewGuid(), 1,
+            RecoveryRestoreSection.ProjectAndModule, "test:r060");
+
+        var preview = store.PreviewRestore(snapshot, current, selection);
+
+        Assert.False(first.PreviousSessionWasUnclean);
+        Assert.True(second.PreviousSessionWasUnclean);
+        Assert.True(preview.Comparison.Changed);
+        Assert.Equal(project.Title, preview.Project.Title);
+        Assert.Equal([RecoveryRestoreSection.ProjectAndModule], preview.Comparison.SelectedSections);
+        store.Clear(_root);
+        Assert.Equal(second.Current.Id, sessions.Read(_root)!.Id);
+        Assert.True(sessions.End(_root, second.Current.Id, DateTimeOffset.UnixEpoch.AddMinutes(3)));
+        Assert.True(sessions.Read(_root)!.CleanShutdown);
     }
 
     public void Dispose() { if (Directory.Exists(_root)) Directory.Delete(_root, true); }

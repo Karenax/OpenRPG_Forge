@@ -1,6 +1,7 @@
 using Forge.Application.Commands;
 using Forge.Application.Projects;
 using Forge.Application.Time;
+using Forge.Domain.Areas;
 using Forge.Domain.Projects;
 using Forge.Domain.Validation;
 
@@ -26,12 +27,20 @@ public sealed class EditAreaGeometryHandler
         var blueprintIds = state.Project.Blueprints.Select(item => item.Id).ToHashSet();
         if (command.Entities.Any(item => !blueprintIds.Contains(item.BlueprintId)))
             return Fail(state, command, MissingBlueprintCode, "Edited entities must reference existing blueprints.");
+        var foundation = command.Foundation ?? area.Foundation;
         var world = command.Dimensions == area.Dimensions
             ? area.World
             : Domain.Areas.AreaWorldProfile.ResizeForArea(area.World, command.Dimensions);
         var updatedArea = new Domain.Areas.AreaDefinition(area.Id, area.Slug, area.DisplayName, command.Entities,
             area.Kind, command.Dimensions, area.Portals, area.SchemaVersion, area.Navigation, area.Environment,
-            area.Authoring, world, area.RuntimePolicies);
+            area.Authoring, world, area.RuntimePolicies, foundation, area.Playtest);
+        var foundationDiagnostics = AreaFoundationValidator.Validate(updatedArea, foundation);
+        if (foundationDiagnostics.Count > 0)
+        {
+            var invalidFoundation = foundationDiagnostics[0];
+            return Fail(state, command, invalidFoundation.Code,
+                $"{invalidFoundation.Path}: {invalidFoundation.Message}");
+        }
         var project = new ProjectDefinition(state.Project.Id, state.Project.Title, state.Project.Module,
             state.Project.Blueprints, state.Project.Areas.Select(item => item.Id == area.Id ? updatedArea : item).ToArray(),
             state.Project.Dialogues, state.Project.Quests);

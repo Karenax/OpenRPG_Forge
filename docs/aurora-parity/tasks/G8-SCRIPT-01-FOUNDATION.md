@@ -9,7 +9,8 @@ annulable et complétable avec révision et diff.
 AttackContext, critique, attribution et tags d'effet. Les effets décrivent durée, périodicité, source,
 six modes de stacking, dispel et sérialisation.
 
-Preuves : `ForgeScriptAuthoringServiceTests`, `ScriptGameplayServiceTests`, suites ciblées et solution
-globale.
+R097 raccorde désormais ces contrats au document source canonique, à l'éditeur visible, au runtime,
+à la sandbox native, à l'API documentée et à MCP. La preuve de clôture détaillée est
+`P1-R097-SCRIPT-AUTHORING-GAMEPLAY-ACCEPTANCE.md`.
 
-La prochaine tranche unique est **G8 SCRIPT-02**.
+La prochaine tranche unique est `R098 / FC-SCRIPT-P1-02`. Aucun P2 n'est ouvert.

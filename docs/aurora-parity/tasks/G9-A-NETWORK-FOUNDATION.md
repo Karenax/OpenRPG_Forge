@@ -23,3 +23,10 @@
 ## Limites reportées dans G9
 
 Le transport socket, l'écran réseau auteur/client et le scénario réel à deux clients sont intégrés après les six lots de contrats afin qu'ils consomment une seule autorité complète.
+
+## Fermeture P1 R102
+
+R102 complète le profil global UUID/schéma/provenance/scope/révision/audit, le mode service, le
+contrat de santé, la fenêtre auteur transactionnelle, le roundtrip, les handles ForgeScript et le
+plan MCP. Le scénario intégré à deux clients conserve une seule autorité et vérifie permission,
+audit et mutation forgée. Voir `P1-R102-MULTIPLAYER-FOUNDATION-ACCEPTANCE.md`.

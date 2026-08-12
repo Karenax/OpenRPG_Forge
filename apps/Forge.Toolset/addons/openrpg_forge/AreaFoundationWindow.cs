@@ -1,4 +1,5 @@
 #if TOOLS
+using Forge.Application.Areas;
 using Forge.Application.Projects;
 using Forge.Domain.Areas;
 using Forge.Domain.Blueprints;
@@ -13,6 +14,7 @@ public partial class AreaFoundationWindow : Window
     private Func<ProjectState?>? _state;
     private Func<AreaId?>? _active;
     private Func<AreaId, AreaFoundationProfile, bool>? _apply;
+    private Func<AreaId, AreaTileEditRequest, bool>? _editTiles;
     private Action<Window>? _brand;
     private AreaFoundationProfile? _draft;
     private readonly List<BlueprintId> _blueprints = [];
@@ -41,6 +43,26 @@ public partial class AreaFoundationWindow : Window
     private Label? _tileSummary;
     private Label? _preview;
     private ItemList? _diagnostics;
+    private OptionButton? _tileOperation;
+    private CheckBox? _preserveAttachments;
+    private LineEdit? _replacementKit;
+    private LineEdit? _groupParameters;
+    private SpinBox? _groupWidth;
+    private SpinBox? _groupDepth;
+    private SpinBox? _groupHeight;
+    private SpinBox? _autoFitSeed;
+    private CheckBox? _manualLock;
+    private LineEdit? _tileState;
+    private LineEdit? _tileAnimation;
+    private LineEdit? _tileMaterial;
+    private LineEdit? _tileLightColor;
+    private SpinBox? _tileLightIntensity;
+    private CheckBox? _tileCollision;
+    private CheckBox? _tileNavigation;
+    private OptionButton? _advancedResizeAnchor;
+    private CheckBox? _migrateResizeLosses;
+    private CheckBox? _requireTileEditing;
+    private Label? _advancedSummary;
 
     public string PreviewText => _preview?.Text ?? string.Empty;
     public int DiagnosticCount => _diagnostics?.ItemCount ?? 0;
@@ -49,14 +71,16 @@ public partial class AreaFoundationWindow : Window
         Func<ProjectState?> state,
         Func<AreaId?> active,
         Func<AreaId, AreaFoundationProfile, bool> apply,
+        Func<AreaId, AreaTileEditRequest, bool> editTiles,
         Action<Window> brand)
     {
         _state = state ?? throw new ArgumentNullException(nameof(state));
         _active = active ?? throw new ArgumentNullException(nameof(active));
         _apply = apply ?? throw new ArgumentNullException(nameof(apply));
+        _editTiles = editTiles ?? throw new ArgumentNullException(nameof(editTiles));
         _brand = brand ?? throw new ArgumentNullException(nameof(brand));
         Title = "Fondation de zone et kits modulaires · OpenRPG Forge";
-        MinSize = new Vector2I(1280, 840);
+        MinSize = new Vector2I(1600, 900);
         Size = MinSize;
         Transient = true;
         Exclusive = false;
@@ -105,6 +129,35 @@ public partial class AreaFoundationWindow : Window
         return before is not null && after is not null && after.Value.Value > before.Value.Value;
     }
 
+    public bool PrepareR053ForSmokeTest()
+    {
+        if (!PrepareForSmokeTest()) return false;
+        _tileOperation!.Selected = (int)AreaTileEditOperationKind.Replace;
+        _preserveAttachments!.ButtonPressed = true;
+        _replacementKit!.Text = "crypt-modular-remap";
+        _groupParameters!.Text = "width:int=2,theme:string=crypt";
+        _groupWidth!.Value = 2;
+        _groupDepth!.Value = 1;
+        _groupHeight!.Value = 3;
+        _autoFitSeed!.Value = 53053;
+        _manualLock!.ButtonPressed = true;
+        _tileState!.Text = "torchlit";
+        _tileAnimation!.Text = "animations/torch-loop";
+        _tileMaterial!.Text = "floor=wet-stone";
+        _tileLightColor!.Text = "#ff9858";
+        _tileLightIntensity!.Value = 2;
+        _tileCollision!.ButtonPressed = true;
+        _tileNavigation!.ButtonPressed = true;
+        _advancedResizeAnchor!.Selected = (int)AreaResizeAnchor.NorthWest;
+        _migrateResizeLosses!.ButtonPressed = true;
+        _requireTileEditing!.ButtonPressed = true;
+        ConfigureAdvancedDraft();
+        Preview();
+        return _draft?.TileKit.Editing is not null && DiagnosticCount == 0;
+    }
+
+    public void ShowAdvancedForCapture() => _advancedSummary?.GrabFocus();
+
     private void Build()
     {
         var background = new PanelContainer { AnchorRight = 1, AnchorBottom = 1 };
@@ -126,8 +179,8 @@ public partial class AreaFoundationWindow : Window
         {
             OffsetLeft = 24,
             OffsetTop = 20,
-            OffsetRight = 1256,
-            OffsetBottom = 816,
+            OffsetRight = 1576,
+            OffsetBottom = 876,
         };
         root.AddThemeConstantOverride("separation", 12);
         AddChild(root);
@@ -201,6 +254,52 @@ public partial class AreaFoundationWindow : Window
         apply.AddThemeColorOverride("font_color", Colors.White);
         apply.Pressed += Apply;
         lifecycle.AddChild(apply);
+
+        var advanced = Column(body, "ÉDITION AVANCÉE R053");
+        _advancedSummary = new Label
+        {
+            Text = "État vide · configurez groupes, outils, auto-tiling et propriétés.",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        };
+        advanced.AddChild(_advancedSummary);
+        _tileOperation = Choice(advanced, "Outil");
+        foreach (var operation in Enum.GetValues<AreaTileEditOperationKind>())
+            _tileOperation.AddItem(operation.ToString());
+        _preserveAttachments = new CheckBox { Text = "Préserver les objets attachés", ButtonPressed = true };
+        advanced.AddChild(_preserveAttachments);
+        _replacementKit = Field(advanced, "Kit de remap", "forge-generic-remap");
+        _groupParameters = Field(advanced, "Paramètres du groupe", "width:int=2");
+        var footprint = new GridContainer { Columns = 3 };
+        advanced.AddChild(footprint);
+        _groupWidth = CompactSpin(footprint, "Empreinte X", 1, 1024, 1);
+        _groupDepth = CompactSpin(footprint, "Empreinte Z", 1, 1024, 1);
+        _groupHeight = CompactSpin(footprint, "Hauteur", .1, 1024, 3, .1);
+        _autoFitSeed = Spin(advanced, "Seed auto-tiling", int.MinValue, int.MaxValue, 2026);
+        _manualLock = new CheckBox { Text = "Verrouillage manuel", ButtonPressed = true };
+        advanced.AddChild(_manualLock);
+        _tileState = Field(advanced, "État de tuile", "default");
+        _tileAnimation = Field(advanced, "Animation en boucle", "animations/idle-loop");
+        _tileMaterial = Field(advanced, "Matériaux", "surface=default");
+        _tileLightColor = Field(advanced, "Lumière", "#ff9858");
+        _tileLightIntensity = Spin(advanced, "Intensité", 0, 100000, 1, .1);
+        var collisionNavigation = new HBoxContainer();
+        _tileCollision = new CheckBox { Text = "Collision", ButtonPressed = true };
+        _tileNavigation = new CheckBox { Text = "Navigation", ButtonPressed = true };
+        collisionNavigation.AddChild(_tileCollision);
+        collisionNavigation.AddChild(_tileNavigation);
+        advanced.AddChild(collisionNavigation);
+        _advancedResizeAnchor = Choice(advanced, "Origine redimensionnement");
+        foreach (var anchor in Enum.GetValues<AreaResizeAnchor>()) _advancedResizeAnchor.AddItem(anchor.ToString());
+        _migrateResizeLosses = new CheckBox { Text = "Repositionner les pertes", ButtonPressed = true };
+        advanced.AddChild(_migrateResizeLosses);
+        _requireTileEditing = new CheckBox { Text = "Métadonnées requises au runtime" };
+        advanced.AddChild(_requireTileEditing);
+        var advancedPreview = new Button { Text = "Prévisualiser le contrat avancé" };
+        advancedPreview.Pressed += () => { ConfigureAdvancedDraft(); Preview(); };
+        advanced.AddChild(advancedPreview);
+        var advancedApply = new Button { Text = "Appliquer config & outil" };
+        advancedApply.Pressed += ApplyAdvancedOperation;
+        advanced.AddChild(advancedApply);
     }
 
     private void Refresh()
@@ -256,6 +355,20 @@ public partial class AreaFoundationWindow : Window
                              $"{profile.TileKit.ConnectionRules.Count} règle(s) · grille {profile.TileKit.GridSizeMeters:0.##} m";
         _preview!.Text = "Prêt · prévisualisez avant application.";
         _diagnostics!.Clear();
+        var editing = profile.TileKit.Editing;
+        _advancedSummary!.Text = editing is null
+            ? "État vide · aucune configuration avancée."
+            : $"{editing.Groups.Count} groupe(s) paramétrique(s) · {editing.Properties.Count} propriété(s) · " +
+              $"{editing.AutoFit.ManualLockedPlacementIds.Count} verrou(s) · seed {editing.AutoFit.Seed}";
+        _tileOperation!.Selected = (int)(editing?.Tools.Operation ?? AreaTileEditOperationKind.SelectByType);
+        _preserveAttachments!.ButtonPressed = editing?.Tools.PreserveAttachedObjects ?? true;
+        _replacementKit!.Text = editing?.Tools.ReplacementKitKey ?? string.Empty;
+        _autoFitSeed!.Value = editing?.AutoFit.Seed ?? profile.Creation.Seed;
+        _manualLock!.ButtonPressed = editing?.AutoFit.ManualLockedPlacementIds.Count > 0;
+        _advancedResizeAnchor!.Selected = Array.IndexOf(Enum.GetNames<AreaResizeAnchor>(),
+            editing?.Resize.Anchor ?? AreaResizeAnchor.Center.ToString());
+        _migrateResizeLosses!.ButtonPressed = editing?.Resize.MigrateInstances ?? true;
+        _requireTileEditing!.ButtonPressed = profile.RequireTileEditingRuntimeMetadata;
     }
 
     private void AddOrReplaceTile()
@@ -290,7 +403,7 @@ public partial class AreaFoundationWindow : Window
         var kit = new ModularTileKitProfile(_draft.TileKit.Id, 1, "author:area-foundation-ui", (float)_grid!.Value,
             definitions, rules, placements, [group], [brush]);
         _draft = new(_draft.Id, 1, "author:area-foundation-ui", ReadCreation(), kit, ReadLifecycle(),
-            _draft.Volumes, _draft.Dependencies);
+            _draft.Volumes, _draft.Dependencies, _draft.RequireTileEditingRuntimeMetadata);
         _tileSummary!.Text = $"{definitions.Length} définition(s) · {placements.Length} placement(s) · sockets/règles/groupes/pinceau prêts";
     }
 
@@ -301,7 +414,8 @@ public partial class AreaFoundationWindow : Window
         _draft = new(_draft.Id, 1, "author:area-foundation-ui", ReadCreation(),
             new(_draft.TileKit.Id, 1, "author:area-foundation-ui", (float)_grid!.Value,
                 _draft.TileKit.Definitions, _draft.TileKit.ConnectionRules, _draft.TileKit.Placements,
-                _draft.TileKit.Groups, _draft.TileKit.Brushes), ReadLifecycle(), _draft.Volumes, _draft.Dependencies);
+                _draft.TileKit.Groups, _draft.TileKit.Brushes, _draft.TileKit.Editing), ReadLifecycle(),
+            _draft.Volumes, _draft.Dependencies, _draft.RequireTileEditingRuntimeMetadata);
         var diagnostics = AreaFoundationValidator.Validate(area, _draft);
         _diagnostics!.Clear();
         foreach (var diagnostic in diagnostics) _diagnostics.AddItem($"{diagnostic.Code} · {diagnostic.Path}");
@@ -322,6 +436,77 @@ public partial class AreaFoundationWindow : Window
             ? "✓ Fondation appliquée par commande · undo/redo disponible"
             : "✕ Fondation refusée · consultez les diagnostics";
         Refresh();
+    }
+
+    private void ApplyAdvancedOperation()
+    {
+        ConfigureAdvancedDraft();
+        Apply();
+        var area = ActiveArea();
+        var placement = area?.Foundation.TileKit.Placements.LastOrDefault();
+        if (area is null || placement is null || area.Foundation.TileKit.Editing is not { } editing) return;
+        var request = new AreaTileEditRequest(editing.Tools.Operation, [placement.Id],
+            editing.Tools.ReplacementDefinitionId, editing.Tools.ReplacementKitKey,
+            editing.Tools.PreserveAttachedObjects, editing.Tools.SelectionType);
+        _advancedSummary!.Text = _editTiles?.Invoke(area.Id, request) == true
+            ? "✓ Config et outil appliqués par la même commande canonique"
+            : "✕ Outil refusé · consultez les diagnostics";
+        Refresh();
+    }
+
+    private void ConfigureAdvancedDraft()
+    {
+        if (_draft is null || _draft.TileKit.Placements.Count == 0 || _draft.TileKit.Groups.Count == 0) return;
+        var kit = _draft.TileKit;
+        var placement = kit.Placements[^1];
+        var group = kit.Groups[^1];
+        var definition = kit.Definitions.Single(item => item.Id == placement.DefinitionId);
+        var parameters = ParsePairs(_groupParameters!.Text, includeType: true)
+            .Select(item => new EditableTileGroupParameter(item.Key, item.Type, item.Value)).ToArray();
+        var groupProfile = new EditableTileGroupProfile(Guid.NewGuid(), group.Id, parameters,
+            new((int)_groupWidth!.Value, (int)_groupDepth!.Value, (float)_groupHeight!.Value),
+            [new(Guid.NewGuid(), "entry", definition.Sockets.FirstOrDefault()?.Type ?? "modular-edge",
+                0, 0, ModularTileSocketDirection.East)],
+            [new("default", group.PlacementIds.Select(id => kit.Placements.Single(p => p.Id == id).DefinitionId)
+                .Distinct().ToArray())], true);
+        var operation = (AreaTileEditOperationKind)_tileOperation!.Selected;
+        var tools = new AreaTileToolProfile(operation, definition.Id, _replacementKit!.Text.Trim(), definition.Id,
+            definition.Key, _preserveAttachments!.ButtonPressed);
+        var autoFit = new AreaTileAutoFitProfile((int)_autoFitSeed!.Value,
+            _manualLock!.ButtonPressed ? [placement.Id] : [], true);
+        var material = ParsePairs(_tileMaterial!.Text, includeType: false)
+            .ToDictionary(item => item.Key, item => item.Value, StringComparer.Ordinal);
+        var property = new TileInstancePropertyProfile(Guid.NewGuid(), placement.Id, _tileState!.Text.Trim(),
+            _tileAnimation!.Text.Trim(), true, material,
+            new(true, _tileLightColor!.Text.Trim(), (float)_tileLightIntensity!.Value, 8),
+            _tileCollision!.ButtonPressed, _tileNavigation!.ButtonPressed,
+            definition.Sockets.Select(item => item.Name).ToArray(),
+            new Dictionary<string, string> { ["state"] = _tileState.Text.Trim() });
+        var resize = new AreaTileResizeProfile(1, 1, 4096, 4096,
+            ((AreaResizeAnchor)_advancedResizeAnchor!.Selected).ToString(),
+            _migrateResizeLosses!.ButtonPressed, []);
+        var editing = new AreaTileEditingProfile(kit.Editing?.Id ?? Guid.NewGuid(), 1,
+            "author:area-tile-editing-ui", [groupProfile], tools, autoFit, [property], resize);
+        var updatedKit = new ModularTileKitProfile(kit.Id, kit.SchemaVersion, "author:area-tile-editing-ui",
+            kit.GridSizeMeters, kit.Definitions, kit.ConnectionRules, kit.Placements, kit.Groups, kit.Brushes,
+            editing);
+        _draft = new(_draft.Id, _draft.SchemaVersion, "author:area-tile-editing-ui", ReadCreation(), updatedKit,
+            ReadLifecycle(), _draft.Volumes, _draft.Dependencies, _requireTileEditing!.ButtonPressed);
+        _advancedSummary!.Text = "Aperçu prêt · groupe paramétrique, outil, auto-tiling, propriétés et resize · 0 écriture";
+    }
+
+    private static IReadOnlyList<(string Key, string Type, string Value)> ParsePairs(string source, bool includeType)
+    {
+        return source.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(token =>
+            {
+                var assignment = token.Split('=', 2, StringSplitOptions.TrimEntries);
+                var declaration = assignment[0].Split(':', 2, StringSplitOptions.TrimEntries);
+                return (Key: declaration[0],
+                    Type: includeType && declaration.Length > 1 ? declaration[1] : "string",
+                    Value: assignment.Length > 1 ? assignment[1] : string.Empty);
+            })
+            .Where(item => !string.IsNullOrWhiteSpace(item.Key)).ToArray();
     }
 
     private AreaDefinition? ActiveArea()
@@ -349,7 +534,7 @@ public partial class AreaFoundationWindow : Window
     {
         var column = new VBoxContainer
         {
-            CustomMinimumSize = new Vector2(385, 0),
+            CustomMinimumSize = new Vector2(370, 0),
             SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
         };
         column.AddThemeConstantOverride("separation", 7);
@@ -383,6 +568,17 @@ public partial class AreaFoundationWindow : Window
         parent.AddChild(new Label { Text = label });
         var field = new SpinBox { MinValue = min, MaxValue = max, Value = value, Step = step };
         parent.AddChild(field);
+        return field;
+    }
+
+    private static SpinBox CompactSpin(Container parent, string label, double min, double max, double value,
+        double step = 1)
+    {
+        var column = new VBoxContainer();
+        column.AddChild(new Label { Text = label });
+        var field = new SpinBox { MinValue = min, MaxValue = max, Value = value, Step = step };
+        column.AddChild(field);
+        parent.AddChild(column);
         return field;
     }
 

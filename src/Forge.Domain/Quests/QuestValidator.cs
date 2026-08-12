@@ -221,6 +221,9 @@ public static class QuestValidator
             diagnostics.AddRange(QuestNarrativeValidator.Validate(quest));
 
         diagnostics.AddRange(QuestOperationsValidator.Validate(quest));
+        diagnostics.AddRange(QuestAuthoringProfileValidator.Validate(quest));
+        diagnostics.AddRange(QuestExperienceProfileValidator.Validate(quest));
+        diagnostics.AddRange(QuestQualityProfileValidator.Validate(quest));
 
         return diagnostics;
     }

@@ -48,7 +48,15 @@ public sealed class EditorWorkspaceProfileStoreTests
             Assert.True(restored.Shell.PaletteFilter.FavoritesOnly);
             Assert.True(restored.Shell.DirectManipulation.Selection.MultiSelectionEnabled);
             Assert.Equal(EditorCoordinateSpace.World, restored.Shell.DirectManipulation.Transform.CoordinateSpace);
+            Assert.True(restored.RepeatedPlacementProfile.BrushMode);
+            Assert.True(restored.Help.SourcedAssistantEnabled);
+            var catalog = EditorWorkspaceProfileStore.TryLoadCatalog(root);
+            Assert.NotNull(catalog);
+            Assert.Equal(7, catalog.Profiles.Count);
+            Assert.Equal(7, catalog.Profiles.Select(candidate => candidate.Role).Distinct().Count());
+            Assert.Equal(profile.Id, catalog.ActiveProfileId);
             Assert.True(File.Exists(Path.Combine(root, EditorWorkspaceProfileStore.RelativePath)));
+            Assert.True(File.Exists(Path.Combine(root, EditorWorkspaceProfileStore.CatalogRelativePath)));
         }
         finally
         {

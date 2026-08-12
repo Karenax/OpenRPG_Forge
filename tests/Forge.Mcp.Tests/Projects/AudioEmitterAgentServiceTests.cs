@@ -25,6 +25,7 @@ public sealed class AudioEmitterAgentServiceTests
         var applied = workspace.Project.ApplyAudioEmitterPlan(planned.PlanId!);
         Assert.True(applied.Applied);
         Assert.Equal("Campfire", workspace.Project.GetAudioEmitters(search: "fire").Catalog.Definitions.Single().Name);
+        Assert.Equal("Campfire", workspace.Project.GetAudioEmitters(search: "crépitement").Catalog.Definitions.Single().Name);
         Assert.Single(workspace.Project.GetAudioEmitters(emitterId: definitionId.ToString()).Catalog.Definitions);
         var persisted = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
         Assert.Equal(definitionId, persisted.Areas.Single().Environment.Audio.Emitters.Definitions.Single().Id);
@@ -57,7 +58,8 @@ public sealed class AudioEmitterAgentServiceTests
         new(definitionId, 1, "Campfire",
             new AudioClipSet(Guid.NewGuid(), 1, "Fire", AudioClipSelectionMode.Ordered,
                 [new(Guid.NewGuid(), "audio/campfire.ogg", 1, ["fire", "ambient"], "small", "fr", -19,
-                    string.Empty, "audio/ogg", 128, "CC0-1.0", "mcp-test", new string('a', 64))],
+                    string.Empty, "audio/ogg", 128, "CC0-1.0", "mcp-test", new string('a', 64),
+                    "crépitement du feu", [.1f, .6f, .2f], 12)],
                 "mcp-test"),
             new(AudioLoopMode.Loop, 0, 0, 0, .1f, string.Empty),
             new(1, 22, "inverse-square", 180, -12, .2f, .5f, true), null, 0,

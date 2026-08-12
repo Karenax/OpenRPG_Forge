@@ -14,7 +14,12 @@ public sealed record DedicatedServerConfiguration(
     string ModuleFingerprint,
     string ProtocolVersion);
 
-public sealed record NetworkDiagnostic(string Code, string Path, string Message);
+public sealed record NetworkDiagnostic(
+    string Code,
+    string Path,
+    string Message,
+    Guid? ObjectId = null,
+    string Severity = "error");
 
 public sealed record CharacterDraft(
     Guid CharacterId,

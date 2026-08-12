@@ -153,12 +153,35 @@ public sealed class AssetCatalogBrowserTests
             diagnostic => diagnostic.Code == AssetImportPlanner.ProfileMismatchCode);
     }
 
+    [Fact]
+    public void AdvancedSearchAndPreviewPlanUseCanonicalTechnicalMetadata()
+    {
+        var metadata = new AssetTechnicalMetadata(dimensions: new AssetDimensions(1, 2, 0.5),
+            style: "stylized", skeleton: "humanoid", materials: ["stone"], triangleCount: 4_200,
+            variants: ["ruined"], animations: ["idle"], compatibility: ["medieval"]);
+        var item = CreateItem("fixture:guardian", "Gardien", "fixture", ["creature"], ["guardian"], metadata);
+        var browser = new AssetCatalogBrowser(new AssetCatalog("2026-08-10", "cc0-only", "vault", [item], "fixture"));
+
+        var result = browser.Search(new AssetCatalogQuery(Tag: "guardian", MaximumWidth: 1.5,
+            MaximumHeight: 2.5, MaximumDepth: 1, Style: "stylized", Skeleton: "humanoid",
+            Material: "stone", MaximumTriangleCount: 5_000, Author: "fixture",
+            Compatibility: "medieval", Variant: "ruined"));
+        var plan = AssetPreviewPlanBuilder.Build(Assert.Single(result));
+
+        Assert.Equal(Enumerable.Range(0, 8).Select(index => index * 45), plan.TurntableAngles);
+        Assert.Contains("ruined", plan.Variants);
+        Assert.Contains("idle", plan.Animations);
+        Assert.Contains(plan.Metrics, metric => metric.Label == "Triangles" && metric.Value == "4200");
+        Assert.Empty(browser.Search(new AssetCatalogQuery(MaximumTriangleCount: 100)));
+    }
+
     private static AssetCatalogItem CreateItem(
         string externalId,
         string name,
         string source,
         IReadOnlyList<string> categories,
-        IReadOnlyList<string> tags) => new(
+        IReadOnlyList<string> tags,
+        AssetTechnicalMetadata? technicalMetadata = null) => new(
         AssetCatalogItemId.ForExternalId(externalId),
         externalId,
         name,
@@ -177,5 +200,6 @@ public sealed class AssetCatalogBrowserTests
         $"normalized/{externalId.Replace(':', '/')}/model.glb",
         $"normalized/{externalId.Replace(':', '/')}/preview.png",
         null,
-        "fixture");
+        "fixture",
+        technicalMetadata: technicalMetadata);
 }

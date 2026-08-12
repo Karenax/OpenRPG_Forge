@@ -15,3 +15,7 @@
 ## Preuves ciblées
 
 `Forge.Network.Tests` contient 13 tests, dont six couvrent directement G9-B : deux scopes de personnage, permissions/revision de groupe, politique de dégâts, isolation/capacité de zone et diagnostics localisés.
+
+R102 complète les parties avec invitations, rôles, transfert de leader, loot déterministe, partage
+de quêtes et marqueurs, ainsi que la politique de séparation. Ces comportements sont testés dans
+`NetworkFoundationProfileTests` et le scénario serveur R102.

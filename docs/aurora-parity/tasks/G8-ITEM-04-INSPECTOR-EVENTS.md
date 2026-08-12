@@ -9,4 +9,12 @@ Le cycle de vie typé couvre `ItemCreated`, `Acquired`, `Transferred`, `Equipped
 
 Preuves : `InventoryAuthoringServiceTests`, suite RPG Kit et solution globale.
 
-La famille Item G8 est complète. La prochaine tranche unique est **G8 PLACEABLE-01**.
+R090 persiste le document d'inspection et les neuf bindings dans le blueprint objet canonique. Le Studio
+réunit placements, drag-drop prévisualisé, filtres, comparaison multi-edit, assets d'aperçu, handlers,
+autorité et API ForgeScript 1.0. La commande, la persistance, ForgeScript, MCP et le runtime utilisent
+le même profil optionnel/requis via `ItemOperationsRuntimeAdapter`.
+
+Preuves R090 : `ItemOperationsRuntimeAdapterTests`, `P1-R090-ITEM-OPERATIONS-ACCEPTANCE.md`, capture
+1440×920 et portail intégré.
+
+La famille Item G8 est complète. La prochaine tranche séquentielle est **R091 / FC-MERCHANT-P1-01**.

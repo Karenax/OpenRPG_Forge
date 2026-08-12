@@ -5,10 +5,13 @@ using Forge.Domain.Assets;
 using Forge.Domain.Blueprints;
 using Forge.Domain.Content;
 using Forge.Domain.Creatures;
+using Forge.Domain.Dialogues;
 using Forge.Domain.Lifecycle;
 using Forge.Domain.Entities;
+using Forge.Domain.Factions;
 using Forge.Domain.Modules;
 using Forge.Domain.Projects;
+using Forge.Domain.RuntimePolicies;
 using Forge.Domain.Spatial;
 using Forge.ModuleFormat.Serialization;
 
@@ -21,19 +24,47 @@ public sealed class ProjectJsonSerializerTests
     {
         var source = TestProjectFactory.CreateValid();
         var original = source.Blueprints.Single();
+        var interactionFactionId = Guid.Parse("a1620000-0000-4000-8000-000000000081");
+        var interactionDialogueId = source.Dialogues.Single().Id;
         var foundation = CreatureFoundationProfile.CreateDefault(Guid.Parse("a1620000-0000-4000-8000-000000000001"),
             original.Slug, original.DisplayName, "author:r038");
         foundation = new CreatureFoundationProfile(foundation.Id, foundation.SchemaVersion, foundation.Provenance,
             true, foundation.Identity, foundation.DefaultTransform,
             [new(Guid.Parse("a1620000-0000-4000-8000-000000000002"), "health", 80, 64, .25, true)],
             new(CreatureFoundationMovementMode.Swimming, 4, 8, 6, -5, 0, 60), foundation.References,
-            foundation.Spawned, new Dictionary<string, string> { ["spawn.policy"] = "validated" });
+            foundation.Spawned, new Dictionary<string, string> { ["spawn.policy"] = "validated" },
+            CreatureAuthoringCompositionProfile.CreateDefault(
+                Guid.Parse("a1620000-0000-4000-8000-000000000077"), "author:r077"), true,
+            CreatureRulesCompositionProfile.CreateDefault(
+                Guid.Parse("a1620000-0000-4000-8000-000000000078"), "author:r078"), true,
+            new CreatureInteractionCompositionProfile(
+                Guid.Parse("a1620000-0000-4000-8000-000000000079"), 1, "author:r079",
+                "asset.interaction.guardian", TransformValue.Identity,
+                new(Guid.Parse("a1620000-0000-4000-8000-000000000080"),
+                    interactionFactionId,
+                    [new(Guid.Parse("a1620000-0000-4000-8000-000000000082"),
+                        interactionFactionId, 1, "rank.guardian", 10, false)]),
+                new(Guid.Parse("a1620000-0000-4000-8000-000000000083"),
+                    [new(Guid.Parse("a1620000-0000-4000-8000-000000000084"),
+                        CreatureInteractionSenseKind.Vision, 25, 120, true, ["stimulus.visual"])], 8),
+                [new(Guid.Parse("a1620000-0000-4000-8000-000000000085"), "greeting", 10,
+                    interactionDialogueId, null, null, true)],
+                new(Guid.Parse("a1620000-0000-4000-8000-000000000087"), true, true, false,
+                    ["creature.plot.override"]),
+                new(Guid.Parse("a1620000-0000-4000-8000-000000000088"), 1, "author:r079", "1.0",
+                    "creature.interaction_requested", "OnConversation", EventAuthorityScope.Server),
+                new Dictionary<string, string>()), true,
+            CreatureEventAiCompositionProfile.CreateDefault(
+                Guid.Parse("a1620000-0000-4000-8000-000000000089"), "author:r080"), true);
         var blueprint = new BlueprintDefinition(original.Id, original.Slug, original.DisplayName, original.Kind,
             original.Combat, original.PaletteOrigin, original.IsFavorite, original.Provenance,
             original.CreaturePresentation, original.CreatureProgression, original.CreatureLoot,
             original.CreatureRoleBehavior, original.CreatureEvents, original.ItemAdvanced, original.Authoring,
             foundation);
-        var project = new ProjectDefinition(source.Id, source.Title, source.Module, [blueprint], source.Areas,
+        var module = source.Module.WithFactions(new FactionCatalog(
+            [new FactionDefinition(interactionFactionId, 1, "test:r079", "guardians", "Guardians", false, [],
+                ["guardian"])], [], [], []));
+        var project = new ProjectDefinition(source.Id, source.Title, module, [blueprint], source.Areas,
             source.Dialogues, source.Quests);
 
         var serialized = ProjectJsonSerializer.Serialize(project);
@@ -44,6 +75,24 @@ public sealed class ProjectJsonSerializerTests
         Assert.Equal(CreatureFoundationMovementMode.Swimming, restoredProfile.Movement.Mode);
         Assert.Equal(64, Assert.Single(restoredProfile.Resources).Current);
         Assert.Equal("validated", restoredProfile.Overrides["spawn.policy"]);
+        Assert.True(restoredProfile.AuthoringCompositionRequiredAtRuntime);
+        Assert.Equal("species.human", restoredProfile.AuthoringComposition!.Species.SpeciesId);
+        Assert.Equal("mesh.guardian", restoredProfile.AuthoringComposition.Appearance.MeshAssetId);
+        Assert.Equal(5, restoredProfile.AuthoringComposition.AnimationGraph.States.Count);
+        Assert.True(restoredProfile.RulesCompositionRequiredAtRuntime);
+        Assert.Equal(CreatureRulesInitialLifeState.Alive, restoredProfile.RulesComposition!.InitialState.LifeState);
+        Assert.Equal("ruleset.core", restoredProfile.RulesComposition.Attributes.RulesetId);
+        Assert.Equal("container.backpack", Assert.Single(restoredProfile.RulesComposition.Inventory.Containers).ContainerId);
+        Assert.True(restoredProfile.InteractionCompositionRequiredAtRuntime);
+        Assert.Equal(CreatureInteractionSenseKind.Vision,
+            Assert.Single(restoredProfile.InteractionComposition!.Perception.Senses).Kind);
+        Assert.Equal("greeting", Assert.Single(restoredProfile.InteractionComposition.DialogueBindings).Context);
+        Assert.Equal("OnConversation", restoredProfile.InteractionComposition.OnConversation.Handler);
+        Assert.True(restoredProfile.EventAiCompositionRequiredAtRuntime);
+        Assert.Equal(CreatureEventAiControllerKind.StateMachine,
+            restoredProfile.EventAiComposition!.Controller.Kind);
+        Assert.Equal(2, restoredProfile.EventAiComposition.Controller.Blackboard.Count);
+        Assert.Equal("OnSpellCastAt", restoredProfile.EventAiComposition.Ability.Impacted.Handler);
     }
 
     [Fact]
@@ -737,6 +786,289 @@ public sealed class ProjectJsonSerializerTests
         Assert.Empty(first.Areas[0].RuntimePolicies.Heartbeats);
         Assert.Contains($"\"formatVersion\": \"{ProjectJsonSerializer.CurrentFormatVersion}\"",
             ProjectJsonSerializer.Serialize(first), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void R051ProjectGameplayEventsRoundTripAndMissingLegacyPropertyUsesStableDefaults()
+    {
+        var source = TestProjectFactory.CreateValid();
+        var baseline = source.Module.RuntimePolicies;
+        var projectEvents = new ProjectGameplayEventProfile(
+            baseline.GameplayEvents.Id,
+            1,
+            "test:r051",
+            true,
+            true,
+            false,
+            false,
+            true,
+            baseline.GameplayEvents.Bindings.Select(binding => binding with
+            {
+                Provenance = "test:r051",
+                Handler = binding.EventName == "player.ready" ? "OnReadyRoundTrip" : binding.Handler,
+            }).ToArray());
+        var policies = new ModuleRuntimePolicyProfile(baseline.Id, baseline.SchemaVersion, baseline.Heartbeats,
+            baseline.Rest, baseline.SequenceAbort, "test:r051", baseline.Cinematics, baseline.Gameplay,
+            baseline.Rules, baseline.Extensions, projectEvents);
+        var module = source.Module.WithRuntimePolicies(policies);
+        var project = new ProjectDefinition(source.Id, source.Title, module, source.Blueprints, source.Areas,
+            source.Dialogues, source.Quests);
+
+        var serialized = ProjectJsonSerializer.Serialize(project);
+        var restored = ProjectJsonSerializer.Deserialize(serialized);
+
+        Assert.Equal(serialized, ProjectJsonSerializer.Serialize(restored));
+        Assert.True(restored.Module.RuntimePolicies.GameplayEvents.RequiredAtRuntime);
+        Assert.False(restored.Module.RuntimePolicies.GameplayEvents.UseDownedState);
+        Assert.Equal("OnReadyRoundTrip", restored.Module.RuntimePolicies.GameplayEvents.Bindings.Single(binding =>
+            binding.EventName == "player.ready").Handler);
+
+        var legacy = JsonNode.Parse(serialized)!.AsObject();
+        legacy["project"]!["module"]!["runtimePolicies"]!.AsObject().Remove("gameplayEvents");
+        var migrated = ProjectJsonSerializer.Deserialize(legacy.ToJsonString());
+        Assert.Equal(14, migrated.Module.RuntimePolicies.GameplayEvents.Bindings.Count);
+        Assert.False(migrated.Module.RuntimePolicies.GameplayEvents.RequiredAtRuntime);
+    }
+
+    [Fact]
+    public void R052ProjectWorldAndLocalizedPlayerPagesRoundTripWithLegacyDefaults()
+    {
+        var source = TestProjectFactory.CreateValid();
+        var baseline = source.Module.RuntimePolicies;
+        var areaId = source.Areas[0].Id.ToString();
+        var custom = new CustomEventSchema(Guid.Parse("52000000-0000-4000-8000-000000000052"), 1,
+            "test:r052", "crypt", "braziers_lit", 2,
+            new Dictionary<string, string> { ["count"] = "int" }, false, "1.0", "OnBraziersLit",
+            EventAuthorityScope.Server);
+        var world = new ProjectWorldProfile(baseline.Id, 1, "test:r052", true, true, [custom],
+            baseline.World.Clock with
+            {
+                Provenance = "test:r052",
+                Speed = 4,
+                AreaTimeZoneOffsets = new Dictionary<string, int> { [areaId] = 60 },
+            });
+        var policies = new ModuleRuntimePolicyProfile(baseline.Id, baseline.SchemaVersion, baseline.Heartbeats,
+            baseline.Rest, baseline.SequenceAbort, "test:r052", baseline.Cinematics, baseline.Gameplay,
+            baseline.Rules, baseline.Extensions, baseline.GameplayEvents, world);
+        var originalMetadata = source.Module.Metadata;
+        var localized = originalMetadata.Localizations.Select(item => new ProjectLocalizedMetadata(item.Locale,
+            item.Name, item.Summary, "Synopsis", "Crédits", "Installation", "Règles", "Contrôles",
+            "Licences", "Avertissements", "Compatibilité")).ToArray();
+        var metadata = new ProjectMetadata(originalMetadata.Id, originalMetadata.DefaultLocale, localized,
+            originalMetadata.Author, originalMetadata.Version, originalMetadata.License, originalMetadata.ImagePath,
+            originalMetadata.Tags, originalMetadata.Classification, "test:r052", originalMetadata.SchemaVersion,
+            originalMetadata.Foundation);
+        var module = new ModuleDefinition(source.Module.Id, source.Module.Slug, source.Module.DisplayName,
+            source.Module.Description, source.Module.EntryAreaId, metadata, source.Module.Variables,
+            source.Module.Distribution, source.Module.Localization, source.Module.Content,
+            source.Module.ArtisticStyle, policies, source.Module.Factions, source.Module.WorldFeatures);
+        var project = new ProjectDefinition(source.Id, source.Title, module, source.Blueprints, source.Areas,
+            source.Dialogues, source.Quests);
+
+        var serialized = ProjectJsonSerializer.Serialize(project);
+        var restored = ProjectJsonSerializer.Deserialize(serialized);
+        Assert.Equal(serialized, ProjectJsonSerializer.Serialize(restored));
+        Assert.Equal("OnBraziersLit", restored.Module.RuntimePolicies.World.CustomEvents.Single().Handler);
+        Assert.Equal(4, restored.Module.RuntimePolicies.World.Clock.Speed);
+        Assert.Equal("Contrôles", restored.Module.Metadata.GetDefaultLocalization().Controls);
+        Assert.Equal(8, ProjectDocumentationValidator.Pages(
+            restored.Module.Metadata.GetDefaultLocalization()).Count);
+
+        var legacy = JsonNode.Parse(serialized)!.AsObject();
+        legacy["project"]!["module"]!["runtimePolicies"]!.AsObject().Remove("world");
+        foreach (var item in legacy["project"]!["module"]!["metadata"]!["localizations"]!.AsArray())
+        {
+            item!.AsObject().Remove("installation");
+            item.AsObject().Remove("rules");
+            item.AsObject().Remove("controls");
+            item.AsObject().Remove("licenses");
+            item.AsObject().Remove("warnings");
+            item.AsObject().Remove("compatibility");
+        }
+        var migrated = ProjectJsonSerializer.Deserialize(legacy.ToJsonString());
+        Assert.Empty(migrated.Module.RuntimePolicies.World.CustomEvents);
+        Assert.Equal(string.Empty, migrated.Module.Metadata.GetDefaultLocalization().Controls);
+    }
+
+    [Fact]
+    public void R053AdvancedTileEditingRoundTripsWithLegacyOptionalFallback()
+    {
+        var source = TestProjectFactory.CreateValid();
+        var area = source.Areas[0];
+        var entity = area.Entities[0];
+        var definition = new ModularTileDefinition(Guid.Parse("53000000-0000-4000-8000-000000000001"),
+            "crypt-floor", entity.BlueprintId, ModularTileRotationMode.Orthogonal, true, true,
+            [new(Guid.Parse("53000000-0000-4000-8000-000000000002"), "east", "crypt-edge",
+                TransformValue.Identity, ModularTileSocketDirection.East)], []);
+        var placement = new ModularTilePlacement(Guid.Parse("53000000-0000-4000-8000-000000000003"),
+            definition.Id, entity.Id, 0, 0, 0, ModularTileMirrorMode.None, string.Empty,
+            Guid.Parse("53000000-0000-4000-8000-000000000004"));
+        var group = new ModularTileGroup(placement.GroupId!.Value, "Crypt room", [placement.Id]);
+        var editing = new AreaTileEditingProfile(Guid.Parse("53000000-0000-4000-8000-000000000005"), 1,
+            "test:r053", [new(Guid.Parse("53000000-0000-4000-8000-000000000006"), group.Id,
+                [new("width", "int", "1")], new(1, 1, 3),
+                [new(Guid.Parse("53000000-0000-4000-8000-000000000007"), "door", "crypt-edge", 0, 0,
+                    ModularTileSocketDirection.East)], [new("default", [definition.Id])], true)],
+            new(AreaTileEditOperationKind.Replace, definition.Id, "crypt-remap", definition.Id, "crypt-floor", true),
+            new(2026, [placement.Id], true),
+            [new(Guid.Parse("53000000-0000-4000-8000-000000000008"), placement.Id, "lit", "torch-loop",
+                true, new Dictionary<string, string> { ["floor"] = "wet-stone" },
+                new(true, "#ff9858", 2, 8), true, true, ["door"],
+                new Dictionary<string, string> { ["state.open"] = "false" })],
+            new(1, 1, 512, 512, "Center", true, [new(placement.Id, 1, 0)]));
+        var original = area.Foundation;
+        var kit = new ModularTileKitProfile(original.TileKit.Id, 1, "test:r053", 1, [definition], [],
+            [placement], [group], [], editing);
+        var foundation = new AreaFoundationProfile(original.Id, 1, "test:r053", original.Creation, kit,
+            original.Lifecycle, original.Volumes, original.Dependencies, true);
+        var project = new ProjectDefinition(source.Id, source.Title, source.Module, source.Blueprints,
+            source.Areas.Select(item => item.Id == area.Id ? item.WithFoundation(foundation) : item).ToArray(),
+            source.Dialogues, source.Quests);
+
+        var serialized = ProjectJsonSerializer.Serialize(project);
+        var restored = ProjectJsonSerializer.Deserialize(serialized);
+        Assert.Equal(serialized, ProjectJsonSerializer.Serialize(restored));
+        var restoredFoundation = restored.Areas.Single(item => item.Id == area.Id).Foundation;
+        Assert.True(restoredFoundation.RequireTileEditingRuntimeMetadata);
+        Assert.Equal("wet-stone", restoredFoundation.TileKit.Editing!.Properties[0].MaterialOverrides["floor"]);
+        Assert.True(restoredFoundation.TileKit.Editing.Groups[0].ConvertToEditableInstances);
+
+        var legacy = JsonNode.Parse(serialized)!.AsObject();
+        var legacyFoundation = legacy["project"]!["areas"]![0]!["foundation"]!.AsObject();
+        legacyFoundation.Remove("requireTileEditingRuntimeMetadata");
+        legacyFoundation["tileKit"]!.AsObject().Remove("editing");
+        var migrated = ProjectJsonSerializer.Deserialize(legacy.ToJsonString());
+        Assert.False(migrated.Areas.Single(item => item.Id == area.Id).Foundation
+            .RequireTileEditingRuntimeMetadata);
+        Assert.Null(migrated.Areas.Single(item => item.Id == area.Id).Foundation.TileKit.Editing);
+    }
+
+    [Fact]
+    public void R054AreaEnvironmentAuthoringRoundTripsWithLegacyOptionalFallback()
+    {
+        var source = TestProjectFactory.CreateValid();
+        var area = source.Areas[0];
+        var baseline = area.Environment;
+        var authoring = new AreaEnvironmentAuthoringProfile(
+            Guid.Parse("54000000-0000-4000-8000-000000000001"), 1, "test:r054",
+            new(AreaEnvironmentClass.Exterior, "custom:moonlit", "forest-pack",
+                true, true, true, true, true, true),
+            new("physical-moonlit", "#30405f", "#ffe2b5", false,
+                [new(0, 0, .8f, -45), new(12, 1.4f, 0, 65), new(24, 0, .8f, -45)],
+                [new(Guid.Parse("54000000-0000-4000-8000-000000000002"), 18,
+                    "world.sunset", "scripts/sunset.forge", true)],
+                [new(Guid.Parse("54000000-0000-4000-8000-000000000003"), "Forest probe",
+                    TransformValue.Identity, "asset:forest-probe", null, 24, false,
+                    new Dictionary<string, string> { ["priority"] = "high" })],
+                [new(Guid.Parse("54000000-0000-4000-8000-000000000004"), "Moon shrine",
+                    TransformValue.Identity, "physical-shrine", FogMode.Volumetric, 3,
+                    new Dictionary<string, string> { ["moon.boost"] = "1.5" })]),
+            new("#b7c9dd", "#263248", new("asset:fog-noise", 12, .1f, .05f, 1.2f),
+                [new(Guid.Parse("54000000-0000-4000-8000-000000000005"), "Low mist",
+                    TransformValue.Identity, FogMode.Volumetric, .3f, .2f, "#9fb4c8", 2,
+                    new Dictionary<string, string> { ["quality"] = "desktop" })],
+                new Dictionary<string, AreaFogQualityTier> { ["desktop"] = AreaFogQualityTier.High }), true);
+        var environment = new AreaEnvironmentProfile(AreaEnvironmentProfile.CurrentSchemaVersion,
+            AreaEnvironmentClass.Exterior, ["moonlit"],
+            new(DayNightMode.Clock, 30, .4f, 1.4f, 5400, true, true),
+            new(FogMode.Volumetric, .3f, 4, 90, 1.5f), baseline.Audio, baseline.Rendering,
+            baseline.Sky, baseline.Wind, baseline.Weather, baseline.Water, baseline.Reverb, authoring, true);
+        var project = new ProjectDefinition(source.Id, source.Title, source.Module, source.Blueprints,
+            source.Areas.Select(item => item.Id == area.Id ? item.WithEnvironment(environment) : item).ToArray(),
+            source.Dialogues, source.Quests);
+
+        var serialized = ProjectJsonSerializer.Serialize(project);
+        var restored = ProjectJsonSerializer.Deserialize(serialized);
+        Assert.Equal(serialized, ProjectJsonSerializer.Serialize(restored));
+        var restoredEnvironment = restored.Areas.Single(item => item.Id == area.Id).Environment;
+        Assert.Equal("custom:moonlit", restoredEnvironment.Authoring.Classification.Key);
+        Assert.Equal("asset:fog-noise", restoredEnvironment.Authoring.Fog.Noise!.AssetId);
+        Assert.True(restoredEnvironment.RequireAuthoringRuntimeMetadata);
+
+        var legacy = JsonNode.Parse(serialized)!.AsObject();
+        var legacyEnvironment = legacy["project"]!["areas"]![0]!["environment"]!.AsObject();
+        legacyEnvironment.Remove("authoring");
+        legacyEnvironment.Remove("requireAuthoringRuntimeMetadata");
+        var migrated = ProjectJsonSerializer.Deserialize(legacy.ToJsonString());
+        var migratedEnvironment = migrated.Areas.Single(item => item.Id == area.Id).Environment;
+        Assert.Equal("migration-default", migratedEnvironment.Authoring.Provenance);
+        Assert.False(migratedEnvironment.RequireAuthoringRuntimeMetadata);
+    }
+
+    [Fact]
+    public void R055AreaExperienceRoundTripsAudioEventsMapVisibilityAndLod()
+    {
+        var source = TestProjectFactory.CreateValid();
+        var area = source.Areas[0];
+        var room = new AreaVisibilityRoomProfile(Guid.Parse("a0554000-0000-4000-8000-000000000001"),
+            "Room", TransformValue.Identity, false, 96, new Dictionary<string, string>());
+        var visibility = new AreaVisibilityAuthoringProfile([room], [], [], true, true, true, 16, 128);
+        var lod = new AreaLodAuthoringProfile(AreaLodSourceMode.Hybrid, [20, 50, 100], 1_500_000, 96,
+            24, .15f, true, true,
+            [new(Guid.Parse("a0554000-0000-4000-8000-000000000002"), "asset:column",
+                AreaLodSourceMode.Generated, [1, .5f], [12000, 6000], .2f, "test:r055")]);
+        var experience = new AreaExperienceAuthoringProfile(
+            Guid.Parse("a0554000-0000-4000-8000-000000000003"), 1, "test:r055",
+            [new(Guid.Parse("a0554000-0000-4000-8000-000000000004"), "Combat",
+                new Dictionary<string, float> { ["music"] = .8f }, .75f,
+                $"area.{area.Slug}.combat", "test:r055")], visibility, lod, true);
+        var eventName = $"area.{area.Slug}.alarm";
+        var authoring = new AreaAuthoringProfile(1,
+            [new(Guid.Parse("a0554000-0000-4000-8000-000000000005"), eventName,
+                "schema://area/alarm/v1", "scripts/alarm.forge", 1, [eventName], true, "test:r055")],
+            new(true, true, "hybrid-2d-3d", 2,
+                [new(Guid.Parse("a0554000-0000-4000-8000-000000000006"), "Shrine", 16, 0, 0, false)],
+                Guid.Parse("a0554000-0000-4000-8000-000000000007"), 1, "test:r055", true, true,
+                AreaMapExplorationScope.Party, 8, "area.map.reveal"), [], experience);
+        var project = new ProjectDefinition(source.Id, source.Title, source.Module, source.Blueprints,
+            source.Areas.Select(item => item.Id == area.Id ? item.WithAuthoring(authoring) : item).ToArray(),
+            source.Dialogues, source.Quests);
+
+        var serialized = ProjectJsonSerializer.Serialize(project);
+        var restored = ProjectJsonSerializer.Deserialize(serialized);
+
+        Assert.Equal(serialized, ProjectJsonSerializer.Serialize(restored));
+        var restoredAuthoring = restored.Areas.Single(item => item.Id == area.Id).Authoring;
+        Assert.Equal(experience.Id, restoredAuthoring.Experience.Id);
+        Assert.Single(restoredAuthoring.Experience.AudioSnapshots);
+        Assert.Single(restoredAuthoring.UserEvents);
+        Assert.True(restoredAuthoring.Map.Generate3D);
+        Assert.Single(restoredAuthoring.Experience.Visibility.Rooms);
+        Assert.Single(restoredAuthoring.Experience.Lod.AssetOverrides);
+    }
+
+    [Fact]
+    public void R056AreaLayersRoundTripHierarchyGovernanceAndRequiredRuntimeMetadata()
+    {
+        var source = TestProjectFactory.CreateValid();
+        var area = source.Areas[0];
+        var root = Guid.Parse("a0564000-0000-4000-8000-000000000001");
+        var child = Guid.Parse("a0564000-0000-4000-8000-000000000002");
+        var entityId = area.Entities[0].Id;
+        var authoring = new AreaAuthoringProfile(area.Authoring.SchemaVersion, area.Authoring.UserEvents,
+            area.Authoring.Map,
+        [
+            new(root, "Architecture", null, true, false, "builder", [], provenance: "test:r056"),
+            new(child, "Actors", root, true, false, "gameplay", [entityId],
+                provenance: "test:r056", exportEnabled: false),
+        ], area.Authoring.Experience, true);
+        var project = new ProjectDefinition(source.Id, source.Title, source.Module, source.Blueprints,
+            source.Areas.Select(item => item.Id == area.Id ? item.WithAuthoring(authoring) : item).ToArray(),
+            source.Dialogues, source.Quests);
+
+        var serialized = ProjectJsonSerializer.Serialize(project);
+        var restored = ProjectJsonSerializer.Deserialize(serialized);
+
+        Assert.Equal(serialized, ProjectJsonSerializer.Serialize(restored));
+        var layers = restored.Areas.Single(item => item.Id == area.Id).Authoring;
+        Assert.True(layers.RequireLayerRuntimeMetadata);
+        Assert.Equal(root, layers.Layers.Single(item => item.Id == child).ParentId);
+        Assert.False(layers.Layers.Single(item => item.Id == child).ExportEnabled);
+        Assert.All(layers.Layers, item =>
+        {
+            Assert.Equal(AreaEditorLayer.CurrentSchemaVersion, item.SchemaVersion);
+            Assert.Equal("test:r056", item.Provenance);
+        });
     }
 
     [Fact]

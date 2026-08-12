@@ -10,7 +10,13 @@ public sealed record CustomEventSchema(
     string Name,
     int PayloadVersion,
     IReadOnlyDictionary<string, string> Fields,
-    bool RequiredExtension);
+    bool RequiredExtension,
+    string ForgeScriptApiVersion = "1.0",
+    string Handler = "OnCustomWorldEvent",
+    EventAuthorityScope Authority = EventAuthorityScope.Server)
+{
+    public const int CurrentSchemaVersion = 1;
+}
 
 public sealed record CustomWorldEvent(
     Guid Id,
@@ -32,4 +38,13 @@ public sealed record WorldClockProfile(
     bool Paused,
     long InitialMinute,
     IReadOnlyDictionary<string, int> AreaTimeZoneOffsets,
-    IReadOnlyDictionary<WorldAstronomicalEventKind, int> AstronomicalMinutes);
+    IReadOnlyDictionary<WorldAstronomicalEventKind, int> AstronomicalMinutes)
+{
+    public const int CurrentSchemaVersion = 1;
+}
+
+public sealed record WorldClockSnapshot(long TotalMinutes, bool Paused, long Revision, string Provenance);
+
+public sealed record WorldClockAdvanceResult(
+    WorldClockSnapshot Snapshot,
+    IReadOnlyList<WorldAstronomicalEventKind> CrossedEvents);

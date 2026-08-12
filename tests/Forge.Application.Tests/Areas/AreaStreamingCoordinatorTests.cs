@@ -47,6 +47,37 @@ public sealed class AreaStreamingCoordinatorTests
         Assert.True(loader.CancellationObserved);
     }
 
+    [Fact]
+    public async Task DisabledAsyncAndCancellationRunSequentiallyAndIgnoreCallerCancellation()
+    {
+        var loader = new ConcurrentLoader();
+        var coordinator = new AreaStreamingCoordinator(loader);
+        var profile = new AreaLoadingProfile(Guid.NewGuid(), 1, false, false, false,
+            64, 8, 1, 1000, ["areas/a.bin", "areas/b.bin"], "test:r116");
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+
+        var result = await coordinator.LoadAsync(profile, cancellationToken: cancellation.Token);
+
+        Assert.Equal(2, result.LoadedResources);
+        Assert.Equal(1, loader.MaximumConcurrency);
+    }
+
+    [Fact]
+    public void BenchmarkGateReturnsStableLocalizedDiagnosticWhenTargetIsMissed()
+    {
+        var profile = Profile(["areas/slow.bin"]);
+        var result = new AreaStreamingResult([], 1, 0, 16, TimeSpan.FromMilliseconds(1200), false);
+
+        var evaluation = AreaStreamingBenchmarkGate.Evaluate(profile, result);
+
+        Assert.False(evaluation.Passed);
+        var diagnostic = Assert.Single(evaluation.Diagnostics);
+        Assert.Equal(AreaStreamingBenchmarkGate.TargetExceededCode, diagnostic.Code);
+        Assert.Equal("area.world.loading.targetLoadMilliseconds", diagnostic.Path);
+        Assert.Equal(profile.Id, diagnostic.ProfileId);
+    }
+
     private static AreaLoadingProfile Profile(IReadOnlyList<string> resources) => new(Guid.NewGuid(), 1,
         true, true, true, 64, 2, 1, 1000, resources, "test");
 
@@ -82,6 +113,38 @@ public sealed class AreaStreamingCoordinatorTests
             {
                 CancellationObserved = true;
                 throw;
+            }
+        }
+    }
+
+    private sealed class ConcurrentLoader : IAreaChunkLoader
+    {
+        private int _active;
+        private int _maximumConcurrency;
+
+        public int MaximumConcurrency => Volatile.Read(ref _maximumConcurrency);
+
+        public async Task<AreaChunkPayload> LoadAsync(string resourcePath, CancellationToken cancellationToken)
+        {
+            var active = Interlocked.Increment(ref _active);
+            while (true)
+            {
+                var observed = Volatile.Read(ref _maximumConcurrency);
+                if (active <= observed ||
+                    Interlocked.CompareExchange(ref _maximumConcurrency, active, observed) == observed)
+                {
+                    break;
+                }
+            }
+
+            try
+            {
+                await Task.Delay(20, cancellationToken);
+                return Payload(resourcePath, 8, []);
+            }
+            finally
+            {
+                Interlocked.Decrement(ref _active);
             }
         }
     }

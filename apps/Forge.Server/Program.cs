@@ -14,14 +14,65 @@ if (args.Contains("--live-director-smoke-test", StringComparer.Ordinal))
     return;
 }
 
+if (args.Contains("--live-director-access-smoke-test", StringComparer.Ordinal))
+{
+    var access = LiveDirectorAccessAcceptanceScenario.Run();
+    Console.WriteLine(
+        $"OPENRPG_FORGE_SERVER_R105_LIVE_DIRECTOR_ACCESS_PASS auth=gm-role-mfa-expiry-revoke-audit " +
+        $"inspect=components-stats-variables-scripts-ownership-history-read-only " +
+        $"players=identity-character-zone-latency-party-permissions-voice-moderation-refresh " +
+        $"audit=actor-command-targets-before-after-reason-correlation-hash-chain " +
+        $"chat=local-party-tell-server-gm-faction-impersonation-moderation-logs " +
+        $"auth_code={access.AuthenticationCode} inspect_code={access.InspectionCode} " +
+        $"players_count={access.Players} latency={access.LatencyMs} audit_entries={access.AuditEntries} " +
+        $"audit_verified={access.AuditVerified} chat_messages={access.ChatMessages} permission={access.PermissionCode}");
+    Console.WriteLine($"OPENRPG_FORGE_LIVE_DIRECTOR_ACCESS={(access.Passed ? "PASS" : "FAILED")}");
+    Environment.ExitCode = access.Passed ? 0 : 6;
+    return;
+}
+
 if (args.Contains("--network-beta-smoke-test", StringComparer.Ordinal))
 {
     var result = NetworkBetaScenario.Run();
+    var foundation = NetworkFoundationAcceptanceScenario.Run();
+    var operations = NetworkOperationsAcceptanceScenario.Run();
+    var assurance = NetworkAssuranceAcceptanceScenario.Run();
+    var access = LiveDirectorAccessAcceptanceScenario.Run();
     Console.WriteLine($"OPENRPG_FORGE_NETWORK_TWO_CLIENTS_PASS revision={result.ServerRevision} digest={result.SharedDigest}");
     Console.WriteLine($"OPENRPG_FORGE_NETWORK_RECONNECT_PASS code={result.ReconnectionCode} clientA={result.ClientARevision} clientB={result.ClientBRevision}");
     Console.WriteLine($"OPENRPG_FORGE_NETWORK_AUTHORITY_PASS forged={result.ForgedMutationCode}");
+    Console.WriteLine(
+        $"OPENRPG_FORGE_SERVER_R102_NETWORK_FOUNDATION_PASS dedicated=headless-service-health authority=intents-server-replicated-audited " +
+        $"party=invitations-roles-leader-loot-quests-markers-separation replication=components-delta-ownership-prediction-reconciliation " +
+        $"interest=area-distance-visibility-party-ownership-explicit configuration=uuid-schema-provenance-scope-revision-audit " +
+        $"command=preview-apply-reject history=undo-redo persistence=roundtrip forgescript=typed-handles mcp=filtered-dry-run " +
+        $"permission={foundation.PermissionCode} prediction={foundation.PredictionCode} audit={foundation.AuditEntries}");
+    Console.WriteLine(
+        $"OPENRPG_FORGE_SERVER_R103_NETWORK_OPERATIONS_PASS content=manifest-chunks-hashes-cache-resume-delta-trust " +
+        $"version=lockfile-fingerprint-before-join-readable-mismatch roles=player-moderator-builder-gm-admin-spectator-custom-abac " +
+        $"chat=local-party-tell-shout-dm-proximity-language-logs-accessibility-bridges " +
+        $"events=typed-subscriptions-priority-trace-replay-backpressure permission={operations.PermissionCode} " +
+        $"content_code={operations.ContentCode} version_code={operations.VersionCode} chat_code={operations.ChatCode} " +
+        $"backpressure={operations.BackpressureCode} audit={operations.AuditEntries}");
+    Console.WriteLine(
+        $"OPENRPG_FORGE_SERVER_R104_NETWORK_ASSURANCE_PASS logs=json-text-categories-correlation-privacy-rotation-remote-sinks " +
+        $"anti_cheat=intents-rate-signed-content-authoritative-rng-anomaly-untrusted-saves " +
+        $"tests=clients-latency-loss-duplicate-reorder-replay-soak-authoritative-state " +
+        $"log_code={assurance.LogCode} segments={assurance.LogSegments} sinks={assurance.RemoteDeliveries} " +
+        $"join={assurance.JoinCode} anomaly={assurance.AnomalyCode} quarantined={assurance.Quarantined} " +
+        $"client_save={assurance.ClientSaveCode} deterministic={assurance.TestCode} " +
+        $"assertions={assurance.StateAssertions} audit={assurance.Audit.Count}");
+    Console.WriteLine(
+        $"OPENRPG_FORGE_SERVER_R105_LIVE_DIRECTOR_ACCESS_PASS auth=gm-role-mfa-expiry-revoke-audit " +
+        $"inspect=components-stats-variables-scripts-ownership-history-read-only " +
+        $"players=identity-character-zone-latency-party-permissions-voice-moderation-refresh " +
+        $"audit=actor-command-targets-before-after-reason-correlation-hash-chain " +
+        $"chat=local-party-tell-server-gm-faction-impersonation-moderation-logs " +
+        $"auth_code={access.AuthenticationCode} inspect_code={access.InspectionCode} " +
+        $"players_count={access.Players} latency={access.LatencyMs} audit_entries={access.AuditEntries} " +
+        $"audit_verified={access.AuditVerified} chat_messages={access.ChatMessages} permission={access.PermissionCode}");
     Console.WriteLine($"OPENRPG_FORGE_NETWORK_BETA={(result.Passed ? "PASS" : "FAILED")}");
-    Environment.ExitCode = result.Passed ? 0 : 4;
+    Environment.ExitCode = result.Passed && foundation.Passed && operations.Passed && assurance.Passed && access.Passed ? 0 : 4;
     return;
 }
 

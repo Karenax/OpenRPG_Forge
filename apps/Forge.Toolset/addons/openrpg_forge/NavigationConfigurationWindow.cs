@@ -1,4 +1,6 @@
 #if TOOLS
+using System.Globalization;
+using Forge.Application.Navigation;
 using Forge.Application.Projects;
 using Forge.Domain.Areas;
 using Forge.Domain.Blueprints;
@@ -18,11 +20,21 @@ public partial class NavigationConfigurationWindow : Window
     private readonly List<OffMeshNavigationLink> _links = [];
     private readonly List<AnchorDefinition> _anchorDefinitions = [];
     private readonly List<AnchorInstance> _anchorInstances = [];
+    private readonly List<WaypointProfile> _waypoints = [];
+    private readonly List<PatrolRoute> _patrolRoutes = [];
+    private readonly List<GenericLocator> _locators = [];
+    private readonly List<AnchorCollection> _locatorCollections = [];
     private readonly NavigationLinkKind[] _linkKinds = Enum.GetValues<NavigationLinkKind>();
     private readonly AnchorKind[] _anchorKinds = Enum.GetValues<AnchorKind>();
     private readonly AnchorScope[] _anchorScopes = Enum.GetValues<AnchorScope>();
     private readonly PortalOrientationPolicy[] _orientationPolicies = Enum.GetValues<PortalOrientationPolicy>();
     private readonly PortalVelocityPolicy[] _velocityPolicies = Enum.GetValues<PortalVelocityPolicy>();
+    private readonly MarkerVisibilityPolicy[] _markerPolicies = Enum.GetValues<MarkerVisibilityPolicy>();
+    private readonly MarkerVisibilityScope[] _markerScopes = Enum.GetValues<MarkerVisibilityScope>();
+    private readonly PatrolTraversalPolicy[] _traversalPolicies = Enum.GetValues<PatrolTraversalPolicy>();
+    private readonly ArrivalFacingMode[] _arrivalFacingModes = Enum.GetValues<ArrivalFacingMode>();
+    private readonly LocatorPurpose[] _locatorPurposes = Enum.GetValues<LocatorPurpose>();
+    private readonly LocatorSelectionMode[] _locatorSelectionModes = Enum.GetValues<LocatorSelectionMode>();
 
     private Func<ProjectState?>? _getState;
     private Func<AreaId?>? _getActiveAreaId;
@@ -33,6 +45,10 @@ public partial class NavigationConfigurationWindow : Window
     private Guid _catalogId;
     private string _catalogProvenance = "toolset:r009";
     private bool _catalogRequiredAtRuntime;
+    private Guid _waypointProfileId;
+    private string _waypointProvenance = "toolset:r064";
+    private bool _waypointsRequiredAtRuntime;
+    private RouteVisualizationProfile? _routeVisualization;
     private TabContainer? _tabs;
     private OptionButton? _areaPicker;
     private SpinBox? _cellSize;
@@ -88,18 +104,104 @@ public partial class NavigationConfigurationWindow : Window
     private OptionButton? _portalVelocity;
     private CheckBox? _portalPreload;
     private RichTextLabel? _anchorPreview;
+    private ItemList? _waypointList;
+    private LineEdit? _waypointName;
+    private LineEdit? _waypointIcon;
+    private LineEdit? _waypointColor;
+    private LineEdit? _waypointLayer;
+    private SpinBox? _waypointScreenSize;
+    private SpinBox? _waypointX;
+    private SpinBox? _waypointY;
+    private SpinBox? _waypointZ;
+    private CheckBox? _waypointVisible;
+    private CheckBox? _waypointRequired;
+    private OptionButton? _waypointArrivalFacing;
+    private SpinBox? _waypointArrivalDirection;
+    private LineEdit? _waypointArrivalTarget;
+    private LineEdit? _waypointArrivalAnimation;
+    private SpinBox? _waypointArrivalWait;
+    private LineEdit? _waypointArrivalInteraction;
+    private LineEdit? _waypointArrivalCallback;
+    private LineEdit? _markerText;
+    private LineEdit? _markerIcon;
+    private SpinBox? _markerFloor;
+    private LineEdit? _markerCategory;
+    private SpinBox? _markerPrecision;
+    private OptionButton? _markerPolicy;
+    private OptionButton? _markerScope;
+    private CheckBox? _markerTracked;
+    private CheckBox? _markerRevealed;
+    private LineEdit? _markerRevealEvent;
+    private LineEdit? _markerRevealAnimation;
+    private CheckBox? _markerPersistent;
+    private ItemList? _routeList;
+    private OptionButton? _routeTraversal;
+    private TextEdit? _routePoints;
+    private LineEdit? _routeScript;
+    private CheckBox? _routeRequired;
+    private WaypointRoutePreview? _waypointPreview;
+    private RichTextLabel? _waypointSummary;
+    private ItemList? _locatorList;
+    private LineEdit? _locatorName;
+    private OptionButton? _locatorPurpose;
+    private LineEdit? _locatorTags;
+    private SpinBox? _locatorX;
+    private SpinBox? _locatorY;
+    private SpinBox? _locatorZ;
+    private OptionButton? _arrivalFacing;
+    private SpinBox? _arrivalDirection;
+    private LineEdit? _arrivalTarget;
+    private LineEdit? _arrivalAnimation;
+    private SpinBox? _arrivalWait;
+    private LineEdit? _arrivalInteraction;
+    private LineEdit? _arrivalCallback;
+    private LineEdit? _locatorAsset;
+    private CheckBox? _locatorRequired;
+    private ItemList? _collectionList;
+    private LineEdit? _collectionName;
+    private LineEdit? _collectionQuery;
+    private LineEdit? _collectionTags;
+    private OptionButton? _collectionPurpose;
+    private OptionButton? _collectionSelection;
+    private SpinBox? _collectionSeed;
+    private CheckBox? _collectionRequired;
+    private CheckBox? _visualSegments;
+    private CheckBox? _visualDirection;
+    private CheckBox? _visualCosts;
+    private CheckBox? _visualActions;
+    private CheckBox? _visualBroken;
+    private CheckBox? _visualNavProjection;
+    private CheckBox? _visualTiming;
+    private SpinBox? _visualCostPerMeter;
+    private CheckBox? _visualRequired;
+    private WaypointRoutePreview? _routeDiagnosticsPreview;
+    private RichTextLabel? _locatorSummary;
     private int _selectedAgent = -1;
     private int _selectedLink = -1;
     private int _selectedAnchor = -1;
     private string? _capturePath;
     private double _captureDelay;
     private bool _capturePrepared;
+    private bool _r064Capture;
+    private bool _r065Capture;
+    private int _selectedWaypoint = -1;
+    private int _selectedRoute = -1;
+    private int _selectedLocator = -1;
+    private int _selectedCollection = -1;
 
     public int AgentCount => _agents.Count;
 
     public int LinkCount => _links.Count;
 
     public int AnchorCount => _anchorInstances.Count;
+
+    public int WaypointCount => _waypoints.Count;
+
+    public int PatrolRouteCount => _patrolRoutes.Count;
+
+    public int LocatorCount => _locators.Count;
+
+    public int LocatorCollectionCount => _locatorCollections.Count;
 
     public int DiagnosticCount => _diagnostics?.ItemCount ?? 0;
 
@@ -118,7 +220,7 @@ public partial class NavigationConfigurationWindow : Window
         _showOverlay = showOverlay ?? throw new ArgumentNullException(nameof(showOverlay));
         _brandWindow = brandWindow ?? throw new ArgumentNullException(nameof(brandWindow));
         Title = "Navigation & géométrie · OpenRPG Forge";
-        MinSize = new Vector2I(1240, 790);
+        MinSize = new Vector2I(1440, 900);
         Size = MinSize;
         Transient = true;
         Exclusive = false;
@@ -128,6 +230,24 @@ public partial class NavigationConfigurationWindow : Window
         CloseRequested += Close;
         var capture = OS.GetCmdlineUserArgs().FirstOrDefault(value =>
             value.StartsWith("--waypoint-anchor-ui-capture=", StringComparison.Ordinal));
+        var r064Capture = OS.GetCmdlineUserArgs().FirstOrDefault(value =>
+            value.StartsWith("--r064-waypoint-patrol-ui-capture=", StringComparison.Ordinal));
+        var r065Capture = OS.GetCmdlineUserArgs().FirstOrDefault(value =>
+            value.StartsWith("--r065-waypoint-locator-ui-capture=", StringComparison.Ordinal));
+        if (r065Capture is not null)
+        {
+            _capturePath = r065Capture["--r065-waypoint-locator-ui-capture=".Length..];
+            _r065Capture = true;
+            SetProcess(true);
+            return;
+        }
+        if (r064Capture is not null)
+        {
+            _capturePath = r064Capture["--r064-waypoint-patrol-ui-capture=".Length..];
+            _r064Capture = true;
+            SetProcess(true);
+            return;
+        }
         if (capture is not null)
         {
             _capturePath = capture["--waypoint-anchor-ui-capture=".Length..];
@@ -142,8 +262,21 @@ public partial class NavigationConfigurationWindow : Window
         if (!_capturePrepared && _captureDelay >= 1)
         {
             Open();
-            ConfigureForR009SmokeTest();
-            _tabs!.CurrentTab = 1;
+            if (_r065Capture)
+            {
+                ConfigureForR065SmokeTest();
+                _tabs!.CurrentTab = 3;
+            }
+            else if (_r064Capture)
+            {
+                ConfigureForR064SmokeTest();
+                _tabs!.CurrentTab = 2;
+            }
+            else
+            {
+                ConfigureForR009SmokeTest();
+                _tabs!.CurrentTab = 1;
+            }
             _capturePrepared = true;
             return;
         }
@@ -152,7 +285,10 @@ public partial class NavigationConfigurationWindow : Window
         Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
         var image = GetViewport().GetTexture().GetImage();
         var error = image.SavePng(destination);
-        GD.Print($"OPENRPG_FORGE_WAYPOINT_ANCHOR_UI_CAPTURE_{(error == Error.Ok ? "PASS" : "FAILED")} " +
+        var marker = _r065Capture ? "OPENRPG_FORGE_R065_WAYPOINT_LOCATOR_UI_CAPTURE" :
+            _r064Capture ? "OPENRPG_FORGE_R064_WAYPOINT_PATROL_UI_CAPTURE" :
+                "OPENRPG_FORGE_WAYPOINT_ANCHOR_UI_CAPTURE";
+        GD.Print($"{marker}_{(error == Error.Ok ? "PASS" : "FAILED")} " +
                  $"path={destination} size={image.GetWidth()}x{image.GetHeight()}");
         _capturePath = null;
         SetProcess(false);
@@ -230,6 +366,94 @@ public partial class NavigationConfigurationWindow : Window
         return DiagnosticCount == 0 && AnchorCount == 3;
     }
 
+    public bool ConfigureForR064SmokeTest()
+    {
+        var area = SelectedArea(_getState?.Invoke());
+        if (area is null) return false;
+        _waypointProfileId = Guid.Parse("a0645000-0000-4000-8000-000000000001");
+        _waypointProvenance = "toolset:r064";
+        _waypointsRequiredAtRuntime = true;
+        _waypoints.Clear();
+        _waypoints.AddRange([
+            new(Guid.Parse("a0645000-0000-4000-8000-000000000011"), 1, "toolset:r064",
+                "Entrée de la crypte", new(-6, 0, -3), new("flag", "#ff8844", "quête", true, 32),
+                new("Entrée révélée", "quest", -1, "quête", 2,
+                    MarkerVisibilityPolicy.HiddenUntilRevealed, MarkerVisibilityScope.Party,
+                    true, false, "quest.crypt.found", "pulse", true), RequiredAtRuntime: true),
+            new(Guid.Parse("a0645000-0000-4000-8000-000000000012"), 1, "toolset:r064",
+                "Brasero central", Vector3Value.Zero, new("diamond", "#83d6ae", "patrouille", true, 26),
+                null, RequiredAtRuntime: true),
+            new(Guid.Parse("a0645000-0000-4000-8000-000000000013"), 1, "toolset:r064",
+                "Porte des cendres", new(6, 0, 4), new("arrow", "#a78bfa", "patrouille", true, 28),
+                null, RequiredAtRuntime: true),
+        ]);
+        var points = _waypoints.Select((item, index) => new PatrolPoint(item.Id, item.Position,
+            index == 1 ? 2 : 0, index * 90, index == 2 ? 3 : 2,
+            index == 1 ? "inspect" : null, index == 0 ? "quest.crypt.active" : null,
+            index + 1)).ToArray();
+        _patrolRoutes.Clear();
+        _patrolRoutes.Add(new(Guid.Parse("a0645000-0000-4000-8000-000000000020"), 1,
+            "toolset:r064", PatrolTraversalPolicy.PingPong, points, requiredAtRuntime: true));
+        _locators.Clear();
+        _locatorCollections.Clear();
+        _routeVisualization = RouteVisualizationProfile.CreateDefault(area.Id);
+        _selectedWaypoint = 0;
+        _selectedRoute = 0;
+        RefreshWaypointLists();
+        SelectWaypoint(0);
+        SelectRoute(0);
+        RefreshWaypointPreview();
+        return WaypointCount == 3 && PatrolRouteCount == 1;
+    }
+
+    public bool ConfigureForR065SmokeTest()
+    {
+        var area = SelectedArea(_getState?.Invoke());
+        if (area is null || !ConfigureForR064SmokeTest()) return false;
+        _waypointProvenance = "toolset:r065";
+        _waypoints[0] = _waypoints[0] with
+        {
+            Provenance = "toolset:r065",
+            Arrival = new ArrivalBehavior(ArrivalFacingMode.Target, 0, "gate.ashes", "inspect",
+                1.5, "open", "waypoint.arrived"),
+        };
+        _locators.AddRange([
+            new GenericLocator(Guid.Parse("a0655000-0000-4000-8000-000000000011"), 1,
+                "toolset:r065", "Brasero VFX", new(-3, 0, 2), LocatorPurpose.Vfx,
+                ["crypt", "fire"],
+                new ArrivalBehavior(ArrivalFacingMode.Direction, 90, null, "ignite", .5,
+                    "inspect", "locator.vfx.arrived"), "vfx:ember-burst", RequiredAtRuntime: true),
+            new GenericLocator(Guid.Parse("a0655000-0000-4000-8000-000000000012"), 1,
+                "toolset:r065", "Cloche audio", new(1, 0, 3), LocatorPurpose.Audio,
+                ["crypt", "ritual"], null, "audio:crypt-bell"),
+            new GenericLocator(Guid.Parse("a0655000-0000-4000-8000-000000000013"), 1,
+                "toolset:r065", "Objectif des cendres", new(5, 0, 1), LocatorPurpose.Objective,
+                ["crypt", "quest"], null),
+        ]);
+        _locatorCollections.AddRange([
+            new AnchorCollection(Guid.Parse("a0655000-0000-4000-8000-000000000021"), 1,
+                "toolset:r065", "crypt", _locators.Select(item => item.Id).ToArray(),
+                "Ancres de la crypte", RequiredTags: ["crypt"]),
+            new AnchorCollection(Guid.Parse("a0655000-0000-4000-8000-000000000022"), 1,
+                "toolset:r065", "crypt", _locators.Select(item => item.Id).ToArray(),
+                "Ancre la plus proche", RequiredTags: ["crypt"],
+                Selection: LocatorSelectionMode.Nearest, Origin: Vector3Value.Zero, Seed: 2026,
+                RequiredAtRuntime: true),
+        ]);
+        _routeVisualization = new RouteVisualizationProfile(
+            Guid.Parse("a0655000-0000-4000-8000-000000000030"), 1, "toolset:r065",
+            true, true, true, true, true, true, true, 1.25, true);
+        _selectedLocator = 0;
+        _selectedCollection = 0;
+        LoadVisualizationDraft();
+        RefreshLocatorLists();
+        SelectLocator(0);
+        SelectCollection(0);
+        RefreshWaypointPreview();
+        return LocatorCount == 3 && LocatorCollectionCount == 2 &&
+               _waypoints[0].Arrival?.Facing == ArrivalFacingMode.Target;
+    }
+
     private void BuildUi()
     {
         var background = new PanelContainer { AnchorRight = 1, AnchorBottom = 1 };
@@ -283,6 +507,26 @@ public partial class NavigationConfigurationWindow : Window
         BuildAnchorsCard(anchors);
         BuildAnchorIdentityCard(anchors);
         BuildAnchorPolicyCard(anchors);
+        var waypoints = new HBoxContainer
+        {
+            Name = "Waypoints & patrouilles",
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+        };
+        waypoints.AddThemeConstantOverride("separation", 14);
+        _tabs.AddChild(waypoints);
+        BuildWaypointCard(waypoints);
+        BuildPatrolCard(waypoints);
+        BuildWaypointPreviewCard(waypoints);
+        var locators = new HBoxContainer
+        {
+            Name = "Locators & diagnostic",
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+        };
+        locators.AddThemeConstantOverride("separation", 14);
+        _tabs.AddChild(locators);
+        BuildLocatorCard(locators);
+        BuildCollectionCard(locators);
+        BuildRouteDiagnosticsCard(locators);
 
         var footer = new HBoxContainer();
         footer.AddThemeConstantOverride("separation", 10);
@@ -391,6 +635,256 @@ public partial class NavigationConfigurationWindow : Window
         card.AddChild(_diagnostics);
         card.AddChild(MutedLabel(
             "États testés : portes courantes, toutes ouvertes et toutes fermées. L’overlay turquoise indique les cellules praticables ; le violet les liaisons."));
+    }
+
+    private void BuildWaypointCard(HBoxContainer body)
+    {
+        var card = AddCard(body, 360);
+        card.AddChild(AccentLabel("APPARENCE & MAP NOTE"));
+        _waypointList = new ItemList { CustomMinimumSize = new Vector2(0, 105) };
+        _waypointList.ItemSelected += SelectWaypoint;
+        card.AddChild(_waypointList);
+        var identity = new HBoxContainer();
+        _waypointName = new LineEdit { PlaceholderText = "Nom du waypoint", SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        _waypointIcon = new LineEdit { PlaceholderText = "Icône" };
+        identity.AddChild(_waypointName); identity.AddChild(_waypointIcon);
+        card.AddChild(identity);
+        var appearance = new HBoxContainer();
+        _waypointColor = new LineEdit { PlaceholderText = "#ff8844", Text = "#ff8844" };
+        _waypointLayer = new LineEdit { PlaceholderText = "Couche", Text = "gameplay" };
+        _waypointScreenSize = Spin(8, 96, 1, 28);
+        _waypointScreenSize.TooltipText = "Taille écran constante en pixels";
+        appearance.AddChild(_waypointColor); appearance.AddChild(_waypointLayer);
+        appearance.AddChild(_waypointScreenSize);
+        card.AddChild(appearance);
+        var position = new HBoxContainer();
+        _waypointX = Coordinate(); _waypointY = Coordinate(); _waypointZ = Coordinate();
+        position.AddChild(_waypointX); position.AddChild(_waypointY); position.AddChild(_waypointZ);
+        card.AddChild(position);
+        var flags = new HBoxContainer();
+        _waypointVisible = new CheckBox { Text = "Visible", ButtonPressed = true };
+        _waypointRequired = new CheckBox { Text = "Requis runtime" };
+        flags.AddChild(_waypointVisible); flags.AddChild(_waypointRequired);
+        card.AddChild(flags);
+        var arrivalFacing = new HBoxContainer();
+        _waypointArrivalFacing = new OptionButton { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        foreach (var mode in _arrivalFacingModes) _waypointArrivalFacing.AddItem(mode.ToString());
+        _waypointArrivalDirection = Spin(-360, 360, 5, 0);
+        _waypointArrivalTarget = new LineEdit { PlaceholderText = "Cible à l’arrivée" };
+        arrivalFacing.AddChild(_waypointArrivalFacing); arrivalFacing.AddChild(_waypointArrivalDirection);
+        arrivalFacing.AddChild(_waypointArrivalTarget);
+        card.AddChild(arrivalFacing);
+        var arrivalAction = new HBoxContainer();
+        _waypointArrivalAnimation = new LineEdit { PlaceholderText = "Animation d’arrivée" };
+        _waypointArrivalWait = Spin(0, 3600, .25, 0);
+        _waypointArrivalInteraction = new LineEdit { PlaceholderText = "Interaction" };
+        arrivalAction.AddChild(_waypointArrivalAnimation); arrivalAction.AddChild(_waypointArrivalWait);
+        arrivalAction.AddChild(_waypointArrivalInteraction);
+        card.AddChild(arrivalAction);
+        _waypointArrivalCallback = new LineEdit { PlaceholderText = "Callback ForgeScript d’arrivée" };
+        card.AddChild(_waypointArrivalCallback);
+        _markerText = new LineEdit { PlaceholderText = "Texte de map note (vide = aucune)" };
+        card.AddChild(_markerText);
+        var markerIdentity = new HBoxContainer();
+        _markerIcon = new LineEdit { PlaceholderText = "Icône carte" };
+        _markerCategory = new LineEdit { PlaceholderText = "Catégorie" };
+        _markerFloor = Spin(-64, 64, 1, 0);
+        markerIdentity.AddChild(_markerIcon); markerIdentity.AddChild(_markerCategory);
+        markerIdentity.AddChild(_markerFloor);
+        card.AddChild(markerIdentity);
+        var markerPolicy = new HBoxContainer();
+        _markerPolicy = new OptionButton { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        foreach (var policy in _markerPolicies) _markerPolicy.AddItem(policy.ToString());
+        _markerScope = new OptionButton { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        foreach (var scope in _markerScopes) _markerScope.AddItem(scope.ToString());
+        _markerPrecision = Spin(0, 100, .5, 2);
+        markerPolicy.AddChild(_markerPolicy); markerPolicy.AddChild(_markerScope);
+        markerPolicy.AddChild(_markerPrecision);
+        card.AddChild(markerPolicy);
+        var markerFlags = new HBoxContainer();
+        _markerTracked = new CheckBox { Text = "Suivi", ButtonPressed = true };
+        _markerRevealed = new CheckBox { Text = "Révélé" };
+        _markerPersistent = new CheckBox { Text = "Persistant", ButtonPressed = true };
+        markerFlags.AddChild(_markerTracked); markerFlags.AddChild(_markerRevealed);
+        markerFlags.AddChild(_markerPersistent);
+        card.AddChild(markerFlags);
+        _markerRevealEvent = new LineEdit { PlaceholderText = "Événement de révélation" };
+        _markerRevealAnimation = new LineEdit { PlaceholderText = "Animation (ex. pulse)" };
+        card.AddChild(_markerRevealEvent); card.AddChild(_markerRevealAnimation);
+        var actions = new HBoxContainer();
+        var save = new Button { Text = "Ajouter / mettre à jour", SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        save.Pressed += SaveWaypoint;
+        actions.AddChild(save);
+        var remove = new Button { Text = "Retirer" };
+        remove.Pressed += RemoveWaypoint;
+        actions.AddChild(remove);
+        card.AddChild(actions);
+    }
+
+    private void BuildPatrolCard(HBoxContainer body)
+    {
+        var card = AddCard(body, 390);
+        card.AddChild(AccentLabel("ROUTE DE PATROUILLE"));
+        _routeList = new ItemList { CustomMinimumSize = new Vector2(0, 110) };
+        _routeList.ItemSelected += SelectRoute;
+        card.AddChild(_routeList);
+        _routeTraversal = new OptionButton();
+        foreach (var policy in _traversalPolicies) _routeTraversal.AddItem(FormatTraversal(policy));
+        card.AddChild(_routeTraversal);
+        card.AddChild(MutedLabel("Un point par ligne : X | Y | Z | attente | facing | vitesse | action | condition | poids"));
+        _routePoints = new TextEdit
+        {
+            PlaceholderText = "-6|0|-3|0|0|2|||1\n0|0|0|2|90|2|inspect||2\n6|0|4|0|180|3|||3",
+            CustomMinimumSize = new Vector2(0, 190),
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+        };
+        card.AddChild(_routePoints);
+        _routeScript = new LineEdit { PlaceholderText = "Handler ForgeScript si mode Scripted" };
+        card.AddChild(_routeScript);
+        _routeRequired = new CheckBox { Text = "Route requise au runtime" };
+        card.AddChild(_routeRequired);
+        var actions = new HBoxContainer();
+        var save = new Button { Text = "Ajouter / mettre à jour", SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        save.Pressed += SaveRoute;
+        actions.AddChild(save);
+        var remove = new Button { Text = "Retirer" };
+        remove.Pressed += RemoveRoute;
+        actions.AddChild(remove);
+        card.AddChild(actions);
+    }
+
+    private void BuildWaypointPreviewCard(HBoxContainer body)
+    {
+        var card = AddCard(body, 430, expand: true);
+        card.AddChild(AccentLabel("APERÇU VIEWPORT & RUNTIME"));
+        _waypointPreview = new WaypointRoutePreview { SizeFlagsVertical = Control.SizeFlags.ExpandFill };
+        card.AddChild(_waypointPreview);
+        _waypointSummary = new RichTextLabel
+        {
+            BbcodeEnabled = true,
+            FitContent = true,
+            CustomMinimumSize = new Vector2(0, 105),
+        };
+        card.AddChild(_waypointSummary);
+        card.AddChild(MutedLabel("Les icônes gardent une taille écran constante ; les arêtes violettes suivent l’ordre canonique."));
+    }
+
+    private void BuildLocatorCard(HBoxContainer body)
+    {
+        var card = AddCard(body, 430);
+        card.AddChild(AccentLabel("LOCATOR & ARRIVÉE"));
+        _locatorList = new ItemList { CustomMinimumSize = new Vector2(0, 105) };
+        _locatorList.ItemSelected += SelectLocator;
+        card.AddChild(_locatorList);
+        var identity = new HBoxContainer();
+        _locatorName = new LineEdit { PlaceholderText = "Nom du locator", SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        _locatorPurpose = new OptionButton();
+        foreach (var purpose in _locatorPurposes) _locatorPurpose.AddItem(purpose.ToString());
+        identity.AddChild(_locatorName); identity.AddChild(_locatorPurpose);
+        card.AddChild(identity);
+        _locatorTags = new LineEdit { PlaceholderText = "Tags séparés par virgules" };
+        card.AddChild(_locatorTags);
+        var position = new HBoxContainer();
+        _locatorX = Coordinate(); _locatorY = Coordinate(); _locatorZ = Coordinate();
+        position.AddChild(_locatorX); position.AddChild(_locatorY); position.AddChild(_locatorZ);
+        card.AddChild(position);
+        var facing = new HBoxContainer();
+        _arrivalFacing = new OptionButton { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        foreach (var mode in _arrivalFacingModes) _arrivalFacing.AddItem(mode.ToString());
+        _arrivalDirection = Spin(-360, 360, 5, 0);
+        _arrivalTarget = new LineEdit { PlaceholderText = "Cible typée" };
+        facing.AddChild(_arrivalFacing); facing.AddChild(_arrivalDirection); facing.AddChild(_arrivalTarget);
+        card.AddChild(facing);
+        var arrival = new HBoxContainer();
+        _arrivalAnimation = new LineEdit { PlaceholderText = "Animation" };
+        _arrivalWait = Spin(0, 3600, .25, 0);
+        _arrivalInteraction = new LineEdit { PlaceholderText = "Interaction" };
+        arrival.AddChild(_arrivalAnimation); arrival.AddChild(_arrivalWait); arrival.AddChild(_arrivalInteraction);
+        card.AddChild(arrival);
+        _arrivalCallback = new LineEdit { PlaceholderText = "Callback ForgeScript" };
+        _locatorAsset = new LineEdit { PlaceholderText = "AssetId audio/VFX (optionnel)" };
+        card.AddChild(_arrivalCallback); card.AddChild(_locatorAsset);
+        _locatorRequired = new CheckBox { Text = "Locator requis au runtime" };
+        card.AddChild(_locatorRequired);
+        var actions = new HBoxContainer();
+        var save = new Button { Text = "Ajouter / mettre à jour", SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        save.Pressed += SaveLocator;
+        actions.AddChild(save);
+        var remove = new Button { Text = "Retirer" };
+        remove.Pressed += RemoveLocator;
+        actions.AddChild(remove);
+        card.AddChild(actions);
+    }
+
+    private void BuildCollectionCard(HBoxContainer body)
+    {
+        var card = AddCard(body, 400);
+        card.AddChild(AccentLabel("GROUPES & REQUÊTES"));
+        _collectionList = new ItemList { CustomMinimumSize = new Vector2(0, 120) };
+        _collectionList.ItemSelected += SelectCollection;
+        card.AddChild(_collectionList);
+        _collectionName = new LineEdit { PlaceholderText = "Nom de collection" };
+        _collectionQuery = new LineEdit { PlaceholderText = "Recherche texte/tag" };
+        _collectionTags = new LineEdit { PlaceholderText = "Tags requis" };
+        card.AddChild(_collectionName); card.AddChild(_collectionQuery); card.AddChild(_collectionTags);
+        var policy = new HBoxContainer();
+        _collectionPurpose = new OptionButton { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        _collectionPurpose.AddItem("Tous les buts");
+        foreach (var purpose in _locatorPurposes) _collectionPurpose.AddItem(purpose.ToString());
+        _collectionSelection = new OptionButton { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        foreach (var selection in _locatorSelectionModes) _collectionSelection.AddItem(FormatSelection(selection));
+        _collectionSeed = Spin(int.MinValue, int.MaxValue, 1, 2026);
+        policy.AddChild(_collectionPurpose); policy.AddChild(_collectionSelection); policy.AddChild(_collectionSeed);
+        card.AddChild(policy);
+        _collectionRequired = new CheckBox { Text = "Collection requise au runtime" };
+        card.AddChild(_collectionRequired);
+        card.AddChild(MutedLabel("Ordre stable, plus proche ou pseudo-aléatoire déterministe. Les membres sont prévisualisés avant application."));
+        var actions = new HBoxContainer();
+        var save = new Button { Text = "Ajouter / mettre à jour", SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        save.Pressed += SaveCollection;
+        actions.AddChild(save);
+        var remove = new Button { Text = "Retirer" };
+        remove.Pressed += RemoveCollection;
+        actions.AddChild(remove);
+        card.AddChild(actions);
+        card.AddChild(AccentLabel("COUCHES DU DIAGNOSTIC"));
+        var row1 = new HBoxContainer();
+        _visualSegments = Check("Segments"); _visualDirection = Check("Sens");
+        _visualCosts = Check("Coûts"); _visualActions = Check("Actions");
+        row1.AddChild(_visualSegments); row1.AddChild(_visualDirection);
+        row1.AddChild(_visualCosts); row1.AddChild(_visualActions);
+        card.AddChild(row1);
+        var row2 = new HBoxContainer();
+        _visualBroken = Check("Liens cassés"); _visualNavProjection = Check("Projection nav");
+        _visualTiming = Check("Timing");
+        row2.AddChild(_visualBroken); row2.AddChild(_visualNavProjection); row2.AddChild(_visualTiming);
+        card.AddChild(row2);
+        var visualPolicy = new HBoxContainer();
+        _visualCostPerMeter = Spin(.01, 10_000, .01, 1);
+        _visualCostPerMeter.TooltipText = "Coût de parcours par mètre";
+        _visualRequired = new CheckBox { Text = "Diagnostic requis runtime" };
+        visualPolicy.AddChild(_visualCostPerMeter); visualPolicy.AddChild(_visualRequired);
+        card.AddChild(visualPolicy);
+        foreach (var control in new BaseButton[] { _visualSegments, _visualDirection, _visualCosts,
+                     _visualActions, _visualBroken, _visualNavProjection, _visualTiming, _visualRequired })
+            control.Toggled += _ => SaveVisualizationDraft();
+        _visualCostPerMeter.ValueChanged += _ => SaveVisualizationDraft();
+    }
+
+    private void BuildRouteDiagnosticsCard(HBoxContainer body)
+    {
+        var card = AddCard(body, 400, expand: true);
+        card.AddChild(AccentLabel("APERÇU ROUTE & LOCATORS"));
+        _routeDiagnosticsPreview = new WaypointRoutePreview { SizeFlagsVertical = Control.SizeFlags.ExpandFill };
+        card.AddChild(_routeDiagnosticsPreview);
+        _locatorSummary = new RichTextLabel
+        {
+            BbcodeEnabled = true,
+            FitContent = true,
+            CustomMinimumSize = new Vector2(0, 115),
+        };
+        card.AddChild(_locatorSummary);
+        card.AddChild(MutedLabel("Diamants bleus/orange/verts/jaunes : audio, VFX, spawn et objectif. Les flèches, coûts, actions, projections et temps proviennent du document canonique."));
     }
 
     private void BuildAnchorsCard(HBoxContainer body)
@@ -541,12 +1035,32 @@ public partial class NavigationConfigurationWindow : Window
         _anchorDefinitions.AddRange(navigation.Anchors.Definitions);
         _anchorInstances.Clear();
         _anchorInstances.AddRange(navigation.Anchors.Instances);
+        _waypointProfileId = navigation.Waypoints.Id;
+        _waypointProvenance = navigation.Waypoints.Provenance;
+        _waypointsRequiredAtRuntime = navigation.Waypoints.RequiredAtRuntime;
+        _waypoints.Clear();
+        _waypoints.AddRange(navigation.Waypoints.Waypoints);
+        _patrolRoutes.Clear();
+        _patrolRoutes.AddRange(navigation.Waypoints.PatrolRoutes);
+        _locators.Clear();
+        _locators.AddRange(navigation.Waypoints.Locators);
+        _locatorCollections.Clear();
+        _locatorCollections.AddRange(navigation.Waypoints.Collections);
+        _routeVisualization = navigation.Waypoints.RouteVisualization;
         _selectedAgent = -1;
         _selectedLink = -1;
         _selectedAnchor = -1;
+        _selectedWaypoint = -1;
+        _selectedRoute = -1;
+        _selectedLocator = -1;
+        _selectedCollection = -1;
         RefreshAgentList();
         RefreshLinkList();
         RefreshAnchorList();
+        RefreshWaypointLists();
+        RefreshLocatorLists();
+        LoadVisualizationDraft();
+        RefreshWaypointPreview();
         Preview();
     }
 
@@ -729,6 +1243,407 @@ public partial class NavigationConfigurationWindow : Window
             "[color=#83d6ae]Appliquer passe par dry-run, validation projet et historique undo/redo.[/color]";
     }
 
+    private void RefreshWaypointLists()
+    {
+        if (_waypointList is not null)
+        {
+            _waypointList.Clear();
+            foreach (var waypoint in _waypoints)
+                _waypointList.AddItem($"{waypoint.Name} · {waypoint.Appearance.Icon} · " +
+                    $"{waypoint.Appearance.ScreenSize:0}px" +
+                    (waypoint.Marker is null ? string.Empty : " · MAP"));
+        }
+        if (_routeList is not null)
+        {
+            _routeList.Clear();
+            foreach (var route in _patrolRoutes)
+                _routeList.AddItem($"{FormatTraversal(route.Traversal)} · {route.Points.Count} points · " +
+                    $"{route.Edges.Count} arêtes");
+        }
+    }
+
+    private void SelectWaypoint(long index)
+    {
+        if (index < 0 || index >= _waypoints.Count) return;
+        _selectedWaypoint = (int)index;
+        var waypoint = _waypoints[_selectedWaypoint];
+        _waypointName!.Text = waypoint.Name;
+        _waypointIcon!.Text = waypoint.Appearance.Icon;
+        _waypointColor!.Text = waypoint.Appearance.Color;
+        _waypointLayer!.Text = waypoint.Appearance.Layer;
+        _waypointScreenSize!.Value = waypoint.Appearance.ScreenSize;
+        _waypointX!.Value = waypoint.Position.X;
+        _waypointY!.Value = waypoint.Position.Y;
+        _waypointZ!.Value = waypoint.Position.Z;
+        _waypointVisible!.ButtonPressed = waypoint.Appearance.Visible;
+        _waypointRequired!.ButtonPressed = waypoint.RequiredAtRuntime;
+        var arrival = waypoint.Arrival;
+        Select(_waypointArrivalFacing!, arrival?.Facing ?? ArrivalFacingMode.Preserve);
+        _waypointArrivalDirection!.Value = arrival?.DirectionDegrees ?? 0;
+        _waypointArrivalTarget!.Text = arrival?.TargetId ?? string.Empty;
+        _waypointArrivalAnimation!.Text = arrival?.Animation ?? string.Empty;
+        _waypointArrivalWait!.Value = arrival?.WaitSeconds ?? 0;
+        _waypointArrivalInteraction!.Text = arrival?.Interaction ?? string.Empty;
+        _waypointArrivalCallback!.Text = arrival?.Callback ?? string.Empty;
+        var marker = waypoint.Marker;
+        _markerText!.Text = marker?.Text ?? string.Empty;
+        _markerIcon!.Text = marker?.Icon ?? string.Empty;
+        _markerFloor!.Value = marker?.Floor ?? 0;
+        _markerCategory!.Text = marker?.Category ?? string.Empty;
+        _markerPrecision!.Value = marker?.Precision ?? 2;
+        Select(_markerPolicy!, marker?.VisibilityPolicy ?? MarkerVisibilityPolicy.Always);
+        Select(_markerScope!, marker?.VisibilityScope ?? MarkerVisibilityScope.Player);
+        _markerTracked!.ButtonPressed = marker?.Tracked ?? false;
+        _markerRevealed!.ButtonPressed = marker?.Revealed ?? false;
+        _markerRevealEvent!.Text = marker?.RevealEvent ?? string.Empty;
+        _markerRevealAnimation!.Text = marker?.RevealAnimation ?? string.Empty;
+        _markerPersistent!.ButtonPressed = marker?.Persistent ?? true;
+    }
+
+    private void SaveWaypoint()
+    {
+        try
+        {
+            var existing = _selectedWaypoint >= 0 ? _waypoints[_selectedWaypoint] : null;
+            MapMarker? marker = string.IsNullOrWhiteSpace(_markerText!.Text) ? null : new(
+                _markerText.Text.Trim(), Required(_markerIcon!.Text, "icône de map note"),
+                (int)_markerFloor!.Value, Required(_markerCategory!.Text, "catégorie de map note"),
+                _markerPrecision!.Value, _markerPolicies[_markerPolicy!.Selected],
+                _markerScopes[_markerScope!.Selected], _markerTracked!.ButtonPressed,
+                _markerRevealed!.ButtonPressed, _markerRevealEvent!.Text.Trim(),
+                _markerRevealAnimation!.Text.Trim(), _markerPersistent!.ButtonPressed);
+            var waypoint = new WaypointProfile(existing?.Id ?? Guid.NewGuid(), 1, "toolset:r064",
+                Required(_waypointName!.Text, "nom du waypoint"),
+                new Vector3Value((float)_waypointX!.Value, (float)_waypointY!.Value,
+                    (float)_waypointZ!.Value),
+                new WaypointEditorAppearance(Required(_waypointIcon!.Text, "icône"),
+                    Required(_waypointColor!.Text, "couleur"), Required(_waypointLayer!.Text, "couche"),
+                    _waypointVisible!.ButtonPressed, _waypointScreenSize!.Value), marker,
+                existing?.AnchorInstanceId, _waypointRequired!.ButtonPressed, "1.0",
+                CreateArrival(_waypointArrivalFacing!, _waypointArrivalDirection!,
+                    _waypointArrivalTarget!, _waypointArrivalAnimation!, _waypointArrivalWait!,
+                    _waypointArrivalInteraction!, _waypointArrivalCallback!));
+            if (existing is null)
+            {
+                _waypoints.Add(waypoint);
+                _selectedWaypoint = _waypoints.Count - 1;
+            }
+            else _waypoints[_selectedWaypoint] = waypoint;
+            RefreshWaypointLists();
+            RefreshWaypointPreview();
+            SetStatus("Waypoint et map note enregistrés dans le brouillon canonique.", false);
+        }
+        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException)
+        {
+            SetStatus(exception.Message, true);
+        }
+    }
+
+    private void RemoveWaypoint()
+    {
+        if (_selectedWaypoint < 0 || _selectedWaypoint >= _waypoints.Count) return;
+        _waypoints.RemoveAt(_selectedWaypoint);
+        _selectedWaypoint = -1;
+        RefreshWaypointLists();
+        RefreshWaypointPreview();
+    }
+
+    private void SelectRoute(long index)
+    {
+        if (index < 0 || index >= _patrolRoutes.Count) return;
+        _selectedRoute = (int)index;
+        var route = _patrolRoutes[_selectedRoute];
+        Select(_routeTraversal!, route.Traversal);
+        _routeScript!.Text = route.ScriptHandler;
+        _routeRequired!.ButtonPressed = route.RequiredAtRuntime;
+        _routePoints!.Text = string.Join("\n", route.Points.Select(point => string.Join("|",
+            point.Position.X.ToString("0.###", CultureInfo.InvariantCulture),
+            point.Position.Y.ToString("0.###", CultureInfo.InvariantCulture),
+            point.Position.Z.ToString("0.###", CultureInfo.InvariantCulture),
+            point.WaitSeconds.ToString("0.###", CultureInfo.InvariantCulture),
+            point.FacingDegrees.ToString("0.###", CultureInfo.InvariantCulture),
+            point.Speed.ToString("0.###", CultureInfo.InvariantCulture),
+            point.Action ?? string.Empty, point.BranchCondition ?? string.Empty,
+            point.Weight.ToString("0.###", CultureInfo.InvariantCulture))));
+    }
+
+    private void SaveRoute()
+    {
+        try
+        {
+            var existing = _selectedRoute >= 0 ? _patrolRoutes[_selectedRoute] : null;
+            var lines = _routePoints!.Text.Split('\n',
+                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var points = lines.Select((line, index) =>
+            {
+                var values = line.Split('|', StringSplitOptions.TrimEntries);
+                if (values.Length != 9) throw new ArgumentException($"Point {index + 1} : 9 champs requis.");
+                var position = new Vector3Value(ParseFloat(values[0]), ParseFloat(values[1]),
+                    ParseFloat(values[2]));
+                var matchingWaypoint = _waypoints.FirstOrDefault(item => item.Position == position);
+                var id = existing is not null && index < existing.Points.Count
+                    ? existing.Points[index].Id
+                    : matchingWaypoint?.Id ?? Guid.NewGuid();
+                return new PatrolPoint(id, position, ParseDouble(values[3]), ParseDouble(values[4]),
+                    ParseDouble(values[5]), NullIfBlank(values[6]), NullIfBlank(values[7]),
+                    ParseDouble(values[8]));
+            }).ToArray();
+            var route = new PatrolRoute(existing?.Id ?? Guid.NewGuid(), 1, "toolset:r064",
+                _traversalPolicies[_routeTraversal!.Selected], points, scriptHandler: _routeScript!.Text,
+                requiredAtRuntime: _routeRequired!.ButtonPressed);
+            if (existing is null)
+            {
+                _patrolRoutes.Add(route);
+                _selectedRoute = _patrolRoutes.Count - 1;
+            }
+            else _patrolRoutes[_selectedRoute] = route;
+            RefreshWaypointLists();
+            RefreshWaypointPreview();
+            SetStatus("Route ordonnée enregistrée dans le brouillon canonique.", false);
+        }
+        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or FormatException)
+        {
+            SetStatus(exception.Message, true);
+        }
+    }
+
+    private void RemoveRoute()
+    {
+        if (_selectedRoute < 0 || _selectedRoute >= _patrolRoutes.Count) return;
+        _patrolRoutes.RemoveAt(_selectedRoute);
+        _selectedRoute = -1;
+        RefreshWaypointLists();
+        RefreshWaypointPreview();
+    }
+
+    private void RefreshWaypointPreview(AreaDefinition? configuredArea = null)
+    {
+        var visualization = _routeVisualization ?? RouteVisualizationProfile.CreateDefault(
+            SelectedArea(_getState?.Invoke())?.Id ?? _areaIds[0]);
+        var projected = _waypoints.Take(2).Select(item => item.Id).ToHashSet();
+        _waypointPreview?.SetData(_waypoints, _patrolRoutes, _locators, visualization, projected);
+        _routeDiagnosticsPreview?.SetData(_waypoints, _patrolRoutes, _locators, visualization, projected);
+        if (_waypointSummary is null) return;
+        configuredArea ??= SelectedArea(_getState?.Invoke()) is { } area
+            ? area.WithNavigation(CreateNavigation()) : null;
+        IReadOnlyList<DomainDiagnostic> diagnostics = configuredArea is null
+            ? [] : WaypointAuthoringValidator.Validate(configuredArea);
+        _waypointSummary.Text = $"[color=#ff9858]R064 · PROFIL WAYPOINT[/color]\n" +
+            $"{_waypoints.Count} waypoint(s) · {_patrolRoutes.Count} route(s) · " +
+            $"{_patrolRoutes.Sum(item => item.Edges.Count)} arête(s) UUID\n" +
+            $"Map notes {_waypoints.Count(item => item.Marker is not null)} · " +
+            $"modes {string.Join(", ", _patrolRoutes.Select(item => FormatTraversal(item.Traversal)).Distinct())}\n" +
+            (diagnostics.Count == 0
+                ? "[color=#83d6ae]✓ Prêt · commande, historique, runtime et persistance[/color]"
+                : $"[color=#ff8c8c]{diagnostics.Count} diagnostic(s) · {diagnostics[0].Code}[/color]");
+        RefreshLocatorSummary();
+    }
+
+    private void RefreshLocatorLists()
+    {
+        if (_locatorList is not null)
+        {
+            _locatorList.Clear();
+            foreach (var locator in _locators)
+                _locatorList.AddItem($"{locator.Name} · {locator.Purpose} · " +
+                    $"{string.Join(", ", locator.Tags.Order(StringComparer.Ordinal))}");
+        }
+        if (_collectionList is not null)
+        {
+            _collectionList.Clear();
+            foreach (var collection in _locatorCollections)
+            {
+                var resolved = WaypointRouteService.ResolveCollection(collection, _locators);
+                _collectionList.AddItem($"{collection.Name} · {FormatSelection(collection.Selection)} · " +
+                    $"{resolved.Count} résultat(s)");
+            }
+        }
+    }
+
+    private void SelectLocator(long index)
+    {
+        if (index < 0 || index >= _locators.Count) return;
+        _selectedLocator = (int)index;
+        var locator = _locators[_selectedLocator];
+        _locatorName!.Text = locator.Name;
+        Select(_locatorPurpose!, locator.Purpose);
+        _locatorTags!.Text = string.Join(", ", locator.Tags.Order(StringComparer.Ordinal));
+        _locatorX!.Value = locator.Position.X; _locatorY!.Value = locator.Position.Y;
+        _locatorZ!.Value = locator.Position.Z;
+        var arrival = locator.Arrival;
+        Select(_arrivalFacing!, arrival?.Facing ?? ArrivalFacingMode.Preserve);
+        _arrivalDirection!.Value = arrival?.DirectionDegrees ?? 0;
+        _arrivalTarget!.Text = arrival?.TargetId ?? string.Empty;
+        _arrivalAnimation!.Text = arrival?.Animation ?? string.Empty;
+        _arrivalWait!.Value = arrival?.WaitSeconds ?? 0;
+        _arrivalInteraction!.Text = arrival?.Interaction ?? string.Empty;
+        _arrivalCallback!.Text = arrival?.Callback ?? string.Empty;
+        _locatorAsset!.Text = locator.AssetId ?? string.Empty;
+        _locatorRequired!.ButtonPressed = locator.RequiredAtRuntime;
+    }
+
+    private void SaveLocator()
+    {
+        try
+        {
+            var existing = _selectedLocator >= 0 ? _locators[_selectedLocator] : null;
+            var locator = new GenericLocator(existing?.Id ?? Guid.NewGuid(), 1, "toolset:r065",
+                Required(_locatorName!.Text, "nom du locator"),
+                new Vector3Value((float)_locatorX!.Value, (float)_locatorY!.Value,
+                    (float)_locatorZ!.Value), _locatorPurposes[_locatorPurpose!.Selected],
+                _locatorTags!.Text.Split(',', StringSplitOptions.RemoveEmptyEntries |
+                    StringSplitOptions.TrimEntries).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)
+                    .ToArray(),
+                CreateArrival(_arrivalFacing!, _arrivalDirection!, _arrivalTarget!,
+                    _arrivalAnimation!, _arrivalWait!, _arrivalInteraction!, _arrivalCallback!),
+                NullIfBlank(_locatorAsset!.Text), existing?.BlueprintId, existing?.ExplicitOverrides,
+                _locatorRequired!.ButtonPressed);
+            if (existing is null)
+            {
+                _locators.Add(locator);
+                _selectedLocator = _locators.Count - 1;
+            }
+            else _locators[_selectedLocator] = locator;
+            RefreshLocatorLists();
+            RefreshWaypointPreview();
+            SetStatus("Locator typé et comportement d’arrivée enregistrés.", false);
+        }
+        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException)
+        {
+            SetStatus(exception.Message, true);
+        }
+    }
+
+    private void RemoveLocator()
+    {
+        if (_selectedLocator < 0 || _selectedLocator >= _locators.Count) return;
+        var id = _locators[_selectedLocator].Id;
+        _locators.RemoveAt(_selectedLocator);
+        for (var index = 0; index < _locatorCollections.Count; index++)
+            _locatorCollections[index] = _locatorCollections[index] with
+            {
+                LocatorIds = _locatorCollections[index].LocatorIds.Where(candidate => candidate != id).ToArray(),
+            };
+        _selectedLocator = -1;
+        RefreshLocatorLists();
+        RefreshWaypointPreview();
+    }
+
+    private void SelectCollection(long index)
+    {
+        if (index < 0 || index >= _locatorCollections.Count) return;
+        _selectedCollection = (int)index;
+        var collection = _locatorCollections[_selectedCollection];
+        _collectionName!.Text = collection.Name;
+        _collectionQuery!.Text = collection.Query;
+        _collectionTags!.Text = string.Join(", ",
+            (collection.RequiredTags ?? Array.Empty<string>()).Order(StringComparer.Ordinal));
+        _collectionPurpose!.Selected = collection.Purpose is null
+            ? 0 : Array.IndexOf(_locatorPurposes, collection.Purpose.Value) + 1;
+        Select(_collectionSelection!, collection.Selection);
+        _collectionSeed!.Value = collection.Seed;
+        _collectionRequired!.ButtonPressed = collection.RequiredAtRuntime;
+        RefreshLocatorSummary();
+    }
+
+    private void SaveCollection()
+    {
+        try
+        {
+            var existing = _selectedCollection >= 0 ? _locatorCollections[_selectedCollection] : null;
+            var query = _collectionQuery!.Text.Trim();
+            var requiredTags = _collectionTags!.Text.Split(',', StringSplitOptions.RemoveEmptyEntries |
+                    StringSplitOptions.TrimEntries).Distinct(StringComparer.OrdinalIgnoreCase)
+                .Order(StringComparer.OrdinalIgnoreCase).ToArray();
+            LocatorPurpose? purpose = _collectionPurpose!.Selected == 0 ? null :
+                _locatorPurposes[_collectionPurpose.Selected - 1];
+            var memberIds = _locators.Where(locator =>
+                    (purpose is null || locator.Purpose == purpose) &&
+                    (string.IsNullOrWhiteSpace(query) ||
+                     locator.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                     locator.Tags.Any(tag => tag.Contains(query, StringComparison.OrdinalIgnoreCase))) &&
+                    requiredTags.All(required => locator.Tags.Contains(required,
+                        StringComparer.OrdinalIgnoreCase)))
+                .OrderBy(locator => locator.Name, StringComparer.Ordinal).ThenBy(locator => locator.Id)
+                .Select(locator => locator.Id).ToArray();
+            var collection = new AnchorCollection(existing?.Id ?? Guid.NewGuid(), 1, "toolset:r065",
+                query, memberIds, Required(_collectionName!.Text, "nom de collection"), purpose,
+                requiredTags, _locatorSelectionModes[_collectionSelection!.Selected],
+                Vector3Value.Zero, (int)_collectionSeed!.Value, _collectionRequired!.ButtonPressed);
+            if (existing is null)
+            {
+                _locatorCollections.Add(collection);
+                _selectedCollection = _locatorCollections.Count - 1;
+            }
+            else _locatorCollections[_selectedCollection] = collection;
+            RefreshLocatorLists();
+            RefreshWaypointPreview();
+            SetStatus("Collection résolue sans écriture et enregistrée dans le brouillon.", false);
+        }
+        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException)
+        {
+            SetStatus(exception.Message, true);
+        }
+    }
+
+    private void RemoveCollection()
+    {
+        if (_selectedCollection < 0 || _selectedCollection >= _locatorCollections.Count) return;
+        _locatorCollections.RemoveAt(_selectedCollection);
+        _selectedCollection = -1;
+        RefreshLocatorLists();
+        RefreshWaypointPreview();
+    }
+
+    private void LoadVisualizationDraft()
+    {
+        if (_visualSegments is null) return;
+        var areaId = SelectedArea(_getState?.Invoke())?.Id ?? _areaIds.FirstOrDefault();
+        _routeVisualization ??= RouteVisualizationProfile.CreateDefault(areaId!);
+        var view = _routeVisualization;
+        _visualSegments.ButtonPressed = view.ShowSegments;
+        _visualDirection!.ButtonPressed = view.ShowDirection;
+        _visualCosts!.ButtonPressed = view.ShowCosts;
+        _visualActions!.ButtonPressed = view.ShowActions;
+        _visualBroken!.ButtonPressed = view.ShowBrokenLinks;
+        _visualNavProjection!.ButtonPressed = view.ShowNavigationProjection;
+        _visualTiming!.ButtonPressed = view.ShowTiming;
+        _visualCostPerMeter!.Value = view.CostPerMeter;
+        _visualRequired!.ButtonPressed = view.RequiredAtRuntime;
+    }
+
+    private void SaveVisualizationDraft()
+    {
+        if (_visualSegments is null || _visualCostPerMeter is null) return;
+        var areaId = SelectedArea(_getState?.Invoke())?.Id ?? _areaIds.FirstOrDefault();
+        var current = _routeVisualization ?? RouteVisualizationProfile.CreateDefault(areaId!);
+        _routeVisualization = new(current.Id, 1, "toolset:r065", _visualSegments.ButtonPressed,
+            _visualDirection!.ButtonPressed, _visualCosts!.ButtonPressed, _visualActions!.ButtonPressed,
+            _visualBroken!.ButtonPressed, _visualNavProjection!.ButtonPressed,
+            _visualTiming!.ButtonPressed, _visualCostPerMeter.Value, _visualRequired!.ButtonPressed);
+        RefreshWaypointPreview();
+    }
+
+    private void RefreshLocatorSummary()
+    {
+        if (_locatorSummary is null) return;
+        var collection = _selectedCollection >= 0 && _selectedCollection < _locatorCollections.Count
+            ? _locatorCollections[_selectedCollection] : _locatorCollections.FirstOrDefault();
+        var resolved = collection is null ? _locators :
+            WaypointRouteService.ResolveCollection(collection, _locators);
+        var visualization = _routeVisualization;
+        var known = _waypoints.Select(item => item.Id).Concat(_locators.Select(item => item.Id)).ToHashSet();
+        var segments = _patrolRoutes.SelectMany(route => WaypointRouteService.AnalyzeRoute(route,
+            _waypoints.Take(2).Select(item => item.Id).ToHashSet(), known,
+            visualization?.CostPerMeter ?? 1)).ToArray();
+        _locatorSummary.Text = "[color=#ff9858]R065 · LOCATORS & ROUTES[/color]\n" +
+            $"{_locators.Count} locator(s) · {_locatorCollections.Count} collection(s) · " +
+            $"{resolved.Count} résultat(s) prévisualisé(s)\n" +
+            $"{segments.Length} segment(s) · {segments.Count(item => item.Direction < 0)} retour(s) · " +
+            $"{segments.Count(item => item.NavProjected)} projection(s) nav\n" +
+            "[color=#83d6ae]✓ Sens, coûts, actions, liens cassés et timing visibles[/color]";
+    }
+
     private void SelectAgent(long index)
     {
         if (index < 0 || index >= _agents.Count) return;
@@ -844,10 +1759,11 @@ public partial class NavigationConfigurationWindow : Window
                 state.Project.Areas.Select(item => item.Id == configuredArea.Id ? configuredArea : item).ToArray(),
                 state.Project.Dialogues, state.Project.Quests);
             var anchorDiagnostics = AnchorCatalogValidator.Validate(project, configuredArea);
+            var waypointDiagnostics = WaypointAuthoringValidator.Validate(configuredArea);
 
             _diagnostics!.Clear();
             foreach (var diagnostic in geometry.Concat(analyses.SelectMany(item => item.Diagnostics))
-                         .Concat(anchorDiagnostics))
+                         .Concat(anchorDiagnostics).Concat(waypointDiagnostics))
             {
                 _diagnostics.AddItem($"{diagnostic.Code} · {diagnostic.Message}");
                 _diagnostics.SetItemTooltip(_diagnostics.ItemCount - 1, diagnostic.Path);
@@ -876,6 +1792,7 @@ public partial class NavigationConfigurationWindow : Window
                         : $"route {path.Failure}");
             _summary.AddThemeColorOverride("font_color",
                 _diagnostics.ItemCount == 0 ? new Color("83d6ae") : new Color("ffb36d"));
+            RefreshWaypointPreview(configuredArea);
             SetStatus("Bake déterministe actualisé dans le viewport.", false);
         }
         catch (Exception exception) when (exception is ArgumentException or InvalidOperationException)
@@ -916,7 +1833,12 @@ public partial class NavigationConfigurationWindow : Window
         "aurora-navigation-editor",
         anchors: new AnchorCatalog(_catalogId == Guid.Empty ? Guid.NewGuid() : _catalogId, 1,
             _catalogProvenance, SelectedArea(_getState?.Invoke())?.Id ?? _areaIds[0],
-            _catalogRequiredAtRuntime, _anchorDefinitions, _anchorInstances));
+            _catalogRequiredAtRuntime, _anchorDefinitions, _anchorInstances),
+        waypoints: new WaypointAuthoringProfile(
+            _waypointProfileId == Guid.Empty ? Guid.NewGuid() : _waypointProfileId, 1,
+            _waypointProvenance, SelectedArea(_getState?.Invoke())?.Id ?? _areaIds[0],
+            _waypointsRequiredAtRuntime, _waypoints, _patrolRoutes, _locators, _locatorCollections,
+            _routeVisualization));
 
     private void Close()
     {
@@ -960,6 +1882,8 @@ public partial class NavigationConfigurationWindow : Window
         Value = value,
         SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
     };
+
+    private static CheckBox Check(string text) => new() { Text = text, ButtonPressed = true };
 
     private static Label AccentLabel(string text)
     {
@@ -1031,8 +1955,45 @@ public partial class NavigationConfigurationWindow : Window
 
     private static string? NullIfBlank(string text) => string.IsNullOrWhiteSpace(text) ? null : text.Trim();
 
+    private ArrivalBehavior? CreateArrival(OptionButton facing, SpinBox direction, LineEdit target,
+        LineEdit animation, SpinBox wait, LineEdit interaction, LineEdit callback)
+    {
+        var mode = _arrivalFacingModes[facing.Selected];
+        if (mode == ArrivalFacingMode.Preserve && direction.Value == 0 &&
+            string.IsNullOrWhiteSpace(target.Text) && string.IsNullOrWhiteSpace(animation.Text) &&
+            wait.Value == 0 && string.IsNullOrWhiteSpace(interaction.Text) &&
+            string.IsNullOrWhiteSpace(callback.Text)) return null;
+        return new(mode, direction.Value, NullIfBlank(target.Text), NullIfBlank(animation.Text),
+            wait.Value, NullIfBlank(interaction.Text), NullIfBlank(callback.Text));
+    }
+
+    private static float ParseFloat(string value) => float.Parse(value, NumberStyles.Float,
+        CultureInfo.InvariantCulture);
+
+    private static double ParseDouble(string value) => double.Parse(value, NumberStyles.Float,
+        CultureInfo.InvariantCulture);
+
     private static void Select<T>(OptionButton button, T value) where T : struct, Enum =>
         button.Selected = Array.IndexOf(Enum.GetValues<T>(), value);
+
+    private static string FormatTraversal(PatrolTraversalPolicy policy) => policy switch
+    {
+        PatrolTraversalPolicy.Loop => "Boucle",
+        PatrolTraversalPolicy.PingPong => "Aller / retour",
+        PatrolTraversalPolicy.Once => "Une fois",
+        PatrolTraversalPolicy.Random => "Aléatoire déterministe",
+        PatrolTraversalPolicy.Weighted => "Pondéré",
+        PatrolTraversalPolicy.Scripted => "Scripté",
+        _ => policy.ToString(),
+    };
+
+    private static string FormatSelection(LocatorSelectionMode selection) => selection switch
+    {
+        LocatorSelectionMode.Stable => "Ordre stable",
+        LocatorSelectionMode.Nearest => "Plus proche",
+        LocatorSelectionMode.RandomDeterministic => "Aléatoire déterministe",
+        _ => selection.ToString(),
+    };
 
     private static StyleBoxFlat Card(string background, string border, int width, int radius) => new()
     {

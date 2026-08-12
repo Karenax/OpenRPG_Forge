@@ -7,7 +7,7 @@ namespace Forge.Domain.Authoring;
 
 public sealed record EditorWorkspaceProfile
 {
-    public const int CurrentSchemaVersion = 3;
+    public const int CurrentSchemaVersion = 4;
 
     public const double MinimumUiScale = 0.75;
 
@@ -53,6 +53,16 @@ public sealed record EditorWorkspaceProfile
 
     public EditorShellConfiguration Shell { get; }
 
+    public EditorRepeatedPlacementProfile RepeatedPlacementProfile { get; }
+
+    public EditorMultiAreaProfile MultiArea { get; }
+
+    public EditorContextualHelpProfile Help { get; }
+
+    public EditorRolePolicy RolePolicy { get; }
+
+    public IReadOnlyList<NamedPaletteCollection> NamedPaletteCollections { get; }
+
     public EditorWorkspaceProfile(
         EditorWorkspaceProfileId id,
         string name,
@@ -71,7 +81,12 @@ public sealed record EditorWorkspaceProfile
         IReadOnlyList<string>? fallbackFontFamilies = null,
         IReadOnlyList<BlueprintId>? personalFavoriteBlueprintIds = null,
         IReadOnlyList<BlueprintId>? recentBlueprintIds = null,
-        EditorShellConfiguration? shell = null)
+        EditorShellConfiguration? shell = null,
+        EditorRepeatedPlacementProfile? repeatedPlacementProfile = null,
+        EditorMultiAreaProfile? multiArea = null,
+        EditorContextualHelpProfile? help = null,
+        EditorRolePolicy? rolePolicy = null,
+        IReadOnlyList<NamedPaletteCollection>? namedPaletteCollections = null)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
@@ -112,11 +127,14 @@ public sealed record EditorWorkspaceProfile
         Name = name.Trim();
         Role = role;
         DisplayFilter = displayFilter;
-        RepeatPlacement = repeatPlacement;
+        RepeatedPlacementProfile = repeatedPlacementProfile ??
+            EditorRepeatedPlacementProfile.CreateDefault(id.Value, repeatPlacement);
+        RepeatPlacement = RepeatedPlacementProfile.Enabled;
         OpenAreaTabs = tabs;
         ActiveAreaId = activeAreaId;
         ComparisonAreaId = comparisonAreaId;
-        ContextualHelpEnabled = contextualHelpEnabled;
+        Help = help ?? EditorContextualHelpProfile.CreateDefault(id.Value, contextualHelpEnabled);
+        ContextualHelpEnabled = Help.Enabled;
         Provenance = provenance.Trim();
         UiScale = uiScale;
         TextScale = textScale;
@@ -125,6 +143,15 @@ public sealed record EditorWorkspaceProfile
         PersonalFavoriteBlueprintIds = favorites;
         RecentBlueprintIds = recents;
         Shell = shell ?? EditorShellConfiguration.CreateDefault(id.Value);
+        MultiArea = multiArea ?? EditorMultiAreaProfile.CreateDefault(id.Value);
+        RolePolicy = rolePolicy ?? EditorRolePolicy.CreateDefault(id.Value, role);
+        if (RolePolicy.Role != role)
+            throw new ArgumentException("The editor role policy must match the workspace role.", nameof(rolePolicy));
+        NamedPaletteCollections = (namedPaletteCollections ?? []).OrderBy(item => item.Name, StringComparer.Ordinal)
+            .ToArray();
+        if (NamedPaletteCollections.Select(item => item.Id).Distinct().Count() != NamedPaletteCollections.Count ||
+            NamedPaletteCollections.Select(item => item.Name).Distinct(StringComparer.OrdinalIgnoreCase).Count() != NamedPaletteCollections.Count)
+            throw new ArgumentException("Named palette collection IDs and names must be unique.", nameof(namedPaletteCollections));
     }
 
     public static EditorWorkspaceProfile CreateDefault(EditorRole role, AreaId? areaId = null)

@@ -14,7 +14,7 @@ public sealed record ContentRepositoryManifest(Guid Id, int SchemaVersion, strin
 public sealed record ContentSyncDiagnostic(string Code, string Path, string Message);
 
 public sealed record ContentSyncItem(string Path, string Sha256, long Size, long ResumeOffset,
-    bool CacheHit, string CachePath);
+    bool CacheHit, string CachePath, int ChunkCount = 0, bool DeltaRequired = false);
 
 public sealed record ContentSyncReport(bool Valid, bool Applied, string Fingerprint,
     IReadOnlyList<ContentSyncItem> Items, IReadOnlyList<ContentSyncDiagnostic> Diagnostics,
@@ -70,10 +70,17 @@ public sealed class ContentRepositorySyncService
 {
     private readonly ContentSynchronizationPolicy _policy;
     private readonly string _cacheRoot;
+    private readonly int _chunkBytes;
+    private readonly bool _deltaEnabled;
 
-    public ContentRepositorySyncService(ContentSynchronizationPolicy policy, string userStorageRoot)
+    public ContentRepositorySyncService(ContentSynchronizationPolicy policy, string userStorageRoot,
+        int chunkBytes = 64 * 1024, bool deltaEnabled = true)
     {
         _policy = policy ?? throw new ArgumentNullException(nameof(policy));
+        if (chunkBytes is < 16 * 1024 or > 4 * 1024 * 1024)
+            throw new ArgumentOutOfRangeException(nameof(chunkBytes), "NET_CONTENT_CHUNK_SIZE_INVALID");
+        _chunkBytes = chunkBytes;
+        _deltaEnabled = deltaEnabled;
         if (!Path.IsPathFullyQualified(userStorageRoot))
             throw new ArgumentException("User storage root must be absolute.", nameof(userStorageRoot));
         var root = Path.GetFullPath(userStorageRoot);
@@ -95,8 +102,10 @@ public sealed class ContentRepositorySyncService
             var partial = PartialPath(resource.Sha256);
             var resume = _policy.Resumable && File.Exists(partial)
                 ? Math.Min(new FileInfo(partial).Length, resource.Size) : 0;
-            return new ContentSyncItem(resource.Path, resource.Sha256, resource.Size, cacheHit ? resource.Size : resume,
-                cacheHit, cachePath);
+            var remaining = Math.Max(0, resource.Size - (cacheHit ? resource.Size : resume));
+            return new ContentSyncItem(resource.Path, resource.Sha256, resource.Size,
+                cacheHit ? resource.Size : resume, cacheHit, cachePath,
+                (int)Math.Ceiling(remaining / (double)_chunkBytes), _deltaEnabled && !cacheHit && resume > 0);
         }).ToArray();
         var reused = items.Where(item => item.CacheHit).Sum(item => item.Size);
         return new ContentSyncReport(diagnostics.Count == 0, false, manifest.Fingerprint, items, diagnostics, 0, reused);
@@ -121,7 +130,7 @@ public sealed class ContentRepositorySyncService
                        FileAccess.Write, FileShare.None))
             {
                 var remaining = resource.Size - offset;
-                var buffer = new byte[64 * 1024];
+                var buffer = new byte[_chunkBytes];
                 while (remaining > 0)
                 {
                     var read = source.Read(buffer, 0, (int)Math.Min(buffer.Length, remaining));

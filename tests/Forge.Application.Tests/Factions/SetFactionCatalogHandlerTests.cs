@@ -28,6 +28,7 @@ public sealed class SetFactionCatalogHandlerTests
         Assert.Null(history.Undo().State.Project.Module.Factions.Advanced);
         Assert.True(history.Redo().Succeeded);
         Assert.Equal(catalog.Advanced!.Id, history.State.Project.Module.Factions.Advanced!.Id);
+        Assert.Equal(catalog.Reputation!.Id, history.State.Project.Module.Factions.Reputation!.Id);
         Assert.Contains("3 faction", preview.Patch!.Summary, StringComparison.Ordinal);
     }
 
@@ -40,9 +41,19 @@ public sealed class SetFactionCatalogHandlerTests
             catalog, false));
         var invalid = _handler.Handle(state, new(CommandId.From(Guid.NewGuid()), state.Revision,
             catalog with { Advanced = catalog.Advanced! with { ServerAuthoritative = false } }, false));
+        var invalidReputation = _handler.Handle(state, new(CommandId.From(Guid.NewGuid()), state.Revision,
+            catalog with
+            {
+                Reputation = catalog.Reputation! with
+                {
+                    Reaction = catalog.Reputation.Reaction with { DefaultScopeId = "" },
+                },
+            }, false));
 
         Assert.Equal(SetFactionCatalogHandler.RevisionConflictCode, Assert.Single(conflict.Diagnostics).Code);
         Assert.Contains(invalid.Diagnostics, item => item.Code == "faction.advanced.authority_required");
+        Assert.Contains(invalidReputation.Diagnostics, item =>
+            item.Code == "RPG_FACTION_REACTION_POLICY_INVALID");
         Assert.Equal(state.Revision, invalid.State.Revision);
     }
 

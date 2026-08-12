@@ -123,7 +123,8 @@ public sealed class ApplyAssistedBossHandler
             currentExtensions.OperationalReadiness, currentExtensions.PostLaunch);
         var policies = new ModuleRuntimePolicyProfile(currentPolicies.Id, currentPolicies.SchemaVersion,
             currentPolicies.Heartbeats, currentPolicies.Rest, currentPolicies.SequenceAbort, "assistant:boss",
-            currentPolicies.Cinematics, currentPolicies.Gameplay, currentPolicies.Rules, extensions);
+            currentPolicies.Cinematics, currentPolicies.Gameplay, currentPolicies.Rules, extensions,
+            currentPolicies.GameplayEvents, currentPolicies.World);
         return new ProjectDefinition(project.Id, project.Title, project.Module.WithRuntimePolicies(policies),
             blueprints, project.Areas, dialogues, project.Quests);
     }

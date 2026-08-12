@@ -55,7 +55,7 @@ public sealed class LiveDirectorGovernanceTests
         var audit = Journal();
         var chat = new LiveDirectorChatService(new(), audit, () => DateTimeOffset.UnixEpoch);
         Assert.Equal("gm", chat.Send(Gm, "gm", null, "Briefing", null, Guid.NewGuid()).Channel);
-        Assert.Equal(Target, chat.Send(Gm, "impersonation", null, "Approchez", Target, Guid.NewGuid()).ImpersonatedObjectId);
+        Assert.Equal(Target, chat.Send(Gm, "impersonation", null, "Approchez", Target, Guid.NewGuid(), "dramatic scene").ImpersonatedObjectId);
         Assert.Equal(2, chat.Messages.Count);
         Assert.True(audit.Verify());
     }

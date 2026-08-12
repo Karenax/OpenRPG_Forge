@@ -107,6 +107,65 @@ public sealed class AssetPackageManifestTests
             Assert.Single(stale.Diagnostics).Code);
     }
 
+    [Fact]
+    public void ContentExtensionsKeepFontsNavigationAndCollisionGovernedAndSeparate()
+    {
+        var basis = CreateManifest();
+        var platforms = new[] { AssetTargetPlatform.Windows, AssetTargetPlatform.Linux };
+        var collision = new AssetCollisionAuthoringInput(
+            Artifact("assets/castle/collision.mesh", 'c', platforms), true,
+            AssetCollisionGeneration.Manual, ["stone", "stairs"], platforms);
+        var navigation = new AssetNavigationAuthoringInput(
+            Artifact("assets/castle/navigation.navmesh", 'd', platforms), true,
+            AssetNavigationGeneration.Manual, ["walkable", "blocked"], platforms);
+        var font = new AssetFontAuthoringInput(
+            "Atkinson Hyperlegible", Artifact("assets/fonts/atkinson.ttf", 'e', platforms),
+            [new("Noto Sans", Artifact("assets/fonts/noto-sans.ttf", 'f', platforms))], true,
+            ["Latn", "Arab"], ["fr-FR", "ar"], [96, 144, 192], 0.8m, 2m);
+
+        var extended = AssetPackageManifestFactory.AttachContentExtensions(basis, collision, navigation, font);
+        var history = new AssetPackageManifestCommandHistory();
+        var applied = _handler.Handle(history.State, Command(history.State.Revision, extended));
+        history.Record(applied);
+
+        Assert.Empty(AssetPackageManifestValidator.Validate(extended));
+        Assert.Equal(4, extended.Chunks.Select(chunk => chunk.Role)
+            .Count(role => role is AssetChunkRole.Collision or AssetChunkRole.Navigation or AssetChunkRole.Font));
+        Assert.NotEqual(extended.Collision!.ChunkId, extended.Navigation!.ChunkId);
+        Assert.Equal(["Latn", "Arab"], extended.Font!.ShapingScripts);
+        Assert.Equal([96, 144, 192], extended.Font.DpiBuckets);
+        Assert.True(applied.Succeeded);
+        Assert.True(history.Undo());
+        Assert.True(history.Redo());
+        Assert.Equal(extended, Assert.Single(history.State.Manifests));
+    }
+
+    [Fact]
+    public void InvalidNavigationAndFontReturnLocalizedStableDiagnostics()
+    {
+        var manifest = CreateManifest() with
+        {
+            Navigation = new AssetNavigationManifest(
+                true, Guid.NewGuid(), AssetNavigationGeneration.Generated, [], [AssetTargetPlatform.Windows]),
+            Font = new AssetFontManifest(
+                true, "", null, [], ["latin"], [], [48], 2m, 1m),
+        };
+
+        var diagnostics = AssetPackageManifestValidator.Validate(manifest);
+
+        Assert.Contains(diagnostics, diagnostic => diagnostic.Code == AssetPackageManifestValidator.NavigationInvalidCode &&
+            diagnostic.Path.EndsWith("/navigation", StringComparison.Ordinal));
+        Assert.Contains(diagnostics, diagnostic => diagnostic.Code == AssetPackageManifestValidator.FontInvalidCode &&
+            diagnostic.Path.EndsWith("/font", StringComparison.Ordinal));
+        Assert.Contains(diagnostics, diagnostic => diagnostic.Code == AssetPackageManifestValidator.ReferenceMissingCode);
+    }
+
+    private static AssetExtensionArtifactInput Artifact(
+        string path,
+        char hashCharacter,
+        IReadOnlyList<AssetTargetPlatform> platforms) =>
+        new(path, new string(hashCharacter, 64), 2048, 1024, AssetChunkCompression.Brotli, platforms);
+
     private static SetAssetPackageManifestCommand Command(
         AssetPackageManifestRevision revision,
         AssetPackageManifest manifest,

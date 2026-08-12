@@ -1,4 +1,7 @@
+using Forge.Application.Areas;
+using Forge.Application.Navigation;
 using Forge.Domain.RuntimeExtensions;
+using Forge.Domain.WorldFeatures;
 using Godot;
 
 namespace Forge.Runtime;
@@ -11,10 +14,14 @@ public partial class RuntimeHud : CanvasLayer
     private Label? _tactical;
     private Label? _rules;
     private Label? _caption;
+    private Label? _waypointMarker;
     private Label? _playerIdentity;
     private Label? _healthText;
     private ProgressBar? _healthBar;
     private Label? _fps;
+    private Label? _partyHudText;
+    private Control? _partyHudPanel;
+    private int _partyHudQuickCommandCount;
 
     public string ModuleTitle { get; init; } = "OpenRPG Forge";
 
@@ -22,15 +29,83 @@ public partial class RuntimeHud : CanvasLayer
 
     public AccessibilityQualityProfile? Accessibility { get; init; }
 
+    public CompanionWorldProfile.PartyHudProfile? PartyHud { get; init; }
+
     public bool FpsVisible => _fps?.Visible == true;
+
+    public string CaptionText => _caption?.Text ?? string.Empty;
+
+    public string WaypointMarkerText => _waypointMarker?.Text ?? string.Empty;
+
+    public bool PartyHudVisible => _partyHudPanel?.Visible == true;
+
+    public string PartyHudText => _partyHudText?.Text ?? string.Empty;
+
+    public int PartyHudQuickCommandCount => _partyHudQuickCommandCount;
 
     public override void _Ready()
     {
         BuildPlayerFrame();
+        BuildPartyFrame();
         BuildObjectiveTracker();
         BuildMessageToast();
         BuildPerformanceCounter();
         ApplyAccessibility();
+    }
+
+    private void BuildPartyFrame()
+    {
+        if (PartyHud is null) return;
+        var margin = new MarginContainer
+        {
+            Name = "PartyHudPanel",
+            OffsetLeft = 18,
+            OffsetTop = 128,
+            OffsetRight = 330,
+            OffsetBottom = 294,
+        };
+        _partyHudPanel = margin;
+        margin.SetMeta("portraits", PartyHud.Portraits);
+        margin.SetMeta("health", PartyHud.Health);
+        margin.SetMeta("resources", PartyHud.Resources);
+        margin.SetMeta("statuses", PartyHud.Statuses);
+        margin.SetMeta("reorder", PartyHud.Reorder);
+        margin.SetMeta("keyboard", PartyHud.Keyboard);
+        margin.SetMeta("gamepad", PartyHud.Gamepad);
+        margin.SetMeta("screen_reader", PartyHud.ScreenReaderLabels);
+        margin.SetMeta("high_contrast", PartyHud.HighContrast);
+        AddChild(margin);
+
+        var panel = Panel(new Color("141827e6"), PartyHud.HighContrast ? new Color("fff1cf") : new Color("8059a6"));
+        margin.AddChild(panel);
+        var content = new VBoxContainer { CustomMinimumSize = new Vector2(280, 0) };
+        content.AddThemeConstantOverride("separation", 5);
+        panel.AddChild(content);
+        content.AddChild(CompactLabel("GROUPE", 11, new Color("d8b5ff")));
+        _partyHudText = CompactLabel("Elyra · 24/30 PV · Focus 4 · Prête", 12, Colors.White, wrap: true);
+        _partyHudText.SetMeta("accessible_label", "Compagnon Elyra, 24 points de vie sur 30, focus 4, statut prête");
+        content.AddChild(_partyHudText);
+
+        if (PartyHud.QuickCommands)
+        {
+            var commands = new HBoxContainer();
+            commands.AddThemeConstantOverride("separation", 4);
+            foreach (var command in new[] { "Suivre", "Tenir", "Protéger" })
+            {
+                var button = new Button { Text = command, FocusMode = Control.FocusModeEnum.All };
+                button.SetMeta("accessible_label", $"Commande rapide {command}");
+                commands.AddChild(button);
+                _partyHudQuickCommandCount++;
+            }
+            content.AddChild(commands);
+        }
+
+        if (PartyHud.Reorder)
+        {
+            var reorder = CompactLabel("Réordonner : Ctrl+↑ / Ctrl+↓", 10, new Color("aab6c5"));
+            reorder.SetMeta("accessible_label", "Réordonner le groupe avec contrôle flèche haut ou bas");
+            content.AddChild(reorder);
+        }
     }
 
     private void BuildPlayerFrame()
@@ -99,6 +174,9 @@ public partial class RuntimeHud : CanvasLayer
         _state = CompactLabel(string.Empty, 11, new Color("aab6c5"), wrap: true);
         content.AddChild(_objective);
         content.AddChild(_state);
+        _waypointMarker = CompactLabel(string.Empty, 12, new Color("83d6ae"), wrap: true);
+        _waypointMarker.Visible = false;
+        content.AddChild(_waypointMarker);
         _caption = CompactLabel(string.Empty, 11, new Color("fff1cf"), wrap: true);
         _caption.Visible = Accessibility?.RuntimeCaptions == true || Accessibility?.RuntimeSubtitles == true;
         content.AddChild(_caption);
@@ -141,8 +219,8 @@ public partial class RuntimeHud : CanvasLayer
     private void ApplyAccessibility()
     {
         var scale = (float)(Accessibility?.RuntimeTextScale ?? 1);
-        foreach (var label in new[] { _objective, _message, _state, _tactical, _rules, _caption, _playerIdentity,
-                     _healthText, _fps }.OfType<Label>())
+        foreach (var label in new[] { _objective, _message, _state, _tactical, _rules, _waypointMarker, _caption, _playerIdentity,
+                     _healthText, _fps, _partyHudText }.OfType<Label>())
         {
             var currentSize = label.GetThemeFontSize("font_size");
             label.AddThemeFontSizeOverride("font_size", Math.Max(11, (int)Math.Round(currentSize * scale)));
@@ -161,6 +239,21 @@ public partial class RuntimeHud : CanvasLayer
         if (_healthText is not null) _healthText.Text = $"{health} / {maximumHealth}";
     }
 
+    public void UpdatePartyStatus(string displayName, int health, int maximumHealth,
+        IReadOnlyDictionary<string, double> resources, IReadOnlyList<string> statuses)
+    {
+        if (_partyHudText is null || PartyHud is null) return;
+        var parts = new List<string>();
+        if (PartyHud.Portraits) parts.Add(displayName);
+        if (PartyHud.Health) parts.Add($"{health}/{maximumHealth} PV");
+        if (PartyHud.Resources)
+            parts.AddRange(PartyHud.VisibleResourceIds.Where(resources.ContainsKey)
+                .Select(id => $"{id} {resources[id]:0.##}"));
+        if (PartyHud.Statuses && statuses.Count > 0) parts.Add(string.Join(',', statuses));
+        _partyHudText.Text = string.Join(" · ", parts);
+        _partyHudText.SetMeta("accessible_label", _partyHudText.Text);
+    }
+
     public void UpdateState(string objective, string message, string state)
     {
         if (_objective is not null) _objective.Text = objective;
@@ -171,6 +264,50 @@ public partial class RuntimeHud : CanvasLayer
             _caption.Text = message;
             _caption.SetMeta("accessible_label", _caption.Text);
         }
+    }
+
+    public void ShowSoundCaption(AudioCaptionPresentation caption)
+    {
+        ArgumentNullException.ThrowIfNull(caption);
+        if (_caption is null || Accessibility?.RuntimeCaptions != true) return;
+        var direction = caption.Direction switch
+        {
+            AudioCaptionDirection.Left => "← ",
+            AudioCaptionDirection.Right => "→ ",
+            AudioCaptionDirection.Rear => "↓ ",
+            AudioCaptionDirection.Front => "↑ ",
+            _ => string.Empty,
+        };
+        _caption.Text = $"{direction}{caption.Text}";
+        _caption.TooltipText = $"{caption.CueKind} · {caption.Importance} · {caption.Locale}";
+        _caption.SetMeta("accessible_label", caption.AccessibleText);
+        _caption.Visible = true;
+    }
+
+    public void ClearSoundCaption()
+    {
+        if (_caption is null) return;
+        _caption.Text = string.Empty;
+        _caption.SetMeta("accessible_label", string.Empty);
+    }
+
+    public void ShowWaypointMarker(WaypointMapPresentation marker)
+    {
+        ArgumentNullException.ThrowIfNull(marker);
+        if (_waypointMarker is null) return;
+        _waypointMarker.Text = $"◆ {marker.Text} · étage {marker.Floor}" +
+                               (marker.Tracked ? " · suivi" : string.Empty);
+        _waypointMarker.TooltipText = $"{marker.Category} · précision {marker.Precision:0.#} m · {marker.Scope}";
+        _waypointMarker.SetMeta("accessible_label", marker.AccessibleText);
+        _waypointMarker.Visible = true;
+    }
+
+    public void ClearWaypointMarker()
+    {
+        if (_waypointMarker is null) return;
+        _waypointMarker.Text = string.Empty;
+        _waypointMarker.SetMeta("accessible_label", string.Empty);
+        _waypointMarker.Visible = false;
     }
 
     public void UpdateTactical(string timeState, string combatMode, int queuedActions,

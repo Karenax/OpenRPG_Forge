@@ -35,6 +35,9 @@ public sealed class AssetPackageManifestStoreTests
         Assert.Equal(2400, reloaded.ModelMetadata!.Metrics.TriangleCount);
         Assert.Equal(["forest", "stylized"], reloaded.ModelMetadata.Styles);
         Assert.Equal("default", Assert.Single(reloaded.ModelMetadata.Variants).Key);
+        Assert.Equal(AssetNavigationGeneration.Manual, reloaded.Navigation!.Generation);
+        Assert.Equal(["Arab", "Latn"], reloaded.Font!.ShapingScripts);
+        Assert.Equal([96, 144, 192], reloaded.Font.DpiBuckets);
         Assert.Equal(first, second);
     }
 
@@ -56,6 +59,10 @@ public sealed class AssetPackageManifestStoreTests
     {
         var assetId = AssetCatalogItemId.ForExternalId("test:manifest");
         var chunkId = Guid.Parse("b1100000-0000-4000-8000-000000000012");
+        var collisionChunkId = Guid.Parse("b1100000-0000-4000-8000-000000000013");
+        var navigationChunkId = Guid.Parse("b1100000-0000-4000-8000-000000000014");
+        var primaryFontChunkId = Guid.Parse("b1100000-0000-4000-8000-000000000015");
+        var fallbackFontChunkId = Guid.Parse("b1100000-0000-4000-8000-000000000016");
         return new AssetPackageManifest(
             AssetPackageManifest.CurrentSchemaVersion,
             AssetPackageManifestId.ForAsset(assetId),
@@ -76,10 +83,18 @@ public sealed class AssetPackageManifestStoreTests
                 1024,
                 1024,
                 AssetChunkCompression.None,
-                [AssetTargetPlatform.Windows])],
+                [AssetTargetPlatform.Windows]),
+            new(collisionChunkId, AssetChunkRole.Collision, true, "assets/imported/test/collision.mesh",
+                new string('e', 64), 256, 256, AssetChunkCompression.None, [AssetTargetPlatform.Windows]),
+            new(navigationChunkId, AssetChunkRole.Navigation, true, "assets/imported/test/navigation.navmesh",
+                new string('f', 64), 256, 256, AssetChunkCompression.None, [AssetTargetPlatform.Windows]),
+            new(primaryFontChunkId, AssetChunkRole.Font, true, "assets/fonts/atkinson.ttf",
+                new string('1', 64), 256, 256, AssetChunkCompression.None, [AssetTargetPlatform.Windows]),
+            new(fallbackFontChunkId, AssetChunkRole.Font, true, "assets/fonts/noto.ttf",
+                new string('2', 64), 256, 256, AssetChunkCompression.None, [AssetTargetPlatform.Windows])],
             new AssetCollisionManifest(
                 true,
-                chunkId,
+                collisionChunkId,
                 AssetCollisionGeneration.Embedded,
                 ["default"],
                 [AssetTargetPlatform.Windows]),
@@ -102,7 +117,12 @@ public sealed class AssetPackageManifestStoreTests
                 new string('c', 64),
                 2048,
                 "assets/imported/test/model.quality.json",
-                new string('d', 64)));
+                new string('d', 64)),
+            new AssetNavigationManifest(true, navigationChunkId, AssetNavigationGeneration.Manual,
+                ["walkable", "blocked"], [AssetTargetPlatform.Windows]),
+            new AssetFontManifest(true, "Atkinson Hyperlegible", primaryFontChunkId,
+                [new("Noto Sans", fallbackFontChunkId)], ["Latn", "Arab"], ["fr-FR", "ar"],
+                [96, 144, 192], 0.8m, 2m));
     }
 
     private sealed class TemporaryWorkspace : IDisposable

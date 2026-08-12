@@ -5,6 +5,7 @@ using System.Text;
 using Forge.Application.Commands;
 using Forge.Application.Projects;
 using Forge.Domain.Factions;
+using Forge.RpgKit.Domain.Factions;
 using Godot;
 
 namespace Forge.Toolset.Editor;
@@ -18,8 +19,16 @@ public partial class FactionAdvancedWindow : Window
     private Action? _redo;
     private Action<Window>? _applyIcon;
     private CheckBox? _required;
+    private CheckBox? _foundationRequired;
+    private CheckBox? _reputationConfigured;
+    private CheckBox? _reputationRequired;
     private TextEdit? _definitions;
     private TextEdit? _relationships;
+    private TextEdit? _bandsEditor;
+    private TextEdit? _personal;
+    private TextEdit? _globalReputation;
+    private TextEdit? _heatmapHistory;
+    private TextEdit? _reactionPolicy;
     private TextEdit? _inheritance;
     private TextEdit? _witnesses;
     private TextEdit? _memberships;
@@ -28,10 +37,20 @@ public partial class FactionAdvancedWindow : Window
     private Label? _status;
     private RichTextLabel? _summary;
     private RichTextLabel? _feedback;
+    private TabContainer? _tabs;
     private Guid _profileId;
-    private IReadOnlyList<DispositionBand> _bands = [];
+    private Guid _reputationProfileId;
+    private Guid _reactionPolicyId;
     private IReadOnlyList<FactionMember> _legacyMembers = [];
     private Dictionary<string, Guid> _knownIds = new(StringComparer.Ordinal);
+    private Dictionary<string, Guid> _knownPersonalIds = new(StringComparer.Ordinal);
+    private Dictionary<string, Guid> _knownTransactionIds = new(StringComparer.Ordinal);
+    private Dictionary<string, Guid> _knownSnapshotIds = new(StringComparer.Ordinal);
+    private string? _capturePath;
+    private string _captureMarker = "OPENRPG_FORGE_R086_FACTION_FOUNDATION_UI_CAPTURE";
+    private int _captureTab;
+    private double _captureDelay;
+    private bool _captureOpened;
     private bool _lastCommandSucceeded;
 
     public Guid LastCommandId { get; private set; }
@@ -44,6 +63,8 @@ public partial class FactionAdvancedWindow : Window
         Refresh();
         if (_required is null || _definitions is null || string.IsNullOrWhiteSpace(_definitions.Text)) return false;
         _required.ButtonPressed = true;
+        _reputationConfigured!.ButtonPressed = true;
+        _reputationRequired!.ButtonPressed = true;
         RebuildSummary();
         return SummarySectionCount == 4 && FactionValidator.Validate(BuildCatalog()).Count == 0;
     }
@@ -76,12 +97,49 @@ public partial class FactionAdvancedWindow : Window
 
     public override void _Ready()
     {
-        Title = "Factions avancées · OpenRPG Forge";
+        Title = "Factions & réputation · OpenRPG Forge";
         MinSize = new Vector2I(1160, 740);
-        Size = new Vector2I(1420, 880);
+        Size = new Vector2I(1540, 940);
         CloseRequested += Hide;
         Build();
         Refresh();
+        var capture = OS.GetCmdlineUserArgs().FirstOrDefault(value =>
+            value.StartsWith("--r086-faction-foundation-ui-capture=", StringComparison.Ordinal) ||
+            value.StartsWith("--r087-faction-reputation-ui-capture=", StringComparison.Ordinal));
+        if (capture is not null)
+        {
+            var r087 = capture.StartsWith("--r087-faction-reputation-ui-capture=", StringComparison.Ordinal);
+            var prefix = r087
+                ? "--r087-faction-reputation-ui-capture="
+                : "--r086-faction-foundation-ui-capture=";
+            _capturePath = capture[prefix.Length..];
+            _captureMarker = r087
+                ? "OPENRPG_FORGE_R087_FACTION_REPUTATION_UI_CAPTURE"
+                : "OPENRPG_FORGE_R086_FACTION_FOUNDATION_UI_CAPTURE";
+            _captureTab = r087 ? 1 : 0;
+            SetProcess(true);
+        }
+    }
+
+    public override void _Process(double delta)
+    {
+        if (_capturePath is null) return;
+        _captureDelay += delta;
+        if (!_captureOpened && _captureDelay >= 1)
+        {
+            Open();
+            ConfigureForSmokeTest();
+            if (_tabs is not null) _tabs.CurrentTab = _captureTab;
+            _captureOpened = true;
+        }
+        if (!_captureOpened || _captureDelay < 3) return;
+        var destination = Path.GetFullPath(_capturePath);
+        Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+        var image = GetViewport().GetTexture()?.GetImage();
+        var error = image is null ? Error.Unavailable : image.SavePng(destination);
+        GD.Print($"{_captureMarker}_{(error == Error.Ok ? "PASS" : "FAILED")} path={destination}");
+        _capturePath = null;
+        GetTree().Quit(error == Error.Ok ? 0 : 1);
     }
 
     public void Open()
@@ -102,16 +160,19 @@ public partial class FactionAdvancedWindow : Window
 
         var catalog = state.Project.Module.Factions;
         var profile = catalog.Advanced;
+        var reputation = catalog.Reputation;
         _profileId = profile?.Id ?? Guid.NewGuid();
-        _bands = catalog.Bands.Count == 0
-            ? [new("hostile", -100, -1, 1), new("neutral", 0, 50, 1), new("allied", 51, 100, 1)]
-            : catalog.Bands;
+        _reputationProfileId = reputation?.Id ?? Guid.NewGuid();
+        _reactionPolicyId = reputation?.Reaction.Id ?? Guid.NewGuid();
         _legacyMembers = catalog.Members;
         _knownIds = catalog.Factions.ToDictionary(item => item.Slug, item => item.Id, StringComparer.Ordinal);
         var slugById = catalog.Factions.ToDictionary(item => item.Id, item => item.Slug);
         _required!.ButtonPressed = catalog.RequireAdvancedRuntime;
+        _foundationRequired!.ButtonPressed = catalog.RequireFoundationRuntime;
+        _reputationConfigured!.ButtonPressed = reputation is not null;
+        _reputationRequired!.ButtonPressed = catalog.RequireReputationRuntime;
         _definitions!.Text = string.Join('\n', catalog.Factions.OrderBy(item => item.Slug, StringComparer.Ordinal)
-            .Select(item => $"{item.Slug}|{item.DisplayName}|" +
+            .Select(item => $"{item.Slug}|{item.DisplayName}|{Lower(item.Archived)}|" +
                 $"{string.Join(',', item.ParentIds.Select(id => slugById.GetValueOrDefault(id, id.ToString("D"))))}|" +
                 $"{string.Join(',', item.Tags)}|" +
                 $"{string.Join(',', (item.Policies ?? new Dictionary<string, string>()).Select(pair => $"{pair.Key}={pair.Value}"))}"));
@@ -119,6 +180,36 @@ public partial class FactionAdvancedWindow : Window
             $"{slugById.GetValueOrDefault(item.SourceId, item.SourceId.ToString("D"))}|" +
             $"{slugById.GetValueOrDefault(item.TargetId, item.TargetId.ToString("D"))}|" +
             $"{item.Score.ToString(CultureInfo.InvariantCulture)}|{item.Preset}|{item.Explanation}"));
+        _bandsEditor!.Text = string.Join('\n', catalog.Bands.Select(item =>
+            $"{item.Id}|{Number(item.Minimum)}|{Number(item.Maximum)}|{item.Priority}"));
+        _knownPersonalIds = catalog.EffectivePersonalReputation.ToDictionary(item =>
+            PersonalKey(item.SubjectKind, item.SubjectId, item.SourceFactionId, item.TargetFactionId),
+            item => item.Id, StringComparer.Ordinal);
+        _personal!.Text = string.Join('\n', catalog.EffectivePersonalReputation.Select(item =>
+            $"{item.SubjectKind}|{item.SubjectId}|" +
+            $"{slugById.GetValueOrDefault(item.SourceFactionId, item.SourceFactionId.ToString("D"))}|" +
+            $"{slugById.GetValueOrDefault(item.TargetFactionId, item.TargetFactionId.ToString("D"))}|" +
+            $"{Number(item.Delta)}|{Timestamp(item.ExpiresAt)}|{item.Cause}"));
+        _knownTransactionIds = (reputation?.Transactions ?? []).ToDictionary(TransactionKey,
+            item => item.Id, StringComparer.Ordinal);
+        _globalReputation!.Text = string.Join('\n', (reputation?.Transactions ?? []).Select(item =>
+            $"{item.Scope}|{item.ScopeId}|" +
+            $"{slugById.GetValueOrDefault(item.SourceFactionId, item.SourceFactionId.ToString("D"))}|" +
+            $"{slugById.GetValueOrDefault(item.TargetFactionId, item.TargetFactionId.ToString("D"))}|" +
+            $"{Number(item.Delta)}|{item.Cause}|{Timestamp(item.OccurredAt)}"));
+        _knownSnapshotIds = (reputation?.HeatmapHistory ?? []).ToDictionary(
+            item => SnapshotKey(item.Label, item.CapturedAt), item => item.Id, StringComparer.Ordinal);
+        _heatmapHistory!.Text = string.Join('\n', (reputation?.HeatmapHistory ?? []).Select(item =>
+            $"{item.Label}|{Timestamp(item.CapturedAt)}|" +
+            string.Join(',', item.Relationships.Select(relationship =>
+                $"{slugById.GetValueOrDefault(relationship.SourceId, relationship.SourceId.ToString("D"))}>" +
+                $"{slugById.GetValueOrDefault(relationship.TargetId, relationship.TargetId.ToString("D"))}=" +
+                $"{Number(relationship.Score)}~{relationship.Preset}~{relationship.Explanation}"))));
+        _reactionPolicy!.Text = reputation is null ? string.Empty :
+            $"{reputation.Reaction.DefaultScope}|{reputation.Reaction.DefaultScopeId}|" +
+            $"{Lower(reputation.Reaction.ApplyDisguise)}|{Lower(reputation.Reaction.ApplyCrimes)}|" +
+            $"{Lower(reputation.Reaction.ApplyDialogue)}|{Lower(reputation.Reaction.ApplyZoneRules)}|" +
+            $"{Lower(reputation.Reaction.AllowGameMasterOverride)}";
         _inheritance!.Text = string.Join('\n', (profile?.Inheritance ?? []).Select(item =>
             $"{slugById.GetValueOrDefault(item.FactionId, item.FactionId.ToString("D"))}|" +
             $"{Lower(item.InheritTags)}|{Lower(item.InheritPolicies)}|{Lower(item.InheritRelationships)}"));
@@ -155,12 +246,12 @@ public partial class FactionAdvancedWindow : Window
             margin.AddThemeConstantOverride(side, 22);
         AddChild(margin);
         var root = new VBoxContainer(); root.AddThemeConstantOverride("separation", 12); margin.AddChild(root);
-        var title = new Label { Text = "FACTIONS AVANCÉES" };
+        var title = new Label { Text = "FACTIONS & RÉPUTATION" };
         title.AddThemeFontSizeOverride("font_size", 25);
         title.AddThemeColorOverride("font_color", new Color("ff9858")); root.AddChild(title);
         root.AddChild(new Label
         {
-            Text = "Hiérarchie, témoins, affiliations multiples et diplomatie dynamique — document canonique, autorité serveur."
+            Text = "Création, matrice directionnelle, seuils, réputation personnelle et extensions avancées — un document canonique."
         });
         _status = new Label(); _status.AddThemeColorOverride("font_color", new Color("8ce0bd")); root.AddChild(_status);
 
@@ -174,11 +265,12 @@ public partial class FactionAdvancedWindow : Window
         var editor = Panel("PROFIL CANONIQUE"); split.AddChild(editor);
         var editorColumn = editor.GetChild<VBoxContainer>(0);
         _required = new CheckBox { Text = "Profil avancé requis par le runtime" }; editorColumn.AddChild(_required);
-        var tabs = new TabContainer { SizeFlagsVertical = Control.SizeFlags.ExpandFill };
-        editorColumn.AddChild(tabs);
-        BuildHierarchyTab(tabs);
-        BuildWitnessTab(tabs);
-        BuildDynamicTab(tabs);
+        _tabs = new TabContainer { SizeFlagsVertical = Control.SizeFlags.ExpandFill };
+        editorColumn.AddChild(_tabs);
+        BuildHierarchyTab(_tabs);
+        BuildReputationTab(_tabs);
+        BuildWitnessTab(_tabs);
+        BuildDynamicTab(_tabs);
 
         var summaryPanel = Panel("APERÇU & DIFF"); split.AddChild(summaryPanel);
         var summaryColumn = summaryPanel.GetChild<VBoxContainer>(0);
@@ -203,18 +295,26 @@ public partial class FactionAdvancedWindow : Window
 
     private void BuildHierarchyTab(TabContainer tabs)
     {
-        var form = Tab(tabs, "HIÉRARCHIE");
+        var form = Tab(tabs, "FONDATION P1");
+        _foundationRequired = new CheckBox { Text = "Fondations factionnelles requises par le runtime" };
+        form.AddChild(_foundationRequired);
         _definitions = Multi(form,
-            "slug|nom|parents séparés par ,|tags séparés par ,|politiques clé=valeur séparées par ,", 185);
-        _relationships = Multi(form, "source|cible|score -100..100|preset|explication", 115);
-        _inheritance = Multi(form,
-            "faction|hérite tags|hérite politiques|hérite relations — booléens true/false", 115);
-        form.AddChild(new Label { Text = "Les cycles et références orphelines sont refusés avant application." });
+            "slug|nom|archivée|parents séparés par ,|tags séparés par ,|politiques clé=valeur", 120);
+        _relationships = Multi(form, "source|cible|score -100..100|preset|explication", 90);
+        _bandsEditor = Multi(form, "état|minimum|maximum|priorité", 78);
+        _personal = Multi(form,
+            "Actor/Player/Group|sujet|source|cible|delta|expiration ISO ou vide|cause", 92);
+        form.AddChild(new Label
+        {
+            Text = "La matrice reste asymétrique ; archivage, UUID, références, seuils et surcharges sont validés avant application."
+        });
     }
 
     private void BuildWitnessTab(TabContainer tabs)
     {
         var form = Tab(tabs, "TÉMOINS & AFFILIATIONS");
+        _inheritance = Multi(form,
+            "faction|hérite tags|hérite politiques|hérite relations — booléens true/false", 100);
         _witnesses = Multi(form,
             "faction|perception min|preuve min|rayon communication m|mémoire s|delta réputation|partage alliés", 180);
         _memberships = Multi(form,
@@ -222,6 +322,25 @@ public partial class FactionAdvancedWindow : Window
         form.AddChild(new Label
         {
             Text = "Une seule affiliation primaire par acteur ; les couvertures et loyautés restent explicites."
+        });
+    }
+
+    private void BuildReputationTab(TabContainer tabs)
+    {
+        var form = Tab(tabs, "RÉPUTATION P1");
+        _reputationConfigured = new CheckBox { Text = "Configurer le profil canonique de réputation" };
+        form.AddChild(_reputationConfigured);
+        _reputationRequired = new CheckBox { Text = "Profil de réputation requis par le runtime" };
+        form.AddChild(_reputationRequired);
+        _globalReputation = Multi(form,
+            "scope World/Server/Campaign/Group/Player|scope ID|source|cible|delta|cause|date ISO", 135);
+        _heatmapHistory = Multi(form,
+            "label|capture ISO|source>cible=score~preset~explication, ... (historique import/export)", 135);
+        _reactionPolicy = Multi(form,
+            "scope défaut|scope ID|déguisement|crimes|dialogue|règles zone|ordre MJ — booléens", 68);
+        form.AddChild(new Label
+        {
+            Text = "La matrice se modifie dans Fondation ; l’aperçu compare les captures et simule une rencontre."
         });
     }
 
@@ -271,7 +390,7 @@ public partial class FactionAdvancedWindow : Window
 
     private FactionCatalog BuildCatalog()
     {
-        var definitionRows = Rows(_definitions!.Text, 5, "faction").ToArray();
+        var definitionRows = Rows(_definitions!.Text, 6, "faction").ToArray();
         var ids = definitionRows.Select((parts, index) => new
         {
             Slug = parts[0],
@@ -283,11 +402,80 @@ public partial class FactionAdvancedWindow : Window
             : throw new FormatException($"Faction inconnue : '{slug}'.");
 
         var definitions = definitionRows.Select((parts, index) => new FactionDefinition(
-            ids[parts[0]], 1, "toolset:factions", parts[0], Required(parts[1], "nom"), false,
-            Csv(parts[2]).Select(FactionId).ToArray(), Csv(parts[3]), ParseMap(parts[4], ','))).ToArray();
+            ids[parts[0]], 1, "toolset:factions", parts[0], Required(parts[1], "nom"),
+            Boolean(parts[2], "archivée"), Csv(parts[3]).Select(FactionId).ToArray(), Csv(parts[4]),
+            ParseMap(parts[5], ','))).ToArray();
         var relationships = Rows(_relationships!.Text, 5, "relation").Select(parts => new FactionRelationship(
             FactionId(parts[0]), FactionId(parts[1]), Double(parts[2], "score"),
             Required(parts[4], "explication"), Required(parts[3], "preset"))).ToArray();
+        var bands = Rows(_bandsEditor!.Text, 4, "seuil").Select(parts => new DispositionBand(
+            Required(parts[0], "état"), Double(parts[1], "minimum"), Double(parts[2], "maximum"),
+            Integer(parts[3], "priorité"))).ToArray();
+        var personal = Rows(_personal!.Text, 7, "réputation personnelle").Select((parts, index) =>
+        {
+            var kind = EnumValue<PersonalReputationSubjectKind>(parts[0], "type de sujet");
+            var subject = Required(parts[1], "sujet");
+            var source = FactionId(parts[2]);
+            var target = FactionId(parts[3]);
+            var key = PersonalKey(kind, subject, source, target);
+            return new PersonalReputationOverlay(
+                _knownPersonalIds.GetValueOrDefault(key, StableId(_profileId, "personal", key, index)),
+                1, "toolset:r086", subject, source, target, Double(parts[4], "delta"),
+                OptionalTime(parts[5]), Required(parts[6], "cause"), kind);
+        }).ToArray();
+        FactionReputationProfile? reputation = null;
+        if (_reputationConfigured!.ButtonPressed)
+        {
+            var transactions = Rows(_globalReputation!.Text, 7, "transaction globale")
+                .Select((parts, index) =>
+                {
+                    var scope = EnumValue<ReputationScope>(parts[0], "scope");
+                    var scopeId = Required(parts[1], "scope ID");
+                    var source = FactionId(parts[2]);
+                    var target = FactionId(parts[3]);
+                    var occurredAt = RequiredTime(parts[6], "date transaction");
+                    var key = TransactionKey(scope, scopeId, source, target, parts[5], occurredAt);
+                    return new ReputationTransaction(
+                        _knownTransactionIds.GetValueOrDefault(
+                            key, StableId(_reputationProfileId, "transaction", key, index)),
+                        1, "toolset:r087", scope, scopeId, source, target,
+                        Double(parts[4], "delta"), Required(parts[5], "cause"), occurredAt);
+                }).ToArray();
+            var snapshots = Rows(_heatmapHistory!.Text, 3, "capture heatmap").Select((parts, index) =>
+            {
+                var label = Required(parts[0], "label capture");
+                var capturedAt = RequiredTime(parts[1], "date capture");
+                var relationshipsSnapshot = Csv(parts[2]).Select(encoded =>
+                {
+                    var assignment = encoded.Split('=', 2, StringSplitOptions.TrimEntries);
+                    var direction = assignment[0].Split('>', 2, StringSplitOptions.TrimEntries);
+                    var values = assignment.Length == 2
+                        ? assignment[1].Split('~', 3, StringSplitOptions.TrimEntries)
+                        : [];
+                    if (direction.Length != 2 || values.Length != 3)
+                        throw new FormatException($"Relation de capture invalide : '{encoded}'.");
+                    return new FactionRelationship(FactionId(direction[0]), FactionId(direction[1]),
+                        Double(values[0], "score capture"), Required(values[2], "explication capture"),
+                        Required(values[1], "preset capture"));
+                }).ToArray();
+                var key = SnapshotKey(label, capturedAt);
+                return new FactionHeatmapSnapshot(
+                    _knownSnapshotIds.GetValueOrDefault(
+                        key, StableId(_reputationProfileId, "heatmap", key, index)),
+                    1, "toolset:r087", capturedAt, label, relationshipsSnapshot);
+            }).ToArray();
+            var reactionRows = Rows(_reactionPolicy!.Text, 7, "politique de réaction").ToArray();
+            if (reactionRows.Length != 1)
+                throw new FormatException("Une politique de réaction est requise pour le profil de réputation.");
+            var reactionParts = reactionRows[0];
+            var reaction = new FactionReactionPolicy(_reactionPolicyId, 1, "toolset:r087",
+                EnumValue<ReputationScope>(reactionParts[0], "scope par défaut"),
+                Required(reactionParts[1], "scope ID par défaut"),
+                Boolean(reactionParts[2], "déguisement"), Boolean(reactionParts[3], "crimes"),
+                Boolean(reactionParts[4], "dialogue"), Boolean(reactionParts[5], "règles de zone"),
+                Boolean(reactionParts[6], "ordre MJ"));
+            reputation = new(_reputationProfileId, 1, "toolset:r087", transactions, snapshots, reaction);
+        }
         var inheritance = Rows(_inheritance!.Text, 4, "héritage").Select((parts, index) =>
             new FactionInheritancePolicy(StableId(_profileId, "inheritance", parts[0], index),
                 FactionId(parts[0]), Boolean(parts[1], "hérite tags"),
@@ -325,7 +513,8 @@ public partial class FactionAdvancedWindow : Window
 
         var profile = new FactionAdvancedProfile(_profileId, 1, "toolset:factions", true,
             inheritance, witnesses, memberships, dynamics);
-        return new(definitions, relationships, _bands, _legacyMembers, profile, _required!.ButtonPressed);
+        return new(definitions, relationships, bands, _legacyMembers, profile, _required!.ButtonPressed,
+            personal, _foundationRequired!.ButtonPressed, reputation, _reputationRequired!.ButtonPressed);
     }
 
     private void RebuildSummary()
@@ -338,12 +527,36 @@ public partial class FactionAdvancedWindow : Window
             var profile = catalog.Advanced!;
             var inherited = catalog.Factions.Count == 0 ? null :
                 FactionRuntimeResolver.EffectiveDefinition(catalog, catalog.Factions[0].Id);
+            var heatmap = catalog.Relationships.OrderBy(item => item.SourceId).ThenBy(item => item.TargetId)
+                .Take(4).Select(item =>
+                    $"{catalog.Factions.Single(faction => faction.Id == item.SourceId).Slug} → " +
+                    $"{catalog.Factions.Single(faction => faction.Id == item.TargetId).Slug}: " +
+                    $"{Number(item.Score)} ({FactionValidator.ResolveBand(catalog, item.SourceId, item.TargetId)})");
+            var reputation = catalog.Reputation;
+            var orderedHistory = (reputation?.HeatmapHistory ?? []).OrderBy(item => item.CapturedAt).ToArray();
+            var differences = orderedHistory.Length < 2
+                ? []
+                : FactionReputationService.Compare(orderedHistory[^2], orderedHistory[^1]);
+            var simulation = catalog.Factions.Count < 2
+                ? []
+                : FactionReputationService.SimulateEncounter(catalog,
+                    catalog.Factions.Take(2).Select(item => item.Id), catalog.Factions[^1].Id);
             SummarySectionCount = 4;
             _summary.Text =
                 $"[font_size=22][color=#ff9858]{catalog.Factions.Count} faction(s)[/color][/font_size]\n" +
                 $"[color=#8ce0bd]UUID {profile.Id:D} · schéma v{profile.SchemaVersion} · autorité serveur[/color]\n\n" +
+                $"[b]MATRICE & SEUILS[/b]\n{catalog.Relationships.Count} relation(s) directionnelle(s) · " +
+                $"{catalog.Bands.Count} bande(s) · {catalog.EffectivePersonalReputation.Count} surcharge(s) personnelle(s)\n" +
+                $"{Lines(heatmap)}\n\n" +
+                $"[b]RÉPUTATION GLOBALE[/b]\n" +
+                (reputation is null
+                    ? "État vide : profil optionnel non configuré\n\n"
+                    : $"UUID {reputation.Id:D} · {reputation.Transactions.Count} transaction(s) · " +
+                      $"{reputation.HeatmapHistory.Count} capture(s) · {differences.Count} différence(s)\n" +
+                      $"Réaction {reputation.Reaction.DefaultScope}/{reputation.Reaction.DefaultScopeId} · " +
+                      $"simulation {string.Join(", ", simulation.Select(item => $"{item.Disposition}:{Number(item.Score)}"))}\n\n") +
                 $"[b]HIÉRARCHIE[/b]\n{profile.Inheritance.Count} politique(s) · " +
-                $"{catalog.Relationships.Count} relation(s) · {inherited?.Tags.Count ?? 0} tag(s) effectif(s)\n\n" +
+                $"{inherited?.Tags.Count ?? 0} tag(s) effectif(s)\n\n" +
                 $"[b]TÉMOINS[/b]\n{profile.WitnessPolicies.Count} politique(s) perception/preuve/mémoire/communication\n\n" +
                 $"[b]AFFILIATIONS[/b]\n{profile.Memberships.Count} appartenance(s), rangs, couvertures et loyautés\n\n" +
                 $"[b]DYNAMIQUE[/b]\n{profile.DynamicFactions.Count} faction(s) temporaire(s)/runtime · " +
@@ -373,6 +586,26 @@ public partial class FactionAdvancedWindow : Window
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes($"{profileId:D}|{group}|{value}|{index}"));
         return new Guid(bytes[..16]);
     }
+
+    private static string PersonalKey(
+        PersonalReputationSubjectKind kind,
+        string subjectId,
+        Guid sourceId,
+        Guid targetId) => $"{kind}:{subjectId}:{sourceId:D}:{targetId:D}";
+
+    private static string TransactionKey(ReputationTransaction item) => TransactionKey(
+        item.Scope, item.ScopeId, item.SourceFactionId, item.TargetFactionId, item.Cause, item.OccurredAt);
+
+    private static string TransactionKey(
+        ReputationScope scope,
+        string scopeId,
+        Guid sourceId,
+        Guid targetId,
+        string cause,
+        DateTimeOffset occurredAt) =>
+        $"{scope}:{scopeId}:{sourceId:D}:{targetId:D}:{cause}:{occurredAt:O}";
+
+    private static string SnapshotKey(string label, DateTimeOffset capturedAt) => $"{label}:{capturedAt:O}";
 
     private static IEnumerable<string[]> Rows(string text, int count, string label)
     {

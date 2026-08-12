@@ -49,7 +49,8 @@ public static class ModulePackager
             if (!opened.Succeeded || opened.Session is null)
             {
                 throw new InvalidDataException(
-                    $"Module workspace is invalid: {string.Join("; ", opened.Diagnostics.Select(item => item.Message))}");
+                    "Module workspace is invalid: " + string.Join("; ", opened.Diagnostics.Select(item =>
+                        $"{item.Code} at {item.Path}: {item.Message}")));
             }
 
             project = opened.Session.Project;
@@ -75,6 +76,14 @@ public static class ModulePackager
         {
             throw new InvalidDataException(
                 $"Build profile is invalid: {string.Join("; ", buildProfileLoad.Diagnostics.Select(item => item.Message))}");
+        }
+
+        var assistantProfileLoad = AssistantWorkspaceProfileStore.Load(workspaceRoot);
+        if (!assistantProfileLoad.Succeeded)
+        {
+            throw new InvalidDataException(
+                "Assistant test automation profile is invalid before build: " + string.Join("; ",
+                    assistantProfileLoad.Diagnostics.Select(item => $"{item.Code} at {item.Path}: {item.Message}")));
         }
         var compatibility = buildProfileLoad.Profile.Compatibility;
         runtimeMinimumVersion ??= compatibility.MinimumRuntimeVersion;

@@ -43,6 +43,71 @@ public sealed class FactionReputationTests
         Assert.Equal("gm-override:80", result.Explanation[^1]);
     }
 
+    [Fact]
+    public void InitialStateUsesCanonicalActorPlayerAndGroupOverlays()
+    {
+        var (catalog, village, glass) = Sample();
+        var overlays = new[]
+        {
+            new PersonalReputationOverlay(Guid.NewGuid(), 1, "test:r086", "actor", village, glass,
+                5, null, "actor-cause", PersonalReputationSubjectKind.Actor),
+            new PersonalReputationOverlay(Guid.NewGuid(), 1, "test:r086", "player", village, glass,
+                10, null, "player-cause", PersonalReputationSubjectKind.Player),
+            new PersonalReputationOverlay(Guid.NewGuid(), 1, "test:r086", "group", village, glass,
+                15, null, "group-cause", PersonalReputationSubjectKind.Group),
+        };
+
+        var state = FactionReputationService.InitialState(catalog with { PersonalReputation = overlays });
+
+        Assert.Equal(3, state.Personal.Count);
+        Assert.Equal([PersonalReputationSubjectKind.Actor, PersonalReputationSubjectKind.Player,
+            PersonalReputationSubjectKind.Group], state.Personal.Select(item => item.SubjectKind));
+        Assert.All(state.Personal, item => Assert.False(string.IsNullOrWhiteSpace(item.Cause)));
+    }
+
+    [Fact]
+    public void CanonicalProfileSupportsEveryScopeAndGovernedReactionPolicy()
+    {
+        var (catalog, village, glass) = Sample();
+        var now = DateTimeOffset.Parse("2026-08-11T12:00:00Z");
+        var transactions = Enum.GetValues<ReputationScope>().Select((scope, index) =>
+            new ReputationTransaction(Guid.NewGuid(), 1, "test:r087", scope,
+                scope.ToString().ToLowerInvariant(), village, glass, index + 1, $"cause-{scope}",
+                now.AddMinutes(index))).ToArray();
+        var policy = new FactionReactionPolicy(Guid.NewGuid(), 1, "test:r087",
+            ReputationScope.Campaign, "campaign", false, true, true, false, false);
+        var profile = new FactionReputationProfile(Guid.NewGuid(), 1, "test:r087", transactions, [], policy);
+        catalog = catalog with { Reputation = profile, RequireReputationRuntime = true };
+        var state = FactionReputationService.InitialState(catalog);
+
+        var reaction = FactionReputationService.ResolveReaction(catalog, state,
+            new("player", village, glass, now, 50, -10, 5, 100, -100));
+
+        Assert.Equal(5, state.Transactions.Count);
+        Assert.Equal(-42, reaction.Score);
+        Assert.DoesNotContain(reaction.Explanation, item => item.StartsWith("disguise", StringComparison.Ordinal));
+        Assert.DoesNotContain(reaction.Explanation, item => item.StartsWith("zone", StringComparison.Ordinal));
+        Assert.DoesNotContain(reaction.Explanation, item => item.StartsWith("gm", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void HeatmapImportRejectsInvalidIdentityAndPreservesCanonicalMetadata()
+    {
+        var (catalog, _, _) = Sample();
+        var captured = FactionReputationService.Capture(catalog, "baseline", DateTimeOffset.UnixEpoch,
+            "test:r087");
+
+        var restored = FactionReputationService.ImportSnapshot(
+            FactionReputationService.ExportSnapshot(captured));
+
+        Assert.Equal(captured.Id, restored.Id);
+        Assert.Equal(captured.Label, restored.Label);
+        Assert.Equal(captured.Relationships, restored.Relationships);
+        Assert.Equal(1, restored.SchemaVersion);
+        Assert.Equal("test:r087", restored.Provenance);
+        Assert.Throws<InvalidOperationException>(() => FactionReputationService.ImportSnapshot("{}"));
+    }
+
     private static (FactionCatalog Catalog, Guid Village, Guid Glass) Sample()
     {
         var village = Guid.Parse("11111111-1111-1111-1111-111111111111"); var glass = Guid.Parse("22222222-2222-2222-2222-222222222222");

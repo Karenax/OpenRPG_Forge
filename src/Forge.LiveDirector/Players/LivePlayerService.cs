@@ -23,6 +23,23 @@ public sealed class LivePlayerService(LiveWorldChooser chooser, AuthorizationSer
         ? _players.Values.OrderBy(x => x.Identity, StringComparer.OrdinalIgnoreCase).ThenBy(x => x.AccountId).ToArray()
         : [];
 
+    public int RefreshLatencies(AuthorizationSubject actor, Func<Guid, int?> authoritativeLatency)
+    {
+        if (!authorization.Authorize(actor, NetworkCapability.ViewOperations).Allowed)
+            throw new UnauthorizedAccessException("LIVE_PLAYER_REFRESH_PERMISSION_DENIED");
+        ArgumentNullException.ThrowIfNull(authoritativeLatency);
+        var refreshed = 0;
+        foreach (var (accountId, player) in _players.ToArray())
+        {
+            var latency = authoritativeLatency(accountId);
+            if (latency is null) continue;
+            if (latency is < 0 or > 60_000) throw new ArgumentOutOfRangeException(nameof(authoritativeLatency), "LIVE_PLAYER_LATENCY_INVALID");
+            _players[accountId] = player with { LatencyMs = latency.Value };
+            refreshed++;
+        }
+        return refreshed;
+    }
+
     public Result TravelToPlayer(AuthorizationSubject actor, Travel command, bool apply)
     {
         if (!_players.TryGetValue(command.PlayerAccountId, out var player)) return Reject("LIVE_PLAYER_UNKNOWN", command);

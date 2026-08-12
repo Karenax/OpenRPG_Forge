@@ -177,6 +177,9 @@ public static class DialogueValidator
         }
 
         AddDuplicateIdentityDiagnostics(dialogue, root, diagnostics);
+        diagnostics.AddRange(DialogueAuthoringProfileValidator.Validate(dialogue));
+        diagnostics.AddRange(DialogueExperienceProfileValidator.Validate(dialogue));
+        diagnostics.AddRange(DialogueProductionProfileValidator.Validate(dialogue));
 
         var expectedEdges = dialogue.Nodes.SelectMany(node => node.Choices
                 .Select((choice, index) => (choice, index))

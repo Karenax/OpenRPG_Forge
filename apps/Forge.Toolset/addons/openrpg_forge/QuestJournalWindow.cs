@@ -3,6 +3,7 @@ using Forge.Application.Commands;
 using Forge.Application.Projects;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Quests;
+using Forge.Domain.Spatial;
 using Godot;
 
 namespace Forge.Toolset.Editor;
@@ -65,6 +66,51 @@ public partial class QuestJournalWindow : Window
     private SpinBox? _simulationMaximumSteps;
     private TextEdit? _simulationVariables;
     private TextEdit? _simulationEvents;
+    private CheckBox? _authoringEnabled;
+    private CheckBox? _authoringRequired;
+    private Label? _authoringSummary;
+    private TextEdit? _authoringObjectives;
+    private SpinBox? _rewardProgression;
+    private TextEdit? _rewardItems;
+    private TextEdit? _rewardCurrencies;
+    private TextEdit? _rewardReputation;
+    private TextEdit? _rewardUnlocks;
+    private TextEdit? _rewardChoices;
+    private TextEdit? _notesDesign;
+    private TextEdit? _notesCanon;
+    private LineEdit? _notesOwner;
+    private OptionButton? _notesStatus;
+    private TextEdit? _notesRisks;
+    private TextEdit? _notesTodos;
+    private TextEdit? _notesSources;
+    private TextEdit? _notesReviews;
+    private TextEdit? _authoringParticipants;
+    private TextEdit? _wizardZones;
+    private TextEdit? _wizardProps;
+    private TextEdit? _wizardDialogues;
+    private TextEdit? _wizardTests;
+    private CheckBox? _wizardOpaqueCode;
+    private CheckBox? _experienceEnabled;
+    private CheckBox? _experienceRequired;
+    private Label? _experienceSummary;
+    private TextEdit? _experienceResources;
+    private TextEdit? _experienceSteps;
+    private CheckBox? _experienceManualTracking;
+    private TextEdit? _experienceRevealConditions;
+    private TextEdit? _experienceHistory;
+    private TextEdit? _experienceMarkers;
+    private CheckBox? _qualityEnabled;
+    private CheckBox? _qualityRequired;
+    private Label? _qualitySummary;
+    private TextEdit? _qualityScenarioSeeds;
+    private LineEdit? _qualitySynopsisKey;
+    private LineEdit? _qualitySynopsisText;
+    private TextEdit? _qualityDependencies;
+    private TextEdit? _qualityCitations;
+    private TextEdit? _qualityStyleRules;
+    private LineEdit? _qualityRequestedBy;
+    private CheckBox? _qualityApproved;
+    private LineEdit? _qualityReviewer;
     private RichTextLabel? _preview;
     private RichTextLabel? _simulation;
     private RichTextLabel? _feedback;
@@ -72,6 +118,9 @@ public partial class QuestJournalWindow : Window
     private double _captureDelay;
     private bool _capturePrepared;
     private bool _r008Capture;
+    private bool _r071Capture;
+    private bool _r072Capture;
+    private bool _r073Capture;
     private bool _lastSucceeded;
 
     public QuestId? SelectedQuestId => _draft?.Id;
@@ -81,6 +130,12 @@ public partial class QuestJournalWindow : Window
     public Guid LastCommandId { get; private set; }
     public string LastPatchSummary { get; private set; } = string.Empty;
     public string LastDiagnostics { get; private set; } = string.Empty;
+    public int LastAuthoringObjectiveCount => _draft?.Authoring?.Objectives.Count ?? 0;
+    public int LastAuthoringParticipantCount => _draft?.Authoring?.Participants.Count ?? 0;
+    public int LastExperienceResourceCount => _draft?.Experience?.Resources.Count ?? 0;
+    public int LastExperienceMarkerCount => _draft?.Experience?.Markers.Count ?? 0;
+    public int LastQualityScenarioCount => _draft?.Quality?.TestScenarios.Count ?? 0;
+    public bool LastQualityPlanApproved => _draft?.Quality?.AiPlan.ApprovedAt is not null;
 
     public void Initialize(
         Func<ProjectState?> load,
@@ -111,11 +166,20 @@ public partial class QuestJournalWindow : Window
         Refresh();
         var capture = OS.GetCmdlineUserArgs().FirstOrDefault(value =>
             value.StartsWith("--quest-journal-ui-capture=", StringComparison.Ordinal) ||
-            value.StartsWith("--quest-transition-ui-capture=", StringComparison.Ordinal));
+            value.StartsWith("--quest-transition-ui-capture=", StringComparison.Ordinal) ||
+             value.StartsWith("--r071-quest-authoring-ui-capture=", StringComparison.Ordinal) ||
+             value.StartsWith("--r072-quest-experience-ui-capture=", StringComparison.Ordinal) ||
+             value.StartsWith("--r073-quest-quality-ui-capture=", StringComparison.Ordinal));
         if (capture is not null)
         {
             _r008Capture = capture.StartsWith("--quest-transition-ui-capture=", StringComparison.Ordinal);
-            var prefix = _r008Capture ? "--quest-transition-ui-capture=" : "--quest-journal-ui-capture=";
+            _r071Capture = capture.StartsWith("--r071-quest-authoring-ui-capture=", StringComparison.Ordinal);
+            _r072Capture = capture.StartsWith("--r072-quest-experience-ui-capture=", StringComparison.Ordinal);
+            _r073Capture = capture.StartsWith("--r073-quest-quality-ui-capture=", StringComparison.Ordinal);
+            var prefix = _r073Capture ? "--r073-quest-quality-ui-capture=" :
+                _r072Capture ? "--r072-quest-experience-ui-capture=" :
+                _r071Capture ? "--r071-quest-authoring-ui-capture=" :
+                _r008Capture ? "--quest-transition-ui-capture=" : "--quest-journal-ui-capture=";
             _capturePath = capture[prefix.Length..];
             SetProcess(true);
         }
@@ -137,7 +201,11 @@ public partial class QuestJournalWindow : Window
         Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
         var image = GetViewport().GetTexture().GetImage();
         var error = image.SavePng(destination);
-        GD.Print($"OPENRPG_FORGE_QUEST_JOURNAL_UI_CAPTURE_{(error == Error.Ok ? "PASS" : "FAILED")} " +
+        var marker = _r073Capture ? "OPENRPG_FORGE_R073_QUEST_QUALITY_UI_CAPTURE" :
+            _r072Capture ? "OPENRPG_FORGE_R072_QUEST_EXPERIENCE_UI_CAPTURE" :
+            _r071Capture ? "OPENRPG_FORGE_R071_QUEST_AUTHORING_UI_CAPTURE" :
+            "OPENRPG_FORGE_QUEST_JOURNAL_UI_CAPTURE";
+        GD.Print($"{marker}_{(error == Error.Ok ? "PASS" : "FAILED")} " +
                  $"path={destination} size={image.GetWidth()}x{image.GetHeight()}");
         _capturePath = null;
         SetProcess(false);
@@ -230,6 +298,123 @@ public partial class QuestJournalWindow : Window
                 $"{(item.Kind == QuestConditionKind.HasItem ? $"item:{item.Key}" : item.Key)}={item.ExpectedValue}"));
             return $"{eventName}|player:preview|{variables}";
         }));
+        RebuildPreview();
+        Simulate();
+        return LastValidationCount == 0 && LastSimulationSucceeded;
+    }
+
+    public bool ConfigureForR071SmokeTest()
+    {
+        Refresh();
+        if (_draft is null || _draft.Transitions.Count == 0 || _load?.Invoke() is not { } state ||
+            state.Project.Dialogues.Count == 0)
+            return false;
+        _authoringEnabled!.ButtonPressed = true;
+        _authoringRequired!.ButtonPressed = true;
+        _authoringObjectives!.Text = string.Join('\n', new string[]
+        {
+            "Counter|quest.r071.counter|Vaincre les sentinelles|2||||||false",
+            "Boolean|quest.r071.boolean|Allumer le brasier|1||||||false",
+            "Collection|quest.r071.collection|Réunir la clé|1|ash-key|||||false",
+            "Destination|quest.r071.destination|Atteindre la crypte|0||crypt-of-ashes||||false",
+            "Escort|quest.r071.escort|Escorter Elyra|0|elyra-npc|crypt-of-ashes||||false",
+            "Survival|quest.r071.survival|Survivre au rituel|0|||60|||false",
+            "Choice|quest.r071.choice|Choisir le destin|0||||choice:dawn;choice:dusk||false",
+            "Custom|quest.r071.custom|Sceller le pacte|0|||||rule:ember|true",
+        });
+        _rewardProgression!.Value = 250;
+        _rewardItems!.Text = "ash-key=1";
+        _rewardCurrencies!.Text = "ember=5";
+        _rewardReputation!.Text = "ash-watch=2";
+        _rewardUnlocks!.Text = "unlock:crypt";
+        _rewardChoices!.Text = "choice:dawn";
+        _notesDesign!.Text = "Restaurer la veillée et exposer trois voies de résolution.";
+        _notesCanon!.Text = "Le pacte des braises lie Elyra à la Crypte des Cendres.";
+        _notesOwner!.Text = "author:karen";
+        Select(_notesStatus!, QuestEditorialStatus.Review);
+        _notesRisks!.Text = "complexité des branches";
+        _notesTodos!.Text = "enregistrer les voix";
+        _notesSources!.Text = "08_QUEST.md\nOpenRPG_Forge_MEGACONTEXT.md";
+        _notesReviews!.Text = "reviewer:elyra|Review|Structure et canon vérifiés";
+        _authoringParticipants!.Text = "guide|Blueprint|elyra-npc|quest:active|true";
+        _wizardZones!.Text = "crypt-of-ashes";
+        _wizardProps!.Text = "crypt-pillar";
+        _wizardDialogues!.Text = state.Project.Dialogues[0].Id.ToString();
+        _wizardTests!.Text = "nominal-path\nobjective-failure\nrepeated-transition\nmultiplayer-authority\nsave-resume";
+        _wizardOpaqueCode!.ButtonPressed = false;
+        RebuildPreview();
+        Simulate();
+        return LastValidationCount == 0 && LastSimulationSucceeded;
+    }
+
+    public bool ConfigureForR072SmokeTest()
+    {
+        if (!ConfigureForR071SmokeTest() || _draft is null || _load?.Invoke() is not { } state) return false;
+        var area = state.Project.Areas[0];
+        var entity = area.Entities.FirstOrDefault()?.Id.ToString() ?? "entity:crypt-guardian";
+        _experienceEnabled!.ButtonPressed = true;
+        _experienceRequired!.ButtonPressed = true;
+        _experienceResources!.Text = string.Join('\n', new[]
+        {
+            "Item|ash-key|owner:module|false|quest:active",
+            "Placeable|crypt-pillar|owner:module|false|quest:active",
+            "Door|crypt-gate|owner:module|false|quest:active",
+            $"Zone|{area.Slug}|owner:module|true|quest:active",
+            "Asset|asset:ember-prism|owner:module|true|quest:active",
+        });
+        _experienceSteps!.Text =
+            $"investigation|2|quest.r072.step|Inspecter le prisme|0|0|true";
+        _experienceManualTracking!.ButtonPressed = true;
+        _experienceRevealConditions!.Text = string.Join('\n', new[]
+        {
+            "Rumor|heard",
+            "Discovered|heard;seen",
+            "Tracked|accepted",
+            "SecretCompleted|secret:complete",
+        });
+        _experienceHistory!.Text = string.Join('\n', new[]
+        {
+            "none|hidden|module-load|server|quest.r072.history.hidden|Un murmure se lève.|seed=72",
+            "hidden|discovered|dialogue|player:smoke|quest.r072.history.discovered|La Crypte est révélée.|speaker=elyra",
+        });
+        _experienceMarkers!.Text = string.Join('\n', new[]
+        {
+            $"Zone|{area.Slug}|0|Discovered|8|true|quest.r072.marker.zone|Crypte des Cendres|",
+            $"Entity|{entity}|0|Discovered|4|true|quest.r072.marker.entity|Gardien des Cendres|",
+            "Query|query:nearest-ember|0|Rumor|12|true|quest.r072.marker.query|Écho des braises|",
+            "Waypoint|waypoint:crypt-entry|0|Tracked|2|true|quest.r072.marker.waypoint|Entrée de la crypte|1,0,2",
+        });
+        RebuildPreview();
+        Simulate();
+        return LastValidationCount == 0 && LastSimulationSucceeded;
+    }
+
+    public bool ConfigureForR073SmokeTest()
+    {
+        if (!ConfigureForR072SmokeTest() || _draft is null) return false;
+        _qualityEnabled!.ButtonPressed = true;
+        _qualityRequired!.ButtonPressed = true;
+        _qualityScenarioSeeds!.Text = string.Join('\n', new[]
+        {
+            "Nominal|7300", "Failure|7301", "Repetition|7302", "Multiplayer|7303", "SaveResume|7304",
+        });
+        _qualitySynopsisKey!.Text = "quest.r073.ai.synopsis";
+        _qualitySynopsisText!.Text = "Restaurer la veillée avant l'effondrement de la Crypte des Cendres.";
+        var candidate = BuildDraft();
+        var participant = candidate.Authoring!.Participants[0].Id;
+        _qualityDependencies!.Text = string.Join('\n', new[]
+        {
+            $"State|{candidate.InitialStateId}",
+            $"Transition|{candidate.Transitions[0].Id}",
+            $"Participant|{participant:D}",
+            $"Zone|{candidate.Authoring.Wizard.ZoneIds[0]}",
+            "Asset|asset:quest-generation-model",
+        });
+        _qualityCitations!.Text = "08_QUEST.md#orf-qst-025\nOpenRPG_Forge_MEGACONTEXT.md#quest";
+        _qualityStyleRules!.Text = "style:crypt\nstyle:human-review";
+        _qualityRequestedBy!.Text = "agent:forge";
+        _qualityApproved!.ButtonPressed = true;
+        _qualityReviewer!.Text = "author:karen";
         RebuildPreview();
         Simulate();
         return LastValidationCount == 0 && LastSimulationSucceeded;
@@ -394,6 +579,91 @@ public partial class QuestJournalWindow : Window
         _simulationEvents = Multiline(transitionForm,
             "Événements (événement|acteur|clé=valeur;clé=valeur)", 95);
 
+        var authoringTab = Tab(_tabs, "OBJECTIFS, CAST & WIZARD");
+        var authoringFlags = new HBoxContainer();
+        authoringTab.AddChild(authoringFlags);
+        _authoringEnabled = Check(authoringFlags, "Profil auteur actif");
+        _authoringRequired = Check(authoringFlags, "Requis au runtime");
+        _authoringSummary = new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart };
+        _authoringSummary.AddThemeColorOverride("font_color", new Color("8ce0bd"));
+        authoringTab.AddChild(_authoringSummary);
+        _authoringObjectives = Multiline(authoringTab,
+            "Objectifs (type|clé|libellé|cible|références;...|destination|durée s|choix;...|règle|optionnel)", 125);
+        var rewardGrid = new GridContainer { Columns = 2 };
+        authoringTab.AddChild(rewardGrid);
+        _rewardProgression = Spin(rewardGrid, "Progression", 0, 1_000_000, 0, 1);
+        _rewardItems = Multiline(rewardGrid, "Objets (référence=quantité)", 58);
+        _rewardCurrencies = Multiline(rewardGrid, "Monnaies (id=montant)", 58);
+        _rewardReputation = Multiline(rewardGrid, "Réputation (faction=delta)", 58);
+        _rewardUnlocks = Multiline(rewardGrid, "Déverrouillages", 58);
+        _rewardChoices = Multiline(rewardGrid, "Choix de récompense", 58);
+        _notesDesign = Multiline(authoringTab, "Notes de design", 58);
+        _notesCanon = Multiline(authoringTab, "Canon", 58);
+        var notesMeta = new GridContainer { Columns = 2 };
+        authoringTab.AddChild(notesMeta);
+        _notesOwner = Field(notesMeta, "Propriétaire", "author:karen");
+        _notesStatus = EnumSelect<QuestEditorialStatus>();
+        notesMeta.AddChild(Labeled("Statut éditorial", _notesStatus));
+        var notesGrid = new GridContainer { Columns = 3 };
+        authoringTab.AddChild(notesGrid);
+        _notesRisks = Multiline(notesGrid, "Risques", 58);
+        _notesTodos = Multiline(notesGrid, "TODO", 58);
+        _notesSources = Multiline(notesGrid, "Sources", 58);
+        _notesReviews = Multiline(authoringTab, "Historique review (auteur|statut|message)", 68);
+        _authoringParticipants = Multiline(authoringTab,
+            "Cast (rôle|Blueprint/Instance/Query|binding|conditions;...|requis)", 80);
+        var wizardGrid = new GridContainer { Columns = 2 };
+        authoringTab.AddChild(wizardGrid);
+        _wizardZones = Multiline(wizardGrid, "Wizard · zones", 58);
+        _wizardProps = Multiline(wizardGrid, "Wizard · props", 58);
+        _wizardDialogues = Multiline(wizardGrid, "Wizard · dialogues UUID", 58);
+        _wizardTests = Multiline(wizardGrid, "Tests générés", 82);
+        _wizardOpaqueCode = Check(authoringTab, "Générer du code opaque (doit rester désactivé)");
+
+        var experienceTab = Tab(_tabs, "RESSOURCES, HISTORIQUE & PINS");
+        var experienceFlags = new HBoxContainer();
+        experienceTab.AddChild(experienceFlags);
+        _experienceEnabled = Check(experienceFlags, "Expérience active");
+        _experienceRequired = Check(experienceFlags, "Requise au runtime");
+        _experienceManualTracking = Check(experienceFlags, "Suivi manuel autorisé");
+        _experienceSummary = new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart };
+        _experienceSummary.AddThemeColorOverride("font_color", new Color("8ce0bd"));
+        experienceTab.AddChild(_experienceSummary);
+        _experienceResources = Multiline(experienceTab,
+            "Ressources (Item/Placeable/Door/Zone/Asset|référence|owner|requis|conditions;...)", 84);
+        _experienceSteps = Multiline(experienceTab,
+            "Étapes (template|version|clé libellé|libellé|indices objectifs;...|indices transitions;...|modifiable)", 58);
+        _experienceRevealConditions = Multiline(experienceTab,
+            "Révélation depuis Hidden (Rumor/Discovered/Tracked/SecretCompleted|conditions;...)", 70);
+        _experienceHistory = Multiline(experienceTab,
+            "Chronologie (depuis|vers|cause|acteur|clé résumé|résumé joueur|debug clé=valeur;...)", 72);
+        _experienceMarkers = Multiline(experienceTab,
+            "Pins (Zone/Entity/Query/Waypoint|binding|indice objectif|visibilité|précision|suivi|clé|libellé|fallback x,y,z)", 90);
+
+        var qualityTab = Tab(_tabs, "TESTS & GÉNÉRATION IA");
+        var qualityFlags = new HBoxContainer();
+        qualityTab.AddChild(qualityFlags);
+        _qualityEnabled = Check(qualityFlags, "Qualité active");
+        _qualityRequired = Check(qualityFlags, "Requise au runtime");
+        _qualityApproved = Check(qualityFlags, "Plan approuvé par un humain");
+        _qualitySummary = new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart };
+        _qualitySummary.AddThemeColorOverride("font_color", new Color("8ce0bd"));
+        qualityTab.AddChild(_qualitySummary);
+        _qualityScenarioSeeds = Multiline(qualityTab,
+            "Mini-graphe des tests (Nominal/Failure/Repetition/Multiplayer/SaveResume|seed)", 125);
+        var aiGrid = new GridContainer { Columns = 2 };
+        qualityTab.AddChild(aiGrid);
+        _qualitySynopsisKey = Field(aiGrid, "Clé du synopsis IA", "quest.crypt.ai.synopsis");
+        _qualitySynopsisText = Field(aiGrid, "Synopsis proposé", "Restaurer la veillée.");
+        _qualityRequestedBy = Field(aiGrid, "Agent demandeur", "agent:forge");
+        _qualityReviewer = Field(aiGrid, "Validateur humain", "author:karen");
+        _qualityDependencies = Multiline(qualityTab,
+            "Dépendances typées (State/Transition/Participant/Zone/Prop/Asset|référence)", 100);
+        var qualityGovernance = new GridContainer { Columns = 2 };
+        qualityTab.AddChild(qualityGovernance);
+        _qualityCitations = Multiline(qualityGovernance, "Citations de contexte", 60);
+        _qualityStyleRules = Multiline(qualityGovernance, "Règles de style", 60);
+
         var evidence = Panel("APERÇU, VALIDATION & SIMULATION");
         evidence.CustomMinimumSize = new(410, 0);
         center.AddChild(evidence);
@@ -456,6 +726,9 @@ public partial class QuestJournalWindow : Window
         LoadState(states[0]);
         LoadTransitionCatalog(quest);
         LoadSimulation(quest.Simulation);
+        LoadAuthoring(quest.Authoring);
+        LoadExperience(quest.Experience);
+        LoadQuality(quest.Quality);
         _feedback!.Text = "[color=#8ce0bd]Définition canonique chargée.[/color]";
         RebuildPreview();
     }
@@ -537,6 +810,109 @@ public partial class QuestJournalWindow : Window
             $"{item.EventName}|{item.ActorId}|{string.Join(';', item.Variables.Select(variable => $"{variable.Key}={variable.Value}"))}"));
     }
 
+    private void LoadAuthoring(QuestAuthoringProfile? profile)
+    {
+        _authoringEnabled!.ButtonPressed = profile?.Enabled ?? false;
+        _authoringRequired!.ButtonPressed = profile?.RequiredAtRuntime ?? false;
+        _authoringObjectives!.Text = profile is null ? string.Empty : string.Join('\n', profile.Objectives
+            .OrderBy(item => item.DisplayOrder).Select(item =>
+                $"{item.Kind}|{item.Label.Key}|{item.Label.Fallback}|{item.Target}|" +
+                $"{string.Join(';', item.TargetIds)}|{item.DestinationId}|{item.DurationSeconds}|" +
+                $"{string.Join(';', item.ChoiceIds)}|{item.CustomRuleId}|{item.Optional}"));
+        _rewardProgression!.Value = profile?.Rewards.Progression ?? 0;
+        _rewardItems!.Text = profile is null ? string.Empty : FormatMap(profile.Rewards.Items);
+        _rewardCurrencies!.Text = profile is null ? string.Empty : FormatMap(profile.Rewards.Currencies);
+        _rewardReputation!.Text = profile is null ? string.Empty : FormatMap(profile.Rewards.Reputation);
+        _rewardUnlocks!.Text = profile is null ? string.Empty : string.Join('\n', profile.Rewards.Unlocks);
+        _rewardChoices!.Text = profile is null ? string.Empty : string.Join('\n', profile.Rewards.ChoiceIds);
+        _notesDesign!.Text = profile?.Notes.Design ?? string.Empty;
+        _notesCanon!.Text = profile?.Notes.Canon ?? string.Empty;
+        _notesOwner!.Text = profile?.Notes.OwnerId ?? string.Empty;
+        Select(_notesStatus!, profile?.Notes.Status ?? QuestEditorialStatus.Draft);
+        _notesRisks!.Text = profile is null ? string.Empty : string.Join('\n', profile.Notes.Risks);
+        _notesTodos!.Text = profile is null ? string.Empty : string.Join('\n', profile.Notes.Todos);
+        _notesSources!.Text = profile is null ? string.Empty : string.Join('\n', profile.Notes.Sources);
+        _notesReviews!.Text = profile is null ? string.Empty : string.Join('\n', profile.Notes.ReviewHistory
+            .OrderBy(item => item.At).ThenBy(item => item.Id)
+            .Select(item => $"{item.AuthorId}|{item.Status}|{item.Message}"));
+        _authoringParticipants!.Text = profile is null ? string.Empty : string.Join('\n', profile.Participants
+            .OrderBy(item => item.DisplayOrder).Select(item =>
+                $"{item.Role}|{item.BindingKind}|{item.BindingValue}|" +
+                $"{string.Join(';', item.PresenceConditions)}|{item.Required}"));
+        _wizardZones!.Text = profile is null ? string.Empty : string.Join('\n', profile.Wizard.ZoneIds);
+        _wizardProps!.Text = profile is null ? string.Empty : string.Join('\n', profile.Wizard.PropIds);
+        _wizardDialogues!.Text = profile is null ? string.Empty : string.Join('\n', profile.Wizard.DialogueIds);
+        _wizardTests!.Text = profile is null ? string.Empty : string.Join('\n', profile.Wizard.GeneratedTestScenarios);
+        _wizardOpaqueCode!.ButtonPressed = profile?.Wizard.GeneratesOpaqueCode ?? false;
+        _authoringSummary!.Text = profile is null
+            ? "État vide · ajoutez des objectifs, un cast et un plan Wizard."
+            : $"{profile.Objectives.Count} objectifs · {profile.Participants.Count} participant(s) · " +
+              $"{profile.Wizard.ZoneIds.Count} zone(s) · {profile.Wizard.PropIds.Count} prop(s) · " +
+              $"{profile.Wizard.DialogueIds.Count} dialogue(s) · {profile.Wizard.GeneratedTestScenarios.Count} tests · " +
+              $"code opaque {(profile.Wizard.GeneratesOpaqueCode ? "OUI" : "non")} · {profile.Notes.Status}";
+    }
+
+    private void LoadExperience(QuestExperienceProfile? profile)
+    {
+        _experienceEnabled!.ButtonPressed = profile?.Enabled ?? false;
+        _experienceRequired!.ButtonPressed = profile?.RequiredAtRuntime ?? false;
+        _experienceManualTracking!.ButtonPressed = profile?.Visibility.AllowManualTracking ?? false;
+        _experienceResources!.Text = profile is null ? string.Empty : string.Join('\n', profile.Resources
+            .OrderBy(item => item.DisplayOrder).Select(item =>
+                $"{item.Kind}|{item.ReferenceId}|{item.OwnerId}|{item.Required}|{string.Join(';', item.Conditions)}"));
+        _experienceSteps!.Text = profile is null || _draft?.Authoring is null ? string.Empty : string.Join('\n',
+            profile.Steps.OrderBy(item => item.DisplayOrder).Select(item =>
+                $"{item.TemplateId}|{item.TemplateVersion}|{item.Label.Key}|{item.Label.Fallback}|" +
+                $"{string.Join(';', item.ObjectiveIds.Select(id => IndexOf(_draft.Authoring.Objectives.Select(objective => objective.Id), id)))}|" +
+                $"{string.Join(';', item.TransitionIds.Select(id => IndexOf(_draft.Transitions.Select(transition => transition.Id), id)))}|{item.Editable}"));
+        _experienceRevealConditions!.Text = profile is null ? string.Empty : string.Join('\n',
+            profile.Visibility.RevealConditions.OrderBy(item => item.Key).Select(item =>
+                $"{item.Key}|{string.Join(';', item.Value)}"));
+        _experienceHistory!.Text = profile is null ? string.Empty : string.Join('\n', profile.History
+            .OrderBy(item => item.At).ThenBy(item => item.Id).Select(item =>
+                $"{item.FromState}|{item.ToState}|{item.Cause}|{item.ActorId}|{item.PlayerSummary.Key}|" +
+                $"{item.PlayerSummary.Fallback}|{string.Join(';', item.DebugContext.Select(pair => $"{pair.Key}={pair.Value}"))}"));
+        _experienceMarkers!.Text = profile is null || _draft?.Authoring is null ? string.Empty : string.Join('\n',
+            profile.Markers.OrderBy(item => item.DisplayOrder).Select(item =>
+                $"{item.BindingKind}|{item.BindingValue}|" +
+                $"{IndexOf(_draft.Authoring.Objectives.Select(objective => objective.Id), item.ObjectiveId)}|" +
+                $"{item.Visibility}|{item.PrecisionRadius.ToString(System.Globalization.CultureInfo.InvariantCulture)}|" +
+                $"{item.Tracked}|{item.Label.Key}|{item.Label.Fallback}|" +
+                (item.FallbackPosition is { } position
+                    ? $"{position.X.ToString(System.Globalization.CultureInfo.InvariantCulture)}," +
+                      $"{position.Y.ToString(System.Globalization.CultureInfo.InvariantCulture)}," +
+                      position.Z.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                    : string.Empty)));
+        _experienceSummary!.Text = profile is null
+            ? "État vide · ajoutez ressources, étapes, visibilité, chronologie et pins."
+            : $"{profile.Resources.Count} ressources · {profile.Steps.Count} étape(s) · " +
+              $"{profile.Visibility.RevealConditions.Count} révélations · {profile.History.Count} événements · " +
+              $"{profile.Markers.Count} pins · suivi manuel {(profile.Visibility.AllowManualTracking ? "oui" : "non")}";
+    }
+
+    private void LoadQuality(QuestQualityProfile? profile)
+    {
+        _qualityEnabled!.ButtonPressed = profile?.Enabled ?? false;
+        _qualityRequired!.ButtonPressed = profile?.RequiredAtRuntime ?? false;
+        _qualityApproved!.ButtonPressed = profile?.AiPlan.ApprovedAt is not null;
+        _qualityReviewer!.Text = profile?.AiPlan.ApprovedBy ?? string.Empty;
+        _qualityScenarioSeeds!.Text = profile is null ? string.Empty : string.Join('\n',
+            profile.TestScenarios.OrderBy(item => item.DisplayOrder).Select(item => $"{item.Kind}|{item.Seed}"));
+        _qualitySynopsisKey!.Text = profile?.AiPlan.Synopsis.Key ?? string.Empty;
+        _qualitySynopsisText!.Text = profile?.AiPlan.Synopsis.Fallback ?? string.Empty;
+        _qualityRequestedBy!.Text = profile?.AiPlan.RequestedBy ?? string.Empty;
+        _qualityDependencies!.Text = profile is null ? string.Empty : string.Join('\n',
+            profile.AiPlan.Dependencies.OrderBy(item => item.DisplayOrder)
+                .Select(item => $"{item.Kind}|{item.ReferenceId}"));
+        _qualityCitations!.Text = profile is null ? string.Empty : string.Join('\n', profile.AiPlan.ContextCitations);
+        _qualityStyleRules!.Text = profile is null ? string.Empty : string.Join('\n', profile.AiPlan.StyleRules);
+        _qualitySummary!.Text = profile is null
+            ? "État vide · générez les cinq scénarios et préparez une proposition IA gouvernée."
+            : $"{profile.TestScenarios.Count} scénarios · {profile.TestScenarios.Sum(item => item.Steps.Count)} nœuds · " +
+              $"{profile.TestScenarios.Sum(item => item.Edges.Count)} arêtes · plan {profile.AiPlan.Id:D} · " +
+              $"autorisation {profile.AiPlan.Authorization} · lint {profile.AiPlan.Lint.Count}";
+    }
+
     private QuestDefinition BuildDraft()
     {
         if (_draft is null || _selectedStateId is null)
@@ -553,14 +929,60 @@ public partial class QuestJournalWindow : Window
         if (_allowParty!.ButtonPressed) scopes.Add(QuestProgressScope.Party);
         if (_allowWorld!.ButtonPressed) scopes.Add(QuestProgressScope.World);
         if (!scopes.Contains(defaultScope)) scopes.Add(defaultScope);
-        return new QuestDefinition(
+        var authoring = BuildAuthoring(_draft, transitions);
+        var candidate = new QuestDefinition(
             _draft.Id, QuestDefinition.CurrentSchemaVersion, "toolset:r007", _slug!.Text.Trim(),
             _titleText!.Text.Trim(),
             new LocalizedText(_titleKey!.Text.Trim(), _titleText.Text.Trim(), provenance: "toolset:r007"),
             new LocalizedText(_descriptionKey!.Text.Trim(), _descriptionText!.Text.Trim(), provenance: "toolset:r007"),
             _category!.Text.Trim(), (int)_priority!.Value, _owner!.Text.Trim(), _required!.ButtonPressed,
             new QuestInstancePolicy(defaultScope, scopes, _authority!.ButtonPressed),
-            _draft.InitialStateId, states, transitions, _draft.Operations, BuildSimulation(_draft.Simulation));
+            _draft.InitialStateId, states, transitions, _draft.Operations, BuildSimulation(_draft.Simulation),
+            authoring);
+        candidate = candidate.WithExperience(BuildExperience(candidate));
+        return candidate.WithQuality(BuildQuality(candidate));
+    }
+
+    private QuestQualityProfile? BuildQuality(QuestDefinition source)
+    {
+        if (!_qualityEnabled!.ButtonPressed && !_qualityRequired!.ButtonPressed) return null;
+        if (source.Authoring is null)
+            throw new ArgumentException("Le profil qualité exige le profil auteur canonique et ses références typées.");
+        var seeds = ParseLines(_qualityScenarioSeeds!.Text, 2, "scénario généré").ToDictionary(parts =>
+        {
+            if (!Enum.TryParse<QuestQualityTestKind>(parts[0], true, out var kind))
+                throw new ArgumentException($"Type de scénario inconnu : {parts[0]}.");
+            return kind;
+        }, parts =>
+        {
+            if (!int.TryParse(parts[1], out var seed) || seed <= 0)
+                throw new ArgumentException($"Seed de scénario invalide : {parts[1]}.");
+            return seed;
+        });
+        var scenarios = QuestQualityRuntimeService.GenerateTests(source).Select(item => item with
+        {
+            Seed = seeds.TryGetValue(item.Kind, out var seed) ? seed : item.Seed,
+            Provenance = "toolset:r073",
+        }).ToArray();
+        var dependencies = ParseLines(_qualityDependencies!.Text, 2, "dépendance IA")
+            .Select((parts, index) =>
+            {
+                if (!Enum.TryParse<QuestAiDependencyKind>(parts[0], true, out var kind))
+                    throw new ArgumentException($"Type de dépendance IA inconnu : {parts[0]}.");
+                return new QuestAiDependency(StableId($"{source.Id}:r073:dependency:{index}"), 1,
+                    "toolset:r073", index + 1, kind, parts[1]);
+            }).ToArray();
+        var plan = QuestQualityRuntimeService.CreateAiPlan(source,
+            new LocalizedText(_qualitySynopsisKey!.Text.Trim(), _qualitySynopsisText!.Text.Trim(),
+                provenance: "toolset:r073"), dependencies, TextLines(_qualityCitations!.Text),
+            TextLines(_qualityStyleRules!.Text), _qualityRequestedBy!.Text.Trim(),
+            StableId($"{source.Id}:r073:transaction"),
+            $"preview:quest:{source.Id}|states:{source.States.Count}|participants:{source.Authoring.Participants.Count}|tests:{scenarios.Length}");
+        if (_qualityApproved!.ButtonPressed)
+            plan = QuestQualityRuntimeService.Approve(plan, _qualityReviewer!.Text.Trim(),
+                new DateTimeOffset(2026, 8, 11, 12, 0, 0, TimeSpan.Zero));
+        return new QuestQualityProfile(StableId($"{source.Id}:r073:quality"), 1, "toolset:r073",
+            _qualityEnabled.ButtonPressed, _qualityRequired!.ButtonPressed, scenarios, plan);
     }
 
     private QuestStateDefinition BuildState(QuestStateDefinition source)
@@ -634,6 +1056,139 @@ public partial class QuestJournalWindow : Window
             (int)_simulationMaximumSteps!.Value, variables, events);
     }
 
+    private QuestAuthoringProfile? BuildAuthoring(
+        QuestDefinition source,
+        IReadOnlyList<QuestTransition> transitions)
+    {
+        if (!_authoringEnabled!.ButtonPressed && !_authoringRequired!.ButtonPressed) return null;
+        var objectives = ParseLines(_authoringObjectives!.Text, 10, "objectif auteur")
+            .Select((parts, index) =>
+            {
+                if (!Enum.TryParse<QuestObjectiveKind>(parts[0], true, out var kind))
+                    throw new ArgumentException($"Type d’objectif inconnu : {parts[0]}.");
+                if (!double.TryParse(parts[3], System.Globalization.NumberStyles.Float,
+                        System.Globalization.CultureInfo.InvariantCulture, out var target))
+                    throw new ArgumentException($"Cible d’objectif invalide : {parts[3]}.");
+                if (!double.TryParse(string.IsNullOrWhiteSpace(parts[6]) ? "0" : parts[6],
+                        System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture,
+                        out var duration))
+                    throw new ArgumentException($"Durée d’objectif invalide : {parts[6]}.");
+                if (!bool.TryParse(parts[9], out var optional))
+                    throw new ArgumentException($"Optionnel d’objectif invalide : {parts[9]}.");
+                return new QuestAuthoringObjective(StableId($"{source.Id}:r071:objective:{index}"), 1,
+                    "toolset:r071", index + 1, kind,
+                    new LocalizedText(parts[1], parts[2], provenance: "toolset:r071"), target,
+                    SplitValues(parts[4]), EmptyToNull(parts[5]), duration, SplitValues(parts[7]),
+                    EmptyToNull(parts[8]), optional);
+            }).ToArray();
+        var participants = ParseLines(_authoringParticipants!.Text, 5, "participant")
+            .Select((parts, index) =>
+            {
+                if (!Enum.TryParse<QuestParticipantBindingKind>(parts[1], true, out var bindingKind))
+                    throw new ArgumentException($"Type de binding inconnu : {parts[1]}.");
+                if (!bool.TryParse(parts[4], out var required))
+                    throw new ArgumentException($"Requis participant invalide : {parts[4]}.");
+                return new QuestAuthoringParticipant(StableId($"{source.Id}:r071:participant:{index}"), 1,
+                    "toolset:r071", index + 1, parts[0], bindingKind, parts[2], SplitValues(parts[3]), required);
+            }).ToArray();
+        var reviews = ParseLines(_notesReviews!.Text, 3, "review").Select((parts, index) =>
+        {
+            if (!Enum.TryParse<QuestEditorialStatus>(parts[1], true, out var status))
+                throw new ArgumentException($"Statut de review inconnu : {parts[1]}.");
+            return new QuestAuthorReview(StableId($"{source.Id}:r071:review:{index}"), 1, "toolset:r071",
+                parts[0], status, parts[2], new DateTimeOffset(2026, 8, 11, 0, 0, index, TimeSpan.Zero));
+        }).ToArray();
+        var rewards = new QuestAuthoringRewardBundle(StableId($"{source.Id}:r071:rewards"), 1,
+            "toolset:r071", _rewardProgression!.Value, ParseMap(_rewardItems!.Text, int.Parse),
+            ParseMap(_rewardCurrencies!.Text, value => decimal.Parse(value,
+                System.Globalization.CultureInfo.InvariantCulture)),
+            ParseMap(_rewardReputation!.Text, value => double.Parse(value,
+                System.Globalization.CultureInfo.InvariantCulture)),
+            TextLines(_rewardUnlocks!.Text), TextLines(_rewardChoices!.Text));
+        var notes = new QuestAuthorNotes(_notesDesign!.Text.Trim(), _notesCanon!.Text.Trim(),
+            _notesOwner!.Text.Trim(), (QuestEditorialStatus)_notesStatus!.Selected,
+            TextLines(_notesRisks!.Text), TextLines(_notesTodos!.Text), TextLines(_notesSources!.Text), reviews);
+        var wizard = new QuestPlotWizardPlan(StableId($"{source.Id}:r071:wizard"), 1, "toolset:r071",
+            TextLines(_wizardZones!.Text), participants.Select(item => item.Id).ToArray(),
+            TextLines(_wizardProps!.Text), TextLines(_wizardDialogues!.Text).Select(DialogueId.Parse).ToArray(),
+            objectives.Select(item => item.Id).ToArray(), transitions.Select(item => item.Id).ToArray(),
+            TextLines(_wizardTests!.Text), _wizardOpaqueCode!.ButtonPressed);
+        return new QuestAuthoringProfile(StableId($"{source.Id}:r071:authoring"), 1, "toolset:r071",
+            _authoringEnabled!.ButtonPressed, _authoringRequired!.ButtonPressed, objectives, rewards, notes,
+            participants, wizard);
+    }
+
+    private QuestExperienceProfile? BuildExperience(QuestDefinition source)
+    {
+        if (!_experienceEnabled!.ButtonPressed && !_experienceRequired!.ButtonPressed) return null;
+        if (source.Authoring is null)
+            throw new ArgumentException("Le profil d’expérience exige au moins un objectif auteur canonique.");
+        var objectives = source.Authoring.Objectives.OrderBy(item => item.DisplayOrder).ThenBy(item => item.Id).ToArray();
+        var transitions = source.Transitions.OrderBy(item => item.DisplayOrder).ThenBy(item => item.Id.Value).ToArray();
+        var resources = ParseLines(_experienceResources!.Text, 5, "ressource de quête")
+            .Select((parts, index) =>
+            {
+                if (!Enum.TryParse<QuestExperienceResourceKind>(parts[0], true, out var kind))
+                    throw new ArgumentException($"Type de ressource inconnu : {parts[0]}.");
+                if (!bool.TryParse(parts[3], out var required))
+                    throw new ArgumentException($"Indicateur requis invalide : {parts[3]}.");
+                return new QuestExperienceResource(StableId($"{source.Id}:r072:resource:{index}"), 1,
+                    "toolset:r072", index + 1, kind, parts[1], parts[2], required, SplitValues(parts[4]));
+            }).ToArray();
+        var steps = ParseLines(_experienceSteps!.Text, 7, "étape de quête").Select((parts, index) =>
+        {
+            if (!int.TryParse(parts[1], out var templateVersion) || templateVersion < 1)
+                throw new ArgumentException($"Version de template invalide : {parts[1]}.");
+            if (!bool.TryParse(parts[6], out var editable))
+                throw new ArgumentException($"Indicateur modifiable invalide : {parts[6]}.");
+            var objectiveIds = ParseIndices(parts[4], objectives.Length, "objectif")
+                .Select(position => objectives[position].Id).ToArray();
+            var transitionIds = ParseIndices(parts[5], transitions.Length, "transition")
+                .Select(position => transitions[position].Id).ToArray();
+            return new QuestExperienceStep(StableId($"{source.Id}:r072:step:{index}"), 1,
+                $"toolset:r072:template:{parts[0]}:v{templateVersion}", index + 1,
+                new LocalizedText(parts[2], parts[3], provenance: "toolset:r072"), objectiveIds, transitionIds,
+                parts[0], templateVersion, editable);
+        }).ToArray();
+        var revealConditions = ParseLines(_experienceRevealConditions!.Text, 2, "condition de révélation")
+            .ToDictionary(parts =>
+            {
+                if (!Enum.TryParse<QuestExperienceVisibility>(parts[0], true, out var visibility) ||
+                    visibility == QuestExperienceVisibility.Hidden)
+                    throw new ArgumentException($"Visibilité de révélation invalide : {parts[0]}.");
+                return visibility;
+            }, parts => SplitValues(parts[1]));
+        var visibilityPolicy = new QuestExperienceVisibilityPolicy(
+            StableId($"{source.Id}:r072:visibility"), 1, "toolset:r072", QuestExperienceVisibility.Hidden,
+            revealConditions, _experienceManualTracking!.ButtonPressed);
+        var at = new DateTimeOffset(2026, 8, 11, 8, 0, 0, TimeSpan.Zero);
+        var history = ParseLines(_experienceHistory!.Text, 7, "événement historique")
+            .Select((parts, index) => new QuestExperienceHistoryEvent(
+                StableId($"{source.Id}:r072:history:{index}"), 1, "toolset:r072", source.Id,
+                parts[0], parts[1], parts[2], parts[3], at.AddMinutes(index), ParsePairs(parts[6]),
+                new LocalizedText(parts[4], parts[5], provenance: "toolset:r072"))).ToArray();
+        var markers = ParseLines(_experienceMarkers!.Text, 9, "pin de carte").Select((parts, index) =>
+        {
+            if (!Enum.TryParse<QuestExperienceMarkerBindingKind>(parts[0], true, out var bindingKind))
+                throw new ArgumentException($"Binding de pin inconnu : {parts[0]}.");
+            var objectiveIndex = ParseIndices(parts[2], objectives.Length, "objectif").Single();
+            if (!Enum.TryParse<QuestExperienceVisibility>(parts[3], true, out var markerVisibility))
+                throw new ArgumentException($"Visibilité de pin invalide : {parts[3]}.");
+            if (!double.TryParse(parts[4], System.Globalization.NumberStyles.Float,
+                    System.Globalization.CultureInfo.InvariantCulture, out var precision))
+                throw new ArgumentException($"Précision de pin invalide : {parts[4]}.");
+            if (!bool.TryParse(parts[5], out var tracked))
+                throw new ArgumentException($"Suivi de pin invalide : {parts[5]}.");
+            return new QuestExperienceMarker(StableId($"{source.Id}:r072:marker:{index}"), 1,
+                "toolset:r072", index + 1, objectives[objectiveIndex].Id, bindingKind, parts[1], markerVisibility,
+                precision, tracked, new LocalizedText(parts[6], parts[7], provenance: "toolset:r072"),
+                ParseVector(parts[8]));
+        }).ToArray();
+        return new QuestExperienceProfile(StableId($"{source.Id}:r072:experience"), 1, "toolset:r072",
+            _experienceEnabled.ButtonPressed, _experienceRequired!.ButtonPressed, resources, steps,
+            visibilityPolicy, history, markers);
+    }
+
     private void RebuildPreview()
     {
         if (_preview is null) return;
@@ -651,12 +1206,48 @@ public partial class QuestJournalWindow : Window
                                     $" [P{item.Priority}]").ToArray();
                 return $"  {state.DisplayOrder:000}  {state.Slug}  →  {(targets.Length == 0 ? "FIN" : string.Join(", ", targets))}";
             }));
+            var authoring = candidate.Authoring is { Enabled: true } profile
+                ? $"[b]OBJECTIFS, CAST & WIZARD[/b]\n{profile.Objectives.Count} objectifs · " +
+                  $"{profile.Participants.Count} participant(s) · progression {profile.Rewards.Progression:0.##} · " +
+                  $"{profile.Notes.Status} · {profile.Wizard.GeneratedTestScenarios.Count} tests · " +
+                  $"code opaque {(profile.Wizard.GeneratesOpaqueCode ? "OUI" : "non")}\n\n"
+                : "[b]OBJECTIFS, CAST & WIZARD[/b]\nÉtat vide · extension optionnelle absente.\n\n";
+            var experience = candidate.Experience is { Enabled: true } experienceProfile
+                ? $"[b]RESSOURCES, HISTORIQUE & PINS[/b]\n{experienceProfile.Resources.Count} ressources · " +
+                  $"{experienceProfile.Steps.Count} étape(s) · visibilité {experienceProfile.Visibility.Initial} · " +
+                  $"{experienceProfile.History.Count} événements · {experienceProfile.Markers.Count} pins\n\n"
+                : "[b]RESSOURCES, HISTORIQUE & PINS[/b]\nÉtat vide · extension optionnelle absente.\n\n";
+            var quality = candidate.Quality is { Enabled: true } qualityProfile
+                ? $"[b]TESTS & GÉNÉRATION IA[/b]\n{qualityProfile.TestScenarios.Count} scénarios · " +
+                  $"{qualityProfile.TestScenarios.Sum(item => item.Steps.Count)} nœuds · " +
+                  $"{qualityProfile.TestScenarios.Sum(item => item.Edges.Count)} arêtes · " +
+                  $"plan {qualityProfile.AiPlan.Authorization} · lint {qualityProfile.AiPlan.Lint.Count}\n\n"
+                : "[b]TESTS & GÉNÉRATION IA[/b]\nÉtat vide · extension optionnelle absente.\n\n";
+            _authoringSummary!.Text = candidate.Authoring is { } summary
+                ? $"{summary.Objectives.Count} objectifs · {summary.Participants.Count} participant(s) · " +
+                  $"{summary.Wizard.ZoneIds.Count} zone(s) · {summary.Wizard.PropIds.Count} prop(s) · " +
+                  $"{summary.Wizard.DialogueIds.Count} dialogue(s) · {summary.Wizard.GeneratedTestScenarios.Count} tests · " +
+                  $"code opaque {(summary.Wizard.GeneratesOpaqueCode ? "OUI" : "non")} · {summary.Notes.Status}"
+                : "État vide · ajoutez des objectifs, un cast et un plan Wizard.";
+            _experienceSummary!.Text = candidate.Experience is { } experienceSummary
+                ? $"{experienceSummary.Resources.Count} ressources · {experienceSummary.Steps.Count} étape(s) · " +
+                  $"{experienceSummary.Visibility.RevealConditions.Count} révélations · " +
+                  $"{experienceSummary.History.Count} événements · {experienceSummary.Markers.Count} pins · " +
+                  $"suivi manuel {(experienceSummary.Visibility.AllowManualTracking ? "oui" : "non")}" :
+                "État vide · ajoutez ressources, étapes, visibilité, chronologie et pins.";
+            _qualitySummary!.Text = candidate.Quality is { } qualitySummary
+                ? $"{qualitySummary.TestScenarios.Count} scénarios · " +
+                  $"{qualitySummary.TestScenarios.Sum(item => item.Steps.Count)} nœuds · " +
+                  $"{qualitySummary.TestScenarios.Sum(item => item.Edges.Count)} arêtes · " +
+                  $"plan {qualitySummary.AiPlan.Id:D} · autorisation {qualitySummary.AiPlan.Authorization} · " +
+                  $"lint {qualitySummary.AiPlan.Lint.Count}"
+                : "État vide · générez les cinq scénarios et préparez une proposition IA gouvernée.";
             _preview.Text = $"[font_size=21][color=#ff9858]{candidate.Title.Fallback}[/color][/font_size]\n" +
                 $"[color=#8ce0bd]{candidate.Category} · priorité {candidate.Priority} · {candidate.Owner}[/color]\n" +
                 $"UUID {candidate.Id} · schéma v{candidate.SchemaVersion} · {candidate.Provenance}\n\n" +
                 $"[b]PORTÉE[/b]\n{candidate.InstancePolicy.DefaultScope} · autorisées " +
                 $"{string.Join(", ", candidate.InstancePolicy.AllowedScopes)} · autorité {candidate.InstancePolicy.RequireAuthority}\n\n" +
-                $"[b]MINI-GRAPHE[/b]\n{graph}\n\n" +
+                $"[b]MINI-GRAPHE[/b]\n{graph}\n\n{authoring}{experience}{quality}" +
                 (diagnostics.Count == 0
                     ? "[color=#8ce0bd]✓ Définition valide et sérialisable[/color]"
                     : $"[color=#ff7777]⚠ {diagnostics.Count} diagnostic(s)[/color]\n" +
@@ -765,7 +1356,8 @@ public partial class QuestJournalWindow : Window
         _draft = new QuestDefinition(_draft.Id, _draft.SchemaVersion, _draft.Provenance, _draft.Slug,
             _draft.DisplayName, _draft.Title, _draft.Description, _draft.Category, _draft.Priority, _draft.Owner,
             _draft.RequiredAtRuntime, _draft.InstancePolicy, _draft.InitialStateId, _draft.States,
-            [.. _draft.Transitions, transition], _draft.Operations, _draft.Simulation);
+            [.. _draft.Transitions, transition], _draft.Operations, _draft.Simulation, _draft.Authoring,
+            _draft.Experience, _draft.Quality);
         LoadTransitionCatalog(_draft);
         _transitions!.Select(_draft.Transitions.Count - 1);
         LoadTransition(transition);
@@ -800,7 +1392,25 @@ public partial class QuestJournalWindow : Window
 
     private void PrepareCapture()
     {
-        if (_r008Capture)
+        if (_r073Capture)
+        {
+            ConfigureForR073SmokeTest();
+            _tabs!.CurrentTab = 5;
+            _feedback!.Text = "[color=#8ce0bd]R073 prêt · tests générés et plan IA traçable, linté et approuvé[/color]";
+        }
+        else if (_r072Capture)
+        {
+            ConfigureForR072SmokeTest();
+            _tabs!.CurrentTab = 4;
+            _feedback!.Text = "[color=#8ce0bd]R072 prêt · ressources, étapes, visibilité, chronologie et pins gouvernés[/color]";
+        }
+        else if (_r071Capture)
+        {
+            ConfigureForR071SmokeTest();
+            _tabs!.CurrentTab = 3;
+            _feedback!.Text = "[color=#8ce0bd]R071 prêt · objectifs, récompenses, notes, cast et Wizard transparents[/color]";
+        }
+        else if (_r008Capture)
         {
             ConfigureForR008SmokeTest();
             _tabs!.CurrentTab = 2;
@@ -836,6 +1446,81 @@ public partial class QuestJournalWindow : Window
         }
         return result;
     }
+
+    private static IReadOnlyList<string> SplitValues(string value) =>
+        value.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+    private static IReadOnlyList<string> TextLines(string value) =>
+        value.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+    private static string? EmptyToNull(string value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+    private static IReadOnlyDictionary<string, string> ParsePairs(string value)
+    {
+        var result = new SortedDictionary<string, string>(StringComparer.Ordinal);
+        foreach (var pair in SplitValues(value))
+        {
+            var separator = pair.IndexOf('=');
+            if (separator <= 0 || separator == pair.Length - 1)
+                throw new ArgumentException($"Paire debug invalide : {pair}");
+            result.Add(pair[..separator].Trim(), pair[(separator + 1)..].Trim());
+        }
+        return result;
+    }
+
+    private static IReadOnlyList<int> ParseIndices(string value, int count, string label)
+    {
+        var result = new List<int>();
+        foreach (var token in SplitValues(value))
+        {
+            if (!int.TryParse(token, out var index) || index < 0 || index >= count)
+                throw new ArgumentException($"Indice {label} invalide : {token}");
+            result.Add(index);
+        }
+        return result;
+    }
+
+    private static Vector3Value? ParseVector(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        var parts = value.Split(',', StringSplitOptions.TrimEntries);
+        if (parts.Length != 3 || !float.TryParse(parts[0], System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out var x) ||
+            !float.TryParse(parts[1], System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out var y) ||
+            !float.TryParse(parts[2], System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out var z))
+            throw new ArgumentException($"Fallback spatial invalide : {value}");
+        return new Vector3Value(x, y, z);
+    }
+
+    private static int IndexOf<T>(IEnumerable<T> values, T expected) where T : notnull
+    {
+        var index = 0;
+        foreach (var value in values)
+        {
+            if (EqualityComparer<T>.Default.Equals(value, expected)) return index;
+            index++;
+        }
+        return -1;
+    }
+
+    private static IReadOnlyDictionary<string, T> ParseMap<T>(string text, Func<string, T> parse)
+    {
+        var result = new SortedDictionary<string, T>(StringComparer.Ordinal);
+        foreach (var line in TextLines(text))
+        {
+            var separator = line.IndexOf('=');
+            if (separator <= 0 || separator == line.Length - 1)
+                throw new ArgumentException($"Entrée de récompense invalide : {line}");
+            result.Add(line[..separator].Trim(), parse(line[(separator + 1)..].Trim()));
+        }
+        return result;
+    }
+
+    private static string FormatMap<T>(IReadOnlyDictionary<string, T> values) =>
+        string.Join('\n', values.OrderBy(item => item.Key, StringComparer.Ordinal)
+            .Select(item => $"{item.Key}={item.Value}"));
 
     private static PanelContainer Panel(string title)
     {

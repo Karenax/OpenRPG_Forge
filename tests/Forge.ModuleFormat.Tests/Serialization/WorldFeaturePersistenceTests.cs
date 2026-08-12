@@ -35,12 +35,42 @@ public sealed class WorldFeaturePersistenceTests : IDisposable
         Assert.Equal(new Vector3Value(1.25f, 0, -2.5f), catalog.Placeables[0].Foundation!.Transform.Position);
         Assert.Equal("InteractionExecuted", catalog.Placeables[0].Foundation!.OnUsed!.EventBinding);
         Assert.Equal("lock:test", catalog.Placeables[0].Foundation!.Validation!.LockIds.Single());
+        Assert.True(catalog.Placeables[0].OperationsRequiredAtRuntime);
+        var placeableOperations = Assert.IsType<PlaceableOperationsProfile>(catalog.Placeables[0].Operations);
+        Assert.Equal("inventory:test", placeableOperations.Container!.InventoryId);
+        Assert.True(placeableOperations.Container.Replicated);
+        Assert.Equal("closed", placeableOperations.StateMachine!.InitialStateId);
+        Assert.Equal(6, placeableOperations.StateMachine.States.Count);
+        Assert.Equal(100, placeableOperations.Damageable!.MaximumHealth);
+        Assert.Equal("PlaceableProtectionOverride", placeableOperations.Protection!.AuditBinding);
+        Assert.Equal(PlaceableAuthoredLockState.Locked, placeableOperations.Lock!.InitialState);
+        Assert.True(catalog.Placeables[0].SecurityEventsRequiredAtRuntime);
+        var placeableSecurityEvents = Assert.IsType<PlaceableSecurityEventsProfile>(
+            catalog.Placeables[0].SecurityEvents);
+        Assert.Equal("damage:ember", placeableSecurityEvents.Trap.PayloadId);
+        Assert.Equal(30, placeableSecurityEvents.Trap.ResetDelaySeconds);
+        Assert.Equal(PlaceableAuthoredLootSpawnTiming.Open, placeableSecurityEvents.Loot.Timing);
+        Assert.Equal(Guid.Parse("15000000-0000-4000-8000-000000000008"),
+            placeableSecurityEvents.Loot.LootTable.Entries.Single().ItemDefinitionId);
+        Assert.Equal("ContainerOpened", placeableSecurityEvents.ContainerEvents.OpenedBinding);
+        Assert.Equal("ContainerClosed", placeableSecurityEvents.ContainerEvents.ClosedBinding);
+        Assert.Equal("LockStateChanging", placeableSecurityEvents.LockEvents.ChangingBinding);
+        Assert.True(placeableSecurityEvents.LockEvents.ControlledVeto);
+        Assert.Equal("ContainerContentsChanged", placeableSecurityEvents.ContentsChanged.EventBinding);
         Assert.Single(catalog.Doors);
         Assert.Equal(9, catalog.Doors[0].Foundation!.States.Count);
         Assert.Equal(DoorWorldProfile.DestinationKind.Waypoint,
             catalog.Doors[0].Foundation!.Portal!.DestinationKind);
         Assert.Equal("nav-obstacle:test-door", catalog.Doors[0].Foundation!.Navigation!.ObstacleId);
         Assert.True(catalog.Doors[0].Foundation!.Navigation!.VisualizeInEditor);
+        Assert.True(catalog.Doors[0].AccessEventsRequiredAtRuntime);
+        Assert.Equal("key:ember", catalog.Doors[0].AccessEvents!.Lock.CredentialIds.Single());
+        Assert.Equal("DoorOpenRejected", catalog.Doors[0].AccessEvents!.Rejection.EventBinding);
+        Assert.Equal("damage:ember", catalog.Doors[0].AccessEvents!.Trap.PayloadId);
+        Assert.Equal("PortalUseRequested", catalog.Doors[0].AccessEvents!.PortalUse.RequestedBinding);
+        Assert.Equal("DoorClosed", catalog.Doors[0].AccessEvents!.StateEvents.ClosedBinding);
+        Assert.True(catalog.Doors[0].AccessEvents!.LockStateEventsRequiredAtRuntime);
+        Assert.Equal("DoorUnlocked", catalog.Doors[0].AccessEvents!.LockStateEvents!.UnlockedBinding);
         Assert.Single(catalog.Triggers);
         Assert.True(catalog.Triggers[0].FoundationRequiredAtRuntime);
         Assert.Equal(TriggerWorldProfile.ShapeKind.ExtrudedPolygon2D, catalog.Triggers[0].Foundation!.Shape.Kind);
@@ -57,11 +87,57 @@ public sealed class WorldFeaturePersistenceTests : IDisposable
         Assert.True(catalog.Merchants[0].TransactionsRequiredAtRuntime);
         Assert.Equal("standard", Assert.IsType<MerchantWorldProfile.TransactionPolicy>(catalog.Merchants[0].Transactions)
             .Stock.Single().VariantId);
+        Assert.True(catalog.Merchants[0].FoundationRequiredAtRuntime);
+        var merchantFoundation = Assert.IsType<MerchantFoundationProfile>(catalog.Merchants[0].Foundation);
+        Assert.Equal("world-store", merchantFoundation.Slug);
+        Assert.Equal("merchant-world-nominal", merchantFoundation.Wizard.TestFixtureId);
+        Assert.Equal(MerchantSupplyPolicy.Infinite, merchantFoundation.Stock.Single().Supply);
+        Assert.Equal(2, merchantFoundation.Pricing.BuyCurve.Count);
+        Assert.Equal("scripts/merchant_rule", merchantFoundation.Restrictions.CustomRuleBinding);
+        Assert.True(catalog.Merchants[0].ExperienceRequiredAtRuntime);
+        var merchantExperience = Assert.IsType<MerchantStoreExperienceProfile>(catalog.Merchants[0].Experience);
+        Assert.Equal("1.0.0", merchantExperience.Sessions.ForgeScriptApiVersion);
+        Assert.Equal("StoreSessionOpened", merchantExperience.Sessions.OpenEventBinding);
+        Assert.Equal("StoreSessionClosed", merchantExperience.Sessions.CloseEventBinding);
+        Assert.True(merchantExperience.Sessions.IncludeTransactionSummary);
+        Assert.True(merchantExperience.Ui.KeyboardNavigation);
+        Assert.True(merchantExperience.Ui.GamepadNavigation);
+        Assert.True(merchantExperience.Ui.ScreenReaderLabels);
+        Assert.Equal(["name", "compare", "price", "quantity"], merchantExperience.Ui.Columns);
         Assert.Single(catalog.Companions);
         var companionValidation = Assert.IsType<CompanionWorldProfile.ValidationPolicy>(catalog.Companions[0].Validation);
         Assert.Equal("test:r037", companionValidation.Provenance);
-        Assert.Equal(["follow", "hold"], companionValidation.CommandIds);
+        Assert.Equal(["move", "follow", "hold", "rally", "guard", "interact", "attack", "defend",
+            "focus-fire", "protect", "disengage", "use-ability"], companionValidation.CommandIds);
         Assert.True(catalog.Companions[0].ValidationRequiredAtRuntime);
+        var companionFoundation = Assert.IsType<CompanionWorldProfile.FoundationProfile>(
+            catalog.Companions[0].Foundation);
+        Assert.True(catalog.Companions[0].FoundationRequiredAtRuntime);
+        Assert.Equal("not-recruited", companionFoundation.PreRecruitment.ContextId);
+        Assert.Equal("recruited-by-speaker", companionFoundation.OwnerDialogue.ContextId);
+        Assert.True(companionFoundation.Membership.Atomic);
+        Assert.Equal(3, companionFoundation.Party.CompanionSlots);
+        Assert.Equal(8, companionFoundation.Party.ServerActorLimit);
+        Assert.Equal(2, companionFoundation.Party.RoleLimits["Support"]);
+        var companionControl = Assert.IsType<CompanionWorldProfile.ControlProfile>(catalog.Companions[0].Control);
+        Assert.True(catalog.Companions[0].ControlRequiredAtRuntime);
+        Assert.Equal("individual", companionControl.Ownership.Kind);
+        Assert.Equal(6, companionControl.Movement.CommandKinds.Count);
+        Assert.Equal(6, companionControl.Tactical.CommandKinds.Count);
+        Assert.Equal("Support", companionControl.Ai.Role);
+        Assert.Equal("owner-or-gm", companionControl.Ai.AuthorizationLevel);
+        Assert.Equal("full", companionControl.Equipment.Permission);
+        Assert.Single(companionControl.Equipment.LockedItemIds);
+        Assert.Single(companionControl.Equipment.SuggestedLoadout);
+        var companionExperience = Assert.IsType<CompanionWorldProfile.ExperienceProfile>(
+            catalog.Companions[0].Experience);
+        Assert.True(catalog.Companions[0].ExperienceRequiredAtRuntime);
+        Assert.Equal("recoverable-corpse", companionExperience.Death.Mode);
+        Assert.Equal([10d, 30d, 60d],
+            [companionExperience.Cohesion.NavigateThreshold, companionExperience.Cohesion.PortalThreshold,
+             companionExperience.Cohesion.TeleportThreshold]);
+        Assert.True(companionExperience.Hud.ScreenReaderLabels);
+        Assert.Equal(["health", "focus"], companionExperience.Hud.VisibleResourceIds);
         Assert.Single(catalog.Scripts.Camera.Shots);
         Assert.Single(catalog.Scripts.TagRouting.Routes);
         Assert.Single(catalog.Scripts.ModuleFlags);
@@ -92,9 +168,147 @@ public sealed class WorldFeaturePersistenceTests : IDisposable
         Assert.Contains("\"formatVersion\": \"1.28.0\"", File.ReadAllText(path), StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void R074Companion_foundation_validation_is_localized_and_optional_required_semantics_are_explicit()
+    {
+        var project = CompleteProject();
+        var companion = project.Module.WorldFeatures.Companions.Single();
+        var foundation = companion.Foundation!;
+        var invalid = companion with
+        {
+            Foundation = foundation with
+            {
+                Recruitable = foundation.Recruitable with { Enabled = false, Cost = -1 },
+                PreRecruitment = foundation.PreRecruitment with { DialogueId = Guid.Empty, ContextId = "wrong" },
+                OwnerDialogue = foundation.OwnerDialogue with { DialogueId = Guid.Empty, CommandIds = [] },
+                Membership = foundation.Membership with { Atomic = false, TransferInventory = false },
+                Party = foundation.Party with
+                {
+                    CompanionSlots = 0,
+                    ServerActorLimit = 0,
+                    RoleLimits = new Dictionary<string, int>(),
+                },
+            },
+        };
+        var invalidCatalog = new WorldFeatureCatalog(project.Module.WorldFeatures.Id, 1, "test:r074",
+            project.Module.WorldFeatures.Placeables, project.Module.WorldFeatures.Doors,
+            project.Module.WorldFeatures.Triggers, project.Module.WorldFeatures.Encounters,
+            project.Module.WorldFeatures.VehicleRoutes, project.Module.WorldFeatures.Merchants, [invalid],
+            project.Module.WorldFeatures.Scripts);
+        var invalidProject = new ProjectDefinition(project.Id, project.Title,
+            project.Module.WithWorldFeatures(invalidCatalog), project.Blueprints, project.Areas,
+            project.Dialogues, project.Quests);
+        var diagnostics = WorldFeatureCatalogValidator.Validate(invalidProject);
+
+        Assert.Contains(diagnostics, item => item.Code == "world.companion.recruitable_invalid" &&
+                                             item.Path.EndsWith("/foundation/recruitable", StringComparison.Ordinal));
+        Assert.Contains(diagnostics, item => item.Code == "world.companion.pre_recruitment_dialogue_invalid");
+        Assert.Contains(diagnostics, item => item.Code == "world.companion.owner_dialogue_invalid");
+        Assert.Contains(diagnostics, item => item.Code == "world.companion.membership_transaction_invalid");
+        Assert.Contains(diagnostics, item => item.Code == "world.companion.party_policy_invalid");
+
+        var optional = companion with { Foundation = null, FoundationRequiredAtRuntime = false };
+        var required = companion with { Foundation = null, FoundationRequiredAtRuntime = true };
+        Assert.DoesNotContain(WorldFeatureCatalogValidator.Validate(WithCompanion(project, optional)),
+            item => item.Code == "world.companion.foundation_required");
+        Assert.Contains(WorldFeatureCatalogValidator.Validate(WithCompanion(project, required)),
+            item => item.Code == "world.companion.foundation_required");
+    }
+
+    [Fact]
+    public void R075Companion_control_validation_is_localized_and_optional_required_semantics_are_explicit()
+    {
+        var project = CompleteProject();
+        var companion = project.Module.WorldFeatures.Companions.Single();
+        var control = companion.Control!;
+        var invalid = companion with
+        {
+            Control = control with
+            {
+                Ownership = control.Ownership with { Kind = "invalid", ControllerIds = [], Revision = -1 },
+                Movement = control.Movement with { CommandKinds = ["move"], MaximumPriority = -1 },
+                Tactical = control.Tactical with { CommandKinds = ["attack"], Stances = [], AbilityIds = [] },
+                Ai = control.Ai with { Autonomy = 2, PlanId = Guid.Empty, SemanticDiff = "none" },
+                Equipment = control.Equipment with
+                {
+                    Permission = "invalid",
+                    SuggestedLoadout = new Dictionary<string, Guid>(),
+                    AllowCompare = false,
+                },
+            },
+        };
+        var diagnostics = WorldFeatureCatalogValidator.Validate(WithCompanion(project, invalid));
+
+        Assert.Contains(diagnostics, item => item.Code == "world.companion.ownership_invalid" &&
+                                             item.Path.EndsWith("/control/ownership", StringComparison.Ordinal));
+        Assert.Contains(diagnostics, item => item.Code == "world.companion.movement_commands_invalid");
+        Assert.Contains(diagnostics, item => item.Code == "world.companion.tactical_commands_invalid");
+        Assert.Contains(diagnostics, item => item.Code == "world.companion.ai_control_invalid");
+        Assert.Contains(diagnostics, item => item.Code == "world.companion.equipment_control_invalid");
+
+        var optional = companion with { Control = null, ControlRequiredAtRuntime = false };
+        var required = companion with { Control = null, ControlRequiredAtRuntime = true };
+        Assert.DoesNotContain(WorldFeatureCatalogValidator.Validate(WithCompanion(project, optional)),
+            item => item.Code == "world.companion.control_required");
+        Assert.Contains(WorldFeatureCatalogValidator.Validate(WithCompanion(project, required)),
+            item => item.Code == "world.companion.control_required");
+    }
+
+    [Fact]
+    public void R076Companion_experience_validation_is_localized_and_optional_required_semantics_are_explicit()
+    {
+        var project = CompleteProject();
+        var companion = project.Module.WorldFeatures.Companions.Single();
+        var experience = companion.Experience!;
+        var invalid = companion with
+        {
+            Experience = experience with
+            {
+                Death = experience.Death with { Mode = "resurrection", ResurrectionResourceId = null },
+                Cohesion = experience.Cohesion with
+                {
+                    NavigateThreshold = 30,
+                    PortalThreshold = 20,
+                    TeleportThreshold = 10,
+                    SafeAnchorTags = [],
+                },
+                Hud = experience.Hud with
+                {
+                    Keyboard = false,
+                    Gamepad = false,
+                    ScreenReaderLabels = false,
+                    VisibleResourceIds = [],
+                },
+            },
+        };
+        var diagnostics = WorldFeatureCatalogValidator.Validate(WithCompanion(project, invalid));
+
+        Assert.Contains(diagnostics, item => item.Code == "world.companion.death_experience_invalid" &&
+                                             item.Path.EndsWith("/experience/death", StringComparison.Ordinal));
+        Assert.Contains(diagnostics, item => item.Code == "world.companion.cohesion_experience_invalid");
+        Assert.Contains(diagnostics, item => item.Code == "world.companion.party_hud_inaccessible");
+
+        var optional = companion with { Experience = null, ExperienceRequiredAtRuntime = false };
+        var required = companion with { Experience = null, ExperienceRequiredAtRuntime = true };
+        Assert.DoesNotContain(WorldFeatureCatalogValidator.Validate(WithCompanion(project, optional)),
+            item => item.Code == "world.companion.experience_required");
+        Assert.Contains(WorldFeatureCatalogValidator.Validate(WithCompanion(project, required)),
+            item => item.Code == "world.companion.experience_required");
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(_temporaryRoot)) Directory.Delete(_temporaryRoot, true);
+    }
+
+    private static ProjectDefinition WithCompanion(ProjectDefinition project, CompanionWorldProfile companion)
+    {
+        var source = project.Module.WorldFeatures;
+        var catalog = new WorldFeatureCatalog(source.Id, source.SchemaVersion, source.Provenance,
+            source.Placeables, source.Doors, source.Triggers, source.Encounters, source.VehicleRoutes,
+            source.Merchants, [companion], source.Scripts);
+        return new(project.Id, project.Title, project.Module.WithWorldFeatures(catalog), project.Blueprints,
+            project.Areas, project.Dialogues, project.Quests);
     }
 
     private static ProjectDefinition CompleteProject()
@@ -143,7 +357,42 @@ public sealed class WorldFeaturePersistenceTests : IDisposable
                     new(Guid.Parse("15200000-0000-4000-8000-000000000042"), 1, "test:r047", "1.0.0",
                         "InteractionExecuted", "scripts/before", "scripts/after"),
                     new(["animation:rise"], ["lock:test"], ["trap:test"], ["inventory:test"],
-                        ["physics:test"], 4, 4), true), true)],
+                        ["physics:test"], 4, 4), true), true,
+                new(Guid.Parse("15200000-0000-4000-8000-000000000043"), 1, "test:r093",
+                    new(Guid.Parse("15200000-0000-4000-8000-000000000044"), 24, 160, "party",
+                        ["container.open", "container.withdraw"], true, "loot:test", "ui:chest", true,
+                        "inventory:test"),
+                    new(Guid.Parse("15200000-0000-4000-8000-000000000045"), "closed",
+                        [
+                            new(Guid.Parse("15200000-0000-4000-8000-000000000046"), "idle", "animation:idle", "visual:idle", true),
+                            new(Guid.Parse("15200000-0000-4000-8000-000000000047"), "open", "animation:open", "visual:open", true),
+                            new(Guid.Parse("15200000-0000-4000-8000-000000000048"), "closed", "animation:closed", "visual:closed", true),
+                            new(Guid.Parse("15200000-0000-4000-8000-000000000049"), "broken", "animation:broken", "visual:broken", false),
+                            new(Guid.Parse("15200000-0000-4000-8000-00000000004a"), "active", "animation:active", "visual:active", true),
+                            new(Guid.Parse("15200000-0000-4000-8000-00000000004b"), "custom", "animation:custom", "visual:custom", true),
+                        ],
+                        [new(Guid.Parse("15200000-0000-4000-8000-00000000004c"), "closed", "open", "open", 1, "true")]),
+                    new(Guid.Parse("15200000-0000-4000-8000-00000000004d"), 100, 100, 10,
+                        new Dictionary<string, double> { ["force"] = .5 }, [.75, .5, .25], "vfx:shatter",
+                        "debris:test", true, 20),
+                    new(Guid.Parse("15200000-0000-4000-8000-00000000004e"), ["destroy", "move"],
+                        ["placeable.plot.override"], "Protected", true, "PlaceableProtectionOverride"),
+                    new(Guid.Parse("15200000-0000-4000-8000-00000000004f"), PlaceableAuthoredLockState.Locked,
+                        ["key:test"], "mechanics", 12, "sha256:test", true, true, true, ["lock.admin"])), true,
+                new(Guid.Parse("15200000-0000-4000-8000-000000000050"), 1, "test:r094",
+                    new(Guid.Parse("15200000-0000-4000-8000-000000000051"), "container:open",
+                        "damage:ember", 10, 12, 30, "ash", "vfx:ember", "ash", true, true),
+                    new(Guid.Parse("15200000-0000-4000-8000-000000000052"),
+                        Guid.Parse("15200000-0000-4000-8000-000000000053"),
+                        PlaceableAuthoredLootSpawnTiming.Open, 42, true, [], 0,
+                        new(Guid.Parse("15200000-0000-4000-8000-000000000053"), 1, "test:r094",
+                            [new(item.Id.Value, "relic", 1, 1, 2, 1, "true", true)])),
+                    new(Guid.Parse("15200000-0000-4000-8000-000000000054"), "1.0.0",
+                        "ContainerOpened", "ContainerClosed", true, true, true, true),
+                    new(Guid.Parse("15200000-0000-4000-8000-000000000055"), "1.0.0",
+                        "LockStateChanging", "LockStateChanged", true, true, true, true),
+                    new(Guid.Parse("15200000-0000-4000-8000-000000000056"), "1.0.0",
+                        "ContainerContentsChanged", true, true, true, true)), true)],
             [new(Guid.Parse("15100000-0000-4000-8000-000000000002"), 1, "test:g13-p-q", door.Id,
                 new(10, 1, false, "damaged", "breached", true, "debris", "repair"),
                 new(string.Empty, "loading.title", "loading.tip", true, 0), [], dialogue.Id.Value, "ash",
@@ -171,7 +420,22 @@ public sealed class WorldFeaturePersistenceTests : IDisposable
                         Guid.Parse("15200000-0000-4000-8000-000000000012"), false, "Retour")],
                     new Dictionary<string, string>(),
                     new("nav-obstacle:test-door", "nav-link:test-door", ["closed", "locked", "jammed", "disabled", "custom"],
-                        ["open", "broken"], .75, .25, true)))],
+                        ["open", "broken"], .75, .25, true)),
+                new(Guid.Parse("15300000-0000-4000-8000-000000000001"), 1, "test:r081",
+                    "assets/doors/test.glb", TransformValue.Identity,
+                    new(Guid.Parse("15300000-0000-4000-8000-000000000002"), DoorAccessLockState.Locked,
+                        ["key:ember"], "mechanics", 12, null, true, true, true, true, ["door.unlock"]),
+                    new(Guid.Parse("15300000-0000-4000-8000-000000000003"), "1.0.0", "DoorOpenRejected",
+                        [new("fr-FR", "Verrouillée."), new("en-US", "Locked.")], "audio:locked",
+                        "animation:rattle", "scripts/rejected"),
+                    new(Guid.Parse("15300000-0000-4000-8000-000000000004"), "door:open", "damage:ember",
+                        10, 12, 30, "ash-watch", "vfx:ember", "ash-watch", true, false, ["front"], ["interact"]),
+                    new(Guid.Parse("15300000-0000-4000-8000-000000000005"), "1.0.0",
+                        "PortalUseRequested", "PortalUseCompleted"),
+                    new(Guid.Parse("15300000-0000-4000-8000-000000000006"), "1.0.0",
+                        "DoorOpened", "DoorClosed"), new Dictionary<string, string>(),
+                    new(Guid.Parse("15300000-0000-4000-8000-000000000007"), 1, "test:r082", "1.0.0",
+                        "DoorLocked", "DoorUnlocked"), true), true)],
             [new(Guid.Parse("15100000-0000-4000-8000-000000000003"), 1, "test:g13-r-s", trigger.Id, area.Id,
                 null, new("inspect", "cursor", "outline", "prompt", "script", true, "use"), null, "trigger",
                 new("key", false, "denied"), new(true, "danger", false, true, "allowed", "denied"),
@@ -219,7 +483,27 @@ public sealed class WorldFeaturePersistenceTests : IDisposable
                     "interaction:trade", "choice:trade",
                     [new(Guid.Parse("15200000-0000-4000-8000-000000000031"), item.Id, "standard", 12, 5,
                         "gold", ["quest:open"])], ["fr-FR", "en-US"], ["quest:open"],
-                    new Dictionary<string, string> { ["onOpen"] = "scripts/merchant_open" }, 100, 1000, true), true)],
+                    new Dictionary<string, string> { ["onOpen"] = "scripts/merchant_open" }, 100, 1000, true), true,
+                new(Guid.Parse("15400000-0000-4000-8000-000000000001"), 1, "test:r091", "world-store",
+                    "merchant.world.name", ["fr-FR", "en-US"],
+                    [new(Guid.Parse("15400000-0000-4000-8000-000000000002"), creature.Id,
+                        dialogue.Id.Value, "choice:trade", "interaction:trade", "npc")],
+                    new(Guid.Parse("15400000-0000-4000-8000-000000000003"), 1, "test:r091", true, true,
+                        true, true, true, "merchant-world-nominal"),
+                    [new(Guid.Parse("15400000-0000-4000-8000-000000000004"), item.Id, "standard",
+                        MerchantSupplyPolicy.Infinite, 12, "supplier:world", 24, 1, ["quest:closed"], 5, "gold")],
+                    new(Guid.Parse("15400000-0000-4000-8000-000000000005"), 1, "test:r091", 1.2m, .6m,
+                        [new(0, 1), new(100, 1.1m)], [new(0, 1), new(100, .9m)],
+                        new Dictionary<string, decimal> { ["gold"] = 1 }, .1m, .2m, .2m, .1m, 1, 500),
+                    new(Guid.Parse("15400000-0000-4000-8000-000000000006"), 1, "test:r091", ["relic"],
+                        ["merchant-approved"], ["stolen"], 1, 5, ["author:forge"], .5, null,
+                        "scripts/merchant_rule")), true,
+                new(Guid.Parse("15400000-0000-4000-8000-000000000007"), 1, "test:r092",
+                    new(Guid.Parse("15400000-0000-4000-8000-000000000008"), 1, "test:r092", "1.0.0",
+                        "StoreSessionOpened", "StoreSessionClosed", true, true, true, true),
+                    new(Guid.Parse("15400000-0000-4000-8000-000000000009"), 1, "test:r092", true, true,
+                        true, true, true, true, true, true,
+                        ["name", "compare", "price", "quantity"])), true)],
             [new(Guid.Parse("15100000-0000-4000-8000-000000000006"), 1, "test:g13-y-z", creature.Id,
                 new(dialogue.Id.Value, "full", "limited", "greeting", "full", "deny"),
                 new("line", 0, 1, true, true, true),
@@ -232,12 +516,59 @@ public sealed class WorldFeaturePersistenceTests : IDisposable
                 new(true, true, true, true, "owner"), new(true, true, "owner", true, 60),
                 new(Guid.Parse("15300000-0000-4000-8000-000000000001"), 1, "test:r037",
                     new(true, true, "scripts/recruit", "gold", 5, 0),
-                    new("party", "server", true), ["follow", "hold"],
+                    new("party", "server", true),
+                    ["move", "follow", "hold", "rally", "guard", "interact", "attack", "defend",
+                        "focus-fire", "protect", "disengage", "use-ability"],
                     new("companion.inventory", "companion.standard", ["main-hand", "armor"]),
                     new("companion.recoverable", "recoverable-corpse", 30),
                     [new("recruit", dialogue.Id.Value, "dialogue.recruit"),
                      new("owner", dialogue.Id.Value, "dialogue.owner")],
-                    new(false, [area.Id], true, true, "party.safe", 15)), true)], scripts);
+                    new(false, [area.Id], true, true, "party.safe", 15)), true,
+                new(Guid.Parse("15300000-0000-4000-8000-000000000010"), 1, "test:r074",
+                    new(Guid.Parse("15300000-0000-4000-8000-000000000011"), 1, "test:r074", true,
+                        ["quest:open"], 5, "gold", 0, ["relation:increase"], true, true,
+                        "scripts/recruit"),
+                    new(Guid.Parse("15300000-0000-4000-8000-000000000012"), 1, "test:r074",
+                        dialogue.Id.Value, "not-recruited", ["quest:open"], "offer.join", "offer.refuse",
+                        ["relation:increase"]),
+                    new(Guid.Parse("15300000-0000-4000-8000-000000000013"), 1, "test:r074",
+                        dialogue.Id.Value, "recruited-by-speaker",
+                        ["move", "follow", "hold", "rally", "guard", "interact", "attack", "defend",
+                            "focus-fire", "protect", "disengage", "use-ability"], true, true, true,
+                        "companion.depart"),
+                    new(Guid.Parse("15300000-0000-4000-8000-000000000014"), 1, "test:r074", true, true,
+                        true, true, CompanionWorldProfile.CompanionPersistence.Campaign,
+                        "companion.inventory", "party.safe", true),
+                    new(Guid.Parse("15300000-0000-4000-8000-000000000015"), 1, "test:r074", 3, 1, 1, 1,
+                        8, new Dictionary<string, int> { ["Support"] = 2 })), true,
+                new(Guid.Parse("15300000-0000-4000-8000-000000000020"), 1, "test:r075",
+                    new(Guid.Parse("15300000-0000-4000-8000-000000000021"), 1, "test:r075", "individual",
+                        ["player:owner"], true, ["party", "shared", "game-master"], 1),
+                    new(Guid.Parse("15300000-0000-4000-8000-000000000022"), 1, "test:r075",
+                        ["move", "follow", "hold", "rally", "guard", "interact"], "line", "party-waypoints",
+                        0, 100),
+                    new(Guid.Parse("15300000-0000-4000-8000-000000000023"), 1, "test:r075",
+                        ["attack", "defend", "focus-fire", "protect", "disengage", "use-ability"],
+                        ["passive", "defensive", "balanced", "aggressive"], ["heal"], 0, 100),
+                    new(Guid.Parse("15300000-0000-4000-8000-000000000024"), 1, "test:r075", .6, .4, .5,
+                        false, "Support", 3, ["heal"],
+                        Guid.Parse("15300000-0000-4000-8000-000000000025"),
+                        Guid.Parse("15300000-0000-4000-8000-000000000026"),
+                        "replace:/companion/control/ai|role:Support", "owner-or-gm"),
+                    new(Guid.Parse("15300000-0000-4000-8000-000000000027"), 1, "test:r075", "full",
+                        [Guid.Parse("15300000-0000-4000-8000-000000000028")],
+                        new Dictionary<string, Guid>
+                        {
+                            ["main-hand"] = Guid.Parse("15300000-0000-4000-8000-000000000029"),
+                        }, true, "player:owner")), true,
+                new(Guid.Parse("15300000-0000-4000-8000-000000000030"), 1, "test:r076",
+                    new(Guid.Parse("15300000-0000-4000-8000-000000000031"), 1, "test:r076",
+                        "recoverable-corpse", 30, "resource:ember", "creature:heir", "memorial:elyra", true),
+                    new(Guid.Parse("15300000-0000-4000-8000-000000000032"), 1, "test:r076",
+                        10, 30, 60, true, true, ["party.safe"]),
+                    new(Guid.Parse("15300000-0000-4000-8000-000000000033"), 1, "test:r076",
+                        true, true, true, true, true, true, true, true, true, true,
+                        ["health", "focus"])), true)], scripts);
         return new(source.Id, source.Title, source.Module.WithWorldFeatures(catalog),
             [.. source.Blueprints, placeable, door, trigger, item], source.Areas, source.Dialogues, source.Quests);
     }

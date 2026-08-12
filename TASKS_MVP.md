@@ -1,16 +1,321 @@
 # File de travail canonique — OpenRPG Forge
 
-## Programme actif : P0-CLOSURE
+## Programme terminé : P2-CLOSURE
 
-- [x] Fermer les 50 lots P0 `R001` à `R050` dans le périmètre autorisé. Les 196 fonctions P0 sont
-  `Tested` et le programme est terminé.
+- [x] Conserver les 50 lots P0 `R001` à `R050` fermés et les 196 fonctions P0 `Tested`.
+- [x] Fermer les 70 lots P1 `R051` à `R120` dans le périmètre autorisé. Les 298 fonctions P1 sont
+  `Tested`.
+- [x] Fermer les 20 lots P2 selon `docs/planning/P2_ACCEPTANCE_PROGRAM.md` sans
+  ouvrir P3/P4 ni AV7–AV10 et sans commit ou push implicite.
 
 Le programme est global, mais son unité d'exécution reste un seul lot de une à cinq fonctions. Le
 thread Dev principal suit l'ordre de `docs/planning/COMPLETE_FUNCTION_BACKLOG.md`, applique le
-protocole `docs/planning/P0_ACCEPTANCE_PROGRAM.md`, teste à chaque palier et ne passe au lot suivant
+protocole `docs/planning/P2_ACCEPTANCE_PROGRAM.md`, teste à chaque palier et ne passe au lot suivant
 qu'après fermeture ou blocage documenté du lot courant.
 
 ### Lot courant
+
+- [x] `R121` — `FC-MULTI-P2-01` : découverte directe/LAN/annuaire, favoris/récents/invitations,
+  lobby complet, constructeur et autorité de personnage, politiques PvP étendues, UI, MCP,
+  transaction, round-trip et tests ciblés fermés.
+- [x] `R122` — `FC-MULTI-P2-02` : instances de zones, création dynamique, authentification,
+  administration distante et modération fermées avec UI scrollable, transaction, MCP et tests.
+- [x] `R123` — `FC-MULTI-P2-03` : persistance monde, SQL sécurisé, métriques/santé,
+  profiler serveur et reconnexion.
+- [x] `R124` — `FC-MULTI-P2-04` : sauvegarde/rollback serveur, capacité et files d’attente,
+  UI, transaction, MCP et intégration aux services réseau.
+- [x] `R125` — `FC-DM-P2-01` : client GM séparé, Creator, spawn multiple, Chooser et focus objet,
+  profil auteur, UI Live Director, MCP et tests ciblés.
+- [x] `R126` — `FC-DM-P2-02` : téléportation, destruction, soin, limbo et possession gouvernés,
+  reliés aux services autoritaires, UI, MCP et tests.
+- [x] `R127` — `FC-DM-P2-03` : impersonation, protection GM, or, XP et portes gouvernés,
+  adaptateurs persistants/runtime, UI, MCP et tests.
+- [x] `R128` — `FC-DM-P2-04` : triggers, sélection multiple, mouvement/attaque de groupe et
+  téléportation joueur gouvernés avec UI, MCP et adaptateurs runtime.
+- [x] `R129` — `FC-DM-P2-05` : recherche, scripts, variables, scènes préparées et brouillard GM
+  gouvernés avec UI, MCP, persistance et adaptateurs runtime.
+- [x] `R130` — `FC-DM-P2-06` : gestion live des quêtes et rencontres gouvernée avec UI, MCP,
+  conséquences RPG et adaptateurs spawn/IA.
+- [x] `R131` — `FC-BUILD-P2-01` : bundles reproductibles Windows/Linux/macOS et promotions
+  Development/Preview/Stable conditionnées par la matrice de compatibilité et le rollback.
+- [x] `R132` — `FC-CONTENT-P2-01` : fournisseur VFX budgété, rotation de confiance signée et
+  transport delta reprenable avec retries et contrôle SHA-256.
+- [x] `R135` — `FC-AREA-P2-01` : terrain multi-provider, features tessellées, vent relié aux
+  matériaux, météo distribuée et transitions de ciel exécutables.
+- [x] `R136` — `FC-AREA-P2-02` : eau plan/rivière/volume avec shader, courant,
+  flottabilité, navigation, nage, audio et budgets qualité.
+- [x] `R137` — `FC-AREA-P2-03` : navigation volumétrique vol/nage/espace avec A*, coûts,
+  steering acteur, foule et évitement dynamique.
+- [x] `R138` — `FC-PALETTE-P2-01` : collections nommées et palettes de tâche persistantes,
+  métriques GLB/PNG automatiques et validation artistique alimentée par les mesures.
+- [x] `R139` — `FC-AUDIO-P2-01` : réverbération convolutive par fournisseur runtime,
+  fallback algorithmique et sends ordonnés par source.
+- [x] `R140` — `FC-WAYPOINT-P2-01` : suivi runtime des routes aériennes, vitesse,
+  orientation, inclinaison animée, obstacles et boucles.
+- [x] `R142` — `FC-GAMEPLAY-P2-02` : météo autoritaire répliquée par révision et
+  dispatch ForgeScript typé avec effets de gameplay.
+- [x] `R143` — `FC-AI-P2-01` : simulation déterministe de combat comparant archétypes,
+  taux de victoire, durée, ressources, pathing et phases, avec UI et MCP gouvernés.
+
+- [x] `R120` — `FC-AI-P1-03` : agent de test, simulations dialogue/quête, cohérence narrative et
+  prompts versionnés fermés avec profil borné, UI inspectée, MCP sans shell, préflight build et
+  portail intégré vert à 1 359 tests .NET.
+- [x] `R051` — `FC-PROJECT-P1-01` : cinq familles d'événements projet configurables fermées avec
+  UI inspectée, transaction, persistance, ForgeScript, MCP, pré-build, smokes et portail intégré vert
+  à 1 366 tests .NET.
+- [x] `R052` — `FC-PROJECT-P1-02` : événements utilisateur globaux, horloge/calendrier et huit pages
+  joueur localisées fermés avec UI inspectée, persistance, ForgeScript, MCP, sauvegarde 1.4,
+  pré-build, smokes et portail intégré vert à 1 374 tests .NET.
+- [x] `R053` — `FC-AREA-P1-01` : groupes paramétriques et éditables, outils de tuile, auto-fit
+  déterministe, propriétés spécialisées et redimensionnement avec repositionnement fermés avec UI
+  inspectée, persistance, ForgeScript, MCP, pré-build, smokes et portail vert à 1 382 tests .NET.
+- [x] `R054` — `FC-AREA-P1-02` : copie de zone, intérieur/extérieur, jour/nuit, éclairage et brouillard
+  fermés avec UI inspectée, transaction, persistance, ForgeScript, MCP, pré-build, smokes et portail
+  intégré vert à 1 390 tests .NET.
+- [x] `R055` — `FC-AREA-P1-03` : audio de zone, événement utilisateur, carte et brouillard de guerre,
+  occlusion/visibilité et LOD fermés avec UI inspectée, transaction, persistance, ForgeScript, MCP,
+  pré-build, smokes et portail intégré vert à 1 399 tests .NET.
+- [x] `R056` — `FC-AREA-P1-04` : couches et groupes d’édition fermés avec arbre imbriqué et
+  glisser-déposer, sélection viewport, export partiel, UI inspectée, persistance, ForgeScript, MCP,
+  pré-build, smokes et portail intégré vert à 1 408 tests .NET.
+- [x] `R057` — `FC-PALETTE-P1-01` : mise à jour blueprint/instances, catégories hiérarchiques,
+  miniatures/prévisualisation et recherche avancée d’assets fermées avec UI inspectée, turntable
+  OBJ texturé, transaction, persistance, ForgeScript, CLI, MCP, pré-build, smokes et portail intégré
+  vert à 1 415 tests .NET.
+- [x] `R058` — `FC-PALETTE-P1-02` : variantes de prefab, compositions/collections et budget d’asset
+  fermés avec UI inspectée, transaction, persistance, ForgeScript, MCP, pré-build, smokes et portail
+  intégré vert à 1 420 tests .NET.
+- [x] `R059` — `FC-SHELL-P1-01` : filtres par calques et volumes, pinceau continu aligné sur
+  surface, édition multi-zones à deux viewports avec copie protégée, aide locale sourcée et sept
+  profils métier fermés avec UI inspectée, persistance, MCP, pré-build, smokes et portail intégré
+  vert à 1 425 tests .NET.
+- [x] `R060` — `FC-SHELL-P1-02` : autosave versionné, détection d’une session interrompue,
+  snapshots hashés et confinés, comparaison obligatoire et restauration sélective fermés avec UI
+  inspectée, commande atomique, undo/redo, persistance, MCP, smokes et portail vert à 1 429 tests .NET.
+- [x] `R061` — `FC-AUDIO-P1-01` : recherche et aperçu gouvernés, quatre modes de sélection,
+  modulation avec courbes/tempo/statistiques, mix LUFS et ambiance 2D personnalisée fermés avec UI
+  inspectée, commande, undo/redo, persistance, ForgeScript, MCP, runtime et portail vert à
+  1 435 tests .NET.
+- [x] `R062` — `FC-AUDIO-P1-02` : portée avec sphères 3D, contrôle script typé, ambiance adaptative,
+  musique synchronisée et monitoring des bus fermés avec UI inspectée, commande, undo/redo,
+  persistance, ForgeScript, MCP, runtime et portail intégré vert à 1 440 tests .NET.
+- [x] `R063` — `FC-AUDIO-P1-03` : sous-titres dialogue/effet/ambiance localisés avec repli,
+  importance, durée et direction fermés avec gouvernance, UI inspectée, commande, undo/redo,
+  persistance, ForgeScript, MCP, HUD runtime et portail intégré vert à 1 444 tests .NET.
+- [x] `R064` — `FC-WAYPOINT-P1-01` : apparence d'éditeur, map note, activation de map note, points
+  de patrouille ordonnés et patrouille forward/reverse fermés avec profil canonique, validation,
+  UI inspectée, commande, undo/redo, persistance, ForgeScript, MCP, HUD, acteur runtime et portail
+  intégré vert à 1 452 tests .NET.
+- [x] `R065` — `FC-WAYPOINT-P1-02` : orientation au waypoint, ancres audio/VFX, groupes et requêtes,
+  visualisation des routes fermés avec profil canonique, validation, UI inspectée, commande,
+  undo/redo, persistance, ForgeScript, MCP, nœuds runtime, overlay moteur et portail intégré vert
+  à 1 461 tests .NET.
+- [x] `R066` — `FC-GAMEPLAY-P1-01` : vol libre, projectiles, physique 3D, ciblage et temps de monde
+  fermés avec profil canonique, validation, UI graphique inspectée, commande, undo/redo,
+  persistance, ForgeScript, MCP, nœuds moteur et portail intégré vert à 1 469 tests .NET.
+- [x] `R067` — `FC-GAMEPLAY-P1-02` : sauvegarde par joueur/partie/serveur, checkpoints et respawn,
+  carte/journal/HUD, verrous cinématique/dialogue et replay déterministe fermés avec profil canonique,
+  validation, UI graphique inspectée, commande, undo/redo, persistance, ForgeScript, MCP, nœuds
+  moteur et portail intégré vert à 1 477 tests .NET.
+- [x] `R068` — `FC-DIALOGUE-P1-01` : tokens typés, participants multiples, cinq modes d'évaluation,
+  wizard de scripts sourcé et commentaires de nœud fermés avec profil canonique, validation, UI
+  inspectée, commande, undo/redo, persistance, ForgeScript, MCP, nœuds moteur et portail intégré
+  vert à 1 487 tests .NET.
+- [x] `R069` — `FC-DIALOGUE-P1-02` : scripts fin/abandon, recherche/remplacement preview-only,
+  six badges et mode review, mémoire typée et checks de compétence fermés avec profil canonique,
+  validation, UI inspectée, commande, undo/redo, persistance, ForgeScript, MCP et nœuds moteur ;
+  portail intégré vert à 1 494 tests .NET.
+- [x] `R070` — `FC-DIALOGUE-P1-03` : graphes imbriqués versionnés, relations et conséquences typées,
+  couverture de branches, édition collaborative et génération IA contrôlée fermés avec profil
+  canonique, validation, UI inspectée, commande, undo/redo, persistance, ForgeScript, MCP et nœuds
+  moteur ; portail intégré vert à 1 501 tests .NET.
+- [x] `R071` — `FC-QUEST-P1-01` : huit objectifs explicites, récompenses atomiques, commentaires
+  auteur et reviews, Plot Wizard transparent et cast du scénario fermés avec profil canonique,
+  validation, UI inspectée, commande, undo/redo, persistance, ForgeScript, MCP et nœuds moteur ;
+  portail intégré vert à 1 508 tests .NET.
+- [x] `R072` — `FC-QUEST-P1-02` : props du scénario, étapes, visibilité cachée/révélée, chronologie et
+  pins de carte fermés avec profil canonique, validation des références, UI inspectée, commande,
+  undo/redo, persistance, ForgeScript, MCP et nœuds moteur ; portail intégré vert à 1 516 tests .NET.
+- [x] `R073` — `FC-QUEST-P1-03` : tests générés et génération IA de quête fermés avec cinq graphes
+  canoniques, runner nominal/échec, plan IA traçable, lint, approbation et transaction, UI inspectée,
+  commande, undo/redo, persistance, ForgeScript, MCP et nœuds moteur ; portail intégré vert à
+  1 523 tests .NET.
+- [x] `R074` — `FC-COMPANION-P1-01` : créature et politique de recrutement, contextes avant/après
+  recrutement, transaction atomique et quotas de groupe fermés avec profil canonique, validation,
+  UI inspectée, commande, undo/redo, persistance, ForgeScript, MCP et nœuds moteur ; portail intégré
+  vert à 1 527 tests .NET.
+- [x] `R075` — `FC-COMPANION-P1-02` : propriété et transferts, douze ordres de déplacement/combat,
+  autonomie gouvernée et équipement permissionné fermés avec profil canonique, validation, UI
+  inspectée, commande, undo/redo, persistance, ForgeScript, MCP et nœuds moteur ; portail intégré
+  vert à 1 531 tests .NET.
+- [x] `R076` — `FC-COMPANION-P1-03` : six politiques de survie, cohésion navigation/portail/
+  téléportation sûre et HUD de groupe accessible fermés avec profil canonique, validation, UI
+  inspectée, commande, undo/redo, persistance, ForgeScript, MCP, nœuds moteur et panneau HUD visible ;
+  portail intégré vert à 1 535 tests .NET.
+- [x] `R077` — `FC-CREATURE-P1-01` : assistant, rôle et menace, espèce et TraitSet, apparence et
+  AnimationGraph fermés dans le blueprint canonique avec UI inspectée, commande, undo/redo,
+  persistance, ForgeScript, MCP, adaptateur RPG Kit et nœuds du personnage 3D ; portail intégré vert
+  à 1 542 tests .NET.
+- [x] `R078` — `FC-CREATURE-P1-02` : état initial et pose, attributs, défenses et sauvegardes,
+  capacités spéciales et inventaire fermés dans le blueprint canonique avec UI inspectée, commande,
+  undo/redo, persistance, ForgeScript, MCP, adaptateur RPG Kit et cinq groupes de nœuds runtime ;
+  portail intégré vert à 1 550 tests .NET.
+- [x] `R079` — `FC-CREATURE-P1-03` : factions pondérées, perception multi-sens, conversations
+  contextuelles, protections narratives et `OnConversation` fermés dans le blueprint canonique avec
+  UI inspectée, commande, undo/redo, persistance, ForgeScript, MCP, adaptateur RPG Kit et cinq groupes
+  de nœuds runtime ; portail intégré vert à 1 558 tests .NET et 39 tests Python.
+- [x] `R080` — `FC-CREATURE-P1-04` : perception détectée/perdue, attaque déclarée/résolue,
+  capacité ciblée/impactée, blocage et récupération, contrôleur IA interchangeable et blackboard
+  typé fermés dans le blueprint canonique avec UI inspectée, commande, undo/redo, persistance,
+  ForgeScript, MCP, adaptateur RPG Kit et cinq groupes de nœuds runtime ; portail intégré vert à
+  1 566 tests .NET et 39 tests Python.
+- [x] `R081` — `FC-DOOR-P1-01` : verrou et credentials, refus d'ouverture localisé, piège de porte,
+  cycle de portail demandé/complété et événements terminaux d'ouverture/fermeture fermés sur le
+  profil canonique avec UI inspectée, commande, undo/redo, persistance, ForgeScript, MCP, adaptateur
+  RPG Kit et cinq groupes de nœuds runtime ; portail intégré vert à 1 576 tests .NET et 39 tests
+  Python.
+- [x] `R082` — `FC-DOOR-P1-02` : `DoorLocked` et `DoorUnlocked`, méthode, acteur, credential,
+  états et provenance fermés sur le profil canonique avec UI inspectée, commande, undo/redo,
+  persistance, ForgeScript, MCP, adaptateur RPG Kit et nœud runtime ; portail intégré vert à
+  1 581 tests .NET et 39 tests Python.
+- [x] `R083` — `FC-ENCOUNTER-P1-01` : assistant de rencontre, difficulté data-driven, groupes à
+  bornes et budgets, sélection par évaluation du groupe et sept politiques d'activation fermés sur
+  le profil canonique avec UI inspectée, commande, undo/redo, persistance, ForgeScript, MCP,
+  adaptateur RPG Kit et cinq nœuds runtime ; portail intégré vert à 1 591 tests .NET et 39 tests
+  Python.
+- [x] `R084` — `FC-ENCOUNTER-P1-02` : ancres manuelles transformées, restrictions d'activateur et
+  autorité serveur, événements d'entrée/sortie/épuisement et graphe phases/vagues fermés sur le
+  profil canonique avec UI inspectée, commande, undo/redo, persistance, ForgeScript, MCP, adaptateur
+  RPG Kit et quatre groupes de nœuds runtime ; portail intégré vert à 1 601 tests .NET et 39 tests
+  Python.
+- [x] `R085` — `FC-ENCOUNTER-P1-03` : prévisualisation statistique N runs, seeds reproductibles,
+  estimateurs pilotés par données, variances et percentiles fermés avec profil canonique, UI
+  inspectée, commande, undo/redo, persistance, ForgeScript, MCP, adaptateur RPG Kit et nœud runtime ;
+  portail intégré vert à 1 608 tests .NET et 39 tests Python.
+- [x] `R086` — `FC-FACTION-P1-01` : création, archive et suppression sûre avec migration, matrice
+  directionnelle asymétrique, bandes de disposition et réputation personnelle fermées sur le
+  catalogue canonique avec UI et heatmap inspectées, commande, undo/redo, persistance, ForgeScript,
+  MCP, adaptateur RPG Kit et nœuds runtime ; portail intégré vert à 1 615 tests .NET et 39 tests
+  Python.
+- [x] `R087` — `FC-FACTION-P1-02` : transactions globales aux cinq scopes, tags sémantiques,
+  matrice éditable avec comparaison/simulation/import-export/historique et réaction au joueur
+  fermés sur le profil canonique avec UI inspectée, commande, undo/redo, persistance, ForgeScript,
+  MCP, services RPG Kit et nœuds runtime ; portail intégré vert à 1 622 tests .NET et 39 tests
+  Python.
+- [x] `R088` — `FC-ITEM-P1-01` : assistant de création, apparence indépendante, masse/volume/grille,
+  piles atomiques répliquées et charges/usages fermés sur le profil canonique avec UI 1440×920
+  inspectée, commande, undo/redo, persistance, ForgeScript, MCP, adaptateur RPG Kit et cinq nœuds
+  runtime ; portail intégré vert à 1 627 tests .NET et 39 tests Python.
+- [x] `R089` — `FC-ITEM-P1-02` : protections d'objet plot, huit destinations de transfert,
+  modificateurs data-driven, pouvoir unique et slots d'équipement fermés sur le profil canonique
+  avec UI 1440×920 inspectée, commande, undo/redo, persistance, ForgeScript, MCP, services RPG Kit
+  et cinq nœuds runtime ; portail intégré vert à 1 632 tests .NET et 39 tests Python.
+- [x] `R090` — `FC-ITEM-P1-03` : tables de loot pondérées, inspecteur d'inventaire et neuf événements
+  de cycle de vie fermés sur le profil canonique avec UI 1440×920 inspectée, commande, undo/redo,
+  persistance, ForgeScript, MCP, services RPG Kit et trois nœuds runtime ; portail intégré vert à
+  1 637 tests .NET et 39 tests Python.
+- [x] `R091` — `FC-MERCHANT-P1-01` : magasin indépendant, wizard définition/vendeur/dialogue/
+  interaction/tests, stock fini/infini, courbes achat/vente et restrictions type/tags/qualité/
+  provenance/état/propriétaire/règle fermés sur le profil canonique avec UI 1440×920 inspectée,
+  commande, undo/redo, persistance, ForgeScript, MCP, services RPG Kit et cinq nœuds runtime ; portail
+  intégré vert à 1 643 tests .NET et 39 tests Python.
+- [x] `R092` — `FC-MERCHANT-P1-02` : stock infini non décrémenté, sessions OnOpen/OnClose avec
+  client/vendeur/prix/bilan et interface boutique clavier/manette/comparaison/filtres/panier/
+  confirmation/accessibilité fermés sur le profil canonique avec UI 1440×920 inspectée, commande,
+  undo/redo, persistance, ForgeScript, MCP, services RPG Kit et panneau runtime accessible ; portail
+  intégré vert à 1 648 tests .NET et 39 tests Python.
+- [x] `R093` — `FC-PLACEABLE-P1-01` : conteneur complet, machine visuelle à six états,
+  destructibilité, protection plot auditée et verrouillage fermés sur le profil canonique avec UI
+  1540×940 inspectée, commande, undo/redo, persistance, ForgeScript, MCP, services RPG Kit réutilisés
+  et panneau runtime accessible ; portail intégré vert à 1 653 tests .NET et 39 tests Python.
+- [x] `R094` — `FC-PLACEABLE-P1-02` : piège complet, trésor initial déterministe et persistant,
+  OnOpen/OnClose, OnLock/OnUnlock avec veto contrôlé et OnDisturbed transactionnel fermés sur le
+  profil canonique avec UI 1540×940 inspectée, commande, undo/redo, persistance, ForgeScript, MCP,
+  services RPG Kit réutilisés et panneau runtime accessible ; portail intégré vert à 1 659 tests .NET
+  et 39 tests Python.
+- [x] `R095` — `FC-PLACEABLE-P1-03` : DamageApplied/EntityDestroyed uniformes,
+  sockets/attachements avec snap, capacité, prefab et patch inverse, plus huit verbes contextuels
+  fermés sur le profil canonique avec UI 1540×940 inspectée, commande, undo/redo, persistance,
+  ForgeScript, MCP, services RPG Kit réutilisés et panneau runtime accessible ; portail intégré vert à
+  1 664 tests .NET et 39 tests Python.
+- [x] `R096` — `FC-TRIGGER-P1-01` : piège avec détection/désarmement/payload/reset,
+  filtre de cible typé, dix volumes de gameplay et visualisation d'occupation bornée fermés sur le
+  profil trigger canonique avec UI 1540×940 inspectée, commande, undo/redo, persistance, ForgeScript,
+  MCP, service RPG Kit réutilisé et panneau runtime accessible ; portail intégré vert à 1 669 tests
+  .NET et 39 tests Python.
+- [x] `R097` — `FC-SCRIPT-P1-01` : éditeur avec coloration/complétion/signature/docs/snippets/
+  symboles/formatage, Script Wizard typé, actions différées, combat autoritaire et effets périodiques
+  sérialisables fermés sur le document source canonique avec UI 1680×1000 inspectée, commande,
+  undo/redo, persistance, sandbox native, MCP, services RPG Kit réutilisés et panneau runtime
+  accessible ; portail intégré vert à 1 684 tests .NET et 39 tests Python.
+- [x] `R098` — `FC-SCRIPT-P1-02` : transactions d'inventaire, transitions de quête, sessions de
+  dialogue, adhésion/réputation de faction et perception déterministe fermées sur le service monde
+  RPG Kit partagé avec UI ForgeScript 1680×1000 inspectée, historique, sandbox native, MCP,
+  adaptateur unique et panneau runtime accessible ; portail intégré vert à 1 694 tests .NET et
+  39 tests Python.
+- [x] `R099` — `FC-SCRIPT-P1-03` : API audio/temps, événements custom, hot reload sûr et débogueur
+  distant permissionné fermés sur le service ForgeScript partagé avec UI 1680×1000 inspectée,
+  historique, sandbox native, MCP, adaptateur unique et panneau runtime accessible ; portail intégré
+  vert à 1 704 tests .NET et 39 tests Python.
+- [x] `R100` — `FC-SCRIPT-P1-04` : tests unitaires déterministes, profilage par handler,
+  documentation générée, analyse statique à cinq règles et état script enregistré/migrable fermés
+  sur un profil canonique transactionnel avec UI 1680×1000 inspectée, diagnostics cliquables, MCP,
+  sandbox nominale/abusive, adaptateur unique et panneau runtime accessible ; portail intégré vert à
+  1 708 tests .NET et 39 tests Python.
+- [x] `R101` — `FC-SCRIPT-P1-05` : interop éditeur/MCP fermée sur un profil canonique UUID/schéma/
+  provenance/API/binding, validation localisée et quotas, sources et bindings transactionnels avec
+  preview/apply/reject, Undo/Redo et snapshot exact, UI ForgeScript 1680×1000 inspectée, sandbox
+  nominale/abusive récupérable, MCP partagé et adaptateur runtime optionnel/requis ; portail intégré
+  vert à 1 715 tests .NET et 39 tests Python.
+- [x] `R102` — `FC-MULTI-P1-01` : serveur dédié et autoritaire, groupes complets, réplication par
+  composant et interest management fermés sur un profil canonique transactionnel, avec UI
+  1500×920 inspectée, permissions/audit, ForgeScript, MCP, adaptateurs runtime/serveur et scénario
+  intégré à deux clients ; portail vert à 1 724 tests .NET et 39 tests Python.
+- [x] `R103` — `FC-MULTI-P1-02` : synchronisation par manifeste/chunks/cache/reprise/delta/confiance,
+  lockfile pré-join avec rapport lisible, six rôles RBAC/ABAC, sept canaux de chat accessibles et
+  bus typé prioritaire/tracé/borné fermés sur un profil canonique transactionnel ; UI 1500×920
+  inspectée, ForgeScript, MCP et scénario serveur intégrés, portail vert à 1 733 tests .NET et
+  39 tests Python.
+- [x] `R104` — `FC-MULTI-P1-03` : logs JSON/texte avec confidentialité, rotation et sinks,
+  anti-cheat par contenu signé/intents/RNG/anomalies/sauvegardes client non fiables et campagnes
+  réseau déterministes multi-clients avec défauts, replay, soak et assertions d'état fermés sur un
+  profil canonique transactionnel ; UI 1500×920 inspectée, ForgeScript, MCP et scénario serveur
+  intégrés, portail vert à 1 743 tests .NET et 39 tests Python.
+- [x] `R105` — `FC-DM-P1-01` : authentification GM avec MFA/expiration/révocation, inspection à
+  six sections en lecture seule, roster à huit colonnes avec latence rafraîchie, journal dont les
+  hash sont intégralement recalculés et sept canaux GM modérés fermés sur un profil canonique ; UI
+  1500×920 inspectée, ForgeScript, MCP et scénario serveur intégrés, portail vert à 1 753 tests .NET
+  et 39 tests Python.
+- [x] `R106` — `FC-BUILD-P1-01` : import/export en masse, merge assisté de listes et graphes UUID,
+  packaging Windows portable/installeur, documentation générée et task manifests fermés après
+  audit source ; modes reproductibles, prérequis PowerShell 5.1, installation/désinstallation
+  réelle, parité UI/commandes et portail vert à 1 756 tests .NET et 39 tests Python.
+- [x] `R108` — `FC-CONTENT-P1-01` : import/export en masse, blueprints transitifs, manifeste
+  content-addressed, TTF gouvernées avec replis/shaping/DPI/locales et navigation/collision séparées
+  fermés après audit source ; commande, undo/redo, roundtrip, runtime et portail vert à 1 758 tests
+  .NET et 39 tests Python.
+- [x] `R109` — `FC-CONTENT-P1-02` : animations, tables typées, roundtrip externe avec watcher et
+  diff, pont Blender borné et variantes plateforme fermés après audit source ; reimport dry-run,
+  UI/commandes, persistance et portail vert à 1 760 tests .NET et 39 tests Python.
+- [x] `R110` — `FC-CONTENT-P1-03` : migration de package et désinstallation sûre fermées après
+  audit source ; exécution d’étape hôte exacte, dry-run sans écriture, backup, changelog,
+  restauration/rollback et refus des dépendants non remplacés, portail vert à 1 763 tests .NET et
+  39 tests Python.
+- [x] `R114` — `FC-EE-P1-01` : transformations runtime reconfirmées, deux viewports 3D multi-zones,
+  PBR metallic-roughness, LUT/HDR et éclairage Forward+ par pixel fermés après audit source ; LUT
+  réelle, repli diagnostiqué, persistance et portail vert à 1 763 tests .NET et 39 tests Python.
+- [x] `R115` — `FC-EE-P1-02` : budgets de lumières reliés au profileur, LOD/HLOD avec hooks de
+  génération déterministes et refus de dépassement fermés ; règles data-driven, NUI et événements
+  GUI reconfirmés, portail vert à 1 765 tests .NET et 39 tests Python.
+- [x] `R116` — `FC-EE-P1-03` : JSON, snapshots, copie runtime et AOE reconfirmés ; chargement de
+  zone fermé avec modes asynchrone/séquentiel, annulation configurable, cache/prélecture/progression
+  et gate de temps diagnostiquée ; portail vert à 1 767 tests .NET et 39 tests Python.
+- [x] `R117` — `FC-EE-P1-04` : NUI, interpolation et compilateur reconfirmés ; TrueType/scaling
+  fermé avec shaping, DPI, échelles éditeur/runtime, reflow, focus clavier/manette et huit cas de
+  capture à deux résolutions ; portail vert à 1 767 tests .NET et 39 tests Python. Programme P1
+  terminé à 298/298 fonctions et 70/70 lots.
+
+### Lots clos historiques P0
 
 - [x] `R036` — `FC-EE-P0-01` : `ORF-EE-002`, `ORF-EE-004` et `ORF-EE-028` sont fermés après audit
   source, tests ciblés, captures inspectées, benchmark 3D et portail intégré vert.
@@ -53,7 +358,7 @@ fiche détaillée sous `docs/aurora-parity/tasks/` est créée seulement lors de
 - les dépendances cycliques sont réduites au plus petit contrat traversant documenté ;
 - chaque lot conserve le prototype 3D jouable et exécute tests ciblés puis validation globale ;
 - `STATUS.md`, le tracker et le registre généré sont mis à jour avant le lot suivant ;
-- aucun P1/P2 ni lot Asset/Map n'interrompt le programme P0 sans décision explicite.
+- aucun P2 ni lot Asset/Map n'interrompt le programme P1 sans décision explicite.
 
 ## Lots différés hors programme
 

@@ -65,8 +65,47 @@ public sealed class AssistantWorkspaceProfileStoreTests : IDisposable
             loaded.Profile.AgentWorkflow.EffectiveSafety.PromptInjection.SuspiciousInstructionPatterns);
         Assert.Equal(profile.AgentWorkflow.EffectiveSafety.Offline,
             loaded.Profile.AgentWorkflow.EffectiveSafety.Offline);
+        Assert.Equal(profile.TestAutomation.Id, loaded.Profile.TestAutomation.Id);
+        Assert.Equal(profile.TestAutomation.SchemaVersion, loaded.Profile.TestAutomation.SchemaVersion);
+        Assert.Equal(profile.TestAutomation.Provenance, loaded.Profile.TestAutomation.Provenance);
+        Assert.Equal(profile.TestAutomation.Enabled, loaded.Profile.TestAutomation.Enabled);
+        Assert.Equal(profile.TestAutomation.RequiredAtRuntime, loaded.Profile.TestAutomation.RequiredAtRuntime);
+        Assert.Equal(profile.TestAutomation.MaximumScenarioSteps, loaded.Profile.TestAutomation.MaximumScenarioSteps);
+        Assert.Equal(profile.TestAutomation.MaximumDialoguePaths, loaded.Profile.TestAutomation.MaximumDialoguePaths);
+        Assert.Equal(profile.TestAutomation.MaximumQuestPaths, loaded.Profile.TestAutomation.MaximumQuestPaths);
+        Assert.Equal(profile.TestAutomation.DetectToneInconsistencies,
+            loaded.Profile.TestAutomation.DetectToneInconsistencies);
+        Assert.Equal(profile.TestAutomation.DetectRewardExploits,
+            loaded.Profile.TestAutomation.DetectRewardExploits);
+        Assert.Equal(profile.TestAutomation.VerifyMultiplayerDeterminism,
+            loaded.Profile.TestAutomation.VerifyMultiplayerDeterminism);
+        Assert.Equal(profile.CombatSimulation.Id, loaded.Profile.CombatSimulation.Id);
+        Assert.Equal(profile.CombatSimulation.RunsPerMatchup, loaded.Profile.CombatSimulation.RunsPerMatchup);
+        Assert.Equal(profile.CombatSimulation.PhaseHealthThresholds,
+            loaded.Profile.CombatSimulation.PhaseHealthThresholds);
+        Assert.Equal(profile.CombatSimulation.ArchetypeBlueprintIds,
+            loaded.Profile.CombatSimulation.ArchetypeBlueprintIds);
+        Assert.Equal(profile.TestAutomation.VerifySaveResume, loaded.Profile.TestAutomation.VerifySaveResume);
+        Assert.Equal(profile.TestAutomation.AllowedGameplayActions,
+            loaded.Profile.TestAutomation.AllowedGameplayActions);
         Assert.Equal(10, loaded.Profile.AgentWorkflow.ContextResources.Count);
         Assert.Equal(5, loaded.Profile.AgentWorkflow.Tools.Count);
+    }
+
+    [Fact]
+    public void R120_LegacyProfileWithoutTestAutomationMigratesToSafeDefault()
+    {
+        Assert.True(AssistantWorkspaceProfileStore.Save(_temporaryRoot, AssistantWorkspaceProfile.CreateDefault()).Succeeded);
+        var path = Path.Combine(_temporaryRoot, "assistant", "profile.json");
+        var document = JsonNode.Parse(File.ReadAllText(path))!.AsObject();
+        document["profile"]!.AsObject().Remove("testAutomation");
+        File.WriteAllText(path, document.ToJsonString());
+
+        var loaded = AssistantWorkspaceProfileStore.Load(_temporaryRoot);
+
+        Assert.True(loaded.Succeeded);
+        Assert.Equal(AssistantTestAutomationProfile.DefaultId, loaded.Profile.TestAutomation.Id);
+        Assert.Empty(AssistantTestAutomationProfileValidator.Validate(loaded.Profile.TestAutomation));
     }
 
     [Fact]

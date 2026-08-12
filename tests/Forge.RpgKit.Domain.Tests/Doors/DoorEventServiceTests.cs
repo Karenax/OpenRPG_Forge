@@ -33,5 +33,20 @@ public sealed class DoorEventServiceTests
         Assert.Equal("DoorUnlocked", unlocked.Name); Assert.Equal("credential", unlocked.Method); Assert.Equal("key:lighthouse", unlocked.Credential); Assert.Equal("DoorLocked", locked.Name);
     }
 
+    [Fact]
+    public void Lock_events_reject_missing_actor_method_provenance_and_non_terminal_transitions()
+    {
+        var id = Guid.NewGuid();
+
+        Assert.Throws<InvalidOperationException>(() => DoorEventService.CompleteLockTransition(id, string.Empty,
+            "credential", "key", LockState.Locked, LockState.Unlocked, "runtime:test", DateTimeOffset.UnixEpoch));
+        Assert.Throws<InvalidOperationException>(() => DoorEventService.CompleteLockTransition(id, "player",
+            string.Empty, "key", LockState.Locked, LockState.Unlocked, "runtime:test", DateTimeOffset.UnixEpoch));
+        Assert.Throws<InvalidOperationException>(() => DoorEventService.CompleteLockTransition(id, "player",
+            "credential", "key", LockState.Locked, LockState.Unlocked, string.Empty, DateTimeOffset.UnixEpoch));
+        Assert.Throws<InvalidOperationException>(() => DoorEventService.CompleteLockTransition(id, "player",
+            "credential", "key", LockState.Locked, LockState.Jammed, "runtime:test", DateTimeOffset.UnixEpoch));
+    }
+
     private static DoorDefinition Door() => new(Guid.NewGuid(), 1, "author:test", "lighthouse-door", "Porte", DoorPlacementMode.FreePlacement, null, null, new(new(0, 0, 0), new(0, 0, 0), new(1, 1, 1), new(0, 0, 0), 0, null, false, null), new("closed", [new("closed", DoorState.Closed, "closed", true, true), new("open", DoorState.Open, "open", false, true)], [new("closed", "open", "interact", TimeSpan.Zero, "")]), new(2, "both", new(1, 2, 1), "server", 1, "blocked"), new(PortalDestinationKind.Waypoint, Guid.NewGuid(), "anchor:lighthouse", new(0, 180, 0), true, new HashSet<string>()));
 }

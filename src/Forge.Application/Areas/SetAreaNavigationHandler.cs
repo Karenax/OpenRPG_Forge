@@ -56,9 +56,13 @@ public sealed class SetAreaNavigationHandler
             "replace",
             $"areas/{area.Id}/navigation",
             $"Configure {command.Navigation.AgentProfiles.Count} navigation agent(s) and " +
-            $"{command.Navigation.OffMeshLinks.Count} off-mesh link(s), " +
-            $"{command.Navigation.Anchors.Definitions.Count} anchor definition(s) and " +
-            $"{command.Navigation.Anchors.Instances.Count} anchor instance(s).");
+                $"{command.Navigation.OffMeshLinks.Count} off-mesh link(s), " +
+                $"{command.Navigation.Anchors.Definitions.Count} anchor definition(s) and " +
+                $"{command.Navigation.Anchors.Instances.Count} anchor instance(s), " +
+                $"{command.Navigation.Waypoints.Waypoints.Count} waypoint(s) and " +
+                $"{command.Navigation.Waypoints.PatrolRoutes.Count} patrol route(s), " +
+                $"{command.Navigation.Waypoints.Locators.Count} locator(s) and " +
+                $"{command.Navigation.Waypoints.Collections.Count} locator collection(s).");
         var inverse = new ProjectPatch(
             "replace",
             $"areas/{area.Id}/navigation",

@@ -58,6 +58,22 @@ public sealed class AssetCatalogTests
         Assert.All(diagnostics, diagnostic => Assert.Contains(item.Id.ToString(), diagnostic.Path));
     }
 
+    [Fact]
+    public void TechnicalMetadataValidatesDimensionsMetricsAndFacets()
+    {
+        var metadata = new AssetTechnicalMetadata(dimensions: new AssetDimensions(1.5, 2, 0.75),
+            style: "Stylized", skeleton: "Humanoid", materials: ["Stone", "stone"],
+            triangleCount: 12_500, variants: ["Ruined"], animations: ["Idle"],
+            compatibility: ["medieval"]);
+
+        Assert.Equal("stylized", metadata.Style);
+        Assert.Equal(["stone"], metadata.Materials);
+        Assert.Equal(12_500, metadata.TriangleCount);
+        Assert.Throws<ArgumentOutOfRangeException>(() => new AssetTechnicalMetadata(
+            dimensions: new AssetDimensions(0, 1, 1)));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new AssetTechnicalMetadata(triangleCount: -1));
+    }
+
     internal static AssetCatalogItem CreateItem(AssetCatalogItemId? id = null) => new(
         id ?? AssetCatalogItemId.ForExternalId("ambientcg:3DApple001"),
         "ambientcg:3DApple001",

@@ -7,6 +7,24 @@ namespace Forge.Domain.Tests.Navigation;
 public sealed class VolumetricNavigationTests
 {
     [Fact]
+    public void SteeringFollowsPathAvoidsCrowdAndStopsBeforeBlockedCell()
+    {
+        var profile = new VolumetricNavigationProfile(Guid.NewGuid(), 1, true,
+            VolumetricNavigationMode.Flight, 2, Vector3Value.Zero, new(20, 20, 20), .5f, [], [], false, "test");
+        var graph = VolumetricNavigationGraphBuilder.Build(profile);
+        var agent = new VolumetricAgentState(Guid.Parse("d1370000-0000-4000-8000-000000000001"),
+            new(-5, 0, 0), Vector3Value.Zero, .5f, 4);
+        var neighbor = new VolumetricAgentState(Guid.Parse("d1370000-0000-4000-8000-000000000002"),
+            new(-4.2f, 0, .2f), Vector3Value.Zero, .5f, 4);
+
+        var result = VolumetricSteeringService.Step(graph, agent, new(5, 0, 0), [neighbor], .25f, 2);
+
+        Assert.Equal(1, result.AvoidedAgents);
+        Assert.Equal("area.volumetric.crowd_avoided", result.DiagnosticCode);
+        Assert.True(result.NextPosition.X > agent.Position.X);
+        Assert.NotEqual(0, result.DesiredVelocity.Z);
+    }
+    [Fact]
     public void BuildsDeterministicGridAndRoutesAroundExpandedObstacle()
     {
         var obstacle = new NavigationVolumeDefinition(Guid.NewGuid(), "Tower", new Vector3Value(0, 2, 0),

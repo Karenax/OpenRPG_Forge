@@ -219,7 +219,46 @@ public static class AssetCatalogLoader
         $"asset-catalog:{externalId}",
         author: ReadOptionalString(item, "author"),
         attributionRequired: ReadBoolean(item, "attribution_required"),
-        attributionText: ReadOptionalString(item, "attribution_text"));
+        attributionText: ReadOptionalString(item, "attribution_text"),
+        technicalMetadata: ReadTechnicalMetadata(item));
+
+    private static AssetTechnicalMetadata ReadTechnicalMetadata(JsonElement item)
+    {
+        AssetDimensions? dimensions = null;
+        if (item.TryGetProperty("dimensions", out var dimensionsValue) &&
+            dimensionsValue.ValueKind == JsonValueKind.Object &&
+            TryReadDouble(dimensionsValue, "width", out var width) &&
+            TryReadDouble(dimensionsValue, "height", out var height) &&
+            TryReadDouble(dimensionsValue, "depth", out var depth))
+        {
+            dimensions = new AssetDimensions(width, height, depth);
+        }
+
+        var extracted = ReadStrings(item, "extracted_files");
+        var materials = ReadStrings(item, "materials");
+        if (materials.Count == 0)
+        {
+            materials = extracted.Where(path => Path.GetExtension(path).Equals(".mtl", StringComparison.OrdinalIgnoreCase))
+                .Select(Path.GetFileNameWithoutExtension).Where(value => !string.IsNullOrWhiteSpace(value))
+                .Cast<string>().ToArray();
+        }
+        var style = ReadOptionalString(item, "style") ?? ReadStrings(item, "tags").FirstOrDefault(tag =>
+            tag.Contains("styl", StringComparison.OrdinalIgnoreCase) ||
+            tag.Equals("realistic", StringComparison.OrdinalIgnoreCase) ||
+            tag.Equals("low-poly", StringComparison.OrdinalIgnoreCase));
+        var variant = ReadOptionalString(item, "variant");
+        var variants = ReadStrings(item, "variants").Concat(string.IsNullOrWhiteSpace(variant) ? [] : [variant])
+            .Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+        return new AssetTechnicalMetadata(
+            dimensions: dimensions,
+            style: style,
+            skeleton: ReadOptionalString(item, "skeleton"),
+            materials: materials,
+            triangleCount: ReadOptionalInt64(item, "triangle_count"),
+            variants: variants,
+            animations: ReadStrings(item, "animations"),
+            compatibility: ReadStrings(item, "compatibility"));
+    }
 
     private static string? SelectModelPath(JsonElement item, string? extractedRoot)
     {
@@ -358,6 +397,15 @@ public static class AssetCatalogLoader
 
     private static long ReadInt64(JsonElement element, string property) =>
         element.TryGetProperty(property, out var value) && value.TryGetInt64(out var result) ? result : 0;
+
+    private static long? ReadOptionalInt64(JsonElement element, string property) =>
+        element.TryGetProperty(property, out var value) && value.TryGetInt64(out var result) ? result : null;
+
+    private static bool TryReadDouble(JsonElement element, string property, out double result)
+    {
+        result = 0;
+        return element.TryGetProperty(property, out var value) && value.TryGetDouble(out result);
+    }
 
     private static bool IsSupportedModel(string? path) => !string.IsNullOrWhiteSpace(path) &&
         SupportedModelExtensions.Contains(Path.GetExtension(path));

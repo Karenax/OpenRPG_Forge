@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Forge.Scripting;
 
 namespace Forge.Mcp.Scripts;
@@ -22,17 +23,27 @@ public sealed record ScriptAssignedEventBinding(Guid Id, string EntityId, string
 public sealed record ScriptEventBindingPlanResult(bool Succeeded, string? PlanId, long Revision,
     ScriptAssignedEventBinding? Binding, string SemanticDiff, IReadOnlyList<AgentDiagnostic> Diagnostics,
     bool Applied, bool Reverted);
+public sealed record ForgeScriptInteropSnapshot(int SchemaVersion, ForgeScriptInteropProfile Profile,
+    long Revision, IReadOnlyList<ScriptSourceDocument> Sources, IReadOnlyList<ScriptAssignedEventBinding> Bindings);
 
 public sealed class ForgeScriptInteropService
 {
     private readonly ForgeScriptAgentService _agent;
+    private readonly ForgeScriptInteropProfile _profile;
     private readonly Dictionary<string, ScriptSourceDocument> _sources = new(StringComparer.Ordinal);
     private readonly Dictionary<string, SourcePlan> _sourcePlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, BindingPlan> _bindingPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<Guid, ScriptAssignedEventBinding> _bindings = [];
     private long _revision;
 
-    public ForgeScriptInteropService(IForgeScriptRuntime runtime) => _agent = new(runtime);
+    public ForgeScriptInteropService(IForgeScriptRuntime runtime, ForgeScriptInteropProfile? profile = null)
+    {
+        _agent = new(runtime ?? throw new ArgumentNullException(nameof(runtime)));
+        _profile = profile ?? ForgeScriptInteropProfile.Default;
+        var diagnostics = ForgeScriptInteropProfileValidator.Validate(_profile);
+        if (diagnostics.Count > 0)
+            throw new InvalidOperationException($"FORGESCRIPT_INTEROP_PROFILE_INVALID:{diagnostics[0].Code}");
+    }
     public long Revision => _revision;
     public ForgeScriptApiDescription GetApi() => _agent.GetApi();
     public IReadOnlyList<ScriptSourceDocument> GetSources() =>
@@ -46,13 +57,22 @@ public sealed class ForgeScriptInteropService
     {
         if (transaction.TransactionId == Guid.Empty || transaction.BaseRevision != _revision ||
             !ForgeScriptSourceValidator.IsSafeSourcePath(transaction.Path) ||
-            string.IsNullOrWhiteSpace(transaction.Provenance))
+            string.IsNullOrWhiteSpace(transaction.Provenance) || string.IsNullOrWhiteSpace(transaction.Source))
             return SourceFailure("script.transaction_invalid",
                 "Transaction, current revision, safe .as path and provenance are required.");
+        if (System.Text.Encoding.UTF8.GetByteCount(transaction.Source) > _profile.MaximumSourceBytes)
+            return SourceFailure("script.source_quota_exceeded", transaction.Path,
+                "Source exceeds the configured interop byte quota.");
+        if (!_sources.ContainsKey(transaction.Path) && _sources.Count >= _profile.MaximumSources)
+            return SourceFailure("script.source_count_quota_exceeded", "script/sources",
+                "Source count exceeds the configured interop quota.");
         var compile = _agent.Compile(transaction.Source);
         if (!compile.Succeeded) return SourceFailure(compile.Diagnostics);
         var requestedSourceId = transaction.SourceId.GetValueOrDefault();
         var sourceId = requestedSourceId == Guid.Empty ? StableId(transaction.Path) : requestedSourceId;
+        if (_sources.Values.Any(item => item.Id == sourceId && item.Path != transaction.Path))
+            return SourceFailure("script.source_uuid_duplicate", transaction.Path,
+                "Source UUID is already assigned to another canonical path.");
         var before = _sources.GetValueOrDefault(transaction.Path);
         var candidate = new ScriptSourceDocument(transaction.Path, transaction.Source, _revision,
             transaction.Provenance, sourceId, 1, _agent.GetApi().ApiVersion, transaction.RequiredAtRuntime);
@@ -85,7 +105,21 @@ public sealed class ForgeScriptInteropService
         else _sources[plan.Before.Path] = plan.Before with { Revision = checked(_revision + 1) };
         _revision = checked(_revision + 1);
         plan.Reverted = true;
+        plan.RevertedRevision = _revision;
         return new(true, _revision, plan.Before, $"revert-source:{plan.Candidate.Path}", [], planId, true, true);
+    }
+
+    public ScriptInteropResult RedoSourcePlan(string planId)
+    {
+        if (!_sourcePlans.TryGetValue(planId, out var plan) || !plan.Applied || !plan.Reverted ||
+            plan.RevertedRevision != _revision)
+            return SourceFailure("script.plan_not_redoable", planId);
+        _revision = checked(_revision + 1);
+        var redone = plan.Candidate with { Revision = _revision };
+        _sources[redone.Path] = redone;
+        plan.Reverted = false;
+        plan.AppliedRevision = _revision;
+        return new(true, _revision, redone, $"redo-source:{redone.Path}", [], planId, true, false);
     }
 
     public ScriptInteropResult CreateOrUpdateSource(ScriptSourceTransaction transaction)
@@ -104,7 +138,7 @@ public sealed class ForgeScriptInteropService
     {
         if (!_sources.TryGetValue(path, out var document))
             return new(false, path, "source_missing", [], [new("script.source_missing", path, path)]);
-        var response = _agent.TestInSandbox(document.Source, quotas);
+        var response = _agent.TestInSandbox(document.Source, quotas ?? _profile.TestQuotas());
         return new(response.Succeeded, path, response.Status, response.Events, response.Diagnostics);
     }
 
@@ -157,7 +191,60 @@ public sealed class ForgeScriptInteropService
         _bindings.Remove(plan.Binding.Id);
         _revision = checked(_revision + 1);
         plan.Reverted = true;
+        plan.RevertedRevision = _revision;
         return new(true, planId, _revision, plan.Binding, $"revert-binding:{plan.Binding.Id}", [], true, true);
+    }
+
+    public ScriptEventBindingPlanResult RedoEventBindingPlan(string planId)
+    {
+        if (!_bindingPlans.TryGetValue(planId, out var plan) || !plan.Applied || !plan.Reverted ||
+            plan.RevertedRevision != _revision)
+            return BindingFailure("script.binding.plan_not_redoable", planId);
+        _revision = checked(_revision + 1);
+        var redone = plan.Binding with { Revision = _revision };
+        _bindings[redone.Id] = redone;
+        plan.Reverted = false;
+        plan.AppliedRevision = _revision;
+        return new(true, planId, _revision, redone, $"redo-binding:{redone.Id}", [], true, false);
+    }
+
+    public string ExportSnapshot() => JsonSerializer.Serialize(new ForgeScriptInteropSnapshot(
+        1, _profile, _revision, GetSources(), GetBindings()));
+
+    public void RestoreSnapshot(string json)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(json);
+        if (_revision != 0 || _sources.Count != 0 || _bindings.Count != 0)
+            throw new InvalidOperationException("SCRIPT_INTEROP_RESTORE_REQUIRES_EMPTY_SERVICE");
+        ForgeScriptInteropSnapshot snapshot;
+        try
+        {
+            snapshot = JsonSerializer.Deserialize<ForgeScriptInteropSnapshot>(json)
+                       ?? throw new InvalidOperationException("SCRIPT_INTEROP_SNAPSHOT_INVALID");
+        }
+        catch (JsonException exception)
+        {
+            throw new InvalidOperationException("SCRIPT_INTEROP_SNAPSHOT_INVALID", exception);
+        }
+        if (snapshot.SchemaVersion != 1 || snapshot.Revision < 0 || snapshot.Profile != _profile ||
+            snapshot.Sources.Count > _profile.MaximumSources ||
+            snapshot.Sources.Select(item => item.Path).Distinct(StringComparer.Ordinal).Count() != snapshot.Sources.Count ||
+            snapshot.Sources.Select(item => item.Id).Distinct().Count() != snapshot.Sources.Count ||
+            snapshot.Bindings.Select(item => item.Id).Distinct().Count() != snapshot.Bindings.Count)
+            throw new InvalidOperationException("SCRIPT_INTEROP_SNAPSHOT_INVALID");
+        foreach (var source in snapshot.Sources)
+        {
+            if (!ForgeScriptSourceValidator.IsSafeSourcePath(source.Path) ||
+                source.SchemaVersion != 1 || source.ApiVersion != _profile.ApiVersion ||
+                System.Text.Encoding.UTF8.GetByteCount(source.Source) > _profile.MaximumSourceBytes ||
+                !_agent.Compile(source.Source).Succeeded)
+                throw new InvalidOperationException($"SCRIPT_INTEROP_SNAPSHOT_SOURCE_INVALID:{source.Path}");
+        }
+        if (snapshot.Bindings.Any(binding => !snapshot.Sources.Any(source => source.Path == binding.ScriptPath)))
+            throw new InvalidOperationException("SCRIPT_INTEROP_SNAPSHOT_BINDING_UNRESOLVED");
+        foreach (var source in snapshot.Sources) _sources.Add(source.Path, source);
+        foreach (var binding in snapshot.Bindings) _bindings.Add(binding.Id, binding);
+        _revision = snapshot.Revision;
     }
 
     public ScriptBindingPreview PreviewBinding(string entityId, string @event, string scriptPath)
@@ -169,13 +256,18 @@ public sealed class ForgeScriptInteropService
     }
 
     private ScriptInteropResult SourceFailure(string code, string message) =>
-        new(false, _revision, null, "no-change", [new(code, message, "script")]);
+        SourceFailure(code, "script", message);
+    private ScriptInteropResult SourceFailure(string code, string path, string message) =>
+        new(false, _revision, null, "no-change", [new(code, message, path, null, Severity: "error",
+            Source: "ForgeScript interop", Provenance: _profile.Provenance)]);
     private ScriptInteropResult SourceFailure(IReadOnlyList<AgentDiagnostic> diagnostics) =>
         new(false, _revision, null, "no-change", diagnostics);
     private ScriptEventBindingPlanResult BindingFailure(string code, string message) =>
         new(false, null, _revision, null, "no-change", [new(code, message, "script/eventBindings")], false, false);
     private static AgentDiagnostic Map(ForgeScriptSourceDiagnostic diagnostic) =>
-        new(diagnostic.Code, diagnostic.Message, diagnostic.Path);
+        new(diagnostic.Code, diagnostic.Message, diagnostic.Path, diagnostic.SubjectId?.ToString("D"),
+            Severity: diagnostic.Severity, SubjectUuid: diagnostic.SubjectId?.ToString("D"),
+            Source: "ForgeScript source validator", Provenance: "forge:r101");
 
     private static Guid StableId(string value)
     {
@@ -195,6 +287,7 @@ public sealed class ForgeScriptInteropService
         public bool Applied { get; set; }
         public bool Reverted { get; set; }
         public long AppliedRevision { get; set; }
+        public long RevertedRevision { get; set; }
     }
 
     private sealed class BindingPlan(string id, long baseRevision, ScriptAssignedEventBinding binding)
@@ -205,5 +298,6 @@ public sealed class ForgeScriptInteropService
         public bool Applied { get; set; }
         public bool Reverted { get; set; }
         public long AppliedRevision { get; set; }
+        public long RevertedRevision { get; set; }
     }
 }

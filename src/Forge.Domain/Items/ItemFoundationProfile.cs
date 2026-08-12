@@ -45,7 +45,10 @@ public sealed record ItemFoundationProfile(
     IReadOnlyList<string> Slots,
     IReadOnlyList<ItemFoundationProperty> Properties,
     IReadOnlyList<ItemFoundationText> Texts,
-    IReadOnlyList<string> AllowedInstanceOverrides)
+    IReadOnlyList<string> AllowedInstanceOverrides,
+    ItemCreationProfile? Creation = null,
+    ItemGameplayProfile? Gameplay = null,
+    ItemOperationsProfile? Operations = null)
 {
     public const int CurrentSchemaVersion = 1;
 

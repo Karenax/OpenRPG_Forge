@@ -17,6 +17,7 @@ public partial class CreatorWorkspaceWindow : Window
     private Func<EditorWorkspaceProfile>? _load;
     private Action<EditorWorkspaceProfile>? _save;
     private Action? _openKeymap;
+    private Action? _openProductivity;
     private Func<ArtisticStyleProfile>? _loadArtisticStyle;
     private Func<ArtisticStyleProfile, bool>? _applyArtisticStyle;
     private Func<AreaId, bool>? _activateArea;
@@ -89,6 +90,7 @@ public partial class CreatorWorkspaceWindow : Window
         Func<EditorWorkspaceProfile> load,
         Action<EditorWorkspaceProfile> save,
         Action openKeymap,
+        Action openProductivity,
         Func<ArtisticStyleProfile> loadArtisticStyle,
         Func<ArtisticStyleProfile, bool> applyArtisticStyle,
         Func<AreaId, bool> activateArea,
@@ -96,7 +98,7 @@ public partial class CreatorWorkspaceWindow : Window
         Func<int, float, PlacementDistribution, int, bool> repeatPlace,
         Action<Window> brand)
     {
-        _getState = getState; _load = load; _save = save; _openKeymap = openKeymap;
+        _getState = getState; _load = load; _save = save; _openKeymap = openKeymap; _openProductivity = openProductivity;
         _loadArtisticStyle = loadArtisticStyle; _applyArtisticStyle = applyArtisticStyle; _activateArea = activateArea;
         _applyFilter = applyFilter; _repeatPlace = repeatPlace; _brand = brand;
         Title = "Espace de travail · OpenRPG Forge";
@@ -271,6 +273,8 @@ public partial class CreatorWorkspaceWindow : Window
         _compatibility = new RichTextLabel { BbcodeEnabled = true, FitContent = true, CustomMinimumSize = new Vector2(0, 90) }; help.AddChild(_compatibility);
         _helpEnabled = new CheckBox { Text = "Afficher les conseils", ButtonPressed = true }; _helpEnabled.Toggled += _ => RefreshHelp(); help.AddChild(_helpEnabled);
         _help = new RichTextLabel { BbcodeEnabled = true, SizeFlagsVertical = Control.SizeFlags.ExpandFill, CustomMinimumSize = new Vector2(330, 100) }; help.AddChild(_help);
+        var productivity = new Button { Text = "Productivité avancée…", TooltipText = "Calques, pinceau, split view, aide sourcée et permissions métier" };
+        productivity.Pressed += () => _openProductivity?.Invoke(); help.AddChild(productivity);
         _status = new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart }; _status.AddThemeColorOverride("font_color", new Color("79d5ad")); root.AddChild(_status);
         var footer = new HBoxContainer();
         var undo = new Button { Text = "Annuler profil", TooltipText = "Restaure la configuration précédente du shell et du profil" }; undo.Pressed += UndoProfile; footer.AddChild(undo);

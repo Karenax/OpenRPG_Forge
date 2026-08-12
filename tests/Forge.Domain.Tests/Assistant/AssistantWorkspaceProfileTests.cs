@@ -16,6 +16,30 @@ public sealed class AssistantWorkspaceProfileTests
         Assert.Equal(AssistantPermissionLevel.Configure, profile.MaximumPermission);
         Assert.Single(profile.Prompts);
         Assert.Single(profile.Prompts[0].Tests);
+        Assert.Empty(AssistantTestAutomationProfileValidator.Validate(profile.TestAutomation));
+        Assert.Equal(AssistantTestAutomationProfile.SupportedGameplayActions,
+            profile.TestAutomation.AllowedGameplayActions.ToHashSet(StringComparer.Ordinal));
+    }
+
+    [Fact]
+    public void R120_TestAutomationIsBoundedAllowlistedAndResolvesOptionalOrRequiredAbsence()
+    {
+        var baseline = AssistantTestAutomationProfile.CreateDefault();
+        var invalid = new AssistantTestAutomationProfile(
+            Guid.Empty, 99, string.Empty, false, true, 0, 5000, 0,
+            true, true, true, true, ["shell.execute"]);
+
+        var codes = AssistantTestAutomationProfileValidator.Validate(invalid).Select(item => item.Code).ToArray();
+
+        Assert.Contains(AssistantTestAutomationProfileValidator.SchemaUnsupportedCode, codes);
+        Assert.Contains(AssistantTestAutomationProfileValidator.IdentityInvalidCode, codes);
+        Assert.Contains(AssistantTestAutomationProfileValidator.BoundsInvalidCode, codes);
+        Assert.Contains(AssistantTestAutomationProfileValidator.ActionInvalidCode, codes);
+        Assert.Contains(AssistantTestAutomationProfileValidator.RequiredDisabledCode, codes);
+        Assert.True(AssistantTestAutomationProfileValidator.Resolve(baseline, true).Available);
+        Assert.Empty(AssistantTestAutomationProfileValidator.Resolve(null, false).Diagnostics);
+        Assert.Equal(AssistantTestAutomationProfileValidator.MissingRequiredCode,
+            Assert.Single(AssistantTestAutomationProfileValidator.Resolve(null, true).Diagnostics).Code);
     }
 
     [Fact]

@@ -23,5 +23,25 @@ public sealed class LiveAuditJournal(Func<DateTimeOffset> utcNow)
         return entry;
     }
 
-    public bool Verify() => _entries.Select((entry, index) => index == 0 ? entry.PreviousHash == "GENESIS" : entry.PreviousHash == _entries[index - 1].Hash).All(x => x);
+    public IReadOnlyList<Entry> Query(Guid? actorId = null, string? command = null, Guid? correlationId = null,
+        int limit = 100) => _entries
+        .Where(entry => actorId is null || entry.ActorId == actorId)
+        .Where(entry => string.IsNullOrWhiteSpace(command) || entry.Command.Contains(command, StringComparison.OrdinalIgnoreCase))
+        .Where(entry => correlationId is null || entry.CorrelationId == correlationId)
+        .TakeLast(Math.Clamp(limit, 1, 10_000))
+        .ToArray();
+
+    public bool Verify()
+    {
+        for (var index = 0; index < _entries.Count; index++)
+        {
+            var entry = _entries[index];
+            var expectedPrevious = index == 0 ? "GENESIS" : _entries[index - 1].Hash;
+            if (!string.Equals(entry.PreviousHash, expectedPrevious, StringComparison.Ordinal)) return false;
+            var canonical = $"{entry.Sequence}|{entry.At:O}|{entry.ActorId}|{entry.Command}|{string.Join(',', entry.Targets.Order())}|{entry.Before}|{entry.After}|{entry.Reason}|{entry.CorrelationId}|{entry.PreviousHash}";
+            var expectedHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(canonical))).ToLowerInvariant();
+            if (!string.Equals(entry.Hash, expectedHash, StringComparison.Ordinal)) return false;
+        }
+        return true;
+    }
 }

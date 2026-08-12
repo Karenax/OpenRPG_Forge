@@ -126,6 +126,7 @@ public sealed record ModularTileKitProfile
     public IReadOnlyList<ModularTilePlacement> Placements { get; }
     public IReadOnlyList<ModularTileGroup> Groups { get; }
     public IReadOnlyList<ModularTileBrush> Brushes { get; }
+    public AreaTileEditingProfile? Editing { get; }
 
     public ModularTileKitProfile(
         Guid id,
@@ -136,7 +137,8 @@ public sealed record ModularTileKitProfile
         IReadOnlyList<ModularTileConnectionRule>? connectionRules,
         IReadOnlyList<ModularTilePlacement>? placements,
         IReadOnlyList<ModularTileGroup>? groups,
-        IReadOnlyList<ModularTileBrush>? brushes)
+        IReadOnlyList<ModularTileBrush>? brushes,
+        AreaTileEditingProfile? editing = null)
     {
         Id = id;
         SchemaVersion = schemaVersion;
@@ -149,6 +151,7 @@ public sealed record ModularTileKitProfile
             .ThenBy(item => item.Id).ToArray();
         Groups = (groups ?? []).OrderBy(item => item.Name, StringComparer.Ordinal).ToArray();
         Brushes = (brushes ?? []).OrderBy(item => item.Name, StringComparer.Ordinal).ToArray();
+        Editing = editing;
     }
 }
 
@@ -179,6 +182,7 @@ public sealed record AreaFoundationProfile
     public AreaLifecycleBindingProfile Lifecycle { get; }
     public IReadOnlyList<AreaVolumeDefinition> Volumes { get; }
     public IReadOnlyList<AreaDocumentDependency> Dependencies { get; }
+    public bool RequireTileEditingRuntimeMetadata { get; }
 
     public AreaFoundationProfile(
         Guid id,
@@ -188,7 +192,8 @@ public sealed record AreaFoundationProfile
         ModularTileKitProfile tileKit,
         AreaLifecycleBindingProfile lifecycle,
         IReadOnlyList<AreaVolumeDefinition>? volumes,
-        IReadOnlyList<AreaDocumentDependency>? dependencies)
+        IReadOnlyList<AreaDocumentDependency>? dependencies,
+        bool requireTileEditingRuntimeMetadata = false)
     {
         Id = id;
         SchemaVersion = schemaVersion;
@@ -198,6 +203,7 @@ public sealed record AreaFoundationProfile
         Lifecycle = lifecycle ?? throw new ArgumentNullException(nameof(lifecycle));
         Volumes = (volumes ?? []).OrderBy(item => item.Name, StringComparer.Ordinal).ToArray();
         Dependencies = (dependencies ?? []).OrderBy(item => item.DocumentPath, StringComparer.Ordinal).ToArray();
+        RequireTileEditingRuntimeMetadata = requireTileEditingRuntimeMetadata;
     }
 
     public static AreaFoundationProfile CreateDefault(AreaId areaId, AreaKind kind = AreaKind.Interior)

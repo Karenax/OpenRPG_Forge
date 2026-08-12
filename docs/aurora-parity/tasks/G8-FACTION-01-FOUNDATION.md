@@ -10,4 +10,10 @@ avec contrôle de révision, aperçu à blanc, patch inverse et migration obliga
 
 Preuves : `FactionFoundationTests`, suite RPG Kit et solution globale.
 
-La prochaine tranche unique est **G8 FACTION-02 — réputation, tags, heatmap et réactions**.
+`R086 / FC-FACTION-P1-01` ferme la fondation authorable : état archivé, matrice asymétrique, bandes
+prioritaires et suppression avec migration des membres legacy/avancés partagent désormais la
+commande transactionnelle du projet. Le Studio affiche la heatmap et les états résultants ;
+ForgeScript, MCP et le runtime lisent le même catalogue validé.
+
+La réputation et les réactions du lot R087 sont fermées dans `G8-FACTION-02-REPUTATION.md`.
+La prochaine tranche unique est **R088 / FC-ITEM-P1-01** après portail R087 vert.

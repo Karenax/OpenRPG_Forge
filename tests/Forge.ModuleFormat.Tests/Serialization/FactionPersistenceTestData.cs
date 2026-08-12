@@ -36,6 +36,18 @@ internal static class FactionPersistenceTestData
                     DynamicFactionKind.Temporary, created, created.AddDays(10), true, true, 1,
                     [new(Guid.Parse("b2030000-0000-4000-8000-000000000016"), cult,
                         FactionDiplomacyStatus.War, created, null, "crypt-conflict")])]),
+            true,
+            [new(Guid.Parse("b2030000-0000-4000-8000-000000000017"), 1, "author:r086", "hero",
+                cult, watch, 25, created.AddDays(3), "earned-trust", PersonalReputationSubjectKind.Player)],
+            true,
+            new(
+                Guid.Parse("b2030000-0000-4000-8000-000000000020"), 1, "author:r087",
+                [new(Guid.Parse("b2030000-0000-4000-8000-000000000021"), 1, "author:r087",
+                    ReputationScope.Player, "hero", parent, cult, 20, "saved-guild", created)],
+                [new(Guid.Parse("b2030000-0000-4000-8000-000000000022"), 1, "author:r087", created,
+                    "before", [new(parent, cult, -80, "ancestral-war", "hostile")])],
+                new(Guid.Parse("b2030000-0000-4000-8000-000000000023"), 1, "author:r087",
+                    ReputationScope.Player, "hero", true, true, true, true, true)),
             true);
     }
 }

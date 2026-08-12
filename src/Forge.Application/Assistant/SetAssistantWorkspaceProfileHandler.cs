@@ -113,6 +113,23 @@ public sealed class SetAssistantWorkspaceProfileHandler
             .Append(string.Join(',', profile.AgentWorkflow.ContextResources)).Append('|')
             .Append(profile.AgentWorkflow.References).Append('|').Append(profile.AgentWorkflow.Plans).Append('|')
             .Append(profile.AgentWorkflow.DryRun);
+        var testing = profile.TestAutomation;
+        value.Append("|X|").Append(testing.Id).Append('|').Append(testing.SchemaVersion).Append('|')
+            .Append(testing.Provenance).Append('|').Append(testing.Enabled).Append('|')
+            .Append(testing.RequiredAtRuntime).Append('|').Append(testing.MaximumScenarioSteps).Append('|')
+            .Append(testing.MaximumDialoguePaths).Append('|').Append(testing.MaximumQuestPaths).Append('|')
+            .Append(testing.DetectToneInconsistencies).Append('|').Append(testing.DetectRewardExploits).Append('|')
+            .Append(testing.VerifyMultiplayerDeterminism).Append('|').Append(testing.VerifySaveResume).Append('|')
+            .Append(string.Join(',', testing.AllowedGameplayActions));
+        var combat = profile.CombatSimulation;
+        value.Append("|C|").Append(combat.Id).Append('|').Append(combat.SchemaVersion).Append('|')
+            .Append(combat.Provenance).Append('|').Append(combat.Enabled).Append('|')
+            .Append(combat.RunsPerMatchup).Append('|').Append(combat.FirstSeed).Append('|')
+            .Append(combat.MaximumRounds).Append('|').Append(combat.RoundSeconds.ToString("R", CultureInfo.InvariantCulture)).Append('|')
+            .Append(combat.IncludePathing).Append('|')
+            .Append(combat.MovementMetersPerSecond.ToString("R", CultureInfo.InvariantCulture)).Append('|')
+            .Append(string.Join(',', combat.PhaseHealthThresholds.Select(item => item.ToString("R", CultureInfo.InvariantCulture)))).Append('|')
+            .Append(string.Join(',', combat.ArchetypeBlueprintIds.Select(item => item.ToString())));
         foreach (var tool in profile.AgentWorkflow.Tools)
             value.Append("|W|").Append(tool.Id).Append('|').Append(tool.Name).Append('|')
                 .Append(tool.DomainCommand).Append('|').Append(tool.TargetKind).Append('|')

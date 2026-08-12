@@ -29,9 +29,15 @@ public sealed record FactionCatalog(
     IReadOnlyList<DispositionBand> Bands,
     IReadOnlyList<FactionMember> Members,
     FactionAdvancedProfile? Advanced = null,
-    bool RequireAdvancedRuntime = false)
+    bool RequireAdvancedRuntime = false,
+    IReadOnlyList<PersonalReputationOverlay>? PersonalReputation = null,
+    bool RequireFoundationRuntime = false,
+    FactionReputationProfile? Reputation = null,
+    bool RequireReputationRuntime = false)
 {
     public static FactionCatalog Empty { get; } = new([], [], [], []);
+
+    public IReadOnlyList<PersonalReputationOverlay> EffectivePersonalReputation => PersonalReputation ?? [];
 }
 
 public sealed record FactionDiagnostic(string Code, string Path, string Message);

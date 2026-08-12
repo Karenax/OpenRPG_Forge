@@ -27,6 +27,14 @@ public sealed class FactionPersistenceTests : IDisposable
         Assert.Equal("Ember Pilgrim", restored.Module.Factions.Advanced!.Memberships[1].CoverIdentity);
         Assert.Equal(FactionDiplomacyStatus.War,
             Assert.Single(Assert.Single(restored.Module.Factions.Advanced.DynamicFactions).Diplomacy).Status);
+        var personal = Assert.Single(restored.Module.Factions.EffectivePersonalReputation);
+        Assert.Equal(PersonalReputationSubjectKind.Player, personal.SubjectKind);
+        Assert.Equal("earned-trust", personal.Cause);
+        Assert.True(restored.Module.Factions.RequireFoundationRuntime);
+        Assert.True(restored.Module.Factions.RequireReputationRuntime);
+        Assert.Equal(ReputationScope.Player, restored.Module.Factions.Reputation!.Reaction.DefaultScope);
+        Assert.Equal("saved-guild", Assert.Single(restored.Module.Factions.Reputation.Transactions).Cause);
+        Assert.Equal("before", Assert.Single(restored.Module.Factions.Reputation.HeatmapHistory).Label);
     }
 
     [Fact]
@@ -62,6 +70,10 @@ public sealed class FactionPersistenceTests : IDisposable
         Assert.Empty(restored.Module.Factions.Factions);
         Assert.Null(restored.Module.Factions.Advanced);
         Assert.False(restored.Module.Factions.RequireAdvancedRuntime);
+        Assert.Empty(restored.Module.Factions.EffectivePersonalReputation);
+        Assert.False(restored.Module.Factions.RequireFoundationRuntime);
+        Assert.Null(restored.Module.Factions.Reputation);
+        Assert.False(restored.Module.Factions.RequireReputationRuntime);
     }
 
     public void Dispose()

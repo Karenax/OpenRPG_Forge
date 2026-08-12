@@ -3,12 +3,15 @@ namespace Forge.Domain.Factions;
 public static class FactionValidator
 {
     public const string AdvancedMissingCode = "faction.advanced.required_missing";
+    public const string FoundationMissingCode = "faction.foundation.required_missing";
+    public const string ReputationMissingCode = "faction.reputation.required_missing";
 
     public static IReadOnlyList<FactionDiagnostic> Validate(FactionCatalog catalog, string root = "module/factions")
     {
         ArgumentNullException.ThrowIfNull(catalog);
         var diagnostics = new List<FactionDiagnostic>();
         var ids = catalog.Factions.Select(item => item.Id).ToHashSet();
+        var definitionIds = new HashSet<Guid>();
         var slugs = new HashSet<string>(StringComparer.Ordinal);
         foreach (var faction in catalog.Factions)
         {
@@ -17,8 +20,22 @@ public static class FactionValidator
                 string.IsNullOrWhiteSpace(faction.Provenance) || string.IsNullOrWhiteSpace(faction.Slug) ||
                 string.IsNullOrWhiteSpace(faction.DisplayName))
                 diagnostics.Add(new("RPG_FACTION_INVALID", path, "Faction identity is invalid."));
+            if (!definitionIds.Add(faction.Id))
+                diagnostics.Add(new("RPG_FACTION_UUID_DUPLICATE", path, "Faction UUIDs must be unique."));
             if (!slugs.Add(faction.Slug))
                 diagnostics.Add(new("RPG_FACTION_SLUG_DUPLICATE", $"{path}/slug", "Faction slugs must be unique."));
+            var tags = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var tag in faction.Tags)
+            {
+                var tagPath = $"{path}/tags/{tag}";
+                if (string.IsNullOrWhiteSpace(tag) || tag != NormalizeTag(tag) ||
+                    tag.Any(character => !(char.IsAsciiLetterOrDigit(character) || character is '-' or '_' or '.')))
+                    diagnostics.Add(new("RPG_FACTION_TAG_INVALID", tagPath,
+                        "Faction tags must be normalized semantic identifiers."));
+                if (!tags.Add(tag))
+                    diagnostics.Add(new("RPG_FACTION_TAG_DUPLICATE", tagPath,
+                        "Faction tags must be unique within a definition."));
+            }
             foreach (var parent in faction.ParentIds.Where(parent => !ids.Contains(parent)))
                 diagnostics.Add(new("RPG_FACTION_PARENT_ORPHAN", $"{path}/parents/{parent}",
                     "Parent faction does not exist."));
@@ -27,15 +44,36 @@ public static class FactionValidator
                     "Faction inheritance contains a cycle."));
         }
 
+        var relationshipKeys = new HashSet<(Guid Source, Guid Target)>();
         foreach (var relationship in catalog.Relationships)
+        {
+            var path = $"{root}/relationships/{relationship.SourceId}/{relationship.TargetId}";
             if (!ids.Contains(relationship.SourceId) || !ids.Contains(relationship.TargetId) ||
-                !double.IsFinite(relationship.Score) || relationship.Score is < -100 or > 100)
+                !double.IsFinite(relationship.Score) || relationship.Score is < -100 or > 100 ||
+                string.IsNullOrWhiteSpace(relationship.Explanation) || string.IsNullOrWhiteSpace(relationship.Preset))
                 diagnostics.Add(new("RPG_FACTION_RELATION_INVALID",
-                    $"{root}/relationships/{relationship.SourceId}/{relationship.TargetId}",
+                    path,
                     "Directional relationship is invalid."));
+            if (!relationshipKeys.Add((relationship.SourceId, relationship.TargetId)))
+                diagnostics.Add(new("RPG_FACTION_RELATION_DUPLICATE", path,
+                    "A directional relationship can be defined only once."));
+        }
         foreach (var member in catalog.Members.Where(member => !ids.Contains(member.FactionId)))
             diagnostics.Add(new("RPG_FACTION_MEMBER_ORPHAN", $"{root}/members/{member.ActorId}",
                 "Member faction does not exist."));
+        var bandIds = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var band in catalog.Bands)
+        {
+            var path = $"{root}/bands/{band.Id}";
+            if (string.IsNullOrWhiteSpace(band.Id) || !double.IsFinite(band.Minimum) ||
+                !double.IsFinite(band.Maximum) || band.Minimum < -100 || band.Maximum > 100 ||
+                band.Minimum > band.Maximum || band.Priority < 0)
+                diagnostics.Add(new("RPG_FACTION_BAND_INVALID", path,
+                    "Disposition band identity, bounds, or priority is invalid."));
+            if (!bandIds.Add(band.Id))
+                diagnostics.Add(new("RPG_FACTION_BAND_DUPLICATE", path,
+                    "Disposition band IDs must be unique."));
+        }
         for (var i = 0; i < catalog.Bands.Count; i++)
             for (var j = i + 1; j < catalog.Bands.Count; j++)
                 if (catalog.Bands[i].Priority == catalog.Bands[j].Priority &&
@@ -43,6 +81,29 @@ public static class FactionValidator
                     catalog.Bands[j].Minimum <= catalog.Bands[i].Maximum)
                     diagnostics.Add(new("RPG_FACTION_BANDS_OVERLAP", $"{root}/bands/{catalog.Bands[i].Id}",
                         "Disposition bands overlap at the same priority."));
+
+        var overlayIds = new HashSet<Guid>();
+        foreach (var overlay in catalog.EffectivePersonalReputation)
+        {
+            var path = $"{root}/personalReputation/{overlay.Id}";
+            if (overlay.Id == Guid.Empty || overlay.SchemaVersion != 1 ||
+                string.IsNullOrWhiteSpace(overlay.Provenance) || string.IsNullOrWhiteSpace(overlay.SubjectId) ||
+                !Enum.IsDefined(overlay.SubjectKind) || !ids.Contains(overlay.SourceFactionId) ||
+                !ids.Contains(overlay.TargetFactionId) || overlay.SourceFactionId == overlay.TargetFactionId ||
+                !double.IsFinite(overlay.Delta) || overlay.Delta is < -100 or > 100 ||
+                string.IsNullOrWhiteSpace(overlay.Cause))
+                diagnostics.Add(new("RPG_FACTION_PERSONAL_REPUTATION_INVALID", path,
+                    "Personal reputation identity, subject, faction references, delta, or cause is invalid."));
+            if (!overlayIds.Add(overlay.Id))
+                diagnostics.Add(new("RPG_FACTION_PERSONAL_REPUTATION_UUID_DUPLICATE", path,
+                    "Personal reputation UUIDs must be unique."));
+        }
+
+        if (catalog.RequireFoundationRuntime && catalog.Factions.Count == 0)
+            diagnostics.Add(new(FoundationMissingCode, $"{root}/definitions",
+                "The module requires faction foundations at runtime."));
+
+        ValidateReputation(catalog, root, ids, diagnostics);
 
         if (catalog.Advanced is null)
         {
@@ -54,6 +115,88 @@ public static class FactionValidator
 
         ValidateAdvanced(catalog, catalog.Advanced, root, ids, diagnostics);
         return diagnostics;
+    }
+
+    private static void ValidateReputation(
+        FactionCatalog catalog,
+        string root,
+        IReadOnlySet<Guid> factionIds,
+        List<FactionDiagnostic> diagnostics)
+    {
+        var profile = catalog.Reputation;
+        var path = $"{root}/reputation";
+        if (profile is null)
+        {
+            if (catalog.RequireReputationRuntime)
+                diagnostics.Add(new(ReputationMissingCode, path,
+                    "The module requires faction reputation at runtime."));
+            return;
+        }
+
+        if (profile.Id == Guid.Empty || profile.SchemaVersion != 1 ||
+            string.IsNullOrWhiteSpace(profile.Provenance))
+            diagnostics.Add(new("RPG_FACTION_REPUTATION_PROFILE_INVALID", path,
+                "Faction reputation profile identity is invalid."));
+
+        var uuids = new HashSet<Guid>();
+        AddReputationUuid(profile.Id, path, uuids, diagnostics);
+        foreach (var transaction in profile.Transactions)
+        {
+            var transactionPath = $"{path}/transactions/{transaction.Id}";
+            AddReputationUuid(transaction.Id, transactionPath, uuids, diagnostics);
+            if (transaction.SchemaVersion != 1 || string.IsNullOrWhiteSpace(transaction.Provenance) ||
+                !Enum.IsDefined(transaction.Scope) || string.IsNullOrWhiteSpace(transaction.ScopeId) ||
+                !factionIds.Contains(transaction.SourceFactionId) ||
+                !factionIds.Contains(transaction.TargetFactionId) ||
+                transaction.SourceFactionId == transaction.TargetFactionId ||
+                !double.IsFinite(transaction.Delta) || transaction.Delta is < -100 or > 100 ||
+                string.IsNullOrWhiteSpace(transaction.Cause))
+                diagnostics.Add(new("RPG_FACTION_REPUTATION_TRANSACTION_INVALID", transactionPath,
+                    "Global reputation identity, scope, faction references, delta, or cause is invalid."));
+        }
+
+        foreach (var snapshot in profile.HeatmapHistory)
+        {
+            var snapshotPath = $"{path}/heatmapHistory/{snapshot.Id}";
+            AddReputationUuid(snapshot.Id, snapshotPath, uuids, diagnostics);
+            if (snapshot.SchemaVersion != 1 || string.IsNullOrWhiteSpace(snapshot.Provenance) ||
+                string.IsNullOrWhiteSpace(snapshot.Label))
+                diagnostics.Add(new("RPG_FACTION_HEATMAP_SNAPSHOT_INVALID", snapshotPath,
+                    "Heatmap snapshot identity, label, or provenance is invalid."));
+            var pairs = new HashSet<(Guid Source, Guid Target)>();
+            foreach (var relationship in snapshot.Relationships)
+            {
+                var relationshipPath = $"{snapshotPath}/relationships/{relationship.SourceId}/{relationship.TargetId}";
+                if (!factionIds.Contains(relationship.SourceId) || !factionIds.Contains(relationship.TargetId) ||
+                    relationship.SourceId == relationship.TargetId || !double.IsFinite(relationship.Score) ||
+                    relationship.Score is < -100 or > 100 || string.IsNullOrWhiteSpace(relationship.Explanation) ||
+                    string.IsNullOrWhiteSpace(relationship.Preset))
+                    diagnostics.Add(new("RPG_FACTION_HEATMAP_RELATION_INVALID", relationshipPath,
+                        "Heatmap relationship is invalid."));
+                if (!pairs.Add((relationship.SourceId, relationship.TargetId)))
+                    diagnostics.Add(new("RPG_FACTION_HEATMAP_RELATION_DUPLICATE", relationshipPath,
+                        "A heatmap snapshot can contain each direction only once."));
+            }
+        }
+
+        var reaction = profile.Reaction;
+        var reactionPath = $"{path}/reaction";
+        AddReputationUuid(reaction.Id, reactionPath, uuids, diagnostics);
+        if (reaction.SchemaVersion != 1 || string.IsNullOrWhiteSpace(reaction.Provenance) ||
+            !Enum.IsDefined(reaction.DefaultScope) || string.IsNullOrWhiteSpace(reaction.DefaultScopeId))
+            diagnostics.Add(new("RPG_FACTION_REACTION_POLICY_INVALID", reactionPath,
+                "Reaction policy identity, scope, or provenance is invalid."));
+    }
+
+    private static void AddReputationUuid(
+        Guid id, string path, HashSet<Guid> uuids, List<FactionDiagnostic> diagnostics)
+    {
+        if (id == Guid.Empty)
+            diagnostics.Add(new("RPG_FACTION_REPUTATION_UUID_EMPTY", path,
+                "Faction reputation UUID cannot be empty."));
+        else if (!uuids.Add(id))
+            diagnostics.Add(new("RPG_FACTION_REPUTATION_UUID_DUPLICATE", path,
+                "Faction reputation UUIDs must be unique within the profile."));
     }
 
     public static string ResolveBand(
@@ -171,4 +314,6 @@ public static class FactionValidator
         visiting.Remove(id);
         return cycle;
     }
+
+    private static string NormalizeTag(string tag) => tag.Trim().ToLowerInvariant();
 }

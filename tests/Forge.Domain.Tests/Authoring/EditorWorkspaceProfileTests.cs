@@ -115,4 +115,27 @@ public sealed class EditorWorkspaceProfileTests
         Assert.Throws<ArgumentException>(() => new EditorSelectionConfiguration(
             Guid.Empty, 1, "test"));
     }
+
+    [Fact]
+    public void ProductivityProfilesAreVersionedRoleBoundAndSourced()
+    {
+        var profile = EditorWorkspaceProfile.CreateDefault(EditorRole.Builder);
+
+        Assert.NotEqual(Guid.Empty, profile.DisplayFilter.Id);
+        Assert.True(profile.RepeatedPlacementProfile.BrushMode);
+        Assert.Equal(EditorPlacementAlignment.GridPlane, profile.RepeatedPlacementProfile.Alignment);
+        Assert.True(profile.MultiArea.ComparisonReadOnly);
+        Assert.True(profile.Help.SourcedAssistantEnabled);
+        Assert.True(profile.RolePolicy.Allows(EditorPermission.EditAreas));
+        Assert.Contains(EditorPanel.Palette, profile.RolePolicy.VisiblePanels);
+        Assert.All(EditorContextualHelpCatalog.Topics, topic => Assert.NotEmpty(topic.Citations));
+        Assert.Throws<ArgumentException>(() => new EditorRolePolicy(Guid.NewGuid(), 1, "test",
+            EditorRole.Builder, [EditorPanel.Viewport], EditorPermission.ViewProject));
+        Assert.Throws<ArgumentException>(() => new EditorHelpTopic(Guid.NewGuid(), 1, "test", "x", "X",
+            "assisted", [], [], [], [], true).Validate());
+        Assert.Empty(EditorProductivityRuntimeResolver.Resolve(null, false).Diagnostics);
+        Assert.Equal(EditorProductivityRuntimeResolver.RequiredMissingCode,
+            Assert.Single(EditorProductivityRuntimeResolver.Resolve(null, true).Diagnostics).Code);
+        Assert.Equal(EditorRole.Builder, EditorProductivityRuntimeResolver.Resolve(profile, true).Handle!.Role);
+    }
 }

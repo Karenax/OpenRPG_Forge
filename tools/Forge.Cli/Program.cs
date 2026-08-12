@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text;
 using System.Security.Cryptography;
 using System.Diagnostics;
+using System.Globalization;
 using Forge.Application.Assets;
 using Forge.Application.Build;
 using Forge.Application.Commands;
@@ -1124,9 +1125,20 @@ static int RunAssets(IReadOnlyList<string> arguments)
         options.GetValueOrDefault("source"),
         options.GetValueOrDefault("category"),
         options.GetValueOrDefault("license"),
-        ParseAvailability(options.GetValueOrDefault("availability")),
-        ParseLimit(options.GetValueOrDefault("limit")),
-        ParseNullableBooleanOption(options.GetValueOrDefault("installed"), "installed"));
+          ParseAvailability(options.GetValueOrDefault("availability")),
+          ParseLimit(options.GetValueOrDefault("limit")),
+          ParseNullableBooleanOption(options.GetValueOrDefault("installed"), "installed"),
+          options.GetValueOrDefault("tag"),
+          ParseNullableDouble(options.GetValueOrDefault("max-width"), "max-width"),
+          ParseNullableDouble(options.GetValueOrDefault("max-height"), "max-height"),
+          ParseNullableDouble(options.GetValueOrDefault("max-depth"), "max-depth"),
+          options.GetValueOrDefault("style"),
+          options.GetValueOrDefault("skeleton"),
+          options.GetValueOrDefault("material"),
+          ParseNullableLong(options.GetValueOrDefault("max-triangles"), "max-triangles"),
+          options.GetValueOrDefault("author"),
+          options.GetValueOrDefault("compatibility"),
+          options.GetValueOrDefault("variant"));
     var browser = new AssetCatalogBrowser(load.Catalog);
     var items = browser.Search(query);
     Console.WriteLine(JsonSerializer.Serialize(new
@@ -2359,6 +2371,19 @@ static bool? ParseNullableBooleanOption(string? value, string optionName) =>
     string.IsNullOrWhiteSpace(value)
         ? null
         : ParseBooleanOption(value, defaultValue: false, optionName);
+
+static double? ParseNullableDouble(string? value, string optionName) => string.IsNullOrWhiteSpace(value)
+    ? null
+    : double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed) &&
+      double.IsFinite(parsed) && parsed > 0
+        ? parsed
+        : throw new ArgumentException($"Asset option '--{optionName}' expects a positive number.");
+
+static long? ParseNullableLong(string? value, string optionName) => string.IsNullOrWhiteSpace(value)
+    ? null
+    : long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed) && parsed >= 0
+        ? parsed
+        : throw new ArgumentException($"Asset option '--{optionName}' expects a non-negative integer.");
 
 static int ParseLimit(string? value) => string.IsNullOrWhiteSpace(value)
     ? 50

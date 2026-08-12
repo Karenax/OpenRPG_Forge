@@ -60,6 +60,15 @@ public sealed class BlueprintPaletteCatalog
             .ToArray();
     }
 
+    public IReadOnlyList<BlueprintPaletteItem> FilterNamedCollection(NamedPaletteCollection collection)
+    {
+        ArgumentNullException.ThrowIfNull(collection);
+        var ranks = collection.BlueprintIds.Select((id, rank) => (id, rank))
+            .ToDictionary(item => item.id, item => item.rank);
+        return _items.Where(item => ranks.ContainsKey(item.BlueprintId))
+            .OrderBy(item => ranks[item.BlueprintId]).ToArray();
+    }
+
     private static bool MatchesView(BlueprintPaletteItem item, BlueprintPaletteView view) => view switch
     {
         BlueprintPaletteView.All => true,

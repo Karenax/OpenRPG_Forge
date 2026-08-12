@@ -41,6 +41,12 @@ public sealed record QuestDefinition
 
     public QuestSimulationProfile Simulation { get; }
 
+    public QuestAuthoringProfile? Authoring { get; }
+
+    public QuestExperienceProfile? Experience { get; }
+
+    public QuestQualityProfile? Quality { get; }
+
     [JsonConstructor]
     public QuestDefinition(
         QuestId id,
@@ -59,7 +65,10 @@ public sealed record QuestDefinition
         IReadOnlyList<QuestStateDefinition> states,
         IReadOnlyList<QuestTransition>? transitions = null,
         QuestOperationsProfile? operations = null,
-        QuestSimulationProfile? simulation = null)
+        QuestSimulationProfile? simulation = null,
+        QuestAuthoringProfile? authoring = null,
+        QuestExperienceProfile? experience = null,
+        QuestQualityProfile? quality = null)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(slug);
@@ -99,6 +108,9 @@ public sealed record QuestDefinition
         Transitions = materializedTransitions;
         Operations = operations;
         Simulation = simulation ?? QuestSimulationProfile.CreateDefault(id);
+        Authoring = authoring;
+        Experience = experience;
+        Quality = quality;
     }
 
     public QuestDefinition(
@@ -109,13 +121,32 @@ public sealed record QuestDefinition
         IReadOnlyList<QuestStateDefinition> states,
         IReadOnlyList<QuestTransition>? transitions = null,
         QuestOperationsProfile? operations = null,
-        QuestSimulationProfile? simulation = null)
+        QuestSimulationProfile? simulation = null,
+        QuestAuthoringProfile? authoring = null,
+        QuestExperienceProfile? experience = null,
+        QuestQualityProfile? quality = null)
         : this(id, CurrentSchemaVersion, "migration-default", slug, displayName, null, null, null, 0, null,
-            false, null, initialStateId, states, transitions, operations, simulation)
+            false, null, initialStateId, states, transitions, operations, simulation, authoring, experience, quality)
     {
     }
 
     public QuestDefinition WithOperations(QuestOperationsProfile? operations) => new(
         Id, SchemaVersion, Provenance, Slug, DisplayName, Title, Description, Category, Priority, Owner,
-        RequiredAtRuntime, InstancePolicy, InitialStateId, States, Transitions, operations, Simulation);
+        RequiredAtRuntime, InstancePolicy, InitialStateId, States, Transitions, operations, Simulation, Authoring,
+        Experience, Quality);
+
+    public QuestDefinition WithAuthoring(QuestAuthoringProfile? authoring) => new(
+        Id, SchemaVersion, Provenance, Slug, DisplayName, Title, Description, Category, Priority, Owner,
+        RequiredAtRuntime, InstancePolicy, InitialStateId, States, Transitions, Operations, Simulation, authoring,
+        Experience, Quality);
+
+    public QuestDefinition WithExperience(QuestExperienceProfile? experience) => new(
+        Id, SchemaVersion, Provenance, Slug, DisplayName, Title, Description, Category, Priority, Owner,
+        RequiredAtRuntime, InstancePolicy, InitialStateId, States, Transitions, Operations, Simulation, Authoring,
+        experience, Quality);
+
+    public QuestDefinition WithQuality(QuestQualityProfile? quality) => new(
+        Id, SchemaVersion, Provenance, Slug, DisplayName, Title, Description, Category, Priority, Owner,
+        RequiredAtRuntime, InstancePolicy, InitialStateId, States, Transitions, Operations, Simulation, Authoring,
+        Experience, quality);
 }

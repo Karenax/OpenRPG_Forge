@@ -85,6 +85,38 @@ internal static class AssetPackageManifestJsonSerializer
                         .ToArray(),
                     CookPlatforms = (manifest.Collision.CookPlatforms ?? []).Distinct().Order().ToArray(),
                 },
+            Navigation = manifest.Navigation is null
+                ? null
+                : manifest.Navigation with
+                {
+                    MaterialTags = (manifest.Navigation.MaterialTags ?? [])
+                        .Select(value => value.Trim())
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .OrderBy(value => value, StringComparer.OrdinalIgnoreCase)
+                        .ToArray(),
+                    CookPlatforms = (manifest.Navigation.CookPlatforms ?? []).Distinct().Order().ToArray(),
+                },
+            Font = manifest.Font is null
+                ? null
+                : manifest.Font with
+                {
+                    PrimaryFamily = manifest.Font.PrimaryFamily.Trim(),
+                    Fallbacks = (manifest.Font.Fallbacks ?? [])
+                        .Select(fallback => fallback with { Family = fallback.Family.Trim() })
+                        .OrderBy(fallback => fallback.Family, StringComparer.OrdinalIgnoreCase)
+                        .ToArray(),
+                    ShapingScripts = (manifest.Font.ShapingScripts ?? [])
+                        .Select(value => value.Trim())
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .OrderBy(value => value, StringComparer.OrdinalIgnoreCase)
+                        .ToArray(),
+                    LocalizationTestLocales = (manifest.Font.LocalizationTestLocales ?? [])
+                        .Select(value => value.Trim())
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .OrderBy(value => value, StringComparer.OrdinalIgnoreCase)
+                        .ToArray(),
+                    DpiBuckets = (manifest.Font.DpiBuckets ?? []).Distinct().Order().ToArray(),
+                },
             Animation = manifest.Animation is null
                 ? null
                 : manifest.Animation with

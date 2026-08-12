@@ -73,4 +73,18 @@ public sealed class BlueprintAuthoringMetadataTests
         Assert.Throws<ArgumentException>(() => new BlueprintAuthoringMetadata(
             1, "2.0.0", "project.crypt", "content/blueprints/crypt.json", kit: "bad kit"));
     }
+
+    [Fact]
+    public void HierarchicalCategoriesAndPromotedDefaultsAreCanonicalAndPersistent()
+    {
+        var promoted = new EntityPropertyOverride("visual.scale", EntityPropertyValueKind.Number, "2.0");
+        var metadata = new BlueprintAuthoringMetadata(1, "1.2.0", "project.forest",
+            "content/blueprints/tree.json", categoryPaths: ["Monde\\Forêt/Arbres", "Décors/Pierre"],
+            promotedDefaults: [promoted]);
+
+        Assert.Equal(["Décors/Pierre", "Monde/Forêt/Arbres"], metadata.CategoryPaths);
+        Assert.Equal("2", Assert.Single(metadata.PromotedDefaults).Value);
+        Assert.Throws<ArgumentException>(() => new BlueprintAuthoringMetadata(1, "1.0.0", "project.bad",
+            "content/blueprints/bad.json", promotedDefaults: [promoted, promoted]));
+    }
 }

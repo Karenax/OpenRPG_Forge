@@ -74,6 +74,30 @@ public static partial class CreatureFoundationValidator
                                           string.IsNullOrWhiteSpace(item.Value)),
             "creature.foundation.override_invalid", $"{path}/overrides",
             "Overrides require canonical keys and explicit values.");
+        if (profile.AuthoringComposition is not null)
+            diagnostics.AddRange(CreatureAuthoringCompositionValidator.Validate(profile.AuthoringComposition,
+                $"{path}/authoringComposition"));
+        else if (profile.AuthoringCompositionRequiredAtRuntime)
+            diagnostics.Add(new(CreatureAuthoringCompositionValidator.MissingRequiredCode,
+                $"{path}/authoringComposition", "A required creature-authoring profile is missing."));
+        if (profile.RulesComposition is not null)
+            diagnostics.AddRange(CreatureRulesCompositionValidator.Validate(profile.RulesComposition,
+                $"{path}/rulesComposition"));
+        else if (profile.RulesCompositionRequiredAtRuntime)
+            diagnostics.Add(new(CreatureRulesCompositionValidator.MissingRequiredCode,
+                $"{path}/rulesComposition", "A required creature-rules profile is missing."));
+        if (profile.InteractionComposition is not null)
+            diagnostics.AddRange(CreatureInteractionCompositionValidator.Validate(profile.InteractionComposition,
+                $"{path}/interactionComposition"));
+        else if (profile.InteractionCompositionRequiredAtRuntime)
+            diagnostics.Add(new(CreatureInteractionCompositionValidator.MissingRequiredCode,
+                $"{path}/interactionComposition", "A required creature-interaction profile is missing."));
+        if (profile.EventAiComposition is not null)
+            diagnostics.AddRange(CreatureEventAiCompositionValidator.Validate(profile.EventAiComposition,
+                $"{path}/eventAiComposition"));
+        else if (profile.EventAiCompositionRequiredAtRuntime)
+            diagnostics.Add(new(CreatureEventAiCompositionValidator.MissingRequiredCode,
+                $"{path}/eventAiComposition", "A required creature event/AI profile is missing."));
         return diagnostics;
 
         void Add(bool condition, string code, string diagnosticPath, string message)

@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using Forge.Application.Validation;
+using Forge.Application.Quality;
 using Forge.Mcp;
 using Forge.Mcp.Abilities;
 using Forge.Mcp.Assistant;
@@ -9,6 +10,8 @@ using Forge.Mcp.Creatures;
 using Forge.Mcp.Factions;
 using Forge.Mcp.Items;
 using Forge.Mcp.Navigation;
+using Forge.Mcp.LiveDirector;
+using Forge.Mcp.Network;
 using Forge.Mcp.Dialogues;
 using Forge.Mcp.Bosses;
 using Forge.Mcp.Quests;
@@ -18,6 +21,8 @@ using Forge.Mcp.Scripts;
 using Forge.Mcp.WorldFeatures;
 using Forge.Scripting;
 using Forge.ModuleFormat.Quality;
+using Forge.Network.Authoring;
+using Forge.Network.Operations;
 using ModelContextProtocol.Server;
 
 namespace Forge.McpHost;
@@ -28,13 +33,23 @@ public sealed class ForgeMcpTools
     private readonly ForgeProjectAgentService _project;
     private readonly ForgeScriptAgentService _scripts;
     private readonly ForgeScriptInteropService _scriptInterop;
+    private readonly NetworkFoundationAgentService _networkFoundation;
+    private readonly NetworkOperationsAgentService _networkOperations;
+    private readonly NetworkAssuranceAgentService _networkAssurance;
+    private readonly LiveDirectorAccessAgentService _liveDirectorAccess;
 
     public ForgeMcpTools(ForgeProjectAgentService project, ForgeScriptAgentService scripts,
-        ForgeScriptInteropService scriptInterop)
+        ForgeScriptInteropService scriptInterop, NetworkFoundationAgentService networkFoundation,
+        NetworkOperationsAgentService networkOperations, NetworkAssuranceAgentService networkAssurance,
+        LiveDirectorAccessAgentService liveDirectorAccess)
     {
         _project = project;
         _scripts = scripts;
         _scriptInterop = scriptInterop;
+        _networkFoundation = networkFoundation;
+        _networkOperations = networkOperations;
+        _networkAssurance = networkAssurance;
+        _liveDirectorAccess = liveDirectorAccess;
     }
 
     [McpServerTool]
@@ -209,6 +224,16 @@ public sealed class ForgeMcpTools
         _project.PreviewAnchors(request);
 
     [McpServerTool]
+    [Description("Returns filtered waypoint, arrival, typed-locator, collection and route-diagnostic authoring data without mutation.")]
+    public WaypointAuthoringResource QueryWaypoints(string? areaIdOrSearch = null, int limit = 100) =>
+        _project.QueryWaypoints(areaIdOrSearch, limit);
+
+    [McpServerTool]
+    [Description("Validates and dry-runs a complete waypoint, patrol, locator, collection and route-visualization profile with a semantic diff.")]
+    public WaypointAuthoringPlanResult PreviewWaypointAuthoring(WaypointAuthoringPlanRequest request) =>
+        _project.PreviewWaypointAuthoring(request);
+
+    [McpServerTool]
     [Description("Returns advanced item economy, equipment, ownership, loot, crafting and generation summaries without mutation.")]
     public ItemAdvancedResource QueryAdvancedItems(string? blueprintIdOrSearch = null, int limit = 50) =>
         _project.QueryAdvancedItems(blueprintIdOrSearch, limit);
@@ -219,7 +244,7 @@ public sealed class ForgeMcpTools
         _project.PreviewAdvancedItem(request);
 
     [McpServerTool]
-    [Description("Returns canonical item foundations filtered by blueprint ID, slug, name or immutable type without mutation.")]
+    [Description("Returns canonical item foundations plus P1 creation, gameplay, loot, inventory-inspector and lifecycle-event policies filtered by blueprint ID, slug, name or immutable type without mutation.")]
     public ItemFoundationResource QueryItemFoundations(string? blueprintIdOrSearch = null, int limit = 50) =>
         _project.QueryItemFoundations(blueprintIdOrSearch, limit);
 
@@ -229,12 +254,12 @@ public sealed class ForgeMcpTools
         _project.PreviewItemFoundation(request);
 
     [McpServerTool]
-    [Description("Returns canonical creature foundations filtered by blueprint ID, slug or display name without mutation.")]
+    [Description("Returns canonical creature foundations with authoring, rules, interaction events and profile-driven AI summaries filtered by blueprint ID, slug or display name without mutation.")]
     public CreatureFoundationResource QueryCreatureFoundations(string? blueprintIdOrSearch = null, int limit = 50) =>
         _project.QueryCreatureFoundations(blueprintIdOrSearch, limit);
 
     [McpServerTool]
-    [Description("Validates and dry-runs a canonical creature-foundation mutation, returning its semantic diff without applying it.")]
+    [Description("Validates and dry-runs a canonical creature-foundation, authoring, rules, interaction and event/AI composition mutation, returning its semantic diff without applying it.")]
     public CreatureFoundationPlanResult PreviewCreatureFoundation(CreatureFoundationPlanRequest request) =>
         _project.PreviewCreatureFoundation(request);
 
@@ -491,6 +516,16 @@ public sealed class ForgeMcpTools
         _project.GetRuntimePolicies(areaId);
 
     [McpServerTool]
+    [Description("Reads the canonical project gameplay-event profile filtered by profile UUID, binding UUID, event name or handler.")]
+    public ProjectGameplayEventResource QueryProjectGameplayEvents(string? idOrSearch = null) =>
+        _project.QueryProjectGameplayEvents(idOrSearch);
+
+    [McpServerTool]
+    [Description("Reads the canonical custom-world-event and world-clock profile filtered by UUID, qualified event name, handler, field or area.")]
+    public ProjectWorldResource QueryProjectWorld(string? idOrSearch = null) =>
+        _project.QueryProjectWorld(idOrSearch);
+
+    [McpServerTool]
     [Description("Validates and dry-runs a versioned runtime-policy plan. It returns a diff and inverse without applying changes.")]
     public RuntimePolicyPlanResult PlanRuntimePolicies(RuntimePolicyPlanRequest request) =>
         _project.PlanRuntimePolicies(request);
@@ -526,7 +561,7 @@ public sealed class ForgeMcpTools
     public GameplayControlResource GetGameplayControls() => _project.GetGameplayControls();
 
     [McpServerTool]
-    [Description("Searches canonical P0 gameplay movement, interaction, cameras, input and save resources by text or kind without mutation.")]
+    [Description("Searches canonical gameplay movement, interaction, cameras, input, save, simulation, persistence scopes, checkpoints, runtime shell, control locks and replay resources by text or kind without mutation.")]
     public GameplayFoundationResource QueryGameplayFoundation(string? query = null, string? kind = null) =>
         _project.QueryGameplayFoundation(query, kind);
 
@@ -566,6 +601,26 @@ public sealed class ForgeMcpTools
         _project.RevertProjectVariablePlan(planId);
 
     [McpServerTool]
+    [Description("Reads localized player documentation pages by locale, page name or text without mutation.")]
+    public ProjectDocumentationResource QueryProjectDocumentation(string? localeOrSearch = null) =>
+        _project.QueryProjectDocumentation(localeOrSearch);
+
+    [McpServerTool]
+    [Description("Validates and dry-runs localized player documentation with a semantic diff and no direct file access.")]
+    public ProjectDocumentationPlanResult PlanProjectDocumentation(ProjectDocumentationPlanRequest request) =>
+        _project.PlanProjectDocumentation(request);
+
+    [McpServerTool]
+    [Description("Applies a previously validated localized player-documentation plan if its revision still matches.")]
+    public ProjectDocumentationPlanResult ApplyProjectDocumentationPlan(string planId) =>
+        _project.ApplyProjectDocumentationPlan(planId);
+
+    [McpServerTool]
+    [Description("Reverts the most recently applied localized player-documentation plan through project history.")]
+    public ProjectDocumentationPlanResult RevertProjectDocumentationPlan(string planId) =>
+        _project.RevertProjectDocumentationPlan(planId);
+
+    [McpServerTool]
     [Description("Returns localized project metadata, stable technical identity and player-start foundation without mutation.")]
     public ProjectFoundationResource GetProjectFoundation() => _project.GetProjectFoundation();
 
@@ -602,6 +657,45 @@ public sealed class ForgeMcpTools
     [Description("Reverts the most recently applied area-foundation plan through canonical project history.")]
     public AreaFoundationPlanResult RevertAreaFoundationPlan(string planId) =>
         _project.RevertAreaFoundationPlan(planId);
+
+    [McpServerTool]
+    [Description("Returns one area's filtered classification, day-night, lighting and fog environment by UUID.")]
+    public AreaEnvironmentResource GetAreaEnvironment(string areaId) => _project.GetAreaEnvironment(areaId);
+
+    [McpServerTool]
+    [Description("Validates and dry-runs an area-environment change with semantic diff and no direct file access.")]
+    public AreaEnvironmentPlanResult PlanAreaEnvironment(AreaEnvironmentPlanRequest request) =>
+        _project.PlanAreaEnvironment(request);
+
+    [McpServerTool]
+    [Description("Applies a previously validated area-environment plan if its base revision still matches.")]
+    public AreaEnvironmentPlanResult ApplyAreaEnvironmentPlan(string planId) =>
+        _project.ApplyAreaEnvironmentPlan(planId);
+
+    [McpServerTool]
+    [Description("Reverts the most recently applied area-environment plan through canonical project history.")]
+    public AreaEnvironmentPlanResult RevertAreaEnvironmentPlan(string planId) =>
+        _project.RevertAreaEnvironmentPlan(planId);
+
+    [McpServerTool]
+    [Description("Returns one area's filtered audio, events, map exploration, visibility and LOD authoring profile.")]
+    public AreaExperienceAuthoringResource GetAreaExperienceAuthoring(string areaId) =>
+        _project.GetAreaExperienceAuthoring(areaId);
+
+    [McpServerTool]
+    [Description("Validates and dry-runs an area-experience change with semantic diff and no direct file access.")]
+    public AreaExperienceAuthoringPlanResult PlanAreaExperienceAuthoring(
+        AreaExperienceAuthoringPlanRequest request) => _project.PlanAreaExperienceAuthoring(request);
+
+    [McpServerTool]
+    [Description("Applies a previously validated area-experience plan if its base revision still matches.")]
+    public AreaExperienceAuthoringPlanResult ApplyAreaExperienceAuthoringPlan(string planId) =>
+        _project.ApplyAreaExperienceAuthoringPlan(planId);
+
+    [McpServerTool]
+    [Description("Reverts the most recently applied area-experience plan through canonical project history.")]
+    public AreaExperienceAuthoringPlanResult RevertAreaExperienceAuthoringPlan(string planId) =>
+        _project.RevertAreaExperienceAuthoringPlan(planId);
 
     [McpServerTool]
     [Description("Returns one area's surface navigation, portals, Play From Here profile and nine-category readiness report without mutation.")]
@@ -808,6 +902,10 @@ public sealed class ForgeMcpTools
     public WorkspaceQualityLabReport RunProjectQualityLab() => _project.RunQualityLab();
 
     [McpServerTool]
+    [Description("Runs bounded in-process dialogue, quest and narrative tests using only allowlisted gameplay actions; it never invokes a shell or mutates the project.")]
+    public AssistantScenarioTestReport RunAssistantTestAutomation() => _project.RunAssistantTestAutomation();
+
+    [McpServerTool]
     [Description("Runs the read-only adverse-network, visual-fixture, benchmark, platform-budget and integrated-profiler laboratory.")]
     public WorkspacePerformanceLabReport RunProjectPerformanceLab() => _project.RunPerformanceLab();
 
@@ -816,7 +914,67 @@ public sealed class ForgeMcpTools
     public WorkspaceGovernanceLabReport RunProjectGovernanceLab() => _project.RunGovernanceLab();
 
     [McpServerTool]
-    [Description("Searches the versioned local Asset Vault catalog by text, source, category, license and availability.")]
+    [Description("Returns governed blueprint palette entries filtered by UUID, name, tag or hierarchical category, including version pins and promoted defaults.")]
+    public BlueprintPaletteResource QueryBlueprintPalette(string? query = null, int limit = 100) =>
+        _project.QueryBlueprintPalette(query, limit);
+
+    [McpServerTool]
+    [Description("Dry-runs promotion of selected instance overrides into a blueprint, semantic version bump, categories and assisted instance migration.")]
+    public BlueprintUpdatePlanResult PlanBlueprintUpdate(BlueprintUpdatePlanRequest request) =>
+        _project.PlanBlueprintUpdate(request);
+
+    [McpServerTool]
+    [Description("Applies a previously validated blueprint update plan through the transactional project command history.")]
+    public BlueprintUpdatePlanResult ApplyBlueprintUpdatePlan(string planId) =>
+        _project.ApplyBlueprintUpdatePlan(planId);
+
+    [McpServerTool]
+    [Description("Reverts the most recently applied blueprint update plan and restores blueprint plus instance constraints.")]
+    public BlueprintUpdatePlanResult RevertBlueprintUpdatePlan(string planId) =>
+        _project.RevertBlueprintUpdatePlan(planId);
+
+    [McpServerTool]
+    [Description("Returns configured prefab variants, hierarchical compositions, author collections and seven-axis asset budgets filtered by UUID, slug, collection or base blueprint.")]
+    public BlueprintPrefabResource QueryBlueprintPrefabs(string? query = null, int limit = 100) =>
+        _project.QueryBlueprintPrefabs(query, limit);
+
+    [McpServerTool]
+    [Description("Dry-runs a governed blueprint prefab configuration and returns a semantic diff without mutating project files.")]
+    public BlueprintPrefabPlanResult PlanBlueprintPrefab(BlueprintPrefabPlanRequest request) =>
+        _project.PlanBlueprintPrefab(request);
+
+    [McpServerTool]
+    [Description("Applies a previously validated blueprint prefab plan through transactional history and exact project persistence.")]
+    public BlueprintPrefabPlanResult ApplyBlueprintPrefabPlan(string planId) =>
+        _project.ApplyBlueprintPrefabPlan(planId);
+
+    [McpServerTool]
+    [Description("Reverts the most recently applied blueprint prefab plan without invoking a shell.")]
+    public BlueprintPrefabPlanResult RevertBlueprintPrefabPlan(string planId) =>
+        _project.RevertBlueprintPrefabPlan(planId);
+
+    [McpServerTool]
+    [Description("Reads the local editor productivity profile, its active document, role permissions and sourced contextual-help topics without driving the UI.")]
+    public EditorProductivityResource QueryEditorProductivity(string? helpQuery = null) =>
+        _project.QueryEditorProductivity(helpQuery);
+
+    [McpServerTool]
+    [Description("Validates and dry-runs a bounded editor productivity profile with filters, brush placement, split view, help citations and role permissions.")]
+    public EditorProductivityPlanResult PlanEditorProductivity(EditorProductivityPlanRequest request) =>
+        _project.PlanEditorProductivity(request);
+
+    [McpServerTool]
+    [Description("Applies a previously validated local editor productivity plan; it never drives the editor UI or mutates module content.")]
+    public EditorProductivityPlanResult ApplyEditorProductivityPlan(string planId) =>
+        _project.ApplyEditorProductivityPlan(planId);
+
+    [McpServerTool]
+    [Description("Reverts an applied local editor productivity plan to its exact previous profile.")]
+    public EditorProductivityPlanResult RevertEditorProductivityPlan(string planId) =>
+        _project.RevertEditorProductivityPlan(planId);
+
+    [McpServerTool]
+    [Description("Searches the versioned local Asset Vault catalog by text, tags, dimensions, style, skeleton, material, polycount, license, author, compatibility and variant.")]
     public AgentAssetCatalogResult GetAssetCatalog(
         string? query = null,
         string? source = null,
@@ -824,7 +982,18 @@ public sealed class ForgeMcpTools
         string? licenseSpdx = null,
         string? availability = null,
         int maximumResults = 100,
-        bool? installed = null) =>
+        bool? installed = null,
+        string? tag = null,
+        double? maximumWidth = null,
+        double? maximumHeight = null,
+        double? maximumDepth = null,
+        string? style = null,
+        string? skeleton = null,
+        string? material = null,
+        long? maximumTriangleCount = null,
+        string? author = null,
+        string? compatibility = null,
+        string? variant = null) =>
         _project.GetAssets(new AgentAssetCatalogQuery(
             query,
             source,
@@ -832,7 +1001,18 @@ public sealed class ForgeMcpTools
             licenseSpdx,
             availability,
             maximumResults,
-            installed));
+            installed,
+            tag,
+            maximumWidth,
+            maximumHeight,
+            maximumDepth,
+            style,
+            skeleton,
+            material,
+            maximumTriangleCount,
+            author,
+            compatibility,
+            variant));
 
     [McpServerTool]
     [Description("Validates and dry-runs installation of a governed catalog asset as a project blueprint. License, manifest, identity and canonical GLB checks run before a plan is returned.")]
@@ -866,7 +1046,7 @@ public sealed class ForgeMcpTools
     public DialoguePlanResult RevertDialoguePlan(string planId) => _project.RevertDialoguePlan(planId);
 
     [McpServerTool]
-    [Description("Returns the versioned, allowlisted ForgeScript API available to module scripts.")]
+    [Description("Returns the versioned, allowlisted ForgeScript API plus generated reference, quality tools and MCP resources available to module scripts.")]
     public ForgeScriptApiDescription GetForgeScriptApi() => _scripts.GetApi();
 
     [McpServerTool]
@@ -904,6 +1084,10 @@ public sealed class ForgeMcpTools
     [Description("Reverts the latest applied ForgeScript source transaction when no later mutation exists.")]
     public ScriptInteropResult RevertForgeScriptSourcePlan(string planId) => _scriptInterop.RevertSourcePlan(planId);
 
+    [McpServerTool(Name = "redo_forgescript_source")]
+    [Description("Reapplies the latest reverted ForgeScript source plan when no later mutation exists.")]
+    public ScriptInteropResult RedoForgeScriptSourcePlan(string planId) => _scriptInterop.RedoSourcePlan(planId);
+
     [McpServerTool]
     [Description("Returns structured compiler diagnostics for a canonical ForgeScript source path.")]
     public IReadOnlyList<AgentDiagnostic> GetForgeScriptDiagnostics(string path) =>
@@ -927,6 +1111,131 @@ public sealed class ForgeMcpTools
     [Description("Reverts the latest applied ForgeScript event assignment.")]
     public ScriptEventBindingPlanResult RevertForgeScriptEventBindingPlan(string planId) =>
         _scriptInterop.RevertEventBindingPlan(planId);
+
+    [McpServerTool(Name = "redo_forgescript_event_binding")]
+    [Description("Reapplies the latest reverted ForgeScript event assignment when no later mutation exists.")]
+    public ScriptEventBindingPlanResult RedoForgeScriptEventBindingPlan(string planId) =>
+        _scriptInterop.RedoEventBindingPlan(planId);
+
+    [McpServerTool(Name = "forge_get_network_foundation", ReadOnly = true, Destructive = false,
+        Idempotent = true, OpenWorld = false)]
+    [Description("Returns the canonical dedicated-server, authority, party, replication and interest profile by optional stable ID or bounded search.")]
+    public NetworkFoundationResource GetNetworkFoundation(Guid? profileId = null, string? search = null) =>
+        _networkFoundation.Get(profileId, search);
+
+    [McpServerTool(Name = "forge_plan_network_foundation", ReadOnly = false, Destructive = false,
+        Idempotent = true, OpenWorld = false)]
+    [Description("Validates and dry-runs a server-scoped network foundation change with semantic diff and audit without mutation.")]
+    public NetworkFoundationPlanResult PlanNetworkFoundation(NetworkFoundationPlanRequest request) =>
+        _networkFoundation.Plan(request);
+
+    [McpServerTool(Name = "forge_apply_network_foundation_plan", ReadOnly = false, Destructive = true,
+        Idempotent = false, OpenWorld = false)]
+    [Description("Applies a previously previewed network foundation plan at its optimistic server revision.")]
+    public NetworkFoundationPlanResult ApplyNetworkFoundationPlan(string planId) =>
+        _networkFoundation.Apply(planId);
+
+    [McpServerTool(Name = "forge_revert_network_foundation", ReadOnly = false, Destructive = true,
+        Idempotent = false, OpenWorld = false)]
+    [Description("Compensates the latest safe network authoring change with administrator permission and audit.")]
+    public NetworkFoundationPlanResult RevertNetworkFoundation(string actorId) =>
+        _networkFoundation.Revert(actorId, NetworkRole.Administrator);
+
+    [McpServerTool(Name = "forge_redo_network_foundation", ReadOnly = false, Destructive = true,
+        Idempotent = false, OpenWorld = false)]
+    [Description("Reapplies the latest compensated network authoring change with administrator permission and audit.")]
+    public NetworkFoundationPlanResult RedoNetworkFoundation(string actorId) =>
+        _networkFoundation.Redo(actorId, NetworkRole.Administrator);
+
+    [McpServerTool(Name = "forge_get_network_operations", ReadOnly = true, Destructive = false,
+        Idempotent = true, OpenWorld = false)]
+    [Description("Returns the canonical content sync, version lock, role, chat and server-event profile by optional stable ID or bounded search.")]
+    public NetworkOperationsResource GetNetworkOperations(Guid? profileId = null, string? search = null) =>
+        _networkOperations.Get(profileId, search);
+
+    [McpServerTool(Name = "forge_plan_network_operations", ReadOnly = false, Destructive = false,
+        Idempotent = true, OpenWorld = false)]
+    [Description("Validates and dry-runs a server-scoped network operations change with semantic diff and audit without mutation.")]
+    public NetworkOperationsPlanResult PlanNetworkOperations(NetworkOperationsPlanRequest request) =>
+        _networkOperations.Plan(request);
+
+    [McpServerTool(Name = "forge_apply_network_operations_plan", ReadOnly = false, Destructive = true,
+        Idempotent = false, OpenWorld = false)]
+    [Description("Applies a previously previewed network operations plan at its optimistic server revision.")]
+    public NetworkOperationsPlanResult ApplyNetworkOperationsPlan(string planId) =>
+        _networkOperations.Apply(planId);
+
+    [McpServerTool(Name = "forge_revert_network_operations", ReadOnly = false, Destructive = true,
+        Idempotent = false, OpenWorld = false)]
+    [Description("Compensates the latest safe network operations change with administrator permission and audit.")]
+    public NetworkOperationsPlanResult RevertNetworkOperations(string actorId) =>
+        _networkOperations.Revert(actorId, NetworkRole.Administrator);
+
+    [McpServerTool(Name = "forge_redo_network_operations", ReadOnly = false, Destructive = true,
+        Idempotent = false, OpenWorld = false)]
+    [Description("Reapplies the latest compensated network operations change with administrator permission and audit.")]
+    public NetworkOperationsPlanResult RedoNetworkOperations(string actorId) =>
+        _networkOperations.Redo(actorId, NetworkRole.Administrator);
+
+    [McpServerTool(Name = "forge_get_network_assurance", ReadOnly = true, Destructive = false,
+        Idempotent = true, OpenWorld = false)]
+    [Description("Returns the canonical structured-log, anti-cheat and deterministic-network-test profile by optional stable ID or bounded search.")]
+    public NetworkAssuranceResource GetNetworkAssurance(Guid? profileId = null, string? search = null) =>
+        _networkAssurance.Get(profileId, search);
+
+    [McpServerTool(Name = "forge_plan_network_assurance", ReadOnly = false, Destructive = false,
+        Idempotent = true, OpenWorld = false)]
+    [Description("Validates and dry-runs a server-scoped network assurance change with semantic diff and audit without mutation.")]
+    public NetworkAssurancePlanResult PlanNetworkAssurance(NetworkAssurancePlanRequest request) =>
+        _networkAssurance.Plan(request);
+
+    [McpServerTool(Name = "forge_apply_network_assurance_plan", ReadOnly = false, Destructive = true,
+        Idempotent = false, OpenWorld = false)]
+    [Description("Applies a previously previewed network assurance plan at its optimistic server revision.")]
+    public NetworkAssurancePlanResult ApplyNetworkAssurancePlan(string planId) =>
+        _networkAssurance.Apply(planId);
+
+    [McpServerTool(Name = "forge_revert_network_assurance", ReadOnly = false, Destructive = true,
+        Idempotent = false, OpenWorld = false)]
+    [Description("Compensates the latest safe network assurance change with administrator permission and audit.")]
+    public NetworkAssurancePlanResult RevertNetworkAssurance(string actorId) =>
+        _networkAssurance.Revert(actorId, NetworkRole.Administrator);
+
+    [McpServerTool(Name = "forge_redo_network_assurance", ReadOnly = false, Destructive = true,
+        Idempotent = false, OpenWorld = false)]
+    [Description("Reapplies the latest compensated network assurance change with administrator permission and audit.")]
+    public NetworkAssurancePlanResult RedoNetworkAssurance(string actorId) =>
+        _networkAssurance.Redo(actorId, NetworkRole.Administrator);
+
+    [McpServerTool(Name = "forge_get_live_director_access", ReadOnly = true, Destructive = false,
+        Idempotent = true, OpenWorld = false)]
+    [Description("Returns the canonical Live Director authentication, inspection, player, audit and GM-chat profile by optional stable ID or bounded search.")]
+    public LiveDirectorAccessResource GetLiveDirectorAccess(Guid? profileId = null, string? search = null) =>
+        _liveDirectorAccess.Get(profileId, search);
+
+    [McpServerTool(Name = "forge_plan_live_director_access", ReadOnly = false, Destructive = false,
+        Idempotent = true, OpenWorld = false)]
+    [Description("Validates and dry-runs a server-scoped Live Director access change with semantic diff and audit without mutation.")]
+    public LiveDirectorAccessPlanResult PlanLiveDirectorAccess(LiveDirectorAccessPlanRequest request) =>
+        _liveDirectorAccess.Plan(request);
+
+    [McpServerTool(Name = "forge_apply_live_director_access_plan", ReadOnly = false, Destructive = true,
+        Idempotent = false, OpenWorld = false)]
+    [Description("Applies a previously previewed Live Director access plan at its optimistic server revision.")]
+    public LiveDirectorAccessPlanResult ApplyLiveDirectorAccessPlan(string planId) =>
+        _liveDirectorAccess.Apply(planId);
+
+    [McpServerTool(Name = "forge_revert_live_director_access", ReadOnly = false, Destructive = true,
+        Idempotent = false, OpenWorld = false)]
+    [Description("Compensates the latest safe Live Director access change with administrator permission and audit.")]
+    public LiveDirectorAccessPlanResult RevertLiveDirectorAccess(string actorId) =>
+        _liveDirectorAccess.Revert(actorId, NetworkRole.Administrator);
+
+    [McpServerTool(Name = "forge_redo_live_director_access", ReadOnly = false, Destructive = true,
+        Idempotent = false, OpenWorld = false)]
+    [Description("Reapplies the latest compensated Live Director access change with administrator permission and audit.")]
+    public LiveDirectorAccessPlanResult RedoLiveDirectorAccess(string actorId) =>
+        _liveDirectorAccess.Redo(actorId, NetworkRole.Administrator);
 
     [McpServerTool]
     [Description("Uses the configured assistant to propose or repair a confined ForgeScript source, compile it and run generated sandbox tests without writing it.")]

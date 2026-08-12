@@ -29,4 +29,26 @@ public sealed class BlueprintLibraryIndexTests
         Assert.Contains($"Variantes/{source.Slug}", entry.Collections);
         Assert.Equal([instance.Id], entry.InstanceIds);
     }
+
+    [Fact]
+    public void ExpandsPersistentAuthorCategoriesAndTagFacetsIntoVirtualFolders()
+    {
+        var context = new PlaceEntityTestContext();
+        var source = context.State.Project.Blueprints[0];
+        var authoring = new BlueprintAuthoringMetadata(1, "1.0.0", "project.forest",
+            "content/blueprints/tree.json", styles: ["stylized"], compatibility: ["medieval"],
+            tags: ["tree"], categoryPaths: ["Monde/Forêt/Arbres"]);
+        var blueprint = source.WithPaletteUpdate(authoring, source.Provenance);
+        var project = new ProjectDefinition(context.State.Project.Id, context.State.Project.Title,
+            context.State.Project.Module, [blueprint], context.State.Project.Areas);
+
+        var index = BlueprintLibraryIndex.Build(project);
+
+        Assert.Contains("Monde", index.CategoryPaths);
+        Assert.Contains("Monde/Forêt", index.CategoryPaths);
+        Assert.Contains("Monde/Forêt/Arbres", index.CategoryPaths);
+        Assert.Contains("Tags/tree", index.Collections);
+        Assert.Contains("Styles/stylized", index.Collections);
+        Assert.Contains("Compatibilité/medieval", index.Collections);
+    }
 }

@@ -18,11 +18,14 @@ public sealed record ModuleGameplayControlProfile
     public TimeControlPolicy TimeControl { get; }
     public CombatModeProfile CombatModes { get; }
     public GameplayFoundationProfile Foundation { get; }
+    public GameplaySimulationProfile Simulation { get; }
+    public GameplaySessionProfile Session { get; }
     public string Provenance { get; }
 
     public ModuleGameplayControlProfile(Guid id, int schemaVersion, SwimmingProfile swimming,
         ClimbingProfile climbing, RadialMenuProfile radialMenu, TimeControlPolicy timeControl,
-        CombatModeProfile combatModes, string provenance, GameplayFoundationProfile? foundation = null)
+        CombatModeProfile combatModes, string provenance, GameplayFoundationProfile? foundation = null,
+        GameplaySimulationProfile? simulation = null, GameplaySessionProfile? session = null)
     {
         ArgumentNullException.ThrowIfNull(swimming);
         ArgumentNullException.ThrowIfNull(climbing);
@@ -43,6 +46,8 @@ public sealed record ModuleGameplayControlProfile
         TimeControl = timeControl;
         CombatModes = combatModes;
         Foundation = foundation ?? GameplayFoundationProfile.CreateDefault(ModuleId.From(id));
+        Simulation = simulation ?? GameplaySimulationProfile.CreateDefault(ModuleId.From(id));
+        Session = session ?? GameplaySessionProfile.CreateDefault(ModuleId.From(id));
         Provenance = provenance.Trim();
     }
 
@@ -85,6 +90,7 @@ public sealed record ModuleGameplayControlProfile
         };
         var combat = new CombatModeProfile(Stable("combat"), 1, "realtime-pause", providers, provenance);
         return new ModuleGameplayControlProfile(moduleId.Value, 1, swimming, climbing, radial, time, combat,
-            provenance, GameplayFoundationProfile.CreateDefault(moduleId));
+            provenance, GameplayFoundationProfile.CreateDefault(moduleId),
+            GameplaySimulationProfile.CreateDefault(moduleId), GameplaySessionProfile.CreateDefault(moduleId));
     }
 }

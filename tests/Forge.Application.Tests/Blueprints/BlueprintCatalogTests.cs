@@ -173,6 +173,28 @@ public sealed class BlueprintCatalogTests
     }
 
     [Fact]
+    public void NamedPaletteCollectionsRemainOrderedBoundedAndPersistInWorkspaceProfile()
+    {
+        var context = new EntityMutationTestContext();
+        var profile = EditorWorkspaceProfile.CreateDefault(EditorRole.Artist);
+        var collection = new NamedPaletteCollection(
+            Guid.Parse("a3100000-0000-4000-8000-000000000001"),
+            1,
+            "Décors de crypte",
+            [context.BlueprintId],
+            taskScoped: true,
+            "test://palette/crypt");
+
+        profile = EditorWorkspaceProfilePlanner.UpsertNamedPalette(profile, collection);
+        var selected = BlueprintPaletteCatalog.Build(context.State.Project, profile)
+            .FilterNamedCollection(profile.NamedPaletteCollections.Single());
+
+        Assert.Equal(context.BlueprintId, Assert.Single(selected).BlueprintId);
+        Assert.True(profile.NamedPaletteCollections.Single().TaskScoped);
+        Assert.Empty(EditorWorkspaceProfilePlanner.RemoveNamedPalette(profile, collection.Id).NamedPaletteCollections);
+    }
+
+    [Fact]
     public void ContextualPaletteCombinesTypeKitStyleLicenseCompatibilityTagsAndFavorites()
     {
         var context = new EntityMutationTestContext();

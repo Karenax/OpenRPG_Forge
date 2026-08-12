@@ -80,16 +80,9 @@ public sealed record AreaDefinition
         Dimensions = dimensions ?? AreaDimensions.Default;
         Entities = materializedEntities;
         Portals = materializedPortals;
-        Navigation = navigation is null
-            ? AreaNavigationDefinition.CreateDefault(id)
-            : navigation.Anchors.AreaId == id
-                ? navigation
-                : navigation.Anchors.Definitions.Count == 0 && navigation.Anchors.Instances.Count == 0 &&
-                  string.Equals(navigation.Anchors.Provenance, "migration-default", StringComparison.Ordinal)
-                    ? navigation.WithAnchors(AnchorCatalog.CreateDefault(id))
-                    : navigation;
-        Environment = environment ?? AreaEnvironmentProfile.CreateDefault(kind);
-        Authoring = authoring ?? AreaAuthoringProfile.CreateDefault();
+        Navigation = NormalizeNavigation(navigation, id);
+        Environment = environment ?? AreaEnvironmentProfile.CreateDefault(id, kind);
+        Authoring = (authoring ?? AreaAuthoringProfile.CreateDefault(id)).ForArea(id);
         World = world ?? AreaWorldProfile.CreateDefault(id, kind, Dimensions);
         RuntimePolicies = runtimePolicies ?? AreaRuntimePolicyProfile.CreateDefault(id);
         Foundation = foundation ?? AreaFoundationProfile.CreateDefault(id, kind);
@@ -125,4 +118,19 @@ public sealed record AreaDefinition
     public AreaDefinition WithPlaytest(AreaPlaytestProfile playtest) =>
         new(Id, Slug, DisplayName, Entities, Kind, Dimensions, Portals, SchemaVersion, Navigation, Environment,
             Authoring, World, RuntimePolicies, Foundation, playtest);
+
+    private static AreaNavigationDefinition NormalizeNavigation(AreaNavigationDefinition? navigation, AreaId areaId)
+    {
+        if (navigation is null) return AreaNavigationDefinition.CreateDefault(areaId);
+        var result = navigation;
+        if (result.Anchors.AreaId != areaId && result.Anchors.Definitions.Count == 0 &&
+            result.Anchors.Instances.Count == 0 &&
+            string.Equals(result.Anchors.Provenance, "migration-default", StringComparison.Ordinal))
+            result = result.WithAnchors(AnchorCatalog.CreateDefault(areaId));
+        if (result.Waypoints.AreaId != areaId && result.Waypoints.Waypoints.Count == 0 &&
+            result.Waypoints.PatrolRoutes.Count == 0 &&
+            string.Equals(result.Waypoints.Provenance, "migration-default", StringComparison.Ordinal))
+            result = result.WithWaypoints(WaypointAuthoringProfile.CreateDefault(areaId));
+        return result;
+    }
 }

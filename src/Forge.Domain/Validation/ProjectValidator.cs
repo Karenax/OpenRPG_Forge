@@ -12,6 +12,7 @@ using Forge.Domain.Navigation;
 using Forge.Domain.Modules;
 using Forge.Domain.Content;
 using Forge.Domain.Localization;
+using Forge.Domain.Lifecycle;
 
 namespace Forge.Domain.Validation;
 
@@ -41,6 +42,14 @@ public static class ProjectValidator
     public const string DuplicateCreatureRoleBehaviorCode = "creature.role_behavior.uuid_duplicate";
     public const string DuplicateCreatureEventsCode = "creature.events.uuid_duplicate";
     public const string DuplicateCreatureFoundationCode = "creature.foundation.uuid_duplicate";
+    public const string DuplicateCreatureAuthoringCode = "creature.authoring.uuid_duplicate";
+    public const string DuplicateCreatureAnimationCode = "creature.authoring.animation_uuid_duplicate";
+    public const string DuplicateCreatureRulesCode = "creature.rules.uuid_duplicate";
+    public const string MissingCreatureInventoryItemCode = "creature.rules.inventory_item_missing";
+    public const string DuplicateCreatureInteractionCode = "creature.interaction.uuid_duplicate";
+    public const string MissingCreatureInteractionFactionCode = "creature.interaction.faction_missing";
+    public const string MissingCreatureInteractionDialogueCode = "creature.interaction.dialogue_missing";
+    public const string DuplicateCreatureEventAiCode = "creature.event_ai.uuid_duplicate";
     public const string DuplicateQuestOperationsCode = "quest.operations.uuid_duplicate";
     public const string DuplicateItemAdvancedCode = "item.advanced.uuid_duplicate";
     public const string DuplicateItemFoundationCode = "item.foundation.uuid_duplicate";
@@ -62,6 +71,13 @@ public static class ProjectValidator
         var roleBehaviorIds = new HashSet<Guid>();
         var creatureEventIds = new HashSet<Guid>();
         var creatureFoundationIds = new HashSet<Guid>();
+        var creatureAuthoringIds = new HashSet<Guid>();
+        var creatureAnimationIds = new HashSet<Guid>();
+        var creatureRulesIds = new HashSet<Guid>();
+        var creatureInteractionIds = new HashSet<Guid>();
+        var creatureEventAiIds = new HashSet<Guid>();
+        var factionIds = project.Module.Factions.Factions.Select(item => item.Id).ToHashSet();
+        var dialogueIds = project.Dialogues.Select(item => item.Id).ToHashSet();
         var questOperationsIds = new HashSet<Guid>();
         var itemAdvancedIds = new HashSet<Guid>();
         var itemFoundationIds = new HashSet<Guid>();
@@ -71,9 +87,14 @@ public static class ProjectValidator
             .Select(anchor => anchor.Id).ToHashSet();
 
         diagnostics.AddRange(RuntimePolicyValidator.Validate(project.Module));
+        diagnostics.AddRange(ProjectWorldProfileValidator.Validate(
+            project.Module.RuntimePolicies.World,
+            project.Module.Id.Value,
+            project.Areas.Select(area => area.Id.ToString()).ToHashSet(StringComparer.Ordinal)));
         if (project.Module.Metadata.Foundation is { } foundation)
             diagnostics.AddRange(ProjectFoundationValidator.Validate(foundation, project));
         diagnostics.AddRange(ProjectVariableValidator.Validate(project.Module.Variables));
+        diagnostics.AddRange(ProjectDocumentationValidator.Validate(project.Module.Metadata));
         diagnostics.AddRange(FactionValidator.Validate(project.Module.Factions)
             .Select(item => new DomainDiagnostic(item.Code, item.Message, item.Path)));
         diagnostics.AddRange(WorldFeatureCatalogValidator.Validate(project));
@@ -136,6 +157,8 @@ public static class ProjectValidator
                     authoringPath));
             }
 
+            diagnostics.AddRange(BlueprintPrefabValidator.Validate(project, blueprint));
+
             if (blueprint.CreaturePresentation is not null)
             {
                 var presentationPath = $"blueprints/{blueprint.Id}/creaturePresentation";
@@ -164,6 +187,63 @@ public static class ProjectValidator
                         DuplicateCreatureFoundationCode,
                         $"Creature foundation '{blueprint.CreatureFoundation.Id}' is assigned more than once.",
                         $"{creatureFoundationPath}/id"));
+                }
+                if (blueprint.CreatureFoundation.AuthoringComposition is { } authoring)
+                {
+                    if (!creatureAuthoringIds.Add(authoring.Id))
+                        diagnostics.Add(new DomainDiagnostic(DuplicateCreatureAuthoringCode,
+                            $"Creature-authoring profile '{authoring.Id}' is assigned more than once.",
+                            $"{creatureFoundationPath}/authoringComposition/id"));
+                    if (!creatureAnimationIds.Add(authoring.AnimationGraph.Id))
+                        diagnostics.Add(new DomainDiagnostic(DuplicateCreatureAnimationCode,
+                            $"Creature animation graph '{authoring.AnimationGraph.Id}' is assigned more than once.",
+                            $"{creatureFoundationPath}/authoringComposition/animationGraph/id"));
+                    foreach (var id in authoring.AnimationGraph.States.Select(item => item.Id)
+                                 .Concat(authoring.AnimationGraph.Transitions.Select(item => item.Id)))
+                        if (!creatureAnimationIds.Add(id))
+                            diagnostics.Add(new DomainDiagnostic(DuplicateCreatureAnimationCode,
+                                $"Creature animation node or edge '{id}' is assigned more than once.",
+                                $"{creatureFoundationPath}/authoringComposition/animationGraph/{id}"));
+                }
+                if (blueprint.CreatureFoundation.RulesComposition is { } rules)
+                {
+                    foreach (var id in CreatureRulesCompositionValidator.EnumerateComponentIds(rules))
+                        if (!creatureRulesIds.Add(id))
+                            diagnostics.Add(new DomainDiagnostic(DuplicateCreatureRulesCode,
+                                $"Creature-rules component '{id}' is assigned more than once.",
+                                $"{creatureFoundationPath}/rulesComposition/{id}"));
+                    foreach (var item in rules.Inventory.Containers.SelectMany(container => container.Items))
+                        if (!blueprintsById.TryGetValue(item.ItemBlueprintId, out var itemBlueprint) ||
+                            itemBlueprint.Kind != BlueprintKind.Item)
+                            diagnostics.Add(new DomainDiagnostic(MissingCreatureInventoryItemCode,
+                                $"Creature inventory item blueprint '{item.ItemBlueprintId}' does not resolve to an item.",
+                                $"{creatureFoundationPath}/rulesComposition/inventory/{item.Id}/itemBlueprintId"));
+                }
+                if (blueprint.CreatureFoundation.InteractionComposition is { } interaction)
+                {
+                    foreach (var id in CreatureInteractionCompositionValidator.EnumerateComponentIds(interaction))
+                        if (!creatureInteractionIds.Add(id))
+                            diagnostics.Add(new DomainDiagnostic(DuplicateCreatureInteractionCode,
+                                $"Creature-interaction component '{id}' is assigned more than once.",
+                                $"{creatureFoundationPath}/interactionComposition/{id}"));
+                    foreach (var membership in interaction.Factions.Memberships)
+                        if (!factionIds.Contains(membership.FactionId))
+                            diagnostics.Add(new DomainDiagnostic(MissingCreatureInteractionFactionCode,
+                                $"Creature faction '{membership.FactionId}' does not resolve.",
+                                $"{creatureFoundationPath}/interactionComposition/factions/{membership.Id}/factionId"));
+                    foreach (var binding in interaction.DialogueBindings)
+                        if (!dialogueIds.Contains(binding.DialogueId))
+                            diagnostics.Add(new DomainDiagnostic(MissingCreatureInteractionDialogueCode,
+                                $"Creature dialogue '{binding.DialogueId}' does not resolve.",
+                                $"{creatureFoundationPath}/interactionComposition/dialogueBindings/{binding.Id}/dialogueId"));
+                }
+                if (blueprint.CreatureFoundation.EventAiComposition is { } eventAi)
+                {
+                    foreach (var id in CreatureEventAiCompositionValidator.EnumerateComponentIds(eventAi))
+                        if (!creatureEventAiIds.Add(id))
+                            diagnostics.Add(new DomainDiagnostic(DuplicateCreatureEventAiCode,
+                                $"Creature event/AI component '{id}' is assigned more than once.",
+                                $"{creatureFoundationPath}/eventAiComposition/{id}"));
                 }
             }
 
@@ -278,12 +358,42 @@ public static class ProjectValidator
         foreach (var area in project.Areas)
         {
             diagnostics.AddRange(AreaWorldValidator.Validate(area, area.World));
+            diagnostics.AddRange(AreaEnvironmentAuthoringValidator.Validate(area, area.Environment));
+            diagnostics.AddRange(AreaExperienceAuthoringValidator.Validate(area));
+            diagnostics.AddRange(AreaLayerAuthoringValidator.Validate(area));
+            if (area.Authoring.RequireLayerRuntimeMetadata && area.Authoring.Layers.Count == 0)
+                diagnostics.Add(new DomainDiagnostic(AreaLayerRuntimeResolver.RequiredMissingCode,
+                    "Required area layer metadata is missing.",
+                    $"areas/{area.Id}/authoring/layers"));
+            if (area.Authoring.Experience.RequireRuntimeMetadata &&
+                string.Equals(area.Authoring.Experience.Provenance, "migration-default", StringComparison.Ordinal))
+                diagnostics.Add(new DomainDiagnostic(AreaExperienceRuntimeResolver.RequiredMissingCode,
+                    "Required area experience metadata is missing.",
+                    $"areas/{area.Id}/authoring/experience"));
+            if (area.Environment.RequireAuthoringRuntimeMetadata &&
+                string.Equals(area.Environment.Authoring.Provenance, "migration-default", StringComparison.Ordinal))
+                diagnostics.Add(new DomainDiagnostic(AreaEnvironmentRuntimeResolver.RequiredMissingCode,
+                    "Required area environment authoring metadata is missing.",
+                    $"areas/{area.Id}/environment/authoring"));
             diagnostics.AddRange(AnchorCatalogValidator.Validate(project, area));
+            diagnostics.AddRange(WaypointAuthoringValidator.Validate(area));
             diagnostics.AddRange(RuntimePolicyValidator.Validate(area));
             diagnostics.AddRange(AudioEmitterCatalogValidator.Validate(
                 area.Environment.Audio.Emitters,
                 area.Environment.Audio.Orchestration.MixBuses.Select(item => item.Id).ToHashSet(),
                 path: $"areas/{area.Id}/environment/audio/emitters"));
+            diagnostics.AddRange(AudioAuthoringProfileValidator.Validate(
+                area.Environment.Audio.Authoring,
+                area.Environment.Audio.Playlist,
+                area.Environment.Audio.Emitters,
+                path: $"areas/{area.Id}/environment/audio/authoring"));
+            diagnostics.AddRange(AudioCaptionValidator.Validate(area.Environment.Audio,
+                path: $"areas/{area.Id}/environment/audio/orchestration/captions"));
+            if (area.Environment.Audio.Authoring.RequiredAtRuntime &&
+                string.Equals(area.Environment.Audio.Authoring.Provenance, "migration-default", StringComparison.Ordinal))
+                diagnostics.Add(new DomainDiagnostic(AudioAuthoringRuntimeResolver.RequiredMissingCode,
+                    "Required audio authoring metadata is missing.",
+                    $"areas/{area.Id}/environment/audio/authoring"));
 
             for (var index = 0; index < area.Entities.Count; index++)
             {
@@ -427,6 +537,9 @@ public static class ProjectValidator
         foreach (var quest in project.Quests)
         {
             diagnostics.AddRange(QuestValidator.Validate(quest));
+            diagnostics.AddRange(QuestAuthoringProfileValidator.ValidateReferences(project, quest));
+            diagnostics.AddRange(QuestExperienceProfileValidator.ValidateReferences(project, quest));
+            diagnostics.AddRange(QuestQualityProfileValidator.ValidateReferences(project, quest));
             foreach (var state in quest.States)
             {
                 foreach (var link in state.Journal.ContextLinks.Where(link =>

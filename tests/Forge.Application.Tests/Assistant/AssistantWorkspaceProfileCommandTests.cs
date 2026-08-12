@@ -93,6 +93,55 @@ public sealed class AssistantWorkspaceProfileCommandTests
         Assert.Equal(12, history.State.Profile.AgentWorkflow.EffectiveGovernance.Authorization.MaximumCommands);
     }
 
+    [Fact]
+    public void R120_TestAutomationUsesPreviewFingerprintAndCanonicalUndoRedo()
+    {
+        var history = new AssistantWorkspaceProfileCommandHistory();
+        var source = history.State.Profile;
+        var testing = new AssistantTestAutomationProfile(
+            source.TestAutomation.Id, source.TestAutomation.SchemaVersion, "test:r120", true, false,
+            96, 512, 768, true, true, true, true, source.TestAutomation.AllowedGameplayActions);
+        var updated = new AssistantWorkspaceProfile(source.Id, source.SchemaVersion, source.ActiveProviderId,
+            source.Providers, source.Prompts, source.MaximumPermission, source.NetworkAllowed,
+            source.ShareProjectContent, source.Provenance, source.AgentWorkflow, testing);
+        var planId = Guid.Parse("a2530000-0000-4000-8000-000000000001");
+
+        Assert.True(_handler.Handle(history.State, Command(history.State.Revision, planId, updated, true)).Succeeded);
+        history.Record(_handler.Handle(history.State, Command(history.State.Revision, planId, updated, false)));
+
+        Assert.Equal(96, history.State.Profile.TestAutomation.MaximumScenarioSteps);
+        Assert.True(history.Undo());
+        Assert.Equal(128, history.State.Profile.TestAutomation.MaximumScenarioSteps);
+        Assert.True(history.Redo());
+        Assert.Equal(96, history.State.Profile.TestAutomation.MaximumScenarioSteps);
+    }
+
+    [Fact]
+    public void R143_CombatSimulationUsesPreviewFingerprintAndCanonicalUndoRedo()
+    {
+        var history = new AssistantWorkspaceProfileCommandHistory();
+        var source = history.State.Profile;
+        var simulation = source.CombatSimulation with
+        {
+            Enabled = true,
+            RunsPerMatchup = 48,
+            Provenance = "test:r143",
+        };
+        var updated = new AssistantWorkspaceProfile(source.Id, source.SchemaVersion, source.ActiveProviderId,
+            source.Providers, source.Prompts, source.MaximumPermission, source.NetworkAllowed,
+            source.ShareProjectContent, source.Provenance, source.AgentWorkflow, source.TestAutomation, simulation);
+        var planId = Guid.Parse("a1430000-0000-4000-8000-000000000002");
+
+        Assert.True(_handler.Handle(history.State, Command(history.State.Revision, planId, updated, true)).Succeeded);
+        history.Record(_handler.Handle(history.State, Command(history.State.Revision, planId, updated, false)));
+        Assert.True(history.State.Profile.CombatSimulation.Enabled);
+        Assert.Equal(48, history.State.Profile.CombatSimulation.RunsPerMatchup);
+        Assert.True(history.Undo());
+        Assert.False(history.State.Profile.CombatSimulation.Enabled);
+        Assert.True(history.Redo());
+        Assert.Equal(48, history.State.Profile.CombatSimulation.RunsPerMatchup);
+    }
+
     private static SetAssistantWorkspaceProfileCommand Command(
         AssistantWorkspaceProfileRevision revision,
         Guid planId,

@@ -129,6 +129,10 @@ public partial class ProjectPreview3D : SubViewportContainer
 
     public int RenderDiagnosticCount => _renderPlan?.Diagnostics.Count ?? 0;
 
+    public bool HdrOutputEnabled => _viewport.UseHdr2D;
+
+    public bool ColorCorrectionEnabled => _worldEnvironment?.Environment?.AdjustmentEnabled == true;
+
     public string ClimateProfileSummary => _climatePlan is null
         ? "unavailable"
         : $"{_climatePlan.Weather.Kind}:{(_climatePlan.ActiveWindZone?.Speed ?? _climatePlan.Wind.Speed):0.###}:{_waterSurfaces}:{_reverbPreset}";
@@ -313,12 +317,21 @@ public partial class ProjectPreview3D : SubViewportContainer
         if (state is null || area is null) return 0;
 
         var blueprints = state.Project.Blueprints.ToDictionary(candidate => candidate.Id);
+        var selectedLayerEntities = _displayFilter.VisibleLayerIds.Count == 0
+            ? null
+            : area.Authoring.Layers
+                .Where(layer => _displayFilter.VisibleLayerIds.Contains(layer.Id))
+                .SelectMany(layer => layer.EntityIds)
+                .ToHashSet();
         var visible = 0;
         foreach (var entity in area.Entities)
         {
             if (!_entityNodes.TryGetValue(entity.Id, out var node) ||
                 !blueprints.TryGetValue(entity.BlueprintId, out var blueprint)) continue;
             var matches = _displayFilter.VisibleKinds.Contains(blueprint.Kind) &&
+                (selectedLayerEntities is null || selectedLayerEntities.Contains(entity.Id)) &&
+                (blueprint.Kind != BlueprintKind.Trigger ||
+                 _displayFilter.VisibleVolumeKinds.Contains(EditorVolumeKind.Trigger)) &&
                 _displayFilter.RequiredTags.All(tag => entity.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase)) &&
                 (string.IsNullOrWhiteSpace(_displayFilter.Author) ||
                     blueprint.Provenance.Author.Contains(_displayFilter.Author, StringComparison.OrdinalIgnoreCase)) &&
@@ -1595,6 +1608,7 @@ public partial class ProjectPreview3D : SubViewportContainer
         _renderPlan = AreaRenderPlanBuilder.Build(profile, "desktop", observedDynamicLights: 2, observedShadowCastingLights: 1);
         var result = GodotEnvironmentAdapter.Build(_renderPlan);
         _worldEnvironment!.Environment = result.Environment;
+        _viewport.UseHdr2D = profile.Rendering.HdrOutput;
         _viewport.PositionalShadowAtlasSize = result.ShadowAtlasSize;
         _referenceSun!.LightColor = result.DirectionalLightColor;
         _referenceSun.LightEnergy = result.DirectionalLightEnergy;

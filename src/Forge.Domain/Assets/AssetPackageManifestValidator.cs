@@ -12,6 +12,8 @@ public static class AssetPackageManifestValidator
     public const string PlatformBudgetInvalidCode = "asset.manifest.platform_budget_invalid";
     public const string PlatformBudgetExceededCode = "asset.manifest.platform_budget_exceeded";
     public const string CollisionInvalidCode = "asset.manifest.collision_invalid";
+    public const string NavigationInvalidCode = "asset.manifest.navigation_invalid";
+    public const string FontInvalidCode = "asset.manifest.font_invalid";
     public const string AnimationInvalidCode = "asset.manifest.animation_invalid";
     public const string VfxInvalidCode = "asset.manifest.vfx_invalid";
     public const string LodInvalidCode = "asset.manifest.lod_invalid";
@@ -68,6 +70,8 @@ public static class AssetPackageManifestValidator
 
         ValidatePlatformBudgets(manifest, chunks, root, diagnostics);
         ValidateCollision(manifest.Collision, chunkIds, root, diagnostics);
+        ValidateNavigation(manifest.Navigation, chunks, chunkIds, root, diagnostics);
+        ValidateFont(manifest.Font, chunks, chunkIds, root, diagnostics);
         ValidateAnimation(manifest.Animation, chunkIds, root, diagnostics);
         ValidateVfx(manifest.Vfx, chunkIds, root, diagnostics);
         ValidateLod(manifest.Lod, chunkIds, root, diagnostics);
@@ -131,6 +135,92 @@ public static class AssetPackageManifestValidator
         }
 
         ValidateReference(collision.Required, collision.ChunkId, chunkIds, $"{root}/collision/chunkId", diagnostics);
+    }
+
+    private static void ValidateNavigation(
+        AssetNavigationManifest? navigation,
+        IReadOnlyList<AssetManifestChunk> chunks,
+        IReadOnlySet<Guid> chunkIds,
+        string root,
+        ICollection<DomainDiagnostic> diagnostics)
+    {
+        if (navigation is null)
+        {
+            return;
+        }
+
+        var referenced = navigation.ChunkId is { } id
+            ? chunks.SingleOrDefault(chunk => chunk.Id == id)
+            : null;
+        if (navigation.MaterialTags is null || navigation.MaterialTags.Count == 0 ||
+            navigation.MaterialTags.Any(string.IsNullOrWhiteSpace) ||
+            navigation.MaterialTags.Distinct(StringComparer.OrdinalIgnoreCase).Count() != navigation.MaterialTags.Count ||
+            navigation.CookPlatforms is null || navigation.CookPlatforms.Count == 0 ||
+            navigation.CookPlatforms.Distinct().Count() != navigation.CookPlatforms.Count ||
+            referenced is not null && referenced.Role != AssetChunkRole.Navigation)
+        {
+            diagnostics.Add(new(
+                NavigationInvalidCode,
+                "Navigation requires a dedicated chunk, unique material tags and unique cook platforms.",
+                $"{root}/navigation"));
+        }
+
+        ValidateReference(navigation.Required, navigation.ChunkId, chunkIds, $"{root}/navigation/chunkId", diagnostics);
+    }
+
+    private static void ValidateFont(
+        AssetFontManifest? font,
+        IReadOnlyList<AssetManifestChunk> chunks,
+        IReadOnlySet<Guid> chunkIds,
+        string root,
+        ICollection<DomainDiagnostic> diagnostics)
+    {
+        if (font is null)
+        {
+            return;
+        }
+
+        var primary = font.PrimaryChunkId is { } primaryId
+            ? chunks.SingleOrDefault(chunk => chunk.Id == primaryId)
+            : null;
+        var fallbacks = font.Fallbacks ?? [];
+        var referencedFontIds = fallbacks.Select(fallback => fallback.ChunkId)
+            .Append(font.PrimaryChunkId ?? Guid.Empty)
+            .Where(id => id != Guid.Empty)
+            .ToArray();
+        var invalid = string.IsNullOrWhiteSpace(font.PrimaryFamily) ||
+            primary is not null && primary.Role != AssetChunkRole.Font ||
+            fallbacks.Any(fallback => string.IsNullOrWhiteSpace(fallback.Family) || fallback.ChunkId == Guid.Empty) ||
+            fallbacks.Select(fallback => fallback.Family).Append(font.PrimaryFamily)
+                .Distinct(StringComparer.OrdinalIgnoreCase).Count() != fallbacks.Count + 1 ||
+            referencedFontIds.Distinct().Count() != referencedFontIds.Length ||
+            referencedFontIds.Any(id => chunks.SingleOrDefault(chunk => chunk.Id == id)?.Role != AssetChunkRole.Font) ||
+            font.ShapingScripts is null || font.ShapingScripts.Count == 0 ||
+            font.ShapingScripts.Any(script => script.Length != 4 || !script.All(char.IsAsciiLetter)) ||
+            font.ShapingScripts.Distinct(StringComparer.OrdinalIgnoreCase).Count() != font.ShapingScripts.Count ||
+            font.LocalizationTestLocales is null || font.LocalizationTestLocales.Count == 0 ||
+            font.LocalizationTestLocales.Any(locale => string.IsNullOrWhiteSpace(locale) || locale.Contains(' ')) ||
+            font.LocalizationTestLocales.Distinct(StringComparer.OrdinalIgnoreCase).Count() != font.LocalizationTestLocales.Count ||
+            font.DpiBuckets is null || font.DpiBuckets.Count == 0 ||
+            font.DpiBuckets.Any(dpi => dpi is < 72 or > 768) ||
+            !font.DpiBuckets.SequenceEqual(font.DpiBuckets.Order()) ||
+            font.DpiBuckets.Distinct().Count() != font.DpiBuckets.Count ||
+            font.MinimumTextScale is < 0.5m or > 3m ||
+            font.MaximumTextScale is < 0.5m or > 3m ||
+            font.MinimumTextScale > font.MaximumTextScale;
+        if (invalid)
+        {
+            diagnostics.Add(new(
+                FontInvalidCode,
+                "Font assets require dedicated chunks, unique fallback families, shaping scripts, locales, DPI buckets and text-scale bounds.",
+                $"{root}/font"));
+        }
+
+        ValidateReference(font.Required, font.PrimaryChunkId, chunkIds, $"{root}/font/primaryChunkId", diagnostics);
+        foreach (var fallback in fallbacks)
+        {
+            ValidateReference(true, fallback.ChunkId, chunkIds, $"{root}/font/fallbacks/{fallback.Family}", diagnostics);
+        }
     }
 
     private static void ValidateAnimation(

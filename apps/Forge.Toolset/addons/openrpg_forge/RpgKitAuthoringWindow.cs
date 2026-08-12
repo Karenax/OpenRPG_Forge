@@ -29,6 +29,10 @@ public partial class RpgKitAuthoringWindow : Window
     private Action? _openDialogues;
     private Action? _openScripts;
     private Action? _openCreatureFoundation;
+    private Action? _openCreatureAuthoringComposition;
+    private Action? _openCreatureRulesComposition;
+    private Action? _openCreatureInteractionComposition;
+    private Action? _openCreatureEventAiComposition;
     private Action? _openCreaturePresentation;
     private Action? _openCreatureProgression;
     private Action? _openCreatureLoot;
@@ -37,6 +41,8 @@ public partial class RpgKitAuthoringWindow : Window
     private Action? _openFactions;
     private Action? _openQuestOperations;
     private Action? _openItemFoundation;
+    private Action? _openItemGameplay;
+    private Action? _openItemOperations;
     private Action? _openItemAdvanced;
     private Action? _openWorldFeatures;
     private Action? _openPostLaunch;
@@ -49,9 +55,9 @@ public partial class RpgKitAuthoringWindow : Window
     private ItemList? _catalog;
     private RichTextLabel? _feedback;
 
-    public void Initialize(Func<ProjectState?> load, Func<BlueprintId, string, string, BlueprintKind, bool, CommandResult> mutate, Action undo, Action redo, Action openDialogues, Action openScripts, Action openCreatureFoundation, Action openCreaturePresentation, Action openCreatureProgression, Action openCreatureLoot, Action openCreatureRoleBehavior, Action openCreatureEvents, Action openFactions, Action openQuestOperations, Action openItemFoundation, Action openItemAdvanced, Action openWorldFeatures, Action openPostLaunch, Action<Window> applyIcon)
+    public void Initialize(Func<ProjectState?> load, Func<BlueprintId, string, string, BlueprintKind, bool, CommandResult> mutate, Action undo, Action redo, Action openDialogues, Action openScripts, Action openCreatureFoundation, Action openCreatureAuthoringComposition, Action openCreatureRulesComposition, Action openCreatureInteractionComposition, Action openCreatureEventAiComposition, Action openCreaturePresentation, Action openCreatureProgression, Action openCreatureLoot, Action openCreatureRoleBehavior, Action openCreatureEvents, Action openFactions, Action openQuestOperations, Action openItemFoundation, Action openItemGameplay, Action openItemOperations, Action openItemAdvanced, Action openWorldFeatures, Action openPostLaunch, Action<Window> applyIcon)
     {
-        _load = load; _mutate = mutate; _undo = undo; _redo = redo; _openDialogues = openDialogues; _openScripts = openScripts; _openCreatureFoundation = openCreatureFoundation; _openCreaturePresentation = openCreaturePresentation; _openCreatureProgression = openCreatureProgression; _openCreatureLoot = openCreatureLoot; _openCreatureRoleBehavior = openCreatureRoleBehavior; _openCreatureEvents = openCreatureEvents; _openFactions = openFactions; _openQuestOperations = openQuestOperations; _openItemFoundation = openItemFoundation; _openItemAdvanced = openItemAdvanced; _openWorldFeatures = openWorldFeatures; _openPostLaunch = openPostLaunch; _applyIcon = applyIcon;
+        _load = load; _mutate = mutate; _undo = undo; _redo = redo; _openDialogues = openDialogues; _openScripts = openScripts; _openCreatureFoundation = openCreatureFoundation; _openCreatureAuthoringComposition = openCreatureAuthoringComposition; _openCreatureRulesComposition = openCreatureRulesComposition; _openCreatureInteractionComposition = openCreatureInteractionComposition; _openCreatureEventAiComposition = openCreatureEventAiComposition; _openCreaturePresentation = openCreaturePresentation; _openCreatureProgression = openCreatureProgression; _openCreatureLoot = openCreatureLoot; _openCreatureRoleBehavior = openCreatureRoleBehavior; _openCreatureEvents = openCreatureEvents; _openFactions = openFactions; _openQuestOperations = openQuestOperations; _openItemFoundation = openItemFoundation; _openItemGameplay = openItemGameplay; _openItemOperations = openItemOperations; _openItemAdvanced = openItemAdvanced; _openWorldFeatures = openWorldFeatures; _openPostLaunch = openPostLaunch; _applyIcon = applyIcon;
     }
 
     public override void _Ready()
@@ -80,6 +86,10 @@ public partial class RpgKitAuthoringWindow : Window
         var actions = new HBoxContainer(); form.AddChild(actions); AddButton(actions, "Prévisualiser", () => Mutate(true)); AddButton(actions, "Appliquer", () => Mutate(false), true); AddButton(actions, "Annuler", () => { _undo?.Invoke(); Refresh(); }); AddButton(actions, "Rétablir", () => { _redo?.Invoke(); Refresh(); });
         var shortcuts = new HBoxContainer(); form.AddChild(shortcuts); AddButton(shortcuts, "Ouvrir Dialogues", () => _openDialogues?.Invoke()); AddButton(shortcuts, "Ouvrir Scripts & build", () => _openScripts?.Invoke());
         AddButton(shortcuts, "Fondations de créature", () => _openCreatureFoundation?.Invoke(), true);
+        AddButton(shortcuts, "Assistant & composition", () => _openCreatureAuthoringComposition?.Invoke(), true);
+        AddButton(shortcuts, "Règles & inventaire", () => _openCreatureRulesComposition?.Invoke(), true);
+        AddButton(shortcuts, "Factions, sens & dialogues", () => _openCreatureInteractionComposition?.Invoke(), true);
+        AddButton(shortcuts, "Événements & IA", () => _openCreatureEventAiComposition?.Invoke(), true);
         AddButton(shortcuts, "Présenter une créature", () => _openCreaturePresentation?.Invoke(), true);
         AddButton(shortcuts, "Progression & pouvoirs", () => _openCreatureProgression?.Invoke(), true);
         AddButton(shortcuts, "Butin, vol & cadavres", () => _openCreatureLoot?.Invoke(), true);
@@ -89,6 +99,8 @@ public partial class RpgKitAuthoringWindow : Window
         AddButton(shortcuts, "Quêtes avancées", () => _openQuestOperations?.Invoke(), true);
         AddButton(shortcuts, "Fondations d’objet", () => _openItemFoundation?.Invoke(), true);
         AddButton(shortcuts, "Objets avancés", () => _openItemAdvanced?.Invoke(), true);
+        AddButton(shortcuts, "Gameplay d'objet", () => _openItemGameplay?.Invoke(), true);
+        AddButton(shortcuts, "Loot & inventaire", () => _openItemOperations?.Invoke(), true);
         AddButton(shortcuts, "Monde vivant", () => _openWorldFeatures?.Invoke(), true);
         AddButton(shortcuts, "Production & expérience", () => _openPostLaunch?.Invoke(), true);
         _feedback = new RichTextLabel { BbcodeEnabled = true, FitContent = false, SizeFlagsVertical = Control.SizeFlags.ExpandFill, CustomMinimumSize = new(0, 180) }; form.AddChild(_feedback);

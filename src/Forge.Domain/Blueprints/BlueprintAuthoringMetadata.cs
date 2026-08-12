@@ -1,4 +1,5 @@
 using Forge.Domain.Content;
+using Forge.Domain.Entities;
 
 namespace Forge.Domain.Blueprints;
 
@@ -19,6 +20,12 @@ public sealed class BlueprintAuthoringMetadata : IEquatable<BlueprintAuthoringMe
     public IReadOnlyList<string> Styles { get; }
     public IReadOnlyList<string> Compatibility { get; }
     public IReadOnlyList<string> Tags { get; }
+    public IReadOnlyList<string> CategoryPaths { get; }
+    public IReadOnlyList<EntityPropertyOverride> PromotedDefaults { get; }
+    public IReadOnlyList<string> AuthorCollections { get; }
+    public PrefabVariantDefinition? PrefabVariant { get; }
+    public PrefabCompositionDefinition? PrefabComposition { get; }
+    public BlueprintAssetBudgetProfile? AssetBudget { get; }
 
     public BlueprintAuthoringMetadata(
         int schemaVersion,
@@ -32,7 +39,13 @@ public sealed class BlueprintAuthoringMetadata : IEquatable<BlueprintAuthoringMe
         string? kit = null,
         IReadOnlyList<string>? styles = null,
         IReadOnlyList<string>? compatibility = null,
-        IReadOnlyList<string>? tags = null)
+        IReadOnlyList<string>? tags = null,
+        IReadOnlyList<string>? categoryPaths = null,
+        IReadOnlyList<EntityPropertyOverride>? promotedDefaults = null,
+        IReadOnlyList<string>? authorCollections = null,
+        PrefabVariantDefinition? prefabVariant = null,
+        PrefabCompositionDefinition? prefabComposition = null,
+        BlueprintAssetBudgetProfile? assetBudget = null)
     {
         if (schemaVersion != CurrentSchemaVersion)
             throw new ArgumentOutOfRangeException(nameof(schemaVersion), "Unsupported blueprint authoring schema.");
@@ -68,6 +81,16 @@ public sealed class BlueprintAuthoringMetadata : IEquatable<BlueprintAuthoringMe
         Styles = NormalizeTokens(styles, nameof(styles));
         Compatibility = NormalizeTokens(compatibility, nameof(compatibility));
         Tags = NormalizeTokens(tags, nameof(tags));
+        CategoryPaths = NormalizeCategoryPaths(categoryPaths);
+        PromotedDefaults = (promotedDefaults ?? [])
+            .OrderBy(item => item.Key, StringComparer.Ordinal)
+            .ToArray();
+        if (PromotedDefaults.Select(item => item.Key).Distinct(StringComparer.Ordinal).Count() != PromotedDefaults.Count)
+            throw new ArgumentException("Promoted blueprint property keys must be unique.", nameof(promotedDefaults));
+        AuthorCollections = NormalizeCategoryPaths(authorCollections);
+        PrefabVariant = prefabVariant;
+        PrefabComposition = prefabComposition;
+        AssetBudget = assetBudget;
     }
 
     public static BlueprintAuthoringMetadata CreateDefault(
@@ -116,6 +139,21 @@ public sealed class BlueprintAuthoringMetadata : IEquatable<BlueprintAuthoringMe
         return result;
     }
 
+    private static IReadOnlyList<string> NormalizeCategoryPaths(IReadOnlyList<string>? values)
+    {
+        var result = (values ?? [])
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .Select(value => string.Join('/', value.Replace('\\', '/').Split('/',
+                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)))
+            .Distinct(StringComparer.Ordinal)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+        if (result.Any(value => value.Length > 240 || value.Split('/').Any(segment =>
+                segment.Length > 80 || segment is "." or "..")))
+            throw new ArgumentException("Blueprint category paths must be traversal-free hierarchical labels.", nameof(values));
+        return result;
+    }
+
     private static string NormalizePathOrPackUri(string value, string parameter)
     {
         var normalized = (value ?? string.Empty).Trim().Replace('\\', '/');
@@ -150,7 +188,13 @@ public sealed class BlueprintAuthoringMetadata : IEquatable<BlueprintAuthoringMe
         string.Equals(Kit, other.Kit, StringComparison.Ordinal) &&
         Styles.SequenceEqual(other.Styles, StringComparer.Ordinal) &&
         Compatibility.SequenceEqual(other.Compatibility, StringComparer.Ordinal) &&
-        Tags.SequenceEqual(other.Tags, StringComparer.Ordinal);
+        Tags.SequenceEqual(other.Tags, StringComparer.Ordinal) &&
+        CategoryPaths.SequenceEqual(other.CategoryPaths, StringComparer.Ordinal) &&
+        PromotedDefaults.SequenceEqual(other.PromotedDefaults) &&
+        AuthorCollections.SequenceEqual(other.AuthorCollections, StringComparer.Ordinal) &&
+        VariantEquals(PrefabVariant, other.PrefabVariant) &&
+        CompositionEquals(PrefabComposition, other.PrefabComposition) &&
+        BudgetEquals(AssetBudget, other.AssetBudget);
 
     public override bool Equals(object? obj) => Equals(obj as BlueprintAuthoringMetadata);
 
@@ -169,7 +213,57 @@ public sealed class BlueprintAuthoringMetadata : IEquatable<BlueprintAuthoringMe
         foreach (var value in Styles) hash.Add(value, StringComparer.Ordinal);
         foreach (var value in Compatibility) hash.Add(value, StringComparer.Ordinal);
         foreach (var value in Tags) hash.Add(value, StringComparer.Ordinal);
+        foreach (var value in CategoryPaths) hash.Add(value, StringComparer.Ordinal);
+        foreach (var value in PromotedDefaults) hash.Add(value);
+        foreach (var value in AuthorCollections) hash.Add(value, StringComparer.Ordinal);
+        AddVariantHash(ref hash, PrefabVariant);
+        AddCompositionHash(ref hash, PrefabComposition);
+        AddBudgetHash(ref hash, AssetBudget);
         return hash.ToHashCode();
+    }
+
+    private static bool VariantEquals(PrefabVariantDefinition? left, PrefabVariantDefinition? right) =>
+        ReferenceEquals(left, right) || left is not null && right is not null && left.Id == right.Id &&
+        left.SchemaVersion == right.SchemaVersion && left.Provenance == right.Provenance &&
+        left.BaseBlueprintId == right.BaseBlueprintId && left.RequiredAtRuntime == right.RequiredAtRuntime &&
+        left.Overrides.SequenceEqual(right.Overrides);
+
+    private static bool CompositionEquals(PrefabCompositionDefinition? left, PrefabCompositionDefinition? right) =>
+        ReferenceEquals(left, right) || left is not null && right is not null && left.Id == right.Id &&
+        left.SchemaVersion == right.SchemaVersion && left.Provenance == right.Provenance &&
+        left.RequiredAtRuntime == right.RequiredAtRuntime && left.Nodes.SequenceEqual(right.Nodes) &&
+        left.AssemblyRules.SequenceEqual(right.AssemblyRules, StringComparer.Ordinal) &&
+        left.Parameters.SequenceEqual(right.Parameters, StringComparer.Ordinal) &&
+        left.AssemblyScripts.SequenceEqual(right.AssemblyScripts, StringComparer.Ordinal);
+
+    private static bool BudgetEquals(BlueprintAssetBudgetProfile? left, BlueprintAssetBudgetProfile? right) =>
+        ReferenceEquals(left, right) || left is not null && right is not null && left.Id == right.Id &&
+        left.SchemaVersion == right.SchemaVersion && left.Provenance == right.Provenance &&
+        left.RequiredAtRuntime == right.RequiredAtRuntime && left.Metrics == right.Metrics &&
+        left.Platforms.SequenceEqual(right.Platforms);
+
+    private static void AddVariantHash(ref HashCode hash, PrefabVariantDefinition? value)
+    {
+        if (value is null) return;
+        hash.Add(value.Id); hash.Add(value.SchemaVersion); hash.Add(value.Provenance); hash.Add(value.BaseBlueprintId);
+        hash.Add(value.RequiredAtRuntime); foreach (var item in value.Overrides) hash.Add(item);
+    }
+
+    private static void AddCompositionHash(ref HashCode hash, PrefabCompositionDefinition? value)
+    {
+        if (value is null) return;
+        hash.Add(value.Id); hash.Add(value.SchemaVersion); hash.Add(value.Provenance); hash.Add(value.RequiredAtRuntime);
+        foreach (var item in value.Nodes) hash.Add(item);
+        foreach (var item in value.AssemblyRules) hash.Add(item, StringComparer.Ordinal);
+        foreach (var item in value.Parameters) hash.Add(item, StringComparer.Ordinal);
+        foreach (var item in value.AssemblyScripts) hash.Add(item, StringComparer.Ordinal);
+    }
+
+    private static void AddBudgetHash(ref HashCode hash, BlueprintAssetBudgetProfile? value)
+    {
+        if (value is null) return;
+        hash.Add(value.Id); hash.Add(value.SchemaVersion); hash.Add(value.Provenance); hash.Add(value.RequiredAtRuntime);
+        hash.Add(value.Metrics); foreach (var item in value.Platforms) hash.Add(item);
     }
 
     private static string NormalizeNamespace(string value) => string.Join('.',

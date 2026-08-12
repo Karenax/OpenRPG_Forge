@@ -14,6 +14,7 @@ public sealed record GodotEnvironmentResult(
 public static class GodotEnvironmentAdapter
 {
     public const string PanoramaMissingCode = "render.sky.panorama_missing";
+    public const string ColorCorrectionMissingCode = "render.color.lut_missing";
 
     public static GodotEnvironmentResult Build(AreaRenderPlan plan)
     {
@@ -38,6 +39,7 @@ public static class GodotEnvironmentAdapter
             FogHeight = plan.Fog.Height,
             FogAerialPerspective = plan.Fog.Mode == FogMode.Volumetric ? 0.65f : 0.2f,
         };
+        ApplyColorCorrection(environment, plan.Rendering, diagnostics);
         return new(
             environment,
             KelvinToColor(plan.Lighting.ColorTemperatureKelvin),
@@ -55,6 +57,26 @@ public static class GodotEnvironmentAdapter
             : BaseMaterial3D.ShadingModeEnum.PerVertex;
         material.Metallic = 0.02f;
         material.Roughness = 0.72f;
+    }
+
+    private static void ApplyColorCorrection(
+        Godot.Environment environment,
+        AreaRenderingProfile profile,
+        ICollection<DomainDiagnostic> diagnostics)
+    {
+        if (string.IsNullOrWhiteSpace(profile.LutResource)) return;
+        var resourcePath = $"res://{profile.LutResource}";
+        if (ResourceLoader.Exists(resourcePath) && ResourceLoader.Load<Texture>(resourcePath) is { } lut)
+        {
+            environment.AdjustmentEnabled = true;
+            environment.AdjustmentColorCorrection = lut;
+            return;
+        }
+
+        diagnostics.Add(new(
+            ColorCorrectionMissingCode,
+            $"Color correction LUT '{profile.LutResource}' is unavailable; neutral grading applied.",
+            "environment/rendering/lutResource"));
     }
 
     private static Material BuildSkyMaterial(SkyProfile profile, ICollection<DomainDiagnostic> diagnostics)

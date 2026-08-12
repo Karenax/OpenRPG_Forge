@@ -154,4 +154,11 @@ public sealed record BlueprintDefinition
         Id, Slug, DisplayName, Kind, Combat, PaletteOrigin, IsFavorite, Provenance,
         CreaturePresentation, CreatureProgression, CreatureLoot, CreatureRoleBehavior, CreatureEvents, ItemAdvanced,
         Authoring, CreatureFoundation, profile);
+
+    public BlueprintDefinition WithPaletteUpdate(
+        BlueprintAuthoringMetadata authoring,
+        BlueprintProvenance provenance) => new(
+        Id, Slug, DisplayName, Kind, Combat, PaletteOrigin, IsFavorite, provenance,
+        CreaturePresentation, CreatureProgression, CreatureLoot, CreatureRoleBehavior, CreatureEvents, ItemAdvanced,
+        authoring, CreatureFoundation, ItemFoundation);
 }

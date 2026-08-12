@@ -2,6 +2,7 @@ using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
 using Forge.Domain.Assets;
+using Forge.Domain.Areas;
 using Forge.Domain.Blueprints;
 using Forge.Domain.Creatures;
 using Forge.Domain.Content;
@@ -9,6 +10,7 @@ using Forge.Domain.Factions;
 using Forge.Domain.Lifecycle;
 using Forge.Domain.Modules;
 using Forge.Domain.Projects;
+using Forge.Domain.RuntimePolicies;
 using Forge.Domain.Validation;
 using Forge.Domain.Build;
 using Forge.ModuleFormat.Build;
@@ -25,6 +27,216 @@ public sealed class ModulePackageTests : IDisposable
         Path.GetTempPath(),
         "openrpg-forge-tests",
         Guid.NewGuid().ToString("N"));
+
+    [Fact]
+    public void R120ExportRejectsInvalidAssistantTestAutomationBeforeWritingPackage()
+    {
+        var workspace = CreateWorkspace();
+        Assert.True(AssistantWorkspaceProfileStore.Save(
+            workspace,
+            Forge.Domain.Assistant.AssistantWorkspaceProfile.CreateDefault()).Succeeded);
+        var profilePath = Path.Combine(workspace, AssistantWorkspaceProfileStore.RelativePath);
+        var json = File.ReadAllText(profilePath);
+        File.WriteAllText(
+            profilePath,
+            json.Replace("\"maximumScenarioSteps\": 128", "\"maximumScenarioSteps\": 0", StringComparison.Ordinal),
+            new UTF8Encoding(false));
+        var package = Path.Combine(_temporaryRoot, "invalid-assistant-test.orpmod");
+
+        var exception = Assert.Throws<InvalidDataException>(() => ModulePackager.Export(workspace, package));
+
+        Assert.Contains("assistant.test.profile_bounds_invalid", exception.Message, StringComparison.Ordinal);
+        Assert.False(File.Exists(package));
+    }
+
+    [Fact]
+    public void R051ExportRejectsInvalidProjectGameplayEventBeforeWritingPackage()
+    {
+        var workspace = CreateWorkspace();
+        var opened = ProjectSession.Open(workspace).Session!;
+        Assert.True(opened.Save(opened.Project).Succeeded);
+        var projectPath = Path.Combine(workspace, "project.json");
+        var document = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(projectPath))!.AsObject();
+        var bindings = document["project"]!["module"]!["runtimePolicies"]!["gameplayEvents"]!["bindings"]!.AsArray();
+        bindings[0]!["handler"] = "bad handler!";
+        File.WriteAllText(projectPath, document.ToJsonString(), new UTF8Encoding(false));
+        var package = Path.Combine(_temporaryRoot, "invalid-project-event.orpmod");
+
+        var exception = Assert.Throws<InvalidDataException>(() => ModulePackager.Export(workspace, package));
+
+        Assert.Contains(ProjectGameplayEventProfileValidator.BindingContractInvalidCode, exception.Message,
+            StringComparison.Ordinal);
+        Assert.False(File.Exists(package));
+    }
+
+    [Fact]
+    public void R052ExportRejectsInvalidProjectWorldAndPlayerDocumentationBeforeWritingPackage()
+    {
+        var workspace = CreateWorkspace();
+        var opened = ProjectSession.Open(workspace).Session!;
+        var moduleId = opened.Project.Module.Id.Value;
+        var baseline = opened.Project.Module.RuntimePolicies;
+        var schema = new Forge.Domain.Lifecycle.CustomEventSchema(Guid.Parse("52000000-0000-4000-8000-000000000052"), 1,
+            "test:r052", "crypt", "braziers_lit", 1,
+            new Dictionary<string, string> { ["count"] = "int" }, false, "1.0", "OnBraziersLit",
+            EventAuthorityScope.Server);
+        var world = new ProjectWorldProfile(moduleId, 1, "test:r052", true, true, [schema], baseline.World.Clock);
+        var policies = new ModuleRuntimePolicyProfile(baseline.Id, baseline.SchemaVersion, baseline.Heartbeats,
+            baseline.Rest, baseline.SequenceAbort, "test:r052", baseline.Cinematics, baseline.Gameplay,
+            baseline.Rules, baseline.Extensions, baseline.GameplayEvents, world);
+        var project = new ProjectDefinition(opened.Project.Id, opened.Project.Title,
+            opened.Project.Module.WithRuntimePolicies(policies), opened.Project.Blueprints, opened.Project.Areas,
+            opened.Project.Dialogues, opened.Project.Quests);
+        Assert.True(opened.Save(project).Succeeded);
+        var projectPath = Path.Combine(workspace, "project.json");
+        var document = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(projectPath))!.AsObject();
+        document["project"]!["module"]!["runtimePolicies"]!["world"]!["customEvents"]![0]!["handler"] =
+            "bad handler!";
+        document["project"]!["module"]!["metadata"]!["localizations"]![0]!["warnings"] =
+            new string('x', ProjectDocumentationValidator.MaximumPageCharacters + 1);
+        File.WriteAllText(projectPath, document.ToJsonString(), new UTF8Encoding(false));
+        var package = Path.Combine(_temporaryRoot, "invalid-r052.orpmod");
+
+        var exception = Assert.Throws<InvalidDataException>(() => ModulePackager.Export(workspace, package));
+
+        Assert.Contains(ProjectWorldProfileValidator.EventContractInvalidCode, exception.Message,
+            StringComparison.Ordinal);
+        Assert.Contains(ProjectDocumentationValidator.PageTooLargeCode, exception.Message,
+            StringComparison.Ordinal);
+        Assert.False(File.Exists(package));
+    }
+
+    [Fact]
+    public void R053ExportRejectsRequiredMissingTileEditingMetadataBeforeWritingPackage()
+    {
+        var workspace = CreateWorkspace();
+        var opened = ProjectSession.Open(workspace).Session!;
+        var area = opened.Project.Areas[0];
+        var original = area.Foundation;
+        var editing = AreaTileEditingProfile.CreateDefault(area.Id);
+        var kit = new ModularTileKitProfile(original.TileKit.Id, original.TileKit.SchemaVersion, "test:r053",
+            original.TileKit.GridSizeMeters, original.TileKit.Definitions, original.TileKit.ConnectionRules,
+            original.TileKit.Placements, original.TileKit.Groups, original.TileKit.Brushes, editing);
+        var foundation = new AreaFoundationProfile(original.Id, original.SchemaVersion, "test:r053",
+            original.Creation, kit, original.Lifecycle, original.Volumes, original.Dependencies, true);
+        var project = new ProjectDefinition(opened.Project.Id, opened.Project.Title, opened.Project.Module,
+            opened.Project.Blueprints,
+            opened.Project.Areas.Select(item => item.Id == area.Id ? item.WithFoundation(foundation) : item).ToArray(),
+            opened.Project.Dialogues, opened.Project.Quests);
+        Assert.True(opened.Save(project).Succeeded);
+        var projectPath = Path.Combine(workspace, "project.json");
+        var index = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(projectPath))!.AsObject();
+        var relativeAreaPath = index["project"]!["areas"]![0]!["documentPath"]!.GetValue<string>();
+        var areaPath = Path.Combine(workspace, relativeAreaPath.Replace('/', Path.DirectorySeparatorChar));
+        var document = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(areaPath))!.AsObject();
+        document["area"]!["foundation"]!["tileKit"]!.AsObject().Remove("editing");
+        File.WriteAllText(areaPath, document.ToJsonString(), new UTF8Encoding(false));
+        var package = Path.Combine(_temporaryRoot, "invalid-r053.orpmod");
+
+        var exception = Assert.Throws<InvalidOperationException>(() => ModulePackager.Export(workspace, package));
+
+        Assert.Contains(AreaTileEditingRuntimeResolver.RequiredMissingCode, exception.Message,
+            StringComparison.Ordinal);
+        Assert.False(File.Exists(package));
+    }
+
+    [Fact]
+    public void R054ExportRejectsRequiredMissingEnvironmentMetadataBeforeWritingPackage()
+    {
+        var workspace = CreateWorkspace();
+        var opened = ProjectSession.Open(workspace).Session!;
+        var area = opened.Project.Areas[0];
+        var source = area.Environment;
+        var authoring = new AreaEnvironmentAuthoringProfile(source.Authoring.Id,
+            source.Authoring.SchemaVersion, "test:r054", source.Authoring.Classification,
+            source.Authoring.Lighting, source.Authoring.Fog, true);
+        var environment = new AreaEnvironmentProfile(source.SchemaVersion, source.Classification, source.Tags,
+            source.Lighting, source.Fog, source.Audio, source.Rendering, source.Sky, source.Wind, source.Weather,
+            source.Water, source.Reverb, authoring, true);
+        var project = new ProjectDefinition(opened.Project.Id, opened.Project.Title, opened.Project.Module,
+            opened.Project.Blueprints,
+            opened.Project.Areas.Select(item => item.Id == area.Id ? item.WithEnvironment(environment) : item)
+                .ToArray(), opened.Project.Dialogues, opened.Project.Quests);
+        Assert.True(opened.Save(project).Succeeded);
+        var projectPath = Path.Combine(workspace, "project.json");
+        var index = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(projectPath))!.AsObject();
+        var relativeAreaPath = index["project"]!["areas"]![0]!["documentPath"]!.GetValue<string>();
+        var areaPath = Path.Combine(workspace, relativeAreaPath.Replace('/', Path.DirectorySeparatorChar));
+        var document = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(areaPath))!.AsObject();
+        document["area"]!["environment"]!.AsObject().Remove("authoring");
+        File.WriteAllText(areaPath, document.ToJsonString(), new UTF8Encoding(false));
+        var package = Path.Combine(_temporaryRoot, "invalid-r054.orpmod");
+
+        var exception = Assert.Throws<InvalidDataException>(() => ModulePackager.Export(workspace, package));
+
+        Assert.Contains(AreaEnvironmentRuntimeResolver.RequiredMissingCode, exception.Message,
+            StringComparison.Ordinal);
+        Assert.False(File.Exists(package));
+    }
+
+    [Fact]
+    public void R055ExportRejectsRequiredMissingAreaExperienceMetadataBeforeWritingPackage()
+    {
+        var workspace = CreateWorkspace();
+        var opened = ProjectSession.Open(workspace).Session!;
+        var area = opened.Project.Areas[0];
+        var experience = new AreaExperienceAuthoringProfile(
+            Guid.Parse("a0555000-0000-4000-8000-000000000001"), 1, "test:r055", [],
+            new([], [], [], true, true, true, 16, 128),
+            new(AreaLodSourceMode.Hybrid, [20, 50, 100], 1_500_000, 96, 24, .15f, true, true, []),
+            true);
+        var authoring = new AreaAuthoringProfile(area.Authoring.SchemaVersion, area.Authoring.UserEvents,
+            area.Authoring.Map, area.Authoring.Layers, experience);
+        var project = new ProjectDefinition(opened.Project.Id, opened.Project.Title, opened.Project.Module,
+            opened.Project.Blueprints,
+            opened.Project.Areas.Select(item => item.Id == area.Id ? item.WithAuthoring(authoring) : item).ToArray(),
+            opened.Project.Dialogues, opened.Project.Quests);
+        Assert.True(opened.Save(project).Succeeded);
+        var projectPath = Path.Combine(workspace, "project.json");
+        var index = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(projectPath))!.AsObject();
+        var relativeAreaPath = index["project"]!["areas"]![0]!["documentPath"]!.GetValue<string>();
+        var areaPath = Path.Combine(workspace, relativeAreaPath.Replace('/', Path.DirectorySeparatorChar));
+        var document = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(areaPath))!.AsObject();
+        document["area"]!["authoring"]!["experience"]!["provenance"] = "migration-default";
+        File.WriteAllText(areaPath, document.ToJsonString(), new UTF8Encoding(false));
+        var package = Path.Combine(_temporaryRoot, "invalid-r055.orpmod");
+
+        var exception = Assert.Throws<InvalidDataException>(() => ModulePackager.Export(workspace, package));
+
+        Assert.Contains(AreaExperienceRuntimeResolver.RequiredMissingCode, exception.Message,
+            StringComparison.Ordinal);
+        Assert.False(File.Exists(package));
+    }
+
+    [Fact]
+    public void R056ExportRejectsRequiredMissingAreaLayersBeforeWritingPackage()
+    {
+        var workspace = CreateWorkspace();
+        var opened = ProjectSession.Open(workspace).Session!;
+        var area = opened.Project.Areas[0];
+        var authoring = new AreaAuthoringProfile(area.Authoring.SchemaVersion, area.Authoring.UserEvents,
+            area.Authoring.Map,
+            [new(Guid.Parse("a0565000-0000-4000-8000-000000000001"), "Architecture", null, true,
+                false, "builder", [], provenance: "test:r056")], area.Authoring.Experience, true);
+        var project = new ProjectDefinition(opened.Project.Id, opened.Project.Title, opened.Project.Module,
+            opened.Project.Blueprints,
+            opened.Project.Areas.Select(item => item.Id == area.Id ? item.WithAuthoring(authoring) : item).ToArray(),
+            opened.Project.Dialogues, opened.Project.Quests);
+        Assert.True(opened.Save(project).Succeeded);
+        var projectPath = Path.Combine(workspace, "project.json");
+        var index = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(projectPath))!.AsObject();
+        var relativeAreaPath = index["project"]!["areas"]![0]!["documentPath"]!.GetValue<string>();
+        var areaPath = Path.Combine(workspace, relativeAreaPath.Replace('/', Path.DirectorySeparatorChar));
+        var document = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(areaPath))!.AsObject();
+        document["area"]!["authoring"]!["layers"] = new System.Text.Json.Nodes.JsonArray();
+        File.WriteAllText(areaPath, document.ToJsonString(), new UTF8Encoding(false));
+        var package = Path.Combine(_temporaryRoot, "invalid-r056.orpmod");
+
+        var exception = Assert.Throws<InvalidDataException>(() => ModulePackager.Export(workspace, package));
+
+        Assert.Contains(AreaLayerRuntimeResolver.RequiredMissingCode, exception.Message, StringComparison.Ordinal);
+        Assert.False(File.Exists(package));
+    }
 
     [Fact]
     public void ExportUsesCanonicalMinimumRuntimeAndLoaderRejectsRequiredIncompatibilityBeforeExtraction()

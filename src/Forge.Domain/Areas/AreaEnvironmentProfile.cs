@@ -1,3 +1,6 @@
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json.Serialization;
 using Forge.Domain.Audio;
 
 namespace Forge.Domain.Areas;
@@ -5,19 +8,34 @@ namespace Forge.Domain.Areas;
 public enum AreaEnvironmentClass { Interior, Exterior, Natural, Artificial, Underground }
 public enum DayNightMode { Clock, AlwaysDay, AlwaysNight }
 public enum FogMode { Disabled, Distance, Volumetric }
-public enum AudioOrderMode { Sequential, DeterministicRandom }
+public enum AudioOrderMode { Sequential, DeterministicRandom, ShuffleBag, Weighted }
 public enum AreaSoundMode { Global2D, Spatial3D }
 public enum AudioInstancePolicy { Single, Restart, Overlap }
 public enum AudioAuthority { Local, Server }
 public enum MusicState { Exploration, Tension, Combat, Boss, Victory }
 
 public sealed record MusicStateEntry(MusicState State, string Track, IReadOnlyList<string> Stems,
-    float TransitionSeconds, float CooldownSeconds);
+    float TransitionSeconds, float CooldownSeconds, bool BeatSynchronized = false,
+    float TempoBpm = 120, int BeatsPerBar = 4);
 public sealed record AudioMixBus(Guid Id, string Name, Guid? ParentId, float Volume, string Snapshot,
-    string Platform, float DynamicRange, bool EnhanceImportantSounds);
+    string Platform, float DynamicRange, bool EnhanceImportantSounds, bool MonitorEnabled = false);
 public sealed record LocalizedSoundCaption(string Locale, string Text);
+[method: JsonConstructor]
 public sealed record SoundCaption(string Resource, IReadOnlyList<LocalizedSoundCaption> Localizations,
-    bool ShowDirection, string Importance);
+    bool ShowDirection, string Importance, Guid Id, int SchemaVersion = 1,
+    string Provenance = "migration-default", string PackageManifest = "builtin://openrpg/audio-captions",
+    string LicenseSpdx = "CC0-1.0", string ContentSha256 = "", string CueKind = "effect",
+    float MinimumDisplaySeconds = 1.5f, float MaximumDisplaySeconds = 6,
+    bool RequiredAtRuntime = false)
+{
+    public const int CurrentSchemaVersion = 1;
+
+    public SoundCaption(string resource, IReadOnlyList<LocalizedSoundCaption> localizations,
+        bool showDirection, string importance)
+        : this(resource, localizations, showDirection, importance, Guid.Empty)
+    {
+    }
+}
 public sealed record AreaAudioOrchestration(IReadOnlyList<MusicStateEntry> MusicStates,
     IReadOnlyList<AudioMixBus> MixBuses, IReadOnlyList<SoundCaption> Captions)
 {
@@ -25,13 +43,16 @@ public sealed record AreaAudioOrchestration(IReadOnlyList<MusicStateEntry> Music
 }
 
 public sealed record AudioSpatialProfile(AreaSoundMode Mode, float InnerRadius, float OuterRadius,
-    float AirAbsorption, string AttenuationCurve);
+    float AirAbsorption, string AttenuationCurve, bool DebugSpheresVisible = false);
 
 public sealed record AudioRuntimeControl(bool InitiallyActive, AudioInstancePolicy InstancePolicy,
-    AudioAuthority Authority, float DefaultFadeSeconds, string StartedEvent, string StoppedEvent);
+    AudioAuthority Authority, float DefaultFadeSeconds, string StartedEvent, string StoppedEvent,
+    string PausedEvent = "audio.paused", string FadedEvent = "audio.faded",
+    string ForgeScriptApiVersion = "1.0");
 
 public sealed record AdaptiveAmbienceLayer(string Resource, float StartHour, float EndHour,
-    string Weather, string LocationTag, float MinimumDanger, bool IndoorOnly, float Volume);
+    string Weather, string LocationTag, float MinimumDanger, bool IndoorOnly, float Volume,
+    float CrossfadeSeconds = 1, string VolumeId = "");
 
 public sealed record AreaLightingProfile
 {
@@ -86,13 +107,15 @@ public sealed record AreaAudioProfile
     public IReadOnlyList<AdaptiveAmbienceLayer> AdaptiveLayers { get; }
     public AreaAudioOrchestration Orchestration { get; }
     public AudioEmitterCatalog Emitters { get; }
+    public AudioAuthoringProfile Authoring { get; }
     public AreaAudioProfile(string dayMusic, string nightMusic, string combatMusic, string ambience, string reverbPreset,
         float transitionSeconds, IReadOnlyList<string>? playlist = null, AudioOrderMode orderMode = AudioOrderMode.Sequential,
         float intervalSeconds = 0, float intervalVariationSeconds = 0, float relativeVolume = 1,
         AudioSpatialProfile? spatial = null, AudioRuntimeControl? runtimeControl = null,
         IReadOnlyList<AdaptiveAmbienceLayer>? adaptiveLayers = null,
         AreaAudioOrchestration? orchestration = null,
-        AudioEmitterCatalog? emitters = null)
+        AudioEmitterCatalog? emitters = null,
+        AudioAuthoringProfile? authoring = null)
     {
         ArgumentNullException.ThrowIfNull(dayMusic); ArgumentNullException.ThrowIfNull(nightMusic);
         ArgumentNullException.ThrowIfNull(combatMusic); ArgumentNullException.ThrowIfNull(ambience); ArgumentException.ThrowIfNullOrWhiteSpace(reverbPreset);
@@ -108,6 +131,7 @@ public sealed record AreaAudioProfile
         AdaptiveLayers = (adaptiveLayers ?? []).ToArray();
         Orchestration = orchestration ?? AreaAudioOrchestration.Empty;
         Emitters = emitters ?? AudioEmitterCatalog.Empty;
+        Authoring = authoring ?? AudioAuthoringProfile.CreateDefault(Playlist, intervalSeconds, intervalVariationSeconds);
         if (Spatial.InnerRadius < 0 || Spatial.OuterRadius < Spatial.InnerRadius || Spatial.AirAbsorption is < 0 or > 1 ||
             string.IsNullOrWhiteSpace(Spatial.AttenuationCurve) || AdaptiveLayers.Any(layer =>
                 layer.StartHour is < 0 or >= 24 || layer.EndHour is < 0 or >= 24 || layer.MinimumDanger is < 0 or > 1 || layer.Volume is < 0 or > 4))
@@ -119,14 +143,23 @@ public sealed record AreaAudioProfile
         var busIds = Orchestration.MixBuses.Select(item => item.Id).ToHashSet();
         if (Orchestration.MixBuses.Any(bus => bus.ParentId is not null && (!busIds.Contains(bus.ParentId.Value) || bus.ParentId == bus.Id)) ||
             Orchestration.MixBuses.Any(bus => bus.Volume is < 0 or > 4 || bus.DynamicRange is < 0 or > 1) ||
-            Orchestration.MusicStates.Any(state => state.TransitionSeconds < 0 || state.CooldownSeconds < 0))
+            Orchestration.MusicStates.Any(state => state.TransitionSeconds < 0 || state.CooldownSeconds < 0 ||
+                !float.IsFinite(state.TempoBpm) || state.TempoBpm is < 20 or > 400 ||
+                state.BeatsPerBar is < 1 or > 32) ||
+            AdaptiveLayers.Any(layer => !float.IsFinite(layer.CrossfadeSeconds) ||
+                layer.CrossfadeSeconds is < 0 or > 120) ||
+            string.IsNullOrWhiteSpace(RuntimeControl.StartedEvent) ||
+            string.IsNullOrWhiteSpace(RuntimeControl.StoppedEvent) ||
+            string.IsNullOrWhiteSpace(RuntimeControl.PausedEvent) ||
+            string.IsNullOrWhiteSpace(RuntimeControl.FadedEvent) ||
+            string.IsNullOrWhiteSpace(RuntimeControl.ForgeScriptApiVersion))
             throw new ArgumentException("Audio orchestration hierarchy or ranges are invalid.");
     }
 }
 
 public sealed record AreaEnvironmentProfile
 {
-    public const int CurrentSchemaVersion = 3;
+    public const int CurrentSchemaVersion = 5;
     public int SchemaVersion { get; }
     public AreaEnvironmentClass Classification { get; }
     public IReadOnlyList<string> Tags { get; }
@@ -139,10 +172,14 @@ public sealed record AreaEnvironmentProfile
     public WeatherProfile Weather { get; }
     public WaterProfile Water { get; }
     public AreaReverbProfile Reverb { get; }
+    public AreaEnvironmentAuthoringProfile Authoring { get; }
+    public bool RequireAuthoringRuntimeMetadata { get; }
     public AreaEnvironmentProfile(int schemaVersion, AreaEnvironmentClass classification, IReadOnlyList<string> tags,
         AreaLightingProfile lighting, AreaFogProfile fog, AreaAudioProfile audio,
         AreaRenderingProfile? rendering = null, SkyProfile? sky = null, WindProfile? wind = null,
-        WeatherProfile? weather = null, WaterProfile? water = null, AreaReverbProfile? reverb = null)
+        WeatherProfile? weather = null, WaterProfile? water = null, AreaReverbProfile? reverb = null,
+        AreaEnvironmentAuthoringProfile? authoring = null,
+        bool requireAuthoringRuntimeMetadata = false)
     {
         if (schemaVersion is < 1 or > CurrentSchemaVersion) throw new ArgumentOutOfRangeException(nameof(schemaVersion));
         ArgumentNullException.ThrowIfNull(tags); ArgumentNullException.ThrowIfNull(lighting); ArgumentNullException.ThrowIfNull(fog); ArgumentNullException.ThrowIfNull(audio);
@@ -155,9 +192,37 @@ public sealed record AreaEnvironmentProfile
         Weather = weather ?? WeatherProfile.CreateDefault(classification);
         Water = water ?? WaterProfile.Empty;
         Reverb = reverb ?? AreaReverbProfile.CreateDefault(audio.ReverbPreset);
+        Authoring = authoring ?? AreaEnvironmentAuthoringProfile.CreateDefault(
+            AreaId.From(StableLegacyId(classification)), classification);
+        RequireAuthoringRuntimeMetadata = requireAuthoringRuntimeMetadata;
     }
     public static AreaEnvironmentProfile CreateDefault(AreaKind kind) => new(CurrentSchemaVersion,
         kind == AreaKind.Interior ? AreaEnvironmentClass.Interior : AreaEnvironmentClass.Exterior,
         [], new(DayNightMode.Clock, 24, 0.35f, 1f, 6500, true, true),
         new(FogMode.Disabled, 0, 20, 100, 0), new("", "", "", "", "neutral", 2));
+
+    public static AreaEnvironmentProfile CreateDefault(AreaId areaId, AreaKind kind)
+    {
+        var profile = CreateDefault(kind);
+        return profile.WithAuthoring(AreaEnvironmentAuthoringProfile.CreateDefault(areaId, profile.Classification));
+    }
+
+    public AreaEnvironmentProfile ForArea(AreaId areaId)
+    {
+        if (!string.Equals(Authoring.Provenance, "migration-default", StringComparison.Ordinal)) return this;
+        return WithAuthoring(AreaEnvironmentAuthoringProfile.CreateDefault(areaId, Classification));
+    }
+
+    public AreaEnvironmentProfile CloneForArea(AreaId destinationAreaId) =>
+        WithAuthoring(AreaEnvironmentAuthoringProfile.CloneForArea(Authoring, destinationAreaId));
+
+    private AreaEnvironmentProfile WithAuthoring(AreaEnvironmentAuthoringProfile authoring) => new(
+        SchemaVersion, Classification, Tags, Lighting, Fog, Audio, Rendering, Sky, Wind, Weather, Water, Reverb,
+        authoring, RequireAuthoringRuntimeMetadata);
+
+    private static Guid StableLegacyId(AreaEnvironmentClass classification)
+    {
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes($"openrpg-forge:legacy-environment:{classification}"));
+        return new Guid(bytes[..16]);
+    }
 }

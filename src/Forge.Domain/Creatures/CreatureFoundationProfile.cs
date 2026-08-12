@@ -103,6 +103,14 @@ public sealed record CreatureFoundationProfile
     public CreatureFoundationReferences References { get; }
     public EventBinding Spawned { get; }
     public IReadOnlyDictionary<string, string> Overrides { get; }
+    public CreatureAuthoringCompositionProfile? AuthoringComposition { get; }
+    public bool AuthoringCompositionRequiredAtRuntime { get; }
+    public CreatureRulesCompositionProfile? RulesComposition { get; }
+    public bool RulesCompositionRequiredAtRuntime { get; }
+    public CreatureInteractionCompositionProfile? InteractionComposition { get; }
+    public bool InteractionCompositionRequiredAtRuntime { get; }
+    public CreatureEventAiCompositionProfile? EventAiComposition { get; }
+    public bool EventAiCompositionRequiredAtRuntime { get; }
 
     public CreatureFoundationProfile(
         Guid id,
@@ -115,7 +123,15 @@ public sealed record CreatureFoundationProfile
         CreatureFoundationMovement movement,
         CreatureFoundationReferences references,
         EventBinding spawned,
-        IReadOnlyDictionary<string, string>? overrides)
+        IReadOnlyDictionary<string, string>? overrides,
+        CreatureAuthoringCompositionProfile? authoringComposition = null,
+        bool authoringCompositionRequiredAtRuntime = false,
+        CreatureRulesCompositionProfile? rulesComposition = null,
+        bool rulesCompositionRequiredAtRuntime = false,
+        CreatureInteractionCompositionProfile? interactionComposition = null,
+        bool interactionCompositionRequiredAtRuntime = false,
+        CreatureEventAiCompositionProfile? eventAiComposition = null,
+        bool eventAiCompositionRequiredAtRuntime = false)
     {
         ArgumentNullException.ThrowIfNull(identity);
         ArgumentNullException.ThrowIfNull(defaultTransform);
@@ -142,6 +158,14 @@ public sealed record CreatureFoundationProfile
         Overrides = (overrides ?? new Dictionary<string, string>()).OrderBy(item => item.Key, StringComparer.Ordinal)
             .ToDictionary(item => CreaturePresentationProfile.NormalizeIdentifier(item.Key),
                 item => item.Value?.Trim() ?? string.Empty, StringComparer.Ordinal);
+        AuthoringComposition = authoringComposition;
+        AuthoringCompositionRequiredAtRuntime = authoringCompositionRequiredAtRuntime;
+        RulesComposition = rulesComposition;
+        RulesCompositionRequiredAtRuntime = rulesCompositionRequiredAtRuntime;
+        InteractionComposition = interactionComposition;
+        InteractionCompositionRequiredAtRuntime = interactionCompositionRequiredAtRuntime;
+        EventAiComposition = eventAiComposition;
+        EventAiCompositionRequiredAtRuntime = eventAiCompositionRequiredAtRuntime;
     }
 
     public static CreatureFoundationProfile CreateDefault(Guid id, string slug, string displayName, string provenance) => new(

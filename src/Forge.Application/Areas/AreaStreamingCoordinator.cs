@@ -22,12 +22,14 @@ public sealed class AreaStreamingCoordinator
         IProgress<AreaStreamingProgress>? progress = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(profile);
-        cancellationToken.ThrowIfCancellationRequested();
+        var effectiveCancellation = profile.CancellationEnabled ? cancellationToken : CancellationToken.None;
+        effectiveCancellation.ThrowIfCancellationRequested();
         var stopwatch = Stopwatch.StartNew();
         var seen = new ConcurrentDictionary<string, byte>(StringComparer.Ordinal);
         var results = new ConcurrentDictionary<string, AreaChunkPayload>(StringComparer.Ordinal);
         var inFlight = new ConcurrentDictionary<string, Task<AreaChunkPayload>>(StringComparer.Ordinal);
-        using var concurrency = new SemaphoreSlim(profile.MaximumConcurrentLoads, profile.MaximumConcurrentLoads);
+        var maximumConcurrentLoads = profile.AsyncStreaming ? profile.MaximumConcurrentLoads : 1;
+        using var concurrency = new SemaphoreSlim(maximumConcurrentLoads, maximumConcurrentLoads);
         var total = 0;
         var completed = 0;
         var hits = 0;
@@ -41,7 +43,7 @@ public sealed class AreaStreamingCoordinator
             }
 
             Interlocked.Increment(ref total);
-            cancellationToken.ThrowIfCancellationRequested();
+            effectiveCancellation.ThrowIfCancellationRequested();
             var fromCache = TryGetCached(resource, out var cached);
             AreaChunkPayload payload;
             if (fromCache)
@@ -51,7 +53,7 @@ public sealed class AreaStreamingCoordinator
             }
             else
             {
-                var task = inFlight.GetOrAdd(resource, path => LoadCoreAsync(path, concurrency, cancellationToken));
+                var task = inFlight.GetOrAdd(resource, path => LoadCoreAsync(path, concurrency, effectiveCancellation));
                 try
                 {
                     payload = await task.ConfigureAwait(false);

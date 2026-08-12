@@ -15,12 +15,14 @@ using Forge.Domain.Dialogues;
 using Forge.Domain.Entities;
 using Forge.Domain.Gameplay;
 using Forge.Domain.Items;
+using Forge.Domain.Lifecycle;
 using Forge.Domain.Modules;
 using Forge.Domain.Navigation;
 using Forge.Domain.Projects;
 using Forge.Domain.RuntimePolicies;
 using Forge.Domain.RuntimeExtensions;
 using Forge.Domain.Quality;
+using Forge.Domain.Quests;
 using Forge.Domain.Rules;
 using Forge.Domain.Sequences;
 using Forge.Domain.Spatial;
@@ -331,6 +333,119 @@ public sealed class ForgeProjectAgentServiceTests
     }
 
     [Fact]
+    public void R064_waypoint_resource_is_filtered_and_mutation_preview_is_validated_and_read_only()
+    {
+        WaypointAuthoringProfile? profile = null;
+        string? areaId = null;
+        using var workspace = new TestWorkspace(project =>
+        {
+            var area = project.Areas[0];
+            areaId = area.Id.ToString();
+            var waypoints = new[]
+            {
+                new WaypointProfile(Guid.Parse("a0647000-0000-4000-8000-000000000011"), 1,
+                    "test:r064", "Braise", new(0, 0, 0),
+                    new("flag", "#ff8844", "quest", true, 28),
+                    new("Braise révélée", "quest", 0, "quest", 2,
+                        MarkerVisibilityPolicy.HiddenUntilRevealed, MarkerVisibilityScope.Party,
+                        true, false, "quest.crypt.found", "pulse", true), RequiredAtRuntime: true),
+                new WaypointProfile(Guid.Parse("a0647000-0000-4000-8000-000000000012"), 1,
+                    "test:r064", "Porte", new(2, 0, 0),
+                    new("arrow", "#83d6ae", "patrol", true, 24), null, RequiredAtRuntime: true),
+            };
+            var points = waypoints.Select(item => new PatrolPoint(item.Id, item.Position, 0, 0, 2,
+                null, null)).ToArray();
+            profile = new WaypointAuthoringProfile(Guid.Parse("a0647000-0000-4000-8000-000000000020"),
+                1, "test:r064", area.Id, true, waypoints,
+                [new(Guid.Parse("a0647000-0000-4000-8000-000000000021"), 1, "test:r064",
+                    PatrolTraversalPolicy.PingPong, points, requiredAtRuntime: true)]);
+            var changed = area.WithNavigation(area.Navigation.WithWaypoints(profile));
+            return new ProjectDefinition(project.Id, project.Title, project.Module, project.Blueprints,
+                project.Areas.Select(item => item.Id == area.Id ? changed : item).ToArray(),
+                project.Dialogues, project.Quests);
+        });
+
+        var resource = workspace.Project.QueryWaypoints("Braise", 10);
+        var preview = workspace.Project.PreviewWaypointAuthoring(
+            new WaypointAuthoringPlanRequest(1, 0, areaId!, profile!));
+        var invalid = workspace.Project.PreviewWaypointAuthoring(
+            new WaypointAuthoringPlanRequest(2, 0, areaId!, profile!));
+
+        Assert.Single(resource.Waypoints);
+        Assert.Single(resource.PatrolRoutes);
+        Assert.Equal("HiddenUntilRevealed", resource.Waypoints[0].VisibilityPolicy);
+        Assert.True(preview.Succeeded);
+        Assert.Contains("waypoint", preview.SemanticDiff!.Summary, StringComparison.OrdinalIgnoreCase);
+        Assert.False(invalid.Succeeded);
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
+        Assert.Throws<ArgumentOutOfRangeException>(() => workspace.Project.QueryWaypoints(limit: 501));
+    }
+
+    [Fact]
+    public void R065_waypoint_resource_filters_locators_and_exposes_collections_arrival_and_route_diagnostics()
+    {
+        WaypointAuthoringProfile? profile = null;
+        string? areaId = null;
+        using var workspace = new TestWorkspace(project =>
+        {
+            var area = project.Areas[0];
+            areaId = area.Id.ToString();
+            var waypoints = new[]
+            {
+                new WaypointProfile(Guid.Parse("a0657000-0000-4000-8000-000000000011"), 1,
+                    "test:r065", "Entrée", new(-3, 0, 0),
+                    new("flag", "#ff8844", "quest", true, 28), null,
+                    Arrival: new(ArrivalFacingMode.Target, 0, "gate", "inspect", 1, "open",
+                        "waypoint.arrived")),
+                new WaypointProfile(Guid.Parse("a0657000-0000-4000-8000-000000000012"), 1,
+                    "test:r065", "Porte", new(3, 0, 0),
+                    new("arrow", "#83d6ae", "patrol", true, 26), null),
+            };
+            var route = new PatrolRoute(Guid.Parse("a0657000-0000-4000-8000-000000000020"),
+                1, "test:r065", PatrolTraversalPolicy.PingPong,
+                [new(waypoints[0].Id, waypoints[0].Position, 0, 0, 2, "inspect", null),
+                    new(waypoints[1].Id, waypoints[1].Position, 1, 180, 2, null, null)]);
+            var locators = new[]
+            {
+                new GenericLocator(Guid.Parse("a0657000-0000-4000-8000-000000000031"), 1,
+                    "test:r065", "Cloche", new(0, 0, 2), LocatorPurpose.Audio,
+                    ["crypt", "ritual"], null, "audio:bell"),
+                new GenericLocator(Guid.Parse("a0657000-0000-4000-8000-000000000032"), 1,
+                    "test:r065", "Brasero", new(1, 0, 2), LocatorPurpose.Vfx,
+                    ["crypt", "fire"], null, "vfx:ember"),
+            };
+            var collection = new AnchorCollection(
+                Guid.Parse("a0657000-0000-4000-8000-000000000040"), 1, "test:r065", "crypt",
+                locators.Select(item => item.Id).ToArray(), "Crypte",
+                RequiredTags: ["crypt"]);
+            var visualization = new RouteVisualizationProfile(
+                Guid.Parse("a0657000-0000-4000-8000-000000000050"), 1, "test:r065",
+                true, true, true, true, true, true, true, 1.25);
+            profile = new(Guid.Parse("a0657000-0000-4000-8000-000000000060"), 1,
+                "test:r065", area.Id, true, waypoints, [route], locators, [collection], visualization);
+            var changed = area.WithNavigation(area.Navigation.WithWaypoints(profile));
+            return new ProjectDefinition(project.Id, project.Title, project.Module, project.Blueprints,
+                project.Areas.Select(item => item.Id == area.Id ? changed : item).ToArray(),
+                project.Dialogues, project.Quests);
+        });
+
+        var all = workspace.Project.QueryWaypoints(areaId, 20);
+        var filtered = workspace.Project.QueryWaypoints("Cloche", 20);
+        var preview = workspace.Project.PreviewWaypointAuthoring(
+            new WaypointAuthoringPlanRequest(1, 0, areaId!, profile!));
+
+        Assert.Equal(2, all.Locators.Count);
+        Assert.Single(all.Collections);
+        Assert.Single(all.RouteVisualizations);
+        Assert.Equal(2, all.PatrolRoutes.Single().Segments.Count);
+        Assert.Equal("Target", all.Waypoints.Single(item => item.ArrivalFacing is not null).ArrivalFacing);
+        Assert.Equal("Cloche", Assert.Single(filtered.Locators).Name);
+        Assert.Single(filtered.Collections);
+        Assert.True(preview.Succeeded);
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
+    }
+
+    [Fact]
     public void Post_launch_resource_is_filterable_and_previews_are_read_only()
     {
         using var workspace = new TestWorkspace();
@@ -375,7 +490,141 @@ public sealed class ForgeProjectAgentServiceTests
     }
 
     [Fact]
-    public void Companion_validation_resource_is_typed_filtered_and_plan_is_dry_run()
+    public void Door_access_event_resource_is_typed_filtered_searchable_and_plan_remains_dry_run()
+    {
+        using var workspace = new TestWorkspace(project =>
+        {
+            var catalog = CryptWorldFeatureAuthoringService.Create(project);
+            return new ProjectDefinition(project.Id, project.Title, project.Module.WithWorldFeatures(catalog),
+                project.Blueprints, project.Areas, project.Dialogues, project.Quests);
+        });
+        var canonical = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
+        var door = canonical.Module.WorldFeatures.Doors.Single();
+
+        var resource = workspace.Project.QueryWorldFeatures("door", door.Id.ToString("D"), 1);
+        var searched = workspace.Project.QueryWorldFeatures("door", "damage:ember-burst", 1);
+        var lockEventSearch = workspace.Project.QueryWorldFeatures("door", "DoorUnlocked", 1);
+        var planned = workspace.Project.PreviewWorldFeatures(new WorldFeaturePlanRequest(
+            1, 0, canonical.Module.WorldFeatures));
+
+        var item = Assert.Single(resource.Items);
+        Assert.Equal("True", item.Properties["accessEvents"]);
+        Assert.Equal("Locked", item.Properties["lockState"]);
+        Assert.Equal("1", item.Properties["credentials"]);
+        Assert.Equal("True", item.Properties["consumeCredential"]);
+        Assert.Equal("2", item.Properties["rejectionLocales"]);
+        Assert.Equal("damage:ember-burst", item.Properties["trapPayload"]);
+        Assert.Equal("PortalUseRequested", item.Properties["portalRequested"]);
+        Assert.Equal("PortalUseCompleted", item.Properties["portalCompleted"]);
+        Assert.Equal("DoorOpened", item.Properties["doorOpened"]);
+        Assert.Equal("DoorClosed", item.Properties["doorClosed"]);
+        Assert.Equal("DoorLocked", item.Properties["doorLocked"]);
+        Assert.Equal("DoorUnlocked", item.Properties["doorUnlocked"]);
+        Assert.Equal("True", item.Properties["lockEventsRequiredAtRuntime"]);
+        Assert.Equal("True", item.Properties["accessEventsRequiredAtRuntime"]);
+        Assert.Single(searched.Items);
+        Assert.Single(lockEventSearch.Items);
+        Assert.True(planned.Succeeded);
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
+    }
+
+    [Fact]
+    public void R083_Encounter_composition_resource_is_filtered_searchable_and_plan_remains_dry_run()
+    {
+        using var workspace = new TestWorkspace(project =>
+        {
+            var catalog = CryptWorldFeatureAuthoringService.Create(project);
+            return new ProjectDefinition(project.Id, project.Title, project.Module.WithWorldFeatures(catalog),
+                project.Blueprints, project.Areas, project.Dialogues, project.Quests);
+        });
+        var canonical = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
+        var encounter = canonical.Module.WorldFeatures.Encounters.Single();
+
+        var resource = workspace.Project.QueryWorldFeatures("encounter", encounter.Id.ToString("D"), 1);
+        var searched = workspace.Project.QueryWorldFeatures("encounter", "party:forge-generic", 1);
+        var planned = workspace.Project.PreviewWorldFeatures(new WorldFeaturePlanRequest(
+            1, 0, canonical.Module.WorldFeatures));
+
+        var item = Assert.Single(resource.Items);
+        Assert.Equal("True", item.Properties["composition"]);
+        Assert.Equal("crypt-warden-ambush", item.Properties["wizard"]);
+        Assert.Equal("Hard", item.Properties["difficulty"]);
+        Assert.Equal("party:forge-generic", item.Properties["partyProvider"]);
+        Assert.Equal("1", item.Properties["groups"]);
+        Assert.Equal("PopulationMaintained", item.Properties["activation"]);
+        Assert.Equal("True", item.Properties["compositionRequiredAtRuntime"]);
+        Assert.Single(searched.Items);
+        Assert.True(planned.Succeeded);
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
+    }
+
+    [Fact]
+    public void R084_Encounter_scenario_resource_is_filtered_searchable_and_plan_remains_dry_run()
+    {
+        using var workspace = new TestWorkspace(project =>
+        {
+            var catalog = CryptWorldFeatureAuthoringService.Create(project);
+            return new ProjectDefinition(project.Id, project.Title, project.Module.WithWorldFeatures(catalog),
+                project.Blueprints, project.Areas, project.Dialogues, project.Quests);
+        });
+        var canonical = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
+        var encounter = canonical.Module.WorldFeatures.Encounters.Single();
+
+        var resource = workspace.Project.QueryWorldFeatures("encounter", encounter.Id.ToString("D"), 1);
+        var lifecycleSearch = workspace.Project.QueryWorldFeatures("encounter", "EncounterExhausted", 1);
+        var authoritySearch = workspace.Project.QueryWorldFeatures("encounter", "Server", 1);
+        var planned = workspace.Project.PreviewWorldFeatures(new WorldFeaturePlanRequest(
+            1, 0, canonical.Module.WorldFeatures));
+
+        var item = Assert.Single(resource.Items);
+        Assert.Equal("True", item.Properties["scenario"]);
+        Assert.Equal("1", item.Properties["spawnAnchors"]);
+        Assert.Equal("Weighted", item.Properties["distribution"]);
+        Assert.Equal("Server", item.Properties["activatorAuthority"]);
+        Assert.Equal("EncounterEntered", item.Properties["encounterEntered"]);
+        Assert.Equal("EncounterExited", item.Properties["encounterExited"]);
+        Assert.Equal("EncounterExhausted", item.Properties["encounterExhausted"]);
+        Assert.Equal("1", item.Properties["phases"]);
+        Assert.Equal("2", item.Properties["waves"]);
+        Assert.Equal("True", item.Properties["scenarioRequiredAtRuntime"]);
+        Assert.Single(lifecycleSearch.Items);
+        Assert.Single(authoritySearch.Items);
+        Assert.True(planned.Succeeded);
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
+    }
+
+    [Fact]
+    public void R085_Encounter_statistics_resource_is_filtered_searchable_and_plan_remains_dry_run()
+    {
+        using var workspace = new TestWorkspace(project =>
+        {
+            var catalog = CryptWorldFeatureAuthoringService.Create(project);
+            return new ProjectDefinition(project.Id, project.Title, project.Module.WithWorldFeatures(catalog),
+                project.Blueprints, project.Areas, project.Dialogues, project.Quests);
+        });
+        var canonical = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
+        var encounter = canonical.Module.WorldFeatures.Encounters.Single();
+
+        var resource = workspace.Project.QueryWorldFeatures("encounter", encounter.Id.ToString("D"), 1);
+        var searched = workspace.Project.QueryWorldFeatures("encounter", "duration:actors-linear", 1);
+        var planned = workspace.Project.PreviewWorldFeatures(new WorldFeaturePlanRequest(
+            1, 0, canonical.Module.WorldFeatures));
+
+        var item = Assert.Single(resource.Items);
+        Assert.Equal("True", item.Properties["statistics"]);
+        Assert.Equal("64", item.Properties["statisticsRuns"]);
+        Assert.Equal("840", item.Properties["statisticsSeed"]);
+        Assert.Equal("duration:actors-linear", item.Properties["durationEstimator"]);
+        Assert.Equal("reward:cost-linear", item.Properties["rewardEstimator"]);
+        Assert.Equal("0.5,0.9,0.99", item.Properties["statisticsPercentiles"]);
+        Assert.Equal("True", item.Properties["statisticsRequiredAtRuntime"]);
+        Assert.Single(searched.Items);
+        Assert.True(planned.Succeeded);
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
+    }
+
+    [Fact]
+    public void Companion_validation_foundation_control_and_experience_resource_is_typed_filtered_and_plan_is_dry_run()
     {
         using var workspace = new TestWorkspace(project =>
         {
@@ -387,6 +636,8 @@ public sealed class ForgeProjectAgentServiceTests
         var companion = canonical.Module.WorldFeatures.Companions.Single();
 
         var resource = workspace.Project.QueryWorldFeatures("companion", companion.Id.ToString("D"), 1);
+        var searched = workspace.Project.QueryWorldFeatures("companion", "owner-or-gm", 1);
+        var experienceSearched = workspace.Project.QueryWorldFeatures("companion", "screen-reader-high-contrast", 1);
         var planned = workspace.Project.PreviewWorldFeatures(new WorldFeaturePlanRequest(
             1, 0, canonical.Module.WorldFeatures));
 
@@ -394,10 +645,53 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.Equal("True", item.Properties["validation"]);
         Assert.Equal("2", item.Properties["recruitmentPaths"]);
         Assert.Equal("party", item.Properties["ownership"]);
-        Assert.Equal("4", item.Properties["commands"]);
+        Assert.Equal("12", item.Properties["commands"]);
         Assert.Equal("recoverable-corpse", item.Properties["death"]);
         Assert.Equal("2", item.Properties["dialogueContexts"]);
         Assert.Equal("True", item.Properties["requiredAtRuntime"]);
+        Assert.Equal("True", item.Properties["foundation"]);
+        Assert.Equal("True", item.Properties["recruitable"]);
+        Assert.Equal("not-recruited", item.Properties["preRecruitmentContext"]);
+        Assert.Equal("recruited-by-speaker", item.Properties["ownerContext"]);
+        Assert.Equal("capacity-ownership-inventory-position-persistence-atomic", item.Properties["membership"]);
+        Assert.Equal("Campaign", item.Properties["persistence"]);
+        Assert.Equal("3", item.Properties["companionSlots"]);
+        Assert.Equal("1", item.Properties["summonSlots"]);
+        Assert.Equal("1", item.Properties["petSlots"]);
+        Assert.Equal("1", item.Properties["temporaryAllySlots"]);
+        Assert.Equal("8", item.Properties["serverActorLimit"]);
+        Assert.Equal("Support:2", item.Properties["roleLimits"]);
+        Assert.Equal("True", item.Properties["control"]);
+        Assert.Equal("individual", item.Properties["controlOwnership"]);
+        Assert.Equal("player:owner", item.Properties["controllers"]);
+        Assert.Equal("game-master,party,shared", item.Properties["allowedOwnershipTargets"]);
+        Assert.Equal("1", item.Properties["ownershipRevision"]);
+        Assert.Equal("6", item.Properties["movementCommands"]);
+        Assert.Equal("6", item.Properties["tacticalCommands"]);
+        Assert.Equal("4", item.Properties["stances"]);
+        Assert.Equal("Support", item.Properties["aiRole"]);
+        Assert.Equal("owner-or-gm", item.Properties["aiAuthorization"]);
+        Assert.Equal("full", item.Properties["equipmentPermission"]);
+        Assert.Equal("1", item.Properties["lockedItems"]);
+        Assert.Equal("1", item.Properties["suggestedLoadout"]);
+        Assert.Equal("player:owner", item.Properties["equipmentOwner"]);
+        Assert.Equal("True", item.Properties["controlRequiredAtRuntime"]);
+        Assert.Equal("True", item.Properties["experience"]);
+        Assert.Equal("recoverable-corpse", item.Properties["deathMode"]);
+        Assert.Equal("30", item.Properties["downedDurationSeconds"]);
+        Assert.Equal("resource:ember", item.Properties["resurrectionResource"]);
+        Assert.Equal("creature:elyra-heir", item.Properties["replacementCreature"]);
+        Assert.Equal("memorial:elyra", item.Properties["memorial"]);
+        Assert.Equal("True", item.Properties["dropInventory"]);
+        Assert.Equal("10,30,60", item.Properties["cohesionThresholds"]);
+        Assert.Equal("party.safe", item.Properties["cohesionAnchors"]);
+        Assert.Equal("portraits-health-resources-statuses-quick-commands-reorder", item.Properties["partyHud"]);
+        Assert.Equal("keyboard-gamepad", item.Properties["partyHudInputs"]);
+        Assert.Equal("screen-reader-high-contrast", item.Properties["partyHudAccessibility"]);
+        Assert.Equal("focus,health", item.Properties["partyHudResources"]);
+        Assert.Equal("True", item.Properties["experienceRequiredAtRuntime"]);
+        Assert.Single(searched.Items);
+        Assert.Single(experienceSearched.Items);
         Assert.True(planned.Succeeded);
         Assert.Equal(0, workspace.Project.GetCurrentRevision());
     }
@@ -415,6 +709,8 @@ public sealed class ForgeProjectAgentServiceTests
         var merchant = canonical.Module.WorldFeatures.Merchants.Single();
 
         var resource = workspace.Project.QueryWorldFeatures("merchant", merchant.Id.ToString("D"), 1);
+        var searched = workspace.Project.QueryWorldFeatures("merchant", "merchant-crypt-vigil-nominal", 1);
+        var experienceSearched = workspace.Project.QueryWorldFeatures("merchant", "screen-reader-high-contrast", 1);
         var planned = workspace.Project.PreviewWorldFeatures(new WorldFeaturePlanRequest(
             1, 0, canonical.Module.WorldFeatures));
 
@@ -422,6 +718,26 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.Equal("True", item.Properties["transactions"]);
         Assert.Equal("1", item.Properties["stock"]);
         Assert.Equal("True", item.Properties["requiredAtRuntime"]);
+        Assert.Equal("True", item.Properties["foundation"]);
+        Assert.Equal("crypt-vigil-market", item.Properties["storeSlug"]);
+        Assert.Equal("store-vendor-dialogue-interaction-tests", item.Properties["wizard"]);
+        Assert.Equal("1", item.Properties["foundationStock"]);
+        Assert.Equal("Infinite", item.Properties["supplyModes"]);
+        Assert.Equal("2", item.Properties["buyCurve"]);
+        Assert.Equal("2", item.Properties["sellCurve"]);
+        Assert.Equal("scripts/merchant_rule", item.Properties["customRule"]);
+        Assert.Equal("True", item.Properties["foundationRequiredAtRuntime"]);
+        Assert.Equal("True", item.Properties["experience"]);
+        Assert.Equal("1.0.0", item.Properties["sessionApi"]);
+        Assert.Equal("StoreSessionOpened", item.Properties["sessionOpened"]);
+        Assert.Equal("StoreSessionClosed", item.Properties["sessionClosed"]);
+        Assert.Equal("customer-vendor-price-context-transaction-summary", item.Properties["sessionPayload"]);
+        Assert.Equal("keyboard-gamepad-compare-filters-cart-confirmation", item.Properties["storeUi"]);
+        Assert.Equal("screen-reader-high-contrast", item.Properties["storeUiAccessibility"]);
+        Assert.Equal("name,compare,price,quantity", item.Properties["storeUiColumns"]);
+        Assert.Equal("True", item.Properties["experienceRequiredAtRuntime"]);
+        Assert.Single(searched.Items);
+        Assert.Single(experienceSearched.Items);
         Assert.True(planned.Succeeded);
         Assert.Equal(0, workspace.Project.GetCurrentRevision());
     }
@@ -439,6 +755,11 @@ public sealed class ForgeProjectAgentServiceTests
         var placeable = canonical.Module.WorldFeatures.Placeables.Single();
 
         var resource = workspace.Project.QueryWorldFeatures("placeable", placeable.Id.ToString("D"), 1);
+        var searched = workspace.Project.QueryWorldFeatures("placeable", "PlaceableProtectionOverride", 1);
+        var securityEventsSearched = workspace.Project.QueryWorldFeatures("placeable",
+            "ContainerContentsChanged", 1);
+        var compositionEventsSearched = workspace.Project.QueryWorldFeatures("placeable",
+            "RingRequested", 1);
         var planned = workspace.Project.PreviewWorldFeatures(new WorldFeaturePlanRequest(
             1, 0, canonical.Module.WorldFeatures));
 
@@ -450,6 +771,54 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.Equal("1.0.0", item.Properties["forgeScriptApi"]);
         Assert.Equal("True", item.Properties["validation"]);
         Assert.Equal("True", item.Properties["requiredAtRuntime"]);
+        Assert.Equal("True", item.Properties["operations"]);
+        Assert.Equal("slots:24;mass:160;owner:party;persistent:True;replicated:True",
+            item.Properties["container"]);
+        Assert.Equal("container.deposit,container.open,container.withdraw", item.Properties["containerAccess"]);
+        Assert.Equal("inventory:crypt-pillar", item.Properties["inventory"]);
+        Assert.Equal("loot:crypt-pillar", item.Properties["lootPolicy"]);
+        Assert.Equal("ui:placeable-chest", item.Properties["containerUi"]);
+        Assert.Equal("closed", item.Properties["initialVisualState"]);
+        Assert.Equal("active,broken,closed,custom,idle,open", item.Properties["visualStates"]);
+        Assert.Equal("3", item.Properties["visualTransitions"]);
+        Assert.Equal("health:100/100;armor:10;stages:3;repair:True", item.Properties["damageable"]);
+        Assert.Equal("destroy,move", item.Properties["protection"]);
+        Assert.Equal("PlaceableProtectionOverride", item.Properties["protectionAudit"]);
+        Assert.Equal("Locked;credentials:1;skill:mechanics;code:True;hacking:True;relock:True;jam:True",
+            item.Properties["lock"]);
+        Assert.Equal("True", item.Properties["operationsRequiredAtRuntime"]);
+        Assert.Equal("True", item.Properties["securityEvents"]);
+        Assert.Contains("payload:damage:ember-burst", item.Properties["trap"], StringComparison.Ordinal);
+        Assert.Contains("detect:10", item.Properties["trap"], StringComparison.Ordinal);
+        Assert.Contains("disarm:12", item.Properties["trap"], StringComparison.Ordinal);
+        Assert.Contains("timing:Open", item.Properties["lootSpawner"], StringComparison.Ordinal);
+        Assert.Contains("seed:42", item.Properties["lootSpawner"], StringComparison.Ordinal);
+        Assert.Equal("1", item.Properties["lootEntries"]);
+        Assert.Equal("ContainerOpened", item.Properties["containerOpened"]);
+        Assert.Equal("ContainerClosed", item.Properties["containerClosed"]);
+        Assert.Equal("actor-result-previous-state-authority", item.Properties["containerEventPayload"]);
+        Assert.Equal("LockStateChanging", item.Properties["lockStateChanging"]);
+        Assert.Equal("LockStateChanged", item.Properties["lockStateChanged"]);
+        Assert.Equal("method-credential-actor-controlled-veto", item.Properties["lockEventPayload"]);
+        Assert.Equal("ContainerContentsChanged", item.Properties["contentsChanged"]);
+        Assert.Equal("transactional-delta-cause-revision-actor", item.Properties["contentsChangedPayload"]);
+        Assert.Equal("True", item.Properties["securityEventsRequiredAtRuntime"]);
+        Assert.Equal("True", item.Properties["compositionEvents"]);
+        Assert.Equal("DamageApplied", item.Properties["damageApplied"]);
+        Assert.Equal("EntityDestroyed", item.Properties["entityDestroyed"]);
+        Assert.Equal("1.0.0", item.Properties["damageEventApi"]);
+        Assert.Equal("source-amount-damage-type-previous-current-context",
+            item.Properties["damageEventPayload"]);
+        Assert.Equal("lever:mechanism:snap:True:capacity:2", item.Properties["attachmentSockets"]);
+        Assert.Contains("lever:", item.Properties["attachments"], StringComparison.Ordinal);
+        Assert.Contains("prefab:crypt-pillar-lever", item.Properties["attachments"],
+            StringComparison.Ordinal);
+        Assert.Equal("inspect,use,open,talk,take,push,climb,custom-ring", item.Properties["multiVerbs"]);
+        Assert.Contains("RingRequested", item.Properties["verbBindings"], StringComparison.Ordinal);
+        Assert.Equal("True", item.Properties["compositionEventsRequiredAtRuntime"]);
+        Assert.Single(searched.Items);
+        Assert.Single(securityEventsSearched.Items);
+        Assert.Single(compositionEventsSearched.Items);
         Assert.True(planned.Succeeded);
         Assert.Equal(0, workspace.Project.GetCurrentRevision());
     }
@@ -467,6 +836,8 @@ public sealed class ForgeProjectAgentServiceTests
         var trigger = canonical.Module.WorldFeatures.Triggers.Single();
 
         var resource = workspace.Project.QueryWorldFeatures("trigger", trigger.Id.ToString("D"), 1);
+        var trapSearch = workspace.Project.QueryWorldFeatures("trigger", "TrapTriggered", 1);
+        var volumeSearch = workspace.Project.QueryWorldFeatures("trigger", "DamageVolumeEntered", 1);
         var planned = workspace.Project.PreviewWorldFeatures(new WorldFeaturePlanRequest(
             1, 0, canonical.Module.WorldFeatures));
 
@@ -480,6 +851,17 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.Equal("1.0.0", item.Properties["forgeScriptApi"]);
         Assert.Equal("True", item.Properties["validation"]);
         Assert.Equal("True", item.Properties["requiredAtRuntime"]);
+        Assert.Equal("True", item.Properties["advanced"]);
+        Assert.Contains("damage:ember-burst", item.Properties["trap"], StringComparison.Ordinal);
+        Assert.Contains("gm:True", item.Properties["trap"], StringComparison.Ordinal);
+        Assert.Contains("TrapTriggered", item.Properties["trapBindings"], StringComparison.Ordinal);
+        Assert.Contains("players:True", item.Properties["targetFilter"], StringComparison.Ordinal);
+        Assert.Contains("Damage", item.Properties["gameplayVolumes"], StringComparison.Ordinal);
+        Assert.Contains("Checkpoint", item.Properties["gameplayVolumes"], StringComparison.Ordinal);
+        Assert.Contains("maximum:100", item.Properties["occupancyDebug"], StringComparison.Ordinal);
+        Assert.Equal("True", item.Properties["advancedRequiredAtRuntime"]);
+        Assert.Single(trapSearch.Items);
+        Assert.Single(volumeSearch.Items);
         Assert.True(planned.Succeeded);
         Assert.Equal(0, workspace.Project.GetCurrentRevision());
     }
@@ -553,6 +935,216 @@ public sealed class ForgeProjectAgentServiceTests
     }
 
     [Fact]
+    public void Quest_authoring_resource_is_structured_filterable_and_mutation_remains_dry_run()
+    {
+        using var workspace = new TestWorkspace(project =>
+        {
+            var quest = project.Quests.Single();
+            var objective = new QuestAuthoringObjective(
+                Guid.Parse("c7110000-0000-4000-8000-000000000301"), 1, "test:r071", 1,
+                QuestObjectiveKind.Collection, new LocalizedText("quest.r071.objective", "Trouver la clé"),
+                1, ["ash-key"], null, 0, [], null, false);
+            var participant = new QuestAuthoringParticipant(
+                Guid.Parse("c7110000-0000-4000-8000-000000000302"), 1, "test:r071", 1, "guide",
+                QuestParticipantBindingKind.Blueprint, "elyra-npc", ["quest:active"], true);
+            var profile = new QuestAuthoringProfile(
+                Guid.Parse("c7110000-0000-4000-8000-000000000303"), 1, "test:r071", true, true,
+                [objective], new QuestAuthoringRewardBundle(
+                    Guid.Parse("c7110000-0000-4000-8000-000000000304"), 1, "test:r071", 10,
+                    new Dictionary<string, int> { ["ash-key"] = 1 },
+                    new Dictionary<string, decimal> { ["ember"] = 5 },
+                    new Dictionary<string, double> { ["ash-watch"] = 2 }, ["crypt-open"], ["choice:dawn"]),
+                new QuestAuthorNotes("Restore the vigil", "Ember covenant", "author:test",
+                    QuestEditorialStatus.Review, ["branch"], ["voice"], ["08_QUEST.md"],
+                    [new QuestAuthorReview(Guid.Parse("c7110000-0000-4000-8000-000000000305"), 1,
+                        "test:r071", "reviewer:test", QuestEditorialStatus.Review, "Reviewed",
+                        DateTimeOffset.Parse("2026-08-11T00:00:00Z"))]), [participant],
+                new QuestPlotWizardPlan(Guid.Parse("c7110000-0000-4000-8000-000000000306"), 1,
+                    "test:r071", [project.Areas.Single().Slug], [participant.Id], ["crypt-pillar"],
+                    [project.Dialogues.Single().Id], [objective.Id], quest.Transitions.Select(item => item.Id).ToArray(),
+                    ["nominal", "failure", "repeat", "multiplayer", "save-resume"], false));
+            return new ProjectDefinition(project.Id, project.Title, project.Module, project.Blueprints,
+                project.Areas, project.Dialogues,
+                project.Quests.Select(item => item.Id == quest.Id ? item.WithAuthoring(profile) : item).ToArray());
+        });
+        var canonical = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
+        var quest = canonical.Quests.Single();
+
+        var resource = workspace.Project.QueryQuestJournals("guide", 1);
+        var planned = workspace.Project.PreviewQuestJournal(new(1, 0, quest.Id.ToString(), quest));
+
+        var authoring = Assert.Single(resource.Items).Authoring;
+        Assert.NotNull(authoring);
+        Assert.Equal("Collection", Assert.Single(authoring.Objectives).Kind);
+        Assert.Equal("elyra-npc", Assert.Single(authoring.Participants).BindingValue);
+        Assert.Equal(5, authoring.Wizard.GeneratedTestScenarios.Count);
+        Assert.False(authoring.Wizard.GeneratesOpaqueCode);
+        Assert.True(planned.Succeeded);
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
+    }
+
+    [Fact]
+    public void Quest_experience_resource_is_structured_filterable_and_mutation_remains_dry_run()
+    {
+        using var workspace = new TestWorkspace(project =>
+        {
+            var quest = project.Quests.Single();
+            var objective = new QuestAuthoringObjective(Guid.Parse("c7120000-0000-4000-8000-000000000501"),
+                1, "test:r072", 1, QuestObjectiveKind.Destination,
+                new LocalizedText("quest.r072.objective", "Atteindre la crypte"), 0, [],
+                project.Areas[0].Slug, 0, [], null, false);
+            var participant = new QuestAuthoringParticipant(Guid.Parse("c7120000-0000-4000-8000-000000000502"),
+                1, "test:r072", 1, "guide", QuestParticipantBindingKind.Query, "query:guide", [], true);
+            var authoring = new QuestAuthoringProfile(Guid.Parse("c7120000-0000-4000-8000-000000000503"),
+                1, "test:r072", true, false, [objective],
+                new QuestAuthoringRewardBundle(Guid.Parse("c7120000-0000-4000-8000-000000000504"), 1,
+                    "test:r072", 0, new Dictionary<string, int>(), new Dictionary<string, decimal>(),
+                    new Dictionary<string, double>(), [], []),
+                new QuestAuthorNotes("Design", "Canon", "author:test", QuestEditorialStatus.Review, [], [],
+                    ["source"], [new QuestAuthorReview(Guid.Parse("c7120000-0000-4000-8000-000000000505"),
+                        1, "test:r072", "reviewer:test", QuestEditorialStatus.Review, "Reviewed",
+                        DateTimeOffset.UnixEpoch)]), [participant],
+                new QuestPlotWizardPlan(Guid.Parse("c7120000-0000-4000-8000-000000000506"), 1,
+                    "test:r072", [project.Areas[0].Slug], [participant.Id], [], [project.Dialogues[0].Id],
+                    [objective.Id], quest.Transitions.Select(item => item.Id).ToArray(),
+                    ["nominal", "failure", "repeat", "multiplayer", "save-resume"], false));
+            quest = quest.WithAuthoring(authoring);
+            var resource = new Forge.Domain.Quests.QuestExperienceResource(Guid.Parse("c7120000-0000-4000-8000-000000000507"),
+                1, "test:r072", 1, QuestExperienceResourceKind.Asset, "asset:ember-prism", "owner:module",
+                true, ["quest:active"]);
+            var step = new QuestExperienceStep(Guid.Parse("c7120000-0000-4000-8000-000000000508"), 1,
+                "template:r072:v1", 1, new LocalizedText("quest.r072.step", "Inspecter le prisme"),
+                [objective.Id], quest.Transitions.Select(item => item.Id).ToArray(), "investigation", 1, true);
+            var history = new QuestExperienceHistoryEvent(Guid.Parse("c7120000-0000-4000-8000-000000000509"),
+                1, "test:r072", quest.Id, "hidden", "discovered", "dialogue", "player:mcp",
+                DateTimeOffset.UnixEpoch, new Dictionary<string, string> { ["seed"] = "72" },
+                new LocalizedText("quest.r072.history", "Le prisme est révélé."));
+            var marker = new QuestExperienceMarker(Guid.Parse("c7120000-0000-4000-8000-000000000510"),
+                1, "test:r072", 1, objective.Id, QuestExperienceMarkerBindingKind.Query,
+                "query:ember-prism", QuestExperienceVisibility.Discovered, 4, true,
+                new LocalizedText("quest.r072.marker", "Prisme des braises"), new Vector3Value(1, 0, 2));
+            var experience = new QuestExperienceProfile(Guid.Parse("c7120000-0000-4000-8000-000000000511"),
+                1, "test:r072", true, true, [resource], [step],
+                new QuestExperienceVisibilityPolicy(Guid.Parse("c7120000-0000-4000-8000-000000000512"), 1,
+                    "test:r072", QuestExperienceVisibility.Hidden,
+                    new Dictionary<QuestExperienceVisibility, IReadOnlyList<string>>
+                    { [QuestExperienceVisibility.Rumor] = ["heard"] }, true), [history], [marker]);
+            return new ProjectDefinition(project.Id, project.Title, project.Module, project.Blueprints,
+                project.Areas, project.Dialogues, [quest.WithExperience(experience)]);
+        });
+        var quest = ProjectSession.Open(workspace.RootDirectory).Session!.Project.Quests.Single();
+
+        var resource = workspace.Project.QueryQuestJournals("ember-prism", 1);
+        var planned = workspace.Project.PreviewQuestJournal(new(1, 0, quest.Id.ToString(), quest));
+        var invalidQuest = quest.WithExperience(quest.Experience! with
+        {
+            Resources = [quest.Experience.Resources[0] with { ReferenceId = "missing:asset" }],
+        });
+        var rejected = workspace.Project.PreviewQuestJournal(new(1, 0, quest.Id.ToString(), invalidQuest));
+        var canonicalProject = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
+        var invalidProject = new ProjectDefinition(canonicalProject.Id, canonicalProject.Title,
+            canonicalProject.Module, canonicalProject.Blueprints, canonicalProject.Areas,
+            canonicalProject.Dialogues, [invalidQuest]);
+        var localizedDiagnostics = ProjectValidator.Validate(invalidProject);
+
+        var experience = Assert.Single(resource.Items).Experience;
+        Assert.NotNull(experience);
+        Assert.Equal("Asset", Assert.Single(experience.Resources).Kind);
+        Assert.Equal("investigation", Assert.Single(experience.Steps).TemplateId);
+        Assert.Equal("Hidden", experience.Visibility.Initial);
+        Assert.Equal("dialogue", Assert.Single(experience.History).Cause);
+        Assert.Equal("Query", Assert.Single(experience.Markers).BindingKind);
+        Assert.True(planned.Succeeded, string.Join(" | ", planned.Diagnostics.Select(item => item.Code)));
+        Assert.False(rejected.Succeeded);
+        Assert.Contains(rejected.Diagnostics, item => item.Code == QuestExperienceProfileValidator.ReferenceMissingCode);
+        Assert.Contains(localizedDiagnostics, item =>
+            item.Code == QuestExperienceProfileValidator.ReferenceMissingCode &&
+            item.Path.Contains("/experience/resources/", StringComparison.Ordinal));
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
+    }
+
+    [Fact]
+    public void Quest_quality_resource_is_filterable_and_invalid_ai_dependency_is_rejected_in_dry_run()
+    {
+        using var workspace = new TestWorkspace(project =>
+        {
+            var quest = project.Quests.Single();
+            var objective = new QuestAuthoringObjective(Guid.Parse("c7130000-0000-4000-8000-000000000701"),
+                1, "test:r073", 1, QuestObjectiveKind.Boolean,
+                new LocalizedText("quest.r073.objective", "Restaurer la veillée"), 1, [], null, 0, [], null, false);
+            var participant = new QuestAuthoringParticipant(Guid.Parse("c7130000-0000-4000-8000-000000000702"),
+                1, "test:r073", 1, "guide", QuestParticipantBindingKind.Query, "query:guide", [], true);
+            var authoring = new QuestAuthoringProfile(Guid.Parse("c7130000-0000-4000-8000-000000000703"),
+                1, "test:r073", true, false, [objective],
+                new QuestAuthoringRewardBundle(Guid.Parse("c7130000-0000-4000-8000-000000000704"), 1,
+                    "test:r073", 0, new Dictionary<string, int>(), new Dictionary<string, decimal>(),
+                    new Dictionary<string, double>(), [], []),
+                new QuestAuthorNotes("Design", "Canon", "author:test", QuestEditorialStatus.Review, [], [],
+                    ["source"], [new QuestAuthorReview(
+                        Guid.Parse("c7130000-0000-4000-8000-000000000711"), 1, "test:r073",
+                        "reviewer:test", QuestEditorialStatus.Review, "Reviewed", DateTimeOffset.UnixEpoch)]),
+                [participant],
+                new QuestPlotWizardPlan(Guid.Parse("c7130000-0000-4000-8000-000000000705"), 1,
+                    "test:r073", [project.Areas[0].Slug], [participant.Id], [], [project.Dialogues[0].Id],
+                    [objective.Id], quest.Transitions.Select(item => item.Id).ToArray(),
+                    ["nominal", "failure", "repeat", "multiplayer", "save-resume"], false));
+            quest = quest.WithAuthoring(authoring);
+            var dependencies = new[]
+            {
+                new QuestAiDependency(Guid.Parse("c7130000-0000-4000-8000-000000000706"), 1,
+                    "test:r073", 1, QuestAiDependencyKind.State, quest.InitialStateId.ToString()),
+                new QuestAiDependency(Guid.Parse("c7130000-0000-4000-8000-000000000707"), 1,
+                    "test:r073", 2, QuestAiDependencyKind.Participant, participant.Id.ToString("D")),
+                new QuestAiDependency(Guid.Parse("c7130000-0000-4000-8000-000000000708"), 1,
+                    "test:r073", 3, QuestAiDependencyKind.Zone, project.Areas[0].Slug),
+            };
+            var plan = QuestQualityRuntimeService.CreateAiPlan(quest,
+                new LocalizedText("quest.r073.ai", "Restaurer la veillée avec validation humaine."), dependencies,
+                ["08_QUEST.md#orf-qst-025"], ["style:human-review"], "agent:mcp",
+                Guid.Parse("c7130000-0000-4000-8000-000000000709"), "preview:quest:r073");
+            plan = QuestQualityRuntimeService.Approve(plan, "author:mcp", DateTimeOffset.UnixEpoch);
+            var quality = new QuestQualityProfile(Guid.Parse("c7130000-0000-4000-8000-000000000710"),
+                1, "test:r073", true, true, QuestQualityRuntimeService.GenerateTests(quest, 7300), plan);
+            return new ProjectDefinition(project.Id, project.Title, project.Module, project.Blueprints,
+                project.Areas, project.Dialogues, [quest.WithQuality(quality)]);
+        });
+        var canonicalProject = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
+        var quest = canonicalProject.Quests.Single();
+
+        var resource = workspace.Project.QueryQuestJournals("human-review", 1);
+        var planned = workspace.Project.PreviewQuestJournal(new(1, 0, quest.Id.ToString(), quest));
+        var missingDependency = quest.Quality!.AiPlan.Dependencies[^1] with { ReferenceId = "missing-zone" };
+        var invalidQuest = quest.WithQuality(quest.Quality with
+        {
+            AiPlan = quest.Quality.AiPlan with
+            {
+                Dependencies = [.. quest.Quality.AiPlan.Dependencies.Take(2), missingDependency],
+            },
+        });
+        var rejected = workspace.Project.PreviewQuestJournal(new(1, 0, quest.Id.ToString(), invalidQuest));
+        var invalidProject = new ProjectDefinition(canonicalProject.Id, canonicalProject.Title,
+            canonicalProject.Module, canonicalProject.Blueprints, canonicalProject.Areas,
+            canonicalProject.Dialogues, [invalidQuest]);
+        var localizedDiagnostics = ProjectValidator.Validate(invalidProject);
+
+        var quality = Assert.Single(resource.Items).Quality;
+        Assert.NotNull(quality);
+        Assert.Equal(5, quality.TestScenarios.Count);
+        Assert.Equal("Nominal", quality.TestScenarios[0].Kind);
+        Assert.NotEmpty(quality.TestScenarios[0].Steps);
+        Assert.NotEmpty(quality.TestScenarios[0].Edges);
+        Assert.Equal("ApplyApprovedPlan", quality.AiPlan.Authorization);
+        Assert.Equal("author:mcp", quality.AiPlan.ApprovedBy);
+        Assert.True(planned.Succeeded, string.Join(" | ", planned.Diagnostics.Select(item => item.Code)));
+        Assert.False(rejected.Succeeded);
+        Assert.Contains(rejected.Diagnostics, item => item.Code == QuestQualityProfileValidator.ReferenceMissingCode);
+        Assert.Contains(localizedDiagnostics, item =>
+            item.Code == QuestQualityProfileValidator.ReferenceMissingCode &&
+            item.Path.Contains("/quality/aiPlan/dependencies/", StringComparison.Ordinal));
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
+    }
+
+    [Fact]
     public void DialoguePresentationResourceIsFilteredBoundedAndMutationRemainsDryRun()
     {
         using var workspace = new TestWorkspace();
@@ -602,11 +1194,14 @@ public sealed class ForgeProjectAgentServiceTests
             [
                 new(parent, 1, "mcp:test", "ember-guild", "Guilde", false, [], ["guild"]),
                 new(child, 1, "mcp:test", "ash-watch", "Veilleurs", false, [parent], ["guard"]),
-            ], [], [new("neutral", -100, 100, 1)], [],
+            ], [new(parent, child, -60, "watch-distrust", "hostile")],
+            [new("hostile", -100, -1, 1), new("neutral", 0, 100, 1)], [],
             new FactionAdvancedProfile(
                 Guid.Parse("b2040000-0000-4000-8000-000000000010"), 1, "mcp:test", true,
                 [new(Guid.Parse("b2040000-0000-4000-8000-000000000011"), child, true, true, true)],
-                [], [], []), true);
+                [], [], []), true,
+            [new(Guid.Parse("b2040000-0000-4000-8000-000000000012"), 1, "mcp:r086", "hero",
+                parent, child, 20, null, "rescued-watch", PersonalReputationSubjectKind.Player)], true);
 
         var before = workspace.Project.QueryFactions();
         var planned = workspace.Project.PreviewFactions(new(1, 0, catalog));
@@ -618,6 +1213,19 @@ public sealed class ForgeProjectAgentServiceTests
         var unchanged = Assert.Single(after.Items);
         Assert.Equal("ash-watch", unchanged.Slug);
         Assert.Equal(before.Items.Single(item => item.Slug == "ash-watch").FactionId, unchanged.FactionId);
+        Assert.Equal(2, before.Relationships!.Count);
+        Assert.Contains(before.Relationships, item => item.Score == -75 && item.Disposition == "hostile");
+        Assert.Empty(after.Relationships!);
+        Assert.Equal(3, after.Bands!.Count);
+        Assert.Equal("Player", Assert.Single(after.PersonalReputation!).SubjectKind);
+        Assert.Equal("ash-warden-truce", Assert.Single(after.PersonalReputation!).Cause);
+        Assert.NotNull(before.ReputationProfileId);
+        Assert.True(before.ReputationRequiredAtRuntime);
+        Assert.Equal(5, before.GlobalReputation!.Count);
+        Assert.Equal(2, before.HeatmapHistory!.Count);
+        Assert.Equal("Campaign", before.Reaction!.DefaultScope);
+        Assert.Empty(after.GlobalReputation!);
+        Assert.All(after.HeatmapHistory!, item => Assert.Empty(item.Relationships));
         Assert.Equal(0, workspace.Project.GetCurrentRevision());
         Assert.Throws<ArgumentOutOfRangeException>(() => workspace.Project.QueryFactions(limit: 101));
     }
@@ -669,6 +1277,43 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.Equal(84, warden.ResourceState["health"]);
         Assert.Equal("creature.spawned", warden.SpawnEvent);
         Assert.Equal("OnSpawned", warden.SpawnHandler);
+        Assert.True(warden.AuthoringCompositionRequiredAtRuntime);
+        Assert.Equal("Boss", warden.EncounterRole);
+        Assert.Equal(12, warden.ThreatRating);
+        Assert.Equal("species.emberborn", warden.SpeciesId);
+        Assert.Equal("mesh.ash-warden", warden.MeshAssetId);
+        Assert.Equal("a1770000-0000-4000-8000-000000000020", warden.AnimationGraphId);
+        Assert.Equal(5, warden.AnimationStateCount);
+        Assert.True(warden.RulesCompositionRequiredAtRuntime);
+        Assert.Equal("Seated", warden.InitialLifeState);
+        Assert.Equal("pose.warden-throne", warden.PoseId);
+        Assert.Equal(3, warden.AttributeCount);
+        Assert.Equal(4, warden.Avoidance);
+        Assert.Equal(2, warden.Armor);
+        Assert.Equal(1, warden.AbilityCount);
+        Assert.Equal(1, warden.InventoryItemCount);
+        Assert.True(warden.InteractionCompositionRequiredAtRuntime);
+        Assert.Equal("b2050000-0000-4000-8000-000000000002", warden.PrimaryFactionId);
+        Assert.Equal(2, warden.FactionMembershipCount);
+        Assert.Equal(4, warden.PerceptionSenseCount);
+        Assert.Equal(3, warden.DialogueBindingCount);
+        Assert.True(warden.Invulnerable);
+        Assert.True(warden.UsesNarrativeDeath);
+        Assert.False(warden.DialogueInterruptible);
+        Assert.Equal("OnConversation", warden.OnConversationHandler);
+        Assert.True(warden.EventAiCompositionRequiredAtRuntime);
+        Assert.Equal("Utility", warden.AiControllerKind);
+        Assert.Equal("ai.ash-warden", warden.AiControllerDefinitionId);
+        Assert.Equal(3, warden.AiBlackboardCount);
+        Assert.Equal(3, warden.AiAllowedActionCount);
+        Assert.Equal(["Repath", "Avoid", "Teleport", "Abort"], warden.MovementRecoveryOrder);
+        Assert.Equal("OnPerceptionDetected", warden.OnPerceptionDetectedHandler);
+        Assert.Equal("OnPerceptionLost", warden.OnPerceptionLostHandler);
+        Assert.Equal("BeforePhysicalAttacked", warden.BeforePhysicalAttackedHandler);
+        Assert.Equal("OnPhysicalAttacked", warden.OnPhysicalAttackedHandler);
+        Assert.Equal("BeforeAbilityTargeted", warden.BeforeAbilityTargetedHandler);
+        Assert.Equal("OnSpellCastAt", warden.OnSpellCastAtHandler);
+        Assert.Equal("OnBlocked", warden.OnBlockedHandler);
         Assert.Empty(missing.Items);
         Assert.True(planned.Succeeded);
         Assert.NotNull(planned.SemanticDiff);
@@ -690,7 +1335,17 @@ public sealed class ForgeProjectAgentServiceTests
                 [new(Guid.Parse("c2470000-0000-4000-8000-000000000003"), "utility", 1,
                     "effect.ash-key", "OnUse")],
                 [new("fr", "Clé des cendres", "Une clé.", "Une clé rituelle.", "Objet inconnu", "Clé", "")],
-                ["identified", "durability"]);
+                ["identified", "durability"],
+                new(Guid.Parse("c2880000-0000-4000-8000-000000000041"), 1, "test:r088", true,
+                    "crypt-of-ashes", "CC0-1.0", new string('8', 64),
+                    new(["archetype", "appearance", "slots", "quality", "level", "property", "provenance",
+                        "generation-rules"], ["fixed-seed", "preserve-provenance"]),
+                    new(Guid.Parse("c2880000-0000-4000-8000-000000000042"), 1, "test:r088",
+                        ["asset.items.ash-key.mesh"], ["asset.materials.iron"], ["hand-r"],
+                        "asset.items.ash-key.icon", ["asset.vfx.ash"], "asset.items.ash-key.equipped"),
+                    new(1.25, .4, 1, 2, .5, .25), new(10, "ash-key", true),
+                    new(3, 3, 2, 2, 5_000, 100, false, "rest-or-refill")));
+            profile = profile with { Gameplay = ItemGameplayFixture(), Operations = ItemOperationsFixture() };
             return new ProjectDefinition(project.Id, project.Title, project.Module,
                 project.Blueprints.Select(candidate => candidate.Id == item.Id
                     ? candidate.WithItemFoundation(profile)
@@ -709,6 +1364,16 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.Equal("ritual-key", item.TypeSlug);
         Assert.Equal(2, item.DefinitionVersion);
         Assert.Contains("fr", item.Locales);
+        Assert.Equal("ash-key", item.Creation!.StackCompatibilityKey);
+        Assert.Contains("asset.items.ash-key.mesh", item.Creation.MeshAssetIds);
+        Assert.Equal(5_000, item.Creation.CooldownMilliseconds);
+        Assert.True(item.Gameplay!.CriticalProtections["destruction"]);
+        Assert.Equal(8, item.Gameplay.TransferDestinations.Count);
+        Assert.Contains("ward", item.Gameplay.ModifierKinds);
+        Assert.Equal(2, item.Gameplay.RequiredSlots.Count);
+        Assert.Equal(1, item.Operations!.LootEntryCount);
+        Assert.Equal(1, item.Operations.InventoryPlacementCount);
+        Assert.Equal(9, item.Operations.LifecycleEvents.Count);
         Assert.Single(filtered.Items);
         Assert.Empty(missing.Items);
         Assert.True(planned.Succeeded);
@@ -716,6 +1381,32 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.Equal(0, workspace.Project.GetCurrentRevision());
         Assert.Throws<ArgumentOutOfRangeException>(() => workspace.Project.QueryItemFoundations(limit: 101));
     }
+
+    private static ItemGameplayProfile ItemGameplayFixture() => new(
+        Guid.Parse("c2890000-0000-4000-8000-000000000041"), 1, "test:r089", true,
+        "crypt-of-ashes", "CC0-1.0", new string('9', 64), new(true, true, true, true, true, true, true),
+        new(Enum.GetValues<ItemTransferDestination>().ToDictionary(item => item,
+            item => item is ItemTransferDestination.Container or ItemTransferDestination.GameMaster),
+            ["item.transfer.quest"]),
+        [new(Guid.Parse("c2890000-0000-4000-8000-000000000042"), 1, "test:r089", "ward",
+            new Dictionary<string, double> { ["value"] = 8 }, "highest", "night", "+8 ward",
+            "BeforeItemModifier", "AfterItemModifier")],
+        new(Guid.Parse("c2890000-0000-4000-8000-000000000043"), "point",
+            new Dictionary<string, double> { ["focus"] = 1 }, 1, 12_000,
+            "ItemAbilityRequested", "ItemAbilityResolved"),
+        new([new("hand-r", "forge", "humanoid", 2, ["hands-two"]),
+            new("hand-l", "forge", "humanoid", 2, ["hands-two"]),
+            new("hands-two", "forge", "humanoid", 3, ["hand-r", "hand-l"])], ["hand-r", "hand-l"]));
+
+    private static ItemOperationsProfile ItemOperationsFixture() => new(Guid.NewGuid(), 1, "test:r090", true,
+        "crypt-of-ashes", "CC0-1.0", new string('7', 64),
+        new(Guid.NewGuid(), 1, "test:r090",
+        [new(Guid.NewGuid(), "relic", 1, 1, 1, 2, "crypt-open", true)]),
+        new(Guid.NewGuid(), 1, "test:r090", 0,
+        [new(Guid.NewGuid(), "backpack", null, 0, 0, 1, ["quest"], "asset.items.ash-key.preview")],
+            true, true, true),
+        new("1.0", Enum.GetValues<ItemLifecycleEventType>().Select(kind =>
+            new ItemLifecycleBindingPolicy(Guid.NewGuid(), 1, "test:r090", kind, $"On{kind}", "server")).ToArray()));
 
     [Fact]
     public void WorkerSecurityMcpRequiresPlanPermissionAndPersistsThenRevertsCanonicalPolicy()
@@ -1463,6 +2154,131 @@ public sealed class ForgeProjectAgentServiceTests
     }
 
     [Fact]
+    public void BlueprintPalettePlanIsFilteredDryRunAppliedPersistedAndReverted()
+    {
+        using var workspace = new TestWorkspace();
+        var opened = ProjectSession.Open(workspace.RootDirectory).Session!;
+        var entity = opened.Project.Areas.SelectMany(area => area.Entities).First();
+        var blueprint = opened.Project.Blueprints.Single(item => item.Id == entity.BlueprintId);
+
+        var resource = workspace.Project.QueryBlueprintPalette(blueprint.Id.ToString(), 10);
+        var planned = workspace.Project.PlanBlueprintUpdate(new BlueprintUpdatePlanRequest(
+            1, 0, blueprint.Id.ToString(), entity.Id.ToString(), [], "Patch", [], ["Monde/Test"]));
+
+        Assert.Equal(blueprint.Id.ToString(), Assert.Single(resource.Items).BlueprintId);
+        Assert.True(planned.Succeeded, string.Join(" | ", planned.Diagnostics.Select(item => item.Message)));
+        Assert.Equal("1.0.1", planned.TargetVersion);
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
+        Assert.Equal("1.0.0", ProjectSession.Open(workspace.RootDirectory).Session!.Project.Blueprints
+            .Single(item => item.Id == blueprint.Id).Authoring.Version);
+
+        var applied = workspace.Project.ApplyBlueprintUpdatePlan(planned.PlanId!);
+        Assert.True(applied.Applied);
+        var persisted = ProjectSession.Open(workspace.RootDirectory).Session!.Project.Blueprints
+            .Single(item => item.Id == blueprint.Id);
+        Assert.Equal("1.0.1", persisted.Authoring.Version);
+        Assert.Equal(["Monde/Test"], persisted.Authoring.CategoryPaths);
+
+        var reverted = workspace.Project.RevertBlueprintUpdatePlan(planned.PlanId!);
+        Assert.True(reverted.Reverted);
+        Assert.Equal(["planned", "apply", "revert"], reverted.Audit.Select(item => item.Action));
+        Assert.Equal("1.0.0", ProjectSession.Open(workspace.RootDirectory).Session!.Project.Blueprints
+            .Single(item => item.Id == blueprint.Id).Authoring.Version);
+    }
+
+    [Fact]
+    public void BlueprintPrefabPlanIsFilteredDryRunAppliedPersistedAndReverted()
+    {
+        using var workspace = new TestWorkspace();
+        var project = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
+        var group = project.Blueprints.Where(item => !item.IsReadOnly()).GroupBy(item => item.Kind)
+            .First(items => items.Count() >= 2);
+        var target = group.First();
+        var baseBlueprint = group.Skip(1).First();
+        var nodeId = Guid.Parse("b0580000-0000-4000-8000-000000000501");
+        var request = new BlueprintPrefabPlanRequest(1, 0, target.Id.ToString(), baseBlueprint.Id.ToString(),
+            [new AgentPrefabVariantOverride("Material", "body", "asset:ember"),
+             new AgentPrefabVariantOverride("Stat", "armor", "18")], true,
+            [new AgentPrefabCompositionNode(nodeId.ToString("D"), baseBlueprint.Id.ToString(), null, "floor",
+                2, 0, 3)], ["socket-compatible"], ["intensity"], ["scripts/assemble.as"], true,
+            new AgentAssetBudgetMetrics(12_000, 2, 3, 8_000_000, 1, 3, 2),
+            [new AgentAssetPlatformBudget("Windows", 20_000, 4, 6, 16_000_000, 2, 4, 3, true)],
+            true, ["Crypt/Architecture", "Smoke/Prefabs"]);
+
+        var planned = workspace.Project.PlanBlueprintPrefab(request);
+
+        Assert.True(planned.Succeeded, string.Join(" | ", planned.Diagnostics.Select(item => item.Message)));
+        Assert.Equal("replace", planned.Diff?.Operation);
+        Assert.Equal(2, planned.Preview!.VariantOverrides.Count);
+        Assert.Single(planned.Preview.CompositionNodes);
+        Assert.Single(planned.Preview.PlatformBudgets);
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
+        Assert.Empty(workspace.Project.QueryBlueprintPrefabs(target.Id.ToString(), 10).Items);
+        Assert.Null(ProjectSession.Open(workspace.RootDirectory).Session!.Project.Blueprints
+            .Single(item => item.Id == target.Id).Authoring.PrefabVariant);
+
+        var applied = workspace.Project.ApplyBlueprintPrefabPlan(planned.PlanId!);
+
+        Assert.True(applied.Applied);
+        var resource = workspace.Project.QueryBlueprintPrefabs("Smoke/Prefabs", 10);
+        Assert.Equal(target.Id.ToString(), Assert.Single(resource.Items).BlueprintId);
+        var persisted = ProjectSession.Open(workspace.RootDirectory).Session!.Project.Blueprints
+            .Single(item => item.Id == target.Id);
+        Assert.Equal(baseBlueprint.Id, persisted.Authoring.PrefabVariant!.BaseBlueprintId);
+        Assert.Single(persisted.Authoring.PrefabComposition!.Nodes);
+        Assert.Single(persisted.Authoring.AssetBudget!.Platforms);
+
+        var reverted = workspace.Project.RevertBlueprintPrefabPlan(planned.PlanId!);
+
+        Assert.True(reverted.Reverted);
+        Assert.Equal(["planned", "apply", "revert"], reverted.Audit.Select(item => item.Action));
+        var restored = ProjectSession.Open(workspace.RootDirectory).Session!.Project.Blueprints
+            .Single(item => item.Id == target.Id);
+        Assert.Null(restored.Authoring.PrefabVariant);
+        Assert.Null(restored.Authoring.PrefabComposition);
+        Assert.Null(restored.Authoring.AssetBudget);
+    }
+
+    [Fact]
+    public void EditorProductivityPlanIsSourcedDryRunAppliedPersistedAndReverted()
+    {
+        using var workspace = new TestWorkspace();
+        var project = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
+        var areaId = project.Module.EntryAreaId.ToString();
+        var initial = workspace.Project.QueryEditorProductivity("placement");
+        Assert.NotEmpty(initial.HelpTopics);
+        Assert.All(initial.HelpTopics, topic => Assert.NotEmpty(topic.Citations));
+        var request = new EditorProductivityPlanRequest(1, 0, "Artist", [], ["Trigger", "Navigation"],
+            true, true, "DeterministicScatter", "SurfaceNormal", 1.5, 5, 2026, 0.1,
+            false, "Horizontal", 0.5, areaId, null, true, true, "placement.repeated");
+
+        var planned = workspace.Project.PlanEditorProductivity(request);
+
+        Assert.True(planned.Succeeded, string.Join(" | ", planned.Diagnostics.Select(item => item.Message)));
+        Assert.Equal("replace", planned.Diff?.Operation);
+        Assert.Equal("Artist", planned.Preview!.Role);
+        Assert.True(planned.Preview.BrushMode);
+        Assert.Equal("SurfaceNormal", planned.Preview.Alignment);
+        Assert.False(File.Exists(Path.Combine(workspace.RootDirectory, EditorWorkspaceProfileStore.RelativePath)));
+
+        var applied = workspace.Project.ApplyEditorProductivityPlan(planned.PlanId!);
+
+        Assert.True(applied.Applied);
+        var persisted = EditorWorkspaceProfileStore.TryLoad(workspace.RootDirectory);
+        Assert.NotNull(persisted);
+        Assert.Equal(Forge.Domain.Authoring.EditorRole.Artist, persisted.Role);
+        Assert.True(persisted.RepeatedPlacementProfile.ContinuousStroke);
+        Assert.True(workspace.Project.QueryEditorProductivity().ActiveProfile.SourcedAssistant);
+
+        var reverted = workspace.Project.RevertEditorProductivityPlan(planned.PlanId!);
+
+        Assert.True(reverted.Reverted);
+        Assert.Equal(["planned", "apply", "revert"], reverted.Audit.Select(item => item.Operation));
+        Assert.Equal(Forge.Domain.Authoring.EditorRole.Builder,
+            EditorWorkspaceProfileStore.TryLoad(workspace.RootDirectory)!.Role);
+    }
+
+    [Fact]
     public void AssetInstallPlanUsesCommandDryRunApplyPersistenceRevertAndLicenseAudit()
     {
         using var workspace = new TestWorkspace();
@@ -1547,6 +2363,113 @@ public sealed class ForgeProjectAgentServiceTests
     }
 
     [Fact]
+    public void R051ProjectGameplayEventsAreFilteredAndUseCanonicalDryRunApplyRevert()
+    {
+        using var workspace = new TestWorkspace();
+        var runtime = workspace.Project.GetRuntimePolicies();
+        var all = workspace.Project.QueryProjectGameplayEvents();
+        var ready = workspace.Project.QueryProjectGameplayEvents("player.ready");
+        var missing = workspace.Project.QueryProjectGameplayEvents("unknown.event");
+
+        Assert.True(all.Found);
+        Assert.Equal(14, all.Bindings.Count);
+        Assert.Equal("player.ready", Assert.Single(ready.Bindings).EventName);
+        Assert.False(missing.Found);
+        Assert.Equal("project.events.not_found", Assert.Single(missing.Diagnostics).Code);
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
+
+        var changedEvents = new ProjectGameplayEventProfile(
+            runtime.Module.GameplayEvents.Id,
+            1,
+            "mcp:r051",
+            true,
+            true,
+            false,
+            false,
+            true,
+            runtime.Module.GameplayEvents.Bindings.Select(binding => binding with
+            {
+                Provenance = "mcp:r051",
+                Handler = binding.EventName == "player.ready" ? "OnPlayerReadyMcp" : binding.Handler,
+            }).ToArray());
+        var module = new ModuleRuntimePolicyProfile(runtime.Module.Id, runtime.Module.SchemaVersion,
+            runtime.Module.Heartbeats, runtime.Module.Rest, runtime.Module.SequenceAbort, "mcp:r051",
+            runtime.Module.Cinematics, runtime.Module.Gameplay, runtime.Module.Rules, runtime.Module.Extensions,
+            changedEvents);
+        var planned = workspace.Project.PlanRuntimePolicies(new RuntimePolicyPlanRequest(
+            1, runtime.Revision, runtime.AreaId, module, runtime.Area));
+
+        Assert.True(planned.Succeeded);
+        Assert.False(planned.Applied);
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
+        var applied = workspace.Project.ApplyRuntimePolicyPlan(planned.PlanId!);
+        Assert.True(applied.Applied);
+        Assert.Equal("OnPlayerReadyMcp",
+            Assert.Single(workspace.Project.QueryProjectGameplayEvents("OnPlayerReadyMcp").Bindings).Handler);
+        var persisted = ProjectSession.Open(workspace.RootDirectory).Session!.Project.Module.RuntimePolicies.GameplayEvents;
+        Assert.True(persisted.RequiredAtRuntime);
+        Assert.False(persisted.UseDownedState);
+        Assert.False(persisted.AutoRespawn);
+
+        var reverted = workspace.Project.RevertRuntimePolicyPlan(planned.PlanId!);
+        Assert.True(reverted.Reverted);
+        Assert.Equal(14, workspace.Project.QueryProjectGameplayEvents().Bindings.Count);
+    }
+
+    [Fact]
+    public void R052ProjectWorldAndPlayerDocumentationUseFilteredCanonicalPlans()
+    {
+        using var workspace = new TestWorkspace();
+        var runtime = workspace.Project.GetRuntimePolicies();
+        var schema = new Forge.Domain.Lifecycle.CustomEventSchema(Guid.Parse("52000000-0000-4000-8000-000000000052"), 1,
+            "mcp:r052", "crypt", "braziers_lit", 2,
+            new Dictionary<string, string> { ["count"] = "int" }, false, "1.0", "OnBraziersLit",
+            EventAuthorityScope.Server);
+        var world = new ProjectWorldProfile(runtime.Module.Id, 1, "mcp:r052", true, true, [schema],
+            runtime.Module.World.Clock with
+            {
+                Provenance = "mcp:r052",
+                Speed = 4,
+                AreaTimeZoneOffsets = new Dictionary<string, int> { [runtime.AreaId] = 60 },
+            });
+        var module = new ModuleRuntimePolicyProfile(runtime.Module.Id, runtime.Module.SchemaVersion,
+            runtime.Module.Heartbeats, runtime.Module.Rest, runtime.Module.SequenceAbort, "mcp:r052",
+            runtime.Module.Cinematics, runtime.Module.Gameplay, runtime.Module.Rules, runtime.Module.Extensions,
+            runtime.Module.GameplayEvents, world);
+        var worldPlan = workspace.Project.PlanRuntimePolicies(new RuntimePolicyPlanRequest(
+            1, runtime.Revision, runtime.AreaId, module, runtime.Area));
+
+        Assert.True(worldPlan.Succeeded);
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
+        Assert.True(workspace.Project.ApplyRuntimePolicyPlan(worldPlan.PlanId!).Applied);
+        var filtered = workspace.Project.QueryProjectWorld("braziers_lit");
+        Assert.True(filtered.Succeeded);
+        Assert.Equal("OnBraziersLit", Assert.Single(filtered.CustomEvents).Handler);
+        Assert.False(workspace.Project.QueryProjectWorld("missing-event").Succeeded);
+        Assert.Equal(4, ProjectSession.Open(workspace.RootDirectory).Session!.Project.Module.RuntimePolicies.World.Clock.Speed);
+        Assert.True(workspace.Project.RevertRuntimePolicyPlan(worldPlan.PlanId!).Reverted);
+
+        var metadata = ProjectSession.Open(workspace.RootDirectory).Session!.Project.Module.Metadata;
+        var localized = metadata.Localizations.Select(item => new ProjectLocalizedMetadata(item.Locale, item.Name,
+            item.Summary, "Synopsis R052", "Crédits", "Installation", "Règles", "Contrôles R052",
+            "Licences", "Avertissements", "Compatibilité")).ToArray();
+        var docsPlan = workspace.Project.PlanProjectDocumentation(new ProjectDocumentationPlanRequest(
+            1, workspace.Project.GetCurrentRevision(), metadata.DefaultLocale, localized));
+        Assert.True(docsPlan.Succeeded);
+        Assert.Equal(2, workspace.Project.GetCurrentRevision());
+        Assert.True(workspace.Project.ApplyProjectDocumentationPlan(docsPlan.PlanId!).Applied);
+        var docs = workspace.Project.QueryProjectDocumentation("Contrôles R052");
+        Assert.True(docs.Succeeded);
+        Assert.Equal(2, docs.Localizations.Count);
+        Assert.All(docs.Localizations, item => Assert.Equal("Contrôles R052", item.Controls));
+        Assert.Equal("Contrôles R052", ProjectSession.Open(workspace.RootDirectory).Session!.Project.Module.Metadata
+            .GetDefaultLocalization().Controls);
+        var docsReverted = workspace.Project.RevertProjectDocumentationPlan(docsPlan.PlanId!);
+        Assert.True(docsReverted.Reverted);
+        Assert.Equal(["planned", "apply", "revert"], docsReverted.Audit.Select(item => item.Action));
+    }
+
+    [Fact]
     public void RuntimePolicyPlanSupportsDryRunApplyInversePersistenceAndAudit()
     {
         using var workspace = new TestWorkspace();
@@ -1628,12 +2551,34 @@ public sealed class ForgeProjectAgentServiceTests
             Cameras = source.Foundation.Cameras with { DefaultProfileKey = "isometric", Provenance = "mcp-test" },
             Provenance = "mcp-test",
         };
+        var simulation = source.Simulation with
+        {
+            Targeting = source.Simulation.Targeting with { Mode = TargetingMode.Chain, Provenance = "mcp-test:r066" },
+            Provenance = "mcp-test:r066",
+        };
+        var session = source.Session with
+        {
+            Persistence = source.Session.Persistence with
+            {
+                Scope = PersistenceScope.Server,
+                Authority = SaveAuthority.Server,
+                ConflictPolicy = SaveConflictPolicy.ServerWins,
+                Provenance = "mcp-test:r067",
+            },
+            Provenance = "mcp-test:r067",
+        };
         var profile = new ModuleGameplayControlProfile(source.Id, 1, source.Swimming, source.Climbing,
-            source.RadialMenu, time, combat, "mcp-test", foundation);
+            source.RadialMenu, time, combat, "mcp-test", foundation, simulation, session);
 
         var cameraResources = workspace.Project.QueryGameplayFoundation("iso", "camera");
         Assert.Single(cameraResources.Items);
         Assert.Equal("isometric", cameraResources.Items[0].Key);
+        var simulationResources = workspace.Project.QueryGameplayFoundation("flight", "simulation-flight");
+        Assert.Single(simulationResources.Items);
+        Assert.Equal(source.Simulation.Flight.Id, simulationResources.Items[0].Id);
+        var sessionResources = workspace.Project.QueryGameplayFoundation("persistence", "session-persistence");
+        Assert.Single(sessionResources.Items);
+        Assert.Equal(source.Session.Persistence.Id, sessionResources.Items[0].Id);
 
         var planned = workspace.Project.PlanGameplayControls(
             new GameplayControlPlanRequest(1, resource.Revision, profile));
@@ -1647,6 +2592,8 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.Equal("turn-based", persisted.CombatModes.DefaultProviderId);
         Assert.Equal(.3f, persisted.TimeControl.SlowMotionScale);
         Assert.Equal("isometric", persisted.Foundation.Cameras.DefaultProfileKey);
+        Assert.Equal(TargetingMode.Chain, persisted.Simulation.Targeting.Mode);
+        Assert.Equal(PersistenceScope.Server, persisted.Session.Persistence.Scope);
         var reverted = workspace.Project.RevertGameplayControlPlan(planned.PlanId!);
         Assert.True(reverted.Reverted);
         Assert.Equal(["planned", "apply", "revert"], reverted.Audit.Select(item => item.Action));
@@ -1797,6 +2744,200 @@ public sealed class ForgeProjectAgentServiceTests
     }
 
     [Fact]
+    public void R053AreaTileEditingUsesFilteredFoundationPlanPersistenceAndRevert()
+    {
+        using var workspace = new TestWorkspace();
+        var project = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
+        var area = project.Areas[0];
+        var original = area.Foundation;
+        var editing = AreaTileEditingProfile.CreateDefault(area.Id);
+        editing = new AreaTileEditingProfile(editing.Id, editing.SchemaVersion, "agent:r053",
+            editing.Groups, editing.Tools with
+            {
+                Operation = AreaTileEditOperationKind.RemapKit,
+                ReplacementKitKey = "agent-remapped-kit",
+            }, editing.AutoFit with { Seed = 53053 }, editing.Properties,
+            editing.Resize with { Anchor = "NorthWest", MigrateInstances = true });
+        var kit = new ModularTileKitProfile(original.TileKit.Id, original.TileKit.SchemaVersion, "agent:r053",
+            original.TileKit.GridSizeMeters, original.TileKit.Definitions, original.TileKit.ConnectionRules,
+            original.TileKit.Placements, original.TileKit.Groups, original.TileKit.Brushes, editing);
+        var candidate = new AreaFoundationProfile(original.Id, original.SchemaVersion, "agent:r053",
+            original.Creation with { KitKey = "agent-remapped-kit" }, kit, original.Lifecycle,
+            original.Volumes, original.Dependencies, true);
+
+        var before = workspace.Project.GetAreaFoundation(area.Id.ToString());
+        var planned = workspace.Project.PlanAreaFoundation(new AreaFoundationPlanRequest(
+            1, before.Revision, area.Id.ToString(), candidate));
+
+        Assert.True(planned.Succeeded);
+        Assert.False(planned.Applied);
+        Assert.Null(workspace.Project.GetAreaFoundation(area.Id.ToString()).Foundation!.TileKit.Editing);
+        var applied = workspace.Project.ApplyAreaFoundationPlan(planned.PlanId!);
+        Assert.True(applied.Applied);
+        var resource = workspace.Project.GetAreaFoundation(area.Id.ToString());
+        Assert.Equal(53053, resource.Foundation!.TileKit.Editing!.AutoFit.Seed);
+        Assert.Equal("NorthWest", resource.Foundation.TileKit.Editing.Resize.Anchor);
+        Assert.True(resource.RuntimeView!.TileEditingRequired);
+        Assert.Equal(0, resource.RuntimeView.EditableGroupCount);
+        Assert.Equal(53053, ProjectSession.Open(workspace.RootDirectory).Session!.Project.Areas[0]
+            .Foundation.TileKit.Editing!.AutoFit.Seed);
+
+        var reverted = workspace.Project.RevertAreaFoundationPlan(planned.PlanId!);
+        Assert.True(reverted.Reverted);
+        Assert.Null(ProjectSession.Open(workspace.RootDirectory).Session!.Project.Areas[0]
+            .Foundation.TileKit.Editing);
+        Assert.Equal(["planned", "apply", "revert"], reverted.Audit.Select(item => item.Action));
+    }
+
+    [Fact]
+    public void R054AreaEnvironmentUsesFilteredSemanticPlanPersistenceAndRevert()
+    {
+        using var workspace = new TestWorkspace();
+        var project = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
+        var area = project.Areas[0];
+        var original = area.Environment;
+        var authoring = new AreaEnvironmentAuthoringProfile(
+            Guid.Parse("a0543000-0000-4000-8000-000000000001"), 1, "agent:r054",
+            new(original.Classification, "custom:agent-moonlit", "agent-environment-pack",
+                true, true, true, true, true, true),
+            new("physical-agent-moonlit", "#30405f", "#ffe2b5", false,
+                [new(0, 0, .8f, -45), new(12, 1.4f, 0, 65), new(24, 0, .8f, -45)],
+                [new(Guid.Parse("a0543000-0000-4000-8000-000000000002"), 18,
+                    "world.agent-sunset", "scripts/agent_sunset.forge", true)], [], []),
+            new("#b7c9dd", "#263248", new("asset:agent-fog-noise", 12, .1f, .05f, 1.2f), [],
+                new Dictionary<string, AreaFogQualityTier> { ["desktop"] = AreaFogQualityTier.Ultra }), true);
+        var candidate = new AreaEnvironmentProfile(AreaEnvironmentProfile.CurrentSchemaVersion,
+            original.Classification, [.. original.Tags, "agent-moonlit"],
+            new(DayNightMode.Clock, 30, .4f, 1.4f, 5400, true, true),
+            new(FogMode.Volumetric, .3f, 4, 90, 1.5f), original.Audio, original.Rendering,
+            original.Sky, original.Wind, original.Weather, original.Water, original.Reverb, authoring, true);
+
+        var before = workspace.Project.GetAreaEnvironment(area.Id.ToString());
+        var planned = workspace.Project.PlanAreaEnvironment(new AreaEnvironmentPlanRequest(
+            1, before.Revision, area.Id.ToString(), candidate));
+
+        Assert.Empty(before.Diagnostics);
+        Assert.Equal(original.Authoring.Id, before.Environment!.Authoring.Id);
+        Assert.Equal(original.Authoring.Classification.Key, before.RuntimeView!.ClassificationKey);
+        Assert.True(planned.Succeeded, string.Join(" | ", planned.Diagnostics.Select(item => item.Message)));
+        Assert.False(planned.Applied);
+        Assert.Contains("physical-agent-moonlit", planned.Diff!.Summary, StringComparison.Ordinal);
+        Assert.Equal(original.Authoring.Id,
+            workspace.Project.GetAreaEnvironment(area.Id.ToString()).Environment!.Authoring.Id);
+        var applied = workspace.Project.ApplyAreaEnvironmentPlan(planned.PlanId!);
+        Assert.True(applied.Applied);
+        var resource = workspace.Project.GetAreaEnvironment(area.Id.ToString());
+        Assert.Equal("custom:agent-moonlit", resource.RuntimeView!.ClassificationKey);
+        Assert.Equal(3, resource.RuntimeView.CurvePointCount);
+        Assert.Equal("asset:agent-fog-noise", resource.Environment!.Authoring.Fog.Noise!.AssetId);
+        var persisted = ProjectSession.Open(workspace.RootDirectory).Session!.Project.Areas[0].Environment;
+        Assert.Equal(candidate.Authoring.Id, persisted.Authoring.Id);
+        Assert.Equal(candidate.Authoring.Lighting.PresetKey, persisted.Authoring.Lighting.PresetKey);
+
+        var reverted = workspace.Project.RevertAreaEnvironmentPlan(planned.PlanId!);
+        Assert.True(reverted.Reverted);
+        var restored = ProjectSession.Open(workspace.RootDirectory).Session!.Project.Areas[0].Environment;
+        Assert.Equal(original.Authoring.Id, restored.Authoring.Id);
+        Assert.Equal(original.Authoring.Lighting.PresetKey, restored.Authoring.Lighting.PresetKey);
+        Assert.Equal(["planned", "apply", "revert"], reverted.Audit.Select(item => item.Action));
+    }
+
+    [Fact]
+    public void R055AreaExperienceUsesFilteredSemanticPlanPersistenceAndRevert()
+    {
+        using var workspace = new TestWorkspace();
+        var project = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
+        var area = project.Areas[0];
+        var original = area.Authoring;
+        var room = new AreaVisibilityRoomProfile(Guid.Parse("a0556000-0000-4000-8000-000000000001"),
+            "Agent room", TransformValue.Identity, false, 96, new Dictionary<string, string>());
+        var experience = new AreaExperienceAuthoringProfile(
+            Guid.Parse("a0556000-0000-4000-8000-000000000002"), 1, "agent:r055",
+            [new(Guid.Parse("a0556000-0000-4000-8000-000000000003"), "Agent combat",
+                new Dictionary<string, float> { ["music"] = .8f }, .75f,
+                $"area.{area.Slug}.combat", "agent:r055")],
+            new([room], [], [], true, true, true, 16, 128),
+            new(AreaLodSourceMode.Hybrid, [20, 50, 100], 1_500_000, 96, 24, .15f, true, true,
+                [new(Guid.Parse("a0556000-0000-4000-8000-000000000004"), "asset:agent-column",
+                    AreaLodSourceMode.Generated, [1, .5f], [12000, 6000], .2f, "agent:r055")]), true);
+        var eventName = $"area.{area.Slug}.alarm";
+        var candidate = new AreaAuthoringProfile(1,
+            [new(Guid.Parse("a0556000-0000-4000-8000-000000000005"), eventName,
+                "schema://area/alarm/v1", "scripts/agent_alarm.forge", 1, [eventName], true, "agent:r055")],
+            new(true, true, "hybrid-2d-3d", 2,
+                [new(Guid.Parse("a0556000-0000-4000-8000-000000000006"), "Agent shrine", 16, 0, 0,
+                    false)], Guid.Parse("a0556000-0000-4000-8000-000000000007"), 1, "agent:r055",
+                true, true, AreaMapExplorationScope.Party, 8, "area.map.reveal"), original.Layers, experience);
+
+        var before = workspace.Project.GetAreaExperienceAuthoring(area.Id.ToString());
+        var planned = workspace.Project.PlanAreaExperienceAuthoring(new AreaExperienceAuthoringPlanRequest(
+            1, before.Revision, area.Id.ToString(), candidate));
+
+        Assert.Empty(before.Diagnostics);
+        Assert.Equal(original.Experience.Id, before.Authoring!.Experience.Id);
+        Assert.True(planned.Succeeded, string.Join(" | ", planned.Diagnostics.Select(item => item.Message)));
+        Assert.False(planned.Applied);
+        Assert.Contains("audio snapshot", planned.Diff!.Summary, StringComparison.Ordinal);
+        Assert.Equal(original.Experience.Id,
+            workspace.Project.GetAreaExperienceAuthoring(area.Id.ToString()).Authoring!.Experience.Id);
+        var applied = workspace.Project.ApplyAreaExperienceAuthoringPlan(planned.PlanId!);
+        Assert.True(applied.Applied);
+        var resource = workspace.Project.GetAreaExperienceAuthoring(area.Id.ToString());
+        Assert.Single(resource.RuntimeView!.AudioSnapshots);
+        Assert.Equal(1, resource.RuntimeView.VisibilityRooms);
+        Assert.Equal(1, resource.RuntimeView.LodOverrides);
+        var persisted = ProjectSession.Open(workspace.RootDirectory).Session!.Project.Areas[0].Authoring;
+        Assert.Equal(candidate.Experience.Id, persisted.Experience.Id);
+
+        var reverted = workspace.Project.RevertAreaExperienceAuthoringPlan(planned.PlanId!);
+        Assert.True(reverted.Reverted);
+        var restored = ProjectSession.Open(workspace.RootDirectory).Session!.Project.Areas[0].Authoring;
+        Assert.Equal(original.Experience.Id, restored.Experience.Id);
+        Assert.Equal(["planned", "apply", "revert"], reverted.Audit.Select(item => item.Action));
+    }
+
+    [Fact]
+    public void R056AreaLayersUseFilteredSemanticPlanPersistenceAndRevert()
+    {
+        using var workspace = new TestWorkspace();
+        var project = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
+        var area = project.Areas[0];
+        var original = area.Authoring;
+        var root = Guid.Parse("a0566000-0000-4000-8000-000000000001");
+        var child = Guid.Parse("a0566000-0000-4000-8000-000000000002");
+        var candidate = new AreaAuthoringProfile(original.SchemaVersion, original.UserEvents, original.Map,
+        [
+            new(root, "Architecture", null, true, false, "agent", [], provenance: "agent:r056"),
+            new(child, "Actors", root, true, false, "agent", [area.Entities[0].Id],
+                provenance: "agent:r056", exportEnabled: false),
+        ], original.Experience, true);
+
+        var before = workspace.Project.GetAreaExperienceAuthoring(area.Id.ToString());
+        var planned = workspace.Project.PlanAreaExperienceAuthoring(new AreaExperienceAuthoringPlanRequest(
+            1, before.Revision, area.Id.ToString(), candidate));
+
+        Assert.Empty(before.Diagnostics);
+        Assert.True(planned.Succeeded, string.Join(" | ", planned.Diagnostics.Select(item => item.Message)));
+        Assert.False(planned.Applied);
+        Assert.Contains("2 editor layer", planned.Diff!.Summary, StringComparison.Ordinal);
+        Assert.Empty(workspace.Project.GetAreaExperienceAuthoring(area.Id.ToString()).Authoring!.Layers);
+        var applied = workspace.Project.ApplyAreaExperienceAuthoringPlan(planned.PlanId!);
+        Assert.True(applied.Applied);
+        var resource = workspace.Project.GetAreaExperienceAuthoring(area.Id.ToString());
+        Assert.Equal(2, resource.Authoring!.Layers.Count);
+        Assert.True(resource.Authoring.RequireLayerRuntimeMetadata);
+        var persisted = ProjectSession.Open(workspace.RootDirectory).Session!.Project.Areas[0].Authoring;
+        Assert.Equal(root, persisted.Layers.Single(item => item.Id == child).ParentId);
+        Assert.False(persisted.Layers.Single(item => item.Id == child).ExportEnabled);
+
+        var reverted = workspace.Project.RevertAreaExperienceAuthoringPlan(planned.PlanId!);
+        Assert.True(reverted.Reverted);
+        var restored = ProjectSession.Open(workspace.RootDirectory).Session!.Project.Areas[0].Authoring;
+        Assert.Empty(restored.Layers);
+        Assert.Equal(["planned", "apply", "revert"], reverted.Audit.Select(item => item.Action));
+    }
+
+    [Fact]
     public void AreaRuntimeReadAndPlayFromHerePlanAreFilteredDryRunPersistentAndRevertible()
     {
         using var workspace = new TestWorkspace();
@@ -1866,8 +3007,14 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.True(source.ModernTooling.QualityAssurance.AcceptanceGates.RequireFeatureEvidence);
         var rule = new DataDrivenRuleSchema(Guid.NewGuid(), 1, "casting.focus", RuleSchemaKind.Casting,
             "{\"type\":\"object\"}", "{\"resource\":\"focus\"}", true, "mcp-test");
+        var readiness = source.OperationalReadiness;
+        var recovery = new CrashRecoveryPolicy(readiness.Recovery.Id, 1, 45, 8,
+            true, true, true, "mcp-test:r060");
+        var updatedReadiness = new OperationalReadinessProfile(readiness.Id, 1, readiness.TaskManifests,
+            readiness.CrashArtifacts, readiness.ProjectHealth, recovery, readiness.ContentSynchronization,
+            "mcp-test:r060");
         var profile = new ModuleRuntimeExtensionProfile(source.Id, 1, [rule], [], [], source.SnapshotPolicy,
-            "mcp-test");
+            "mcp-test", source.ModernTooling, updatedReadiness, source.PostLaunch);
 
         var planned = workspace.Project.PlanRuntimeExtensions(new RuntimeExtensionPlanRequest(1,
             resource.Revision, profile));
@@ -1879,6 +3026,8 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.True(applied.Applied);
         var persisted = ProjectSession.Open(workspace.RootDirectory).Session!.Project.Module.RuntimePolicies.Extensions;
         Assert.Equal("casting.focus", Assert.Single(persisted.RuleSchemas).Key);
+        Assert.Equal(45, persisted.OperationalReadiness.Recovery.AutosaveIntervalSeconds);
+        Assert.Equal(8, persisted.OperationalReadiness.Recovery.RetainedSnapshots);
         var reverted = workspace.Project.RevertRuntimeExtensionPlan(planned.PlanId!);
         Assert.True(reverted.Reverted);
         Assert.Equal(["planned", "apply", "revert"], reverted.Audit.Select(item => item.Action));
@@ -1902,6 +3051,23 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.True(choiceProperties.TryGetProperty("conditionCombination", out _));
         Assert.True(choiceProperties.TryGetProperty("conditions", out _));
         Assert.True(choiceProperties.TryGetProperty("actions", out _));
+        var authoringProperties = document.RootElement.GetProperty("properties").GetProperty("authoring")
+            .GetProperty("properties");
+        Assert.True(authoringProperties.TryGetProperty("participants", out _));
+        var authoringNodeProperties = authoringProperties.GetProperty("nodes").GetProperty("items")
+            .GetProperty("properties");
+        Assert.Equal(5, authoringNodeProperties.GetProperty("evaluationMode").GetProperty("enum").GetArrayLength());
+        Assert.True(authoringNodeProperties.TryGetProperty("tokens", out _));
+        Assert.True(authoringNodeProperties.TryGetProperty("wizardEntries", out _));
+        Assert.True(authoringNodeProperties.TryGetProperty("notes", out _));
+        var experienceProperties = document.RootElement.GetProperty("properties").GetProperty("experience")
+            .GetProperty("properties");
+        Assert.True(experienceProperties.TryGetProperty("lifecycle", out _));
+        Assert.True(experienceProperties.TryGetProperty("search", out _));
+        Assert.Equal(6, experienceProperties.GetProperty("review").GetProperty("properties")
+            .GetProperty("badges").GetProperty("items").GetProperty("enum").GetArrayLength());
+        Assert.True(experienceProperties.TryGetProperty("memorySlots", out _));
+        Assert.True(experienceProperties.TryGetProperty("skillChecks", out _));
     }
 
     [Fact]
@@ -2023,6 +3189,169 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.False(result.Succeeded);
         Assert.Contains(result.Diagnostics, item => item.Code == DialogueValidator.UnreachableNodeCode);
         Assert.Equal(0, workspace.Project.GetCurrentRevision());
+    }
+
+    [Fact]
+    public void R068DialogueAuthoringIsFilteredPlannedAppliedPersistedAndReverted()
+    {
+        using var workspace = new TestWorkspace();
+        var request = CreatePlan(workspace.RootDirectory);
+        var nodeId = request.EntryNodeId;
+        var authoring = new DialogueAuthoringInput(
+            "d0683000-0000-4000-8000-000000000001", true, true,
+            [new("d0683000-0000-4000-8000-000000000002", "guide", "Entity", "entity:elyra")],
+            [new("d0683000-0000-4000-8000-000000000003", nodeId, "guide", "FirstValid",
+                [new("d0683000-0000-4000-8000-000000000004", "hero", "EntityName", true)],
+                [], [],
+                new("d0683000-0000-4000-8000-000000000005", "Présenter Elyra au joueur.", "warm",
+                    "brief:r068", "Review", ["Valider le ton"], "@karen"))]);
+        request = request with
+        {
+            Nodes = [request.Nodes[0] with { FallbackText = "Bienvenue, {{hero}}." }],
+            Authoring = authoring,
+        };
+        var invalid = workspace.Project.PlanDialogue(request with
+        {
+            Nodes = [request.Nodes[0] with { FallbackText = "Bienvenue." }],
+        });
+
+        var planned = workspace.Project.PlanDialogue(request);
+        var applied = workspace.Project.ApplyDialoguePlan(planned.PlanId!);
+        var persisted = ProjectSession.Open(workspace.RootDirectory).Session!.Project.Dialogues
+            .Single(item => item.Id.ToString() == request.DialogueId);
+        var queried = workspace.Project.QueryDialogues("hero", 5);
+        var reverted = workspace.Project.RevertDialoguePlan(planned.PlanId!);
+
+        Assert.False(invalid.Succeeded);
+        Assert.Contains(invalid.Diagnostics, item => item.Code == DialogueAuthoringProfileValidator.TokenCode);
+        Assert.True(planned.Succeeded);
+        Assert.Equal("add", planned.Diff?.Operation);
+        Assert.True(applied.Applied);
+        Assert.True(persisted.Authoring!.RequiredAtRuntime);
+        Assert.Equal(DialogueTextTokenType.EntityName,
+            persisted.Authoring.Nodes.Single().Tokens.Single().Type);
+        var resource = Assert.Single(queried.Items).Authoring!;
+        Assert.Equal("FirstValid", Assert.Single(resource.Nodes).EvaluationMode);
+        Assert.Contains("hero:EntityName:True", Assert.Single(resource.Nodes).Tokens);
+        Assert.Equal("@karen", Assert.Single(resource.Nodes).AuthorMention);
+        Assert.True(reverted.Reverted);
+        Assert.DoesNotContain(ProjectSession.Open(workspace.RootDirectory).Session!.Project.Dialogues,
+            item => item.Id.ToString() == request.DialogueId);
+    }
+
+    [Fact]
+    public void R069DialogueExperienceIsFilteredPlannedAppliedPersistedAndReverted()
+    {
+        using var workspace = new TestWorkspace();
+        var request = CreatePlan(workspace.RootDirectory);
+        var nodeId = request.EntryNodeId;
+        var experience = new DialogueExperienceInput(
+            "d0693000-0000-4000-8000-000000000001", true, true,
+            new("d0693000-0000-4000-8000-000000000002",
+                [new("SetVariable", "dialogue.completed", "true")],
+                [new("RunScript", "dialogue-aborted.forge", "reason")], true, true),
+            new("d0693000-0000-4000-8000-000000000003", "dry-run", false, true, [], [], [],
+                "preview"),
+            new("d0693000-0000-4000-8000-000000000004",
+                ["Condition", "Action", "Voice", "Localization", "Error", "Link"], [], true),
+            [new("d0693000-0000-4000-8000-000000000005", "Player", "player:current", "trust",
+                "Integer", "Campaign", "0")],
+            [new("d0693000-0000-4000-8000-000000000006", nodeId, "persuasion", 12, "warden", true,
+                "FullExplanation", nodeId, nodeId)]);
+        request = request with { Experience = experience };
+        var invalid = workspace.Project.PlanDialogue(request with
+        {
+            Experience = experience with
+            {
+                MemorySlots = [experience.MemorySlots[0] with { DefaultValue = "not-an-integer" }],
+            },
+        });
+
+        var planned = workspace.Project.PlanDialogue(request);
+        var applied = workspace.Project.ApplyDialoguePlan(planned.PlanId!);
+        var persisted = ProjectSession.Open(workspace.RootDirectory).Session!.Project.Dialogues
+            .Single(item => item.Id.ToString() == request.DialogueId);
+        var queried = workspace.Project.QueryDialogues("dry-run", 5);
+        var reverted = workspace.Project.RevertDialoguePlan(planned.PlanId!);
+
+        Assert.False(invalid.Succeeded);
+        Assert.Contains(invalid.Diagnostics, item => item.Code == DialogueExperienceProfileValidator.MemoryCode);
+        Assert.True(planned.Succeeded);
+        Assert.Equal("add", planned.Diff?.Operation);
+        Assert.True(applied.Applied);
+        Assert.True(persisted.Experience!.RequiredAtRuntime);
+        Assert.True(persisted.Experience.Lifecycle.RollbackOnAbort);
+        Assert.Equal(DialogueMemoryDuration.Campaign, Assert.Single(persisted.Experience.MemorySlots).Duration);
+        var resource = Assert.Single(queried.Items).Experience!;
+        Assert.Equal("dry-run", resource.SearchPattern);
+        Assert.Equal(6, resource.ReviewBadges.Count);
+        Assert.Contains("persuasion", Assert.Single(resource.SkillChecks));
+        Assert.True(reverted.Reverted);
+        Assert.DoesNotContain(ProjectSession.Open(workspace.RootDirectory).Session!.Project.Dialogues,
+            item => item.Id.ToString() == request.DialogueId);
+    }
+
+    [Fact]
+    public void R070DialogueProductionIsFilteredPlannedAppliedPersistedAndReverted()
+    {
+        using var workspace = new TestWorkspace();
+        var request = CreatePlan(workspace.RootDirectory);
+        var nodeId = request.EntryNodeId;
+        var contractId = "d0703000-0000-4000-8000-000000000001";
+        var production = new DialogueProductionInput(
+            "d0703000-0000-4000-8000-000000000002", true, true,
+            [new(contractId, "embers", 2,
+                [new("d0703000-0000-4000-8000-000000000003", "trust", "Integer", "Input", true)],
+                ["party:trust"],
+                [new("d0703000-0000-4000-8000-000000000004", "trust accepted",
+                    new Dictionary<string, string> { ["trust"] = "4" },
+                    new Dictionary<string, string>())])],
+            [new("d0703000-0000-4000-8000-000000000005", nodeId, contractId,
+                new Dictionary<string, string> { ["trust"] = "party:trust" },
+                new Dictionary<string, string>())],
+            [new("d0703000-0000-4000-8000-000000000006", nodeId, "Quest", "quest:crypt",
+                "advance", "2", "Advance the crypt quest")],
+            new("d0703000-0000-4000-8000-000000000007", 64,
+                new Dictionary<string, string> { ["quest:crypt"] = "active" },
+                [new("d0703000-0000-4000-8000-000000000008", "session:crypt", "Session", [nodeId],
+                    new Dictionary<string, string> { ["quest:crypt"] = "active" })]),
+            new("d0703000-0000-4000-8000-000000000009", [], [], [], []),
+            [new("d0703000-0000-4000-8000-000000000010",
+                "d0703000-0000-4000-8000-000000000011",
+                "d0703000-0000-4000-8000-000000000012", "AuthorApply", "Promise under the crypt",
+                ["offer"], ["style:embers"], ["context#dialogue"], "add-subgraph:embers", [], true, false)]);
+        request = request with
+        {
+            Nodes = [request.Nodes[0] with { Role = "Subgraph", SubgraphKey = "embers" }],
+            Production = production,
+        };
+        var invalid = workspace.Project.PlanDialogue(request with
+        {
+            Production = production with { Coverage = production.Coverage with { MaximumDepth = 0 } },
+        });
+
+        var planned = workspace.Project.PlanDialogue(request);
+        var applied = workspace.Project.ApplyDialoguePlan(planned.PlanId!);
+        var persisted = ProjectSession.Open(workspace.RootDirectory).Session!.Project.Dialogues
+            .Single(item => item.Id.ToString() == request.DialogueId);
+        var queried = workspace.Project.QueryDialogues("embers", 5);
+        var reverted = workspace.Project.RevertDialoguePlan(planned.PlanId!);
+
+        Assert.False(invalid.Succeeded);
+        Assert.Contains(invalid.Diagnostics, item => item.Code == DialogueProductionProfileValidator.CoverageCode);
+        Assert.True(planned.Succeeded);
+        Assert.Equal("add", planned.Diff?.Operation);
+        Assert.True(applied.Applied);
+        Assert.True(persisted.Production!.RequiredAtRuntime);
+        Assert.Equal(2, Assert.Single(persisted.Production.Subgraphs).Version);
+        Assert.Equal(DialogueConsequenceTargetKind.Quest, Assert.Single(persisted.Production.Consequences).Kind);
+        var resource = Assert.Single(queried.Items).Production!;
+        Assert.Contains(resource.Subgraphs, item => item.StartsWith("embers:v2", StringComparison.Ordinal));
+        Assert.Contains(resource.Consequences, item => item.Contains("quest:crypt", StringComparison.Ordinal));
+        Assert.Contains(resource.AiPlans, item => item.Contains("AuthorApply", StringComparison.Ordinal));
+        Assert.True(reverted.Reverted);
+        Assert.DoesNotContain(ProjectSession.Open(workspace.RootDirectory).Session!.Project.Dialogues,
+            item => item.Id.ToString() == request.DialogueId);
     }
 
     [Fact]

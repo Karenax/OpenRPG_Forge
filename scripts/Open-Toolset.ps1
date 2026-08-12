@@ -1,5 +1,10 @@
 [CmdletBinding()]
-param()
+param(
+    [string[]]$UserArgument = @(),
+    [switch]$Headless,
+    [switch]$Wait,
+    [switch]$SkipBuild
+)
 
 . (Join-Path $PSScriptRoot 'Common.ps1')
 
@@ -11,14 +16,25 @@ $toolsetLog = Join-Path $artifactRoot 'toolset-interactive.log'
 $enginePath = Get-ForgeEnginePath
 
 [System.IO.Directory]::CreateDirectory($artifactRoot) | Out-Null
-& dotnet build $toolsetProject --configuration Debug --nologo
-if ($LASTEXITCODE -ne 0) {
-    throw "La compilation du Toolset a échoué avec le code $LASTEXITCODE."
+if (-not $SkipBuild) {
+    & dotnet build $toolsetProject --configuration Debug --nologo
+    if ($LASTEXITCODE -ne 0) {
+        throw "La compilation du Toolset a échoué avec le code $LASTEXITCODE."
+    }
 }
 
-Start-Process `
-    -FilePath $enginePath `
-    -ArgumentList @('--rendering-method', 'forward_plus', '--editor', '--path', $toolsetPath, '--log-file', $toolsetLog) `
-    -WorkingDirectory $toolsetPath
+$arguments = @('--rendering-method', 'forward_plus')
+if ($Headless) { $arguments += '--headless' }
+$arguments += @('--editor', '--path', $toolsetPath, '--log-file', $toolsetLog)
+if ($UserArgument.Count -gt 0) { $arguments += '--'; $arguments += $UserArgument }
+$launch = @{
+    FilePath = $enginePath
+    ArgumentList = $arguments
+    WorkingDirectory = $toolsetPath
+    PassThru = $true
+}
+if ($Headless) { $launch.WindowStyle = 'Hidden' }
+$process = Start-Process @launch
+if ($Wait) { $process.WaitForExit() }
 
 Write-Output "OpenRPG Forge Toolset lancé avec Forward+. Journal : $toolsetLog"

@@ -50,6 +50,10 @@ public sealed class AssetCatalogLoaderTests
             Assert.Single(result.Catalog.Credits);
             Assert.Equal(64, apple.ContentSha256.Length);
             Assert.Equal("normalized/ambientcg/Apple/apple.png", apple.RelativePreviewPath);
+            Assert.Equal("stylized", apple.TechnicalMetadata.Style);
+            Assert.Equal("lq", Assert.Single(apple.TechnicalMetadata.Variants));
+            Assert.Equal(1_234, apple.TechnicalMetadata.TriangleCount);
+            Assert.Equal(2, apple.TechnicalMetadata.Dimensions!.Height);
             var nature = result.Catalog.Items.Single(item => item.ExternalId == "kenney:nature");
             Assert.Equal("normalized/kenney/nature/tree.glb", nature.RelativeModelPath);
             var dungeon = result.Catalog.Items.Single(item => item.ExternalId == "kaykit:dungeon");
@@ -82,6 +86,10 @@ public sealed class AssetCatalogLoaderTests
               "total_bytes": 10,
               "categories": ["3d-model", "food"],
               "tags": ["apple"],
+              "style": "stylized",
+              "variant": "lq",
+              "triangle_count": 1234,
+              "dimensions": { "width": 1, "height": 2, "depth": 1 },
               "extracted_root": "normalized/ambientcg/Apple",
               "model_files": ["apple.obj"],
               "extracted_files": ["apple.png"],

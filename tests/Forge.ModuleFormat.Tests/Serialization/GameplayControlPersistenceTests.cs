@@ -25,6 +25,15 @@ public sealed class GameplayControlPersistenceTests
         Assert.Contains(gameplay.RadialMenu.Actions, action => action.ParentKey == "combat");
         Assert.Equal("realtime-pause", gameplay.CombatModes.DefaultProviderId);
         Assert.Equal(project.Module.RuntimePolicies.Gameplay.Foundation.AllIds(), gameplay.Foundation.AllIds());
+        Assert.Equal(project.Module.RuntimePolicies.Gameplay.Simulation.AllIds(), gameplay.Simulation.AllIds());
+        Assert.Equal(project.Module.RuntimePolicies.Gameplay.Simulation.Projectiles.VfxAssetId,
+            gameplay.Simulation.Projectiles.VfxAssetId);
+        Assert.Single(gameplay.Simulation.Physics.Joints);
+        Assert.Single(gameplay.Simulation.WorldTime.Schedules);
+        Assert.Equal(project.Module.RuntimePolicies.Gameplay.Session.AllIds(), gameplay.Session.AllIds());
+        Assert.Single(gameplay.Session.Checkpoints);
+        Assert.Equal(3, gameplay.Session.ControlLocks.Contexts.Count);
+        Assert.True(gameplay.Session.Replay.HeadlessReplay);
         Assert.Equal(8, gameplay.Foundation.Cameras.Profiles.Count);
         Assert.Equal("SHA-256", gameplay.Foundation.Save.ChecksumAlgorithm);
         Assert.Contains("\"gameplay\"", json, StringComparison.Ordinal);

@@ -17,6 +17,30 @@ public sealed class SemanticClipboardWorkflowTests
     private static readonly DateTimeOffset Timestamp = new(2026, 8, 2, 20, 0, 0, TimeSpan.Zero);
 
     [Fact]
+    public void CrossAreaCopyUsesCanonicalPasteAndProtectsTheSourceDocument()
+    {
+        var context = CreateContext();
+        var request = new CrossAreaCopyRequest(Guid.NewGuid(), CrossAreaCopyRequest.CurrentSchemaVersion,
+            "test:r059-cross-area", context.SourceArea.Id, context.TargetArea.Id,
+            [context.SourceArea.Entities[0].Id], new Vector3Value(8, 0, 8));
+        var service = new CrossAreaCopyService(new FixedClock(Timestamp));
+
+        var dryRun = service.Copy(context.State, request with { DryRun = true });
+        var applied = service.Copy(context.State, request);
+
+        Assert.True(dryRun.Succeeded);
+        Assert.Equal(context.SourceArea.Entities.Count,
+            dryRun.State.Project.Areas.Single(area => area.Id == context.SourceArea.Id).Entities.Count);
+        Assert.True(applied.Succeeded);
+        Assert.Equal(context.SourceArea.Entities.Count,
+            applied.State.Project.Areas.Single(area => area.Id == context.SourceArea.Id).Entities.Count);
+        Assert.Equal(context.TargetArea.Entities.Count + 1,
+            applied.State.Project.Areas.Single(area => area.Id == context.TargetArea.Id).Entities.Count);
+        Assert.Equal(CrossAreaCopyService.SameAreaCode,
+            Assert.Single(service.Copy(context.State, request with { TargetAreaId = context.SourceArea.Id }).Diagnostics).Code);
+    }
+
+    [Fact]
     public void SemanticClipboard_CutIsAtomicVersionedAndUndoable()
     {
         var context = CreateContext();
@@ -251,6 +275,37 @@ public sealed class SemanticClipboardWorkflowTests
         Assert.Equal(0, template.EntityCount);
         Assert.Equal(0, template.InternalPortalCount);
         Assert.Equal(0, template.ExternalPortalCount);
+    }
+
+    [Fact]
+    public void R054AreaCloneCopiesTerrainNavigationAndEnvironmentWithNewCanonicalIdentity()
+    {
+        var context = CreateContext();
+        var destination = AreaId.From(Guid.Parse("a0542000-0000-4000-8000-000000000001"));
+        var entityMap = context.SourceArea.Entities.Select(entity =>
+            new EntityIdRemap(entity.Id, EntityId.From(Guid.NewGuid()))).ToArray();
+        var portalMap = context.SourceArea.Portals.Select(portal =>
+            new PortalIdRemap(portal.Id, PortalId.From(Guid.NewGuid()))).ToArray();
+        var command = new DuplicateAreaCommand(CommandId.From(Guid.NewGuid()), context.State.Revision,
+            context.SourceArea.Id, destination, "R054 complete copy", AreaCloneMode.Full,
+            ExternalPortalPolicy.Preserve, entityMap, portalMap, DryRun: false);
+
+        var result = new DuplicateAreaHandler(new FixedClock(Timestamp)).Handle(context.State, command);
+        var clone = result.State.Project.Areas.Single(item => item.Id == destination);
+        var preview = AreaDuplicationPreview.Create(context.SourceArea, AreaCloneMode.Full,
+            ExternalPortalPolicy.Preserve);
+
+        Assert.True(result.Succeeded);
+        Assert.True(preview.TerrainCopied);
+        Assert.True(preview.NavigationCopied);
+        Assert.True(preview.EnvironmentCopied);
+        Assert.NotEqual(context.SourceArea.World.Id, clone.World.Id);
+        Assert.NotEqual(context.SourceArea.World.Terrain.Id, clone.World.Terrain.Id);
+        Assert.NotEqual(context.SourceArea.Navigation.Id, clone.Navigation.Id);
+        Assert.NotEqual(context.SourceArea.Environment.Authoring.Id, clone.Environment.Authoring.Id);
+        Assert.Equal(context.SourceArea.Environment.Lighting, clone.Environment.Lighting);
+        Assert.Contains("terrain=True", result.Patch!.Summary, StringComparison.Ordinal);
+        Assert.Contains("shared-assets=", result.Patch.Summary, StringComparison.Ordinal);
     }
 
     private static ClipboardTestContext CreateContext()

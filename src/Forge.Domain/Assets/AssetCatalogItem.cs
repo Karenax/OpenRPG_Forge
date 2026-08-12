@@ -52,6 +52,8 @@ public sealed record AssetCatalogItem
 
     public IReadOnlyList<string> InstalledPackIds { get; }
 
+    public AssetTechnicalMetadata TechnicalMetadata { get; }
+
     public bool Installed => InstalledPackIds.Count > 0;
 
     public bool CanPreviewLocally => Availability != AssetAvailability.CatalogOnly &&
@@ -84,7 +86,8 @@ public sealed record AssetCatalogItem
         string? author = null,
         bool attributionRequired = false,
         string? attributionText = null,
-        IReadOnlyList<string>? installedPackIds = null)
+        IReadOnlyList<string>? installedPackIds = null,
+        AssetTechnicalMetadata? technicalMetadata = null)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(externalId);
@@ -128,6 +131,7 @@ public sealed record AssetCatalogItem
         AttributionRequired = attributionRequired;
         AttributionText = attributionText?.Trim() ?? string.Empty;
         InstalledPackIds = Normalize(installedPackIds);
+        TechnicalMetadata = technicalMetadata ?? new AssetTechnicalMetadata();
     }
 
     public AssetCatalogItem WithInstalledPacks(IReadOnlyList<string> installedPackIds) => new(
@@ -154,7 +158,8 @@ public sealed record AssetCatalogItem
         Author,
         AttributionRequired,
         AttributionText,
-        installedPackIds);
+        installedPackIds,
+        TechnicalMetadata);
 
     private static IReadOnlyList<string> Normalize(IReadOnlyList<string>? values) => (values ?? [])
         .Where(value => !string.IsNullOrWhiteSpace(value))

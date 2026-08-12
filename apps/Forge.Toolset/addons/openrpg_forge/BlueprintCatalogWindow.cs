@@ -1,10 +1,16 @@
 #if TOOLS
 using Forge.Application.Blueprints;
+using Forge.Application.Commands;
 using Forge.Application.Creator;
 using Forge.Application.Projects;
+using Forge.Domain.Areas;
+using Forge.Domain.Assets;
 using Forge.Domain.Blueprints;
 using Forge.Domain.Authoring;
+using Forge.Domain.Entities;
+using Forge.Domain.Spatial;
 using Godot;
+using System.Globalization;
 
 namespace Forge.Toolset.Editor;
 
@@ -19,12 +25,19 @@ public partial class BlueprintCatalogWindow : Window
     private Func<BlueprintId, string, string, BlueprintKind, BlueprintAuthoringMetadata, bool>? _upsertBlueprint;
     private Func<BlueprintId, string, string, BlueprintAuthoringMetadata, bool>? _createFromSelection;
     private Func<BlueprintId, BlueprintPaletteOrigin, bool, BlueprintProvenance, bool>? _configurePalette;
+    private Func<UpdateBlueprintFromEntityCommand, bool>? _updateFromEntity;
+    private Func<ConfigureBlueprintPrefabCommand, bool>? _configurePrefab;
+    private Func<PlacePrefabCompositionCommand, bool>? _placeComposition;
     private Func<EditorWorkspaceProfile>? _getWorkspaceProfile;
     private Action<BlueprintId>? _recordRecent;
     private Func<BlueprintId, bool>? _togglePersonalFavorite;
     private Action<CreatorSelection>? _publishSelection;
     private Action<Window>? _brandWindow;
     private BlueprintId? _draftBlueprintId;
+    private IReadOnlyList<EntityPropertyOverride> _loadedPromotedDefaults = [];
+    private Guid _draftVariantId = Guid.NewGuid();
+    private Guid _draftCompositionId = Guid.NewGuid();
+    private Guid _draftBudgetId = Guid.NewGuid();
 
     private LineEdit? _search;
     private OptionButton? _paletteView;
@@ -47,8 +60,14 @@ public partial class BlueprintCatalogWindow : Window
     private LineEdit? _styles;
     private LineEdit? _compatibility;
     private LineEdit? _tags;
+    private LineEdit? _categoryPaths;
     private ItemList? _referenceList;
     private Label? _referenceSummary;
+    private LineEdit? _sourceEntityId;
+    private LineEdit? _promotedKeys;
+    private LineEdit? _excludedInstances;
+    private OptionButton? _versionBump;
+    private Label? _updatePreview;
     private Label? _status;
     private Button? _createFromSelectionButton;
     private Button? _saveDefinitionButton;
@@ -63,6 +82,22 @@ public partial class BlueprintCatalogWindow : Window
     private CheckButton? _aiGenerated;
     private TextEdit? _modifications;
     private Label? _readOnlyBadge;
+    private LineEdit? _authorCollections;
+    private LineEdit? _variantBaseBlueprintId;
+    private TextEdit? _variantOverrides;
+    private CheckButton? _variantRequired;
+    private TextEdit? _compositionNodes;
+    private LineEdit? _compositionRules;
+    private LineEdit? _compositionParameters;
+    private LineEdit? _compositionScripts;
+    private CheckButton? _compositionRequired;
+    private LineEdit? _assetMetrics;
+    private TextEdit? _platformBudgets;
+    private CheckButton? _budgetRequired;
+    private Label? _prefabPreview;
+    private string? _r058CapturePath;
+    private double _r058CaptureDelay;
+    private bool _r058CaptureOpened;
 
     public int VisibleBlueprintCount => _visibleBlueprintIds.Count;
 
@@ -75,6 +110,9 @@ public partial class BlueprintCatalogWindow : Window
         Func<BlueprintId, string, string, BlueprintKind, BlueprintAuthoringMetadata, bool> upsertBlueprint,
         Func<BlueprintId, string, string, BlueprintAuthoringMetadata, bool> createFromSelection,
         Func<BlueprintId, BlueprintPaletteOrigin, bool, BlueprintProvenance, bool> configurePalette,
+        Func<UpdateBlueprintFromEntityCommand, bool> updateFromEntity,
+        Func<ConfigureBlueprintPrefabCommand, bool> configurePrefab,
+        Func<PlacePrefabCompositionCommand, bool> placeComposition,
         Func<EditorWorkspaceProfile> getWorkspaceProfile,
         Action<BlueprintId> recordRecent,
         Func<BlueprintId, bool> togglePersonalFavorite,
@@ -85,12 +123,18 @@ public partial class BlueprintCatalogWindow : Window
         ArgumentNullException.ThrowIfNull(upsertBlueprint);
         ArgumentNullException.ThrowIfNull(createFromSelection);
         ArgumentNullException.ThrowIfNull(configurePalette);
+        ArgumentNullException.ThrowIfNull(updateFromEntity);
+        ArgumentNullException.ThrowIfNull(configurePrefab);
+        ArgumentNullException.ThrowIfNull(placeComposition);
         ArgumentNullException.ThrowIfNull(publishSelection);
         ArgumentNullException.ThrowIfNull(brandWindow);
         _getState = getState;
         _upsertBlueprint = upsertBlueprint;
         _createFromSelection = createFromSelection;
         _configurePalette = configurePalette;
+        _updateFromEntity = updateFromEntity;
+        _configurePrefab = configurePrefab;
+        _placeComposition = placeComposition;
         _getWorkspaceProfile = getWorkspaceProfile;
         _recordRecent = recordRecent;
         _togglePersonalFavorite = togglePersonalFavorite;
@@ -98,21 +142,51 @@ public partial class BlueprintCatalogWindow : Window
         _brandWindow = brandWindow;
 
         Title = "Blueprints · OpenRPG Forge";
-        MinSize = new Vector2I(1360, 760);
-        Size = new Vector2I(1360, 760);
+        MinSize = new Vector2I(1760, 900);
+        Size = new Vector2I(1760, 900);
         Transient = true;
         Exclusive = false;
         Unresizable = true;
         Visible = false;
         BuildUi();
         ConnectSignals();
+        var capture = OS.GetCmdlineUserArgs().FirstOrDefault(value =>
+            value.StartsWith("--r058-prefab-budget-ui-capture=", StringComparison.Ordinal));
+        if (capture is not null)
+        {
+            _r058CapturePath = capture["--r058-prefab-budget-ui-capture=".Length..];
+            SetProcess(true);
+        }
+    }
+
+    public override void _Process(double delta)
+    {
+        if (_r058CapturePath is null) return;
+        _r058CaptureDelay += delta;
+        if (!_r058CaptureOpened && _r058CaptureDelay >= 1.5)
+        {
+            Open();
+            PrepareR058Capture();
+            _r058CaptureOpened = true;
+            return;
+        }
+        if (!_r058CaptureOpened || _r058CaptureDelay < 4) return;
+        var destination = Path.GetFullPath(_r058CapturePath);
+        Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+        var image = GetViewport().GetTexture().GetImage();
+        var error = image.SavePng(destination);
+        GD.Print($"OPENRPG_FORGE_R058_PREFAB_BUDGET_UI_CAPTURE_{(error == Error.Ok ? "PASS" : "FAILED")} " +
+                 $"path={destination} size={image.GetWidth()}x{image.GetHeight()}");
+        _r058CapturePath = null;
+        SetProcess(false);
+        GetTree().Quit(error == Error.Ok ? 0 : 1);
     }
 
     public void Open()
     {
         Refresh();
         Exclusive = true;
-        PopupCentered(new Vector2I(1360, 760));
+        PopupCentered(new Vector2I(1760, 900));
         _brandWindow?.Invoke(this);
     }
 
@@ -228,6 +302,39 @@ public partial class BlueprintCatalogWindow : Window
         _modifications!.Text = string.Join('\n', provenance.Modifications);
         return SavePaletteMetadata();
     }
+
+    public bool UpdateFromEntityForSmokeTest(BlueprintId blueprintId, EntityId sourceEntityId,
+        IReadOnlyList<string> promotedKeys, bool dryRun)
+    {
+        if (!SelectBlueprintForSmokeTest(blueprintId)) return false;
+        _sourceEntityId!.Text = sourceEntityId.ToString();
+        _promotedKeys!.Text = string.Join(", ", promotedKeys);
+        _excludedInstances!.Text = string.Empty;
+        _versionBump!.Selected = (int)BlueprintVersionBump.Patch;
+        return UpdateFromEntity(dryRun);
+    }
+
+    public bool ConfigurePrefabForSmokeTest(BlueprintId blueprintId, BlueprintId baseBlueprintId,
+        BlueprintId childBlueprintId, bool dryRun)
+    {
+        if (!SelectBlueprintForSmokeTest(blueprintId)) return false;
+        _authorCollections!.Text = "Crypt/Architecture, Smoke/Prefabs";
+        _variantBaseBlueprintId!.Text = baseBlueprintId.ToString();
+        _variantOverrides!.Text = "Material|body|asset:ember\nStat|armor|18\nScript|on_use|scripts/ember.as";
+        _variantRequired!.ButtonPressed = true;
+        var rootId = Guid.Parse("b0580000-0000-4000-8000-000000000301");
+        _compositionNodes!.Text = $"{rootId:D}|{childBlueprintId}|root|floor|2|0|3";
+        _compositionRules!.Text = "socket-compatible, deterministic-order";
+        _compositionParameters!.Text = "intensity, theme";
+        _compositionScripts!.Text = "scripts/assemble.as";
+        _compositionRequired!.ButtonPressed = true;
+        _assetMetrics!.Text = "12000, 2, 3, 8000000, 1, 3, 2";
+        _platformBudgets!.Text = "Windows|20000|4|6|16000000|2|4|3|true\nLinux|18000|4|6|14000000|2|4|3|false";
+        _budgetRequired!.ButtonPressed = true;
+        return ConfigurePrefab(dryRun);
+    }
+
+    public bool PlaceCompositionForSmokeTest(bool dryRun) => PlaceComposition(dryRun);
 
     private void BuildUi()
     {
@@ -345,6 +452,8 @@ public partial class BlueprintCatalogWindow : Window
         editorCard.AddChild(_compatibility);
         _tags = new LineEdit { PlaceholderText = "Tags · interior, stone, favorite" };
         editorCard.AddChild(_tags);
+        _categoryPaths = new LineEdit { PlaceholderText = "Catégories · Monde/Forêt/Arbres, Décors/Pierre" };
+        editorCard.AddChild(_categoryPaths);
         var spacer = new Control { SizeFlagsVertical = Control.SizeFlags.ExpandFill };
         editorCard.AddChild(spacer);
         _createFromSelectionButton = new Button
@@ -420,6 +529,68 @@ public partial class BlueprintCatalogWindow : Window
         saveProvenanceButton.Pressed += () => SavePaletteMetadata();
         provenanceCard.AddChild(saveProvenanceButton);
 
+        var prefabCard = AddCard(body, new Vector2(370, 0));
+        prefabCard.AddThemeConstantOverride("separation", 5);
+        prefabCard.AddChild(new Label { Text = "VARIANTES · COMPOSITIONS · BUDGETS" });
+        _authorCollections = new LineEdit { PlaceholderText = "Collections auteur · Crypte/Architecture" };
+        prefabCard.AddChild(_authorCollections);
+        _variantBaseBlueprintId = new LineEdit { PlaceholderText = "UUID du blueprint de base (optionnel)" };
+        prefabCard.AddChild(_variantBaseBlueprintId);
+        _variantOverrides = new TextEdit
+        {
+            PlaceholderText = "Overrides · Material|body|asset:ember (un par ligne)",
+            CustomMinimumSize = new Vector2(0, 44),
+        };
+        prefabCard.AddChild(_variantOverrides);
+        _variantRequired = new CheckButton { Text = "Variante requise au runtime" };
+        prefabCard.AddChild(_variantRequired);
+        _compositionNodes = new TextEdit
+        {
+            PlaceholderText = "Nœuds · uuid|blueprint|parent/root|socket|x|y|z",
+            CustomMinimumSize = new Vector2(0, 48),
+        };
+        prefabCard.AddChild(_compositionNodes);
+        _compositionRules = new LineEdit { PlaceholderText = "Règles · socket-compatible" };
+        prefabCard.AddChild(_compositionRules);
+        _compositionParameters = new LineEdit { PlaceholderText = "Paramètres · intensity, theme" };
+        prefabCard.AddChild(_compositionParameters);
+        _compositionScripts = new LineEdit { PlaceholderText = "Scripts · scripts/assemble.as" };
+        prefabCard.AddChild(_compositionScripts);
+        _compositionRequired = new CheckButton { Text = "Composition requise au runtime" };
+        prefabCard.AddChild(_compositionRequired);
+        _assetMetrics = new LineEdit
+        {
+            PlaceholderText = "Mesures · triangles, matériaux, textures, octets, animations, LOD, collisions",
+        };
+        prefabCard.AddChild(_assetMetrics);
+        _platformBudgets = new TextEdit
+        {
+            PlaceholderText = "Budget · Windows|20000|4|6|16000000|2|4|3|true",
+            CustomMinimumSize = new Vector2(0, 44),
+        };
+        prefabCard.AddChild(_platformBudgets);
+        _budgetRequired = new CheckButton { Text = "Budget requis au runtime" };
+        prefabCard.AddChild(_budgetRequired);
+        var prefabActions = new HBoxContainer();
+        prefabActions.AddThemeConstantOverride("separation", 6);
+        prefabCard.AddChild(prefabActions);
+        var previewPrefab = new Button { Text = "Aperçu", SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        previewPrefab.Pressed += () => ConfigurePrefab(dryRun: true);
+        prefabActions.AddChild(previewPrefab);
+        var applyPrefab = new Button { Text = "Appliquer", SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        applyPrefab.Pressed += () => ConfigurePrefab(dryRun: false);
+        prefabActions.AddChild(applyPrefab);
+        var placeComposition = new Button { Text = "Placer", SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        placeComposition.Pressed += () => PlaceComposition(dryRun: false);
+        prefabActions.AddChild(placeComposition);
+        _prefabPreview = new Label
+        {
+            Text = "État vide · aucun profil prefab ou budget configuré.",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        };
+        _prefabPreview.AddThemeColorOverride("font_color", new Color("a899b9"));
+        prefabCard.AddChild(_prefabPreview);
+
         var referenceCard = AddCard(body, new Vector2(270, 0), expand: true);
         referenceCard.AddChild(new Label { Text = "RÉFÉRENCES INVERSÉES" });
         _referenceSummary = new Label { Text = "Aucun usage" };
@@ -434,6 +605,31 @@ public partial class BlueprintCatalogWindow : Window
         };
         help.AddThemeColorOverride("font_color", new Color("a899b9"));
         referenceCard.AddChild(help);
+        referenceCard.AddChild(new Label { Text = "MISE À JOUR ASSISTÉE" });
+        _sourceEntityId = new LineEdit { PlaceholderText = "UUID de l’instance source" };
+        referenceCard.AddChild(_sourceEntityId);
+        _promotedKeys = new LineEdit { PlaceholderText = "Overrides à promouvoir · visual.scale, tint" };
+        referenceCard.AddChild(_promotedKeys);
+        _excludedInstances = new LineEdit { PlaceholderText = "UUID exclus · séparés par virgules" };
+        referenceCard.AddChild(_excludedInstances);
+        _versionBump = new OptionButton();
+        foreach (var bump in Enum.GetValues<BlueprintVersionBump>()) _versionBump.AddItem(bump.ToString());
+        referenceCard.AddChild(_versionBump);
+        var updateActions = new HBoxContainer();
+        referenceCard.AddChild(updateActions);
+        var previewUpdate = new Button { Text = "Aperçu", SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        previewUpdate.Pressed += () => UpdateFromEntity(dryRun: true);
+        updateActions.AddChild(previewUpdate);
+        var applyUpdate = new Button { Text = "Appliquer", SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        applyUpdate.Pressed += () => UpdateFromEntity(dryRun: false);
+        updateActions.AddChild(applyUpdate);
+        _updatePreview = new Label
+        {
+            Text = "Sélectionnez une instance pour comparer ses overrides.",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        };
+        _updatePreview.AddThemeColorOverride("font_color", new Color("a899b9"));
+        referenceCard.AddChild(_updatePreview);
 
         _status = new Label { Text = "Prêt." };
         _status.AddThemeColorOverride("font_color", new Color("9ee6b3"));
@@ -526,6 +722,19 @@ public partial class BlueprintCatalogWindow : Window
         _styles!.Text = string.Join(", ", blueprint.Authoring.Styles);
         _compatibility!.Text = string.Join(", ", blueprint.Authoring.Compatibility);
         _tags!.Text = string.Join(", ", blueprint.Authoring.Tags);
+        _categoryPaths!.Text = string.Join(", ", blueprint.Authoring.CategoryPaths);
+        _loadedPromotedDefaults = blueprint.Authoring.PromotedDefaults;
+        LoadPrefabProfiles(state, blueprint);
+        var firstInstance = state.Project.Areas.SelectMany(area => area.Entities)
+            .FirstOrDefault(entity => entity.BlueprintId == blueprint.Id);
+        _sourceEntityId!.Text = firstInstance?.Id.ToString() ?? string.Empty;
+        _promotedKeys!.Text = firstInstance is null
+            ? string.Empty
+            : string.Join(", ", firstInstance.Overrides.Properties.Select(item => item.Key));
+        _excludedInstances!.Text = string.Empty;
+        _updatePreview!.Text = firstInstance is null
+            ? "État vide · aucune instance de ce blueprint dans les zones."
+            : $"Instance source {firstInstance.Id} · {firstInstance.Overrides.Properties.Count} override(s).";
         SetReadOnlyState(blueprint.IsReadOnly());
         RefreshReferences(state, blueprint);
         _publishSelection?.Invoke(new CreatorSelection(
@@ -598,6 +807,13 @@ public partial class BlueprintCatalogWindow : Window
         _styles!.Text = string.Empty;
         _compatibility!.Text = string.Empty;
         _tags!.Text = string.Empty;
+        _categoryPaths!.Text = string.Empty;
+        _loadedPromotedDefaults = [];
+        ClearPrefabProfiles();
+        _sourceEntityId!.Text = string.Empty;
+        _promotedKeys!.Text = string.Empty;
+        _excludedInstances!.Text = string.Empty;
+        _updatePreview!.Text = "Sélectionnez une instance pour comparer ses overrides.";
         SetReadOnlyState(false);
         _referenceList!.Clear();
         _referenceSummary!.Text = "Aucun usage";
@@ -643,6 +859,204 @@ public partial class BlueprintCatalogWindow : Window
         {
             SetStatus("Sélectionnez une instance dans le Monde ou l’Explorateur avant de dériver.", true);
         }
+    }
+
+    private bool UpdateFromEntity(bool dryRun)
+    {
+        var state = _getState?.Invoke();
+        if (state is null || _draftBlueprintId is null)
+        {
+            SetStatus("Sélectionnez un blueprint enregistré avant sa mise à jour.", true);
+            return false;
+        }
+
+        try
+        {
+            var sourceId = EntityId.Parse(_sourceEntityId!.Text);
+            var excluded = SplitList(_excludedInstances!.Text).Select(EntityId.Parse).ToArray();
+            var keys = SplitList(_promotedKeys!.Text);
+            var bump = Enum.GetValues<BlueprintVersionBump>()[Math.Clamp(_versionBump!.Selected, 0,
+                Enum.GetValues<BlueprintVersionBump>().Length - 1)];
+            var plan = BlueprintUpdatePlanner.Build(state.Project, _draftBlueprintId, sourceId, keys, bump, excluded);
+            _updatePreview!.Text =
+                $"{plan.PreviousVersion} → {plan.TargetVersion} · {plan.PromotedDefaults.Count} défaut(s) · " +
+                $"{plan.Instances.Count} instance(s) · " +
+                $"{plan.Instances.Count(item => item.Action == "excluded")} exclue(s) · " +
+                $"{plan.Instances.Count(item => item.Action == "pinned-incompatible")} pin incompatible";
+            var command = new UpdateBlueprintFromEntityCommand(CommandId.From(Guid.NewGuid()), state.Revision,
+                _draftBlueprintId, sourceId, keys, bump, excluded, dryRun, SplitList(_categoryPaths!.Text));
+            if (_updateFromEntity?.Invoke(command) != true)
+            {
+                SetStatus("La mise à jour a été refusée par la commande canonique.", true);
+                return false;
+            }
+
+            if (!dryRun) Refresh(_draftBlueprintId);
+            SetStatus(dryRun ? "Aperçu de migration prêt, aucun document modifié." :
+                "Blueprint et instances migrés atomiquement ; undo/redo disponible.", false);
+            return true;
+        }
+        catch (Exception exception) when (exception is ArgumentException or FormatException or BlueprintUpdatePlanException)
+        {
+            _updatePreview!.Text = $"Erreur localisée · {exception.Message}";
+            SetStatus("Configuration de mise à jour invalide.", true);
+            return false;
+        }
+    }
+
+    private bool ConfigurePrefab(bool dryRun)
+    {
+        var state = _getState?.Invoke();
+        if (state is null || _draftBlueprintId is null)
+        {
+            SetPrefabError("Sélectionnez un blueprint enregistré avant de configurer son prefab.");
+            return false;
+        }
+        if (!TryBuildPrefabProfiles(out var variant, out var composition, out var budget)) return false;
+        var command = new ConfigureBlueprintPrefabCommand(CommandId.From(Guid.NewGuid()), state.Revision,
+            _draftBlueprintId, variant, composition, budget, SplitList(_authorCollections!.Text), dryRun);
+        if (_configurePrefab?.Invoke(command) != true)
+        {
+            SetPrefabError("Commande refusée · vérifiez UUID, références, cycles et budgets.");
+            return false;
+        }
+        var evaluations = budget?.Platforms.Select(item => BlueprintPrefabRuntimeService.Evaluate(budget.Metrics, item))
+            .ToArray() ?? [];
+        _prefabPreview!.Text =
+            $"{(dryRun ? "APERÇU VALIDE · aucun fichier modifié" : "APPLIQUÉ · undo/redo disponible")}\n" +
+            $"Variante · {variant?.Overrides.Count ?? 0} delta(s) · Composition · {composition?.Nodes.Count ?? 0} nœud(s)\n" +
+            $"Budgets · {evaluations.Count(item => item.Status == AssetBudgetEvaluationStatus.Passed)} conformes · " +
+            $"{evaluations.Count(item => item.Status == AssetBudgetEvaluationStatus.Warning)} avertissement(s) · " +
+            $"{evaluations.Count(item => item.Status == AssetBudgetEvaluationStatus.Failed)} bloquant(s)";
+        _prefabPreview.AddThemeColorOverride("font_color", new Color("79d5ad"));
+        if (!dryRun) Refresh(_draftBlueprintId);
+        SetStatus(dryRun ? "Aperçu prefab prêt, projet inchangé." :
+            "Variante, composition, collections et budgets enregistrés atomiquement.", false);
+        return true;
+    }
+
+    private bool PlaceComposition(bool dryRun)
+    {
+        var state = _getState?.Invoke();
+        var area = state?.Project.Areas.FirstOrDefault();
+        if (state is null || area is null || _draftBlueprintId is null)
+        {
+            SetPrefabError("Une composition enregistrée et une zone cible sont requises.");
+            return false;
+        }
+        var command = new PlacePrefabCompositionCommand(CommandId.From(Guid.NewGuid()), state.Revision,
+            _draftBlueprintId, area.Id, Vector3Value.Zero, dryRun);
+        if (_placeComposition?.Invoke(command) != true)
+        {
+            SetPrefabError("Placement refusé · la hiérarchie doit être valide et enregistrée.");
+            return false;
+        }
+        _prefabPreview!.Text = dryRun
+            ? $"APERÇU PLACEMENT · zone {area.DisplayName} · aucun document modifié"
+            : $"PLACÉ · groupe atomique dans {area.DisplayName} · undo/redo disponible";
+        _prefabPreview.AddThemeColorOverride("font_color", new Color("79d5ad"));
+        return true;
+    }
+
+    private bool TryBuildPrefabProfiles(out PrefabVariantDefinition? variant,
+        out PrefabCompositionDefinition? composition, out BlueprintAssetBudgetProfile? budget)
+    {
+        variant = null;
+        composition = null;
+        budget = null;
+        try
+        {
+            var baseText = _variantBaseBlueprintId!.Text.Trim();
+            var overrideLines = SplitLines(_variantOverrides!.Text);
+            if (baseText.Length > 0)
+            {
+                var overrides = overrideLines.Select(ParseVariantOverride).ToArray();
+                variant = new PrefabVariantDefinition(_draftVariantId,
+                    PrefabVariantDefinition.CurrentSchemaVersion, "editor:r058", BlueprintId.Parse(baseText),
+                    overrides, _variantRequired!.ButtonPressed);
+            }
+            else if (overrideLines.Count > 0)
+            {
+                throw new FormatException("Une variante avec overrides requiert l’UUID du blueprint de base.");
+            }
+
+            var nodeLines = SplitLines(_compositionNodes!.Text);
+            if (nodeLines.Count > 0)
+                composition = new PrefabCompositionDefinition(_draftCompositionId,
+                    PrefabCompositionDefinition.CurrentSchemaVersion, "editor:r058",
+                    nodeLines.Select(ParseCompositionNode).ToArray(), SplitList(_compositionRules!.Text),
+                    SplitList(_compositionParameters!.Text), SplitList(_compositionScripts!.Text),
+                    _compositionRequired!.ButtonPressed);
+
+            var metricsText = _assetMetrics!.Text.Trim();
+            var platformLines = SplitLines(_platformBudgets!.Text);
+            if (metricsText.Length > 0 || platformLines.Count > 0)
+            {
+                if (metricsText.Length == 0 || platformLines.Count == 0)
+                    throw new FormatException("Les mesures et au moins un budget de plateforme sont requis ensemble.");
+                budget = new BlueprintAssetBudgetProfile(_draftBudgetId,
+                    BlueprintAssetBudgetProfile.CurrentSchemaVersion, "editor:r058", ParseMetrics(metricsText),
+                    platformLines.Select(ParsePlatformBudget).ToArray(), _budgetRequired!.ButtonPressed);
+            }
+            return true;
+        }
+        catch (Exception exception) when (exception is ArgumentException or FormatException or OverflowException)
+        {
+            SetPrefabError($"Erreur localisée · {exception.Message}");
+            return false;
+        }
+    }
+
+    private static PrefabVariantOverride ParseVariantOverride(string line)
+    {
+        var parts = line.Split('|', StringSplitOptions.TrimEntries);
+        if (parts.Length != 3 || !Enum.TryParse<PrefabVariantOverrideKind>(parts[0], true, out var kind))
+            throw new FormatException($"Override invalide « {line} » ; utilisez Type|clé|valeur.");
+        return new(kind, parts[1], parts[2]);
+    }
+
+    private static PrefabCompositionNode ParseCompositionNode(string line)
+    {
+        var parts = line.Split('|', StringSplitOptions.TrimEntries);
+        if (parts.Length != 7) throw new FormatException($"Nœud invalide « {line} » ; 7 champs sont requis.");
+        var parent = parts[2].Length == 0 || parts[2].Equals("root", StringComparison.OrdinalIgnoreCase) || parts[2] == "-"
+            ? (Guid?)null : Guid.Parse(parts[2]);
+        var socket = parts[3].Length == 0 || parts[3] == "-" ? null : parts[3];
+        var position = new Vector3Value(ParseFloat(parts[4]), ParseFloat(parts[5]), ParseFloat(parts[6]));
+        return new(Guid.Parse(parts[0]), BlueprintId.Parse(parts[1]), parent, socket,
+            new TransformValue(position, QuaternionValue.Identity, Vector3Value.One));
+    }
+
+    private static AssetBudgetMetrics ParseMetrics(string text)
+    {
+        var parts = text.Split(',', StringSplitOptions.TrimEntries);
+        if (parts.Length != 7) throw new FormatException("Les mesures d’asset requièrent exactement 7 nombres.");
+        return new(ParseInt(parts[0]), ParseInt(parts[1]), ParseInt(parts[2]), ParseLong(parts[3]),
+            ParseInt(parts[4]), ParseInt(parts[5]), ParseInt(parts[6]));
+    }
+
+    private static AssetPlatformBudget ParsePlatformBudget(string line)
+    {
+        var parts = line.Split('|', StringSplitOptions.TrimEntries);
+        if (parts.Length != 9 || !Enum.TryParse<AssetTargetPlatform>(parts[0], true, out var platform) ||
+            !bool.TryParse(parts[8], out var gate))
+            throw new FormatException($"Budget invalide « {line} » ; utilisez plateforme|7 limites|gate.");
+        return new(platform, ParseInt(parts[1]), ParseInt(parts[2]), ParseInt(parts[3]), ParseLong(parts[4]),
+            ParseInt(parts[5]), ParseInt(parts[6]), ParseInt(parts[7]), gate);
+    }
+
+    private static float ParseFloat(string value) => float.Parse(value, NumberStyles.Float, CultureInfo.InvariantCulture);
+    private static int ParseInt(string value) => int.Parse(value, NumberStyles.Integer, CultureInfo.InvariantCulture);
+    private static long ParseLong(string value) => long.Parse(value, NumberStyles.Integer, CultureInfo.InvariantCulture);
+
+    private static IReadOnlyList<string> SplitLines(string value) => value
+        .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+    private void SetPrefabError(string message)
+    {
+        _prefabPreview!.Text = message;
+        _prefabPreview.AddThemeColorOverride("font_color", new Color("ff8c8c"));
+        SetStatus("Configuration prefab invalide.", true);
     }
 
     private bool SavePaletteMetadata()
@@ -723,6 +1137,23 @@ public partial class BlueprintCatalogWindow : Window
         _styles!.Editable = !readOnly;
         _compatibility!.Editable = !readOnly;
         _tags!.Editable = !readOnly;
+        _categoryPaths!.Editable = !readOnly;
+        _authorCollections!.Editable = !readOnly;
+        _variantBaseBlueprintId!.Editable = !readOnly;
+        _variantOverrides!.Editable = !readOnly;
+        _variantRequired!.Disabled = readOnly;
+        _compositionNodes!.Editable = !readOnly;
+        _compositionRules!.Editable = !readOnly;
+        _compositionParameters!.Editable = !readOnly;
+        _compositionScripts!.Editable = !readOnly;
+        _compositionRequired!.Disabled = readOnly;
+        _assetMetrics!.Editable = !readOnly;
+        _platformBudgets!.Editable = !readOnly;
+        _budgetRequired!.Disabled = readOnly;
+        _sourceEntityId!.Editable = !readOnly;
+        _promotedKeys!.Editable = !readOnly;
+        _excludedInstances!.Editable = !readOnly;
+        _versionBump!.Disabled = readOnly;
         _readOnlyBadge!.Text = readOnly ? "STANDARD · lecture seule" : "CUSTOM · éditable";
         _readOnlyBadge.AddThemeColorOverride(
             "font_color",
@@ -755,12 +1186,124 @@ public partial class BlueprintCatalogWindow : Window
         _styles!.Text = string.Empty;
         _compatibility!.Text = string.Empty;
         _tags!.Text = string.Empty;
+        _categoryPaths!.Text = string.Empty;
+        _loadedPromotedDefaults = [];
+        ClearPrefabProfiles();
     }
+
+    private void LoadPrefabProfiles(ProjectState state, BlueprintDefinition blueprint)
+    {
+        var authoring = blueprint.Authoring;
+        _authorCollections!.Text = string.Join(", ", authoring.AuthorCollections);
+        if (authoring.PrefabVariant is { } variant)
+        {
+            _draftVariantId = variant.Id;
+            _variantBaseBlueprintId!.Text = variant.BaseBlueprintId.ToString();
+            _variantOverrides!.Text = string.Join('\n', variant.Overrides.Select(item =>
+                $"{item.Kind}|{item.Key}|{item.Value}"));
+            _variantRequired!.ButtonPressed = variant.RequiredAtRuntime;
+        }
+        else
+        {
+            _draftVariantId = Guid.NewGuid();
+            _variantBaseBlueprintId!.Text = string.Empty;
+            _variantOverrides!.Text = string.Empty;
+            _variantRequired!.ButtonPressed = false;
+        }
+        if (authoring.PrefabComposition is { } composition)
+        {
+            _draftCompositionId = composition.Id;
+            _compositionNodes!.Text = string.Join('\n', composition.Nodes.Select(item =>
+                $"{item.Id:D}|{item.BlueprintId}|{item.ParentNodeId?.ToString("D") ?? "root"}|" +
+                $"{item.Socket ?? "-"}|{FormatNumber(item.Transform.Position.X)}|" +
+                $"{FormatNumber(item.Transform.Position.Y)}|{FormatNumber(item.Transform.Position.Z)}"));
+            _compositionRules!.Text = string.Join(", ", composition.AssemblyRules);
+            _compositionParameters!.Text = string.Join(", ", composition.Parameters);
+            _compositionScripts!.Text = string.Join(", ", composition.AssemblyScripts);
+            _compositionRequired!.ButtonPressed = composition.RequiredAtRuntime;
+        }
+        else
+        {
+            _draftCompositionId = Guid.NewGuid();
+            _compositionNodes!.Text = string.Empty;
+            _compositionRules!.Text = string.Empty;
+            _compositionParameters!.Text = string.Empty;
+            _compositionScripts!.Text = string.Empty;
+            _compositionRequired!.ButtonPressed = false;
+        }
+        if (authoring.AssetBudget is { } budget)
+        {
+            _draftBudgetId = budget.Id;
+            var metrics = budget.Metrics;
+            _assetMetrics!.Text = $"{metrics.TriangleCount}, {metrics.MaterialCount}, {metrics.TextureCount}, " +
+                $"{metrics.MemoryBytes}, {metrics.AnimationCount}, {metrics.LodLevelCount}, {metrics.CollisionShapeCount}";
+            _platformBudgets!.Text = string.Join('\n', budget.Platforms.Select(item =>
+                $"{item.Platform}|{item.MaximumTriangles}|{item.MaximumMaterials}|{item.MaximumTextures}|" +
+                $"{item.MaximumMemoryBytes}|{item.MaximumAnimations}|{item.MaximumLodLevels}|" +
+                $"{item.MaximumCollisionShapes}|{item.GateBuild.ToString().ToLowerInvariant()}"));
+            _budgetRequired!.ButtonPressed = budget.RequiredAtRuntime;
+        }
+        else
+        {
+            _draftBudgetId = Guid.NewGuid();
+            _assetMetrics!.Text = string.Empty;
+            _platformBudgets!.Text = string.Empty;
+            _budgetRequired!.ButtonPressed = false;
+        }
+        var evaluations = new BlueprintPrefabRuntimeService(state.Project).EvaluateBudget(blueprint.Id, false);
+        _prefabPreview!.Text = authoring.PrefabVariant is null && authoring.PrefabComposition is null &&
+                               authoring.AssetBudget is null
+            ? "État vide · aucun profil prefab ou budget configuré."
+            : $"Profil chargé · {authoring.PrefabVariant?.Overrides.Count ?? 0} delta(s) · " +
+              $"{authoring.PrefabComposition?.Nodes.Count ?? 0} nœud(s) · " +
+              $"{evaluations.Count(item => item.Status == AssetBudgetEvaluationStatus.Passed)} budget(s) conforme(s)";
+        _prefabPreview.AddThemeColorOverride("font_color", new Color(authoring.PrefabVariant is null &&
+            authoring.PrefabComposition is null && authoring.AssetBudget is null ? "a899b9" : "79d5ad"));
+    }
+
+    private void ClearPrefabProfiles()
+    {
+        _draftVariantId = Guid.NewGuid();
+        _draftCompositionId = Guid.NewGuid();
+        _draftBudgetId = Guid.NewGuid();
+        _authorCollections!.Text = string.Empty;
+        _variantBaseBlueprintId!.Text = string.Empty;
+        _variantOverrides!.Text = string.Empty;
+        _variantRequired!.ButtonPressed = false;
+        _compositionNodes!.Text = string.Empty;
+        _compositionRules!.Text = string.Empty;
+        _compositionParameters!.Text = string.Empty;
+        _compositionScripts!.Text = string.Empty;
+        _compositionRequired!.ButtonPressed = false;
+        _assetMetrics!.Text = string.Empty;
+        _platformBudgets!.Text = string.Empty;
+        _budgetRequired!.ButtonPressed = false;
+        _prefabPreview!.Text = "État vide · aucun profil prefab ou budget configuré.";
+        _prefabPreview.AddThemeColorOverride("font_color", new Color("a899b9"));
+    }
+
+    private void PrepareR058Capture()
+    {
+        var project = _getState?.Invoke()?.Project;
+        if (project is null || project.Blueprints.Count < 2) return;
+        var target = project.Blueprints.FirstOrDefault(candidate => !candidate.IsReadOnly() &&
+            project.Blueprints.Any(other => other.Id != candidate.Id && other.Kind == candidate.Kind));
+        if (target is null) return;
+        var baseBlueprint = project.Blueprints.First(other => other.Id != target.Id && other.Kind == target.Kind);
+        ConfigurePrefabForSmokeTest(target.Id, baseBlueprint.Id, baseBlueprint.Id, dryRun: true);
+    }
+
+    private static string FormatNumber(float value) => value.ToString("R", CultureInfo.InvariantCulture);
 
     private bool TryBuildAuthoring(out BlueprintAuthoringMetadata metadata)
     {
         try
         {
+            if (!TryBuildPrefabProfiles(out var variant, out var composition, out var budget))
+            {
+                metadata = null!;
+                return false;
+            }
             metadata = new BlueprintAuthoringMetadata(
                 BlueprintAuthoringMetadata.CurrentSchemaVersion,
                 _version!.Text,
@@ -773,7 +1316,13 @@ public partial class BlueprintCatalogWindow : Window
                 _kit!.Text,
                 SplitList(_styles!.Text),
                 SplitList(_compatibility!.Text),
-                SplitList(_tags!.Text));
+                SplitList(_tags!.Text),
+                SplitList(_categoryPaths!.Text),
+                _loadedPromotedDefaults,
+                SplitList(_authorCollections!.Text),
+                variant,
+                composition,
+                budget);
             return true;
         }
         catch (ArgumentException exception)

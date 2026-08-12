@@ -7,7 +7,7 @@ Fichier généré depuis les constantes de sérialisation.
 | Projet agrégé | 0.6.34 |
 | Workspace scindé | 1.28.0 |
 | Zone | 1.9.0 |
-| Sauvegarde runtime | 1.3.0 |
+| Sauvegarde runtime | 1.4.0 |
 | Manifeste `.orpmod` | 1.2.0 |
 
 Les migrations acceptées sont testées par `Forge.ModuleFormat.Tests`; toute écriture produit la version courante.

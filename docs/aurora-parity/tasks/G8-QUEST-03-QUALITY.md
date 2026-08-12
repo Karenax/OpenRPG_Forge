@@ -9,7 +9,12 @@ Elle produit une quête en preview, lint, avertissements de dépendances, violat
 sémantique. Une validation humaine nominative est obligatoire avant une application transactionnelle
 unique.
 
-Preuves : `QuestQualityServiceTests`, suite RPG Kit et solution globale.
+Avant R073, ces capacités restaient isolées dans le RPG Kit et le workflow assistant : elles
+n'étaient pas attachées au document de quête principal ni éditables et persistables depuis le
+journal. R073 ferme cette limite avec `Forge.Domain.Quests.QuestQualityProfile`, son validateur,
+l'onglet transactionnel, ForgeScript, le MCP et les adaptateurs moteur.
 
-La famille Quest sélectionnée pour G8 est complète. La prochaine tranche unique est
-**G8 SCRIPT-01**.
+Preuves de clôture : `P1-R073-QUEST-QUALITY-ACCEPTANCE.md`, capture R073, tests Domain, Application,
+ModuleFormat et MCP, smokes Toolset/runtime et portail intégré.
+
+Le programme P1 reprend séquentiellement avec **R074 / FC-COMPANION-P1-01**.

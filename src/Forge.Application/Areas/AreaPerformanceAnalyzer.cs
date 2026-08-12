@@ -18,6 +18,11 @@ public sealed record AreaPerformanceReport(
     int NearLodCount,
     int MidLodCount,
     int FarLodCount,
+    int VisibilityRoomCount,
+    int VisibilityPortalCount,
+    int OccluderCount,
+    int LodOverrideCount,
+    float EstimatedPopping,
     bool IsWithinBudget,
     IReadOnlyList<string> Diagnostics);
 
@@ -48,8 +53,17 @@ public static class AreaPerformanceAnalyzer
         if (area.Entities.Count > budget.MaximumEntities) diagnostics.Add($"entities:{area.Entities.Count}>{budget.MaximumEntities}");
         if (unique > budget.MaximumUniqueAssets) diagnostics.Add($"assets:{unique}>{budget.MaximumUniqueAssets}");
         if (draw > budget.MaximumEstimatedDrawUnits) diagnostics.Add($"draw-units:{draw}>{budget.MaximumEstimatedDrawUnits}");
+        var visibility = area.Authoring.Experience.Visibility;
+        var lod = area.Authoring.Experience.Lod;
+        var popping = distances.Length == 0 ? 0 : distances.Count(value =>
+            lod.DistanceThresholds.Any(threshold => MathF.Abs(value - threshold) <= 1)) / (float)distances.Length;
+        if (lod.MeasurePopping && popping > lod.PoppingTolerance)
+            diagnostics.Add($"lod-popping:{popping:0.###}>{lod.PoppingTolerance:0.###}");
+        if (draw * 500 > lod.MaximumVisibleTriangles)
+            diagnostics.Add($"visible-triangles:{draw * 500}>{lod.MaximumVisibleTriangles}");
         return new(areaId, area.Entities.Count, unique, draw, sectors,
             distances.Count(value => value < 20), distances.Count(value => value is >= 20 and < 50),
-            distances.Count(value => value >= 50), diagnostics.Count == 0, diagnostics);
+            distances.Count(value => value >= 50), visibility.Rooms.Count, visibility.Portals.Count,
+            visibility.Occluders.Count, lod.AssetOverrides.Count, popping, diagnostics.Count == 0, diagnostics);
     }
 }

@@ -178,6 +178,61 @@ public sealed record CrashRecoveryPolicy
     }
 }
 
+[Flags]
+public enum RecoveryRestoreSection
+{
+    None = 0,
+    ProjectAndModule = 1 << 0,
+    Blueprints = 1 << 1,
+    Areas = 1 << 2,
+    Dialogues = 1 << 3,
+    Quests = 1 << 4,
+    All = ProjectAndModule | Blueprints | Areas | Dialogues | Quests,
+}
+
+public sealed record RecoveryRestoreSelection
+{
+    public const int CurrentSchemaVersion = 1;
+
+    public Guid Id { get; }
+    public int SchemaVersion { get; }
+    public RecoveryRestoreSection Sections { get; }
+    public string Provenance { get; }
+
+    public RecoveryRestoreSelection(Guid id, int schemaVersion, RecoveryRestoreSection sections, string provenance)
+    {
+        if (id == Guid.Empty || schemaVersion != CurrentSchemaVersion || sections == RecoveryRestoreSection.None ||
+            (sections & ~RecoveryRestoreSection.All) != 0)
+            throw new ArgumentOutOfRangeException(nameof(sections),
+                "Recovery selection requires a stable UUID, schema v1 and at least one supported section.");
+        Id = id;
+        SchemaVersion = schemaVersion;
+        Sections = sections;
+        Provenance = DataDrivenRuleSchema.RequireText(provenance, nameof(provenance));
+    }
+}
+
+public sealed record RecoveryRuntimeResolution(CrashRecoveryPolicy? Policy,
+    IReadOnlyList<DomainDiagnostic> Diagnostics)
+{
+    public bool Available => Policy is not null;
+}
+
+public static class RecoveryRuntimeResolver
+{
+    public const string RequiredMissingCode = "runtime.recovery.required_missing";
+
+    public static RecoveryRuntimeResolution Resolve(CrashRecoveryPolicy? policy, bool required) =>
+        policy is not null || !required
+            ? new RecoveryRuntimeResolution(policy, [])
+            : new RecoveryRuntimeResolution(null,
+            [
+                new DomainDiagnostic(RequiredMissingCode,
+                    "The required crash-recovery extension is missing.",
+                    "module/runtimePolicies/extensions/operationalReadiness/recovery"),
+            ]);
+}
+
 public sealed record ContentSynchronizationPolicy
 {
     public const int CurrentSchemaVersion = 1;

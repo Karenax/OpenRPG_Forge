@@ -42,6 +42,67 @@ public sealed class SetCreatureFoundationHandler
                     item.CreatureFoundation?.Id == command.Foundation.Id))
                 return Failure(state, command, "creature.foundation.uuid_duplicate",
                     "The creature-foundation UUID is already owned by another blueprint.");
+            if (command.Foundation.AuthoringComposition is { } authoring &&
+                state.Project.Blueprints.Any(item => item.Id != existing.Id &&
+                    item.CreatureFoundation?.AuthoringComposition is { } other &&
+                    (other.Id == authoring.Id || other.AnimationGraph.Id == authoring.AnimationGraph.Id ||
+                     other.AnimationGraph.States.Select(state => state.Id)
+                         .Concat(other.AnimationGraph.Transitions.Select(edge => edge.Id))
+                         .Intersect(authoring.AnimationGraph.States.Select(state => state.Id)
+                             .Concat(authoring.AnimationGraph.Transitions.Select(edge => edge.Id))).Any())))
+                return Failure(state, command, "creature.authoring.uuid_duplicate",
+                    "Creature-authoring profile, graph, node and edge UUIDs must be unique across blueprints.");
+            if (command.Foundation.RulesComposition is { } rules)
+            {
+                var candidateIds = CreatureRulesCompositionValidator.EnumerateComponentIds(rules).ToHashSet();
+                if (state.Project.Blueprints.Where(item => item.Id != existing.Id)
+                    .Select(item => item.CreatureFoundation?.RulesComposition)
+                    .Where(item => item is not null)
+                    .SelectMany(item => CreatureRulesCompositionValidator.EnumerateComponentIds(item!))
+                    .Any(candidateIds.Contains))
+                    return Failure(state, command, "creature.rules.uuid_duplicate",
+                        "Creature-rules profile and component UUIDs must be unique across blueprints.");
+                var invalidItem = rules.Inventory.Containers.SelectMany(item => item.Items).FirstOrDefault(item =>
+                    state.Project.Blueprints.All(blueprint => blueprint.Id != item.ItemBlueprintId ||
+                        blueprint.Kind != BlueprintKind.Item));
+                if (invalidItem is not null)
+                    return Failure(state, command, "creature.rules.inventory_item_missing",
+                        $"Creature inventory item blueprint '{invalidItem.ItemBlueprintId}' does not resolve to an item.");
+            }
+            if (command.Foundation.InteractionComposition is { } interaction)
+            {
+                var candidateIds = CreatureInteractionCompositionValidator.EnumerateComponentIds(interaction).ToHashSet();
+                if (state.Project.Blueprints.Where(item => item.Id != existing.Id)
+                    .Select(item => item.CreatureFoundation?.InteractionComposition)
+                    .Where(item => item is not null)
+                    .SelectMany(item => CreatureInteractionCompositionValidator.EnumerateComponentIds(item!))
+                    .Any(candidateIds.Contains))
+                    return Failure(state, command, "creature.interaction.uuid_duplicate",
+                        "Creature-interaction profile and component UUIDs must be unique across blueprints.");
+                var availableFactions = state.Project.Module.Factions.Factions.Select(item => item.Id).ToHashSet();
+                var missingFaction = interaction.Factions.Memberships.FirstOrDefault(item =>
+                    !availableFactions.Contains(item.FactionId));
+                if (missingFaction is not null)
+                    return Failure(state, command, "creature.interaction.faction_missing",
+                        $"Creature faction '{missingFaction.FactionId}' does not resolve.");
+                var availableDialogues = state.Project.Dialogues.Select(item => item.Id).ToHashSet();
+                var missingDialogue = interaction.DialogueBindings.FirstOrDefault(item =>
+                    !availableDialogues.Contains(item.DialogueId));
+                if (missingDialogue is not null)
+                    return Failure(state, command, "creature.interaction.dialogue_missing",
+                        $"Creature dialogue '{missingDialogue.DialogueId}' does not resolve.");
+            }
+            if (command.Foundation.EventAiComposition is { } eventAi)
+            {
+                var candidateIds = CreatureEventAiCompositionValidator.EnumerateComponentIds(eventAi).ToHashSet();
+                if (state.Project.Blueprints.Where(item => item.Id != existing.Id)
+                    .Select(item => item.CreatureFoundation?.EventAiComposition)
+                    .Where(item => item is not null)
+                    .SelectMany(item => CreatureEventAiCompositionValidator.EnumerateComponentIds(item!))
+                    .Any(candidateIds.Contains))
+                    return Failure(state, command, "creature.event_ai.uuid_duplicate",
+                        "Creature event/AI profile and component UUIDs must be unique across blueprints.");
+            }
         }
 
         var root = $"blueprints/{existing.Id}/creatureFoundation";

@@ -10,6 +10,12 @@ inventaire, position et persistance. Tout rejet restitue exactement l'état orig
 localise les chemins de recrutement, créature, commandes, inventaire, équipement, mort, dialogue et
 monnaie.
 
-Preuves : `CompanionServiceTests`, suite RPG Kit et solution globale.
+R074 rattache désormais cette fondation au document de monde : identité UUID/schéma/provenance,
+interface transactionnelle, commande unique, persistance exacte, ForgeScript typé, MCP filtré,
+validation pré-build et adaptateurs moteur sont couverts. Le recrutement et le renvoi partagent le
+même plan déterministe et atomique.
 
-La prochaine tranche unique est **G8 COMPANION-02**.
+Preuves : `CompanionServiceTests`, `CompanionFoundationServiceTests`, smokes Toolset/runtime et
+`P1-R074-COMPANION-FOUNDATION-ACCEPTANCE.md`.
+
+La prochaine tranche unique est **R075 / G8 COMPANION-02**.

@@ -117,6 +117,68 @@ public static class AssetPackageManifestFactory
         return manifest;
     }
 
+    public static AssetPackageManifest AttachContentExtensions(
+        AssetPackageManifest manifest,
+        AssetCollisionAuthoringInput collision,
+        AssetNavigationAuthoringInput navigation,
+        AssetFontAuthoringInput font)
+    {
+        ArgumentNullException.ThrowIfNull(manifest);
+        ArgumentNullException.ThrowIfNull(collision);
+        ArgumentNullException.ThrowIfNull(navigation);
+        ArgumentNullException.ThrowIfNull(font);
+        var chunks = manifest.Chunks.ToList();
+        var collisionChunk = AddChunk(chunks, AssetChunkRole.Collision, collision.Artifact, collision.Required);
+        var navigationChunk = AddChunk(chunks, AssetChunkRole.Navigation, navigation.Artifact, navigation.Required);
+        var primaryFontChunk = AddChunk(chunks, AssetChunkRole.Font, font.PrimaryArtifact, font.Required);
+        var fallbackChunks = font.Fallbacks.Select(fallback => new AssetFontFallbackManifest(
+            fallback.Family,
+            AddChunk(chunks, AssetChunkRole.Font, fallback.Artifact, required: true).Id)).ToArray();
+        var updated = manifest with
+        {
+            Chunks = chunks.OrderBy(chunk => chunk.Role).ThenBy(chunk => chunk.RelativePath, StringComparer.Ordinal).ToArray(),
+            Collision = new AssetCollisionManifest(
+                collision.Required, collisionChunk.Id, collision.Generation,
+                collision.MaterialTags, collision.CookPlatforms),
+            Navigation = new AssetNavigationManifest(
+                navigation.Required, navigationChunk.Id, navigation.Generation,
+                navigation.MaterialTags, navigation.CookPlatforms),
+            Font = new AssetFontManifest(
+                font.Required, font.PrimaryFamily, primaryFontChunk.Id, fallbackChunks,
+                font.ShapingScripts, font.LocalizationTestLocales, font.DpiBuckets,
+                font.MinimumTextScale, font.MaximumTextScale),
+        };
+        var diagnostics = AssetPackageManifestValidator.Validate(updated);
+        if (diagnostics.Count > 0)
+        {
+            throw new ArgumentException(
+                $"Authored content extensions are invalid: {diagnostics[0].Code} — {diagnostics[0].Message}.",
+                nameof(manifest));
+        }
+
+        return updated;
+    }
+
+    private static AssetManifestChunk AddChunk(
+        ICollection<AssetManifestChunk> chunks,
+        AssetChunkRole role,
+        AssetExtensionArtifactInput artifact,
+        bool required)
+    {
+        var chunk = new AssetManifestChunk(
+            StableGuid($"{role}|{artifact.RelativePath}|{artifact.ContentSha256}"),
+            role,
+            required,
+            artifact.RelativePath,
+            artifact.ContentSha256,
+            artifact.UncompressedBytes,
+            artifact.StoredBytes,
+            artifact.Compression,
+            artifact.Platforms);
+        chunks.Add(chunk);
+        return chunk;
+    }
+
     private static Guid StableGuid(string input)
     {
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes($"openrpg-forge:asset-chunk:{input}"));
@@ -131,6 +193,43 @@ public sealed record AssetManifestArtifactInput(
     string OutputContentSha256,
     long OutputBytes,
     bool CanonicalReady);
+
+public sealed record AssetExtensionArtifactInput(
+    string RelativePath,
+    string ContentSha256,
+    long UncompressedBytes,
+    long StoredBytes,
+    AssetChunkCompression Compression,
+    IReadOnlyList<AssetTargetPlatform> Platforms);
+
+public sealed record AssetCollisionAuthoringInput(
+    AssetExtensionArtifactInput Artifact,
+    bool Required,
+    AssetCollisionGeneration Generation,
+    IReadOnlyList<string> MaterialTags,
+    IReadOnlyList<AssetTargetPlatform> CookPlatforms);
+
+public sealed record AssetNavigationAuthoringInput(
+    AssetExtensionArtifactInput Artifact,
+    bool Required,
+    AssetNavigationGeneration Generation,
+    IReadOnlyList<string> MaterialTags,
+    IReadOnlyList<AssetTargetPlatform> CookPlatforms);
+
+public sealed record AssetFontFallbackAuthoringInput(
+    string Family,
+    AssetExtensionArtifactInput Artifact);
+
+public sealed record AssetFontAuthoringInput(
+    string PrimaryFamily,
+    AssetExtensionArtifactInput PrimaryArtifact,
+    IReadOnlyList<AssetFontFallbackAuthoringInput> Fallbacks,
+    bool Required,
+    IReadOnlyList<string> ShapingScripts,
+    IReadOnlyList<string> LocalizationTestLocales,
+    IReadOnlyList<int> DpiBuckets,
+    decimal MinimumTextScale,
+    decimal MaximumTextScale);
 
 public sealed record AssetPackageManifestAuthoringOptions(
     string ModificationProvenance,

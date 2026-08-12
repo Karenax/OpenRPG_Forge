@@ -3,6 +3,9 @@ namespace Forge.Network.World;
 public enum CharacterStorageScope { Local, Server }
 public enum FriendlyFirePolicy { Disabled, PartyOnly, Enabled }
 public enum ZoneLifecycle { Persistent, Session, Ephemeral }
+public enum PartyMemberRole { Leader, Officer, Member }
+public enum PartyLootMode { Leader, RoundRobin, NeedBeforeGreed }
+public enum PartySeparationMode { Allow, Warn, Block }
 
 public sealed record NetworkCharacter(
     Guid CharacterId,
@@ -12,7 +15,35 @@ public sealed record NetworkCharacter(
     string ContentFingerprint,
     long Revision);
 
-public sealed record Party(Guid PartyId, Guid LeaderCharacterId, IReadOnlySet<Guid> MemberCharacterIds, long Revision);
+public sealed record PartyRuntimePolicy(
+    int MaximumMembers,
+    PartyLootMode Loot,
+    bool ShareQuests,
+    bool ShareMarkers,
+    PartySeparationMode Separation);
+
+public sealed record Party(
+    Guid PartyId,
+    Guid LeaderCharacterId,
+    IReadOnlySet<Guid> MemberCharacterIds,
+    IReadOnlyDictionary<Guid, PartyMemberRole> Roles,
+    PartyRuntimePolicy Policy,
+    long Revision);
+
+public sealed record PartyInvitation(
+    Guid InvitationId,
+    Guid PartyId,
+    Guid InvitedCharacterId,
+    Guid IssuedByCharacterId,
+    long PartyRevision,
+    DateTimeOffset ExpiresAt);
+
+public sealed record PartyInvitationDecision(
+    bool Accepted,
+    string Code,
+    PartyInvitation? Invitation,
+    long Revision,
+    string AuditEntry);
 
 public sealed record ZoneTemplate(Guid TemplateId, string AreaId, int MaxInstances, int MaxPlayersPerInstance, bool AllowsDynamicCreation);
 

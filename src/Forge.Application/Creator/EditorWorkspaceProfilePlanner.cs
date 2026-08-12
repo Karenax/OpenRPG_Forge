@@ -90,6 +90,23 @@ public static class EditorWorkspaceProfilePlanner
         return Copy(profile, personalFavoriteBlueprintIds: favorites);
     }
 
+    public static EditorWorkspaceProfile UpsertNamedPalette(EditorWorkspaceProfile profile,
+        NamedPaletteCollection collection)
+    {
+        ArgumentNullException.ThrowIfNull(profile);
+        ArgumentNullException.ThrowIfNull(collection);
+        var collections = profile.NamedPaletteCollections.Where(item => item.Id != collection.Id)
+            .Append(collection).OrderBy(item => item.Name, StringComparer.Ordinal).Take(32).ToArray();
+        return Copy(profile, namedPaletteCollections: collections);
+    }
+
+    public static EditorWorkspaceProfile RemoveNamedPalette(EditorWorkspaceProfile profile, Guid collectionId)
+    {
+        ArgumentNullException.ThrowIfNull(profile);
+        return Copy(profile, namedPaletteCollections: profile.NamedPaletteCollections
+            .Where(item => item.Id != collectionId).ToArray());
+    }
+
     public static EditorWorkspaceProfile ConfigureAccessibility(
         EditorWorkspaceProfile profile,
         double uiScale,
@@ -108,6 +125,24 @@ public static class EditorWorkspaceProfilePlanner
         EditorShellConfiguration shell) =>
         Copy(profile, shell: shell);
 
+    public static EditorWorkspaceProfile ConfigureProductivity(
+        EditorWorkspaceProfile profile,
+        EditorDisplayFilter displayFilter,
+        EditorRepeatedPlacementProfile repeatedPlacement,
+        EditorMultiAreaProfile multiArea,
+        EditorContextualHelpProfile help,
+        EditorRolePolicy rolePolicy)
+    {
+        ArgumentNullException.ThrowIfNull(profile);
+        return new EditorWorkspaceProfile(
+            profile.Id, profile.Name, profile.Role, displayFilter, repeatedPlacement.Enabled,
+            profile.OpenAreaTabs, profile.ActiveAreaId, profile.ComparisonAreaId, help.Enabled,
+            profile.Provenance, EditorWorkspaceProfile.CurrentSchemaVersion, profile.UiScale, profile.TextScale,
+            profile.PrimaryFontFamily, profile.FallbackFontFamilies, profile.PersonalFavoriteBlueprintIds,
+            profile.RecentBlueprintIds, profile.Shell, repeatedPlacement, multiArea, help, rolePolicy,
+            profile.NamedPaletteCollections);
+    }
+
     private static EditorWorkspaceProfile Copy(
         EditorWorkspaceProfile source,
         IReadOnlyList<AreaId>? openAreaTabs = null,
@@ -121,7 +156,8 @@ public static class EditorWorkspaceProfilePlanner
         double? textScale = null,
         string? primaryFontFamily = null,
         IReadOnlyList<string>? fallbackFontFamilies = null,
-        EditorShellConfiguration? shell = null) =>
+        EditorShellConfiguration? shell = null,
+        IReadOnlyList<NamedPaletteCollection>? namedPaletteCollections = null) =>
         new(
             source.Id,
             source.Name,
@@ -140,5 +176,10 @@ public static class EditorWorkspaceProfilePlanner
             fallbackFontFamilies ?? source.FallbackFontFamilies,
             personalFavoriteBlueprintIds ?? source.PersonalFavoriteBlueprintIds,
             recentBlueprintIds ?? source.RecentBlueprintIds,
-            shell ?? source.Shell);
+            shell ?? source.Shell,
+            source.RepeatedPlacementProfile,
+            source.MultiArea,
+            source.Help,
+            source.RolePolicy,
+            namedPaletteCollections ?? source.NamedPaletteCollections);
 }

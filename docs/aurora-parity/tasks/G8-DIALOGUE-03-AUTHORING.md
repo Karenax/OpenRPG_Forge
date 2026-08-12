@@ -10,7 +10,13 @@ commentaires, diff sémantique et résolution de conflits. La génération IA ex
 et règles de style ; elle retourne preview, lint et violations avant une application transactionnelle
 explicite et non répétable.
 
-Preuves : `DialogueAuthoringServiceTests`, suite RPG Kit et solution globale.
+La première implémentation G8 restait isolée dans le RPG Kit. R070 relie désormais ces capacités au
+document Dialogue canonique, à la commande transactionnelle, à la persistance, à ForgeScript, au MCP,
+à l’interface et aux adaptateurs moteur.
+
+Preuves de fermeture : `P1-R070-DIALOGUE-PRODUCTION-ACCEPTANCE.md`,
+`DialogueProductionProfileTests`, `DialogueGraphScriptServiceTests`, persistance, MCP, smokes
+Toolset/runtime et capture 1440×950 inspectée.
 
 La famille Dialogue sélectionnée pour G8 est complète. La prochaine tranche unique est
 **G8 QUEST-01**.

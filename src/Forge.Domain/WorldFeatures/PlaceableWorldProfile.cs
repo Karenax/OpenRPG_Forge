@@ -14,7 +14,13 @@ public sealed record PlaceableWorldProfile(
     PlaceableWorldProfile.ReactivePolicy Reactive,
     PlaceableWorldProfile.DynamicPhysicsPolicy? Physics,
     PlaceableWorldProfile.FoundationPolicy? Foundation = null,
-    bool FoundationRequiredAtRuntime = false)
+    bool FoundationRequiredAtRuntime = false,
+    PlaceableOperationsProfile? Operations = null,
+    bool OperationsRequiredAtRuntime = false,
+    PlaceableSecurityEventsProfile? SecurityEvents = null,
+    bool SecurityEventsRequiredAtRuntime = false,
+    PlaceableCompositionEventsProfile? CompositionEvents = null,
+    bool CompositionEventsRequiredAtRuntime = false)
 {
     public enum CredentialConsumption { Retain, Consume, Charge, Shared, VirtualPermission }
     public enum BodyMode { Static, Rigid, Kinematic }

@@ -74,6 +74,64 @@ public partial class GameplayControlsWindow : Window
     private OptionButton? _multiplayer;
     private SpinBox? _vote;
     private OptionButton? _combatProvider;
+    private TabContainer? _tabs;
+    private GameplaySimulationPreview? _simulationPreview;
+    private CheckBox? _flightEnabled;
+    private CheckBox? _flightRequired;
+    private SpinBox? _flightSpeed;
+    private SpinBox? _flightAcceleration;
+    private SpinBox? _flightAltitude;
+    private SpinBox? _flightBanking;
+    private SpinBox? _flightLift;
+    private CheckBox? _flightLanding;
+    private CheckBox? _flightVolumetric;
+    private OptionButton? _projectileMode;
+    private SpinBox? _projectileSpeed;
+    private SpinBox? _projectileGravity;
+    private SpinBox? _projectileLifetime;
+    private CheckBox? _projectilePrediction;
+    private CheckBox? _projectileAuthority;
+    private LineEdit? _projectileVfx;
+    private SpinBox? _physicsStep;
+    private CheckBox? _physicsRequired;
+    private OptionButton? _targetMode;
+    private SpinBox? _targetRange;
+    private SpinBox? _targetRadius;
+    private SpinBox? _targetAngle;
+    private SpinBox? _targetCount;
+    private CheckBox? _targetLos;
+    private SpinBox? _worldScale;
+    private CheckBox? _worldPaused;
+    private LineEdit? _worldPauseDomain;
+    private GameplaySessionPreview? _sessionPreview;
+    private OptionButton? _saveScope;
+    private OptionButton? _saveAuthority;
+    private OptionButton? _saveConflict;
+    private CheckBox? _saveCloud;
+    private LineEdit? _saveCloudAdapter;
+    private CheckBox? _savePersonal;
+    private CheckBox? _saveEncrypted;
+    private SpinBox? _saveSnapshots;
+    private LineEdit? _checkpointWaypoint;
+    private SpinBox? _checkpointCost;
+    private OptionButton? _checkpointParty;
+    private OptionButton? _checkpointCorpse;
+    private SpinBox? _checkpointRadius;
+    private SpinBox? _respawnDelay;
+    private CheckBox? _safeSpawn;
+    private LineEdit? _shellKit;
+    private LineEdit? _shellSkin;
+    private SpinBox? _shellScale;
+    private CheckBox? _shellMap;
+    private CheckBox? _shellJournal;
+    private CheckBox? _shellHud;
+    private TextEdit? _shellInputs;
+    private TextEdit? _controlContexts;
+    private CheckBox? _replayHeadless;
+    private CheckBox? _replayReport;
+    private CheckBox? _replayPackage;
+    private SpinBox? _replayFrames;
+    private LineEdit? _replayDirectory;
     private Label? _summary;
     private Label? _status;
     private string? _capturePath;
@@ -94,7 +152,7 @@ public partial class GameplayControlsWindow : Window
         _brand = brand ?? throw new ArgumentNullException(nameof(brand));
         Title = "Fondations gameplay & contrôles · OpenRPG Forge";
         MinSize = new Vector2I(1180, 780);
-        Size = new Vector2I(1260, 820);
+        Size = new Vector2I(1440, 900);
         Transient = true;
         Visible = false;
         Build();
@@ -103,6 +161,20 @@ public partial class GameplayControlsWindow : Window
         if (capture is not null)
         {
             _capturePath = capture["--gameplay-foundation-ui-capture=".Length..];
+            SetProcess(true);
+        }
+        var r066Capture = OS.GetCmdlineUserArgs().FirstOrDefault(value =>
+            value.StartsWith("--r066-gameplay-simulation-ui-capture=", StringComparison.Ordinal));
+        if (r066Capture is not null)
+        {
+            _capturePath = r066Capture["--r066-gameplay-simulation-ui-capture=".Length..];
+            SetProcess(true);
+        }
+        var r067Capture = OS.GetCmdlineUserArgs().FirstOrDefault(value =>
+            value.StartsWith("--r067-gameplay-session-ui-capture=", StringComparison.Ordinal));
+        if (r067Capture is not null)
+        {
+            _capturePath = r067Capture["--r067-gameplay-session-ui-capture=".Length..];
             SetProcess(true);
         }
     }
@@ -114,6 +186,12 @@ public partial class GameplayControlsWindow : Window
         if (!_captureOpened && _captureDelay >= 1)
         {
             Open();
+            if (OS.GetCmdlineUserArgs().Any(value => value.StartsWith(
+                    "--r067-gameplay-session-ui-capture=", StringComparison.Ordinal)))
+                _tabs!.CurrentTab = 3;
+            else if (OS.GetCmdlineUserArgs().Any(value => value.StartsWith(
+                         "--r066-gameplay-simulation-ui-capture=", StringComparison.Ordinal)))
+                _tabs!.CurrentTab = 2;
             _captureOpened = true;
             return;
         }
@@ -145,6 +223,32 @@ public partial class GameplayControlsWindow : Window
 
     internal bool ApplyForSmokeTest() => Save();
 
+    internal bool ConfigureForR066SmokeTest(ModuleGameplayControlProfile profile)
+    {
+        _profile = profile;
+        Populate();
+        _tabs!.CurrentTab = 2;
+        _flightAltitude!.Value = 96;
+        _projectileMode!.Selected = (int)ProjectileMode.Homing;
+        _targetMode!.Selected = (int)TargetingMode.Chain;
+        _worldScale!.Value = 1.5;
+        return true;
+    }
+
+    internal bool ConfigureForR067SmokeTest(ModuleGameplayControlProfile profile)
+    {
+        _profile = profile;
+        Populate();
+        _tabs!.CurrentTab = 3;
+        _saveScope!.Selected = (int)PersistenceScope.Server;
+        _saveAuthority!.Selected = (int)SaveAuthority.Server;
+        _saveConflict!.Selected = (int)SaveConflictPolicy.ServerWins;
+        _checkpointCost!.Value = 25;
+        _shellScale!.Value = 1.25;
+        _replayFrames!.Value = 120000;
+        return true;
+    }
+
     private void Build()
     {
         var background = new ColorRect { Color = new Color("0d0915") };
@@ -171,10 +275,10 @@ public partial class GameplayControlsWindow : Window
         _summary.AddThemeColorOverride("font_color", new Color("c7b3dc"));
         root.AddChild(_summary);
 
-        var tabs = new TabContainer { SizeFlagsVertical = Control.SizeFlags.ExpandFill };
-        root.AddChild(tabs);
+        _tabs = new TabContainer { SizeFlagsVertical = Control.SizeFlags.ExpandFill };
+        root.AddChild(_tabs);
         var foundationScroll = new ScrollContainer { Name = "Fondations P0", SizeFlagsVertical = Control.SizeFlags.ExpandFill };
-        tabs.AddChild(foundationScroll);
+        _tabs.AddChild(foundationScroll);
         var foundationRows = new VBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
         foundationRows.AddThemeConstantOverride("separation", 12); foundationScroll.AddChild(foundationRows);
         var firstRow = new HBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
@@ -244,7 +348,7 @@ public partial class GameplayControlsWindow : Window
         saves.AddChild(new Label { Text = "SHA-256 · chunks réutilisés · rotation atomique · rollback vérifié", AutowrapMode = TextServer.AutowrapMode.WordSmart, Modulate = new Color("bcaacb") });
 
         var scroll = new ScrollContainer { Name = "Gameplay étendu", SizeFlagsVertical = Control.SizeFlags.ExpandFill };
-        tabs.AddChild(scroll);
+        _tabs.AddChild(scroll);
         var columns = new HBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
         columns.AddThemeConstantOverride("separation", 12);
         scroll.AddChild(columns);
@@ -301,6 +405,9 @@ public partial class GameplayControlsWindow : Window
             Text = "Les fournisseurs temps réel, pause et tours partagent les mêmes événements de combat et restent autoritaires côté serveur.",
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
         });
+
+        BuildSimulationTab();
+        BuildSessionTab();
 
         var footer = new HBoxContainer();
         _status = new Label { Text = "Prêt · aucune mutation.", SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
@@ -379,6 +486,8 @@ public partial class GameplayControlsWindow : Window
         foreach (var provider in _profile.CombatModes.Providers) _combatProvider.AddItem(provider.DisplayName);
         _combatProvider.Selected = _profile.CombatModes.Providers.ToList().FindIndex(item =>
             item.ProviderId == _profile.CombatModes.DefaultProviderId);
+        PopulateSimulation();
+        PopulateSession();
         _summary!.Text = $"P0 v{foundation.SchemaVersion} · {foundation.Cameras.Profiles.Count} caméras · " +
                          $"{foundation.Input.Bindings.Count} bindings · autosave {foundation.Save.AutosaveIntervalSeconds}s · " +
                          $"{_profile.RadialMenu.Actions.Count} actions avancées · provenance {_profile.Provenance}";
@@ -491,8 +600,22 @@ public partial class GameplayControlsWindow : Window
             var selected = Math.Clamp(_combatProvider!.Selected, 0, providers.Count - 1);
             var combat = new CombatModeProfile(_profile.CombatModes.Id, 1, providers[selected].ProviderId,
                 providers, "forge-ui");
+            var simulation = BuildSimulationProfile(_profile.Simulation);
+            var simulationDiagnostic = GameplaySimulationProfileValidator.Validate(simulation).FirstOrDefault();
+            if (simulationDiagnostic is not null)
+            {
+                _status!.Text = $"âœ• {simulationDiagnostic.Code} Â· {simulationDiagnostic.Path}";
+                return false;
+            }
+            var session = BuildSessionProfile(_profile.Session);
+            var sessionDiagnostic = GameplaySessionProfileValidator.Validate(session).FirstOrDefault();
+            if (sessionDiagnostic is not null)
+            {
+                _status!.Text = $"âœ• {sessionDiagnostic.Code} Â· {sessionDiagnostic.Path}";
+                return false;
+            }
             var candidate = new ModuleGameplayControlProfile(_profile.Id, 1, swim, climb, radial, time, combat,
-                "forge-ui", foundation);
+                "forge-ui", foundation, simulation, session);
             var succeeded = _apply?.Invoke(candidate) == true;
             _status!.Text = succeeded
                 ? "✓ Contrôles validés, persistants et annulables."
@@ -505,6 +628,406 @@ public partial class GameplayControlsWindow : Window
             _status!.Text = $"✕ {exception.Message}";
             return false;
         }
+    }
+
+    private void BuildSimulationTab()
+    {
+        var simulationScroll = new ScrollContainer
+        {
+            Name = "Simulation 3D P1",
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+        };
+        _tabs!.AddChild(simulationScroll);
+        var content = new VBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        content.AddThemeConstantOverride("separation", 12);
+        simulationScroll.AddChild(content);
+        _simulationPreview = new GameplaySimulationPreview();
+        content.AddChild(_simulationPreview);
+        var grid = new GridContainer { Columns = 3, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        grid.AddThemeConstantOverride("h_separation", 12);
+        grid.AddThemeConstantOverride("v_separation", 12);
+        content.AddChild(grid);
+
+        var flight = Card(grid, "VOL LIBRE 3D");
+        _flightEnabled = Check("Activer le vol", true); flight.AddChild(_flightEnabled);
+        _flightRequired = Check("Requis au runtime", false); flight.AddChild(_flightRequired);
+        _flightSpeed = Spin(0, 250, 12, .5); flight.AddChild(Row("Vitesse max.", _flightSpeed));
+        _flightAcceleration = Spin(0, 500, 18, .5); flight.AddChild(Row("Accélération", _flightAcceleration));
+        _flightAltitude = Spin(1, 10000, 80, 1); flight.AddChild(Row("Altitude max.", _flightAltitude));
+        _flightBanking = Spin(0, 89, 35, 1); flight.AddChild(Row("Inclinaison", _flightBanking));
+        _flightLift = Spin(0, 100, 2, .1); flight.AddChild(Row("Portance", _flightLift));
+        _flightLanding = Check("Atterrissage sur surface", true); flight.AddChild(_flightLanding);
+        _flightVolumetric = Check("Navigation volumétrique", true); flight.AddChild(_flightVolumetric);
+
+        var projectile = Card(grid, "PROJECTILES");
+        _projectileMode = new OptionButton();
+        foreach (var value in Enum.GetValues<ProjectileMode>()) _projectileMode.AddItem(value.ToString());
+        projectile.AddChild(Row("Mode", _projectileMode));
+        _projectileSpeed = Spin(0, 1000, 24, 1); projectile.AddChild(Row("Vitesse", _projectileSpeed));
+        _projectileGravity = Spin(0, 100, 9.81, .01); projectile.AddChild(Row("Gravité", _projectileGravity));
+        _projectileLifetime = Spin(0, 300, 8, .25); projectile.AddChild(Row("Durée (s)", _projectileLifetime));
+        _projectilePrediction = Check("Prédiction client", true); projectile.AddChild(_projectilePrediction);
+        _projectileAuthority = Check("Impact serveur autoritaire", true); projectile.AddChild(_projectileAuthority);
+        _projectileVfx = new LineEdit { PlaceholderText = "vfx:projectile-trail" };
+        projectile.AddChild(Row("Traînée VFX", _projectileVfx));
+        projectile.AddChild(new Label
+        {
+            Text = "Collision, impact VFX, révision et audit restent dans le profil canonique.",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+            Modulate = new Color("bcaacb"),
+        });
+
+        var physics = Card(grid, "PHYSIQUE 3D");
+        _physicsRequired = Check("Scène requise au runtime", false); physics.AddChild(_physicsRequired);
+        _physicsStep = Spin(.001, .1, 1.0 / 60, .001); physics.AddChild(Row("Pas fixe (s)", _physicsStep));
+        physics.AddChild(new Label
+        {
+            Text = "Corps configurés : statique, cinématique, rigide et trigger.\n" +
+                   "Liaisons : fixe, charnière, glissière et ressort.\n" +
+                   "Bornes déterministes, personnages et politique réseau serveur.",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        });
+
+        var targeting = Card(grid, "CIBLAGE & APERÇU");
+        _targetMode = new OptionButton();
+        foreach (var value in Enum.GetValues<TargetingMode>()) _targetMode.AddItem(value.ToString());
+        targeting.AddChild(Row("Forme", _targetMode));
+        _targetRange = Spin(.1, 1000, 18, .5); targeting.AddChild(Row("Portée", _targetRange));
+        _targetRadius = Spin(0, 500, 4, .25); targeting.AddChild(Row("Rayon", _targetRadius));
+        _targetAngle = Spin(1, 360, 65, 1); targeting.AddChild(Row("Angle", _targetAngle));
+        _targetCount = Spin(1, 256, 6, 1); targeting.AddChild(Row("Cibles max.", _targetCount));
+        _targetLos = Check("Exiger ligne de vue", true); targeting.AddChild(_targetLos);
+        targeting.AddChild(new Label
+        {
+            Text = "Self · Entity · Point · Direction · Area · Cone · Line · Chain",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+            Modulate = new Color("bcaacb"),
+        });
+
+        var world = Card(grid, "TEMPS DU MONDE");
+        _worldScale = Spin(.01, 100, 1, .01); world.AddChild(Row("Échelle globale", _worldScale));
+        _worldPaused = Check("Horloge en pause", false); world.AddChild(_worldPaused);
+        _worldPauseDomain = new LineEdit { PlaceholderText = "gameplay" };
+        world.AddChild(Row("Domaine pause", _worldPauseDomain));
+        world.AddChild(new Label
+        {
+            Text = "Calendrier, échelles locales, domaines de pause, planifications autoritaires et sauvegarde de révision.",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        });
+
+        var governance = Card(grid, "GOUVERNANCE");
+        governance.AddChild(new Label
+        {
+            Text = "✓ UUID et schéma stables\n✓ Provenance par ressource\n✓ Diagnostic champ par champ\n" +
+                   "✓ Commande dry-run / diff\n✓ Annuler / rétablir atomique\n✓ Handles ForgeScript typés\n" +
+                   "✓ Lecture MCP filtrée\n✓ Autorité serveur explicite",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+            Modulate = new Color("aee8d2"),
+        });
+    }
+
+    private void PopulateSimulation()
+    {
+        if (_profile is null || _flightEnabled is null) return;
+        var simulation = _profile.Simulation;
+        var flight = simulation.Flight;
+        _flightEnabled.ButtonPressed = flight.Enabled;
+        _flightRequired!.ButtonPressed = flight.Required;
+        _flightSpeed!.Value = flight.MaximumSpeed;
+        _flightAcceleration!.Value = flight.Acceleration;
+        _flightAltitude!.Value = flight.MaximumAltitude;
+        _flightBanking!.Value = flight.BankingDegrees;
+        _flightLift!.Value = flight.Lift;
+        _flightLanding!.ButtonPressed = flight.RequiresLandingSurface;
+        _flightVolumetric!.ButtonPressed = flight.VolumetricNavigation;
+        _projectileMode!.Selected = (int)simulation.Projectiles.Mode;
+        _projectileSpeed!.Value = simulation.Projectiles.Speed;
+        _projectileGravity!.Value = simulation.Projectiles.Gravity;
+        _projectileLifetime!.Value = simulation.Projectiles.LifetimeSeconds;
+        _projectilePrediction!.ButtonPressed = simulation.Projectiles.Prediction;
+        _projectileAuthority!.ButtonPressed = simulation.Projectiles.ServerAuthoritative;
+        _projectileVfx!.Text = simulation.Projectiles.VfxAssetId;
+        _physicsRequired!.ButtonPressed = simulation.Physics.Required;
+        _physicsStep!.Value = simulation.Physics.FixedStepSeconds;
+        _targetMode!.Selected = (int)simulation.Targeting.Mode;
+        _targetRange!.Value = simulation.Targeting.MaximumRange;
+        _targetRadius!.Value = simulation.Targeting.Radius;
+        _targetAngle!.Value = simulation.Targeting.AngleDegrees;
+        _targetCount!.Value = simulation.Targeting.MaximumTargets;
+        _targetLos!.ButtonPressed = simulation.Targeting.RequiresLineOfSight;
+        _worldScale!.Value = simulation.WorldTime.InitialClock.TimeScale;
+        _worldPaused!.ButtonPressed = simulation.WorldTime.InitialClock.Paused;
+        _worldPauseDomain!.Text = simulation.WorldTime.InitialClock.PauseDomain;
+        _simulationPreview!.ShowProfile(simulation);
+    }
+
+    private GameplaySimulationProfile BuildSimulationProfile(GameplaySimulationProfile source)
+    {
+        var flight = source.Flight with
+        {
+            Enabled = _flightEnabled!.ButtonPressed,
+            Required = _flightRequired!.ButtonPressed,
+            MaximumSpeed = (float)_flightSpeed!.Value,
+            Acceleration = (float)_flightAcceleration!.Value,
+            MaximumAltitude = (float)_flightAltitude!.Value,
+            BankingDegrees = (float)_flightBanking!.Value,
+            Lift = (float)_flightLift!.Value,
+            RequiresLandingSurface = _flightLanding!.ButtonPressed,
+            VolumetricNavigation = _flightVolumetric!.ButtonPressed,
+            Provenance = "forge-ui:r066",
+        };
+        var projectile = source.Projectiles with
+        {
+            Mode = (ProjectileMode)_projectileMode!.Selected,
+            Speed = (float)_projectileSpeed!.Value,
+            Gravity = (float)_projectileGravity!.Value,
+            LifetimeSeconds = (float)_projectileLifetime!.Value,
+            Prediction = _projectilePrediction!.ButtonPressed,
+            ServerAuthoritative = _projectileAuthority!.ButtonPressed,
+            VfxAssetId = _projectileVfx!.Text.Trim(),
+            Provenance = "forge-ui:r066",
+        };
+        var physics = source.Physics with
+        {
+            Required = _physicsRequired!.ButtonPressed,
+            FixedStepSeconds = (float)_physicsStep!.Value,
+            Provenance = "forge-ui:r066",
+        };
+        var targeting = source.Targeting with
+        {
+            Mode = (TargetingMode)_targetMode!.Selected,
+            MaximumRange = (float)_targetRange!.Value,
+            Radius = (float)_targetRadius!.Value,
+            AngleDegrees = (float)_targetAngle!.Value,
+            MaximumTargets = (int)_targetCount!.Value,
+            RequiresLineOfSight = _targetLos!.ButtonPressed,
+            Provenance = "forge-ui:r066",
+        };
+        var world = source.WorldTime with
+        {
+            InitialClock = source.WorldTime.InitialClock with
+            {
+                TimeScale = (float)_worldScale!.Value,
+                Paused = _worldPaused!.ButtonPressed,
+                PauseDomain = _worldPauseDomain!.Text.Trim().ToLowerInvariant(),
+            },
+            Provenance = "forge-ui:r066",
+        };
+        return source with
+        {
+            Flight = flight,
+            Projectiles = projectile,
+            Physics = physics,
+            Targeting = targeting,
+            WorldTime = world,
+            Provenance = "forge-ui:r066",
+        };
+    }
+
+    private void BuildSessionTab()
+    {
+        var sessionScroll = new ScrollContainer
+        {
+            Name = "Session & replay P1",
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+            HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
+        };
+        _tabs!.AddChild(sessionScroll);
+        var content = new VBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        content.AddThemeConstantOverride("separation", 12);
+        sessionScroll.AddChild(content);
+        _sessionPreview = new GameplaySessionPreview();
+        content.AddChild(_sessionPreview);
+        var grid = new GridContainer { Columns = 5, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        grid.AddThemeConstantOverride("h_separation", 12);
+        grid.AddThemeConstantOverride("v_separation", 12);
+        content.AddChild(grid);
+
+        var persistence = Card(grid, "SAUVEGARDES & PORTÉES", 245);
+        _saveScope = EnumChoice<PersistenceScope>(); persistence.AddChild(CompactRow("Portée", _saveScope));
+        _saveAuthority = EnumChoice<SaveAuthority>(); persistence.AddChild(CompactRow("Autorité", _saveAuthority));
+        _saveConflict = EnumChoice<SaveConflictPolicy>(); persistence.AddChild(CompactRow("Conflit", _saveConflict));
+        _saveCloud = Check("Adaptateur cloud optionnel", false); persistence.AddChild(_saveCloud);
+        _saveCloudAdapter = new LineEdit { PlaceholderText = "none" };
+        persistence.AddChild(CompactRow("Adaptateur", _saveCloudAdapter));
+        _savePersonal = Check("Contient des données personnelles", true); persistence.AddChild(_savePersonal);
+        _saveEncrypted = Check("Chiffrer au repos", true); persistence.AddChild(_saveEncrypted);
+        _saveSnapshots = Spin(1, 10000, 8, 1); persistence.AddChild(CompactRow("Snapshots", _saveSnapshots));
+
+        var checkpoint = Card(grid, "CHECKPOINT & RESPAWN", 245);
+        _checkpointWaypoint = new LineEdit { PlaceholderText = "waypoint:start" };
+        checkpoint.AddChild(CompactRow("Waypoint", _checkpointWaypoint));
+        _checkpointCost = Spin(0, 1000000, 0, 1); checkpoint.AddChild(CompactRow("Coût", _checkpointCost));
+        _checkpointParty = EnumChoice<PartyRespawnPolicy>(); checkpoint.AddChild(CompactRow("Groupe", _checkpointParty));
+        _checkpointCorpse = EnumChoice<CorpsePolicy>(); checkpoint.AddChild(CompactRow("Cadavre", _checkpointCorpse));
+        _checkpointRadius = Spin(.1, 1000, 3, .1); checkpoint.AddChild(CompactRow("Rayon sûr", _checkpointRadius));
+        _respawnDelay = Spin(0, 600, 3, .25); checkpoint.AddChild(CompactRow("Délai", _respawnDelay));
+        _safeSpawn = Check("Exiger un spawn sûr", true); checkpoint.AddChild(_safeSpawn);
+        checkpoint.AddChild(new Label
+        {
+            Text = "Hooks avant/après et politique d’inventaire sont persistés dans le profil.",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+            Modulate = new Color("bcaacb"),
+        });
+
+        var shell = Card(grid, "CARTE · JOURNAL · HUD", 245);
+        _shellKit = new LineEdit(); shell.AddChild(CompactRow("Kit UI", _shellKit));
+        _shellSkin = new LineEdit(); shell.AddChild(CompactRow("Skin", _shellSkin));
+        _shellScale = Spin(.5, 3, 1, .05); shell.AddChild(CompactRow("Échelle", _shellScale));
+        _shellMap = Check("Carte visible", true); shell.AddChild(_shellMap);
+        _shellJournal = Check("Journal visible", true); shell.AddChild(_shellJournal);
+        _shellHud = Check("HUD visible", true); shell.AddChild(_shellHud);
+        shell.AddChild(new Label { Text = "Actions d’entrée · une par ligne" });
+        _shellInputs = new TextEdit { CustomMinimumSize = new Vector2(210, 92) };
+        shell.AddChild(_shellInputs);
+
+        var controls = Card(grid, "VERROUS DE CONTRÔLE", 245);
+        controls.AddChild(new Label
+        {
+            Text = "Contexte · propriétaire | curseur | caméra | actions | priorité",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        });
+        _controlContexts = new TextEdit
+        {
+            CustomMinimumSize = new Vector2(210, 170),
+            WrapMode = TextEdit.LineWrappingMode.None,
+        };
+        controls.AddChild(_controlContexts);
+        controls.AddChild(new Label
+        {
+            Text = "Dialogue et cinématique empilent leur propriétaire puis restaurent toujours le contexte précédent.",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+            Modulate = new Color("bcaacb"),
+        });
+
+        var replay = Card(grid, "REPLAY DÉTERMINISTE", 245);
+        _replayHeadless = Check("Exécuter headless", true); replay.AddChild(_replayHeadless);
+        _replayReport = Check("Rapport de divergence", true); replay.AddChild(_replayReport);
+        _replayPackage = Check("Reproduction minimale", true); replay.AddChild(_replayPackage);
+        _replayFrames = Spin(0, 10000000, 100000, 1000); replay.AddChild(CompactRow("Frames", _replayFrames));
+        _replayDirectory = new LineEdit(); replay.AddChild(CompactRow("Dossier", _replayDirectory));
+        replay.AddChild(new Label
+        {
+            Text = "Entrées · événements · seeds · hash d’état · données privées expurgées",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+            Modulate = new Color("bcaacb"),
+        });
+
+    }
+
+    private void PopulateSession()
+    {
+        if (_profile is null || _saveScope is null) return;
+        var session = _profile.Session;
+        _saveScope.Selected = (int)session.Persistence.Scope;
+        _saveAuthority!.Selected = (int)session.Persistence.Authority;
+        _saveConflict!.Selected = (int)session.Persistence.ConflictPolicy;
+        _saveCloud!.ButtonPressed = session.Persistence.CloudAdapterEnabled;
+        _saveCloudAdapter!.Text = session.Persistence.CloudAdapter;
+        _savePersonal!.ButtonPressed = session.Persistence.ContainsPersonalData;
+        _saveEncrypted!.ButtonPressed = session.Persistence.EncryptAtRest;
+        _saveSnapshots!.Value = session.Persistence.MaximumSnapshots;
+        var checkpoint = session.Checkpoints.FirstOrDefault();
+        _checkpointWaypoint!.Text = checkpoint?.WaypointId ?? string.Empty;
+        _checkpointCost!.Value = checkpoint?.CurrencyCost ?? 0;
+        _checkpointParty!.Selected = (int)(checkpoint?.PartyPolicy ?? PartyRespawnPolicy.Individual);
+        _checkpointCorpse!.Selected = (int)(checkpoint?.CorpsePolicy ?? CorpsePolicy.Preserve);
+        _checkpointRadius!.Value = checkpoint?.SafeRadius ?? 3;
+        _respawnDelay!.Value = checkpoint?.RespawnDelaySeconds ?? 3;
+        _safeSpawn!.ButtonPressed = checkpoint?.RequireSafeSpawn ?? true;
+        _shellKit!.Text = session.Shell.KitId;
+        _shellSkin!.Text = session.Shell.SkinId;
+        _shellScale!.Value = session.Shell.Scale;
+        _shellMap!.ButtonPressed = session.Shell.MapVisible;
+        _shellJournal!.ButtonPressed = session.Shell.JournalVisible;
+        _shellHud!.ButtonPressed = session.Shell.HudVisible;
+        _shellInputs!.Text = string.Join("\n", session.Shell.InputActions);
+        _controlContexts!.Text = string.Join("\n", session.ControlLocks.Contexts.OrderBy(item => item.Priority)
+            .Select(item => $"{item.OwnerId} | {item.CursorVisible} | {item.CameraMode} | " +
+                            $"{string.Join(',', item.AllowedInputActions.Order(StringComparer.Ordinal))} | {item.Priority}"));
+        _replayHeadless!.ButtonPressed = session.Replay.HeadlessReplay;
+        _replayReport!.ButtonPressed = session.Replay.EmitDivergenceReport;
+        _replayPackage!.ButtonPressed = session.Replay.EmitMinimalPackage;
+        _replayFrames!.Value = session.Replay.MaximumFrames;
+        _replayDirectory!.Text = session.Replay.PackageDirectory;
+        _sessionPreview!.ShowProfile(session);
+    }
+
+    private GameplaySessionProfile BuildSessionProfile(GameplaySessionProfile source)
+    {
+        var persistence = source.Persistence with
+        {
+            Scope = (PersistenceScope)_saveScope!.Selected,
+            Authority = (SaveAuthority)_saveAuthority!.Selected,
+            ConflictPolicy = (SaveConflictPolicy)_saveConflict!.Selected,
+            CloudAdapterEnabled = _saveCloud!.ButtonPressed,
+            CloudAdapter = _saveCloudAdapter!.Text.Trim(),
+            ContainsPersonalData = _savePersonal!.ButtonPressed,
+            PrivacyClassification = _savePersonal.ButtonPressed ? "personal" : "internal",
+            EncryptAtRest = _saveEncrypted!.ButtonPressed,
+            MaximumSnapshots = (int)_saveSnapshots!.Value,
+            Provenance = "forge-ui:r067",
+        };
+        var checkpointSource = source.Checkpoints.FirstOrDefault() ?? GameplaySessionProfile
+            .CreateDefault(Forge.Domain.Modules.ModuleId.From(_profile!.Id)).Checkpoints[0];
+        var checkpoint = checkpointSource with
+        {
+            WaypointId = _checkpointWaypoint!.Text.Trim(),
+            CurrencyCost = (int)_checkpointCost!.Value,
+            PartyPolicy = (PartyRespawnPolicy)_checkpointParty!.Selected,
+            CorpsePolicy = (CorpsePolicy)_checkpointCorpse!.Selected,
+            SafeRadius = _checkpointRadius!.Value,
+            RespawnDelaySeconds = _respawnDelay!.Value,
+            RequireSafeSpawn = _safeSpawn!.ButtonPressed,
+            Provenance = "forge-ui:r067",
+        };
+        var inputs = _shellInputs!.Text.Split('\n', StringSplitOptions.RemoveEmptyEntries |
+                StringSplitOptions.TrimEntries).Select(item => item.ToLowerInvariant())
+            .Distinct(StringComparer.Ordinal).ToArray();
+        var shell = source.Shell with
+        {
+            KitId = _shellKit!.Text.Trim(),
+            SkinId = _shellSkin!.Text.Trim(),
+            Scale = _shellScale!.Value,
+            MapVisible = _shellMap!.ButtonPressed,
+            JournalVisible = _shellJournal!.ButtonPressed,
+            HudVisible = _shellHud!.ButtonPressed,
+            InputActions = inputs,
+            Provenance = "forge-ui:r067",
+        };
+        var contextIds = source.ControlLocks.Contexts.ToDictionary(item => item.OwnerId, item => item.Id,
+            StringComparer.Ordinal);
+        var contexts = new List<ControlContext>();
+        foreach (var raw in _controlContexts!.Text.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var parts = raw.Split('|').Select(item => item.Trim()).ToArray();
+            if (parts.Length != 5 || !bool.TryParse(parts[1], out var cursor) ||
+                !int.TryParse(parts[4], out var priority))
+                throw new ArgumentException($"Contexte de contrôle invalide : '{raw}'.");
+            contexts.Add(new(contextIds.GetValueOrDefault(parts[0], Guid.NewGuid()), 1, "forge-ui:r067",
+                parts[0], cursor, parts[2], new HashSet<string>(parts[3].Split(',',
+                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+                    StringComparer.Ordinal), true, priority));
+        }
+        var locks = source.ControlLocks with { Contexts = contexts, Provenance = "forge-ui:r067" };
+        var replay = source.Replay with
+        {
+            HeadlessReplay = _replayHeadless!.ButtonPressed,
+            EmitDivergenceReport = _replayReport!.ButtonPressed,
+            EmitMinimalPackage = _replayPackage!.ButtonPressed,
+            MaximumFrames = (int)_replayFrames!.Value,
+            PackageDirectory = _replayDirectory!.Text.Trim(),
+            Provenance = "forge-ui:r067",
+        };
+        return source with
+        {
+            Persistence = persistence,
+            Checkpoints = [checkpoint],
+            Shell = shell,
+            ControlLocks = locks,
+            Replay = replay,
+            Provenance = "forge-ui:r067",
+        };
     }
 
     private void PopulateSelectedCamera()
@@ -578,11 +1101,11 @@ public partial class GameplayControlsWindow : Window
         return actions;
     }
 
-    private static VBoxContainer Card(Container parent, string title)
+    private static VBoxContainer Card(Container parent, string title, float minimumWidth = 350)
     {
         var panel = new PanelContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
         panel.AddThemeStyleboxOverride("panel", Style("171221", "513a6d")); parent.AddChild(panel);
-        var box = new VBoxContainer { CustomMinimumSize = new Vector2(350, 0) };
+        var box = new VBoxContainer { CustomMinimumSize = new Vector2(minimumWidth, 0) };
         box.AddThemeConstantOverride("separation", 7); panel.AddChild(box);
         var heading = new Label { Text = title }; heading.AddThemeColorOverride("font_color", new Color("ffb06f"));
         box.AddChild(heading); return box;
@@ -602,7 +1125,22 @@ public partial class GameplayControlsWindow : Window
         control.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill; row.AddChild(control); return row;
     }
 
+    private static HBoxContainer CompactRow(string label, Control control)
+    {
+        var row = new HBoxContainer();
+        row.AddChild(new Label { Text = label, CustomMinimumSize = new Vector2(78, 0) });
+        control.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        row.AddChild(control);
+        return row;
+    }
+
     private static CheckBox Check(string text, bool pressed) => new() { Text = text, ButtonPressed = pressed };
+    private static OptionButton EnumChoice<T>() where T : struct, Enum
+    {
+        var choice = new OptionButton { FitToLongestItem = false, ClipText = true };
+        foreach (var value in Enum.GetValues<T>()) choice.AddItem(value.ToString());
+        return choice;
+    }
     private static SpinBox Spin(double min, double max, double value, double step) => new()
     { MinValue = min, MaxValue = max, Value = value, Step = step, AllowGreater = false, AllowLesser = false };
     private static string MultiplayerLabel(MultiplayerPausePolicy value) => value switch

@@ -108,7 +108,7 @@ public sealed class DuplicateAreaHandler
             source.Dimensions,
             portals,
             navigation: AreaNavigationDefinition.CloneForArea(source.Navigation, command.DestinationAreaId),
-            environment: source.Environment,
+            environment: source.Environment.CloneForArea(command.DestinationAreaId),
             authoring: source.Authoring,
             world: AreaWorldProfile.CloneForArea(source.World, command.DestinationAreaId),
             runtimePolicies: Domain.RuntimePolicies.AreaRuntimePolicyProfile.CloneForArea(
@@ -129,10 +129,13 @@ public sealed class DuplicateAreaHandler
         }
 
         var path = $"areas/{clone.Id}";
+        var preview = AreaDuplicationPreview.Create(source, command.Mode, command.ExternalPortalPolicy);
         var patch = new ProjectPatch(
             "add",
             path,
-            $"Duplicate area '{source.DisplayName}' as '{clone.DisplayName}' with {entities.Length} entity instance(s).");
+            $"Duplicate area '{source.DisplayName}' as '{clone.DisplayName}' with {entities.Length} entity instance(s), " +
+            $"terrain={preview.TerrainCopied}, navigation={preview.NavigationCopied}, " +
+            $"environment={preview.EnvironmentCopied}, shared-assets={preview.SharedAssetReferences}.");
         var inverse = new ProjectPatch("remove", path, $"Remove duplicated area '{clone.DisplayName}'.");
         if (command.DryRun)
         {

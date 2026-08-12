@@ -59,4 +59,22 @@ public sealed class OperationalReadinessProfileTests
         Assert.Throws<ArgumentException>(() => new ContentSynchronizationPolicy(Guid.NewGuid(), 1,
             true, true, true, false, "../cache", 1_048_576, ["CC0-1.0"], [], "test"));
     }
+
+    [Fact]
+    public void Recovery_selection_and_runtime_resolution_are_bounded_and_explicit()
+    {
+        var policy = OperationalReadinessProfile.CreateDefault(
+            Guid.Parse("e0600000-0000-4000-8000-000000000001")).Recovery;
+        var selection = new RecoveryRestoreSelection(
+            Guid.Parse("e0600000-0000-4000-8000-000000000002"), 1,
+            RecoveryRestoreSection.ProjectAndModule | RecoveryRestoreSection.Areas, "test:r060");
+
+        Assert.True(selection.Sections.HasFlag(RecoveryRestoreSection.Areas));
+        Assert.True(RecoveryRuntimeResolver.Resolve(policy, true).Available);
+        Assert.Empty(RecoveryRuntimeResolver.Resolve(null, false).Diagnostics);
+        Assert.Equal(RecoveryRuntimeResolver.RequiredMissingCode,
+            Assert.Single(RecoveryRuntimeResolver.Resolve(null, true).Diagnostics).Code);
+        Assert.Throws<ArgumentOutOfRangeException>(() => new RecoveryRestoreSelection(
+            Guid.NewGuid(), 1, RecoveryRestoreSection.None, "test:r060"));
+    }
 }

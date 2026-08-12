@@ -9,6 +9,11 @@ niveau, propriétés et provenance. Un changement de type passe par un aperçu d
 rig incompatibles avant migration explicite. La validation localisée couvre identité, type, slots,
 effets, scripts, localisation, asset, licence et économie.
 
-Preuves : `ItemFoundationTests`, suite RPG Kit et solution globale.
+R088 relie désormais ce wizard au document canonique `ItemFoundationProfile.Creation`, avec règles de
+génération, commande unique, aperçu live, ForgeScript typé, ressource MCP filtrée et résolution runtime
+optionnelle/requise.
 
-La prochaine tranche unique est **G8 ITEM-02**.
+Preuves : `ItemFoundationTests`, `ItemCreationProfileTests`,
+`P1-R088-ITEM-CREATION-ACCEPTANCE.md`, suite RPG Kit et portail intégré.
+
+La prochaine tranche ITEM canonique est **R089 / FC-ITEM-P1-02**.

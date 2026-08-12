@@ -13,4 +13,7 @@ public sealed record AudioClipDefinition(
     long MemoryBytes,
     string LicenseSpdx,
     string Provenance,
-    string ContentSha256);
+    string ContentSha256,
+    string Transcript = "",
+    IReadOnlyList<float>? WaveformPeaks = null,
+    float DurationSeconds = 0);

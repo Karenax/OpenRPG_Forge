@@ -117,13 +117,18 @@ public static class ModuleReleaseBundleBuilder
             entries.Add(($"deltas/{deltaName}", File.ReadAllBytes(delta)));
         }
 
-        if (windows)
+        if (windows && configuration.WindowsPackaging.Mode != WindowsPackageMode.PortableZip)
         {
             entries.Add(("install.ps1", Encoding.UTF8.GetBytes(BuildInstallScript(manifest))));
             if (configuration.WindowsPackaging.IncludeUninstaller)
             {
                 entries.Add(("uninstall.ps1", Encoding.UTF8.GetBytes(BuildUninstallScript(manifest))));
             }
+        }
+        else if (!windows)
+        {
+            entries.Add(("install.sh", Encoding.UTF8.GetBytes(BuildUnixInstallScript(manifest))));
+            entries.Add(("uninstall.sh", Encoding.UTF8.GetBytes(BuildUnixUninstallScript(manifest))));
         }
 
         var destinationDirectory = Path.GetDirectoryName(destination)
@@ -164,10 +169,32 @@ public static class ModuleReleaseBundleBuilder
     private static string BuildInstallScript(ModuleReleaseManifest manifest)
     {
         var prerequisites = string.Join(", ", manifest.Prerequisites);
+        var prerequisiteArray = string.Join(", ", manifest.Prerequisites.Select(QuotePowerShell));
+        var prerequisiteCheck = manifest.PrerequisitesDetection
+            ? $$"""
+                $missing = @()
+                foreach ($requirement in @({{prerequisiteArray}})) {
+                    switch ($requirement) {
+                        'windows-x64' { if (-not [Environment]::Is64BitOperatingSystem) { $missing += $requirement } }
+                        'vulkan-or-d3d12' { if ([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT) { $missing += $requirement } }
+                        default { if ($requirement -like 'dotnet-*' -and -not (Get-Command dotnet -ErrorAction SilentlyContinue)) { $missing += $requirement } }
+                    }
+                }
+                if ($missing.Count -gt 0) { throw "Missing Windows prerequisites: $($missing -join ', ')" }
+                Write-Output 'OPENRPG_FORGE_WINDOWS_PREREQUISITES_PASS count={{manifest.Prerequisites.Count}}'
+                """
+            : "Write-Output 'OPENRPG_FORGE_WINDOWS_PREREQUISITES_SKIPPED'";
+        var installLog = manifest.InstallLog
+            ? $$"""
+                $log = Join-Path $Destination 'openrpg-forge-install.log'
+                Add-Content -LiteralPath $log -Value "Installed {{manifest.PackageFile}} channel={{manifest.Channel}} prerequisites={{prerequisites}}"
+                """
+            : string.Empty;
         return $$"""
             [CmdletBinding()]
             param([string]$Destination = (Join-Path $env:LOCALAPPDATA 'OpenRPG Forge\Modules'))
             $ErrorActionPreference = 'Stop'
+            {{prerequisiteCheck}}
             $bundleRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
             $source = Join-Path $bundleRoot 'packages\{{manifest.PackageFile}}'
             if (-not (Test-Path -LiteralPath $source -PathType Leaf)) { throw 'Module package is missing from this release bundle.' }
@@ -176,11 +203,12 @@ public static class ModuleReleaseBundleBuilder
             Copy-Item -LiteralPath $source -Destination $target -Force
             $hash = (Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash.ToLowerInvariant()
             if ($hash -ne '{{manifest.PackageSha256}}') { throw 'Installed module hash does not match release-manifest.json.' }
-            $log = Join-Path $Destination 'openrpg-forge-install.log'
-            Add-Content -LiteralPath $log -Value "Installed {{manifest.PackageFile}} channel={{manifest.Channel}} prerequisites={{prerequisites}}"
+            {{installLog}}
             Write-Output "OPENRPG_FORGE_WINDOWS_INSTALL_PASS package={{manifest.PackageFile}} sha256=$hash"
             """ + Environment.NewLine;
     }
+
+    private static string QuotePowerShell(string value) => $"'{value.Replace("'", "''", StringComparison.Ordinal)}'";
 
     private static string BuildUninstallScript(ModuleReleaseManifest manifest) =>
         $$"""
@@ -194,6 +222,38 @@ public static class ModuleReleaseBundleBuilder
                 Add-Content -LiteralPath $log -Value 'Uninstalled {{manifest.PackageFile}}'
             }
             Write-Output 'OPENRPG_FORGE_WINDOWS_UNINSTALL_PASS package={{manifest.PackageFile}}'
+            """ + Environment.NewLine;
+
+    private static string BuildUnixInstallScript(ModuleReleaseManifest manifest)
+    {
+        var expectedKernel = manifest.Platform == ModuleDistributionPlatform.LinuxX64 ? "Linux" : "Darwin";
+        var expectedMachine = manifest.Platform == ModuleDistributionPlatform.LinuxX64 ? "x86_64" : "arm64";
+        return $$"""
+            #!/bin/sh
+            set -eu
+            destination="${1:-${XDG_DATA_HOME:-$HOME/.local/share}/openrpg-forge/modules}"
+            bundle_root=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+            source_file="$bundle_root/packages/{{manifest.PackageFile}}"
+            [ "$(uname -s)" = "{{expectedKernel}}" ] || { echo "ORF-BUILD-016-PLATFORM kernel" >&2; exit 20; }
+            [ "$(uname -m)" = "{{expectedMachine}}" ] || { echo "ORF-BUILD-016-PLATFORM architecture" >&2; exit 21; }
+            [ -f "$source_file" ] || { echo "ORF-BUILD-016-PACKAGE missing" >&2; exit 22; }
+            mkdir -p "$destination"
+            target="$destination/{{manifest.PackageFile}}"
+            cp "$source_file" "$target"
+            if command -v sha256sum >/dev/null 2>&1; then actual=$(sha256sum "$target" | awk '{print $1}'); else actual=$(shasum -a 256 "$target" | awk '{print $1}'); fi
+            [ "$actual" = "{{manifest.PackageSha256}}" ] || { echo "ORF-BUILD-016-HASH mismatch" >&2; exit 23; }
+            printf '%s\n' "OPENRPG_FORGE_UNIX_INSTALL_PASS platform={{manifest.Platform}} package={{manifest.PackageFile}} sha256=$actual"
+            """ + Environment.NewLine;
+    }
+
+    private static string BuildUnixUninstallScript(ModuleReleaseManifest manifest) =>
+        $$"""
+            #!/bin/sh
+            set -eu
+            destination="${1:-${XDG_DATA_HOME:-$HOME/.local/share}/openrpg-forge/modules}"
+            target="$destination/{{manifest.PackageFile}}"
+            [ ! -f "$target" ] || rm -- "$target"
+            printf '%s\n' 'OPENRPG_FORGE_UNIX_UNINSTALL_PASS platform={{manifest.Platform}} package={{manifest.PackageFile}}'
             """ + Environment.NewLine;
 
     private static JsonSerializerOptions CreateOptions()

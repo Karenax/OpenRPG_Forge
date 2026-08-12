@@ -3,7 +3,9 @@ using System.Text.Json;
 using Forge.Application.Assistant;
 using Forge.Application.Creator;
 using Forge.Application.Projects;
+using Forge.Application.Quality;
 using Forge.Domain.Assistant;
+using Forge.RpgKit.Application.Combat;
 using Godot;
 
 namespace Forge.Toolset.Editor;
@@ -61,6 +63,15 @@ public partial class AssistantWorkspaceWindow : Window
     private CheckButton? _offlineCore;
     private SpinBox? _maximumResponseCharacters;
     private SpinBox? _maximumUntrustedCharacters;
+    private CheckButton? _testAutomationEnabled;
+    private CheckButton? _testAutomationRequired;
+    private SpinBox? _maximumTestSteps;
+    private SpinBox? _maximumDialoguePaths;
+    private SpinBox? _maximumQuestPaths;
+    private CheckButton? _combatSimulationEnabled;
+    private SpinBox? _combatSimulationRuns;
+    private SpinBox? _combatSimulationMaximumRounds;
+    private CheckButton? _combatSimulationPathing;
     private LineEdit? _promptVersion;
     private TextEdit? _systemTemplate;
     private TextEdit? _userTemplate;
@@ -76,6 +87,7 @@ public partial class AssistantWorkspaceWindow : Window
     private double _captureDelay;
     private bool _captureOpened;
     private bool _captureR022;
+    private bool _captureR120;
     private readonly System.Net.Http.HttpClient _providerHttpClient = new(
         new System.Net.Http.SocketsHttpHandler { AllowAutoRedirect = false })
     {
@@ -144,11 +156,20 @@ public partial class AssistantWorkspaceWindow : Window
         var capture = OS.GetCmdlineUserArgs().FirstOrDefault(value =>
             value.StartsWith("--r020-agent-workflow-ui-capture=", StringComparison.Ordinal) ||
             value.StartsWith("--r021-agent-governance-ui-capture=", StringComparison.Ordinal) ||
-            value.StartsWith("--r022-agent-safety-ui-capture=", StringComparison.Ordinal));
+            value.StartsWith("--r022-agent-safety-ui-capture=", StringComparison.Ordinal) ||
+            value.StartsWith("--r120-ai-test-lab-ui-capture=", StringComparison.Ordinal));
         if (capture is not null)
         {
-            _capturePath = capture[(capture.IndexOf('=') + 1)..];
+            var separator = capture.IndexOf('=');
+            var capturePath = separator >= 0 ? capture[(separator + 1)..].Trim() : string.Empty;
+            if (capturePath.Length == 0)
+            {
+                GD.PrintErr("OPENRPG_FORGE_ASSISTANT_UI_CAPTURE_FAILED reason=path-empty");
+                return;
+            }
+            _capturePath = capturePath;
             _captureR022 = capture.StartsWith("--r022-agent-safety-ui-capture=", StringComparison.Ordinal);
+            _captureR120 = capture.StartsWith("--r120-ai-test-lab-ui-capture=", StringComparison.Ordinal);
             SetProcess(true);
         }
     }
@@ -160,17 +181,19 @@ public partial class AssistantWorkspaceWindow : Window
         if (!_captureOpened && _captureDelay >= 1.5)
         {
             Open();
+            if (_captureR120) RunTestAutomation();
             _captureOpened = true;
             return;
         }
         if (_captureOpened && _captureDelay >= 2.5 && _providerScroll is not null)
-            _providerScroll.ScrollVertical = _captureR022 ? 980 : 520;
+            _providerScroll.ScrollVertical = _captureR120 ? 430 : _captureR022 ? 980 : 520;
         if (!_captureOpened || _captureDelay < 4) return;
         var destination = Path.GetFullPath(_capturePath);
         Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
         var image = GetViewport().GetTexture().GetImage();
         var error = image.SavePng(destination);
-        var marker = _captureR022 ? "OPENRPG_FORGE_R022_AGENT_SAFETY_UI_CAPTURE" :
+        var marker = _captureR120 ? "OPENRPG_FORGE_R120_AI_TEST_LAB_UI_CAPTURE" :
+            _captureR022 ? "OPENRPG_FORGE_R022_AGENT_SAFETY_UI_CAPTURE" :
             "OPENRPG_FORGE_R021_AGENT_GOVERNANCE_UI_CAPTURE";
         GD.Print($"{marker}_{(error == Error.Ok ? "PASS" : "FAILED")} " +
                  $"path={destination} size={image.GetWidth()}x{image.GetHeight()}");
@@ -233,6 +256,17 @@ public partial class AssistantWorkspaceWindow : Window
             safety.Offline.BuildRuntimeIndependent && safety.Offline.NetworkDisabledByDefault;
         _maximumResponseCharacters!.Value = safety.StructuredOutput.MaximumResponseCharacters;
         _maximumUntrustedCharacters!.Value = safety.PromptInjection.MaximumUntrustedCharacters;
+        var testing = _source.TestAutomation;
+        _testAutomationEnabled!.ButtonPressed = testing.Enabled;
+        _testAutomationRequired!.ButtonPressed = testing.RequiredAtRuntime;
+        _maximumTestSteps!.Value = testing.MaximumScenarioSteps;
+        _maximumDialoguePaths!.Value = testing.MaximumDialoguePaths;
+        _maximumQuestPaths!.Value = testing.MaximumQuestPaths;
+        var combatSimulation = _source.CombatSimulation;
+        _combatSimulationEnabled!.ButtonPressed = combatSimulation.Enabled;
+        _combatSimulationRuns!.Value = combatSimulation.RunsPerMatchup;
+        _combatSimulationMaximumRounds!.Value = combatSimulation.MaximumRounds;
+        _combatSimulationPathing!.ButtonPressed = combatSimulation.IncludePathing;
         _promptVersion!.Text = prompt.Version;
         _systemTemplate!.Text = prompt.SystemTemplate;
         _userTemplate!.Text = prompt.UserTemplate;
@@ -395,6 +429,40 @@ public partial class AssistantWorkspaceWindow : Window
         };
         safetyHelp.AddThemeColorOverride("font_color", new Color("9ee6b3"));
         providerCard.AddChild(safetyHelp);
+        providerCard.AddChild(Section("LABORATOIRE DE TEST P1"));
+        _testAutomationEnabled = new CheckButton { Text = "Activer l'agent de test borné" };
+        providerCard.AddChild(_testAutomationEnabled);
+        _testAutomationRequired = new CheckButton { Text = "Exiger le profil au runtime" };
+        providerCard.AddChild(_testAutomationRequired);
+        _maximumTestSteps = new SpinBox { MinValue = 1, MaxValue = 512, Step = 1, Rounded = true };
+        providerCard.AddChild(Field("Étapes maximum", _maximumTestSteps));
+        _maximumDialoguePaths = new SpinBox { MinValue = 1, MaxValue = 4096, Step = 1, Rounded = true };
+        providerCard.AddChild(Field("Chemins dialogue", _maximumDialoguePaths));
+        _maximumQuestPaths = new SpinBox { MinValue = 1, MaxValue = 4096, Step = 1, Rounded = true };
+        providerCard.AddChild(Field("Chemins quête", _maximumQuestPaths));
+        var testHelp = new Label
+        {
+            Text = "Actions gameplay uniquement · couverture branches/états · cycles, récompenses, sauvegarde et cohérence avec citations.",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        };
+        testHelp.AddThemeColorOverride("font_color", new Color("9ee6b3"));
+        providerCard.AddChild(testHelp);
+        providerCard.AddChild(Section("SIMULATION DE COMBAT P2"));
+        _combatSimulationEnabled = new CheckButton { Text = "Comparer les archétypes de combat" };
+        providerCard.AddChild(_combatSimulationEnabled);
+        _combatSimulationRuns = new SpinBox { MinValue = 1, MaxValue = 256, Step = 1, Rounded = true };
+        providerCard.AddChild(Field("Seeds par affrontement", _combatSimulationRuns));
+        _combatSimulationMaximumRounds = new SpinBox { MinValue = 1, MaxValue = 5000, Step = 1, Rounded = true };
+        providerCard.AddChild(Field("Tours maximum", _combatSimulationMaximumRounds));
+        _combatSimulationPathing = new CheckButton { Text = "Inclure le temps de pathing" };
+        providerCard.AddChild(_combatSimulationPathing);
+        var combatHelp = new Label
+        {
+            Text = "Compare victoires, durée, ressources, pathing et déclencheurs de phases sur des seeds reproductibles.",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        };
+        combatHelp.AddThemeColorOverride("font_color", new Color("9ee6b3"));
+        providerCard.AddChild(combatHelp);
 
         var promptCard = AddCard(body, 430, true);
         promptCard.AddChild(Section("PROMPT VERSIONNÉ"));
@@ -468,6 +536,12 @@ public partial class AssistantWorkspaceWindow : Window
         var workerSecurity = new Button { Text = "Securite workers" };
         workerSecurity.Pressed += () => _openExternalWorkerSecurity?.Invoke();
         actions.AddChild(workerSecurity);
+        var testModule = new Button { Text = "Tester le module" };
+        testModule.Pressed += RunTestAutomation;
+        actions.AddChild(testModule);
+        var simulateCombat = new Button { Text = "Simuler les combats" };
+        simulateCombat.Pressed += RunCombatSimulation;
+        actions.AddChild(simulateCombat);
         var undo = new Button { Text = "Annuler" };
         undo.Pressed += () => { if (_undo?.Invoke() == true) Refresh(); };
         actions.AddChild(undo);
@@ -512,6 +586,15 @@ public partial class AssistantWorkspaceWindow : Window
         _offlineCore.Toggled += _ => InvalidatePreview();
         _maximumResponseCharacters.ValueChanged += _ => InvalidatePreview();
         _maximumUntrustedCharacters.ValueChanged += _ => InvalidatePreview();
+        _testAutomationEnabled.Toggled += _ => InvalidatePreview();
+        _testAutomationRequired.Toggled += _ => InvalidatePreview();
+        _maximumTestSteps.ValueChanged += _ => InvalidatePreview();
+        _maximumDialoguePaths.ValueChanged += _ => InvalidatePreview();
+        _maximumQuestPaths.ValueChanged += _ => InvalidatePreview();
+        _combatSimulationEnabled.Toggled += _ => InvalidatePreview();
+        _combatSimulationRuns.ValueChanged += _ => InvalidatePreview();
+        _combatSimulationMaximumRounds.ValueChanged += _ => InvalidatePreview();
+        _combatSimulationPathing.Toggled += _ => InvalidatePreview();
     }
 
     private async Task<bool> PreviewAsync()
@@ -760,9 +843,85 @@ public partial class AssistantWorkspaceWindow : Window
             Governance = governance,
             Safety = safety,
         };
+        var testing = new AssistantTestAutomationProfile(
+            source.TestAutomation.Id, AssistantTestAutomationProfile.CurrentSchemaVersion, "creator:r120",
+            _testAutomationEnabled!.ButtonPressed, _testAutomationRequired!.ButtonPressed,
+            (int)_maximumTestSteps!.Value, (int)_maximumDialoguePaths!.Value, (int)_maximumQuestPaths!.Value,
+            true, true, true, true, source.TestAutomation.AllowedGameplayActions);
+        var project = _getProject?.Invoke()?.Project;
+        var archetypeIds = project?.Blueprints.Where(item => item.Combat is not null)
+            .Select(item => item.Id).OrderBy(item => item.Value).Take(32).ToArray() ?? [];
+        var simulation = source.CombatSimulation with
+        {
+            Enabled = _combatSimulationEnabled!.ButtonPressed,
+            RunsPerMatchup = (int)_combatSimulationRuns!.Value,
+            MaximumRounds = (int)_combatSimulationMaximumRounds!.Value,
+            IncludePathing = _combatSimulationPathing!.ButtonPressed,
+            ArchetypeBlueprintIds = archetypeIds,
+            Provenance = "creator:r143",
+        };
         return new AssistantWorkspaceProfile(
             source.Id, 1, provider.Id, [provider], [prompt], AssistantPermissionLevel.Configure,
-            _networkAllowed!.ButtonPressed, _shareProjectContent!.ButtonPressed, "creator:r021", workflow);
+            _networkAllowed!.ButtonPressed, _shareProjectContent!.ButtonPressed, "creator:r021", workflow, testing,
+            simulation);
+    }
+
+    private void RunCombatSimulation()
+    {
+        var project = _getProject?.Invoke()?.Project;
+        if (project is null)
+        {
+            SetStatus("Aucun projet à simuler.", true);
+            return;
+        }
+        var profile = BuildDraft().CombatSimulation;
+        var archetypes = project.Blueprints.Where(item => item.Combat is not null)
+            .Select(item => new CombatSimulationArchetype(item.Id, item.DisplayName, item.Combat!)).ToArray();
+        var report = CombatBalanceSimulationService.Run(profile, archetypes);
+        if (!report.Succeeded)
+        {
+            var first = report.Diagnostics.First();
+            _preview!.Text = $"[b]SIMULATION COMBAT · BLOQUÉE[/b]\n{first.Code}\n{first.Message}\n{first.Path}";
+            SetStatus($"{first.Code} · {first.Message}", true);
+            return;
+        }
+        var rows = report.Matchups.Take(12).Select(item =>
+            $"{item.FirstArchetypeId.ToString()[..8]} / {item.SecondArchetypeId.ToString()[..8]} · " +
+            $"victoires {item.FirstWins}/{item.SecondWins}/{item.Draws} · durée {item.AverageDurationSeconds:0.0}s · " +
+            $"ressources {item.AverageFirstResourceUsed:0.0}/{item.AverageSecondResourceUsed:0.0}");
+        _preview!.Text = $"[b]SIMULATION COMBAT · PRÊTE[/b]\n" + string.Join('\n', rows) +
+            $"\n\nEmpreinte : {report.Fingerprint}\nProvenance : {report.Provenance}";
+        SetStatus($"Simulation terminée · {report.Matchups.Count} comparaison(s) déterministes.", false);
+    }
+
+    private void RunTestAutomation()
+    {
+        var project = _getProject?.Invoke();
+        if (project is null)
+        {
+            SetStatus("Aucun projet à tester.", true);
+            return;
+        }
+        try
+        {
+            var profile = BuildDraft().TestAutomation;
+            var report = AssistantScenarioTestService.Run(project.Project, profile);
+            var coverage = report.Coverage;
+            var lines = report.Findings.Take(8).Select(item =>
+                $"[color={(item.Severity == AssistantScenarioFindingSeverity.Blocking ? "#ff7777" : "#ffbd7a")}]{item.Code}[/color]\n{item.Message}\n{item.DocumentPath}");
+            _preview!.Text = $"[b]AGENT DE TEST · {(report.Succeeded ? "PRÊT" : "BLOQUÉ")}[/b]\n" +
+                $"Dialogues {coverage.DialogueNodesCovered}/{coverage.DialogueNodesTotal} nœuds · " +
+                $"Quêtes {coverage.QuestStatesCovered}/{coverage.QuestStatesTotal} états\n" +
+                $"Actions : {string.Join(", ", report.GameplayActions)}\n" +
+                $"Empreinte : {report.Fingerprint[..16]}…\n\n" +
+                (report.Findings.Count == 0 ? "[color=#9ee6b3]Aucun blocage narratif détecté.[/color]" : string.Join("\n\n", lines));
+            SetStatus($"Test terminé · {report.Findings.Count} constat(s) · reproduction et citations disponibles.",
+                !report.Succeeded);
+        }
+        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException)
+        {
+            SetStatus($"Test refusé · {exception.Message}", true);
+        }
     }
 
     private void RefreshContext()

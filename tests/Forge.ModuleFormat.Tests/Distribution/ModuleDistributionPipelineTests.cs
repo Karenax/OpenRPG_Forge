@@ -142,6 +142,103 @@ public sealed class ModuleDistributionPipelineTests : IDisposable
         Assert.Equal(SHA256.HashData(File.ReadAllBytes(first)), SHA256.HashData(File.ReadAllBytes(second)));
     }
 
+    [Fact]
+    public void Windows_bundle_honors_portable_mode_and_installer_prerequisite_detection()
+    {
+        var workspace = Path.Combine(_root, "modes-workspace");
+        Directory.CreateDirectory(workspace);
+        var project = new ProjectDefinition(ProjectId.From(Guid.NewGuid()), "Modes", [],
+            [new AreaDefinition(AreaId.From(Guid.NewGuid()), "area", "Area", [])]);
+        File.WriteAllText(Path.Combine(workspace, "project.json"), ProjectJsonSerializer.Serialize(project));
+        var package = Path.Combine(_root, "modes.orpmod");
+        ModulePackager.Export(workspace, package);
+        var release = project.Module.Distribution.Release;
+        var portableConfiguration = new ModuleReleaseConfiguration(release.Id, release.Channel,
+            release.Platforms, release.Signing, release.Delta,
+            new WindowsPackagingConfiguration(WindowsPackageMode.PortableZip, true, false, false,
+                ["windows-x64"]), "test:portable");
+        var portable = Path.Combine(_root, "portable.zip");
+        ModuleReleaseBundleBuilder.Build(package, portable, ModuleTargetKind.Editor,
+            ModuleDistributionPlatform.WindowsX64, portableConfiguration);
+        using (var archive = ZipFile.OpenRead(portable))
+        {
+            Assert.NotNull(archive.GetEntry("packages/modes.orpmod"));
+            Assert.Null(archive.GetEntry("install.ps1"));
+            Assert.Null(archive.GetEntry("uninstall.ps1"));
+        }
+
+        var installer = Path.Combine(_root, "installer.zip");
+        ModuleReleaseBundleBuilder.Build(package, installer, ModuleTargetKind.Editor,
+            ModuleDistributionPlatform.WindowsX64, release);
+        using var installerArchive = ZipFile.OpenRead(installer);
+        using var reader = new StreamReader(installerArchive.GetEntry("install.ps1")!.Open());
+        var script = reader.ReadToEnd();
+        Assert.Contains("OPENRPG_FORGE_WINDOWS_PREREQUISITES_PASS", script, StringComparison.Ordinal);
+        Assert.Contains("[Environment]::Is64BitOperatingSystem", script, StringComparison.Ordinal);
+        Assert.Contains("[Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT", script, StringComparison.Ordinal);
+        Assert.DoesNotContain("[System.OperatingSystem]::IsWindows()", script, StringComparison.Ordinal);
+        Assert.Contains("openrpg-forge-install.log", script, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData(ModuleDistributionPlatform.LinuxX64, "Linux", "x86_64")]
+    [InlineData(ModuleDistributionPlatform.MacOSArm64, "Darwin", "arm64")]
+    public void UnixBundles_AreDeterministicAndContainVerifiedLifecycle(
+        ModuleDistributionPlatform platform, string kernel, string machine)
+    {
+        var workspace = Path.Combine(_root, $"unix-{platform}");
+        Directory.CreateDirectory(workspace);
+        var project = new ProjectDefinition(ProjectId.From(Guid.NewGuid()), "Unix", [],
+            [new AreaDefinition(AreaId.From(Guid.NewGuid()), "area", "Area", [])]);
+        File.WriteAllText(Path.Combine(workspace, "project.json"), ProjectJsonSerializer.Serialize(project));
+        var package = Path.Combine(_root, $"{platform}.orpmod");
+        ModulePackager.Export(workspace, package);
+        var release = project.Module.Distribution.Release;
+        var configuration = new ModuleReleaseConfiguration(release.Id, release.Channel,
+            [platform], release.Signing, release.Delta, release.WindowsPackaging, "test:unix");
+        var first = Path.Combine(_root, $"{platform}-first.zip");
+        var second = Path.Combine(_root, $"{platform}-second.zip");
+
+        var result = ModuleReleaseBundleBuilder.Build(package, first, ModuleTargetKind.Client, platform, configuration);
+        ModuleReleaseBundleBuilder.Build(package, second, ModuleTargetKind.Client, platform, configuration);
+
+        using var archive = ZipFile.OpenRead(first);
+        using var reader = new StreamReader(archive.GetEntry("install.sh")!.Open());
+        var script = reader.ReadToEnd();
+        Assert.NotNull(archive.GetEntry("uninstall.sh"));
+        Assert.Contains($"uname -s)\" = \"{kernel}", script, StringComparison.Ordinal);
+        Assert.Contains($"uname -m)\" = \"{machine}", script, StringComparison.Ordinal);
+        Assert.Contains(result.Manifest.PackageSha256, script, StringComparison.Ordinal);
+        Assert.Equal(SHA256.HashData(File.ReadAllBytes(first)), SHA256.HashData(File.ReadAllBytes(second)));
+    }
+
+    [Fact]
+    public void ReleasePromotion_RequiresSequentialChannelAndCompleteCompatibilityMatrix()
+    {
+        var releaseId = ModuleReleaseConfigurationId.From(Guid.NewGuid());
+        var targets = Enum.GetValues<ModuleTargetKind>();
+        var platforms = Enum.GetValues<ModuleDistributionPlatform>();
+        var evidence = (from target in targets
+                        from platform in platforms
+                        select new ModuleCompatibilityEvidence("1.0.0", "1.1.0", target, platform,
+                            true, true, true, new string('a', 64))).ToArray();
+        var valid = new ModuleReleasePromotionRequest(releaseId, ModuleReleaseChannel.Preview,
+            ModuleReleaseChannel.Stable, targets, platforms, true, true, evidence);
+
+        var accepted = ModuleReleasePromotionService.Preview(valid);
+        var incomplete = ModuleReleasePromotionService.Preview(valid with
+        {
+            CompatibilityEvidence = evidence.Skip(1).ToArray(),
+        });
+        var unsigned = ModuleReleasePromotionService.Preview(valid with { SignatureTrusted = false });
+
+        Assert.True(accepted.Allowed);
+        Assert.Equal("ORF-BUILD-024-PROMOTION-READY", accepted.DiagnosticCode);
+        Assert.False(incomplete.Allowed);
+        Assert.Single(incomplete.MissingMatrixEntries);
+        Assert.Equal("ORF-BUILD-024-SIGNATURE", unsigned.DiagnosticCode);
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(_root))

@@ -1,5 +1,6 @@
 using Forge.Application.Commands;
 using Forge.Domain.RuntimePolicies;
+using Forge.Domain.Lifecycle;
 
 namespace Forge.Mcp.Projects;
 
@@ -34,3 +35,17 @@ public sealed record RuntimePolicyAuditEntry(
     long Revision,
     DateTimeOffset OccurredAt,
     bool Succeeded);
+
+public sealed record ProjectGameplayEventResource(
+    bool Found,
+    long Revision,
+    string Id,
+    int SchemaVersion,
+    string Provenance,
+    bool Enabled,
+    bool RequiredAtRuntime,
+    bool UseDownedState,
+    bool AutoRespawn,
+    bool ReplicateEquipmentAndProgression,
+    IReadOnlyList<EventBinding> Bindings,
+    IReadOnlyList<AgentDiagnostic> Diagnostics);

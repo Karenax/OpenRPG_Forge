@@ -39,6 +39,7 @@ public partial class AssetContentBrowserWindow : Window
     private AssetCatalogLoadResult? _load;
     private IReadOnlyList<BrowserRow> _visibleRows = [];
     private LineEdit? _search;
+    private LineEdit? _advancedSearch;
     private OptionButton? _source;
     private OptionButton? _category;
     private OptionButton? _availability;
@@ -54,6 +55,7 @@ public partial class AssetContentBrowserWindow : Window
     private Label? _assetPaths;
     private TextureRect? _preview;
     private Label? _previewPlaceholder;
+    private AssetTurntablePreview? _turntable;
     private Button? _planImport;
     private OptionButton? _profileKind;
     private SpinBox? _profileBudgetMb;
@@ -90,6 +92,7 @@ public partial class AssetContentBrowserWindow : Window
     private double _captureDelay;
     private bool _captureOpened;
     private bool _captureGovernance;
+    private bool _captureR057;
 
     public int CatalogCount => _browser?.Catalog.Items.Count ?? 0;
 
@@ -159,10 +162,12 @@ public partial class AssetContentBrowserWindow : Window
         BuildUi();
         var capture = OS.GetCmdlineUserArgs().FirstOrDefault(value =>
             value.StartsWith("--r017-content-ui-capture=", StringComparison.Ordinal) ||
-            value.StartsWith("--r018-asset-governance-ui-capture=", StringComparison.Ordinal));
+            value.StartsWith("--r018-asset-governance-ui-capture=", StringComparison.Ordinal) ||
+            value.StartsWith("--r057-palette-assets-ui-capture=", StringComparison.Ordinal));
         if (capture is not null)
         {
             _captureGovernance = capture.StartsWith("--r018-asset-governance-ui-capture=", StringComparison.Ordinal);
+            _captureR057 = capture.StartsWith("--r057-palette-assets-ui-capture=", StringComparison.Ordinal);
             _capturePath = capture[(capture.IndexOf('=') + 1)..];
             SetProcess(true);
         }
@@ -176,9 +181,10 @@ public partial class AssetContentBrowserWindow : Window
         {
             Open();
             _search!.Text = string.Empty;
+            if (_captureR057) _advancedSearch!.Text = "author:ambientcg variant:LQ-1K-JPG";
             RefreshResults();
             var resourceIndex = _visibleRows.ToList().FindIndex(row =>
-                _captureGovernance ? row.Asset is not null : row.Resource is not null);
+                _captureGovernance || _captureR057 ? row.Asset is not null : row.Resource is not null);
             if (resourceIndex >= 0)
             {
                 _results!.Select(resourceIndex);
@@ -211,7 +217,8 @@ public partial class AssetContentBrowserWindow : Window
         Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
         var image = GetViewport().GetTexture().GetImage();
         var error = image.SavePng(destination);
-        var captureMarker = _captureGovernance ? "R018_ASSET_GOVERNANCE_UI" : "R017_CONTENT_UI";
+        var captureMarker = _captureR057 ? "R057_PALETTE_ASSETS_UI" :
+            _captureGovernance ? "R018_ASSET_GOVERNANCE_UI" : "R017_CONTENT_UI";
         GD.Print($"OPENRPG_FORGE_{captureMarker}_CAPTURE_{(error == Error.Ok ? "PASS" : "FAILED")} " +
                  $"path={destination} size={image.GetWidth()}x{image.GetHeight()}");
         _capturePath = null;
@@ -283,6 +290,7 @@ public partial class AssetContentBrowserWindow : Window
         }
 
         _search!.Text = text;
+        _advancedSearch!.Text = string.Empty;
         SelectOption(_source!, source);
         SelectOption(_category!, category);
         _availability!.Selected = availability switch
@@ -296,7 +304,7 @@ public partial class AssetContentBrowserWindow : Window
         return VisibleAssetCount;
     }
 
-    public bool SelectAssetForSmokeTest(string externalId)
+    public bool SelectAssetForSmokeTest(string externalId, bool loadTurntable = false)
     {
         var index = _visibleRows.ToList().FindIndex(item => item.Asset?.ExternalId == externalId);
         if (index < 0)
@@ -305,7 +313,7 @@ public partial class AssetContentBrowserWindow : Window
         }
 
         _results!.Select(index);
-        SelectResult(index);
+        SelectResult(index, loadTurntable);
         return true;
     }
 
@@ -329,6 +337,15 @@ public partial class AssetContentBrowserWindow : Window
     public bool PreviewExternalEditCommandForSmokeTest() => ConfigureExternalEdit(dryRun: true);
 
     public bool PreviewGovernanceCommandForSmokeTest() => SaveGovernance(dryRun: true);
+
+    public int FilterAdvancedForSmokeTest(string expression)
+    {
+        if (_browser is null) Refresh();
+        _search!.Text = string.Empty;
+        _advancedSearch!.Text = expression;
+        RefreshResults();
+        return VisibleAssetCount;
+    }
 
     private void BuildUi()
     {
@@ -371,6 +388,13 @@ public partial class AssetContentBrowserWindow : Window
         _search = new LineEdit { PlaceholderText = "Nom, tag, style…" };
         _search.TextChanged += _ => RefreshResults();
         filters.AddChild(_search);
+        _advancedSearch = new LineEdit
+        {
+            PlaceholderText = "style:low-poly mat:stone tri<=5000…",
+            TooltipText = "tag, w<=, h<=, d<=, style, rig, mat, tri<=, author, compat, variant",
+        };
+        _advancedSearch.TextChanged += _ => RefreshResults();
+        filters.AddChild(_advancedSearch);
         filters.AddChild(FieldLabel("SOURCE"));
         _source = new OptionButton();
         _source.ItemSelected += _ => RefreshResults();
@@ -397,7 +421,7 @@ public partial class AssetContentBrowserWindow : Window
         filters.AddChild(_availability);
         var facetHelp = new Label
         {
-            Text = "Facettes disponibles : texte, source, catégorie, licence CC0 et état local. Les futures métriques 3D rejoindront ce même contrat.",
+            Text = "Facettes : tag, dimensions, style, rig, matériau, triangles, licence, auteur, compatibilité et variante.",
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
             SizeFlagsVertical = Control.SizeFlags.ExpandFill,
         };
@@ -437,6 +461,8 @@ public partial class AssetContentBrowserWindow : Window
         };
         _previewPlaceholder.AddThemeColorOverride("font_color", new Color("8f82a8"));
         previewFrame.AddChild(_previewPlaceholder);
+        _turntable = new AssetTurntablePreview { Visible = false };
+        inspector.AddChild(_turntable);
         _assetTitle = new Label { Text = "Aucune sélection" };
         _assetTitle.AddThemeFontSizeOverride("font_size", 18);
         _assetTitle.AddThemeColorOverride("font_color", new Color("f5dfc6"));
@@ -679,15 +705,29 @@ public partial class AssetContentBrowserWindow : Window
             _ => (AssetAvailability?)null,
         };
         var installed = _availability.Selected == 4 ? true : (bool?)null;
+        var advanced = ParseAdvancedFilter(_advancedSearch?.Text);
         var assets = _browser.Search(new AssetCatalogQuery(
-            _search!.Text,
+            string.Join(' ', new[] { _search!.Text, advanced.FreeText }
+                .Where(value => !string.IsNullOrWhiteSpace(value))),
             source,
             category,
             null,
             availability,
-            Installed: installed));
+            Installed: installed,
+            Tag: advanced.Tag,
+            MaximumWidth: advanced.MaximumWidth,
+            MaximumHeight: advanced.MaximumHeight,
+            MaximumDepth: advanced.MaximumDepth,
+            Style: advanced.Style,
+            Skeleton: advanced.Skeleton,
+            Material: advanced.Material,
+            MaximumTriangleCount: advanced.MaximumTriangles,
+            Author: advanced.Author,
+            Compatibility: advanced.Compatibility,
+            Variant: advanced.Variant));
         IEnumerable<UnifiedContentBrowserItem> projectResources =
             source is null && category is null && availability is null && installed is null &&
+            string.IsNullOrWhiteSpace(_advancedSearch?.Text) &&
             _contentBrowser is not null
             ? _contentBrowser.Search(new UnifiedContentBrowserQuery(Text: _search.Text, MaximumResults: 300))
                 .Where(item => item.AssetCatalogId is null)
@@ -749,7 +789,7 @@ public partial class AssetContentBrowserWindow : Window
         ClearSelectionDetails();
     }
 
-    private void SelectResult(int index)
+    private void SelectResult(int index, bool loadTurntable = true)
     {
         if (index < 0 || index >= _visibleRows.Count || _load is null)
         {
@@ -779,18 +819,84 @@ public partial class AssetContentBrowserWindow : Window
             $"SHA-256 · {item.ContentSha256[..16]}…\nProvenance · {item.Provenance}";
         _assetFacets!.Text =
             $"Catégories · {string.Join(", ", item.Categories)}\nTags · {string.Join(", ", item.Tags.Take(12))}\n" +
+            $"Style / rig · {Value(item.TechnicalMetadata.Style)} / {Value(item.TechnicalMetadata.Skeleton)}\n" +
+            $"Matériaux · {List(item.TechnicalMetadata.Materials)}\n" +
             $"État · {FormatAvailability(item.Availability)}\n" +
             $"Packs installés / références · {(item.Installed ? string.Join(", ", item.InstalledPackIds) : "aucun")}";
         var metadata = _getManifestState?.Invoke()?.Find(item.Id)?.ModelMetadata;
         _assetPaths!.Text =
             $"Modèle · {item.RelativeModelPath ?? "non catalogué"}\n" +
-            $"Aperçu · {metadata?.PreviewRelativePath ?? item.RelativePreviewPath ?? item.ThumbnailUrl ?? "indisponible"}";
+            $"Aperçu · {metadata?.PreviewRelativePath ?? item.RelativePreviewPath ?? item.ThumbnailUrl ?? "indisponible"}\n" +
+            $"Variantes / animations · {List(item.TechnicalMetadata.Variants)} / {List(item.TechnicalMetadata.Animations)}\n" +
+            $"Triangles · {item.TechnicalMetadata.TriangleCount?.ToString() ?? "non mesuré"}";
         _planImport!.Disabled = !item.CanPlanImport;
         RefreshProfileControls();
         RefreshManifestControls();
         RefreshExternalEditControls();
         RefreshGovernanceControls();
         LoadPreview(item, _load.VaultRoot);
+        if (loadTurntable)
+            _turntable!.Load(item, _load.VaultRoot, _getWorkspaceRoot?.Invoke());
+        else
+            _turntable!.Visible = false;
+    }
+
+    private static string Value(string value) => string.IsNullOrWhiteSpace(value) ? "non renseigné" : value;
+
+    private static string List(IReadOnlyList<string> values) =>
+        values.Count == 0 ? "aucun" : string.Join(", ", values);
+
+    private sealed record AdvancedFilter(string FreeText, string? Tag, double? MaximumWidth, double? MaximumHeight,
+        double? MaximumDepth, string? Style, string? Skeleton, string? Material, long? MaximumTriangles,
+        string? Author, string? Compatibility, string? Variant);
+
+    private static AdvancedFilter ParseAdvancedFilter(string? value)
+    {
+        string? tag = null, style = null, skeleton = null, material = null, author = null, compatibility = null,
+            variant = null;
+        double? width = null, height = null, depth = null;
+        long? triangles = null;
+        var free = new List<string>();
+        foreach (var token in (value ?? string.Empty).Split(' ',
+                     StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            var separator = token.IndexOf(':');
+            if (separator > 0)
+            {
+                var key = token[..separator].ToLowerInvariant();
+                var content = token[(separator + 1)..];
+                switch (key)
+                {
+                    case "tag": tag = content; continue;
+                    case "style": style = content; continue;
+                    case "rig": skeleton = content; continue;
+                    case "mat": material = content; continue;
+                    case "author": author = content; continue;
+                    case "compat": compatibility = content; continue;
+                    case "variant": variant = content; continue;
+                }
+            }
+            if (TryLimit(token, "w<=", out var dimension)) { width = dimension; continue; }
+            if (TryLimit(token, "h<=", out dimension)) { height = dimension; continue; }
+            if (TryLimit(token, "d<=", out dimension)) { depth = dimension; continue; }
+            if (token.StartsWith("tri<=", StringComparison.OrdinalIgnoreCase) &&
+                long.TryParse(token[5..], NumberStyles.Integer, CultureInfo.InvariantCulture, out var count) && count >= 0)
+            {
+                triangles = count;
+                continue;
+            }
+            free.Add(token);
+        }
+        return new(string.Join(' ', free), tag, width, height, depth, style, skeleton, material, triangles, author,
+            compatibility, variant);
+    }
+
+    private static bool TryLimit(string token, string prefix, out double value)
+    {
+        value = 0;
+        return token.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) &&
+               double.TryParse(token[prefix.Length..], NumberStyles.Float, CultureInfo.InvariantCulture, out value) &&
+               double.IsFinite(value) && value > 0;
     }
 
     private void SelectProjectResource(UnifiedContentBrowserItem item)
@@ -816,6 +922,7 @@ public partial class AssetContentBrowserWindow : Window
     private void LoadPreview(AssetCatalogItem item, string vaultRoot)
     {
         _preview!.Texture = null;
+        if (_turntable is not null) _turntable.Visible = false;
         _previewPlaceholder!.Visible = true;
         _previewPlaceholder.Text = item.ThumbnailUrl is not null
             ? "Aperçu distant catalogué\nMiniature locale non installée"
@@ -1227,13 +1334,17 @@ public partial class AssetContentBrowserWindow : Window
                 $"{metadata.Dimensions.ExtentXMeters:0.##} × {metadata.Dimensions.ExtentYMeters:0.##} × " +
                 $"{metadata.Dimensions.ExtentZMeters:0.##} m · {metadata.Metrics.TriangleCount:N0} triangles · " +
                 $"qualité {metadata.Metrics.QualityScore}/100 · {metadata.Variants.Count} variante · " +
-                $"{metadata.Compatibility.Realism} · {string.Join(", ", metadata.Styles.Take(5))}";
+                $"{metadata.Compatibility.Realism} · {string.Join(", ", metadata.Styles.Take(5))} · " +
+                $"navigation {(manifest.Navigation is null ? "non" : manifest.Navigation.Generation)} · " +
+                $"police {(manifest.Font is null ? "non" : manifest.Font.PrimaryFamily)}";
         }
         else
         {
             _manifestSummary.Text =
                 $"{manifest.Id} · {manifest.Chunks.Count} chunk · " +
                 $"collision {(manifest.Collision is null ? "non" : "oui")} · " +
+                $"navigation {(manifest.Navigation is null ? "non" : manifest.Navigation.Generation)} · " +
+                $"police {(manifest.Font is null ? "non" : manifest.Font.PrimaryFamily)} · " +
                 $"animation {(manifest.Animation is null ? "non" : "oui")} · " +
                 $"VFX {(manifest.Vfx is null ? "non" : "oui")} · " +
                 $"LOD {manifest.Lod?.Levels.Count ?? 0}";

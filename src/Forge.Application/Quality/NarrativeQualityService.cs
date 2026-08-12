@@ -179,7 +179,8 @@ public static class NarrativeQualityService
         var index = 0;
         foreach (var choice in dialogue.Nodes.SelectMany(node => node.Choices).Where(choice => choice.Conditions.Count > 0))
         {
-            var values = choice.Conditions.ToDictionary(ConditionKey, condition => condition.ExpectedValue, StringComparer.Ordinal);
+            var values = choice.Conditions.GroupBy(ConditionKey, StringComparer.Ordinal)
+                .ToDictionary(group => group.Key, group => group.Last().ExpectedValue, StringComparer.Ordinal);
             fixtures.Add(new($"dialogue-branch-{index++:D3}", NarrativeFixtureScope.Player, values, []));
         }
         return fixtures;

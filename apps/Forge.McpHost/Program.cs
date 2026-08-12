@@ -1,5 +1,7 @@
 using Forge.Mcp.Bridge;
 using Forge.Mcp.Projects;
+using Forge.Mcp.LiveDirector;
+using Forge.Mcp.Network;
 using Forge.Mcp.Scripts;
 using Forge.Mcp.Testing;
 using Forge.McpHost;
@@ -45,6 +47,10 @@ builder.Services.AddSingleton(project);
 builder.Services.AddSingleton<IForgeScriptRuntime, NativeForgeScriptRuntime>();
 builder.Services.AddSingleton<ForgeScriptAgentService>();
 builder.Services.AddSingleton<ForgeScriptInteropService>();
+builder.Services.AddSingleton<NetworkFoundationAgentService>();
+builder.Services.AddSingleton<NetworkOperationsAgentService>();
+builder.Services.AddSingleton<NetworkAssuranceAgentService>();
+builder.Services.AddSingleton<LiveDirectorAccessAgentService>();
 builder.Services
     .AddMcpServer()
     .WithStdioServerTransport()

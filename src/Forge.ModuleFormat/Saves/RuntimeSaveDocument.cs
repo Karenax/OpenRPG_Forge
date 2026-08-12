@@ -16,9 +16,11 @@ public sealed record RuntimeSaveDocument(
     RuntimeProgressFlags Progress,
     RuntimeWeatherSave? Weather,
     RuntimeProgressionSave? Progression = null,
-    IReadOnlyList<RuntimeEntityStateSave>? EntitySnapshots = null)
+    IReadOnlyList<RuntimeEntityStateSave>? EntitySnapshots = null,
+    RuntimeWorldClockSave? WorldClock = null)
 {
-    public const string CurrentFormatVersion = "1.3.0";
+    public const string CurrentFormatVersion = "1.4.0";
+    public const string PreWorldClockFormatVersion = "1.3.0";
     public const string PreRuntimeExtensionsFormatVersion = "1.2.0";
     public const string PreRulesFormatVersion = "1.1.0";
 }
@@ -44,6 +46,13 @@ public sealed record RuntimeProgressFlags(
     bool Escaped);
 
 public sealed record RuntimeProgressionSave(int SchemaVersion, double Experience, int Level);
+
+public sealed record RuntimeWorldClockSave(
+    int SchemaVersion,
+    long TotalMinutes,
+    bool Paused,
+    long Revision,
+    string Provenance);
 
 public sealed record RuntimeEntityStateSave(
     string EntityId,

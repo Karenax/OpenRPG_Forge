@@ -1,6 +1,7 @@
 #if TOOLS
 using Forge.Application.Projects;
 using Forge.Domain.Areas;
+using Forge.Domain.Lifecycle;
 using Forge.Domain.RuntimePolicies;
 using Forge.Domain.Spatial;
 using Godot;
@@ -43,11 +44,42 @@ public partial class RuntimePoliciesWindow : Window
     private CheckBox? _restoreNarrative;
     private SpinBox? _rollbackSteps;
     private Label? _status;
+    private TabContainer? _tabs;
+    private CheckBox? _projectEventsEnabled;
+    private CheckBox? _projectEventsRequired;
+    private CheckBox? _projectEventsDowned;
+    private CheckBox? _projectEventsRespawn;
+    private CheckBox? _projectEventsReplicated;
+    private readonly Dictionary<string, LineEdit> _projectEventHandlers = new(StringComparer.Ordinal);
+    private readonly List<CustomEventSchema> _customEvents = [];
+    private CheckBox? _worldEnabled;
+    private CheckBox? _worldRequired;
+    private SpinBox? _clockSpeed;
+    private CheckBox? _clockPaused;
+    private SpinBox? _daysPerMonth;
+    private SpinBox? _monthsPerYear;
+    private SpinBox? _hoursPerDay;
+    private SpinBox? _minutesPerHour;
+    private SpinBox? _initialMinute;
+    private TextEdit? _areaOffsets;
+    private ItemList? _customEventList;
+    private LineEdit? _customNamespace;
+    private LineEdit? _customName;
+    private SpinBox? _customPayloadVersion;
+    private LineEdit? _customFields;
+    private LineEdit? _customHandler;
+    private CheckBox? _customRequired;
+    private string? _capturePath;
+    private string _captureMarker = "R051_PROJECT_EVENTS";
+    private int _captureTab = 3;
+    private double _captureDelay;
+    private bool _captureOpened;
 
     internal string Summary => _module is null || _area is null
         ? "unavailable"
         : $"{_module.Heartbeats.Count}:{_area.Heartbeats.Count}:{_module.Rest.Enabled}:" +
-          $"{_area.Rest.Mode}:{_area.Rest.Volumes.Count}:{_module.SequenceAbort.Restore}";
+          $"{_area.Rest.Mode}:{_area.Rest.Volumes.Count}:{_module.SequenceAbort.Restore}:" +
+          $"{_module.GameplayEvents.Bindings.Count}:{_module.World.CustomEvents.Count}";
 
     public void Initialize(Func<ProjectState?> state, Func<AreaId?> active,
         Func<ModuleRuntimePolicyProfile, AreaId, AreaRuntimePolicyProfile, bool> apply, Action<Window> brand)
@@ -62,6 +94,51 @@ public partial class RuntimePoliciesWindow : Window
         Transient = true;
         Visible = false;
         Build();
+        var capture = OS.GetCmdlineUserArgs().FirstOrDefault(value =>
+            value.StartsWith("--r051-project-events-ui-capture=", StringComparison.Ordinal));
+        var capturePrefix = "--r051-project-events-ui-capture=";
+        capture ??= OS.GetCmdlineUserArgs().FirstOrDefault(value =>
+            value.StartsWith("--r052-project-world-ui-capture=", StringComparison.Ordinal));
+        if (capture is not null && capture.StartsWith("--r052-project-world-ui-capture=", StringComparison.Ordinal))
+        {
+            capturePrefix = "--r052-project-world-ui-capture=";
+            _captureMarker = "R052_PROJECT_WORLD";
+            _captureTab = 4;
+        }
+        if (capture is not null)
+        {
+            var path = capture[capturePrefix.Length..].Trim();
+            if (path.Length == 0)
+                GD.PrintErr($"OPENRPG_FORGE_{_captureMarker}_UI_CAPTURE_FAILED reason=path-empty");
+            else
+            {
+                _capturePath = path;
+                SetProcess(true);
+            }
+        }
+    }
+
+    public override void _Process(double delta)
+    {
+        if (_capturePath is null) return;
+        _captureDelay += delta;
+        if (!_captureOpened && _captureDelay >= 1.5)
+        {
+            Open();
+            if (_tabs is not null) _tabs.CurrentTab = _captureTab;
+            _captureOpened = true;
+            return;
+        }
+        if (!_captureOpened || _captureDelay < 4) return;
+        var destination = Path.GetFullPath(_capturePath);
+        Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+        var image = GetViewport().GetTexture().GetImage();
+        var error = image.SavePng(destination);
+        GD.Print($"OPENRPG_FORGE_{_captureMarker}_UI_CAPTURE_{(error == Error.Ok ? "PASS" : "FAILED")} " +
+                 $"path={destination} size={image.GetWidth()}x{image.GetHeight()}");
+        _capturePath = null;
+        SetProcess(false);
+        GetTree().Quit(error == Error.Ok ? 0 : 1);
     }
 
     public void Open()
@@ -103,11 +180,13 @@ public partial class RuntimePoliciesWindow : Window
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
         });
 
-        var tabs = new TabContainer { SizeFlagsVertical = Control.SizeFlags.ExpandFill };
-        root.AddChild(tabs);
-        BuildHeartbeatTab(tabs);
-        BuildRestTab(tabs);
-        BuildSequenceTab(tabs);
+        _tabs = new TabContainer { SizeFlagsVertical = Control.SizeFlags.ExpandFill };
+        root.AddChild(_tabs);
+        BuildHeartbeatTab(_tabs);
+        BuildRestTab(_tabs);
+        BuildSequenceTab(_tabs);
+        BuildProjectEventsTab(_tabs);
+        BuildProjectWorldTab(_tabs);
 
         _status = new Label { Text = "Prêt · aucune mutation avant validation." };
         _status.AddThemeColorOverride("font_color", new Color("9bd9bd"));
@@ -201,6 +280,159 @@ public partial class RuntimePoliciesWindow : Window
         restore.AddChild(Info("Le runtime restaure l’instantané d’entrée et émet sequence.aborted après une restauration réussie."));
     }
 
+    private void BuildProjectEventsTab(TabContainer tabs)
+    {
+        var columns = Tab(tabs, "Événements projet");
+        var connection = Card(columns, "CONNEXION, INVENTAIRE & UTILISATION");
+        _projectEventsEnabled = Check("Activer le bus d’événements projet", true);
+        _projectEventsRequired = Check("Configuration requise au runtime", false);
+        connection.AddChild(_projectEventsEnabled);
+        connection.AddChild(_projectEventsRequired);
+        AddProjectEventHandlers(connection,
+        [
+            "player.joining", "player.ready", "player.leaving", "player.disconnected",
+            "inventory.changed", "item.used", "ability.activated",
+        ]);
+        connection.AddChild(Info(
+            "Les connexions sont authentifiées. Inventaire et utilisation restent transactionnels et peuvent être refusés avant journalisation."));
+
+        var lifecycle = Card(columns, "MORT, RESPAWN, ÉQUIPEMENT & NIVEAU");
+        _projectEventsDowned = Check("Inclure l’état Downed", true);
+        _projectEventsRespawn = Check("Demander puis confirmer le respawn", true);
+        _projectEventsReplicated = Check("Répliquer équipement et progression", true);
+        lifecycle.AddChild(_projectEventsDowned);
+        lifecycle.AddChild(_projectEventsRespawn);
+        lifecycle.AddChild(_projectEventsReplicated);
+        AddProjectEventHandlers(lifecycle,
+        [
+            "life.downed", "life.dying", "life.dead", "life.respawnrequested", "life.respawned",
+            "equipment.changed", "progression.changed",
+        ]);
+        lifecycle.AddChild(Info(
+            "Tous les bindings utilisent l’autorité serveur, une API ForgeScript versionnée et un UUID stable."));
+    }
+
+    private void AddProjectEventHandlers(Container parent, IReadOnlyList<string> eventNames)
+    {
+        foreach (var eventName in eventNames)
+        {
+            var handler = Field("On" + eventName);
+            _projectEventHandlers[eventName] = handler;
+            parent.AddChild(FieldRow(eventName, handler));
+        }
+    }
+
+    private void BuildProjectWorldTab(TabContainer tabs)
+    {
+        var columns = Tab(tabs, "Monde & calendrier");
+        var events = Card(columns, "ÉVÉNEMENTS UTILISATEUR GLOBAUX");
+        _worldEnabled = Check("Activer la configuration du monde", true);
+        _worldRequired = Check("Configuration requise au runtime", false);
+        events.AddChild(_worldEnabled);
+        events.AddChild(_worldRequired);
+        _customEventList = new ItemList { CustomMinimumSize = new Vector2(0, 120) };
+        _customEventList.ItemSelected += index => LoadCustomEvent((int)index);
+        events.AddChild(_customEventList);
+        _customNamespace = Field("module");
+        _customName = Field("ritual_completed");
+        _customPayloadVersion = Spin(1, 1_000, 1, 1);
+        _customFields = Field("result:string,actor:guid");
+        _customHandler = Field("OnRitualCompleted");
+        _customRequired = Check("Extension requise", false);
+        events.AddChild(FieldRow("Namespace", _customNamespace));
+        events.AddChild(FieldRow("Nom", _customName));
+        events.AddChild(FieldRow("Version payload", _customPayloadVersion));
+        events.AddChild(FieldRow("Champs typés", _customFields));
+        events.AddChild(FieldRow("Handler ForgeScript", _customHandler));
+        events.AddChild(_customRequired);
+        var eventActions = new HBoxContainer();
+        var upsert = new Button { Text = "Ajouter / mettre à jour", SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        upsert.Pressed += UpsertCustomEvent;
+        eventActions.AddChild(upsert);
+        var remove = new Button { Text = "Retirer" };
+        remove.Pressed += RemoveCustomEvent;
+        eventActions.AddChild(remove);
+        events.AddChild(eventActions);
+        events.AddChild(Info("Chaque événement est namespacé, versionné, validé par schéma et dispatché avec autorité serveur."));
+
+        var clock = Card(columns, "TEMPS & CALENDRIER DU MONDE");
+        _clockSpeed = Spin(0, 10_000, 1, .25);
+        _clockPaused = Check("Horloge en pause au démarrage", false);
+        _daysPerMonth = Spin(1, 366, 28, 1);
+        _monthsPerYear = Spin(1, 100, 12, 1);
+        _hoursPerDay = Spin(1, 100, 24, 1);
+        _minutesPerHour = Spin(1, 1_000, 60, 1);
+        _initialMinute = Spin(0, 10_000_000, 0, 1);
+        clock.AddChild(FieldRow("Vitesse", _clockSpeed));
+        clock.AddChild(_clockPaused);
+        clock.AddChild(FieldRow("Jours / mois", _daysPerMonth));
+        clock.AddChild(FieldRow("Mois / an", _monthsPerYear));
+        clock.AddChild(FieldRow("Heures / jour", _hoursPerDay));
+        clock.AddChild(FieldRow("Minutes / heure", _minutesPerHour));
+        clock.AddChild(FieldRow("Minute initiale", _initialMinute));
+        clock.AddChild(new Label { Text = "Fuseaux des zones · UUID=minutes, une ligne par zone" });
+        _areaOffsets = new TextEdit
+        {
+            CustomMinimumSize = new Vector2(0, 92),
+            WrapMode = TextEdit.LineWrappingMode.None,
+        };
+        clock.AddChild(_areaOffsets);
+        clock.AddChild(Info("Aube, lever, coucher, crépuscule et minuit sont persistants. La sauvegarde conserve minute, pause et révision."));
+    }
+
+    private void RefreshCustomEventList()
+    {
+        _customEventList!.Clear();
+        foreach (var schema in _customEvents)
+            _customEventList.AddItem($"{schema.Namespace}.{schema.Name} · payload v{schema.PayloadVersion}");
+    }
+
+    private void LoadCustomEvent(int index)
+    {
+        if (index < 0 || index >= _customEvents.Count) return;
+        var schema = _customEvents[index];
+        _customNamespace!.Text = schema.Namespace;
+        _customName!.Text = schema.Name;
+        _customPayloadVersion!.Value = schema.PayloadVersion;
+        _customFields!.Text = string.Join(",", schema.Fields.Select(item => $"{item.Key}:{item.Value}"));
+        _customHandler!.Text = schema.Handler;
+        _customRequired!.ButtonPressed = schema.RequiredExtension;
+    }
+
+    private void UpsertCustomEvent()
+    {
+        try
+        {
+            var fields = ParsePairs(_customFields!.Text, ':');
+            var existing = _customEvents.FirstOrDefault(item =>
+                string.Equals(item.Namespace, _customNamespace!.Text.Trim(), StringComparison.Ordinal) &&
+                string.Equals(item.Name, _customName!.Text.Trim(), StringComparison.Ordinal));
+            var schema = new CustomEventSchema(existing?.Id ?? Guid.NewGuid(), CustomEventSchema.CurrentSchemaVersion,
+                "forge-ui:r052", _customNamespace!.Text.Trim(), _customName!.Text.Trim(),
+                (int)_customPayloadVersion!.Value, fields, _customRequired!.ButtonPressed, "1.0",
+                _customHandler!.Text.Trim(), EventAuthorityScope.Server);
+            var index = _customEvents.FindIndex(item => item.Id == schema.Id);
+            if (index >= 0) _customEvents[index] = schema;
+            else _customEvents.Add(schema);
+            _customEvents.Sort((left, right) => string.Compare(
+                $"{left.Namespace}.{left.Name}", $"{right.Namespace}.{right.Name}", StringComparison.Ordinal));
+            RefreshCustomEventList();
+            _status!.Text = $"Événement {schema.Namespace}.{schema.Name} prêt pour validation.";
+        }
+        catch (ArgumentException exception)
+        {
+            _status!.Text = $"✕ {exception.Message}";
+        }
+    }
+
+    private void RemoveCustomEvent()
+    {
+        var selected = _customEventList!.GetSelectedItems();
+        if (selected.Length == 0) return;
+        _customEvents.RemoveAt(selected[0]);
+        RefreshCustomEventList();
+    }
+
     private void Refresh()
     {
         var state = _state?.Invoke();
@@ -249,7 +481,31 @@ public partial class RuntimePoliciesWindow : Window
         _restoreLocks!.ButtonPressed = restore.HasFlag(SequenceAbortRestoreFlags.Locks);
         _restoreNarrative!.ButtonPressed = restore.HasFlag(SequenceAbortRestoreFlags.NarrativeTransaction);
         _rollbackSteps!.Value = _module.SequenceAbort.MaximumNarrativeRollbackSteps;
-        _status!.Text = $"Prêt · {_module.Heartbeats.Count} timer(s) globaux · {_area.Heartbeats.Count} locaux · {_area.Rest.Volumes.Count} volume(s).";
+        var events = _module.GameplayEvents;
+        _projectEventsEnabled!.ButtonPressed = events.Enabled;
+        _projectEventsRequired!.ButtonPressed = events.RequiredAtRuntime;
+        _projectEventsDowned!.ButtonPressed = events.UseDownedState;
+        _projectEventsRespawn!.ButtonPressed = events.AutoRespawn;
+        _projectEventsReplicated!.ButtonPressed = events.ReplicateEquipmentAndProgression;
+        foreach (var binding in events.Bindings)
+            if (_projectEventHandlers.TryGetValue(binding.EventName, out var handler)) handler.Text = binding.Handler;
+        var world = _module.World;
+        _worldEnabled!.ButtonPressed = world.Enabled;
+        _worldRequired!.ButtonPressed = world.RequiredAtRuntime;
+        _customEvents.Clear();
+        _customEvents.AddRange(world.CustomEvents);
+        RefreshCustomEventList();
+        var clock = world.Clock;
+        _clockSpeed!.Value = clock.Speed;
+        _clockPaused!.ButtonPressed = clock.Paused;
+        _daysPerMonth!.Value = clock.DaysPerMonth;
+        _monthsPerYear!.Value = clock.MonthsPerYear;
+        _hoursPerDay!.Value = clock.HoursPerDay;
+        _minutesPerHour!.Value = clock.MinutesPerHour;
+        _initialMinute!.Value = clock.InitialMinute;
+        _areaOffsets!.Text = string.Join("\n", clock.AreaTimeZoneOffsets.Select(item => $"{item.Key}={item.Value}"));
+        _status!.Text = $"Prêt · {_module.Heartbeats.Count} timer(s) globaux · {_area.Heartbeats.Count} locaux · " +
+                        $"{events.Bindings.Count} événement(s) projet · {world.CustomEvents.Count} custom.";
     }
 
     private bool Save()
@@ -275,8 +531,33 @@ public partial class RuntimePoliciesWindow : Window
             var abort = new SequenceAbortPolicy(_module.SequenceAbort.Id, _module.SequenceAbort.SchemaVersion,
                 _abortEnabled!.ButtonPressed, _module.SequenceAbort.Binding, flags, (int)_rollbackSteps!.Value,
                 "forge-ui");
+            var projectEvents = new ProjectGameplayEventProfile(
+                _module.GameplayEvents.Id,
+                ProjectGameplayEventProfile.CurrentSchemaVersion,
+                "forge-ui:r051",
+                _projectEventsEnabled!.ButtonPressed,
+                _projectEventsRequired!.ButtonPressed,
+                _projectEventsDowned!.ButtonPressed,
+                _projectEventsRespawn!.ButtonPressed,
+                _projectEventsReplicated!.ButtonPressed,
+                _module.GameplayEvents.Bindings.Select(binding => binding with
+                {
+                    Provenance = "forge-ui:r051",
+                    Handler = NonEmpty(_projectEventHandlers[binding.EventName].Text, binding.Handler),
+                    Authority = EventAuthorityScope.Server,
+                }).ToArray());
+            var currentClock = _module.World.Clock;
+            var clock = new WorldClockProfile(currentClock.Id, WorldClockProfile.CurrentSchemaVersion,
+                "forge-ui:r052", (int)_daysPerMonth!.Value, (int)_monthsPerYear!.Value,
+                (int)_hoursPerDay!.Value, (int)_minutesPerHour!.Value, _clockSpeed!.Value,
+                _clockPaused!.ButtonPressed, (long)_initialMinute!.Value, ParseOffsets(_areaOffsets!.Text),
+                currentClock.AstronomicalMinutes);
+            var world = new ProjectWorldProfile(_module.Id, ProjectWorldProfile.CurrentSchemaVersion,
+                "forge-ui:r052", _worldEnabled!.ButtonPressed, _worldRequired!.ButtonPressed,
+                _customEvents.ToArray(), clock);
             var module = new ModuleRuntimePolicyProfile(_module.Id, _module.SchemaVersion, [global], rest, abort,
-                "forge-ui", _module.Cinematics, _module.Gameplay, _module.Rules);
+                "forge-ui", _module.Cinematics, _module.Gameplay, _module.Rules, _module.Extensions, projectEvents,
+                world);
             var mode = (RestPermissionMode)_restMode!.Selected;
             var reason = mode == RestPermissionMode.Allowed ? string.Empty : NonEmpty(_denialReason!.Text, "Repos impossible ici.");
             var condition = mode == RestPermissionMode.Conditional ? NonEmpty(_condition!.Text, "camp.secure == true") : string.Empty;
@@ -321,6 +602,31 @@ public partial class RuntimePoliciesWindow : Window
 
     private static string NonEmpty(string value, string fallback) =>
         string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
+
+    private static IReadOnlyDictionary<string, string> ParsePairs(string value, char separator)
+    {
+        var result = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var token in value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            var parts = token.Split(separator, 2, StringSplitOptions.TrimEntries);
+            if (parts.Length != 2 || parts[0].Length == 0 || parts[1].Length == 0 || !result.TryAdd(parts[0], parts[1]))
+                throw new ArgumentException($"Paire typée invalide ou dupliquée : '{token}'.");
+        }
+        if (result.Count == 0) throw new ArgumentException("Un événement custom requiert au moins un champ typé.");
+        return result;
+    }
+
+    private static IReadOnlyDictionary<string, int> ParseOffsets(string value)
+    {
+        var result = new Dictionary<string, int>(StringComparer.Ordinal);
+        foreach (var line in value.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            var parts = line.Split('=', 2, StringSplitOptions.TrimEntries);
+            if (parts.Length != 2 || !int.TryParse(parts[1], out var offset) || !result.TryAdd(parts[0], offset))
+                throw new ArgumentException($"Fuseau de zone invalide ou dupliqué : '{line}'.");
+        }
+        return result;
+    }
 
     private static HBoxContainer Tab(TabContainer tabs, string title)
     {

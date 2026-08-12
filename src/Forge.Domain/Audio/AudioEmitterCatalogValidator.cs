@@ -92,7 +92,9 @@ public static class AudioEmitterCatalogValidator
                 !float.IsFinite(clip.LoudnessLufs) || clip.LoudnessLufs is < -120 or > 24 ||
                 !clip.MimeType.StartsWith("audio/", StringComparison.OrdinalIgnoreCase) || clip.MemoryBytes <= 0 ||
                 !ValidSpdx(clip.LicenseSpdx) || string.IsNullOrWhiteSpace(clip.Provenance) || !ValidSha256(clip.ContentSha256) ||
-                (!string.IsNullOrWhiteSpace(clip.PreviewResourcePath) && !SafeRelativePath(clip.PreviewResourcePath)))
+                (!string.IsNullOrWhiteSpace(clip.PreviewResourcePath) && !SafeRelativePath(clip.PreviewResourcePath)) ||
+                !float.IsFinite(clip.DurationSeconds) || clip.DurationSeconds < 0 ||
+                (clip.WaveformPeaks?.Any(peak => !float.IsFinite(peak) || peak is < 0 or > 1) ?? false))
                 diagnostics.Add(new DomainDiagnostic(ClipInvalidCode,
                     "Audio clip requires a safe resource, positive weight and memory, locale, loudness, audio MIME, SPDX license, provenance and SHA-256.",
                     clipPath));

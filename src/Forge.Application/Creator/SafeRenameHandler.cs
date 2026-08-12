@@ -220,7 +220,7 @@ public sealed class SafeRenameHandler
         var quests = kind == CreatorContentKind.Quest
             ? project.Quests.Select(quest => quest.Id.ToString() == targetId
                 ? new QuestDefinition(quest.Id, slug!, displayName, quest.InitialStateId, quest.States, quest.Transitions,
-                    quest.Operations)
+                    quest.Operations, quest.Simulation, quest.Authoring, quest.Experience, quest.Quality)
                 : quest).ToArray()
             : project.Quests;
         return new ProjectDefinition(

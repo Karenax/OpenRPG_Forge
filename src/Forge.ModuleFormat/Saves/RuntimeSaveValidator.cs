@@ -14,12 +14,14 @@ public static class RuntimeSaveValidator
     public const string WeatherInvalidCode = "save.weather_invalid";
     public const string ProgressionInvalidCode = "save.progression_invalid";
     public const string EntitySnapshotInvalidCode = "save.entity_snapshot_invalid";
+    public const string WorldClockInvalidCode = "save.world_clock_invalid";
 
     public static IReadOnlyList<RuntimeSaveDiagnostic> Validate(RuntimeSaveDocument save)
     {
         ArgumentNullException.ThrowIfNull(save);
         var diagnostics = new List<RuntimeSaveDiagnostic>();
         if (!string.Equals(save.FormatVersion, RuntimeSaveDocument.CurrentFormatVersion, StringComparison.Ordinal) &&
+            !string.Equals(save.FormatVersion, RuntimeSaveDocument.PreWorldClockFormatVersion, StringComparison.Ordinal) &&
             !string.Equals(save.FormatVersion, RuntimeSaveDocument.PreRuntimeExtensionsFormatVersion, StringComparison.Ordinal) &&
             !string.Equals(save.FormatVersion, RuntimeSaveDocument.PreRulesFormatVersion, StringComparison.Ordinal))
         {
@@ -109,6 +111,15 @@ public static class RuntimeSaveValidator
             diagnostics.Add(new RuntimeSaveDiagnostic(ProgressionInvalidCode,
                 "Progression state requires schema v1, non-negative experience and a positive level.",
                 "progression"));
+        }
+
+        if (save.WorldClock is not null && (save.WorldClock.SchemaVersion != 1 ||
+            save.WorldClock.TotalMinutes < 0 || save.WorldClock.Revision < 0 ||
+            string.IsNullOrWhiteSpace(save.WorldClock.Provenance)))
+        {
+            diagnostics.Add(new RuntimeSaveDiagnostic(WorldClockInvalidCode,
+                "World clock state requires schema v1, non-negative minute/revision and provenance.",
+                "worldClock"));
         }
 
         var snapshots = save.EntitySnapshots ?? [];

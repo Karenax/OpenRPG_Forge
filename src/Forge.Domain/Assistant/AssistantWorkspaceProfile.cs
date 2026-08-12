@@ -17,6 +17,8 @@ public sealed record AssistantWorkspaceProfile
     public bool ShareProjectContent { get; }
     public string Provenance { get; }
     public AgentSemanticWorkflow AgentWorkflow { get; }
+    public AssistantTestAutomationProfile TestAutomation { get; }
+    public CombatSimulationProfile CombatSimulation { get; }
 
     public AssistantWorkspaceProfile(
         Guid id,
@@ -28,7 +30,9 @@ public sealed record AssistantWorkspaceProfile
         bool networkAllowed,
         bool shareProjectContent,
         string provenance,
-        AgentSemanticWorkflow? agentWorkflow = null)
+        AgentSemanticWorkflow? agentWorkflow = null,
+        AssistantTestAutomationProfile? testAutomation = null,
+        CombatSimulationProfile? combatSimulation = null)
     {
         Id = id;
         SchemaVersion = schemaVersion;
@@ -43,6 +47,8 @@ public sealed record AssistantWorkspaceProfile
         ShareProjectContent = shareProjectContent;
         Provenance = (provenance ?? string.Empty).Trim();
         AgentWorkflow = agentWorkflow ?? AgentSemanticWorkflow.CreateDefault();
+        TestAutomation = testAutomation ?? AssistantTestAutomationProfile.CreateDefault();
+        CombatSimulation = combatSimulation ?? CombatSimulationProfile.CreateDefault();
     }
 
     public AssistantProviderDefinition ActiveProvider =>

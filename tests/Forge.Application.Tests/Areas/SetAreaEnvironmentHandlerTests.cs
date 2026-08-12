@@ -10,6 +10,51 @@ namespace Forge.Application.Tests.Areas;
 public sealed class SetAreaEnvironmentHandlerTests
 {
     [Fact]
+    public void R054EnvironmentUsesSameDryRunCommandSnapshotAndUndoRedoPath()
+    {
+        var context = new PlaceEntityTestContext();
+        var source = context.State.Project.Areas.Single().Environment;
+        var authoring = new AreaEnvironmentAuthoringProfile(
+            Guid.Parse("a0541000-0000-4000-8000-000000000001"), 1, "test:r054",
+            new(AreaEnvironmentClass.Exterior, "custom:coastal", "coastal-pack",
+                true, true, true, true, true, true),
+            new("physical-coastal", "#52708f", "#ffe7bc", false,
+                [new(0, 0, .5f, -40), new(12, 1.2f, 0, 60), new(24, 0, .5f, -40)],
+                [new(Guid.Parse("a0541000-0000-4000-8000-000000000002"), 12,
+                    "world.noon", "scripts/noon.forge", false)], [], []),
+            new("#c8d9e8", "#283a52", new("asset:coastal-noise", 16, .1f, 0, 1), [],
+                new Dictionary<string, AreaFogQualityTier> { ["desktop"] = AreaFogQualityTier.High }), true);
+        var profile = new AreaEnvironmentProfile(AreaEnvironmentProfile.CurrentSchemaVersion,
+            AreaEnvironmentClass.Exterior, ["coastal"],
+            new(DayNightMode.Clock, 30, .4f, 1.2f, 5600, true, true),
+            new(FogMode.Distance, .15f, 5, 120, 0), source.Audio, source.Rendering, source.Sky,
+            source.Wind, source.Weather, source.Water, source.Reverb, authoring);
+        var handler = new SetAreaEnvironmentHandler(new FixedClock(PlaceEntityTestContext.Timestamp));
+        var command = new SetAreaEnvironmentCommand(CommandId.From(Guid.NewGuid()), context.State.Revision,
+            context.AreaId, profile, true);
+
+        var preview = handler.Handle(context.State, command);
+        var applied = handler.Handle(context.State, command with { DryRun = false });
+        var history = new ProjectCommandHistory(context.State);
+        history.Record(applied);
+        var area = history.State.Project.Areas.Single();
+        var snapshot = AreaEnvironmentScriptService.Read(area);
+        var noon = AreaEnvironmentScriptService.PreviewTime(area, 12);
+
+        Assert.True(preview.Succeeded);
+        Assert.Contains("physical-coastal", preview.Patch!.Summary, StringComparison.Ordinal);
+        Assert.Equal(preview.Patch!.Path, applied.Patch!.Path);
+        Assert.Equal("custom:coastal", snapshot.ClassificationKey);
+        Assert.Contains("navigation", snapshot.DrivenSubsystems);
+        Assert.Equal(1.2f, noon.SunIntensity);
+        Assert.Equal("world.noon", Assert.Single(noon.EventsAtHour));
+        Assert.True(history.Undo().Succeeded);
+        Assert.NotEqual(profile, history.State.Project.Areas.Single().Environment);
+        Assert.True(history.Redo().Succeeded);
+        Assert.Equal(profile, history.State.Project.Areas.Single().Environment);
+    }
+
+    [Fact]
     public void Applies_complete_environment_atomically_and_round_trips_history()
     {
         var context = new PlaceEntityTestContext();

@@ -12,4 +12,9 @@ caps réseau invalides.
 
 Preuves : `EncounterAuthoringServiceTests`, suite RPG Kit et solution globale.
 
+La fermeture P1 `R083` relie cette fondation au profil canonique `EncounterWorldProfile`, au studio
+transactionnel, à ForgeScript/MCP, à la persistance et à cinq nœuds runtime. La difficulté conserve
+son ruleset et son fournisseur d'évaluation du groupe ; aucun système de règles historique n'est
+codé en dur. Voir `P1-R083-ENCOUNTER-COMPOSITION-ACCEPTANCE.md`.
+
 La prochaine tranche unique est **G8 ENCOUNTER-02**.

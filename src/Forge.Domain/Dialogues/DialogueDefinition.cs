@@ -28,6 +28,12 @@ public sealed record DialogueDefinition
 
     public IReadOnlyList<DialogueGraphEdge> Edges { get; }
 
+    public DialogueAuthoringProfile? Authoring { get; }
+
+    public DialogueExperienceProfile? Experience { get; }
+
+    public DialogueProductionProfile? Production { get; }
+
     public DialogueDefinition(
         DialogueId id,
         string slug,
@@ -40,7 +46,10 @@ public sealed record DialogueDefinition
         IReadOnlyDictionary<string, string>? metadata = null,
         IReadOnlyList<DialogueParticipant>? participants = null,
         IReadOnlyList<DialogueEntryPoint>? entryPoints = null,
-        IReadOnlyList<DialogueGraphEdge>? edges = null)
+        IReadOnlyList<DialogueGraphEdge>? edges = null,
+        DialogueAuthoringProfile? authoring = null,
+        DialogueExperienceProfile? experience = null,
+        DialogueProductionProfile? production = null)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(slug);
@@ -102,9 +111,24 @@ public sealed record DialogueDefinition
         Participants = materializedParticipants;
         EntryPoints = materializedEntries;
         Edges = (edges ?? derivedEdges).ToArray();
+        Authoring = authoring;
+        Experience = experience;
+        Production = production;
     }
 
     public DialogueDefinition WithPresentation(DialoguePresentationProfile? presentation) =>
         new(Id, Slug, DisplayName, EntryNodeId, Nodes, presentation, SchemaVersion, Provenance,
-            Metadata, Participants, EntryPoints, Edges);
+            Metadata, Participants, EntryPoints, Edges, Authoring, Experience, Production);
+
+    public DialogueDefinition WithAuthoring(DialogueAuthoringProfile? authoring) =>
+        new(Id, Slug, DisplayName, EntryNodeId, Nodes, Presentation, SchemaVersion, Provenance,
+            Metadata, Participants, EntryPoints, Edges, authoring, Experience, Production);
+
+    public DialogueDefinition WithExperience(DialogueExperienceProfile? experience) =>
+        new(Id, Slug, DisplayName, EntryNodeId, Nodes, Presentation, SchemaVersion, Provenance,
+            Metadata, Participants, EntryPoints, Edges, Authoring, experience, Production);
+
+    public DialogueDefinition WithProduction(DialogueProductionProfile? production) =>
+        new(Id, Slug, DisplayName, EntryNodeId, Nodes, Presentation, SchemaVersion, Provenance,
+            Metadata, Participants, EntryPoints, Edges, Authoring, Experience, production);
 }

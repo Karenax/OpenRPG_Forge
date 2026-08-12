@@ -9,4 +9,15 @@ public sealed record AssetCatalogQuery(
     string? LicenseSpdx = null,
     AssetAvailability? Availability = null,
     int MaximumResults = 300,
-    bool? Installed = null);
+    bool? Installed = null,
+    string? Tag = null,
+    double? MaximumWidth = null,
+    double? MaximumHeight = null,
+    double? MaximumDepth = null,
+    string? Style = null,
+    string? Skeleton = null,
+    string? Material = null,
+    long? MaximumTriangleCount = null,
+    string? Author = null,
+    string? Compatibility = null,
+    string? Variant = null);

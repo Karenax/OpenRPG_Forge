@@ -66,6 +66,8 @@ public static partial class AssistantWorkspaceProfileValidator
             ValidatePrompt(prompt, diagnostics);
         }
         diagnostics.AddRange(AgentSemanticWorkflowValidator.Validate(profile.AgentWorkflow));
+        diagnostics.AddRange(AssistantTestAutomationProfileValidator.Validate(profile.TestAutomation));
+        diagnostics.AddRange(CombatSimulationProfileValidator.Validate(profile.CombatSimulation));
         return diagnostics;
     }
 

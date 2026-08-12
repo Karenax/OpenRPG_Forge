@@ -64,6 +64,9 @@ public partial class DialogueEditorWindow : Window
     private IReadOnlyDictionary<string, string> _draftMetadata = new Dictionary<string, string>();
     private IReadOnlyList<DialogueParticipant> _draftParticipants = [];
     private IReadOnlyList<DialogueEntryPoint> _draftEntryPoints = [];
+    private DialogueAuthoringProfile? _draftAuthoring;
+    private DialogueExperienceProfile? _draftExperience;
+    private DialogueProductionProfile? _draftProduction;
     private DialogueNodeId? _entryNodeId;
     private int _selectedNodeIndex = -1;
     private int _selectedChoiceIndex = -1;
@@ -91,6 +94,49 @@ public partial class DialogueEditorWindow : Window
     private OptionButton? _conditionCombination;
     private TextEdit? _conditions;
     private TextEdit? _choiceActionLines;
+    private ScrollContainer? _detailScroll;
+    private CheckBox? _authoringEnabled;
+    private CheckBox? _authoringRequired;
+    private TextEdit? _authoringParticipants;
+    private TextEdit? _authoringTokens;
+    private OptionButton? _authoringEvaluation;
+    private TextEdit? _authoringWeights;
+    private OptionButton? _wizardConditionKind;
+    private LineEdit? _wizardConditionKey;
+    private LineEdit? _wizardConditionValue;
+    private OptionButton? _wizardActionKind;
+    private LineEdit? _wizardActionKey;
+    private LineEdit? _wizardActionValue;
+    private Label? _wizardSources;
+    private LineEdit? _notesIntent;
+    private LineEdit? _notesEmotion;
+    private LineEdit? _notesSource;
+    private OptionButton? _notesStatus;
+    private LineEdit? _notesTodos;
+    private LineEdit? _notesAuthor;
+    private CheckBox? _experienceEnabled;
+    private CheckBox? _experienceRequired;
+    private CheckBox? _experienceRollback;
+    private CheckBox? _experienceResume;
+    private TextEdit? _experienceCompletedActions;
+    private TextEdit? _experienceAbortedActions;
+    private LineEdit? _experienceSearchPattern;
+    private CheckBox? _experienceSearchRegex;
+    private LineEdit? _experienceReplacement;
+    private LineEdit? _experienceSearchFilters;
+    private readonly Dictionary<DialogueReviewBadge, CheckBox> _experienceBadgeChecks = [];
+    private CheckBox? _experienceReviewMode;
+    private TextEdit? _experienceMemorySlots;
+    private TextEdit? _experienceSkillChecks;
+    private Label? _experienceSearchPreview;
+    private CheckBox? _productionEnabled;
+    private CheckBox? _productionRequired;
+    private TextEdit? _productionSubgraphs;
+    private TextEdit? _productionConsequences;
+    private TextEdit? _productionCoverage;
+    private TextEdit? _productionCollaboration;
+    private TextEdit? _productionAiPlans;
+    private Label? _productionSummary;
     private RichTextLabel? _preview;
     private RichTextLabel? _graphOverview;
     private TextEdit? _simulationState;
@@ -101,6 +147,9 @@ public partial class DialogueEditorWindow : Window
     private string? _capturePath;
     private double _captureDelay;
     private bool _capturePrepared;
+    private bool _captureR068;
+    private bool _captureR069;
+    private bool _captureR070;
 
     public void Initialize(
         Func<ProjectState?> getState,
@@ -132,10 +181,25 @@ public partial class DialogueEditorWindow : Window
         BuildUi();
         ConnectSignals();
         var captureArgument = OS.GetCmdlineUserArgs().FirstOrDefault(value =>
-            value.StartsWith("--dialogue-graph-ui-capture=", StringComparison.Ordinal));
+            value.StartsWith("--dialogue-graph-ui-capture=", StringComparison.Ordinal) ||
+            value.StartsWith("--r068-dialogue-authoring-ui-capture=", StringComparison.Ordinal) ||
+            value.StartsWith("--r069-dialogue-experience-ui-capture=", StringComparison.Ordinal) ||
+            value.StartsWith("--r070-dialogue-production-ui-capture=", StringComparison.Ordinal));
         if (captureArgument is not null)
         {
-            _capturePath = captureArgument["--dialogue-graph-ui-capture=".Length..];
+            _captureR068 = captureArgument.StartsWith("--r068-dialogue-authoring-ui-capture=",
+                StringComparison.Ordinal);
+            _captureR069 = captureArgument.StartsWith("--r069-dialogue-experience-ui-capture=",
+                StringComparison.Ordinal);
+            _captureR070 = captureArgument.StartsWith("--r070-dialogue-production-ui-capture=",
+                StringComparison.Ordinal);
+            _capturePath = _captureR070
+                ? captureArgument["--r070-dialogue-production-ui-capture=".Length..]
+                : _captureR069
+                ? captureArgument["--r069-dialogue-experience-ui-capture=".Length..]
+                : _captureR068
+                    ? captureArgument["--r068-dialogue-authoring-ui-capture=".Length..]
+                    : captureArgument["--dialogue-graph-ui-capture=".Length..];
             SetProcess(true);
         }
     }
@@ -148,15 +212,26 @@ public partial class DialogueEditorWindow : Window
         {
             Open();
             PrepareCaptureDialogue();
+            if (_captureR068) PrepareR068Capture();
+            if (_captureR069) PrepareR069Capture();
+            if (_captureR070) PrepareR070Capture();
             _capturePrepared = true;
             return;
         }
         if (!_capturePrepared || _captureDelay < 2.5) return;
+        if (string.IsNullOrWhiteSpace(_capturePath))
+        {
+            GD.PrintErr($"OPENRPG_FORGE_{CaptureMarker()}_UI_CAPTURE_FAILED empty_path");
+            _capturePath = null;
+            SetProcess(false);
+            GetTree().Quit(1);
+            return;
+        }
         var destination = Path.GetFullPath(_capturePath);
         Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
         var image = GetViewport().GetTexture().GetImage();
         var error = image.SavePng(destination);
-        GD.Print($"OPENRPG_FORGE_DIALOGUE_GRAPH_UI_CAPTURE_{(error == Error.Ok ? "PASS" : "FAILED")} " +
+        GD.Print($"OPENRPG_FORGE_{CaptureMarker()}_UI_CAPTURE_{(error == Error.Ok ? "PASS" : "FAILED")} " +
                  $"path={destination} size={image.GetWidth()}x{image.GetHeight()}");
         _capturePath = null;
         SetProcess(false);
@@ -186,6 +261,204 @@ public partial class DialogueEditorWindow : Window
         Exclusive = true;
         PopupCentered(new Vector2I(1440, 950));
         _brandWindow?.Invoke(this);
+    }
+
+    public bool ConfigureForR068SmokeTest(DialogueDefinition dialogue)
+    {
+        ArgumentNullException.ThrowIfNull(dialogue);
+        var state = _getState?.Invoke();
+        if (state is null) return false;
+        PopulateBlueprints(state);
+        LoadDialogue(dialogue);
+
+        var profile = DialogueAuthoringProfile.CreateDefault(dialogue, "toolset:r068");
+        var kinds = new[]
+        {
+            DialogueParticipantBindingKind.Role,
+            DialogueParticipantBindingKind.Query,
+            DialogueParticipantBindingKind.Tag,
+            DialogueParticipantBindingKind.Entity,
+        };
+        var roles = profile.Participants.Select(item => item.Role).ToArray();
+        var narrator = roles.FirstOrDefault(item => string.Equals(item, "narrator", StringComparison.Ordinal)) ??
+                       roles[0];
+        var participants = profile.Participants.Select((item, index) => item with
+        {
+            Provenance = "toolset:r068",
+            Kind = kinds[index % kinds.Length],
+            Value = kinds[index % kinds.Length] switch
+            {
+                DialogueParticipantBindingKind.Query => $"role={item.Role}",
+                DialogueParticipantBindingKind.Tag => $"dialogue-{item.Role}",
+                DialogueParticipantBindingKind.Entity => $"entity:{item.Role}",
+                _ => item.Role,
+            },
+            FallbackRole = item.Role == narrator ? null : narrator,
+        }).ToArray();
+        var modes = new[]
+        {
+            DialogueChoiceEvaluationMode.Weighted,
+            DialogueChoiceEvaluationMode.FirstValid,
+            DialogueChoiceEvaluationMode.AllValid,
+            DialogueChoiceEvaluationMode.RandomDeterministic,
+            DialogueChoiceEvaluationMode.Manual,
+        };
+        var entryNode = dialogue.Nodes.Single(item => item.Id == dialogue.EntryNodeId);
+        var wizard = new List<DialogueWizardEntry>();
+        if (entryNode.OnEnterActions.FirstOrDefault() is { } action)
+            wizard.Add(new DialogueWizardEntry(Guid.Parse("d0685000-0000-4000-8000-000000000101"), 1,
+                "toolset:r068", DialogueWizardEntryKind.Action, action.Id,
+                $"builder:action:{action.Kind}:{action.Key}:{action.Value}:{action.Required.ToString().ToLowerInvariant()}"));
+        if (entryNode.Choices.SelectMany(item => item.Conditions).FirstOrDefault() is { } condition)
+            wizard.Add(new DialogueWizardEntry(Guid.Parse("d0685000-0000-4000-8000-000000000102"), 1,
+                "toolset:r068", DialogueWizardEntryKind.Condition, condition.Id,
+                $"builder:condition:{condition.Kind}:{condition.Key}:{condition.ExpectedValue}:{condition.Negated.ToString().ToLowerInvariant()}"));
+        profile = profile with
+        {
+            Provenance = "toolset:r068",
+            RequiredAtRuntime = true,
+            Participants = participants,
+            Nodes = profile.Nodes.Select((item, index) => item with
+            {
+                Provenance = "toolset:r068",
+                EvaluationMode = modes[index % modes.Length],
+                Tokens = item.NodeId == dialogue.EntryNodeId
+                    ? [new DialogueTextToken(Guid.Parse("d0685000-0000-4000-8000-000000000103"), 1,
+                        "toolset:r068", "player.name", DialogueTextTokenType.EntityName, true, "Hero")]
+                    : [],
+                ChoiceEvaluations = item.ChoiceEvaluations.Select((value, choiceIndex) => value with
+                {
+                    Provenance = "toolset:r068",
+                    Weight = choiceIndex + 1,
+                }).ToArray(),
+                WizardEntries = item.NodeId == dialogue.EntryNodeId ? wizard : [],
+                Notes = item.Notes with
+                {
+                    Provenance = "toolset:r068",
+                    Intent = $"Valider le noeud {index + 1} dans le parcours auteur.",
+                    Emotion = index == 0 ? "mysterious" : "neutral",
+                    Source = "acceptance:r068",
+                    Status = DialogueNodeEditorialStatus.Review,
+                    Todos = ["Relire le ton"],
+                    AuthorMention = "@karen",
+                },
+            }).ToArray(),
+        };
+        _draftAuthoring = profile;
+        RefreshNodes(0);
+        RefreshValidation();
+        var diagnostics = DialogueValidator.Validate(CreateDraftDefinition());
+        var configured = _authoringEnabled?.ButtonPressed == true &&
+                         _authoringRequired?.ButtonPressed == true &&
+                         _authoringEvaluation?.ItemCount == modes.Length && diagnostics.Count == 0;
+        if (!configured)
+            GD.PrintErr("OPENRPG_FORGE_DIALOGUE_R068_UI_CONFIGURATION_FAILED " +
+                        $"enabled={_authoringEnabled?.ButtonPressed} required={_authoringRequired?.ButtonPressed} " +
+                        $"modes={_authoringEvaluation?.ItemCount} diagnostics={string.Join(',', diagnostics.Select(item => item.Code))}");
+        return configured;
+    }
+
+    public bool ApplyForR068SmokeTest()
+    {
+        if (!SaveSelectedNode()) return false;
+        try
+        {
+            return _applyDialogue?.Invoke(CreateDraftDefinition()) == true;
+        }
+        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException)
+        {
+            SetStatus(exception.Message, false, true);
+            return false;
+        }
+    }
+
+    public bool ConfigureForR069SmokeTest(DialogueDefinition dialogue)
+    {
+        ArgumentNullException.ThrowIfNull(dialogue);
+        var state = _getState?.Invoke();
+        if (state is null) return false;
+        PopulateBlueprints(state);
+        LoadDialogue(dialogue);
+        var success = dialogue.Nodes.First(item => item.Id != dialogue.EntryNodeId).Id;
+        var failure = dialogue.Nodes.Last(item => item.Id != dialogue.EntryNodeId).Id;
+        var profile = DialogueExperienceProfile.CreateDefault(dialogue, "toolset:r069");
+        profile = profile with
+        {
+            RequiredAtRuntime = true,
+            Lifecycle = profile.Lifecycle with
+            {
+                Provenance = "toolset:r069",
+                CompletedActions = [new(DialogueActionKind.SetVariable, "dialogue.completed", "true")],
+                AbortedActions = [new(DialogueActionKind.RunScript, "dialogue-aborted.forge", "reason")],
+                RollbackOnAbort = true,
+                CreateResumeState = true,
+            },
+            Search = profile.Search with
+            {
+                Provenance = "toolset:r069",
+                Pattern = "crypte|braise",
+                UseRegex = true,
+                SpeakerRoles = [],
+                ReplacementPreview = "flamme",
+            },
+            Review = profile.Review with { Provenance = "toolset:r069", ReviewMode = true },
+            MemorySlots =
+            [new(Guid.Parse("d0695000-0000-4000-8000-000000000001"), 1, "toolset:r069",
+                DialogueMemoryScope.Player, "player:current", "trust", DialogueTextTokenType.Integer,
+                DialogueMemoryDuration.Campaign, "0")],
+            SkillChecks =
+            [new(Guid.Parse("d0695000-0000-4000-8000-000000000002"), 1, "toolset:r069",
+                dialogue.EntryNodeId, "persuasion", 12, "elyra", true,
+                DialogueSkillCheckVisibility.FullExplanation, success, failure)],
+        };
+        _draftExperience = profile;
+        RefreshNodes(0);
+        RefreshValidation();
+        var diagnostics = DialogueValidator.Validate(CreateDraftDefinition());
+        return _experienceEnabled?.ButtonPressed == true &&
+               _experienceRequired?.ButtonPressed == true &&
+               _experienceBadgeChecks.Count == 6 && diagnostics.Count == 0;
+    }
+
+    public bool ApplyForR069SmokeTest()
+    {
+        if (!SaveSelectedNode()) return false;
+        try
+        {
+            return _applyDialogue?.Invoke(CreateDraftDefinition()) == true;
+        }
+        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException)
+        {
+            SetStatus(exception.Message, false, true);
+            return false;
+        }
+    }
+
+    public bool ConfigureForR070SmokeTest(DialogueDefinition dialogue)
+    {
+        ArgumentNullException.ThrowIfNull(dialogue);
+        var state = _getState?.Invoke();
+        if (state is null) return false;
+        PopulateBlueprints(state);
+        LoadDialogue(dialogue);
+        _draftProduction = CreateR070ProductionProfile(dialogue, "toolset:r070");
+        RefreshNodes(0);
+        RefreshValidation();
+        var diagnostics = DialogueValidator.Validate(CreateDraftDefinition());
+        return _productionEnabled?.ButtonPressed == true && _productionRequired?.ButtonPressed == true &&
+               _productionSummary?.Text.Contains("Couverture", StringComparison.Ordinal) == true &&
+               diagnostics.Count == 0;
+    }
+
+    public bool ApplyForR070SmokeTest()
+    {
+        if (!SaveSelectedNode()) return false;
+        try { return _applyDialogue?.Invoke(CreateDraftDefinition()) == true; }
+        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException)
+        {
+            SetStatus(exception.Message, false, true);
+            return false;
+        }
     }
 
     private void BuildUi()
@@ -304,19 +577,19 @@ public partial class DialogueEditorWindow : Window
         nodeColumn.AddChild(addNodeButton);
         addNodeButton.Pressed += AddNode;
 
-        var detailScroll = new ScrollContainer
+        _detailScroll = new ScrollContainer
         {
             SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
             SizeFlagsVertical = Control.SizeFlags.ExpandFill,
             CustomMinimumSize = new Vector2(620, 0),
         };
-        editor.AddChild(detailScroll);
+        editor.AddChild(_detailScroll);
         var detailColumn = new VBoxContainer
         {
             SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
         };
         detailColumn.AddThemeConstantOverride("separation", 6);
-        detailScroll.AddChild(detailColumn);
+        _detailScroll.AddChild(detailColumn);
         detailColumn.AddChild(new Label { Text = "RÉPLIQUE SÉLECTIONNÉE" });
         var nodeMetadata = new HBoxContainer();
         nodeMetadata.AddThemeConstantOverride("separation", 8);
@@ -460,6 +733,402 @@ public partial class DialogueEditorWindow : Window
         var moveDown = new Button { Text = "↓", TooltipText = "Descendre la réponse" };
         moveDown.Pressed += () => MoveChoice(_selectedChoiceIndex, _selectedChoiceIndex + 1);
         choiceButtons.AddChild(moveDown);
+
+        var authoringPanel = new PanelContainer();
+        authoringPanel.AddThemeStyleboxOverride("panel", new StyleBoxFlat
+        {
+            BgColor = new Color("1b1427"),
+            BorderColor = new Color("6e4d91"),
+            BorderWidthLeft = 1,
+            BorderWidthTop = 1,
+            BorderWidthRight = 1,
+            BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 8,
+            CornerRadiusTopRight = 8,
+            CornerRadiusBottomLeft = 8,
+            CornerRadiusBottomRight = 8,
+            ContentMarginLeft = 12,
+            ContentMarginTop = 10,
+            ContentMarginRight = 12,
+            ContentMarginBottom = 10,
+        });
+        detailColumn.AddChild(authoringPanel);
+        var authoring = new VBoxContainer();
+        authoring.AddThemeConstantOverride("separation", 6);
+        authoringPanel.AddChild(authoring);
+        var authoringHeader = new HBoxContainer();
+        authoring.AddChild(authoringHeader);
+        var authoringTitle = new Label
+        {
+            Text = "AUTEUR P1 · TOKENS · PARTICIPANTS · ÉVALUATION · WIZARD · NOTES",
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+        };
+        authoringTitle.AddThemeColorOverride("font_color", new Color("ffad72"));
+        authoringHeader.AddChild(authoringTitle);
+        _authoringEnabled = new CheckBox { Text = "Actif" };
+        authoringHeader.AddChild(_authoringEnabled);
+        _authoringRequired = new CheckBox { Text = "Requis runtime" };
+        authoringHeader.AddChild(_authoringRequired);
+
+        var authoringColumns = new HBoxContainer();
+        authoringColumns.AddThemeConstantOverride("separation", 12);
+        authoring.AddChild(authoringColumns);
+        var contracts = new VBoxContainer
+        {
+            CustomMinimumSize = new Vector2(350, 0),
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+        };
+        contracts.AddThemeConstantOverride("separation", 5);
+        authoringColumns.AddChild(contracts);
+        var assistant = new VBoxContainer
+        {
+            CustomMinimumSize = new Vector2(350, 0),
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+        };
+        assistant.AddThemeConstantOverride("separation", 5);
+        authoringColumns.AddChild(assistant);
+
+        contracts.AddChild(new Label { Text = "Participants · rôle|kind|valeur|fallback" });
+        _authoringParticipants = new TextEdit
+        {
+            CustomMinimumSize = new Vector2(0, 52),
+            WrapMode = TextEdit.LineWrappingMode.None,
+        };
+        contracts.AddChild(_authoringParticipants);
+        var evaluationRow = new HBoxContainer();
+        evaluationRow.AddChild(new Label { Text = "Mode d’évaluation", CustomMinimumSize = new Vector2(145, 0) });
+        _authoringEvaluation = new OptionButton { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        foreach (var mode in Enum.GetValues<DialogueChoiceEvaluationMode>())
+            _authoringEvaluation.AddItem(mode.ToString(), (int)mode);
+        evaluationRow.AddChild(_authoringEvaluation);
+        contracts.AddChild(evaluationRow);
+        contracts.AddChild(new Label { Text = "Tokens · nom|type|required/optional|défaut" });
+        _authoringTokens = new TextEdit
+        {
+            CustomMinimumSize = new Vector2(0, 52),
+            WrapMode = TextEdit.LineWrappingMode.None,
+        };
+        contracts.AddChild(_authoringTokens);
+        contracts.AddChild(new Label { Text = "Poids · UUID du choix|poids" });
+        _authoringWeights = new TextEdit
+        {
+            CustomMinimumSize = new Vector2(0, 44),
+            WrapMode = TextEdit.LineWrappingMode.None,
+        };
+        contracts.AddChild(_authoringWeights);
+
+        assistant.AddChild(new Label { Text = "WIZARD VISUEL · sources typées" });
+        var conditionBuilder = new GridContainer { Columns = 2, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        _wizardConditionKind = new OptionButton { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        foreach (var kind in Enum.GetValues<DialogueConditionKind>())
+            _wizardConditionKind.AddItem(kind.ToString(), (int)kind);
+        conditionBuilder.AddChild(_wizardConditionKind);
+        _wizardConditionKey = new LineEdit { PlaceholderText = "clé condition", SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        conditionBuilder.AddChild(_wizardConditionKey);
+        _wizardConditionValue = new LineEdit { PlaceholderText = "valeur", SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        conditionBuilder.AddChild(_wizardConditionValue);
+        var addCondition = new Button { Text = "+ Condition typée" };
+        addCondition.Pressed += AddWizardCondition;
+        conditionBuilder.AddChild(addCondition);
+        assistant.AddChild(conditionBuilder);
+
+        var actionBuilder = new GridContainer { Columns = 2, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        _wizardActionKind = new OptionButton { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        foreach (var kind in Enum.GetValues<DialogueActionKind>())
+            _wizardActionKind.AddItem(kind.ToString(), (int)kind);
+        actionBuilder.AddChild(_wizardActionKind);
+        _wizardActionKey = new LineEdit { PlaceholderText = "cible action", SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        actionBuilder.AddChild(_wizardActionKey);
+        _wizardActionValue = new LineEdit { PlaceholderText = "valeur", SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        actionBuilder.AddChild(_wizardActionValue);
+        var addAction = new Button { Text = "+ Action typée" };
+        addAction.Pressed += AddWizardAction;
+        actionBuilder.AddChild(addAction);
+        assistant.AddChild(actionBuilder);
+        _wizardSources = new Label { Text = "Sources visuelles · aucune", AutowrapMode = TextServer.AutowrapMode.WordSmart };
+        _wizardSources.AddThemeColorOverride("font_color", new Color("ab9acb"));
+        assistant.AddChild(_wizardSources);
+
+        var notes = new GridContainer { Columns = 4, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        notes.AddThemeConstantOverride("h_separation", 8);
+        notes.AddThemeConstantOverride("v_separation", 5);
+        assistant.AddChild(notes);
+        _notesIntent = AddAuthoringField(notes, "Intention", "But narratif du nœud");
+        _notesEmotion = AddAuthoringField(notes, "Émotion", "warm, tense…");
+        _notesSource = AddAuthoringField(notes, "Source", "brief:chapitre-1");
+        _notesAuthor = AddAuthoringField(notes, "Auteur", "@auteur");
+        _notesTodos = AddAuthoringField(notes, "TODO", "voix; validation lore");
+        notes.AddChild(new Label { Text = "Statut" });
+        _notesStatus = new OptionButton { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        foreach (var status in Enum.GetValues<DialogueNodeEditorialStatus>())
+            _notesStatus.AddItem(status.ToString(), (int)status);
+        notes.AddChild(_notesStatus);
+
+        var experiencePanel = new PanelContainer();
+        experiencePanel.AddThemeStyleboxOverride("panel", new StyleBoxFlat
+        {
+            BgColor = new Color("151e2b"),
+            BorderColor = new Color("3c7391"),
+            BorderWidthLeft = 1,
+            BorderWidthTop = 1,
+            BorderWidthRight = 1,
+            BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 8,
+            CornerRadiusTopRight = 8,
+            CornerRadiusBottomLeft = 8,
+            CornerRadiusBottomRight = 8,
+            ContentMarginLeft = 12,
+            ContentMarginTop = 10,
+            ContentMarginRight = 12,
+            ContentMarginBottom = 10,
+        });
+        detailColumn.AddChild(experiencePanel);
+        var experience = new VBoxContainer();
+        experience.AddThemeConstantOverride("separation", 6);
+        experiencePanel.AddChild(experience);
+        var experienceHeader = new HBoxContainer();
+        experience.AddChild(experienceHeader);
+        var experienceTitle = new Label
+        {
+            Text = "EXPÉRIENCE DE DIALOGUE P1",
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+        };
+        experienceTitle.AddThemeColorOverride("font_color", new Color("76cce6"));
+        experienceHeader.AddChild(experienceTitle);
+        _experienceEnabled = new CheckBox { Text = "Actif" };
+        experienceHeader.AddChild(_experienceEnabled);
+        _experienceRequired = new CheckBox { Text = "Requis runtime" };
+        experienceHeader.AddChild(_experienceRequired);
+        var experienceSubtitle = new Label
+        {
+            Text = "Fin/abandon · recherche & remplacement preview · revue · mémoire · checks",
+        };
+        experienceSubtitle.AddThemeColorOverride("font_color", new Color("9db8ca"));
+        experience.AddChild(experienceSubtitle);
+
+        var experienceColumns = new HBoxContainer();
+        experienceColumns.AddThemeConstantOverride("separation", 12);
+        experience.AddChild(experienceColumns);
+        var lifecycleColumn = new VBoxContainer
+        {
+            CustomMinimumSize = new Vector2(350, 0),
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+        };
+        lifecycleColumn.AddThemeConstantOverride("separation", 4);
+        experienceColumns.AddChild(lifecycleColumn);
+        var intelligenceColumn = new VBoxContainer
+        {
+            CustomMinimumSize = new Vector2(350, 0),
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+        };
+        intelligenceColumn.AddThemeConstantOverride("separation", 4);
+        experienceColumns.AddChild(intelligenceColumn);
+
+        var lifecycleFlags = new HBoxContainer();
+        _experienceRollback = new CheckBox { Text = "Rollback abandon" };
+        lifecycleFlags.AddChild(_experienceRollback);
+        _experienceResume = new CheckBox { Text = "État de reprise" };
+        lifecycleFlags.AddChild(_experienceResume);
+        lifecycleColumn.AddChild(lifecycleFlags);
+        lifecycleColumn.AddChild(new Label { Text = "Actions fin · kind|clé|valeur|required" });
+        _experienceCompletedActions = new TextEdit
+        {
+            CustomMinimumSize = new Vector2(0, 44),
+            WrapMode = TextEdit.LineWrappingMode.None,
+        };
+        lifecycleColumn.AddChild(_experienceCompletedActions);
+        lifecycleColumn.AddChild(new Label { Text = "Actions abandon · raison disponible au runtime" });
+        _experienceAbortedActions = new TextEdit
+        {
+            CustomMinimumSize = new Vector2(0, 44),
+            WrapMode = TextEdit.LineWrappingMode.None,
+        };
+        lifecycleColumn.AddChild(_experienceAbortedActions);
+        lifecycleColumn.AddChild(new Label { Text = "Mémoire · scope|cible|nom|type|durée|défaut" });
+        _experienceMemorySlots = new TextEdit
+        {
+            CustomMinimumSize = new Vector2(0, 56),
+            WrapMode = TextEdit.LineWrappingMode.None,
+        };
+        lifecycleColumn.AddChild(_experienceMemorySlots);
+
+        var searchRow = new HBoxContainer();
+        searchRow.AddChild(new Label { Text = "Recherche", CustomMinimumSize = new Vector2(92, 0) });
+        _experienceSearchPattern = new LineEdit
+        {
+            PlaceholderText = "Recherche multi-dialogues",
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+        };
+        searchRow.AddChild(_experienceSearchPattern);
+        _experienceSearchRegex = new CheckBox { Text = "Regex sûre" };
+        searchRow.AddChild(_experienceSearchRegex);
+        intelligenceColumn.AddChild(searchRow);
+        var replacementRow = new HBoxContainer();
+        replacementRow.AddChild(new Label { Text = "Remplacement", CustomMinimumSize = new Vector2(92, 0) });
+        _experienceReplacement = new LineEdit
+        {
+            PlaceholderText = "Prévisualisation uniquement",
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+        };
+        replacementRow.AddChild(_experienceReplacement);
+        intelligenceColumn.AddChild(replacementRow);
+        var filterRow = new HBoxContainer();
+        filterRow.AddChild(new Label { Text = "Filtres", CustomMinimumSize = new Vector2(92, 0) });
+        _experienceSearchFilters = new LineEdit
+        {
+            PlaceholderText = "Filtres · speaker:guide; condition:HasItem; action:RunScript",
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+        };
+        filterRow.AddChild(_experienceSearchFilters);
+        intelligenceColumn.AddChild(filterRow);
+        _experienceSearchPreview = new Label
+        {
+            Text = "Prévisualisation · aucun résultat",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        };
+        _experienceSearchPreview.AddThemeColorOverride("font_color", new Color("9db8ca"));
+        intelligenceColumn.AddChild(_experienceSearchPreview);
+        intelligenceColumn.AddChild(new Label { Text = "Badges & légende" });
+        var badgesRow = new GridContainer { Columns = 3, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        badgesRow.AddThemeConstantOverride("h_separation", 10);
+        badgesRow.AddThemeConstantOverride("v_separation", 2);
+        foreach (var badge in Enum.GetValues<DialogueReviewBadge>())
+        {
+            var check = new CheckBox { Text = badge.ToString() };
+            _experienceBadgeChecks[badge] = check;
+            badgesRow.AddChild(check);
+        }
+        intelligenceColumn.AddChild(badgesRow);
+        _experienceReviewMode = new CheckBox { Text = "Mode review · masquer les nœuds approuvés" };
+        intelligenceColumn.AddChild(_experienceReviewMode);
+        intelligenceColumn.AddChild(new Label
+        {
+            Text = "Checks · node|skill|DD|opposant|advantage|visibilité|succès|échec",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        });
+        _experienceSkillChecks = new TextEdit
+        {
+            CustomMinimumSize = new Vector2(0, 72),
+            WrapMode = TextEdit.LineWrappingMode.None,
+        };
+        intelligenceColumn.AddChild(_experienceSkillChecks);
+
+        var productionPanel = new PanelContainer();
+        productionPanel.AddThemeStyleboxOverride("panel", new StyleBoxFlat
+        {
+            BgColor = new Color("211a2e"),
+            BorderColor = new Color("8756b5"),
+            BorderWidthLeft = 1,
+            BorderWidthTop = 1,
+            BorderWidthRight = 1,
+            BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 8,
+            CornerRadiusTopRight = 8,
+            CornerRadiusBottomLeft = 8,
+            CornerRadiusBottomRight = 8,
+            ContentMarginLeft = 12,
+            ContentMarginTop = 10,
+            ContentMarginRight = 12,
+            ContentMarginBottom = 10,
+        });
+        detailColumn.AddChild(productionPanel);
+        var production = new VBoxContainer();
+        production.AddThemeConstantOverride("separation", 6);
+        productionPanel.AddChild(production);
+        var productionHeader = new HBoxContainer();
+        production.AddChild(productionHeader);
+        var productionTitle = new Label
+        {
+            Text = "PRODUCTION NARRATIVE P1",
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+        };
+        productionTitle.AddThemeColorOverride("font_color", new Color("c792ea"));
+        productionHeader.AddChild(productionTitle);
+        _productionEnabled = new CheckBox { Text = "Actif" };
+        productionHeader.AddChild(_productionEnabled);
+        _productionRequired = new CheckBox { Text = "Requis runtime" };
+        productionHeader.AddChild(_productionRequired);
+        var productionSubtitle = new Label
+        {
+            Text = "Sous-dialogues versionnés · impact · couverture · collaboration · IA contrôlée",
+        };
+        productionSubtitle.AddThemeColorOverride("font_color", new Color("b7a1cb"));
+        production.AddChild(productionSubtitle);
+        var productionColumns = new HBoxContainer();
+        productionColumns.AddThemeConstantOverride("separation", 12);
+        production.AddChild(productionColumns);
+        var productionLeft = new VBoxContainer
+        {
+            CustomMinimumSize = new Vector2(350, 0),
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+        };
+        var productionRight = new VBoxContainer
+        {
+            CustomMinimumSize = new Vector2(350, 0),
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+        };
+        productionLeft.AddThemeConstantOverride("separation", 4);
+        productionRight.AddThemeConstantOverride("separation", 4);
+        productionColumns.AddChild(productionLeft);
+        productionColumns.AddChild(productionRight);
+        productionLeft.AddChild(new Label
+        {
+            Text = "Sous-dialogues · node|clé|version|entrées|sorties|variables|test|in|out",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        });
+        _productionSubgraphs = new TextEdit
+        {
+            CustomMinimumSize = new Vector2(0, 72),
+            WrapMode = TextEdit.LineWrappingMode.None,
+        };
+        productionLeft.AddChild(_productionSubgraphs);
+        productionLeft.AddChild(new Label
+        {
+            Text = "Conséquences · node|Quest/Faction/Item/World|cible|opération|valeur|explication",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        });
+        _productionConsequences = new TextEdit
+        {
+            CustomMinimumSize = new Vector2(0, 72),
+            WrapMode = TextEdit.LineWrappingMode.None,
+        };
+        productionLeft.AddChild(_productionConsequences);
+        productionLeft.AddChild(new Label { Text = "Couverture · maxDepth|états · puis kind|nom|nodes|état" });
+        _productionCoverage = new TextEdit
+        {
+            CustomMinimumSize = new Vector2(0, 72),
+            WrapMode = TextEdit.LineWrappingMode.None,
+        };
+        productionLeft.AddChild(_productionCoverage);
+        productionRight.AddChild(new Label
+        {
+            Text = "Collaboration · revision/lock/comment/conflict|… (JSON canonique par nœud)",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        });
+        _productionCollaboration = new TextEdit
+        {
+            CustomMinimumSize = new Vector2(0, 92),
+            WrapMode = TextEdit.LineWrappingMode.None,
+        };
+        productionRight.AddChild(_productionCollaboration);
+        productionRight.AddChild(new Label
+        {
+            Text = "IA · autorisation|synopsis|beats|style|citations|diff (preview transactionnelle)",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        });
+        _productionAiPlans = new TextEdit
+        {
+            CustomMinimumSize = new Vector2(0, 72),
+            WrapMode = TextEdit.LineWrappingMode.None,
+        };
+        productionRight.AddChild(_productionAiPlans);
+        _productionSummary = new Label
+        {
+            Text = "Aperçu production · aucun profil",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        };
+        _productionSummary.AddThemeColorOverride("font_color", new Color("b7a1cb"));
+        productionRight.AddChild(_productionSummary);
 
         detailColumn.AddChild(new Label { Text = "APERÇU" });
         _preview = new RichTextLabel
@@ -629,6 +1298,9 @@ public partial class DialogueEditorWindow : Window
         _draftMetadata = dialogue.Metadata;
         _draftParticipants = dialogue.Participants;
         _draftEntryPoints = dialogue.EntryPoints;
+        _draftAuthoring = dialogue.Authoring;
+        _draftExperience = dialogue.Experience;
+        _draftProduction = dialogue.Production;
         _entryNodeId = dialogue.EntryNodeId;
         _dialogueName!.Text = dialogue.DisplayName;
         _dialogueSlug!.Text = dialogue.Slug;
@@ -648,6 +1320,9 @@ public partial class DialogueEditorWindow : Window
         _draftMetadata = new Dictionary<string, string> { ["kind"] = "conversation" };
         _draftParticipants = [];
         _draftEntryPoints = [];
+        _draftAuthoring = null;
+        _draftExperience = null;
+        _draftProduction = null;
         _dialogueName!.Text = "Nouveau dialogue";
         _dialogueSlug!.Text = $"dialogue-{_dialogueIds.Count + 1}";
         _draftNodes.Clear();
@@ -704,6 +1379,9 @@ public partial class DialogueEditorWindow : Window
         _nodeText!.Text = node.Text.Fallback;
         _nodeVariants!.Text = DialogueAuthoringCodec.FormatVariants(node.Text);
         _nodeActions!.Text = DialogueAuthoringCodec.FormatActions(node.OnEnterActions);
+        PopulateAuthoringFields(node);
+        PopulateExperienceFields();
+        PopulateProductionFields();
         RefreshTargets();
         RefreshChoices();
         RefreshPreview();
@@ -732,6 +1410,9 @@ public partial class DialogueEditorWindow : Window
                 (DialogueNodeRole)_nodeRole!.GetItemId(_nodeRole.Selected),
                 previous.ParticipantId,
                 _subgraphKey!.Text);
+            SaveAuthoringFields(previous.Id);
+            SaveExperienceFields();
+            SaveProductionFields();
             RefreshNodes(_selectedNodeIndex);
             SetStatus("Réplique enregistrée dans le brouillon.", true);
             return true;
@@ -1091,6 +1772,14 @@ public partial class DialogueEditorWindow : Window
 
     private DialogueDefinition CreateDraftDefinition()
     {
+        var dialogue = CreateBaseDraftDefinition();
+        if (_draftAuthoring is not null) dialogue = dialogue.WithAuthoring(_draftAuthoring);
+        if (_draftExperience is not null) dialogue = dialogue.WithExperience(_draftExperience);
+        return _draftProduction is null ? dialogue : dialogue.WithProduction(_draftProduction);
+    }
+
+    private DialogueDefinition CreateBaseDraftDefinition()
+    {
         if (_draftDialogueId is null || _entryNodeId is null)
             throw new InvalidOperationException("Aucun dialogue n’est chargé.");
         return new DialogueDefinition(
@@ -1108,11 +1797,603 @@ public partial class DialogueEditorWindow : Window
             edges: null);
     }
 
-    private IReadOnlyList<DialogueParticipant> MergeParticipants() => _draftParticipants
-        .Concat(_draftNodes.Select(node => DialogueParticipant.FromSpeaker(node.SpeakerBlueprintId)))
-        .DistinctBy(item => item.Id)
-        .OrderBy(item => item.Role, StringComparer.Ordinal)
-        .ToArray();
+    private void PopulateAuthoringFields(DialogueNode node)
+    {
+        var baseline = DialogueAuthoringProfile.CreateDefault(CreateBaseDraftDefinition(), "author:r068");
+        var profile = _draftAuthoring ?? baseline with { Enabled = false };
+        var item = profile.Nodes.SingleOrDefault(value => value.NodeId == node.Id) ??
+                   baseline.Nodes.Single(value => value.NodeId == node.Id);
+        _authoringEnabled!.ButtonPressed = _draftAuthoring?.Enabled == true;
+        _authoringRequired!.ButtonPressed = _draftAuthoring?.RequiredAtRuntime == true;
+        _authoringParticipants!.Text = string.Join('\n', profile.Participants.Select(value =>
+            $"{value.Role}|{value.Kind}|{value.Value}|{value.FallbackRole ?? string.Empty}"));
+        _authoringEvaluation!.Selected = Math.Max(0,
+            _authoringEvaluation.GetItemIndex((int)item.EvaluationMode));
+        _authoringTokens!.Text = string.Join('\n', item.Tokens.Select(value =>
+            $"{value.Name}|{value.Type}|{(value.Required ? "required" : "optional")}|{value.DefaultValue ?? string.Empty}"));
+        _authoringWeights!.Text = string.Join('\n', item.ChoiceEvaluations.Select(value =>
+            $"{value.ChoiceId}|{value.Weight:R}"));
+        _notesIntent!.Text = item.Notes.Intent;
+        _notesEmotion!.Text = item.Notes.Emotion;
+        _notesSource!.Text = item.Notes.Source;
+        _notesStatus!.Selected = Math.Max(0, _notesStatus.GetItemIndex((int)item.Notes.Status));
+        _notesTodos!.Text = string.Join("; ", item.Notes.Todos);
+        _notesAuthor!.Text = item.Notes.AuthorMention;
+        _wizardSources!.Text = item.WizardEntries.Count == 0
+            ? "Sources visuelles · aucune"
+            : $"Sources visuelles · {item.WizardEntries.Count} · " +
+              string.Join(" · ", item.WizardEntries.Take(2).Select(value => value.SourceDescription));
+    }
+
+    private void SaveAuthoringFields(DialogueNodeId nodeId)
+    {
+        if (_draftAuthoring is null && _authoringEnabled?.ButtonPressed != true) return;
+        var dialogue = CreateBaseDraftDefinition();
+        var baseline = DialogueAuthoringProfile.CreateDefault(dialogue, "author:r068");
+        var source = _draftAuthoring ?? baseline;
+        var participantIds = source.Participants.ToDictionary(item => item.Role, item => item.Id,
+            StringComparer.Ordinal);
+        var participants = ParseLines(_authoringParticipants!.Text).Select((line, index) =>
+        {
+            var parts = line.Split('|', 4, StringSplitOptions.TrimEntries);
+            if (parts.Length < 3 || !Enum.TryParse<DialogueParticipantBindingKind>(parts[1], true, out var kind))
+                throw new ArgumentException($"Participant ligne {index + 1} : rôle|kind|valeur|fallback attendu.");
+            return new DialogueParticipantBinding(
+                participantIds.GetValueOrDefault(parts[0], Guid.NewGuid()),
+                DialogueParticipantBinding.CurrentSchemaVersion, "author:r068", parts[0], kind, parts[2],
+                parts.Length == 4 && !string.IsNullOrWhiteSpace(parts[3]) ? parts[3] : null);
+        }).ToArray();
+        if (participants.Length == 0) participants = baseline.Participants.ToArray();
+
+        var normalizedNodes = baseline.Nodes.Select(defaultNode =>
+            source.Nodes.SingleOrDefault(item => item.NodeId == defaultNode.NodeId) ?? defaultNode).ToArray();
+        var sourceNode = normalizedNodes.Single(item => item.NodeId == nodeId);
+        var tokenIds = sourceNode.Tokens.ToDictionary(item => item.Name, item => item.Id, StringComparer.Ordinal);
+        var tokens = ParseLines(_authoringTokens!.Text).Select((line, index) =>
+        {
+            var parts = line.Split('|', 4, StringSplitOptions.TrimEntries);
+            if (parts.Length < 3 || !Enum.TryParse<DialogueTextTokenType>(parts[1], true, out var type) ||
+                parts[2] is not ("required" or "optional"))
+                throw new ArgumentException($"Token ligne {index + 1} : nom|type|required/optional|défaut attendu.");
+            return new DialogueTextToken(tokenIds.GetValueOrDefault(parts[0], Guid.NewGuid()),
+                DialogueTextToken.CurrentSchemaVersion, "author:r068", parts[0], type,
+                parts[2] == "required", parts.Length == 4 && parts[3].Length > 0 ? parts[3] : null);
+        }).ToArray();
+        var evaluationIds = sourceNode.ChoiceEvaluations.ToDictionary(item => item.ChoiceId, item => item.Id);
+        var evaluations = ParseLines(_authoringWeights!.Text).Select((line, index) =>
+        {
+            var parts = line.Split('|', 2, StringSplitOptions.TrimEntries);
+            if (parts.Length != 2 || !double.TryParse(parts[1], System.Globalization.NumberStyles.Float,
+                    System.Globalization.CultureInfo.InvariantCulture, out var weight))
+                throw new ArgumentException($"Poids ligne {index + 1} : UUID|poids attendu.");
+            var choiceId = DialogueChoiceId.Parse(parts[0]);
+            return new DialogueChoiceEvaluation(evaluationIds.GetValueOrDefault(choiceId, Guid.NewGuid()),
+                DialogueChoiceEvaluation.CurrentSchemaVersion, "author:r068", choiceId, weight);
+        }).ToArray();
+        if (evaluations.Length == 0)
+            evaluations = baseline.Nodes.Single(item => item.NodeId == nodeId).ChoiceEvaluations.ToArray();
+        var canonicalNode = dialogue.Nodes.Single(item => item.Id == nodeId);
+        var wizardTargets = canonicalNode.OnEnterActions.Select(item => item.Id)
+            .Concat(canonicalNode.Choices.SelectMany(item => item.Conditions).Select(item => item.Id))
+            .Concat(canonicalNode.Choices.SelectMany(item => item.Actions).Select(item => item.Id)).ToHashSet();
+        var notes = sourceNode.Notes with
+        {
+            SchemaVersion = DialogueNodeEditorialNotes.CurrentSchemaVersion,
+            Provenance = "author:r068",
+            Intent = _notesIntent!.Text.Trim(),
+            Emotion = _notesEmotion!.Text.Trim(),
+            Source = _notesSource!.Text.Trim(),
+            Status = (DialogueNodeEditorialStatus)_notesStatus!.GetItemId(_notesStatus.Selected),
+            Todos = _notesTodos!.Text.Split(';', StringSplitOptions.RemoveEmptyEntries |
+                StringSplitOptions.TrimEntries),
+            AuthorMention = _notesAuthor!.Text.Trim(),
+        };
+        var updatedNode = sourceNode with
+        {
+            Provenance = "author:r068",
+            SpeakerRole = participants.Any(item => item.Role == sourceNode.SpeakerRole)
+                ? sourceNode.SpeakerRole
+                : participants[0].Role,
+            EvaluationMode = (DialogueChoiceEvaluationMode)_authoringEvaluation!.GetItemId(
+                _authoringEvaluation.Selected),
+            Tokens = tokens,
+            ChoiceEvaluations = evaluations,
+            WizardEntries = sourceNode.WizardEntries.Where(item => wizardTargets.Contains(item.TargetId)).ToArray(),
+            Notes = notes,
+        };
+        _draftAuthoring = source with
+        {
+            SchemaVersion = DialogueAuthoringProfile.CurrentSchemaVersion,
+            Provenance = "author:r068",
+            Enabled = _authoringEnabled!.ButtonPressed,
+            RequiredAtRuntime = _authoringRequired!.ButtonPressed,
+            Participants = participants,
+            Nodes = normalizedNodes.Select(item => item.NodeId == nodeId ? updatedNode : item).ToArray(),
+        };
+    }
+
+    private void PopulateExperienceFields()
+    {
+        var dialogue = CreateBaseDraftDefinition();
+        var baseline = DialogueExperienceProfile.CreateDefault(dialogue, "author:r069");
+        var profile = _draftExperience ?? baseline with { Enabled = false };
+        _experienceEnabled!.ButtonPressed = _draftExperience?.Enabled == true;
+        _experienceRequired!.ButtonPressed = _draftExperience?.RequiredAtRuntime == true;
+        _experienceRollback!.ButtonPressed = profile.Lifecycle.RollbackOnAbort;
+        _experienceResume!.ButtonPressed = profile.Lifecycle.CreateResumeState;
+        _experienceCompletedActions!.Text = DialogueAuthoringCodec.FormatActions(profile.Lifecycle.CompletedActions);
+        _experienceAbortedActions!.Text = DialogueAuthoringCodec.FormatActions(profile.Lifecycle.AbortedActions);
+        _experienceSearchPattern!.Text = profile.Search.Pattern;
+        _experienceSearchRegex!.ButtonPressed = profile.Search.UseRegex;
+        _experienceReplacement!.Text = profile.Search.ReplacementPreview;
+        _experienceSearchFilters!.Text = string.Join("; ",
+            profile.Search.SpeakerRoles.Select(item => $"speaker:{item}")
+                .Concat(profile.Search.ConditionKinds.Select(item => $"condition:{item}"))
+                .Concat(profile.Search.ActionKinds.Select(item => $"action:{item}")));
+        foreach (var item in _experienceBadgeChecks)
+            item.Value.ButtonPressed = profile.Review.Badges.Contains(item.Key);
+        _experienceReviewMode!.ButtonPressed = profile.Review.ReviewMode;
+        _experienceMemorySlots!.Text = string.Join('\n', profile.MemorySlots.Select(item =>
+            $"{item.Scope}|{item.ScopeId}|{item.Name}|{item.Type}|{item.Duration}|{item.DefaultValue ?? string.Empty}"));
+        _experienceSkillChecks!.Text = string.Join('\n', profile.SkillChecks.Select(item =>
+            $"{item.NodeId}|{item.SkillId}|{item.Difficulty:R}|{item.OpponentId ?? string.Empty}|" +
+            $"{item.Advantage.ToString().ToLowerInvariant()}|{item.Visibility}|{item.SuccessNodeId}|{item.FailureNodeId}"));
+        try
+        {
+            var dialogues = (_getState?.Invoke()?.Project.Dialogues ?? [])
+                .Where(item => item.Id != dialogue.Id).Append(dialogue).ToArray();
+            var preview = DialogueExperienceRuntimeService.PreviewReplace(dialogues, profile.Search);
+            _experienceSearchPreview!.Text =
+                $"Prévisualisation · {preview.Hits.Count} résultat(s) · {preview.Replacements.Count} champ(s) · aucun écrit";
+        }
+        catch (ArgumentException exception)
+        {
+            _experienceSearchPreview!.Text = $"Erreur recherche · {exception.Message}";
+        }
+    }
+
+    private void SaveExperienceFields()
+    {
+        if (_draftExperience is null && _experienceEnabled?.ButtonPressed != true) return;
+        var dialogue = CreateBaseDraftDefinition();
+        var baseline = DialogueExperienceProfile.CreateDefault(dialogue, "author:r069");
+        var source = _draftExperience ?? baseline;
+        var lifecycle = source.Lifecycle with
+        {
+            SchemaVersion = DialogueLifecyclePolicy.CurrentSchemaVersion,
+            Provenance = "author:r069",
+            CompletedActions = DialogueAuthoringCodec.ParseActions(_experienceCompletedActions!.Text,
+                source.Lifecycle.CompletedActions),
+            AbortedActions = DialogueAuthoringCodec.ParseActions(_experienceAbortedActions!.Text,
+                source.Lifecycle.AbortedActions),
+            RollbackOnAbort = _experienceRollback!.ButtonPressed,
+            CreateResumeState = _experienceResume!.ButtonPressed,
+        };
+        var speakers = new List<string>();
+        var conditions = new List<DialogueConditionKind>();
+        var actions = new List<DialogueActionKind>();
+        foreach (var token in _experienceSearchFilters!.Text.Split(';',
+                     StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            var parts = token.Split(':', 2, StringSplitOptions.TrimEntries);
+            if (parts.Length != 2 || string.IsNullOrWhiteSpace(parts[1]))
+                throw new ArgumentException("Filtre recherche attendu : speaker|condition|action:valeur.");
+            switch (parts[0].ToLowerInvariant())
+            {
+                case "speaker": speakers.Add(parts[1]); break;
+                case "condition" when Enum.TryParse<DialogueConditionKind>(parts[1], true, out var kind):
+                    conditions.Add(kind); break;
+                case "action" when Enum.TryParse<DialogueActionKind>(parts[1], true, out var action):
+                    actions.Add(action); break;
+                default: throw new ArgumentException($"Filtre recherche inconnu : {token}.");
+            }
+        }
+        var search = source.Search with
+        {
+            SchemaVersion = DialogueSearchProfile.CurrentSchemaVersion,
+            Provenance = "author:r069",
+            Pattern = _experienceSearchPattern!.Text.Trim(),
+            UseRegex = _experienceSearchRegex!.ButtonPressed,
+            SpeakerRoles = speakers.Distinct(StringComparer.Ordinal).ToArray(),
+            ConditionKinds = conditions.Distinct().ToArray(),
+            ActionKinds = actions.Distinct().ToArray(),
+            ReplacementPreview = _experienceReplacement!.Text,
+        };
+        DialogueExperienceRuntimeService.ValidateSearch(search);
+        var review = source.Review with
+        {
+            SchemaVersion = DialogueReviewProfile.CurrentSchemaVersion,
+            Provenance = "author:r069",
+            Badges = _experienceBadgeChecks.Where(item => item.Value.ButtonPressed).Select(item => item.Key)
+                .Order().ToArray(),
+            ReviewMode = _experienceReviewMode!.ButtonPressed,
+        };
+        var slotIds = source.MemorySlots.ToDictionary(item => (item.Scope, item.ScopeId, item.Name), item => item.Id);
+        var memory = ParseLines(_experienceMemorySlots!.Text).Select((line, index) =>
+        {
+            var parts = line.Split('|', 6, StringSplitOptions.TrimEntries);
+            if (parts.Length < 5 || !Enum.TryParse<DialogueMemoryScope>(parts[0], true, out var scope) ||
+                !Enum.TryParse<DialogueTextTokenType>(parts[3], true, out var type) ||
+                !Enum.TryParse<DialogueMemoryDuration>(parts[4], true, out var duration))
+                throw new ArgumentException($"Mémoire ligne {index + 1} : scope|cible|nom|type|durée|défaut attendu.");
+            return new DialogueMemorySlot(slotIds.GetValueOrDefault((scope, parts[1], parts[2]), Guid.NewGuid()),
+                DialogueMemorySlot.CurrentSchemaVersion, "author:r069", scope, parts[1], parts[2], type, duration,
+                parts.Length == 6 && parts[5].Length > 0 ? parts[5] : null);
+        }).ToArray();
+        var checkIds = source.SkillChecks.ToDictionary(item => item.NodeId, item => item.Id);
+        var checks = ParseLines(_experienceSkillChecks!.Text).Select((line, index) =>
+        {
+            var parts = line.Split('|', 8, StringSplitOptions.TrimEntries);
+            if (parts.Length != 8 || !double.TryParse(parts[2], System.Globalization.NumberStyles.Float,
+                    System.Globalization.CultureInfo.InvariantCulture, out var difficulty) ||
+                !bool.TryParse(parts[4], out var advantage) ||
+                !Enum.TryParse<DialogueSkillCheckVisibility>(parts[5], true, out var visibility))
+                throw new ArgumentException($"Check ligne {index + 1} : node|skill|DD|opposant|advantage|visibilité|succès|échec attendu.");
+            var nodeId = DialogueNodeId.Parse(parts[0]);
+            return new DialogueSkillCheck(checkIds.GetValueOrDefault(nodeId, Guid.NewGuid()),
+                DialogueSkillCheck.CurrentSchemaVersion, "author:r069", nodeId, parts[1], difficulty,
+                parts[3].Length > 0 ? parts[3] : null, advantage, visibility,
+                DialogueNodeId.Parse(parts[6]), DialogueNodeId.Parse(parts[7]));
+        }).ToArray();
+        _draftExperience = source with
+        {
+            SchemaVersion = DialogueExperienceProfile.CurrentSchemaVersion,
+            Provenance = "author:r069",
+            Enabled = _experienceEnabled!.ButtonPressed,
+            RequiredAtRuntime = _experienceRequired!.ButtonPressed,
+            Lifecycle = lifecycle,
+            Search = search,
+            Review = review,
+            MemorySlots = memory,
+            SkillChecks = checks,
+        };
+    }
+
+    private void PopulateProductionFields()
+    {
+        var dialogue = CreateBaseDraftDefinition();
+        var baseline = DialogueProductionProfile.CreateDefault(dialogue, "author:r070");
+        var profile = _draftProduction ?? baseline with { Enabled = false };
+        _productionEnabled!.ButtonPressed = _draftProduction?.Enabled == true;
+        _productionRequired!.ButtonPressed = _draftProduction?.RequiredAtRuntime == true;
+        _productionSubgraphs!.Text = string.Join('\n', profile.Invocations.Select(invocation =>
+        {
+            var contract = profile.Subgraphs.Single(item => item.Id == invocation.ContractId);
+            var inputs = string.Join(',', contract.Parameters.Where(item =>
+                item.Direction == DialogueSubgraphParameterDirection.Input).Select(item =>
+                $"{item.Name}:{item.Type}:{(item.Required ? "required" : "optional")}:" +
+                invocation.InputBindings.GetValueOrDefault(item.Name, string.Empty)));
+            var outputs = string.Join(',', contract.Parameters.Where(item =>
+                item.Direction == DialogueSubgraphParameterDirection.Output).Select(item =>
+                $"{item.Name}:{item.Type}:{(item.Required ? "required" : "optional")}:" +
+                invocation.OutputBindings.GetValueOrDefault(item.Name, string.Empty)));
+            var test = contract.Tests.FirstOrDefault();
+            return $"{invocation.NodeId}|{contract.Key}|{contract.Version}|{inputs}|{outputs}|" +
+                   $"{string.Join(',', contract.RequiredVariables)}|{test?.Name ?? "isolated"}|" +
+                   $"{FormatMap(test?.Inputs)}|{FormatMap(test?.ExpectedOutputs)}";
+        }));
+        _productionConsequences!.Text = string.Join('\n', profile.Consequences.Select(item =>
+            $"{item.NodeId}|{item.Kind}|{item.TargetId}|{item.Operation}|{item.Value}|{item.Explanation}"));
+        _productionCoverage!.Text = string.Join('\n',
+            new[] { $"{profile.Coverage.MaximumDepth}|{FormatMap(profile.Coverage.RequiredStates)}" }
+                .Concat(profile.Coverage.Evidence.Select(item =>
+                    $"{item.Kind}|{item.Name}|{string.Join(',', item.VisitedNodes)}|{FormatMap(item.State)}")));
+        var collaborationLines = new List<string>();
+        collaborationLines.AddRange(profile.Collaboration.Revisions.Select(item =>
+            $"revision|{item.NodeId}|{item.Revision}|{item.AuthorId}|{item.CanonicalJson}"));
+        collaborationLines.AddRange(profile.Collaboration.Locks.Select(item =>
+            $"lock|{item.NodeId}|{item.OwnerId}|{item.ExpiresAt:O}"));
+        collaborationLines.AddRange(profile.Collaboration.Comments.Select(item =>
+            $"comment|{item.NodeId}|{item.AuthorId}|{item.Resolved.ToString().ToLowerInvariant()}|{item.Text}"));
+        collaborationLines.AddRange(profile.Collaboration.Conflicts.Select(item =>
+            $"conflict|{item.NodeId}|{item.Field}|{item.BaseValue}|{item.OursValue}|{item.TheirsValue}|" +
+            $"{item.Resolution}|{item.ManualValue ?? string.Empty}|{item.Resolved.ToString().ToLowerInvariant()}"));
+        _productionCollaboration!.Text = string.Join('\n', collaborationLines);
+        _productionAiPlans!.Text = string.Join('\n', profile.AiPlans.Select(item =>
+            $"{item.Authorization}|{item.Synopsis}|{string.Join(',', item.RequiredBeats)}|" +
+            $"{string.Join(',', item.StyleRules)}|{string.Join(',', item.ContextCitations)}|{item.SemanticDiff}"));
+        try
+        {
+            var report = _draftProduction is null
+                ? null
+                : DialogueProductionRuntimeService.MeasureCoverage(dialogue.WithProduction(profile));
+            _productionSummary!.Text = report is null
+                ? "Aperçu production · profil optionnel absent"
+                : $"Couverture {report.CoveredNodes.Count}/{profile.Coverage.Evidence.SelectMany(item => item.VisitedNodes).Concat(report.UncoveredNodes).Distinct().Count()} · " +
+                  $"{report.Paths.Count} chemin(s), {report.ImpossiblePaths.Count} impossible(s) · " +
+                  $"{profile.Consequences.Count} impact(s) · {profile.Collaboration.Conflicts.Count} conflit(s) · " +
+                  $"{profile.AiPlans.Count(item => item.PreviewOnly)} preview IA";
+        }
+        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException)
+        {
+            _productionSummary!.Text = $"Erreur production · {exception.Message}";
+        }
+    }
+
+    private void SaveProductionFields()
+    {
+        if (_draftProduction is null && _productionEnabled?.ButtonPressed != true) return;
+        var dialogue = CreateBaseDraftDefinition();
+        var source = _draftProduction ?? DialogueProductionProfile.CreateDefault(dialogue, "author:r070");
+        var contractByKey = source.Subgraphs.ToDictionary(item => item.Key, StringComparer.Ordinal);
+        var invocationByNode = source.Invocations.ToDictionary(item => item.NodeId);
+        var contracts = new List<DialogueSubgraphContract>();
+        var invocations = new List<DialogueSubgraphInvocation>();
+        foreach (var (line, index) in ParseLines(_productionSubgraphs!.Text).Select((value, i) => (value, i)))
+        {
+            var parts = line.Split('|', 9, StringSplitOptions.TrimEntries);
+            if (parts.Length != 9 || !int.TryParse(parts[2], out var version) || version <= 0)
+                throw new ArgumentException($"Sous-dialogue ligne {index + 1} : node|clé|version|entrées|sorties|variables|test|in|out attendu.");
+            var nodeId = DialogueNodeId.Parse(parts[0]);
+            contractByKey.TryGetValue(parts[1], out var previousContract);
+            var parameterIds = (previousContract?.Parameters ?? []).ToDictionary(item =>
+                (item.Direction, item.Name), item => item.Id);
+            var inputBindings = new Dictionary<string, string>(StringComparer.Ordinal);
+            var outputBindings = new Dictionary<string, string>(StringComparer.Ordinal);
+            var parameters = ParseParameters(parts[3], DialogueSubgraphParameterDirection.Input, parameterIds,
+                    inputBindings)
+                .Concat(ParseParameters(parts[4], DialogueSubgraphParameterDirection.Output, parameterIds,
+                    outputBindings)).ToArray();
+            var previousTest = previousContract?.Tests.FirstOrDefault();
+            var test = new DialogueSubgraphTestCase(previousTest?.Id ?? Guid.NewGuid(), 1, "author:r070", parts[6],
+                ParseMap(parts[7]), ParseMap(parts[8]));
+            var contract = new DialogueSubgraphContract(previousContract?.Id ?? Guid.NewGuid(), 1, "author:r070",
+                parts[1], version, parameters, Csv(parts[5]), [test]);
+            contracts.Add(contract);
+            invocationByNode.TryGetValue(nodeId, out var previousInvocation);
+            invocations.Add(new DialogueSubgraphInvocation(previousInvocation?.Id ?? Guid.NewGuid(), 1,
+                "author:r070", nodeId, contract.Id, inputBindings, outputBindings));
+        }
+        var consequenceIds = source.Consequences.ToDictionary(item => (item.NodeId, item.Kind, item.TargetId),
+            item => item.Id);
+        var consequences = ParseLines(_productionConsequences!.Text).Select((line, index) =>
+        {
+            var parts = line.Split('|', 6, StringSplitOptions.TrimEntries);
+            if (parts.Length != 6 || !Enum.TryParse<DialogueConsequenceTargetKind>(parts[1], true, out var kind))
+                throw new ArgumentException($"Conséquence ligne {index + 1} : node|type|cible|opération|valeur|explication attendu.");
+            var nodeId = DialogueNodeId.Parse(parts[0]);
+            return new DialogueTypedConsequence(consequenceIds.GetValueOrDefault((nodeId, kind, parts[2]),
+                Guid.NewGuid()), 1, "author:r070", nodeId, kind, parts[2], parts[3], parts[4], parts[5]);
+        }).ToArray();
+        var coverageLines = ParseLines(_productionCoverage!.Text).ToArray();
+        if (coverageLines.Length == 0) throw new ArgumentException("La couverture requiert une ligne maxDepth|états.");
+        var coverageHeader = coverageLines[0].Split('|', 2, StringSplitOptions.TrimEntries);
+        if (coverageHeader.Length != 2 || !int.TryParse(coverageHeader[0], out var maximumDepth))
+            throw new ArgumentException("Couverture : maxDepth|clé=valeur attendu.");
+        var evidenceIds = source.Coverage.Evidence.ToDictionary(item => (item.Kind, item.Name), item => item.Id);
+        var evidence = coverageLines.Skip(1).Select((line, index) =>
+        {
+            var parts = line.Split('|', 4, StringSplitOptions.TrimEntries);
+            if (parts.Length != 4 || !Enum.TryParse<DialogueCoverageEvidenceKind>(parts[0], true, out var kind))
+                throw new ArgumentException($"Couverture ligne {index + 2} : Test/Session|nom|nodes|état attendu.");
+            return new DialogueCoverageEvidence(evidenceIds.GetValueOrDefault((kind, parts[1]), Guid.NewGuid()), 1,
+                "author:r070", parts[1], kind, Csv(parts[2]).Select(DialogueNodeId.Parse).ToArray(),
+                ParseMap(parts[3]));
+        }).ToArray();
+        var coverage = source.Coverage with
+        {
+            SchemaVersion = 1,
+            Provenance = "author:r070",
+            MaximumDepth = maximumDepth,
+            RequiredStates = ParseMap(coverageHeader[1]),
+            Evidence = evidence,
+        };
+        var revisions = new List<DialogueNodeRevision>();
+        var locks = new List<DialogueNodeLock>();
+        var comments = new List<DialogueNodeComment>();
+        var conflicts = new List<DialogueSemanticConflict>();
+        foreach (var (line, index) in ParseLines(_productionCollaboration!.Text).Select((value, i) => (value, i)))
+        {
+            var kind = line.Split('|', 2)[0].ToLowerInvariant();
+            var existingIndex = kind switch
+            {
+                "revision" => revisions.Count,
+                "lock" => locks.Count,
+                "comment" => comments.Count,
+                "conflict" => conflicts.Count,
+                _ => -1,
+            };
+            switch (kind)
+            {
+                case "revision":
+                    {
+                        var parts = line.Split('|', 5, StringSplitOptions.TrimEntries);
+                        if (parts.Length != 5 || !long.TryParse(parts[2], out var revision))
+                            throw new ArgumentException($"Collaboration ligne {index + 1} : revision invalide.");
+                        var old = existingIndex < source.Collaboration.Revisions.Count
+                            ? source.Collaboration.Revisions[existingIndex] : null;
+                        revisions.Add(new(old?.Id ?? Guid.NewGuid(), 1, "author:r070",
+                            DialogueNodeId.Parse(parts[1]), revision, parts[3], parts[4], old?.At ?? DateTimeOffset.UtcNow));
+                        break;
+                    }
+                case "lock":
+                    {
+                        var parts = line.Split('|', 4, StringSplitOptions.TrimEntries);
+                        if (parts.Length != 4 || !DateTimeOffset.TryParse(parts[3], out var expires))
+                            throw new ArgumentException($"Collaboration ligne {index + 1} : lock invalide.");
+                        locks.Add(new(existingIndex < source.Collaboration.Locks.Count
+                                ? source.Collaboration.Locks[existingIndex].Id : Guid.NewGuid(), 1, "author:r070",
+                            DialogueNodeId.Parse(parts[1]), parts[2], expires));
+                        break;
+                    }
+                case "comment":
+                    {
+                        var parts = line.Split('|', 5, StringSplitOptions.TrimEntries);
+                        if (parts.Length != 5 || !bool.TryParse(parts[3], out var resolved))
+                            throw new ArgumentException($"Collaboration ligne {index + 1} : commentaire invalide.");
+                        var old = existingIndex < source.Collaboration.Comments.Count
+                            ? source.Collaboration.Comments[existingIndex] : null;
+                        comments.Add(new(old?.Id ?? Guid.NewGuid(), 1, "author:r070",
+                            DialogueNodeId.Parse(parts[1]), parts[2], parts[4], resolved, old?.At ?? DateTimeOffset.UtcNow));
+                        break;
+                    }
+                case "conflict":
+                    {
+                        var parts = line.Split('|', 9, StringSplitOptions.TrimEntries);
+                        if (parts.Length != 9 || !Enum.TryParse<DialogueConflictResolution>(parts[6], true,
+                                out var resolution) || !bool.TryParse(parts[8], out var resolved))
+                            throw new ArgumentException($"Collaboration ligne {index + 1} : conflit invalide.");
+                        conflicts.Add(new(existingIndex < source.Collaboration.Conflicts.Count
+                                ? source.Collaboration.Conflicts[existingIndex].Id : Guid.NewGuid(), 1, "author:r070",
+                            DialogueNodeId.Parse(parts[1]), parts[2], parts[3], parts[4], parts[5], resolution,
+                            parts[7].Length == 0 ? null : parts[7], resolved));
+                        break;
+                    }
+                default: throw new ArgumentException($"Collaboration ligne {index + 1} : type inconnu {kind}.");
+            }
+        }
+        var collaboration = source.Collaboration with
+        {
+            SchemaVersion = 1,
+            Provenance = "author:r070",
+            Revisions = revisions,
+            Locks = locks,
+            Comments = comments,
+            Conflicts = conflicts,
+        };
+        var aiPlans = ParseLines(_productionAiPlans!.Text).Select((line, index) =>
+        {
+            var parts = line.Split('|', 6, StringSplitOptions.TrimEntries);
+            if (parts.Length != 6 || !Enum.TryParse<DialogueAiAuthorizationLevel>(parts[0], true,
+                    out var authorization))
+                throw new ArgumentException($"IA ligne {index + 1} : autorisation|synopsis|beats|style|citations|diff attendu.");
+            var old = index < source.AiPlans.Count ? source.AiPlans[index] : null;
+            return new DialogueAiPlan(old?.Id ?? Guid.NewGuid(), 1, "author:r070",
+                old?.TransactionId ?? Guid.NewGuid(), old?.PlanId ?? Guid.NewGuid(), authorization, parts[1],
+                Csv(parts[2]), Csv(parts[3]), Csv(parts[4]), parts[5], [], true, false);
+        }).ToArray();
+        _draftProduction = source with
+        {
+            SchemaVersion = 1,
+            Provenance = "author:r070",
+            Enabled = _productionEnabled!.ButtonPressed,
+            RequiredAtRuntime = _productionRequired!.ButtonPressed,
+            Subgraphs = contracts,
+            Invocations = invocations,
+            Consequences = consequences,
+            Coverage = coverage,
+            Collaboration = collaboration,
+            AiPlans = aiPlans,
+        };
+    }
+
+    private static IReadOnlyList<DialogueSubgraphParameter> ParseParameters(
+        string value,
+        DialogueSubgraphParameterDirection direction,
+        IReadOnlyDictionary<(DialogueSubgraphParameterDirection Direction, string Name), Guid> ids,
+        IDictionary<string, string> bindings) => Csv(value).Select((token, index) =>
+    {
+        var parts = token.Split(':', 4, StringSplitOptions.TrimEntries);
+        if (parts.Length != 4 || !Enum.TryParse<DialogueTextTokenType>(parts[1], true, out var type) ||
+            parts[2] is not ("required" or "optional") || string.IsNullOrWhiteSpace(parts[3]))
+            throw new ArgumentException($"Paramètre {index + 1} : nom:type:required|optional:binding attendu.");
+        bindings[parts[0]] = parts[3];
+        return new DialogueSubgraphParameter(ids.GetValueOrDefault((direction, parts[0]), Guid.NewGuid()), 1,
+            "author:r070", parts[0], type, direction, parts[2] == "required");
+    }).ToArray();
+
+    private static IReadOnlyDictionary<string, string> ParseMap(string value)
+    {
+        var result = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var token in Csv(value))
+        {
+            var separator = token.IndexOf('=');
+            if (separator < 1 || separator == token.Length - 1 ||
+                !result.TryAdd(token[..separator].Trim(), token[(separator + 1)..].Trim()))
+                throw new ArgumentException($"Paire clé=valeur invalide : {token}.");
+        }
+        return result;
+    }
+
+    private static string FormatMap(IReadOnlyDictionary<string, string>? values) => values is null
+        ? string.Empty
+        : string.Join(',', values.OrderBy(item => item.Key, StringComparer.Ordinal)
+            .Select(item => $"{item.Key}={item.Value}"));
+
+    private static string[] Csv(string value) => (value ?? string.Empty)
+        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+    private void AddWizardCondition()
+    {
+        if (CurrentNode is null || _selectedChoiceIndex < 0 || _selectedChoiceIndex >= CurrentNode.Choices.Count)
+        {
+            SetStatus("Sélectionnez un choix avant d’ajouter une condition typée.", false, true);
+            return;
+        }
+        try
+        {
+            SaveAuthoringFields(CurrentNode.Id);
+            var built = DialogueScriptWizard.BuildCondition(
+                (DialogueConditionKind)_wizardConditionKind!.GetItemId(_wizardConditionKind.Selected),
+                _wizardConditionKey!.Text, _wizardConditionValue!.Text, false, "author:r068");
+            var choices = CurrentNode.Choices.ToArray();
+            var previous = choices[_selectedChoiceIndex];
+            choices[_selectedChoiceIndex] = new DialogueChoice(previous.Id, previous.Text,
+                [.. previous.Conditions, built.Value], previous.Actions, previous.TargetNodeId, previous.EdgeKind,
+                previous.Priority, previous.ConditionCombination);
+            ReplaceCurrentNode(new DialogueNode(CurrentNode.Id, CurrentNode.SpeakerBlueprintId, CurrentNode.Text,
+                CurrentNode.OnEnterActions, choices, CurrentNode.Role, CurrentNode.ParticipantId,
+                CurrentNode.SubgraphKey));
+            AddWizardSource(CurrentNode.Id, built.Source);
+            var selected = _selectedChoiceIndex;
+            RefreshNodes(_selectedNodeIndex);
+            SelectChoice(selected);
+            SetStatus("Condition typée générée avec sa source visible.", true);
+        }
+        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException)
+        {
+            SetStatus(exception.Message, false, true);
+        }
+    }
+
+    private void AddWizardAction()
+    {
+        if (CurrentNode is null) return;
+        try
+        {
+            SaveAuthoringFields(CurrentNode.Id);
+            var built = DialogueScriptWizard.BuildAction(
+                (DialogueActionKind)_wizardActionKind!.GetItemId(_wizardActionKind.Selected),
+                _wizardActionKey!.Text, _wizardActionValue!.Text, true, "author:r068");
+            ReplaceCurrentNode(new DialogueNode(CurrentNode.Id, CurrentNode.SpeakerBlueprintId, CurrentNode.Text,
+                [.. CurrentNode.OnEnterActions, built.Value], CurrentNode.Choices, CurrentNode.Role,
+                CurrentNode.ParticipantId, CurrentNode.SubgraphKey));
+            AddWizardSource(CurrentNode.Id, built.Source);
+            RefreshNodes(_selectedNodeIndex);
+            SetStatus("Action typée générée avec sa source visible.", true);
+        }
+        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException)
+        {
+            SetStatus(exception.Message, false, true);
+        }
+    }
+
+    private void AddWizardSource(DialogueNodeId nodeId, DialogueWizardEntry source)
+    {
+        if (_draftAuthoring is null) throw new InvalidOperationException("Activez le profil auteur P1.");
+        _draftAuthoring = _draftAuthoring with
+        {
+            Nodes = _draftAuthoring.Nodes.Select(item => item.NodeId == nodeId
+                ? item with { WizardEntries = [.. item.WizardEntries, source] }
+                : item).ToArray(),
+        };
+    }
+
+    private static IEnumerable<string> ParseLines(string value) => (value ?? string.Empty)
+        .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+    private IReadOnlyList<DialogueParticipant> MergeParticipants()
+    {
+        var participants = _draftParticipants.ToList();
+        foreach (var derived in _draftNodes.Select(node => DialogueParticipant.FromSpeaker(node.SpeakerBlueprintId)))
+        {
+            if (participants.Any(item => item.Id == derived.Id ||
+                                         string.Equals(item.Role, derived.Role, StringComparison.Ordinal)))
+                continue;
+            participants.Add(derived);
+        }
+        return participants.OrderBy(item => item.Role, StringComparer.Ordinal).ToArray();
+    }
 
     private IReadOnlyList<DialogueEntryPoint> NormalizeEntryPoints()
     {
@@ -1183,6 +2464,9 @@ public partial class DialogueEditorWindow : Window
         _draftParticipants = [];
         _draftEntryPoints = [new DialogueEntryPoint(
             Guid.Parse("d0050000-0000-4000-8000-000000000110"), 1, "default", entry, 0, "capture:r006")];
+        _draftAuthoring = null;
+        _draftExperience = null;
+        _draftProduction = null;
         _dialogueName!.Text = "Le pacte des Cendres";
         _dialogueSlug!.Text = "pacte-des-cendres";
         _draftNodes.Clear();
@@ -1221,6 +2505,235 @@ public partial class DialogueEditorWindow : Window
         SetStatus("R006 · variantes · ALL/ANY/NOT · actions transactionnelles · simulation et linter", true);
     }
 
+    private void PrepareR068Capture()
+    {
+        var current = CurrentNode ?? throw new InvalidOperationException("R068 capture requires an entry node.");
+        var text = new LocalizedText(current.Text.Id, LocalizedText.CurrentSchemaVersion, "capture:r068",
+            current.Text.Key, "Bienvenue, {{player.name}}. Choisissez une réponse.", current.Text.Variants);
+        ReplaceCurrentNode(new DialogueNode(current.Id, current.SpeakerBlueprintId, text,
+            current.OnEnterActions, current.Choices, current.Role, current.ParticipantId, current.SubgraphKey));
+        _draftMetadata = new Dictionary<string, string>(_draftMetadata, StringComparer.Ordinal)
+        {
+            ["proof"] = "r068",
+            ["authoring.required"] = "true",
+        };
+        var dialogue = CreateBaseDraftDefinition();
+        var profile = DialogueAuthoringProfile.CreateDefault(dialogue, "capture:r068");
+        var entry = profile.Nodes.Single(item => item.NodeId == dialogue.EntryNodeId);
+        var canonicalEntry = dialogue.Nodes.Single(item => item.Id == dialogue.EntryNodeId);
+        var wizard = new List<DialogueWizardEntry>();
+        if (canonicalEntry.OnEnterActions.FirstOrDefault() is { } action)
+            wizard.Add(new DialogueWizardEntry(Guid.Parse("d0685000-0000-4000-8000-000000000001"), 1,
+                "capture:r068", DialogueWizardEntryKind.Action, action.Id,
+                $"builder:action:{action.Kind}:{action.Key}:{action.Value}:true"));
+        if (canonicalEntry.Choices.SelectMany(item => item.Conditions).FirstOrDefault() is { } condition)
+            wizard.Add(new DialogueWizardEntry(Guid.Parse("d0685000-0000-4000-8000-000000000002"), 1,
+                "capture:r068", DialogueWizardEntryKind.Condition, condition.Id,
+                $"builder:condition:{condition.Kind}:{condition.Key}:{condition.ExpectedValue}:false"));
+        profile = profile with
+        {
+            RequiredAtRuntime = true,
+            Participants = profile.Participants.Select(item => item.Role == entry.SpeakerRole
+                ? item with { Kind = DialogueParticipantBindingKind.Tag, Value = "elyra" }
+                : item).ToArray(),
+            Nodes = profile.Nodes.Select(item => item.NodeId == dialogue.EntryNodeId
+                ? item with
+                {
+                    EvaluationMode = DialogueChoiceEvaluationMode.Weighted,
+                    Tokens = [new DialogueTextToken(Guid.Parse("d0685000-0000-4000-8000-000000000003"), 1,
+                        "capture:r068", "player.name", DialogueTextTokenType.EntityName, true, "Héroïne")],
+                    ChoiceEvaluations = item.ChoiceEvaluations.Select((value, index) =>
+                        value with { Weight = index + 1, Provenance = "capture:r068" }).ToArray(),
+                    WizardEntries = wizard,
+                    Notes = item.Notes with
+                    {
+                        Provenance = "capture:r068",
+                        Intent = "Présenter trois embranchements lisibles.",
+                        Emotion = "mysterious",
+                        Source = "brief:crypt-of-ashes",
+                        Status = DialogueNodeEditorialStatus.Review,
+                        Todos = ["Valider la voix", "Relire la lore"],
+                        AuthorMention = "@karen",
+                    },
+                }
+                : item).ToArray(),
+        };
+        _draftAuthoring = profile;
+        _wizardConditionKey!.Text = "ash-key";
+        _wizardConditionValue!.Text = "true";
+        _wizardActionKey!.Text = "crypt-ashes";
+        _wizardActionValue!.Text = "active";
+        RefreshNodes(_selectedNodeIndex);
+        _detailScroll!.ScrollVertical = 430;
+        RefreshValidation();
+        var diagnostics = DialogueValidator.Validate(CreateDraftDefinition());
+        GD.Print("OPENRPG_FORGE_DIALOGUE_R068_CAPTURE_STATE " +
+                 $"tokens={profile.Nodes.Sum(item => item.Tokens.Count)} participants={profile.Participants.Count} " +
+                 $"mode={profile.Nodes.Single(item => item.NodeId == dialogue.EntryNodeId).EvaluationMode} " +
+                 $"wizard={wizard.Count} notes={profile.Nodes.Count} diagnostics={string.Join(',', diagnostics.Select(item => item.Code))}");
+        SetStatus("R068 · tokens typés · participants · cinq modes · wizard sourcé · notes éditoriales", true);
+    }
+
+    private void PrepareR069Capture()
+    {
+        var dialogue = CreateBaseDraftDefinition();
+        var success = dialogue.Nodes[1].Id;
+        var failure = dialogue.Nodes[2].Id;
+        _draftMetadata = new Dictionary<string, string>(_draftMetadata, StringComparer.Ordinal)
+        {
+            ["proof"] = "r069",
+            ["experience.required"] = "true",
+        };
+        dialogue = CreateBaseDraftDefinition();
+        var profile = DialogueExperienceProfile.CreateDefault(dialogue, "capture:r069");
+        profile = profile with
+        {
+            RequiredAtRuntime = true,
+            Lifecycle = profile.Lifecycle with
+            {
+                Provenance = "capture:r069",
+                CompletedActions = [new(DialogueActionKind.SetVariable, "dialogue.completed", "true")],
+                AbortedActions = [new(DialogueActionKind.RunScript, "dialogue-aborted.forge", "reason")],
+                RollbackOnAbort = true,
+                CreateResumeState = true,
+            },
+            Search = profile.Search with
+            {
+                Provenance = "capture:r069",
+                Pattern = "crypte|braise",
+                UseRegex = true,
+                SpeakerRoles = [],
+                ConditionKinds = [DialogueConditionKind.HasItem],
+                ActionKinds = [DialogueActionKind.StartQuest],
+                ReplacementPreview = "flamme",
+            },
+            Review = profile.Review with { Provenance = "capture:r069", ReviewMode = true },
+            MemorySlots =
+            [
+                new(Guid.Parse("d0695000-0000-4000-8000-000000000011"), 1, "capture:r069",
+                    DialogueMemoryScope.Player, "player:current", "trust", DialogueTextTokenType.Integer,
+                    DialogueMemoryDuration.Campaign, "0"),
+                new(Guid.Parse("d0695000-0000-4000-8000-000000000012"), 1, "capture:r069",
+                    DialogueMemoryScope.World, "world:crypt", "ashes-awakened", DialogueTextTokenType.Boolean,
+                    DialogueMemoryDuration.Permanent, "false"),
+            ],
+            SkillChecks =
+            [new(Guid.Parse("d0695000-0000-4000-8000-000000000013"), 1, "capture:r069",
+                dialogue.EntryNodeId, "persuasion", 12, "elyra", true,
+                DialogueSkillCheckVisibility.FullExplanation, success, failure)],
+        };
+        _draftExperience = profile;
+        RefreshNodes(_selectedNodeIndex);
+        _detailScroll!.ScrollVertical = 1050;
+        RefreshValidation();
+        var preview = DialogueExperienceRuntimeService.PreviewReplace([CreateDraftDefinition()], profile.Search);
+        var diagnostics = DialogueValidator.Validate(CreateDraftDefinition());
+        GD.Print("OPENRPG_FORGE_DIALOGUE_R069_CAPTURE_STATE " +
+                 $"completed={profile.Lifecycle.CompletedActions.Count} aborted={profile.Lifecycle.AbortedActions.Count} " +
+                 $"search={preview.Hits.Count} badges={profile.Review.Badges.Count} memory={profile.MemorySlots.Count} " +
+                 $"checks={profile.SkillChecks.Count} diagnostics={string.Join(',', diagnostics.Select(item => item.Code))}");
+        SetStatus("R069 · fin/abandon · recherche preview · 6 badges · mémoire typée · check déterministe", true);
+    }
+
+    private void PrepareR070Capture()
+    {
+        var subgraphIndex = _draftNodes.FindIndex(item => item.SubgraphKey == "lore");
+        if (subgraphIndex < 0) subgraphIndex = Math.Min(1, _draftNodes.Count - 1);
+        var node = _draftNodes[subgraphIndex];
+        _draftNodes[subgraphIndex] = new DialogueNode(node.Id, node.SpeakerBlueprintId, node.Text,
+            node.OnEnterActions, node.Choices, DialogueNodeRole.Subgraph, node.ParticipantId, "embers");
+        _draftMetadata = new Dictionary<string, string>(_draftMetadata, StringComparer.Ordinal)
+        {
+            ["proof"] = "r070",
+            ["production.required"] = "true",
+        };
+        var dialogue = CreateBaseDraftDefinition();
+        _draftProduction = CreateR070ProductionProfile(dialogue, "capture:r070");
+        RefreshNodes(_selectedNodeIndex);
+        _detailScroll!.ScrollVertical = 1580;
+        RefreshValidation();
+        var report = DialogueProductionRuntimeService.MeasureCoverage(CreateDraftDefinition());
+        var diagnostics = DialogueValidator.Validate(CreateDraftDefinition());
+        GD.Print("OPENRPG_FORGE_DIALOGUE_R070_CAPTURE_STATE " +
+                 $"subgraphs={_draftProduction.Subgraphs.Count} tests={_draftProduction.Subgraphs.Sum(item => item.Tests.Count)} " +
+                 $"consequences={_draftProduction.Consequences.Count} paths={report.Paths.Count} " +
+                 $"covered={report.CoveredNodes.Count} impossible={report.ImpossiblePaths.Count} " +
+                 $"revisions={_draftProduction.Collaboration.Revisions.Count} locks={_draftProduction.Collaboration.Locks.Count} " +
+                 $"comments={_draftProduction.Collaboration.Comments.Count} conflicts={_draftProduction.Collaboration.Conflicts.Count} " +
+                 $"ai={_draftProduction.AiPlans.Count} diagnostics={string.Join(',', diagnostics.Select(item => item.Code))}");
+        SetStatus("R070 · sous-dialogue testé · impact typé · couverture · collaboration · IA en preview", true);
+    }
+
+    private static DialogueProductionProfile CreateR070ProductionProfile(
+        DialogueDefinition dialogue,
+        string provenance)
+    {
+        var subgraph = dialogue.Nodes.FirstOrDefault(item => item.Role == DialogueNodeRole.Subgraph &&
+            !string.IsNullOrWhiteSpace(item.SubgraphKey))
+            ?? throw new InvalidOperationException("R070 requires one visible subgraph node.");
+        var contractId = Guid.Parse("d0705000-0000-4000-8000-000000000001");
+        var input = new DialogueSubgraphParameter(Guid.Parse("d0705000-0000-4000-8000-000000000002"), 1,
+            provenance, "trust", DialogueTextTokenType.Integer, DialogueSubgraphParameterDirection.Input, true);
+        var output = new DialogueSubgraphParameter(Guid.Parse("d0705000-0000-4000-8000-000000000003"), 1,
+            provenance, "accepted", DialogueTextTokenType.Boolean, DialogueSubgraphParameterDirection.Output, true);
+        var test = new DialogueSubgraphTestCase(Guid.Parse("d0705000-0000-4000-8000-000000000004"), 1,
+            provenance, "trust accepted", new Dictionary<string, string> { ["trust"] = "4" },
+            new Dictionary<string, string> { ["accepted"] = "true" });
+        var contract = new DialogueSubgraphContract(contractId, 1, provenance, subgraph.SubgraphKey!, 2,
+            [input, output], ["party:trust"], [test]);
+        var invocation = new DialogueSubgraphInvocation(Guid.Parse("d0705000-0000-4000-8000-000000000005"),
+            1, provenance, subgraph.Id, contractId,
+            new Dictionary<string, string> { ["trust"] = "party:trust" },
+            new Dictionary<string, string> { ["accepted"] = "memory:accepted" });
+        var consequences = Enum.GetValues<DialogueConsequenceTargetKind>().Select((kind, index) =>
+            new DialogueTypedConsequence(Guid.Parse($"d0705000-0000-4000-8000-0000000001{index:00}"), 1,
+                provenance, dialogue.EntryNodeId, kind, kind switch
+                {
+                    DialogueConsequenceTargetKind.Quest => "quest:crypt-of-ashes",
+                    DialogueConsequenceTargetKind.Faction => "faction:ash-wardens",
+                    DialogueConsequenceTargetKind.Item => "item:ember-key",
+                    _ => "world:crypt-awakened",
+                }, kind == DialogueConsequenceTargetKind.Faction ? "reputation" : "set", "+1",
+                $"Impact {kind} visible dans le graphe.")).ToArray();
+        var evidence = new DialogueCoverageEvidence(Guid.Parse("d0705000-0000-4000-8000-000000000201"), 1,
+            provenance, "test:embers", DialogueCoverageEvidenceKind.Test,
+            [dialogue.EntryNodeId, subgraph.Id], new Dictionary<string, string>
+            {
+                ["quest:crypt-of-ashes"] = "active",
+            });
+        var coverage = new DialogueCoveragePolicy(Guid.Parse("d0705000-0000-4000-8000-000000000202"), 1,
+            provenance, 64, new Dictionary<string, string> { ["quest:crypt-of-ashes"] = "active" },
+            [evidence]);
+        var now = DateTimeOffset.UnixEpoch;
+        var revision = new DialogueNodeRevision(Guid.Parse("d0705000-0000-4000-8000-000000000301"), 1,
+            provenance, subgraph.Id, 2, "author", "{\"text\":\"ours\"}", now);
+        var nodeLock = new DialogueNodeLock(Guid.Parse("d0705000-0000-4000-8000-000000000302"), 1,
+            provenance, subgraph.Id, "author", now.AddMinutes(5));
+        var comment = new DialogueNodeComment(Guid.Parse("d0705000-0000-4000-8000-000000000303"), 1,
+            provenance, subgraph.Id, "reviewer", "Clarifier l'impact de la promesse.", false, now);
+        var conflict = new DialogueSemanticConflict(Guid.Parse("d0705000-0000-4000-8000-000000000304"), 1,
+            provenance, subgraph.Id, "text", "{\"text\":\"base\"}", "{\"text\":\"ours\"}",
+            "{\"text\":\"theirs\"}", DialogueConflictResolution.Manual, "{\"text\":\"merged\"}", true);
+        var collaboration = new DialogueCollaborationProfile(
+            Guid.Parse("d0705000-0000-4000-8000-000000000305"), 1, provenance, [revision], [nodeLock],
+            [comment], [conflict]);
+        var ai = new DialogueAiPlan(Guid.Parse("d0705000-0000-4000-8000-000000000401"), 1, provenance,
+            Guid.Parse("d0705000-0000-4000-8000-000000000402"),
+            Guid.Parse("d0705000-0000-4000-8000-000000000403"), DialogueAiAuthorizationLevel.AuthorApply,
+            "Une promesse sous la crypte.", ["offre", "choix"], ["style:embers"],
+            ["OpenRPG_Forge_MEGACONTEXT.md#dialogue"], "add-subgraph:embers|nodes:1", [], true, false);
+        return new DialogueProductionProfile(Guid.Parse("d0705000-0000-4000-8000-000000000010"), 1,
+            provenance, true, true, [contract], [invocation], consequences, coverage, collaboration, [ai]);
+    }
+
+    private string CaptureMarker() => _captureR070
+        ? "R070_DIALOGUE_PRODUCTION"
+        : _captureR069
+            ? "R069_DIALOGUE_EXPERIENCE"
+            : _captureR068
+                ? "R068_DIALOGUE_AUTHORING"
+                : "DIALOGUE_GRAPH";
+
     private void ReplaceCurrentNode(DialogueNode node) => _draftNodes[_selectedNodeIndex] = node;
 
     private DialogueNode? CurrentNode =>
@@ -1244,6 +2757,14 @@ public partial class DialogueEditorWindow : Window
         _status.AddThemeColorOverride(
             "font_color",
             error ? new Color("ff8c8c") : success ? new Color("83d6ae") : new Color("ab9acb"));
+    }
+
+    private static LineEdit AddAuthoringField(GridContainer grid, string label, string placeholder)
+    {
+        grid.AddChild(new Label { Text = label });
+        var field = new LineEdit { PlaceholderText = placeholder, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        grid.AddChild(field);
+        return field;
     }
 
     private void Close()

@@ -2,6 +2,41 @@ namespace Forge.Domain.Factions;
 
 public static class FactionRuntimeResolver
 {
+    public static FactionReputationRuntimeResolution ResolveReputation(FactionCatalog catalog)
+    {
+        ArgumentNullException.ThrowIfNull(catalog);
+        if (catalog.Reputation is null)
+        {
+            var diagnostics = catalog.RequireReputationRuntime
+                ? new[] { new FactionDiagnostic(FactionValidator.ReputationMissingCode,
+                    "module/factions/reputation", "The module requires faction reputation at runtime.") }
+                : [];
+            return new(null, diagnostics, !catalog.RequireReputationRuntime);
+        }
+
+        var validation = FactionValidator.Validate(catalog)
+            .Where(item => item.Path.StartsWith("module/factions/reputation", StringComparison.Ordinal) ||
+                item.Path.Contains("/definitions/", StringComparison.Ordinal))
+            .ToArray();
+        return new(catalog.Reputation, validation, false);
+    }
+
+    public static FactionFoundationRuntimeResolution ResolveFoundation(FactionCatalog catalog)
+    {
+        ArgumentNullException.ThrowIfNull(catalog);
+        if (catalog.Factions.Count == 0)
+        {
+            var diagnostics = catalog.RequireFoundationRuntime
+                ? new[] { new FactionDiagnostic(FactionValidator.FoundationMissingCode,
+                    "module/factions/definitions", "The module requires faction foundations at runtime.") }
+                : [];
+            return new(null, diagnostics, !catalog.RequireFoundationRuntime);
+        }
+
+        var validation = FactionValidator.Validate(catalog);
+        return new(catalog, validation, false);
+    }
+
     public static FactionRuntimeResolution Resolve(FactionCatalog catalog)
     {
         ArgumentNullException.ThrowIfNull(catalog);

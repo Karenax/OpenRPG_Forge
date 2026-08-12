@@ -20,7 +20,8 @@ public sealed class WaypointRouteServiceTests
     public void PatrolRoute_SupportsLoopPingPongOnceRandomWeightedAndScripted()
     {
         var points = Enumerable.Range(0, 3).Select(index => new PatrolPoint(Guid.NewGuid(), new Vector3Value(index, 0, 0), index, index * 90, 2, "look", null, index + 1)).ToArray();
-        PatrolRoute Route(PatrolTraversalPolicy policy) => new(Guid.NewGuid(), 1, "author:test", policy, points);
+        PatrolRoute Route(PatrolTraversalPolicy policy) => new(Guid.NewGuid(), 1, "author:test", policy, points,
+            scriptHandler: policy == PatrolTraversalPolicy.Scripted ? "patrol.choose_next" : null);
         Assert.Equal(0, WaypointRouteService.Next(Route(PatrolTraversalPolicy.Loop), new(2, 1, false)).Index);
         Assert.Equal(-1, WaypointRouteService.Next(Route(PatrolTraversalPolicy.PingPong), new(2, 1, false)).Direction);
         Assert.True(WaypointRouteService.Next(Route(PatrolTraversalPolicy.Once), new(2, 1, false)).Complete);
@@ -33,8 +34,8 @@ public sealed class WaypointRouteServiceTests
     public void Locators_AreQueryableDeterministicAndRoutesExposeDiagnostics()
     {
         var arrival = new ArrivalBehavior(ArrivalFacingMode.Target, 0, "gate", "inspect", 1, "open", "route.arrived");
-        var first = new GenericLocator(Guid.Parse("10000000-0000-4000-8000-000000000001"), 1, "author:test", "Braise", Vector3Value.Zero, LocatorPurpose.Vfx, new HashSet<string> { "crypt", "fire" }, arrival);
-        var second = new GenericLocator(Guid.Parse("10000000-0000-4000-8000-000000000002"), 1, "author:test", "Cloche", new Vector3Value(3, 0, 4), LocatorPurpose.Audio, new HashSet<string> { "crypt" }, null);
+        var first = new GenericLocator(Guid.Parse("10000000-0000-4000-8000-000000000001"), 1, "author:test", "Braise", Vector3Value.Zero, LocatorPurpose.Vfx, ["crypt", "fire"], arrival);
+        var second = new GenericLocator(Guid.Parse("10000000-0000-4000-8000-000000000002"), 1, "author:test", "Cloche", new Vector3Value(3, 0, 4), LocatorPurpose.Audio, ["crypt"], null);
         Assert.Equal(2, WaypointRouteService.Query([second, first], "crypt").Count);
         Assert.Same(first, WaypointRouteService.Nearest([second, first], new Vector3Value(1, 0, 0)));
         Assert.NotNull(WaypointRouteService.RandomDeterministic([second, first], 42));

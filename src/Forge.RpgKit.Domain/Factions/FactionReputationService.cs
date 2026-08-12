@@ -3,13 +3,8 @@ using Forge.Domain.Factions;
 
 namespace Forge.RpgKit.Domain.Factions;
 
-public enum ReputationScope { World, Server, Campaign, Group, Player }
-
-public sealed record PersonalReputationOverlay(Guid Id, int SchemaVersion, string Provenance, string SubjectId, Guid SourceFactionId, Guid TargetFactionId, double Delta, DateTimeOffset? ExpiresAt, string Cause);
-public sealed record ReputationTransaction(Guid Id, int SchemaVersion, string Provenance, ReputationScope Scope, string ScopeId, Guid SourceFactionId, Guid TargetFactionId, double Delta, string Cause, DateTimeOffset OccurredAt);
 public sealed record ReputationState(IReadOnlyList<PersonalReputationOverlay> Personal, IReadOnlyList<ReputationTransaction> Transactions);
 public sealed record ReputationMutation(ReputationState State, ReputationTransaction Applied, ReputationTransaction Inverse, double PreviousScore, double CurrentScore);
-public sealed record FactionHeatmapSnapshot(Guid Id, DateTimeOffset CapturedAt, string Label, IReadOnlyList<FactionRelationship> Relationships);
 public sealed record HeatmapDifference(Guid SourceId, Guid TargetId, double Before, double After);
 public sealed record EncounterReaction(Guid ActorFactionId, Guid TargetFactionId, double Score, string Disposition);
 public sealed record ReactionContext(string SubjectId, Guid SourceFactionId, Guid TargetFactionId, DateTimeOffset At, double DisguiseModifier, double CrimeModifier, double DialogueModifier, double? GameMasterOverride, double? ZoneOverride);
@@ -17,6 +12,12 @@ public sealed record ReactionResolution(double Score, string Disposition, IReadO
 
 public static class FactionReputationService
 {
+    public static ReputationState InitialState(FactionCatalog catalog)
+    {
+        ArgumentNullException.ThrowIfNull(catalog);
+        return new(catalog.EffectivePersonalReputation, catalog.Reputation?.Transactions ?? []);
+    }
+
     public static ReputationMutation Apply(ReputationState state, ReputationTransaction transaction)
     {
         Validate(transaction);
@@ -37,10 +38,20 @@ public static class FactionReputationService
     public static IReadOnlyList<FactionDefinition> QueryByTags(FactionCatalog catalog, IEnumerable<string> tags, bool requireAll = true)
     {
         var wanted = tags.Select(NormalizeTag).Where(tag => tag.Length > 0).ToHashSet(StringComparer.Ordinal);
-        return catalog.Factions.Where(faction => requireAll ? wanted.All(faction.Tags.Contains) : faction.Tags.Any(wanted.Contains)).OrderBy(faction => faction.Slug, StringComparer.Ordinal).ToArray();
+        return catalog.Factions.Where(faction =>
+        {
+            var effective = FactionRuntimeResolver.EffectiveDefinition(catalog, faction.Id).Tags;
+            return requireAll ? wanted.All(effective.Contains) : effective.Any(wanted.Contains);
+        }).OrderBy(faction => faction.Slug, StringComparer.Ordinal).ToArray();
     }
 
-    public static FactionHeatmapSnapshot Capture(FactionCatalog catalog, string label, DateTimeOffset at) => new(Guid.NewGuid(), at, label, catalog.Relationships.OrderBy(item => item.SourceId).ThenBy(item => item.TargetId).ToArray());
+    public static FactionHeatmapSnapshot Capture(
+        FactionCatalog catalog,
+        string label,
+        DateTimeOffset at,
+        string provenance = "rpgkit:heatmap") =>
+        new(Guid.NewGuid(), 1, provenance, at, label,
+            catalog.Relationships.OrderBy(item => item.SourceId).ThenBy(item => item.TargetId).ToArray());
 
     public static IReadOnlyList<HeatmapDifference> Compare(FactionHeatmapSnapshot before, FactionHeatmapSnapshot after)
     {
@@ -52,17 +63,60 @@ public static class FactionReputationService
         => actors.Select(actor => new EncounterReaction(actor, targetFactionId, Score(catalog, actor, targetFactionId), FactionValidator.ResolveBand(catalog, actor, targetFactionId))).ToArray();
 
     public static string ExportSnapshot(FactionHeatmapSnapshot snapshot) => JsonSerializer.Serialize(snapshot);
-    public static FactionHeatmapSnapshot ImportSnapshot(string json) => JsonSerializer.Deserialize<FactionHeatmapSnapshot>(json) ?? throw new InvalidOperationException("RPG_FACTION_HEATMAP_INVALID");
+    public static FactionHeatmapSnapshot ImportSnapshot(string json)
+    {
+        var snapshot = JsonSerializer.Deserialize<FactionHeatmapSnapshot>(json) ??
+            throw new InvalidOperationException("RPG_FACTION_HEATMAP_INVALID");
+        if (snapshot.Id == Guid.Empty || snapshot.SchemaVersion != 1 ||
+            string.IsNullOrWhiteSpace(snapshot.Provenance) || string.IsNullOrWhiteSpace(snapshot.Label) ||
+            snapshot.Relationships.Any(item => item.SourceId == Guid.Empty || item.TargetId == Guid.Empty ||
+                item.SourceId == item.TargetId || !double.IsFinite(item.Score) || item.Score is < -100 or > 100 ||
+                string.IsNullOrWhiteSpace(item.Explanation) || string.IsNullOrWhiteSpace(item.Preset)))
+            throw new InvalidOperationException("RPG_FACTION_HEATMAP_INVALID");
+        return snapshot;
+    }
+
+    public static ReactionResolution ResolveReaction(
+        FactionCatalog catalog,
+        ReputationState state,
+        ReactionContext context)
+    {
+        var policy = catalog.Reputation?.Reaction ??
+            new(Guid.Empty, 1, "rpgkit:optional-default", ReputationScope.World, "world",
+                true, true, true, true, true);
+        return ResolveReaction(catalog, state, context, policy.DefaultScope, policy.DefaultScopeId);
+    }
 
     public static ReactionResolution ResolveReaction(FactionCatalog catalog, ReputationState state, ReactionContext context, ReputationScope scope, string scopeId)
     {
+        var policy = catalog.Reputation?.Reaction;
         var explanation = new List<string>();
         var score = EffectiveScore(catalog, state, context, scope, scopeId); explanation.Add($"reputation:{score}");
-        score += context.DisguiseModifier; explanation.Add($"disguise:{context.DisguiseModifier}");
-        score += context.CrimeModifier; explanation.Add($"crime:{context.CrimeModifier}");
-        score += context.DialogueModifier; explanation.Add($"dialogue:{context.DialogueModifier}");
-        if (context.ZoneOverride is { } zone) { score = zone; explanation.Add($"zone-override:{zone}"); }
-        if (context.GameMasterOverride is { } gm) { score = gm; explanation.Add($"gm-override:{gm}"); }
+        if (policy?.ApplyDisguise != false)
+        {
+            score += context.DisguiseModifier;
+            explanation.Add($"disguise:{context.DisguiseModifier}");
+        }
+        if (policy?.ApplyCrimes != false)
+        {
+            score += context.CrimeModifier;
+            explanation.Add($"crime:{context.CrimeModifier}");
+        }
+        if (policy?.ApplyDialogue != false)
+        {
+            score += context.DialogueModifier;
+            explanation.Add($"dialogue:{context.DialogueModifier}");
+        }
+        if (policy?.ApplyZoneRules != false && context.ZoneOverride is { } zone)
+        {
+            score = zone;
+            explanation.Add($"zone-override:{zone}");
+        }
+        if (policy?.AllowGameMasterOverride != false && context.GameMasterOverride is { } gm)
+        {
+            score = gm;
+            explanation.Add($"gm-override:{gm}");
+        }
         score = Math.Clamp(score, -100, 100);
         return new(score, FactionValidator.ResolveBand(catalog, context.SourceFactionId, context.TargetFactionId, score), explanation);
     }
@@ -71,7 +125,13 @@ public static class FactionReputationService
         => state.Transactions.Where(item => item.Scope == scope && item.ScopeId == scopeId && item.SourceFactionId == source && item.TargetFactionId == target).Sum(item => item.Delta);
     private static void Validate(ReputationTransaction transaction)
     {
-        if (transaction.Id == Guid.Empty || transaction.SchemaVersion != 1 || string.IsNullOrWhiteSpace(transaction.Provenance) || string.IsNullOrWhiteSpace(transaction.ScopeId) || transaction.SourceFactionId == Guid.Empty || transaction.TargetFactionId == Guid.Empty || transaction.Delta is < -200 or > 200) throw new InvalidOperationException("RPG_FACTION_REPUTATION_TRANSACTION_INVALID");
+        if (transaction.Id == Guid.Empty || transaction.SchemaVersion != 1 ||
+            string.IsNullOrWhiteSpace(transaction.Provenance) || !Enum.IsDefined(transaction.Scope) ||
+            string.IsNullOrWhiteSpace(transaction.ScopeId) || transaction.SourceFactionId == Guid.Empty ||
+            transaction.TargetFactionId == Guid.Empty || transaction.SourceFactionId == transaction.TargetFactionId ||
+            !double.IsFinite(transaction.Delta) || transaction.Delta is < -100 or > 100 ||
+            string.IsNullOrWhiteSpace(transaction.Cause))
+            throw new InvalidOperationException("RPG_FACTION_REPUTATION_TRANSACTION_INVALID");
     }
     private static string NormalizeTag(string tag) => tag.Trim().ToLowerInvariant();
     private static (Guid, Guid) Key(FactionRelationship item) => (item.SourceId, item.TargetId);

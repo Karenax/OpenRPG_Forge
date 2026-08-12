@@ -15,3 +15,12 @@
 ## Invariants testés
 
 Un client ne téléporte pas son personnage et ne rejoue pas une séquence. Un ticket volé ou expiré échoue. Un rollback ne réécrit pas l'histoire : il produit une nouvelle révision. La première entrée en file est la première promue. Deux exécutions du même profil de fautes ont le même digest.
+
+## Fermeture P1 R104
+
+R104 ferme `ORF-MP-031` et `ORF-MP-036` avec une politique anti-cheat canonique et un runner de
+campagne partagé. Le serveur exige une signature de contenu approuvée, conserve le RNG autoritaire,
+refuse les sauvegardes client et met en quarantaine au seuil d'anomalie. La campagne simule trois
+clients sous latence, perte, duplication et réordonnancement, rejoue trois passes, exécute un soak
+borné et vérifie neuf assertions d'état avec une empreinte identique. Toolset, runtime, ForgeScript,
+MCP et serveur utilisent le même profil transactionnel et audité.

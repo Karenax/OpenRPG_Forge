@@ -8,7 +8,11 @@ using Forge.Domain.Projects;
 using Forge.Domain.Quests;
 using Forge.RpgKit.Domain.Quests;
 using CoreQuestDefinition = Forge.Domain.Quests.QuestDefinition;
+using RpgQuestAuthorNotes = Forge.RpgKit.Domain.Quests.QuestAuthorNotes;
 using RpgQuestDefinition = Forge.RpgKit.Domain.Quests.QuestDefinition;
+using RpgQuestEditorialStatus = Forge.RpgKit.Domain.Quests.QuestEditorialStatus;
+using RpgQuestObjectiveKind = Forge.RpgKit.Domain.Quests.QuestObjectiveKind;
+using RpgQuestParticipantBindingKind = Forge.RpgKit.Domain.Quests.QuestParticipantBindingKind;
 
 namespace Forge.RpgKit.Application.Quests;
 
@@ -105,18 +109,18 @@ public static class AssistedQuestCreationService
         var zoneRef = $"zone:{brief.ZoneId:D}";
         var participantRef = $"blueprint:{brief.ParticipantBlueprintId:D}";
         var objectives = brief.ObjectiveLabels.Select((label, index) => new QuestObjective(
-            StableId(brief.QuestId, $"objective:{brief.Seed}:{index}"), QuestObjectiveKind.Boolean,
+            StableId(brief.QuestId, $"objective:{brief.Seed}:{index}"), RpgQuestObjectiveKind.Boolean,
             label.Trim(), 1, new HashSet<string>(), null, TimeSpan.Zero, new HashSet<string>(), null, false)).ToArray();
         var sources = brief.StyleRules.Concat(brief.ContextCitations).ToArray();
         var advanced = new RpgQuestDefinition(
             brief.QuestId, 1, provenance, brief.Slug, brief.DisplayName,
-            [zoneRef], [new QuestParticipant("guide", QuestParticipantBindingKind.Blueprint, participantRef,
+            [zoneRef], [new QuestParticipant("guide", RpgQuestParticipantBindingKind.Blueprint, participantRef,
                 new HashSet<string>(), true)], [], [], objectives,
             ["transition:offer", "transition:complete", "transition:failure"],
             new QuestRewardBundle(brief.ProgressionReward, new Dictionary<Guid, int>(),
                 new Dictionary<string, decimal>(), new Dictionary<string, double>(), new HashSet<string>(), []),
-            new QuestAuthorNotes(brief.Synopsis, string.Join("; ", brief.ContextCitations), brief.AuthorId,
-                QuestEditorialStatus.Review, ["generated-review-required"], [], sources, ["assistant-preview"]));
+            new RpgQuestAuthorNotes(brief.Synopsis, string.Join("; ", brief.ContextCitations), brief.AuthorId,
+                RpgQuestEditorialStatus.Review, ["generated-review-required"], [], sources, ["assistant-preview"]));
         var context = new QuestValidationContext(
             new HashSet<string> { zoneRef }, new HashSet<string> { participantRef }, new HashSet<string>(),
             new HashSet<Guid>(), new HashSet<string>(advanced.TransitionIds), new HashSet<Guid>(),

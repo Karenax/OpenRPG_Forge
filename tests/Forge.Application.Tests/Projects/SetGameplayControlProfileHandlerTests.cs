@@ -20,7 +20,8 @@ public sealed class SetGameplayControlProfileHandlerTests
             Provenance = "test:r010",
         };
         var changed = new ModuleGameplayControlProfile(current.Id, 1, current.Swimming, current.Climbing,
-            current.RadialMenu, time, current.CombatModes, "test", foundation);
+            current.RadialMenu, time, current.CombatModes, "test", foundation, current.Simulation,
+            current.Session);
         var handler = new SetGameplayControlProfileHandler(new FixedClock(PlaceEntityTestContext.Timestamp));
         var command = new SetGameplayControlProfileCommand(CommandId.From(Guid.NewGuid()), context.State.Revision,
             changed, true);

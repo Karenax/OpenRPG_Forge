@@ -42,6 +42,8 @@ public enum AssetChunkRole
     Animation,
     Vfx,
     Lod,
+    Navigation,
+    Font,
 }
 
 public enum AssetChunkCompression
@@ -69,6 +71,13 @@ public enum AssetCollisionGeneration
     Manual,
 }
 
+public enum AssetNavigationGeneration
+{
+    Generated,
+    Embedded,
+    Manual,
+}
+
 public enum AssetAnimationCompression
 {
     Lossless,
@@ -93,6 +102,28 @@ public sealed record AssetCollisionManifest(
     AssetCollisionGeneration Generation,
     IReadOnlyList<string> MaterialTags,
     IReadOnlyList<AssetTargetPlatform> CookPlatforms);
+
+public sealed record AssetNavigationManifest(
+    bool Required,
+    Guid? ChunkId,
+    AssetNavigationGeneration Generation,
+    IReadOnlyList<string> MaterialTags,
+    IReadOnlyList<AssetTargetPlatform> CookPlatforms);
+
+public sealed record AssetFontFallbackManifest(
+    string Family,
+    Guid ChunkId);
+
+public sealed record AssetFontManifest(
+    bool Required,
+    string PrimaryFamily,
+    Guid? PrimaryChunkId,
+    IReadOnlyList<AssetFontFallbackManifest> Fallbacks,
+    IReadOnlyList<string> ShapingScripts,
+    IReadOnlyList<string> LocalizationTestLocales,
+    IReadOnlyList<int> DpiBuckets,
+    decimal MinimumTextScale,
+    decimal MaximumTextScale);
 
 public sealed record AssetAnimationClipManifest(
     string Name,
@@ -182,7 +213,9 @@ public sealed record AssetPackageManifest(
     AssetAnimationManifest? Animation,
     AssetVfxManifest? Vfx,
     AssetLodManifest? Lod,
-    AssetModelMetadata? ModelMetadata = null)
+    AssetModelMetadata? ModelMetadata = null,
+    AssetNavigationManifest? Navigation = null,
+    AssetFontManifest? Font = null)
 {
     public const int CurrentSchemaVersion = 1;
 }

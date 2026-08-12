@@ -19,14 +19,26 @@
             "name": "Crypt of Ashes",
             "summary": "A playable vertical slice for OpenRPG Forge.",
             "description": "Explore the crypt, meet Elyra and defeat the Ash Warden.",
-            "credits": "OpenRPG Forge team"
+            "credits": "OpenRPG Forge team",
+            "installation": "",
+            "rules": "",
+            "controls": "",
+            "licenses": "",
+            "warnings": "",
+            "compatibility": ""
           },
           {
             "locale": "fr",
             "name": "Crypte des Cendres",
             "summary": "Une tranche verticale jouable pour OpenRPG Forge.",
             "description": "Explorez la crypte, rencontrez Elyra et affrontez le Gardien des Cendres.",
-            "credits": "\u00C9quipe OpenRPG Forge"
+            "credits": "\u00C9quipe OpenRPG Forge",
+            "installation": "",
+            "rules": "",
+            "controls": "",
+            "licenses": "",
+            "warnings": "",
+            "compatibility": ""
           }
         ],
         "author": "OpenRPG Forge",
@@ -1024,6 +1036,322 @@
               "requireModuleDependencies": true
             }
           },
+          "simulation": {
+            "id": "84e31df5-dac3-5ba0-8948-b4d5b51bc756",
+            "schemaVersion": 1,
+            "provenance": "migration-default:r066",
+            "enabled": true,
+            "requiredAtRuntime": false,
+            "flight": {
+              "id": "8f1e8878-c6ce-51c8-9861-88a4a8ecb762",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r066",
+              "enabled": true,
+              "required": false,
+              "maximumSpeed": 12,
+              "acceleration": 18,
+              "maximumAltitude": 80,
+              "bankingDegrees": 35,
+              "lift": 2,
+              "requiresLandingSurface": true,
+              "volumetricNavigation": true,
+              "landingProbeDistance": 1.5,
+              "inputContext": "flight"
+            },
+            "projectiles": {
+              "id": "389941b5-cf60-5919-bff1-0346820dd622",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r066",
+              "enabled": true,
+              "required": false,
+              "mode": "ballistic",
+              "speed": 24,
+              "gravity": 9.81,
+              "lifetimeSeconds": 8,
+              "homingStrength": 10,
+              "collisionRadius": 0.2,
+              "serverAuthoritative": true,
+              "prediction": true,
+              "vfxAssetId": "vfx:projectile-trail",
+              "impactVfxAssetId": "vfx:projectile-impact",
+              "collisionMask": "world,creature,placeable",
+              "serverRevision": 0,
+              "auditTag": "gameplay.projectile"
+            },
+            "physics": {
+              "id": "889911ff-3220-503f-b189-84142386d1b3",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r066",
+              "enabled": true,
+              "required": false,
+              "fixedStepSeconds": 0.016666668,
+              "bodies": [
+                {
+                  "id": "92f47b62-654c-5ab4-a7e3-4382a9766980",
+                  "schemaVersion": 1,
+                  "provenance": "migration-default:r066",
+                  "name": "Caisse dynamique",
+                  "mode": "rigid",
+                  "mass": 12,
+                  "linearDamping": 0.1,
+                  "gravityScale": 1,
+                  "isTrigger": false,
+                  "interactsWithCharacters": true,
+                  "boundaryMinimum": {
+                    "x": -20,
+                    "y": -4,
+                    "z": -20
+                  },
+                  "boundaryMaximum": {
+                    "x": 20,
+                    "y": 40,
+                    "z": 20
+                  },
+                  "networkPolicy": "server",
+                  "requiredAtRuntime": true
+                },
+                {
+                  "id": "94df1e3f-3c42-5f0c-983f-8dd1db954b3f",
+                  "schemaVersion": 1,
+                  "provenance": "migration-default:r066",
+                  "name": "Ancre statique",
+                  "mode": "static",
+                  "mass": 1,
+                  "linearDamping": 0,
+                  "gravityScale": 0,
+                  "isTrigger": false,
+                  "interactsWithCharacters": false,
+                  "boundaryMinimum": {
+                    "x": -20,
+                    "y": -4,
+                    "z": -20
+                  },
+                  "boundaryMaximum": {
+                    "x": 20,
+                    "y": 40,
+                    "z": 20
+                  },
+                  "networkPolicy": "server",
+                  "requiredAtRuntime": false
+                }
+              ],
+              "joints": [
+                {
+                  "id": "bf51c64b-9b55-545f-85e4-9c0ee2511c36",
+                  "schemaVersion": 1,
+                  "provenance": "migration-default:r066",
+                  "name": "Liaison de d\u00E9monstration",
+                  "mode": "hinge",
+                  "bodyAId": "92f47b62-654c-5ab4-a7e3-4382a9766980",
+                  "bodyBId": "94df1e3f-3c42-5f0c-983f-8dd1db954b3f",
+                  "breakForce": 250,
+                  "collisionExcluded": true
+                }
+              ]
+            },
+            "targeting": {
+              "id": "25475ad6-ceee-53da-96f4-284177df39d6",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r066",
+              "enabled": true,
+              "required": false,
+              "mode": "cone",
+              "maximumRange": 18,
+              "radius": 4,
+              "angleDegrees": 65,
+              "maximumTargets": 6,
+              "requiresLineOfSight": true,
+              "inputAction": "target",
+              "previewColor": "#55d6be",
+              "requiredTags": [
+                "targetable"
+              ],
+              "blockedTags": [
+                "dead",
+                "hidden"
+              ]
+            },
+            "worldTime": {
+              "id": "306b095a-731a-5f2e-a802-d00b11d155aa",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r066",
+              "enabled": true,
+              "required": false,
+              "calendar": {
+                "daysPerMonth": 28,
+                "monthsPerYear": 12,
+                "hoursPerDay": 24,
+                "minutesPerHour": 60
+              },
+              "initialClock": {
+                "totalMinutes": 0,
+                "timeScale": 1,
+                "paused": false,
+                "pauseDomain": "gameplay",
+                "revision": 0
+              },
+              "localTimeScales": {},
+              "pauseDomains": [
+                "gameplay",
+                "cinematic",
+                "world"
+              ],
+              "schedules": [
+                {
+                  "id": "c2a2e7c2-f758-50ff-8c3f-dd7b9e38c2b0",
+                  "schemaVersion": 1,
+                  "provenance": "migration-default:r066",
+                  "key": "dawn-bell",
+                  "minuteOfDay": 360,
+                  "daysOfMonth": [
+                    1,
+                    2,
+                    3,
+                    4,
+                    5,
+                    6,
+                    7
+                  ],
+                  "eventName": "world.dawn",
+                  "pauseDomain": "world",
+                  "serverAuthoritative": true
+                }
+              ]
+            }
+          },
+          "session": {
+            "id": "b4803e66-82b8-5f76-ad4a-240e9821c499",
+            "schemaVersion": 1,
+            "provenance": "migration-default:r067",
+            "enabled": true,
+            "requiredAtRuntime": false,
+            "persistence": {
+              "id": "5a2803b8-74c3-510f-9c18-09f0acc1a6db",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r067",
+              "scope": "game",
+              "authority": "host",
+              "conflictPolicy": "latestRevisionWins",
+              "cloudAdapterEnabled": false,
+              "containsPersonalData": true,
+              "enabled": true,
+              "requiredAtRuntime": false,
+              "cloudAdapter": "none",
+              "privacyClassification": "personal",
+              "encryptAtRest": true,
+              "maximumSnapshots": 8
+            },
+            "checkpoints": [
+              {
+                "id": "68668168-b8a7-5cfa-aa30-b5924526a5d4",
+                "schemaVersion": 1,
+                "provenance": "migration-default:r067",
+                "waypointId": "waypoint:start",
+                "currencyCost": 0,
+                "partyPolicy": "entireParty",
+                "corpsePolicy": "transferInventory",
+                "safeRadius": 3,
+                "enabled": true,
+                "requiredAtRuntime": false,
+                "respawnDelaySeconds": 3,
+                "requireSafeSpawn": true,
+                "beforeRespawnEvent": "player.respawn.before",
+                "afterRespawnEvent": "player.respawn.after"
+              }
+            ],
+            "shell": {
+              "id": "10faa7fe-8152-5d66-ab98-28cd9ea22b00",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r067",
+              "skinId": "forge-aurora-dark",
+              "scale": 1,
+              "mapVisible": true,
+              "journalVisible": true,
+              "hudVisible": true,
+              "inputActions": [
+                "map",
+                "journal",
+                "inventory",
+                "character",
+                "pause"
+              ],
+              "enabled": true,
+              "requiredAtRuntime": false,
+              "kitId": "core-rpg",
+              "inputAgnostic": true,
+              "scalable": true,
+              "layoutDocument": "ui/runtime-shell.json"
+            },
+            "controlLocks": {
+              "id": "a4cfbc7c-58c2-5dac-9cca-6d0c6280038f",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r067",
+              "enabled": true,
+              "requiredAtRuntime": false,
+              "contexts": [
+                {
+                  "id": "778538a0-580e-57c4-932d-7d74ceecc8cf",
+                  "schemaVersion": 1,
+                  "provenance": "migration-default:r067",
+                  "ownerId": "exploration",
+                  "cursorVisible": false,
+                  "cameraMode": "orbit",
+                  "allowedInputActions": [
+                    "move",
+                    "interact",
+                    "map",
+                    "journal"
+                  ],
+                  "restoreOnRelease": true,
+                  "priority": 0
+                },
+                {
+                  "id": "dc930b6a-6fe9-5131-9c8d-5b54b8db09ed",
+                  "schemaVersion": 1,
+                  "provenance": "migration-default:r067",
+                  "ownerId": "dialogue",
+                  "cursorVisible": true,
+                  "cameraMode": "dialogue",
+                  "allowedInputActions": [
+                    "dialogue.select",
+                    "dialogue.skip"
+                  ],
+                  "restoreOnRelease": true,
+                  "priority": 50
+                },
+                {
+                  "id": "6e042cd9-7ea4-5107-8fd2-c9bfef99d543",
+                  "schemaVersion": 1,
+                  "provenance": "migration-default:r067",
+                  "ownerId": "cinematic",
+                  "cursorVisible": false,
+                  "cameraMode": "cinematic",
+                  "allowedInputActions": [
+                    "cinematic.skip"
+                  ],
+                  "restoreOnRelease": true,
+                  "priority": 100
+                }
+              ]
+            },
+            "replay": {
+              "id": "ddcfcd5c-e85f-5894-b72e-80bbb724f4ba",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r067",
+              "enabled": true,
+              "requiredAtRuntime": false,
+              "recordInputs": true,
+              "recordEvents": true,
+              "recordSeeds": true,
+              "recordStateHashes": true,
+              "headlessReplay": true,
+              "emitDivergenceReport": true,
+              "emitMinimalPackage": true,
+              "maximumFrames": 100000,
+              "packageDirectory": ".artifacts/replays",
+              "includePersonalData": false
+            }
+          },
           "provenance": "migration-default"
         },
         "rules": {
@@ -2018,6 +2346,172 @@
           },
           "provenance": "sample:g11-o"
         },
+        "gameplayEvents": {
+          "id": "30000000-0000-4000-8000-000000000001",
+          "schemaVersion": 1,
+          "provenance": "migration-default:r051",
+          "enabled": true,
+          "requiredAtRuntime": false,
+          "useDownedState": true,
+          "autoRespawn": true,
+          "replicateEquipmentAndProgression": true,
+          "bindings": [
+            {
+              "id": "6d573fce-6a58-572f-ae00-92c1dec8aea3",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "ability.activated",
+              "handler": "OnAbilityActivated",
+              "authority": "server"
+            },
+            {
+              "id": "31720018-bb0b-5418-bdde-ab1b5c62691d",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "equipment.changed",
+              "handler": "OnEquipmentChanged",
+              "authority": "server"
+            },
+            {
+              "id": "e8c63cca-44be-583d-97fe-4a204d8d2614",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "inventory.changed",
+              "handler": "OnInventoryChanged",
+              "authority": "server"
+            },
+            {
+              "id": "2807b369-db08-5db9-8582-b515615130a5",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "item.used",
+              "handler": "OnItemUsed",
+              "authority": "server"
+            },
+            {
+              "id": "c56b5505-3d9d-54f3-aceb-15b0724e81ec",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "life.dead",
+              "handler": "OnLifeDead",
+              "authority": "server"
+            },
+            {
+              "id": "60c50834-b932-55a3-bbd9-d30c33b317c7",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "life.downed",
+              "handler": "OnLifeDowned",
+              "authority": "server"
+            },
+            {
+              "id": "9b71c127-e629-59a2-9eb5-73a2f3c722cf",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "life.dying",
+              "handler": "OnLifeDying",
+              "authority": "server"
+            },
+            {
+              "id": "06ae029f-484b-59f4-b940-63e2bf840b7d",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "life.respawned",
+              "handler": "OnLifeRespawned",
+              "authority": "server"
+            },
+            {
+              "id": "6697d687-85e8-5c57-8381-d1140b244282",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "life.respawnrequested",
+              "handler": "OnLifeRespawnrequested",
+              "authority": "server"
+            },
+            {
+              "id": "a1023018-5860-52b7-a6a8-dbf7eca61c04",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "player.disconnected",
+              "handler": "OnPlayerDisconnected",
+              "authority": "server"
+            },
+            {
+              "id": "2c26a569-c9e3-56eb-874c-91948192fd5e",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "player.joining",
+              "handler": "OnPlayerJoining",
+              "authority": "server"
+            },
+            {
+              "id": "ed04bf63-2977-54af-accb-62f9d43bf1ef",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "player.leaving",
+              "handler": "OnPlayerLeaving",
+              "authority": "server"
+            },
+            {
+              "id": "18dd10e8-1355-5144-b45d-b8d532784205",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "player.ready",
+              "handler": "OnPlayerReady",
+              "authority": "server"
+            },
+            {
+              "id": "6fd02a51-4873-5d29-90cf-5fef45fb037f",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "progression.changed",
+              "handler": "OnProgressionChanged",
+              "authority": "server"
+            }
+          ]
+        },
+        "world": {
+          "id": "30000000-0000-4000-8000-000000000001",
+          "schemaVersion": 1,
+          "provenance": "migration-default:r052",
+          "enabled": true,
+          "requiredAtRuntime": false,
+          "customEvents": [],
+          "clock": {
+            "id": "d74ce98b-ad0c-5436-aa63-134fa8a794b6",
+            "schemaVersion": 1,
+            "provenance": "migration-default:r052",
+            "daysPerMonth": 28,
+            "monthsPerYear": 12,
+            "hoursPerDay": 24,
+            "minutesPerHour": 60,
+            "speed": 1,
+            "paused": false,
+            "initialMinute": 0,
+            "areaTimeZoneOffsets": {},
+            "astronomicalMinutes": {
+              "dawn": 360,
+              "sunrise": 420,
+              "sunset": 1080,
+              "dusk": 1140,
+              "midnight": 0
+            }
+          }
+        },
         "provenance": "migration-default"
       },
       "factions": {
@@ -2199,7 +2693,164 @@
             }
           ]
         },
-        "requireAdvancedRuntime": true
+        "requireAdvancedRuntime": true,
+        "personalReputation": [
+          {
+            "id": "b2050000-0000-4000-8000-000000000018",
+            "schemaVersion": 1,
+            "provenance": "sample:r086",
+            "subjectId": "hero",
+            "sourceFactionId": "b2050000-0000-4000-8000-000000000003",
+            "targetFactionId": "b2050000-0000-4000-8000-000000000002",
+            "delta": 35,
+            "expiresAt": "2030-08-01T00:00:00+00:00",
+            "cause": "ash-warden-truce",
+            "subjectKind": "player"
+          }
+        ],
+        "requireFoundationRuntime": true,
+        "reputation": {
+          "id": "b2050000-0000-4000-8000-000000000020",
+          "schemaVersion": 1,
+          "provenance": "sample:r087",
+          "transactions": [
+            {
+              "id": "b2050000-0000-4000-8000-000000000021",
+              "schemaVersion": 1,
+              "provenance": "sample:r087",
+              "scope": "world",
+              "scopeId": "world",
+              "sourceFactionId": "b2050000-0000-4000-8000-000000000003",
+              "targetFactionId": "b2050000-0000-4000-8000-000000000001",
+              "delta": 10,
+              "cause": "crypt-seal-restored",
+              "occurredAt": "2026-08-11T10:00:00+00:00"
+            },
+            {
+              "id": "b2050000-0000-4000-8000-000000000022",
+              "schemaVersion": 1,
+              "provenance": "sample:r087",
+              "scope": "server",
+              "scopeId": "eu-west-1",
+              "sourceFactionId": "b2050000-0000-4000-8000-000000000003",
+              "targetFactionId": "b2050000-0000-4000-8000-000000000001",
+              "delta": 5,
+              "cause": "server-truce",
+              "occurredAt": "2026-08-11T10:01:00+00:00"
+            },
+            {
+              "id": "b2050000-0000-4000-8000-000000000023",
+              "schemaVersion": 1,
+              "provenance": "sample:r087",
+              "scope": "campaign",
+              "scopeId": "crypt-of-ashes",
+              "sourceFactionId": "b2050000-0000-4000-8000-000000000003",
+              "targetFactionId": "b2050000-0000-4000-8000-000000000001",
+              "delta": 15,
+              "cause": "elyra-pact",
+              "occurredAt": "2026-08-11T10:02:00+00:00"
+            },
+            {
+              "id": "b2050000-0000-4000-8000-000000000024",
+              "schemaVersion": 1,
+              "provenance": "sample:r087",
+              "scope": "group",
+              "scopeId": "ember-party",
+              "sourceFactionId": "b2050000-0000-4000-8000-000000000003",
+              "targetFactionId": "b2050000-0000-4000-8000-000000000001",
+              "delta": 8,
+              "cause": "guardian-aided",
+              "occurredAt": "2026-08-11T10:03:00+00:00"
+            },
+            {
+              "id": "b2050000-0000-4000-8000-000000000025",
+              "schemaVersion": 1,
+              "provenance": "sample:r087",
+              "scope": "player",
+              "scopeId": "hero",
+              "sourceFactionId": "b2050000-0000-4000-8000-000000000003",
+              "targetFactionId": "b2050000-0000-4000-8000-000000000001",
+              "delta": 20,
+              "cause": "warden-rescued",
+              "occurredAt": "2026-08-11T10:04:00+00:00"
+            }
+          ],
+          "heatmapHistory": [
+            {
+              "id": "b2050000-0000-4000-8000-000000000026",
+              "schemaVersion": 1,
+              "provenance": "sample:r087",
+              "capturedAt": "2026-08-11T09:00:00+00:00",
+              "label": "avant-pacte",
+              "relationships": [
+                {
+                  "sourceId": "b2050000-0000-4000-8000-000000000001",
+                  "targetId": "b2050000-0000-4000-8000-000000000003",
+                  "score": -75,
+                  "explanation": "tomb-intrusion",
+                  "preset": "hostile"
+                },
+                {
+                  "sourceId": "b2050000-0000-4000-8000-000000000003",
+                  "targetId": "b2050000-0000-4000-8000-000000000001",
+                  "score": -55,
+                  "explanation": "fear-before-pact",
+                  "preset": "hostile"
+                }
+              ]
+            },
+            {
+              "id": "b2050000-0000-4000-8000-000000000027",
+              "schemaVersion": 1,
+              "provenance": "sample:r087",
+              "capturedAt": "2026-08-11T11:00:00+00:00",
+              "label": "apres-pacte",
+              "relationships": [
+                {
+                  "sourceId": "b2050000-0000-4000-8000-000000000001",
+                  "targetId": "b2050000-0000-4000-8000-000000000003",
+                  "score": -75,
+                  "explanation": "tomb-intrusion",
+                  "preset": "hostile"
+                },
+                {
+                  "sourceId": "b2050000-0000-4000-8000-000000000003",
+                  "targetId": "b2050000-0000-4000-8000-000000000001",
+                  "score": -30,
+                  "explanation": "fear-of-the-crypt",
+                  "preset": "wary"
+                }
+              ]
+            }
+          ],
+          "reaction": {
+            "id": "b2050000-0000-4000-8000-000000000028",
+            "schemaVersion": 1,
+            "provenance": "sample:r087",
+            "defaultScope": "campaign",
+            "defaultScopeId": "crypt-of-ashes",
+            "applyDisguise": true,
+            "applyCrimes": true,
+            "applyDialogue": true,
+            "applyZoneRules": true,
+            "allowGameMasterOverride": true
+          }
+        },
+        "requireReputationRuntime": true,
+        "effectivePersonalReputation": [
+          {
+            "id": "b2050000-0000-4000-8000-000000000018",
+            "schemaVersion": 1,
+            "provenance": "sample:r086",
+            "subjectId": "hero",
+            "sourceFactionId": "b2050000-0000-4000-8000-000000000003",
+            "targetFactionId": "b2050000-0000-4000-8000-000000000002",
+            "delta": 35,
+            "expiresAt": "2030-08-01T00:00:00+00:00",
+            "cause": "ash-warden-truce",
+            "subjectKind": "player"
+          }
+        ]
       },
       "worldFeatures": {
         "id": "30000000-0000-4000-8000-000000000001",
@@ -2269,7 +2920,13 @@
           "kit": "project.crypt.floor",
           "styles": [],
           "compatibility": [],
-          "tags": []
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
         },
         "creatureFoundation": null,
         "itemFoundation": null
@@ -2310,7 +2967,13 @@
           "kit": "project.crypt.wall",
           "styles": [],
           "compatibility": [],
-          "tags": []
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
         },
         "creatureFoundation": null,
         "itemFoundation": null
@@ -2351,7 +3014,13 @@
           "kit": "project.ash.door",
           "styles": [],
           "compatibility": [],
-          "tags": []
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
         },
         "creatureFoundation": null,
         "itemFoundation": null
@@ -2403,7 +3072,13 @@
           "kit": "project.elyra.npc",
           "styles": [],
           "compatibility": [],
-          "tags": []
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
         },
         "creatureFoundation": null,
         "itemFoundation": null
@@ -2479,7 +3154,13 @@
           "kit": "project.ash.sentinel",
           "styles": [],
           "compatibility": [],
-          "tags": []
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
         },
         "creatureFoundation": null,
         "itemFoundation": null
@@ -2870,7 +3551,13 @@
           "kit": "project.ash.warden.boss",
           "styles": [],
           "compatibility": [],
-          "tags": []
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
         },
         "creatureFoundation": {
           "id": "a1600000-0000-4000-8000-000000000001",
@@ -2961,7 +3648,561 @@
           },
           "overrides": {
             "spawn.policy": "validated"
-          }
+          },
+          "authoringComposition": {
+            "id": "a1770000-0000-4000-8000-000000000000",
+            "schemaVersion": 1,
+            "provenance": "sample:r077",
+            "assetId": "asset.creature.ash-warden",
+            "previewTransform": {
+              "position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "rotation": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "scale": {
+                "x": 1,
+                "y": 1,
+                "z": 1
+              }
+            },
+            "archetypeId": "archetype.ash-warden",
+            "rulesetId": "ruleset.crypt",
+            "rigId": "rig.humanoid",
+            "factionId": "faction.ashes",
+            "encounterRole": "boss",
+            "threatRating": 12,
+            "visualKitId": "visual.ash-warden",
+            "combatTags": [
+              "boss",
+              "guardian",
+              "melee"
+            ],
+            "species": {
+              "speciesId": "species.emberborn",
+              "parentSpeciesIds": [
+                "species.construct"
+              ],
+              "traitSets": [
+                {
+                  "id": "ember.core",
+                  "traits": [
+                    "fire-resistant",
+                    "humanoid"
+                  ]
+                },
+                {
+                  "id": "warden.oath",
+                  "traits": [
+                    "guardian",
+                    "unyielding"
+                  ]
+                }
+              ],
+              "variants": [
+                "ancient",
+                "awakened"
+              ],
+              "requiredSkeletonId": "rig.humanoid"
+            },
+            "appearance": {
+              "visualArchetypeId": "visual.ash-warden",
+              "meshAssetId": "mesh.ash-warden",
+              "rigId": "rig.humanoid",
+              "morphs": {
+                "height": 0.18,
+                "shoulders": 0.25
+              },
+              "bodySlots": {
+                "head": "asset.warden.helm",
+                "main-hand": "asset.warden.blade"
+              },
+              "materialIds": [
+                "material.ash-steel",
+                "material.ember-cloth"
+              ],
+              "paletteIds": [
+                "palette.ember"
+              ],
+              "attachmentIds": [
+                "attachment.ember-aura"
+              ],
+              "presetId": "preset.ash-warden"
+            },
+            "animationGraph": {
+              "id": "a1770000-0000-4000-8000-000000000020",
+              "schemaVersion": 1,
+              "provenance": "sample:r077",
+              "states": [
+                {
+                  "id": "a1770000-0000-4000-8000-000000000005",
+                  "stateId": "embers",
+                  "category": "additive",
+                  "clipAssetId": "clip.warden.embers"
+                },
+                {
+                  "id": "a1770000-0000-4000-8000-000000000003",
+                  "stateId": "guard",
+                  "category": "combat",
+                  "clipAssetId": "clip.warden.guard"
+                },
+                {
+                  "id": "a1770000-0000-4000-8000-000000000001",
+                  "stateId": "idle",
+                  "category": "locomotion",
+                  "clipAssetId": "clip.warden.idle"
+                },
+                {
+                  "id": "a1770000-0000-4000-8000-000000000004",
+                  "stateId": "roar",
+                  "category": "emote",
+                  "clipAssetId": "clip.warden.roar"
+                },
+                {
+                  "id": "a1770000-0000-4000-8000-000000000002",
+                  "stateId": "walk",
+                  "category": "locomotion",
+                  "clipAssetId": "clip.warden.walk"
+                }
+              ],
+              "transitions": [
+                {
+                  "id": "a1770000-0000-4000-8000-000000000011",
+                  "fromStateId": "idle",
+                  "toStateId": "walk",
+                  "conditionId": "movement.requested"
+                },
+                {
+                  "id": "a1770000-0000-4000-8000-000000000012",
+                  "fromStateId": "walk",
+                  "toStateId": "guard",
+                  "conditionId": "combat.started"
+                }
+              ],
+              "retargetProfileId": "retarget.humanoid"
+            },
+            "overrides": {
+              "animation.speed": "1.0",
+              "preview.scale": "1.15"
+            }
+          },
+          "authoringCompositionRequiredAtRuntime": true,
+          "rulesComposition": {
+            "id": "a1780000-0000-4000-8000-000000000000",
+            "schemaVersion": 1,
+            "provenance": "sample:r078",
+            "assetId": "asset.creature-rules.ash-warden",
+            "previewTransform": {
+              "position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "rotation": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "scale": {
+                "x": 1,
+                "y": 1,
+                "z": 1
+              }
+            },
+            "initialState": {
+              "id": "a1780000-0000-4000-8000-000000000001",
+              "lifeState": "seated",
+              "animationLoopAssetId": "clip.warden.seated",
+              "poseId": "pose.warden-throne",
+              "invisible": false
+            },
+            "attributes": {
+              "id": "a1780000-0000-4000-8000-000000000002",
+              "rulesetId": "ruleset.crypt",
+              "baseValues": {
+                "agility": 6,
+                "strength": 8
+              },
+              "modifiers": [
+                {
+                  "id": "a1780000-0000-4000-8000-000000000003",
+                  "attributeId": "agility",
+                  "sourceId": "species.emberborn",
+                  "value": 1
+                }
+              ],
+              "derived": [
+                {
+                  "id": "a1780000-0000-4000-8000-000000000004",
+                  "attributeId": "evasion",
+                  "operation": "sum",
+                  "dependencies": [
+                    "agility",
+                    "strength"
+                  ],
+                  "constant": 1
+                }
+              ]
+            },
+            "defenses": {
+              "id": "a1780000-0000-4000-8000-000000000005",
+              "avoidance": 4,
+              "armor": 2,
+              "resistances": {
+                "fire": 0.5,
+                "glass": 0.2
+              },
+              "saves": {
+                "fortitude": 6,
+                "reflex": 4,
+                "will": 5
+              },
+              "immunities": [
+                "radiant"
+              ],
+              "flatMitigation": 1
+            },
+            "abilities": [
+              {
+                "id": "a1780000-0000-4000-8000-000000000006",
+                "abilityId": "ability.ash-nova",
+                "level": 3,
+                "charges": 2,
+                "cooldownSeconds": 12,
+                "conditions": [
+                  "state.alive"
+                ],
+                "aiTags": [
+                  "boss",
+                  "guardian"
+                ],
+                "scriptId": "script.ash-nova"
+              }
+            ],
+            "inventory": {
+              "id": "a1780000-0000-4000-8000-000000000007",
+              "containers": [
+                {
+                  "id": "a1780000-0000-4000-8000-000000000008",
+                  "containerId": "container.backpack",
+                  "slotCount": 8,
+                  "maximumWeight": 100,
+                  "maximumVolume": 100,
+                  "items": [
+                    {
+                      "id": "a1780000-0000-4000-8000-000000000009",
+                      "itemBlueprintId": "10000000-0000-4000-8000-000000000008",
+                      "quantity": 1,
+                      "unitWeight": 0.2,
+                      "unitVolume": 0.1
+                    }
+                  ]
+                }
+              ],
+              "equipmentSlots": {
+                "main-hand": "a1780000-0000-4000-8000-000000000009"
+              },
+              "ownerId": "creature.ash-warden",
+              "persistent": true
+            },
+            "overrides": {
+              "rules.preview": "enabled"
+            }
+          },
+          "rulesCompositionRequiredAtRuntime": true,
+          "interactionComposition": {
+            "id": "a1790000-0000-4000-8000-000000000000",
+            "schemaVersion": 1,
+            "provenance": "sample:r079",
+            "assetId": "asset.creature-interaction.ash-warden",
+            "previewTransform": {
+              "position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "rotation": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "scale": {
+                "x": 1,
+                "y": 1,
+                "z": 1
+              }
+            },
+            "factions": {
+              "id": "a1790000-0000-4000-8000-000000000001",
+              "primaryFactionId": "b2050000-0000-4000-8000-000000000002",
+              "memberships": [
+                {
+                  "id": "a1790000-0000-4000-8000-000000000002",
+                  "factionId": "b2050000-0000-4000-8000-000000000002",
+                  "weight": 1,
+                  "rank": "rank.captain",
+                  "personalReputation": 35,
+                  "inherited": true
+                },
+                {
+                  "id": "a1790000-0000-4000-8000-000000000003",
+                  "factionId": "b2050000-0000-4000-8000-000000000001",
+                  "weight": 0.25,
+                  "rank": "rank.ally",
+                  "personalReputation": 5,
+                  "inherited": true
+                }
+              ]
+            },
+            "perception": {
+              "id": "a1790000-0000-4000-8000-000000000004",
+              "senses": [
+                {
+                  "id": "a1790000-0000-4000-8000-000000000005",
+                  "kind": "vision",
+                  "range": 30,
+                  "coneDegrees": 120,
+                  "usesOcclusion": true,
+                  "stimulusTags": [
+                    "stimulus.visual"
+                  ]
+                },
+                {
+                  "id": "a1790000-0000-4000-8000-000000000006",
+                  "kind": "hearing",
+                  "range": 20,
+                  "coneDegrees": 360,
+                  "usesOcclusion": true,
+                  "stimulusTags": [
+                    "stimulus.sound"
+                  ]
+                },
+                {
+                  "id": "a1790000-0000-4000-8000-000000000007",
+                  "kind": "smell",
+                  "range": 8,
+                  "coneDegrees": 360,
+                  "usesOcclusion": false,
+                  "stimulusTags": [
+                    "stimulus.scent"
+                  ]
+                },
+                {
+                  "id": "a1790000-0000-4000-8000-000000000008",
+                  "kind": "magic",
+                  "range": 15,
+                  "coneDegrees": 360,
+                  "usesOcclusion": false,
+                  "stimulusTags": [
+                    "stimulus.magic"
+                  ]
+                }
+              ],
+              "memorySeconds": 12
+            },
+            "dialogueBindings": [
+              {
+                "id": "a1790000-0000-4000-8000-000000000009",
+                "context": "greeting",
+                "priority": 20,
+                "dialogueId": "40000000-0000-4000-8000-000000000001",
+                "interlocutorId": "player.hero",
+                "requiredState": "state.hostile",
+                "fallback": false
+              },
+              {
+                "id": "a1790000-0000-4000-8000-000000000010",
+                "context": "greeting",
+                "priority": 1,
+                "dialogueId": "40000000-0000-4000-8000-000000000001",
+                "interlocutorId": null,
+                "requiredState": null,
+                "fallback": true
+              },
+              {
+                "id": "a1790000-0000-4000-8000-000000000011",
+                "context": "interrupt",
+                "priority": 1,
+                "dialogueId": "40000000-0000-4000-8000-000000000001",
+                "interlocutorId": null,
+                "requiredState": null,
+                "fallback": true
+              }
+            ],
+            "protection": {
+              "id": "a1790000-0000-4000-8000-000000000012",
+              "invulnerable": true,
+              "usesNarrativeDeath": true,
+              "dialogueInterruptible": false,
+              "gameMasterPermissions": [
+                "creature.dialogue.interrupt",
+                "creature.plot.override"
+              ]
+            },
+            "onConversation": {
+              "id": "a1790000-0000-4000-8000-000000000013",
+              "schemaVersion": 1,
+              "provenance": "sample:r079",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "creature.interaction_requested",
+              "handler": "OnConversation",
+              "authority": "server"
+            },
+            "overrides": {
+              "interaction.preview": "enabled"
+            }
+          },
+          "interactionCompositionRequiredAtRuntime": true,
+          "eventAiComposition": {
+            "id": "a1800000-0000-4000-8000-000000000000",
+            "schemaVersion": 1,
+            "provenance": "sample:r080",
+            "assetId": "asset.creature-event-ai.ash-warden",
+            "previewTransform": {
+              "position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "rotation": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "scale": {
+                "x": 1,
+                "y": 1,
+                "z": 1
+              }
+            },
+            "perception": {
+              "id": "a1800000-0000-4000-8000-000000000001",
+              "detected": {
+                "id": "a1800000-0000-4000-8000-000000000002",
+                "schemaVersion": 1,
+                "provenance": "sample:r080",
+                "forgeScriptApiVersion": "1.0",
+                "eventName": "creature.stimulus_detected",
+                "handler": "OnPerceptionDetected",
+                "authority": "server"
+              },
+              "lost": {
+                "id": "a1800000-0000-4000-8000-000000000003",
+                "schemaVersion": 1,
+                "provenance": "sample:r080",
+                "forgeScriptApiVersion": "1.0",
+                "eventName": "creature.stimulus_lost",
+                "handler": "OnPerceptionLost",
+                "authority": "server"
+              }
+            },
+            "physicalAttack": {
+              "id": "a1800000-0000-4000-8000-000000000004",
+              "declared": {
+                "id": "a1800000-0000-4000-8000-000000000005",
+                "schemaVersion": 1,
+                "provenance": "sample:r080",
+                "forgeScriptApiVersion": "1.0",
+                "eventName": "creature.attack_declared",
+                "handler": "BeforePhysicalAttacked",
+                "authority": "server"
+              },
+              "resolved": {
+                "id": "a1800000-0000-4000-8000-000000000006",
+                "schemaVersion": 1,
+                "provenance": "sample:r080",
+                "forgeScriptApiVersion": "1.0",
+                "eventName": "creature.attack_resolved",
+                "handler": "OnPhysicalAttacked",
+                "authority": "server"
+              }
+            },
+            "ability": {
+              "id": "a1800000-0000-4000-8000-000000000007",
+              "targeted": {
+                "id": "a1800000-0000-4000-8000-000000000008",
+                "schemaVersion": 1,
+                "provenance": "sample:r080",
+                "forgeScriptApiVersion": "1.0",
+                "eventName": "creature.ability_targeted",
+                "handler": "BeforeAbilityTargeted",
+                "authority": "server"
+              },
+              "impacted": {
+                "id": "a1800000-0000-4000-8000-000000000009",
+                "schemaVersion": 1,
+                "provenance": "sample:r080",
+                "forgeScriptApiVersion": "1.0",
+                "eventName": "creature.ability_impacted",
+                "handler": "OnSpellCastAt",
+                "authority": "server"
+              }
+            },
+            "blocked": {
+              "id": "a1800000-0000-4000-8000-000000000010",
+              "blocked": {
+                "id": "a1800000-0000-4000-8000-000000000011",
+                "schemaVersion": 1,
+                "provenance": "sample:r080",
+                "forgeScriptApiVersion": "1.0",
+                "eventName": "creature.movement_blocked",
+                "handler": "OnBlocked",
+                "authority": "server"
+              },
+              "recoveryOrder": [
+                "repath",
+                "avoid",
+                "teleport",
+                "abort"
+              ]
+            },
+            "controller": {
+              "id": "a1800000-0000-4000-8000-000000000012",
+              "kind": "utility",
+              "definitionId": "ai.ash-warden",
+              "blackboard": [
+                {
+                  "id": "a1800000-0000-4000-8000-000000000015",
+                  "key": "alert",
+                  "kind": "boolean",
+                  "value": "true",
+                  "persistent": true
+                },
+                {
+                  "id": "a1800000-0000-4000-8000-000000000013",
+                  "key": "state",
+                  "kind": "text",
+                  "value": "patrol",
+                  "persistent": true
+                },
+                {
+                  "id": "a1800000-0000-4000-8000-000000000014",
+                  "key": "target",
+                  "kind": "entity",
+                  "value": "player.hero",
+                  "persistent": false
+                }
+              ],
+              "allowedActions": [
+                "attack",
+                "guard",
+                "patrol"
+              ]
+            },
+            "overrides": {
+              "ai.preview": "enabled"
+            }
+          },
+          "eventAiCompositionRequiredAtRuntime": true
         },
         "itemFoundation": null
       },
@@ -3030,7 +4271,13 @@
           "kit": "project.player.spawn",
           "styles": [],
           "compatibility": [],
-          "tags": []
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
         },
         "creatureFoundation": null,
         "itemFoundation": null
@@ -3331,7 +4578,13 @@
           "kit": "project.ash.key",
           "styles": [],
           "compatibility": [],
-          "tags": []
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
         },
         "creatureFoundation": null,
         "itemFoundation": null
@@ -3372,7 +4625,13 @@
           "kit": "project.crypt.exit",
           "styles": [],
           "compatibility": [],
-          "tags": []
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
         },
         "creatureFoundation": null,
         "itemFoundation": null
@@ -3413,7 +4672,13 @@
           "kit": "project.crypt.pillar",
           "styles": [],
           "compatibility": [],
-          "tags": []
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
         },
         "creatureFoundation": null,
         "itemFoundation": null
@@ -3423,7 +4688,7 @@
       {
         "id": "93b6f81b-49eb-4e3d-a156-08ad78529525",
         "slug": "crypt-of-ashes",
-        "documentPath": "areas/93b6f81b-49eb-4e3d-a156-08ad78529525-37d8cb8e1573984e.json"
+        "documentPath": "areas/93b6f81b-49eb-4e3d-a156-08ad78529525-f07a9bf666090558.json"
       }
     ],
     "dialogues": [
@@ -3842,7 +5107,10 @@
             "order": 2,
             "priority": 0
           }
-        ]
+        ],
+        "authoring": null,
+        "experience": null,
+        "production": null
       }
     ],
     "quests": [
@@ -4207,7 +5475,10 @@
           "maximumSteps": 100,
           "initialVariables": {},
           "events": []
-        }
+        },
+        "authoring": null,
+        "experience": null,
+        "quality": null
       }
     ]
   }

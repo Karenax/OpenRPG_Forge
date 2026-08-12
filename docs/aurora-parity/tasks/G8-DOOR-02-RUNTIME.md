@@ -8,6 +8,9 @@ placeables gère credentials, skill checks, reverrouillage et consommation de cl
 à des côtés et événements avec payload, reset et ownership. La validation croisée vérifie liens,
 destination, animations, collision, navigation, credentials, pièges, scripts et boucles.
 
-Preuves : `DoorRuntimeServiceTests`, suite RPG Kit et solution globale.
+R081 relie désormais ces capacités au profil canonique `DoorWorldProfile`, à la persistance du
+projet, au studio transactionnel, à ForgeScript/MCP et à cinq représentations runtime explicites.
+La capture inspectée `evidence/r081-door-access-events-ui.png`, les tests ciblés et les marqueurs
+Toolset/runtime R081 prouvent la chaîne auteur → document → adaptation → exécution.
 
-La prochaine tranche unique est **G8 DOOR-03**.
+La prochaine tranche séquentielle est **R082 / G8 DOOR-03** pour `OnLock` et `OnUnlock`.

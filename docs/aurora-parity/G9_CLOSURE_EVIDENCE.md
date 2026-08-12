@@ -2,7 +2,10 @@
 
 ## Verdict
 
-G9 est fermé lorsque la validation globale finale produit `OPENRPG_FORGE_VERIFICATION=PASS`. Les 30 exigences assignées sont `Implemented` avec des preuves ciblées et des limites `Partial:` explicites.
+G9 est fermé verticalement lorsque la validation globale finale produit
+`OPENRPG_FORGE_VERIFICATION=PASS`. R102 et R103 ferment les dix fonctions P1 de fondation et
+d’opérations réseau avec preuves ciblées ; les autres exigences G9 conservent leur statut tracker
+propre jusqu’à leur lot canonique.
 
 ## Scénario de passage
 
@@ -24,15 +27,16 @@ Marqueurs serveur :
 
 ## Interface auteur et revue visuelle
 
-Le workspace `Réseau` ouvre une surface Aurora 2026 dédiée avec configuration du serveur, synthèse sécurité/contenu/résilience/observabilité et test intégré à deux clients. La capture interne vérifiée est conservée localement sous `artifacts/verification/visual-g9/network-beta-final.png`.
+Le workspace `Réseau` ouvre une surface Aurora 2026 dédiée avec configuration du serveur, du contenu,
+du lockfile, des rôles, du chat et du bus d’événements, ainsi qu’un test intégré. La preuve R103
+inspectée est `docs/aurora-parity/evidence/r103-network-operations-ui.png`.
 
 La revue a confirmé : valeurs 5121/8 visibles, action principale claire, état vert, révisions client A/B identiques, reconnexion acceptée et mutation forgée refusée. La capture écran Windows était noire avec le rendu accéléré; la preuve finale provient donc directement de la texture du viewport Toolset.
 
-## Validation attendue
+## Validation historique et actuelle
 
-- 35 tests `Forge.Network.Tests`;
-- 467 tests .NET globaux;
-- 24 tests Python de gouvernance;
+- 56 tests `Forge.Network.Tests` après R103 ;
+- le total .NET et Python est repris dans la fiche d’acceptation du dernier lot validé ;
 - graphe déterministe frais;
 - smokes Toolset, runtime, packaging, MCP et sauvegarde;
 - scénario Network Beta permanent dans `scripts/Verify.ps1`.

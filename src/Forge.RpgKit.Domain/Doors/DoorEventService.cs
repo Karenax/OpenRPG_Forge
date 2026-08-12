@@ -29,7 +29,9 @@ public static class DoorEventService
     public static DoorLockEvent CompleteLockTransition(Guid doorId, string actorId, string method, string? credential, LockState previousState, LockState currentState, string provenance, DateTimeOffset at)
     {
         var name = currentState switch { LockState.Locked => "DoorLocked", LockState.Unlocked => "DoorUnlocked", _ => throw new InvalidOperationException("RPG_DOOR_LOCK_TERMINAL_STATE_REQUIRED") };
-        if (previousState == currentState || string.IsNullOrWhiteSpace(method)) throw new InvalidOperationException("RPG_DOOR_LOCK_EVENT_INVALID");
+        if (doorId == Guid.Empty || string.IsNullOrWhiteSpace(actorId) || string.IsNullOrWhiteSpace(method) ||
+            string.IsNullOrWhiteSpace(provenance) || previousState == currentState)
+            throw new InvalidOperationException("RPG_DOOR_LOCK_EVENT_INVALID");
         return new(Guid.NewGuid(), 1, provenance, name, doorId, actorId, method, credential, previousState, currentState, at);
     }
 }

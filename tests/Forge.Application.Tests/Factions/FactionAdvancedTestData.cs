@@ -30,6 +30,18 @@ internal static class FactionAdvancedTestData
                     watch, "captain", null, 90, 1, true, null)],
                 [new(Guid.Parse("b2020000-0000-4000-8000-000000000014"), 1, "runtime:test", watch,
                     DynamicFactionKind.Runtime, created, null, true, true, 0, [])]),
+            true,
+            [new(Guid.Parse("b2020000-0000-4000-8000-000000000015"), 1, "author:r086", "hero",
+                guild, cult, 35, created.AddDays(5), "rescued-warden", PersonalReputationSubjectKind.Player)],
+            true,
+            new(
+                Guid.Parse("b2020000-0000-4000-8000-000000000020"), 1, "author:r087",
+                [new(Guid.Parse("b2020000-0000-4000-8000-000000000021"), 1, "author:r087",
+                    ReputationScope.Campaign, "ashes", guild, cult, 15, "rescued-merchant", created)],
+                [new(Guid.Parse("b2020000-0000-4000-8000-000000000022"), 1, "author:r087", created,
+                    "before-truce", [new(guild, cult, -80, "war", "hostile")])],
+                new(Guid.Parse("b2020000-0000-4000-8000-000000000023"), 1, "author:r087",
+                    ReputationScope.Campaign, "ashes", true, true, true, true, true)),
             true);
     }
 }

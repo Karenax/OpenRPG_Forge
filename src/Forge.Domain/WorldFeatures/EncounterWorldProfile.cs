@@ -15,7 +15,13 @@ public sealed record EncounterWorldProfile(
     EncounterWorldProfile.ReinforcementPolicy? Reinforcements,
     EncounterWorldProfile.VisibilityPolicy Visibility,
     EncounterWorldProfile.CleanupPolicy Cleanup,
-    EncounterWorldProfile.FoundationPolicy? Foundation = null)
+    EncounterWorldProfile.FoundationPolicy? Foundation = null,
+    EncounterCompositionProfile? Composition = null,
+    bool CompositionRequiredAtRuntime = false,
+    EncounterScenarioProfile? Scenario = null,
+    bool ScenarioRequiredAtRuntime = false,
+    EncounterStatisticsProfile? Statistics = null,
+    bool StatisticsRequiredAtRuntime = false)
 {
     public enum VisibilityMode { Hidden, BehindCover, Portal, Effect, InViewAllowed }
     public enum VolumeShape { ExtrudedPolygon2D, Box3D, Sphere3D, Capsule3D }

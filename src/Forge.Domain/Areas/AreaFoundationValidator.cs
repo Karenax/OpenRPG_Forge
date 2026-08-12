@@ -170,6 +170,15 @@ public static class AreaFoundationValidator
 
         ValidateBinding(profile.Lifecycle.Entered, "area.entered", $"{root}/lifecycle/entered", diagnostics);
         ValidateBinding(profile.Lifecycle.Exited, "area.exited", $"{root}/lifecycle/exited", diagnostics);
+        if (profile.TileKit.Editing is { } editing)
+        {
+            diagnostics.AddRange(AreaTileEditingValidator.Validate(area, profile.TileKit, editing));
+        }
+        else if (profile.RequireTileEditingRuntimeMetadata)
+        {
+            diagnostics.Add(new(AreaTileEditingRuntimeResolver.RequiredMissingCode,
+                "Required tile editing metadata is missing.", $"{root}/tileKit/editing"));
+        }
         return diagnostics.OrderBy(item => item.Path, StringComparer.Ordinal)
             .ThenBy(item => item.Code, StringComparer.Ordinal).ToArray();
     }

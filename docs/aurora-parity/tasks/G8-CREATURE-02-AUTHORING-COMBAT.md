@@ -12,6 +12,13 @@ contributeurs dédupliqués, cause, transform, loot et policy.
 La validation structurée vérifie données canoniques, rig, apparence, combat, inventaire, faction,
 scripts, ressources et budgets de menace, avec code et chemin de document stables.
 
-Preuves : `CreatureCombatAndAuthoringTests`, `CreatureFactoryTests`, suite globale.
+R077 relie maintenant l’assistant au `CreatureFoundationProfile` canonique : écran spécialisé,
+aperçu du modèle et des règles, dry-run/apply, undo/redo, round-trip, handle ForgeScript, ressource
+MCP et adaptateur runtime/RPG Kit. Le rôle, la menace et les tags de combat sont visibles et validés
+sans formule D&D implicite.
 
-La prochaine tranche unique est **G8 CREATURE-03 — espèce, apparence, animations, pose et attributs**.
+Preuves : `CreatureCombatAndAuthoringTests`, `CreatureAuthoringCompositionProfileTests`,
+`CreatureAuthoringCompositionFoundationServiceTests`,
+`docs/aurora-parity/tasks/P1-R077-CREATURE-AUTHORING-COMPOSITION-ACCEPTANCE.md`.
+
+La prochaine tranche unique est **R078 / G8 CREATURE-03 — pose, attributs, défenses, capacités et inventaire**.

@@ -75,6 +75,29 @@ public sealed class CreatureFoundationProfileTests
                                              item.Path.Contains(second.Id.ToString(), StringComparison.Ordinal));
     }
 
+    [Fact]
+    public void ProjectValidationRejectsDuplicateAuthoringAndAnimationUuidsBeforeBuild()
+    {
+        var shared = Complete();
+        var authoring = CreatureAuthoringCompositionProfile.CreateDefault(Guid.NewGuid(), "author:r077");
+        CreatureFoundationProfile AddAuthoring(CreatureFoundationProfile source) => new(source.Id,
+            source.SchemaVersion, source.Provenance, source.RequiredAtRuntime, source.Identity,
+            source.DefaultTransform, source.Resources, source.Movement, source.References, source.Spawned,
+            source.Overrides, authoring, true);
+        var first = new BlueprintDefinition(BlueprintId.From(Guid.NewGuid()), "ash-warden",
+            "Gardien", BlueprintKind.Creature, creatureFoundation: AddAuthoring(shared));
+        var secondBase = CreatureFoundationProfile.CreateDefault(Guid.NewGuid(), "ember-echo", "Écho", "author:r077");
+        var second = new BlueprintDefinition(BlueprintId.From(Guid.NewGuid()), "ember-echo",
+            "Écho", BlueprintKind.Creature, creatureFoundation: AddAuthoring(secondBase));
+        var project = new ProjectDefinition(ProjectId.From(Guid.NewGuid()), "R077", [first, second],
+            [new AreaDefinition(AreaId.From(Guid.NewGuid()), "lab", "Lab", [])]);
+
+        var diagnostics = ProjectValidator.Validate(project);
+
+        Assert.Contains(diagnostics, item => item.Code == ProjectValidator.DuplicateCreatureAuthoringCode);
+        Assert.Contains(diagnostics, item => item.Code == ProjectValidator.DuplicateCreatureAnimationCode);
+    }
+
     public static CreatureFoundationProfile Complete(CreatureFoundationMovementMode mode = CreatureFoundationMovementMode.Flying)
     {
         var profile = CreatureFoundationProfile.CreateDefault(

@@ -45,5 +45,43 @@ public sealed class FactionFoundationTests
         Assert.Contains(diagnostics, item => item.Code == "RPG_FACTION_BANDS_OVERLAP");
     }
 
+    [Fact]
+    public void SafeRemovalMigratesLegacyAdvancedAndPersonalReferences()
+    {
+        var source = Faction("source");
+        var target = Faction("target");
+        var advanced = new FactionAdvancedProfile(Guid.NewGuid(), 1, "test:r086", true, [], [],
+            [new(Guid.NewGuid(), 1, "test:r086", "hero", source.Id, "member", null, 10, 1, true, null)],
+            []);
+        var personal = new PersonalReputationOverlay(Guid.NewGuid(), 1, "test:r086", "hero",
+            target.Id, source.Id, 20, null, "rescued", PersonalReputationSubjectKind.Player);
+        var at = DateTimeOffset.UnixEpoch;
+        var reputation = new FactionReputationProfile(Guid.NewGuid(), 1, "test:r087",
+            [new(Guid.NewGuid(), 1, "test:r087", ReputationScope.World, "world",
+                target.Id, source.Id, 10, "truce", at)],
+            [new(Guid.NewGuid(), 1, "test:r087", at, "before",
+                [new(target.Id, source.Id, -20, "distrust", "wary")])],
+            new(Guid.NewGuid(), 1, "test:r087", ReputationScope.World, "world",
+                true, true, true, true, true));
+        var catalog = new FactionCatalog([source, target], [], [new("neutral", -100, 100, 1)],
+            [new("legacy", source.Id)], advanced, true, [personal], true, reputation, true);
+
+        var preview = FactionAuthoringService.ArchiveOrRemove(
+            new(0, catalog), 0, source.Id, target.Id, remove: true, dryRun: true);
+        var applied = FactionAuthoringService.ArchiveOrRemove(
+            new(0, catalog), 0, source.Id, target.Id, remove: true, dryRun: false);
+
+        Assert.True(preview.Succeeded);
+        Assert.False(preview.Applied);
+        Assert.True(applied.Applied);
+        Assert.DoesNotContain(applied.State.Catalog.Factions, item => item.Id == source.Id);
+        Assert.All(applied.State.Catalog.Members, item => Assert.Equal(target.Id, item.FactionId));
+        Assert.All(applied.State.Catalog.Advanced!.Memberships, item => Assert.Equal(target.Id, item.FactionId));
+        Assert.Empty(applied.State.Catalog.EffectivePersonalReputation);
+        Assert.Empty(applied.State.Catalog.Reputation!.Transactions);
+        Assert.Empty(Assert.Single(applied.State.Catalog.Reputation.HeatmapHistory).Relationships);
+        Assert.Empty(FactionValidator.Validate(applied.State.Catalog));
+    }
+
     private static FactionDefinition Faction(string slug) => new(Guid.NewGuid(), 1, "author:veillee", slug, slug, false, [], [slug == "village" ? "civilian" : "hostile"]);
 }

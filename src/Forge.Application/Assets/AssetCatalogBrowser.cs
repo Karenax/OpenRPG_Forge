@@ -47,6 +47,22 @@ public sealed class AssetCatalogBrowser
             .Where(item => Matches(query.LicenseSpdx, item.LicenseSpdx))
             .Where(item => query.Availability is null || item.Availability == query.Availability)
             .Where(item => query.Installed is null || item.Installed == query.Installed)
+            .Where(item => string.IsNullOrWhiteSpace(query.Tag) ||
+                item.Tags.Contains(query.Tag.Trim(), StringComparer.OrdinalIgnoreCase))
+            .Where(item => query.MaximumWidth is null || item.TechnicalMetadata.Dimensions?.Width <= query.MaximumWidth)
+            .Where(item => query.MaximumHeight is null || item.TechnicalMetadata.Dimensions?.Height <= query.MaximumHeight)
+            .Where(item => query.MaximumDepth is null || item.TechnicalMetadata.Dimensions?.Depth <= query.MaximumDepth)
+            .Where(item => Matches(query.Style, item.TechnicalMetadata.Style))
+            .Where(item => Matches(query.Skeleton, item.TechnicalMetadata.Skeleton))
+            .Where(item => string.IsNullOrWhiteSpace(query.Material) ||
+                item.TechnicalMetadata.Materials.Contains(query.Material.Trim(), StringComparer.OrdinalIgnoreCase))
+            .Where(item => query.MaximumTriangleCount is null ||
+                item.TechnicalMetadata.TriangleCount <= query.MaximumTriangleCount)
+            .Where(item => Matches(query.Author, item.Author))
+            .Where(item => string.IsNullOrWhiteSpace(query.Compatibility) ||
+                item.TechnicalMetadata.Compatibility.Contains(query.Compatibility.Trim(), StringComparer.OrdinalIgnoreCase))
+            .Where(item => string.IsNullOrWhiteSpace(query.Variant) ||
+                item.TechnicalMetadata.Variants.Contains(query.Variant.Trim(), StringComparer.OrdinalIgnoreCase))
             .Take(query.MaximumResults)
             .ToArray();
     }
@@ -61,7 +77,14 @@ public sealed class AssetCatalogBrowser
             string.Join(' ', item.Tags),
             string.Join(' ', item.Categories),
             item.LicenseSpdx,
-            item.CatalogStatus));
+            item.CatalogStatus,
+            item.Author,
+            item.TechnicalMetadata.Style,
+            item.TechnicalMetadata.Skeleton,
+            string.Join(' ', item.TechnicalMetadata.Materials),
+            string.Join(' ', item.TechnicalMetadata.Variants),
+            string.Join(' ', item.TechnicalMetadata.Animations),
+            string.Join(' ', item.TechnicalMetadata.Compatibility)));
         return haystack.Contains(query, StringComparison.Ordinal);
     }
 

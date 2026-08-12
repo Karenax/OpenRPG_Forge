@@ -30,6 +30,7 @@ public sealed class RuntimeSaveStoreTests : IDisposable
         Assert.Equal(save.Progress, loaded.Save?.Progress);
         Assert.Equal(save.Weather, loaded.Save?.Weather);
         Assert.Equal(save.Progression, loaded.Save?.Progression);
+        Assert.Equal(save.WorldClock, loaded.Save?.WorldClock);
         Assert.Equal(save.EntitySnapshots![0].EntityId, loaded.Save!.EntitySnapshots![0].EntityId);
         Assert.Equal(save.EntitySnapshots[0].Components, loaded.Save.EntitySnapshots[0].Components);
         Assert.Equal(save.EntitySnapshots[0].Inventory, loaded.Save.EntitySnapshots[0].Inventory);
@@ -62,6 +63,7 @@ public sealed class RuntimeSaveStoreTests : IDisposable
     {
         foreach (var version in new[]
                  {
+                     RuntimeSaveDocument.PreWorldClockFormatVersion,
                      RuntimeSaveDocument.PreRulesFormatVersion,
                      RuntimeSaveDocument.PreRuntimeExtensionsFormatVersion,
                  })
@@ -92,6 +94,26 @@ public sealed class RuntimeSaveStoreTests : IDisposable
 
         Assert.Equal(first, File.ReadAllBytes(path));
         Assert.False(first.AsSpan().StartsWith(new byte[] { 0xef, 0xbb, 0xbf }));
+    }
+
+    [Fact]
+    public void R052WorldClockSaveRoundTripsAndLegacySaveKeepsOptionalClockEmpty()
+    {
+        var path = Path.Combine(_directory, "r052-world-clock.orpsave");
+        var save = CreateSave();
+        Assert.True(RuntimeSaveStore.Save(path, save).Succeeded);
+        Assert.Equal(save.WorldClock, RuntimeSaveStore.Load(path, ModuleId, ModuleHash).Save!.WorldClock);
+
+        var legacyPath = Path.Combine(_directory, "r052-legacy.orpsave");
+        var legacy = save with { FormatVersion = RuntimeSaveDocument.PreWorldClockFormatVersion, WorldClock = null };
+        Directory.CreateDirectory(_directory);
+        File.WriteAllText(legacyPath, System.Text.Json.JsonSerializer.Serialize(legacy,
+            new System.Text.Json.JsonSerializerOptions
+            { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
+        var migrated = RuntimeSaveStore.Load(legacyPath, ModuleId, ModuleHash);
+        Assert.True(migrated.Succeeded);
+        Assert.Null(migrated.Save!.WorldClock);
+        Assert.Equal(RuntimeSaveDocument.CurrentFormatVersion, migrated.Save.FormatVersion);
     }
 
     [Fact]
@@ -190,5 +212,6 @@ public sealed class RuntimeSaveStoreTests : IDisposable
         new RuntimeProgressionSave(1, 240, 2),
         [new RuntimeEntityStateSave("20000000-0000-4000-8000-000000000010", 1,
             [new RuntimeStateComponentSave("transform", "{\"x\":1,\"y\":2,\"z\":3}")], [],
-            ["ash-key"], [new RuntimeKeyValue("quest.accepted", "true")])]);
+            ["ash-key"], [new RuntimeKeyValue("quest.accepted", "true")])],
+        new RuntimeWorldClockSave(1, 720, false, 12, "runtime:r052"));
 }

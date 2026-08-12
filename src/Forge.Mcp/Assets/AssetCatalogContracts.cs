@@ -9,7 +9,30 @@ public sealed record AgentAssetCatalogQuery(
     string? LicenseSpdx = null,
     string? Availability = null,
     int MaximumResults = 100,
-    bool? Installed = null);
+    bool? Installed = null,
+    string? Tag = null,
+    double? MaximumWidth = null,
+    double? MaximumHeight = null,
+    double? MaximumDepth = null,
+    string? Style = null,
+    string? Skeleton = null,
+    string? Material = null,
+    long? MaximumTriangleCount = null,
+    string? Author = null,
+    string? Compatibility = null,
+    string? Variant = null);
+
+public sealed record AgentAssetTechnicalMetadata(
+    double? Width,
+    double? Height,
+    double? Depth,
+    string Style,
+    string Skeleton,
+    IReadOnlyList<string> Materials,
+    long? TriangleCount,
+    IReadOnlyList<string> Variants,
+    IReadOnlyList<string> Animations,
+    IReadOnlyList<string> Compatibility);
 
 public sealed record AgentAssetCatalogItem(
     string Id,
@@ -36,7 +59,8 @@ public sealed record AgentAssetCatalogItem(
     bool AttributionRequired,
     string AttributionText,
     bool Installed,
-    IReadOnlyList<string> InstalledPackIds);
+    IReadOnlyList<string> InstalledPackIds,
+    AgentAssetTechnicalMetadata TechnicalMetadata);
 
 public sealed record AgentAssetCatalogResult(
     int SchemaVersion,

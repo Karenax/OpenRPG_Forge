@@ -1,7 +1,9 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Forge.Application.Projects;
 using Forge.Domain.Projects;
+using Forge.Domain.RuntimeExtensions;
 using Forge.ModuleFormat.Serialization;
 
 namespace Forge.ModuleFormat.Workspaces;
@@ -27,7 +29,8 @@ public sealed record RecoveryInspection(RecoverySnapshotInfo? Snapshot, Recovery
 
 public sealed record RecoveryComparison(string CurrentSha256, string SnapshotSha256, bool Changed,
     int CurrentAreas, int SnapshotAreas, int CurrentEntities, int SnapshotEntities,
-    int CurrentBlueprints, int SnapshotBlueprints);
+    int CurrentBlueprints, int SnapshotBlueprints,
+    IReadOnlyList<RecoveryRestoreSection>? SelectedSections = null);
 
 public sealed record RecoveryRestorePreview(ProjectDefinition Project, RecoveryComparison Comparison);
 
@@ -89,20 +92,30 @@ public sealed class RecoverySnapshotStore
         return ProjectJsonSerializer.Deserialize(json);
     }
 
-    public RecoveryRestorePreview PreviewRestore(RecoverySnapshotInfo snapshot, ProjectDefinition current)
+    public RecoveryRestorePreview PreviewRestore(RecoverySnapshotInfo snapshot, ProjectDefinition current,
+        RecoveryRestoreSelection? selection = null)
     {
         ArgumentNullException.ThrowIfNull(current);
         var restored = Restore(snapshot);
+        selection ??= new RecoveryRestoreSelection(
+            StableSelectionId(current.Id, snapshot.Id),
+            RecoveryRestoreSelection.CurrentSchemaVersion,
+            RecoveryRestoreSection.All,
+            "recovery-preview");
+        var candidate = RecoveryRestorePlanner.Merge(current, restored, selection);
         var currentJson = ProjectJsonSerializer.Serialize(current);
-        var restoredJson = ProjectJsonSerializer.Serialize(restored);
+        var restoredJson = ProjectJsonSerializer.Serialize(candidate);
         var currentHash = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(currentJson)));
         var restoredHash = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(restoredJson)));
         var comparison = new RecoveryComparison(currentHash, restoredHash,
             !string.Equals(currentHash, restoredHash, StringComparison.Ordinal),
-            current.Areas.Count, restored.Areas.Count,
-            current.Areas.Sum(area => area.Entities.Count), restored.Areas.Sum(area => area.Entities.Count),
-            current.Blueprints.Count, restored.Blueprints.Count);
-        return new RecoveryRestorePreview(restored, comparison);
+            current.Areas.Count, candidate.Areas.Count,
+            current.Areas.Sum(area => area.Entities.Count), candidate.Areas.Sum(area => area.Entities.Count),
+            current.Blueprints.Count, candidate.Blueprints.Count,
+            Enum.GetValues<RecoveryRestoreSection>().Where(section =>
+                section is not RecoveryRestoreSection.None and not RecoveryRestoreSection.All &&
+                selection.Sections.HasFlag(section)).ToArray());
+        return new RecoveryRestorePreview(candidate, comparison);
     }
 
     public RecoverySnapshotInfo? FindRecoveryCandidate(string workspaceRoot, DateTimeOffset canonicalSavedAt) =>
@@ -162,10 +175,21 @@ public sealed class RecoverySnapshotStore
     {
         var directory = ResolveDirectory(workspaceRoot);
         if (!Directory.Exists(directory)) return;
-        foreach (var file in Directory.EnumerateFiles(directory, "*.json", SearchOption.TopDirectoryOnly)) File.Delete(file);
+        foreach (var file in Directory.EnumerateFiles(directory, "*.json", SearchOption.TopDirectoryOnly)
+                     .Where(file => !file.EndsWith(RecoverySessionStore.FileName, StringComparison.OrdinalIgnoreCase)))
+            File.Delete(file);
     }
 
     private static string ResolveDirectory(string root) => Path.Combine(Path.GetFullPath(root), RelativeDirectory);
+    private static Guid StableSelectionId(ProjectId projectId, string snapshotId)
+    {
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes($"openrpg-forge:recovery:{projectId}:{snapshotId}"));
+        Span<byte> guidBytes = stackalloc byte[16];
+        bytes.AsSpan(0, 16).CopyTo(guidBytes);
+        guidBytes[7] = (byte)((guidBytes[7] & 0x0f) | 0x50);
+        guidBytes[8] = (byte)((guidBytes[8] & 0x3f) | 0x80);
+        return new Guid(guidBytes);
+    }
     private static bool IsContained(string directory, string path) => Path.GetFullPath(path).StartsWith(Path.GetFullPath(directory) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
     private static void WriteJournal(string directory, IReadOnlyList<RecoverySnapshotInfo> snapshots) =>
         WriteAtomic(Path.Combine(directory, JournalFileName), JsonSerializer.Serialize(new RecoveryJournal(CurrentSchemaVersion, snapshots), Options));
@@ -173,7 +197,11 @@ public sealed class RecoverySnapshotStore
     private static void DeleteUnretained(string directory, IReadOnlyList<RecoverySnapshotInfo> retained)
     {
         var paths = retained.Select(item => Path.GetFullPath(item.SnapshotPath)).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        foreach (var path in Directory.EnumerateFiles(directory, "*.json").Where(path => !path.EndsWith(JournalFileName, StringComparison.OrdinalIgnoreCase) && !paths.Contains(Path.GetFullPath(path)))) File.Delete(path);
+        foreach (var path in Directory.EnumerateFiles(directory, "*.json").Where(path =>
+                     !path.EndsWith(JournalFileName, StringComparison.OrdinalIgnoreCase) &&
+                     !path.EndsWith(RecoverySessionStore.FileName, StringComparison.OrdinalIgnoreCase) &&
+                     !paths.Contains(Path.GetFullPath(path))))
+            File.Delete(path);
     }
 
     private static string Quarantine(string directory, string sourcePath, string id)

@@ -39,7 +39,8 @@ public sealed class SetRuntimePoliciesHandler
         }
 
         var patch = new ProjectPatch("replace", "runtimePolicies",
-            $"Set {command.ModuleProfile.Heartbeats.Count} global and {command.AreaProfile.Heartbeats.Count} area heartbeat(s), rest and sequence abort policies.");
+            $"Set {command.ModuleProfile.Heartbeats.Count} global and {command.AreaProfile.Heartbeats.Count} area heartbeat(s), " +
+            $"{command.ModuleProfile.GameplayEvents.Bindings.Count} project gameplay-event binding(s), rest and sequence abort policies.");
         var inverse = new ProjectPatch("replace", "runtimePolicies",
             "Restore previous module and active-area runtime policies.");
         var audit = new AuditEntry(command.CommandId, "set_runtime_policies", _clock.UtcNow, !command.DryRun);

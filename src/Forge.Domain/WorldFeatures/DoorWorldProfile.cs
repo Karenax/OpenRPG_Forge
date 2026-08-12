@@ -13,7 +13,9 @@ public sealed record DoorWorldProfile(
     Guid? DialogueId,
     string? FactionId,
     DoorWorldProfile.AssemblyPolicy? Assembly,
-    DoorWorldProfile.FoundationPolicy? Foundation = null)
+    DoorWorldProfile.FoundationPolicy? Foundation = null,
+    DoorAccessEventProfile? AccessEvents = null,
+    bool AccessEventsRequiredAtRuntime = false)
 {
     public enum AssemblyKind { Single, Double, Portcullis, Elevator, Airlock }
     public enum PlacementMode { ArchitectureSocket, FreePlacement }

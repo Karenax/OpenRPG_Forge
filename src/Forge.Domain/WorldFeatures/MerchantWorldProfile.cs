@@ -17,7 +17,11 @@ public sealed record MerchantWorldProfile(
     IReadOnlyList<MerchantWorldProfile.ServiceEntry> Services,
     MerchantWorldProfile.LedgerPolicy Ledger,
     MerchantWorldProfile.TransactionPolicy? Transactions = null,
-    bool TransactionsRequiredAtRuntime = false)
+    bool TransactionsRequiredAtRuntime = false,
+    MerchantFoundationProfile? Foundation = null,
+    bool FoundationRequiredAtRuntime = false,
+    MerchantStoreExperienceProfile? Experience = null,
+    bool ExperienceRequiredAtRuntime = false)
 {
     public sealed record CurrencyDefinition(
         string Id,

@@ -4,6 +4,7 @@ using Forge.Domain.RuntimePolicies;
 using Forge.Domain.RuntimeExtensions;
 using Forge.Domain.Gameplay;
 using Forge.Domain.Rules;
+using Forge.Domain.Lifecycle;
 
 namespace Forge.Domain.Validation;
 
@@ -55,6 +56,10 @@ public static class RuntimePolicyValidator
         }
 
         diagnostics.AddRange(GameplayFoundationValidator.Validate(module.RuntimePolicies.Gameplay.Foundation));
+        diagnostics.AddRange(GameplaySimulationProfileValidator.Validate(
+            module.RuntimePolicies.Gameplay.Simulation));
+        diagnostics.AddRange(GameplaySessionProfileValidator.Validate(
+            module.RuntimePolicies.Gameplay.Session));
 
         var rules = module.RuntimePolicies.Rules;
         if (rules.Id != module.Id.Value)
@@ -76,6 +81,10 @@ public static class RuntimePolicyValidator
             module.RuntimePolicies.Extensions.OperationalReadiness));
         diagnostics.AddRange(QualityAcceptanceProfileValidator.Validate(
             module.RuntimePolicies.Extensions.ModernTooling.QualityAssurance));
+        diagnostics.AddRange(ProjectGameplayEventProfileValidator.Validate(
+            module.RuntimePolicies.GameplayEvents, module.Id.Value));
+        diagnostics.AddRange(ProjectWorldProfileValidator.Validate(
+            module.RuntimePolicies.World, module.Id.Value));
 
         return diagnostics;
     }
