@@ -3,8 +3,8 @@
     "schema_version": 2,
     "engine": "roslyn",
     "engine_version": "5.6.0.0",
-    "source_digest": "sha256:357d537fe9bbffcf1f7a0c06be0bf74d17f79c791c0de347632be4a154203e80",
-    "source_file_count": 2733,
+    "source_digest": "sha256:d2a176802cd1ebd0e46368fd4b8d0601f4bab76fb4d732d815ba16cabfdeaf84",
+    "source_file_count": 2734,
     "sources": [
       {
         "path": ".agents/skills/openrpg-asset-lifecycle/SKILL.md",
@@ -498,13 +498,13 @@
       },
       {
         "path": "STATUS.md",
-        "sha256": "sha256:8778c6b710178949653edb56999b182002b23f7e6fa3362bacef4dc4d0837f57",
-        "size": 55307
+        "sha256": "sha256:eb884eb4eb02d9c928d893b980bfe50a6129ace17dda5033d4d50f21e321c85e",
+        "size": 56326
       },
       {
         "path": "TASKS_MVP.md",
-        "sha256": "sha256:9f8d193896dc77ef3ddfd317d9fefb92721124029790632238a7122637feafc6",
-        "size": 48873
+        "sha256": "sha256:973561104b7f96368dc6c95d7d46daa69824c050816ef006f0503674a02e4927",
+        "size": 49074
       },
       {
         "path": "apps/Forge.McpHost/Forge.McpHost.csproj",
@@ -2103,8 +2103,8 @@
       },
       {
         "path": "docs/AURORA_CAPABILITY_DELIVERY_PLAN.md",
-        "sha256": "sha256:6c8715871fdb0b691b08bb93710d8a73a6e90c882b7e0e0ee7640ca8e8b45d42",
-        "size": 2121
+        "sha256": "sha256:d46bf31e0c45e39b63831abe9b11ae442d04e37f22c3d09ac2fadf70856d11d1",
+        "size": 2269
       },
       {
         "path": "docs/CREATOR_GUIDE.md",
@@ -3882,6 +3882,11 @@
         "size": 1880
       },
       {
+        "path": "docs/planning/P3_P4_ACCEPTANCE_PROGRAM.md",
+        "sha256": "sha256:3ac98daf5c069df9119aacf6b9e5e071927ff6b2f663f3522381d9663bb0ce39",
+        "size": 3831
+      },
+      {
         "path": "docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
         "sha256": "sha256:102ef3a94c0fdd35d726e5ae46abd688f4078bb3e641d17529252fd291a4cfcb",
         "size": 12872
@@ -5183,8 +5188,8 @@
       },
       {
         "path": "src/Forge.Application/Creatures/CreatureAuthoringCompositionScriptService.cs",
-        "sha256": "sha256:b5785b777cc7ea8299a818100acf7ef42fead6a2dc3c5d2fd4b4c1e722a1a6e8",
-        "size": 2262
+        "sha256": "sha256:bfbc9ac12ea22c15b19a8fc1a508926d70685659bf26d13b0dc2f975daefd6cf",
+        "size": 2261
       },
       {
         "path": "src/Forge.Application/Creatures/CreatureEventAiCompositionScriptService.cs",
@@ -5203,8 +5208,8 @@
       },
       {
         "path": "src/Forge.Application/Creatures/CreatureInteractionCompositionScriptService.cs",
-        "sha256": "sha256:8eea3b57e4e7b0e74afbfab968e46d2a781eab638fb3b28a47df91604079268d",
-        "size": 3325
+        "sha256": "sha256:57d12baa4b32013ad0617bdcaa42c2b3d31a09d28cd88eb6902d88da178fe1b1",
+        "size": 3324
       },
       {
         "path": "src/Forge.Application/Creatures/CreatureLootScriptService.cs",
@@ -6748,13 +6753,13 @@
       },
       {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-        "sha256": "sha256:c7e527a03bcc45952e4bde940edefafdbe5e644da950aa50ca301efd263ee30c",
-        "size": 9792
+        "sha256": "sha256:a9cfac347c0fba38bf30274ff5a138c0acd86123bef69f3e733152db27cb39c4",
+        "size": 9790
       },
       {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionValidator.cs",
-        "sha256": "sha256:b759c79b08c91506fe2e044c5317042b5c827222a7fb9e76771a6d5a15a8ef1e",
-        "size": 6463
+        "sha256": "sha256:9ba17a252c7f5e394c079866b15dd4e19263350db06c40d6c48c48a4e8e08fbd",
+        "size": 6461
       },
       {
         "path": "src/Forge.Domain/Creatures/CreatureEventAiCompositionProfile.cs",
@@ -6798,13 +6803,13 @@
       },
       {
         "path": "src/Forge.Domain/Creatures/CreatureInteractionCompositionProfile.cs",
-        "sha256": "sha256:30a11db5d0c4139cf0e71c3065909d32da6aac40e5cc780c5a0cbb4eedffe837",
-        "size": 6087
+        "sha256": "sha256:16cebdd95ed041765811a8eaa7a2252d9653c863ad4705e6fa0e0e7562f30d45",
+        "size": 6086
       },
       {
         "path": "src/Forge.Domain/Creatures/CreatureInteractionCompositionValidator.cs",
-        "sha256": "sha256:94fc1b19317052e0ad4660998b7df7d776ffd81161c496735381564a0dcd545f",
-        "size": 9356
+        "sha256": "sha256:386d837d37fcb3f8650e90b040a0776219e57fd4370816cf618ba393cde70b53",
+        "size": 9354
       },
       {
         "path": "src/Forge.Domain/Creatures/CreatureLootDiagnostic.cs",
@@ -9908,8 +9913,8 @@
       },
       {
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureAuthoringCompositionFoundationService.cs",
-        "sha256": "sha256:006e65594d533b71bf546cea61df0454011611e595ea1fa78f2bbb2a2deddb7d",
-        "size": 4391
+        "sha256": "sha256:11e4d3cb7aea1a7ff26b2213103768757bcd277afd9b1597ad59dd4577a6329b",
+        "size": 4389
       },
       {
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureAuthoringService.cs",
@@ -9923,8 +9928,8 @@
       },
       {
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureInteractionCompositionFoundationService.cs",
-        "sha256": "sha256:eac493a13dbb8fdcf1c25c221a90196e27a2a835b4f8d12d39c3abdec19931eb",
-        "size": 3725
+        "sha256": "sha256:ff637f5791320c6de1cca20323eb35acb22c44d95ef1b40218b62761b907b9be",
+        "size": 3723
       },
       {
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureRulesCompositionFoundationService.cs",
@@ -11383,8 +11388,8 @@
       },
       {
         "path": "tests/Forge.Domain.Tests/Creatures/CreatureAuthoringCompositionProfileTests.cs",
-        "sha256": "sha256:1d18c674892268774d7fe1f6a83158daad8407ad11f52189d29c508fb1f7d07a",
-        "size": 2961
+        "sha256": "sha256:5d889a755b55ad267e0e7e30d5e95bcd80764dee7d25668ea736634893ab38b1",
+        "size": 2960
       },
       {
         "path": "tests/Forge.Domain.Tests/Creatures/CreatureEventAiCompositionProfileTests.cs",
@@ -11403,8 +11408,8 @@
       },
       {
         "path": "tests/Forge.Domain.Tests/Creatures/CreatureInteractionCompositionProfileTests.cs",
-        "sha256": "sha256:888d11e3ddc47f4b1d27d7cf46ca2d39cae943a041b8391d378b6c81277a4b0d",
-        "size": 6181
+        "sha256": "sha256:00cec9c7b14ac09f4d6b0388f5c217335868c04f6b7d3f942023130ac13d079e",
+        "size": 6180
       },
       {
         "path": "tests/Forge.Domain.Tests/Creatures/CreatureLootProfileTests.cs",
@@ -24419,6 +24424,16 @@
       "kind": "document",
       "name": "P2_ACCEPTANCE_PROGRAM.md",
       "path": "docs/planning/P2_ACCEPTANCE_PROGRAM.md",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      }
+    },
+    {
+      "id": "file:docs/planning/P3_P4_ACCEPTANCE_PROGRAM.md",
+      "kind": "document",
+      "name": "P3_P4_ACCEPTANCE_PROGRAM.md",
+      "path": "docs/planning/P3_P4_ACCEPTANCE_PROGRAM.md",
       "line": 1,
       "metadata": {
         "language": "markdown"
@@ -50201,7 +50216,7 @@
       "kind": "model",
       "name": "CreatureAnimationGraphProfile",
       "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-      "line": 103,
+      "line": 102,
       "metadata": {
         "namespace": "Forge.Domain.Creatures",
         "project": "Forge.Domain",
@@ -50213,7 +50228,7 @@
       "kind": "model",
       "name": "CreatureAnimationState",
       "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-      "line": 79,
+      "line": 78,
       "metadata": {
         "namespace": "Forge.Domain.Creatures",
         "project": "Forge.Domain",
@@ -50225,7 +50240,7 @@
       "kind": "model",
       "name": "CreatureAppearanceProfile",
       "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-      "line": 46,
+      "line": 45,
       "metadata": {
         "namespace": "Forge.Domain.Creatures",
         "project": "Forge.Domain",
@@ -50237,7 +50252,7 @@
       "kind": "model",
       "name": "CreatureAuthoringCompositionProfile",
       "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-      "line": 125,
+      "line": 124,
       "metadata": {
         "namespace": "Forge.Domain.Creatures",
         "project": "Forge.Domain",
@@ -50249,7 +50264,7 @@
       "kind": "model",
       "name": "CreatureAuthoringCompositionRuntimeResult",
       "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionValidator.cs",
-      "line": 82,
+      "line": 81,
       "metadata": {
         "namespace": "Forge.Domain.Creatures",
         "project": "Forge.Domain",
@@ -50477,7 +50492,7 @@
       "kind": "model",
       "name": "CreatureInteractionCompositionRuntimeResult",
       "path": "src/Forge.Domain/Creatures/CreatureInteractionCompositionValidator.cs",
-      "line": 136,
+      "line": 135,
       "metadata": {
         "namespace": "Forge.Domain.Creatures",
         "project": "Forge.Domain",
@@ -50849,7 +50864,7 @@
       "kind": "model",
       "name": "CreatureSpeciesProfile",
       "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-      "line": 26,
+      "line": 25,
       "metadata": {
         "namespace": "Forge.Domain.Creatures",
         "project": "Forge.Domain",
@@ -67557,7 +67572,7 @@
       "kind": "service",
       "name": "CreatureAuthoringCompositionFoundationService",
       "path": "src/Forge.RpgKit.Application/Creatures/CreatureAuthoringCompositionFoundationService.cs",
-      "line": 18,
+      "line": 17,
       "metadata": {
         "namespace": "Forge.RpgKit.Application.Creatures",
         "project": "Forge.RpgKit.Application",
@@ -67593,7 +67608,7 @@
       "kind": "service",
       "name": "CreatureInteractionCompositionFoundationService",
       "path": "src/Forge.RpgKit.Application/Creatures/CreatureInteractionCompositionFoundationService.cs",
-      "line": 22,
+      "line": 21,
       "metadata": {
         "namespace": "Forge.RpgKit.Application.Creatures",
         "project": "Forge.RpgKit.Application",
@@ -81873,7 +81888,7 @@
       "kind": "type",
       "name": "CreatureAnimationTransition",
       "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-      "line": 89,
+      "line": 88,
       "metadata": {
         "namespace": "Forge.Domain.Creatures",
         "project": "Forge.Domain",
@@ -81885,7 +81900,7 @@
       "kind": "type",
       "name": "CreatureAuthoringCompositionRuntimeResolver",
       "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionValidator.cs",
-      "line": 90,
+      "line": 89,
       "metadata": {
         "namespace": "Forge.Domain.Creatures",
         "project": "Forge.Domain",
@@ -82137,7 +82152,7 @@
       "kind": "type",
       "name": "CreatureInteractionCompositionRuntimeResolver",
       "path": "src/Forge.Domain/Creatures/CreatureInteractionCompositionValidator.cs",
-      "line": 144,
+      "line": 143,
       "metadata": {
         "namespace": "Forge.Domain.Creatures",
         "project": "Forge.Domain",
@@ -82593,7 +82608,7 @@
       "kind": "type",
       "name": "CreatureSpeciesTraitSet",
       "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-      "line": 16,
+      "line": 15,
       "metadata": {
         "namespace": "Forge.Domain.Creatures",
         "project": "Forge.Domain",
@@ -147907,7 +147922,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 677
+        "line": 690
       }
     },
     {
@@ -147917,7 +147932,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 681
+        "line": 694
       }
     },
     {
@@ -147927,7 +147942,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 684
+        "line": 697
       }
     },
     {
@@ -147937,7 +147952,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 97
+        "line": 110
       }
     },
     {
@@ -147957,12 +147972,12 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 58
+        "line": 71
       }
     },
     {
       "source": "file:STATUS.md",
-      "target": "file:docs/planning/P2_ACCEPTANCE_PROGRAM.md",
+      "target": "file:docs/planning/P3_P4_ACCEPTANCE_PROGRAM.md",
       "kind": "references",
       "confidence": "syntactic",
       "evidence": {
@@ -147977,7 +147992,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "TASKS_MVP.md",
-        "line": 360
+        "line": 363
       }
     },
     {
@@ -147987,7 +148002,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "TASKS_MVP.md",
-        "line": 603
+        "line": 606
       }
     },
     {
@@ -147997,17 +148012,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "TASKS_MVP.md",
-        "line": 366
-      }
-    },
-    {
-      "source": "file:TASKS_MVP.md",
-      "target": "file:docs/planning/COMPLETE_FUNCTION_BACKLOG.md",
-      "kind": "references",
-      "confidence": "syntactic",
-      "evidence": {
-        "path": "TASKS_MVP.md",
-        "line": 12
+        "line": 369
       }
     },
     {
@@ -148018,6 +148023,16 @@
       "evidence": {
         "path": "TASKS_MVP.md",
         "line": 8
+      }
+    },
+    {
+      "source": "file:TASKS_MVP.md",
+      "target": "file:docs/planning/P3_P4_ACCEPTANCE_PROGRAM.md",
+      "kind": "references",
+      "confidence": "syntactic",
+      "evidence": {
+        "path": "TASKS_MVP.md",
+        "line": 11
       }
     },
     {
@@ -172197,7 +172212,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "docs/AURORA_CAPABILITY_DELIVERY_PLAN.md",
-        "line": 53
+        "line": 55
       }
     },
     {
@@ -172207,7 +172222,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "docs/AURORA_CAPABILITY_DELIVERY_PLAN.md",
-        "line": 50
+        "line": 52
       }
     },
     {
@@ -172228,6 +172243,36 @@
       "evidence": {
         "path": "docs/AURORA_CAPABILITY_DELIVERY_PLAN.md",
         "line": 33
+      }
+    },
+    {
+      "source": "file:docs/AURORA_CAPABILITY_DELIVERY_PLAN.md",
+      "target": "file:docs/planning/P1_ACCEPTANCE_PROGRAM.md",
+      "kind": "references",
+      "confidence": "syntactic",
+      "evidence": {
+        "path": "docs/AURORA_CAPABILITY_DELIVERY_PLAN.md",
+        "line": 34
+      }
+    },
+    {
+      "source": "file:docs/AURORA_CAPABILITY_DELIVERY_PLAN.md",
+      "target": "file:docs/planning/P2_ACCEPTANCE_PROGRAM.md",
+      "kind": "references",
+      "confidence": "syntactic",
+      "evidence": {
+        "path": "docs/AURORA_CAPABILITY_DELIVERY_PLAN.md",
+        "line": 34
+      }
+    },
+    {
+      "source": "file:docs/AURORA_CAPABILITY_DELIVERY_PLAN.md",
+      "target": "file:docs/planning/P3_P4_ACCEPTANCE_PROGRAM.md",
+      "kind": "references",
+      "confidence": "syntactic",
+      "evidence": {
+        "path": "docs/AURORA_CAPABILITY_DELIVERY_PLAN.md",
+        "line": 35
       }
     },
     {
@@ -201597,7 +201642,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-        "line": 20
+        "line": 19
       }
     },
     {
@@ -201607,7 +201652,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-        "line": 133
+        "line": 132
       }
     },
     {
@@ -225957,7 +226002,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureAuthoringCompositionFoundationService.cs",
-        "line": 54
+        "line": 53
       }
     },
     {
@@ -225967,7 +226012,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureAuthoringCompositionFoundationService.cs",
-        "line": 66
+        "line": 65
       }
     },
     {
@@ -226027,7 +226072,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureInteractionCompositionFoundationService.cs",
-        "line": 61
+        "line": 60
       }
     },
     {
@@ -226037,7 +226082,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureInteractionCompositionFoundationService.cs",
-        "line": 38
+        "line": 37
       }
     },
     {
@@ -226067,7 +226112,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureInteractionCompositionFoundationService.cs",
-        "line": 51
+        "line": 50
       }
     },
     {
@@ -304657,7 +304702,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-        "line": 103
+        "line": 102
       }
     },
     {
@@ -304667,7 +304712,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-        "line": 107
+        "line": 106
       }
     },
     {
@@ -304677,7 +304722,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-        "line": 121
+        "line": 120
       }
     },
     {
@@ -304687,7 +304732,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-        "line": 103
+        "line": 102
       }
     },
     {
@@ -304697,7 +304742,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-        "line": 108
+        "line": 107
       }
     },
     {
@@ -304707,7 +304752,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-        "line": 79
+        "line": 78
       }
     },
     {
@@ -304717,7 +304762,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-        "line": 83
+        "line": 82
       }
     },
     {
@@ -304727,7 +304772,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-        "line": 79
+        "line": 78
       }
     },
     {
@@ -304737,7 +304782,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-        "line": 46
+        "line": 45
       }
     },
     {
@@ -304747,7 +304792,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-        "line": 59
+        "line": 58
       }
     },
     {
@@ -304757,7 +304802,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-        "line": 46
+        "line": 45
       }
     },
     {
@@ -304767,7 +304812,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-        "line": 125
+        "line": 124
       }
     },
     {
@@ -304777,7 +304822,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-        "line": 144
+        "line": 143
       }
     },
     {
@@ -304787,7 +304832,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-        "line": 143
+        "line": 142
       }
     },
     {
@@ -304797,7 +304842,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-        "line": 173
+        "line": 172
       }
     },
     {
@@ -304807,7 +304852,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-        "line": 142
+        "line": 141
       }
     },
     {
@@ -304817,7 +304862,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-        "line": 133
+        "line": 132
       }
     },
     {
@@ -304827,7 +304872,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-        "line": 125
+        "line": 124
       }
     },
     {
@@ -304837,7 +304882,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-        "line": 138
+        "line": 137
       }
     },
     {
@@ -304847,7 +304892,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionValidator.cs",
-        "line": 82
+        "line": 81
       }
     },
     {
@@ -304857,7 +304902,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionValidator.cs",
-        "line": 83
+        "line": 82
       }
     },
     {
@@ -304867,7 +304912,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionValidator.cs",
-        "line": 85
+        "line": 84
       }
     },
     {
@@ -304877,7 +304922,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionValidator.cs",
-        "line": 82
+        "line": 81
       }
     },
     {
@@ -305867,7 +305912,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureInteractionCompositionValidator.cs",
-        "line": 136
+        "line": 135
       }
     },
     {
@@ -305877,7 +305922,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureInteractionCompositionValidator.cs",
-        "line": 139
+        "line": 138
       }
     },
     {
@@ -305887,7 +305932,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureInteractionCompositionValidator.cs",
-        "line": 137
+        "line": 136
       }
     },
     {
@@ -305897,7 +305942,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureInteractionCompositionValidator.cs",
-        "line": 136
+        "line": 135
       }
     },
     {
@@ -307147,7 +307192,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-        "line": 26
+        "line": 25
       }
     },
     {
@@ -307157,7 +307202,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-        "line": 35
+        "line": 34
       }
     },
     {
@@ -307167,7 +307212,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-        "line": 26
+        "line": 25
       }
     },
     {
@@ -307177,7 +307222,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-        "line": 29
+        "line": 28
       }
     },
     {
@@ -410997,7 +411042,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureAuthoringCompositionFoundationService.cs",
-        "line": 18
+        "line": 17
       }
     },
     {
@@ -411007,7 +411052,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureAuthoringCompositionFoundationService.cs",
-        "line": 20
+        "line": 19
       }
     },
     {
@@ -411017,7 +411062,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureAuthoringCompositionFoundationService.cs",
-        "line": 60
+        "line": 59
       }
     },
     {
@@ -411027,7 +411072,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureAuthoringCompositionFoundationService.cs",
-        "line": 59
+        "line": 58
       }
     },
     {
@@ -411037,7 +411082,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureAuthoringCompositionFoundationService.cs",
-        "line": 54
+        "line": 53
       }
     },
     {
@@ -411047,7 +411092,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureAuthoringCompositionFoundationService.cs",
-        "line": 44
+        "line": 43
       }
     },
     {
@@ -411057,7 +411102,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureAuthoringCompositionFoundationService.cs",
-        "line": 51
+        "line": 50
       }
     },
     {
@@ -411067,7 +411112,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureAuthoringCompositionFoundationService.cs",
-        "line": 40
+        "line": 39
       }
     },
     {
@@ -411077,7 +411122,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureAuthoringCompositionFoundationService.cs",
-        "line": 37
+        "line": 36
       }
     },
     {
@@ -411087,7 +411132,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureAuthoringCompositionFoundationService.cs",
-        "line": 18
+        "line": 17
       }
     },
     {
@@ -411097,7 +411142,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureAuthoringCompositionFoundationService.cs",
-        "line": 59
+        "line": 58
       }
     },
     {
@@ -411107,7 +411152,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureAuthoringCompositionFoundationService.cs",
-        "line": 66
+        "line": 65
       }
     },
     {
@@ -411117,7 +411162,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureAuthoringCompositionFoundationService.cs",
-        "line": 38
+        "line": 37
       }
     },
     {
@@ -411297,7 +411342,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureInteractionCompositionFoundationService.cs",
-        "line": 22
+        "line": 21
       }
     },
     {
@@ -411307,7 +411352,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureInteractionCompositionFoundationService.cs",
-        "line": 61
+        "line": 60
       }
     },
     {
@@ -411317,7 +411362,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureInteractionCompositionFoundationService.cs",
-        "line": 24
+        "line": 23
       }
     },
     {
@@ -411327,7 +411372,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureInteractionCompositionFoundationService.cs",
-        "line": 39
+        "line": 38
       }
     },
     {
@@ -411337,7 +411382,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureInteractionCompositionFoundationService.cs",
-        "line": 44
+        "line": 43
       }
     },
     {
@@ -411347,7 +411392,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureInteractionCompositionFoundationService.cs",
-        "line": 44
+        "line": 43
       }
     },
     {
@@ -411357,7 +411402,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureInteractionCompositionFoundationService.cs",
-        "line": 47
+        "line": 46
       }
     },
     {
@@ -411367,7 +411412,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureInteractionCompositionFoundationService.cs",
-        "line": 63
+        "line": 62
       }
     },
     {
@@ -411377,7 +411422,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureInteractionCompositionFoundationService.cs",
-        "line": 47
+        "line": 46
       }
     },
     {
@@ -411387,7 +411432,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureInteractionCompositionFoundationService.cs",
-        "line": 22
+        "line": 21
       }
     },
     {
@@ -411397,7 +411442,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureInteractionCompositionFoundationService.cs",
-        "line": 38
+        "line": 37
       }
     },
     {
@@ -411407,7 +411452,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureInteractionCompositionFoundationService.cs",
-        "line": 51
+        "line": 50
       }
     },
     {
@@ -411417,7 +411462,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureInteractionCompositionFoundationService.cs",
-        "line": 52
+        "line": 51
       }
     },
     {
@@ -411427,7 +411472,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureInteractionCompositionFoundationService.cs",
-        "line": 54
+        "line": 53
       }
     },
     {
@@ -411437,7 +411482,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureInteractionCompositionFoundationService.cs",
-        "line": 45
+        "line": 44
       }
     },
     {
@@ -527157,7 +527202,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-        "line": 89
+        "line": 88
       }
     },
     {
@@ -527167,7 +527212,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-        "line": 97
+        "line": 96
       }
     },
     {
@@ -527177,7 +527222,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-        "line": 89
+        "line": 88
       }
     },
     {
@@ -527187,7 +527232,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionValidator.cs",
-        "line": 90
+        "line": 89
       }
     },
     {
@@ -527197,7 +527242,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionValidator.cs",
-        "line": 93
+        "line": 92
       }
     },
     {
@@ -527207,7 +527252,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionValidator.cs",
-        "line": 92
+        "line": 91
       }
     },
     {
@@ -527217,7 +527262,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionValidator.cs",
-        "line": 98
+        "line": 97
       }
     },
     {
@@ -527227,7 +527272,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionValidator.cs",
-        "line": 90
+        "line": 89
       }
     },
     {
@@ -527237,7 +527282,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionValidator.cs",
-        "line": 98
+        "line": 97
       }
     },
     {
@@ -528067,7 +528112,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureInteractionCompositionValidator.cs",
-        "line": 144
+        "line": 143
       }
     },
     {
@@ -528077,7 +528122,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureInteractionCompositionValidator.cs",
-        "line": 152
+        "line": 151
       }
     },
     {
@@ -528087,7 +528132,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureInteractionCompositionValidator.cs",
-        "line": 147
+        "line": 146
       }
     },
     {
@@ -528097,7 +528142,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureInteractionCompositionValidator.cs",
-        "line": 146
+        "line": 145
       }
     },
     {
@@ -528107,7 +528152,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureInteractionCompositionValidator.cs",
-        "line": 144
+        "line": 143
       }
     },
     {
@@ -528117,7 +528162,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureInteractionCompositionValidator.cs",
-        "line": 152
+        "line": 151
       }
     },
     {
@@ -529697,7 +529742,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-        "line": 16
+        "line": 15
       }
     },
     {
@@ -529707,7 +529752,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-        "line": 20
+        "line": 19
       }
     },
     {
@@ -529717,7 +529762,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Creatures/CreatureAuthoringCompositionProfile.cs",
-        "line": 16
+        "line": 15
       }
     },
     {

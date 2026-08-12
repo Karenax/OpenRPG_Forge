@@ -4,9 +4,9 @@ Dernière mise à jour : 12 août 2026.
 
 ## Lecture canonique
 
-Les parcours verticaux G0 à G13 et les prototypes 3D sont livrés. La complétude fonctionnelle reste
-distincte : le programme P2 est maintenant autorisé et s'exécute strictement lot par lot selon
-`docs/planning/P2_ACCEPTANCE_PROGRAM.md`.
+Les parcours verticaux G0 à G13 et les prototypes 3D sont livrés. Les programmes P0 à P4 ont été
+réaudités et fermés selon leurs critères source et leurs preuves reproductibles. La clôture finale
+P3/P4 est consignée dans `docs/planning/P3_P4_ACCEPTANCE_PROGRAM.md`.
 
 Le registre `docs/planning/COMPLETE_FUNCTION_BACKLOG.md` couvre chaque ID exactement une fois dans
 187 lots stables de une à cinq fonctions : 187 lots clos, aucune fonction restante.
@@ -21,7 +21,21 @@ Chaque lot affiche désormais sa progression, ses gates, son parcours et ses dé
 - pipeline de contenu gouverné, Asset Vault, Asset Atlas et modèles 3D animés ;
 - vérification intégrée du build, des tests, smokes, graphes, exports et preuves.
 
-Ces parcours ne valent pas preuve automatique des 717 critères détaillés.
+Ces parcours ne valaient pas preuve automatique des 717 critères détaillés ; le tracker, les fiches
+d'acceptation et les tests liés constituent maintenant cette preuve fonction par fonction.
+
+## Programmes P3 et P4 — terminés
+
+Les 16 lots P3 regroupant 32 fonctions et le lot P4 `FC-MULTI-P4-01` ont été réaudités contre leurs
+sections source, leurs implémentations, leurs tests et leurs fiches G13. Les marqueurs Toolset et
+runtime cités sont réellement émis par le produit et observés dans les journaux du portail. Une
+passe ciblée rejoue 86 tests sur les 17 lots : 17/17 lots et 86/86 tests réussissent. Aucun manque
+fonctionnel supplémentaire n'a été constaté ; la fermeture nécessaire portait sur la traçabilité
+explicite et reproductible.
+
+Cette clôture prouve les contrats auteur/runtime actuels. Elle ne prétend pas qu'une infrastructure
+cloud mondiale, un marketplace ou un service public massif sont déjà déployés. Le détail et les
+limites sont consignés dans `docs/planning/P3_P4_ACCEPTANCE_PROGRAM.md`.
 
 ## Programme P2 — terminé
 
@@ -48,9 +62,8 @@ le fallback par capacité et les sends par source. `R140 / FC-WAYPOINT-P2-01` fe
 runtime des routes aériennes, l'inclinaison animée et les politiques d'obstacle. Le lot suivant est
 `R142 / FC-GAMEPLAY-P2-02` ferme la réplication réseau intègre et ordonnée de la météo ainsi que
 son événement ForgeScript typé. `R143 / FC-AI-P2-01` ferme la simulation déterministe de combat,
-ses comparaisons d'archétypes, son UI et son contrat MCP. Le programme P2 est terminé. P3/P4,
-AV7–AV10, commit et
-push restent exclus.
+ses comparaisons d'archétypes, son UI et son contrat MCP. Le programme P2 est terminé. Les lots
+Asset/Map AV7–AV10 restent séparés et optionnels.
 
 ## Programme P1 — terminé
 

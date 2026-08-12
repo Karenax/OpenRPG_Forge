@@ -1,17 +1,20 @@
 # File de travail canonique — OpenRPG Forge
 
-## Programme terminé : P2-CLOSURE
+## Programme terminé : AURORA-717-CLOSURE
 
 - [x] Conserver les 50 lots P0 `R001` à `R050` fermés et les 196 fonctions P0 `Tested`.
 - [x] Fermer les 70 lots P1 `R051` à `R120` dans le périmètre autorisé. Les 298 fonctions P1 sont
   `Tested`.
 - [x] Fermer les 20 lots P2 selon `docs/planning/P2_ACCEPTANCE_PROGRAM.md` sans
   ouvrir P3/P4 ni AV7–AV10 et sans commit ou push implicite.
+- [x] Réauditer et fermer les 16 lots P3 et le lot P4 selon
+  `docs/planning/P3_P4_ACCEPTANCE_PROGRAM.md` : 33 fonctions, 17 lots et 86 tests ciblés verts.
+- [x] Conserver les lots Asset/Map AV7–AV10 hors de la complétude Aurora comme
+  `OPTIONAL_POST_DEMO`.
 
-Le programme est global, mais son unité d'exécution reste un seul lot de une à cinq fonctions. Le
-thread Dev principal suit l'ordre de `docs/planning/COMPLETE_FUNCTION_BACKLOG.md`, applique le
-protocole `docs/planning/P2_ACCEPTANCE_PROGRAM.md`, teste à chaque palier et ne passe au lot suivant
-qu'après fermeture ou blocage documenté du lot courant.
+La complétude Aurora est fermée à 717/717 fonctions dans 187/187 lots. L'unité d'exécution reste un
+lot de une à cinq fonctions lors de toute réouverture pour régression. Les programmes d'acceptation
+P0, P1, P2 et P3/P4 conservent le protocole et les preuves de chaque palier.
 
 ### Lot courant
 

@@ -9,13 +9,13 @@ Les gates G0 à G13 prouvent des parcours verticaux utilisables. La cible initia
 atteinte uniquement lorsque les 717 fonctions sont `Tested` avec une preuve spécifique et que le
 portail global reste vert.
 
-État actuel :
+État actuel au 12 août 2026 :
 
-- 207 `Tested` ;
-- 432 `Implemented` mais `Partial` ;
-- 1 `Designed` ;
-- 77 `Researched` ;
-- 510 fonctions non closes.
+- 717 `Tested` ;
+- 0 `Implemented` partiel ;
+- 0 `Designed` ;
+- 0 `Researched` ;
+- 0 fonction non close.
 
 ## Découpage et ordre
 
@@ -27,11 +27,13 @@ Les dépendances du catalogue sont principalement des dépendances de domaine et
 Elles sont affichées, puis réévaluées feature par feature avant activation. Un seul lot est actif à
 la fois ; une fiche d'exécution détaillée n'est créée qu'à ce moment.
 
-## Programme P0 autorisé
+## Programmes d'acceptation terminés
 
-Le programme courant couvre `R001` à `R050` : 196 fonctions P0, dont 5 déjà `Tested` et 191 à fermer.
-Il est exécuté séquentiellement selon `planning/P0_ACCEPTANCE_PROGRAM.md`. Aucun statut n'est promu
-par simple correspondance de code ou parce qu'un ancien gate est fermé.
+Les 196 fonctions P0, 298 fonctions P1, 190 fonctions P2, 32 fonctions P3 et la fonction P4 sont
+fermées. Les protocoles et limites restent consignés dans `planning/P0_ACCEPTANCE_PROGRAM.md`,
+`planning/P1_ACCEPTANCE_PROGRAM.md`, `planning/P2_ACCEPTANCE_PROGRAM.md` et
+`planning/P3_P4_ACCEPTANCE_PROGRAM.md`. Aucun statut n'a été promu par simple correspondance de
+code ou parce qu'un ancien gate était fermé.
 
 ## Preuves de sortie par lot
 
