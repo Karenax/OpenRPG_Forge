@@ -3,7 +3,7 @@
     "schema_version": 2,
     "engine": "roslyn",
     "engine_version": "5.6.0.0",
-    "source_digest": "sha256:b0a974cbcb6c18221ea975d7f21663ade8e4224d0a389924d4982e308150415e",
+    "source_digest": "sha256:82d7ce890403d21af246bbcefcafba632afd6afd6ff873ca0452a2b110a108bd",
     "source_file_count": 2732,
     "sources": [
       {
@@ -3888,8 +3888,8 @@
       },
       {
         "path": "native/ForgeScript/src/forge_script_native.cpp",
-        "sha256": "sha256:f89c921f156feee0f1db4dda0f6cbb100ed3d762ae24950f21df1d5357120a71",
-        "size": 63764
+        "sha256": "sha256:5982052ff9d14792544130a3a3b44a50c5c5619a06912a703461cbf2410af137",
+        "size": 64080
       },
       {
         "path": "src/Forge.Application/Areas/AreaAudioMixer.cs",
@@ -12948,8 +12948,8 @@
       },
       {
         "path": "tests/Forge.Scripting.Tests/NativeForgeScriptRuntimeTests.cs",
-        "sha256": "sha256:f9302a751b7bd6859808ad024122f0497e2a138b829d981323e61f023ec3a056",
-        "size": 15540
+        "sha256": "sha256:1ab0a4cf857aa8d4fb13c05ca685b2aff6fbd6d3dd56b0623057a7e2d5a3d495",
+        "size": 16120
       },
       {
         "path": "tests/Forge.Scripting.Tests/packages.lock.json",
@@ -271350,7 +271350,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Scripting.Tests/NativeForgeScriptRuntimeTests.cs",
-        "line": 306
+        "line": 325
       }
     },
     {
@@ -271390,7 +271390,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Scripting.Tests/NativeForgeScriptRuntimeTests.cs",
-        "line": 77
+        "line": 96
       }
     },
     {
@@ -501190,7 +501190,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Scripting.Tests/NativeForgeScriptRuntimeTests.cs",
-        "line": 306
+        "line": 325
       }
     },
     {
@@ -501250,7 +501250,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Scripting.Tests/NativeForgeScriptRuntimeTests.cs",
-        "line": 77
+        "line": 96
       }
     },
     {

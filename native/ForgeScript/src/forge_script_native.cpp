@@ -1220,6 +1220,10 @@ FORGE_EXPORT int forge_script_compile(
     }
 
     EnsureMemoryFunctions();
+    // AngelScript's process-wide allocator and add-on registrations are shared by every
+    // engine instance. Keep compilation and execution behind the same native boundary so
+    // concurrent managed test hosts cannot race engine construction and teardown.
+    std::lock_guard<std::mutex> lock(ExecutionMutex);
     std::ostringstream diagnostic_stream;
     auto *engine = CreateEngine(diagnostic_stream, 32);
     if (engine == nullptr) {

@@ -53,6 +53,25 @@ public sealed class NativeForgeScriptRuntimeTests
     }
 
     [Fact]
+    public void Concurrent_compilation_requests_are_safe_across_runtime_instances()
+    {
+        var results = new ForgeScriptCompileResult[32];
+
+        Parallel.For(0, results.Length, index =>
+        {
+            var runtime = new NativeForgeScriptRuntime();
+            results[index] = runtime.Compile($"void main() {{ say(\"script-{index}\"); }}");
+        });
+
+        Assert.All(results, result =>
+        {
+            Assert.True(result.Success);
+            Assert.NotNull(result.Artifact);
+            Assert.Empty(result.Diagnostics);
+        });
+    }
+
+    [Fact]
     public void TypedEventEntryCompilesAndMainRunsWithoutWarnings()
     {
         const string source = "void OnDamaged(const int &in e) { int observed = e; } " +
