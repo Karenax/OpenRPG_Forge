@@ -1,6 +1,6 @@
 # File active — consolidation OpenRPG Forge
 
-Dernière mise à jour : 13 août 2026.
+Dernière mise à jour : 15 août 2026.
 
 Les 717 fonctions Aurora et les 187 lots sont clos. Cette file décrit le résultat de la consolidation
 et sépare les tâches réalisables dans le dépôt des décisions externes de release.
@@ -84,8 +84,48 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
   dry-run, blocage des dépendances, protections lecture seule/zone d’entrée et undo/redo.
 - [x] Vérifier interactivement le démarrage sans fenêtres parasites, le formulaire structuré vide,
   l’ajout d’une ligne, ses champs nommés et le repli explicite Modifier/Replier.
-- [ ] Isoler, committer et publier ce lot uniquement après autorisation explicite ; il est actuellement
-  validé mais encore mélangé à d’autres changements locaux du worktree.
+- [x] Intégrer ce lot dans la phase consolidée, le valider avec les autres changements locaux et le
+  publier uniquement après autorisation explicite.
+
+## C9 — Lanceur des jeux créés avec OpenRPG Forge
+
+- [x] Ajouter un profil canonique v1 : identité, exécutable, accent, image, liens, réglages,
+  capacité multijoueur et port local.
+- [x] Ajouter dans le Creator un formulaire direct et l'action **Créer le lanceur du jeu**.
+- [x] Construire un lanceur WPF RPG cinématique avec Accueil, Configuration et Multijoueur, décor
+  gouverné, brumes et braises animées, parallaxe, transitions et mode de mouvements réduits.
+- [x] Appliquer au runtime résolution, fenêtre, qualité, VSync, volumes et réduction des mouvements.
+- [x] Démarrer et valider une session locale autoritaire depuis le lanceur.
+- [x] Produire atomiquement le dossier du jeu et vérifier chaque fichier par taille et SHA-256.
+- [x] Fournir le CLI, les scripts et le modèle embarqué dans la distribution Creator.
+- [x] Vérifier visuellement les trois écrans WPF sans contrôle Windows natif visible et rejouer le
+  smoke sur le runtime exporté.
+- [ ] Brancher un transport réseau inter-processus avant d'activer **Rejoindre par adresse**.
+
+## C10 — Interface de combat dynamique du runtime
+
+- [x] Projeter les résultats autoritaires de combat depuis Domain/Application sans dépendance Godot
+  ni recalcul de dégâts, soins, ressources, recharge ou décès.
+- [x] Ajouter barres animées, cible, plaques ennemies, nombres flottants, recharge réelle, réactions
+  des capacités, toasts et pings temporaires de mini-carte.
+- [x] Ajouter impacts particulaires, accent écran, impulsion caméra, micro hit-stop et routage SFX,
+  avec cue déclarée ou repli procédural déterministe.
+- [x] Borner les pools et valider 600 frames réchauffées sous 64 Kio d'allocations et 1 ms p95.
+- [x] Couvrir contraste élevé, modes de vision des couleurs, texte ×1,2/×2 et mouvements réduits.
+- [x] Capturer 30 preuves Forward+ en 1920×1080 et 2560×1440, puis revoir interactivement attaque,
+  atlas, roue d'actions et transition Auberge du Cerf d'Ambre → Clairval.
+- [x] Conserver `forest-strike` à sa recharge réelle de zéro seconde et laisser le contenu JSON ainsi
+  que l'équilibrage hors du lot.
+
+## C11 — Qualification et publication de la phase
+
+- [x] Synchroniser `PROJECT_CONTEXT.md`, `STATUS.md` et cette file avec l'état réellement vérifié.
+- [x] Exclure du commit les plans Hermes et sidecars Godot régénérables, sans supprimer les snapshots
+  content-addressés qui documentent les révisions de zones.
+- [x] Isoler les restaurations RID des distributions pour préserver les verrous NuGet canoniques.
+- [x] Régénérer le graphe Roslyn et obtenir zéro diagnostic sur le contrôle complet.
+- [x] Rejouer les tests ciblés, les preuves visuelles Forward+ et le portail intégré.
+- [x] Publier la phase sur `origin/main` avec preuve de worktree propre et divergence nulle.
 
 ## Décisions externes avant release publique
 

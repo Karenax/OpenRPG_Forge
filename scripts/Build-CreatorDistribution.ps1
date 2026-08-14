@@ -3,7 +3,8 @@ param(
     [string]$OutputDirectory = 'artifacts/distribution/creator-windows-x64',
     [string]$EnginePath,
     [switch]$Force,
-    [switch]$CreateArchive
+    [switch]$CreateArchive,
+    [switch]$SkipGameLauncherTemplate
 )
 
 $ErrorActionPreference = 'Stop'
@@ -131,6 +132,22 @@ foreach ($applicationName in @('Forge.Toolset', 'Forge.Runtime')) {
         -Destination (Join-Path $workspaceTarget "apps/$applicationName")
 }
 
+# The old Crypt prototype is intentionally not shipped in the one-click Creator.
+# Forgotten Forest is the single immediately usable example presented to creators.
+$obsoletePrototype = Join-Path $workspaceTarget 'apps/Forge.Runtime/content/crypt-of-ashes'
+if (Test-Path -LiteralPath $obsoletePrototype) {
+    Remove-Item -LiteralPath $obsoletePrototype -Recurse -Force
+}
+
+if (-not $SkipGameLauncherTemplate) {
+    $gameLauncherTemplate = Join-Path $workspaceTarget 'templates/game-windows-x64'
+    & (Join-Path $PSScriptRoot 'Build-GameLauncherTemplate.ps1') `
+        -OutputDirectory $gameLauncherTemplate -EnginePath $EnginePath -Force
+    if ($LASTEXITCODE -ne 0) {
+        throw "The game launcher template build failed with exit code $LASTEXITCODE."
+    }
+}
+
 Remove-Item -LiteralPath $buildRoot -Recurse -Force
 
 $launcherPath = Join-Path $outputPath 'OpenRPG_Forge_Creator.exe'
@@ -193,4 +210,5 @@ if ($CreateArchive) {
     Write-Output "OPENRPG_FORGE_CREATOR_ARCHIVE_READY path=$archivePath sha256=$((Get-FileHash -LiteralPath $archivePath -Algorithm SHA256).Hash.ToLowerInvariant())"
 }
 
-Write-Output "OPENRPG_FORGE_CREATOR_DISTRIBUTION_READY path=$outputPath files=$($files.Count) launcher=verified mcp=bundled"
+$gameLauncherTemplateStatus = if ($SkipGameLauncherTemplate) { 'skipped' } else { 'bundled' }
+Write-Output "OPENRPG_FORGE_CREATOR_DISTRIBUTION_READY path=$outputPath files=$($files.Count) launcher=verified mcp=bundled game_launcher_template=$gameLauncherTemplateStatus"

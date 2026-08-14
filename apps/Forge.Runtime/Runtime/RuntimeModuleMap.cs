@@ -1,9 +1,16 @@
 using Forge.Domain.Areas;
 using Forge.Domain.Entities;
 using Forge.Domain.Projects;
+using Forge.Domain.Spatial;
 using Godot;
 
 namespace Forge.Runtime;
+
+internal enum RuntimeMapPingKind
+{
+    Combat,
+    Objective,
+}
 
 public partial class RuntimeModuleMap : CanvasLayer
 {
@@ -17,6 +24,8 @@ public partial class RuntimeModuleMap : CanvasLayer
     private GlobalMapCanvas? _globalCanvas;
     private bool _globalMapRequested;
     private bool _explorationUiRequested = true;
+
+    internal RuntimeUiMotionPolicy MotionPolicy { get; init; } = RuntimeUiMotionPolicy.Create(null, []);
 
     public event Action? InventoryRequested;
 
@@ -35,6 +44,12 @@ public partial class RuntimeModuleMap : CanvasLayer
     public string CurrentAreaSlug => _area?.Slug ?? string.Empty;
 
     public Vector2 MiniMapLogicalSize => _localCanvas?.Size ?? Vector2.Zero;
+
+    internal int ActivePingCount => _localCanvas?.ActivePingCount ?? 0;
+
+    internal int PeakPingCount => _localCanvas?.PeakPingCount ?? 0;
+
+    internal string LastPingAccessibleText => _localCanvas?.LastPingAccessibleText ?? string.Empty;
 
     public void Configure(ProjectDefinition project, AreaDefinition area, PlayerController player)
     {
@@ -56,9 +71,20 @@ public partial class RuntimeModuleMap : CanvasLayer
 
     public override void _Process(double delta)
     {
+        _localCanvas?.AdvancePings(delta);
         _localCanvas?.QueueRedraw();
         if (GlobalMapVisible) _globalCanvas?.QueueRedraw();
     }
+
+    internal void ShowPing(Vector3Value position, RuntimeMapPingKind kind, string accessibleText)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(accessibleText);
+        if (!float.IsFinite(position.X) || !float.IsFinite(position.Y) || !float.IsFinite(position.Z))
+            throw new ArgumentOutOfRangeException(nameof(position));
+        _localCanvas?.ShowPing(position, kind, accessibleText.Trim());
+    }
+
+    internal void ClearPings() => _localCanvas?.ClearPings();
 
     public void ToggleGlobalMap() => SetGlobalMapVisible(!GlobalMapVisible);
 
@@ -124,7 +150,7 @@ public partial class RuntimeModuleMap : CanvasLayer
         mapShell.AddThemeStyleboxOverride("panel", shellStyle);
         root.AddChild(mapShell);
 
-        _localCanvas = new LocalMapCanvas(_area!, _player!)
+        _localCanvas = new LocalMapCanvas(_area!, _player!, MotionPolicy)
         {
             Position = new Vector2(19, 19),
             Size = new Vector2(144, 144),
@@ -458,9 +484,39 @@ public partial class RuntimeModuleMap : CanvasLayer
         }
     }
 
-    private sealed partial class LocalMapCanvas(AreaDefinition area, PlayerController player) : Control
+    private sealed partial class LocalMapCanvas : Control
     {
-        private readonly HashSet<EntityId> _portalEntities = area.Portals.Select(portal => portal.SourceEntityId).ToHashSet();
+        private const int PingCapacity = 8;
+
+        private readonly AreaDefinition area;
+        private readonly PlayerController player;
+        private readonly RuntimeUiMotionPolicy motionPolicy;
+        private readonly MapPingEntry[] _pings = new MapPingEntry[PingCapacity];
+        private readonly HashSet<EntityId> _portalEntities;
+
+        internal LocalMapCanvas(AreaDefinition area, PlayerController player, RuntimeUiMotionPolicy motionPolicy)
+        {
+            this.area = area ?? throw new ArgumentNullException(nameof(area));
+            this.player = player ?? throw new ArgumentNullException(nameof(player));
+            this.motionPolicy = motionPolicy ?? throw new ArgumentNullException(nameof(motionPolicy));
+            _portalEntities = area.Portals.Select(portal => portal.SourceEntityId).ToHashSet();
+            for (var index = 0; index < _pings.Length; index++) _pings[index] = new MapPingEntry();
+        }
+
+        internal int ActivePingCount
+        {
+            get
+            {
+                var count = 0;
+                for (var index = 0; index < _pings.Length; index++)
+                    if (_pings[index].Active) count++;
+                return count;
+            }
+        }
+
+        internal int PeakPingCount { get; private set; }
+
+        internal string LastPingAccessibleText { get; private set; } = string.Empty;
 
         public override void _Draw()
         {
@@ -474,6 +530,8 @@ public partial class RuntimeModuleMap : CanvasLayer
             foreach (var entity in area.Entities.Where(IsMapMarker))
                 DrawEntity(entity, ClampToMapCircle(Project(entity, bounds), bounds));
 
+            DrawPings(bounds);
+
             var playerPoint = ClampToMapCircle(Project(player.GlobalPosition.X, player.GlobalPosition.Z, bounds), bounds);
             var forward = -player.GlobalTransform.Basis.Z;
             var direction = new Vector2(forward.X, forward.Z).Normalized();
@@ -486,6 +544,95 @@ public partial class RuntimeModuleMap : CanvasLayer
                 playerPoint - direction * 5 - side * 4,
             ], RuntimeRpgUiTheme.Bone);
             DrawArc(playerPoint, 9, 0, Mathf.Tau, 24, RuntimeRpgUiTheme.Gold, 1, true);
+        }
+
+        internal void ShowPing(Vector3Value position, RuntimeMapPingKind kind, string accessibleText)
+        {
+            MapPingEntry? selected = null;
+            for (var index = 0; index < _pings.Length; index++)
+            {
+                var candidate = _pings[index];
+                if (candidate.Active && candidate.Kind == kind &&
+                    Math.Abs(candidate.Position.X - position.X) < .05f &&
+                    Math.Abs(candidate.Position.Z - position.Z) < .05f)
+                {
+                    selected = candidate;
+                    break;
+                }
+                if (!candidate.Active && selected is null) selected = candidate;
+            }
+
+            if (selected is null)
+            {
+                selected = _pings[0];
+                for (var index = 1; index < _pings.Length; index++)
+                    if (_pings[index].RemainingSeconds < selected.RemainingSeconds) selected = _pings[index];
+            }
+
+            selected.Active = true;
+            selected.Position = position;
+            selected.Kind = kind;
+            selected.AccessibleText = accessibleText;
+            selected.RemainingSeconds = motionPolicy.MapPingSeconds;
+            LastPingAccessibleText = accessibleText;
+            SetMeta("accessible_ping_text", accessibleText);
+            PeakPingCount = Math.Max(PeakPingCount, ActivePingCount);
+            QueueRedraw();
+        }
+
+        internal void AdvancePings(double delta)
+        {
+            for (var index = 0; index < _pings.Length; index++)
+            {
+                var ping = _pings[index];
+                if (!ping.Active) continue;
+                ping.RemainingSeconds = Math.Max(0, ping.RemainingSeconds - delta);
+                if (ping.RemainingSeconds > 0) continue;
+                ping.Active = false;
+            }
+        }
+
+        internal void ClearPings()
+        {
+            for (var index = 0; index < _pings.Length; index++)
+            {
+                _pings[index].Active = false;
+                _pings[index].RemainingSeconds = 0;
+            }
+            SetMeta("accessible_ping_text", string.Empty);
+            QueueRedraw();
+        }
+
+        private void DrawPings(Rect2 bounds)
+        {
+            for (var index = 0; index < _pings.Length; index++)
+            {
+                var ping = _pings[index];
+                if (!ping.Active) continue;
+                var point = ClampToMapCircle(Project(ping.Position.X, ping.Position.Z, bounds), bounds);
+                var progress = 1 - ping.RemainingSeconds / Math.Max(.01, motionPolicy.MapPingSeconds);
+                var radius = motionPolicy.ReducedMotion ? 8f : 6f + (float)progress * 10f;
+                var alpha = motionPolicy.ReducedMotion
+                    ? 1f
+                    : (float)Math.Clamp(ping.RemainingSeconds / .45, 0, 1);
+                var color = ping.Kind == RuntimeMapPingKind.Combat
+                    ? motionPolicy.ResolveColor(RuntimeUiSemanticColor.Damage)
+                    : motionPolicy.ResolveColor(RuntimeUiSemanticColor.Objective);
+                color.A = alpha;
+                DrawCircle(point, radius, new Color(0, 0, 0, .5f), false,
+                    motionPolicy.HighContrast ? 4 : 2, true);
+                DrawArc(point, radius, 0, Mathf.Tau, 32, color,
+                    motionPolicy.HighContrast ? 3 : 2, true);
+                if (ping.Kind == RuntimeMapPingKind.Combat)
+                {
+                    DrawLine(point + new Vector2(-4, -4), point + new Vector2(4, 4), color, 2, true);
+                    DrawLine(point + new Vector2(4, -4), point + new Vector2(-4, 4), color, 2, true);
+                }
+                else
+                {
+                    DrawDiamond(point, 4, color);
+                }
+            }
         }
 
         private static Vector2 ClampToMapCircle(Vector2 point, Rect2 bounds)
@@ -583,6 +730,19 @@ public partial class RuntimeModuleMap : CanvasLayer
             var normalizedZ = Mathf.Clamp((z / depth) + .5f, 0, 1);
             return new(bounds.Position.X + 7 + normalizedX * (bounds.Size.X - 14),
                 bounds.Position.Y + 7 + normalizedZ * (bounds.Size.Y - 14));
+        }
+
+        private sealed class MapPingEntry
+        {
+            internal bool Active { get; set; }
+
+            internal Vector3Value Position { get; set; } = Vector3Value.Zero;
+
+            internal RuntimeMapPingKind Kind { get; set; }
+
+            internal string AccessibleText { get; set; } = string.Empty;
+
+            internal double RemainingSeconds { get; set; }
         }
     }
 

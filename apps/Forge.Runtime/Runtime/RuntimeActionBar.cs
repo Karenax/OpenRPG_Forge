@@ -1,3 +1,4 @@
+using Forge.Domain.Combat;
 using Godot;
 
 namespace Forge.Runtime;
@@ -17,16 +18,36 @@ public partial class RuntimeActionBar : CanvasLayer
     ];
 
     private readonly List<Button> _buttons = [];
+    private readonly double[] _feedbackRemaining = new double[Slots.Length];
+    private AbilityDefinition? _primaryAbility;
+    private RuntimeCooldownSweep? _primaryCooldown;
+    private Label? _primaryState;
+    private double _previousPrimaryRemaining;
+    private bool _primaryStateInitialized;
+    private string _primaryStateText = string.Empty;
 
     public event Action<string>? CommandRequested;
 
+    public event Action? PrimaryAbilityReady;
+
     public bool CombatEnabled { get; init; }
 
+    internal RuntimeUiMotionPolicy MotionPolicy { get; init; } = RuntimeUiMotionPolicy.Create(null, []);
+
+    private bool LargeText => MotionPolicy.TextScale > 1.5f;
+
     public int SlotCount => Slots.Length;
+
+    internal double PrimaryCooldownRemaining => _primaryCooldown?.RemainingSeconds ?? 0;
+
+    internal bool PrimaryCooldownVisible => _primaryCooldown?.Active == true;
+
+    internal string PrimaryStateText => _primaryStateText;
 
     public override void _Ready()
     {
         Layer = 14;
+        ProcessMode = ProcessModeEnum.Always;
         var margin = new MarginContainer
         {
             AnchorLeft = .5f,
@@ -34,8 +55,8 @@ public partial class RuntimeActionBar : CanvasLayer
             AnchorTop = 1,
             AnchorBottom = 1,
             OffsetLeft = -170,
-            OffsetTop = -104,
-            OffsetRight = 389,
+            OffsetTop = LargeText ? -124 : -104,
+            OffsetRight = LargeText ? 450 : 389,
             OffsetBottom = -20,
         };
         AddChild(margin);
@@ -68,7 +89,7 @@ public partial class RuntimeActionBar : CanvasLayer
             {
                 Name = $"ActionSlot{index + 1}",
                 TooltipText = $"{slot.Key} · {slot.Label}\n{slot.Tooltip}",
-                CustomMinimumSize = new Vector2(59, 60),
+                CustomMinimumSize = LargeText ? new Vector2(70, 72) : new Vector2(59, 60),
                 FocusMode = Control.FocusModeEnum.All,
                 Disabled = slot.Command == "attack" && !CombatEnabled,
             };
@@ -90,18 +111,49 @@ public partial class RuntimeActionBar : CanvasLayer
             glyph.OffsetTop = 5;
             button.AddChild(glyph);
 
+            if (slot.Command == "attack")
+            {
+                _primaryCooldown = new RuntimeCooldownSweep { MotionPolicy = MotionPolicy };
+                _primaryCooldown.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
+                _primaryCooldown.OffsetLeft = 2;
+                _primaryCooldown.OffsetTop = 2;
+                _primaryCooldown.OffsetRight = -2;
+                _primaryCooldown.OffsetBottom = -2;
+                _primaryCooldown.Configure(_primaryAbility?.CooldownSeconds ?? 0);
+                button.AddChild(_primaryCooldown);
+            }
+
             var key = new Label
             {
                 Text = slot.Key,
                 OffsetLeft = 5,
                 OffsetTop = 3,
-                OffsetRight = 31,
-                OffsetBottom = 17,
+                OffsetRight = LargeText ? 42 : 31,
+                OffsetBottom = LargeText ? 27 : 17,
                 MouseFilter = Control.MouseFilterEnum.Ignore,
             };
-            RuntimeRpgUiTheme.StyleBody(key, 8,
+            RuntimeRpgUiTheme.StyleBody(key, Math.Max(8, Mathf.RoundToInt(8 * MotionPolicy.TextScale)),
                 button.Disabled ? new Color("5f5548") : RuntimeRpgUiTheme.Muted);
             button.AddChild(key);
+
+            if (slot.Command == "attack")
+            {
+                _primaryState = new Label
+                {
+                    AnchorTop = 1,
+                    AnchorRight = 1,
+                    AnchorBottom = 1,
+                    OffsetLeft = 2,
+                    OffsetTop = LargeText ? -27 : -17,
+                    OffsetRight = -2,
+                    OffsetBottom = -4,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    MouseFilter = Control.MouseFilterEnum.Ignore,
+                };
+                RuntimeRpgUiTheme.StyleTitle(_primaryState,
+                    Math.Max(7, Mathf.RoundToInt(8 * MotionPolicy.TextScale)), RuntimeRpgUiTheme.Bone);
+                button.AddChild(_primaryState);
+            }
 
             var lowerRule = new ColorRect
             {
@@ -123,13 +175,103 @@ public partial class RuntimeActionBar : CanvasLayer
             _buttons.Add(button);
             row.AddChild(button);
         }
+
+        RefreshPrimaryPresentation(0, 0, false);
+    }
+
+    public override void _Process(double delta)
+    {
+        for (var index = 0; index < _feedbackRemaining.Length && index < _buttons.Count; index++)
+        {
+            if (_feedbackRemaining[index] <= 0) continue;
+            _feedbackRemaining[index] = Math.Max(0, _feedbackRemaining[index] - delta);
+            if (MotionPolicy.ReducedMotion || _feedbackRemaining[index] <= 0)
+            {
+                _buttons[index].SelfModulate = Colors.White;
+                continue;
+            }
+            var intensity = (float)Math.Clamp(_feedbackRemaining[index] / .12, 0, 1);
+            _buttons[index].SelfModulate = Colors.White.Lerp(RuntimeRpgUiTheme.Gold.Lightened(.25f), intensity);
+        }
+    }
+
+    internal void ConfigurePrimaryAbility(AbilityDefinition ability)
+    {
+        _primaryAbility = ability ?? throw new ArgumentNullException(nameof(ability));
+        _primaryCooldown?.Configure(ability.CooldownSeconds);
+        RefreshPrimaryPresentation(_primaryCooldown?.RemainingSeconds ?? 0, 0, false);
+    }
+
+    internal void UpdatePrimaryAbilityState(double remaining, int resource, bool targetAvailable)
+    {
+        if (!double.IsFinite(remaining) || remaining < 0)
+            throw new ArgumentOutOfRangeException(nameof(remaining));
+        ArgumentOutOfRangeException.ThrowIfNegative(resource);
+        _primaryCooldown?.SetRemaining(remaining);
+        if (_primaryStateInitialized && _primaryAbility is { CooldownSeconds: > 0 } &&
+            _previousPrimaryRemaining > 0 && remaining <= 0)
+        {
+            NotifyCommandAccepted("attack");
+            PrimaryAbilityReady?.Invoke();
+        }
+        _primaryStateInitialized = true;
+        _previousPrimaryRemaining = remaining;
+        RefreshPrimaryPresentation(remaining, resource, targetAvailable);
+    }
+
+    internal void NotifyCastAccepted() => NotifyCommandAccepted("attack");
+
+    internal void NotifyCommandAccepted(string command)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(command);
+        for (var index = 0; index < Slots.Length; index++)
+        {
+            if (!string.Equals(Slots[index].Command, command, StringComparison.Ordinal)) continue;
+            _feedbackRemaining[index] = MotionPolicy.ReducedMotion ? 0 : .12;
+            return;
+        }
     }
 
     internal bool ActivateSlot(int index)
     {
         if (index < 0 || index >= Slots.Length || _buttons[index].Disabled) return false;
+        NotifyCommandAccepted(Slots[index].Command);
         CommandRequested?.Invoke(Slots[index].Command);
         return true;
+    }
+
+    private void RefreshPrimaryPresentation(double remaining, int resource, bool targetAvailable)
+    {
+        var ability = _primaryAbility;
+        var nextState = !CombatEnabled || ability is null
+            ? "INDISPO"
+            : !targetAvailable
+                ? "CIBLE"
+                : resource < ability.ResourceCost
+                    ? $"RES {ability.ResourceCost}"
+                    : remaining > 0
+                        ? $"{remaining:0.0}s"
+                        : "PRÊT";
+        if (string.Equals(nextState, _primaryStateText, StringComparison.Ordinal) &&
+            string.Equals(_primaryState?.Text, nextState, StringComparison.Ordinal))
+            return;
+        _primaryStateText = nextState;
+        if (_primaryState is not null)
+        {
+            _primaryState.Text = nextState;
+            var color = nextState == "PRÊT"
+                ? MotionPolicy.ResolveColor(RuntimeUiSemanticColor.Healing)
+                : nextState == "CIBLE" || nextState.StartsWith("RES", StringComparison.Ordinal)
+                    ? MotionPolicy.ResolveColor(RuntimeUiSemanticColor.Alert)
+                    : RuntimeRpgUiTheme.Bone;
+            _primaryState.AddThemeColorOverride("font_color", color);
+        }
+        if (_buttons.Count == 0) return;
+        var description = ability is null
+            ? "Attaque indisponible"
+            : $"{ability.DisplayName} · coût {ability.ResourceCost} ressource · {nextState.ToLowerInvariant()}";
+        _buttons[0].TooltipText = $"1 · {description}";
+        _buttons[0].SetMeta("accessible_label", $"Action 1 : {description}");
     }
 
     private static Color SlotAccent(string command) => command switch

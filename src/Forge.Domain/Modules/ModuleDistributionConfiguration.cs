@@ -17,6 +17,8 @@ public sealed record ModuleDistributionConfiguration
 
     public ModuleReleaseConfiguration Release { get; }
 
+    public GameLauncherConfiguration Launcher { get; }
+
     public string Provenance { get; }
 
     public ModuleDistributionConfiguration(
@@ -25,7 +27,8 @@ public sealed record ModuleDistributionConfiguration
         IReadOnlyList<ThirdPartyDependencyApproval>? dependencies,
         string provenance,
         ModuleReleaseConfiguration? release = null,
-        int schemaVersion = CurrentSchemaVersion)
+        int schemaVersion = CurrentSchemaVersion,
+        GameLauncherConfiguration? launcher = null)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentNullException.ThrowIfNull(targetProfiles);
@@ -68,13 +71,14 @@ public sealed record ModuleDistributionConfiguration
         TargetProfiles = profiles;
         Dependencies = approvals;
         Release = release ?? ModuleReleaseConfiguration.CreateDefault(id);
+        Launcher = launcher ?? GameLauncherConfiguration.CreateDisabled(id);
         Provenance = provenance.Trim();
     }
 
     public ModuleTargetProfile GetProfile(ModuleTargetKind target) =>
         TargetProfiles.Single(profile => profile.Target == target);
 
-    public static ModuleDistributionConfiguration CreateDefault(ModuleId moduleId)
+    public static ModuleDistributionConfiguration CreateDefault(ModuleId moduleId, string? displayName = null)
     {
         ArgumentNullException.ThrowIfNull(moduleId);
         var profiles = Enum.GetValues<ModuleTargetKind>()
@@ -86,7 +90,8 @@ public sealed record ModuleDistributionConfiguration
             [],
             "migration-default",
             ModuleReleaseConfiguration.CreateDefault(
-                ModuleDistributionConfigurationId.From(CreateStableGuid(moduleId, "distribution"))));
+                ModuleDistributionConfigurationId.From(CreateStableGuid(moduleId, "distribution"))),
+            launcher: GameLauncherConfiguration.CreateDefault(moduleId, displayName ?? "Jeu OpenRPG"));
     }
 
     private static ModuleTargetProfile CreateDefaultProfile(ModuleId moduleId, ModuleTargetKind target)

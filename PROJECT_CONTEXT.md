@@ -1,6 +1,6 @@
 # Contexte canonique — OpenRPG Forge
 
-Dernière mise à jour : 13 août 2026.
+Dernière mise à jour : 15 août 2026.
 
 Ce document est l’unique contexte narratif courant du projet. Les états d’exécution sont dans
 `STATUS.md` et `TASKS_MVP.md`; les exigences détaillées et leurs preuves restent dans le tracker et
@@ -22,7 +22,8 @@ Un créateur doit pouvoir :
 5. configurer navigation, environnement, caméra, contrôles, réseau et Live Director ;
 6. jouer immédiatement depuis une sélection, diagnostiquer et corriger les erreurs ;
 7. exporter un module `.orpmod`, le réinstaller et le partager sans dépendance cachée ;
-8. demander à l’IA d’expliquer, proposer, construire ou réparer par des plans vérifiables et annulables.
+8. créer un lanceur Windows propre au jeu, avec branding, réglages et hébergement multijoueur local ;
+9. demander à l’IA d’expliquer, proposer, construire ou réparer par des plans vérifiables et annulables.
 
 ## Produit actuel
 
@@ -30,6 +31,24 @@ Le dépôt contient un Creator/Toolset, un runtime 3D séparé, ForgeScript, un 
 un host MCP et deux démonstrations jouables : Crypte des Cendres et Forgotten Forest. Les 717
 exigences du catalogue Aurora sont classées `Tested` dans 187 lots clos. Cette couverture décrit les
 capacités disponibles ; elle ne remplace pas la qualification d’un logiciel installable et publiable.
+
+Le Creator sait aussi configurer un profil de lanceur par jeu et générer une distribution Windows x64
+atomique. Le lanceur WPF possède une présentation RPG cinématique animée, vérifie ses fichiers, expose
+Accueil, Configuration et Multijoueur, applique les préférences au runtime et démarre une session
+locale autoritaire. La connexion distante reste un aperçu désactivé jusqu'au branchement d'un
+transport réseau inter-processus. Les restaurations `win-x64` propres aux exports utilisent des
+verrous NuGet temporaires et ne réécrivent pas les `packages.lock.json` canoniques du dépôt.
+
+Le parcours Creator normal ouvre la démonstration Forgotten Forest et privilégie l'édition directe :
+choisir un objet ou une brosse de terrain, cliquer dans la vue 3D, cadrer la zone active et conserver
+les détails techniques en second niveau. Les aperçus d'assets externes restent gouvernés ; un asset
+indisponible reçoit un placeholder explicite sans autoriser d'import implicite depuis le réseau.
+
+Le runtime possède une interface de combat dynamique fondée sur les résultats autoritaires du
+domaine : barres animées, cible, plaques ennemies, nombres flottants, recharge réelle, toasts,
+pings, impacts, caméra, micro hit-stop et audio SFX. Cette présentation reste générique, ne modifie
+ni équilibrage ni contenu de module, et se replie proprement avec mouvements réduits, contraste
+élevé, modes de vision des couleurs et texte jusqu'à ×2.
 
 Le chantier courant n’est plus la création de nouvelles familles fonctionnelles. Il est la
 consolidation du produit : publication contrôlée des derniers correctifs d’interface, CI distante
@@ -97,6 +116,15 @@ Forgotten Forest une composition stylisée avec modèles réels, terrain, naviga
 jouables. La passe restante avant démonstration publique est une finition artistique exhaustive et
 une revue humaine sur les résolutions et profils matériels supportés, pas un retour aux primitives.
 
+Le rendu Forward+ applique une qualité visuelle gouvernée par profil : ciel procédural cinématique,
+occlusion et lumière indirecte d'écran, glow et brouillard volumétrique lorsque le backend les prend
+en charge. Les chemins de validation en compatibilité GL conservent un repli sûr et une colorimétrie
+neutre lorsqu'une LUT déclarée manque.
+
+En combat, la lisibilité prime sur l'ornement : l'état réel du joueur, de la cible, des ressources et
+des capacités est visible sans dépendre uniquement de la couleur. Les animations et effets restent
+brefs, bornés par des pools stables et entièrement supprimables par la politique de mouvements réduits.
+
 ## Architecture à préserver
 
 Flux de mutation officiel :
@@ -134,8 +162,9 @@ La première version publiable est atteinte lorsque :
 
 - les CI Windows et Linux sont vertes de façon répétée sur un checkout propre ;
 - le Creator et le runtime se distribuent sous la marque OpenRPG Forge sans script de développement ;
+- un jeu peut être livré avec son propre lanceur vérifiable sans ouvrir le Creator ;
 - installation, mise à jour, désinstallation et lancement sont validés sur une machine propre ;
-- un utilisateur peut réaliser les huit étapes du but final sans éditer de JSON ;
+- un utilisateur peut réaliser les neuf étapes du but final sans éditer de JSON ;
 - chaque élément nécessaire à un module peut être créé, inspecté, modifié et supprimé manuellement
   sans perte silencieuse des données non affichées ;
 - les neuf espaces sont cohérents, navigables au clavier et utilisables en mode Débutant ;

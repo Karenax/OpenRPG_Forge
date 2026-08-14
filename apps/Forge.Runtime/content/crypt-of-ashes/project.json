@@ -202,6 +202,22 @@
           },
           "provenance": "migration-default"
         },
+        "launcher": {
+          "id": "caacdb65-5691-50bd-8485-8481c3a043ac",
+          "schemaVersion": 1,
+          "enabled": false,
+          "displayName": "Jeu OpenRPG",
+          "tagline": "Une aventure cr\u00E9\u00E9e avec OpenRPG Forge",
+          "executableName": "Jeu_OpenRPG",
+          "accentColor": "#C77A45",
+          "backgroundImagePath": null,
+          "newsUrl": null,
+          "supportUrl": null,
+          "settingsEnabled": true,
+          "multiplayer": "localHost",
+          "defaultServerPort": 5121,
+          "provenance": "migration-default"
+        },
         "provenance": "migration-default"
       },
       "localization": {

@@ -67,6 +67,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Forge.WorkspaceMigrator", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Forge.CreatorLauncher", "apps\Forge.CreatorLauncher\Forge.CreatorLauncher.csproj", "{2E500D53-8AFE-452D-9FFE-07CB23693D61}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Forge.GameLauncher", "apps\Forge.GameLauncher\Forge.GameLauncher.csproj", "{5069AB56-0EFE-4DD6-A4D8-5CA26C014EDA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -413,6 +415,18 @@ Global
 		{2E500D53-8AFE-452D-9FFE-07CB23693D61}.Release|x64.Build.0 = Release|Any CPU
 		{2E500D53-8AFE-452D-9FFE-07CB23693D61}.Release|x86.ActiveCfg = Release|Any CPU
 		{2E500D53-8AFE-452D-9FFE-07CB23693D61}.Release|x86.Build.0 = Release|Any CPU
+		{5069AB56-0EFE-4DD6-A4D8-5CA26C014EDA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5069AB56-0EFE-4DD6-A4D8-5CA26C014EDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5069AB56-0EFE-4DD6-A4D8-5CA26C014EDA}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{5069AB56-0EFE-4DD6-A4D8-5CA26C014EDA}.Debug|x64.Build.0 = Debug|Any CPU
+		{5069AB56-0EFE-4DD6-A4D8-5CA26C014EDA}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5069AB56-0EFE-4DD6-A4D8-5CA26C014EDA}.Debug|x86.Build.0 = Debug|Any CPU
+		{5069AB56-0EFE-4DD6-A4D8-5CA26C014EDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5069AB56-0EFE-4DD6-A4D8-5CA26C014EDA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5069AB56-0EFE-4DD6-A4D8-5CA26C014EDA}.Release|x64.ActiveCfg = Release|Any CPU
+		{5069AB56-0EFE-4DD6-A4D8-5CA26C014EDA}.Release|x64.Build.0 = Release|Any CPU
+		{5069AB56-0EFE-4DD6-A4D8-5CA26C014EDA}.Release|x86.ActiveCfg = Release|Any CPU
+		{5069AB56-0EFE-4DD6-A4D8-5CA26C014EDA}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -446,5 +460,6 @@ Global
 		{55C18471-ACC3-48ED-864C-2C4DB5271848} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{73C2E354-4137-47AA-9B75-543B96E5502A} = {07C2787E-EAC7-C090-1BA3-A61EC2A24D84}
 		{2E500D53-8AFE-452D-9FFE-07CB23693D61} = {1787FE1D-075E-9E68-7218-25F1BD1BBEAB}
+		{5069AB56-0EFE-4DD6-A4D8-5CA26C014EDA} = {1787FE1D-075E-9E68-7218-25F1BD1BBEAB}
 	EndGlobalSection
 EndGlobal

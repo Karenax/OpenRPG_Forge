@@ -7,5 +7,6 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Deterministic>true</Deterministic>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <NuGetLockFilePath Condition="'$(OpenRpgNuGetLockDirectory)' != ''">$(OpenRpgNuGetLockDirectory)\$(MSBuildProjectName).packages.lock.json</NuGetLockFilePath>
   </PropertyGroup>
 </Project>

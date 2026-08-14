@@ -514,12 +514,27 @@ public sealed class ProjectJsonSerializerTests
             new ModuleDeltaConfiguration(true, 512 * 1024, true, true, true, 3),
             defaults.Release.WindowsPackaging,
             "test");
+        var launcher = new GameLauncherConfiguration(
+            defaults.Launcher.Id,
+            enabled: true,
+            "La Crypte",
+            "Le feu attend sous la pierre.",
+            "Cendres",
+            "#A36B42",
+            "branding/hero.png",
+            "https://example.com/news",
+            "https://example.com/support",
+            settingsEnabled: true,
+            GameLauncherMultiplayerMode.DirectConnectPreview,
+            6121,
+            "test");
         var distribution = new ModuleDistributionConfiguration(
             defaults.Id,
             defaults.TargetProfiles,
             [approval],
             "test",
-            release);
+            release,
+            launcher: launcher);
         var module = new ModuleDefinition(
             source.Module.Id,
             source.Module.Slug,
@@ -552,8 +567,29 @@ public sealed class ProjectJsonSerializerTests
         Assert.Equal(ModuleReleaseChannel.Preview, restored.Module.Distribution.Release.Channel);
         Assert.Equal(2, restored.Module.Distribution.Release.Platforms.Count);
         Assert.Equal(512 * 1024, restored.Module.Distribution.Release.Delta.ChunkSizeBytes);
+        Assert.True(restored.Module.Distribution.Launcher.Enabled);
+        Assert.Equal("Cendres", restored.Module.Distribution.Launcher.ExecutableName);
+        Assert.Equal(GameLauncherMultiplayerMode.DirectConnectPreview,
+            restored.Module.Distribution.Launcher.Multiplayer);
+        Assert.Equal(6121, restored.Module.Distribution.Launcher.DefaultServerPort);
+        Assert.Contains("\"launcher\"", serialized, StringComparison.Ordinal);
         Assert.Contains("\"secretsProfile\"", serialized, StringComparison.Ordinal);
         Assert.DoesNotContain("secretValue", serialized, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Deserialize_ProjectWithoutLauncherProfile_GetsAStableDisabledProfile()
+    {
+        var document = JsonNode.Parse(ProjectJsonSerializer.Serialize(TestProjectFactory.CreateValid()))!.AsObject();
+        document["project"]!["module"]!["distribution"]!.AsObject().Remove("launcher");
+        var legacyJson = document.ToJsonString();
+
+        var first = ProjectJsonSerializer.Deserialize(legacyJson);
+        var second = ProjectJsonSerializer.Deserialize(legacyJson);
+
+        Assert.False(first.Module.Distribution.Launcher.Enabled);
+        Assert.Equal(first.Module.Distribution.Launcher.Id, second.Module.Distribution.Launcher.Id);
+        Assert.Equal("Jeu_OpenRPG", first.Module.Distribution.Launcher.ExecutableName);
     }
 
     [Fact]

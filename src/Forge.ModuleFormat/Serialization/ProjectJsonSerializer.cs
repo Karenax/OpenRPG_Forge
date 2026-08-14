@@ -173,6 +173,7 @@ public static class ProjectJsonSerializer
         options.Converters.Add(new LocalizationCatalogIdJsonConverter());
         options.Converters.Add(new ModuleIdJsonConverter());
         options.Converters.Add(new ModuleDistributionConfigurationIdJsonConverter());
+        options.Converters.Add(new GameLauncherConfigurationIdJsonConverter());
         options.Converters.Add(new ModuleReleaseConfigurationIdJsonConverter());
         options.Converters.Add(new ModuleTargetProfileIdJsonConverter());
         options.Converters.Add(new NavigationAgentProfileIdJsonConverter());

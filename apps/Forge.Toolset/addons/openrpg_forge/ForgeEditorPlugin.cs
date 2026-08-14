@@ -66,6 +66,7 @@ using Forge.ModuleFormat.Assets;
 using Forge.ModuleFormat.Content;
 using Forge.ModuleFormat.Distribution;
 using Forge.ModuleFormat.Diagnostics;
+using Forge.ModuleFormat.Launcher;
 using Forge.ModuleFormat.Navigation;
 using Forge.ModuleFormat.Playtesting;
 using Forge.ModuleFormat.Packages;
@@ -184,6 +185,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly SetWorldFeatureCatalogHandler _worldFeatureHandler = new(new SystemClock());
     private readonly AssistedForgeScriptCommandHistory _assistedForgeScriptHistory = new();
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
+    private bool _desktopCreatorShell;
+    private int _creatorShellNormalizationFrames;
     private readonly CreatorSelectionContext _selectionContext = new();
     private readonly ActiveAreaContext _activeAreaContext = new();
     private readonly SemanticClipboard _semanticClipboard = new();
@@ -253,6 +256,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private SpinBox? _gridSize;
     private FileDialog? _projectDialog;
     private FileDialog? _exportDialog;
+    private FileDialog? _gameDistributionDialog;
     private Window? _newModuleDialog;
     private FileDialog? _newModuleLocationDialog;
     private LineEdit? _newModuleTitle;
@@ -442,6 +446,13 @@ public partial class ForgeEditorPlugin : EditorPlugin
             Filters = ["*.orpmod ; Module OpenRPG Forge"],
         };
         _mainPanel.AddChild(_exportDialog);
+        _gameDistributionDialog = new FileDialog
+        {
+            Access = FileDialog.AccessEnum.Filesystem,
+            FileMode = FileDialog.FileModeEnum.OpenDir,
+            Title = "Choisir le dossier qui recevra le jeu et son lanceur",
+        };
+        _mainPanel.AddChild(_gameDistributionDialog);
         CreateNewModuleDialogs();
         CreateEntityPropertiesDialog();
         _dialogueEditor = new DialogueEditorWindow();
@@ -965,6 +976,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             () => _history?.State,
             ApplyModuleDistribution,
             target => _distributionTarget = target,
+            ShowGameDistributionDialog,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_distributionProfiles);
         _contentWorkflow = new ContentWorkflowWindow();
@@ -991,6 +1003,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             SelectEntityFromViewport,
             TransformEntityFromViewport,
             PlaceBlueprintFromViewport,
+            ApplyTerrainBrush,
             ShowViewportPlacementFeedback);
         _mainPanel.GetNode<Control>("Margin/Content/PreviewHost").AddChild(_projectPreview);
         _creatorShell = new ForgeCreatorShell(_mainPanel);
@@ -1006,10 +1019,22 @@ public partial class ForgeEditorPlugin : EditorPlugin
         SetProcessInput(true);
         EnsureForgeWindowTitle();
         _MakeVisible(false);
-        _mainThreadActions.Enqueue(() => EditorInterface.Singleton.SetMainScreenEditor("Forge"));
-        OpenProjectDirectory(GetPrototypeWorkspaceDirectory());
-
         var userArguments = OS.GetCmdlineUserArgs();
+        _desktopCreatorShell = userArguments.Contains("--creator-shell", StringComparer.Ordinal);
+        _creatorShellNormalizationFrames = _desktopCreatorShell ? 180 : 0;
+        _mainThreadActions.Enqueue(() =>
+        {
+            EditorInterface.Singleton.SetMainScreenEditor("Forge");
+            if (_desktopCreatorShell)
+            {
+                EditorInterface.Singleton.DistractionFreeMode = true;
+                HideBottomPanel();
+            }
+        });
+        var startupWorkspace = GetStartupWorkspaceDirectory(userArguments);
+        GD.Print($"OPENRPG_FORGE_CREATOR_STARTUP_MODULE slug={Path.GetFileName(startupWorkspace)}");
+        OpenProjectDirectory(startupWorkspace);
+
         if (userArguments.Contains("--show-new-module-dialog", StringComparer.Ordinal))
         {
             _mainThreadActions.Enqueue(ShowNewModuleDialog);
@@ -1196,6 +1221,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _gridSize = null;
         _projectDialog = null;
         _exportDialog = null;
+        _gameDistributionDialog = null;
         _newModuleDialog = null;
         _newModuleLocationDialog = null;
         _newModuleTitle = null;
@@ -1303,6 +1329,13 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
     public override void _Process(double delta)
     {
+        if (_creatorShellNormalizationFrames > 0)
+        {
+            EditorInterface.Singleton.DistractionFreeMode = true;
+            HideBottomPanel();
+            _creatorShellNormalizationFrames--;
+        }
+
         if (_r044ItemFoundationCapturePath is not null)
         {
             _r044ItemFoundationCaptureElapsed += delta;
@@ -2201,6 +2234,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _playButton!.Pressed += StartPlaytestFromUi;
         _projectDialog!.DirSelected += OpenSelectedProject;
         _exportDialog!.FileSelected += ExportModule;
+        _gameDistributionDialog!.DirSelected += ExportGameDistribution;
         _newModuleNextButton!.Pressed += ChooseNewModuleLocation;
         _newModuleCancelButton!.Pressed += HideNewModuleDialog;
         _newModuleDialog!.CloseRequested += HideNewModuleDialog;
@@ -2260,6 +2294,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         if (_playButton is not null) _playButton.Pressed -= StartPlaytestFromUi;
         if (_projectDialog is not null) _projectDialog.DirSelected -= OpenSelectedProject;
         if (_exportDialog is not null) _exportDialog.FileSelected -= ExportModule;
+        if (_gameDistributionDialog is not null) _gameDistributionDialog.DirSelected -= ExportGameDistribution;
         if (_newModuleAreaKind is not null) _newModuleAreaKind.ItemSelected -= NewModuleAreaKindSelected;
         if (_newModuleTemplate is not null) _newModuleTemplate.ItemSelected -= NewModuleTemplateSelected;
         if (_newModuleCreateInitialArea is not null)
@@ -2291,8 +2326,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
     private void HandleAreaTabRequested(AreaId areaId)
     {
-        var profile = EditorWorkspaceProfilePlanner.OpenArea(LoadWorkspaceProfile(), areaId);
-        SaveWorkspaceProfile(profile);
+        ActivateArea(areaId);
     }
 
     private void HandleAreaTabCloseRequested(AreaId areaId)
@@ -2562,8 +2596,16 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return;
         }
 
-        RebuildPreview();
+        try
+        {
+            RebuildPreview();
+        }
+        catch (Exception exception)
+        {
+            GD.PrintErr($"OPENRPG_FORGE_TOOLSET_AREA_PREVIEW_FAILED {exception.Message}");
+        }
         RefreshEditorControls();
+        _projectPreview?.FrameActiveArea();
         _areaWorkspace?.Refresh();
     }
 
@@ -2574,7 +2616,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return;
         }
 
-        _projectDialog.CurrentDir = _projectSession?.RootDirectory ?? GetPrototypeWorkspaceDirectory();
+        _projectDialog.CurrentDir = _projectSession?.RootDirectory ?? GetDefaultWorkspaceDirectory();
         _projectDialog.PopupCenteredRatio(0.72f);
         ApplyForgeWindowIcon(_projectDialog);
     }
@@ -2647,6 +2689,115 @@ public partial class ForgeEditorPlugin : EditorPlugin
         {
             _exportButton.Disabled = false;
         }
+    }
+
+    private void ShowGameDistributionDialog()
+    {
+        if (_gameDistributionDialog is null || _projectSession is null || _history is null)
+        {
+            return;
+        }
+
+        if (!_history.State.Project.Module.Distribution.Launcher.Enabled)
+        {
+            ShowEditStatus("Activez et enregistrez le profil de lanceur avant de créer la distribution.");
+            return;
+        }
+
+        _gameDistributionDialog.CurrentDir = Path.GetDirectoryName(_projectSession.RootDirectory)
+            ?? _projectSession.RootDirectory;
+        _gameDistributionDialog.PopupCenteredRatio(0.72f);
+        ApplyForgeWindowIcon(_gameDistributionDialog);
+    }
+
+    private void ExportGameDistribution(string parentDirectory)
+    {
+        if (_projectSession is null || _history is null || _statusLabel is null || _detailsLabel is null)
+        {
+            return;
+        }
+
+        var launcher = _history.State.Project.Module.Distribution.Launcher;
+        if (!launcher.Enabled)
+        {
+            _statusLabel.Text = "✕ Lanceur désactivé";
+            _detailsLabel.Text = "Activez et enregistrez le profil de lanceur dans Validation & distribution.";
+            return;
+        }
+
+        var temporaryRoot = Path.Combine(
+            Path.GetTempPath(),
+            "OpenRPG_Forge",
+            "game-launcher-export",
+            Guid.NewGuid().ToString("N"));
+        try
+        {
+            var saved = _projectSession.Save(_history.State.Project);
+            if (!saved.Succeeded)
+            {
+                _statusLabel.Text = "✕ Création du lanceur interrompue";
+                _detailsLabel.Text = FormatDiagnostics(saved.Diagnostics);
+                return;
+            }
+
+            Directory.CreateDirectory(temporaryRoot);
+            var packagePath = Path.Combine(temporaryRoot, $"{_history.State.Project.Module.Slug}.orpmod");
+            var exported = ModulePackager.Export(
+                _projectSession.RootDirectory,
+                packagePath,
+                target: ModuleTargetKind.Client);
+            var template = FindGameLauncherTemplateDirectory();
+            var destination = Path.Combine(
+                Path.GetFullPath(parentDirectory),
+                $"{launcher.ExecutableName}-windows-x64");
+            var bundle = GameLauncherBundleBuilder.Build(packagePath, template, destination, launcher);
+            _statusLabel.Text = "✓ Jeu et lanceur créés";
+            _detailsLabel.Text =
+                $"{bundle.Manifest.DisplayName} · {bundle.FileCount} fichiers · " +
+                $"{bundle.TotalBytes / 1024d / 1024d:0.0} Mio · {bundle.OutputDirectory}";
+            GD.Print(
+                $"OPENRPG_FORGE_TOOLSET_GAME_LAUNCHER_EXPORTED slug={exported.Manifest.Slug} " +
+                $"target=client files={bundle.FileCount} bytes={bundle.TotalBytes} " +
+                $"multiplayer={launcher.Multiplayer.ToString().ToLowerInvariant()}");
+        }
+        catch (Exception exception) when (exception is ArgumentException or DirectoryNotFoundException or
+                                           FileNotFoundException or InvalidDataException or InvalidOperationException or
+                                           IOException or UnauthorizedAccessException)
+        {
+            _statusLabel.Text = "✕ Échec de la création du lanceur";
+            _detailsLabel.Text = exception.Message;
+            GD.PrintErr($"OPENRPG_FORGE_TOOLSET_GAME_LAUNCHER_EXPORT_FAILED {exception.Message}");
+        }
+        finally
+        {
+            if (Directory.Exists(temporaryRoot)) Directory.Delete(temporaryRoot, recursive: true);
+        }
+    }
+
+    private static string FindGameLauncherTemplateDirectory()
+    {
+        var configured = System.Environment.GetEnvironmentVariable("OPENRPG_FORGE_GAME_LAUNCHER_TEMPLATE");
+        var toolsetRoot = Path.GetFullPath(ProjectSettings.GlobalizePath("res://"));
+        var candidates = new[]
+        {
+            configured,
+            Path.GetFullPath(Path.Combine(toolsetRoot, "..", "..", "templates", "game-windows-x64")),
+            Path.GetFullPath(Path.Combine(toolsetRoot, "..", "..", "artifacts", "templates", "game-windows-x64")),
+        };
+        foreach (var candidate in candidates.Where(candidate => !string.IsNullOrWhiteSpace(candidate)))
+        {
+            var fullPath = Path.GetFullPath(candidate!);
+            if (File.Exists(Path.Combine(fullPath, GameLauncherBundleBuilder.TemplateExecutableName)) &&
+                File.Exists(Path.Combine(fullPath,
+                    GameLauncherBundleBuilder.RuntimeExecutableRelativePath.Replace('/', Path.DirectorySeparatorChar))))
+            {
+                return fullPath;
+            }
+        }
+
+        throw new DirectoryNotFoundException(
+            "Le modèle de lanceur Windows est absent. Construisez-le avec " +
+            "scripts\\Build-GameLauncherTemplate.ps1 -Force, puis recommencez.");
     }
 
     private void OpenDialogueEditor() => OpenTool(_dialogueEditor, () => _dialogueEditor?.Open());
@@ -2805,11 +2956,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private EditorWorkspaceProfile LoadWorkspaceProfile()
     {
         var areaId = _activeAreaContext.Current;
-        if (_projectSession is null) return EditorWorkspaceProfile.CreateDefault(EditorRole.Builder, areaId);
+        if (_projectSession is null) return EditorWorkspaceProfile.CreateDefault(EditorRole.Beginner, areaId);
         try
         {
             var loaded = EditorWorkspaceProfileStore.TryLoad(_projectSession.RootDirectory) ??
-                         EditorWorkspaceProfile.CreateDefault(EditorRole.Builder, areaId);
+                         EditorWorkspaceProfile.CreateDefault(EditorRole.Beginner, areaId);
             var availableAreas = _history?.State.Project.Areas.Select(area => area.Id).ToArray() ?? [];
             return EditorWorkspaceProfilePlanner.ReconcileAreas(loaded, availableAreas, areaId);
         }
@@ -2818,7 +2969,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
                                            System.Text.Json.JsonException)
         {
             GD.PrintErr($"OPENRPG_FORGE_WORKSPACE_PROFILE_LOAD_FAILED {exception.Message}");
-            return EditorWorkspaceProfile.CreateDefault(EditorRole.Builder, areaId);
+            return EditorWorkspaceProfile.CreateDefault(EditorRole.Beginner, areaId);
         }
     }
 
@@ -4701,7 +4852,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         OpenProjectDirectory(workspaceDirectory);
 
     private void ReloadProject() =>
-        OpenProjectDirectory(_projectSession?.RootDirectory ?? GetPrototypeWorkspaceDirectory());
+        OpenProjectDirectory(_projectSession?.RootDirectory ?? GetDefaultWorkspaceDirectory());
 
     private void OpenProjectDirectory(string workspaceDirectory)
     {
@@ -4827,15 +4978,18 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _projectSession.RootDirectory,
             _projectSession.Project.Id);
         _projectPreview?.SetCameraProfile(cameraProfile.Profile, PersistEditorCameraProfile);
-        _activeAreaContext.Reset(_projectSession.Project);
+        _activeAreaContext.Activate(_projectSession.Project, PreferredCreatorArea(_projectSession.Project));
         ApplyEditorExperience(LoadWorkspaceProfile());
         RebuildPreview();
         RefreshEditorControls();
+        _projectPreview?.FrameActiveArea();
         var project = _history.State.Project;
         _rpgKitAuthoringWindow?.Refresh();
         var entityCount = project.Areas.Sum(area => area.Entities.Count);
-        _statusLabel.Text = "✓ Projet Forge ouvert et valide";
-        _detailsLabel.Text = $"{project.Title} — {project.Areas.Count} zone · {project.Blueprints.Count} blueprints · {entityCount} entités";
+        var activeArea = GetActiveArea();
+        _statusLabel.Text = $"✓ {activeArea.DisplayName} prête à éditer";
+        _detailsLabel.Text =
+            "Choisissez un objet ou une brosse dans la vue 3D, puis cliquez directement dans la scène.";
         _projectPathLabel.Text = _projectSession.RootDirectory;
         _saveButton.Disabled = false;
         _exportButton.Disabled = false;
@@ -6592,7 +6746,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _distributionProfiles?.Refresh();
         _contentWorkflow?.Refresh();
         _contentPackageWindow?.Refresh();
-        PublishSelectedEntity();
+        PublishSelectedEntity(frameSelection: false);
     }
 
     private void SetEditingEnabled(bool enabled)
@@ -6675,7 +6829,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             $"revision:{_history.State.Revision}"));
     }
 
-    private void PublishSelectedEntity(bool additive = false)
+    private void PublishSelectedEntity(bool additive = false, bool frameSelection = true)
     {
         var entity = GetSelectedEntity();
         if (_history is null || entity is null)
@@ -6699,7 +6853,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             : [selection];
         _selectionContext.Replace(next);
         if (settings.FocusOnSelection) _selectionContext.Focus(selection, "creator-viewport");
-        if (settings.FrameSelection)
+        if (settings.FrameSelection && frameSelection)
         {
             _selectionContext.Frame("creator-viewport");
             _projectPreview?.FocusSelectionFromShortcut();
@@ -6735,6 +6889,19 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
         return _history.State.Project.Areas.FirstOrDefault(area => area.Id == _activeAreaContext.Current) ??
             _history.State.Project.Areas.First();
+    }
+
+    private static AreaId PreferredCreatorArea(ProjectDefinition project)
+    {
+        var entry = project.Areas.FirstOrDefault(area => area.Id == project.Module.EntryAreaId);
+        if (entry?.World.Terrain.Enabled == true) return entry.Id;
+        return project.Areas
+                   .Where(area => area.World.Terrain.Enabled)
+                   .OrderByDescending(area => (long)area.Dimensions.Width * area.Dimensions.Depth)
+                   .ThenBy(area => area.DisplayName, StringComparer.Ordinal)
+                   .FirstOrDefault()?.Id
+               ?? entry?.Id
+               ?? project.Areas.First().Id;
     }
 
     private EntityId? GetSelectedSpawnId()
@@ -6931,6 +7098,10 @@ public partial class ForgeEditorPlugin : EditorPlugin
         if (_history is not null)
         {
             _projectPreview?.Rebuild(_history.State.Project);
+            if (_desktopCreatorShell)
+            {
+                _creatorShellNormalizationFrames = Math.Max(_creatorShellNormalizationFrames, 3);
+            }
         }
     }
 
@@ -9228,19 +9399,53 @@ public partial class ForgeEditorPlugin : EditorPlugin
             new ModuleDeltaConfiguration(true, 1024 * 1024, true, true, true, 3),
             original.Release.WindowsPackaging,
             "workspace-smoke-test");
+        var launcher = new GameLauncherConfiguration(
+            original.Launcher.Id,
+            enabled: true,
+            "La Crypte",
+            "Le feu attend sous la pierre.",
+            "Cendres",
+            "#A36B42",
+            backgroundImagePath: null,
+            "https://example.invalid/news",
+            "https://example.invalid/support",
+            settingsEnabled: true,
+            GameLauncherMultiplayerMode.LocalHost,
+            5121,
+            "workspace-smoke-test");
         var configuration = new ModuleDistributionConfiguration(
             original.Id,
             profiles,
             [approval],
             "workspace-smoke-test",
-            release);
+            release,
+            launcher: launcher);
         if (!_distributionProfiles.ConfigureForSmokeTest(configuration, ModuleTargetKind.Shipping) ||
             _distributionProfiles.ProfileCount != 5 ||
             _distributionProfiles.ComplianceDiagnosticCount == 0 ||
-            !_distributionProfiles.ApplyForSmokeTest() ||
-            _history.State.Project.Module.Distribution.Dependencies.Count != 1)
+            !_distributionProfiles.ApplyForSmokeTest())
         {
             GD.PrintErr("OPENRPG_FORGE_TOOLSET_G713_DISTRIBUTION_FAILED configuration");
+            return false;
+        }
+
+        var appliedDistribution = _history.State.Project.Module.Distribution;
+        var appliedLauncher = appliedDistribution.Launcher;
+        if (appliedDistribution.Dependencies.Count != 1 ||
+            !appliedLauncher.Enabled ||
+            appliedLauncher.Id != launcher.Id ||
+            appliedLauncher.DisplayName != launcher.DisplayName ||
+            appliedLauncher.Tagline != launcher.Tagline ||
+            appliedLauncher.ExecutableName != launcher.ExecutableName ||
+            appliedLauncher.AccentColor != launcher.AccentColor ||
+            appliedLauncher.NewsUrl != launcher.NewsUrl ||
+            appliedLauncher.SupportUrl != launcher.SupportUrl ||
+            appliedLauncher.SettingsEnabled != launcher.SettingsEnabled ||
+            appliedLauncher.Multiplayer != launcher.Multiplayer ||
+            appliedLauncher.DefaultServerPort != launcher.DefaultServerPort ||
+            appliedLauncher.Provenance != "creator-command")
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G713_DISTRIBUTION_FAILED launcher_configuration");
             return false;
         }
 
@@ -9292,6 +9497,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 reopened.Session.Project.Module.Distribution.Dependencies.Single().Id != approval.Id ||
                 reopened.Session.Project.Module.Distribution.Release.Channel != ModuleReleaseChannel.Preview ||
                 reopened.Session.Project.Module.Distribution.Release.Platforms.Count != 3 ||
+                reopened.Session.Project.Module.Distribution.Launcher != appliedLauncher ||
                 exported.Manifest.Target != ModuleTargetKind.Editor ||
                 exported.Manifest.ThirdPartyDependencies.Single().Id != approval.Id ||
                 archive.GetEntry(DistributionNoticeBuilder.PackagePath) is null ||
@@ -9333,7 +9539,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
             "OPENRPG_FORGE_TOOLSET_G713_DISTRIBUTION_PASS profiles=5 shipping=blocked " +
             "licenses=diagnostic registry=versioned notices=generated channel=preview platforms=3 " +
             "matrix=targets5-platforms3 windows=portable-installer unix=verified-install-uninstall " +
-            "promotion=sequential-compatibility-rollback-publisher-adapter history=restored persistence=roundtrip");
+            "promotion=sequential-compatibility-rollback-publisher-adapter launcher=profile-roundtrip-local-host " +
+            "history=restored persistence=roundtrip");
         return true;
     }
 
@@ -15355,7 +15562,9 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 _ => { },
                 (_, _) => false,
                 (_, _) => null,
-                (_, _) => { });
+                (_, _) => false,
+                (_, _) => { },
+                allowRuntimeAssetImport: true);
             preview.Rebuild(project);
             if (preview.AssetModelInstanceCount != 1 || preview.TerrainScatterLayerCount != 1 ||
                 preview.TerrainScatterInstanceCount <= 0)
@@ -21358,7 +21567,20 @@ public partial class ForgeEditorPlugin : EditorPlugin
         return icon;
     }
 
-    private static string GetPrototypeWorkspaceDirectory()
+    private static string GetStartupWorkspaceDirectory(IReadOnlyList<string> userArguments)
+    {
+        var usesVerificationFixture = userArguments.Any(argument =>
+            argument.Contains("smoke-test", StringComparison.Ordinal) ||
+            argument.Contains("ui-capture=", StringComparison.Ordinal));
+        return usesVerificationFixture
+            ? GetBundledWorkspaceDirectory("crypt-of-ashes")
+            : GetDefaultWorkspaceDirectory();
+    }
+
+    private static string GetDefaultWorkspaceDirectory() =>
+        GetBundledWorkspaceDirectory("forgotten-forest");
+
+    private static string GetBundledWorkspaceDirectory(string moduleSlug)
     {
         var toolsetDirectory = ProjectSettings.GlobalizePath("res://");
         return Path.GetFullPath(Path.Combine(
@@ -21366,7 +21588,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             "..",
             "Forge.Runtime",
             "content",
-            "crypt-of-ashes"));
+            moduleSlug));
     }
 
     private static string GetRepositoryRoot()

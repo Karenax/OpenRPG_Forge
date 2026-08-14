@@ -114,6 +114,48 @@ public sealed class CombatResolverTests
         Assert.Throws<ArgumentOutOfRangeException>(() => combatant.Restore(4, 6));
     }
 
+    [Fact]
+    public void CombatantState_ReportsMonotoneCooldownRemainingAndReadiness()
+    {
+        var ability = CreateStrike();
+        var caster = CreateCombatant("hero", "heroes", 10, 5, 4, 1, [ability]);
+        var target = CreateCombatant("warden", "hostile", 20, 0, 1, 2);
+
+        Assert.Equal(0, caster.CooldownRemaining(ability, 2));
+        CombatResolver.Cast(caster, target, ability.Id, 2);
+
+        Assert.Equal(1.5, caster.CooldownRemaining(ability, 2), 6);
+        Assert.Equal(.75, caster.CooldownRemaining(ability, 2.75), 6);
+        Assert.Equal(0, caster.CooldownRemaining(ability, 3.5), 6);
+        Assert.False(caster.IsAbilityReady(ability, 3.49));
+        Assert.True(caster.IsAbilityReady(ability, 3.5));
+    }
+
+    [Fact]
+    public void CombatantState_ReportsZeroForZeroCooldownAndRejectsInvalidTime()
+    {
+        var strike = CreateStrike();
+        var ability = new AbilityDefinition(
+            strike.Id,
+            strike.Slug,
+            strike.DisplayName,
+            strike.ResourceCost,
+            0,
+            strike.Targeting,
+            strike.Effects,
+            strike.VisualCue);
+        var caster = CreateCombatant("hero", "heroes", 10, 5, 4, 1, [ability]);
+        var target = CreateCombatant("warden", "hostile", 20, 0, 1, 2);
+
+        CombatResolver.Cast(caster, target, ability.Id, 4);
+
+        Assert.Equal(0, caster.CooldownRemaining(ability, 4));
+        Assert.True(caster.IsAbilityReady(ability, 4));
+        Assert.Throws<ArgumentOutOfRangeException>(() => caster.CooldownRemaining(ability, -1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => caster.CooldownRemaining(ability, double.NaN));
+        Assert.Throws<ArgumentNullException>(() => caster.CooldownRemaining(null!, 0));
+    }
+
     private static AbilityDefinition CreateStrike() => new(
         StrikeId,
         "ember-strike",

@@ -17,9 +17,11 @@ public partial class DistributionProfilesWindow : Window
     private Func<ProjectState?>? _getState;
     private Func<ModuleDistributionConfiguration, bool>? _apply;
     private Action<ModuleTargetKind>? _selectExportTarget;
+    private Action? _createGameLauncher;
     private Action<Window>? _brandWindow;
     private ModuleDistributionConfigurationId? _configurationId;
     private ModuleReleaseConfiguration? _release;
+    private GameLauncherConfiguration? _launcher;
     private ThirdPartyDependencyId? _dependencyId;
     private ModuleDistributionConfiguration? _approvedConfiguration;
     private bool _suppressSignals;
@@ -65,6 +67,18 @@ public partial class DistributionProfilesWindow : Window
     private CheckButton? _windowsDetectPrerequisites;
     private CheckButton? _windowsInstallLog;
     private CheckButton? _windowsUninstaller;
+    private CheckButton? _launcherEnabled;
+    private LineEdit? _launcherDisplayName;
+    private LineEdit? _launcherTagline;
+    private LineEdit? _launcherExecutableName;
+    private LineEdit? _launcherAccentColor;
+    private LineEdit? _launcherBackgroundImage;
+    private LineEdit? _launcherNewsUrl;
+    private LineEdit? _launcherSupportUrl;
+    private CheckButton? _launcherSettingsEnabled;
+    private OptionButton? _launcherMultiplayer;
+    private LineEdit? _launcherServerPort;
+    private Button? _createLauncherButton;
     private ItemList? _diagnostics;
     private Label? _summary;
     private Label? _status;
@@ -86,11 +100,13 @@ public partial class DistributionProfilesWindow : Window
         Func<ProjectState?> getState,
         Func<ModuleDistributionConfiguration, bool> apply,
         Action<ModuleTargetKind> selectExportTarget,
+        Action createGameLauncher,
         Action<Window> brandWindow)
     {
         _getState = getState ?? throw new ArgumentNullException(nameof(getState));
         _apply = apply ?? throw new ArgumentNullException(nameof(apply));
         _selectExportTarget = selectExportTarget ?? throw new ArgumentNullException(nameof(selectExportTarget));
+        _createGameLauncher = createGameLauncher ?? throw new ArgumentNullException(nameof(createGameLauncher));
         _brandWindow = brandWindow ?? throw new ArgumentNullException(nameof(brandWindow));
         Title = "Validation & distribution · OpenRPG Forge";
         MinSize = new Vector2I(1280, 820);
@@ -180,6 +196,7 @@ public partial class DistributionProfilesWindow : Window
         _dependencies.Clear();
         _dependencies.AddRange(configuration.Dependencies);
         _release = configuration.Release;
+        _launcher = configuration.Launcher;
         _target!.Selected = Math.Max(_target.Selected, 0);
         LoadProfile(_target.Selected);
         RefreshDependencyList();
@@ -194,6 +211,7 @@ public partial class DistributionProfilesWindow : Window
         }
 
         LoadRelease(configuration.Release);
+        LoadLauncher(configuration.Launcher);
 
         _suppressSignals = false;
         InvalidatePreview();
@@ -335,6 +353,37 @@ public partial class DistributionProfilesWindow : Window
         var updateRelease = new Button { Text = "Mettre à jour la release", CustomMinimumSize = new Vector2(0, 36) };
         updateRelease.Pressed += UpdateRelease;
         validationContent.AddChild(updateRelease);
+        validationContent.AddChild(Section("LANCEUR DU JEU · WINDOWS X64"));
+        var launcherHelp = new Label
+        {
+            Text = "Crée une application d'accueil personnalisée avec Jouer, Configuration et Multijoueur. " +
+                   "L'hébergement local est fonctionnel ; la connexion distante reste explicitement en préparation.",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        };
+        launcherHelp.AddThemeColorOverride("font_color", new Color("d8c8ff"));
+        validationContent.AddChild(launcherHelp);
+        _launcherEnabled = AddToggle(validationContent, "Créer un lanceur avec le jeu");
+        _launcherDisplayName = AddField(validationContent, "Titre du lanceur", "Le Royaume des Cendres");
+        _launcherTagline = AddField(validationContent, "Slogan", "Rassemblez votre groupe avant de partir");
+        _launcherExecutableName = AddField(validationContent, "Nom de l'exécutable", "Royaume_des_Cendres");
+        _launcherAccentColor = AddField(validationContent, "Couleur d'accent #RRGGBB", "#C77A45");
+        _launcherBackgroundImage = AddField(validationContent, "Image PNG/JPEG du projet", "branding/launcher.png");
+        _launcherNewsUrl = AddField(validationContent, "Lien actualités (facultatif)", "https://…");
+        _launcherSupportUrl = AddField(validationContent, "Lien support (facultatif)", "https://…");
+        _launcherSettingsEnabled = AddToggle(validationContent, "Menu de configuration joueur");
+        _launcherMultiplayer = AddEnumOptions<GameLauncherMultiplayerMode>(validationContent, "Menu multijoueur");
+        _launcherServerPort = AddField(validationContent, "Port serveur local", "5121");
+        var updateLauncher = new Button { Text = "Mettre à jour le lanceur", CustomMinimumSize = new Vector2(0, 36) };
+        updateLauncher.Pressed += UpdateLauncher;
+        validationContent.AddChild(updateLauncher);
+        _createLauncherButton = new Button
+        {
+            Text = "Créer le lanceur Windows…",
+            CustomMinimumSize = new Vector2(0, 42),
+            Disabled = true,
+        };
+        _createLauncherButton.Pressed += CreateLauncher;
+        validationContent.AddChild(_createLauncherButton);
         _diagnostics = new ItemList { CustomMinimumSize = new Vector2(0, 180) };
         validationContent.AddChild(_diagnostics);
 
@@ -378,7 +427,9 @@ public partial class DistributionProfilesWindow : Window
                      _dependencyOwner, _dependencySource, _dependencyCadence, _dependencyTargets,
                      _dependencyReviewers, _dependencyRequiredApprovals, _dependencySecurityAudit,
                      _releasePlatforms, _signingProfile, _trustedKeys, _revokedKeys, _deltaChunkKilobytes,
-                     _deltaRetainedVersions, _windowsPrerequisites,
+                     _deltaRetainedVersions, _windowsPrerequisites, _launcherDisplayName, _launcherTagline,
+                     _launcherExecutableName, _launcherAccentColor, _launcherBackgroundImage, _launcherNewsUrl,
+                     _launcherSupportUrl, _launcherServerPort,
                  })
         {
             field!.TextChanged += _ => InvalidatePreview();
@@ -388,14 +439,15 @@ public partial class DistributionProfilesWindow : Window
                  {
                      _enabled, _editorData, _debugSymbols, _optimize, _approvedLicenses,
                      _allowUnsignedDevelopment, _deltaEnabled, _deltaResume, _deltaDeduplicate, _deltaRollback,
-                     _windowsDetectPrerequisites, _windowsInstallLog, _windowsUninstaller,
+                     _windowsDetectPrerequisites, _windowsInstallLog, _windowsUninstaller, _launcherEnabled,
+                     _launcherSettingsEnabled,
                  })
         {
             toggle!.Toggled += _ => InvalidatePreview();
         }
 
         foreach (var options in new[] { _releaseChannel, _signingMode, _windowsMode,
-                     _dependencyApprovalState, _dependencyRisk })
+                     _dependencyApprovalState, _dependencyRisk, _launcherMultiplayer })
         {
             options!.ItemSelected += _ => InvalidatePreview();
         }
@@ -417,6 +469,27 @@ public partial class DistributionProfilesWindow : Window
             InvalidatePreview();
             SetStatus("Configuration de release prête dans le brouillon.", false);
         }
+    }
+
+    private void UpdateLauncher()
+    {
+        if (CommitLauncherDraft())
+        {
+            InvalidatePreview();
+            SetStatus("Configuration du lanceur prête dans le brouillon.", false);
+        }
+    }
+
+    private void CreateLauncher()
+    {
+        var state = _getState?.Invoke();
+        if (state?.Project.Module.Distribution.Launcher.Enabled != true)
+        {
+            SetStatus("Activez, prévisualisez et enregistrez d'abord le lanceur.", true);
+            return;
+        }
+
+        _createGameLauncher?.Invoke();
     }
 
     private bool CommitProfileDraft()
@@ -506,7 +579,7 @@ public partial class DistributionProfilesWindow : Window
     private void Preview()
     {
         var state = _getState?.Invoke();
-        if (state is null || !CommitProfileDraft() || !CommitReleaseDraft())
+        if (state is null || !CommitProfileDraft() || !CommitReleaseDraft() || !CommitLauncherDraft())
         {
             return;
         }
@@ -518,7 +591,8 @@ public partial class DistributionProfilesWindow : Window
                 _profiles,
                 _dependencies,
                 "creator-command",
-                _release);
+                _release,
+                launcher: _launcher);
             var module = state.Project.Module;
             var candidateModule = new ModuleDefinition(
                 module.Id,
@@ -562,7 +636,8 @@ public partial class DistributionProfilesWindow : Window
             _applyButton!.Disabled = false;
             _summary!.Text =
                 $"{_profiles.Count} profils · {_release!.Channel} · {_release.Platforms.Count} plateforme(s) · " +
-                $"signature {_release.Signing.Mode} · cible {FormatTarget(SelectedTarget)}";
+                $"signature {_release.Signing.Mode} · lanceur {(_launcher!.Enabled ? "actif" : "inactif")} · " +
+                $"cible {FormatTarget(SelectedTarget)}";
             SetStatus(
                 compliance.Count == 0
                     ? "✓ Configuration valide et cible publiable."
@@ -587,6 +662,7 @@ public partial class DistributionProfilesWindow : Window
         }
 
         _selectExportTarget?.Invoke(SelectedTarget);
+        _createLauncherButton!.Disabled = !configuration.Launcher.Enabled;
         _approvedConfiguration = null;
         _applyButton!.Disabled = true;
         SetStatus($"Configuration enregistrée · prochaine cible : {FormatTarget(SelectedTarget)}.", false);
@@ -627,6 +703,23 @@ public partial class DistributionProfilesWindow : Window
         _windowsUninstaller!.SetPressedNoSignal(release.WindowsPackaging.IncludeUninstaller);
     }
 
+    private void LoadLauncher(GameLauncherConfiguration launcher)
+    {
+        _launcherEnabled!.SetPressedNoSignal(launcher.Enabled);
+        _launcherDisplayName!.Text = launcher.DisplayName;
+        _launcherTagline!.Text = launcher.Tagline;
+        _launcherExecutableName!.Text = launcher.ExecutableName;
+        _launcherAccentColor!.Text = launcher.AccentColor;
+        _launcherBackgroundImage!.Text = launcher.BackgroundImagePath ?? string.Empty;
+        _launcherNewsUrl!.Text = launcher.NewsUrl ?? string.Empty;
+        _launcherSupportUrl!.Text = launcher.SupportUrl ?? string.Empty;
+        _launcherSettingsEnabled!.SetPressedNoSignal(launcher.SettingsEnabled);
+        _launcherMultiplayer!.Selected = (int)launcher.Multiplayer;
+        _launcherServerPort!.Text = launcher.DefaultServerPort.ToString(
+            System.Globalization.CultureInfo.InvariantCulture);
+        _createLauncherButton!.Disabled = !launcher.Enabled;
+    }
+
     private bool CommitReleaseDraft()
     {
         try
@@ -665,6 +758,39 @@ public partial class DistributionProfilesWindow : Window
                     _windowsInstallLog!.ButtonPressed,
                     _windowsUninstaller!.ButtonPressed,
                     ParseCsv(_windowsPrerequisites!.Text)),
+                "creator-command");
+            return true;
+        }
+        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or OverflowException)
+        {
+            SetStatus(exception.Message, true);
+            return false;
+        }
+    }
+
+    private bool CommitLauncherDraft()
+    {
+        try
+        {
+            var current = _launcher ?? throw new InvalidOperationException("Launcher configuration is not loaded.");
+            if (!int.TryParse(_launcherServerPort!.Text, out var port))
+            {
+                throw new ArgumentException("Le port du lanceur doit être un entier.");
+            }
+
+            _launcher = new GameLauncherConfiguration(
+                current.Id,
+                _launcherEnabled!.ButtonPressed,
+                _launcherDisplayName!.Text,
+                _launcherTagline!.Text,
+                _launcherExecutableName!.Text,
+                _launcherAccentColor!.Text,
+                _launcherBackgroundImage!.Text,
+                _launcherNewsUrl!.Text,
+                _launcherSupportUrl!.Text,
+                _launcherSettingsEnabled!.ButtonPressed,
+                (GameLauncherMultiplayerMode)_launcherMultiplayer!.Selected,
+                port,
                 "creator-command");
             return true;
         }

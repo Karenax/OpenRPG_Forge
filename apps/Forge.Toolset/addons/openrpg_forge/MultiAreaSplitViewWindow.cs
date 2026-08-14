@@ -47,9 +47,9 @@ public partial class MultiAreaSplitViewWindow : Window
         views.AddChild(ViewCard("ZONE ACTIVE · ÉDITION", _left));
         views.AddChild(ViewCard("COMPARAISON · LECTURE SEULE", _right));
         _left.Initialize(getState, getWorkspaceRoot, getManifestState, () => _leftArea, () => 1,
-            _ => { }, (_, _) => false, (_, _) => null, (_, _) => { });
+            _ => { }, (_, _) => false, (_, _) => null, (_, _) => false, (_, _) => { });
         _right.Initialize(getState, getWorkspaceRoot, getManifestState, () => _rightArea, () => 1,
-            _ => { }, (_, _) => false, (_, _) => null, (_, _) => { });
+            _ => { }, (_, _) => false, (_, _) => null, (_, _) => false, (_, _) => { });
     }
 
     public void Open(AreaId leftArea, AreaId rightArea, EditorSplitAxis axis)

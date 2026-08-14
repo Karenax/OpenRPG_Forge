@@ -67,6 +67,7 @@ using Forge.ModuleFormat.Build;
 using Forge.ModuleFormat.Packages;
 using Forge.ModuleFormat.Quality;
 using Forge.ModuleFormat.Playtesting;
+using Forge.ModuleFormat.Launcher;
 using Forge.ModuleFormat.Saves;
 using Forge.ModuleFormat.Workspaces;
 using Forge.Network.Production;
@@ -74,6 +75,7 @@ using Forge.Network.Observability;
 using Forge.Network.Testing;
 using Forge.Network.Authoring;
 using Forge.Network.Scenarios;
+using Forge.Network.Sessions;
 using Forge.LiveDirector.Authoring;
 using Forge.LiveDirector.Scenarios;
 using Forge.RpgKit.Application.Companions;
@@ -140,6 +142,8 @@ public partial class GameRoot : Node3D
     private const string RpgMenuPageArgument = "--rpg-menu-page";
     private const string DialogueVisualCaptureArgument = "--dialogue-visual-capture";
     private const string ActionWheelVisualCaptureArgument = "--action-wheel-visual-capture";
+    private const string CombatFeedbackCaptureArgument = "--combat-feedback-capture";
+    private const string CombatFeedbackCaptureSizeArgument = "--combat-feedback-capture-size";
     private const string VisualRegressionSuiteArgument = "--g11s-visual-suite";
     private const string TerrainBenchmarkArgument = "--terrain-benchmark";
     private const float InteractionDistance = 3.0f;
@@ -147,11 +151,13 @@ public partial class GameRoot : Node3D
     private const string VisualAssetProperty = "visual.asset";
     private const string RuntimeRoleProperty = "runtime.role";
     private const string RuntimeAnimationProfileProperty = "runtime.animationProfile";
+    private const string RuntimeWorldLabelNodeName = "RuntimeWorldLabel";
     private static EntityId? s_pendingPortalSpawn;
     private static string? s_pendingPortalLabel;
     private static int s_connectedWorldSmokeStep;
     private static int s_innUxSmokeStep;
     private ProjectDefinition? _loadedProject;
+    private AuthoritativeSession? _launcherSession;
 
     private readonly Dictionary<Node3D, CombatantState> _hostiles = [];
     private readonly Dictionary<Node3D, string> _hostileNames = [];
@@ -215,6 +221,15 @@ public partial class GameRoot : Node3D
     private RuntimeHud? _hud;
     private RuntimeActionBar? _actionBar;
     private RuntimeModuleMap? _moduleMap;
+    private RuntimeCombatFeedbackLayer? _combatFeedbackLayer;
+    private RuntimeCombatImpactPool? _combatImpactPool;
+    private RuntimeToastQueue? _toastQueue;
+    private long? _combatFeedbackCaptureReadbackParity;
+    private RuntimeUiMotionPolicy _combatUiPolicy = RuntimeUiMotionPolicy.Create(null, []);
+    private Node3D? _currentCombatTarget;
+    private CombatFeedbackPresentation? _lastCombatFeedback;
+    private WaypointMapPresentation? _trackedWaypointMarker;
+    private string _lastPresentedObjective = string.Empty;
     private RuntimeRpgMenu? _rpgMenu;
     private RuntimeDialogueOverlay? _dialogueOverlay;
     private Node3D? _npc;
@@ -372,6 +387,7 @@ public partial class GameRoot : Node3D
         var genericSmokeTest = userArguments.Contains("--generic-smoke-test", StringComparer.Ordinal);
         var rpgKitSmokeTest = userArguments.Contains("--rpg-kit-smoke-test", StringComparer.Ordinal);
         var forgottenForestSmokeTest = userArguments.Contains("--forgotten-forest-smoke-test", StringComparer.Ordinal);
+        var combatFeedbackSmokeTest = userArguments.Contains("--combat-feedback-smoke-test", StringComparer.Ordinal);
         var entryGroundSmokeTest = userArguments.Contains("--entry-ground-smoke-test", StringComparer.Ordinal);
         var connectedWorldTransitionSmokeTest = userArguments.Contains(
             "--connected-world-transition-smoke-test", StringComparer.Ordinal);
@@ -386,9 +402,12 @@ public partial class GameRoot : Node3D
         var rpgMenuVisualCapturePath = GetArgumentValue(userArguments, RpgMenuVisualCaptureArgument);
         var dialogueVisualCapturePath = GetArgumentValue(userArguments, DialogueVisualCaptureArgument);
         var actionWheelVisualCapturePath = GetArgumentValue(userArguments, ActionWheelVisualCaptureArgument);
+        var combatFeedbackCapturePath = GetArgumentValue(userArguments, CombatFeedbackCaptureArgument);
+        var combatFeedbackCaptureSize = GetArgumentValue(userArguments, CombatFeedbackCaptureSizeArgument);
         var visualRegressionSuitePath = GetArgumentValue(userArguments, VisualRegressionSuiteArgument);
         var terrainBenchmarkPath = GetArgumentValue(userArguments, TerrainBenchmarkArgument);
         var automatedTest = smokeTest || genericSmokeTest || rpgKitSmokeTest || forgottenForestSmokeTest ||
+            combatFeedbackSmokeTest ||
             entryGroundSmokeTest ||
             connectedWorldTransitionSmokeTest ||
             innUxSmokeTest ||
@@ -399,11 +418,13 @@ public partial class GameRoot : Node3D
             moduleMapVisualCapturePath is not null ||
             rpgMenuVisualCapturePath is not null || dialogueVisualCapturePath is not null ||
             actionWheelVisualCapturePath is not null ||
+            combatFeedbackCapturePath is not null ||
             visualRegressionSuitePath is not null || terrainBenchmarkPath is not null;
 
         try
         {
             RegisterInputActions();
+            var launcherContext = LauncherRuntimeBootstrap.LoadAndApply(this, userArguments);
             var snapshotPath = GetArgumentValue(userArguments, ProjectSnapshotArgument);
             var modulePackagePath = GetArgumentValue(userArguments, ModulePackageArgument);
             var workspacePath = GetArgumentValue(userArguments, WorkspaceArgument);
@@ -424,7 +445,13 @@ public partial class GameRoot : Node3D
                 ? null
                 : PlaytestLaunchManifestStore.Load(playtestManifestPath);
             var project = LoadProject(snapshotPath, modulePackagePath, workspacePath);
-            if (requestedSpawnId is null && (forgottenForestSmokeTest || flyingMountSmokeTest ||
+            _launcherSession = LauncherRuntimeBootstrap.CreateLocalHostSession(
+                launcherContext,
+                _moduleContentSha256 ?? throw new InvalidOperationException("Loaded module fingerprint is missing."),
+                project.Module.DisplayName);
+            if (requestedSpawnId is null && (forgottenForestSmokeTest || combatFeedbackSmokeTest ||
+                combatFeedbackCapturePath is not null ||
+                flyingMountSmokeTest ||
                 flyingMountVisualCapturePath is not null ||
                 (connectedWorldTransitionSmokeTest && s_connectedWorldSmokeStep == 0)))
             {
@@ -443,7 +470,10 @@ public partial class GameRoot : Node3D
             _lifecycleEvents.Clear();
             _lifecycle = new RuntimeLifecycleCoordinator(observers: [HandleLifecycleEvent]);
             EnsureLifecycle(
-                _lifecycle.LoadProject(project, RuntimeAuthority.SinglePlayer, lifecycleCause),
+                _lifecycle.LoadProject(
+                    project,
+                    _launcherSession is null ? RuntimeAuthority.SinglePlayer : RuntimeAuthority.Server,
+                    lifecycleCause),
                 "project_loaded");
             _blackboard = ProjectBlackboardScriptService.ForRuntime(project.Module.Variables);
             _moduleTitle = project.Module.DisplayName;
@@ -490,7 +520,9 @@ public partial class GameRoot : Node3D
             CreateHud();
             ConfigureWaypointRuntime(startArea.Navigation.Waypoints);
             if (!connectedWorldTransitionSmokeTest && !entryGroundSmokeTest && !innUxSmokeTest &&
-                !flyingMountSmokeTest && flyingMountVisualCapturePath is null)
+                !combatFeedbackSmokeTest &&
+                !flyingMountSmokeTest && flyingMountVisualCapturePath is null &&
+                combatFeedbackCapturePath is null)
             {
                 VerifyModernRuntimeTooling(project, startArea);
                 VerifyOperationalReadiness(project);
@@ -502,6 +534,12 @@ public partial class GameRoot : Node3D
             {
                 UpdateHud();
                 await CaptureVisualRegressionSuiteAsync(project, visualRegressionSuitePath);
+                return;
+            }
+            if (combatFeedbackCapturePath is not null)
+            {
+                UpdateHud();
+                await CaptureCombatFeedbackVisualProofAsync(combatFeedbackCapturePath, combatFeedbackCaptureSize);
                 return;
             }
             if (moduleMapVisualCapturePath is not null)
@@ -585,6 +623,10 @@ public partial class GameRoot : Node3D
             else if (forgottenForestSmokeTest)
             {
                 await RunForgottenForestSmokeTestAsync(project, terrainBenchmarkPath);
+            }
+            else if (combatFeedbackSmokeTest)
+            {
+                await RunCombatFeedbackSmokeTestAsync();
             }
             else if (rpgKitSmokeTest)
             {
@@ -804,6 +846,243 @@ public partial class GameRoot : Node3D
         GD.Print($"OPENRPG_FORGE_ACTION_WHEEL_VISUAL_PASS file={Path.GetFileName(destination)} " +
                  $"size={image.GetWidth()}x{image.GetHeight()}");
         GetTree().Quit(0);
+    }
+
+    private async Task CaptureCombatFeedbackVisualProofAsync(
+        string destinationDirectory,
+        string? requestedResolution)
+    {
+        if (!Path.IsPathFullyQualified(destinationDirectory))
+            throw new ArgumentException("The combat feedback capture destination must be absolute.",
+                nameof(destinationDirectory));
+        var root = Path.GetFullPath(destinationDirectory);
+        Directory.CreateDirectory(root);
+        var player = _player ?? throw new InvalidOperationException("Combat feedback capture requires a player.");
+        var camera = _camera ?? throw new InvalidOperationException("Combat feedback capture requires a camera.");
+        var source = _playerCombatant ?? throw new InvalidOperationException(
+            "Combat feedback capture requires a player combatant.");
+        var targetNode = _boss ?? _hostiles.Keys.FirstOrDefault(GodotObject.IsInstanceValid) ??
+            throw new InvalidOperationException("Combat feedback capture requires a hostile target.");
+        var target = _hostiles[targetNode];
+        var hud = _hud ?? throw new InvalidOperationException("Combat feedback capture requires the HUD.");
+        var actionBar = _actionBar ?? throw new InvalidOperationException(
+            "Combat feedback capture requires the action bar.");
+        var feedback = _combatFeedbackLayer ?? throw new InvalidOperationException(
+            "Combat feedback capture requires the feedback layer.");
+        var impacts = _combatImpactPool ?? throw new InvalidOperationException(
+            "Combat feedback capture requires the impact pool.");
+        var map = _moduleMap ?? throw new InvalidOperationException("Combat feedback capture requires the map.");
+        var toasts = _toastQueue ?? throw new InvalidOperationException("Combat feedback capture requires toasts.");
+        var ability = source.Profile.Abilities.First();
+        var captures = new List<object>();
+        var mode = _combatUiPolicy.ReducedMotion ? "reduced" : "normal";
+
+        if (!string.IsNullOrWhiteSpace(requestedResolution))
+        {
+            var (width, height) = VisualRegressionProfile.ParseResolution(requestedResolution);
+            var window = GetWindow();
+            window.Mode = Window.ModeEnum.Windowed;
+            window.Borderless = true;
+            window.Size = new Vector2I(width, height);
+            window.Position = Vector2I.Zero;
+            for (var frame = 0; frame < 3; frame++)
+                await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        }
+        GetViewport().Scaling3DScale = 1;
+        player.GlobalPosition = targetNode.GlobalPosition + new Vector3(2.4f, 0, 1.2f);
+        player.Velocity = Vector3.Zero;
+        player.ResetPhysicsInterpolation();
+        var focus = targetNode.GlobalPosition + Vector3.Up * 1.15f;
+        camera.Fov = 48;
+        camera.GlobalPosition = focus + new Vector3(7.2f, 4.4f, 8.2f);
+        camera.LookAt(focus, Vector3.Up);
+        feedback.SetTarget(targetNode);
+        _currentCombatTarget = targetNode;
+        hud.UpdateTargetStatus(_hostileNames[targetNode], target.Health,
+            target.Profile.Stats.MaximumHealth, targetNode == _boss, defeated: false);
+        actionBar.ConfigurePrimaryAbility(ability);
+        actionBar.UpdatePrimaryAbilityState(0, source.Resource, targetAvailable: true);
+        toasts.ClearAll();
+        map.ClearPings();
+
+        var preImpact = await SaveCombatFeedbackFrameAsync(root, "01-pre-impact.png", 6);
+        captures.Add(CaptureReport("pre-impact", preImpact, actualGameplay: true,
+            damage: 0, healing: 0, resource: 0, cooldown: 0));
+
+        var healthBefore = target.Health;
+        DamageHostile(targetNode);
+        var presentation = _lastCombatFeedback ?? throw new InvalidOperationException(
+            "Combat feedback capture received no projection after the real cast.");
+        var damage = presentation.Amounts.Single(item => item.Kind == CombatFeedbackAmountKind.Damage).Value;
+        AssertSmoke(healthBefore - target.Health == damage,
+            "Combat feedback capture damage diverged from the authoritative result.");
+        var impact = await SaveCombatFeedbackFrameAsync(root, "02-impact-peak.png", 1);
+        captures.Add(CaptureReport("impact-peak", impact, actualGameplay: true,
+            damage, healing: 0, resource: 0, cooldown: 0));
+
+        var chip = await SaveCombatFeedbackFrameAsync(root, "03-delayed-chip.png", 9);
+        captures.Add(CaptureReport("delayed-chip", chip, actualGameplay: true,
+            damage, healing: 0, resource: 0, cooldown: 0));
+
+        var stableFrames = _combatUiPolicy.ReducedMotion ? 70 : 42;
+        var stable = await SaveCombatFeedbackFrameAsync(root, "04-stable-ready.png", stableFrames);
+        captures.Add(CaptureReport("stable-ready", stable, actualGameplay: true,
+            damage, healing: 0, resource: 0, cooldown: 0));
+
+        toasts.ClearAll();
+        map.ClearPings();
+        var objective = _questMachine?.CurrentState.Journal.Fallback ?? "Retrouver la relique de la forêt";
+        toasts.Show(RuntimeToastKind.Objective, $"Objectif : {objective}", $"capture-objective:{objective}");
+        var objectivePosition = _trackedWaypointMarker?.Position ??
+            (_keyItem is not null && GodotObject.IsInstanceValid(_keyItem)
+                ? new Vector3Value(_keyItem.GlobalPosition.X, _keyItem.GlobalPosition.Y, _keyItem.GlobalPosition.Z)
+                : new Vector3Value(targetNode.GlobalPosition.X, targetNode.GlobalPosition.Y,
+                    targetNode.GlobalPosition.Z));
+        map.ShowPing(objectivePosition, RuntimeMapPingKind.Objective,
+            _trackedWaypointMarker?.AccessibleText ?? $"Objectif suivi : {objective}");
+        var objectiveCapture = await SaveCombatFeedbackFrameAsync(root, "05-objective-toast-ping.png", 10);
+        captures.Add(CaptureReport("objective-toast-ping", objectiveCapture, actualGameplay: true,
+            damage: 0, healing: 0, resource: 0, cooldown: 0));
+
+        var fixtureAbility = new AbilityDefinition(
+            AbilityId.From(Guid.Parse("cf200000-0000-4000-8000-000000000001")),
+            "fixture-renewal",
+            "Renouveau de validation",
+            2,
+            .8,
+            AbilityTargeting.Self,
+            [
+                new AbilityEffect(AbilityEffectKind.Heal, 5),
+                new AbilityEffect(AbilityEffectKind.RestoreResource, 3),
+            ],
+            new AbilityVisualCue("cue.fixture-renewal"));
+        var fixture = new CombatantState("fixture:capture",
+            new CombatProfile(new CombatStats(30, 10, 4, 1, "fixture", "fixture"), [fixtureAbility]));
+        fixture.Restore(12, 2);
+        var fixtureResult = CombatResolver.Cast(fixture, fixture, fixtureAbility.Id, 100);
+        var fixturePresentation = CombatFeedbackPresentationService.Create(
+            Guid.Parse("cf200000-0000-4000-8000-000000000002"),
+            fixture, fixture, fixtureResult, 100.1);
+        toasts.ClearAll();
+        map.ClearPings();
+        actionBar.ConfigurePrimaryAbility(fixtureAbility);
+        actionBar.UpdatePrimaryAbilityState(.7, fixture.Resource, targetAvailable: true);
+        hud.UpdatePlayerStatus("FIXTURE TEST", 18, 30, fixture.Resource, 10, 1);
+        hud.UpdateTargetStatus("FIXTURE S+R", fixture.Health, 30, boss: false, defeated: false);
+        feedback.Present(fixturePresentation, targetNode);
+        feedback.Flash(targetNode, CombatFeedbackAmountKind.Healing);
+        impacts.Present(fixturePresentation, targetNode, targetNode.GlobalPosition);
+        impacts.PlayAudio(CombatFeedbackAudioKind.Healing, targetNode.GlobalPosition);
+        toasts.Show(RuntimeToastKind.System,
+            "FIXTURE HORS GAMEPLAY — soin, ressource, recharge et chip joueur",
+            "capture:fixture");
+        map.ShowPing(new Vector3Value(targetNode.GlobalPosition.X, targetNode.GlobalPosition.Y,
+                targetNode.GlobalPosition.Z),
+            RuntimeMapPingKind.Objective, "Fixture visuelle hors gameplay");
+        var fixtureCapture = await SaveCombatFeedbackFrameAsync(root, "06-fixtures-not-gameplay.png", 10);
+        captures.Add(CaptureReport("fixtures", fixtureCapture, actualGameplay: false,
+            damage: 0, fixtureResult.Healing, fixtureResult.ResourceRestored,
+            fixturePresentation.CooldownRemainingSeconds));
+
+        var windowSize = GetViewport().GetTexture().GetImage().GetSize();
+        var reportPath = Path.Combine(root, "capture-report.json");
+        File.WriteAllText(reportPath, JsonSerializer.Serialize(new
+        {
+            schemaVersion = 1,
+            passed = true,
+            resolution = $"{windowSize.X}x{windowSize.Y}",
+            mode,
+            reducedMotion = _combatUiPolicy.ReducedMotion,
+            colorVisionMode = _combatUiPolicy.ColorVisionMode.ToString(),
+            highContrast = _combatUiPolicy.HighContrast,
+            textScale = _combatUiPolicy.TextScale,
+            pools = new
+            {
+                floatingCapacity = RuntimeCombatFeedbackLayer.FloatingNumberCapacity,
+                nameplateCapacity = RuntimeCombatFeedbackLayer.NameplateCapacity,
+                particleCapacity = RuntimeCombatImpactPool.ParticleCapacity,
+                audioCapacity = RuntimeCombatImpactPool.AudioCapacity,
+                pingCapacity = 8,
+                toastCapacity = 3,
+                floatingPeak = feedback.PeakActiveFloatingCount,
+                particlePeak = impacts.PeakParticleCount,
+                audioPeak = impacts.PeakAudioCount,
+                pingPeak = map.PeakPingCount,
+                toastPeak = toasts.PeakActiveCount,
+            },
+            authoritative = new
+            {
+                presentation.TransactionId,
+                presentation.AbilitySlug,
+                presentation.VisualCueKey,
+                damage,
+                targetHealth = target.Health,
+                cooldownSeconds = presentation.CooldownRemainingSeconds,
+            },
+            captures,
+            marker = "OPENRPG_FORGE_COMBAT_FEEDBACK_CAPTURE_PASS",
+        }, new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = true,
+        }) + System.Environment.NewLine, new UTF8Encoding(false));
+        GD.Print($"OPENRPG_FORGE_COMBAT_FEEDBACK_CAPTURE_PASS resolution={windowSize.X}x{windowSize.Y} " +
+                 $"mode={mode} captures={captures.Count} actual_gameplay=5 fixtures=1 " +
+                 $"damage={damage} report={Path.GetFileName(reportPath)}");
+        GetTree().Quit(0);
+
+        object CaptureReport(
+            string stage,
+            (int Width, int Height, long Bytes, string File) frame,
+            bool actualGameplay,
+            int damage,
+            int healing,
+            int resource,
+            double cooldown) => new
+            {
+                stage,
+                frame.File,
+                frame.Width,
+                frame.Height,
+                frame.Bytes,
+                actualGameplay,
+                damage,
+                healing,
+                resourceRestored = resource,
+                cooldownRemainingSeconds = cooldown,
+            };
+    }
+
+    private async Task<(int Width, int Height, long Bytes, string File)> SaveCombatFeedbackFrameAsync(
+        string root,
+        string fileName,
+        int frames)
+    {
+        for (var frame = 0; frame < frames; frame++)
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        await ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
+        var readbackParity = (long)(Engine.GetFramesDrawn() & 1);
+        if (_combatFeedbackCaptureReadbackParity is null)
+        {
+            // The first Vulkan swapchain image after the deterministic resize can retain stale canvas batches.
+            // Prime the alternate image once, then keep every proof on that validated readback parity.
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            await ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
+            readbackParity = (long)(Engine.GetFramesDrawn() & 1);
+            _combatFeedbackCaptureReadbackParity = readbackParity;
+        }
+        else if (readbackParity != _combatFeedbackCaptureReadbackParity.Value)
+        {
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            await ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
+            readbackParity = (long)(Engine.GetFramesDrawn() & 1);
+        }
+        RenderingServer.ForceSync();
+        var image = GetViewport().GetTexture().GetImage();
+        var path = Path.Combine(root, fileName);
+        if (image.SavePng(path) != Error.Ok)
+            throw new IOException($"Combat feedback capture could not be written: {path}.");
+        return (image.GetWidth(), image.GetHeight(), new FileInfo(path).Length, fileName);
     }
 
     private static void ValidateUiCaptureDestination(string destination, string label)
@@ -2311,21 +2590,34 @@ public partial class GameRoot : Node3D
             RotationDegrees = new Vector3(-58, -32, 0),
             LightColor = engineEnvironment.DirectionalLightColor,
             LightEnergy = engineEnvironment.DirectionalLightEnergy,
+            LightVolumetricFogEnergy = 1.25f,
+            LightAngularDistance = .52f,
             ShadowEnabled = environmentProfile.Lighting.Shadows,
+            ShadowBlur = 1.45f,
+            DirectionalShadowMode = DirectionalLight3D.ShadowMode.Parallel4Splits,
+            DirectionalShadowMaxDistance = 320,
+            DirectionalShadowFadeStart = .82f,
         };
         AddChild(sun);
 
         if (environmentProfile.Tags.Contains("indoor", StringComparer.OrdinalIgnoreCase))
         {
-            foreach (var position in new[] { new Vector3(-10, 5.5f, -6), new Vector3(10, 5.5f, 6) })
+            var interiorLights = new[]
+            {
+                (Position: new Vector3(-6, 5.2f, -4), Color: new Color("ffe0b8"), Energy: 2.35f, Range: 23f, Shadows: true),
+                (Position: new Vector3(7, 5.8f, 5), Color: new Color("b5d8ff"), Energy: 2.15f, Range: 30f, Shadows: false),
+            };
+            foreach (var light in interiorLights)
             {
                 AddChild(new OmniLight3D
                 {
-                    Position = position,
-                    OmniRange = 26,
-                    LightColor = new Color("ffd2a1"),
-                    LightEnergy = 3.4f,
-                    ShadowEnabled = false,
+                    Position = light.Position,
+                    OmniRange = light.Range,
+                    LightColor = light.Color,
+                    LightEnergy = light.Energy,
+                    LightVolumetricFogEnergy = .58f,
+                    ShadowEnabled = light.Shadows,
+                    ShadowBlur = 1.8f,
                 });
             }
         }
@@ -2791,7 +3083,12 @@ public partial class GameRoot : Node3D
             GD.PrintErr($"OPENRPG_FORGE_RUNTIME_WAYPOINT_DIAGNOSTIC code={diagnostic.Code} path={diagnostic.Path}");
         var marker = WaypointRuntimeService.VisibleMarkers(profile, _waypointRuntimeState,
             MarkerVisibilityScope.Party).FirstOrDefault();
-        if (marker is not null) _hud?.ShowWaypointMarker(marker);
+        _trackedWaypointMarker = marker;
+        if (marker is not null)
+        {
+            _hud?.ShowWaypointMarker(marker);
+            _moduleMap?.ShowPing(marker.Position, RuntimeMapPingKind.Objective, marker.AccessibleText);
+        }
         BuildWaypointLocatorsAndRouteDebug(profile);
         var route = profile.PatrolRoutes.FirstOrDefault();
         if (route is null) return;
@@ -5021,6 +5318,9 @@ public partial class GameRoot : Node3D
 
     private void CreateHud()
     {
+        _combatUiPolicy = RuntimeUiMotionPolicy.Create(
+            _runtimeExtensions?.ModernTooling.QualityAssurance.Accessibility,
+            OS.GetCmdlineUserArgs());
         _hud = new RuntimeHud
         {
             ModuleTitle = _moduleTitle,
@@ -5029,16 +5329,34 @@ public partial class GameRoot : Node3D
             CombatEnabled = _playerCombatant is not null,
             Accessibility = _runtimeExtensions?.ModernTooling.QualityAssurance.Accessibility,
             PartyHud = _worldFeatureCatalog?.Companions.FirstOrDefault()?.Experience?.Hud,
+            MotionPolicy = _combatUiPolicy,
         };
         _hud.PauseRequested += ToggleTacticalPause;
         _hud.JournalRequested += () => ToggleRpgMenu(RuntimeRpgMenuPage.Journal);
         AddChild(_hud);
         _hud.UpdatePartyStatus("Elyra", 24, 30,
             new Dictionary<string, double> { ["health"] = 24, ["focus"] = 4 }, ["prête"]);
-        _actionBar = new RuntimeActionBar { CombatEnabled = _playerCombatant is not null };
+        _toastQueue = new RuntimeToastQueue { MotionPolicy = _combatUiPolicy };
+        AddChild(_toastQueue);
+        _actionBar = new RuntimeActionBar
+        {
+            CombatEnabled = _playerCombatant is not null,
+            MotionPolicy = _combatUiPolicy,
+        };
+        if (_playerCombatant?.Profile.Abilities.FirstOrDefault() is { } primaryAbility)
+            _actionBar.ConfigurePrimaryAbility(primaryAbility);
+        _actionBar.PrimaryAbilityReady += HandlePrimaryAbilityReady;
         _actionBar.CommandRequested += HandleActionBarCommand;
         AddChild(_actionBar);
-        _moduleMap = new RuntimeModuleMap();
+        if (_camera is not null)
+        {
+            _combatFeedbackLayer = new RuntimeCombatFeedbackLayer(_camera, _combatUiPolicy);
+            AddChild(_combatFeedbackLayer);
+            _combatImpactPool = new RuntimeCombatImpactPool(_combatUiPolicy);
+            AddChild(_combatImpactPool);
+            RegisterCombatFeedbackTargets();
+        }
+        _moduleMap = new RuntimeModuleMap { MotionPolicy = _combatUiPolicy };
         _moduleMap.Configure(_loadedProject!, _activeArea!, _player!);
         _moduleMap.GlobalMapVisibilityChanged += _ => SyncPlayerInterfaceLock();
         _moduleMap.InventoryRequested += () => ShowRpgMenu(RuntimeRpgMenuPage.Inventory);
@@ -5059,6 +5377,7 @@ public partial class GameRoot : Node3D
         AddChild(_dialogueOverlay);
         _actionWheel = new RuntimeActionWheel();
         if (_gameplayControls is not null) _actionWheel.Configure(_gameplayControls);
+        _actionWheel.SelectionAccepted += command => _actionBar?.NotifyCommandAccepted(command);
         _actionWheel.CommandRequested += RequestGameplayCommand;
         _actionWheel.WheelVisibilityChanged += _ => SyncPlayerInterfaceLock();
         AddChild(_actionWheel);
@@ -5070,6 +5389,27 @@ public partial class GameRoot : Node3D
             AddChild(_declarativeUi);
         }
         UpdateTacticalHud();
+    }
+
+    private void RegisterCombatFeedbackTargets()
+    {
+        if (_combatFeedbackLayer is null) return;
+        foreach (var pair in _hostiles)
+        {
+            var node = pair.Key;
+            var combatant = pair.Value;
+            var worldLabel = node.GetNodeOrNull<Label3D>(RuntimeWorldLabelNodeName);
+            var anchorHeight = worldLabel?.Position.Y ?? (node == _boss ? 2.2f : 1.35f);
+            worldLabel?.QueueFree();
+            _combatFeedbackLayer.Register(
+                node,
+                combatant.Id,
+                _hostileNames[node],
+                combatant.Health,
+                combatant.Profile.Stats.MaximumHealth,
+                node == _boss,
+                anchorHeight);
+        }
     }
 
     private void HandleActionBarCommand(string command)
@@ -5102,6 +5442,16 @@ public partial class GameRoot : Node3D
                 RequestGameplayCommand(command);
                 break;
         }
+    }
+
+    private void HandlePrimaryAbilityReady()
+    {
+        var ability = _playerCombatant?.Profile.Abilities.FirstOrDefault();
+        if (ability is null || ability.CooldownSeconds <= 0) return;
+        _toastQueue?.Show(RuntimeToastKind.Combat, $"{ability.DisplayName} est prête.",
+            $"combat-ready:{ability.Id}");
+        if (_player is not null)
+            _combatImpactPool?.PlayAudio(CombatFeedbackAudioKind.AbilityReady, _player.GlobalPosition);
     }
 
     private void HandleScriptableUiEvent(ScriptUiEvent @event)
@@ -5556,13 +5906,14 @@ public partial class GameRoot : Node3D
     private void AttackNearestHostile()
     {
         var nearest = _hostiles.Keys
-            .Where(GodotObject.IsInstanceValid)
+            .Where(node => GodotObject.IsInstanceValid(node) && !_hostiles[node].IsDead)
             .OrderBy(node => _player!.GlobalPosition.DistanceTo(node.GlobalPosition))
             .FirstOrDefault();
 
         if (nearest is null || !IsNear(nearest, AttackDistance))
         {
             _message = "Aucun ennemi à portée.";
+            _toastQueue?.Show(RuntimeToastKind.Alert, "Aucune cible hostile à portée.", "combat:no-target");
             UpdateHud();
             return;
         }
@@ -5579,6 +5930,27 @@ public partial class GameRoot : Node3D
 
         var ability = _playerCombatant.Profile.Abilities.FirstOrDefault()
             ?? throw new InvalidOperationException("The player combat profile has no attack ability.");
+        var nowSeconds = Time.GetTicksMsec() / 1000d;
+        if (target.IsDead)
+        {
+            RejectCombatAction("Cette cible est déjà vaincue.", "combat:target-dead");
+            return;
+        }
+        if (_playerCombatant.Resource < ability.ResourceCost)
+        {
+            RejectCombatAction(
+                $"Ressource insuffisante pour {ability.DisplayName} : {ability.ResourceCost} requise, " +
+                $"{_playerCombatant.Resource} disponible.",
+                $"combat:resource:{ability.Id}");
+            return;
+        }
+        var cooldownRemaining = _playerCombatant.CooldownRemaining(ability, nowSeconds);
+        if (cooldownRemaining > 0)
+        {
+            RejectCombatAction($"{ability.DisplayName} est en recharge ({cooldownRemaining:0.0} s).",
+                $"combat:cooldown:{ability.Id}");
+            return;
+        }
         var damageTransactionId = Guid.NewGuid();
         if (_creatureEventProfiles.TryGetValue(hostile, out var preDamageEvents))
         {
@@ -5597,8 +5969,12 @@ public partial class GameRoot : Node3D
             _playerCombatant,
             target,
             ability.Id,
-            Time.GetTicksMsec() / 1000d,
+            nowSeconds,
             damageMultiplier: _resolvedDifficulty?.PlayerDamageMultiplier ?? 1);
+        _lastCombatFeedback = CombatFeedbackPresentationService.Create(
+            damageTransactionId, _playerCombatant, target, result, nowSeconds);
+        _actionBar?.NotifyCastAccepted();
+        PresentCombatFeedback(hostile, target, _lastCombatFeedback);
         if (hostile == _boss) ReportFactionWitness("attack.ash-warden");
         if (_creatureEventProfiles.TryGetValue(hostile, out var creatureEvents))
         {
@@ -5623,6 +5999,8 @@ public partial class GameRoot : Node3D
         var hostileName = _hostileNames[hostile];
         _message = $"{hostileName} subit {result.Damage} dégât(s) ({health} PV).";
         var reactionDuration = PlayHostileCombatReaction(hostile, result.TargetDied);
+        if (_characterAnimations.TryGetValue(hostile, out var hitStopAnimation))
+            _combatImpactPool?.ApplyHitStop(hitStopAnimation.Player);
 
         if (hostile == _boss && health <= Math.Max(1, target.Profile.Stats.MaximumHealth / 2) && !_bossPhaseTwo)
         {
@@ -5689,11 +6067,13 @@ public partial class GameRoot : Node3D
                 var timer = GetTree().CreateTimer(reactionDuration);
                 timer.Timeout += () =>
                 {
+                    ReleaseCombatFeedbackTarget(hostile);
                     if (GodotObject.IsInstanceValid(hostile)) hostile.QueueFree();
                 };
             }
             else
             {
+                ReleaseCombatFeedbackTarget(hostile);
                 hostile.QueueFree();
             }
 
@@ -5714,11 +6094,99 @@ public partial class GameRoot : Node3D
         UpdateHud();
     }
 
+    private void RejectCombatAction(string message, string deduplicationKey)
+    {
+        _message = message;
+        _toastQueue?.Show(RuntimeToastKind.Alert, message, deduplicationKey);
+        UpdateHud();
+    }
+
+    private void PresentCombatFeedback(
+        Node3D hostile,
+        CombatantState target,
+        CombatFeedbackPresentation presentation)
+    {
+        var targetChanged = _currentCombatTarget != hostile;
+        _currentCombatTarget = hostile;
+        _combatFeedbackLayer?.Present(presentation, hostile);
+        if (presentation.Amounts.FirstOrDefault() is { } primaryAmount)
+            _combatFeedbackLayer?.Flash(hostile, primaryAmount.Kind);
+        if (_camera is not null)
+            _combatImpactPool?.Present(presentation, hostile, _camera.GlobalPosition);
+        if (presentation.Amounts.Any(item => item.Kind == CombatFeedbackAmountKind.Damage))
+            _cameraRig.AddImpulse(_combatUiPolicy.CameraImpulseMeters, _combatUiPolicy.CameraImpulseSeconds);
+        PlayCombatFeedbackAudio(presentation, hostile);
+        var displayName = _hostileNames.GetValueOrDefault(hostile, hostile.Name);
+        if (targetChanged)
+        {
+            var position = hostile.GlobalPosition;
+            _moduleMap?.ShowPing(new Vector3Value(position.X, position.Y, position.Z),
+                RuntimeMapPingKind.Combat, $"Cible de combat : {displayName}");
+        }
+        _hud?.UpdateTargetStatus(
+            displayName,
+            target.Health,
+            target.Profile.Stats.MaximumHealth,
+            hostile == _boss,
+            presentation.TargetDied);
+    }
+
+    private void PlayCombatFeedbackAudio(CombatFeedbackPresentation presentation, Node3D target)
+    {
+        if (_combatImpactPool is null) return;
+        var position = target.GlobalPosition + Vector3.Up;
+        var authoredCue = _areaExperience?.AudioCues.FirstOrDefault(item =>
+            string.Equals(item.CueId, presentation.VisualCueKey, StringComparison.Ordinal));
+        if (authoredCue is not null && _areaExperience is not null)
+        {
+            var resolved = AreaExperienceRuntimeService.PlayCue(
+                _areaExperience, _areaAudioState, authoredCue.CueId, DateTimeOffset.UtcNow);
+            _areaAudioState = resolved.State;
+            var stream = LoadAudioStream(resolved.Playback.Resource);
+            if (stream is not null)
+            {
+                var playbackId = resolved.Playback.PlaybackId;
+                _combatImpactPool.PlayAudioStream(stream, position, resolved.Playback.Bus,
+                    Math.Clamp(resolved.Playback.Volume, .001f, 1), () =>
+                    {
+                        _areaAudioState = AreaExperienceRuntimeService.Complete(
+                            _areaAudioState, playbackId, DateTimeOffset.UtcNow);
+                    }, cueOverride: true);
+                GD.Print($"OPENRPG_FORGE_RUNTIME_COMBAT_AUDIO cue={presentation.VisualCueKey} source=area");
+                return;
+            }
+            _areaAudioState = AreaExperienceRuntimeService.Complete(
+                _areaAudioState, resolved.Playback.PlaybackId, DateTimeOffset.UtcNow);
+        }
+
+        var kind = presentation.Amounts.Any(item => item.Kind == CombatFeedbackAmountKind.Damage)
+            ? CombatFeedbackAudioKind.ImpactLight
+            : CombatFeedbackAudioKind.Healing;
+        _combatImpactPool.PlayAudio(kind, position);
+        GD.Print($"OPENRPG_FORGE_RUNTIME_COMBAT_AUDIO cue={presentation.VisualCueKey} source=builtin kind={kind}");
+    }
+
+    private void ReleaseCombatFeedbackTarget(Node3D hostile)
+    {
+        _combatFeedbackLayer?.Unregister(hostile);
+        if (_currentCombatTarget != hostile) return;
+        ClearCombatTargetFocus();
+    }
+
+    private void ClearCombatTargetFocus()
+    {
+        _currentCombatTarget = null;
+        _combatFeedbackLayer?.ClearTarget();
+        _hud?.ClearTarget();
+    }
+
     private void GrantLoot(IEnumerable<LootGrant> grants)
     {
         foreach (var grant in grants)
         {
             _inventory.Add(grant.ItemSlug);
+            _toastQueue?.Show(RuntimeToastKind.Loot,
+                $"Butin : {grant.ItemSlug} ×{grant.Quantity}", $"loot:{grant.ItemSlug}");
             GD.Print($"OPENRPG_FORGE_LOOT_GRANTED item={grant.ItemSlug} quantity={grant.Quantity} " +
                 $"owner={grant.OwnerId} instance={grant.InstanceKey} cause={grant.Cause}");
         }
@@ -6049,6 +6517,9 @@ public partial class GameRoot : Node3D
         var explorationVisible = !codexOpen && !dialogueOpen && !mapOpen && !wheelOpen;
         if (_hud is not null) _hud.Visible = explorationVisible;
         if (_actionBar is not null) _actionBar.Visible = explorationVisible;
+        if (_combatFeedbackLayer is not null) _combatFeedbackLayer.Visible = explorationVisible;
+        _combatImpactPool?.SetInterfaceVisible(explorationVisible);
+        _toastQueue?.SetInterfaceVisible(explorationVisible);
         _moduleMap?.SetExplorationUiVisible(!codexOpen && !dialogueOpen && !wheelOpen);
         var interfaceLocked = IsTimeFrozen() || mapOpen || codexOpen || dialogueOpen;
         if (_flyingMount is not null) _flyingMount.ControlLocked = interfaceLocked;
@@ -6133,7 +6604,23 @@ public partial class GameRoot : Node3D
             _player?.StaminaRemaining ?? 0);
         var playerHealth = _playerCombatant?.Health ?? 1;
         var playerMaximumHealth = _playerCombatant?.Profile.Stats.MaximumHealth ?? 1;
-        _hud.UpdatePlayerStatus("Héros", playerHealth, playerMaximumHealth, _progressionLevel);
+        var playerResource = _playerCombatant?.Resource ?? 0;
+        var playerMaximumResource = _playerCombatant?.Profile.Stats.MaximumResource ?? 1;
+        _hud.UpdatePlayerStatus("Héros", playerHealth, playerMaximumHealth,
+            playerResource, playerMaximumResource, _progressionLevel);
+        if (_playerCombatant?.Profile.Abilities.FirstOrDefault() is { } primaryAbility)
+        {
+            var nowSeconds = Time.GetTicksMsec() / 1000d;
+            _actionBar?.UpdatePrimaryAbilityState(
+                _playerCombatant.CooldownRemaining(primaryAbility, nowSeconds),
+                _playerCombatant.Resource,
+                HasAttackTargetInRange());
+        }
+        if (_currentCombatTarget is not null &&
+            (!GodotObject.IsInstanceValid(_currentCombatTarget) ||
+             (_hostiles.ContainsKey(_currentCombatTarget) && _player is not null &&
+              _player.GlobalPosition.DistanceTo(_currentCombatTarget.GlobalPosition) > 45)))
+            ClearCombatTargetFocus();
         if (_moduleRules is not null && _areaRules is not null && _resolvedDifficulty is not null)
         {
             var next = _moduleRules.Progression.Curve.FirstOrDefault(point => point.Level > _progressionLevel)
@@ -6141,6 +6628,17 @@ public partial class GameRoot : Node3D
             _hud.UpdateRules(_resolvedDifficulty.DisplayName, _progressionLevel, _progressionExperience, next,
                 _areaRules.Combat.PvpMode.ToString(), _areaRules.Perception.Modifiers.Count);
         }
+    }
+
+    private bool HasAttackTargetInRange()
+    {
+        if (_player is null) return false;
+        foreach (var pair in _hostiles)
+        {
+            if (!GodotObject.IsInstanceValid(pair.Key) || pair.Value.IsDead) continue;
+            if (_player.GlobalPosition.DistanceTo(pair.Key.GlobalPosition) <= AttackDistance) return true;
+        }
+        return false;
     }
 
     private void AwardProgression(double baseAmount, string sourceId)
@@ -6175,7 +6673,7 @@ public partial class GameRoot : Node3D
 
         if (!_isCryptPrototype && !_isForgottenForestPrototype)
         {
-            _hud.UpdateState(
+            PresentHudState(
                 "explorer le module",
                 _message,
                 "Parcourez la zone et découvrez ses lieux remarquables.");
@@ -6195,7 +6693,7 @@ public partial class GameRoot : Node3D
                     "snow-pass" => "Explorer le col puis retrouver la forêt [E]",
                     _ => "Explorer la zone et trouver un passage [E]",
                 };
-                _hud.UpdateState(areaObjective, _message,
+                PresentHudState(areaObjective, _message,
                     _activeArea?.Slug == "ember-inn"
                         ? "Approchez-vous de la porte en bois et cliquez directement dessus pour sortir."
                         : $"Les routes de {_activeArea?.DisplayName ?? _moduleTitle} restent ouvertes. " +
@@ -6210,7 +6708,7 @@ public partial class GameRoot : Node3D
                     : _hasKey
                         ? "La relique réagit au sceau forestier. Retournez au passage."
                         : "La garde forestière recherche une relique perdue sous les frondaisons.";
-            _hud.UpdateState(forestObjective, _message, forestState);
+            PresentHudState(forestObjective, _message, forestState);
             return;
         }
 
@@ -6237,7 +6735,19 @@ public partial class GameRoot : Node3D
             PrototypeQuestState.Completed => "La chaleur retombe. Le chemin de sortie est désormais libre.",
             _ => "Les pierres anciennes gardent encore leurs secrets.",
         };
-        _hud.UpdateState(objective, _message, state);
+        PresentHudState(objective, _message, state);
+    }
+
+    private void PresentHudState(string objective, string message, string state)
+    {
+        _hud?.UpdateState(objective, message, state);
+        var cleanObjective = objective.Replace("[E]", string.Empty, StringComparison.OrdinalIgnoreCase).Trim();
+        if (string.Equals(cleanObjective, _lastPresentedObjective, StringComparison.Ordinal)) return;
+        _lastPresentedObjective = cleanObjective;
+        _toastQueue?.Show(RuntimeToastKind.Objective, $"Objectif : {cleanObjective}",
+            $"objective:{cleanObjective}");
+        if (_trackedWaypointMarker is { } marker)
+            _moduleMap?.ShowPing(marker.Position, RuntimeMapPingKind.Objective, marker.AccessibleText);
     }
 
     private void InteractWithGuide()
@@ -12162,6 +12672,267 @@ public partial class GameRoot : Node3D
         }
     }
 
+    private async Task RunCombatFeedbackSmokeTestAsync()
+    {
+        var player = _player ?? throw new InvalidOperationException("Combat feedback smoke requires a player.");
+        var camera = _camera ?? throw new InvalidOperationException("Combat feedback smoke requires a camera.");
+        var source = _playerCombatant ?? throw new InvalidOperationException(
+            "Combat feedback smoke requires an authoritative player combatant.");
+        var targetNode = _boss ?? _hostiles.Keys.FirstOrDefault(GodotObject.IsInstanceValid) ??
+            throw new InvalidOperationException("Combat feedback smoke requires a hostile target.");
+        var target = _hostiles[targetNode];
+        var hud = _hud ?? throw new InvalidOperationException("Combat feedback smoke requires the runtime HUD.");
+        var actionBar = _actionBar ?? throw new InvalidOperationException(
+            "Combat feedback smoke requires the action bar.");
+        var feedback = _combatFeedbackLayer ?? throw new InvalidOperationException(
+            "Combat feedback smoke requires the feedback layer.");
+        var impacts = _combatImpactPool ?? throw new InvalidOperationException(
+            "Combat feedback smoke requires the impact pool.");
+        var map = _moduleMap ?? throw new InvalidOperationException("Combat feedback smoke requires the module map.");
+        var toasts = _toastQueue ?? throw new InvalidOperationException("Combat feedback smoke requires toasts.");
+        var gameplayAbility = source.Profile.Abilities.First();
+
+        player.GlobalPosition = targetNode.GlobalPosition + new Vector3(2, 0, 0);
+        player.Velocity = Vector3.Zero;
+        _cameraRig.Snap(camera, player.GlobalPosition, ConstrainCameraPosition);
+
+        for (var frame = 0; frame < 4; frame++)
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+
+        var targetHealthBefore = target.Health;
+        var animationPlayer = _characterAnimations.TryGetValue(targetNode, out var animation)
+            ? animation.Player
+            : null;
+        var animationSpeedBefore = animationPlayer?.SpeedScale;
+        DamageHostile(targetNode);
+        var gameplayPresentation = _lastCombatFeedback ?? throw new InvalidOperationException(
+            "The real Forgotten Forest cast produced no combat feedback projection.");
+        var gameplayDamage = gameplayPresentation.Amounts.Single(item =>
+            item.Kind == CombatFeedbackAmountKind.Damage).Value;
+        AssertSmoke(targetHealthBefore - target.Health == gameplayDamage &&
+                    gameplayPresentation.TargetHealth == target.Health &&
+                    gameplayPresentation.CooldownDurationSeconds == gameplayAbility.CooldownSeconds &&
+                    gameplayPresentation.CooldownRemainingSeconds == 0 &&
+                    !actionBar.PrimaryCooldownVisible &&
+                    feedback.LastTransactionId == gameplayPresentation.TransactionId &&
+                    feedback.LastPresentedDamage == gameplayDamage &&
+                    hud.TargetFrameVisible &&
+                    !impacts.LastUsedCueOverride,
+            "Real Forgotten Forest damage did not preserve authoritative combat feedback values.");
+
+        for (var frame = 0; frame < 8; frame++)
+            _cameraRig.Update(camera, player.GlobalPosition, 1d / 60d, ConstrainCameraPosition);
+        AssertSmoke(_combatUiPolicy.ReducedMotion
+                ? !_cameraRig.ImpulseActive && _cameraRig.MaximumAppliedImpulse == 0
+                : _cameraRig.MaximumAppliedImpulse <= _combatUiPolicy.CameraImpulseMeters + .001f,
+            "Camera impact impulse escaped the configured motion policy.");
+        GD.Print($"OPENRPG_FORGE_COMBAT_FEEDBACK_VISUAL_PASS actualGameplay=true " +
+                 $"damage={gameplayDamage} target_health={target.Health} cooldown=0 " +
+                 $"cue={gameplayPresentation.VisualCueKey} target_frame=true");
+
+        var fixtureAbility = new AbilityDefinition(
+            AbilityId.From(Guid.Parse("cf100000-0000-4000-8000-000000000001")),
+            "fixture-renewal",
+            "Renouveau de validation",
+            2,
+            .8,
+            AbilityTargeting.Self,
+            [
+                new AbilityEffect(AbilityEffectKind.Heal, 5),
+                new AbilityEffect(AbilityEffectKind.RestoreResource, 3),
+            ],
+            new AbilityVisualCue("cue.fixture-renewal"));
+        var fixture = new CombatantState("fixture:combat-feedback",
+            new CombatProfile(new CombatStats(30, 10, 4, 1, "fixture", "fixture"), [fixtureAbility]));
+        fixture.Restore(12, 2);
+        var fixtureResult = CombatResolver.Cast(fixture, fixture, fixtureAbility.Id, 100);
+        var fixturePresentation = CombatFeedbackPresentationService.Create(
+            Guid.Parse("cf100000-0000-4000-8000-000000000002"),
+            fixture, fixture, fixtureResult, 100.1);
+        actionBar.ConfigurePrimaryAbility(fixtureAbility);
+        actionBar.UpdatePrimaryAbilityState(
+            fixturePresentation.CooldownRemainingSeconds, fixture.Resource, targetAvailable: true);
+        hud.UpdatePlayerStatus("FIXTURE — PAS DE GAMEPLAY", 30, 30, 10, 10, 1);
+        hud.UpdatePlayerStatus("FIXTURE — PAS DE GAMEPLAY", 18, 30, 7, 10, 1);
+        feedback.Present(fixturePresentation, targetNode);
+        feedback.Flash(targetNode, CombatFeedbackAmountKind.Healing);
+        impacts.Present(fixturePresentation, targetNode, targetNode.GlobalPosition);
+        impacts.PlayAudio(CombatFeedbackAudioKind.Healing, targetNode.GlobalPosition);
+        AssertSmoke(fixturePresentation.Amounts.Count == 2 &&
+                    fixturePresentation.Amounts[0].Kind == CombatFeedbackAmountKind.Healing &&
+                    fixturePresentation.Amounts[1].Kind == CombatFeedbackAmountKind.ResourceRestored &&
+                    Math.Abs(fixturePresentation.CooldownRemainingSeconds - .7) < .0001 &&
+                    actionBar.PrimaryCooldownVisible &&
+                    (_combatUiPolicy.ReducedMotion ? !hud.PlayerHealthAnimating : hud.PlayerHealthAnimating),
+            "Explicit non-gameplay heal/resource/cooldown/player-chip fixture failed.");
+
+        var authoredCue = _areaExperience?.AudioCues.FirstOrDefault(item => LoadAudioStream(item.Resource) is not null)
+            ?? throw new InvalidOperationException("Combat feedback smoke requires one loadable authored area cue.");
+        PlayCombatFeedbackAudio(fixturePresentation with
+        {
+            TransactionId = Guid.Parse("cf100000-0000-4000-8000-000000000004"),
+            VisualCueKey = authoredCue.CueId,
+        }, targetNode);
+        AssertSmoke(impacts.LastUsedCueOverride,
+            "A matching authored area cue did not override the built-in combat sound.");
+        PlayCombatFeedbackAudio(fixturePresentation with
+        {
+            TransactionId = Guid.Parse("cf100000-0000-4000-8000-000000000005"),
+            VisualCueKey = "cue.fixture-missing",
+        }, targetNode);
+        AssertSmoke(!impacts.LastUsedCueOverride,
+            "A missing area cue did not fall back to the built-in combat sound.");
+        GD.Print($"OPENRPG_FORGE_COMBAT_FEEDBACK_AUDIO_ROUTE_PASS authored={authoredCue.CueId} " +
+                 "fallback=cue.fixture-missing");
+
+        var sfxBus = AudioServer.GetBusIndex("SFX");
+        AssertSmoke(sfxBus >= 0, "The runtime SFX audio bus is unavailable.");
+        var sfxMutedBefore = AudioServer.IsBusMute(sfxBus);
+        var sfxVolumeBefore = AudioServer.GetBusVolumeDb(sfxBus);
+        var authoritativeHealthBeforeMute = target.Health;
+        var authoritativeResourceBeforeMute = source.Resource;
+        var mutedTransaction = Guid.Parse("cf100000-0000-4000-8000-000000000006");
+        try
+        {
+            AudioServer.SetBusVolumeDb(sfxBus, -80);
+            AudioServer.SetBusMute(sfxBus, true);
+            feedback.Present(fixturePresentation with { TransactionId = mutedTransaction }, targetNode);
+            feedback.Flash(targetNode, CombatFeedbackAmountKind.Healing);
+            impacts.Present(fixturePresentation, targetNode, targetNode.GlobalPosition);
+            impacts.PlayAudio(CombatFeedbackAudioKind.Healing, targetNode.GlobalPosition);
+            AssertSmoke(AudioServer.IsBusMute(sfxBus) && feedback.LastTransactionId == mutedTransaction &&
+                        feedback.FlashCount > 0 && target.Health == authoritativeHealthBeforeMute &&
+                        source.Resource == authoritativeResourceBeforeMute,
+                "Muting SFX suppressed visual feedback or mutated authoritative combat state.");
+        }
+        finally
+        {
+            AudioServer.SetBusVolumeDb(sfxBus, sfxVolumeBefore);
+            AudioServer.SetBusMute(sfxBus, sfxMutedBefore);
+        }
+        AssertSmoke(AudioServer.IsBusMute(sfxBus) == sfxMutedBefore &&
+                    Math.Abs(AudioServer.GetBusVolumeDb(sfxBus) - sfxVolumeBefore) < .001f,
+            "The SFX mute fixture did not restore the exact prior bus state.");
+        GD.Print("OPENRPG_FORGE_COMBAT_FEEDBACK_SFX_MUTE_PASS linear_volume=0 visual=true restored=true");
+        AssertSmoke(_combatUiPolicy.TextScale is >= .8f and <= 2f,
+            "Combat feedback text scale escaped its supported range.");
+        GD.Print($"OPENRPG_FORGE_COMBAT_FEEDBACK_ACCESSIBILITY_PASS " +
+                 $"text_scale={_combatUiPolicy.TextScale:0.0} high_contrast={_combatUiPolicy.HighContrast} " +
+                 $"color_vision={_combatUiPolicy.ColorVisionMode}");
+
+        var stressAbilityId = AbilityId.From(Guid.Parse("cf100000-0000-4000-8000-000000000003"));
+        var fixtureNodes = new Node3D[RuntimeCombatFeedbackLayer.FloatingNumberCapacity];
+        for (var index = 0; index < fixtureNodes.Length; index++)
+        {
+            var node = new Node3D
+            {
+                Name = $"CombatFeedbackStressFixture{index + 1}",
+            };
+            AddChild(node);
+            node.GlobalPosition = targetNode.GlobalPosition +
+                                  new Vector3((index % 8) * .03f, 0, (index / 8) * .03f);
+            fixtureNodes[index] = node;
+            feedback.Present(new CombatFeedbackPresentation(
+                Guid.NewGuid(),
+                "fixture:source",
+                $"fixture:target:{index}",
+                stressAbilityId,
+                "fixture-impact",
+                "Impact de charge",
+                "cue.fixture-impact",
+                [new CombatFeedbackAmount(CombatFeedbackAmountKind.Damage, index + 1)],
+                99,
+                100,
+                10,
+                10,
+                0,
+                0,
+                false), node);
+        }
+        for (var index = 0; index < RuntimeCombatImpactPool.ParticleCapacity + 4; index++)
+            impacts.Present(gameplayPresentation, targetNode, targetNode.GlobalPosition);
+        for (var index = 0; index < RuntimeCombatImpactPool.AudioCapacity + 4; index++)
+            impacts.PlayAudio(CombatFeedbackAudioKind.ImpactLight, targetNode.GlobalPosition);
+        for (var index = 0; index < 12; index++)
+            map.ShowPing(new Vector3Value(index * 2, 0, index * -2),
+                index % 2 == 0 ? RuntimeMapPingKind.Combat : RuntimeMapPingKind.Objective,
+                $"Fixture de ping {index + 1}");
+        for (var index = 0; index < 5; index++)
+            toasts.Show(RuntimeToastKind.System, $"Fixture de notification {index + 1}", $"fixture-toast:{index}");
+
+        AssertSmoke(feedback.ActiveFloatingCount == RuntimeCombatFeedbackLayer.FloatingNumberCapacity &&
+                    feedback.PeakActiveFloatingCount == RuntimeCombatFeedbackLayer.FloatingNumberCapacity &&
+                    feedback.RegisteredCount <= RuntimeCombatFeedbackLayer.NameplateCapacity &&
+                    impacts.PeakParticleCount <= RuntimeCombatImpactPool.ParticleCapacity &&
+                    impacts.PeakAudioCount <= RuntimeCombatImpactPool.AudioCapacity &&
+                    map.ActivePingCount == 8 && map.PeakPingCount == 8 &&
+                    toasts.ActiveCount == 3 && toasts.PeakActiveCount == 3,
+            "A bounded combat feedback pool exceeded its capacity or failed to fill deterministically.");
+        AssertSmoke(_combatUiPolicy.ReducedMotion
+                ? impacts.LastParticleAmount == 0 && impacts.PeakParticleCount == 0 && !impacts.HitStopActive
+                : impacts.PeakParticleCount == RuntimeCombatImpactPool.ParticleCapacity,
+            "Reduced-motion or normal particle policy failed under stress.");
+
+        for (var frame = 0; frame < 60; frame++)
+            ProcessCombatFeedbackStressFrame(feedback, impacts, map, toasts, actionBar);
+        var frameTicks = new long[600];
+        var allocationsBefore = GC.GetAllocatedBytesForCurrentThread();
+        var stressStarted = Stopwatch.GetTimestamp();
+        for (var frame = 0; frame < 600; frame++)
+        {
+            var frameStarted = Stopwatch.GetTimestamp();
+            ProcessCombatFeedbackStressFrame(feedback, impacts, map, toasts, actionBar);
+            frameTicks[frame] = Stopwatch.GetTimestamp() - frameStarted;
+        }
+        var stressElapsed = Stopwatch.GetElapsedTime(stressStarted);
+        var managedAllocations = GC.GetAllocatedBytesForCurrentThread() - allocationsBefore;
+        Array.Sort(frameTicks);
+        var p95Ticks = frameTicks[(int)Math.Ceiling(frameTicks.Length * .95) - 1];
+        var presentationP95Milliseconds = p95Ticks * 1000d / Stopwatch.Frequency;
+        AssertSmoke(managedAllocations <= 64 * 1024 && presentationP95Milliseconds <= 1 &&
+                    stressElapsed < TimeSpan.FromSeconds(10),
+            $"Combat feedback stable-frame stress exceeded its guardrail " +
+            $"({managedAllocations} bytes, p95 {presentationP95Milliseconds:0.###} ms, " +
+            $"total {stressElapsed.TotalMilliseconds:0.###} ms).");
+        if (animationPlayer is not null && animationSpeedBefore is not null)
+            AssertSmoke(Math.Abs(animationPlayer.SpeedScale - animationSpeedBefore.Value) < .0001,
+                "Animation hit-stop did not restore the exact prior speed scale.");
+
+        actionBar.ConfigurePrimaryAbility(gameplayAbility);
+        actionBar.UpdatePrimaryAbilityState(0, source.Resource, HasAttackTargetInRange());
+        GD.Print("OPENRPG_FORGE_COMBAT_FEEDBACK_FIXTURES_PASS actualGameplay=false " +
+                 $"healing={fixtureResult.Healing} resource={fixtureResult.ResourceRestored} cooldown=0.7 " +
+                 $"player_chip=true pings={map.PeakPingCount} toasts={toasts.PeakActiveCount}");
+        if (_combatUiPolicy.ReducedMotion)
+            GD.Print("OPENRPG_FORGE_COMBAT_FEEDBACK_REDUCED_MOTION_PASS " +
+                     "particles=0 camera_impulse=0 hit_stop=0 bars=instant numbers=stationary cooldown=numeric");
+        GD.Print($"OPENRPG_FORGE_COMBAT_FEEDBACK_PERFORMANCE_PASS frames=600 " +
+                 $"floating_peak={feedback.PeakActiveFloatingCount} nameplates={feedback.RegisteredCount} " +
+                 $"particles_peak={impacts.PeakParticleCount} audio_peak={impacts.PeakAudioCount} " +
+                 $"pings_peak={map.PeakPingCount} toasts_peak={toasts.PeakActiveCount} " +
+                 $"managed_allocated_bytes={managedAllocations} " +
+                 $"presentation_p95_ms={presentationP95Milliseconds:0.###} " +
+                 $"presentation_total_ms={stressElapsed.TotalMilliseconds:0.###}");
+        foreach (var fixtureNode in fixtureNodes) fixtureNode.QueueFree();
+        await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        GetTree().Quit(0);
+    }
+
+    private static void ProcessCombatFeedbackStressFrame(
+        RuntimeCombatFeedbackLayer feedback,
+        RuntimeCombatImpactPool impacts,
+        RuntimeModuleMap map,
+        RuntimeToastQueue toasts,
+        RuntimeActionBar actionBar)
+    {
+        const double delta = 1d / 60d;
+        feedback._Process(delta);
+        impacts._Process(delta);
+        map._Process(delta);
+        toasts._Process(delta);
+        actionBar._Process(delta);
+    }
+
     private async Task RunForgottenForestSmokeTestAsync(ProjectDefinition project, string? benchmarkPath)
     {
         AssertSmoke(_isForgottenForestPrototype, "The Forgotten Forest smoke test loaded another module.");
@@ -12512,6 +13283,7 @@ public partial class GameRoot : Node3D
     {
         parent.AddChild(new Label3D
         {
+            Name = RuntimeWorldLabelNodeName,
             Text = text,
             Position = new Vector3(0, height, 0),
             Modulate = color,

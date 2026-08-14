@@ -9,6 +9,7 @@ internal static class Program
     private const string ToolsetRelativePath = "workspace/apps/Forge.Toolset";
     private const string RuntimeProjectRelativePath = "workspace/apps/Forge.Runtime/project.godot";
     private const string ContextRelativePath = "workspace/PROJECT_CONTEXT.md";
+    private const string InstanceMutexName = @"Local\OpenRPGForge.Creator.v1";
 
     [STAThread]
     private static int Main(string[] args)
@@ -23,24 +24,36 @@ internal static class Program
                 return 0;
             }
 
+            using var instanceMutex = new Mutex(initiallyOwned: true, InstanceMutexName, out var ownsInstance);
+            if (!ownsInstance)
+            {
+                MessageBox.Show(
+                    "OpenRPG Forge est déjà ouvert.",
+                    "OpenRPG Forge",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                return 0;
+            }
+
             var startInfo = new ProcessStartInfo
             {
                 FileName = layout.EnginePath,
                 WorkingDirectory = root,
                 UseShellExecute = false,
             };
+            startInfo.ArgumentList.Add("--rendering-method");
+            startInfo.ArgumentList.Add("forward_plus");
+            startInfo.ArgumentList.Add("--maximized");
+            startInfo.ArgumentList.Add("--single-window");
             startInfo.ArgumentList.Add("--editor");
             startInfo.ArgumentList.Add("--path");
             startInfo.ArgumentList.Add(layout.ToolsetPath);
+            startInfo.ArgumentList.Add("--");
+            startInfo.ArgumentList.Add("--creator-shell");
             var process = Process.Start(startInfo) ??
                 throw new InvalidOperationException("OpenRPG Forge Creator could not start its editor process.");
-            if (args.Contains("--wait", StringComparer.Ordinal))
-            {
-                process.WaitForExit();
-                return process.ExitCode;
-            }
-
-            return 0;
+            process.WaitForExit();
+            return process.ExitCode;
         }
         catch (Exception exception)
         {
@@ -67,7 +80,7 @@ internal static class Program
         RequiredFile(root, RuntimeProjectRelativePath);
         RequiredFile(root, ContextRelativePath);
         RequiredFile(root, "workspace/AGENTS.md");
-        RequiredFile(root, "workspace/apps/Forge.Runtime/content/crypt-of-ashes/project.json");
+        RequiredFile(root, "workspace/apps/Forge.Runtime/content/forgotten-forest/project.json");
         return new CreatorLayout(enginePath, toolsetPath);
     }
 

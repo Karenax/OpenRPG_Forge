@@ -12,14 +12,20 @@ public sealed class GodotAssetModelLibrary
     private readonly string _contentRootPrefix;
     private readonly IReadOnlyDictionary<AssetCatalogItemId, AssetPackageManifest> _manifests;
     private readonly Dictionary<AssetCatalogItemId, PackedScene> _scenes = [];
+    private readonly HashSet<AssetCatalogItemId> _unavailableScenes = [];
+    private readonly bool _allowRuntimeImport;
 
-    public GodotAssetModelLibrary(string contentRoot, IReadOnlyList<AssetPackageManifest> manifests)
+    public GodotAssetModelLibrary(
+        string contentRoot,
+        IReadOnlyList<AssetPackageManifest> manifests,
+        bool allowRuntimeImport = true)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(contentRoot);
         ArgumentNullException.ThrowIfNull(manifests);
         _contentRoot = Path.GetFullPath(contentRoot);
         _contentRootPrefix = _contentRoot.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
         _manifests = manifests.ToDictionary(manifest => manifest.AssetId);
+        _allowRuntimeImport = allowRuntimeImport;
     }
 
     public int Count => _manifests.Count;
@@ -41,11 +47,40 @@ public sealed class GodotAssetModelLibrary
         return instance;
     }
 
+    public Node3D? TryInstantiate(string assetId)
+    {
+        AssetCatalogItemId id;
+        try
+        {
+            id = AssetCatalogItemId.Parse(assetId);
+        }
+        catch (ArgumentException)
+        {
+            return null;
+        }
+
+        if (_unavailableScenes.Contains(id)) return null;
+        try
+        {
+            var scene = LoadScene(id);
+            var instance = scene.Instantiate<Node3D>();
+            PruneImportHelperMeshes(instance);
+            return instance;
+        }
+        catch (Exception exception) when (
+            exception is IOException or ArgumentException or InvalidOperationException)
+        {
+            _unavailableScenes.Add(id);
+            return null;
+        }
+    }
+
     public Mesh? ResolveScatterMesh(string resource)
     {
         const string prefix = "asset:";
         if (!resource.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) return null;
-        var instance = Instantiate(resource[prefix.Length..]);
+        var instance = TryInstantiate(resource[prefix.Length..]);
+        if (instance is null) return null;
         try
         {
             return FindPrimaryMesh(instance)?.Mesh;
@@ -70,9 +105,23 @@ public sealed class GodotAssetModelLibrary
         var absolute = ResolveContained(chunk.RelativePath);
         if (!File.Exists(absolute))
             throw new FileNotFoundException($"Visual asset '{id}' is missing its model chunk.", absolute);
-        VerifyContentHash(id, chunk, absolute);
+        PackedScene? scene;
+        if (_allowRuntimeImport)
+        {
+            VerifyContentHash(id, chunk, absolute);
+            scene = TryLoadImportedScene(absolute) ?? LoadRuntimeGltf(absolute);
+        }
+        else
+        {
+            scene = TryLoadImportedScene(absolute);
+            if (scene is null)
+            {
+                throw new InvalidOperationException(
+                    $"Visual asset '{id}' is outside the Godot project and uses the safe editor fallback.");
+            }
 
-        var scene = TryLoadImportedScene(absolute) ?? LoadRuntimeGltf(absolute);
+            VerifyContentHash(id, chunk, absolute);
+        }
         _scenes[id] = scene;
         return scene;
     }
@@ -104,7 +153,11 @@ public sealed class GodotAssetModelLibrary
         EnsureImporterMeshConversionRegistered();
         var document = new GltfDocument();
         var state = new GltfState();
-        var error = document.AppendFromFile(absolute, state);
+        // Godot resolves external GLTF textures by appending their URI to the model directory.
+        // A Windows path with backslashes otherwise becomes a mixed `E:\dir/subdir` path that
+        // the editor importer reports as missing even though the texture exists.
+        var godotPath = absolute.Replace('\\', '/');
+        var error = document.AppendFromFile(godotPath, state);
         if (error != Error.Ok)
             throw new InvalidDataException($"GLB runtime import failed for '{absolute}' with error {error}.");
         var generated = document.GenerateScene(state)

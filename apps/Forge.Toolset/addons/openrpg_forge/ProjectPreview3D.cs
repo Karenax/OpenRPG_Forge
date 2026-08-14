@@ -1,6 +1,7 @@
 #if TOOLS
 using Forge.Application.Commands;
 using Forge.Application.Assets;
+using Forge.Application.Areas;
 using Forge.Application.Blueprints;
 using Forge.Application.Creator;
 using Forge.Application.Entities;
@@ -39,6 +40,7 @@ public partial class ProjectPreview3D : SubViewportContainer
     private readonly BlueprintDragPalette _dragPalette;
     private readonly Dictionary<EntityId, Node3D> _entityNodes = [];
     private readonly HashSet<string> _animationClipNames = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _unavailableVisualAssets = new(StringComparer.Ordinal);
     private readonly PlacementValidator _placementValidator = new();
     private readonly BlueprintDropPlanner _dropPlanner = new();
     private readonly NavigateEditorCameraHandler _cameraHandler = new(new SystemClock());
@@ -56,7 +58,16 @@ public partial class ProjectPreview3D : SubViewportContainer
     private Action<EntityId>? _selectEntity;
     private Func<EntityId, TransformValue, bool>? _transformEntity;
     private Func<BlueprintId, Vector3Value, EntityId?>? _placeBlueprint;
+    private Func<AreaId, TerrainBrushStroke, bool>? _editTerrain;
     private Action<string, bool>? _showPlacementFeedback;
+    private BlueprintId? _armedBlueprintId;
+    private TerrainBrushOperation? _terrainBrushOperation;
+    private bool _terrainAvailable;
+    private Label? _directToolHint;
+    private SpinBox? _terrainRadius;
+    private SpinBox? _terrainStrength;
+    private readonly Dictionary<TerrainBrushOperation, Button> _terrainBrushButtons = [];
+    private bool _allowRuntimeAssetImport;
     private EntityId? _selectedEntityId;
     private EntityId? _draggedEntityId;
     private TransformValue? _dragCandidate;
@@ -184,7 +195,7 @@ public partial class ProjectPreview3D : SubViewportContainer
         var palettePanel = new PanelContainer
         {
             Position = new Vector2(14, 14),
-            CustomMinimumSize = new Vector2(220, 175),
+            CustomMinimumSize = new Vector2(240, 356),
             MouseFilter = MouseFilterEnum.Stop,
         };
         palettePanel.AddThemeStyleboxOverride("panel", new StyleBoxFlat
@@ -208,9 +219,46 @@ public partial class ProjectPreview3D : SubViewportContainer
         paletteMargin.AddThemeConstantOverride("margin_bottom", 10);
         palettePanel.AddChild(paletteMargin);
         var paletteColumn = new VBoxContainer();
-        paletteColumn.AddChild(new Label { Text = "GLISSER DANS LE MONDE" });
+        paletteColumn.AddThemeConstantOverride("separation", 5);
+        var placeTitle = new Label { Text = "1 · AJOUTER UN OBJET" };
+        placeTitle.AddThemeColorOverride("font_color", new Color("ffb07c"));
+        paletteColumn.AddChild(placeTitle);
+        paletteColumn.AddChild(new Label
+        {
+            Text = "Choisissez un objet, puis cliquez dans la scène.",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        });
         _dragPalette = new BlueprintDragPalette();
+        _dragPalette.BlueprintSelected += ArmBlueprint;
         paletteColumn.AddChild(_dragPalette);
+        paletteColumn.AddChild(new HSeparator());
+        var terrainTitle = new Label { Text = "2 · SCULPTER LE TERRAIN" };
+        terrainTitle.AddThemeColorOverride("font_color", new Color("83d6ae"));
+        paletteColumn.AddChild(terrainTitle);
+        var terrainButtons = new HBoxContainer();
+        terrainButtons.AddThemeConstantOverride("separation", 4);
+        paletteColumn.AddChild(terrainButtons);
+        AddTerrainBrushButton(terrainButtons, "Lever", TerrainBrushOperation.Raise);
+        AddTerrainBrushButton(terrainButtons, "Creuser", TerrainBrushOperation.Lower);
+        AddTerrainBrushButton(terrainButtons, "Lisser", TerrainBrushOperation.Smooth);
+        var terrainSettings = new HBoxContainer();
+        terrainSettings.AddThemeConstantOverride("separation", 6);
+        paletteColumn.AddChild(terrainSettings);
+        terrainSettings.AddChild(new Label { Text = "Rayon" });
+        _terrainRadius = new SpinBox { MinValue = 1, MaxValue = 64, Step = 1, Value = 8 };
+        _terrainRadius.CustomMinimumSize = new Vector2(64, 0);
+        terrainSettings.AddChild(_terrainRadius);
+        terrainSettings.AddChild(new Label { Text = "Force" });
+        _terrainStrength = new SpinBox { MinValue = .01, MaxValue = 1, Step = .01, Value = .08 };
+        _terrainStrength.CustomMinimumSize = new Vector2(72, 0);
+        terrainSettings.AddChild(_terrainStrength);
+        _directToolHint = new Label
+        {
+            Text = "Sélectionnez un outil.",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        };
+        _directToolHint.AddThemeColorOverride("font_color", new Color("c6b9d1"));
+        paletteColumn.AddChild(_directToolHint);
         paletteMargin.AddChild(paletteColumn);
 
         CreateCameraToolbar();
@@ -227,7 +275,9 @@ public partial class ProjectPreview3D : SubViewportContainer
         Action<EntityId> selectEntity,
         Func<EntityId, TransformValue, bool> transformEntity,
         Func<BlueprintId, Vector3Value, EntityId?> placeBlueprint,
-        Action<string, bool> showPlacementFeedback)
+        Func<AreaId, TerrainBrushStroke, bool> editTerrain,
+        Action<string, bool> showPlacementFeedback,
+        bool allowRuntimeAssetImport = false)
     {
         _getState = getState ?? throw new ArgumentNullException(nameof(getState));
         _getWorkspaceRoot = getWorkspaceRoot ?? throw new ArgumentNullException(nameof(getWorkspaceRoot));
@@ -237,7 +287,9 @@ public partial class ProjectPreview3D : SubViewportContainer
         _selectEntity = selectEntity ?? throw new ArgumentNullException(nameof(selectEntity));
         _transformEntity = transformEntity ?? throw new ArgumentNullException(nameof(transformEntity));
         _placeBlueprint = placeBlueprint ?? throw new ArgumentNullException(nameof(placeBlueprint));
+        _editTerrain = editTerrain ?? throw new ArgumentNullException(nameof(editTerrain));
         _showPlacementFeedback = showPlacementFeedback ?? throw new ArgumentNullException(nameof(showPlacementFeedback));
+        _allowRuntimeAssetImport = allowRuntimeAssetImport;
     }
 
     public void SetCameraProfile(
@@ -255,6 +307,7 @@ public partial class ProjectPreview3D : SubViewportContainer
     {
         ArgumentNullException.ThrowIfNull(project);
         Clear();
+        _unavailableVisualAssets.Clear();
 
         var activeAreaId = _getActiveAreaId?.Invoke();
         var area = project.Areas.FirstOrDefault(candidate => candidate.Id == activeAreaId) ??
@@ -265,9 +318,10 @@ public partial class ProjectPreview3D : SubViewportContainer
         var manifests = _getManifestState?.Invoke()?.Manifests ?? [];
         _modelLibrary = string.IsNullOrWhiteSpace(workspaceRoot) || manifests.Count == 0
             ? null
-            : new GodotAssetModelLibrary(workspaceRoot, manifests);
+            : new GodotAssetModelLibrary(workspaceRoot, manifests, _allowRuntimeAssetImport);
         ApplyEnvironment(area.Environment);
         _dragPalette.SetBlueprints(project.Blueprints);
+        UpdateTerrainToolAvailability(area);
         _areaRoot = new Node3D { Name = "AreaPreview" };
         _world.AddChild(_areaRoot);
         ApplyAreaWorld(area.World, area.Navigation);
@@ -290,6 +344,10 @@ public partial class ProjectPreview3D : SubViewportContainer
         RefreshSelectedGizmo();
         ApplyPbrMaterials(_areaRoot);
         ApplyDisplayFilter();
+        if (_unavailableVisualAssets.Count > 0)
+        {
+            GD.Print($"OPENRPG_FORGE_TOOLSET_ASSET_VISUAL_FALLBACK count={_unavailableVisualAssets.Count} mode=placeholder");
+        }
     }
 
     private static void ApplyTileMirror(Node3D node, ModularTileMirrorMode mirror)
@@ -625,6 +683,12 @@ public partial class ProjectPreview3D : SubViewportContainer
 
         if (@event is InputEventKey key && key.Pressed && !key.Echo)
         {
+            if (key.Keycode == Key.Escape && (_armedBlueprintId is not null || _terrainBrushOperation is not null))
+            {
+                CancelDirectTool();
+                AcceptEvent();
+                return;
+            }
             if (key.Keycode == Key.Escape && _scaleGizmoEnabled)
             {
                 SetScaleGizmoEnabled(false);
@@ -640,13 +704,28 @@ public partial class ProjectPreview3D : SubViewportContainer
 
         if (@event is InputEventMouseButton button && button.ButtonIndex == MouseButton.Left)
         {
-            if (button.Pressed && TrySelectScaleGizmoAxis(button.Position))
+            if (button.Pressed && _armedBlueprintId is null && _terrainBrushOperation is null &&
+                TrySelectScaleGizmoAxis(button.Position))
             {
                 AcceptEvent();
                 return;
             }
             if (button.Pressed && TryProjectToGround(button.Position, out var ground))
             {
+                if (_armedBlueprintId is not null)
+                {
+                    QueueArmedBlueprintPlacement(ToValue(ground));
+                    AcceptEvent();
+                    return;
+                }
+
+                if (_terrainBrushOperation is not null)
+                {
+                    QueueTerrainBrush(ToValue(ground));
+                    AcceptEvent();
+                    return;
+                }
+
                 var entityId = FindNearestEntity(ground);
                 if (entityId is not null)
                 {
@@ -662,6 +741,24 @@ public partial class ProjectPreview3D : SubViewportContainer
             }
 
             return;
+        }
+
+        if (@event is InputEventMouseMotion hover &&
+            (hover.ButtonMask & MouseButtonMask.Left) == 0 &&
+            TryProjectToGround(hover.Position, out var hoverGround))
+        {
+            if (_armedBlueprintId is not null)
+            {
+                var validation = Validate(_armedBlueprintId, ToValue(hoverGround));
+                ShowGhost(validation.CorrectedPosition, validation.IsValid);
+                return;
+            }
+
+            if (_terrainBrushOperation is not null)
+            {
+                ShowTerrainGhost(ToValue(hoverGround));
+                return;
+            }
         }
 
         if (@event is InputEventMouseMotion motion &&
@@ -807,6 +904,160 @@ public partial class ProjectPreview3D : SubViewportContainer
         return entityId;
     }
 
+    private void ArmBlueprint(BlueprintId blueprintId, string displayName)
+    {
+        _armedBlueprintId = blueprintId;
+        _terrainBrushOperation = null;
+        RefreshTerrainBrushButtons();
+        MouseDefaultCursorShape = CursorShape.Cross;
+        if (_directToolHint is not null)
+        {
+            _directToolHint.Text = $"{displayName} prêt · cliquez dans la scène · Échap annule.";
+        }
+    }
+
+    private void AddTerrainBrushButton(Container parent, string text, TerrainBrushOperation operation)
+    {
+        var button = new Button
+        {
+            Text = text,
+            ToggleMode = true,
+            FocusMode = FocusModeEnum.None,
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+        };
+        button.Pressed += () => ArmTerrainBrush(operation);
+        _terrainBrushButtons[operation] = button;
+        parent.AddChild(button);
+    }
+
+    private void ArmTerrainBrush(TerrainBrushOperation operation)
+    {
+        if (!_terrainAvailable)
+        {
+            _showPlacementFeedback?.Invoke(
+                "Cette zone n'a pas de terrain. Choisissez une zone extérieure dans la colonne Projet.",
+                false);
+            return;
+        }
+
+        _terrainBrushOperation = operation;
+        _armedBlueprintId = null;
+        RefreshTerrainBrushButtons();
+        MouseDefaultCursorShape = CursorShape.Cross;
+        if (_directToolHint is not null)
+        {
+            _directToolHint.Text = $"Brosse {TerrainBrushName(operation)} active · cliquez dans la scène · Échap annule.";
+        }
+    }
+
+    private void QueueArmedBlueprintPlacement(Vector3Value position)
+    {
+        var blueprintId = _armedBlueprintId;
+        if (blueprintId is null) return;
+        var validation = Validate(blueprintId, position);
+        ShowGhost(validation.CorrectedPosition, validation.IsValid);
+        if (!validation.IsValid)
+        {
+            Report(validation);
+            return;
+        }
+
+        _showPlacementFeedback?.Invoke("Placement en cours…", true);
+        Callable.From(() =>
+        {
+            var placed = DropBlueprint(blueprintId, validation.CorrectedPosition);
+            if (placed is null) return;
+            _armedBlueprintId = null;
+            _ghost?.Hide();
+            MouseDefaultCursorShape = CursorShape.Arrow;
+            if (_directToolHint is not null)
+                _directToolHint.Text = "Objet placé. Choisissez-en un autre ou déplacez l'objet directement.";
+        }).CallDeferred();
+    }
+
+    private void QueueTerrainBrush(Vector3Value position)
+    {
+        var operation = _terrainBrushOperation;
+        var areaId = _getActiveAreaId?.Invoke();
+        if (operation is null || areaId is null || !_terrainAvailable || _editTerrain is null) return;
+        var stroke = new TerrainBrushStroke(
+            operation.Value,
+            position.X,
+            position.Z,
+            (float)(_terrainRadius?.Value ?? 8),
+            (float)(_terrainStrength?.Value ?? .08));
+        ShowTerrainGhost(position);
+        _showPlacementFeedback?.Invoke("Sculpture du terrain en cours…", true);
+        Callable.From(() =>
+        {
+            if (_editTerrain(areaId, stroke))
+            {
+                _showPlacementFeedback?.Invoke(
+                    $"Terrain modifié · {TerrainBrushName(operation.Value)} · cliquez encore pour continuer.",
+                    true);
+            }
+        }).CallDeferred();
+    }
+
+    private void UpdateTerrainToolAvailability(AreaDefinition area)
+    {
+        _terrainAvailable = area.World.Terrain.Enabled;
+        if (!_terrainAvailable && _terrainBrushOperation is not null)
+        {
+            _terrainBrushOperation = null;
+            _ghost?.Hide();
+        }
+
+        foreach (var button in _terrainBrushButtons.Values) button.Disabled = !_terrainAvailable;
+        RefreshTerrainBrushButtons();
+        if (_directToolHint is not null && _armedBlueprintId is null && _terrainBrushOperation is null)
+        {
+            _directToolHint.Text = _terrainAvailable
+                ? "Choisissez un objet ou une brosse, puis cliquez dans la scène."
+                : "Zone intérieure · choisissez une zone extérieure pour sculpter le terrain.";
+        }
+    }
+
+    private void RefreshTerrainBrushButtons()
+    {
+        foreach (var pair in _terrainBrushButtons)
+            pair.Value.SetPressedNoSignal(_terrainBrushOperation == pair.Key);
+    }
+
+    private void CancelDirectTool()
+    {
+        _armedBlueprintId = null;
+        _terrainBrushOperation = null;
+        _ghost?.Hide();
+        MouseDefaultCursorShape = CursorShape.Arrow;
+        RefreshTerrainBrushButtons();
+        if (_directToolHint is not null)
+            _directToolHint.Text = _terrainAvailable
+                ? "Outil annulé · choisissez un objet ou une brosse."
+                : "Zone intérieure · choisissez une zone extérieure pour sculpter le terrain.";
+    }
+
+    private static string TerrainBrushName(TerrainBrushOperation operation) => operation switch
+    {
+        TerrainBrushOperation.Raise => "lever",
+        TerrainBrushOperation.Lower => "creuser",
+        TerrainBrushOperation.Smooth => "lisser",
+        _ => operation.ToString().ToLowerInvariant(),
+    };
+
+    private void ShowTerrainGhost(Vector3Value position)
+    {
+        if (_ghost?.MaterialOverride is not StandardMaterial3D material) return;
+        var radius = (float)(_terrainRadius?.Value ?? 8);
+        _ghost.Position = EngineValueConverter.ToEngine(position) + new Vector3(0, .04f, 0);
+        var scale = Math.Max(1, radius * 2 / .92f);
+        _ghost.Scale = new Vector3(scale, 1, scale);
+        material.AlbedoColor = _terrainBrushOperation == TerrainBrushOperation.Lower
+            ? new Color(0.35f, 0.65f, 1f, .42f)
+            : new Color(0.95f, 0.72f, 0.28f, .42f);
+        _ghost.Show();
+    }
+
     private PlacementValidationResult Validate(BlueprintId blueprintId, Vector3Value position)
     {
         var state = _getState?.Invoke();
@@ -852,6 +1103,7 @@ public partial class ProjectPreview3D : SubViewportContainer
         }
 
         _ghost.Position = EngineValueConverter.ToEngine(position);
+        _ghost.Scale = Vector3.One;
         material.AlbedoColor = valid
             ? new Color(0.35f, 0.95f, 0.55f, 0.48f)
             : new Color(1f, 0.25f, 0.25f, 0.58f);
@@ -957,11 +1209,17 @@ public partial class ProjectPreview3D : SubViewportContainer
             .SingleOrDefault(property =>
                 string.Equals(property.Key, "visual.asset", StringComparison.Ordinal))?.Value;
         var loadedAsset = false;
-        if (!string.IsNullOrWhiteSpace(assetId) && _modelLibrary is not null)
+        if (!string.IsNullOrWhiteSpace(assetId) && _modelLibrary is not null &&
+            !_unavailableVisualAssets.Contains(assetId))
         {
             try
             {
-                var model = _modelLibrary.Instantiate(assetId);
+                var model = _modelLibrary.TryInstantiate(assetId);
+                if (model is null)
+                {
+                    throw new InvalidOperationException("Aperçu 3D externe indisponible dans l'éditeur sécurisé.");
+                }
+
                 root.AddChild(model);
                 AssetModelInstanceCount++;
                 var animationProfile = entity.Overrides.Properties.SingleOrDefault(property =>
@@ -993,9 +1251,7 @@ public partial class ProjectPreview3D : SubViewportContainer
             catch (Exception exception) when (
                 exception is IOException or ArgumentException or InvalidOperationException)
             {
-                GD.PrintErr(
-                    $"OPENRPG_FORGE_TOOLSET_ASSET_VISUAL_FAILED entity={entity.Id} asset={assetId} " +
-                    $"reason={exception.Message}");
+                _unavailableVisualAssets.Add(assetId);
             }
         }
 
@@ -1176,7 +1432,7 @@ public partial class ProjectPreview3D : SubViewportContainer
         var views = new HBoxContainer();
         views.AddThemeConstantOverride("separation", 5);
         column.AddChild(views);
-        AddCameraButton(views, "Cadrer", () => FocusCameraSelection());
+        AddCameraButton(views, "Cadrer", () => FrameActiveArea());
         AddCameraButton(views, "3/4", () => SetCameraView(EditorCameraView.Perspective));
         AddCameraButton(views, "Dessus", () => SetCameraView(EditorCameraView.Top));
         AddCameraButton(views, "Face", () => SetCameraView(EditorCameraView.Front));
@@ -1376,6 +1632,37 @@ public partial class ProjectPreview3D : SubViewportContainer
             EditorCameraOperation.Focus,
             target: center,
             radius: Math.Max(2, radiusFromCenter));
+    }
+
+    public bool FrameActiveArea()
+    {
+        var state = _getState?.Invoke();
+        var areaId = _getActiveAreaId?.Invoke();
+        var area = state?.Project.Areas.FirstOrDefault(candidate => candidate.Id == areaId);
+        if (area is null)
+        {
+            return false;
+        }
+
+        var center = _entityNodes.Count == 0
+            ? Vector3Value.Zero
+            : new Vector3Value(
+                _entityNodes.Values.Average(node => node.Position.X),
+                0,
+                _entityNodes.Values.Average(node => node.Position.Z));
+        var radiusFromEntities = _entityNodes.Count == 0
+            ? 0
+            : _entityNodes.Values.Max(node =>
+                node.Position.DistanceTo(EngineValueConverter.ToEngine(center)));
+        var areaHint = MathF.Min(
+            160,
+            MathF.Max(area.Dimensions.Width, area.Dimensions.Depth) * 0.15f);
+        var radius = MathF.Max(12, MathF.Max(radiusFromEntities, areaHint));
+        return ApplyCameraCommand(
+            EditorCameraOperation.Focus,
+            target: center,
+            radius: radius,
+            persist: false);
     }
 
     internal bool FocusSelectionFromShortcut() => FocusCameraSelection();

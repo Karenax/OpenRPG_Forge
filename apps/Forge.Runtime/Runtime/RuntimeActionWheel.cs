@@ -17,6 +17,8 @@ public partial class RuntimeActionWheel : CanvasLayer
 
     public event Action<string>? CommandRequested;
 
+    public event Action<string>? SelectionAccepted;
+
     public event Action<bool>? WheelVisibilityChanged;
 
     public bool IsOpen => _backdrop?.Visible == true;
@@ -232,6 +234,7 @@ public partial class RuntimeActionWheel : CanvasLayer
             return;
         }
 
+        SelectionAccepted?.Invoke(action.Command);
         Close();
         CommandRequested?.Invoke(action.Command);
     }

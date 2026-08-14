@@ -149,6 +149,24 @@ La distribution produite sous `artifacts/distribution/` se lance avec
 `OpenRPG_Forge_Runtime.exe`, contient ses modules inspectables et un manifeste SHA-256. Les détails et
 la création d'une archive ZIP sont dans [`docs/DISTRIBUTION.md`](docs/DISTRIBUTION.md).
 
+## Créer le lanceur Windows d'un jeu
+
+Dans **Distribution et conformité**, activez le profil **Lanceur du jeu · Windows x64**, choisissez
+le titre, le branding, les menus et la capacité multijoueur, enregistrez puis cliquez sur
+**Créer le lanceur du jeu**. Le même flux est disponible en CLI :
+
+```powershell
+.\scripts\Build-GameLauncherTemplate.ps1 -Force
+.\scripts\Build-GameDistribution.ps1 -Workspace E:\MonJeu -OutputDirectory E:\Exports\MonJeu-windows-x64
+```
+
+Le dossier obtenu possède son propre `.exe` WPF single-file et une interface RPG cinématique : décor
+personnalisable, brumes et braises animées, parallaxe, transitions, Accueil, Configuration et
+Multijoueur. Le runtime, le `.orpmod` Client et chaque fichier restent couverts par le manifeste
+SHA-256. Le solo et l'hébergement local autoritaire fonctionnent ; la connexion distante reste
+volontairement désactivée tant que le transport réseau inter-processus n'est pas branché. Voir
+[`docs/DISTRIBUTION.md`](docs/DISTRIBUTION.md).
+
 Le kit procédural de la Crypte suit les [conventions d’assets](docs/ASSET_CONVENTIONS.md) : unités,
 axes, pivots, nommage, formes de collision simples et traçabilité des licences.
 

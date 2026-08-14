@@ -28,11 +28,26 @@ public sealed class SetModuleDistributionHandlerTests
             "https://example.invalid/approved-library",
             [ModuleTargetKind.Client, ModuleTargetKind.Shipping],
             "test");
+        var launcher = new GameLauncherConfiguration(
+            original.Launcher.Id,
+            enabled: true,
+            "La Crypte",
+            "Le feu attend sous la pierre.",
+            "Cendres",
+            "#A36B42",
+            backgroundImagePath: null,
+            newsUrl: null,
+            supportUrl: null,
+            settingsEnabled: true,
+            GameLauncherMultiplayerMode.LocalHost,
+            5121,
+            "test");
         var distribution = new ModuleDistributionConfiguration(
             original.Id,
             original.TargetProfiles,
             [dependency],
-            "test");
+            "test",
+            launcher: launcher);
         var command = new SetModuleDistributionCommand(
             CommandId.From(Guid.Parse("d7130000-0000-4000-8000-000000000003")),
             state.Revision,
@@ -55,12 +70,15 @@ public sealed class SetModuleDistributionHandlerTests
         Assert.Equal(2, dependency.RequiredApprovals);
         Assert.Equal(2, dependency.ApproverRoles.Count);
         Assert.Equal(dependency.SourceReference, dependency.SecurityAuditReference);
+        Assert.True(applied.State.Project.Module.Distribution.Launcher.Enabled);
+        Assert.Equal("Cendres", applied.State.Project.Module.Distribution.Launcher.ExecutableName);
         Assert.Equal(Timestamp, applied.Audit.Timestamp);
         Assert.Equal("module/distribution", applied.Patch!.Path);
         Assert.True(history.Undo().Succeeded);
         Assert.Empty(history.State.Project.Module.Distribution.Dependencies);
         Assert.True(history.Redo().Succeeded);
         Assert.Equal(dependency.Id, Assert.Single(history.State.Project.Module.Distribution.Dependencies).Id);
+        Assert.Equal(launcher, history.State.Project.Module.Distribution.Launcher);
     }
 
     [Fact]

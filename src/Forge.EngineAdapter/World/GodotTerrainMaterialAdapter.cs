@@ -54,7 +54,7 @@ public static class GodotTerrainMaterialAdapter
             ROUGHNESS = clamp(0.92 - broad * 0.13, 0.72, 0.95);
             METALLIC = 0.0;
             SPECULAR = 0.18;
-            EMISSION = color * 1.05;
+            EMISSION = color * 0.035;
             AO = 0.82 + broad * 0.16;
             AO_LIGHT_AFFECT = 0.68;
         }
@@ -115,6 +115,12 @@ public static class GodotTerrainMaterialAdapter
             float leaf_pattern = forge_noise(world_position.xz * 1.7 + vec2(7.0, 31.0));
             float leaf_mask = smoothstep(0.86, 0.97, leaf_pattern) * (1.0 - slope);
             layered = mix(layered, vec3(0.29, 0.105, 0.025), leaf_mask * 0.30);
+
+            vec2 micro_uv = world_position.xz * 1.65;
+            float normal_x = forge_noise(micro_uv + vec2(0.055, 0.0)) - forge_noise(micro_uv - vec2(0.055, 0.0));
+            float normal_y = forge_noise(micro_uv + vec2(0.0, 0.055)) - forge_noise(micro_uv - vec2(0.0, 0.055));
+            NORMAL_MAP = normalize(vec3(normal_x * 2.8, normal_y * 2.8, 1.0)) * 0.5 + 0.5;
+            NORMAL_MAP_DEPTH = mix(0.34, 0.62, slope);
 
             ALBEDO = clamp(layered, vec3(0.018), vec3(0.92));
             ROUGHNESS = clamp(mix(0.94, 0.70, macro) + slope * 0.035, 0.62, 0.96);

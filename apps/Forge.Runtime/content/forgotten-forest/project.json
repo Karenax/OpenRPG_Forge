@@ -146,6 +146,22 @@
           },
           "provenance": "migration-default"
         },
+        "launcher": {
+          "id": "2a297f2a-5cb1-5596-aac6-61dad099305e",
+          "schemaVersion": 1,
+          "enabled": false,
+          "displayName": "Jeu OpenRPG",
+          "tagline": "Une aventure cr\u00E9\u00E9e avec OpenRPG Forge",
+          "executableName": "Jeu_OpenRPG",
+          "accentColor": "#C77A45",
+          "backgroundImagePath": null,
+          "newsUrl": null,
+          "supportUrl": null,
+          "settingsEnabled": true,
+          "multiplayer": "localHost",
+          "defaultServerPort": 5121,
+          "provenance": "migration-default"
+        },
         "provenance": "migration-default"
       },
       "localization": {
@@ -2800,32 +2816,32 @@
       {
         "id": "a56d51fe-089a-995f-a4c9-59c349b0f1d8",
         "slug": "forgotten-forest",
-        "documentPath": "areas/a56d51fe-089a-995f-a4c9-59c349b0f1d8-b3d443f5fc472f48.json"
+        "documentPath": "areas/a56d51fe-089a-995f-a4c9-59c349b0f1d8-4d7719ef03911965.json"
       },
       {
         "id": "89484125-341f-1759-8579-0cb4762e2a9b",
         "slug": "clairval",
-        "documentPath": "areas/89484125-341f-1759-8579-0cb4762e2a9b-082ec2564615dfa0.json"
+        "documentPath": "areas/89484125-341f-1759-8579-0cb4762e2a9b-e46a0bd94d52c298.json"
       },
       {
         "id": "117b317b-0ae8-415e-8bce-b4970d31d376",
         "slug": "ember-inn",
-        "documentPath": "areas/117b317b-0ae8-415e-8bce-b4970d31d376-2a41088df24d274b.json"
+        "documentPath": "areas/117b317b-0ae8-415e-8bce-b4970d31d376-fb20d081e871cb2a.json"
       },
       {
         "id": "1e87f1db-5a97-6c52-a5bd-930b6e75488b",
         "slug": "gnoll-fortress",
-        "documentPath": "areas/1e87f1db-5a97-6c52-a5bd-930b6e75488b-6aab37c924272ae9.json"
+        "documentPath": "areas/1e87f1db-5a97-6c52-a5bd-930b6e75488b-a129bb4727d4de88.json"
       },
       {
         "id": "76876887-5990-2b5f-b0a5-019471b687a7",
         "slug": "amber-desert",
-        "documentPath": "areas/76876887-5990-2b5f-b0a5-019471b687a7-e520b71c44e6185a.json"
+        "documentPath": "areas/76876887-5990-2b5f-b0a5-019471b687a7-319372949ae9e3f0.json"
       },
       {
         "id": "42a209b9-6e5f-0e5b-8c75-e4c8a835abaf",
         "slug": "snow-pass",
-        "documentPath": "areas/42a209b9-6e5f-0e5b-8c75-e4c8a835abaf-3e061f2c72954d1b.json"
+        "documentPath": "areas/42a209b9-6e5f-0e5b-8c75-e4c8a835abaf-a251b88edf5472bf.json"
       }
     ],
     "dialogues": [

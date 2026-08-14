@@ -23,6 +23,10 @@ internal sealed class RuntimeCameraRig
     private bool _hasSmoothedTarget;
     private bool _hasMeasuredFocus;
     private bool _hasMeasuredFocusStep;
+    private double _impulseRemaining;
+    private double _impulseDuration;
+    private float _impulseAmplitude;
+    private int _impulseSequence;
 
     internal bool AlignCharacterFacing => _rightOrbiting && _alignCharacterFacing;
 
@@ -33,6 +37,10 @@ internal sealed class RuntimeCameraRig
     internal float MaximumVerticalFocusStep { get; private set; }
 
     internal float MaximumFocusStepDelta { get; private set; }
+
+    internal bool ImpulseActive => _impulseRemaining > 0;
+
+    internal float MaximumAppliedImpulse { get; private set; }
 
     internal void Configure(GameplayCameraCatalog catalog)
     {
@@ -48,11 +56,25 @@ internal sealed class RuntimeCameraRig
 
     internal void SetYawDegrees(float degrees) => _yaw = Mathf.DegToRad(degrees);
 
+    internal void AddImpulse(float meters, double durationSeconds)
+    {
+        if (!float.IsFinite(meters) || meters < 0 || meters > .35f)
+            throw new ArgumentOutOfRangeException(nameof(meters));
+        if (!double.IsFinite(durationSeconds) || durationSeconds < 0 || durationSeconds > .35)
+            throw new ArgumentOutOfRangeException(nameof(durationSeconds));
+        if (meters <= 0 || durationSeconds <= 0) return;
+        _impulseAmplitude = Math.Max(_impulseAmplitude, meters);
+        _impulseDuration = Math.Max(_impulseDuration, durationSeconds);
+        _impulseRemaining = Math.Max(_impulseRemaining, durationSeconds);
+        _impulseSequence++;
+    }
+
     internal void ResetMotionDiagnostics()
     {
         MaximumFocusStep = 0;
         MaximumVerticalFocusStep = 0;
         MaximumFocusStepDelta = 0;
+        MaximumAppliedImpulse = 0;
         _hasMeasuredFocus = false;
         _hasMeasuredFocusStep = false;
     }
@@ -116,6 +138,24 @@ internal sealed class RuntimeCameraRig
             MathF.Sin(_yaw) * horizontal,
             MathF.Sin(_pitch) * _distance,
             MathF.Cos(_yaw) * horizontal);
+        if (_impulseRemaining > 0 && _impulseDuration > 0)
+        {
+            var progress = 1 - _impulseRemaining / _impulseDuration;
+            var envelope = (float)Math.Clamp(_impulseRemaining / _impulseDuration, 0, 1);
+            var wave = MathF.Sin((float)progress * Mathf.Pi * 3);
+            var sign = (_impulseSequence & 1) == 0 ? 1 : -1;
+            var direction = (camera.GlobalTransform.Basis.X * sign + camera.GlobalTransform.Basis.Y * .28f)
+                .Normalized();
+            var offset = direction * (_impulseAmplitude * envelope * wave);
+            desired += offset;
+            MaximumAppliedImpulse = Math.Max(MaximumAppliedImpulse, offset.Length());
+            _impulseRemaining = Math.Max(0, _impulseRemaining - delta);
+            if (_impulseRemaining <= 0)
+            {
+                _impulseAmplitude = 0;
+                _impulseDuration = 0;
+            }
+        }
         if (constrainPosition is not null) desired = constrainPosition(focus, desired);
         var amount = 1f - MathF.Exp(-12f * (float)delta);
         camera.GlobalPosition = camera.GlobalPosition.Lerp(desired, amount);
@@ -129,6 +169,9 @@ internal sealed class RuntimeCameraRig
         Func<Vector3, Vector3, Vector3>? constrainPosition = null)
     {
         camera.Fov = _fieldOfView;
+        _impulseRemaining = 0;
+        _impulseDuration = 0;
+        _impulseAmplitude = 0;
         _smoothedTarget = target;
         _hasSmoothedTarget = true;
         var horizontal = MathF.Cos(_pitch) * _distance;

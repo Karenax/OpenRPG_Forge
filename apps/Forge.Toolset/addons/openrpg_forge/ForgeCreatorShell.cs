@@ -382,7 +382,8 @@ internal sealed class ForgeCreatorShell
                 TooltipText = $"Zone {area.Id} · {area.Entities.Count} entité(s)",
                 CustomMinimumSize = new Vector2(150, 32),
             };
-            activate.Pressed += () => AreaTabRequested?.Invoke(area.Id);
+            activate.Pressed += () =>
+                Callable.From(() => AreaTabRequested?.Invoke(area.Id)).CallDeferred();
             tab.AddChild(activate);
             var close = new Button
             {
@@ -391,7 +392,8 @@ internal sealed class ForgeCreatorShell
                 Disabled = profile.OpenAreaTabs.Count <= 1,
                 CustomMinimumSize = new Vector2(32, 32),
             };
-            close.Pressed += () => AreaTabCloseRequested?.Invoke(area.Id);
+            close.Pressed += () =>
+                Callable.From(() => AreaTabCloseRequested?.Invoke(area.Id)).CallDeferred();
             tab.AddChild(close);
             _areaTabBar.AddChild(tab);
         }
@@ -668,7 +670,7 @@ internal sealed class ForgeCreatorShell
         var key = _projectTree.GetSelected()?.GetMetadata(0).AsString();
         if (key is not null && _nodesByKey.TryGetValue(key, out var node))
         {
-            ExplorerSelectionRequested?.Invoke(node);
+            Callable.From(() => ExplorerSelectionRequested?.Invoke(node)).CallDeferred();
         }
     }
 

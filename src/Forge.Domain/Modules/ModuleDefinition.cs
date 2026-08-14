@@ -79,7 +79,7 @@ public sealed record ModuleDefinition
         EntryAreaId = entryAreaId;
         Metadata = metadata ?? ProjectMetadata.CreateDefault(id, displayName, description);
         Variables = materializedVariables.OrderBy(variable => variable.Key, StringComparer.Ordinal).ToArray();
-        Distribution = distribution ?? ModuleDistributionConfiguration.CreateDefault(id);
+        Distribution = distribution ?? ModuleDistributionConfiguration.CreateDefault(id, displayName);
         Localization = localization ?? LocalizationCatalog.CreateEmpty(id.Value, Metadata.DefaultLocale);
         Content = content ?? ContentWorkspaceConfiguration.CreateDefault(id.Value);
         ArtisticStyle = artisticStyle ?? ArtisticStyleProfile.CreateDefault(id.Value);

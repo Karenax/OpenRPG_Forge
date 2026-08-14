@@ -24,6 +24,54 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Verify-RuntimeDistri
 
 Ajouter `-RunSmoke` pour rejouer le scénario complet depuis la distribution. Ajouter `-CreateArchive` à la construction pour produire l'archive ZIP.
 
+## Lanceur des jeux Windows x64
+
+Chaque projet possède un profil de lanceur sous **Distribution et conformité**. Il permet de régler
+le titre, le slogan, le nom de l'exécutable, la couleur d'accent, une image PNG/JPEG du projet, les
+liens d'actualité/support, les menus de configuration et le mode multijoueur. Après enregistrement,
+**Créer le lanceur du jeu** produit un dossier Windows autonome.
+
+Le modèle générique peut aussi être construit et utilisé en ligne de commande :
+
+```powershell
+.\scripts\Build-GameLauncherTemplate.ps1 -Force
+.\scripts\Build-GameDistribution.ps1 `
+  -Workspace E:\MonJeu `
+  -OutputDirectory E:\Exports\MonJeu-windows-x64
+dotnet run --project tools/Forge.Cli -- launcher verify E:\Exports\MonJeu-windows-x64
+```
+
+Les restaurations `win-x64` déclenchées par les exports Godot écrivent leurs verrous NuGet dans un
+dossier temporaire propre à la distribution. Elles ne modifient donc pas les `packages.lock.json`
+canoniques du workspace ou du dépôt.
+
+Le workspace doit avoir activé son profil de lanceur et être conforme à l'export `Client`. La
+génération refuse une destination existante et assemble atomiquement :
+
+- l'exécutable WPF single-file renommé du jeu et son interface RPG cinématique
+  Accueil / Configuration / Multijoueur ;
+- le runtime OpenRPG Forge et son PCK sous `runtime/` ;
+- le module `Client` sous `game/` et le branding optionnel sous `branding/` ;
+- `game-launcher.json`, `game-distribution-manifest.json` et `LISEZ-MOI.txt`.
+
+La présentation n'utilise ni WinForms, ni WebView, ni Electron. WPF fournit les transitions de page,
+la parallaxe, les brumes et les braises animées sans dépendance de production supplémentaire. Le
+décor générique embarqué possède une provenance et un SHA-256 documentés ; une image PNG/JPEG
+configurée par le jeu le remplace. Le réglage **Réduire les mouvements** coupe parallaxe et animations.
+
+L'exécutable accepte `--verify` pour une vérification silencieuse et
+`--capture=<fichier.png> --page=home|settings|multiplayer` pour reproduire les preuves visuelles sans
+lancer le jeu.
+
+Au lancement, tous les fichiers déclarés sont contrôlés par taille et SHA-256. Les préférences sont
+stockées par jeu dans `%LOCALAPPDATA%\OpenRPG Forge\Games\<slug>`. Le solo et l'hébergement local
+autoritaire sont utilisables. **Rejoindre par adresse** reste désactivé tant que le transport réseau
+inter-processus n'est pas branché ; cette limite est volontairement visible dans l'interface.
+
+La distribution portable du Creator embarque ce modèle sous
+`workspace/templates/game-windows-x64`, de sorte que la création depuis l'interface n'exige pas le
+dépôt de développement.
+
 ## Creator portable Windows x64
 
 ```powershell

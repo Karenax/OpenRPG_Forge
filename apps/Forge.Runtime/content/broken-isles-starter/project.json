@@ -186,6 +186,22 @@
           },
           "provenance": "migration-default"
         },
+        "launcher": {
+          "id": "40665de3-93ba-5edc-9c0d-294cd86d4c2b",
+          "schemaVersion": 1,
+          "enabled": false,
+          "displayName": "Les Îles Brisées",
+          "tagline": "Une aventure créée avec OpenRPG Forge",
+          "executableName": "Les_Iles_Brisees",
+          "accentColor": "#C77A45",
+          "backgroundImagePath": null,
+          "newsUrl": null,
+          "supportUrl": null,
+          "settingsEnabled": true,
+          "multiplayer": "localHost",
+          "defaultServerPort": 5121,
+          "provenance": "migration-default"
+        },
         "provenance": "migration-default"
       },
       "localization": {

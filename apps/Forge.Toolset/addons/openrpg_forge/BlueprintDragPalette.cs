@@ -9,6 +9,8 @@ public partial class BlueprintDragPalette : ItemList
     public const string PayloadKind = "openrpg_forge.blueprint";
     private readonly List<BlueprintDefinition> _blueprints = [];
 
+    public event Action<BlueprintId, string>? BlueprintSelected;
+
     public BlueprintDragPalette()
     {
         CustomMinimumSize = new Vector2(190, 132);
@@ -16,7 +18,15 @@ public partial class BlueprintDragPalette : ItemList
         SameColumnWidth = true;
         SelectMode = SelectModeEnum.Single;
         MouseDefaultCursorShape = CursorShape.PointingHand;
-        TooltipText = "Glissez vers le Monde, un graphe, un inventaire, une propriété ou un package.";
+        TooltipText = "Cliquez un objet, puis cliquez dans la scène. Le glisser-déposer reste disponible.";
+        ItemSelected += index =>
+        {
+            if (index >= 0 && index < _blueprints.Count)
+            {
+                var blueprint = _blueprints[(int)index];
+                BlueprintSelected?.Invoke(blueprint.Id, blueprint.DisplayName);
+            }
+        };
     }
 
     public void SetBlueprints(IEnumerable<BlueprintDefinition> blueprints)
@@ -26,7 +36,7 @@ public partial class BlueprintDragPalette : ItemList
         foreach (var blueprint in blueprints.OrderBy(candidate => candidate.DisplayName, StringComparer.Ordinal))
         {
             _blueprints.Add(blueprint);
-            AddItem($"⋮⋮  {blueprint.DisplayName}");
+            AddItem($"+  {blueprint.DisplayName}");
             SetItemTooltip(ItemCount - 1, $"{blueprint.Kind} · {blueprint.Slug}");
         }
     }

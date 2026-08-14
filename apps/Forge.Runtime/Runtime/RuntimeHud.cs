@@ -26,17 +26,24 @@ public partial class RuntimeHud : CanvasLayer
     private Label? _waypointMarker;
     private Label? _playerIdentity;
     private Label? _healthText;
-    private ProgressBar? _healthBar;
-    private ProgressBar? _focusBar;
+    private RuntimeAnimatedBar? _healthBar;
+    private RuntimeAnimatedBar? _focusBar;
+    private Control? _targetFrame;
+    private Label? _targetIdentity;
+    private Label? _targetHealthText;
+    private Label? _targetState;
+    private RuntimeAnimatedBar? _targetHealthBar;
     private Label? _fps;
     private Label? _partyHudText;
-    private ProgressBar? _partyHealthBar;
-    private ProgressBar? _partyFocusBar;
+    private RuntimeAnimatedBar? _partyHealthBar;
+    private RuntimeAnimatedBar? _partyFocusBar;
     private PanelContainer? _interactionPrompt;
     private Label? _interactionTitle;
     private Control? _partyHudPanel;
     private int _partyHudQuickCommandCount;
     private double _locationRevealAge;
+
+    private bool LargeText => MotionPolicy.TextScale > 1.5f;
 
     public string ModuleTitle { get; init; } = "OpenRPG Forge";
 
@@ -49,6 +56,8 @@ public partial class RuntimeHud : CanvasLayer
     public AccessibilityQualityProfile? Accessibility { get; init; }
 
     public CompanionWorldProfile.PartyHudProfile? PartyHud { get; init; }
+
+    internal RuntimeUiMotionPolicy MotionPolicy { get; init; } = RuntimeUiMotionPolicy.Create(null, []);
 
     public event Action? PauseRequested;
 
@@ -68,6 +77,20 @@ public partial class RuntimeHud : CanvasLayer
 
     public bool InteractionPromptVisible => _interactionPrompt?.Visible == true;
 
+    public bool TargetFrameVisible => _targetFrame?.Visible == true;
+
+    public string TargetFrameText => _targetIdentity?.Text ?? string.Empty;
+
+    public double TargetHealthDisplayed => _targetHealthBar?.FrontValue ?? 0;
+
+    internal double PlayerHealthDisplayed => _healthBar?.FrontValue ?? 0;
+
+    internal double PlayerHealthChipDisplayed => _healthBar?.ChipValue ?? 0;
+
+    internal bool PlayerHealthAnimating => _healthBar?.Animating == true;
+
+    internal bool TargetHealthAnimating => _targetHealthBar?.Animating == true;
+
     public void RequestPause() => PauseRequested?.Invoke();
 
     public override void _Ready()
@@ -77,6 +100,7 @@ public partial class RuntimeHud : CanvasLayer
         BuildLocationReveal();
         BuildPartyFrame();
         BuildPlayerFrame();
+        BuildTargetFrame();
         BuildObjectiveTracker();
         BuildInteractionPrompt();
         BuildMessageState();
@@ -87,10 +111,15 @@ public partial class RuntimeHud : CanvasLayer
 
     public override void _Process(double delta)
     {
-        if (_locationReveal is null || !_locationReveal.Visible || Accessibility?.RuntimeReducedMotion == true)
+        if (_locationReveal is null || !_locationReveal.Visible)
             return;
 
         _locationRevealAge += delta;
+        if (MotionPolicy.ReducedMotion)
+        {
+            if (_locationRevealAge > 8) _locationReveal.Visible = false;
+            return;
+        }
         if (_locationRevealAge <= 8) return;
         var alpha = 1f - Mathf.Clamp((float)(_locationRevealAge - 8) / 2.2f, 0, 1);
         _locationReveal.Modulate = new Color(1, 1, 1, alpha);
@@ -144,7 +173,7 @@ public partial class RuntimeHud : CanvasLayer
             OffsetLeft = -300,
             OffsetTop = 28,
             OffsetRight = 300,
-            OffsetBottom = 96,
+            OffsetBottom = LargeText ? 126 : 96,
             MouseFilter = Control.MouseFilterEnum.Ignore,
         };
         location.AddThemeConstantOverride("separation", 5);
@@ -250,7 +279,7 @@ public partial class RuntimeHud : CanvasLayer
         portrait.Size = new Vector2(58, 58);
         button.AddChild(portrait);
 
-        var healthBar = CompactBar(health, RuntimeRpgUiTheme.Health, 2);
+        var healthBar = CompactBar(health, 100, RuntimeUiSemanticColor.Damage, 3);
         healthBar.AnchorLeft = 0;
         healthBar.AnchorRight = 1;
         healthBar.AnchorTop = 1;
@@ -261,7 +290,7 @@ public partial class RuntimeHud : CanvasLayer
         healthBar.OffsetBottom = -9;
         button.AddChild(healthBar);
 
-        var focusBar = CompactBar(focus, accent, 2);
+        var focusBar = CompactBar(focus, 100, RuntimeUiSemanticColor.Resource, 3);
         focusBar.AnchorLeft = 0;
         focusBar.AnchorRight = 1;
         focusBar.AnchorTop = 1;
@@ -301,8 +330,8 @@ public partial class RuntimeHud : CanvasLayer
             AnchorRight = .5f,
             AnchorTop = 1,
             AnchorBottom = 1,
-            OffsetLeft = -408,
-            OffsetTop = -104,
+            OffsetLeft = LargeText ? -548 : -488,
+            OffsetTop = LargeText ? -138 : -104,
             OffsetRight = -169,
             OffsetBottom = -20,
         };
@@ -312,7 +341,10 @@ public partial class RuntimeHud : CanvasLayer
         margin.AddChild(panel);
         panel.AddChild(TopAccent());
 
-        var row = new HBoxContainer { CustomMinimumSize = new Vector2(218, 0) };
+        var row = new HBoxContainer
+        {
+            CustomMinimumSize = new Vector2(LargeText ? 348 : 218, 0),
+        };
         row.AddThemeConstantOverride("separation", 9);
         panel.AddChild(row);
 
@@ -321,7 +353,7 @@ public partial class RuntimeHud : CanvasLayer
         row.AddChild(portrait);
 
         var content = new VBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
-        content.AddThemeConstantOverride("separation", 2);
+        content.AddThemeConstantOverride("separation", LargeText ? 3 : 2);
         row.AddChild(content);
 
         _playerIdentity = TitleLabel("Héros · NIV. 1", 14, RuntimeRpgUiTheme.Bone);
@@ -331,8 +363,8 @@ public partial class RuntimeHud : CanvasLayer
         healthRow.AddThemeConstantOverride("separation", 5);
         content.AddChild(healthRow);
         healthRow.AddChild(BodyLabel("PV", 7, RuntimeRpgUiTheme.Health.Lightened(.15f)));
-        _healthBar = CompactBar(100, RuntimeRpgUiTheme.Health, 4);
-        _healthBar.CustomMinimumSize = new Vector2(86, 4);
+        _healthBar = CompactBar(100, 100, RuntimeUiSemanticColor.Damage, 4);
+        _healthBar.CustomMinimumSize = new Vector2(LargeText ? 116 : 86, 4);
         _healthBar.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         healthRow.AddChild(_healthBar);
         _healthText = BodyLabel("100 / 100", 7, RuntimeRpgUiTheme.Muted);
@@ -341,9 +373,9 @@ public partial class RuntimeHud : CanvasLayer
         var focusRow = new HBoxContainer();
         focusRow.AddThemeConstantOverride("separation", 5);
         content.AddChild(focusRow);
-        focusRow.AddChild(BodyLabel("FOC", 7, RuntimeRpgUiTheme.FocusBlue.Lightened(.2f)));
-        _focusBar = CompactBar(67, RuntimeRpgUiTheme.FocusBlue, 4);
-        _focusBar.CustomMinimumSize = new Vector2(86, 4);
+        focusRow.AddChild(BodyLabel("RES", 7, RuntimeRpgUiTheme.FocusBlue.Lightened(.2f)));
+        _focusBar = CompactBar(0, 1, RuntimeUiSemanticColor.Resource, 4);
+        _focusBar.CustomMinimumSize = new Vector2(LargeText ? 116 : 86, 4);
         _focusBar.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         focusRow.AddChild(_focusBar);
 
@@ -356,6 +388,54 @@ public partial class RuntimeHud : CanvasLayer
         context.AddChild(_rules);
     }
 
+    private void BuildTargetFrame()
+    {
+        var margin = new MarginContainer
+        {
+            Name = "CombatTargetFrame",
+            AnchorLeft = .5f,
+            AnchorRight = .5f,
+            OffsetLeft = LargeText ? -250 : -178,
+            OffsetTop = LargeText ? 110 : 104,
+            OffsetRight = LargeText ? 250 : 178,
+            OffsetBottom = LargeText ? 216 : 174,
+            Visible = false,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        _targetFrame = margin;
+        AddChild(margin);
+
+        var panel = Panel(new Color("17110eea"), RuntimeRpgUiTheme.Burgundy, 13, 8);
+        panel.MouseFilter = Control.MouseFilterEnum.Ignore;
+        margin.AddChild(panel);
+        panel.AddChild(TopAccent());
+
+        var stack = new VBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        stack.AddThemeConstantOverride("separation", 4);
+        panel.AddChild(stack);
+
+        var heading = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        heading.AddThemeConstantOverride("separation", 8);
+        stack.AddChild(heading);
+        _targetIdentity = TitleLabel("Cible", 13, RuntimeRpgUiTheme.Bone);
+        _targetIdentity.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        heading.AddChild(_targetIdentity);
+        _targetState = BodyLabel("CIBLE", 8, MotionPolicy.ResolveColor(RuntimeUiSemanticColor.Alert));
+        heading.AddChild(_targetState);
+
+        var health = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        health.AddThemeConstantOverride("separation", 7);
+        stack.AddChild(health);
+        health.AddChild(BodyLabel("PV", 7,
+            MotionPolicy.ResolveColor(RuntimeUiSemanticColor.Damage).Lightened(.15f)));
+        _targetHealthBar = CompactBar(1, 1, RuntimeUiSemanticColor.Damage, 5);
+        _targetHealthBar.CustomMinimumSize = new Vector2(LargeText ? 270 : 190, 5);
+        _targetHealthBar.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        health.AddChild(_targetHealthBar);
+        _targetHealthText = BodyLabel("1 / 1", 8, RuntimeRpgUiTheme.Parchment);
+        health.AddChild(_targetHealthText);
+    }
+
     private void BuildObjectiveTracker()
     {
         var objectiveButton = new Button
@@ -363,10 +443,10 @@ public partial class RuntimeHud : CanvasLayer
             Name = "CompactObjective",
             AnchorLeft = 1,
             AnchorRight = 1,
-            OffsetLeft = -322,
+            OffsetLeft = LargeText ? -590 : -322,
             OffsetTop = 204,
             OffsetRight = -24,
-            OffsetBottom = 254,
+            OffsetBottom = LargeText ? 328 : 254,
             FocusMode = Control.FocusModeEnum.All,
             TooltipText = "Ouvrir le journal de quête",
         };
@@ -420,10 +500,10 @@ public partial class RuntimeHud : CanvasLayer
             AnchorRight = .5f,
             AnchorTop = 1,
             AnchorBottom = 1,
-            OffsetLeft = -92,
-            OffsetTop = -146,
-            OffsetRight = 92,
-            OffsetBottom = -112,
+            OffsetLeft = LargeText ? -220 : -170,
+            OffsetTop = LargeText ? -218 : -158,
+            OffsetRight = LargeText ? 220 : 170,
+            OffsetBottom = LargeText ? -146 : -112,
             MouseFilter = Control.MouseFilterEnum.Ignore,
             Visible = false,
         };
@@ -442,7 +522,8 @@ public partial class RuntimeHud : CanvasLayer
         _interactionPrompt.AddChild(row);
 
         var key = BodyLabel("E", 9, new Color("30261d"));
-        key.CustomMinimumSize = new Vector2(27, 25);
+        key.CustomMinimumSize = LargeText ? new Vector2(42, 42) : new Vector2(27, 25);
+        key.SizeFlagsHorizontal = Control.SizeFlags.ShrinkBegin;
         key.HorizontalAlignment = HorizontalAlignment.Center;
         key.VerticalAlignment = VerticalAlignment.Center;
         key.AddThemeStyleboxOverride("normal", RuntimeRpgUiTheme.Frame(
@@ -468,7 +549,7 @@ public partial class RuntimeHud : CanvasLayer
             AnchorTop = 1,
             AnchorBottom = 1,
             OffsetLeft = 28,
-            OffsetTop = -54,
+            OffsetTop = LargeText ? -68 : -54,
             OffsetRight = 290,
             OffsetBottom = -24,
             MouseFilter = Control.MouseFilterEnum.Ignore,
@@ -479,7 +560,7 @@ public partial class RuntimeHud : CanvasLayer
         AddHint(hints, "Inventaire", "I");
     }
 
-    private static void AddHint(HBoxContainer parent, string text, string key)
+    private void AddHint(HBoxContainer parent, string text, string key)
     {
         var item = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
         item.AddThemeConstantOverride("separation", 5);
@@ -490,12 +571,14 @@ public partial class RuntimeHud : CanvasLayer
         parent.AddChild(item);
     }
 
-    private static Label Keycap(string text)
+    private Label Keycap(string text)
     {
         var key = BodyLabel(text, 7, RuntimeRpgUiTheme.Bone);
         key.HorizontalAlignment = HorizontalAlignment.Center;
         key.VerticalAlignment = VerticalAlignment.Center;
-        key.CustomMinimumSize = new Vector2(Math.Max(19, text.Length * 5 + 8), 17);
+        key.CustomMinimumSize = LargeText
+            ? new Vector2(Math.Max(34, text.Length * 9 + 12), 30)
+            : new Vector2(Math.Max(19, text.Length * 5 + 8), 17);
         key.AddThemeStyleboxOverride("normal", RuntimeRpgUiTheme.Frame(
             new Color("1b1510d8"), new Color("9b794f72"), 3, 1));
         return key;
@@ -518,29 +601,63 @@ public partial class RuntimeHud : CanvasLayer
 
     private void ApplyAccessibility()
     {
-        var scale = (float)(Accessibility?.RuntimeTextScale ?? 1);
-        foreach (var label in new[]
-                 {
-                     _areaTitle, _moduleTitle, _objective, _objectiveDistance, _message, _state,
-                     _tactical, _rules, _waypointMarker, _caption, _playerIdentity, _interactionTitle,
-                     _healthText, _fps, _partyHudText,
-                 }.OfType<Label>())
+        var scale = MotionPolicy.TextScale;
+        foreach (var label in DescendantLabels(this))
         {
             var currentSize = label.GetThemeFontSize("font_size");
             label.AddThemeFontSizeOverride("font_size", Math.Max(8, (int)Math.Round(currentSize * scale)));
-            label.SetMeta("accessible_label", label.Text);
+            if (!label.HasMeta("accessible_label") && !string.IsNullOrWhiteSpace(label.Text))
+                label.SetMeta("accessible_label", label.Text);
         }
     }
 
-    public void UpdatePlayerStatus(string displayName, int health, int maximumHealth, int level)
+    private static IEnumerable<Label> DescendantLabels(Node root)
+    {
+        foreach (var child in root.GetChildren())
+        {
+            if (child is Label label) yield return label;
+            foreach (var descendant in DescendantLabels(child)) yield return descendant;
+        }
+    }
+
+    public void UpdatePlayerStatus(
+        string displayName,
+        int health,
+        int maximumHealth,
+        int resource,
+        int maximumResource,
+        int level)
     {
         if (_playerIdentity is not null) _playerIdentity.Text = $"{displayName} · NIV. {level}";
-        if (_healthBar is not null)
-        {
-            _healthBar.MaxValue = Math.Max(1, maximumHealth);
-            _healthBar.Value = Math.Clamp(health, 0, Math.Max(1, maximumHealth));
-        }
+        _healthBar?.SetAuthoritativeValue(health, Math.Max(1, maximumHealth));
+        _focusBar?.SetAuthoritativeValue(resource, Math.Max(1, maximumResource));
         if (_healthText is not null) _healthText.Text = $"{health} / {maximumHealth}";
+    }
+
+    public void UpdateTargetStatus(string displayName, int health, int maximumHealth, bool boss, bool defeated)
+    {
+        if (_targetFrame is null || _targetIdentity is null || _targetHealthText is null ||
+            _targetState is null || _targetHealthBar is null)
+            return;
+        _targetFrame.Visible = true;
+        _targetIdentity.Text = displayName;
+        _targetHealthText.Text = $"{health} / {maximumHealth}";
+        _targetState.Text = defeated ? "VAINCU" : boss ? "BOSS" : "CIBLE";
+        _targetHealthBar.SetAuthoritativeValue(health, Math.Max(1, maximumHealth));
+        _targetFrame.SetMeta("accessible_label",
+            $"Cible {displayName}, {health} sur {maximumHealth} points de vie, " +
+            _targetState.Text.ToLowerInvariant());
+    }
+
+    public void ClearTarget()
+    {
+        if (_targetFrame is not null)
+        {
+            _targetFrame.Visible = false;
+            _targetFrame.SetMeta("accessible_label", string.Empty);
+        }
+        if (_targetIdentity is not null) _targetIdentity.Text = string.Empty;
+        if (_targetState is not null) _targetState.Text = string.Empty;
     }
 
     public void UpdatePartyStatus(string displayName, int health, int maximumHealth,
@@ -553,15 +670,10 @@ public partial class RuntimeHud : CanvasLayer
         _partyHudText.TooltipText = $"{health}/{maximumHealth} PV · {resourceText} · {statusText}";
         _partyHudText.SetMeta("accessible_label",
             $"{displayName}, {health} sur {maximumHealth} points de vie, {statusText}");
-        if (_partyHealthBar is not null)
-        {
-            _partyHealthBar.MaxValue = Math.Max(1, maximumHealth);
-            _partyHealthBar.Value = Math.Clamp(health, 0, Math.Max(1, maximumHealth));
-        }
+        _partyHealthBar?.SetAuthoritativeValue(health, Math.Max(1, maximumHealth));
         if (_partyFocusBar is not null && resources.TryGetValue("focus", out var focus))
         {
-            _partyFocusBar.MaxValue = Math.Max(1, Math.Max(10, focus));
-            _partyFocusBar.Value = Math.Clamp(focus, 0, _partyFocusBar.MaxValue);
+            _partyFocusBar.SetAuthoritativeValue(focus, Math.Max(10, focus));
         }
     }
 
@@ -629,11 +741,6 @@ public partial class RuntimeHud : CanvasLayer
         if (_tactical is null) return;
         _tactical.Text = $"{ShortTimeState(timeState)} · {ShortMovement(movementCapability)} · file {queuedActions}";
         _tactical.TooltipText = $"Combat : {combatMode} · Souffle {breath:0} · Endurance {stamina:0}";
-        if (_focusBar is not null)
-        {
-            var focus = stamina <= 1 ? stamina * 100 : stamina;
-            _focusBar.Value = Math.Clamp(focus, 0, 100);
-        }
     }
 
     public void UpdateRules(string difficulty, int level, double experience, double? nextLevel,
@@ -741,19 +848,14 @@ public partial class RuntimeHud : CanvasLayer
         ShadowSize = selected ? 5 : 3,
     };
 
-    private static ProgressBar CompactBar(double value, Color color, int radius)
+    private RuntimeAnimatedBar CompactBar(
+        double value,
+        double maximum,
+        RuntimeUiSemanticColor semanticColor,
+        float height)
     {
-        var bar = new ProgressBar
-        {
-            MinValue = 0,
-            MaxValue = 100,
-            Value = value,
-            ShowPercentage = false,
-            CustomMinimumSize = new Vector2(0, 3),
-            MouseFilter = Control.MouseFilterEnum.Ignore,
-        };
-        bar.AddThemeStyleboxOverride("background", RuntimeRpgUiTheme.Bar(new Color("090706d8"), radius));
-        bar.AddThemeStyleboxOverride("fill", RuntimeRpgUiTheme.Bar(color, radius));
+        var bar = new RuntimeAnimatedBar(MotionPolicy, semanticColor, height);
+        bar.SetAuthoritativeValue(value, Math.Max(1, maximum));
         return bar;
     }
 

@@ -24,8 +24,21 @@ public sealed class CombatantState
         Resource = profile.Stats.MaximumResource;
     }
 
-    public bool IsAbilityReady(AbilityDefinition ability, double elapsedSeconds) =>
-        !_cooldownEnds.TryGetValue(ability.Id, out var readyAt) || elapsedSeconds >= readyAt;
+    public double CooldownRemaining(AbilityDefinition ability, double nowSeconds)
+    {
+        ArgumentNullException.ThrowIfNull(ability);
+        if (!double.IsFinite(nowSeconds) || nowSeconds < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(nowSeconds));
+        }
+
+        return _cooldownEnds.TryGetValue(ability.Id, out var readyAt)
+            ? Math.Max(0, readyAt - nowSeconds)
+            : 0;
+    }
+
+    public bool IsAbilityReady(AbilityDefinition ability, double nowSeconds) =>
+        CooldownRemaining(ability, nowSeconds) == 0;
 
     public void Restore(int health, int resource)
     {

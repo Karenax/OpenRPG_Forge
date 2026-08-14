@@ -1,6 +1,6 @@
 # État vérifié — OpenRPG Forge
 
-Dernière mise à jour : 13 août 2026.
+Dernière mise à jour : 15 août 2026.
 
 ## Verdict
 
@@ -8,9 +8,9 @@ OpenRPG Forge est désormais un prototype RPG 3D consolidé, installable et util
 tester et exporter des modules. Les familles Aurora sont closes ; le travail courant porte sur la
 qualification de livraison, pas sur l'ajout de nouvelles fonctions.
 
-Le dernier lot d’édition manuelle et non destructive est validé dans le worktree local mais n’est pas
-encore committé ni publié. Il ne faut donc pas le confondre avec la baseline disponible sur
-`origin/main`.
+La phase consolidée couvre l’édition directe, la qualité visuelle, le lanceur configurable et
+l’interface de combat. Elle a franchi le portail complet et constitue une baseline cohérente ; elle
+ne doit pas être confondue avec une release publique signée.
 
 ## Produit disponible
 
@@ -20,8 +20,10 @@ encore committé ni publié. Il ne faut donc pas le confondre avec la baseline d
 - validation, correctifs prévisualisés, undo/redo, playtest, sauvegarde/reprise et export `.orpmod` ;
 - Assistant et host MCP transactionnels, bornés, facultatifs et sans shell arbitraire ;
 - distributions Windows x64 autonomes du Creator et du Runtime ;
+- lanceur Windows configurable par jeu avec branding, réglages persistants et hébergement local autoritaire ;
 - installateur/désinstallateur NSIS avec contrôle de mise à jour et préservation des données utilisateur ;
-- Crypte des Cendres et Forgotten Forest jouables en Forward+ avec modèles 3D gouvernés.
+- Crypte des Cendres et Forgotten Forest jouables en Forward+ avec modèles 3D gouvernés ;
+- interface de combat runtime autoritaire, animée, accessible et bornée par des pools stables.
 
 ## Couverture et preuves
 
@@ -31,8 +33,8 @@ encore committé ni publié. Il ne faut donc pas le confondre avec la baseline d
 - parcours produit automatisé : projet, zones, assets, contenu RPG, narration, validation, playtest,
   export et Assistant gouverné ;
 - matrice et procédure d'acceptation de bout en bout sous `docs/acceptance/`.
-- portail local courant réussi avec 1 860 tests .NET, 39 tests Python, un build sans avertissement et
-  le graphe Roslyn déterministe à 8 225 nœuds, 51 653 relations et 0 diagnostic.
+- portail local courant réussi avec 1 894 tests .NET, 39 tests Python, un build sans avertissement et
+  le graphe Roslyn déterministe à 8 392 nœuds, 52 352 relations et 0 diagnostic.
 
 Ces nombres prouvent la présence et la non-régression des capacités. Ils ne remplacent pas une
 qualification humaine de release publique.
@@ -48,11 +50,18 @@ qualification humaine de release publique.
   redimensionnables et non exclusives ;
 - parcours Plaçables simplifié dans le Monde : assets prioritaires, sélection de scène,
   déplacement/rotation/échelle avec snap, action de placement fixe et propriétés avancées repliées ;
+- parcours direct du viewport : Forgotten Forest au démarrage normal, choix d'objet ou de brosse,
+  clic dans la scène, sculpture de terrain transactionnelle et cadrage de la zone active ;
+- rendu Forward+ enrichi par profil avec ciel procédural cinématique, SSAO/SSIL, glow et brouillard
+  volumétrique, avec repli GL sûr et neutralisation explicite d'une LUT absente ;
 - Crypte habillée avec 74 instances d'un kit Dungeon Remastered CC0 ;
 - Forgotten Forest corrigée : maillage d'asset réel préféré au cube auxiliaire Blender, arbres
   stylisés gouvernés, échelle et éclairage rééquilibrés, caméra/HUD lisibles ;
 - module connecté démarrant dans l’Auberge du Cerf d’Ambre : déplacement au sol accéléré, mini-carte,
   atlas des six zones sur `M` et HUD RPG noir/ambre compact validés en Forward+ à 1920×1080 et 2560×1440 ;
+- feedback de combat branché sur les résultats réels : barres/chip, cible et plaques, nombres,
+  recharge exacte, toasts, pings, impacts, caméra, hit-stop et SFX ; 30 captures Forward+ acceptées
+  en 1920×1080/2560×1440, mouvements réduits et texte ×2, puis parcours interactif jusqu'à Clairval ;
 - géométrie jouable de l’auberge sécurisée : plancher physique continu, quatre limites murales
   infranchissables (porte comprise jusqu’à interaction), pivots visuels des murs recalés sur le sol,
   pieds du personnage alignés et récupération automatique après toute chute sous une carte intérieure
@@ -69,6 +78,11 @@ qualification humaine de release publique.
 - sauvegarde non destructive des profils Objet et Terrain : les entrées non affichées par un
   formulaire rapide sont conservées, et les suppressions Zone/Blueprint/Dialogue/Quête passent par
   une prévisualisation transactionnelle, la validation des dépendances et l’historique undo/redo.
+- profil de lanceur v1 persistant, application WPF RPG cinématique avec fond gouverné, brumes,
+  braises, parallaxe, transitions et réduction des mouvements, générateur `Client` atomique,
+  manifestes SHA-256 complets et modèle embarqué dans la distribution Creator ;
+- réglages d'affichage, qualité, VSync, audio et accessibilité appliqués au runtime ; hébergement
+  local autoritaire validé, connexion distante maintenue comme aperçu explicitement désactivé.
 
 ## Distribution locale qualifiée
 
@@ -78,6 +92,10 @@ qualification humaine de release publique.
 - Creator : manifeste validé et smoke rejoué depuis le lanceur autonome ;
 - installateur : `OpenRPG_Forge_Setup_0.1.0-dev_x64.exe`, cycle propre réussi ;
 - signature constatée : `NotSigned`.
+- modèle de lanceur de jeu : export Godot et smoke runtime réussis ; exécutable WPF single-file
+  vérifié, trois écrans cinématiques capturés et session locale autoritaire rejouée depuis l'export ;
+- isolation NuGet de distribution : les restaurations RID utilisent des verrous temporaires ; une
+  reconstruction complète du modèle a conservé à l'octet près les 29 verrous canoniques contrôlés.
 
 ## Limites externes avant release publique
 
@@ -91,14 +109,11 @@ qualification humaine de release publique.
 
 ## Publication Git
 
-- baseline publiée sur `origin/main` au commit `69f968baec68106f16999342bb43dfcb7509f45f` ;
-- `HEAD` et `origin/main` sont identiques (`0/0`), mais le worktree courant n’est plus propre : le
-  lot d’édition manuelle et d’autres changements locaux restent non publiés ;
-- portail local vert sur le worktree courant, distributions et installateur inclus ;
-- GitHub Actions n'a exécuté aucune étape du commit final : les jobs CI et graphe ont été refusés
-  avant démarrage parce que le compte signale un paiement échoué ou une limite de dépenses à relever ;
-- la CI distante devra être relancée après correction de **Billing & plans**. Ce blocage externe ne
-  doit pas être présenté comme une validation distante réussie.
+- `main` est la branche canonique et `origin/main` la publication de référence ;
+- cette phase est publiée uniquement après portail local vert, worktree propre, divergence `0/0` et
+  concordance entre `HEAD` et `git ls-remote origin refs/heads/main` ;
+- distributions, installateur et captures constituent des preuves locales ; un workflow GitHub doit
+  être rapporté séparément selon son état réel et ne peut pas être déduit du seul push Git.
 
 ## Commandes de vérité
 

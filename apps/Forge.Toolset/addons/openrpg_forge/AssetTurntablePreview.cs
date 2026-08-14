@@ -130,7 +130,7 @@ public partial class AssetTurntablePreview : VBoxContainer
     {
         var document = new GltfDocument();
         var state = new GltfState();
-        var error = document.AppendFromFile(path, state);
+        var error = document.AppendFromFile(path.Replace('\\', '/'), state);
         if (error != Error.Ok) throw new InvalidDataException($"Import GLTF impossible ({error}).");
         return document.GenerateScene(state) as Node3D ??
             throw new InvalidDataException("Le GLTF ne contient aucune scène 3D.");

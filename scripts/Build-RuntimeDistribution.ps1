@@ -61,10 +61,59 @@ $executablePath = Join-Path $outputPath 'OpenRPG_Forge_Runtime.exe'
 $exportLog = Join-Path $outputPath 'export.log'
 $exportMode = if ($Configuration -eq 'Release') { '--export-release' } else { '--export-debug' }
 
-& $EnginePath --headless --path $runtimeProject $exportMode 'OpenRPG Forge Windows x64' $executablePath `
-    --log-file $exportLog
-if ($LASTEXITCODE -ne 0) {
-    throw "Runtime export failed with exit code $LASTEXITCODE. See $exportLog"
+$previousMsBuildServer = $env:DOTNET_CLI_USE_MSBUILD_SERVER
+$previousNodeReuse = $env:MSBUILDDISABLENODEREUSE
+$previousNuGetLockDirectory = $env:OpenRpgNuGetLockDirectory
+$restoreLockRoot = Join-Path $outputPath '.restore-locks'
+[System.IO.Directory]::CreateDirectory($restoreLockRoot) | Out-Null
+try {
+    # Godot starts a nested dotnet publish. Isolate it from long-lived MSBuild nodes so a
+    # previous RID-specific restore cannot leak stale NuGet state into the export. The
+    # distribution restore must also leave the repository's canonical lock files untouched.
+    $env:DOTNET_CLI_USE_MSBUILD_SERVER = '0'
+    $env:MSBUILDDISABLENODEREUSE = '1'
+    $env:OpenRpgNuGetLockDirectory = $restoreLockRoot
+    $exportArguments = @(
+        '--headless',
+        '--quit',
+        '--path', "`"$runtimeProject`"",
+        $exportMode,
+        '"OpenRPG Forge Windows x64"',
+        "`"$executablePath`"",
+        '--log-file', "`"$exportLog`""
+    )
+    $exportProcess = Start-Process -FilePath $EnginePath -ArgumentList $exportArguments `
+        -WorkingDirectory $runtimeProject -PassThru -WindowStyle Hidden
+    if (-not $exportProcess.WaitForExit(300000)) {
+        Stop-Process -Id $exportProcess.Id -Force
+        throw "Runtime export exceeded the five-minute safety limit. See $exportLog"
+    }
+    if ($exportProcess.ExitCode -ne 0) {
+        throw "Runtime export failed with exit code $($exportProcess.ExitCode). See $exportLog"
+    }
+}
+finally {
+    if ($null -eq $previousMsBuildServer) {
+        Remove-Item Env:DOTNET_CLI_USE_MSBUILD_SERVER -ErrorAction SilentlyContinue
+    }
+    else {
+        $env:DOTNET_CLI_USE_MSBUILD_SERVER = $previousMsBuildServer
+    }
+    if ($null -eq $previousNodeReuse) {
+        Remove-Item Env:MSBUILDDISABLENODEREUSE -ErrorAction SilentlyContinue
+    }
+    else {
+        $env:MSBUILDDISABLENODEREUSE = $previousNodeReuse
+    }
+    if ($null -eq $previousNuGetLockDirectory) {
+        Remove-Item Env:OpenRpgNuGetLockDirectory -ErrorAction SilentlyContinue
+    }
+    else {
+        $env:OpenRpgNuGetLockDirectory = $previousNuGetLockDirectory
+    }
+    if (Test-Path -LiteralPath $restoreLockRoot) {
+        Remove-Item -LiteralPath $restoreLockRoot -Recurse -Force
+    }
 }
 
 $requiredExportFiles = @(

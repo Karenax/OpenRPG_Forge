@@ -3,12 +3,16 @@ using Forge.Mcp.Projects;
 using Forge.Mcp.LiveDirector;
 using Forge.Mcp.Network;
 using Forge.Mcp.Scripts;
+using Forge.Mcp.Serialization;
 using Forge.Mcp.Testing;
 using Forge.McpHost;
 using Forge.Scripting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 
 const string McpSdkVersion = "1.4.1";
 
@@ -41,6 +45,14 @@ if (arguments.ContainsKey("scenario-test"))
     return await RunScenarioTestAsync(arguments, workspaceDirectory);
 }
 
+var toolSerializerOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web)
+{
+    PropertyNameCaseInsensitive = true,
+    TypeInfoResolver = new DefaultJsonTypeInfoResolver(),
+};
+toolSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+toolSerializerOptions.Converters.Add(new McpVector3ValueJsonConverter());
+
 var builder = Host.CreateApplicationBuilder();
 builder.Logging.AddConsole(options => options.LogToStandardErrorThreshold = LogLevel.Trace);
 builder.Services.AddSingleton(project);
@@ -54,7 +66,7 @@ builder.Services.AddSingleton<LiveDirectorAccessAgentService>();
 builder.Services
     .AddMcpServer()
     .WithStdioServerTransport()
-    .WithToolsFromAssembly();
+    .WithToolsFromAssembly(serializerOptions: toolSerializerOptions);
 await builder.Build().RunAsync();
 return 0;
 

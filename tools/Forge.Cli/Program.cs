@@ -24,6 +24,7 @@ using Forge.ModuleFormat.Content;
 using Forge.ModuleFormat.Distribution;
 using Forge.ModuleFormat.Documentation;
 using Forge.ModuleFormat.Diagnostics;
+using Forge.ModuleFormat.Launcher;
 using Forge.ModuleFormat.Navigation;
 using Forge.ModuleFormat.Packages;
 using Forge.ModuleFormat.Quality;
@@ -50,6 +51,11 @@ static int Run(IReadOnlyList<string> arguments)
         if (arguments.Count >= 1 && arguments[0] == "package")
         {
             return RunPackage(arguments.Skip(1).ToArray());
+        }
+
+        if (arguments.Count >= 1 && arguments[0] == "launcher")
+        {
+            return RunLauncher(arguments.Skip(1).ToArray());
         }
 
         if (arguments.Count >= 1 && arguments[0] == "assets")
@@ -109,6 +115,7 @@ static int Run(IReadOnlyList<string> arguments)
 
         Console.Error.WriteLine(
             "Usage: forge package <export|validate|load|analyze|compliance|keygen|sign|verify-signature|delta|apply-delta|bundle|spatial|diagnose> ... | " +
+            "forge launcher <build|verify> ... | " +
             "forge assets <list|install-pack|uninstall-pack|report|delivery-report|credits|prepare|roundtrip|finalize-roundtrip|generate-model3d> ... | " +
             "forge content <batch|export-blueprints|merge-table> ... | " +
             "forge docs <generate|check> | " +
@@ -1915,6 +1922,90 @@ static int FinalizeAssetRoundTrip(IReadOnlyList<string> arguments)
         $"triangles={metadata.Metrics.TriangleCount} variants={metadata.Variants.Count} " +
         $"score={metadata.Metrics.QualityScore}");
     return 0;
+}
+
+static int RunLauncher(IReadOnlyList<string> arguments)
+{
+    if (arguments.Count == 2 && arguments[0] == "verify")
+    {
+        var root = Path.GetFullPath(arguments[1]);
+        var manifest = GameLauncherManifestStore.LoadAndVerifyDistribution(root);
+        Console.WriteLine(JsonSerializer.Serialize(new
+        {
+            valid = true,
+            operation = "launcher.verify",
+            root,
+            manifest.GameId,
+            manifest.Product,
+            manifest.Version,
+            files = manifest.Files.Count,
+        }));
+        Console.WriteLine($"OPENRPG_FORGE_GAME_LAUNCHER_VERIFY_PASS files={manifest.Files.Count} game={manifest.GameId:D}");
+        return 0;
+    }
+
+    if (arguments.Count == 4 && arguments[0] == "build")
+    {
+        var workspace = Path.GetFullPath(arguments[1]);
+        var template = Path.GetFullPath(arguments[2]);
+        var destination = Path.GetFullPath(arguments[3]);
+        var opened = ProjectSession.Open(workspace);
+        if (!opened.Succeeded || opened.Session is null)
+        {
+            Console.WriteLine(JsonSerializer.Serialize(new
+            {
+                valid = false,
+                operation = "launcher.build",
+                diagnostics = opened.Diagnostics,
+            }));
+            return 1;
+        }
+
+        var launcher = opened.Session.Project.Module.Distribution.Launcher;
+        if (!launcher.Enabled)
+        {
+            Console.Error.WriteLine("The project game launcher profile is disabled.");
+            return 1;
+        }
+
+        var temporaryRoot = Path.Combine(
+            Path.GetTempPath(),
+            "OpenRPG_Forge",
+            "launcher-cli",
+            Guid.NewGuid().ToString("N"));
+        try
+        {
+            Directory.CreateDirectory(temporaryRoot);
+            var packagePath = Path.Combine(temporaryRoot, $"{opened.Session.Project.Module.Slug}.orpmod");
+            var package = ModulePackager.Export(workspace, packagePath, target: ModuleTargetKind.Client);
+            var bundle = GameLauncherBundleBuilder.Build(packagePath, template, destination, launcher);
+            Console.WriteLine(JsonSerializer.Serialize(new
+            {
+                valid = true,
+                operation = "launcher.build",
+                output = bundle.OutputDirectory,
+                bundle.Manifest.GameId,
+                bundle.Manifest.DisplayName,
+                bundle.Manifest.Version,
+                package = package.Manifest.ContentSha256,
+                files = bundle.FileCount,
+                bytes = bundle.TotalBytes,
+            }));
+            Console.WriteLine(
+                $"OPENRPG_FORGE_GAME_LAUNCHER_BUILD_PASS game={bundle.Manifest.GameId:D} " +
+                $"files={bundle.FileCount} bytes={bundle.TotalBytes}");
+            return 0;
+        }
+        finally
+        {
+            if (Directory.Exists(temporaryRoot)) Directory.Delete(temporaryRoot, recursive: true);
+        }
+    }
+
+    Console.Error.WriteLine(
+        "Usage: forge launcher build <workspace> <template-directory> <destination-directory> | " +
+        "forge launcher verify <game-distribution-directory>");
+    return 2;
 }
 
 static int RunPackage(IReadOnlyList<string> arguments)
