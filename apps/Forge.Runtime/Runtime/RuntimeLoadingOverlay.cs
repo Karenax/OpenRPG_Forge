@@ -23,7 +23,7 @@ public partial class RuntimeLoadingOverlay : CanvasLayer
 
     public override void _Ready()
     {
-        var background = new ColorRect { Color = new Color("0b0813") };
+        var background = new LoadingBackdrop { MouseFilter = Control.MouseFilterEnum.Stop };
         background.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
         AddChild(background);
 
@@ -31,12 +31,22 @@ public partial class RuntimeLoadingOverlay : CanvasLayer
         center.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
         AddChild(center);
         var panel = new PanelContainer { CustomMinimumSize = new Vector2(720, 430) };
+        panel.AddThemeStyleboxOverride("panel", RuntimeRpgUiTheme.Frame(
+            new Color("120d0af4"), RuntimeRpgUiTheme.Border, 22, 20));
         center.AddChild(panel);
         var content = new VBoxContainer();
         content.AddThemeConstantOverride("separation", 14);
         panel.AddChild(content);
 
-        _title = new Label { Text = "Chargement", ThemeTypeVariation = "HeaderLarge" };
+        var ornament = new ColorRect
+        {
+            Color = RuntimeRpgUiTheme.Gold,
+            CustomMinimumSize = new Vector2(0, 2),
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        content.AddChild(ornament);
+        _title = new Label { Text = "Chargement", HorizontalAlignment = HorizontalAlignment.Center };
+        RuntimeRpgUiTheme.StyleTitle(_title, 28, RuntimeRpgUiTheme.Bone);
         content.AddChild(_title);
         _image = new TextureRect
         {
@@ -44,20 +54,30 @@ public partial class RuntimeLoadingOverlay : CanvasLayer
             ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
             StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered,
         };
+        _image.AddThemeStyleboxOverride("normal", RuntimeRpgUiTheme.Inset(RuntimeRpgUiTheme.Border));
         content.AddChild(_image);
         _video = new VideoStreamPlayer { CustomMinimumSize = new Vector2(680, 260) };
         _video.Expand = true;
         _video.Visible = false;
         content.AddChild(_video);
         _tip = new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart };
-        _tip.AddThemeColorOverride("font_color", new Color("ffad73"));
+        RuntimeRpgUiTheme.StyleTitle(_tip, 14, RuntimeRpgUiTheme.Gold);
+        _tip.HorizontalAlignment = HorizontalAlignment.Center;
         content.AddChild(_tip);
         _accessible = new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart };
+        RuntimeRpgUiTheme.StyleBody(_accessible, 10, RuntimeRpgUiTheme.Muted);
+        _accessible.HorizontalAlignment = HorizontalAlignment.Center;
         content.AddChild(_accessible);
         _progress = new ProgressBar { MinValue = 0, MaxValue = 1, ShowPercentage = true };
+        _progress.AddThemeStyleboxOverride("background", RuntimeRpgUiTheme.Bar(new Color("e5dac312"), 2));
+        _progress.AddThemeStyleboxOverride("fill", RuntimeRpgUiTheme.Bar(RuntimeRpgUiTheme.Gold, 2));
+        _progress.AddThemeFontOverride("font", RuntimeRpgUiTheme.BodyFont);
+        _progress.AddThemeFontSizeOverride("font_size", 9);
+        _progress.AddThemeColorOverride("font_color", RuntimeRpgUiTheme.Bone);
         content.AddChild(_progress);
         _resource = new Label { ClipText = true };
-        _resource.AddThemeColorOverride("font_color", new Color("a99bbd"));
+        RuntimeRpgUiTheme.StyleBody(_resource, 8, RuntimeRpgUiTheme.Quiet);
+        _resource.HorizontalAlignment = HorizontalAlignment.Center;
         content.AddChild(_resource);
     }
 
@@ -113,5 +133,22 @@ public partial class RuntimeLoadingOverlay : CanvasLayer
         var absolute = Path.Combine(_contentRoot, resourcePath.Replace('/', Path.DirectorySeparatorChar));
         var localized = ProjectSettings.LocalizePath(absolute);
         return localized.StartsWith("res://", StringComparison.Ordinal) ? localized : absolute;
+    }
+
+    private sealed partial class LoadingBackdrop : Control
+    {
+        public override void _Draw()
+        {
+            var bounds = new Rect2(Vector2.Zero, Size);
+            DrawRect(bounds, new Color("070403"));
+            DrawCircle(bounds.GetCenter() + new Vector2(-Size.X * .22f, 0), Size.Y * .62f,
+                new Color("51382028"));
+            DrawCircle(bounds.GetCenter() + new Vector2(Size.X * .28f, Size.Y * .08f), Size.Y * .72f,
+                new Color("26180f32"));
+            DrawLine(new Vector2(Size.X * .22f, Size.Y * .18f), new Vector2(Size.X * .78f, Size.Y * .18f),
+                new Color("a9855733"), 1);
+            DrawLine(new Vector2(Size.X * .22f, Size.Y * .82f), new Vector2(Size.X * .78f, Size.Y * .82f),
+                new Color("a9855733"), 1);
+        }
     }
 }

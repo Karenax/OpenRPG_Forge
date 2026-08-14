@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "3d20f8e7-5de0-8758-9a12-9e6fb271fefb",
+  "cacheKey": "3266eaaf4dda02a728416fbb6781b03ae335e8ca321b9642201783dc6b795efc",
+  "catalogContentSha256": "f8e90ed7f7771644998a7c361302213af04350150b3ea0631e8384d26506efa2",
+  "sourceFileSha256": "f8e90ed7f7771644998a7c361302213af04350150b3ea0631e8384d26506efa2",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/tree_default_fall.glb",
+  "sourceRelativePath": "normalized/kenney/nature-kit/Models/GLTF format/tree_default_fall.glb",
+  "outputRelativePath": "assets/imported/kenney-nature-kit-fall-tree/model.glb",
+  "outputContentSha256": "f8e90ed7f7771644998a7c361302213af04350150b3ea0631e8384d26506efa2",
+  "outputBytes": 16940,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-fall-tree/model.glb",
+      "cacheKey": "3266eaaf4dda02a728416fbb6781b03ae335e8ca321b9642201783dc6b795efc",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-fall-tree/animations.index.json",
+      "cacheKey": "3266eaaf4dda02a728416fbb6781b03ae335e8ca321b9642201783dc6b795efc",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-fall-tree/collisions.glb",
+      "cacheKey": "3266eaaf4dda02a728416fbb6781b03ae335e8ca321b9642201783dc6b795efc",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-fall-tree/lod-0.5.glb",
+      "cacheKey": "3266eaaf4dda02a728416fbb6781b03ae335e8ca321b9642201783dc6b795efc",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-fall-tree/lod-0.25.glb",
+      "cacheKey": "3266eaaf4dda02a728416fbb6781b03ae335e8ca321b9642201783dc6b795efc",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

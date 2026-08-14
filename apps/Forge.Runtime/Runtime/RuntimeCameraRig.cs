@@ -17,10 +17,22 @@ internal sealed class RuntimeCameraRig
     private Vector3 _focusOffset = Vector3.Up * 1.25f;
     private bool _alignCharacterFacing = true;
     private float _fieldOfView = 60;
+    private Vector3 _smoothedTarget;
+    private Vector3 _lastMeasuredFocus;
+    private Vector3 _lastMeasuredFocusStep;
+    private bool _hasSmoothedTarget;
+    private bool _hasMeasuredFocus;
+    private bool _hasMeasuredFocusStep;
 
     internal bool AlignCharacterFacing => _rightOrbiting && _alignCharacterFacing;
 
     internal Vector3 ForwardDirection => new(-MathF.Sin(_yaw), 0, -MathF.Cos(_yaw));
+
+    internal float MaximumFocusStep { get; private set; }
+
+    internal float MaximumVerticalFocusStep { get; private set; }
+
+    internal float MaximumFocusStepDelta { get; private set; }
 
     internal void Configure(GameplayCameraCatalog catalog)
     {
@@ -32,6 +44,17 @@ internal sealed class RuntimeCameraRig
         _focusOffset = new(profile.FocusOffset.X, profile.FocusOffset.Y, profile.FocusOffset.Z);
         _alignCharacterFacing = profile.AlignCharacterFacing;
         _fieldOfView = profile.FieldOfViewDegrees;
+    }
+
+    internal void SetYawDegrees(float degrees) => _yaw = Mathf.DegToRad(degrees);
+
+    internal void ResetMotionDiagnostics()
+    {
+        MaximumFocusStep = 0;
+        MaximumVerticalFocusStep = 0;
+        MaximumFocusStepDelta = 0;
+        _hasMeasuredFocus = false;
+        _hasMeasuredFocusStep = false;
     }
 
     internal void HandleInput(InputEvent @event)
@@ -64,31 +87,77 @@ internal sealed class RuntimeCameraRig
         }
     }
 
-    internal void Update(Camera3D camera, Vector3 target, double delta)
+    internal void Update(
+        Camera3D camera,
+        Vector3 target,
+        double delta,
+        Func<Vector3, Vector3, Vector3>? constrainPosition = null)
     {
         camera.Fov = _fieldOfView;
         var rotation = Input.GetAxis("camera_left", "camera_right");
         _yaw += rotation * (float)delta * 1.35f;
+        if (!_hasSmoothedTarget)
+        {
+            _smoothedTarget = target;
+            _hasSmoothedTarget = true;
+        }
+        else
+        {
+            var horizontalAmount = 1f - MathF.Exp(-10f * (float)delta);
+            var verticalAmount = 1f - MathF.Exp(-8f * (float)delta);
+            _smoothedTarget = new Vector3(
+                Mathf.Lerp(_smoothedTarget.X, target.X, horizontalAmount),
+                Mathf.Lerp(_smoothedTarget.Y, target.Y, verticalAmount),
+                Mathf.Lerp(_smoothedTarget.Z, target.Z, horizontalAmount));
+        }
+        var horizontal = MathF.Cos(_pitch) * _distance;
+        var focus = _smoothedTarget + _focusOffset;
+        var desired = focus + new Vector3(
+            MathF.Sin(_yaw) * horizontal,
+            MathF.Sin(_pitch) * _distance,
+            MathF.Cos(_yaw) * horizontal);
+        if (constrainPosition is not null) desired = constrainPosition(focus, desired);
+        var amount = 1f - MathF.Exp(-12f * (float)delta);
+        camera.GlobalPosition = camera.GlobalPosition.Lerp(desired, amount);
+        camera.LookAt(focus, Vector3.Up);
+        MeasureFocusMotion(focus);
+    }
+
+    internal void Snap(
+        Camera3D camera,
+        Vector3 target,
+        Func<Vector3, Vector3, Vector3>? constrainPosition = null)
+    {
+        camera.Fov = _fieldOfView;
+        _smoothedTarget = target;
+        _hasSmoothedTarget = true;
         var horizontal = MathF.Cos(_pitch) * _distance;
         var focus = target + _focusOffset;
         var desired = focus + new Vector3(
             MathF.Sin(_yaw) * horizontal,
             MathF.Sin(_pitch) * _distance,
             MathF.Cos(_yaw) * horizontal);
-        var amount = 1f - MathF.Exp(-12f * (float)delta);
-        camera.GlobalPosition = camera.GlobalPosition.Lerp(desired, amount);
+        camera.GlobalPosition = constrainPosition?.Invoke(focus, desired) ?? desired;
         camera.LookAt(focus, Vector3.Up);
+        _lastMeasuredFocus = focus;
+        _hasMeasuredFocus = true;
     }
 
-    internal void Snap(Camera3D camera, Vector3 target)
+    private void MeasureFocusMotion(Vector3 focus)
     {
-        camera.Fov = _fieldOfView;
-        var horizontal = MathF.Cos(_pitch) * _distance;
-        var focus = target + _focusOffset;
-        camera.GlobalPosition = focus + new Vector3(
-            MathF.Sin(_yaw) * horizontal,
-            MathF.Sin(_pitch) * _distance,
-            MathF.Cos(_yaw) * horizontal);
-        camera.LookAt(focus, Vector3.Up);
+        if (_hasMeasuredFocus)
+        {
+            var step = focus - _lastMeasuredFocus;
+            MaximumFocusStep = Math.Max(MaximumFocusStep, step.Length());
+            MaximumVerticalFocusStep = Math.Max(MaximumVerticalFocusStep,
+                Math.Abs(step.Y));
+            if (_hasMeasuredFocusStep)
+                MaximumFocusStepDelta = Math.Max(MaximumFocusStepDelta,
+                    step.DistanceTo(_lastMeasuredFocusStep));
+            _lastMeasuredFocusStep = step;
+            _hasMeasuredFocusStep = true;
+        }
+        _lastMeasuredFocus = focus;
+        _hasMeasuredFocus = true;
     }
 }

@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "16144713-9b8a-fb5a-bf37-b816dff5bcad",
+  "cacheKey": "5bbdd537c7e4ac1b31efbbb8f60d293ef29e2c306838052bfbf8a540307bd107",
+  "catalogContentSha256": "9ba6337460e718b8baf165b23c02f39455e3d5757b1911505410c46bc88a86b5",
+  "sourceFileSha256": "9ba6337460e718b8baf165b23c02f39455e3d5757b1911505410c46bc88a86b5",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/tree_pineTallA_detailed.glb",
+  "sourceRelativePath": "normalized/kenney/nature-kit/Models/GLTF format/tree_pineTallA_detailed.glb",
+  "outputRelativePath": "assets/imported/kenney-nature-kit-pine-tall/model.glb",
+  "outputContentSha256": "9ba6337460e718b8baf165b23c02f39455e3d5757b1911505410c46bc88a86b5",
+  "outputBytes": 10708,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-pine-tall/model.glb",
+      "cacheKey": "5bbdd537c7e4ac1b31efbbb8f60d293ef29e2c306838052bfbf8a540307bd107",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-pine-tall/animations.index.json",
+      "cacheKey": "5bbdd537c7e4ac1b31efbbb8f60d293ef29e2c306838052bfbf8a540307bd107",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-pine-tall/collisions.glb",
+      "cacheKey": "5bbdd537c7e4ac1b31efbbb8f60d293ef29e2c306838052bfbf8a540307bd107",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-pine-tall/lod-0.5.glb",
+      "cacheKey": "5bbdd537c7e4ac1b31efbbb8f60d293ef29e2c306838052bfbf8a540307bd107",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-pine-tall/lod-0.25.glb",
+      "cacheKey": "5bbdd537c7e4ac1b31efbbb8f60d293ef29e2c306838052bfbf8a540307bd107",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

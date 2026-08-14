@@ -19,7 +19,7 @@ public static class AssetDeliveryReportService
         string RequiredLicenseSpdx)
     {
         public static Policy ForgottenForestAv5 { get; } = new(665, 665, 28, 44, 16, "CC0-1.0");
-        public static Policy ForgottenForestAv6E { get; } = new(665, 665, 45, 56, 16, "CC0-1.0");
+        public static Policy ForgottenForestAv6E { get; } = new(665, 665, 129, 809, 16, "CC0-1.0");
     }
 
     public sealed record FileMetrics(int Files, long Bytes);
@@ -201,9 +201,7 @@ public static class AssetDeliveryReportService
         var chunks = manifests.SelectMany(manifest => manifest.GetProperty("chunks").EnumerateArray()).ToArray();
         var chunkFailures = chunks.Count(chunk => !VerifyChunk(workspace, chunk));
         var references = new List<string>();
-        var areasPath = Path.Combine(workspace, "areas");
-        foreach (var areaPath in Directory.EnumerateFiles(areasPath, "*.json", SearchOption.TopDirectoryOnly)
-                     .Order(StringComparer.Ordinal))
+        foreach (var areaPath in EnumerateCurrentAreaDocuments(workspace))
         {
             using var areaDocument = JsonDocument.Parse(File.ReadAllText(areaPath));
             CollectAssetReferences(areaDocument.RootElement, references);
@@ -230,6 +228,31 @@ public static class AssetDeliveryReportService
             package.FullName,
             package.Length,
             HashFile(package.FullName));
+    }
+
+    private static IReadOnlyList<string> EnumerateCurrentAreaDocuments(string workspace)
+    {
+        var areasPath = Path.Combine(workspace, "areas");
+        var projectPath = Path.Combine(workspace, "project.json");
+        if (!File.Exists(projectPath))
+        {
+            return Directory.EnumerateFiles(areasPath, "*.json", SearchOption.TopDirectoryOnly)
+                .Order(StringComparer.Ordinal)
+                .ToArray();
+        }
+
+        using var projectDocument = JsonDocument.Parse(File.ReadAllText(projectPath));
+        var project = projectDocument.RootElement.GetProperty("project");
+        var containedRoot = Path.GetFullPath(workspace).TrimEnd(Path.DirectorySeparatorChar) +
+            Path.DirectorySeparatorChar;
+        return project.GetProperty("areas").EnumerateArray()
+            .Select(reference => reference.GetProperty("documentPath").GetString() ?? string.Empty)
+            .Select(relativePath => Path.GetFullPath(Path.Combine(
+                workspace,
+                relativePath.Replace('/', Path.DirectorySeparatorChar))))
+            .Where(path => path.StartsWith(containedRoot, StringComparison.OrdinalIgnoreCase) && File.Exists(path))
+            .Order(StringComparer.Ordinal)
+            .ToArray();
     }
 
     private static PerformanceMetrics MeasurePerformance(string benchmarkPath)

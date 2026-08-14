@@ -18,16 +18,14 @@ public static class AssistedAreaPlanGenerator
         string providerProvenance,
         string promptSha256,
         int inputTokens,
-        int outputTokens)
+        int outputTokens,
+        string? mapContractSha256 = null)
     {
         ArgumentNullException.ThrowIfNull(brief);
         ArgumentNullException.ThrowIfNull(project);
-        if (brief.PlanId == Guid.Empty || brief.AreaId == Guid.Empty ||
-            string.IsNullOrWhiteSpace(brief.Title) || brief.NodeCount is < 4 or > 24 ||
-            brief.WidthMeters is < 8 or > 2048 || brief.DepthMeters is < 8 or > 2048)
-            return Failure("Area-plan brief identity, title, node count or dimensions are invalid.");
-        if (brief.KitBlueprintIds.Count == 0 || brief.Constraints.Count == 0 || brief.Objectives.Count == 0)
-            return Failure("Area-plan brief requires at least one kit, constraint and objective.");
+        var briefDiagnostic = ValidateBrief(brief);
+        if (briefDiagnostic is not null)
+            return Failure(briefDiagnostic, promptSha256, inputTokens, outputTokens, estimatedCostUsd, providerProvenance);
 
         var kinds = Kinds(brief.Archetype, brief.NodeCount);
         var nodes = new List<AssistedAreaPlanNode>();
@@ -72,6 +70,36 @@ public static class AssistedAreaPlanGenerator
                 false));
         }
 
+        return CreateProposal(
+            brief,
+            project,
+            nodes,
+            links,
+            providerKey,
+            estimatedCostUsd,
+            providerProvenance,
+            promptSha256,
+            inputTokens,
+            outputTokens,
+            mapContractSha256);
+    }
+
+    internal static AssistedAreaPlanProposal CreateProposal(
+        AssistedAreaPlanBrief brief,
+        ProjectDefinition project,
+        IReadOnlyList<AssistedAreaPlanNode> nodes,
+        IReadOnlyList<AssistedAreaPlanLink> links,
+        string providerKey,
+        decimal estimatedCostUsd,
+        string providerProvenance,
+        string promptSha256,
+        int inputTokens,
+        int outputTokens,
+        string? mapContractSha256)
+    {
+        var contractProvenance = string.IsNullOrWhiteSpace(mapContractSha256)
+            ? string.Empty
+            : $":map-contract-{mapContractSha256}";
         var plan = new AssistedAreaPlanDefinition(
             brief.PlanId,
             AssistedAreaPlanDefinition.CurrentSchemaVersion,
@@ -90,7 +118,7 @@ public static class AssistedAreaPlanGenerator
             approvedForConstruction: false,
             estimatedCostUsd,
             providerKey,
-            $"{brief.Provenance}:{providerProvenance}:prompt-{promptSha256}");
+            $"{brief.Provenance}:{providerProvenance}{contractProvenance}:prompt-{promptSha256}");
         var catalog = new AssistedAreaPlanCatalog(
             Guid.Parse("b1240000-0000-4000-8000-000000000001"),
             1,
@@ -108,11 +136,37 @@ public static class AssistedAreaPlanGenerator
             outputTokens,
             estimatedCostUsd,
             providerProvenance);
-
-        AssistedAreaPlanProposal Failure(string message) => new(
-            false, null, "no-change", [new CommandDiagnostic(BriefInvalidCode, message)],
-            promptSha256, inputTokens, outputTokens, estimatedCostUsd, providerProvenance);
     }
+
+    internal static CommandDiagnostic? ValidateBrief(AssistedAreaPlanBrief brief)
+    {
+        if (brief.PlanId == Guid.Empty || brief.AreaId == Guid.Empty ||
+            string.IsNullOrWhiteSpace(brief.Title) || brief.NodeCount is < 4 or > 24 ||
+            brief.WidthMeters is < 8 or > 2048 || brief.DepthMeters is < 8 or > 2048)
+            return new CommandDiagnostic(BriefInvalidCode,
+                "Area-plan brief identity, title, node count or dimensions are invalid.");
+        return brief.KitBlueprintIds.Count == 0 || brief.Constraints.Count == 0 || brief.Objectives.Count == 0
+            ? new CommandDiagnostic(BriefInvalidCode,
+                "Area-plan brief requires at least one kit, constraint and objective.")
+            : null;
+    }
+
+    internal static AssistedAreaPlanProposal Failure(
+        CommandDiagnostic diagnostic,
+        string promptSha256,
+        int inputTokens,
+        int outputTokens,
+        decimal estimatedCostUsd,
+        string providerProvenance) => new(
+        false,
+        null,
+        "no-change",
+        [diagnostic],
+        promptSha256,
+        inputTokens,
+        outputTokens,
+        estimatedCostUsd,
+        providerProvenance);
 
     private static IReadOnlyList<AssistedAreaPlanNodeKind> Kinds(AssistedAreaArchetype archetype, int count)
     {
@@ -148,7 +202,7 @@ public static class AssistedAreaPlanGenerator
     private static string Label(AssistedAreaArchetype archetype, AssistedAreaPlanNodeKind kind, int index) =>
         $"{(archetype == AssistedAreaArchetype.Crypt ? "Crypte" : "Village")} · {kind} {index + 1}";
 
-    private static Guid StableId(Guid planId, string suffix)
+    internal static Guid StableId(Guid planId, string suffix)
     {
         var hash = SHA256.HashData(Encoding.UTF8.GetBytes($"{planId:D}:{suffix}"));
         Span<byte> bytes = stackalloc byte[16];

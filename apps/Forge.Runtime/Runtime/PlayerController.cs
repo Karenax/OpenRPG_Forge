@@ -8,7 +8,7 @@ namespace Forge.Runtime;
 public partial class PlayerController : CharacterBody3D
 {
     private const float Gravity = 24.0f;
-    internal const float MovementSpeedMultiplier = 2.0f;
+    internal const float MovementSpeedMultiplier = 2.75f;
     internal const float JumpVelocity = 9.0f;
     private ModuleGameplayControlProfile? _profile;
     private GodotAssetAnimationState? _animations;
@@ -16,6 +16,8 @@ public partial class PlayerController : CharacterBody3D
     private float _breath = 45;
     private float _stamina = 100;
     private bool _jumpQueued;
+    private Vector3 _fallRecoveryPosition;
+    private float? _fallRecoveryClearance;
 
     public bool ControlLocked { get; set; }
 
@@ -33,6 +35,8 @@ public partial class PlayerController : CharacterBody3D
 
     public int JumpCount { get; private set; }
 
+    public int FallRecoveryCount { get; private set; }
+
     public string? CurrentAnimationClip => _animations?.CurrentClip;
 
     public void Configure(ModuleGameplayControlProfile profile)
@@ -46,6 +50,13 @@ public partial class PlayerController : CharacterBody3D
     {
         _animations = animations ?? throw new ArgumentNullException(nameof(animations));
         GodotAssetAnimationController.Play(animations, animations.IdleClip, 0);
+    }
+
+    internal void ConfigureFallRecovery(Vector3 position, float clearance)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(clearance, 0);
+        _fallRecoveryPosition = position;
+        _fallRecoveryClearance = clearance;
     }
 
     public bool PlayAttackAnimation()
@@ -65,6 +76,7 @@ public partial class PlayerController : CharacterBody3D
         if (_profile is null || ControlLocked)
         {
             Velocity = Vector3.Zero;
+            RecoverIfBelowWorld();
             PlayMovementAnimation(Vector3.Zero, airborne: false);
             return;
         }
@@ -86,11 +98,12 @@ public partial class PlayerController : CharacterBody3D
         _breath = decision.BreathRemaining;
         _stamina = decision.StaminaRemaining;
         var ground = _profile.Foundation.GroundedMovement;
-        var movementSpeed = decision.Kind == MovementCapabilityKind.Ground ? ground.RunSpeed :
-            decision.Speed * MovementSpeedMultiplier;
+        var movementSpeed = (decision.Kind == MovementCapabilityKind.Ground ? ground.RunSpeed : decision.Speed) *
+                            MovementSpeedMultiplier;
         var targetX = (direction.X * movementSpeed * SimulationScale) + water.Current.X;
         var targetZ = (direction.Z * movementSpeed * SimulationScale) + water.Current.Z;
-        var rate = direction.LengthSquared() > .001f ? ground.Acceleration : ground.Deceleration;
+        var rate = (direction.LengthSquared() > .001f ? ground.Acceleration : ground.Deceleration) *
+                   MovementSpeedMultiplier;
         velocity.X = Mathf.MoveToward(velocity.X, targetX, rate * scaledDelta);
         velocity.Z = Mathf.MoveToward(velocity.Z, targetZ, rate * scaledDelta);
         var jumpRequested = _jumpQueued || Input.IsActionJustPressed("jump");
@@ -111,12 +124,27 @@ public partial class PlayerController : CharacterBody3D
 
         Velocity = velocity;
         MoveAndSlide();
+        if (!RecoverIfBelowWorld() && IsOnFloor())
+        {
+            _fallRecoveryPosition = GlobalPosition;
+        }
         PlayMovementAnimation(direction, !IsOnFloor() && Math.Abs(Velocity.Y) > .2f);
 
         if (direction.LengthSquared() > 0.01f)
         {
             FaceDirection(direction);
         }
+    }
+
+    private bool RecoverIfBelowWorld()
+    {
+        if (_fallRecoveryClearance is not { } clearance ||
+            GlobalPosition.Y >= _fallRecoveryPosition.Y - clearance) return false;
+        GlobalPosition = _fallRecoveryPosition;
+        ResetPhysicsInterpolation();
+        Velocity = Vector3.Zero;
+        FallRecoveryCount++;
+        return true;
     }
 
     internal bool QueueJump()

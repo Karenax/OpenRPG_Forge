@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "b60ff30a-cc35-e757-87b5-f3a07d1a14c4",
+  "cacheKey": "98f611cce4b181b94b3555d0b83520469b3d334b924bade6a65a993a930723d2",
+  "catalogContentSha256": "253d7f8fd3e9113ef5ae064eed49351b387532d83ccce284851d0a2190872fc6",
+  "sourceFileSha256": "253d7f8fd3e9113ef5ae064eed49351b387532d83ccce284851d0a2190872fc6",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-castle@1.0.0;source:kenney:castle-kit;path:Models/GLB format/wall-narrow-wood-fence.glb",
+  "sourceRelativePath": "normalized/kenney/castle-kit/Models/GLB format/wall-narrow-wood-fence.glb",
+  "outputRelativePath": "assets/imported/kenney-castle-kit-wall-narrow-wood-fence/model.glb",
+  "outputContentSha256": "253d7f8fd3e9113ef5ae064eed49351b387532d83ccce284851d0a2190872fc6",
+  "outputBytes": 32988,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kenney-castle-kit-wall-narrow-wood-fence/model.glb",
+      "cacheKey": "98f611cce4b181b94b3555d0b83520469b3d334b924bade6a65a993a930723d2",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kenney-castle-kit-wall-narrow-wood-fence/animations.index.json",
+      "cacheKey": "98f611cce4b181b94b3555d0b83520469b3d334b924bade6a65a993a930723d2",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kenney-castle-kit-wall-narrow-wood-fence/collisions.glb",
+      "cacheKey": "98f611cce4b181b94b3555d0b83520469b3d334b924bade6a65a993a930723d2",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kenney-castle-kit-wall-narrow-wood-fence/lod-0.5.glb",
+      "cacheKey": "98f611cce4b181b94b3555d0b83520469b3d334b924bade6a65a993a930723d2",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kenney-castle-kit-wall-narrow-wood-fence/lod-0.25.glb",
+      "cacheKey": "98f611cce4b181b94b3555d0b83520469b3d334b924bade6a65a993a930723d2",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "7562b7e8-c1fc-9052-93dd-18d3ef16ab46",
+  "cacheKey": "358d56c0d403f9261e2e6a1493b92797c310ee3aa2b8855f5cf4602fa6f807f6",
+  "catalogContentSha256": "43182b077ead9b033804300ef453b7402bdc979f00cfce2d7f0c91dcf6bb5d3c",
+  "sourceFileSha256": "43182b077ead9b033804300ef453b7402bdc979f00cfce2d7f0c91dcf6bb5d3c",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-dungeon-dressing@1.0.0;source:kaykit:dungeon-remastered-1.0;path:KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/crates_stacked.gltf.glb",
+  "sourceRelativePath": "normalized/kaykit/dungeon-remastered-1.0/KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/crates_stacked.gltf.glb",
+  "outputRelativePath": "assets/imported/kaykit-dungeon-remastered-1-0-crates-stacked/model.glb",
+  "outputContentSha256": "43182b077ead9b033804300ef453b7402bdc979f00cfce2d7f0c91dcf6bb5d3c",
+  "outputBytes": 103704,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kaykit-dungeon-remastered-1-0-crates-stacked/model.glb",
+      "cacheKey": "358d56c0d403f9261e2e6a1493b92797c310ee3aa2b8855f5cf4602fa6f807f6",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kaykit-dungeon-remastered-1-0-crates-stacked/animations.index.json",
+      "cacheKey": "358d56c0d403f9261e2e6a1493b92797c310ee3aa2b8855f5cf4602fa6f807f6",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kaykit-dungeon-remastered-1-0-crates-stacked/collisions.glb",
+      "cacheKey": "358d56c0d403f9261e2e6a1493b92797c310ee3aa2b8855f5cf4602fa6f807f6",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kaykit-dungeon-remastered-1-0-crates-stacked/lod-0.5.glb",
+      "cacheKey": "358d56c0d403f9261e2e6a1493b92797c310ee3aa2b8855f5cf4602fa6f807f6",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kaykit-dungeon-remastered-1-0-crates-stacked/lod-0.25.glb",
+      "cacheKey": "358d56c0d403f9261e2e6a1493b92797c310ee3aa2b8855f5cf4602fa6f807f6",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

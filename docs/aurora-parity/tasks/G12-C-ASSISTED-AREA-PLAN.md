@@ -23,6 +23,15 @@ dry-run, validation et permission. L’approbation pour construction requiert le
 MCP expose lecture, proposition hors ligne, planification, application du document et revert. La
 proposition utilise le provider factice déterministe en CI et ne dépend d’aucun réseau.
 
+Le contrat statique `docs/ai/MAP_AUTHORING_CONTRACT.md` v1.0.0 est embarqué dans
+`Forge.Application`, normalisé puis injecté avec sa version et son SHA-256 dans le prompt
+`area-plan@2.0.0`. Le paquet dynamique ajoute la zone bornée, les kits autorisés, le terrain, la
+navigation, au plus seize entités existantes et uniquement le lore dont le partage est autorisé.
+Les fournisseurs de modèle retournent désormais des nœuds et connexions JSON : Forge dérive les UUID,
+refuse les références hors allowlist et valide la topologie canonique. Une réponse invalide échoue
+sans géométrie et sans fallback silencieux ; seul le provider explicitement `DeterministicOffline`
+emploie le générateur local reproductible.
+
 ## Fichiers autorisés
 
 - `src/Forge.Domain/Assistant/AssistedArea*` ;
@@ -42,7 +51,8 @@ proposition utilise le provider factice déterministe en CI et ne dépend d’au
 
 - tests Domain : schéma borné et connectivité ;
 - tests Application : crypte/village reproductibles, provider offline, coût, garde dry-run,
-  permissions et historique ;
+  permissions, historique, contrat embarqué, paquet contextuel privé et topologie modèle réellement
+  consommée ;
 - tests ModuleFormat : absence sûre, round-trip exact et diagnostic stable ;
 - test MCP : propose/plan/apply/revert sans changement du nombre d’entités ;
 - smoke Toolset : `OPENRPG_FORGE_TOOLSET_G12C_AREA_PLAN_PASS` ;

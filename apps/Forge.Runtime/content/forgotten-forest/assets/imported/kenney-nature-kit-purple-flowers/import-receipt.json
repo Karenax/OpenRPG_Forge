@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "2abafbd7-3e72-6d57-a05d-fbf3ce8d1c19",
+  "cacheKey": "5af06d196e847ef6af7241f0dcf3ff75edae1cbd48bc30580d5f8955ea67eea1",
+  "catalogContentSha256": "2afb10cd68a9a7b185fc46110be0da550ea2aef86ef9ac6b7339f217eb4b636a",
+  "sourceFileSha256": "2afb10cd68a9a7b185fc46110be0da550ea2aef86ef9ac6b7339f217eb4b636a",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/flower_purpleB.glb",
+  "sourceRelativePath": "normalized/kenney/nature-kit/Models/GLTF format/flower_purpleB.glb",
+  "outputRelativePath": "assets/imported/kenney-nature-kit-purple-flowers/model.glb",
+  "outputContentSha256": "2afb10cd68a9a7b185fc46110be0da550ea2aef86ef9ac6b7339f217eb4b636a",
+  "outputBytes": 8084,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-purple-flowers/model.glb",
+      "cacheKey": "5af06d196e847ef6af7241f0dcf3ff75edae1cbd48bc30580d5f8955ea67eea1",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-purple-flowers/animations.index.json",
+      "cacheKey": "5af06d196e847ef6af7241f0dcf3ff75edae1cbd48bc30580d5f8955ea67eea1",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-purple-flowers/collisions.glb",
+      "cacheKey": "5af06d196e847ef6af7241f0dcf3ff75edae1cbd48bc30580d5f8955ea67eea1",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-purple-flowers/lod-0.5.glb",
+      "cacheKey": "5af06d196e847ef6af7241f0dcf3ff75edae1cbd48bc30580d5f8955ea67eea1",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-purple-flowers/lod-0.25.glb",
+      "cacheKey": "5af06d196e847ef6af7241f0dcf3ff75edae1cbd48bc30580d5f8955ea67eea1",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

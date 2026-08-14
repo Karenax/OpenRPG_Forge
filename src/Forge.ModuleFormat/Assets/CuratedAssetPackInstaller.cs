@@ -150,7 +150,7 @@ public static class CuratedAssetPackInstaller
                 assetId,
                 externalId,
                 Humanize(model.Key),
-                "kenney",
+                sourcePack.Source,
                 externalId,
                 sourcePack.SourcePage,
                 document.License,
@@ -280,6 +280,9 @@ public static class CuratedAssetPackInstaller
 
             return new SourcePack(
                 pack.TryGetProperty("name", out var name) ? name.GetString() ?? sourcePackId : sourcePackId,
+                pack.TryGetProperty("source", out var source)
+                    ? source.GetString() ?? sourcePackId.Split(':')[0]
+                    : sourcePackId.Split(':')[0],
                 pack.GetProperty("extracted_root").GetString() ?? string.Empty,
                 pack.GetProperty("license").GetString() ?? string.Empty,
                 pack.GetProperty("license_url").GetString() ?? string.Empty,
@@ -429,7 +432,7 @@ public static class CuratedAssetPackInstaller
         IReadOnlyList<CuratedModelDocument> Models);
 
     private sealed record CuratedModelDocument(string Key, string Path, IReadOnlyList<string> Tags);
-    private sealed record SourcePack(string Name, string ExtractedRoot, string License, string LicenseUrl, bool LicenseVerified, string SourcePage);
+    private sealed record SourcePack(string Name, string Source, string ExtractedRoot, string License, string LicenseUrl, bool LicenseVerified, string SourcePage);
 }
 
 public sealed record CuratedAssetInstallEntry(

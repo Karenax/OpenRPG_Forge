@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "05b4242c-3666-5057-8a27-72b71928de01",
+  "cacheKey": "183632209f744d6aed1e80c6c40395d78dae5232dba6c38ff73b980da3eaa013",
+  "catalogContentSha256": "4e4a83de16e5979d2b34bb206d3bf3703a9039711bc658b37e3738d43090703d",
+  "sourceFileSha256": "4e4a83de16e5979d2b34bb206d3bf3703a9039711bc658b37e3738d43090703d",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-fantasy-town@1.0.0;source:kenney:fantasy-town-kit;path:Models/GLB format/banner-red.glb",
+  "sourceRelativePath": "normalized/kenney/fantasy-town-kit/Models/GLB format/banner-red.glb",
+  "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-banner-red/model.glb",
+  "outputContentSha256": "4e4a83de16e5979d2b34bb206d3bf3703a9039711bc658b37e3738d43090703d",
+  "outputBytes": 9988,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-banner-red/model.glb",
+      "cacheKey": "183632209f744d6aed1e80c6c40395d78dae5232dba6c38ff73b980da3eaa013",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-banner-red/animations.index.json",
+      "cacheKey": "183632209f744d6aed1e80c6c40395d78dae5232dba6c38ff73b980da3eaa013",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-banner-red/collisions.glb",
+      "cacheKey": "183632209f744d6aed1e80c6c40395d78dae5232dba6c38ff73b980da3eaa013",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-banner-red/lod-0.5.glb",
+      "cacheKey": "183632209f744d6aed1e80c6c40395d78dae5232dba6c38ff73b980da3eaa013",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-banner-red/lod-0.25.glb",
+      "cacheKey": "183632209f744d6aed1e80c6c40395d78dae5232dba6c38ff73b980da3eaa013",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "c8aee4c1-0570-7c5d-a642-c11603c9764f",
+  "cacheKey": "f2d4b6c3b44057c7c473382219040b50d7cf2a5a0421c73ea49c00933b9b9d0a",
+  "catalogContentSha256": "21c54b2645ba33846f43410e6cef4d4f9239bc172bfb12f3227a6ec232977e2d",
+  "sourceFileSha256": "21c54b2645ba33846f43410e6cef4d4f9239bc172bfb12f3227a6ec232977e2d",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-fantasy-town@1.0.0;source:kenney:fantasy-town-kit;path:Models/GLB format/roof-high-gable.glb",
+  "sourceRelativePath": "normalized/kenney/fantasy-town-kit/Models/GLB format/roof-high-gable.glb",
+  "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-roof-high-gable/model.glb",
+  "outputContentSha256": "21c54b2645ba33846f43410e6cef4d4f9239bc172bfb12f3227a6ec232977e2d",
+  "outputBytes": 7456,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-roof-high-gable/model.glb",
+      "cacheKey": "f2d4b6c3b44057c7c473382219040b50d7cf2a5a0421c73ea49c00933b9b9d0a",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-roof-high-gable/animations.index.json",
+      "cacheKey": "f2d4b6c3b44057c7c473382219040b50d7cf2a5a0421c73ea49c00933b9b9d0a",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-roof-high-gable/collisions.glb",
+      "cacheKey": "f2d4b6c3b44057c7c473382219040b50d7cf2a5a0421c73ea49c00933b9b9d0a",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-roof-high-gable/lod-0.5.glb",
+      "cacheKey": "f2d4b6c3b44057c7c473382219040b50d7cf2a5a0421c73ea49c00933b9b9d0a",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-roof-high-gable/lod-0.25.glb",
+      "cacheKey": "f2d4b6c3b44057c7c473382219040b50d7cf2a5a0421c73ea49c00933b9b9d0a",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

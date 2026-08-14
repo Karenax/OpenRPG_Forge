@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "28dcc781-e4fb-ad50-bcdf-cc427baf76de",
+  "cacheKey": "4acde619e07052ebfabe394d62fbdae6c27b9a441e0f35c591897b984712aaf8",
+  "catalogContentSha256": "2aa4e982fcb6434be4e6051fcee7972799ff5350a3f36ca8bf71530b84608123",
+  "sourceFileSha256": "2aa4e982fcb6434be4e6051fcee7972799ff5350a3f36ca8bf71530b84608123",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-fantasy-town@1.0.0;source:kenney:fantasy-town-kit;path:Models/GLB format/wall-wood-door.glb",
+  "sourceRelativePath": "normalized/kenney/fantasy-town-kit/Models/GLB format/wall-wood-door.glb",
+  "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-wall-wood-door/model.glb",
+  "outputContentSha256": "2aa4e982fcb6434be4e6051fcee7972799ff5350a3f36ca8bf71530b84608123",
+  "outputBytes": 30744,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-wall-wood-door/model.glb",
+      "cacheKey": "4acde619e07052ebfabe394d62fbdae6c27b9a441e0f35c591897b984712aaf8",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-wall-wood-door/animations.index.json",
+      "cacheKey": "4acde619e07052ebfabe394d62fbdae6c27b9a441e0f35c591897b984712aaf8",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-wall-wood-door/collisions.glb",
+      "cacheKey": "4acde619e07052ebfabe394d62fbdae6c27b9a441e0f35c591897b984712aaf8",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-wall-wood-door/lod-0.5.glb",
+      "cacheKey": "4acde619e07052ebfabe394d62fbdae6c27b9a441e0f35c591897b984712aaf8",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-wall-wood-door/lod-0.25.glb",
+      "cacheKey": "4acde619e07052ebfabe394d62fbdae6c27b9a441e0f35c591897b984712aaf8",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

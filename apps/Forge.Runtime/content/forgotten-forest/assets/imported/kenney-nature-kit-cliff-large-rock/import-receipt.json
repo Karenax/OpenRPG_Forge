@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "a809e195-60ad-485d-8f3e-1654e927336e",
+  "cacheKey": "b9cd8865a372de5aad4ad8b0b5b2e24f1a8586f2749db67267ba8b78222c6585",
+  "catalogContentSha256": "f9bf79cd3a76bbe11f4887053655585e467e14f2528678215a820896669e4e8e",
+  "sourceFileSha256": "f9bf79cd3a76bbe11f4887053655585e467e14f2528678215a820896669e4e8e",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/cliff_large_rock.glb",
+  "sourceRelativePath": "normalized/kenney/nature-kit/Models/GLTF format/cliff_large_rock.glb",
+  "outputRelativePath": "assets/imported/kenney-nature-kit-cliff-large-rock/model.glb",
+  "outputContentSha256": "f9bf79cd3a76bbe11f4887053655585e467e14f2528678215a820896669e4e8e",
+  "outputBytes": 3560,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-cliff-large-rock/model.glb",
+      "cacheKey": "b9cd8865a372de5aad4ad8b0b5b2e24f1a8586f2749db67267ba8b78222c6585",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-cliff-large-rock/animations.index.json",
+      "cacheKey": "b9cd8865a372de5aad4ad8b0b5b2e24f1a8586f2749db67267ba8b78222c6585",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-cliff-large-rock/collisions.glb",
+      "cacheKey": "b9cd8865a372de5aad4ad8b0b5b2e24f1a8586f2749db67267ba8b78222c6585",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-cliff-large-rock/lod-0.5.glb",
+      "cacheKey": "b9cd8865a372de5aad4ad8b0b5b2e24f1a8586f2749db67267ba8b78222c6585",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-cliff-large-rock/lod-0.25.glb",
+      "cacheKey": "b9cd8865a372de5aad4ad8b0b5b2e24f1a8586f2749db67267ba8b78222c6585",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

@@ -15,7 +15,10 @@ public sealed record GodotBiomeScatterResult(
 
 public static class GodotBiomeScatterAdapter
 {
-    public static GodotBiomeScatterResult Build(AreaWorldProfile world, Func<string, Mesh?>? meshResolver)
+    public static GodotBiomeScatterResult Build(
+        AreaWorldProfile world,
+        Func<string, Mesh?>? meshResolver,
+        IReadOnlyList<WaterBodyProfile>? waterBodies = null)
     {
         ArgumentNullException.ThrowIfNull(world);
         var started = Stopwatch.GetTimestamp();
@@ -32,7 +35,9 @@ public static class GodotBiomeScatterAdapter
         {
             var mesh = meshResolver(biome.ScatterResource);
             if (mesh is null) continue;
-            var placements = BiomeScatterPlanBuilder.Build(world, biome);
+            var placements = BiomeScatterPlanBuilder.Build(world, biome)
+                .Where(placement => !IsInsideWaterBody(placement.Position.X, placement.Position.Z, waterBodies))
+                .ToList();
             if (placements.Count == 0) continue;
             var policy = BiomeScatterRenderingPolicy.For(biome);
             var cells = BiomeScatterCellPlanBuilder.Build(world.Terrain, placements, policy.CellSize);
@@ -93,6 +98,15 @@ public static class GodotBiomeScatterAdapter
 
         return new(root, layers, instances, collisionShapes, cullingGroups,
             Stopwatch.GetElapsedTime(started).TotalMilliseconds, collisionMilliseconds);
+    }
+
+    private static bool IsInsideWaterBody(float x, float z, IReadOnlyList<WaterBodyProfile>? waterBodies)
+    {
+        if (waterBodies is null || waterBodies.Count == 0) return false;
+        const float shorelineClearance = 2.5f;
+        return waterBodies.Any(body =>
+            MathF.Abs(x - body.Center.X) <= (body.Size.X * .5f) + shorelineClearance &&
+            MathF.Abs(z - body.Center.Z) <= (body.Size.Z * .5f) + shorelineClearance);
     }
 
 }

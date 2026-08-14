@@ -1,6 +1,6 @@
 # Roadmap de consolidation
 
-Dernière mise à jour : 12 août 2026.
+Dernière mise à jour : 13 août 2026.
 
 La phase de création des capacités Aurora est terminée : 717 fonctions sont `Tested` dans 187 lots.
 La roadmap ne réénumère plus les anciens gates. Elle conduit le prototype vers un éditeur de RPG
@@ -18,7 +18,8 @@ documentation générée fraîche et portail intégré réussi.
 Objectif : une seule vision courante et une navigation Creator cohérente.
 
 Sortie : `PROJECT_CONTEXT.md` unique, statuts sans historique contradictoire, neuf espaces principaux,
-mode Débutant qualifié et outils avancés rattachés à leur domaine.
+mode Débutant qualifié, zéro fenêtre parasite au démarrage, un seul outil secondaire actif et édition
+manuelle structurée des collections métier.
 
 ## Étape 3 — Distribution autonome
 
@@ -31,8 +32,9 @@ manifestes, hashes, licences, crédits, SBOM et qualification sur environnement 
 
 Objectif : prouver le but produit plutôt que des fonctions isolées.
 
-Sortie : un utilisateur crée zones, contenu RPG, assets et scripts, joue, diagnostique, sauvegarde,
-exporte, installe et recharge un module entier sans modifier de JSON.
+Sortie : un utilisateur crée, inspecte, modifie et supprime manuellement zones, contenu RPG, assets et
+scripts, puis joue, diagnostique, sauvegarde, exporte, installe et recharge un module entier sans
+modifier de JSON ni perdre les données non affichées par les formulaires rapides.
 
 ## Étape 5 — IA et MCP intégrés
 

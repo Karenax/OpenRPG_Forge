@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "654d6f01-dab6-d555-9996-ed19a77bedb9",
+  "cacheKey": "430baaee22efc443cec18eaad85ac8910d261a476aac21362cfe723580f88586",
+  "catalogContentSha256": "29080a4935bae6b4ab29066f22c99c58f88b23ce4e2f79b4dcbb5e76de73f69d",
+  "sourceFileSha256": "29080a4935bae6b4ab29066f22c99c58f88b23ce4e2f79b4dcbb5e76de73f69d",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/tree_pineRoundC.glb",
+  "sourceRelativePath": "normalized/kenney/nature-kit/Models/GLTF format/tree_pineRoundC.glb",
+  "outputRelativePath": "assets/imported/kenney-nature-kit-pine-round/model.glb",
+  "outputContentSha256": "29080a4935bae6b4ab29066f22c99c58f88b23ce4e2f79b4dcbb5e76de73f69d",
+  "outputBytes": 15332,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-pine-round/model.glb",
+      "cacheKey": "430baaee22efc443cec18eaad85ac8910d261a476aac21362cfe723580f88586",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-pine-round/animations.index.json",
+      "cacheKey": "430baaee22efc443cec18eaad85ac8910d261a476aac21362cfe723580f88586",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-pine-round/collisions.glb",
+      "cacheKey": "430baaee22efc443cec18eaad85ac8910d261a476aac21362cfe723580f88586",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-pine-round/lod-0.5.glb",
+      "cacheKey": "430baaee22efc443cec18eaad85ac8910d261a476aac21362cfe723580f88586",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-pine-round/lod-0.25.glb",
+      "cacheKey": "430baaee22efc443cec18eaad85ac8910d261a476aac21362cfe723580f88586",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

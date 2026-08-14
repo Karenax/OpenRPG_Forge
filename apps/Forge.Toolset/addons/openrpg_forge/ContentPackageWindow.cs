@@ -232,7 +232,7 @@ public partial class ContentPackageWindow : Window
         card.AddChild(Section("DÉPENDANCES · une par ligne"));
         card.AddChild(new Label
         {
-            Text = "namespace | contrainte SemVer | required/optional/peer | provenance",
+            Text = "Dépendances du package, versions acceptées et niveau d’obligation.",
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
         });
         _dependencies = new TextEdit
@@ -241,10 +241,15 @@ public partial class ContentPackageWindow : Window
             PlaceholderText = "forge.core | ^1.0.0 | required | project-author",
         };
         card.AddChild(_dependencies);
+        StructuredCollectionField.Attach(_dependencies, "dépendance",
+            new("Namespace", "forge.core", "forge.core"),
+            new("Version acceptée", "^1.0.0", "^1.0.0"),
+            new("Obligation", Options: ["required", "optional", "peer"], DefaultValue: "required"),
+            new("Provenance", "project-author", "project-author"));
         card.AddChild(Section("SOURCES TEXTE · une ressource logique par fichier"));
         card.AddChild(new Label
         {
-            Text = "ressource | chemin | json/text/yaml/forge | required/optional | licence | sha256/auto | budget | provenance | aliases | références",
+            Text = "Sources textuelles versionnées appartenant à ce package.",
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
         });
         _sources = new TextEdit
@@ -253,10 +258,21 @@ public partial class ContentPackageWindow : Window
             PlaceholderText = "creature/warden | data/warden.json | json | required | CC0-1.0 | auto | 1048576 | project-author | legacy.core:text/warden |",
         };
         card.AddChild(_sources);
+        StructuredCollectionField.Attach(_sources, "source",
+            new("Ressource logique", "creature/warden"),
+            new("Fichier", "data/warden.json"),
+            new("Format", Options: ["json", "text", "yaml", "forge"], DefaultValue: "json"),
+            new("Obligation", Options: ["required", "optional"], DefaultValue: "required"),
+            new("Licence", "CC0-1.0", "CC0-1.0"),
+            new("Empreinte", "auto", "auto"),
+            new("Budget octets", "1048576", "1048576"),
+            new("Provenance", "project-author", "project-author"),
+            new("Alias", "alias éventuel"),
+            new("Références", "références éventuelles"));
         card.AddChild(Section("ASSETS GOUVERNÉS · binaires référencés"));
         card.AddChild(new Label
         {
-            Text = "ressource | chemin | required/optional | licence | sha256/auto | budget | provenance | aliases | références",
+            Text = "Assets binaires gouvernés référencés par le package.",
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
         });
         _assets = new TextEdit
@@ -265,6 +281,16 @@ public partial class ContentPackageWindow : Window
             PlaceholderText = "portrait/warden | assets/portraits/warden.png | required | CC0-1.0 | auto | 4194304 | project-author | legacy.core:texture/warden | crypt.encounters:text/creature/warden",
         };
         card.AddChild(_assets);
+        StructuredCollectionField.Attach(_assets, "asset",
+            new("Ressource logique", "portrait/warden"),
+            new("Fichier", "assets/portraits/warden.png"),
+            new("Obligation", Options: ["required", "optional"], DefaultValue: "required"),
+            new("Licence", "CC0-1.0", "CC0-1.0"),
+            new("Empreinte", "auto", "auto"),
+            new("Budget octets", "4194304", "4194304"),
+            new("Provenance", "project-author", "project-author"),
+            new("Alias", "alias éventuel"),
+            new("Références", "références éventuelles"));
         card.AddChild(Section("DIAGNOSTICS & RÉSOLUTION"));
         _diagnostics = new ItemList { SizeFlagsVertical = Control.SizeFlags.ExpandFill };
         _diagnostics.AddItem("État vide · ajoutez un package pour lancer la validation.");

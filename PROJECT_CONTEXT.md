@@ -1,6 +1,6 @@
 # Contexte canonique — OpenRPG Forge
 
-Dernière mise à jour : 12 août 2026.
+Dernière mise à jour : 13 août 2026.
 
 Ce document est l’unique contexte narratif courant du projet. Les états d’exécution sont dans
 `STATUS.md` et `TASKS_MVP.md`; les exigences détaillées et leurs preuves restent dans le tracker et
@@ -32,8 +32,8 @@ exigences du catalogue Aurora sont classées `Tested` dans 187 lots clos. Cette 
 capacités disponibles ; elle ne remplace pas la qualification d’un logiciel installable et publiable.
 
 Le chantier courant n’est plus la création de nouvelles familles fonctionnelles. Il est la
-consolidation du produit : CI reproductible, contexte unique, parcours Creator cohérents,
-distribution autonome, acceptation de bout en bout et finition visuelle.
+consolidation du produit : publication contrôlée des derniers correctifs d’interface, CI distante
+reproductible, qualification humaine de bout en bout et finition visuelle.
 
 ## Expérience Creator cible
 
@@ -49,9 +49,10 @@ L’interface principale est organisée autour de neuf espaces stables :
 - Playtests ;
 - Assistant.
 
-Les outils spécialisés s’ouvrent dans ces espaces ou comme inspecteurs secondaires. Ils ne doivent
-pas former une succession de fenêtres indépendantes difficile à apprendre. La sélection, l’historique,
-les diagnostics, la navigation et le vocabulaire sont partagés.
+Les outils spécialisés s’ouvrent depuis ces espaces dans une surface secondaire réutilisable. Aucun
+outil secondaire ne s’ouvre au démarrage et un seul est actif à la fois ; il reste déplaçable,
+redimensionnable, maximisable et refermable. La sélection, l’historique, les diagnostics, la
+navigation et le vocabulaire sont partagés.
 
 Le mode Débutant présente d’abord les actions indispensables, des valeurs sûres, des explications
 contextuelles et un parcours guidé. Le mode avancé révèle les réglages techniques sans changer le
@@ -61,6 +62,19 @@ Toute action importante possède un libellé explicite, un état visible et, lor
 une commande avec raccourci configurable. La couleur n’est jamais l’unique indicateur. Les erreurs
 doivent mener à l’objet et à la propriété concernés et proposer une correction prévisualisable quand
 cela est sûr.
+
+## Édition manuelle et non destructive
+
+Chaque élément métier doit rester créable et modifiable sans IA. Les agrégats et collections
+principaux sont présentés comme une liste et un inspecteur à champs nommés, avec ajout, duplication,
+suppression et réorganisation lorsque l’ordre est significatif. Les syntaxes compactes à séparateurs,
+le JSON, les UUID, les hashes et les vues techniques restent des outils avancés, jamais le parcours
+principal.
+
+Un formulaire rapide ne peut pas effacer silencieusement les localisations, propriétés ou entrées
+qu’il n’affiche pas. Une suppression de zone, blueprint, dialogue ou quête passe par une
+prévisualisation transactionnelle, la validation des dépendances, puis l’historique undo/redo. L’IA
+et le MCP accélèrent ce même modèle de commandes ; ils ne constituent pas une voie d’édition séparée.
 
 ## Direction graphique
 
@@ -78,9 +92,10 @@ sous-jacent est une dépendance technique interne, pas l’identité du logiciel
 
 La cible 3D est un réalisme stylisé lisible : échelle métrique cohérente, matériaux PBR normalisés,
 silhouettes distinctes, éclairage orientant le joueur, collisions et navigation fiables, LOD et
-budgets par profil de qualité. Crypte des Cendres doit abandonner ses primitives provisoires pour un
-kit artistique cohérent. Forgotten Forest doit recevoir une composition manuelle, une eau plus
-aboutie, une meilleure lecture du terrain et une passe d’éclairage avant démonstration publique.
+budgets par profil de qualité. Crypte des Cendres utilise désormais un kit artistique CC0 gouverné et
+Forgotten Forest une composition stylisée avec modèles réels, terrain, navigation, eau et éclairage
+jouables. La passe restante avant démonstration publique est une finition artistique exhaustive et
+une revue humaine sur les résolutions et profils matériels supportés, pas un retour aux primitives.
 
 ## Architecture à préserver
 
@@ -121,6 +136,8 @@ La première version publiable est atteinte lorsque :
 - le Creator et le runtime se distribuent sous la marque OpenRPG Forge sans script de développement ;
 - installation, mise à jour, désinstallation et lancement sont validés sur une machine propre ;
 - un utilisateur peut réaliser les huit étapes du but final sans éditer de JSON ;
+- chaque élément nécessaire à un module peut être créé, inspecté, modifié et supprimé manuellement
+  sans perte silencieuse des données non affichées ;
 - les neuf espaces sont cohérents, navigables au clavier et utilisables en mode Débutant ;
 - Crypte et Forgotten Forest passent une revue visuelle interactive aux résolutions supportées ;
 - un module créé, exporté, installé, sauvegardé, repris et mis à niveau passe un test de bout en bout ;

@@ -120,6 +120,30 @@ public sealed class AssetDeliveryReportServiceTests
         Assert.True(report.Checks.Single(check => check.Key == "catalog-local-availability").Passed);
     }
 
+    [Fact]
+    public void IgnoresContentAddressedAreaHistoryOutsideTheCurrentProjectIndex()
+    {
+        using var fixture = new DeliveryFixture();
+        File.WriteAllText(Path.Combine(fixture.Workspace, "project.json"), JsonSerializer.Serialize(new
+        {
+            project = new { areas = new[] { new { documentPath = "areas/area.json" } } },
+        }));
+        File.Copy(
+            Path.Combine(fixture.Workspace, "areas", "area.json"),
+            Path.Combine(fixture.Workspace, "areas", "area-obsolete.json"));
+
+        var report = AssetDeliveryReportService.Measure(
+            fixture.Catalog,
+            fixture.Vault,
+            fixture.Workspace,
+            fixture.Package,
+            fixture.Benchmark,
+            fixture.Policy);
+
+        Assert.True(report.Passed);
+        Assert.Equal(2, report.Module.AssetReferences);
+    }
+
     private sealed class DeliveryFixture : IDisposable
     {
         private readonly string _root = Path.Combine(Path.GetTempPath(), $"forge-asset-delivery-{Guid.NewGuid():N}");

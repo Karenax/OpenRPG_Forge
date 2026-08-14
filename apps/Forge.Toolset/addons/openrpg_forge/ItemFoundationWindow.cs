@@ -24,6 +24,8 @@ public partial class ItemFoundationWindow : Window
     private Guid _propertyId;
     private Guid _creationId;
     private Guid _appearanceId;
+    private ItemFoundationProfile? _loadedFoundation;
+    private string _editedLocale = "fr";
     private ItemGameplayProfile? _loadedGameplay;
     private ItemOperationsProfile? _loadedOperations;
     private CheckBox? _required;
@@ -65,7 +67,7 @@ public partial class ItemFoundationWindow : Window
     private SpinBox? _level;
     private SpinBox? _value;
     private LineEdit? _slots;
-    private LineEdit? _property;
+    private TextEdit? _property;
     private LineEdit? _name;
     private TextEdit? _short;
     private TextEdit? _long;
@@ -144,7 +146,7 @@ public partial class ItemFoundationWindow : Window
         _manifest!.Text = "crypt-of-ashes"; _license!.Text = "CC0-1.0"; _hash!.Text = new string('d', 64);
         _appearance!.Text = "asset.items.ash-key"; _version!.Value = 2; _quality!.Value = 2;
         _level!.Value = 4; _value!.Value = 75; _slots!.Text = "hand";
-        _property!.Text = "utility|1|effect.ash-key|OnUse";
+        _property!.Text = $"{_propertyId:D}|utility|1|effect.ash-key|OnUse";
         _name!.Text = "Clé des cendres"; _short!.Text = "Une clé rituelle.";
         _long!.Text = "Une clé forgée pour ouvrir le sanctuaire de la crypte.";
         _unknown!.Text = "Objet inconnu"; _typeLabel!.Text = "Clé";
@@ -289,7 +291,10 @@ public partial class ItemFoundationWindow : Window
         _version = Spin(values, "Version", 1, 100000, 1); _quality = Spin(values, "Qualité", 0, 5, 0);
         _level = Spin(values, "Niveau", 0, 1000, 0); _value = Spin(values, "Valeur", 0, 1_000_000, 0);
         _slots = Field(form, "Slots actifs", "inventory");
-        _property = Field(form, "Propriété kind|valeur|effet|script", "utility|1|effect.use|OnUse");
+        _property = Multi(form, "PROPRIÉTÉS", 62);
+        StructuredCollectionField.Attach(_property, "propriété",
+            new("Identifiant", Guid.Empty.ToString("D")), new("Type", "utility", "utility"),
+            new("Valeur", "1", "1"), new("Effet", "effect.use"), new("Script", "OnUse"));
         Section(form, "IDENTITÉ LOCALISÉE · FR");
         _name = Field(form, "Nom", "Objet"); _short = Multi(form, "Description courte", 55);
         _long = Multi(form, "Description longue", 75); _unknown = Field(form, "Texte inconnu", "Objet inconnu");
@@ -324,6 +329,7 @@ public partial class ItemFoundationWindow : Window
         _selectedId = blueprint.Id;
         var profile = blueprint.ItemFoundation ?? ItemFoundationProfile.CreateDefault(Guid.NewGuid(), blueprint.Slug,
             blueprint.DisplayName, "toolset:r044");
+        _loadedFoundation = profile;
         _profileId = profile.Id; _typeId = profile.Type.Id;
         _propertyId = profile.Properties.FirstOrDefault()?.Id ?? Guid.NewGuid();
         var creation = profile.Creation ?? ItemCreationProfile.CreateDefault(Guid.NewGuid(), Guid.NewGuid(),
@@ -355,10 +361,14 @@ public partial class ItemFoundationWindow : Window
         _license!.Text = profile.LicenseSpdx; _hash!.Text = profile.ContentSha256; _appearance!.Text = profile.AppearanceAssetId;
         _version!.Value = profile.DefinitionVersion; _quality!.Value = profile.Quality; _level!.Value = profile.Level;
         _value!.Value = (double)profile.BaseValue; _slots!.Text = Join(profile.Slots);
-        var property = profile.Properties.FirstOrDefault();
-        _property!.Text = property is null ? "utility|1|effect.use|OnUse" :
-            $"{property.Kind}|{property.Value.ToString(CultureInfo.InvariantCulture)}|{property.EffectId}|{property.ScriptId}";
-        var text = profile.Texts.FirstOrDefault(item => item.Locale == "fr") ?? profile.Texts.First();
+        _property!.Text = string.Join('\n', profile.Properties.Select(property =>
+            $"{property.Id:D}|{property.Kind}|{property.Value.ToString(CultureInfo.InvariantCulture)}|" +
+            $"{property.EffectId}|{property.ScriptId}"));
+        var text = profile.Texts.FirstOrDefault(item => item.Locale == "fr") ??
+                   profile.Texts.FirstOrDefault() ??
+                   new ItemFoundationText("fr", blueprint.DisplayName, blueprint.DisplayName,
+                       blueprint.DisplayName, "Objet inconnu", "Objet", string.Empty);
+        _editedLocale = text.Locale;
         _name!.Text = text.Name; _short!.Text = text.ShortDescription; _long!.Text = text.LongDescription;
         _unknown!.Text = text.UnknownText; _typeLabel!.Text = text.TypeLabel; _notes!.Text = text.Notes;
         _overrides!.Text = Join(profile.AllowedInstanceOverrides); _acceptMigration!.ButtonPressed = false;
@@ -369,31 +379,97 @@ public partial class ItemFoundationWindow : Window
     {
         var state = _load?.Invoke() ?? throw new InvalidOperationException("Aucun projet Forge ouvert.");
         var blueprint = state.Project.Blueprints.Single(item => item.Id == _selectedId);
-        var parts = _property!.Text.Split('|', StringSplitOptions.TrimEntries);
-        var property = parts.Length >= 3
-            ? new ItemFoundationProperty(_propertyId, parts[0], double.TryParse(parts[1], NumberStyles.Float,
-                CultureInfo.InvariantCulture, out var number) ? number : double.NaN, parts[2],
-                parts.Length > 3 && parts[3].Length > 0 ? parts[3] : null)
-            : new ItemFoundationProperty(_propertyId, string.Empty, double.NaN, string.Empty, null);
-        var type = new ItemTypeDefinition(_typeId, 1, "toolset:r044", _typeSlug!.Text,
-            Values(_allowedSlots!.Text), Values(_allowedProperties!.Text), _requiredRig!.Text);
-        var creation = new ItemCreationProfile(_creationId, 1, "toolset:r088",
-            _creationRequired!.ButtonPressed, _manifest!.Text, _license!.Text, _hash!.Text,
-            new(["archetype", "appearance", "slots", "quality", "level", "property", "provenance",
-                "generation-rules"], Values(_generationRules!.Text)),
-            new(_appearanceId, 1, "toolset:r088", Values(_meshes!.Text), Values(_materials!.Text),
-                Values(_sockets!.Text), _icon!.Text, Values(_visualEffects!.Text), _equippedPreview!.Text),
-            new(_mass!.Value, _volume!.Value, (int)_gridWidth!.Value, (int)_gridHeight!.Value,
+        var loaded = _loadedFoundation ?? ItemFoundationProfile.CreateDefault(
+            _profileId, blueprint.Slug, blueprint.DisplayName, "toolset:r044");
+        var properties = _property!.Text.Split(['\r', '\n'],
+                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select((line, index) => ParseProperty(line, index, loaded.Properties)).ToArray();
+        var type = loaded.Type with
+        {
+            Slug = _typeSlug!.Text,
+            AllowedSlots = Values(_allowedSlots!.Text),
+            AllowedPropertyKinds = Values(_allowedProperties!.Text),
+            RequiredRig = _requiredRig!.Text,
+        };
+        var loadedCreation = loaded.Creation ?? ItemCreationProfile.CreateDefault(
+            _creationId, _appearanceId, "toolset:r088");
+        var creation = loadedCreation with
+        {
+            RequiredAtRuntime = _creationRequired!.ButtonPressed,
+            PackageManifestId = _manifest!.Text,
+            LicenseSpdx = _license!.Text,
+            ContentSha256 = _hash!.Text,
+            Wizard = loadedCreation.Wizard with { GenerationRules = Values(_generationRules!.Text) },
+            Appearance = loadedCreation.Appearance with
+            {
+                MeshAssetIds = Values(_meshes!.Text),
+                MaterialAssetIds = Values(_materials!.Text),
+                Sockets = Values(_sockets!.Text),
+                IconAssetId = _icon!.Text,
+                VisualEffectAssetIds = Values(_visualEffects!.Text),
+                EquippedPreviewAssetId = _equippedPreview!.Text,
+            },
+            Inventory = new(_mass!.Value, _volume!.Value, (int)_gridWidth!.Value, (int)_gridHeight!.Value,
                 _stackMassFactor!.Value, _stackVolumeFactor!.Value),
-            new((int)_stackMaximum!.Value, _stackKey!.Text, _stackReplicated!.ButtonPressed),
-            new((int)_totalCharges!.Value, (int)_currentCharges!.Value, (int)_usesPerRest!.Value,
+            Stack = new((int)_stackMaximum!.Value, _stackKey!.Text, _stackReplicated!.ButtonPressed),
+            Usage = new((int)_totalCharges!.Value, (int)_currentCharges!.Value, (int)_usesPerRest!.Value,
                 (int)_usesRemaining!.Value, (long)_cooldownMilliseconds!.Value, (int)_durability!.Value,
-                _consumable!.ButtonPressed, _rechargeRule!.Text));
-        return new(_profileId, 1, "toolset:r044", _required!.ButtonPressed, _manifest!.Text, _license!.Text,
-            _hash!.Text, type.Id, type, blueprint.Slug, _appearance!.Text, type.RequiredRig, (int)_version!.Value,
-            (int)_quality!.Value, (int)_level!.Value, (decimal)_value!.Value, Values(_slots!.Text), [property],
-            [new("fr", _name!.Text, _short!.Text, _long!.Text, _unknown!.Text, _typeLabel!.Text, _notes!.Text)],
-            Values(_overrides!.Text), creation, _loadedGameplay, _loadedOperations);
+                _consumable!.ButtonPressed, _rechargeRule!.Text),
+        };
+        var editedText = new ItemFoundationText(_editedLocale, _name!.Text, _short!.Text, _long!.Text,
+            _unknown!.Text, _typeLabel!.Text, _notes!.Text);
+        var texts = ReplaceFirst(loaded.Texts, editedText,
+            item => string.Equals(item.Locale, _editedLocale, StringComparison.OrdinalIgnoreCase));
+        return loaded with
+        {
+            RequiredAtRuntime = _required!.ButtonPressed,
+            PackageManifestId = _manifest!.Text,
+            LicenseSpdx = _license!.Text,
+            ContentSha256 = _hash!.Text,
+            TypeId = type.Id,
+            Type = type,
+            Archetype = blueprint.Slug,
+            AppearanceAssetId = _appearance!.Text,
+            AppearanceRig = type.RequiredRig,
+            DefinitionVersion = (int)_version!.Value,
+            Quality = (int)_quality!.Value,
+            Level = (int)_level!.Value,
+            BaseValue = (decimal)_value!.Value,
+            Slots = Values(_slots!.Text),
+            Properties = properties,
+            Texts = texts,
+            AllowedInstanceOverrides = Values(_overrides!.Text),
+            Creation = creation,
+            Gameplay = _loadedGameplay,
+            Operations = _loadedOperations,
+        };
+    }
+
+    private static ItemFoundationProperty ParseProperty(string line, int index,
+        IReadOnlyList<ItemFoundationProperty> loaded)
+    {
+        var parts = line.Split('|', StringSplitOptions.TrimEntries);
+        var parsedId = Guid.Empty;
+        var hasId = parts.Length >= 5 && Guid.TryParse(parts[0], out parsedId);
+        var offset = hasId ? 1 : 0;
+        var id = hasId ? parsedId : index < loaded.Count ? loaded[index].Id : Guid.NewGuid();
+        return parts.Length - offset >= 3
+            ? new ItemFoundationProperty(id, parts[offset],
+                double.TryParse(parts[offset + 1], NumberStyles.Float, CultureInfo.InvariantCulture,
+                    out var number) ? number : double.NaN,
+                parts[offset + 2], parts.Length - offset > 3 && parts[offset + 3].Length > 0
+                    ? parts[offset + 3]
+                    : null)
+            : new ItemFoundationProperty(id, string.Empty, double.NaN, string.Empty, null);
+    }
+
+    private static IReadOnlyList<T> ReplaceFirst<T>(IReadOnlyList<T> source, T replacement, Func<T, bool> match)
+    {
+        var result = source.ToList();
+        var index = result.FindIndex(item => match(item));
+        if (index < 0) result.Add(replacement);
+        else result[index] = replacement;
+        return result;
     }
 
     private void Mutate(bool dryRun)

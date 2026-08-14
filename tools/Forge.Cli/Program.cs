@@ -810,6 +810,10 @@ static int AuthorForgottenForest(IReadOnlyList<string> arguments)
     var environmentPackManifests = new[]
     {
         Path.Combine(repositoryRoot, CuratedAssetPackInstaller.DefaultManifestRelativePath.Replace('/', Path.DirectorySeparatorChar)),
+        Path.Combine(repositoryRoot, "asset_manifests", "packs", "forgotten_forest_fantasy_town.json"),
+        Path.Combine(repositoryRoot, "asset_manifests", "packs", "forgotten_forest_castle.json"),
+        Path.Combine(repositoryRoot, "asset_manifests", "packs", "forgotten_forest_dungeon_dressing.json"),
+        Path.Combine(repositoryRoot, "asset_manifests", "packs", "forgotten_forest_nature_dressing.json"),
     };
     var installed = environmentPackManifests.Select(manifest =>
         CuratedAssetPackInstaller.InstallForgottenForest(
@@ -817,9 +821,7 @@ static int AuthorForgottenForest(IReadOnlyList<string> arguments)
             catalog.VaultRoot,
             created.Session.RootDirectory,
             manifest)).ToArray();
-    var retiredNatureAssets = CuratedAssetPackInstaller.RemovePack(
-        created.Session.RootDirectory,
-        "forgotten-forest-nature-dressing");
+    const int retiredNatureAssets = 0;
     var catalogModels = new List<CuratedCatalogModelInstallResult>();
     foreach (var externalId in CuratedCatalogModelPackInstaller.ListExternalIds(repositoryRoot))
     {
@@ -857,10 +859,15 @@ static int AuthorForgottenForest(IReadOnlyList<string> arguments)
     }
     var animated = CuratedAnimatedCharacterInstaller.Complete(created.Session.RootDirectory, animatedPlan);
     var embeddedCharacters = new List<CuratedEmbeddedAnimatedCharacterInstallResult>();
+    var embeddedPackRoot = Path.Combine(repositoryRoot, "asset_manifests", "packs");
     var embeddedCharacterManifests = Directory.EnumerateFiles(
-            Path.Combine(repositoryRoot, "asset_manifests", "packs"),
+            embeddedPackRoot,
             "forgotten_forest_kaykit_*.json",
             SearchOption.TopDirectoryOnly)
+        .Concat(Directory.EnumerateFiles(
+            embeddedPackRoot,
+            "forgotten_forest_quaternius_*.json",
+            SearchOption.TopDirectoryOnly))
         .Order(StringComparer.Ordinal)
         .ToArray();
     foreach (var embeddedManifest in embeddedCharacterManifests)

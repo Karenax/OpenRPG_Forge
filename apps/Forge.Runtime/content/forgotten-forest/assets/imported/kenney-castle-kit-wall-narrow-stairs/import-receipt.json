@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "64f499cc-a4f4-8652-95ec-8e330117333f",
+  "cacheKey": "5241877a0d86325ca960bbf9809e91e554fd00674f69cf06731dd6ccc78610b7",
+  "catalogContentSha256": "51672d47bb3cec6f190334fcb29c3c2f464f605b85f5e13b918e868d72c632e7",
+  "sourceFileSha256": "51672d47bb3cec6f190334fcb29c3c2f464f605b85f5e13b918e868d72c632e7",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-castle@1.0.0;source:kenney:castle-kit;path:Models/GLB format/wall-narrow-stairs.glb",
+  "sourceRelativePath": "normalized/kenney/castle-kit/Models/GLB format/wall-narrow-stairs.glb",
+  "outputRelativePath": "assets/imported/kenney-castle-kit-wall-narrow-stairs/model.glb",
+  "outputContentSha256": "51672d47bb3cec6f190334fcb29c3c2f464f605b85f5e13b918e868d72c632e7",
+  "outputBytes": 26972,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kenney-castle-kit-wall-narrow-stairs/model.glb",
+      "cacheKey": "5241877a0d86325ca960bbf9809e91e554fd00674f69cf06731dd6ccc78610b7",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kenney-castle-kit-wall-narrow-stairs/animations.index.json",
+      "cacheKey": "5241877a0d86325ca960bbf9809e91e554fd00674f69cf06731dd6ccc78610b7",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kenney-castle-kit-wall-narrow-stairs/collisions.glb",
+      "cacheKey": "5241877a0d86325ca960bbf9809e91e554fd00674f69cf06731dd6ccc78610b7",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kenney-castle-kit-wall-narrow-stairs/lod-0.5.glb",
+      "cacheKey": "5241877a0d86325ca960bbf9809e91e554fd00674f69cf06731dd6ccc78610b7",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kenney-castle-kit-wall-narrow-stairs/lod-0.25.glb",
+      "cacheKey": "5241877a0d86325ca960bbf9809e91e554fd00674f69cf06731dd6ccc78610b7",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

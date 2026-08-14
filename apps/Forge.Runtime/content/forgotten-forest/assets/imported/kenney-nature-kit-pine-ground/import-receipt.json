@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "07c4ba45-9174-7d53-94c5-4c91cda8b4ba",
+  "cacheKey": "95505d323b2abd7fe431a5c75b3ff9d02defa42b5180b6a28678e48cd3996a59",
+  "catalogContentSha256": "dfffda4e4f0796076c502561cbf9527245656b7384b67657edc2a45205bbce51",
+  "sourceFileSha256": "dfffda4e4f0796076c502561cbf9527245656b7384b67657edc2a45205bbce51",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/tree_pineGroundA.glb",
+  "sourceRelativePath": "normalized/kenney/nature-kit/Models/GLTF format/tree_pineGroundA.glb",
+  "outputRelativePath": "assets/imported/kenney-nature-kit-pine-ground/model.glb",
+  "outputContentSha256": "dfffda4e4f0796076c502561cbf9527245656b7384b67657edc2a45205bbce51",
+  "outputBytes": 6704,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-pine-ground/model.glb",
+      "cacheKey": "95505d323b2abd7fe431a5c75b3ff9d02defa42b5180b6a28678e48cd3996a59",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-pine-ground/animations.index.json",
+      "cacheKey": "95505d323b2abd7fe431a5c75b3ff9d02defa42b5180b6a28678e48cd3996a59",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-pine-ground/collisions.glb",
+      "cacheKey": "95505d323b2abd7fe431a5c75b3ff9d02defa42b5180b6a28678e48cd3996a59",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-pine-ground/lod-0.5.glb",
+      "cacheKey": "95505d323b2abd7fe431a5c75b3ff9d02defa42b5180b6a28678e48cd3996a59",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-pine-ground/lod-0.25.glb",
+      "cacheKey": "95505d323b2abd7fe431a5c75b3ff9d02defa42b5180b6a28678e48cd3996a59",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

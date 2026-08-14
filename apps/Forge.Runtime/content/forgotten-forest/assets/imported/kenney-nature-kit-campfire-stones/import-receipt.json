@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "39985daa-3520-ab51-a0a4-cea188ffd75b",
+  "cacheKey": "223c9bb92e12b2d917c5a50346497b2e7a97835915d00692a14da99a45c42ae9",
+  "catalogContentSha256": "54869db23243a3f4905bc00bd4cd93b1037b28556ab3ef93e7a893a093791e35",
+  "sourceFileSha256": "54869db23243a3f4905bc00bd4cd93b1037b28556ab3ef93e7a893a093791e35",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/campfire_stones.glb",
+  "sourceRelativePath": "normalized/kenney/nature-kit/Models/GLTF format/campfire_stones.glb",
+  "outputRelativePath": "assets/imported/kenney-nature-kit-campfire-stones/model.glb",
+  "outputContentSha256": "54869db23243a3f4905bc00bd4cd93b1037b28556ab3ef93e7a893a093791e35",
+  "outputBytes": 17344,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-campfire-stones/model.glb",
+      "cacheKey": "223c9bb92e12b2d917c5a50346497b2e7a97835915d00692a14da99a45c42ae9",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-campfire-stones/animations.index.json",
+      "cacheKey": "223c9bb92e12b2d917c5a50346497b2e7a97835915d00692a14da99a45c42ae9",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-campfire-stones/collisions.glb",
+      "cacheKey": "223c9bb92e12b2d917c5a50346497b2e7a97835915d00692a14da99a45c42ae9",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-campfire-stones/lod-0.5.glb",
+      "cacheKey": "223c9bb92e12b2d917c5a50346497b2e7a97835915d00692a14da99a45c42ae9",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-campfire-stones/lod-0.25.glb",
+      "cacheKey": "223c9bb92e12b2d917c5a50346497b2e7a97835915d00692a14da99a45c42ae9",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

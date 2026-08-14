@@ -1,7 +1,8 @@
 [CmdletBinding()]
 param(
     [string]$VaultRoot = $env:OPENRPG_ASSET_VAULT,
-    [switch]$SkipAuthoring
+    [switch]$SkipAuthoring,
+    [switch]$Reauthor
 )
 
 . (Join-Path $PSScriptRoot 'Common.ps1')
@@ -26,10 +27,18 @@ if ([string]::IsNullOrWhiteSpace($VaultRoot) -or !(Test-Path -LiteralPath $Vault
 & dotnet build $cliProject --configuration Debug --nologo
 if ($LASTEXITCODE -ne 0) { throw "La compilation de l’outil Forge a échoué avec le code $LASTEXITCODE." }
 
-if (!$SkipAuthoring -or !(Test-Path -LiteralPath (Join-Path $workspacePath 'forge.project.json'))) {
+if ($SkipAuthoring -and $Reauthor) {
+    throw 'SkipAuthoring and Reauthor cannot be used together.'
+}
+
+$workspaceProject = Join-Path $workspacePath 'forge.project.json'
+if ($Reauthor -or !(Test-Path -LiteralPath $workspaceProject)) {
     & dotnet run --project $cliProject --configuration Debug --no-build -- `
         author-forgotten-forest $workspacePath --vault $VaultRoot
     if ($LASTEXITCODE -ne 0) { throw "L’authoring de Forgotten Forest a échoué avec le code $LASTEXITCODE." }
+}
+elseif (!$SkipAuthoring) {
+    Write-Output 'Workspace existant conserve (y compris les constructions MCP). Utilisez -Reauthor pour le regenerer.'
 }
 
 & dotnet build $runtimeProject --configuration Debug --nologo
@@ -44,5 +53,5 @@ Start-Process `
         '--', '--workspace', $workspacePath) `
     -WorkingDirectory $runtimePath
 
-Write-Output "Forgotten Forest lancé. ZQSD : déplacement ; clic droit/milieu : caméra ; molette : zoom."
+Write-Output "Forgotten Forest lancé dans l’auberge. ZQSD : déplacement rapide ; M : carte du module ; clic droit/milieu : caméra ; molette : zoom."
 Write-Output "Journal : $runtimeLog"

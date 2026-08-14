@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "8a271023-3588-d058-9a5a-8663a70a176a",
+  "cacheKey": "ada34a1188a048ee9e116e70c31ef822c2662dbd32f2cac3c69dbe793109e06b",
+  "catalogContentSha256": "b3ca88e56eeab02e969c38a25bb7dedb34989a401afb7aee44a408f37937701c",
+  "sourceFileSha256": "b3ca88e56eeab02e969c38a25bb7dedb34989a401afb7aee44a408f37937701c",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-dungeon-dressing@1.0.0;source:kaykit:dungeon-remastered-1.0;path:KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/plate_food_B.gltf.glb",
+  "sourceRelativePath": "normalized/kaykit/dungeon-remastered-1.0/KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/plate_food_B.gltf.glb",
+  "outputRelativePath": "assets/imported/kaykit-dungeon-remastered-1-0-plate-food-b/model.glb",
+  "outputContentSha256": "b3ca88e56eeab02e969c38a25bb7dedb34989a401afb7aee44a408f37937701c",
+  "outputBytes": 31980,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kaykit-dungeon-remastered-1-0-plate-food-b/model.glb",
+      "cacheKey": "ada34a1188a048ee9e116e70c31ef822c2662dbd32f2cac3c69dbe793109e06b",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kaykit-dungeon-remastered-1-0-plate-food-b/animations.index.json",
+      "cacheKey": "ada34a1188a048ee9e116e70c31ef822c2662dbd32f2cac3c69dbe793109e06b",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kaykit-dungeon-remastered-1-0-plate-food-b/collisions.glb",
+      "cacheKey": "ada34a1188a048ee9e116e70c31ef822c2662dbd32f2cac3c69dbe793109e06b",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kaykit-dungeon-remastered-1-0-plate-food-b/lod-0.5.glb",
+      "cacheKey": "ada34a1188a048ee9e116e70c31ef822c2662dbd32f2cac3c69dbe793109e06b",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kaykit-dungeon-remastered-1-0-plate-food-b/lod-0.25.glb",
+      "cacheKey": "ada34a1188a048ee9e116e70c31ef822c2662dbd32f2cac3c69dbe793109e06b",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

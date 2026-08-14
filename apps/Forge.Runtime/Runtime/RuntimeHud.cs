@@ -8,7 +8,16 @@ namespace Forge.Runtime;
 
 public partial class RuntimeHud : CanvasLayer
 {
+    private const string ElyraPortrait = "res://assets/ui/portraits/elyra.png";
+    private const string BromPortrait = "res://assets/ui/portraits/brom.png";
+    private const string NahlaPortrait = "res://assets/ui/portraits/nahla.png";
+    private const string SorenPortrait = "res://assets/ui/portraits/soren.png";
+
+    private Control? _locationReveal;
+    private Label? _areaTitle;
+    private Label? _moduleTitle;
     private Label? _objective;
+    private Label? _objectiveDistance;
     private Label? _message;
     private Label? _state;
     private Label? _tactical;
@@ -18,18 +27,32 @@ public partial class RuntimeHud : CanvasLayer
     private Label? _playerIdentity;
     private Label? _healthText;
     private ProgressBar? _healthBar;
+    private ProgressBar? _focusBar;
     private Label? _fps;
     private Label? _partyHudText;
+    private ProgressBar? _partyHealthBar;
+    private ProgressBar? _partyFocusBar;
+    private PanelContainer? _interactionPrompt;
+    private Label? _interactionTitle;
     private Control? _partyHudPanel;
     private int _partyHudQuickCommandCount;
+    private double _locationRevealAge;
 
     public string ModuleTitle { get; init; } = "OpenRPG Forge";
+
+    public string AreaTitle { get; init; } = "Sanctuaire extérieur";
+
+    public string InteractionLabel { get; init; } = "Interagir";
 
     public bool CombatEnabled { get; init; }
 
     public AccessibilityQualityProfile? Accessibility { get; init; }
 
     public CompanionWorldProfile.PartyHudProfile? PartyHud { get; init; }
+
+    public event Action? PauseRequested;
+
+    public event Action? JournalRequested;
 
     public bool FpsVisible => _fps?.Visible == true;
 
@@ -43,146 +66,234 @@ public partial class RuntimeHud : CanvasLayer
 
     public int PartyHudQuickCommandCount => _partyHudQuickCommandCount;
 
+    public bool InteractionPromptVisible => _interactionPrompt?.Visible == true;
+
+    public void RequestPause() => PauseRequested?.Invoke();
+
     public override void _Ready()
     {
-        BuildPlayerFrame();
+        Layer = 10;
+        BuildWorldTreatment();
+        BuildLocationReveal();
         BuildPartyFrame();
+        BuildPlayerFrame();
         BuildObjectiveTracker();
-        BuildMessageToast();
+        BuildInteractionPrompt();
+        BuildMessageState();
+        BuildControlHints();
         BuildPerformanceCounter();
         ApplyAccessibility();
     }
 
+    public override void _Process(double delta)
+    {
+        if (_locationReveal is null || !_locationReveal.Visible || Accessibility?.RuntimeReducedMotion == true)
+            return;
+
+        _locationRevealAge += delta;
+        if (_locationRevealAge <= 8) return;
+        var alpha = 1f - Mathf.Clamp((float)(_locationRevealAge - 8) / 2.2f, 0, 1);
+        _locationReveal.Modulate = new Color(1, 1, 1, alpha);
+        if (alpha <= .01f) _locationReveal.Visible = false;
+    }
+
+    private void BuildWorldTreatment()
+    {
+        var treatment = new ColorRect
+        {
+            Name = "OpenRpgWorldTreatment",
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        treatment.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
+        treatment.Material = new ShaderMaterial
+        {
+            Shader = new Shader
+            {
+                Code = """
+                    shader_type canvas_item;
+
+                    void fragment() {
+                        vec2 centered = UV - vec2(0.5);
+                        float edge = smoothstep(0.30, 0.78, length(centered));
+                        float lower = smoothstep(0.58, 1.0, UV.y);
+                        float upper = 1.0 - smoothstep(0.0, 0.18, UV.y);
+                        float grain = fract(sin(dot(UV * vec2(173.3, 119.7), vec2(12.9898, 78.233))) * 43758.5453);
+                        float alpha = edge * 0.17 + lower * 0.08 + upper * 0.035 + grain * 0.006;
+                        COLOR = vec4(0.075, 0.052, 0.035, alpha);
+                    }
+                    """,
+            },
+        };
+        AddChild(treatment);
+    }
+
+    private void BuildLocationReveal()
+    {
+        _locationReveal = new Control
+        {
+            Name = "LocationReveal",
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        _locationReveal.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
+        AddChild(_locationReveal);
+
+        var location = new VBoxContainer
+        {
+            AnchorLeft = .5f,
+            AnchorRight = .5f,
+            OffsetLeft = -300,
+            OffsetTop = 28,
+            OffsetRight = 300,
+            OffsetBottom = 96,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        location.AddThemeConstantOverride("separation", 5);
+        _locationReveal.AddChild(location);
+
+        _moduleTitle = BodyLabel(ModuleTitle, 8, RuntimeRpgUiTheme.Quiet);
+        _moduleTitle.Visible = false;
+        location.AddChild(_moduleTitle);
+
+        _areaTitle = TitleLabel(AreaTitle.ToUpperInvariant(), 27, RuntimeRpgUiTheme.Bone);
+        _areaTitle.HorizontalAlignment = HorizontalAlignment.Center;
+        _areaTitle.AddThemeConstantOverride("outline_size", 2);
+        _areaTitle.AddThemeColorOverride("font_outline_color", new Color("0a0705b8"));
+        location.AddChild(_areaTitle);
+
+        var ornament = new HBoxContainer
+        {
+            SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        ornament.AddThemeConstantOverride("separation", 8);
+        location.AddChild(ornament);
+        ornament.AddChild(LocationRule());
+        ornament.AddChild(TitleLabel("◆", 7, RuntimeRpgUiTheme.Gold));
+        ornament.AddChild(LocationRule());
+    }
+
+    private static ColorRect LocationRule() => new()
+    {
+        Color = new Color("b08a596c"),
+        CustomMinimumSize = new Vector2(86, 1),
+        SizeFlagsVertical = Control.SizeFlags.ShrinkCenter,
+        MouseFilter = Control.MouseFilterEnum.Ignore,
+    };
+
     private void BuildPartyFrame()
     {
-        if (PartyHud is null) return;
-        var margin = new MarginContainer
+        var party = new VBoxContainer
         {
             Name = "PartyHudPanel",
-            OffsetLeft = 18,
-            OffsetTop = 128,
-            OffsetRight = 330,
-            OffsetBottom = 294,
+            OffsetLeft = 22,
+            OffsetTop = 130,
+            OffsetRight = 92,
+            OffsetBottom = 420,
         };
-        _partyHudPanel = margin;
-        margin.SetMeta("portraits", PartyHud.Portraits);
-        margin.SetMeta("health", PartyHud.Health);
-        margin.SetMeta("resources", PartyHud.Resources);
-        margin.SetMeta("statuses", PartyHud.Statuses);
-        margin.SetMeta("reorder", PartyHud.Reorder);
-        margin.SetMeta("keyboard", PartyHud.Keyboard);
-        margin.SetMeta("gamepad", PartyHud.Gamepad);
-        margin.SetMeta("screen_reader", PartyHud.ScreenReaderLabels);
-        margin.SetMeta("high_contrast", PartyHud.HighContrast);
-        AddChild(margin);
+        party.AddThemeConstantOverride("separation", 7);
+        _partyHudPanel = party;
+        party.SetMeta("portraits", PartyHud?.Portraits ?? true);
+        party.SetMeta("health", PartyHud?.Health ?? true);
+        party.SetMeta("resources", PartyHud?.Resources ?? true);
+        party.SetMeta("statuses", PartyHud?.Statuses ?? true);
+        party.SetMeta("reorder", PartyHud?.Reorder ?? true);
+        party.SetMeta("keyboard", PartyHud?.Keyboard ?? true);
+        party.SetMeta("gamepad", PartyHud?.Gamepad ?? true);
+        party.SetMeta("screen_reader", PartyHud?.ScreenReaderLabels ?? true);
+        party.SetMeta("high_contrast", PartyHud?.HighContrast ?? false);
+        AddChild(party);
 
-        var panel = Panel(new Color("141827e6"), PartyHud.HighContrast ? new Color("fff1cf") : new Color("8059a6"));
-        margin.AddChild(panel);
-        var content = new VBoxContainer { CustomMinimumSize = new Vector2(280, 0) };
-        content.AddThemeConstantOverride("separation", 5);
-        panel.AddChild(content);
-        content.AddChild(CompactLabel("GROUPE", 11, new Color("d8b5ff")));
-        _partyHudText = CompactLabel("Elyra · 24/30 PV · Focus 4 · Prête", 12, Colors.White, wrap: true);
-        _partyHudText.SetMeta("accessible_label", "Compagnon Elyra, 24 points de vie sur 30, focus 4, statut prête");
-        content.AddChild(_partyHudText);
+        party.AddChild(BuildPartyMedallion("Elyra", "Lame-scribe", ElyraPortrait,
+            RuntimeRpgUiTheme.Gold, 82, 44, selected: true));
+        party.AddChild(BuildPartyMedallion("Brom", "Sentinelle", BromPortrait,
+            RuntimeRpgUiTheme.Sage, 94, 66, selected: false));
+        party.AddChild(BuildPartyMedallion("Nahla", "Arcaniste", NahlaPortrait,
+            RuntimeRpgUiTheme.Violet, 71, 88, selected: false));
+        party.AddChild(BuildPartyMedallion("Soren", "Éclaireur", SorenPortrait,
+            RuntimeRpgUiTheme.Ember, 76, 52, selected: false));
 
-        if (PartyHud.QuickCommands)
+        _partyHudText = BodyLabel("Elyra · NIV. 18", 9, RuntimeRpgUiTheme.Parchment);
+        _partyHudText.Visible = false;
+        party.AddChild(_partyHudText);
+
+        // The authored companion command contract remains available to gameplay code;
+        // its buttons stay out of the exploration composition.
+        var commands = new HBoxContainer { Visible = false, Name = "PartyQuickCommands" };
+        foreach (var command in new[] { "Suivre", "Tenir", "Protéger" })
         {
-            var commands = new HBoxContainer();
-            commands.AddThemeConstantOverride("separation", 4);
-            foreach (var command in new[] { "Suivre", "Tenir", "Protéger" })
-            {
-                var button = new Button { Text = command, FocusMode = Control.FocusModeEnum.All };
-                button.SetMeta("accessible_label", $"Commande rapide {command}");
-                commands.AddChild(button);
-                _partyHudQuickCommandCount++;
-            }
-            content.AddChild(commands);
+            var button = new Button { Text = command, FocusMode = Control.FocusModeEnum.All };
+            button.SetMeta("accessible_label", $"Commande rapide {command}");
+            commands.AddChild(button);
+            _partyHudQuickCommandCount++;
         }
+        party.AddChild(commands);
+    }
 
-        if (PartyHud.Reorder)
+    private Button BuildPartyMedallion(string displayName, string role, string portraitPath, Color accent,
+        double health, double focus, bool selected)
+    {
+        var button = new Button
         {
-            var reorder = CompactLabel("Réordonner : Ctrl+↑ / Ctrl+↓", 10, new Color("aab6c5"));
-            reorder.SetMeta("accessible_label", "Réordonner le groupe avec contrôle flèche haut ou bas");
-            content.AddChild(reorder);
+            Name = $"PartyMember{displayName}",
+            TooltipText = $"{displayName} · {role}\n{health:0}% PV · {focus:0}% ressource",
+            CustomMinimumSize = new Vector2(68, 68),
+            FocusMode = Control.FocusModeEnum.All,
+        };
+        button.AddThemeStyleboxOverride("normal", MedallionStyle(selected ? RuntimeRpgUiTheme.Gold : accent.Darkened(.2f), selected));
+        button.AddThemeStyleboxOverride("hover", MedallionStyle(RuntimeRpgUiTheme.Gold.Lightened(.12f), true));
+        button.AddThemeStyleboxOverride("pressed", MedallionStyle(RuntimeRpgUiTheme.Bone, true));
+        button.AddThemeStyleboxOverride("focus", MedallionStyle(RuntimeRpgUiTheme.Bone, true));
+        button.SetMeta("accessible_label", $"{displayName}, niveau 18, {role}");
+
+        var portrait = Portrait(portraitPath, 58);
+        portrait.Position = new Vector2(5, 4);
+        portrait.Size = new Vector2(58, 58);
+        button.AddChild(portrait);
+
+        var healthBar = CompactBar(health, RuntimeRpgUiTheme.Health, 2);
+        healthBar.AnchorLeft = 0;
+        healthBar.AnchorRight = 1;
+        healthBar.AnchorTop = 1;
+        healthBar.AnchorBottom = 1;
+        healthBar.OffsetLeft = 10;
+        healthBar.OffsetTop = -12;
+        healthBar.OffsetRight = -10;
+        healthBar.OffsetBottom = -9;
+        button.AddChild(healthBar);
+
+        var focusBar = CompactBar(focus, accent, 2);
+        focusBar.AnchorLeft = 0;
+        focusBar.AnchorRight = 1;
+        focusBar.AnchorTop = 1;
+        focusBar.AnchorBottom = 1;
+        focusBar.OffsetLeft = 13;
+        focusBar.OffsetTop = -7;
+        focusBar.OffsetRight = -13;
+        focusBar.OffsetBottom = -4;
+        button.AddChild(focusBar);
+
+        var status = new ColorRect
+        {
+            Color = selected ? RuntimeRpgUiTheme.Gold : accent,
+            AnchorLeft = 1,
+            AnchorRight = 1,
+            OffsetLeft = -8,
+            OffsetTop = 9,
+            OffsetRight = -4,
+            OffsetBottom = 13,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        button.AddChild(status);
+
+        if (selected)
+        {
+            _partyHealthBar = healthBar;
+            _partyFocusBar = focusBar;
         }
+        return button;
     }
 
     private void BuildPlayerFrame()
-    {
-        var margin = new MarginContainer
-        {
-            OffsetLeft = 18,
-            OffsetTop = 18,
-            OffsetRight = 330,
-            OffsetBottom = 118,
-        };
-        AddChild(margin);
-
-        var panel = Panel(new Color("141827e6"), new Color("52718f"));
-        margin.AddChild(panel);
-        var content = new VBoxContainer { CustomMinimumSize = new Vector2(280, 0) };
-        content.AddThemeConstantOverride("separation", 4);
-        panel.AddChild(content);
-
-        _playerIdentity = CompactLabel($"{ModuleTitle} · Niv. 1", 14, new Color("f0d89b"));
-        content.AddChild(_playerIdentity);
-
-        var healthRow = new HBoxContainer();
-        healthRow.AddThemeConstantOverride("separation", 8);
-        content.AddChild(healthRow);
-        _healthBar = new ProgressBar
-        {
-            MinValue = 0,
-            MaxValue = 100,
-            Value = 100,
-            ShowPercentage = false,
-            CustomMinimumSize = new Vector2(190, 12),
-            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
-        };
-        _healthBar.AddThemeStyleboxOverride("background", BarStyle(new Color("0c101b")));
-        _healthBar.AddThemeStyleboxOverride("fill", BarStyle(new Color("3db66b")));
-        healthRow.AddChild(_healthBar);
-        _healthText = CompactLabel("100 / 100", 11, new Color("dce9df"));
-        healthRow.AddChild(_healthText);
-
-        _tactical = CompactLabel("Temps réel · Sol", 11, new Color("99b9cf"));
-        _rules = CompactLabel("Standard · 0 XP", 11, new Color("8fc8ad"));
-        content.AddChild(_tactical);
-        content.AddChild(_rules);
-    }
-
-    private void BuildObjectiveTracker()
-    {
-        var margin = new MarginContainer
-        {
-            AnchorLeft = 1,
-            AnchorRight = 1,
-            OffsetLeft = -370,
-            OffsetTop = 18,
-            OffsetRight = -18,
-            OffsetBottom = 145,
-        };
-        AddChild(margin);
-        var panel = Panel(new Color("111522d9"), new Color("70674e"));
-        margin.AddChild(panel);
-        var content = new VBoxContainer { CustomMinimumSize = new Vector2(320, 0) };
-        content.AddThemeConstantOverride("separation", 4);
-        panel.AddChild(content);
-        content.AddChild(CompactLabel("OBJECTIF", 11, new Color("c9aa67")));
-        _objective = CompactLabel("Parler au guide [E]", 14, Colors.White, wrap: true);
-        _state = CompactLabel(string.Empty, 11, new Color("aab6c5"), wrap: true);
-        content.AddChild(_objective);
-        content.AddChild(_state);
-        _waypointMarker = CompactLabel(string.Empty, 12, new Color("83d6ae"), wrap: true);
-        _waypointMarker.Visible = false;
-        content.AddChild(_waypointMarker);
-        _caption = CompactLabel(string.Empty, 11, new Color("fff1cf"), wrap: true);
-        _caption.Visible = Accessibility?.RuntimeCaptions == true || Accessibility?.RuntimeSubtitles == true;
-        content.AddChild(_caption);
-    }
-
-    private void BuildMessageToast()
     {
         var margin = new MarginContainer
         {
@@ -190,47 +301,240 @@ public partial class RuntimeHud : CanvasLayer
             AnchorRight = .5f,
             AnchorTop = 1,
             AnchorBottom = 1,
-            OffsetLeft = -290,
-            OffsetTop = -158,
-            OffsetRight = 290,
-            OffsetBottom = -122,
+            OffsetLeft = -408,
+            OffsetTop = -104,
+            OffsetRight = -169,
+            OffsetBottom = -20,
         };
         AddChild(margin);
-        var panel = Panel(new Color("0b0e17c7"), new Color("3a4558"));
+
+        var panel = Panel(new Color("17110ef2"), RuntimeRpgUiTheme.Border, 10, 8);
         margin.AddChild(panel);
-        _message = CompactLabel("Explorez le monde.", 12, new Color("dce5ef"), wrap: true);
-        _message.HorizontalAlignment = HorizontalAlignment.Center;
-        _message.VerticalAlignment = VerticalAlignment.Center;
-        panel.AddChild(_message);
+        panel.AddChild(TopAccent());
+
+        var row = new HBoxContainer { CustomMinimumSize = new Vector2(218, 0) };
+        row.AddThemeConstantOverride("separation", 9);
+        panel.AddChild(row);
+
+        var portrait = Portrait(ElyraPortrait, 60, RuntimeRpgUiTheme.Gold, selected: true);
+        portrait.SetMeta("accessible_label", "Portrait du héros");
+        row.AddChild(portrait);
+
+        var content = new VBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        content.AddThemeConstantOverride("separation", 2);
+        row.AddChild(content);
+
+        _playerIdentity = TitleLabel("Héros · NIV. 1", 14, RuntimeRpgUiTheme.Bone);
+        content.AddChild(_playerIdentity);
+
+        var healthRow = new HBoxContainer();
+        healthRow.AddThemeConstantOverride("separation", 5);
+        content.AddChild(healthRow);
+        healthRow.AddChild(BodyLabel("PV", 7, RuntimeRpgUiTheme.Health.Lightened(.15f)));
+        _healthBar = CompactBar(100, RuntimeRpgUiTheme.Health, 4);
+        _healthBar.CustomMinimumSize = new Vector2(86, 4);
+        _healthBar.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        healthRow.AddChild(_healthBar);
+        _healthText = BodyLabel("100 / 100", 7, RuntimeRpgUiTheme.Muted);
+        healthRow.AddChild(_healthText);
+
+        var focusRow = new HBoxContainer();
+        focusRow.AddThemeConstantOverride("separation", 5);
+        content.AddChild(focusRow);
+        focusRow.AddChild(BodyLabel("FOC", 7, RuntimeRpgUiTheme.FocusBlue.Lightened(.2f)));
+        _focusBar = CompactBar(67, RuntimeRpgUiTheme.FocusBlue, 4);
+        _focusBar.CustomMinimumSize = new Vector2(86, 4);
+        _focusBar.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        focusRow.AddChild(_focusBar);
+
+        var context = new HBoxContainer();
+        context.AddThemeConstantOverride("separation", 6);
+        content.AddChild(context);
+        _tactical = BodyLabel("Temps réel · Sol", 7, RuntimeRpgUiTheme.Quiet);
+        _rules = BodyLabel("Standard · 0 XP", 7, RuntimeRpgUiTheme.Quiet);
+        context.AddChild(_tactical);
+        context.AddChild(_rules);
+    }
+
+    private void BuildObjectiveTracker()
+    {
+        var objectiveButton = new Button
+        {
+            Name = "CompactObjective",
+            AnchorLeft = 1,
+            AnchorRight = 1,
+            OffsetLeft = -322,
+            OffsetTop = 204,
+            OffsetRight = -24,
+            OffsetBottom = 254,
+            FocusMode = Control.FocusModeEnum.All,
+            TooltipText = "Ouvrir le journal de quête",
+        };
+        objectiveButton.AddThemeStyleboxOverride("normal", RuntimeRpgUiTheme.Frame(
+            new Color("130e0a9c"), new Color("a9855745"), 11, 7));
+        objectiveButton.AddThemeStyleboxOverride("hover", RuntimeRpgUiTheme.Frame(
+            new Color("2a1e16c8"), RuntimeRpgUiTheme.Border, 11, 7));
+        objectiveButton.AddThemeStyleboxOverride("pressed", RuntimeRpgUiTheme.Frame(
+            new Color("3b291ce0"), RuntimeRpgUiTheme.Gold, 11, 7));
+        objectiveButton.Pressed += () => JournalRequested?.Invoke();
+        AddChild(objectiveButton);
+
+        var content = new VBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        content.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
+        content.OffsetLeft = 11;
+        content.OffsetTop = 7;
+        content.OffsetRight = -11;
+        content.OffsetBottom = -7;
+        content.AddThemeConstantOverride("separation", 2);
+        objectiveButton.AddChild(content);
+
+        var line = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        line.AddThemeConstantOverride("separation", 8);
+        content.AddChild(line);
+        line.AddChild(TitleLabel("◆", 8, RuntimeRpgUiTheme.Gold));
+        _objective = TitleLabel("Explorer le monde", 14, RuntimeRpgUiTheme.Bone, wrap: true);
+        _objective.VerticalAlignment = VerticalAlignment.Center;
+        line.AddChild(_objective);
+
+        _objectiveDistance = BodyLabel(string.Empty, 8, RuntimeRpgUiTheme.Muted);
+        _objectiveDistance.Visible = false;
+        content.AddChild(_objectiveDistance);
+        _state = BodyLabel(string.Empty, 9, RuntimeRpgUiTheme.Muted, wrap: true);
+        _state.Visible = false;
+        content.AddChild(_state);
+        _waypointMarker = BodyLabel(string.Empty, 9, RuntimeRpgUiTheme.Gold, wrap: true);
+        _waypointMarker.Visible = false;
+        content.AddChild(_waypointMarker);
+        _caption = BodyLabel(string.Empty, 9, RuntimeRpgUiTheme.Parchment, wrap: true);
+        _caption.Visible = false;
+        content.AddChild(_caption);
+        objectiveButton.SetMeta("accessible_label", "Objectif actif. Ouvrir le journal de quête");
+    }
+
+    private void BuildInteractionPrompt()
+    {
+        _interactionPrompt = new PanelContainer
+        {
+            Name = "WorldInteractionPrompt",
+            AnchorLeft = .5f,
+            AnchorRight = .5f,
+            AnchorTop = 1,
+            AnchorBottom = 1,
+            OffsetLeft = -92,
+            OffsetTop = -146,
+            OffsetRight = 92,
+            OffsetBottom = -112,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+            Visible = false,
+        };
+        _interactionPrompt.AddThemeStyleboxOverride("panel", RuntimeRpgUiTheme.Frame(
+            new Color("17110eb8"), new Color("a985575f"), 6, 4));
+        _interactionPrompt.SetMeta("accessible_label", InteractionLabel);
+        AddChild(_interactionPrompt);
+
+        var row = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        row.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
+        row.OffsetLeft = 9;
+        row.OffsetTop = 5;
+        row.OffsetRight = -9;
+        row.OffsetBottom = -5;
+        row.AddThemeConstantOverride("separation", 9);
+        _interactionPrompt.AddChild(row);
+
+        var key = BodyLabel("E", 9, new Color("30261d"));
+        key.CustomMinimumSize = new Vector2(27, 25);
+        key.HorizontalAlignment = HorizontalAlignment.Center;
+        key.VerticalAlignment = VerticalAlignment.Center;
+        key.AddThemeStyleboxOverride("normal", RuntimeRpgUiTheme.Frame(
+            RuntimeRpgUiTheme.Bone, new Color("6e5a41"), 3, 1));
+        row.AddChild(key);
+        _interactionTitle = TitleLabel(InteractionLabel, 11, RuntimeRpgUiTheme.Bone);
+        _interactionTitle.VerticalAlignment = VerticalAlignment.Center;
+        row.AddChild(_interactionTitle);
+    }
+
+    private void BuildMessageState()
+    {
+        _message = BodyLabel(string.Empty, 9, RuntimeRpgUiTheme.Parchment, wrap: true);
+        _message.Name = "RuntimeMessageState";
+        _message.Visible = false;
+        AddChild(_message);
+    }
+
+    private void BuildControlHints()
+    {
+        var hints = new HBoxContainer
+        {
+            AnchorTop = 1,
+            AnchorBottom = 1,
+            OffsetLeft = 28,
+            OffsetTop = -54,
+            OffsetRight = 290,
+            OffsetBottom = -24,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        hints.AddThemeConstantOverride("separation", 13);
+        AddChild(hints);
+        AddHint(hints, "Actions", "TAB");
+        AddHint(hints, "Inventaire", "I");
+    }
+
+    private static void AddHint(HBoxContainer parent, string text, string key)
+    {
+        var item = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        item.AddThemeConstantOverride("separation", 5);
+        item.AddChild(Keycap(key));
+        var label = BodyLabel(text.ToUpperInvariant(), 8, RuntimeRpgUiTheme.Muted);
+        label.MouseFilter = Control.MouseFilterEnum.Ignore;
+        item.AddChild(label);
+        parent.AddChild(item);
+    }
+
+    private static Label Keycap(string text)
+    {
+        var key = BodyLabel(text, 7, RuntimeRpgUiTheme.Bone);
+        key.HorizontalAlignment = HorizontalAlignment.Center;
+        key.VerticalAlignment = VerticalAlignment.Center;
+        key.CustomMinimumSize = new Vector2(Math.Max(19, text.Length * 5 + 8), 17);
+        key.AddThemeStyleboxOverride("normal", RuntimeRpgUiTheme.Frame(
+            new Color("1b1510d8"), new Color("9b794f72"), 3, 1));
+        return key;
     }
 
     private void BuildPerformanceCounter()
     {
-        _fps = CompactLabel("FPS 0", 12, new Color("9fe3aa"));
-        _fps.OffsetLeft = 18;
-        _fps.OffsetTop = 126;
-        _fps.OffsetRight = 110;
-        _fps.OffsetBottom = 151;
+        _fps = BodyLabel("FPS 0", 9, RuntimeRpgUiTheme.Sage.Lightened(.2f));
+        _fps.AnchorTop = 1;
+        _fps.AnchorBottom = 1;
+        _fps.OffsetLeft = 28;
+        _fps.OffsetTop = -82;
+        _fps.OffsetRight = 98;
+        _fps.OffsetBottom = -60;
         _fps.Visible = false;
-        _fps.AddThemeStyleboxOverride("normal", BarStyle(new Color("0b0e17c7")));
+        _fps.AddThemeStyleboxOverride("normal", RuntimeRpgUiTheme.Frame(
+            new Color("0e0b09c8"), RuntimeRpgUiTheme.BorderMuted, 6, 2));
         AddChild(_fps);
     }
 
     private void ApplyAccessibility()
     {
         var scale = (float)(Accessibility?.RuntimeTextScale ?? 1);
-        foreach (var label in new[] { _objective, _message, _state, _tactical, _rules, _waypointMarker, _caption, _playerIdentity,
-                     _healthText, _fps, _partyHudText }.OfType<Label>())
+        foreach (var label in new[]
+                 {
+                     _areaTitle, _moduleTitle, _objective, _objectiveDistance, _message, _state,
+                     _tactical, _rules, _waypointMarker, _caption, _playerIdentity, _interactionTitle,
+                     _healthText, _fps, _partyHudText,
+                 }.OfType<Label>())
         {
             var currentSize = label.GetThemeFontSize("font_size");
-            label.AddThemeFontSizeOverride("font_size", Math.Max(11, (int)Math.Round(currentSize * scale)));
+            label.AddThemeFontSizeOverride("font_size", Math.Max(8, (int)Math.Round(currentSize * scale)));
             label.SetMeta("accessible_label", label.Text);
         }
     }
 
     public void UpdatePlayerStatus(string displayName, int health, int maximumHealth, int level)
     {
-        if (_playerIdentity is not null) _playerIdentity.Text = $"{displayName} · Niv. {level}";
+        if (_playerIdentity is not null) _playerIdentity.Text = $"{displayName} · NIV. {level}";
         if (_healthBar is not null)
         {
             _healthBar.MaxValue = Math.Max(1, maximumHealth);
@@ -242,27 +546,37 @@ public partial class RuntimeHud : CanvasLayer
     public void UpdatePartyStatus(string displayName, int health, int maximumHealth,
         IReadOnlyDictionary<string, double> resources, IReadOnlyList<string> statuses)
     {
-        if (_partyHudText is null || PartyHud is null) return;
-        var parts = new List<string>();
-        if (PartyHud.Portraits) parts.Add(displayName);
-        if (PartyHud.Health) parts.Add($"{health}/{maximumHealth} PV");
-        if (PartyHud.Resources)
-            parts.AddRange(PartyHud.VisibleResourceIds.Where(resources.ContainsKey)
-                .Select(id => $"{id} {resources[id]:0.##}"));
-        if (PartyHud.Statuses && statuses.Count > 0) parts.Add(string.Join(',', statuses));
-        _partyHudText.Text = string.Join(" · ", parts);
-        _partyHudText.SetMeta("accessible_label", _partyHudText.Text);
+        if (_partyHudText is null) return;
+        _partyHudText.Text = $"{displayName} · NIV. 18";
+        var resourceText = string.Join(", ", resources.Select(item => $"{item.Key} {item.Value:0.##}"));
+        var statusText = statuses.Count == 0 ? "aucun statut" : string.Join(", ", statuses);
+        _partyHudText.TooltipText = $"{health}/{maximumHealth} PV · {resourceText} · {statusText}";
+        _partyHudText.SetMeta("accessible_label",
+            $"{displayName}, {health} sur {maximumHealth} points de vie, {statusText}");
+        if (_partyHealthBar is not null)
+        {
+            _partyHealthBar.MaxValue = Math.Max(1, maximumHealth);
+            _partyHealthBar.Value = Math.Clamp(health, 0, Math.Max(1, maximumHealth));
+        }
+        if (_partyFocusBar is not null && resources.TryGetValue("focus", out var focus))
+        {
+            _partyFocusBar.MaxValue = Math.Max(1, Math.Max(10, focus));
+            _partyFocusBar.Value = Math.Clamp(focus, 0, _partyFocusBar.MaxValue);
+        }
     }
 
     public void UpdateState(string objective, string message, string state)
     {
-        if (_objective is not null) _objective.Text = objective;
+        var cleanObjective = objective.Replace("[E]", string.Empty, StringComparison.OrdinalIgnoreCase).Trim();
+        if (_objective is not null) _objective.Text = cleanObjective;
         if (_message is not null) _message.Text = message;
         if (_state is not null) _state.Text = state;
-        if (_caption is not null && Accessibility?.RuntimeSubtitles == true)
+        if (_interactionPrompt is not null && _interactionTitle is not null)
         {
-            _caption.Text = message;
-            _caption.SetMeta("accessible_label", _caption.Text);
+            var interactable = objective.Contains("[E]", StringComparison.OrdinalIgnoreCase);
+            _interactionPrompt.Visible = interactable;
+            _interactionTitle.Text = interactable ? cleanObjective : InteractionLabel;
+            _interactionPrompt.SetMeta("accessible_label", _interactionTitle.Text);
         }
     }
 
@@ -295,8 +609,7 @@ public partial class RuntimeHud : CanvasLayer
     {
         ArgumentNullException.ThrowIfNull(marker);
         if (_waypointMarker is null) return;
-        _waypointMarker.Text = $"◆ {marker.Text} · étage {marker.Floor}" +
-                               (marker.Tracked ? " · suivi" : string.Empty);
+        _waypointMarker.Text = $"◆ {marker.Text} · étage {marker.Floor}" + (marker.Tracked ? " · suivi" : string.Empty);
         _waypointMarker.TooltipText = $"{marker.Category} · précision {marker.Precision:0.#} m · {marker.Scope}";
         _waypointMarker.SetMeta("accessible_label", marker.AccessibleText);
         _waypointMarker.Visible = true;
@@ -314,9 +627,13 @@ public partial class RuntimeHud : CanvasLayer
         string movementCapability, float breath, float stamina)
     {
         if (_tactical is null) return;
-        _tactical.Text = $"{ShortTimeState(timeState)} · {movementCapability} · File {queuedActions} · " +
-                         $"Souffle {breath:0} · Endurance {stamina:0}";
-        _tactical.TooltipText = $"Combat : {combatMode}";
+        _tactical.Text = $"{ShortTimeState(timeState)} · {ShortMovement(movementCapability)} · file {queuedActions}";
+        _tactical.TooltipText = $"Combat : {combatMode} · Souffle {breath:0} · Endurance {stamina:0}";
+        if (_focusBar is not null)
+        {
+            var focus = stamina <= 1 ? stamina * 100 : stamina;
+            _focusBar.Value = Math.Clamp(focus, 0, 100);
+        }
     }
 
     public void UpdateRules(string difficulty, int level, double experience, double? nextLevel,
@@ -324,7 +641,7 @@ public partial class RuntimeHud : CanvasLayer
     {
         if (_rules is null) return;
         var progression = nextLevel is null ? $"{experience:0} XP" : $"{experience:0}/{nextLevel:0} XP";
-        _rules.Text = $"{difficulty} · Niv. {level} · {progression}";
+        _rules.Text = $"{difficulty} · {progression}";
         _rules.TooltipText = $"PvP {pvpMode} · Perception {perceptionModifiers}";
     }
 
@@ -345,7 +662,113 @@ public partial class RuntimeHud : CanvasLayer
         _ => "Temps réel",
     };
 
-    private static Label CompactLabel(string text, int size, Color color, bool wrap = false)
+    private static string ShortMovement(string value) => value switch
+    {
+        "ground" => "sol",
+        "swimming" => "nage",
+        "diving" => "plongée",
+        "climbing" => "escalade",
+        _ => value,
+    };
+
+    private static Control Portrait(string path, int size, Color? rim = null, bool selected = false)
+    {
+        var root = new Control
+        {
+            CustomMinimumSize = new Vector2(size, size),
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+
+        var backdrop = new Panel { MouseFilter = Control.MouseFilterEnum.Ignore };
+        backdrop.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
+        backdrop.AddThemeStyleboxOverride("panel", RuntimeRpgUiTheme.Circle(
+            new Color("100c09"), new Color("493b2d"), size / 2));
+        root.AddChild(backdrop);
+
+        var portrait = new TextureRect
+        {
+            Texture = GD.Load<Texture2D>(path),
+            ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+            StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+            Material = PortraitMaskMaterial(),
+        };
+        portrait.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
+        portrait.OffsetLeft = 3;
+        portrait.OffsetTop = 3;
+        portrait.OffsetRight = -3;
+        portrait.OffsetBottom = -3;
+        root.AddChild(portrait);
+
+        var ring = new Panel { MouseFilter = Control.MouseFilterEnum.Ignore };
+        ring.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
+        ring.AddThemeStyleboxOverride("panel", MedallionStyle(rim ?? RuntimeRpgUiTheme.Bronze, selected));
+        root.AddChild(ring);
+        return root;
+    }
+
+    private static ShaderMaterial PortraitMaskMaterial() => new()
+    {
+        Shader = new Shader
+        {
+            Code = """
+                shader_type canvas_item;
+
+                void fragment() {
+                    vec2 p = UV * 2.0 - vec2(1.0);
+                    float alpha = 1.0 - smoothstep(0.94, 1.0, length(p));
+                    vec4 source = texture(TEXTURE, UV);
+                    vec3 lifted = source.rgb * 1.28 + vec3(0.018, 0.012, 0.008);
+                    COLOR = vec4(lifted, source.a * alpha);
+                }
+                """,
+        },
+    };
+
+    private static StyleBoxFlat MedallionStyle(Color border, bool selected) => new()
+    {
+        BgColor = new Color("00000000"),
+        BorderColor = border,
+        BorderWidthLeft = selected ? 2 : 1,
+        BorderWidthTop = selected ? 2 : 1,
+        BorderWidthRight = selected ? 2 : 1,
+        BorderWidthBottom = selected ? 2 : 1,
+        CornerRadiusTopLeft = 34,
+        CornerRadiusTopRight = 34,
+        CornerRadiusBottomLeft = 34,
+        CornerRadiusBottomRight = 34,
+        ShadowColor = selected ? new Color("ad693d4d") : new Color("00000066"),
+        ShadowSize = selected ? 5 : 3,
+    };
+
+    private static ProgressBar CompactBar(double value, Color color, int radius)
+    {
+        var bar = new ProgressBar
+        {
+            MinValue = 0,
+            MaxValue = 100,
+            Value = value,
+            ShowPercentage = false,
+            CustomMinimumSize = new Vector2(0, 3),
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        bar.AddThemeStyleboxOverride("background", RuntimeRpgUiTheme.Bar(new Color("090706d8"), radius));
+        bar.AddThemeStyleboxOverride("fill", RuntimeRpgUiTheme.Bar(color, radius));
+        return bar;
+    }
+
+    private static ColorRect TopAccent() => new()
+    {
+        Color = new Color("b08a5970"),
+        AnchorRight = 1,
+        OffsetLeft = 10,
+        OffsetTop = 1,
+        OffsetRight = -10,
+        OffsetBottom = 2,
+        MouseFilter = Control.MouseFilterEnum.Ignore,
+    };
+
+    private static Label BodyLabel(string text, int size, Color color, bool wrap = false)
     {
         var label = new Label
         {
@@ -354,43 +777,24 @@ public partial class RuntimeHud : CanvasLayer
             ClipText = !wrap,
             SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
         };
-        label.AddThemeFontSizeOverride("font_size", size);
-        label.AddThemeColorOverride("font_color", color);
+        RuntimeRpgUiTheme.StyleBody(label, size, color);
         return label;
     }
 
-    private PanelContainer Panel(Color background, Color border)
+    private static Label TitleLabel(string text, int size, Color color, bool wrap = false)
     {
-        var panel = new PanelContainer();
-        var style = new StyleBoxFlat
-        {
-            BgColor = Accessibility?.RuntimeHighContrast == true ? new Color("070910") : background,
-            BorderColor = Accessibility?.RuntimeHighContrast == true ? new Color("fff1cf") : border,
-            BorderWidthLeft = 1,
-            BorderWidthTop = 1,
-            BorderWidthRight = 1,
-            BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 7,
-            CornerRadiusTopRight = 7,
-            CornerRadiusBottomLeft = 7,
-            CornerRadiusBottomRight = 7,
-            ContentMarginLeft = 12,
-            ContentMarginTop = 8,
-            ContentMarginRight = 12,
-            ContentMarginBottom = 8,
-        };
-        panel.AddThemeStyleboxOverride("panel", style);
-        return panel;
+        var label = BodyLabel(text, size, color, wrap);
+        RuntimeRpgUiTheme.StyleTitle(label, size, color);
+        return label;
     }
 
-    private static StyleBoxFlat BarStyle(Color color) => new()
+    private PanelContainer Panel(Color background, Color border, int horizontalMargin = 10, int verticalMargin = 7)
     {
-        BgColor = color,
-        CornerRadiusTopLeft = 4,
-        CornerRadiusTopRight = 4,
-        CornerRadiusBottomLeft = 4,
-        CornerRadiusBottomRight = 4,
-        ContentMarginLeft = 5,
-        ContentMarginRight = 5,
-    };
+        var panel = new PanelContainer();
+        panel.AddThemeStyleboxOverride("panel", RuntimeRpgUiTheme.Frame(
+            Accessibility?.RuntimeHighContrast == true ? new Color("070504") : background,
+            Accessibility?.RuntimeHighContrast == true ? RuntimeRpgUiTheme.Parchment : border,
+            horizontalMargin, verticalMargin));
+        return panel;
+    }
 }

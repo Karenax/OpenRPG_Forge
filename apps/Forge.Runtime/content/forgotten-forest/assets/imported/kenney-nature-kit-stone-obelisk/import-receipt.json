@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "b0e86de3-d1da-6254-93f0-04ffd588ce3e",
+  "cacheKey": "67b149bb2dbdcc7e69b5e030b03f52484e8213cc7aa9634c4a4a55d95c9ba9e2",
+  "catalogContentSha256": "e18013044ad6453a1850226be29f63c37d67e0002141f5f6a4d14a46bde69e00",
+  "sourceFileSha256": "e18013044ad6453a1850226be29f63c37d67e0002141f5f6a4d14a46bde69e00",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/statue_obelisk.glb",
+  "sourceRelativePath": "normalized/kenney/nature-kit/Models/GLTF format/statue_obelisk.glb",
+  "outputRelativePath": "assets/imported/kenney-nature-kit-stone-obelisk/model.glb",
+  "outputContentSha256": "e18013044ad6453a1850226be29f63c37d67e0002141f5f6a4d14a46bde69e00",
+  "outputBytes": 4416,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-stone-obelisk/model.glb",
+      "cacheKey": "67b149bb2dbdcc7e69b5e030b03f52484e8213cc7aa9634c4a4a55d95c9ba9e2",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-stone-obelisk/animations.index.json",
+      "cacheKey": "67b149bb2dbdcc7e69b5e030b03f52484e8213cc7aa9634c4a4a55d95c9ba9e2",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-stone-obelisk/collisions.glb",
+      "cacheKey": "67b149bb2dbdcc7e69b5e030b03f52484e8213cc7aa9634c4a4a55d95c9ba9e2",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-stone-obelisk/lod-0.5.glb",
+      "cacheKey": "67b149bb2dbdcc7e69b5e030b03f52484e8213cc7aa9634c4a4a55d95c9ba9e2",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-stone-obelisk/lod-0.25.glb",
+      "cacheKey": "67b149bb2dbdcc7e69b5e030b03f52484e8213cc7aa9634c4a4a55d95c9ba9e2",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

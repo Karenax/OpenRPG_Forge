@@ -47,9 +47,11 @@ public static class CuratedEmbeddedAnimatedCharacterInstaller
 
         var extractedRoot = ResolveContained(vault, sourcePack.ExtractedRoot);
         var modelPath = ResolveContained(extractedRoot, document.ModelPath);
-        EnsureFile(modelPath, ".glb", "Embedded animated character model");
+        EnsureModelFile(modelPath);
         var modelRelativePath = Normalize(Path.GetRelativePath(vault, modelPath));
         var modelHash = HashFile(modelPath);
+        var sourceFormat = Path.GetExtension(modelPath).TrimStart('.').ToLowerInvariant();
+        var expectedArmatureCount = document.ExpectedArmatureCount <= 0 ? 1 : document.ExpectedArmatureCount;
         var sourceFingerprint = HashText($"{sourcePack.ArchiveSha256}|{modelHash}");
         var externalId = $"{document.SourcePackId}:{document.Key}";
         var assetId = AssetCatalogItemId.ForExternalId(externalId);
@@ -58,7 +60,7 @@ public static class CuratedEmbeddedAnimatedCharacterInstaller
             $"curated-pack:{document.PackId}@{document.Version};source:{document.SourcePackId};" +
             $"archive-sha256:{sourcePack.ArchiveSha256};model:{document.ModelPath}";
         var sourceBytes = new FileInfo(modelPath).Length;
-        var requiredClips = document.Clips.Required().Order(StringComparer.Ordinal).ToArray();
+        var requiredClips = document.Clips.Required().Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
         var item = new AssetCatalogItem(
             assetId,
             externalId,
@@ -83,7 +85,7 @@ public static class CuratedEmbeddedAnimatedCharacterInstaller
             assetId,
             AssetProcessingProfile.CurrentSchemaVersion,
             AssetProcessingKind.Model,
-            "glb",
+            sourceFormat,
             "glb",
             document.License,
             sourceFingerprint,
@@ -124,6 +126,7 @@ public static class CuratedEmbeddedAnimatedCharacterInstaller
                 null,
                 outputRelativePath,
                 document.Rig,
+                expectedArmatureCount,
                 document.ExpectedBoneCount,
                 document.AnimationProfile,
                 document.Clips,
@@ -180,6 +183,7 @@ public static class CuratedEmbeddedAnimatedCharacterInstaller
             request.RequestRelativePath,
             outputRelativePath,
             document.Rig,
+            expectedArmatureCount,
             document.ExpectedBoneCount,
             document.AnimationProfile,
             document.Clips,
@@ -223,12 +227,13 @@ public static class CuratedEmbeddedAnimatedCharacterInstaller
             .ToArray();
         var missingClips = plan.RequiredClips.Except(clipNames, StringComparer.Ordinal).ToArray();
         if (missingClips.Length > 0 ||
-            metrics.GetProperty("armatureCount").GetInt32() != 1 ||
+            metrics.GetProperty("armatureCount").GetInt32() != plan.ExpectedArmatureCount ||
             metrics.GetProperty("boneCount").GetInt32() != plan.ExpectedBoneCount)
         {
             throw new InvalidDataException(
                 $"Embedded animated character quality report does not match rig '{plan.Rig}', " +
-                $"{plan.ExpectedBoneCount} bones and required clips. Missing: {string.Join(", ", missingClips)}.");
+                $"{plan.ExpectedArmatureCount} armatures, {plan.ExpectedBoneCount} bones and required clips. " +
+                $"Missing: {string.Join(", ", missingClips)}.");
         }
 
         var durations = metrics.GetProperty("animationDurationsSeconds");
@@ -344,10 +349,10 @@ public static class CuratedEmbeddedAnimatedCharacterInstaller
             string.IsNullOrWhiteSpace(document.SourceCatalog) || string.IsNullOrWhiteSpace(document.SourcePackId) ||
             string.IsNullOrWhiteSpace(document.License) || string.IsNullOrWhiteSpace(document.Key) ||
             string.IsNullOrWhiteSpace(document.ModelPath) || document.ScaleMeters is < 0.001m or > 1000m ||
-            string.IsNullOrWhiteSpace(document.Rig) || document.ExpectedBoneCount <= 0 ||
+            string.IsNullOrWhiteSpace(document.Rig) || document.ExpectedArmatureCount < 0 ||
+            document.ExpectedBoneCount <= 0 ||
             string.IsNullOrWhiteSpace(document.AnimationProfile) || document.Tags.Count == 0 ||
-            document.Clips.Required().Any(string.IsNullOrWhiteSpace) ||
-            document.Clips.Required().Distinct(StringComparer.Ordinal).Count() != document.Clips.Required().Count)
+            document.Clips.Required().Any(string.IsNullOrWhiteSpace))
         {
             throw new InvalidDataException("The curated embedded animated character manifest is invalid.");
         }
@@ -400,7 +405,7 @@ public static class CuratedEmbeddedAnimatedCharacterInstaller
             "- Modification: runtime-ready GLB normalized, audited and re-exported; Vault original unchanged",
             $"- Stable identity: `{plan.Item.ExternalId}` — `{plan.Item.Id}`",
             $"- Runtime GLB: `{chunk.RelativePath}` — SHA-256 `{chunk.ContentSha256}`",
-            $"- Rig: {plan.Rig} ({plan.ExpectedBoneCount} bones)",
+            $"- Rig: {plan.Rig} ({plan.ExpectedArmatureCount} armatures, {plan.ExpectedBoneCount} bones)",
             $"- Semantic clips: idle={plan.Clips.Idle}, run={plan.Clips.Run}, jump={plan.Clips.Jump}, " +
             $"attack={plan.Clips.Attack}, hit={plan.Clips.Hit}, death={plan.Clips.Death}",
             $"- Available clips: {manifest.Animation!.Clips.Count}",
@@ -416,11 +421,13 @@ public static class CuratedEmbeddedAnimatedCharacterInstaller
         return (next < 0 ? content[..start] : content.Remove(start, next - start)).TrimEnd();
     }
 
-    private static void EnsureFile(string path, string extension, string label)
+    private static void EnsureModelFile(string path)
     {
-        if (!File.Exists(path) || !string.Equals(Path.GetExtension(path), extension, StringComparison.OrdinalIgnoreCase))
+        var extension = Path.GetExtension(path).ToLowerInvariant();
+        if (!File.Exists(path) || extension is not (".glb" or ".fbx"))
         {
-            throw new FileNotFoundException($"{label} is missing or has an unsupported format.", path);
+            throw new FileNotFoundException(
+                "Embedded animated character model is missing or has an unsupported format.", path);
         }
     }
 
@@ -501,6 +508,7 @@ public static class CuratedEmbeddedAnimatedCharacterInstaller
         [property: JsonPropertyName("model_path")] string ModelPath,
         [property: JsonPropertyName("scale_meters")] decimal ScaleMeters,
         string Rig,
+        [property: JsonPropertyName("expected_armature_count")] int ExpectedArmatureCount,
         [property: JsonPropertyName("expected_bone_count")] int ExpectedBoneCount,
         [property: JsonPropertyName("animation_profile")] string AnimationProfile,
         EmbeddedAnimationClips Clips,
@@ -541,6 +549,7 @@ public sealed record CuratedEmbeddedAnimatedCharacterPlan(
     string? RequestRelativePath,
     string OutputRelativePath,
     string Rig,
+    int ExpectedArmatureCount,
     int ExpectedBoneCount,
     string AnimationProfile,
     EmbeddedAnimationClips Clips,

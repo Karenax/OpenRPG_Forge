@@ -134,6 +134,12 @@ public partial class GameRoot : Node3D
     private const string LoadSaveArgument = "--load-save";
     private const string VisualCaptureArgument = "--visual-capture";
     private const string WorldVisualCaptureArgument = "--world-visual-capture";
+    private const string FlyingMountVisualCaptureArgument = "--flying-mount-visual-capture";
+    private const string ModuleMapVisualCaptureArgument = "--module-map-visual-capture";
+    private const string RpgMenuVisualCaptureArgument = "--rpg-menu-visual-capture";
+    private const string RpgMenuPageArgument = "--rpg-menu-page";
+    private const string DialogueVisualCaptureArgument = "--dialogue-visual-capture";
+    private const string ActionWheelVisualCaptureArgument = "--action-wheel-visual-capture";
     private const string VisualRegressionSuiteArgument = "--g11s-visual-suite";
     private const string TerrainBenchmarkArgument = "--terrain-benchmark";
     private const float InteractionDistance = 3.0f;
@@ -141,6 +147,10 @@ public partial class GameRoot : Node3D
     private const string VisualAssetProperty = "visual.asset";
     private const string RuntimeRoleProperty = "runtime.role";
     private const string RuntimeAnimationProfileProperty = "runtime.animationProfile";
+    private static EntityId? s_pendingPortalSpawn;
+    private static string? s_pendingPortalLabel;
+    private static int s_connectedWorldSmokeStep;
+    private static int s_innUxSmokeStep;
     private ProjectDefinition? _loadedProject;
 
     private readonly Dictionary<Node3D, CombatantState> _hostiles = [];
@@ -165,6 +175,7 @@ public partial class GameRoot : Node3D
     private readonly CustomWorldEventBus _customWorldEvents = new();
     private WorldClockSnapshot? _worldClockSnapshot;
     private readonly Dictionary<Guid, Node3D> _entityNodes = [];
+    private readonly Dictionary<Node3D, PortalLink> _portalNodes = [];
     private readonly Dictionary<Guid, CameraAnchorDefinition> _cameraAnchors = [];
     private readonly Dictionary<Guid, double> _scatterDueSeconds = [];
     private readonly Dictionary<Guid, int> _scatterSequences = [];
@@ -198,10 +209,14 @@ public partial class GameRoot : Node3D
     private PostLaunchCapabilityProfile? _postLaunchProfile;
 
     private PlayerController? _player;
+    private RuntimeFlyingMount? _flyingMount;
     private CombatantState? _playerCombatant;
     private Camera3D? _camera;
     private RuntimeHud? _hud;
     private RuntimeActionBar? _actionBar;
+    private RuntimeModuleMap? _moduleMap;
+    private RuntimeRpgMenu? _rpgMenu;
+    private RuntimeDialogueOverlay? _dialogueOverlay;
     private Node3D? _npc;
     private Node3D? _keyItem;
     private Node3D? _door;
@@ -238,6 +253,7 @@ public partial class GameRoot : Node3D
     private string? _moduleId;
     private string? _moduleContentSha256;
     private string? _currentAreaId;
+    private AreaDefinition? _activeArea;
     private string? _quickSavePath;
     private string _moduleTitle = "OpenRPG Forge";
     private string _moduleSlug = string.Empty;
@@ -298,6 +314,7 @@ public partial class GameRoot : Node3D
     private double _progressionExperience;
     private int _progressionLevel = 1;
     private bool _initializationComplete;
+    private bool _portalTransitionInProgress;
     private bool _fpsVisible;
     private GodotAssetModelLibrary? _modelLibrary;
     private int _runtimeModelInstances;
@@ -343,6 +360,9 @@ public partial class GameRoot : Node3D
     private long _terrainManagedHeapAfterBytes;
     private long _terrainWorkingSetBeforeBytes;
     private long _terrainWorkingSetAfterBytes;
+    private Rect2? _interiorWalkableBounds;
+    private Rect2? _activeAreaHorizontalBounds;
+    private float _interiorFloorTop;
 
     public override async void _Ready()
     {
@@ -352,15 +372,33 @@ public partial class GameRoot : Node3D
         var genericSmokeTest = userArguments.Contains("--generic-smoke-test", StringComparer.Ordinal);
         var rpgKitSmokeTest = userArguments.Contains("--rpg-kit-smoke-test", StringComparer.Ordinal);
         var forgottenForestSmokeTest = userArguments.Contains("--forgotten-forest-smoke-test", StringComparer.Ordinal);
+        var entryGroundSmokeTest = userArguments.Contains("--entry-ground-smoke-test", StringComparer.Ordinal);
+        var connectedWorldTransitionSmokeTest = userArguments.Contains(
+            "--connected-world-transition-smoke-test", StringComparer.Ordinal);
+        var innUxSmokeTest = userArguments.Contains("--inn-ux-smoke-test", StringComparer.Ordinal);
+        var flyingMountSmokeTest = userArguments.Contains("--flying-mount-smoke-test", StringComparer.Ordinal);
         var saveSmokeCreate = userArguments.Contains("--save-smoke-create", StringComparer.Ordinal);
         var saveSmokeResume = userArguments.Contains("--save-smoke-resume", StringComparer.Ordinal);
         var visualCapturePath = GetArgumentValue(userArguments, VisualCaptureArgument);
         var worldVisualCapturePath = GetArgumentValue(userArguments, WorldVisualCaptureArgument);
+        var flyingMountVisualCapturePath = GetArgumentValue(userArguments, FlyingMountVisualCaptureArgument);
+        var moduleMapVisualCapturePath = GetArgumentValue(userArguments, ModuleMapVisualCaptureArgument);
+        var rpgMenuVisualCapturePath = GetArgumentValue(userArguments, RpgMenuVisualCaptureArgument);
+        var dialogueVisualCapturePath = GetArgumentValue(userArguments, DialogueVisualCaptureArgument);
+        var actionWheelVisualCapturePath = GetArgumentValue(userArguments, ActionWheelVisualCaptureArgument);
         var visualRegressionSuitePath = GetArgumentValue(userArguments, VisualRegressionSuiteArgument);
         var terrainBenchmarkPath = GetArgumentValue(userArguments, TerrainBenchmarkArgument);
         var automatedTest = smokeTest || genericSmokeTest || rpgKitSmokeTest || forgottenForestSmokeTest ||
+            entryGroundSmokeTest ||
+            connectedWorldTransitionSmokeTest ||
+            innUxSmokeTest ||
+            flyingMountSmokeTest ||
             saveSmokeCreate || saveSmokeResume ||
             visualCapturePath is not null || worldVisualCapturePath is not null ||
+            flyingMountVisualCapturePath is not null ||
+            moduleMapVisualCapturePath is not null ||
+            rpgMenuVisualCapturePath is not null || dialogueVisualCapturePath is not null ||
+            actionWheelVisualCapturePath is not null ||
             visualRegressionSuitePath is not null || terrainBenchmarkPath is not null;
 
         try
@@ -376,13 +414,24 @@ public partial class GameRoot : Node3D
             _forgeScriptCache = new ForgeScriptArtifactCache(
                 _forgeScriptRuntime,
                 ProjectSettings.GlobalizePath("user://openrpg-forge/cache/forgescript"));
-            var requestedSpawnId = ParseOptionalEntityId(
+            var requestedSpawnId = s_pendingPortalSpawn ?? ParseOptionalEntityId(
                 GetArgumentValue(userArguments, SpawnIdArgument));
+            var portalArrivalLabel = s_pendingPortalLabel;
+            s_pendingPortalSpawn = null;
+            s_pendingPortalLabel = null;
             var playtestManifestPath = GetArgumentValue(userArguments, PlaytestManifestArgument);
             var playtestManifest = playtestManifestPath is null
                 ? null
                 : PlaytestLaunchManifestStore.Load(playtestManifestPath);
             var project = LoadProject(snapshotPath, modulePackagePath, workspacePath);
+            if (requestedSpawnId is null && (forgottenForestSmokeTest || flyingMountSmokeTest ||
+                flyingMountVisualCapturePath is not null ||
+                (connectedWorldTransitionSmokeTest && s_connectedWorldSmokeStep == 0)))
+            {
+                var forest = project.Areas.Single(area => area.Slug == "forgotten-forest");
+                requestedSpawnId = forest.Entities.Single(entity =>
+                    entity.Tags.Contains("player", StringComparer.Ordinal)).Id;
+            }
             if (playtestManifest is not null &&
                 !string.Equals(playtestManifest.SpawnEntityId, requestedSpawnId?.ToString(),
                     StringComparison.OrdinalIgnoreCase))
@@ -407,14 +456,22 @@ public partial class GameRoot : Node3D
             ConfigurePostLaunch(project);
             _message = $"Explorez {_moduleTitle}.";
             var startArea = ResolveStartArea(project, requestedSpawnId);
+            _message = $"Explorez {startArea.DisplayName}.";
             ConfigureRuntimePolicies(project.Module.RuntimePolicies, startArea.RuntimePolicies);
+            _cameraRig.SetYawDegrees(startArea.Slug == "ember-inn" ? 219 : 39);
             PublishProjectConnectionEvent(PlayerConnectionStage.Joining, "authenticated");
             await ConfigureWorldAsync(startArea.Environment, startArea.World, startArea.Navigation, _isCryptPrototype);
             var selectedSpawn = BuildProject(project, requestedSpawnId);
+            if (!string.IsNullOrWhiteSpace(portalArrivalLabel))
+            {
+                _message = $"Arrivée : {portalArrivalLabel}.";
+                GD.Print($"OPENRPG_FORGE_RUNTIME_AREA_TRANSITION_PASS destination={startArea.Slug} " +
+                         $"spawn={selectedSpawn.Id} label={portalArrivalLabel}");
+            }
             ApplyPlaytestLaunch(project, playtestManifest);
             if (_camera is not null && _player is not null)
             {
-                _cameraRig.Snap(_camera, _player.GlobalPosition);
+                _cameraRig.Snap(_camera, _player.GlobalPosition, ConstrainCameraPosition);
             }
             EnsureLifecycle(
                 _lifecycle.EnterInitialArea(
@@ -432,15 +489,47 @@ public partial class GameRoot : Node3D
 
             CreateHud();
             ConfigureWaypointRuntime(startArea.Navigation.Waypoints);
-            VerifyModernRuntimeTooling(project, startArea);
-            VerifyOperationalReadiness(project);
-            VerifyQualityLab(project);
-            VerifyPerformanceLab(project);
-            VerifyGovernanceLab(project);
+            if (!connectedWorldTransitionSmokeTest && !entryGroundSmokeTest && !innUxSmokeTest &&
+                !flyingMountSmokeTest && flyingMountVisualCapturePath is null)
+            {
+                VerifyModernRuntimeTooling(project, startArea);
+                VerifyOperationalReadiness(project);
+                VerifyQualityLab(project);
+                VerifyPerformanceLab(project);
+                VerifyGovernanceLab(project);
+            }
             if (visualRegressionSuitePath is not null)
             {
                 UpdateHud();
                 await CaptureVisualRegressionSuiteAsync(project, visualRegressionSuitePath);
+                return;
+            }
+            if (moduleMapVisualCapturePath is not null)
+            {
+                UpdateHud();
+                await CaptureModuleMapVisualProofAsync(moduleMapVisualCapturePath);
+                return;
+            }
+            if (rpgMenuVisualCapturePath is not null)
+            {
+                var requestedPage = GetArgumentValue(userArguments, RpgMenuPageArgument);
+                var page = Enum.TryParse<RuntimeRpgMenuPage>(requestedPage, true, out var parsedPage)
+                    ? parsedPage
+                    : RuntimeRpgMenuPage.Inventory;
+                UpdateHud();
+                await CaptureRpgMenuVisualProofAsync(rpgMenuVisualCapturePath, page);
+                return;
+            }
+            if (dialogueVisualCapturePath is not null)
+            {
+                UpdateHud();
+                await CaptureDialogueVisualProofAsync(dialogueVisualCapturePath);
+                return;
+            }
+            if (actionWheelVisualCapturePath is not null)
+            {
+                UpdateHud();
+                await CaptureActionWheelVisualProofAsync(actionWheelVisualCapturePath);
                 return;
             }
             if (visualCapturePath is not null)
@@ -452,6 +541,11 @@ public partial class GameRoot : Node3D
             if (worldVisualCapturePath is not null)
             {
                 await CaptureWorldVisualProofAsync(worldVisualCapturePath);
+                return;
+            }
+            if (flyingMountVisualCapturePath is not null)
+            {
+                await CaptureFlyingMountVisualProofAsync(flyingMountVisualCapturePath);
                 return;
             }
             ConfigureCinematics(project, startArea);
@@ -472,7 +566,23 @@ public partial class GameRoot : Node3D
             GD.Print($"OPENRPG_FORGE_RUNTIME_SPAWN_SELECTED id={selectedSpawn.Id}");
             GD.Print($"OPENRPG_FORGE_RUNTIME_PROJECT_LOADED entities={_builtEntityCount} collisions={_collisionCount}");
 
-            if (forgottenForestSmokeTest)
+            if (flyingMountSmokeTest)
+            {
+                await RunFlyingMountSmokeTestAsync();
+            }
+            else if (innUxSmokeTest)
+            {
+                await RunInnUxSmokeTestAsync(project);
+            }
+            else if (connectedWorldTransitionSmokeTest)
+            {
+                await RunConnectedWorldTransitionSmokeTestAsync(project);
+            }
+            else if (entryGroundSmokeTest)
+            {
+                await RunEntryGroundSmokeTestAsync(project);
+            }
+            else if (forgottenForestSmokeTest)
             {
                 await RunForgottenForestSmokeTestAsync(project, terrainBenchmarkPath);
             }
@@ -499,6 +609,8 @@ public partial class GameRoot : Node3D
         }
         catch (Exception exception)
         {
+            if (connectedWorldTransitionSmokeTest) s_connectedWorldSmokeStep = 0;
+            if (innUxSmokeTest) s_innUxSmokeStep = 0;
             GD.PrintErr($"OPENRPG_FORGE_RUNTIME_STARTUP_FAILED {exception}");
             if (automatedTest)
             {
@@ -539,8 +651,8 @@ public partial class GameRoot : Node3D
         if (!Path.IsPathFullyQualified(destination) || !string.Equals(Path.GetExtension(destination), ".png",
                 StringComparison.OrdinalIgnoreCase))
             throw new ArgumentException("The world visual proof destination must be an absolute PNG path.", nameof(destination));
-        if (!_isForgottenForestPrototype || _camera is null)
-            throw new InvalidOperationException("World visual proof currently requires Forgotten Forest.");
+        if (!_isForgottenForestPrototype || _camera is null || _activeArea is null)
+            throw new InvalidOperationException("World visual proof currently requires a Forgotten Forest area.");
 
         if (_hud is not null) _hud.Visible = false;
         if (_actionBar is not null) _actionBar.Visible = false;
@@ -549,9 +661,23 @@ public partial class GameRoot : Node3D
         {
             if (node is GeometryInstance3D geometry) geometry.VisibilityRangeEnd = 0;
         }
-        _camera.Fov = 64;
-        _camera.GlobalPosition = new Vector3(150, 125, 175);
-        _camera.LookAt(new Vector3(0, 1.5f, 0), Vector3.Up);
+        foreach (var marker in GetTree().GetNodesInGroup("forge_exit_marker"))
+        {
+            if (marker is Node3D exitMarker) exitMarker.Visible = false;
+        }
+        _camera.Fov = 50;
+        var (focus, offset) = _activeArea.Slug switch
+        {
+            "forgotten-forest" => (new Vector3(125, 1.8f, 178), new Vector3(25, 10, 18)),
+            "clairval" => (new Vector3(0, 1.5f, 7), new Vector3(18, 10, -22)),
+            "ember-inn" => (new Vector3(0, 1.4f, 0), new Vector3(12, 7, -14)),
+            "gnoll-fortress" => (new Vector3(0, 2.2f, 10), new Vector3(20, 10, -28)),
+            "amber-desert" => (new Vector3(-16, 1.6f, -4), new Vector3(18, 9, -23)),
+            "snow-pass" => (new Vector3(-19, 3.2f, -7), new Vector3(32, 16, -36)),
+            _ => (new Vector3(0, 1.5f, 0), new Vector3(30, 20, 34)),
+        };
+        _camera.GlobalPosition = focus + offset;
+        _camera.LookAt(focus, Vector3.Up);
         for (var frame = 0; frame < 8; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
         var image = GetViewport().GetTexture().GetImage();
         Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
@@ -559,8 +685,133 @@ public partial class GameRoot : Node3D
             throw new IOException("World visual proof could not be written.");
         GD.Print(
             $"OPENRPG_FORGE_AV6E_WORLD_VISUAL_PASS file={Path.GetFileName(destination)} " +
-            $"size={image.GetWidth()}x{image.GetHeight()} sectors={_terrainSectors} scatter={_terrainScatterInstances}");
+            $"size={image.GetWidth()}x{image.GetHeight()} area={_activeArea.Slug} " +
+            $"sectors={_terrainSectors} scatter={_terrainScatterInstances}");
         GetTree().Quit(0);
+    }
+
+    private async Task CaptureFlyingMountVisualProofAsync(string destination)
+    {
+        ValidateUiCaptureDestination(destination, "flying mount");
+        var mount = _flyingMount ?? throw new InvalidOperationException(
+            "The flying-mount visual proof requires Brumaille in the active area.");
+        var player = _player ?? throw new InvalidOperationException(
+            "The flying-mount visual proof requires a player.");
+        var camera = _camera ?? throw new InvalidOperationException(
+            "The flying-mount visual proof requires a camera.");
+
+        if (_hud is not null) _hud.Visible = false;
+        if (_actionBar is not null) _actionBar.Visible = false;
+        if (_actionWheel is not null) _actionWheel.Visible = false;
+        _moduleMap?.SetExplorationUiVisible(false);
+        mount.Mount(player);
+        mount.GlobalPosition = new Vector3(125, 7.2f, 178);
+        mount.ResetPhysicsInterpolation();
+        camera.Fov = 44;
+        var focus = mount.GlobalPosition + Vector3.Up * .8f;
+        camera.GlobalPosition = focus + new Vector3(8f, 4.6f, 10f);
+        camera.LookAt(focus, Vector3.Up);
+        for (var frame = 0; frame < 8; frame++)
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        var image = GetViewport().GetTexture().GetImage();
+        Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+        if (image.SavePng(destination) != Error.Ok)
+            throw new IOException("The flying-mount visual proof could not be written.");
+        GD.Print($"OPENRPG_FORGE_FLYING_MOUNT_VISUAL_PASS file={Path.GetFileName(destination)} " +
+                 $"size={image.GetWidth()}x{image.GetHeight()} creature=brumaille state=mounted-airborne");
+        GetTree().Quit(0);
+    }
+
+    private async Task CaptureModuleMapVisualProofAsync(string destination)
+    {
+        if (!Path.IsPathFullyQualified(destination) || !string.Equals(Path.GetExtension(destination), ".png",
+                StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException("The module map visual proof destination must be an absolute PNG path.",
+                nameof(destination));
+        if (_moduleMap is null || _activeArea is null)
+            throw new InvalidOperationException("The module map visual proof requires an active runtime map.");
+
+        _moduleMap.SetGlobalMapVisible(true);
+        for (var frame = 0; frame < 8; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        var image = GetViewport().GetTexture().GetImage();
+        Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+        if (image.SavePng(destination) != Error.Ok)
+            throw new IOException("The module map visual proof could not be written.");
+        GD.Print($"OPENRPG_FORGE_MODULE_MAP_VISUAL_PASS file={Path.GetFileName(destination)} " +
+                 $"size={image.GetWidth()}x{image.GetHeight()} area={_activeArea.Slug} " +
+                 $"areas={_moduleMap.AreaCount} minimap={_moduleMap.MiniMapVisible.ToString().ToLowerInvariant()} " +
+                 $"global={_moduleMap.GlobalMapVisible.ToString().ToLowerInvariant()}");
+        GetTree().Quit(0);
+    }
+
+    private async Task CaptureRpgMenuVisualProofAsync(string destination, RuntimeRpgMenuPage page)
+    {
+        ValidateUiCaptureDestination(destination, "RPG menu");
+        if (_rpgMenu is null)
+            throw new InvalidOperationException("The RPG menu visual proof requires the player codex.");
+        _moduleMap?.SetGlobalMapVisible(false);
+        _rpgMenu.ShowPage(page, focus: false);
+        SyncPlayerInterfaceLock();
+        for (var frame = 0; frame < 8; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        var image = GetViewport().GetTexture().GetImage();
+        Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+        if (image.SavePng(destination) != Error.Ok)
+            throw new IOException("The RPG menu visual proof could not be written.");
+        GD.Print($"OPENRPG_FORGE_RPG_MENU_VISUAL_PASS file={Path.GetFileName(destination)} " +
+                 $"size={image.GetWidth()}x{image.GetHeight()} page={page.ToString().ToLowerInvariant()}");
+        GetTree().Quit(0);
+    }
+
+    private async Task CaptureDialogueVisualProofAsync(string destination)
+    {
+        ValidateUiCaptureDestination(destination, "dialogue");
+        if (_dialogueOverlay is null)
+            throw new InvalidOperationException("The dialogue visual proof requires the dialogue overlay.");
+        _dialogueOverlay.Show(_guideName, "Gardienne des braises",
+            "La lumière revient, mais les pierres se souviennent encore du feu qui les a fendues.",
+            [
+                "Que s'est-il passé dans cette crypte ?",
+                "Je retrouverai la clé de braise.",
+                "Nous reparlerons plus tard.",
+            ]);
+        SyncPlayerInterfaceLock();
+        for (var frame = 0; frame < 8; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        var image = GetViewport().GetTexture().GetImage();
+        Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+        if (image.SavePng(destination) != Error.Ok)
+            throw new IOException("The dialogue visual proof could not be written.");
+        GD.Print($"OPENRPG_FORGE_DIALOGUE_VISUAL_PASS file={Path.GetFileName(destination)} " +
+                 $"size={image.GetWidth()}x{image.GetHeight()} choices=3");
+        GetTree().Quit(0);
+    }
+
+    private async Task CaptureActionWheelVisualProofAsync(string destination)
+    {
+        ValidateUiCaptureDestination(destination, "action wheel");
+        if (_actionWheel is null)
+            throw new InvalidOperationException("The action wheel visual proof requires the gameplay radial menu.");
+        _rpgMenu?.Close();
+        _moduleMap?.SetGlobalMapVisible(false);
+        _dialogueOverlay?.Close();
+        _actionWheel.Toggle();
+        if (!_actionWheel.IsOpen)
+            throw new InvalidOperationException("The action wheel could not be opened for visual proof.");
+        for (var frame = 0; frame < 8; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        var image = GetViewport().GetTexture().GetImage();
+        Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+        if (image.SavePng(destination) != Error.Ok)
+            throw new IOException("The action wheel visual proof could not be written.");
+        GD.Print($"OPENRPG_FORGE_ACTION_WHEEL_VISUAL_PASS file={Path.GetFileName(destination)} " +
+                 $"size={image.GetWidth()}x{image.GetHeight()}");
+        GetTree().Quit(0);
+    }
+
+    private static void ValidateUiCaptureDestination(string destination, string label)
+    {
+        if (!Path.IsPathFullyQualified(destination) || !string.Equals(Path.GetExtension(destination), ".png",
+                StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException($"The {label} visual proof destination must be an absolute PNG path.",
+                nameof(destination));
     }
 
     private async Task CaptureVisualRegressionSuiteAsync(ProjectDefinition project, string destinationDirectory)
@@ -682,16 +933,79 @@ public partial class GameRoot : Node3D
 
         if (_camera is not null && !_sequenceOwnsCamera)
         {
-            _cameraRig.Update(_camera, _player.GlobalPosition, delta);
-            if (_cameraRig.AlignCharacterFacing)
+            var cameraTarget = _flyingMount is { IsMounted: true }
+                ? _flyingMount.GetGlobalTransformInterpolated().Origin
+                : _player.GetGlobalTransformInterpolated().Origin;
+            _cameraRig.Update(_camera, cameraTarget, delta,
+                ConstrainCameraPosition);
+            if (_cameraRig.AlignCharacterFacing && _flyingMount?.IsMounted != true)
             {
                 _player.FaceDirection(_cameraRig.ForwardDirection);
             }
         }
 
-        if (Input.IsActionJustPressed("action_wheel"))
+        if (Input.IsActionJustPressed("skip_sequence") && _actionWheel?.IsOpen == true)
+        {
+            _actionWheel.Close();
+            SyncPlayerInterfaceLock();
+            return;
+        }
+
+        if (Input.IsActionJustPressed("skip_sequence") && _dialogueOverlay?.IsOpen == true)
+        {
+            _dialogueOverlay.Close();
+            SyncPlayerInterfaceLock();
+            UpdateTacticalHud();
+            return;
+        }
+
+        if (Input.IsActionJustPressed("skip_sequence") && _rpgMenu?.IsOpen == true)
+        {
+            _rpgMenu.Close();
+            SyncPlayerInterfaceLock();
+            UpdateTacticalHud();
+            return;
+        }
+
+        if (Input.IsActionJustPressed("skip_sequence") && _moduleMap?.GlobalMapVisible == true)
+        {
+            _moduleMap.SetGlobalMapVisible(false);
+            _message = "Carte fermée.";
+            SyncPlayerInterfaceLock();
+            UpdateHud();
+            return;
+        }
+
+        if (Input.IsActionJustPressed("inventory")) ToggleRpgMenu(RuntimeRpgMenuPage.Inventory);
+        if (Input.IsActionJustPressed("character")) ToggleRpgMenu(RuntimeRpgMenuPage.Character);
+        if (Input.IsActionJustPressed("journal")) ToggleRpgMenu(RuntimeRpgMenuPage.Journal);
+
+        if (Input.IsActionJustPressed("module_map") && _rpgMenu?.IsOpen == true)
+        {
+            OpenModuleMapFromMenu();
+            return;
+        }
+
+        if (_rpgMenu?.IsOpen == true || _dialogueOverlay?.IsOpen == true)
+        {
+            UpdateTacticalHud();
+            return;
+        }
+
+        if (Input.IsActionJustPressed("action_wheel") && _moduleMap?.GlobalMapVisible != true)
         {
             _actionWheel?.Toggle();
+        }
+
+        if (Input.IsActionJustPressed("module_map"))
+        {
+            ToggleModuleMap();
+        }
+
+        if (_moduleMap?.GlobalMapVisible == true)
+        {
+            UpdateTacticalHud();
+            return;
         }
 
         if (Input.IsActionJustPressed("tactical_pause"))
@@ -768,7 +1082,45 @@ public partial class GameRoot : Node3D
 
     public override void _UnhandledInput(InputEvent @event)
     {
+        if (_moduleMap?.GlobalMapVisible == true)
+        {
+            GetViewport().SetInputAsHandled();
+            return;
+        }
+        if (@event is InputEventMouseButton
+            {
+                ButtonIndex: MouseButton.Left,
+                Pressed: true,
+            } click && TryInteractWithWorldPointer(click.Position))
+        {
+            GetViewport().SetInputAsHandled();
+            return;
+        }
         if (!_sequenceOwnsCamera) _cameraRig.HandleInput(@event);
+    }
+
+    private Vector3 ConstrainCameraPosition(Vector3 focus, Vector3 desired)
+    {
+        if (_interiorWalkableBounds is { } bounds)
+        {
+            const float wallClearance = .65f;
+            desired = new Vector3(
+                Math.Clamp(desired.X, bounds.Position.X + wallClearance, bounds.End.X - wallClearance),
+                desired.Y,
+                Math.Clamp(desired.Z, bounds.Position.Y + wallClearance, bounds.End.Y - wallClearance));
+        }
+        if (_player is null || focus.DistanceSquaredTo(desired) <= .01f) return desired;
+
+        var query = PhysicsRayQueryParameters3D.Create(focus, desired);
+        query.Exclude = _flyingMount is { IsMounted: true }
+            ? [_player.GetRid(), _flyingMount.GetRid()]
+            : [_player.GetRid()];
+        query.CollideWithAreas = false;
+        query.CollideWithBodies = true;
+        var hit = GetWorld3D().DirectSpaceState.IntersectRay(query);
+        if (!hit.TryGetValue("position", out var position)) return desired;
+        var direction = (desired - focus).Normalized();
+        return position.AsVector3() - (direction * .45f);
     }
 
     private ProjectDefinition LoadProject(string? snapshotPath, string? modulePackagePath, string? workspacePath)
@@ -1009,7 +1361,7 @@ public partial class GameRoot : Node3D
                 blueprints[candidate.Entity.BlueprintId].Kind == BlueprintKind.PlayerSpawn)
             .ToArray();
         var selectedSpawn = requestedSpawnId is null
-            ? spawnCandidates.FirstOrDefault()
+            ? spawnCandidates.SingleOrDefault(candidate => candidate.Area.Id == project.Module.EntryAreaId)
             : spawnCandidates.SingleOrDefault(candidate => candidate.Entity.Id == requestedSpawnId);
 
         if (selectedSpawn.Entity is null)
@@ -1020,6 +1372,8 @@ public partial class GameRoot : Node3D
                     : $"The requested player spawn '{requestedSpawnId}' does not exist.");
         }
 
+        _activeArea = selectedSpawn.Area;
+        BuildAreaCollisionShell(selectedSpawn.Area);
         foreach (var entity in selectedSpawn.Area.Entities)
         {
             var resolvedTile = ModularTilePlacementResolver.Resolve(selectedSpawn.Area, entity);
@@ -1051,6 +1405,127 @@ public partial class GameRoot : Node3D
                  $"instances={_runtimeModelInstances}");
 
         return selectedSpawn.Entity;
+    }
+
+    private void BuildAreaCollisionShell(AreaDefinition area)
+    {
+        _interiorWalkableBounds = null;
+        _activeAreaHorizontalBounds = null;
+        _interiorFloorTop = 0;
+        if (area.Kind != AreaKind.Interior)
+        {
+            BuildExteriorBoundaryShell(area);
+            return;
+        }
+
+        var floorTiles = area.Entities
+            .Where(entity => entity.Tags.Contains("floor", StringComparer.Ordinal))
+            .ToArray();
+        var xCoordinates = floorTiles.Select(entity => entity.Transform.Position.X).Distinct().Order().ToArray();
+        var zCoordinates = floorTiles.Select(entity => entity.Transform.Position.Z).Distinct().Order().ToArray();
+        if (floorTiles.Length < 4 || xCoordinates.Length < 2 || zCoordinates.Length < 2) return;
+
+        var stepX = MinimumPositiveStep(xCoordinates);
+        var stepZ = MinimumPositiveStep(zCoordinates);
+        var minimumX = xCoordinates[0] - (stepX * .5f);
+        var maximumX = xCoordinates[^1] + (stepX * .5f);
+        var minimumZ = zCoordinates[0] - (stepZ * .5f);
+        var maximumZ = zCoordinates[^1] + (stepZ * .5f);
+        _interiorFloorTop = (float)floorTiles.Average(entity => entity.Transform.Position.Y) + .05f;
+        _interiorWalkableBounds = new Rect2(minimumX, minimumZ, maximumX - minimumX, maximumZ - minimumZ);
+        _activeAreaHorizontalBounds = _interiorWalkableBounds;
+
+        const float floorThickness = .2f;
+        const float wallThickness = .6f;
+        const float wallHeight = 4.2f;
+        var centerX = (minimumX + maximumX) * .5f;
+        var centerZ = (minimumZ + maximumZ) * .5f;
+        AddRuntimeCollisionBox("InteriorFloorShell",
+            new Vector3(centerX, _interiorFloorTop - (floorThickness * .5f), centerZ),
+            new Vector3(maximumX - minimumX, floorThickness, maximumZ - minimumZ));
+        AddRuntimeCollisionBox("InteriorWallNorth",
+            new Vector3(centerX, _interiorFloorTop + (wallHeight * .5f), minimumZ),
+            new Vector3(maximumX - minimumX, wallHeight, wallThickness));
+        AddRuntimeCollisionBox("InteriorWallSouth",
+            new Vector3(centerX, _interiorFloorTop + (wallHeight * .5f), maximumZ),
+            new Vector3(maximumX - minimumX, wallHeight, wallThickness));
+        AddRuntimeCollisionBox("InteriorWallWest",
+            new Vector3(minimumX, _interiorFloorTop + (wallHeight * .5f), centerZ),
+            new Vector3(wallThickness, wallHeight, maximumZ - minimumZ));
+        AddRuntimeCollisionBox("InteriorWallEast",
+            new Vector3(maximumX, _interiorFloorTop + (wallHeight * .5f), centerZ),
+            new Vector3(wallThickness, wallHeight, maximumZ - minimumZ));
+        GD.Print($"OPENRPG_FORGE_INTERIOR_COLLISION_SHELL_READY area={area.Slug} " +
+                 $"bounds={minimumX:0.###},{minimumZ:0.###},{maximumX:0.###},{maximumZ:0.###} " +
+                 $"floor_y={_interiorFloorTop:0.###} barriers=4");
+
+        static float MinimumPositiveStep(IReadOnlyList<float> values)
+        {
+            var step = float.PositiveInfinity;
+            for (var index = 1; index < values.Count; index++)
+            {
+                var candidate = values[index] - values[index - 1];
+                if (candidate > .001f) step = MathF.Min(step, candidate);
+            }
+            return float.IsFinite(step) ? step : 1;
+        }
+    }
+
+    private void BuildExteriorBoundaryShell(AreaDefinition area)
+    {
+        var halfWidth = area.Dimensions.Width * .5f;
+        var halfDepth = area.Dimensions.Depth * .5f;
+        const float inset = 1.25f;
+        const float wallThickness = 2.5f;
+        const float overheadClearance = 48f;
+        const float undergroundClearance = 18f;
+        var minimumTerrainHeight = area.World.Terrain.Heights.Count == 0
+            ? -4f
+            : area.World.Terrain.Heights.Min();
+        var maximumTerrainHeight = area.World.Terrain.Heights.Count == 0
+            ? 8f
+            : area.World.Terrain.Heights.Max();
+        var wallBottom = minimumTerrainHeight - undergroundClearance;
+        var wallTop = maximumTerrainHeight + overheadClearance;
+        var wallHeight = wallTop - wallBottom;
+        var wallCenterY = wallBottom + (wallHeight * .5f);
+        var minimumX = -halfWidth + inset;
+        var maximumX = halfWidth - inset;
+        var minimumZ = -halfDepth + inset;
+        var maximumZ = halfDepth - inset;
+        _activeAreaHorizontalBounds = new Rect2(minimumX, minimumZ,
+            maximumX - minimumX, maximumZ - minimumZ);
+
+        AddRuntimeCollisionBox("ExteriorBoundaryNorth",
+            new Vector3(0, wallCenterY, minimumZ),
+            new Vector3(area.Dimensions.Width, wallHeight, wallThickness));
+        AddRuntimeCollisionBox("ExteriorBoundarySouth",
+            new Vector3(0, wallCenterY, maximumZ),
+            new Vector3(area.Dimensions.Width, wallHeight, wallThickness));
+        AddRuntimeCollisionBox("ExteriorBoundaryWest",
+            new Vector3(minimumX, wallCenterY, 0),
+            new Vector3(wallThickness, wallHeight, area.Dimensions.Depth));
+        AddRuntimeCollisionBox("ExteriorBoundaryEast",
+            new Vector3(maximumX, wallCenterY, 0),
+            new Vector3(wallThickness, wallHeight, area.Dimensions.Depth));
+        AddRuntimeCollisionBox("ExteriorSafetyFloor",
+            new Vector3(0, minimumTerrainHeight - 8f, 0),
+            new Vector3(area.Dimensions.Width, 1f, area.Dimensions.Depth));
+        GD.Print($"OPENRPG_FORGE_EXTERIOR_BOUNDARY_READY area={area.Slug} " +
+                 $"bounds={minimumX:0.###},{minimumZ:0.###},{maximumX:0.###},{maximumZ:0.###} " +
+                 $"terrain_y={minimumTerrainHeight:0.###}..{maximumTerrainHeight:0.###} barriers=4 safety_floor=1");
+    }
+
+    private void AddRuntimeCollisionBox(string name, Vector3 position, Vector3 size)
+    {
+        var body = new StaticBody3D { Name = name, Position = position };
+        body.AddChild(new CollisionShape3D
+        {
+            Name = $"{name}Shape",
+            Shape = new BoxShape3D { Size = size },
+        });
+        AddChild(body);
+        _collisionCount++;
     }
 
     private static void ApplyTileMirror(Node3D node, ModularTileMirrorMode mirror)
@@ -1217,7 +1692,10 @@ public partial class GameRoot : Node3D
                 _keyItem = CreateItem(entity, blueprint);
                 break;
             case BlueprintKind.Trigger:
-                _exit = CreateExit(entity);
+                var portal = _activeArea?.Portals.SingleOrDefault(candidate => candidate.SourceEntityId == entity.Id);
+                var trigger = CreateExit(entity, portal is not null);
+                if (portal is null) _exit = trigger;
+                else _portalNodes.Add(trigger, portal);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(blueprint), blueprint.Kind, "Unsupported blueprint kind.");
@@ -1226,25 +1704,34 @@ public partial class GameRoot : Node3D
 
     private void BuildPlaceable(EntityInstance entity, BlueprintDefinition blueprint)
     {
+        var displayName = GetOverride(entity, "runtime.displayName") ?? blueprint.DisplayName;
         if (entity.Tags.Contains("pillar", StringComparer.Ordinal))
         {
-            CreatePillar(entity, blueprint.DisplayName);
+            CreatePillar(entity, displayName);
             return;
         }
 
         var isFloor = entity.Tags.Contains("floor", StringComparer.Ordinal);
         CreateBox(
             entity,
-            blueprint.DisplayName,
+            displayName,
             isFloor ? new Color("282638") : new Color("443b51"));
     }
 
     private void BuildCreature(EntityInstance entity, BlueprintDefinition blueprint)
     {
+        if (entity.Tags.Contains("flying-mount", StringComparer.Ordinal))
+        {
+            var mountDisplayName = GetOverride(entity, "runtime.displayName") ?? blueprint.DisplayName;
+            _flyingMount = CreateFlyingMount(entity, mountDisplayName);
+            return;
+        }
+
         if (entity.Tags.Contains("npc", StringComparer.Ordinal) || HasRuntimeRole(entity, "guide"))
         {
-            _npc = CreateCreature(entity, ProgressionDisplayName(blueprint), new Color("4ec9b0"), blueprint.CreaturePresentation);
-            _guideName = GetOverride(entity, "runtime.displayName") ?? blueprint.DisplayName;
+            var guideDisplayName = GetOverride(entity, "runtime.displayName") ?? ProgressionDisplayName(blueprint);
+            _npc = CreateCreature(entity, guideDisplayName, new Color("4ec9b0"), blueprint.CreaturePresentation);
+            _guideName = guideDisplayName;
             ConfigureCreatureFoundation(_npc, blueprint);
             ConfigureCreatureRoleBehavior(_npc, blueprint);
             ConfigureCreatureEvents(_npc, blueprint);
@@ -1252,15 +1739,16 @@ public partial class GameRoot : Node3D
         }
 
         var isBoss = entity.Tags.Contains("boss", StringComparer.Ordinal) || HasRuntimeRole(entity, "boss");
+        var hostileDisplayName = GetOverride(entity, "runtime.displayName") ?? ProgressionDisplayName(blueprint);
         var creature = CreateCreature(
             entity,
-            ProgressionDisplayName(blueprint),
+            hostileDisplayName,
             isBoss ? new Color("d34f4f") : new Color("d68a3a"),
             blueprint.CreaturePresentation);
         var profile = blueprint.Combat
             ?? throw new InvalidOperationException($"Hostile blueprint '{blueprint.Slug}' has no combat profile.");
         _hostiles.Add(creature, new CombatantState(entity.Id.ToString(), profile));
-        _hostileNames.Add(creature, blueprint.DisplayName);
+        _hostileNames.Add(creature, hostileDisplayName);
         _hostileBlueprints.Add(creature, blueprint);
         ConfigureCreatureFoundation(creature, blueprint);
         ConfigureCreatureRoleBehavior(creature, blueprint);
@@ -1284,6 +1772,9 @@ public partial class GameRoot : Node3D
         var player = new PlayerController { Name = "Player" };
         AddChild(player);
         player.GlobalPosition = EngineValueConverter.ToEngine(entity.Transform.Position);
+        player.ResetPhysicsInterpolation();
+        player.ConfigureFallRecovery(player.GlobalPosition,
+            _activeArea?.Kind == AreaKind.Interior ? 8 : 30);
         player.MovementCamera = _camera;
         if (_gameplayControls is not null) player.Configure(_gameplayControls);
 
@@ -1324,20 +1815,191 @@ public partial class GameRoot : Node3D
             body.SetMeta("forge_climb", true);
         }
         root.AddChild(body);
-        if (!TryAttachVisual(body, entity))
+        var hidden = bool.TryParse(GetOverride(entity, "visual.hidden"), out var hide) && hide;
+        var collisionProxy = hidden && entity.Tags.Contains("collision", StringComparer.Ordinal);
+        if (collisionProxy) root.Scale = Vector3.One;
+        var attachedVisual = !hidden && TryAttachVisual(body, entity);
+        if (!attachedVisual && !hidden)
         {
-            body.AddChild(new MeshInstance3D
+            var effectiveColor = Color.FromString(GetOverride(entity, "visual.color") ?? string.Empty, color);
+            var emission = bool.TryParse(GetOverride(entity, "visual.emission"), out var emit) && emit;
+            var assisted = entity.Tags.Contains("assistant-generated", StringComparer.Ordinal);
+            PrimitiveMesh mesh = GetOverride(entity, "visual.shape")?.ToLowerInvariant() switch
             {
-                Mesh = new BoxMesh { Size = Vector3.One },
-                MaterialOverride = CreateMaterial(color),
+                "sphere" => new SphereMesh { Radius = .5f, Height = 1 },
+                "cylinder" => new CylinderMesh { TopRadius = .5f, BottomRadius = .5f, Height = 1 },
+                "cone" => new CylinderMesh { TopRadius = .05f, BottomRadius = .55f, Height = 1 },
+                _ => new BoxMesh { Size = Vector3.One },
+            };
+            if (assisted)
+            {
+                BuildAssistedLandmark(root, body, entity);
+            }
+            else
+            {
+                body.AddChild(new MeshInstance3D
+                {
+                    Mesh = mesh,
+                    MaterialOverride = CreateMaterial(effectiveColor, emission),
+                });
+            }
+        }
+        if (entity.Tags.Contains("light", StringComparer.Ordinal))
+        {
+            var lightColor = Color.FromString(GetOverride(entity, "visual.color") ?? string.Empty,
+                new Color("ffad67"));
+            root.AddChild(new OmniLight3D
+            {
+                Position = new Vector3(0, 1.35f, 0),
+                LightColor = lightColor,
+                LightEnergy = 2.6f,
+                OmniRange = 10,
+                ShadowEnabled = false,
             });
         }
-        body.AddChild(new CollisionShape3D
+        // A visible walkable floor must remain physical even when an authored decorative
+        // tag also marks its mesh as nonblocking. Without this precedence the detailed
+        // inn floor renders correctly but the player falls through it on the first frame.
+        var requiresFloorCollision = entity.Tags.Contains("floor", StringComparer.Ordinal) &&
+                                     _interiorWalkableBounds is null;
+        if (requiresFloorCollision || !entity.Tags.Contains("nonblocking", StringComparer.Ordinal))
         {
-            Shape = new BoxShape3D { Size = Vector3.One },
-        });
-        _collisionCount++;
+            if (collisionProxy)
+            {
+                var authoredSize = EngineValueConverter.ToEngine(entity.Transform.Scale).Abs();
+                body.AddChild(new CollisionShape3D
+                {
+                    Name = "AuthoredCollisionProxy",
+                    Shape = new BoxShape3D { Size = authoredSize },
+                });
+            }
+            else
+            {
+                var visual = attachedVisual ? body.GetNodeOrNull<Node3D>("AuthoredVisual") : null;
+                body.AddChild(CreateVisualCollision(visual));
+            }
+            _collisionCount++;
+        }
         return root;
+    }
+
+    private static CollisionShape3D CreateVisualCollision(Node3D? visual)
+    {
+        if (visual is null)
+            return new CollisionShape3D { Shape = new BoxShape3D { Size = Vector3.One } };
+
+        var hasBounds = false;
+        var minimum = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
+        var maximum = new Vector3(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity);
+        Accumulate(visual, Transform3D.Identity);
+        if (!hasBounds)
+            return new CollisionShape3D { Shape = new BoxShape3D { Size = Vector3.One } };
+
+        var size = maximum - minimum;
+        size = new Vector3(MathF.Max(size.X, .15f), MathF.Max(size.Y, .15f), MathF.Max(size.Z, .15f));
+        return new CollisionShape3D
+        {
+            Position = (minimum + maximum) * .5f,
+            Shape = new BoxShape3D { Size = size },
+        };
+
+        void Accumulate(Node node, Transform3D parentTransform)
+        {
+            var transform = node is Node3D node3D ? parentTransform * node3D.Transform : parentTransform;
+            if (node is MeshInstance3D { Mesh: not null } mesh)
+            {
+                var bounds = mesh.GetAabb();
+                for (var x = 0; x <= 1; x++)
+                    for (var y = 0; y <= 1; y++)
+                        for (var z = 0; z <= 1; z++)
+                        {
+                            var point = transform * (bounds.Position + new Vector3(
+                                bounds.Size.X * x,
+                                bounds.Size.Y * y,
+                                bounds.Size.Z * z));
+                            minimum = new Vector3(
+                                MathF.Min(minimum.X, point.X),
+                                MathF.Min(minimum.Y, point.Y),
+                                MathF.Min(minimum.Z, point.Z));
+                            maximum = new Vector3(
+                                MathF.Max(maximum.X, point.X),
+                                MathF.Max(maximum.Y, point.Y),
+                                MathF.Max(maximum.Z, point.Z));
+                            hasBounds = true;
+                        }
+            }
+
+            foreach (var child in node.GetChildren()) Accumulate(child, transform);
+        }
+    }
+
+    private void BuildAssistedLandmark(Node3D root, Node3D body, EntityInstance entity)
+    {
+        var semantic = new[] { "service", "objective", "social", "exploration", "rest", "encounter" }
+            .FirstOrDefault(tag => entity.Tags.Contains(tag, StringComparer.Ordinal)) ?? "exploration";
+        var primary = semantic switch
+        {
+            "service" => new Color("4db6ac"),
+            "objective" => new Color("d5b35c"),
+            "social" => new Color("9b633f"),
+            "rest" => new Color("5576a8"),
+            "encounter" => new Color("b74a3d"),
+            _ => new Color("6f7884"),
+        };
+        switch (semantic)
+        {
+            case "service":
+                Add(new CylinderMesh { TopRadius = 1.25f, BottomRadius = 1.45f, Height = .45f }, new(0, .22f, 0), primary.Darkened(.25f));
+                Add(new CylinderMesh { TopRadius = .35f, BottomRadius = .5f, Height = 2.8f }, new(0, 1.55f, 0), primary);
+                Add(new SphereMesh { Radius = .48f, Height = .96f }, new(0, 3.1f, 0), primary.Lightened(.32f), true);
+                Light(primary.Lightened(.25f), 8, 2.2f);
+                break;
+            case "objective":
+                Add(new BoxMesh { Size = new Vector3(2.4f, .5f, 2.4f) }, new(0, .25f, 0), primary.Darkened(.25f));
+                Add(new CylinderMesh { TopRadius = .16f, BottomRadius = .72f, Height = 4.4f }, new(0, 2.45f, 0), primary);
+                Add(new SphereMesh { Radius = .32f, Height = .64f }, new(0, 4.7f, 0), primary.Lightened(.35f), true);
+                break;
+            case "social":
+                foreach (var (x, z) in new[] { (-1.45f, -1.25f), (1.45f, -1.25f), (-1.45f, 1.25f), (1.45f, 1.25f) })
+                    Add(new CylinderMesh { TopRadius = .1f, BottomRadius = .13f, Height = 2.5f }, new(x, 1.25f, z), primary.Darkened(.22f));
+                Add(new BoxMesh { Size = new Vector3(3.6f, .25f, 3.2f) }, new(0, 2.58f, 0), primary.Lightened(.12f));
+                Add(new CylinderMesh { TopRadius = .38f, BottomRadius = .55f, Height = .7f }, new(0, .38f, 0), new Color("e4843f"), true);
+                Light(new Color("ffb45f"), 7, 1.8f);
+                break;
+            case "rest":
+                Add(new BoxMesh { Size = new Vector3(3.8f, .45f, 2.4f) }, new(0, .32f, 0), primary.Darkened(.2f));
+                Add(new BoxMesh { Size = new Vector3(3.4f, .25f, 2f) }, new(0, .62f, 0), primary.Lightened(.15f));
+                Add(new BoxMesh { Size = new Vector3(1.2f, .35f, 2f) }, new(-1.05f, .86f, 0), new Color("d7d0bd"));
+                break;
+            case "encounter":
+                Add(new CylinderMesh { TopRadius = .75f, BottomRadius = 1.05f, Height = 1.1f }, new(0, .55f, 0), primary.Darkened(.3f));
+                Add(new SphereMesh { Radius = .62f, Height = 1.15f }, new(0, 1.35f, 0), new Color("ff6538"), true);
+                Light(new Color("ff6a3d"), 8, 2.8f);
+                break;
+            default:
+                Add(new SphereMesh { Radius = 1.15f, Height = 2f }, new(-.65f, .75f, .15f), primary);
+                Add(new SphereMesh { Radius = .8f, Height = 1.5f }, new(.75f, .48f, -.35f), primary.Lightened(.08f));
+                Add(new SphereMesh { Radius = .58f, Height = 1.05f }, new(.4f, .35f, .8f), primary.Darkened(.1f));
+                break;
+        }
+        CreateLabel(root, semantic.ToUpperInvariant(), primary.Lightened(.38f), 3.8f);
+
+        void Add(PrimitiveMesh part, Vector3 position, Color partColor, bool glow = false) =>
+            body.AddChild(new MeshInstance3D
+            {
+                Mesh = part,
+                Position = position,
+                MaterialOverride = CreateMaterial(partColor, glow),
+            });
+
+        void Light(Color lightColor, float range, float energy) => root.AddChild(new OmniLight3D
+        {
+            Position = new Vector3(0, 2.5f, 0),
+            LightColor = lightColor,
+            LightEnergy = energy,
+            OmniRange = range,
+            ShadowEnabled = false,
+        });
     }
 
     private Node3D CreatePillar(EntityInstance entity, string displayName)
@@ -1353,10 +2015,12 @@ public partial class GameRoot : Node3D
         root.AddChild(body);
         if (!TryAttachVisual(body, entity))
         {
+            var effectiveColor = Color.FromString(GetOverride(entity, "visual.color") ?? string.Empty,
+                new Color("665565"));
             body.AddChild(new MeshInstance3D
             {
                 Mesh = new CylinderMesh { TopRadius = 0.5f, BottomRadius = 0.5f, Height = 1 },
-                MaterialOverride = CreateMaterial(new Color("665565")),
+                MaterialOverride = CreateMaterial(effectiveColor),
             });
         }
         body.AddChild(new CollisionShape3D
@@ -1379,7 +2043,12 @@ public partial class GameRoot : Node3D
             Transform = EngineValueConverter.ToEngine(entity.Transform),
         };
         AddChild(root);
-        if (!TryAttachVisual(root, entity))
+        var species = GetOverride(entity, "runtime.species");
+        if (!string.IsNullOrWhiteSpace(species))
+        {
+            BuildProceduralCreatureVisual(root, species, color);
+        }
+        else if (!TryAttachVisual(root, entity))
         {
             root.AddChild(new MeshInstance3D
             {
@@ -1390,6 +2059,83 @@ public partial class GameRoot : Node3D
         AddPresentationProxies(root, presentation);
         CreateLabel(root, displayName, Colors.White, 1.35f);
         return root;
+    }
+
+    private RuntimeFlyingMount CreateFlyingMount(EntityInstance entity, string displayName)
+    {
+        var mount = new RuntimeFlyingMount
+        {
+            Name = SafeNodeName(displayName),
+            Transform = EngineValueConverter.ToEngine(entity.Transform),
+        };
+        AddChild(mount);
+        if (!TryAttachVisual(mount, entity))
+            throw new InvalidOperationException($"Flying mount '{displayName}' has no governed animated visual.");
+        mount.AddChild(new CollisionShape3D
+        {
+            Name = "MountCollision",
+            Position = new Vector3(0, .85f, 0),
+            Shape = new CapsuleShape3D { Radius = .8f, Height = 1.8f },
+        });
+        mount.Configure(_activeAreaHorizontalBounds ?? new Rect2(-64, -64, 128, 128), _camera);
+        var prompt = new Label3D
+        {
+            Name = "MountPrompt",
+            Text = $"{displayName} · E POUR MONTER",
+            Position = new Vector3(0, 2.45f, 0),
+            Modulate = new Color("d8e9cf"),
+            Billboard = BaseMaterial3D.BillboardModeEnum.Enabled,
+            FontSize = 32,
+            OutlineSize = 8,
+        };
+        mount.AddChild(prompt);
+        mount.ConfigureInteractionPrompt(prompt);
+        _collisionCount++;
+        return mount;
+    }
+
+    private void BuildProceduralCreatureVisual(Node3D root, string species, Color fallback)
+    {
+        var gnoll = string.Equals(species, "gnoll", StringComparison.OrdinalIgnoreCase);
+        var skin = gnoll ? new Color("8f7550") : new Color("71934a");
+        var cloth = gnoll ? new Color("49352c") : new Color("553c2e");
+        Add(new CapsuleMesh { Radius = gnoll ? .42f : .34f, Height = gnoll ? 1.25f : 1.05f },
+            new Vector3(0, .72f, 0), Vector3.Zero, skin);
+        Add(new SphereMesh { Radius = gnoll ? .34f : .3f, Height = gnoll ? .68f : .6f },
+            new Vector3(0, gnoll ? 1.48f : 1.3f, 0), Vector3.Zero, skin);
+        Add(new BoxMesh { Size = new Vector3(gnoll ? .32f : .22f, .18f, gnoll ? .48f : .28f) },
+            new Vector3(0, gnoll ? 1.42f : 1.28f, -.3f), Vector3.Zero, skin.Lightened(.08f));
+        Add(new CylinderMesh { TopRadius = .025f, BottomRadius = gnoll ? .16f : .2f, Height = .46f },
+            new Vector3(-.28f, gnoll ? 1.68f : 1.5f, 0), new Vector3(0, 0, gnoll ? -22 : -48), skin);
+        Add(new CylinderMesh { TopRadius = .025f, BottomRadius = gnoll ? .16f : .2f, Height = .46f },
+            new Vector3(.28f, gnoll ? 1.68f : 1.5f, 0), new Vector3(0, 0, gnoll ? 22 : 48), skin);
+        Add(new BoxMesh { Size = new Vector3(gnoll ? .82f : .68f, .48f, .42f) },
+            new Vector3(0, .85f, .02f), Vector3.Zero, cloth);
+        foreach (var x in new[] { -.24f, .24f })
+        {
+            Add(new CylinderMesh { TopRadius = .11f, BottomRadius = .13f, Height = .72f },
+                new Vector3(x, .18f, 0), Vector3.Zero, skin.Darkened(.08f));
+            Add(new CylinderMesh { TopRadius = .09f, BottomRadius = .12f, Height = .72f },
+                new Vector3(x * 1.7f, .78f, 0), new Vector3(0, 0, x < 0 ? -22 : 22), skin);
+        }
+        if (gnoll)
+        {
+            Add(new CylinderMesh { TopRadius = .04f, BottomRadius = .12f, Height = .9f },
+                new Vector3(0, .65f, .42f), new Vector3(62, 0, 0), skin.Darkened(.12f));
+        }
+        Add(new CylinderMesh { TopRadius = .055f, BottomRadius = .07f, Height = gnoll ? 1.5f : 1.05f },
+            new Vector3(.62f, .72f, 0), new Vector3(0, 0, 12), fallback.Darkened(.28f));
+
+        void Add(PrimitiveMesh mesh, Vector3 position, Vector3 rotation, Color partColor)
+        {
+            root.AddChild(new MeshInstance3D
+            {
+                Mesh = mesh,
+                Position = position,
+                RotationDegrees = rotation,
+                MaterialOverride = CreateMaterial(partColor),
+            });
+        }
     }
 
     private static Color PresentationColor(CreaturePresentationProfile? presentation, Color fallback)
@@ -1487,20 +2233,49 @@ public partial class GameRoot : Node3D
         return root;
     }
 
-    private Node3D CreateExit(EntityInstance entity)
+    private Node3D CreateExit(EntityInstance entity, bool isPortal)
     {
+        var displayName = GetOverride(entity, "runtime.displayName") ?? "Passage";
         var root = new Node3D
         {
-            Name = "CryptExit",
+            Name = SafeNodeName(displayName),
             Transform = EngineValueConverter.ToEngine(entity.Transform),
         };
+        root.AddToGroup("forge_exit_marker");
         AddChild(root);
+        if (isPortal)
+        {
+            var innDoor = string.Equals(_activeArea?.Slug, "ember-inn", StringComparison.Ordinal);
+            var clickTarget = new Area3D
+            {
+                Name = "PortalClickTarget",
+                Position = innDoor ? new Vector3(-2, 2, 1) : new Vector3(0, 1.5f, 0),
+                CollisionLayer = 1,
+                CollisionMask = 1,
+                InputRayPickable = true,
+                Monitoring = false,
+                Monitorable = true,
+            };
+            clickTarget.AddToGroup("forge_portal_click_target");
+            clickTarget.AddChild(new CollisionShape3D
+            {
+                Shape = new BoxShape3D
+                {
+                    Size = innDoor ? new Vector3(6, 4.2f, 1.6f) : new Vector3(3, 3, 3),
+                },
+            });
+            clickTarget.MouseEntered += () => Input.SetDefaultCursorShape(Input.CursorShape.PointingHand);
+            clickTarget.MouseExited += () => Input.SetDefaultCursorShape(Input.CursorShape.Arrow);
+            root.AddChild(clickTarget);
+            if (innDoor) return root;
+        }
         TryAttachVisual(root, entity);
         root.AddChild(new MeshInstance3D
         {
             Mesh = new CylinderMesh { TopRadius = 1, BottomRadius = 1, Height = 0.1f },
             MaterialOverride = CreateMaterial(new Color("55efc4"), emission: true),
         });
+        CreateLabel(root, displayName, new Color("b9fff0"), 1.1f);
         return root;
     }
 
@@ -1539,6 +2314,21 @@ public partial class GameRoot : Node3D
             ShadowEnabled = environmentProfile.Lighting.Shadows,
         };
         AddChild(sun);
+
+        if (environmentProfile.Tags.Contains("indoor", StringComparer.OrdinalIgnoreCase))
+        {
+            foreach (var position in new[] { new Vector3(-10, 5.5f, -6), new Vector3(10, 5.5f, 6) })
+            {
+                AddChild(new OmniLight3D
+                {
+                    Position = position,
+                    OmniRange = 26,
+                    LightColor = new Color("ffd2a1"),
+                    LightEnergy = 3.4f,
+                    ShadowEnabled = false,
+                });
+            }
+        }
 
         if (includeCryptAtmosphere)
         {
@@ -1609,7 +2399,8 @@ public partial class GameRoot : Node3D
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
         var terrain = GodotTerrainAdapter.Build(
             profile,
-            _modelLibrary is null ? null : _modelLibrary.ResolveScatterMesh);
+            _modelLibrary is null ? null : _modelLibrary.ResolveScatterMesh,
+            _environmentProfile?.Water.Bodies);
         _terrainVertices = terrain.Vertices;
         _terrainTriangles = terrain.Triangles;
         _terrainSectors = terrain.TerrainSectors;
@@ -3044,6 +3835,7 @@ public partial class GameRoot : Node3D
         AddChild(_areaEffectIndicator);
         _areaEffectIndicator.ShowPreview(AreaEffectShape.Circle, new Vector3(0, 0.05f, 0), Vector3.Forward,
             8, 2.5f, 2, valid: true);
+        _areaEffectIndicator.HidePreview();
 
         var compiler = new ForgeScriptCompilerService(_forgeScriptCache,
             new ForgeScriptCompilerOptions(tooling.Compiler.Incremental, tooling.Compiler.StableDiagnostics,
@@ -3501,6 +4293,22 @@ public partial class GameRoot : Node3D
             visual.RotateY(Mathf.Pi);
         }
         parent.AddChild(visual);
+        if (parent is RuntimeFlyingMount)
+        {
+            EnhanceFlyingMountMaterials(visual);
+        }
+        if (entity.Tags.Contains("wall", StringComparer.Ordinal) &&
+            TryMeasureNodeBounds(visual, out var wallMinimum, out var wallMaximum))
+        {
+            var center = (wallMinimum + wallMaximum) * .5f;
+            visual.Position -= new Vector3(center.X, 0, center.Z);
+        }
+        if (applyPlayerVisualTransform &&
+            TryMeasureNodeBounds(visual, out var playerMinimum, out _))
+        {
+            const float capsuleBottom = -.9f;
+            visual.Position += Vector3.Up * (capsuleBottom - playerMinimum.Y);
+        }
         _runtimeModelInstances++;
         var animationProfile = GetOverride(entity, RuntimeAnimationProfileProperty);
         var animation = animationProfile switch
@@ -3514,6 +4322,14 @@ public partial class GameRoot : Node3D
                 attack: GetOverride(entity, "runtime.animationAttack") ?? "1H_Melee_Attack_Slice_Horizontal",
                 hit: GetOverride(entity, "runtime.animationHit") ?? "Hit_A",
                 death: GetOverride(entity, "runtime.animationDeath") ?? "Death_A"),
+            "quaternius-dragon" => GodotAssetAnimationController.Configure(
+                visual,
+                idle: GetOverride(entity, "runtime.animationIdle") ?? "Dragon_Flying",
+                run: GetOverride(entity, "runtime.animationRun") ?? "Dragon_Flying",
+                jump: GetOverride(entity, "runtime.animationJump") ?? "Dragon_Flying",
+                attack: GetOverride(entity, "runtime.animationAttack") ?? "Dragon_Attack",
+                hit: GetOverride(entity, "runtime.animationHit") ?? "Dragon_Hit",
+                death: GetOverride(entity, "runtime.animationDeath") ?? "Dragon_Death"),
             _ => null,
         };
         if (animation is not null)
@@ -3529,8 +4345,38 @@ public partial class GameRoot : Node3D
             {
                 player.ConfigureAnimations(animation);
             }
+            if (parent is RuntimeFlyingMount mount)
+            {
+                mount.ConfigureAnimations(animation);
+            }
         }
         return true;
+    }
+
+    private static void EnhanceFlyingMountMaterials(Node3D visual)
+    {
+        foreach (var node in visual.FindChildren("*", "MeshInstance3D", recursive: true, owned: false))
+        {
+            if (node is not MeshInstance3D mesh || mesh.Mesh is null) continue;
+            for (var surface = 0; surface < mesh.Mesh.GetSurfaceCount(); surface++)
+            {
+                if (mesh.GetActiveMaterial(surface) is not BaseMaterial3D source) continue;
+                var material = (BaseMaterial3D)source.Duplicate(true);
+                var palette = source.ResourceName.ToLowerInvariant() switch
+                {
+                    "main" => new Color("bd6570"),
+                    "wings" => new Color("896176"),
+                    "belly" => new Color("d6a62d"),
+                    "claws" => new Color("302d39"),
+                    "eyes" => new Color("d9c69a"),
+                    _ => source.AlbedoColor,
+                };
+                material.AlbedoColor = new Color(palette.R, palette.G, palette.B, 1);
+                material.Metallic = .04f;
+                material.Roughness = .72f;
+                mesh.SetSurfaceOverrideMaterial(surface, material);
+            }
+        }
     }
 
     private static bool HasRuntimeRole(EntityInstance entity, string role) =>
@@ -4178,19 +5024,43 @@ public partial class GameRoot : Node3D
         _hud = new RuntimeHud
         {
             ModuleTitle = _moduleTitle,
+            AreaTitle = _activeArea?.DisplayName ?? _moduleTitle,
+            InteractionLabel = string.IsNullOrWhiteSpace(_guideName) ? "Interagir" : $"Parler à {_guideName}",
             CombatEnabled = _playerCombatant is not null,
             Accessibility = _runtimeExtensions?.ModernTooling.QualityAssurance.Accessibility,
             PartyHud = _worldFeatureCatalog?.Companions.FirstOrDefault()?.Experience?.Hud,
         };
+        _hud.PauseRequested += ToggleTacticalPause;
+        _hud.JournalRequested += () => ToggleRpgMenu(RuntimeRpgMenuPage.Journal);
         AddChild(_hud);
         _hud.UpdatePartyStatus("Elyra", 24, 30,
             new Dictionary<string, double> { ["health"] = 24, ["focus"] = 4 }, ["prête"]);
         _actionBar = new RuntimeActionBar { CombatEnabled = _playerCombatant is not null };
         _actionBar.CommandRequested += HandleActionBarCommand;
         AddChild(_actionBar);
+        _moduleMap = new RuntimeModuleMap();
+        _moduleMap.Configure(_loadedProject!, _activeArea!, _player!);
+        _moduleMap.GlobalMapVisibilityChanged += _ => SyncPlayerInterfaceLock();
+        _moduleMap.InventoryRequested += () => ShowRpgMenu(RuntimeRpgMenuPage.Inventory);
+        _moduleMap.CharacterRequested += () => ShowRpgMenu(RuntimeRpgMenuPage.Character);
+        _moduleMap.JournalRequested += () => ShowRpgMenu(RuntimeRpgMenuPage.Journal);
+        AddChild(_moduleMap);
+        _rpgMenu = new RuntimeRpgMenu
+        {
+            ModuleTitle = _moduleTitle,
+            AreaTitle = _activeArea?.DisplayName ?? _moduleTitle,
+        };
+        _rpgMenu.MapRequested += OpenModuleMapFromMenu;
+        _rpgMenu.Closed += SyncPlayerInterfaceLock;
+        AddChild(_rpgMenu);
+        _rpgMenu.UpdateContext("Les braises oubliées", _message);
+        _dialogueOverlay = new RuntimeDialogueOverlay();
+        _dialogueOverlay.Closed += SyncPlayerInterfaceLock;
+        AddChild(_dialogueOverlay);
         _actionWheel = new RuntimeActionWheel();
         if (_gameplayControls is not null) _actionWheel.Configure(_gameplayControls);
         _actionWheel.CommandRequested += RequestGameplayCommand;
+        _actionWheel.WheelVisibilityChanged += _ => SyncPlayerInterfaceLock();
         AddChild(_actionWheel);
         if (_runtimeExtensions is not null && _runtimeExtensions.UiDocuments.Count > 0)
         {
@@ -4213,6 +5083,21 @@ public partial class GameRoot : Node3D
                 LoadRuntimeSave(_quickSavePath!);
                 UpdateHud();
                 break;
+            case "module_map":
+                ToggleModuleMap();
+                break;
+            case "inventory":
+                ToggleRpgMenu(RuntimeRpgMenuPage.Inventory);
+                break;
+            case "character":
+                ToggleRpgMenu(RuntimeRpgMenuPage.Character);
+                break;
+            case "journal":
+                ToggleRpgMenu(RuntimeRpgMenuPage.Journal);
+                break;
+            case "tactical_pause":
+                ToggleTacticalPause();
+                break;
             default:
                 RequestGameplayCommand(command);
                 break;
@@ -4229,9 +5114,10 @@ public partial class GameRoot : Node3D
 
     private void InteractWithNearest()
     {
-        var candidates = new[] { _npc, _keyItem, _door }
+        var candidates = new Node3D?[] { _flyingMount, _npc, _keyItem, _door }
             .Where(node => node is not null && GodotObject.IsInstanceValid(node))
             .Cast<Node3D>()
+            .Concat(_portalNodes.Keys.Where(GodotObject.IsInstanceValid))
             .Concat(_corpseLoot.Keys.Where(GodotObject.IsInstanceValid))
             .OrderBy(node => _player!.GlobalPosition.DistanceTo(node.GlobalPosition))
             .ToArray();
@@ -4248,8 +5134,82 @@ public partial class GameRoot : Node3D
         InteractWith(nearest);
     }
 
+    private bool TryInteractWithWorldPointer(Vector2 pointerPosition)
+    {
+        if (_camera is null || _player is null || _portalTransitionInProgress ||
+            _moduleMap?.GlobalMapVisible == true || _rpgMenu?.IsOpen == true || _dialogueOverlay?.IsOpen == true)
+            return false;
+
+        var origin = _camera.ProjectRayOrigin(pointerPosition);
+        var query = PhysicsRayQueryParameters3D.Create(origin,
+            origin + (_camera.ProjectRayNormal(pointerPosition) * 250));
+        query.Exclude = [_player.GetRid()];
+        query.CollideWithAreas = true;
+        query.CollideWithBodies = true;
+        var hit = GetWorld3D().DirectSpaceState.IntersectRay(query);
+        if (!hit.TryGetValue("collider", out var collider) ||
+            collider.AsGodotObject() is not Node colliderNode)
+            return false;
+
+        Node? current = colliderNode;
+        Node3D? interactiveNode = null;
+        while (current is not null)
+        {
+            if (current is Node3D node3D &&
+                (_portalNodes.ContainsKey(node3D) || node3D == _flyingMount))
+            {
+                interactiveNode = node3D;
+                break;
+            }
+            current = current.GetParent();
+        }
+        if (interactiveNode is null) return false;
+
+        var interactionDistance = _gameplayControls?.Foundation.Interaction.FocusDistance ?? InteractionDistance;
+        if (!IsNear(interactiveNode, interactionDistance))
+        {
+            if (interactiveNode == _flyingMount)
+            {
+                _message = "Approchez-vous de Brumaille pour le monter.";
+                UpdateHud();
+                return true;
+            }
+            _message = "Approchez-vous de la porte pour l’ouvrir.";
+            UpdateHud();
+            return true;
+        }
+
+        Input.SetDefaultCursorShape(Input.CursorShape.Arrow);
+        InteractWith(interactiveNode);
+        return true;
+    }
+
     private void InteractWith(Node3D target)
     {
+        if (target == _flyingMount && _player is not null)
+        {
+            if (_flyingMount.IsMounted)
+            {
+                _message = _flyingMount.TryDismount()
+                    ? "Vous descendez de Brumaille."
+                    : "Descendez près du sol avec Ctrl avant de quitter la selle.";
+            }
+            else
+            {
+                _flyingMount.Mount(_player);
+                _message = "Brumaille prend son envol · ZQSD/WASD diriger · Espace monter · Ctrl descendre · E quitter la selle.";
+            }
+            SyncPlayerInterfaceLock();
+            UpdateHud();
+            return;
+        }
+
+        if (_portalNodes.TryGetValue(target, out var portal))
+        {
+            _ = TransitionThroughPortalAsync(portal);
+            return;
+        }
+
         if (_corpseLoot.Remove(target, out var contents))
         {
             if (_corpseCreatureEvents.Remove(target, out var creatureEvents))
@@ -4384,6 +5344,213 @@ public partial class GameRoot : Node3D
         }
 
         UpdateHud();
+    }
+
+    private async Task TransitionThroughPortalAsync(PortalLink portal)
+    {
+        if (_portalTransitionInProgress || _loadedProject is null || _activeArea is null || _lifecycle is null)
+            return;
+        _portalTransitionInProgress = true;
+        try
+        {
+            var travel = PortalLinkRuntimeService.Resolve(_loadedProject, _activeArea.Id, portal.Id,
+                Vector3Value.Zero, 0);
+            var destination = _loadedProject.Areas.Single(area => area.Id == travel.DestinationAreaId);
+            EnsureLifecycle(_lifecycle.Transition(destination.Id, null, portal.Id,
+                RuntimeLifecycleCause.PortalTransition), "portal_transition");
+            _message = $"Voyage vers {destination.DisplayName}…";
+            UpdateHud();
+            s_pendingPortalSpawn = portal.DestinationEntityId;
+            s_pendingPortalLabel = destination.DisplayName;
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            var error = GetTree().ReloadCurrentScene();
+            if (error != Error.Ok)
+            {
+                s_pendingPortalSpawn = null;
+                s_pendingPortalLabel = null;
+                throw new InvalidOperationException($"Scene reload failed during portal travel: {error}.");
+            }
+        }
+        catch
+        {
+            _portalTransitionInProgress = false;
+            throw;
+        }
+    }
+
+    private async Task RunInnUxSmokeTestAsync(ProjectDefinition project)
+    {
+        var activeArea = _activeArea ?? throw new InvalidOperationException(
+            "The inn UX smoke test requires an active area.");
+        if (s_innUxSmokeStep == 1)
+        {
+            AssertSmoke(activeArea.Slug == "clairval",
+                $"Clicking the inn door loaded '{activeArea.Slug}' instead of Clairval.");
+            s_innUxSmokeStep = 0;
+            GD.Print("OPENRPG_FORGE_INN_DOOR_CLICK_PASS source=ember-inn destination=clairval " +
+                     "input=left-mouse ui_button=absent transition=runtime-reload");
+            GetTree().Quit(0);
+            return;
+        }
+
+        AssertSmoke(s_innUxSmokeStep == 0 && activeArea.Slug == "ember-inn" &&
+                    project.Module.EntryAreaId == activeArea.Id,
+            "The inn UX smoke test must begin at the module entry inside the Ember Inn.");
+        var player = _player ?? throw new InvalidOperationException("The inn UX smoke test has no player.");
+        var camera = _camera ?? throw new InvalidOperationException("The inn UX smoke test has no camera.");
+        var start = player.GlobalPosition;
+        for (var frame = 0; frame < 20; frame++)
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+
+        _cameraRig.ResetMotionDiagnostics();
+        Input.ActionPress("move_right");
+        try
+        {
+            for (var frame = 0; frame < 60; frame++)
+                await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+        }
+        finally
+        {
+            Input.ActionRelease("move_right");
+        }
+        for (var frame = 0; frame < 8; frame++)
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+
+        var travelled = new Vector2(player.GlobalPosition.X - start.X, player.GlobalPosition.Z - start.Z).Length();
+        AssertSmoke(travelled >= 3,
+            $"The inn camera motion test moved only {travelled:0.###} metres.");
+        AssertSmoke(_cameraRig.MaximumVerticalFocusStep <= .04f,
+            $"The camera focus still bounces vertically while walking " +
+            $"(vertical={_cameraRig.MaximumVerticalFocusStep:0.###}).");
+        GD.Print($"OPENRPG_FORGE_CAMERA_MOTION_STABLE_PASS area=ember-inn distance={travelled:0.###} " +
+                 $"max_focus_step={_cameraRig.MaximumFocusStep:0.###} " +
+                 $"max_step_delta={_cameraRig.MaximumFocusStepDelta:0.###} " +
+                 $"max_vertical_step={_cameraRig.MaximumVerticalFocusStep:0.###} " +
+                 "focus=physics-interpolated-render-smoothed wall_avoidance=enabled");
+
+        player.GlobalPosition = start;
+        player.Velocity = Vector3.Zero;
+        for (var frame = 0; frame < 4; frame++)
+            await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+        _cameraRig.Snap(camera, player.GlobalPosition, ConstrainCameraPosition);
+        AssertSmoke(_hud?.InteractionPromptVisible == false,
+            "The obsolete central inn exit prompt is still visible.");
+
+        var portalNode = _portalNodes.Keys.Single();
+        var clickTarget = portalNode.GetNode<Area3D>("PortalClickTarget");
+        AssertSmoke(!camera.IsPositionBehind(clickTarget.GlobalPosition),
+            "The authored inn door click target is behind the initial camera.");
+        var pointer = camera.UnprojectPosition(clickTarget.GlobalPosition);
+        s_innUxSmokeStep = 1;
+        var clicked = TryInteractWithWorldPointer(pointer);
+        AssertSmoke(clicked && _portalTransitionInProgress,
+            "A left click on the authored inn door did not begin the portal transition.");
+    }
+
+    private async Task RunFlyingMountSmokeTestAsync()
+    {
+        var activeArea = _activeArea ?? throw new InvalidOperationException(
+            "The flying-mount smoke test requires an active area.");
+        var mount = _flyingMount ?? throw new InvalidOperationException(
+            "The flying-mount smoke test did not reconstruct Brumaille.");
+        var player = _player ?? throw new InvalidOperationException(
+            "The flying-mount smoke test did not reconstruct the player.");
+        var bounds = _activeAreaHorizontalBounds ?? throw new InvalidOperationException(
+            "The flying-mount smoke test has no safe horizontal bounds.");
+        AssertSmoke(activeArea.Slug == "forgotten-forest",
+            $"The flying-mount smoke test loaded '{activeArea.Slug}' instead of forgotten-forest.");
+
+        mount.Mount(player);
+        AssertSmoke(mount.IsMounted && player.Visible && player.ControlLocked &&
+                    player.CollisionLayer == 0 && player.CollisionMask == 0,
+            "Mounting did not transfer control from the player to Brumaille.");
+        var travelStart = mount.GlobalPosition;
+        try
+        {
+            Input.ActionPress("move_forward");
+            Input.ActionPress("jump");
+            for (var frame = 0; frame < 55; frame++)
+                await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+        }
+        finally
+        {
+            Input.ActionRelease("move_forward");
+            Input.ActionRelease("jump");
+        }
+
+        var travelled = travelStart.DistanceTo(mount.GlobalPosition);
+        AssertSmoke(travelled >= 4f && mount.DistanceTravelled >= travelled &&
+                    mount.MaximumHeightAboveGround >= 3f,
+            $"Brumaille did not achieve a stable takeoff (travel={travelled:0.###}, " +
+            $"altitude={mount.MaximumHeightAboveGround:0.###}).");
+
+        mount.GlobalPosition = new Vector3(bounds.End.X + 80f, mount.GlobalPosition.Y,
+            bounds.End.Y + 80f);
+        await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+        var clampedPoint = new Vector2(mount.GlobalPosition.X, mount.GlobalPosition.Z);
+        AssertSmoke(bounds.Grow(-2.5f).HasPoint(clampedPoint),
+            $"The flying mount escaped the authored map bounds at {clampedPoint}.");
+
+        var dismounted = false;
+        try
+        {
+            Input.ActionPress("dive");
+            for (var frame = 0; frame < 300 && !dismounted; frame++)
+            {
+                await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+                dismounted = mount.TryDismount();
+            }
+        }
+        finally
+        {
+            Input.ActionRelease("dive");
+        }
+        AssertSmoke(dismounted && !mount.IsMounted && player.Visible && !player.ControlLocked,
+            "A safe near-ground dismount did not restore the player.");
+        var boundaryCollision = player.MoveAndCollide(Vector3.Right * 30f);
+        AssertSmoke(boundaryCollision is not null && player.GlobalPosition.X <= bounds.End.X,
+            $"The exterior collision shell allowed the player through the east map boundary " +
+            $"(x={player.GlobalPosition.X:0.###}, limit={bounds.End.X:0.###}).");
+        GD.Print($"OPENRPG_FORGE_FLYING_MOUNT_PASS area={activeArea.Slug} creature=brumaille " +
+                 $"distance={mount.DistanceTravelled:0.###} altitude={mount.MaximumHeightAboveGround:0.###} " +
+                 "bounds=clamped player_barrier=blocked dismount=safe controls=wasd-space-ctrl");
+        GetTree().Quit(0);
+    }
+
+    private async Task RunConnectedWorldTransitionSmokeTestAsync(ProjectDefinition project)
+    {
+        var route = new[]
+        {
+            "forgotten-forest", "clairval", "ember-inn", "clairval", "forgotten-forest",
+            "gnoll-fortress", "forgotten-forest", "amber-desert", "forgotten-forest",
+            "snow-pass", "forgotten-forest",
+        };
+        AssertSmoke(s_connectedWorldSmokeStep >= 0 && s_connectedWorldSmokeStep < route.Length,
+            "Connected-world smoke route state is invalid.");
+        var activeArea = _activeArea ?? throw new InvalidOperationException(
+            "Connected-world smoke requires an active area.");
+        var expectedSlug = route[s_connectedWorldSmokeStep];
+        AssertSmoke(activeArea.Slug == expectedSlug,
+            $"Connected-world smoke expected '{expectedSlug}' and loaded '{activeArea.Slug}'.");
+        AssertSmoke(activeArea.Portals.Count == _portalNodes.Count,
+            $"Area '{expectedSlug}' did not reconstruct all interactive portals.");
+        GD.Print($"OPENRPG_FORGE_CONNECTED_WORLD_STEP_PASS step={s_connectedWorldSmokeStep} " +
+                 $"area={expectedSlug} portals={_portalNodes.Count} entities={_builtEntityCount}");
+        if (s_connectedWorldSmokeStep == route.Length - 1)
+        {
+            s_connectedWorldSmokeStep = 0;
+            GD.Print("OPENRPG_FORGE_CONNECTED_WORLD_TRANSITIONS_PASS " +
+                     "route=forest>village>inn>village>forest>fortress>forest>desert>forest>snow>forest " +
+                     "areas=6 transitions=10 portals=runtime-reload");
+            GetTree().Quit(0);
+            return;
+        }
+
+        var destinationSlug = route[s_connectedWorldSmokeStep + 1];
+        var portal = activeArea.Portals.Single(candidate =>
+            project.Areas.Single(area => area.Id == candidate.DestinationAreaId).Slug == destinationSlug);
+        s_connectedWorldSmokeStep++;
+        await TransitionThroughPortalAsync(portal);
     }
 
     private void AttackNearestHostile()
@@ -4812,11 +5979,81 @@ public partial class GameRoot : Node3D
         _timeControlSession = decision.Session;
         if (_player is not null)
         {
-            _player.ControlLocked = IsTimeFrozen();
+            _player.ControlLocked = IsTimeFrozen() || _moduleMap?.GlobalMapVisible == true ||
+                                    _rpgMenu?.IsOpen == true || _dialogueOverlay?.IsOpen == true ||
+                                    _flyingMount?.IsMounted == true;
             _player.SimulationScale = _timeControlSession.State == RuntimeTimeState.SlowMotion
                 ? _timeControlSession.Scale
                 : 1;
         }
+        if (_flyingMount is not null)
+        {
+            _flyingMount.ControlLocked = IsTimeFrozen() || _moduleMap?.GlobalMapVisible == true ||
+                                         _rpgMenu?.IsOpen == true || _dialogueOverlay?.IsOpen == true;
+        }
+    }
+
+    private void ToggleModuleMap()
+    {
+        if (_moduleMap is null) return;
+        if (_actionWheel?.IsOpen == true) _actionWheel.Close();
+        if (_rpgMenu?.IsOpen == true) _rpgMenu.Close();
+        if (_dialogueOverlay?.IsOpen == true) _dialogueOverlay.Close();
+        _moduleMap.ToggleGlobalMap();
+        SyncPlayerInterfaceLock();
+        _message = _moduleMap.GlobalMapVisible
+            ? "Carte du module ouverte · M pour revenir au jeu."
+            : "Carte fermée.";
+        UpdateHud();
+    }
+
+    private void ToggleRpgMenu(RuntimeRpgMenuPage page)
+    {
+        if (_rpgMenu is null) return;
+        if (_rpgMenu.IsOpen && _rpgMenu.CurrentPage == page)
+        {
+            _rpgMenu.Close();
+            SyncPlayerInterfaceLock();
+            return;
+        }
+        ShowRpgMenu(page);
+    }
+
+    private void ShowRpgMenu(RuntimeRpgMenuPage page)
+    {
+        if (_rpgMenu is null) return;
+        if (_actionWheel?.IsOpen == true) _actionWheel.Close();
+        if (_moduleMap?.GlobalMapVisible == true) _moduleMap.SetGlobalMapVisible(false);
+        if (_dialogueOverlay?.IsOpen == true) _dialogueOverlay.Close();
+        _rpgMenu.UpdateContext("Les braises oubliées", _message);
+        _rpgMenu.ShowPage(page);
+        SyncPlayerInterfaceLock();
+    }
+
+    private void OpenModuleMapFromMenu()
+    {
+        if (_moduleMap is null) return;
+        if (_rpgMenu?.IsOpen == true) _rpgMenu.Close();
+        _moduleMap.SetGlobalMapVisible(true);
+        _message = "Carte du module ouverte · M pour revenir au jeu.";
+        SyncPlayerInterfaceLock();
+        UpdateHud();
+    }
+
+    private void SyncPlayerInterfaceLock()
+    {
+        var codexOpen = _rpgMenu?.IsOpen == true;
+        var dialogueOpen = _dialogueOverlay?.IsOpen == true;
+        var mapOpen = _moduleMap?.GlobalMapVisible == true;
+        var wheelOpen = _actionWheel?.IsOpen == true;
+        var explorationVisible = !codexOpen && !dialogueOpen && !mapOpen && !wheelOpen;
+        if (_hud is not null) _hud.Visible = explorationVisible;
+        if (_actionBar is not null) _actionBar.Visible = explorationVisible;
+        _moduleMap?.SetExplorationUiVisible(!codexOpen && !dialogueOpen && !wheelOpen);
+        var interfaceLocked = IsTimeFrozen() || mapOpen || codexOpen || dialogueOpen;
+        if (_flyingMount is not null) _flyingMount.ControlLocked = interfaceLocked;
+        if (_player is null) return;
+        _player.ControlLocked = interfaceLocked || _flyingMount?.IsMounted == true;
     }
 
     private void CycleCombatProvider()
@@ -4941,19 +6178,38 @@ public partial class GameRoot : Node3D
             _hud.UpdateState(
                 "explorer le module",
                 _message,
-                $"Module : {_moduleSlug} | Entités : {_builtEntityCount} | Combat : {(_playerCombatant is null ? "désactivé" : "actif")}");
+                "Parcourez la zone et découvrez ses lieux remarquables.");
             return;
         }
 
         if (_isForgottenForestPrototype)
         {
+            if (_activeArea?.Slug != "forgotten-forest")
+            {
+                var areaObjective = _activeArea?.Slug switch
+                {
+                    "ember-inn" => "Sortir par la porte vers Clairval",
+                    "clairval" => "Rejoindre la forêt ou visiter l’auberge [E]",
+                    "gnoll-fortress" => "Explorer la forteresse puis retrouver la forêt [E]",
+                    "amber-desert" => "Explorer les dunes puis retrouver la forêt [E]",
+                    "snow-pass" => "Explorer le col puis retrouver la forêt [E]",
+                    _ => "Explorer la zone et trouver un passage [E]",
+                };
+                _hud.UpdateState(areaObjective, _message,
+                    _activeArea?.Slug == "ember-inn"
+                        ? "Approchez-vous de la porte en bois et cliquez directement dessus pour sortir."
+                        : $"Les routes de {_activeArea?.DisplayName ?? _moduleTitle} restent ouvertes. " +
+                          "Consultez la carte pour choisir votre prochaine étape.");
+                return;
+            }
             var forestObjective = _questMachine?.CurrentState.Journal.Fallback ?? "rencontrer la garde forestière [E]";
-            var forestBossCombatant = _boss is not null && _hostiles.TryGetValue(_boss, out var forestBoss)
-                ? forestBoss
-                : null;
-            var forestState = $"Relique : {(_hasKey ? "trouvée" : "à trouver")} | " +
-                              $"Passage : {(_doorUnlocked ? "ouvert" : "fermé")} | " +
-                              $"Gardien : {forestBossCombatant?.Health ?? 0}/{forestBossCombatant?.Profile.Stats.MaximumHealth ?? 0}";
+            var forestState = _bossDefeated
+                ? "Le sanctuaire est apaisé. Rejoignez la lumière au-delà des arbres."
+                : _doorUnlocked
+                    ? "Le passage est ouvert. Le gardien du sanctuaire vous attend."
+                    : _hasKey
+                        ? "La relique réagit au sceau forestier. Retournez au passage."
+                        : "La garde forestière recherche une relique perdue sous les frondaisons.";
             _hud.UpdateState(forestObjective, _message, forestState);
             return;
         }
@@ -4972,12 +6228,15 @@ public partial class GameRoot : Node3D
             objective = _questMachine.CurrentState.Journal.Fallback;
         }
 
-        var bossCombatant = _boss is not null && _hostiles.TryGetValue(_boss, out var combatant)
-            ? combatant
-            : null;
-        var bossHealth = bossCombatant?.Health ?? 0;
-        var bossMaximumHealth = bossCombatant?.Profile.Stats.MaximumHealth ?? 0;
-        var state = $"Quête : {_questState} | Clé : {(_hasKey ? "oui" : "non")} | Boss : {bossHealth}/{bossMaximumHealth}";
+        var state = _questState switch
+        {
+            PrototypeQuestState.NotStarted => "Elyra attend près du sceau et semble vouloir vous parler.",
+            PrototypeQuestState.Active when !_hasKey => "La clé de braise repose encore quelque part dans les galeries.",
+            PrototypeQuestState.Active when !_doorUnlocked => "La clé pulse à proximité de la Porte des Cendres.",
+            PrototypeQuestState.Active => "Le gardien protège la dernière route vers la lumière.",
+            PrototypeQuestState.Completed => "La chaleur retombe. Le chemin de sortie est désormais libre.",
+            _ => "Les pierres anciennes gardent encore leurs secrets.",
+        };
         _hud.UpdateState(objective, _message, state);
     }
 
@@ -4993,10 +6252,20 @@ public partial class GameRoot : Node3D
         var start = traversal.Start();
         var evaluator = new RuntimeConditionEvaluator(this);
         var variantText = ApplyDialoguePresentation(start.Node!.Id, evaluator);
-        var choice = traversal.GetAvailableChoices(evaluator).FirstOrDefault();
+        var availableChoices = traversal.GetAvailableChoices(evaluator);
+        var spokenLine = variantText ?? start.Node!.Text.Fallback;
+        if (_actionWheel?.IsOpen == true) _actionWheel.Close();
+        _dialogueOverlay?.Show(_guideName,
+            string.Equals(_guideName, "Elyra", StringComparison.OrdinalIgnoreCase)
+                ? "Gardienne des braises"
+                : "Guide du voyage",
+            spokenLine,
+            availableChoices.Select(item => item.Text.Fallback).ToArray());
+        SyncPlayerInterfaceLock();
+        var choice = availableChoices.FirstOrDefault();
         if (choice is null)
         {
-            _message = $"{_guideName} : {variantText ?? start.Node!.Text.Fallback}";
+            _message = $"{_guideName} : {spokenLine}";
             return;
         }
 
@@ -5483,6 +6752,7 @@ public partial class GameRoot : Node3D
             var root = json.RootElement;
             node.GlobalPosition = new Vector3(root.GetProperty("x").GetSingle(), root.GetProperty("y").GetSingle(),
                 root.GetProperty("z").GetSingle());
+            node.ResetPhysicsInterpolation();
         }
     }
 
@@ -10769,10 +12039,145 @@ public partial class GameRoot : Node3D
         return values[0];
     }
 
+    private async Task RunEntryGroundSmokeTestAsync(ProjectDefinition project)
+    {
+        var entryArea = project.Areas.Single(area => area.Id == project.Module.EntryAreaId);
+        AssertSmoke(entryArea.Slug == "ember-inn" && _activeArea?.Id == entryArea.Id,
+            "The entry-ground smoke test must start inside the Ember Inn.");
+        AssertSmoke(entryArea.Entities.Any(entity => entity.Tags.Contains("floor", StringComparer.Ordinal)),
+            "The Ember Inn has no authored walkable floor.");
+        var player = _player ?? throw new InvalidOperationException(
+            "The entry-ground smoke test did not reconstruct the player.");
+        var start = player.GlobalPosition;
+        for (var frame = 0; frame < 120; frame++)
+            await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+
+        AssertSmoke(player.IsOnFloor() && player.GlobalPosition.Y >= start.Y - .25f,
+            $"The player fell through the Ember Inn floor " +
+            $"(start_y={start.Y:0.###}, current_y={player.GlobalPosition.Y:0.###}, " +
+            $"on_floor={player.IsOnFloor()}).");
+        var walkableBounds = _interiorWalkableBounds ?? throw new InvalidOperationException(
+            "The Ember Inn did not reconstruct its collision shell.");
+        var testHeight = _interiorFloorTop + 1;
+        var space = GetWorld3D().DirectSpaceState;
+        AssertSmoke(
+            HitsWall(new Vector3(walkableBounds.Position.X + 1, testHeight, 0),
+                new Vector3(walkableBounds.Position.X - 1, testHeight, 0)) &&
+            HitsWall(new Vector3(walkableBounds.End.X - 1, testHeight, 0),
+                new Vector3(walkableBounds.End.X + 1, testHeight, 0)) &&
+            HitsWall(new Vector3(0, testHeight, walkableBounds.Position.Y + 1),
+                new Vector3(0, testHeight, walkableBounds.Position.Y - 1)) &&
+            HitsWall(new Vector3(0, testHeight, walkableBounds.End.Y - 1),
+                new Vector3(0, testHeight, walkableBounds.End.Y + 1)),
+            "One or more Ember Inn boundary walls have no physical collision.");
+
+        player.ControlLocked = true;
+        await PushAgainstWallAsync(
+            new Vector3(walkableBounds.Position.X + 2, start.Y, 0), Vector3.Left,
+            () => player.GlobalPosition.X >= walkableBounds.Position.X + .4f, "west");
+        await PushAgainstWallAsync(
+            new Vector3(walkableBounds.End.X - 2, start.Y, 0), Vector3.Right,
+            () => player.GlobalPosition.X <= walkableBounds.End.X - .4f, "east");
+        await PushAgainstWallAsync(
+            new Vector3(0, start.Y, walkableBounds.Position.Y + 2), Vector3.Forward,
+            () => player.GlobalPosition.Z >= walkableBounds.Position.Y + .4f, "north");
+        await PushAgainstWallAsync(
+            new Vector3(0, start.Y, walkableBounds.End.Y - 2), Vector3.Back,
+            () => player.GlobalPosition.Z <= walkableBounds.End.Y - .4f, "south-door");
+
+        var recoveryCount = player.FallRecoveryCount;
+        player.GlobalPosition = new Vector3(0, -10, 0);
+        for (var frame = 0; frame < 3; frame++)
+            await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+        AssertSmoke(player.FallRecoveryCount == recoveryCount + 1 &&
+                    player.GlobalPosition.Y >= _interiorFloorTop,
+            "The below-map recovery did not return the player to the last safe interior position.");
+        player.ControlLocked = false;
+
+        var visual = player.GetNodeOrNull<Node3D>("AuthoredVisual");
+        var visualBounds = visual is not null && TryMeasureNodeBounds(visual, out var visualMinimum, out var visualMaximum)
+            ? $"visual_min_y={visualMinimum.Y:0.###} visual_max_y={visualMaximum.Y:0.###}"
+            : "visual_bounds=unavailable";
+        AssertSmoke(visual is not null && TryMeasureNodeBounds(visual, out visualMinimum, out _) &&
+                    Math.Abs((player.GlobalPosition.Y + visualMinimum.Y) - _interiorFloorTop) <= .08f,
+            "The player visual feet are not aligned with the Ember Inn floor.");
+        GD.Print($"OPENRPG_FORGE_ENTRY_GROUND_CONTACT_PASS area={entryArea.Slug} " +
+                 $"start_y={start.Y:0.###} current_y={player.GlobalPosition.Y:0.###} " +
+                 $"on_floor={player.IsOnFloor()} collisions={_collisionCount} walls=4 movement_blocked=4 " +
+                 $"fall_recovery={player.FallRecoveryCount} {visualBounds}");
+        GetTree().Quit(0);
+
+        bool HitsWall(Vector3 from, Vector3 to)
+        {
+            var query = PhysicsRayQueryParameters3D.Create(from, to);
+            query.Exclude = [player.GetRid()];
+            return space.IntersectRay(query).Count > 0;
+        }
+
+        async Task PushAgainstWallAsync(Vector3 position, Vector3 direction, Func<bool> remainsInside,
+            string wall)
+        {
+            player.GlobalPosition = position;
+            player.Velocity = Vector3.Zero;
+            for (var frame = 0; frame < 16; frame++)
+            {
+                await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+                player.Velocity = direction * 30;
+                player.MoveAndSlide();
+            }
+            AssertSmoke(remainsInside(), $"The player crossed the {wall} Ember Inn wall.");
+        }
+    }
+
+    private static bool TryMeasureNodeBounds(Node root, out Vector3 minimum, out Vector3 maximum)
+    {
+        var hasBounds = false;
+        var measuredMinimum = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
+        var measuredMaximum = new Vector3(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity);
+        Accumulate(root, Transform3D.Identity);
+        minimum = measuredMinimum;
+        maximum = measuredMaximum;
+        return hasBounds;
+
+        void Accumulate(Node node, Transform3D parentTransform)
+        {
+            var transform = node is Node3D node3D ? parentTransform * node3D.Transform : parentTransform;
+            if (node is MeshInstance3D { Mesh: not null } mesh)
+            {
+                var bounds = mesh.GetAabb();
+                for (var x = 0; x <= 1; x++)
+                    for (var y = 0; y <= 1; y++)
+                        for (var z = 0; z <= 1; z++)
+                        {
+                            var point = transform * (bounds.Position + new Vector3(
+                                bounds.Size.X * x, bounds.Size.Y * y, bounds.Size.Z * z));
+                            measuredMinimum = new Vector3(MathF.Min(measuredMinimum.X, point.X),
+                                MathF.Min(measuredMinimum.Y, point.Y), MathF.Min(measuredMinimum.Z, point.Z));
+                            measuredMaximum = new Vector3(MathF.Max(measuredMaximum.X, point.X),
+                                MathF.Max(measuredMaximum.Y, point.Y), MathF.Max(measuredMaximum.Z, point.Z));
+                            hasBounds = true;
+                        }
+            }
+            foreach (var child in node.GetChildren()) Accumulate(child, transform);
+        }
+    }
+
     private async Task RunForgottenForestSmokeTestAsync(ProjectDefinition project, string? benchmarkPath)
     {
         AssertSmoke(_isForgottenForestPrototype, "The Forgotten Forest smoke test loaded another module.");
-        var area = project.Areas.Single();
+        var area = project.Areas.Single(candidate => candidate.Slug == "forgotten-forest");
+        AssertSmoke(project.Areas.Count == 6 && project.Areas.Sum(candidate => candidate.Portals.Count) == 10,
+            "The connected world must expose six areas and ten directed portal links.");
+        var inn = project.Areas.Single(candidate => candidate.Slug == "ember-inn");
+        AssertSmoke(project.Module.EntryAreaId == inn.Id,
+            "A new Forgotten Forest game must start inside the Ember Inn.");
+        foreach (var owner in project.Areas)
+            foreach (var portal in owner.Portals)
+            {
+                var travel = PortalLinkRuntimeService.Resolve(project, owner.Id, portal.Id, Vector3Value.Zero, 0);
+                AssertSmoke(travel.DestinationAreaId == portal.DestinationAreaId,
+                    $"Portal '{portal.DisplayName}' did not resolve its authored destination.");
+            }
         AssertSmoke(area.Kind == AreaKind.Exterior, "Forgotten Forest must remain an exterior area.");
         AssertSmoke(area.Dimensions == new AreaDimensions(512, 512),
             "Forgotten Forest must use the authored 512 x 512 production footprint.");
@@ -10790,11 +12195,12 @@ public partial class GameRoot : Node3D
             "Forgotten Forest did not reconstruct its playable surface navigation region.");
         AssertSmoke(_surfaceNavigationBlockedTriangles > 0 && _surfaceNavigationLinks == 3,
             "River crossing policy or the three authored bridge traversals are missing from surface navigation.");
-        AssertSmoke(_modelLibrary?.Count == 45,
-            "All 39 governed environment models, the legacy character and five KayKit variants must be available.");
-        AssertSmoke(_runtimeModelInstances >= 43, "Authored sector landmarks did not use their governed 3D models.");
-        AssertSmoke(_animatedCharacterInstances == 5 && _animatedCharacterClipNames.Count >= 75,
-            "The five authored KayKit characters must expose the governed movement and combat clips.");
+        AssertSmoke(_modelLibrary?.Count >= 122,
+            "All governed environment packs, catalog models and five KayKit variants must be available.");
+        AssertSmoke(_runtimeModelInstances >= 55,
+            "Authored sector landmarks did not use enough governed 3D models.");
+        AssertSmoke(_animatedCharacterInstances == 6 && _animatedCharacterClipNames.Count >= 81,
+            "The five authored KayKit characters and the authored dragon must expose their governed animation clips.");
         AssertSmoke(_player is not null && _npc is not null && _keyItem is not null && _door is not null &&
             _boss is not null && _exit is not null, "The playable forest scenario is incomplete.");
         var playerSpawnPosition = _player!.GlobalPosition;
@@ -10807,17 +12213,63 @@ public partial class GameRoot : Node3D
             $"The player fell through the terrain at the forest spawn " +
             $"(start_y={playerSpawnPosition.Y:0.###}, current_y={_player.GlobalPosition.Y:0.###}, " +
             $"on_floor={_player.IsOnFloor()}).");
+        var exteriorRecoveryStart = _player.GlobalPosition;
+        var exteriorRecoveryCount = _player.FallRecoveryCount;
+        _player.ControlLocked = true;
+        _player.GlobalPosition = exteriorRecoveryStart + (Vector3.Down * 50);
+        for (var frame = 0; frame < 3; frame++)
+            await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+        AssertSmoke(_player.FallRecoveryCount == exteriorRecoveryCount + 1 &&
+                    _player.GlobalPosition.DistanceTo(exteriorRecoveryStart) <= .1f,
+            "The exterior below-map recovery did not return the player to the last safe terrain position.");
+        _player.ControlLocked = false;
         GD.Print(
             $"OPENRPG_FORGE_FORGOTTEN_FOREST_GROUND_CONTACT_PASS " +
             $"start_y={playerSpawnPosition.Y:0.###} current_y={_player.GlobalPosition.Y:0.###} " +
-            $"on_floor={_player.IsOnFloor()}");
-        AssertSmoke(_actionBar?.SlotCount == 6,
-            "The MMO action bar did not reconstruct all six command slots.");
+            $"on_floor={_player.IsOnFloor()} fall_recovery={_player.FallRecoveryCount}");
+        var movementStart = _player.GlobalPosition;
+        Input.ActionPress("move_forward");
+        try
+        {
+            for (var frame = 0; frame < 30; frame++)
+                await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+        }
+        finally
+        {
+            Input.ActionRelease("move_forward");
+        }
+        var fastTravel = new Vector2(_player.GlobalPosition.X - movementStart.X,
+            _player.GlobalPosition.Z - movementStart.Z).Length();
+        AssertSmoke(fastTravel >= 4,
+            $"Fast ground movement covered only {fastTravel:0.###} m in 30 physics frames.");
+        GD.Print($"OPENRPG_FORGE_FAST_GROUND_MOVEMENT_PASS multiplier=2.75 distance_30_frames={fastTravel:0.###}");
+        _player.GlobalPosition = movementStart;
+        _player.Velocity = Vector3.Zero;
+        for (var frame = 0; frame < 4; frame++)
+            await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+        AssertSmoke(_actionBar?.SlotCount == 8,
+            "The fantasy action bar did not reconstruct all eight command slots.");
         AssertSmoke(HasKeyBinding("jump", Key.Space) && HasKeyBinding("attack", Key.Key1) &&
-                    HasKeyBinding("toggle_fps", Key.R, ctrl: true),
-            "The MMO keyboard bindings are incomplete.");
-        AssertSmoke(Math.Abs(PlayerController.MovementSpeedMultiplier - 2f) < .001f,
-            "The requested doubled movement speed is not active.");
+                     HasKeyBinding("module_map", Key.M) && HasKeyBinding("toggle_fps", Key.R, ctrl: true),
+            "The runtime keyboard bindings are incomplete.");
+        AssertSmoke(Math.Abs(PlayerController.MovementSpeedMultiplier - 2.75f) < .001f,
+            "The requested fast ground movement is not active.");
+        var runtimeMap = _moduleMap ?? throw new InvalidOperationException("The runtime map was not created.");
+        AssertSmoke(runtimeMap is { MiniMapVisible: true, AreaCount: 6 } &&
+                     runtimeMap.CurrentAreaSlug == "forgotten-forest",
+            "The permanent minimap did not reconstruct the active connected area.");
+        var logicalWidth = ProjectSettings.GetSetting("display/window/size/viewport_width").AsInt64();
+        var logicalHeight = ProjectSettings.GetSetting("display/window/size/viewport_height").AsInt64();
+        AssertSmoke(logicalWidth == 1920 && logicalHeight == 1080,
+            "The runtime HUD must use a Full HD logical canvas for Full HD and QHD displays.");
+        AssertSmoke(runtimeMap.MiniMapLogicalSize is { X: <= 240, Y: <= 150 },
+            $"The minimap is not compact enough ({runtimeMap.MiniMapLogicalSize.X:0}x{runtimeMap.MiniMapLogicalSize.Y:0}).");
+        ToggleModuleMap();
+        AssertSmoke(runtimeMap.GlobalMapVisible && _player.ControlLocked,
+            "The M key module map did not open or lock exploration input.");
+        ToggleModuleMap();
+        AssertSmoke(!runtimeMap.GlobalMapVisible && !_player.ControlLocked,
+            "Closing the module map did not restore exploration input.");
         _hud!.SetFpsVisible(true);
         _hud.UpdatePerformance(60);
         AssertSmoke(_hud.FpsVisible, "The FPS counter could not be enabled.");
@@ -10840,10 +12292,13 @@ public partial class GameRoot : Node3D
             $"(start_y={jumpStartY:0.###}, max_y={jumpMaximumY:0.###}, " +
             $"current_y={_player.GlobalPosition.Y:0.###}, count={_player.JumpCount}).");
         GD.Print(
-            $"OPENRPG_FORGE_FORGOTTEN_FOREST_MMO_CONTROLS_PASS speed_multiplier=2 " +
+            $"OPENRPG_FORGE_FORGOTTEN_FOREST_MMO_CONTROLS_PASS speed_multiplier=2.75 " +
             $"jump_height={jumpMaximumY - jumpStartY:0.###} action_slots={_actionBar!.SlotCount} " +
-            "attack=1 jump=space fps=ctrl+r camera=dual-mouse-orbit");
-        AssertSmoke(_hostiles.Count == 3, "Forgotten Forest must reconstruct two scouts and its boss.");
+            $"attack=1 jump=space map=m minimap=visible hud={logicalWidth}x{logicalHeight} " +
+            $"minimap_size={runtimeMap.MiniMapLogicalSize.X:0}x{runtimeMap.MiniMapLogicalSize.Y:0} " +
+            "fps=ctrl+r camera=dual-mouse-orbit");
+        AssertSmoke(_hostiles.Count == 7, "Forgotten Forest must reconstruct its scouts, goblins and boss.");
+        AssertSmoke(_portalNodes.Count == 4, "Forgotten Forest must reconstruct its four playable portals.");
         AssertSmoke(project.Dialogues.Count == 1 && project.Quests.Count == 1,
             "Forgotten Forest dialogue or quest data is missing.");
         AssertSmoke(area.RuntimePolicies.Experience.AudioCues.Count == 3 &&
@@ -10946,8 +12401,9 @@ public partial class GameRoot : Node3D
             $"vfx_particles={_ambientVfxParticles} water_animated={_terrainWaterSurfaces} provenance=builtin");
         GD.Print(
             $"OPENRPG_FORGE_FORGOTTEN_FOREST_ANIMATION_PASS characters={_animatedCharacterInstances} " +
-            $"variants=5 clips={_animatedCharacterClipNames.Count} rig=kaykit-rig-medium-41 " +
-            "source=kaykit:character-pack-adventures-1.0");
+            $"variants=6 clips={_animatedCharacterClipNames.Count} " +
+            "rig=kaykit-rig-medium-41+quaternius-dragon-35 " +
+            "source=kaykit:character-pack-adventures-1.0+quaternius:lowpoly-animated-monsters");
 
         InteractWith(_npc!);
         AssertSmoke(_questMachine?.CurrentState.DisplayName == "La Graine de lune",
@@ -11107,7 +12563,11 @@ public partial class GameRoot : Node3D
         RegisterKeyAction("tactical_pause", Key.P);
         RegisterJoypadAction("tactical_pause", JoyButton.Start);
         RegisterKeyAction("slow_time", Key.T);
-        RegisterKeyAction("combat_mode", Key.M);
+        RegisterKeyAction("inventory", Key.I);
+        RegisterKeyAction("character", Key.C);
+        RegisterKeyAction("journal", Key.J);
+        RegisterKeyAction("module_map", Key.M);
+        RegisterKeyAction("combat_mode", Key.V);
         RegisterKeyAction("dive", Key.Ctrl);
         RegisterKeyAction("climb", Key.Shift);
         RegisterKeyAction("camera_left", Key.Home);

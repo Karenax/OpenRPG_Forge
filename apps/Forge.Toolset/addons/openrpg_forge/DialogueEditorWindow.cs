@@ -53,6 +53,7 @@ public partial class DialogueEditorWindow : Window
 
     private Func<ProjectState?>? _getState;
     private Func<DialogueDefinition, bool>? _applyDialogue;
+    private Func<DialogueId, bool>? _deleteDialogue;
     private Action? _undo;
     private Action? _redo;
     private Action<Window>? _brandWindow;
@@ -154,6 +155,7 @@ public partial class DialogueEditorWindow : Window
     public void Initialize(
         Func<ProjectState?> getState,
         Func<DialogueDefinition, bool> applyDialogue,
+        Func<DialogueId, bool> deleteDialogue,
         Action<DialogueId> openPresentation,
         Action undo,
         Action redo,
@@ -161,12 +163,14 @@ public partial class DialogueEditorWindow : Window
     {
         ArgumentNullException.ThrowIfNull(getState);
         ArgumentNullException.ThrowIfNull(applyDialogue);
+        ArgumentNullException.ThrowIfNull(deleteDialogue);
         ArgumentNullException.ThrowIfNull(brandWindow);
         ArgumentNullException.ThrowIfNull(openPresentation);
         ArgumentNullException.ThrowIfNull(undo);
         ArgumentNullException.ThrowIfNull(redo);
         _getState = getState;
         _applyDialogue = applyDialogue;
+        _deleteDialogue = deleteDialogue;
         _openPresentation = openPresentation;
         _undo = undo;
         _redo = redo;
@@ -261,6 +265,25 @@ public partial class DialogueEditorWindow : Window
         Exclusive = true;
         PopupCentered(new Vector2I(1440, 950));
         _brandWindow?.Invoke(this);
+    }
+
+    public void Refresh()
+    {
+        var state = _getState?.Invoke();
+        if (state is null) return;
+        var previous = _draftDialogueId;
+        PopulateBlueprints(state);
+        PopulateDialogues(state);
+        if (_dialogueIds.Count == 0)
+        {
+            CreateNewDialogue();
+            return;
+        }
+
+        var selected = previous is null ? -1 : _dialogueIds.FindIndex(item => item == previous);
+        if (selected < 0) selected = 0;
+        _dialoguePicker!.Selected = selected;
+        LoadDialogue(state.Project.Dialogues.Single(dialogue => dialogue.Id == _dialogueIds[selected]));
     }
 
     public bool ConfigureForR068SmokeTest(DialogueDefinition dialogue)
@@ -517,6 +540,9 @@ public partial class DialogueEditorWindow : Window
         };
         dialogueBar.AddChild(newDialogueButton);
         newDialogueButton.Pressed += CreateNewDialogue;
+        var deleteDialogueButton = new Button { Text = "Supprimer", TooltipText = "Supprimer le dialogue du projet" };
+        deleteDialogueButton.Pressed += DeleteCurrentDialogue;
+        dialogueBar.AddChild(deleteDialogueButton);
         var presentationButton = new Button { CustomMinimumSize = new Vector2(170, 38), Text = "Mise en scène…" };
         dialogueBar.AddChild(presentationButton);
         presentationButton.Pressed += OpenPresentation;
@@ -576,6 +602,19 @@ public partial class DialogueEditorWindow : Window
         };
         nodeColumn.AddChild(addNodeButton);
         addNodeButton.Pressed += AddNode;
+        var nodeActions = new HBoxContainer();
+        nodeActions.AddThemeConstantOverride("separation", 6);
+        nodeColumn.AddChild(nodeActions);
+        var setEntryButton = new Button
+        {
+            Text = "Définir comme entrée",
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+        };
+        setEntryButton.Pressed += SetSelectedNodeAsEntry;
+        nodeActions.AddChild(setEntryButton);
+        var removeNodeButton = new Button { Text = "Supprimer", TooltipText = "Retire le nœud du brouillon" };
+        removeNodeButton.Pressed += RemoveSelectedNode;
+        nodeActions.AddChild(removeNodeButton);
 
         _detailScroll = new ScrollContainer
         {
@@ -618,7 +657,7 @@ public partial class DialogueEditorWindow : Window
             WrapMode = TextEdit.LineWrappingMode.Boundary,
         };
         detailColumn.AddChild(_nodeText);
-        detailColumn.AddChild(new Label { Text = "VARIANTES · locale|genre|pluriel|texte" });
+        detailColumn.AddChild(new Label { Text = "VARIANTES LOCALISÉES" });
         _nodeVariants = new TextEdit
         {
             CustomMinimumSize = new Vector2(0, 54),
@@ -626,7 +665,12 @@ public partial class DialogueEditorWindow : Window
             WrapMode = TextEdit.LineWrappingMode.None,
         };
         detailColumn.AddChild(_nodeVariants);
-        detailColumn.AddChild(new Label { Text = "ACTIONS À L’ENTRÉE · type|clé|valeur|required/optional" });
+        StructuredCollectionField.Attach(_nodeVariants, "variante",
+            new("Langue", "fr", "fr"),
+            new("Genre grammatical", "any", "any"),
+            new("Pluriel", Options: ["Zero", "One", "Two", "Few", "Many", "Other"], DefaultValue: "Other"),
+            new("Texte", "Texte de la variante"));
+        detailColumn.AddChild(new Label { Text = "ACTIONS À L’ENTRÉE" });
         _nodeActions = new TextEdit
         {
             CustomMinimumSize = new Vector2(0, 54),
@@ -634,6 +678,11 @@ public partial class DialogueEditorWindow : Window
             WrapMode = TextEdit.LineWrappingMode.None,
         };
         detailColumn.AddChild(_nodeActions);
+        StructuredCollectionField.Attach(_nodeActions, "action",
+            new("Type", "PlayAudio", "PlayAudio"),
+            new("Cible ou clé", "elyra.greeting"),
+            new("Valeur", "play"),
+            new("Obligation", Options: ["required", "optional"], DefaultValue: "required"));
         var saveNodeButton = new Button { Text = "Enregistrer la réplique" };
         detailColumn.AddChild(saveNodeButton);
         saveNodeButton.Pressed += SaveSelectedNodeFromUi;
@@ -667,6 +716,11 @@ public partial class DialogueEditorWindow : Window
             WrapMode = TextEdit.LineWrappingMode.None,
         };
         detailColumn.AddChild(_choiceVariants);
+        StructuredCollectionField.Attach(_choiceVariants, "variante",
+            new("Langue", "fr", "fr"),
+            new("Genre grammatical", "any", "any"),
+            new("Pluriel", Options: ["Zero", "One", "Two", "Few", "Many", "Other"], DefaultValue: "Other"),
+            new("Texte", "Texte de la variante"));
         var choiceRouteRow = new HBoxContainer();
         choiceRouteRow.AddThemeConstantOverride("separation", 8);
         detailColumn.AddChild(choiceRouteRow);
@@ -703,6 +757,11 @@ public partial class DialogueEditorWindow : Window
             WrapMode = TextEdit.LineWrappingMode.None,
         };
         detailColumn.AddChild(_conditions);
+        StructuredCollectionField.Attach(_conditions, "condition",
+            new("Opérateur", Options: ["IS", "NOT"], DefaultValue: "IS"),
+            new("Type", "HasItem", "HasItem"),
+            new("Cible ou clé", "ash-key"),
+            new("Valeur attendue", "true", "true"));
         _choiceActionLines = new TextEdit
         {
             CustomMinimumSize = new Vector2(0, 54),
@@ -710,6 +769,11 @@ public partial class DialogueEditorWindow : Window
             WrapMode = TextEdit.LineWrappingMode.None,
         };
         detailColumn.AddChild(_choiceActionLines);
+        StructuredCollectionField.Attach(_choiceActionLines, "action",
+            new("Type", "StartQuest", "StartQuest"),
+            new("Cible ou clé", "crypt-ashes"),
+            new("Valeur", "active"),
+            new("Obligation", Options: ["required", "optional"], DefaultValue: "required"));
         var choiceButtons = new HBoxContainer();
         choiceButtons.AddThemeConstantOverride("separation", 8);
         detailColumn.AddChild(choiceButtons);
@@ -788,7 +852,7 @@ public partial class DialogueEditorWindow : Window
         assistant.AddThemeConstantOverride("separation", 5);
         authoringColumns.AddChild(assistant);
 
-        contracts.AddChild(new Label { Text = "Participants · rôle|kind|valeur|fallback" });
+        contracts.AddChild(new Label { Text = "PARTICIPANTS" });
         _authoringParticipants = new TextEdit
         {
             CustomMinimumSize = new Vector2(0, 52),
@@ -802,14 +866,14 @@ public partial class DialogueEditorWindow : Window
             _authoringEvaluation.AddItem(mode.ToString(), (int)mode);
         evaluationRow.AddChild(_authoringEvaluation);
         contracts.AddChild(evaluationRow);
-        contracts.AddChild(new Label { Text = "Tokens · nom|type|required/optional|défaut" });
+        contracts.AddChild(new Label { Text = "VARIABLES DE TEXTE" });
         _authoringTokens = new TextEdit
         {
             CustomMinimumSize = new Vector2(0, 52),
             WrapMode = TextEdit.LineWrappingMode.None,
         };
         contracts.AddChild(_authoringTokens);
-        contracts.AddChild(new Label { Text = "Poids · UUID du choix|poids" });
+        contracts.AddChild(new Label { Text = "POIDS DES CHOIX" });
         _authoringWeights = new TextEdit
         {
             CustomMinimumSize = new Vector2(0, 44),
@@ -930,7 +994,7 @@ public partial class DialogueEditorWindow : Window
         _experienceResume = new CheckBox { Text = "État de reprise" };
         lifecycleFlags.AddChild(_experienceResume);
         lifecycleColumn.AddChild(lifecycleFlags);
-        lifecycleColumn.AddChild(new Label { Text = "Actions fin · kind|clé|valeur|required" });
+        lifecycleColumn.AddChild(new Label { Text = "ACTIONS DE FIN" });
         _experienceCompletedActions = new TextEdit
         {
             CustomMinimumSize = new Vector2(0, 44),
@@ -944,7 +1008,7 @@ public partial class DialogueEditorWindow : Window
             WrapMode = TextEdit.LineWrappingMode.None,
         };
         lifecycleColumn.AddChild(_experienceAbortedActions);
-        lifecycleColumn.AddChild(new Label { Text = "Mémoire · scope|cible|nom|type|durée|défaut" });
+        lifecycleColumn.AddChild(new Label { Text = "MÉMOIRE DU DIALOGUE" });
         _experienceMemorySlots = new TextEdit
         {
             CustomMinimumSize = new Vector2(0, 56),
@@ -1003,7 +1067,7 @@ public partial class DialogueEditorWindow : Window
         intelligenceColumn.AddChild(_experienceReviewMode);
         intelligenceColumn.AddChild(new Label
         {
-            Text = "Checks · node|skill|DD|opposant|advantage|visibilité|succès|échec",
+            Text = "TESTS DE COMPÉTENCE",
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
         });
         _experienceSkillChecks = new TextEdit
@@ -1073,7 +1137,7 @@ public partial class DialogueEditorWindow : Window
         productionColumns.AddChild(productionRight);
         productionLeft.AddChild(new Label
         {
-            Text = "Sous-dialogues · node|clé|version|entrées|sorties|variables|test|in|out",
+            Text = "SOUS-DIALOGUES",
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
         });
         _productionSubgraphs = new TextEdit
@@ -1084,7 +1148,7 @@ public partial class DialogueEditorWindow : Window
         productionLeft.AddChild(_productionSubgraphs);
         productionLeft.AddChild(new Label
         {
-            Text = "Conséquences · node|Quest/Faction/Item/World|cible|opération|valeur|explication",
+            Text = "CONSÉQUENCES",
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
         });
         _productionConsequences = new TextEdit
@@ -1093,7 +1157,7 @@ public partial class DialogueEditorWindow : Window
             WrapMode = TextEdit.LineWrappingMode.None,
         };
         productionLeft.AddChild(_productionConsequences);
-        productionLeft.AddChild(new Label { Text = "Couverture · maxDepth|états · puis kind|nom|nodes|état" });
+        productionLeft.AddChild(new Label { Text = "COUVERTURE DES PARCOURS" });
         _productionCoverage = new TextEdit
         {
             CustomMinimumSize = new Vector2(0, 72),
@@ -1102,7 +1166,7 @@ public partial class DialogueEditorWindow : Window
         productionLeft.AddChild(_productionCoverage);
         productionRight.AddChild(new Label
         {
-            Text = "Collaboration · revision/lock/comment/conflict|… (JSON canonique par nœud)",
+            Text = "COLLABORATION PAR NŒUD",
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
         });
         _productionCollaboration = new TextEdit
@@ -1113,7 +1177,7 @@ public partial class DialogueEditorWindow : Window
         productionRight.AddChild(_productionCollaboration);
         productionRight.AddChild(new Label
         {
-            Text = "IA · autorisation|synopsis|beats|style|citations|diff (preview transactionnelle)",
+            Text = "PROPOSITIONS IA · APERÇU TRANSACTIONNEL",
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
         });
         _productionAiPlans = new TextEdit
@@ -1241,7 +1305,72 @@ public partial class DialogueEditorWindow : Window
         });
         bottom.AddChild(applyButton);
         applyButton.Pressed += ApplyDialogue;
+        BuildStructuredEditors();
     }
+
+    private void BuildStructuredEditors()
+    {
+        StructuredCollectionField.Attach(_authoringParticipants!, "participant",
+            new("Rôle", "guide"),
+            new("Type de liaison", Options: Enum.GetNames<DialogueParticipantBindingKind>(),
+                DefaultValue: DialogueParticipantBindingKind.Role.ToString()),
+            new("Valeur", "guide"), new("Rôle de repli", "narrator"));
+        StructuredCollectionField.Attach(_authoringTokens!, "variable de texte",
+            new("Nom", "player.name"),
+            new("Type", Options: Enum.GetNames<DialogueTextTokenType>(),
+                DefaultValue: Enum.GetNames<DialogueTextTokenType>()[0]),
+            new("Obligation", Options: ["required", "optional"], DefaultValue: "optional"),
+            new("Valeur par défaut", "Hero"));
+        StructuredCollectionField.Attach(_authoringWeights!, "poids de choix",
+            new("Choix", "UUID du choix"), new("Poids", "1", "1"));
+        AttachActionEditor(_experienceCompletedActions!, "action de fin");
+        AttachActionEditor(_experienceAbortedActions!, "action d’abandon");
+        StructuredCollectionField.Attach(_experienceMemorySlots!, "mémoire",
+            new("Portée", Options: Enum.GetNames<DialogueMemoryScope>(),
+                DefaultValue: Enum.GetNames<DialogueMemoryScope>()[0]),
+            new("Cible", "player"), new("Nom", "trust"),
+            new("Type", Options: Enum.GetNames<DialogueTextTokenType>(),
+                DefaultValue: Enum.GetNames<DialogueTextTokenType>()[0]),
+            new("Durée", "dialogue"), new("Valeur par défaut"));
+        StructuredCollectionField.Attach(_experienceSkillChecks!, "test de compétence",
+            new("Nœud", "UUID du nœud"), new("Compétence", "persuasion"),
+            new("Difficulté", "12", "10"), new("Opposant", "optionnel"),
+            new("Avantage", Options: ["true", "false"], DefaultValue: "false"),
+            new("Visibilité", Options: Enum.GetNames<DialogueSkillCheckVisibility>(),
+                DefaultValue: Enum.GetNames<DialogueSkillCheckVisibility>()[0]),
+            new("Nœud si réussite", "UUID"), new("Nœud si échec", "UUID"));
+        StructuredCollectionField.Attach(_productionSubgraphs!, "sous-dialogue",
+            new("Nœud", "UUID"), new("Clé", "dialogue.key"), new("Version", "1", "1"),
+            new("Entrées", "a,b"), new("Sorties", "success,failure"),
+            new("Variables requises", "quest.state"), new("Test", "isolated"),
+            new("Valeurs d’entrée", "key=value"), new("Résultats attendus", "key=value"));
+        StructuredCollectionField.Attach(_productionConsequences!, "conséquence",
+            new("Nœud", "UUID"),
+            new("Cible", Options: Enum.GetNames<DialogueConsequenceTargetKind>(),
+                DefaultValue: DialogueConsequenceTargetKind.World.ToString()),
+            new("Identifiant cible", "quest-id"), new("Opération", "set"),
+            new("Valeur", "active"), new("Explication", "Conséquence pour le joueur"));
+        StructuredCollectionField.Attach(_productionCoverage!, "scénario de couverture",
+            new("Type ou profondeur", "Nominal"), new("Nom ou états requis", "main"),
+            new("Nœuds visités", "uuid,uuid"), new("État attendu", "key=value"));
+        StructuredCollectionField.Attach(_productionCollaboration!, "entrée de collaboration",
+            new("Type", Options: ["revision", "lock", "comment", "conflict"], DefaultValue: "comment"),
+            new("Nœud", "UUID"), new("Valeur 1"), new("Valeur 2"), new("Valeur 3"),
+            new("Valeur 4"), new("Valeur 5"), new("Valeur 6"), new("Valeur 7"), new("Valeur 8"));
+        StructuredCollectionField.Attach(_productionAiPlans!, "proposition IA",
+            new("Autorisation", Options: Enum.GetNames<DialogueAiAuthorizationLevel>(),
+                DefaultValue: DialogueAiAuthorizationLevel.SuggestOnly.ToString()),
+            new("Synopsis"), new("Étapes requises", "beat-a,beat-b"),
+            new("Règles de style", "concise"), new("Sources de contexte", "lore:entry"),
+            new("Différence proposée"));
+    }
+
+    private static void AttachActionEditor(TextEdit backing, string itemName) =>
+        StructuredCollectionField.Attach(backing, itemName,
+            new("Type", Options: Enum.GetNames<DialogueActionKind>(),
+                DefaultValue: Enum.GetNames<DialogueActionKind>()[0]),
+            new("Cible", "quest.state"), new("Valeur", "active"),
+            new("Obligation", Options: ["required", "optional"], DefaultValue: "optional"));
 
     private void ConnectSignals()
     {
@@ -1311,6 +1440,22 @@ public partial class DialogueEditorWindow : Window
         SetStatus($"Dialogue chargé · {_draftNodes.Count} nœud(s).", false);
     }
 
+    private void DeleteCurrentDialogue()
+    {
+        if (_draftDialogueId is null || _getState?.Invoke()?.Project.Dialogues
+                .All(item => item.Id != _draftDialogueId) != false)
+        {
+            SetStatus("Le brouillon n’est pas encore enregistré.", false, true);
+            return;
+        }
+        if (_deleteDialogue?.Invoke(_draftDialogueId) == true)
+        {
+            Refresh();
+            SetStatus("Dialogue supprimé · utilisez Annuler pour le restaurer.", true);
+        }
+        else SetStatus("Suppression refusée · consultez les dépendances du projet.", false, true);
+    }
+
     private void CreateNewDialogue()
     {
         _draftDialogueId = DialogueId.From(Guid.NewGuid());
@@ -1358,6 +1503,51 @@ public partial class DialogueEditorWindow : Window
             new LocalizedText($"{_dialogueSlug!.Text}.node-{_draftNodes.Count + 1}", "Nouvelle réplique")));
         RefreshNodes(_draftNodes.Count - 1);
         SetStatus("Nœud ajouté. Reliez-le depuis un choix pour rendre le graphe valide.", false);
+    }
+
+    private void SetSelectedNodeAsEntry()
+    {
+        if (CurrentNode is null) return;
+        _entryNodeId = CurrentNode.Id;
+        _draftEntryPoints = NormalizeEntryPoints();
+        RefreshNodes(_selectedNodeIndex);
+        SetStatus("Nœud défini comme entrée principale dans le brouillon.", true);
+    }
+
+    private void RemoveSelectedNode()
+    {
+        if (CurrentNode is null || _selectedNodeIndex < 0) return;
+        if (_draftNodes.Count <= 1)
+        {
+            SetStatus("Un dialogue doit conserver au moins un nœud.", false, true);
+            return;
+        }
+        if (CurrentNode.Id == _entryNodeId)
+        {
+            SetStatus("Choisissez d’abord une autre entrée principale avant de supprimer ce nœud.", false, true);
+            return;
+        }
+        var removedId = CurrentNode.Id;
+        var removedReferences = 0;
+        _draftNodes.RemoveAt(_selectedNodeIndex);
+        for (var index = 0; index < _draftNodes.Count; index++)
+        {
+            var node = _draftNodes[index];
+            var choices = node.Choices.Where(choice =>
+            {
+                if (choice.TargetNodeId != removedId) return true;
+                removedReferences++;
+                return false;
+            }).ToArray();
+            if (choices.Length == node.Choices.Count) continue;
+            _draftNodes[index] = new DialogueNode(node.Id, node.SpeakerBlueprintId, node.Text,
+                node.OnEnterActions, choices, node.Role, node.ParticipantId, node.SubgraphKey);
+        }
+        _draftEntryPoints = _draftEntryPoints.Where(item => item.NodeId != removedId).ToArray();
+        _selectedNodeIndex = -1;
+        _selectedChoiceIndex = -1;
+        RefreshNodes(0);
+        SetStatus($"Nœud retiré du brouillon · {removedReferences} choix dépendant(s) retiré(s). Appliquez pour enregistrer.", true);
     }
 
     private void SelectNode(long index)

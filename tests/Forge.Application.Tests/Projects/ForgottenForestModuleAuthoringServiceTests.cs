@@ -1,8 +1,10 @@
 using Forge.Application.Projects;
 using Forge.Application.Areas;
+using Forge.Application.Quality;
 using Forge.Domain.Areas;
 using Forge.Domain.Assets;
 using Forge.Domain.Blueprints;
+using Forge.Domain.RuntimeExtensions;
 using Forge.Domain.Validation;
 
 namespace Forge.Application.Tests.Projects;
@@ -14,9 +16,10 @@ public sealed class ForgottenForestModuleAuthoringServiceTests
     {
         var authored = ForgottenForestModuleAuthoringService.Create();
         var project = authored.State.Project;
-        var area = Assert.Single(project.Areas);
+        var area = Assert.Single(project.Areas, candidate => candidate.Slug == "forgotten-forest");
 
         Assert.Equal("forgotten-forest", project.Module.Slug);
+        Assert.Equal(6, project.Areas.Count);
         Assert.Equal(AreaKind.Exterior, area.Kind);
         Assert.Equal(new AreaDimensions(512, 512), area.Dimensions);
         Assert.True(area.World.Terrain.Enabled);
@@ -29,14 +32,31 @@ public sealed class ForgottenForestModuleAuthoringServiceTests
             "curated-pack:forgotten-forest-polyhaven-environment@1.1.0"));
         Assert.Equal(3, area.World.Biomes.Count(biome => biome.Provenance ==
             "curated-pack:forgotten-forest-core@1.0.0;source:kenney:mini-forest"));
-        Assert.Equal(6, area.World.Features.Count);
+        Assert.Equal(7, area.World.Features.Count);
         Assert.Contains(area.World.Features, feature => feature.Kind == TerrainFeatureKind.River);
         Assert.Contains(area.World.Features, feature => feature.Kind == TerrainFeatureKind.Bridge);
+        var lakeHutClearing = Assert.Single(area.World.Features, feature =>
+            feature.Name == "Cour dégagée de la maison du garde du lac");
+        Assert.Equal(TerrainFeatureKind.Building, lakeHutClearing.Kind);
+        Assert.Equal(26f, lakeHutClearing.Width);
+        Assert.All(area.World.Biomes, biome =>
+            Assert.Contains("building", biome.ExclusionTags, StringComparer.OrdinalIgnoreCase));
+        var lakeHutPieces = area.Entities.Where(entity =>
+            entity.Tags.Contains("lake-warden-hut", StringComparer.Ordinal)).ToArray();
+        Assert.Equal(10, lakeHutPieces.Length);
+        Assert.Single(lakeHutPieces, entity =>
+            entity.Overrides.Properties.Any(property => property.Key == "visual.asset" &&
+                property.Value == ForgottenForestModuleAuthoringService.TownAssetId("roof-high-gable").ToString()));
         Assert.Equal(3, area.Navigation.OffMeshLinks.Count);
         Assert.DoesNotContain("vfx:forest-ambient", area.Environment.Tags, StringComparer.Ordinal);
         Assert.Equal(SkyProfileMode.Physical, area.Environment.Sky.Mode);
         Assert.Equal("#4f83ad", area.Environment.Sky.ZenithColor);
         Assert.Equal("forest", area.Environment.Reverb.DefaultPreset);
+        var lake = Assert.Single(area.Environment.Water.Bodies);
+        Assert.Equal("Lac des Reflets", lake.Name);
+        Assert.Equal(WaterBodyKind.Plane, lake.Kind);
+        Assert.Equal(WaterQualityTier.Ultra, lake.Quality);
+        Assert.True(lake.SwimmingEnabled);
         Assert.Equal(AreaSoundMode.Spatial3D, area.Environment.Audio.Spatial.Mode);
         Assert.Equal(3, area.RuntimePolicies.Experience.AudioCues.Count);
         Assert.Equal(3, area.RuntimePolicies.Experience.ScatterEmitters.Count);
@@ -82,7 +102,7 @@ public sealed class ForgottenForestModuleAuthoringServiceTests
             entity.Overrides.Properties.Any(property =>
                 property.Key == "visual.asset" &&
                 property.Value == ForgottenForestModuleAuthoringService.PolyHavenAssetId("dutch_ship_large_01").ToString()));
-        Assert.Equal(3, area.Entities.Count(entity => entity.Tags.Contains("bridge", StringComparer.Ordinal) &&
+        Assert.Equal(4, area.Entities.Count(entity => entity.Tags.Contains("bridge", StringComparer.Ordinal) &&
             entity.Overrides.Properties.Any(property =>
                 property.Key == "visual.asset" &&
                 property.Value == ForgottenForestModuleAuthoringService.PolyHavenAssetId("modular_wooden_pier").ToString())));
@@ -99,6 +119,68 @@ public sealed class ForgottenForestModuleAuthoringServiceTests
             .Order(StringComparer.Ordinal)
             .ToArray();
         Assert.Equal(expectedAnimatedAssets, actualAnimatedAssets);
+        var flyingMount = Assert.Single(area.Entities, entity =>
+            entity.Tags.Contains("flying-mount", StringComparer.Ordinal));
+        Assert.Contains("interactive", flyingMount.Tags, StringComparer.Ordinal);
+        Assert.Equal(
+            ForgottenForestModuleAuthoringService.AnimatedMonsterAssetId("dragon").ToString(),
+            flyingMount.Overrides.Properties.Single(property => property.Key == "visual.asset").Value);
+        Assert.Equal("quaternius-dragon", flyingMount.Overrides.Properties.Single(property =>
+            property.Key == "runtime.animationProfile").Value);
+        var flyingMountBlueprint = Assert.Single(project.Blueprints, blueprint => blueprint.Id == flyingMount.BlueprintId);
+        Assert.Equal("dragon-mount", flyingMountBlueprint.Slug);
+        Assert.Null(flyingMountBlueprint.Combat);
+        Assert.Equal(10, project.Areas.Sum(candidate => candidate.Portals.Count));
+        Assert.All(project.Areas.SelectMany(candidate => candidate.Portals), portal =>
+        {
+            var destination = Assert.Single(project.Areas, candidate => candidate.Id == portal.DestinationAreaId);
+            Assert.Contains(destination.Entities, entity => entity.Id == portal.DestinationEntityId);
+        });
+        Assert.Equal(4, area.Entities.Count(entity => entity.Tags.Contains("goblin", StringComparer.Ordinal)));
+
+        var village = Assert.Single(project.Areas, candidate => candidate.Slug == "clairval");
+        Assert.True(village.Entities.Count(entity =>
+            entity.Overrides.Properties.Any(property => property.Key == "visual.asset" &&
+                property.Value == ForgottenForestModuleAuthoringService.TownAssetId("wall-wood").ToString())) >= 8);
+        Assert.Contains(village.Entities, entity => entity.Tags.Contains("blacksmith", StringComparer.Ordinal));
+        Assert.Contains(village.Entities, entity => entity.Tags.Contains("temple", StringComparer.Ordinal));
+        Assert.Contains(village.Entities, entity => entity.Tags.Contains("healing", StringComparer.Ordinal));
+        Assert.Equal(2, village.Portals.Count);
+
+        var inn = Assert.Single(project.Areas, candidate => candidate.Slug == "ember-inn");
+        Assert.Equal(inn.Id, project.Module.EntryAreaId);
+        Assert.Equal(AreaKind.Interior, inn.Kind);
+        Assert.Equal(4, inn.Entities.Count(entity => entity.Tags.Contains("bed", StringComparer.Ordinal)));
+        Assert.Equal(5, inn.Entities.Count(entity => entity.Tags.Contains("table", StringComparer.Ordinal)));
+        Assert.Equal(20, inn.Entities.Count(entity => entity.Tags.Contains("chair", StringComparer.Ordinal)));
+        Assert.True(inn.Entities.Count(entity => entity.Tags.Contains("floor", StringComparer.Ordinal)) >= 100);
+        Assert.Contains(inn.Entities, entity => entity.Tags.Contains("innkeeper", StringComparer.Ordinal));
+
+        var fortress = Assert.Single(project.Areas, candidate => candidate.Slug == "gnoll-fortress");
+        Assert.Equal(9, fortress.Entities.Count(entity => entity.Tags.Contains("gnoll", StringComparer.Ordinal)));
+        Assert.True(fortress.Entities.Count(entity => entity.Tags.Contains("castle-kit", StringComparer.Ordinal)) >= 50);
+        Assert.Contains(fortress.Entities, entity =>
+            entity.Tags.Contains("boss", StringComparer.Ordinal) && entity.Tags.Contains("gnoll", StringComparer.Ordinal));
+
+        var desert = Assert.Single(project.Areas, candidate => candidate.Slug == "amber-desert");
+        Assert.Contains(desert.Environment.Tags, tag => tag == "desert");
+        Assert.Contains(desert.World.Features, feature => feature.Kind == TerrainFeatureKind.Road);
+        Assert.True(desert.Entities.Count(entity => entity.Tags.Contains("nature-kit", StringComparer.Ordinal)) >= 20);
+        Assert.True(desert.Entities.Count(entity => entity.Tags.Contains("tent", StringComparer.Ordinal)) >= 3);
+
+        var mountain = Assert.Single(project.Areas, candidate => candidate.Slug == "snow-pass");
+        Assert.Contains(mountain.Environment.Weather.States, state => state.Kind == WeatherKind.Snow);
+        Assert.True(mountain.Entities.Count(entity =>
+            entity.Tags.Contains("nature-kit", StringComparer.Ordinal) &&
+            entity.Tags.Contains("rock", StringComparer.Ordinal)) >= 8);
+        Assert.True(mountain.Entities.Count(entity => entity.Tags.Contains("tree", StringComparer.Ordinal)) >= 18);
+        var performance = PerformanceQualityService.Benchmark(project,
+            project.Module.RuntimePolicies.Extensions.ModernTooling.QualityAssurance, 1_024_000, 2);
+        Assert.All(performance.Measurements.Where(item => item.Kind == AreaBenchmarkKind.Interior),
+            item => Assert.Equal("ember-inn", item.AreaSlug));
+        Assert.All(performance.Measurements.Where(item => item.Kind != AreaBenchmarkKind.Interior),
+            item => Assert.Equal("forgotten-forest", item.AreaSlug));
+        Assert.True(performance.Passed);
         Assert.Equal(2, authored.Scripts.Count);
         Assert.Empty(ProjectValidator.Validate(project));
     }

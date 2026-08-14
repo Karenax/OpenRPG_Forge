@@ -42,7 +42,10 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
 
 - [x] Stabiliser les neuf espaces et le profil Débutant à quatre espaces.
 - [x] Intégrer les outils spécialisés dans une fenêtre active, embarquée et redimensionnable.
+- [x] Garantir zéro fenêtre d'outil au démarrage et un seul outil secondaire actif, réutilisable,
+  déplaçable, maximisable et refermable.
 - [x] Replier UUID, chemins, schémas et provenance derrière les détails techniques.
+- [x] Simplifier l'édition des plaçables autour du viewport : choisir, placer, sélectionner et transformer.
 - [x] Vérifier navigation, focus, contrastes, échelles et fenêtres responsives par les smokes UI.
 - [x] Revoir interactivement le Creator en fenêtre normale et maximisée, puis lancer un playtest 3D.
 
@@ -53,6 +56,13 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
 - [x] Écarter les cubes auxiliaires Blender lors du rendu des assets multi-maillages.
 - [x] Vérifier collisions, navigation, LOD/budgets et profils de qualité par les gates runtime.
 - [x] Valider caméra, mouvement, combat, dialogue, quête et sauvegarde en Forward+.
+- [x] Démarrer dans l’auberge et valider déplacement rapide, mini-carte et atlas des six zones sur `M`.
+- [x] Sécuriser toute la géométrie jouable de l’auberge : sol continu, quatre murs infranchissables,
+  porte activée uniquement par interaction, alignement visuel murs/sol et pieds/sol, puis récupération
+  après une chute forcée sous une carte intérieure ou extérieure (régression Forward+ automatisée).
+- [x] Supprimer le rebond de caméra pendant la marche et remplacer le bouton central de sortie par un
+  clic gauche sur la porte 3D, avec validation complète de la transition auberge → Clairval.
+- [x] Recomposer le HUD runtime sur une grille Full HD compacte et le revoir visuellement en 1080p/QHD.
 - [x] Capturer des preuves reproductibles de la carte entière et du playtest rapproché.
 
 ## C7 — Preuves et maintenabilité
@@ -62,6 +72,20 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
 - [x] Rejouer l'installateur sur un profil utilisateur temporaire propre.
 - [x] Extraire la politique de fenêtres, le décorateur de Crypte et le mapping de quêtes MCP.
 - [x] Conserver le portail intégré vert après chaque extraction.
+
+## C8 — Édition manuelle et non destructive
+
+- [x] Remplacer les principales collections à séparateurs des éditeurs Dialogue, Quête, Blueprint,
+  contenu et Objet par un composant liste + inspecteur avec ajout, duplication, suppression et ordre.
+- [x] Préserver les champs, localisations et entrées non représentés lors des modifications rapides
+  des fondations Objet, du gameplay Objet, des profils avancés Objet et du Terrain.
+- [x] Ajouter création/suppression manuelle des nœuds de dialogue, états et transitions de quête.
+- [x] Ajouter la suppression transactionnelle des zones, blueprints, dialogues et quêtes avec
+  dry-run, blocage des dépendances, protections lecture seule/zone d’entrée et undo/redo.
+- [x] Vérifier interactivement le démarrage sans fenêtres parasites, le formulaire structuré vide,
+  l’ajout d’une ligne, ses champs nommés et le repli explicite Modifier/Replier.
+- [ ] Isoler, committer et publier ce lot uniquement après autorisation explicite ; il est actuellement
+  validé mais encore mélangé à d’autres changements locaux du worktree.
 
 ## Décisions externes avant release publique
 

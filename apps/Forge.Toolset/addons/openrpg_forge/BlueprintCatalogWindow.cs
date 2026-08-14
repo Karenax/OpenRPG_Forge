@@ -23,6 +23,7 @@ public partial class BlueprintCatalogWindow : Window
 
     private Func<ProjectState?>? _getState;
     private Func<BlueprintId, string, string, BlueprintKind, BlueprintAuthoringMetadata, bool>? _upsertBlueprint;
+    private Func<BlueprintId, bool>? _deleteBlueprint;
     private Func<BlueprintId, string, string, BlueprintAuthoringMetadata, bool>? _createFromSelection;
     private Func<BlueprintId, BlueprintPaletteOrigin, bool, BlueprintProvenance, bool>? _configurePalette;
     private Func<UpdateBlueprintFromEntityCommand, bool>? _updateFromEntity;
@@ -93,6 +94,9 @@ public partial class BlueprintCatalogWindow : Window
     private CheckButton? _compositionRequired;
     private LineEdit? _assetMetrics;
     private TextEdit? _platformBudgets;
+    private StructuredCollectionField? _variantOverridesEditor;
+    private StructuredCollectionField? _compositionNodesEditor;
+    private StructuredCollectionField? _platformBudgetsEditor;
     private CheckButton? _budgetRequired;
     private Label? _prefabPreview;
     private string? _r058CapturePath;
@@ -108,6 +112,7 @@ public partial class BlueprintCatalogWindow : Window
     public void Initialize(
         Func<ProjectState?> getState,
         Func<BlueprintId, string, string, BlueprintKind, BlueprintAuthoringMetadata, bool> upsertBlueprint,
+        Func<BlueprintId, bool> deleteBlueprint,
         Func<BlueprintId, string, string, BlueprintAuthoringMetadata, bool> createFromSelection,
         Func<BlueprintId, BlueprintPaletteOrigin, bool, BlueprintProvenance, bool> configurePalette,
         Func<UpdateBlueprintFromEntityCommand, bool> updateFromEntity,
@@ -121,6 +126,7 @@ public partial class BlueprintCatalogWindow : Window
     {
         ArgumentNullException.ThrowIfNull(getState);
         ArgumentNullException.ThrowIfNull(upsertBlueprint);
+        ArgumentNullException.ThrowIfNull(deleteBlueprint);
         ArgumentNullException.ThrowIfNull(createFromSelection);
         ArgumentNullException.ThrowIfNull(configurePalette);
         ArgumentNullException.ThrowIfNull(updateFromEntity);
@@ -130,6 +136,7 @@ public partial class BlueprintCatalogWindow : Window
         ArgumentNullException.ThrowIfNull(brandWindow);
         _getState = getState;
         _upsertBlueprint = upsertBlueprint;
+        _deleteBlueprint = deleteBlueprint;
         _createFromSelection = createFromSelection;
         _configurePalette = configurePalette;
         _updateFromEntity = updateFromEntity;
@@ -373,6 +380,10 @@ public partial class BlueprintCatalogWindow : Window
         newButton.AddThemeStyleboxOverride("normal", Card("38264f", "8060aa", 1, 8));
         newButton.Pressed += CreateNew;
         titleRow.AddChild(newButton);
+        var deleteButton = new Button { Text = "Supprimer", CustomMinimumSize = new Vector2(130, 40) };
+        deleteButton.TooltipText = "Supprimer le blueprint sélectionné si aucune dépendance ne l'empêche";
+        deleteButton.Pressed += DeleteCurrent;
+        titleRow.AddChild(deleteButton);
 
         var body = new HBoxContainer { SizeFlagsVertical = Control.SizeFlags.ExpandFill };
         body.AddThemeConstantOverride("separation", 14);
@@ -542,6 +553,10 @@ public partial class BlueprintCatalogWindow : Window
             CustomMinimumSize = new Vector2(0, 44),
         };
         prefabCard.AddChild(_variantOverrides);
+        _variantOverridesEditor = StructuredCollectionField.Attach(_variantOverrides, "override",
+            new("Type", Options: Enum.GetNames<PrefabVariantOverrideKind>(),
+                DefaultValue: Enum.GetNames<PrefabVariantOverrideKind>()[0]),
+            new("Propriété", "Material"), new("Valeur", "asset:ember"));
         _variantRequired = new CheckButton { Text = "Variante requise au runtime" };
         prefabCard.AddChild(_variantRequired);
         _compositionNodes = new TextEdit
@@ -550,6 +565,12 @@ public partial class BlueprintCatalogWindow : Window
             CustomMinimumSize = new Vector2(0, 48),
         };
         prefabCard.AddChild(_compositionNodes);
+        _compositionNodesEditor = StructuredCollectionField.Attach(_compositionNodes, "nœud de composition",
+            new("Identifiant", Guid.Empty.ToString("D")),
+            new("Blueprint", "UUID du blueprint"),
+            new("Parent", "root", "root"), new("Socket", "floor"),
+            new("Position X", "0", "0"), new("Position Y", "0", "0"),
+            new("Position Z", "0", "0"));
         _compositionRules = new LineEdit { PlaceholderText = "Règles · socket-compatible" };
         prefabCard.AddChild(_compositionRules);
         _compositionParameters = new LineEdit { PlaceholderText = "Paramètres · intensity, theme" };
@@ -569,6 +590,14 @@ public partial class BlueprintCatalogWindow : Window
             CustomMinimumSize = new Vector2(0, 44),
         };
         prefabCard.AddChild(_platformBudgets);
+        _platformBudgetsEditor = StructuredCollectionField.Attach(_platformBudgets, "budget de plateforme",
+            new("Plateforme", Options: Enum.GetNames<AssetTargetPlatform>(),
+                DefaultValue: AssetTargetPlatform.Windows.ToString()),
+            new("Triangles", "20000", "20000"), new("Matériaux", "4", "4"),
+            new("Textures", "6", "6"), new("Octets texture", "16000000", "16000000"),
+            new("Animations", "2", "2"), new("LOD", "4", "4"),
+            new("Collisions", "3", "3"),
+            new("Bloquant", Options: ["true", "false"], DefaultValue: "true"));
         _budgetRequired = new CheckButton { Text = "Budget requis au runtime" };
         prefabCard.AddChild(_budgetRequired);
         var prefabActions = new HBoxContainer();
@@ -783,6 +812,26 @@ public partial class BlueprintCatalogWindow : Window
         _referenceList!.Clear();
         _referenceSummary!.Text = "Aucun usage";
         SetStatus("Définition prête. Ajustez son nom, son slug et son type.", false);
+    }
+
+    private void DeleteCurrent()
+    {
+        var state = _getState?.Invoke();
+        if (state is null || _draftBlueprintId is null ||
+            state.Project.Blueprints.All(item => item.Id != _draftBlueprintId))
+        {
+            SetStatus("Sélectionnez d’abord un blueprint enregistré.", true);
+            return;
+        }
+
+        if (_deleteBlueprint?.Invoke(_draftBlueprintId) != true)
+        {
+            SetStatus("Suppression refusée : consultez les dépendances et diagnostics du projet.", true);
+            return;
+        }
+
+        Refresh();
+        SetStatus("Blueprint supprimé. Utilisez Annuler pour le restaurer.", false);
     }
 
     private void ClearEditor()
@@ -1141,14 +1190,17 @@ public partial class BlueprintCatalogWindow : Window
         _authorCollections!.Editable = !readOnly;
         _variantBaseBlueprintId!.Editable = !readOnly;
         _variantOverrides!.Editable = !readOnly;
+        _variantOverridesEditor?.SetEditable(!readOnly);
         _variantRequired!.Disabled = readOnly;
         _compositionNodes!.Editable = !readOnly;
+        _compositionNodesEditor?.SetEditable(!readOnly);
         _compositionRules!.Editable = !readOnly;
         _compositionParameters!.Editable = !readOnly;
         _compositionScripts!.Editable = !readOnly;
         _compositionRequired!.Disabled = readOnly;
         _assetMetrics!.Editable = !readOnly;
         _platformBudgets!.Editable = !readOnly;
+        _platformBudgetsEditor?.SetEditable(!readOnly);
         _budgetRequired!.Disabled = readOnly;
         _sourceEntityId!.Editable = !readOnly;
         _promotedKeys!.Editable = !readOnly;

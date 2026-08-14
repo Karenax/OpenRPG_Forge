@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "6797acd1-4092-4e59-89f2-30be9398c29c",
+  "cacheKey": "90eabb334caa1ce3ba3174d30549ca36f47bb198210dcbd958e00e5bda472c68",
+  "catalogContentSha256": "886feece503686307dd041c986b1ea6f1fd63792c7e4217eb16f95904e6a9767",
+  "sourceFileSha256": "886feece503686307dd041c986b1ea6f1fd63792c7e4217eb16f95904e6a9767",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-dungeon-dressing@1.0.0;source:kaykit:dungeon-remastered-1.0;path:KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/shelf_large.gltf.glb",
+  "sourceRelativePath": "normalized/kaykit/dungeon-remastered-1.0/KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/shelf_large.gltf.glb",
+  "outputRelativePath": "assets/imported/kaykit-dungeon-remastered-1-0-shelf-large/model.glb",
+  "outputContentSha256": "886feece503686307dd041c986b1ea6f1fd63792c7e4217eb16f95904e6a9767",
+  "outputBytes": 22012,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kaykit-dungeon-remastered-1-0-shelf-large/model.glb",
+      "cacheKey": "90eabb334caa1ce3ba3174d30549ca36f47bb198210dcbd958e00e5bda472c68",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kaykit-dungeon-remastered-1-0-shelf-large/animations.index.json",
+      "cacheKey": "90eabb334caa1ce3ba3174d30549ca36f47bb198210dcbd958e00e5bda472c68",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kaykit-dungeon-remastered-1-0-shelf-large/collisions.glb",
+      "cacheKey": "90eabb334caa1ce3ba3174d30549ca36f47bb198210dcbd958e00e5bda472c68",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kaykit-dungeon-remastered-1-0-shelf-large/lod-0.5.glb",
+      "cacheKey": "90eabb334caa1ce3ba3174d30549ca36f47bb198210dcbd958e00e5bda472c68",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kaykit-dungeon-remastered-1-0-shelf-large/lod-0.25.glb",
+      "cacheKey": "90eabb334caa1ce3ba3174d30549ca36f47bb198210dcbd958e00e5bda472c68",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

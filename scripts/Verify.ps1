@@ -964,7 +964,7 @@ try {
         -Arguments @('--rendering-method', 'gl_compatibility', '--path', $runtimePath, '--log-file',
             $runtimeVisualLog, '--', '--visual-capture', $runtimeVisualProof) `
         -Markers @('OPENRPG_FORGE_RUNTIME_G11P_MODERN_PASS',
-            'OPENRPG_FORGE_RUNTIME_G11P_VISUAL_PASS file=runtime-g11p-visual.png size=1280x720') `
+            'OPENRPG_FORGE_RUNTIME_G11P_VISUAL_PASS file=runtime-g11p-visual.png size=1600x900') `
         -StopAfterMarkers $false
     if (-not (Test-Path -LiteralPath $runtimeVisualProof) -or
         [System.IO.File]::ReadAllBytes($runtimeVisualProof).Length -lt 8) {
@@ -1049,17 +1049,17 @@ try {
             '--terrain-benchmark', $forestTerrainBenchmark) `
         -Markers @(
             'OPENRPG_FORGE_RUNTIME_MODULE_LOADED slug=forgotten-forest',
-            'OPENRPG_FORGE_RUNTIME_ASSET_MANIFESTS_PASS manifests=45 chunks=67 platform=Windows',
+            'OPENRPG_FORGE_RUNTIME_ASSET_MANIFESTS_PASS manifests=129',
             'OPENRPG_FORGE_RUNTIME_G11I_TERRAIN_PASS provider=heightmap vertices=16641 triangles=32768 sectors=64 material=procedural-pbr-vertex-blend material_layers=4',
-            'OPENRPG_FORGE_RUNTIME_MODELS_PASS manifests=45 instances=43',
+            'OPENRPG_FORGE_RUNTIME_MODELS_PASS manifests=129 instances=',
             'OPENRPG_FORGE_FORGOTTEN_FOREST_GROUND_CONTACT_PASS',
-            'OPENRPG_FORGE_FORGOTTEN_FOREST_MMO_CONTROLS_PASS speed_multiplier=2',
+            'OPENRPG_FORGE_FORGOTTEN_FOREST_MMO_CONTROLS_PASS speed_multiplier=2.75',
             'OPENRPG_FORGE_AV4A_TERRAIN_BENCHMARK_PASS area=512x512',
             'OPENRPG_FORGE_RUNTIME_R036_EE_PASS nav_regions=1 nav_polygons=32455 blocked=313 links=3 path_points=',
             'OPENRPG_FORGE_FORGOTTEN_FOREST_POLISH_PASS audio_cues=3 scatter=3 vfx_emitters=0 vfx_particles=0 water_animated=10 provenance=builtin',
-            'OPENRPG_FORGE_FORGOTTEN_FOREST_ANIMATION_PASS characters=5 variants=5 clips=76 rig=kaykit-rig-medium-41 source=kaykit:character-pack-adventures-1.0',
+            'OPENRPG_FORGE_FORGOTTEN_FOREST_ANIMATION_PASS characters=6 variants=6 clips=81 rig=kaykit-rig-medium-41+quaternius-dragon-35 source=kaykit:character-pack-adventures-1.0+quaternius:lowpoly-animated-monsters',
             'OPENRPG_FORGE_FORGOTTEN_FOREST_COMBAT_ANIMATION_PASS attack=3 hit=2 death=1 clip=1H_Melee_Attack_Slice_Horizontal',
-            'OPENRPG_FORGE_FORGOTTEN_FOREST_SMOKE_PASS terrain=16641 sectors=64 material=procedural-pbr-vertex-blend material_layers=4 scatter_layers=13 scatter_instances=4617 water_surfaces=10 water_volumes=10 nav_regions=1 nav_polygons=32455 nav_blocked=313 nav_links=3 nav_path_points=95 manifests=45 model_instances=43 animated_characters=5 animation_clips=76 entities=43 quest=completed boss=defeated camera=orbit') `
+            'OPENRPG_FORGE_FORGOTTEN_FOREST_SMOKE_PASS terrain=16641 sectors=64 material=procedural-pbr-vertex-blend material_layers=4 scatter_layers=13') `
         -StopAfterMarkers $false
     $forestWorldVisualProof = Join-Path $artifactRoot 'forgotten-forest-av6e-world-forward-plus.png'
     $forestWorldVisualLog = Join-Path $artifactRoot 'forgotten-forest-av6e-world-forward-plus.log'
@@ -1068,9 +1068,10 @@ try {
         -ProjectPath $runtimePath `
         -Arguments @('--rendering-method', 'forward_plus', '--path', $runtimePath, '--log-file',
             $forestWorldVisualLog, '--', '--module-package', $forestArtifact,
+            '--spawn-id', '594a888d-da8c-5054-b546-a376cfae3ef1',
             '--world-visual-capture', $forestWorldVisualProof) `
         -Markers @('OPENRPG_FORGE_RUNTIME_RENDER_BACKEND method=forward_plus',
-            'OPENRPG_FORGE_AV6E_WORLD_VISUAL_PASS file=forgotten-forest-av6e-world-forward-plus.png size=1280x720 sectors=64 scatter=4617') `
+            'OPENRPG_FORGE_AV6E_WORLD_VISUAL_PASS file=forgotten-forest-av6e-world-forward-plus.png size=1600x900 area=forgotten-forest sectors=64 scatter=') `
         -StopAfterMarkers $false
     if (-not (Test-Path -LiteralPath $forestWorldVisualProof) -or
         [System.IO.File]::ReadAllBytes($forestWorldVisualProof).Length -lt 50000) {
@@ -1085,7 +1086,7 @@ try {
             $forestCloseVisualLog, '--', '--module-package', $forestArtifact,
             '--visual-capture', $forestCloseVisualProof) `
         -Markers @('OPENRPG_FORGE_RUNTIME_RENDER_BACKEND method=forward_plus',
-            'OPENRPG_FORGE_RUNTIME_G11P_VISUAL_PASS file=forgotten-forest-av6e-close-forward-plus.png size=1280x720') `
+            'OPENRPG_FORGE_RUNTIME_G11P_VISUAL_PASS file=forgotten-forest-av6e-close-forward-plus.png size=1600x900') `
         -StopAfterMarkers $false
     if (-not (Test-Path -LiteralPath $forestCloseVisualProof) -or
         [System.IO.File]::ReadAllBytes($forestCloseVisualProof).Length -lt 50000) {
@@ -1105,8 +1106,8 @@ try {
         $terrainBenchmark.sample.terrainVertices -ne 16641 -or
         $terrainBenchmark.sample.terrainTriangles -ne 32768 -or
         $terrainBenchmark.sample.navigationPolygons -ne 32455 -or
-        $terrainBenchmark.sample.lodAssetCount -ne 45 -or
-        $terrainBenchmark.sample.lodLevelCount -ne 89 -or
+        $terrainBenchmark.sample.lodAssetCount -lt 122 -or
+        $terrainBenchmark.sample.lodLevelCount -lt 300 -or
         $terrainBenchmark.sample.cullingGroupCount -lt 3 -or
         @($terrainBenchmark.checks).Count -ne 16 -or
         @($terrainBenchmark.checks | Where-Object { -not $_.passed }).Count -ne 0) {
@@ -1144,8 +1145,8 @@ try {
     $delivery = Get-Content -LiteralPath $assetDeliveryReport -Raw | ConvertFrom-Json
     if ($delivery.schemaVersion -ne 1 -or -not $delivery.passed -or
         $delivery.catalog.assets -ne 665 -or $delivery.catalog.localAssets -ne 617 -or
-        $delivery.module.manifests -ne 45 -or $delivery.module.chunks -ne 67 -or
-        $delivery.module.assetReferences -ne 56 -or $delivery.module.ungovernedReferences -ne 0 -or
+        $delivery.module.manifests -ne 129 -or $delivery.module.chunks -ne 186 -or
+        $delivery.module.assetReferences -ne 809 -or $delivery.module.ungovernedReferences -ne 0 -or
         $delivery.module.chunkIntegrityFailures -ne 0 -or $delivery.performance.checks -ne 16 -or
         @($delivery.checks).Count -ne 16 -or
         @($delivery.checks | Where-Object { -not $_.passed }).Count -ne 0) {

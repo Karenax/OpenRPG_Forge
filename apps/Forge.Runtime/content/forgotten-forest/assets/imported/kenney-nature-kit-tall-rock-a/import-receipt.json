@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "b59d8812-06e0-bc5a-91e5-d8b15e100696",
+  "cacheKey": "9ab48007907ee0079054d049e853c6439e89bc0c9a938be86124b5b77277ee4b",
+  "catalogContentSha256": "88250f236a3b75f8b55c1d8afb6af020f8a91b1e81f9fb51f7ef513420d45a2d",
+  "sourceFileSha256": "88250f236a3b75f8b55c1d8afb6af020f8a91b1e81f9fb51f7ef513420d45a2d",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/rock_tallA.glb",
+  "sourceRelativePath": "normalized/kenney/nature-kit/Models/GLTF format/rock_tallA.glb",
+  "outputRelativePath": "assets/imported/kenney-nature-kit-tall-rock-a/model.glb",
+  "outputContentSha256": "88250f236a3b75f8b55c1d8afb6af020f8a91b1e81f9fb51f7ef513420d45a2d",
+  "outputBytes": 12072,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-tall-rock-a/model.glb",
+      "cacheKey": "9ab48007907ee0079054d049e853c6439e89bc0c9a938be86124b5b77277ee4b",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-tall-rock-a/animations.index.json",
+      "cacheKey": "9ab48007907ee0079054d049e853c6439e89bc0c9a938be86124b5b77277ee4b",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-tall-rock-a/collisions.glb",
+      "cacheKey": "9ab48007907ee0079054d049e853c6439e89bc0c9a938be86124b5b77277ee4b",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-tall-rock-a/lod-0.5.glb",
+      "cacheKey": "9ab48007907ee0079054d049e853c6439e89bc0c9a938be86124b5b77277ee4b",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-tall-rock-a/lod-0.25.glb",
+      "cacheKey": "9ab48007907ee0079054d049e853c6439e89bc0c9a938be86124b5b77277ee4b",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

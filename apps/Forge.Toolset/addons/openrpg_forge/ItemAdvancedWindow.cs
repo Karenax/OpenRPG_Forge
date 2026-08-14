@@ -17,17 +17,24 @@ public partial class ItemAdvancedWindow : Window
     private Action<Window>? _applyIcon;
     private ItemList? _items;
     private BlueprintId? _selectedBlueprintId;
+    private ItemAdvancedProfile? _loadedProfile;
     private Guid _profileId;
+    private Guid? _loadedProcId;
+    private Guid? _loadedLootContextId;
     private LineEdit? _currency; private SpinBox? _baseCost; private SpinBox? _minimumLevel; private SpinBox? _minimumLore;
     private LineEdit? _skills; private LineEdit? _traits; private LineEdit? _factions; private LineEdit? _condition;
     private SpinBox? _identification; private CheckBox? _partyKnowledge; private CheckBox? _stolen;
-    private LineEdit? _owner; private LineEdit? _jurisdiction; private LineEdit? _procEffect; private SpinBox? _procChance;
+    private LineEdit? _owner; private LineEdit? _jurisdiction; private LineEdit? _procTrigger; private LineEdit? _procEffect;
+    private SpinBox? _procChance; private SpinBox? _procCooldown; private LineEdit? _procCondition;
+    private LineEdit? _procAttribution; private CheckBox? _procDeterministic;
     private CheckBox? _weapon; private LineEdit? _weaponClass; private SpinBox? _minDamage; private SpinBox? _maxDamage; private SpinBox? _reach;
     private CheckBox? _armor; private LineEdit? _armorMaterial; private SpinBox? _protection;
     private CheckBox? _ammo; private LineEdit? _ammoTag; private LineEdit? _projectile; private SpinBox? _stack;
     private CheckBox? _durability; private SpinBox? _durabilityMaximum; private SpinBox? _wear;
     private CheckBox? _container; private SpinBox? _slots; private SpinBox? _mass; private SpinBox? _depth;
     private LineEdit? _lootSource; private LineEdit? _biome; private LineEdit? _lootFaction; private LineEdit? _lootTags;
+    private SpinBox? _lootMinimumLevel; private SpinBox? _lootMaximumLevel; private LineEdit? _lootDifficulty;
+    private LineEdit? _lootPlayerCondition; private LineEdit? _lootEvent; private SpinBox? _lootWeight;
     private CheckBox? _unique; private LineEdit? _registryKey; private OptionButton? _uniqueScope;
     private OptionButton? _lootOwnership; private SpinBox? _ownershipExpiry;
     private CheckBox? _recipe; private LineEdit? _ingredient; private SpinBox? _ingredientQuantity; private LineEdit? _station; private LineEdit? _craftSkill;
@@ -60,7 +67,9 @@ public partial class ItemAdvancedWindow : Window
         _skills!.Text = "lore"; _traits!.Text = "ash-attuned"; _factions!.Text = "surface-alliance";
         _condition!.Text = "quest.accepted"; _identification!.Value = 12; _partyKnowledge!.ButtonPressed = true;
         _stolen!.ButtonPressed = true; _owner!.Text = "ash-watch"; _jurisdiction!.Text = "crypt";
-        _procEffect!.Text = "ash-key-pulse"; _procChance!.Value = 1;
+        _procTrigger!.Text = "hit"; _procEffect!.Text = "ash-key-pulse"; _procChance!.Value = 1;
+        _procCooldown!.Value = 0; _procCondition!.Text = string.Empty; _procAttribution!.Text = "wielder";
+        _procDeterministic!.ButtonPressed = true;
         _weapon!.ButtonPressed = true; _weaponClass!.Text = "ritual-key"; _minDamage!.Value = 1;
         _maxDamage!.Value = 4; _reach!.Value = 1.2; _armor!.ButtonPressed = true;
         _armorMaterial!.Text = "ember-steel"; _protection!.Value = 5; _ammo!.ButtonPressed = true;
@@ -68,6 +77,8 @@ public partial class ItemAdvancedWindow : Window
         _durability!.ButtonPressed = true; _durabilityMaximum!.Value = 40; _wear!.Value = 1;
         _container!.ButtonPressed = true; _slots!.Value = 4; _mass!.Value = 10; _depth!.Value = 2;
         _lootSource!.Text = "crypt-chest"; _biome!.Text = "crypt"; _lootFaction!.Text = "ash-watch"; _lootTags!.Text = "undead";
+        _lootMinimumLevel!.Value = 0; _lootMaximumLevel!.Value = 100; _lootDifficulty!.Text = string.Empty;
+        _lootPlayerCondition!.Text = string.Empty; _lootEvent!.Text = string.Empty; _lootWeight!.Value = 1;
         _unique!.ButtonPressed = true; _registryKey!.Text = "unique:ash-key"; Select(_uniqueScope!, ItemUniqueScope.World);
         Select(_lootOwnership!, ItemLootOwnershipMode.Personal); _ownershipExpiry!.Value = 120;
         _recipe!.ButtonPressed = true; _ingredient!.Text = "tag:ember-metal"; _ingredientQuantity!.Value = 2;
@@ -129,7 +140,12 @@ public partial class ItemAdvancedWindow : Window
         _factions = Field(form, "Factions autorisées", "surface-alliance"); _condition = Field(form, "Condition de script", "quest.accepted");
         _identification = Spin(form, "Difficulté d’identification", 0, 100, 10, 1); _partyKnowledge = Check(form, "Partager l’identification au groupe");
         _stolen = Check(form, "Objet volé"); _owner = Field(form, "Propriétaire", "ash-watch"); _jurisdiction = Field(form, "Juridiction", "crypt");
+        _procTrigger = Field(form, "Déclencheur de l'effet", "hit");
         _procEffect = Field(form, "Effet au toucher", "ash-key-pulse"); _procChance = Spin(form, "Chance au toucher", 0, 1, .25, .05);
+        _procCooldown = Spin(form, "Délai interne (s)", 0, 86_400, 0, .1);
+        _procCondition = Field(form, "Condition de l'effet (facultative)", "quest.accepted");
+        _procAttribution = Field(form, "Attribution de l'effet", "wielder");
+        _procDeterministic = Check(form, "Résolution déterministe");
     }
 
     private void BuildEquipment(VBoxContainer form)
@@ -150,6 +166,12 @@ public partial class ItemAdvancedWindow : Window
     {
         _lootSource = Field(form, "Source de butin", "chest"); _biome = Field(form, "Biome", "crypt");
         _lootFaction = Field(form, "Faction source", "ash-watch"); _lootTags = Field(form, "Tags contextuels", "undead");
+        _lootMinimumLevel = Spin(form, "Niveau minimum du butin", 0, 100, 0, 1);
+        _lootMaximumLevel = Spin(form, "Niveau maximum du butin", 0, 100, 100, 1);
+        _lootDifficulty = Field(form, "Difficulté requise (facultative)", "hard");
+        _lootPlayerCondition = Field(form, "Condition joueur (facultative)", "quest.accepted");
+        _lootEvent = Field(form, "Événement requis (facultatif)", "boss.defeated");
+        _lootWeight = Spin(form, "Poids de la règle", .001, 1_000_000, 1, .1);
         _unique = Check(form, "Objet unique"); _registryKey = Field(form, "Clé du registre", "unique:item");
         _uniqueScope = EnumSelect<ItemUniqueScope>(); form.AddChild(Labeled("Portée d’unicité", _uniqueScope));
         _lootOwnership = EnumSelect<ItemLootOwnershipMode>(); form.AddChild(Labeled("Droits de butin", _lootOwnership));
@@ -164,13 +186,20 @@ public partial class ItemAdvancedWindow : Window
     private void LoadItem(BlueprintDefinition blueprint)
     {
         _selectedBlueprintId = blueprint.Id; var profile = blueprint.ItemAdvanced ?? ItemAdvancedProfile.CreateDefault(Guid.NewGuid(), "toolset:g13-k-m");
+        _loadedProfile = profile;
         _profileId = profile.Id; _currency!.Text = profile.Economy.Currency; _baseCost!.Value = (double)profile.Economy.BaseCost;
         _minimumLevel!.Value = profile.Requirements.MinimumLevel; _minimumLore!.Value = profile.Requirements.MinimumLore;
         _skills!.Text = Join(profile.Requirements.Skills); _traits!.Text = Join(profile.Requirements.Traits); _factions!.Text = Join(profile.Requirements.Factions);
         _condition!.Text = profile.Requirements.ScriptCondition ?? string.Empty; _identification!.Value = profile.Identification.Difficulty;
         _partyKnowledge!.ButtonPressed = profile.Identification.ShareWithParty; _stolen!.ButtonPressed = profile.Ownership.Stolen;
         _owner!.Text = profile.Ownership.CurrentOwnerId; _jurisdiction!.Text = profile.Ownership.Jurisdiction;
-        _procEffect!.Text = profile.OnHitProcs.FirstOrDefault()?.EffectId ?? "effect.on-hit"; _procChance!.Value = profile.OnHitProcs.FirstOrDefault()?.Chance ?? .25;
+        var proc = profile.OnHitProcs.FirstOrDefault(item => string.Equals(item.Trigger, "hit", StringComparison.Ordinal))
+            ?? profile.OnHitProcs.FirstOrDefault();
+        _loadedProcId = proc?.Id;
+        _procTrigger!.Text = proc?.Trigger ?? "hit"; _procEffect!.Text = proc?.EffectId ?? "effect.on-hit";
+        _procChance!.Value = proc?.Chance ?? .25; _procCooldown!.Value = proc?.InternalCooldownSeconds ?? 0;
+        _procCondition!.Text = proc?.Condition ?? string.Empty; _procAttribution!.Text = proc?.Attribution ?? "wielder";
+        _procDeterministic!.ButtonPressed = proc?.Deterministic ?? true;
         _weapon!.ButtonPressed = profile.Weapon is not null; _weaponClass!.Text = profile.Weapon?.WeaponClass ?? "longsword";
         _minDamage!.Value = profile.Weapon?.Attacks.FirstOrDefault()?.MinimumDamage ?? 1; _maxDamage!.Value = profile.Weapon?.Attacks.FirstOrDefault()?.MaximumDamage ?? 4;
         _reach!.Value = profile.Weapon?.Attacks.FirstOrDefault()?.ReachMeters ?? 1.5; _armor!.ButtonPressed = profile.Armor is not null;
@@ -180,8 +209,12 @@ public partial class ItemAdvancedWindow : Window
         _durability!.ButtonPressed = profile.Durability?.Enabled == true; _durabilityMaximum!.Value = profile.Durability?.Maximum ?? 100;
         _wear!.Value = profile.Durability?.WearPerHit ?? 1; _container!.ButtonPressed = profile.Container is not null;
         _slots!.Value = profile.Container?.CapacitySlots ?? 8; _mass!.Value = profile.Container?.CapacityMass ?? 40; _depth!.Value = profile.Container?.MaximumDepth ?? 3;
-        var context = profile.LootContexts.FirstOrDefault(); _lootSource!.Text = context?.Source ?? "chest"; _biome!.Text = context?.Biome ?? string.Empty;
+        var context = profile.LootContexts.FirstOrDefault(); _loadedLootContextId = context?.Id;
+        _lootSource!.Text = context?.Source ?? "chest"; _biome!.Text = context?.Biome ?? string.Empty;
         _lootFaction!.Text = context?.Faction ?? string.Empty; _lootTags!.Text = Join(context?.RequiredTags ?? []);
+        _lootMinimumLevel!.Value = context?.MinimumLevel ?? 0; _lootMaximumLevel!.Value = context?.MaximumLevel ?? 100;
+        _lootDifficulty!.Text = context?.Difficulty ?? string.Empty; _lootPlayerCondition!.Text = context?.PlayerCondition ?? string.Empty;
+        _lootEvent!.Text = context?.EventId ?? string.Empty; _lootWeight!.Value = context?.Weight ?? 1;
         _unique!.ButtonPressed = profile.Unique.Enabled; _registryKey!.Text = profile.Unique.RegistryKey; Select(_uniqueScope!, profile.Unique.Scope);
         Select(_lootOwnership!, profile.LootOwnership.Mode); _ownershipExpiry!.Value = profile.LootOwnership.ExpirationSeconds;
         var recipe = profile.Recipes.FirstOrDefault(); _recipe!.ButtonPressed = recipe is not null; _ingredient!.Text = recipe?.Ingredients.FirstOrDefault()?.Query ?? "tag:metal";
@@ -195,41 +228,213 @@ public partial class ItemAdvancedWindow : Window
 
     private ItemAdvancedProfile BuildProfile()
     {
+        var loaded = _loadedProfile ?? ItemAdvancedProfile.CreateDefault(_profileId, "toolset:g13-k-m");
         var skills = Csv(_skills!.Text); var traits = Csv(_traits!.Text); var factions = Csv(_factions!.Text);
-        var history = _stolen!.ButtonPressed ? new[] { new ItemOwnershipEvent(Stable("owner"), _owner!.Text.Trim(),
-            _jurisdiction!.Text.Trim(), "toolset-evidence", DateTimeOffset.UnixEpoch, "toolset:g13-k") } : [];
-        var procs = string.IsNullOrWhiteSpace(_procEffect!.Text) ? [] : new[] { new ItemOnHitProc(Stable("proc"), "hit",
-            _procChance!.Value, 2, null, _procEffect.Text.Trim(), "wielder", true, "toolset:g13-k") };
-        var weapon = _weapon!.ButtonPressed ? new ItemWeaponProfile(_weaponClass!.Text.Trim(), 1, false,
-            [new("primary", "physical", _minDamage!.Value, _maxDamage!.Value, _reach!.Value, "attack.primary", ["equipped"])],
-            ["authored"]) : null;
-        var armor = _armor!.ButtonPressed ? new ItemArmorProfile(["torso"], _protection!.Value, 1, 1,
-            _armorMaterial!.Text.Trim(), new Dictionary<string, double>(), ["damaged", "broken"]) : null;
-        var ammo = _ammo!.ButtonPressed ? new ItemAmmoPolicy(_ammoTag!.Text.Trim(), _projectile!.Text.Trim(),
-            (int)_stack!.Value, .25, null, true) : null;
-        var durability = new ItemDurabilityPolicy(_durability!.ButtonPressed, (int)_durabilityMaximum!.Value,
-            (int)_durabilityMaximum.Value, 0, _wear!.Value, "smithing", 1, "item.broken", "visual.broken");
-        var container = _container!.ButtonPressed ? new ItemContainerPolicy((int)_slots!.Value, _mass!.Value,
-            (int)_depth!.Value, .8, ["loot"], ["inventory.open"], true, true) : null;
-        var loot = string.IsNullOrWhiteSpace(_lootSource!.Text) ? [] : new[] { new ItemLootContextRule(Stable("loot"),
-            _lootSource.Text.Trim(), Null(_biome!.Text), Null(_lootFaction!.Text), 0, 100, null, Csv(_lootTags!.Text),
-            null, null, 1, "toolset:g13-m") };
-        var recipes = _recipe!.ButtonPressed ? new[] { new ItemRecipeDefinition(Stable("recipe"), "authored-recipe",
-            [new(_ingredient!.Text.Trim(), (int)_ingredientQuantity!.Value, true, 0)], _station!.Text.Trim(),
-            _craftSkill!.Text.Trim(), 10, 0, 5, [], "toolset:g13-m") } : [];
-        var generator = _generator!.ButtonPressed ? new ItemGeneratorPolicy(true, (int)_budget!.Value, 1, 1,
-            [_pool!.Text.Trim()], new Dictionary<string, int> { ["common"] = 100 },
-            [new(Stable("affix"), _affixKey!.Text.Trim(), _pool.Text.Trim(), Math.Max(1, (int)_budget.Value / 2),
-                1, "common", [], Csv(_affixProperties!.Text), "toolset:g13-m")], 2026) : null;
-        return new(_profileId, 1, "toolset:g13-k-m", true,
-            new(_currency!.Text.Trim(), (decimal)_baseCost!.Value, 1, 1, .5, 1, new Dictionary<string, decimal>()),
-            new((int)_minimumLevel!.Value, (int)_minimumLore!.Value, skills, traits, factions, Null(_condition!.Text)),
-            new("unknown", (int)_identification!.Value, 0, _currency.Text.Trim(), _partyKnowledge!.ButtonPressed,
-                [new("unknown", 0, ["name"]), new("identified", (int)_identification.Value, ["*"])]),
-            new(_stolen!.ButtonPressed, _owner!.Text.Trim(), _jurisdiction!.Text.Trim(), true, history), procs,
-            weapon, armor, ammo, durability, container, loot,
-            new(_unique!.ButtonPressed, _registryKey!.Text.Trim(), (ItemUniqueScope)_uniqueScope!.Selected, 60, true),
-            new((ItemLootOwnershipMode)_lootOwnership!.Selected, (long)_ownershipExpiry!.Value, true, true), recipes, generator);
+        var loadedProc = _loadedProcId is { } loadedProcId
+            ? loaded.OnHitProcs.FirstOrDefault(item => item.Id == loadedProcId)
+            : null;
+        var editedProc = string.IsNullOrWhiteSpace(_procEffect!.Text) ? null :
+            (loadedProc ?? new ItemOnHitProc(Stable("proc"), "hit", .25, 0, null,
+                "effect.on-hit", "wielder", true, "toolset:g13-k")) with
+            {
+                Trigger = string.IsNullOrWhiteSpace(_procTrigger!.Text) ? "hit" : _procTrigger.Text.Trim(),
+                Chance = _procChance!.Value,
+                InternalCooldownSeconds = _procCooldown!.Value,
+                Condition = Null(_procCondition!.Text),
+                EffectId = _procEffect.Text.Trim(),
+                Attribution = string.IsNullOrWhiteSpace(_procAttribution!.Text) ? "wielder" : _procAttribution.Text.Trim(),
+                Deterministic = _procDeterministic!.ButtonPressed,
+            };
+        ItemWeaponProfile? weapon = null;
+        if (_weapon!.ButtonPressed)
+        {
+            var loadedWeapon = loaded.Weapon ?? new ItemWeaponProfile("longsword", 1, false, [], ["authored"]);
+            var attack = (loadedWeapon.Attacks.FirstOrDefault() ?? new ItemWeaponAttack(
+                "primary", "physical", 1, 4, 1.5, "attack.primary", ["equipped"])) with
+            {
+                MinimumDamage = _minDamage!.Value,
+                MaximumDamage = _maxDamage!.Value,
+                ReachMeters = _reach!.Value,
+            };
+            weapon = loadedWeapon with
+            {
+                WeaponClass = _weaponClass!.Text.Trim(),
+                Attacks = ReplaceFirst(loadedWeapon.Attacks, attack),
+            };
+        }
+        var armor = _armor!.ButtonPressed
+            ? (loaded.Armor ?? new ItemArmorProfile(["torso"], 10, 1, 1, "steel",
+                new Dictionary<string, double>(), ["damaged", "broken"])) with
+            {
+                Protection = _protection!.Value,
+                Material = _armorMaterial!.Text.Trim(),
+            }
+            : null;
+        var ammo = _ammo!.ButtonPressed
+            ? (loaded.Ammo ?? new ItemAmmoPolicy("arrow", "assets/projectiles/arrow.glb", 20, .25, null, true)) with
+            {
+                AmmoTag = _ammoTag!.Text.Trim(),
+                ProjectileAssetId = _projectile!.Text.Trim(),
+                MaximumStack = (int)_stack!.Value,
+            }
+            : null;
+        var durability = (loaded.Durability ?? new ItemDurabilityPolicy(false, 100, 100, 0, 1,
+            "smithing", 1, "item.broken", "visual.broken")) with
+        {
+            Enabled = _durability!.ButtonPressed,
+            Maximum = (int)_durabilityMaximum!.Value,
+            Initial = Math.Min((int)_durabilityMaximum.Value,
+                loaded.Durability?.Initial ?? (int)_durabilityMaximum.Value),
+            WearPerHit = _wear!.Value,
+        };
+        var container = _container!.ButtonPressed
+            ? (loaded.Container ?? new ItemContainerPolicy(8, 40, 3, .8, ["loot"], ["inventory.open"], true, true)) with
+            {
+                CapacitySlots = (int)_slots!.Value,
+                CapacityMass = _mass!.Value,
+                MaximumDepth = (int)_depth!.Value,
+            }
+            : null;
+        var loadedLoot = _loadedLootContextId is { } loadedLootId
+            ? loaded.LootContexts.FirstOrDefault(item => item.Id == loadedLootId)
+            : null;
+        var editedLoot = string.IsNullOrWhiteSpace(_lootSource!.Text) ? null :
+            (loadedLoot ?? new ItemLootContextRule(Stable("loot"), "chest", null, null,
+                0, 100, null, [], null, null, 1, "toolset:g13-m")) with
+            {
+                Source = _lootSource.Text.Trim(),
+                Biome = Null(_biome!.Text),
+                Faction = Null(_lootFaction!.Text),
+                MinimumLevel = (int)_lootMinimumLevel!.Value,
+                MaximumLevel = (int)_lootMaximumLevel!.Value,
+                Difficulty = Null(_lootDifficulty!.Text),
+                RequiredTags = Csv(_lootTags!.Text),
+                PlayerCondition = Null(_lootPlayerCondition!.Text),
+                EventId = Null(_lootEvent!.Text),
+                Weight = _lootWeight!.Value,
+            };
+        ItemRecipeDefinition? editedRecipe = null;
+        if (_recipe!.ButtonPressed)
+        {
+            var loadedRecipe = loaded.Recipes.FirstOrDefault() ?? new ItemRecipeDefinition(Stable("recipe"),
+                "authored-recipe", [], "forge", "smithing", 10, 0, 5, [], "toolset:g13-m");
+            var ingredient = (loadedRecipe.Ingredients.FirstOrDefault() ?? new ItemIngredientQuery("tag:metal", 1,
+                true, 0)) with
+            {
+                Query = _ingredient!.Text.Trim(),
+                Quantity = (int)_ingredientQuantity!.Value,
+            };
+            editedRecipe = loadedRecipe with
+            {
+                Ingredients = ReplaceFirst(loadedRecipe.Ingredients, ingredient),
+                StationTag = _station!.Text.Trim(),
+                SkillId = _craftSkill!.Text.Trim(),
+            };
+        }
+        ItemGeneratorPolicy? generator = null;
+        if (_generator!.ButtonPressed)
+        {
+            var loadedGenerator = loaded.Generator ?? new ItemGeneratorPolicy(true, 4, 1, 1, [],
+                new Dictionary<string, int> { ["common"] = 100 }, [], 2026);
+            var affix = (loadedGenerator.Affixes.FirstOrDefault() ?? new ItemAffixDefinition(Stable("affix"),
+                "keen", "weapon", 1, 1, "common", [], ["critical"], "toolset:g13-m")) with
+            {
+                Key = _affixKey!.Text.Trim(),
+                Pool = _pool!.Text.Trim(),
+                Cost = Math.Max(1, (int)_budget!.Value / 2),
+                PropertyIds = Csv(_affixProperties!.Text),
+            };
+            generator = loadedGenerator with
+            {
+                Enabled = true,
+                Budget = (int)_budget.Value,
+                Pools = ReplaceFirst(loadedGenerator.Pools, _pool.Text.Trim()),
+                Affixes = ReplaceFirst(loadedGenerator.Affixes, affix),
+            };
+        }
+        return loaded with
+        {
+            RequiredAtRuntime = true,
+            Economy = loaded.Economy with
+            {
+                Currency = _currency!.Text.Trim(),
+                BaseCost = (decimal)_baseCost!.Value,
+            },
+            Requirements = loaded.Requirements with
+            {
+                MinimumLevel = (int)_minimumLevel!.Value,
+                MinimumLore = (int)_minimumLore!.Value,
+                Skills = skills,
+                Traits = traits,
+                Factions = factions,
+                ScriptCondition = Null(_condition!.Text),
+            },
+            Identification = loaded.Identification with
+            {
+                Difficulty = (int)_identification!.Value,
+                Currency = _currency.Text.Trim(),
+                ShareWithParty = _partyKnowledge!.ButtonPressed,
+            },
+            Ownership = loaded.Ownership with
+            {
+                Stolen = _stolen!.ButtonPressed,
+                CurrentOwnerId = _owner!.Text.Trim(),
+                Jurisdiction = _jurisdiction!.Text.Trim(),
+            },
+            OnHitProcs = ReplaceOrRemoveSelected(loaded.OnHitProcs, _loadedProcId, editedProc, item => item.Id),
+            Weapon = weapon,
+            Armor = armor,
+            Ammo = ammo,
+            Durability = durability,
+            Container = container,
+            LootContexts = ReplaceOrRemoveSelected(loaded.LootContexts, _loadedLootContextId, editedLoot, item => item.Id),
+            Unique = loaded.Unique with
+            {
+                Enabled = _unique!.ButtonPressed,
+                RegistryKey = _registryKey!.Text.Trim(),
+                Scope = (ItemUniqueScope)_uniqueScope!.Selected,
+            },
+            LootOwnership = loaded.LootOwnership with
+            {
+                Mode = (ItemLootOwnershipMode)_lootOwnership!.Selected,
+                ExpirationSeconds = (long)_ownershipExpiry!.Value,
+            },
+            Recipes = ReplaceOrRemoveFirst(loaded.Recipes, editedRecipe),
+            Generator = generator,
+        };
+    }
+
+    private static IReadOnlyList<T> ReplaceFirst<T>(IReadOnlyList<T> source, T replacement)
+    {
+        if (source.Count == 0) return [replacement];
+        var result = source.ToArray();
+        result[0] = replacement;
+        return result;
+    }
+
+    private static IReadOnlyList<T> ReplaceOrRemoveFirst<T>(IReadOnlyList<T> source, T? replacement)
+        where T : class
+    {
+        if (replacement is not null) return ReplaceFirst(source, replacement);
+        return source.Skip(1).ToArray();
+    }
+
+    private static IReadOnlyList<T> ReplaceOrRemoveSelected<T>(IReadOnlyList<T> source, Guid? selectedId,
+        T? replacement, Func<T, Guid> identify) where T : class
+    {
+        if (selectedId is null)
+            return replacement is null ? source : source.Append(replacement).ToArray();
+
+        var selectedIndex = Array.FindIndex(source.ToArray(), item => identify(item) == selectedId.Value);
+        if (selectedIndex < 0 || selectedIndex >= source.Count)
+            return replacement is null ? source : source.Append(replacement).ToArray();
+
+        if (replacement is null)
+            return source.Where((_, index) => index != selectedIndex).ToArray();
+
+        var result = source.ToArray();
+        result[selectedIndex] = replacement;
+        return result;
     }
 
     private void Mutate(bool dryRun)
@@ -289,7 +494,8 @@ public partial class ItemAdvancedWindow : Window
     }
     private void SetEmpty(string message)
     {
-        _selectedBlueprintId = null; if (_feedback is not null) _feedback.Text = message;
+        _selectedBlueprintId = null; _loadedProfile = null; _loadedProcId = null; _loadedLootContextId = null;
+        if (_feedback is not null) _feedback.Text = message;
         if (_summary is not null) _summary.Text = "[color=#b8a8ce]Aucun objet sélectionné.[/color]";
     }
     private Guid Stable(string key) { var hash = System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes($"{_profileId:D}|{key}")); return new(hash.AsSpan(0, 16)); }

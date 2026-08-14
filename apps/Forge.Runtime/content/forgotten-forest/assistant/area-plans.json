@@ -1,0 +1,1522 @@
+{
+  "formatVersion": "1.0.0",
+  "catalog": {
+    "id": "b1240000-0000-4000-8000-000000000001",
+    "schemaVersion": 1,
+    "plans": [
+      {
+        "id": "5787516e-7a60-51b4-ba0c-5b2448b55ace",
+        "schemaVersion": 1,
+        "areaId": "117b317b-0ae8-415e-8bce-b4970d31d376",
+        "title": "Auberge du Cerf d Ambre complete",
+        "archetype": "crypt",
+        "seed": 20260815,
+        "widthMeters": 54,
+        "depthMeters": 42,
+        "kitBlueprintIds": [
+          "64cc1039-6959-dd59-b48b-5db0a6da7484"
+        ],
+        "constraints": [
+          "clean-room construction",
+          "preserve existing portals",
+          "readable and playable navigation"
+        ],
+        "objectives": [
+          "coherent landmarks for the connected world",
+          "exploration combat and services rhythm"
+        ],
+        "nodes": [
+          {
+            "id": "09588bd4-f5b3-4c42-910a-cc5190408b6b",
+            "schemaVersion": 1,
+            "kind": "entry",
+            "label": "Crypte \u00B7 Entry 1",
+            "x": -18.9,
+            "z": -14.7,
+            "width": 11.7,
+            "depth": 9.099999,
+            "contentBlueprintIds": [],
+            "tags": [
+              "crypt",
+              "entry"
+            ]
+          },
+          {
+            "id": "26c69dd7-038a-4044-8de2-3c70ede23c83",
+            "schemaVersion": 1,
+            "kind": "exit",
+            "label": "Crypte \u00B7 Exit 7",
+            "x": -18.9,
+            "z": 14.7,
+            "width": 11.7,
+            "depth": 9.099999,
+            "contentBlueprintIds": [],
+            "tags": [
+              "crypt",
+              "exit"
+            ]
+          },
+          {
+            "id": "2c55d23f-8520-5946-8ee6-29ada4d766b8",
+            "schemaVersion": 1,
+            "kind": "encounter",
+            "label": "Crypte \u00B7 Encounter 3",
+            "x": 18.9,
+            "z": -14.7,
+            "width": 11.7,
+            "depth": 9.099999,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "crypt",
+              "encounter"
+            ]
+          },
+          {
+            "id": "5f6e0a31-2e47-3047-9a8c-02cffb0c38e1",
+            "schemaVersion": 1,
+            "kind": "exploration",
+            "label": "Crypte \u00B7 Exploration 2",
+            "x": 0,
+            "z": -14.7,
+            "width": 11.7,
+            "depth": 9.099999,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "crypt",
+              "exploration"
+            ]
+          },
+          {
+            "id": "8a18c248-da94-d646-8d2f-329bcb73ae80",
+            "schemaVersion": 1,
+            "kind": "objective",
+            "label": "Crypte \u00B7 Objective 5",
+            "x": 0,
+            "z": 0,
+            "width": 11.7,
+            "depth": 9.099999,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "crypt",
+              "objective"
+            ]
+          },
+          {
+            "id": "a54560d0-70ab-2e4d-950e-3ee9950891c2",
+            "schemaVersion": 1,
+            "kind": "exploration",
+            "label": "Crypte \u00B7 Exploration 6",
+            "x": -18.9,
+            "z": 0,
+            "width": 11.7,
+            "depth": 9.099999,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "crypt",
+              "exploration"
+            ]
+          },
+          {
+            "id": "a5716207-6c5a-f241-bcc1-c94fd290202d",
+            "schemaVersion": 1,
+            "kind": "rest",
+            "label": "Crypte \u00B7 Rest 4",
+            "x": 18.9,
+            "z": 0,
+            "width": 11.7,
+            "depth": 9.099999,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "crypt",
+              "rest"
+            ]
+          }
+        ],
+        "links": [
+          {
+            "id": "47e72a02-36e9-e945-8575-a5df71e04264",
+            "schemaVersion": 1,
+            "fromNodeId": "a54560d0-70ab-2e4d-950e-3ee9950891c2",
+            "toNodeId": "26c69dd7-038a-4044-8de2-3c70ede23c83",
+            "traversal": "door",
+            "required": true
+          },
+          {
+            "id": "4b771c6c-8899-6b4a-b825-4e1d29d30c14",
+            "schemaVersion": 1,
+            "fromNodeId": "5f6e0a31-2e47-3047-9a8c-02cffb0c38e1",
+            "toNodeId": "2c55d23f-8520-5946-8ee6-29ada4d766b8",
+            "traversal": "door",
+            "required": true
+          },
+          {
+            "id": "69a29c30-71ab-574b-8434-315241faba23",
+            "schemaVersion": 1,
+            "fromNodeId": "2c55d23f-8520-5946-8ee6-29ada4d766b8",
+            "toNodeId": "a5716207-6c5a-f241-bcc1-c94fd290202d",
+            "traversal": "door",
+            "required": true
+          },
+          {
+            "id": "7be79f42-f0cf-374d-b5bc-74f6b8c4a32c",
+            "schemaVersion": 1,
+            "fromNodeId": "09588bd4-f5b3-4c42-910a-cc5190408b6b",
+            "toNodeId": "5f6e0a31-2e47-3047-9a8c-02cffb0c38e1",
+            "traversal": "door",
+            "required": true
+          },
+          {
+            "id": "9ec0c37b-e2af-7545-9179-0cc285e27de9",
+            "schemaVersion": 1,
+            "fromNodeId": "a5716207-6c5a-f241-bcc1-c94fd290202d",
+            "toNodeId": "8a18c248-da94-d646-8d2f-329bcb73ae80",
+            "traversal": "door",
+            "required": true
+          },
+          {
+            "id": "a5e352a3-6a74-8042-9752-6b9d820fd139",
+            "schemaVersion": 1,
+            "fromNodeId": "8a18c248-da94-d646-8d2f-329bcb73ae80",
+            "toNodeId": "a54560d0-70ab-2e4d-950e-3ee9950891c2",
+            "traversal": "door",
+            "required": true
+          },
+          {
+            "id": "b3a4d1f3-2e39-6145-8a6d-ea0d07e39bab",
+            "schemaVersion": 1,
+            "fromNodeId": "5f6e0a31-2e47-3047-9a8c-02cffb0c38e1",
+            "toNodeId": "a54560d0-70ab-2e4d-950e-3ee9950891c2",
+            "traversal": "secret-door",
+            "required": false
+          }
+        ],
+        "loreSourceIds": [],
+        "approvedForConstruction": true,
+        "estimatedCostUsd": 0,
+        "providerKey": "offline-ci",
+        "provenance": "codex:mcp-connected-world@1:openrpg-forge:g12-a:deterministic-offline:prompt-528d60fad3f927a32ddc7534f6b45fb4716bc61672ac8cc629508109451e55e1"
+      },
+      {
+        "id": "e96aae9e-88b4-5a8a-8491-e63e46ea687d",
+        "schemaVersion": 1,
+        "areaId": "89484125-341f-1759-8579-0cb4762e2a9b",
+        "title": "Clairval, place, forge et temple de soins",
+        "archetype": "village",
+        "seed": 20260814,
+        "widthMeters": 176,
+        "depthMeters": 176,
+        "kitBlueprintIds": [
+          "64cc1039-6959-dd59-b48b-5db0a6da7484"
+        ],
+        "constraints": [
+          "clean-room construction",
+          "preserve existing portals",
+          "readable and playable navigation"
+        ],
+        "objectives": [
+          "coherent landmarks for the connected world",
+          "exploration combat and services rhythm"
+        ],
+        "nodes": [
+          {
+            "id": "13ecf139-2104-db4a-ac4f-2f14fa3a7b2f",
+            "schemaVersion": 1,
+            "kind": "service",
+            "label": "Village \u00B7 Service 3",
+            "x": -3.93,
+            "z": 56.18,
+            "width": 38.13333,
+            "depth": 38.13333,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "service",
+              "village"
+            ]
+          },
+          {
+            "id": "32cbfe97-e94a-674b-a7bd-00642607a6b3",
+            "schemaVersion": 1,
+            "kind": "service",
+            "label": "Village \u00B7 Service 7",
+            "x": -15.52,
+            "z": -54.14,
+            "width": 38.13333,
+            "depth": 38.13333,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "service",
+              "village"
+            ]
+          },
+          {
+            "id": "610479a5-c0fb-474e-ae39-44eb712e8bcf",
+            "schemaVersion": 1,
+            "kind": "objective",
+            "label": "Village \u00B7 Objective 5",
+            "x": -56.01,
+            "z": 5.89,
+            "width": 38.13333,
+            "depth": 38.13333,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "objective",
+              "village"
+            ]
+          },
+          {
+            "id": "764f2701-24ba-f04b-9830-13969e48e247",
+            "schemaVersion": 1,
+            "kind": "exploration",
+            "label": "Village \u00B7 Exploration 8",
+            "x": 22.91,
+            "z": -51.45,
+            "width": 38.13333,
+            "depth": 38.13333,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "exploration",
+              "village"
+            ]
+          },
+          {
+            "id": "82e074b4-3564-7c45-95af-8293f4d42bd4",
+            "schemaVersion": 1,
+            "kind": "entry",
+            "label": "Village \u00B7 Entry 1",
+            "x": 54.65,
+            "z": 13.63,
+            "width": 38.13333,
+            "depth": 38.13333,
+            "contentBlueprintIds": [],
+            "tags": [
+              "entry",
+              "village"
+            ]
+          },
+          {
+            "id": "a1272f81-1730-1b40-9f9f-bc300aaf0080",
+            "schemaVersion": 1,
+            "kind": "social",
+            "label": "Village \u00B7 Social 2",
+            "x": 33.1,
+            "z": 45.56,
+            "width": 38.13333,
+            "depth": 38.13333,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "social",
+              "village"
+            ]
+          },
+          {
+            "id": "bbc05cc6-ec66-9045-821c-f15d144d9dcf",
+            "schemaVersion": 1,
+            "kind": "exploration",
+            "label": "Village \u00B7 Exploration 4",
+            "x": -39.12,
+            "z": 40.51,
+            "width": 38.13333,
+            "depth": 38.13333,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "exploration",
+              "village"
+            ]
+          },
+          {
+            "id": "f42013d9-1c6a-9c40-a3f7-f3161afc8991",
+            "schemaVersion": 1,
+            "kind": "exit",
+            "label": "Village \u00B7 Exit 9",
+            "x": 50.62,
+            "z": -24.69,
+            "width": 38.13333,
+            "depth": 38.13333,
+            "contentBlueprintIds": [],
+            "tags": [
+              "exit",
+              "village"
+            ]
+          },
+          {
+            "id": "fc6efaaf-bdaa-3040-91cc-6d262aa80e9f",
+            "schemaVersion": 1,
+            "kind": "social",
+            "label": "Village \u00B7 Social 6",
+            "x": -46.69,
+            "z": -31.49,
+            "width": 38.13333,
+            "depth": 38.13333,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "social",
+              "village"
+            ]
+          }
+        ],
+        "links": [
+          {
+            "id": "21daa7b6-8e4b-de49-95c0-840e01585233",
+            "schemaVersion": 1,
+            "fromNodeId": "610479a5-c0fb-474e-ae39-44eb712e8bcf",
+            "toNodeId": "fc6efaaf-bdaa-3040-91cc-6d262aa80e9f",
+            "traversal": "path",
+            "required": true
+          },
+          {
+            "id": "23a3ac74-7a48-684c-827c-c6715a0defb4",
+            "schemaVersion": 1,
+            "fromNodeId": "a1272f81-1730-1b40-9f9f-bc300aaf0080",
+            "toNodeId": "13ecf139-2104-db4a-ac4f-2f14fa3a7b2f",
+            "traversal": "path",
+            "required": true
+          },
+          {
+            "id": "24506afd-2bd4-c84d-a980-8a4beabdedf3",
+            "schemaVersion": 1,
+            "fromNodeId": "764f2701-24ba-f04b-9830-13969e48e247",
+            "toNodeId": "f42013d9-1c6a-9c40-a3f7-f3161afc8991",
+            "traversal": "path",
+            "required": true
+          },
+          {
+            "id": "2aec517a-0f0f-4446-866d-73500b271ebb",
+            "schemaVersion": 1,
+            "fromNodeId": "32cbfe97-e94a-674b-a7bd-00642607a6b3",
+            "toNodeId": "764f2701-24ba-f04b-9830-13969e48e247",
+            "traversal": "path",
+            "required": true
+          },
+          {
+            "id": "3a812a9d-eff9-994c-a7d4-077b1b5a5657",
+            "schemaVersion": 1,
+            "fromNodeId": "13ecf139-2104-db4a-ac4f-2f14fa3a7b2f",
+            "toNodeId": "bbc05cc6-ec66-9045-821c-f15d144d9dcf",
+            "traversal": "path",
+            "required": true
+          },
+          {
+            "id": "5ab411f1-9845-c44b-ab8b-626b800e2796",
+            "schemaVersion": 1,
+            "fromNodeId": "bbc05cc6-ec66-9045-821c-f15d144d9dcf",
+            "toNodeId": "610479a5-c0fb-474e-ae39-44eb712e8bcf",
+            "traversal": "path",
+            "required": true
+          },
+          {
+            "id": "6bc1d274-f49c-ee4c-b4a4-ac065b9af284",
+            "schemaVersion": 1,
+            "fromNodeId": "a1272f81-1730-1b40-9f9f-bc300aaf0080",
+            "toNodeId": "764f2701-24ba-f04b-9830-13969e48e247",
+            "traversal": "side-path",
+            "required": false
+          },
+          {
+            "id": "b8fd72bd-b23f-2846-97c7-6301a42b3f8a",
+            "schemaVersion": 1,
+            "fromNodeId": "fc6efaaf-bdaa-3040-91cc-6d262aa80e9f",
+            "toNodeId": "32cbfe97-e94a-674b-a7bd-00642607a6b3",
+            "traversal": "path",
+            "required": true
+          },
+          {
+            "id": "da5ddeba-a8c6-8543-863a-b16ab9c25cae",
+            "schemaVersion": 1,
+            "fromNodeId": "82e074b4-3564-7c45-95af-8293f4d42bd4",
+            "toNodeId": "a1272f81-1730-1b40-9f9f-bc300aaf0080",
+            "traversal": "path",
+            "required": true
+          }
+        ],
+        "loreSourceIds": [],
+        "approvedForConstruction": true,
+        "estimatedCostUsd": 0,
+        "providerKey": "offline-ci",
+        "provenance": "codex:mcp-connected-world@1:openrpg-forge:g12-a:deterministic-offline:prompt-86d164f797c4ac2e7e75e00401d075f545b1f6f596bdbecc7251729ab29196b1"
+      },
+      {
+        "id": "9770df28-98a3-5273-9195-15133e275495",
+        "schemaVersion": 1,
+        "areaId": "42a209b9-6e5f-0e5b-8c75-e4c8a835abaf",
+        "title": "Col des Hautes Neiges",
+        "archetype": "village",
+        "seed": 20260818,
+        "widthMeters": 160,
+        "depthMeters": 208,
+        "kitBlueprintIds": [
+          "64cc1039-6959-dd59-b48b-5db0a6da7484"
+        ],
+        "constraints": [
+          "clean-room construction",
+          "preserve existing portals",
+          "readable and playable navigation"
+        ],
+        "objectives": [
+          "coherent landmarks for the connected world",
+          "exploration combat and services rhythm"
+        ],
+        "nodes": [
+          {
+            "id": "080b4678-3663-bf40-b51f-5819566588fb",
+            "schemaVersion": 1,
+            "kind": "exploration",
+            "label": "Village \u00B7 Exploration 4",
+            "x": -45.62,
+            "z": 30.22,
+            "width": 34.666664,
+            "depth": 45.066666,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "exploration",
+              "village"
+            ]
+          },
+          {
+            "id": "15b3efaa-efdf-434b-bbf3-5e5fca9807ed",
+            "schemaVersion": 1,
+            "kind": "social",
+            "label": "Village \u00B7 Social 2",
+            "x": 23.24,
+            "z": 59.31,
+            "width": 34.666664,
+            "depth": 45.066666,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "social",
+              "village"
+            ]
+          },
+          {
+            "id": "2e41402a-7134-e340-84df-28722645e5c8",
+            "schemaVersion": 1,
+            "kind": "entry",
+            "label": "Village \u00B7 Entry 1",
+            "x": 48.69,
+            "z": 20.57,
+            "width": 34.666664,
+            "depth": 45.066666,
+            "contentBlueprintIds": [],
+            "tags": [
+              "entry",
+              "village"
+            ]
+          },
+          {
+            "id": "83fde173-f455-e04e-9896-3a147b4c7e1b",
+            "schemaVersion": 1,
+            "kind": "service",
+            "label": "Village \u00B7 Service 7",
+            "x": 15.82,
+            "z": -63.3,
+            "width": 34.666664,
+            "depth": 45.066666,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "service",
+              "village"
+            ]
+          },
+          {
+            "id": "848bb950-8d73-ea40-b284-4552145a77a8",
+            "schemaVersion": 1,
+            "kind": "service",
+            "label": "Village \u00B7 Service 3",
+            "x": -15.82,
+            "z": 63.3,
+            "width": 34.666664,
+            "depth": 45.066666,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "service",
+              "village"
+            ]
+          },
+          {
+            "id": "a584740a-d878-4f46-8c9a-99d14fd8cc9b",
+            "schemaVersion": 1,
+            "kind": "objective",
+            "label": "Village \u00B7 Objective 5",
+            "x": -48.69,
+            "z": -20.57,
+            "width": 34.666664,
+            "depth": 45.066666,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "objective",
+              "village"
+            ]
+          },
+          {
+            "id": "df1dec2d-c5eb-cd4e-b152-bf59eaeedacf",
+            "schemaVersion": 1,
+            "kind": "exit",
+            "label": "Village \u00B7 Exit 8",
+            "x": 45.62,
+            "z": -30.22,
+            "width": 34.666664,
+            "depth": 45.066666,
+            "contentBlueprintIds": [],
+            "tags": [
+              "exit",
+              "village"
+            ]
+          },
+          {
+            "id": "e195a69e-4550-1b43-a7f2-d2422800b1a6",
+            "schemaVersion": 1,
+            "kind": "social",
+            "label": "Village \u00B7 Social 6",
+            "x": -23.24,
+            "z": -59.31,
+            "width": 34.666664,
+            "depth": 45.066666,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "social",
+              "village"
+            ]
+          }
+        ],
+        "links": [
+          {
+            "id": "37ab4eba-9acd-d543-8d16-f3b31ab3ec1b",
+            "schemaVersion": 1,
+            "fromNodeId": "15b3efaa-efdf-434b-bbf3-5e5fca9807ed",
+            "toNodeId": "83fde173-f455-e04e-9896-3a147b4c7e1b",
+            "traversal": "side-path",
+            "required": false
+          },
+          {
+            "id": "59756061-f451-214e-9e66-8f6130ed62d6",
+            "schemaVersion": 1,
+            "fromNodeId": "2e41402a-7134-e340-84df-28722645e5c8",
+            "toNodeId": "15b3efaa-efdf-434b-bbf3-5e5fca9807ed",
+            "traversal": "path",
+            "required": true
+          },
+          {
+            "id": "84b18d2d-68d2-6942-8a32-27d83630b758",
+            "schemaVersion": 1,
+            "fromNodeId": "848bb950-8d73-ea40-b284-4552145a77a8",
+            "toNodeId": "080b4678-3663-bf40-b51f-5819566588fb",
+            "traversal": "path",
+            "required": true
+          },
+          {
+            "id": "9eadf20b-d5f6-0f49-87dc-ce66f1249626",
+            "schemaVersion": 1,
+            "fromNodeId": "080b4678-3663-bf40-b51f-5819566588fb",
+            "toNodeId": "a584740a-d878-4f46-8c9a-99d14fd8cc9b",
+            "traversal": "path",
+            "required": true
+          },
+          {
+            "id": "b7780d3a-5232-e34c-a8d5-49f6603ea8de",
+            "schemaVersion": 1,
+            "fromNodeId": "83fde173-f455-e04e-9896-3a147b4c7e1b",
+            "toNodeId": "df1dec2d-c5eb-cd4e-b152-bf59eaeedacf",
+            "traversal": "path",
+            "required": true
+          },
+          {
+            "id": "b7b191e8-ae91-9b40-9d53-9ab2ab12c633",
+            "schemaVersion": 1,
+            "fromNodeId": "e195a69e-4550-1b43-a7f2-d2422800b1a6",
+            "toNodeId": "83fde173-f455-e04e-9896-3a147b4c7e1b",
+            "traversal": "path",
+            "required": true
+          },
+          {
+            "id": "d8875086-eec7-dc43-a29c-5084d47bea26",
+            "schemaVersion": 1,
+            "fromNodeId": "a584740a-d878-4f46-8c9a-99d14fd8cc9b",
+            "toNodeId": "e195a69e-4550-1b43-a7f2-d2422800b1a6",
+            "traversal": "path",
+            "required": true
+          },
+          {
+            "id": "eaca8f09-a52e-9445-8e3b-3199aa316089",
+            "schemaVersion": 1,
+            "fromNodeId": "15b3efaa-efdf-434b-bbf3-5e5fca9807ed",
+            "toNodeId": "848bb950-8d73-ea40-b284-4552145a77a8",
+            "traversal": "path",
+            "required": true
+          }
+        ],
+        "loreSourceIds": [],
+        "approvedForConstruction": true,
+        "estimatedCostUsd": 0,
+        "providerKey": "offline-ci",
+        "provenance": "codex:mcp-connected-world@1:openrpg-forge:g12-a:deterministic-offline:prompt-0feeafe7838c4620ec7cc0ff18c8186cb933372b70808dab9eb994acc9bea151"
+      },
+      {
+        "id": "6b7b4ffd-7950-5464-887b-f7d6c0b4cc23",
+        "schemaVersion": 1,
+        "areaId": "76876887-5990-2b5f-b0a5-019471b687a7",
+        "title": "Dunes d Ambre et piste caravaniere",
+        "archetype": "village",
+        "seed": 20260817,
+        "widthMeters": 144,
+        "depthMeters": 144,
+        "kitBlueprintIds": [
+          "64cc1039-6959-dd59-b48b-5db0a6da7484"
+        ],
+        "constraints": [
+          "clean-room construction",
+          "preserve existing portals",
+          "readable and playable navigation"
+        ],
+        "objectives": [
+          "coherent landmarks for the connected world",
+          "exploration combat and services rhythm"
+        ],
+        "nodes": [
+          {
+            "id": "4a7b304c-7d55-bb4c-b2da-69d49cf06c7e",
+            "schemaVersion": 1,
+            "kind": "exit",
+            "label": "Village \u00B7 Exit 7",
+            "x": 38.01,
+            "z": -26.05,
+            "width": 31.199999,
+            "depth": 31.199999,
+            "contentBlueprintIds": [],
+            "tags": [
+              "exit",
+              "village"
+            ]
+          },
+          {
+            "id": "5e4fd5d7-49ff-2c46-a54d-62b0d26b22d8",
+            "schemaVersion": 1,
+            "kind": "exploration",
+            "label": "Village \u00B7 Exploration 4",
+            "x": -45.55,
+            "z": 6.98,
+            "width": 31.199999,
+            "depth": 31.199999,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "exploration",
+              "village"
+            ]
+          },
+          {
+            "id": "82e0379f-1f47-ca40-b307-f0ad25534816",
+            "schemaVersion": 1,
+            "kind": "social",
+            "label": "Village \u00B7 Social 6",
+            "x": 3.33,
+            "z": -45.96,
+            "width": 31.199999,
+            "depth": 31.199999,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "social",
+              "village"
+            ]
+          },
+          {
+            "id": "a308834d-2fda-9640-91e8-1ed67321098b",
+            "schemaVersion": 1,
+            "kind": "objective",
+            "label": "Village \u00B7 Objective 5",
+            "x": -33.86,
+            "z": -31.26,
+            "width": 31.199999,
+            "depth": 31.199999,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "objective",
+              "village"
+            ]
+          },
+          {
+            "id": "b4a319cb-5610-6c45-9d2f-0ef7c4cfbd9e",
+            "schemaVersion": 1,
+            "kind": "social",
+            "label": "Village \u00B7 Social 2",
+            "x": 16.94,
+            "z": 42.85,
+            "width": 31.199999,
+            "depth": 31.199999,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "social",
+              "village"
+            ]
+          },
+          {
+            "id": "f6930fc4-d74b-dd47-9bcf-59ee208ac431",
+            "schemaVersion": 1,
+            "kind": "entry",
+            "label": "Village \u00B7 Entry 1",
+            "x": 44.07,
+            "z": 13.47,
+            "width": 31.199999,
+            "depth": 31.199999,
+            "contentBlueprintIds": [],
+            "tags": [
+              "entry",
+              "village"
+            ]
+          },
+          {
+            "id": "fe9469e1-dd9f-bc49-893b-eab4237fa86a",
+            "schemaVersion": 1,
+            "kind": "service",
+            "label": "Village \u00B7 Service 3",
+            "x": -22.94,
+            "z": 39.96,
+            "width": 31.199999,
+            "depth": 31.199999,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "service",
+              "village"
+            ]
+          }
+        ],
+        "links": [
+          {
+            "id": "06d4b414-425f-9b4c-9ab7-549bb800a695",
+            "schemaVersion": 1,
+            "fromNodeId": "82e0379f-1f47-ca40-b307-f0ad25534816",
+            "toNodeId": "4a7b304c-7d55-bb4c-b2da-69d49cf06c7e",
+            "traversal": "path",
+            "required": true
+          },
+          {
+            "id": "1c5701bb-1b79-954b-832a-534628aca326",
+            "schemaVersion": 1,
+            "fromNodeId": "a308834d-2fda-9640-91e8-1ed67321098b",
+            "toNodeId": "82e0379f-1f47-ca40-b307-f0ad25534816",
+            "traversal": "path",
+            "required": true
+          },
+          {
+            "id": "46aa19ca-da42-474e-a390-27d0926b94bd",
+            "schemaVersion": 1,
+            "fromNodeId": "5e4fd5d7-49ff-2c46-a54d-62b0d26b22d8",
+            "toNodeId": "a308834d-2fda-9640-91e8-1ed67321098b",
+            "traversal": "path",
+            "required": true
+          },
+          {
+            "id": "51272e0f-0f62-f349-acf5-30c7d782ee3f",
+            "schemaVersion": 1,
+            "fromNodeId": "f6930fc4-d74b-dd47-9bcf-59ee208ac431",
+            "toNodeId": "b4a319cb-5610-6c45-9d2f-0ef7c4cfbd9e",
+            "traversal": "path",
+            "required": true
+          },
+          {
+            "id": "a044b011-e285-d54b-83fc-dc5cfa5836f8",
+            "schemaVersion": 1,
+            "fromNodeId": "b4a319cb-5610-6c45-9d2f-0ef7c4cfbd9e",
+            "toNodeId": "82e0379f-1f47-ca40-b307-f0ad25534816",
+            "traversal": "side-path",
+            "required": false
+          },
+          {
+            "id": "dba7ae44-07b8-dd4a-ab15-4b8ca1f19dac",
+            "schemaVersion": 1,
+            "fromNodeId": "b4a319cb-5610-6c45-9d2f-0ef7c4cfbd9e",
+            "toNodeId": "fe9469e1-dd9f-bc49-893b-eab4237fa86a",
+            "traversal": "path",
+            "required": true
+          },
+          {
+            "id": "ee33db21-e378-c34a-afac-0e809a240a2c",
+            "schemaVersion": 1,
+            "fromNodeId": "fe9469e1-dd9f-bc49-893b-eab4237fa86a",
+            "toNodeId": "5e4fd5d7-49ff-2c46-a54d-62b0d26b22d8",
+            "traversal": "path",
+            "required": true
+          }
+        ],
+        "loreSourceIds": [],
+        "approvedForConstruction": true,
+        "estimatedCostUsd": 0,
+        "providerKey": "offline-ci",
+        "provenance": "codex:mcp-connected-world@1:openrpg-forge:g12-a:deterministic-offline:prompt-8c46f67c86048fa8b47e8d0381dc5e89a5aec0ce5b3f06b0737e0db96c0a233c"
+      },
+      {
+        "id": "2bbbdc5a-0d22-51d8-bf6b-749e3ea56235",
+        "schemaVersion": 1,
+        "areaId": "a56d51fe-089a-995f-a4c9-59c349b0f1d8",
+        "title": "Foret, riviere et rive du Lac des Reflets",
+        "archetype": "village",
+        "seed": 20260813,
+        "widthMeters": 512,
+        "depthMeters": 512,
+        "kitBlueprintIds": [
+          "64cc1039-6959-dd59-b48b-5db0a6da7484"
+        ],
+        "constraints": [
+          "clean-room construction",
+          "preserve existing portals",
+          "readable and playable navigation"
+        ],
+        "objectives": [
+          "coherent landmarks for the connected world",
+          "exploration combat and services rhythm"
+        ],
+        "nodes": [
+          {
+            "id": "11aaede8-634d-764a-8424-65223e096e30",
+            "schemaVersion": 1,
+            "kind": "exit",
+            "label": "Village \u00B7 Exit 12",
+            "x": 156.68,
+            "z": -47.9,
+            "width": 83.2,
+            "depth": 83.2,
+            "contentBlueprintIds": [],
+            "tags": [
+              "exit",
+              "village"
+            ]
+          },
+          {
+            "id": "14534f5b-922c-b445-b440-06d233b4c0d8",
+            "schemaVersion": 1,
+            "kind": "exploration",
+            "label": "Village \u00B7 Exploration 4",
+            "x": -36.86,
+            "z": 159.64,
+            "width": 83.2,
+            "depth": 83.2,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "exploration",
+              "village"
+            ]
+          },
+          {
+            "id": "2dba60fc-c0d3-b740-9158-9f031905c7ab",
+            "schemaVersion": 1,
+            "kind": "objective",
+            "label": "Village \u00B7 Objective 5",
+            "x": -111.74,
+            "z": 119.82,
+            "width": 83.2,
+            "depth": 83.2,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "objective",
+              "village"
+            ]
+          },
+          {
+            "id": "4e5f5216-f511-4f45-917f-72d405aa0147",
+            "schemaVersion": 1,
+            "kind": "social",
+            "label": "Village \u00B7 Social 2",
+            "x": 119.82,
+            "z": 111.74,
+            "width": 83.2,
+            "depth": 83.2,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "social",
+              "village"
+            ]
+          },
+          {
+            "id": "4fff0248-3dca-0448-8753-a7ff3b6b4cf3",
+            "schemaVersion": 1,
+            "kind": "social",
+            "label": "Village \u00B7 Social 10",
+            "x": 36.86,
+            "z": -159.64,
+            "width": 83.2,
+            "depth": 83.2,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "social",
+              "village"
+            ]
+          },
+          {
+            "id": "54dac971-0987-7b4e-9d68-a234af35bcdb",
+            "schemaVersion": 1,
+            "kind": "social",
+            "label": "Village \u00B7 Social 6",
+            "x": -156.68,
+            "z": 47.9,
+            "width": 83.2,
+            "depth": 83.2,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "social",
+              "village"
+            ]
+          },
+          {
+            "id": "5840f720-07d1-8c42-9aff-2dafcac3fb85",
+            "schemaVersion": 1,
+            "kind": "service",
+            "label": "Village \u00B7 Service 11",
+            "x": 111.74,
+            "z": -119.82,
+            "width": 83.2,
+            "depth": 83.2,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "service",
+              "village"
+            ]
+          },
+          {
+            "id": "5e22fc4a-6c39-8e4c-9ade-a3d23c4b2764",
+            "schemaVersion": 1,
+            "kind": "service",
+            "label": "Village \u00B7 Service 7",
+            "x": -159.64,
+            "z": -36.86,
+            "width": 83.2,
+            "depth": 83.2,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "service",
+              "village"
+            ]
+          },
+          {
+            "id": "996b4471-1679-b147-9c6c-aa17944becca",
+            "schemaVersion": 1,
+            "kind": "service",
+            "label": "Village \u00B7 Service 3",
+            "x": 47.9,
+            "z": 156.68,
+            "width": 83.2,
+            "depth": 83.2,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "service",
+              "village"
+            ]
+          },
+          {
+            "id": "9cb338a1-cd65-0844-b469-8584c8a155a6",
+            "schemaVersion": 1,
+            "kind": "exploration",
+            "label": "Village \u00B7 Exploration 8",
+            "x": -119.82,
+            "z": -111.74,
+            "width": 83.2,
+            "depth": 83.2,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "exploration",
+              "village"
+            ]
+          },
+          {
+            "id": "cc0c2b52-c36e-da40-b7c4-b8bb127f7d13",
+            "schemaVersion": 1,
+            "kind": "entry",
+            "label": "Village \u00B7 Entry 1",
+            "x": 159.64,
+            "z": 36.86,
+            "width": 83.2,
+            "depth": 83.2,
+            "contentBlueprintIds": [],
+            "tags": [
+              "entry",
+              "village"
+            ]
+          },
+          {
+            "id": "fb9264b4-e1f9-9a46-aac3-a02eeef55a3e",
+            "schemaVersion": 1,
+            "kind": "objective",
+            "label": "Village \u00B7 Objective 9",
+            "x": -47.9,
+            "z": -156.68,
+            "width": 83.2,
+            "depth": 83.2,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "objective",
+              "village"
+            ]
+          }
+        ],
+        "links": [
+          {
+            "id": "2e3dac6c-3085-a84a-b7ab-e142a527efe0",
+            "schemaVersion": 1,
+            "fromNodeId": "9cb338a1-cd65-0844-b469-8584c8a155a6",
+            "toNodeId": "fb9264b4-e1f9-9a46-aac3-a02eeef55a3e",
+            "traversal": "path",
+            "required": true
+          },
+          {
+            "id": "5a3f5d90-8b81-a646-b9e4-c3ee475840da",
+            "schemaVersion": 1,
+            "fromNodeId": "4e5f5216-f511-4f45-917f-72d405aa0147",
+            "toNodeId": "996b4471-1679-b147-9c6c-aa17944becca",
+            "traversal": "path",
+            "required": true
+          },
+          {
+            "id": "6a136937-9c3e-a344-96f5-70061e054624",
+            "schemaVersion": 1,
+            "fromNodeId": "4e5f5216-f511-4f45-917f-72d405aa0147",
+            "toNodeId": "5840f720-07d1-8c42-9aff-2dafcac3fb85",
+            "traversal": "side-path",
+            "required": false
+          },
+          {
+            "id": "7e94657a-75be-164b-9735-c559ae19a4fa",
+            "schemaVersion": 1,
+            "fromNodeId": "54dac971-0987-7b4e-9d68-a234af35bcdb",
+            "toNodeId": "5e22fc4a-6c39-8e4c-9ade-a3d23c4b2764",
+            "traversal": "path",
+            "required": true
+          },
+          {
+            "id": "803e02c2-1b2b-b24a-a9cc-193006d98695",
+            "schemaVersion": 1,
+            "fromNodeId": "4fff0248-3dca-0448-8753-a7ff3b6b4cf3",
+            "toNodeId": "5840f720-07d1-8c42-9aff-2dafcac3fb85",
+            "traversal": "path",
+            "required": true
+          },
+          {
+            "id": "9a7f9579-3665-f44d-9566-7ddfe26c1382",
+            "schemaVersion": 1,
+            "fromNodeId": "5840f720-07d1-8c42-9aff-2dafcac3fb85",
+            "toNodeId": "11aaede8-634d-764a-8424-65223e096e30",
+            "traversal": "path",
+            "required": true
+          },
+          {
+            "id": "a0d90209-e15d-e54b-8a57-7e0d729fbf6a",
+            "schemaVersion": 1,
+            "fromNodeId": "2dba60fc-c0d3-b740-9158-9f031905c7ab",
+            "toNodeId": "54dac971-0987-7b4e-9d68-a234af35bcdb",
+            "traversal": "path",
+            "required": true
+          },
+          {
+            "id": "a83abe58-4026-cc4e-a534-c06fd9c45559",
+            "schemaVersion": 1,
+            "fromNodeId": "cc0c2b52-c36e-da40-b7c4-b8bb127f7d13",
+            "toNodeId": "4e5f5216-f511-4f45-917f-72d405aa0147",
+            "traversal": "path",
+            "required": true
+          },
+          {
+            "id": "aa42e0ac-eec0-3940-bbeb-c5e9bcb196cc",
+            "schemaVersion": 1,
+            "fromNodeId": "5e22fc4a-6c39-8e4c-9ade-a3d23c4b2764",
+            "toNodeId": "9cb338a1-cd65-0844-b469-8584c8a155a6",
+            "traversal": "path",
+            "required": true
+          },
+          {
+            "id": "b0ef5f5f-c62f-ce4f-9c4b-41fc1515d876",
+            "schemaVersion": 1,
+            "fromNodeId": "fb9264b4-e1f9-9a46-aac3-a02eeef55a3e",
+            "toNodeId": "4fff0248-3dca-0448-8753-a7ff3b6b4cf3",
+            "traversal": "path",
+            "required": true
+          },
+          {
+            "id": "d6636c4c-b8e6-c740-a33a-dc88b483fc02",
+            "schemaVersion": 1,
+            "fromNodeId": "996b4471-1679-b147-9c6c-aa17944becca",
+            "toNodeId": "14534f5b-922c-b445-b440-06d233b4c0d8",
+            "traversal": "path",
+            "required": true
+          },
+          {
+            "id": "df38a42f-40ef-df4d-bbe6-7e9917f95047",
+            "schemaVersion": 1,
+            "fromNodeId": "14534f5b-922c-b445-b440-06d233b4c0d8",
+            "toNodeId": "2dba60fc-c0d3-b740-9158-9f031905c7ab",
+            "traversal": "path",
+            "required": true
+          }
+        ],
+        "loreSourceIds": [],
+        "approvedForConstruction": true,
+        "estimatedCostUsd": 0,
+        "providerKey": "offline-ci",
+        "provenance": "codex:mcp-connected-world@1:openrpg-forge:g12-a:deterministic-offline:prompt-8dbe6f1d772fd9fb716fb3dabc8df9cc3a7266c829d040c72d3aa560a52807ae"
+      },
+      {
+        "id": "d61e3ff7-0548-5607-8faf-38c6d30a0cc1",
+        "schemaVersion": 1,
+        "areaId": "1e87f1db-5a97-6c52-a5bd-930b6e75488b",
+        "title": "Forteresse de la Meute Grise",
+        "archetype": "crypt",
+        "seed": 20260816,
+        "widthMeters": 192,
+        "depthMeters": 192,
+        "kitBlueprintIds": [
+          "64cc1039-6959-dd59-b48b-5db0a6da7484"
+        ],
+        "constraints": [
+          "clean-room construction",
+          "preserve existing portals",
+          "readable and playable navigation"
+        ],
+        "objectives": [
+          "coherent landmarks for the connected world",
+          "exploration combat and services rhythm"
+        ],
+        "nodes": [
+          {
+            "id": "12d4e5ff-f829-044f-83b9-7786b05b780d",
+            "schemaVersion": 1,
+            "kind": "rest",
+            "label": "Crypte \u00B7 Rest 8",
+            "x": -67.2,
+            "z": 0,
+            "width": 31.199999,
+            "depth": 31.199999,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "crypt",
+              "rest"
+            ]
+          },
+          {
+            "id": "29c1dd11-db11-084f-bcde-beac9052370b",
+            "schemaVersion": 1,
+            "kind": "objective",
+            "label": "Crypte \u00B7 Objective 5",
+            "x": 67.2,
+            "z": 0,
+            "width": 31.199999,
+            "depth": 31.199999,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "crypt",
+              "objective"
+            ]
+          },
+          {
+            "id": "36479f51-49a5-1b42-b57c-56501f92729a",
+            "schemaVersion": 1,
+            "kind": "rest",
+            "label": "Crypte \u00B7 Rest 4",
+            "x": 67.2,
+            "z": -67.2,
+            "width": 31.199999,
+            "depth": 31.199999,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "crypt",
+              "rest"
+            ]
+          },
+          {
+            "id": "3f6810b1-82e1-724c-85c8-498dec6ba6b4",
+            "schemaVersion": 1,
+            "kind": "exploration",
+            "label": "Crypte \u00B7 Exploration 2",
+            "x": -22.4,
+            "z": -67.2,
+            "width": 31.199999,
+            "depth": 31.199999,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "crypt",
+              "exploration"
+            ]
+          },
+          {
+            "id": "48d1c4a5-7089-504a-9e8c-3b6e2902d4d2",
+            "schemaVersion": 1,
+            "kind": "entry",
+            "label": "Crypte \u00B7 Entry 1",
+            "x": -67.2,
+            "z": -67.2,
+            "width": 31.199999,
+            "depth": 31.199999,
+            "contentBlueprintIds": [],
+            "tags": [
+              "crypt",
+              "entry"
+            ]
+          },
+          {
+            "id": "4d7b4307-fe16-5149-8e91-337e7f6f94d7",
+            "schemaVersion": 1,
+            "kind": "encounter",
+            "label": "Crypte \u00B7 Encounter 7",
+            "x": -22.4,
+            "z": 0,
+            "width": 31.199999,
+            "depth": 31.199999,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "crypt",
+              "encounter"
+            ]
+          },
+          {
+            "id": "652f145a-ceaa-7944-a30d-bf9f25b06534",
+            "schemaVersion": 1,
+            "kind": "encounter",
+            "label": "Crypte \u00B7 Encounter 3",
+            "x": 22.4,
+            "z": -67.2,
+            "width": 31.199999,
+            "depth": 31.199999,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "crypt",
+              "encounter"
+            ]
+          },
+          {
+            "id": "6af7a50d-70f2-104f-a060-5f52e0f44410",
+            "schemaVersion": 1,
+            "kind": "exploration",
+            "label": "Crypte \u00B7 Exploration 6",
+            "x": 22.4,
+            "z": 0,
+            "width": 31.199999,
+            "depth": 31.199999,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "crypt",
+              "exploration"
+            ]
+          },
+          {
+            "id": "d0351e28-0129-6745-86b0-c255363a5523",
+            "schemaVersion": 1,
+            "kind": "exit",
+            "label": "Crypte \u00B7 Exit 11",
+            "x": 22.4,
+            "z": 67.2,
+            "width": 31.199999,
+            "depth": 31.199999,
+            "contentBlueprintIds": [],
+            "tags": [
+              "crypt",
+              "exit"
+            ]
+          },
+          {
+            "id": "e5a20c66-35a0-3746-b867-ebf6cb0ded67",
+            "schemaVersion": 1,
+            "kind": "objective",
+            "label": "Crypte \u00B7 Objective 9",
+            "x": -67.2,
+            "z": 67.2,
+            "width": 31.199999,
+            "depth": 31.199999,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "crypt",
+              "objective"
+            ]
+          },
+          {
+            "id": "f6e2af17-f44c-ce45-94b8-6bb34565f20d",
+            "schemaVersion": 1,
+            "kind": "exploration",
+            "label": "Crypte \u00B7 Exploration 10",
+            "x": -22.4,
+            "z": 67.2,
+            "width": 31.199999,
+            "depth": 31.199999,
+            "contentBlueprintIds": [
+              "64cc1039-6959-dd59-b48b-5db0a6da7484"
+            ],
+            "tags": [
+              "crypt",
+              "exploration"
+            ]
+          }
+        ],
+        "links": [
+          {
+            "id": "07bb1f52-246b-454b-8cf2-e3525dc948c4",
+            "schemaVersion": 1,
+            "fromNodeId": "6af7a50d-70f2-104f-a060-5f52e0f44410",
+            "toNodeId": "4d7b4307-fe16-5149-8e91-337e7f6f94d7",
+            "traversal": "door",
+            "required": true
+          },
+          {
+            "id": "208e90d2-40c3-0d4b-aa23-8653e5394f3c",
+            "schemaVersion": 1,
+            "fromNodeId": "12d4e5ff-f829-044f-83b9-7786b05b780d",
+            "toNodeId": "e5a20c66-35a0-3746-b867-ebf6cb0ded67",
+            "traversal": "door",
+            "required": true
+          },
+          {
+            "id": "38b779e1-699b-b547-96a6-c9849e659ffb",
+            "schemaVersion": 1,
+            "fromNodeId": "4d7b4307-fe16-5149-8e91-337e7f6f94d7",
+            "toNodeId": "12d4e5ff-f829-044f-83b9-7786b05b780d",
+            "traversal": "door",
+            "required": true
+          },
+          {
+            "id": "416e9644-3920-6945-bea3-f6be287551d0",
+            "schemaVersion": 1,
+            "fromNodeId": "3f6810b1-82e1-724c-85c8-498dec6ba6b4",
+            "toNodeId": "652f145a-ceaa-7944-a30d-bf9f25b06534",
+            "traversal": "door",
+            "required": true
+          },
+          {
+            "id": "5c2f456d-93ac-bb49-bdc7-c1660d9984a6",
+            "schemaVersion": 1,
+            "fromNodeId": "48d1c4a5-7089-504a-9e8c-3b6e2902d4d2",
+            "toNodeId": "3f6810b1-82e1-724c-85c8-498dec6ba6b4",
+            "traversal": "door",
+            "required": true
+          },
+          {
+            "id": "630f7b4b-5f59-c743-b160-8b6f448b32ab",
+            "schemaVersion": 1,
+            "fromNodeId": "e5a20c66-35a0-3746-b867-ebf6cb0ded67",
+            "toNodeId": "f6e2af17-f44c-ce45-94b8-6bb34565f20d",
+            "traversal": "door",
+            "required": true
+          },
+          {
+            "id": "6d711139-6d4e-7f4e-beed-94e55f6ca030",
+            "schemaVersion": 1,
+            "fromNodeId": "36479f51-49a5-1b42-b57c-56501f92729a",
+            "toNodeId": "29c1dd11-db11-084f-bcde-beac9052370b",
+            "traversal": "door",
+            "required": true
+          },
+          {
+            "id": "b80de664-b8b8-264f-84c7-a7f2056f9514",
+            "schemaVersion": 1,
+            "fromNodeId": "652f145a-ceaa-7944-a30d-bf9f25b06534",
+            "toNodeId": "36479f51-49a5-1b42-b57c-56501f92729a",
+            "traversal": "door",
+            "required": true
+          },
+          {
+            "id": "d2ca8e4f-fef9-4646-8cb7-c7cca19b6e64",
+            "schemaVersion": 1,
+            "fromNodeId": "29c1dd11-db11-084f-bcde-beac9052370b",
+            "toNodeId": "6af7a50d-70f2-104f-a060-5f52e0f44410",
+            "traversal": "door",
+            "required": true
+          },
+          {
+            "id": "d9450bbb-2d82-ec4c-9374-cfb4e17ab43f",
+            "schemaVersion": 1,
+            "fromNodeId": "3f6810b1-82e1-724c-85c8-498dec6ba6b4",
+            "toNodeId": "f6e2af17-f44c-ce45-94b8-6bb34565f20d",
+            "traversal": "secret-door",
+            "required": false
+          },
+          {
+            "id": "ddc1df45-b28f-1546-97f6-fca9afd8b871",
+            "schemaVersion": 1,
+            "fromNodeId": "f6e2af17-f44c-ce45-94b8-6bb34565f20d",
+            "toNodeId": "d0351e28-0129-6745-86b0-c255363a5523",
+            "traversal": "door",
+            "required": true
+          }
+        ],
+        "loreSourceIds": [],
+        "approvedForConstruction": true,
+        "estimatedCostUsd": 0,
+        "providerKey": "offline-ci",
+        "provenance": "codex:mcp-connected-world@1:openrpg-forge:g12-a:deterministic-offline:prompt-69296ec1ba8a1b79ca0d7d1a2449397ad041fae920d27aa9bcd783a7f4b2844f"
+      }
+    ],
+    "provenance": "codex:mcp-connected-world@1"
+  }
+}

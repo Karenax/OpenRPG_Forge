@@ -485,7 +485,9 @@ public partial class TerrainStudioWindow : Window
                 ColorValue(_grassColor!.Text, "#5f8345"), oldMaterials.ElementAtOrDefault(1)?.MaterialResource ?? string.Empty, 5);
             var rock = new TerrainMaterialLayer(oldMaterials.ElementAtOrDefault(2)?.Id ?? Guid.NewGuid(), "Roche",
                 ColorValue(_rockColor!.Text, "#777b82"), oldMaterials.ElementAtOrDefault(2)?.MaterialResource ?? string.Empty, 3);
-            IReadOnlyList<TerrainMaterialLayer> materials = provider == TerrainProviderKind.None ? [] : [soil, grass, rock];
+            IReadOnlyList<TerrainMaterialLayer> materials = provider == TerrainProviderKind.None
+                ? []
+                : [soil, grass, rock, .. oldMaterials.Skip(3)];
             var holes = _current.Terrain.SamplesX == samples ? _current.Terrain.Holes : [];
             var materialPaint = _current.Terrain.SamplesX == samples && _current.Terrain.SamplesZ == samples
                 ? _current.Terrain.MaterialPaint
@@ -495,20 +497,27 @@ public partial class TerrainStudioWindow : Window
                 seed, provider == TerrainProviderKind.Flat || provider == TerrainProviderKind.None ? 0 : heightScale,
                 heights, materials, holes, _current.Terrain.HeightmapResource, _current.Terrain.VoxelResource,
                 _current.Terrain.MeshResource, "toolset:terrain-studio", materialPaint);
-            IReadOnlyList<BiomeLayerDefinition> biomes = provider == TerrainProviderKind.None
-                ? []
-                :
-                [
-                    new(_current.Biomes.FirstOrDefault(item => item.Tags.Contains("meadow"))?.Id ?? Guid.NewGuid(),
-                        "Prairie", grass.Id, -512, 512, 0, Math.Max(0, (float)_rockSlope!.Value), 0, 1,
-                        (float)_meadowDensity!.Value, SelectedScatterResource(_meadowScatter!, _meadowScatterResources),
-                        ["meadow", "temperate", "ground-cover"], ["water", "road"], 20,
-                        "toolset:terrain-studio"),
-                    new(_current.Biomes.FirstOrDefault(item => item.Tags.Contains("rock"))?.Id ?? Guid.NewGuid(),
-                        "Roche", rock.Id, -512, 512, Math.Max(0, (float)_rockSlope.Value), 90, 0, 1,
-                        .08f, SelectedScatterResource(_rockScatter!, _rockScatterResources),
-                        ["rock", "cliff"], ["water"], 30, "toolset:terrain-studio"),
-                ];
+            IReadOnlyList<BiomeLayerDefinition> biomes;
+            if (provider == TerrainProviderKind.None)
+            {
+                biomes = [];
+            }
+            else
+            {
+                var meadow = new BiomeLayerDefinition(
+                    _current.Biomes.FirstOrDefault(item => item.Tags.Contains("meadow"))?.Id ?? Guid.NewGuid(),
+                    "Prairie", grass.Id, -512, 512, 0, Math.Max(0, (float)_rockSlope!.Value), 0, 1,
+                    (float)_meadowDensity!.Value, SelectedScatterResource(_meadowScatter!, _meadowScatterResources),
+                    ["meadow", "temperate", "ground-cover"], ["water", "road"], 20,
+                    "toolset:terrain-studio");
+                var rockBiome = new BiomeLayerDefinition(
+                    _current.Biomes.FirstOrDefault(item => item.Tags.Contains("rock"))?.Id ?? Guid.NewGuid(),
+                    "Roche", rock.Id, -512, 512, Math.Max(0, (float)_rockSlope.Value), 90, 0, 1,
+                    .08f, SelectedScatterResource(_rockScatter!, _rockScatterResources),
+                    ["rock", "cliff"], ["water"], 30, "toolset:terrain-studio");
+                biomes = ReplaceFirst(_current.Biomes, item => item.Tags.Contains("meadow"), meadow);
+                biomes = ReplaceFirst(biomes, item => item.Tags.Contains("rock"), rockBiome);
+            }
             var features = BuildFeatures(area, _current);
             var modes = VolumetricNavigationMode.None;
             if (_flightMode!.ButtonPressed) modes |= VolumetricNavigationMode.Flight;
@@ -548,7 +557,8 @@ public partial class TerrainStudioWindow : Window
         var width = (float)_featureWidth!.Value;
         var halfX = area.Dimensions.Width * .42f;
         var halfZ = area.Dimensions.Depth * .42f;
-        var features = new List<TerrainFeatureDefinition>();
+        var features = current.Features.ToList();
+        RemoveFirst(features, item => item.Kind == TerrainFeatureKind.Road);
         if (_road!.ButtonPressed)
         {
             features.Add(new(current.Features.FirstOrDefault(item => item.Kind == TerrainFeatureKind.Road)?.Id ?? Guid.NewGuid(),
@@ -557,6 +567,7 @@ public partial class TerrainStudioWindow : Window
                 _river!.ButtonPressed ? TerrainFeatureCrossingPolicy.RequiresBridge : TerrainFeatureCrossingPolicy.Allow,
                 [], string.Empty, "toolset:terrain-studio"));
         }
+        RemoveFirst(features, item => item.Kind == TerrainFeatureKind.River);
         if (_river!.ButtonPressed)
         {
             features.Add(new(current.Features.FirstOrDefault(item => item.Kind == TerrainFeatureKind.River)?.Id ?? Guid.NewGuid(),
@@ -565,6 +576,7 @@ public partial class TerrainStudioWindow : Window
                 _road!.ButtonPressed ? TerrainFeatureCrossingPolicy.RequiresBridge : TerrainFeatureCrossingPolicy.Allow,
                 [], string.Empty, "toolset:terrain-studio"));
         }
+        RemoveFirst(features, item => item.Kind == TerrainFeatureKind.Bridge);
         if (_bridge!.ButtonPressed && _road.ButtonPressed && _river.ButtonPressed)
         {
             features.Add(new(current.Features.FirstOrDefault(item => item.Kind == TerrainFeatureKind.Bridge)?.Id ?? Guid.NewGuid(),
@@ -577,7 +589,8 @@ public partial class TerrainStudioWindow : Window
 
     private IReadOnlyList<FlightRouteDefinition> BuildRoutes(AreaDefinition area, AreaWorldProfile current, bool volumeEnabled)
     {
-        if (!_flightRoute!.ButtonPressed || !volumeEnabled) return [];
+        if (!_flightRoute!.ButtonPressed || !volumeEnabled)
+            return current.FlightRoutes.Skip(Math.Min(1, current.FlightRoutes.Count)).ToArray();
         var existing = current.FlightRoutes.FirstOrDefault();
         var altitude = (float)_routeAltitude!.Value;
         var bank = (float)_routeBank!.Value;
@@ -591,7 +604,23 @@ public partial class TerrainStudioWindow : Window
                     new(existing?.Nodes.ElementAtOrDefault(1)?.Id ?? Guid.NewGuid(), "Sortie", new Vector3Value(x, altitude, z), 12, -bank),
                 ], FlightRouteCurve.CatmullRom, (FlightObstaclePolicy)_obstaclePolicy!.Selected, false, true,
                 "toolset:terrain-studio"),
+            .. current.FlightRoutes.Skip(1),
         ];
+    }
+
+    private static IReadOnlyList<T> ReplaceFirst<T>(IReadOnlyList<T> source, Func<T, bool> match, T replacement)
+    {
+        var result = source.ToList();
+        var index = result.FindIndex(item => match(item));
+        if (index < 0) result.Add(replacement);
+        else result[index] = replacement;
+        return result;
+    }
+
+    private static void RemoveFirst<T>(List<T> source, Func<T, bool> match)
+    {
+        var index = source.FindIndex(item => match(item));
+        if (index >= 0) source.RemoveAt(index);
     }
 
     private static IReadOnlyList<float> GenerateHeights(TerrainProviderKind provider, int samples, int seed)

@@ -73,18 +73,18 @@ public static class PerformanceQualityService
         ArgumentNullException.ThrowIfNull(project);
         ArgumentNullException.ThrowIfNull(profile);
         if (packageBytes < 0 || scriptCount < 0) throw new ArgumentOutOfRangeException(nameof(packageBytes));
-        var area = project.Areas.Single(candidate => candidate.Id == project.Module.EntryAreaId);
         var blueprints = project.Blueprints.ToDictionary(item => item.Id);
-        var baseDraw = area.Entities.Sum(entity => blueprints.GetValueOrDefault(entity.BlueprintId)?.Kind switch
-        {
-            BlueprintKind.Creature => 4,
-            BlueprintKind.Placeable or BlueprintKind.Door => 2,
-            _ => 1,
-        });
-        var uniqueAssets = area.Entities.Select(entity => entity.BlueprintId).Distinct().Count();
         var measurements = new List<AreaBenchmarkMeasurement>();
         foreach (var kind in profile.Benchmarks.Scenarios)
         {
+            var area = SelectRepresentativeArea(project, kind);
+            var baseDraw = area.Entities.Sum(entity => blueprints.GetValueOrDefault(entity.BlueprintId)?.Kind switch
+            {
+                BlueprintKind.Creature => 4,
+                BlueprintKind.Placeable or BlueprintKind.Door => 2,
+                _ => 1,
+            });
+            var uniqueAssets = area.Entities.Select(entity => entity.BlueprintId).Distinct().Count();
             var scale = kind switch { AreaBenchmarkKind.Interior => 1, AreaBenchmarkKind.Exterior => 2, _ => 30 };
             for (var iteration = 0; iteration < profile.Benchmarks.Iterations; iteration++)
             {
@@ -129,6 +129,24 @@ public static class PerformanceQualityService
             evaluations,
         })));
         return new(passed, fingerprint, measurements, evaluations);
+    }
+
+    private static AreaDefinition SelectRepresentativeArea(ProjectDefinition project, AreaBenchmarkKind kind)
+    {
+        var entry = project.Areas.Single(candidate => candidate.Id == project.Module.EntryAreaId);
+        if (kind == AreaBenchmarkKind.Interior)
+            return entry.Kind == AreaKind.Interior
+                ? entry
+                : project.Areas.Where(area => area.Kind == AreaKind.Interior)
+                      .OrderByDescending(area => area.Entities.Count)
+                      .ThenBy(area => area.Slug, StringComparer.Ordinal)
+                      .FirstOrDefault() ?? entry;
+
+        return project.Areas.Where(area => area.Kind == AreaKind.Exterior)
+                   .OrderByDescending(area => (long)area.Dimensions.Width * area.Dimensions.Depth)
+                   .ThenByDescending(area => area.Entities.Count)
+                   .ThenBy(area => area.Slug, StringComparer.Ordinal)
+                   .FirstOrDefault() ?? entry;
     }
 
     public static VisualReviewPlan PlanVisualReviews(VisualRegressionProfile profile)

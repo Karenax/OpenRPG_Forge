@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "5f6ee144-4be4-d654-b3ae-3f1e89f32be4",
+  "cacheKey": "44dbfcac3dd66fd8e6b32aa81d70540dc2378a0fd5e5db65843b0a1b8a26b147",
+  "catalogContentSha256": "85630c89588bdc19285a7b5e894c1ddac69d7ce2b069966453800519e446f900",
+  "sourceFileSha256": "85630c89588bdc19285a7b5e894c1ddac69d7ce2b069966453800519e446f900",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-fantasy-town@1.0.0;source:kenney:fantasy-town-kit;path:Models/GLB format/road.glb",
+  "sourceRelativePath": "normalized/kenney/fantasy-town-kit/Models/GLB format/road.glb",
+  "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-road/model.glb",
+  "outputContentSha256": "85630c89588bdc19285a7b5e894c1ddac69d7ce2b069966453800519e446f900",
+  "outputBytes": 2788,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-road/model.glb",
+      "cacheKey": "44dbfcac3dd66fd8e6b32aa81d70540dc2378a0fd5e5db65843b0a1b8a26b147",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-road/animations.index.json",
+      "cacheKey": "44dbfcac3dd66fd8e6b32aa81d70540dc2378a0fd5e5db65843b0a1b8a26b147",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-road/collisions.glb",
+      "cacheKey": "44dbfcac3dd66fd8e6b32aa81d70540dc2378a0fd5e5db65843b0a1b8a26b147",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-road/lod-0.5.glb",
+      "cacheKey": "44dbfcac3dd66fd8e6b32aa81d70540dc2378a0fd5e5db65843b0a1b8a26b147",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-road/lod-0.25.glb",
+      "cacheKey": "44dbfcac3dd66fd8e6b32aa81d70540dc2378a0fd5e5db65843b0a1b8a26b147",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

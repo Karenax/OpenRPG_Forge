@@ -39,6 +39,89 @@ public sealed class AssistedAreaPlanWorkflowTests
         Assert.Equal(0, first.EstimatedCostUsd);
         Assert.Contains("geometry-applied:false", first.SemanticDiff, StringComparison.Ordinal);
         Assert.Equal(64, first.PromptSha256.Length);
+        Assert.Contains($"map-contract-{MapAuthoringContract.ContentSha256}", first.Plan.Provenance,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ModelProviderReceivesVersionedContractAndItsTopologyBecomesCanonicalPlan()
+    {
+        var project = Project();
+        var brief = Brief(project, AssistedAreaArchetype.Crypt);
+        var providerDefinition = ModelProviderDefinition();
+        var provider = new RecordingProvider(ProviderTopology(brief));
+
+        var first = await AssistedAreaPlanProposalService.ProposeAsync(
+            brief,
+            project,
+            LoreIndexDefinition.CreateDefault(),
+            provider,
+            providerDefinition,
+            networkAuthorized: true,
+            projectContentAuthorized: true);
+        var second = await AssistedAreaPlanProposalService.ProposeAsync(
+            brief,
+            project,
+            LoreIndexDefinition.CreateDefault(),
+            provider,
+            providerDefinition,
+            networkAuthorized: true,
+            projectContentAuthorized: true);
+
+        Assert.True(first.Succeeded);
+        Assert.NotNull(first.Plan);
+        Assert.Equal(AssistedAreaPlanProposalService.PromptVersion, provider.LastRequest!.Prompt.PromptVersion);
+        Assert.Contains(MapAuthoringContract.ContentSha256, provider.LastRequest.Prompt.SystemMessage,
+            StringComparison.Ordinal);
+        Assert.Contains("# Contrat de création de maps par l'IA", provider.LastRequest.Prompt.SystemMessage,
+            StringComparison.Ordinal);
+        Assert.Contains("Zone de plan", provider.LastRequest.Prompt.UserMessage, StringComparison.Ordinal);
+        Assert.Contains("Kit pierre", provider.LastRequest.Prompt.UserMessage, StringComparison.Ordinal);
+        Assert.Contains("AI objectif central", first.Plan.Nodes.Select(node => node.Label));
+        Assert.Contains(first.Plan.Nodes, node => node.X == 4 && node.Z == 10);
+        Assert.Equal(
+            first.Plan.Nodes.Select(node => node.Id),
+            second.Plan!.Nodes.Select(node => node.Id));
+        Assert.Contains($"map-contract-{MapAuthoringContract.ContentSha256}", first.Plan.Provenance,
+            StringComparison.Ordinal);
+        Assert.Equal("model-test", first.Plan.ProviderKey);
+    }
+
+    [Fact]
+    public async Task InvalidModelTopologyIsRejectedWithoutDeterministicFallback()
+    {
+        var project = Project();
+        var brief = Brief(project, AssistedAreaArchetype.Village);
+        var provider = new RecordingProvider("""{"summary":"incomplete","nodes":[],"links":[]}""");
+
+        var proposal = await AssistedAreaPlanProposalService.ProposeAsync(
+            brief,
+            project,
+            LoreIndexDefinition.CreateDefault(),
+            provider,
+            ModelProviderDefinition(),
+            networkAuthorized: true,
+            projectContentAuthorized: false);
+
+        Assert.False(proposal.Succeeded);
+        Assert.Null(proposal.Plan);
+        Assert.Equal("no-change", proposal.SemanticDiff);
+        Assert.Contains(proposal.Diagnostics,
+            diagnostic => diagnostic.Code == AssistedAreaPlanProviderResponseGenerator.ResponseInvalidCode);
+        Assert.Contains("[project content withheld]", provider.LastRequest!.Prompt.UserMessage,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain("Zone de plan", provider.LastRequest.Prompt.UserMessage, StringComparison.Ordinal);
+        Assert.DoesNotContain("Kit pierre", provider.LastRequest.Prompt.UserMessage, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MapAuthoringContractIsEmbeddedVersionedAndHasStableSha256()
+    {
+        Assert.Equal("1.0.0", MapAuthoringContract.Version);
+        Assert.Contains("## Cycle gouverné", MapAuthoringContract.Content, StringComparison.Ordinal);
+        Assert.Equal(64, MapAuthoringContract.ContentSha256.Length);
+        Assert.All(MapAuthoringContract.ContentSha256,
+            character => Assert.True(char.IsAsciiHexDigit(character) && !char.IsUpper(character)));
     }
 
     [Fact]
@@ -119,6 +202,82 @@ public sealed class AssistedAreaPlanWorkflowTests
         ["Reach the central objective and return safely."],
         [$"project:{project.Id}"],
         "test:g12-c");
+
+    private static AssistantProviderDefinition ModelProviderDefinition() => new(
+        Guid.Parse("b1240000-0000-4000-8000-000000000030"),
+        AssistantProviderDefinition.CurrentSchemaVersion,
+        "model-test",
+        "Model test",
+        AssistantProviderKind.OpenAiCompatible,
+        "https://example.invalid/v1",
+        "test-model",
+        string.Empty,
+        enabled: true,
+        localOnly: false,
+        maximumInputTokens: 32_768,
+        maximumOutputTokens: 4_096,
+        inputCostPerMillionTokens: 0,
+        outputCostPerMillionTokens: 0,
+        provenance: "test:g12-c-contract");
+
+    private static string ProviderTopology(AssistedAreaPlanBrief brief)
+    {
+        var blueprintId = brief.KitBlueprintIds[0].ToString("D");
+        var nodes = Enumerable.Range(0, brief.NodeCount).Select(index => new
+        {
+            key = $"node-{index}",
+            kind = index switch
+            {
+                0 => "Entry",
+                var last when last == brief.NodeCount - 1 => "Exit",
+                4 => "Objective",
+                _ => "Exploration",
+            },
+            label = index == 4 ? "AI objectif central" : $"AI espace {index}",
+            x = -24f + (index * 7f),
+            z = 10f,
+            width = 4f,
+            depth = 4f,
+            contentBlueprintIds = index is 0 || index == brief.NodeCount - 1
+                ? Array.Empty<string>()
+                : [blueprintId],
+            tags = new[] { "ai-node" },
+        }).ToArray();
+        var links = Enumerable.Range(0, brief.NodeCount - 1).Select(index => new
+        {
+            from = $"node-{index}",
+            to = $"node-{index + 1}",
+            traversal = "door",
+            required = true,
+        }).ToArray();
+        return System.Text.Json.JsonSerializer.Serialize(new
+        {
+            summary = "Topologie de test produite par le modèle.",
+            nodes,
+            links,
+        });
+    }
+
+    private sealed class RecordingProvider(string content) : IAssistantProvider
+    {
+        public AssistantProviderRequest? LastRequest { get; private set; }
+
+        public Task<AssistantProviderResponse> GenerateAsync(
+            AssistantProviderRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            LastRequest = request;
+            return Task.FromResult(new AssistantProviderResponse(
+                "model-test",
+                "test-model",
+                content,
+                500,
+                250,
+                0.01m,
+                "test:model-provider"));
+        }
+    }
 
     private static ProjectDefinition Project()
     {

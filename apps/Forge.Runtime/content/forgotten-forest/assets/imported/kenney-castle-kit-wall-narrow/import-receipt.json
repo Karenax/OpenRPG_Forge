@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "2762069b-4d22-aa52-9ddd-5e50b0a9445d",
+  "cacheKey": "fd9f62932b9c2a5411079cd8d572cd5ec9614bc6a7afb57275ef80eb31abbfb0",
+  "catalogContentSha256": "347fcdb0842ed47f20931b962dc0a2ad212690812386a3cb634016b4229145a7",
+  "sourceFileSha256": "347fcdb0842ed47f20931b962dc0a2ad212690812386a3cb634016b4229145a7",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-castle@1.0.0;source:kenney:castle-kit;path:Models/GLB format/wall-narrow.glb",
+  "sourceRelativePath": "normalized/kenney/castle-kit/Models/GLB format/wall-narrow.glb",
+  "outputRelativePath": "assets/imported/kenney-castle-kit-wall-narrow/model.glb",
+  "outputContentSha256": "347fcdb0842ed47f20931b962dc0a2ad212690812386a3cb634016b4229145a7",
+  "outputBytes": 12160,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kenney-castle-kit-wall-narrow/model.glb",
+      "cacheKey": "fd9f62932b9c2a5411079cd8d572cd5ec9614bc6a7afb57275ef80eb31abbfb0",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kenney-castle-kit-wall-narrow/animations.index.json",
+      "cacheKey": "fd9f62932b9c2a5411079cd8d572cd5ec9614bc6a7afb57275ef80eb31abbfb0",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kenney-castle-kit-wall-narrow/collisions.glb",
+      "cacheKey": "fd9f62932b9c2a5411079cd8d572cd5ec9614bc6a7afb57275ef80eb31abbfb0",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kenney-castle-kit-wall-narrow/lod-0.5.glb",
+      "cacheKey": "fd9f62932b9c2a5411079cd8d572cd5ec9614bc6a7afb57275ef80eb31abbfb0",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kenney-castle-kit-wall-narrow/lod-0.25.glb",
+      "cacheKey": "fd9f62932b9c2a5411079cd8d572cd5ec9614bc6a7afb57275ef80eb31abbfb0",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

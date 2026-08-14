@@ -139,14 +139,18 @@ internal sealed class ForgeCreatorShell
         worldWorkspace.AddThemeConstantOverride("separation", 8);
         _shellBody.AddChild(worldWorkspace);
 
-        var editing = content.GetNode<Control>("Editing");
+        var editing = content.GetNode<VBoxContainer>("Editing");
         var playtestBar = content.GetNode<Control>("PlaytestBar");
         var preview = content.GetNode<Control>("PreviewHost");
         _playtestConsole = content.GetNode<Control>("PlaytestConsole");
         preview.CustomMinimumSize = new Vector2(520, 180);
+        editing.Owner = null;
+        preview.Owner = null;
+        playtestBar.Owner = null;
         editing.Reparent(worldWorkspace, keepGlobalTransform: false);
         preview.Reparent(worldWorkspace, keepGlobalTransform: false);
         playtestBar.Reparent(worldWorkspace, keepGlobalTransform: false);
+        PlaceableQuickEditorPanel.Attach(worldWorkspace, editing, preview);
 
         _rightTabs = new TabContainer
         {
@@ -315,9 +319,9 @@ internal sealed class ForgeCreatorShell
 
         _playtestConsole.Name = "Playtests";
         _playtestConsole.CustomMinimumSize = new Vector2(0, 120);
+        _playtestConsole.Owner = null;
         _playtestConsole.Reparent(_rightTabs, keepGlobalTransform: false);
 
-        CompactEditingControls(mainPanel);
         SetWorkspace("Monde");
         SetDiagnostics([]);
     }
@@ -789,14 +793,6 @@ internal sealed class ForgeCreatorShell
         label.AddThemeFontSizeOverride("font_size", 14);
         label.AddThemeColorOverride("font_color", new Color("d8c8ff"));
         return label;
-    }
-
-    private static void CompactEditingControls(Control mainPanel)
-    {
-        mainPanel.GetNode<OptionButton>("Margin/Content/CreatorShell/WorldWorkspace/Editing/PaletteRow/BlueprintPalette")
-            .CustomMinimumSize = new Vector2(180, 38);
-        mainPanel.GetNode<OptionButton>("Margin/Content/CreatorShell/WorldWorkspace/Editing/EntityRow/EntityPicker")
-            .CustomMinimumSize = new Vector2(190, 38);
     }
 
     private static int CountByKind(CreatorExplorerNode root, CreatorExplorerNodeKind kind) =>

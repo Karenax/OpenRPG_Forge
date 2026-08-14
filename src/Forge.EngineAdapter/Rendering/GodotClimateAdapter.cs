@@ -109,15 +109,8 @@ public static class GodotClimateAdapter
 
     private static Node3D CreateWaterBody(WaterBodyProfile body, WaterQualityTier quality)
     {
-        var material = new StandardMaterial3D
-        {
-            AlbedoColor = quality >= WaterQualityTier.High
-                ? new Color(0.08f, 0.34f, 0.48f, 0.72f)
-                : new Color(0.1f, 0.3f, 0.4f, 0.82f),
-            Metallic = quality >= WaterQualityTier.High ? 0.45f : 0.18f,
-            Roughness = quality >= WaterQualityTier.High ? 0.12f : 0.3f,
-            Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
-        };
+        var material = GodotWaterMaterialFactory.Create(
+            new Vector2(body.FlowDirectionX, body.FlowDirectionZ), body.FlowSpeed, quality);
         var root = new Node3D
         {
             Name = $"Water_{body.Id:N}",
@@ -126,7 +119,13 @@ public static class GodotClimateAdapter
         root.AddChild(new MeshInstance3D
         {
             Name = "Surface",
-            Mesh = new PlaneMesh { Size = new Vector2(body.Size.X, body.Size.Z), Material = material },
+            Mesh = new PlaneMesh
+            {
+                Size = new Vector2(body.Size.X, body.Size.Z),
+                SubdivideWidth = quality == WaterQualityTier.Ultra ? 48 : quality == WaterQualityTier.High ? 24 : 1,
+                SubdivideDepth = quality == WaterQualityTier.Ultra ? 48 : quality == WaterQualityTier.High ? 24 : 1,
+                Material = material,
+            },
         });
         var volume = new Area3D { Name = "WaterVolume", Monitoring = true, Monitorable = true };
         volume.AddToGroup("forge_water_volume");

@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "21e14490-9a2d-c550-8c83-53652a1ffea9",
+  "cacheKey": "e4e6010b8e6dd8755dcb942206636d18c4e173d6aecb4a724974298b53e5d0cd",
+  "catalogContentSha256": "92261b9419108d84f3db0def5eadeffa783032029897562b1f512e4a7570ef48",
+  "sourceFileSha256": "92261b9419108d84f3db0def5eadeffa783032029897562b1f512e4a7570ef48",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-fantasy-town@1.0.0;source:kenney:fantasy-town-kit;path:Models/GLB format/fence.glb",
+  "sourceRelativePath": "normalized/kenney/fantasy-town-kit/Models/GLB format/fence.glb",
+  "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-fence/model.glb",
+  "outputContentSha256": "92261b9419108d84f3db0def5eadeffa783032029897562b1f512e4a7570ef48",
+  "outputBytes": 7672,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-fence/model.glb",
+      "cacheKey": "e4e6010b8e6dd8755dcb942206636d18c4e173d6aecb4a724974298b53e5d0cd",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-fence/animations.index.json",
+      "cacheKey": "e4e6010b8e6dd8755dcb942206636d18c4e173d6aecb4a724974298b53e5d0cd",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-fence/collisions.glb",
+      "cacheKey": "e4e6010b8e6dd8755dcb942206636d18c4e173d6aecb4a724974298b53e5d0cd",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-fence/lod-0.5.glb",
+      "cacheKey": "e4e6010b8e6dd8755dcb942206636d18c4e173d6aecb4a724974298b53e5d0cd",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-fence/lod-0.25.glb",
+      "cacheKey": "e4e6010b8e6dd8755dcb942206636d18c4e173d6aecb4a724974298b53e5d0cd",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

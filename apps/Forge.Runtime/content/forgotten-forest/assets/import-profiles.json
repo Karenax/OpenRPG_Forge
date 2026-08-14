@@ -2,6 +2,29 @@
   "formatVersion": "1.0.0",
   "profiles": [
     {
+      "assetId": "02b8af22-2a09-a957-a280-fa3fe607e7e4",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "50c6b512d810687f40e27c7a43b2864e5f7bc84f16ff7a4112cea4807676c336",
+      "provenance": "curated-pack:forgotten-forest-fantasy-town@1.0.0;source:kenney:fantasy-town-kit;path:Models/GLB format/stall-stool.glb",
+      "maximumOutputBytes": 50630,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
       "assetId": "053511fd-e165-1951-9869-6224f82b747f",
       "schemaVersion": 1,
       "kind": "model",
@@ -19,6 +42,29 @@
         "sockets": [],
         "lodRatios": [
           1
+        ]
+      }
+    },
+    {
+      "assetId": "054943b4-dcd5-a85e-8995-bb29154fe80c",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "e6a4433f5770b9fc31bf67d72424a877d5c010486d5b7373ce7af900566827e4",
+      "provenance": "curated-pack:forgotten-forest-castle@1.0.0;source:kenney:castle-kit;path:Models/GLB format/flag-banner-long.glb",
+      "maximumOutputBytes": 28378,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
         ]
       }
     },
@@ -44,6 +90,75 @@
       }
     },
     {
+      "assetId": "05b4242c-3666-5057-8a27-72b71928de01",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "4e4a83de16e5979d2b34bb206d3bf3703a9039711bc658b37e3738d43090703d",
+      "provenance": "curated-pack:forgotten-forest-fantasy-town@1.0.0;source:kenney:fantasy-town-kit;path:Models/GLB format/banner-red.glb",
+      "maximumOutputBytes": 42262,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "0632cb97-7412-fa57-bf9e-f967fa63dc50",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "996887e98957eeea2ba7b5d14f0d17877c91e4e99e1c5b8ee57d87b7f7c9d5e8",
+      "provenance": "curated-pack:forgotten-forest-castle@1.0.0;source:kenney:castle-kit;path:Models/GLB format/tower-square-base.glb",
+      "maximumOutputBytes": 23970,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "07c4ba45-9174-7d53-94c5-4c91cda8b4ba",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "dfffda4e4f0796076c502561cbf9527245656b7384b67657edc2a45205bbce51",
+      "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/tree_pineGroundA.glb",
+      "maximumOutputBytes": 13408,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
       "assetId": "09ecdef5-5922-c25e-97c8-60b5bc78b586",
       "schemaVersion": 1,
       "kind": "model",
@@ -53,6 +168,29 @@
       "contentSha256": "f46682b8eb8110fabe17f1da8e226bd2471046a25d907e41fd43ad9695f4c397",
       "provenance": "curated-pack:forgotten-forest-core@1.0.0;source:kenney:mini-forest;path:Models/GLB format/stones.glb",
       "maximumOutputBytes": 67566,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "0d1b2d6f-7853-6f59-a897-343da5a8579a",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "f4cf3fc08e5155015af7bd28dca8b2effe96fe3743276a5561119a3e7368cba4",
+      "provenance": "curated-pack:forgotten-forest-fantasy-town@1.0.0;source:kenney:fantasy-town-kit;path:Models/GLB format/roof-high-left.glb",
+      "maximumOutputBytes": 45038,
       "texture": null,
       "model": {
         "importRig": false,
@@ -159,6 +297,29 @@
       }
     },
     {
+      "assetId": "16144713-9b8a-fb5a-bf37-b816dff5bcad",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "9ba6337460e718b8baf165b23c02f39455e3d5757b1911505410c46bc88a86b5",
+      "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/tree_pineTallA_detailed.glb",
+      "maximumOutputBytes": 21416,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
       "assetId": "16946a65-ec1b-d259-aa9b-d0aedc7a7407",
       "schemaVersion": 1,
       "kind": "model",
@@ -180,6 +341,29 @@
       }
     },
     {
+      "assetId": "18694022-f70d-9b5a-b563-64cc5b3efb35",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "f4c38de352c80c110874fabe7323577d985af191c25242887574238146dc7d82",
+      "provenance": "curated-pack:forgotten-forest-fantasy-town@1.0.0;source:kenney:fantasy-town-kit;path:Models/GLB format/wall-wood-corner.glb",
+      "maximumOutputBytes": 35894,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
       "assetId": "192bb04e-3e7e-1c51-8c77-00cd34f95110",
       "schemaVersion": 1,
       "kind": "model",
@@ -189,6 +373,52 @@
       "contentSha256": "cafd760fb763fe2a76ad84b469683d18209a2b2ff013b1e11516d0fd62be2a6d",
       "provenance": "curated-pack:forgotten-forest-core@1.0.0;source:kenney:mini-forest;path:Models/GLB format/bridge.glb",
       "maximumOutputBytes": 86238,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "19795bc7-8e7e-4e51-81cc-cdb1e12ae4fb",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "29f02df0589dd2b09e8d2aff6a4662394dac5cfcf1fec701640dcbd6127e0802",
+      "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/mushroom_redGroup.glb",
+      "maximumOutputBytes": 29920,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "1a65ccbc-fd90-1a52-b78f-1c3ab13c89e1",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "58a641a03fc4a5a225663969cc257fcf4f2fc63c199b4aca16b612142ff9eed0",
+      "provenance": "curated-pack:forgotten-forest-fantasy-town@1.0.0;source:kenney:fantasy-town-kit;path:Models/GLB format/wall-window-shutters.glb",
+      "maximumOutputBytes": 70070,
       "texture": null,
       "model": {
         "importRig": false,
@@ -220,6 +450,52 @@
         "sockets": [],
         "lodRatios": [
           1
+        ]
+      }
+    },
+    {
+      "assetId": "209fc78d-7f3f-6052-957d-bcb47deb2c24",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "22d359abfaa3cf3dc5a2fece09a108024a07a4e263b21a4a0689da0e630699ed",
+      "provenance": "curated-pack:forgotten-forest-castle@1.0.0;source:kenney:castle-kit;path:Models/GLB format/wall-pillar.glb",
+      "maximumOutputBytes": 51370,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "21e14490-9a2d-c550-8c83-53652a1ffea9",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "92261b9419108d84f3db0def5eadeffa783032029897562b1f512e4a7570ef48",
+      "provenance": "curated-pack:forgotten-forest-fantasy-town@1.0.0;source:kenney:fantasy-town-kit;path:Models/GLB format/fence.glb",
+      "maximumOutputBytes": 37630,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
         ]
       }
     },
@@ -268,6 +544,121 @@
       }
     },
     {
+      "assetId": "2762069b-4d22-aa52-9ddd-5e50b0a9445d",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "347fcdb0842ed47f20931b962dc0a2ad212690812386a3cb634016b4229145a7",
+      "provenance": "curated-pack:forgotten-forest-castle@1.0.0;source:kenney:castle-kit;path:Models/GLB format/wall-narrow.glb",
+      "maximumOutputBytes": 39378,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "28dcc781-e4fb-ad50-bcdf-cc427baf76de",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "2aa4e982fcb6434be4e6051fcee7972799ff5350a3f36ca8bf71530b84608123",
+      "provenance": "curated-pack:forgotten-forest-fantasy-town@1.0.0;source:kenney:fantasy-town-kit;path:Models/GLB format/wall-wood-door.glb",
+      "maximumOutputBytes": 83774,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "29f19b83-5edd-5d5f-9334-7c680af2ec53",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "f72fd2201cd42ad399928a0b7bcc34d5b0e6d0624aeaf824fef81852109955f8",
+      "provenance": "curated-pack:forgotten-forest-dungeon-dressing@1.0.0;source:kaykit:dungeon-remastered-1.0;path:KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/chest.glb",
+      "maximumOutputBytes": 162824,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "2a708ca5-8ca2-7b5e-bb2b-2ccc3a0bb9ff",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "2da2f7b31cde5d943d7c08c457bbb39797ef0a607921fde0b8455f338ce40205",
+      "provenance": "curated-pack:forgotten-forest-fantasy-town@1.0.0;source:kenney:fantasy-town-kit;path:Models/GLB format/stall-green.glb",
+      "maximumOutputBytes": 76526,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "2abafbd7-3e72-6d57-a05d-fbf3ce8d1c19",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "2afb10cd68a9a7b185fc46110be0da550ea2aef86ef9ac6b7339f217eb4b636a",
+      "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/flower_purpleB.glb",
+      "maximumOutputBytes": 16168,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
       "assetId": "2f936139-324c-7557-a99d-3444847def51",
       "schemaVersion": 1,
       "kind": "model",
@@ -289,6 +680,29 @@
       }
     },
     {
+      "assetId": "39985daa-3520-ab51-a0a4-cea188ffd75b",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "54869db23243a3f4905bc00bd4cd93b1037b28556ab3ef93e7a893a093791e35",
+      "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/campfire_stones.glb",
+      "maximumOutputBytes": 34688,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
       "assetId": "3bf93c4b-7df6-455c-be89-ba38d40e941c",
       "schemaVersion": 1,
       "kind": "model",
@@ -306,6 +720,52 @@
         "sockets": [],
         "lodRatios": [
           1
+        ]
+      }
+    },
+    {
+      "assetId": "3d20f8e7-5de0-8758-9a12-9e6fb271fefb",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "f8e90ed7f7771644998a7c361302213af04350150b3ea0631e8384d26506efa2",
+      "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/tree_default_fall.glb",
+      "maximumOutputBytes": 33880,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "3e004ab7-a379-dc55-bbbc-18c70493d183",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "5f133281686d398304c0a458c4d407dd483eeea8aba67220b585ceb89366efa2",
+      "provenance": "curated-pack:forgotten-forest-dungeon-dressing@1.0.0;source:kaykit:dungeon-remastered-1.0;path:KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/chair.gltf.glb",
+      "maximumOutputBytes": 72504,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
         ]
       }
     },
@@ -375,6 +835,75 @@
       }
     },
     {
+      "assetId": "543c1d18-ba6d-8856-8a54-3152613a845e",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "8b079b22cc25ae79241ab29f94d3118d0214eadfa2c5711da88852ffdd554223",
+      "provenance": "curated-pack:forgotten-forest-dungeon-dressing@1.0.0;source:kaykit:dungeon-remastered-1.0;path:KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/table_small_decorated_A.gltf.glb",
+      "maximumOutputBytes": 135344,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "548a4f03-cabb-3553-8bac-0e2bfb70cb63",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "1c04bb5ecf61a660126cf28d64f2d06ddbf645a9e76598bb7af5828325968f79",
+      "provenance": "curated-pack:forgotten-forest-fantasy-town@1.0.0;source:kenney:fantasy-town-kit;path:Models/GLB format/roof-high-right.glb",
+      "maximumOutputBytes": 44278,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "55090937-984b-0a5c-9a2e-8f38ede6d1de",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "5c9a1bb7d564270306fe438fd4a141fc6de0d102b355bbd1d2710249c489868a",
+      "provenance": "curated-pack:forgotten-forest-fantasy-town@1.0.0;source:kenney:fantasy-town-kit;path:Models/GLB format/banner-green.glb",
+      "maximumOutputBytes": 42686,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
       "assetId": "5b14c277-cde3-9c5c-828a-829e94d04763",
       "schemaVersion": 1,
       "kind": "model",
@@ -417,6 +946,236 @@
       }
     },
     {
+      "assetId": "5f6ee144-4be4-d654-b3ae-3f1e89f32be4",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "85630c89588bdc19285a7b5e894c1ddac69d7ce2b069966453800519e446f900",
+      "provenance": "curated-pack:forgotten-forest-fantasy-town@1.0.0;source:kenney:fantasy-town-kit;path:Models/GLB format/road.glb",
+      "maximumOutputBytes": 27862,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "5fda3a0e-129a-3f59-978d-3e283a84652d",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "32759c64c6e8fe5634753134748f4b759b698aafb1245b8ed9fe62afe390faa5",
+      "provenance": "curated-pack:forgotten-forest-dungeon-dressing@1.0.0;source:kaykit:dungeon-remastered-1.0;path:KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/bottle_A_green.gltf.glb",
+      "maximumOutputBytes": 52920,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "63932d33-dc01-ef52-af6d-e9a9ab3207ec",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "aa20a630f417032c46aaefbc779fd2b3355b451bf05d31acc36fd664146866b1",
+      "provenance": "curated-pack:forgotten-forest-fantasy-town@1.0.0;source:kenney:fantasy-town-kit;path:Models/GLB format/stall-red.glb",
+      "maximumOutputBytes": 70894,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "64f499cc-a4f4-8652-95ec-8e330117333f",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "51672d47bb3cec6f190334fcb29c3c2f464f605b85f5e13b918e868d72c632e7",
+      "provenance": "curated-pack:forgotten-forest-castle@1.0.0;source:kenney:castle-kit;path:Models/GLB format/wall-narrow-stairs.glb",
+      "maximumOutputBytes": 69002,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "654d6f01-dab6-d555-9996-ed19a77bedb9",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "29080a4935bae6b4ab29066f22c99c58f88b23ce4e2f79b4dcbb5e76de73f69d",
+      "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/tree_pineRoundC.glb",
+      "maximumOutputBytes": 30664,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "6797acd1-4092-4e59-89f2-30be9398c29c",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "886feece503686307dd041c986b1ea6f1fd63792c7e4217eb16f95904e6a9767",
+      "provenance": "curated-pack:forgotten-forest-dungeon-dressing@1.0.0;source:kaykit:dungeon-remastered-1.0;path:KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/shelf_large.gltf.glb",
+      "maximumOutputBytes": 44024,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "6a631bba-1137-4b57-8872-625b7dffe0fb",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "d22eb1c1fb6ab434e8c9599ecb2cd00c2e34a713783603ba7a3e2cbb1611709d",
+      "provenance": "curated-pack:forgotten-forest-dungeon-dressing@1.0.0;source:kaykit:dungeon-remastered-1.0;path:KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/floor_wood_large.gltf.glb",
+      "maximumOutputBytes": 71224,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "7562b7e8-c1fc-9052-93dd-18d3ef16ab46",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "43182b077ead9b033804300ef453b7402bdc979f00cfce2d7f0c91dcf6bb5d3c",
+      "provenance": "curated-pack:forgotten-forest-dungeon-dressing@1.0.0;source:kaykit:dungeon-remastered-1.0;path:KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/crates_stacked.gltf.glb",
+      "maximumOutputBytes": 207408,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "758b5f80-44f6-2d59-99d3-205b836b5fc4",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "34a43b162b0984df0c691cb12fcd169ff374412deca0de5fdfdd702a9fa0c98f",
+      "provenance": "curated-pack:forgotten-forest-castle@1.0.0;source:kenney:castle-kit;path:Models/GLB format/tower-square-mid.glb",
+      "maximumOutputBytes": 30546,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "768a764c-da26-1057-86b0-638bcf277d90",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "c45a63690760cd5de3842ffbe222092e8cd483524679c4ba92fef4d1e52f7248",
+      "provenance": "curated-pack:forgotten-forest-fantasy-town@1.0.0;source:kenney:fantasy-town-kit;path:Models/GLB format/wall-wood-window-shutters.glb",
+      "maximumOutputBytes": 43510,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
       "assetId": "7a794831-7f7b-3155-abc4-e4e4fd7ba989",
       "schemaVersion": 1,
       "kind": "model",
@@ -426,6 +1185,144 @@
       "contentSha256": "e09b699180e66a615be406d0ca8b1e1f42d573589a41c0067988418bc548d807",
       "provenance": "curated-pack:forgotten-forest-core@1.0.0;source:kenney:mini-forest;path:Models/GLB format/rocks-ramp.glb",
       "maximumOutputBytes": 67614,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "80e0d2bb-bbb4-995d-bd7c-df9984962385",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "4a22b80e18ac1798035867b7ff6e4d78161fa25b507112c903ad6f80765cf181",
+      "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/cliff_corner_rock.glb",
+      "maximumOutputBytes": 4720,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "80f16c5d-2668-8254-8283-0bf5d3b4005c",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "47564d874e79f04212c05487d88ac8cbe9bb50b1865a8eeb1178bcb711aa444d",
+      "provenance": "curated-pack:forgotten-forest-dungeon-dressing@1.0.0;source:kaykit:dungeon-remastered-1.0;path:KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/table_long_decorated_A.gltf.glb",
+      "maximumOutputBytes": 241584,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "81f2a693-3439-bc5d-8dab-13e462e743b2",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "2e0487020d68ccf664435db9d829c78ae00e6d2785ee3ec10b9f89cc70a10406",
+      "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/plant_bushDetailed.glb",
+      "maximumOutputBytes": 20344,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "82866648-f741-2f59-a938-305a8af65aaf",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "d7fd8773674928c50c11b66d12c636d49bdcc15a8b1c7fbb98e6f63a3439a3f3",
+      "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/tree_oak.glb",
+      "maximumOutputBytes": 29288,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "85d14465-b4b2-b15f-b0a7-0e5a2d77574c",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "7d39cd8fdcb8bd652d8a40f5f54e5e3d2c41bc1bb84691334f75bc411024cb12",
+      "provenance": "curated-pack:forgotten-forest-fantasy-town@1.0.0;source:kenney:fantasy-town-kit;path:Models/GLB format/roof-high.glb",
+      "maximumOutputBytes": 38462,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "8668619d-2964-cc5e-9173-ce80f67ecf3b",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "45fcfeb3b129722019d42aef0acae8f6c5f8f6dbdf5d3346ceea1f084b69b396",
+      "provenance": "curated-pack:forgotten-forest-dungeon-dressing@1.0.0;source:kaykit:dungeon-remastered-1.0;path:KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/torch_lit.gltf.glb",
+      "maximumOutputBytes": 62488,
       "texture": null,
       "model": {
         "importRig": false,
@@ -461,6 +1358,52 @@
       }
     },
     {
+      "assetId": "8a271023-3588-d058-9a5a-8663a70a176a",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "b3ca88e56eeab02e969c38a25bb7dedb34989a401afb7aee44a408f37937701c",
+      "provenance": "curated-pack:forgotten-forest-dungeon-dressing@1.0.0;source:kaykit:dungeon-remastered-1.0;path:KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/plate_food_B.gltf.glb",
+      "maximumOutputBytes": 63960,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "8db01496-0a55-f156-a9f9-3a06b8194f52",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "cee58694ea5fdcca18e01318b355bfcd38eac6fad21b83f860039c287b150cc6",
+      "provenance": "curated-pack:forgotten-forest-fantasy-town@1.0.0;source:kenney:fantasy-town-kit;path:Models/GLB format/fence-gate.glb",
+      "maximumOutputBytes": 114966,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
       "assetId": "8e36f865-9ad6-d65b-9c23-b2ce837f4d51",
       "schemaVersion": 1,
       "kind": "model",
@@ -491,6 +1434,75 @@
       "contentSha256": "093e834c1edf85b4e2d2ee18490e21230088ba98022dad18a799b66ee8bea689",
       "provenance": "curated-pack:forgotten-forest-core@1.0.0;source:kenney:mini-forest;path:Models/GLB format/weapon-bow.glb",
       "maximumOutputBytes": 38334,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "93ef98a2-a2d8-895e-af0e-4dfa088449a8",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "81909d6c33b181a9935fc7f800e8ee309454bbf99ff3b6b0ab2ecf16c3bf5e9b",
+      "provenance": "curated-pack:forgotten-forest-castle@1.0.0;source:kenney:castle-kit;path:Models/GLB format/siege-tower.glb",
+      "maximumOutputBytes": 303458,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "981a5205-700f-1d55-8eaf-765cc42cccc1",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "d6f6a809c1e4635b143fd3c6e790331aa049d625abd390429c1e5887f77cbb96",
+      "provenance": "curated-pack:forgotten-forest-dungeon-dressing@1.0.0;source:kaykit:dungeon-remastered-1.0;path:KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/shelf_small_candles.gltf.glb",
+      "maximumOutputBytes": 60072,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "99356edf-38cf-9657-b17b-431794776a2b",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "33f06f1d5f926997e2709741884fd1f4bd86ce4cfc753a74257d2a9e3efffdb6",
+      "provenance": "curated-pack:forgotten-forest-fantasy-town@1.0.0;source:kenney:fantasy-town-kit;path:Models/GLB format/stairs-wide-wood.glb",
+      "maximumOutputBytes": 88406,
       "texture": null,
       "model": {
         "importRig": false,
@@ -591,6 +1603,52 @@
       }
     },
     {
+      "assetId": "a46f9cfb-f902-e556-98ca-83b5ec3756b3",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "af49a595624abca7249824eeefb944d4baf974abeeb5b16110d175da3563d6cd",
+      "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/grass_large.glb",
+      "maximumOutputBytes": 37008,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "a809e195-60ad-485d-8f3e-1654e927336e",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "f9bf79cd3a76bbe11f4887053655585e467e14f2528678215a820896669e4e8e",
+      "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/cliff_large_rock.glb",
+      "maximumOutputBytes": 7120,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
       "assetId": "a83efe7b-1418-e55b-84b4-9f249da2b0f4",
       "schemaVersion": 1,
       "kind": "model",
@@ -623,6 +1681,142 @@
       "contentSha256": "de55047cc1cda50dbd7a2f7a240ffc3534744aabaa5a2d91efb2fcd0f4c4b7d8",
       "provenance": "curated-pack:forgotten-forest-core@1.0.0;source:kenney:mini-forest;path:Models/GLB format/fence.glb",
       "maximumOutputBytes": 81126,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "b0e86de3-d1da-6254-93f0-04ffd588ce3e",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "e18013044ad6453a1850226be29f63c37d67e0002141f5f6a4d14a46bde69e00",
+      "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/statue_obelisk.glb",
+      "maximumOutputBytes": 8832,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "b1b376c2-fcfa-a35b-86dd-bcead260ce7c",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "b192523736f32754788de4dc7a5dcf30a58322b260ec8969120c91432a10b633",
+      "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/plant_flatTall.glb",
+      "maximumOutputBytes": 6960,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "b2ba838e-593d-fe57-864d-6f1c8a5187fb",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "fbx",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "2dfda7e17bbe5d9234204e7d67dcc41f82da92123f95435f6db2bc4aa57fc158",
+      "provenance": "curated-pack:forgotten-forest-quaternius-dragon@1.0.3;source:quaternius:lowpoly-animated-monsters;archive-sha256:acab2bddc5939f9b1b92c930507d73e0fd80037a39631cf2049bb6cfcaec1acd;model:Animated Monster Pack by @Quaternius/FBX/Dragon.fbx",
+      "maximumOutputBytes": 1758008,
+      "texture": null,
+      "model": {
+        "importRig": true,
+        "importAnimations": true,
+        "generateCollisions": false,
+        "sockets": [],
+        "lodRatios": [
+          1
+        ]
+      }
+    },
+    {
+      "assetId": "b38ee849-17dd-d25b-85e4-044ae89b822e",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "5a4b379488241394916991c4b482ec4863c05bb548ca8751f5c3935f1f6e5b9c",
+      "provenance": "curated-pack:forgotten-forest-fantasy-town@1.0.0;source:kenney:fantasy-town-kit;path:Models/GLB format/stall-bench.glb",
+      "maximumOutputBytes": 50622,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "b59d8812-06e0-bc5a-91e5-d8b15e100696",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "88250f236a3b75f8b55c1d8afb6af020f8a91b1e81f9fb51f7ef513420d45a2d",
+      "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/rock_tallA.glb",
+      "maximumOutputBytes": 24144,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "b60ff30a-cc35-e757-87b5-f3a07d1a14c4",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "253d7f8fd3e9113ef5ae064eed49351b387532d83ccce284851d0a2190872fc6",
+      "provenance": "curated-pack:forgotten-forest-castle@1.0.0;source:kenney:castle-kit;path:Models/GLB format/wall-narrow-wood-fence.glb",
+      "maximumOutputBytes": 81034,
       "texture": null,
       "model": {
         "importRig": false,
@@ -679,6 +1873,52 @@
       }
     },
     {
+      "assetId": "b94a678d-7cb0-2d5d-b742-c0f1718219c4",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "81ac9fc4c66eacceaf4aebcb6df3468ea450a2f5081151bb11400282efbc51bd",
+      "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/cactus_short.glb",
+      "maximumOutputBytes": 17688,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "bb4e7720-f118-3050-9222-558a180d8b74",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "63503cd0a7398310e01aabc8e3663f711a7517394d23d179d0695157fee99d40",
+      "provenance": "curated-pack:forgotten-forest-fantasy-town@1.0.0;source:kenney:fantasy-town-kit;path:Models/GLB format/cart.glb",
+      "maximumOutputBytes": 128126,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
       "assetId": "bc41a092-9b5a-cb5f-a5f8-2eb2e80e8f2d",
       "schemaVersion": 1,
       "kind": "model",
@@ -696,6 +1936,29 @@
         "sockets": [],
         "lodRatios": [
           1
+        ]
+      }
+    },
+    {
+      "assetId": "be2d4810-e334-3e56-9c1c-a9d0127913ee",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "3536f0a55df50c728ec9c369c4a6a81c913b33a507ac4a192d418d28fd6677c2",
+      "provenance": "curated-pack:forgotten-forest-dungeon-dressing@1.0.0;source:kaykit:dungeon-remastered-1.0;path:KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/candle_triple.gltf.glb",
+      "maximumOutputBytes": 56480,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
         ]
       }
     },
@@ -744,6 +2007,190 @@
       }
     },
     {
+      "assetId": "c19f5239-efc8-085e-aaf2-6b2db9c27ec1",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "43becc5ada637e494e617e5abdb13f15b53054d3581679162e3098d8fc0d5376",
+      "provenance": "curated-pack:forgotten-forest-dungeon-dressing@1.0.0;source:kaykit:dungeon-remastered-1.0;path:KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/table_long_tablecloth_decorated_A.gltf.glb",
+      "maximumOutputBytes": 248128,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "c29b7474-e398-2c59-bdeb-3200215492cd",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "253e40b87607ac3646c0b3ecf6d252a198e175dd7cd89fd47fec64a7dcb545c4",
+      "provenance": "curated-pack:forgotten-forest-dungeon-dressing@1.0.0;source:kaykit:dungeon-remastered-1.0;path:KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/bed_decorated.gltf.glb",
+      "maximumOutputBytes": 189376,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "c76498c2-b20c-1d54-8a0e-473845a5c83a",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "e7a92369062d491e5a31a163d390e07db04ee573605bbfa84c00660d18896b4c",
+      "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/log_large.glb",
+      "maximumOutputBytes": 15848,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "c8aee4c1-0570-7c5d-a642-c11603c9764f",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "21c54b2645ba33846f43410e6cef4d4f9239bc172bfb12f3227a6ec232977e2d",
+      "provenance": "curated-pack:forgotten-forest-fantasy-town@1.0.0;source:kenney:fantasy-town-kit;path:Models/GLB format/roof-high-gable.glb",
+      "maximumOutputBytes": 37198,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "c8b29a22-4e4c-5653-9e4d-3edfb1bee785",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "79b2d40db110ca96a6e77d4261da665fdf8c68f4c20c2afef5bce1c28ad72857",
+      "provenance": "curated-pack:forgotten-forest-fantasy-town@1.0.0;source:kenney:fantasy-town-kit;path:Models/GLB format/wall-door.glb",
+      "maximumOutputBytes": 80838,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "cb3d0e39-4914-8b5c-b995-c60d745c5ed2",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "8699614fdbc99f565942709c0977c964e2c12f3b3c60098a6e2c397c973f08db",
+      "provenance": "curated-pack:forgotten-forest-fantasy-town@1.0.0;source:kenney:fantasy-town-kit;path:Models/GLB format/wall-wood.glb",
+      "maximumOutputBytes": 31902,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "ce60a33d-cbf9-315c-9312-4d32df5b4cde",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "8d19741e2cca6cbdce114b950b4aa12af625979bbc17b2910ef2366834af5565",
+      "provenance": "curated-pack:forgotten-forest-fantasy-town@1.0.0;source:kenney:fantasy-town-kit;path:Models/GLB format/fountain-round.glb",
+      "maximumOutputBytes": 191982,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "ce7b3ccb-e440-8f52-973e-88577ca6bd36",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "1e2211dc6483b1d8a32130c3441afa108d4075f0d851825620fba85d2dc6e5d7",
+      "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/tree_detailed_dark.glb",
+      "maximumOutputBytes": 62832,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
       "assetId": "cfa443cc-ed01-bd59-bf60-1370ebd04200",
       "schemaVersion": 1,
       "kind": "model",
@@ -767,6 +2214,52 @@
       }
     },
     {
+      "assetId": "d12fd84f-a997-0357-9bf2-999d1a574a81",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "fdc3d5b07f619dcacbf2af36024dc9a356696e541f6ce409a5305be782665ec9",
+      "provenance": "curated-pack:forgotten-forest-castle@1.0.0;source:kenney:castle-kit;path:Models/GLB format/gate.glb",
+      "maximumOutputBytes": 42818,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "da4a4a9d-70be-ca57-988c-b708a063e783",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "a884f27540b8b91e3d47914453cbf2c4d48f4ca8504ace9960a8d9b4e79a6c48",
+      "provenance": "curated-pack:forgotten-forest-dungeon-dressing@1.0.0;source:kaykit:dungeon-remastered-1.0;path:KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/candle_lit.gltf.glb",
+      "maximumOutputBytes": 45296,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
       "assetId": "da7a0452-4f03-6258-b1c9-c80007e01f93",
       "schemaVersion": 1,
       "kind": "model",
@@ -776,6 +2269,29 @@
       "contentSha256": "4ce1784382a2c986b5a63cd4cf7fc41f8775148464021fc4e10d780cc7892789",
       "provenance": "curated-pack:forgotten-forest-core@1.0.0;source:kenney:mini-forest;path:Models/GLB format/plant.glb",
       "maximumOutputBytes": 66166,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "dd711039-de3d-de5d-a5c5-9d93f67595e0",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "23aee8b727adeaf260207af3e0615dc69aa766c6d87de1d44cbc8c2711d74dd1",
+      "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/rock_largeC.glb",
+      "maximumOutputBytes": 14008,
       "texture": null,
       "model": {
         "importRig": false,
@@ -878,6 +2394,98 @@
       }
     },
     {
+      "assetId": "e0a47d2b-2d10-f65c-82a2-7879bd3acfcf",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "cbd2c2ea7d0316be7514d44699527c566ce91e0542e8b6c6bf431a155e5655f6",
+      "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/tree_palmTall.glb",
+      "maximumOutputBytes": 31184,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "e3483dfc-21be-fa54-9b4c-9701fdb6d342",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "d43a1aca5952e1f8a104d64a0edfec09c39f15102ca6bdc531460dd5a2c53d25",
+      "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/cactus_tall.glb",
+      "maximumOutputBytes": 19336,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "e37fcefa-6341-ef5a-af32-a3ba739738e6",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "c69c6eaffc834d6dcc7d19f8fd87145af4323265755588bf5bde85d71e0e3ff3",
+      "provenance": "curated-pack:forgotten-forest-dungeon-dressing@1.0.0;source:kaykit:dungeon-remastered-1.0;path:KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/banner_red.gltf.glb",
+      "maximumOutputBytes": 48432,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "e52768d9-300d-5b51-a6cf-c4663fb18fdc",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "2be5369a2d1d1d8795150b2156d8343b3e37620d78de256cb03276c54ea70c97",
+      "provenance": "curated-pack:forgotten-forest-dungeon-dressing@1.0.0;source:kaykit:dungeon-remastered-1.0;path:KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/wall_doorway.glb",
+      "maximumOutputBytes": 201192,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
       "assetId": "e71f8820-1db3-0450-a67f-6d9b6eb444aa",
       "schemaVersion": 1,
       "kind": "model",
@@ -887,6 +2495,52 @@
       "contentSha256": "0fd0f92e452ffab13529e51037cc804edf6ff3134f6bdd614b7aaea9ae6feb3b",
       "provenance": "curated-pack:forgotten-forest-core@1.0.0;source:kenney:mini-forest;path:Models/GLB format/character-archer.glb",
       "maximumOutputBytes": 499566,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "e9e60399-ddde-8f56-a454-0d82348a8c6e",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "d3ad760d5005500a8755e5a816e574dd7e4227c5bb038685a3cb0ab2ad8bb6cb",
+      "provenance": "curated-pack:forgotten-forest-dungeon-dressing@1.0.0;source:kaykit:dungeon-remastered-1.0;path:KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/barrel_large_decorated.gltf.glb",
+      "maximumOutputBytes": 147256,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "eaac2ff3-82ee-d151-b6e3-bc17dbf2349b",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "8af9dae16ce3c03183f9457996ebdd135167199514e8f4f944ee2bd82828d5c9",
+      "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/tree_palmBend.glb",
+      "maximumOutputBytes": 29640,
       "texture": null,
       "model": {
         "importRig": false,
@@ -924,6 +2578,29 @@
       }
     },
     {
+      "assetId": "ed5d84a7-62a8-fa59-8805-caccf4d4b9e5",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "d54d9665d07e0ff9680e56731c9f5338fc25d93788504d63b8375f54e6444193",
+      "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/tent_detailedOpen.glb",
+      "maximumOutputBytes": 30648,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
       "assetId": "f0a46655-a244-0c54-9301-5a7f9b549d52",
       "schemaVersion": 1,
       "kind": "model",
@@ -947,6 +2624,190 @@
       }
     },
     {
+      "assetId": "f1a18686-cdb3-9d56-8332-75575430c87a",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "4549db448834c615e753f65327d01b8f55b9d20d915e004c8a0da123cb76e86e",
+      "provenance": "curated-pack:forgotten-forest-dungeon-dressing@1.0.0;source:kaykit:dungeon-remastered-1.0;path:KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/plate_food_A.gltf.glb",
+      "maximumOutputBytes": 82472,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "f4410141-b2cd-8956-b32a-3372edd312a3",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "cab1dff37610e2a214237cc62ec0b1506e8fd76bb66c29f6c585b4b643b569c4",
+      "provenance": "curated-pack:forgotten-forest-fantasy-town@1.0.0;source:kenney:fantasy-town-kit;path:Models/GLB format/wall.glb",
+      "maximumOutputBytes": 31870,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "f4863600-28ab-a559-a48c-1c8c3602d19a",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "c23dc73a11c5a57ed33cb8a9df99f2b2793517341c5d62c6e50b0150652e8e99",
+      "provenance": "curated-pack:forgotten-forest-dungeon-dressing@1.0.0;source:kaykit:dungeon-remastered-1.0;path:KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/barrel_small_stack.gltf.glb",
+      "maximumOutputBytes": 196184,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "f781cc0f-702f-2d5e-a4fd-293c8575fbc7",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "5516fb45c3158e03773e15e83f5fc8b9bafbbcb3f35fc8e1e06e823cdb01e3bb",
+      "provenance": "curated-pack:forgotten-forest-castle@1.0.0;source:kenney:castle-kit;path:Models/GLB format/tower-square-top-roof.glb",
+      "maximumOutputBytes": 37570,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "f8806cac-99ba-4757-b556-41690fc61a2f",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "f01e3005f2cfe7451a0376a4fdba2408594cb60664e24e53e736e52d5b3ec934",
+      "provenance": "curated-pack:forgotten-forest-castle@1.0.0;source:kenney:castle-kit;path:Models/GLB format/wall-narrow-gate.glb",
+      "maximumOutputBytes": 49242,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "f8829331-7b00-ea59-b153-ef85e1dbdb70",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "82fe2e0477c7ce2c5994435f44074022cb2a36f56ff40bd34598cbfc87286885",
+      "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/cliff_blockSlope_rock.glb",
+      "maximumOutputBytes": 13440,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "f88877e8-3852-7b55-98f7-4e6c814d2b33",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "dc5beae322011acbce5c3dccb3c5cbaffae9757ad67d6ab0cf574c11b7ce014c",
+      "provenance": "curated-pack:forgotten-forest-dungeon-dressing@1.0.0;source:kaykit:dungeon-remastered-1.0;path:KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/table_medium_decorated_A.gltf.glb",
+      "maximumOutputBytes": 165176,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "f899d3f9-1c49-525d-928f-e5e97eafb70b",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "b2ea00acbf4ba91ff0d4b8b942edf9fa12d821abd0b2c945c57a2b9b3153cfe3",
+      "provenance": "curated-pack:forgotten-forest-castle@1.0.0;source:kenney:castle-kit;path:Models/GLB format/wall.glb",
+      "maximumOutputBytes": 48162,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
       "assetId": "fb80555d-630c-0254-ad83-67dcc49768e0",
       "schemaVersion": 1,
       "kind": "model",
@@ -956,6 +2817,75 @@
       "contentSha256": "c86332ac085c2a7f0f926ea9f51907bbd9354561f5717cf95dc2cfcaaff873b1",
       "provenance": "curated-pack:forgotten-forest-core@1.0.0;source:kenney:mini-forest;path:Models/GLB format/tree-high.glb",
       "maximumOutputBytes": 83670,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "fca055d7-55e4-135e-a36f-d3e6ba38d9c0",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "caa8b025833d4dabf6d98fe2e96cf2fbd886693ac990df0db75f9d827194374b",
+      "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/rock_largeB.glb",
+      "maximumOutputBytes": 17120,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "fcae251a-2a63-7952-9965-8a0ca5bde3d5",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "761adf0fcc1a86ab1c42740b7a8ad340d73982f94257e7892b2c7998f98c304e",
+      "provenance": "curated-pack:forgotten-forest-dungeon-dressing@1.0.0;source:kaykit:dungeon-remastered-1.0;path:KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/column.gltf.glb",
+      "maximumOutputBytes": 40520,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "fe14e00e-2677-6657-bf50-7fa51e32d8a5",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "87943b8b0d244ec9832d5dca9bf3cee2ab62aaa81797749f21a972f85c1f3be4",
+      "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/rock_tallC.glb",
+      "maximumOutputBytes": 10368,
       "texture": null,
       "model": {
         "importRig": false,

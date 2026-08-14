@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "ce60a33d-cbf9-315c-9312-4d32df5b4cde",
+  "cacheKey": "f4ba6b91fc4b2f24d2c477c568eb4da1e56b7eae37e60d57ba4f7f6f8f099644",
+  "catalogContentSha256": "8d19741e2cca6cbdce114b950b4aa12af625979bbc17b2910ef2366834af5565",
+  "sourceFileSha256": "8d19741e2cca6cbdce114b950b4aa12af625979bbc17b2910ef2366834af5565",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-fantasy-town@1.0.0;source:kenney:fantasy-town-kit;path:Models/GLB format/fountain-round.glb",
+  "sourceRelativePath": "normalized/kenney/fantasy-town-kit/Models/GLB format/fountain-round.glb",
+  "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-fountain-round/model.glb",
+  "outputContentSha256": "8d19741e2cca6cbdce114b950b4aa12af625979bbc17b2910ef2366834af5565",
+  "outputBytes": 84848,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-fountain-round/model.glb",
+      "cacheKey": "f4ba6b91fc4b2f24d2c477c568eb4da1e56b7eae37e60d57ba4f7f6f8f099644",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-fountain-round/animations.index.json",
+      "cacheKey": "f4ba6b91fc4b2f24d2c477c568eb4da1e56b7eae37e60d57ba4f7f6f8f099644",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-fountain-round/collisions.glb",
+      "cacheKey": "f4ba6b91fc4b2f24d2c477c568eb4da1e56b7eae37e60d57ba4f7f6f8f099644",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-fountain-round/lod-0.5.glb",
+      "cacheKey": "f4ba6b91fc4b2f24d2c477c568eb4da1e56b7eae37e60d57ba4f7f6f8f099644",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-fountain-round/lod-0.25.glb",
+      "cacheKey": "f4ba6b91fc4b2f24d2c477c568eb4da1e56b7eae37e60d57ba4f7f6f8f099644",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

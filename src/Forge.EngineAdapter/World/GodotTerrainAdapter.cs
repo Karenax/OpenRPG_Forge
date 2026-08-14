@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Forge.Domain.Areas;
 using Forge.Domain.Validation;
+using Forge.EngineAdapter.Rendering;
 using Godot;
 
 namespace Forge.EngineAdapter.World;
@@ -22,7 +23,10 @@ public sealed record GodotTerrainResult(Node3D Root, int Vertices, int Triangles
 
 public static class GodotTerrainAdapter
 {
-    public static GodotTerrainResult Build(AreaWorldProfile world, Func<string, Mesh?>? scatterMeshResolver = null)
+    public static GodotTerrainResult Build(
+        AreaWorldProfile world,
+        Func<string, Mesh?>? scatterMeshResolver = null,
+        IReadOnlyList<WaterBodyProfile>? waterBodies = null)
     {
         ArgumentNullException.ThrowIfNull(world);
         var allocatedBefore = GC.GetAllocatedBytesForCurrentThread();
@@ -142,7 +146,7 @@ public static class GodotTerrainAdapter
         var featureMilliseconds = Stopwatch.GetElapsedTime(featureStarted).TotalMilliseconds;
 
         var scatterStarted = Stopwatch.GetTimestamp();
-        var scatter = GodotBiomeScatterAdapter.Build(world, scatterMeshResolver);
+        var scatter = GodotBiomeScatterAdapter.Build(world, scatterMeshResolver, waterBodies);
         root.AddChild(scatter.Root);
         collisionShapes += scatter.CollisionShapes;
         collisionMilliseconds += scatter.CollisionMilliseconds;
@@ -278,6 +282,7 @@ public static class GodotTerrainAdapter
         {
             Name = $"Road_{feature.Id:N}",
             Mesh = mesh,
+            CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
         };
     }
 
@@ -307,35 +312,8 @@ public static class GodotTerrainAdapter
             Position = ((startValue + endValue) / 2) + new Vector3(0, .045f, 0),
             Rotation = new Vector3(0, MathF.Atan2(delta.X, delta.Z), 0),
         };
-        var shader = new Shader
-        {
-            Code = """
-                shader_type spatial;
-                render_mode blend_mix, depth_prepass_alpha, cull_disabled;
-
-                uniform vec4 deep_color : source_color = vec4(0.025, 0.20, 0.30, 0.78);
-                uniform vec4 crest_color : source_color = vec4(0.22, 0.72, 0.82, 0.58);
-                uniform vec2 flow_direction = vec2(0.0, 1.0);
-                uniform float flow_speed = 1.2;
-
-                void vertex() {
-                    float ripple = sin((VERTEX.x * 0.9) + (VERTEX.z * 0.55) + (TIME * flow_speed)) * 0.035;
-                    VERTEX.y += ripple;
-                }
-
-                void fragment() {
-                    float phase = dot(UV, flow_direction) * 28.0 - TIME * flow_speed * 2.0;
-                    float bands = 0.5 + 0.5 * sin(phase);
-                    ALBEDO = mix(deep_color.rgb, crest_color.rgb, bands * 0.28);
-                    ALPHA = mix(deep_color.a, crest_color.a, bands);
-                    ROUGHNESS = 0.16;
-                    METALLIC = 0.20;
-                }
-                """,
-        };
-        var material = new ShaderMaterial { Shader = shader };
-        material.SetShaderParameter("flow_direction", new Vector2(horizontalDirection.X, horizontalDirection.Z));
-        material.SetShaderParameter("flow_speed", 1.2f);
+        var material = GodotWaterMaterialFactory.Create(
+            new Vector2(horizontalDirection.X, horizontalDirection.Z), 1.2f, WaterQualityTier.Ultra);
         root.AddChild(new MeshInstance3D
         {
             Name = "AnimatedSurface",
@@ -390,7 +368,7 @@ public static class GodotTerrainAdapter
 
     private static Color FeatureColor(TerrainFeatureKind kind) => kind switch
     {
-        TerrainFeatureKind.Road => new Color(.24f, .19f, .14f),
+        TerrainFeatureKind.Road => new Color(.66f, .48f, .27f),
         TerrainFeatureKind.River => new Color(.08f, .36f, .62f, .78f),
         TerrainFeatureKind.Wall => new Color(.44f, .42f, .4f),
         TerrainFeatureKind.Bridge => new Color(.38f, .22f, .1f),

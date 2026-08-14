@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "ed5d84a7-62a8-fa59-8805-caccf4d4b9e5",
+  "cacheKey": "d22076d08d6eb1fdc9d4157c0ee0a9a53c7cf7b4c507366f11b2e2d4734e42df",
+  "catalogContentSha256": "d54d9665d07e0ff9680e56731c9f5338fc25d93788504d63b8375f54e6444193",
+  "sourceFileSha256": "d54d9665d07e0ff9680e56731c9f5338fc25d93788504d63b8375f54e6444193",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/tent_detailedOpen.glb",
+  "sourceRelativePath": "normalized/kenney/nature-kit/Models/GLTF format/tent_detailedOpen.glb",
+  "outputRelativePath": "assets/imported/kenney-nature-kit-detailed-open-tent/model.glb",
+  "outputContentSha256": "d54d9665d07e0ff9680e56731c9f5338fc25d93788504d63b8375f54e6444193",
+  "outputBytes": 15324,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-detailed-open-tent/model.glb",
+      "cacheKey": "d22076d08d6eb1fdc9d4157c0ee0a9a53c7cf7b4c507366f11b2e2d4734e42df",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-detailed-open-tent/animations.index.json",
+      "cacheKey": "d22076d08d6eb1fdc9d4157c0ee0a9a53c7cf7b4c507366f11b2e2d4734e42df",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-detailed-open-tent/collisions.glb",
+      "cacheKey": "d22076d08d6eb1fdc9d4157c0ee0a9a53c7cf7b4c507366f11b2e2d4734e42df",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-detailed-open-tent/lod-0.5.glb",
+      "cacheKey": "d22076d08d6eb1fdc9d4157c0ee0a9a53c7cf7b4c507366f11b2e2d4734e42df",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-detailed-open-tent/lod-0.25.glb",
+      "cacheKey": "d22076d08d6eb1fdc9d4157c0ee0a9a53c7cf7b4c507366f11b2e2d4734e42df",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

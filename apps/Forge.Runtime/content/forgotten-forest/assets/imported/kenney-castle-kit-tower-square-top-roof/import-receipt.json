@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "f781cc0f-702f-2d5e-a4fd-293c8575fbc7",
+  "cacheKey": "705a8f70ed8e47bc5ef991458cddfbd9c4d2b9c0676d3cb5db753cbeb3065ab6",
+  "catalogContentSha256": "5516fb45c3158e03773e15e83f5fc8b9bafbbcb3f35fc8e1e06e823cdb01e3bb",
+  "sourceFileSha256": "5516fb45c3158e03773e15e83f5fc8b9bafbbcb3f35fc8e1e06e823cdb01e3bb",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-castle@1.0.0;source:kenney:castle-kit;path:Models/GLB format/tower-square-top-roof.glb",
+  "sourceRelativePath": "normalized/kenney/castle-kit/Models/GLB format/tower-square-top-roof.glb",
+  "outputRelativePath": "assets/imported/kenney-castle-kit-tower-square-top-roof/model.glb",
+  "outputContentSha256": "5516fb45c3158e03773e15e83f5fc8b9bafbbcb3f35fc8e1e06e823cdb01e3bb",
+  "outputBytes": 11256,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kenney-castle-kit-tower-square-top-roof/model.glb",
+      "cacheKey": "705a8f70ed8e47bc5ef991458cddfbd9c4d2b9c0676d3cb5db753cbeb3065ab6",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kenney-castle-kit-tower-square-top-roof/animations.index.json",
+      "cacheKey": "705a8f70ed8e47bc5ef991458cddfbd9c4d2b9c0676d3cb5db753cbeb3065ab6",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kenney-castle-kit-tower-square-top-roof/collisions.glb",
+      "cacheKey": "705a8f70ed8e47bc5ef991458cddfbd9c4d2b9c0676d3cb5db753cbeb3065ab6",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kenney-castle-kit-tower-square-top-roof/lod-0.5.glb",
+      "cacheKey": "705a8f70ed8e47bc5ef991458cddfbd9c4d2b9c0676d3cb5db753cbeb3065ab6",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kenney-castle-kit-tower-square-top-roof/lod-0.25.glb",
+      "cacheKey": "705a8f70ed8e47bc5ef991458cddfbd9c4d2b9c0676d3cb5db753cbeb3065ab6",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

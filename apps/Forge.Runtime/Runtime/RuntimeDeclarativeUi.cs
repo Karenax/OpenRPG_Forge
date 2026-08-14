@@ -25,10 +25,13 @@ public partial class RuntimeDeclarativeUi : CanvasLayer
         _jsonHandles = jsonHandles ?? throw new ArgumentNullException(nameof(jsonHandles));
         _tooling = profile.ModernTooling;
         _localize = localize;
-        Layer = 30;
+        Layer = 9;
         var dock = new VBoxContainer
         {
             Name = "ScriptableUiDock",
+            // Scriptable/NUI documents remain available to modules and smoke tests, but
+            // their technical presentation is no longer part of the player-facing HUD.
+            Visible = false,
             OffsetLeft = 24,
             OffsetTop = 80,
             CustomMinimumSize = new Vector2(360, 0),
@@ -41,10 +44,9 @@ public partial class RuntimeDeclarativeUi : CanvasLayer
             dock.AnchorRight = 0.98f;
             dock.OffsetLeft = 0;
             dock.OffsetRight = 0;
-            // Keep scriptable module UI below the persistent objective tracker. Both panels live
-            // on the right edge at gameplay resolutions and previously competed for the same
-            // top-right space, making the objective unreadable at 1280x720.
-            dock.OffsetTop = 164;
+            // Keep scriptable module UI below the persistent objective tracker. It remains
+            // available without competing with the world-facing HUD at gameplay resolutions.
+            dock.OffsetTop = 470;
         }
         foreach (var document in profile.UiDocuments)
             dock.AddChild(BuildDocument(document));
@@ -57,8 +59,8 @@ public partial class RuntimeDeclarativeUi : CanvasLayer
         var root = new VBoxContainer();
         root.AddThemeConstantOverride("separation", 7);
         panel.AddChild(root);
-        var heading = new Label { Text = Localize(document.Title), ThemeTypeVariation = "HeaderSmall" };
-        heading.AddThemeColorOverride("font_color", new Color("ff9a5c"));
+        var heading = new Label { Text = Localize(document.Title) };
+        RuntimeRpgUiTheme.StyleTitle(heading, 18, RuntimeRpgUiTheme.Ember);
         root.AddChild(heading);
         var containers = new Dictionary<string, Container>(StringComparer.Ordinal);
         var controls = new Dictionary<string, Control>(StringComparer.Ordinal);
@@ -99,11 +101,12 @@ public partial class RuntimeDeclarativeUi : CanvasLayer
             ScriptableUiWidgetKind.Progress => new ProgressBar { Value = ResolveNumber(widget), ShowPercentage = true },
             ScriptableUiWidgetKind.TextInput => new LineEdit { Text = text, Editable = widget.Interactive },
             ScriptableUiWidgetKind.List => BuildList(widget),
-            ScriptableUiWidgetKind.Canvas => new ColorRect { Color = new Color("241a31"), CustomMinimumSize = new Vector2(220, 120), MouseFilter = Control.MouseFilterEnum.Ignore },
+            ScriptableUiWidgetKind.Canvas => new ColorRect { Color = new Color("120d0a"), CustomMinimumSize = new Vector2(220, 120), MouseFilter = Control.MouseFilterEnum.Ignore },
             _ => throw new ArgumentOutOfRangeException(nameof(widget.Kind)),
         };
         control.Name = $"UiWidget_{widget.Key}";
         control.TooltipText = widget.Text;
+        ApplySkin(control);
         if (_tooling?.UiToolkit.Accessibility == true)
         {
             control.SetMeta("accessible_label", text);
@@ -134,7 +137,11 @@ public partial class RuntimeDeclarativeUi : CanvasLayer
             var value = _json.Read(handle, split[1]);
             if (value.ValueKind == JsonValueKind.Array)
                 foreach (var item in value.EnumerateArray().Take(100))
-                    list.AddChild(new Label { Text = item.ValueKind == JsonValueKind.String ? item.GetString() : item.GetRawText() });
+                {
+                    var label = new Label { Text = item.ValueKind == JsonValueKind.String ? item.GetString() : item.GetRawText() };
+                    RuntimeRpgUiTheme.StyleBody(label, 10, RuntimeRpgUiTheme.Parchment);
+                    list.AddChild(label);
+                }
         }
         catch (InvalidOperationException) { }
         return list;
@@ -155,6 +162,39 @@ public partial class RuntimeDeclarativeUi : CanvasLayer
 
     private string Localize(string value) => _tooling?.UiToolkit.Localization == true && value.StartsWith('@') && _localize is not null
         ? _localize(value[1..]) : value;
+
+    private static void ApplySkin(Control control)
+    {
+        switch (control)
+        {
+            case Label label:
+                RuntimeRpgUiTheme.StyleBody(label, 10, RuntimeRpgUiTheme.Parchment);
+                break;
+            case CheckBox checkBox:
+                checkBox.AddThemeFontOverride("font", RuntimeRpgUiTheme.BodyFont);
+                checkBox.AddThemeFontSizeOverride("font_size", 10);
+                checkBox.AddThemeColorOverride("font_color", RuntimeRpgUiTheme.Parchment);
+                checkBox.AddThemeColorOverride("font_hover_color", RuntimeRpgUiTheme.Gold);
+                break;
+            case Button button:
+                RuntimeRpgUiTheme.StyleButton(button, quiet: true);
+                break;
+            case ProgressBar progress:
+                progress.AddThemeStyleboxOverride("background", RuntimeRpgUiTheme.Bar(new Color("e5dac312")));
+                progress.AddThemeStyleboxOverride("fill", RuntimeRpgUiTheme.Bar(RuntimeRpgUiTheme.Gold));
+                progress.AddThemeFontOverride("font", RuntimeRpgUiTheme.BodyFont);
+                progress.AddThemeFontSizeOverride("font_size", 9);
+                progress.AddThemeColorOverride("font_color", RuntimeRpgUiTheme.Parchment);
+                break;
+            case LineEdit input:
+                input.AddThemeFontOverride("font", RuntimeRpgUiTheme.BodyFont);
+                input.AddThemeFontSizeOverride("font_size", 10);
+                input.AddThemeColorOverride("font_color", RuntimeRpgUiTheme.Parchment);
+                input.AddThemeStyleboxOverride("normal", RuntimeRpgUiTheme.Frame(
+                    RuntimeRpgUiTheme.SurfaceSoft, RuntimeRpgUiTheme.BorderMuted, 6, 4));
+                break;
+        }
+    }
 
     private double ResolveNumber(ScriptableUiWidget widget)
     {
@@ -200,12 +240,5 @@ public partial class RuntimeDeclarativeUi : CanvasLayer
     }
 
     private static StyleBoxFlat PanelStyle()
-    {
-        var style = new StyleBoxFlat { BgColor = new Color("171221e8"), BorderColor = new Color("65478a") };
-        style.SetBorderWidthAll(1);
-        style.SetCornerRadiusAll(10);
-        style.ContentMarginLeft = style.ContentMarginRight = 14;
-        style.ContentMarginTop = style.ContentMarginBottom = 12;
-        return style;
-    }
+        => RuntimeRpgUiTheme.Frame(new Color("081116ed"), RuntimeRpgUiTheme.Border, 14, 12);
 }

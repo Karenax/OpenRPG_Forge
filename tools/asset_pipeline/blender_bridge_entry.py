@@ -395,23 +395,145 @@ def _merge_animation_sources(sources: list[dict], retarget_profile: dict | None 
     return [action.name for action in selected_actions], retarget_audits
 
 
-def _normalize(options: dict) -> None:
-    scale = float(options["scaleMeters"])
-    for item in bpy.context.scene.objects:
-        if item.type not in {"MESH", "ARMATURE", "EMPTY"}:
+def _materialize_embedded_actions_as_nla() -> list[str]:
+    """Preserve multi-take FBX actions as named GLB animation clips.
+
+    Blender's FBX importer exposes every take as an Action but assigns only the first one
+    to the armature. The glTF exporter therefore loses the remaining takes unless they are
+    materialized as NLA tracks. Existing GLB NLA tracks remain authoritative.
+    """
+    armatures = [item for item in bpy.context.scene.objects if item.type == "ARMATURE"]
+    existing = sorted({
+        track.name
+        for armature in armatures
+        if armature.animation_data is not None
+        for track in armature.animation_data.nla_tracks
+    })
+    if existing:
+        return existing
+
+    assignments = []
+    used_names = set()
+    for action in sorted(bpy.data.actions, key=lambda item: item.name):
+        candidates = [
+            armature for armature in armatures
+            if action.name.lower().startswith(f"{armature.name.lower()}|")
+        ]
+        if not candidates and len(armatures) == 1:
+            candidates = armatures
+        if len(candidates) != 1:
             continue
-        item.scale = tuple(component * scale for component in item.scale)
-        item.select_set(True)
-    if options["applyTransforms"] and bpy.context.selected_objects:
-        bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+        clip_name = action.name.rsplit("|", 1)[-1].strip()
+        if not clip_name or clip_name in used_names:
+            continue
+        used_names.add(clip_name)
+        assignments.append((candidates[0], action, clip_name))
+
+    for armature in armatures:
+        armature.animation_data_create()
+        armature.animation_data.action = None
+    for armature, action, clip_name in assignments:
+        action.name = clip_name
+        action.use_fake_user = True
+        track = armature.animation_data.nla_tracks.new()
+        track.name = clip_name
+        strip = track.strips.new(clip_name, int(action.frame_range[0]), action)
+        strip.extrapolation = "NOTHING"
+    return sorted(used_names)
+
+
+def _bind_unanimated_auxiliary_eye_armatures() -> None:
+    armatures = [item for item in bpy.context.scene.objects if item.type == "ARMATURE"]
+    animated = [
+        item for item in armatures
+        if item.animation_data is not None and len(item.animation_data.nla_tracks) > 0
+    ]
+    if len(animated) != 1:
+        return
+    primary = animated[0]
+    attachment_bone = next(
+        (name for name in ("Face", "Head") if primary.data.bones.get(name) is not None),
+        None,
+    )
+    if attachment_bone is None:
+        return
+    for auxiliary in armatures:
+        if auxiliary == primary or "eye" not in auxiliary.name.lower():
+            continue
+        if auxiliary.animation_data is not None and len(auxiliary.animation_data.nla_tracks) > 0:
+            continue
+        # Some legacy FBX creature packs export the eye rig as a separate static armature.
+        # Attach it to the semantic facial bone while preserving its authored rest transform so
+        # eyes follow the animated head instead of remaining behind in world space.
+        world_transform = auxiliary.matrix_world.copy()
+        auxiliary.parent = primary
+        auxiliary.parent_type = "BONE"
+        auxiliary.parent_bone = attachment_bone
+        auxiliary.matrix_world = world_transform
+    bpy.context.view_layer.update()
+
+
+def _normalize_legacy_fbx_material_alpha() -> None:
+    for material in bpy.data.materials:
+        if not material.use_nodes or material.node_tree is None:
+            if material.diffuse_color[3] <= 0.001:
+                material.diffuse_color = (*material.diffuse_color[:3], 1.0)
+            continue
+        principled = next((node for node in material.node_tree.nodes if node.type == "BSDF_PRINCIPLED"), None)
+        if principled is None:
+            continue
+        alpha = principled.inputs.get("Alpha")
+        if alpha is not None and not alpha.is_linked and float(alpha.default_value) <= 0.001:
+            alpha.default_value = 1.0
+            material.diffuse_color = (*material.diffuse_color[:3], 1.0)
+
+
+def _normalize(options: dict, source: pathlib.Path) -> None:
+    # Blender imports several legacy FBX packs with an unlinked zero Alpha value even though
+    # their materials are authored as opaque. Preserve linked transparency while making those
+    # otherwise fully invisible materials render consistently in glTF/Godot.
+    if source.suffix.lower() == ".fbx":
+        _normalize_legacy_fbx_material_alpha()
+    scale = float(options["scaleMeters"])
+    animated_scene = any(
+        item.type == "ARMATURE"
+        and item.animation_data is not None
+        and (item.animation_data.action is not None or len(item.animation_data.nla_tracks) > 0)
+        for item in bpy.context.scene.objects
+    )
+    normalization_root = None
+    if animated_scene:
+        # Apply one stable parent transform to the whole rig hierarchy. Scaling armatures and
+        # their child meshes independently double-scales skins, and keyed FBX object transforms
+        # can overwrite normalization on the armature itself during animation evaluation.
+        roots = [candidate for candidate in bpy.context.scene.objects if candidate.parent is None]
+        normalization_root = bpy.data.objects.new("ForgeNormalizationRoot", None)
+        bpy.context.collection.objects.link(normalization_root)
+        for item in roots:
+            world_transform = item.matrix_world.copy()
+            item.parent = normalization_root
+            item.matrix_world = world_transform
+        normalization_root.scale = Vector((scale, scale, scale))
+        bpy.context.view_layer.update()
+    else:
+        for item in bpy.context.scene.objects:
+            if item.type not in {"MESH", "ARMATURE", "EMPTY"}:
+                continue
+            item.scale = tuple(component * scale for component in item.scale)
+            item.select_set(True)
+        if options["applyTransforms"] and bpy.context.selected_objects:
+            bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
     if options["pivot"] in {"ground_center", "object_center"}:
         meshes = [item for item in bpy.context.scene.objects if item.type == "MESH"]
         if meshes:
             minimum, maximum = _bounds(meshes)
             center = (minimum + maximum) * 0.5
             offset = -center if options["pivot"] == "object_center" else Vector((-center.x, -center.y, -minimum.z))
-            for item in [candidate for candidate in bpy.context.scene.objects if candidate.parent is None]:
-                item.location += offset
+            if normalization_root is not None:
+                normalization_root.location += offset
+            else:
+                for item in [candidate for candidate in bpy.context.scene.objects if candidate.parent is None]:
+                    item.location += offset
             bpy.context.view_layer.update()
 
 
@@ -644,6 +766,20 @@ def _audit(options: dict, operations: list[str], preview: pathlib.Path, retarget
         "The model has no material; a neutral fallback will be used.",
         warning=True,
     )
+    material_objects = [bpy.data.materials.get(name) for name in materials]
+    visible_materials = 0
+    for material in [item for item in material_objects if item is not None]:
+        if not material.use_nodes or material.node_tree is None:
+            visible_materials += int(material.diffuse_color[3] > 0.001)
+            continue
+        principled = next((node for node in material.node_tree.nodes if node.type == "BSDF_PRINCIPLED"), None)
+        alpha = principled.inputs.get("Alpha") if principled is not None else None
+        visible_materials += int(alpha is None or alpha.is_linked or float(alpha.default_value) > 0.001)
+    check(
+        "asset.quality.material_alpha_visible",
+        not materials or visible_materials > 0,
+        "At least one referenced material must have visible alpha.",
+    )
     check(
         "asset.quality.size_coherent",
         all(math.isfinite(value) and 0 <= value <= 1000 for value in dimensions),
@@ -746,10 +882,16 @@ def main() -> None:
         _import_model(source)
         _select_meshes(options.get("includedMeshNames", []))
     _apply_material_textures(options.get("materialTextures", []))
-    animation_clips, retarget_audits = _merge_animation_sources(
-        options.get("animationSources", []),
-        options.get("retargetProfile"),
-    )
+    animation_sources = options.get("animationSources", [])
+    if animation_sources:
+        animation_clips, retarget_audits = _merge_animation_sources(
+            animation_sources,
+            options.get("retargetProfile"),
+        )
+    else:
+        animation_clips = _materialize_embedded_actions_as_nla()
+        retarget_audits = []
+    _bind_unanimated_auxiliary_eye_armatures()
     has_embedded_animations = any(
         item.type == "ARMATURE"
         and item.animation_data is not None
@@ -758,7 +900,7 @@ def main() -> None:
     )
     _decimate_base_meshes(float(options.get("baseDecimationRatio", 1.0)))
     if "normalize_model" in operations:
-        _normalize(options)
+        _normalize(options, source)
     if "generate_lods" in operations:
         _generate_lods(options["lodRatios"])
     if "generate_collision" in operations or options["generateCollision"]:
@@ -782,7 +924,9 @@ def main() -> None:
             "export_animation_mode": "NLA_TRACKS",
             "export_merge_animation": "NLA_TRACK",
             "export_nla_strips": True,
-            "export_anim_single_armature": True,
+            "export_anim_single_armature": len([
+                item for item in bpy.context.scene.objects if item.type == "ARMATURE"
+            ]) == 1,
         })
     bpy.ops.export_scene.gltf(**export_options)
     report.parent.mkdir(parents=True, exist_ok=True)

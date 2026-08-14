@@ -137,6 +137,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly SetDialogueHandler _setDialogueHandler = new(new SystemClock());
     private readonly SetQuestHandler _setQuestHandler = new(new SystemClock());
     private readonly UpsertBlueprintHandler _upsertBlueprintHandler = new(new SystemClock());
+    private readonly DeleteAuthoringElementHandler _deleteAuthoringElementHandler = new(new SystemClock());
     private readonly CreateBlueprintFromEntityHandler _createBlueprintFromEntityHandler = new(new SystemClock());
     private readonly ConfigureBlueprintPaletteHandler _configureBlueprintPaletteHandler = new(new SystemClock());
     private readonly UpdateBlueprintFromEntityHandler _updateBlueprintFromEntityHandler = new(new SystemClock());
@@ -200,7 +201,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         "playtests"));
 
     private Control? _mainPanel;
-    private Window? _activeWorkspaceToolWindow;
+    private CreatorToolWindowManager? _toolWindowManager;
     private Label? _statusLabel;
     private Label? _detailsLabel;
     private Label? _projectPathLabel;
@@ -447,6 +448,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _dialogueEditor.Initialize(
             () => _history?.State,
             ApplyDialogue,
+            dialogueId => DeleteAuthoringElement(AuthoringElementKind.Dialogue, dialogueId.Value),
             dialogueId => _dialoguePresentationWindow?.Open(dialogueId),
             Undo,
             Redo,
@@ -456,6 +458,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _questJournalWindow.Initialize(
             () => _history?.State,
             PreviewOrApplyQuestJournal,
+            questId => DeleteAuthoringElement(AuthoringElementKind.Quest, questId.Value),
             Undo,
             Redo,
             () => _questOperationsWindow?.Open(),
@@ -473,6 +476,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _blueprintCatalog.Initialize(
             () => _history?.State,
             UpsertBlueprint,
+            blueprintId => DeleteAuthoringElement(AuthoringElementKind.Blueprint, blueprintId.Value),
             CreateBlueprintFromSelectedEntity,
             ConfigureBlueprintPalette,
             UpdateBlueprintFromEntity,
@@ -807,6 +811,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             () => _activeAreaContext.Current,
             ActivateArea,
             CreateArea,
+            areaId => DeleteAuthoringElement(AuthoringElementKind.Area, areaId.Value),
             UpsertPortal,
             ApplyAreaPlaytest,
             DuplicateArea,
@@ -991,10 +996,12 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _creatorShell = new ForgeCreatorShell(_mainPanel);
         ConnectSignals();
 
+        // Every specialized editor is prepared while the panel is still detached. This prevents
+        // Window's default visible state from opening the entire tool catalogue during startup.
+        _toolWindowManager = new CreatorToolWindowManager(_mainPanel, ApplyForgeWindowIcon);
+        _toolWindowManager.PrepareExistingWindows();
         EditorInterface.Singleton.GetEditorMainScreen().AddChild(_mainPanel);
-        // Window flags can be normalized only after every specialized workspace has entered the
-        // editor tree; applying earlier lets the native window backend restore stale defaults.
-        CreatorWindowLayoutPolicy.Apply(_mainPanel);
+        _toolWindowManager.NormalizeAfterTreeReady();
         SetProcess(true);
         SetProcessInput(true);
         EnsureForgeWindowTitle();
@@ -1130,6 +1137,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
         SetProcessInput(false);
         _nativeUndoRedo = null;
         DisconnectSignals();
+        _toolWindowManager?.Dispose();
+        _toolWindowManager = null;
         if (_mainPanel is not null && GodotObject.IsInstanceValid(_mainPanel))
         {
             _mainPanel.QueueFree();
@@ -2382,25 +2391,12 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
     private void OpenWorkspaceTool(Window? window, Action open)
     {
-        if (_activeWorkspaceToolWindow is not null &&
-            _activeWorkspaceToolWindow != window &&
-            GodotObject.IsInstanceValid(_activeWorkspaceToolWindow))
-        {
-            _activeWorkspaceToolWindow.Hide();
-        }
-
-        open();
-        _activeWorkspaceToolWindow = window;
+        _toolWindowManager?.Open(window, open);
     }
 
     private void HideActiveWorkspaceTool()
     {
-        if (_activeWorkspaceToolWindow is not null && GodotObject.IsInstanceValid(_activeWorkspaceToolWindow))
-        {
-            _activeWorkspaceToolWindow.Hide();
-        }
-
-        _activeWorkspaceToolWindow = null;
+        _toolWindowManager?.HideActive();
     }
 
     private void HandleExplorerSelection(CreatorExplorerNode node)
@@ -2653,17 +2649,19 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
     }
 
-    private void OpenDialogueEditor() => _dialogueEditor?.Open();
+    private void OpenDialogueEditor() => OpenTool(_dialogueEditor, () => _dialogueEditor?.Open());
 
-    private void OpenBlueprintCatalog() => _blueprintCatalog?.Open();
+    private void OpenBlueprintCatalog() => OpenTool(_blueprintCatalog, () => _blueprintCatalog?.Open());
 
-    private void OpenAreaWorkspace() => _areaWorkspace?.Open();
+    private void OpenAreaWorkspace() => OpenTool(_areaWorkspace, () => _areaWorkspace?.Open());
 
-    private void OpenCreatorWorkspace() => _workspaceWindow?.Open();
+    private void OpenCreatorWorkspace() => OpenTool(_workspaceWindow, () => _workspaceWindow?.Open());
 
-    private void OpenRecoveryWindow() => _recoveryWindow?.Open();
+    private void OpenRecoveryWindow() => OpenTool(_recoveryWindow, () => _recoveryWindow?.Open());
 
-    private void OpenQualityLab() => _qualityLabWindow?.Open();
+    private void OpenQualityLab() => OpenTool(_qualityLabWindow, () => _qualityLabWindow?.Open());
+
+    private void OpenTool(Window? window, Action open) => _toolWindowManager?.Open(window, open);
 
     private IReadOnlyList<RecoverySnapshotInfo> ListRecoverySnapshots()
     {
@@ -2938,23 +2936,24 @@ public partial class ForgeEditorPlugin : EditorPlugin
         return ApplyCommand(result, $"{selected.Count} entité(s) copiée(s) vers la zone de comparaison.", null);
     }
 
-    private void OpenNavigationConfiguration() => _navigationConfiguration?.Open();
+    private void OpenNavigationConfiguration() =>
+        OpenTool(_navigationConfiguration, () => _navigationConfiguration?.Open());
 
-    private void OpenAreaEnvironment() => _areaEnvironmentWindow?.Open();
+    private void OpenAreaEnvironment() => OpenTool(_areaEnvironmentWindow, () => _areaEnvironmentWindow?.Open());
 
-    private void OpenTerrainStudio() => _terrainStudioWindow?.Open();
+    private void OpenTerrainStudio() => OpenTool(_terrainStudioWindow, () => _terrainStudioWindow?.Open());
 
-    private void OpenRuntimePolicies() => _runtimePoliciesWindow?.Open();
+    private void OpenRuntimePolicies() => OpenTool(_runtimePoliciesWindow, () => _runtimePoliciesWindow?.Open());
 
-    private void OpenCinematicStudio() => _cinematicStudioWindow?.Open();
+    private void OpenCinematicStudio() => OpenTool(_cinematicStudioWindow, () => _cinematicStudioWindow?.Open());
 
-    private void OpenGameplayControls() => _gameplayControlsWindow?.Open();
+    private void OpenGameplayControls() => OpenTool(_gameplayControlsWindow, () => _gameplayControlsWindow?.Open());
 
-    private void OpenRulesConfiguration() => _rulesConfigurationWindow?.Open();
+    private void OpenRulesConfiguration() => OpenTool(_rulesConfigurationWindow, () => _rulesConfigurationWindow?.Open());
 
-    private void OpenAreaExperience() => _areaExperienceWindow?.Open();
+    private void OpenAreaExperience() => OpenTool(_areaExperienceWindow, () => _areaExperienceWindow?.Open());
 
-    private void OpenAreaAuthoring() => _areaAuthoringWindow?.Open();
+    private void OpenAreaAuthoring() => OpenTool(_areaAuthoringWindow, () => _areaAuthoringWindow?.Open());
 
     private void SelectAreaLayerEntities(IReadOnlyList<EntityId> entityIds)
     {
@@ -2972,7 +2971,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _selectionContext.Replace(selections);
     }
 
-    private void OpenAreaFoundation() => _areaFoundationWindow?.Open();
+    private void OpenAreaFoundation() => OpenTool(_areaFoundationWindow, () => _areaFoundationWindow?.Open());
 
     private bool ApplyAreaFoundation(AreaId areaId, AreaFoundationProfile profile)
     {
@@ -3119,9 +3118,9 @@ public partial class ForgeEditorPlugin : EditorPlugin
             "Règles extensibles, UI scriptable, JSON runtime et snapshots mis à jour.", null);
     }
 
-    private void OpenGlobalSearch() => _globalSearch?.Open();
+    private void OpenGlobalSearch() => OpenTool(_globalSearch, () => _globalSearch?.Open());
 
-    private void OpenModuleConfiguration() => _moduleConfiguration?.Open();
+    private void OpenModuleConfiguration() => OpenTool(_moduleConfiguration, () => _moduleConfiguration?.Open());
 
     private bool ActivateArea(AreaId areaId)
     {
@@ -3431,6 +3430,24 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
         PublishBlueprintSelection(blueprintId);
         _blueprintCatalog?.Refresh(blueprintId);
+        return true;
+    }
+
+    private bool DeleteAuthoringElement(AuthoringElementKind kind, Guid elementId)
+    {
+        if (_history is null) return false;
+        var preview = new DeleteAuthoringElementCommand(CommandId.From(Guid.NewGuid()), _history.State.Revision,
+            kind, elementId, DryRun: true);
+        var previewResult = _deleteAuthoringElementHandler.Handle(_history.State, preview);
+        if (!previewResult.Succeeded)
+            return ApplyCommand(previewResult, string.Empty, null);
+        var command = preview with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false };
+        var result = _deleteAuthoringElementHandler.Handle(_history.State, command);
+        if (!ApplyCommand(result, $"{kind} supprimé du projet.", null)) return false;
+        _blueprintCatalog?.Refresh();
+        _dialogueEditor?.Refresh();
+        _questJournalWindow?.Refresh();
+        _areaWorkspace?.Refresh();
         return true;
     }
 
@@ -6507,7 +6524,9 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         var project = _history.State.Project;
-        foreach (var blueprint in project.Blueprints.OrderBy(blueprint => blueprint.DisplayName, StringComparer.Ordinal))
+        foreach (var blueprint in project.Blueprints
+                     .OrderBy(blueprint => blueprint.Kind == BlueprintKind.Placeable ? 0 : 1)
+                     .ThenBy(blueprint => blueprint.DisplayName, StringComparer.Ordinal))
         {
             _paletteBlueprintIds.Add(blueprint.Id);
             var favorite = blueprint.IsFavorite ? "★ " : string.Empty;
@@ -7783,13 +7802,15 @@ public partial class ForgeEditorPlugin : EditorPlugin
             GD.PrintErr($"OPENRPG_FORGE_TOOLSET_G702_SHELL_FAILED beginner_workspaces={beginnerWorkspaceCount}");
             return false;
         }
-        if (!CreatorWindowLayoutPolicy.IsResponsive(_mainPanel!, out var responsiveWindowCount) ||
+        if (_toolWindowManager is null || !_toolWindowManager.StartupWasClear ||
+            !_toolWindowManager.HasSingleVisibleTool || _toolWindowManager.RegisteredCount < 10 ||
+            !CreatorWindowLayoutPolicy.IsResponsive(_mainPanel!, out var responsiveWindowCount) ||
             _creatorShell.TechnicalDetailsVisible)
         {
             GD.PrintErr("OPENRPG_FORGE_TOOLSET_G702_SHELL_FAILED responsive_layout");
             return false;
         }
-        GD.Print($"OPENRPG_FORGE_TOOLSET_G702_SHELL_PASS workspaces=9 beginner=4 advanced=3 explorer={_creatorShell.ExplorerNodeCount} selection=shared diagnostics=clickable responsive_windows={responsiveWindowCount} technical_details=collapsed");
+        GD.Print($"OPENRPG_FORGE_TOOLSET_G702_SHELL_PASS workspaces=9 beginner=4 advanced=3 explorer={_creatorShell.ExplorerNodeCount} selection=shared diagnostics=clickable responsive_windows={responsiveWindowCount} tool_windows=single-active startup=clear technical_details=collapsed");
         GD.Print("OPENRPG_FORGE_TOOLSET_G9_NETWORK_UI_PASS workspace=network navigation=advanced-tools");
         GD.Print("OPENRPG_FORGE_TOOLSET_G10_LIVE_DIRECTOR_UI_PASS workspace=live-director navigation=advanced-tools");
         GD.Print(
@@ -18533,15 +18554,34 @@ public partial class ForgeEditorPlugin : EditorPlugin
             var snapshot = script?.Read(script.Handle);
             var appliedJson = ProjectJsonSerializer.Serialize(_history.State.Project);
             var restored = ProjectJsonSerializer.Deserialize(appliedJson).Blueprints.Single(item => item.Id == blueprintId);
-            if (profile is null || ItemAdvancedValidator.Validate(profile, "item").Count != 0 ||
-                requirements is not { Allowed: true } || value <= 0 || proc is not { Triggered: true } ||
-                profile.Weapon is null || profile.Armor is null || ammo is not { Fired: true } ||
-                wear is null || wear.Current >= 40 || profile.Container is null || generated?.Affixes.Count != 1 ||
-                reservation is not { Accepted: true } || ownership is not { Allowed: true } ||
-                craft is not { Allowed: true } || loot?.RuleId is null || snapshot is null ||
-                _itemAdvancedWindow.SummarySectionCount != 4 || restored.ItemAdvanced?.Id != profile.Id)
+            var checks = new (string Name, bool Passed)[]
             {
-                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13K_M_ITEM_ADVANCED_FAILED canonical_runtime_roundtrip");
+                ("profile", profile is not null),
+                ("validation", profile is not null && ItemAdvancedValidator.Validate(profile, "item").Count == 0),
+                ("requirements", requirements is { Allowed: true }),
+                ("economy", value > 0),
+                ("on_hit", proc is { Triggered: true }),
+                ("weapon", profile?.Weapon is not null),
+                ("armor", profile?.Armor is not null),
+                ("ammo", ammo is { Fired: true }),
+                ("wear", wear is not null && wear.Current < 40),
+                ("container", profile?.Container is not null),
+                // Existing authored affixes are intentionally preserved by the editor. The smoke
+                // contract verifies usable deterministic generation without imposing a lossy count.
+                ("generator", generated is not null && generated.Affixes.Count > 0),
+                ("unique", reservation is { Accepted: true }),
+                ("ownership", ownership is { Allowed: true }),
+                ("craft", craft is { Allowed: true }),
+                ("loot", loot?.RuleId is not null),
+                ("script", snapshot is not null),
+                ("summary", _itemAdvancedWindow.SummarySectionCount == 4),
+                ("roundtrip", profile is not null && restored.ItemAdvanced?.Id == profile.Id),
+            };
+            var failedChecks = checks.Where(check => !check.Passed).Select(check => check.Name).ToArray();
+            if (failedChecks.Length > 0)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13K_M_ITEM_ADVANCED_FAILED canonical_runtime_roundtrip " +
+                    string.Join(',', failedChecks));
                 return false;
             }
             Undo(); appliedToHistory = false; if (ProjectJsonSerializer.Serialize(_history.State.Project) != before) return false;
@@ -21293,6 +21333,13 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
     private void ApplyForgeWindowIcon(Window window)
     {
+        // A hidden child Window has no DisplayServer handle yet. Its manager reapplies the brand
+        // synchronously when the tool becomes visible.
+        if (!window.Visible && window != EditorInterface.Singleton.GetBaseControl().GetWindow())
+        {
+            return;
+        }
+
         _forgeWindowIcon ??= CreateForgeWindowIcon();
         DisplayServer.WindowSetIcon(_forgeWindowIcon, window.GetWindowId());
     }

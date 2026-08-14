@@ -8,6 +8,10 @@ OpenRPG Forge est désormais un prototype RPG 3D consolidé, installable et util
 tester et exporter des modules. Les familles Aurora sont closes ; le travail courant porte sur la
 qualification de livraison, pas sur l'ajout de nouvelles fonctions.
 
+Le dernier lot d’édition manuelle et non destructive est validé dans le worktree local mais n’est pas
+encore committé ni publié. Il ne faut donc pas le confondre avec la baseline disponible sur
+`origin/main`.
+
 ## Produit disponible
 
 - Creator et runtime 3D séparés, exclusivement présentés sous la marque OpenRPG Forge ;
@@ -27,6 +31,8 @@ qualification de livraison, pas sur l'ajout de nouvelles fonctions.
 - parcours produit automatisé : projet, zones, assets, contenu RPG, narration, validation, playtest,
   export et Assistant gouverné ;
 - matrice et procédure d'acceptation de bout en bout sous `docs/acceptance/`.
+- portail local courant réussi avec 1 860 tests .NET, 39 tests Python, un build sans avertissement et
+  le graphe Roslyn déterministe à 8 225 nœuds, 51 653 relations et 0 diagnostic.
 
 Ces nombres prouvent la présence et la non-régression des capacités. Ils ne remplacent pas une
 qualification humaine de release publique.
@@ -40,11 +46,29 @@ qualification humaine de release publique.
   jour sur place, désinstallation et conservation des données utilisateur ;
 - détails techniques UUID/hash/provenance repliés par défaut et fenêtres spécialisées intégrées,
   redimensionnables et non exclusives ;
+- parcours Plaçables simplifié dans le Monde : assets prioritaires, sélection de scène,
+  déplacement/rotation/échelle avec snap, action de placement fixe et propriétés avancées repliées ;
 - Crypte habillée avec 74 instances d'un kit Dungeon Remastered CC0 ;
 - Forgotten Forest corrigée : maillage d'asset réel préféré au cube auxiliaire Blender, arbres
   stylisés gouvernés, échelle et éclairage rééquilibrés, caméra/HUD lisibles ;
+- module connecté démarrant dans l’Auberge du Cerf d’Ambre : déplacement au sol accéléré, mini-carte,
+  atlas des six zones sur `M` et HUD RPG noir/ambre compact validés en Forward+ à 1920×1080 et 2560×1440 ;
+- géométrie jouable de l’auberge sécurisée : plancher physique continu, quatre limites murales
+  infranchissables (porte comprise jusqu’à interaction), pivots visuels des murs recalés sur le sol,
+  pieds du personnage alignés et récupération automatique après toute chute sous une carte intérieure
+  ou extérieure ;
+- caméra de déplacement stabilisée par interpolation physique, point de visée lissé et évitement des
+  murs ; l’ancien bouton central de sortie est supprimé et la porte 3D de l’auberge se clique directement
+  pour charger Clairval ;
 - premiers découpages des orchestrateurs : politique de fenêtres Creator, décorateur artistique de
-  la Crypte et mapping des ressources de quête MCP.
+  la Crypte et mapping des ressources de quête MCP ;
+- cycle de vie des outils Creator centralisé : aucun outil secondaire au démarrage, un seul outil
+  actif à la fois, fermeture, déplacement, redimensionnement et maximisation vérifiés sous Windows ;
+- édition manuelle consolidée : collections Dialogue, Quête, Blueprint, contenu, propriétés d’objet
+  et slots d’équipement présentées sous forme de listes et champs nommés, sans syntaxe brute visible ;
+- sauvegarde non destructive des profils Objet et Terrain : les entrées non affichées par un
+  formulaire rapide sont conservées, et les suppressions Zone/Blueprint/Dialogue/Quête passent par
+  une prévisualisation transactionnelle, la validation des dépendances et l’historique undo/redo.
 
 ## Distribution locale qualifiée
 
@@ -67,9 +91,10 @@ qualification humaine de release publique.
 
 ## Publication Git
 
-- consolidation publiée sur `origin/main` au commit `592300617bba20a446e140786435a32640573081` ;
-- branche locale et distante identiques (`0/0`) et worktree propre après publication ;
-- portail local final vert sur ce commit, distributions et installateur inclus ;
+- baseline publiée sur `origin/main` au commit `69f968baec68106f16999342bb43dfcb7509f45f` ;
+- `HEAD` et `origin/main` sont identiques (`0/0`), mais le worktree courant n’est plus propre : le
+  lot d’édition manuelle et d’autres changements locaux restent non publiés ;
+- portail local vert sur le worktree courant, distributions et installateur inclus ;
 - GitHub Actions n'a exécuté aucune étape du commit final : les jobs CI et graphe ont été refusés
   avant démarrage parce que le compte signale un paiement échoué ou une limite de dépenses à relever ;
 - la CI distante devra être relancée après correction de **Billing & plans**. Ce blocage externe ne

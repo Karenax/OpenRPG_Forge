@@ -90,10 +90,11 @@ public static class AreaGeometryValidator
     }
 
     private static bool IsCollisionGeometry(EntityInstance entity, BlueprintDefinition blueprint) =>
-        blueprint.Kind == BlueprintKind.Door ||
+        !entity.Tags.Contains("nonblocking", StringComparer.OrdinalIgnoreCase) &&
+        (blueprint.Kind == BlueprintKind.Door ||
         (blueprint.Kind == BlueprintKind.Placeable &&
          !entity.Tags.Contains("floor", StringComparer.OrdinalIgnoreCase) &&
-         entity.Tags.Any(tag => tag is "wall" or "pillar" or "architecture" or "solid" or "collision"));
+         entity.Tags.Any(tag => tag is "wall" or "pillar" or "architecture" or "solid" or "collision")));
 
     private static bool IsIntentionalWallJunction(EntityInstance first, EntityInstance second) =>
         first.Tags.Contains("wall", StringComparer.OrdinalIgnoreCase) &&

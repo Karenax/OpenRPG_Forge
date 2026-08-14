@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "dd711039-de3d-de5d-a5c5-9d93f67595e0",
+  "cacheKey": "ecf69e15e3ba05f14fb194fc78006c9c45170c740529f69675366abe7ed99e77",
+  "catalogContentSha256": "23aee8b727adeaf260207af3e0615dc69aa766c6d87de1d44cbc8c2711d74dd1",
+  "sourceFileSha256": "23aee8b727adeaf260207af3e0615dc69aa766c6d87de1d44cbc8c2711d74dd1",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/rock_largeC.glb",
+  "sourceRelativePath": "normalized/kenney/nature-kit/Models/GLTF format/rock_largeC.glb",
+  "outputRelativePath": "assets/imported/kenney-nature-kit-large-rock-c/model.glb",
+  "outputContentSha256": "23aee8b727adeaf260207af3e0615dc69aa766c6d87de1d44cbc8c2711d74dd1",
+  "outputBytes": 7004,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-large-rock-c/model.glb",
+      "cacheKey": "ecf69e15e3ba05f14fb194fc78006c9c45170c740529f69675366abe7ed99e77",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-large-rock-c/animations.index.json",
+      "cacheKey": "ecf69e15e3ba05f14fb194fc78006c9c45170c740529f69675366abe7ed99e77",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-large-rock-c/collisions.glb",
+      "cacheKey": "ecf69e15e3ba05f14fb194fc78006c9c45170c740529f69675366abe7ed99e77",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-large-rock-c/lod-0.5.glb",
+      "cacheKey": "ecf69e15e3ba05f14fb194fc78006c9c45170c740529f69675366abe7ed99e77",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-large-rock-c/lod-0.25.glb",
+      "cacheKey": "ecf69e15e3ba05f14fb194fc78006c9c45170c740529f69675366abe7ed99e77",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

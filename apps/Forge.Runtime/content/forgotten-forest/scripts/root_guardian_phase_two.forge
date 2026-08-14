@@ -1,9 +1,9 @@
 void main()
 {
-    AreaRef area = current_area();
-    EntityRef guardian = find_entity(area, "root-guardian");
     say("Le Gardien fait jaillir deux rôdeurs des racines !");
     spawn("rootbound-scout");
     spawn("rootbound-scout");
+    AreaRef area = current_area();
+    EntityRef guardian = find_entity(area, "boss");
     cast_ability(guardian, "thorn-claw");
 }

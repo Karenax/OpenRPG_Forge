@@ -28,6 +28,7 @@ public partial class AreaWorkspaceWindow : Window
     private Func<AreaId?>? _getActiveAreaId;
     private Func<AreaId, bool>? _activateArea;
     private Func<string, AreaKind, AreaDimensions, AreaTemplateKind, AreaCreationSettings, AreaId?>? _createArea;
+    private Func<AreaId, bool>? _deleteArea;
     private Func<AreaId, PortalLink, bool>? _upsertPortal;
     private Func<AreaId, AreaPlaytestProfile, bool>? _setAreaPlaytest;
     private Action? _startPlaytest;
@@ -108,6 +109,7 @@ public partial class AreaWorkspaceWindow : Window
         Func<AreaId?> getActiveAreaId,
         Func<AreaId, bool> activateArea,
         Func<string, AreaKind, AreaDimensions, AreaTemplateKind, AreaCreationSettings, AreaId?> createArea,
+        Func<AreaId, bool> deleteArea,
         Func<AreaId, PortalLink, bool> upsertPortal,
         Func<AreaId, AreaPlaytestProfile, bool> setAreaPlaytest,
         Func<AreaId, string, AreaCloneMode, ExternalPortalPolicy, AreaId?> duplicateArea,
@@ -129,6 +131,7 @@ public partial class AreaWorkspaceWindow : Window
         _getActiveAreaId = getActiveAreaId ?? throw new ArgumentNullException(nameof(getActiveAreaId));
         _activateArea = activateArea ?? throw new ArgumentNullException(nameof(activateArea));
         _createArea = createArea ?? throw new ArgumentNullException(nameof(createArea));
+        _deleteArea = deleteArea ?? throw new ArgumentNullException(nameof(deleteArea));
         _upsertPortal = upsertPortal ?? throw new ArgumentNullException(nameof(upsertPortal));
         _setAreaPlaytest = setAreaPlaytest ?? throw new ArgumentNullException(nameof(setAreaPlaytest));
         _duplicateArea = duplicateArea ?? throw new ArgumentNullException(nameof(duplicateArea));
@@ -295,6 +298,10 @@ public partial class AreaWorkspaceWindow : Window
             AllowReselect = true,
         };
         catalog.AddChild(_areaList);
+        var deleteAreaButton = new Button { Text = "Supprimer la zone" };
+        deleteAreaButton.TooltipText = "La zone d’entrée et la dernière zone du module sont protégées";
+        deleteAreaButton.Pressed += DeleteSelectedArea;
+        catalog.AddChild(deleteAreaButton);
         catalog.AddChild(MutedLabel("◆ indique la zone affichée et éditée dans le workspace Monde."));
         catalog.AddChild(new HSeparator());
         catalog.AddChild(new Label { Text = "COPIE DE ZONE" });
@@ -596,6 +603,26 @@ public partial class AreaWorkspaceWindow : Window
         {
             SetStatus(exception.Message, true);
         }
+    }
+
+    private void DeleteSelectedArea()
+    {
+        var areaId = _selectedAreaId ?? _getActiveAreaId?.Invoke();
+        if (areaId is null)
+        {
+            SetStatus("Sélectionnez d’abord une zone.", true);
+            return;
+        }
+
+        if (_deleteArea?.Invoke(areaId) != true)
+        {
+            SetStatus("Suppression refusée : la zone est requise ou encore référencée.", true);
+            return;
+        }
+
+        _selectedAreaId = null;
+        Refresh();
+        SetStatus("Zone supprimée. Utilisez Annuler pour la restaurer.", false);
     }
 
     private void PreviewAreaCreation()

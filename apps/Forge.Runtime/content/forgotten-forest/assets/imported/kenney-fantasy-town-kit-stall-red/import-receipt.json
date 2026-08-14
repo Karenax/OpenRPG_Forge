@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "63932d33-dc01-ef52-af6d-e9a9ab3207ec",
+  "cacheKey": "c0225b65912ab018b90936f38f079a71c9996dd5ec8f9ad2ad8352eb3f0ab052",
+  "catalogContentSha256": "aa20a630f417032c46aaefbc779fd2b3355b451bf05d31acc36fd664146866b1",
+  "sourceFileSha256": "aa20a630f417032c46aaefbc779fd2b3355b451bf05d31acc36fd664146866b1",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-fantasy-town@1.0.0;source:kenney:fantasy-town-kit;path:Models/GLB format/stall-red.glb",
+  "sourceRelativePath": "normalized/kenney/fantasy-town-kit/Models/GLB format/stall-red.glb",
+  "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-stall-red/model.glb",
+  "outputContentSha256": "aa20a630f417032c46aaefbc779fd2b3355b451bf05d31acc36fd664146866b1",
+  "outputBytes": 24304,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-stall-red/model.glb",
+      "cacheKey": "c0225b65912ab018b90936f38f079a71c9996dd5ec8f9ad2ad8352eb3f0ab052",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-stall-red/animations.index.json",
+      "cacheKey": "c0225b65912ab018b90936f38f079a71c9996dd5ec8f9ad2ad8352eb3f0ab052",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-stall-red/collisions.glb",
+      "cacheKey": "c0225b65912ab018b90936f38f079a71c9996dd5ec8f9ad2ad8352eb3f0ab052",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-stall-red/lod-0.5.glb",
+      "cacheKey": "c0225b65912ab018b90936f38f079a71c9996dd5ec8f9ad2ad8352eb3f0ab052",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-stall-red/lod-0.25.glb",
+      "cacheKey": "c0225b65912ab018b90936f38f079a71c9996dd5ec8f9ad2ad8352eb3f0ab052",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

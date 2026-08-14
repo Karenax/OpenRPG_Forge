@@ -19,6 +19,7 @@ public partial class ItemGameplayWindow : Window
     private ItemList? _items;
     private BlueprintId? _selectedId;
     private ItemFoundationProfile? _foundation;
+    private ItemGameplayProfile? _loadedGameplay;
     private Guid _gameplayId;
     private Guid _modifierId;
     private Guid _abilityId;
@@ -120,8 +121,8 @@ public partial class ItemGameplayWindow : Window
         _abilityEnabled!.ButtonPressed = true; _targeting!.Text = "point"; _costs!.Text = "focus=1";
         _chargeCost!.Value = 1; _cooldown!.Value = 12000;
         _requestedEvent!.Text = "ItemAbilityRequested"; _resolvedEvent!.Text = "ItemAbilityResolved";
-        _slotDefinitions!.Text = "hand-r|forge|humanoid|2|hands-two; " +
-                                 "hand-l|forge|humanoid|2|hands-two; " +
+        _slotDefinitions!.Text = "hand-r|forge|humanoid|2|hands-two\n" +
+                                 "hand-l|forge|humanoid|2|hands-two\n" +
                                  "hands-two|forge|humanoid|3|hand-r,hand-l";
         _requiredSlots!.Text = "hand-r, hand-l"; _occupiedSlots!.Text = "hands-two";
         RebuildSummary();
@@ -230,7 +231,11 @@ public partial class ItemGameplayWindow : Window
         _requestedEvent = Field(events, "Événement demandé", "ItemAbilityRequested");
         _resolvedEvent = Field(events, "Événement résolu", "ItemAbilityResolved");
         Section(form, "ÉQUIPEMENT · MULTI-SLOT & CONFLITS");
-        _slotDefinitions = Multi(form, "Slots id|ruleset|rig|layer|conflits ; …", 80);
+        _slotDefinitions = Multi(form, "DÉFINITION DES SLOTS", 80);
+        StructuredCollectionField.Attach(_slotDefinitions, "slot",
+            new("Identifiant", "hand-r", "inventory"), new("Règles", "forge", "forge"),
+            new("Rig", "humanoid", "none"), new("Couche", "0", "0"),
+            new("Conflits", "hand-l,hands-two"));
         var equipmentGrid = new GridContainer { Columns = 2 }; form.AddChild(equipmentGrid);
         _requiredSlots = Field(equipmentGrid, "Slots requis", "hand-r, hand-l");
         _occupiedSlots = Field(equipmentGrid, "Slots occupés (aperçu)", "hands-two");
@@ -257,6 +262,7 @@ public partial class ItemGameplayWindow : Window
         _foundation = blueprint.ItemFoundation ?? ItemFoundationProfile.CreateDefault(Guid.NewGuid(), blueprint.Slug,
             blueprint.DisplayName, "toolset:r089");
         var profile = _foundation.Gameplay ?? DefaultGameplay();
+        _loadedGameplay = profile;
         _gameplayId = profile.Id; _modifierId = profile.Modifiers.FirstOrDefault()?.Id ?? Guid.NewGuid();
         _abilityId = profile.Ability?.AbilityDefinitionId ?? Guid.NewGuid();
         _required!.ButtonPressed = profile.RequiredAtRuntime; _manifest!.Text = profile.PackageManifestId;
@@ -282,7 +288,7 @@ public partial class ItemGameplayWindow : Window
         _chargeCost!.Value = profile.Ability?.ChargeCost ?? 1; _cooldown!.Value = profile.Ability?.CooldownMilliseconds ?? 0;
         _requestedEvent!.Text = profile.Ability?.RequestedEvent ?? "ItemAbilityRequested";
         _resolvedEvent!.Text = profile.Ability?.ResolvedEvent ?? "ItemAbilityResolved";
-        _slotDefinitions!.Text = string.Join("; ", profile.Equipment.SlotDefinitions.Select(slot =>
+        _slotDefinitions!.Text = string.Join('\n', profile.Equipment.SlotDefinitions.Select(slot =>
             $"{slot.Id}|{slot.Ruleset}|{slot.Rig}|{slot.Layer}|{Join(slot.Conflicts)}"));
         _requiredSlots!.Text = Join(profile.Equipment.RequiredSlots); _occupiedSlots!.Text = string.Empty;
         RebuildSummary();
@@ -298,16 +304,55 @@ public partial class ItemGameplayWindow : Window
             _allowGameMasterOverride!.ButtonPressed);
         var transfer = new ItemTransferPolicy(_transfers.ToDictionary(item => item.Key, item => item.Value.ButtonPressed),
             Values(_permissions!.Text));
-        var modifier = new ItemModifierPolicy(_modifierId, 1, "toolset:r089", _modifierKind!.Text,
-            new Dictionary<string, double> { ["value"] = _modifierValue!.Value },
-            _stacking!.GetItemText(_stacking.Selected), EmptyToNull(_condition!.Text), _modifierSummary!.Text,
-            EmptyToNull(_beforeHook!.Text), EmptyToNull(_afterHook!.Text));
-        var ability = _abilityEnabled!.ButtonPressed ? new ItemAbilityPolicy(_abilityId, _targeting!.Text,
-            Pairs(_costs!.Text), (int)_chargeCost!.Value, (long)_cooldown!.Value,
-            _requestedEvent!.Text, _resolvedEvent!.Text) : null;
-        return new(_gameplayId, 1, "toolset:r089", _required!.ButtonPressed, _manifest!.Text, _license!.Text,
-            _hash!.Text, critical, transfer, [modifier], ability,
-            new(ParseSlots(_slotDefinitions!.Text), Values(_requiredSlots!.Text)));
+        var loaded = _loadedGameplay ?? DefaultGameplay();
+        var loadedModifier = loaded.Modifiers.FirstOrDefault() ?? new ItemModifierPolicy(
+            _modifierId, ItemGameplayProfile.CurrentSchemaVersion, "toolset:r089", "ward",
+            new Dictionary<string, double>(), "sum", null, "No modifier", null, null);
+        var parameters = loadedModifier.Parameters.ToDictionary(item => item.Key, item => item.Value,
+            StringComparer.Ordinal);
+        parameters["value"] = _modifierValue!.Value;
+        var modifier = loadedModifier with
+        {
+            Kind = _modifierKind!.Text,
+            Parameters = parameters,
+            StackingRule = _stacking!.GetItemText(_stacking.Selected),
+            Condition = EmptyToNull(_condition!.Text),
+            UiSummary = _modifierSummary!.Text,
+            BeforeHook = EmptyToNull(_beforeHook!.Text),
+            AfterHook = EmptyToNull(_afterHook!.Text),
+        };
+        var ability = _abilityEnabled!.ButtonPressed
+            ? (loaded.Ability ?? new ItemAbilityPolicy(_abilityId, "point", new Dictionary<string, double>(), 1, 0,
+                "ItemAbilityRequested", "ItemAbilityResolved")) with
+            {
+                Targeting = _targeting!.Text,
+                Costs = Pairs(_costs!.Text),
+                ChargeCost = (int)_chargeCost!.Value,
+                CooldownMilliseconds = (long)_cooldown!.Value,
+                RequestedEvent = _requestedEvent!.Text,
+                ResolvedEvent = _resolvedEvent!.Text,
+            }
+            : null;
+        return loaded with
+        {
+            RequiredAtRuntime = _required!.ButtonPressed,
+            PackageManifestId = _manifest!.Text,
+            LicenseSpdx = _license!.Text,
+            ContentSha256 = _hash!.Text,
+            Critical = critical,
+            Transfer = transfer,
+            Modifiers = ReplaceFirst(loaded.Modifiers, modifier),
+            Ability = ability,
+            Equipment = new(ParseSlots(_slotDefinitions!.Text), Values(_requiredSlots!.Text)),
+        };
+    }
+
+    private static IReadOnlyList<T> ReplaceFirst<T>(IReadOnlyList<T> source, T replacement)
+    {
+        if (source.Count == 0) return [replacement];
+        var result = source.ToArray();
+        result[0] = replacement;
+        return result;
     }
 
     private void Mutate(bool dryRun)
@@ -377,7 +422,7 @@ public partial class ItemGameplayWindow : Window
         if (blueprint is not null) Load(blueprint);
     }
 
-    private static IReadOnlyList<ItemEquipmentSlotPolicy> ParseSlots(string text) => text.Split(';',
+    private static IReadOnlyList<ItemEquipmentSlotPolicy> ParseSlots(string text) => text.Split([';', '\r', '\n'],
         StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Select(entry =>
         {
             var parts = entry.Split('|', StringSplitOptions.TrimEntries);

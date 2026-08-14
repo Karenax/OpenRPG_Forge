@@ -61,3 +61,17 @@ Le scénario d'intégration complet est exécuté par `scripts/Verify.ps1` et pr
 
 La génération VFX/audio/image reste un plan gouverné : provider allowlisté, droits, provenance,
 quota, staging et fallback. MCP ne reçoit aucun accès direct à un fournisseur ni aux fichiers.
+
+## Contrat de création de maps
+
+La planification assistée de zones utilise le contrat versionné
+`docs/ai/MAP_AUTHORING_CONTRACT.md`. `Forge.Application` l'embarque afin que Creator et MCP injectent
+exactement le même contenu et son SHA-256 dans `area-plan@2.0.0`. Les données changeantes du module
+restent dans un paquet JSON borné séparé : brief, zone cible, blueprints allowlistés, terrain,
+navigation, entités existantes et lore autorisé.
+
+Un provider de modèle doit retourner les nœuds et connexions du schéma JSON. Forge attribue les UUID
+stables, rejette les références inventées et exécute les validations de domaine avant tout dry-run.
+Une sortie invalide ne déclenche aucune mutation et n'est pas remplacée silencieusement. Le provider
+`DeterministicOffline` conserve sa topologie locale reproductible pour les tests et le fonctionnement
+sans IA.

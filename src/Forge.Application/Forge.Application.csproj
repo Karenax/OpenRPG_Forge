@@ -5,6 +5,11 @@
     <ProjectReference Include="..\Forge.Scripting\Forge.Scripting.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\docs\ai\MAP_AUTHORING_CONTRACT.md"
+                      LogicalName="OpenRPGForge.Assistant.MapAuthoringContract.md" />
+  </ItemGroup>
+
   <PropertyGroup />
 
 </Project>

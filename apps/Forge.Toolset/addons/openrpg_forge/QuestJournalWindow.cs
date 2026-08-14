@@ -13,6 +13,7 @@ public partial class QuestJournalWindow : Window
 {
     private Func<ProjectState?>? _load;
     private Func<QuestDefinition, bool, CommandResult>? _mutate;
+    private Func<QuestId, bool>? _deleteQuest;
     private Action? _undo;
     private Action? _redo;
     private Action? _openAdvanced;
@@ -140,6 +141,7 @@ public partial class QuestJournalWindow : Window
     public void Initialize(
         Func<ProjectState?> load,
         Func<QuestDefinition, bool, CommandResult> mutate,
+        Func<QuestId, bool> deleteQuest,
         Action undo,
         Action redo,
         Action openAdvanced,
@@ -147,6 +149,7 @@ public partial class QuestJournalWindow : Window
     {
         _load = load ?? throw new ArgumentNullException(nameof(load));
         _mutate = mutate ?? throw new ArgumentNullException(nameof(mutate));
+        _deleteQuest = deleteQuest ?? throw new ArgumentNullException(nameof(deleteQuest));
         _undo = undo ?? throw new ArgumentNullException(nameof(undo));
         _redo = redo ?? throw new ArgumentNullException(nameof(redo));
         _openAdvanced = openAdvanced ?? throw new ArgumentNullException(nameof(openAdvanced));
@@ -454,6 +457,7 @@ public partial class QuestJournalWindow : Window
         _quests.ItemSelected += SelectQuest;
         catalogBox.AddChild(_quests);
         catalogBox.AddChild(Button("+ Nouvelle quête", CreateNewQuest, true));
+        catalogBox.AddChild(Button("Supprimer la quête", DeleteCurrentQuest));
 
         var center = new HBoxContainer
         {
@@ -498,9 +502,13 @@ public partial class QuestJournalWindow : Window
             SplitOffsets = [210],
         };
         stateTab.AddChild(stateSplit);
-        _states = new ItemList { CustomMinimumSize = new(210, 0), SizeFlagsVertical = Control.SizeFlags.ExpandFill };
+        var stateCatalog = new VBoxContainer { CustomMinimumSize = new(210, 0) };
+        stateSplit.AddChild(stateCatalog);
+        _states = new ItemList { SizeFlagsVertical = Control.SizeFlags.ExpandFill };
         _states.ItemSelected += SelectState;
-        stateSplit.AddChild(_states);
+        stateCatalog.AddChild(_states);
+        stateCatalog.AddChild(Button("+ Nouvel état", CreateNewState));
+        stateCatalog.AddChild(Button("Supprimer l’état", RemoveSelectedState));
         var stateScroll = new ScrollContainer
         {
             SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
@@ -523,11 +531,11 @@ public partial class QuestJournalWindow : Window
         _customTerminal = Field(stateForm, "Code final personnalisé", "ending.secret");
         _summaryKey = Field(stateForm, "Clé du résumé", "quest.crypt.active.summary");
         _summaryText = Field(stateForm, "Résumé de repli", "Retrouvez la clé.");
-        _summaryVariants = Multiline(stateForm, "Variantes du résumé (une par ligne : locale|texte)", 65);
+        _summaryVariants = Multiline(stateForm, "Variantes du résumé", 65);
         _detailsKey = Field(stateForm, "Clé des détails", "quest.crypt.active.details");
         _detailsText = Multiline(stateForm, "Détails de repli", 65);
-        _objectives = Multiline(stateForm, "Objectifs localisés (clé|texte)", 65);
-        _links = Multiline(stateForm, "Liens contextuels (type|référence|clé|libellé)", 65);
+        _objectives = Multiline(stateForm, "Objectifs localisés", 65);
+        _links = Multiline(stateForm, "Liens contextuels", 65);
 
         var transitionTab = Tab(_tabs, "TRANSITIONS & TEST");
         var transitionSplit = new HSplitContainer
@@ -544,6 +552,7 @@ public partial class QuestJournalWindow : Window
         _transitions.ItemSelected += SelectTransition;
         transitionCatalog.AddChild(_transitions);
         transitionCatalog.AddChild(Button("+ Nouvelle transition", CreateNewTransition));
+        transitionCatalog.AddChild(Button("Supprimer la transition", RemoveSelectedTransition));
         var transitionScroll = new ScrollContainer
         {
             SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
@@ -568,16 +577,16 @@ public partial class QuestJournalWindow : Window
         _idempotence = EnumSelect<QuestTransitionIdempotence>();
         transitionForm.AddChild(Labeled("Idempotence", _idempotence));
         _idempotenceKey = Field(transitionForm, "Clé d’idempotence", "quest.accept");
-        _transitionConditions = Multiline(transitionForm, "Conditions typées (type|clé|valeur)", 65);
-        _transitionActions = Multiline(transitionForm, "Actions typées (type|clé|valeur)", 65);
+        _transitionConditions = Multiline(transitionForm, "Conditions typées", 65);
+        _transitionActions = Multiline(transitionForm, "Actions typées", 65);
         transitionForm.AddChild(new HSeparator());
         var scenarioTitle = new Label { Text = "SCÉNARIO SANDBOX PERSISTÉ" };
         scenarioTitle.AddThemeColorOverride("font_color", new Color("ffad70"));
         transitionForm.AddChild(scenarioTitle);
         _simulationMaximumSteps = Spin(transitionForm, "Garde du nombre d’étapes", 1, 10_000, 100, 1);
-        _simulationVariables = Multiline(transitionForm, "Variables initiales (clé|valeur)", 60);
+        _simulationVariables = Multiline(transitionForm, "Variables initiales", 60);
         _simulationEvents = Multiline(transitionForm,
-            "Événements (événement|acteur|clé=valeur;clé=valeur)", 95);
+            "Événements de simulation", 95);
 
         var authoringTab = Tab(_tabs, "OBJECTIFS, CAST & WIZARD");
         var authoringFlags = new HBoxContainer();
@@ -588,7 +597,7 @@ public partial class QuestJournalWindow : Window
         _authoringSummary.AddThemeColorOverride("font_color", new Color("8ce0bd"));
         authoringTab.AddChild(_authoringSummary);
         _authoringObjectives = Multiline(authoringTab,
-            "Objectifs (type|clé|libellé|cible|références;...|destination|durée s|choix;...|règle|optionnel)", 125);
+            "Objectifs structurés", 125);
         var rewardGrid = new GridContainer { Columns = 2 };
         authoringTab.AddChild(rewardGrid);
         _rewardProgression = Spin(rewardGrid, "Progression", 0, 1_000_000, 0, 1);
@@ -609,9 +618,9 @@ public partial class QuestJournalWindow : Window
         _notesRisks = Multiline(notesGrid, "Risques", 58);
         _notesTodos = Multiline(notesGrid, "TODO", 58);
         _notesSources = Multiline(notesGrid, "Sources", 58);
-        _notesReviews = Multiline(authoringTab, "Historique review (auteur|statut|message)", 68);
+        _notesReviews = Multiline(authoringTab, "Historique de revue", 68);
         _authoringParticipants = Multiline(authoringTab,
-            "Cast (rôle|Blueprint/Instance/Query|binding|conditions;...|requis)", 80);
+            "Participants et rôles", 80);
         var wizardGrid = new GridContainer { Columns = 2 };
         authoringTab.AddChild(wizardGrid);
         _wizardZones = Multiline(wizardGrid, "Wizard · zones", 58);
@@ -630,15 +639,15 @@ public partial class QuestJournalWindow : Window
         _experienceSummary.AddThemeColorOverride("font_color", new Color("8ce0bd"));
         experienceTab.AddChild(_experienceSummary);
         _experienceResources = Multiline(experienceTab,
-            "Ressources (Item/Placeable/Door/Zone/Asset|référence|owner|requis|conditions;...)", 84);
+            "Ressources de quête", 84);
         _experienceSteps = Multiline(experienceTab,
-            "Étapes (template|version|clé libellé|libellé|indices objectifs;...|indices transitions;...|modifiable)", 58);
+            "Étapes de quête", 58);
         _experienceRevealConditions = Multiline(experienceTab,
-            "Révélation depuis Hidden (Rumor/Discovered/Tracked/SecretCompleted|conditions;...)", 70);
+            "Règles de révélation", 70);
         _experienceHistory = Multiline(experienceTab,
-            "Chronologie (depuis|vers|cause|acteur|clé résumé|résumé joueur|debug clé=valeur;...)", 72);
+            "Chronologie", 72);
         _experienceMarkers = Multiline(experienceTab,
-            "Pins (Zone/Entity/Query/Waypoint|binding|indice objectif|visibilité|précision|suivi|clé|libellé|fallback x,y,z)", 90);
+            "Repères sur la carte", 90);
 
         var qualityTab = Tab(_tabs, "TESTS & GÉNÉRATION IA");
         var qualityFlags = new HBoxContainer();
@@ -650,7 +659,7 @@ public partial class QuestJournalWindow : Window
         _qualitySummary.AddThemeColorOverride("font_color", new Color("8ce0bd"));
         qualityTab.AddChild(_qualitySummary);
         _qualityScenarioSeeds = Multiline(qualityTab,
-            "Mini-graphe des tests (Nominal/Failure/Repetition/Multiplayer/SaveResume|seed)", 125);
+            "Scénarios de test", 125);
         var aiGrid = new GridContainer { Columns = 2 };
         qualityTab.AddChild(aiGrid);
         _qualitySynopsisKey = Field(aiGrid, "Clé du synopsis IA", "quest.crypt.ai.synopsis");
@@ -658,11 +667,12 @@ public partial class QuestJournalWindow : Window
         _qualityRequestedBy = Field(aiGrid, "Agent demandeur", "agent:forge");
         _qualityReviewer = Field(aiGrid, "Validateur humain", "author:karen");
         _qualityDependencies = Multiline(qualityTab,
-            "Dépendances typées (State/Transition/Participant/Zone/Prop/Asset|référence)", 100);
+            "Dépendances typées", 100);
         var qualityGovernance = new GridContainer { Columns = 2 };
         qualityTab.AddChild(qualityGovernance);
         _qualityCitations = Multiline(qualityGovernance, "Citations de contexte", 60);
         _qualityStyleRules = Multiline(qualityGovernance, "Règles de style", 60);
+        BuildStructuredEditors();
 
         var evidence = Panel("APERÇU, VALIDATION & SIMULATION");
         evidence.CustomMinimumSize = new(410, 0);
@@ -1343,6 +1353,87 @@ public partial class QuestJournalWindow : Window
         RebuildPreview();
     }
 
+    private void CreateNewState()
+    {
+        try
+        {
+            var draft = BuildDraft();
+            var id = QuestStateId.From(Guid.NewGuid());
+            var order = draft.States.Count == 0 ? 1 : draft.States.Max(item => item.DisplayOrder) + 1;
+            var state = new QuestStateDefinition(id, QuestStateDefinition.CurrentSchemaVersion, "author:quest-editor",
+                $"state-{order}", $"Nouvel état {order}", new QuestJournalEntry(
+                    new LocalizedText($"{draft.Slug}.state-{order}.summary", "Nouvelle étape"),
+                    new LocalizedText($"{draft.Slug}.state-{order}.details", "Décrivez cette étape."),
+                    provenance: "author:quest-editor"), false, order, null, QuestTerminalKind.None, string.Empty,
+                QuestReactivationRule.Never);
+            _draft = WithGraph(draft, draft.InitialStateId, [.. draft.States, state], draft.Transitions);
+            LoadQuest(_draft);
+            var index = _draft.States.OrderBy(item => item.DisplayOrder).ThenBy(item => item.Id.Value)
+                .ToList().FindIndex(item => item.Id == id);
+            _states!.Select(index);
+            LoadState(state);
+            _feedback!.Text = "[color=#ffbd7a]État ajouté au brouillon · appliquez pour enregistrer.[/color]";
+        }
+        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException)
+        {
+            _feedback!.Text = $"[color=#ff7777]Impossible d’ajouter l’état[/color]\n{exception.Message}";
+        }
+    }
+
+    private void RemoveSelectedState()
+    {
+        if (_draft is null || _selectedStateId is null) return;
+        try
+        {
+            var draft = BuildDraft();
+            if (draft.States.Count <= 1)
+            {
+                _feedback!.Text = "[color=#ff7777]Une quête doit conserver au moins un état.[/color]";
+                return;
+            }
+            var removed = _selectedStateId;
+            var states = draft.States.Where(item => item.Id != removed).ToArray();
+            var removedTransitions = draft.Transitions.Count(item =>
+                item.FromStateId == removed || item.ToStateId == removed);
+            var transitions = draft.Transitions.Where(item =>
+                item.FromStateId != removed && item.ToStateId != removed).ToArray();
+            var initial = draft.InitialStateId == removed
+                ? states.OrderBy(item => item.DisplayOrder).ThenBy(item => item.Id.Value).First().Id
+                : draft.InitialStateId;
+            _draft = WithGraph(draft, initial, states, transitions);
+            LoadQuest(_draft);
+            _feedback!.Text = $"[color=#ffbd7a]État retiré du brouillon · {removedTransitions} transition(s) dépendante(s) retirée(s). Appliquez pour enregistrer.[/color]";
+        }
+        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException)
+        {
+            _feedback!.Text = $"[color=#ff7777]Impossible de supprimer l’état[/color]\n{exception.Message}";
+        }
+    }
+
+    private void RemoveSelectedTransition()
+    {
+        if (_draft is null || _selectedTransitionId is null) return;
+        try
+        {
+            var draft = BuildDraft();
+            var transitions = draft.Transitions.Where(item => item.Id != _selectedTransitionId).ToArray();
+            _draft = WithGraph(draft, draft.InitialStateId, draft.States, transitions);
+            LoadQuest(_draft);
+            _feedback!.Text = "[color=#ffbd7a]Transition retirée du brouillon · appliquez pour enregistrer.[/color]";
+        }
+        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException)
+        {
+            _feedback!.Text = $"[color=#ff7777]Impossible de supprimer la transition[/color]\n{exception.Message}";
+        }
+    }
+
+    private static QuestDefinition WithGraph(QuestDefinition quest, QuestStateId initialStateId,
+        IReadOnlyList<QuestStateDefinition> states, IReadOnlyList<QuestTransition> transitions) => new(
+        quest.Id, quest.SchemaVersion, quest.Provenance, quest.Slug, quest.DisplayName, quest.Title,
+        quest.Description, quest.Category, quest.Priority, quest.Owner, quest.RequiredAtRuntime,
+        quest.InstancePolicy, initialStateId, states, transitions, quest.Operations, quest.Simulation,
+        quest.Authoring, quest.Experience, quest.Quality);
+
     private void CreateNewTransition()
     {
         if (_draft is null || _draft.States.Count == 0) return;
@@ -1362,6 +1453,21 @@ public partial class QuestJournalWindow : Window
         _transitions!.Select(_draft.Transitions.Count - 1);
         LoadTransition(transition);
         _feedback!.Text = "[color=#ffbd7a]Transition ajoutée au brouillon · appliquez pour enregistrer.[/color]";
+    }
+
+    private void DeleteCurrentQuest()
+    {
+        if (_draft is null || _load?.Invoke()?.Project.Quests.All(item => item.Id != _draft.Id) != false)
+        {
+            _feedback!.Text = "[color=#ff7777]Le brouillon n’est pas encore enregistré.[/color]";
+            return;
+        }
+        if (_deleteQuest?.Invoke(_draft.Id) == true)
+        {
+            Refresh();
+            _feedback!.Text = "[color=#8ce0bd]Quête supprimée · utilisez Annuler pour la restaurer.[/color]";
+        }
+        else _feedback!.Text = "[color=#ff7777]Suppression refusée · consultez les dépendances du projet.[/color]";
     }
 
     private void CreateNewQuest()
@@ -1557,6 +1663,75 @@ public partial class QuestJournalWindow : Window
         var value = new LineEdit { PlaceholderText = placeholder, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
         owner.AddChild(Labeled(label, value));
         return value;
+    }
+
+    private void BuildStructuredEditors()
+    {
+        StructuredCollectionField.Attach(_summaryVariants!, "variante",
+            new("Langue", "fr", "fr"), new("Texte", "Résumé traduit"));
+        StructuredCollectionField.Attach(_objectives!, "objectif de journal",
+            new("Clé", "quest.objective"), new("Libellé", "Objectif visible"));
+        StructuredCollectionField.Attach(_links!, "lien contextuel",
+            new("Type", "Custom", "Custom"), new("Référence", "lore:entry"),
+            new("Clé", "quest.link"), new("Libellé", "En savoir plus"));
+        StructuredCollectionField.Attach(_transitionConditions!, "condition",
+            new("Type", "VariableEquals", "VariableEquals"), new("Clé", "quest.flag"),
+            new("Valeur", "true", "true"));
+        StructuredCollectionField.Attach(_transitionActions!, "action",
+            new("Type", "SetVariable", "SetVariable"), new("Clé", "quest.flag"),
+            new("Valeur", "true", "true"));
+        StructuredCollectionField.Attach(_simulationVariables!, "variable initiale",
+            new("Clé", "quest.flag"), new("Valeur", "true"));
+        StructuredCollectionField.Attach(_simulationEvents!, "événement de simulation",
+            new("Événement", "dialogue.accept"), new("Acteur", "player"),
+            new("Données", "clé=valeur"));
+        StructuredCollectionField.Attach(_authoringObjectives!, "objectif auteur",
+            new("Type", "Custom", "Custom"), new("Clé", "objective.key"),
+            new("Libellé", "Objectif"), new("Cible", "1", "1"),
+            new("Références", "référence;référence"), new("Destination", "destination"),
+            new("Durée", "0", "0"), new("Choix", "choix;choix"),
+            new("Règle", "required", "required"));
+        StructuredCollectionField.Attach(_notesReviews!, "revue",
+            new("Auteur", "author:karen"),
+            new("Statut", Options: ["Draft", "Review", "Approved", "Rejected"], DefaultValue: "Review"),
+            new("Message", "Commentaire de revue"));
+        StructuredCollectionField.Attach(_authoringParticipants!, "participant",
+            new("Rôle", "guide"),
+            new("Type", Options: ["Blueprint", "Instance", "Query"], DefaultValue: "Blueprint"),
+            new("Binding", "creature/guide"), new("Conditions", "quest:active"),
+            new("Requis", Options: ["true", "false"], DefaultValue: "true"));
+        StructuredCollectionField.Attach(_experienceResources!, "ressource de quête",
+            new("Type", Options: ["Item", "Placeable", "Door", "Zone", "Asset"], DefaultValue: "Item"),
+            new("Référence", "item:key"), new("Propriétaire", "player"),
+            new("Requise", Options: ["true", "false"], DefaultValue: "true"),
+            new("Conditions", "condition;condition"));
+        StructuredCollectionField.Attach(_experienceSteps!, "étape",
+            new("Template", "step.default"), new("Version", "1", "1"),
+            new("Clé de libellé", "quest.step"), new("Libellé", "Étape"),
+            new("Objectifs", "0;1"), new("Transitions", "0;1"),
+            new("Modifiable", Options: ["true", "false"], DefaultValue: "true"));
+        StructuredCollectionField.Attach(_experienceRevealConditions!, "règle de révélation",
+            new("État révélé", Options: ["Rumor", "Discovered", "Tracked", "SecretCompleted"],
+                DefaultValue: "Discovered"),
+            new("Conditions", "condition;condition"));
+        StructuredCollectionField.Attach(_experienceHistory!, "entrée de chronologie",
+            new("Depuis", "Hidden"), new("Vers", "Discovered"), new("Cause", "event"),
+            new("Acteur", "player"), new("Clé du résumé", "quest.history"),
+            new("Résumé joueur", "La quête progresse."), new("Détails", "clé=valeur"));
+        StructuredCollectionField.Attach(_experienceMarkers!, "repère",
+            new("Type", Options: ["Zone", "Entity", "Query", "Waypoint"], DefaultValue: "Zone"),
+            new("Binding", "zone:crypt"), new("Objectif", "0", "0"),
+            new("Visibilité", "Tracked", "Tracked"), new("Précision", "Exact", "Exact"),
+            new("Suivi", Options: ["true", "false"], DefaultValue: "true"),
+            new("Clé", "quest.marker"), new("Libellé", "Destination"),
+            new("Position de repli", "0,0,0"));
+        StructuredCollectionField.Attach(_qualityScenarioSeeds!, "scénario de test",
+            new("Scénario", Options: ["Nominal", "Failure", "Repetition", "Multiplayer", "SaveResume"],
+                DefaultValue: "Nominal"), new("Seed", "2026", "2026"));
+        StructuredCollectionField.Attach(_qualityDependencies!, "dépendance",
+            new("Type", Options: ["State", "Transition", "Participant", "Zone", "Prop", "Asset"],
+                DefaultValue: "State"),
+            new("Référence", "quest:state"));
     }
 
     private static TextEdit Multiline(Container owner, string label, int height)

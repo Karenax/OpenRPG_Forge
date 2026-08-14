@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "bb4e7720-f118-3050-9222-558a180d8b74",
+  "cacheKey": "6f6a1ce64e32aafe8c712474c08a14f08369fda73fbbe36103d78117c885943b",
+  "catalogContentSha256": "63503cd0a7398310e01aabc8e3663f711a7517394d23d179d0695157fee99d40",
+  "sourceFileSha256": "63503cd0a7398310e01aabc8e3663f711a7517394d23d179d0695157fee99d40",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-fantasy-town@1.0.0;source:kenney:fantasy-town-kit;path:Models/GLB format/cart.glb",
+  "sourceRelativePath": "normalized/kenney/fantasy-town-kit/Models/GLB format/cart.glb",
+  "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-cart/model.glb",
+  "outputContentSha256": "63503cd0a7398310e01aabc8e3663f711a7517394d23d179d0695157fee99d40",
+  "outputBytes": 52920,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-cart/model.glb",
+      "cacheKey": "6f6a1ce64e32aafe8c712474c08a14f08369fda73fbbe36103d78117c885943b",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-cart/animations.index.json",
+      "cacheKey": "6f6a1ce64e32aafe8c712474c08a14f08369fda73fbbe36103d78117c885943b",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-cart/collisions.glb",
+      "cacheKey": "6f6a1ce64e32aafe8c712474c08a14f08369fda73fbbe36103d78117c885943b",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-cart/lod-0.5.glb",
+      "cacheKey": "6f6a1ce64e32aafe8c712474c08a14f08369fda73fbbe36103d78117c885943b",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kenney-fantasy-town-kit-cart/lod-0.25.glb",
+      "cacheKey": "6f6a1ce64e32aafe8c712474c08a14f08369fda73fbbe36103d78117c885943b",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

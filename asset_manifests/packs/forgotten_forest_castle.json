@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "pack_id": "forgotten-forest-castle",
+  "version": "1.0.0",
+  "display_name": "Forgotten Forest Castle",
+  "source_catalog": "asset_manifests/catalogs/kenney_3d_packs.json",
+  "source_pack_id": "kenney:castle-kit",
+  "shared_texture_path": "Models/GLB format/Textures/colormap.png",
+  "license": "CC0-1.0",
+  "models": [
+    { "key": "flag-banner-long", "path": "Models/GLB format/flag-banner-long.glb", "tags": ["banner", "fortress"] },
+    { "key": "gate", "path": "Models/GLB format/gate.glb", "tags": ["fortress", "gate"] },
+    { "key": "siege-tower", "path": "Models/GLB format/siege-tower.glb", "tags": ["fortress", "siege", "tower"] },
+    { "key": "tower-square-base", "path": "Models/GLB format/tower-square-base.glb", "tags": ["architecture", "fortress", "tower"] },
+    { "key": "tower-square-mid", "path": "Models/GLB format/tower-square-mid.glb", "tags": ["architecture", "fortress", "tower"] },
+    { "key": "tower-square-top-roof", "path": "Models/GLB format/tower-square-top-roof.glb", "tags": ["architecture", "fortress", "roof", "tower"] },
+    { "key": "wall", "path": "Models/GLB format/wall.glb", "tags": ["architecture", "fortress", "wall"] },
+    { "key": "wall-narrow", "path": "Models/GLB format/wall-narrow.glb", "tags": ["architecture", "fortress", "wall"] },
+    { "key": "wall-narrow-gate", "path": "Models/GLB format/wall-narrow-gate.glb", "tags": ["architecture", "fortress", "gate", "wall"] },
+    { "key": "wall-narrow-stairs", "path": "Models/GLB format/wall-narrow-stairs.glb", "tags": ["architecture", "fortress", "stairs", "wall"] },
+    { "key": "wall-narrow-wood-fence", "path": "Models/GLB format/wall-narrow-wood-fence.glb", "tags": ["architecture", "fortress", "palisade"] },
+    { "key": "wall-pillar", "path": "Models/GLB format/wall-pillar.glb", "tags": ["architecture", "fortress", "pillar"] }
+  ]
+}
