@@ -37,7 +37,9 @@ param(
         'ux1-r', 'ux1-r-detection', 'ux1-r-disarm', 'ux1-r-friendly', 'ux1-r-trigger', 'ux1-r-one-shot',
         'ux1-s', 'ux1-s-table', 'ux1-s-open', 'ux1-s-reset', 'ux1-s-seed', 'ux1-s-preview',
         'ux1-t', 'ux1-t-open', 'ux1-t-close', 'ux1-t-payload', 'ux1-t-preview',
-        'ux1-u', 'ux1-u-bindings', 'ux1-u-transition', 'ux1-u-veto', 'ux1-u-preview')]
+        'ux1-u', 'ux1-u-bindings', 'ux1-u-transition', 'ux1-u-veto', 'ux1-u-preview',
+        'ux1-v', 'ux1-v-used', 'ux1-v-disturbed', 'ux1-v-damaged', 'ux1-v-death',
+        'ux1-w', 'ux1-w-scale', 'ux1-w-dynamic', 'ux1-w-copy')]
     [string]$Evidence,
     [string]$Resolution,
     [switch]$Headless,

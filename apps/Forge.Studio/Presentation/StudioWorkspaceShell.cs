@@ -166,6 +166,8 @@ internal sealed partial class StudioWorkspaceShell : Control
         BuildUx1SActions(headingRow);
         BuildUx1TActions(headingRow);
         BuildUx1UActions(headingRow);
+        BuildUx1VActions(headingRow);
+        BuildUx1WActions(headingRow);
         _primaryAction = StudioStyle.Button("Migration en cours", primary: true, compact: true);
         _primaryAction.Disabled = true;
         _primaryAction.TooltipText = "Cette action sera activée seulement après son branchement transactionnel et ses tests.";
@@ -277,6 +279,7 @@ internal sealed partial class StudioWorkspaceShell : Control
         InitializeUx1COverlay();
         InitializeUx1DOverlay();
         InitializeUx1EOverlay();
+        InitializeUx1WOverlay();
         if (_session.ActiveArea is null)
         {
             WorldViewport.ShowNoArea(_session);
@@ -534,6 +537,14 @@ internal sealed partial class StudioWorkspaceShell : Control
         if (mode.StartsWith("ux1-u", StringComparison.OrdinalIgnoreCase))
         {
             return PrepareUx1UEvidence(mode);
+        }
+        if (mode.StartsWith("ux1-v", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx1VEvidence(mode);
+        }
+        if (mode.StartsWith("ux1-w", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx1WEvidence(mode);
         }
 
         if (string.Equals(mode, "assets", StringComparison.OrdinalIgnoreCase))
@@ -821,6 +832,7 @@ internal sealed partial class StudioWorkspaceShell : Control
 
     private void SwitchPage(string pageId, bool notify = true)
     {
+        CloseUx1WOverlay();
         var page = ResolvePage(pageId, SectionId);
         var section = StudioPageCatalog.SectionForPage(page.Id);
         SectionId = section.Id;
@@ -867,6 +879,8 @@ internal sealed partial class StudioWorkspaceShell : Control
         UpdateUx1SActionState();
         UpdateUx1TActionState();
         UpdateUx1UActionState();
+        UpdateUx1VActionState();
+        UpdateUx1WActionState();
 
         var usesWorld = !isAssetLibrary && !isProjectConfiguration && !isDiagnostics &&
                         page.Layout != StudioPageLayout.Specialized;

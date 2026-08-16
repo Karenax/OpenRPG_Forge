@@ -285,34 +285,34 @@ internal sealed partial class StudioSessionController
                                           usedPreview.BeforeScriptId == "scripts/placeable_before_use" &&
                                           usedPreview.AfterScriptId == "scripts/placeable_after_use";
             var contentsChangedBindingAndPayload = disturbed is
-                {
-                    ForgeScriptApiVersion: "1.1.0",
-                    EventBinding: "ContenuObjetModifie",
-                    IncludeTransactionalDelta: true,
-                    IncludeCause: true,
-                    IncludeRevision: true,
-                    IncludeActor: true,
-                } && disturbedPreview.Succeeded && disturbedPreview.Binding == "ContenuObjetModifie" &&
+            {
+                ForgeScriptApiVersion: "1.1.0",
+                EventBinding: "ContenuObjetModifie",
+                IncludeTransactionalDelta: true,
+                IncludeCause: true,
+                IncludeRevision: true,
+                IncludeActor: true,
+            } && disturbedPreview.Succeeded && disturbedPreview.Binding == "ContenuObjetModifie" &&
                     disturbedPreview.PreviousRevision == 7 && disturbedPreview.CurrentRevision == 8 &&
                     disturbedPreview.QuantityDelta == -1 && disturbedPreview.Cause == "player-loot" &&
                     disturbedPreview.ActorId == "joueuse-locale";
             var damageAndDeathBindings = damageEvents is
-                {
-                    ForgeScriptApiVersion: "1.1.0",
-                    DamagedBinding: "ObjetEndommage",
-                    DestroyedBinding: "ObjetDetruit",
-                } && damagedPreview.Binding == "ObjetEndommage" &&
+            {
+                ForgeScriptApiVersion: "1.1.0",
+                DamagedBinding: "ObjetEndommage",
+                DestroyedBinding: "ObjetDetruit",
+            } && damagedPreview.Binding == "ObjetEndommage" &&
                     destroyedPreview.Binding == "ObjetDetruit" && damagedPreview.EventName == "DamageApplied" &&
                     destroyedPreview.EventName == "EntityDestroyed";
             var damageAndDeathPayload = damageEvents is
-                {
-                    IncludeSource: true,
-                    IncludeAmount: true,
-                    IncludeDamageType: true,
-                    IncludePreviousHealth: true,
-                    IncludeCurrentHealth: true,
-                    IncludeContext: true,
-                } && damagedPreview.Succeeded && destroyedPreview.Succeeded &&
+            {
+                IncludeSource: true,
+                IncludeAmount: true,
+                IncludeDamageType: true,
+                IncludePreviousHealth: true,
+                IncludeCurrentHealth: true,
+                IncludeContext: true,
+            } && damagedPreview.Succeeded && destroyedPreview.Succeeded &&
                     damagedPreview.SourceId == "joueuse-locale" && damagedPreview.Amount == 20 &&
                     damagedPreview.DamageType == "force" && damagedPreview.PreviousHealth == 50 &&
                     damagedPreview.CurrentHealth == 30 && destroyedPreview.CurrentHealth == 0;
@@ -375,10 +375,10 @@ internal sealed partial class StudioSessionController
             var noDamage = profile with { DamageEvents = null, DamageEventsRequiredAtRuntime = false };
             var contentsOptional = securityAdapter.ResolveContentsChanged(noContents);
             var contentsRequired = securityAdapter.ResolveContentsChanged(noContents with
-                { ContentsChangedRequiredAtRuntime = true });
+            { ContentsChangedRequiredAtRuntime = true });
             var damageOptional = compositionAdapter.ResolveDamageEvents(noDamage);
             var damageRequired = compositionAdapter.ResolveDamageEvents(noDamage with
-                { DamageEventsRequiredAtRuntime = true });
+            { DamageEventsRequiredAtRuntime = true });
             var optionalRequired = contentsOptional.OptionalFallback &&
                                    contentsRequired.DiagnosticCode ==
                                    "WORLD_PLACEABLE_CONTENTS_CHANGED_REQUIRED_MISSING" &&
