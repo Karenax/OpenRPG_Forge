@@ -7,6 +7,21 @@ SemVer ; les versions de schéma persistent séparément dans leurs documents.
 
 ### Changed
 
+- Forge Studio UX1-AC : piège, filtre de cible, dix volumes de gameplay et occupation, avec
+  Foundation exigée, preuve temporaire isolée, double garde de révision, adaptateur runtime,
+  préservation, undo/redo, round-trip et contrôles Forward+ Full HD/QHD/4K ;
+- Forge Studio UX1-AB : dégâts, chargement, OnDamaged/OnDeath et attaque physique des portes, avec
+  sélection explicite, liaisons serveur, fusion des événements voisins, ordre canonique, transaction
+  UI isolée, undo/redo, round-trip et contrôles Forward+ Full HD/QHD/4K ;
+- Forge Studio UX1-AA : sockets/assemblages, actions contextuelles et validation du placeable, avec
+  refus humain des prérequis manquants, trois dry-runs, preuve isolée, préservation, undo/redo,
+  round-trip et contrôles Forward+ Full HD/QHD/4K ;
+- matrice d'accès humain Studio portée à 93 routes `functional` et 624 `planned` après preuves
+  individuelles des onze routes UX1-AA/AB/AC ;
+- jalon UX1-AA/AB/AC validé par 20/20 tests ciblés, trois smokes Studio et trois portails
+  incrémentaux en 54,91 s, 55,42 s et 59,92 s, puis par le portail transversal complet : 1 980 tests
+  .NET, 39 tests Python, builds sans avertissement, graphe Roslyn à 9 010 nœuds et 59 698 relations,
+  smokes Studio, Runtime, Forward+, MCP et réseau ;
 - Forge Studio UX1-Z : réactions `OnPhysicalAttacked`, `OnSpellCastAt`, heartbeat, événement
   personnalisé et politique physique de placeable, avec sélection explicite, quatre dry-runs,
   préservation des valeurs dormantes et capacités voisines, undo/redo, round-trip et preuve

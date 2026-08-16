@@ -288,6 +288,9 @@ public sealed partial class StudioRoot : Control
         var ux1XValid = !_smokeRequested || _shell.RunUx1XSmoke();
         var ux1YValid = !_smokeRequested || _shell.RunUx1YSmoke();
         var ux1ZValid = !_smokeRequested || _shell.RunUx1ZSmoke();
+        var ux1AAValid = !_smokeRequested || _shell.RunUx1AASmoke();
+        var ux1ABValid = !_smokeRequested || _shell.RunUx1ABSmoke();
+        var ux1ACValid = !_smokeRequested || _shell.RunUx1ACSmoke();
         var evidenceValid = _shell.PrepareEditingEvidence(_evidenceMode);
         GD.Print($"OPENRPG_FORGE_STUDIO_EVIDENCE_PREPARED valid={evidenceValid.ToString().ToLowerInvariant()}");
         for (var frame = 0; frame < 2; frame++)
@@ -310,7 +313,7 @@ public sealed partial class StudioRoot : Control
             !ux1BValid || !ux1CValid || !ux1DValid || !ux1EValid || !ux1FValid || !ux1GValid || !ux1HValid ||
             !ux1IValid || !ux1JValid || !ux1KValid || !ux1LValid || !ux1MValid || !ux1NValid || !ux1OValid ||
             !ux1PValid || !ux1QValid || !ux1RValid || !ux1SValid || !ux1TValid || !ux1UValid || !ux1VValid ||
-            !ux1WValid || !ux1XValid || !ux1YValid || !ux1ZValid ||
+            !ux1WValid || !ux1XValid || !ux1YValid || !ux1ZValid || !ux1AAValid || !ux1ABValid || !ux1ACValid ||
             !evidenceValid)
         {
             GD.PrintErr(
@@ -323,7 +326,8 @@ public sealed partial class StudioRoot : Control
                 $"ux1j={ux1JValid} ux1k={ux1KValid} ux1l={ux1LValid} ux1m={ux1MValid} ux1n={ux1NValid} " +
                 $"ux1o={ux1OValid} ux1p={ux1PValid} ux1q={ux1QValid} ux1r={ux1RValid} ux1s={ux1SValid} " +
                 $"ux1t={ux1TValid} ux1u={ux1UValid} ux1v={ux1VValid} ux1w={ux1WValid} " +
-                $"ux1x={ux1XValid} ux1y={ux1YValid} ux1z={ux1ZValid} " +
+                $"ux1x={ux1XValid} ux1y={ux1YValid} ux1z={ux1ZValid} ux1aa={ux1AAValid} " +
+                $"ux1ab={ux1ABValid} ux1ac={ux1ACValid} " +
                 $"evidence={evidenceValid}");
             GetTree().Quit(1);
             return;

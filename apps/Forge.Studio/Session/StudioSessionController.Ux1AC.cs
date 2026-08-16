@@ -838,27 +838,27 @@ internal sealed partial class StudioSessionController
                 return FailedUx1ACSmoke();
             }
 
-            var advancedCreation = loadedTarget.Advanced is null && appliedAdvanced is not null &&
-                                   appliedTarget.AdvancedRequiredAtRuntime;
-            var trap = appliedAdvanced.Trap.DetectionDifficulty == 18 &&
-                       appliedAdvanced.Trap.DisarmDifficulty == 22 &&
-                       appliedAdvanced.Trap.ResetDelaySeconds == 45 &&
-                       appliedAdvanced.Trap.PayloadId == "damage:ember-burst" &&
-                       appliedAdvanced.Trap.GameMasterVisualization;
-            var filter = appliedAdvanced.TargetFilter.PlayersOnly &&
-                         appliedAdvanced.TargetFilter.RequiredTags.SequenceEqual(["player", "hero"]) &&
-                         appliedAdvanced.TargetFilter.FactionIds.SequenceEqual([factionId]) &&
-                         appliedAdvanced.TargetFilter.RequiredComponents.SequenceEqual(["health", "inventory"]) &&
-                         appliedAdvanced.TargetFilter.SandboxPredicate == "quest==active";
-            var gameplayVolumes = appliedAdvanced.GameplayVolumes.Count == 10 &&
-                                  appliedAdvanced.GameplayVolumes.Select(item => item.Kind).Distinct().Count() == 10 &&
-                                  appliedAdvanced.GameplayVolumes.Single(item =>
+            var confirmedAdvanced = appliedAdvanced!;
+            var advancedCreation = loadedTarget.Advanced is null && appliedTarget.AdvancedRequiredAtRuntime;
+            var trap = confirmedAdvanced.Trap.DetectionDifficulty == 18 &&
+                       confirmedAdvanced.Trap.DisarmDifficulty == 22 &&
+                       confirmedAdvanced.Trap.ResetDelaySeconds == 45 &&
+                       confirmedAdvanced.Trap.PayloadId == "damage:ember-burst" &&
+                       confirmedAdvanced.Trap.GameMasterVisualization;
+            var filter = confirmedAdvanced.TargetFilter.PlayersOnly &&
+                         confirmedAdvanced.TargetFilter.RequiredTags.SequenceEqual(["player", "hero"]) &&
+                         confirmedAdvanced.TargetFilter.FactionIds.SequenceEqual([factionId]) &&
+                         confirmedAdvanced.TargetFilter.RequiredComponents.SequenceEqual(["health", "inventory"]) &&
+                         confirmedAdvanced.TargetFilter.SandboxPredicate == "quest==active";
+            var gameplayVolumes = confirmedAdvanced.GameplayVolumes.Count == 10 &&
+                                  confirmedAdvanced.GameplayVolumes.Select(item => item.Kind).Distinct().Count() == 10 &&
+                                  confirmedAdvanced.GameplayVolumes.Single(item =>
                                       item.Kind == TriggerGameplayVolumeKind.Damage)
                                       .NumericParameters["health"] == -17 &&
-                                  appliedAdvanced.GameplayVolumes.Single(item =>
+                                  confirmedAdvanced.GameplayVolumes.Single(item =>
                                       item.Kind == TriggerGameplayVolumeKind.Damage)
                                       .TextParameters["authored.note"] == "braises";
-            var occupancy = appliedAdvanced.OccupancyDebug is
+            var occupancy = confirmedAdvanced.OccupancyDebug is
             {
                 Enabled: true,
                 ShowOccupants: true,

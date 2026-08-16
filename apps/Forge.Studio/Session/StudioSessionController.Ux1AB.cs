@@ -385,17 +385,38 @@ internal sealed partial class StudioSessionController
                 out var freshCommand,
                 out var freshProfile,
                 out _);
+            var existingCommandDryRun = dryRunCommand is { DryRun: true };
+            var existingOrderPreserved = dryRunCommand?.Catalog.Doors.Select(profile => profile.Id)
+                .SequenceEqual(loadedOrder) == true;
+            var freshCommandBuilt = freshBuilt && freshCommand is not null && freshProfile is not null;
+            var expectedFreshOrder = loadedOrder.Append(freshProfile?.Id ?? Guid.Empty).OrderBy(id => id);
+            var freshOrderCanonical = freshCommand?.Catalog.Doors.Select(profile => profile.Id)
+                .SequenceEqual(expectedFreshOrder) == true;
+            var freshStableIdentity = freshProfile?.Id == StableDoorIdUx1AB(freshBlueprint.Id);
+            var commandKeptProject = ReferenceEquals(beforePreview, editing.Project);
+            var commandKeptRevision = history.State.Revision == beforeRevision;
             var canonicalCommand = commandBuilt && commandPreview?.Succeeded == true && builtProfile is not null &&
-                                   dryRunCommand is { DryRun: true } doorCommand &&
-                                   doorCommand.Catalog.Doors.Select(profile => profile.Id)
-                                       .SequenceEqual(loadedOrder) &&
-                                   freshBuilt && freshCommand is { } newDoorCommand &&
-                                   freshProfile is { } newDoorProfile &&
-                                   newDoorCommand.Catalog.Doors.Select(profile => profile.Id)
-                                       .SequenceEqual(loadedOrder.Append(newDoorProfile.Id)) &&
-                                   newDoorProfile.Id == StableDoorIdUx1AB(freshBlueprint.Id) &&
-                                   ReferenceEquals(beforePreview, editing.Project) &&
-                                   history.State.Revision == beforeRevision;
+                                   existingCommandDryRun && existingOrderPreserved && freshCommandBuilt &&
+                                   freshOrderCanonical && freshStableIdentity && commandKeptProject &&
+                                   commandKeptRevision;
+            if (!canonicalCommand)
+            {
+                Godot.GD.PrintErr(
+                    "OPENRPG_FORGE_STUDIO_UX1AB_COMMAND_FAILED " +
+                    $"built={commandBuilt.ToString().ToLowerInvariant()} " +
+                    $"preview={(commandPreview?.Succeeded == true).ToString().ToLowerInvariant()} " +
+                    $"profile={(builtProfile is not null).ToString().ToLowerInvariant()} " +
+                    $"dry_run={existingCommandDryRun.ToString().ToLowerInvariant()} " +
+                    $"order={existingOrderPreserved.ToString().ToLowerInvariant()} " +
+                    $"fresh={freshCommandBuilt.ToString().ToLowerInvariant()} " +
+                    $"fresh_order={freshOrderCanonical.ToString().ToLowerInvariant()} " +
+                    $"fresh_identity={freshStableIdentity.ToString().ToLowerInvariant()} " +
+                    $"project={commandKeptProject.ToString().ToLowerInvariant()} " +
+                    $"revision={commandKeptRevision.ToString().ToLowerInvariant()} " +
+                    $"loaded_order={string.Join(',', loadedOrder)} " +
+                    $"fresh_order_actual={string.Join(',', freshCommand?.Catalog.Doors.Select(item => item.Id) ?? [])} " +
+                    $"fresh_order_expected={string.Join(',', expectedFreshOrder)}");
+            }
 
             var builtDamage = builtProfile?.Damage;
             var damagePolicy = plotPreview.Succeeded && builtDamage is
@@ -537,26 +558,26 @@ internal sealed partial class StudioSessionController
             var persisted = reopened.Project?.Module.WorldFeatures.Doors.Single(profile =>
                 profile.BlueprintId == targetBlueprint.Id);
             var persistence = saved.Succeeded && reopen.Succeeded && persisted is
-                              {
-                                  Damage:
-                                  {
-                                      MaximumHealth: 120,
-                                      Hardness: 6,
-                                      PlotProtected: false,
-                                      BreachedVisual: "door.ab.breached",
-                                      UpdateNavigation: true,
-                                      DebrisAssetId: "assets/debris/door-ab.glb",
-                                      RepairServiceId: "service.repair-door-ab",
-                                  },
-                                  Loading:
-                                  {
-                                      ImageAssetId: "assets/loading/door-ab.png",
-                                      TitleKey: "loading.door-ab.title",
-                                      TipKey: "loading.door-ab.tip",
-                                      UseDestinationFallback: false,
-                                      MinimumDisplaySeconds: .75,
-                                  },
-                              } persistedProfile && persistedProfile.Events.Select(binding => binding.Event)
+            {
+                Damage:
+                {
+                    MaximumHealth: 120,
+                    Hardness: 6,
+                    PlotProtected: false,
+                    BreachedVisual: "door.ab.breached",
+                    UpdateNavigation: true,
+                    DebrisAssetId: "assets/debris/door-ab.glb",
+                    RepairServiceId: "service.repair-door-ab",
+                },
+                Loading:
+                {
+                    ImageAssetId: "assets/loading/door-ab.png",
+                    TitleKey: "loading.door-ab.title",
+                    TipKey: "loading.door-ab.tip",
+                    UseDestinationFallback: false,
+                    MinimumDisplaySeconds: .75,
+                },
+            } persistedProfile && persistedProfile.Events.Select(binding => binding.Event)
                                   .SequenceEqual(expectedEventOrder) &&
                               persistedProfile.Events.Single(binding =>
                                   binding.Event == DamageAppliedEventUx1AB).ScriptId ==

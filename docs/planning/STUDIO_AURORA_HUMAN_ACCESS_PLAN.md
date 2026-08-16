@@ -717,6 +717,43 @@ Le jalon intégré UX1-X/Y/Z passe ensuite `scripts/Verify.ps1` dans son intégr
 59 067 relations et 0 diagnostic, puis smokes Studio, Runtime, Forward+, MCP et réseau. Les onze
 routes ne sont promues qu'après ce verdict transversal.
 
+## Troisième train parallèle livré : UX1-AA, UX1-AB et UX1-AC
+
+Le troisième train a livré onze routes UX1 supplémentaires le 17 août 2026. La matrice compte
+désormais 93 routes `functional` et 624 `planned` ; 20 routes de la vague UX1 restent à qualifier.
+Les trois writers ont travaillé sur des fichiers dédiés depuis la même base, sans build concurrent.
+Le coordinateur a revu puis intégré les branches une à une, raccordé seul le shell partagé et
+sérialisé builds, tests, smokes, captures, matrice et graphe.
+
+### UX1-AA — Assemblage et validation du placeable
+
+`ORF-PLC-025`, `ORF-PLC-026` et `ORF-PLC-027` sont `functional`. La surface impose une sélection
+explicite, édite socket/assemblage et actions contextuelles, puis localise les échecs collision,
+références et budgets. Foundation, collision, Operations et DamageEvents manquants bloquent le
+parcours produit sans synthèse. Le portail incrémental passe 8/8 en 54,91 s ; les captures Forward+
+FHD/QHD/4K inspectées et la preuve isolée sont liées à `docs/acceptance/STUDIO_UX1_AA.md`.
+
+### UX1-AB — Dégâts, chargement et événements de porte
+
+`ORF-DOOR-007`, `ORF-DOOR-010`, `ORF-DOOR-014` et `ORF-DOOR-015` sont `functional`. Solidité,
+présentation de chargement, OnDamaged/OnDeath et attaque physique passent par dry-run, garde de
+révision, commande, undo/redo et round-trip. Les événements gérés sont fusionnés sous autorité
+serveur ; les événements et agrégats voisins restent préservés. Le portail incrémental passe 2/2 en
+55,42 s et les captures FHD/QHD/4K sont liées à `docs/acceptance/STUDIO_UX1_AB.md`.
+
+### UX1-AC — Trigger avancé
+
+`ORF-TRG-004`, `ORF-TRG-011`, `ORF-TRG-017` et `ORF-TRG-019` sont `functional`. Le formulaire
+expose piège, filtre de cible, dix volumes obligatoires et occupation. Une Foundation absente reste
+un état bloqué renvoyant vers UX1-Y ; seule la preuve emploie une session temporaire isolée. Le
+portail incrémental passe 10/10 en 59,92 s et les captures FHD/QHD/4K inspectées sont liées à
+`docs/acceptance/STUDIO_UX1_AC.md`.
+
+Le jalon intégré UX1-AA/AB/AC a ensuite passé `scripts/Verify.ps1` dans son intégralité : 1 980 tests
+.NET, 39 tests Python, builds sans avertissement, graphe Roslyn déterministe à 9 010 nœuds et
+59 698 relations sans diagnostic, puis smokes Studio, Runtime, Forward+, MCP et réseau. Ce verdict
+transversal clôt la promotion des onze routes.
+
 ## Gates ergonomiques avant parité
 
 Une page ne passe pas `Parity` si l’un des points suivants manque :

@@ -6,7 +6,7 @@ using Godot;
 
 namespace Forge.Studio.Presentation;
 
-internal sealed class StudioPlaceableAssemblyValidationOverlay : PanelContainer
+internal sealed partial class StudioPlaceableAssemblyValidationOverlay : PanelContainer
 {
     private readonly StudioSessionController _sourceSession;
     private StudioSessionController _session;
@@ -60,6 +60,8 @@ internal sealed class StudioPlaceableAssemblyValidationOverlay : PanelContainer
 
     internal bool IsOpen => Visible;
     internal int PlaceableCount => _placeableIds.Count;
+    internal int SectionCount => 3;
+    internal bool HasExplicitSelection => _placeable.Selected > 0 && _draft is not null;
     internal bool PreviewReady => _preview is { Succeeded: true, CanApply: true };
     internal bool UsesIsolatedEvidence => _evidenceWorkspace is not null;
     internal bool EvidenceSourceUntouched => _evidenceSourceSnapshot is { } snapshot
@@ -1003,6 +1005,7 @@ internal sealed class StudioPlaceableAssemblyValidationOverlay : PanelContainer
         private readonly SpinBox _snap;
         private readonly CheckBox _align;
         private readonly LineEdit _animation;
+        private Guid? _parentId;
         private bool _loading;
 
         internal event Action? Changed;
@@ -1043,6 +1046,7 @@ internal sealed class StudioPlaceableAssemblyValidationOverlay : PanelContainer
             Set(_scale, draft.Scale);
             Set(_pivot, draft.Pivot);
             _snap.Value = draft.SnapIncrement;
+            _parentId = draft.ParentId;
             _align.ButtonPressed = draft.AlignToSurface;
             _animation.Text = draft.TransformAnimationId;
             _loading = false;
@@ -1054,6 +1058,7 @@ internal sealed class StudioPlaceableAssemblyValidationOverlay : PanelContainer
             Get(_scale),
             Get(_pivot),
             _snap.Value,
+            _parentId,
             _align.ButtonPressed,
             _animation.Text);
 

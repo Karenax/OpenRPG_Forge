@@ -228,6 +228,14 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
   événement personnalisé et politique physique honnête, avec préservation et round-trip.
 - [x] Clôturer le jalon UX1-X/Y/Z par les trois portails incrémentaux, les preuves Forward+ FHD,
   la revue corrective FHD/QHD/4K d'UX1-Y et le portail transversal complet.
+- [x] Réaliser UX1-AA sur `ORF-PLC-025` à `ORF-PLC-027` : sockets/assemblages, actions contextuelles
+  et validation de placeable, sans synthétiser les prérequis manquants dans le projet source.
+- [x] Réaliser UX1-AB sur `ORF-DOOR-007`, `ORF-DOOR-010`, `ORF-DOOR-014` et `ORF-DOOR-015` :
+  dégâts, chargement et événements serveur bornés, avec fusion/préservation canonique.
+- [x] Réaliser UX1-AC sur `ORF-TRG-004`, `ORF-TRG-011`, `ORF-TRG-017` et `ORF-TRG-019` : piège,
+  filtre, dix volumes et occupation, Foundation explicitement requise.
+- [x] Clôturer le jalon UX1-AA/AB/AC par 20/20 tests ciblés, trois portails incrémentaux, les preuves
+  Forward+ FHD/QHD/4K, la matrice régénérée et le portail transversal complet.
 - [ ] Achever la tranche Monde : terrain, navigation, puis activer **Tester ici** sur
   snapshot isolé.
 - [ ] Migrer Contenu, Histoire, Gameplay, Tester, Publier, Projet et Assistant page par page, en

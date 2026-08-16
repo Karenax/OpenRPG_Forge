@@ -9,6 +9,9 @@ internal sealed partial class StudioPlaceableBlueprintOverlay
 
     internal bool AssemblyValidationOpen => _assemblyValidationOverlay?.IsOpen == true;
     internal int AssemblyValidationPlaceableCount => _assemblyValidationOverlay?.PlaceableCount ?? 0;
+    internal int AssemblyValidationSectionCount => _assemblyValidationOverlay?.SectionCount ?? 0;
+    internal bool AssemblyValidationHasExplicitSelection =>
+        _assemblyValidationOverlay?.HasExplicitSelection == true;
     internal bool AssemblyValidationPreviewReady => _assemblyValidationOverlay?.PreviewReady == true;
     internal bool AssemblyValidationShowsHumanSurface => _assemblyValidationOverlay?.ShowsHumanSurface == true;
     internal bool AssemblyValidationUsesIsolatedEvidence =>
