@@ -85,6 +85,7 @@ internal sealed partial class StudioWorkspaceShell
         var originalSelection = _session.SelectedEntityIds.ToArray();
         var originalActive = _session.SelectedEntityId;
         var originalDirty = _session.IsDirty;
+        var fallbackExpected = !_session.TriggerAdvancedChoicesUx1AC.Any(item => item.HasFoundation);
         var uiTransaction = _triggerAdvancedOverlay.RunUiTransactionEvidence();
         var evidencePrepared = PrepareUx1ACEvidence("ux1-ac-trigger-advanced");
         var overlayOpen = _triggerAdvancedOverlay.IsOpen;
@@ -94,6 +95,8 @@ internal sealed partial class StudioWorkspaceShell
         var explicitSelection = _triggerAdvancedOverlay.HasExplicitSelection;
         var typedBindings = _triggerAdvancedOverlay.HasTypedBindings;
         var humanSurface = _triggerAdvancedOverlay.ShowsHumanSurface;
+        var isolatedFallback = _triggerAdvancedOverlay.UsesIsolatedEvidence;
+        var evidenceSourceUntouched = _triggerAdvancedOverlay.EvidenceSourceUntouched;
         var uiReady = evidencePrepared &&
                       PageId == "placement" &&
                       overlayOpen &&
@@ -102,8 +105,12 @@ internal sealed partial class StudioWorkspaceShell
                       volumeCount == 10 &&
                       explicitSelection &&
                       typedBindings &&
-                      humanSurface;
+                      humanSurface &&
+                      isolatedFallback == fallbackExpected &&
+                      evidenceSourceUntouched;
         _triggerAdvancedOverlay.Close();
+        var evidenceResourcesReleased = _triggerAdvancedOverlay.EvidenceResourcesReleased;
+        var sourceSessionRestored = _triggerAdvancedOverlay.SourceSessionRestored;
         _session.SelectEntities(originalSelection, originalActive);
         WorldViewport.SetSelections(_session.SelectedEntityIds, _session.SelectedEntityId);
         var result = _session.RunUx1ACContractSmoke();
@@ -116,9 +123,13 @@ internal sealed partial class StudioWorkspaceShell
                 $"OPENRPG_FORGE_STUDIO_UX1AC_UI_SURFACE_FAILED prepared={evidencePrepared.ToString().ToLowerInvariant()} " +
                 $"open={overlayOpen.ToString().ToLowerInvariant()} sections={sectionCount} choices={choiceCount} " +
                 $"volumes={volumeCount} selected={explicitSelection.ToString().ToLowerInvariant()} " +
-                $"typed={typedBindings.ToString().ToLowerInvariant()} human={humanSurface.ToString().ToLowerInvariant()}");
+                $"typed={typedBindings.ToString().ToLowerInvariant()} human={humanSurface.ToString().ToLowerInvariant()} " +
+                $"fallback_expected={fallbackExpected.ToString().ToLowerInvariant()} " +
+                $"isolated_fallback={isolatedFallback.ToString().ToLowerInvariant()} " +
+                $"source_untouched={evidenceSourceUntouched.ToString().ToLowerInvariant()}");
         }
-        var valid = result.Succeeded && uiReady && uiTransaction && currentProjectUntouched;
+        var valid = result.Succeeded && uiReady && uiTransaction && currentProjectUntouched &&
+                    evidenceResourcesReleased && sourceSessionRestored;
         GD.Print(
             $"OPENRPG_FORGE_STUDIO_UX1AC_{(valid ? "PASS" : "FAILED")} " +
             $"selection_explicit={result.SelectionExplicit.ToString().ToLowerInvariant()} " +
@@ -144,6 +155,11 @@ internal sealed partial class StudioWorkspaceShell
             $"validation_preserved={result.ValidationPreserved.ToString().ToLowerInvariant()} " +
             $"neighbors_preserved={result.NeighborPreserved.ToString().ToLowerInvariant()} " +
             $"human_no_uuid={result.HumanDiagnostics.ToString().ToLowerInvariant()} " +
+            $"fallback_expected={fallbackExpected.ToString().ToLowerInvariant()} " +
+            $"isolated_fallback={isolatedFallback.ToString().ToLowerInvariant()} " +
+            $"evidence_source_untouched={evidenceSourceUntouched.ToString().ToLowerInvariant()} " +
+            $"evidence_released={evidenceResourcesReleased.ToString().ToLowerInvariant()} " +
+            $"source_session_restored={sourceSessionRestored.ToString().ToLowerInvariant()} " +
             $"ui={uiReady.ToString().ToLowerInvariant()} " +
             $"ui_transaction={uiTransaction.ToString().ToLowerInvariant()} " +
             $"project_restored={currentProjectUntouched.ToString().ToLowerInvariant()} windows=1");

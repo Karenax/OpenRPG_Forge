@@ -1,6 +1,9 @@
+using Forge.Application.Commands;
 using Forge.Application.Projects;
 using Forge.Domain.Areas;
 using Forge.Domain.Blueprints;
+using Forge.Domain.Entities;
+using Forge.Domain.Projects;
 using Forge.Domain.WorldFeatures;
 
 namespace Forge.Studio.Session;
@@ -36,6 +39,18 @@ internal sealed record StudioTriggerAdvancedPreview(
     bool CanApply);
 
 internal sealed record StudioUx1ACActionResult(bool Succeeded, string Message);
+
+internal sealed record StudioUx1ACEvidenceSourceSnapshot(
+    ProjectDefinition Project,
+    ProjectCommandHistory History,
+    ProjectRevision Revision,
+    IReadOnlyList<CommandHistoryJournalEntry> Journal,
+    bool IsDirty,
+    bool CanUndo,
+    bool CanRedo,
+    AreaId? ActiveAreaId,
+    IReadOnlyList<EntityId> SelectedEntityIds,
+    EntityId? SelectedEntityId);
 
 internal sealed record StudioUx1ACSmokeResult(
     bool Succeeded,

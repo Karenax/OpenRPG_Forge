@@ -62,6 +62,147 @@ internal sealed partial class StudioSessionController
             .Select(item => new StudioTriggerFactionChoice(item.Id, item.DisplayName))
             .ToArray() ?? [];
 
+    internal ProjectDefinition? CreateUx1ACEvidenceProject()
+    {
+        var project = Project;
+        var area = ActiveArea;
+        if (project is null || area is null)
+        {
+            return null;
+        }
+
+        var catalog = project.Module.WorldFeatures;
+        var occupied = new[] { project.Id.Value, project.Module.Id.Value }
+            .Concat(project.Blueprints.Select(item => item.Id.Value))
+            .Concat(project.Areas.Select(item => item.Id.Value))
+            .Concat(catalog.Placeables.Select(item => item.Id))
+            .Concat(catalog.Doors.Select(item => item.Id))
+            .Concat(catalog.Triggers.Select(item => item.Id))
+            .Concat(catalog.Encounters.Select(item => item.Id))
+            .Concat(catalog.VehicleRoutes.Select(item => item.Id))
+            .Concat(catalog.Merchants.Select(item => item.Id))
+            .Concat(catalog.Companions.Select(item => item.Id))
+            .ToHashSet();
+        var salt = 0;
+        Guid[] ids;
+        do
+        {
+            ids = Enumerable.Range(0, 6)
+                .Select(index => StableTriggerAdvancedIdUx1AC(
+                    project.Id.Value,
+                    $"evidence-{area.Id.Value:N}-{salt}-{index}"))
+                .ToArray();
+            salt++;
+        } while (ids.Distinct().Count() != ids.Length || ids.Any(occupied.Contains));
+
+        var slugBase = "ux1-ac-evidence-trigger";
+        var slug = slugBase;
+        var slugIndex = 1;
+        var existingSlugs = project.Blueprints.Select(item => item.Slug).ToHashSet(StringComparer.Ordinal);
+        while (existingSlugs.Contains(slug))
+        {
+            slug = $"{slugBase}-{slugIndex++}";
+        }
+
+        var blueprint = new BlueprintDefinition(
+            BlueprintId.From(ids[0]),
+            slug,
+            "Déclencheur de preuve UX1-AC",
+            BlueprintKind.Trigger);
+        var foundation = new TriggerWorldProfile.FoundationPolicy(
+            ids[2],
+            WorldFeatureCatalog.CurrentSchemaVersion,
+            Ux1ACProvenance,
+            slug,
+            new TriggerWorldProfile.ShapePolicy(
+                TriggerWorldProfile.ShapeKind.ExtrudedPolygon2D,
+                [new(-2, 0, -2), new(2, 0, -2), new(2, 0, 2), new(-2, 0, 2)],
+                [],
+                new Vector3Value(4, 3, 4),
+                3,
+                .25,
+                true),
+            new TriggerWorldProfile.FilterPolicy(
+                ["creature"],
+                ["player"],
+                [],
+                ["characters"]),
+            [],
+            0,
+            TriggerWorldProfile.FirePolicy.OncePerEntity,
+            [new TriggerWorldProfile.ActionPolicy(
+                ids[3],
+                "script",
+                "trigger:ux1-ac-evidence",
+                new Dictionary<string, string>(StringComparer.Ordinal))],
+            null,
+            new TriggerWorldProfile.TransformPolicy(
+                Vector3Value.Zero,
+                Vector3Value.Zero,
+                Vector3Value.One,
+                null),
+            new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["editor.overlay"] = "volume",
+                ["evidence.scope"] = "isolated",
+            },
+            new TriggerWorldProfile.EventPolicy(
+                ids[4],
+                WorldFeatureCatalog.CurrentSchemaVersion,
+                Ux1ACProvenance,
+                "1.0.0",
+                "VolumeEntered",
+                null,
+                null),
+            new TriggerWorldProfile.EventPolicy(
+                ids[5],
+                WorldFeatureCatalog.CurrentSchemaVersion,
+                Ux1ACProvenance,
+                "1.0.0",
+                "VolumeExited",
+                null,
+                null));
+        var profile = new TriggerWorldProfile(
+            ids[1],
+            WorldFeatureCatalog.CurrentSchemaVersion,
+            Ux1ACProvenance,
+            blueprint.Id,
+            area.Id,
+            null,
+            null,
+            null,
+            "trigger.ux1-ac-evidence",
+            null,
+            null,
+            null,
+            null,
+            null,
+            foundation,
+            true,
+            null,
+            false);
+        var evidenceCatalog = new WorldFeatureCatalog(
+            catalog.Id,
+            catalog.SchemaVersion,
+            catalog.Provenance,
+            catalog.Placeables,
+            catalog.Doors,
+            catalog.Triggers.Append(profile).ToArray(),
+            catalog.Encounters,
+            catalog.VehicleRoutes,
+            catalog.Merchants,
+            catalog.Companions,
+            catalog.Scripts);
+        return new ProjectDefinition(
+            project.Id,
+            project.Title,
+            project.Module.WithWorldFeatures(evidenceCatalog),
+            project.Blueprints.Append(blueprint).ToArray(),
+            project.Areas,
+            project.Dialogues,
+            project.Quests);
+    }
+
     internal StudioTriggerAdvancedDraft? CreateTriggerAdvancedDraftUx1AC(Guid? requestedProfileId = null)
     {
         var history = History;

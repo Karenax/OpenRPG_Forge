@@ -166,7 +166,14 @@ internal sealed partial class StudioTriggerAdvancedVolumeEditor : PanelContainer
 
 internal sealed partial class StudioTriggerAdvancedOverlay : Control
 {
-    private readonly StudioSessionController _session;
+    private readonly StudioSessionController _sourceSession;
+    private StudioSessionController _session;
+    private StudioSessionController? _evidenceSession;
+    private StudioUx1ACEvidenceSourceSnapshot? _evidenceSourceSnapshot;
+    private string? _evidenceTempRoot;
+    private bool _lastEvidenceSourceUntouched = true;
+    private bool _lastEvidenceResourcesReleased = true;
+    private bool _lastSourceRestored = true;
     private readonly PanelContainer _dialog;
     private readonly OptionButton _trigger;
     private readonly Label _selection;
@@ -244,6 +251,19 @@ internal sealed partial class StudioTriggerAdvancedOverlay : Control
 
     internal bool HasTypedBindings => _volumeEditors.All(item => item.HasTypedBindings);
 
+    internal bool UsesIsolatedEvidence =>
+        _evidenceSession is not null && ReferenceEquals(_session, _evidenceSession);
+
+    internal bool EvidenceSourceUntouched => _evidenceSourceSnapshot is { } snapshot
+        ? SourceMatchesSnapshot(snapshot)
+        : _lastEvidenceSourceUntouched;
+
+    internal bool EvidenceResourcesReleased =>
+        _evidenceSession is null && _evidenceTempRoot is null && _lastEvidenceResourcesReleased;
+
+    internal bool SourceSessionRestored =>
+        ReferenceEquals(_session, _sourceSession) && _lastSourceRestored;
+
     internal bool ShowsHumanSurface
     {
         get
@@ -264,7 +284,8 @@ internal sealed partial class StudioTriggerAdvancedOverlay : Control
 
     internal StudioTriggerAdvancedOverlay(StudioSessionController session)
     {
-        _session = session ?? throw new ArgumentNullException(nameof(session));
+        _sourceSession = session ?? throw new ArgumentNullException(nameof(session));
+        _session = _sourceSession;
         Name = "StudioTriggerAdvancedOverlay";
         Visible = false;
         ZIndex = 449;
@@ -509,6 +530,16 @@ internal sealed partial class StudioTriggerAdvancedOverlay : Control
 
     internal void Open()
     {
+        if (_evidenceSession is not null || _evidenceTempRoot is not null)
+        {
+            Close();
+        }
+        _session = _sourceSession;
+        OpenBoundSession();
+    }
+
+    private void OpenBoundSession()
+    {
         _session.CancelTriggerAdvancedUx1AC();
         _choices = _session.TriggerAdvancedChoicesUx1AC;
         _factionChoices = _session.TriggerFactionChoicesUx1AC;
@@ -540,10 +571,15 @@ internal sealed partial class StudioTriggerAdvancedOverlay : Control
 
     internal void Close()
     {
+        var sourceUntouched = _evidenceSourceSnapshot is not { } snapshot || SourceMatchesSnapshot(snapshot);
         _session.CancelTriggerAdvancedUx1AC();
         Visible = false;
         _draft = null;
         _applied = false;
+        var released = ReleaseIsolatedEvidenceSession();
+        _lastEvidenceSourceUntouched = sourceUntouched;
+        _lastEvidenceResourcesReleased = released;
+        _lastSourceRestored = ReferenceEquals(_session, _sourceSession);
     }
 
     internal bool PrepareEvidence(string mode)
@@ -552,7 +588,16 @@ internal sealed partial class StudioTriggerAdvancedOverlay : Control
         var index = _choices.ToList().FindIndex(item => item.HasFoundation);
         if (index < 0)
         {
-            return false;
+            if (!TryOpenIsolatedEvidenceSession())
+            {
+                return false;
+            }
+            index = _choices.ToList().FindIndex(item => item.HasFoundation);
+            if (index < 0)
+            {
+                Close();
+                return false;
+            }
         }
         _trigger.Select(index + 1);
         LoadChoice(index);
@@ -564,23 +609,26 @@ internal sealed partial class StudioTriggerAdvancedOverlay : Control
             mode.Contains("volume", StringComparison.OrdinalIgnoreCase) ||
             mode.Contains("occupation", StringComparison.OrdinalIgnoreCase) ? 2 : 0);
         Preview();
-        return !_apply.Disabled && HasExplicitSelection && HasTypedBindings && ShowsHumanSurface;
+        if (UsesIsolatedEvidence)
+        {
+            _selection.Text += " · session de preuve isolée";
+            _summary.Text =
+                "PREUVE ISOLÉE · le projet source ne contient encore aucune Foundation de trigger et reste strictement inchangé.\n" +
+                _summary.Text;
+            SetStatus("Preuve isolée prête · fermeture = suppression de la session temporaire", error: false);
+        }
+        return !_apply.Disabled && HasExplicitSelection && HasTypedBindings && ShowsHumanSurface &&
+               EvidenceSourceUntouched;
     }
 
     internal bool RunUiTransactionEvidence()
     {
-        var originalProject = _session.Project;
-        var originalHistory = _session.History;
-        if (originalProject is null || originalHistory is null)
+        var sourceSnapshot = CaptureSourceSnapshot();
+        if (sourceSnapshot is null)
         {
             return false;
         }
 
-        var originalDirty = _session.IsDirty;
-        var originalRevision = originalHistory.State.Revision;
-        var originalJournal = originalHistory.Journal.ToArray();
-        var originalCanUndo = originalHistory.CanUndo;
-        var originalCanRedo = originalHistory.CanRedo;
         var tempRoot = Path.Combine(
             Path.GetTempPath(),
             "openrpg-forge-studio-ux1ac-ui-" + Guid.NewGuid().ToString("N"));
@@ -588,25 +636,16 @@ internal sealed partial class StudioTriggerAdvancedOverlay : Control
         StudioTriggerAdvancedOverlay? isolatedOverlay = null;
         try
         {
-            var created = ProjectSession.Create(tempRoot, originalProject);
+            var created = ProjectSession.Create(tempRoot, sourceSnapshot.Project);
             if (!created.Succeeded ||
-                !isolatedSession.Open(tempRoot, _session.ActiveAreaId?.ToString()).Succeeded)
+                !isolatedSession.Open(tempRoot, sourceSnapshot.ActiveAreaId?.ToString()).Succeeded)
             {
                 return false;
             }
             isolatedOverlay = new StudioTriggerAdvancedOverlay(isolatedSession);
             AddChild(isolatedOverlay);
             var isolatedEvidence = isolatedOverlay.RunBoundUiTransactionEvidence();
-            var currentHistory = _session.History;
-            var sourceUntouched = ReferenceEquals(originalProject, _session.Project) &&
-                                  _session.IsDirty == originalDirty &&
-                                  ReferenceEquals(originalHistory, currentHistory) &&
-                                  currentHistory is not null &&
-                                  currentHistory.State.Revision == originalRevision &&
-                                  currentHistory.CanUndo == originalCanUndo &&
-                                  currentHistory.CanRedo == originalCanRedo &&
-                                  currentHistory.Journal.SequenceEqual(originalJournal);
-            return isolatedEvidence && sourceUntouched;
+            return isolatedEvidence && SourceMatchesSnapshot(sourceSnapshot);
         }
         catch (Exception exception)
         {
@@ -623,42 +662,193 @@ internal sealed partial class StudioTriggerAdvancedOverlay : Control
                 isolatedOverlay.Free();
             }
             isolatedSession.Close();
-            if (Directory.Exists(tempRoot))
-            {
-                Directory.Delete(tempRoot, recursive: true);
-            }
+            DeleteEvidenceRoot(tempRoot);
         }
     }
 
     private bool RunBoundUiTransactionEvidence()
     {
-        var originalProject = _session.Project;
-        var originalDirty = _session.IsDirty;
+        var boundSourceSnapshot = CaptureSourceSnapshot();
+        if (boundSourceSnapshot is null)
+        {
+            return false;
+        }
         var ready = PrepareEvidence("ux1-ac-trigger-advanced");
-        var dryRun = ready && ReferenceEquals(originalProject, _session.Project) &&
-                     _session.IsDirty == originalDirty;
+        var usedFallback = UsesIsolatedEvidence;
+        var transactionSession = _session;
+        var originalProject = transactionSession.Project;
+        var originalDirty = transactionSession.IsDirty;
+        var dryRun = ready && originalProject is not null &&
+                     ReferenceEquals(originalProject, transactionSession.Project) &&
+                     transactionSession.IsDirty == originalDirty &&
+                     (!usedFallback || SourceMatchesSnapshot(boundSourceSnapshot));
         Apply();
-        var appliedProject = _session.Project;
+        var appliedProject = transactionSession.Project;
         var applied = dryRun && _applied && !ReferenceEquals(originalProject, appliedProject);
         if (applied)
         {
             Undo();
         }
-        var undone = applied && ReferenceEquals(originalProject, _session.Project) &&
-                     _session.IsDirty == originalDirty;
+        var undone = applied && ReferenceEquals(originalProject, transactionSession.Project) &&
+                     transactionSession.IsDirty == originalDirty;
         if (undone)
         {
             Redo();
         }
-        var redone = undone && ReferenceEquals(appliedProject, _session.Project);
+        var redone = undone && ReferenceEquals(appliedProject, transactionSession.Project);
         if (redone)
         {
             Undo();
         }
-        var restored = redone && ReferenceEquals(originalProject, _session.Project) &&
-                       _session.IsDirty == originalDirty;
+        var restored = redone && ReferenceEquals(originalProject, transactionSession.Project) &&
+                       transactionSession.IsDirty == originalDirty;
+        var boundSourceUntouched = !usedFallback || SourceMatchesSnapshot(boundSourceSnapshot);
         Close();
-        return dryRun && applied && undone && redone && restored;
+        return dryRun && applied && undone && redone && restored && boundSourceUntouched &&
+               EvidenceResourcesReleased && SourceSessionRestored;
+    }
+
+    private bool TryOpenIsolatedEvidenceSession()
+    {
+        var snapshot = CaptureSourceSnapshot();
+        var evidenceProject = _sourceSession.CreateUx1ACEvidenceProject();
+        if (snapshot is null || evidenceProject is null)
+        {
+            return false;
+        }
+
+        var tempRoot = Path.Combine(
+            Path.GetTempPath(),
+            "openrpg-forge-studio-ux1ac-evidence-" + Guid.NewGuid().ToString("N"));
+        var evidenceSession = new StudioSessionController();
+        try
+        {
+            var created = ProjectSession.Create(tempRoot, evidenceProject);
+            if (!created.Succeeded ||
+                !evidenceSession.Open(tempRoot, snapshot.ActiveAreaId?.ToString()).Succeeded)
+            {
+                evidenceSession.Close();
+                _lastEvidenceResourcesReleased = DeleteEvidenceRoot(tempRoot);
+                _evidenceTempRoot = _lastEvidenceResourcesReleased ? null : tempRoot;
+                _session = _sourceSession;
+                _lastSourceRestored = true;
+                return false;
+            }
+
+            _evidenceSourceSnapshot = snapshot;
+            _evidenceSession = evidenceSession;
+            _evidenceTempRoot = tempRoot;
+            _session = evidenceSession;
+            _lastEvidenceResourcesReleased = false;
+            _lastSourceRestored = false;
+            OpenBoundSession();
+            var ready = _choices.Any(item => item.HasFoundation) && SourceMatchesSnapshot(snapshot);
+            if (!ready)
+            {
+                Close();
+            }
+            return ready;
+        }
+        catch (Exception exception)
+        {
+            GD.PrintErr(
+                $"OPENRPG_FORGE_STUDIO_UX1AC_EVIDENCE_FALLBACK_FAILED type={exception.GetType().Name} message={exception.Message}");
+            evidenceSession.Close();
+            var released = DeleteEvidenceRoot(tempRoot);
+            _evidenceSourceSnapshot = null;
+            _evidenceSession = null;
+            _evidenceTempRoot = released ? null : tempRoot;
+            _session = _sourceSession;
+            _lastEvidenceResourcesReleased = released;
+            _lastSourceRestored = true;
+            return false;
+        }
+    }
+
+    private StudioUx1ACEvidenceSourceSnapshot? CaptureSourceSnapshot()
+    {
+        var project = _sourceSession.Project;
+        var history = _sourceSession.History;
+        if (project is null || history is null)
+        {
+            return null;
+        }
+        return new StudioUx1ACEvidenceSourceSnapshot(
+            project,
+            history,
+            history.State.Revision,
+            history.Journal.ToArray(),
+            _sourceSession.IsDirty,
+            history.CanUndo,
+            history.CanRedo,
+            _sourceSession.ActiveAreaId,
+            _sourceSession.SelectedEntityIds.ToArray(),
+            _sourceSession.SelectedEntityId);
+    }
+
+    private bool SourceMatchesSnapshot(StudioUx1ACEvidenceSourceSnapshot snapshot)
+    {
+        var history = _sourceSession.History;
+        return ReferenceEquals(snapshot.Project, _sourceSession.Project) &&
+               ReferenceEquals(snapshot.History, history) &&
+               history is not null &&
+               history.State.Revision == snapshot.Revision &&
+               history.Journal.SequenceEqual(snapshot.Journal) &&
+               history.CanUndo == snapshot.CanUndo &&
+               history.CanRedo == snapshot.CanRedo &&
+               _sourceSession.IsDirty == snapshot.IsDirty &&
+               _sourceSession.ActiveAreaId == snapshot.ActiveAreaId &&
+               _sourceSession.SelectedEntityIds.SequenceEqual(snapshot.SelectedEntityIds) &&
+               _sourceSession.SelectedEntityId == snapshot.SelectedEntityId;
+    }
+
+    private bool ReleaseIsolatedEvidenceSession()
+    {
+        var evidenceSession = _evidenceSession;
+        var tempRoot = _evidenceTempRoot;
+        _evidenceSession = null;
+        _evidenceTempRoot = null;
+        _evidenceSourceSnapshot = null;
+        _session = _sourceSession;
+        var released = true;
+        try
+        {
+            evidenceSession?.Close();
+        }
+        catch (Exception exception)
+        {
+            released = false;
+            GD.PrintErr(
+                $"OPENRPG_FORGE_STUDIO_UX1AC_EVIDENCE_RELEASE_FAILED type={exception.GetType().Name} message={exception.Message}");
+        }
+        var rootReleased = DeleteEvidenceRoot(tempRoot);
+        if (!rootReleased)
+        {
+            _evidenceTempRoot = tempRoot;
+        }
+        return released && rootReleased;
+    }
+
+    private static bool DeleteEvidenceRoot(string? tempRoot)
+    {
+        if (tempRoot is null)
+        {
+            return true;
+        }
+        try
+        {
+            if (Directory.Exists(tempRoot))
+            {
+                Directory.Delete(tempRoot, recursive: true);
+            }
+            return !Directory.Exists(tempRoot);
+        }
+        catch (Exception exception)
+        {
+            GD.PrintErr(
+                $"OPENRPG_FORGE_STUDIO_UX1AC_EVIDENCE_DELETE_FAILED type={exception.GetType().Name} message={exception.Message}");
+            return false;
+        }
     }
 
     public override void _UnhandledKeyInput(InputEvent @event)
@@ -667,6 +857,14 @@ internal sealed partial class StudioTriggerAdvancedOverlay : Control
         {
             Close();
             GetViewport().SetInputAsHandled();
+        }
+    }
+
+    public override void _ExitTree()
+    {
+        if (_evidenceSession is not null || _evidenceTempRoot is not null)
+        {
+            Close();
         }
     }
 
