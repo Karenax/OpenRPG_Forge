@@ -36,6 +36,12 @@ public sealed record PlaceableLockEventsResolution(
     PlaceableSecurityEventsHandle? Handle,
     string? DiagnosticCode);
 
+public sealed record PlaceableContentsChangedResolution(
+    bool Available,
+    bool OptionalFallback,
+    PlaceableSecurityEventsHandle? Handle,
+    string? DiagnosticCode);
+
 public sealed record PlaceableLootRuntime(
     LootSpawner LootSpawner,
     LootTable LootTable);
@@ -117,6 +123,18 @@ public sealed class PlaceableSecurityEventsRuntimeAdapter
         return new(true, false, new(placeable.Id, placeable.SecurityEvents.Id), null);
     }
 
+    public PlaceableContentsChangedResolution ResolveContentsChanged(PlaceableWorldProfile placeable)
+    {
+        if (placeable.SecurityEvents?.ContentsChanged is null)
+        {
+            return placeable.ContentsChangedRequiredAtRuntime
+                ? new(false, false, null, "WORLD_PLACEABLE_CONTENTS_CHANGED_REQUIRED_MISSING")
+                : new(false, true, null, null);
+        }
+
+        return new(true, false, new(placeable.Id, placeable.SecurityEvents.Id), null);
+    }
+
     public TrapComponent BuildTrap(
         PlaceableSecurityEventsHandle handle,
         PlaceableWorldProfile placeable)
@@ -178,6 +196,12 @@ public sealed class PlaceableSecurityEventsRuntimeAdapter
         PlaceableWorldProfile placeable)
         => Require(handle, placeable).LockEvents ??
            throw new InvalidOperationException("WORLD_PLACEABLE_LOCK_EVENTS_MISSING");
+
+    public PlaceableContentsChangedEventProfile BuildContentsChanged(
+        PlaceableSecurityEventsHandle handle,
+        PlaceableWorldProfile placeable)
+        => Require(handle, placeable).ContentsChanged ??
+           throw new InvalidOperationException("WORLD_PLACEABLE_CONTENTS_CHANGED_MISSING");
 
     public TrapResult Detect(PlaceableSecurityEventsHandle handle, PlaceableWorldProfile placeable,
         double perception, string actorFaction)
@@ -256,11 +280,10 @@ public sealed class PlaceableSecurityEventsRuntimeAdapter
         string cause,
         string actorId)
     {
-        var runtime = Build(handle, placeable);
+        var policy = BuildContentsChanged(handle, placeable);
         var payload = PlaceableEventService.ContentsChanged(placeable.Id, previousRevision, delta, cause,
             actorId, placeable.SecurityEvents!.Provenance);
-        return new(runtime.ContentsChanged.ForgeScriptApiVersion, runtime.ContentsChanged.EventBinding,
-            payload);
+        return new(policy.ForgeScriptApiVersion, policy.EventBinding, payload);
     }
 
     private static PlaceableSecurityEventsProfile Require(

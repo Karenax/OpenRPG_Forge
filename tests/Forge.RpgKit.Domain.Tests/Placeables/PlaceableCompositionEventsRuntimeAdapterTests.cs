@@ -29,6 +29,44 @@ public sealed class PlaceableCompositionEventsRuntimeAdapterTests
     }
 
     [Fact]
+    public void Damage_and_destruction_resolve_without_sockets_or_multi_verbs()
+    {
+        var complete = PlaceableSecurityEventsRuntimeAdapterTests.Placeable();
+        var damageEvents = complete.CompositionEvents!.DamageEvents with
+        {
+            DamagedBinding = "PlaceableDamaged",
+            DestroyedBinding = "PlaceableDestroyed",
+        };
+        var placeable = complete with
+        {
+            CompositionEvents = null,
+            CompositionEventsRequiredAtRuntime = false,
+            DamageEvents = damageEvents,
+            DamageEventsRequiredAtRuntime = true,
+        };
+        var adapter = new PlaceableCompositionEventsRuntimeAdapter();
+        var resolution = adapter.ResolveDamageEvents(placeable);
+        var policy = adapter.BuildDamageEvents(resolution.Handle!, placeable);
+        var damaged = adapter.Damage(resolution.Handle!, placeable, "player", 20, "force", 50, 30);
+        var destroyed = adapter.Damage(resolution.Handle!, placeable, "player", 30, "force", 30, 0);
+
+        Assert.True(resolution.Available);
+        Assert.Equal(damageEvents.Id, policy.Id);
+        Assert.Equal("PlaceableDamaged", damaged.Binding);
+        Assert.Equal("DamageApplied", damaged.Payload.Name);
+        Assert.Equal("PlaceableDestroyed", destroyed.Binding);
+        Assert.Equal("EntityDestroyed", destroyed.Payload.Name);
+        Assert.True(adapter.Resolve(placeable).OptionalFallback);
+
+        var absent = placeable with { DamageEvents = null, DamageEventsRequiredAtRuntime = false };
+        Assert.True(adapter.ResolveDamageEvents(absent).OptionalFallback);
+        Assert.Equal("WORLD_PLACEABLE_DAMAGE_EVENTS_REQUIRED_MISSING",
+            adapter.ResolveDamageEvents(absent with { DamageEventsRequiredAtRuntime = true }).DiagnosticCode);
+        Assert.Throws<InvalidOperationException>(() => adapter.BuildDamageEvents(
+            resolution.Handle! with { ProfileId = Guid.NewGuid() }, placeable));
+    }
+
+    [Fact]
     public void Attachment_snaps_to_compatible_socket_and_keeps_reversible_prefab_patch()
     {
         var placeable = PlaceableSecurityEventsRuntimeAdapterTests.Placeable();

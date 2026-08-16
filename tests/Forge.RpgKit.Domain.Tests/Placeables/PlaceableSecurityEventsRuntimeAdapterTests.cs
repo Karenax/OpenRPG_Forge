@@ -271,6 +271,55 @@ public sealed class PlaceableSecurityEventsRuntimeAdapterTests
             handle with { ProfileId = Guid.NewGuid() }, placeable));
     }
 
+    [Fact]
+    public void Contents_changed_resolves_and_dispatches_without_security_event_siblings()
+    {
+        var complete = Placeable();
+        var placeable = complete with
+        {
+            Operations = null,
+            OperationsRequiredAtRuntime = false,
+            SecurityEvents = complete.SecurityEvents! with
+            {
+                Trap = null,
+                Loot = null,
+                ContainerEvents = null,
+                LockEvents = null,
+            },
+            SecurityEventsRequiredAtRuntime = false,
+            TrapRequiredAtRuntime = false,
+            LootRequiredAtRuntime = false,
+            ContainerEventsRequiredAtRuntime = false,
+            LockEventsRequiredAtRuntime = false,
+            ContentsChangedRequiredAtRuntime = true,
+        };
+        var adapter = new PlaceableSecurityEventsRuntimeAdapter();
+        var resolution = adapter.ResolveContentsChanged(placeable);
+        var policy = adapter.BuildContentsChanged(resolution.Handle!, placeable);
+        var dispatched = adapter.ContentsChanged(
+            resolution.Handle!, placeable, 4,
+            [new(Guid.Parse("c2940000-0000-4000-8000-000000000099"), -1, "take",
+                "inventory:placeable", "inventory:player")],
+            "player-loot", "player");
+
+        Assert.True(resolution.Available);
+        Assert.Equal("ContainerContentsChanged", policy.EventBinding);
+        Assert.Equal("ContainerContentsChanged", dispatched.Binding);
+        Assert.Equal(5, dispatched.Payload.CurrentRevision);
+        Assert.Throws<InvalidOperationException>(() => adapter.Build(resolution.Handle!, placeable));
+
+        var absent = placeable with
+        {
+            SecurityEvents = placeable.SecurityEvents! with { ContentsChanged = null },
+            ContentsChangedRequiredAtRuntime = false,
+        };
+        Assert.True(adapter.ResolveContentsChanged(absent).OptionalFallback);
+        Assert.Equal("WORLD_PLACEABLE_CONTENTS_CHANGED_REQUIRED_MISSING",
+            adapter.ResolveContentsChanged(absent with { ContentsChangedRequiredAtRuntime = true }).DiagnosticCode);
+        Assert.Throws<InvalidOperationException>(() => adapter.BuildContentsChanged(
+            resolution.Handle! with { ProfileId = Guid.NewGuid() }, placeable));
+    }
+
     internal static PlaceableWorldProfile Placeable()
     {
         var placeableId = Guid.Parse("c2940000-0000-4000-8000-000000000001");

@@ -184,6 +184,12 @@ internal enum StudioPlaceableLockEventPreviewMode
     ControlledVeto,
 }
 
+internal enum StudioPlaceableDamageEventPreviewMode
+{
+    Damaged,
+    Destroyed,
+}
+
 internal sealed record StudioPlaceableContainerEventsDraft(
     Guid Id,
     string ForgeScriptApiVersion,
@@ -204,6 +210,29 @@ internal sealed record StudioPlaceableLockEventsDraft(
     bool IncludeCredential,
     bool IncludeActor,
     bool ControlledVeto,
+    bool ExistingProfile);
+
+internal sealed record StudioPlaceableContentsChangedDraft(
+    Guid Id,
+    string ForgeScriptApiVersion,
+    string EventBinding,
+    bool IncludeTransactionalDelta,
+    bool IncludeCause,
+    bool IncludeRevision,
+    bool IncludeActor,
+    bool ExistingProfile);
+
+internal sealed record StudioPlaceableDamageEventsDraft(
+    Guid Id,
+    string ForgeScriptApiVersion,
+    string DamagedBinding,
+    string DestroyedBinding,
+    bool IncludeSource,
+    bool IncludeAmount,
+    bool IncludeDamageType,
+    bool IncludePreviousHealth,
+    bool IncludeCurrentHealth,
+    bool IncludeContext,
     bool ExistingProfile);
 
 internal sealed record StudioPlaceableLootEntryDraft(
@@ -381,7 +410,17 @@ internal sealed record StudioPlaceableDraft(
     bool RequireContainerEventsRuntime = false,
     bool HasLockEvents = false,
     StudioPlaceableLockEventsDraft? LockEvents = null,
-    bool RequireLockEventsRuntime = false);
+    bool RequireLockEventsRuntime = false,
+    string OnUsedForgeScriptApiVersion = "1.0.0",
+    string OnUsedEventBinding = "InteractionExecuted",
+    bool HasContentsChanged = false,
+    StudioPlaceableContentsChangedDraft? ContentsChanged = null,
+    bool RequireContentsChangedRuntime = false,
+    bool HasDamageEvents = false,
+    StudioPlaceableDamageEventsDraft? DamageEvents = null,
+    bool RequireDamageEventsRuntime = false,
+    PlaceableDamageEventsProfile? OriginalDamageEvents = null,
+    PlaceableCompositionEventsProfile? OriginalCompositionEvents = null);
 
 internal sealed record StudioPlaceablePreview(
     bool Succeeded,
@@ -395,6 +434,41 @@ internal sealed record StudioPlaceablePreview(
     string VisualLabel);
 
 internal sealed record StudioPlaceableResult(bool Succeeded, string Message);
+
+internal sealed record StudioPlaceableOnUsedEventPreview(
+    bool Succeeded,
+    string Summary,
+    string DiagnosticCode,
+    string Binding,
+    string ApiVersion,
+    string ActorId,
+    string Result,
+    string? BeforeScriptId,
+    string? AfterScriptId);
+
+internal sealed record StudioPlaceableContentsChangedPreview(
+    bool Succeeded,
+    string Summary,
+    string DiagnosticCode,
+    string Binding,
+    string EventName,
+    long PreviousRevision,
+    long CurrentRevision,
+    int QuantityDelta,
+    string Cause,
+    string ActorId);
+
+internal sealed record StudioPlaceableDamageEventPreview(
+    bool Succeeded,
+    string Summary,
+    string DiagnosticCode,
+    string Binding,
+    string EventName,
+    string SourceId,
+    double Amount,
+    string DamageType,
+    double PreviousHealth,
+    double CurrentHealth);
 
 internal sealed record StudioPlaceableLootPreview(
     bool Succeeded,
@@ -760,6 +834,25 @@ internal sealed record StudioUx1USmokeResult(
     bool CanonicalPayload,
     bool BeforeAfterPreview,
     bool ControlledVeto,
+    bool DryRun,
+    bool CommandParity,
+    bool InstanceSelection,
+    bool Preservation,
+    bool RuntimeProjection,
+    bool ScriptRead,
+    bool OptionalRequired,
+    bool UndoRedo,
+    bool Persistence,
+    bool InvalidBlocked,
+    bool HumanDiagnostics);
+
+internal sealed record StudioUx1VSmokeResult(
+    bool Succeeded,
+    bool OnUsedBindingAndApi,
+    bool OnUsedPayloadAndScripts,
+    bool ContentsChangedBindingAndPayload,
+    bool DamageAndDeathBindings,
+    bool DamageAndDeathPayload,
     bool DryRun,
     bool CommandParity,
     bool InstanceSelection,

@@ -85,6 +85,7 @@ public static class WorldFeatureCatalogValidator
             ValidatePlaceableOperations(profile, path, itemBlueprintIds, diagnostics);
             ValidatePlaceableSecurityEvents(profile, path,
                 blueprints.Keys.Select(item => item.Value).ToHashSet(), diagnostics);
+            ValidatePlaceableDamageEvents(profile, path, diagnostics);
             ValidatePlaceableCompositionEvents(profile, path,
                 blueprints.Keys.Select(item => item.Value).ToHashSet(), diagnostics);
             ValidatePlaceableFactionOwnership(profile, path, factionIds, diagnostics);
@@ -815,6 +816,10 @@ public static class WorldFeatureCatalogValidator
                 Add(diagnostics, "world.placeable.lock_events_required_missing",
                     "Required placeable lock and unlock event profile is missing.",
                     $"{eventsPath}/lockEvents");
+            if (profile.ContentsChangedRequiredAtRuntime)
+                Add(diagnostics, "world.placeable.contents_changed_required_missing",
+                    "Required placeable contents changed event profile is missing.",
+                    $"{eventsPath}/contentsChanged");
             return;
         }
 
@@ -926,6 +931,12 @@ public static class WorldFeatureCatalogValidator
                     "Container contents event requires transactional delta, cause, revisions and actor.",
                     $"{eventsPath}/contentsChanged");
         }
+        else if (profile.ContentsChangedRequiredAtRuntime)
+        {
+            Add(diagnostics, "world.placeable.contents_changed_required_missing",
+                "Required placeable contents changed event profile is missing.",
+                $"{eventsPath}/contentsChanged");
+        }
 
         if (ids.Any(id => id == Guid.Empty) || ids.Distinct().Count() != ids.Count)
             Add(diagnostics, "world.placeable.security_events_identity_conflict",
@@ -1035,6 +1046,45 @@ public static class WorldFeatureCatalogValidator
         if (ids.Any(id => id == Guid.Empty) || ids.Distinct().Count() != ids.Count)
             Add(diagnostics, "world.placeable.composition_events_identity_conflict",
                 "Placeable composition identities must be non-empty and unique.", compositionPath);
+    }
+
+    private static void ValidatePlaceableDamageEvents(PlaceableWorldProfile profile, string path,
+        List<DomainDiagnostic> diagnostics)
+    {
+        var damagePath = $"{path}/damageEvents";
+        var damage = profile.DamageEvents;
+        if (damage is null)
+        {
+            if (profile.DamageEventsRequiredAtRuntime && profile.CompositionEvents?.DamageEvents is null)
+                Add(diagnostics, "world.placeable.damage_events_required_missing",
+                    "Required placeable damage and destruction event profile is missing.", damagePath);
+            return;
+        }
+
+        if (profile.Operations?.Damageable is null)
+            Add(diagnostics, "world.placeable.damage_events_damageable_missing",
+                "Placeable damage and destruction events require the canonical damageable profile.", damagePath);
+        if (damage.Id == Guid.Empty || string.IsNullOrWhiteSpace(damage.ForgeScriptApiVersion) ||
+            string.IsNullOrWhiteSpace(damage.DamagedBinding) ||
+            string.IsNullOrWhiteSpace(damage.DestroyedBinding) || !damage.IncludeSource ||
+            !damage.IncludeAmount || !damage.IncludeDamageType || !damage.IncludePreviousHealth ||
+            !damage.IncludeCurrentHealth || !damage.IncludeContext)
+            Add(diagnostics, "world.placeable.damage_events_invalid",
+                "Damage events require uniform source, amount, type, health and context payloads.", damagePath);
+
+        var occupiedIds = new Guid?[]
+        {
+            profile.Id,
+            profile.Foundation?.Id,
+            profile.Operations?.Id,
+            profile.SecurityEvents?.Id,
+            profile.CompositionEvents?.Id,
+            profile.FactionOwnership?.Id,
+            profile.Conversation?.Id,
+        };
+        if (occupiedIds.Contains(damage.Id))
+            Add(diagnostics, "world.placeable.damage_events_identity_conflict",
+                "Damage event identity must be distinct from the placeable and its other profiles.", damagePath);
     }
 
     private static bool InvalidCompositionTransform(PlaceableWorldProfile.TransformPolicy transform)

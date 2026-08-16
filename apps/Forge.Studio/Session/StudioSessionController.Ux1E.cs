@@ -168,6 +168,8 @@ internal sealed partial class StudioSessionController
         var lootProfile = securityEvents?.Loot;
         var containerEventsProfile = securityEvents?.ContainerEvents;
         var lockEventsProfile = securityEvents?.LockEvents;
+        var contentsChangedProfile = securityEvents?.ContentsChanged;
+        var damageEventsProfile = profile?.DamageEvents ?? profile?.CompositionEvents?.DamageEvents;
         var credentialItem = credentialPolicy is not null &&
                              credentialPolicy.Consumption !=
                              PlaceableWorldProfile.CredentialConsumption.VirtualPermission
@@ -499,6 +501,35 @@ internal sealed partial class StudioSessionController
                 lockEventsProfile?.ControlledVeto ?? true,
                 lockEventsProfile is not null),
             RequireLockEventsRuntime = profile?.LockEventsRequiredAtRuntime ?? false,
+            OnUsedForgeScriptApiVersion = onUsed?.ForgeScriptApiVersion ?? "1.0.0",
+            OnUsedEventBinding = onUsed?.EventBinding ?? "InteractionExecuted",
+            HasContentsChanged = contentsChangedProfile is not null,
+            ContentsChanged = new StudioPlaceableContentsChangedDraft(
+                contentsChangedProfile?.Id ?? StablePlaceableId(blueprint.Id, "contents-changed"),
+                contentsChangedProfile?.ForgeScriptApiVersion ?? "1.0.0",
+                contentsChangedProfile?.EventBinding ?? "ContainerContentsChanged",
+                contentsChangedProfile?.IncludeTransactionalDelta ?? true,
+                contentsChangedProfile?.IncludeCause ?? true,
+                contentsChangedProfile?.IncludeRevision ?? true,
+                contentsChangedProfile?.IncludeActor ?? true,
+                contentsChangedProfile is not null),
+            RequireContentsChangedRuntime = profile?.ContentsChangedRequiredAtRuntime ?? false,
+            HasDamageEvents = damageEventsProfile is not null,
+            DamageEvents = new StudioPlaceableDamageEventsDraft(
+                damageEventsProfile?.Id ?? StablePlaceableId(blueprint.Id, "damage-events"),
+                damageEventsProfile?.ForgeScriptApiVersion ?? "1.0.0",
+                damageEventsProfile?.DamagedBinding ?? "DamageApplied",
+                damageEventsProfile?.DestroyedBinding ?? "EntityDestroyed",
+                damageEventsProfile?.IncludeSource ?? true,
+                damageEventsProfile?.IncludeAmount ?? true,
+                damageEventsProfile?.IncludeDamageType ?? true,
+                damageEventsProfile?.IncludePreviousHealth ?? true,
+                damageEventsProfile?.IncludeCurrentHealth ?? true,
+                damageEventsProfile?.IncludeContext ?? true,
+                damageEventsProfile is not null),
+            RequireDamageEventsRuntime = profile?.DamageEventsRequiredAtRuntime ?? false,
+            OriginalDamageEvents = profile?.DamageEvents,
+            OriginalCompositionEvents = profile?.CompositionEvents,
         };
     }
 
@@ -537,6 +568,7 @@ internal sealed partial class StudioSessionController
             draft.HasHealth, draft.HasContainer, draft.HasLock, draft.HasTrap, draft.HasPhysics,
             draft.HasFactionOwnership, draft.HasConversation, draft.HasCredentialPolicy, draft.HasLoot,
             draft.HasContainerEvents, draft.HasLockEvents,
+            draft.HasContentsChanged, draft.HasDamageEvents,
         }.Count(value => value);
         var snapped = runtime.SnappedTransform.Position;
         var optimization = draft.Role == StudioPlaceableRole.StaticDecoration
@@ -554,8 +586,9 @@ internal sealed partial class StudioSessionController
               $"{(draft.RequiresFocus ? "ciblage requis" : "sans ciblage requis")} · " +
               $"durée {draft.InteractionDuration:0.##} s · autorité {draft.InteractionAuthority.Trim()}\n" +
               $"Conditions : {string.Join(" · ", SplitValues(draft.InteractionConditionsText))}\n" +
-              $"OnUsed : {(draft.OnUsedEnabled ? "publié" : "désactivé")} · " +
-              $"avant {(string.IsNullOrWhiteSpace(draft.BeforeUseScript) ? "absent" : "configuré")} · " +
+               $"OnUsed : {(draft.OnUsedEnabled ? "publié" : "désactivé")} · " +
+               $"{draft.OnUsedEventBinding.Trim()} · API {draft.OnUsedForgeScriptApiVersion.Trim()} · " +
+               $"avant {(string.IsNullOrWhiteSpace(draft.BeforeUseScript) ? "absent" : "configuré")} · " +
               $"après {(string.IsNullOrWhiteSpace(draft.AfterUseScript) ? "absent" : "configuré")} · " +
               $"{(draft.RequireOnUsedRuntime ? "requis au runtime" : "optionnel au runtime")}"
             : string.Empty;
@@ -656,6 +689,18 @@ internal sealed partial class StudioSessionController
               "Contexte : méthode · justificatif · acteur · veto contrôlé · " +
               (draft.RequireLockEventsRuntime ? "requis au runtime" : "optionnel au runtime")
             : string.Empty;
+        var contentsChangedSummary = draft.HasContentsChanged && draft.ContentsChanged is { } disturbedDraft
+            ? "\nContenu modifié : " + disturbedDraft.EventBinding.Trim() + " · API " +
+              disturbedDraft.ForgeScriptApiVersion.Trim() + "\n" +
+              "Contexte : delta transactionnel · cause · révisions · acteur · " +
+              (draft.RequireContentsChangedRuntime ? "requis au runtime" : "optionnel au runtime")
+            : string.Empty;
+        var damageEventsSummary = draft.HasDamageEvents && draft.DamageEvents is { } damageEventDraft
+            ? "\nDégâts et mort : " + damageEventDraft.DamagedBinding.Trim() + " · " +
+              damageEventDraft.DestroyedBinding.Trim() + " · API " + damageEventDraft.ForgeScriptApiVersion.Trim() +
+              "\nContexte : source · quantité · type · santé avant/après · contexte · " +
+              (draft.RequireDamageEventsRuntime ? "requis au runtime" : "optionnel au runtime")
+            : string.Empty;
         var lockSummary = draft.HasLock
             ? "\nVerrouillage : " + HumanizeLockState(draft.Lock.InitialState) + " · " +
               $"{(draft.Lock.KeyItemId is null ? 0 : 1) + draft.Lock.OtherCredentialIds.Count} justificatif(s) · " +
@@ -685,7 +730,7 @@ internal sealed partial class StudioSessionController
             $"{componentCount} composant(s) optionnel(s) · {instances.Count} instance(s) dans le module" +
             identity + optimization + interaction + container + visualStates + destructibility + plotProtection +
             factionOwnership + conversation + lockSummary + credentialSummary + trapSummary + lootSummary +
-            containerEventsSummary + lockEventsSummary +
+            containerEventsSummary + lockEventsSummary + contentsChangedSummary + damageEventsSummary +
             transformSummary + "\n" +
             FormattableString.Invariant(
                 $"Position prévisualisée : {snapped.X:0.##}, {snapped.Y:0.##}, {snapped.Z:0.##} · pas {draft.SnapIncrement:0.##}");
@@ -1016,6 +1061,19 @@ internal sealed partial class StudioSessionController
                 return false;
             }
         }
+        if (draft.OnUsedEnabled && (draft.Role != StudioPlaceableRole.Interactable ||
+            draft.OnUsedId == Guid.Empty || string.IsNullOrWhiteSpace(draft.OnUsedForgeScriptApiVersion) ||
+            string.IsNullOrWhiteSpace(draft.OnUsedEventBinding) ||
+            draft.OnUsedForgeScriptApiVersion.Trim().Length > 256 || draft.OnUsedEventBinding.Trim().Length > 256))
+        {
+            message = "L’événement d’utilisation exige un objet utilisable, une identité stable, une version ForgeScript et un nom d’événement.";
+            return false;
+        }
+        if (!draft.OnUsedEnabled && draft.RequireOnUsedRuntime)
+        {
+            message = "L’événement d’utilisation est requis au runtime : activez-le ou retirez cette exigence.";
+            return false;
+        }
         if (draft.HasContainer)
         {
             var container = draft.Container;
@@ -1165,8 +1223,53 @@ internal sealed partial class StudioSessionController
         }
         var lockEventsChanged = draft.HasLockEvents &&
                                 !LockEventValuesEqual(
-                                    editedLockEvents,
-                                    draft.OriginalSecurityEvents?.LockEvents);
+                                     editedLockEvents,
+                                     draft.OriginalSecurityEvents?.LockEvents);
+        PlaceableContentsChangedEventProfile? editedContentsChanged = null;
+        if (draft.HasContentsChanged && (draft.ContentsChanged is null ||
+            !TryBuildPlaceableContentsChanged(draft.ContentsChanged, out editedContentsChanged, out message)))
+        {
+            message = draft.ContentsChanged is null
+                ? "L’événement de contenu modifié est actif mais sa configuration est absente."
+                : message;
+            return false;
+        }
+        if (!draft.HasContentsChanged && draft.RequireContentsChangedRuntime)
+        {
+            message = "L’événement de contenu modifié est requis au runtime : activez-le ou retirez cette exigence.";
+            return false;
+        }
+        var contentsChanged = draft.HasContentsChanged
+            ? ContentsChangedValuesEqual(editedContentsChanged, draft.OriginalSecurityEvents?.ContentsChanged)
+                ? draft.OriginalSecurityEvents?.ContentsChanged
+                : editedContentsChanged
+            : null;
+        PlaceableDamageEventsProfile? editedDamageEvents = null;
+        if (draft.HasDamageEvents && (draft.DamageEvents is null ||
+            !TryBuildPlaceableDamageEvents(draft.DamageEvents, out editedDamageEvents, out message)))
+        {
+            message = draft.DamageEvents is null
+                ? "Les événements de dégâts et de mort sont actifs mais leur configuration est absente."
+                : message;
+            return false;
+        }
+        if (draft.HasDamageEvents && !draft.HasHealth)
+        {
+            message = "Les événements de dégâts et de mort exigent d’activer la santé du placeable.";
+            return false;
+        }
+        if (!draft.HasDamageEvents && draft.RequireDamageEventsRuntime)
+        {
+            message = "Les événements de dégâts et de mort sont requis au runtime : activez-les ou retirez cette exigence.";
+            return false;
+        }
+        var originalEffectiveDamageEvents = draft.OriginalDamageEvents ??
+                                            draft.OriginalCompositionEvents?.DamageEvents;
+        var damageEvents = draft.HasDamageEvents
+            ? DamageEventValuesEqual(editedDamageEvents, originalEffectiveDamageEvents)
+                ? originalEffectiveDamageEvents
+                : editedDamageEvents
+            : null;
         PlaceableLockProfile? editedLock = null;
         if (draft.HasLock && !TryBuildPlaceableLock(draft.Lock, out editedLock, out message))
         {
@@ -1250,8 +1353,8 @@ internal sealed partial class StudioSessionController
                     draft.OnUsedId,
                     WorldFeatureCatalog.CurrentSchemaVersion,
                     original?.OnUsed?.Provenance ?? "studio:ux1-g-placeable-on-used",
-                    original?.OnUsed?.ForgeScriptApiVersion ?? "1.0.0",
-                    original?.OnUsed?.EventBinding ?? "InteractionExecuted",
+                    draft.OnUsedForgeScriptApiVersion.Trim(),
+                    draft.OnUsedEventBinding.Trim(),
                     NullIfWhiteSpace(draft.BeforeUseScript),
                     NullIfWhiteSpace(draft.AfterUseScript))
                 : null;
@@ -1371,7 +1474,8 @@ internal sealed partial class StudioSessionController
             PlaceableSecurityEventsProfile? securityEvents;
             if (draft.OriginalSecurityEvents is null)
             {
-                securityEvents = trap is null && loot is null && containerEvents is null && lockEvents is null
+                securityEvents = trap is null && loot is null && containerEvents is null && lockEvents is null &&
+                                 contentsChanged is null
                     ? null
                     : new PlaceableSecurityEventsProfile(
                         StablePlaceableId(draft.BlueprintId, "security-events"),
@@ -1382,16 +1486,20 @@ internal sealed partial class StudioSessionController
                                 ? "studio:ux1-s-placeable-initial-treasure"
                                 : containerEvents is not null
                                     ? "studio:ux1-t-placeable-container-events"
-                                    : "studio:ux1-u-placeable-lock-events",
+                                    : lockEvents is not null
+                                        ? "studio:ux1-u-placeable-lock-events"
+                                        : "studio:ux1-v-placeable-events",
                         Trap: trap,
                         Loot: loot,
                         ContainerEvents: containerEvents,
-                        LockEvents: lockEvents);
+                        LockEvents: lockEvents,
+                        ContentsChanged: contentsChanged);
             }
             else if (ReferenceEquals(trap, draft.OriginalSecurityEvents.Trap) &&
                      ReferenceEquals(loot, draft.OriginalSecurityEvents.Loot) &&
-                     ReferenceEquals(containerEvents, draft.OriginalSecurityEvents.ContainerEvents) &&
-                     ReferenceEquals(lockEvents, draft.OriginalSecurityEvents.LockEvents))
+                      ReferenceEquals(containerEvents, draft.OriginalSecurityEvents.ContainerEvents) &&
+                      ReferenceEquals(lockEvents, draft.OriginalSecurityEvents.LockEvents) &&
+                      ReferenceEquals(contentsChanged, draft.OriginalSecurityEvents.ContentsChanged))
             {
                 securityEvents = draft.OriginalSecurityEvents;
             }
@@ -1403,6 +1511,7 @@ internal sealed partial class StudioSessionController
                     Loot = loot,
                     ContainerEvents = containerEvents,
                     LockEvents = lockEvents,
+                    ContentsChanged = contentsChanged,
                 };
                 if (securityEvents is
                     {
@@ -1420,6 +1529,18 @@ internal sealed partial class StudioSessionController
             var lootRequiredAtRuntime = draft.RequireLootRuntime;
             var containerEventsRequiredAtRuntime = draft.RequireContainerEventsRuntime;
             var lockEventsRequiredAtRuntime = draft.RequireLockEventsRuntime;
+            var contentsChangedRequiredAtRuntime = draft.RequireContentsChangedRuntime;
+            var damageEventsRequiredAtRuntime = draft.RequireDamageEventsRuntime;
+            var directDamageEvents = draft.OriginalDamageEvents is not null ||
+                                     draft.OriginalCompositionEvents is null
+                ? damageEvents
+                : null;
+            var compositionEvents = draft.OriginalCompositionEvents;
+            if (draft.OriginalDamageEvents is null && compositionEvents is not null && damageEvents is not null &&
+                !ReferenceEquals(compositionEvents.DamageEvents, damageEvents))
+            {
+                compositionEvents = compositionEvents with { DamageEvents = damageEvents };
+            }
             var validation = MergeContainerInventoryReference(
                 original?.Validation,
                 draft.OriginalOperations?.Container?.InventoryId,
@@ -1484,6 +1605,7 @@ internal sealed partial class StudioSessionController
                     operations,
                     operationsRequiredAtRuntime,
                     SecurityEvents: securityEvents,
+                    CompositionEvents: compositionEvents,
                     FactionOwnership: factionOwnership,
                     FactionOwnershipRequiredAtRuntime: factionOwnershipRequiredAtRuntime,
                     Conversation: conversation,
@@ -1492,7 +1614,10 @@ internal sealed partial class StudioSessionController
                     TrapRequiredAtRuntime: trapRequiredAtRuntime,
                     LootRequiredAtRuntime: lootRequiredAtRuntime,
                     ContainerEventsRequiredAtRuntime: containerEventsRequiredAtRuntime,
-                    LockEventsRequiredAtRuntime: lockEventsRequiredAtRuntime)
+                    LockEventsRequiredAtRuntime: lockEventsRequiredAtRuntime,
+                    ContentsChangedRequiredAtRuntime: contentsChangedRequiredAtRuntime,
+                    DamageEvents: directDamageEvents,
+                    DamageEventsRequiredAtRuntime: damageEventsRequiredAtRuntime)
                 : existing with
                 {
                     Foundation = foundation,
@@ -1506,10 +1631,14 @@ internal sealed partial class StudioSessionController
                     Credential = credential,
                     CredentialRequiredAtRuntime = draft.RequireCredentialRuntime,
                     SecurityEvents = securityEvents,
+                    CompositionEvents = compositionEvents,
                     TrapRequiredAtRuntime = trapRequiredAtRuntime,
                     LootRequiredAtRuntime = lootRequiredAtRuntime,
                     ContainerEventsRequiredAtRuntime = containerEventsRequiredAtRuntime,
                     LockEventsRequiredAtRuntime = lockEventsRequiredAtRuntime,
+                    ContentsChangedRequiredAtRuntime = contentsChangedRequiredAtRuntime,
+                    DamageEvents = directDamageEvents,
+                    DamageEventsRequiredAtRuntime = damageEventsRequiredAtRuntime,
                 };
             var placeables = currentCatalog.Placeables
                 .Where(candidate => candidate.BlueprintId != draft.BlueprintId)
@@ -2317,6 +2446,122 @@ internal sealed partial class StudioSessionController
                left.ControlledVeto == right.ControlledVeto;
     }
 
+    private static bool TryBuildPlaceableContentsChanged(
+        StudioPlaceableContentsChangedDraft draft,
+        out PlaceableContentsChangedEventProfile? contentsChanged,
+        out string message)
+    {
+        contentsChanged = null;
+        message = string.Empty;
+        if (draft.Id == Guid.Empty ||
+            new[] { draft.ForgeScriptApiVersion, draft.EventBinding }.Any(string.IsNullOrWhiteSpace))
+        {
+            message = "L’événement de contenu modifié exige une identité stable, une version ForgeScript et un nom d’événement.";
+            return false;
+        }
+        if (new[] { draft.ForgeScriptApiVersion, draft.EventBinding }
+            .Any(value => value.Trim().Length > 256))
+        {
+            message = "La version ForgeScript et le nom de l’événement doivent rester sous 256 caractères.";
+            return false;
+        }
+        if (!draft.IncludeTransactionalDelta || !draft.IncludeCause || !draft.IncludeRevision || !draft.IncludeActor)
+        {
+            message = "Le contenu modifié doit conserver le delta transactionnel, la cause, les révisions et l’acteur.";
+            return false;
+        }
+
+        contentsChanged = new(
+            draft.Id,
+            draft.ForgeScriptApiVersion.Trim(),
+            draft.EventBinding.Trim(),
+            draft.IncludeTransactionalDelta,
+            draft.IncludeCause,
+            draft.IncludeRevision,
+            draft.IncludeActor);
+        return true;
+    }
+
+    private static bool ContentsChangedValuesEqual(
+        PlaceableContentsChangedEventProfile? left,
+        PlaceableContentsChangedEventProfile? right)
+    {
+        if (left is null || right is null)
+        {
+            return left is null && right is null;
+        }
+
+        return left.Id == right.Id &&
+               left.ForgeScriptApiVersion == right.ForgeScriptApiVersion &&
+               left.EventBinding == right.EventBinding &&
+               left.IncludeTransactionalDelta == right.IncludeTransactionalDelta &&
+               left.IncludeCause == right.IncludeCause &&
+               left.IncludeRevision == right.IncludeRevision &&
+               left.IncludeActor == right.IncludeActor;
+    }
+
+    private static bool TryBuildPlaceableDamageEvents(
+        StudioPlaceableDamageEventsDraft draft,
+        out PlaceableDamageEventsProfile? damageEvents,
+        out string message)
+    {
+        damageEvents = null;
+        message = string.Empty;
+        if (draft.Id == Guid.Empty ||
+            new[] { draft.ForgeScriptApiVersion, draft.DamagedBinding, draft.DestroyedBinding }
+                .Any(string.IsNullOrWhiteSpace))
+        {
+            message = "Les événements de dégâts et de mort exigent une identité stable, une version ForgeScript et deux noms d’événement.";
+            return false;
+        }
+        if (new[] { draft.ForgeScriptApiVersion, draft.DamagedBinding, draft.DestroyedBinding }
+            .Any(value => value.Trim().Length > 256))
+        {
+            message = "La version ForgeScript et les noms d’événements doivent rester sous 256 caractères.";
+            return false;
+        }
+        if (!draft.IncludeSource || !draft.IncludeAmount || !draft.IncludeDamageType ||
+            !draft.IncludePreviousHealth || !draft.IncludeCurrentHealth || !draft.IncludeContext)
+        {
+            message = "Les événements de dégâts et de mort doivent conserver la source, la quantité, le type, la santé avant/après et le contexte.";
+            return false;
+        }
+
+        damageEvents = new(
+            draft.Id,
+            draft.ForgeScriptApiVersion.Trim(),
+            draft.DamagedBinding.Trim(),
+            draft.DestroyedBinding.Trim(),
+            draft.IncludeSource,
+            draft.IncludeAmount,
+            draft.IncludeDamageType,
+            draft.IncludePreviousHealth,
+            draft.IncludeCurrentHealth,
+            draft.IncludeContext);
+        return true;
+    }
+
+    private static bool DamageEventValuesEqual(
+        PlaceableDamageEventsProfile? left,
+        PlaceableDamageEventsProfile? right)
+    {
+        if (left is null || right is null)
+        {
+            return left is null && right is null;
+        }
+
+        return left.Id == right.Id &&
+               left.ForgeScriptApiVersion == right.ForgeScriptApiVersion &&
+               left.DamagedBinding == right.DamagedBinding &&
+               left.DestroyedBinding == right.DestroyedBinding &&
+               left.IncludeSource == right.IncludeSource &&
+               left.IncludeAmount == right.IncludeAmount &&
+               left.IncludeDamageType == right.IncludeDamageType &&
+               left.IncludePreviousHealth == right.IncludePreviousHealth &&
+               left.IncludeCurrentHealth == right.IncludeCurrentHealth &&
+               left.IncludeContext == right.IncludeContext;
+    }
+
     private bool TryBuildPlaceableCredential(
         StudioPlaceableCredentialDraft draft,
         out PlaceableWorldProfile.CredentialPolicy? credential,
@@ -2885,6 +3130,18 @@ internal sealed partial class StudioSessionController
         "world.placeable.container_events_required_missing" or
             "WORLD_PLACEABLE_CONTAINER_EVENTS_REQUIRED_MISSING" =>
             "Les événements d’ouverture et de fermeture sont requis au runtime mais leur profil canonique est absent.",
+        "world.placeable.contents_changed_invalid" or "WORLD_PLACEABLE_CONTENTS_CHANGED_MISSING" =>
+            "L’événement de contenu modifié exige un delta transactionnel, une cause, des révisions et un acteur.",
+        "world.placeable.contents_changed_required_missing" or
+            "WORLD_PLACEABLE_CONTENTS_CHANGED_REQUIRED_MISSING" =>
+            "L’événement de contenu modifié est requis au runtime mais son profil canonique est absent.",
+        "world.placeable.damage_events_invalid" or "WORLD_PLACEABLE_DAMAGE_EVENTS_MISSING" =>
+            "Les événements de dégâts et de mort exigent deux liaisons et un contexte uniforme.",
+        "world.placeable.damage_events_damageable_missing" =>
+            "Les événements de dégâts et de mort exigent d’activer la santé du placeable.",
+        "world.placeable.damage_events_required_missing" or
+            "WORLD_PLACEABLE_DAMAGE_EVENTS_REQUIRED_MISSING" =>
+            "Les événements de dégâts et de mort sont requis au runtime mais leur profil canonique est absent.",
         "world.placeable.faction_ownership_identity_invalid" =>
             "Le rattachement de faction exige une identité interne stable.",
         "world.placeable.faction_memberships_invalid" =>

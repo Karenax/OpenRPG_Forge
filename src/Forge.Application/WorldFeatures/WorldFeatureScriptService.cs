@@ -108,6 +108,7 @@ public sealed class WorldFeatureScriptService
                 ["transformAnimation"] = item.Foundation?.Transform.TransformAnimationId ?? string.Empty,
                 ["onUsed"] = (item.Foundation?.OnUsed is not null).ToString(),
                 ["forgeScriptApi"] = item.Foundation?.OnUsed?.ForgeScriptApiVersion ?? string.Empty,
+                ["onUsedBinding"] = item.Foundation?.OnUsed?.EventBinding ?? string.Empty,
                 ["validation"] = (item.Foundation?.Validation is not null).ToString(),
                 ["requiredAtRuntime"] = item.FoundationRequiredAtRuntime.ToString(),
                 ["credentialId"] = item.Credential?.CredentialId ?? string.Empty,
@@ -273,22 +274,25 @@ public sealed class WorldFeatureScriptService
                         : string.Empty,
                 ["lockEventsRequiredAtRuntime"] = item.LockEventsRequiredAtRuntime.ToString(),
                 ["contentsChanged"] = item.SecurityEvents?.ContentsChanged?.EventBinding ?? string.Empty,
+                ["contentsChangedApi"] = item.SecurityEvents?.ContentsChanged?.ForgeScriptApiVersion ?? string.Empty,
                 ["contentsChangedPayload"] = item.SecurityEvents is { ContentsChanged: { } disturbed } &&
                     disturbed.IncludeTransactionalDelta && disturbed.IncludeCause && disturbed.IncludeRevision &&
                     disturbed.IncludeActor
                         ? "transactional-delta-cause-revision-actor"
                         : string.Empty,
+                ["contentsChangedRequiredAtRuntime"] = item.ContentsChangedRequiredAtRuntime.ToString(),
                 ["securityEventsRequiredAtRuntime"] = item.SecurityEventsRequiredAtRuntime.ToString(),
                 ["compositionEvents"] = (item.CompositionEvents is not null).ToString(),
-                ["damageApplied"] = item.CompositionEvents?.DamageEvents.DamagedBinding ?? string.Empty,
-                ["entityDestroyed"] = item.CompositionEvents?.DamageEvents.DestroyedBinding ?? string.Empty,
-                ["damageEventApi"] = item.CompositionEvents?.DamageEvents.ForgeScriptApiVersion ?? string.Empty,
-                ["damageEventPayload"] = item.CompositionEvents is { DamageEvents: var damageEvents } &&
+                ["damageApplied"] = EffectiveDamageEvents(item)?.DamagedBinding ?? string.Empty,
+                ["entityDestroyed"] = EffectiveDamageEvents(item)?.DestroyedBinding ?? string.Empty,
+                ["damageEventApi"] = EffectiveDamageEvents(item)?.ForgeScriptApiVersion ?? string.Empty,
+                ["damageEventPayload"] = EffectiveDamageEvents(item) is { } damageEvents &&
                     damageEvents.IncludeSource && damageEvents.IncludeAmount && damageEvents.IncludeDamageType &&
                     damageEvents.IncludePreviousHealth && damageEvents.IncludeCurrentHealth &&
                     damageEvents.IncludeContext
                         ? "source-amount-damage-type-previous-current-context"
                         : string.Empty,
+                ["damageEventsRequiredAtRuntime"] = item.DamageEventsRequiredAtRuntime.ToString(),
                 ["attachmentSockets"] = item.CompositionEvents is { } composition
                     ? string.Join(';', composition.Sockets.Select(socket =>
                         $"{socket.SocketId}:{socket.Kind}:snap:{socket.SnapEnabled}:capacity:{socket.MaximumAttachments}"))
@@ -562,4 +566,7 @@ public sealed class WorldFeatureScriptService
     private static Handle Create(ProjectState state, string kind, Guid id, string targetId, string provenance,
         IReadOnlyDictionary<string, string> properties) =>
         new(1, state.Revision.Value, kind, id, targetId, provenance, properties);
+
+    private static PlaceableDamageEventsProfile? EffectiveDamageEvents(PlaceableWorldProfile item)
+        => item.DamageEvents ?? item.CompositionEvents?.DamageEvents;
 }

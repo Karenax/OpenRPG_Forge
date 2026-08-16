@@ -11,6 +11,14 @@ public sealed record PlaceableCompositionEventsResolution(
     PlaceableCompositionEventsHandle? Handle,
     string? DiagnosticCode);
 
+public sealed record PlaceableDamageEventsHandle(Guid PlaceableId, Guid ProfileId);
+
+public sealed record PlaceableDamageEventsResolution(
+    bool Available,
+    bool OptionalFallback,
+    PlaceableDamageEventsHandle? Handle,
+    string? DiagnosticCode);
+
 public sealed record PlaceableCompositionEventsRuntime(
     PlaceableDamageEventsProfile DamageEvents,
     IReadOnlyList<AttachmentSocket> Sockets,
@@ -30,6 +38,19 @@ public sealed class PlaceableCompositionEventsRuntimeAdapter
         }
 
         return new(true, false, new(placeable.Id, placeable.CompositionEvents.Id), null);
+    }
+
+    public PlaceableDamageEventsResolution ResolveDamageEvents(PlaceableWorldProfile placeable)
+    {
+        var damageEvents = EffectiveDamageEvents(placeable);
+        if (damageEvents is null)
+        {
+            return placeable.DamageEventsRequiredAtRuntime
+                ? new(false, false, null, "WORLD_PLACEABLE_DAMAGE_EVENTS_REQUIRED_MISSING")
+                : new(false, true, null, null);
+        }
+
+        return new(true, false, new(placeable.Id, damageEvents.Id), null);
     }
 
     public PlaceableCompositionEventsRuntime Build(
@@ -52,6 +73,16 @@ public sealed class PlaceableCompositionEventsRuntimeAdapter
                 verb.ForbiddenContext.ToHashSet(StringComparer.Ordinal), verb.EventBinding)).ToArray());
     }
 
+    public PlaceableDamageEventsProfile BuildDamageEvents(
+        PlaceableDamageEventsHandle handle,
+        PlaceableWorldProfile placeable)
+    {
+        var damageEvents = EffectiveDamageEvents(placeable);
+        if (handle.PlaceableId != placeable.Id || damageEvents is null || handle.ProfileId != damageEvents.Id)
+            throw new InvalidOperationException("WORLD_PLACEABLE_DAMAGE_EVENTS_HANDLE_STALE");
+        return damageEvents;
+    }
+
     public PlaceableBoundEvent<EntityEventPayload> Damage(
         PlaceableCompositionEventsHandle handle,
         PlaceableWorldProfile placeable,
@@ -67,6 +98,27 @@ public sealed class PlaceableCompositionEventsRuntimeAdapter
             previousHealth, currentHealth, placeable.CompositionEvents!.Provenance, context);
         return new(runtime.DamageEvents.ForgeScriptApiVersion,
             currentHealth <= 0 ? runtime.DamageEvents.DestroyedBinding : runtime.DamageEvents.DamagedBinding,
+            payload);
+    }
+
+    public PlaceableBoundEvent<EntityEventPayload> Damage(
+        PlaceableDamageEventsHandle handle,
+        PlaceableWorldProfile placeable,
+        string sourceId,
+        double amount,
+        string damageType,
+        double previousHealth,
+        double currentHealth,
+        IReadOnlyDictionary<string, string>? context = null)
+    {
+        var policy = BuildDamageEvents(handle, placeable);
+        var provenance = placeable.DamageEvents is not null
+            ? placeable.Provenance
+            : placeable.CompositionEvents?.Provenance ?? placeable.Provenance;
+        var payload = PlaceableEventService.DamageEvent(placeable.Id, sourceId, amount, damageType,
+            previousHealth, currentHealth, provenance, context);
+        return new(policy.ForgeScriptApiVersion,
+            currentHealth <= 0 ? policy.DestroyedBinding : policy.DamagedBinding,
             payload);
     }
 
@@ -97,6 +149,9 @@ public sealed class PlaceableCompositionEventsRuntimeAdapter
             throw new InvalidOperationException("WORLD_PLACEABLE_COMPOSITION_EVENTS_HANDLE_STALE");
         return placeable.CompositionEvents;
     }
+
+    private static PlaceableDamageEventsProfile? EffectiveDamageEvents(PlaceableWorldProfile placeable)
+        => placeable.DamageEvents ?? placeable.CompositionEvents?.DamageEvents;
 
     private static PlaceableTransform Transform(PlaceableWorldProfile.TransformPolicy transform)
         => new(

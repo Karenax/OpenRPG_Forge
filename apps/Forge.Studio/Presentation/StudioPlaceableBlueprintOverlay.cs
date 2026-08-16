@@ -48,9 +48,7 @@ internal sealed partial class StudioPlaceableBlueprintOverlay : Control
     private readonly OptionButton _interactionAuthority;
     private readonly LineEdit _interactionConditions;
     private readonly CheckBox _onUsedEnabled;
-    private readonly LineEdit _beforeUseScript;
-    private readonly LineEdit _afterUseScript;
-    private readonly CheckBox _requireOnUsedRuntime;
+    private readonly StudioPlaceableOnUsedEventEditor _onUsedEventEditor;
     private readonly CheckBox _health;
     private readonly StudioPlaceableDamageableEditor _damageableEditor;
     private readonly CheckBox _protection;
@@ -73,6 +71,10 @@ internal sealed partial class StudioPlaceableBlueprintOverlay : Control
     private readonly StudioPlaceableContainerEventsEditor _containerEventsEditor;
     private readonly CheckBox _lockEvents;
     private readonly StudioPlaceableLockEventsEditor _lockEventsEditor;
+    private readonly CheckBox _contentsChanged;
+    private readonly StudioPlaceableContentsChangedEditor _contentsChangedEditor;
+    private readonly CheckBox _damageEvents;
+    private readonly StudioPlaceableDamageEventsEditor _damageEventsEditor;
     private readonly CheckBox _physics;
     private readonly LineEdit _scripts;
     private readonly SpinBox _positionX;
@@ -124,6 +126,7 @@ internal sealed partial class StudioPlaceableBlueprintOverlay : Control
     private bool _lootFocus;
     private bool _containerEventsFocus;
     private bool _lockEventsFocus;
+    private bool _lifecycleEventsFocus;
 
     internal event Action<string, bool>? StatusChanged;
 
@@ -276,6 +279,15 @@ internal sealed partial class StudioPlaceableBlueprintOverlay : Control
         _result?.Succeeded == true &&
         _previewSummary.Text.Contains("Verrouillage et déverrouillage", StringComparison.OrdinalIgnoreCase);
 
+    internal bool LifecycleEventsPreviewReady =>
+        _role.Selected == (int)StudioPlaceableRole.Interactable &&
+        _onUsedEnabled.ButtonPressed && _onUsedEventEditor.IsReady && _onUsedEventEditor.PreviewReady &&
+        _contentsChanged.ButtonPressed && _contentsChangedEditor.IsReady && _contentsChangedEditor.PreviewReady &&
+        _health.ButtonPressed && _damageEvents.ButtonPressed && _damageEventsEditor.IsReady &&
+        _damageEventsEditor.PreviewReady && _result?.Succeeded == true &&
+        _previewSummary.Text.Contains("Contenu modifié", StringComparison.OrdinalIgnoreCase) &&
+        _previewSummary.Text.Contains("Dégâts et mort", StringComparison.OrdinalIgnoreCase);
+
     internal bool ShowsHumanSurface
     {
         get
@@ -292,7 +304,8 @@ internal sealed partial class StudioPlaceableBlueprintOverlay : Control
                 .Append(_conversationEditor.HumanText).Append(_lockEditor.HumanText)
                 .Append(_credentialEditor.HumanText).Append(_trapEditor.HumanText)
                 .Append(_lootEditor.HumanText).Append(_containerEventsEditor.HumanText)
-                .Append(_lockEventsEditor.HumanText));
+                .Append(_lockEventsEditor.HumanText).Append(_onUsedEventEditor.HumanText)
+                .Append(_contentsChangedEditor.HumanText).Append(_damageEventsEditor.HumanText));
             return !text.Contains("UUID", StringComparison.OrdinalIgnoreCase) &&
                    !text.Contains("hash", StringComparison.OrdinalIgnoreCase) &&
                    !text.Contains(".json", StringComparison.OrdinalIgnoreCase) &&
@@ -476,9 +489,8 @@ internal sealed partial class StudioPlaceableBlueprintOverlay : Control
         _interactionFields.AddChild(new HSeparator());
         _interactionFields.AddChild(StudioStyle.Label("ÉVÉNEMENT D’UTILISATION", 10, StudioStyle.Accent));
         _onUsedEnabled = AddCheck(_interactionFields, "Publier l’événement OnUsed");
-        _beforeUseScript = AddLine(_interactionFields, "Script avant", "scripts/avant_utilisation");
-        _afterUseScript = AddLine(_interactionFields, "Script après", "scripts/apres_utilisation");
-        _requireOnUsedRuntime = AddCheck(_interactionFields, "Exiger OnUsed au runtime");
+        _onUsedEventEditor = new StudioPlaceableOnUsedEventEditor();
+        _interactionFields.AddChild(_onUsedEventEditor);
 
         form.AddChild(new HSeparator());
         form.AddChild(StudioStyle.SectionLabel("COMPOSANTS ET SCRIPTS"));
@@ -496,6 +508,8 @@ internal sealed partial class StudioPlaceableBlueprintOverlay : Control
         _loot = AddCheck(componentGrid, "Trésor initial");
         _containerEvents = AddCheck(componentGrid, "Ouverture / fermeture");
         _lockEvents = AddCheck(componentGrid, "Verrouillage / déverrouillage");
+        _contentsChanged = AddCheck(componentGrid, "Contenu modifié / OnDisturbed");
+        _damageEvents = AddCheck(componentGrid, "Dégâts / mort");
         _physics = AddCheck(componentGrid, "Physique");
         _containerEditor = new StudioPlaceableContainerEditor();
         form.AddChild(_containerEditor);
@@ -629,6 +643,26 @@ internal sealed partial class StudioPlaceableBlueprintOverlay : Control
             wrap: true));
         _lockEventsEditor = new StudioPlaceableLockEventsEditor();
         form.AddChild(_lockEventsEditor);
+
+        form.AddChild(new HSeparator());
+        form.AddChild(StudioStyle.SectionLabel("CONTENU MODIFIÉ · ONDISTURBED"));
+        form.AddChild(StudioStyle.Label(
+            "Publiez un delta transactionnel avec sa cause, ses révisions et son acteur, puis prévisualisez-le sans modifier l’inventaire.",
+            10,
+            StudioStyle.Muted,
+            wrap: true));
+        _contentsChangedEditor = new StudioPlaceableContentsChangedEditor();
+        form.AddChild(_contentsChangedEditor);
+
+        form.AddChild(new HSeparator());
+        form.AddChild(StudioStyle.SectionLabel("DÉGÂTS ET MORT · ONDAMAGED / ONDEATH"));
+        form.AddChild(StudioStyle.Label(
+            "Nommez les événements de dégâts et de mort et conservez un payload uniforme, puis simulez les deux issues sans toucher à la santé de la scène.",
+            10,
+            StudioStyle.Muted,
+            wrap: true));
+        _damageEventsEditor = new StudioPlaceableDamageEventsEditor();
+        form.AddChild(_damageEventsEditor);
 
         var previewPanel = StudioStyle.Panel("PlaceablePreview", StudioStyle.Surface, 8);
         previewPanel.CustomMinimumSize = new Vector2(305, 0);
@@ -1018,7 +1052,12 @@ internal sealed partial class StudioPlaceableBlueprintOverlay : Control
         var lootMode = mode.StartsWith("ux1-s", StringComparison.OrdinalIgnoreCase);
         var containerEventsMode = mode.StartsWith("ux1-t", StringComparison.OrdinalIgnoreCase);
         var lockEventsMode = mode.StartsWith("ux1-u", StringComparison.OrdinalIgnoreCase);
-        if (lockEventsMode)
+        var lifecycleEventsMode = mode.StartsWith("ux1-v", StringComparison.OrdinalIgnoreCase);
+        if (lifecycleEventsMode)
+        {
+            OpenLifecycleEvents();
+        }
+        else if (lockEventsMode)
         {
             OpenLockEvents();
         }
@@ -1090,7 +1129,24 @@ internal sealed partial class StudioPlaceableBlueprintOverlay : Control
         {
             return false;
         }
-        if (lockEventsMode)
+        if (lifecycleEventsMode)
+        {
+            _role.Select((int)StudioPlaceableRole.Interactable);
+            _onUsedEnabled.ButtonPressed = true;
+            _contentsChanged.ButtonPressed = true;
+            _health.ButtonPressed = true;
+            _damageEvents.ButtonPressed = true;
+            _onUsedEventEditor.SetEvidenceValues();
+            _contentsChangedEditor.SetEvidenceValues();
+            _damageEventsEditor.SetEvidenceValues(mode);
+            _notes.Text =
+                "Événements OnUsed, OnDisturbed, OnDamaged et OnDeath gouvernés, typés et prévisualisés sans modifier la scène.";
+            UpdateRoleFields();
+            UpdateDamageFields();
+            UpdateContentsChangedFields();
+            UpdateDamageEventsFields();
+        }
+        else if (lockEventsMode)
         {
             _lock.ButtonPressed = true;
             _lockEvents.ButtonPressed = true;
@@ -1256,9 +1312,7 @@ internal sealed partial class StudioPlaceableBlueprintOverlay : Control
             SelectInteractionAuthority("server");
             _interactionConditions.Text = "player.conscious, line_of_sight";
             _onUsedEnabled.ButtonPressed = true;
-            _beforeUseScript.Text = "scripts/placeable_before_use";
-            _afterUseScript.Text = "scripts/placeable_after_use";
-            _requireOnUsedRuntime.ButtonPressed = true;
+            _onUsedEventEditor.SetEvidenceValues("1.0.0", "InteractionExecuted");
             _scripts.Text = "onUse=scripts/placeable_used";
             UpdateRoleFields();
             UpdateOnUsedFields();
@@ -1296,7 +1350,21 @@ internal sealed partial class StudioPlaceableBlueprintOverlay : Control
             _occluder.ButtonPressed = true;
         }
         Preview();
-        if (lockEventsMode)
+        if (lifecycleEventsMode)
+        {
+            if (mode.Contains("used", StringComparison.OrdinalIgnoreCase))
+                _onUsedEventEditor.FocusBindings();
+            else if (mode.Contains("disturbed", StringComparison.OrdinalIgnoreCase))
+                _contentsChangedEditor.FocusBindings();
+            else
+                _damageEventsEditor.FocusBindings();
+            _evidenceScrollControl = mode.Contains("disturbed", StringComparison.OrdinalIgnoreCase)
+                ? _contentsChangedEditor
+                : mode.Contains("used", StringComparison.OrdinalIgnoreCase)
+                    ? _onUsedEventEditor
+                    : _damageEventsEditor;
+        }
+        else if (lockEventsMode)
         {
             if (mode.Contains("preview", StringComparison.OrdinalIgnoreCase) ||
                 mode.Contains("transition", StringComparison.OrdinalIgnoreCase) ||
@@ -1588,7 +1656,7 @@ internal sealed partial class StudioPlaceableBlueprintOverlay : Control
             var evidenceScroll = 480;
             if (mode.Contains("event", StringComparison.OrdinalIgnoreCase))
             {
-                _beforeUseScript.GrabFocus();
+                _onUsedEventEditor.FocusBindings();
                 evidenceScroll = 1_000;
             }
             else if (mode.Contains("focus", StringComparison.OrdinalIgnoreCase))
@@ -1718,9 +1786,7 @@ internal sealed partial class StudioPlaceableBlueprintOverlay : Control
         SelectInteractionAuthority("server");
         _interactionConditions.Text = "player.conscious, line_of_sight";
         _onUsedEnabled.ButtonPressed = true;
-        _beforeUseScript.Text = "scripts/placeable_before_use";
-        _afterUseScript.Text = "scripts/placeable_after_use";
-        _requireOnUsedRuntime.ButtonPressed = true;
+        _onUsedEventEditor.SetEvidenceValues("1.0.0", "InteractionExecuted");
         UpdateRoleFields();
         UpdateOnUsedFields();
         Preview();
@@ -2625,9 +2691,7 @@ internal sealed partial class StudioPlaceableBlueprintOverlay : Control
         SelectInteractionAuthority(_draft.InteractionAuthority);
         _interactionConditions.Text = _draft.InteractionConditionsText;
         _onUsedEnabled.ButtonPressed = _draft.OnUsedEnabled;
-        _beforeUseScript.Text = _draft.BeforeUseScript;
-        _afterUseScript.Text = _draft.AfterUseScript;
-        _requireOnUsedRuntime.ButtonPressed = _draft.RequireOnUsedRuntime;
+        _onUsedEventEditor.Load(_draft, _draft.OnUsedEnabled);
         _health.ButtonPressed = _draft.HasHealth;
         _health.Disabled = _draft.Damageable.ExistingProfile;
         _damageableEditor.Load(_draft.Damageable, _draft.HasHealth, _draft.RequireOperationsRuntime);
@@ -2691,6 +2755,19 @@ internal sealed partial class StudioPlaceableBlueprintOverlay : Control
             _draft.LockEvents!,
             _draft.HasLockEvents,
             _draft.RequireLockEventsRuntime);
+        _contentsChanged.ButtonPressed = _draft.HasContentsChanged;
+        _contentsChanged.Disabled = _draft.ContentsChanged?.ExistingProfile == true;
+        _contentsChangedEditor.Load(
+            _draft.ContentsChanged!,
+            _draft.HasContentsChanged,
+            _draft.RequireContentsChangedRuntime);
+        _damageEvents.ButtonPressed = _draft.HasDamageEvents;
+        _damageEvents.Disabled = _draft.OriginalCompositionEvents is not null &&
+                                 _draft.OriginalDamageEvents is null;
+        _damageEventsEditor.Load(
+            _draft.DamageEvents!,
+            _draft.HasDamageEvents,
+            _draft.RequireDamageEventsRuntime);
         _physics.ButtonPressed = _draft.HasPhysics;
         _scripts.Text = _draft.ScriptBindingsText;
         SetVector(_positionX, _positionY, _positionZ, _draft.Position);
@@ -2721,6 +2798,8 @@ internal sealed partial class StudioPlaceableBlueprintOverlay : Control
         UpdateLootFields();
         UpdateContainerEventsFields();
         UpdateLockEventsFields();
+        UpdateContentsChangedFields();
+        UpdateDamageEventsFields();
         SetEditingEnabled(true);
         SetStatus(option.HasProfile ? "Fiche chargée sans modification." : "Brouillon initialisé depuis la scène.",
             error: false);
@@ -2829,9 +2908,11 @@ internal sealed partial class StudioPlaceableBlueprintOverlay : Control
             InteractionAuthority = InteractionAuthorityValue(),
             InteractionConditionsText = _interactionConditions.Text,
             OnUsedEnabled = _onUsedEnabled.ButtonPressed,
-            BeforeUseScript = _beforeUseScript.Text,
-            AfterUseScript = _afterUseScript.Text,
-            RequireOnUsedRuntime = _requireOnUsedRuntime.ButtonPressed,
+            OnUsedForgeScriptApiVersion = _onUsedEventEditor.ApiVersion,
+            OnUsedEventBinding = _onUsedEventEditor.EventBinding,
+            BeforeUseScript = _onUsedEventEditor.BeforeScript,
+            AfterUseScript = _onUsedEventEditor.AfterScript,
+            RequireOnUsedRuntime = _onUsedEventEditor.RequiredAtRuntime,
             HasHealth = _health.ButtonPressed,
             HasContainer = _container.ButtonPressed,
             HasStateMachine = _stateMachineEditor.Enabled,
@@ -2868,6 +2949,12 @@ internal sealed partial class StudioPlaceableBlueprintOverlay : Control
             HasLockEvents = _lockEvents.ButtonPressed,
             LockEvents = _lockEventsEditor.Capture(source.LockEvents!),
             RequireLockEventsRuntime = _lockEventsEditor.RequiredAtRuntime,
+            HasContentsChanged = _contentsChanged.ButtonPressed,
+            ContentsChanged = _contentsChangedEditor.Capture(source.ContentsChanged!),
+            RequireContentsChangedRuntime = _contentsChangedEditor.RequiredAtRuntime,
+            HasDamageEvents = _damageEvents.ButtonPressed,
+            DamageEvents = _damageEventsEditor.Capture(source.DamageEvents!),
+            RequireDamageEventsRuntime = _damageEventsEditor.RequiredAtRuntime,
             HasPhysics = _physics.ButtonPressed,
             ScriptBindingsText = _scripts.Text,
             Position = ReadVector(_positionX, _positionY, _positionZ),
@@ -2955,10 +3042,35 @@ internal sealed partial class StudioPlaceableBlueprintOverlay : Control
                 _lockEventsEditor.PreviewMode);
             _lockEventsEditor.SetPreviewResult(lockEventPreview);
         }
+        StudioPlaceableOnUsedEventPreview? onUsedEventPreview = null;
+        if (_onUsedEnabled.ButtonPressed)
+        {
+            onUsedEventPreview = _session.PreviewPlaceableOnUsedEvent(_draft);
+            _onUsedEventEditor.SetPreviewResult(onUsedEventPreview);
+        }
+        StudioPlaceableContentsChangedPreview? contentsChangedPreview = null;
+        if (_contentsChanged.ButtonPressed)
+        {
+            contentsChangedPreview = _session.PreviewPlaceableContentsChanged(_draft);
+            _contentsChangedEditor.SetPreviewResult(contentsChangedPreview);
+        }
+        StudioPlaceableDamageEventPreview? damageEventPreview = null;
+        if (_damageEvents.ButtonPressed)
+        {
+            damageEventPreview = _session.PreviewPlaceableDamageEvent(_draft, _damageEventsEditor.PreviewMode);
+            _damageEventsEditor.SetPreviewResult(damageEventPreview);
+        }
         _previewSummary.Text = _result.Summary;
         _previewSummary.AddThemeColorOverride("font_color", _result.Succeeded ? StudioStyle.Text : StudioStyle.Danger);
         _previewState.Text = _result.Succeeded
-            ? _lockEventsFocus
+            ? _lifecycleEventsFocus
+                ? string.Join("\n", new[]
+                {
+                    onUsedEventPreview?.Summary,
+                    contentsChangedPreview?.Summary,
+                    damageEventPreview?.Summary,
+                }.Where(value => !string.IsNullOrWhiteSpace(value)))
+                : _lockEventsFocus
                 ? lockEventPreview?.Summary ??
                   "Événements avant et après, contexte canonique et veto contrôlé validés · aperçu sans écriture"
                 : _containerEventsFocus
@@ -3078,6 +3190,11 @@ internal sealed partial class StudioPlaceableBlueprintOverlay : Control
         var interaction = _role.Selected == (int)StudioPlaceableRole.Interactable;
         _staticFields.Visible = !interaction;
         _interactionFields.Visible = interaction;
+        _onUsedEnabled.Disabled = !interaction;
+        if (!interaction)
+        {
+            _onUsedEnabled.ButtonPressed = false;
+        }
         UpdateOnUsedFields();
         InvalidatePreview();
     }
@@ -3085,13 +3202,7 @@ internal sealed partial class StudioPlaceableBlueprintOverlay : Control
     private void UpdateOnUsedFields()
     {
         var enabled = _interactionFields.Visible && _onUsedEnabled.ButtonPressed;
-        _beforeUseScript.Editable = enabled;
-        _afterUseScript.Editable = enabled;
-        _requireOnUsedRuntime.Disabled = !enabled;
-        if (!enabled)
-        {
-            _requireOnUsedRuntime.ButtonPressed = false;
-        }
+        _onUsedEventEditor.SetEnabledState(enabled);
         InvalidatePreview();
     }
 
@@ -3171,6 +3282,21 @@ internal sealed partial class StudioPlaceableBlueprintOverlay : Control
         InvalidatePreview();
     }
 
+    private void UpdateContentsChangedFields()
+    {
+        _contentsChangedEditor.Visible = _contentsChanged.ButtonPressed;
+        _contentsChangedEditor.SetEnabledState(_contentsChanged.ButtonPressed);
+        InvalidatePreview();
+    }
+
+    private void UpdateDamageEventsFields()
+    {
+        var enabled = _damageEvents.ButtonPressed;
+        _damageEventsEditor.Visible = enabled;
+        _damageEventsEditor.SetEnabledState(enabled);
+        InvalidatePreview();
+    }
+
     private void SetPresentation(
         bool staticFocus,
         bool interactionFocus = false,
@@ -3200,6 +3326,7 @@ internal sealed partial class StudioPlaceableBlueprintOverlay : Control
         _lootFocus = lootFocus;
         _containerEventsFocus = containerEventsFocus;
         _lockEventsFocus = lockEventsFocus;
+        _lifecycleEventsFocus = false;
         _scenePreviewTitle.Text = lockEventsFocus
             ? "Aperçu du changement de verrou"
             : containerEventsFocus
@@ -3385,7 +3512,7 @@ internal sealed partial class StudioPlaceableBlueprintOverlay : Control
         foreach (var line in new[]
                  {
                      _slug, _name, _prompt, _tags, _notes, _scripts, _overrides, _interactionConditions,
-                     _beforeUseScript, _afterUseScript, _transformAnimation,
+                     _transformAnimation,
                  })
         {
             line.TextChanged += _ => InvalidatePreview();
@@ -3397,10 +3524,11 @@ internal sealed partial class StudioPlaceableBlueprintOverlay : Control
         foreach (var check in new[]
                  {
                      _navigationObstacle, _batched, _instanced, _occluder, _mergeEligible, _staticCollision,
-                     _requiresFocus, _onUsedEnabled, _requireOnUsedRuntime, _health, _protection, _factionOwnership,
+                     _requiresFocus, _onUsedEnabled, _health, _protection, _factionOwnership,
                      _conversation,
                      _container,
-                      _lock, _credentialPolicy, _trap, _loot, _containerEvents, _lockEvents, _physics,
+                       _lock, _credentialPolicy, _trap, _loot, _containerEvents, _lockEvents,
+                       _contentsChanged, _damageEvents, _physics,
                       _alignToSurface, _requireRuntime,
                  })
         {
@@ -3418,6 +3546,10 @@ internal sealed partial class StudioPlaceableBlueprintOverlay : Control
         _loot.Toggled += _ => UpdateLootFields();
         _containerEvents.Toggled += _ => UpdateContainerEventsFields();
         _lockEvents.Toggled += _ => UpdateLockEventsFields();
+        _contentsChanged.Toggled += _ => UpdateContentsChangedFields();
+        _damageEvents.Toggled += _ => UpdateDamageEventsFields();
+        _onUsedEventEditor.Changed += InvalidatePreview;
+        _onUsedEventEditor.PreviewRequested += Preview;
         _verbEditor.Changed += InvalidatePreview;
         _containerEditor.Changed += InvalidatePreview;
         _stateMachineEditor.Changed += InvalidatePreview;
@@ -3446,6 +3578,10 @@ internal sealed partial class StudioPlaceableBlueprintOverlay : Control
         _lockEventsEditor.Changed += InvalidatePreview;
         _lockEventsEditor.PreviewRequested += Preview;
         _lockEventsEditor.RuntimeRequirementChanged += _ => InvalidatePreview();
+        _contentsChangedEditor.Changed += InvalidatePreview;
+        _contentsChangedEditor.PreviewRequested += Preview;
+        _damageEventsEditor.Changed += InvalidatePreview;
+        _damageEventsEditor.PreviewRequested += Preview;
         _lockEditor.RuntimeRequirementChanged += required =>
         {
             _containerEditor.SetRequiredAtRuntime(required);

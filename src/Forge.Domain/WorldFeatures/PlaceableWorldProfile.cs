@@ -29,7 +29,10 @@ public sealed record PlaceableWorldProfile(
     bool TrapRequiredAtRuntime = false,
     bool LootRequiredAtRuntime = false,
     bool ContainerEventsRequiredAtRuntime = false,
-    bool LockEventsRequiredAtRuntime = false)
+    bool LockEventsRequiredAtRuntime = false,
+    bool ContentsChangedRequiredAtRuntime = false,
+    PlaceableDamageEventsProfile? DamageEvents = null,
+    bool DamageEventsRequiredAtRuntime = false)
 {
     public enum CredentialConsumption { Retain, Consume, Charge, Shared, VirtualPermission }
     public enum BodyMode { Static, Rigid, Kinematic }
