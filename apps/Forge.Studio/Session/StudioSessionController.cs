@@ -125,6 +125,9 @@ internal sealed partial class StudioSessionController
         CloseUx1AA();
         CloseUx1AB();
         CloseUx1AC();
+        CloseUx1AD();
+        CloseUx1AE();
+        CloseUx1AF();
         ActiveAreaId = ResolveArea(preferredAreaId)?.Id ??
             Project!.Areas.FirstOrDefault(area => area.Id == Project.Module.EntryAreaId)?.Id ??
             Project.Areas.FirstOrDefault()?.Id;
@@ -1047,6 +1050,9 @@ internal sealed partial class StudioSessionController
         CloseUx1AA();
         CloseUx1AB();
         CloseUx1AC();
+        CloseUx1AD();
+        CloseUx1AE();
+        CloseUx1AF();
         _searchProfile = null;
         _workspaceResources = null;
         _resourceCatalogProject = null;

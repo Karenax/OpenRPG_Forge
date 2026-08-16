@@ -5,7 +5,7 @@ using Godot;
 
 namespace Forge.Studio.Presentation;
 
-internal sealed class StudioAssistedAreaPlanWorkspace : PanelContainer
+internal sealed partial class StudioAssistedAreaPlanWorkspace : PanelContainer
 {
     private readonly StudioSessionController _sourceSession;
     private StudioSessionController _session;

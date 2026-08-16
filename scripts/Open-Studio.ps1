@@ -45,7 +45,10 @@ param(
         'ux1-z', 'ux1-z-physical', 'ux1-z-spell', 'ux1-z-heartbeat', 'ux1-z-physics',
         'ux1-aa', 'ux1-aa-assembly', 'ux1-aa-verbs', 'ux1-aa-validation',
         'ux1-ab', 'ux1-ab-damage', 'ux1-ab-loading', 'ux1-ab-events',
-        'ux1-ac', 'ux1-ac-trigger-advanced', 'ux1-ac-filter', 'ux1-ac-volumes', 'ux1-ac-occupation')]
+        'ux1-ac', 'ux1-ac-trigger-advanced', 'ux1-ac-filter', 'ux1-ac-volumes', 'ux1-ac-occupation',
+        'ux1-ad', 'ux1-ad-reactions', 'ux1-ad-references', 'ux1-ad-assembly',
+        'ux1-ae', 'ux1-ae-discovery-access',
+        'ux1-af', 'ux1-af-assisted-area-plan', 'ux1-af-area-build')]
     [string]$Evidence,
     [string]$Resolution,
     [switch]$Headless,

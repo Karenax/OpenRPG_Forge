@@ -992,7 +992,7 @@ internal sealed partial class StudioDoorReactiveComplexOverlay : Control
     private const string HeartbeatEventName = "heartbeat";
 }
 
-internal sealed class StudioDoorAssemblyPanelEditorUx1AD : VBoxContainer
+internal sealed partial class StudioDoorAssemblyPanelEditorUx1AD : VBoxContainer
 {
     private readonly IReadOnlyList<PanelRow> _rows;
     private bool _updating;
