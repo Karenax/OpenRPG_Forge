@@ -302,6 +302,8 @@ internal sealed partial class StudioSessionController
 
             var originalProject = editing.Project!;
             var originalCatalog = originalProject.Module.WorldFeatures;
+            var loadedOriginalProfile = originalCatalog.Triggers.Single(item => item.Id == originalProfile.Id);
+            var loadedNeighborProfile = originalCatalog.Triggers.Single(item => item.Id == neighborProfile.Id);
             var selectionExplicit = editing.CreateTriggerFoundationDraftUx1Y() is null &&
                                     editing.TriggerChoicesUx1Y.Count == 2;
             var nonPolygonDraft = editing.CreateTriggerFoundationDraftUx1Y(neighborBlueprint.Id)!;
@@ -412,12 +414,19 @@ internal sealed partial class StudioSessionController
                               entered.Actions.Single().TargetId == "encounter:guardian" &&
                               exited.Event is { EventBinding: "VolumeExited", DurationInside.TotalSeconds: 9 };
 
-            var portalPreserved = applied.Foundation!.Portal == originalProfile.Foundation!.Portal;
-            var validationPreserved = applied.Foundation!.Validation == originalProfile.Foundation!.Validation;
-            var advancedPreserved = applied.Advanced == originalProfile.Advanced &&
-                                    applied.AdvancedRequiredAtRuntime == originalProfile.AdvancedRequiredAtRuntime;
-            var neighborPreserved = appliedProject.Module.WorldFeatures.Triggers.Single(item =>
-                                        item.Id == neighborProfile.Id) == neighborProfile &&
+            var portalPreserved = ReferenceEquals(
+                applied.Foundation!.Portal,
+                loadedOriginalProfile.Foundation!.Portal);
+            var validationPreserved = ReferenceEquals(
+                applied.Foundation!.Validation,
+                loadedOriginalProfile.Foundation!.Validation);
+            var advancedPreserved = ReferenceEquals(applied.Advanced, loadedOriginalProfile.Advanced) &&
+                                    applied.AdvancedRequiredAtRuntime ==
+                                    loadedOriginalProfile.AdvancedRequiredAtRuntime;
+            var neighborPreserved = ReferenceEquals(
+                                        appliedProject.Module.WorldFeatures.Triggers.Single(item =>
+                                            item.Id == neighborProfile.Id),
+                                        loadedNeighborProfile) &&
                                     appliedProject.Module.WorldFeatures.Placeables.SequenceEqual(originalCatalog.Placeables) &&
                                     appliedProject.Module.WorldFeatures.Doors.SequenceEqual(originalCatalog.Doors) &&
                                     appliedProject.Module.WorldFeatures.Encounters.SequenceEqual(originalCatalog.Encounters) &&

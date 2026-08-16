@@ -85,15 +85,23 @@ internal sealed partial class StudioWorkspaceShell
         var originalActive = _session.SelectedEntityId;
         var originalDirty = _session.IsDirty;
         var uiTransaction = _triggerFoundationOverlay.RunUiTransactionEvidence();
-        var uiReady = PrepareUx1YEvidence("ux1-y-foundation") &&
+        var evidencePrepared = PrepareUx1YEvidence("ux1-y-foundation");
+        var overlayOpen = _triggerFoundationOverlay.IsOpen;
+        var sectionCount = _triggerFoundationOverlay.SectionCount;
+        var vertexCount = _triggerFoundationOverlay.VertexCount;
+        var holeCount = _triggerFoundationOverlay.HoleCount;
+        var uniformProjection = _triggerFoundationOverlay.UsesUniformProjection;
+        var polygonSurface = _triggerFoundationOverlay.IsExtrudedPolygonSurface;
+        var humanSurface = _triggerFoundationOverlay.ShowsHumanSurface;
+        var uiReady = evidencePrepared &&
                       PageId == "placement" &&
-                      _triggerFoundationOverlay.IsOpen &&
-                      _triggerFoundationOverlay.SectionCount == 3 &&
-                      _triggerFoundationOverlay.VertexCount >= 3 &&
-                      _triggerFoundationOverlay.HoleCount >= 1 &&
-                      _triggerFoundationOverlay.UsesUniformProjection &&
-                      _triggerFoundationOverlay.IsExtrudedPolygonSurface &&
-                      _triggerFoundationOverlay.ShowsHumanSurface;
+                      overlayOpen &&
+                      sectionCount == 3 &&
+                      vertexCount >= 3 &&
+                      holeCount >= 1 &&
+                      uniformProjection &&
+                      polygonSurface &&
+                      humanSurface;
         _triggerFoundationOverlay.Close();
         _session.SelectEntities(originalSelection, originalActive);
         WorldViewport.SetSelections(_session.SelectedEntityIds, _session.SelectedEntityId);
@@ -101,6 +109,14 @@ internal sealed partial class StudioWorkspaceShell
         var currentProjectUntouched = ReferenceEquals(originalProject, _session.Project) &&
                                       _session.ActiveAreaId == originalAreaId &&
                                       _session.IsDirty == originalDirty;
+        if (!uiReady)
+        {
+            GD.PrintErr(
+                $"OPENRPG_FORGE_STUDIO_UX1Y_UI_SURFACE_FAILED prepared={evidencePrepared.ToString().ToLowerInvariant()} " +
+                $"open={overlayOpen.ToString().ToLowerInvariant()} sections={sectionCount} vertices={vertexCount} " +
+                $"holes={holeCount} uniform={uniformProjection.ToString().ToLowerInvariant()} " +
+                $"polygon={polygonSurface.ToString().ToLowerInvariant()} human={humanSurface.ToString().ToLowerInvariant()}");
+        }
         var valid = result.Succeeded && uiReady && uiTransaction && currentProjectUntouched;
         GD.Print(
             $"OPENRPG_FORGE_STUDIO_UX1Y_{(valid ? "PASS" : "FAILED")} " +
@@ -122,7 +138,7 @@ internal sealed partial class StudioWorkspaceShell
             $"advanced_preserved={result.AdvancedPreserved.ToString().ToLowerInvariant()} " +
             $"neighbors_preserved={result.NeighborPreserved.ToString().ToLowerInvariant()} " +
             $"human_no_uuid={result.HumanDiagnostics.ToString().ToLowerInvariant()} " +
-            $"uniform_projection={_triggerFoundationOverlay.UsesUniformProjection.ToString().ToLowerInvariant()} " +
+            $"uniform_projection={uniformProjection.ToString().ToLowerInvariant()} " +
             $"ui={uiReady.ToString().ToLowerInvariant()} " +
             $"ui_transaction={uiTransaction.ToString().ToLowerInvariant()} " +
             $"project_restored={currentProjectUntouched.ToString().ToLowerInvariant()} windows=1");

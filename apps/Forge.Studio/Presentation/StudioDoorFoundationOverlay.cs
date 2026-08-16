@@ -232,11 +232,11 @@ internal sealed partial class StudioDoorFoundationOverlay : Control
             wrap: true));
         var interactionGrid = Grid();
         _interactionPanel.AddChild(interactionGrid);
-        _range = AddField(interactionGrid, "Portée", Number(.1, 100, .1, " m"));
+        _range = AddField(interactionGrid, "Portée", Number(.1, 100, .05, " m"));
         _side = AddField(interactionGrid, "Côté autorisé", Option("Deux côtés", "Avant", "Arrière"));
-        _clearanceWidth = AddField(interactionGrid, "Largeur du passage", Number(.1, 100, .1, " m"));
-        _clearanceHeight = AddField(interactionGrid, "Hauteur du passage", Number(.1, 100, .1, " m"));
-        _clearanceDepth = AddField(interactionGrid, "Profondeur du passage", Number(.1, 100, .1, " m"));
+        _clearanceWidth = AddField(interactionGrid, "Largeur du passage", Number(.1, 100, .05, " m"));
+        _clearanceHeight = AddField(interactionGrid, "Hauteur du passage", Number(.1, 100, .05, " m"));
+        _clearanceDepth = AddField(interactionGrid, "Profondeur du passage", Number(.1, 100, .05, " m"));
         _authority = AddField(
             interactionGrid,
             "Décision d’ouverture",
@@ -410,7 +410,7 @@ internal sealed partial class StudioDoorFoundationOverlay : Control
         Apply();
         var appliedProfile = _session.Project?.Module.WorldFeatures.Doors.SingleOrDefault(profile =>
             profile.BlueprintId == blueprintId);
-        var applied = appliedProfile?.Foundation is
+        var placementApplied = appliedProfile?.Foundation is
                       {
                           Placement: DoorWorldProfile.PlacementMode.ArchitectureSocket,
                           ArchitectureSocketId: "mur-preuve-porte",
@@ -422,9 +422,12 @@ internal sealed partial class StudioDoorFoundationOverlay : Control
                               QueueCapacity: 4,
                               FailureFeedbackKey: "door.unavailable",
                           },
-                      } && Enum.GetValues<DoorWorldProfile.StateKind>().All(kind =>
-                          appliedProfile.Foundation.States.Any(state => state.Kind == kind)) &&
-                      !_undo.Disabled;
+                      };
+        var statesApplied = appliedProfile?.Foundation is not null &&
+                            Enum.GetValues<DoorWorldProfile.StateKind>().All(kind =>
+                                appliedProfile.Foundation.States.Any(state => state.Kind == kind));
+        var historyReady = !_undo.Disabled;
+        var applied = placementApplied && statesApplied && historyReady;
         Undo();
         var undone = ReferenceEquals(originalProject, _session.Project) &&
                      _session.IsDirty == originalDirty && !_redo.Disabled;
@@ -434,7 +437,18 @@ internal sealed partial class StudioDoorFoundationOverlay : Control
         var restored = ReferenceEquals(originalProject, _session.Project) &&
                        _session.IsDirty == originalDirty;
         Close();
-        return selectionRequired && explicitSelection && previewed && applied && undone && redone && restored;
+        var valid = selectionRequired && explicitSelection && previewed && applied && undone && redone && restored;
+        if (!valid)
+        {
+            GD.PrintErr(
+                $"OPENRPG_FORGE_STUDIO_UX1X_UI_TRANSACTION_FAILED selection_required={selectionRequired.ToString().ToLowerInvariant()} " +
+                $"explicit_selection={explicitSelection.ToString().ToLowerInvariant()} preview={previewed.ToString().ToLowerInvariant()} " +
+                $"applied={applied.ToString().ToLowerInvariant()} placement={placementApplied.ToString().ToLowerInvariant()} " +
+                $"states={statesApplied.ToString().ToLowerInvariant()} history_ready={historyReady.ToString().ToLowerInvariant()} " +
+                $"undone={undone.ToString().ToLowerInvariant()} " +
+                $"redone={redone.ToString().ToLowerInvariant()} restored={restored.ToString().ToLowerInvariant()}");
+        }
+        return valid;
     }
 
     private void LoadSelectedDoor()

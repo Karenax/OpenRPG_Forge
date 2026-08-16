@@ -1038,6 +1038,8 @@ internal sealed partial class StudioTriggerFoundationOverlay : Control
             if (!created.Succeeded ||
                 !isolatedSession.Open(tempRoot, _session.ActiveAreaId?.ToString()).Succeeded)
             {
+                GD.PrintErr(
+                    $"OPENRPG_FORGE_STUDIO_UX1Y_UI_TRANSACTION_FAILED stage=isolated-open created={created.Succeeded.ToString().ToLowerInvariant()}");
                 return false;
             }
 
@@ -1053,10 +1055,19 @@ internal sealed partial class StudioTriggerFoundationOverlay : Control
                                   currentHistory.CanUndo == originalCanUndo &&
                                   currentHistory.CanRedo == originalCanRedo &&
                                   currentHistory.Journal.SequenceEqual(originalJournal);
-            return isolatedEvidence && sourceUntouched;
+            var valid = isolatedEvidence && sourceUntouched;
+            if (!valid)
+            {
+                GD.PrintErr(
+                    $"OPENRPG_FORGE_STUDIO_UX1Y_UI_TRANSACTION_FAILED stage=isolated-transaction " +
+                    $"isolated={isolatedEvidence.ToString().ToLowerInvariant()} source_untouched={sourceUntouched.ToString().ToLowerInvariant()}");
+            }
+            return valid;
         }
-        catch (Exception)
+        catch (Exception exception)
         {
+            GD.PrintErr(
+                $"OPENRPG_FORGE_STUDIO_UX1Y_UI_TRANSACTION_FAILED stage=exception type={exception.GetType().Name} message={exception.Message}");
             return false;
         }
         finally
@@ -1087,6 +1098,10 @@ internal sealed partial class StudioTriggerFoundationOverlay : Control
         var applied = dryRun && _applied && !ReferenceEquals(originalProject, appliedProject);
         if (!applied)
         {
+            GD.PrintErr(
+                $"OPENRPG_FORGE_STUDIO_UX1Y_BOUND_UI_TRANSACTION_FAILED stage=apply ready={ready.ToString().ToLowerInvariant()} " +
+                $"dry_run={dryRun.ToString().ToLowerInvariant()} applied_flag={_applied.ToString().ToLowerInvariant()} " +
+                $"project_changed={(!ReferenceEquals(originalProject, appliedProject)).ToString().ToLowerInvariant()}");
             Close();
             return false;
         }
@@ -1105,7 +1120,16 @@ internal sealed partial class StudioTriggerFoundationOverlay : Control
         var restored = redone && ReferenceEquals(originalProject, _session.Project) &&
                        _session.IsDirty == originalDirty;
         Close();
-        return dryRun && applied && undone && redone && restored;
+        var valid = dryRun && applied && undone && redone && restored;
+        if (!valid)
+        {
+            GD.PrintErr(
+                $"OPENRPG_FORGE_STUDIO_UX1Y_BOUND_UI_TRANSACTION_FAILED ready={ready.ToString().ToLowerInvariant()} " +
+                $"dry_run={dryRun.ToString().ToLowerInvariant()} applied={applied.ToString().ToLowerInvariant()} " +
+                $"undone={undone.ToString().ToLowerInvariant()} redone={redone.ToString().ToLowerInvariant()} " +
+                $"restored={restored.ToString().ToLowerInvariant()}");
+        }
+        return valid;
     }
 
     public override void _UnhandledKeyInput(InputEvent @event)
@@ -1245,19 +1269,22 @@ internal sealed partial class StudioTriggerFoundationOverlay : Control
             {
                 ForgeScriptApiVersion = _enterApi.Text,
                 EventBinding = _enterBinding.Text,
-                BeforeScriptId = _enterBefore.Text,
-                AfterScriptId = _enterAfter.Text,
+                BeforeScriptId = EmptyToNull(_enterBefore.Text),
+                AfterScriptId = EmptyToNull(_enterAfter.Text),
             },
             OnExit = draft.OnExit with
             {
                 ForgeScriptApiVersion = _exitApi.Text,
                 EventBinding = _exitBinding.Text,
-                BeforeScriptId = _exitBefore.Text,
-                AfterScriptId = _exitAfter.Text,
+                BeforeScriptId = EmptyToNull(_exitBefore.Text),
+                AfterScriptId = EmptyToNull(_exitAfter.Text),
             },
             RequireRuntime = _requireRuntime.ButtonPressed,
         };
     }
+
+    private static string? EmptyToNull(string value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
     private void Preview()
     {

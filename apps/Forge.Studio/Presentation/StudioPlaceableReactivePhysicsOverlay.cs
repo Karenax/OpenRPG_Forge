@@ -211,7 +211,7 @@ internal sealed partial class StudioPlaceableReactivePhysicsOverlay : PanelConta
         _bodyMode.AddItem("Statique");
         _bodyMode.AddItem("Rigide");
         _bodyMode.AddItem("Cinématique");
-        _mass = AddSpin(physics, "Masse", .01, 100000, .25, " kg");
+        _mass = AddSpin(physics, "Masse", .01, 100000, .01, " kg");
         _constraints = AddLine(physics, "Contraintes", "lock-y, lock-rotation-x");
         _replicated = AddCheck(physics, "Demander la réplication de la politique");
         _sleepAfter = AddSpin(physics, "Sommeil après", 0, 3600, .25, " s");
@@ -397,30 +397,48 @@ internal sealed partial class StudioPlaceableReactivePhysicsOverlay : PanelConta
         var applied = _session.ApplyApprovedUx1Z();
         var profile = _session.Project?.Module.WorldFeatures.Placeables.SingleOrDefault(item =>
             item.BlueprintId == blueprintId);
-        var canonical = applied.Succeeded && profile?.Physics is
+        var physicsCanonical = profile?.Physics is
         {
             Mode: PlaceableWorldProfile.BodyMode.Rigid,
             Mass: 12,
             Replicated: true,
             Authority: "server",
-        } && profile.Reactive.Events.Any(item => item.Event == "physical-attack-targeted") &&
-             profile.Reactive.Events.Any(item => item.Event == "physical-attack-resolved") &&
-             profile.Reactive.Events.Any(item => item.Event == "ability-targeted") &&
-             profile.Reactive.Events.Any(item => item.Event == "ability-impacted") &&
-             profile.Reactive.Events.Any(item => item.Event == "heartbeat") &&
-             profile.Reactive.Events.Any(item => item.Event == "custom:reliquaire:pulse") &&
-             profile.Reactive.Scheduler is
+        };
+        var eventsCanonical = profile is not null && new[]
+        {
+            "physical-attack-targeted",
+            "physical-attack-resolved",
+            "ability-targeted",
+            "ability-impacted",
+            "heartbeat",
+            "custom:reliquaire:pulse",
+        }.All(eventName => profile.Reactive.Events.Any(item => item.Event == eventName));
+        var schedulerCanonical = profile?.Reactive.Scheduler is
              {
                  Enabled: true,
                  IntervalSeconds: 5,
                  BudgetPerMinute: 12,
                  CustomNamespace: "reliquaire.veilleurs",
              };
+        var canonical = applied.Succeeded && physicsCanonical && eventsCanonical && schedulerCanonical;
         var undo = _session.Undo();
         var restored = undo.Succeeded && ReferenceEquals(originalProject, _session.Project) &&
                        _session.IsDirty == originalDirty;
         Close();
-        return visible && canonical && restored;
+        var valid = visible && canonical && restored;
+        if (!valid)
+        {
+            var physics = profile?.Physics;
+            GD.PrintErr(
+                $"OPENRPG_FORGE_STUDIO_UX1Z_UI_TRANSACTION_FAILED visible={visible.ToString().ToLowerInvariant()} " +
+                $"apply_succeeded={applied.Succeeded.ToString().ToLowerInvariant()} canonical={canonical.ToString().ToLowerInvariant()} " +
+                $"physics={physicsCanonical.ToString().ToLowerInvariant()} events={eventsCanonical.ToString().ToLowerInvariant()} " +
+                $"scheduler={schedulerCanonical.ToString().ToLowerInvariant()} " +
+                $"mode={physics?.Mode.ToString() ?? "missing"} mass={physics?.Mass.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "missing"} " +
+                $"replicated={physics?.Replicated.ToString().ToLowerInvariant() ?? "missing"} authority={physics?.Authority ?? "missing"} " +
+                $"undo_succeeded={undo.Succeeded.ToString().ToLowerInvariant()} restored={restored.ToString().ToLowerInvariant()}");
+        }
+        return valid;
     }
 
     private void SelectPlaceable()
