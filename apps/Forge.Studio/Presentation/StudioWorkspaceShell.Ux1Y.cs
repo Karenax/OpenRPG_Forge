@@ -83,6 +83,7 @@ internal sealed partial class StudioWorkspaceShell
         var originalAreaId = _session.ActiveAreaId;
         var originalSelection = _session.SelectedEntityIds.ToArray();
         var originalActive = _session.SelectedEntityId;
+        var originalDirty = _session.IsDirty;
         var uiTransaction = _triggerFoundationOverlay.RunUiTransactionEvidence();
         var uiReady = PrepareUx1YEvidence("ux1-y-foundation") &&
                       PageId == "placement" &&
@@ -90,6 +91,8 @@ internal sealed partial class StudioWorkspaceShell
                       _triggerFoundationOverlay.SectionCount == 3 &&
                       _triggerFoundationOverlay.VertexCount >= 3 &&
                       _triggerFoundationOverlay.HoleCount >= 1 &&
+                      _triggerFoundationOverlay.UsesUniformProjection &&
+                      _triggerFoundationOverlay.IsExtrudedPolygonSurface &&
                       _triggerFoundationOverlay.ShowsHumanSurface;
         _triggerFoundationOverlay.Close();
         _session.SelectEntities(originalSelection, originalActive);
@@ -97,7 +100,7 @@ internal sealed partial class StudioWorkspaceShell
         var result = _session.RunUx1YContractSmoke();
         var currentProjectUntouched = ReferenceEquals(originalProject, _session.Project) &&
                                       _session.ActiveAreaId == originalAreaId &&
-                                      !_session.IsDirty;
+                                      _session.IsDirty == originalDirty;
         var valid = result.Succeeded && uiReady && uiTransaction && currentProjectUntouched;
         GD.Print(
             $"OPENRPG_FORGE_STUDIO_UX1Y_{(valid ? "PASS" : "FAILED")} " +
@@ -107,7 +110,9 @@ internal sealed partial class StudioWorkspaceShell
             $"invalid_geometry={result.InvalidGeometryBlocked.ToString().ToLowerInvariant()} " +
             $"invalid_filter={result.InvalidFilterBlocked.ToString().ToLowerInvariant()} " +
             $"invalid_binding={result.InvalidBindingBlocked.ToString().ToLowerInvariant()} " +
+            $"stale_draft_blocked={result.StaleDraftBlocked.ToString().ToLowerInvariant()} " +
             $"stale_revision_blocked={result.StaleRevisionBlocked.ToString().ToLowerInvariant()} " +
+            $"non_polygon_blocked={result.NonPolygonBlocked.ToString().ToLowerInvariant()} " +
             $"typed_events={result.TypedEvents.ToString().ToLowerInvariant()} " +
             $"canonical_command={result.CanonicalCommand.ToString().ToLowerInvariant()} " +
             $"undo_redo={result.UndoRedo.ToString().ToLowerInvariant()} " +
@@ -117,6 +122,7 @@ internal sealed partial class StudioWorkspaceShell
             $"advanced_preserved={result.AdvancedPreserved.ToString().ToLowerInvariant()} " +
             $"neighbors_preserved={result.NeighborPreserved.ToString().ToLowerInvariant()} " +
             $"human_no_uuid={result.HumanDiagnostics.ToString().ToLowerInvariant()} " +
+            $"uniform_projection={_triggerFoundationOverlay.UsesUniformProjection.ToString().ToLowerInvariant()} " +
             $"ui={uiReady.ToString().ToLowerInvariant()} " +
             $"ui_transaction={uiTransaction.ToString().ToLowerInvariant()} " +
             $"project_restored={currentProjectUntouched.ToString().ToLowerInvariant()} windows=1");

@@ -1,5 +1,6 @@
 using Forge.Domain.Spatial;
 using Forge.Domain.WorldFeatures;
+using Forge.ModuleFormat.Workspaces;
 using Forge.Studio.Session;
 using Godot;
 
@@ -500,6 +501,8 @@ internal sealed partial class StudioTriggerContourPreview : Control
 
     internal int HoleCount => _holes.Count;
 
+    internal bool UsesUniformProjection => true;
+
     internal StudioTriggerContourPreview()
     {
         CustomMinimumSize = new Vector2(300, 240);
@@ -530,9 +533,16 @@ internal sealed partial class StudioTriggerContourPreview : Control
         var rangeX = Math.Max(.1f, maxX - minX);
         var rangeZ = Math.Max(.1f, maxZ - minZ);
         const float padding = 24;
+        var availableWidth = MathF.Max(1, Size.X - padding * 2);
+        var availableHeight = MathF.Max(1, Size.Y - padding * 2);
+        var uniformScale = MathF.Min(availableWidth / rangeX, availableHeight / rangeZ);
+        var renderedWidth = rangeX * uniformScale;
+        var renderedHeight = rangeZ * uniformScale;
+        var left = (Size.X - renderedWidth) * .5f;
+        var top = (Size.Y - renderedHeight) * .5f;
         Vector2 Map(Vector3Value value) => new(
-            padding + (value.X - minX) / rangeX * Math.Max(1, Size.X - padding * 2),
-            padding + (maxZ - value.Z) / rangeZ * Math.Max(1, Size.Y - padding * 2));
+            left + (value.X - minX) * uniformScale,
+            top + (maxZ - value.Z) * uniformScale);
 
         DrawContour(_vertices, StudioStyle.Accent, 3, Map);
         foreach (var hole in _holes)
@@ -639,6 +649,11 @@ internal sealed partial class StudioTriggerFoundationOverlay : Control
 
     internal int HoleCount => _contourPreview.HoleCount;
 
+    internal bool UsesUniformProjection => _contourPreview.UsesUniformProjection;
+
+    internal bool IsExtrudedPolygonSurface =>
+        _draft?.ShapeKind == TriggerWorldProfile.ShapeKind.ExtrudedPolygon2D && _shape.Disabled;
+
     internal bool ShowsHumanSurface
     {
         get
@@ -680,7 +695,7 @@ internal sealed partial class StudioTriggerFoundationOverlay : Control
         heading.AddChild(StudioStyle.Label("DÉCLENCHEUR", 10, StudioStyle.Accent));
         heading.AddChild(StudioStyle.Label("Volume, activation et événements", 20));
         heading.AddChild(StudioStyle.Label(
-            "Sélection explicite · aperçu 2D · commande transactionnelle · portail et réglages avancés préservés",
+            "Polygone extrudé uniquement · empreinte X/Z 2D à échelle uniforme · portail et réglages avancés préservés",
             10,
             StudioStyle.Muted,
             wrap: true));
@@ -732,7 +747,7 @@ internal sealed partial class StudioTriggerFoundationOverlay : Control
         panels.AddChild(_volumePanel);
         _volumePanel.AddChild(StudioStyle.Label("Contour du volume", 17));
         _volumePanel.AddChild(StudioStyle.Label(
-            "Les sommets et les trous se règlent par lignes nommées. L’aperçu ci-dessous est 2D ; aucun gizmo 3D n’est revendiqué par ce lot.",
+            "Cette fiche édite uniquement un polygone extrudé. Les sommets et les trous se règlent par lignes nommées. L’aperçu ci-dessous est une empreinte X/Z 2D à échelle uniforme ; aucun gizmo 3D n’est revendiqué par ce lot.",
             10,
             StudioStyle.Muted,
             wrap: true));
@@ -952,13 +967,28 @@ internal sealed partial class StudioTriggerFoundationOverlay : Control
         {
             return false;
         }
-        _trigger.Select(1);
-        LoadChoice(0);
-        if (_draft is null)
+
+        var polygonChoiceIndex = -1;
+        for (var index = 0; index < _choices.Count; index++)
+        {
+            var candidate = _session.CreateTriggerFoundationDraftUx1Y(_choices[index].BlueprintId);
+            if (candidate?.ShapeKind == TriggerWorldProfile.ShapeKind.ExtrudedPolygon2D)
+            {
+                polygonChoiceIndex = index;
+                break;
+            }
+        }
+        if (polygonChoiceIndex < 0)
         {
             return false;
         }
-        _shape.Select(Array.IndexOf(ShapeKinds, TriggerWorldProfile.ShapeKind.ExtrudedPolygon2D));
+
+        _trigger.Select(polygonChoiceIndex + 1);
+        LoadChoice(polygonChoiceIndex);
+        if (_draft?.ShapeKind != TriggerWorldProfile.ShapeKind.ExtrudedPolygon2D)
+        {
+            return false;
+        }
         if (_vertices.Values.Count < 3)
         {
             _vertices.SetValues(
@@ -984,6 +1014,68 @@ internal sealed partial class StudioTriggerFoundationOverlay : Control
     }
 
     internal bool RunUiTransactionEvidence()
+    {
+        var originalProject = _session.Project;
+        var originalHistory = _session.History;
+        if (originalProject is null || originalHistory is null)
+        {
+            return false;
+        }
+
+        var originalDirty = _session.IsDirty;
+        var originalRevision = originalHistory.State.Revision;
+        var originalJournal = originalHistory.Journal.ToArray();
+        var originalCanUndo = originalHistory.CanUndo;
+        var originalCanRedo = originalHistory.CanRedo;
+        var tempRoot = Path.Combine(
+            Path.GetTempPath(),
+            "openrpg-forge-studio-ux1y-ui-" + Guid.NewGuid().ToString("N"));
+        var isolatedSession = new StudioSessionController();
+        StudioTriggerFoundationOverlay? isolatedOverlay = null;
+        try
+        {
+            var created = ProjectSession.Create(tempRoot, originalProject);
+            if (!created.Succeeded ||
+                !isolatedSession.Open(tempRoot, _session.ActiveAreaId?.ToString()).Succeeded)
+            {
+                return false;
+            }
+
+            isolatedOverlay = new StudioTriggerFoundationOverlay(isolatedSession);
+            AddChild(isolatedOverlay);
+            var isolatedEvidence = isolatedOverlay.RunBoundUiTransactionEvidence();
+            var currentHistory = _session.History;
+            var sourceUntouched = ReferenceEquals(originalProject, _session.Project) &&
+                                  _session.IsDirty == originalDirty &&
+                                  currentHistory is not null &&
+                                  ReferenceEquals(originalHistory, currentHistory) &&
+                                  currentHistory.State.Revision == originalRevision &&
+                                  currentHistory.CanUndo == originalCanUndo &&
+                                  currentHistory.CanRedo == originalCanRedo &&
+                                  currentHistory.Journal.SequenceEqual(originalJournal);
+            return isolatedEvidence && sourceUntouched;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+        finally
+        {
+            if (isolatedOverlay is not null && GodotObject.IsInstanceValid(isolatedOverlay))
+            {
+                isolatedOverlay.Close();
+                isolatedOverlay.GetParent()?.RemoveChild(isolatedOverlay);
+                isolatedOverlay.Free();
+            }
+            isolatedSession.Close();
+            if (Directory.Exists(tempRoot))
+            {
+                Directory.Delete(tempRoot, recursive: true);
+            }
+        }
+    }
+
+    private bool RunBoundUiTransactionEvidence()
     {
         var originalProject = _session.Project;
         var originalDirty = _session.IsDirty;
@@ -1012,13 +1104,6 @@ internal sealed partial class StudioTriggerFoundationOverlay : Control
         }
         var restored = redone && ReferenceEquals(originalProject, _session.Project) &&
                        _session.IsDirty == originalDirty;
-        if (!restored && !ReferenceEquals(originalProject, _session.Project))
-        {
-            var recovery = _session.Undo();
-            restored = recovery.Succeeded && ReferenceEquals(originalProject, _session.Project) &&
-                       _session.IsDirty == originalDirty;
-            TriggerChanged?.Invoke();
-        }
         Close();
         return dryRun && applied && undone && redone && restored;
     }
@@ -1063,6 +1148,18 @@ internal sealed partial class StudioTriggerFoundationOverlay : Control
             return;
         }
         Populate(_draft);
+        if (_draft.ShapeKind != TriggerWorldProfile.ShapeKind.ExtrudedPolygon2D)
+        {
+            _selection.Text =
+                $"{_choices[index].Label} · {HumanizeShape(_draft.ShapeKind)} préservée sans conversion";
+            _selection.AddThemeColorOverride("font_color", StudioStyle.Warning);
+            _summary.Text =
+                "Cette fiche UX1-Y est limitée aux polygones extrudés. Utilisez une future surface de volume 3D pour modifier cette forme.";
+            _summary.AddThemeColorOverride("font_color", StudioStyle.Warning);
+            SetEditingEnabled(false);
+            SetStatus("Volume non polygonal conservé en lecture seule · aucune conversion appliquée", error: false);
+            return;
+        }
         _selection.Text = _choices[index].HasFoundation
             ? $"{_choices[index].Label} · fondation existante chargée"
             : $"{_choices[index].Label} · nouvelle fondation préparée";
@@ -1123,7 +1220,7 @@ internal sealed partial class StudioTriggerFoundationOverlay : Control
         return draft with
         {
             Slug = _slug.Text,
-            ShapeKind = ShapeKinds[Math.Clamp(_shape.Selected, 0, ShapeKinds.Length - 1)],
+            ShapeKind = draft.ShapeKind,
             Vertices = _vertices.Values,
             Holes = _holes.Values,
             Size = new Vector3Value((float)_sizeX.Value, (float)_sizeY.Value, (float)_sizeZ.Value),
@@ -1277,8 +1374,8 @@ internal sealed partial class StudioTriggerFoundationOverlay : Control
     {
         foreach (var edit in new[]
                  {
-                     _slug, _enterApi, _enterBefore, _enterAfter,
-                     _exitApi, _exitBefore, _exitAfter,
+                     _slug, _enterApi, _enterBinding, _enterBefore, _enterAfter,
+                     _exitApi, _exitBinding, _exitBefore, _exitAfter,
                  })
         {
             edit.Editable = enabled;
@@ -1293,7 +1390,7 @@ internal sealed partial class StudioTriggerFoundationOverlay : Control
         {
             spin.Editable = enabled;
         }
-        _shape.Disabled = !enabled;
+        _shape.Disabled = true;
         _fire.Disabled = !enabled;
         _visualize.Disabled = !enabled;
         _requireRuntime.Disabled = !enabled;
