@@ -19,15 +19,29 @@ internal sealed partial class StudioSessionController
     private StudioDoorFoundationDraft? _approvedDoorDraftUx1X;
     private ProjectRevision? _approvedDoorRevisionUx1X;
 
-    internal IReadOnlyList<StudioDoorFoundationChoice> DoorFoundationChoicesUx1X =>
-        Project?.Blueprints
-            .Where(blueprint => blueprint.Kind == BlueprintKind.Door)
-            .OrderBy(blueprint => blueprint.DisplayName, StringComparer.CurrentCultureIgnoreCase)
-            .Select(blueprint => new StudioDoorFoundationChoice(
-                blueprint.Id,
-                blueprint.DisplayName,
-                Project.Module.WorldFeatures.Doors.Any(profile => profile.BlueprintId == blueprint.Id)))
-            .ToArray() ?? [];
+    internal IReadOnlyList<StudioDoorFoundationChoice> DoorFoundationChoicesUx1X
+    {
+        get
+        {
+            var project = Project;
+            if (project is null)
+            {
+                return [];
+            }
+
+            var configuredBlueprints = project.Module.WorldFeatures.Doors
+                .Select(profile => profile.BlueprintId)
+                .ToHashSet();
+            return project.Blueprints
+                .Where(blueprint => blueprint.Kind == BlueprintKind.Door)
+                .OrderBy(blueprint => blueprint.DisplayName, StringComparer.CurrentCultureIgnoreCase)
+                .Select(blueprint => new StudioDoorFoundationChoice(
+                    blueprint.Id,
+                    blueprint.DisplayName,
+                    configuredBlueprints.Contains(blueprint.Id)))
+                .ToArray();
+        }
+    }
 
     internal StudioDoorFoundationDraft? CreateDoorFoundationDraftUx1X(BlueprintId blueprintId)
     {
@@ -124,7 +138,7 @@ internal sealed partial class StudioSessionController
         }
 
         var placement = PlacementSummaryUx1X(draft);
-        var states = $"État initial · {StateLabelUx1X(draft.InitialState)} · 9 états conservés";
+        var states = $"État initial · {StateLabelUx1X(draft.InitialState)} · 9 états présents";
         var interaction =
             $"Ouverture · portée {draft.InteractionRange:0.##} m · côté {SideLabelUx1X(draft.AllowedSide)} · " +
             $"passage {draft.ClearanceWidth:0.##} × {draft.ClearanceHeight:0.##} × {draft.ClearanceDepth:0.##} m · " +
@@ -269,6 +283,7 @@ internal sealed partial class StudioSessionController
                 profile.BlueprintId == targetBlueprint.Id);
             var loadedNeighborProfile = editing.Project.Module.WorldFeatures.Doors.Single(profile =>
                 profile.BlueprintId == neighborBlueprint.Id);
+            var loadedDoorOrder = editing.Project.Module.WorldFeatures.Doors.Select(profile => profile.Id).ToArray();
             var choices = editing.DoorFoundationChoicesUx1X;
             var source = editing.CreateDoorFoundationDraftUx1X(targetBlueprint.Id);
             var fresh = editing.CreateDoorFoundationDraftUx1X(freshBlueprint.Id);
@@ -484,7 +499,9 @@ internal sealed partial class StudioSessionController
                                ReferenceEquals(
                                    appliedProfile.Foundation.Adapter!.MaterialBindings,
                                    loadedOriginalProfile.Foundation.Adapter!.MaterialBindings) &&
-                               ReferenceEquals(preservedNeighbor, loadedNeighborProfile);
+                               ReferenceEquals(preservedNeighbor, loadedNeighborProfile) &&
+                               appliedProject!.Module.WorldFeatures.Doors.Select(profile => profile.Id)
+                                   .SequenceEqual(loadedDoorOrder);
             var navigationInternalOnly = freshBuilt && freshDryRun?.Succeeded == true &&
                                          freshProfile?.Foundation?.Navigation is
                                          {
@@ -493,9 +510,16 @@ internal sealed partial class StudioSessionController
                                              appliedProfile?.Foundation?.Navigation,
                                              loadedOriginalProfile.Foundation!.Navigation) &&
                                          appliedProfile!.Foundation!.Navigation!.VisualizeInEditor == false;
+            var exactCatalogOrder = dryRunCommand is not null &&
+                                    freshCommand is not null && freshProfile is not null &&
+                                    dryRunCommand.Catalog.Doors.Select(profile => profile.Id)
+                                        .SequenceEqual(loadedDoorOrder) &&
+                                    freshCommand.Catalog.Doors.Select(profile => profile.Id)
+                                        .SequenceEqual(loadedDoorOrder.Append(freshProfile.Id));
             var canonicalCommand = apply.Succeeded && dryRunCommand is not null &&
                                    dryRunCommand.Catalog.Doors.Any(profile =>
                                        profile.BlueprintId == targetBlueprint.Id) &&
+                                   exactCatalogOrder &&
                                    editing.History.State.Revision.Value == beforeRevision.Value + 1;
 
             var undo = editing.Undo();
@@ -672,10 +696,9 @@ internal sealed partial class StudioSessionController
         {
             var existing = matching.SingleOrDefault();
             profile = BuildDoorProfileUx1X(existing, draft);
-            var doors = catalog.Doors
-                .Where(candidate => candidate.BlueprintId != draft.BlueprintId)
-                .Append(profile)
-                .ToArray();
+            var doors = existing is null
+                ? catalog.Doors.Append(profile).ToArray()
+                : catalog.Doors.Select(candidate => candidate.Id == existing.Id ? profile : candidate).ToArray();
             var candidateCatalog = new WorldFeatureCatalog(
                 catalog.Id,
                 catalog.SchemaVersion,

@@ -62,6 +62,7 @@ internal sealed class StudioDoorFoundationOverlay : Control
     private StudioDoorFoundationDraft? _approvedDraft;
     private bool _updating;
     private bool _operationApplied;
+    private bool _selectionRequiredAtOpen;
     private int _section;
 
     internal event Action<string, bool>? StatusChanged;
@@ -73,6 +74,9 @@ internal sealed class StudioDoorFoundationOverlay : Control
     internal int SectionCount => 3;
 
     internal bool PreviewReady => Visible && _approvedDraft is not null && !_apply.Disabled;
+
+    internal bool ExplicitSelectionProven =>
+        _selectionRequiredAtOpen && _door.Selected > 0 && _draft is not null;
 
     internal bool ShowsHumanSurface
     {
@@ -292,33 +296,34 @@ internal sealed class StudioDoorFoundationOverlay : Control
     {
         _session.CancelDoorFoundationPreviewUx1X();
         _choices = _session.DoorFoundationChoicesUx1X;
-        if (_choices.Count == 0)
-        {
-            SetStatus("Ajoutez d’abord un blueprint de porte au module.", true);
-            Visible = false;
-            return;
-        }
-
         _updating = true;
         _door.Clear();
+        _door.AddItem("Choisir une porte…");
         foreach (var choice in _choices)
         {
             _door.AddItem($"{choice.Label} · {(choice.Configured ? "configurée" : "à configurer")}");
         }
-        _door.Selected = Math.Max(0, _choices.ToList().FindIndex(choice => choice.Configured));
+        _door.Selected = 0;
         _updating = false;
         _operationApplied = false;
+        _selectionRequiredAtOpen = true;
+        _draft = null;
+        _approvedDraft = null;
         Visible = true;
-        LoadSelectedDoor();
-        if (_draft is null)
-        {
-            return;
-        }
-        SetEditingEnabled(true);
+        SetEditingEnabled(false);
+        _door.Disabled = _choices.Count == 0;
+        _preview.Disabled = true;
+        _apply.Disabled = true;
         _undo.Disabled = true;
         _redo.Disabled = true;
         ShowSection(0);
-        SetStatus("Porte sélectionnée · prévisualisation obligatoire avant application.", false);
+        _previewSummary.Text = "Choisissez explicitement une porte avant de préparer un aperçu.";
+        _previewSummary.AddThemeColorOverride("font_color", StudioStyle.Muted);
+        SetStatus(
+            _choices.Count == 0
+                ? "Ajoutez d’abord un blueprint de porte au module."
+                : "Choisissez une porte · aucun brouillon n’est ouvert automatiquement.",
+            _choices.Count == 0);
     }
 
     internal void Close()
@@ -326,13 +331,14 @@ internal sealed class StudioDoorFoundationOverlay : Control
         _session.CancelDoorFoundationPreviewUx1X();
         _draft = null;
         _approvedDraft = null;
+        _selectionRequiredAtOpen = false;
         Visible = false;
     }
 
     internal bool PrepareEvidence(string mode)
     {
         Open();
-        if (!Visible || _draft is null)
+        if (!Visible || !SelectDoorExplicitlyForEvidence() || _draft is null)
         {
             return false;
         }
@@ -362,7 +368,7 @@ internal sealed class StudioDoorFoundationOverlay : Control
                 ? 1
                 : 2);
         Preview();
-        return PreviewReady && ShowsHumanSurface;
+        return PreviewReady && ShowsHumanSurface && ExplicitSelectionProven;
     }
 
     internal bool RunUiTransactionEvidence()
@@ -370,13 +376,19 @@ internal sealed class StudioDoorFoundationOverlay : Control
         var originalProject = _session.Project;
         var originalDirty = _session.IsDirty;
         Open();
-        if (!Visible || _draft is null || originalProject is null)
+        var selectionRequired = Visible && originalProject is not null &&
+                                _door.Selected == 0 && _draft is null &&
+                                _preview.Disabled && _apply.Disabled &&
+                                ReferenceEquals(originalProject, _session.Project);
+        if (!selectionRequired || !SelectDoorExplicitlyForEvidence() || _draft is null ||
+            originalProject is null)
         {
             Close();
             return false;
         }
 
         var blueprintId = _draft.BlueprintId;
+        var explicitSelection = ExplicitSelectionProven;
         _updating = true;
         _placement.Selected = Array.IndexOf(PlacementModes, DoorWorldProfile.PlacementMode.ArchitectureSocket);
         _architectureAnchor.Text = "mur-preuve-porte";
@@ -422,7 +434,7 @@ internal sealed class StudioDoorFoundationOverlay : Control
         var restored = ReferenceEquals(originalProject, _session.Project) &&
                        _session.IsDirty == originalDirty;
         Close();
-        return previewed && applied && undone && redone && restored;
+        return selectionRequired && explicitSelection && previewed && applied && undone && redone && restored;
     }
 
     private void LoadSelectedDoor()
@@ -432,18 +444,52 @@ internal sealed class StudioDoorFoundationOverlay : Control
             return;
         }
 
-        var index = Math.Clamp(_door.Selected, 0, _choices.Count - 1);
+        if (_door.Selected <= 0)
+        {
+            _session.CancelDoorFoundationPreviewUx1X();
+            _draft = null;
+            _approvedDraft = null;
+            SetEditingEnabled(false);
+            _door.Disabled = false;
+            _preview.Disabled = true;
+            _apply.Disabled = true;
+            _previewSummary.Text = "Choisissez explicitement une porte avant de préparer un aperçu.";
+            _previewSummary.AddThemeColorOverride("font_color", StudioStyle.Muted);
+            SetStatus("Choisissez une porte · aucun brouillon n’est ouvert automatiquement.", false);
+            return;
+        }
+
+        _session.CancelDoorFoundationPreviewUx1X();
+        _approvedDraft = null;
+        var index = Math.Clamp(_door.Selected - 1, 0, _choices.Count - 1);
         _draft = _session.CreateDoorFoundationDraftUx1X(_choices[index].BlueprintId);
         if (_draft is null)
         {
             SetStatus("Cette porte ne peut pas être ouverte dans l’éditeur tant que sa fiche est ambiguë.", true);
             SetEditingEnabled(false);
+            _door.Disabled = false;
+            _preview.Disabled = true;
+            _apply.Disabled = true;
             return;
         }
 
         LoadDraft();
         SetEditingEnabled(true);
+        _preview.Disabled = false;
         SetStatus("Porte sélectionnée · prévisualisation obligatoire avant application.", false);
+    }
+
+    private bool SelectDoorExplicitlyForEvidence()
+    {
+        if (_choices.Count == 0 || _door.Selected != 0 || _draft is not null)
+        {
+            return false;
+        }
+
+        var configuredIndex = _choices.ToList().FindIndex(choice => choice.Configured);
+        _door.Selected = (configuredIndex >= 0 ? configuredIndex : 0) + 1;
+        LoadSelectedDoor();
+        return ExplicitSelectionProven;
     }
 
     private void LoadDraft()

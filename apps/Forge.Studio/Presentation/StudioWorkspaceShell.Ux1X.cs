@@ -87,11 +87,14 @@ internal sealed partial class StudioWorkspaceShell
         var originalSelection = _session.SelectedEntityIds.ToArray();
         var originalActive = _session.SelectedEntityId;
         var uiTransaction = _doorFoundationOverlay.RunUiTransactionEvidence();
-        var uiReady = PrepareUx1XEvidence("ux1-x-interaction") &&
+        var evidencePrepared = PrepareUx1XEvidence("ux1-x-interaction");
+        var uiExplicitSelection = _doorFoundationOverlay.ExplicitSelectionProven;
+        var uiReady = evidencePrepared &&
                       PageId == "placement" &&
                       _doorFoundationOverlay.IsOpen &&
                       _doorFoundationOverlay.SectionCount == 3 &&
                       _doorFoundationOverlay.PreviewReady &&
+                      _doorFoundationOverlay.ExplicitSelectionProven &&
                       _doorFoundationOverlay.ShowsHumanSurface;
         _doorFoundationOverlay.Close();
         _session.SelectEntities(originalSelection, originalActive);
@@ -116,6 +119,7 @@ internal sealed partial class StudioWorkspaceShell
             $"persistence={result.Persistence.ToString().ToLowerInvariant()} " +
             $"invalid_blocked={result.InvalidBlocked.ToString().ToLowerInvariant()} " +
             $"human_no_uuid={result.HumanDiagnostics.ToString().ToLowerInvariant()} " +
+            $"ui_explicit_selection={uiExplicitSelection.ToString().ToLowerInvariant()} " +
             $"ui={uiReady.ToString().ToLowerInvariant()} " +
             $"ui_transaction={uiTransaction.ToString().ToLowerInvariant()} " +
             $"project_restored={currentProjectUntouched.ToString().ToLowerInvariant()} windows=1");
