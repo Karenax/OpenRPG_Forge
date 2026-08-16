@@ -488,7 +488,7 @@ internal sealed partial class StudioSessionController
             var scaleMultiEdit = scaleApplied.Succeeded && scaledArea.Entities.All(entity =>
                 entity.Transform.Scale == scaleDraft.Scale);
             var invalidScale = editing.PreviewZoneScaleUx1W(scaleDraft with
-                { Scale = new Vector3Value(.01f, 1, 1) });
+            { Scale = new Vector3Value(.01f, 1, 1) });
             var scaleConstraints = selectionRequired && !invalidScale.Succeeded;
             var scaleUndo = editing.Undo();
             var scaleUndone = ReferenceEquals(originalProject, editing.Project);

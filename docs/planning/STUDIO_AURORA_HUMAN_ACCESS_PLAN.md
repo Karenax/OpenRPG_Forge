@@ -640,11 +640,11 @@ sont prouvés. La capture Forward+ Full HD a été inspectée sur le catalogue r
 sans sauvegarder d’événements de preuve ; la ligne est `functional` et liée à
 `docs/acceptance/STUDIO_UX1_U.md`. Les preuves QHD et 4K sont réservées au jalon multi-lots.
 
-## Reprise contrôlée après UX1-U
+## Premier train parallèle livré : UX1-V et UX1-W
 
-La reprise est autorisée sous forme d'un train parallèle borné à la vague UX1. Les 48 routes UX1
+La reprise parallèle bornée à la vague UX1 a livré six routes le 16 août 2026. Les 42 routes UX1
 restantes ne deviennent pas accessibles avant leur preuve individuelle et leur intégration dans le
-checkout principal gelé. Le premier train est organisé par page, sans mélanger leurs fichiers :
+checkout principal gelé. Le premier train a conservé des fichiers métier séparés par page :
 
 - `UX1-V` : `ORF-PLC-018`, `ORF-PLC-019`, `ORF-PLC-020` sur la page Objets & interactions ;
 - `UX1-W` : `ORF-EE-002`, `ORF-EE-018`, `ORF-EE-019` sur la page Zones ;
@@ -654,7 +654,27 @@ Chaque writer utilise un worktree local dédié. Le coordinateur garde seul les 
 les matrices, les preuves, les documents d'état et le graphe généré. Après arrêt de toutes les
 écritures, les branches sont intégrées une par une puis build, tests .NET, smoke Godot, capture
 Forward+ et contrôles de matrice sont exécutés séquentiellement. Une préparation parallèle n'est
-jamais une preuve `functional`.
+jamais une preuve `functional`. Cette séparation a été respectée : les deux branches ont été revues
+statiquement, raccordées au shell par le coordinateur, puis validées l'une après l'autre.
+
+### UX1-V — Événements de cycle de vie du placeable
+
+`ORF-PLC-018`, `ORF-PLC-019` et `ORF-PLC-020` sont `functional`. La fiche Placeable expose
+`OnUsed`, `OnDisturbed`, `OnDamaged` et `OnDeath`, sans mutation à l'ouverture. L'autorité dégâts
+directe ou composée passe par un résolveur Domain commun aux validateurs, adaptateurs runtime et à
+ForgeScript/MCP ; les représentations duales divergentes sont refusées. Anciens JSON, préservation,
+undo/redo et round-trip sont couverts. Le portail ciblé passe 21/21 en 63,75 s et la capture
+Forward+ Full HD inspectée est liée à `docs/acceptance/STUDIO_UX1_V.md`. La modification du contrat
+partagé a aussi déclenché le portail complet, réussi avec 1 980 tests .NET et 39 tests Python.
+
+### UX1-W — Outils dynamiques de zone
+
+`ORF-EE-002`, `ORF-EE-018` et `ORF-EE-019` sont `functional`. La page Zones expose l'échelle de la
+sélection explicite, la politique globale des zones dynamiques et un aperçu de copie runtime limité
+aux données réellement authored. Les identités d'aperçu sont éphémères ; propriétaire et références
+runtime restent déclarés indisponibles. Le portail ciblé passe 27/27 en 56,81 s et la capture
+Forward+ Full HD inspectée est liée à `docs/acceptance/STUDIO_UX1_W.md`. Le train intégré passe le
+même portail complet sans avertissement ni régression.
 
 ## Gates ergonomiques avant parité
 

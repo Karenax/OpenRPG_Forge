@@ -227,7 +227,7 @@ public sealed class WorldFeaturePersistenceTests : IDisposable
     public void Placeable_direct_damage_events_round_trip_without_composition_profile()
     {
         var source = CompleteProject();
-        var original = source.Module.WorldFeatures.Placeables.Single();
+        var original = WithHistoricalDamageComposition(source.Module.WorldFeatures.Placeables.Single());
         var directDamage = original.CompositionEvents!.DamageEvents with
         {
             DamagedBinding = "DirectDamageApplied",
@@ -255,7 +255,10 @@ public sealed class WorldFeaturePersistenceTests : IDisposable
     [Fact]
     public void Placeable_composition_damage_events_remain_the_historical_canonical_fallback()
     {
-        var restored = ProjectJsonSerializer.Deserialize(ProjectJsonSerializer.Serialize(CompleteProject()));
+        var source = CompleteProject();
+        var historical = WithHistoricalDamageComposition(source.Module.WorldFeatures.Placeables.Single());
+        var restored = ProjectJsonSerializer.Deserialize(
+            ProjectJsonSerializer.Serialize(WithPlaceable(source, historical)));
         var profile = restored.Module.WorldFeatures.Placeables.Single();
         var canonical = PlaceableDamageEventsResolver.Resolve(profile);
 
@@ -270,7 +273,7 @@ public sealed class WorldFeaturePersistenceTests : IDisposable
     public void Placeable_matching_dual_damage_events_round_trip_as_one_canonical_authority()
     {
         var source = CompleteProject();
-        var original = source.Module.WorldFeatures.Placeables.Single();
+        var original = WithHistoricalDamageComposition(source.Module.WorldFeatures.Placeables.Single());
         var dual = original with
         {
             DamageEvents = original.CompositionEvents!.DamageEvents,
@@ -495,6 +498,53 @@ public sealed class WorldFeaturePersistenceTests : IDisposable
             source.Merchants, source.Companions, source.Scripts);
         return new(project.Id, project.Title, project.Module.WithWorldFeatures(catalog), project.Blueprints,
             project.Areas, project.Dialogues, project.Quests);
+    }
+
+    private static PlaceableWorldProfile WithHistoricalDamageComposition(PlaceableWorldProfile placeable)
+    {
+        var damageEvents = new PlaceableDamageEventsProfile(
+            Guid.Parse("15200000-0000-4000-8000-000000000070"),
+            "1.0.0",
+            "DamageApplied",
+            "EntityDestroyed",
+            true,
+            true,
+            true,
+            true,
+            true,
+            true);
+        var composition = new PlaceableCompositionEventsProfile(
+            Guid.Parse("15200000-0000-4000-8000-000000000071"),
+            1,
+            "test:historical-placeable-composition",
+            damageEvents,
+            [new(
+                Guid.Parse("15200000-0000-4000-8000-000000000073"),
+                "root",
+                "prop",
+                new(Vector3Value.Zero, Vector3Value.Zero, Vector3Value.One, Vector3Value.Zero,
+                    .25, null, true, null),
+                ["prop"],
+                true,
+                1)],
+            [],
+            new(
+                Guid.Parse("15200000-0000-4000-8000-000000000072"),
+                new[] { "inspect", "use", "open", "talk", "take", "push", "climb", "custom" }
+                    .Select((verb, index) => new PlaceableContextualVerbProfile(
+                        Guid.Parse($"15200000-0000-4000-8000-{(0x74 + index):x12}"),
+                        verb,
+                        $"placeable.{verb}",
+                        1,
+                        [],
+                        [],
+                        $"{verb}Requested"))
+                    .ToArray()));
+        return placeable with
+        {
+            CompositionEvents = composition,
+            CompositionEventsRequiredAtRuntime = true,
+        };
     }
 
     private static ProjectDefinition CompleteProject()

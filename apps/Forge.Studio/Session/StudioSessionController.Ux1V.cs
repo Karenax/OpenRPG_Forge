@@ -245,16 +245,32 @@ internal sealed partial class StudioSessionController
                 DamageEvents = damage,
                 RequireDamageEventsRuntime = true,
             };
-            var dualOriginalDamage = damage with
+            var dualOriginalDamageDraft = damage with
             {
                 Id = StablePlaceableId(blueprint.Id, "dual-damage-events"),
                 DamagedBinding = "AncienObjetEndommage",
                 DestroyedBinding = "AncienObjetDetruit",
             };
-            var dualEditedDamage = dualOriginalDamage with
+            var dualEditedDamageDraft = dualOriginalDamageDraft with
             {
                 DamagedBinding = "ObjetEndommageSynchronise",
                 DestroyedBinding = "ObjetDetruitSynchronise",
+            };
+            var dualOriginalDamage = new PlaceableDamageEventsProfile(
+                dualOriginalDamageDraft.Id,
+                dualOriginalDamageDraft.ForgeScriptApiVersion,
+                dualOriginalDamageDraft.DamagedBinding,
+                dualOriginalDamageDraft.DestroyedBinding,
+                dualOriginalDamageDraft.IncludeSource,
+                dualOriginalDamageDraft.IncludeAmount,
+                dualOriginalDamageDraft.IncludeDamageType,
+                dualOriginalDamageDraft.IncludePreviousHealth,
+                dualOriginalDamageDraft.IncludeCurrentHealth,
+                dualOriginalDamageDraft.IncludeContext);
+            var dualEditedDamage = dualOriginalDamage with
+            {
+                DamagedBinding = dualEditedDamageDraft.DamagedBinding,
+                DestroyedBinding = dualEditedDamageDraft.DestroyedBinding,
             };
             var dualComposition = new PlaceableCompositionEventsProfile(
                 StablePlaceableId(blueprint.Id, "dual-composition"),
@@ -285,7 +301,7 @@ internal sealed partial class StudioSessionController
                         .ToArray()));
             var dualDraft = damageOnlyDraft with
             {
-                DamageEvents = dualEditedDamage,
+                DamageEvents = dualEditedDamageDraft,
                 OriginalDamageEvents = dualOriginalDamage,
                 OriginalCompositionEvents = dualComposition,
             };
@@ -298,53 +314,53 @@ internal sealed partial class StudioSessionController
             var dualBuilt = editing.TryBuildPlaceable(
                 dualDraft, dryRun: true, out _, out var dualProfile, out _);
             var isolatedOnUsed = onUsedOnlyBuilt && onUsedOnlyProfile is
+            {
+                Foundation:
                 {
-                    Foundation:
-                    {
-                        Interaction: not null,
-                        StaticProp: null,
-                        OnUsed: not null,
-                    },
-                    Operations: null,
-                    SecurityEvents: null,
-                } &&
+                    Interaction: not null,
+                    StaticProp: null,
+                    OnUsed: not null,
+                },
+                Operations: null,
+                SecurityEvents: null,
+            } &&
                 !PlaceableDamageEventsResolver.Resolve(onUsedOnlyProfile).Available;
             var isolatedContentsChanged = contentsOnlyBuilt && contentsOnlyProfile is
+            {
+                Foundation:
                 {
-                    Foundation:
-                    {
-                        Interaction: null,
-                        StaticProp: not null,
-                        OnUsed: null,
-                    },
-                    Operations: null,
-                    SecurityEvents:
-                    {
-                        Trap: null,
-                        Loot: null,
-                        ContainerEvents: null,
-                        LockEvents: null,
-                        ContentsChanged: not null,
-                    },
-                } && !PlaceableDamageEventsResolver.Resolve(contentsOnlyProfile).Available;
+                    Interaction: null,
+                    StaticProp: not null,
+                    OnUsed: null,
+                },
+                Operations: null,
+                SecurityEvents:
+                {
+                    Trap: null,
+                    Loot: null,
+                    ContainerEvents: null,
+                    LockEvents: null,
+                    ContentsChanged: not null,
+                },
+            } && !PlaceableDamageEventsResolver.Resolve(contentsOnlyProfile).Available;
             var damageOnlyResolution = damageOnlyProfile is null
                 ? null
                 : PlaceableDamageEventsResolver.Resolve(damageOnlyProfile);
             var isolatedStaticDamage = damageOnlyBuilt && damageOnlyProfile is
+            {
+                Foundation:
                 {
-                    Foundation:
-                    {
-                        Interaction: null,
-                        StaticProp: not null,
-                        OnUsed: null,
-                    },
-                    Operations: { Damageable: not null },
-                    SecurityEvents: null,
-                } && damageOnlyResolution is
-                {
-                    Available: true,
-                    Authority: PlaceableDamageEventsAuthority.Direct,
-                };
+                    Interaction: null,
+                    StaticProp: not null,
+                    OnUsed: null,
+                },
+                Operations: { Damageable: not null },
+                SecurityEvents: null,
+            } && damageOnlyResolution is
+            {
+                Available: true,
+                Authority: PlaceableDamageEventsAuthority.Direct,
+            };
             var neighborPreservation = new[] { onUsedOnlyProfile, contentsOnlyProfile, damageOnlyProfile }
                 .All(candidate => candidate is not null &&
                                   candidate.Id == loadedOriginal.Id &&
@@ -358,13 +374,13 @@ internal sealed partial class StudioSessionController
                                   candidate.Foundation?.Transform == loadedOriginal.Foundation?.Transform);
             var dualResolution = dualProfile is null ? null : PlaceableDamageEventsResolver.Resolve(dualProfile);
             var dualAuthoritySynchronization = dualBuilt && dualProfile is
-                                               {
-                                                   DamageEvents: var directDamageAuthority,
-                                                   CompositionEvents:
-                                                   {
-                                                       DamageEvents: var compositionDamageAuthority,
-                                                   },
-                                               } && directDamageAuthority == dualEditedDamage &&
+            {
+                DamageEvents: var directDamageAuthority,
+                CompositionEvents:
+                {
+                    DamageEvents: var compositionDamageAuthority,
+                },
+            } && directDamageAuthority == dualEditedDamage &&
                                                compositionDamageAuthority == dualEditedDamage &&
                                                dualResolution is
                                                {

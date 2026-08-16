@@ -10,6 +10,14 @@ SemVer ; les versions de schéma persistent séparément dans leurs documents.
 - Forge Studio : préparation d'une cadence parallèle contrôlée avec deux worktrees d'implémentation
   bornés par page, un slot d'audit en avance, propriété centrale des routeurs/matrices/preuves et
   gel obligatoire avant les builds, tests, smokes et captures séquentiels ;
+- Forge Studio UX1-W : échelle multi-objet sur sélection explicite, politique globale de zones
+  dynamiques et aperçu honnête de copie runtime avec identités éphémères, contexte propriétaire et
+  références déclarés indisponibles, commandes canoniques, undo/redo, round-trip et preuve Forward+
+  Full HD ;
+- Forge Studio UX1-V : événements `OnUsed`, `OnDisturbed`, `OnDamaged` et `OnDeath` de placeable,
+  avec autorités dégâts directe/composée résolues par un contrat Domain commun, divergence refusée,
+  compatibilité des anciens JSON, projection runtime/ForgeScript/MCP, undo/redo, round-trip et preuve
+  Forward+ Full HD ;
 - Forge Studio UX1-U : événements de verrouillage et de déverrouillage avec version ForgeScript,
   liaisons avant/après, méthode, justificatif, acteur, veto contrôlé, aperçu accepté ou refusé sans
   écriture, projection RPG Kit indépendante, lecture ForgeScript/MCP, mode optionnel ou requis,

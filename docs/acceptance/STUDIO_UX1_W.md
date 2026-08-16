@@ -11,6 +11,9 @@ qualifie ni la navigation UX2, ni une distribution publique.
   `ux1-w-dynamic`, avec résumé dans
   `artifacts/verification/studio-increment/ux1-w-dynamic.summary.json` ;
 - tests ciblés : Application 10/10, Domain 10/10 et ModuleFormat 7/7, soit 27/27 ;
+- portail transversal `scripts/Verify.ps1` réussi sur le train intégré : 1 980/1 980 tests .NET,
+  39/39 tests Python, builds sans avertissement, smokes Studio/runtime/réseau/MCP, assets, package
+  et distribution ; ce portail a été déclenché par le contrat partagé d'UX1-V, pas par UX1-W seul ;
 - smoke Studio headless et capture Forward+ Full HD réussis sur Forgotten Forest, avec preuve
   visuelle inspectée dans `artifacts/verification/studio-shell/ux1-w/dynamic-fhd.png` et journal
   associé `dynamic-fhd.png.log` ;
@@ -29,21 +32,26 @@ la commande canonique et reste annulable/rétablissable.
 
 ### ORF-EE-018
 
-L'onglet **Zones dynamiques** configure une politique d'instanciation temporaire à partir de la zone
-active, avec quotas, durée, dépendances et autorité serveur. L'aperçu simule des instances sans créer
-de nouveaux documents d'éditeur et bloque toute configuration invalide avant mutation.
+L'onglet **Zones dynamiques** configure la politique globale d'instanciation temporaire du module,
+avec quotas, durée et autorité serveur. L'aperçu évalue cette politique sans créer de nouveaux
+documents d'éditeur et bloque toute configuration invalide avant mutation. Il ne prétend pas
+instancier la zone active ni résoudre ses dépendances : ce contexte appartient au runtime.
 
 ### ORF-EE-019
 
-L'onglet **Copies runtime** simule des duplications d'objets avec identités fraîches, références et
-état caché préservés. La simulation reste explicitement runtime et n'invente pas de faux objet
-persisté dans la scène d'édition ; l'application enregistre la politique canonique puis conserve
-undo/redo, sauvegarde et réouverture.
+L'onglet **Copies runtime** prévisualise une demande de duplication à partir de la transformation et
+des overrides réellement authored. Les identités affichées sont éphémères et non réservées ; le
+Studio déclare le propriétaire et les références runtime indisponibles au lieu de les inférer. La
+simulation n'invente donc ni faux objet persisté ni certitude sur un contexte absent. L'application
+enregistre la politique canonique, tandis que les tests du service runtime prouvent séparément les
+modes de références et d'état ; undo/redo, sauvegarde et réouverture restent couverts.
 
 ## Limites honnêtes
 
 - ce lot qualifie seulement `ORF-EE-002`, `ORF-EE-018` et `ORF-EE-019` ;
 - les aperçus runtime n'exécutent pas une copie réseau réelle ni une instanciation serveur distante ;
+- le Studio ne connaît pas le propriétaire ni les références d'une entité qui n'existe qu'au
+  runtime ; il ne garantit donc leur conservation qu'au travers des tests du service canonique ;
 - Forgotten Forest sert de rendu et de catalogue réels, pas de témoin d'autorité distribuée ;
 - l'application reste en mémoire jusqu'à l'enregistrement explicite.
 

@@ -1069,8 +1069,7 @@ public static class WorldFeatureCatalogValidator
             return;
         }
 
-        if (canonical.Authority is PlaceableDamageEventsAuthority.Composition or
-            PlaceableDamageEventsAuthority.DualCanonical)
+        if (canonical.Authority == PlaceableDamageEventsAuthority.Composition)
             return;
 
         var damage = canonical.Profile;

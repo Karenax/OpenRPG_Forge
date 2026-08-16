@@ -803,6 +803,34 @@ public sealed class WorldFeatureCatalogWorkflowTests
         Assert.DoesNotContain(WorldFeatureCatalogValidator.Validate(canonicalDualProject),
             item => item.Code == PlaceableDamageEventsResolver.CatalogDivergenceDiagnosticCode);
 
+        var collidingDamage = new PlaceableDamageEventsProfile(
+            Guid.NewGuid(), "1.0.0", "DamageApplied", "EntityDestroyed",
+            true, true, true, true, true, true);
+        var collidingOperations = new PlaceableOperationsProfile(
+            collidingDamage.Id,
+            1,
+            "test:ux1-v-dual-collision",
+            null,
+            null,
+            new(Guid.NewGuid(), 100, 100, 0, new Dictionary<string, double>(), [.5],
+                "vfx:destroy", "debris:placeable", true, 0),
+            null,
+            null);
+        var collidingDual = canonicalDual with
+        {
+            Operations = collidingOperations,
+            CompositionEvents = composition with { DamageEvents = collidingDamage },
+            DamageEvents = collidingDamage,
+        };
+        var collidingDualProject = new ProjectDefinition(project.Id, project.Title,
+            project.Module.WithWorldFeatures(new WorldFeatureCatalog(catalog.Id, 1,
+                "test:ux1-v-dual-collision", placeables: [collidingDual])),
+            project.Blueprints,
+            project.Areas);
+        Assert.Contains(WorldFeatureCatalogValidator.Validate(collidingDualProject),
+            item => item.Code == "world.placeable.damage_events_identity_conflict" &&
+                    item.Path.EndsWith("/damageEvents", StringComparison.Ordinal));
+
         var divergentDual = canonicalDual with
         {
             DamageEvents = composition.DamageEvents with { DestroyedBinding = "DifferentDestroyedBinding" },

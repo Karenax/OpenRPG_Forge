@@ -212,13 +212,13 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
 - [x] Réaliser UX1-U sur `ORF-PLC-017` : liaisons avant et après le changement de verrou, version
   ForgeScript, méthode, justificatif, acteur, veto contrôlé, aperçus accepté/refusé sans écriture,
   sélection 3D, préservation, undo/redo et persistance exacte.
-- [ ] Réaliser UX1-V sur `ORF-PLC-018`, `ORF-PLC-019` et `ORF-PLC-020` : événements d'utilisation,
+- [x] Réaliser UX1-V sur `ORF-PLC-018`, `ORF-PLC-019` et `ORF-PLC-020` : événements d'utilisation,
   de perturbation, de dégâts et de destruction depuis la fiche Placeable, sans réimplémenter les
   contrats Domain/Application déjà qualifiés et avec préservation/undo/redo/round-trip.
-- [ ] Réaliser UX1-W en parallèle contrôlé sur `ORF-EE-002`, `ORF-EE-018` et `ORF-EE-019` : échelle
+- [x] Réaliser UX1-W en parallèle contrôlé sur `ORF-EE-002`, `ORF-EE-018` et `ORF-EE-019` : échelle
   de zone, création dynamique de zone et copie dynamique d'objet depuis la page Zones, dans un
   worktree et des fichiers distincts du lot Placeable.
-- [ ] Préparer en lecture seule les lots Doors puis Triggers pendant UX1-V/UX1-W ; intégrer les
+- [x] Préparer en lecture seule les lots Doors puis Triggers pendant UX1-V/UX1-W ; intégrer les
   branches une par une et sérialiser build, tests, smoke, capture, matrice et graphe.
 - [ ] Achever la tranche Monde : terrain, navigation, puis activer **Tester ici** sur
   snapshot isolé.

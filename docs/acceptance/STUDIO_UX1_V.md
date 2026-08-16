@@ -10,7 +10,12 @@ configurables et prévisualisables dans l'unique fenêtre `Forge.Studio`. Il ne 
 - portail incrémental `scripts/Verify-StudioIncrement.ps1` réussi sur la page `placement` et la
   preuve `ux1-v-death`, avec résumé dans
   `artifacts/verification/studio-increment/ux1-v-death.summary.json` ;
-- tests ciblés : adaptateurs RPG Kit 13/13 et projection Application 26/26, soit 39/39 ;
+- tests ciblés séquentiels : RPG Kit 14/14, Application 2/2, ModuleFormat 4/4 et MCP 1/1, soit
+  21/21 ; le portail a duré 63,75 s, dont 2,30 s, 2,48 s, 4,40 s et 5,09 s de tests, 44,02 s de
+  smoke headless, 4,59 s de capture et 0,82 s de contrôle de matrice ;
+- portail transversal `scripts/Verify.ps1` réussi après gel de la source : 1 980/1 980 tests .NET,
+  39/39 tests Python, builds sans avertissement, smokes Studio/runtime/réseau/MCP, assets, package
+  et distribution ;
 - smoke Studio headless et capture Forward+ Full HD réussis sur Forgotten Forest, avec preuve
   visuelle inspectée dans `artifacts/verification/studio-shell/ux1-v/death-fhd.png` et journal
   associé `death-fhd.png.log` ;
@@ -39,8 +44,11 @@ clairement l'absence d'événement demandé.
 
 La section **Dégâts et mort** qualifie `OnDamaged` et `OnDeath` avec un payload uniforme. Le Studio
 préserve les profils hérités, sait éditer un profil direct ou déjà porté par la composition, partage
-le même contrat humain pour les deux événements et prouve l'undo/redo, la persistance et la
-réouverture sans toucher à la santé réelle de la scène pendant l'aperçu.
+le même contrat humain pour les deux événements et synchronise les deux représentations lorsqu'un
+ancien module les contient ensemble. Un résolveur Domain unique alimente la validation, les deux
+adaptateurs runtime et la projection ForgeScript/MCP ; une divergence est refusée explicitement. Le
+lot prouve aussi l'undo/redo, les anciens JSON, les trois formes de round-trip et la réouverture sans
+toucher à la santé réelle de la scène pendant l'aperçu.
 
 ## Limites honnêtes
 
@@ -56,10 +64,18 @@ réouverture sans toucher à la santé réelle de la scène pendant l'aperçu.
 $projects = @(
   'tests/Forge.RpgKit.Domain.Tests/Forge.RpgKit.Domain.Tests.csproj'
   'tests/Forge.Application.Tests/Forge.Application.Tests.csproj'
+  'tests/Forge.ModuleFormat.Tests/Forge.ModuleFormat.Tests.csproj'
+  'tests/Forge.Mcp.Tests/Forge.Mcp.Tests.csproj'
 )
 $filter = 'FullyQualifiedName~PlaceableSecurityEventsRuntimeAdapterTests|' +
   'FullyQualifiedName~PlaceableCompositionEventsRuntimeAdapterTests|' +
-  'FullyQualifiedName~WorldFeatureCatalogWorkflowTests'
+  'FullyQualifiedName~R094_PlaceableSecurityEventsValidation|' +
+  'FullyQualifiedName~R095_PlaceableCompositionValidation|' +
+  'FullyQualifiedName~Placeable_event_extension_fields_default_when_absent_from_existing_json|' +
+  'FullyQualifiedName~Placeable_direct_damage_events_round_trip_without_composition_profile|' +
+  'FullyQualifiedName~Placeable_composition_damage_events_remain_the_historical_canonical_fallback|' +
+  'FullyQualifiedName~Placeable_matching_dual_damage_events_round_trip_as_one_canonical_authority|' +
+  'FullyQualifiedName~Placeable_foundation_resource_is_filtered_typed_and_plan_is_dry_run'
 & .\scripts\Verify-StudioIncrement.ps1 -Page placement -Evidence ux1-v-death `
   -TestProject $projects -TestFilter $filter `
   -Capture artifacts/verification/studio-shell/ux1-v/death-fhd.png

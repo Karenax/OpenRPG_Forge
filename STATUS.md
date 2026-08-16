@@ -37,13 +37,13 @@ encore qualifiées. Aucun de ces états ne doit être confondu avec une release 
 - parcours produit automatisé : projet, zones, assets, contenu RPG, narration, validation, playtest,
   export et Assistant gouverné ;
 - matrice et procédure d'acceptation de bout en bout sous `docs/acceptance/`.
-- matrice d’accès humain Studio : 717 routes uniques, dont 65 `functional` avec preuve spécifique
-  pour UX0-A à UX1-U et 652 `planned` ; cette matrice ne réutilise pas le statut `Tested` de l’ancien Creator.
-- reprise préparée sous forme de train parallèle contrôlé : un lot Placeables et un lot Zones dans
-  des worktrees distincts, un audit en avance, puis intégration et validations exclusivement
-  séquentielles ; aucune route postérieure à UX1-U n'est encore promue par cette préparation.
-- portail local courant réussi avec 1 972 tests .NET, 39 tests Python, un build sans avertissement et
-  le graphe Roslyn courant déterministe à 8 877 nœuds, 58 036 relations et 0 diagnostic.
+- matrice d’accès humain Studio : 717 routes uniques, dont 71 `functional` avec preuve spécifique
+  pour UX0-A à UX1-W et 646 `planned` ; cette matrice ne réutilise pas le statut `Tested` de l’ancien Creator.
+- premier train parallèle contrôlé livré : UX1-V et UX1-W ont été développés dans des worktrees et
+  fichiers distincts, audités avant intégration, puis construits, testés, fumés et capturés
+  séquentiellement ; six routes seulement ont été promues sur preuve réelle.
+- portail local courant réussi avec 1 980 tests .NET, 39 tests Python, des builds sans avertissement
+  et le graphe Roslyn courant déterministe à 8 914 nœuds, 58 483 relations et 0 diagnostic.
 
 Ces nombres prouvent la présence et la non-régression des capacités. Ils ne remplacent pas une
 qualification humaine de release publique.
@@ -199,6 +199,14 @@ qualification humaine de release publique.
   indépendant, lecture ForgeScript/MCP, préservation du verrou et des événements voisins, undo/redo
   et round-trip exact ; preuve Forward+ FHD sur le catalogue réel et smoke contractuel restaurant
   Forgotten Forest ;
+- UX1-V qualifié pour `ORF-PLC-018` à `ORF-PLC-020` : événements d'utilisation, de contenu modifié,
+  de dégâts et de mort, avec résolveur Domain commun pour les autorités directe/composée, anciens
+  JSON, validation runtime, lecture ForgeScript/MCP, préservation, undo/redo et round-trip ; portail
+  incrémental 21/21 et preuve Forward+ FHD inspectée ;
+- UX1-W qualifié pour `ORF-EE-002`, `ORF-EE-018` et `ORF-EE-019` : échelle explicite de la sélection,
+  politique globale de zones dynamiques et aperçu de copie runtime limité au contexte réellement
+  disponible, avec commandes canoniques, préservation, undo/redo et round-trip ; portail
+  incrémental 27/27 et preuve Forward+ FHD inspectée ;
 - densité native compacte à partir du Full HD : base typographique 12 px, barre 48 px, rail 72 px,
   palette 188 px et inspecteur 280/360 px afin de rendre la vue 3D prioritaire en Full HD et QHD ;
 - retouche d'instance directe : gizmo X/Y/Z dans la 3D, déplacement avec pas fin, clic droit intégré,
@@ -216,7 +224,8 @@ qualification humaine de release publique.
   destructibilité UX1-L, la protection plot UX1-M, la faction UX1-N et la conversation UX1-O.
   Le verrouillage UX1-P, la clé consommée UX1-Q, le piège UX1-R et le trésor UX1-S disposent désormais de la même
   qualification FHD/QHD/4K. Les événements d’ouverture/fermeture UX1-T et de
-  verrouillage/déverrouillage UX1-U disposent de leur preuve FHD réelle ; leurs revues QHD/4K sont
+  verrouillage/déverrouillage UX1-U, de cycle de vie UX1-V et de zones dynamiques UX1-W disposent de
+  leur preuve FHD réelle ; leurs revues QHD/4K sont
   réservées au jalon multi-lots.
   La revue 4K des autres pages reste à qualifier ;
 - CI rendue indépendante de la cadence du runner et des dossiers locaux `.artifacts` ;

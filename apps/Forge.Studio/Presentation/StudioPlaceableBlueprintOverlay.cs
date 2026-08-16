@@ -682,7 +682,7 @@ internal sealed partial class StudioPlaceableBlueprintOverlay : Control
         scene.AddThemeConstantOverride("separation", 8);
         sceneMargin.AddChild(scene);
         scene.AddChild(StudioStyle.Label("◈  APERÇU DE SCÈNE", 11, StudioStyle.Accent));
-        _scenePreviewTitle = StudioStyle.Label("Gizmo de pivot et pas de grille", 15);
+        _scenePreviewTitle = StudioStyle.Label("Gizmo de pivot et pas de grille", 15, wrap: true);
         scene.AddChild(_scenePreviewTitle);
         _scenePreviewDescription = StudioStyle.Label(
             "La sélection 3D utilise les instances réelles du blueprint. La position affichée est celle résolue par le runtime canonique.",
@@ -3060,7 +3060,9 @@ internal sealed partial class StudioPlaceableBlueprintOverlay : Control
             damageEventPreview = _session.PreviewPlaceableDamageEvent(_draft, _damageEventsEditor.PreviewMode);
             _damageEventsEditor.SetPreviewResult(damageEventPreview);
         }
-        _previewSummary.Text = _result.Summary;
+        _previewSummary.Text = _lifecycleEventsFocus && _result.Succeeded
+            ? "Cycle de vie prêt · OnUsed · Contenu modifié · Dégâts et mort · aperçu sans écriture · application annulable"
+            : _result.Summary;
         _previewSummary.AddThemeColorOverride("font_color", _result.Succeeded ? StudioStyle.Text : StudioStyle.Danger);
         _previewState.Text = _result.Succeeded
             ? _lifecycleEventsFocus
