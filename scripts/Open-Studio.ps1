@@ -39,7 +39,10 @@ param(
         'ux1-t', 'ux1-t-open', 'ux1-t-close', 'ux1-t-payload', 'ux1-t-preview',
         'ux1-u', 'ux1-u-bindings', 'ux1-u-transition', 'ux1-u-veto', 'ux1-u-preview',
         'ux1-v', 'ux1-v-used', 'ux1-v-disturbed', 'ux1-v-damaged', 'ux1-v-death',
-        'ux1-w', 'ux1-w-scale', 'ux1-w-dynamic', 'ux1-w-copy')]
+        'ux1-w', 'ux1-w-scale', 'ux1-w-dynamic', 'ux1-w-copy',
+        'ux1-x', 'ux1-x-placement', 'ux1-x-states', 'ux1-x-interaction',
+        'ux1-y', 'ux1-y-foundation',
+        'ux1-z', 'ux1-z-physical', 'ux1-z-spell', 'ux1-z-heartbeat', 'ux1-z-physics')]
     [string]$Evidence,
     [string]$Resolution,
     [switch]$Headless,

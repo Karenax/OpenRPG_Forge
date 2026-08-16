@@ -184,11 +184,7 @@ internal sealed partial class StudioSessionController
         var transform = runtime.SnappedTransform;
         var shapeLabel = HumanizeShapeUx1Y(shape.Kind);
         var summary = FormattableString.Invariant(
-            $"{shapeLabel} · {shape.Vertices.Count} sommet(s) · {shape.Holes.Count} contour(s) intérieur(s) · hauteur {shape.Height:0.##} m · grille {shape.SnapIncrement:0.##} m\n" +
-            $"Transform : X {transform.Position.X:0.##}, Y {transform.Position.Y:0.##}, Z {transform.Position.Z:0.##} · rotation {transform.RotationDegrees.Y:0.##}° · échelle {transform.Scale.X:0.##}/{transform.Scale.Y:0.##}/{transform.Scale.Z:0.##}\n" +
-            $"Politique : {draft.EntityKinds.Count} type(s) · {draft.RequiredTags.Count} tag(s) requis · {draft.Conditions.Count} condition(s) · délai {draft.CooldownSeconds:0.##} s · {HumanizeFireUx1Y(draft.FirePolicy)}\n" +
-            $"Actions : {draft.Actions.Count} · entrée {draft.OnEnter.EventBinding} · sortie {draft.OnExit.EventBinding} · API {draft.OnEnter.ForgeScriptApiVersion}\n" +
-            "Aperçu 2D lisible dans l’outil · portail, validation avancée et profil Advanced préservés sans être modifiés.");
+            $"{shapeLabel} · {shape.Vertices.Count} sommet(s) · {shape.Holes.Count} contour(s) intérieur(s) · hauteur {shape.Height:0.##} m · grille {shape.SnapIncrement:0.##} m\nTransform : X {transform.Position.X:0.##}, Y {transform.Position.Y:0.##}, Z {transform.Position.Z:0.##} · rotation {transform.RotationDegrees.Y:0.##}° · échelle {transform.Scale.X:0.##}/{transform.Scale.Y:0.##}/{transform.Scale.Z:0.##}\nPolitique : {draft.EntityKinds.Count} type(s) · {draft.RequiredTags.Count} tag(s) requis · {draft.Conditions.Count} condition(s) · délai {draft.CooldownSeconds:0.##} s · {HumanizeFireUx1Y(draft.FirePolicy)}\nActions : {draft.Actions.Count} · entrée {draft.OnEnter.EventBinding} · sortie {draft.OnExit.EventBinding} · API {draft.OnEnter.ForgeScriptApiVersion}\nAperçu 2D lisible dans l’outil · portail, validation avancée et profil Advanced préservés sans être modifiés.");
 
         _approvedTriggerUx1Y = draft;
         _approvedTriggerRevisionUx1Y = history.State.Revision;
@@ -642,7 +638,7 @@ internal sealed partial class StudioSessionController
             message = "Le déclencheur a changé depuis son ouverture. Rechargez sa fiche.";
             return false;
         }
-        profile = currentProfile is null
+        var builtProfile = currentProfile is null
             ? new TriggerWorldProfile(
                 Id: draft.ProfileId,
                 SchemaVersion: WorldFeatureCatalog.CurrentSchemaVersion,
@@ -667,10 +663,11 @@ internal sealed partial class StudioSessionController
                 Foundation = foundation,
                 FoundationRequiredAtRuntime = draft.RequireRuntime,
             };
-        var triggers = currentCatalog.Triggers
-            .Where(item => item.Id != profile.Id)
-            .Append(profile)
-            .ToArray();
+        profile = builtProfile;
+        var triggers = currentProfile is null
+            ? currentCatalog.Triggers.Append(builtProfile).ToArray()
+            : currentCatalog.Triggers.Select(item =>
+                item.Id == currentProfile.Id ? builtProfile : item).ToArray();
         var candidateCatalog = new WorldFeatureCatalog(
             currentCatalog.Id,
             currentCatalog.SchemaVersion,

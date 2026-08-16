@@ -4,7 +4,7 @@ using Godot;
 
 namespace Forge.Studio.Presentation;
 
-internal sealed class StudioDoorFoundationOverlay : Control
+internal sealed partial class StudioDoorFoundationOverlay : Control
 {
     private static readonly DoorWorldProfile.PlacementMode[] PlacementModes =
     [

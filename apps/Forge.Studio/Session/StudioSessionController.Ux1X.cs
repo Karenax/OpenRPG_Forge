@@ -558,7 +558,9 @@ internal sealed partial class StudioSessionController
                               restored.FactionId == originalProfile.FactionId &&
                               DoorAssemblyEquivalentUx1X(restored.Assembly, originalProfile.Assembly) &&
                               DoorAccessEquivalentUx1X(restored.AccessEvents, originalProfile.AccessEvents) &&
-                              DoorPortalEquivalentUx1X(restored.Foundation.Portal, originalProfile.Foundation.Portal) &&
+                              DoorPortalEquivalentUx1X(
+                                  restored.Foundation!.Portal,
+                                  originalProfile.Foundation!.Portal) &&
                               restored.Foundation.Links.SequenceEqual(originalProfile.Foundation.Links) &&
                               restored.Foundation.Adapter!.MaterialBindings.OrderBy(
                                       item => item.Key,
@@ -695,10 +697,12 @@ internal sealed partial class StudioSessionController
         try
         {
             var existing = matching.SingleOrDefault();
-            profile = BuildDoorProfileUx1X(existing, draft);
+            var builtProfile = BuildDoorProfileUx1X(existing, draft);
+            profile = builtProfile;
             var doors = existing is null
-                ? catalog.Doors.Append(profile).ToArray()
-                : catalog.Doors.Select(candidate => candidate.Id == existing.Id ? profile : candidate).ToArray();
+                ? catalog.Doors.Append(builtProfile).ToArray()
+                : catalog.Doors.Select(candidate =>
+                    candidate.Id == existing.Id ? builtProfile : candidate).ToArray();
             var candidateCatalog = new WorldFeatureCatalog(
                 catalog.Id,
                 catalog.SchemaVersion,

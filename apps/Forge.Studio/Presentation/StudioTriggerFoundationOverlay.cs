@@ -30,15 +30,6 @@ internal sealed partial class StudioTriggerStringListEditor : VBoxContainer
             TooltipText = emptyText,
         };
         _items.AddThemeStyleboxOverride("panel", StudioStyle.Box(StudioStyle.Surface, StudioStyle.Border, 6));
-        _items.ItemSelected += index =>
-        {
-            _selected = (int)index;
-            if (_selected >= 0 && _selected < _values.Count)
-            {
-                _value.Text = _values[_selected];
-                _save.Text = "Modifier";
-            }
-        };
         AddChild(_items);
 
         var row = new HBoxContainer();
@@ -53,6 +44,15 @@ internal sealed partial class StudioTriggerStringListEditor : VBoxContainer
         _remove = StudioStyle.Button("Retirer", compact: true);
         _remove.Pressed += RemoveValue;
         row.AddChild(_remove);
+        _items.ItemSelected += index =>
+        {
+            _selected = (int)index;
+            if (_selected >= 0 && _selected < _values.Count)
+            {
+                _value.Text = _values[_selected];
+                _save.Text = "Modifier";
+            }
+        };
     }
 
     internal void SetValues(IEnumerable<string> values)
@@ -138,16 +138,6 @@ internal sealed partial class StudioTriggerVertexListEditor : VBoxContainer
             TooltipText = emptyText,
         };
         _items.AddThemeStyleboxOverride("panel", StudioStyle.Box(StudioStyle.Surface, StudioStyle.Border, 6));
-        _items.ItemSelected += index =>
-        {
-            _selected = (int)index;
-            if (_selected >= 0 && _selected < _values.Count)
-            {
-                _x.Value = _values[_selected].X;
-                _z.Value = _values[_selected].Z;
-                _save.Text = "Modifier";
-            }
-        };
         AddChild(_items);
 
         var row = new HBoxContainer();
@@ -165,6 +155,16 @@ internal sealed partial class StudioTriggerVertexListEditor : VBoxContainer
         _remove = StudioStyle.Button("Retirer", compact: true);
         _remove.Pressed += RemoveValue;
         row.AddChild(_remove);
+        _items.ItemSelected += index =>
+        {
+            _selected = (int)index;
+            if (_selected >= 0 && _selected < _values.Count)
+            {
+                _x.Value = _values[_selected].X;
+                _z.Value = _values[_selected].Z;
+                _save.Text = "Modifier";
+            }
+        };
     }
 
     internal void SetValues(IEnumerable<Vector3Value> values)
@@ -389,16 +389,6 @@ internal sealed partial class StudioTriggerActionListEditor : VBoxContainer
             SelectMode = ItemList.SelectModeEnum.Single,
         };
         _items.AddThemeStyleboxOverride("panel", StudioStyle.Box(StudioStyle.Surface, StudioStyle.Border, 6));
-        _items.ItemSelected += index =>
-        {
-            _selected = (int)index;
-            if (_selected >= 0 && _selected < _values.Count)
-            {
-                _kind.Text = _values[_selected].Kind;
-                _target.Text = _values[_selected].TargetId;
-                _save.Text = "Modifier";
-            }
-        };
         AddChild(_items);
 
         var grid = new GridContainer { Columns = 2, SizeFlagsHorizontal = SizeFlags.ExpandFill };
@@ -418,6 +408,16 @@ internal sealed partial class StudioTriggerActionListEditor : VBoxContainer
         _remove = StudioStyle.Button("Retirer", compact: true);
         _remove.Pressed += RemoveValue;
         row.AddChild(_remove);
+        _items.ItemSelected += index =>
+        {
+            _selected = (int)index;
+            if (_selected >= 0 && _selected < _values.Count)
+            {
+                _kind.Text = _values[_selected].Kind;
+                _target.Text = _values[_selected].TargetId;
+                _save.Text = "Modifier";
+            }
+        };
     }
 
     internal void SetValues(IEnumerable<StudioTriggerActionDraft> values)
