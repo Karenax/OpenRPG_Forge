@@ -734,10 +734,13 @@ internal sealed partial class StudioSessionController
 
             var stalePlanPreview = editing.PreviewUx1AFPlanAsync(draft with { Title = "Plan périmé" })
                 .GetAwaiter().GetResult();
-            editing.UndoUx1AFPlan();
-            editing.RedoUx1AFPlan();
+            var stalePlanContext = editing._ux1AF ??
+                                   throw new InvalidOperationException("The stale plan evidence context is unavailable.");
+            var stalePlanUndo = stalePlanContext.PlanHistory.Undo();
+            var stalePlanRedo = stalePlanContext.PlanHistory.Redo();
             var stalePlanApply = editing.ApplyApprovedUx1AFPlan();
-            var planRevisionGuard = stalePlanPreview.Succeeded && !stalePlanApply.Succeeded &&
+            var planRevisionGuard = stalePlanPreview.Succeeded && stalePlanUndo && stalePlanRedo &&
+                                    !stalePlanApply.Succeeded &&
                                     stalePlanApply.Message.Contains("catalogue", StringComparison.OrdinalIgnoreCase);
 
             var mixedCatalogPreview = editing.PreviewUx1AFPlanAsync(draft with
