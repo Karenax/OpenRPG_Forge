@@ -1,3 +1,4 @@
+using Forge.ModuleFormat.Workspaces;
 using Forge.Studio.Session;
 using Godot;
 
@@ -59,6 +60,7 @@ internal sealed partial class StudioDoorDamageLoadingOverlay : Control
     internal bool IsOpen => Visible;
     internal int SectionCount => 3;
     internal bool PreviewReady => Visible && _approvedDraft is not null && !_apply.Disabled;
+    internal bool UiTransactionSourceUntouched { get; private set; }
     internal bool ExplicitSelectionProven =>
         _selectionRequiredAtOpen && _door.Selected > 0 && _draft is not null;
 
@@ -330,6 +332,82 @@ internal sealed partial class StudioDoorDamageLoadingOverlay : Control
     }
 
     internal bool RunUiTransactionEvidence()
+    {
+        var originalProject = _session.Project;
+        var originalHistory = _session.History;
+        UiTransactionSourceUntouched = false;
+        if (originalProject is null || originalHistory is null)
+        {
+            return false;
+        }
+
+        var originalDirty = _session.IsDirty;
+        var originalRevision = originalHistory.State.Revision;
+        var originalJournal = originalHistory.Journal.ToArray();
+        var originalCanUndo = originalHistory.CanUndo;
+        var originalCanRedo = originalHistory.CanRedo;
+        var tempRoot = Path.Combine(
+            Path.GetTempPath(),
+            "openrpg-forge-studio-ux1ab-ui-" + Guid.NewGuid().ToString("N"));
+        var isolatedSession = new StudioSessionController();
+        StudioDoorDamageLoadingOverlay? isolatedOverlay = null;
+        try
+        {
+            var created = ProjectSession.Create(tempRoot, originalProject);
+            if (!created.Succeeded ||
+                !isolatedSession.Open(tempRoot, _session.ActiveAreaId?.ToString()).Succeeded)
+            {
+                GD.PrintErr(
+                    $"OPENRPG_FORGE_STUDIO_UX1AB_UI_TRANSACTION_FAILED stage=isolated-open created={created.Succeeded.ToString().ToLowerInvariant()}");
+                return false;
+            }
+
+            isolatedOverlay = new StudioDoorDamageLoadingOverlay(isolatedSession);
+            AddChild(isolatedOverlay);
+            var isolatedEvidence = isolatedOverlay.RunBoundUiTransactionEvidence();
+            var currentHistory = _session.History;
+            UiTransactionSourceUntouched = ReferenceEquals(originalProject, _session.Project) &&
+                                           _session.IsDirty == originalDirty &&
+                                           currentHistory is not null &&
+                                           ReferenceEquals(originalHistory, currentHistory) &&
+                                           currentHistory.State.Revision == originalRevision &&
+                                           currentHistory.CanUndo == originalCanUndo &&
+                                           currentHistory.CanRedo == originalCanRedo &&
+                                           currentHistory.Journal.SequenceEqual(originalJournal);
+            var valid = isolatedEvidence && UiTransactionSourceUntouched;
+            if (!valid)
+            {
+                GD.PrintErr(
+                    $"OPENRPG_FORGE_STUDIO_UX1AB_UI_TRANSACTION_FAILED stage=isolated-transaction " +
+                    $"isolated={isolatedEvidence.ToString().ToLowerInvariant()} " +
+                    $"source_untouched={UiTransactionSourceUntouched.ToString().ToLowerInvariant()}");
+            }
+            return valid;
+        }
+        catch (Exception exception)
+        {
+            GD.PrintErr(
+                $"OPENRPG_FORGE_STUDIO_UX1AB_UI_TRANSACTION_FAILED stage=exception " +
+                $"type={exception.GetType().Name} message={exception.Message}");
+            return false;
+        }
+        finally
+        {
+            if (isolatedOverlay is not null && GodotObject.IsInstanceValid(isolatedOverlay))
+            {
+                isolatedOverlay.Close();
+                isolatedOverlay.GetParent()?.RemoveChild(isolatedOverlay);
+                isolatedOverlay.Free();
+            }
+            isolatedSession.Close();
+            if (Directory.Exists(tempRoot))
+            {
+                Directory.Delete(tempRoot, recursive: true);
+            }
+        }
+    }
+
+    private bool RunBoundUiTransactionEvidence()
     {
         var originalProject = _session.Project;
         var originalDirty = _session.IsDirty;

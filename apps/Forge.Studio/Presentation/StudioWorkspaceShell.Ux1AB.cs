@@ -85,10 +85,17 @@ internal sealed partial class StudioWorkspaceShell
     internal bool RunUx1ABSmoke()
     {
         var originalProject = _session.Project;
+        var originalHistory = _session.History;
+        var originalDirty = _session.IsDirty;
+        var originalRevision = originalHistory?.State.Revision;
+        var originalJournal = originalHistory?.Journal.ToArray() ?? [];
+        var originalCanUndo = originalHistory?.CanUndo ?? false;
+        var originalCanRedo = originalHistory?.CanRedo ?? false;
         var originalAreaId = _session.ActiveAreaId;
         var originalSelection = _session.SelectedEntityIds.ToArray();
         var originalActive = _session.SelectedEntityId;
         var uiTransaction = _doorDamageLoadingOverlay.RunUiTransactionEvidence();
+        var uiTransactionSourceUntouched = _doorDamageLoadingOverlay.UiTransactionSourceUntouched;
         var evidencePrepared = PrepareUx1ABEvidence("ux1-ab-events");
         var uiExplicitSelection = _doorDamageLoadingOverlay.ExplicitSelectionProven;
         var uiReady = evidencePrepared &&
@@ -102,10 +109,19 @@ internal sealed partial class StudioWorkspaceShell
         _session.SelectEntities(originalSelection, originalActive);
         WorldViewport.SetSelections(_session.SelectedEntityIds, _session.SelectedEntityId);
         var result = _session.RunUx1ABContractSmoke();
+        var currentHistory = _session.History;
         var currentProjectUntouched = ReferenceEquals(originalProject, _session.Project) &&
                                       _session.ActiveAreaId == originalAreaId &&
-                                      !_session.IsDirty;
-        var valid = result.Succeeded && uiReady && uiTransaction && currentProjectUntouched;
+                                      _session.IsDirty == originalDirty &&
+                                      originalHistory is not null &&
+                                      currentHistory is not null &&
+                                      ReferenceEquals(originalHistory, currentHistory) &&
+                                      currentHistory.State.Revision == originalRevision &&
+                                      currentHistory.CanUndo == originalCanUndo &&
+                                      currentHistory.CanRedo == originalCanRedo &&
+                                      currentHistory.Journal.SequenceEqual(originalJournal);
+        var valid = result.Succeeded && uiReady && uiTransaction &&
+                    uiTransactionSourceUntouched && currentProjectUntouched;
         GD.Print(
             $"OPENRPG_FORGE_STUDIO_UX1AB_{(valid ? "PASS" : "FAILED")} " +
             $"explicit_selection={result.ExplicitDoorSelection.ToString().ToLowerInvariant()} " +
@@ -124,6 +140,8 @@ internal sealed partial class StudioWorkspaceShell
             $"ui_explicit_selection={uiExplicitSelection.ToString().ToLowerInvariant()} " +
             $"ui={uiReady.ToString().ToLowerInvariant()} " +
             $"ui_transaction={uiTransaction.ToString().ToLowerInvariant()} " +
+            $"ui_transaction_isolated={uiTransactionSourceUntouched.ToString().ToLowerInvariant()} " +
+            $"source_session_untouched={currentProjectUntouched.ToString().ToLowerInvariant()} " +
             $"project_restored={currentProjectUntouched.ToString().ToLowerInvariant()} windows=1");
         return valid;
     }
