@@ -826,8 +826,8 @@ internal sealed partial class StudioSessionController
 
     private static StudioTriggerFoundationDraft CustomizeUx1YSmokeDraft(
         StudioTriggerFoundationDraft draft) => draft with
-    {
-        Vertices =
+        {
+            Vertices =
         [
             new(-3.1f, 0, -2.1f),
             new(3.1f, 0, -2.1f),
@@ -835,26 +835,26 @@ internal sealed partial class StudioSessionController
             new(0, 0, 3.1f),
             new(-3.1f, 0, 2.1f),
         ],
-        Holes =
+            Holes =
         [
             [new Vector3Value(-.6f, 0, -.4f), new(.6f, 0, -.4f), new(0, 0, .7f)],
         ],
-        Height = 4.5,
-        SnapIncrement = .5,
-        Position = new Vector3Value(1.26f, 0, -2.26f),
-        RotationDegrees = new Vector3Value(0, 35, 0),
-        Scale = new Vector3Value(1.25f, 1, .9f),
-        CooldownSeconds = 2,
-        OnEnter = draft.OnEnter with
-        {
-            BeforeScriptId = "scripts/enter-before",
-            AfterScriptId = "scripts/enter-after",
-        },
-        OnExit = draft.OnExit with
-        {
-            AfterScriptId = "scripts/exit-after",
-        },
-    };
+            Height = 4.5,
+            SnapIncrement = .5,
+            Position = new Vector3Value(1.26f, 0, -2.26f),
+            RotationDegrees = new Vector3Value(0, 35, 0),
+            Scale = new Vector3Value(1.25f, 1, .9f),
+            CooldownSeconds = 2,
+            OnEnter = draft.OnEnter with
+            {
+                BeforeScriptId = "scripts/enter-before",
+                AfterScriptId = "scripts/enter-after",
+            },
+            OnExit = draft.OnExit with
+            {
+                AfterScriptId = "scripts/exit-after",
+            },
+        };
 
     private static bool ApplyUx1YIntermediateMutation(
         StudioSessionController editing,

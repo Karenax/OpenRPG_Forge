@@ -676,6 +676,47 @@ runtime restent déclarés indisponibles. Le portail ciblé passe 27/27 en 56,81
 Forward+ Full HD inspectée est liée à `docs/acceptance/STUDIO_UX1_W.md`. Le train intégré passe le
 même portail complet sans avertissement ni régression.
 
+## Deuxième train parallèle livré : UX1-X, UX1-Y et UX1-Z
+
+Le second train a livré onze routes UX1 supplémentaires le 16 août 2026. La matrice compte désormais
+82 routes `functional` et 635 `planned` ; 31 routes de la vague UX1 restent à qualifier. Les trois
+writers ont conservé leurs modèles, sessions et overlays dans des fichiers dédiés, puis le
+coordinateur a intégré seul les hooks partagés, les preuves, la matrice et les corrections issues
+des smokes réels.
+
+### UX1-X — Fondation de porte
+
+`ORF-DOOR-001`, `ORF-DOOR-002` et `ORF-DOOR-003` sont `functional`. La porte doit être choisie
+explicitement ; placement libre/ancré, neuf états et interaction d'ouverture passent par dry-run,
+commande, garde de révision, undo/redo et round-trip. Les champs Door voisins et l'ordre du
+catalogue sont préservés. La Navigation exigée par le validateur reste une valeur interne non
+exposée et ne promeut pas `ORF-DOOR-019`. Le portail incrémental passe 5/5 en 71,99 s et la capture
+Forward+ FHD inspectée est liée à `docs/acceptance/STUDIO_UX1_X.md`.
+
+### UX1-Y — Fondation polygonale de trigger
+
+`ORF-TRG-001`, `ORF-TRG-002`, `ORF-TRG-006` et `ORF-TRG-007` sont `functional`. La surface édite un
+polygone extrudé, ses trous, filtres, conditions, actions et événements VolumeEntered/VolumeExited.
+Les scripts facultatifs restent `null` lorsqu'ils sont blancs ; Portal, Validation, Advanced et
+parent caché sont préservés. Les formes 3D restent en lecture seule sans conversion. Le portail
+incrémental passe 8/8 en 62,22 s ; les captures Forward+ FHD, QHD et 4K ont été inspectées après une
+correction qui borne le contenu et maintient les actions visibles. La preuve est liée à
+`docs/acceptance/STUDIO_UX1_Y.md`.
+
+### UX1-Z — Réactions et physique du placeable
+
+`ORF-PLC-021`, `ORF-PLC-022`, `ORF-PLC-023` et `ORF-PLC-024` sont `functional`. Attaques, capacités,
+heartbeat, événement personnalisé et politique physique disposent de quatre aperçus sans écriture.
+Un profil absent est créé sans asset inventé ; scheduler dormant et capacités voisines restent
+intacts. Le Studio annonce une politique sans prétendre simuler moteur ou réseau. Le portail
+incrémental passe 5/5 en 60,77 s et la capture Forward+ FHD inspectée est liée à
+`docs/acceptance/STUDIO_UX1_Z.md`.
+
+Le jalon intégré UX1-X/Y/Z passe ensuite `scripts/Verify.ps1` dans son intégralité : 1 980 tests
+.NET, 39 tests Python, builds sans avertissement, graphe Roslyn déterministe à 8 959 nœuds,
+59 067 relations et 0 diagnostic, puis smokes Studio, Runtime, Forward+, MCP et réseau. Les onze
+routes ne sont promues qu'après ce verdict transversal.
+
 ## Gates ergonomiques avant parité
 
 Une page ne passe pas `Parity` si l’un des points suivants manque :

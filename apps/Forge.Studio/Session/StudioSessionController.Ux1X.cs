@@ -435,11 +435,11 @@ internal sealed partial class StudioSessionController
                 foundation.Interaction.QueueCapacity,
                 new HashSet<string>(StringComparer.Ordinal));
             var interaction = accepted is
-                              {
-                                  Accepted: true,
-                                  Reason: "accepted",
-                              } && accepted.CurrentState == foundation.States.Single(state =>
-                                  state.Kind == DoorWorldProfile.StateKind.Opening).Id &&
+            {
+                Accepted: true,
+                Reason: "accepted",
+            } && accepted.CurrentState == foundation.States.Single(state =>
+                state.Kind == DoorWorldProfile.StateKind.Opening).Id &&
                               wrongSide is { Accepted: false, Reason: "wrong-side" } &&
                               queueFull is { Accepted: false, Reason: "queue-full" } &&
                               foundation.Interaction is
@@ -536,20 +536,20 @@ internal sealed partial class StudioSessionController
             var restored = reopened.Project?.Module.WorldFeatures.Doors.Single(profile =>
                 profile.BlueprintId == targetBlueprint.Id);
             var persistence = saved.Succeeded && reopen.Succeeded && restored?.Foundation is
-                              {
-                                  Placement: DoorWorldProfile.PlacementMode.ArchitectureSocket,
-                                  ArchitectureSocketId: "mur-grande-porte",
-                                  InitialStateId: var restoredInitial,
-                                  Interaction:
-                                  {
-                                      Range: 3.25,
-                                      AllowedSide: "front",
-                                      Authority: "server",
-                                      QueueCapacity: 3,
-                                      FailureFeedbackKey: "door.blocked",
-                                  },
-                              } && restored.Foundation.States.Single(state =>
-                                  state.Kind == DoorWorldProfile.StateKind.Closed).Id == restoredInitial &&
+            {
+                Placement: DoorWorldProfile.PlacementMode.ArchitectureSocket,
+                ArchitectureSocketId: "mur-grande-porte",
+                InitialStateId: var restoredInitial,
+                Interaction:
+                {
+                    Range: 3.25,
+                    AllowedSide: "front",
+                    Authority: "server",
+                    QueueCapacity: 3,
+                    FailureFeedbackKey: "door.blocked",
+                },
+            } && restored.Foundation.States.Single(state =>
+                state.Kind == DoorWorldProfile.StateKind.Closed).Id == restoredInitial &&
                               restored.Foundation.States.Count >= 9 &&
                               restored.Damage == originalProfile.Damage &&
                               restored.Loading == originalProfile.Loading &&

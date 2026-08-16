@@ -220,6 +220,14 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
   worktree et des fichiers distincts du lot Placeable.
 - [x] Préparer en lecture seule les lots Doors puis Triggers pendant UX1-V/UX1-W ; intégrer les
   branches une par une et sérialiser build, tests, smoke, capture, matrice et graphe.
+- [x] Réaliser UX1-X sur `ORF-DOOR-001` à `ORF-DOOR-003` : fondation de porte, placement,
+  neuf états, interaction d'ouverture, sélection explicite, préservation, undo/redo et persistance.
+- [x] Réaliser UX1-Y sur `ORF-TRG-001`, `ORF-TRG-002`, `ORF-TRG-006` et `ORF-TRG-007` : contour
+  polygonal, politique générique, OnEnter/OnExit, aperçu uniforme, préservation et layout FHD–4K.
+- [x] Réaliser UX1-Z sur `ORF-PLC-021` à `ORF-PLC-024` : réactions d'attaque/capacité, heartbeat,
+  événement personnalisé et politique physique honnête, avec préservation et round-trip.
+- [x] Clôturer le jalon UX1-X/Y/Z par les trois portails incrémentaux, les preuves Forward+ FHD,
+  la revue corrective FHD/QHD/4K d'UX1-Y et le portail transversal complet.
 - [ ] Achever la tranche Monde : terrain, navigation, puis activer **Tester ici** sur
   snapshot isolé.
 - [ ] Migrer Contenu, Histoire, Gameplay, Tester, Publier, Projet et Assistant page par page, en

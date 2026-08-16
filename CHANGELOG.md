@@ -7,6 +7,21 @@ SemVer ; les versions de schéma persistent séparément dans leurs documents.
 
 ### Changed
 
+- Forge Studio UX1-Z : réactions `OnPhysicalAttacked`, `OnSpellCastAt`, heartbeat, événement
+  personnalisé et politique physique de placeable, avec sélection explicite, quatre dry-runs,
+  préservation des valeurs dormantes et capacités voisines, undo/redo, round-trip et preuve
+  Forward+ Full HD ;
+- Forge Studio UX1-Y : fondation polygonale de trigger, filtres et actions génériques, `OnEnter` et
+  `OnExit`, avec scripts facultatifs normalisés, empreinte X/Z à échelle uniforme, volumes 3D
+  préservés en lecture seule, layout scrollable contrôlé en Full HD/QHD/4K et lecture MCP ;
+- Forge Studio UX1-X : fondation de porte avec sélection explicite, placement libre/ancré, neuf
+  états et interaction d'ouverture, valeurs au quart de mètre, navigation interne non promue,
+  préservation du catalogue, undo/redo, round-trip et preuve Forward+ Full HD ;
+- matrice d'accès humain Studio portée à 82 routes `functional` et 635 `planned` après preuves
+  individuelles des onze routes UX1-X/Y/Z ;
+- jalon UX1-X/Y/Z validé par 18/18 tests ciblés, trois smokes Studio, les preuves Forward+ requises
+  et le portail complet : 1 980 tests .NET, 39 tests Python, builds sans avertissement et graphe
+  Roslyn déterministe à 8 959 nœuds, 59 067 relations et 0 diagnostic ;
 - Forge Studio : préparation d'une cadence parallèle contrôlée avec deux worktrees d'implémentation
   bornés par page, un slot d'audit en avance, propriété centrale des routeurs/matrices/preuves et
   gel obligatoire avant les builds, tests, smokes et captures séquentiels ;

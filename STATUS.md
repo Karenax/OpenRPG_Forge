@@ -37,13 +37,17 @@ encore qualifiées. Aucun de ces états ne doit être confondu avec une release 
 - parcours produit automatisé : projet, zones, assets, contenu RPG, narration, validation, playtest,
   export et Assistant gouverné ;
 - matrice et procédure d'acceptation de bout en bout sous `docs/acceptance/`.
-- matrice d’accès humain Studio : 717 routes uniques, dont 71 `functional` avec preuve spécifique
-  pour UX0-A à UX1-W et 646 `planned` ; cette matrice ne réutilise pas le statut `Tested` de l’ancien Creator.
+- matrice d’accès humain Studio : 717 routes uniques, dont 82 `functional` avec preuve spécifique
+  pour UX0-A à UX1-Z et 635 `planned` ; cette matrice ne réutilise pas le statut `Tested` de l’ancien Creator.
 - premier train parallèle contrôlé livré : UX1-V et UX1-W ont été développés dans des worktrees et
   fichiers distincts, audités avant intégration, puis construits, testés, fumés et capturés
   séquentiellement ; six routes seulement ont été promues sur preuve réelle.
+- deuxième train parallèle contrôlé livré : UX1-X, UX1-Y et UX1-Z ont isolé les fondations Door et
+  Trigger ainsi que les réactions/physique Placeable ; onze routes ont été promues après 18/18 tests
+  ciblés cumulés, trois smokes, trois captures FHD inspectées et une revue QHD/4K corrective d'UX1-Y.
 - portail local courant réussi avec 1 980 tests .NET, 39 tests Python, des builds sans avertissement
-  et le graphe Roslyn courant déterministe à 8 914 nœuds, 58 483 relations et 0 diagnostic.
+  et le graphe Roslyn courant déterministe à 8 959 nœuds, 59 067 relations et 0 diagnostic ; les
+  smokes Studio, Runtime, Forward+, MCP et réseau ont également réussi.
 
 Ces nombres prouvent la présence et la non-régression des capacités. Ils ne remplacent pas une
 qualification humaine de release publique.
@@ -207,6 +211,16 @@ qualification humaine de release publique.
   politique globale de zones dynamiques et aperçu de copie runtime limité au contexte réellement
   disponible, avec commandes canoniques, préservation, undo/redo et round-trip ; portail
   incrémental 27/27 et preuve Forward+ FHD inspectée ;
+- UX1-X qualifié pour `ORF-DOOR-001` à `ORF-DOOR-003` : porte choisie explicitement, placement
+  libre ou ancré, neuf états et interaction d'ouverture ; navigation interne non exposée, données
+  voisines préservées, portail incrémental 5/5 en 71,99 s et preuve Forward+ FHD inspectée ;
+- UX1-Y qualifié pour `ORF-TRG-001`, `ORF-TRG-002`, `ORF-TRG-006` et `ORF-TRG-007` : polygone
+  extrudé, politique générique, OnEnter/OnExit, empreinte X/Z uniforme et scripts facultatifs ;
+  Portal/Validation/Advanced préservés, portail incrémental 8/8 en 62,22 s et preuves Forward+
+  FHD/QHD/4K inspectées après correction du bornage vertical ;
+- UX1-Z qualifié pour `ORF-PLC-021` à `ORF-PLC-024` : attaques, capacités, heartbeat/événement
+  personnalisé et politique physique, avec valeurs dormantes/capacités voisines préservées, aperçu
+  explicitement sans moteur ni réseau, portail incrémental 5/5 en 60,77 s et preuve FHD inspectée ;
 - densité native compacte à partir du Full HD : base typographique 12 px, barre 48 px, rail 72 px,
   palette 188 px et inspecteur 280/360 px afin de rendre la vue 3D prioritaire en Full HD et QHD ;
 - retouche d'instance directe : gizmo X/Y/Z dans la 3D, déplacement avec pas fin, clic droit intégré,
@@ -224,9 +238,10 @@ qualification humaine de release publique.
   destructibilité UX1-L, la protection plot UX1-M, la faction UX1-N et la conversation UX1-O.
   Le verrouillage UX1-P, la clé consommée UX1-Q, le piège UX1-R et le trésor UX1-S disposent désormais de la même
   qualification FHD/QHD/4K. Les événements d’ouverture/fermeture UX1-T et de
-  verrouillage/déverrouillage UX1-U, de cycle de vie UX1-V et de zones dynamiques UX1-W disposent de
-  leur preuve FHD réelle ; leurs revues QHD/4K sont
+  verrouillage/déverrouillage UX1-U, de cycle de vie UX1-V, de zones dynamiques UX1-W, de portes
+  UX1-X et de réactions/physique UX1-Z disposent de leur preuve FHD réelle ; leurs revues QHD/4K sont
   réservées au jalon multi-lots.
+  La fondation polygonale UX1-Y possède déjà ses preuves FHD/QHD/4K après la correction de layout.
   La revue 4K des autres pages reste à qualifier ;
 - CI rendue indépendante de la cadence du runner et des dossiers locaux `.artifacts` ;
 - contexte réduit à `PROJECT_CONTEXT.md`, `STATUS.md`, `TASKS_MVP.md` et la roadmap courante ;

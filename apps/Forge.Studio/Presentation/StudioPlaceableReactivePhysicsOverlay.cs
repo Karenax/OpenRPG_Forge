@@ -414,12 +414,12 @@ internal sealed partial class StudioPlaceableReactivePhysicsOverlay : PanelConta
             "custom:reliquaire:pulse",
         }.All(eventName => profile.Reactive.Events.Any(item => item.Event == eventName));
         var schedulerCanonical = profile?.Reactive.Scheduler is
-             {
-                 Enabled: true,
-                 IntervalSeconds: 5,
-                 BudgetPerMinute: 12,
-                 CustomNamespace: "reliquaire.veilleurs",
-             };
+        {
+            Enabled: true,
+            IntervalSeconds: 5,
+            BudgetPerMinute: 12,
+            CustomNamespace: "reliquaire.veilleurs",
+        };
         var canonical = applied.Succeeded && physicsCanonical && eventsCanonical && schedulerCanonical;
         var undo = _session.Undo();
         var restored = undo.Succeeded && ReferenceEquals(originalProject, _session.Project) &&

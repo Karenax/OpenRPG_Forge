@@ -411,18 +411,18 @@ internal sealed partial class StudioDoorFoundationOverlay : Control
         var appliedProfile = _session.Project?.Module.WorldFeatures.Doors.SingleOrDefault(profile =>
             profile.BlueprintId == blueprintId);
         var placementApplied = appliedProfile?.Foundation is
-                      {
-                          Placement: DoorWorldProfile.PlacementMode.ArchitectureSocket,
-                          ArchitectureSocketId: "mur-preuve-porte",
-                          Interaction:
-                          {
-                              Range: 2.75,
-                              AllowedSide: "both",
-                              Authority: "server",
-                              QueueCapacity: 4,
-                              FailureFeedbackKey: "door.unavailable",
-                          },
-                      };
+        {
+            Placement: DoorWorldProfile.PlacementMode.ArchitectureSocket,
+            ArchitectureSocketId: "mur-preuve-porte",
+            Interaction:
+            {
+                Range: 2.75,
+                AllowedSide: "both",
+                Authority: "server",
+                QueueCapacity: 4,
+                FailureFeedbackKey: "door.unavailable",
+            },
+        };
         var statesApplied = appliedProfile?.Foundation is not null &&
                             Enum.GetValues<DoorWorldProfile.StateKind>().All(kind =>
                                 appliedProfile.Foundation.States.Any(state => state.Kind == kind));

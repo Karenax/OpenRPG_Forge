@@ -584,14 +584,14 @@ internal sealed partial class StudioSessionController
             var safeRestore = editing.Undo();
             var safeBaselineSaved = editing.Save();
             var safeProfileCreation = safeSource is
-                                      {
-                                          ExistingProfile: false,
-                                          OriginalProfile:
-                                          {
-                                              Foundation: null,
-                                              Physics: null,
-                                          },
-                                      } && safePhysicsPreview?.Succeeded == true && safePreview?.Succeeded == true &&
+            {
+                ExistingProfile: false,
+                OriginalProfile:
+                {
+                    Foundation: null,
+                    Physics: null,
+                },
+            } && safePhysicsPreview?.Succeeded == true && safePreview?.Succeeded == true &&
                                       safeApply.Succeeded && safeUndone && safeRedone && safeRoundTrip &&
                                       safeRestore.Succeeded && ReferenceEquals(originalProject, editing.Project) &&
                                       safeBaselineSaved.Succeeded;

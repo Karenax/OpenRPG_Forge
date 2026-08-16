@@ -681,10 +681,18 @@ internal sealed partial class StudioTriggerFoundationOverlay : Control
         AddChild(shade);
 
         _dialog = StudioStyle.Panel("TriggerFoundationDialog", StudioStyle.Chrome, 12, 2);
+        _dialog.ClipContents = true;
+        _dialog.PropagateMaximumSize = true;
         AddChild(_dialog);
         var margin = StudioStyle.Margin(18, 14, 18, 14);
+        margin.PropagateMaximumSize = true;
         _dialog.AddChild(margin);
-        var root = new VBoxContainer();
+        var root = new VBoxContainer
+        {
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            SizeFlagsVertical = SizeFlags.ExpandFill,
+            PropagateMaximumSize = true,
+        };
         root.AddThemeConstantOverride("separation", 9);
         margin.AddChild(root);
 
@@ -733,13 +741,23 @@ internal sealed partial class StudioTriggerFoundationOverlay : Control
         _eventsTab.Pressed += () => ShowSection(2);
         tabs.AddChild(_eventsTab);
 
-        var body = new ScrollContainer
+        var bodyHost = new Control
         {
+            CustomMinimumSize = new Vector2(0, 300),
+            CustomMaximumSize = new Vector2(-1, 520),
             SizeFlagsHorizontal = SizeFlags.ExpandFill,
             SizeFlagsVertical = SizeFlags.ExpandFill,
-            HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
+            ClipContents = true,
+            PropagateMaximumSize = true,
         };
-        root.AddChild(body);
+        root.AddChild(bodyHost);
+        var body = new ScrollContainer
+        {
+            HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
+            FollowFocus = true,
+        };
+        body.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
+        bodyHost.AddChild(body);
         var panels = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
         body.AddChild(panels);
 
@@ -1454,6 +1472,7 @@ internal sealed partial class StudioTriggerFoundationOverlay : Control
         var renderedWidth = width * scale;
         var renderedHeight = height * scale;
         _dialog.Scale = Vector2.One * scale;
+        _dialog.CustomMaximumSize = new Vector2(width, height);
         _dialog.Position = new Vector2(
             (Size.X - renderedWidth) * .5f,
             Math.Max(24, (Size.Y - renderedHeight) * .45f));
