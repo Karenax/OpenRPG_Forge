@@ -1380,10 +1380,22 @@ internal sealed partial class StudioSessionController
         expected.CustomEventNamespace == actual.CustomEventNamespace &&
         expected.Rest == actual.Rest &&
         expected.Clue == actual.Clue &&
-        expected.Narrative == actual.Narrative &&
+        SameNarrativeUx1AE(expected.Narrative, actual.Narrative) &&
         expected.Director == actual.Director &&
         expected.FoundationRequiredAtRuntime == actual.FoundationRequiredAtRuntime &&
         expected.AdvancedRequiredAtRuntime == actual.AdvancedRequiredAtRuntime;
+
+    private static bool SameNarrativeUx1AE(
+        TriggerWorldProfile.NarrativeCuePolicy? expected,
+        TriggerWorldProfile.NarrativeCuePolicy? actual) =>
+        expected is null && actual is null ||
+        expected is { } left && actual is { } right &&
+        left.Participants.SequenceEqual(right.Participants) &&
+        left.Priority == right.Priority &&
+        left.Once == right.Once &&
+        left.CooldownSeconds == right.CooldownSeconds &&
+        left.MultiplayerPolicy == right.MultiplayerPolicy &&
+        left.DialogueId == right.DialogueId;
 
     private static bool SameFoundationUx1AE(
         TriggerWorldProfile.FoundationPolicy expected,
