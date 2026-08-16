@@ -76,6 +76,8 @@ internal sealed record StudioDoorReactiveComplexActionResult(
 internal sealed record StudioUx1ADSmokeResult(
     bool Succeeded,
     bool ExplicitDoorSelection,
+    bool DuplicateHumanLabels,
+    bool UnsafeAssemblyBlocked,
     bool AbilityEvents,
     bool HeartbeatAndCustomEvents,
     bool NarrativeReferences,

@@ -5,6 +5,7 @@ using Forge.Application.Projects;
 using Forge.Application.Time;
 using Forge.Application.WorldFeatures;
 using Forge.Domain.Blueprints;
+using Forge.Domain.Dialogues;
 using Forge.Domain.Factions;
 using Forge.Domain.Projects;
 using Forge.Domain.WorldFeatures;
@@ -49,31 +50,73 @@ internal sealed partial class StudioSessionController
                                                                 IsCustomDoorEventUx1AD(binding.Event)))
                 .Select(profile => profile.BlueprintId)
                 .ToHashSet();
-            return project.Blueprints
+            var doors = project.Blueprints
                 .Where(blueprint => blueprint.Kind == BlueprintKind.Door)
                 .OrderBy(blueprint => blueprint.DisplayName, StringComparer.CurrentCultureIgnoreCase)
+                .ThenBy(blueprint => blueprint.Slug, StringComparer.CurrentCultureIgnoreCase)
+                .ToArray();
+            var duplicateNames = doors
+                .GroupBy(blueprint => blueprint.DisplayName, StringComparer.CurrentCultureIgnoreCase)
+                .Where(group => group.Count() > 1)
+                .Select(group => group.Key)
+                .ToHashSet(StringComparer.CurrentCultureIgnoreCase);
+            return doors
                 .Select(blueprint => new StudioDoorReactiveComplexChoice(
                     blueprint.Id,
-                    blueprint.DisplayName,
+                    duplicateNames.Contains(blueprint.DisplayName)
+                        ? $"{blueprint.DisplayName} · {blueprint.Slug}"
+                        : blueprint.DisplayName,
                     configured.Contains(blueprint.Id)))
                 .ToArray();
         }
     }
 
-    internal IReadOnlyList<StudioDoorDialogueChoice> DoorDialogueChoicesUx1AD =>
-        Project?.Dialogues
-            .OrderBy(dialogue => dialogue.DisplayName, StringComparer.CurrentCultureIgnoreCase)
-            .Select(dialogue => new StudioDoorDialogueChoice(dialogue.Id.Value, dialogue.DisplayName))
-            .ToArray() ?? [];
+    internal IReadOnlyList<StudioDoorDialogueChoice> DoorDialogueChoicesUx1AD
+    {
+        get
+        {
+            var dialogues = Project?.Dialogues
+                .OrderBy(dialogue => dialogue.DisplayName, StringComparer.CurrentCultureIgnoreCase)
+                .ThenBy(dialogue => dialogue.Slug, StringComparer.CurrentCultureIgnoreCase)
+                .ToArray() ?? [];
+            var duplicateNames = dialogues
+                .GroupBy(dialogue => dialogue.DisplayName, StringComparer.CurrentCultureIgnoreCase)
+                .Where(group => group.Count() > 1)
+                .Select(group => group.Key)
+                .ToHashSet(StringComparer.CurrentCultureIgnoreCase);
+            return dialogues.Select(dialogue => new StudioDoorDialogueChoice(
+                dialogue.Id.Value,
+                duplicateNames.Contains(dialogue.DisplayName)
+                    ? $"{dialogue.DisplayName} · {dialogue.Slug}"
+                    : dialogue.DisplayName)).ToArray();
+        }
+    }
 
-    internal IReadOnlyList<StudioDoorFactionChoice> DoorFactionChoicesUx1AD =>
-        Project?.Module.Factions.Factions
-            .OrderBy(faction => faction.Archived)
-            .ThenBy(faction => faction.DisplayName, StringComparer.CurrentCultureIgnoreCase)
-            .Select(faction => new StudioDoorFactionChoice(
-                faction.Slug,
-                faction.Archived ? $"{faction.DisplayName} (archivée)" : faction.DisplayName))
-            .ToArray() ?? [];
+    internal IReadOnlyList<StudioDoorFactionChoice> DoorFactionChoicesUx1AD
+    {
+        get
+        {
+            var factions = Project?.Module.Factions.Factions
+                .OrderBy(faction => faction.Archived)
+                .ThenBy(faction => faction.DisplayName, StringComparer.CurrentCultureIgnoreCase)
+                .ThenBy(faction => faction.Slug, StringComparer.CurrentCultureIgnoreCase)
+                .ToArray() ?? [];
+            var duplicateNames = factions
+                .GroupBy(faction => faction.DisplayName, StringComparer.CurrentCultureIgnoreCase)
+                .Where(group => group.Count() > 1)
+                .Select(group => group.Key)
+                .ToHashSet(StringComparer.CurrentCultureIgnoreCase);
+            return factions.Select(faction =>
+            {
+                var label = duplicateNames.Contains(faction.DisplayName)
+                    ? $"{faction.DisplayName} · {faction.Slug}"
+                    : faction.DisplayName;
+                return new StudioDoorFactionChoice(
+                    faction.Slug,
+                    faction.Archived ? $"{label} (archivée)" : label);
+            }).ToArray();
+        }
+    }
 
     internal IReadOnlyList<StudioDoorCustomEventChoice> DoorCustomEventChoicesUx1AD(BlueprintId blueprintId)
     {
@@ -108,13 +151,27 @@ internal sealed partial class StudioSessionController
         return choices;
     }
 
-    internal StudioDoorReactiveComplexDraft? CreateDoorReactiveComplexDraftUx1AD(BlueprintId blueprintId)
+    internal StudioDoorReactiveComplexDraft? CreateDoorReactiveComplexDraftUx1AD(BlueprintId blueprintId) =>
+        TryCreateDoorReactiveComplexDraftUx1AD(blueprintId, out var draft, out _) ? draft : null;
+
+    internal bool TryCreateDoorReactiveComplexDraftUx1AD(
+        BlueprintId blueprintId,
+        out StudioDoorReactiveComplexDraft? draft,
+        out string message)
     {
+        draft = null;
+        message = string.Empty;
         var project = Project;
-        if (project is null || project.Blueprints.All(blueprint =>
+        if (project is null)
+        {
+            message = "Ouvrez un module avant de configurer une porte.";
+            return false;
+        }
+        if (project.Blueprints.All(blueprint =>
                 blueprint.Id != blueprintId || blueprint.Kind != BlueprintKind.Door))
         {
-            return null;
+            message = "La porte sélectionnée n’est plus disponible dans le module.";
+            return false;
         }
 
         var matches = project.Module.WorldFeatures.Doors
@@ -122,13 +179,14 @@ internal sealed partial class StudioSessionController
             .ToArray();
         if (matches.Length > 1)
         {
-            return null;
+            message = "Plusieurs fiches ciblent cette porte · corrigez le module avant l’édition.";
+            return false;
         }
 
         var profile = matches.SingleOrDefault();
-        if (profile?.Assembly?.Panels.Count > 8)
+        if (!TryValidateDoorAssemblyForEditorUx1AD(profile, out message))
         {
-            return null;
+            return false;
         }
         var abilityTargeted = FindDoorEventUx1AD(profile, AbilityTargetedEventUx1AD);
         var abilityImpacted = FindDoorEventUx1AD(profile, AbilityImpactedEventUx1AD);
@@ -145,7 +203,7 @@ internal sealed partial class StudioSessionController
                 new(StableDoorIdUx1AD(blueprintId, "panel:left"), "vantail gauche", -1, 0, false),
                 new(StableDoorIdUx1AD(blueprintId, "panel:right"), "vantail droit", 1, .15, true),
             ];
-        return new StudioDoorReactiveComplexDraft(
+        draft = new StudioDoorReactiveComplexDraft(
             blueprintId,
             abilityTargeted is not null,
             abilityTargeted?.ScriptId ?? "scripts/door_ability_targeted",
@@ -162,6 +220,7 @@ internal sealed partial class StudioSessionController
             assembly?.Sequence ?? "ouvrir les panneaux dans l’ordre",
             assembly?.Interlocked ?? false,
             assembly?.FailureRecovery ?? "refermer les panneaux engagés");
+        return true;
     }
 
     internal StudioDoorReactiveComplexPreview PreviewDoorReactiveComplexUx1AD(
@@ -293,12 +352,22 @@ internal sealed partial class StudioSessionController
             var neighborBlueprint = new BlueprintDefinition(
                 BlueprintId.From(Guid.Parse("c1ad0000-0000-4000-8000-000000000002")),
                 "porte-voisine-ad",
-                "Porte voisine AD",
+                targetBlueprint.DisplayName,
                 BlueprintKind.Door);
             var freshBlueprint = new BlueprintDefinition(
                 BlueprintId.From(Guid.Parse("c1ad0000-0000-4000-8000-000000000003")),
                 "porte-neuve-ad",
-                "Porte neuve AD",
+                targetBlueprint.DisplayName,
+                BlueprintKind.Door);
+            var unsafeBlueprint = new BlueprintDefinition(
+                BlueprintId.From(Guid.Parse("c1ad0000-0000-4000-8000-000000000005")),
+                "porte-hors-bornes-ad",
+                targetBlueprint.DisplayName,
+                BlueprintKind.Door);
+            var tooManyBlueprint = new BlueprintDefinition(
+                BlueprintId.From(Guid.Parse("c1ad0000-0000-4000-8000-000000000006")),
+                "porte-neuf-panneaux-ad",
+                targetBlueprint.DisplayName,
                 BlueprintKind.Door);
             var faction = new FactionDefinition(
                 Guid.Parse("c1ad0000-0000-4000-8000-000000000004"),
@@ -309,6 +378,27 @@ internal sealed partial class StudioSessionController
                 false,
                 [],
                 []);
+            var duplicateFaction = new FactionDefinition(
+                Guid.Parse("c1ad0000-0000-4000-8000-000000000007"),
+                1,
+                "test:ux1-ad-faction-duplicate",
+                "ash-watch-auxiliary",
+                faction.DisplayName,
+                false,
+                [],
+                []);
+            var duplicateDialogueNodeId = DialogueNodeId.From(
+                Guid.Parse("c1ad0000-0000-4000-8000-000000000008"));
+            var duplicateDialogue = new DialogueDefinition(
+                DialogueId.From(Guid.Parse("c1ad0000-0000-4000-8000-000000000009")),
+                "lyra-veillee-auxiliaire",
+                authored.Dialogues.Single().DisplayName,
+                duplicateDialogueNodeId,
+                [new DialogueNode(
+                    duplicateDialogueNodeId,
+                    null,
+                    new LocalizedText("dialogue.ux1ad.duplicate", "Une seconde conversation homonyme."))],
+                provenance: "test:ux1-ad-dialogue-duplicate");
             var targetProfile = CreateCompleteDoorProfileUx1X(
                 targetBlueprint.Id,
                 Guid.Parse("c1ad0000-0000-4000-8000-000000000010"),
@@ -333,12 +423,44 @@ internal sealed partial class StudioSessionController
             var neighborProfile = CreateNeighborDoorProfileUx1X(
                 neighborBlueprint.Id,
                 Guid.Parse("c1ad0000-0000-4000-8000-000000000011"));
+            var unsafeProfile = CreateNeighborDoorProfileUx1X(
+                unsafeBlueprint.Id,
+                Guid.Parse("c1ad0000-0000-4000-8000-000000000012")) with
+            {
+                Assembly = new(
+                    DoorWorldProfile.AssemblyKind.Double,
+                    [new(
+                        Guid.Parse("c1ad0000-0000-4000-8000-000000000030"),
+                        "panneau hors bornes",
+                        150,
+                        0,
+                        false)],
+                    "ouvrir",
+                    false,
+                    "arrêter"),
+            };
+            var tooManyProfile = CreateNeighborDoorProfileUx1X(
+                tooManyBlueprint.Id,
+                Guid.Parse("c1ad0000-0000-4000-8000-000000000013")) with
+            {
+                Assembly = new(
+                    DoorWorldProfile.AssemblyKind.Airlock,
+                    Enumerable.Range(0, 9).Select(index => new DoorWorldProfile.Panel(
+                        StableDoorIdUx1AD(tooManyBlueprint.Id, $"panel:{index}"),
+                        $"panneau {index + 1}",
+                        index,
+                        index * .1,
+                        false)).ToArray(),
+                    "ouvrir en série",
+                    true,
+                    "refermer"),
+            };
             var catalog = new WorldFeatureCatalog(
                 authored.Module.Id.Value,
                 WorldFeatureCatalog.CurrentSchemaVersion,
                 "test:ux1-ad-catalog",
                 authored.Module.WorldFeatures.Placeables,
-                [targetProfile, neighborProfile],
+                [targetProfile, neighborProfile, unsafeProfile, tooManyProfile],
                 authored.Module.WorldFeatures.Triggers,
                 authored.Module.WorldFeatures.Encounters,
                 authored.Module.WorldFeatures.VehicleRoutes,
@@ -346,15 +468,20 @@ internal sealed partial class StudioSessionController
                 authored.Module.WorldFeatures.Companions,
                 authored.Module.WorldFeatures.Scripts);
             var module = authored.Module
-                .WithFactions(new FactionCatalog([faction], [], [], []))
+                .WithFactions(new FactionCatalog([faction, duplicateFaction], [], [], []))
                 .WithWorldFeatures(catalog);
             var project = new ProjectDefinition(
                 authored.Id,
                 authored.Title,
                 module,
-                authored.Blueprints.Append(neighborBlueprint).Append(freshBlueprint).ToArray(),
+                authored.Blueprints
+                    .Append(neighborBlueprint)
+                    .Append(freshBlueprint)
+                    .Append(unsafeBlueprint)
+                    .Append(tooManyBlueprint)
+                    .ToArray(),
                 authored.Areas,
-                authored.Dialogues,
+                authored.Dialogues.Append(duplicateDialogue).ToArray(),
                 authored.Quests);
             if (!ProjectSession.Create(tempRoot, project).Succeeded || !editing.Open(tempRoot).Succeeded)
             {
@@ -385,6 +512,8 @@ internal sealed partial class StudioSessionController
                 .Where(binding => preservedEventNames.Contains(binding.Event, StringComparer.Ordinal))
                 .ToArray();
             var choices = editing.DoorReactiveComplexChoicesUx1AD;
+            var dialogueChoices = editing.DoorDialogueChoicesUx1AD;
+            var factionChoices = editing.DoorFactionChoicesUx1AD;
             var customChoices = editing.DoorCustomEventChoicesUx1AD(targetBlueprint.Id);
             var source = editing.CreateDoorReactiveComplexDraftUx1AD(targetBlueprint.Id);
             var fresh = editing.CreateDoorReactiveComplexDraftUx1AD(freshBlueprint.Id);
@@ -394,12 +523,56 @@ internal sealed partial class StudioSessionController
             }
 
             var selectedCustom = customChoices.Single(choice => choice.EventName == "custom:ash:seal");
-            var explicitSelection = choices.Count == 3 &&
+            var explicitSelection = choices.Count == 5 &&
                                     choices.Single(choice => choice.BlueprintId == targetBlueprint.Id).Configured &&
                                     !choices.Single(choice => choice.BlueprintId == freshBlueprint.Id).Configured &&
                                     !source.CustomEvent.Touched &&
                                     customChoices.Select(choice => choice.EventName).SequenceEqual(
                                         ["custom:ash:seal", "custom:ember:ward"]);
+            var duplicateHumanLabels = choices.All(choice =>
+                                           {
+                                               var blueprint = currentProject.Blueprints.Single(item =>
+                                                   item.Id == choice.BlueprintId);
+                                               return choice.Label == $"{blueprint.DisplayName} · {blueprint.Slug}";
+                                           }) &&
+                                       dialogueChoices.Count == 2 && dialogueChoices.All(choice =>
+                                       {
+                                           var dialogue = currentProject.Dialogues.Single(item =>
+                                               item.Id.Value == choice.Id);
+                                           return choice.Label == $"{dialogue.DisplayName} · {dialogue.Slug}";
+                                       }) &&
+                                       factionChoices.Count == 2 && factionChoices.All(choice =>
+                                       {
+                                           var option = currentProject.Module.Factions.Factions.Single(item =>
+                                               item.Slug == choice.Slug);
+                                           return choice.Label == $"{option.DisplayName} · {option.Slug}";
+                                       });
+            var unsafeProject = editing.Project;
+            var unsafeRevision = history.State.Revision;
+            var unsafeAvailable = editing.TryCreateDoorReactiveComplexDraftUx1AD(
+                unsafeBlueprint.Id,
+                out var unsafeDraft,
+                out var unsafeMessage);
+            var tooManyAvailable = editing.TryCreateDoorReactiveComplexDraftUx1AD(
+                tooManyBlueprint.Id,
+                out var tooManyDraft,
+                out var tooManyMessage);
+            var unsafeAssembly = unsafeProfile.Assembly!;
+            var delayProfile = unsafeProfile with
+            {
+                Assembly = unsafeAssembly with
+                {
+                    Panels = [unsafeAssembly.Panels[0] with { OpenOffset = 0, DelaySeconds = 301 }],
+                },
+            };
+            var delayAvailable = TryValidateDoorAssemblyForEditorUx1AD(delayProfile, out var delayMessage);
+            var unsafeAssemblyBlocked = !unsafeAvailable && unsafeDraft is null &&
+                                        unsafeMessage.Contains("-100 à 100", StringComparison.Ordinal) &&
+                                        !tooManyAvailable && tooManyDraft is null &&
+                                        tooManyMessage.Contains("plus de 8 panneaux", StringComparison.Ordinal) &&
+                                        !delayAvailable && delayMessage.Contains("0 à 300", StringComparison.Ordinal) &&
+                                        ReferenceEquals(unsafeProject, editing.Project) &&
+                                        history.State.Revision == unsafeRevision && !editing.IsDirty;
             var dialogueId = authored.Dialogues.Single().Id.Value;
             var panels = new[]
             {
@@ -608,6 +781,10 @@ internal sealed partial class StudioSessionController
                 {
                     Panels = [panels[0] with { DelaySeconds = -1 }],
                 }),
+                editing.PreviewDoorReactiveComplexUx1AD(draft with
+                {
+                    Panels = [panels[0] with { OpenOffset = 101 }],
+                }),
                 editing.PreviewDoorReactiveComplexUx1AD(draft with { Sequence = string.Empty }),
             };
             var invalidBlocked = invalidPreviews.All(result => !result.Succeeded && !result.CanApply) &&
@@ -695,13 +872,16 @@ internal sealed partial class StudioSessionController
                                   loadedOriginal.Foundation?.Navigation) &&
                               persistedProfile.AccessEvents?.Id == loadedOriginal.AccessEvents?.Id;
 
-            var succeeded = explicitSelection && abilityEvents && heartbeatAndCustom && narrativeReferences &&
-                            complexAssembly && neighborEventMerge && dryRun && approvalRevisionGuard &&
-                            commandRevisionGuard && canonicalCommand && preservation && undoRedo && persistence &&
-                            invalidBlocked && humanDiagnostics;
+            var succeeded = explicitSelection && duplicateHumanLabels && unsafeAssemblyBlocked &&
+                            abilityEvents && heartbeatAndCustom && narrativeReferences && complexAssembly &&
+                            neighborEventMerge && dryRun && approvalRevisionGuard && commandRevisionGuard &&
+                            canonicalCommand && preservation && undoRedo && persistence && invalidBlocked &&
+                            humanDiagnostics;
             return new(
                 succeeded,
                 explicitSelection,
+                duplicateHumanLabels,
+                unsafeAssemblyBlocked,
                 abilityEvents,
                 heartbeatAndCustom,
                 narrativeReferences,
@@ -932,10 +1112,11 @@ internal sealed partial class StudioSessionController
                 return false;
             }
             if (draft.Panels.Any(panel => !double.IsFinite(panel.OpenOffset) ||
+                                          panel.OpenOffset is < -100 or > 100 ||
                                           !double.IsFinite(panel.DelaySeconds) ||
                                           panel.DelaySeconds is < 0 or > 300))
             {
-                message = "Les décalages doivent être finis et les délais compris entre 0 et 300 secondes.";
+                message = "Les décalages doivent rester entre -100 et 100 m et les délais entre 0 et 300 secondes.";
                 return false;
             }
             if (string.IsNullOrWhiteSpace(draft.Sequence))
@@ -948,6 +1129,36 @@ internal sealed partial class StudioSessionController
                 message = "Décrivez la récupération prévue si un panneau échoue.";
                 return false;
             }
+        }
+        return true;
+    }
+
+    private static bool TryValidateDoorAssemblyForEditorUx1AD(
+        DoorWorldProfile? profile,
+        out string message)
+    {
+        message = string.Empty;
+        var assembly = profile?.Assembly;
+        if (assembly is null)
+        {
+            return true;
+        }
+        if (assembly.Panels.Count > 8)
+        {
+            message = "Cet assemblage comporte plus de 8 panneaux et n’est pas éditable dans cette surface.";
+            return false;
+        }
+        if (assembly.Panels.Any(panel => !double.IsFinite(panel.OpenOffset) ||
+                                         panel.OpenOffset is < -100 or > 100))
+        {
+            message = "Cet assemblage contient un décalage hors des bornes de -100 à 100 m et n’est pas éditable.";
+            return false;
+        }
+        if (assembly.Panels.Any(panel => !double.IsFinite(panel.DelaySeconds) ||
+                                         panel.DelaySeconds is < 0 or > 300))
+        {
+            message = "Cet assemblage contient un délai hors des bornes de 0 à 300 s et n’est pas éditable.";
+            return false;
         }
         return true;
     }
@@ -1186,6 +1397,8 @@ internal sealed partial class StudioSessionController
         new(false, message, string.Empty, false);
 
     private static StudioUx1ADSmokeResult FailedUx1ADSmoke() => new(
+        false,
+        false,
         false,
         false,
         false,

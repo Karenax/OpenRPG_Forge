@@ -511,11 +511,14 @@ internal sealed partial class StudioDoorReactiveComplexOverlay : Control
         }
 
         var index = Math.Clamp(_door.Selected - 1, 0, _choices.Count - 1);
-        var draft = _session.CreateDoorReactiveComplexDraftUx1AD(_choices[index].BlueprintId);
+        var available = _session.TryCreateDoorReactiveComplexDraftUx1AD(
+            _choices[index].BlueprintId,
+            out var draft,
+            out var message);
         _draft = draft;
-        if (draft is null)
+        if (!available || draft is null)
         {
-            SetStatus("Cette porte reste indisponible tant que sa fiche est ambiguë.", true);
+            SetStatus(message, true);
             SetEditingEnabled(false);
             _door.Disabled = false;
             _preview.Disabled = true;

@@ -131,6 +131,8 @@ internal sealed partial class StudioWorkspaceShell
         GD.Print(
             $"OPENRPG_FORGE_STUDIO_UX1AD_{(valid ? "PASS" : "FAILED")} " +
             $"explicit_selection={result.ExplicitDoorSelection.ToString().ToLowerInvariant()} " +
+            $"duplicate_human_labels={result.DuplicateHumanLabels.ToString().ToLowerInvariant()} " +
+            $"unsafe_assembly_blocked={result.UnsafeAssemblyBlocked.ToString().ToLowerInvariant()} " +
             $"ability_events={result.AbilityEvents.ToString().ToLowerInvariant()} " +
             $"heartbeat_custom={result.HeartbeatAndCustomEvents.ToString().ToLowerInvariant()} " +
             $"narrative_references={result.NarrativeReferences.ToString().ToLowerInvariant()} " +
