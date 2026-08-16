@@ -154,7 +154,7 @@ internal sealed partial class StudioPlaceableReactivePhysicsOverlay : PanelConta
         _formScroll.AddChild(form);
 
         var selection = AddCard(form, "PLACEABLE À CONFIGURER",
-            "Cette surface ne liste que les profils canoniques déjà présents dans le module.");
+            "Tous les blueprints Placeable sont listés. Sans profil existant, l’application crée une fiche réactive minimale sans visuel inventé.");
         _placeable = AddOption(selection, "Objet");
         _empty = StudioStyle.Label(string.Empty, 10, StudioStyle.Warning, wrap: true);
         selection.AddChild(_empty);
@@ -314,11 +314,11 @@ internal sealed partial class StudioPlaceableReactivePhysicsOverlay : PanelConta
         {
             _placeable.AddItem(option.HasProfile
                 ? option.DisplayName
-                : $"{option.DisplayName} · fiche sûre à créer");
+                : $"{option.DisplayName} · profil réactif minimal à créer · aucun visuel ajouté");
             _placeableIds.Add(option.BlueprintId);
         }
         _empty.Text = _placeableIds.Count == 0
-            ? "État vide · créez d’abord un profil de placeable dans la fiche de décor."
+            ? "État vide · ce module ne contient aucun blueprint Placeable."
             : string.Empty;
         _placeable.Disabled = _placeableIds.Count == 0;
         var requested = requestedBlueprintId is null
@@ -342,7 +342,7 @@ internal sealed partial class StudioPlaceableReactivePhysicsOverlay : PanelConta
 
     internal void Close()
     {
-        _session.CancelUx1ZPreview();
+        _session.CloseUx1Z();
         _preview = null;
         _draft = null;
         Visible = false;
@@ -600,6 +600,10 @@ internal sealed partial class StudioPlaceableReactivePhysicsOverlay : PanelConta
         _apply.Disabled = true;
         _summary.Text = "Aperçu à recalculer · aucune donnée n’a été appliquée.";
         _summary.AddThemeColorOverride("font_color", StudioStyle.Muted);
+        const string status = "Brouillon modifié · prévisualisez à nouveau avant d’appliquer.";
+        _status.Text = status;
+        _status.AddThemeColorOverride("font_color", StudioStyle.Muted);
+        StatusChanged?.Invoke(status, false);
         ResetPreviewLabels();
         UpdateEnabledState();
     }

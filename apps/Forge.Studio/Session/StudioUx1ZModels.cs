@@ -77,6 +77,7 @@ internal sealed record StudioUx1ZSmokeResult(
     bool StalePreviewBlocked,
     bool ExplicitSelectionRequired,
     bool SafeProfileCreation,
+    bool DormantSchedulerPreserved,
     bool NeighborCapabilitiesPreserved,
     bool NeighborPlaceablePreserved,
     bool UndoRedo,

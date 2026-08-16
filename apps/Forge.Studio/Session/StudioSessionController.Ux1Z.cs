@@ -55,19 +55,16 @@ internal sealed partial class StudioSessionController
         var profile = project.Module.WorldFeatures.Placeables.FirstOrDefault(candidate =>
             candidate.BlueprintId == requestedBlueprintId);
         var existingProfile = profile is not null;
-        if (profile is null)
-        {
-            var foundationDraft = CreatePlaceableDraft(requestedBlueprintId);
-            if (foundationDraft is null ||
-                !TryBuildPlaceable(foundationDraft, true, out _, out profile, out _))
-            {
-                return null;
-            }
-        }
-        if (profile is null)
-        {
-            return null;
-        }
+        profile ??= new PlaceableWorldProfile(
+            StablePlaceableId(blueprint.Id, "ux1-z-reactive-profile"),
+            WorldFeatureCatalog.CurrentSchemaVersion,
+            "studio:ux1-z-placeable-reactive-physics",
+            blueprint.Id,
+            null,
+            null,
+            null,
+            new([], new(false, 7.5, 19, true, "placeable.dormant")),
+            null);
 
         var events = profile.Reactive.Events;
         var physicalTargeted = FindEvent(events, PhysicalAttackTargetedEvent);
@@ -91,12 +88,12 @@ internal sealed partial class StudioSessionController
             abilityTargeted is not null || abilityImpacted is not null,
             ToDraft(abilityTargeted, AbilityTargetedEvent, "scripts/placeable_ability_targeted"),
             ToDraft(abilityImpacted, AbilityImpactedEvent, "scripts/placeable_ability_impacted"),
-            scheduler.Enabled || heartbeat is not null || custom is not null,
+            scheduler.Enabled,
             ToDraft(heartbeat, HeartbeatEvent, "scripts/placeable_heartbeat"),
-            scheduler.IntervalSeconds > 0 ? scheduler.IntervalSeconds : 5,
-            scheduler.BudgetPerMinute > 0 ? scheduler.BudgetPerMinute : 12,
+            scheduler.IntervalSeconds,
+            scheduler.BudgetPerMinute,
             scheduler.SuspendWhenUnobserved,
-            string.IsNullOrWhiteSpace(scheduler.CustomNamespace) ? "placeable.studio" : scheduler.CustomNamespace,
+            scheduler.CustomNamespace,
             ToDraft(custom, custom?.Event ?? "custom:placeable:pulse", "scripts/placeable_custom"),
             custom?.Event,
             physics is not null,
@@ -130,7 +127,8 @@ internal sealed partial class StudioSessionController
         }
         return new(true,
             $"Aperçu sans écriture · attaque ciblée puis résolue · scripts {targeted.ScriptId} et {resolved.ScriptId} · " +
-            $"autorité {(draft.PhysicalAttackResolved.Authoritative ? "serveur" : "locale")}",
+            $"ciblage sous autorité {HumanUx1ZAuthority(targeted.Reason)} · " +
+            $"résolution sous autorité {HumanUx1ZAuthority(resolved.Reason)}",
             string.Empty);
     }
 
@@ -153,7 +151,8 @@ internal sealed partial class StudioSessionController
         }
         return new(true,
             $"Aperçu sans écriture · capacité ciblée puis impact appliqué · scripts {targeted.ScriptId} et {impacted.ScriptId} · " +
-            $"autorité {(draft.AbilityImpacted.Authoritative ? "serveur" : "locale")}",
+            $"ciblage sous autorité {HumanUx1ZAuthority(targeted.Reason)} · " +
+            $"impact sous autorité {HumanUx1ZAuthority(impacted.Reason)}",
             string.Empty);
     }
 
@@ -183,7 +182,8 @@ internal sealed partial class StudioSessionController
             $"Aperçu sans écriture · rythme toutes les {draft.HeartbeatIntervalSeconds:0.##} s · " +
             $"budget {draft.HeartbeatBudgetPerMinute}/min · " +
             $"{(draft.SuspendWhenUnobserved ? "suspension hors observation" : "rythme maintenu hors observation")} · " +
-            $"événement personnalisé {draft.CustomEvent.EventName}",
+            $"rythme sous autorité {HumanUx1ZAuthority(heartbeat.Reason)} · " +
+            $"événement personnalisé {draft.CustomEvent.EventName} sous autorité {HumanUx1ZAuthority(custom.Reason)}",
             string.Empty);
     }
 
@@ -298,11 +298,14 @@ internal sealed partial class StudioSessionController
         _approvedUx1ZRevision = null;
     }
 
+    internal void CloseUx1Z() => CancelUx1ZPreview();
+
     internal StudioUx1ZSmokeResult RunUx1ZContractSmoke()
     {
         var tempRoot = Path.Combine(Path.GetTempPath(), "openrpg-forge-studio-ux1z-" + Guid.NewGuid().ToString("N"));
         var editing = new StudioSessionController();
         var reopened = new StudioSessionController();
+        var newProfileReopened = new StudioSessionController();
         try
         {
             var blueprint = new BlueprintDefinition(
@@ -327,10 +330,7 @@ internal sealed partial class StudioSessionController
             var unconfiguredEntity = new EntityInstance(
                 EntityId.From(Guid.Parse("c1e30000-0000-4000-8000-000000000013")),
                 unconfiguredBlueprint.Id,
-                new TransformValue(new(4, 0, 0), QuaternionValue.Identity, Vector3Value.One),
-                overrides: new EntityPropertyOverrides(
-                    EntityPropertyOverrides.CurrentSchemaVersion,
-                    [new("visual.asset", EntityPropertyValueKind.String, "asset:statue-a-configurer")]));
+                new TransformValue(new(4, 0, 0), QuaternionValue.Identity, Vector3Value.One));
             var area = new AreaDefinition(
                 AreaId.From(Guid.Parse("c1e30000-0000-4000-8000-000000000004")),
                 "atelier-reactif",
@@ -506,13 +506,95 @@ internal sealed partial class StudioSessionController
                                             editing.CreateUx1ZDraft(BlueprintId.From(
                                                 Guid.Parse("c1e30000-0000-4000-8000-000000000099"))) is null;
             var safeSource = editing.CreateUx1ZDraft(unconfiguredBlueprint.Id);
-            var safePreview = safeSource is null ? null : editing.PreviewUx1Z(safeSource);
-            var safeProfileCreation = safeSource is not null && safeSource.ExistingProfile == false &&
-                                      safePreview?.Succeeded == true &&
-                                      editing.TryBuildUx1Z(safeSource, true, out _, out var safeProfile, out _) &&
-                                      safeProfile?.Foundation is not null &&
-                                      ReferenceEquals(originalProject, editing.Project);
-            editing.CancelUx1ZPreview();
+            var physicsOnly = safeSource is null ? null : safeSource with
+            {
+                PhysicalAttackEnabled = false,
+                SpellCastEnabled = false,
+                SchedulerEnabled = false,
+                HeartbeatIntervalSeconds = 41,
+                HeartbeatBudgetPerMinute = 37,
+                SuspendWhenUnobserved = false,
+                CustomNamespace = "ignored.dormant.edits",
+                PhysicsEnabled = true,
+                BodyMode = PlaceableWorldProfile.BodyMode.Kinematic,
+                Mass = 8.5,
+                ConstraintsText = "lock-y, lock-rotation-z",
+                Replicated = false,
+                SleepAfterSeconds = 6.5,
+                ConvertToStaticWhenSleeping = false,
+                Authority = "local",
+            };
+            var safePhysicsPreview = physicsOnly is null ? null : editing.PreviewUx1ZPhysics(physicsOnly);
+            var safePreview = physicsOnly is null ? null : editing.PreviewUx1Z(physicsOnly);
+            var safeApply = safePreview?.Succeeded == true
+                ? editing.ApplyApprovedUx1Z()
+                : new StudioUx1ZActionResult(false, "Aperçu absent.");
+            var safeAppliedProject = editing.Project;
+            var safeProfile = safeAppliedProject?.Module.WorldFeatures.Placeables.SingleOrDefault(item =>
+                item.BlueprintId == unconfiguredBlueprint.Id);
+            var dormantReferencePreserved = safeSource is not null && safeProfile is not null &&
+                                            ReferenceEquals(
+                                                safeProfile.Reactive.Scheduler,
+                                                safeSource.OriginalProfile.Reactive.Scheduler) &&
+                                            safeProfile.Reactive.Scheduler is
+                                            {
+                                                Enabled: false,
+                                                IntervalSeconds: 7.5,
+                                                BudgetPerMinute: 19,
+                                                SuspendWhenUnobserved: true,
+                                                CustomNamespace: "placeable.dormant",
+                                            };
+            var safeUndo = editing.Undo();
+            var safeUndone = safeUndo.Succeeded && ReferenceEquals(originalProject, editing.Project);
+            var safeRedo = editing.Redo();
+            var safeRedone = safeRedo.Succeeded && ReferenceEquals(safeAppliedProject, editing.Project);
+            var safeSaved = editing.Save();
+            var safeReopen = newProfileReopened.Open(tempRoot);
+            var safePersisted = newProfileReopened.Project?.Module.WorldFeatures.Placeables.SingleOrDefault(item =>
+                item.BlueprintId == unconfiguredBlueprint.Id);
+            var safeRoundTrip = safeSaved.Succeeded && safeReopen.Succeeded && safePersisted is
+            {
+                Provenance: "studio:ux1-z-placeable-reactive-physics",
+                Foundation: null,
+                Operations: null,
+                SecurityEvents: null,
+                CompositionEvents: null,
+                FactionOwnership: null,
+                Conversation: null,
+                Physics:
+                {
+                    Mode: PlaceableWorldProfile.BodyMode.Kinematic,
+                    Mass: 8.5,
+                    Replicated: false,
+                    SleepAfterSeconds: 6.5,
+                    ConvertToStaticWhenSleeping: false,
+                    Authority: "local",
+                },
+            } && safePersisted.Physics.Constraints.SequenceEqual(
+                ["lock-y", "lock-rotation-z"], StringComparer.Ordinal) &&
+                safePersisted.Reactive.Events.Count == 0 && safePersisted.Reactive.Scheduler is
+                {
+                    Enabled: false,
+                    IntervalSeconds: 7.5,
+                    BudgetPerMinute: 19,
+                    SuspendWhenUnobserved: true,
+                    CustomNamespace: "placeable.dormant",
+                };
+            newProfileReopened.Close();
+            var safeRestore = editing.Undo();
+            var safeBaselineSaved = editing.Save();
+            var safeProfileCreation = safeSource is
+                                      {
+                                          ExistingProfile: false,
+                                          OriginalProfile:
+                                          {
+                                              Foundation: null,
+                                              Physics: null,
+                                          },
+                                      } && safePhysicsPreview?.Succeeded == true && safePreview?.Succeeded == true &&
+                                      safeApply.Succeeded && safeUndone && safeRedone && safeRoundTrip &&
+                                      safeRestore.Succeeded && ReferenceEquals(originalProject, editing.Project) &&
+                                      safeBaselineSaved.Succeeded;
             var source = editing.CreateUx1ZDraft(blueprint.Id)!;
             var draft = source with
             {
@@ -546,6 +628,7 @@ internal sealed partial class StudioSessionController
                 Heartbeat = source.Heartbeat with
                 {
                     ScriptId = "scripts/reliquaire_heartbeat",
+                    Before = false,
                     Authoritative = true,
                 },
                 HeartbeatIntervalSeconds = 5,
@@ -556,6 +639,7 @@ internal sealed partial class StudioSessionController
                 {
                     EventName = "custom:reliquaire:pulse",
                     ScriptId = "scripts/reliquaire_pulse",
+                    Before = false,
                     Authoritative = true,
                 },
                 PhysicsEnabled = true,
@@ -579,12 +663,22 @@ internal sealed partial class StudioSessionController
             var invalidCadence = editing.PreviewUx1Z(draft with { HeartbeatIntervalSeconds = 0 });
             var invalidBudget = editing.PreviewUx1Z(draft with { HeartbeatBudgetPerMinute = 0 });
             var invalidNamespace = editing.PreviewUx1Z(draft with { CustomNamespace = string.Empty });
+            var invalidCustomGap = editing.PreviewUx1Z(draft with
+            {
+                CustomEvent = draft.CustomEvent with { EventName = "custom::pulse" },
+            });
+            var invalidCustomSuffix = editing.PreviewUx1Z(draft with
+            {
+                CustomEvent = draft.CustomEvent with { EventName = "custom:reliquaire:" },
+            });
             var invalidMass = editing.PreviewUx1Z(draft with { Mass = 0 });
             var invalidCadenceBlocked = !invalidCadence.Succeeded;
             var invalidBudgetBlocked = !invalidBudget.Succeeded;
-            var invalidNamespaceBlocked = !invalidNamespace.Succeeded;
+            var invalidNamespaceBlocked = !invalidNamespace.Succeeded && !invalidCustomGap.Succeeded &&
+                                          !invalidCustomSuffix.Succeeded;
             var invalidMassBlocked = !invalidMass.Succeeded;
-            var humanDiagnostics = new[] { invalidCadence, invalidBudget, invalidNamespace, invalidMass }
+            var humanDiagnostics = new[]
+                { invalidCadence, invalidBudget, invalidNamespace, invalidCustomGap, invalidCustomSuffix, invalidMass }
                 .All(item => IsHumanUx1ZMessage(item.Message));
 
             var stalePreview = editing.PreviewUx1Z(draft);
@@ -640,6 +734,20 @@ internal sealed partial class StudioSessionController
             var neighborPlaceablePreserved = ReferenceEquals(
                 appliedProject.Module.WorldFeatures.Placeables.Single(item =>
                     item.BlueprintId == neighborBlueprint.Id), loadedNeighbor);
+            var disableSource = editing.CreateUx1ZDraft(blueprint.Id);
+            PlaceableWorldProfile? disabledProfile = null;
+            var disableBuilt = disableSource is not null && editing.TryBuildUx1Z(
+                disableSource with { SchedulerEnabled = false },
+                true,
+                out _,
+                out disabledProfile,
+                out _);
+            var explicitDisableOnlyEnabled = disableBuilt && disabledProfile is not null &&
+                                             disabledProfile.Reactive.Scheduler ==
+                                             (appliedProfile.Reactive.Scheduler with { Enabled = false }) &&
+                                             disabledProfile.Reactive.Events.SequenceEqual(
+                                                 appliedProfile.Reactive.Events);
+            var dormantSchedulerPreserved = dormantReferencePreserved && explicitDisableOnlyEnabled;
 
             var undo = editing.Undo();
             var undone = ReferenceEquals(originalProject, editing.Project);
@@ -658,6 +766,8 @@ internal sealed partial class StudioSessionController
                     Mode: PlaceableWorldProfile.BodyMode.Rigid,
                     Mass: 12,
                     Replicated: true,
+                    SleepAfterSeconds: 4,
+                    ConvertToStaticWhenSleeping: true,
                     Authority: "server",
                 },
                 Foundation: not null,
@@ -671,17 +781,23 @@ internal sealed partial class StudioSessionController
                 Enabled: true,
                 IntervalSeconds: 5,
                 BudgetPerMinute: 12,
+                SuspendWhenUnobserved: true,
                 CustomNamespace: "reliquaire.veilleurs",
-            } && new[]
-            {
-                PhysicalAttackTargetedEvent,
-                PhysicalAttackResolvedEvent,
-                AbilityTargetedEvent,
-                AbilityImpactedEvent,
-                HeartbeatEvent,
-                "custom:reliquaire:pulse",
-                "neighbor-event",
-            }.All(name => persisted.Reactive.Events.Any(item => item.Event == name)) &&
+            } && persisted.Physics.Constraints.SequenceEqual(
+                ["lock-y", "lock-rotation-x"], StringComparer.Ordinal) &&
+                Ux1ZBindingEquals(persisted.Reactive.Events, PhysicalAttackTargetedEvent,
+                    "scripts/reliquaire_attack_targeted", true, true) &&
+                Ux1ZBindingEquals(persisted.Reactive.Events, PhysicalAttackResolvedEvent,
+                    "scripts/reliquaire_attack_resolved", false, true) &&
+                Ux1ZBindingEquals(persisted.Reactive.Events, AbilityTargetedEvent,
+                    "scripts/reliquaire_ability_targeted", true, true) &&
+                Ux1ZBindingEquals(persisted.Reactive.Events, AbilityImpactedEvent,
+                    "scripts/reliquaire_ability_impacted", false, true) &&
+                Ux1ZBindingEquals(persisted.Reactive.Events, HeartbeatEvent,
+                    "scripts/reliquaire_heartbeat", false, true) &&
+                Ux1ZBindingEquals(persisted.Reactive.Events, "custom:reliquaire:pulse",
+                    "scripts/reliquaire_pulse", false, true) &&
+                persisted.Reactive.Events.Any(item => item.Event == "neighbor-event") &&
                 reopened.Project?.Module.WorldFeatures.Placeables.Any(item =>
                     item.BlueprintId == neighborBlueprint.Id) == true;
 
@@ -689,6 +805,7 @@ internal sealed partial class StudioSessionController
                             physicsPreview.Succeeded && dryRun && commandParity && invalidCadenceBlocked &&
                             invalidBudgetBlocked && invalidNamespaceBlocked && invalidMassBlocked &&
                             stalePreviewBlocked && explicitSelectionRequired && safeProfileCreation &&
+                            dormantSchedulerPreserved &&
                             neighborCapabilitiesPreserved && neighborPlaceablePreserved && undoRedo && persistence &&
                             humanDiagnostics;
             return new(
@@ -706,6 +823,7 @@ internal sealed partial class StudioSessionController
                 stalePreviewBlocked,
                 explicitSelectionRequired,
                 safeProfileCreation,
+                dormantSchedulerPreserved,
                 neighborCapabilitiesPreserved,
                 neighborPlaceablePreserved,
                 undoRedo,
@@ -722,6 +840,7 @@ internal sealed partial class StudioSessionController
         {
             editing.Close();
             reopened.Close();
+            newProfileReopened.Close();
             if (Directory.Exists(tempRoot)) Directory.Delete(tempRoot, true);
         }
     }
@@ -855,11 +974,14 @@ internal sealed partial class StudioSessionController
             PhysicalAttackResolvedEvent,
             AbilityTargetedEvent,
             AbilityImpactedEvent,
-            HeartbeatEvent,
         };
-        if (!string.IsNullOrWhiteSpace(draft.OriginalCustomEventName))
+        if (draft.SchedulerEnabled)
         {
-            managedEvents.Add(draft.OriginalCustomEventName);
+            managedEvents.Add(HeartbeatEvent);
+            if (!string.IsNullOrWhiteSpace(draft.OriginalCustomEventName))
+            {
+                managedEvents.Add(draft.OriginalCustomEventName);
+            }
         }
         var events = sourceProfile.Reactive.Events
             .Where(binding => !managedEvents.Contains(binding.Event))
@@ -885,12 +1007,17 @@ internal sealed partial class StudioSessionController
             return false;
         }
 
-        var scheduler = new PlaceableWorldProfile.SchedulerPolicy(
-            draft.SchedulerEnabled,
-            draft.SchedulerEnabled ? draft.HeartbeatIntervalSeconds : 1,
-            draft.SchedulerEnabled ? draft.HeartbeatBudgetPerMinute : 1,
-            draft.SuspendWhenUnobserved,
-            draft.SchedulerEnabled ? draft.CustomNamespace.Trim() : "placeable.disabled");
+        var originalScheduler = sourceProfile.Reactive.Scheduler;
+        var scheduler = draft.SchedulerEnabled
+            ? new PlaceableWorldProfile.SchedulerPolicy(
+                true,
+                draft.HeartbeatIntervalSeconds,
+                draft.HeartbeatBudgetPerMinute,
+                draft.SuspendWhenUnobserved,
+                draft.CustomNamespace.Trim())
+            : originalScheduler.Enabled
+                ? originalScheduler with { Enabled = false }
+                : originalScheduler;
         var reactive = new PlaceableWorldProfile.ReactivePolicy(
             events.OrderBy(binding => binding.Event, StringComparer.Ordinal).ToArray(),
             scheduler);
@@ -970,8 +1097,9 @@ internal sealed partial class StudioSessionController
 
     private static bool ValidUx1ZCustomEvent(string value)
     {
-        var segments = value.Trim().Split(':', StringSplitOptions.RemoveEmptyEntries);
-        return segments.Length >= 3 && string.Equals(segments[0], "custom", StringComparison.Ordinal) &&
+        var segments = value.Trim().Split(':', StringSplitOptions.None);
+        return segments.Length >= 3 && segments.All(segment => segment.Length > 0) &&
+               string.Equals(segments[0], "custom", StringComparison.Ordinal) &&
                segments.Skip(1).All(segment => segment.Length <= 64 &&
                    segment.All(character => char.IsLetterOrDigit(character) || character is '-' or '_' or '.'));
     }
@@ -994,6 +1122,20 @@ internal sealed partial class StudioSessionController
         left.Replicated == right.Replicated && left.SleepAfterSeconds == right.SleepAfterSeconds &&
         left.ConvertToStaticWhenSleeping == right.ConvertToStaticWhenSleeping &&
         string.Equals(left.Authority, right.Authority, StringComparison.Ordinal);
+
+    private static bool Ux1ZBindingEquals(
+        IEnumerable<PlaceableWorldProfile.EventBinding> bindings,
+        string eventName,
+        string scriptId,
+        bool before,
+        bool authoritative)
+    {
+        var matches = bindings.Where(binding =>
+            string.Equals(binding.Event, eventName, StringComparison.Ordinal)).ToArray();
+        return matches.Length == 1 &&
+               string.Equals(matches[0].ScriptId, scriptId, StringComparison.Ordinal) &&
+               matches[0].Before == before && matches[0].Authoritative == authoritative;
+    }
 
     private static StudioUx1ZPathPreview FailedUx1ZPath(string message, string code = "") =>
         new(false, message, code);
@@ -1049,7 +1191,26 @@ internal sealed partial class StudioSessionController
             Godot.GD.PrintErr($"OPENRPG_FORGE_STUDIO_UX1Z_{stage}_FAILED diagnostics=" +
                               string.Join(" | ", diagnostics ?? []));
         }
-        return new(false, false, false, false, false, false, false, false, false, false, false,
-            false, false, false, false, false, false, false, false);
+        return new(
+            Succeeded: false,
+            PhysicalAttackPreview: false,
+            SpellCastPreview: false,
+            HeartbeatAndCustomPreview: false,
+            PhysicsPreview: false,
+            DryRun: false,
+            CommandParity: false,
+            InvalidCadenceBlocked: false,
+            InvalidBudgetBlocked: false,
+            InvalidNamespaceBlocked: false,
+            InvalidMassBlocked: false,
+            StalePreviewBlocked: false,
+            ExplicitSelectionRequired: false,
+            SafeProfileCreation: false,
+            DormantSchedulerPreserved: false,
+            NeighborCapabilitiesPreserved: false,
+            NeighborPlaceablePreserved: false,
+            UndoRedo: false,
+            Persistence: false,
+            HumanDiagnostics: false);
     }
 }
