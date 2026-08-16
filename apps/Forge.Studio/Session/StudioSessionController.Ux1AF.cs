@@ -744,10 +744,10 @@ internal sealed partial class StudioSessionController
                                     stalePlanApply.Message.Contains("catalogue", StringComparison.OrdinalIgnoreCase);
 
             var mixedCatalogPreview = editing.PreviewUx1AFPlanAsync(draft with
-                {
-                    Title = "Brouillon auprès d’un plan approuvé",
-                    ApproveForConstruction = false,
-                })
+            {
+                Title = "Brouillon auprès d’un plan approuvé",
+                ApproveForConstruction = false,
+            })
                 .GetAwaiter().GetResult();
             var mixedApproval = editing._approvedUx1AFPlan;
             var mixedPlan = mixedCatalogPreview.Plan;
