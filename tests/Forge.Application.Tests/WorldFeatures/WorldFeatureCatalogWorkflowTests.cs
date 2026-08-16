@@ -795,6 +795,24 @@ public sealed class WorldFeatureCatalogWorkflowTests
                 placeables: [missing])), project.Blueprints, project.Areas);
         Assert.Contains(WorldFeatureCatalogValidator.Validate(missingProject),
             item => item.Code == "world.placeable.composition_events_required_missing");
+
+        var canonicalDual = profile with { DamageEvents = composition.DamageEvents };
+        var canonicalDualProject = new ProjectDefinition(project.Id, project.Title,
+            project.Module.WithWorldFeatures(new WorldFeatureCatalog(catalog.Id, 1, "test:ux1-v-dual",
+                placeables: [canonicalDual])), project.Blueprints, project.Areas);
+        Assert.DoesNotContain(WorldFeatureCatalogValidator.Validate(canonicalDualProject),
+            item => item.Code == PlaceableDamageEventsResolver.CatalogDivergenceDiagnosticCode);
+
+        var divergentDual = canonicalDual with
+        {
+            DamageEvents = composition.DamageEvents with { DestroyedBinding = "DifferentDestroyedBinding" },
+        };
+        var divergentDualProject = new ProjectDefinition(project.Id, project.Title,
+            project.Module.WithWorldFeatures(new WorldFeatureCatalog(catalog.Id, 1, "test:ux1-v-divergent",
+                placeables: [divergentDual])), project.Blueprints, project.Areas);
+        Assert.Contains(WorldFeatureCatalogValidator.Validate(divergentDualProject),
+            item => item.Code == PlaceableDamageEventsResolver.CatalogDivergenceDiagnosticCode &&
+                    item.Path.EndsWith("/damageEvents", StringComparison.Ordinal));
     }
 
     [Fact]

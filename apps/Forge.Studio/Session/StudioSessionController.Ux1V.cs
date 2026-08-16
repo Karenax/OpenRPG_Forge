@@ -214,6 +214,164 @@ internal sealed partial class StudioSessionController
                 DamagedBinding = "ObjetEndommage",
                 DestroyedBinding = "ObjetDetruit",
             };
+            var onUsedOnlyDraft = source with
+            {
+                Role = StudioPlaceableRole.Interactable,
+                OnUsedEnabled = true,
+                OnUsedForgeScriptApiVersion = "1.1.0",
+                OnUsedEventBinding = "ObjetUtilise",
+                BeforeUseScript = "scripts/placeable_before_use",
+                AfterUseScript = "scripts/placeable_after_use",
+                RequireOnUsedRuntime = true,
+                HasContentsChanged = false,
+                RequireContentsChangedRuntime = false,
+                HasDamageEvents = false,
+                RequireDamageEventsRuntime = false,
+            };
+            var contentsOnlyDraft = source with
+            {
+                HasContentsChanged = true,
+                ContentsChanged = contents,
+                RequireContentsChangedRuntime = true,
+                HasDamageEvents = false,
+                RequireDamageEventsRuntime = false,
+            };
+            var damageOnlyDraft = source with
+            {
+                HasHealth = true,
+                HasContentsChanged = false,
+                RequireContentsChangedRuntime = false,
+                HasDamageEvents = true,
+                DamageEvents = damage,
+                RequireDamageEventsRuntime = true,
+            };
+            var dualOriginalDamage = damage with
+            {
+                Id = StablePlaceableId(blueprint.Id, "dual-damage-events"),
+                DamagedBinding = "AncienObjetEndommage",
+                DestroyedBinding = "AncienObjetDetruit",
+            };
+            var dualEditedDamage = dualOriginalDamage with
+            {
+                DamagedBinding = "ObjetEndommageSynchronise",
+                DestroyedBinding = "ObjetDetruitSynchronise",
+            };
+            var dualComposition = new PlaceableCompositionEventsProfile(
+                StablePlaceableId(blueprint.Id, "dual-composition"),
+                WorldFeatureCatalog.CurrentSchemaVersion,
+                "test:ux1-v-dual",
+                dualOriginalDamage,
+                [new(
+                    StablePlaceableId(blueprint.Id, "dual-socket"),
+                    "ancrage",
+                    "prop",
+                    new(DomainVector3.Zero, DomainVector3.Zero, DomainVector3.One, DomainVector3.Zero,
+                        .1, null, false, null),
+                    ["prop"],
+                    true,
+                    1)],
+                [],
+                new(
+                    StablePlaceableId(blueprint.Id, "dual-multi-verb"),
+                    new[] { "inspect", "use", "open", "talk", "take", "push", "climb", "custom" }
+                        .Select(verb => new PlaceableContextualVerbProfile(
+                            StablePlaceableId(blueprint.Id, $"dual-verb-{verb}"),
+                            verb,
+                            $"placeable.{verb}",
+                            1,
+                            [],
+                            [],
+                            $"{verb}Requested"))
+                        .ToArray()));
+            var dualDraft = damageOnlyDraft with
+            {
+                DamageEvents = dualEditedDamage,
+                OriginalDamageEvents = dualOriginalDamage,
+                OriginalCompositionEvents = dualComposition,
+            };
+            var onUsedOnlyBuilt = editing.TryBuildPlaceable(
+                onUsedOnlyDraft, dryRun: true, out _, out var onUsedOnlyProfile, out _);
+            var contentsOnlyBuilt = editing.TryBuildPlaceable(
+                contentsOnlyDraft, dryRun: true, out _, out var contentsOnlyProfile, out _);
+            var damageOnlyBuilt = editing.TryBuildPlaceable(
+                damageOnlyDraft, dryRun: true, out _, out var damageOnlyProfile, out _);
+            var dualBuilt = editing.TryBuildPlaceable(
+                dualDraft, dryRun: true, out _, out var dualProfile, out _);
+            var isolatedOnUsed = onUsedOnlyBuilt && onUsedOnlyProfile is
+                {
+                    Foundation:
+                    {
+                        Interaction: not null,
+                        StaticProp: null,
+                        OnUsed: not null,
+                    },
+                    Operations: null,
+                    SecurityEvents: null,
+                } &&
+                !PlaceableDamageEventsResolver.Resolve(onUsedOnlyProfile).Available;
+            var isolatedContentsChanged = contentsOnlyBuilt && contentsOnlyProfile is
+                {
+                    Foundation:
+                    {
+                        Interaction: null,
+                        StaticProp: not null,
+                        OnUsed: null,
+                    },
+                    Operations: null,
+                    SecurityEvents:
+                    {
+                        Trap: null,
+                        Loot: null,
+                        ContainerEvents: null,
+                        LockEvents: null,
+                        ContentsChanged: not null,
+                    },
+                } && !PlaceableDamageEventsResolver.Resolve(contentsOnlyProfile).Available;
+            var damageOnlyResolution = damageOnlyProfile is null
+                ? null
+                : PlaceableDamageEventsResolver.Resolve(damageOnlyProfile);
+            var isolatedStaticDamage = damageOnlyBuilt && damageOnlyProfile is
+                {
+                    Foundation:
+                    {
+                        Interaction: null,
+                        StaticProp: not null,
+                        OnUsed: null,
+                    },
+                    Operations: { Damageable: not null },
+                    SecurityEvents: null,
+                } && damageOnlyResolution is
+                {
+                    Available: true,
+                    Authority: PlaceableDamageEventsAuthority.Direct,
+                };
+            var neighborPreservation = new[] { onUsedOnlyProfile, contentsOnlyProfile, damageOnlyProfile }
+                .All(candidate => candidate is not null &&
+                                  candidate.Id == loadedOriginal.Id &&
+                                  candidate.BlueprintId == loadedOriginal.BlueprintId &&
+                                  candidate.Provenance == loadedOriginal.Provenance &&
+                                  candidate.FactionId == loadedOriginal.FactionId &&
+                                  candidate.DialogueId == loadedOriginal.DialogueId &&
+                                  ReferenceEquals(candidate.Reactive, loadedOriginal.Reactive) &&
+                                  ReferenceEquals(candidate.Physics, loadedOriginal.Physics) &&
+                                  candidate.Foundation?.Visual.AssetId == loadedOriginal.Foundation?.Visual.AssetId &&
+                                  candidate.Foundation?.Transform == loadedOriginal.Foundation?.Transform);
+            var dualResolution = dualProfile is null ? null : PlaceableDamageEventsResolver.Resolve(dualProfile);
+            var dualAuthoritySynchronization = dualBuilt && dualProfile is
+                                               {
+                                                   DamageEvents: var directDamageAuthority,
+                                                   CompositionEvents:
+                                                   {
+                                                       DamageEvents: var compositionDamageAuthority,
+                                                   },
+                                               } && directDamageAuthority == dualEditedDamage &&
+                                               compositionDamageAuthority == dualEditedDamage &&
+                                               dualResolution is
+                                               {
+                                                   Available: true,
+                                                   Authority: PlaceableDamageEventsAuthority.DualCanonical,
+                                                   DiagnosticCode: null,
+                                               };
             var draft = source with
             {
                 Role = StudioPlaceableRole.Interactable,
@@ -363,10 +521,13 @@ internal sealed partial class StudioSessionController
                              scriptHandle.Properties["contentsChangedApi"] == "1.1.0" &&
                              scriptHandle.Properties["contentsChangedPayload"] ==
                              "transactional-delta-cause-revision-actor" &&
+                             scriptHandle.Properties["contentsChangedRequiredAtRuntime"] == "True" &&
                              scriptHandle.Properties["damageApplied"] == "ObjetEndommage" &&
                              scriptHandle.Properties["entityDestroyed"] == "ObjetDetruit" &&
                              scriptHandle.Properties["damageEventPayload"] ==
-                             "source-amount-damage-type-previous-current-context";
+                             "source-amount-damage-type-previous-current-context" &&
+                             scriptHandle.Properties["damageEventsRequiredAtRuntime"] == "True" &&
+                             string.IsNullOrEmpty(scriptHandle.Properties["damageEventsDiagnostic"]);
             var noContents = profile with
             {
                 SecurityEvents = profile.SecurityEvents! with { ContentsChanged = null },
@@ -407,6 +568,8 @@ internal sealed partial class StudioSessionController
                                   item.BlueprintId == neighborBlueprint.Id) == true;
             var succeeded = onUsedBindingAndApi && onUsedPayloadAndScripts &&
                             contentsChangedBindingAndPayload && damageAndDeathBindings && damageAndDeathPayload &&
+                            isolatedOnUsed && isolatedContentsChanged && isolatedStaticDamage &&
+                            neighborPreservation && dualAuthoritySynchronization &&
                             dryRun && commandParity && instanceSelection && preservation && runtimeProjection &&
                             scriptRead && optionalRequired && undoRedo && persistence && invalidBlocked &&
                             humanDiagnostics;
@@ -417,6 +580,11 @@ internal sealed partial class StudioSessionController
                 contentsChangedBindingAndPayload,
                 damageAndDeathBindings,
                 damageAndDeathPayload,
+                isolatedOnUsed,
+                isolatedContentsChanged,
+                isolatedStaticDamage,
+                neighborPreservation,
+                dualAuthoritySynchronization,
                 dryRun,
                 commandParity,
                 instanceSelection,
@@ -460,6 +628,6 @@ internal sealed partial class StudioSessionController
             Godot.GD.PrintErr($"OPENRPG_FORGE_STUDIO_UX1V_{stage}_FAILED diagnostics=" +
                               string.Join(" | ", diagnostics ?? []));
         return new(false, false, false, false, false, false, false, false, false, false, false,
-            false, false, false, false, false, false);
+            false, false, false, false, false, false, false, false, false, false, false);
     }
 }

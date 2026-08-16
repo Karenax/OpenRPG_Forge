@@ -283,15 +283,16 @@ public sealed class WorldFeatureScriptService
                 ["contentsChangedRequiredAtRuntime"] = item.ContentsChangedRequiredAtRuntime.ToString(),
                 ["securityEventsRequiredAtRuntime"] = item.SecurityEventsRequiredAtRuntime.ToString(),
                 ["compositionEvents"] = (item.CompositionEvents is not null).ToString(),
-                ["damageApplied"] = EffectiveDamageEvents(item)?.DamagedBinding ?? string.Empty,
-                ["entityDestroyed"] = EffectiveDamageEvents(item)?.DestroyedBinding ?? string.Empty,
-                ["damageEventApi"] = EffectiveDamageEvents(item)?.ForgeScriptApiVersion ?? string.Empty,
-                ["damageEventPayload"] = EffectiveDamageEvents(item) is { } damageEvents &&
+                ["damageApplied"] = CanonicalDamageEvents(item).Profile?.DamagedBinding ?? string.Empty,
+                ["entityDestroyed"] = CanonicalDamageEvents(item).Profile?.DestroyedBinding ?? string.Empty,
+                ["damageEventApi"] = CanonicalDamageEvents(item).Profile?.ForgeScriptApiVersion ?? string.Empty,
+                ["damageEventPayload"] = CanonicalDamageEvents(item).Profile is { } damageEvents &&
                     damageEvents.IncludeSource && damageEvents.IncludeAmount && damageEvents.IncludeDamageType &&
                     damageEvents.IncludePreviousHealth && damageEvents.IncludeCurrentHealth &&
                     damageEvents.IncludeContext
                         ? "source-amount-damage-type-previous-current-context"
                         : string.Empty,
+                ["damageEventsDiagnostic"] = CanonicalDamageEvents(item).DiagnosticCode ?? string.Empty,
                 ["damageEventsRequiredAtRuntime"] = item.DamageEventsRequiredAtRuntime.ToString(),
                 ["attachmentSockets"] = item.CompositionEvents is { } composition
                     ? string.Join(';', composition.Sockets.Select(socket =>
@@ -567,6 +568,6 @@ public sealed class WorldFeatureScriptService
         IReadOnlyDictionary<string, string> properties) =>
         new(1, state.Revision.Value, kind, id, targetId, provenance, properties);
 
-    private static PlaceableDamageEventsProfile? EffectiveDamageEvents(PlaceableWorldProfile item)
-        => item.DamageEvents ?? item.CompositionEvents?.DamageEvents;
+    private static PlaceableDamageEventsCanonicalResolution CanonicalDamageEvents(PlaceableWorldProfile item)
+        => PlaceableDamageEventsResolver.Resolve(item);
 }

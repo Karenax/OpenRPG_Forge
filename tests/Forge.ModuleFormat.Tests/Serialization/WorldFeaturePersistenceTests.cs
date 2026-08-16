@@ -206,6 +206,89 @@ public sealed class WorldFeaturePersistenceTests : IDisposable
     }
 
     [Fact]
+    public void Placeable_event_extension_fields_default_when_absent_from_existing_json()
+    {
+        var document = JsonNode.Parse(ProjectJsonSerializer.Serialize(CompleteProject()))!.AsObject();
+        var placeable = document["project"]!["module"]!["worldFeatures"]!["placeables"]!
+            .AsArray()[0]!.AsObject();
+        placeable.Remove("contentsChangedRequiredAtRuntime");
+        placeable.Remove("damageEvents");
+        placeable.Remove("damageEventsRequiredAtRuntime");
+
+        var restored = ProjectJsonSerializer.Deserialize(document.ToJsonString());
+        var profile = restored.Module.WorldFeatures.Placeables.Single();
+
+        Assert.False(profile.ContentsChangedRequiredAtRuntime);
+        Assert.Null(profile.DamageEvents);
+        Assert.False(profile.DamageEventsRequiredAtRuntime);
+    }
+
+    [Fact]
+    public void Placeable_direct_damage_events_round_trip_without_composition_profile()
+    {
+        var source = CompleteProject();
+        var original = source.Module.WorldFeatures.Placeables.Single();
+        var directDamage = original.CompositionEvents!.DamageEvents with
+        {
+            DamagedBinding = "DirectDamageApplied",
+            DestroyedBinding = "DirectEntityDestroyed",
+        };
+        var direct = original with
+        {
+            CompositionEvents = null,
+            CompositionEventsRequiredAtRuntime = false,
+            DamageEvents = directDamage,
+            DamageEventsRequiredAtRuntime = true,
+        };
+
+        var restored = ProjectJsonSerializer.Deserialize(
+            ProjectJsonSerializer.Serialize(WithPlaceable(source, direct)));
+        var profile = restored.Module.WorldFeatures.Placeables.Single();
+        var canonical = PlaceableDamageEventsResolver.Resolve(profile);
+
+        Assert.Equal(directDamage, profile.DamageEvents);
+        Assert.Null(profile.CompositionEvents);
+        Assert.True(profile.DamageEventsRequiredAtRuntime);
+        Assert.Equal(PlaceableDamageEventsAuthority.Direct, canonical.Authority);
+    }
+
+    [Fact]
+    public void Placeable_composition_damage_events_remain_the_historical_canonical_fallback()
+    {
+        var restored = ProjectJsonSerializer.Deserialize(ProjectJsonSerializer.Serialize(CompleteProject()));
+        var profile = restored.Module.WorldFeatures.Placeables.Single();
+        var canonical = PlaceableDamageEventsResolver.Resolve(profile);
+
+        Assert.Null(profile.DamageEvents);
+        Assert.NotNull(profile.CompositionEvents?.DamageEvents);
+        Assert.True(canonical.Available);
+        Assert.Equal(profile.CompositionEvents!.DamageEvents, canonical.Profile);
+        Assert.Equal(PlaceableDamageEventsAuthority.Composition, canonical.Authority);
+    }
+
+    [Fact]
+    public void Placeable_matching_dual_damage_events_round_trip_as_one_canonical_authority()
+    {
+        var source = CompleteProject();
+        var original = source.Module.WorldFeatures.Placeables.Single();
+        var dual = original with
+        {
+            DamageEvents = original.CompositionEvents!.DamageEvents,
+            DamageEventsRequiredAtRuntime = true,
+        };
+
+        var restored = ProjectJsonSerializer.Deserialize(
+            ProjectJsonSerializer.Serialize(WithPlaceable(source, dual)));
+        var profile = restored.Module.WorldFeatures.Placeables.Single();
+        var canonical = PlaceableDamageEventsResolver.Resolve(profile);
+
+        Assert.Equal(profile.DamageEvents, profile.CompositionEvents!.DamageEvents);
+        Assert.True(canonical.Available);
+        Assert.Equal(PlaceableDamageEventsAuthority.DualCanonical, canonical.Authority);
+        Assert.Null(canonical.DiagnosticCode);
+    }
+
+    [Fact]
     public void R074Companion_foundation_validation_is_localized_and_optional_required_semantics_are_explicit()
     {
         var project = CompleteProject();
@@ -400,6 +483,16 @@ public sealed class WorldFeaturePersistenceTests : IDisposable
         var catalog = new WorldFeatureCatalog(source.Id, source.SchemaVersion, source.Provenance,
             source.Placeables, source.Doors, source.Triggers, source.Encounters, source.VehicleRoutes,
             source.Merchants, [companion], source.Scripts);
+        return new(project.Id, project.Title, project.Module.WithWorldFeatures(catalog), project.Blueprints,
+            project.Areas, project.Dialogues, project.Quests);
+    }
+
+    private static ProjectDefinition WithPlaceable(ProjectDefinition project, PlaceableWorldProfile placeable)
+    {
+        var source = project.Module.WorldFeatures;
+        var catalog = new WorldFeatureCatalog(source.Id, source.SchemaVersion, source.Provenance,
+            [placeable], source.Doors, source.Triggers, source.Encounters, source.VehicleRoutes,
+            source.Merchants, source.Companions, source.Scripts);
         return new(project.Id, project.Title, project.Module.WithWorldFeatures(catalog), project.Blueprints,
             project.Areas, project.Dialogues, project.Quests);
     }

@@ -1052,15 +1052,28 @@ public static class WorldFeatureCatalogValidator
         List<DomainDiagnostic> diagnostics)
     {
         var damagePath = $"{path}/damageEvents";
-        var damage = profile.DamageEvents;
-        if (damage is null)
+        var canonical = PlaceableDamageEventsResolver.Resolve(profile);
+        if (canonical.Authority == PlaceableDamageEventsAuthority.Divergent)
         {
-            if (profile.DamageEventsRequiredAtRuntime && profile.CompositionEvents?.DamageEvents is null)
+            Add(diagnostics, PlaceableDamageEventsResolver.CatalogDivergenceDiagnosticCode,
+                "Direct and composition damage event authorities must have the same identity and values.",
+                damagePath);
+            return;
+        }
+
+        if (!canonical.Available || canonical.Profile is null)
+        {
+            if (profile.DamageEventsRequiredAtRuntime)
                 Add(diagnostics, "world.placeable.damage_events_required_missing",
                     "Required placeable damage and destruction event profile is missing.", damagePath);
             return;
         }
 
+        if (canonical.Authority is PlaceableDamageEventsAuthority.Composition or
+            PlaceableDamageEventsAuthority.DualCanonical)
+            return;
+
+        var damage = canonical.Profile;
         if (profile.Operations?.Damageable is null)
             Add(diagnostics, "world.placeable.damage_events_damageable_missing",
                 "Placeable damage and destruction events require the canonical damageable profile.", damagePath);

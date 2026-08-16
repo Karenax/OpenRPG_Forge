@@ -169,7 +169,9 @@ internal sealed partial class StudioSessionController
         var containerEventsProfile = securityEvents?.ContainerEvents;
         var lockEventsProfile = securityEvents?.LockEvents;
         var contentsChangedProfile = securityEvents?.ContentsChanged;
-        var damageEventsProfile = profile?.DamageEvents ?? profile?.CompositionEvents?.DamageEvents;
+        var canonicalDamageEvents = profile is null ? null : PlaceableDamageEventsResolver.Resolve(profile);
+        var damageEventsProfile = canonicalDamageEvents?.Profile ?? profile?.DamageEvents ??
+                                  profile?.CompositionEvents?.DamageEvents;
         var credentialItem = credentialPolicy is not null &&
                              credentialPolicy.Consumption !=
                              PlaceableWorldProfile.CredentialConsumption.VirtualPermission
@@ -1263,8 +1265,12 @@ internal sealed partial class StudioSessionController
             message = "Les événements de dégâts et de mort sont requis au runtime : activez-les ou retirez cette exigence.";
             return false;
         }
-        var originalEffectiveDamageEvents = draft.OriginalDamageEvents ??
-                                            draft.OriginalCompositionEvents?.DamageEvents;
+        if (!draft.HasDamageEvents && draft.OriginalCompositionEvents is not null)
+        {
+            message = "Les événements de dégâts et de mort appartiennent au profil de composition existant et ne peuvent pas être retirés isolément.";
+            return false;
+        }
+        var originalEffectiveDamageEvents = draft.OriginalDamageEvents ?? draft.OriginalCompositionEvents?.DamageEvents;
         var damageEvents = draft.HasDamageEvents
             ? DamageEventValuesEqual(editedDamageEvents, originalEffectiveDamageEvents)
                 ? originalEffectiveDamageEvents
@@ -1531,13 +1537,12 @@ internal sealed partial class StudioSessionController
             var lockEventsRequiredAtRuntime = draft.RequireLockEventsRuntime;
             var contentsChangedRequiredAtRuntime = draft.RequireContentsChangedRuntime;
             var damageEventsRequiredAtRuntime = draft.RequireDamageEventsRuntime;
-            var directDamageEvents = draft.OriginalDamageEvents is not null ||
-                                     draft.OriginalCompositionEvents is null
+            var directDamageEvents = draft.OriginalDamageEvents is not null || draft.OriginalCompositionEvents is null
                 ? damageEvents
                 : null;
             var compositionEvents = draft.OriginalCompositionEvents;
-            if (draft.OriginalDamageEvents is null && compositionEvents is not null && damageEvents is not null &&
-                !ReferenceEquals(compositionEvents.DamageEvents, damageEvents))
+            if (compositionEvents is not null && damageEvents is not null &&
+                compositionEvents.DamageEvents != damageEvents)
             {
                 compositionEvents = compositionEvents with { DamageEvents = damageEvents };
             }
@@ -3139,6 +3144,9 @@ internal sealed partial class StudioSessionController
             "Les événements de dégâts et de mort exigent deux liaisons et un contexte uniforme.",
         "world.placeable.damage_events_damageable_missing" =>
             "Les événements de dégâts et de mort exigent d’activer la santé du placeable.",
+        "world.placeable.damage_events_authority_diverged" or
+            "WORLD_PLACEABLE_DAMAGE_EVENTS_AUTHORITY_DIVERGED" =>
+            "Les définitions directe et composée des dégâts divergent : alignez leur identité et leurs valeurs.",
         "world.placeable.damage_events_required_missing" or
             "WORLD_PLACEABLE_DAMAGE_EVENTS_REQUIRED_MISSING" =>
             "Les événements de dégâts et de mort sont requis au runtime mais leur profil canonique est absent.",

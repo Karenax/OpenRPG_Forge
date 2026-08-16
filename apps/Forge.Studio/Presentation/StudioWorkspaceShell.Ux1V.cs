@@ -62,6 +62,11 @@ internal sealed partial class StudioWorkspaceShell
             $"contents_changed={result.ContentsChangedBindingAndPayload.ToString().ToLowerInvariant()} " +
             $"damage_death_bindings={result.DamageAndDeathBindings.ToString().ToLowerInvariant()} " +
             $"damage_death_payload={result.DamageAndDeathPayload.ToString().ToLowerInvariant()} " +
+            $"isolated_on_used={result.IsolatedOnUsed.ToString().ToLowerInvariant()} " +
+            $"isolated_contents_changed={result.IsolatedContentsChanged.ToString().ToLowerInvariant()} " +
+            $"isolated_static_damage={result.IsolatedStaticDamage.ToString().ToLowerInvariant()} " +
+            $"neighbor_preservation={result.NeighborPreservation.ToString().ToLowerInvariant()} " +
+            $"dual_authority_sync={result.DualAuthoritySynchronization.ToString().ToLowerInvariant()} " +
             $"dry_run={result.DryRun.ToString().ToLowerInvariant()} " +
             $"command_parity={result.CommandParity.ToString().ToLowerInvariant()} " +
             $"instance_selection={result.InstanceSelection.ToString().ToLowerInvariant()} " +

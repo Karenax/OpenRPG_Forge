@@ -6,7 +6,6 @@ internal sealed partial class StudioPlaceableBlueprintOverlay
 {
     internal void OpenLifecycleEvents()
     {
-        Open();
         if (_draft is null)
         {
             return;
@@ -21,6 +20,28 @@ internal sealed partial class StudioPlaceableBlueprintOverlay
         _scenePreviewTitle.Text = "Aperçu des événements du cycle de vie";
         _scenePreviewDescription.Text =
             "Utilisation, contenu modifié, dégâts et mort sont produits par les mêmes contrats et adaptateurs que le runtime.";
+        SetStatus(
+            "Événements ouverts sans modifier le brouillon · activez uniquement les capacités voulues, puis prévisualisez-les sans toucher à la scène.",
+            error: false);
+    }
+
+    internal bool RunLifecycleEventsUiTransactionEvidence()
+    {
+        var originalProject = _session.Project;
+        var originalDirty = _session.IsDirty;
+        Open();
+        var originalDraft = _draft;
+        var originalControls = LifecycleAuthoringControls();
+        OpenLifecycleEvents();
+        if (_draft is null)
+        {
+            Close();
+            return false;
+        }
+
+        var blueprintId = _draft.BlueprintId;
+        var openingPreserved = ReferenceEquals(originalDraft, _draft) &&
+                               originalControls == LifecycleAuthoringControls();
         _updating = true;
         _role.Select((int)StudioPlaceableRole.Interactable);
         _onUsedEnabled.ButtonPressed = true;
@@ -32,24 +53,6 @@ internal sealed partial class StudioPlaceableBlueprintOverlay
         UpdateDamageFields();
         UpdateContentsChangedFields();
         UpdateDamageEventsFields();
-        _onUsedEventEditor.FocusBindings();
-        SetStatus(
-            "Événements prêts · nommez les liaisons, vérifiez les payloads puis prévisualisez chaque issue sans toucher à la scène.",
-            error: false);
-    }
-
-    internal bool RunLifecycleEventsUiTransactionEvidence()
-    {
-        var originalProject = _session.Project;
-        var originalDirty = _session.IsDirty;
-        OpenLifecycleEvents();
-        if (_draft is null)
-        {
-            Close();
-            return false;
-        }
-
-        var blueprintId = _draft.BlueprintId;
         _onUsedEventEditor.SetEvidenceValues();
         _contentsChangedEditor.SetEvidenceValues();
         _damageEventsEditor.SetEvidenceValues("ux1-v-death");
@@ -92,6 +95,15 @@ internal sealed partial class StudioPlaceableBlueprintOverlay
         var restored = undo.Succeeded && ReferenceEquals(originalProject, _session.Project) &&
                        _session.IsDirty == originalDirty;
         Close();
-        return visibleContract && canonical && restored;
+        return openingPreserved && visibleContract && canonical && restored;
     }
+
+    private (int Role, bool OnUsed, bool ContentsChanged, bool Health, bool Damage,
+        string OnUsedApi, string OnUsedBinding, bool OnUsedRequired,
+        bool ContentsRequired, bool DamageRequired) LifecycleAuthoringControls() =>
+        (_role.Selected, _onUsedEnabled.ButtonPressed, _contentsChanged.ButtonPressed,
+            _health.ButtonPressed, _damageEvents.ButtonPressed,
+            _onUsedEventEditor.ApiVersion, _onUsedEventEditor.EventBinding,
+            _onUsedEventEditor.RequiredAtRuntime, _contentsChangedEditor.RequiredAtRuntime,
+            _damageEventsEditor.RequiredAtRuntime);
 }

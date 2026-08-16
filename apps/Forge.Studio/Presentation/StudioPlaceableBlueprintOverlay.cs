@@ -1055,6 +1055,7 @@ internal sealed partial class StudioPlaceableBlueprintOverlay : Control
         var lifecycleEventsMode = mode.StartsWith("ux1-v", StringComparison.OrdinalIgnoreCase);
         if (lifecycleEventsMode)
         {
+            Open();
             OpenLifecycleEvents();
         }
         else if (lockEventsMode)
@@ -2762,8 +2763,7 @@ internal sealed partial class StudioPlaceableBlueprintOverlay : Control
             _draft.HasContentsChanged,
             _draft.RequireContentsChangedRuntime);
         _damageEvents.ButtonPressed = _draft.HasDamageEvents;
-        _damageEvents.Disabled = _draft.OriginalCompositionEvents is not null &&
-                                 _draft.OriginalDamageEvents is null;
+        _damageEvents.Disabled = _draft.OriginalCompositionEvents is not null;
         _damageEventsEditor.Load(
             _draft.DamageEvents!,
             _draft.HasDamageEvents,

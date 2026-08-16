@@ -786,6 +786,7 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.Equal("animation:crypt-pillar-rise", item.Properties["transformAnimation"]);
         Assert.Equal("True", item.Properties["onUsed"]);
         Assert.Equal("1.0.0", item.Properties["forgeScriptApi"]);
+        Assert.Equal("InteractionExecuted", item.Properties["onUsedBinding"]);
         Assert.Equal("True", item.Properties["validation"]);
         Assert.Equal("True", item.Properties["requiredAtRuntime"]);
         Assert.Equal("key:ember", item.Properties["credentialId"]);
@@ -894,7 +895,9 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.Equal("method-credential-actor-controlled-veto", item.Properties["lockEventPayload"]);
         Assert.Equal("False", item.Properties["lockEventsRequiredAtRuntime"]);
         Assert.Equal("ContainerContentsChanged", item.Properties["contentsChanged"]);
+        Assert.Equal("1.0.0", item.Properties["contentsChangedApi"]);
         Assert.Equal("transactional-delta-cause-revision-actor", item.Properties["contentsChangedPayload"]);
+        Assert.Equal("False", item.Properties["contentsChangedRequiredAtRuntime"]);
         Assert.Equal("True", item.Properties["securityEventsRequiredAtRuntime"]);
         Assert.Equal("True", item.Properties["compositionEvents"]);
         Assert.Equal("DamageApplied", item.Properties["damageApplied"]);
@@ -902,6 +905,8 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.Equal("1.0.0", item.Properties["damageEventApi"]);
         Assert.Equal("source-amount-damage-type-previous-current-context",
             item.Properties["damageEventPayload"]);
+        Assert.Equal(string.Empty, item.Properties["damageEventsDiagnostic"]);
+        Assert.Equal("False", item.Properties["damageEventsRequiredAtRuntime"]);
         Assert.Equal("lever:mechanism:snap:True:capacity:2", item.Properties["attachmentSockets"]);
         Assert.Contains("lever:", item.Properties["attachments"], StringComparison.Ordinal);
         Assert.Contains("prefab:crypt-pillar-lever", item.Properties["attachments"],
@@ -913,6 +918,58 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.Single(securityEventsSearched.Items);
         Assert.Single(compositionEventsSearched.Items);
         Assert.True(planned.Succeeded);
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
+    }
+
+    [Fact]
+    public void Placeable_direct_damage_authority_is_exposed_to_forgescript_and_mcp()
+    {
+        using var workspace = new TestWorkspace(project =>
+        {
+            var source = CryptWorldFeatureAuthoringService.Create(project);
+            var original = source.Placeables.Single();
+            var direct = original with
+            {
+                CompositionEvents = null,
+                CompositionEventsRequiredAtRuntime = false,
+                DamageEvents = original.CompositionEvents!.DamageEvents with
+                {
+                    DamagedBinding = "DirectDamageApplied",
+                    DestroyedBinding = "DirectEntityDestroyed",
+                },
+                ContentsChangedRequiredAtRuntime = true,
+                DamageEventsRequiredAtRuntime = true,
+            };
+            var catalog = new WorldFeatureCatalog(
+                source.Id,
+                source.SchemaVersion,
+                source.Provenance,
+                [direct],
+                source.Doors,
+                source.Triggers,
+                source.Encounters,
+                source.VehicleRoutes,
+                source.Merchants,
+                source.Companions,
+                source.Scripts);
+            return new ProjectDefinition(project.Id, project.Title, project.Module.WithWorldFeatures(catalog),
+                project.Blueprints, project.Areas, project.Dialogues, project.Quests);
+        });
+        var canonical = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
+        var placeable = canonical.Module.WorldFeatures.Placeables.Single();
+
+        var resource = workspace.Project.QueryWorldFeatures("placeable", placeable.Id.ToString("D"), 1);
+
+        var item = Assert.Single(resource.Items);
+        Assert.Equal("InteractionExecuted", item.Properties["onUsedBinding"]);
+        Assert.Equal("1.0.0", item.Properties["contentsChangedApi"]);
+        Assert.Equal("True", item.Properties["contentsChangedRequiredAtRuntime"]);
+        Assert.Equal("False", item.Properties["compositionEvents"]);
+        Assert.Equal("DirectDamageApplied", item.Properties["damageApplied"]);
+        Assert.Equal("DirectEntityDestroyed", item.Properties["entityDestroyed"]);
+        Assert.Equal("1.0.0", item.Properties["damageEventApi"]);
+        Assert.Equal("True", item.Properties["damageEventsRequiredAtRuntime"]);
+        Assert.Equal(string.Empty, item.Properties["damageEventsDiagnostic"]);
         Assert.Equal(0, workspace.Project.GetCurrentRevision());
     }
 
