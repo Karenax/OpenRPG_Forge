@@ -187,9 +187,9 @@ internal sealed partial class StudioZoneDynamicOperationsOverlay : Control
 
         _dynamicPanel = PanelColumn();
         panels.AddChild(_dynamicPanel);
-        _dynamicPanel.AddChild(StudioStyle.Label("Créer des instances temporaires de zones", 17));
+        _dynamicPanel.AddChild(StudioStyle.Label("Configurer la capacité globale des zones dynamiques", 17));
         _dynamicPanel.AddChild(StudioStyle.Label(
-            "La zone active sert uniquement de gabarit à la simulation. Le serveur reste l’autorité et applique ses quotas au runtime.",
+            "Cet écran valide uniquement la politique globale du module. Il n’instancie pas la zone active et ne lit pas ses dépendances.",
             10,
             StudioStyle.Muted,
             wrap: true));
@@ -201,15 +201,15 @@ internal sealed partial class StudioZoneDynamicOperationsOverlay : Control
         _dynamicDependencies = AddField(dynamicGrid, "Dépendances", Check("Résoudre avant l’instanciation"));
         _dynamicRequested = AddField(dynamicGrid, "Simulation", Number(0, 1024, 1, " zones"));
         _dynamicPanel.AddChild(PreviewCard(
-            "SIMULATION SOUS AUTORITÉ SERVEUR",
+            "APERÇU DE POLITIQUE GLOBALE",
             out _dynamicSummary,
-            "Prévisualisez une demande sans créer de zone ni écrire le module."));
+            "Prévisualisez les quotas globaux sans créer de zone ni écrire le module."));
 
         _copyPanel = PanelColumn();
         panels.AddChild(_copyPanel);
         _copyPanel.AddChild(StudioStyle.Label("Copier un objet pendant l’exécution", 17));
         _copyPanel.AddChild(StudioStyle.Label(
-            "La simulation réserve de nouvelles identités, redirige les liens internes et filtre l’état. Appliquer enregistre seulement la politique runtime.",
+            "La simulation utilise les liens, l’état et la propriété réellement documentés. Ses identités temporaires ne sont jamais réservées.",
             10,
             StudioStyle.Muted,
             wrap: true));
@@ -334,6 +334,13 @@ internal sealed partial class StudioZoneDynamicOperationsOverlay : Control
         }
         else
         {
+            var evidenceSelection = _session.ActiveArea?.Entities.Take(2).Select(entity => entity.Id).ToArray() ?? [];
+            if (evidenceSelection.Length == 0 ||
+                !_session.SelectEntities(evidenceSelection, evidenceSelection[^1]))
+            {
+                SetStatus("Sélectionnez explicitement au moins un objet avant l’aperçu d’échelle.", true);
+                return false;
+            }
             OpenScale();
             if (!Visible || _scaleDraft is null)
             {
@@ -448,8 +455,12 @@ internal sealed partial class StudioZoneDynamicOperationsOverlay : Control
             SetStatus(
                 section == 2
                     ? "Ajoutez au moins un objet à la zone avant de simuler une copie runtime."
-                    : "Ouvrez une zone contenant au moins un objet avant d’utiliser cet outil.",
+                    : "Ouvrez une zone avant d’utiliser cet outil.",
                 true);
+            _session.CancelZoneDynamicOperationUx1W();
+            _scaleDraft = null;
+            _dynamicDraft = null;
+            _copyDraft = null;
             Visible = false;
             return;
         }
@@ -461,7 +472,16 @@ internal sealed partial class StudioZoneDynamicOperationsOverlay : Control
         _redo.Disabled = true;
         Visible = true;
         ShowSection(section);
-        SetStatus("Outil ouvert · prévisualisation obligatoire avant application", false);
+        if (section == 0 && _scaleDraft?.EntityIds.Count == 0)
+        {
+            SetStatus(
+                "Sélection explicite requise · fermez l’outil, sélectionnez un objet dans la vue 3D, puis rouvrez-le.",
+                true);
+        }
+        else
+        {
+            SetStatus("Outil ouvert · prévisualisation obligatoire avant application", false);
+        }
     }
 
     private void LoadDrafts()
@@ -471,7 +491,12 @@ internal sealed partial class StudioZoneDynamicOperationsOverlay : Control
         _source.Text = $"Zone active · {area.DisplayName} · {area.Entities.Count} objet(s)";
         if (_scaleDraft is not null)
         {
-            _selectionSummary.Text = $"Sélection active · {_scaleDraft.EntityIds.Count} objet(s)";
+            _selectionSummary.Text = _scaleDraft.EntityIds.Count == 0
+                ? "Sélection requise · fermez cet outil, sélectionnez au moins un objet dans la vue 3D, puis rouvrez-le."
+                : $"Sélection explicite · {_scaleDraft.EntityIds.Count} objet(s)";
+            _selectionSummary.AddThemeColorOverride(
+                "font_color",
+                _scaleDraft.EntityIds.Count == 0 ? StudioStyle.Danger : StudioStyle.Success);
             _scaleX.Value = _scaleDraft.Scale.X;
             _scaleY.Value = _scaleDraft.Scale.Y;
             _scaleZ.Value = _scaleDraft.Scale.Z;
@@ -510,6 +535,11 @@ internal sealed partial class StudioZoneDynamicOperationsOverlay : Control
             _copyOffsetY.Value = copy.PositionOffset.Y;
             _copyOffsetZ.Value = copy.PositionOffset.Z;
         }
+        else
+        {
+            _copySummary.Text = "Copie indisponible · la zone active ne contient aucun objet source.";
+            _copySummary.AddThemeColorOverride("font_color", StudioStyle.Danger);
+        }
         _updating = false;
         InvalidatePreview();
     }
@@ -534,9 +564,13 @@ internal sealed partial class StudioZoneDynamicOperationsOverlay : Control
 
     private StudioRuntimeCopyDraft ReadCopyDraft()
     {
+        if (_copyDraft is null || _entityChoices.Count == 0)
+        {
+            throw new InvalidOperationException("Runtime copy requires a documented source entity.");
+        }
         var sourceIndex = Math.Clamp(_copySource.Selected, 0, _entityChoices.Count - 1);
         var visibleState = _copyStateChecks.Where(item => item.Value.ButtonPressed).Select(item => item.Key);
-        var hiddenState = _copyDraft!.StateComponents.Where(item => !KnownStateComponents.Contains(item, StringComparer.Ordinal));
+        var hiddenState = _copyDraft.StateComponents.Where(item => !KnownStateComponents.Contains(item, StringComparer.Ordinal));
         return _copyDraft with
         {
             SourceEntityId = _entityChoices[sourceIndex].Id,
@@ -558,6 +592,12 @@ internal sealed partial class StudioZoneDynamicOperationsOverlay : Control
     {
         if (_section == 0)
         {
+            if (_scaleDraft is null)
+            {
+                _apply.Disabled = true;
+                SetStatus("Aucune zone active n’est disponible pour l’échelle.", true);
+                return;
+            }
             var result = _session.PreviewZoneScaleUx1W(ReadScaleDraft());
             UpdatePreview(_scaleSummary, result.Summary, result.Message, result.Succeeded, result.CanApply);
             return;
@@ -569,6 +609,14 @@ internal sealed partial class StudioZoneDynamicOperationsOverlay : Control
             return;
         }
 
+        if (_copyDraft is null || _entityChoices.Count == 0)
+        {
+            _copySummary.Text = "Copie indisponible · ajoutez un objet source à la zone active.";
+            _copySummary.AddThemeColorOverride("font_color", StudioStyle.Danger);
+            _apply.Disabled = true;
+            SetStatus("La zone active ne contient aucun objet à copier.", true);
+            return;
+        }
         var copy = _session.PreviewRuntimeCopyUx1W(ReadCopyDraft());
         UpdatePreview(_copySummary, copy.Summary, copy.Message, copy.Succeeded, copy.CanApply);
     }
@@ -633,7 +681,15 @@ internal sealed partial class StudioZoneDynamicOperationsOverlay : Control
 
     private void ShowSection(int section)
     {
-        _section = Math.Clamp(section, 0, 2);
+        var requested = Math.Clamp(section, 0, 2);
+        if (Visible && requested == 2 && (_copyDraft is null || _entityChoices.Count == 0))
+        {
+            _copySummary.Text = "Copie indisponible · ajoutez un objet source à la zone active.";
+            _copySummary.AddThemeColorOverride("font_color", StudioStyle.Danger);
+            SetStatus("La zone active ne contient aucun objet à copier.", true);
+            return;
+        }
+        _section = requested;
         _scalePanel.Visible = _section == 0;
         _dynamicPanel.Visible = _section == 1;
         _copyPanel.Visible = _section == 2;
@@ -710,7 +766,11 @@ internal sealed partial class StudioZoneDynamicOperationsOverlay : Control
         _copyReferenceMode.Disabled = !enabled;
         _scaleTab.Disabled = !enabled;
         _dynamicTab.Disabled = !enabled;
-        _copyTab.Disabled = !enabled;
+        var copyAvailable = _copyDraft is not null && _entityChoices.Count > 0;
+        _copyTab.Disabled = !enabled || !copyAvailable;
+        _copyTab.TooltipText = copyAvailable
+            ? "Configurer et simuler la copie transactionnelle d’un objet."
+            : "Indisponible · ajoutez d’abord un objet source à la zone active.";
     }
 
     private void SetStatus(string message, bool error)

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Forge.Application.Commands;
 using Forge.Application.Entities;
 using Forge.Application.Projects;
@@ -53,11 +54,6 @@ internal sealed partial class StudioSessionController
         }
 
         var selection = SelectedEntityIds.Where(id => area.Entities.Any(entity => entity.Id == id)).ToArray();
-        if (selection.Length == 0 && area.Entities.Count > 0)
-        {
-            selection = [area.Entities[0].Id];
-        }
-
         return new StudioZoneScaleDraft(area.Id, selection, Vector3Value.One, Multiply: false);
     }
 
@@ -174,7 +170,7 @@ internal sealed partial class StudioSessionController
         {
             return FailedDynamicArea("Aucune zone active n’est disponible.");
         }
-        if (draft.PreviewAreaId != activeArea.Id)
+        if (draft.ContextAreaId != activeArea.Id)
         {
             return FailedDynamicArea("La zone active a changé · rouvrez l’outil pour recalculer l’aperçu.");
         }
@@ -216,13 +212,14 @@ internal sealed partial class StudioSessionController
             _approvedDynamicAreaUx1W = draft;
             _approvedDynamicAreaRevisionUx1W = history.State.Revision;
             var summary = draft.Enabled
-                ? $"La zone active sert de gabarit de simulation · {draft.RequestedInstances} instance(s) demandée(s) sur " +
+                ? $"Politique globale du module · {draft.RequestedInstances} instance(s) simulée(s) sur " +
                   $"{draft.MaximumInstances} · durée {FormatDurationUx1W(draft.LifetimeSeconds)} · " +
-                  $"dépendances {(draft.ResolveDependencies ? "résolues" : "laissées au serveur")}."
-                : "Création dynamique désactivée · aucune instance ne sera demandée au runtime.";
+                  $"dépendances {(draft.ResolveDependencies ? "à résoudre au runtime" : "laissées au serveur")}. " +
+                  "La zone active n’est pas instanciée par cet aperçu."
+                : "Politique globale désactivée · aucune zone n’est instanciée par cet aperçu.";
             return new StudioDynamicAreaPreview(
                 true,
-                "Aperçu runtime validé · autorité serveur obligatoire · aucun module modifié.",
+                "Aperçu de configuration globale validé · autorité serveur obligatoire · aucun module modifié.",
                 summary,
                 true,
                 decision.DynamicAreaLimit);
@@ -327,24 +324,21 @@ internal sealed partial class StudioSessionController
                 return FailedRuntimeCopy(HumanizeRuntimeProfileUx1W(dryRun.Diagnostics.FirstOrDefault()?.Code));
             }
 
-            var destinations = Enumerable.Range(0, Math.Max(0, draft.RequestedCopies))
+            var simulatedDestinations = Enumerable.Range(0, draft.RequestedCopies)
                 .Select(_ => EntityId.From(Guid.NewGuid()))
                 .ToArray();
-            var state = new[]
-            {
-                new RuntimeEntityStateComponent("transform", "position-and-orientation"),
-                new RuntimeEntityStateComponent("combat", "health-and-effects"),
-                new RuntimeEntityStateComponent("inventory", "inventory-snapshot"),
-                new RuntimeEntityStateComponent("blackboard", "script-state"),
-            };
-            var requests = destinations.Select((destination, index) => new RuntimeEntityCopyRequest(
-                new RuntimeEntityCopySource(source, "propriétaire-source", [source.Id], state),
+            var sourceReferences = ResolveRuntimeCopyReferencesUx1W(project, source);
+            var sourceState = ResolveRuntimeCopyStateUx1W(source);
+            var sourceOwner = ResolveRuntimeCopyOwnerUx1W(project, source);
+            var requestingOwner = $"module:{project.Module.Id}";
+            var requests = simulatedDestinations.Select((destination, index) => new RuntimeEntityCopyRequest(
+                new RuntimeEntityCopySource(source, sourceOwner ?? requestingOwner, sourceReferences, sourceState),
                 destination,
                 new Vector3Value(
                     draft.PositionOffset.X * (index + 1),
                     draft.PositionOffset.Y * (index + 1),
                     draft.PositionOffset.Z * (index + 1)),
-                "éditeur-runtime",
+                requestingOwner,
                 draft.HasServerAuthority,
                 new Dictionary<EntityId, EntityId> { [source.Id] = destination })).ToArray();
             var results = new RuntimeEntityCopyService(profile.ModernTooling.RuntimeCopy)
@@ -355,33 +349,55 @@ internal sealed partial class StudioSessionController
                 return FailedRuntimeCopy(HumanizeRuntimeCopyUx1W(failed.Code));
             }
 
-            var ownershipCopied = results.All(result => result.OwnerId ==
-                (draft.CopyOwnership ? "propriétaire-source" : "éditeur-runtime"));
-            var referencesRemapped = results.Zip(destinations)
-                .All(pair => pair.First.References.SequenceEqual([pair.Second]));
-            var allowedState = draft.StateComponents.ToHashSet(StringComparer.Ordinal);
-            var stateFiltered = results.All(result =>
-                result.State.All(component => allowedState.Contains(component.Name)) &&
-                result.State.Count == state.Count(component => allowedState.Contains(component.Name)));
+            var expectedOwner = draft.CopyOwnership ? sourceOwner : requestingOwner;
+            var ownershipProjected = expectedOwner is not null && results.All(result => result.OwnerId == expectedOwner);
+            var ownershipUnavailable = draft.CopyOwnership && sourceOwner is null;
+            var selfReferenceDocumented = sourceReferences.Contains(source.Id);
+            var selfReferencesRemapped = selfReferenceDocumented && results.Zip(simulatedDestinations).All(pair =>
+                pair.First.References.Contains(pair.Second) && !pair.First.References.Contains(source.Id));
+            var externalReferences = sourceReferences.Where(reference => reference != source.Id).ToArray();
+            var externalReferencesPreserved = draft.ReferenceMode == RuntimeReferenceCopyMode.PreserveExternal &&
+                                              results.All(result => externalReferences.All(result.References.Contains));
+            var externalReferencesDropped = draft.ReferenceMode == RuntimeReferenceCopyMode.DropExternal &&
+                                            results.All(result => externalReferences.All(reference =>
+                                                !result.References.Contains(reference)));
+            var allowedState = profile.ModernTooling.RuntimeCopy.StateComponents.ToHashSet(StringComparer.Ordinal);
+            var expectedState = sourceState.Where(component => allowedState.Contains(component.Name))
+                .OrderBy(component => component.Name, StringComparer.Ordinal).ToArray();
+            var stateProjected = results.All(result => result.State.SequenceEqual(expectedState));
             _approvedRuntimeCopyUx1W = draft;
             _approvedRuntimeCopyRevisionUx1W = history.State.Revision;
             var referenceText = draft.ReferenceMode switch
             {
-                RuntimeReferenceCopyMode.DropExternal => "liens externes retirés",
-                RuntimeReferenceCopyMode.PreserveExternal => "liens externes conservés",
-                _ => "liens internes redirigés",
+                RuntimeReferenceCopyMode.DropExternal =>
+                    $"{externalReferences.Length} lien(s) externe(s) documenté(s) retiré(s)",
+                RuntimeReferenceCopyMode.PreserveExternal =>
+                    $"{externalReferences.Length} lien(s) externe(s) documenté(s) conservé(s)",
+                _ => $"{(selfReferenceDocumented ? 1 : 0)} lien interne documenté redirigé",
             };
+            var ownerText = ownershipUnavailable
+                ? "propriétaire source absent du document · propriété non qualifiée"
+                : draft.CopyOwnership
+                    ? "propriétaire documenté projeté"
+                    : "propriété attribuée au contexte simulé du module";
             return new StudioRuntimeCopyPreview(
                 true,
-                "Simulation validée · nouvelles identités réservées · aucun objet créé dans l’éditeur.",
-                $"{results.Count} copie(s) simulée(s) · {referenceText} · " +
-                $"propriété {(draft.CopyOwnership ? "copiée" : "attribuée au demandeur")} · " +
-                $"{results.FirstOrDefault()?.State.Count ?? 0} composant(s) d’état conservé(s).",
+                "Simulation locale validée · identités temporaires non réservées · aucun objet créé dans l’éditeur.",
+                $"{results.Count} copie(s) calculée(s) · {referenceText} · {ownerText} · " +
+                $"{expectedState.Length} composant(s) d’état dérivé(s) du document. " +
+                "Les identités de cet aperçu sont éphémères et ne sont pas réservées au runtime.",
                 true,
-                destinations,
-                ownershipCopied,
-                referencesRemapped,
-                stateFiltered);
+                SimulatedDestinationIds: simulatedDestinations,
+                DestinationIdentitiesEphemeral: simulatedDestinations.Distinct().Count() == simulatedDestinations.Length &&
+                                                simulatedDestinations.All(id => area.Entities.All(entity => entity.Id != id)),
+                OwnershipProjected: ownershipProjected,
+                OwnershipUnavailable: ownershipUnavailable,
+                SelfReferencesRemapped: selfReferencesRemapped,
+                ExternalReferencesPreserved: externalReferencesPreserved,
+                ExternalReferencesDropped: externalReferencesDropped,
+                StateProjected: stateProjected,
+                SourceReferenceCount: sourceReferences.Count,
+                ResultReferenceCount: results.FirstOrDefault()?.References.Count ?? 0);
         }
         catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or OverflowException)
         {
@@ -439,13 +455,20 @@ internal sealed partial class StudioSessionController
                 "statue-dynamique",
                 "Statue dynamique",
                 BlueprintKind.Placeable);
+            var firstId = EntityId.From(Guid.Parse("c1c20000-0000-4000-8000-000000000002"));
+            var secondId = EntityId.From(Guid.Parse("c1c20000-0000-4000-8000-000000000003"));
             var first = new EntityInstance(
-                EntityId.From(Guid.Parse("c1c20000-0000-4000-8000-000000000002")),
+                firstId,
                 blueprint.Id,
                 new TransformValue(new Vector3Value(2, 0, 3), QuaternionValue.Identity, Vector3Value.One),
-                ["décor"]);
+                ["décor"],
+                new EntityPropertyOverrides(1,
+                [
+                    new EntityPropertyOverride("runtime.self-reference", EntityPropertyValueKind.String, firstId.ToString()),
+                    new EntityPropertyOverride("runtime.external-reference", EntityPropertyValueKind.String, secondId.ToString()),
+                ]));
             var second = new EntityInstance(
-                EntityId.From(Guid.Parse("c1c20000-0000-4000-8000-000000000003")),
+                secondId,
                 blueprint.Id,
                 new TransformValue(new Vector3Value(6, 0, 5), QuaternionValue.Identity, Vector3Value.One),
                 ["décor"]);
@@ -470,6 +493,10 @@ internal sealed partial class StudioSessionController
 
             var originalProject = editing.Project!;
             var originalExtensions = originalProject.Module.RuntimePolicies.Extensions;
+            var noSelectionDraft = editing.CreateZoneScaleDraftUx1W()!;
+            var noSelectionPreview = editing.PreviewZoneScaleUx1W(noSelectionDraft);
+            var selectionRequired = noSelectionDraft.EntityIds.Count == 0 && !noSelectionPreview.Succeeded &&
+                                    noSelectionPreview.Message.Contains("Sélectionnez", StringComparison.Ordinal);
             editing.SelectEntities([first.Id, second.Id], second.Id);
             var scaleDraft = editing.CreateZoneScaleDraftUx1W()! with
             {
@@ -485,8 +512,8 @@ internal sealed partial class StudioSessionController
             var scaleMultiEdit = scaleApplied.Succeeded && scaledArea.Entities.All(entity =>
                 entity.Transform.Scale == scaleDraft.Scale);
             var invalidScale = editing.PreviewZoneScaleUx1W(scaleDraft with
-            { Scale = new Vector3Value(.01f, 1, 1) });
-            var scaleConstraints = !invalidScale.Succeeded;
+                { Scale = new Vector3Value(.01f, 1, 1) });
+            var scaleConstraints = selectionRequired && !invalidScale.Succeeded;
             var scaleUndo = editing.Undo();
             var scaleUndone = ReferenceEquals(originalProject, editing.Project);
             var scaleRedo = editing.Redo();
@@ -513,7 +540,8 @@ internal sealed partial class StudioSessionController
                 LifetimeSeconds: 120,
                 RequireServerAuthority: true,
                 ResolveDependencies: true,
-            };
+            } && dynamicPreview.Summary.Contains("Politique globale", StringComparison.Ordinal) &&
+                dynamicPreview.Summary.Contains("n’est pas instanciée", StringComparison.Ordinal);
             var invalidDynamic = editing.PreviewDynamicAreaUx1W(dynamicDraft with { RequestedInstances = 9 });
             var dynamicQuota = !invalidDynamic.Succeeded;
             var dynamicUndo = editing.Undo();
@@ -529,25 +557,38 @@ internal sealed partial class StudioSessionController
                 RequireServerAuthority = true,
                 HasServerAuthority = true,
                 CopyOwnership = true,
-                ReferenceMode = RuntimeReferenceCopyMode.RemapInternal,
+                ReferenceMode = RuntimeReferenceCopyMode.PreserveExternal,
                 StateComponents = ["transform", "inventory"],
                 PositionOffset = new Vector3Value(3, 0, 2),
             };
+            var preservePreview = editing.PreviewRuntimeCopyUx1W(copyDraft);
+            var dropPreview = editing.PreviewRuntimeCopyUx1W(copyDraft with
+                { ReferenceMode = RuntimeReferenceCopyMode.DropExternal });
             var copyPreview = editing.PreviewRuntimeCopyUx1W(copyDraft);
             var runtimeCopyPreview = copyPreview.Succeeded && copyPreview.CanApply;
-            var destinationIds = copyPreview.DestinationIds;
-            var freshIdentities = destinationIds is { Count: 2 } &&
-                                  destinationIds.Distinct().Count() == 2 &&
-                                  destinationIds.All(id => id != first.Id && id != second.Id);
-            var ownershipReferencesState = copyPreview.OwnershipCopied && copyPreview.ReferencesRemapped &&
-                                           copyPreview.StateFiltered;
+            var destinationIds = copyPreview.SimulatedDestinationIds;
+            var simulatedIdentities = copyPreview.DestinationIdentitiesEphemeral &&
+                                      destinationIds is { Count: 2 } &&
+                                      destinationIds.Distinct().Count() == 2 &&
+                                      destinationIds.All(id => id != first.Id && id != second.Id) &&
+                                      copyPreview.Message.Contains("non réservées", StringComparison.Ordinal);
+            var derivedSourceProjection = copyPreview.OwnershipUnavailable &&
+                                          !copyPreview.OwnershipProjected &&
+                                          copyPreview.SelfReferencesRemapped && copyPreview.StateProjected &&
+                                          copyPreview.SourceReferenceCount == 2 &&
+                                          copyPreview.Summary.Contains("absent du document", StringComparison.Ordinal);
+            var preserveExternal = preservePreview.Succeeded && preservePreview.ExternalReferencesPreserved &&
+                                   preservePreview.SourceReferenceCount == 2 &&
+                                   preservePreview.ResultReferenceCount == 2;
+            var dropExternal = dropPreview.Succeeded && dropPreview.ExternalReferencesDropped &&
+                               dropPreview.SourceReferenceCount == 2 && dropPreview.ResultReferenceCount == 1;
             var copyApplied = editing.ApplyApprovedRuntimeCopyUx1W();
             var copiedProject = editing.Project!;
             var copyPolicy = copiedProject.Module.RuntimePolicies.Extensions.ModernTooling.RuntimeCopy;
             runtimeCopyPreview = runtimeCopyPreview && copyApplied.Succeeded &&
                                  copyPolicy.MaxCopiesPerTransaction == 4 &&
                                  copyPolicy.RequireServerAuthority && copyPolicy.CopyOwnership &&
-                                 copyPolicy.ReferenceMode == RuntimeReferenceCopyMode.RemapInternal &&
+                                 copyPolicy.ReferenceMode == RuntimeReferenceCopyMode.PreserveExternal &&
                                  copyPolicy.StateComponents.SequenceEqual(["inventory", "transform"]);
             var unauthorized = editing.PreviewRuntimeCopyUx1W(copyDraft with { HasServerAuthority = false });
             var invalidBlocked = scaleConstraints && dynamicQuota && !unauthorized.Succeeded;
@@ -596,14 +637,16 @@ internal sealed partial class StudioSessionController
                               restoredExtensions.ModernTooling.RuntimeCopy.MaxCopiesPerTransaction == 4 &&
                               restoredExtensions.ModernTooling.RuntimeCopy.CopyOwnership &&
                               restoredExtensions.ModernTooling.RuntimeCopy.ReferenceMode ==
-                              RuntimeReferenceCopyMode.RemapInternal &&
+                              RuntimeReferenceCopyMode.PreserveExternal &&
                               restoredExtensions.ModernTooling.RuntimeCopy.StateComponents
                                   .SequenceEqual(["inventory", "transform"]);
-            var humanDiagnostics = IsHumanUx1WMessage(invalidScale.Message) &&
+            var humanDiagnostics = IsHumanUx1WMessage(noSelectionPreview.Message) &&
+                                   IsHumanUx1WMessage(invalidScale.Message) &&
                                    IsHumanUx1WMessage(invalidDynamic.Message) &&
                                    IsHumanUx1WMessage(unauthorized.Message);
             var succeeded = scaleMultiEdit && scaleConstraints && scaleDryRun && dynamicAreaPreview &&
-                            dynamicQuota && runtimeCopyPreview && freshIdentities && ownershipReferencesState &&
+                            dynamicQuota && runtimeCopyPreview && simulatedIdentities && derivedSourceProjection &&
+                            preserveExternal && dropExternal &&
                             canonicalCommands && undoRedo && persistence && neighborsPreserved && invalidBlocked &&
                             humanDiagnostics;
             return new StudioUx1WSmokeResult(
@@ -614,8 +657,10 @@ internal sealed partial class StudioSessionController
                 dynamicAreaPreview,
                 dynamicQuota,
                 runtimeCopyPreview,
-                freshIdentities,
-                ownershipReferencesState,
+                simulatedIdentities,
+                derivedSourceProjection,
+                preserveExternal,
+                dropExternal,
                 canonicalCommands,
                 undoRedo,
                 persistence,
@@ -759,6 +804,63 @@ internal sealed partial class StudioSessionController
             source.PostLaunch);
     }
 
+    private static IReadOnlyList<EntityId> ResolveRuntimeCopyReferencesUx1W(
+        ProjectDefinition project,
+        EntityInstance source)
+    {
+        var values = source.Overrides.Properties
+            .Where(property => property.Kind == EntityPropertyValueKind.String)
+            .Select(property => property.Value)
+            .ToArray();
+        if (values.Length == 0)
+        {
+            return [];
+        }
+
+        return project.Areas.SelectMany(area => area.Entities)
+            .Select(entity => entity.Id)
+            .Distinct()
+            .Where(id => values.Any(value => value.Contains(id.ToString(), StringComparison.OrdinalIgnoreCase)))
+            .OrderBy(id => id.Value)
+            .ToArray();
+    }
+
+    private static IReadOnlyList<RuntimeEntityStateComponent> ResolveRuntimeCopyStateUx1W(EntityInstance source)
+    {
+        var transform = source.Transform;
+        var state = new List<RuntimeEntityStateComponent>
+        {
+            new("transform", JsonSerializer.Serialize(new
+            {
+                position = new[] { transform.Position.X, transform.Position.Y, transform.Position.Z },
+                rotation = new[] { transform.Rotation.X, transform.Rotation.Y, transform.Rotation.Z, transform.Rotation.W },
+                scale = new[] { transform.Scale.X, transform.Scale.Y, transform.Scale.Z },
+            })),
+        };
+        if (source.Overrides.Properties.Count > 0)
+        {
+            state.Add(new RuntimeEntityStateComponent(
+                "overrides",
+                JsonSerializer.Serialize(source.Overrides.Properties.ToDictionary(
+                    property => property.Key,
+                    property => property.Value,
+                    StringComparer.Ordinal))));
+        }
+        return state;
+    }
+
+    private static string? ResolveRuntimeCopyOwnerUx1W(ProjectDefinition project, EntityInstance source)
+    {
+        var placeable = project.Module.WorldFeatures.Placeables.FirstOrDefault(item =>
+            item.BlueprintId == source.BlueprintId);
+        if (placeable?.FactionOwnership is { } ownership)
+        {
+            return ownership.PrimaryFactionId.ToString("D");
+        }
+        var factionId = placeable?.FactionId;
+        return string.IsNullOrWhiteSpace(factionId) ? null : factionId.Trim();
+    }
+
     private static StudioZoneScalePreview FailedScale(string message) =>
         new(false, message, string.Empty, false);
 
@@ -769,6 +871,8 @@ internal sealed partial class StudioSessionController
         new(false, message, string.Empty, false);
 
     private static StudioUx1WSmokeResult FailedUx1WSmoke() => new(
+        false,
+        false,
         false,
         false,
         false,

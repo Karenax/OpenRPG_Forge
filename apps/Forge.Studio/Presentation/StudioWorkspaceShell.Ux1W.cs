@@ -44,7 +44,11 @@ internal sealed partial class StudioWorkspaceShell
         _placeableBlueprintOverlay.Close();
         SwitchPage("zones", notify: false);
         _zoneDynamicOperationsOverlay.OpenScale();
-        SetStatus("Outils de zone ouverts · aperçu obligatoire avant chaque application");
+        SetStatus(
+            _session.SelectedEntityIds.Count == 0
+                ? "Sélection explicite requise pour l’échelle · fermez l’outil, sélectionnez un objet, puis rouvrez-le."
+                : "Outils de zone ouverts · aperçu obligatoire avant chaque application",
+            error: _session.SelectedEntityIds.Count == 0);
     }
 
     private void RefreshAfterUx1WMutation()
@@ -105,8 +109,10 @@ internal sealed partial class StudioWorkspaceShell
             $"dynamic_preview={result.DynamicAreaPreview.ToString().ToLowerInvariant()} " +
             $"dynamic_quota={result.DynamicQuota.ToString().ToLowerInvariant()} " +
             $"runtime_copy={result.RuntimeCopyPreview.ToString().ToLowerInvariant()} " +
-            $"fresh_ids={result.FreshIdentities.ToString().ToLowerInvariant()} " +
-            $"ownership_refs_state={result.OwnershipReferencesState.ToString().ToLowerInvariant()} " +
+            $"simulated_ids={result.SimulatedIdentities.ToString().ToLowerInvariant()} " +
+            $"derived_source={result.DerivedSourceProjection.ToString().ToLowerInvariant()} " +
+            $"preserve_external={result.PreserveExternal.ToString().ToLowerInvariant()} " +
+            $"drop_external={result.DropExternal.ToString().ToLowerInvariant()} " +
             $"canonical_commands={result.CanonicalCommands.ToString().ToLowerInvariant()} " +
             $"undo_redo={result.UndoRedo.ToString().ToLowerInvariant()} " +
             $"persistence={result.Persistence.ToString().ToLowerInvariant()} " +

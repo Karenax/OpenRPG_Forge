@@ -21,7 +21,7 @@ internal sealed record StudioZoneScalePreview(
     int ObjectCount = 0);
 
 internal sealed record StudioDynamicAreaDraft(
-    AreaId PreviewAreaId,
+    AreaId ContextAreaId,
     bool Enabled,
     int MaximumInstances,
     int LifetimeSeconds,
@@ -52,10 +52,16 @@ internal sealed record StudioRuntimeCopyPreview(
     string Message,
     string Summary,
     bool CanApply,
-    IReadOnlyList<EntityId>? DestinationIds = null,
-    bool OwnershipCopied = false,
-    bool ReferencesRemapped = false,
-    bool StateFiltered = false);
+    IReadOnlyList<EntityId>? SimulatedDestinationIds = null,
+    bool DestinationIdentitiesEphemeral = false,
+    bool OwnershipProjected = false,
+    bool OwnershipUnavailable = false,
+    bool SelfReferencesRemapped = false,
+    bool ExternalReferencesPreserved = false,
+    bool ExternalReferencesDropped = false,
+    bool StateProjected = false,
+    int SourceReferenceCount = 0,
+    int ResultReferenceCount = 0);
 
 internal sealed record StudioUx1WActionResult(bool Succeeded, string Message);
 
@@ -67,8 +73,10 @@ internal sealed record StudioUx1WSmokeResult(
     bool DynamicAreaPreview,
     bool DynamicQuota,
     bool RuntimeCopyPreview,
-    bool FreshIdentities,
-    bool OwnershipReferencesState,
+    bool SimulatedIdentities,
+    bool DerivedSourceProjection,
+    bool PreserveExternal,
+    bool DropExternal,
     bool CanonicalCommands,
     bool UndoRedo,
     bool Persistence,
