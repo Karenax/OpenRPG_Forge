@@ -25,16 +25,98 @@ public sealed class WorldFeatureScriptService
             item.BlueprintId.ToString(), item.Provenance, new Dictionary<string, string>
             {
                 ["faction"] = item.FactionId ?? string.Empty,
+                ["primaryFaction"] = item.FactionOwnership?.PrimaryFactionId.ToString("D") ?? string.Empty,
+                ["factionMemberships"] = item.FactionOwnership is { } ownership
+                    ? string.Join(',', ownership.MembershipFactionIds.OrderBy(id => id))
+                    : string.Empty,
+                ["inheritFactionHostility"] = item.FactionOwnership?.InheritHostility.ToString() ?? string.Empty,
+                ["unauthorizedFactionActionsAreCrime"] =
+                    item.FactionOwnership?.UnauthorizedActionsAreCrime.ToString() ?? string.Empty,
+                ["factionMembersOnlyAccess"] = item.FactionOwnership?.MembersOnlyAccess.ToString() ?? string.Empty,
+                ["blockFriendlyFactionTargeting"] =
+                    item.FactionOwnership?.BlockFriendlyTargeting.ToString() ?? string.Empty,
+                ["dialogue"] = item.DialogueId?.ToString("D") ?? string.Empty,
+                ["conversationBindingCount"] = item.Conversation?.Bindings.Count.ToString() ?? string.Empty,
+                ["conversationDialogueIds"] = item.Conversation is { } conversationDialogues
+                    ? string.Join(',', conversationDialogues.Bindings
+                        .Select(binding => binding.DialogueId)
+                        .Distinct()
+                        .OrderBy(id => id))
+                    : string.Empty,
+                ["conversationTriggers"] = item.Conversation is { } conversationTriggers
+                    ? string.Join(',', conversationTriggers.Bindings
+                        .Select(binding => binding.Trigger.ToString())
+                        .Distinct()
+                        .Order(StringComparer.Ordinal))
+                    : string.Empty,
+                ["conversationEntryPoints"] = item.Conversation is { } conversationEntries
+                    ? string.Join(',', conversationEntries.Bindings
+                        .Select(binding => binding.EntryPointKey)
+                        .Distinct(StringComparer.Ordinal)
+                        .Order(StringComparer.Ordinal))
+                    : string.Empty,
+                ["conversationRequiredAtRuntime"] = item.Conversation is null
+                    ? string.Empty
+                    : item.ConversationRequiredAtRuntime.ToString(),
                 ["events"] = item.Reactive.Events.Count.ToString(),
                 ["physics"] = item.Physics?.Mode.ToString() ?? "none",
                 ["foundation"] = (item.Foundation is not null).ToString(),
                 ["role"] = item.Foundation?.Interaction is not null ? "interactable" :
                     item.Foundation?.StaticProp is not null ? "static" : "legacy",
                 ["asset"] = item.Foundation?.Visual.AssetId ?? string.Empty,
+                ["slug"] = item.Foundation?.Slug ?? string.Empty,
+                ["localizedNames"] = item.Foundation is { } identity
+                    ? string.Join(';', identity.Texts.OrderBy(text => text.Locale, StringComparer.OrdinalIgnoreCase)
+                        .Select(text => $"{text.Locale}:{text.Name}"))
+                    : string.Empty,
+                ["tags"] = item.Foundation is { } tagged
+                    ? string.Join(',', tagged.Tags.Order(StringComparer.Ordinal))
+                    : string.Empty,
+                ["authorNotes"] = item.Foundation?.AuthorNotes ?? string.Empty,
+                ["meshes"] = item.Foundation is { } meshes
+                    ? string.Join(',', meshes.Visual.MeshIds)
+                    : string.Empty,
+                ["materials"] = item.Foundation is { } materials
+                    ? string.Join(',', materials.Visual.MaterialIds)
+                    : string.Empty,
+                ["icon"] = item.Foundation?.Visual.IconAssetId ?? string.Empty,
+                ["portrait"] = item.Foundation?.Visual.PortraitAssetId ?? string.Empty,
+                ["visualEffects"] = item.Foundation is { } effects
+                    ? string.Join(',', effects.Visual.VisualEffectIds)
+                    : string.Empty,
+                ["position"] = item.Foundation is { } positioned
+                    ? FormattableString.Invariant(
+                        $"{positioned.Transform.Position.X:0.###},{positioned.Transform.Position.Y:0.###},{positioned.Transform.Position.Z:0.###}")
+                    : string.Empty,
+                ["rotationDegrees"] = item.Foundation is { } rotated
+                    ? FormattableString.Invariant(
+                        $"{rotated.Transform.RotationDegrees.X:0.###},{rotated.Transform.RotationDegrees.Y:0.###},{rotated.Transform.RotationDegrees.Z:0.###}")
+                    : string.Empty,
+                ["scale"] = item.Foundation is { } scaled
+                    ? FormattableString.Invariant(
+                        $"{scaled.Transform.Scale.X:0.###},{scaled.Transform.Scale.Y:0.###},{scaled.Transform.Scale.Z:0.###}")
+                    : string.Empty,
+                ["pivot"] = item.Foundation is { } pivoted
+                    ? FormattableString.Invariant(
+                        $"{pivoted.Transform.Pivot.X:0.###},{pivoted.Transform.Pivot.Y:0.###},{pivoted.Transform.Pivot.Z:0.###}")
+                    : string.Empty,
+                ["snapIncrement"] = item.Foundation is { } snapped
+                    ? FormattableString.Invariant($"{snapped.Transform.SnapIncrement:0.###}")
+                    : string.Empty,
+                ["parent"] = item.Foundation?.Transform.ParentId?.ToString("D") ?? string.Empty,
+                ["alignToSurface"] = item.Foundation?.Transform.AlignToSurface.ToString() ?? string.Empty,
+                ["transformAnimation"] = item.Foundation?.Transform.TransformAnimationId ?? string.Empty,
                 ["onUsed"] = (item.Foundation?.OnUsed is not null).ToString(),
                 ["forgeScriptApi"] = item.Foundation?.OnUsed?.ForgeScriptApiVersion ?? string.Empty,
                 ["validation"] = (item.Foundation?.Validation is not null).ToString(),
                 ["requiredAtRuntime"] = item.FoundationRequiredAtRuntime.ToString(),
+                ["credentialId"] = item.Credential?.CredentialId ?? string.Empty,
+                ["credentialMode"] = item.Credential?.Consumption.ToString() ?? string.Empty,
+                ["credentialCharges"] = item.Credential?.Charges.ToString(
+                    System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty,
+                ["credentialVirtualPermission"] = item.Credential?.VirtualPermission ?? string.Empty,
+                ["credentialAudit"] = item.Credential?.AuditUse.ToString() ?? string.Empty,
+                ["credentialRequiredAtRuntime"] = item.CredentialRequiredAtRuntime.ToString(),
                 ["operations"] = (item.Operations is not null).ToString(),
                 ["container"] = item.Operations?.Container is { } container
                     ? $"slots:{container.CapacitySlots};mass:{container.CapacityMass:0.##};owner:{container.OwnershipPolicy};persistent:{container.Persistent};replicated:{container.Replicated}"
@@ -50,42 +132,148 @@ public sealed class WorldFeatureScriptService
                     ? string.Join(',', stateMachine.States.Select(state => state.StateId).Order(StringComparer.Ordinal))
                     : string.Empty,
                 ["visualTransitions"] = item.Operations?.StateMachine?.Transitions.Count.ToString() ?? "0",
+                ["visualStateAnimations"] = item.Operations?.StateMachine is { } animationMachine
+                    ? string.Join(',', animationMachine.States
+                        .OrderBy(state => state.StateId, StringComparer.Ordinal)
+                        .Select(state => $"{state.StateId}={state.AnimationId}"))
+                    : string.Empty,
+                ["visualStateOverrides"] = item.Operations?.StateMachine is { } overrideMachine
+                    ? string.Join(',', overrideMachine.States
+                        .OrderBy(state => state.StateId, StringComparer.Ordinal)
+                        .Select(state => $"{state.StateId}={state.VisualOverrideId}"))
+                    : string.Empty,
+                ["interactableVisualStates"] = item.Operations?.StateMachine is { } interactionMachine
+                    ? string.Join(',', interactionMachine.States
+                        .Where(state => state.Interactable)
+                        .Select(state => state.StateId)
+                        .Order(StringComparer.Ordinal))
+                    : string.Empty,
+                ["visualTransitionTriggers"] = item.Operations?.StateMachine is { } transitionMachine
+                    ? string.Join(',', transitionMachine.Transitions
+                        .OrderBy(transition => transition.FromStateId, StringComparer.Ordinal)
+                        .ThenBy(transition => transition.ToStateId, StringComparer.Ordinal)
+                        .ThenBy(transition => transition.Trigger, StringComparer.Ordinal)
+                        .Select(transition =>
+                            $"{transition.FromStateId}->{transition.ToStateId}:{transition.Trigger}@" +
+                            transition.DurationSeconds.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) +
+                            (string.IsNullOrWhiteSpace(transition.Condition)
+                                ? string.Empty
+                                : $"[{transition.Condition}]")))
+                    : string.Empty,
                 ["damageable"] = item.Operations?.Damageable is { } damageable
                     ? $"health:{damageable.CurrentHealth:0.##}/{damageable.MaximumHealth:0.##};armor:{damageable.Armor:0.##};stages:{damageable.VisualStageThresholds.Count};repair:{damageable.Repairable}"
                     : string.Empty,
+                ["maximumHealth"] = item.Operations?.Damageable?.MaximumHealth.ToString(
+                    "0.###", System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty,
+                ["currentHealth"] = item.Operations?.Damageable?.CurrentHealth.ToString(
+                    "0.###", System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty,
+                ["damageArmor"] = item.Operations?.Damageable?.Armor.ToString(
+                    "0.###", System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty,
+                ["damageResistances"] = item.Operations?.Damageable is { } resistanceProfile
+                    ? string.Join(',', resistanceProfile.Resistances
+                        .OrderBy(entry => entry.Key, StringComparer.Ordinal)
+                        .Select(entry => $"{entry.Key}=" + entry.Value.ToString(
+                            "0.###", System.Globalization.CultureInfo.InvariantCulture)))
+                    : string.Empty,
+                ["visualDamageStages"] = item.Operations?.Damageable is { } stageProfile
+                    ? string.Join(',', stageProfile.VisualStageThresholds.Select(value => value.ToString(
+                        "0.###", System.Globalization.CultureInfo.InvariantCulture)))
+                    : string.Empty,
+                ["destructionEffect"] = item.Operations?.Damageable?.DestructionEffectId ?? string.Empty,
+                ["debrisDefinition"] = item.Operations?.Damageable?.DebrisDefinitionId ?? string.Empty,
+                ["repairable"] = item.Operations?.Damageable?.Repairable.ToString() ?? string.Empty,
+                ["repairCost"] = item.Operations?.Damageable?.RepairCost.ToString(
+                    "0.###", System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty,
                 ["protection"] = item.Operations?.Protection is { } protection
                     ? string.Join(',', protection.ProtectedActions.Order(StringComparer.Ordinal))
                     : string.Empty,
+                ["protectedActions"] = item.Operations?.Protection is { } protectedActionProfile
+                    ? string.Join(',', protectedActionProfile.ProtectedActions.Order(StringComparer.Ordinal))
+                    : string.Empty,
+                ["protectionPermissions"] = item.Operations?.Protection is { } permissionProfile
+                    ? string.Join(',', permissionProfile.RequiredPermissions.Order(StringComparer.Ordinal))
+                    : string.Empty,
+                ["protectionFeedback"] = item.Operations?.Protection?.Feedback ?? string.Empty,
+                ["allowGameMasterOverride"] =
+                    item.Operations?.Protection?.AllowGameMasterOverride.ToString() ?? string.Empty,
                 ["protectionAudit"] = item.Operations?.Protection?.AuditBinding ?? string.Empty,
                 ["lock"] = item.Operations?.Lock is { } lockProfile
                     ? $"{lockProfile.InitialState};credentials:{lockProfile.CredentialIds.Count};skill:{lockProfile.SkillId};code:{lockProfile.CodeHash is not null};hacking:{lockProfile.Hackable};relock:{lockProfile.Relockable};jam:{lockProfile.CanJam}"
                     : string.Empty,
+                ["lockState"] = item.Operations?.Lock?.InitialState.ToString() ?? string.Empty,
+                ["lockCredentialIds"] = item.Operations?.Lock is { } lockCredentialProfile
+                    ? string.Join(',', lockCredentialProfile.CredentialIds.Order(StringComparer.Ordinal))
+                    : string.Empty,
+                ["lockSkill"] = item.Operations?.Lock?.SkillId ?? string.Empty,
+                ["lockDifficulty"] = item.Operations?.Lock?.Difficulty.ToString(
+                    "0.###", System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty,
+                ["lockHasCode"] = (item.Operations?.Lock?.CodeHash is not null).ToString(),
+                ["lockHackable"] = item.Operations?.Lock?.Hackable.ToString() ?? string.Empty,
+                ["lockRelockable"] = item.Operations?.Lock?.Relockable.ToString() ?? string.Empty,
+                ["lockCanJam"] = item.Operations?.Lock?.CanJam.ToString() ?? string.Empty,
+                ["lockPermissions"] = item.Operations?.Lock is { } lockPermissionProfile
+                    ? string.Join(',', lockPermissionProfile.RequiredPermissions.Order(StringComparer.Ordinal))
+                    : string.Empty,
                 ["operationsRequiredAtRuntime"] = item.OperationsRequiredAtRuntime.ToString(),
                 ["securityEvents"] = (item.SecurityEvents is not null).ToString(),
-                ["trap"] = item.SecurityEvents is { Trap: var trap }
+                ["trap"] = item.SecurityEvents is { Trap: { } trap }
                     ? $"trigger:{trap.TriggerId};payload:{trap.PayloadId};detect:{trap.DetectionDifficulty:0.##};disarm:{trap.DisarmDifficulty:0.##};reset:{trap.ResetDelaySeconds:0.##};owner:{trap.OwnerId};vfx:{trap.VisualEffectId};friendly:{trap.FriendlyPolicy};armed:{trap.Armed};oneShot:{trap.OneShot}"
                     : string.Empty,
-                ["lootSpawner"] = item.SecurityEvents is { Loot: var loot }
+                ["trapTrigger"] = item.SecurityEvents?.Trap?.TriggerId ?? string.Empty,
+                ["trapPayload"] = item.SecurityEvents?.Trap?.PayloadId ?? string.Empty,
+                ["trapDetection"] = item.SecurityEvents?.Trap?.DetectionDifficulty.ToString(
+                    "0.###", System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty,
+                ["trapDisarm"] = item.SecurityEvents?.Trap?.DisarmDifficulty.ToString(
+                    "0.###", System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty,
+                ["trapResetSeconds"] = item.SecurityEvents?.Trap?.ResetDelaySeconds.ToString(
+                    "0.###", System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty,
+                ["trapOwner"] = item.SecurityEvents?.Trap?.OwnerId ?? string.Empty,
+                ["trapVisualEffect"] = item.SecurityEvents?.Trap?.VisualEffectId ?? string.Empty,
+                ["trapFriendlyPolicy"] = item.SecurityEvents?.Trap?.FriendlyPolicy ?? string.Empty,
+                ["trapArmed"] = item.SecurityEvents?.Trap?.Armed.ToString() ?? string.Empty,
+                ["trapOneShot"] = item.SecurityEvents?.Trap?.OneShot.ToString() ?? string.Empty,
+                ["trapRequiredAtRuntime"] = item.TrapRequiredAtRuntime.ToString(),
+                ["lootSpawner"] = item.SecurityEvents is { Loot: { } loot }
                     ? $"table:{loot.LootTableId:D};timing:{loot.Timing};seed:{loot.Seed};persisted:{loot.PersistGeneratedState};generation:{loot.Generation}"
                     : string.Empty,
-                ["lootEntries"] = item.SecurityEvents?.Loot.LootTable.Entries.Count.ToString() ?? "0",
-                ["containerOpened"] = item.SecurityEvents?.ContainerEvents.OpenedBinding ?? string.Empty,
-                ["containerClosed"] = item.SecurityEvents?.ContainerEvents.ClosedBinding ?? string.Empty,
-                ["containerEventApi"] = item.SecurityEvents?.ContainerEvents.ForgeScriptApiVersion ?? string.Empty,
-                ["containerEventPayload"] = item.SecurityEvents is { ContainerEvents: var containerEvents } &&
+                ["lootEntries"] = item.SecurityEvents?.Loot?.LootTable.Entries.Count.ToString() ?? "0",
+                ["lootTableId"] = item.SecurityEvents?.Loot?.LootTableId.ToString("D") ?? string.Empty,
+                ["lootTiming"] = item.SecurityEvents?.Loot?.Timing.ToString() ?? string.Empty,
+                ["lootSeed"] = item.SecurityEvents?.Loot?.Seed.ToString(
+                    System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty,
+                ["lootPersistGeneratedState"] =
+                    item.SecurityEvents?.Loot?.PersistGeneratedState.ToString() ?? string.Empty,
+                ["lootGeneration"] = item.SecurityEvents?.Loot?.Generation.ToString(
+                    System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty,
+                ["lootSavedResults"] = item.SecurityEvents is { Loot: { } savedLoot }
+                    ? string.Join(';', savedLoot.SavedResults.Select(result =>
+                        $"{result.ItemDefinitionId:D}:{result.Group}:{result.Quantity}:{result.Quality}"))
+                    : string.Empty,
+                ["lootTableEntries"] = item.SecurityEvents is { Loot: { } tableLoot }
+                    ? string.Join(';', tableLoot.LootTable.Entries.Select(entry =>
+                        $"{entry.ItemDefinitionId:D}:{entry.Group}:{entry.Weight.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)}:{entry.MinimumQuantity}:{entry.MaximumQuantity}:{entry.MinimumQuality}:{entry.Condition}:{entry.Unique}"))
+                    : string.Empty,
+                ["lootRequiredAtRuntime"] = item.LootRequiredAtRuntime.ToString(),
+                ["containerOpened"] = item.SecurityEvents?.ContainerEvents?.OpenedBinding ?? string.Empty,
+                ["containerClosed"] = item.SecurityEvents?.ContainerEvents?.ClosedBinding ?? string.Empty,
+                ["containerEventApi"] = item.SecurityEvents?.ContainerEvents?.ForgeScriptApiVersion ?? string.Empty,
+                ["containerEventPayload"] = item.SecurityEvents is { ContainerEvents: { } containerEvents } &&
                     containerEvents.IncludeActor && containerEvents.IncludeResult &&
                     containerEvents.IncludePreviousState && containerEvents.IncludeAuthority
                         ? "actor-result-previous-state-authority"
                         : string.Empty,
-                ["lockStateChanging"] = item.SecurityEvents?.LockEvents.ChangingBinding ?? string.Empty,
-                ["lockStateChanged"] = item.SecurityEvents?.LockEvents.ChangedBinding ?? string.Empty,
-                ["lockEventPayload"] = item.SecurityEvents is { LockEvents: var lockEvents } &&
+                ["containerEventsRequiredAtRuntime"] = item.ContainerEventsRequiredAtRuntime.ToString(),
+                ["lockStateChanging"] = item.SecurityEvents?.LockEvents?.ChangingBinding ?? string.Empty,
+                ["lockStateChanged"] = item.SecurityEvents?.LockEvents?.ChangedBinding ?? string.Empty,
+                ["lockEventApi"] = item.SecurityEvents?.LockEvents?.ForgeScriptApiVersion ?? string.Empty,
+                ["lockEventPayload"] = item.SecurityEvents is { LockEvents: { } lockEvents } &&
                     lockEvents.IncludeMethod && lockEvents.IncludeCredential && lockEvents.IncludeActor &&
                     lockEvents.ControlledVeto
                         ? "method-credential-actor-controlled-veto"
                         : string.Empty,
-                ["contentsChanged"] = item.SecurityEvents?.ContentsChanged.EventBinding ?? string.Empty,
-                ["contentsChangedPayload"] = item.SecurityEvents is { ContentsChanged: var disturbed } &&
+                ["lockEventsRequiredAtRuntime"] = item.LockEventsRequiredAtRuntime.ToString(),
+                ["contentsChanged"] = item.SecurityEvents?.ContentsChanged?.EventBinding ?? string.Empty,
+                ["contentsChangedPayload"] = item.SecurityEvents is { ContentsChanged: { } disturbed } &&
                     disturbed.IncludeTransactionalDelta && disturbed.IncludeCause && disturbed.IncludeRevision &&
                     disturbed.IncludeActor
                         ? "transactional-delta-cause-revision-actor"

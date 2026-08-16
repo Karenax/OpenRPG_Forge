@@ -26,7 +26,7 @@ public sealed class SetRulesProfilesHandler
         var modulePolicies = new ModuleRuntimePolicyProfile(previousModule.Id, previousModule.SchemaVersion,
             previousModule.Heartbeats, previousModule.Rest, previousModule.SequenceAbort, "rules-command",
             previousModule.Cinematics, previousModule.Gameplay, command.ModuleProfile, previousModule.Extensions,
-            previousModule.GameplayEvents, previousModule.World);
+            previousModule.GameplayEvents, previousModule.World, previousModule.LifecycleEvents);
         var previousArea = area.RuntimePolicies;
         var areaPolicies = new AreaRuntimePolicyProfile(previousArea.Id, previousArea.SchemaVersion,
             previousArea.Heartbeats, previousArea.Rest, "rules-command", previousArea.Cinematics,

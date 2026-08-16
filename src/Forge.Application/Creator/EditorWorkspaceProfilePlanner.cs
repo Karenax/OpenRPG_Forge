@@ -10,7 +10,9 @@ public static class EditorWorkspaceProfilePlanner
     {
         ArgumentNullException.ThrowIfNull(profile);
         ArgumentNullException.ThrowIfNull(areaId);
-        var tabs = profile.OpenAreaTabs.Where(candidate => candidate != areaId).Append(areaId).TakeLast(8).ToArray();
+        var tabs = profile.OpenAreaTabs.Contains(areaId)
+            ? profile.OpenAreaTabs.ToArray()
+            : profile.OpenAreaTabs.Append(areaId).TakeLast(8).ToArray();
         return Copy(profile, openAreaTabs: tabs, activeAreaId: activate ? areaId : profile.ActiveAreaId);
     }
 

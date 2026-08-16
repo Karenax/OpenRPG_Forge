@@ -20,6 +20,7 @@ public sealed record ModuleRuntimePolicyProfile
     public ModuleGameplayControlProfile Gameplay { get; }
     public ModuleRulesProfile Rules { get; }
     public ModuleRuntimeExtensionProfile Extensions { get; }
+    public ProjectLifecycleEventProfile LifecycleEvents { get; }
     public ProjectGameplayEventProfile GameplayEvents { get; }
     public ProjectWorldProfile World { get; }
     public string Provenance { get; }
@@ -29,7 +30,7 @@ public sealed record ModuleRuntimePolicyProfile
         SequenceAbortPolicy sequenceAbort, string provenance, ModuleCinematicProfile? cinematics = null,
         ModuleGameplayControlProfile? gameplay = null, ModuleRulesProfile? rules = null,
         ModuleRuntimeExtensionProfile? extensions = null, ProjectGameplayEventProfile? gameplayEvents = null,
-        ProjectWorldProfile? world = null)
+        ProjectWorldProfile? world = null, ProjectLifecycleEventProfile? lifecycleEvents = null)
     {
         ArgumentNullException.ThrowIfNull(heartbeats);
         ArgumentNullException.ThrowIfNull(rest);
@@ -52,6 +53,7 @@ public sealed record ModuleRuntimePolicyProfile
         Gameplay = gameplay ?? ModuleGameplayControlProfile.CreateDefault(ModuleId.From(id));
         Rules = rules ?? ModuleRulesProfile.CreateDefault(ModuleId.From(id));
         Extensions = extensions ?? ModuleRuntimeExtensionProfile.CreateDefault(ModuleId.From(id));
+        LifecycleEvents = lifecycleEvents ?? ProjectLifecycleEventProfile.CreateDefault(ModuleId.From(id));
         GameplayEvents = gameplayEvents ?? ProjectGameplayEventProfile.CreateDefault(id);
         World = world ?? ProjectWorldProfile.CreateDefault(id);
         Provenance = provenance.Trim();

@@ -114,6 +114,9 @@ public sealed class NavigateEditorCameraHandler
             EditorCameraOperation.SetInput => command.Input is null
                 ? throw new CameraCommandException(ValueInvalidCode, "A camera input configuration is required.")
                 : WithInput(profile, command.Input),
+            EditorCameraOperation.SetPose => command.Pose is null
+                ? throw new CameraCommandException(ValueInvalidCode, "A camera pose is required.")
+                : WithPose(profile, command.Pose),
             _ => throw new CameraCommandException(ValueInvalidCode, $"Camera operation '{command.Operation}' is not supported."),
         };
     }

@@ -767,10 +767,33 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.Equal("True", item.Properties["foundation"]);
         Assert.Equal("interactable", item.Properties["role"]);
         Assert.Equal("assets/placeables/crypt-pillar.glb", item.Properties["asset"]);
+        Assert.Equal("crypt-pillar", item.Properties["slug"]);
+        Assert.Equal("en-US:Ash pillar;fr-FR:Pilier des cendres", item.Properties["localizedNames"]);
+        Assert.Equal("architecture,ash,crypt", item.Properties["tags"]);
+        Assert.Equal("Pilier interactif de la crypte.", item.Properties["authorNotes"]);
+        Assert.Equal("mesh:crypt-pillar", item.Properties["meshes"]);
+        Assert.Equal("material:ash-stone", item.Properties["materials"]);
+        Assert.Equal("assets/icons/crypt-pillar.png", item.Properties["icon"]);
+        Assert.Equal("assets/portraits/crypt-pillar.png", item.Properties["portrait"]);
+        Assert.Equal("vfx:ember-glow", item.Properties["visualEffects"]);
+        Assert.Equal("1.25,0,-2.5", item.Properties["position"]);
+        Assert.Equal("0,45,0", item.Properties["rotationDegrees"]);
+        Assert.Equal("1,1,1", item.Properties["scale"]);
+        Assert.Equal("0,0.5,0", item.Properties["pivot"]);
+        Assert.Equal("0.25", item.Properties["snapIncrement"]);
+        Assert.Equal(string.Empty, item.Properties["parent"]);
+        Assert.Equal("True", item.Properties["alignToSurface"]);
+        Assert.Equal("animation:crypt-pillar-rise", item.Properties["transformAnimation"]);
         Assert.Equal("True", item.Properties["onUsed"]);
         Assert.Equal("1.0.0", item.Properties["forgeScriptApi"]);
         Assert.Equal("True", item.Properties["validation"]);
         Assert.Equal("True", item.Properties["requiredAtRuntime"]);
+        Assert.Equal("key:ember", item.Properties["credentialId"]);
+        Assert.Equal("Charge", item.Properties["credentialMode"]);
+        Assert.Equal("3", item.Properties["credentialCharges"]);
+        Assert.Equal(string.Empty, item.Properties["credentialVirtualPermission"]);
+        Assert.Equal("True", item.Properties["credentialAudit"]);
+        Assert.Equal("False", item.Properties["credentialRequiredAtRuntime"]);
         Assert.Equal("True", item.Properties["operations"]);
         Assert.Equal("slots:24;mass:160;owner:party;persistent:True;replicated:True",
             item.Properties["container"]);
@@ -781,25 +804,95 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.Equal("closed", item.Properties["initialVisualState"]);
         Assert.Equal("active,broken,closed,custom,idle,open", item.Properties["visualStates"]);
         Assert.Equal("3", item.Properties["visualTransitions"]);
+        Assert.Equal(
+            "active=animation:active,broken=animation:broken,closed=animation:closed,custom=animation:custom,idle=animation:idle,open=animation:open",
+            item.Properties["visualStateAnimations"]);
+        Assert.Equal(
+            "active=visual:embers,broken=visual:broken,closed=visual:closed,custom=visual:quest,idle=visual:default,open=visual:open",
+            item.Properties["visualStateOverrides"]);
+        Assert.Equal("active,closed,custom,idle,open", item.Properties["interactableVisualStates"]);
+        Assert.Equal(
+            "closed->broken:destroyed@0.25,closed->open:open@1[quest:crypt-open],open->closed:close@1",
+            item.Properties["visualTransitionTriggers"]);
         Assert.Equal("health:100/100;armor:10;stages:3;repair:True", item.Properties["damageable"]);
+        Assert.Equal("100", item.Properties["maximumHealth"]);
+        Assert.Equal("100", item.Properties["currentHealth"]);
+        Assert.Equal("10", item.Properties["damageArmor"]);
+        Assert.Equal("fire=0.25,force=0.5", item.Properties["damageResistances"]);
+        Assert.Equal("0.75,0.5,0.25", item.Properties["visualDamageStages"]);
+        Assert.Equal("vfx:ember-shatter", item.Properties["destructionEffect"]);
+        Assert.Equal("debris:crypt-pillar", item.Properties["debrisDefinition"]);
+        Assert.Equal("True", item.Properties["repairable"]);
+        Assert.Equal("20", item.Properties["repairCost"]);
         Assert.Equal("destroy,move", item.Properties["protection"]);
+        Assert.Equal("destroy,move", item.Properties["protectedActions"]);
+        Assert.Equal("placeable.plot.override", item.Properties["protectionPermissions"]);
+        Assert.Equal("Cet objet appartient à l'histoire.", item.Properties["protectionFeedback"]);
+        Assert.Equal("True", item.Properties["allowGameMasterOverride"]);
         Assert.Equal("PlaceableProtectionOverride", item.Properties["protectionAudit"]);
+        Assert.Equal(string.Empty, item.Properties["primaryFaction"]);
+        Assert.Equal(string.Empty, item.Properties["factionMemberships"]);
+        Assert.Equal(string.Empty, item.Properties["inheritFactionHostility"]);
+        Assert.Equal(string.Empty, item.Properties["unauthorizedFactionActionsAreCrime"]);
+        Assert.Equal(string.Empty, item.Properties["factionMembersOnlyAccess"]);
+        Assert.Equal(string.Empty, item.Properties["blockFriendlyFactionTargeting"]);
+        Assert.Equal(placeable.DialogueId?.ToString("D"), item.Properties["dialogue"]);
+        Assert.Equal(string.Empty, item.Properties["conversationBindingCount"]);
+        Assert.Equal(string.Empty, item.Properties["conversationDialogueIds"]);
+        Assert.Equal(string.Empty, item.Properties["conversationTriggers"]);
+        Assert.Equal(string.Empty, item.Properties["conversationEntryPoints"]);
+        Assert.Equal(string.Empty, item.Properties["conversationRequiredAtRuntime"]);
         Assert.Equal("Locked;credentials:1;skill:mechanics;code:True;hacking:True;relock:True;jam:True",
             item.Properties["lock"]);
+        Assert.Equal("Locked", item.Properties["lockState"]);
+        Assert.Equal("key:ember", item.Properties["lockCredentialIds"]);
+        Assert.Equal("mechanics", item.Properties["lockSkill"]);
+        Assert.Equal("12", item.Properties["lockDifficulty"]);
+        Assert.Equal("True", item.Properties["lockHasCode"]);
+        Assert.Equal("True", item.Properties["lockHackable"]);
+        Assert.Equal("True", item.Properties["lockRelockable"]);
+        Assert.Equal("True", item.Properties["lockCanJam"]);
+        Assert.Equal("placeable.lock.admin", item.Properties["lockPermissions"]);
         Assert.Equal("True", item.Properties["operationsRequiredAtRuntime"]);
         Assert.Equal("True", item.Properties["securityEvents"]);
         Assert.Contains("payload:damage:ember-burst", item.Properties["trap"], StringComparison.Ordinal);
         Assert.Contains("detect:10", item.Properties["trap"], StringComparison.Ordinal);
         Assert.Contains("disarm:12", item.Properties["trap"], StringComparison.Ordinal);
+        Assert.Equal("container:open", item.Properties["trapTrigger"]);
+        Assert.Equal("damage:ember-burst", item.Properties["trapPayload"]);
+        Assert.Equal("10", item.Properties["trapDetection"]);
+        Assert.Equal("12", item.Properties["trapDisarm"]);
+        Assert.Equal("30", item.Properties["trapResetSeconds"]);
+        Assert.Equal("ash-watch", item.Properties["trapOwner"]);
+        Assert.Equal("vfx:ember-burst", item.Properties["trapVisualEffect"]);
+        Assert.Equal("ash-watch", item.Properties["trapFriendlyPolicy"]);
+        Assert.Equal("True", item.Properties["trapArmed"]);
+        Assert.Equal("True", item.Properties["trapOneShot"]);
+        Assert.Equal("False", item.Properties["trapRequiredAtRuntime"]);
         Assert.Contains("timing:Open", item.Properties["lootSpawner"], StringComparison.Ordinal);
         Assert.Contains("seed:42", item.Properties["lootSpawner"], StringComparison.Ordinal);
         Assert.Equal("1", item.Properties["lootEntries"]);
+        Assert.Equal(placeable.SecurityEvents!.Loot!.LootTableId.ToString("D"),
+            item.Properties["lootTableId"]);
+        Assert.Equal("Open", item.Properties["lootTiming"]);
+        Assert.Equal("42", item.Properties["lootSeed"]);
+        Assert.Equal("True", item.Properties["lootPersistGeneratedState"]);
+        Assert.Equal("0", item.Properties["lootGeneration"]);
+        Assert.Equal(string.Empty, item.Properties["lootSavedResults"]);
+        Assert.Contains(
+            placeable.SecurityEvents.Loot.LootTable.Entries.Single().ItemDefinitionId.ToString("D"),
+            item.Properties["lootTableEntries"],
+            StringComparison.Ordinal);
+        Assert.Equal("False", item.Properties["lootRequiredAtRuntime"]);
         Assert.Equal("ContainerOpened", item.Properties["containerOpened"]);
         Assert.Equal("ContainerClosed", item.Properties["containerClosed"]);
         Assert.Equal("actor-result-previous-state-authority", item.Properties["containerEventPayload"]);
+        Assert.Equal("False", item.Properties["containerEventsRequiredAtRuntime"]);
         Assert.Equal("LockStateChanging", item.Properties["lockStateChanging"]);
         Assert.Equal("LockStateChanged", item.Properties["lockStateChanged"]);
+        Assert.Equal("1.0.0", item.Properties["lockEventApi"]);
         Assert.Equal("method-credential-actor-controlled-veto", item.Properties["lockEventPayload"]);
+        Assert.Equal("False", item.Properties["lockEventsRequiredAtRuntime"]);
         Assert.Equal("ContainerContentsChanged", item.Properties["contentsChanged"]);
         Assert.Equal("transactional-delta-cause-revision-actor", item.Properties["contentsChangedPayload"]);
         Assert.Equal("True", item.Properties["securityEventsRequiredAtRuntime"]);

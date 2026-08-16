@@ -27,6 +27,8 @@ internal sealed class EntityMutationTestContext
 
     internal SetEntityOverridesHandler OverridesHandler { get; } = new(new FixedClock(Timestamp));
 
+    internal SetEntityTagsHandler TagsHandler { get; } = new(new FixedClock(Timestamp));
+
     internal EntityMutationTestContext()
     {
         var blueprint = new BlueprintDefinition(
@@ -93,5 +95,19 @@ internal sealed class EntityMutationTestContext
                     new EntityPropertyOverride("displayName", EntityPropertyValueKind.String, "Pilier fendu"),
                     new EntityPropertyOverride("locked", EntityPropertyValueKind.Boolean, "true"),
                 ]),
+            dryRun);
+
+    internal SetEntityTagsCommand CreateTagsCommand(
+        bool dryRun = false,
+        ProjectRevision? revision = null,
+        AreaId? areaId = null,
+        EntityId? entityId = null,
+        IReadOnlyList<string>? tags = null) =>
+        new(
+            CommandId.From(Guid.Parse("42d83569-3237-4a8c-9a68-fd7e307ed47d")),
+            revision ?? State.Revision,
+            areaId ?? AreaId,
+            entityId ?? EntityId,
+            tags ?? ["interactive", "solid"],
             dryRun);
 }

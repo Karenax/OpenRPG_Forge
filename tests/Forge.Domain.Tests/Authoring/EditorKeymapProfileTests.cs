@@ -40,6 +40,22 @@ public sealed class EditorKeymapProfileTests
     }
 
     [Theory]
+    [InlineData(EditorKeymapPreset.Standard)]
+    [InlineData(EditorKeymapPreset.Aurora)]
+    [InlineData(EditorKeymapPreset.Blender)]
+    public void BuiltInProfilesExposeCanonicalCutShortcut(EditorKeymapPreset preset)
+    {
+        var profile = EditorKeymapProfile.CreatePreset(preset);
+
+        var binding = Assert.Single(profile.Bindings,
+            item => item.CommandId == EditorKeymapCatalog.CutSelection);
+
+        Assert.Equal("Ctrl+X", binding.Gesture.CanonicalText);
+        Assert.Equal(EditorKeymapCatalog.CutSelection,
+            profile.Resolve("X", ctrl: true, alt: false, shift: false, meta: false)?.CommandId);
+    }
+
+    [Theory]
     [InlineData("Ctrl+Shift+P", "P", true, false, true, false)]
     [InlineData("F6", "F6", false, false, false, false)]
     [InlineData("Delete", "DELETE", false, false, false, false)]

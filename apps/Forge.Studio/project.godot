@@ -1,0 +1,47 @@
+; OpenRPG Forge Studio standalone application.
+; The Godot editor is a build dependency, not the product shell.
+
+config_version=5
+
+[application]
+
+config/name="OpenRPG Forge Studio"
+config/description="Standalone module authoring and retouching application"
+config/version="0.1.0-dev"
+run/main_scene="res://Main.tscn"
+config/features=PackedStringArray("4.7", "C#")
+boot_splash/bg_color=Color(0.047, 0.051, 0.047, 1)
+boot_splash/minimum_display_time=350
+
+[display]
+
+window/size/viewport_width=1600
+window/size/viewport_height=900
+window/size/window_width_override=1600
+window/size/window_height_override=900
+window/stretch/mode="disabled"
+window/dpi/allow_hidpi=true
+
+[dotnet]
+
+project/assembly_name="Forge.Studio"
+
+[rendering]
+
+renderer/rendering_method="forward_plus"
+renderer/rendering_method.mobile="gl_compatibility"
+
+[shader_globals]
+
+gnd_wind_direction={
+"type": "vec2",
+"value": Vector2(0.8, 0.3)
+}
+gnd_wind_speed={
+"type": "float",
+"value": 1.0
+}
+gnd_wind_strength={
+"type": "float",
+"value": 1.25
+}

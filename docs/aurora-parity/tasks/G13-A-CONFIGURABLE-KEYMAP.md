@@ -8,7 +8,7 @@ dans le projet canonique ni dans le module `.orpmod`.
 
 ## Contrat livré
 
-- `EditorKeymapProfile` porte un UUID stable, un schéma v1, une provenance, un preset et treize
+- `EditorKeymapProfile` porte un UUID stable, un schéma v1, une provenance, un preset et quatorze
   bindings typés sans type Godot ;
 - les profils Standard, Aurora et Blender sont complets et sans conflit ; toute modification
   ponctuelle produit un profil Custom ;
@@ -28,20 +28,22 @@ dans le projet canonique ni dans le module `.orpmod`.
 
 ## Preuves
 
-- `EditorKeymapProfileTests` : 8 cas avec presets, absence de conflit, diagnostics et normalisation ;
+- `EditorKeymapProfileTests` : 11 cas avec presets, raccourci de coupe, absence de conflit,
+  diagnostics et normalisation ;
 - `EditorKeymapCommandTests` : 3 cas couvrant preview/apply, conflit, révision, recherche et undo/redo ;
-- `EditorKeymapProfileStoreTests` : 3 cas couvrant absence, round-trip déterministe et repli explicite ;
+- `EditorKeymapProfileStoreTests` : 4 cas couvrant absence, round-trip déterministe, migration du
+  profil à treize commandes et repli explicite ;
 - compilation Toolset : zéro avertissement, zéro erreur ;
 - smoke éditeur :
   `OPENRPG_FORGE_TOOLSET_G13A_KEYMAP_PASS profiles=standard-aurora-blender commands=searchable
-  bindings=13 conflicts=blocked input=executed ui=visible-empty-error uuid=stable schema=v1
+  bindings=14 conflicts=blocked input=executed ui=visible-empty-error uuid=stable schema=v1
   provenance=tracked transaction=identified dry-run=previewed audit=generated history=restored
   persistence=roundtrip runtime=optional` ;
 - le même smoke atteint ensuite `OPENRPG_FORGE_TOOLSET_T32_SMOKE_PASS`.
 
 ## Limites explicites
 
-- les treize commandes couvrent les actions Forge transversales déjà stabilisées ; les écrans
+- les quatorze commandes couvrent les actions Forge transversales déjà stabilisées ; les écrans
   spécialisés pourront enregistrer leurs commandes dans le catalogue lors de futurs lots ;
 - les raccourcis sont locaux à un workspace : leur synchronisation entre machines reste volontairement
   hors du module distribuable ;

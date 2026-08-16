@@ -30,6 +30,10 @@ public sealed class PlaceableFoundationTests
         var transform = new PlaceableTransform(new(1.24, 2.26, -0.24), new(0, 45, 0), new(1, 1, 1), new(0, 0.5, 0), 0.5, Guid.NewGuid(), true, "animation:lighthouse-rise");
         var result = PlaceableAuthoringService.Transform(state, definition.Id, transform, 0, false);
         Assert.Equal(new Vector3Value(1, 2.5, 0), result.Definition.Transform.Position); Assert.True(result.Definition.Transform.AlignToSurface); Assert.NotNull(result.Definition.Transform.ParentId);
+        var nonFinite = definition with { Transform = transform with { Position = new(double.NaN, 0, 0) } };
+        var selfParented = definition with { Transform = transform with { ParentId = definition.Id } };
+        Assert.Contains(PlaceableRules.Validate(nonFinite), item => item.Code == "RPG_PLACEABLE_TRANSFORM_INVALID");
+        Assert.Contains(PlaceableRules.Validate(selfParented), item => item.Code == "RPG_PLACEABLE_TRANSFORM_INVALID");
     }
 
     private static PlaceableDefinition Interactable() => new(Guid.NewGuid(), 1, "author:test", "lighthouse-console", [new("fr", "Console du phare", "Ouvrir")], new HashSet<string> { "lighthouse", "mechanism" }, "La Veillée des Éclats", new(["asset:console"], ["asset:brass"], "asset:console-icon", "asset:console-portrait", ["vfx:glass-glow"]), new("box", new(1, 1.5, 0.5), true, true, "world"), new([new("open", "Open", "PlaceableUsed", "lighthouse-powered")], 2.5, 100, true, TimeSpan.FromSeconds(1), "server", "Ouvrir la console", new HashSet<string> { "lighthouse-powered" }), null, new(true, false, true, false, false, ["on_console_used"]), new(new(0, 0, 0), new(0, 0, 0), new(1, 1, 1), new(0, 0, 0), 0.25, null, true, null));

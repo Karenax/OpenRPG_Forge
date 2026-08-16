@@ -22,6 +22,10 @@ public sealed record SequenceAbortPolicy
         if (id == Guid.Empty || schemaVersion != CurrentSchemaVersion || binding.Id == Guid.Empty ||
             binding.SchemaVersion != 1 || !string.Equals(binding.EventName, "sequence.aborted", StringComparison.Ordinal) ||
             string.IsNullOrWhiteSpace(binding.ForgeScriptApiVersion) || string.IsNullOrWhiteSpace(binding.Handler) ||
+            binding.Authority != EventAuthorityScope.Server ||
+            binding.RequiredAtRuntime && string.IsNullOrWhiteSpace(binding.ScriptPath) ||
+            !string.IsNullOrWhiteSpace(binding.ScriptPath) &&
+            !ProjectLifecycleEventProfileValidator.IsSafeScriptPath(binding.ScriptPath) ||
             restore == SequenceAbortRestoreFlags.None || maximumNarrativeRollbackSteps is < 0 or > 10_000)
         {
             throw new ArgumentOutOfRangeException(nameof(id), "Sequence abort policy is invalid.");

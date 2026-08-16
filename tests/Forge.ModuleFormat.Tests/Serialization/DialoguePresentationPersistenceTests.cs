@@ -23,7 +23,7 @@ public sealed class DialoguePresentationPersistenceTests : IDisposable
         var created = ProjectSession.Create(workspace, project);
         var reopened = ProjectSession.Open(workspace);
 
-        Assert.Contains("\"formatVersion\": \"0.6.34\"", json, StringComparison.Ordinal);
+        Assert.Contains("\"formatVersion\": \"0.6.36\"", json, StringComparison.Ordinal);
         Assert.Equal(json, ProjectJsonSerializer.Serialize(restored));
         Assert.True(created.Succeeded);
         Assert.True(reopened.Succeeded);

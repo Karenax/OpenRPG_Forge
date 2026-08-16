@@ -121,7 +121,7 @@ public sealed class ApplyAssistedAbilityHandler
         var policies = new ModuleRuntimePolicyProfile(currentPolicies.Id, currentPolicies.SchemaVersion,
             currentPolicies.Heartbeats, currentPolicies.Rest, currentPolicies.SequenceAbort, "assistant:ability",
             currentPolicies.Cinematics, currentPolicies.Gameplay, currentPolicies.Rules, extensions,
-            currentPolicies.GameplayEvents, currentPolicies.World);
+            currentPolicies.GameplayEvents, currentPolicies.World, currentPolicies.LifecycleEvents);
         return new ProjectDefinition(project.Id, project.Title, project.Module.WithRuntimePolicies(policies),
             blueprints, project.Areas, project.Dialogues, project.Quests);
     }

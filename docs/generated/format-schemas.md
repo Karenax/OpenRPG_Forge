@@ -4,7 +4,7 @@ Fichier généré depuis les constantes de sérialisation.
 
 | Document | Version courante |
 |---|---|
-| Projet agrégé | 0.6.34 |
+| Projet agrégé | 0.6.36 |
 | Workspace scindé | 1.28.0 |
 | Zone | 1.9.0 |
 | Sauvegarde runtime | 1.4.0 |

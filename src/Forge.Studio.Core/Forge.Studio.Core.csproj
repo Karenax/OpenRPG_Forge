@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Forge.Studio.Core</RootNamespace>
+  </PropertyGroup>
+</Project>

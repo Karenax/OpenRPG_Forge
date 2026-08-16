@@ -8,4 +8,8 @@
     <PackageReference Include="GodotSharp" Version="4.7.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="Forge.EngineAdapter.Tests" />
+  </ItemGroup>
+
 </Project>

@@ -7,6 +7,7 @@ namespace Forge.EngineAdapter.Assets;
 public sealed class GodotAssetModelLibrary
 {
     private static readonly object ImporterMeshConversionLock = new();
+    private static readonly object RuntimeImportCacheLock = new();
     private static GltfDocumentExtensionConvertImporterMesh? _importerMeshConversion;
     private readonly string _contentRoot;
     private readonly string _contentRootPrefix;
@@ -109,7 +110,12 @@ public sealed class GodotAssetModelLibrary
         if (_allowRuntimeImport)
         {
             VerifyContentHash(id, chunk, absolute);
-            scene = TryLoadImportedScene(absolute) ?? LoadRuntimeGltf(absolute);
+            scene = TryLoadImportedScene(absolute);
+            if (scene is null)
+            {
+                var runtimeImportPath = PrepareRuntimeImportPackage(manifest, chunk);
+                scene = LoadRuntimeGltf(runtimeImportPath, absolute);
+            }
         }
         else
         {
@@ -148,25 +154,117 @@ public sealed class GodotAssetModelLibrary
         return ResourceLoader.Exists(uri) ? ResourceLoader.Load<PackedScene>(uri) : null;
     }
 
-    private static PackedScene LoadRuntimeGltf(string absolute)
+    internal string PrepareRuntimeImportPackage(AssetPackageManifest manifest, AssetManifestChunk modelChunk)
+    {
+        var modelRelative = modelChunk.RelativePath.Replace('/', Path.DirectorySeparatorChar);
+        var packageRelative = Path.GetDirectoryName(modelRelative)
+            ?? throw new InvalidDataException($"Visual asset '{manifest.AssetId}' model has no package directory.");
+        var packagePrefix = packageRelative.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        var packageChunks = manifest.Chunks
+            .Where(chunk =>
+            {
+                var relative = chunk.RelativePath.Replace('/', Path.DirectorySeparatorChar);
+                return relative.StartsWith(packagePrefix, StringComparison.OrdinalIgnoreCase);
+            })
+            .OrderBy(chunk => chunk.RelativePath, StringComparer.Ordinal)
+            .ToArray();
+        if (packageChunks.Length == 0)
+            throw new InvalidDataException($"Visual asset '{manifest.AssetId}' has no governed runtime-import package.");
+
+        foreach (var chunk in packageChunks)
+        {
+            var source = ResolveContained(chunk.RelativePath);
+            if (!File.Exists(source))
+            {
+                if (chunk.Required)
+                    throw new FileNotFoundException(
+                        $"Visual asset '{manifest.AssetId}' is missing required runtime-import dependency.",
+                        source);
+                continue;
+            }
+
+            VerifyContentHash(manifest.AssetId, chunk, source);
+        }
+
+        var fingerprintInput = string.Join(
+            '\n',
+            packageChunks.Select(chunk => $"{chunk.RelativePath.Replace('\\', '/')}|{chunk.ContentSha256}"));
+        var fingerprint = Convert.ToHexString(
+                SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(fingerprintInput)))
+            .ToLowerInvariant();
+        var cacheRoot = Path.GetFullPath(ProjectSettings.GlobalizePath("user://runtime-import-cache"));
+        var packageRoot = Path.Combine(cacheRoot, fingerprint);
+        var readyMarker = Path.Combine(packageRoot, ".ready");
+
+        lock (RuntimeImportCacheLock)
+        {
+            if (!File.Exists(readyMarker))
+            {
+                Directory.CreateDirectory(cacheRoot);
+                var temporaryRoot = Path.Combine(cacheRoot, $".{fingerprint}.{Guid.NewGuid():N}.tmp");
+                try
+                {
+                    foreach (var chunk in packageChunks)
+                    {
+                        var source = ResolveContained(chunk.RelativePath);
+                        if (!File.Exists(source)) continue;
+                        var relativeWithinPackage = Path.GetRelativePath(
+                            packageRelative,
+                            chunk.RelativePath.Replace('/', Path.DirectorySeparatorChar));
+                        var destination = Path.Combine(temporaryRoot, relativeWithinPackage);
+                        Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+                        File.Copy(source, destination, overwrite: false);
+                    }
+
+                    File.WriteAllText(Path.Combine(temporaryRoot, ".ready"), fingerprint);
+                    try
+                    {
+                        Directory.Move(temporaryRoot, packageRoot);
+                    }
+                    catch (IOException) when (File.Exists(readyMarker))
+                    {
+                        Directory.Delete(temporaryRoot, recursive: true);
+                    }
+                }
+                catch
+                {
+                    if (Directory.Exists(temporaryRoot)) Directory.Delete(temporaryRoot, recursive: true);
+                    throw;
+                }
+            }
+        }
+
+        var stagedModel = Path.Combine(packageRoot, Path.GetFileName(modelRelative));
+        if (!File.Exists(stagedModel))
+            throw new FileNotFoundException(
+                $"Visual asset '{manifest.AssetId}' runtime-import cache is incomplete.",
+                stagedModel);
+        return stagedModel;
+    }
+
+    private static PackedScene LoadRuntimeGltf(string stagedAbsolute, string sourceAbsolute)
     {
         EnsureImporterMeshConversionRegistered();
         var document = new GltfDocument();
-        var state = new GltfState();
-        // Godot resolves external GLTF textures by appending their URI to the model directory.
-        // A Windows path with backslashes otherwise becomes a mixed `E:\dir/subdir` path that
-        // the editor importer reports as missing even though the texture exists.
-        var godotPath = absolute.Replace('\\', '/');
-        var error = document.AppendFromFile(godotPath, state);
+        var state = new GltfState
+        {
+            // Keep the generated scene independent from the derived import cache after loading.
+            HandleBinaryImageMode = GltfState.HandleBinaryImageModeEnum.EmbedAsUncompressed,
+        };
+        // The staged package contains only governed raw chunks. In particular it excludes the
+        // source Godot project's `.import` sidecars, whose res:// remaps are invalid in Studio.
+        var godotPath = stagedAbsolute.Replace('\\', '/');
+        var dependencyRoot = (Path.GetDirectoryName(godotPath) ?? string.Empty).TrimEnd('/') + "/";
+        var error = document.AppendFromFile(godotPath, state, 0, dependencyRoot);
         if (error != Error.Ok)
-            throw new InvalidDataException($"GLB runtime import failed for '{absolute}' with error {error}.");
+            throw new InvalidDataException($"GLB runtime import failed for '{sourceAbsolute}' with error {error}.");
         var generated = document.GenerateScene(state)
-            ?? throw new InvalidDataException($"GLB runtime import produced no scene for '{absolute}'.");
+            ?? throw new InvalidDataException($"GLB runtime import produced no scene for '{sourceAbsolute}'.");
         var packed = new PackedScene();
         error = packed.Pack(generated);
         generated.Free();
         if (error != Error.Ok)
-            throw new InvalidDataException($"GLB runtime scene packing failed for '{absolute}' with error {error}.");
+            throw new InvalidDataException($"GLB runtime scene packing failed for '{sourceAbsolute}' with error {error}.");
         return packed;
     }
 

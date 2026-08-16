@@ -3,6 +3,7 @@ using Forge.Domain.Blueprints;
 using Forge.Domain.Entities;
 using Forge.Domain.Lifecycle;
 using Forge.Domain.Projects;
+using Forge.Domain.RuntimePolicies;
 using Forge.Domain.Spatial;
 
 namespace Forge.Domain.Tests.Lifecycle;
@@ -134,6 +135,59 @@ public sealed class RuntimeLifecycleCoordinatorTests
         Assert.Equal(["project.loaded", "area.entered", "world.started"],
             observed.Select(item => item.Binding));
         Assert.All(observed, item => Assert.Equal(authority, item.Authority));
+    }
+
+    [Fact]
+    public void Ux0FProjectAndWorldEventsResolveTheConfiguredScriptForTheActiveContext()
+    {
+        var source = CreateProject();
+        var policies = source.Module.RuntimePolicies;
+        var bindings = policies.LifecycleEvents.Bindings.Select(binding =>
+        {
+            if (binding.Authority != RuntimeAuthority.Server)
+                return binding;
+            return binding.Event switch
+            {
+                RuntimeLifecycleEventKind.ProjectLoaded => binding with
+                {
+                    Handler = "OnServerProjectReady",
+                    ScriptPath = "scripts/server-project-ready.forge",
+                    RequiredAtRuntime = true,
+                    Provenance = "test:ux0-f",
+                },
+                RuntimeLifecycleEventKind.WorldStarted => binding with
+                {
+                    Handler = "OnServerWorldReady",
+                    ScriptPath = "scripts/server-world-ready.forge",
+                    RequiredAtRuntime = false,
+                    Provenance = "test:ux0-f",
+                },
+                _ => binding,
+            };
+        }).ToArray();
+        var lifecycle = new ProjectLifecycleEventProfile(policies.LifecycleEvents.Id,
+            policies.LifecycleEvents.SchemaVersion, "test:ux0-f", true, false, bindings);
+        var updatedPolicies = new ModuleRuntimePolicyProfile(policies.Id, policies.SchemaVersion,
+            policies.Heartbeats, policies.Rest, policies.SequenceAbort, "test:ux0-f", policies.Cinematics,
+            policies.Gameplay, policies.Rules, policies.Extensions, policies.GameplayEvents, policies.World,
+            lifecycle);
+        var project = new ProjectDefinition(source.Id, source.Title,
+            source.Module.WithRuntimePolicies(updatedPolicies), source.Blueprints, source.Areas,
+            source.Dialogues, source.Quests);
+        var observed = new List<RuntimeLifecycleEvent>();
+        var coordinator = new RuntimeLifecycleCoordinator(new SequentialEventIds(), [observed.Add]);
+
+        Assert.True(coordinator.LoadProject(project, RuntimeAuthority.Server, RuntimeLifecycleCause.Startup).Succeeded);
+        Assert.True(coordinator.EnterInitialArea(FirstAreaId, ActorId, RuntimeLifecycleCause.Startup).Succeeded);
+        Assert.True(coordinator.StartWorld(RuntimeLifecycleCause.Startup).Succeeded);
+
+        Assert.Equal("scripts/server-project-ready.forge", observed[0].ScriptPath);
+        Assert.Equal("OnServerProjectReady", observed[0].ScriptHandler);
+        Assert.True(observed[0].ScriptRequired);
+        Assert.Equal("scripts/server-world-ready.forge", observed[2].ScriptPath);
+        Assert.Equal("OnServerWorldReady", observed[2].ScriptHandler);
+        Assert.False(observed[2].ScriptRequired);
+        Assert.Null(observed[1].ScriptHandler);
     }
 
     [Fact]

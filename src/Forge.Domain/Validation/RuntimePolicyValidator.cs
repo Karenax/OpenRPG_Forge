@@ -83,6 +83,8 @@ public static class RuntimePolicyValidator
             module.RuntimePolicies.Extensions.ModernTooling.QualityAssurance));
         diagnostics.AddRange(ProjectGameplayEventProfileValidator.Validate(
             module.RuntimePolicies.GameplayEvents, module.Id.Value));
+        diagnostics.AddRange(ProjectLifecycleEventProfileValidator.Validate(
+            module.RuntimePolicies.LifecycleEvents, module.Id.Value));
         diagnostics.AddRange(ProjectWorldProfileValidator.Validate(
             module.RuntimePolicies.World, module.Id.Value));
 

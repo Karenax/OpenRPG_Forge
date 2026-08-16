@@ -12,6 +12,77 @@ public sealed class SetModuleConfigurationHandlerTests
     private static readonly DateTimeOffset Timestamp = new(2026, 8, 2, 22, 0, 0, TimeSpan.Zero);
 
     [Fact]
+    public void Ux0IVariablesAndEightPlayerGuidePagesUseOneDryRunnableUndoableCommand()
+    {
+        var state = CreateState();
+        var originalDistribution = state.Project.Module.Distribution;
+        var originalPolicies = state.Project.Module.RuntimePolicies;
+        var localization = new ProjectLocalizedMetadata(
+            "fr",
+            "Module test",
+            "Résumé",
+            "Synopsis",
+            "Crédits",
+            "Installation",
+            "Règles",
+            "Contrôles",
+            "Licences",
+            "Avertissements",
+            "Compatibilité");
+        var metadata = new ProjectMetadata(
+            state.Project.Module.Metadata.Id,
+            "fr",
+            [localization],
+            "Atelier Forge",
+            "1.1.0",
+            "CC0-1.0",
+            null,
+            [],
+            "Tout public",
+            "studio:ux0-i");
+        var variables = Enum.GetValues<ProjectVariableScope>().Select((scope, index) =>
+            new ProjectVariableDefinition(
+                ProjectVariableId.From(Guid.Parse($"d0250000-0000-4000-8000-{index + 1:D12}")),
+                $"project.value-{index + 1}",
+                ProjectVariableValueKind.Integer,
+                scope,
+                index.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                $"Valeur {index + 1}",
+                "studio:ux0-i",
+                replication: scope == ProjectVariableScope.Server
+                    ? ProjectVariableReplicationMode.ServerAuthority
+                    : ProjectVariableReplicationMode.None)).ToArray();
+        var handler = new SetModuleConfigurationHandler(new FixedClock(Timestamp));
+        var command = new SetModuleConfigurationCommand(
+            CommandId.From(Guid.Parse("d0250000-0000-4000-8000-000000000430")),
+            state.Revision,
+            metadata,
+            variables,
+            DryRun: false);
+
+        var preview = handler.Handle(state, command with { DryRun = true });
+        var applied = handler.Handle(state, command);
+        var history = new ProjectCommandHistory(state);
+        history.Record(applied);
+
+        Assert.True(preview.Succeeded);
+        Assert.Same(state, preview.State);
+        Assert.Equal(5, applied.State.Project.Module.Variables.Count);
+        var guide = applied.State.Project.Module.Metadata.GetDefaultLocalization();
+        Assert.All(new[]
+        {
+            guide.Description, guide.Installation, guide.Rules, guide.Controls,
+            guide.Credits, guide.Licenses, guide.Warnings, guide.Compatibility,
+        }, value => Assert.False(string.IsNullOrWhiteSpace(value)));
+        Assert.Same(originalDistribution, applied.State.Project.Module.Distribution);
+        Assert.Same(originalPolicies, applied.State.Project.Module.RuntimePolicies);
+        Assert.True(history.Undo().Succeeded);
+        Assert.Empty(history.State.Project.Module.Variables);
+        Assert.True(history.Redo().Succeeded);
+        Assert.Equal(5, history.State.Project.Module.Variables.Count);
+    }
+
+    [Fact]
     public void Handle_AppliesMetadataAndVariablesWithDryRunUndoRedo()
     {
         var state = CreateState();
@@ -83,6 +154,34 @@ public sealed class SetModuleConfigurationHandlerTests
         Assert.True(renamed.Succeeded);
         Assert.Equal("Atelier Forge", renamed.State.Project.Module.Metadata.Author);
         Assert.Equal(2, renamed.State.Project.Module.Variables.Count);
+    }
+
+    [Fact]
+    public void Handle_UpdatesPublicProjectAndModuleNamesOnlyWhenExplicitlyRequested()
+    {
+        var state = CreateState();
+        var handler = new SetModuleConfigurationHandler(new FixedClock(Timestamp));
+        var command = CreateCommand(state) with
+        {
+            ProjectTitle = "Aventure localisée",
+            ModuleDisplayName = "Aventure localisée",
+            ModuleDescription = "Description publique mise à jour.",
+        };
+
+        var preview = handler.Handle(state, command with { DryRun = true });
+        var applied = handler.Handle(state, command);
+        var history = new ProjectCommandHistory(state);
+        history.Record(applied);
+
+        Assert.True(preview.Succeeded);
+        Assert.Same(state, preview.State);
+        Assert.Equal("Aventure localisée", applied.State.Project.Title);
+        Assert.Equal("Aventure localisée", applied.State.Project.Module.DisplayName);
+        Assert.Equal("Description publique mise à jour.", applied.State.Project.Module.Description);
+        Assert.True(history.Undo().Succeeded);
+        Assert.Equal("Configuration test", history.State.Project.Title);
+        Assert.True(history.Redo().Succeeded);
+        Assert.Equal("Aventure localisée", history.State.Project.Module.DisplayName);
     }
 
     private static SetModuleConfigurationCommand CreateCommand(ProjectState state)

@@ -17,4 +17,5 @@ public sealed record NavigateEditorCameraCommand(
     string? BookmarkName = null,
     bool DryRun = false,
     float Z = 0,
-    EditorCameraInputConfiguration? Input = null);
+    EditorCameraInputConfiguration? Input = null,
+    EditorCameraPose? Pose = null);

@@ -74,6 +74,7 @@ public sealed record EditorKeymapProfile
             [EditorKeymapCatalog.Undo] = new("Z", ctrl: true),
             [EditorKeymapCatalog.Redo] = new("Y", ctrl: true),
             [EditorKeymapCatalog.CopySelection] = new("C", ctrl: true),
+            [EditorKeymapCatalog.CutSelection] = new("X", ctrl: true),
             [EditorKeymapCatalog.PasteSelection] = new("V", ctrl: true),
             [EditorKeymapCatalog.DuplicateSelection] = new("D", ctrl: true),
             [EditorKeymapCatalog.DeleteSelection] = new("DELETE"),

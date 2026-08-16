@@ -13,11 +13,11 @@ public sealed record PlaceableSecurityEventsProfile(
     Guid Id,
     int SchemaVersion,
     string Provenance,
-    PlaceableTrapProfile Trap,
-    PlaceableLootSpawnerProfile Loot,
-    PlaceableContainerStateEventsProfile ContainerEvents,
-    PlaceableLockStateEventsProfile LockEvents,
-    PlaceableContentsChangedEventProfile ContentsChanged);
+    PlaceableTrapProfile? Trap = null,
+    PlaceableLootSpawnerProfile? Loot = null,
+    PlaceableContainerStateEventsProfile? ContainerEvents = null,
+    PlaceableLockStateEventsProfile? LockEvents = null,
+    PlaceableContentsChangedEventProfile? ContentsChanged = null);
 
 public sealed record PlaceableTrapProfile(
     Guid Id,

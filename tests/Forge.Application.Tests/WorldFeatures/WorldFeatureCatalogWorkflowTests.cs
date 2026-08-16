@@ -4,6 +4,8 @@ using Forge.Application.Tests.Entities;
 using Forge.Application.WorldFeatures;
 using Forge.Domain.Areas;
 using Forge.Domain.Blueprints;
+using Forge.Domain.Dialogues;
+using Forge.Domain.Factions;
 using Forge.Domain.Projects;
 using Forge.Domain.Spatial;
 using Forge.Domain.Validation;
@@ -304,12 +306,340 @@ public sealed class WorldFeatureCatalogWorkflowTests
         Assert.Contains("world.placeable.lock_invalid", codes);
         Assert.Contains("world.placeable.operations_identity_conflict", codes);
 
+        var unguarded = profile with
+        {
+            Operations = operations with
+            {
+                Protection = new(
+                    Guid.NewGuid(),
+                    ["destroy"],
+                    [],
+                    "Protected",
+                    true,
+                    "PlaceableProtectionOverride"),
+            },
+        };
+        var unguardedProject = new ProjectDefinition(project.Id, project.Title,
+            project.Module.WithWorldFeatures(new WorldFeatureCatalog(catalog.Id, 1, "test:r093",
+                placeables: [unguarded])), project.Blueprints, project.Areas);
+        Assert.Contains(WorldFeatureCatalogValidator.Validate(unguardedProject),
+            item => item.Code == "world.placeable.protection_invalid");
+
+        var unknownKey = profile with
+        {
+            Operations = operations with
+            {
+                Lock = new(
+                    Guid.NewGuid(),
+                    PlaceableAuthoredLockState.Locked,
+                    ["item:c2930000-0000-4000-8000-000000000099"],
+                    null,
+                    0,
+                    null,
+                    false,
+                    true,
+                    false,
+                    []),
+            },
+        };
+        var unknownKeyProject = new ProjectDefinition(project.Id, project.Title,
+            project.Module.WithWorldFeatures(new WorldFeatureCatalog(catalog.Id, 1, "test:r093",
+                placeables: [unknownKey])), project.Blueprints, project.Areas);
+        Assert.Contains(WorldFeatureCatalogValidator.Validate(unknownKeyProject),
+            item => item.Code == "world.placeable.lock_invalid");
+
         var missing = profile with { Operations = null };
         var missingProject = new ProjectDefinition(project.Id, project.Title,
             project.Module.WithWorldFeatures(new WorldFeatureCatalog(catalog.Id, 1, "test:r093",
                 placeables: [missing])), project.Blueprints, project.Areas);
         Assert.Contains(WorldFeatureCatalogValidator.Validate(missingProject),
             item => item.Code == "world.placeable.operations_required_missing");
+    }
+
+    [Fact]
+    public void PlaceableCredentialValidationReportsRequiredItemAndVirtualPermissionFailures()
+    {
+        var state = CreateState();
+        var placeableBlueprint = new BlueprintDefinition(
+            BlueprintId.From(Guid.Parse("c2130000-0000-4000-8000-000000000001")),
+            "credential-placeable", "Credential placeable", BlueprintKind.Placeable);
+        var itemBlueprint = new BlueprintDefinition(
+            BlueprintId.From(Guid.Parse("c2130000-0000-4000-8000-000000000002")),
+            "credential-key", "Credential key", BlueprintKind.Item);
+        var profile = new PlaceableWorldProfile(
+            Guid.Parse("c2130000-0000-4000-8000-000000000003"),
+            1,
+            "test:ux1-q",
+            placeableBlueprint.Id,
+            null,
+            null,
+            null,
+            new([], new(false, 1, 1, true, "placeable")),
+            null,
+            CredentialRequiredAtRuntime: true);
+        ProjectDefinition ProjectFor(PlaceableWorldProfile candidate) => new(
+            state.Project.Id,
+            state.Project.Title,
+            state.Project.Module.WithWorldFeatures(new WorldFeatureCatalog(
+                state.Project.Module.Id.Value,
+                1,
+                "test:ux1-q",
+                placeables: [candidate])),
+            [placeableBlueprint, itemBlueprint],
+            state.Project.Areas);
+
+        var requiredCodes = WorldFeatureCatalogValidator.Validate(ProjectFor(profile))
+            .Select(item => item.Code).ToHashSet();
+        var itemCodes = WorldFeatureCatalogValidator.Validate(ProjectFor(profile with
+        {
+            Credential = new(
+                "item:c2130000-0000-4000-8000-000000000099",
+                PlaceableWorldProfile.CredentialConsumption.Consume,
+                0,
+                null,
+                true),
+        })).Select(item => item.Code).ToHashSet();
+        var virtualCodes = WorldFeatureCatalogValidator.Validate(ProjectFor(profile with
+        {
+            Credential = new(
+                "permission:archive",
+                PlaceableWorldProfile.CredentialConsumption.VirtualPermission,
+                0,
+                null,
+                true),
+        })).Select(item => item.Code).ToHashSet();
+
+        Assert.Contains("world.placeable.credential_required_missing", requiredCodes);
+        Assert.Contains("world.placeable.credential_item_missing", itemCodes);
+        Assert.Contains("world.placeable.credential_virtual_permission_missing", virtualCodes);
+    }
+
+    [Fact]
+    public void PlaceableFactionOwnershipValidationLocalizesMembershipReferenceIdentityAndRequirementFailures()
+    {
+        var state = CreateState();
+        var blueprint = new BlueprintDefinition(
+            BlueprintId.From(Guid.Parse("c2100000-0000-4000-8000-000000000001")),
+            "faction-placeable", "Faction placeable", BlueprintKind.Placeable);
+        var factionId = Guid.Parse("c2100000-0000-4000-8000-000000000002");
+        var unknownFactionId = Guid.Parse("c2100000-0000-4000-8000-000000000003");
+        var factions = new FactionCatalog(
+            [new(factionId, 1, "test:ux1-n", "sentinels", "Sentinelles", false, [], ["guard"])],
+            [],
+            [],
+            []);
+        var profile = new PlaceableWorldProfile(
+            Guid.Parse("c2100000-0000-4000-8000-000000000004"),
+            1,
+            "test:ux1-n",
+            blueprint.Id,
+            null,
+            null,
+            null,
+            new([], new(false, 1, 1, true, "placeable")),
+            null,
+            FactionOwnership: new(
+                Guid.Parse("c2100000-0000-4000-8000-000000000005"),
+                1,
+                "test:ux1-n",
+                factionId,
+                [factionId, unknownFactionId, unknownFactionId],
+                true,
+                true,
+                true,
+                true),
+            FactionOwnershipRequiredAtRuntime: true);
+        var catalog = new WorldFeatureCatalog(
+            state.Project.Module.Id.Value,
+            1,
+            "test:ux1-n",
+            placeables: [profile]);
+        var project = new ProjectDefinition(
+            state.Project.Id,
+            state.Project.Title,
+            state.Project.Module.WithFactions(factions).WithWorldFeatures(catalog),
+            [blueprint],
+            state.Project.Areas);
+
+        var codes = WorldFeatureCatalogValidator.Validate(project).Select(item => item.Code).ToHashSet();
+
+        Assert.Contains("world.placeable.faction_memberships_invalid", codes);
+        Assert.Contains("world.placeable.faction_reference_missing", codes);
+
+        var conflicting = profile with { FactionOwnership = profile.FactionOwnership! with { Id = profile.Id } };
+        var conflictingProject = new ProjectDefinition(
+            project.Id,
+            project.Title,
+            project.Module.WithWorldFeatures(new WorldFeatureCatalog(
+                catalog.Id,
+                1,
+                "test:ux1-n",
+                placeables: [conflicting])),
+            project.Blueprints,
+            project.Areas);
+        Assert.Contains(WorldFeatureCatalogValidator.Validate(conflictingProject),
+            item => item.Code == "world.placeable.faction_ownership_identity_conflict");
+
+        var missing = profile with { FactionOwnership = null };
+        var missingProject = new ProjectDefinition(
+            project.Id,
+            project.Title,
+            project.Module.WithWorldFeatures(new WorldFeatureCatalog(
+                catalog.Id,
+                1,
+                "test:ux1-n",
+                placeables: [missing])),
+            project.Blueprints,
+            project.Areas);
+        Assert.Contains(WorldFeatureCatalogValidator.Validate(missingProject),
+            item => item.Code == "world.placeable.faction_ownership_required_missing");
+    }
+
+    [Fact]
+    public void PlaceableConversationValidationLocalizesDialogueEntryItemSelectorIdentityAndRequirementFailures()
+    {
+        var state = CreateState();
+        var placeableBlueprint = new BlueprintDefinition(
+            BlueprintId.From(Guid.Parse("c2111000-0000-4000-8000-000000000001")),
+            "talking-placeable", "Talking placeable", BlueprintKind.Placeable);
+        var itemBlueprint = new BlueprintDefinition(
+            BlueprintId.From(Guid.Parse("c2111000-0000-4000-8000-000000000002")),
+            "ritual-seal", "Ritual seal", BlueprintKind.Item);
+        var dialogueId = DialogueId.From(Guid.Parse("c2111000-0000-4000-8000-000000000003"));
+        var nodeId = DialogueNodeId.From(Guid.Parse("c2111000-0000-4000-8000-000000000004"));
+        var dialogue = new DialogueDefinition(
+            dialogueId,
+            "altar-voice",
+            "Altar voice",
+            nodeId,
+            [new(nodeId, null, new("dialogue.altar", "Who approaches?"))],
+            provenance: "test:ux1-o",
+            entryPoints:
+            [new(Guid.Parse("c2111000-0000-4000-8000-000000000005"), 1, "default", nodeId, 0,
+                "test:ux1-o")]);
+        var binding = new PlaceableConversationBinding(
+            Guid.Parse("c2111000-0000-4000-8000-000000000006"),
+            dialogueId.Value,
+            PlaceableConversationTrigger.Interaction,
+            "examine",
+            null,
+            "default",
+            10,
+            true);
+        var profile = new PlaceableWorldProfile(
+            Guid.Parse("c2111000-0000-4000-8000-000000000007"),
+            1,
+            "test:ux1-o",
+            placeableBlueprint.Id,
+            null,
+            dialogueId.Value,
+            null,
+            new([], new(false, 1, 1, true, "placeable")),
+            null,
+            Conversation: new(
+                Guid.Parse("c2111000-0000-4000-8000-000000000008"),
+                PlaceableConversationProfile.CurrentSchemaVersion,
+                "test:ux1-o",
+                [binding]),
+            ConversationRequiredAtRuntime: true);
+        var catalog = new WorldFeatureCatalog(
+            state.Project.Module.Id.Value,
+            1,
+            "test:ux1-o",
+            placeables: [profile]);
+        var project = new ProjectDefinition(
+            state.Project.Id,
+            state.Project.Title,
+            state.Project.Module.WithWorldFeatures(catalog),
+            [placeableBlueprint, itemBlueprint],
+            state.Project.Areas,
+            [dialogue],
+            state.Project.Quests);
+
+        Assert.DoesNotContain(WorldFeatureCatalogValidator.Validate(project), diagnostic =>
+            diagnostic.Code.StartsWith("world.placeable.conversation_", StringComparison.Ordinal));
+
+        var invalidConversation = profile.Conversation! with
+        {
+            Id = profile.Id,
+            Bindings =
+            [
+                binding with
+                {
+                    Id = Guid.Empty,
+                    DialogueId = Guid.Parse("c2111000-0000-4000-8000-000000000099"),
+                    EntryPointKey = "missing",
+                    Selector = "bad?selector",
+                    Priority = 1_001,
+                },
+                binding with
+                {
+                    Id = Guid.Empty,
+                    Trigger = PlaceableConversationTrigger.Item,
+                    Selector = "not-empty",
+                    ItemBlueprintId = BlueprintId.From(
+                        Guid.Parse("c2111000-0000-4000-8000-000000000098")),
+                },
+            ],
+        };
+        var invalidProject = new ProjectDefinition(
+            project.Id,
+            project.Title,
+            project.Module.WithWorldFeatures(new WorldFeatureCatalog(
+                catalog.Id,
+                1,
+                "test:ux1-o",
+                placeables: [profile with { Conversation = invalidConversation }])),
+            project.Blueprints,
+            project.Areas,
+            project.Dialogues,
+            project.Quests);
+        var codes = WorldFeatureCatalogValidator.Validate(invalidProject)
+            .Select(diagnostic => diagnostic.Code)
+            .ToHashSet();
+
+        Assert.Contains("world.placeable.conversation_binding_uuid_invalid", codes);
+        Assert.Contains("world.placeable.conversation_dialogue_missing", codes);
+        Assert.Contains("world.placeable.conversation_priority_invalid", codes);
+        Assert.Contains("world.placeable.conversation_selector_invalid", codes);
+        Assert.Contains("world.placeable.conversation_item_missing", codes);
+        Assert.Contains("world.placeable.conversation_identity_conflict", codes);
+
+        var entryPointProject = new ProjectDefinition(
+            project.Id,
+            project.Title,
+            project.Module.WithWorldFeatures(new WorldFeatureCatalog(
+                catalog.Id,
+                1,
+                "test:ux1-o",
+                placeables: [profile with
+                {
+                    Conversation = profile.Conversation with
+                    {
+                        Bindings = [binding with { EntryPointKey = "missing" }],
+                    },
+                }])),
+            project.Blueprints,
+            project.Areas,
+            project.Dialogues,
+            project.Quests);
+        Assert.Contains(WorldFeatureCatalogValidator.Validate(entryPointProject), diagnostic =>
+            diagnostic.Code == "world.placeable.conversation_entry_point_missing");
+
+        var missingProject = new ProjectDefinition(
+            project.Id,
+            project.Title,
+            project.Module.WithWorldFeatures(new WorldFeatureCatalog(
+                catalog.Id,
+                1,
+                "test:ux1-o",
+                placeables: [profile with { Conversation = null }])),
+            project.Blueprints,
+            project.Areas,
+            project.Dialogues,
+            project.Quests);
+        Assert.Contains(WorldFeatureCatalogValidator.Validate(missingProject), diagnostic =>
+            diagnostic.Code == "world.placeable.conversation_required_missing");
     }
 
     [Fact]
@@ -352,12 +682,67 @@ public sealed class WorldFeatureCatalogWorkflowTests
         Assert.Contains("world.placeable.contents_changed_invalid", codes);
         Assert.Contains("world.placeable.security_events_identity_conflict", codes);
 
-        var missing = profile with { SecurityEvents = null };
+        var missing = profile with
+        {
+            SecurityEvents = null,
+            TrapRequiredAtRuntime = true,
+            LootRequiredAtRuntime = true,
+            ContainerEventsRequiredAtRuntime = true,
+            LockEventsRequiredAtRuntime = true,
+        };
         var missingProject = new ProjectDefinition(project.Id, project.Title,
             project.Module.WithWorldFeatures(new WorldFeatureCatalog(catalog.Id, 1, "test:r094",
                 placeables: [missing])), project.Blueprints, project.Areas);
-        Assert.Contains(WorldFeatureCatalogValidator.Validate(missingProject),
-            item => item.Code == "world.placeable.security_events_required_missing");
+        var missingCodes = WorldFeatureCatalogValidator.Validate(missingProject)
+            .Select(item => item.Code).ToHashSet();
+        Assert.Contains("world.placeable.security_events_required_missing", missingCodes);
+        Assert.Contains("world.placeable.trap_required_missing", missingCodes);
+        Assert.Contains("world.placeable.loot_required_missing", missingCodes);
+        Assert.Contains("world.placeable.container_events_required_missing", missingCodes);
+        Assert.Contains("world.placeable.lock_events_required_missing", missingCodes);
+
+        var trapOnly = profile with
+        {
+            SecurityEvents = new(
+                Guid.NewGuid(),
+                1,
+                "test:ux1-r",
+                new(Guid.NewGuid(), "on-open", "damage:ember", 10, 12, 30,
+                    "ash-watch", "vfx:ember", "ash-watch", true, false)),
+            SecurityEventsRequiredAtRuntime = false,
+            TrapRequiredAtRuntime = true,
+        };
+        var trapOnlyProject = new ProjectDefinition(project.Id, project.Title,
+            project.Module.WithWorldFeatures(new WorldFeatureCatalog(catalog.Id, 1, "test:ux1-r",
+                placeables: [trapOnly])), project.Blueprints, project.Areas);
+        var trapOnlyCodes = WorldFeatureCatalogValidator.Validate(trapOnlyProject)
+            .Select(item => item.Code).ToHashSet();
+        Assert.DoesNotContain("world.placeable.trap_invalid", trapOnlyCodes);
+        Assert.DoesNotContain("world.placeable.loot_spawner_invalid", trapOnlyCodes);
+        Assert.DoesNotContain("world.placeable.container_events_invalid", trapOnlyCodes);
+        Assert.DoesNotContain("world.placeable.lock_events_invalid", trapOnlyCodes);
+        Assert.DoesNotContain("world.placeable.contents_changed_invalid", trapOnlyCodes);
+
+        var requiredLootMissing = trapOnly with { LootRequiredAtRuntime = true };
+        var requiredLootProject = new ProjectDefinition(project.Id, project.Title,
+            project.Module.WithWorldFeatures(new WorldFeatureCatalog(catalog.Id, 1, "test:ux1-s",
+                placeables: [requiredLootMissing])), project.Blueprints, project.Areas);
+        Assert.Contains(WorldFeatureCatalogValidator.Validate(requiredLootProject), diagnostic =>
+            diagnostic.Code == "world.placeable.loot_required_missing");
+
+        var requiredContainerEventsMissing = trapOnly with { ContainerEventsRequiredAtRuntime = true };
+        var requiredContainerEventsProject = new ProjectDefinition(project.Id, project.Title,
+            project.Module.WithWorldFeatures(new WorldFeatureCatalog(catalog.Id, 1, "test:ux1-t",
+                placeables: [requiredContainerEventsMissing])), project.Blueprints, project.Areas);
+        Assert.Contains(WorldFeatureCatalogValidator.Validate(requiredContainerEventsProject), diagnostic =>
+            diagnostic.Code == "world.placeable.container_events_required_missing");
+
+        var requiredLockEventsMissing = trapOnly with { LockEventsRequiredAtRuntime = true };
+        var requiredLockEventsProject = new ProjectDefinition(project.Id, project.Title,
+            project.Module.WithWorldFeatures(new WorldFeatureCatalog(catalog.Id, 1, "test:ux1-u",
+                placeables: [requiredLockEventsMissing])), project.Blueprints, project.Areas);
+        Assert.Contains(WorldFeatureCatalogValidator.Validate(requiredLockEventsProject), diagnostic =>
+            diagnostic.Code == "world.placeable.lock_events_required_missing");
     }
 
     [Fact]
@@ -444,6 +829,8 @@ public sealed class WorldFeatureCatalogWorkflowTests
         Assert.Contains("world.placeable.static_invalid", codes);
         Assert.Contains("world.placeable.interaction_invalid", codes);
         Assert.Contains("world.placeable.transform_invalid", codes);
+        Assert.Contains("world.placeable.parent_cycle", codes);
+        Assert.Contains("world.placeable.animation_reference_missing", codes);
         Assert.Contains("world.placeable.scripts_invalid", codes);
 
         var requiredCatalog = new WorldFeatureCatalog(state.Project.Module.Id.Value, 1, "test:r046",

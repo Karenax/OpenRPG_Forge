@@ -113,7 +113,10 @@ public static class ProjectWorldProfileValidator
                 schema.Fields.Count == 0 || schema.Fields.Keys.Any(key => !ValidSegment(key)) ||
                 schema.Fields.Values.Any(value => !SupportedFieldTypes.Contains(value)) ||
                 string.IsNullOrWhiteSpace(schema.ForgeScriptApiVersion) || !ValidHandler(schema.Handler) ||
-                schema.Authority != EventAuthorityScope.Server)
+                schema.Authority != EventAuthorityScope.Server ||
+                schema.RequiredAtRuntime && string.IsNullOrWhiteSpace(schema.ScriptPath) ||
+                !string.IsNullOrWhiteSpace(schema.ScriptPath) &&
+                !ProjectLifecycleEventProfileValidator.IsSafeScriptPath(schema.ScriptPath))
                 diagnostics.Add(new(EventContractInvalidCode,
                     "Custom event namespace, payload schema, ForgeScript binding or authority is invalid.", path));
         }

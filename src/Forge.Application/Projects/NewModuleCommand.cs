@@ -33,4 +33,6 @@ public sealed record NewModuleCommand(
     string GameMode = "campaign",
     string EntryClass = "adventurer",
     string PlayerSelectionRule = "default",
-    bool? CreateInitialArea = null);
+    bool? CreateInitialArea = null,
+    NewModuleMetadataInput? Metadata = null,
+    float PlayerOrientationDegrees = 0);

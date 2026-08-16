@@ -13,4 +13,5 @@ public enum EditorCameraOperation
     RecallBookmark,
     Pilot,
     SetInput,
+    SetPose,
 }

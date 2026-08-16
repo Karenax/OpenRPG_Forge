@@ -11710,7 +11710,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             [customEvent], worldClock);
         var modulePolicies = new ModuleRuntimePolicyProfile(originalModule.Id, 1, [global], rest, abort,
             "smoke:g11-j", originalModule.Cinematics, originalModule.Gameplay, originalModule.Rules,
-            originalModule.Extensions, projectEvents, world);
+            originalModule.Extensions, projectEvents, world, originalModule.LifecycleEvents);
         var danger = new RestPolicyVolume(Guid.Parse("d11a0000-0000-4000-8000-000000000003"),
             "Sanctuaire profané", Vector3Value.Zero, new Vector3Value(4, 4, 4), RestPermissionMode.Forbidden,
             "Le sanctuaire n’est pas sécurisé.", string.Empty, 30, 0, 100, "smoke:g11-j");
@@ -16627,7 +16627,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
             if (!loaded.Succeeded || !HasSameEditorKeymap(loaded.Profile, current) ||
                 current.Id != EditorKeymapProfile.DefaultId ||
                 current.SchemaVersion != EditorKeymapProfile.CurrentSchemaVersion ||
-                current.Preset != EditorKeymapPreset.Custom || current.Bindings.Count != 13 ||
+                current.Preset != EditorKeymapPreset.Custom ||
+                current.Bindings.Count != EditorKeymapCatalog.Commands.Count ||
                 search?.CommandId != EditorKeymapCatalog.OpenSearch ||
                 EditorKeymapProfileValidator.Validate(current).Count != 0 ||
                 !DispatchEditorShortcut(EditorKeymapCatalog.OpenWorld) ||
@@ -16641,7 +16642,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
             GD.Print(
                 "OPENRPG_FORGE_TOOLSET_G13A_KEYMAP_PASS profiles=standard-aurora-blender " +
-                "commands=searchable bindings=13 conflicts=blocked input=executed ui=visible-empty-error " +
+                "commands=searchable bindings=14 conflicts=blocked input=executed ui=visible-empty-error " +
                 "uuid=stable schema=v1 provenance=tracked transaction=identified dry-run=previewed " +
                 "audit=generated history=restored persistence=roundtrip runtime=optional");
             return true;
@@ -20185,30 +20186,30 @@ public partial class ForgeEditorPlugin : EditorPlugin
             var invalidPlaceableSecurityEvents = validPlaceableSecurityEvents with
             {
                 Id = r093Placeable.Id,
-                Trap = validPlaceableSecurityEvents.Trap with
+                Trap = validPlaceableSecurityEvents.Trap! with
                 {
                     Id = r093Placeable.Id,
                     TriggerId = string.Empty,
                     PayloadId = string.Empty,
                     DetectionDifficulty = -1,
                 },
-                Loot = validPlaceableSecurityEvents.Loot with
+                Loot = validPlaceableSecurityEvents.Loot! with
                 {
                     LootTableId = Guid.Empty,
                     Generation = -1,
-                    LootTable = validPlaceableSecurityEvents.Loot.LootTable with { Entries = [] },
+                    LootTable = validPlaceableSecurityEvents.Loot!.LootTable with { Entries = [] },
                 },
-                ContainerEvents = validPlaceableSecurityEvents.ContainerEvents with
+                ContainerEvents = validPlaceableSecurityEvents.ContainerEvents! with
                 {
                     OpenedBinding = string.Empty,
                     IncludeActor = false,
                 },
-                LockEvents = validPlaceableSecurityEvents.LockEvents with
+                LockEvents = validPlaceableSecurityEvents.LockEvents! with
                 {
                     ChangedBinding = string.Empty,
                     ControlledVeto = false,
                 },
-                ContentsChanged = validPlaceableSecurityEvents.ContentsChanged with
+                ContentsChanged = validPlaceableSecurityEvents.ContentsChanged! with
                 {
                     EventBinding = string.Empty,
                     IncludeTransactionalDelta = false,
@@ -20399,16 +20400,16 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 "PlaceableProtectionOverride" ||
                 reopened.Session.Project.Module.WorldFeatures.Placeables[0].Operations?.Lock?.InitialState !=
                 PlaceableAuthoredLockState.Locked ||
-                reopened.Session.Project.Module.WorldFeatures.Placeables[0].SecurityEvents?.Trap.PayloadId !=
+                reopened.Session.Project.Module.WorldFeatures.Placeables[0].SecurityEvents?.Trap?.PayloadId !=
                 "damage:ember-burst" ||
-                reopened.Session.Project.Module.WorldFeatures.Placeables[0].SecurityEvents?.Loot.Timing !=
+                reopened.Session.Project.Module.WorldFeatures.Placeables[0].SecurityEvents?.Loot?.Timing !=
                 PlaceableAuthoredLootSpawnTiming.Open ||
-                reopened.Session.Project.Module.WorldFeatures.Placeables[0].SecurityEvents?.Loot.LootTable.Entries.Count != 1 ||
-                reopened.Session.Project.Module.WorldFeatures.Placeables[0].SecurityEvents?.ContainerEvents.OpenedBinding !=
+                reopened.Session.Project.Module.WorldFeatures.Placeables[0].SecurityEvents?.Loot?.LootTable.Entries.Count != 1 ||
+                reopened.Session.Project.Module.WorldFeatures.Placeables[0].SecurityEvents?.ContainerEvents?.OpenedBinding !=
                 "ContainerOpened" ||
-                reopened.Session.Project.Module.WorldFeatures.Placeables[0].SecurityEvents?.LockEvents.ChangingBinding !=
+                reopened.Session.Project.Module.WorldFeatures.Placeables[0].SecurityEvents?.LockEvents?.ChangingBinding !=
                 "LockStateChanging" ||
-                reopened.Session.Project.Module.WorldFeatures.Placeables[0].SecurityEvents?.ContentsChanged.EventBinding !=
+                reopened.Session.Project.Module.WorldFeatures.Placeables[0].SecurityEvents?.ContentsChanged?.EventBinding !=
                 "ContainerContentsChanged" ||
                 reopened.Session.Project.Module.WorldFeatures.Placeables[0].CompositionEvents?.DamageEvents.DamagedBinding !=
                 "DamageApplied" ||

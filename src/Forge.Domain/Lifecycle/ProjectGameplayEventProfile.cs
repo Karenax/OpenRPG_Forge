@@ -131,9 +131,12 @@ public static partial class ProjectGameplayEventProfileValidator
             if (binding.SchemaVersion != 1 || string.IsNullOrWhiteSpace(binding.Provenance) ||
                 !ApiVersionPattern.IsMatch(binding.ForgeScriptApiVersion ?? string.Empty) ||
                 !HandlerPattern.IsMatch(binding.Handler ?? string.Empty) ||
-                binding.Authority != EventAuthorityScope.Server)
+                binding.Authority != EventAuthorityScope.Server ||
+                binding.RequiredAtRuntime && string.IsNullOrWhiteSpace(binding.ScriptPath) ||
+                !string.IsNullOrWhiteSpace(binding.ScriptPath) &&
+                !ProjectLifecycleEventProfileValidator.IsSafeScriptPath(binding.ScriptPath))
                 diagnostics.Add(new(BindingContractInvalidCode,
-                    "Project gameplay-event binding requires schema v1, provenance, supported API, safe handler and server authority.",
+                    "Project gameplay-event binding requires schema v1, provenance, supported API, safe handler, relative .forge script and server authority.",
                     $"{root}/bindings/{binding.Id:D}"));
         }
 

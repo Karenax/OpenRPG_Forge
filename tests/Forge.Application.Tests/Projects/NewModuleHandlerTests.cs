@@ -135,6 +135,49 @@ public sealed class NewModuleHandlerTests
         Assert.Contains("Path: module/metadata/foundation", diagnostic.Message, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void Handle_CreatesLocalizedMetadataAndAnOrientedPlayerStartInOnePreviewableCommand()
+    {
+        var handler = new NewModuleHandler(new FixedClock(Timestamp));
+        var metadata = new NewModuleMetadataInput(
+            "fr",
+            [
+                new ProjectLocalizedMetadata(
+                    "fr", "Les Îles Brisées", "Aventure maritime", "Un archipel à reconstruire.",
+                    "Atelier Forge", rules: "Règles génériques", controls: "Clavier ou manette"),
+                new ProjectLocalizedMetadata(
+                    "en", "The Shattered Isles", "A sea adventure", "Rebuild a forgotten archipelago.",
+                    "Forge Workshop"),
+            ],
+            "Atelier Forge",
+            "1.2.0",
+            "CC-BY-4.0",
+            "assets/project-cover.png",
+            ["aventure", "coopération"],
+            "Tout public");
+        var command = CreateCommand(dryRun: true) with
+        {
+            Metadata = metadata,
+            PlayerOrientationDegrees = 135,
+        };
+
+        var preview = handler.Handle(command);
+        var applied = handler.Handle(command with { DryRun = false });
+
+        Assert.True(preview.Succeeded);
+        Assert.False(preview.Audit.Applied);
+        Assert.True(applied.Succeeded);
+        var project = Assert.IsType<ProjectState>(applied.State).Project;
+        Assert.Equal("fr", project.Module.Metadata.DefaultLocale);
+        Assert.Equal(2, project.Module.Metadata.Localizations.Count);
+        Assert.Equal("The Shattered Isles", project.Module.Metadata.Localizations.Single(item => item.Locale == "en").Name);
+        Assert.Equal("Atelier Forge", project.Module.Metadata.Author);
+        Assert.Equal("1.2.0", project.Module.Metadata.Version);
+        Assert.Equal(135, Assert.Single(project.Module.Metadata.Foundation!.PlayerStarts).OrientationDegrees);
+        Assert.Equal(project.Id, project.Module.Metadata.Foundation.Identity.ProjectId);
+        Assert.Equal(project.Module.Slug, project.Module.Metadata.Foundation.Identity.Slug);
+    }
+
     private static NewModuleCommand CreateCommand(
         bool dryRun = false,
         string title = "Les Îles Brisées",

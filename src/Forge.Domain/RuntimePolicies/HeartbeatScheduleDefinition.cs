@@ -1,3 +1,5 @@
+using Forge.Domain.Lifecycle;
+
 namespace Forge.Domain.RuntimePolicies;
 
 public sealed record HeartbeatScheduleDefinition
@@ -15,10 +17,13 @@ public sealed record HeartbeatScheduleDefinition
     public string ForgeScriptApiVersion { get; }
     public string Handler { get; }
     public string Provenance { get; }
+    public string? ScriptPath { get; }
+    public bool RequiredAtRuntime { get; }
 
     public HeartbeatScheduleDefinition(Guid id, int schemaVersion, string name, HeartbeatScope scope,
         bool enabled, int intervalMilliseconds, int budgetMilliseconds, bool suspendWhenInactive,
-        string forgeScriptApiVersion, string handler, string provenance)
+        string forgeScriptApiVersion, string handler, string provenance, string? scriptPath = null,
+        bool requiredAtRuntime = false)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentException.ThrowIfNullOrWhiteSpace(forgeScriptApiVersion);
@@ -26,7 +31,10 @@ public sealed record HeartbeatScheduleDefinition
         ArgumentException.ThrowIfNullOrWhiteSpace(provenance);
         if (id == Guid.Empty || schemaVersion != CurrentSchemaVersion ||
             intervalMilliseconds is < 100 or > 86_400_000 || budgetMilliseconds is < 1 or > 1_000 ||
-            budgetMilliseconds > intervalMilliseconds)
+            budgetMilliseconds > intervalMilliseconds ||
+            requiredAtRuntime && string.IsNullOrWhiteSpace(scriptPath) ||
+            !string.IsNullOrWhiteSpace(scriptPath) &&
+            !ProjectLifecycleEventProfileValidator.IsSafeScriptPath(scriptPath))
         {
             throw new ArgumentOutOfRangeException(nameof(id), "Heartbeat schedule is invalid.");
         }
@@ -42,5 +50,7 @@ public sealed record HeartbeatScheduleDefinition
         ForgeScriptApiVersion = forgeScriptApiVersion.Trim();
         Handler = handler.Trim();
         Provenance = provenance.Trim();
+        ScriptPath = string.IsNullOrWhiteSpace(scriptPath) ? null : scriptPath.Trim().Replace('\\', '/');
+        RequiredAtRuntime = requiredAtRuntime;
     }
 }

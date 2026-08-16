@@ -87,8 +87,8 @@ public sealed class PlacementValidator
             return Invalid(
                 OccupiedCode,
                 suggested is null
-                    ? $"Cellule occupée par l’entité {occupied.Id.ToString()[..8]}. Choisissez une cellule libre."
-                    : $"Cellule occupée par l’entité {occupied.Id.ToString()[..8]}. Correction proposée : " +
+                    ? "Cette cellule est déjà occupée. Choisissez une cellule libre."
+                    : "Cette cellule est déjà occupée. Correction proposée : " +
                       $"X {suggested.Value.X:0.##}, Z {suggested.Value.Z:0.##}.",
                 request.Position,
                 suggested ?? corrected,

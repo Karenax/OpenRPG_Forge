@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Forge.Domain.Areas;
+using Forge.Domain.Modules;
 using Forge.Domain.Projects;
 using Forge.ModuleFormat.Serialization;
 using Forge.ModuleFormat.Tests.Serialization;
@@ -126,6 +127,52 @@ public sealed class ProjectSessionTests : IDisposable
             SearchOption.TopDirectoryOnly));
         Assert.Equal(AreaJsonSerializer.CurrentFormatVersion, ReadProjectFormatVersion(areaPath));
         Assert.Empty(Directory.EnumerateFiles(targetDirectory, "*.tmp", SearchOption.AllDirectories));
+    }
+
+    [Fact]
+    public void Create_RoundTripsAValidatedCoreProjectWithoutAnAreaDocument()
+    {
+        var targetDirectory = Path.Combine(_temporaryRoot, "core-menu");
+        var projectId = ProjectId.From(Guid.Parse("d0250000-0000-4000-8000-000000000001"));
+        var moduleId = ModuleId.From(Guid.Parse("d0250000-0000-4000-8000-000000000002"));
+        var foundation = ProjectFoundationProfile.CreateCoreDefault(
+            Guid.Parse("d0250000-0000-4000-8000-000000000003"),
+            projectId,
+            "menu-principal",
+            ProjectTemplateKind.CoreMenu);
+        var metadata = new ProjectMetadata(
+            ProjectMetadataId.From(moduleId.Value),
+            "fr",
+            [new ProjectLocalizedMetadata("fr", "Menu principal", "Interface", "Projet sans monde 3D.", string.Empty)],
+            "Atelier Forge",
+            "1.0.0",
+            "CC0-1.0",
+            null,
+            ["interface"],
+            "Tout public",
+            "studio:ux0-e-test",
+            foundation: foundation);
+        var module = new ModuleDefinition(
+            moduleId,
+            "menu-principal",
+            "Menu principal",
+            "Projet sans monde 3D.",
+            AreaId.From(Guid.Parse("d0250000-0000-4000-8000-000000000004")),
+            metadata);
+        var project = new ProjectDefinition(projectId, "Menu principal", module, [], []);
+
+        var created = ProjectSession.Create(targetDirectory, project);
+        var reopened = ProjectSession.Open(targetDirectory);
+
+        Assert.True(created.Succeeded, string.Join(" | ", created.Diagnostics.Select(item => item.Message)));
+        Assert.True(reopened.Succeeded, string.Join(" | ", reopened.Diagnostics.Select(item => item.Message)));
+        var restored = Assert.IsType<ProjectSession>(reopened.Session).Project;
+        Assert.Empty(restored.Areas);
+        Assert.Empty(restored.Blueprints);
+        Assert.Equal(ProjectTemplateKind.CoreMenu, restored.Module.Metadata.Foundation?.Template);
+        Assert.Equal(projectId, restored.Module.Metadata.Foundation?.Identity.ProjectId);
+        Assert.False(Directory.Exists(Path.Combine(targetDirectory, "areas")) &&
+                     Directory.EnumerateFiles(Path.Combine(targetDirectory, "areas"), "*.json").Any());
     }
 
     [Fact]

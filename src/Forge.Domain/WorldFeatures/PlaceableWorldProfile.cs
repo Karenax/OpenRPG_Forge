@@ -20,7 +20,16 @@ public sealed record PlaceableWorldProfile(
     PlaceableSecurityEventsProfile? SecurityEvents = null,
     bool SecurityEventsRequiredAtRuntime = false,
     PlaceableCompositionEventsProfile? CompositionEvents = null,
-    bool CompositionEventsRequiredAtRuntime = false)
+    bool CompositionEventsRequiredAtRuntime = false,
+    PlaceableFactionOwnershipProfile? FactionOwnership = null,
+    bool FactionOwnershipRequiredAtRuntime = false,
+    PlaceableConversationProfile? Conversation = null,
+    bool ConversationRequiredAtRuntime = false,
+    bool CredentialRequiredAtRuntime = false,
+    bool TrapRequiredAtRuntime = false,
+    bool LootRequiredAtRuntime = false,
+    bool ContainerEventsRequiredAtRuntime = false,
+    bool LockEventsRequiredAtRuntime = false)
 {
     public enum CredentialConsumption { Retain, Consume, Charge, Shared, VirtualPermission }
     public enum BodyMode { Static, Rigid, Kinematic }

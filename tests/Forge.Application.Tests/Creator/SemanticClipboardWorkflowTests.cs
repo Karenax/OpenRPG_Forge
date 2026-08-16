@@ -182,6 +182,46 @@ public sealed class SemanticClipboardWorkflowTests
     }
 
     [Fact]
+    public void EntityClipboard_RejectsMissingSocketAndCumulativeBudgetWithoutMutation()
+    {
+        var context = CreateContext();
+        var payload = new SemanticClipboard().CopyEntities(
+            context.State.Project,
+            context.SourceArea.Id,
+            context.SourceArea.Entities.Select(entity => entity.Id).ToArray());
+        var mappings = payload.Entities.ToDictionary(
+            entity => entity.Id,
+            _ => EntityId.From(Guid.NewGuid()));
+        var baseCommand = new PasteEntitiesCommand(
+            CommandId.From(Guid.NewGuid()),
+            context.State.Revision,
+            context.TargetArea.Id,
+            payload,
+            mappings,
+            new Vector3Value(8, 0, 8),
+            DryRun: false);
+        var handler = new PasteEntitiesHandler(new FixedClock(Timestamp));
+
+        var missingSocket = handler.Handle(context.State, baseCommand with
+        {
+            RequiredSocket = "wall-north",
+            AvailableSockets = ["floor"],
+        });
+        var exhaustedBudget = handler.Handle(context.State, baseCommand with
+        {
+            AvailableBudgetBytes = 3_000,
+            BlueprintEstimatedBytes = 2_000,
+        });
+
+        Assert.Equal(Forge.Application.Spatial.PlacementValidator.SocketMissingCode,
+            Assert.Single(missingSocket.Diagnostics).Code);
+        Assert.Equal(Forge.Application.Spatial.PlacementValidator.BudgetExceededCode,
+            Assert.Single(exhaustedBudget.Diagnostics).Code);
+        Assert.Single(missingSocket.State.Project.Areas.Single(area => area.Id == context.TargetArea.Id).Entities);
+        Assert.Single(exhaustedBudget.State.Project.Areas.Single(area => area.Id == context.TargetArea.Id).Entities);
+    }
+
+    [Fact]
     public void DuplicateArea_FullCloneRemapsInternalReferencesAndPreservesExternalReferences()
     {
         var context = CreateContext();

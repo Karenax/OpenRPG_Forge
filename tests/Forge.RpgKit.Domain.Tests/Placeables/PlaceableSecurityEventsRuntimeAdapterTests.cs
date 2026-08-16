@@ -11,6 +11,47 @@ namespace Forge.RpgKit.Domain.Tests.Placeables;
 public sealed class PlaceableSecurityEventsRuntimeAdapterTests
 {
     [Fact]
+    public void Trap_can_resolve_independently_from_legacy_loot_and_event_subprofiles()
+    {
+        var complete = Placeable();
+        var trapOnly = complete with
+        {
+            Operations = null,
+            OperationsRequiredAtRuntime = false,
+            SecurityEvents = complete.SecurityEvents! with
+            {
+                Loot = null,
+                ContainerEvents = null,
+                LockEvents = null,
+                ContentsChanged = null,
+            },
+            SecurityEventsRequiredAtRuntime = false,
+            TrapRequiredAtRuntime = true,
+        };
+        var adapter = new PlaceableSecurityEventsRuntimeAdapter();
+        var resolution = adapter.ResolveTrap(trapOnly);
+        var trap = adapter.BuildTrap(resolution.Handle!, trapOnly);
+
+        Assert.True(resolution.Available);
+        Assert.Equal("damage:ember", trap.PayloadId);
+        Assert.Equal("ash-watch", trap.OwnerId);
+        Assert.Throws<InvalidOperationException>(() => adapter.Build(resolution.Handle!, trapOnly));
+
+        var optional = adapter.ResolveTrap(trapOnly with
+        {
+            SecurityEvents = trapOnly.SecurityEvents! with { Trap = null },
+            TrapRequiredAtRuntime = false,
+        });
+        var required = adapter.ResolveTrap(trapOnly with
+        {
+            SecurityEvents = trapOnly.SecurityEvents! with { Trap = null },
+        });
+        Assert.True(optional.OptionalFallback);
+        Assert.Null(optional.DiagnosticCode);
+        Assert.Equal("WORLD_PLACEABLE_TRAP_REQUIRED_MISSING", required.DiagnosticCode);
+    }
+
+    [Fact]
     public void Trap_reuses_detection_disarm_trigger_reset_ownership_vfx_and_friendly_policy()
     {
         var placeable = Placeable();
@@ -49,35 +90,134 @@ public sealed class PlaceableSecurityEventsRuntimeAdapterTests
     }
 
     [Fact]
-    public void Open_and_close_bindings_preserve_actor_result_previous_state_and_authority()
+    public void Initial_treasure_resolves_and_spawns_without_trap_or_legacy_event_siblings()
     {
-        var placeable = Placeable();
+        var complete = Placeable();
+        var lootOnly = complete with
+        {
+            Operations = null,
+            OperationsRequiredAtRuntime = false,
+            SecurityEvents = complete.SecurityEvents! with
+            {
+                Trap = null,
+                ContainerEvents = null,
+                LockEvents = null,
+                ContentsChanged = null,
+            },
+            SecurityEventsRequiredAtRuntime = false,
+            TrapRequiredAtRuntime = false,
+            LootRequiredAtRuntime = true,
+        };
         var adapter = new PlaceableSecurityEventsRuntimeAdapter();
-        var handle = adapter.Resolve(placeable).Handle!;
+        var resolution = adapter.ResolveLoot(lootOnly);
+        var runtime = adapter.BuildLoot(resolution.Handle!, lootOnly);
+        var spawned = adapter.Spawn(resolution.Handle!, lootOnly, LootSpawnTiming.Open,
+            new HashSet<string>());
+
+        Assert.True(resolution.Available);
+        Assert.Single(runtime.LootTable.Entries);
+        Assert.Equal("LootSpawned", spawned.EventName);
+        Assert.Throws<InvalidOperationException>(() => adapter.Build(resolution.Handle!, lootOnly));
+
+        var optional = adapter.ResolveLoot(lootOnly with
+        {
+            SecurityEvents = lootOnly.SecurityEvents! with { Loot = null },
+            LootRequiredAtRuntime = false,
+        });
+        var required = adapter.ResolveLoot(lootOnly with
+        {
+            SecurityEvents = lootOnly.SecurityEvents! with { Loot = null },
+        });
+        Assert.True(optional.OptionalFallback);
+        Assert.Null(optional.DiagnosticCode);
+        Assert.Equal("WORLD_PLACEABLE_LOOT_REQUIRED_MISSING", required.DiagnosticCode);
+    }
+
+    [Fact]
+    public void Open_and_close_bindings_resolve_independently_and_preserve_the_canonical_payload()
+    {
+        var complete = Placeable();
+        var placeable = complete with
+        {
+            Operations = null,
+            OperationsRequiredAtRuntime = false,
+            SecurityEvents = complete.SecurityEvents! with
+            {
+                Trap = null,
+                Loot = null,
+                LockEvents = null,
+                ContentsChanged = null,
+            },
+            SecurityEventsRequiredAtRuntime = false,
+            TrapRequiredAtRuntime = false,
+            LootRequiredAtRuntime = false,
+            ContainerEventsRequiredAtRuntime = true,
+        };
+        var adapter = new PlaceableSecurityEventsRuntimeAdapter();
+        var resolution = adapter.ResolveContainerEvents(placeable);
+        var policy = adapter.BuildContainerEvents(resolution.Handle!, placeable);
+        var handle = resolution.Handle!;
         var opened = adapter.ContainerStateChanged(handle, placeable, true, "player", "success",
             "closed", "server", DateTimeOffset.UnixEpoch);
         var closed = adapter.ContainerStateChanged(handle, placeable, false, "player", "success",
             "open", "server", DateTimeOffset.UnixEpoch);
 
+        Assert.True(resolution.Available);
+        Assert.Equal("1.0.0", policy.ForgeScriptApiVersion);
         Assert.Equal("ContainerOpened", opened.Binding);
         Assert.Equal("player", opened.Payload.ActorId);
+        Assert.Equal("success", opened.Payload.Result);
         Assert.Equal("closed", opened.Payload.PreviousState);
         Assert.Equal("server", opened.Payload.Authority);
         Assert.Equal("ContainerClosed", closed.Binding);
+        Assert.Throws<InvalidOperationException>(() => adapter.Build(handle, placeable));
+
+        var optional = adapter.ResolveContainerEvents(placeable with
+        {
+            SecurityEvents = placeable.SecurityEvents! with { ContainerEvents = null },
+            ContainerEventsRequiredAtRuntime = false,
+        });
+        var required = adapter.ResolveContainerEvents(placeable with
+        {
+            SecurityEvents = placeable.SecurityEvents! with { ContainerEvents = null },
+        });
+        Assert.True(optional.OptionalFallback);
+        Assert.Null(optional.DiagnosticCode);
+        Assert.Equal("WORLD_PLACEABLE_CONTAINER_EVENTS_REQUIRED_MISSING", required.DiagnosticCode);
     }
 
     [Fact]
     public void Lock_events_emit_controlled_before_after_payload_and_honor_veto()
     {
-        var placeable = Placeable();
+        var complete = Placeable();
+        var placeable = complete with
+        {
+            SecurityEvents = complete.SecurityEvents! with
+            {
+                Trap = null,
+                Loot = null,
+                ContainerEvents = null,
+                ContentsChanged = null,
+            },
+            SecurityEventsRequiredAtRuntime = false,
+            TrapRequiredAtRuntime = false,
+            LootRequiredAtRuntime = false,
+            ContainerEventsRequiredAtRuntime = false,
+            LockEventsRequiredAtRuntime = true,
+        };
         var adapter = new PlaceableSecurityEventsRuntimeAdapter();
-        var handle = adapter.Resolve(placeable).Handle!;
+        var resolution = adapter.ResolveLockEvents(placeable);
+        var handle = resolution.Handle!;
+        var policy = adapter.BuildLockEvents(handle, placeable);
         var vetoed = adapter.ChangeLockState(handle, placeable, LockState.Unlocked, "credential",
             "key:ember", "player", _ => "quest-gate");
         var changed = adapter.ChangeLockState(handle, placeable, LockState.Unlocked, "credential",
             "key:ember", "player");
 
+        Assert.True(resolution.Available);
+        Assert.Equal("1.0.0", policy.ForgeScriptApiVersion);
         Assert.True(vetoed.Changing.Payload.Vetoed);
+        Assert.Equal("quest-gate", vetoed.Changing.Payload.VetoReason);
         Assert.Null(vetoed.Changed);
         Assert.Equal(LockState.Locked, vetoed.Lock.State);
         Assert.Equal("LockStateChanging", changed.Changing.Binding);
@@ -85,6 +225,21 @@ public sealed class PlaceableSecurityEventsRuntimeAdapterTests
         Assert.Equal("credential", changed.Changed.Payload.Method);
         Assert.Equal("key:ember", changed.Changed.Payload.Credential);
         Assert.Equal("player", changed.Changed.Payload.ActorId);
+        Assert.Equal(LockState.Unlocked, changed.Lock.State);
+        Assert.Throws<InvalidOperationException>(() => adapter.Build(handle, placeable));
+
+        var optional = adapter.ResolveLockEvents(placeable with
+        {
+            SecurityEvents = placeable.SecurityEvents! with { LockEvents = null },
+            LockEventsRequiredAtRuntime = false,
+        });
+        var required = adapter.ResolveLockEvents(placeable with
+        {
+            SecurityEvents = placeable.SecurityEvents! with { LockEvents = null },
+        });
+        Assert.True(optional.OptionalFallback);
+        Assert.Null(optional.DiagnosticCode);
+        Assert.Equal("WORLD_PLACEABLE_LOCK_EVENTS_REQUIRED_MISSING", required.DiagnosticCode);
     }
 
     [Fact]
@@ -93,7 +248,7 @@ public sealed class PlaceableSecurityEventsRuntimeAdapterTests
         var placeable = Placeable();
         var adapter = new PlaceableSecurityEventsRuntimeAdapter();
         var handle = adapter.Resolve(placeable).Handle!;
-        var item = placeable.SecurityEvents!.Loot.LootTable.Entries.Single().ItemDefinitionId;
+        var item = placeable.SecurityEvents!.Loot!.LootTable.Entries.Single().ItemDefinitionId;
         var changed = adapter.ContentsChanged(handle, placeable, 4,
             [new(item, -1, "take", "inventory:crypt-pillar", "player")], "player-loot", "player");
 

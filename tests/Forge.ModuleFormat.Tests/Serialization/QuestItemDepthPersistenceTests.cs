@@ -23,7 +23,7 @@ public sealed class QuestItemDepthPersistenceTests : IDisposable
         var created = ProjectSession.Create(_temporaryRoot, project);
         var reopened = ProjectSession.Open(_temporaryRoot);
 
-        Assert.Contains("\"formatVersion\": \"0.6.34\"", aggregate, StringComparison.Ordinal);
+        Assert.Contains("\"formatVersion\": \"0.6.36\"", aggregate, StringComparison.Ordinal);
         Assert.Equal(aggregate, ProjectJsonSerializer.Serialize(restored));
         Assert.True(created.Succeeded);
         Assert.True(reopened.Succeeded);

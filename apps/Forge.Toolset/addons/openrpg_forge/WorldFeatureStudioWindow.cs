@@ -2085,17 +2085,17 @@ public partial class WorldFeatureStudioWindow : Window
                 $"override MJ audité {catalog.Placeables.FirstOrDefault()?.Operations?.Protection?.AuditBinding ?? "absent"}\n" +
                 $"Verrou · {catalog.Placeables.FirstOrDefault()?.Operations?.Lock?.InitialState.ToString() ?? "absent"} · " +
                 $"clé/skill/code/hacking/relock/jam/permissions\n" +
-                $"Piège R094 · {catalog.Placeables.FirstOrDefault()?.SecurityEvents?.Trap.PayloadId ?? "absent"} · " +
-                $"detect {catalog.Placeables.FirstOrDefault()?.SecurityEvents?.Trap.DetectionDifficulty ?? 0:0.##} / disarm " +
-                $"{catalog.Placeables.FirstOrDefault()?.SecurityEvents?.Trap.DisarmDifficulty ?? 0:0.##} · reset/owner/VFX/friendly/one-shot\n" +
-                $"Trésor · {catalog.Placeables.FirstOrDefault()?.SecurityEvents?.Loot.Timing.ToString() ?? "absent"} · " +
-                $"seed {catalog.Placeables.FirstOrDefault()?.SecurityEvents?.Loot.Seed ?? 0} · " +
-                $"{catalog.Placeables.FirstOrDefault()?.SecurityEvents?.Loot.LootTable.Entries.Count ?? 0} entrée(s) · état persisté\n" +
-                $"Conteneur · {catalog.Placeables.FirstOrDefault()?.SecurityEvents?.ContainerEvents.OpenedBinding ?? "absent"}/" +
-                $"{catalog.Placeables.FirstOrDefault()?.SecurityEvents?.ContainerEvents.ClosedBinding ?? "absent"} · acteur/résultat/ancien état/autorité\n" +
-                $"Verrou events · {catalog.Placeables.FirstOrDefault()?.SecurityEvents?.LockEvents.ChangingBinding ?? "absent"} → " +
-                $"{catalog.Placeables.FirstOrDefault()?.SecurityEvents?.LockEvents.ChangedBinding ?? "absent"} · méthode/credential/acteur/veto\n" +
-                $"OnDisturbed · {catalog.Placeables.FirstOrDefault()?.SecurityEvents?.ContentsChanged.EventBinding ?? "absent"} · " +
+                $"Piège R094 · {catalog.Placeables.FirstOrDefault()?.SecurityEvents?.Trap?.PayloadId ?? "absent"} · " +
+                $"detect {catalog.Placeables.FirstOrDefault()?.SecurityEvents?.Trap?.DetectionDifficulty ?? 0:0.##} / disarm " +
+                $"{catalog.Placeables.FirstOrDefault()?.SecurityEvents?.Trap?.DisarmDifficulty ?? 0:0.##} · reset/owner/VFX/friendly/one-shot\n" +
+                $"Trésor · {catalog.Placeables.FirstOrDefault()?.SecurityEvents?.Loot?.Timing.ToString() ?? "absent"} · " +
+                $"seed {catalog.Placeables.FirstOrDefault()?.SecurityEvents?.Loot?.Seed ?? 0} · " +
+                $"{catalog.Placeables.FirstOrDefault()?.SecurityEvents?.Loot?.LootTable.Entries.Count ?? 0} entrée(s) · état persisté\n" +
+                $"Conteneur · {catalog.Placeables.FirstOrDefault()?.SecurityEvents?.ContainerEvents?.OpenedBinding ?? "absent"}/" +
+                $"{catalog.Placeables.FirstOrDefault()?.SecurityEvents?.ContainerEvents?.ClosedBinding ?? "absent"} · acteur/résultat/ancien état/autorité\n" +
+                $"Verrou events · {catalog.Placeables.FirstOrDefault()?.SecurityEvents?.LockEvents?.ChangingBinding ?? "absent"} → " +
+                $"{catalog.Placeables.FirstOrDefault()?.SecurityEvents?.LockEvents?.ChangedBinding ?? "absent"} · méthode/credential/acteur/veto\n" +
+                $"OnDisturbed · {catalog.Placeables.FirstOrDefault()?.SecurityEvents?.ContentsChanged?.EventBinding ?? "absent"} · " +
                 $"delta transactionnel/cause/révision/acteur\n" +
                 $"Dégâts R095 · {catalog.Placeables.FirstOrDefault()?.CompositionEvents?.DamageEvents.DamagedBinding ?? "absent"}/" +
                 $"{catalog.Placeables.FirstOrDefault()?.CompositionEvents?.DamageEvents.DestroyedBinding ?? "absent"} · " +

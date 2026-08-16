@@ -1,9 +1,11 @@
 using Forge.Application.Gameplay;
 using Forge.Application.Lifecycle;
+using Forge.Application.Rules;
 using Forge.Domain.Areas;
 using Forge.Domain.Gameplay;
 using Forge.Domain.Lifecycle;
 using Forge.Domain.Modules;
+using Forge.Domain.Rules;
 using Forge.Domain.RuntimePolicies;
 using Forge.Domain.Spatial;
 
@@ -26,6 +28,21 @@ public sealed class RuntimePolicyServicesTests
         var areaSchedule = new HeartbeatScheduleDefinition(Guid.NewGuid(), 1, "Area ecology",
             HeartbeatScope.Area, true, 1_000, 10, true, "1.0", "OnAreaHeartbeat", "test");
         Assert.Empty(scheduler.Advance([areaSchedule], 5_000, false, AreaId.From(Guid.NewGuid())).Dispatches);
+    }
+
+    [Fact]
+    public void Ux0GHeartbeatDispatchCarriesResolvedScriptContract()
+    {
+        var schedule = new HeartbeatScheduleDefinition(Guid.NewGuid(), 1, "World simulation",
+            HeartbeatScope.Module, true, 1_500, 25, true, "1.0", "main", "test:ux0-g",
+            "scripts/world-simulation.forge", true);
+
+        var dispatch = Assert.Single(new HeartbeatScheduler().Advance([schedule], 1_500, true).Dispatches);
+
+        Assert.Equal("scripts/world-simulation.forge", dispatch.ScriptPath);
+        Assert.Equal("main", dispatch.Handler);
+        Assert.True(dispatch.RequiredAtRuntime);
+        Assert.Equal(25, dispatch.BudgetMilliseconds);
     }
 
     [Fact]
@@ -82,5 +99,49 @@ public sealed class RuntimePolicyServicesTests
         Assert.True(result.CameraRestored);
         Assert.True(result.NarrativeRolledBack);
         Assert.Equal("OnSequenceAborted", result.EventHandler);
+    }
+
+    [Fact]
+    public void Ux0HWorldTransitionsResolveAbortCalendarAndDataDrivenProgression()
+    {
+        var moduleId = ModuleId.From(Guid.NewGuid());
+        var defaults = ModuleRuntimePolicyProfile.CreateDefault(moduleId);
+        var abort = new SequenceAbortPolicy(defaults.SequenceAbort.Id, 1, true,
+            defaults.SequenceAbort.Binding with
+            {
+                Handler = "main",
+                ScriptPath = "scripts/sequence-abort.forge",
+                RequiredAtRuntime = true,
+            }, SequenceAbortRestoreFlags.All, 16, "test:ux0-h");
+        var snapshot = new SequenceRuntimeState("camera.player", [], new HashSet<string>(),
+            new HashSet<string>(), 4, "tx-4", false);
+        var active = snapshot with
+        {
+            CameraId = "camera.cinematic",
+            NarrativeRevision = 8,
+            SequenceActive = true,
+        };
+        var aborted = SequenceAbortCoordinator.Abort(abort, active, snapshot);
+
+        var clock = new WorldClockProfile(Guid.NewGuid(), 1, "test:ux0-h", 30, 10, 20, 50,
+            2.5, false, 95, new Dictionary<string, int> { ["zone"] = 25 },
+            new Dictionary<WorldAstronomicalEventKind, int>
+            {
+                [WorldAstronomicalEventKind.Dawn] = 125,
+            });
+        var advanced = CustomWorldEventBus.AdvanceClock(clock,
+            CustomWorldEventBus.CreateInitialSnapshot(clock), 2, "zone");
+        var progression = new ProgressionPolicy(Guid.NewGuid(), 1, "forge.generic",
+            [new(1, 0), new(2, 120), new(3, 360)], 1.2, .9,
+            new Dictionary<string, double> { ["quest"] = 1.4 }, true, "test:ux0-h");
+        var resolved = RulesRuntimeService.ResolveProgression(progression, 150, "quest", 2, 0);
+
+        Assert.True(aborted.Accepted);
+        Assert.True(aborted.CameraRestored);
+        Assert.Equal("scripts/sequence-abort.forge", abort.Binding.ScriptPath);
+        Assert.Equal(100, advanced.Snapshot.TotalMinutes);
+        Assert.Contains(WorldAstronomicalEventKind.Dawn, advanced.CrossedEvents);
+        Assert.Equal(113.4, resolved.AwardedExperience, 6);
+        Assert.Equal(1, resolved.Level);
     }
 }

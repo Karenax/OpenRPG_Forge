@@ -48,6 +48,17 @@ public sealed class RuntimeLifecycleCoordinator
             return Failure(ProjectAlreadyLoadedCode, "A project is already loaded in this lifecycle coordinator.", "project.json");
         }
 
+        var lifecycle = ProjectLifecycleEventProfileRuntime.Resolve(
+            project.Module.RuntimePolicies.LifecycleEvents,
+            RuntimeLifecycleEventKind.ProjectLoaded,
+            authority,
+            project.Module.RuntimePolicies.LifecycleEvents.RequiredAtRuntime);
+        if (lifecycle.Diagnostics.Count > 0)
+        {
+            var diagnostic = lifecycle.Diagnostics[0];
+            return Failure(diagnostic.Code, diagnostic.Message, diagnostic.Path);
+        }
+
         var @event = Create(
             project,
             RuntimeLifecycleEventKind.ProjectLoaded,
@@ -121,6 +132,17 @@ public sealed class RuntimeLifecycleCoordinator
         if (_worldStarted)
         {
             return Failure(WorldAlreadyStartedCode, "The world has already started.", "project.json");
+        }
+
+        var lifecycle = ProjectLifecycleEventProfileRuntime.Resolve(
+            _project.Module.RuntimePolicies.LifecycleEvents,
+            RuntimeLifecycleEventKind.WorldStarted,
+            _authority,
+            _project.Module.RuntimePolicies.LifecycleEvents.RequiredAtRuntime);
+        if (lifecycle.Diagnostics.Count > 0)
+        {
+            var diagnostic = lifecycle.Diagnostics[0];
+            return Failure(diagnostic.Code, diagnostic.Message, diagnostic.Path);
         }
 
         var @event = Create(
@@ -271,7 +293,7 @@ public sealed class RuntimeLifecycleCoordinator
         RuntimeAuthority authority,
         long sequence)
     {
-        var binding = kind switch
+        var areaBinding = kind switch
         {
             RuntimeLifecycleEventKind.AreaEntered when currentAreaId is not null =>
                 project.Areas.Single(area => area.Id == currentAreaId).Foundation.Lifecycle.Entered,
@@ -279,6 +301,13 @@ public sealed class RuntimeLifecycleCoordinator
                 project.Areas.Single(area => area.Id == previousAreaId).Foundation.Lifecycle.Exited,
             _ => null,
         };
+        var projectBinding = kind is RuntimeLifecycleEventKind.ProjectLoaded or RuntimeLifecycleEventKind.WorldStarted
+            ? ProjectLifecycleEventProfileRuntime.Resolve(
+                project.Module.RuntimePolicies.LifecycleEvents,
+                kind,
+                authority,
+                project.Module.RuntimePolicies.LifecycleEvents.RequiredAtRuntime).Binding
+            : null;
         return new(
             _eventIds.Next(),
             RuntimeLifecycleEvent.CurrentSchemaVersion,
@@ -293,8 +322,9 @@ public sealed class RuntimeLifecycleCoordinator
             cause,
             authority,
             "runtime-core",
-            binding?.ScriptPath,
-            binding?.Required ?? false);
+            areaBinding?.ScriptPath ?? projectBinding?.ScriptPath,
+            areaBinding?.Required ?? projectBinding?.RequiredAtRuntime ?? false,
+            projectBinding?.Handler);
     }
 
     private void Publish(RuntimeLifecycleEvent @event)

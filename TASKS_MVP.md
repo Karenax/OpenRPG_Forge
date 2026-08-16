@@ -1,6 +1,6 @@
 # File active — consolidation OpenRPG Forge
 
-Dernière mise à jour : 15 août 2026.
+Dernière mise à jour : 16 août 2026.
 
 Les 717 fonctions Aurora et les 187 lots sont clos. Cette file décrit le résultat de la consolidation
 et sépare les tâches réalisables dans le dépôt des décisions externes de release.
@@ -38,7 +38,7 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
 - [x] Couvrir export `.orpmod`, validation et rechargement depuis la distribution.
 - [x] Couvrir Assistant/MCP par plan, dry-run, approbation, test et revert.
 
-## C5 — Interface consolidée
+## C5 — Interface consolidée historique
 
 - [x] Stabiliser les neuf espaces et le profil Débutant à quatre espaces.
 - [x] Intégrer les outils spécialisés dans une fenêtre active, embarquée et redimensionnable.
@@ -126,6 +126,108 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
 - [x] Régénérer le graphe Roslyn et obtenir zéro diagnostic sur le contrôle complet.
 - [x] Rejouer les tests ciblés, les preuves visuelles Forward+ et le portail intégré.
 - [x] Publier la phase sur `origin/main` avec preuve de worktree propre et divergence nulle.
+
+## C12 — Migration vers Forge Studio autonome
+
+- [x] Accepter l'ADR 0045, fixer les huit rubriques et trente-six pages, puis cartographier les
+  66 classes `Window` historiques vers une destination unique.
+- [x] Créer `Forge.Studio.Core`, son catalogue testable et les tests de couverture de la matrice.
+- [x] Créer l'application Godot .NET autonome sans `EditorPlugin`, avec Module Hub et une seule
+  fenêtre produit.
+- [x] Ouvrir Forgotten Forest, restaurer workspace/page/zone, afficher la zone active dans une vue
+  3D permanente, charger les modèles gouvernés et partager la sélection avec l'inspecteur.
+- [x] Fournir la première page spécialisée Dialogues en lecture réelle ligne par ligne et désactiver
+  explicitement toute action qui n'est pas encore transactionnelle.
+- [x] Fournir `OpenRPG Forge Studio.cmd` et `scripts/Open-Studio.ps1`, sans argument `--editor`.
+- [x] Valider la fondation par build sans avertissement, smoke Godot 8/36/1 fenêtre et captures
+  Forward+ à 1920×1080 et 2560×1440.
+- [x] Rendre la coque compacte en QHD et livrer la première retouche Monde : sélection 3D, gizmo
+  X/Y/Z, clic droit, transformation/tags/propriétés, ajout filtré, duplication exacte, suppression
+  confirmée, dry-run, undo/redo et sauvegarde atomique.
+- [x] Qualifier UX0-A sur cinq IDs : Explorateur hiérarchique, filtres d’affichage, recherche
+  globale, références inverses et aide contextuelle, avec smoke, inspection Forward+ FHD/QHD et
+  preuve spécifique dans la matrice Studio.
+- [x] Réaliser UX0-B sur cinq IDs : disposition multi-panneaux, onglets multi-zones, raccourcis
+  configurables, profils d’éditeur et parité plusieurs onglets de zone.
+- [x] Réaliser UX0-C sur cinq IDs : vue 3D principale, sélection/inspection, caméra, gizmos et
+  undo/redo complets dans un parcours continu.
+- [x] Réaliser UX0-D sur cinq IDs : palette contextuelle, palettes Standard/Custom, placement
+  répété, retour visuel invalide et copier/couper/coller/dupliquer.
+- [x] Réaliser UX0-E sur cinq IDs : assistant de création de projet, métadonnées localisées,
+  identité technique stable, première zone obligatoire et point de départ du joueur.
+- [x] Réaliser UX0-F sur cinq IDs : chargement du module, connexion client, objets acquis/perdus,
+  utilisation d’objet, mort et respawn par cartes d’événements transactionnelles.
+- [x] Réaliser UX0-G sur quatre IDs : équipement/niveau, repos, heartbeat et événement utilisateur
+  global par cartes nommées, en réutilisant les politiques runtime canoniques.
+- [x] Réaliser UX0-H sur trois IDs : abort de cutscene, temps/calendrier du monde et échelle de
+  progression, sans déplacer la séquence de démarrage hors de la page Cinématiques.
+- [x] Réaliser UX0-I sur trois IDs : variables de projet, scripts mis en cache, description et
+  instructions joueur, sans exposer leurs clés ni perdre les structures avancées.
+- [x] Réaliser UX0-J sur deux IDs : renommage sûr et messages/erreurs/statut unifiés dans la coque,
+  sans absorber les pages métier des vagues suivantes.
+- [x] Réaliser UX1-A sur deux IDs : assistant de création de zone avec gabarits vide/jouable et
+  document indépendant, prévisualisé, annulable et persisté sans exposer d’identifiant technique.
+- [x] Réaliser UX1-B sur deux IDs : redimensionnement avec pertes explicites et copie complète ou
+  gabarit, prévisualisés, annulables, remappés et persistés depuis la fenêtre unique du Studio.
+- [x] Réaliser UX1-C sur `ORF-AREA-028` : écran de chargement humain avec médias importés, astuces,
+  progression réelle, mouvements réduits, fallback accessible, undo/redo et persistance exacte.
+- [x] Réaliser UX1-D sur `ORF-AREA-035` : calques imbriqués directement manipulables, états hérités,
+  responsables, affectation et sélection d’objets, export partiel, undo/redo et persistance exacte.
+- [x] Réaliser UX1-E sur `ORF-PLC-001` : blueprint de décor humain avec ressource importée,
+  collision, rôle, interaction, transform, scripts, sélection 3D, undo/redo et persistance exacte.
+- [x] Réaliser UX1-F sur `ORF-PLC-002` : décor statique direct avec regroupement, instanciation,
+  occlusion, fusion sûre, collision optionnelle, sélection 3D, undo/redo et persistance exacte.
+- [x] Réaliser UX1-G sur `ORF-PLC-003` : objet utilisable direct avec actions ajoutables, portée,
+  focus, autorité, conditions, `OnUsed`, sélection 3D, undo/redo et persistance exacte.
+- [x] Réaliser UX1-H sur `ORF-PLC-004` : conteneur direct avec capacité, masse, propriétaire,
+  accès, persistance, réplication, inventaire, butin, interface, sélection 3D, undo/redo et
+  persistance exacte.
+- [x] Réaliser UX1-I sur `ORF-PLC-005` : identité et apparence directes avec noms localisés, tags,
+  notes, asset, meshes, matériaux, icône, portrait, VFX, sélection 3D, undo/redo et persistance exacte.
+- [x] Réaliser UX1-J sur `ORF-PLC-006` : transformation précise avec coordonnées, rotation, échelle,
+  pivot, grille, parent humain, surface, animation, sélection 3D, undo/redo et persistance exacte.
+- [x] Réaliser UX1-K sur `ORF-PLC-007` : état initial parmi six états, animations, apparences,
+  interaction, transitions prévisualisées, sélection 3D, undo/redo et persistance exacte.
+- [x] Réaliser UX1-L sur `ORF-PLC-008` : santé, armure, résistances, étapes visuelles, destruction,
+  débris, réparation, aperçu de dégâts, sélection 3D, undo/redo et persistance exacte.
+- [x] Réaliser UX1-M sur `ORF-PLC-009` : actions protégées, droits requis, feedback joueur,
+  dérogation MJ auditée, aperçu de décision, sélection 3D, undo/redo et persistance exacte.
+- [x] Réaliser UX1-N sur `ORF-PLC-010` : faction principale, appartenances, hostilité, crime,
+  accès, ciblage, aperçu de décision, sélection 3D, undo/redo et persistance exacte.
+- [x] Réaliser UX1-O sur `ORF-PLC-011` : dialogue, point d’entrée, cinq sources de déclenchement,
+  priorité, usage unique, aperçu de résolution, sélection 3D, undo/redo et persistance exacte.
+- [x] Réaliser UX1-P sur `ORF-PLC-012` : quatre états, clé item, justificatifs, défi, code masqué,
+  piratage, droits, reverrouillage, brouillage, aperçu runtime, sélection 3D, undo/redo et persistance.
+- [x] Réaliser UX1-Q sur `ORF-PLC-013` : conservation, consommation, charges, partage, permission
+  virtuelle, audit, aperçu sans mutation d’inventaire, sélection 3D, undo/redo et persistance exacte.
+- [x] Réaliser UX1-R sur `ORF-PLC-014` : déclencheur, effet, détection, désamorçage, réarmement,
+  propriétaire, alliés, VFX, état armé, usage unique, aperçu runtime, sélection 3D, undo/redo et
+  persistance exacte sans inventer les autres événements du placeable.
+- [x] Réaliser UX1-S sur `ORF-PLC-015` : table d’objets par noms métier, catégories, poids,
+  quantités, qualité, conditions, unicité, moments chargement/ouverture/réinitialisation, graine,
+  état généré conservé ou explicitement remis à zéro, aperçu runtime, undo/redo et persistance.
+- [x] Réaliser UX1-T sur `ORF-PLC-016` : liaisons OnOpen et OnClose, version ForgeScript, acteur,
+  résultat, état précédent, autorité, aperçu runtime sans écriture, sélection 3D, préservation,
+  undo/redo et persistance exacte.
+- [x] Réaliser UX1-U sur `ORF-PLC-017` : liaisons avant et après le changement de verrou, version
+  ForgeScript, méthode, justificatif, acteur, veto contrôlé, aperçus accepté/refusé sans écriture,
+  sélection 3D, préservation, undo/redo et persistance exacte.
+- [ ] Réaliser UX1-V sur `ORF-PLC-018`, `ORF-PLC-019` et `ORF-PLC-020` : événements d'utilisation,
+  de perturbation, de dégâts et de destruction depuis la fiche Placeable, sans réimplémenter les
+  contrats Domain/Application déjà qualifiés et avec préservation/undo/redo/round-trip.
+- [ ] Réaliser UX1-W en parallèle contrôlé sur `ORF-EE-002`, `ORF-EE-018` et `ORF-EE-019` : échelle
+  de zone, création dynamique de zone et copie dynamique d'objet depuis la page Zones, dans un
+  worktree et des fichiers distincts du lot Placeable.
+- [ ] Préparer en lecture seule les lots Doors puis Triggers pendant UX1-V/UX1-W ; intégrer les
+  branches une par une et sérialiser build, tests, smoke, capture, matrice et graphe.
+- [ ] Achever la tranche Monde : terrain, navigation, puis activer **Tester ici** sur
+  snapshot isolé.
+- [ ] Migrer Contenu, Histoire, Gameplay, Tester, Publier, Projet et Assistant page par page, en
+  passant chaque ligne de la matrice à `Parity` uniquement avec tests et preuve visuelle.
+- [ ] Qualifier toutes les pages du Studio en 1920×1080, 2560×1440 et 3840×2160, sans conserver de
+  critère de support pour les résolutions inférieures au Full HD.
+- [ ] Exporter et qualifier le Studio sur Windows et Linux, basculer le lanceur Creator, puis retirer
+  le plugin historique seulement après parité des 66 lignes et accord utilisateur.
 
 ## Décisions externes avant release publique
 

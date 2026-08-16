@@ -63,6 +63,49 @@ public sealed class RoslynArchitectureGraphTests : IDisposable
     }
 
     [Fact]
+    public void Analyze_MergesPartialTypeDeclarationsAndKeepsEveryDefinitionEdge()
+    {
+        Write(
+            "src/Application/PartialAreaService.cs",
+            "namespace Forge.Application; public sealed partial class PartialAreaService { }\n");
+        Write(
+            "src/Application/PartialAreaService.Commands.cs",
+            "namespace Forge.Application; public sealed partial class PartialAreaService { public void Run() { } }\n");
+
+        var graph = BuildGraph();
+        var nodeId = "service:Forge.Application.PartialAreaService";
+        var definitionPaths = graph.Edges
+            .Where(edge => edge.Source == nodeId && edge.Kind == "defined_in")
+            .Select(edge => edge.Target)
+            .ToHashSet(StringComparer.Ordinal);
+
+        Assert.Single(graph.Nodes, node => node.Id == nodeId);
+        Assert.Contains("file:src/Application/PartialAreaService.cs", definitionPaths);
+        Assert.Contains("file:src/Application/PartialAreaService.Commands.cs", definitionPaths);
+        Assert.DoesNotContain(
+            graph.Diagnostics,
+            diagnostic => diagnostic.Message.Contains(nodeId, StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Analyze_StillReportsConflictingNonPartialDeclarations()
+    {
+        Write(
+            "src/Application/ConflictingAreaService.cs",
+            "namespace Forge.Application; public sealed class ConflictingAreaService { }\n");
+        Write(
+            "src/Application/ConflictingAreaService.Duplicate.cs",
+            "namespace Forge.Application; public sealed class ConflictingAreaService { }\n");
+
+        var graph = BuildGraph();
+        const string nodeId = "service:Forge.Application.ConflictingAreaService";
+
+        Assert.Contains(
+            graph.Diagnostics,
+            diagnostic => diagnostic.Message.Contains(nodeId, StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void Analyze_IsIndependentOfCheckoutLineEndings()
     {
         var first = GraphStore.Serialize(BuildGraph());
