@@ -99,6 +99,8 @@ internal sealed record StudioUx1AFSmokeResult(
     bool PlanHistorySeparated,
     bool PlanUndoRedo,
     bool PlanRevisionGuard,
+    bool AsyncStaleBlocked,
+    bool MixedCatalogPermission,
     bool ProjectRevisionGuard,
     bool BuildDryRunPure,
     bool BuildAppliedGeometry,

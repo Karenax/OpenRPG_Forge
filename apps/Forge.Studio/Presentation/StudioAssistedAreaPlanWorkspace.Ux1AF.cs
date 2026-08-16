@@ -23,6 +23,7 @@ internal sealed partial class StudioAssistedAreaPlanWorkspace : PanelContainer
     private readonly Label _provider;
     private readonly Label _privacy;
     private readonly Label _planSummary;
+    private readonly Button _previewPlanButton;
     private readonly Button _applyPlan;
     private readonly OptionButton _savedPlans;
     private readonly Label _buildSummary;
@@ -66,9 +67,12 @@ internal sealed partial class StudioAssistedAreaPlanWorkspace : PanelContainer
 
     internal bool ShowsHumanSurface =>
         _privacy.Text.Contains("Contenu projet", StringComparison.Ordinal) &&
+        _privacy.Text.Contains("détails sensibles", StringComparison.OrdinalIgnoreCase) &&
+        _privacy.Text.Contains("brief", StringComparison.OrdinalIgnoreCase) &&
         _privacy.Text.Contains("Réseau", StringComparison.Ordinal) &&
         _provider.Text.Contains("Provenance", StringComparison.Ordinal) &&
         _planSummary.Text.Contains("sans écriture", StringComparison.OrdinalIgnoreCase) &&
+        _planSummary.Text.Contains("Diff sémantique canonique", StringComparison.Ordinal) &&
         !_planSummary.Text.Contains("AreaId", StringComparison.OrdinalIgnoreCase) &&
         !_buildSummary.Text.Contains("PlanId", StringComparison.OrdinalIgnoreCase);
 
@@ -112,7 +116,11 @@ internal sealed partial class StudioAssistedAreaPlanWorkspace : PanelContainer
             "La politique active est affichée avant toute proposition. Les secrets restent des variables d’environnement et ne sont jamais rendus ici.");
         _provider = StudioStyle.Label("Fournisseur indisponible.", 10, StudioStyle.Muted, wrap: true);
         policy.AddChild(_provider);
-        _privacy = StudioStyle.Label("Réseau : inconnu · Contenu projet : inconnu", 10, StudioStyle.Muted, wrap: true);
+        _privacy = StudioStyle.Label(
+            "Réseau : inconnu · Contenu projet : brief structurel transmis, détails sensibles inconnus",
+            10,
+            StudioStyle.Muted,
+            wrap: true);
         policy.AddChild(_privacy);
 
         var body = new HSplitContainer
@@ -159,9 +167,9 @@ internal sealed partial class StudioAssistedAreaPlanWorkspace : PanelContainer
         };
         _approve.AddThemeColorOverride("font_color", StudioStyle.Text);
         brief.AddChild(_approve);
-        var previewPlan = StudioStyle.Button("Prévisualiser le plan", primary: true);
-        previewPlan.Pressed += async () => await PreviewPlanAsync();
-        brief.AddChild(previewPlan);
+        _previewPlanButton = StudioStyle.Button("Prévisualiser le plan", primary: true);
+        _previewPlanButton.Pressed += async () => await PreviewPlanAsync();
+        brief.AddChild(_previewPlanButton);
 
         var planHistory = new HBoxContainer();
         planHistory.AddThemeConstantOverride("separation", 8);
@@ -337,81 +345,156 @@ internal sealed partial class StudioAssistedAreaPlanWorkspace : PanelContainer
 
         _evidenceSourceSnapshot = sourceSnapshot;
         _lastEvidenceSourceUntouched = false;
-        if (!ActivateEvidenceWorkspace())
+        var visible = false;
+        var planDryRunPure = false;
+        var planApplied = false;
+        var planUndoRedo = false;
+        var buildDryRunPure = false;
+        var geometryApplied = false;
+        var buildUndoRedo = false;
+        var saved = false;
+        var persisted = false;
+        var cleanupSucceeded = true;
+        var transactionCompleted = false;
+        var controlledFailure = "none";
+        StudioSessionController? reopened = null;
+        try
         {
-            Visible = false;
-            ReleaseEvidenceWorkspace();
-            CompleteEvidenceSourceAudit();
-            return false;
-        }
-
-        SelectEvidenceInputs();
-        var planHistory = _session.History!;
-        var planProject = _session.Project;
-        var planRevision = planHistory.State.Revision;
-        var planJournal = planHistory.Journal.ToArray();
-        var planPreviewed = PreviewPlanAsync().GetAwaiter().GetResult();
-        var planDryRunPure = planPreviewed && ReferenceEquals(planProject, _session.Project) &&
+            if (!ActivateEvidenceWorkspace())
+            {
+                throw new InvalidOperationException("The isolated UX1-AF evidence workspace is unavailable.");
+            }
+            SelectEvidenceInputs();
+            var planHistory = _session.History!;
+            var planProject = _session.Project;
+            var planRevision = planHistory.State.Revision;
+            var planJournal = planHistory.Journal.ToArray();
+            var planPreviewed = PreviewPlanAsync().GetAwaiter().GetResult();
+            planDryRunPure = planPreviewed && ReferenceEquals(planProject, _session.Project) &&
                              planHistory.State.Revision == planRevision &&
                              planHistory.Journal.SequenceEqual(planJournal);
-        var planApplied = ApplyPlanInternal();
-        var approvedPlan = _catalog?.Plans.SingleOrDefault(plan => plan.Approved);
-        var planUndo = _session.UndoUx1AFPlan();
-        RefreshCatalog();
-        var planRemoved = _catalog?.Plans.Count == 0;
-        var planRedo = _session.RedoUx1AFPlan();
-        RefreshCatalog();
-        var planRestored = approvedPlan is not null && _catalog?.Plans.Any(plan => plan.Id == approvedPlan.Id) == true;
-        var selected = SelectEvidencePlan();
+            planApplied = ApplyPlanInternal();
+            var approvedPlan = _catalog?.Plans.SingleOrDefault(plan => plan.Approved);
+            var planUndo = _session.UndoUx1AFPlan();
+            RefreshCatalog();
+            var planRemoved = _catalog?.Plans.Count == 0;
+            var planRedo = _session.RedoUx1AFPlan();
+            RefreshCatalog();
+            var planRestored = approvedPlan is not null &&
+                               _catalog?.Plans.Any(plan => plan.Id == approvedPlan.Id) == true;
+            planUndoRedo = planUndo.Succeeded && planRemoved && planRedo.Succeeded && planRestored;
+            var selected = SelectEvidencePlan();
 
-        var buildProject = _session.Project;
-        var buildRevision = _session.History!.State.Revision;
-        var buildJournal = _session.History.Journal.ToArray();
-        var buildPreviewed = selected && PreviewBuildInternal();
-        var buildDryRunPure = buildPreviewed && ReferenceEquals(buildProject, _session.Project) &&
+            var buildProject = _session.Project;
+            var buildRevision = _session.History!.State.Revision;
+            var buildJournal = _session.History.Journal.ToArray();
+            var buildPreviewed = selected && PreviewBuildInternal();
+            buildDryRunPure = buildPreviewed && ReferenceEquals(buildProject, _session.Project) &&
                               _session.History.State.Revision == buildRevision &&
                               _session.History.Journal.SequenceEqual(buildJournal);
-        var planId = _buildPreview?.PlanId ?? Guid.Empty;
-        var beforeCount = _session.ActiveArea!.Entities.Count;
-        var buildApplied = ApplyBuildInternal();
-        var afterCount = _session.ActiveArea!.Entities.Count;
-        var marker = $"assistant-plan:{planId:D}";
-        var geometryApplied = buildApplied && afterCount > beforeCount &&
+            var planId = _buildPreview?.PlanId ?? Guid.Empty;
+            var beforeCount = _session.ActiveArea!.Entities.Count;
+            var buildApplied = ApplyBuildInternal();
+            var afterCount = _session.ActiveArea!.Entities.Count;
+            var marker = $"assistant-plan:{planId:D}";
+            geometryApplied = buildApplied && afterCount > beforeCount &&
                               _session.ActiveArea.Entities.Any(entity =>
                                   entity.Tags.Contains(marker, StringComparer.Ordinal));
-        var undoBuild = _session.Undo();
-        var geometryUndone = _session.ActiveArea!.Entities.Count == beforeCount;
-        var redoBuild = _session.Redo();
-        var geometryRedone = _session.ActiveArea!.Entities.Count == afterCount;
-        var saved = _session.Save();
+            var undoBuild = _session.Undo();
+            var geometryUndone = _session.ActiveArea!.Entities.Count == beforeCount;
+            var redoBuild = _session.Redo();
+            var geometryRedone = _session.ActiveArea!.Entities.Count == afterCount;
+            buildUndoRedo = undoBuild.Succeeded && geometryUndone && redoBuild.Succeeded && geometryRedone;
+            saved = _session.Save().Succeeded;
 
-        var reopened = new StudioSessionController();
-        var reopen = reopened.Open(_evidenceWorkspace!.RootPath);
-        var reopenedCatalog = reopen.Succeeded ? reopened.CreateUx1AFWorkspaceSnapshot() : null;
-        var persisted = reopen.Succeeded && reopenedCatalog?.Plans.Any(plan => plan.Id == planId && plan.Approved) == true &&
+            reopened = new StudioSessionController();
+            var reopen = reopened.Open(_evidenceWorkspace!.RootPath);
+            var reopenedCatalog = reopen.Succeeded ? reopened.CreateUx1AFWorkspaceSnapshot() : null;
+            persisted = reopen.Succeeded &&
+                        reopenedCatalog?.Plans.Any(plan => plan.Id == planId && plan.Approved) == true &&
                         reopened.Project!.Areas.SelectMany(area => area.Entities).Any(entity =>
                             entity.Tags.Contains(marker, StringComparer.Ordinal));
-        reopened.CloseUx1AF();
-        reopened.Close();
+            visible = HasExplicitSelection && ShowsHumanSurface;
+            transactionCompleted = true;
+        }
+        catch (Exception exception)
+        {
+            controlledFailure = exception.GetType().Name;
+        }
+        finally
+        {
+            if (reopened is not null)
+            {
+                try
+                {
+                    reopened.CloseUx1AF();
+                }
+                catch (Exception exception)
+                {
+                    cleanupSucceeded = false;
+                    controlledFailure = $"{controlledFailure}|reopened-ux1af:{exception.GetType().Name}";
+                }
+                try
+                {
+                    reopened.Close();
+                }
+                catch (Exception exception)
+                {
+                    cleanupSucceeded = false;
+                    controlledFailure = $"{controlledFailure}|reopened-session:{exception.GetType().Name}";
+                }
+            }
 
-        var visible = HasExplicitSelection && ShowsHumanSurface;
-        Close();
+            if (!ReferenceEquals(_session, _sourceSession))
+            {
+                try
+                {
+                    _session.CloseUx1AF();
+                }
+                catch (Exception exception)
+                {
+                    cleanupSucceeded = false;
+                    controlledFailure = $"{controlledFailure}|workspace-session:{exception.GetType().Name}";
+                }
+            }
+            Visible = false;
+            try
+            {
+                ReleaseEvidenceWorkspace();
+            }
+            catch (Exception exception)
+            {
+                cleanupSucceeded = false;
+                controlledFailure = $"{controlledFailure}|workspace-release:{exception.GetType().Name}";
+                _session = _sourceSession;
+            }
+            try
+            {
+                CompleteEvidenceSourceAudit();
+            }
+            catch (Exception exception)
+            {
+                cleanupSucceeded = false;
+                controlledFailure = $"{controlledFailure}|source-audit:{exception.GetType().Name}";
+            }
+        }
+
         var sourceUntouched = EvidenceSourceUntouched;
         var resourcesReleased = EvidenceResourcesReleased;
-        var valid = visible && planDryRunPure && planApplied && planUndo.Succeeded && planRemoved &&
-                    planRedo.Succeeded && planRestored && buildDryRunPure && geometryApplied &&
-                    undoBuild.Succeeded && geometryUndone && redoBuild.Succeeded && geometryRedone &&
-                    saved.Succeeded && persisted && sourceUntouched && resourcesReleased && SourceSessionRestored;
+        var valid = visible && planDryRunPure && planApplied && planUndoRedo && buildDryRunPure &&
+                    geometryApplied && buildUndoRedo && saved && persisted && cleanupSucceeded &&
+                    transactionCompleted && sourceUntouched && resourcesReleased && SourceSessionRestored;
         if (!valid)
         {
             GD.PrintErr(
                 $"OPENRPG_FORGE_STUDIO_UX1AF_UI_TRANSACTION_FAILED visible={visible.ToString().ToLowerInvariant()} " +
                 $"plan_dry={planDryRunPure.ToString().ToLowerInvariant()} plan_apply={planApplied.ToString().ToLowerInvariant()} " +
-                $"plan_undo_redo={(planUndo.Succeeded && planRedo.Succeeded).ToString().ToLowerInvariant()} " +
+                $"plan_undo_redo={planUndoRedo.ToString().ToLowerInvariant()} " +
                 $"build_dry={buildDryRunPure.ToString().ToLowerInvariant()} geometry={geometryApplied.ToString().ToLowerInvariant()} " +
-                $"build_undo_redo={(undoBuild.Succeeded && redoBuild.Succeeded).ToString().ToLowerInvariant()} " +
+                $"build_undo_redo={buildUndoRedo.ToString().ToLowerInvariant()} " +
                 $"persisted={persisted.ToString().ToLowerInvariant()} source_untouched={sourceUntouched.ToString().ToLowerInvariant()} " +
-                $"released={resourcesReleased.ToString().ToLowerInvariant()}");
+                $"released={resourcesReleased.ToString().ToLowerInvariant()} cleanup={cleanupSucceeded.ToString().ToLowerInvariant()} " +
+                $"failure={controlledFailure}");
         }
         return valid;
     }
@@ -426,7 +509,20 @@ internal sealed partial class StudioAssistedAreaPlanWorkspace : PanelContainer
         }
 
         _applyPlan.Disabled = true;
-        var preview = await _session.PreviewUx1AFPlanAsync(draft);
+        if (_previewPlanButton.Disabled)
+        {
+            return false;
+        }
+        _previewPlanButton.Disabled = true;
+        StudioUx1AFPlanPreview preview;
+        try
+        {
+            preview = await _session.PreviewUx1AFPlanAsync(draft);
+        }
+        finally
+        {
+            _previewPlanButton.Disabled = false;
+        }
         _planPreview = preview;
         _planSummary.Text = RenderPlanPreview(preview);
         _planSummary.AddThemeColorOverride("font_color",
@@ -633,7 +729,9 @@ internal sealed partial class StudioAssistedAreaPlanWorkspace : PanelContainer
         _privacy.Text =
             $"Réseau : {(snapshot.NetworkAllowed ? "autorisé par le profil" : "interdit par le profil")} · " +
             $"Portée : {(snapshot.LocalOnly ? "boucle locale uniquement" : "destination configurée")} · " +
-            $"Contenu projet : {(snapshot.ShareProjectContent ? "partage explicitement autorisé" : "masqué au fournisseur")} · " +
+            $"Contenu projet : {(snapshot.ShareProjectContent
+                ? "détails sensibles explicitement autorisés avec le brief structurel borné"
+                : "détails sensibles masqués; brief, identifiants allowlistés et structure bornée transmis")} · " +
             $"Index de lore : {snapshot.LoreEntryCount} entrée(s).";
     }
 
@@ -795,8 +893,11 @@ internal sealed partial class StudioAssistedAreaPlanWorkspace : PanelContainer
             .AppendLine($"Provenance : {plan.Provenance}")
             .AppendLine($"Empreinte du prompt : {ShortHash(preview.PromptSha256)} · " +
                         $"{preview.InputTokens + preview.OutputTokens} jeton(s)")
+            .AppendLine($"Diff sémantique canonique : {HumanSemanticDiff(preview.SemanticDiff)}")
             .AppendLine($"Transport réseau utilisé : {(preview.NetworkAuthorized ? "autorisé" : "non")} · " +
-                        $"contenu projet : {(preview.ProjectContentAuthorized ? "partagé" : "masqué")}")
+                        $"contenu projet : {(preview.ProjectContentAuthorized
+                            ? "détails sensibles autorisés avec contexte borné"
+                            : "détails sensibles masqués; brief et structure minimale transmis")}")
             .AppendLine()
             .AppendLine("Topologie proposée :");
         foreach (var node in plan.Nodes)
@@ -937,6 +1038,53 @@ internal sealed partial class StudioAssistedAreaPlanWorkspace : PanelContainer
         AssistantPermissionLevel.BoundedAutonomous => "autonomie bornée",
         _ => "inconnue",
     };
+
+    private static string HumanSemanticDiff(string semanticDiff)
+    {
+        if (string.IsNullOrWhiteSpace(semanticDiff) ||
+            string.Equals(semanticDiff, "no-change", StringComparison.Ordinal))
+        {
+            return "aucune modification";
+        }
+
+        var parts = new List<string>();
+        foreach (var segment in semanticDiff.Split('|', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var separator = segment.IndexOf(':');
+            if (separator <= 0 || separator == segment.Length - 1)
+            {
+                continue;
+            }
+            var key = segment[..separator];
+            var value = segment[(separator + 1)..];
+            switch (key)
+            {
+                case "plan":
+                    parts.Add("un plan gouverné proposé");
+                    break;
+                case "area":
+                    parts.Add("zone explicitement sélectionnée");
+                    break;
+                case "archetype":
+                    parts.Add($"archétype {value}");
+                    break;
+                case "nodes":
+                    parts.Add($"{value} espace(s)");
+                    break;
+                case "links":
+                    parts.Add($"{value} liaison(s)");
+                    break;
+                case "geometry-applied":
+                    parts.Add(string.Equals(value, "true", StringComparison.OrdinalIgnoreCase)
+                        ? "géométrie appliquée"
+                        : "géométrie non appliquée");
+                    break;
+            }
+        }
+        return parts.Count == 0
+            ? "diff borné fourni par le contrat canonique"
+            : string.Join(" · ", parts.Distinct(StringComparer.Ordinal));
+    }
 
     private static string ShortHash(string value) => value.Length <= 12 ? value : value[..12] + "…";
 }

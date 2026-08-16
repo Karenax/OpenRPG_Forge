@@ -1,4 +1,6 @@
 using System.Net;
+using System.Security.Cryptography;
+using System.Text;
 using Forge.Application.Assistant;
 using Forge.Application.Commands;
 using Forge.Application.Projects;
@@ -18,6 +20,8 @@ internal sealed partial class StudioSessionController
     private StudioUx1AFContext? _ux1AF;
     private StudioUx1AFApprovedPlan? _approvedUx1AFPlan;
     private StudioUx1AFApprovedBuild? _approvedUx1AFBuild;
+    private readonly object _ux1AFPlanPreviewGate = new();
+    private long _ux1AFPlanPreviewGeneration;
 
     internal StudioUx1AFWorkspaceSnapshot CreateUx1AFWorkspaceSnapshot()
     {
@@ -56,7 +60,7 @@ internal sealed partial class StudioSessionController
                 ? "Créez une zone avant de préparer un plan assisté."
                 : kits.Length == 0
                     ? "Ajoutez au moins un blueprint Placeable utilisable comme kit."
-                    : "Sélectionnez explicitement une zone et un kit. Aucun contenu n’est envoyé ni écrit sans action.";
+                    : "Sélectionnez explicitement une zone et un kit. Le brief et un contexte structurel borné sont transmis; les détails sensibles suivent la politique affichée.";
         return new(
             areas,
             kits,
@@ -78,56 +82,62 @@ internal sealed partial class StudioSessionController
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(draft);
-        _approvedUx1AFPlan = null;
+        var capturedDraft = SnapshotUx1AFDraft(draft);
+        var draftFingerprint = FingerprintUx1AFDraft(capturedDraft);
         if (!TryGetUx1AFContext(out var context, out var failure))
         {
+            CancelUx1AFPreview();
             return FailedUx1AFPlan(failure);
         }
+        var previewGeneration = BeginUx1AFPlanPreview();
 
         var project = Project!;
-        var area = project.Areas.SingleOrDefault(candidate => candidate.Id.Value == draft.AreaId);
+        var area = project.Areas.SingleOrDefault(candidate => candidate.Id.Value == capturedDraft.AreaId);
         if (area is null)
         {
             return FailedUx1AFPlan("Choisissez explicitement une zone existante; aucune zone de secours n’est sélectionnée.");
         }
 
         var kit = project.Blueprints.SingleOrDefault(candidate =>
-            candidate.Id.Value == draft.KitBlueprintId && candidate.Kind == BlueprintKind.Placeable);
+            candidate.Id.Value == capturedDraft.KitBlueprintId && candidate.Kind == BlueprintKind.Placeable);
         if (kit is null)
         {
             return FailedUx1AFPlan("Choisissez explicitement un kit Placeable existant; aucun kit de secours n’est sélectionné.");
         }
 
-        if (string.IsNullOrWhiteSpace(draft.Title) || draft.Title.Trim().Length > 120)
+        if (string.IsNullOrWhiteSpace(capturedDraft.Title) || capturedDraft.Title.Trim().Length > 120)
         {
             return FailedUx1AFPlan("Donnez au plan un titre lisible de 1 à 120 caractères.");
         }
 
-        if (draft.NodeCount is < 4 or > 24)
+        if (capturedDraft.NodeCount is < 4 or > 24)
         {
             return FailedUx1AFPlan("Le plan doit contenir entre 4 et 24 espaces.");
         }
 
-        if (draft.WidthMeters is < 8 or > 2048 || draft.DepthMeters is < 8 or > 2048 ||
-            draft.WidthMeters > area.Dimensions.Width || draft.DepthMeters > area.Dimensions.Depth)
+        if (capturedDraft.WidthMeters is < 8 or > 2048 || capturedDraft.DepthMeters is < 8 or > 2048 ||
+            capturedDraft.WidthMeters > area.Dimensions.Width || capturedDraft.DepthMeters > area.Dimensions.Depth)
         {
             return FailedUx1AFPlan(
                 $"Les dimensions doivent rester entre 8 m et la taille de la zone ({area.Dimensions.Width} × {area.Dimensions.Depth} m).");
         }
 
-        if (draft.Constraints.Count == 0 || draft.Objectives.Count == 0 ||
-            draft.Constraints.Any(string.IsNullOrWhiteSpace) || draft.Objectives.Any(string.IsNullOrWhiteSpace))
+        if (capturedDraft.Constraints.Count == 0 || capturedDraft.Objectives.Count == 0 ||
+            capturedDraft.Constraints.Any(string.IsNullOrWhiteSpace) ||
+            capturedDraft.Objectives.Any(string.IsNullOrWhiteSpace))
         {
             return FailedUx1AFPlan("Ajoutez au moins une contrainte et un objectif non vides.");
         }
 
-        var permission = draft.ApproveForConstruction
+        var requestedCatalogPermission = capturedDraft.ApproveForConstruction ||
+                                         context.PlanHistory.State.Catalog.Plans.Any(plan =>
+                                             plan.ApprovedForConstruction)
             ? AssistantPermissionLevel.ApplyApprovedPlan
             : AssistantPermissionLevel.Configure;
-        if (context.Profile.MaximumPermission < permission)
+        if (context.Profile.MaximumPermission < requestedCatalogPermission)
         {
             return FailedUx1AFPlan(
-                "Le profil Assistant permet de proposer un plan, mais pas de l’approuver pour construction. Élevez explicitement sa permission maximale.");
+                "Le catalogue final contient ou demande un plan approuvé; élevez explicitement la permission maximale avant tout dry-run.");
         }
 
         var providerDefinition = context.Profile.ActiveProvider;
@@ -139,17 +149,29 @@ internal sealed partial class StudioSessionController
         var brief = new AssistedAreaPlanBrief(
             Guid.NewGuid(),
             area.Id.Value,
-            draft.Title.Trim(),
-            draft.Archetype,
-            draft.Seed,
-            draft.WidthMeters,
-            draft.DepthMeters,
-            draft.NodeCount,
+            capturedDraft.Title.Trim(),
+            capturedDraft.Archetype,
+            capturedDraft.Seed,
+            capturedDraft.WidthMeters,
+            capturedDraft.DepthMeters,
+            capturedDraft.NodeCount,
             [kit.Id.Value],
-            NormalizeUx1AFLines(draft.Constraints),
-            NormalizeUx1AFLines(draft.Objectives),
+            NormalizeUx1AFLines(capturedDraft.Constraints),
+            NormalizeUx1AFLines(capturedDraft.Objectives),
             [$"project:{project.Id}"],
             "studio:ux1-af:author-request");
+        var baseProjectRevision = History!.State.Revision;
+        var basePlanRevision = context.PlanHistory.State.Revision;
+        if (!IsCurrentUx1AFPlanPreview(
+                context,
+                draft,
+                draftFingerprint,
+                previewGeneration,
+                baseProjectRevision,
+                basePlanRevision))
+        {
+            return StaleUx1AFPlanPreview();
+        }
         AssistedAreaPlanProposal proposal;
         try
         {
@@ -166,17 +188,53 @@ internal sealed partial class StudioSessionController
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
+            if (!IsCurrentUx1AFPlanPreview(
+                    context, draft, draftFingerprint, previewGeneration, baseProjectRevision, basePlanRevision))
+            {
+                return StaleUx1AFPlanPreview();
+            }
             return FailedUx1AFPlan("La demande de plan a été annulée; le module reste inchangé.");
+        }
+        catch (OperationCanceledException)
+        {
+            if (!IsCurrentUx1AFPlanPreview(
+                    context, draft, draftFingerprint, previewGeneration, baseProjectRevision, basePlanRevision))
+            {
+                return StaleUx1AFPlanPreview();
+            }
+            return FailedUx1AFPlan(
+                "Le fournisseur a interrompu la demande de plan; le module reste inchangé.");
         }
         catch (AssistantProviderTransportException exception)
         {
+            if (!IsCurrentUx1AFPlanPreview(
+                    context, draft, draftFingerprint, previewGeneration, baseProjectRevision, basePlanRevision))
+            {
+                return StaleUx1AFPlanPreview();
+            }
             return FailedUx1AFPlan(HumanizeUx1AFDiagnostic(exception.Code));
         }
         catch (Exception exception) when (
             exception is HttpRequestException or InvalidOperationException or NotSupportedException)
         {
+            if (!IsCurrentUx1AFPlanPreview(
+                    context, draft, draftFingerprint, previewGeneration, baseProjectRevision, basePlanRevision))
+            {
+                return StaleUx1AFPlanPreview();
+            }
             return FailedUx1AFPlan(
                 "Le fournisseur configuré n’a pas pu produire un plan valide. Vérifiez sa disponibilité, sa politique réseau et ses identifiants d’environnement.");
+        }
+
+        if (!IsCurrentUx1AFPlanPreview(
+                context,
+                draft,
+                draftFingerprint,
+                previewGeneration,
+                baseProjectRevision,
+                basePlanRevision))
+        {
+            return StaleUx1AFPlanPreview();
         }
 
         var proposedPlan = proposal.Plan;
@@ -186,8 +244,8 @@ internal sealed partial class StudioSessionController
         }
 
         var plan = proposedPlan.WithApproval(
-            draft.ApproveForConstruction,
-            draft.ApproveForConstruction
+            capturedDraft.ApproveForConstruction,
+            capturedDraft.ApproveForConstruction
                 ? $"author-approved:studio:ux1-af:{proposedPlan.Provenance}"
                 : proposedPlan.Provenance);
         var catalog = new AssistedAreaPlanCatalog(
@@ -195,26 +253,67 @@ internal sealed partial class StudioSessionController
             AssistedAreaPlanCatalog.CurrentSchemaVersion,
             context.PlanHistory.State.Catalog.Plans.Where(candidate => candidate.Id != plan.Id).Append(plan).ToArray(),
             "studio:ux1-af:governed-catalog");
+        var permission = catalog.Plans.Any(candidate => candidate.ApprovedForConstruction)
+            ? AssistantPermissionLevel.ApplyApprovedPlan
+            : AssistantPermissionLevel.Configure;
+        if (context.Profile.MaximumPermission < permission)
+        {
+            return FailedUx1AFPlan(
+                "Le catalogue final contient déjà un plan approuvé et exige la permission d’application approuvée.");
+        }
         var command = new SetAssistedAreaPlansCommand(
             CommandId.From(Guid.NewGuid()),
             Guid.NewGuid(),
             Guid.NewGuid(),
-            context.PlanHistory.State.Revision,
+            basePlanRevision,
             catalog,
             permission,
             DryRun: true);
-        var dryRun = context.SetPlans.Handle(context.PlanHistory.State, command, project);
+        AssistedAreaPlanCommandResult dryRun;
+        lock (_ux1AFPlanPreviewGate)
+        {
+            if (!IsCurrentUx1AFPlanPreview(
+                    context,
+                    draft,
+                    draftFingerprint,
+                    previewGeneration,
+                    baseProjectRevision,
+                    basePlanRevision))
+            {
+                return FailedUx1AFPlan(
+                    "Le brouillon a changé avant le dry-run; aucun token d’application n’a été créé.");
+            }
+
+            dryRun = context.SetPlans.Handle(context.PlanHistory.State, command, project);
+            if (dryRun.Succeeded && IsCurrentUx1AFPlanPreview(
+                    context,
+                    draft,
+                    draftFingerprint,
+                    previewGeneration,
+                    baseProjectRevision,
+                    basePlanRevision))
+            {
+                _approvedUx1AFPlan = new(
+                    catalog,
+                    command,
+                    basePlanRevision,
+                    baseProjectRevision,
+                    plan.Id,
+                    previewGeneration,
+                    draftFingerprint);
+            }
+        }
+
         if (!dryRun.Succeeded)
         {
             return FailedUx1AFPlan(HumanizeUx1AFDiagnostic(dryRun.Diagnostics.FirstOrDefault()?.Code));
         }
-
-        _approvedUx1AFPlan = new(
-            catalog,
-            command,
-            context.PlanHistory.State.Revision,
-            History!.State.Revision,
-            plan.Id);
+        if (_approvedUx1AFPlan is not { } approved || approved.Generation != previewGeneration ||
+            !string.Equals(approved.DraftFingerprint, draftFingerprint, StringComparison.Ordinal))
+        {
+            return FailedUx1AFPlan(
+                "L’aperçu a été invalidé pendant le dry-run; aucun token d’application actif n’est conservé.");
+        }
         var summary =
             $"Aperçu sans écriture · {plan.Nodes.Count} espace(s) · {plan.Links.Count} liaison(s) · " +
             $"{plan.Nodes.Sum(node => node.ContentBlueprintIds.Count)} placement(s) envisagé(s) · " +
@@ -247,6 +346,15 @@ internal sealed partial class StudioSessionController
         if (!TryGetUx1AFContext(out var context, out var failure))
         {
             return new(false, failure);
+        }
+
+        lock (_ux1AFPlanPreviewGate)
+        {
+            if (approval.Generation != _ux1AFPlanPreviewGeneration)
+            {
+                _approvedUx1AFPlan = null;
+                return new(false, "Le brouillon a été invalidé depuis l’aperçu; recommencez le dry-run.");
+            }
         }
 
         if (context.PlanHistory.State.Revision != approval.PlanRevision)
@@ -437,8 +545,12 @@ internal sealed partial class StudioSessionController
 
     internal void CancelUx1AFPreview()
     {
-        _approvedUx1AFPlan = null;
-        _approvedUx1AFBuild = null;
+        lock (_ux1AFPlanPreviewGate)
+        {
+            _ux1AFPlanPreviewGeneration++;
+            _approvedUx1AFPlan = null;
+            _approvedUx1AFBuild = null;
+        }
     }
 
     internal void CloseUx1AF()
@@ -628,6 +740,66 @@ internal sealed partial class StudioSessionController
             var planRevisionGuard = stalePlanPreview.Succeeded && !stalePlanApply.Succeeded &&
                                     stalePlanApply.Message.Contains("catalogue", StringComparison.OrdinalIgnoreCase);
 
+            var mixedCatalogPreview = editing.PreviewUx1AFPlanAsync(draft with
+                {
+                    Title = "Brouillon auprès d’un plan approuvé",
+                    ApproveForConstruction = false,
+                })
+                .GetAwaiter().GetResult();
+            var mixedApproval = editing._approvedUx1AFPlan;
+            var mixedPlan = mixedCatalogPreview.Plan;
+            var mixedCatalogPermission = mixedCatalogPreview.Succeeded &&
+                                         mixedPlan is { ApprovedForConstruction: false } &&
+                                         mixedApproval is not null &&
+                                         mixedApproval.Command.Permission == AssistantPermissionLevel.ApplyApprovedPlan &&
+                                         mixedApproval.Command.Catalog.Plans.Any(plan => plan.ApprovedForConstruction) &&
+                                         mixedApproval.Command.Catalog.Plans.Any(plan =>
+                                             !plan.ApprovedForConstruction &&
+                                             plan.Id == mixedPlan.Id);
+            editing.CancelUx1AFPreview();
+
+            var asyncContext = editing._ux1AF ??
+                               throw new InvalidOperationException("The async evidence context is unavailable.");
+            var mutableConstraints = new[] { "Conserver le brouillon exact pendant l’attente." };
+            var mutableDraft = draft with
+            {
+                Title = "Aperçu asynchrone périmé",
+                Constraints = mutableConstraints,
+            };
+            var capturedMutableDraft = SnapshotUx1AFDraft(mutableDraft);
+            var mutableFingerprint = FingerprintUx1AFDraft(capturedMutableDraft);
+            var asyncProjectRevision = editing.History!.State.Revision;
+            var asyncPlanRevision = asyncContext.PlanHistory.State.Revision;
+            var mutableGeneration = editing.BeginUx1AFPlanPreview();
+            mutableConstraints[0] = "Brouillon modifié pendant l’attente.";
+            var fingerprintRejected = !editing.IsCurrentUx1AFPlanPreview(
+                asyncContext,
+                mutableDraft,
+                mutableFingerprint,
+                mutableGeneration,
+                asyncProjectRevision,
+                asyncPlanRevision);
+            var canceledGeneration = editing.BeginUx1AFPlanPreview();
+            editing.CancelUx1AFPreview();
+            var cancellationRejected = !editing.IsCurrentUx1AFPlanPreview(
+                asyncContext,
+                capturedMutableDraft,
+                mutableFingerprint,
+                canceledGeneration,
+                asyncProjectRevision,
+                asyncPlanRevision);
+            var revisionGeneration = editing.BeginUx1AFPlanPreview();
+            var revisionRejected = !editing.IsCurrentUx1AFPlanPreview(
+                asyncContext,
+                capturedMutableDraft,
+                mutableFingerprint,
+                revisionGeneration,
+                asyncProjectRevision.Next(),
+                asyncPlanRevision);
+            editing.CancelUx1AFPreview();
+            var asyncStaleBlocked = fingerprintRejected && cancellationRejected && revisionRejected &&
+                                    editing._approvedUx1AFPlan is null;
+
             var projectBeforeBuild = editing.Project;
             var projectRevisionBeforeBuild = editing.History!.State.Revision;
             var journalBeforeBuild = editing.History.Journal.ToArray();
@@ -716,7 +888,8 @@ internal sealed partial class StudioSessionController
             var result = new StudioUx1AFSmokeResult(
                 explicitSelection && privacyVisible && provenanceVisible && planDryRunPure &&
                 planApprovalPersisted && planHistorySeparated && planUndoRedo && planRevisionGuard &&
-                projectRevisionGuard && buildDryRunPure && buildAppliedGeometry && buildHistorySeparated &&
+                asyncStaleBlocked && mixedCatalogPermission && projectRevisionGuard &&
+                buildDryRunPure && buildAppliedGeometry && buildHistorySeparated &&
                 buildUndoRedo && buildRevisionGuard && saveReopen && sourceUntouched,
                 explicitSelection,
                 privacyVisible,
@@ -726,6 +899,8 @@ internal sealed partial class StudioSessionController
                 planHistorySeparated,
                 planUndoRedo,
                 planRevisionGuard,
+                asyncStaleBlocked,
+                mixedCatalogPermission,
                 projectRevisionGuard,
                 buildDryRunPure,
                 buildAppliedGeometry,
@@ -826,6 +1001,9 @@ internal sealed partial class StudioSessionController
         ProjectContentAuthorized: false,
         CanApply: false);
 
+    private static StudioUx1AFPlanPreview StaleUx1AFPlanPreview() => FailedUx1AFPlan(
+        "La réponse reçue correspond à un brouillon ou une révision périmée; aucun token d’application n’a été créé.");
+
     private static StudioUx1AFBuildPreview FailedUx1AFBuild(string message) => new(
         false,
         message,
@@ -840,13 +1018,99 @@ internal sealed partial class StudioSessionController
 
     private static StudioUx1AFSmokeResult FailedUx1AFSmoke(string message, bool resourcesReleased = false) => new(
         false, false, false, false, false, false, false, false, false, false,
-        false, false, false, false, false, false, false, resourcesReleased, message);
+        false, false, false, false, false, false, false, false, false, resourcesReleased, message);
 
     private static IReadOnlyList<string> NormalizeUx1AFLines(IEnumerable<string> values) => values
         .Select(value => (value ?? string.Empty).Trim())
         .Where(value => value.Length > 0)
         .Distinct(StringComparer.Ordinal)
         .ToArray();
+
+    private long BeginUx1AFPlanPreview()
+    {
+        lock (_ux1AFPlanPreviewGate)
+        {
+            _approvedUx1AFPlan = null;
+            _approvedUx1AFBuild = null;
+            return ++_ux1AFPlanPreviewGeneration;
+        }
+    }
+
+    private bool IsCurrentUx1AFPlanPreview(
+        StudioUx1AFContext context,
+        StudioUx1AFPlanDraft sourceDraft,
+        string draftFingerprint,
+        long generation,
+        ProjectRevision projectRevision,
+        AssistedAreaPlanRevision planRevision)
+    {
+        lock (_ux1AFPlanPreviewGate)
+        {
+            if (generation != _ux1AFPlanPreviewGeneration)
+            {
+                return false;
+            }
+        }
+
+        try
+        {
+            return ReferenceEquals(context.SessionIdentity, Session) &&
+                   History?.State.Revision == projectRevision &&
+                   context.PlanHistory.State.Revision == planRevision &&
+                   string.Equals(
+                       FingerprintUx1AFDraft(sourceDraft),
+                       draftFingerprint,
+                       StringComparison.Ordinal);
+        }
+        catch (InvalidOperationException)
+        {
+            return false;
+        }
+    }
+
+    private static StudioUx1AFPlanDraft SnapshotUx1AFDraft(StudioUx1AFPlanDraft draft) => new(
+        draft.AreaId,
+        draft.KitBlueprintId,
+        draft.Title ?? string.Empty,
+        draft.Archetype,
+        draft.Seed,
+        draft.WidthMeters,
+        draft.DepthMeters,
+        draft.NodeCount,
+        draft.Constraints.Select(value => value ?? string.Empty).ToArray(),
+        draft.Objectives.Select(value => value ?? string.Empty).ToArray(),
+        draft.ApproveForConstruction);
+
+    private static string FingerprintUx1AFDraft(StudioUx1AFPlanDraft draft)
+    {
+        var value = new StringBuilder()
+            .Append(draft.AreaId.ToString("D")).Append('|')
+            .Append(draft.KitBlueprintId.ToString("D")).Append('|')
+            .Append(draft.Archetype).Append('|')
+            .Append(draft.Seed).Append('|')
+            .Append(BitConverter.SingleToInt32Bits(draft.WidthMeters)).Append('|')
+            .Append(BitConverter.SingleToInt32Bits(draft.DepthMeters)).Append('|')
+            .Append(draft.NodeCount).Append('|')
+            .Append(draft.ApproveForConstruction).Append('|');
+        AppendUx1AFFingerprintValue(value, draft.Title);
+        foreach (var constraint in draft.Constraints)
+        {
+            AppendUx1AFFingerprintValue(value, constraint);
+        }
+        value.Append("|objectives|");
+        foreach (var objective in draft.Objectives)
+        {
+            AppendUx1AFFingerprintValue(value, objective);
+        }
+        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value.ToString())))
+            .ToLowerInvariant();
+    }
+
+    private static void AppendUx1AFFingerprintValue(StringBuilder builder, string? value)
+    {
+        var normalized = value ?? string.Empty;
+        builder.Append(normalized.Length).Append(':').Append(normalized).Append('|');
+    }
 
     private static string HumanizeUx1AFDiagnostic(string? code) => code switch
     {
@@ -883,7 +1147,9 @@ internal sealed partial class StudioSessionController
         SetAssistedAreaPlansCommand Command,
         AssistedAreaPlanRevision PlanRevision,
         ProjectRevision ProjectRevision,
-        Guid PlanId);
+        Guid PlanId,
+        long Generation,
+        string DraftFingerprint);
 
     private sealed record StudioUx1AFApprovedBuild(
         BuildAssistedAreaPlanCommand Command,

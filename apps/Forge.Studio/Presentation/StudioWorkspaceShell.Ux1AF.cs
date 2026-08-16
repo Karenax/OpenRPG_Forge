@@ -155,6 +155,8 @@ internal sealed partial class StudioWorkspaceShell
             $"plan_history_separate={result.PlanHistorySeparated.ToString().ToLowerInvariant()} " +
             $"plan_undo_redo={result.PlanUndoRedo.ToString().ToLowerInvariant()} " +
             $"plan_revision_guard={result.PlanRevisionGuard.ToString().ToLowerInvariant()} " +
+            $"async_stale_blocked={result.AsyncStaleBlocked.ToString().ToLowerInvariant()} " +
+            $"mixed_catalog_permission={result.MixedCatalogPermission.ToString().ToLowerInvariant()} " +
             $"project_revision_guard={result.ProjectRevisionGuard.ToString().ToLowerInvariant()} " +
             $"build_dry_run={result.BuildDryRunPure.ToString().ToLowerInvariant()} " +
             $"geometry_applied={result.BuildAppliedGeometry.ToString().ToLowerInvariant()} " +
