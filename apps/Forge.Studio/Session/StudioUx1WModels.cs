@@ -54,14 +54,11 @@ internal sealed record StudioRuntimeCopyPreview(
     bool CanApply,
     IReadOnlyList<EntityId>? SimulatedDestinationIds = null,
     bool DestinationIdentitiesEphemeral = false,
-    bool OwnershipProjected = false,
-    bool OwnershipUnavailable = false,
-    bool SelfReferencesRemapped = false,
-    bool ExternalReferencesPreserved = false,
-    bool ExternalReferencesDropped = false,
+    bool RuntimeOwnershipUnavailable = false,
+    bool RuntimeReferencesUnavailable = false,
     bool StateProjected = false,
-    int SourceReferenceCount = 0,
-    int ResultReferenceCount = 0);
+    int SourceStateComponentCount = 0,
+    int ResultStateComponentCount = 0);
 
 internal sealed record StudioUx1WActionResult(bool Succeeded, string Message);
 
@@ -74,9 +71,8 @@ internal sealed record StudioUx1WSmokeResult(
     bool DynamicQuota,
     bool RuntimeCopyPreview,
     bool SimulatedIdentities,
-    bool DerivedSourceProjection,
-    bool PreserveExternal,
-    bool DropExternal,
+    bool AuthoredStateProjection,
+    bool RuntimeContextUnavailable,
     bool CanonicalCommands,
     bool UndoRedo,
     bool Persistence,

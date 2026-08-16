@@ -327,12 +327,10 @@ internal sealed partial class StudioSessionController
             var simulatedDestinations = Enumerable.Range(0, draft.RequestedCopies)
                 .Select(_ => EntityId.From(Guid.NewGuid()))
                 .ToArray();
-            var sourceReferences = ResolveRuntimeCopyReferencesUx1W(project, source);
             var sourceState = ResolveRuntimeCopyStateUx1W(source);
-            var sourceOwner = ResolveRuntimeCopyOwnerUx1W(project, source);
             var requestingOwner = $"module:{project.Module.Id}";
             var requests = simulatedDestinations.Select((destination, index) => new RuntimeEntityCopyRequest(
-                new RuntimeEntityCopySource(source, sourceOwner ?? requestingOwner, sourceReferences, sourceState),
+                new RuntimeEntityCopySource(source, requestingOwner, [], sourceState),
                 destination,
                 new Vector3Value(
                     draft.PositionOffset.X * (index + 1),
@@ -349,55 +347,34 @@ internal sealed partial class StudioSessionController
                 return FailedRuntimeCopy(HumanizeRuntimeCopyUx1W(failed.Code));
             }
 
-            var expectedOwner = draft.CopyOwnership ? sourceOwner : requestingOwner;
-            var ownershipProjected = expectedOwner is not null && results.All(result => result.OwnerId == expectedOwner);
-            var ownershipUnavailable = draft.CopyOwnership && sourceOwner is null;
-            var selfReferenceDocumented = sourceReferences.Contains(source.Id);
-            var selfReferencesRemapped = selfReferenceDocumented && results.Zip(simulatedDestinations).All(pair =>
-                pair.First.References.Contains(pair.Second) && !pair.First.References.Contains(source.Id));
-            var externalReferences = sourceReferences.Where(reference => reference != source.Id).ToArray();
-            var externalReferencesPreserved = draft.ReferenceMode == RuntimeReferenceCopyMode.PreserveExternal &&
-                                              results.All(result => externalReferences.All(result.References.Contains));
-            var externalReferencesDropped = draft.ReferenceMode == RuntimeReferenceCopyMode.DropExternal &&
-                                            results.All(result => externalReferences.All(reference =>
-                                                !result.References.Contains(reference)));
             var allowedState = profile.ModernTooling.RuntimeCopy.StateComponents.ToHashSet(StringComparer.Ordinal);
             var expectedState = sourceState.Where(component => allowedState.Contains(component.Name))
                 .OrderBy(component => component.Name, StringComparer.Ordinal).ToArray();
             var stateProjected = results.All(result => result.State.SequenceEqual(expectedState));
             _approvedRuntimeCopyUx1W = draft;
             _approvedRuntimeCopyRevisionUx1W = history.State.Revision;
-            var referenceText = draft.ReferenceMode switch
+            var referencePolicy = draft.ReferenceMode switch
             {
-                RuntimeReferenceCopyMode.DropExternal =>
-                    $"{externalReferences.Length} lien(s) externe(s) documenté(s) retiré(s)",
-                RuntimeReferenceCopyMode.PreserveExternal =>
-                    $"{externalReferences.Length} lien(s) externe(s) documenté(s) conservé(s)",
-                _ => $"{(selfReferenceDocumented ? 1 : 0)} lien interne documenté redirigé",
+                RuntimeReferenceCopyMode.DropExternal => "retirer les liens externes",
+                RuntimeReferenceCopyMode.PreserveExternal => "conserver les liens externes",
+                _ => "rediriger les liens internes",
             };
-            var ownerText = ownershipUnavailable
-                ? "propriétaire source absent du document · propriété non qualifiée"
-                : draft.CopyOwnership
-                    ? "propriétaire documenté projeté"
-                    : "propriété attribuée au contexte simulé du module";
             return new StudioRuntimeCopyPreview(
                 true,
                 "Simulation locale validée · identités temporaires non réservées · aucun objet créé dans l’éditeur.",
-                $"{results.Count} copie(s) calculée(s) · {referenceText} · {ownerText} · " +
+                $"{results.Count} copie(s) calculée(s) · politique « {referencePolicy} » enregistrable mais non simulée · " +
+                "propriétaire et liens runtime indisponibles dans le document Studio · " +
                 $"{expectedState.Length} composant(s) d’état dérivé(s) du document. " +
                 "Les identités de cet aperçu sont éphémères et ne sont pas réservées au runtime.",
                 true,
                 SimulatedDestinationIds: simulatedDestinations,
                 DestinationIdentitiesEphemeral: simulatedDestinations.Distinct().Count() == simulatedDestinations.Length &&
                                                 simulatedDestinations.All(id => area.Entities.All(entity => entity.Id != id)),
-                OwnershipProjected: ownershipProjected,
-                OwnershipUnavailable: ownershipUnavailable,
-                SelfReferencesRemapped: selfReferencesRemapped,
-                ExternalReferencesPreserved: externalReferencesPreserved,
-                ExternalReferencesDropped: externalReferencesDropped,
+                RuntimeOwnershipUnavailable: true,
+                RuntimeReferencesUnavailable: true,
                 StateProjected: stateProjected,
-                SourceReferenceCount: sourceReferences.Count,
-                ResultReferenceCount: results.FirstOrDefault()?.References.Count ?? 0);
+                SourceStateComponentCount: sourceState.Count,
+                ResultStateComponentCount: results.FirstOrDefault()?.State.Count ?? 0);
         }
         catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or OverflowException)
         {
@@ -464,8 +441,7 @@ internal sealed partial class StudioSessionController
                 ["décor"],
                 new EntityPropertyOverrides(1,
                 [
-                    new EntityPropertyOverride("runtime.self-reference", EntityPropertyValueKind.String, firstId.ToString()),
-                    new EntityPropertyOverride("runtime.external-reference", EntityPropertyValueKind.String, secondId.ToString()),
+                    new EntityPropertyOverride("visual.variant", EntityPropertyValueKind.String, "etched"),
                 ]));
             var second = new EntityInstance(
                 secondId,
@@ -558,12 +534,9 @@ internal sealed partial class StudioSessionController
                 HasServerAuthority = true,
                 CopyOwnership = true,
                 ReferenceMode = RuntimeReferenceCopyMode.PreserveExternal,
-                StateComponents = ["transform", "inventory"],
+                StateComponents = ["transform", "overrides"],
                 PositionOffset = new Vector3Value(3, 0, 2),
             };
-            var preservePreview = editing.PreviewRuntimeCopyUx1W(copyDraft);
-            var dropPreview = editing.PreviewRuntimeCopyUx1W(copyDraft with
-                { ReferenceMode = RuntimeReferenceCopyMode.DropExternal });
             var copyPreview = editing.PreviewRuntimeCopyUx1W(copyDraft);
             var runtimeCopyPreview = copyPreview.Succeeded && copyPreview.CanApply;
             var destinationIds = copyPreview.SimulatedDestinationIds;
@@ -572,16 +545,15 @@ internal sealed partial class StudioSessionController
                                       destinationIds.Distinct().Count() == 2 &&
                                       destinationIds.All(id => id != first.Id && id != second.Id) &&
                                       copyPreview.Message.Contains("non réservées", StringComparison.Ordinal);
-            var derivedSourceProjection = copyPreview.OwnershipUnavailable &&
-                                          !copyPreview.OwnershipProjected &&
-                                          copyPreview.SelfReferencesRemapped && copyPreview.StateProjected &&
-                                          copyPreview.SourceReferenceCount == 2 &&
-                                          copyPreview.Summary.Contains("absent du document", StringComparison.Ordinal);
-            var preserveExternal = preservePreview.Succeeded && preservePreview.ExternalReferencesPreserved &&
-                                   preservePreview.SourceReferenceCount == 2 &&
-                                   preservePreview.ResultReferenceCount == 2;
-            var dropExternal = dropPreview.Succeeded && dropPreview.ExternalReferencesDropped &&
-                               dropPreview.SourceReferenceCount == 2 && dropPreview.ResultReferenceCount == 1;
+            var authoredStateProjection = copyPreview.StateProjected &&
+                                          copyPreview.SourceStateComponentCount == 2 &&
+                                          copyPreview.ResultStateComponentCount == 2;
+            var runtimeContextUnavailable = copyPreview.RuntimeOwnershipUnavailable &&
+                                            copyPreview.RuntimeReferencesUnavailable &&
+                                            copyPreview.Summary.Contains(
+                                                "propriétaire et liens runtime indisponibles",
+                                                StringComparison.Ordinal) &&
+                                            copyPreview.Summary.Contains("non simulée", StringComparison.Ordinal);
             var copyApplied = editing.ApplyApprovedRuntimeCopyUx1W();
             var copiedProject = editing.Project!;
             var copyPolicy = copiedProject.Module.RuntimePolicies.Extensions.ModernTooling.RuntimeCopy;
@@ -589,7 +561,7 @@ internal sealed partial class StudioSessionController
                                  copyPolicy.MaxCopiesPerTransaction == 4 &&
                                  copyPolicy.RequireServerAuthority && copyPolicy.CopyOwnership &&
                                  copyPolicy.ReferenceMode == RuntimeReferenceCopyMode.PreserveExternal &&
-                                 copyPolicy.StateComponents.SequenceEqual(["inventory", "transform"]);
+                                 copyPolicy.StateComponents.SequenceEqual(["overrides", "transform"]);
             var unauthorized = editing.PreviewRuntimeCopyUx1W(copyDraft with { HasServerAuthority = false });
             var invalidBlocked = scaleConstraints && dynamicQuota && !unauthorized.Succeeded;
             var copyUndo = editing.Undo();
@@ -639,14 +611,14 @@ internal sealed partial class StudioSessionController
                               restoredExtensions.ModernTooling.RuntimeCopy.ReferenceMode ==
                               RuntimeReferenceCopyMode.PreserveExternal &&
                               restoredExtensions.ModernTooling.RuntimeCopy.StateComponents
-                                  .SequenceEqual(["inventory", "transform"]);
+                                  .SequenceEqual(["overrides", "transform"]);
             var humanDiagnostics = IsHumanUx1WMessage(noSelectionPreview.Message) &&
                                    IsHumanUx1WMessage(invalidScale.Message) &&
                                    IsHumanUx1WMessage(invalidDynamic.Message) &&
                                    IsHumanUx1WMessage(unauthorized.Message);
             var succeeded = scaleMultiEdit && scaleConstraints && scaleDryRun && dynamicAreaPreview &&
-                            dynamicQuota && runtimeCopyPreview && simulatedIdentities && derivedSourceProjection &&
-                            preserveExternal && dropExternal &&
+                            dynamicQuota && runtimeCopyPreview && simulatedIdentities && authoredStateProjection &&
+                            runtimeContextUnavailable &&
                             canonicalCommands && undoRedo && persistence && neighborsPreserved && invalidBlocked &&
                             humanDiagnostics;
             return new StudioUx1WSmokeResult(
@@ -658,9 +630,8 @@ internal sealed partial class StudioSessionController
                 dynamicQuota,
                 runtimeCopyPreview,
                 simulatedIdentities,
-                derivedSourceProjection,
-                preserveExternal,
-                dropExternal,
+                authoredStateProjection,
+                runtimeContextUnavailable,
                 canonicalCommands,
                 undoRedo,
                 persistence,
@@ -804,27 +775,6 @@ internal sealed partial class StudioSessionController
             source.PostLaunch);
     }
 
-    private static IReadOnlyList<EntityId> ResolveRuntimeCopyReferencesUx1W(
-        ProjectDefinition project,
-        EntityInstance source)
-    {
-        var values = source.Overrides.Properties
-            .Where(property => property.Kind == EntityPropertyValueKind.String)
-            .Select(property => property.Value)
-            .ToArray();
-        if (values.Length == 0)
-        {
-            return [];
-        }
-
-        return project.Areas.SelectMany(area => area.Entities)
-            .Select(entity => entity.Id)
-            .Distinct()
-            .Where(id => values.Any(value => value.Contains(id.ToString(), StringComparison.OrdinalIgnoreCase)))
-            .OrderBy(id => id.Value)
-            .ToArray();
-    }
-
     private static IReadOnlyList<RuntimeEntityStateComponent> ResolveRuntimeCopyStateUx1W(EntityInstance source)
     {
         var transform = source.Transform;
@@ -849,18 +799,6 @@ internal sealed partial class StudioSessionController
         return state;
     }
 
-    private static string? ResolveRuntimeCopyOwnerUx1W(ProjectDefinition project, EntityInstance source)
-    {
-        var placeable = project.Module.WorldFeatures.Placeables.FirstOrDefault(item =>
-            item.BlueprintId == source.BlueprintId);
-        if (placeable?.FactionOwnership is { } ownership)
-        {
-            return ownership.PrimaryFactionId.ToString("D");
-        }
-        var factionId = placeable?.FactionId;
-        return string.IsNullOrWhiteSpace(factionId) ? null : factionId.Trim();
-    }
-
     private static StudioZoneScalePreview FailedScale(string message) =>
         new(false, message, string.Empty, false);
 
@@ -871,7 +809,6 @@ internal sealed partial class StudioSessionController
         new(false, message, string.Empty, false);
 
     private static StudioUx1WSmokeResult FailedUx1WSmoke() => new(
-        false,
         false,
         false,
         false,

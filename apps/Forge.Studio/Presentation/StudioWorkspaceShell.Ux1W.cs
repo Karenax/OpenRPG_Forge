@@ -110,9 +110,8 @@ internal sealed partial class StudioWorkspaceShell
             $"dynamic_quota={result.DynamicQuota.ToString().ToLowerInvariant()} " +
             $"runtime_copy={result.RuntimeCopyPreview.ToString().ToLowerInvariant()} " +
             $"simulated_ids={result.SimulatedIdentities.ToString().ToLowerInvariant()} " +
-            $"derived_source={result.DerivedSourceProjection.ToString().ToLowerInvariant()} " +
-            $"preserve_external={result.PreserveExternal.ToString().ToLowerInvariant()} " +
-            $"drop_external={result.DropExternal.ToString().ToLowerInvariant()} " +
+            $"authored_state={result.AuthoredStateProjection.ToString().ToLowerInvariant()} " +
+            $"runtime_context_unavailable={result.RuntimeContextUnavailable.ToString().ToLowerInvariant()} " +
             $"canonical_commands={result.CanonicalCommands.ToString().ToLowerInvariant()} " +
             $"undo_redo={result.UndoRedo.ToString().ToLowerInvariant()} " +
             $"persistence={result.Persistence.ToString().ToLowerInvariant()} " +

@@ -209,7 +209,7 @@ internal sealed partial class StudioZoneDynamicOperationsOverlay : Control
         panels.AddChild(_copyPanel);
         _copyPanel.AddChild(StudioStyle.Label("Copier un objet pendant l’exécution", 17));
         _copyPanel.AddChild(StudioStyle.Label(
-            "La simulation utilise les liens, l’état et la propriété réellement documentés. Ses identités temporaires ne sont jamais réservées.",
+            "L’aperçu dérive seulement l’état authored du document. Propriétaire et liens sont fournis par le runtime et ne peuvent pas être simulés ici.",
             10,
             StudioStyle.Muted,
             wrap: true));
