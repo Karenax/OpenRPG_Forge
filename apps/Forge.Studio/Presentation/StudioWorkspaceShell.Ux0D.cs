@@ -134,6 +134,7 @@ internal sealed partial class StudioWorkspaceShell
 
     internal bool RunUx0DSmoke()
     {
+        SwitchPage("zones", notify: false);
         var originalProject = _session.Project!;
         var originalWorkspace = _session.WorkspaceProfile;
         var originalSelection = _session.SelectedEntityIds.ToArray();
