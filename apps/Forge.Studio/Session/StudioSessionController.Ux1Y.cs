@@ -53,9 +53,10 @@ internal sealed partial class StudioSessionController
     internal StudioTriggerFoundationDraft? CreateTriggerFoundationDraftUx1Y(
         BlueprintId? requestedBlueprintId = null)
     {
+        var history = History;
         var project = Project;
         var area = ActiveArea;
-        if (project is null || area is null || requestedBlueprintId is null)
+        if (history is null || project is null || area is null || requestedBlueprintId is null)
         {
             return null;
         }
@@ -108,6 +109,7 @@ internal sealed partial class StudioSessionController
         return new StudioTriggerFoundationDraft(
             blueprint.Id,
             area.Id,
+            history.State.Revision,
             profileId,
             foundationId,
             foundation?.Slug ?? blueprint.Slug,
@@ -150,13 +152,22 @@ internal sealed partial class StudioSessionController
     {
         ArgumentNullException.ThrowIfNull(draft);
         CancelTriggerFoundationUx1Y();
+        var history = History;
+        if (history is null || Project is null)
+        {
+            return FailedTriggerPreviewUx1Y("Aucun module n’est ouvert.");
+        }
+        if (draft.BaseRevision != history.State.Revision)
+        {
+            return FailedTriggerPreviewUx1Y(
+                "Le projet a changé depuis l’ouverture de cette fiche. Rechargez le déclencheur avant de prévisualiser.");
+        }
         if (!TryBuildTriggerFoundationUx1Y(draft, dryRun: true, out var command, out var profile,
                 out var message))
         {
             return FailedTriggerPreviewUx1Y(message);
         }
 
-        var history = History!;
         var result = _setTriggerCatalogUx1Y.Handle(history.State, command!);
         if (!result.Succeeded)
         {
@@ -260,6 +271,20 @@ internal sealed partial class StudioSessionController
                 [area]);
             var originalProfile = CreateUx1YSmokeTrigger(triggerBlueprint.Id, area.Id, neighbor: false);
             var neighborProfile = CreateUx1YSmokeTrigger(neighborBlueprint.Id, area.Id, neighbor: true);
+            neighborProfile = neighborProfile with
+            {
+                Foundation = neighborProfile.Foundation! with
+                {
+                    Shape = new TriggerWorldProfile.ShapePolicy(
+                        TriggerWorldProfile.ShapeKind.Box3D,
+                        [],
+                        [],
+                        new Vector3Value(4, 3, 4),
+                        3,
+                        .25,
+                        true),
+                },
+            };
             var catalog = new WorldFeatureCatalog(
                 shell.Module.Id.Value,
                 WorldFeatureCatalog.CurrentSchemaVersion,
@@ -283,36 +308,35 @@ internal sealed partial class StudioSessionController
             var originalCatalog = originalProject.Module.WorldFeatures;
             var selectionExplicit = editing.CreateTriggerFoundationDraftUx1Y() is null &&
                                     editing.TriggerChoicesUx1Y.Count == 2;
-            var draft = editing.CreateTriggerFoundationDraftUx1Y(triggerBlueprint.Id)! with
-            {
-                Vertices =
-                [
-                    new(-3.1f, 0, -2.1f),
-                    new(3.1f, 0, -2.1f),
-                    new(3.1f, 0, 2.1f),
-                    new(0, 0, 3.1f),
-                    new(-3.1f, 0, 2.1f),
-                ],
-                Holes =
-                [
-                    [new Vector3Value(-.6f, 0, -.4f), new(.6f, 0, -.4f), new(0, 0, .7f)],
-                ],
-                Height = 4.5,
-                SnapIncrement = .5,
-                Position = new Vector3Value(1.26f, 0, -2.26f),
-                RotationDegrees = new Vector3Value(0, 35, 0),
-                Scale = new Vector3Value(1.25f, 1, .9f),
-                CooldownSeconds = 2,
-                OnEnter = editing.CreateTriggerFoundationDraftUx1Y(triggerBlueprint.Id)!.OnEnter with
-                {
-                    BeforeScriptId = "scripts/enter-before",
-                    AfterScriptId = "scripts/enter-after",
-                },
-                OnExit = editing.CreateTriggerFoundationDraftUx1Y(triggerBlueprint.Id)!.OnExit with
-                {
-                    AfterScriptId = "scripts/exit-after",
-                },
-            };
+            var nonPolygonDraft = editing.CreateTriggerFoundationDraftUx1Y(neighborBlueprint.Id)!;
+            var nonPolygonPreview = editing.PreviewTriggerFoundationUx1Y(nonPolygonDraft);
+            var nonPolygonBlocked = !nonPolygonPreview.Succeeded &&
+                                    nonPolygonPreview.Message.Contains("polygones extrudés", StringComparison.Ordinal) &&
+                                    ReferenceEquals(originalProject, editing.Project);
+
+            var staleDraft = editing.CreateTriggerFoundationDraftUx1Y(triggerBlueprint.Id)!;
+            var staleDraftMutationApplied = ApplyUx1YHiddenFoundationMutation(
+                editing,
+                originalProfile.Id);
+            var hiddenMutationProject = editing.Project!;
+            var hiddenMutationFoundation = hiddenMutationProject.Module.WorldFeatures.Triggers
+                .Single(item => item.Id == originalProfile.Id)
+                .Foundation!;
+            var hiddenStateChanged = hiddenMutationFoundation.Portal!.DestinationId !=
+                                     originalProfile.Foundation!.Portal!.DestinationId &&
+                                     hiddenMutationFoundation.Validation!.KnownPortalDestinationIds
+                                         .SequenceEqual([hiddenMutationFoundation.Portal.DestinationId]) &&
+                                     hiddenMutationFoundation.Overrides.ContainsKey("hidden.revision") &&
+                                     hiddenMutationFoundation.Transform.ParentId is not null;
+            var staleDraftPreview = editing.PreviewTriggerFoundationUx1Y(staleDraft);
+            var staleDraftBlocked = staleDraftMutationApplied && !staleDraftPreview.Succeeded &&
+                                    staleDraftPreview.Message.Contains("depuis l’ouverture", StringComparison.Ordinal) &&
+                                    hiddenStateChanged && ReferenceEquals(hiddenMutationProject, editing.Project);
+            var staleDraftUndo = staleDraftMutationApplied && editing.Undo().Succeeded;
+            var staleDraftRestored = staleDraftUndo && ReferenceEquals(originalProject, editing.Project);
+
+            var draft = CustomizeUx1YSmokeDraft(
+                editing.CreateTriggerFoundationDraftUx1Y(triggerBlueprint.Id)!);
 
             var selfIntersecting = draft with
             {
@@ -335,45 +359,18 @@ internal sealed partial class StudioSessionController
             });
             var preview = editing.PreviewTriggerFoundationUx1Y(draft);
             var dryRun = preview.Succeeded && preview.CanApply && ReferenceEquals(originalProject, editing.Project);
-            var currentCatalog = editing.Project!.Module.WorldFeatures;
-            var intermediateNeighbor = currentCatalog.Triggers.Single(item => item.Id == neighborProfile.Id) with
-            {
-                CustomEventNamespace = "trigger.neighbor.intermediate",
-            };
-            var intermediateCatalog = new WorldFeatureCatalog(
-                currentCatalog.Id,
-                currentCatalog.SchemaVersion,
-                currentCatalog.Provenance,
-                currentCatalog.Placeables,
-                currentCatalog.Doors,
-                currentCatalog.Triggers
-                    .Where(item => item.Id != intermediateNeighbor.Id)
-                    .Append(intermediateNeighbor)
-                    .ToArray(),
-                currentCatalog.Encounters,
-                currentCatalog.VehicleRoutes,
-                currentCatalog.Merchants,
-                currentCatalog.Companions,
-                currentCatalog.Scripts);
-            var intermediateCommand = new SetWorldFeatureCatalogCommand(
-                CommandId.From(Guid.NewGuid()),
-                editing.History!.State.Revision,
-                intermediateCatalog,
-                DryRun: false);
-            var intermediateResult = editing._setTriggerCatalogUx1Y.Handle(
-                editing.History.State,
-                intermediateCommand);
-            var intermediateApplied = intermediateResult.Succeeded;
-            if (intermediateApplied)
-            {
-                editing.History.Record(intermediateResult);
-            }
+            var intermediateApplied = ApplyUx1YIntermediateMutation(
+                editing,
+                neighborProfile.Id,
+                "trigger.neighbor.stale-approved");
             var staleApply = editing.ApplyApprovedTriggerFoundationUx1Y();
             var staleRevisionBlocked = intermediateApplied && !staleApply.Succeeded &&
                                        staleApply.Message.Contains("Prévisualisez de nouveau", StringComparison.Ordinal);
             var intermediateUndo = intermediateApplied && editing.Undo().Succeeded;
             var intermediateRestored = intermediateUndo && ReferenceEquals(originalProject, editing.Project);
-            var freshPreview = editing.PreviewTriggerFoundationUx1Y(draft);
+            var freshDraft = CustomizeUx1YSmokeDraft(
+                editing.CreateTriggerFoundationDraftUx1Y(triggerBlueprint.Id)!);
+            var freshPreview = editing.PreviewTriggerFoundationUx1Y(freshDraft);
             var apply = editing.ApplyApprovedTriggerFoundationUx1Y();
             var appliedProject = editing.Project!;
             var applied = appliedProject.Module.WorldFeatures.Triggers.Single(item => item.Id == originalProfile.Id);
@@ -433,9 +430,9 @@ internal sealed partial class StudioSessionController
                                     appliedProject.Module.WorldFeatures.Companions.SequenceEqual(originalCatalog.Companions) &&
                                     ReferenceEquals(appliedProject.Module.WorldFeatures.Scripts, originalCatalog.Scripts);
             var journal = editing.History!.Journal;
-            var canonicalCommand = intermediateRestored && journal.Count == 2 &&
+            var canonicalCommand = staleDraftRestored && intermediateRestored && journal.Count == 3 &&
                                    journal.All(item => item.CommandName == "set_world_feature_catalog") &&
-                                   !journal[0].IsApplied && journal[1].IsApplied;
+                                   !journal[0].IsApplied && !journal[1].IsApplied && journal[2].IsApplied;
             var undo = editing.Undo();
             var undone = ReferenceEquals(originalProject, editing.Project);
             var redo = editing.Redo();
@@ -486,8 +483,8 @@ internal sealed partial class StudioSessionController
                                    IsHumanUx1YMessage(invalidFilter.Message) &&
                                    IsHumanUx1YMessage(invalidBinding.Message);
             var succeeded = selectionExplicit && geometry && dryRun && !invalidGeometry.Succeeded &&
-                            !invalidFilter.Succeeded && !invalidBinding.Succeeded && staleRevisionBlocked &&
-                            typedEvents &&
+                            !invalidFilter.Succeeded && !invalidBinding.Succeeded && staleDraftBlocked &&
+                            staleRevisionBlocked && nonPolygonBlocked && typedEvents &&
                             canonicalCommand && undoRedo && persistence && portalPreserved &&
                             validationPreserved && advancedPreserved && neighborPreserved && humanDiagnostics;
             return new StudioUx1YSmokeResult(
@@ -498,7 +495,9 @@ internal sealed partial class StudioSessionController
                 !invalidGeometry.Succeeded,
                 !invalidFilter.Succeeded,
                 !invalidBinding.Succeeded,
+                staleDraftBlocked,
                 staleRevisionBlocked,
+                nonPolygonBlocked,
                 typedEvents,
                 canonicalCommand,
                 undoRedo,
@@ -539,6 +538,11 @@ internal sealed partial class StudioSessionController
         if (history is null || project is null)
         {
             message = "Aucun module n’est ouvert.";
+            return false;
+        }
+        if (draft.BaseRevision != history.State.Revision)
+        {
+            message = "Le projet a changé depuis l’ouverture de cette fiche. Rechargez le déclencheur.";
             return false;
         }
         if (!project.Areas.Any(item => item.Id == draft.AreaId))
@@ -692,6 +696,12 @@ internal sealed partial class StudioSessionController
         out string message)
     {
         message = string.Empty;
+        if (draft.ShapeKind != TriggerWorldProfile.ShapeKind.ExtrudedPolygon2D)
+        {
+            message =
+                "Cette fiche UX1-Y édite uniquement les polygones extrudés. Le volume 3D existant reste préservé sans conversion.";
+            return false;
+        }
         var vectors = draft.Vertices
             .Concat(draft.Holes.SelectMany(item => item))
             .Append(draft.Size)
@@ -709,25 +719,15 @@ internal sealed partial class StudioSessionController
             return false;
         }
 
-        var kindValid = draft.ShapeKind switch
-        {
-            TriggerWorldProfile.ShapeKind.ExtrudedPolygon2D =>
-                draft.Vertices.Count >= 3 && draft.Height > 0 && draft.Holes.All(item => item.Count >= 3),
-            TriggerWorldProfile.ShapeKind.Box3D =>
-                draft.Size.X > 0 && draft.Size.Y > 0 && draft.Size.Z > 0,
-            TriggerWorldProfile.ShapeKind.Sphere3D => draft.Size.X > 0,
-            TriggerWorldProfile.ShapeKind.Capsule3D => draft.Size.X > 0 && draft.Size.Y > 0,
-            TriggerWorldProfile.ShapeKind.ConvexHull3D => draft.Vertices.Count >= 4,
-            _ => false,
-        };
+        var kindValid = draft.Vertices.Count >= 3 && draft.Height > 0 &&
+                        draft.Holes.All(item => item.Count >= 3);
         if (!kindValid)
         {
             message = "Le volume exige assez de sommets, des contours fermés et des dimensions positives.";
             return false;
         }
-        if (draft.ShapeKind == TriggerWorldProfile.ShapeKind.ExtrudedPolygon2D &&
-            (GeometryPolygonValidator.Validate(draft.Vertices, "trigger/contour").Count > 0 ||
-             draft.Holes.Any(hole => GeometryPolygonValidator.Validate(hole, "trigger/trou").Count > 0)))
+        if (GeometryPolygonValidator.Validate(draft.Vertices, "trigger/contour").Count > 0 ||
+            draft.Holes.Any(hole => GeometryPolygonValidator.Validate(hole, "trigger/trou").Count > 0))
         {
             message = "Un contour du volume se croise. Déplacez ses sommets avant de prévisualiser.";
             return false;
@@ -818,6 +818,132 @@ internal sealed partial class StudioSessionController
             };
     }
 
+    private static StudioTriggerFoundationDraft CustomizeUx1YSmokeDraft(
+        StudioTriggerFoundationDraft draft) => draft with
+    {
+        Vertices =
+        [
+            new(-3.1f, 0, -2.1f),
+            new(3.1f, 0, -2.1f),
+            new(3.1f, 0, 2.1f),
+            new(0, 0, 3.1f),
+            new(-3.1f, 0, 2.1f),
+        ],
+        Holes =
+        [
+            [new Vector3Value(-.6f, 0, -.4f), new(.6f, 0, -.4f), new(0, 0, .7f)],
+        ],
+        Height = 4.5,
+        SnapIncrement = .5,
+        Position = new Vector3Value(1.26f, 0, -2.26f),
+        RotationDegrees = new Vector3Value(0, 35, 0),
+        Scale = new Vector3Value(1.25f, 1, .9f),
+        CooldownSeconds = 2,
+        OnEnter = draft.OnEnter with
+        {
+            BeforeScriptId = "scripts/enter-before",
+            AfterScriptId = "scripts/enter-after",
+        },
+        OnExit = draft.OnExit with
+        {
+            AfterScriptId = "scripts/exit-after",
+        },
+    };
+
+    private static bool ApplyUx1YIntermediateMutation(
+        StudioSessionController editing,
+        Guid neighborProfileId,
+        string customEventNamespace) => ApplyUx1YProfileMutation(
+        editing,
+        neighborProfileId,
+        profile => profile with { CustomEventNamespace = customEventNamespace });
+
+    private static bool ApplyUx1YHiddenFoundationMutation(
+        StudioSessionController editing,
+        Guid profileId)
+    {
+        var replacementDestination = Guid.Parse("c1d30000-0000-4000-8200-000000000001");
+        var replacementParent = Guid.Parse("c1d30000-0000-4000-8200-000000000002");
+        return ApplyUx1YProfileMutation(
+            editing,
+            profileId,
+            profile =>
+            {
+                var foundation = profile.Foundation!;
+                return profile with
+                {
+                    Foundation = foundation with
+                    {
+                        Portal = foundation.Portal! with
+                        {
+                            DestinationId = replacementDestination,
+                            SpawnAnchorId = "anchor:changed-after-draft",
+                        },
+                        Validation = foundation.Validation! with
+                        {
+                            KnownPortalDestinationIds = [replacementDestination],
+                        },
+                        Overrides = new Dictionary<string, string>(StringComparer.Ordinal)
+                        {
+                            ["editor.overlay"] = "volume",
+                            ["hidden.revision"] = "changed-after-draft",
+                        },
+                        Transform = foundation.Transform with { ParentId = replacementParent },
+                    },
+                };
+            });
+    }
+
+    private static bool ApplyUx1YProfileMutation(
+        StudioSessionController editing,
+        Guid profileId,
+        Func<TriggerWorldProfile, TriggerWorldProfile> mutate)
+    {
+        var history = editing.History;
+        var project = editing.Project;
+        if (history is null || project is null)
+        {
+            return false;
+        }
+
+        var currentCatalog = project.Module.WorldFeatures;
+        var currentProfile = currentCatalog.Triggers.SingleOrDefault(item => item.Id == profileId);
+        if (currentProfile is null)
+        {
+            return false;
+        }
+
+        var intermediateProfile = mutate(currentProfile);
+        var intermediateCatalog = new WorldFeatureCatalog(
+            currentCatalog.Id,
+            currentCatalog.SchemaVersion,
+            currentCatalog.Provenance,
+            currentCatalog.Placeables,
+            currentCatalog.Doors,
+            currentCatalog.Triggers
+                .Where(item => item.Id != intermediateProfile.Id)
+                .Append(intermediateProfile)
+                .ToArray(),
+            currentCatalog.Encounters,
+            currentCatalog.VehicleRoutes,
+            currentCatalog.Merchants,
+            currentCatalog.Companions,
+            currentCatalog.Scripts);
+        var intermediateCommand = new SetWorldFeatureCatalogCommand(
+            CommandId.From(Guid.NewGuid()),
+            history.State.Revision,
+            intermediateCatalog,
+            DryRun: false);
+        var intermediateResult = editing._setTriggerCatalogUx1Y.Handle(history.State, intermediateCommand);
+        if (!intermediateResult.Succeeded)
+        {
+            return false;
+        }
+
+        history.Record(intermediateResult);
+        return true;
+    }
+
     private static TriggerWorldProfile CreateUx1YSmokeTrigger(
         BlueprintId blueprintId,
         AreaId areaId,
@@ -906,8 +1032,26 @@ internal sealed partial class StudioSessionController
         new(false, message, string.Empty, false);
 
     private static StudioUx1YSmokeResult FailedUx1YSmoke() =>
-        new(false, false, false, false, false, false, false, false, false, false, false, false, false,
-            false, false, false, false);
+        new(
+            Succeeded: false,
+            SelectionExplicit: false,
+            Geometry: false,
+            DryRun: false,
+            InvalidGeometryBlocked: false,
+            InvalidFilterBlocked: false,
+            InvalidBindingBlocked: false,
+            StaleDraftBlocked: false,
+            StaleRevisionBlocked: false,
+            NonPolygonBlocked: false,
+            TypedEvents: false,
+            CanonicalCommand: false,
+            UndoRedo: false,
+            Persistence: false,
+            PortalPreserved: false,
+            ValidationPreserved: false,
+            AdvancedPreserved: false,
+            NeighborPreserved: false,
+            HumanDiagnostics: false);
 
     private static string HumanizeTriggerUx1Y(string? code) => code switch
     {

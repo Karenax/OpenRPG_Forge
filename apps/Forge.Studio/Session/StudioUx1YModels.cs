@@ -1,3 +1,4 @@
+using Forge.Application.Projects;
 using Forge.Domain.Areas;
 using Forge.Domain.Blueprints;
 using Forge.Domain.Spatial;
@@ -26,6 +27,7 @@ internal sealed record StudioTriggerEventDraft(
 internal sealed record StudioTriggerFoundationDraft(
     BlueprintId BlueprintId,
     AreaId AreaId,
+    ProjectRevision BaseRevision,
     Guid ProfileId,
     Guid FoundationId,
     string Slug,
@@ -71,7 +73,9 @@ internal sealed record StudioUx1YSmokeResult(
     bool InvalidGeometryBlocked,
     bool InvalidFilterBlocked,
     bool InvalidBindingBlocked,
+    bool StaleDraftBlocked,
     bool StaleRevisionBlocked,
+    bool NonPolygonBlocked,
     bool TypedEvents,
     bool CanonicalCommand,
     bool UndoRedo,
