@@ -92,6 +92,8 @@ internal sealed partial class StudioWorkspaceShell
     internal bool PrepareUx2NavDEvidence(string mode)
     {
         SwitchPage("navigation", notify: false);
+        CloseUx2NavBOverlay();
+        CloseUx2NavCOverlay();
         return _waypointPatrolOverlayUx2NavD.PrepareEvidence(mode);
     }
 

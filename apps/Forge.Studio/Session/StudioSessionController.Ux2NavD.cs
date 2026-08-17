@@ -156,7 +156,7 @@ internal sealed partial class StudioSessionController
         var waypoint = waypointId is null
             ? null
             : area?.Navigation.Waypoints.Waypoints.SingleOrDefault(item => item.Id == waypointId.Value);
-        if (waypoint is null)
+        if (area is null || waypoint is null)
         {
             return null;
         }

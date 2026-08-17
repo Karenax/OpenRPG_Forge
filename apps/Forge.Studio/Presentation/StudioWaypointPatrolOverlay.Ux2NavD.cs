@@ -6,7 +6,7 @@ using Godot;
 
 namespace Forge.Studio.Presentation;
 
-internal sealed class StudioWaypointPatrolOverlayUx2NavD : Control
+internal sealed partial class StudioWaypointPatrolOverlayUx2NavD : Control
 {
     private static readonly PatrolTraversalPolicy[] TraversalPolicies =
         Enum.GetValues<PatrolTraversalPolicy>();
