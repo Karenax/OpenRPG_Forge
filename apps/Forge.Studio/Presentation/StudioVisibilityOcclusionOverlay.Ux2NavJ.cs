@@ -543,31 +543,31 @@ internal sealed partial class StudioVisibilityOcclusionOverlayUx2NavJ : Control
         switch (CurrentKind())
         {
             case StudioUx2NavJItemKind.Room:
-            {
-                var item = _session.CreateNewVisibilityRoomDraftUx2NavJ(_draft);
-                _draft = _draft with { Rooms = _draft.Rooms.Concat([item]).ToArray() };
-                _selectedItemId = item.Id;
-                break;
-            }
-            case StudioUx2NavJItemKind.Portal:
-            {
-                var item = _session.CreateNewVisibilityPortalDraftUx2NavJ(_draft);
-                if (item is null)
                 {
-                    SetStatus("Ajoutez au moins deux volumes avant de créer un passage.", true);
-                    return;
+                    var item = _session.CreateNewVisibilityRoomDraftUx2NavJ(_draft);
+                    _draft = _draft with { Rooms = _draft.Rooms.Concat([item]).ToArray() };
+                    _selectedItemId = item.Id;
+                    break;
                 }
-                _draft = _draft with { Portals = _draft.Portals.Concat([item]).ToArray() };
-                _selectedItemId = item.Id;
-                break;
-            }
+            case StudioUx2NavJItemKind.Portal:
+                {
+                    var item = _session.CreateNewVisibilityPortalDraftUx2NavJ(_draft);
+                    if (item is null)
+                    {
+                        SetStatus("Ajoutez au moins deux volumes avant de créer un passage.", true);
+                        return;
+                    }
+                    _draft = _draft with { Portals = _draft.Portals.Concat([item]).ToArray() };
+                    _selectedItemId = item.Id;
+                    break;
+                }
             case StudioUx2NavJItemKind.Occluder:
-            {
-                var item = _session.CreateNewOccluderDraftUx2NavJ(_draft);
-                _draft = _draft with { Occluders = _draft.Occluders.Concat([item]).ToArray() };
-                _selectedItemId = item.Id;
-                break;
-            }
+                {
+                    var item = _session.CreateNewOccluderDraftUx2NavJ(_draft);
+                    _draft = _draft with { Occluders = _draft.Occluders.Concat([item]).ToArray() };
+                    _selectedItemId = item.Id;
+                    break;
+                }
         }
         PopulateItems();
         LoadSelectedItem();
@@ -668,33 +668,33 @@ internal sealed partial class StudioVisibilityOcclusionOverlayUx2NavJ : Control
             switch (CurrentKind())
             {
                 case StudioUx2NavJItemKind.Room:
-                {
-                    var item = _draft.Rooms.Single(candidate => candidate.Id == id);
-                    LoadCommon(item.NameIsProtected, item.Name, item.Transform);
-                    _roomExterior.ButtonPressed = item.Exterior;
-                    _roomStreaming.Value = item.StreamingDistance;
-                    break;
-                }
+                    {
+                        var item = _draft.Rooms.Single(candidate => candidate.Id == id);
+                        LoadCommon(item.NameIsProtected, item.Name, item.Transform);
+                        _roomExterior.ButtonPressed = item.Exterior;
+                        _roomStreaming.Value = item.StreamingDistance;
+                        break;
+                    }
                 case StudioUx2NavJItemKind.Portal:
-                {
-                    var item = _draft.Portals.Single(candidate => candidate.Id == id);
-                    LoadCommon(item.NameIsProtected, item.Name, item.Transform);
-                    PopulatePortalRooms(item.SourceRoomId, item.DestinationRoomId);
-                    _portalMode.Selected = Math.Max(0, Array.IndexOf(PortalModes, item.Mode));
-                    _portalCondition.Text = item.ConditionIsProtected
-                        ? ProtectedConditionUx2NavJ : item.Condition;
-                    _portalTwoWay.ButtonPressed = item.TwoWay;
-                    break;
-                }
+                    {
+                        var item = _draft.Portals.Single(candidate => candidate.Id == id);
+                        LoadCommon(item.NameIsProtected, item.Name, item.Transform);
+                        PopulatePortalRooms(item.SourceRoomId, item.DestinationRoomId);
+                        _portalMode.Selected = Math.Max(0, Array.IndexOf(PortalModes, item.Mode));
+                        _portalCondition.Text = item.ConditionIsProtected
+                            ? ProtectedConditionUx2NavJ : item.Condition;
+                        _portalTwoWay.ButtonPressed = item.TwoWay;
+                        break;
+                    }
                 case StudioUx2NavJItemKind.Occluder:
-                {
-                    var item = _draft.Occluders.Single(candidate => candidate.Id == id);
-                    LoadCommon(item.NameIsProtected, item.Name, item.Transform);
-                    _occluderDynamic.ButtonPressed = item.Dynamic;
-                    _occluderAsset.Text = item.MeshAssetIsProtected
-                        ? ProtectedAssetUx2NavJ : item.MeshAssetId;
-                    break;
-                }
+                    {
+                        var item = _draft.Occluders.Single(candidate => candidate.Id == id);
+                        LoadCommon(item.NameIsProtected, item.Name, item.Transform);
+                        _occluderDynamic.ButtonPressed = item.Dynamic;
+                        _occluderAsset.Text = item.MeshAssetIsProtected
+                            ? ProtectedAssetUx2NavJ : item.MeshAssetId;
+                        break;
+                    }
             }
         }
         _updating = false;
@@ -756,77 +756,77 @@ internal sealed partial class StudioVisibilityOcclusionOverlayUx2NavJ : Control
         switch (CurrentKind())
         {
             case StudioUx2NavJItemKind.Room:
-            {
-                var items = _draft.Rooms.ToArray();
-                var index = items.ToList().FindIndex(item => item.Id == id);
-                if (index < 0) return;
-                var current = items[index];
-                items[index] = current with
                 {
-                    Name = ResolveName(current.NameIsProtected, current.Name),
-                    NameIsProtected = ResolveNameProtected(current.NameIsProtected),
-                    Transform = TransformFromControls(current.Transform),
-                    Exterior = _roomExterior.ButtonPressed,
-                    StreamingDistance = _roomStreaming.Value,
-                };
-                _draft = _draft with { Rooms = items };
-                break;
-            }
+                    var items = _draft.Rooms.ToArray();
+                    var index = items.ToList().FindIndex(item => item.Id == id);
+                    if (index < 0) return;
+                    var current = items[index];
+                    items[index] = current with
+                    {
+                        Name = ResolveName(current.NameIsProtected, current.Name),
+                        NameIsProtected = ResolveNameProtected(current.NameIsProtected),
+                        Transform = TransformFromControls(current.Transform),
+                        Exterior = _roomExterior.ButtonPressed,
+                        StreamingDistance = _roomStreaming.Value,
+                    };
+                    _draft = _draft with { Rooms = items };
+                    break;
+                }
             case StudioUx2NavJItemKind.Portal:
-            {
-                var items = _draft.Portals.ToArray();
-                var index = items.ToList().FindIndex(item => item.Id == id);
-                if (index < 0) return;
-                var current = items[index];
-                var source = _portalSource.Selected >= 0 && _portalSource.Selected < _roomChoiceIds.Count
-                    ? _roomChoiceIds[_portalSource.Selected] : current.SourceRoomId;
-                var destination = _portalDestination.Selected >= 0 &&
-                                  _portalDestination.Selected < _roomChoiceIds.Count
-                    ? _roomChoiceIds[_portalDestination.Selected] : current.DestinationRoomId;
-                items[index] = current with
                 {
-                    Name = ResolveName(current.NameIsProtected, current.Name),
-                    NameIsProtected = ResolveNameProtected(current.NameIsProtected),
-                    Transform = TransformFromControls(current.Transform),
-                    SourceRoomId = source,
-                    DestinationRoomId = destination,
-                    Mode = _portalMode.Selected >= 0 && _portalMode.Selected < PortalModes.Length
-                        ? PortalModes[_portalMode.Selected] : current.Mode,
-                    Condition = current.ConditionIsProtected &&
-                                string.Equals(_portalCondition.Text, ProtectedConditionUx2NavJ,
-                                    StringComparison.Ordinal)
-                        ? current.Condition : _portalCondition.Text,
-                    ConditionIsProtected = current.ConditionIsProtected &&
-                                           string.Equals(_portalCondition.Text,
-                                               ProtectedConditionUx2NavJ, StringComparison.Ordinal),
-                    TwoWay = _portalTwoWay.ButtonPressed,
-                };
-                _draft = _draft with { Portals = items };
-                break;
-            }
+                    var items = _draft.Portals.ToArray();
+                    var index = items.ToList().FindIndex(item => item.Id == id);
+                    if (index < 0) return;
+                    var current = items[index];
+                    var source = _portalSource.Selected >= 0 && _portalSource.Selected < _roomChoiceIds.Count
+                        ? _roomChoiceIds[_portalSource.Selected] : current.SourceRoomId;
+                    var destination = _portalDestination.Selected >= 0 &&
+                                      _portalDestination.Selected < _roomChoiceIds.Count
+                        ? _roomChoiceIds[_portalDestination.Selected] : current.DestinationRoomId;
+                    items[index] = current with
+                    {
+                        Name = ResolveName(current.NameIsProtected, current.Name),
+                        NameIsProtected = ResolveNameProtected(current.NameIsProtected),
+                        Transform = TransformFromControls(current.Transform),
+                        SourceRoomId = source,
+                        DestinationRoomId = destination,
+                        Mode = _portalMode.Selected >= 0 && _portalMode.Selected < PortalModes.Length
+                            ? PortalModes[_portalMode.Selected] : current.Mode,
+                        Condition = current.ConditionIsProtected &&
+                                    string.Equals(_portalCondition.Text, ProtectedConditionUx2NavJ,
+                                        StringComparison.Ordinal)
+                            ? current.Condition : _portalCondition.Text,
+                        ConditionIsProtected = current.ConditionIsProtected &&
+                                               string.Equals(_portalCondition.Text,
+                                                   ProtectedConditionUx2NavJ, StringComparison.Ordinal),
+                        TwoWay = _portalTwoWay.ButtonPressed,
+                    };
+                    _draft = _draft with { Portals = items };
+                    break;
+                }
             case StudioUx2NavJItemKind.Occluder:
-            {
-                var items = _draft.Occluders.ToArray();
-                var index = items.ToList().FindIndex(item => item.Id == id);
-                if (index < 0) return;
-                var current = items[index];
-                items[index] = current with
                 {
-                    Name = ResolveName(current.NameIsProtected, current.Name),
-                    NameIsProtected = ResolveNameProtected(current.NameIsProtected),
-                    Transform = TransformFromControls(current.Transform),
-                    Dynamic = _occluderDynamic.ButtonPressed,
-                    MeshAssetId = current.MeshAssetIsProtected &&
-                                  string.Equals(_occluderAsset.Text, ProtectedAssetUx2NavJ,
-                                      StringComparison.Ordinal)
-                        ? current.MeshAssetId : _occluderAsset.Text,
-                    MeshAssetIsProtected = current.MeshAssetIsProtected &&
-                                           string.Equals(_occluderAsset.Text,
-                                               ProtectedAssetUx2NavJ, StringComparison.Ordinal),
-                };
-                _draft = _draft with { Occluders = items };
-                break;
-            }
+                    var items = _draft.Occluders.ToArray();
+                    var index = items.ToList().FindIndex(item => item.Id == id);
+                    if (index < 0) return;
+                    var current = items[index];
+                    items[index] = current with
+                    {
+                        Name = ResolveName(current.NameIsProtected, current.Name),
+                        NameIsProtected = ResolveNameProtected(current.NameIsProtected),
+                        Transform = TransformFromControls(current.Transform),
+                        Dynamic = _occluderDynamic.ButtonPressed,
+                        MeshAssetId = current.MeshAssetIsProtected &&
+                                      string.Equals(_occluderAsset.Text, ProtectedAssetUx2NavJ,
+                                          StringComparison.Ordinal)
+                            ? current.MeshAssetId : _occluderAsset.Text,
+                        MeshAssetIsProtected = current.MeshAssetIsProtected &&
+                                               string.Equals(_occluderAsset.Text,
+                                                   ProtectedAssetUx2NavJ, StringComparison.Ordinal),
+                    };
+                    _draft = _draft with { Occluders = items };
+                    break;
+                }
         }
     }
 

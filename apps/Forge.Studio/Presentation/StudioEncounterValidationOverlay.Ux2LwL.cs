@@ -52,7 +52,7 @@ internal sealed partial class StudioEncounterValidationOverlayUx2LwL : Control
     internal int ChoiceCount => _encounterChoices.Count;
     internal bool HasExplicitSelection => _draft is not null && _encounter.Selected > 0;
     internal bool CanonicalPreviewReady => _canonicalPreviewReady && _lastPreview is
-        { Succeeded: true, CanApply: true, DryRunPure: true };
+    { Succeeded: true, CanApply: true, DryRunPure: true };
     internal bool ShowsStructuredDiagnostics => _lastPreview is not null &&
         _lastPreview.Diagnostics.All(item => !string.IsNullOrWhiteSpace(item.Code) &&
                                              !string.IsNullOrWhiteSpace(item.Path));

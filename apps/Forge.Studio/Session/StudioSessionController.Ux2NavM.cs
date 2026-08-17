@@ -638,18 +638,18 @@ internal sealed partial class StudioSessionController
 
             var invalidFinite = editing.PreviewCameraAnchorUx2NavM(draft with { PositionX = double.NaN });
             var invalidRotation = editing.PreviewCameraAnchorUx2NavM(draft with
-                { RotationX = 0, RotationY = 0, RotationZ = 0, RotationW = 0 });
+            { RotationX = 0, RotationY = 0, RotationZ = 0, RotationW = 0 });
             var invalidScale = editing.PreviewCameraAnchorUx2NavM(draft with { ScaleX = 0 });
             var transformValidation = new[] { invalidFinite, invalidRotation, invalidScale }
                 .All(item => !item.Succeeded && item.Diagnostics.Any(diagnostic =>
                     diagnostic.Code == "cinematic.camera_anchor_transform_invalid"));
             var invalidBounds = editing.PreviewCameraAnchorUx2NavM(draft with
-                { PositionX = loadedArea.Dimensions.Width });
+            { PositionX = loadedArea.Dimensions.Width });
             var boundsValidation = !invalidBounds.Succeeded && invalidBounds.Diagnostics.Any(item =>
                 item.Code == CinematicValidator.CameraAnchorBoundsCode);
             var invalidFov = editing.PreviewCameraAnchorUx2NavM(draft with { FieldOfViewDegrees = 180 });
             var invalidDuration = editing.PreviewCameraAnchorUx2NavM(draft with
-                { DefaultDurationMilliseconds = 0 });
+            { DefaultDurationMilliseconds = 0 });
             var invalidSafe = editing.PreviewCameraAnchorUx2NavM(draft with { SafeAreaMargin = .5 });
             var invalidTags = editing.PreviewCameraAnchorUx2NavM(draft with { Tags = [""] });
             var invalidFraming = editing.PreviewCameraAnchorUx2NavM(draft with { Framing = (CameraFraming)999 });

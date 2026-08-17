@@ -555,7 +555,7 @@ internal sealed partial class StudioSessionController
             var previous = source.ScatterEmitters.FirstOrDefault(sourceItem => sourceItem.Id == item.Id);
             if (previous is null)
             {
-                entries.Add($"Ajouter une dispersion pour « {HumanCueUx2EnvI(item.CueId)} »." );
+                entries.Add($"Ajouter une dispersion pour « {HumanCueUx2EnvI(item.CueId)} ».");
                 continue;
             }
             if (!SameScatterUx2EnvI(previous, item))
@@ -564,7 +564,7 @@ internal sealed partial class StudioSessionController
         }
         foreach (var item in source.ScatterEmitters.Where(sourceItem =>
                      candidate.ScatterEmitters.All(candidateItem => candidateItem.Id != sourceItem.Id)))
-            entries.Add($"Retirer la dispersion « {HumanCueUx2EnvI(item.CueId)} »." );
+            entries.Add($"Retirer la dispersion « {HumanCueUx2EnvI(item.CueId)} ».");
         return new(entries);
     }
 

@@ -76,9 +76,17 @@ source/API/compilateur et toutes les mutations qualifiées gardent un historique
     d’objets, moment, graine et état généré persistant, puis événements d’ouverture et de fermeture
     avec bindings ForgeScript et payload canonique, enfin événements avant/après du verrou avec
     méthode, justificatif, acteur et veto contrôlé portent à 65 les routes Studio qualifiées.
-Les overlays Navigation et Collisions de la vue 3D ne valent pas encore outil d’auteur de
-terrain/navigation. Playtest, distribution Windows/Linux et remplacement du lanceur Creator
-historique ne sont pas déclarés terminés avant leur migration et leur qualification.
+La vague UX2 qualifie désormais les 98 routes Monde de Terrain, Environnement, Monde vivant et
+Navigation : édition directe des tuiles et profils, audio authoré, événements/rencontres, surfaces,
+waypoints, transitions, visibilité, routes et ancres caméra. Chaque lot possède commande canonique,
+dry-run, undo/redo, round-trip, smoke et preuve Forward+ FHD ; les aperçus distinguent explicitement
+plans déterministes, services de décision et effets moteur réellement exécutés. La matrice Studio
+compte ainsi 221 routes `functional` et 496 `planned`. Le portail transversal de clôture UX2 passe
+avec 2 033 tests .NET, 39 tests Python, des builds sans avertissement, un graphe Roslyn déterministe
+à 9 968 nœuds et 71 303 relations sans diagnostic, puis les smokes Studio, Toolset, Runtime,
+Forward+, MCP, réseau et distribution. Playtest, distribution Windows/Linux et remplacement du
+lanceur Creator historique ne sont pas déclarés terminés avant leur propre migration et
+qualification.
 
 Le Creator sait aussi configurer un profil de lanceur par jeu et générer une distribution Windows x64
 atomique. Le lanceur WPF possède une présentation RPG cinématique animée, vérifie ses fichiers, expose

@@ -840,8 +840,11 @@ internal sealed partial class StudioSessionController
             var projectBeforeApply = editing.Project;
             var preview = editing.PreviewVisibilityUx2NavJ(configured);
             var dryRun = preview.Succeeded && preview.CanApply && ReferenceEquals(projectBeforeApply, editing.Project);
-            var runtimePreview = preview.Runtime is { Rooms: 3, OpenPortals: 2, Occluders: 3,
-                TypedRuntimeHandle: true } && preview.Overlay.Markers.Count >= 6 &&
+            var runtimePreview = preview.Runtime is
+            {
+                Rooms: 3, OpenPortals: 2, Occluders: 3,
+                TypedRuntimeHandle: true
+            } && preview.Overlay.Markers.Count >= 6 &&
                 preview.Overlay.Segments.Count == 2;
             var applied = editing.ApplyApprovedVisibilityUx2NavJ();
             var appliedProject = editing.Project;

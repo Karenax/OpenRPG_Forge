@@ -164,8 +164,12 @@ internal sealed partial class StudioEncounterFoundationOverlayUx2LwF : Control
         var margin = StudioStyle.Margin(18, 14, 18, 14);
         margin.PropagateMaximumSize = true;
         _dialog.AddChild(margin);
-        var root = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill,
-            SizeFlagsVertical = SizeFlags.ExpandFill, PropagateMaximumSize = true };
+        var root = new VBoxContainer
+        {
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            SizeFlagsVertical = SizeFlags.ExpandFill,
+            PropagateMaximumSize = true
+        };
         root.AddThemeConstantOverride("separation", 8);
         margin.AddChild(root);
 
@@ -190,12 +194,21 @@ internal sealed partial class StudioEncounterFoundationOverlayUx2LwF : Control
             11, StudioStyle.Warning, wrap: true);
         root.AddChild(_selection);
 
-        var bodyHost = new Control { CustomMinimumSize = new Vector2(0, 590),
-            CustomMaximumSize = new Vector2(-1, 850), SizeFlagsHorizontal = SizeFlags.ExpandFill,
-            SizeFlagsVertical = SizeFlags.ExpandFill, ClipContents = true, PropagateMaximumSize = true };
+        var bodyHost = new Control
+        {
+            CustomMinimumSize = new Vector2(0, 590),
+            CustomMaximumSize = new Vector2(-1, 850),
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            SizeFlagsVertical = SizeFlags.ExpandFill,
+            ClipContents = true,
+            PropagateMaximumSize = true
+        };
         root.AddChild(bodyHost);
-        var scroll = new ScrollContainer { HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
-            FollowFocus = true };
+        var scroll = new ScrollContainer
+        {
+            HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
+            FollowFocus = true
+        };
         scroll.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
         bodyHost.AddChild(scroll);
         var content = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
@@ -254,8 +267,12 @@ internal sealed partial class StudioEncounterFoundationOverlayUx2LwF : Control
             "Édition numérique du contrat 2D/3D. Aucun gizmo, test de visibilité ou volume moteur n’est créé dans cet écran.",
             volumeGrid));
 
-        _candidates = new ItemList { SelectMode = ItemList.SelectModeEnum.Single,
-            CustomMinimumSize = new Vector2(0, 92), SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        _candidates = new ItemList
+        {
+            SelectMode = ItemList.SelectModeEnum.Single,
+            CustomMinimumSize = new Vector2(0, 92),
+            SizeFlagsHorizontal = SizeFlags.ExpandFill
+        };
         _candidates.ItemSelected += index => SelectCandidate((int)index);
         _candidateBlueprint = Option();
         _candidateRole = EnumOption(Enum.GetValues<EncounterWorldProfile.CandidateRole>(), HumanRole);
@@ -316,8 +333,12 @@ internal sealed partial class StudioEncounterFoundationOverlayUx2LwF : Control
             "L’aperçu utilise uniquement l’estimation écrite dans la fiche ; il ne lit pas un groupe de joueurs en direct.",
             difficultyGrid));
 
-        _groups = new ItemList { SelectMode = ItemList.SelectModeEnum.Single,
-            CustomMinimumSize = new Vector2(0, 84), SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        _groups = new ItemList
+        {
+            SelectMode = ItemList.SelectModeEnum.Single,
+            CustomMinimumSize = new Vector2(0, 84),
+            SizeFlagsHorizontal = SizeFlags.ExpandFill
+        };
         _groups.ItemSelected += index => SelectGroup((int)index);
         _groupSlug = Line("groupe-principal");
         _groupMinimum = NumberLine("1");

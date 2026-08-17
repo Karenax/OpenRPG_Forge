@@ -857,7 +857,8 @@ internal sealed partial class StudioSessionController
                                        !staleApply.Succeeded && editing.Undo().Succeeded;
 
             var fingerprintDraft = editing.CreateCrossAreaPatrolDraftUx2NavK(areaChoice.AreaId,
-                routeChoice.RouteId)! with { OwnerId = "garde empreinte" };
+                routeChoice.RouteId)! with
+            { OwnerId = "garde empreinte" };
             var fingerprintPreview = editing.PreviewCrossAreaPatrolUx2NavK(fingerprintDraft);
             var fingerprintApproval = editing.CaptureCrossAreaPatrolApprovalUx2NavK();
             editing.RestoreCrossAreaPatrolApprovalUx2NavK(fingerprintApproval with
@@ -877,7 +878,8 @@ internal sealed partial class StudioSessionController
                           editing.Project!.Areas.Single(item => item.Id == areaChoice.AreaId)
                               .RuntimePolicies.Experience.PatrolRoutes.Any(item => item.Id == createdDraft.RouteId);
             var removeDraft = editing.CreateCrossAreaPatrolDraftUx2NavK(areaChoice.AreaId,
-                createdDraft.RouteId)! with { Remove = true };
+                createdDraft.RouteId)! with
+            { Remove = true };
             var removePreview = editing.PreviewCrossAreaPatrolUx2NavK(removeDraft);
             var removeApply = editing.ApplyApprovedCrossAreaPatrolUx2NavK();
             var removed = removePreview.Succeeded && removeApply.Succeeded &&
@@ -921,8 +923,11 @@ internal sealed partial class StudioSessionController
             var preview = editing.PreviewCrossAreaPatrolUx2NavK(configured);
             var dryRun = preview.Succeeded && preview.CanApply &&
                          ReferenceEquals(projectBeforeApply, editing.Project);
-            var runtimePreview = preview.Runtime is { Steps.Count: 2, OwnershipGuarded: true,
-                CompletesOrLoops: true } && preview.Runtime.Steps.All(item =>
+            var runtimePreview = preview.Runtime is
+            {
+                Steps.Count: 2, OwnershipGuarded: true,
+                CompletesOrLoops: true
+            } && preview.Runtime.Steps.All(item =>
                 item.WaitsForStreaming && item.ResumesAfterLoading);
             var runtimeBoundary = preview.Runtime is { Boundary: var boundary } &&
                                   boundary.Contains("aucun chargement moteur",

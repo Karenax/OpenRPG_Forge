@@ -870,6 +870,35 @@ Runtime, Forward+, MCP, réseau, sauvegarde et distribution. Le validateur de r�
 du trigger est resté strict ; les fixtures Crypte et Toolset ont été corrigées pour reprendre l'ID
 canonique `ash-watch` au lieu de fabriquer une quatrième faction.
 
+## Vague UX2 close : 98 routes Monde fonctionnelles
+
+Les 95 routes UX2 encore `planned` après UX2-A ont été intégrées et qualifiées le 17 août 2026.
+La matrice compte désormais 221 routes `functional` et 496 `planned`; UX2 est close à 98/98, répartie
+entre Terrain (8), Environnement (34), Monde vivant (29) et Navigation (27).
+
+- Terrain : construction modulaire, groupes, effacement/remplacement, rotation/variantes,
+  ajustement compatible, relief, features et propriétés complètes de tuile ;
+- Environnement : classification, cycle, lumière, brouillard, climat, eau, ciel, audio complet,
+  rendu/qualité, carte/FoW, LOD/HLOD et politiques eau/AA ;
+- Monde vivant : cycle de vie, événements typés, autorité de combat, triggers spécialisés et les
+  vingt routes de composition/activation/scénario/lifecycle/tactique/statistiques/validation des
+  rencontres ;
+- Navigation : surface et volume, anchors/waypoints/locators, portails Door/Trigger, patrouilles,
+  visibilité/occlusion/LOD, routes aériennes/véhicule/inter-zones et ancres caméra.
+
+Trente-six portails incrémentaux cumulent 3 117,53 s. Chacun prouve build Studio, smoke global,
+capture Forward+ Full HD et matrice ; les tests ciblés varient selon les agrégats réellement touchés.
+Les preuves et limites sont liées dans `docs/acceptance/STUDIO_UX2_A.md`,
+`STUDIO_UX2_TERRAIN.md`, `STUDIO_UX2_ENVIRONMENT.md`, `STUDIO_UX2_LIVING_WORLD.md` et
+`STUDIO_UX2_NAVIGATION.md`. Une promotion Studio ne transforme pas un plan déterministe en runtime :
+playback audio, GPU, spawn d’acteurs, pathfinding moteur, caméra live et transport réseau restent
+explicitement hors claim lorsque leur bridge n’est pas exécuté.
+
+Le portail transversal de clôture a ensuite réussi sans avertissement : 2 033 tests .NET, 39 tests
+Python, graphe Roslyn déterministe à 9 968 nœuds et 71 303 relations sans diagnostic, puis smokes
+Studio, Toolset, Runtime, Forward+, MCP, réseau et distribution. Cette preuve globale complète les
+36 portails incrémentaux ; elle ne transforme pas leurs limites explicites en capacités live.
+
 ## Gates ergonomiques avant parité
 
 Une page ne passe pas `Parity` si l’un des points suivants manque :

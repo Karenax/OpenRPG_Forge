@@ -348,7 +348,7 @@ function Invoke-ForgeEngineMarkerTest {
         $Markers += 'OPENRPG_FORGE_RUNTIME_UX0H_WORLD_TRANSITIONS_PASS sequence_abort=restored-script-executed world_clock=calendar-zone-astronomy-save progression=curve-source-group-difficulty runtime=resolved'
         $Markers += 'OPENRPG_FORGE_RUNTIME_R053_AREA_TILE_EDITING_PASS groups=editable parameters=typed tools=canonical autofit=deterministic-lock-ambiguity properties=state-animation-material-light-collision-navigation-sockets-overrides resize=loss-migration forgescript=typed-handle optional=ignored required=diagnostic'
         $Markers += 'OPENRPG_FORGE_RUNTIME_R054_AREA_ENVIRONMENT_PASS classification=extensible-subsystems daynight=curves-events-volume-overrides lighting=physical-probes fog=noise-local-volumes-quality forgescript=typed-handle optional=ignored required=diagnostic'
-        $Markers += 'OPENRPG_FORGE_RUNTIME_R055_AREA_EXPERIENCE_PASS audio=snapshots-adaptive-reverb events=namespaced-payload-subscriptions map=2d-3d-exploration-fog-reveal visibility=rooms-portals-occluders-streaming lod=thresholds-budgets-popping forgescript=typed-handle optional=ignored required=diagnostic'
+        $Markers += 'OPENRPG_FORGE_RUNTIME_R055_AREA_EXPERIENCE_PASS audio=snapshots-adaptive-reverb events=namespaced-typed-payload-live-forgescript map=2d-3d-exploration-fog-reveal visibility=rooms-portals-occluders-streaming lod=thresholds-budgets-popping forgescript=custom-event-handle source=module optional=ignored required=diagnostic'
         $Markers += 'OPENRPG_FORGE_RUNTIME_R056_AREA_LAYERS_PASS hierarchy=nested visibility=inherited locking=inherited selection=group-descendants export=partial-governed forgescript=typed-handle optional=ignored required=diagnostic'
         $Markers += 'OPENRPG_FORGE_RUNTIME_R057_PALETTE_PASS blueprint=versioned-promoted-defaults instances=pins-exclusions-overrides taxonomy=hierarchical-multitag preview=turntable-thumbnail-variants-animations-metrics-license search=advanced-facets forgescript=typed-handle optional=ignored required=diagnostic'
         $Markers += 'OPENRPG_FORGE_RUNTIME_R058_PREFAB_PASS variant=inherited-typed-overrides composition=hierarchy-sockets-rules-parameters-scripts collections=author placement=deterministic-group budget=seven-metrics-platform-pass-warn-fail forgescript=typed-handle optional=ignored required=diagnostic'
@@ -382,9 +382,13 @@ function Invoke-ForgeEngineMarkerTest {
         -ArgumentList $effectiveArguments `
         -WindowStyle Hidden `
         -PassThru
-    # The Toolset exercises the complete authoring inventory before its final plugin marker.
-    # Keep that integration gate bounded, while allowing slower Windows runners to finish it.
-    $timeoutSeconds = if ($Name -eq 'toolset') { 180 } else { 75 }
+    # The Toolset and Studio exercise their complete authoring inventories before their final markers.
+    # Keep those integration gates bounded, while allowing slower Windows runners to finish them.
+    $timeoutSeconds = switch ($Name) {
+        'toolset' { 180 }
+        'studio' { 240 }
+        default { 75 }
+    }
     $deadline = [DateTime]::UtcNow.AddSeconds($timeoutSeconds)
     $passed = $false
 

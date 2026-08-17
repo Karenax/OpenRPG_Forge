@@ -430,7 +430,7 @@ internal sealed partial class StudioSessionController
             var arrival = catalog.FindArrivalAnchor(after.SpawnAnchorId)?.HumanLabel ?? "Ancre protégée";
             result.Add($"Destination · {destination} · arrivée {arrival}.");
             result.Add($"Orientation X {after.ExitOrientationDegrees.X:0.##}° · Y " +
-                       $"{after.ExitOrientationDegrees.Y:0.##}° · Z {after.ExitOrientationDegrees.Z:0.##}°." );
+                       $"{after.ExitOrientationDegrees.Y:0.##}° · Z {after.ExitOrientationDegrees.Z:0.##}°.");
             result.Add($"Préchargement {(after.Preload ? "demandé" : "désactivé")} · " +
                        $"{after.Permissions.Count} permission(s).");
         }
@@ -662,7 +662,7 @@ internal sealed partial class StudioSessionController
             var humanLabels = choices.Count == 2 && choices.All(item => !ContainsGuidTokenUx2NavH(item.Label) &&
                 !item.Label.Contains(item.TriggerId.ToString("D"), StringComparison.OrdinalIgnoreCase));
             var foundationRequired = choices.Single(item => item.TriggerId == protectedId) is
-                { CanEdit: false, Availability: var availability } &&
+            { CanEdit: false, Availability: var availability } &&
                 availability.Contains("Fondation UX1-Y", StringComparison.Ordinal);
             var draft = editing.CreateTriggerPortalDraftUx2NavH(sourceId);
             var destination = editing.TriggerDestinationChoicesUx2NavH(sourceId)

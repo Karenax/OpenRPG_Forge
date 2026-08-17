@@ -113,8 +113,12 @@ internal sealed partial class StudioEncounterSelectionActivationOverlayUx2LwG : 
         var margin = StudioStyle.Margin(18, 14, 18, 14);
         margin.PropagateMaximumSize = true;
         _dialog.AddChild(margin);
-        var root = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill,
-            SizeFlagsVertical = SizeFlags.ExpandFill, PropagateMaximumSize = true };
+        var root = new VBoxContainer
+        {
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            SizeFlagsVertical = SizeFlags.ExpandFill,
+            PropagateMaximumSize = true
+        };
         root.AddThemeConstantOverride("separation", 8);
         margin.AddChild(root);
 
@@ -139,12 +143,21 @@ internal sealed partial class StudioEncounterSelectionActivationOverlayUx2LwG : 
             11, StudioStyle.Warning, wrap: true);
         root.AddChild(_selection);
 
-        var bodyHost = new Control { CustomMinimumSize = new Vector2(0, 520),
-            CustomMaximumSize = new Vector2(-1, 820), SizeFlagsHorizontal = SizeFlags.ExpandFill,
-            SizeFlagsVertical = SizeFlags.ExpandFill, ClipContents = true, PropagateMaximumSize = true };
+        var bodyHost = new Control
+        {
+            CustomMinimumSize = new Vector2(0, 520),
+            CustomMaximumSize = new Vector2(-1, 820),
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            SizeFlagsVertical = SizeFlags.ExpandFill,
+            ClipContents = true,
+            PropagateMaximumSize = true
+        };
         root.AddChild(bodyHost);
-        var scroll = new ScrollContainer { HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
-            FollowFocus = true };
+        var scroll = new ScrollContainer
+        {
+            HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
+            FollowFocus = true
+        };
         scroll.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
         bodyHost.AddChild(scroll);
         var content = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };

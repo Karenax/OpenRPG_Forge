@@ -739,12 +739,12 @@ internal sealed partial class StudioSessionController
 
     private static Forge.RpgKit.Domain.Encounters.NetworkAuthority MapAuthorityUx2LwH(
         EncounterNetworkAuthority value) => value switch
-    {
-        EncounterNetworkAuthority.Local => Forge.RpgKit.Domain.Encounters.NetworkAuthority.Local,
-        EncounterNetworkAuthority.Host => Forge.RpgKit.Domain.Encounters.NetworkAuthority.Host,
-        EncounterNetworkAuthority.Server => Forge.RpgKit.Domain.Encounters.NetworkAuthority.Server,
-        _ => throw new ArgumentOutOfRangeException(nameof(value)),
-    };
+        {
+            EncounterNetworkAuthority.Local => Forge.RpgKit.Domain.Encounters.NetworkAuthority.Local,
+            EncounterNetworkAuthority.Host => Forge.RpgKit.Domain.Encounters.NetworkAuthority.Host,
+            EncounterNetworkAuthority.Server => Forge.RpgKit.Domain.Encounters.NetworkAuthority.Server,
+            _ => throw new ArgumentOutOfRangeException(nameof(value)),
+        };
 
     private static string EncounterScenarioDraftFingerprintUx2LwH(StudioUx2LwHDraft draft)
     {
@@ -949,9 +949,11 @@ internal sealed partial class StudioSessionController
             {
                 Phases = draft.Phases.Select((phase, phaseIndex) => phaseIndex == 0
                     ? phase with
-                    { Waves = phase.Waves.Select((wave, waveIndex) => waveIndex == 0
+                    {
+                        Waves = phase.Waves.Select((wave, waveIndex) => waveIndex == 0
                         ? wave with { DelaySeconds = wave.DelaySeconds + .5 }
-                        : wave).ToArray() }
+                        : wave).ToArray()
+                    }
                     : phase).ToArray(),
             });
             var anchorValidation = !invalidAnchor.Succeeded && invalidAnchor.Diagnostics.Any(item =>

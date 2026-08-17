@@ -699,9 +699,9 @@ internal sealed partial class StudioSessionController
             if (draft is null) return FailedUx2LwLSmoke();
 
             var invalidAnchor = editing.PreviewEncounterValidationUx2LwL(draft with
-                { SpawnAnchorIds = ["anchor:absente"] });
+            { SpawnAnchorIds = ["anchor:absente"] });
             var invalidScript = editing.PreviewEncounterValidationUx2LwL(draft with
-                { ActivationScriptId = "scripts/absent.forge" });
+            { ActivationScriptId = "scripts/absent.forge" });
             var invalidBudget = editing.PreviewEncounterValidationUx2LwL(draft with { SpawnBudget = 0 });
             var invalidCap = editing.PreviewEncounterValidationUx2LwL(draft with { NetworkActorCap = 0 });
             var realAnchorValidation = !invalidAnchor.Succeeded && invalidAnchor.Diagnostics.Any(item =>

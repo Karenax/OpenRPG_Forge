@@ -37,9 +37,9 @@ encore qualifiées. Aucun de ces états ne doit être confondu avec une release 
 - parcours produit automatisé : projet, zones, assets, contenu RPG, narration, validation, playtest,
   export et Assistant gouverné ;
 - matrice et procédure d'acceptation de bout en bout sous `docs/acceptance/`.
-- matrice d’accès humain Studio : 717 routes uniques, dont 126 `functional` avec preuve spécifique
-  pour UX0-A à UX1-AJ, UX2-A, UX4-A et UX5-A, et 591 `planned` ; les 71/71 routes UX1 sont
-  fonctionnelles et cette matrice ne réutilise pas le statut `Tested` de l’ancien Creator.
+- matrice d’accès humain Studio : 717 routes uniques, dont 221 `functional` avec preuve spécifique
+  pour UX0-A à UX1-AJ, les 98/98 routes UX2, UX4-A et UX5-A, et 496 `planned` ; cette matrice ne
+  réutilise pas le statut `Tested` de l’ancien Creator.
 - premier train parallèle contrôlé livré : UX1-V et UX1-W ont été développés dans des worktrees et
   fichiers distincts, audités avant intégration, puis construits, testés, fumés et capturés
   séquentiellement ; six routes seulement ont été promues sur preuve réelle.
@@ -60,9 +60,15 @@ encore qualifiées. Aucun de ces états ne doit être confondu avec une release 
   fondation de factions et fondation de dialogues ; treize routes ont franchi 40 tests dans les
   trois portails incrémentaux, un test RpgKit complémentaire, les smokes, les captures Forward+
   FHD/QHD/4K et le portail complet. `ORF-FAC-006` reste explicitement `planned`.
-- portail local courant réussi avec 1 988 tests .NET, 39 tests Python, des builds sans avertissement
-  et le graphe Roslyn courant déterministe sans diagnostic ; les smokes Studio, Toolset, Runtime,
-  Forward+, MCP et réseau ont également réussi.
+- vague UX2 close à 98/98 : huit routes Terrain, 34 Environnement, 29 Monde vivant et 27 Navigation
+  disposent de commandes/dry-runs transactionnels, smokes contractuels, sauvegardes/réouvertures et
+  captures Forward+ FHD inspectées. Les 36 portails incrémentaux totalisent 3 117,53 s et leurs
+  limites distinguent authoring, plans/simulations et runtime réellement branché ; les preuves sont
+  liées dans `STUDIO_UX2_TERRAIN.md`, `STUDIO_UX2_ENVIRONMENT.md`,
+  `STUDIO_UX2_LIVING_WORLD.md` et `STUDIO_UX2_NAVIGATION.md`.
+- portail local courant réussi avec 2 033 tests .NET, 39 tests Python, des builds sans avertissement
+  et le graphe Roslyn courant déterministe à 9 968 nœuds et 71 303 relations sans diagnostic ; les
+  smokes Studio, Toolset, Runtime, Forward+, MCP, réseau et distribution ont également réussi.
 
 Ces nombres prouvent la présence et la non-régression des capacités. Ils ne remplacent pas une
 qualification humaine de release publique.
@@ -269,6 +275,11 @@ qualification humaine de release publique.
 - UX2-A qualifié pour `ORF-AREA-023`, `ORF-AREA-025` et `ORF-AREA-026` : heartbeat de zone,
   perception et repos dans une transaction area-only, sans prétendre exécuter scripts, moteur ou
   réseau, portail 11/11 en 75,69 s, test RpgKit complémentaire 1/1 et preuves FHD/QHD/4K ;
+- UX2-B à UX2-M qualifient le reste de la vague Monde : terrain modulaire et relief, environnement/
+  audio/qualité, événements et rencontres, navigation/portails/waypoints/routes/visibilité/LOD et
+  ancres caméra. Chaque route conserve ses tails non exposés et refuse les valeurs ou références
+  invalides sans synthèse silencieuse ; 35 portails supplémentaires et 35 captures FHD sont liés aux
+  documents d’acceptation consolidés UX2 ;
 - UX4-A qualifié pour `ORF-FAC-001` à `ORF-FAC-005` : création/archive/suppression sûre, parents,
   héritage, matrice directionnelle et bandes, avec références externes bloquées, preuve Crypte
   réelle ou fallback isolé, portail 13/13 en 79,97 s et preuves FHD/QHD/4K ;
@@ -296,6 +307,8 @@ qualification humaine de release publique.
   UX1-X et de réactions/physique UX1-Z disposent de leur preuve FHD réelle ; leurs revues QHD/4K sont
   réservées à un jalon ultérieur. UX1-AA à UX1-AJ ainsi que UX2-A, UX4-A et UX5-A disposent de
   preuves FHD/QHD/4K inspectées aux jalons de leurs nouveaux layouts.
+  Les 35 autres surfaces UX2 possèdent chacune une preuve Forward+ FHD inspectée ; leur revue
+  corrective QHD/4K globale reste distincte de cette promotion fonctionnelle.
   La fondation polygonale UX1-Y possède déjà ses preuves FHD/QHD/4K après la correction de layout.
   La revue 4K des autres pages reste à qualifier ;
 - CI rendue indépendante de la cadence du runner et des dossiers locaux `.artifacts` ;

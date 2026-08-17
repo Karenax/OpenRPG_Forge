@@ -88,8 +88,11 @@ internal sealed partial class StudioVehicleRouteOverlayUx2NavL : Control
                                           _selectedPointIndex >= 0 && _selectedLaneIndex >= 0 &&
                                           (_draft?.Stops.Count == 0 || _selectedStopIndex >= 0);
     internal bool CanonicalPreviewReady => _lastPreview?.Succeeded == true;
-    internal bool ShowsViewportOverlay => _lastPreview is { Overlay.Markers.Count: > 1,
-                                                Overlay.Segments.Count: > 0 } &&
+    internal bool ShowsViewportOverlay => _lastPreview is
+    {
+        Overlay.Markers.Count: > 1,
+        Overlay.Segments.Count: > 0
+    } &&
                                           _worldViewport.NavigationOverlayPrimitiveCountUx2NavB > 0;
     internal bool ShowsStructuredDiagnostics => _lastPreview is { Succeeded: true } &&
                                                 _lastPreview.Diagnostics.Count == 0;

@@ -263,8 +263,11 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
 - [x] Clôturer le jalon UX2-A/UX4-A/UX5-A par 40/40 tests dans les trois portails incrémentaux,
   un test RpgKit complémentaire, les smokes, les preuves Forward+ FHD/QHD/4K, la matrice régénérée
   et le portail transversal complet.
-- [ ] Achever la tranche Monde : terrain, navigation, puis activer **Tester ici** sur
-  snapshot isolé.
+- [x] Achever UX2 à 98/98 routes Monde : terrain, environnement/audio, monde vivant et navigation,
+  avec 36 portails incrémentaux, smokes, preuves Forward+ FHD, matrice et graphe régénérés, puis
+  valider le portail transversal complet avec 2 033 tests .NET et 39 tests Python.
+- [ ] Activer **Tester ici** sur snapshot isolé depuis la tranche Tester, sans élargir rétroactivement
+  les claims runtime des aperçus UX2.
 - [ ] Continuer la migration de Contenu, Histoire, Gameplay, Tester, Publier, Projet et Assistant
   page par page, en
   passant chaque ligne de la matrice à `Parity` uniquement avec tests et preuve visuelle.

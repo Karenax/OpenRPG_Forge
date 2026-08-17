@@ -900,7 +900,8 @@ internal sealed partial class StudioSessionController
             var staleRevisionBlocked = neighborChanged && !staleRevision.Succeeded && editing.Undo().Succeeded;
 
             var approvalDraft = editing.CreateVehicleRouteDraftUx2NavL(areaChoice.AreaId,
-                routeChoice.RouteId)! with { AllowOvertaking = true };
+                routeChoice.RouteId)! with
+            { AllowOvertaking = true };
             var approvalPreview = editing.PreviewVehicleRouteUx2NavL(approvalDraft);
             neighborChanged = ApplyUx2NavLNeighborMutation(editing);
             var staleApply = editing.ApplyApprovedVehicleRouteUx2NavL();
@@ -908,7 +909,8 @@ internal sealed partial class StudioSessionController
                                        !staleApply.Succeeded && editing.Undo().Succeeded;
 
             var fingerprintDraft = editing.CreateVehicleRouteDraftUx2NavL(areaChoice.AreaId,
-                routeChoice.RouteId)! with { DefaultSpeedLimit = 11 };
+                routeChoice.RouteId)! with
+            { DefaultSpeedLimit = 11 };
             var fingerprintPreview = editing.PreviewVehicleRouteUx2NavL(fingerprintDraft);
             var fingerprintApproval = editing.CaptureVehicleRouteApprovalUx2NavL();
             editing.RestoreVehicleRouteApprovalUx2NavL(fingerprintApproval with
@@ -925,7 +927,8 @@ internal sealed partial class StudioSessionController
                           editing.Project!.Module.WorldFeatures.VehicleRoutes.Any(item =>
                               item.Id == createdDraft.RouteId);
             var removeDraft = editing.CreateVehicleRouteDraftUx2NavL(areaChoice.AreaId,
-                createdDraft.RouteId)! with { Remove = true };
+                createdDraft.RouteId)! with
+            { Remove = true };
             var removePreview = editing.PreviewVehicleRouteUx2NavL(removeDraft);
             var removeApply = editing.ApplyApprovedVehicleRouteUx2NavL();
             var removed = removePreview.Succeeded && removeApply.Succeeded &&

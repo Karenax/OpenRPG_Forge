@@ -7,6 +7,17 @@ SemVer ; les versions de schéma persistent séparément dans leurs documents.
 
 ### Changed
 
+- Forge Studio UX2 clos à 98/98 routes Monde : terrain et tuiles, environnement/audio/qualité,
+  événements et rencontres, navigation/portails/waypoints/routes/visibilité/LOD et ancres caméra,
+  avec commandes canoniques, préservation, undo/redo et round-trip ;
+- 36 portails UX2 réussis en 3 117,53 s cumulées, chacun avec smoke et capture Forward+ FHD
+  inspectée ; les documents d’acceptation distinguent systématiquement authoring, plans/simulations
+  et runtime réellement exécuté ;
+- matrice d’accès humain Studio portée à 221 routes `functional` et 496 `planned` ; les quatre pages
+  UX2 Terrain, Environnement, Monde vivant et Navigation sont fonctionnelles à 98/98 ;
+- clôture UX2 validée par le portail transversal complet : 2 033 tests .NET, 39 tests Python,
+  builds sans avertissement, graphe Roslyn déterministe à 9 968 nœuds et 71 303 relations sans
+  diagnostic, puis smokes Studio, Toolset, Runtime, Forward+, MCP, réseau et distribution ;
 - Forge Studio UX5-A : éditeur transactionnel de dialogues pour graphe, nœuds PNJ/joueur,
   branches paginées, liens existants et réponses réordonnables au clavier ou par glisser-déposer,
   avec locuteurs hérités protégés et preuves Forward+ FHD/QHD/4K ;

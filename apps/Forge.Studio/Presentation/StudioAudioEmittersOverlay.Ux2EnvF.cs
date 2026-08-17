@@ -574,8 +574,11 @@ internal sealed partial class StudioAudioEmittersOverlayUx2EnvF : ColorRect
         Color = new Color(.014f, .019f, .026f, .97f); MouseFilter = MouseFilterEnum.Stop; Visible = false;
         _dialog = StudioStyle.Panel("Ux2EnvFAudioEmittersDialog", StudioStyle.Surface, 12, 1); AddChild(_dialog);
         var margin = StudioStyle.Margin(14, 12, 14, 12); _dialog.AddChild(margin);
-        var root = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill,
-            SizeFlagsVertical = SizeFlags.ExpandFill };
+        var root = new VBoxContainer
+        {
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            SizeFlagsVertical = SizeFlags.ExpandFill
+        };
         root.AddThemeConstantOverride("separation", 8); margin.AddChild(root);
         var heading = new HBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill }; root.AddChild(heading);
         var headingText = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
@@ -589,8 +592,11 @@ internal sealed partial class StudioAudioEmittersOverlayUx2EnvF : ColorRect
         root.AddChild(StudioUx2EnvBControls.Field("Zone à modifier · sélection explicite", _area, 460));
         _selection = StudioStyle.Label("Aucune zone sélectionnée.", 10, StudioStyle.Warning, wrap: true);
         root.AddChild(_selection);
-        _tabs = new TabContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill,
-            SizeFlagsVertical = SizeFlags.ExpandFill };
+        _tabs = new TabContainer
+        {
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            SizeFlagsVertical = SizeFlags.ExpandFill
+        };
         root.AddChild(_tabs);
 
         _definitions = new StudioUx2EnvFCollectionEditor<StudioUx2EnvFDefinitionDraft>(

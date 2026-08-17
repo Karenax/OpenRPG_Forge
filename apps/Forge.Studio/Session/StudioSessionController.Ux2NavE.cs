@@ -1005,8 +1005,12 @@ internal sealed partial class StudioSessionController
             var collectionCreation = newCollectionPreview.Succeeded && newCollectionPreview.CanApply;
             var invalidCollection = editing.CreateNewLocatorCollectionDraftUx2NavE(areaChoice.AreaId)! with
             {
-                Name = "Groupe invalide", Query = string.Empty, RequiredTags = [], LocatorIds = [],
-                Selection = LocatorSelectionMode.Nearest, HasOrigin = false,
+                Name = "Groupe invalide",
+                Query = string.Empty,
+                RequiredTags = [],
+                LocatorIds = [],
+                Selection = LocatorSelectionMode.Nearest,
+                HasOrigin = false,
             };
             var invalidCollectionPreview = editing.PreviewLocatorsUx2NavE(
                 editing.ComposeLocatorDraftUx2NavE(areaChoice.AreaId, null, invalidCollection,

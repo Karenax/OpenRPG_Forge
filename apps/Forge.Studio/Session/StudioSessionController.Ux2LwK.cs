@@ -510,9 +510,9 @@ internal sealed partial class StudioSessionController
                 !IsEligibleEncounterStatisticsUx2LwK(loadedTarget with { Composition = null }) &&
                 editing.CreateEncounterStatisticsDraftUx2LwK(fixture.TargetId) is not null;
             var optional = EncounterStatisticsProfileValidator.Resolve(loadedTarget with
-                { Statistics = null, StatisticsRequiredAtRuntime = false });
+            { Statistics = null, StatisticsRequiredAtRuntime = false });
             var required = EncounterStatisticsProfileValidator.Resolve(loadedTarget with
-                { Statistics = null, StatisticsRequiredAtRuntime = true });
+            { Statistics = null, StatisticsRequiredAtRuntime = true });
             var optionalAndRequiredResolution = optional.OptionalFallback && !optional.Available &&
                 !required.OptionalFallback && required.Diagnostics.Any(item =>
                     item.Code == "world.encounter.statistics_required");
@@ -522,23 +522,23 @@ internal sealed partial class StudioSessionController
             var invalidRunsLow = editing.PreviewEncounterStatisticsUx2LwK(draft with { Runs = 0 });
             var invalidRunsHigh = editing.PreviewEncounterStatisticsUx2LwK(draft with { Runs = 100_001 });
             var invalidDuration = editing.PreviewEncounterStatisticsUx2LwK(draft with
-                { SecondsPerActor = double.NaN });
+            { SecondsPerActor = double.NaN });
             var invalidReward = editing.PreviewEncounterStatisticsUx2LwK(draft with { RewardPerCost = -1 });
             var invalidEstimator = editing.PreviewEncounterStatisticsUx2LwK(draft with
-                { DurationEstimatorId = " " });
+            { DurationEstimatorId = " " });
             var configurationValidation = new[]
                 { invalidRunsLow, invalidRunsHigh, invalidDuration, invalidReward, invalidEstimator }
                 .All(item => !item.Succeeded && item.Diagnostics.Any(diagnostic =>
                     diagnostic.Code == "world.encounter.statistics_configuration_invalid"));
 
             var invalidEmptyPercentiles = editing.PreviewEncounterStatisticsUx2LwK(draft with
-                { Percentiles = [] });
+            { Percentiles = [] });
             var invalidOrderedPercentiles = editing.PreviewEncounterStatisticsUx2LwK(draft with
-                { Percentiles = [.9, .5] });
+            { Percentiles = [.9, .5] });
             var invalidDuplicatePercentiles = editing.PreviewEncounterStatisticsUx2LwK(draft with
-                { Percentiles = [.5, .5] });
+            { Percentiles = [.5, .5] });
             var invalidBoundaryPercentile = editing.PreviewEncounterStatisticsUx2LwK(draft with
-                { Percentiles = [0, .5] });
+            { Percentiles = [0, .5] });
             var percentileValidation = new[]
                 { invalidEmptyPercentiles, invalidOrderedPercentiles, invalidDuplicatePercentiles,
                     invalidBoundaryPercentile }
@@ -552,7 +552,7 @@ internal sealed partial class StudioSessionController
             var overrideValidation = !invalidOverrides.Succeeded && invalidOverrides.Diagnostics.Any(item =>
                 item.Code == "world.encounter.statistics_override_invalid");
             var invalidSeed = editing.PreviewEncounterStatisticsUx2LwK(draft with
-                { BaseSeed = int.MaxValue, Runs = 2 });
+            { BaseSeed = int.MaxValue, Runs = 2 });
             var seedRangeValidation = !invalidSeed.Succeeded && invalidSeed.Diagnostics.Any(item =>
                 item.Code == "world.encounter.statistics_seed_range_invalid");
 
@@ -590,7 +590,7 @@ internal sealed partial class StudioSessionController
                 metrics.Percentiles.Count == changed.Percentiles.Count && metrics.Composition.Count > 0;
             var withDetails = firstPreview.Simulation?.DisplayedRuns.Count > 0;
             var withoutDetailsPreview = editing.PreviewEncounterStatisticsUx2LwK(changed with
-                { IncludeRunDetails = false });
+            { IncludeRunDetails = false });
             var detailsPolicy = withDetails && withoutDetailsPreview.Succeeded &&
                 withoutDetailsPreview.Simulation is { DisplayedRuns.Count: 0, HiddenRunCount: 0 };
 

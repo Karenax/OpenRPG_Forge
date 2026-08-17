@@ -197,8 +197,12 @@ internal sealed partial class StudioEncounterScenarioOverlayUx2LwH : Control
         _dialog.ClipContents = true; _dialog.PropagateMaximumSize = true; AddChild(_dialog);
         var margin = StudioStyle.Margin(18, 14, 18, 14); margin.PropagateMaximumSize = true;
         _dialog.AddChild(margin);
-        var root = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill,
-            SizeFlagsVertical = SizeFlags.ExpandFill, PropagateMaximumSize = true };
+        var root = new VBoxContainer
+        {
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            SizeFlagsVertical = SizeFlags.ExpandFill,
+            PropagateMaximumSize = true
+        };
         root.AddThemeConstantOverride("separation", 8); margin.AddChild(root);
 
         var header = new HBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill }; root.AddChild(header);
@@ -215,12 +219,21 @@ internal sealed partial class StudioEncounterScenarioOverlayUx2LwH : Control
         _selection = StudioStyle.Label("Choisissez explicitement une rencontre complète.",
             11, StudioStyle.Warning, wrap: true); root.AddChild(_selection);
 
-        var bodyHost = new Control { CustomMinimumSize = new Vector2(0, 330),
-            CustomMaximumSize = new Vector2(-1, 620), SizeFlagsHorizontal = SizeFlags.ExpandFill,
-            SizeFlagsVertical = SizeFlags.ExpandFill, ClipContents = true, PropagateMaximumSize = true };
+        var bodyHost = new Control
+        {
+            CustomMinimumSize = new Vector2(0, 330),
+            CustomMaximumSize = new Vector2(-1, 620),
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            SizeFlagsVertical = SizeFlags.ExpandFill,
+            ClipContents = true,
+            PropagateMaximumSize = true
+        };
         root.AddChild(bodyHost);
-        var scroll = new ScrollContainer { HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
-            FollowFocus = true };
+        var scroll = new ScrollContainer
+        {
+            HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
+            FollowFocus = true
+        };
         scroll.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect); bodyHost.AddChild(scroll);
         var content = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
         content.AddThemeConstantOverride("separation", 9); scroll.AddChild(content);
@@ -564,7 +577,8 @@ internal sealed partial class StudioEncounterScenarioOverlayUx2LwH : Control
             Distribution = SelectedEnum<EncounterSpawnDistribution>(_distribution),
             Activator = _draft.Activator with
             {
-                PlayersOnly = _playersOnly.ButtonPressed, IgnoreSummons = _ignoreSummons.ButtonPressed,
+                PlayersOnly = _playersOnly.ButtonPressed,
+                IgnoreSummons = _ignoreSummons.ButtonPressed,
                 IgnoreCompanions = _ignoreCompanions.ButtonPressed,
                 IgnoreGameMasters = _ignoreGameMasters.ButtonPressed,
                 IgnoreSpectators = _ignoreSpectators.ButtonPressed,
@@ -690,8 +704,12 @@ internal sealed partial class StudioEncounterScenarioOverlayUx2LwH : Control
         if (_draft is null || _phaseIndex < 0 || !TryInt(_phaseOrder, out var order) ||
             string.IsNullOrWhiteSpace(_phaseName.Text)) return;
         var source = _draft.Phases[_phaseIndex];
-        var phase = source with { Order = order, DisplayName = _phaseName.Text.Trim(),
-            EntryConditions = Tokens(_phaseConditions.Text) };
+        var phase = source with
+        {
+            Order = order,
+            DisplayName = _phaseName.Text.Trim(),
+            EntryConditions = Tokens(_phaseConditions.Text)
+        };
         _draft = _draft with { Phases = _draft.Phases.Select((item, index) => index == _phaseIndex ? phase : item).ToArray() };
         FillPhases(); DraftChanged();
     }
@@ -813,8 +831,8 @@ internal sealed partial class StudioEncounterScenarioOverlayUx2LwH : Control
         if (_draft is not null)
         {
             foreach (var phase in _draft.Phases.OrderBy(item => item.Order))
-            foreach (var wave in phase.Waves.OrderBy(item => item.Order).Where(item => item.Id != current))
-            { _nextWave.AddItem($"{phase.DisplayName} · vague {wave.Order}"); _nextWaveIds.Add(wave.Id); }
+                foreach (var wave in phase.Waves.OrderBy(item => item.Order).Where(item => item.Id != current))
+                { _nextWave.AddItem($"{phase.DisplayName} · vague {wave.Order}"); _nextWaveIds.Add(wave.Id); }
         }
         var index = selected is null ? 0 : _nextWaveIds.FindIndex(item => item == selected);
         if (selected is not null && index < 0)
@@ -998,8 +1016,12 @@ internal sealed partial class StudioEncounterScenarioOverlayUx2LwH : Control
 
     private static ItemList List(bool single, float height)
     {
-        var list = new ItemList { SelectMode = single ? ItemList.SelectModeEnum.Single : ItemList.SelectModeEnum.Multi,
-            CustomMinimumSize = new Vector2(0, height), SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        var list = new ItemList
+        {
+            SelectMode = single ? ItemList.SelectModeEnum.Single : ItemList.SelectModeEnum.Multi,
+            CustomMinimumSize = new Vector2(0, height),
+            SizeFlagsHorizontal = SizeFlags.ExpandFill
+        };
         return list;
     }
 
@@ -1015,12 +1037,16 @@ internal sealed partial class StudioEncounterScenarioOverlayUx2LwH : Control
     }
 
     private static GridContainer Grid()
-    { var grid = new GridContainer { Columns = 2, SizeFlagsHorizontal = SizeFlags.ExpandFill };
-        grid.AddThemeConstantOverride("h_separation", 10); grid.AddThemeConstantOverride("v_separation", 6); return grid; }
+    {
+        var grid = new GridContainer { Columns = 2, SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        grid.AddThemeConstantOverride("h_separation", 10); grid.AddThemeConstantOverride("v_separation", 6); return grid;
+    }
     private static void AddRow(GridContainer grid, string label, Control control)
-    { var caption = StudioStyle.Label(label, 10, StudioStyle.Muted, wrap: true);
+    {
+        var caption = StudioStyle.Label(label, 10, StudioStyle.Muted, wrap: true);
         caption.CustomMinimumSize = new Vector2(220, 0); caption.SizeFlagsHorizontal = SizeFlags.ShrinkBegin;
-        grid.AddChild(caption); grid.AddChild(control); }
+        grid.AddChild(caption); grid.AddChild(control);
+    }
     private static PanelContainer Card(string name, string title, string help, Control body)
     {
         var card = StudioStyle.Panel(name, StudioStyle.Surface, 8); var margin = StudioStyle.Margin(12, 10, 12, 10);
@@ -1031,14 +1057,18 @@ internal sealed partial class StudioEncounterScenarioOverlayUx2LwH : Control
 
     private static void FillOption<T>(OptionButton option, List<T?> ids,
         IReadOnlyList<StudioUx2LwHReferenceChoice<T>> choices, string placeholder) where T : class
-    { option.Clear(); ids.Clear(); option.AddItem(placeholder); ids.Add(null);
+    {
+        option.Clear(); ids.Clear(); option.AddItem(placeholder); ids.Add(null);
         foreach (var choice in choices) { option.AddItem($"{choice.Label} · {choice.Provenance}"); ids.Add(choice.Id); }
-        option.Select(0); }
+        option.Select(0);
+    }
     private static void FillOption(OptionButton option, List<Guid?> ids,
         IReadOnlyList<StudioUx2LwHReferenceChoice<Guid>> choices, string placeholder)
-    { option.Clear(); ids.Clear(); option.AddItem(placeholder); ids.Add(null);
+    {
+        option.Clear(); ids.Clear(); option.AddItem(placeholder); ids.Add(null);
         foreach (var choice in choices) { option.AddItem($"{choice.Label} · {choice.Provenance}"); ids.Add(choice.Id); }
-        option.Select(0); }
+        option.Select(0);
+    }
     private static void FillOption(OptionButton option, List<string?> ids,
         IReadOnlyList<StudioUx2LwHReferenceChoice<string>> choices, string placeholder,
         string? selected, string missingLabel)
@@ -1092,23 +1122,38 @@ internal sealed partial class StudioEncounterScenarioOverlayUx2LwH : Control
     {
         if (string.IsNullOrWhiteSpace(sourceRoot)) return true; var scripts = Path.Combine(sourceRoot, "scripts");
         if (!Directory.Exists(scripts)) return true;
-        try { foreach (var source in Directory.EnumerateFiles(scripts, "*.forge", SearchOption.AllDirectories))
-            { var destination = Path.Combine(destinationRoot, Path.GetRelativePath(sourceRoot, source));
-                Directory.CreateDirectory(Path.GetDirectoryName(destination)!); File.Copy(source, destination, true); }
-            return true; }
-        catch (IOException) { return false; } catch (UnauthorizedAccessException) { return false; }
+        try
+        {
+            foreach (var source in Directory.EnumerateFiles(scripts, "*.forge", SearchOption.AllDirectories))
+            {
+                var destination = Path.Combine(destinationRoot, Path.GetRelativePath(sourceRoot, source));
+                Directory.CreateDirectory(Path.GetDirectoryName(destination)!); File.Copy(source, destination, true);
+            }
+            return true;
+        }
+        catch (IOException) { return false; }
+        catch (UnauthorizedAccessException) { return false; }
     }
     private void FitDialog()
-    { if (!Visible) return; var viewport = GetViewportRect().Size; var width = Mathf.Clamp(viewport.X - 48, 960, 1540);
+    {
+        if (!Visible) return; var viewport = GetViewportRect().Size; var width = Mathf.Clamp(viewport.X - 48, 960, 1540);
         var height = Mathf.Clamp(viewport.Y - 36, 760, 1120); _dialog.Position = new((viewport.X - width) / 2, (viewport.Y - height) / 2);
-        _dialog.Size = new(width, height); }
+        _dialog.Size = new(width, height);
+    }
     private void SetStatus(string message, bool error)
-    { _status.Text = message; _status.AddThemeColorOverride("font_color", error ? StudioStyle.Danger : StudioStyle.Muted);
-        StatusChanged?.Invoke(message, error); }
+    {
+        _status.Text = message; _status.AddThemeColorOverride("font_color", error ? StudioStyle.Danger : StudioStyle.Muted);
+        StatusChanged?.Invoke(message, error);
+    }
     private static void Clear(Node node) { foreach (var child in node.GetChildren()) child.Free(); }
     private static IEnumerable<Label> DescendantLabels(Node node)
-    { foreach (var child in node.GetChildren()) { if (child is Label label) yield return label;
-            foreach (var nested in DescendantLabels(child)) yield return nested; } }
+    {
+        foreach (var child in node.GetChildren())
+        {
+            if (child is Label label) yield return label;
+            foreach (var nested in DescendantLabels(child)) yield return nested;
+        }
+    }
     private static bool ContainsTechnicalIdentifier(string text) =>
         text.Split([' ', '·', '/', ':', ',', ';', '\n'], StringSplitOptions.RemoveEmptyEntries)
             .Any(token => Guid.TryParse(token, out _));
