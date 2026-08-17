@@ -92,6 +92,8 @@ internal sealed partial class StudioWorkspaceShell
 
     internal bool RunUx2ASmoke()
     {
+        var originalPageId = PageId;
+        var originalSurfaceOpen = _livingWorldPoliciesOverlay.IsOpen;
         var originalProject = _session.Project;
         var originalHistory = _session.History;
         var originalRevision = originalHistory?.State.Revision;
@@ -127,6 +129,13 @@ internal sealed partial class StudioWorkspaceShell
         var sourceSessionRestored = _livingWorldPoliciesOverlay.SourceSessionRestored;
 
         var result = _session.RunUx2AContractSmoke();
+        SwitchPage(originalPageId, notify: false);
+        if (originalSurfaceOpen)
+        {
+            _livingWorldPoliciesOverlay.RestoreSourceSurfaceAfterSmoke();
+        }
+        var surfaceRestored = PageId == originalPageId &&
+                              _livingWorldPoliciesOverlay.IsOpen == originalSurfaceOpen;
         var currentHistory = _session.History;
         var sourceUnchanged = ReferenceEquals(originalProject, _session.Project) &&
                               ReferenceEquals(originalHistory, currentHistory) &&
@@ -155,6 +164,7 @@ internal sealed partial class StudioWorkspaceShell
                 $"source_untouched={evidenceSourceUntouched.ToString().ToLowerInvariant()}");
         }
         var valid = result.Succeeded && uiReady && uiTransaction && uiNumericValues && sourceUnchanged &&
+                    surfaceRestored &&
                     evidenceResourcesReleased && sourceSessionRestored;
         GD.Print(
             $"OPENRPG_FORGE_STUDIO_UX2A_{(valid ? "PASS" : "FAILED")} " +
@@ -188,6 +198,7 @@ internal sealed partial class StudioWorkspaceShell
             $"evidence_source_untouched={evidenceSourceUntouched.ToString().ToLowerInvariant()} " +
             $"evidence_released={evidenceResourcesReleased.ToString().ToLowerInvariant()} " +
             $"source_session_restored={sourceSessionRestored.ToString().ToLowerInvariant()} " +
+            $"surface_restored={surfaceRestored.ToString().ToLowerInvariant()} " +
             $"source_unchanged={sourceUnchanged.ToString().ToLowerInvariant()} windows=1");
         return valid;
     }

@@ -983,9 +983,22 @@ internal sealed partial class StudioLivingWorldPoliciesOverlay : Control
         OpenBoundSession();
     }
 
-    private void OpenBoundSession()
+    internal void RestoreSourceSurfaceAfterSmoke()
     {
-        _session.CancelAreaPoliciesUx2A();
+        if (_evidenceSession is not null || _evidenceTempRoot is not null)
+        {
+            Close();
+        }
+        _session = _sourceSession;
+        OpenBoundSession(cancelApproval: false);
+    }
+
+    private void OpenBoundSession(bool cancelApproval = true)
+    {
+        if (cancelApproval)
+        {
+            _session.CancelAreaPoliciesUx2A();
+        }
         _choices = _session.AreaPolicyChoicesUx2A;
         _area.Clear();
         _area.AddItem("Choisissez explicitement une zone…");
@@ -1020,6 +1033,10 @@ internal sealed partial class StudioLivingWorldPoliciesOverlay : Control
 
     internal void Close()
     {
+        if (!Visible && _evidenceSession is null && _evidenceTempRoot is null)
+        {
+            return;
+        }
         var sourceUntouched = _evidenceSourceSnapshot is not { } snapshot || SourceMatchesSnapshot(snapshot);
         _session.CancelAreaPoliciesUx2A();
         Visible = false;
