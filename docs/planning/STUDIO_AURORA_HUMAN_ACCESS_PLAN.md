@@ -994,7 +994,7 @@ compositions et tous les blueprints voisins ; son aperçu reste une projection t
 sans acteur ni moteur physique exécuté. La matrice atteint 260 routes `functional` et 457
 `planned`. Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX4_K.md` ;
 `ORF-CRE-029` passe au lot UX4-L, tandis que `ORF-CRE-030` et `ORF-CRE-033` à
-`ORF-CRE-049` restent `planned`.
+`ORF-CRE-049` restaient `planned` à ce jalon.
 
 ### UX4-L — Voix et soundset de créature
 
@@ -1005,7 +1005,18 @@ Forward+ FHD inspectée. La preuve est explicitement un fallback canonique isol�
 aucune écoute, TTS ou animation live. La matrice atteint 261 routes `functional` et 456 `planned`.
 Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX4_L.md` ; `ORF-AUD-016` reste une
 transaction Area Experience distincte, tandis que `ORF-CRE-030` et `ORF-CRE-033` à
-`ORF-CRE-049` restent `planned`.
+`ORF-CRE-049` restaient `planned` à ce jalon.
+
+### UX4-M — Rôle, activité et auto-level
+
+`ORF-CRE-030`, `ORF-CRE-047` et `ORF-CRE-048` sont `functional` via une surface unique sur
+`CreatureRoleBehaviorProfile` : lore descriptif sans mécanique implicite, graphe ambiant complet et
+template de progression déterministe. Le portail passe 10/10 tests en 124,60 s, le smoke global,
+une capture fallback et trois captures Forward+ FHD sur le profil réel de la Crypte. Le résumé et
+les cinq actions restent visibles dans les trois onglets. La matrice atteint 264 routes `functional`
+et 453 `planned`. Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX4_M.md` ;
+`ORF-CRE-046` reste propriété de l’agrégat IA/événements, et `ORF-CRE-033` à `ORF-CRE-046` ainsi
+que `ORF-CRE-049` restent `planned`.
 
 ## Gates ergonomiques avant parité
 

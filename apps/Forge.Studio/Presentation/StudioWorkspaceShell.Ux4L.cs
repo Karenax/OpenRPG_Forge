@@ -34,6 +34,7 @@ internal sealed partial class StudioWorkspaceShell
         SwitchPage("creatures", notify: false);
         CloseUx4DOverlay(); CloseUx4EOverlay(); CloseUx4FOverlay(); CloseUx4GOverlay();
         CloseUx4HOverlay(); CloseUx4IOverlay(); CloseUx4JOverlay(); CloseUx4KOverlay();
+        CloseUx4MOverlay();
         _creatureVoiceOverlayUx4L.Open();
         SetStatus("Voix de créature ouverte · sélection explicite et aperçu canonique obligatoires");
     }
@@ -58,6 +59,7 @@ internal sealed partial class StudioWorkspaceShell
         SwitchPage("creatures", notify: false);
         CloseUx4DOverlay(); CloseUx4EOverlay(); CloseUx4FOverlay(); CloseUx4GOverlay();
         CloseUx4HOverlay(); CloseUx4IOverlay(); CloseUx4JOverlay(); CloseUx4KOverlay();
+        CloseUx4MOverlay();
         return _creatureVoiceOverlayUx4L.PrepareEvidence(mode);
     }
 

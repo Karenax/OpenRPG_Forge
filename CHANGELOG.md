@@ -7,6 +7,9 @@ SemVer ; les versions de schéma persistent séparément dans leurs documents.
 
 ### Changed
 
+- Forge Studio UX4-M : rôle/lore, animations ambiantes et auto-level de créature via
+  `SetCreatureRoleBehaviorHandler`, avec preuve réelle Crypte et matrice portée à 264 routes
+  `functional` / 453 `planned` ;
 - Forge Studio UX4-L : profil voix et soundset de créature, banques, émotions, lipsync, variantes
   et gouvernance des droits via `SetCreaturePresentationHandler`, avec matrice portée à 261 routes
   `functional` / 456 `planned` ;

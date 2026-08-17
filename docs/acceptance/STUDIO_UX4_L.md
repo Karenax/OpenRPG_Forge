@@ -37,7 +37,8 @@ peut être retiré explicitement sans supprimer le reste de la présentation.
   voisins sont préservés ;
 - `ORF-AUD-016` reste distinct : ses prises localisées, sous-titres, phonèmes, TTS et consentement
   vivent dans `AreaExperienceProfile` et seront qualifiés dans une transaction séparée ;
-- cette preuve ne qualifie pas `ORF-CRE-030` ni `ORF-CRE-033` à `ORF-CRE-049`.
+- cette preuve ne qualifie pas `ORF-CRE-033` à `ORF-CRE-046` ni `ORF-CRE-049` ;
+  `ORF-CRE-030`, `ORF-CRE-047` et `ORF-CRE-048` sont qualifiées séparément par UX4-M.
 
 ## Reproduction
 
