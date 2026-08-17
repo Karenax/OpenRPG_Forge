@@ -940,8 +940,16 @@ liées dans `docs/acceptance/STUDIO_UX4_E.md` ; les règles passent au lot UX4-F
 ressources, attributs, défenses et sauvegardes via `SetCreatureFoundationHandler`. Le portail passe
 32/32 tests en 106,73 s, le smoke global et six captures Forward+ FHD inspectées, dont cinq sur le
 profil réel de la Crypte. La matrice atteint 245 routes `functional` et 472 `planned`. Preuves et
-limites sont liées dans `docs/acceptance/STUDIO_UX4_F.md` ; `ORF-CRE-016` à `ORF-CRE-049` restent
-`planned`.
+limites sont liées dans `docs/acceptance/STUDIO_UX4_F.md` ; la progression passe au lot UX4-G.
+
+### UX4-G — Progression de créature
+
+`ORF-CRE-016` à `ORF-CRE-020` sont `functional` : classes et niveaux, axes d'alignement libres,
+compétences, talents et pouvoirs appris/préparés via `SetCreatureProgressionHandler`. Le portail
+passe 10/10 tests en 102,38 s, le smoke global et six captures Forward+ FHD inspectées, dont cinq
+sur le profil réel de la Crypte. La preuve conserve explicitement le jeu de pistes piloté par
+l'auto-level voisin. La matrice atteint 250 routes `functional` et 467 `planned`. Preuves et limites
+sont liées dans `docs/acceptance/STUDIO_UX4_G.md` ; `ORF-CRE-021` à `ORF-CRE-049` restent `planned`.
 
 ## Gates ergonomiques avant parité
 

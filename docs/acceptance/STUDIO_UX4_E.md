@@ -61,7 +61,7 @@ prétendre les monter sur un acteur runtime.
   riches utilisent donc une copie temporaire canonique, clairement étiquetée, puis vérifient que
   source, historique, état dirty, sélection, approbation et surface sont inchangés ;
 - cette preuve ne qualifie pas les règles : `ORF-CRE-011` à `ORF-CRE-015` sont qualifiés
-  séparément par UX4-F ; `ORF-CRE-016` à `ORF-CRE-049` restent `planned`.
+  séparément par UX4-F ; UX4-G qualifie `ORF-CRE-016` à `ORF-CRE-020`.
 
 ## Reproduction
 

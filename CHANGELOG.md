@@ -7,6 +7,9 @@ SemVer ; les versions de schéma persistent séparément dans leurs documents.
 
 ### Changed
 
+- Forge Studio UX4-G : classes et niveaux, alignement data-driven, compétences, talents et pouvoirs
+  appris/préparés via `SetCreatureProgressionHandler`, avec préservation de l'auto-level voisin,
+  preuve réelle Crypte et matrice portée à 250 routes `functional` / 467 `planned` ;
 - Forge Studio UX4-F : graphe d'animation, état initial, ressources, attributs, défenses et
   sauvegardes via `SetCreatureFoundationHandler`, avec preuve réelle Crypte et matrice portée à
   245 routes `functional` / 472 `planned` ;

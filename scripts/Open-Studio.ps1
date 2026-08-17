@@ -90,6 +90,8 @@ param(
         'ux4-e-colors', 'ux4-e-preview',
         'ux4-f', 'ux4-f-creature-animation-rules', 'ux4-f-animation', 'ux4-f-initial-resources',
         'ux4-f-attributes', 'ux4-f-defenses', 'ux4-f-preview',
+        'ux4-g', 'ux4-g-creature-progression', 'ux4-g-classes', 'ux4-g-alignment', 'ux4-g-skills',
+        'ux4-g-talents', 'ux4-g-powers', 'ux4-g-preview',
         'ux5-a', 'ux5-a-dialogue-foundation')]
     [string]$Evidence,
     [string]$Resolution,

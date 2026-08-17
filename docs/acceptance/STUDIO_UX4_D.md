@@ -57,7 +57,8 @@ réécrire les profils de règles, interaction ou IA événementielle. Les réf�
 - aucun script, moteur de combat, navigation, animation ou transport réseau n'est exécuté ;
 - les captures utilisent des copies temporaires. Source, historique, état dirty, sélection,
   approbations, page et surface active sont restaurés exactement ;
-- cette preuve ne qualifie pas `ORF-CRE-006` à `ORF-CRE-049`, qui restent `planned`.
+- cette preuve seule ne qualifie pas les routes suivantes ; UX4-E, UX4-F et UX4-G documentent
+  séparément `ORF-CRE-006` à `ORF-CRE-020`.
 
 ## Reproduction
 
