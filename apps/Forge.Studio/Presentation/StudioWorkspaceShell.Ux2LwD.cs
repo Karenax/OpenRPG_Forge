@@ -88,6 +88,9 @@ internal sealed partial class StudioWorkspaceShell
     internal bool PrepareUx2LwDEvidence(string mode)
     {
         SwitchPage("living-world", notify: false);
+        CloseUx2AOverlay();
+        CloseUx2LwBOverlay();
+        CloseUx2LwCOverlay();
         return _areaCombatOverlayUx2LwD.PrepareEvidence(mode);
     }
 
