@@ -59,7 +59,8 @@ leur décision runtime est prévisualisée sans muter d'acteur ni de réseau.
   temporaire supprimé après le test ;
 - la capture Crypte utilise les données réelles dans une copie isolée : la source, son historique,
   son état dirty, sa sélection et ses approbations restent inchangés ;
-- `ORF-FAC-011` à `ORF-FAC-014` restent `planned` jusqu'à leur propre surface et leurs preuves.
+- `ORF-FAC-011` à `ORF-FAC-014` sont désormais qualifiées séparément par UX4-C ; UX4-B ne les édite
+  pas et continue de préserver leurs données.
 
 ## Reproduction
 

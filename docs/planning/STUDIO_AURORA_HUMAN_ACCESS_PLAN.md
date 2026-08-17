@@ -907,7 +907,15 @@ le catalogue canonique. Le portail incrémental passe 51/51 tests factions en 10
 global et deux captures Forward+ FHD inspectées : fallback temporaire sur Forgotten Forest et copie
 des données réelles de la Crypte. La matrice atteint 226 routes `functional` et 491 `planned`.
 Les limites runtime et commandes de reproduction sont liées dans
-`docs/acceptance/STUDIO_UX4_B.md` ; `ORF-FAC-011` à `ORF-FAC-014` restent `planned`.
+`docs/acceptance/STUDIO_UX4_B.md` ; `ORF-FAC-011` à `ORF-FAC-014` relevaient du lot UX4-C suivant.
+
+### UX4-C — Matrice et validation factionnelles
+
+`ORF-FAC-011` à `ORF-FAC-014` sont `functional` : tags sémantiques, matrice versionnée avec
+comparaison/import-export, réaction au joueur et validation localisée. Le portail passe 51/51 tests
+en 108,39 s, le smoke global et deux captures Forward+ FHD inspectées. Les 14 routes FACTION sont
+closes ; la matrice atteint 230 `functional` et 487 `planned`. Preuves et limites sont liées dans
+`docs/acceptance/STUDIO_UX4_C.md`.
 
 ## Gates ergonomiques avant parité
 

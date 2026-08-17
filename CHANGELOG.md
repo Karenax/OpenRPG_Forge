@@ -7,6 +7,9 @@ SemVer ; les versions de schéma persistent séparément dans leurs documents.
 
 ### Changed
 
+- Forge Studio UX4-C : tags sémantiques, matrice directionnelle versionnée, import/export de
+  heatmap, réaction au joueur et validation factionnelle ; les 14 routes FACTION sont closes et la
+  matrice atteint 230 `functional` / 487 `planned` ;
 - Forge Studio UX4-B : réputation personnelle et globale, témoins, affiliations multiples et
   factions dynamiques éditables avec commande canonique, preuves isolées et captures Forward+ FHD
   fallback/réelle Crypte ; matrice portée à 226 routes `functional` et 491 `planned` ;
@@ -31,7 +34,7 @@ SemVer ; les versions de schéma persistent séparément dans leurs documents.
   avec valeurs numériques exactes, voisins préservés, preuve isolée et contrôles Forward+
   FHD/QHD/4K ;
 - matrice d'accès humain Studio portée à 126 routes `functional` et 591 `planned` après preuves
-  individuelles des treize routes UX2-A/UX4-A/UX5-A ; `ORF-FAC-006` reste `planned` ;
+  individuelles des treize routes UX2-A/UX4-A/UX5-A ; `ORF-FAC-006` était alors encore `planned` ;
 - jalon UX2-A/UX4-A/UX5-A validé par 40/40 tests dans les trois portails incrémentaux en 75,69 s,
   79,97 s et 64,03 s, un test RpgKit complémentaire, puis par le portail transversal complet :
   1 988 tests .NET, 39 tests Python, builds sans avertissement, graphe Roslyn déterministe, smokes

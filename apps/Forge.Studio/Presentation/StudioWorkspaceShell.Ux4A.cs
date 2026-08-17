@@ -57,6 +57,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx1AIOverlay();
         CloseUx1AJOverlay();
         CloseUx4BOverlay();
+        CloseUx4COverlay();
         SwitchPage("social-content", notify: false);
         _factionFoundationOverlayUx4A.Open();
         SetStatus("Factions ouvertes · sélection explicite et aperçu canonique obligatoires");

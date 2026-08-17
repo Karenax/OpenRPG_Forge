@@ -3,8 +3,8 @@
 État local au 17 août 2026 : **fonctionnel et qualifié** pour `ORF-FAC-001` à
 `ORF-FAC-005`. Depuis la page **Contenu social**, la fiche **Définitions, parents, relations et
 bandes** expose une édition humaine du catalogue de factions, avec sélection explicite, aperçu
-canonique et historique projet. `ORF-FAC-006` ne fait pas partie de cette qualification Studio et
-reste **planned** pour une future surface dédiée.
+canonique et historique projet. `ORF-FAC-006` ne fait pas partie de cette qualification UX4-A ;
+la route est désormais qualifiée séparément par UX4-B.
 
 ## Preuves communes
 
@@ -68,9 +68,9 @@ priorités invalides sont bloqués par la validation canonique.
 
 ## Limites honnêtes
 
-- `ORF-FAC-006` — réputation personnelle — reste planned dans le Studio : UX4-A ne l'édite pas. La
+- `ORF-FAC-006` — réputation personnelle — n'est pas éditée par UX4-A. La
   valeur cachée `PersonalReputation`, y compris la distinction exacte entre `null` et `[]`, est
-  seulement préservée au round-trip ;
+  seulement préservée au round-trip dans cette fiche ; sa surface dédiée et sa preuve sont UX4-B ;
 - les profils Advanced, témoins, memberships, factions dynamiques, réputation globale et autres
   extensions voisines sont préservés mais ne sont pas édités par cette fiche ;
 - la surface représente le catalogue authoré et ses diagnostics ; elle ne simule ni propagation

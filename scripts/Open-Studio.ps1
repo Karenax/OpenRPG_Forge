@@ -84,6 +84,7 @@ param(
         'ux2-nav-m', 'ux2-wpt-013',
         'ux4-a', 'ux4-a-faction-foundation',
         'ux4-b', 'ux4-b-faction-runtime',
+        'ux4-c', 'ux4-c-faction-matrix',
         'ux5-a', 'ux5-a-dialogue-foundation')]
     [string]$Evidence,
     [string]$Resolution,
