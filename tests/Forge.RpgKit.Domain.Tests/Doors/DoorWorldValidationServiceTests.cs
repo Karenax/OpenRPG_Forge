@@ -116,8 +116,9 @@ public sealed class DoorWorldValidationServiceTests
             .Diagnostics, item => item.Code == "RPG_DOOR_COLLISION_PROFILE_MISSING");
         Assert.Contains(DoorWorldValidationService.Validate(WithDoor(project, orphan), door.Id).Diagnostics,
             item => item.Code == "RPG_DOOR_LINK_ORPHAN");
-        Assert.Single(DoorWorldValidationService.Validate(WithDoors(project, missingReverse, neighbor), door.Id)
-            .Diagnostics.Where(item => item.Code == "RPG_DOOR_LINK_REVERSE_MISSING"));
+        Assert.Single(
+            DoorWorldValidationService.Validate(WithDoors(project, missingReverse, neighbor), door.Id).Diagnostics,
+            item => item.Code == "RPG_DOOR_LINK_REVERSE_MISSING");
     }
 
     private static ProjectDefinition Project()
