@@ -82,10 +82,10 @@ internal sealed partial class StudioTriggerLivingWorldOverlayUx2LwE : Control
                                                      !string.IsNullOrWhiteSpace(item.Code) &&
                                                      !string.IsNullOrWhiteSpace(item.Path));
     internal bool UsesRealReferences => _participantChoices.Count > 0 && _dialogueChoices.Count > 0 &&
-                                        _participantChoices.All(item => item.Provenance.Contains(
-                                            "Blueprint réel", StringComparison.Ordinal)) &&
-                                        _dialogueChoices.All(item => item.Provenance.Contains(
-                                            "Dialogue canonique", StringComparison.Ordinal));
+                                        _participantChoices.All(item => item.Provenance.StartsWith(
+                                            "Blueprint ", StringComparison.Ordinal)) &&
+                                        _dialogueChoices.All(item => item.Provenance.StartsWith(
+                                            "Dialogue ", StringComparison.Ordinal));
     internal bool UsesIsolatedEvidence => _evidenceSession is not null &&
                                           ReferenceEquals(_session, _evidenceSession);
     internal bool EvidenceSourceUntouched => _evidenceSnapshot is { } snapshot
@@ -348,13 +348,20 @@ internal sealed partial class StudioTriggerLivingWorldOverlayUx2LwE : Control
             var created = ProjectSession.Create(evidenceRoot, project);
             if (!created.Succeeded)
             {
+                Godot.GD.PrintErr(
+                    "OPENRPG_FORGE_STUDIO_UX2_LW_E_EVIDENCE_CREATE_FAILED " +
+                    string.Join(" | ", created.Diagnostics.Select(item => $"{item.Code}:{item.Message}")));
                 ReleaseEvidence();
                 return false;
             }
             var evidence = new StudioSessionController();
             _evidenceSession = evidence;
-            if (!evidence.Open(evidenceRoot).Succeeded)
+            var opened = evidence.Open(evidenceRoot);
+            if (!opened.Succeeded)
             {
+                Godot.GD.PrintErr(
+                    "OPENRPG_FORGE_STUDIO_UX2_LW_E_EVIDENCE_OPEN_FAILED " +
+                    string.Join(" | ", opened.Diagnostics.Select(item => $"{item.Code}:{item.Message}")));
                 ReleaseEvidence();
                 return false;
             }
@@ -893,7 +900,10 @@ internal sealed partial class StudioTriggerLivingWorldOverlayUx2LwE : Control
 
     private static void AddRow(GridContainer grid, string label, Control control)
     {
-        grid.AddChild(StudioStyle.Label(label, 10, StudioStyle.Muted, wrap: true));
+        var caption = StudioStyle.Label(label, 10, StudioStyle.Muted, wrap: true);
+        caption.CustomMinimumSize = new Vector2(180, 0);
+        caption.SizeFlagsHorizontal = SizeFlags.ShrinkBegin;
+        grid.AddChild(caption);
         grid.AddChild(control);
     }
 

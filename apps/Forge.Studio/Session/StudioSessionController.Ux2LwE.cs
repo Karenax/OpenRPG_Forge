@@ -75,7 +75,7 @@ internal sealed partial class StudioSessionController
             .Select(item => new StudioUx2LwEReferenceChoice<BlueprintId>(
                 item.Id,
                 $"{item.DisplayName} · {item.Slug} · {HumanBlueprintKindUx2LwE(item.Kind)}",
-                $"Blueprint réel · {item.Provenance.Source}"))
+                HumanReferenceProvenanceUx2LwE(item.Provenance.Source, "Blueprint")))
             .OrderBy(item => item.Label, StringComparer.CurrentCultureIgnoreCase)
             .ToArray();
     }
@@ -88,7 +88,7 @@ internal sealed partial class StudioSessionController
             .Select(item => new StudioUx2LwEReferenceChoice<Guid>(
                 item.Id.Value,
                 $"{item.DisplayName} · {item.Slug}",
-                $"Dialogue canonique · {item.Provenance}"))
+                HumanReferenceProvenanceUx2LwE(item.Provenance, "Dialogue")))
             .OrderBy(item => item.Label, StringComparer.CurrentCultureIgnoreCase)
             .ToArray();
     }
@@ -101,7 +101,7 @@ internal sealed partial class StudioSessionController
             .Select(item => new StudioUx2LwEReferenceChoice<Guid>(
                 item.Id.Value,
                 $"{item.DisplayName} · {item.Slug}",
-                $"Quête canonique · {item.Provenance}"))
+                HumanReferenceProvenanceUx2LwE(item.Provenance, "Quête")))
             .OrderBy(item => item.Label, StringComparer.CurrentCultureIgnoreCase)
             .ToArray();
     }
@@ -176,7 +176,7 @@ internal sealed partial class StudioSessionController
                 : "La fiche est déjà identique au document canonique.",
             result.Patch?.Summary ?? string.Empty,
             BuildLivingWorldTriggerDiffUx2LwE(current, candidate),
-            [], runtime.Rest, runtime.Clue, runtime.Narrative, true);
+            [], runtime.RestPreview, runtime.Clue, runtime.Narrative, true);
     }
 
     internal StudioUx2LwEActionResult ApplyApprovedLivingWorldTriggerUx2LwE()
@@ -252,7 +252,8 @@ internal sealed partial class StudioSessionController
         var triggerBlueprint = project.Blueprints.FirstOrDefault(item => item.Kind == BlueprintKind.Trigger);
         var participant = project.Blueprints.FirstOrDefault(item => item.Kind == BlueprintKind.Creature);
         var dialogue = project.Dialogues.FirstOrDefault();
-        if (triggerBlueprint is null || participant is null || dialogue is null) return null;
+        if (triggerBlueprint is null || participant is null || dialogue is null)
+            return CreateUx2LwESmokeProject().Project;
         var trigger = CreateUx2LwEEvidenceTrigger(
             triggerBlueprint.Id, participant.Id, area.Id, dialogue.Id.Value,
             project.Quests.FirstOrDefault()?.Id.Value);
@@ -316,22 +317,23 @@ internal sealed partial class StudioSessionController
                 draft.Priority, draft.Once, draft.CooldownSeconds, draft.MultiplayerPolicy.Trim(),
                 draft.DialogueId!.Value)
             : null;
-        candidate = current with
+        var updatedProfile = current with
         {
             Provenance = Ux2LwEProvenance,
             Rest = rest,
             Clue = clue,
             Narrative = narrative,
         };
+        candidate = updatedProfile;
         var source = project.Module.WorldFeatures;
-        var triggers = source.Triggers.Select(item => item.Id == candidate.Id ? candidate : item).ToArray();
+        var triggers = source.Triggers.Select(item => item.Id == updatedProfile.Id ? updatedProfile : item).ToArray();
         var catalog = new WorldFeatureCatalog(source.Id, source.SchemaVersion, source.Provenance,
             source.Placeables, source.Doors, triggers, source.Encounters, source.VehicleRoutes,
             source.Merchants, source.Companions, source.Scripts);
         candidateProject = new ProjectDefinition(project.Id, project.Title,
             project.Module.WithWorldFeatures(catalog), project.Blueprints, project.Areas,
             project.Dialogues, project.Quests);
-        var targetPath = $"module/worldFeatures/triggers/{candidate.Id}";
+        var targetPath = $"module/worldFeatures/triggers/{updatedProfile.Id}";
         var validation = WorldFeatureCatalogValidator.Validate(candidateProject)
             .Where(item => item.Path.StartsWith(targetPath, StringComparison.Ordinal))
             .Select(item => new StudioUx2LwEDiagnostic(item.Code, item.Path,
@@ -416,7 +418,7 @@ internal sealed partial class StudioSessionController
         ];
     }
 
-    private static (string Rest, string Clue, string Narrative)
+    private static (string RestPreview, string Clue, string Narrative)
         BuildLivingWorldRuntimePreviewUx2LwE(TriggerWorldProfile profile)
     {
         var rest = TriggerLivingWorldRuntimeService.ResolveRest(profile, new(false, 2, 2));
@@ -550,6 +552,19 @@ internal sealed partial class StudioSessionController
         _ => "participant",
     };
 
+    private static string HumanReferenceProvenanceUx2LwE(string? source, string subject)
+    {
+        if (string.IsNullOrWhiteSpace(source)) return $"{subject} gouverné";
+        if (source.StartsWith("project://", StringComparison.OrdinalIgnoreCase))
+            return $"{subject} du projet";
+        if (source.StartsWith("builtin", StringComparison.OrdinalIgnoreCase))
+            return $"{subject} intégré";
+        if (source.StartsWith("sample", StringComparison.OrdinalIgnoreCase) ||
+            source.StartsWith("module", StringComparison.OrdinalIgnoreCase))
+            return $"{subject} du module";
+        return $"{subject} gouverné";
+    }
+
     private static TriggerWorldProfile CreateUx2LwEEvidenceTrigger(
         BlueprintId triggerBlueprint,
         BlueprintId participant,
@@ -571,7 +586,9 @@ internal sealed partial class StudioSessionController
         StableUx2LwE(seed, "foundation"), 1, Ux2LwEEvidenceProvenance, "volume-monde-vivant",
         new(TriggerWorldProfile.ShapeKind.Box3D, [], [], new(6, 3, 6), 3, .25, true),
         new(["creature"], ["player"], [], ["characters"]), [], 0,
-        TriggerWorldProfile.FirePolicy.Repeat, [], null,
+        TriggerWorldProfile.FirePolicy.Repeat,
+        [new(StableUx2LwE(seed, "action"), "living-world-preview", "trigger.living-world", new Dictionary<string, string>())],
+        null,
         new(Vector3Value.Zero, Vector3Value.Zero, Vector3Value.One, null),
         new Dictionary<string, string> { ["editor.overlay"] = "living-world" },
         new(StableUx2LwE(seed, "enter"), 1, Ux2LwEEvidenceProvenance, "1.0.0",
@@ -597,8 +614,21 @@ internal sealed partial class StudioSessionController
         {
             var fixture = CreateUx2LwESmokeProject();
             var created = ProjectSession.Create(tempRoot, fixture.Project);
-            if (!created.Succeeded || !editing.Open(tempRoot).Succeeded)
+            if (!created.Succeeded)
+            {
+                Godot.GD.PrintErr(
+                    "OPENRPG_FORGE_STUDIO_UX2_LW_E_CONTRACT_CREATE_FAILED " +
+                    string.Join(" | ", created.Diagnostics.Select(item => $"{item.Code}:{item.Message}")));
                 return FailedUx2LwESmoke();
+            }
+            var initialOpen = editing.Open(tempRoot);
+            if (!initialOpen.Succeeded)
+            {
+                Godot.GD.PrintErr(
+                    "OPENRPG_FORGE_STUDIO_UX2_LW_E_CONTRACT_OPEN_FAILED " +
+                    string.Join(" | ", initialOpen.Diagnostics.Select(item => $"{item.Code}:{item.Message}")));
+                return FailedUx2LwESmoke();
+            }
             editing.SelectArea(fixture.AreaId);
             var initialProject = editing.Project!;
             var initialCatalog = initialProject.Module.WorldFeatures;
@@ -773,6 +803,16 @@ internal sealed partial class StudioSessionController
                                 IsHumanUx2LwEText(item.Label) && IsHumanUx2LwEText(item.Provenance)) &&
                             editing.LivingWorldDialogueChoicesUx2LwE().All(item =>
                                 IsHumanUx2LwEText(item.Label) && IsHumanUx2LwEText(item.Provenance));
+            if (!humanText)
+            {
+                var visibleValues = editing.LivingWorldTriggerChoicesUx2LwE.Select(item => item.Label)
+                    .Concat(editing.LivingWorldParticipantChoicesUx2LwE().SelectMany(item =>
+                        new[] { item.Label, item.Provenance }))
+                    .Concat(editing.LivingWorldDialogueChoicesUx2LwE().SelectMany(item =>
+                        new[] { item.Label, item.Provenance }));
+                Godot.GD.PrintErr("OPENRPG_FORGE_STUDIO_UX2_LW_E_HUMAN_TEXT_FAILED " +
+                                 string.Join(" | ", visibleValues.Where(item => !IsHumanUx2LwEText(item))));
+            }
 
             var succeeded = explicitSelection && foundationRequired && restValidation && clueValidation &&
                             narrativeValidation && runtimePreview && optionalRemoval && dryRunPure &&
@@ -863,7 +903,8 @@ internal sealed partial class StudioSessionController
     {
         var narrativeProject = OriginalModuleAuthoringService.CreateVeilleeDesEclats().State.Project;
         var dialogue = narrativeProject.Dialogues.Single();
-        var participant = dialogue.Nodes.Select(item => item.SpeakerBlueprintId).First(item => item is not null)!;
+        var participant = narrativeProject.Blueprints.First(item =>
+            item.Kind is BlueprintKind.Creature or BlueprintKind.PlayerSpawn).Id;
         var targetBlueprint = new BlueprintDefinition(
             BlueprintId.From(Guid.Parse("e2160000-0000-4000-8100-000000000001")),
             "seuil-des-pistes", "Seuil des pistes", BlueprintKind.Trigger);

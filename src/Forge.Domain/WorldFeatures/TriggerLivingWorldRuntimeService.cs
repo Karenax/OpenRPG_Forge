@@ -278,7 +278,7 @@ public static class TriggerLivingWorldRuntimeService
     {
         if (vertices.Count < 3) return false;
         var inside = false;
-        for (var current = 0, previous = vertices.Count - 1; current < vertices.Count; previous = current++)
+        for (int current = 0, previous = vertices.Count - 1; current < vertices.Count; previous = current++)
         {
             var a = vertices[current];
             var b = vertices[previous];

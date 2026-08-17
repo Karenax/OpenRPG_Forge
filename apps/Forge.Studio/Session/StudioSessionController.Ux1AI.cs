@@ -901,6 +901,8 @@ internal sealed partial class StudioSessionController
                 BlueprintKind.Trigger);
             var narrativeProject = OriginalModuleAuthoringService.CreateVeilleeDesEclats().State.Project;
             var narrativeDialogue = narrativeProject.Dialogues.Single();
+            var narrativeParticipant = narrativeProject.Blueprints.First(item =>
+                item.Kind is BlueprintKind.Creature or BlueprintKind.PlayerSpawn);
             var area = new AreaDefinition(
                 AreaId.From(Guid.Parse("a1100000-0000-4000-8000-000000000004")),
                 "sanctuaire-des-veilleurs",
@@ -920,6 +922,7 @@ internal sealed partial class StudioSessionController
                 foundation: true,
                 validation: false,
                 narrativeDialogueId: narrativeDialogue.Id.Value,
+                narrativeParticipantId: narrativeParticipant.Id,
                 foundationSlug: "passage-des-veilleurs-volume");
             var neighborProfile = CreateUx1AISmokeTrigger(
                 neighborBlueprint.Id,
@@ -1318,6 +1321,7 @@ internal sealed partial class StudioSessionController
         bool foundation,
         bool validation,
         Guid? narrativeDialogueId = null,
+        BlueprintId? narrativeParticipantId = null,
         string? foundationSlug = null)
     {
         var profileId = StableTriggerValidationIdUx1AI(seed, "profile");
@@ -1442,7 +1446,7 @@ internal sealed partial class StudioSessionController
             new TriggerWorldProfile.CluePolicy("perception", 10, "trace:ash", 45, 2, null, null),
             narrativeDialogueId is { } dialogueId
                 ? new TriggerWorldProfile.NarrativeCuePolicy(
-                    [blueprintId],
+                    [narrativeParticipantId ?? blueprintId],
                     4,
                     true,
                     60,

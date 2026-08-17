@@ -57,6 +57,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx1AJOverlay();
         CloseUx2AOverlay();
         CloseUx2LwDOverlay();
+        CloseUx2LwEOverlay();
         CloseUx4AOverlay();
         CloseUx5APage();
         CloseUx2LwBOverlay();
@@ -92,6 +93,7 @@ internal sealed partial class StudioWorkspaceShell
     internal bool PrepareUx2LwCEvidence(string mode)
     {
         SwitchPage("living-world", notify: false);
+        CloseUx2LwEOverlay();
         return _areaUserEventsOverlayUx2LwC.PrepareEvidence(mode);
     }
 
