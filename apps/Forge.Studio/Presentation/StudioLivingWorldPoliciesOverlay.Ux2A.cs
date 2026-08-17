@@ -1075,6 +1075,10 @@ internal sealed partial class StudioLivingWorldPoliciesOverlay : Control
         try
         {
             var ready = PrepareEvidence("ux2-a-area-living-world");
+            if (!ready || !UsesIsolatedEvidence)
+            {
+                return false;
+            }
             var transactionSession = _session;
             var originalProject = transactionSession.Project;
             var targetId = _draft?.AreaId;
@@ -1140,10 +1144,11 @@ internal sealed partial class StudioLivingWorldPoliciesOverlay : Control
         finally
         {
             reopened?.Close();
-            if (Visible || _evidenceSession is not null || _evidenceTempRoot is not null)
+            if (_evidenceSession is not null || _evidenceTempRoot is not null)
             {
                 Close();
             }
+            _sourceSession.RestoreAreaPolicyApprovalUx2A(sourceSnapshot.Approval);
         }
     }
 

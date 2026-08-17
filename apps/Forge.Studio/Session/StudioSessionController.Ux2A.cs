@@ -264,6 +264,14 @@ internal sealed partial class StudioSessionController
         _approvedAreaPoliciesRevisionUx2A,
         _approvedAreaPoliciesFingerprintUx2A);
 
+    internal void RestoreAreaPolicyApprovalUx2A(StudioUx2AApprovalSnapshot snapshot)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot);
+        _approvedAreaPoliciesUx2A = snapshot.Draft;
+        _approvedAreaPoliciesRevisionUx2A = snapshot.Revision;
+        _approvedAreaPoliciesFingerprintUx2A = snapshot.Fingerprint;
+    }
+
     private bool TryBuildAreaPoliciesUx2A(
         StudioUx2ADraft draft,
         bool dryRun,
