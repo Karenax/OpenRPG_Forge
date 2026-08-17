@@ -1,5 +1,6 @@
 using Forge.Application.Commands;
 using Forge.Application.Projects;
+using Forge.Domain.Areas;
 using Forge.Domain.Audio;
 using Forge.Domain.Projects;
 
