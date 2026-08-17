@@ -200,6 +200,7 @@ internal sealed partial class StudioWorkspaceShell : Control
         BuildUx2EnvHActions(headingRow);
         BuildUx2EnvIActions(headingRow);
         BuildUx2EnvJActions(headingRow);
+        BuildUx2EnvKActions(headingRow);
         BuildUx2NavBActions(headingRow);
         BuildUx2NavCActions(headingRow);
         BuildUx2NavDActions(headingRow);
@@ -351,6 +352,7 @@ internal sealed partial class StudioWorkspaceShell : Control
         InitializeUx2EnvHOverlay();
         InitializeUx2EnvIOverlay();
         InitializeUx2EnvJOverlay();
+        InitializeUx2EnvKOverlay();
         InitializeUx2NavBOverlay();
         InitializeUx2NavCOverlay();
         InitializeUx2NavDOverlay();
@@ -654,6 +656,10 @@ internal sealed partial class StudioWorkspaceShell : Control
         if (mode.StartsWith("ux2-env-j", StringComparison.OrdinalIgnoreCase))
         {
             return PrepareUx2EnvJEvidence(mode);
+        }
+        if (mode.StartsWith("ux2-env-k", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx2EnvKEvidence(mode);
         }
         if (mode.StartsWith("ux2-nav-b", StringComparison.OrdinalIgnoreCase))
         {
@@ -1112,6 +1118,7 @@ internal sealed partial class StudioWorkspaceShell : Control
             CloseUx2EnvGOverlay();
             CloseUx2EnvHOverlay();
             CloseUx2EnvIOverlay();
+            CloseUx2EnvKOverlay();
         }
         if (page.Id is not ("environment" or "navigation"))
         {
@@ -1226,6 +1233,7 @@ internal sealed partial class StudioWorkspaceShell : Control
         UpdateUx2EnvHActionState();
         UpdateUx2EnvIActionState();
         UpdateUx2EnvJActionState();
+        UpdateUx2EnvKActionState();
         UpdateUx2NavBActionState();
         UpdateUx2NavCActionState();
         UpdateUx2NavDActionState();

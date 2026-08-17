@@ -64,6 +64,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2EnvGOverlay();
         CloseUx2EnvHOverlay();
         CloseUx2EnvIOverlay();
+        CloseUx2EnvKOverlay();
         CloseUx2NavBOverlay();
         CloseUx2NavCOverlay();
         CloseUx2NavDOverlay();
@@ -110,6 +111,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2EnvGOverlay();
         CloseUx2EnvHOverlay();
         CloseUx2EnvIOverlay();
+        CloseUx2EnvKOverlay();
         CloseUx2NavBOverlay();
         CloseUx2NavCOverlay();
         CloseUx2NavDOverlay();

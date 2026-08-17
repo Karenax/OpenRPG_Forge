@@ -386,7 +386,7 @@ internal sealed partial class StudioSessionController
             StringComparison.Ordinal)
             ? "profil reconnu"
             : "profil divergent";
-        const string runtime = "politique persistée · application live non exécutée dans Studio";
+        const string runtime = "politique persistée · aucun changement runtime appliqué dans Studio";
         return
         [
             new("Anticrénelage", HumanAntiAliasingUx2EnvK(profile.Graphics.AntiAliasing), fallback, runtime),

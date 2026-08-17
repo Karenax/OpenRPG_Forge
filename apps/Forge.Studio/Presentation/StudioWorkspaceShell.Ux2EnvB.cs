@@ -65,6 +65,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2EnvHOverlay();
         CloseUx2EnvIOverlay();
         CloseUx2EnvJOverlay();
+        CloseUx2EnvKOverlay();
         SwitchPage("environment", notify: false);
         _areaEnvironmentFoundationOverlayUx2EnvB.Open();
         SetStatus("Fondations d’environnement ouvertes · sélection explicite · aperçu sec obligatoire");
@@ -99,6 +100,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2EnvHOverlay();
         CloseUx2EnvIOverlay();
         CloseUx2EnvJOverlay();
+        CloseUx2EnvKOverlay();
         return _areaEnvironmentFoundationOverlayUx2EnvB.PrepareEvidence(mode);
     }
 

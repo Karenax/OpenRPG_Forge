@@ -64,6 +64,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2EnvGOverlay();
         CloseUx2EnvHOverlay();
         CloseUx2EnvIOverlay();
+        CloseUx2EnvJOverlay();
         SwitchPage("environment", notify: false);
         _waterGraphicsQualityOverlayUx2EnvK.Open();
         SetStatus("Qualité eau & image ouverte · sélection explicite · aperçu sec obligatoire");
@@ -97,6 +98,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2EnvGOverlay();
         CloseUx2EnvHOverlay();
         CloseUx2EnvIOverlay();
+        CloseUx2EnvJOverlay();
         return _waterGraphicsQualityOverlayUx2EnvK.PrepareEvidence(mode);
     }
 
