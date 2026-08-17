@@ -254,9 +254,19 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
   le Studio, la commande projet, MCP et le prébuild, sans promouvoir la navigation UX2.
 - [x] Clôturer UX1 à 71/71 par quatre portails incrémentaux, les preuves Forward+ FHD/QHD/4K, la
   matrice régénérée et le portail transversal complet.
+- [x] Réaliser UX2-A sur `ORF-AREA-023`, `ORF-AREA-025` et `ORF-AREA-026` : heartbeat de zone,
+  perception et repos par une seule commande area-only, avec préservation complète et preuve isolée.
+- [x] Réaliser UX4-A sur `ORF-FAC-001` à `ORF-FAC-005` : création, archive ou suppression sûre,
+  parents, héritage, matrice asymétrique et bandes, sans promouvoir la réputation personnelle.
+- [x] Réaliser UX5-A sur `ORF-DLG-001` à `ORF-DLG-005` : éditeur ligne/réponses, branches paginées,
+  liens existants et réordonnancement réel au clavier ou par glisser-déposer.
+- [x] Clôturer le jalon UX2-A/UX4-A/UX5-A par 40/40 tests dans les trois portails incrémentaux,
+  un test RpgKit complémentaire, les smokes, les preuves Forward+ FHD/QHD/4K, la matrice régénérée
+  et le portail transversal complet.
 - [ ] Achever la tranche Monde : terrain, navigation, puis activer **Tester ici** sur
   snapshot isolé.
-- [ ] Migrer Contenu, Histoire, Gameplay, Tester, Publier, Projet et Assistant page par page, en
+- [ ] Continuer la migration de Contenu, Histoire, Gameplay, Tester, Publier, Projet et Assistant
+  page par page, en
   passant chaque ligne de la matrice à `Parity` uniquement avec tests et preuve visuelle.
 - [ ] Qualifier toutes les pages du Studio en 1920×1080, 2560×1440 et 3840×2160, sans conserver de
   critère de support pour les résolutions inférieures au Full HD.

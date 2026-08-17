@@ -832,6 +832,44 @@ builds sans avertissement, graphe Roslyn déterministe à 9 132 nœuds et 61 393
 diagnostic, puis smokes Studio, Toolset, Runtime, Forward+, MCP, réseau et sauvegarde. Ce verdict
 transversal clôt la promotion des dix routes et la vague UX1.
 
+## Premier train post-UX1 livré : UX2-A, UX4-A et UX5-A
+
+Le train parallèle suivant a livré treize routes le 17 août 2026. La matrice compte désormais
+126 routes `functional` et 591 `planned`. Les trois lots sont restés dans des fichiers dédiés ;
+les hooks centraux, builds, tests, smokes, captures et promotions ont été intégrés séquentiellement.
+
+### UX2-A — Politiques de zone vivante
+
+`ORF-AREA-023`, `ORF-AREA-025` et `ORF-AREA-026` sont `functional`. Heartbeats, modificateurs de
+perception et politique de repos sont édités par collections complètes puis appliqués dans une seule
+transaction area-only. Les politiques Cinématiques, Combat et Expérience restent préservées. Le
+portail passe 11/11 en 75,69 s, complété par le test RpgKit de perception 1/1 ; preuves et limites
+sont liées à `docs/acceptance/STUDIO_UX2_A.md`.
+
+### UX4-A — Fondation de factions
+
+`ORF-FAC-001` à `ORF-FAC-005` sont `functional`. Création, archive ou suppression, parents,
+héritage, relations directionnelles et bandes passent par les services canoniques. Les références
+externes empêchent une suppression orpheline et `ORF-FAC-006` reste `planned`. Le portail passe
+13/13 en 79,97 s ; la preuve FHD du portail utilise un fallback canonique isolé et une capture
+séparée qualifie les données réelles de la Crypte. Preuves et limites sont liées à
+`docs/acceptance/STUDIO_UX4_A.md`.
+
+### UX5-A — Fondation de dialogues
+
+`ORF-DLG-001` à `ORF-DLG-005` sont `functional`. L'éditeur ligne/réponses couvre graphe, nœuds,
+branches paginées, liens existants et réordonnancement réel au clavier et par payload de
+glisser-déposer. Les locuteurs et sous-graphes valides mais non éditables restent protégés. Le
+portail passe 16/16 en 64,03 s ; preuves et limites sont liées à
+`docs/acceptance/STUDIO_UX5_A.md`.
+
+Les trois surfaces ont des captures Forward+ FHD réelles et une revue QHD/4K sans blocage. Le jalon
+intégré a ensuite passé `scripts/Verify.ps1` dans son intégralité : 1 988 tests .NET, 39 tests Python,
+builds sans avertissement, graphe Roslyn déterministe sans diagnostic, puis smokes Studio, Toolset,
+Runtime, Forward+, MCP, réseau, sauvegarde et distribution. Le validateur de références de faction
+du trigger est resté strict ; les fixtures Crypte et Toolset ont été corrigées pour reprendre l'ID
+canonique `ash-watch` au lieu de fabriquer une quatrième faction.
+
 ## Gates ergonomiques avant parité
 
 Une page ne passe pas `Parity` si l’un des points suivants manque :

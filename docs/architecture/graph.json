@@ -3,8 +3,8 @@
     "schema_version": 2,
     "engine": "roslyn",
     "engine_version": "5.6.0.0",
-    "source_digest": "sha256:28a6eb4d907d20a4b744b6e1fb649ca60dfe824805381d6f0bf44960b932da01",
-    "source_file_count": 3252,
+    "source_digest": "sha256:9cad3066403da237f100a38be85281cdfd11b9c3d652532abe1e4689d1ec9735",
+    "source_file_count": 3255,
     "sources": [
       {
         "path": ".agents/skills/openrpg-asset-lifecycle/SKILL.md",
@@ -88,8 +88,8 @@
       },
       {
         "path": "CHANGELOG.md",
-        "sha256": "sha256:026945738d83313c7b0e4b700576d1a4262fbd136d9952b023a9190c37de909f",
-        "size": 15566
+        "sha256": "sha256:171203a46bec2cfe2fb75bd5df486b48d0c827dc61098e75d57cfba2eb65ae72",
+        "size": 17044
       },
       {
         "path": "Directory.Build.props",
@@ -453,13 +453,13 @@
       },
       {
         "path": "STATUS.md",
-        "sha256": "sha256:8841f7979e742f9787bb2ab2bc1273fe5d8387a0a8b129359de9e5a09a9337ee",
-        "size": 31713
+        "sha256": "sha256:67994180cae909a9a68354cf0a174624d68a31da2bf783e91eeeb64d1204fb29",
+        "size": 32926
       },
       {
         "path": "TASKS_MVP.md",
-        "sha256": "sha256:06acedbe73ca5b068a52310ae2ae17046fb006c36c01c672c65d77c712761e05",
-        "size": 21260
+        "sha256": "sha256:b2589ee28649f83fdbd29e20cfddd178185eba32c8f6a7c8601ea9a7dd6c020a",
+        "size": 22104
       },
       {
         "path": "apps/Forge.CreatorLauncher/Forge.CreatorLauncher.csproj",
@@ -4427,6 +4427,21 @@
         "size": 3647
       },
       {
+        "path": "docs/acceptance/STUDIO_UX2_A.md",
+        "sha256": "sha256:856b364880d3123a1839f05dafc4c986d0484507126bd9f3cc68322cfa135a80",
+        "size": 7205
+      },
+      {
+        "path": "docs/acceptance/STUDIO_UX4_A.md",
+        "sha256": "sha256:0e60cbca99012b558a8e82e484e79e7338b81a8553c65a1b7cfab0268670e256",
+        "size": 7322
+      },
+      {
+        "path": "docs/acceptance/STUDIO_UX5_A.md",
+        "sha256": "sha256:d2042d20677fa1a38dec42a5b8d7a1e25845285552e8f534c81687e291bcd7eb",
+        "size": 6552
+      },
+      {
         "path": "docs/ai/MAP_AUTHORING_CONTRACT.md",
         "sha256": "sha256:d3efac39f382d3b9d4f2b9f8b554f3913fa47621041c93549e5adc034a67d018",
         "size": 6869
@@ -6143,8 +6158,8 @@
       },
       {
         "path": "docs/planning/STUDIO_AURORA_HUMAN_ACCESS_PLAN.md",
-        "sha256": "sha256:5e99149816e515417b55894665a60859ff818897a8a3b981ab3530f126501749",
-        "size": 57713
+        "sha256": "sha256:cc2d9150e094c3db69cf0a6280c41f959da9e76707d0806bcf2af5cfbbaa26c4",
+        "size": 60136
       },
       {
         "path": "docs/planning/STUDIO_INCREMENT_VERIFICATION.md",
@@ -28824,6 +28839,36 @@
       "kind": "document",
       "name": "STUDIO_UX1_Z.md",
       "path": "docs/acceptance/STUDIO_UX1_Z.md",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      }
+    },
+    {
+      "id": "file:docs/acceptance/STUDIO_UX2_A.md",
+      "kind": "document",
+      "name": "STUDIO_UX2_A.md",
+      "path": "docs/acceptance/STUDIO_UX2_A.md",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      }
+    },
+    {
+      "id": "file:docs/acceptance/STUDIO_UX4_A.md",
+      "kind": "document",
+      "name": "STUDIO_UX4_A.md",
+      "path": "docs/acceptance/STUDIO_UX4_A.md",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      }
+    },
+    {
+      "id": "file:docs/acceptance/STUDIO_UX5_A.md",
+      "kind": "document",
+      "name": "STUDIO_UX5_A.md",
+      "path": "docs/acceptance/STUDIO_UX5_A.md",
       "line": 1,
       "metadata": {
         "language": "markdown"
@@ -166660,7 +166705,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 289
+        "line": 302
       }
     },
     {
@@ -166670,7 +166715,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 289
+        "line": 302
       }
     },
     {

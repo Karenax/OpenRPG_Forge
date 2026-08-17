@@ -7,6 +7,23 @@ SemVer ; les versions de schéma persistent séparément dans leurs documents.
 
 ### Changed
 
+- Forge Studio UX5-A : éditeur transactionnel de dialogues pour graphe, nœuds PNJ/joueur,
+  branches paginées, liens existants et réponses réordonnables au clavier ou par glisser-déposer,
+  avec locuteurs hérités protégés et preuves Forward+ FHD/QHD/4K ;
+- Forge Studio UX4-A : création/archive/suppression sûre de faction, parents, héritage, matrice
+  directionnelle et bandes hostile/neutre/allié, avec références externes bloquées, preuve Crypte
+  réelle ou fallback isolé et contrôles Forward+ FHD/QHD/4K ;
+- Forge Studio UX2-A : heartbeat de zone, perception et repos dans une transaction area-only,
+  avec valeurs numériques exactes, voisins préservés, preuve isolée et contrôles Forward+
+  FHD/QHD/4K ;
+- matrice d'accès humain Studio portée à 126 routes `functional` et 591 `planned` après preuves
+  individuelles des treize routes UX2-A/UX4-A/UX5-A ; `ORF-FAC-006` reste `planned` ;
+- jalon UX2-A/UX4-A/UX5-A validé par 40/40 tests dans les trois portails incrémentaux en 75,69 s,
+  79,97 s et 64,03 s, un test RpgKit complémentaire, puis par le portail transversal complet :
+  1 988 tests .NET, 39 tests Python, builds sans avertissement, graphe Roslyn déterministe, smokes
+  Studio, Toolset, Runtime, Forward+, MCP, réseau et distribution ;
+- validation des factions de trigger maintenue canonique : les fixtures Crypte et Toolset résolvent
+  désormais `ash-watch` depuis le catalogue réel au lieu de fabriquer un UUID orphelin ;
 - Forge Studio UX1-AJ : validation canonique de porte sur cinq catalogues de références, collision
   authorée distincte, diagnostics de liens, suggestions humaines et garde commune commande/MCP/
   prébuild, avec preuve isolée et contrôles Forward+ FHD/QHD/4K ;

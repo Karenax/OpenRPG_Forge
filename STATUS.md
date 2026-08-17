@@ -37,9 +37,9 @@ encore qualifiées. Aucun de ces états ne doit être confondu avec une release 
 - parcours produit automatisé : projet, zones, assets, contenu RPG, narration, validation, playtest,
   export et Assistant gouverné ;
 - matrice et procédure d'acceptation de bout en bout sous `docs/acceptance/`.
-- matrice d’accès humain Studio : 717 routes uniques, dont 113 `functional` avec preuve spécifique
-  pour UX0-A à UX1-AJ et 604 `planned` ; les 71/71 routes UX1 sont fonctionnelles et cette matrice
-  ne réutilise pas le statut `Tested` de l’ancien Creator.
+- matrice d’accès humain Studio : 717 routes uniques, dont 126 `functional` avec preuve spécifique
+  pour UX0-A à UX1-AJ, UX2-A, UX4-A et UX5-A, et 591 `planned` ; les 71/71 routes UX1 sont
+  fonctionnelles et cette matrice ne réutilise pas le statut `Tested` de l’ancien Creator.
 - premier train parallèle contrôlé livré : UX1-V et UX1-W ont été développés dans des worktrees et
   fichiers distincts, audités avant intégration, puis construits, testés, fumés et capturés
   séquentiellement ; six routes seulement ont été promues sur preuve réelle.
@@ -56,9 +56,13 @@ encore qualifiées. Aucun de ces états ne doit être confondu avec une release 
   Door, automatisation Trigger et les deux validations canoniques ; dix routes ont franchi 48/48
   tests ciblés, quatre portails incrémentaux en 75,98 s, 69,34 s, 64,99 s et 82,17 s, les revues
   Forward+ FHD/QHD/4K et le portail complet. La vague UX1 est close à 71/71.
+- premier train post-UX1 livré : UX2-A, UX4-A et UX5-A ont isolé politiques de zone vivante,
+  fondation de factions et fondation de dialogues ; treize routes ont franchi 40 tests dans les
+  trois portails incrémentaux, un test RpgKit complémentaire, les smokes, les captures Forward+
+  FHD/QHD/4K et le portail complet. `ORF-FAC-006` reste explicitement `planned`.
 - portail local courant réussi avec 1 988 tests .NET, 39 tests Python, des builds sans avertissement
-  et le graphe Roslyn courant déterministe à 9 132 nœuds, 61 393 relations et 0 diagnostic ; les
-  smokes Studio, Toolset, Runtime, Forward+, MCP et réseau ont également réussi.
+  et le graphe Roslyn courant déterministe sans diagnostic ; les smokes Studio, Toolset, Runtime,
+  Forward+, MCP et réseau ont également réussi.
 
 Ces nombres prouvent la présence et la non-régression des capacités. Ils ne remplacent pas une
 qualification humaine de release publique.
@@ -262,14 +266,23 @@ qualification humaine de release publique.
 - UX1-AJ qualifié pour `ORF-DOOR-021` : Foundation/Navigation requises, cinq catalogues connus,
   collision authorée distincte, liens orphelins/inverses et garde canonique commande/MCP/prébuild,
   sans promouvoir `ORF-DOOR-019`, portail 18/18 en 82,17 s et preuves FHD/QHD/4K ;
+- UX2-A qualifié pour `ORF-AREA-023`, `ORF-AREA-025` et `ORF-AREA-026` : heartbeat de zone,
+  perception et repos dans une transaction area-only, sans prétendre exécuter scripts, moteur ou
+  réseau, portail 11/11 en 75,69 s, test RpgKit complémentaire 1/1 et preuves FHD/QHD/4K ;
+- UX4-A qualifié pour `ORF-FAC-001` à `ORF-FAC-005` : création/archive/suppression sûre, parents,
+  héritage, matrice directionnelle et bandes, avec références externes bloquées, preuve Crypte
+  réelle ou fallback isolé, portail 13/13 en 79,97 s et preuves FHD/QHD/4K ;
+- UX5-A qualifié pour `ORF-DLG-001` à `ORF-DLG-005` : graphe et lignes, locuteurs protégés,
+  branches paginées, liens existants et réordonnancement clavier/glisser-déposer, portail 16/16 en
+  64,03 s et preuves FHD/QHD/4K ;
 - densité native compacte à partir du Full HD : base typographique 12 px, barre 48 px, rail 72 px,
   palette 188 px et inspecteur 280/360 px afin de rendre la vue 3D prioritaire en Full HD et QHD ;
 - retouche d'instance directe : gizmo X/Y/Z dans la 3D, déplacement avec pas fin, clic droit intégré,
   transformation, tags et propriétés locales, commandes Application, undo/redo et sauvegarde atomique ;
 - création et gestion directe des objets : palette filtrable, ajout à la position visée, duplication
   fidèle à côté et suppression avec confirmation compacte, toutes réversibles avant sauvegarde ;
-- page Dialogues documentaire alimentée par les lignes réelles, actions incomplètes honnêtement
-  désactivées et lanceur de développement unique `OpenRPG Forge Studio.cmd` ;
+- page Dialogues transactionnelle alimentée par les lignes réelles, avec éditeur ligne/réponses,
+  mini-carte avancée en lecture seule et lanceur de développement unique `OpenRPG Forge Studio.cmd` ;
 - captures Studio contrôlées en 1920×1080 et 2560×1440, avec une seule fenêtre et aucun contrôle
   principal coupé ; UX0-H fournit la première preuve exacte 3840×2160 via un viewport Forward+
   hors-écran lorsque Windows borne la fenêtre, désormais rejouée sur le guide UX0-I et les
@@ -281,8 +294,8 @@ qualification humaine de release publique.
   qualification FHD/QHD/4K. Les événements d’ouverture/fermeture UX1-T et de
   verrouillage/déverrouillage UX1-U, de cycle de vie UX1-V, de zones dynamiques UX1-W, de portes
   UX1-X et de réactions/physique UX1-Z disposent de leur preuve FHD réelle ; leurs revues QHD/4K sont
-  réservées à un jalon ultérieur. UX1-AA à UX1-AJ disposent de preuves FHD/QHD/4K inspectées aux
-  jalons de leurs nouveaux layouts.
+  réservées à un jalon ultérieur. UX1-AA à UX1-AJ ainsi que UX2-A, UX4-A et UX5-A disposent de
+  preuves FHD/QHD/4K inspectées aux jalons de leurs nouveaux layouts.
   La fondation polygonale UX1-Y possède déjà ses preuves FHD/QHD/4K après la correction de layout.
   La revue 4K des autres pages reste à qualifier ;
 - CI rendue indépendante de la cadence du runner et des dossiers locaux `.artifacts` ;
