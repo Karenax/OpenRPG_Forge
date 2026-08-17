@@ -59,6 +59,7 @@ param(
         'ux2-lw-d', 'ux2-lw-d-area-combat-authority',
         'ux2-lw-e', 'ux2-lw-e-trigger-living-world',
         'ux2-lw-f', 'ux2-lw-f-encounter-foundation',
+        'ux2-lw-g', 'ux2-lw-g-encounter-selection-activation',
         'ux2-b', 'ux2-b-terrain-tiles',
         'ux2-c', 'ux2-c-terrain-surface',
         'ux2-env-b', 'ux2-env-b-area-environment',

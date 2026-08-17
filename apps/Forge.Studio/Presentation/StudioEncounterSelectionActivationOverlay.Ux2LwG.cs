@@ -7,7 +7,7 @@ using Godot;
 
 namespace Forge.Studio.Presentation;
 
-internal sealed class StudioEncounterSelectionActivationOverlayUx2LwG : Control
+internal sealed partial class StudioEncounterSelectionActivationOverlayUx2LwG : Control
 {
     private readonly StudioSessionController _sourceSession;
     private StudioSessionController _session;
@@ -281,7 +281,17 @@ internal sealed class StudioEncounterSelectionActivationOverlayUx2LwG : Control
             {
                 evidence.Close(); ReleaseEvidence(); return false;
             }
-            _evidenceSession = evidence; _session = evidence; Visible = true;
+            _evidenceSession = evidence;
+            _session = evidence;
+            var encounterAreaId = project.Module.WorldFeatures.Encounters
+                .FirstOrDefault(item => item.Foundation is not null && item.Composition is not null)?.AreaId;
+            if (encounterAreaId is null || !evidence.SelectArea(encounterAreaId))
+            {
+                ReleaseEvidence();
+                return false;
+            }
+            Visible = true;
+            FitDialog();
             Reload(clearSelection: true);
             var index = _encounterEntries.FindIndex(item => item is { IsComplete: true });
             if (index <= 0) { ReleaseEvidence(); return false; }
@@ -328,7 +338,7 @@ internal sealed class StudioEncounterSelectionActivationOverlayUx2LwG : Control
             var opened = saved.Succeeded && reopened.Open(_evidenceTempRoot).Succeeded;
             var persisted = opened ? reopened.Project!.Module.WorldFeatures.Encounters.Single(item => item.Id == targetId) : null;
             return changed && undo.Succeeded && redo.Succeeded && persisted?.Composition?.Selection == after.Composition?.Selection &&
-                   persisted.Composition?.Activation == after.Composition?.Activation &&
+                   persisted?.Composition?.Activation == after.Composition?.Activation &&
                    ProjectJsonSerializer.Serialize(_session.Project!) == ProjectJsonSerializer.Serialize(reopened.Project!);
         }
         catch (Exception exception)
