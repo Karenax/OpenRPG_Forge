@@ -85,6 +85,47 @@ public sealed class WorkspaceQualityLabServiceTests : IDisposable
     }
 
     [Fact]
+    public void Ux2LwCTypedAreaEventRequiresUpgradeAndRequiredSourceBeforeBuild()
+    {
+        var source = TestProjectFactory.CreateNavigationValid();
+        var area = source.Areas[0];
+        var authoring = area.Authoring;
+        var eventName = $"area.{area.Slug}.quality";
+        var current = new AreaUserEvent(Guid.Parse("a0240000-0000-4000-8000-000000000030"),
+            eventName, "schema://area/quality/v1", "scripts/area_quality.forge", 1, ["main"], true,
+            "test:ux2-lw-c", AreaUserEvent.CurrentSchemaVersion,
+            new Dictionary<string, string> { ["message"] = "string" },
+            AreaUserEvent.CurrentForgeScriptApiVersion);
+        var legacy = new AreaUserEvent(current.Id, current.NamespacedName, current.PayloadSchema,
+            current.ScriptPath, current.ApiVersion, current.Subscriptions, false, "migration:1.9");
+        var currentArea = area.WithAuthoring(new(authoring.SchemaVersion, [current], authoring.Map,
+            authoring.Layers, authoring.Experience, authoring.RequireLayerRuntimeMetadata));
+        var legacyArea = area.WithAuthoring(new(authoring.SchemaVersion, [legacy], authoring.Map,
+            authoring.Layers, authoring.Experience, authoring.RequireLayerRuntimeMetadata));
+        var currentProject = new ProjectDefinition(source.Id, source.Title, source.Module, source.Blueprints,
+            source.Areas.Select(item => item.Id == area.Id ? currentArea : item).ToArray(),
+            source.Dialogues, source.Quests);
+        var legacyProject = new ProjectDefinition(source.Id, source.Title, source.Module, source.Blueprints,
+            source.Areas.Select(item => item.Id == area.Id ? legacyArea : item).ToArray(),
+            source.Dialogues, source.Quests);
+        Directory.CreateDirectory(Path.Combine(_root, "scripts"));
+        var profile = QualityFoundationProfile.CreateDefault(source.Id.Value);
+
+        var missing = WorkspaceCanonicalValidationService.Run(_root, currentProject, profile);
+        var upgrade = WorkspaceCanonicalValidationService.Run(_root, legacyProject, profile);
+        File.WriteAllText(Path.Combine(_root, "scripts", "area_quality.forge"), "void main() {}");
+        var present = WorkspaceCanonicalValidationService.Run(_root, currentProject, profile);
+
+        Assert.Contains(missing.Diagnostics,
+            item => item.Code == WorkspaceCanonicalValidationService.AreaUserEventScriptMissingCode);
+        Assert.Contains(upgrade.Diagnostics,
+            item => item.Code == AreaUserEventValidator.SchemaUpgradeRequiredCode);
+        Assert.DoesNotContain(present.Diagnostics,
+            item => item.Code is WorkspaceCanonicalValidationService.AreaUserEventScriptMissingCode or
+                AreaUserEventValidator.SchemaUpgradeRequiredCode);
+    }
+
+    [Fact]
     public void Authored_door_runtime_semantics_are_blocked_by_the_canonical_prebuild_gate()
     {
         var source = TestProjectFactory.CreateNavigationValid();

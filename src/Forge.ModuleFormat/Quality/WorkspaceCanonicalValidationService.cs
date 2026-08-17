@@ -40,6 +40,7 @@ public static class WorkspaceCanonicalValidationService
     public const string RuntimePolicyMissingCode = "qa.validation.runtime_policy_missing";
     public const string AreaLifecycleScriptMissingCode = "area.foundation.lifecycle_script_missing";
     public const string PortalHookScriptMissingCode = "area.portal.hook_script_missing";
+    public const string AreaUserEventScriptMissingCode = "area.user_event.script_missing";
 
     public static WorkspaceCanonicalValidationReport Run(
         string workspaceRoot,
@@ -189,6 +190,15 @@ public static class WorkspaceCanonicalValidationService
     {
         var diagnostics = AreaFoundationValidator.Validate(area, area.Foundation).ToList();
         diagnostics.AddRange(AreaPlaytestProfileValidator.Validate(project, area, area.Playtest));
+        diagnostics.AddRange(AreaUserEventValidator.ValidateExecutable(area));
+        foreach (var binding in area.Authoring.UserEvents.Where(item => item.Required))
+        {
+            var relative = binding.ScriptPath.Replace('/', Path.DirectorySeparatorChar);
+            if (!File.Exists(Path.Combine(root, relative)))
+                diagnostics.Add(new(AreaUserEventScriptMissingCode,
+                    $"Required area user-event script '{binding.ScriptPath}' does not exist.",
+                    $"areas/{area.Id}/authoring/userEvents/{binding.Id:D}/scriptPath"));
+        }
         foreach (var binding in new[] { area.Foundation.Lifecycle.Entered, area.Foundation.Lifecycle.Exited })
         {
             if (binding is null || !binding.Required || string.IsNullOrWhiteSpace(binding.ScriptPath)) continue;

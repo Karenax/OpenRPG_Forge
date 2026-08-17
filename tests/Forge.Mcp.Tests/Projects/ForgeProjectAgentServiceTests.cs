@@ -3094,7 +3094,10 @@ public sealed class ForgeProjectAgentServiceTests
         var eventName = $"area.{area.Slug}.alarm";
         var candidate = new AreaAuthoringProfile(1,
             [new(Guid.Parse("a0556000-0000-4000-8000-000000000005"), eventName,
-                "schema://area/alarm/v1", "scripts/agent_alarm.forge", 1, [eventName], true, "agent:r055")],
+                "schema://area/alarm/v1", "scripts/agent_alarm.forge", 1, ["OnAreaAlarm"], true,
+                "agent:r055", AreaUserEvent.CurrentSchemaVersion,
+                new Dictionary<string, string> { ["level"] = "int" },
+                AreaUserEvent.CurrentForgeScriptApiVersion)],
             new(true, true, "hybrid-2d-3d", 2,
                 [new(Guid.Parse("a0556000-0000-4000-8000-000000000006"), "Agent shrine", 16, 0, 0,
                     false)], Guid.Parse("a0556000-0000-4000-8000-000000000007"), 1, "agent:r055",

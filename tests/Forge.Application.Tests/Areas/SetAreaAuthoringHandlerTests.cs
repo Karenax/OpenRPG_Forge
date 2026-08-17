@@ -4,6 +4,7 @@ using Forge.Application.Tests.Entities;
 using Forge.Domain.Areas;
 using Forge.Domain.Entities;
 using Forge.Domain.Spatial;
+using Forge.Scripting;
 namespace Forge.Application.Tests.Areas;
 
 public sealed class SetAreaAuthoringHandlerTests
@@ -74,6 +75,58 @@ public sealed class SetAreaAuthoringHandlerTests
         Assert.Equal(1, report.OccluderCount);
         Assert.Equal(1, report.LodOverrideCount);
         Assert.True(float.IsFinite(report.EstimatedPopping));
+    }
+
+    [Fact]
+    public void Ux2LwCPreviewValidatesTypedPayloadAndCompilesWithoutExecuting()
+    {
+        var context = new PlaceEntityTestContext();
+        var area = context.State.Project.Areas.Single().WithAuthoring(Profile());
+        var runtime = new RecordingRuntime();
+
+        var preview = AreaUserEventRuntimeService.Dispatch(area, "area.crypt.alarm",
+            new Dictionary<string, object?> { ["level"] = 2 }, runtime,
+            _ => "void OnAreaAlarm(CustomEventRef event_ref) { say(\"alarm\"); }",
+            requiredAtRuntime: true, dryRun: true,
+            correlationId: Guid.Parse("a0240000-0000-4000-8000-000000000001"));
+
+        Assert.True(preview.Succeeded);
+        Assert.False(preview.Executed);
+        Assert.Equal("OnAreaAlarm", Assert.Single(preview.Deliveries).Subscriber);
+        Assert.Contains("custom_event(\"area.crypt.alarm\", 1, \"{\\\"level\\\":2}\")",
+            runtime.CompiledSource, StringComparison.Ordinal);
+        Assert.Equal(1, runtime.CompileCount);
+        Assert.Equal(0, runtime.ExecuteCount);
+    }
+
+    [Fact]
+    public void Ux2LwCLiveDispatchExecutesOnceAndOptionalOrInvalidPayloadsStayBounded()
+    {
+        var context = new PlaceEntityTestContext();
+        var area = context.State.Project.Areas.Single().WithAuthoring(Profile());
+        var runtime = new RecordingRuntime();
+        const string source = "void OnAreaAlarm(CustomEventRef event_ref) { say(\"alarm\"); }";
+
+        var live = AreaUserEventRuntimeService.Dispatch(area, "area.crypt.alarm",
+            new Dictionary<string, object?> { ["level"] = 2 }, runtime, _ => source,
+            requiredAtRuntime: true, dryRun: false,
+            correlationId: Guid.Parse("a0240000-0000-4000-8000-000000000002"));
+        var invalid = AreaUserEventRuntimeService.Dispatch(area, "area.crypt.alarm",
+            new Dictionary<string, object?> { ["level"] = "two" }, runtime, _ => source,
+            requiredAtRuntime: true, dryRun: false);
+        var optional = AreaUserEventRuntimeService.Dispatch(area, "area.crypt.unknown",
+            new Dictionary<string, object?>(), runtime, _ => source, requiredAtRuntime: false);
+        var required = AreaUserEventRuntimeService.Dispatch(area, "area.crypt.unknown",
+            new Dictionary<string, object?>(), runtime, _ => source, requiredAtRuntime: true);
+
+        Assert.True(live.Succeeded);
+        Assert.True(live.Executed);
+        Assert.Equal(1, runtime.ExecuteCount);
+        Assert.False(invalid.Succeeded);
+        Assert.Contains(invalid.Diagnostics, item => item.Code == AreaUserEventRuntimeService.PayloadInvalidCode);
+        Assert.True(optional.Succeeded);
+        Assert.True(optional.Ignored);
+        Assert.Contains(required.Diagnostics, item => item.Code == AreaUserEventRuntimeService.MissingRequiredCode);
     }
 
     [Fact]
@@ -188,11 +241,35 @@ public sealed class SetAreaAuthoringHandlerTests
             visibility, lod, true);
         return new(1,
             [new(Guid.Parse("a0552000-0000-4000-8000-000000000006"), "area.crypt.alarm",
-                "schema://area/alarm/v1", "scripts/alarm.forge", 1, ["area.crypt.alarm"], true,
-                "test:r055")],
+                "schema://area/alarm/v1", "scripts/alarm.forge", 1, ["OnAreaAlarm"], true,
+                "test:r055", AreaUserEvent.CurrentSchemaVersion,
+                new Dictionary<string, string> { ["level"] = "int" },
+                AreaUserEvent.CurrentForgeScriptApiVersion)],
             new(true, true, "hybrid-2d-3d", 2,
                 [new(Guid.Parse("a0552000-0000-4000-8000-000000000007"), "Shrine", 16, 0, 0, false)],
                 Guid.Parse("a0552000-0000-4000-8000-000000000008"), 1, "test:r055", true, true,
                 AreaMapExplorationScope.Party, 8, "area.map.reveal"), [], experience);
+    }
+
+    private sealed class RecordingRuntime : IForgeScriptRuntime
+    {
+        public string VirtualMachineVersion => "test-vm";
+        public string ApiVersion => AreaUserEvent.CurrentForgeScriptApiVersion;
+        public int CompileCount { get; private set; }
+        public int ExecuteCount { get; private set; }
+        public string CompiledSource { get; private set; } = string.Empty;
+
+        public ForgeScriptCompileResult Compile(string source)
+        {
+            CompileCount++;
+            CompiledSource = source;
+            return new(true, new(source, [1, 2, 3], VirtualMachineVersion, ApiVersion), []);
+        }
+
+        public ForgeScriptExecutionResult Execute(ForgeScriptArtifact artifact, ForgeScriptQuotas? quotas = null)
+        {
+            ExecuteCount++;
+            return new(ForgeScriptExecutionStatus.Completed, [new("say", "alarm")], []);
+        }
     }
 }

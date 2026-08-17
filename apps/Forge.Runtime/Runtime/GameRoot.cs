@@ -6398,6 +6398,47 @@ public partial class GameRoot : Node3D
         return File.ReadAllText(path);
     }
 
+    public bool DispatchAreaUserEvent(
+        string namespacedEvent,
+        IReadOnlyDictionary<string, object?> payload,
+        bool requiredAtRuntime = false)
+    {
+        if (_activeArea is null)
+        {
+            if (requiredAtRuntime)
+                GD.PrintErr($"OPENRPG_FORGE_AREA_USER_EVENT_FAILED event={namespacedEvent} reason=area_missing");
+            return !requiredAtRuntime;
+        }
+        var result = AreaUserEventRuntimeService.Dispatch(
+            _activeArea,
+            namespacedEvent,
+            payload,
+            _forgeScriptRuntime,
+            ReadConfiguredScriptSource,
+            requiredAtRuntime,
+            dryRun: false,
+            execute: artifact => ExecuteForgeScript(artifact, this));
+        if (!result.Succeeded)
+        {
+            foreach (var diagnostic in result.Diagnostics)
+                GD.PrintErr($"OPENRPG_FORGE_AREA_USER_EVENT_FAILED event={namespacedEvent} " +
+                            $"code={diagnostic.Code} path={diagnostic.Path}");
+            return false;
+        }
+        GD.Print($"OPENRPG_FORGE_AREA_USER_EVENT_DISPATCH event={namespacedEvent} " +
+                 $"deliveries={result.Deliveries.Count} executed={result.Executed.ToString().ToLowerInvariant()} " +
+                 $"ignored={result.Ignored.ToString().ToLowerInvariant()}");
+        return true;
+    }
+
+    private string? ReadConfiguredScriptSource(string scriptPath)
+    {
+        var normalized = scriptPath.Replace('\\', '/');
+        return _moduleContentRoot is null
+            ? Godot.FileAccess.GetFileAsString($"res://content/{_moduleSlug}/{normalized}")
+            : ReadCachedModuleScript(normalized);
+    }
+
     private bool DispatchConfiguredEventScript(
         string? scriptPath,
         string handler,
@@ -6421,9 +6462,7 @@ public partial class GameRoot : Node3D
         try
         {
             var normalized = scriptPath.Replace('\\', '/');
-            var source = _moduleContentRoot is null
-                ? Godot.FileAccess.GetFileAsString($"res://content/{_moduleSlug}/{normalized}")
-                : ReadCachedModuleScript(normalized);
+            var source = ReadConfiguredScriptSource(normalized);
             if (string.IsNullOrWhiteSpace(source))
             {
                 GD.PrintErr($"OPENRPG_FORGE_EVENT_SCRIPT_FAILED event={eventName} reason=source_missing");
@@ -11974,10 +12013,24 @@ public partial class GameRoot : Node3D
                 new Dictionary<string, float> { ["music"] = .8f }, .75f,
                 $"area.{area.Slug}.combat", "runtime:r055")], r055Visibility, r055Lod, true);
         var r055Event = $"area.{area.Slug}.alarm";
+        var r055UsesModuleScript = _isForgottenForestPrototype || _isCryptPrototype;
+        var r055Script = _isForgottenForestPrototype
+            ? "scripts/root_guardian_death.forge"
+            : _isCryptPrototype
+                ? "scripts/ash_warden_death.forge"
+                : "scripts/area_user_event_smoke.forge";
+        var r055Subscription = r055UsesModuleScript ? "main" : "OnAreaAlarm";
+        string? ResolveR055Source(string path) => r055UsesModuleScript
+            ? ReadConfiguredScriptSource(path)
+            : string.Equals(path, r055Script, StringComparison.Ordinal)
+                ? "void OnAreaAlarm(CustomEventRef event_ref) { say(\"Area user event smoke\"); }"
+                : null;
         var r055Authoring = new AreaAuthoringProfile(1,
             [new(Guid.Parse("a0557000-0000-4000-8000-000000000006"), r055Event,
-                "schema://area/alarm/v1", "scripts/runtime_alarm.forge", 1, [r055Event], true,
-                "runtime:r055")],
+                "schema://area/alarm/v1", r055Script, 1, [r055Subscription], true,
+                "runtime:r055", AreaUserEvent.CurrentSchemaVersion,
+                new Dictionary<string, string> { ["level"] = "int" },
+                AreaUserEvent.CurrentForgeScriptApiVersion)],
             new(true, true, "hybrid-2d-3d", 2,
                 [new(Guid.Parse("a0557000-0000-4000-8000-000000000007"), "Runtime shrine", 16, 0, 0,
                     false)], Guid.Parse("a0557000-0000-4000-8000-000000000008"), 1, "runtime:r055",
@@ -11985,8 +12038,14 @@ public partial class GameRoot : Node3D
             r055Experience);
         var r055Area = area.WithAuthoring(r055Authoring);
         var r055Snapshot = AreaExperienceAuthoringScriptService.Read(r055Area);
-        var r055Dispatch = AreaExperienceAuthoringScriptService.Dispatch(r055Area, r055Event,
-            new Dictionary<string, object?> { ["level"] = 2 });
+        var r055Payload = new Dictionary<string, object?> { ["level"] = 2 };
+        var r055Preview = AreaUserEventRuntimeService.Dispatch(r055Area, r055Event, r055Payload,
+            _forgeScriptRuntime, ResolveR055Source, requiredAtRuntime: true, dryRun: true,
+            correlationId: Guid.Parse("a0557000-0000-4000-8000-000000000009"));
+        var r055Dispatch = AreaUserEventRuntimeService.Dispatch(r055Area, r055Event, r055Payload,
+            _forgeScriptRuntime, ResolveR055Source, requiredAtRuntime: true, dryRun: false,
+            correlationId: Guid.Parse("a0557000-0000-4000-8000-000000000010"),
+            execute: artifact => ExecuteForgeScript(artifact, this));
         var r055Map = AreaExperienceAuthoringScriptService.Reveal(r055Area,
             new(AreaMapExplorationScope.Party, "party:runtime", new HashSet<string>(), new HashSet<Guid>()),
             17, 3, r055Area.Authoring.Map.Pins[0].Id);
@@ -11999,7 +12058,10 @@ public partial class GameRoot : Node3D
                     r055Snapshot.AudioSnapshots.Count == 1 && r055Snapshot.EventBindings.Count == 1 &&
                     r055Snapshot.MapPins == 1 && r055Snapshot.VisibilityRooms == 1 &&
                     r055Snapshot.Occluders == 1 && r055Snapshot.LodOverrides == 1 &&
-                    r055Dispatch.ApiVersion == 1 && r055Map.RevealedCells.Contains("2:0") &&
+                    r055Preview.Succeeded && !r055Preview.Executed &&
+                    r055Dispatch.Succeeded && r055Dispatch.Executed &&
+                    r055Dispatch.Deliveries.Single().Subscriber == r055Subscription &&
+                    r055Map.RevealedCells.Contains("2:0") &&
                     r055Runtime.Handle is
                     {
                         AudioSnapshots: 1, UserEvents: 1, MapPins: 1,
@@ -12013,9 +12075,11 @@ public partial class GameRoot : Node3D
                     r055Required.Diagnostics.Single().Code == AreaExperienceRuntimeResolver.RequiredMissingCode,
             "R055 area experience runtime optional/required contract failed.");
         GD.Print("OPENRPG_FORGE_RUNTIME_R055_AREA_EXPERIENCE_PASS " +
-                 "audio=snapshots-adaptive-reverb events=namespaced-payload-subscriptions " +
+                 "audio=snapshots-adaptive-reverb events=namespaced-typed-payload-live-forgescript " +
                  "map=2d-3d-exploration-fog-reveal visibility=rooms-portals-occluders-streaming " +
-                 "lod=thresholds-budgets-popping forgescript=typed-handle optional=ignored required=diagnostic");
+                 $"lod=thresholds-budgets-popping forgescript=custom-event-handle " +
+                 $"source={(r055UsesModuleScript ? "module" : "isolated-smoke")} " +
+                 "optional=ignored required=diagnostic");
 
         var r056Root = Guid.Parse("a0567000-0000-4000-8000-000000000001");
         var r056Child = Guid.Parse("a0567000-0000-4000-8000-000000000002");
