@@ -917,6 +917,15 @@ en 108,39 s, le smoke global et deux captures Forward+ FHD inspectées. Les 14 r
 closes ; la matrice atteint 230 `functional` et 487 `planned`. Preuves et limites sont liées dans
 `docs/acceptance/STUDIO_UX4_C.md`.
 
+### UX4-D — Fondation de créature
+
+`ORF-CRE-001` à `ORF-CRE-005` sont `functional` : assistant data-driven, sélection et
+initialisation explicites du blueprint, identité localisée, rôle/niveau de menace et composition
+d'espèce. Le portail passe 77/77 tests en 101,74 s, le smoke global et quatre captures Forward+ FHD
+inspectées, dont la vraie fondation de la Crypte et des preuves dédiées assistant/aperçu. La matrice
+atteint 235 routes `functional` et 482 `planned`. Preuves et limites sont liées dans
+`docs/acceptance/STUDIO_UX4_D.md` ; `ORF-CRE-006` à `ORF-CRE-049` restent `planned`.
+
 ## Gates ergonomiques avant parité
 
 Une page ne passe pas `Parity` si l’un des points suivants manque :

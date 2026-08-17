@@ -7,6 +7,9 @@ SemVer ; les versions de schéma persistent séparément dans leurs documents.
 
 ### Changed
 
+- Forge Studio UX4-D : assistant et fondation de créature, identité localisée, rôle/menace et
+  composition d'espèce via commande canonique ; cinq routes CREATURE qualifiées et matrice portée
+  à 235 `functional` / 482 `planned` ;
 - Forge Studio UX4-C : tags sémantiques, matrice directionnelle versionnée, import/export de
   heatmap, réaction au joueur et validation factionnelle ; les 14 routes FACTION sont closes et la
   matrice atteint 230 `functional` / 487 `planned` ;
