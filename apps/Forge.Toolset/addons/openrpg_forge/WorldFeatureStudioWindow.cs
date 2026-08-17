@@ -254,11 +254,13 @@ public partial class WorldFeatureStudioWindow : Window
     public bool ConfigureForSmokeTest()
     {
         Refresh();
+        var ashWatchFaction = _load?.Invoke()?.Project.Module.Factions.Factions
+            .SingleOrDefault(item => item.Slug == "ash-watch");
         if (_choice["placeable.target"].ItemCount == 0 || _choice["door.target"].ItemCount == 0 ||
             _choice["trigger.target"].ItemCount == 0 || _choice["merchant.target"].ItemCount == 0 ||
             _choice["companion.target"].ItemCount == 0 || _choice["encounter.area"].ItemCount == 0 ||
             _choice["encounter.candidate"].ItemCount == 0 || _choice["placeable.lootItem"].ItemCount == 0 ||
-            _choice["placeable.attachmentBlueprint"].ItemCount == 0)
+            _choice["placeable.attachmentBlueprint"].ItemCount == 0 || ashWatchFaction is null)
             return false;
         _text["placeable.faction"].Text = "ash-watch";
         _text["placeable.key"].Text = "key:ember";
@@ -308,6 +310,7 @@ public partial class WorldFeatureStudioWindow : Window
         _text["trigger.knownTargets"].Text = "encounter:crypt-warden";
         _text["trigger.knownScripts"].Text = "scripts/trigger_click,scripts/trigger_enter,scripts/trigger_exit";
         _text["trigger.accessibleLayers"].Text = "characters";
+        _text["trigger.queryFactions"].Text = ashWatchFaction.Id.ToString("D");
         _check["trigger.rest"].ButtonPressed = true;
         _check["trigger.director"].ButtonPressed = true;
         _text["encounter.faction"].Text = "ash-hostile";
