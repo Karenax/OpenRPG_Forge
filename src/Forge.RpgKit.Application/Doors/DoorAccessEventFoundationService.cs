@@ -13,12 +13,7 @@ public static class DoorAccessEventFoundationService
         DoorAccessEventProfileValidator.ResolveLockEvents(profile);
 
     public static LockComponent CreateLock(DoorWorldProfile profile)
-    {
-        var policy = Required(profile).Lock;
-        return new(Map(policy.State), policy.CredentialIds.ToHashSet(StringComparer.Ordinal), policy.SkillId,
-            policy.Difficulty, policy.CodeHash, policy.Hackable, policy.Relockable, policy.CanJam,
-            policy.Permissions.ToHashSet(StringComparer.Ordinal));
-    }
+        => DoorWorldRuntimeMapper.CreateLock(profile);
 
     public static DoorUnlockResult Unlock(DoorWorldProfile profile, LockAttempt attempt,
         IReadOnlySet<string> credentials) =>
@@ -28,13 +23,7 @@ public static class DoorAccessEventFoundationService
         PlaceableSecurityService.Relock(CreateLock(profile) with { State = LockState.Unlocked }, jam, actorId);
 
     public static DoorTrapBinding CreateTrap(DoorWorldProfile profile)
-    {
-        var policy = Required(profile).Trap;
-        var trap = new TrapComponent(policy.Id, policy.TriggerId, policy.PayloadId, policy.DetectionDifficulty,
-            policy.DisarmDifficulty, TimeSpan.FromSeconds(policy.ResetDelaySeconds), policy.OwnerId,
-            policy.VisualEffectId, policy.FriendlyPolicy, policy.Armed, policy.OneShot);
-        return new(trap, policy.Sides.ToHashSet(StringComparer.Ordinal), policy.Events.ToHashSet(StringComparer.Ordinal));
-    }
+        => DoorWorldRuntimeMapper.CreateTrap(profile);
 
     public static TrapResult TriggerTrap(DoorWorldProfile profile, string side, string eventName,
         string actorFaction) =>
@@ -58,7 +47,7 @@ public static class DoorAccessEventFoundationService
     {
         var access = Required(profile);
         return DoorEventService.RequestPortalUse(
-            DoorWorldValidationService.MapDefinition(profile, access.AssetId, access.AssetId),
+            DoorWorldRuntimeMapper.MapDefinition(profile, access.AssetId, access.AssetId),
             actorId, cause, conditions,
             access.Provenance, veto);
     }

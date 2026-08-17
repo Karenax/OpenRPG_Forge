@@ -342,6 +342,11 @@ public sealed class WorldFeatureScriptService
                 ["knownCollisionProfiles"] = item.Validation is { } collisionValidation
                     ? string.Join(',', collisionValidation.KnownCollisionProfileIds.Order(StringComparer.Ordinal))
                     : string.Empty,
+                ["requiredCollisionProfile"] = item.Foundation is { } foundation &&
+                    foundation.Overrides.TryGetValue(
+                        DoorWorldProfile.CollisionProfileOverrideKey, out var requiredCollisionProfile)
+                    ? requiredCollisionProfile
+                    : string.Empty,
                 ["knownCredentials"] = item.Validation is { } credentialValidation
                     ? string.Join(',', credentialValidation.KnownCredentialIds.Order(StringComparer.Ordinal))
                     : string.Empty,

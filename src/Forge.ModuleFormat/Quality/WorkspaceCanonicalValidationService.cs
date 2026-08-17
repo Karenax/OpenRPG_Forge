@@ -7,6 +7,7 @@ using Forge.Domain.Dialogues;
 using Forge.Domain.Projects;
 using Forge.Domain.Quality;
 using Forge.Domain.Validation;
+using Forge.RpgKit.Domain.Doors;
 
 namespace Forge.ModuleFormat.Quality;
 
@@ -53,6 +54,10 @@ public static class WorkspaceCanonicalValidationService
         var diagnostics = new List<(string Category, DomainDiagnostic Diagnostic)>();
         diagnostics.AddRange(QualityFoundationProfileValidator.Validate(profile)
             .Select(item => ("schemas", item)));
+        diagnostics.AddRange(project.Module.WorldFeatures.Doors
+            .Where(item => item.Validation is not null || item.ValidationRequiredAtRuntime)
+            .SelectMany(item => DoorWorldValidationService.Validate(project, item.Id).Diagnostics)
+            .Select(item => ("references", new DomainDiagnostic(item.Code, item.Message, item.Path))));
 
         if (policy.Schemas.Enabled)
         {

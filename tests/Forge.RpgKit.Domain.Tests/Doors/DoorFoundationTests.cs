@@ -1,4 +1,3 @@
-using Forge.RpgKit.Application.Doors;
 using Forge.RpgKit.Domain.Doors;
 using Forge.RpgKit.Domain.Placeables;
 

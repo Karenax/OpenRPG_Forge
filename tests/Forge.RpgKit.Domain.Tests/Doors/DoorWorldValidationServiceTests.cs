@@ -3,7 +3,7 @@ using Forge.Domain.Blueprints;
 using Forge.Domain.Projects;
 using Forge.Domain.Spatial;
 using Forge.Domain.WorldFeatures;
-using Forge.RpgKit.Application.Doors;
+using Forge.RpgKit.Domain.Doors;
 
 namespace Forge.RpgKit.Domain.Tests.Doors;
 
@@ -28,7 +28,7 @@ public sealed class DoorWorldValidationServiceTests
         Assert.False(invalid.Available);
         Assert.Contains("RPG_DOOR_DESTINATION_MISSING", codes);
         Assert.Contains("RPG_DOOR_ANIMATION_MISSING", codes);
-        Assert.Contains("RPG_DOOR_COLLISION_PROFILE_MISSING", codes);
+        Assert.Contains("RPG_DOOR_COLLISION_PROFILE_MISMATCH", codes);
         Assert.Contains("RPG_DOOR_CREDENTIAL_MISSING", codes);
         Assert.Contains("RPG_DOOR_SCRIPT_MISSING", codes);
         Assert.All(invalid.Diagnostics,
@@ -59,6 +59,65 @@ public sealed class DoorWorldValidationServiceTests
         Assert.False(required.OptionalFallback);
         Assert.Contains(required.Diagnostics, item => item.Code == "world.door.validation_required_missing");
         Assert.Contains(unknown.Diagnostics, item => item.Code == "world.door.validation_profile_missing");
+    }
+
+    [Fact]
+    public void Authored_collision_rejection_animation_and_link_graph_are_independently_validated()
+    {
+        var project = Project();
+        var door = project.Module.WorldFeatures.Doors.Single();
+        var missingRejectionAnimation = door with
+        {
+            Validation = door.Validation! with
+            {
+                KnownAnimationIds = door.Foundation!.States.Select(item => item.AnimationId).ToArray(),
+            },
+        };
+        var collisionMismatch = door with
+        {
+            Validation = door.Validation! with { KnownCollisionProfileIds = ["collision:other"] },
+        };
+        var collisionNotAuthored = door with
+        {
+            Foundation = door.Foundation! with { Overrides = new Dictionary<string, string>() },
+        };
+        var orphan = door with
+        {
+            Foundation = door.Foundation! with
+            {
+                Links = [new(Guid.NewGuid(), Guid.NewGuid(), true, string.Empty)],
+            },
+        };
+        var neighborId = Guid.Parse("21000000-0000-4000-8000-000000000020");
+        var neighbor = door with
+        {
+            Id = neighborId,
+            Provenance = "test:ux1-aj-neighbor",
+            Events = [],
+            Foundation = door.Foundation! with { Portal = null, Links = [] },
+            AccessEvents = null,
+            AccessEventsRequiredAtRuntime = false,
+            Validation = null,
+            ValidationRequiredAtRuntime = false,
+        };
+        var missingReverse = door with
+        {
+            Foundation = door.Foundation! with
+            {
+                Links = [new(Guid.NewGuid(), neighborId, false, "Retour vers la porte source")],
+            },
+        };
+
+        Assert.Contains(DoorWorldValidationService.Validate(WithDoor(project, missingRejectionAnimation), door.Id)
+            .Diagnostics, item => item.Code == "RPG_DOOR_ANIMATION_MISSING");
+        Assert.Contains(DoorWorldValidationService.Validate(WithDoor(project, collisionMismatch), door.Id)
+            .Diagnostics, item => item.Code == "RPG_DOOR_COLLISION_PROFILE_MISMATCH");
+        Assert.Contains(DoorWorldValidationService.Validate(WithDoor(project, collisionNotAuthored), door.Id)
+            .Diagnostics, item => item.Code == "RPG_DOOR_COLLISION_PROFILE_MISSING");
+        Assert.Contains(DoorWorldValidationService.Validate(WithDoor(project, orphan), door.Id).Diagnostics,
+            item => item.Code == "RPG_DOOR_LINK_ORPHAN");
+        Assert.Single(DoorWorldValidationService.Validate(WithDoors(project, missingReverse, neighbor), door.Id)
+            .Diagnostics.Where(item => item.Code == "RPG_DOOR_LINK_REVERSE_MISSING"));
     }
 
     private static ProjectDefinition Project()
@@ -94,10 +153,14 @@ public sealed class DoorWorldValidationServiceTests
             [new("closed", "opening", "interact", 1, null)],
             new(2, "both", 1, 2, 1, "server", 2, "door.unavailable"),
             new(DoorWorldProfile.DestinationKind.Waypoint, destinationId, "anchor:exit", 180, true,
-                ["portal.travel"]), [], new Dictionary<string, string>(),
+                ["portal.travel"]), [], new Dictionary<string, string>
+            {
+                [DoorWorldProfile.CollisionProfileOverrideKey] = "collision:ash-gate",
+            },
             new("nav-obstacle:ash-gate", "nav-link:ash-gate", ["closed"], ["open"], .75, .25, true));
         var validation = new DoorWorldProfile.RuntimeValidationPolicy([destinationId],
-            ["animation:open", "animation:closed", "animation:opening"], ["collision:ash-gate"],
+            ["animation:open", "animation:closed", "animation:opening", "animation:rattle"],
+            ["collision:ash-gate"],
             ["key:ember"], ["scripts/door", "scripts/rejected"]);
         var door = new DoorWorldProfile(doorId, 1, "test:ux1-aj", blueprint.Id, null, null,
             [new("interact", "scripts/door", false, true)], null, null, null, foundation, access, true,
@@ -107,10 +170,13 @@ public sealed class DoorWorldValidationServiceTests
     }
 
     private static ProjectDefinition WithDoor(ProjectDefinition project, DoorWorldProfile door)
+        => WithDoors(project, door);
+
+    private static ProjectDefinition WithDoors(ProjectDefinition project, params DoorWorldProfile[] doors)
     {
         var source = project.Module.WorldFeatures;
         var catalog = new WorldFeatureCatalog(source.Id, source.SchemaVersion, source.Provenance,
-            source.Placeables, [door], source.Triggers, source.Encounters, source.VehicleRoutes,
+            source.Placeables, doors, source.Triggers, source.Encounters, source.VehicleRoutes,
             source.Merchants, source.Companions, source.Scripts);
         return new(project.Id, project.Title, project.Module.WithWorldFeatures(catalog), project.Blueprints,
             project.Areas, project.Dialogues, project.Quests);

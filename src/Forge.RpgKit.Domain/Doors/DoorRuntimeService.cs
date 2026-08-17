@@ -7,7 +7,7 @@ public sealed record DoorNavigationState(string StateId, bool ObstacleEnabled, b
 public sealed record LocalizedDoorFailure(string Locale, string Text);
 public sealed record DoorOpenRejected(Guid EventId, int SchemaVersion, string Provenance, Guid DoorId, string ActorId, string ReasonCode, IReadOnlyList<LocalizedDoorFailure> Texts, string SoundAssetId, string AnimationId, string? ScriptId);
 public sealed record DoorTrapBinding(TrapComponent Trap, IReadOnlySet<string> Sides, IReadOnlySet<string> Events);
-public sealed record DoorRuntimeProfile(DoorNavigationProfile Navigation, LockComponent? Lock, DoorTrapBinding? Trap, IReadOnlyList<string> ScriptBindings, IReadOnlySet<Guid> KnownDestinations, IReadOnlySet<string> KnownAnimations, IReadOnlySet<string> KnownCollisionProfiles, IReadOnlySet<string> KnownCredentials, IReadOnlySet<string> KnownScripts);
+public sealed record DoorRuntimeProfile(DoorNavigationProfile Navigation, LockComponent? Lock, DoorTrapBinding? Trap, IReadOnlyList<string> ScriptBindings, IReadOnlySet<Guid> KnownDestinations, IReadOnlySet<string> KnownAnimations, IReadOnlySet<string> KnownCollisionProfiles, IReadOnlySet<string> KnownCredentials, IReadOnlySet<string> KnownScripts, IReadOnlySet<string>? RequiredAnimations = null, string? RequiredCollisionProfileId = null);
 public sealed record DoorUnlockResult(LockResult LockResult, IReadOnlySet<string> RemainingCredentials, bool CredentialConsumed);
 
 public static class DoorRuntimeService
@@ -44,8 +44,12 @@ public static class DoorRuntimeService
     {
         var diagnostics = DoorRules.Validate(definition).ToList(); var root = $"doors/{definition.Id}";
         if (definition.Portal is { } portal && !profile.KnownDestinations.Contains(portal.DestinationId)) diagnostics.Add(new("RPG_DOOR_DESTINATION_MISSING", $"{root}/portal", "Portal destination is missing."));
-        if (definition.StateMachine.States.Any(item => !profile.KnownAnimations.Contains(item.AnimationId))) diagnostics.Add(new("RPG_DOOR_ANIMATION_MISSING", $"{root}/states", "A door animation is missing."));
-        if (profile.KnownCollisionProfiles.Count == 0) diagnostics.Add(new("RPG_DOOR_COLLISION_PROFILE_MISSING", $"{root}/collision", "Collision profile is missing."));
+        var requiredAnimations = profile.RequiredAnimations ??
+                                 definition.StateMachine.States.Select(item => item.AnimationId)
+                                     .ToHashSet(StringComparer.Ordinal);
+        if (requiredAnimations.Any(item => !profile.KnownAnimations.Contains(item))) diagnostics.Add(new("RPG_DOOR_ANIMATION_MISSING", $"{root}/states", "A door animation is missing."));
+        if (string.IsNullOrWhiteSpace(profile.RequiredCollisionProfileId)) diagnostics.Add(new("RPG_DOOR_COLLISION_PROFILE_MISSING", $"{root}/collision", "An authored collision profile is missing."));
+        else if (!profile.KnownCollisionProfiles.Contains(profile.RequiredCollisionProfileId)) diagnostics.Add(new("RPG_DOOR_COLLISION_PROFILE_MISMATCH", $"{root}/collision", "The authored collision profile is missing from the validation context."));
         if (profile.Navigation.BlockingStateIds.Overlaps(profile.Navigation.TraversableStateIds) || string.IsNullOrWhiteSpace(profile.Navigation.ObstacleId) || string.IsNullOrWhiteSpace(profile.Navigation.LinkId)) diagnostics.Add(new("RPG_DOOR_NAVIGATION_INVALID", $"{root}/navigation", "Navigation states, obstacle or link are invalid."));
         if (profile.Lock is { } doorLock && doorLock.Credentials.Any(item => !profile.KnownCredentials.Contains(item))) diagnostics.Add(new("RPG_DOOR_CREDENTIAL_MISSING", $"{root}/lock", "Door credential is missing."));
         if (profile.Trap is { } trap && (trap.Sides.Count == 0 || trap.Events.Count == 0)) diagnostics.Add(new("RPG_DOOR_TRAP_BINDING_INVALID", $"{root}/trap", "Door trap requires sides and events."));

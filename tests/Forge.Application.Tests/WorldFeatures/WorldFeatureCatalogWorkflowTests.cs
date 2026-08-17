@@ -139,6 +139,12 @@ public sealed class WorldFeatureCatalogWorkflowTests
         var missingRequired = handler.Handle(configuredState, new(CommandId.From(Guid.NewGuid()), state.Revision,
             new WorldFeatureCatalog(catalog.Id, 1, "test:ux1-aj", doors:
             [door with { Validation = null, ValidationRequiredAtRuntime = true }]), true));
+        var semanticInvalidCatalog = new WorldFeatureCatalog(catalog.Id, 1, "test:ux1-aj", doors:
+        [door with { Validation = door.Validation! with { KnownAnimationIds = [] } }]);
+        var semanticPreview = handler.Handle(configuredState, new(CommandId.From(Guid.NewGuid()), state.Revision,
+            semanticInvalidCatalog, true));
+        var semanticApply = handler.Handle(configuredState, new(CommandId.From(Guid.NewGuid()), state.Revision,
+            semanticInvalidCatalog, false));
 
         Assert.True(preview.Succeeded);
         Assert.Same(configuredState, preview.State);
@@ -147,12 +153,18 @@ public sealed class WorldFeatureCatalogWorkflowTests
         Assert.Equal("True", script.Properties["validationRequiredAtRuntime"]);
         Assert.Equal("animation:closed,animation:open,animation:opening", script.Properties["knownAnimations"]);
         Assert.Equal("collision:door", script.Properties["knownCollisionProfiles"]);
+        Assert.Equal("collision:door", script.Properties["requiredCollisionProfile"]);
         Assert.Contains(WorldFeatureCatalogValidator.Validate(invalidProject),
             item => item.Code == "world.door.validation_context_invalid");
         Assert.Contains(WorldFeatureCatalogValidator.Validate(missingFoundationProject),
             item => item.Code == "world.door.validation_foundation_missing");
         Assert.Contains(missingRequired.Diagnostics,
             item => item.Code == "world.door.validation_required_missing");
+        Assert.False(semanticPreview.Succeeded);
+        Assert.False(semanticApply.Succeeded);
+        Assert.Same(configuredState, semanticPreview.State);
+        Assert.Same(configuredState, semanticApply.State);
+        Assert.Contains(semanticPreview.Diagnostics, item => item.Code == "RPG_DOOR_ANIMATION_MISSING");
     }
 
     [Fact]
@@ -1510,7 +1522,10 @@ public sealed class WorldFeatureCatalogWorkflowTests
                 ],
                 [new("closed", "opening", "interact", 1, null)],
                 new(2, "both", 1, 2, 1, "server", 2, "door.unavailable"), null, [],
-                new Dictionary<string, string>(),
+                new Dictionary<string, string>
+                {
+                    [DoorWorldProfile.CollisionProfileOverrideKey] = "collision:door",
+                },
                 new("nav-obstacle:door", "nav-link:door", ["closed"], ["open"], .75, .25, true)));
     }
 

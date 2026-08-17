@@ -172,8 +172,13 @@ public static class CryptWorldFeatureAuthoringService
                 new(2.5, "both", 1, 2, 1, "server", 2, "door.unavailable"),
                 new(DoorWorldProfile.DestinationKind.Waypoint, Stable(moduleId, "door-destination"),
                     "anchor:crypt-exit", 180, true, ["portal.travel"]),
-                [new(Stable(moduleId, "door-link"), Stable(moduleId, "door-destination"), false, "Retour vers la crypte")],
-                new Dictionary<string, string> { ["interaction.prompt"] = "door.open" },
+                [new(Stable(moduleId, "door-link"), Stable(moduleId, "door-destination"), false,
+                    "Retour vers la crypte")],
+                new Dictionary<string, string>
+                {
+                    ["interaction.prompt"] = "door.open",
+                    [DoorWorldProfile.CollisionProfileOverrideKey] = "collision:crypt-door",
+                },
                 new("nav-obstacle:crypt-door", "nav-link:crypt-door",
                     ["closed", "locked", "jammed", "disabled", "custom"], ["open", "broken"], .75, .25, true)),
             new(Stable(moduleId, "door-ashes-access-events"), 1, "sample:r081",

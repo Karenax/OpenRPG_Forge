@@ -63,8 +63,8 @@ using Forge.Mcp.WorldFeatures;
 using Forge.RpgKit.Application.Abilities;
 using Forge.RpgKit.Application.Dialogues;
 using Forge.RpgKit.Application.Bosses;
-using Forge.RpgKit.Application.Doors;
 using Forge.RpgKit.Application.Quests;
+using Forge.RpgKit.Domain.Doors;
 using Forge.ModuleFormat.Workspaces;
 using Forge.ModuleFormat.Quality;
 using Forge.Scripting;
@@ -646,24 +646,33 @@ public sealed class ForgeProjectAgentService
                 return new(false, request.BaseRevision, null, null,
                     [new AgentDiagnostic("world.mcp_schema_unsupported",
                         "World-feature MCP request schema must be v1.", "request/schemaVersion")]);
-            var result = _worldFeatureHandler.Handle(_history.State, new SetWorldFeatureCatalogCommand(
-                CommandId.From(Guid.NewGuid()), new ProjectRevision(request.BaseRevision), request.Catalog, true));
-            if (!result.Succeeded)
-                return new(false, request.BaseRevision, result.Patch, result.Inverse,
-                    result.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message,
-                        "module/worldFeatures")).ToArray());
-
             var current = _history.State.Project;
             var candidate = new ProjectDefinition(current.Id, current.Title,
                 current.Module.WithWorldFeatures(request.Catalog), current.Blueprints, current.Areas,
                 current.Dialogues, current.Quests);
+            // The handler below remains the gate; this projection preserves canonical Code+Path in the MCP reply.
             var doorDiagnostics = request.Catalog.Doors
                 .Where(item => item.Validation is not null || item.ValidationRequiredAtRuntime)
                 .Select(item => DoorWorldValidationService.Validate(candidate, item.Id))
                 .Where(item => !item.Available)
                 .SelectMany(item => item.Diagnostics)
                 .Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path))
+                .DistinctBy(item => (item.Code, item.Path))
                 .ToArray();
+            var result = _worldFeatureHandler.Handle(_history.State, new SetWorldFeatureCatalogCommand(
+                CommandId.From(Guid.NewGuid()), new ProjectRevision(request.BaseRevision), request.Catalog, true));
+            if (!result.Succeeded)
+            {
+                var semanticFailure = result.Diagnostics.Any(item =>
+                    doorDiagnostics.Any(candidateDiagnostic =>
+                        string.Equals(candidateDiagnostic.Code, item.Code, StringComparison.Ordinal)));
+                return new(false, request.BaseRevision, result.Patch, result.Inverse,
+                    semanticFailure
+                        ? doorDiagnostics
+                        : result.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message,
+                            "module/worldFeatures")).ToArray());
+            }
+
             if (doorDiagnostics.Length > 0)
                 return new(false, request.BaseRevision, result.Patch, result.Inverse, doorDiagnostics);
             return new(result.Succeeded, request.BaseRevision, result.Patch, result.Inverse,

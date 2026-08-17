@@ -3,6 +3,7 @@ using Forge.Application.Projects;
 using Forge.Application.Time;
 using Forge.Domain.Projects;
 using Forge.Domain.Validation;
+using Forge.RpgKit.Domain.Doors;
 
 namespace Forge.Application.WorldFeatures;
 
@@ -25,10 +26,20 @@ public sealed class SetWorldFeatureCatalogHandler
         var updatedModule = state.Project.Module.WithWorldFeatures(command.Catalog);
         var project = new ProjectDefinition(state.Project.Id, state.Project.Title, updatedModule,
             state.Project.Blueprints, state.Project.Areas, state.Project.Dialogues, state.Project.Quests);
-        var diagnostics = ProjectValidator.Validate(project);
-        if (diagnostics.Count > 0)
+        var diagnostics = ProjectValidator.Validate(project).ToList();
+        diagnostics.AddRange(command.Catalog.Doors
+            .Where(item => item.Validation is not null || item.ValidationRequiredAtRuntime)
+            .SelectMany(item => DoorWorldValidationService.Validate(project, item.Id).Diagnostics)
+            .Select(item => new DomainDiagnostic(item.Code, item.Message, item.Path)));
+        var distinctDiagnostics = diagnostics
+            .DistinctBy(item => (item.Code, item.Path))
+            .OrderBy(item => item.Code, StringComparer.Ordinal)
+            .ThenBy(item => item.Path, StringComparer.Ordinal)
+            .ToArray();
+        if (distinctDiagnostics.Length > 0)
             return new(false, state, state.Revision, null,
-                diagnostics.Select(item => new CommandDiagnostic(item.Code, $"{item.Path}: {item.Message}")).ToArray(),
+                distinctDiagnostics.Select(item =>
+                    new CommandDiagnostic(item.Code, $"{item.Path}: {item.Message}")).ToArray(),
                 null, null, Audit(command, false));
 
         var current = state.Project.Module.WorldFeatures;

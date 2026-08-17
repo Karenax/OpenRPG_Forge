@@ -111,7 +111,7 @@ public sealed class WorldFeaturePersistenceTests : IDisposable
         Assert.True(catalog.Doors[0].ValidationRequiredAtRuntime);
         Assert.Equal(Guid.Parse("15200000-0000-4000-8000-000000000010"),
             catalog.Doors[0].Validation!.KnownDestinationIds.Single());
-        Assert.Equal(9, catalog.Doors[0].Validation!.KnownAnimationIds.Count);
+        Assert.Equal(10, catalog.Doors[0].Validation!.KnownAnimationIds.Count);
         Assert.Equal("collision:test-door", catalog.Doors[0].Validation!.KnownCollisionProfileIds.Single());
         Assert.Equal("key:ember", catalog.Doors[0].Validation!.KnownCredentialIds.Single());
         Assert.Equal("scripts/rejected", catalog.Doors[0].Validation!.KnownScriptIds.Single());
@@ -710,9 +710,11 @@ public sealed class WorldFeaturePersistenceTests : IDisposable
                     new(DoorWorldProfile.DestinationKind.Waypoint,
                         Guid.Parse("15200000-0000-4000-8000-000000000010"), "anchor:exit", 180, true,
                         ["portal.travel"]),
-                    [new(Guid.Parse("15200000-0000-4000-8000-000000000011"),
-                        Guid.Parse("15200000-0000-4000-8000-000000000012"), false, "Retour")],
-                    new Dictionary<string, string>(),
+                    [],
+                    new Dictionary<string, string>
+                    {
+                        [DoorWorldProfile.CollisionProfileOverrideKey] = "collision:test-door",
+                    },
                     new("nav-obstacle:test-door", "nav-link:test-door", ["closed", "locked", "jammed", "disabled", "custom"],
                         ["open", "broken"], .75, .25, true)),
                 new(Guid.Parse("15300000-0000-4000-8000-000000000001"), 1, "test:r081",
@@ -733,7 +735,7 @@ public sealed class WorldFeaturePersistenceTests : IDisposable
                 new([Guid.Parse("15200000-0000-4000-8000-000000000010")],
                     ["animation:open", "animation:closed", "animation:opening", "animation:closing",
                      "animation:locked", "animation:jammed", "animation:broken", "animation:disabled",
-                     "animation:custom"],
+                     "animation:custom", "animation:rattle"],
                     ["collision:test-door"], ["key:ember"], ["scripts/rejected"]), true)],
             [new(Guid.Parse("15100000-0000-4000-8000-000000000003"), 1, "test:g13-r-s", trigger.Id, area.Id,
                 null, new("inspect", "cursor", "outline", "prompt", "script", true, "use"), null, "trigger",

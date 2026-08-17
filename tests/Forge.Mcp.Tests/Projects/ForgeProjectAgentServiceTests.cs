@@ -539,10 +539,16 @@ public sealed class ForgeProjectAgentServiceTests
             var access = door.AccessEvents!;
             var validation = new DoorWorldProfile.RuntimeValidationPolicy(
                 foundation.Portal is null ? [] : [foundation.Portal.DestinationId],
-                foundation.States.Select(item => item.AnimationId).ToArray(), ["collision:crypt-door"],
+                foundation.States.Select(item => item.AnimationId).Append(access.Rejection.AnimationId).ToArray(),
+                ["collision:crypt-door"],
                 access.Lock.CredentialIds,
                 door.Events.Select(item => item.ScriptId).Append(access.Rejection.ScriptId).ToArray());
-            var configuredDoor = door with { Validation = validation, ValidationRequiredAtRuntime = true };
+            var configuredDoor = door with
+            {
+                Foundation = foundation with { Links = [] },
+                Validation = validation,
+                ValidationRequiredAtRuntime = true,
+            };
             var catalog = WithDoors(source, [configuredDoor]);
             return new ProjectDefinition(project.Id, project.Title, project.Module.WithWorldFeatures(catalog),
                 project.Blueprints, project.Areas, project.Dialogues, project.Quests);
@@ -560,13 +566,15 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.Equal("True", item.Properties["validationRequiredAtRuntime"]);
         Assert.Contains("animation:open", item.Properties["knownAnimations"], StringComparison.Ordinal);
         Assert.Equal("collision:crypt-door", item.Properties["knownCollisionProfiles"]);
+        Assert.Equal("collision:crypt-door", item.Properties["requiredCollisionProfile"]);
         Assert.Contains("key:ember", item.Properties["knownCredentials"], StringComparison.Ordinal);
         Assert.Contains("scripts/door_open_rejected", item.Properties["knownScripts"], StringComparison.Ordinal);
         Assert.False(planned.Succeeded);
         Assert.Contains(planned.Diagnostics, diagnostic => diagnostic.Code == "RPG_DOOR_ANIMATION_MISSING" &&
             diagnostic.Path is { } path &&
             path.StartsWith("module/worldFeatures/doors/", StringComparison.Ordinal));
-        Assert.Contains(planned.Diagnostics, diagnostic => diagnostic.Code == "RPG_DOOR_COLLISION_PROFILE_MISSING");
+        Assert.Contains(planned.Diagnostics,
+            diagnostic => diagnostic.Code == "RPG_DOOR_COLLISION_PROFILE_MISMATCH");
         Assert.Contains(planned.Diagnostics, diagnostic => diagnostic.Code == "RPG_DOOR_SCRIPT_MISSING");
         Assert.Equal(0, workspace.Project.GetCurrentRevision());
     }

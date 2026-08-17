@@ -2,8 +2,10 @@ using Forge.ModuleFormat.Quality;
 using Forge.ModuleFormat.Tests.Serialization;
 using Forge.Scripting;
 using Forge.Domain.Areas;
+using Forge.Domain.Blueprints;
 using Forge.Domain.Projects;
 using Forge.Domain.Quality;
+using Forge.Domain.WorldFeatures;
 
 namespace Forge.ModuleFormat.Tests.Quality;
 
@@ -80,6 +82,62 @@ public sealed class WorkspaceQualityLabServiceTests : IDisposable
             item.Path.Contains(area.Id.ToString(), StringComparison.Ordinal));
         Assert.DoesNotContain(present.Diagnostics,
             item => item.Code == WorkspaceCanonicalValidationService.AreaLifecycleScriptMissingCode);
+    }
+
+    [Fact]
+    public void Authored_door_runtime_semantics_are_blocked_by_the_canonical_prebuild_gate()
+    {
+        var source = TestProjectFactory.CreateNavigationValid();
+        var blueprint = new BlueprintDefinition(
+            BlueprintId.From(Guid.Parse("a0290000-0000-4000-8000-000000000001")),
+            "quality-door", "Quality door", BlueprintKind.Door);
+        var door = new DoorWorldProfile(
+            Guid.Parse("a0290000-0000-4000-8000-000000000002"),
+            WorldFeatureCatalog.CurrentSchemaVersion,
+            "test:ux1-aj-quality",
+            blueprint.Id,
+            null,
+            null,
+            [],
+            null,
+            null,
+            null,
+            new(DoorWorldProfile.PlacementMode.FreePlacement, null, null, "closed",
+                [
+                    new("open", DoorWorldProfile.StateKind.Open, "animation:open", false, true),
+                    new("closed", DoorWorldProfile.StateKind.Closed, "animation:closed", true, true),
+                    new("opening", DoorWorldProfile.StateKind.Opening, "animation:opening", false, false),
+                ],
+                [new("closed", "opening", "interact", 1, null)],
+                new(2, "both", 1, 2, 1, "server", 2, "door.unavailable"),
+                null,
+                [],
+                new Dictionary<string, string>
+                {
+                    [DoorWorldProfile.CollisionProfileOverrideKey] = "collision:quality-door",
+                },
+                new("nav-obstacle:quality-door", "nav-link:quality-door", ["closed"], ["open"],
+                    .75, .25, true)),
+            null,
+            false,
+            new([], [], ["collision:other"], [], []),
+            true);
+        var catalog = source.Module.WorldFeatures;
+        var withDoorCatalog = new WorldFeatureCatalog(catalog.Id, catalog.SchemaVersion, catalog.Provenance,
+            catalog.Placeables, catalog.Doors.Append(door).ToArray(), catalog.Triggers, catalog.Encounters,
+            catalog.VehicleRoutes, catalog.Merchants, catalog.Companions, catalog.Scripts);
+        var project = new ProjectDefinition(source.Id, source.Title, source.Module.WithWorldFeatures(withDoorCatalog),
+            source.Blueprints.Append(blueprint).ToArray(), source.Areas, source.Dialogues, source.Quests);
+
+        var report = WorkspaceCanonicalValidationService.Run(_root, project,
+            QualityFoundationProfile.CreateDefault(project.Id.Value));
+        var semantic = report.Diagnostics.Where(item =>
+            item.Code is "RPG_DOOR_ANIMATION_MISSING" or "RPG_DOOR_COLLISION_PROFILE_MISMATCH").ToArray();
+
+        Assert.False(report.Passed);
+        Assert.Equal(2, semantic.Length);
+        Assert.All(semantic, item => Assert.Equal("references", item.Category));
+        Assert.Equal(semantic.Length, semantic.DistinctBy(item => (item.Code, item.Path)).Count());
     }
 
     public void Dispose()
