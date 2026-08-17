@@ -121,6 +121,7 @@ internal sealed partial class StudioWorkspaceShell
         var canonicalFallbackEvidence = _factionFoundationOverlayUx4A.UsesCanonicalFallbackEvidence;
         var evidencePreviewDryRun = _factionFoundationOverlayUx4A.EvidencePreviewDryRun;
         var evidenceSourceUntouched = _factionFoundationOverlayUx4A.EvidenceSourceUntouched;
+        var evidenceFailure = _factionFoundationOverlayUx4A.LastEvidenceFailure;
         var uiReady = evidencePrepared && PageId == "social-content" && overlayOpen && choiceCount >= 3 &&
                       explicitSelection && canonicalPreview && directionalMatrix && hierarchy && bands &&
                       humanSurface && isolatedEvidence && evidencePreviewDryRun && evidenceSourceUntouched &&
@@ -164,6 +165,7 @@ internal sealed partial class StudioWorkspaceShell
                 $"real_crypt={realCryptEvidence.ToString().ToLowerInvariant()} " +
                 $"canonical_fallback={canonicalFallbackEvidence.ToString().ToLowerInvariant()} " +
                 $"preview_dry_run={evidencePreviewDryRun.ToString().ToLowerInvariant()} " +
+                $"failure={evidenceFailure} " +
                 $"source_untouched={evidenceSourceUntouched.ToString().ToLowerInvariant()}");
         }
         var valid = result.Succeeded && result.TemporaryWorkspaceReleased && uiReady && uiTransaction &&

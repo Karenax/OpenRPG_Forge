@@ -18,6 +18,8 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
     private bool _evidenceUsesRealCryptSource;
     private bool _evidenceUsesCanonicalFallback;
     private bool _lastEvidencePreviewDryRun;
+    private string _lastEvidenceFailure = "none";
+    private StudioFactionPreviewUx4A? _lastEvidencePreview;
 
     private readonly PanelContainer _dialog;
     private readonly OptionButton _faction;
@@ -94,6 +96,7 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
     internal bool UsesRealCryptEvidence => UsesIsolatedEvidence && _evidenceUsesRealCryptSource;
     internal bool UsesCanonicalFallbackEvidence => UsesIsolatedEvidence && _evidenceUsesCanonicalFallback;
     internal bool EvidencePreviewDryRun => UsesIsolatedEvidence && _lastEvidencePreviewDryRun;
+    internal string LastEvidenceFailure => _lastEvidenceFailure;
     internal bool EvidenceSourceUntouched => _evidenceSourceSnapshot is { } snapshot
         ? SourceMatchesSnapshot(snapshot)
         : _lastEvidenceSourceUntouched;
@@ -798,6 +801,10 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
             return;
         }
         var result = _session.PreviewFactionFoundationUx4A(draft);
+        if (_evidenceSession is not null && ReferenceEquals(_session, _evidenceSession))
+        {
+            _lastEvidencePreview = result;
+        }
         _canonicalPreviewReady = result.Succeeded && result.CanApply;
         _apply.Disabled = !_canonicalPreviewReady;
         RenderDiagnostics(result.Diagnostics);
@@ -1127,18 +1134,26 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
     internal bool PrepareEvidence(string mode)
     {
         _ = mode;
+        _lastEvidenceFailure = "none";
+        _lastEvidencePreview = null;
         if ((_evidenceSession is not null || _evidenceTempRoot is not null) &&
             !ReleaseIsolatedEvidenceSession())
         {
+            _lastEvidenceFailure = "release_previous";
             return false;
         }
         if (!TryOpenIsolatedEvidenceSession())
         {
+            if (string.Equals(_lastEvidenceFailure, "none", StringComparison.Ordinal))
+            {
+                _lastEvidenceFailure = "open_isolated";
+            }
             return false;
         }
         var index = _choices.ToList().FindIndex(item => item.Slug == "ash-watch");
         if (index < 0)
         {
+            _lastEvidenceFailure = "selection:ash-watch_missing";
             Close();
             return false;
         }
@@ -1146,8 +1161,24 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
         _faction.Select(index + 1);
         _updating = false;
         LoadDraft(_session.CreateFactionDraftUx4A(_choices[index].FactionId), newAction: false);
-        if (_draft is null || !ConfigureEvidenceDraft())
+        if (_draft is null)
         {
+            _lastEvidenceFailure = "draft:null";
+            Close();
+            return false;
+        }
+        if (!ConfigureEvidenceDraft())
+        {
+            var slugs = _choices.Select(item => item.Slug).ToHashSet(StringComparer.Ordinal);
+            var covenant = _choices.SingleOrDefault(item => item.Slug == "crypt-covenant");
+            var surface = _choices.SingleOrDefault(item => item.Slug == "surface-alliance");
+            var direction = covenant is not null && surface is not null && _relationships.Any(item =>
+                item.SourceId == covenant.FactionId && item.TargetId == surface.FactionId);
+            var expectedSlugs = slugs.IsSupersetOf(
+                new[] { "crypt-covenant", "ash-watch", "surface-alliance" });
+            _lastEvidenceFailure =
+                $"configure:slugs={expectedSlugs}" +
+                $",relationships={_relationships.Count},direction={direction}";
             Close();
             return false;
         }
@@ -1155,6 +1186,7 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
         var evidenceProject = _session.Project;
         if (evidenceHistory is null || evidenceProject is null)
         {
+            _lastEvidenceFailure = "session:project_or_history_missing";
             Close();
             return false;
         }
@@ -1181,6 +1213,22 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
                     (UsesRealCryptEvidence ^ UsesCanonicalFallbackEvidence);
         if (!ready)
         {
+            var failures = new List<string>();
+            if (!_lastEvidencePreviewDryRun) failures.Add("preview_dry_run");
+            if (!HasExplicitSelection) failures.Add("selection");
+            if (!CanonicalPreviewReady)
+            {
+                var diagnostic = _lastEvidencePreview?.Diagnostics.FirstOrDefault()?.Code ?? "not_ready";
+                failures.Add($"canonical_preview:{diagnostic}");
+            }
+            if (!ShowsHumanSurface) failures.Add("human_surface");
+            if (!ShowsDirectionalMatrix) failures.Add("directional_matrix");
+            if (!ShowsHierarchy) failures.Add("hierarchy");
+            if (!ShowsBands) failures.Add("bands");
+            if (!UsesIsolatedEvidence) failures.Add("isolation");
+            if (!EvidenceSourceUntouched) failures.Add("source_changed");
+            if (!(UsesRealCryptEvidence ^ UsesCanonicalFallbackEvidence)) failures.Add("origin_xor");
+            _lastEvidenceFailure = "ready:" + string.Join(',', failures);
             SetStatus(
                 CanonicalPreviewReady
                     ? "Preuve isolée incomplète ou non pure · session temporaire libérée sans application"
@@ -1189,6 +1237,7 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
             Close();
             return false;
         }
+        _lastEvidenceFailure = "none";
         SetStatus(
             UsesRealCryptEvidence
                 ? "Preuve Crypt réelle isolée prête · fermeture = suppression de la session temporaire"
@@ -1344,12 +1393,17 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
                         (_evidenceUsesRealCryptSource ^ _evidenceUsesCanonicalFallback);
             if (!ready)
             {
+                _lastEvidenceFailure =
+                    $"open_ready:choice={_choices.Any(item => item.Slug == "ash-watch")}," +
+                    $"source={SourceMatchesSnapshot(snapshot)}," +
+                    $"origin={_evidenceUsesRealCryptSource ^ _evidenceUsesCanonicalFallback}";
                 Close();
             }
             return ready;
         }
         catch (Exception exception)
         {
+            _lastEvidenceFailure = $"open_exception:{exception.GetType().Name}";
             GD.PrintErr(
                 $"OPENRPG_FORGE_STUDIO_UX4A_EVIDENCE_FAILED type={exception.GetType().Name} message={exception.Message}");
             evidenceSession.Close();
