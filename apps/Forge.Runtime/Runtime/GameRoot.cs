@@ -4058,6 +4058,12 @@ public partial class GameRoot : Node3D
                         "code=NET_AREA_COMBAT_AUTHORITY_REQUIRED " +
                         "path=area/runtimePolicies/rules/combat/serverAuthoritative");
         }
+        else if (!_areaCombatServerAuthority)
+        {
+            GD.PrintErr("OPENRPG_FORGE_AREA_COMBAT_DIAGNOSTIC " +
+                        "code=NET_AREA_COMBAT_SERVER_REQUIRED " +
+                        "path=runtime/authority");
+        }
         else
         {
             GD.Print("OPENRPG_FORGE_AREA_COMBAT_READY " +
