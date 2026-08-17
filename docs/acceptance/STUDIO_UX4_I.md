@@ -50,7 +50,8 @@ mémoire ; aucun acteur, cadavre physique ou conteneur moteur n'est instancié p
   capacités, inventaire, combat loot et tous les blueprints voisins sont préservés ;
 - les captures emploient une copie temporaire de la vraie Crypte ou un fallback canonique isolé.
   Source, historique, état dirty, sélection, approbations, page et surface active sont restaurés ;
-- cette preuve ne qualifie pas `ORF-CRE-025` à `ORF-CRE-031` ni `ORF-CRE-033` à
+- factions, perception, conversations et protections sont qualifiées séparément par UX4-J ; cette
+  preuve ne qualifie pas `ORF-CRE-027`, `ORF-CRE-029`, `ORF-CRE-030` ni `ORF-CRE-033` à
   `ORF-CRE-049`, qui restent `planned`.
 
 ## Reproduction

@@ -7,6 +7,9 @@ SemVer ; les versions de schéma persistent séparément dans leurs documents.
 
 ### Changed
 
+- Forge Studio UX4-J : factions et appartenances de créature, perception multi-sens, conversations
+  associées et protections narratives via `SetCreatureFoundationHandler`, avec références réelles,
+  preuve Crypte et matrice portée à 259 routes `functional` / 458 `planned` ;
 - Forge Studio UX4-I : objets droppables, pickpocket et cycle de cadavre via
   `SetCreatureLootHandler`, avec références réelles, preuve Crypte et matrice portée à 255 routes
   `functional` / 462 `planned` ;

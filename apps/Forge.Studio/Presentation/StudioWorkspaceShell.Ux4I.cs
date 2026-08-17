@@ -23,7 +23,7 @@ internal sealed partial class StudioWorkspaceShell
     {
         if (_session.Project is null) { SetStatus("Ouvrez d’abord un module avant d’éditer ses créatures.", true); return; }
         SwitchPage("creatures", notify: false); CloseUx4DOverlay(); CloseUx4EOverlay(); CloseUx4FOverlay();
-        CloseUx4GOverlay(); CloseUx4HOverlay(); _creatureLootOverlayUx4I.Open();
+        CloseUx4GOverlay(); CloseUx4HOverlay(); CloseUx4JOverlay(); _creatureLootOverlayUx4I.Open();
         SetStatus("Loot de créature ouvert · sélection explicite et aperçu canonique obligatoires");
     }
     private void RefreshAfterUx4IMutation() { RefreshAfterUx1AMutation(); UpdateUx4IActionState(); }
@@ -35,7 +35,7 @@ internal sealed partial class StudioWorkspaceShell
     internal bool PrepareUx4IEvidence(string mode)
     {
         SwitchPage("creatures", notify: false); CloseUx4DOverlay(); CloseUx4EOverlay(); CloseUx4FOverlay();
-        CloseUx4GOverlay(); CloseUx4HOverlay(); return _creatureLootOverlayUx4I.PrepareEvidence(mode);
+        CloseUx4GOverlay(); CloseUx4HOverlay(); CloseUx4JOverlay(); return _creatureLootOverlayUx4I.PrepareEvidence(mode);
     }
 
     internal bool RunUx4ISmoke()

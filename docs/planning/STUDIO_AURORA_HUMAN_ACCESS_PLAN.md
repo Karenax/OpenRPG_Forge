@@ -972,6 +972,17 @@ atteint 255 routes `functional` et 462 `planned`. Preuves et limites sont liées
 `docs/acceptance/STUDIO_UX4_I.md` ; `ORF-CRE-025` à `ORF-CRE-031` et `ORF-CRE-033` à
 `ORF-CRE-049` restent `planned`.
 
+### UX4-J — Interactions de créature
+
+`ORF-CRE-025`, `ORF-CRE-026`, `ORF-CRE-028` et `ORF-CRE-031` sont `functional` : factions et
+appartenances, perception multi-sens, conversations associées et protections narratives via
+`SetCreatureFoundationHandler`. Le portail passe 9/9 tests en 115,01 s, le smoke global et six
+captures Forward+ FHD inspectées, dont cinq sur le profil réel de la Crypte. Les références aux
+factions et dialogues sont résolues avant application, tandis que `OnConversation` et tous les
+profils voisins restent préservés. La matrice atteint 259 routes `functional` et 458 `planned`.
+Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX4_J.md` ; `ORF-CRE-027`,
+`ORF-CRE-029`, `ORF-CRE-030` et `ORF-CRE-033` à `ORF-CRE-049` restent `planned`.
+
 ## Gates ergonomiques avant parité
 
 Une page ne passe pas `Parity` si l’un des points suivants manque :
