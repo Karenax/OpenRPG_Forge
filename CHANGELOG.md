@@ -7,6 +7,9 @@ SemVer ; les versions de schéma persistent séparément dans leurs documents.
 
 ### Changed
 
+- Forge Studio UX4-N : frontière de combat, inventaire, repos, heartbeat budgété et événements
+  utilisateur typés via `SetCreatureEventsHandler`, avec profil réel Crypte, tail dégâts/mort
+  préservé et matrice portée à 269 routes `functional` / 448 `planned` ;
 - Forge Studio UX4-M : rôle/lore, animations ambiantes et auto-level de créature via
   `SetCreatureRoleBehaviorHandler`, avec preuve réelle Crypte et matrice portée à 264 routes
   `functional` / 453 `planned` ;

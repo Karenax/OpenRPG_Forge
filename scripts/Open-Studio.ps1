@@ -101,6 +101,7 @@ param(
         'ux4-k', 'ux4-k-creature-movement',
         'ux4-l', 'ux4-l-creature-voice',
         'ux4-m', 'ux4-m-creature-role-behavior', 'ux4-m-ambient', 'ux4-m-auto-level',
+        'ux4-n', 'ux4-n-creature-events', 'ux4-n-heartbeat', 'ux4-n-custom',
         'ux5-a', 'ux5-a-dialogue-foundation')]
     [string]$Evidence,
     [string]$Resolution,

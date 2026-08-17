@@ -1018,6 +1018,17 @@ et 453 `planned`. Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX
 `ORF-CRE-046` reste propriété de l’agrégat IA/événements, et `ORF-CRE-033` à `ORF-CRE-046` ainsi
 que `ORF-CRE-049` restent `planned`.
 
+### UX4-N — Événements avancés de créature
+
+`ORF-CRE-039`, `ORF-CRE-041`, `ORF-CRE-042`, `ORF-CRE-044` et `ORF-CRE-045` sont
+`functional` via `CreatureEventProfile` et `SetCreatureEventsHandler` : frontière de combat,
+inventaire perturbé, repos terminé, heartbeat budgété et payloads utilisateur typés. Le portail
+passe 12/12 tests en 113,33 s, le smoke global, une capture fallback et une capture Forward+ FHD
+sur le vrai profil Crypte. Le tail dégâts/mort est protégé et préservé. La matrice atteint
+269 routes `functional` et 448 `planned`. Preuves et limites sont liées dans
+`docs/acceptance/STUDIO_UX4_N.md` ; les routes dégâts/mort, IA/événements, spawn et conversation
+restent aux lots UX4 suivants.
+
 ## Gates ergonomiques avant parité
 
 Une page ne passe pas `Parity` si l’un des points suivants manque :
