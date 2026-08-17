@@ -209,7 +209,10 @@ public partial class GameRoot : Node3D
     private WorldFeatureCatalog? _worldFeatureCatalog;
     private readonly HashSet<Guid> _livingWorldTriggerOccupancy = [];
     private readonly HashSet<Guid> _livingWorldTriggerDiagnostics = [];
+    private readonly Dictionary<Guid, WorldFeatureRuntimeResolver.TriggerRuntimeState>
+        _livingWorldTriggerFoundationStates = [];
     private TriggerNarrativeRuntimeState _livingWorldNarrativeState = TriggerNarrativeRuntimeState.Empty;
+    private EntityInstance? _livingWorldPlayerEntity;
     private Node? _doorAccessEventRoot;
     private Node? _encounterCompositionRoot;
     private Node? _encounterScenarioRoot;
@@ -1632,6 +1635,11 @@ public partial class GameRoot : Node3D
     private EntityInstance BuildProject(ProjectDefinition project, EntityId? requestedSpawnId)
     {
         _loadedProject = project;
+        _livingWorldTriggerOccupancy.Clear();
+        _livingWorldTriggerDiagnostics.Clear();
+        _livingWorldTriggerFoundationStates.Clear();
+        _livingWorldNarrativeState = TriggerNarrativeRuntimeState.Empty;
+        _livingWorldPlayerEntity = null;
         BuildDialogueAuthoringAdapters(project.Dialogues);
         BuildDialogueExperienceAdapters(project.Dialogues);
         BuildDialogueProductionAdapters(project.Dialogues);
@@ -2066,6 +2074,7 @@ public partial class GameRoot : Node3D
 
     private PlayerController CreatePlayer(EntityInstance entity, BlueprintDefinition blueprint)
     {
+        _livingWorldPlayerEntity = entity;
         if (blueprint.Combat is not null)
         {
             _playerCombatant = new CombatantState(entity.Id.ToString(), blueprint.Combat);
@@ -4547,6 +4556,9 @@ public partial class GameRoot : Node3D
                 continue;
             }
             if (!containment.Contains) continue;
+            var foundationProbe = EnterLivingWorldFoundation(profile,
+                EmptyLivingWorldFoundationState(), position, DateTimeOffset.UtcNow);
+            if (!foundationProbe.Fired) continue;
             var resolution = TriggerLivingWorldRuntimeService.ResolveRest(profile,
                 new(EvaluateLivingWorldDanger(profile.Rest!.DangerQuery), partyPresent, partyExpected));
             if (!resolution.Allowed) return resolution;
@@ -4567,11 +4579,13 @@ public partial class GameRoot : Node3D
 
     private void AdvanceLivingWorldTriggers()
     {
-        if (_player is null || _worldFeatureCatalog is null || _currentAreaId is null) return;
+        if (_player is null || _livingWorldPlayerEntity is null ||
+            _worldFeatureCatalog is null || _currentAreaId is null) return;
         var currentArea = AreaId.Parse(_currentAreaId);
         var position = _player.GlobalPosition;
         var worldPosition = new Vector3Value(position.X, position.Y, position.Z);
         var insideNow = new HashSet<Guid>();
+        var now = DateTimeOffset.UtcNow;
         foreach (var profile in _worldFeatureCatalog.Triggers
                      .Where(item => item.AreaId == currentArea &&
                                     (item.Clue is not null || item.Narrative is not null))
@@ -4587,13 +4601,51 @@ public partial class GameRoot : Node3D
             if (!containment.Contains) continue;
             insideNow.Add(profile.Id);
             if (_livingWorldTriggerOccupancy.Contains(profile.Id)) continue;
+            var foundationState = _livingWorldTriggerFoundationStates.GetValueOrDefault(profile.Id) ??
+                                  EmptyLivingWorldFoundationState();
+            var entered = EnterLivingWorldFoundation(profile, foundationState, worldPosition, now);
+            _livingWorldTriggerFoundationStates[profile.Id] = entered.State;
+            if (!entered.Fired) continue;
             ResolveLivingWorldClue(profile);
             ResolveLivingWorldNarrative(profile);
+        }
+
+        foreach (var departedId in _livingWorldTriggerOccupancy.Except(insideNow).ToArray())
+        {
+            var profile = _worldFeatureCatalog.Triggers.SingleOrDefault(item => item.Id == departedId);
+            if (profile?.Foundation is null ||
+                !_livingWorldTriggerFoundationStates.TryGetValue(departedId, out var state)) continue;
+            _livingWorldTriggerFoundationStates[departedId] = WorldFeatureRuntimeResolver.ExitTrigger(
+                profile, state, _livingWorldPlayerEntity.Id.ToString(), now, "player-left-volume").State;
         }
 
         _livingWorldTriggerOccupancy.Clear();
         _livingWorldTriggerOccupancy.UnionWith(insideNow);
     }
+
+    private WorldFeatureRuntimeResolver.TriggerEnterResult EnterLivingWorldFoundation(
+        TriggerWorldProfile profile,
+        WorldFeatureRuntimeResolver.TriggerRuntimeState state,
+        Vector3Value position,
+        DateTimeOffset now)
+    {
+        var entity = _livingWorldPlayerEntity ??
+                     throw new InvalidOperationException("Living-world player context is unavailable.");
+        var conditions = profile.Foundation!.Conditions.Distinct(StringComparer.Ordinal).ToDictionary(
+            condition => condition,
+            condition => _blackboard.TryGetValue(condition, out var value) ? value : "false",
+            StringComparer.Ordinal);
+        var velocity = _player?.Velocity ?? Vector3.Zero;
+        var direction = velocity.LengthSquared() > .0001f ? velocity.Normalized() : Vector3.Zero;
+        return WorldFeatureRuntimeResolver.EnterTrigger(profile, state, entity.Id.ToString(), "creature",
+            entity.Tags.ToHashSet(StringComparer.Ordinal), new HashSet<string>(["characters"], StringComparer.Ordinal),
+            position, new(direction.X, direction.Y, direction.Z), conditions, now);
+    }
+
+    private static WorldFeatureRuntimeResolver.TriggerRuntimeState EmptyLivingWorldFoundationState() => new(
+        new Dictionary<string, DateTimeOffset>(StringComparer.Ordinal),
+        new Dictionary<string, DateTimeOffset>(StringComparer.Ordinal),
+        new HashSet<string>(StringComparer.Ordinal), false);
 
     private void ResolveLivingWorldClue(TriggerWorldProfile profile)
     {
