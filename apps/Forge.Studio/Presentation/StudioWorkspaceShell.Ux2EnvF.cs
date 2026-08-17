@@ -38,7 +38,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx1AAOverlay(); CloseUx1ABOverlay(); CloseUx1ACOverlay(); CloseUx1ADOverlay();
         CloseUx1AEOverlay(); CloseUx1AFWorkspace(); CloseUx1AGOverlay(); CloseUx1AHOverlay();
         CloseUx1AIOverlay(); CloseUx1AJOverlay(); CloseUx2AOverlay(); CloseUx2EnvBOverlay();
-        CloseUx2EnvCOverlay(); CloseUx2EnvDOverlay(); CloseUx2EnvEOverlay();
+        CloseUx2EnvCOverlay(); CloseUx2EnvDOverlay(); CloseUx2EnvEOverlay(); CloseUx2EnvGOverlay();
         SwitchPage("environment", notify: false); _audioEmittersOverlayUx2EnvF.Open();
         SetStatus("Émetteurs audio ouverts · sélection explicite · aperçu sec obligatoire");
     }

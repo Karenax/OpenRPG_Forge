@@ -310,6 +310,7 @@ public sealed partial class StudioRoot : Control
         var ux2EnvDValid = true;
         var ux2EnvEValid = true;
         var ux2EnvFValid = true;
+        var ux2EnvGValid = true;
         var ux2NavBValid = true;
         var ux2NavCValid = true;
         var ux2NavDValid = true;
@@ -332,6 +333,7 @@ public sealed partial class StudioRoot : Control
             var ux2EnvDApproval = _session.CaptureRenderingApprovalUx2EnvD();
             var ux2EnvEApproval = _session.CaptureAudioApprovalUx2EnvE();
             var ux2EnvFApproval = _session.CaptureAudioEmittersApprovalUx2EnvF();
+            var ux2EnvGApproval = _session.CaptureAudioWorkbenchApprovalUx2EnvG();
             var ux2NavBApproval = _session.CaptureNavigationApprovalUx2NavB();
             var ux2NavCApproval = _session.CaptureWaypointApprovalUx2NavC();
             var ux2NavDApproval = _session.CapturePatrolApprovalUx2NavD();
@@ -353,6 +355,7 @@ public sealed partial class StudioRoot : Control
                 ux2EnvDValid = _shell.RunUx2EnvDSmoke();
                 ux2EnvEValid = _shell.RunUx2EnvESmoke();
                 ux2EnvFValid = _shell.RunUx2EnvFSmoke();
+                ux2EnvGValid = _shell.RunUx2EnvGSmoke();
                 ux2NavBValid = _shell.RunUx2NavBSmoke();
                 ux2NavCValid = _shell.RunUx2NavCSmoke();
                 ux2NavDValid = _shell.RunUx2NavDSmoke();
@@ -375,6 +378,7 @@ public sealed partial class StudioRoot : Control
                 _session.RestoreRenderingApprovalUx2EnvD(ux2EnvDApproval);
                 _session.RestoreAudioApprovalUx2EnvE(ux2EnvEApproval);
                 _session.RestoreAudioEmittersApprovalUx2EnvF(ux2EnvFApproval);
+                _session.RestoreAudioWorkbenchApprovalUx2EnvG(ux2EnvGApproval);
                 _session.RestoreNavigationApprovalUx2NavB(ux2NavBApproval);
                 _session.RestoreWaypointApprovalUx2NavC(ux2NavCApproval);
                 _session.RestorePatrolApprovalUx2NavD(ux2NavDApproval);
@@ -396,6 +400,7 @@ public sealed partial class StudioRoot : Control
                 Equals(_session.CaptureRenderingApprovalUx2EnvD(), ux2EnvDApproval) &&
                 Equals(_session.CaptureAudioApprovalUx2EnvE(), ux2EnvEApproval) &&
                 Equals(_session.CaptureAudioEmittersApprovalUx2EnvF(), ux2EnvFApproval) &&
+                Equals(_session.CaptureAudioWorkbenchApprovalUx2EnvG(), ux2EnvGApproval) &&
                 Equals(_session.CaptureNavigationApprovalUx2NavB(), ux2NavBApproval) &&
                 Equals(_session.CaptureWaypointApprovalUx2NavC(), ux2NavCApproval) &&
                 Equals(_session.CapturePatrolApprovalUx2NavD(), ux2NavDApproval) &&
@@ -436,7 +441,7 @@ public sealed partial class StudioRoot : Control
             !ux1ADValid || !ux1AEValid || !ux1AFValid || !ux1AGValid || !ux1AHValid || !ux1AIValid || !ux1AJValid ||
             !ux2AValid || !ux2LwBValid || !ux2LwCValid || !ux2LwDValid || !ux2LwEValid ||
             !ux2BValid || !ux2CValid ||
-            !ux2EnvBValid || !ux2EnvCValid || !ux2EnvDValid || !ux2EnvEValid || !ux2EnvFValid ||
+            !ux2EnvBValid || !ux2EnvCValid || !ux2EnvDValid || !ux2EnvEValid || !ux2EnvFValid || !ux2EnvGValid ||
             !ux2NavBValid || !ux2NavCValid || !ux2NavDValid || !ux2NavEValid || !ux2NavFValid ||
             !ux4AValid || !ux5AValid ||
             !candidateApprovalsValid || !evidenceValid)
@@ -457,7 +462,7 @@ public sealed partial class StudioRoot : Control
                 $"ux1aj={ux1AJValid} ux2a={ux2AValid} ux2lwb={ux2LwBValid} ux2lwc={ux2LwCValid} " +
                 $"ux2lwd={ux2LwDValid} ux2lwe={ux2LwEValid} ux2b={ux2BValid} " +
                 $"ux2c={ux2CValid} ux2envb={ux2EnvBValid} ux2envc={ux2EnvCValid} ux2envd={ux2EnvDValid} " +
-                $"ux2enve={ux2EnvEValid} ux2envf={ux2EnvFValid} " +
+                $"ux2enve={ux2EnvEValid} ux2envf={ux2EnvFValid} ux2envg={ux2EnvGValid} " +
                 $"ux2navb={ux2NavBValid} ux2navc={ux2NavCValid} ux2navd={ux2NavDValid} " +
                 $"ux2nave={ux2NavEValid} ux2navf={ux2NavFValid} " +
                 $"ux4a={ux4AValid} ux5a={ux5AValid} " +
