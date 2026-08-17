@@ -349,6 +349,7 @@ public sealed partial class StudioRoot : Control
         var ux4MValid = true;
         var ux4NValid = true;
         var ux4OValid = true;
+        var ux4PValid = true;
         var ux5AValid = true;
         var candidateApprovalsValid = true;
         if (_smokeRequested)
@@ -404,6 +405,7 @@ public sealed partial class StudioRoot : Control
             var ux4MApproval = _session.CaptureCreatureRoleBehaviorApprovalUx4M();
             var ux4NApproval = _session.CaptureCreatureEventApprovalUx4N();
             var ux4OApproval = _session.CaptureCreatureDamageApprovalUx4O();
+            var ux4PApproval = _session.CaptureCreatureEventAiApprovalUx4P();
             var ux5AApproval = _session.CaptureDialogueApprovalUx5A();
             try
             {
@@ -458,6 +460,7 @@ public sealed partial class StudioRoot : Control
                 ux4MValid = _shell.RunUx4MSmoke();
                 ux4NValid = _shell.RunUx4NSmoke();
                 ux4OValid = _shell.RunUx4OSmoke();
+                ux4PValid = _shell.RunUx4PSmoke();
                 ux5AValid = _shell.RunUx5ASmoke();
             }
             finally
@@ -513,6 +516,7 @@ public sealed partial class StudioRoot : Control
                 _session.RestoreCreatureRoleBehaviorApprovalUx4M(ux4MApproval);
                 _session.RestoreCreatureEventApprovalUx4N(ux4NApproval);
                 _session.RestoreCreatureDamageApprovalUx4O(ux4OApproval);
+                _session.RestoreCreatureEventAiApprovalUx4P(ux4PApproval);
                 _session.RestoreDialogueApprovalUx5A(ux5AApproval);
             }
             candidateApprovalsValid =
@@ -567,6 +571,7 @@ public sealed partial class StudioRoot : Control
                 Equals(_session.CaptureCreatureRoleBehaviorApprovalUx4M(), ux4MApproval) &&
                 Equals(_session.CaptureCreatureEventApprovalUx4N(), ux4NApproval) &&
                 Equals(_session.CaptureCreatureDamageApprovalUx4O(), ux4OApproval) &&
+                Equals(_session.CaptureCreatureEventAiApprovalUx4P(), ux4PApproval) &&
                 Equals(_session.CaptureDialogueApprovalUx5A(), ux5AApproval);
             GD.Print(
                 $"OPENRPG_FORGE_STUDIO_CANDIDATE_APPROVALS_{(candidateApprovalsValid ? "PASS" : "FAILED")} " +
@@ -608,7 +613,7 @@ public sealed partial class StudioRoot : Control
             !ux2NavHValid || !ux2NavIValid || !ux2NavJValid || !ux2NavKValid || !ux2NavLValid || !ux2NavMValid ||
             !ux4AValid || !ux4BValid || !ux4CValid || !ux4DValid || !ux4EValid || !ux4FValid || !ux4GValid ||
             !ux4HValid || !ux4IValid || !ux4JValid || !ux4KValid || !ux4LValid || !ux4MValid || !ux4NValid ||
-            !ux4OValid || !ux5AValid ||
+            !ux4OValid || !ux4PValid || !ux5AValid ||
             !candidateApprovalsValid || !evidenceValid)
         {
             GD.PrintErr(
@@ -635,7 +640,7 @@ public sealed partial class StudioRoot : Control
                 $"ux2nave={ux2NavEValid} ux2navf={ux2NavFValid} ux2navg={ux2NavGValid} ux2navh={ux2NavHValid} " +
                 $"ux2navi={ux2NavIValid} ux2navj={ux2NavJValid} ux2navk={ux2NavKValid} ux2navl={ux2NavLValid} " +
                 $"ux2navm={ux2NavMValid} " +
-                $"ux4a={ux4AValid} ux4b={ux4BValid} ux4c={ux4CValid} ux4d={ux4DValid} ux4e={ux4EValid} ux4f={ux4FValid} ux4g={ux4GValid} ux4h={ux4HValid} ux4i={ux4IValid} ux4j={ux4JValid} ux4k={ux4KValid} ux4l={ux4LValid} ux4m={ux4MValid} ux4n={ux4NValid} ux4o={ux4OValid} ux5a={ux5AValid} " +
+                $"ux4a={ux4AValid} ux4b={ux4BValid} ux4c={ux4CValid} ux4d={ux4DValid} ux4e={ux4EValid} ux4f={ux4FValid} ux4g={ux4GValid} ux4h={ux4HValid} ux4i={ux4IValid} ux4j={ux4JValid} ux4k={ux4KValid} ux4l={ux4LValid} ux4m={ux4MValid} ux4n={ux4NValid} ux4o={ux4OValid} ux4p={ux4PValid} ux5a={ux5AValid} " +
                 $"candidate_approvals={candidateApprovalsValid} " +
                 $"evidence={evidenceValid}");
             GetTree().Quit(1);

@@ -33,7 +33,7 @@ internal sealed partial class StudioWorkspaceShell
         }
         SwitchPage("creatures", notify: false);
         CloseUx4DOverlay(); CloseUx4EOverlay(); CloseUx4FOverlay(); CloseUx4GOverlay();
-        CloseUx4HOverlay(); CloseUx4IOverlay(); CloseUx4JOverlay(); CloseUx4LOverlay(); CloseUx4MOverlay(); CloseUx4NOverlay(); CloseUx4OOverlay();
+        CloseUx4HOverlay(); CloseUx4IOverlay(); CloseUx4JOverlay(); CloseUx4LOverlay(); CloseUx4MOverlay(); CloseUx4NOverlay(); CloseUx4OOverlay(); CloseUx4POverlay();
         _creatureMovementOverlayUx4K.Open();
         SetStatus("Déplacement de créature ouvert · sélection explicite et aperçu canonique obligatoires");
     }
@@ -59,7 +59,7 @@ internal sealed partial class StudioWorkspaceShell
     {
         SwitchPage("creatures", notify: false);
         CloseUx4DOverlay(); CloseUx4EOverlay(); CloseUx4FOverlay(); CloseUx4GOverlay();
-        CloseUx4HOverlay(); CloseUx4IOverlay(); CloseUx4JOverlay(); CloseUx4LOverlay(); CloseUx4MOverlay(); CloseUx4NOverlay(); CloseUx4OOverlay();
+        CloseUx4HOverlay(); CloseUx4IOverlay(); CloseUx4JOverlay(); CloseUx4LOverlay(); CloseUx4MOverlay(); CloseUx4NOverlay(); CloseUx4OOverlay(); CloseUx4POverlay();
         return _creatureMovementOverlayUx4K.PrepareEvidence(mode);
     }
 

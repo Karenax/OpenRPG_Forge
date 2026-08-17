@@ -1040,6 +1040,16 @@ dont le vrai profil Crypte. Les bindings UX4-N sont préservés. La matrice atte
 `docs/acceptance/STUDIO_UX4_O.md` ; les routes IA/événements, spawn et conversation restent aux lots
 UX4 suivants.
 
+### UX4-P — Événements et intelligence de créature
+
+`ORF-CRE-035`, `ORF-CRE-037`, `ORF-CRE-038`, `ORF-CRE-040` et `ORF-CRE-046` sont `functional`
+via `CreatureFoundationProfile.EventAiComposition` et `SetCreatureFoundationHandler` : perception,
+attaque physique, capacité ciblée, mouvement bloqué avec récupération et contrôleur IA par profil.
+Le portail passe 9/9 tests en 117,33 s, le smoke global et trois captures Forward+ FHD, dont le vrai
+profil Crypte. Les profils UX4-D à UX4-O et les autres blueprints sont préservés. La matrice atteint
+277 routes `functional` et 440 `planned`. Preuves et limites sont liées dans
+`docs/acceptance/STUDIO_UX4_P.md` ; OnSpawn et OnConversation restent aux lots UX4 suivants.
+
 ## Gates ergonomiques avant parité
 
 Une page ne passe pas `Parity` si l’un des points suivants manque :

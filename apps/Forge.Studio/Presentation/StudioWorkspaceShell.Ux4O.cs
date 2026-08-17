@@ -35,6 +35,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx4DOverlay(); CloseUx4EOverlay(); CloseUx4FOverlay(); CloseUx4GOverlay();
         CloseUx4HOverlay(); CloseUx4IOverlay(); CloseUx4JOverlay(); CloseUx4KOverlay();
         CloseUx4LOverlay(); CloseUx4MOverlay(); CloseUx4NOverlay();
+        CloseUx4POverlay();
         _creatureDamageOverlayUx4O.Open();
         SetStatus("Dégâts, mort et validation ouverts · aperçu canonique obligatoire");
     }
@@ -62,6 +63,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx4DOverlay(); CloseUx4EOverlay(); CloseUx4FOverlay(); CloseUx4GOverlay();
         CloseUx4HOverlay(); CloseUx4IOverlay(); CloseUx4JOverlay(); CloseUx4KOverlay();
         CloseUx4LOverlay(); CloseUx4MOverlay(); CloseUx4NOverlay();
+        CloseUx4POverlay();
         return _creatureDamageOverlayUx4O.PrepareEvidence(mode);
     }
 

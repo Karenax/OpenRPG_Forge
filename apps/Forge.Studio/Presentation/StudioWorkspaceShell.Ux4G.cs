@@ -32,7 +32,7 @@ internal sealed partial class StudioWorkspaceShell
             return;
         }
         SwitchPage("creatures", notify: false);
-        CloseUx4DOverlay(); CloseUx4EOverlay(); CloseUx4FOverlay(); CloseUx4HOverlay(); CloseUx4IOverlay(); CloseUx4JOverlay(); CloseUx4KOverlay(); CloseUx4LOverlay(); CloseUx4MOverlay(); CloseUx4NOverlay(); CloseUx4OOverlay();
+        CloseUx4DOverlay(); CloseUx4EOverlay(); CloseUx4FOverlay(); CloseUx4HOverlay(); CloseUx4IOverlay(); CloseUx4JOverlay(); CloseUx4KOverlay(); CloseUx4LOverlay(); CloseUx4MOverlay(); CloseUx4NOverlay(); CloseUx4OOverlay(); CloseUx4POverlay();
         _creatureProgressionOverlayUx4G.Open();
         SetStatus("Progression ouverte · sélection explicite et aperçu canonique obligatoires");
     }
@@ -56,7 +56,7 @@ internal sealed partial class StudioWorkspaceShell
     internal bool PrepareUx4GEvidence(string mode)
     {
         SwitchPage("creatures", notify: false);
-        CloseUx4DOverlay(); CloseUx4EOverlay(); CloseUx4FOverlay(); CloseUx4HOverlay(); CloseUx4IOverlay(); CloseUx4JOverlay(); CloseUx4KOverlay(); CloseUx4LOverlay(); CloseUx4MOverlay(); CloseUx4NOverlay(); CloseUx4OOverlay();
+        CloseUx4DOverlay(); CloseUx4EOverlay(); CloseUx4FOverlay(); CloseUx4HOverlay(); CloseUx4IOverlay(); CloseUx4JOverlay(); CloseUx4KOverlay(); CloseUx4LOverlay(); CloseUx4MOverlay(); CloseUx4NOverlay(); CloseUx4OOverlay(); CloseUx4POverlay();
         return _creatureProgressionOverlayUx4G.PrepareEvidence(mode);
     }
 

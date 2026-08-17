@@ -36,6 +36,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx4HOverlay(); CloseUx4IOverlay(); CloseUx4JOverlay(); CloseUx4KOverlay();
         CloseUx4LOverlay(); CloseUx4MOverlay();
         CloseUx4OOverlay();
+        CloseUx4POverlay();
         _creatureEventsOverlayUx4N.Open();
         SetStatus("Événements avancés ouverts · aperçu canonique obligatoire");
     }
@@ -64,6 +65,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx4HOverlay(); CloseUx4IOverlay(); CloseUx4JOverlay(); CloseUx4KOverlay();
         CloseUx4LOverlay(); CloseUx4MOverlay();
         CloseUx4OOverlay();
+        CloseUx4POverlay();
         return _creatureEventsOverlayUx4N.PrepareEvidence(mode);
     }
 

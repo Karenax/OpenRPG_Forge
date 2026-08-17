@@ -103,6 +103,7 @@ param(
         'ux4-m', 'ux4-m-creature-role-behavior', 'ux4-m-ambient', 'ux4-m-auto-level',
         'ux4-n', 'ux4-n-creature-events', 'ux4-n-heartbeat', 'ux4-n-custom',
         'ux4-o', 'ux4-o-creature-damage-validation', 'ux4-o-validation',
+        'ux4-p', 'ux4-p-creature-event-ai', 'ux4-p-controller', 'ux4-p-qualification',
         'ux5-a', 'ux5-a-dialogue-foundation')]
     [string]$Evidence,
     [string]$Resolution,

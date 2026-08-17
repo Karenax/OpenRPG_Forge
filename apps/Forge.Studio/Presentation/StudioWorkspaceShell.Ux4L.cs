@@ -37,6 +37,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx4MOverlay();
         CloseUx4NOverlay();
         CloseUx4OOverlay();
+        CloseUx4POverlay();
         _creatureVoiceOverlayUx4L.Open();
         SetStatus("Voix de créature ouverte · sélection explicite et aperçu canonique obligatoires");
     }
@@ -64,6 +65,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx4MOverlay();
         CloseUx4NOverlay();
         CloseUx4OOverlay();
+        CloseUx4POverlay();
         return _creatureVoiceOverlayUx4L.PrepareEvidence(mode);
     }
 

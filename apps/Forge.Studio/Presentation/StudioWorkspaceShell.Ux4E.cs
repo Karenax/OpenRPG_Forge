@@ -43,6 +43,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx4MOverlay();
         CloseUx4NOverlay();
         CloseUx4OOverlay();
+        CloseUx4POverlay();
         _creaturePresentationOverlayUx4E.Open();
         SetStatus("Présentation créature ouverte · sélection explicite et aperçu canonique obligatoires");
     }
@@ -78,6 +79,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx4MOverlay();
         CloseUx4NOverlay();
         CloseUx4OOverlay();
+        CloseUx4POverlay();
         return _creaturePresentationOverlayUx4E.PrepareEvidence(mode);
     }
 
