@@ -85,6 +85,7 @@ internal sealed partial class StudioWorkspaceShell
     internal bool PrepareUx2EnvCEvidence(string mode)
     {
         SwitchPage("environment", notify: false);
+        CloseUx2EnvBOverlay();
         return _climateWaterReverbOverlayUx2EnvC.PrepareEvidence(mode);
     }
 

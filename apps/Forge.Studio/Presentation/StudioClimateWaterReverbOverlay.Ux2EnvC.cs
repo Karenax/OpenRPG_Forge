@@ -1,3 +1,4 @@
+using System.Globalization;
 using Forge.Domain.Areas;
 using Forge.Domain.Spatial;
 using Forge.ModuleFormat.Serialization;
@@ -6,6 +7,15 @@ using Forge.Studio.Session;
 using Godot;
 
 namespace Forge.Studio.Presentation;
+
+internal static class StudioUx2EnvCNumberText
+{
+    internal static void Set(SpinBox control, double value)
+    {
+        control.Value = value;
+        control.GetLineEdit().Text = value.ToString("0.#######", CultureInfo.InvariantCulture);
+    }
+}
 
 internal sealed partial class StudioUx2EnvCVectorEditor : HBoxContainer
 {
@@ -40,7 +50,7 @@ internal sealed partial class StudioUx2EnvCVectorEditor : HBoxContainer
     {
         var control = StudioUx2EnvBControls.Number(-1_000_000, 1_000_000, .1,
             allowGreater: true, allowLesser: true);
-        control.Value = value;
+        StudioUx2EnvCNumberText.Set(control, value);
         return control;
     }
 }
@@ -90,7 +100,7 @@ internal sealed partial class StudioUx2EnvCWindZoneRow : StudioUx2EnvBRowBase<St
     private static SpinBox Number(double min, double max, double step, double value, bool greater = false)
     {
         var control = StudioUx2EnvBControls.Number(min, max, step, greater);
-        control.Value = value;
+        StudioUx2EnvCNumberText.Set(control, value);
         return control;
     }
 }
@@ -169,7 +179,9 @@ internal sealed partial class StudioUx2EnvCWeatherStateRow : StudioUx2EnvBRowBas
 
     private static SpinBox Number(double min, double max, double step, double value, bool greater = false)
     {
-        var control = StudioUx2EnvBControls.Number(min, max, step, greater); control.Value = value; return control;
+        var control = StudioUx2EnvBControls.Number(min, max, step, greater);
+        StudioUx2EnvCNumberText.Set(control, value);
+        return control;
     }
 }
 
@@ -258,7 +270,9 @@ internal sealed partial class StudioUx2EnvCWaterBodyRow : StudioUx2EnvBRowBase<S
 
     private static SpinBox Number(double min, double max, double step, double value, bool greater = false)
     {
-        var control = StudioUx2EnvBControls.Number(min, max, step, greater); control.Value = value; return control;
+        var control = StudioUx2EnvBControls.Number(min, max, step, greater);
+        StudioUx2EnvCNumberText.Set(control, value);
+        return control;
     }
 }
 
@@ -327,7 +341,9 @@ internal sealed partial class StudioUx2EnvCReverbZoneRow : StudioUx2EnvBRowBase<
 
     private static SpinBox Number(double min, double max, double step, double value)
     {
-        var control = StudioUx2EnvBControls.Number(min, max, step); control.Value = value; return control;
+        var control = StudioUx2EnvBControls.Number(min, max, step);
+        StudioUx2EnvCNumberText.Set(control, value);
+        return control;
     }
 }
 
@@ -763,14 +779,18 @@ internal sealed partial class StudioClimateWaterReverbOverlayUx2EnvC : ColorRect
     private void Populate(StudioUx2EnvCDraft draft)
     {
         _updating = true;
-        _windDirectionX.Value = draft.WindDirectionX; _windDirectionZ.Value = draft.WindDirectionZ;
-        _windSpeed.Value = draft.WindSpeed; _windGustStrength.Value = draft.WindGustStrength;
-        _windGustInterval.Value = draft.WindGustIntervalSeconds;
+        StudioUx2EnvCNumberText.Set(_windDirectionX, draft.WindDirectionX);
+        StudioUx2EnvCNumberText.Set(_windDirectionZ, draft.WindDirectionZ);
+        StudioUx2EnvCNumberText.Set(_windSpeed, draft.WindSpeed);
+        StudioUx2EnvCNumberText.Set(_windGustStrength, draft.WindGustStrength);
+        StudioUx2EnvCNumberText.Set(_windGustInterval, draft.WindGustIntervalSeconds);
         _windVegetation.ButtonPressed = draft.WindInfluencesVegetation;
         _windParticles.ButtonPressed = draft.WindInfluencesParticles; _windAudio.Text = draft.WindAudioCue;
-        _windGameplayForce.Value = draft.WindGameplayForce; _windZones.SetValues(draft.WindZones);
+        StudioUx2EnvCNumberText.Set(_windGameplayForce, draft.WindGameplayForce);
+        _windZones.SetValues(draft.WindZones);
         _weatherStates.SetValues(draft.WeatherStates); RefreshInitialWeatherChoices(draft.InitialWeatherStateId);
-        _weatherAuthority.ButtonPressed = draft.WeatherServerAuthoritative; _weatherSeed.Value = draft.WeatherDeterministicSeed;
+        _weatherAuthority.ButtonPressed = draft.WeatherServerAuthoritative;
+        StudioUx2EnvCNumberText.Set(_weatherSeed, draft.WeatherDeterministicSeed);
         _weatherPersist.ButtonPressed = draft.WeatherPersistState; _weatherReplicate.ButtonPressed = draft.WeatherReplicateState;
         _waterBodies.SetValues(draft.WaterBodies); _reverbDefault.Text = draft.ReverbDefaultPreset;
         _reverbZones.SetValues(draft.ReverbZones); _updating = false;

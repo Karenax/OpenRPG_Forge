@@ -247,8 +247,12 @@ internal sealed partial class StudioTerrainSurfaceWorkspaceUx2C : Control
         _brushCanvas.TargetChanged += (x, z) =>
         {
             _updating = true;
-            _worldX.Value = Math.Round(x, 3, MidpointRounding.AwayFromZero);
-            _worldZ.Value = Math.Round(z, 3, MidpointRounding.AwayFromZero);
+            var roundedX = Math.Round(x, 3, MidpointRounding.AwayFromZero);
+            var roundedZ = Math.Round(z, 3, MidpointRounding.AwayFromZero);
+            _worldX.Value = roundedX;
+            _worldZ.Value = roundedZ;
+            _worldX.GetLineEdit().Text = roundedX.ToString("0.###", CultureInfo.InvariantCulture);
+            _worldZ.GetLineEdit().Text = roundedZ.ToString("0.###", CultureInfo.InvariantCulture);
             _updating = false;
             InvalidatePreview();
         };

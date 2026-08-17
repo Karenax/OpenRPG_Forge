@@ -186,6 +186,7 @@ internal sealed partial class StudioWorkspaceShell : Control
         BuildUx2BActions(headingRow);
         BuildUx2CActions(headingRow);
         BuildUx2EnvBActions(headingRow);
+        BuildUx2EnvCActions(headingRow);
         BuildUx4AActions(headingRow);
         _primaryAction = StudioStyle.Button("Migration en cours", primary: true, compact: true);
         _primaryAction.Disabled = true;
@@ -315,6 +316,7 @@ internal sealed partial class StudioWorkspaceShell : Control
         InitializeUx2BWorkspace();
         InitializeUx2CWorkspace();
         InitializeUx2EnvBOverlay();
+        InitializeUx2EnvCOverlay();
         InitializeUx4AOverlay();
         InitializeUx5APage(pageStack);
         if (_session.ActiveArea is null)
@@ -550,6 +552,10 @@ internal sealed partial class StudioWorkspaceShell : Control
         if (mode.StartsWith("ux2-env-b", StringComparison.OrdinalIgnoreCase))
         {
             return PrepareUx2EnvBEvidence(mode);
+        }
+        if (mode.StartsWith("ux2-env-c", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx2EnvCEvidence(mode);
         }
         if (mode.StartsWith("ux4-a", StringComparison.OrdinalIgnoreCase))
         {
@@ -963,6 +969,7 @@ internal sealed partial class StudioWorkspaceShell : Control
         if (page.Id != "environment")
         {
             CloseUx2EnvBOverlay();
+            CloseUx2EnvCOverlay();
         }
         if (page.Id != "social-content")
         {
@@ -1048,6 +1055,7 @@ internal sealed partial class StudioWorkspaceShell : Control
         UpdateUx2BActionState();
         UpdateUx2CActionState();
         UpdateUx2EnvBActionState();
+        UpdateUx2EnvCActionState();
         UpdateUx4AActionState();
 
         var usesWorld = !isAssetLibrary && !isProjectConfiguration && !isDiagnostics &&
