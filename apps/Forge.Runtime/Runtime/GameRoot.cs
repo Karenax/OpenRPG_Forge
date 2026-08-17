@@ -76,6 +76,7 @@ using Forge.Network.Testing;
 using Forge.Network.Authoring;
 using Forge.Network.Scenarios;
 using Forge.Network.Sessions;
+using Forge.Network.World;
 using Forge.LiveDirector.Authoring;
 using Forge.LiveDirector.Scenarios;
 using Forge.RpgKit.Application.Companions;
@@ -291,6 +292,9 @@ public partial class GameRoot : Node3D
     private Node3D? _areaWorldRoot;
     private ModuleRuntimePolicyProfile? _moduleRuntimePolicies;
     private AreaRuntimePolicyProfile? _areaRuntimePolicies;
+    private readonly PartyService _areaCombatParties = new();
+    private AreaCombatAuthority? _areaCombatAuthority;
+    private bool _areaCombatServerAuthority;
     private RestSession? _restSession;
     private long _runtimePolicyRevision;
     private SequenceDefinition? _activeSequence;
@@ -470,10 +474,15 @@ public partial class GameRoot : Node3D
                 : RuntimeLifecycleCause.SaveResume;
             _lifecycleEvents.Clear();
             _lifecycle = new RuntimeLifecycleCoordinator(observers: [HandleLifecycleEvent]);
+            var runtimeAuthority = _launcherSession is null
+                ? RuntimeAuthority.SinglePlayer
+                : RuntimeAuthority.Server;
+            _areaCombatServerAuthority = runtimeAuthority is RuntimeAuthority.SinglePlayer or
+                RuntimeAuthority.Server;
             EnsureLifecycle(
                 _lifecycle.LoadProject(
                     project,
-                    _launcherSession is null ? RuntimeAuthority.SinglePlayer : RuntimeAuthority.Server,
+                    runtimeAuthority,
                     lifecycleCause),
                 "project_loaded");
             _blackboard = ProjectBlackboardScriptService.ForRuntime(project.Module.Variables);
@@ -4042,6 +4051,20 @@ public partial class GameRoot : Node3D
         ApplyRuntimeInputProfile(module.Gameplay.Foundation.Input);
         _moduleRules = module.Rules;
         _areaRules = area.Rules;
+        _areaCombatAuthority = new AreaCombatAuthority(_areaCombatParties, area.Rules.Combat);
+        if (!area.Rules.Combat.ServerAuthoritative)
+        {
+            GD.PrintErr("OPENRPG_FORGE_AREA_COMBAT_DIAGNOSTIC " +
+                        "code=NET_AREA_COMBAT_AUTHORITY_REQUIRED " +
+                        "path=area/runtimePolicies/rules/combat/serverAuthoritative");
+        }
+        else
+        {
+            GD.Print("OPENRPG_FORGE_AREA_COMBAT_READY " +
+                     $"pvp={area.Rules.Combat.PvpMode.ToString().ToLowerInvariant()} " +
+                     $"aggro={area.Rules.Combat.AggroEnabled.ToString().ToLowerInvariant()} " +
+                     $"server={_areaCombatServerAuthority.ToString().ToLowerInvariant()}");
+        }
         _areaExperience = area.Experience;
         _runtimeExtensions = module.Extensions;
         var worldResolution = ProjectWorldRuntimeResolver.Resolve(module.World, module.Id, module.World.RequiredAtRuntime);
@@ -6018,6 +6041,10 @@ public partial class GameRoot : Node3D
             RejectCombatAction("Cette cible est déjà vaincue.", "combat:target-dead");
             return;
         }
+        if (!AuthorizeAreaCombatAttack(_playerCombatant, target))
+        {
+            return;
+        }
         if (_playerCombatant.Resource < ability.ResourceCost)
         {
             RejectCombatAction(
@@ -6174,6 +6201,53 @@ public partial class GameRoot : Node3D
         }
 
         UpdateHud();
+    }
+
+    private bool AuthorizeAreaCombatAttack(CombatantState attacker, CombatantState target)
+    {
+        var path = _activeArea is null
+            ? "area/runtimePolicies/rules/combat"
+            : $"areas/{_activeArea.Id}/runtimePolicies/rules/combat";
+        if (_areaCombatAuthority is null ||
+            !Guid.TryParse(attacker.Id, out var attackerId) ||
+            !Guid.TryParse(target.Id, out var targetId))
+        {
+            const string code = "NET_AREA_COMBAT_CONTEXT_INVALID";
+            GD.PrintErr($"OPENRPG_FORGE_AREA_COMBAT_REJECTED code={code} path={path}");
+            RejectCombatAction("Le contexte d’autorité du combat est indisponible.",
+                "combat:authority:context-invalid");
+            return false;
+        }
+
+        var decision = _areaCombatAuthority.AuthorizeDamage(
+            attackerId,
+            targetId,
+            targetIsPlayer: false,
+            worldRevision: checked(++_runtimePolicyRevision),
+            serverAuthorityGranted: _areaCombatServerAuthority,
+            aggroInitiation: true);
+        if (!decision.Accepted)
+        {
+            var message = decision.Code switch
+            {
+                "NET_AREA_COMBAT_SERVER_REQUIRED" =>
+                    "Cette action de combat exige l’autorité du serveur.",
+                "NET_AREA_COMBAT_AUTHORITY_REQUIRED" =>
+                    "La politique de combat de cette zone n’autorise pas une décision locale.",
+                "NET_AREA_AGGRO_DISABLED" =>
+                    "Cette zone interdit l’initiation d’un combat hostile.",
+                _ => "La politique de combat de cette zone refuse cette action.",
+            };
+            GD.PrintErr($"OPENRPG_FORGE_AREA_COMBAT_REJECTED code={decision.Code} path={path} " +
+                        $"revision={decision.Revision}");
+            RejectCombatAction(message, $"combat:authority:{decision.Code.ToLowerInvariant()}");
+            return false;
+        }
+
+        GD.Print($"OPENRPG_FORGE_AREA_COMBAT_AUTHORITY_PASS code={decision.Code} path={path} " +
+                 $"aggro=true server={_areaCombatServerAuthority.ToString().ToLowerInvariant()} " +
+                 $"revision={decision.Revision}");
+        return true;
     }
 
     private void RejectCombatAction(string message, string deduplicationKey)
