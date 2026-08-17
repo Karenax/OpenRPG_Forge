@@ -48,6 +48,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2AOverlay(); CloseUx2LwBOverlay(); CloseUx2LwCOverlay(); CloseUx2LwDOverlay();
         CloseUx2LwEOverlay(); CloseUx2LwFOverlay(); CloseUx2LwGOverlay();
         CloseUx2LwHOverlay();
+        CloseUx2LwJOverlay();
         CloseUx2LwKOverlay();
         CloseUx4AOverlay(); CloseUx5APage();
         SwitchPage("living-world", notify: false);
@@ -80,6 +81,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2LwBOverlay(); CloseUx2LwCOverlay(); CloseUx2LwDOverlay(); CloseUx2LwEOverlay();
         CloseUx2LwFOverlay(); CloseUx2LwGOverlay();
         CloseUx2LwHOverlay();
+        CloseUx2LwJOverlay();
         CloseUx2LwKOverlay();
         return _encounterLifecycleOverlayUx2LwI.PrepareEvidence(mode);
     }

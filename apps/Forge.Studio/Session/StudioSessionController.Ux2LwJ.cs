@@ -790,8 +790,8 @@ internal sealed partial class StudioSessionController
         var routeId = StableUx2LwJ(seed, purpose);
         return new(routeId, 1, Ux2LwJEvidenceProvenance, PatrolTraversalPolicy.Once,
         [
-            new(StableUx2LwJ(routeId, "point:entry"), new(-offset, 0, 3), 0, 45, 2, null, null),
-            new(StableUx2LwJ(routeId, "point:arrival"), new(offset, 0, 3), 0, 45, 2, null, null),
+            new(StableUx2LwJ(routeId, "point:entry"), new(-(float)offset, 0, 3), 0, 45, 2, null, null),
+            new(StableUx2LwJ(routeId, "point:arrival"), new((float)offset, 0, 3), 0, 45, 2, null, null),
         ]);
     }
 

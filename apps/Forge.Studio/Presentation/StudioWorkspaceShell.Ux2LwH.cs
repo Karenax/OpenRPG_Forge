@@ -64,6 +64,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2LwFOverlay();
         CloseUx2LwGOverlay();
         CloseUx2LwIOverlay();
+        CloseUx2LwJOverlay();
         CloseUx2LwKOverlay();
         CloseUx4AOverlay();
         CloseUx5APage();
@@ -102,6 +103,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2LwFOverlay();
         CloseUx2LwGOverlay();
         CloseUx2LwIOverlay();
+        CloseUx2LwJOverlay();
         CloseUx2LwKOverlay();
         return _encounterScenarioOverlayUx2LwH.PrepareEvidence(mode);
     }

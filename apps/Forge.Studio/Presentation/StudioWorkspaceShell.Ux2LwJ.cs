@@ -47,7 +47,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx1AIOverlay(); CloseUx1AJOverlay();
         CloseUx2AOverlay(); CloseUx2LwBOverlay(); CloseUx2LwCOverlay(); CloseUx2LwDOverlay();
         CloseUx2LwEOverlay(); CloseUx2LwFOverlay(); CloseUx2LwGOverlay(); CloseUx2LwHOverlay();
-        CloseUx2LwIOverlay();
+        CloseUx2LwIOverlay(); CloseUx2LwKOverlay();
         CloseUx4AOverlay(); CloseUx5APage();
         SwitchPage("living-world", notify: false);
         _encounterTacticalOverlayUx2LwJ.Open();
@@ -78,6 +78,7 @@ internal sealed partial class StudioWorkspaceShell
         SwitchPage("living-world", notify: false);
         CloseUx2LwBOverlay(); CloseUx2LwCOverlay(); CloseUx2LwDOverlay(); CloseUx2LwEOverlay();
         CloseUx2LwFOverlay(); CloseUx2LwGOverlay(); CloseUx2LwHOverlay(); CloseUx2LwIOverlay();
+        CloseUx2LwKOverlay();
         return _encounterTacticalOverlayUx2LwJ.PrepareEvidence(mode);
     }
 

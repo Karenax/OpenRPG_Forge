@@ -65,6 +65,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2LwGOverlay();
         CloseUx2LwHOverlay();
         CloseUx2LwIOverlay();
+        CloseUx2LwJOverlay();
         CloseUx2LwKOverlay();
         SwitchPage("living-world", notify: false);
         _areaCombatOverlayUx2LwD.Open();
@@ -102,6 +103,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2LwGOverlay();
         CloseUx2LwHOverlay();
         CloseUx2LwIOverlay();
+        CloseUx2LwJOverlay();
         CloseUx2LwKOverlay();
         return _areaCombatOverlayUx2LwD.PrepareEvidence(mode);
     }

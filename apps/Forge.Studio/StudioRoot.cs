@@ -307,6 +307,7 @@ public sealed partial class StudioRoot : Control
         var ux2LwGValid = true;
         var ux2LwHValid = true;
         var ux2LwIValid = true;
+        var ux2LwJValid = true;
         var ux2LwKValid = true;
         var ux2BValid = true;
         var ux2CValid = true;
@@ -343,6 +344,7 @@ public sealed partial class StudioRoot : Control
             var ux2LwGApproval = _session.CaptureEncounterPolicyApprovalUx2LwG();
             var ux2LwHApproval = _session.CaptureEncounterScenarioApprovalUx2LwH();
             var ux2LwIApproval = _session.CaptureEncounterLifecycleApprovalUx2LwI();
+            var ux2LwJApproval = _session.CaptureEncounterTacticalApprovalUx2LwJ();
             var ux2LwKApproval = _session.CaptureEncounterStatisticsApprovalUx2LwK();
             var ux2BApproval = _session.CaptureTerrainApprovalUx2B();
             var ux2CApproval = _session.CaptureTerrainSurfaceApprovalUx2C();
@@ -378,6 +380,7 @@ public sealed partial class StudioRoot : Control
                 ux2LwGValid = _shell.RunUx2LwGSmoke();
                 ux2LwHValid = _shell.RunUx2LwHSmoke();
                 ux2LwIValid = _shell.RunUx2LwISmoke();
+                ux2LwJValid = _shell.RunUx2LwJSmoke();
                 ux2LwKValid = _shell.RunUx2LwKSmoke();
                 ux2BValid = _shell.RunUx2BSmoke();
                 ux2CValid = _shell.RunUx2CSmoke();
@@ -414,6 +417,7 @@ public sealed partial class StudioRoot : Control
                 _session.RestoreEncounterPolicyApprovalUx2LwG(ux2LwGApproval);
                 _session.RestoreEncounterScenarioApprovalUx2LwH(ux2LwHApproval);
                 _session.RestoreEncounterLifecycleApprovalUx2LwI(ux2LwIApproval);
+                _session.RestoreEncounterTacticalApprovalUx2LwJ(ux2LwJApproval);
                 _session.RestoreEncounterStatisticsApprovalUx2LwK(ux2LwKApproval);
                 _session.RestoreTerrainApprovalUx2B(ux2BApproval);
                 _session.RestoreTerrainSurfaceApprovalUx2C(ux2CApproval);
@@ -449,6 +453,7 @@ public sealed partial class StudioRoot : Control
                 Equals(_session.CaptureEncounterPolicyApprovalUx2LwG(), ux2LwGApproval) &&
                 Equals(_session.CaptureEncounterScenarioApprovalUx2LwH(), ux2LwHApproval) &&
                 Equals(_session.CaptureEncounterLifecycleApprovalUx2LwI(), ux2LwIApproval) &&
+                Equals(_session.CaptureEncounterTacticalApprovalUx2LwJ(), ux2LwJApproval) &&
                 Equals(_session.CaptureEncounterStatisticsApprovalUx2LwK(), ux2LwKApproval) &&
                 Equals(_session.CaptureTerrainApprovalUx2B(), ux2BApproval) &&
                 Equals(_session.CaptureTerrainSurfaceApprovalUx2C(), ux2CApproval) &&
@@ -505,7 +510,7 @@ public sealed partial class StudioRoot : Control
             !ux1WValid || !ux1XValid || !ux1YValid || !ux1ZValid || !ux1AAValid || !ux1ABValid || !ux1ACValid ||
             !ux1ADValid || !ux1AEValid || !ux1AFValid || !ux1AGValid || !ux1AHValid || !ux1AIValid || !ux1AJValid ||
             !ux2AValid || !ux2LwBValid || !ux2LwCValid || !ux2LwDValid || !ux2LwEValid || !ux2LwFValid ||
-            !ux2LwGValid || !ux2LwHValid || !ux2LwIValid || !ux2LwKValid ||
+            !ux2LwGValid || !ux2LwHValid || !ux2LwIValid || !ux2LwJValid || !ux2LwKValid ||
             !ux2BValid || !ux2CValid ||
             !ux2EnvBValid || !ux2EnvCValid || !ux2EnvDValid || !ux2EnvEValid || !ux2EnvFValid || !ux2EnvGValid ||
             !ux2EnvHValid || !ux2EnvIValid || !ux2EnvJValid || !ux2EnvKValid ||
@@ -529,7 +534,7 @@ public sealed partial class StudioRoot : Control
                 $"ux1af={ux1AFValid} ux1ag={ux1AGValid} ux1ah={ux1AHValid} ux1ai={ux1AIValid} " +
                 $"ux1aj={ux1AJValid} ux2a={ux2AValid} ux2lwb={ux2LwBValid} ux2lwc={ux2LwCValid} " +
                 $"ux2lwd={ux2LwDValid} ux2lwe={ux2LwEValid} ux2lwf={ux2LwFValid} ux2lwg={ux2LwGValid} " +
-                $"ux2lwh={ux2LwHValid} ux2lwi={ux2LwIValid} ux2lwk={ux2LwKValid} ux2b={ux2BValid} " +
+                $"ux2lwh={ux2LwHValid} ux2lwi={ux2LwIValid} ux2lwj={ux2LwJValid} ux2lwk={ux2LwKValid} ux2b={ux2BValid} " +
                 $"ux2c={ux2CValid} ux2envb={ux2EnvBValid} ux2envc={ux2EnvCValid} ux2envd={ux2EnvDValid} " +
                 $"ux2enve={ux2EnvEValid} ux2envf={ux2EnvFValid} ux2envg={ux2EnvGValid} " +
                 $"ux2envh={ux2EnvHValid} ux2envi={ux2EnvIValid} ux2envj={ux2EnvJValid} ux2envk={ux2EnvKValid} " +

@@ -65,6 +65,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2LwGOverlay();
         CloseUx2LwHOverlay();
         CloseUx2LwIOverlay();
+        CloseUx2LwJOverlay();
         CloseUx2LwKOverlay();
         CloseUx4AOverlay();
         CloseUx5APage();
@@ -103,6 +104,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2LwGOverlay();
         CloseUx2LwHOverlay();
         CloseUx2LwIOverlay();
+        CloseUx2LwJOverlay();
         CloseUx2LwKOverlay();
         return _triggerLivingWorldOverlayUx2LwE.PrepareEvidence(mode);
     }
