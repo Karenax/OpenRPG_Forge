@@ -109,14 +109,17 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
     {
         get
         {
-            var text = string.Join(' ', DescendantLabels(_dialog).Select(item => item.Text));
-            return text.Contains("Factions", StringComparison.OrdinalIgnoreCase) &&
-                   text.Contains("Parents", StringComparison.OrdinalIgnoreCase) &&
-                   text.Contains("Relations directionnelles", StringComparison.OrdinalIgnoreCase) &&
-                   text.Contains("Bandes", StringComparison.OrdinalIgnoreCase) &&
-                   !text.Contains("UUID", StringComparison.OrdinalIgnoreCase) &&
-                   !text.Contains("module/factions", StringComparison.OrdinalIgnoreCase) &&
-                   !text.Contains(".json", StringComparison.OrdinalIgnoreCase);
+            var labels = string.Join(' ', DescendantLabels(_dialog).Select(item => item.Text));
+            var tabs = string.Join(' ', DescendantTabTitles(_dialog));
+            var visibleText = $"{labels} {tabs}";
+            return labels.Contains("Factions", StringComparison.OrdinalIgnoreCase) &&
+                   labels.Contains("Parents", StringComparison.OrdinalIgnoreCase) &&
+                   tabs.Contains("Définition et parents", StringComparison.OrdinalIgnoreCase) &&
+                   tabs.Contains("Relations directionnelles", StringComparison.OrdinalIgnoreCase) &&
+                   tabs.Contains("Bandes de disposition", StringComparison.OrdinalIgnoreCase) &&
+                   !visibleText.Contains("UUID", StringComparison.OrdinalIgnoreCase) &&
+                   !visibleText.Contains("module/factions", StringComparison.OrdinalIgnoreCase) &&
+                   !visibleText.Contains(".json", StringComparison.OrdinalIgnoreCase);
         }
     }
 
@@ -242,7 +245,7 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
 
         var relations = Tab(tabs, "2 · Relations directionnelles");
         relations.AddChild(StudioStyle.Label(
-            "Chaque direction est indépendante : A → B ne réécrit jamais B → A.",
+            "Relations directionnelles : chaque direction est indépendante ; A → B ne réécrit jamais B → A.",
             10,
             StudioStyle.Muted,
             wrap: true));
@@ -1624,6 +1627,24 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
             foreach (var descendant in DescendantLabels(child))
             {
                 yield return descendant;
+            }
+        }
+    }
+
+    private static IEnumerable<string> DescendantTabTitles(Node root)
+    {
+        foreach (var child in root.GetChildren())
+        {
+            if (child is TabContainer tabs)
+            {
+                foreach (var tab in tabs.GetChildren())
+                {
+                    yield return tab.Name.ToString();
+                }
+            }
+            foreach (var title in DescendantTabTitles(child))
+            {
+                yield return title;
             }
         }
     }
