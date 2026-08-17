@@ -7,6 +7,9 @@ SemVer ; les versions de schéma persistent séparément dans leurs documents.
 
 ### Changed
 
+- Forge Studio UX4-H : capacités spéciales, inventaire, conteneurs et équipement via
+  `SetCreatureFoundationHandler`, avec références aux objets réels, preuve Crypte et matrice portée
+  à 252 routes `functional` / 465 `planned` ;
 - Forge Studio UX4-G : classes et niveaux, alignement data-driven, compétences, talents et pouvoirs
   appris/préparés via `SetCreatureProgressionHandler`, avec préservation de l'auto-level voisin,
   preuve réelle Crypte et matrice portée à 250 routes `functional` / 467 `planned` ;

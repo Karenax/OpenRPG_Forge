@@ -32,7 +32,7 @@ internal sealed partial class StudioWorkspaceShell
             return;
         }
         SwitchPage("creatures", notify: false);
-        CloseUx4DOverlay(); CloseUx4EOverlay(); CloseUx4FOverlay();
+        CloseUx4DOverlay(); CloseUx4EOverlay(); CloseUx4FOverlay(); CloseUx4HOverlay();
         _creatureProgressionOverlayUx4G.Open();
         SetStatus("Progression ouverte · sélection explicite et aperçu canonique obligatoires");
     }
@@ -56,7 +56,7 @@ internal sealed partial class StudioWorkspaceShell
     internal bool PrepareUx4GEvidence(string mode)
     {
         SwitchPage("creatures", notify: false);
-        CloseUx4DOverlay(); CloseUx4EOverlay(); CloseUx4FOverlay();
+        CloseUx4DOverlay(); CloseUx4EOverlay(); CloseUx4FOverlay(); CloseUx4HOverlay();
         return _creatureProgressionOverlayUx4G.PrepareEvidence(mode);
     }
 

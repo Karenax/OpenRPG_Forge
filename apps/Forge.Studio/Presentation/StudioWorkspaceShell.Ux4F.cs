@@ -35,6 +35,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx4DOverlay();
         CloseUx4EOverlay();
         CloseUx4GOverlay();
+        CloseUx4HOverlay();
         _creatureRulesOverlayUx4F.Open();
         SetStatus("Animation et règles ouvertes · sélection explicite et aperçu canonique obligatoires");
     }
@@ -62,6 +63,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx4DOverlay();
         CloseUx4EOverlay();
         CloseUx4GOverlay();
+        CloseUx4HOverlay();
         return _creatureRulesOverlayUx4F.PrepareEvidence(mode);
     }
 

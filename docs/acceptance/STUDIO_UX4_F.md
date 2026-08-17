@@ -61,8 +61,8 @@ conserve les capacités et l'inventaire voisins, qui ne sont pas encore exposés
   non édités ;
 - les captures emploient une copie temporaire de la vraie Crypte ou un fallback canonique isolé.
   Source, historique, état dirty, sélection, approbations, page et surface active sont restaurés ;
-- cette preuve ne qualifie pas les routes de progression, désormais documentées séparément par
-  UX4-G ; `ORF-CRE-021` à `ORF-CRE-049` restent `planned`.
+- cette preuve ne qualifie pas les routes de progression, capacités et inventaire, documentées
+  séparément par UX4-G et UX4-H ; `ORF-CRE-023` à `ORF-CRE-049` restent `planned`.
 
 ## Reproduction
 

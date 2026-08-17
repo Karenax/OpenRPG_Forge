@@ -949,7 +949,17 @@ compétences, talents et pouvoirs appris/préparés via `SetCreatureProgressionH
 passe 10/10 tests en 102,38 s, le smoke global et six captures Forward+ FHD inspectées, dont cinq
 sur le profil réel de la Crypte. La preuve conserve explicitement le jeu de pistes piloté par
 l'auto-level voisin. La matrice atteint 250 routes `functional` et 467 `planned`. Preuves et limites
-sont liées dans `docs/acceptance/STUDIO_UX4_G.md` ; `ORF-CRE-021` à `ORF-CRE-049` restent `planned`.
+sont liées dans `docs/acceptance/STUDIO_UX4_G.md` ; capacités et inventaire passent au lot UX4-H.
+
+### UX4-H — Capacités et inventaire de créature
+
+`ORF-CRE-021` et `ORF-CRE-022` sont `functional` : capacités spéciales, conteneurs, objets réels
+du catalogue et équipement via `SetCreatureFoundationHandler`. Le portail passe 18/18 tests en
+107,11 s, le smoke global et quatre captures Forward+ FHD inspectées, dont trois sur le profil réel
+de la Crypte. Les références d'objet et d'équipement sont validées avant application, tandis que
+les règles et profils voisins restent préservés. La matrice atteint 252 routes `functional` et 465
+`planned`. Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX4_H.md` ; `ORF-CRE-023` à
+`ORF-CRE-049` restent `planned`.
 
 ## Gates ergonomiques avant parité
 
