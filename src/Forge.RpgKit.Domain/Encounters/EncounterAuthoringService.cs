@@ -11,7 +11,10 @@ public static class EncounterAuthoringService
             request.Category.Trim(), request.Theme.Trim(), request.ZoneId, request.Volume, request.Candidates,
             request.DifficultyProfile, request.GroupIds, request.SpawnAnchorIds, request.RewardIds,
             request.NetworkActorCap);
-        var diagnostics = Validate(encounter, context);
+        var diagnostics = Validate(encounter, context).ToList();
+        if (!Enum.IsDefined(request.PrimaryRole))
+            diagnostics.Add(new("RPG_ENCOUNTER_ROLE_INVALID", $"encounters/{encounter.Id}/primaryRole",
+                "Encounter primary role is outside the supported contract."));
         var diff = $"add:/encounters/{encounter.Id}|slug:{encounter.Slug}|role:{request.PrimaryRole}|candidates:{encounter.Candidates.Count}|budget:{encounter.DifficultyProfile.EffectiveBudget:0.##}";
         return new(encounter, diagnostics, diff, diagnostics.Count == 0);
     }
@@ -42,10 +45,15 @@ public static class EncounterAuthoringService
             var path = $"{root}/candidates/{candidate.CreatureId}";
             if (!context.CreatureIds.Contains(candidate.CreatureId) || !context.BlueprintIds.Contains(candidate.BlueprintId))
                 diagnostics.Add(new("RPG_ENCOUNTER_CANDIDATE_MISSING", path, "Candidate creature or blueprint does not resolve."));
-            if (candidate.Weight <= 0 || candidate.Cost <= 0 || candidate.MaximumAlive <= 0)
+            if (!Enum.IsDefined(candidate.Role) || !double.IsFinite(candidate.Weight) ||
+                !double.IsFinite(candidate.Cost) || candidate.Weight <= 0 || candidate.Cost <= 0 ||
+                candidate.MaximumAlive <= 0)
                 diagnostics.Add(new("RPG_ENCOUNTER_CANDIDATE_INVALID", path, "Weight, cost and alive limit must be positive."));
         }
-        if (encounter.Volume.ThreatRadius < 0 || TriggerRules.Validate(new(Guid.NewGuid(), 1, encounter.Provenance, encounter.Slug, encounter.Volume.Shape, encounter.Volume.Filter, new HashSet<string>(), TimeSpan.Zero, TriggerFirePolicy.Repeat, [new("start-encounter", encounter.Id.ToString(), new Dictionary<string, string>())], null)).Count != 0)
+        if (!double.IsFinite(encounter.Volume.ThreatRadius) || encounter.Volume.ThreatRadius < 0 ||
+            TriggerRules.Validate(new(Guid.NewGuid(), 1, encounter.Provenance, encounter.Slug, encounter.Volume.Shape,
+                encounter.Volume.Filter, new HashSet<string>(), TimeSpan.Zero, TriggerFirePolicy.Repeat,
+                [new("start-encounter", encounter.Id.ToString(), new Dictionary<string, string>())], null)).Count != 0)
             diagnostics.Add(new("RPG_ENCOUNTER_VOLUME_INVALID", $"{root}/volume", "Activation geometry or threat radius is invalid."));
         if (encounter.Volume.ActivationScript is { Length: > 0 } script && !context.ScriptIds.Contains(script))
             diagnostics.Add(new("RPG_ENCOUNTER_SCRIPT_MISSING", $"{root}/volume/activationScript", "Activation script does not resolve."));
@@ -53,7 +61,17 @@ public static class EncounterAuthoringService
             diagnostics.Add(new("RPG_ENCOUNTER_ANCHOR_INVALID", $"{root}/spawnAnchorIds", "At least one reachable spawn anchor is required."));
         if (encounter.RewardIds.Any(reward => !context.RewardIds.Contains(reward)))
             diagnostics.Add(new("RPG_ENCOUNTER_REWARD_MISSING", $"{root}/rewardIds", "Encounter reward does not resolve."));
-        if (string.IsNullOrWhiteSpace(encounter.DifficultyProfile.RulesetId) || encounter.DifficultyProfile.ExpectedPartySize <= 0 || encounter.DifficultyProfile.ExpectedPartyPower < 0 || encounter.DifficultyProfile.EffectiveBudget <= 0 || encounter.DifficultyProfile.EffectiveBudget > context.MaximumBudget)
+        if (string.IsNullOrWhiteSpace(encounter.DifficultyProfile.RulesetId) ||
+            !Enum.IsDefined(encounter.DifficultyProfile.Difficulty) ||
+            encounter.DifficultyProfile.ExpectedPartySize <= 0 ||
+            !double.IsFinite(encounter.DifficultyProfile.ExpectedPartyPower) ||
+            encounter.DifficultyProfile.ExpectedPartyPower < 0 ||
+            !double.IsFinite(encounter.DifficultyProfile.BaseBudget) ||
+            !double.IsFinite(encounter.DifficultyProfile.PartySizeMultiplier) ||
+            !double.IsFinite(encounter.DifficultyProfile.DifficultyMultiplier) ||
+            !double.IsFinite(encounter.DifficultyProfile.EffectiveBudget) ||
+            encounter.DifficultyProfile.EffectiveBudget <= 0 ||
+            encounter.DifficultyProfile.EffectiveBudget > context.MaximumBudget)
             diagnostics.Add(new("RPG_ENCOUNTER_BUDGET_INVALID", $"{root}/difficultyProfile", "Ruleset, party estimate or effective budget is invalid."));
         if (encounter.NetworkActorCap <= 0 || encounter.NetworkActorCap > context.MaximumNetworkActorCap || encounter.Candidates.Any(candidate => candidate.MaximumAlive > encounter.NetworkActorCap))
             diagnostics.Add(new("RPG_ENCOUNTER_NETWORK_CAP_INVALID", $"{root}/networkActorCap", "Spawn limits exceed the authoritative actor cap."));

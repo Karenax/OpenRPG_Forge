@@ -22,7 +22,7 @@ public static class EncounterCompositionProfileValidator
         if (profile.Id == Guid.Empty || profile.SchemaVersion != EncounterCompositionProfile.CurrentSchemaVersion ||
             string.IsNullOrWhiteSpace(profile.Provenance) || string.IsNullOrWhiteSpace(profile.Slug) ||
             string.IsNullOrWhiteSpace(profile.DisplayName) || string.IsNullOrWhiteSpace(profile.Category) ||
-            string.IsNullOrWhiteSpace(profile.Theme))
+            string.IsNullOrWhiteSpace(profile.Theme) || !Enum.IsDefined(profile.PrimaryRole))
             Add(diagnostics, "world.encounter.composition_identity_invalid",
                 "Encounter composition requires UUID, schema v1, provenance, slug, name, category and theme.", path);
 
@@ -44,6 +44,7 @@ public static class EncounterCompositionProfileValidator
             !double.IsFinite(difficulty.BaseBudget) || difficulty.BaseBudget <= 0 ||
             !double.IsFinite(difficulty.PartySizeMultiplier) || difficulty.PartySizeMultiplier <= 0 ||
             !double.IsFinite(difficulty.DifficultyMultiplier) || difficulty.DifficultyMultiplier <= 0 ||
+            !Enum.IsDefined(difficulty.Band) ||
             !double.IsFinite(difficulty.EffectiveBudget) || difficulty.EffectiveBudget <= 0)
             Add(diagnostics, "world.encounter.difficulty_invalid",
                 "Encounter difficulty requires ruleset, party provider, positive estimates, budget and multipliers.",
@@ -53,7 +54,7 @@ public static class EncounterCompositionProfileValidator
         var networkCap = foundation?.NetworkActorCap ?? 0;
         if (profile.Groups.Count == 0 || profile.Groups.Any(group => group.Id == Guid.Empty ||
             string.IsNullOrWhiteSpace(group.Slug) || group.Minimum < 0 || group.Maximum < group.Minimum ||
-            group.Budget <= 0 || group.CandidateIds.Count == 0 ||
+            !double.IsFinite(group.Budget) || group.Budget <= 0 || group.CandidateIds.Count == 0 ||
             group.CandidateIds.Any(candidate => !candidateIds.Contains(candidate)) ||
             group.CandidateIds.Distinct().Count() != group.CandidateIds.Count ||
             networkCap > 0 && group.Maximum > networkCap))
@@ -61,7 +62,8 @@ public static class EncounterCompositionProfileValidator
                 "Encounter groups require unique candidates, coherent min/max counts, budget and server cap.",
                 $"{path}/groups");
 
-        if (profile.Groups.Sum(group => group.Budget) > difficulty.EffectiveBudget ||
+        var groupBudget = profile.Groups.Sum(group => group.Budget);
+        if (!double.IsFinite(groupBudget) || groupBudget > difficulty.EffectiveBudget ||
             foundation is not null && difficulty.EffectiveBudget > foundation.SpawnBudget)
             Add(diagnostics, "world.encounter.composition_budget_invalid",
                 "Encounter group budgets must fit the effective difficulty and canonical spawn budgets.",
@@ -76,7 +78,8 @@ public static class EncounterCompositionProfileValidator
                 $"{path}/selection");
 
         var activation = profile.Activation;
-        if (!double.IsFinite(activation.IntervalSeconds) || activation.IntervalSeconds < 0 ||
+        if (!Enum.IsDefined(activation.Mode) || !Enum.IsDefined(activation.Distribution) ||
+            !double.IsFinite(activation.IntervalSeconds) || activation.IntervalSeconds < 0 ||
             activation.Mode == EncounterActivationMode.Timed && activation.IntervalSeconds <= 0 ||
             activation.Mode == EncounterActivationMode.Script && string.IsNullOrWhiteSpace(activation.ScriptId) ||
             activation.Mode != EncounterActivationMode.Script && activation.ScriptId is { Length: 0 })

@@ -304,15 +304,21 @@ public static class WorldFeatureCatalogValidator
             Identity(profile.Id, profile.SchemaVersion, profile.Provenance, path, diagnostics);
             if (!areas.Contains(profile.AreaId))
                 Add(diagnostics, "world.reference.area_missing", "Encounter area reference is missing.", $"{path}/areaId");
-            if (profile.Respawn is { } respawn && (respawn.DelaySeconds < 0 || respawn.MaximumCycles < 0 || respawn.AntiFarmMultiplier is < 0 or > 1))
+            if (profile.Respawn is { } respawn && (!double.IsFinite(respawn.DelaySeconds) ||
+                respawn.DelaySeconds < 0 || respawn.MaximumCycles < 0 ||
+                !double.IsFinite(respawn.AntiFarmMultiplier) || respawn.AntiFarmMultiplier is < 0 or > 1))
                 Add(diagnostics, "world.encounter.respawn_invalid", "Respawn delay, cycles and anti-farm multiplier are invalid.", $"{path}/respawn");
             if (profile.Scheduler is { } scheduler && scheduler.HeartbeatEnabled &&
-                (scheduler.IntervalSeconds <= 0 || scheduler.BudgetPerMinute < 1 || string.IsNullOrWhiteSpace(scheduler.CustomEventNamespace)))
+                (!double.IsFinite(scheduler.IntervalSeconds) || scheduler.IntervalSeconds <= 0 ||
+                 scheduler.BudgetPerMinute < 1 || string.IsNullOrWhiteSpace(scheduler.CustomEventNamespace)))
                 Add(diagnostics, "world.encounter.scheduler_invalid", "Encounter heartbeat requires cadence, budget and namespace.", $"{path}/scheduler");
             if (profile.Reinforcements is { } reinforcement && (reinforcement.RouteId == Guid.Empty ||
-                reinforcement.MaximumActors < 1 || reinforcement.DelaySeconds < 0))
+                reinforcement.MaximumActors < 1 || !double.IsFinite(reinforcement.DelaySeconds) ||
+                reinforcement.DelaySeconds < 0))
                 Add(diagnostics, "world.encounter.reinforcement_invalid", "Reinforcements require route, cap and delay.", $"{path}/reinforcements");
-            if (profile.Visibility.MinimumCameraDistance < 0)
+            if (!Enum.IsDefined(profile.Visibility.Mode) ||
+                !double.IsFinite(profile.Visibility.MinimumCameraDistance) ||
+                profile.Visibility.MinimumCameraDistance < 0)
                 Add(diagnostics, "world.encounter.visibility_invalid", "Visibility distance cannot be negative.", $"{path}/visibility");
             if (profile.Composition is { } composition)
                 diagnostics.AddRange(EncounterCompositionProfileValidator.Validate(composition, profile.Foundation,
@@ -348,7 +354,9 @@ public static class WorldFeatureCatalogValidator
                 EncounterWorldProfile.VolumeShape.Capsule3D => volume.Radius > 0 && volume.Height >= volume.Radius * 2,
                 _ => false,
             };
-            if (!geometryValid || volume.ThreatRadius < 0 ||
+            if (!geometryValid || volume.Points.Any(point => !Finite(point)) || !Finite(volume.Center) ||
+                !double.IsFinite(volume.Height) || !double.IsFinite(volume.Radius) ||
+                !double.IsFinite(volume.ThreatRadius) || volume.ThreatRadius < 0 ||
                 volume.RequiredEntityTags.Any(string.IsNullOrWhiteSpace) ||
                 volume.AllowedFactions.Any(string.IsNullOrWhiteSpace) ||
                 volume.ActivationScriptId is { } activationScript && string.IsNullOrWhiteSpace(activationScript))
@@ -367,12 +375,14 @@ public static class WorldFeatureCatalogValidator
                     candidateBlueprint.Kind is not (BlueprintKind.Creature or BlueprintKind.PlayerSpawn))
                     Add(diagnostics, "world.encounter.candidate_missing",
                         "Encounter candidate must reference a creature blueprint.", $"{candidatePath}/blueprintId");
-                if (candidate.Weight <= 0 || candidate.Cost <= 0 || candidate.MaximumAlive <= 0 ||
+                if (!Enum.IsDefined(candidate.Role) || !double.IsFinite(candidate.Weight) ||
+                    !double.IsFinite(candidate.Cost) || candidate.Weight <= 0 || candidate.Cost <= 0 ||
+                    candidate.MaximumAlive <= 0 ||
                     candidate.Conditions.Any(string.IsNullOrWhiteSpace) || candidate.Variants.Any(string.IsNullOrWhiteSpace))
                     Add(diagnostics, "world.encounter.candidate_invalid",
                         "Candidate weight, role cost, conditions, variants and alive limit are invalid.", candidatePath);
             }
-            if (foundation.SpawnBudget <= 0 ||
+            if (!double.IsFinite(foundation.SpawnBudget) || foundation.SpawnBudget <= 0 ||
                 foundation.Candidates.Count > 0 && foundation.Candidates.All(item => item.Cost > foundation.SpawnBudget))
                 Add(diagnostics, "world.encounter.budget_invalid",
                     "Spawn budget must be positive and admit at least one candidate.", $"{foundationPath}/spawnBudget");
@@ -2107,4 +2117,7 @@ public static class WorldFeatureCatalogValidator
 
     private static void Add(List<DomainDiagnostic> diagnostics, string code, string message, string path) =>
         diagnostics.Add(new DomainDiagnostic(code, message, path));
+
+    private static bool Finite(Forge.Domain.Spatial.Vector3Value value) =>
+        float.IsFinite(value.X) && float.IsFinite(value.Y) && float.IsFinite(value.Z);
 }
