@@ -3,7 +3,7 @@
     "schema_version": 2,
     "engine": "roslyn",
     "engine_version": "5.6.0.0",
-    "source_digest": "sha256:7b8772945b8c7f91beeadedc808d30bcdb8a99948a3ee1a3f621cd00ccfe3b17",
+    "source_digest": "sha256:28a6eb4d907d20a4b744b6e1fb649ca60dfe824805381d6f0bf44960b932da01",
     "source_file_count": 3252,
     "sources": [
       {
@@ -3708,8 +3708,8 @@
       },
       {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "sha256": "sha256:8f5bc63da29af8fc01afe07b91d51152181136b4a34b010f1f110539ad3546bc",
-        "size": 188881
+        "sha256": "sha256:7e7af042fdaa71a7ee3677996496ac7cc14f82ab8123691711cf1d2c131d7219",
+        "size": 189132
       },
       {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/main_panel.tscn",
@@ -165710,7 +165710,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1578
+        "line": 1581
       }
     },
     {
@@ -165720,7 +165720,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1260
+        "line": 1263
       }
     },
     {
@@ -165740,7 +165740,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 2349
+        "line": 2352
       }
     },
     {
@@ -165750,7 +165750,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1498
+        "line": 1501
       }
     },
     {
@@ -165760,7 +165760,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1496
+        "line": 1499
       }
     },
     {
@@ -165770,7 +165770,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1450
+        "line": 1453
       }
     },
     {
@@ -165780,7 +165780,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1873
+        "line": 1876
       }
     },
     {
@@ -165790,7 +165790,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1494
+        "line": 1497
       }
     },
     {
@@ -165800,7 +165800,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 291
+        "line": 293
       }
     },
     {
@@ -165810,7 +165810,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1489
+        "line": 1492
       }
     },
     {
@@ -165820,7 +165820,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1489
+        "line": 1492
       }
     },
     {
@@ -165830,7 +165830,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1491
+        "line": 1494
       }
     },
     {
@@ -165840,7 +165840,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1547
+        "line": 1550
       }
     },
     {
@@ -165850,7 +165850,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 325
+        "line": 328
       }
     },
     {
@@ -165860,7 +165860,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1799
+        "line": 1802
       }
     },
     {
@@ -165870,7 +165870,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1835
+        "line": 1838
       }
     },
     {
@@ -165880,7 +165880,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1789
+        "line": 1792
       }
     },
     {
@@ -165890,7 +165890,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1354
+        "line": 1357
       }
     },
     {
@@ -165900,7 +165900,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1432
+        "line": 1435
       }
     },
     {
@@ -165910,7 +165910,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1415
+        "line": 1418
       }
     },
     {
@@ -165920,7 +165920,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1308
+        "line": 1311
       }
     },
     {
@@ -165930,7 +165930,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1364
+        "line": 1367
       }
     },
     {
@@ -165940,7 +165940,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1322
+        "line": 1325
       }
     },
     {
@@ -165950,7 +165950,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1257
+        "line": 1260
       }
     },
     {
@@ -165960,7 +165960,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 2020
+        "line": 2023
       }
     },
     {
@@ -165970,7 +165970,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 2025
+        "line": 2028
       }
     },
     {
@@ -165980,7 +165980,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1613
+        "line": 1616
       }
     },
     {
@@ -165990,7 +165990,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 2240
+        "line": 2243
       }
     },
     {
@@ -166000,7 +166000,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 2238
+        "line": 2241
       }
     },
     {
@@ -166010,7 +166010,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1583
+        "line": 1586
       }
     },
     {
@@ -166020,7 +166020,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1597
+        "line": 1600
       }
     },
     {
@@ -166030,7 +166030,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1585
+        "line": 1588
       }
     },
     {
@@ -166040,7 +166040,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1650
+        "line": 1653
       }
     },
     {
@@ -166060,7 +166060,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1895
+        "line": 1898
       }
     },
     {
@@ -166070,7 +166070,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1873
+        "line": 1876
       }
     },
     {
@@ -166080,7 +166080,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1914
+        "line": 1917
       }
     },
     {
@@ -166090,7 +166090,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1490
+        "line": 1493
       }
     },
     {
@@ -166100,7 +166100,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 316
+        "line": 319
       }
     },
     {
@@ -166110,7 +166110,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 315
+        "line": 318
       }
     },
     {
@@ -166120,7 +166120,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 326
+        "line": 329
       }
     },
     {
@@ -166130,7 +166130,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 317
+        "line": 320
       }
     },
     {
@@ -166140,7 +166140,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 328
+        "line": 331
       }
     },
     {
@@ -166150,7 +166150,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1690
+        "line": 1693
       }
     },
     {
@@ -166160,7 +166160,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 325
+        "line": 328
       }
     },
     {
@@ -166170,7 +166170,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1683
+        "line": 1686
       }
     },
     {
@@ -166180,7 +166180,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 2323
+        "line": 2326
       }
     },
     {
@@ -166190,7 +166190,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 345
+        "line": 348
       }
     },
     {
@@ -166200,7 +166200,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1789
+        "line": 1792
       }
     },
     {
@@ -166210,7 +166210,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 271
+        "line": 273
       }
     },
     {
@@ -166220,7 +166220,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1477
+        "line": 1480
       }
     },
     {
@@ -166230,7 +166230,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1257
+        "line": 1260
       }
     },
     {
@@ -166240,7 +166240,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1259
+        "line": 1262
       }
     },
     {
@@ -166250,7 +166250,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 2026
+        "line": 2029
       }
     },
     {
@@ -166260,7 +166260,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1635
+        "line": 1638
       }
     },
     {
@@ -166270,7 +166270,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1593
+        "line": 1596
       }
     },
     {
@@ -166280,7 +166280,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1583
+        "line": 1586
       }
     },
     {
@@ -221910,7 +221910,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1578
+        "line": 1581
       }
     },
     {
@@ -221920,7 +221920,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1260
+        "line": 1263
       }
     },
     {
@@ -221940,7 +221940,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 2349
+        "line": 2352
       }
     },
     {
@@ -221950,7 +221950,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1498
+        "line": 1501
       }
     },
     {
@@ -221960,7 +221960,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1496
+        "line": 1499
       }
     },
     {
@@ -221970,7 +221970,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1450
+        "line": 1453
       }
     },
     {
@@ -221980,7 +221980,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1873
+        "line": 1876
       }
     },
     {
@@ -221990,7 +221990,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 291
+        "line": 293
       }
     },
     {
@@ -222000,7 +222000,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1489
+        "line": 1492
       }
     },
     {
@@ -222010,7 +222010,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 315
+        "line": 318
       }
     },
     {
@@ -222020,7 +222020,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 326
+        "line": 329
       }
     },
     {
@@ -222030,7 +222030,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 325
+        "line": 328
       }
     },
     {
@@ -222040,7 +222040,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 345
+        "line": 348
       }
     },
     {
@@ -222050,7 +222050,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1789
+        "line": 1792
       }
     },
     {
@@ -222060,7 +222060,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1415
+        "line": 1418
       }
     },
     {
@@ -222070,7 +222070,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1308
+        "line": 1311
       }
     },
     {
@@ -222080,7 +222080,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 271
+        "line": 273
       }
     },
     {
@@ -222090,7 +222090,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1257
+        "line": 1260
       }
     },
     {
@@ -222100,7 +222100,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 2020
+        "line": 2023
       }
     },
     {
@@ -222110,7 +222110,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1613
+        "line": 1616
       }
     },
     {
@@ -222120,7 +222120,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1583
+        "line": 1586
       }
     },
     {
@@ -222130,7 +222130,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/WorldFeatureStudioWindow.cs",
-        "line": 1650
+        "line": 1653
       }
     },
     {
