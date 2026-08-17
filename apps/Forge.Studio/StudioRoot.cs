@@ -313,6 +313,7 @@ public sealed partial class StudioRoot : Control
         var ux2NavBValid = true;
         var ux2NavCValid = true;
         var ux2NavDValid = true;
+        var ux2NavEValid = true;
         var ux2NavFValid = true;
         var ux4AValid = true;
         var ux5AValid = true;
@@ -334,6 +335,7 @@ public sealed partial class StudioRoot : Control
             var ux2NavBApproval = _session.CaptureNavigationApprovalUx2NavB();
             var ux2NavCApproval = _session.CaptureWaypointApprovalUx2NavC();
             var ux2NavDApproval = _session.CapturePatrolApprovalUx2NavD();
+            var ux2NavEApproval = _session.CaptureLocatorApprovalUx2NavE();
             var ux2NavFApproval = _session.CapturePortalApprovalUx2NavF();
             var ux4AApproval = _session.CaptureFactionApprovalUx4A();
             var ux5AApproval = _session.CaptureDialogueApprovalUx5A();
@@ -354,6 +356,7 @@ public sealed partial class StudioRoot : Control
                 ux2NavBValid = _shell.RunUx2NavBSmoke();
                 ux2NavCValid = _shell.RunUx2NavCSmoke();
                 ux2NavDValid = _shell.RunUx2NavDSmoke();
+                ux2NavEValid = _shell.RunUx2NavESmoke();
                 ux2NavFValid = _shell.RunUx2NavFSmoke();
                 ux4AValid = _shell.RunUx4ASmoke();
                 ux5AValid = _shell.RunUx5ASmoke();
@@ -375,6 +378,7 @@ public sealed partial class StudioRoot : Control
                 _session.RestoreNavigationApprovalUx2NavB(ux2NavBApproval);
                 _session.RestoreWaypointApprovalUx2NavC(ux2NavCApproval);
                 _session.RestorePatrolApprovalUx2NavD(ux2NavDApproval);
+                _session.RestoreLocatorApprovalUx2NavE(ux2NavEApproval);
                 _session.RestorePortalApprovalUx2NavF(ux2NavFApproval);
                 _session.RestoreFactionApprovalUx4A(ux4AApproval);
                 _session.RestoreDialogueApprovalUx5A(ux5AApproval);
@@ -395,6 +399,7 @@ public sealed partial class StudioRoot : Control
                 Equals(_session.CaptureNavigationApprovalUx2NavB(), ux2NavBApproval) &&
                 Equals(_session.CaptureWaypointApprovalUx2NavC(), ux2NavCApproval) &&
                 Equals(_session.CapturePatrolApprovalUx2NavD(), ux2NavDApproval) &&
+                Equals(_session.CaptureLocatorApprovalUx2NavE(), ux2NavEApproval) &&
                 Equals(_session.CapturePortalApprovalUx2NavF(), ux2NavFApproval) &&
                 Equals(_session.CaptureFactionApprovalUx4A(), ux4AApproval) &&
                 Equals(_session.CaptureDialogueApprovalUx5A(), ux5AApproval);
@@ -432,7 +437,7 @@ public sealed partial class StudioRoot : Control
             !ux2AValid || !ux2LwBValid || !ux2LwCValid || !ux2LwDValid || !ux2LwEValid ||
             !ux2BValid || !ux2CValid ||
             !ux2EnvBValid || !ux2EnvCValid || !ux2EnvDValid || !ux2EnvEValid || !ux2EnvFValid ||
-            !ux2NavBValid || !ux2NavCValid || !ux2NavDValid || !ux2NavFValid ||
+            !ux2NavBValid || !ux2NavCValid || !ux2NavDValid || !ux2NavEValid || !ux2NavFValid ||
             !ux4AValid || !ux5AValid ||
             !candidateApprovalsValid || !evidenceValid)
         {
@@ -453,7 +458,8 @@ public sealed partial class StudioRoot : Control
                 $"ux2lwd={ux2LwDValid} ux2lwe={ux2LwEValid} ux2b={ux2BValid} " +
                 $"ux2c={ux2CValid} ux2envb={ux2EnvBValid} ux2envc={ux2EnvCValid} ux2envd={ux2EnvDValid} " +
                 $"ux2enve={ux2EnvEValid} ux2envf={ux2EnvFValid} " +
-                $"ux2navb={ux2NavBValid} ux2navc={ux2NavCValid} ux2navd={ux2NavDValid} ux2navf={ux2NavFValid} " +
+                $"ux2navb={ux2NavBValid} ux2navc={ux2NavCValid} ux2navd={ux2NavDValid} " +
+                $"ux2nave={ux2NavEValid} ux2navf={ux2NavFValid} " +
                 $"ux4a={ux4AValid} ux5a={ux5AValid} " +
                 $"candidate_approvals={candidateApprovalsValid} " +
                 $"evidence={evidenceValid}");

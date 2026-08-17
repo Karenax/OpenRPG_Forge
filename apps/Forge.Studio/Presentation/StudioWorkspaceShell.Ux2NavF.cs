@@ -38,7 +38,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx1ZOverlay(); CloseUx1AAOverlay(); CloseUx1ABOverlay(); CloseUx1ACOverlay(); CloseUx1ADOverlay();
         CloseUx1AEOverlay(); CloseUx1AFWorkspace(); CloseUx1AGOverlay(); CloseUx1AHOverlay(); CloseUx1AIOverlay();
         CloseUx1AJOverlay(); CloseUx2AOverlay(); CloseUx4AOverlay(); CloseUx2NavBOverlay();
-        CloseUx2NavCOverlay(); CloseUx2NavDOverlay();
+        CloseUx2NavCOverlay(); CloseUx2NavDOverlay(); CloseUx2NavEOverlay();
         SwitchPage("navigation", notify: false);
         _areaTransitionsOverlayUx2NavF.Open();
         SetStatus("Transitions ouvertes · sélection explicite · aperçu sec obligatoire");
@@ -63,7 +63,7 @@ internal sealed partial class StudioWorkspaceShell
     internal bool PrepareUx2NavFEvidence(string mode)
     {
         SwitchPage("navigation", notify: false);
-        CloseUx2NavBOverlay(); CloseUx2NavCOverlay(); CloseUx2NavDOverlay();
+        CloseUx2NavBOverlay(); CloseUx2NavCOverlay(); CloseUx2NavDOverlay(); CloseUx2NavEOverlay();
         return _areaTransitionsOverlayUx2NavF.PrepareEvidence(mode);
     }
 

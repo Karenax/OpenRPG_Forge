@@ -60,6 +60,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx4AOverlay();
         CloseUx2NavBOverlay();
         CloseUx2NavCOverlay();
+        CloseUx2NavEOverlay();
         CloseUx2NavFOverlay();
         SwitchPage("navigation", notify: false);
         _waypointPatrolOverlayUx2NavD.Open();
@@ -95,6 +96,7 @@ internal sealed partial class StudioWorkspaceShell
         SwitchPage("navigation", notify: false);
         CloseUx2NavBOverlay();
         CloseUx2NavCOverlay();
+        CloseUx2NavEOverlay();
         CloseUx2NavFOverlay();
         return _waypointPatrolOverlayUx2NavD.PrepareEvidence(mode);
     }

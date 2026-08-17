@@ -479,12 +479,13 @@ internal sealed partial class StudioSessionController
             var navigation = sourceArea.Navigation.WithWaypoints(profile);
             var builtArea = sourceArea.WithNavigation(navigation);
             candidateArea = builtArea;
-            var areas = project.Areas.Select(item => item.Id == sourceArea.Id ? builtArea : item)
+            var sourceAreaId = sourceArea.Id;
+            var areas = project.Areas.Select(item => item.Id == sourceAreaId ? builtArea : item)
                 .ToArray();
             candidateProject = new ProjectDefinition(project.Id, project.Title, project.Module,
                 project.Blueprints, areas, project.Dialogues, project.Quests);
             command = new SetNavigationTopologyCommand(CommandId.From(Guid.NewGuid()),
-                draft.BaseRevision, [new(sourceArea.Id, navigation)], [], null, dryRun);
+                draft.BaseRevision, [new(sourceAreaId, navigation)], [], null, dryRun);
             return true;
         }
         catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or

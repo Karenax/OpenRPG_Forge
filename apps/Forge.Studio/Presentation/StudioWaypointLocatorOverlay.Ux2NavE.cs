@@ -8,7 +8,7 @@ using Godot;
 
 namespace Forge.Studio.Presentation;
 
-internal sealed class StudioWaypointLocatorOverlayUx2NavE : Control
+internal sealed partial class StudioWaypointLocatorOverlayUx2NavE : Control
 {
     private static readonly LocatorPurpose[] Purposes = Enum.GetValues<LocatorPurpose>();
     private static readonly LocatorSelectionMode[] SelectionModes =
@@ -225,6 +225,7 @@ internal sealed class StudioWaypointLocatorOverlayUx2NavE : Control
             SizeFlagsHorizontal = SizeFlags.ExpandFill,
             SizeFlagsVertical = SizeFlags.ExpandFill,
             CustomMinimumSize = new Vector2(0, 430),
+            CustomMaximumSize = new Vector2(-1, 700),
             ClipContents = true,
         };
         root.AddChild(bodyHost);
@@ -303,7 +304,7 @@ internal sealed class StudioWaypointLocatorOverlayUx2NavE : Control
         _moveOverrideDown.Pressed += MoveOverrideDown;
         overrideActions.AddChild(_moveOverrideDown);
         locatorCard.AddChild(overrideActions);
-        authoringRow.AddChild(StudioUx2NavCControls.Card("WaypointLocatorUx2NavE",
+        authoringRow.AddChild(ExpandedCard("WaypointLocatorUx2NavE",
             "Ancre audio, VFX ou gameplay",
             "Position, rôle, tags, ressource, blueprint lisible et overrides ; l’arrivée voisine reste intacte.",
             locatorCard));
@@ -364,7 +365,7 @@ internal sealed class StudioWaypointLocatorOverlayUx2NavE : Control
         collectionCard.AddChild(StudioUx2NavCControls.Field("Graine déterministe", _collectionSeed));
         _collectionRequired = StudioUx2NavCControls.Check("Groupe exigé au runtime");
         collectionCard.AddChild(_collectionRequired);
-        authoringRow.AddChild(StudioUx2NavCControls.Card("WaypointCollectionUx2NavE",
+        authoringRow.AddChild(ExpandedCard("WaypointCollectionUx2NavE",
             "Groupes et requêtes",
             "Membres humains ordonnés, filtres et résolution stable, proche ou aléatoire déterministe.",
             collectionCard));
@@ -393,7 +394,7 @@ internal sealed class StudioWaypointLocatorOverlayUx2NavE : Control
         _visualRequired = StudioUx2NavCControls.Check("Diagnostic de route exigé au runtime");
         visualPolicy.AddChild(_visualRequired);
         visualization.AddChild(visualPolicy);
-        _editor.AddChild(StudioUx2NavCControls.Card("RouteVisualizationUx2NavE",
+        _editor.AddChild(ExpandedCard("RouteVisualizationUx2NavE",
             "Visualisation des routes",
             "Le viewport réutilise la surface NAV-B et montre seulement les couches demandées.",
             visualization));
@@ -404,13 +405,13 @@ internal sealed class StudioWaypointLocatorOverlayUx2NavE : Control
         _diagnostics = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
         _resolved = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
         _routes = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
-        resultRow.AddChild(StudioUx2NavCControls.Card("WaypointLocatorDiffUx2NavE",
+        resultRow.AddChild(ExpandedCard("WaypointLocatorDiffUx2NavE",
             "Diff sémantique", "Ce que remplacera la commande atomique.", _diff));
-        resultRow.AddChild(StudioUx2NavCControls.Card("WaypointLocatorDiagnosticsUx2NavE",
+        resultRow.AddChild(ExpandedCard("WaypointLocatorDiagnosticsUx2NavE",
             "Diagnostics", "Codes stables et chemins humains avant application.", _diagnostics));
-        resultRow.AddChild(StudioUx2NavCControls.Card("WaypointCollectionRuntimeUx2NavE",
+        resultRow.AddChild(ExpandedCard("WaypointCollectionRuntimeUx2NavE",
             "Résolution du groupe", "Résultats du service canonique, sans mutation.", _resolved));
-        resultRow.AddChild(StudioUx2NavCControls.Card("WaypointRouteRuntimeUx2NavE",
+        resultRow.AddChild(ExpandedCard("WaypointRouteRuntimeUx2NavE",
             "Routes & projection", "Coûts, temps et projection calculés sur la surface réelle.", _routes));
         _editor.AddChild(resultRow);
         _summary = StudioStyle.Label("Aucun aperçu calculé.", 10, StudioStyle.Muted, wrap: true);
@@ -931,7 +932,7 @@ internal sealed class StudioWaypointLocatorOverlayUx2NavE : Control
         {
             return null;
         }
-        var purpose = _collectionPurpose.Selected <= 0 ? null :
+        LocatorPurpose? purpose = _collectionPurpose.Selected <= 0 ? null :
             Purposes[Math.Clamp(_collectionPurpose.Selected - 1, 0, Purposes.Length - 1)];
         return _collectionDraft with
         {
@@ -1523,8 +1524,17 @@ internal sealed class StudioWaypointLocatorOverlayUx2NavE : Control
         }
         var width = MathF.Min(1760, MathF.Max(1020, viewport.X - 48));
         var height = MathF.Min(980, MathF.Max(650, viewport.Y - 42));
+        _dialog.CustomMaximumSize = new Vector2(width, height);
         _dialog.Position = new Vector2((viewport.X - width) / 2, (viewport.Y - height) / 2);
         _dialog.Size = new Vector2(width, height);
+    }
+
+    private static PanelContainer ExpandedCard(string name, string title, string help, Control content)
+    {
+        var card = StudioUx2NavCControls.Card(name, title, help, content);
+        card.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+        card.SizeFlagsStretchRatio = 1;
+        return card;
     }
 
     private static int SelectedIndex(ItemList list)
