@@ -121,6 +121,7 @@ internal sealed partial class StudioAudioRangeControlOverlayUx2EnvH : ColorRect
         Visible = false;
 
         _dialog = StudioStyle.Panel("Ux2EnvHAudioRangeControlDialog", StudioStyle.Surface, 12, 1);
+        _dialog.ClipContents = true;
         AddChild(_dialog);
         var margin = StudioStyle.Margin(14, 12, 14, 12);
         _dialog.AddChild(margin);
@@ -155,7 +156,18 @@ internal sealed partial class StudioAudioRangeControlOverlayUx2EnvH : ColorRect
             SizeFlagsHorizontal = SizeFlags.ExpandFill,
             SizeFlagsVertical = SizeFlags.ExpandFill,
         };
-        root.AddChild(_tabs);
+        var tabsHost = new Control
+        {
+            CustomMinimumSize = new Vector2(0, 330),
+            CustomMaximumSize = new Vector2(-1, 620),
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            SizeFlagsVertical = SizeFlags.ExpandFill,
+            ClipContents = true,
+            PropagateMaximumSize = true,
+        };
+        root.AddChild(tabsHost);
+        _tabs.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
+        tabsHost.AddChild(_tabs);
 
         var rangeTab = ScrollTabUx2EnvH("Portée audible");
         _mode = StudioUx2EnvBControls.Options("Ambiance globale 2D", "Source spatiale 3D");

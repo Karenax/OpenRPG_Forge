@@ -87,6 +87,12 @@ internal sealed partial class StudioWorkspaceShell
     internal bool PrepareUx2EnvHEvidence(string mode)
     {
         SwitchPage("environment", notify: false);
+        CloseUx2EnvBOverlay();
+        CloseUx2EnvCOverlay();
+        CloseUx2EnvDOverlay();
+        CloseUx2EnvEOverlay();
+        CloseUx2EnvFOverlay();
+        CloseUx2EnvGOverlay();
         return _audioRangeControlOverlayUx2EnvH.PrepareEvidence(mode);
     }
 
