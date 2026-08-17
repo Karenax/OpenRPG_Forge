@@ -7,6 +7,9 @@ SemVer ; les versions de schéma persistent séparément dans leurs documents.
 
 ### Changed
 
+- Forge Studio UX4-L : profil voix et soundset de créature, banques, émotions, lipsync, variantes
+  et gouvernance des droits via `SetCreaturePresentationHandler`, avec matrice portée à 261 routes
+  `functional` / 456 `planned` ;
 - Forge Studio UX4-K : six modes et valeurs complètes de déplacement de créature via
   `SetCreatureFoundationHandler`, sans clamp silencieux, avec preuve réelle Crypte et matrice
   portée à 260 routes `functional` / 457 `planned` ;

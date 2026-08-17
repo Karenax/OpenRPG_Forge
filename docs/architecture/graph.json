@@ -3,8 +3,8 @@
     "schema_version": 2,
     "engine": "roslyn",
     "engine_version": "5.6.0.0",
-    "source_digest": "sha256:3c486eab892fbad13afd3883d31d0b0d8255d46bb2032f7d53deccb30075de29",
-    "source_file_count": 3475,
+    "source_digest": "sha256:f76f26725fc779e9bc001809bda67fc6094f6b5e87c9c5c82367f44ce483f09c",
+    "source_file_count": 3480,
     "sources": [
       {
         "path": ".agents/skills/openrpg-asset-lifecycle/SKILL.md",
@@ -88,8 +88,8 @@
       },
       {
         "path": "CHANGELOG.md",
-        "sha256": "sha256:c39e9ff9c8a2c5a8b6a878bf67d298a999e56bcb26202399b1fec80fc4d6d124",
-        "size": 20610
+        "sha256": "sha256:2012bff0a47caefb9c490921ce2665c85f0d91b6bf7c22044bcd391fca70b81f",
+        "size": 20844
       },
       {
         "path": "Directory.Build.props",
@@ -2352,6 +2352,11 @@
         "size": 63749
       },
       {
+        "path": "apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+        "sha256": "sha256:7185f01c5842b52ac8371ec4771a0ac4ff27447d7caf44d16612af2555e74b43",
+        "size": 30553
+      },
+      {
         "path": "apps/Forge.Studio/Presentation/StudioCrossAreaPatrolOverlay.Ux2NavK.cs",
         "sha256": "sha256:fa46b2bd065d71bc6ee116eaa593d37397e679e22d2abb6fe3274030ef257df1",
         "size": 48087
@@ -3178,43 +3183,48 @@
       },
       {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4D.cs",
-        "sha256": "sha256:6e002dbdfcb37ded579e327c5fba4b1bcb23731939c7f95477a44cd6f44359ef",
-        "size": 8609
+        "sha256": "sha256:83a0e4a430d72ef26a06374d644dd64be3e974e6bc1fe06e4cf2bc2c980c6029",
+        "size": 8665
       },
       {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4E.cs",
-        "sha256": "sha256:aaa3e25738a9806c6aa5c28dd0af9ca042c1b50121148be52654a1c81815180a",
-        "size": 8814
+        "sha256": "sha256:25d454d741b59cee3113e5f2bea87f05f0f98341c03ed28c1f9821268dbb47a5",
+        "size": 8870
       },
       {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4F.cs",
-        "sha256": "sha256:c3e4ee86eeb8c807314a5127c0c8a7c242e6a85fc8bc3d3e007a336c6e86c2af",
-        "size": 8407
+        "sha256": "sha256:5dc5f43c7428ba99fd3375675e2cdf9355618556f5229b3139b61e4c61abae46",
+        "size": 8463
       },
       {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4G.cs",
-        "sha256": "sha256:07ce1d274980f353bd849c8e9d2639952485d6792f941d8d3adc57a07acccb00",
-        "size": 8512
+        "sha256": "sha256:8cc2023e4cdd1e0d3c711550a4cb2a5c7ddae90cb9ce090d648fc50859e3f75a",
+        "size": 8552
       },
       {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4H.cs",
-        "sha256": "sha256:3e38da31509c095877adf0687bbccac61f6d1a867e136ac569eddd91ab05b1b5",
-        "size": 8143
+        "sha256": "sha256:f3d6f63c0defcdc607073628a185305e88687cd37fe488c82789a125b129ca7d",
+        "size": 8183
       },
       {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4I.cs",
-        "sha256": "sha256:95e6dfe45a66f47e7abcca1b37297439a7d295b9c66faa951fdb0ad53fc6339f",
-        "size": 7409
+        "sha256": "sha256:2cd39f2a7ee131701f5ecadbac0018e22a6916d81d5312d55b76195eb0e14214",
+        "size": 7449
       },
       {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4J.cs",
-        "sha256": "sha256:5579c2f88e3b4a884242817562498ed821ddbbb06090f1d041cd969dd2afd519",
-        "size": 8410
+        "sha256": "sha256:9056cea86d52fd34e5c8ff3aa67db555be60af46443a51785e12e8aa2214f52a",
+        "size": 8450
       },
       {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4K.cs",
-        "sha256": "sha256:2953361811d2425f2111a7957be497bdf28d39acbd87d368d004062038dd3ec4",
-        "size": 8288
+        "sha256": "sha256:060f1af4ab01c246daf18479dd4d923b5e9b16acc5b3996bea5736386b0b06f3",
+        "size": 8328
+      },
+      {
+        "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4L.cs",
+        "sha256": "sha256:6e2847fc10e4e7620d367af4c8ffe7b4c1777044b585ee4c1736749a561af9b5",
+        "size": 8364
       },
       {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux5A.cs",
@@ -3223,8 +3233,8 @@
       },
       {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "sha256": "sha256:ef6b3291bb5e78c09822535b5f1796a928ff15f47a0df5412723f75edd8d44bc",
-        "size": 90157
+        "sha256": "sha256:95baaa1d038fd1164ecb4152c3cc496cb9e384a6f6ef0f26abc5437fcad9928f",
+        "size": 90433
       },
       {
         "path": "apps/Forge.Studio/Presentation/StudioWorldViewport.Ux0C.cs",
@@ -3727,14 +3737,19 @@
         "size": 28941
       },
       {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "sha256": "sha256:6ff89c167a1103fc52a1e756423e3827b52108632c48435524851dcaad7e9d54",
+        "size": 28876
+      },
+      {
         "path": "apps/Forge.Studio/Session/StudioSessionController.Ux5A.cs",
         "sha256": "sha256:3c07b54c91925537c9f21084631a18152256cd0a2dc32092a89120228f1550ea",
         "size": 64517
       },
       {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "sha256": "sha256:30565fcbe4f18a1ecce5923a0716c347092fcf873a58ffd16e2b87c99fcd50ef",
-        "size": 60347
+        "sha256": "sha256:9a726da615c2a656936a9971e393ee351620ef48e5751bb25947e9c3e29f417e",
+        "size": 60389
       },
       {
         "path": "apps/Forge.Studio/Session/StudioUserStateStore.cs",
@@ -4097,14 +4112,19 @@
         "size": 2687
       },
       {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "sha256": "sha256:2c630a7e370813dff02d7b794b42c7491b712e39d10b49ea5954521c78c7f405",
+        "size": 2797
+      },
+      {
         "path": "apps/Forge.Studio/Session/StudioUx5AModels.cs",
         "sha256": "sha256:2b86a5cade0d2fa7f128422271b0d91733f0e824324093bb12e9c5cfb72f9948",
         "size": 5352
       },
       {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "sha256": "sha256:ec23ed35535dbfd79b92438677ce08a1ed78f469e8397d9a3fe0a02573e20a61",
-        "size": 39815
+        "sha256": "sha256:72f2f9c234b4bad4946318e852b1fa87c43eeba6618c09262615b097260f8d11",
+        "size": 40161
       },
       {
         "path": "apps/Forge.Studio/packages.lock.json",
@@ -5408,8 +5428,13 @@
       },
       {
         "path": "docs/acceptance/STUDIO_UX4_K.md",
-        "sha256": "sha256:15be6465367de50a89353fc3a1ad463461a97a08e4ced1722a67090fd64a9ab8",
-        "size": 3851
+        "sha256": "sha256:277c9fabe77b623af45a0e6b6fc808a56eccd380dc92b9ea84d9b2ca38e841c3",
+        "size": 3890
+      },
+      {
+        "path": "docs/acceptance/STUDIO_UX4_L.md",
+        "sha256": "sha256:a1e69400d97021ce9b2b9d4a3d61c3d6337d6ae4f2ed5a8f80665b87d1091d37",
+        "size": 3243
       },
       {
         "path": "docs/acceptance/STUDIO_UX5_A.md",
@@ -7133,8 +7158,8 @@
       },
       {
         "path": "docs/planning/STUDIO_AURORA_HUMAN_ACCESS_PLAN.md",
-        "sha256": "sha256:80dc65f240a8a31f9373bad3d31fa7eedd15fddbab3ad7c0cb50f520ddbaaaca",
-        "size": 68770
+        "sha256": "sha256:52d314f5be4527711b074908480e3ade8e78d4341ca85b6ba8510a6d59da1f9d",
+        "size": 69548
       },
       {
         "path": "docs/planning/STUDIO_INCREMENT_VERIFICATION.md",
@@ -26431,6 +26456,16 @@
       }
     },
     {
+      "id": "file:apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+      "kind": "file",
+      "name": "StudioCreatureVoiceOverlay.Ux4L.cs",
+      "path": "apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      }
+    },
+    {
       "id": "file:apps/Forge.Studio/Presentation/StudioCrossAreaPatrolOverlay.Ux2NavK.cs",
       "kind": "file",
       "name": "StudioCrossAreaPatrolOverlay.Ux2NavK.cs",
@@ -28161,6 +28196,16 @@
       }
     },
     {
+      "id": "file:apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4L.cs",
+      "kind": "file",
+      "name": "StudioWorkspaceShell.Ux4L.cs",
+      "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4L.cs",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      }
+    },
+    {
       "id": "file:apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux5A.cs",
       "kind": "file",
       "name": "StudioWorkspaceShell.Ux5A.cs",
@@ -29181,6 +29226,16 @@
       }
     },
     {
+      "id": "file:apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+      "kind": "file",
+      "name": "StudioSessionController.Ux4L.cs",
+      "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      }
+    },
+    {
       "id": "file:apps/Forge.Studio/Session/StudioSessionController.Ux5A.cs",
       "kind": "file",
       "name": "StudioSessionController.Ux5A.cs",
@@ -29915,6 +29970,16 @@
       "kind": "file",
       "name": "StudioUx4KModels.cs",
       "path": "apps/Forge.Studio/Session/StudioUx4KModels.cs",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      }
+    },
+    {
+      "id": "file:apps/Forge.Studio/Session/StudioUx4LModels.cs",
+      "kind": "file",
+      "name": "StudioUx4LModels.cs",
+      "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
       "line": 1,
       "metadata": {
         "language": "csharp"
@@ -32545,6 +32610,16 @@
       "kind": "document",
       "name": "STUDIO_UX4_K.md",
       "path": "docs/acceptance/STUDIO_UX4_K.md",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      }
+    },
+    {
+      "id": "file:docs/acceptance/STUDIO_UX4_L.md",
+      "kind": "document",
+      "name": "STUDIO_UX4_L.md",
+      "path": "docs/acceptance/STUDIO_UX4_L.md",
       "line": 1,
       "metadata": {
         "language": "markdown"
@@ -79159,6 +79234,18 @@
       }
     },
     {
+      "id": "model:Forge.Studio.Session.StudioUx4LSmokeResult",
+      "kind": "model",
+      "name": "StudioUx4LSmokeResult",
+      "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+      "line": 71,
+      "metadata": {
+        "namespace": "Forge.Studio.Session",
+        "project": "Forge.Studio",
+        "symbol_kind": "Class"
+      }
+    },
+    {
       "id": "model:Forge.Studio.Session.StudioUx5ASmokeResult",
       "kind": "model",
       "name": "StudioUx5ASmokeResult",
@@ -121175,6 +121262,18 @@
       }
     },
     {
+      "id": "type:Forge.Studio.Presentation.StudioCreatureVoiceOverlayUx4L",
+      "kind": "type",
+      "name": "StudioCreatureVoiceOverlayUx4L",
+      "path": "apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.Studio.Presentation",
+        "project": "Forge.Studio",
+        "symbol_kind": "Class"
+      }
+    },
+    {
       "id": "type:Forge.Studio.Presentation.StudioCrossAreaPatrolOverlayUx2NavK",
       "kind": "type",
       "name": "StudioCrossAreaPatrolOverlayUx2NavK",
@@ -123904,6 +124003,102 @@
       "name": "StudioCreatureRulesPreviewUx4F",
       "path": "apps/Forge.Studio/Session/StudioUx4FModels.cs",
       "line": 44,
+      "metadata": {
+        "namespace": "Forge.Studio.Session",
+        "project": "Forge.Studio",
+        "symbol_kind": "Class"
+      }
+    },
+    {
+      "id": "type:Forge.Studio.Session.StudioCreatureVoiceActionResultUx4L",
+      "kind": "type",
+      "name": "StudioCreatureVoiceActionResultUx4L",
+      "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+      "line": 40,
+      "metadata": {
+        "namespace": "Forge.Studio.Session",
+        "project": "Forge.Studio",
+        "symbol_kind": "Class"
+      }
+    },
+    {
+      "id": "type:Forge.Studio.Session.StudioCreatureVoiceApprovalSnapshotUx4L",
+      "kind": "type",
+      "name": "StudioCreatureVoiceApprovalSnapshotUx4L",
+      "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+      "line": 42,
+      "metadata": {
+        "namespace": "Forge.Studio.Session",
+        "project": "Forge.Studio",
+        "symbol_kind": "Class"
+      }
+    },
+    {
+      "id": "type:Forge.Studio.Session.StudioCreatureVoiceChoiceUx4L",
+      "kind": "type",
+      "name": "StudioCreatureVoiceChoiceUx4L",
+      "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.Studio.Session",
+        "project": "Forge.Studio",
+        "symbol_kind": "Class"
+      }
+    },
+    {
+      "id": "type:Forge.Studio.Session.StudioCreatureVoiceDiagnosticUx4L",
+      "kind": "type",
+      "name": "StudioCreatureVoiceDiagnosticUx4L",
+      "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+      "line": 27,
+      "metadata": {
+        "namespace": "Forge.Studio.Session",
+        "project": "Forge.Studio",
+        "symbol_kind": "Class"
+      }
+    },
+    {
+      "id": "type:Forge.Studio.Session.StudioCreatureVoiceDraftUx4L",
+      "kind": "type",
+      "name": "StudioCreatureVoiceDraftUx4L",
+      "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+      "line": 11,
+      "metadata": {
+        "namespace": "Forge.Studio.Session",
+        "project": "Forge.Studio",
+        "symbol_kind": "Class"
+      }
+    },
+    {
+      "id": "type:Forge.Studio.Session.StudioCreatureVoiceEvidenceProjectUx4L",
+      "kind": "type",
+      "name": "StudioCreatureVoiceEvidenceProjectUx4L",
+      "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+      "line": 50,
+      "metadata": {
+        "namespace": "Forge.Studio.Session",
+        "project": "Forge.Studio",
+        "symbol_kind": "Class"
+      }
+    },
+    {
+      "id": "type:Forge.Studio.Session.StudioCreatureVoiceEvidenceSourceSnapshotUx4L",
+      "kind": "type",
+      "name": "StudioCreatureVoiceEvidenceSourceSnapshotUx4L",
+      "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+      "line": 58,
+      "metadata": {
+        "namespace": "Forge.Studio.Session",
+        "project": "Forge.Studio",
+        "symbol_kind": "Class"
+      }
+    },
+    {
+      "id": "type:Forge.Studio.Session.StudioCreatureVoicePreviewUx4L",
+      "kind": "type",
+      "name": "StudioCreatureVoicePreviewUx4L",
+      "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+      "line": 29,
       "metadata": {
         "namespace": "Forge.Studio.Session",
         "project": "Forge.Studio",
@@ -191069,6 +191264,136 @@
       }
     },
     {
+      "source": "file:apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+      "target": "file:apps/Forge.Studio/Presentation/StudioStyle.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+        "line": 98
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+      "target": "file:apps/Forge.Studio/Session/StudioActionResult.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+        "line": 371
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+      "target": "file:apps/Forge.Studio/Session/StudioOpenResult.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+        "line": 537
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+      "target": "file:apps/Forge.Studio/Session/StudioSessionController.Ux0C.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+        "line": 11
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+      "target": "file:apps/Forge.Studio/Session/StudioUx4LModels.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+        "line": 15
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+      "target": "file:src/Forge.Application/Commands/ProjectCommandHistory.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+        "line": 482
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+      "target": "file:src/Forge.Application/Projects/ProjectRevision.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+        "line": 487
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+      "target": "file:src/Forge.Application/Projects/ProjectState.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+        "line": 482
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+      "target": "file:src/Forge.Domain/Blueprints/BlueprintId.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+        "line": 16
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+      "target": "file:src/Forge.Domain/Projects/ProjectDefinition.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+        "line": 486
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+      "target": "file:src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+        "line": 520
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/ProjectSession.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+        "line": 537
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/ProjectSessionOpenResult.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+        "line": 573
+      }
+    },
+    {
       "source": "file:apps/Forge.Studio/Presentation/StudioCrossAreaPatrolOverlay.Ux2NavK.cs",
       "target": "file:apps/Forge.Studio/Presentation/StudioStyle.cs",
       "kind": "imports",
@@ -212195,7 +212520,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4D.cs",
-        "line": 118
+        "line": 120
       }
     },
     {
@@ -212205,7 +212530,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4D.cs",
-        "line": 82
+        "line": 84
       }
     },
     {
@@ -212215,7 +212540,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4D.cs",
-        "line": 82
+        "line": 84
       }
     },
     {
@@ -212225,7 +212550,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4D.cs",
-        "line": 127
+        "line": 129
       }
     },
     {
@@ -212235,7 +212560,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4D.cs",
-        "line": 129
+        "line": 131
       }
     },
     {
@@ -212245,7 +212570,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4D.cs",
-        "line": 122
+        "line": 124
       }
     },
     {
@@ -212285,7 +212610,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4E.cs",
-        "line": 119
+        "line": 121
       }
     },
     {
@@ -212295,7 +212620,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4E.cs",
-        "line": 82
+        "line": 84
       }
     },
     {
@@ -212305,7 +212630,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4E.cs",
-        "line": 82
+        "line": 84
       }
     },
     {
@@ -212315,7 +212640,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4E.cs",
-        "line": 128
+        "line": 130
       }
     },
     {
@@ -212325,7 +212650,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4E.cs",
-        "line": 130
+        "line": 132
       }
     },
     {
@@ -212335,7 +212660,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4E.cs",
-        "line": 123
+        "line": 125
       }
     },
     {
@@ -212375,7 +212700,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4F.cs",
-        "line": 118
+        "line": 120
       }
     },
     {
@@ -212385,7 +212710,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4F.cs",
-        "line": 82
+        "line": 84
       }
     },
     {
@@ -212395,7 +212720,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4F.cs",
-        "line": 82
+        "line": 84
       }
     },
     {
@@ -212405,7 +212730,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4F.cs",
-        "line": 127
+        "line": 129
       }
     },
     {
@@ -212415,7 +212740,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4F.cs",
-        "line": 129
+        "line": 131
       }
     },
     {
@@ -212425,7 +212750,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4F.cs",
-        "line": 122
+        "line": 124
       }
     },
     {
@@ -212879,6 +213204,96 @@
       }
     },
     {
+      "source": "file:apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4L.cs",
+      "target": "file:apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4L.cs",
+        "line": 7
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4L.cs",
+      "target": "file:apps/Forge.Studio/Presentation/StudioStyle.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4L.cs",
+        "line": 12
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4L.cs",
+      "target": "file:apps/Forge.Studio/Session/StudioSessionController.Ux0C.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4L.cs",
+        "line": 29
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4L.cs",
+      "target": "file:apps/Forge.Studio/Session/StudioUx4LModels.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4L.cs",
+        "line": 104
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4L.cs",
+      "target": "file:src/Forge.Application/Commands/ProjectCommandHistory.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4L.cs",
+        "line": 70
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4L.cs",
+      "target": "file:src/Forge.Application/Projects/ProjectState.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4L.cs",
+        "line": 70
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4L.cs",
+      "target": "file:src/Forge.Domain/Areas/AreaId.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4L.cs",
+        "line": 112
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4L.cs",
+      "target": "file:src/Forge.Domain/Entities/EntityId.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4L.cs",
+        "line": 114
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4L.cs",
+      "target": "file:src/Forge.Domain/Projects/ProjectDefinition.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4L.cs",
+        "line": 107
+      }
+    },
+    {
       "source": "file:apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux5A.cs",
       "target": "file:apps/Forge.Studio/Presentation/StudioDialogueFoundationPage.Ux5A.cs",
       "kind": "imports",
@@ -212965,7 +213380,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1981
+        "line": 1989
       }
     },
     {
@@ -212975,7 +213390,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1002
+        "line": 1008
       }
     },
     {
@@ -212985,7 +213400,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 996
+        "line": 1002
       }
     },
     {
@@ -212995,7 +213410,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 984
+        "line": 990
       }
     },
     {
@@ -213005,7 +213420,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 990
+        "line": 996
       }
     },
     {
@@ -213025,7 +213440,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1411
+        "line": 1419
       }
     },
     {
@@ -213035,7 +213450,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1020
+        "line": 1026
       }
     },
     {
@@ -213045,7 +213460,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 961
+        "line": 967
       }
     },
     {
@@ -213065,7 +213480,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 2069
+        "line": 2077
       }
     },
     {
@@ -213075,7 +213490,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1008
+        "line": 1014
       }
     },
     {
@@ -213095,7 +213510,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1014
+        "line": 1020
       }
     },
     {
@@ -213125,7 +213540,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1032
+        "line": 1038
       }
     },
     {
@@ -213145,7 +213560,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1026
+        "line": 1032
       }
     },
     {
@@ -213155,7 +213570,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 455
+        "line": 457
       }
     },
     {
@@ -213165,7 +213580,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 466
+        "line": 468
       }
     },
     {
@@ -213185,7 +213600,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1756
+        "line": 1764
       }
     },
     {
@@ -213195,7 +213610,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1670
+        "line": 1678
       }
     },
     {
@@ -213205,7 +213620,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1792
+        "line": 1800
       }
     },
     {
@@ -213215,7 +213630,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 422
+        "line": 424
       }
     },
     {
@@ -213225,7 +213640,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1596
+        "line": 1604
       }
     },
     {
@@ -213235,7 +213650,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1765
+        "line": 1773
       }
     },
     {
@@ -213265,7 +213680,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1730
+        "line": 1738
       }
     },
     {
@@ -213275,7 +213690,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 967
+        "line": 973
       }
     },
     {
@@ -213285,7 +213700,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 443
+        "line": 445
       }
     },
     {
@@ -213295,7 +213710,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1553
+        "line": 1561
       }
     },
     {
@@ -213305,7 +213720,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1064
+        "line": 1070
       }
     },
     {
@@ -213315,7 +213730,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1953
+        "line": 1961
       }
     },
     {
@@ -213325,7 +213740,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 966
+        "line": 972
       }
     },
     {
@@ -213335,7 +213750,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1953
+        "line": 1961
       }
     },
     {
@@ -213345,7 +213760,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 430
+        "line": 432
       }
     },
     {
@@ -213365,7 +213780,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 2157
+        "line": 2165
       }
     },
     {
@@ -213395,7 +213810,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1403
+        "line": 1411
       }
     },
     {
@@ -241209,6 +241624,246 @@
       }
     },
     {
+      "source": "file:apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+      "target": "file:apps/Forge.Studio/Session/StudioActionResult.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 141
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+      "target": "file:apps/Forge.Studio/Session/StudioOpenResult.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 200
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+      "target": "file:apps/Forge.Studio/Session/StudioUx4EModels.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 174
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+      "target": "file:apps/Forge.Studio/Session/StudioUx4LModels.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 18
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+      "target": "file:src/Forge.Application/Blueprints/SetCreaturePresentationHandler.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 17
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+      "target": "file:src/Forge.Application/Commands/CommandDiagnostic.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 373
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+      "target": "file:src/Forge.Application/Commands/CommandId.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 70
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+      "target": "file:src/Forge.Application/Commands/CommandResult.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 72
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+      "target": "file:src/Forge.Application/Commands/ProjectCommandHistory.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 39
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+      "target": "file:src/Forge.Application/Commands/ProjectPatch.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 91
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+      "target": "file:src/Forge.Application/Projects/ProjectRevision.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 20
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+      "target": "file:src/Forge.Application/Projects/ProjectState.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 42
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+      "target": "file:src/Forge.Application/Time/SystemClock.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 17
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+      "target": "file:src/Forge.Domain/Blueprints/BlueprintDefinition.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 337
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+      "target": "file:src/Forge.Domain/Blueprints/BlueprintId.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 34
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+      "target": "file:src/Forge.Domain/Blueprints/BlueprintKind.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 26
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+      "target": "file:src/Forge.Domain/Creatures/CreaturePresentationDiagnostic.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 370
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+      "target": "file:src/Forge.Domain/Creatures/CreaturePresentationProfile.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 19
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+      "target": "file:src/Forge.Domain/Creatures/CreaturePresentationRuntimeResolver.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 76
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+      "target": "file:src/Forge.Domain/Creatures/CreaturePresentationValidator.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 322
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+      "target": "file:src/Forge.Domain/Projects/ProjectDefinition.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 25
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+      "target": "file:src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 254
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/ProjectSession.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 198
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/ProjectSessionOpenResult.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 198
+      }
+    },
+    {
       "source": "file:apps/Forge.Studio/Session/StudioSessionController.Ux5A.cs",
       "target": "file:apps/Forge.Studio/Session/StudioActionResult.cs",
       "kind": "imports",
@@ -241645,7 +242300,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 193
+        "line": 194
       }
     },
     {
@@ -241655,7 +242310,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 688
+        "line": 689
       }
     },
     {
@@ -241665,7 +242320,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 903
+        "line": 904
       }
     },
     {
@@ -241685,7 +242340,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 685
+        "line": 686
       }
     },
     {
@@ -241695,7 +242350,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 769
+        "line": 770
       }
     },
     {
@@ -241705,7 +242360,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 792
+        "line": 793
       }
     },
     {
@@ -241715,7 +242370,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 850
+        "line": 851
       }
     },
     {
@@ -241735,7 +242390,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 1030
+        "line": 1031
       }
     },
     {
@@ -241745,7 +242400,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 554
+        "line": 555
       }
     },
     {
@@ -241755,7 +242410,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 856
+        "line": 857
       }
     },
     {
@@ -241775,7 +242430,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 560
+        "line": 561
       }
     },
     {
@@ -241785,7 +242440,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 211
+        "line": 212
       }
     },
     {
@@ -241795,7 +242450,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 214
+        "line": 215
       }
     },
     {
@@ -241805,7 +242460,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 201
+        "line": 202
       }
     },
     {
@@ -241815,7 +242470,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 201
+        "line": 202
       }
     },
     {
@@ -241825,7 +242480,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 220
+        "line": 221
       }
     },
     {
@@ -241835,7 +242490,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 205
+        "line": 206
       }
     },
     {
@@ -241845,7 +242500,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 216
+        "line": 217
       }
     },
     {
@@ -241875,7 +242530,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 559
+        "line": 560
       }
     },
     {
@@ -241885,7 +242540,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 586
+        "line": 587
       }
     },
     {
@@ -241915,7 +242570,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 231
+        "line": 232
       }
     },
     {
@@ -241925,7 +242580,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 369
+        "line": 370
       }
     },
     {
@@ -241935,7 +242590,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 970
+        "line": 971
       }
     },
     {
@@ -241945,7 +242600,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 553
+        "line": 554
       }
     },
     {
@@ -241965,7 +242620,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 982
+        "line": 983
       }
     },
     {
@@ -241985,7 +242640,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 929
+        "line": 930
       }
     },
     {
@@ -242005,7 +242660,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 1007
+        "line": 1008
       }
     },
     {
@@ -242025,7 +242680,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 651
+        "line": 652
       }
     },
     {
@@ -242045,7 +242700,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 669
+        "line": 670
       }
     },
     {
@@ -242065,7 +242720,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 633
+        "line": 634
       }
     },
     {
@@ -242105,7 +242760,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 1405
+        "line": 1407
       }
     },
     {
@@ -242115,7 +242770,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 1406
+        "line": 1408
       }
     },
     {
@@ -242165,7 +242820,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 761
+        "line": 762
       }
     },
     {
@@ -242175,7 +242830,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 742
+        "line": 743
       }
     },
     {
@@ -242185,7 +242840,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 683
+        "line": 684
       }
     },
     {
@@ -242195,7 +242850,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 721
+        "line": 722
       }
     },
     {
@@ -242215,7 +242870,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 769
+        "line": 770
       }
     },
     {
@@ -242235,7 +242890,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 227
+        "line": 228
       }
     },
     {
@@ -242255,7 +242910,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 1525
+        "line": 1527
       }
     },
     {
@@ -242265,7 +242920,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 521
+        "line": 522
       }
     },
     {
@@ -242275,7 +242930,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 1174
+        "line": 1176
       }
     },
     {
@@ -242285,7 +242940,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 203
+        "line": 204
       }
     },
     {
@@ -242305,7 +242960,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 325
+        "line": 326
       }
     },
     {
@@ -242315,7 +242970,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 679
+        "line": 680
       }
     },
     {
@@ -242325,7 +242980,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 903
+        "line": 904
       }
     },
     {
@@ -242345,7 +243000,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 1431
+        "line": 1433
       }
     },
     {
@@ -242355,7 +243010,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 1477
+        "line": 1479
       }
     },
     {
@@ -242365,7 +243020,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 643
+        "line": 644
       }
     },
     {
@@ -242375,7 +243030,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 1477
+        "line": 1479
       }
     },
     {
@@ -242385,7 +243040,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 184
+        "line": 185
       }
     },
     {
@@ -242405,7 +243060,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 1207
+        "line": 1209
       }
     },
     {
@@ -242415,7 +243070,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 935
+        "line": 936
       }
     },
     {
@@ -242425,7 +243080,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 625
+        "line": 626
       }
     },
     {
@@ -242435,7 +243090,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 903
+        "line": 904
       }
     },
     {
@@ -242445,7 +243100,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 778
+        "line": 779
       }
     },
     {
@@ -242455,7 +243110,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 1521
+        "line": 1523
       }
     },
     {
@@ -242475,7 +243130,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 1207
+        "line": 1209
       }
     },
     {
@@ -242485,7 +243140,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 614
+        "line": 615
       }
     },
     {
@@ -242495,7 +243150,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 1173
+        "line": 1175
       }
     },
     {
@@ -242525,7 +243180,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 615
+        "line": 616
       }
     },
     {
@@ -242535,7 +243190,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 1314
+        "line": 1316
       }
     },
     {
@@ -242545,7 +243200,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 688
+        "line": 689
       }
     },
     {
@@ -247859,6 +248514,96 @@
       }
     },
     {
+      "source": "file:apps/Forge.Studio/Session/StudioUx4LModels.cs",
+      "target": "file:src/Forge.Application/Commands/CommandHistoryJournalEntry.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 62
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Session/StudioUx4LModels.cs",
+      "target": "file:src/Forge.Application/Commands/ProjectCommandHistory.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 60
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Session/StudioUx4LModels.cs",
+      "target": "file:src/Forge.Application/Projects/ProjectRevision.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 12
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Session/StudioUx4LModels.cs",
+      "target": "file:src/Forge.Domain/Areas/AreaId.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 66
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Session/StudioUx4LModels.cs",
+      "target": "file:src/Forge.Domain/Blueprints/BlueprintDefinition.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 15
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Session/StudioUx4LModels.cs",
+      "target": "file:src/Forge.Domain/Blueprints/BlueprintId.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 9
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Session/StudioUx4LModels.cs",
+      "target": "file:src/Forge.Domain/Creatures/CreaturePresentationProfile.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 16
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Session/StudioUx4LModels.cs",
+      "target": "file:src/Forge.Domain/Entities/EntityId.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 67
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/Session/StudioUx4LModels.cs",
+      "target": "file:src/Forge.Domain/Projects/ProjectDefinition.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 51
+      }
+    },
+    {
       "source": "file:apps/Forge.Studio/Session/StudioUx5AModels.cs",
       "target": "file:apps/Forge.Studio/Session/StudioSessionController.Ux0C.cs",
       "kind": "imports",
@@ -248035,7 +248780,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 573
+        "line": 578
       }
     },
     {
@@ -248085,7 +248830,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 453
+        "line": 456
       }
     },
     {
@@ -248095,7 +248840,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 465
+        "line": 468
       }
     },
     {
@@ -248105,7 +248850,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 466
+        "line": 469
       }
     },
     {
@@ -248115,7 +248860,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 467
+        "line": 470
       }
     },
     {
@@ -248125,7 +248870,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 468
+        "line": 471
       }
     },
     {
@@ -248135,7 +248880,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 469
+        "line": 472
       }
     },
     {
@@ -248145,7 +248890,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 470
+        "line": 473
       }
     },
     {
@@ -248155,7 +248900,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 471
+        "line": 474
       }
     },
     {
@@ -248165,7 +248910,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 472
+        "line": 475
       }
     },
     {
@@ -248175,7 +248920,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 473
+        "line": 476
       }
     },
     {
@@ -248185,7 +248930,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 474
+        "line": 477
       }
     },
     {
@@ -248195,7 +248940,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 475
+        "line": 478
       }
     },
     {
@@ -248205,7 +248950,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 476
+        "line": 479
       }
     },
     {
@@ -248215,7 +248960,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 454
+        "line": 457
       }
     },
     {
@@ -248225,7 +248970,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 455
+        "line": 458
       }
     },
     {
@@ -248235,7 +248980,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 456
+        "line": 459
       }
     },
     {
@@ -248245,7 +248990,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 457
+        "line": 460
       }
     },
     {
@@ -248255,7 +249000,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 458
+        "line": 461
       }
     },
     {
@@ -248265,7 +249010,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 459
+        "line": 462
       }
     },
     {
@@ -248275,7 +249020,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 460
+        "line": 463
       }
     },
     {
@@ -248285,7 +249030,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 461
+        "line": 464
       }
     },
     {
@@ -248295,7 +249040,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 462
+        "line": 465
       }
     },
     {
@@ -248305,7 +249050,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 463
+        "line": 466
       }
     },
     {
@@ -248315,7 +249060,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 464
+        "line": 467
       }
     },
     {
@@ -248325,7 +249070,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 477
+        "line": 480
       }
     },
     {
@@ -248335,7 +249080,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 478
+        "line": 481
       }
     },
     {
@@ -248345,7 +249090,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 479
+        "line": 482
       }
     },
     {
@@ -248355,7 +249100,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 480
+        "line": 483
       }
     },
     {
@@ -248365,7 +249110,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 481
+        "line": 484
       }
     },
     {
@@ -248375,7 +249120,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 482
+        "line": 485
       }
     },
     {
@@ -248385,7 +249130,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 483
+        "line": 486
       }
     },
     {
@@ -248395,7 +249140,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 484
+        "line": 487
       }
     },
     {
@@ -248405,7 +249150,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 485
+        "line": 488
       }
     },
     {
@@ -248415,7 +249160,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 486
+        "line": 489
       }
     },
     {
@@ -248425,7 +249170,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 487
+        "line": 490
       }
     },
     {
@@ -248435,7 +249180,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 488
+        "line": 491
       }
     },
     {
@@ -248445,7 +249190,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 489
+        "line": 492
       }
     },
     {
@@ -248455,7 +249200,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 490
+        "line": 493
       }
     },
     {
@@ -248465,7 +249210,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 491
+        "line": 494
       }
     },
     {
@@ -248475,7 +249220,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 492
+        "line": 495
       }
     },
     {
@@ -248485,7 +249230,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 493
+        "line": 496
       }
     },
     {
@@ -248495,7 +249240,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 494
+        "line": 497
       }
     },
     {
@@ -248505,7 +249250,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 495
+        "line": 498
       }
     },
     {
@@ -248515,7 +249260,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 496
+        "line": 499
       }
     },
     {
@@ -248525,7 +249270,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 497
+        "line": 500
       }
     },
     {
@@ -248535,7 +249280,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 498
+        "line": 501
       }
     },
     {
@@ -248545,7 +249290,17 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 499
+        "line": 502
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/StudioRoot.cs",
+      "target": "file:apps/Forge.Studio/Session/StudioUx4LModels.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/StudioRoot.cs",
+        "line": 503
       }
     },
     {
@@ -248555,7 +249310,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 500
+        "line": 504
       }
     },
     {
@@ -388075,7 +388830,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 1521
+        "line": 1523
       }
     },
     {
@@ -388466,6 +389221,16 @@
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4K.cs",
         "line": 248
+      }
+    },
+    {
+      "source": "handler:Forge.Studio.Session.StudioSessionController",
+      "target": "adapter:Forge.ModuleFormat.Serialization.ProjectJsonSerializer",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 254
       }
     },
     {
@@ -390910,6 +391675,16 @@
     },
     {
       "source": "handler:Forge.Studio.Session.StudioSessionController",
+      "target": "file:apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 15
+      }
+    },
+    {
+      "source": "handler:Forge.Studio.Session.StudioSessionController",
       "target": "file:apps/Forge.Studio/Session/StudioSessionController.Ux5A.cs",
       "kind": "defined_in",
       "confidence": "semantic",
@@ -391255,6 +392030,16 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4E.cs",
+        "line": 17
+      }
+    },
+    {
+      "source": "handler:Forge.Studio.Session.StudioSessionController",
+      "target": "handler:Forge.Application.Blueprints.SetCreaturePresentationHandler",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
         "line": 17
       }
     },
@@ -392215,7 +393000,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 771
+        "line": 772
       }
     },
     {
@@ -392225,7 +393010,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 850
+        "line": 851
       }
     },
     {
@@ -392524,6 +393309,16 @@
       "kind": "uses_model",
       "confidence": "semantic",
       "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 373
+      }
+    },
+    {
+      "source": "handler:Forge.Studio.Session.StudioSessionController",
+      "target": "model:Forge.Application.Commands.CommandDiagnostic",
+      "kind": "uses_model",
+      "confidence": "semantic",
+      "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.Ux5A.cs",
         "line": 1074
       }
@@ -392535,7 +393330,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 1030
+        "line": 1031
       }
     },
     {
@@ -393274,6 +394069,16 @@
       "kind": "uses_model",
       "confidence": "semantic",
       "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 70
+      }
+    },
+    {
+      "source": "handler:Forge.Studio.Session.StudioSessionController",
+      "target": "model:Forge.Application.Commands.CommandId",
+      "kind": "uses_model",
+      "confidence": "semantic",
+      "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.Ux5A.cs",
         "line": 214
       }
@@ -393285,7 +394090,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 554
+        "line": 555
       }
     },
     {
@@ -394024,6 +394829,16 @@
       "kind": "uses_model",
       "confidence": "semantic",
       "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 72
+      }
+    },
+    {
+      "source": "handler:Forge.Studio.Session.StudioSessionController",
+      "target": "model:Forge.Application.Commands.CommandResult",
+      "kind": "uses_model",
+      "confidence": "semantic",
+      "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.Ux5A.cs",
         "line": 219
       }
@@ -394035,7 +394850,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 856
+        "line": 857
       }
     },
     {
@@ -394264,8 +395079,18 @@
       "kind": "uses_model",
       "confidence": "semantic",
       "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 91
+      }
+    },
+    {
+      "source": "handler:Forge.Studio.Session.StudioSessionController",
+      "target": "model:Forge.Application.Commands.ProjectPatch",
+      "kind": "uses_model",
+      "confidence": "semantic",
+      "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 560
+        "line": 561
       }
     },
     {
@@ -394295,7 +395120,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 211
+        "line": 212
       }
     },
     {
@@ -394325,7 +395150,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 205
+        "line": 206
       }
     },
     {
@@ -394365,7 +395190,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 559
+        "line": 560
       }
     },
     {
@@ -394385,7 +395210,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 267
+        "line": 268
       }
     },
     {
@@ -394415,7 +395240,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 553
+        "line": 554
       }
     },
     {
@@ -394425,7 +395250,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 379
+        "line": 380
       }
     },
     {
@@ -394505,7 +395330,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 982
+        "line": 983
       }
     },
     {
@@ -394515,7 +395340,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 929
+        "line": 930
       }
     },
     {
@@ -394525,7 +395350,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 1007
+        "line": 1008
       }
     },
     {
@@ -394555,7 +395380,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 651
+        "line": 652
       }
     },
     {
@@ -394565,7 +395390,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 669
+        "line": 670
       }
     },
     {
@@ -394575,7 +395400,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 633
+        "line": 634
       }
     },
     {
@@ -395574,6 +396399,16 @@
       "kind": "uses_model",
       "confidence": "semantic",
       "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 42
+      }
+    },
+    {
+      "source": "handler:Forge.Studio.Session.StudioSessionController",
+      "target": "model:Forge.Application.Projects.ProjectState",
+      "kind": "uses_model",
+      "confidence": "semantic",
+      "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.Ux5A.cs",
         "line": 113
       }
@@ -395695,7 +396530,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 1405
+        "line": 1407
       }
     },
     {
@@ -395715,7 +396550,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 1406
+        "line": 1408
       }
     },
     {
@@ -398645,7 +399480,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 683
+        "line": 684
       }
     },
     {
@@ -398705,7 +399540,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 769
+        "line": 770
       }
     },
     {
@@ -398715,7 +399550,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 770
+        "line": 771
       }
     },
     {
@@ -398945,7 +399780,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 1525
+        "line": 1527
       }
     },
     {
@@ -398955,7 +399790,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 521
+        "line": 522
       }
     },
     {
@@ -399015,7 +399850,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 325
+        "line": 326
       }
     },
     {
@@ -399494,6 +400329,16 @@
       "kind": "uses_model",
       "confidence": "semantic",
       "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 337
+      }
+    },
+    {
+      "source": "handler:Forge.Studio.Session.StudioSessionController",
+      "target": "model:Forge.Domain.Blueprints.BlueprintDefinition",
+      "kind": "uses_model",
+      "confidence": "semantic",
+      "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.Ux5A.cs",
         "line": 888
       }
@@ -399505,7 +400350,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 679
+        "line": 680
       }
     },
     {
@@ -400044,6 +400889,16 @@
       "kind": "uses_model",
       "confidence": "semantic",
       "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 34
+      }
+    },
+    {
+      "source": "handler:Forge.Studio.Session.StudioSessionController",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId",
+      "kind": "uses_model",
+      "confidence": "semantic",
+      "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.Ux5A.cs",
         "line": 881
       }
@@ -400055,7 +400910,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 903
+        "line": 904
       }
     },
     {
@@ -400564,6 +401419,16 @@
       "kind": "uses_model",
       "confidence": "semantic",
       "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 26
+      }
+    },
+    {
+      "source": "handler:Forge.Studio.Session.StudioSessionController",
+      "target": "model:Forge.Domain.Blueprints.BlueprintKind",
+      "kind": "uses_model",
+      "confidence": "semantic",
+      "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.Ux5A.cs",
         "line": 74
       }
@@ -400860,12 +401725,42 @@
     },
     {
       "source": "handler:Forge.Studio.Session.StudioSessionController",
+      "target": "model:Forge.Domain.Creatures.CreaturePresentationDiagnostic",
+      "kind": "uses_model",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 370
+      }
+    },
+    {
+      "source": "handler:Forge.Studio.Session.StudioSessionController",
       "target": "model:Forge.Domain.Creatures.CreaturePresentationProfile",
       "kind": "uses_model",
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4E.cs",
         "line": 19
+      }
+    },
+    {
+      "source": "handler:Forge.Studio.Session.StudioSessionController",
+      "target": "model:Forge.Domain.Creatures.CreaturePresentationProfile",
+      "kind": "uses_model",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 19
+      }
+    },
+    {
+      "source": "handler:Forge.Studio.Session.StudioSessionController",
+      "target": "model:Forge.Domain.Creatures.CreaturePresentationProfile.VoiceProfile",
+      "kind": "uses_model",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 302
       }
     },
     {
@@ -401995,7 +402890,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 1431
+        "line": 1433
       }
     },
     {
@@ -402015,7 +402910,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 1477
+        "line": 1479
       }
     },
     {
@@ -403005,7 +403900,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 184
+        "line": 185
       }
     },
     {
@@ -404734,6 +405629,16 @@
       "kind": "uses_model",
       "confidence": "semantic",
       "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 25
+      }
+    },
+    {
+      "source": "handler:Forge.Studio.Session.StudioSessionController",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition",
+      "kind": "uses_model",
+      "confidence": "semantic",
+      "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.Ux5A.cs",
         "line": 35
       }
@@ -405265,7 +406170,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 1207
+        "line": 1209
       }
     },
     {
@@ -406055,7 +406960,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 935
+        "line": 936
       }
     },
     {
@@ -406475,7 +407380,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 625
+        "line": 626
       }
     },
     {
@@ -407025,7 +407930,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 903
+        "line": 904
       }
     },
     {
@@ -409375,7 +410280,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 779
+        "line": 780
       }
     },
     {
@@ -409435,7 +410340,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 1195
+        "line": 1197
       }
     },
     {
@@ -410324,6 +411229,16 @@
       "kind": "uses_model",
       "confidence": "semantic",
       "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 198
+      }
+    },
+    {
+      "source": "handler:Forge.Studio.Session.StudioSessionController",
+      "target": "model:Forge.ModuleFormat.Workspaces.ProjectSessionOpenResult",
+      "kind": "uses_model",
+      "confidence": "semantic",
+      "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.Ux5A.cs",
         "line": 351
       }
@@ -410375,7 +411290,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 615
+        "line": 616
       }
     },
     {
@@ -411684,6 +412599,16 @@
       "kind": "uses_model",
       "confidence": "semantic",
       "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 141
+      }
+    },
+    {
+      "source": "handler:Forge.Studio.Session.StudioSessionController",
+      "target": "model:Forge.Studio.Session.StudioActionResult",
+      "kind": "uses_model",
+      "confidence": "semantic",
+      "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.Ux5A.cs",
         "line": 557
       }
@@ -411695,7 +412620,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 193
+        "line": 194
       }
     },
     {
@@ -411755,7 +412680,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 688
+        "line": 689
       }
     },
     {
@@ -411765,7 +412690,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 707
+        "line": 708
       }
     },
     {
@@ -411835,7 +412760,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 903
+        "line": 904
       }
     },
     {
@@ -412736,6 +413661,16 @@
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4K.cs",
         "line": 191
+      }
+    },
+    {
+      "source": "handler:Forge.Studio.Session.StudioSessionController",
+      "target": "model:Forge.Studio.Session.StudioOpenResult",
+      "kind": "uses_model",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 200
       }
     },
     {
@@ -415220,6 +416155,16 @@
     },
     {
       "source": "handler:Forge.Studio.Session.StudioSessionController",
+      "target": "model:Forge.Studio.Session.StudioUx4LSmokeResult",
+      "kind": "uses_model",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 185
+      }
+    },
+    {
+      "source": "handler:Forge.Studio.Session.StudioSessionController",
       "target": "model:Forge.Studio.Session.StudioUx5ASmokeResult",
       "kind": "uses_model",
       "confidence": "semantic",
@@ -416136,6 +417081,16 @@
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4K.cs",
         "line": 17
+      }
+    },
+    {
+      "source": "handler:Forge.Studio.Session.StudioSessionController",
+      "target": "project:apps/Forge.Studio/Forge.Studio",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 15
       }
     },
     {
@@ -417365,7 +418320,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 685
+        "line": 686
       }
     },
     {
@@ -417375,7 +418330,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 769
+        "line": 770
       }
     },
     {
@@ -417385,7 +418340,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 795
+        "line": 796
       }
     },
     {
@@ -417395,7 +418350,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 792
+        "line": 793
       }
     },
     {
@@ -418364,6 +419319,16 @@
       "kind": "references",
       "confidence": "semantic",
       "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 39
+      }
+    },
+    {
+      "source": "handler:Forge.Studio.Session.StudioSessionController",
+      "target": "type:Forge.Application.Commands.ProjectCommandHistory",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.Ux5A.cs",
         "line": 106
       }
@@ -418475,7 +419440,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 214
+        "line": 215
       }
     },
     {
@@ -418485,7 +419450,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 201
+        "line": 202
       }
     },
     {
@@ -418495,7 +419460,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 201
+        "line": 202
       }
     },
     {
@@ -418505,7 +419470,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 220
+        "line": 221
       }
     },
     {
@@ -418515,7 +419480,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 224
+        "line": 225
       }
     },
     {
@@ -418525,7 +419490,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 216
+        "line": 217
       }
     },
     {
@@ -418535,7 +419500,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 217
+        "line": 218
       }
     },
     {
@@ -418655,7 +419620,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 586
+        "line": 587
       }
     },
     {
@@ -418715,7 +419680,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 231
+        "line": 232
       }
     },
     {
@@ -418735,7 +419700,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 970
+        "line": 971
       }
     },
     {
@@ -419574,6 +420539,16 @@
       "kind": "references",
       "confidence": "semantic",
       "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 20
+      }
+    },
+    {
+      "source": "handler:Forge.Studio.Session.StudioSessionController",
+      "target": "type:Forge.Application.Projects.ProjectRevision",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.Ux5A.cs",
         "line": 26
       }
@@ -420296,6 +421271,16 @@
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4K.cs",
         "line": 19
+      }
+    },
+    {
+      "source": "handler:Forge.Studio.Session.StudioSessionController",
+      "target": "type:Forge.Application.Time.SystemClock",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 17
       }
     },
     {
@@ -421195,7 +422180,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 761
+        "line": 762
       }
     },
     {
@@ -421205,7 +422190,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 742
+        "line": 743
       }
     },
     {
@@ -421445,7 +422430,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 227
+        "line": 228
       }
     },
     {
@@ -421455,7 +422440,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 241
+        "line": 242
       }
     },
     {
@@ -421485,7 +422470,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 1174
+        "line": 1176
       }
     },
     {
@@ -421525,7 +422510,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 203
+        "line": 204
       }
     },
     {
@@ -421770,12 +422755,32 @@
     },
     {
       "source": "handler:Forge.Studio.Session.StudioSessionController",
+      "target": "type:Forge.Domain.Creatures.CreaturePresentationRuntimeResolver",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 76
+      }
+    },
+    {
+      "source": "handler:Forge.Studio.Session.StudioSessionController",
       "target": "type:Forge.Domain.Creatures.CreaturePresentationRuntimeResolver.Resolution",
       "kind": "references",
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4E.cs",
         "line": 105
+      }
+    },
+    {
+      "source": "handler:Forge.Studio.Session.StudioSessionController",
+      "target": "type:Forge.Domain.Creatures.CreaturePresentationRuntimeResolver.Resolution",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 77
       }
     },
     {
@@ -422105,7 +423110,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 1477
+        "line": 1479
       }
     },
     {
@@ -422145,7 +423150,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 643
+        "line": 644
       }
     },
     {
@@ -426815,7 +427820,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 785
+        "line": 786
       }
     },
     {
@@ -426825,7 +427830,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 785
+        "line": 786
       }
     },
     {
@@ -426835,7 +427840,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 778
+        "line": 779
       }
     },
     {
@@ -426915,7 +427920,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 1207
+        "line": 1209
       }
     },
     {
@@ -426935,7 +427940,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 614
+        "line": 615
       }
     },
     {
@@ -426945,7 +427950,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 1181
+        "line": 1183
       }
     },
     {
@@ -426955,7 +427960,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 1173
+        "line": 1175
       }
     },
     {
@@ -427874,6 +428879,16 @@
       "kind": "references",
       "confidence": "semantic",
       "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 198
+      }
+    },
+    {
+      "source": "handler:Forge.Studio.Session.StudioSessionController",
+      "target": "type:Forge.ModuleFormat.Workspaces.ProjectSession",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.Ux5A.cs",
         "line": 350
       }
@@ -427905,7 +428920,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 1314
+        "line": 1316
       }
     },
     {
@@ -428395,7 +429410,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 688
+        "line": 689
       }
     },
     {
@@ -429340,6 +430355,16 @@
     },
     {
       "source": "handler:Forge.Studio.Session.StudioSessionController",
+      "target": "type:Forge.Studio.Session.StudioCreaturePresentationEvidenceProjectUx4E",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 174
+      }
+    },
+    {
+      "source": "handler:Forge.Studio.Session.StudioSessionController",
       "target": "type:Forge.Studio.Session.StudioCreaturePresentationPreviewUx4E",
       "kind": "references",
       "confidence": "semantic",
@@ -429496,6 +430521,76 @@
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4F.cs",
         "line": 67
+      }
+    },
+    {
+      "source": "handler:Forge.Studio.Session.StudioSessionController",
+      "target": "type:Forge.Studio.Session.StudioCreatureVoiceActionResultUx4L",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 97
+      }
+    },
+    {
+      "source": "handler:Forge.Studio.Session.StudioSessionController",
+      "target": "type:Forge.Studio.Session.StudioCreatureVoiceApprovalSnapshotUx4L",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 156
+      }
+    },
+    {
+      "source": "handler:Forge.Studio.Session.StudioSessionController",
+      "target": "type:Forge.Studio.Session.StudioCreatureVoiceChoiceUx4L",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 25
+      }
+    },
+    {
+      "source": "handler:Forge.Studio.Session.StudioSessionController",
+      "target": "type:Forge.Studio.Session.StudioCreatureVoiceDiagnosticUx4L",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 299
+      }
+    },
+    {
+      "source": "handler:Forge.Studio.Session.StudioSessionController",
+      "target": "type:Forge.Studio.Session.StudioCreatureVoiceDraftUx4L",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 18
+      }
+    },
+    {
+      "source": "handler:Forge.Studio.Session.StudioSessionController",
+      "target": "type:Forge.Studio.Session.StudioCreatureVoiceEvidenceProjectUx4L",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 171
+      }
+    },
+    {
+      "source": "handler:Forge.Studio.Session.StudioSessionController",
+      "target": "type:Forge.Studio.Session.StudioCreatureVoicePreviewUx4L",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 50
       }
     },
     {
@@ -430955,7 +432050,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 803
+        "line": 804
       }
     },
     {
@@ -434085,7 +435180,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 369
+        "line": 370
       }
     },
     {
@@ -434225,7 +435320,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.cs",
-        "line": 721
+        "line": 722
       }
     },
     {
@@ -434316,6 +435411,16 @@
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4E.cs",
         "line": 242
+      }
+    },
+    {
+      "source": "handler:Forge.Studio.Session.StudioSessionController",
+      "target": "validator:Forge.Domain.Creatures.CreaturePresentationValidator",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 322
       }
     },
     {
@@ -502629,6 +503734,26 @@
       }
     },
     {
+      "source": "model:Forge.Studio.Session.StudioUx4LSmokeResult",
+      "target": "file:apps/Forge.Studio/Session/StudioUx4LModels.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 71
+      }
+    },
+    {
+      "source": "model:Forge.Studio.Session.StudioUx4LSmokeResult",
+      "target": "project:apps/Forge.Studio/Forge.Studio",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 71
+      }
+    },
+    {
       "source": "model:Forge.Studio.Session.StudioUx5ASmokeResult",
       "target": "file:apps/Forge.Studio/Session/StudioUx5AModels.cs",
       "kind": "defined_in",
@@ -522240,6 +523365,16 @@
     },
     {
       "source": "namespace:Forge.Studio.Presentation",
+      "target": "file:apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+        "line": 9
+      }
+    },
+    {
+      "source": "namespace:Forge.Studio.Presentation",
       "target": "file:apps/Forge.Studio/Presentation/StudioCrossAreaPatrolOverlay.Ux2NavK.cs",
       "kind": "defined_in",
       "confidence": "semantic",
@@ -523970,6 +525105,16 @@
     },
     {
       "source": "namespace:Forge.Studio.Presentation",
+      "target": "file:apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4L.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4L.cs",
+        "line": 5
+      }
+    },
+    {
+      "source": "namespace:Forge.Studio.Presentation",
       "target": "file:apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux5A.cs",
       "kind": "defined_in",
       "confidence": "semantic",
@@ -524990,6 +526135,16 @@
     },
     {
       "source": "namespace:Forge.Studio.Session",
+      "target": "file:apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+        "line": 15
+      }
+    },
+    {
+      "source": "namespace:Forge.Studio.Session",
       "target": "file:apps/Forge.Studio/Session/StudioSessionController.Ux5A.cs",
       "kind": "defined_in",
       "confidence": "semantic",
@@ -525725,6 +526880,16 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioUx4KModels.cs",
+        "line": 9
+      }
+    },
+    {
+      "source": "namespace:Forge.Studio.Session",
+      "target": "file:apps/Forge.Studio/Session/StudioUx4LModels.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
         "line": 9
       }
     },
@@ -527460,6 +528625,16 @@
     },
     {
       "source": "project:apps/Forge.Studio/Forge.Studio",
+      "target": "file:apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+      "kind": "contains",
+      "confidence": "syntactic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Forge.Studio.csproj",
+        "line": 1
+      }
+    },
+    {
+      "source": "project:apps/Forge.Studio/Forge.Studio",
       "target": "file:apps/Forge.Studio/Presentation/StudioCrossAreaPatrolOverlay.Ux2NavK.cs",
       "kind": "contains",
       "confidence": "syntactic",
@@ -529190,6 +530365,16 @@
     },
     {
       "source": "project:apps/Forge.Studio/Forge.Studio",
+      "target": "file:apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4L.cs",
+      "kind": "contains",
+      "confidence": "syntactic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Forge.Studio.csproj",
+        "line": 1
+      }
+    },
+    {
+      "source": "project:apps/Forge.Studio/Forge.Studio",
       "target": "file:apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux5A.cs",
       "kind": "contains",
       "confidence": "syntactic",
@@ -530210,6 +531395,16 @@
     },
     {
       "source": "project:apps/Forge.Studio/Forge.Studio",
+      "target": "file:apps/Forge.Studio/Session/StudioSessionController.Ux4L.cs",
+      "kind": "contains",
+      "confidence": "syntactic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Forge.Studio.csproj",
+        "line": 1
+      }
+    },
+    {
+      "source": "project:apps/Forge.Studio/Forge.Studio",
       "target": "file:apps/Forge.Studio/Session/StudioSessionController.Ux5A.cs",
       "kind": "contains",
       "confidence": "syntactic",
@@ -530941,6 +532136,16 @@
     {
       "source": "project:apps/Forge.Studio/Forge.Studio",
       "target": "file:apps/Forge.Studio/Session/StudioUx4KModels.cs",
+      "kind": "contains",
+      "confidence": "syntactic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Forge.Studio.csproj",
+        "line": 1
+      }
+    },
+    {
+      "source": "project:apps/Forge.Studio/Forge.Studio",
+      "target": "file:apps/Forge.Studio/Session/StudioUx4LModels.cs",
       "kind": "contains",
       "confidence": "syntactic",
       "evidence": {
@@ -794409,6 +795614,206 @@
       }
     },
     {
+      "source": "type:Forge.Studio.Presentation.StudioCreatureVoiceOverlayUx4L",
+      "target": "adapter:Forge.ModuleFormat.Serialization.ProjectJsonSerializer",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+        "line": 520
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Presentation.StudioCreatureVoiceOverlayUx4L",
+      "target": "file:apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+        "line": 9
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Presentation.StudioCreatureVoiceOverlayUx4L",
+      "target": "handler:Forge.Studio.Session.StudioSessionController",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+        "line": 11
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Presentation.StudioCreatureVoiceOverlayUx4L",
+      "target": "model:Forge.Application.Projects.ProjectState",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+        "line": 482
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Presentation.StudioCreatureVoiceOverlayUx4L",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+        "line": 16
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Presentation.StudioCreatureVoiceOverlayUx4L",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+        "line": 486
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Presentation.StudioCreatureVoiceOverlayUx4L",
+      "target": "model:Forge.ModuleFormat.Workspaces.ProjectSessionOpenResult",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+        "line": 573
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Presentation.StudioCreatureVoiceOverlayUx4L",
+      "target": "model:Forge.Studio.Session.StudioActionResult",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+        "line": 371
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Presentation.StudioCreatureVoiceOverlayUx4L",
+      "target": "model:Forge.Studio.Session.StudioOpenResult",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+        "line": 537
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Presentation.StudioCreatureVoiceOverlayUx4L",
+      "target": "project:apps/Forge.Studio/Forge.Studio",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+        "line": 9
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Presentation.StudioCreatureVoiceOverlayUx4L",
+      "target": "type:Forge.Application.Commands.ProjectCommandHistory",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+        "line": 482
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Presentation.StudioCreatureVoiceOverlayUx4L",
+      "target": "type:Forge.Application.Projects.ProjectRevision",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+        "line": 487
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Presentation.StudioCreatureVoiceOverlayUx4L",
+      "target": "type:Forge.ModuleFormat.Workspaces.ProjectSession",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+        "line": 537
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Presentation.StudioCreatureVoiceOverlayUx4L",
+      "target": "type:Forge.Studio.Presentation.StudioStyle",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+        "line": 98
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Presentation.StudioCreatureVoiceOverlayUx4L",
+      "target": "type:Forge.Studio.Session.StudioCreatureVoiceActionResultUx4L",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+        "line": 344
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Presentation.StudioCreatureVoiceOverlayUx4L",
+      "target": "type:Forge.Studio.Session.StudioCreatureVoiceChoiceUx4L",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+        "line": 25
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Presentation.StudioCreatureVoiceOverlayUx4L",
+      "target": "type:Forge.Studio.Session.StudioCreatureVoiceDraftUx4L",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+        "line": 26
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Presentation.StudioCreatureVoiceOverlayUx4L",
+      "target": "type:Forge.Studio.Session.StudioCreatureVoiceEvidenceProjectUx4L",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+        "line": 567
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Presentation.StudioCreatureVoiceOverlayUx4L",
+      "target": "type:Forge.Studio.Session.StudioCreatureVoiceEvidenceSourceSnapshotUx4L",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+        "line": 15
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Presentation.StudioCreatureVoiceOverlayUx4L",
+      "target": "type:Forge.Studio.Session.StudioCreatureVoicePreviewUx4L",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioCreatureVoiceOverlay.Ux4L.cs",
+        "line": 27
+      }
+    },
+    {
       "source": "type:Forge.Studio.Presentation.StudioCrossAreaPatrolOverlayUx2NavK",
       "target": "component:Forge.Studio.Session.StudioUx2NavKPreview",
       "kind": "references",
@@ -810465,7 +811870,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1411
+        "line": 1419
       }
     },
     {
@@ -811510,6 +812915,16 @@
     },
     {
       "source": "type:Forge.Studio.Presentation.StudioWorkspaceShell",
+      "target": "file:apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4L.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4L.cs",
+        "line": 5
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Presentation.StudioWorkspaceShell",
       "target": "file:apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux5A.cs",
       "kind": "defined_in",
       "confidence": "semantic",
@@ -812464,6 +813879,16 @@
       "kind": "references",
       "confidence": "semantic",
       "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4L.cs",
+        "line": 29
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Presentation.StudioWorkspaceShell",
+      "target": "handler:Forge.Studio.Session.StudioSessionController",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux5A.cs",
         "line": 94
       }
@@ -812505,7 +813930,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1670
+        "line": 1678
       }
     },
     {
@@ -813045,7 +814470,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4D.cs",
-        "line": 82
+        "line": 84
       }
     },
     {
@@ -813055,7 +814480,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4E.cs",
-        "line": 82
+        "line": 84
       }
     },
     {
@@ -813065,7 +814490,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4F.cs",
-        "line": 82
+        "line": 84
       }
     },
     {
@@ -813116,6 +814541,16 @@
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4K.cs",
         "line": 72
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Presentation.StudioWorkspaceShell",
+      "target": "model:Forge.Application.Projects.ProjectState",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4L.cs",
+        "line": 70
       }
     },
     {
@@ -813195,7 +814630,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 422
+        "line": 424
       }
     },
     {
@@ -813975,7 +815410,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4D.cs",
-        "line": 127
+        "line": 129
       }
     },
     {
@@ -813985,7 +815420,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4E.cs",
-        "line": 128
+        "line": 130
       }
     },
     {
@@ -813995,7 +815430,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4F.cs",
-        "line": 127
+        "line": 129
       }
     },
     {
@@ -814046,6 +815481,16 @@
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4K.cs",
         "line": 115
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Presentation.StudioWorkspaceShell",
+      "target": "model:Forge.Domain.Areas.AreaId",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4L.cs",
+        "line": 112
       }
     },
     {
@@ -814115,7 +815560,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 2031
+        "line": 2039
       }
     },
     {
@@ -814155,7 +815600,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1765
+        "line": 1773
       }
     },
     {
@@ -814225,7 +815670,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1730
+        "line": 1738
       }
     },
     {
@@ -814325,7 +815770,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 967
+        "line": 973
       }
     },
     {
@@ -815065,7 +816510,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4D.cs",
-        "line": 129
+        "line": 131
       }
     },
     {
@@ -815075,7 +816520,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4E.cs",
-        "line": 130
+        "line": 132
       }
     },
     {
@@ -815085,7 +816530,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4F.cs",
-        "line": 129
+        "line": 131
       }
     },
     {
@@ -815144,6 +816589,16 @@
       "kind": "references",
       "confidence": "semantic",
       "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4L.cs",
+        "line": 114
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Presentation.StudioWorkspaceShell",
+      "target": "model:Forge.Domain.Entities.EntityId",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux5A.cs",
         "line": 160
       }
@@ -815155,7 +816610,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1553
+        "line": 1561
       }
     },
     {
@@ -815175,7 +816630,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1064
+        "line": 1070
       }
     },
     {
@@ -816035,7 +817490,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4D.cs",
-        "line": 122
+        "line": 124
       }
     },
     {
@@ -816045,7 +817500,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4E.cs",
-        "line": 123
+        "line": 125
       }
     },
     {
@@ -816055,7 +817510,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4F.cs",
-        "line": 122
+        "line": 124
       }
     },
     {
@@ -816114,6 +817569,16 @@
       "kind": "references",
       "confidence": "semantic",
       "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4L.cs",
+        "line": 107
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Presentation.StudioWorkspaceShell",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux5A.cs",
         "line": 150
       }
@@ -816125,7 +817590,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 966
+        "line": 972
       }
     },
     {
@@ -816135,7 +817600,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1953
+        "line": 1961
       }
     },
     {
@@ -816165,7 +817630,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1955
+        "line": 1963
       }
     },
     {
@@ -816175,7 +817640,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 430
+        "line": 432
       }
     },
     {
@@ -816375,7 +817840,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 455
+        "line": 457
       }
     },
     {
@@ -816395,7 +817860,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 466
+        "line": 468
       }
     },
     {
@@ -816415,7 +817880,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1759
+        "line": 1767
       }
     },
     {
@@ -816455,7 +817920,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1756
+        "line": 1764
       }
     },
     {
@@ -817845,7 +819310,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4D.cs",
-        "line": 137
+        "line": 139
       }
     },
     {
@@ -817855,7 +819320,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4E.cs",
-        "line": 138
+        "line": 140
       }
     },
     {
@@ -817865,7 +819330,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4F.cs",
-        "line": 134
+        "line": 136
       }
     },
     {
@@ -817916,6 +819381,16 @@
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4K.cs",
         "line": 124
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Presentation.StudioWorkspaceShell",
+      "target": "model:Forge.Studio.Session.StudioUx4LSmokeResult",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4L.cs",
+        "line": 120
       }
     },
     {
@@ -818864,6 +820339,16 @@
       "kind": "belongs_to",
       "confidence": "semantic",
       "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4L.cs",
+        "line": 5
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Presentation.StudioWorkspaceShell",
+      "target": "project:apps/Forge.Studio/Forge.Studio",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux5A.cs",
         "line": 6
       }
@@ -819375,7 +820860,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4D.cs",
-        "line": 82
+        "line": 84
       }
     },
     {
@@ -819385,7 +820870,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4E.cs",
-        "line": 82
+        "line": 84
       }
     },
     {
@@ -819395,7 +820880,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4F.cs",
-        "line": 82
+        "line": 84
       }
     },
     {
@@ -819446,6 +820931,16 @@
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4K.cs",
         "line": 72
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Presentation.StudioWorkspaceShell",
+      "target": "type:Forge.Application.Commands.ProjectCommandHistory",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4L.cs",
+        "line": 70
       }
     },
     {
@@ -819535,7 +821030,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1792
+        "line": 1800
       }
     },
     {
@@ -819615,7 +821110,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 2182
+        "line": 2190
       }
     },
     {
@@ -819685,7 +821180,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 2185
+        "line": 2193
       }
     },
     {
@@ -819815,7 +821310,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1598
+        "line": 1606
       }
     },
     {
@@ -819835,7 +821330,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1596
+        "line": 1604
       }
     },
     {
@@ -819855,7 +821350,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 2034
+        "line": 2042
       }
     },
     {
@@ -819885,7 +821380,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 446
+        "line": 448
       }
     },
     {
@@ -819895,7 +821390,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 443
+        "line": 445
       }
     },
     {
@@ -819905,7 +821400,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1953
+        "line": 1961
       }
     },
     {
@@ -819965,7 +821460,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 2157
+        "line": 2165
       }
     },
     {
@@ -820005,7 +821500,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1403
+        "line": 1411
       }
     },
     {
@@ -820025,7 +821520,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1981
+        "line": 1989
       }
     },
     {
@@ -820585,7 +822080,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1002
+        "line": 1008
       }
     },
     {
@@ -821115,7 +822610,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 996
+        "line": 1002
       }
     },
     {
@@ -821655,7 +823150,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 984
+        "line": 990
       }
     },
     {
@@ -822195,7 +823690,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 990
+        "line": 996
       }
     },
     {
@@ -822365,6 +823860,16 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4F.cs",
+        "line": 7
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Presentation.StudioWorkspaceShell",
+      "target": "type:Forge.Studio.Presentation.StudioCreatureVoiceOverlayUx4L",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4L.cs",
         "line": 7
       }
     },
@@ -822935,7 +824440,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1020
+        "line": 1026
       }
     },
     {
@@ -823075,7 +824580,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 961
+        "line": 967
       }
     },
     {
@@ -823095,7 +824600,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 2069
+        "line": 2077
       }
     },
     {
@@ -823695,7 +825200,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1008
+        "line": 1014
       }
     },
     {
@@ -824445,7 +825950,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1460
+        "line": 1468
       }
     },
     {
@@ -824995,7 +826500,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1014
+        "line": 1020
       }
     },
     {
@@ -825864,6 +827369,16 @@
       "kind": "references",
       "confidence": "semantic",
       "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4L.cs",
+        "line": 12
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Presentation.StudioWorkspaceShell",
+      "target": "type:Forge.Studio.Presentation.StudioStyle",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
         "line": 76
       }
@@ -826505,7 +828020,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1032
+        "line": 1038
       }
     },
     {
@@ -827105,7 +828620,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.cs",
-        "line": 1026
+        "line": 1032
       }
     },
     {
@@ -827545,7 +829060,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4D.cs",
-        "line": 118
+        "line": 120
       }
     },
     {
@@ -827585,7 +829100,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4E.cs",
-        "line": 119
+        "line": 121
       }
     },
     {
@@ -827605,7 +829120,17 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4F.cs",
-        "line": 118
+        "line": 120
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Presentation.StudioWorkspaceShell",
+      "target": "type:Forge.Studio.Session.StudioCreatureVoiceApprovalSnapshotUx4L",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Presentation/StudioWorkspaceShell.Ux4L.cs",
+        "line": 104
       }
     },
     {
@@ -832416,6 +833941,346 @@
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioUx4FModels.cs",
         "line": 50
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Session.StudioCreatureVoiceActionResultUx4L",
+      "target": "file:apps/Forge.Studio/Session/StudioUx4LModels.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 40
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Session.StudioCreatureVoiceActionResultUx4L",
+      "target": "project:apps/Forge.Studio/Forge.Studio",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 40
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Session.StudioCreatureVoiceApprovalSnapshotUx4L",
+      "target": "file:apps/Forge.Studio/Session/StudioUx4LModels.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 42
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Session.StudioCreatureVoiceApprovalSnapshotUx4L",
+      "target": "model:Forge.Domain.Creatures.CreaturePresentationProfile",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 44
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Session.StudioCreatureVoiceApprovalSnapshotUx4L",
+      "target": "project:apps/Forge.Studio/Forge.Studio",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 42
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Session.StudioCreatureVoiceApprovalSnapshotUx4L",
+      "target": "type:Forge.Application.Projects.ProjectRevision",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 45
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Session.StudioCreatureVoiceApprovalSnapshotUx4L",
+      "target": "type:Forge.Studio.Session.StudioCreatureVoiceDraftUx4L",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 43
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Session.StudioCreatureVoiceChoiceUx4L",
+      "target": "file:apps/Forge.Studio/Session/StudioUx4LModels.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 9
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Session.StudioCreatureVoiceChoiceUx4L",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 9
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Session.StudioCreatureVoiceChoiceUx4L",
+      "target": "project:apps/Forge.Studio/Forge.Studio",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 9
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Session.StudioCreatureVoiceDiagnosticUx4L",
+      "target": "file:apps/Forge.Studio/Session/StudioUx4LModels.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 27
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Session.StudioCreatureVoiceDiagnosticUx4L",
+      "target": "project:apps/Forge.Studio/Forge.Studio",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 27
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Session.StudioCreatureVoiceDraftUx4L",
+      "target": "file:apps/Forge.Studio/Session/StudioUx4LModels.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 11
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Session.StudioCreatureVoiceDraftUx4L",
+      "target": "model:Forge.Domain.Blueprints.BlueprintDefinition",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 15
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Session.StudioCreatureVoiceDraftUx4L",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 14
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Session.StudioCreatureVoiceDraftUx4L",
+      "target": "model:Forge.Domain.Creatures.CreaturePresentationProfile",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 16
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Session.StudioCreatureVoiceDraftUx4L",
+      "target": "project:apps/Forge.Studio/Forge.Studio",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 11
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Session.StudioCreatureVoiceDraftUx4L",
+      "target": "type:Forge.Application.Projects.ProjectRevision",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 12
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Session.StudioCreatureVoiceEvidenceProjectUx4L",
+      "target": "file:apps/Forge.Studio/Session/StudioUx4LModels.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 50
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Session.StudioCreatureVoiceEvidenceProjectUx4L",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 52
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Session.StudioCreatureVoiceEvidenceProjectUx4L",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 51
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Session.StudioCreatureVoiceEvidenceProjectUx4L",
+      "target": "project:apps/Forge.Studio/Forge.Studio",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 50
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Session.StudioCreatureVoiceEvidenceSourceSnapshotUx4L",
+      "target": "file:apps/Forge.Studio/Session/StudioUx4LModels.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 58
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Session.StudioCreatureVoiceEvidenceSourceSnapshotUx4L",
+      "target": "model:Forge.Application.Commands.CommandHistoryJournalEntry",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 62
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Session.StudioCreatureVoiceEvidenceSourceSnapshotUx4L",
+      "target": "model:Forge.Domain.Areas.AreaId",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 66
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Session.StudioCreatureVoiceEvidenceSourceSnapshotUx4L",
+      "target": "model:Forge.Domain.Entities.EntityId",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 67
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Session.StudioCreatureVoiceEvidenceSourceSnapshotUx4L",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 59
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Session.StudioCreatureVoiceEvidenceSourceSnapshotUx4L",
+      "target": "project:apps/Forge.Studio/Forge.Studio",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 58
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Session.StudioCreatureVoiceEvidenceSourceSnapshotUx4L",
+      "target": "type:Forge.Application.Commands.ProjectCommandHistory",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 60
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Session.StudioCreatureVoiceEvidenceSourceSnapshotUx4L",
+      "target": "type:Forge.Application.Projects.ProjectRevision",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 61
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Session.StudioCreatureVoiceEvidenceSourceSnapshotUx4L",
+      "target": "type:Forge.Studio.Session.StudioCreatureVoiceApprovalSnapshotUx4L",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 69
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Session.StudioCreatureVoicePreviewUx4L",
+      "target": "file:apps/Forge.Studio/Session/StudioUx4LModels.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 29
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Session.StudioCreatureVoicePreviewUx4L",
+      "target": "project:apps/Forge.Studio/Forge.Studio",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 29
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Session.StudioCreatureVoicePreviewUx4L",
+      "target": "type:Forge.Studio.Session.StudioCreatureVoiceDiagnosticUx4L",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/Session/StudioUx4LModels.cs",
+        "line": 35
       }
     },
     {
@@ -847145,7 +849010,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 453
+        "line": 456
       }
     },
     {
@@ -847155,7 +849020,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 465
+        "line": 468
       }
     },
     {
@@ -847165,7 +849030,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 466
+        "line": 469
       }
     },
     {
@@ -847175,7 +849040,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 467
+        "line": 470
       }
     },
     {
@@ -847185,7 +849050,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 468
+        "line": 471
       }
     },
     {
@@ -847195,7 +849060,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 469
+        "line": 472
       }
     },
     {
@@ -847205,7 +849070,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 470
+        "line": 473
       }
     },
     {
@@ -847215,7 +849080,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 471
+        "line": 474
       }
     },
     {
@@ -847225,7 +849090,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 472
+        "line": 475
       }
     },
     {
@@ -847235,7 +849100,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 473
+        "line": 476
       }
     },
     {
@@ -847245,7 +849110,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 474
+        "line": 477
       }
     },
     {
@@ -847255,7 +849120,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 475
+        "line": 478
       }
     },
     {
@@ -847265,7 +849130,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 476
+        "line": 479
       }
     },
     {
@@ -847275,7 +849140,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 454
+        "line": 457
       }
     },
     {
@@ -847285,7 +849150,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 455
+        "line": 458
       }
     },
     {
@@ -847295,7 +849160,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 456
+        "line": 459
       }
     },
     {
@@ -847305,7 +849170,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 457
+        "line": 460
       }
     },
     {
@@ -847315,7 +849180,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 458
+        "line": 461
       }
     },
     {
@@ -847325,7 +849190,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 459
+        "line": 462
       }
     },
     {
@@ -847335,7 +849200,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 460
+        "line": 463
       }
     },
     {
@@ -847345,7 +849210,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 461
+        "line": 464
       }
     },
     {
@@ -847355,7 +849220,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 462
+        "line": 465
       }
     },
     {
@@ -847365,7 +849230,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 463
+        "line": 466
       }
     },
     {
@@ -847375,7 +849240,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 464
+        "line": 467
       }
     },
     {
@@ -847385,7 +849250,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 477
+        "line": 480
       }
     },
     {
@@ -847395,7 +849260,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 478
+        "line": 481
       }
     },
     {
@@ -847405,7 +849270,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 479
+        "line": 482
       }
     },
     {
@@ -847415,7 +849280,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 480
+        "line": 483
       }
     },
     {
@@ -847425,7 +849290,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 481
+        "line": 484
       }
     },
     {
@@ -847435,7 +849300,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 482
+        "line": 485
       }
     },
     {
@@ -847445,7 +849310,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 483
+        "line": 486
       }
     },
     {
@@ -847455,7 +849320,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 484
+        "line": 487
       }
     },
     {
@@ -847465,7 +849330,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 485
+        "line": 488
       }
     },
     {
@@ -847475,7 +849340,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 486
+        "line": 489
       }
     },
     {
@@ -847485,7 +849350,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 487
+        "line": 490
       }
     },
     {
@@ -847495,7 +849360,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 488
+        "line": 491
       }
     },
     {
@@ -847575,7 +849440,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 573
+        "line": 578
       }
     },
     {
@@ -847585,7 +849450,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 496
+        "line": 499
       }
     },
     {
@@ -847595,7 +849460,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 492
+        "line": 495
       }
     },
     {
@@ -847605,7 +849470,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 498
+        "line": 501
       }
     },
     {
@@ -847615,7 +849480,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 497
+        "line": 500
       }
     },
     {
@@ -847625,7 +849490,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 499
+        "line": 502
       }
     },
     {
@@ -847635,7 +849500,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 493
+        "line": 496
       }
     },
     {
@@ -847645,7 +849510,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 495
+        "line": 498
       }
     },
     {
@@ -847655,7 +849520,17 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 494
+        "line": 497
+      }
+    },
+    {
+      "source": "type:Forge.Studio.StudioRoot",
+      "target": "type:Forge.Studio.Session.StudioCreatureVoiceApprovalSnapshotUx4L",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/StudioRoot.cs",
+        "line": 503
       }
     },
     {
@@ -847665,7 +849540,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 500
+        "line": 504
       }
     },
     {
@@ -847675,7 +849550,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 489
+        "line": 492
       }
     },
     {
@@ -847685,7 +849560,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 491
+        "line": 494
       }
     },
     {
@@ -847695,7 +849570,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 490
+        "line": 493
       }
     },
     {

@@ -99,6 +99,7 @@ param(
         'ux4-j', 'ux4-j-creature-interaction', 'ux4-j-factions', 'ux4-j-perception',
         'ux4-j-dialogues', 'ux4-j-protection', 'ux4-j-preview',
         'ux4-k', 'ux4-k-creature-movement',
+        'ux4-l', 'ux4-l-creature-voice',
         'ux5-a', 'ux5-a-dialogue-foundation')]
     [string]$Evidence,
     [string]$Resolution,

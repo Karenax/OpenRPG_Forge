@@ -39,8 +39,8 @@ modifier ni instancier un acteur.
   transformations, compositions UX4-D à UX4-J et blueprints voisins sont préservés ;
 - les captures utilisent une copie temporaire du profil réel de la Crypte ou un fallback canonique
   isolé. Source, historique, état dirty, sélection, approbations, page et surface sont restaurés ;
-- cette preuve ne qualifie pas `ORF-CRE-029`, `ORF-CRE-030` ni `ORF-CRE-033` à
-  `ORF-CRE-049`, qui restent `planned`.
+- cette preuve ne qualifie pas `ORF-CRE-030` ni `ORF-CRE-033` à `ORF-CRE-049`, qui restent
+  `planned` ; `ORF-CRE-029` est qualifiée séparément par UX4-L.
 
 ## Reproduction
 

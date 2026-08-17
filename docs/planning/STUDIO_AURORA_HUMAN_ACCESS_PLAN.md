@@ -981,7 +981,7 @@ captures Forward+ FHD inspectées, dont cinq sur le profil réel de la Crypte. L
 factions et dialogues sont résolues avant application, tandis que `OnConversation` et tous les
 profils voisins restent préservés. La matrice atteint 259 routes `functional` et 458 `planned`.
 Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX4_J.md` ; `ORF-CRE-027` passe au lot
-UX4-K, tandis que `ORF-CRE-029`, `ORF-CRE-030` et `ORF-CRE-033` à `ORF-CRE-049` restent
+UX4-K, tandis que `ORF-CRE-029`, `ORF-CRE-030` et `ORF-CRE-033` à `ORF-CRE-049` restaient
 `planned` à ce jalon.
 
 ### UX4-K — Déplacement de créature
@@ -993,7 +993,19 @@ Forward+ FHD inspectées, dont une sur le profil réel de la Crypte. La surface 
 compositions et tous les blueprints voisins ; son aperçu reste une projection typée en mémoire,
 sans acteur ni moteur physique exécuté. La matrice atteint 260 routes `functional` et 457
 `planned`. Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX4_K.md` ;
-`ORF-CRE-029`, `ORF-CRE-030` et `ORF-CRE-033` à `ORF-CRE-049` restent `planned`.
+`ORF-CRE-029` passe au lot UX4-L, tandis que `ORF-CRE-030` et `ORF-CRE-033` à
+`ORF-CRE-049` restent `planned`.
+
+### UX4-L — Voix et soundset de créature
+
+`ORF-CRE-029` est `functional` : langue, banques, émotions, lipsync, variantes, licence et
+provenance des droits sont édités via `SetCreaturePresentationHandler`, avec suppression optionnelle
+et doublons refusés. Le portail passe 6/6 tests en 120,40 s, le smoke global et une capture
+Forward+ FHD inspectée. La preuve est explicitement un fallback canonique isolé et ne revendique
+aucune écoute, TTS ou animation live. La matrice atteint 261 routes `functional` et 456 `planned`.
+Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX4_L.md` ; `ORF-AUD-016` reste une
+transaction Area Experience distincte, tandis que `ORF-CRE-030` et `ORF-CRE-033` à
+`ORF-CRE-049` restent `planned`.
 
 ## Gates ergonomiques avant parité
 
