@@ -505,12 +505,8 @@ internal sealed partial class StudioAreaUserEventsOverlayUx2LwC : Control
                 : null;
             var applied = dryRun && _applied && appliedProject is not null && appliedTarget is not null &&
                           !ReferenceEquals(originalProject, appliedProject) &&
-                          ReferenceEquals(originalTarget!.Authoring.Map, appliedTarget.Authoring.Map) &&
-                          ReferenceEquals(originalTarget.Authoring.Layers, appliedTarget.Authoring.Layers) &&
-                          ReferenceEquals(originalTarget.Authoring.Experience, appliedTarget.Authoring.Experience) &&
-                          ReferenceEquals(originalTarget.Foundation, appliedTarget.Foundation) &&
-                          ReferenceEquals(originalTarget.Navigation, appliedTarget.Navigation) &&
-                          ReferenceEquals(originalTarget.RuntimePolicies, appliedTarget.RuntimePolicies);
+                          StudioSessionController.AreaUserEventNeighborsMatchUx2LwC(
+                              originalTarget!, appliedTarget);
             var expectedAreaJson = appliedTarget is null ? null : AreaJsonSerializer.Serialize(appliedTarget);
             var expectedProject = applied ? appliedProject : null;
             if (applied)

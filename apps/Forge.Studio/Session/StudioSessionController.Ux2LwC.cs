@@ -656,19 +656,7 @@ internal sealed partial class StudioSessionController
             var collectionPreserved = sourceTarget.Authoring.UserEvents.All(sourceEvent => ReferenceEquals(
                 sourceEvent, appliedTarget.Authoring.UserEvents.Single(item => item.Id == sourceEvent.Id))) &&
                 appliedTarget.Authoring.UserEvents.Count == sourceTarget.Authoring.UserEvents.Count + 1;
-            var targetNeighbors = ReferenceEquals(sourceTarget.Authoring.Map, appliedTarget.Authoring.Map) &&
-                                  ReferenceEquals(sourceTarget.Authoring.Layers, appliedTarget.Authoring.Layers) &&
-                                  ReferenceEquals(sourceTarget.Authoring.Experience, appliedTarget.Authoring.Experience) &&
-                                  sourceTarget.Authoring.RequireLayerRuntimeMetadata ==
-                                  appliedTarget.Authoring.RequireLayerRuntimeMetadata &&
-                                  ReferenceEquals(sourceTarget.Foundation, appliedTarget.Foundation) &&
-                                  ReferenceEquals(sourceTarget.Navigation, appliedTarget.Navigation) &&
-                                  ReferenceEquals(sourceTarget.Environment, appliedTarget.Environment) &&
-                                  ReferenceEquals(sourceTarget.World, appliedTarget.World) &&
-                                  ReferenceEquals(sourceTarget.RuntimePolicies, appliedTarget.RuntimePolicies) &&
-                                  ReferenceEquals(sourceTarget.Playtest, appliedTarget.Playtest) &&
-                                  sourceTarget.Entities.SequenceEqual(appliedTarget.Entities) &&
-                                  sourceTarget.Portals.SequenceEqual(appliedTarget.Portals);
+            var targetNeighbors = AreaUserEventNeighborsMatchUx2LwC(sourceTarget, appliedTarget);
             var projectNeighbors = ReferenceEquals(sourceProjectForApply.Module, appliedProject.Module) &&
                                    sourceProjectForApply.Blueprints.SequenceEqual(appliedProject.Blueprints) &&
                                    sourceProjectForApply.Dialogues.SequenceEqual(appliedProject.Dialogues) &&
@@ -767,6 +755,24 @@ internal sealed partial class StudioSessionController
         {
             return false;
         }
+    }
+
+    internal static bool AreaUserEventNeighborsMatchUx2LwC(
+        AreaDefinition source,
+        AreaDefinition candidate)
+    {
+        var expectedAuthoring = new AreaAuthoringProfile(
+            source.Authoring.SchemaVersion,
+            candidate.Authoring.UserEvents,
+            source.Authoring.Map,
+            source.Authoring.Layers,
+            source.Authoring.Experience,
+            source.Authoring.RequireLayerRuntimeMetadata);
+        var expected = source.WithAuthoring(expectedAuthoring);
+        return string.Equals(
+            AreaJsonSerializer.Serialize(expected),
+            AreaJsonSerializer.Serialize(candidate),
+            StringComparison.Ordinal);
     }
 
     private static bool ApplyUx2LwCRevisionMutation(StudioSessionController controller, AreaId areaId)
