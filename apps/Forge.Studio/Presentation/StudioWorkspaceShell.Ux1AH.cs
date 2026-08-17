@@ -97,8 +97,10 @@ internal sealed partial class StudioWorkspaceShell
         var originalDirty = _session.IsDirty;
         var originalCanUndo = originalHistory?.CanUndo;
         var originalCanRedo = originalHistory?.CanRedo;
+        var originalApproval = _session.CaptureTriggerAutomationDirectorApprovalUx1AH();
 
         var uiTransaction = _triggerAutomationDirectorOverlay.RunUiTransactionEvidence();
+        var placeholderReset = _triggerAutomationDirectorOverlay.PlaceholderResetEvidence;
         var evidencePrepared = PrepareUx1AHEvidence("ux1-ah-trigger-automation-director");
         var overlayOpen = _triggerAutomationDirectorOverlay.IsOpen;
         var sectionCount = _triggerAutomationDirectorOverlay.SectionCount;
@@ -109,6 +111,10 @@ internal sealed partial class StudioWorkspaceShell
         var humanSurface = _triggerAutomationDirectorOverlay.ShowsHumanSurface;
         var isolatedEvidence = _triggerAutomationDirectorOverlay.UsesIsolatedEvidence;
         var evidenceSourceUntouched = _triggerAutomationDirectorOverlay.EvidenceSourceUntouched;
+        var evidenceSourceApprovalPreserved =
+            _triggerAutomationDirectorOverlay.EvidenceSourceApprovalPreserved;
+        var unrepresentableCanonicalValuesBlocked =
+            _triggerAutomationDirectorOverlay.UnrepresentableCanonicalValuesBlocked;
         var uiReady = evidencePrepared &&
                       PageId == "placement" &&
                       overlayOpen &&
@@ -119,7 +125,9 @@ internal sealed partial class StudioWorkspaceShell
                       noLiveDispatch &&
                       humanSurface &&
                       isolatedEvidence &&
-                      evidenceSourceUntouched;
+                      evidenceSourceUntouched &&
+                      evidenceSourceApprovalPreserved &&
+                      unrepresentableCanonicalValuesBlocked;
         _triggerAutomationDirectorOverlay.Close();
         var evidenceResourcesReleased = _triggerAutomationDirectorOverlay.EvidenceResourcesReleased;
         var sourceSessionRestored = _triggerAutomationDirectorOverlay.SourceSessionRestored;
@@ -135,7 +143,8 @@ internal sealed partial class StudioWorkspaceShell
                               currentHistory?.CanUndo == originalCanUndo &&
                               currentHistory?.CanRedo == originalCanRedo &&
                               _session.ActiveAreaId == originalAreaId &&
-                              _session.IsDirty == originalDirty;
+                              _session.IsDirty == originalDirty &&
+                              _session.TriggerAutomationDirectorApprovalMatchesUx1AH(originalApproval);
         if (!uiReady)
         {
             GD.PrintErr(
@@ -146,13 +155,16 @@ internal sealed partial class StudioWorkspaceShell
                 $"no_live_dispatch={noLiveDispatch.ToString().ToLowerInvariant()} " +
                 $"human={humanSurface.ToString().ToLowerInvariant()} " +
                 $"isolated={isolatedEvidence.ToString().ToLowerInvariant()} " +
-                $"source_untouched={evidenceSourceUntouched.ToString().ToLowerInvariant()}");
+                $"source_untouched={evidenceSourceUntouched.ToString().ToLowerInvariant()} " +
+                $"source_approval_preserved={evidenceSourceApprovalPreserved.ToString().ToLowerInvariant()} " +
+                $"unrepresentable_values_blocked={unrepresentableCanonicalValuesBlocked.ToString().ToLowerInvariant()}");
         }
-        var valid = result.Succeeded && uiReady && uiTransaction && sourceUnchanged &&
+        var valid = result.Succeeded && uiReady && uiTransaction && placeholderReset && sourceUnchanged &&
                     evidenceResourcesReleased && sourceSessionRestored;
         GD.Print(
             $"OPENRPG_FORGE_STUDIO_UX1AH_{(valid ? "PASS" : "FAILED")} " +
             $"selection_explicit={result.SelectionExplicit.ToString().ToLowerInvariant()} " +
+            $"labels_disambiguated={result.ChoiceLabelsDisambiguated.ToString().ToLowerInvariant()} " +
             $"foundation_required={result.FoundationRequired.ToString().ToLowerInvariant()} " +
             $"scheduler={result.Scheduler.ToString().ToLowerInvariant()} " +
             $"custom_event={result.CustomEvent.ToString().ToLowerInvariant()} " +
@@ -181,10 +193,13 @@ internal sealed partial class StudioWorkspaceShell
             $"human_no_uuid={result.HumanDiagnostics.ToString().ToLowerInvariant()} " +
             $"isolated_evidence={isolatedEvidence.ToString().ToLowerInvariant()} " +
             $"evidence_source_untouched={evidenceSourceUntouched.ToString().ToLowerInvariant()} " +
+            $"source_approval_preserved={evidenceSourceApprovalPreserved.ToString().ToLowerInvariant()} " +
+            $"unrepresentable_values_blocked={unrepresentableCanonicalValuesBlocked.ToString().ToLowerInvariant()} " +
             $"evidence_released={evidenceResourcesReleased.ToString().ToLowerInvariant()} " +
             $"source_session_restored={sourceSessionRestored.ToString().ToLowerInvariant()} " +
             $"ui={uiReady.ToString().ToLowerInvariant()} " +
             $"ui_transaction={uiTransaction.ToString().ToLowerInvariant()} " +
+            $"placeholder_reset={placeholderReset.ToString().ToLowerInvariant()} " +
             $"source_unchanged={sourceUnchanged.ToString().ToLowerInvariant()} windows=1");
         return valid;
     }

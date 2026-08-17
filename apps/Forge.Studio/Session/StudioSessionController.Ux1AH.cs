@@ -45,10 +45,13 @@ internal sealed partial class StudioSessionController
                           string.IsNullOrWhiteSpace(item.CustomEventNamespace)
                             ? "automatisation à configurer"
                             : "automatisation configurée";
+                    var foundationLabel = item.Foundation is { } foundation
+                        ? $"volume «{HumanizeFoundationSlugUx1AH(foundation.Slug)}»"
+                        : "volume de base absent";
                     return new StudioTriggerAutomationDirectorChoice(
                         item.Id,
                         item.BlueprintId,
-                        $"{name} · {instances} instance(s) · {state}",
+                        $"{name} · {foundationLabel} · {instances} instance(s) · {state}",
                         item.Foundation is not null,
                         item.Scheduler is not null,
                         !string.IsNullOrWhiteSpace(item.CustomEventNamespace),
@@ -366,6 +369,13 @@ internal sealed partial class StudioSessionController
 
     private void CloseUx1AH() => CancelTriggerAutomationDirectorUx1AH();
 
+    internal StudioUx1AHApprovalSnapshot CaptureTriggerAutomationDirectorApprovalUx1AH() =>
+        new(_approvedTriggerAutomationDirectorUx1AH, _approvedTriggerAutomationDirectorRevisionUx1AH);
+
+    internal bool TriggerAutomationDirectorApprovalMatchesUx1AH(StudioUx1AHApprovalSnapshot snapshot) =>
+        ReferenceEquals(snapshot.Draft, _approvedTriggerAutomationDirectorUx1AH) &&
+        snapshot.Revision == _approvedTriggerAutomationDirectorRevisionUx1AH;
+
     private bool TryBuildTriggerAutomationDirectorUx1AH(
         StudioTriggerAutomationDirectorDraft draft,
         bool dryRun,
@@ -546,6 +556,17 @@ internal sealed partial class StudioSessionController
         string.Join(" › ", value.Split('.', StringSplitOptions.RemoveEmptyEntries)
             .Select(segment => string.Join(' ', segment.Split('-', StringSplitOptions.RemoveEmptyEntries))));
 
+    private static string HumanizeFoundationSlugUx1AH(string value)
+    {
+        var normalized = value.Trim();
+        if (Guid.TryParse(normalized, out _))
+        {
+            return "repère de volume";
+        }
+        var words = normalized.Split(['-', '_', '.'], StringSplitOptions.RemoveEmptyEntries);
+        return words.Length == 0 ? "volume sans nom" : string.Join(' ', words);
+    }
+
     private static string HumanizeDirectorUx1AH(TriggerWorldProfile.DirectorPolicy? director)
     {
         if (director is null)
@@ -629,7 +650,7 @@ internal sealed partial class StudioSessionController
             var neighborBlueprint = new BlueprintDefinition(
                 BlueprintId.From(Guid.Parse("a8100000-0000-4000-8000-000000000002")),
                 "seuil-temoin",
-                "Seuil témoin",
+                "Ronde du sanctuaire",
                 BlueprintKind.Trigger);
             var foundationlessBlueprint = new BlueprintDefinition(
                 BlueprintId.From(Guid.Parse("a8100000-0000-4000-8000-000000000003")),
@@ -724,11 +745,23 @@ internal sealed partial class StudioSessionController
             var initialCatalog = initialProject.Module.WorldFeatures;
             var loadedTarget = initialCatalog.Triggers.Single(item => item.Id == targetProfile.Id);
             var loadedNeighbor = initialCatalog.Triggers.Single(item => item.Id == neighborProfile.Id);
+            var choices = editing.TriggerAutomationDirectorChoicesUx1AH;
             var selectionExplicit = editing.CreateTriggerAutomationDirectorDraftUx1AH() is null &&
-                                    editing.TriggerAutomationDirectorChoicesUx1AH.Count == 3;
+                                    choices.Count == 3;
+            var targetChoice = choices.Single(item => item.ProfileId == targetProfile.Id);
+            var neighborChoice = choices.Single(item => item.ProfileId == neighborProfile.Id);
+            var choiceLabelsDisambiguated = targetChoice.Label != neighborChoice.Label &&
+                                            targetChoice.Label.Contains(
+                                                HumanizeFoundationSlugUx1AH(loadedTarget.Foundation!.Slug),
+                                                StringComparison.Ordinal) &&
+                                            neighborChoice.Label.Contains(
+                                                HumanizeFoundationSlugUx1AH(loadedNeighbor.Foundation!.Slug),
+                                                StringComparison.Ordinal) &&
+                                            IsHumanUx1AHMessage(targetChoice.Label) &&
+                                            IsHumanUx1AHMessage(neighborChoice.Label);
             var foundationRequired =
                 editing.CreateTriggerAutomationDirectorDraftUx1AH(foundationlessProfile.Id) is null &&
-                editing.TriggerAutomationDirectorChoicesUx1AH.Single(item =>
+                choices.Single(item =>
                     item.ProfileId == foundationlessProfile.Id) is { HasFoundation: false };
 
             var staleDraft = editing.CreateTriggerAutomationDirectorDraftUx1AH(targetProfile.Id)!;
@@ -907,9 +940,10 @@ internal sealed partial class StudioSessionController
                                    IsHumanUx1AHMessage(noDirectorTarget.Message) &&
                                    IsHumanUx1AHMessage(noDirectorAudit.Message) &&
                                    IsHumanUx1AHMessage(preview.Message);
-            var succeeded = selectionExplicit && foundationRequired && scheduler && customEvent && director &&
-                            runtimePolicy && noLiveDispatch && dryRun && invalidIntervalBlocked &&
-                            invalidBudgetBlocked && invalidNamespaceBlocked && unsafeDirectorBlocked &&
+            var succeeded = selectionExplicit && choiceLabelsDisambiguated && foundationRequired && scheduler &&
+                            customEvent && director && runtimePolicy && noLiveDispatch && dryRun &&
+                            invalidIntervalBlocked && invalidBudgetBlocked && invalidNamespaceBlocked &&
+                            unsafeDirectorBlocked &&
                             staleDraftBlocked && staleApprovalBlocked && canonicalCommand && undoRedo &&
                             persistence && discoveryPreserved && interactionPreserved && accessPreserved &&
                             foundationPreserved && portalPreserved && validationPreserved && advancedPreserved &&
@@ -917,6 +951,7 @@ internal sealed partial class StudioSessionController
             return new StudioUx1AHSmokeResult(
                 succeeded,
                 selectionExplicit,
+                choiceLabelsDisambiguated,
                 foundationRequired,
                 scheduler,
                 customEvent,
@@ -1054,6 +1089,7 @@ internal sealed partial class StudioSessionController
     private static StudioUx1AHSmokeResult FailedUx1AHSmoke() => new(
         Succeeded: false,
         SelectionExplicit: false,
+        ChoiceLabelsDisambiguated: false,
         FoundationRequired: false,
         Scheduler: false,
         CustomEvent: false,

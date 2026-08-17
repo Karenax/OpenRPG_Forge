@@ -6,14 +6,22 @@ namespace Forge.Studio.Presentation;
 
 internal sealed partial class StudioTriggerAutomationDirectorOverlay : Control
 {
+    private const double MinimumIntervalSeconds = .05;
+    private const double MaximumIntervalSeconds = 86_400;
+    private const double IntervalStepSeconds = .05;
+    private const int MinimumBudgetPerMinute = 1;
+    private const int MaximumBudgetPerMinute = 100_000;
+
     private readonly StudioSessionController _sourceSession;
     private StudioSessionController _session;
     private StudioSessionController? _evidenceSession;
     private StudioUx1AHEvidenceSourceSnapshot? _evidenceSourceSnapshot;
     private string? _evidenceTempRoot;
     private bool _lastEvidenceSourceUntouched = true;
+    private bool _lastEvidenceSourceApprovalPreserved = true;
     private bool _lastEvidenceResourcesReleased = true;
     private bool _lastSourceRestored = true;
+    private bool _lastPlaceholderResetEvidence = true;
 
     private readonly PanelContainer _dialog;
     private readonly OptionButton _trigger;
@@ -76,11 +84,23 @@ internal sealed partial class StudioTriggerAutomationDirectorOverlay : Control
         ? SourceMatchesSnapshot(snapshot)
         : _lastEvidenceSourceUntouched;
 
+    internal bool EvidenceSourceApprovalPreserved => _evidenceSourceSnapshot is { } snapshot
+        ? _sourceSession.TriggerAutomationDirectorApprovalMatchesUx1AH(snapshot.Approval)
+        : _lastEvidenceSourceApprovalPreserved;
+
+    internal bool UnrepresentableCanonicalValuesBlocked =>
+        CanRepresentSchedulerValues(1.75, 17) &&
+        !CanRepresentSchedulerValues(.01, 17) &&
+        !CanRepresentSchedulerValues(2.53, 17) &&
+        !CanRepresentSchedulerValues(2, 100_001);
+
     internal bool EvidenceResourcesReleased =>
         _evidenceSession is null && _evidenceTempRoot is null && _lastEvidenceResourcesReleased;
 
     internal bool SourceSessionRestored =>
         ReferenceEquals(_session, _sourceSession) && _lastSourceRestored;
+
+    internal bool PlaceholderResetEvidence => _lastPlaceholderResetEvidence;
 
     internal bool ShowsHumanSurface
     {
@@ -214,8 +234,16 @@ internal sealed partial class StudioTriggerAutomationDirectorOverlay : Control
         _heartbeatPanel.AddChild(_schedulerEnabled);
         var heartbeatGrid = Grid();
         _heartbeatPanel.AddChild(heartbeatGrid);
-        _interval = AddField(heartbeatGrid, "Cadence", Number(.05, 86_400, .05, " s"));
-        _budget = AddField(heartbeatGrid, "Budget", Number(1, 100_000, 1, " / min"));
+        _interval = AddField(heartbeatGrid, "Cadence", Number(
+            MinimumIntervalSeconds,
+            MaximumIntervalSeconds,
+            IntervalStepSeconds,
+            " s"));
+        _budget = AddField(heartbeatGrid, "Budget", Number(
+            MinimumBudgetPerMinute,
+            MaximumBudgetPerMinute,
+            1,
+            " / min"));
         _whileOccupied = AddField(heartbeatGrid, "Occupation", Check("Seulement si le volume est occupé"));
         _aggregate = AddField(heartbeatGrid, "Regroupement", Check("Agréger les occupants par pulsation"));
         _heartbeatPanel.AddChild(StudioStyle.Label(
@@ -347,6 +375,9 @@ internal sealed partial class StudioTriggerAutomationDirectorOverlay : Control
     internal void Close()
     {
         var sourceUntouched = _evidenceSourceSnapshot is not { } snapshot || SourceMatchesSnapshot(snapshot);
+        var approvalPreserved = _evidenceSourceSnapshot is not { } approvalSnapshot ||
+                                _sourceSession.TriggerAutomationDirectorApprovalMatchesUx1AH(
+                                    approvalSnapshot.Approval);
         _session.CancelTriggerAutomationDirectorUx1AH();
         Visible = false;
         _draft = null;
@@ -355,13 +386,14 @@ internal sealed partial class StudioTriggerAutomationDirectorOverlay : Control
         _noLiveDispatch = true;
         var released = ReleaseIsolatedEvidenceSession();
         _lastEvidenceSourceUntouched = sourceUntouched;
+        _lastEvidenceSourceApprovalPreserved = approvalPreserved;
         _lastEvidenceResourcesReleased = released;
         _lastSourceRestored = ReferenceEquals(_session, _sourceSession);
     }
 
     internal bool PrepareEvidence(string mode)
     {
-        Open();
+        ResetForIsolatedEvidencePreparation();
         if (!TryOpenIsolatedEvidenceSession())
         {
             return false;
@@ -390,7 +422,8 @@ internal sealed partial class StudioTriggerAutomationDirectorOverlay : Control
             "PREUVE ISOLÉE · le projet source reste strictement inchangé.\n" + _summary.Text;
         SetStatus("Preuve isolée prête · fermeture = suppression de la session temporaire", error: false);
         return !_apply.Disabled && HasExplicitSelection && RuntimePreviewReady && NoLiveDispatch &&
-               ShowsHumanSurface && UsesIsolatedEvidence && EvidenceSourceUntouched;
+               ShowsHumanSurface && UsesIsolatedEvidence && EvidenceSourceUntouched &&
+               EvidenceSourceApprovalPreserved;
     }
 
     internal bool RunUiTransactionEvidence()
@@ -403,6 +436,11 @@ internal sealed partial class StudioTriggerAutomationDirectorOverlay : Control
         try
         {
             var ready = PrepareEvidence("ux1-ah-trigger-automation-director");
+            if (!ready || !UsesIsolatedEvidence)
+            {
+                ResetForIsolatedEvidencePreparation();
+                return false;
+            }
             var transactionSession = _session;
             var originalProject = transactionSession.Project;
             var originalDirty = transactionSession.IsDirty;
@@ -440,18 +478,51 @@ internal sealed partial class StudioTriggerAutomationDirectorOverlay : Control
             }
             var restored = redone && ReferenceEquals(originalProject, transactionSession.Project) &&
                            transactionSession.IsDirty == originalDirty;
+            _trigger.Select(0);
+            SelectTrigger(0);
+            var placeholderReset = _trigger.Selected == 0 && _draft is null && !_applied &&
+                                   !_runtimePreviewReady && _noLiveDispatch &&
+                                   _apply.Disabled && _preview.Disabled && _undo.Disabled && _redo.Disabled &&
+                                   _summary.Text.StartsWith("Sélectionnez un déclencheur", StringComparison.Ordinal) &&
+                                   _status.Text == "Prêt · sélection explicite requise";
+            _lastPlaceholderResetEvidence = placeholderReset;
             var sourceUntouched = SourceMatchesSnapshot(sourceSnapshot);
             Close();
-            return dryRun && applied && undone && redone && restored && sourceUntouched &&
+            return dryRun && applied && undone && redone && restored && placeholderReset && sourceUntouched &&
                    EvidenceResourcesReleased && SourceSessionRestored;
         }
         catch (Exception exception)
         {
+            _lastPlaceholderResetEvidence = false;
             GD.PrintErr(
                 $"OPENRPG_FORGE_STUDIO_UX1AH_UI_TRANSACTION_FAILED type={exception.GetType().Name} message={exception.Message}");
-            Close();
+            ResetForIsolatedEvidencePreparation();
             return false;
         }
+    }
+
+    private void ResetForIsolatedEvidencePreparation()
+    {
+        if (_evidenceSession is not null)
+        {
+            _session = _evidenceSession;
+            Close();
+        }
+        else if (_evidenceTempRoot is not null)
+        {
+            _lastEvidenceResourcesReleased = ReleaseIsolatedEvidenceSession();
+        }
+
+        _session = _sourceSession;
+        Visible = false;
+        _draft = null;
+        _applied = false;
+        _runtimePreviewReady = false;
+        _noLiveDispatch = true;
+        _apply.Disabled = true;
+        _preview.Disabled = true;
+        _undo.Disabled = true;
+        _redo.Disabled = true;
     }
 
     private bool TryOpenIsolatedEvidenceSession()
@@ -530,7 +601,8 @@ internal sealed partial class StudioTriggerAutomationDirectorOverlay : Control
             history.CanRedo,
             _sourceSession.ActiveAreaId,
             _sourceSession.SelectedEntityIds.ToArray(),
-            _sourceSession.SelectedEntityId);
+            _sourceSession.SelectedEntityId,
+            _sourceSession.CaptureTriggerAutomationDirectorApprovalUx1AH());
     }
 
     private bool SourceMatchesSnapshot(StudioUx1AHEvidenceSourceSnapshot snapshot)
@@ -546,7 +618,8 @@ internal sealed partial class StudioTriggerAutomationDirectorOverlay : Control
                _sourceSession.IsDirty == snapshot.IsDirty &&
                _sourceSession.ActiveAreaId == snapshot.ActiveAreaId &&
                _sourceSession.SelectedEntityIds.SequenceEqual(snapshot.SelectedEntityIds) &&
-               _sourceSession.SelectedEntityId == snapshot.SelectedEntityId;
+               _sourceSession.SelectedEntityId == snapshot.SelectedEntityId &&
+               _sourceSession.TriggerAutomationDirectorApprovalMatchesUx1AH(snapshot.Approval);
     }
 
     private bool ReleaseIsolatedEvidenceSession()
@@ -623,11 +696,23 @@ internal sealed partial class StudioTriggerAutomationDirectorOverlay : Control
         }
         if (index <= 0)
         {
+            _session.CancelTriggerAutomationDirectorUx1AH();
             _draft = null;
             _runtimePreviewReady = false;
+            _noLiveDispatch = true;
+            _applied = false;
             SetEditingEnabled(false);
+            _apply.Disabled = true;
+            _undo.Disabled = true;
+            _redo.Disabled = true;
             _selection.Text = "Choisissez explicitement un déclencheur doté d’un volume de base.";
             _selection.AddThemeColorOverride("font_color", StudioStyle.Warning);
+            _summary.Text =
+                "Sélectionnez un déclencheur puis prévisualisez · aucune commande Live Director envoyée.";
+            _summary.AddThemeColorOverride("font_color", StudioStyle.Muted);
+            _status.Text = "Prêt · sélection explicite requise";
+            _status.AddThemeColorOverride("font_color", StudioStyle.Muted);
+            StatusChanged?.Invoke(_status.Text, false);
             return;
         }
         LoadChoice((int)index - 1);
@@ -659,6 +744,21 @@ internal sealed partial class StudioTriggerAutomationDirectorOverlay : Control
             _summary.Text = "Aucune modification possible sans Foundation canonique.";
             _summary.AddThemeColorOverride("font_color", StudioStyle.Danger);
             SetEditingEnabled(false);
+            return;
+        }
+
+        if (!CanPopulateDraftExactly(draft))
+        {
+            _selection.Text = choice.Label;
+            _selection.AddThemeColorOverride("font_color", StudioStyle.Danger);
+            _summary.Text =
+                $"Valeurs canoniques conservées sans réécriture : cadence {draft.IntervalSeconds:0.###############} s · budget {draft.BudgetPerMinute}/min. " +
+                "Cette fiche bornée ne peut pas les représenter exactement ; aucun champ n’a été chargé.";
+            _summary.AddThemeColorOverride("font_color", StudioStyle.Danger);
+            SetEditingEnabled(false);
+            SetStatus(
+                "Profil non chargé · ajustez sa cadence ou son budget avec un outil compatible avec ces valeurs.",
+                error: true);
             return;
         }
 
@@ -926,6 +1026,22 @@ internal sealed partial class StudioTriggerAutomationDirectorOverlay : Control
         };
         StudioStyle.ApplySpinBox(value);
         return value;
+    }
+
+    private static bool CanPopulateDraftExactly(StudioTriggerAutomationDirectorDraft draft) =>
+        !draft.SchedulerEnabled ||
+        CanRepresentSchedulerValues(draft.IntervalSeconds, draft.BudgetPerMinute);
+
+    private static bool CanRepresentSchedulerValues(double intervalSeconds, int budgetPerMinute) =>
+        double.IsFinite(intervalSeconds) &&
+        intervalSeconds is >= MinimumIntervalSeconds and <= MaximumIntervalSeconds &&
+        IsStepAligned(intervalSeconds, IntervalStepSeconds) &&
+        budgetPerMinute is >= MinimumBudgetPerMinute and <= MaximumBudgetPerMinute;
+
+    private static bool IsStepAligned(double value, double step)
+    {
+        var units = value / step;
+        return Math.Abs(units - Math.Round(units)) <= 1e-9 * Math.Max(1, Math.Abs(units));
     }
 
     private static CheckBox Check(string text)

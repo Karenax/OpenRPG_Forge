@@ -52,6 +52,10 @@ internal sealed record StudioTriggerAutomationDirectorPreview(
 
 internal sealed record StudioUx1AHActionResult(bool Succeeded, string Message);
 
+internal sealed record StudioUx1AHApprovalSnapshot(
+    StudioTriggerAutomationDirectorDraft? Draft,
+    ProjectRevision? Revision);
+
 internal sealed record StudioUx1AHEvidenceSourceSnapshot(
     ProjectDefinition Project,
     ProjectCommandHistory History,
@@ -62,11 +66,13 @@ internal sealed record StudioUx1AHEvidenceSourceSnapshot(
     bool CanRedo,
     AreaId? ActiveAreaId,
     IReadOnlyList<EntityId> SelectedEntityIds,
-    EntityId? SelectedEntityId);
+    EntityId? SelectedEntityId,
+    StudioUx1AHApprovalSnapshot Approval);
 
 internal sealed record StudioUx1AHSmokeResult(
     bool Succeeded,
     bool SelectionExplicit,
+    bool ChoiceLabelsDisambiguated,
     bool FoundationRequired,
     bool Scheduler,
     bool CustomEvent,
