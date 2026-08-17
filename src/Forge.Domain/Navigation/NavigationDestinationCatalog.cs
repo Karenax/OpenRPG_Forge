@@ -180,18 +180,20 @@ public sealed class NavigationDestinationCatalog
             {
                 var item = ordered[index];
                 var label = item.BaseLabel;
-                if (ordered.Length > 1)
+                if (!string.IsNullOrWhiteSpace(item.AreaSlug))
                 {
-                    var qualifier = string.IsNullOrWhiteSpace(item.AreaSlug)
-                        ? item.Slug
-                        : $"{item.AreaSlug} · {item.Slug}";
-                    label = $"{label} · {qualifier}";
-                    if (ordered.Count(candidate =>
-                            string.Equals(candidate.AreaSlug, item.AreaSlug, StringComparison.Ordinal) &&
-                            string.Equals(candidate.Slug, item.Slug, StringComparison.Ordinal)) > 1)
-                    {
-                        label += $" · {index + 1}";
-                    }
+                    label = $"{label} · {item.AreaSlug}";
+                }
+                if (ordered.Length > 1 &&
+                    !string.Equals(item.Slug, item.AreaSlug, StringComparison.Ordinal))
+                {
+                    label += $" · {item.Slug}";
+                }
+                if (ordered.Count(candidate =>
+                        string.Equals(candidate.AreaSlug, item.AreaSlug, StringComparison.Ordinal) &&
+                        string.Equals(candidate.Slug, item.Slug, StringComparison.Ordinal)) > 1)
+                {
+                    label += $" · {index + 1}";
                 }
 
                 yield return new NavigationDestinationReference(item.Kind, item.Id, item.AreaId, label,
