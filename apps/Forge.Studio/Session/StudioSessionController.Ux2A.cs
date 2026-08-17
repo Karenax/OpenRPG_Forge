@@ -1,6 +1,5 @@
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json;
 using Forge.Application.Areas;
 using Forge.Application.Commands;
 using Forge.Application.Lifecycle;
@@ -684,14 +683,11 @@ internal sealed partial class StudioSessionController
         Math.Abs(draft.AdditiveModifier - source.AdditiveModifier) < .0000001d &&
         string.Equals(draft.ConditionTag, source.ConditionTag, StringComparison.Ordinal);
 
-    private static bool SameAreaAuthoringUx2A(AreaAuthoringProfile source, AreaAuthoringProfile candidate)
-    {
-        var options = ProjectJsonSerializer.CreateOptions();
-        return string.Equals(
-            JsonSerializer.Serialize(source, options),
-            JsonSerializer.Serialize(candidate, options),
+    private static bool SameAreaAuthoringUx2A(AreaDefinition source, AreaDefinition candidate) =>
+        string.Equals(
+            AreaJsonSerializer.Serialize(source.WithAuthoring(source.Authoring)),
+            AreaJsonSerializer.Serialize(source.WithAuthoring(candidate.Authoring)),
             StringComparison.Ordinal);
-    }
 
     private static bool FiniteUx2A(Vector3Value value) =>
         float.IsFinite(value.X) && float.IsFinite(value.Y) && float.IsFinite(value.Z);
@@ -1532,7 +1528,7 @@ internal sealed partial class StudioSessionController
                             item.Id == sourceModifier.Id))) &&
                 ReferenceEquals(sourceTarget.Navigation, appliedTarget.Navigation) &&
                 ReferenceEquals(sourceTarget.Environment, appliedTarget.Environment) &&
-                SameAreaAuthoringUx2A(sourceTarget.Authoring, appliedTarget.Authoring) &&
+                SameAreaAuthoringUx2A(sourceTarget, appliedTarget) &&
                 ReferenceEquals(sourceTarget.World, appliedTarget.World) &&
                 ReferenceEquals(sourceTarget.Foundation, appliedTarget.Foundation) &&
                 ReferenceEquals(sourceTarget.Playtest, appliedTarget.Playtest);
