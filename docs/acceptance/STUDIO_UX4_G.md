@@ -60,8 +60,8 @@ validés ; un simple aperçu n'ajoute jamais silencieusement un pouvoir prépar�
   préservés mais non édités par UX4-G ;
 - les captures emploient une copie temporaire de la vraie Crypte ou un fallback canonique isolé.
   Source, historique, état dirty, sélection, approbations, page et surface active sont restaurés ;
-- les capacités et l'inventaire sont qualifiés séparément par UX4-H ; cette preuve ne qualifie pas
-  `ORF-CRE-023` à `ORF-CRE-049`, qui restent `planned`.
+- les capacités, l'inventaire et le loot sont qualifiés séparément par UX4-H et UX4-I ; cette
+  preuve ne qualifie pas `ORF-CRE-025` à `ORF-CRE-031` ni `ORF-CRE-033` à `ORF-CRE-049`.
 
 ## Reproduction
 

@@ -7,6 +7,9 @@ SemVer ; les versions de schéma persistent séparément dans leurs documents.
 
 ### Changed
 
+- Forge Studio UX4-I : objets droppables, pickpocket et cycle de cadavre via
+  `SetCreatureLootHandler`, avec références réelles, preuve Crypte et matrice portée à 255 routes
+  `functional` / 462 `planned` ;
 - Forge Studio UX4-H : capacités spéciales, inventaire, conteneurs et équipement via
   `SetCreatureFoundationHandler`, avec références aux objets réels, preuve Crypte et matrice portée
   à 252 routes `functional` / 465 `planned` ;

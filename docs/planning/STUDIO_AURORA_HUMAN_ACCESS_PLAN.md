@@ -959,6 +959,17 @@ du catalogue et équipement via `SetCreatureFoundationHandler`. Le portail passe
 de la Crypte. Les références d'objet et d'équipement sont validées avant application, tandis que
 les règles et profils voisins restent préservés. La matrice atteint 252 routes `functional` et 465
 `planned`. Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX4_H.md` ; `ORF-CRE-023` à
+`ORF-CRE-049` passent aux lots suivants.
+
+### UX4-I — Loot, pickpocket et cadavre de créature
+
+`ORF-CRE-023`, `ORF-CRE-024` et `ORF-CRE-032` sont `functional` : objets droppables, vol à la
+tire et cycle de cadavre via `SetCreatureLootHandler`. Le portail passe 11/11 tests en 119,64 s,
+le smoke global et cinq captures Forward+ FHD inspectées, dont quatre sur le profil réel de la
+Crypte. Les références d'objet et de compétence sont validées avant application, tandis que les
+profils de fondation, présentation, règles, progression et capacités restent préservés. La matrice
+atteint 255 routes `functional` et 462 `planned`. Preuves et limites sont liées dans
+`docs/acceptance/STUDIO_UX4_I.md` ; `ORF-CRE-025` à `ORF-CRE-031` et `ORF-CRE-033` à
 `ORF-CRE-049` restent `planned`.
 
 ## Gates ergonomiques avant parité

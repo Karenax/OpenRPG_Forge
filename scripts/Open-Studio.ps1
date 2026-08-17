@@ -94,6 +94,8 @@ param(
         'ux4-g-talents', 'ux4-g-powers', 'ux4-g-preview',
         'ux4-h', 'ux4-h-creature-capabilities-inventory', 'ux4-h-abilities', 'ux4-h-inventory',
         'ux4-h-preview',
+        'ux4-i', 'ux4-i-creature-loot', 'ux4-i-drops', 'ux4-i-pickpocket', 'ux4-i-corpse',
+        'ux4-i-preview',
         'ux5-a', 'ux5-a-dialogue-foundation')]
     [string]$Evidence,
     [string]$Resolution,
