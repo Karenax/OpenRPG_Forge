@@ -323,6 +323,12 @@ internal sealed partial class StudioEncounterValidationOverlayUx2LwL : Control
             _budget.Text = (_draft.SpawnBudget + 2.5).ToString("0.###", CultureInfo.InvariantCulture);
             _networkCap.Text = (_draft.NetworkActorCap + 1).ToString(CultureInfo.InvariantCulture);
             Preview();
+            if (_lastPreview is not { Succeeded: true, CanApply: true, DryRunPure: true })
+            {
+                GD.PrintErr("OPENRPG_FORGE_STUDIO_UX2_LW_L_EVIDENCE_PREVIEW_FAILED " +
+                            string.Join(" | ", _lastPreview?.Diagnostics.Select(item =>
+                                $"{item.Code}:{item.Path}:{item.Message}") ?? []));
+            }
             _lastEvidenceSourceUntouched = SourceMatchesSnapshot(_evidenceSnapshot);
             SetStatus($"Preuve isolée prête · {HumanMode(mode)} · source intacte", false);
             return _lastPreview is { Succeeded: true, CanApply: true, DryRunPure: true } &&

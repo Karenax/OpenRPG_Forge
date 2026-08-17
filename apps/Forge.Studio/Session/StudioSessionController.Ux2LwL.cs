@@ -238,7 +238,7 @@ internal sealed partial class StudioSessionController
 
     internal ProjectDefinition? CreateUx2LwLEvidenceProject()
     {
-        var source = CreateUx2LwFEvidenceProject();
+        var source = CreateUx2LwHEvidenceProject();
         if (source is null) return null;
         var target = source.Module.WorldFeatures.Encounters.FirstOrDefault(item =>
             item.Foundation is not null && item.Composition is not null && item.Scenario is not null);
@@ -247,9 +247,25 @@ internal sealed partial class StudioSessionController
         var authored = targetProfile with
         {
             Provenance = Ux2LwLEvidenceProvenance,
-            Foundation = foundation with { RewardIds = ["reward:studio-evidence"] },
+            Foundation = foundation with
+            {
+                Volume = foundation.Volume with { ActivationScriptId = "scripts/encounter_activate.forge" },
+                RewardIds = ["reward:studio-evidence"],
+            },
         };
         var catalog = ReplaceEncounterUx2LwL(source.Module.WorldFeatures, authored);
+        if (catalog.Encounters.Count == 1)
+        {
+            var candidate = foundation.Candidates.FirstOrDefault();
+            var anchor = foundation.SpawnAnchorIds.FirstOrDefault();
+            if (candidate is null || string.IsNullOrWhiteSpace(anchor)) return null;
+            var neighbor = CreateEvidenceEncounterUx2LwF(
+                StableUx2LwF(targetProfile.Id, "ux2-lw-l:neighbor"), targetProfile.AreaId,
+                candidate.BlueprintId, anchor, null, "studio:ux2-lw-l:evidence-neighbor", richTails: false);
+            catalog = new WorldFeatureCatalog(catalog.Id, catalog.SchemaVersion, catalog.Provenance,
+                catalog.Placeables, catalog.Doors, catalog.Triggers, [.. catalog.Encounters, neighbor],
+                catalog.VehicleRoutes, catalog.Merchants, catalog.Companions, catalog.Scripts);
+        }
         return new(source.Id, "Studio UX2-LW-L", source.Module.WithWorldFeatures(catalog),
             source.Blueprints, source.Areas, source.Dialogues, source.Quests);
     }
