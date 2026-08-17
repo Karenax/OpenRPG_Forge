@@ -58,7 +58,7 @@ public static partial class AreaUserEventValidator
                 "Legacy area user events must declare a typed payload before runtime dispatch.",
                 $"{path}/schemaVersion");
 
-        if (binding.SchemaVersion == AreaUserEvent.CurrentSchemaVersion)
+        if (binding.SchemaVersion != AreaUserEvent.LegacySchemaVersion)
         {
             var areaPrefix = $"area.{area.Slug}.";
             Add(!binding.NamespacedName.StartsWith(areaPrefix, StringComparison.Ordinal) ||
