@@ -209,6 +209,7 @@ internal sealed partial class StudioWorkspaceShell : Control
         BuildUx2NavGActions(headingRow);
         BuildUx2NavHActions(headingRow);
         BuildUx2NavIActions(headingRow);
+        BuildUx2NavJActions(headingRow);
         BuildUx4AActions(headingRow);
         _primaryAction = StudioStyle.Button("Migration en cours", primary: true, compact: true);
         _primaryAction.Disabled = true;
@@ -361,6 +362,7 @@ internal sealed partial class StudioWorkspaceShell : Control
         InitializeUx2NavGOverlay();
         InitializeUx2NavHOverlay();
         InitializeUx2NavIOverlay();
+        InitializeUx2NavJOverlay();
         InitializeUx4AOverlay();
         InitializeUx5APage(pageStack);
         if (_session.ActiveArea is null)
@@ -692,6 +694,11 @@ internal sealed partial class StudioWorkspaceShell : Control
         if (mode.StartsWith("ux2-nav-i", StringComparison.OrdinalIgnoreCase))
         {
             return PrepareUx2NavIEvidence(mode);
+        }
+        if (mode.StartsWith("ux2-nav-j", StringComparison.OrdinalIgnoreCase) ||
+            mode.StartsWith("ux2-area-033", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx2NavJEvidence(mode);
         }
         if (mode.StartsWith("ux4-a", StringComparison.OrdinalIgnoreCase))
         {
@@ -1134,6 +1141,7 @@ internal sealed partial class StudioWorkspaceShell : Control
             CloseUx2NavGOverlay();
             CloseUx2NavHOverlay();
             CloseUx2NavIOverlay();
+            CloseUx2NavJOverlay();
         }
         if (page.Id != "social-content")
         {
@@ -1242,6 +1250,7 @@ internal sealed partial class StudioWorkspaceShell : Control
         UpdateUx2NavGActionState();
         UpdateUx2NavHActionState();
         UpdateUx2NavIActionState();
+        UpdateUx2NavJActionState();
         UpdateUx4AActionState();
 
         var usesWorld = !isAssetLibrary && !isProjectConfiguration && !isDiagnostics &&

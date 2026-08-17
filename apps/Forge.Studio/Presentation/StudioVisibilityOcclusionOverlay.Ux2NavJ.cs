@@ -80,7 +80,7 @@ internal sealed partial class StudioVisibilityOcclusionOverlayUx2NavJ : Control
     private readonly Button _save;
 
     internal event Action<string, bool>? StatusChanged;
-    internal event Action? VisibilityChanged;
+    internal event Action? VisibilityProfileChanged;
 
     internal bool IsOpen => Visible;
     internal int ChoiceCount => _areaChoices.Count;
@@ -342,7 +342,8 @@ internal sealed partial class StudioVisibilityOcclusionOverlayUx2NavJ : Control
 
     internal bool PrepareEvidence(string mode)
     {
-        if (!string.Equals(mode, "ux2-nav-j", StringComparison.OrdinalIgnoreCase) ||
+        if (!(mode.StartsWith("ux2-nav-j", StringComparison.OrdinalIgnoreCase) ||
+              mode.StartsWith("ux2-area-033", StringComparison.OrdinalIgnoreCase)) ||
             _sourceSession.Project is null || _sourceSession.History is null) return false;
         ReleaseEvidenceWorkspace();
         _evidenceSourceSnapshot = CaptureSourceSnapshot();
@@ -872,7 +873,7 @@ internal sealed partial class StudioVisibilityOcclusionOverlayUx2NavJ : Control
         SetStatus(result.Message, !result.Succeeded);
         if (result.Succeeded)
         {
-            VisibilityChanged?.Invoke();
+            VisibilityProfileChanged?.Invoke();
             ReloadSelectedArea();
         }
         UpdateActionState();
@@ -882,14 +883,14 @@ internal sealed partial class StudioVisibilityOcclusionOverlayUx2NavJ : Control
     {
         var result = _session.Undo();
         SetStatus(result.Message, !result.Succeeded);
-        if (result.Succeeded) { VisibilityChanged?.Invoke(); ReloadSelectedArea(); }
+        if (result.Succeeded) { VisibilityProfileChanged?.Invoke(); ReloadSelectedArea(); }
     }
 
     private void Redo()
     {
         var result = _session.Redo();
         SetStatus(result.Message, !result.Succeeded);
-        if (result.Succeeded) { VisibilityChanged?.Invoke(); ReloadSelectedArea(); }
+        if (result.Succeeded) { VisibilityProfileChanged?.Invoke(); ReloadSelectedArea(); }
     }
 
     private void Save()

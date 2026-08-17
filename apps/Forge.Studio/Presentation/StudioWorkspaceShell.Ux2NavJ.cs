@@ -21,7 +21,7 @@ internal sealed partial class StudioWorkspaceShell
         _visibilityOverlayUx2NavJ = new StudioVisibilityOcclusionOverlayUx2NavJ(_session,
             WorldViewport);
         _visibilityOverlayUx2NavJ.StatusChanged += SetStatus;
-        _visibilityOverlayUx2NavJ.VisibilityChanged += RefreshAfterUx2NavJMutation;
+        _visibilityOverlayUx2NavJ.VisibilityProfileChanged += RefreshAfterUx2NavJMutation;
         AddChild(_visibilityOverlayUx2NavJ);
     }
 
@@ -66,6 +66,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2NavGOverlay();
         CloseUx2NavHOverlay();
         CloseUx2NavIOverlay();
+        CloseUx2EnvJOverlay();
         SwitchPage("navigation", notify: false);
         _visibilityOverlayUx2NavJ.Open();
         SetStatus("Visibilité ouverte · sélection explicite · aperçu sec obligatoire");
@@ -100,6 +101,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2NavGOverlay();
         CloseUx2NavHOverlay();
         CloseUx2NavIOverlay();
+        CloseUx2EnvJOverlay();
         return _visibilityOverlayUx2NavJ.PrepareEvidence(mode);
     }
 

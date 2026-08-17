@@ -65,6 +65,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2NavGOverlay();
         CloseUx2NavHOverlay();
         CloseUx2NavIOverlay();
+        CloseUx2NavJOverlay();
         CloseUx2EnvJOverlay();
         SwitchPage("navigation", notify: false);
         _navigationFoundationOverlayUx2NavB.Open();
@@ -103,6 +104,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2NavGOverlay();
         CloseUx2NavHOverlay();
         CloseUx2NavIOverlay();
+        CloseUx2NavJOverlay();
         CloseUx2EnvJOverlay();
         return _navigationFoundationOverlayUx2NavB.PrepareEvidence(mode);
     }
