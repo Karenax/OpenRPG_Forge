@@ -172,8 +172,7 @@ public static class CryptWorldFeatureAuthoringService
                 new(2.5, "both", 1, 2, 1, "server", 2, "door.unavailable"),
                 new(DoorWorldProfile.DestinationKind.Waypoint, Stable(moduleId, "door-destination"),
                     "anchor:crypt-exit", 180, true, ["portal.travel"]),
-                [new(Stable(moduleId, "door-link"), Stable(moduleId, "door-destination"), false,
-                    "Retour vers la crypte")],
+                [],
                 new Dictionary<string, string>
                 {
                     ["interaction.prompt"] = "door.open",

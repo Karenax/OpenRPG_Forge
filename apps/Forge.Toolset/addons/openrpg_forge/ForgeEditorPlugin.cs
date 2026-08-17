@@ -19550,7 +19550,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 placeableHandle.Properties["onUsed"] != bool.TrueString ||
                 placeableHandle.Properties["validation"] != bool.TrueString || !doorDamage.Breached || !doorInteraction.Accepted ||
                 doorInteraction.CurrentState != "opening" || catalog.Doors[0].Foundation?.States.Count != 9 ||
-                catalog.Doors[0].Foundation?.Links.Count != 1 || !doorNavigationClosed.ObstacleEnabled ||
+                catalog.Doors[0].Foundation?.Links.Count != 0 || !doorNavigationClosed.ObstacleEnabled ||
                 doorNavigationClosed.LinkEnabled || doorNavigationOpen.ObstacleEnabled || !doorNavigationOpen.LinkEnabled ||
                 !doorNavigationClosed.Visualization.Contains("blocked", StringComparison.Ordinal) ||
                 !trigger.Fired || !encounter.Spawn || !encounterActivation.Activated ||

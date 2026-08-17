@@ -64,7 +64,6 @@ public static class DoorWorldRuntimeMapper
             .Concat(access is null ? Enumerable.Empty<string>() : new[] { access.Rejection.ScriptId })
             .ToArray();
         var requiredAnimations = foundation.States.Select(item => item.AnimationId)
-            .Concat(access is null ? Enumerable.Empty<string>() : new[] { access.Rejection.AnimationId })
             .ToHashSet(StringComparer.Ordinal);
         foundation.Overrides.TryGetValue(DoorWorldProfile.CollisionProfileOverrideKey,
             out var requiredCollisionProfileId);
@@ -81,7 +80,8 @@ public static class DoorWorldRuntimeMapper
             policy.KnownCredentialIds.ToHashSet(StringComparer.Ordinal),
             policy.KnownScriptIds.ToHashSet(StringComparer.Ordinal),
             requiredAnimations,
-            requiredCollisionProfileId);
+            requiredCollisionProfileId,
+            access?.Rejection.AnimationId);
     }
 
     public static LockComponent CreateLock(DoorWorldProfile profile)
@@ -168,7 +168,7 @@ public static class DoorWorldValidationService
         var definition = DoorWorldRuntimeMapper.MapDefinition(profile, blueprint.Slug, blueprint.DisplayName);
         var runtime = DoorWorldRuntimeMapper.MapRuntimeProfile(profile, policy);
         var links = catalog.Doors.SelectMany(item => item.Foundation?.Links.Select(link =>
-                new DoorLink(item.Id, link.TargetId, link.OneWay, link.ReturnNavigationLabel)) ??
+                new DoorLink(item.Id, link.TargetId, link.OneWay, link.ReturnNavigationLabel, link.Id)) ??
             Enumerable.Empty<DoorLink>()).ToArray();
         diagnostics.AddRange(DoorRuntimeService.Validate(definition, runtime, links)
             .Select(item => item with { Path = CanonicalPath(item.Path) }));

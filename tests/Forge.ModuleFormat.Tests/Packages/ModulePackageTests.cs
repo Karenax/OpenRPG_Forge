@@ -13,8 +13,11 @@ using Forge.Domain.Projects;
 using Forge.Domain.RuntimePolicies;
 using Forge.Domain.Validation;
 using Forge.Domain.Build;
+using Forge.Domain.WorldFeatures;
+using Forge.Application.Projects;
 using Forge.ModuleFormat.Build;
 using Forge.ModuleFormat.Packages;
+using Forge.ModuleFormat.Quality;
 using Forge.ModuleFormat.Tests.Serialization;
 using Forge.ModuleFormat.Workspaces;
 using Forge.Scripting;
@@ -46,6 +49,40 @@ public sealed class ModulePackageTests : IDisposable
         var exception = Assert.Throws<InvalidDataException>(() => ModulePackager.Export(workspace, package));
 
         Assert.Contains("assistant.test.profile_bounds_invalid", exception.Message, StringComparison.Ordinal);
+        Assert.False(File.Exists(package));
+    }
+
+    [Fact]
+    public void Ux1AjExportRejectsRequiredDoorSemanticsWhenReferencesAreOptional()
+    {
+        var workspace = CreateWorkspace();
+        var session = ProjectSession.Open(workspace).Session!;
+        var catalog = CryptWorldFeatureAuthoringService.Create(session.Project);
+        var door = Assert.Single(catalog.Doors);
+        var foundation = door.Foundation!;
+        var access = door.AccessEvents!;
+        var validation = new DoorWorldProfile.RuntimeValidationPolicy(
+            foundation.Portal is null ? [] : [foundation.Portal.DestinationId],
+            foundation.States.Select(item => item.AnimationId).Append(access.Rejection.AnimationId).ToArray(),
+            ["collision:other"],
+            access.Lock.CredentialIds,
+            door.Events.Select(item => item.ScriptId).Append(access.Rejection.ScriptId).ToArray());
+        var invalidDoor = door with { Validation = validation, ValidationRequiredAtRuntime = true };
+        var invalidCatalog = new WorldFeatureCatalog(catalog.Id, catalog.SchemaVersion, catalog.Provenance,
+            catalog.Placeables, [invalidDoor], catalog.Triggers, catalog.Encounters, catalog.VehicleRoutes,
+            catalog.Merchants, catalog.Companions, catalog.Scripts);
+        var project = new ProjectDefinition(session.Project.Id, session.Project.Title,
+            session.Project.Module.WithWorldFeatures(invalidCatalog), session.Project.Blueprints,
+            session.Project.Areas, session.Project.Dialogues, session.Project.Quests);
+        Assert.True(session.Save(project).Succeeded);
+        var quality = QualityFoundationProfileStore.Load(workspace, project.Id.Value);
+        Assert.True(quality.Succeeded);
+        Assert.False(quality.Profile.EffectiveValidation.References.RequiredBeforeBuild);
+        var package = Path.Combine(_temporaryRoot, "invalid-ux1-aj-door.orpmod");
+
+        var exception = Assert.Throws<InvalidOperationException>(() => ModulePackager.Export(workspace, package));
+
+        Assert.Contains("RPG_DOOR_COLLISION_PROFILE_MISMATCH", exception.Message, StringComparison.Ordinal);
         Assert.False(File.Exists(package));
     }
 

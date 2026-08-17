@@ -545,7 +545,6 @@ public sealed class ForgeProjectAgentServiceTests
                 door.Events.Select(item => item.ScriptId).Append(access.Rejection.ScriptId).ToArray());
             var configuredDoor = door with
             {
-                Foundation = foundation with { Links = [] },
                 Validation = validation,
                 ValidationRequiredAtRuntime = true,
             };
@@ -560,6 +559,25 @@ public sealed class ForgeProjectAgentServiceTests
         var invalidDoor = door with { Validation = new([], [], [], [], []) };
         var invalidCatalog = WithDoors(canonical.Module.WorldFeatures, [invalidDoor]);
         var planned = workspace.Project.PreviewWorldFeatures(new WorldFeaturePlanRequest(1, 0, invalidCatalog));
+        var mixedCatalog = new WorldFeatureCatalog(Guid.Parse("a0290000-0000-4000-8000-000000000099"),
+            invalidCatalog.SchemaVersion, invalidCatalog.Provenance, invalidCatalog.Placeables, invalidCatalog.Doors,
+            invalidCatalog.Triggers, invalidCatalog.Encounters, invalidCatalog.VehicleRoutes, invalidCatalog.Merchants,
+            invalidCatalog.Companions, invalidCatalog.Scripts);
+        var mixed = workspace.Project.PreviewWorldFeatures(new WorldFeaturePlanRequest(1, 0, mixedCatalog));
+        var missingDoorBlueprint = invalidDoor with
+        {
+            BlueprintId = BlueprintId.From(Guid.Parse("a0290000-0000-4000-8000-000000000097")),
+        };
+        var trigger = Assert.Single(invalidCatalog.Triggers);
+        var missingTriggerBlueprint = trigger with
+        {
+            BlueprintId = BlueprintId.From(Guid.Parse("a0290000-0000-4000-8000-000000000098")),
+        };
+        var sameCodeCatalog = new WorldFeatureCatalog(invalidCatalog.Id, invalidCatalog.SchemaVersion,
+            invalidCatalog.Provenance, invalidCatalog.Placeables, [missingDoorBlueprint], [missingTriggerBlueprint],
+            invalidCatalog.Encounters, invalidCatalog.VehicleRoutes, invalidCatalog.Merchants,
+            invalidCatalog.Companions, invalidCatalog.Scripts);
+        var sameCode = workspace.Project.PreviewWorldFeatures(new WorldFeaturePlanRequest(1, 0, sameCodeCatalog));
 
         var item = Assert.Single(resource.Items);
         Assert.Equal("True", item.Properties["validation"]);
@@ -572,10 +590,22 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.False(planned.Succeeded);
         Assert.Contains(planned.Diagnostics, diagnostic => diagnostic.Code == "RPG_DOOR_ANIMATION_MISSING" &&
             diagnostic.Path is { } path &&
-            path.StartsWith("module/worldFeatures/doors/", StringComparison.Ordinal));
+            path.EndsWith("/foundation/states", StringComparison.Ordinal));
         Assert.Contains(planned.Diagnostics,
-            diagnostic => diagnostic.Code == "RPG_DOOR_COLLISION_PROFILE_MISMATCH");
+            diagnostic => diagnostic.Code == "RPG_DOOR_COLLISION_PROFILE_MISMATCH" &&
+                          diagnostic.Path?.EndsWith("/foundation/overrides/collision.profile",
+                              StringComparison.Ordinal) == true);
         Assert.Contains(planned.Diagnostics, diagnostic => diagnostic.Code == "RPG_DOOR_SCRIPT_MISSING");
+        Assert.Contains(mixed.Diagnostics, diagnostic => diagnostic.Code == "RPG_DOOR_ANIMATION_MISSING");
+        Assert.Contains(mixed.Diagnostics, diagnostic => diagnostic.Code == "world.catalog.id_mismatch");
+        Assert.Equal(2, sameCode.Diagnostics.Count(diagnostic =>
+            diagnostic.Code == "world.reference.blueprint_missing"));
+        Assert.Contains(sameCode.Diagnostics, diagnostic =>
+            diagnostic.Code == "world.reference.blueprint_missing" &&
+            diagnostic.Path?.Contains("/doors/", StringComparison.Ordinal) == true);
+        Assert.Contains(sameCode.Diagnostics, diagnostic =>
+            diagnostic.Code == "world.reference.blueprint_missing" &&
+            diagnostic.Path?.Contains("/triggers/", StringComparison.Ordinal) == true);
         Assert.Equal(0, workspace.Project.GetCurrentRevision());
     }
 

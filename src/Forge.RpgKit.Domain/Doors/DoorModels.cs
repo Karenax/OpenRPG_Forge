@@ -15,7 +15,12 @@ public sealed record DoorDefinition(Guid Id, int SchemaVersion, string Provenanc
 public sealed record DoorDiagnostic(string Code, string Path, string Message);
 public sealed record DoorInteractionRequest(Guid Id, Guid DoorId, string ActorId, string Side, Vector3Value ActorPosition, IReadOnlySet<string> Permissions, DateTimeOffset RequestedAt);
 public sealed record DoorInteractionResult(DoorInteractionRequest Request, bool Accepted, string PreviousState, string CurrentState, string Feedback, DoorTransition? Transition, bool CollisionEnabled);
-public sealed record DoorLink(Guid SourceDoorId, Guid TargetDoorId, bool OneWay, string ReturnNavigationLabel);
+public sealed record DoorLink(
+    Guid SourceDoorId,
+    Guid TargetDoorId,
+    bool OneWay,
+    string ReturnNavigationLabel,
+    Guid? PolicyId = null);
 public sealed record DoorLinkMutation(IReadOnlyList<DoorLink> Links, IReadOnlyList<DoorLink> Added, string Patch, string InversePatch);
 
 public static class DoorRules

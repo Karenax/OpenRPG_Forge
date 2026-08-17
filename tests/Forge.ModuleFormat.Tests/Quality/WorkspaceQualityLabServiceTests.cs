@@ -131,6 +131,8 @@ public sealed class WorkspaceQualityLabServiceTests : IDisposable
 
         var report = WorkspaceCanonicalValidationService.Run(_root, project,
             QualityFoundationProfile.CreateDefault(project.Id.Value));
+        var profile = QualityFoundationProfile.CreateDefault(project.Id.Value);
+        var blocking = WorkspaceCanonicalValidationService.BlockingDiagnostics(project, profile, report);
         var semantic = report.Diagnostics.Where(item =>
             item.Code is "RPG_DOOR_ANIMATION_MISSING" or "RPG_DOOR_COLLISION_PROFILE_MISMATCH").ToArray();
 
@@ -138,6 +140,9 @@ public sealed class WorkspaceQualityLabServiceTests : IDisposable
         Assert.Equal(2, semantic.Length);
         Assert.All(semantic, item => Assert.Equal("references", item.Category));
         Assert.Equal(semantic.Length, semantic.DistinctBy(item => (item.Code, item.Path)).Count());
+        Assert.False(profile.EffectiveValidation.References.RequiredBeforeBuild);
+        Assert.Equal(semantic.Select(item => (item.Code, item.Path)).Order().ToArray(),
+            blocking.Select(item => (item.Code, item.Path)).Order().ToArray());
     }
 
     public void Dispose()

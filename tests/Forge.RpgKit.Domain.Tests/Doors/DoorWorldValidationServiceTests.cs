@@ -109,13 +109,19 @@ public sealed class DoorWorldValidationServiceTests
         };
 
         Assert.Contains(DoorWorldValidationService.Validate(WithDoor(project, missingRejectionAnimation), door.Id)
-            .Diagnostics, item => item.Code == "RPG_DOOR_ANIMATION_MISSING");
+            .Diagnostics, item => item.Code == "RPG_DOOR_ANIMATION_MISSING" &&
+                                  item.Path.EndsWith("/accessEvents/rejection/animationId",
+                                      StringComparison.Ordinal));
         Assert.Contains(DoorWorldValidationService.Validate(WithDoor(project, collisionMismatch), door.Id)
-            .Diagnostics, item => item.Code == "RPG_DOOR_COLLISION_PROFILE_MISMATCH");
+            .Diagnostics, item => item.Code == "RPG_DOOR_COLLISION_PROFILE_MISMATCH" &&
+                                  item.Path.EndsWith("/foundation/overrides/collision.profile",
+                                      StringComparison.Ordinal));
         Assert.Contains(DoorWorldValidationService.Validate(WithDoor(project, collisionNotAuthored), door.Id)
             .Diagnostics, item => item.Code == "RPG_DOOR_COLLISION_PROFILE_MISSING");
+        var orphanLink = Assert.Single(orphan.Foundation!.Links);
         Assert.Contains(DoorWorldValidationService.Validate(WithDoor(project, orphan), door.Id).Diagnostics,
-            item => item.Code == "RPG_DOOR_LINK_ORPHAN");
+            item => item.Code == "RPG_DOOR_LINK_ORPHAN" &&
+                    item.Path.EndsWith($"/foundation/links/{orphanLink.Id}", StringComparison.Ordinal));
         Assert.Single(
             DoorWorldValidationService.Validate(WithDoors(project, missingReverse, neighbor), door.Id).Diagnostics,
             item => item.Code == "RPG_DOOR_LINK_REVERSE_MISSING");

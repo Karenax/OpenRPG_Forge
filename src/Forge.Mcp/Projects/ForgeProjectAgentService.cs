@@ -491,9 +491,10 @@ public sealed class ForgeProjectAgentService
                 ? WorkspaceCanonicalValidationService.Run(
                     _session.RootDirectory, _history.State.Project, quality.Profile)
                 : null;
-            var blocking = canonical?.Diagnostics.Where(item =>
-                quality.Profile.EffectiveValidation.Categories.TryGetValue(item.Category, out var category) &&
-                category.RequiredBeforeBuild) ?? [];
+            var blocking = canonical is null
+                ? []
+                : WorkspaceCanonicalValidationService.BlockingDiagnostics(
+                    _history.State.Project, quality.Profile, canonical);
             var diagnostics = loaded.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path))
                 .Concat(quality.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)))
                 .Concat(ProjectValidator.Validate(_history.State.Project)
@@ -663,14 +664,17 @@ public sealed class ForgeProjectAgentService
                 CommandId.From(Guid.NewGuid()), new ProjectRevision(request.BaseRevision), request.Catalog, true));
             if (!result.Succeeded)
             {
-                var semanticFailure = result.Diagnostics.Any(item =>
-                    doorDiagnostics.Any(candidateDiagnostic =>
-                        string.Equals(candidateDiagnostic.Code, item.Code, StringComparison.Ordinal)));
+                var handlerDiagnostics = result.Diagnostics.Select(item =>
+                {
+                    var separator = item.Message.IndexOf(": ", StringComparison.Ordinal);
+                    return separator > 0
+                        ? new AgentDiagnostic(item.Code, item.Message[(separator + 2)..], item.Message[..separator])
+                        : new AgentDiagnostic(item.Code, item.Message, "module/worldFeatures");
+                });
                 return new(false, request.BaseRevision, result.Patch, result.Inverse,
-                    semanticFailure
-                        ? doorDiagnostics
-                        : result.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message,
-                            "module/worldFeatures")).ToArray());
+                    doorDiagnostics.Concat(handlerDiagnostics)
+                        .DistinctBy(item => (item.Code, item.Path))
+                        .ToArray());
             }
 
             if (doorDiagnostics.Length > 0)

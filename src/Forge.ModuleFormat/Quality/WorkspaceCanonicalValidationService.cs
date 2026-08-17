@@ -55,7 +55,8 @@ public static class WorkspaceCanonicalValidationService
         diagnostics.AddRange(QualityFoundationProfileValidator.Validate(profile)
             .Select(item => ("schemas", item)));
         diagnostics.AddRange(project.Module.WorldFeatures.Doors
-            .Where(item => item.Validation is not null || item.ValidationRequiredAtRuntime)
+            .Where(item => (item.Validation is not null || item.ValidationRequiredAtRuntime) &&
+                           (policy.References.Enabled || item.ValidationRequiredAtRuntime))
             .SelectMany(item => DoorWorldValidationService.Validate(project, item.Id).Diagnostics)
             .Select(item => ("references", new DomainDiagnostic(item.Code, item.Message, item.Path))));
 
@@ -114,6 +115,27 @@ public static class WorkspaceCanonicalValidationService
         })));
         return new(Stable($"report:{project.Id}:{fingerprint}"), WorkspaceCanonicalValidationReport.CurrentSchemaVersion,
             "openrpg-forge:qa-r027", policy.Id, passed, fingerprint, categoryCounts, structured);
+    }
+
+    public static IReadOnlyList<CanonicalValidationDiagnostic> BlockingDiagnostics(
+        ProjectDefinition project,
+        QualityFoundationProfile profile,
+        WorkspaceCanonicalValidationReport report)
+    {
+        ArgumentNullException.ThrowIfNull(project);
+        ArgumentNullException.ThrowIfNull(profile);
+        ArgumentNullException.ThrowIfNull(report);
+        var policy = profile.EffectiveValidation;
+        var requiredDoorDiagnostics = project.Module.WorldFeatures.Doors
+            .Where(item => item.ValidationRequiredAtRuntime)
+            .SelectMany(item => DoorWorldValidationService.Validate(project, item.Id).Diagnostics)
+            .Select(item => (item.Code, item.Path))
+            .ToHashSet();
+        return report.Diagnostics.Where(item =>
+                (policy.Categories.TryGetValue(item.Category, out var category) &&
+                 category.RequiredBeforeBuild) ||
+                requiredDoorDiagnostics.Contains((item.Code, item.Path)))
+            .ToArray();
     }
 
     public static IReadOnlyList<DomainDiagnostic> ValidateRuntimePolicy(

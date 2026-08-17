@@ -38,14 +38,18 @@ public static class DoorLinkAuthoringService
         {
             if (!knownDoors.Contains(link.SourceDoorId) || !knownDoors.Contains(link.TargetDoorId))
                 diagnostics.Add(new("RPG_DOOR_LINK_ORPHAN",
-                    $"doors/links/{link.SourceDoorId}/{link.TargetDoorId}",
+                    DiagnosticPath(link),
                     "Door link target is missing."));
             if (!link.OneWay && links.All(reverse => reverse.SourceDoorId != link.TargetDoorId ||
                                                       reverse.TargetDoorId != link.SourceDoorId))
                 diagnostics.Add(new("RPG_DOOR_LINK_REVERSE_MISSING",
-                    $"doors/links/{link.SourceDoorId}/{link.TargetDoorId}",
+                    DiagnosticPath(link),
                     "Bidirectional link has no return navigation."));
         }
         return diagnostics;
     }
+
+    internal static string DiagnosticPath(DoorLink link) => link.PolicyId is { } policyId
+        ? $"doors/{link.SourceDoorId}/foundation/links/{policyId}"
+        : $"doors/links/{link.SourceDoorId}/{link.TargetDoorId}";
 }
