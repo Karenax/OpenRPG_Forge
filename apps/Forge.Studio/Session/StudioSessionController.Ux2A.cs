@@ -988,6 +988,38 @@ internal sealed partial class StudioSessionController
         return Convert.ToHexString(SHA256.HashData(bytes));
     }
 
+    internal static bool ProjectRoundTripMatchesUx2A(
+        ProjectDefinition expected,
+        ProjectDefinition restored,
+        AreaId targetAreaId)
+    {
+        ArgumentNullException.ThrowIfNull(expected);
+        ArgumentNullException.ThrowIfNull(restored);
+        ArgumentNullException.ThrowIfNull(targetAreaId);
+        if (!string.Equals(
+                ProjectJsonSerializer.Serialize(expected),
+                ProjectJsonSerializer.Serialize(restored),
+                StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        var restoredAreas = restored.Areas.ToDictionary(item => item.Id);
+        return expected.Module.Id == restored.Module.Id &&
+               expected.Module.EntryAreaId == restored.Module.EntryAreaId &&
+               expected.Areas.Where(item => item.Id != targetAreaId).All(item =>
+                   restoredAreas.TryGetValue(item.Id, out var restoredArea) &&
+                   string.Equals(
+                       AreaJsonSerializer.Serialize(item),
+                       AreaJsonSerializer.Serialize(restoredArea),
+                       StringComparison.Ordinal)) &&
+               expected.Blueprints.Select(item => item.Id).SequenceEqual(
+                   restored.Blueprints.Select(item => item.Id)) &&
+               expected.Dialogues.Select(item => item.Id).SequenceEqual(
+                   restored.Dialogues.Select(item => item.Id)) &&
+               expected.Quests.Select(item => item.Id).SequenceEqual(restored.Quests.Select(item => item.Id));
+    }
+
     private static string AreaPolicyDraftFingerprintUx2A(StudioUx2ADraft draft)
     {
         using var stream = new MemoryStream();
@@ -1503,6 +1535,7 @@ internal sealed partial class StudioSessionController
                                                 .SequenceEqual(appliedProject.Areas.Select(area => area.Id));
 
             var appliedAreaJson = AreaJsonSerializer.Serialize(appliedTarget);
+            var appliedProjectSnapshot = appliedProject;
             var undo = editing.Undo();
             var undone = ReferenceEquals(sourceProject, editing.Project);
             var redo = editing.Redo();
@@ -1510,10 +1543,13 @@ internal sealed partial class StudioSessionController
             var undoRedo = undo.Succeeded && undone && redo.Succeeded && redone;
             var save = editing.Save();
             var reopen = reopened.Open(tempRoot, target.Id.ToString());
-            var restoredTarget = reopened.Project?.Areas.SingleOrDefault(area => area.Id == target.Id);
+            var restoredProject = reopened.Project;
+            var restoredTarget = restoredProject?.Areas.SingleOrDefault(area => area.Id == target.Id);
             var persistence = save.Succeeded && reopen.Succeeded && restoredTarget is not null &&
-                              string.Equals(appliedAreaJson, AreaJsonSerializer.Serialize(restoredTarget),
-                                  StringComparison.Ordinal);
+                               string.Equals(appliedAreaJson, AreaJsonSerializer.Serialize(restoredTarget),
+                                   StringComparison.Ordinal) &&
+                              restoredProject is not null &&
+                              ProjectRoundTripMatchesUx2A(appliedProjectSnapshot, restoredProject, target.Id);
 
             var creature = new CreaturePerceptionProfile(
                 [new(SenseKind.Vision, 10, 120, true, new HashSet<string> { "light" })],

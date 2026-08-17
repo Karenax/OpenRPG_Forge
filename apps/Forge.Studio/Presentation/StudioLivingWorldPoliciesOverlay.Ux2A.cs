@@ -1126,9 +1126,10 @@ internal sealed partial class StudioLivingWorldPoliciesOverlay : Control
                               appliedArea.RuntimePolicies.Cinematics) &&
                            ReferenceEquals(sourceArea!.RuntimePolicies.Rules.Combat,
                                appliedArea.RuntimePolicies.Rules.Combat) &&
-                           ReferenceEquals(sourceArea!.RuntimePolicies.Experience,
-                               appliedArea.RuntimePolicies.Experience);
+                            ReferenceEquals(sourceArea!.RuntimePolicies.Experience,
+                                appliedArea.RuntimePolicies.Experience);
             var expectedAreaJson = appliedArea is null ? null : AreaJsonSerializer.Serialize(appliedArea);
+            var expectedProject = applied ? appliedProject : null;
             if (applied)
             {
                 Undo();
@@ -1147,11 +1148,17 @@ internal sealed partial class StudioLivingWorldPoliciesOverlay : Control
                 reopened = new StudioSessionController();
                 if (reopened.Open(workspace.RootDirectory, persistedAreaId.ToString()).Succeeded)
                 {
-                    var restored = reopened.Project?.Areas.SingleOrDefault(item => item.Id == persistedAreaId);
-                    persisted = restored is not null && string.Equals(
+                    var restoredProject = reopened.Project;
+                    var restored = restoredProject?.Areas.SingleOrDefault(item => item.Id == persistedAreaId);
+                    persisted = expectedProject is not null && restoredProject is not null &&
+                                restored is not null && string.Equals(
                         expectedAreaJson,
                         AreaJsonSerializer.Serialize(restored),
-                        StringComparison.Ordinal);
+                        StringComparison.Ordinal) &&
+                                StudioSessionController.ProjectRoundTripMatchesUx2A(
+                                    expectedProject,
+                                    restoredProject,
+                                    persistedAreaId);
                 }
             }
             var sourceUntouched = SourceMatchesSnapshot(sourceSnapshot);
