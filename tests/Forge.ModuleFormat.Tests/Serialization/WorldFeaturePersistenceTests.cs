@@ -772,7 +772,7 @@ public sealed class WorldFeaturePersistenceTests : IDisposable
             [new(routeId, 1, "test:g13-v", area.Id,
                 [new(routePointA, Vector3Value.Zero, 0, 2), new(routePointB, new(5, 0, 0), 0, 2)],
                 [new("lane", 0, 5, "forward")], [new(Guid.Parse("15200000-0000-4000-8000-000000000002"), routePointB, 1, "stop")],
-                5, false, "server")],
+                5, false, "server-snapshots")],
             [new(Guid.Parse("15100000-0000-4000-8000-000000000005"), 1, "test:g13-w-x", creature.Id,
                 [new("gold", "currency.gold", 1, true, false)], [new("gold", 100, 0, 0, 10, 200)],
                 new(50, 100, new Dictionary<string, decimal>(), -1, true),

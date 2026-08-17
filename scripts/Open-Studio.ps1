@@ -80,6 +80,7 @@ param(
         'ux2-nav-b', 'ux2-nav-c', 'ux2-nav-d', 'ux2-nav-e', 'ux2-nav-f', 'ux2-nav-g', 'ux2-nav-h', 'ux2-nav-i',
         'ux2-nav-j', 'ux2-nav-j-visibility-occlusion', 'ux2-area-033-visibility',
         'ux2-nav-k', 'ux2-wpt-010',
+        'ux2-nav-l', 'ux2-wpt-012',
         'ux4-a', 'ux4-a-faction-foundation',
         'ux5-a', 'ux5-a-dialogue-foundation')]
     [string]$Evidence,

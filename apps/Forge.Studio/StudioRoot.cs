@@ -332,6 +332,7 @@ public sealed partial class StudioRoot : Control
         var ux2NavIValid = true;
         var ux2NavJValid = true;
         var ux2NavKValid = true;
+        var ux2NavLValid = true;
         var ux4AValid = true;
         var ux5AValid = true;
         var candidateApprovalsValid = true;
@@ -371,6 +372,7 @@ public sealed partial class StudioRoot : Control
             var ux2NavIApproval = _session.CaptureAerialApprovalUx2NavI();
             var ux2NavJApproval = _session.CaptureVisibilityApprovalUx2NavJ();
             var ux2NavKApproval = _session.CaptureCrossAreaPatrolApprovalUx2NavK();
+            var ux2NavLApproval = _session.CaptureVehicleRouteApprovalUx2NavL();
             var ux4AApproval = _session.CaptureFactionApprovalUx4A();
             var ux5AApproval = _session.CaptureDialogueApprovalUx5A();
             try
@@ -409,6 +411,7 @@ public sealed partial class StudioRoot : Control
                 ux2NavIValid = _shell.RunUx2NavISmoke();
                 ux2NavJValid = _shell.RunUx2NavJSmoke();
                 ux2NavKValid = _shell.RunUx2NavKSmoke();
+                ux2NavLValid = _shell.RunUx2NavLSmoke();
                 ux4AValid = _shell.RunUx4ASmoke();
                 ux5AValid = _shell.RunUx5ASmoke();
             }
@@ -448,6 +451,7 @@ public sealed partial class StudioRoot : Control
                 _session.RestoreAerialApprovalUx2NavI(ux2NavIApproval);
                 _session.RestoreVisibilityApprovalUx2NavJ(ux2NavJApproval);
                 _session.RestoreCrossAreaPatrolApprovalUx2NavK(ux2NavKApproval);
+                _session.RestoreVehicleRouteApprovalUx2NavL(ux2NavLApproval);
                 _session.RestoreFactionApprovalUx4A(ux4AApproval);
                 _session.RestoreDialogueApprovalUx5A(ux5AApproval);
             }
@@ -486,6 +490,7 @@ public sealed partial class StudioRoot : Control
                 Equals(_session.CaptureAerialApprovalUx2NavI(), ux2NavIApproval) &&
                 Equals(_session.CaptureVisibilityApprovalUx2NavJ(), ux2NavJApproval) &&
                 Equals(_session.CaptureCrossAreaPatrolApprovalUx2NavK(), ux2NavKApproval) &&
+                Equals(_session.CaptureVehicleRouteApprovalUx2NavL(), ux2NavLApproval) &&
                 Equals(_session.CaptureFactionApprovalUx4A(), ux4AApproval) &&
                 Equals(_session.CaptureDialogueApprovalUx5A(), ux5AApproval);
             GD.Print(
@@ -525,7 +530,7 @@ public sealed partial class StudioRoot : Control
             !ux2EnvBValid || !ux2EnvCValid || !ux2EnvDValid || !ux2EnvEValid || !ux2EnvFValid || !ux2EnvGValid ||
             !ux2EnvHValid || !ux2EnvIValid || !ux2EnvJValid || !ux2EnvKValid ||
             !ux2NavBValid || !ux2NavCValid || !ux2NavDValid || !ux2NavEValid || !ux2NavFValid || !ux2NavGValid ||
-            !ux2NavHValid || !ux2NavIValid || !ux2NavJValid || !ux2NavKValid ||
+            !ux2NavHValid || !ux2NavIValid || !ux2NavJValid || !ux2NavKValid || !ux2NavLValid ||
             !ux4AValid || !ux5AValid ||
             !candidateApprovalsValid || !evidenceValid)
         {
@@ -551,7 +556,7 @@ public sealed partial class StudioRoot : Control
                 $"ux2envh={ux2EnvHValid} ux2envi={ux2EnvIValid} ux2envj={ux2EnvJValid} ux2envk={ux2EnvKValid} " +
                 $"ux2navb={ux2NavBValid} ux2navc={ux2NavCValid} ux2navd={ux2NavDValid} " +
                 $"ux2nave={ux2NavEValid} ux2navf={ux2NavFValid} ux2navg={ux2NavGValid} ux2navh={ux2NavHValid} " +
-                $"ux2navi={ux2NavIValid} ux2navj={ux2NavJValid} ux2navk={ux2NavKValid} " +
+                $"ux2navi={ux2NavIValid} ux2navj={ux2NavJValid} ux2navk={ux2NavKValid} ux2navl={ux2NavLValid} " +
                 $"ux4a={ux4AValid} ux5a={ux5AValid} " +
                 $"candidate_approvals={candidateApprovalsValid} " +
                 $"evidence={evidenceValid}");

@@ -75,6 +75,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2NavIOverlay();
         CloseUx2NavJOverlay();
         CloseUx2NavKOverlay();
+        CloseUx2NavLOverlay();
         var targetPage = PageId == "navigation" ? "navigation" : "environment";
         SwitchPage(targetPage, notify: false);
         _mapFowLodOverlayUx2EnvJ.Open();
@@ -124,6 +125,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2NavIOverlay();
         CloseUx2NavJOverlay();
         CloseUx2NavKOverlay();
+        CloseUx2NavLOverlay();
         return _mapFowLodOverlayUx2EnvJ.PrepareEvidence(mode);
     }
 

@@ -68,6 +68,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2EnvJOverlay();
         CloseUx2NavJOverlay();
         CloseUx2NavKOverlay();
+        CloseUx2NavLOverlay();
         SwitchPage("navigation", notify: false);
         _aerialNavigationOverlayUx2NavI.Open();
         SetStatus("Navigation 3D ouverte · sélection explicite · aperçu sec obligatoire");
@@ -110,6 +111,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2EnvJOverlay();
         CloseUx2NavJOverlay();
         CloseUx2NavKOverlay();
+        CloseUx2NavLOverlay();
         return _aerialNavigationOverlayUx2NavI.PrepareEvidence(mode);
     }
 
