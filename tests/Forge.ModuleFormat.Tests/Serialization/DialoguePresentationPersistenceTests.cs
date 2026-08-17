@@ -23,12 +23,12 @@ public sealed class DialoguePresentationPersistenceTests : IDisposable
         var created = ProjectSession.Create(workspace, project);
         var reopened = ProjectSession.Open(workspace);
 
-        Assert.Contains("\"formatVersion\": \"0.6.36\"", json, StringComparison.Ordinal);
+        Assert.Contains("\"formatVersion\": \"0.6.37\"", json, StringComparison.Ordinal);
         Assert.Equal(json, ProjectJsonSerializer.Serialize(restored));
         Assert.True(created.Succeeded);
         Assert.True(reopened.Succeeded);
         Assert.Equal(json, ProjectJsonSerializer.Serialize(reopened.Session!.Project));
-        Assert.Contains("\"formatVersion\": \"1.28.0\"",
+        Assert.Contains("\"formatVersion\": \"1.29.0\"",
             File.ReadAllText(reopened.Session.ProjectFilePath), StringComparison.Ordinal);
         Assert.Equal("dialogue://6393019c-06c3-466c-ab93-9b4093368f36/3f92330b-c513-437e-9444-6e0dbbe8e555",
             restored.Dialogues[0].Presentation!.Bookmarks[0].DeepLink);

@@ -23,11 +23,11 @@ public sealed class WorldFeaturePersistenceTests : IDisposable
         var created = ProjectSession.Create(_temporaryRoot, project);
         var reopened = ProjectSession.Open(_temporaryRoot);
 
-        Assert.Contains("\"formatVersion\": \"0.6.36\"", aggregate, StringComparison.Ordinal);
+        Assert.Contains("\"formatVersion\": \"0.6.37\"", aggregate, StringComparison.Ordinal);
         Assert.Equal(aggregate, ProjectJsonSerializer.Serialize(restored));
         Assert.True(created.Succeeded);
         Assert.True(reopened.Succeeded);
-        Assert.Contains("\"formatVersion\": \"1.28.0\"", File.ReadAllText(reopened.Session!.ProjectFilePath),
+        Assert.Contains("\"formatVersion\": \"1.29.0\"", File.ReadAllText(reopened.Session!.ProjectFilePath),
             StringComparison.Ordinal);
         var catalog = reopened.Session.Project.Module.WorldFeatures;
         Assert.Single(catalog.Placeables);
@@ -108,6 +108,13 @@ public sealed class WorldFeaturePersistenceTests : IDisposable
         Assert.Equal("DoorClosed", catalog.Doors[0].AccessEvents!.StateEvents.ClosedBinding);
         Assert.True(catalog.Doors[0].AccessEvents!.LockStateEventsRequiredAtRuntime);
         Assert.Equal("DoorUnlocked", catalog.Doors[0].AccessEvents!.LockStateEvents!.UnlockedBinding);
+        Assert.True(catalog.Doors[0].ValidationRequiredAtRuntime);
+        Assert.Equal(Guid.Parse("15200000-0000-4000-8000-000000000010"),
+            catalog.Doors[0].Validation!.KnownDestinationIds.Single());
+        Assert.Equal(9, catalog.Doors[0].Validation!.KnownAnimationIds.Count);
+        Assert.Equal("collision:test-door", catalog.Doors[0].Validation!.KnownCollisionProfileIds.Single());
+        Assert.Equal("key:ember", catalog.Doors[0].Validation!.KnownCredentialIds.Single());
+        Assert.Equal("scripts/rejected", catalog.Doors[0].Validation!.KnownScriptIds.Single());
         Assert.Single(catalog.Triggers);
         Assert.True(catalog.Triggers[0].FoundationRequiredAtRuntime);
         Assert.Equal(TriggerWorldProfile.ShapeKind.ExtrudedPolygon2D, catalog.Triggers[0].Foundation!.Shape.Kind);
@@ -202,7 +209,7 @@ public sealed class WorldFeaturePersistenceTests : IDisposable
         Assert.True(reopened.Succeeded);
         Assert.Empty(reopened.Session!.Project.Module.WorldFeatures.Companions);
         Assert.True(reopened.Session.Save(reopened.Session.Project).Succeeded);
-        Assert.Contains("\"formatVersion\": \"1.28.0\"", File.ReadAllText(path), StringComparison.Ordinal);
+        Assert.Contains("\"formatVersion\": \"1.29.0\"", File.ReadAllText(path), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -221,6 +228,35 @@ public sealed class WorldFeaturePersistenceTests : IDisposable
         Assert.False(profile.ContentsChangedRequiredAtRuntime);
         Assert.Null(profile.DamageEvents);
         Assert.False(profile.DamageEventsRequiredAtRuntime);
+    }
+
+    [Fact]
+    public void Previous_door_validation_formats_default_to_optional_unqualified_context()
+    {
+        var aggregate = JsonNode.Parse(ProjectJsonSerializer.Serialize(CompleteProject()))!.AsObject();
+        aggregate["formatVersion"] = ProjectJsonSerializer.PreDoorRuntimeValidationFormatVersion;
+        var aggregateDoor = aggregate["project"]!["module"]!["worldFeatures"]!["doors"]!
+            .AsArray()[0]!.AsObject();
+        aggregateDoor.Remove("validation");
+        aggregateDoor.Remove("validationRequiredAtRuntime");
+
+        var restored = ProjectJsonSerializer.Deserialize(aggregate.ToJsonString());
+        Assert.Null(restored.Module.WorldFeatures.Doors.Single().Validation);
+        Assert.False(restored.Module.WorldFeatures.Doors.Single().ValidationRequiredAtRuntime);
+
+        var created = ProjectSession.Create(_temporaryRoot, CompleteProject());
+        var workspace = JsonNode.Parse(File.ReadAllText(created.Session!.ProjectFilePath))!.AsObject();
+        workspace["formatVersion"] = "1.28.0";
+        var workspaceDoor = workspace["project"]!["module"]!["worldFeatures"]!["doors"]!
+            .AsArray()[0]!.AsObject();
+        workspaceDoor.Remove("validation");
+        workspaceDoor.Remove("validationRequiredAtRuntime");
+        File.WriteAllText(created.Session.ProjectFilePath, workspace.ToJsonString());
+
+        var reopened = ProjectSession.Open(_temporaryRoot);
+        Assert.True(reopened.Succeeded);
+        Assert.Null(reopened.Session!.Project.Module.WorldFeatures.Doors.Single().Validation);
+        Assert.False(reopened.Session.Project.Module.WorldFeatures.Doors.Single().ValidationRequiredAtRuntime);
     }
 
     [Fact]
@@ -693,7 +729,12 @@ public sealed class WorldFeaturePersistenceTests : IDisposable
                     new(Guid.Parse("15300000-0000-4000-8000-000000000006"), "1.0.0",
                         "DoorOpened", "DoorClosed"), new Dictionary<string, string>(),
                     new(Guid.Parse("15300000-0000-4000-8000-000000000007"), 1, "test:r082", "1.0.0",
-                        "DoorLocked", "DoorUnlocked"), true), true)],
+                        "DoorLocked", "DoorUnlocked"), true), true,
+                new([Guid.Parse("15200000-0000-4000-8000-000000000010")],
+                    ["animation:open", "animation:closed", "animation:opening", "animation:closing",
+                     "animation:locked", "animation:jammed", "animation:broken", "animation:disabled",
+                     "animation:custom"],
+                    ["collision:test-door"], ["key:ember"], ["scripts/rejected"]), true)],
             [new(Guid.Parse("15100000-0000-4000-8000-000000000003"), 1, "test:g13-r-s", trigger.Id, area.Id,
                 null, new("inspect", "cursor", "outline", "prompt", "script", true, "use"), null, "trigger",
                 new("key", false, "denied"), new(true, "danger", false, true, "allowed", "denied"),

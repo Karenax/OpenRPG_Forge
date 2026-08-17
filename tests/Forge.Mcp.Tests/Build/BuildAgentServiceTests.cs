@@ -15,7 +15,7 @@ public sealed class BuildAgentServiceTests
         Assert.False(workspace.Project.QueryProjectCompatibility("does-not-exist").Found);
 
         var preview = workspace.Project.PreviewProjectCompatibility(new ProjectCompatibilityPlanRequest(
-            1, 0, "0.6.34", "1.28.0", true, true));
+            1, 0, "0.6.34", "1.29.0", true, true));
 
         Assert.True(preview.Succeeded);
         Assert.False(preview.Applied);

@@ -40,7 +40,7 @@ public sealed class ProjectGlobalEventPersistenceTests
         var json = ProjectJsonSerializer.Serialize(project);
         var restored = ProjectJsonSerializer.Deserialize(json).Module.RuntimePolicies;
 
-        Assert.Contains("\"formatVersion\": \"0.6.36\"", json, StringComparison.Ordinal);
+        Assert.Contains("\"formatVersion\": \"0.6.37\"", json, StringComparison.Ordinal);
         var restoredHeartbeat = Assert.Single(restored.Heartbeats);
         Assert.Equal(scriptPath, restoredHeartbeat.ScriptPath);
         Assert.True(restoredHeartbeat.RequiredAtRuntime);
@@ -136,7 +136,7 @@ public sealed class ProjectGlobalEventPersistenceTests
         var json = ProjectJsonSerializer.Serialize(project);
         var restored = ProjectJsonSerializer.Deserialize(json).Module.RuntimePolicies;
 
-        Assert.Contains("\"formatVersion\": \"0.6.36\"", json, StringComparison.Ordinal);
+        Assert.Contains("\"formatVersion\": \"0.6.37\"", json, StringComparison.Ordinal);
         Assert.Equal(scriptPath, restored.SequenceAbort.Binding.ScriptPath);
         Assert.True(restored.SequenceAbort.Binding.RequiredAtRuntime);
         Assert.Equal(32, restored.SequenceAbort.MaximumNarrativeRollbackSteps);

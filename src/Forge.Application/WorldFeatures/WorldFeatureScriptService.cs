@@ -331,6 +331,23 @@ public sealed class WorldFeatureScriptService
                 ["lockEventsRequiredAtRuntime"] =
                     (item.AccessEvents?.LockStateEventsRequiredAtRuntime == true).ToString(),
                 ["accessEventsRequiredAtRuntime"] = item.AccessEventsRequiredAtRuntime.ToString(),
+                ["validation"] = (item.Validation is not null).ToString(),
+                ["validationRequiredAtRuntime"] = item.ValidationRequiredAtRuntime.ToString(),
+                ["knownDestinations"] = item.Validation is { } destinationValidation
+                    ? string.Join(',', destinationValidation.KnownDestinationIds.Order())
+                    : string.Empty,
+                ["knownAnimations"] = item.Validation is { } animationValidation
+                    ? string.Join(',', animationValidation.KnownAnimationIds.Order(StringComparer.Ordinal))
+                    : string.Empty,
+                ["knownCollisionProfiles"] = item.Validation is { } collisionValidation
+                    ? string.Join(',', collisionValidation.KnownCollisionProfileIds.Order(StringComparer.Ordinal))
+                    : string.Empty,
+                ["knownCredentials"] = item.Validation is { } credentialValidation
+                    ? string.Join(',', credentialValidation.KnownCredentialIds.Order(StringComparer.Ordinal))
+                    : string.Empty,
+                ["knownScripts"] = item.Validation is { } scriptValidation
+                    ? string.Join(',', scriptValidation.KnownScriptIds.Order(StringComparer.Ordinal))
+                    : string.Empty,
             })));
         values.AddRange(catalog.Triggers.Select(item => Create(state, "trigger", item.Id,
             item.BlueprintId.ToString(), item.Provenance, new Dictionary<string, string>

@@ -22,7 +22,7 @@ public sealed class LocalizationPersistenceTests
         var json = ProjectJsonSerializer.Serialize(project);
         var restored = ProjectJsonSerializer.Deserialize(json);
 
-        Assert.Equal("0.6.36", ProjectJsonSerializer.CurrentFormatVersion);
+        Assert.Equal("0.6.37", ProjectJsonSerializer.CurrentFormatVersion);
         Assert.Equal(catalog.Messages.Count, restored.Module.Localization.Messages.Count);
         Assert.Equal(catalog.Id, restored.Module.Localization.Id);
         Assert.Equal(catalog.PackageNamespace, restored.Module.Localization.PackageNamespace);

@@ -100,7 +100,7 @@ public sealed record WorkspaceBuildGovernanceProfile(
             {
                 ["module-package"] = "1.2.0",
                 ["project"] = "0.6.34",
-                ["workspace"] = "1.28.0",
+                ["workspace"] = "1.29.0",
             },
             ["core-major-minor", "kits-require-core", "packages-major", "schemas-migrate-explicitly"],
             "CHANGELOG.md"),

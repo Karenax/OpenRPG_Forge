@@ -7,7 +7,7 @@ public sealed record DoorNavigationState(string StateId, bool ObstacleEnabled, b
 public sealed record LocalizedDoorFailure(string Locale, string Text);
 public sealed record DoorOpenRejected(Guid EventId, int SchemaVersion, string Provenance, Guid DoorId, string ActorId, string ReasonCode, IReadOnlyList<LocalizedDoorFailure> Texts, string SoundAssetId, string AnimationId, string? ScriptId);
 public sealed record DoorTrapBinding(TrapComponent Trap, IReadOnlySet<string> Sides, IReadOnlySet<string> Events);
-public sealed record DoorRuntimeProfile(DoorNavigationProfile Navigation, LockComponent? Lock, DoorTrapBinding? Trap, IReadOnlyList<string> ScriptBindings, IReadOnlySet<Guid> KnownDestinations, IReadOnlySet<string> KnownAnimations, IReadOnlySet<string> KnownCollisionProfiles, IReadOnlySet<string> KnownCredentials);
+public sealed record DoorRuntimeProfile(DoorNavigationProfile Navigation, LockComponent? Lock, DoorTrapBinding? Trap, IReadOnlyList<string> ScriptBindings, IReadOnlySet<Guid> KnownDestinations, IReadOnlySet<string> KnownAnimations, IReadOnlySet<string> KnownCollisionProfiles, IReadOnlySet<string> KnownCredentials, IReadOnlySet<string> KnownScripts);
 public sealed record DoorUnlockResult(LockResult LockResult, IReadOnlySet<string> RemainingCredentials, bool CredentialConsumed);
 
 public static class DoorRuntimeService
@@ -50,6 +50,7 @@ public static class DoorRuntimeService
         if (profile.Lock is { } doorLock && doorLock.Credentials.Any(item => !profile.KnownCredentials.Contains(item))) diagnostics.Add(new("RPG_DOOR_CREDENTIAL_MISSING", $"{root}/lock", "Door credential is missing."));
         if (profile.Trap is { } trap && (trap.Sides.Count == 0 || trap.Events.Count == 0)) diagnostics.Add(new("RPG_DOOR_TRAP_BINDING_INVALID", $"{root}/trap", "Door trap requires sides and events."));
         if (profile.ScriptBindings.Any(string.IsNullOrWhiteSpace)) diagnostics.Add(new("RPG_DOOR_SCRIPT_INVALID", $"{root}/scripts", "Script binding is invalid."));
+        if (profile.ScriptBindings.Where(binding => !string.IsNullOrWhiteSpace(binding)).Any(binding => !profile.KnownScripts.Contains(binding))) diagnostics.Add(new("RPG_DOOR_SCRIPT_MISSING", $"{root}/scripts", "Door script is missing from the validation context."));
         diagnostics.AddRange(DoorLinkAuthoringValidation(links, definition.Id));
         if (links.Any(link => link.SourceDoorId == definition.Id && link.TargetDoorId == definition.Id)) diagnostics.Add(new("RPG_DOOR_TRANSITION_LOOP", $"{root}/links", "Door transition loops to itself."));
         return diagnostics;

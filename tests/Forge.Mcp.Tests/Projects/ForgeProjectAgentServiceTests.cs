@@ -529,6 +529,48 @@ public sealed class ForgeProjectAgentServiceTests
     }
 
     [Fact]
+    public void Ux1Aj_DoorValidationContextIsProjectedAndMcpPreviewCannotBypassCanonicalValidation()
+    {
+        using var workspace = new TestWorkspace(project =>
+        {
+            var source = CryptWorldFeatureAuthoringService.Create(project);
+            var door = source.Doors.Single();
+            var foundation = door.Foundation!;
+            var access = door.AccessEvents!;
+            var validation = new DoorWorldProfile.RuntimeValidationPolicy(
+                foundation.Portal is null ? [] : [foundation.Portal.DestinationId],
+                foundation.States.Select(item => item.AnimationId).ToArray(), ["collision:crypt-door"],
+                access.Lock.CredentialIds,
+                door.Events.Select(item => item.ScriptId).Append(access.Rejection.ScriptId).ToArray());
+            var configuredDoor = door with { Validation = validation, ValidationRequiredAtRuntime = true };
+            var catalog = WithDoors(source, [configuredDoor]);
+            return new ProjectDefinition(project.Id, project.Title, project.Module.WithWorldFeatures(catalog),
+                project.Blueprints, project.Areas, project.Dialogues, project.Quests);
+        });
+        var canonical = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
+        var door = canonical.Module.WorldFeatures.Doors.Single();
+
+        var resource = workspace.Project.QueryWorldFeatures("door", door.Id.ToString("D"), 1);
+        var invalidDoor = door with { Validation = new([], [], [], [], []) };
+        var invalidCatalog = WithDoors(canonical.Module.WorldFeatures, [invalidDoor]);
+        var planned = workspace.Project.PreviewWorldFeatures(new WorldFeaturePlanRequest(1, 0, invalidCatalog));
+
+        var item = Assert.Single(resource.Items);
+        Assert.Equal("True", item.Properties["validation"]);
+        Assert.Equal("True", item.Properties["validationRequiredAtRuntime"]);
+        Assert.Contains("animation:open", item.Properties["knownAnimations"], StringComparison.Ordinal);
+        Assert.Equal("collision:crypt-door", item.Properties["knownCollisionProfiles"]);
+        Assert.Contains("key:ember", item.Properties["knownCredentials"], StringComparison.Ordinal);
+        Assert.Contains("scripts/door_open_rejected", item.Properties["knownScripts"], StringComparison.Ordinal);
+        Assert.False(planned.Succeeded);
+        Assert.Contains(planned.Diagnostics, diagnostic => diagnostic.Code == "RPG_DOOR_ANIMATION_MISSING" &&
+            diagnostic.Path.StartsWith("module/worldFeatures/doors/", StringComparison.Ordinal));
+        Assert.Contains(planned.Diagnostics, diagnostic => diagnostic.Code == "RPG_DOOR_COLLISION_PROFILE_MISSING");
+        Assert.Contains(planned.Diagnostics, diagnostic => diagnostic.Code == "RPG_DOOR_SCRIPT_MISSING");
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
+    }
+
+    [Fact]
     public void R083_Encounter_composition_resource_is_filtered_searchable_and_plan_remains_dry_run()
     {
         using var workspace = new TestWorkspace(project =>
@@ -3581,6 +3623,11 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.True(QualityFoundationProfileStore.Load(workspace.RootDirectory,
             ownerId).FileMissing);
     }
+
+    private static WorldFeatureCatalog WithDoors(WorldFeatureCatalog source,
+        IReadOnlyList<DoorWorldProfile> doors) => new(source.Id, source.SchemaVersion, source.Provenance,
+        source.Placeables, doors, source.Triggers, source.Encounters, source.VehicleRoutes, source.Merchants,
+        source.Companions, source.Scripts);
 
     private static DialoguePlanRequest CreatePlan(string workspaceDirectory)
     {

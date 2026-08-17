@@ -193,7 +193,7 @@ public sealed class RuntimeExtensionPersistenceTests
         var restored = ProjectJsonSerializer.Deserialize(json).Module.RuntimePolicies.Extensions.PostLaunch;
         Assert.True(restored.Gameplay.ZeroGravity.Enabled);
         Assert.Equal("first-step", Assert.Single(restored.Gameplay.Achievements).Key);
-        Assert.Contains("\"formatVersion\": \"0.6.36\"", json, StringComparison.Ordinal);
+        Assert.Contains("\"formatVersion\": \"0.6.37\"", json, StringComparison.Ordinal);
 
         var old = JsonNode.Parse(json)!.AsObject();
         old["formatVersion"] = ProjectJsonSerializer.PrePostLaunchCapabilitiesFormatVersion;

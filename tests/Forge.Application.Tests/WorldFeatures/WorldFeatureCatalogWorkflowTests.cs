@@ -97,6 +97,65 @@ public sealed class WorldFeatureCatalogWorkflowTests
     }
 
     [Fact]
+    public void Ux1Aj_DoorRuntimeValidationPolicyIsTransactionalProjectedAndStructurallyGuarded()
+    {
+        var state = CreateState();
+        var blueprint = new BlueprintDefinition(
+            BlueprintId.From(Guid.Parse("14000000-0000-4000-8000-000000000012")),
+            "runtime-validation-door", "Runtime validation door", BlueprintKind.Door);
+        var door = Door(blueprint.Id) with
+        {
+            Validation = new([], ["animation:open", "animation:closed", "animation:opening"],
+                ["collision:door"], [], []),
+            ValidationRequiredAtRuntime = true,
+        };
+        var catalog = new WorldFeatureCatalog(state.Project.Module.Id.Value, 1, "test:ux1-aj", doors: [door]);
+        var configured = new ProjectDefinition(state.Project.Id, state.Project.Title,
+            state.Project.Module.WithWorldFeatures(catalog), [blueprint], state.Project.Areas);
+        var configuredState = new ProjectState(configured, state.Revision);
+        var handler = new SetWorldFeatureCatalogHandler(new FixedClock(DateTimeOffset.UnixEpoch));
+
+        var preview = handler.Handle(configuredState, new(CommandId.From(Guid.NewGuid()), state.Revision,
+            catalog, true));
+        var applied = handler.Handle(configuredState, new(CommandId.From(Guid.NewGuid()), state.Revision,
+            catalog, false));
+        var script = new WorldFeatureScriptService().Query(applied.State, "door", door.Id.ToString("D"), 1)
+            .Single();
+        var invalidPolicy = door with
+        {
+            Validation = door.Validation! with
+            {
+                KnownDestinationIds = [Guid.Empty],
+                KnownAnimationIds = [string.Empty, string.Empty],
+            },
+        };
+        var invalidProject = new ProjectDefinition(configured.Id, configured.Title,
+            configured.Module.WithWorldFeatures(new WorldFeatureCatalog(catalog.Id, 1, "test:ux1-aj",
+                doors: [invalidPolicy])), configured.Blueprints, configured.Areas);
+        var missingFoundation = door with { Foundation = null };
+        var missingFoundationProject = new ProjectDefinition(configured.Id, configured.Title,
+            configured.Module.WithWorldFeatures(new WorldFeatureCatalog(catalog.Id, 1, "test:ux1-aj",
+                doors: [missingFoundation])), configured.Blueprints, configured.Areas);
+        var missingRequired = handler.Handle(configuredState, new(CommandId.From(Guid.NewGuid()), state.Revision,
+            new WorldFeatureCatalog(catalog.Id, 1, "test:ux1-aj", doors:
+            [door with { Validation = null, ValidationRequiredAtRuntime = true }]), true));
+
+        Assert.True(preview.Succeeded);
+        Assert.Same(configuredState, preview.State);
+        Assert.True(applied.Succeeded);
+        Assert.Equal("True", script.Properties["validation"]);
+        Assert.Equal("True", script.Properties["validationRequiredAtRuntime"]);
+        Assert.Equal("animation:closed,animation:open,animation:opening", script.Properties["knownAnimations"]);
+        Assert.Equal("collision:door", script.Properties["knownCollisionProfiles"]);
+        Assert.Contains(WorldFeatureCatalogValidator.Validate(invalidProject),
+            item => item.Code == "world.door.validation_context_invalid");
+        Assert.Contains(WorldFeatureCatalogValidator.Validate(missingFoundationProject),
+            item => item.Code == "world.door.validation_foundation_missing");
+        Assert.Contains(missingRequired.Diagnostics,
+            item => item.Code == "world.door.validation_required_missing");
+    }
+
+    [Fact]
     public void R042_EncounterValidationRejectsGeometryPoolReferencesBudgetAnchorsRewardsAndCap()
     {
         var state = CreateState();

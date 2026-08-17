@@ -213,6 +213,7 @@ public static class WorldFeatureCatalogValidator
             else if (profile.AccessEventsRequiredAtRuntime)
                 Add(diagnostics, "world.door.access_events_required",
                     "Door access/events are required by this runtime profile.", $"{path}/accessEvents");
+            ValidateDoorRuntimeValidation(profile, path, diagnostics);
         }
 
         var doorAccessComponentIds = catalog.Doors.Where(item => item.AccessEvents is not null)
@@ -451,6 +452,38 @@ public static class WorldFeatureCatalogValidator
 
         ValidateScripts(catalog.Scripts, diagnostics);
         return diagnostics;
+    }
+
+    private static void ValidateDoorRuntimeValidation(DoorWorldProfile profile, string path,
+        List<DomainDiagnostic> diagnostics)
+    {
+        var validationPath = $"{path}/validation";
+        if (profile.Validation is null)
+        {
+            if (profile.ValidationRequiredAtRuntime)
+                Add(diagnostics, "world.door.validation_required_missing",
+                    "Required door validation context is missing.", validationPath);
+            return;
+        }
+
+        if (profile.Foundation is null)
+            Add(diagnostics, "world.door.validation_foundation_missing",
+                "Door validation context requires an authored foundation.", $"{path}/foundation");
+
+        var validation = profile.Validation;
+        var stringLists = new IReadOnlyList<string>[]
+        {
+            validation.KnownAnimationIds,
+            validation.KnownCollisionProfileIds,
+            validation.KnownCredentialIds,
+            validation.KnownScriptIds,
+        };
+        if (validation.KnownDestinationIds.Any(id => id == Guid.Empty) ||
+            validation.KnownDestinationIds.Distinct().Count() != validation.KnownDestinationIds.Count ||
+            stringLists.Any(values => values.Any(string.IsNullOrWhiteSpace) ||
+                values.Distinct(StringComparer.Ordinal).Count() != values.Count))
+            Add(diagnostics, "world.door.validation_context_invalid",
+                "Door validation references must be non-empty and unique.", validationPath);
     }
 
     private static void ValidatePlaceableFoundation(PlaceableWorldProfile profile, string path,
