@@ -181,6 +181,8 @@ internal sealed partial class StudioWorkspaceShell : Control
         BuildUx1AHActions(headingRow);
         BuildUx1AIActions(headingRow);
         BuildUx1AJActions(headingRow);
+        BuildUx2AActions(headingRow);
+        BuildUx4AActions(headingRow);
         _primaryAction = StudioStyle.Button("Migration en cours", primary: true, compact: true);
         _primaryAction.Disabled = true;
         _primaryAction.TooltipText = "Cette action sera activée seulement après son branchement transactionnel et ses tests.";
@@ -304,6 +306,9 @@ internal sealed partial class StudioWorkspaceShell : Control
         InitializeUx1AHOverlay();
         InitializeUx1AIOverlay();
         InitializeUx1AJOverlay();
+        InitializeUx2AOverlay();
+        InitializeUx4AOverlay();
+        InitializeUx5APage(pageStack);
         if (_session.ActiveArea is null)
         {
             WorldViewport.ShowNoArea(_session);
@@ -517,6 +522,18 @@ internal sealed partial class StudioWorkspaceShell : Control
         if (mode.StartsWith("ux1-aj", StringComparison.OrdinalIgnoreCase))
         {
             return PrepareUx1AJEvidence(mode);
+        }
+        if (mode.StartsWith("ux2-a", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx2AEvidence(mode);
+        }
+        if (mode.StartsWith("ux4-a", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx4AEvidence(mode);
+        }
+        if (mode.StartsWith("ux5-a", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx5AEvidence(mode);
         }
         if (mode.StartsWith("ux1-a", StringComparison.OrdinalIgnoreCase))
         {
@@ -908,6 +925,15 @@ internal sealed partial class StudioWorkspaceShell : Control
 
     private void SwitchPage(string pageId, bool notify = true)
     {
+        var page = ResolvePage(pageId, SectionId);
+        if (page.Id != "living-world")
+        {
+            CloseUx2AOverlay();
+        }
+        if (page.Id != "social-content")
+        {
+            CloseUx4AOverlay();
+        }
         CloseUx1WOverlay();
         CloseUx1XOverlay();
         CloseUx1YOverlay();
@@ -922,7 +948,6 @@ internal sealed partial class StudioWorkspaceShell : Control
         CloseUx1AHOverlay();
         CloseUx1AIOverlay();
         CloseUx1AJOverlay();
-        var page = ResolvePage(pageId, SectionId);
         var section = StudioPageCatalog.SectionForPage(page.Id);
         SectionId = section.Id;
         PageId = page.Id;
@@ -932,12 +957,13 @@ internal sealed partial class StudioWorkspaceShell : Control
         var isAssetLibrary = page.Id == "assets";
         var isProjectConfiguration = page.Id == "module";
         var isDiagnostics = page.Id == "validation";
+        var isDialogues = page.Id == "dialogues";
         var canAddEntity = page.Id == "zones";
         _primaryAction.Text = canAddEntity
             ? _session.ActiveArea is null ? "Créer la première zone" : "Ajouter un objet"
             : isProjectConfiguration ? "Prévisualiser" : isDiagnostics ? "Tout vérifier" : page.PrimaryAction;
         _primaryAction.Disabled = !canAddEntity && !isProjectConfiguration && !isDiagnostics;
-        _primaryAction.Visible = !isAssetLibrary;
+        _primaryAction.Visible = !isAssetLibrary && !isDialogues;
         _primaryAction.TooltipText = canAddEntity
             ? _session.ActiveArea is null
                 ? "Ouvrir l’assistant intégré pour créer le premier document de zone."
@@ -983,11 +1009,14 @@ internal sealed partial class StudioWorkspaceShell : Control
         UpdateUx1AHActionState();
         UpdateUx1AIActionState();
         UpdateUx1AJActionState();
+        UpdateUx2AActionState();
+        UpdateUx4AActionState();
 
         var usesWorld = !isAssetLibrary && !isProjectConfiguration && !isDiagnostics &&
                         page.Layout != StudioPageLayout.Specialized;
         _worldSplit.Visible = usesWorld;
-        _specializedPage.Visible = !usesWorld && !isAssetLibrary && !isProjectConfiguration && !isDiagnostics;
+        _specializedPage.Visible = !usesWorld && !isAssetLibrary && !isProjectConfiguration && !isDiagnostics &&
+                                   !isDialogues;
         _projectPage.Visible = isProjectConfiguration;
         _assetLibraryPage.Visible = isAssetLibrary;
         if (isDiagnostics)
@@ -1013,7 +1042,7 @@ internal sealed partial class StudioWorkspaceShell : Control
         {
             _placementPosition = null;
         }
-        else if (!usesWorld)
+        else if (!usesWorld && !isDialogues)
         {
             _placementPosition = null;
             _specializedPage.ShowPage(page, _session);
@@ -1034,6 +1063,7 @@ internal sealed partial class StudioWorkspaceShell : Control
                 ? "Projet sans zone · créez sa première zone depuis la configuration du projet"
                 : $"{_session.ActiveArea.DisplayName} · {WorldViewport.EntityCount} objets affichés · vue 3D conservée"
             : $"{page.Title} · données réelles en lecture · édition planifiée";
+        UpdateUx5APage(page.Id);
         if (notify)
         {
             NavigationChanged?.Invoke();
