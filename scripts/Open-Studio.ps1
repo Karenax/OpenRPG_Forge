@@ -61,6 +61,7 @@ param(
         'ux2-lw-f', 'ux2-lw-f-encounter-foundation',
         'ux2-lw-g', 'ux2-lw-g-encounter-selection-activation',
         'ux2-lw-h', 'ux2-lw-h-encounter-scenario',
+        'ux2-lw-i', 'ux2-lw-i-encounter-runtime-policies', 'ux2-encounter-008-010-014',
         'ux2-b', 'ux2-b-terrain-tiles',
         'ux2-c', 'ux2-c-terrain-surface',
         'ux2-env-b', 'ux2-env-b-area-environment',

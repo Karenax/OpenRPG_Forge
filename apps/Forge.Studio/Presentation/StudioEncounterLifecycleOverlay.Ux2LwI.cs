@@ -156,7 +156,7 @@ internal sealed partial class StudioEncounterLifecycleOverlayUx2LwI : Control
         var bodyHost = new Control
         {
             CustomMinimumSize = new(0, 520),
-            CustomMaximumSize = new(-1, 850),
+            CustomMaximumSize = new(-1, 770),
             SizeFlagsHorizontal = SizeFlags.ExpandFill,
             SizeFlagsVertical = SizeFlags.ExpandFill,
             ClipContents = true,

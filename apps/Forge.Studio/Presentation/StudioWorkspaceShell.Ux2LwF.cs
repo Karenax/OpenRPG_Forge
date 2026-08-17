@@ -46,7 +46,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx1AEOverlay(); CloseUx1AFWorkspace(); CloseUx1AGOverlay(); CloseUx1AHOverlay();
         CloseUx1AIOverlay(); CloseUx1AJOverlay();
         CloseUx2AOverlay(); CloseUx2LwBOverlay(); CloseUx2LwCOverlay(); CloseUx2LwDOverlay();
-        CloseUx2LwEOverlay(); CloseUx2LwGOverlay(); CloseUx2LwHOverlay(); CloseUx4AOverlay(); CloseUx5APage();
+        CloseUx2LwEOverlay(); CloseUx2LwGOverlay(); CloseUx2LwHOverlay(); CloseUx2LwIOverlay(); CloseUx4AOverlay(); CloseUx5APage();
         SwitchPage("living-world", notify: false);
         _encounterFoundationOverlayUx2LwF.Open();
         SetStatus("Assistant de rencontre ouvert · sélection explicite · aperçu sec obligatoire");
@@ -78,6 +78,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2LwBOverlay(); CloseUx2LwCOverlay(); CloseUx2LwDOverlay(); CloseUx2LwEOverlay();
         CloseUx2LwGOverlay();
         CloseUx2LwHOverlay();
+        CloseUx2LwIOverlay();
         return _encounterFoundationOverlayUx2LwF.PrepareEvidence(mode);
     }
 
