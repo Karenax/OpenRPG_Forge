@@ -44,6 +44,7 @@ internal sealed partial class StudioTriggerPortalDestinationEditor : VBoxContain
             CustomMinimumSize = new Vector2(0, 82),
             SizeFlagsHorizontal = SizeFlags.ExpandFill,
             SelectMode = ItemList.SelectModeEnum.Single,
+            AutoWidth = false,
             TooltipText = "Destinations admises par le contexte de validation.",
         };
         _items.AddThemeStyleboxOverride("panel", StudioStyle.Box(StudioStyle.Surface, StudioStyle.Border, 6));
@@ -57,7 +58,11 @@ internal sealed partial class StudioTriggerPortalDestinationEditor : VBoxContain
         var row = new HBoxContainer();
         row.AddThemeConstantOverride("separation", 5);
         AddChild(row);
-        _choice = new OptionButton { SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        _choice = new OptionButton
+        {
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            FitToLongestItem = false,
+        };
         StudioStyle.ApplyOptionButton(_choice);
         _choice.ItemSelected += index =>
         {
