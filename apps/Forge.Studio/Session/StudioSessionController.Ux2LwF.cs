@@ -276,9 +276,9 @@ internal sealed partial class StudioSessionController
         if (project.Module.WorldFeatures.Encounters.Any(item => item.AreaId == area.Id &&
             item.Foundation is not null && item.Composition is not null))
             return project;
-        var creature = project.Blueprints.FirstOrDefault(item =>
-            item.Kind is BlueprintKind.Creature or BlueprintKind.PlayerSpawn);
-        if (creature is null) return null;
+        var creature = project.Blueprints.FirstOrDefault(item => item.Kind == BlueprintKind.Creature);
+        var spawnBlueprint = project.Blueprints.FirstOrDefault(item => item.Kind == BlueprintKind.PlayerSpawn);
+        if (creature is null || spawnBlueprint is null) return null;
         var anchor = EncounterAnchorChoicesUx2LwF(area.Id).FirstOrDefault()?.Id;
         IReadOnlyList<AreaDefinition> areas = project.Areas;
         if (anchor is null)
@@ -286,11 +286,12 @@ internal sealed partial class StudioSessionController
             var definition = new AnchorDefinition(StableUx2LwF(project.Module.Id.Value, "evidence-anchor-definition"),
                 1, Ux2LwFEvidenceProvenance, $"{area.Slug}-rencontre",
                 new("anchor.encounter.evidence", "Ancre de rencontre isolée"), AnchorKind.Spawn,
-                AnchorScope.Area, ["encounter"], null, null, false);
+                AnchorScope.Area, ["encounter"], spawnBlueprint.Id, null, false);
             var instance = new AnchorInstance(StableUx2LwF(project.Module.Id.Value, "evidence-anchor-instance"),
                 1, Ux2LwFEvidenceProvenance, definition.Id, TransformValue.Identity,
                 area.Navigation.Anchors.Instances.Count + 1,
-                Forge.Domain.Entities.EntityPropertyOverrides.Empty, null, null);
+                Forge.Domain.Entities.EntityPropertyOverrides.Empty,
+                new("encounter", new(1.2f, 2, 1.2f), 100, "neutral", 0, null, true), null);
             var sourceAnchors = area.Navigation.Anchors;
             var isolatedAnchors = new AnchorCatalog(sourceAnchors.Id, sourceAnchors.SchemaVersion,
                 sourceAnchors.Provenance, area.Id, sourceAnchors.RequiredAtRuntime,
@@ -808,8 +809,15 @@ internal sealed partial class StudioSessionController
         try
         {
             var fixture = CreateUx2LwFSmokeProject();
-            if (!ProjectSession.Create(tempRoot, fixture.Project).Succeeded ||
-                !WriteUx2LwFEvidenceScript(tempRoot) || !editing.Open(tempRoot).Succeeded)
+            var created = ProjectSession.Create(tempRoot, fixture.Project);
+            if (!created.Succeeded)
+            {
+                Godot.GD.PrintErr("OPENRPG_FORGE_STUDIO_UX2_LW_F_CONTRACT_CREATE_FAILED " +
+                                  string.Join(" | ", created.Diagnostics.Select(item =>
+                                      $"{item.Code}:{item.Path}:{item.Message}")));
+                return FailedUx2LwFSmoke();
+            }
+            if (!WriteUx2LwFEvidenceScript(tempRoot) || !editing.Open(tempRoot).Succeeded)
                 return FailedUx2LwFSmoke();
 
             var targetChoice = editing.EncounterChoicesUx2LwF.Single(item => item.ProfileId == fixture.TargetId);
@@ -1067,7 +1075,8 @@ internal sealed partial class StudioSessionController
             ["encounter"], spawnBlueprint.Id, null, true);
         var instance = new AnchorInstance(StableUx2LwF(area.Id.Value, "spawn-instance"), 1,
             Ux2LwFEvidenceProvenance, definition.Id, TransformValue.Identity, 1,
-            Forge.Domain.Entities.EntityPropertyOverrides.Empty, null, null);
+            Forge.Domain.Entities.EntityPropertyOverrides.Empty,
+            new("encounter", new(1.2f, 2, 1.2f), 100, "neutral", 0, null, true), null);
         var anchors = new AnchorCatalog(StableUx2LwF(area.Id.Value, "anchor-catalog"), 1,
             Ux2LwFEvidenceProvenance, area.Id, true, [definition], [instance]);
         var authoredArea = area.WithNavigation(area.Navigation.WithAnchors(anchors));

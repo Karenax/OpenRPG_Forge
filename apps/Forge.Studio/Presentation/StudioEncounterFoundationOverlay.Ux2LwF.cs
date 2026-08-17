@@ -8,7 +8,7 @@ using Godot;
 
 namespace Forge.Studio.Presentation;
 
-internal sealed class StudioEncounterFoundationOverlayUx2LwF : Control
+internal sealed partial class StudioEncounterFoundationOverlayUx2LwF : Control
 {
     private readonly StudioSessionController _sourceSession;
     private StudioSessionController _session;
@@ -18,7 +18,7 @@ internal sealed class StudioEncounterFoundationOverlayUx2LwF : Control
     private readonly PanelContainer _dialog;
     private readonly OptionButton _encounter;
     private readonly Label _selection;
-    private readonly VBoxContainer _newEncounterCard;
+    private readonly PanelContainer _newEncounterCard;
     private readonly OptionButton _newArea;
     private readonly OptionButton _newCreature;
     private readonly OptionButton _newAnchor;
@@ -428,9 +428,15 @@ internal sealed class StudioEncounterFoundationOverlayUx2LwF : Control
         _evidenceTempRoot = root;
         try
         {
-            if (!ProjectSession.Create(root, project).Succeeded ||
-                !CopyScripts(_sourceSession.Session?.RootDirectory, root))
+            var created = ProjectSession.Create(root, project);
+            if (!created.Succeeded || !CopyScripts(_sourceSession.Session?.RootDirectory, root))
             {
+                if (!created.Succeeded)
+                {
+                    GD.PrintErr("OPENRPG_FORGE_STUDIO_UX2_LW_F_EVIDENCE_CREATE_FAILED " +
+                                string.Join(" | ", created.Diagnostics.Select(item =>
+                                    $"{item.Code}:{item.Path}:{item.Message}")));
+                }
                 ReleaseEvidence();
                 return false;
             }
@@ -443,7 +449,15 @@ internal sealed class StudioEncounterFoundationOverlayUx2LwF : Control
             }
             _evidenceSession = evidence;
             _session = evidence;
+            var encounterAreaId = project.Module.WorldFeatures.Encounters
+                .FirstOrDefault(item => item.Foundation is not null && item.Composition is not null)?.AreaId;
+            if (encounterAreaId is null || !evidence.SelectArea(encounterAreaId))
+            {
+                ReleaseEvidence();
+                return false;
+            }
             Visible = true;
+            FitDialog();
             Reload(clearSelection: true);
             var index = _encounterEntries.FindIndex(item => item is { IsNew: false, IsComplete: true });
             if (index <= 0)
