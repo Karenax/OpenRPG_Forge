@@ -129,15 +129,19 @@ public sealed class CryptOfAshesSampleTests
         Assert.Equal("RingRequested", roundTrip.Module.WorldFeatures.Placeables[0]
             .CompositionEvents!.MultiVerb.Verbs.Single(item => item.VerbId == "custom-ring").EventBinding);
         var advancedTrigger = Assert.IsType<TriggerAdvancedProfile>(catalog.Triggers[0].Advanced);
+        var ashWatchFaction = project.Module.Factions.Factions.Single(item => item.Slug == "ash-watch");
         Assert.True(catalog.Triggers[0].AdvancedRequiredAtRuntime);
         Assert.Equal("damage:ember-burst", advancedTrigger.Trap.PayloadId);
         Assert.True(advancedTrigger.TargetFilter.PlayersOnly);
+        Assert.Equal(ashWatchFaction.Id, Assert.Single(advancedTrigger.TargetFilter.FactionIds));
         Assert.Equal(10, advancedTrigger.GameplayVolumes.Count);
         Assert.Equal(10, advancedTrigger.GameplayVolumes.Select(item => item.Kind).Distinct().Count());
         Assert.Equal("TrapTriggered", advancedTrigger.Trap.TriggeredBinding);
         Assert.Equal(100, advancedTrigger.OccupancyDebug.MaximumTraceEntries);
         Assert.Equal("DamageVolumeEntered", roundTrip.Module.WorldFeatures.Triggers[0].Advanced!
             .GameplayVolumes.Single(item => item.Kind == TriggerGameplayVolumeKind.Damage).EnterBinding);
+        Assert.Equal(ashWatchFaction.Id, Assert.Single(roundTrip.Module.WorldFeatures.Triggers[0].Advanced!
+            .TargetFilter.FactionIds));
         Assert.True(encounter.StatisticsRequiredAtRuntime);
         Assert.Equal(64, encounter.Statistics!.Runs);
         Assert.Equal([.5, .9, .99], encounter.Statistics.Percentiles);

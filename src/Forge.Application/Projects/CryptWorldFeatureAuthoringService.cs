@@ -23,6 +23,7 @@ public static class CryptWorldFeatureAuthoringService
         var merchantItem = project.Blueprints.FirstOrDefault(item => item.Kind == BlueprintKind.Item);
         var dialogue = project.Dialogues.Single().Id.Value;
         var quest = project.Quests.Single().Id.Value;
+        var ashWatchFaction = project.Module.Factions.Factions.Single(item => item.Slug == "ash-watch");
         var routeId = Stable(moduleId, "vehicle-route");
         var start = Stable(routeId, "start");
         var end = Stable(routeId, "end");
@@ -232,7 +233,7 @@ public static class CryptWorldFeatureAuthoringService
                     "ash-watch", "vfx:ember-burst", "ash-watch", true, false, true, "#ff7a45",
                     "TrapDetected", "TrapDisarmed", "TrapTriggered", "TrapReset"),
                 new(Stable(moduleId, "trigger-exit-query"), true, ["player"], ["undead"],
-                    [Stable(moduleId, "faction-ash-watch")], ["inventory", "health"], "party", "heroes",
+                    [ashWatchFaction.Id], ["inventory", "health"], "party", "heroes",
                     "quest==active"),
                 Enum.GetValues<TriggerGameplayVolumeKind>()
                     .Select(kind => GameplayVolume(moduleId, kind)).ToArray(),
