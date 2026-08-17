@@ -162,6 +162,7 @@ internal sealed partial class StudioWorkspaceShell
             $"missing_script={result.MissingScriptBlocked.ToString().ToLowerInvariant()} " +
             $"missing_portal={result.MissingPortalBlocked.ToString().ToLowerInvariant()} " +
             $"inaccessible={result.InaccessibleBlocked.ToString().ToLowerInvariant()} " +
+            $"optional_suppression={result.OptionalSuppression.ToString().ToLowerInvariant()} " +
             $"grouped_diagnostics={result.GroupedDiagnostics.ToString().ToLowerInvariant()} " +
             $"stale_draft={result.StaleDraftBlocked.ToString().ToLowerInvariant()} " +
             $"stale_approval={result.StaleApprovalBlocked.ToString().ToLowerInvariant()} " +

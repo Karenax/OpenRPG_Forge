@@ -302,6 +302,7 @@ internal sealed partial class StudioTriggerValidationOverlay : Control
         _lastGroups = [];
         _applied = false;
         _canonicalPreviewReady = false;
+        ResetDraftControls();
         _selection.Text = _choices.Count == 0
             ? "Aucun profil de déclencheur n’est disponible dans la zone active."
             : "Choisissez explicitement un déclencheur doté d’un volume de base.";
@@ -331,6 +332,7 @@ internal sealed partial class StudioTriggerValidationOverlay : Control
         _lastGroups = [];
         _applied = false;
         _canonicalPreviewReady = false;
+        ResetDraftControls();
         var released = ReleaseIsolatedEvidenceSession();
         _lastEvidenceSourceUntouched = sourceUntouched;
         _lastEvidenceResourcesReleased = released;
@@ -339,7 +341,12 @@ internal sealed partial class StudioTriggerValidationOverlay : Control
 
     internal bool PrepareEvidence(string mode)
     {
-        Open();
+        _ = mode;
+        if ((_evidenceSession is not null || _evidenceTempRoot is not null) &&
+            !ReleaseIsolatedEvidenceSession())
+        {
+            return false;
+        }
         if (!TryOpenIsolatedEvidenceSession())
         {
             return false;
@@ -526,7 +533,8 @@ internal sealed partial class StudioTriggerValidationOverlay : Control
             history.CanRedo,
             _sourceSession.ActiveAreaId,
             _sourceSession.SelectedEntityIds.ToArray(),
-            _sourceSession.SelectedEntityId);
+            _sourceSession.SelectedEntityId,
+            _sourceSession.CaptureTriggerValidationApprovalUx1AI());
     }
 
     private bool SourceMatchesSnapshot(StudioUx1AIEvidenceSourceSnapshot snapshot)
@@ -542,7 +550,8 @@ internal sealed partial class StudioTriggerValidationOverlay : Control
                _sourceSession.IsDirty == snapshot.IsDirty &&
                _sourceSession.ActiveAreaId == snapshot.ActiveAreaId &&
                _sourceSession.SelectedEntityIds.SequenceEqual(snapshot.SelectedEntityIds) &&
-               _sourceSession.SelectedEntityId == snapshot.SelectedEntityId;
+               _sourceSession.SelectedEntityId == snapshot.SelectedEntityId &&
+               _sourceSession.CaptureTriggerValidationApprovalUx1AI() == snapshot.Approval;
     }
 
     private bool ReleaseIsolatedEvidenceSession()
@@ -630,11 +639,20 @@ internal sealed partial class StudioTriggerValidationOverlay : Control
         {
             _draft = null;
             _lastGroups = [];
+            _applied = false;
+            _canonicalPreviewReady = false;
             _session.CancelTriggerValidationUx1AI();
+            ResetDraftControls();
             _selection.Text = "Choisissez explicitement un déclencheur doté d’un volume de base.";
             _selection.AddThemeColorOverride("font_color", StudioStyle.Warning);
+            _summary.Text = "Sélectionnez un déclencheur puis prévisualisez · aucun changement appliqué.";
+            _summary.AddThemeColorOverride("font_color", StudioStyle.Muted);
+            _status.Text = "Prêt · sélection explicite requise";
+            _status.AddThemeColorOverride("font_color", StudioStyle.Muted);
             RenderDiagnosticGroups([]);
             SetEditingEnabled(false);
+            _undo.Disabled = true;
+            _redo.Disabled = true;
             return;
         }
         LoadChoice(choiceIndex);
@@ -658,8 +676,10 @@ internal sealed partial class StudioTriggerValidationOverlay : Control
             _selection.AddThemeColorOverride("font_color", StudioStyle.Danger);
             _summary.Text = "La validation canonique ne peut pas être configurée sans Foundation.";
             _summary.AddThemeColorOverride("font_color", StudioStyle.Danger);
+            ResetDraftControls();
             RenderDiagnosticGroups([]);
             SetEditingEnabled(false);
+            SetStatus("Volume de base requis · aucune validation appliquable", error: true);
             return;
         }
 
@@ -686,6 +706,19 @@ internal sealed partial class StudioTriggerValidationOverlay : Control
         _targets.SetValues(draft.KnownTargetIds);
         _scripts.SetValues(draft.KnownScriptIds);
         _layers.SetValues(draft.AccessibleLayers);
+        _updating = false;
+        UpdateValidationControls();
+    }
+
+    private void ResetDraftControls()
+    {
+        _updating = true;
+        _validationEnabled.ButtonPressed = false;
+        _requiredAtRuntime.ButtonPressed = false;
+        _portalDestinations.SetValues([]);
+        _targets.SetValues([]);
+        _scripts.SetValues([]);
+        _layers.SetValues([]);
         _updating = false;
         UpdateValidationControls();
     }
@@ -849,7 +882,8 @@ internal sealed partial class StudioTriggerValidationOverlay : Control
         foreach (var group in groups)
         {
             var color = group.Blocking ? StudioStyle.Danger :
-                group.State.Contains("fallback", StringComparison.OrdinalIgnoreCase)
+                group.State.Contains("fallback", StringComparison.OrdinalIgnoreCase) ||
+                group.State.Contains("Non évalué", StringComparison.OrdinalIgnoreCase)
                     ? StudioStyle.Warning
                     : StudioStyle.Success;
             _diagnostics.AddChild(StudioStyle.Label(

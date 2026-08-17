@@ -30,11 +30,17 @@ internal sealed record StudioTriggerValidationDraft(
     IReadOnlyList<string> AccessibleLayers,
     TriggerWorldProfile OriginalProfile);
 
+internal sealed record StudioTriggerValidationDiagnostic(
+    string Code,
+    string Path,
+    string Message);
+
 internal sealed record StudioTriggerValidationDiagnosticGroup(
     string Key,
     string Title,
     string State,
     IReadOnlyList<string> Details,
+    IReadOnlyList<StudioTriggerValidationDiagnostic> Diagnostics,
     bool Blocking);
 
 internal sealed record StudioTriggerValidationPreview(
@@ -48,6 +54,11 @@ internal sealed record StudioTriggerValidationPreview(
 
 internal sealed record StudioUx1AIActionResult(bool Succeeded, string Message);
 
+internal sealed record StudioUx1AIApprovalSnapshot(
+    StudioTriggerValidationDraft? Draft,
+    ProjectRevision? Revision,
+    string? Fingerprint);
+
 internal sealed record StudioUx1AIEvidenceSourceSnapshot(
     ProjectDefinition Project,
     ProjectCommandHistory History,
@@ -58,7 +69,8 @@ internal sealed record StudioUx1AIEvidenceSourceSnapshot(
     bool CanRedo,
     AreaId? ActiveAreaId,
     IReadOnlyList<EntityId> SelectedEntityIds,
-    EntityId? SelectedEntityId);
+    EntityId? SelectedEntityId,
+    StudioUx1AIApprovalSnapshot Approval);
 
 internal sealed record StudioUx1AISmokeResult(
     bool Succeeded,
@@ -73,6 +85,7 @@ internal sealed record StudioUx1AISmokeResult(
     bool MissingScriptBlocked,
     bool MissingPortalBlocked,
     bool InaccessibleBlocked,
+    bool OptionalSuppression,
     bool GroupedDiagnostics,
     bool StaleDraftBlocked,
     bool StaleApprovalBlocked,

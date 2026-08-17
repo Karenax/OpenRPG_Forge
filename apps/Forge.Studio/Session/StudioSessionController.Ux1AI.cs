@@ -40,6 +40,9 @@ internal sealed partial class StudioSessionController
                     var blueprint = project.Blueprints.FirstOrDefault(candidate => candidate.Id == item.BlueprintId);
                     var name = blueprint?.DisplayName ?? "Déclencheur sans blueprint";
                     var instances = area.Entities.Count(entity => entity.BlueprintId == item.BlueprintId);
+                    var foundationLabel = item.Foundation is { } foundation
+                        ? $"fondation {foundation.Slug}"
+                        : "fondation absente";
                     var state = item.Foundation is null
                         ? "volume de base requis"
                         : item.Foundation.Validation is null
@@ -52,7 +55,7 @@ internal sealed partial class StudioSessionController
                     return new StudioTriggerValidationChoice(
                         item.Id,
                         item.BlueprintId,
-                        $"{name} · {instances} instance(s) · {state}",
+                        $"{name} · {foundationLabel} · {instances} instance(s) · {state}",
                         item.Foundation is not null,
                         item.Foundation?.Validation is not null,
                         item.Foundation?.ValidationRequiredAtRuntime == true,
@@ -368,6 +371,11 @@ internal sealed partial class StudioSessionController
         _approvedTriggerValidationFingerprintUx1AI = null;
     }
 
+    internal StudioUx1AIApprovalSnapshot CaptureTriggerValidationApprovalUx1AI() => new(
+        _approvedTriggerValidationUx1AI,
+        _approvedTriggerValidationRevisionUx1AI,
+        _approvedTriggerValidationFingerprintUx1AI);
+
     private bool TryBuildTriggerValidationUx1AI(
         StudioTriggerValidationDraft draft,
         bool dryRun,
@@ -461,6 +469,7 @@ internal sealed partial class StudioSessionController
         var diagnostics = WorldFeatureCatalogValidator.Validate(project)
             .Where(item => item.Path.StartsWith(targetPath, StringComparison.Ordinal))
             .ToArray();
+        var contextUnavailable = !resolution.Available && resolution.Validation is null;
         var definitions = new (string Key, string Title)[]
         {
             ("foundation", "Fondation & politique"),
@@ -478,11 +487,16 @@ internal sealed partial class StudioSessionController
                 .ToArray();
             if (items.Length > 0)
             {
+                var structured = items.Select(item => new StudioTriggerValidationDiagnostic(
+                    item.Code,
+                    item.Path,
+                    HumanizeTriggerValidationDiagnosticUx1AI(item))).ToArray();
                 return new StudioTriggerValidationDiagnosticGroup(
                     definition.Key,
                     definition.Title,
                     items.Length == 1 ? "1 correction requise" : $"{items.Length} corrections requises",
-                    items.Select(HumanizeTriggerValidationDiagnosticUx1AI).Distinct().ToArray(),
+                    structured.Select(item => item.Message).ToArray(),
+                    structured,
                     true);
             }
             if (definition.Key == "context" && !resolution.Available)
@@ -495,13 +509,25 @@ internal sealed partial class StudioSessionController
                     [required
                         ? "Le runtime exige un contexte de validation configuré."
                         : "Le contexte est désactivé : le runtime conserve son fallback optionnel explicite."],
+                    [],
                     required);
+            }
+            if (contextUnavailable)
+            {
+                return new StudioTriggerValidationDiagnosticGroup(
+                    definition.Key,
+                    definition.Title,
+                    "Non évalué",
+                    ["Le contexte est absent : ce contrôle dépendant n’a pas été exécuté."],
+                    [],
+                    false);
             }
             return new StudioTriggerValidationDiagnosticGroup(
                 definition.Key,
                 definition.Title,
                 "Conforme",
                 ["Aucune anomalie signalée par le validateur canonique."],
+                [],
                 false);
         }).ToArray();
     }
@@ -617,18 +643,49 @@ internal sealed partial class StudioSessionController
 
     private static string TriggerValidationFingerprintUx1AI(StudioTriggerValidationDraft draft)
     {
-        var value = string.Join('\n',
-            draft.TriggerProfileId.ToString("N"),
-            draft.BlueprintId.Value.ToString("N"),
-            draft.AreaId.Value.ToString("N"),
-            draft.BaseRevision.Value.ToString(System.Globalization.CultureInfo.InvariantCulture),
-            draft.ValidationEnabled.ToString(),
-            draft.ValidationRequiredAtRuntime.ToString(),
-            string.Join('|', draft.KnownPortalDestinationIds.Select(item => item.ToString("N"))),
-            string.Join('|', draft.KnownTargetIds),
-            string.Join('|', draft.KnownScriptIds),
-            string.Join('|', draft.AccessibleLayers));
-        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
+        using var stream = new MemoryStream();
+        using (var writer = new BinaryWriter(stream, Encoding.UTF8, leaveOpen: true))
+        {
+            writer.Write((byte)1);
+            WriteGuidUx1AI(writer, draft.TriggerProfileId);
+            WriteGuidUx1AI(writer, draft.BlueprintId.Value);
+            WriteGuidUx1AI(writer, draft.AreaId.Value);
+            writer.Write(draft.BaseRevision.Value);
+            writer.Write(draft.ValidationEnabled);
+            writer.Write(draft.ValidationRequiredAtRuntime);
+            WriteGuidListUx1AI(writer, draft.KnownPortalDestinationIds);
+            WriteStringListUx1AI(writer, draft.KnownTargetIds);
+            WriteStringListUx1AI(writer, draft.KnownScriptIds);
+            WriteStringListUx1AI(writer, draft.AccessibleLayers);
+        }
+        return Convert.ToHexString(SHA256.HashData(stream.ToArray()));
+    }
+
+    private static void WriteGuidUx1AI(BinaryWriter writer, Guid value)
+    {
+        var bytes = value.ToByteArray();
+        writer.Write(bytes.Length);
+        writer.Write(bytes);
+    }
+
+    private static void WriteGuidListUx1AI(BinaryWriter writer, IReadOnlyList<Guid> values)
+    {
+        writer.Write(values.Count);
+        foreach (var value in values)
+        {
+            WriteGuidUx1AI(writer, value);
+        }
+    }
+
+    private static void WriteStringListUx1AI(BinaryWriter writer, IReadOnlyList<string> values)
+    {
+        writer.Write(values.Count);
+        foreach (var value in values)
+        {
+            var bytes = Encoding.UTF8.GetBytes(value);
+            writer.Write(bytes.Length);
+            writer.Write(bytes);
+        }
     }
 
     private static Guid StableTriggerValidationIdUx1AI(Guid seed, string segment)
@@ -670,6 +727,8 @@ internal sealed partial class StudioSessionController
                 "seuil-inacheve",
                 "Seuil inachevé",
                 BlueprintKind.Trigger);
+            var narrativeDialogue = OriginalModuleAuthoringService.CreateVeilleeDesEclats()
+                .State.Project.Dialogues.Single();
             var area = new AreaDefinition(
                 AreaId.From(Guid.Parse("a1100000-0000-4000-8000-000000000004")),
                 "sanctuaire-des-veilleurs",
@@ -687,13 +746,16 @@ internal sealed partial class StudioSessionController
                 area.Id,
                 Guid.Parse("a1100000-0000-4000-8100-000000000001"),
                 foundation: true,
-                validation: false);
+                validation: false,
+                narrativeDialogueId: narrativeDialogue.Id.Value,
+                foundationSlug: "passage-des-veilleurs-volume");
             var neighborProfile = CreateUx1AISmokeTrigger(
                 neighborBlueprint.Id,
                 area.Id,
                 Guid.Parse("a1100000-0000-4000-8200-000000000001"),
                 foundation: true,
-                validation: true);
+                validation: true,
+                foundationSlug: "cloche-du-sanctuaire-volume");
             var foundationlessProfile = CreateUx1AISmokeTrigger(
                 foundationlessBlueprint.Id,
                 area.Id,
@@ -711,7 +773,7 @@ internal sealed partial class StudioSessionController
                 shell.Module.WithWorldFeatures(catalog),
                 shell.Blueprints,
                 shell.Areas,
-                shell.Dialogues,
+                [narrativeDialogue],
                 shell.Quests);
             if (WorldFeatureCatalogValidator.Validate(project).Count != 0)
             {
@@ -728,7 +790,13 @@ internal sealed partial class StudioSessionController
             var loadedTarget = initialCatalog.Triggers.Single(item => item.Id == targetProfile.Id);
             var loadedNeighbor = initialCatalog.Triggers.Single(item => item.Id == neighborProfile.Id);
             var selectionExplicit = editing.CreateTriggerValidationDraftUx1AI() is null &&
-                                    editing.TriggerValidationChoicesUx1AI.Count == 3;
+                                    editing.TriggerValidationChoicesUx1AI.Count == 3 &&
+                                    editing.TriggerValidationChoicesUx1AI.All(item =>
+                                        IsHumanUx1AIMessage(item.Label)) &&
+                                    editing.TriggerValidationChoicesUx1AI.Single(item =>
+                                        item.ProfileId == targetProfile.Id).Label.Contains(
+                                        targetProfile.Foundation!.Slug,
+                                        StringComparison.Ordinal);
             var foundationRequired =
                 editing.CreateTriggerValidationDraftUx1AI(foundationlessProfile.Id) is null &&
                 editing.TriggerValidationChoicesUx1AI.Single(item =>
@@ -829,10 +897,6 @@ internal sealed partial class StudioSessionController
                                                 initialCatalog.Companions) &&
                                             ReferenceEquals(appliedCatalog.Scripts, initialCatalog.Scripts);
 
-            var journal = editing.History!.Journal;
-            var canonicalCommand = journal.Count == 3 &&
-                                   journal.All(item => item.CommandName == "set_world_feature_catalog") &&
-                                   journal.Count(item => item.IsApplied) == 1;
             var undo = editing.Undo();
             var removed = editing.Project!.Module.WorldFeatures.Triggers
                 .Single(item => item.Id == targetProfile.Id).Foundation!.Validation is null;
@@ -852,20 +916,87 @@ internal sealed partial class StudioSessionController
             var persistedNeighbor = opened
                 ? reopened.Project!.Module.WorldFeatures.Triggers.Single(item => item.Id == neighborProfile.Id)
                 : null;
-            var persistence = persistedTarget?.Foundation is { Validation: { } persistedValidation } persistedFoundation &&
+            var persistence = persistedTarget is
+                              { Foundation: { Validation: { } persistedValidation } persistedFoundation } &&
                               SameValidationUx1AI(freshDraft, persistedValidation) &&
                               persistedFoundation.ValidationRequiredAtRuntime &&
-                              SameFoundationUx1AI(appliedTarget.Foundation!, persistedFoundation) &&
+                              SameTriggerUx1AI(appliedTarget, persistedTarget) &&
                               persistedNeighbor is not null && SameTriggerUx1AI(appliedNeighbor, persistedNeighbor);
+
+            reopened.Close();
+            var optionalSourceDraft = editing.CreateTriggerValidationDraftUx1AI(targetProfile.Id);
+            if (optionalSourceDraft is null)
+            {
+                return FailedUx1AISmoke();
+            }
+            var optionalDraft = optionalSourceDraft with
+            {
+                ValidationEnabled = false,
+                ValidationRequiredAtRuntime = false,
+            };
+            var optionalPreview = editing.PreviewTriggerValidationUx1AI(optionalDraft);
+            var optionalGroups = optionalPreview.Groups;
+            var optionalApply = editing.ApplyApprovedTriggerValidationUx1AI();
+            var optionalAppliedTarget = editing.Project!.Module.WorldFeatures.Triggers
+                .Single(item => item.Id == targetProfile.Id);
+            var optionalRemoved = optionalAppliedTarget.Foundation is
+            {
+                Validation: null,
+                ValidationRequiredAtRuntime: false,
+            };
+            var optionalUndo = editing.Undo();
+            var optionalUndoTarget = editing.Project!.Module.WorldFeatures.Triggers
+                .Single(item => item.Id == targetProfile.Id);
+            var optionalRedo = editing.Redo();
+            var optionalRedoTarget = editing.Project!.Module.WorldFeatures.Triggers
+                .Single(item => item.Id == targetProfile.Id);
+            var optionalSaved = editing.Save();
+            var optionalOpened = optionalSaved.Succeeded && reopened.Open(tempRoot).Succeeded;
+            var optionalPersistedTarget = optionalOpened
+                ? reopened.Project!.Module.WorldFeatures.Triggers.Single(item => item.Id == targetProfile.Id)
+                : null;
+            var optionalSuppression = optionalPreview.Succeeded && optionalPreview.CanApply &&
+                                      optionalPreview.OptionalFallback && optionalApply.Succeeded && optionalRemoved &&
+                                      optionalGroups.Count == 7 &&
+                                      optionalGroups.Where(item => item.Key != "context").All(item =>
+                                          item.State == "Non évalué" && !item.Blocking) &&
+                                      optionalGroups.Single(item => item.Key == "context") is
+                                      { State: "Fallback optionnel", Blocking: false } &&
+                                      optionalUndo.Succeeded && SameTriggerUx1AI(appliedTarget, optionalUndoTarget) &&
+                                      optionalRedo.Succeeded &&
+                                      SameTriggerUx1AI(optionalAppliedTarget, optionalRedoTarget) &&
+                                      optionalPersistedTarget is not null &&
+                                      SameTriggerUx1AI(optionalAppliedTarget, optionalPersistedTarget);
+
+            var journal = editing.History!.Journal;
+            var canonicalCommand = journal.Count == 4 &&
+                                   journal.All(item => item.CommandName == "set_world_feature_catalog") &&
+                                   journal.Count(item => item.IsApplied) == 2;
 
             var invalidContextBlocked = HasBlockingGroupUx1AI(invalidContext, "context");
             var missingTargetBlocked = HasBlockingGroupUx1AI(missingTarget, "actions");
             var missingScriptBlocked = HasBlockingGroupUx1AI(missingScript, "scripts");
             var missingPortalBlocked = HasBlockingGroupUx1AI(missingPortal, "portal");
             var inaccessibleBlocked = HasBlockingGroupUx1AI(inaccessible, "filters");
+            var structuredDiagnostics = new[]
+                {
+                    invalidContext,
+                    missingTarget,
+                    missingScript,
+                    missingPortal,
+                    inaccessible,
+                }
+                .SelectMany(item => item.Groups.Where(group => group.Blocking))
+                .All(group => group.Diagnostics.Count > 0 &&
+                              group.Diagnostics.Count == group.Details.Count &&
+                              group.Diagnostics.All(item =>
+                                  !string.IsNullOrWhiteSpace(item.Code) &&
+                                  !string.IsNullOrWhiteSpace(item.Path) &&
+                                  !string.IsNullOrWhiteSpace(item.Message)));
             var groupedDiagnostics = preview.Groups.Count == 7 &&
                                      preview.Groups.Select(item => item.Key).Distinct().Count() == 7 &&
-                                     preview.Groups.All(item => !string.IsNullOrWhiteSpace(item.Title));
+                                     preview.Groups.All(item => !string.IsNullOrWhiteSpace(item.Title)) &&
+                                     structuredDiagnostics;
             var humanDiagnostics = new[]
             {
                 invalidContext.Message,
@@ -874,15 +1005,17 @@ internal sealed partial class StudioSessionController
                 missingPortal.Message,
                 inaccessible.Message,
                 preview.Message,
+                optionalPreview.Message,
             }.All(IsHumanUx1AIMessage) &&
-                new[] { invalidContext, missingTarget, missingScript, missingPortal, inaccessible }
+                new[] { invalidContext, missingTarget, missingScript, missingPortal, inaccessible, optionalPreview }
                     .SelectMany(item => item.Groups)
                     .SelectMany(item => item.Details)
                     .All(IsHumanUx1AIMessage);
             var succeeded = selectionExplicit && foundationRequired && contextCreation && requiredFlag &&
                             runtimeResolution && dryRun && invalidContextBlocked && missingTargetBlocked &&
                             missingScriptBlocked && missingPortalBlocked && inaccessibleBlocked &&
-                            groupedDiagnostics && staleDraftBlocked && staleApprovalBlocked && canonicalCommand &&
+                            optionalSuppression && groupedDiagnostics && staleDraftBlocked &&
+                            staleApprovalBlocked && canonicalCommand &&
                             undoRedo && persistence && foundationNeighborsPreserved &&
                             triggerNeighborsPreserved && humanDiagnostics;
             return new StudioUx1AISmokeResult(
@@ -898,6 +1031,7 @@ internal sealed partial class StudioSessionController
                 missingScriptBlocked,
                 missingPortalBlocked,
                 inaccessibleBlocked,
+                optionalSuppression,
                 groupedDiagnostics,
                 staleDraftBlocked,
                 staleApprovalBlocked,
@@ -995,7 +1129,9 @@ internal sealed partial class StudioSessionController
         AreaId areaId,
         Guid seed,
         bool foundation,
-        bool validation)
+        bool validation,
+        Guid? narrativeDialogueId = null,
+        string? foundationSlug = null)
     {
         var profileId = StableTriggerValidationIdUx1AI(seed, "profile");
         if (!foundation)
@@ -1034,7 +1170,7 @@ internal sealed partial class StudioSessionController
             StableTriggerValidationIdUx1AI(seed, "foundation"),
             WorldFeatureCatalog.CurrentSchemaVersion,
             "test:ux1-ai",
-            $"trigger-{seed:N}",
+            foundationSlug ?? $"trigger-{seed:N}",
             new TriggerWorldProfile.ShapePolicy(
                 TriggerWorldProfile.ShapeKind.ExtrudedPolygon2D,
                 [new(-2, 0, -2), new(2, 0, -2), new(2, 0, 2), new(-2, 0, 2)],
@@ -1117,12 +1253,80 @@ internal sealed partial class StudioSessionController
             new TriggerWorldProfile.AccessPolicy("credential:warden", false, "trigger.denied"),
             new TriggerWorldProfile.RestPolicy(true, "hostile.nearby", true, true, "rest.allowed", "rest.denied"),
             new TriggerWorldProfile.CluePolicy("perception", 10, "trace:ash", 45, 2, null, null),
-            null,
+            narrativeDialogueId is { } dialogueId
+                ? new TriggerWorldProfile.NarrativeCuePolicy(
+                    [blueprintId],
+                    4,
+                    true,
+                    60,
+                    "party-vote",
+                    dialogueId)
+                : null,
             new TriggerWorldProfile.DirectorPolicy(true, true, true, true, true),
             foundationPolicy,
             true,
-            null,
-            false);
+            narrativeDialogueId.HasValue ? CreateUx1AISmokeAdvanced(seed) : null,
+            narrativeDialogueId.HasValue);
+    }
+
+    private static TriggerAdvancedProfile CreateUx1AISmokeAdvanced(Guid seed)
+    {
+        var volumes = Enum.GetValues<TriggerGameplayVolumeKind>()
+            .Select((kind, index) => new TriggerGameplayVolumeProfile(
+                StableTriggerValidationIdUx1AI(seed, $"advanced-volume-{kind}"),
+                kind,
+                new Dictionary<string, double>(StringComparer.Ordinal)
+                {
+                    [kind.ToString().ToLowerInvariant()] = index + 1,
+                },
+                new Dictionary<string, string>(StringComparer.Ordinal),
+                $"{kind}VolumeEntered",
+                $"{kind}VolumeExited",
+                true))
+            .ToArray();
+        return new TriggerAdvancedProfile(
+            StableTriggerValidationIdUx1AI(seed, "advanced"),
+            WorldFeatureCatalog.CurrentSchemaVersion,
+            "test:ux1-ai-advanced",
+            "1.0.0",
+            new TriggerTrapProfile(
+                StableTriggerValidationIdUx1AI(seed, "advanced-trap"),
+                "enter",
+                "damage:ux1-ai",
+                10,
+                12,
+                30,
+                "module",
+                "vfx:ux1-ai",
+                "owner-safe",
+                true,
+                false,
+                true,
+                "#ff7a45",
+                "TrapDetected",
+                "TrapDisarmed",
+                "TrapTriggered",
+                "TrapReset"),
+            new TriggerEntityQueryProfile(
+                StableTriggerValidationIdUx1AI(seed, "advanced-query"),
+                true,
+                ["player"],
+                ["undead"],
+                [],
+                ["health"],
+                "party",
+                "heroes",
+                "quest==active"),
+            volumes,
+            new TriggerOccupancyDebugProfile(
+                StableTriggerValidationIdUx1AI(seed, "advanced-debug"),
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                64));
     }
 
     private static bool HasBlockingGroupUx1AI(StudioTriggerValidationPreview preview, string key) =>
@@ -1190,13 +1394,27 @@ internal sealed partial class StudioSessionController
         expected.Access == actual.Access &&
         expected.Rest == actual.Rest &&
         expected.Clue == actual.Clue &&
-        expected.Narrative is null && actual.Narrative is null &&
+        SameNarrativeUx1AI(expected.Narrative, actual.Narrative) &&
         expected.Director == actual.Director &&
         expected.Foundation is not null && actual.Foundation is not null &&
         SameFoundationUx1AI(expected.Foundation, actual.Foundation) &&
         expected.FoundationRequiredAtRuntime == actual.FoundationRequiredAtRuntime &&
-        expected.Advanced is null && actual.Advanced is null &&
+        (expected.Advanced is null && actual.Advanced is null ||
+         expected.Advanced is { } expectedAdvanced && actual.Advanced is { } actualAdvanced &&
+         SameAdvancedUx1AI(expectedAdvanced, actualAdvanced)) &&
         expected.AdvancedRequiredAtRuntime == actual.AdvancedRequiredAtRuntime;
+
+    private static bool SameNarrativeUx1AI(
+        TriggerWorldProfile.NarrativeCuePolicy? expected,
+        TriggerWorldProfile.NarrativeCuePolicy? actual) =>
+        expected is null && actual is null ||
+        expected is { } left && actual is { } right &&
+        left.Participants.SequenceEqual(right.Participants) &&
+        left.Priority == right.Priority &&
+        left.Once == right.Once &&
+        left.CooldownSeconds == right.CooldownSeconds &&
+        left.MultiplayerPolicy == right.MultiplayerPolicy &&
+        left.DialogueId == right.DialogueId;
 
     private static bool SameDiscoveryUx1AI(
         TriggerWorldProfile.DiscoveryPolicy? expected,
@@ -1270,6 +1488,34 @@ internal sealed partial class StudioSessionController
                expected.ValidationRequiredAtRuntime == actual.ValidationRequiredAtRuntime;
     }
 
+    private static bool SameAdvancedUx1AI(TriggerAdvancedProfile expected, TriggerAdvancedProfile actual) =>
+        expected.Id == actual.Id &&
+        expected.SchemaVersion == actual.SchemaVersion &&
+        expected.Provenance == actual.Provenance &&
+        expected.ForgeScriptApiVersion == actual.ForgeScriptApiVersion &&
+        expected.Trap == actual.Trap &&
+        expected.TargetFilter.Id == actual.TargetFilter.Id &&
+        expected.TargetFilter.PlayersOnly == actual.TargetFilter.PlayersOnly &&
+        expected.TargetFilter.RequiredTags.SequenceEqual(actual.TargetFilter.RequiredTags) &&
+        expected.TargetFilter.ExcludedTags.SequenceEqual(actual.TargetFilter.ExcludedTags) &&
+        expected.TargetFilter.FactionIds.SequenceEqual(actual.TargetFilter.FactionIds) &&
+        expected.TargetFilter.RequiredComponents.SequenceEqual(actual.TargetFilter.RequiredComponents) &&
+        expected.TargetFilter.OwnerId == actual.TargetFilter.OwnerId &&
+        expected.TargetFilter.TeamId == actual.TargetFilter.TeamId &&
+        expected.TargetFilter.SandboxPredicate == actual.TargetFilter.SandboxPredicate &&
+        expected.GameplayVolumes.Count == actual.GameplayVolumes.Count &&
+        expected.GameplayVolumes.Zip(actual.GameplayVolumes).All(pair =>
+            pair.First.Id == pair.Second.Id &&
+            pair.First.Kind == pair.Second.Kind &&
+            pair.First.NumericParameters.OrderBy(item => item.Key).SequenceEqual(
+                pair.Second.NumericParameters.OrderBy(item => item.Key)) &&
+            pair.First.TextParameters.OrderBy(item => item.Key).SequenceEqual(
+                pair.Second.TextParameters.OrderBy(item => item.Key)) &&
+            pair.First.EnterBinding == pair.Second.EnterBinding &&
+            pair.First.ExitBinding == pair.Second.ExitBinding &&
+            pair.First.Enabled == pair.Second.Enabled) &&
+        expected.OccupancyDebug == actual.OccupancyDebug;
+
     private static bool SameReferencesUx1AI<T>(IReadOnlyList<T> left, IReadOnlyList<T> right)
         where T : class =>
         left.Count == right.Count && left.Zip(right).All(pair => ReferenceEquals(pair.First, pair.Second));
@@ -1280,7 +1526,10 @@ internal sealed partial class StudioSessionController
         !message.Contains("Guid", StringComparison.OrdinalIgnoreCase) &&
         !message.Contains("UUID", StringComparison.OrdinalIgnoreCase) &&
         !message.Contains("hash", StringComparison.OrdinalIgnoreCase) &&
-        !message.Contains(".json", StringComparison.OrdinalIgnoreCase);
+        !message.Contains(".json", StringComparison.OrdinalIgnoreCase) &&
+        !System.Text.RegularExpressions.Regex.IsMatch(
+            message,
+            "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
 
     private static bool DeleteUx1AITemporaryRoot(string? tempRoot, string requiredPrefix)
     {
@@ -1311,25 +1560,26 @@ internal sealed partial class StudioSessionController
     }
 
     private static StudioUx1AISmokeResult FailedUx1AISmoke() => new(
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false);
+        Succeeded: false,
+        SelectionExplicit: false,
+        FoundationRequired: false,
+        ContextCreation: false,
+        RequiredFlag: false,
+        RuntimeResolution: false,
+        DryRun: false,
+        InvalidContextBlocked: false,
+        MissingTargetBlocked: false,
+        MissingScriptBlocked: false,
+        MissingPortalBlocked: false,
+        InaccessibleBlocked: false,
+        OptionalSuppression: false,
+        GroupedDiagnostics: false,
+        StaleDraftBlocked: false,
+        StaleApprovalBlocked: false,
+        CanonicalCommand: false,
+        UndoRedo: false,
+        Persistence: false,
+        FoundationNeighborsPreserved: false,
+        TriggerNeighborsPreserved: false,
+        HumanDiagnostics: false);
 }
