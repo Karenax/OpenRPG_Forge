@@ -7,6 +7,9 @@ SemVer ; les versions de schéma persistent séparément dans leurs documents.
 
 ### Changed
 
+- Forge Studio UX4-K : six modes et valeurs complètes de déplacement de créature via
+  `SetCreatureFoundationHandler`, sans clamp silencieux, avec preuve réelle Crypte et matrice
+  portée à 260 routes `functional` / 457 `planned` ;
 - Forge Studio UX4-J : factions et appartenances de créature, perception multi-sens, conversations
   associées et protections narratives via `SetCreatureFoundationHandler`, avec références réelles,
   preuve Crypte et matrice portée à 259 routes `functional` / 458 `planned` ;

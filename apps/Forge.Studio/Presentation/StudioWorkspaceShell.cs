@@ -227,6 +227,7 @@ internal sealed partial class StudioWorkspaceShell : Control
         BuildUx4HActions(headingRow);
         BuildUx4IActions(headingRow);
         BuildUx4JActions(headingRow);
+        BuildUx4KActions(headingRow);
         _primaryAction = StudioStyle.Button("Migration en cours", primary: true, compact: true);
         _primaryAction.Disabled = true;
         _primaryAction.TooltipText = "Cette action sera activée seulement après son branchement transactionnel et ses tests.";
@@ -396,6 +397,7 @@ internal sealed partial class StudioWorkspaceShell : Control
         InitializeUx4HOverlay();
         InitializeUx4IOverlay();
         InitializeUx4JOverlay();
+        InitializeUx4KOverlay();
         InitializeUx5APage(pageStack);
         if (_session.ActiveArea is null)
         {
@@ -806,6 +808,10 @@ internal sealed partial class StudioWorkspaceShell : Control
         if (mode.StartsWith("ux4-j", StringComparison.OrdinalIgnoreCase))
         {
             return PrepareUx4JEvidence(mode);
+        }
+        if (mode.StartsWith("ux4-k", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx4KEvidence(mode);
         }
         if (mode.StartsWith("ux5-a", StringComparison.OrdinalIgnoreCase))
         {
@@ -1268,6 +1274,7 @@ internal sealed partial class StudioWorkspaceShell : Control
             CloseUx4HOverlay();
             CloseUx4IOverlay();
             CloseUx4JOverlay();
+            CloseUx4KOverlay();
         }
         CloseUx1WOverlay();
         CloseUx1XOverlay();
@@ -1390,6 +1397,7 @@ internal sealed partial class StudioWorkspaceShell : Control
         UpdateUx4HActionState();
         UpdateUx4IActionState();
         UpdateUx4JActionState();
+        UpdateUx4KActionState();
 
         var usesWorld = !isAssetLibrary && !isProjectConfiguration && !isDiagnostics &&
                         page.Layout != StudioPageLayout.Specialized;

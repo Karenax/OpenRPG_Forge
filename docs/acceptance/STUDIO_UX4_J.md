@@ -56,8 +56,8 @@ dégât ou transport réseau n'est réellement exécuté par Studio.
   préservés ;
 - les captures emploient une copie temporaire de la vraie Crypte ou un fallback canonique isolé.
   Source, historique, état dirty, sélection, approbations, page et surface active sont restaurés ;
-- cette preuve ne qualifie pas `ORF-CRE-027`, `ORF-CRE-029`, `ORF-CRE-030` ni
-  `ORF-CRE-033` à `ORF-CRE-049`, qui restent `planned`.
+- cette preuve ne qualifie pas `ORF-CRE-029`, `ORF-CRE-030` ni `ORF-CRE-033` à
+  `ORF-CRE-049`, qui restent `planned` ; `ORF-CRE-027` est qualifiée séparément par UX4-K.
 
 ## Reproduction
 

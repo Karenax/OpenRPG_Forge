@@ -980,7 +980,19 @@ appartenances, perception multi-sens, conversations associées et protections na
 captures Forward+ FHD inspectées, dont cinq sur le profil réel de la Crypte. Les références aux
 factions et dialogues sont résolues avant application, tandis que `OnConversation` et tous les
 profils voisins restent préservés. La matrice atteint 259 routes `functional` et 458 `planned`.
-Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX4_J.md` ; `ORF-CRE-027`,
+Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX4_J.md` ; `ORF-CRE-027` passe au lot
+UX4-K, tandis que `ORF-CRE-029`, `ORF-CRE-030` et `ORF-CRE-033` à `ORF-CRE-049` restent
+`planned` à ce jalon.
+
+### UX4-K — Déplacement de créature
+
+`ORF-CRE-027` est `functional` : les six modes de déplacement et les valeurs de vitesse,
+accélération, décélération, altitude et pente sont édités via `SetCreatureFoundationHandler` sans
+clamp silencieux. Le portail passe 28/28 tests en 117,80 s, le smoke global et deux captures
+Forward+ FHD inspectées, dont une sur le profil réel de la Crypte. La surface préserve toutes les
+compositions et tous les blueprints voisins ; son aperçu reste une projection typée en mémoire,
+sans acteur ni moteur physique exécuté. La matrice atteint 260 routes `functional` et 457
+`planned`. Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX4_K.md` ;
 `ORF-CRE-029`, `ORF-CRE-030` et `ORF-CRE-033` à `ORF-CRE-049` restent `planned`.
 
 ## Gates ergonomiques avant parité
