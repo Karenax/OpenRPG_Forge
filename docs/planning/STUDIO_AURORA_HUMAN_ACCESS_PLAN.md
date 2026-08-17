@@ -899,6 +899,16 @@ Python, graphe Roslyn déterministe à 9 968 nœuds et 71 303 relations sans dia
 Studio, Toolset, Runtime, Forward+, MCP, réseau et distribution. Cette preuve globale complète les
 36 portails incrémentaux ; elle ne transforme pas leurs limites explicites en capacités live.
 
+## UX4-B — Factions vivantes
+
+`ORF-FAC-006` à `ORF-FAC-010` sont `functional`. La page Contenu social édite réputation
+personnelle et globale, propagation par témoins, affiliations multiples et factions dynamiques dans
+le catalogue canonique. Le portail incrémental passe 51/51 tests factions en 102,95 s, le smoke
+global et deux captures Forward+ FHD inspectées : fallback temporaire sur Forgotten Forest et copie
+des données réelles de la Crypte. La matrice atteint 226 routes `functional` et 491 `planned`.
+Les limites runtime et commandes de reproduction sont liées dans
+`docs/acceptance/STUDIO_UX4_B.md` ; `ORF-FAC-011` à `ORF-FAC-014` restent `planned`.
+
 ## Gates ergonomiques avant parité
 
 Une page ne passe pas `Parity` si l’un des points suivants manque :

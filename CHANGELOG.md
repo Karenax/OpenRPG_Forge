@@ -7,6 +7,9 @@ SemVer ; les versions de schéma persistent séparément dans leurs documents.
 
 ### Changed
 
+- Forge Studio UX4-B : réputation personnelle et globale, témoins, affiliations multiples et
+  factions dynamiques éditables avec commande canonique, preuves isolées et captures Forward+ FHD
+  fallback/réelle Crypte ; matrice portée à 226 routes `functional` et 491 `planned` ;
 - Forge Studio UX2 clos à 98/98 routes Monde : terrain et tuiles, environnement/audio/qualité,
   événements et rencontres, navigation/portails/waypoints/routes/visibilité/LOD et ancres caméra,
   avec commandes canoniques, préservation, undo/redo et round-trip ;
