@@ -6,7 +6,7 @@ using Godot;
 
 namespace Forge.Studio.Presentation;
 
-internal sealed class StudioAreaLifecycleBindingCardUx2LwB : VBoxContainer
+internal sealed partial class StudioAreaLifecycleBindingCardUx2LwB : VBoxContainer
 {
     private readonly string _humanEventName;
     private readonly CheckBox _enabled;
@@ -150,7 +150,7 @@ internal sealed class StudioAreaLifecycleBindingCardUx2LwB : VBoxContainer
     }
 }
 
-internal sealed class StudioAreaLifecycleEventsOverlayUx2LwB : Control
+internal sealed partial class StudioAreaLifecycleEventsOverlayUx2LwB : Control
 {
     private readonly StudioSessionController _sourceSession;
     private StudioSessionController _session;
@@ -276,7 +276,7 @@ internal sealed class StudioAreaLifecycleEventsOverlayUx2LwB : Control
         heading.AddChild(StudioStyle.Label("MONDE VIVANT · CYCLE DE ZONE", 10, StudioStyle.Accent));
         heading.AddChild(StudioStyle.Label("Entrée et sortie", 20));
         heading.AddChild(StudioStyle.Label(
-            "AREA-022 · authoring canonique · émission typée observée · aucun script exécuté, " +
+            "AREA-022 · aperçu sec canonique · émission typée observée · aucun script exécuté, " +
             "aucun dispatch réseau et aucune simulation moteur dans cet outil",
             10,
             StudioStyle.Muted,

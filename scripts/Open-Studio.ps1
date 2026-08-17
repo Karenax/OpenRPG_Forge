@@ -54,6 +54,7 @@ param(
         'ux1-ai', 'ux1-ai-trigger-validation',
         'ux1-aj', 'ux1-aj-door-validation',
         'ux2-a', 'ux2-a-area-living-world',
+        'ux2-lw-b', 'ux2-lw-b-area-lifecycle',
         'ux2-b', 'ux2-b-terrain-tiles',
         'ux4-a', 'ux4-a-faction-foundation',
         'ux5-a', 'ux5-a-dialogue-foundation')]
