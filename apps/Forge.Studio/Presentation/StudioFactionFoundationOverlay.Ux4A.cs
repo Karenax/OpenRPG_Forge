@@ -189,12 +189,23 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
         _operation.AddItem("Supprimer avec contrôle des dépendances");
         selector.AddChild(_operation);
 
+        var tabsHost = new Control
+        {
+            CustomMinimumSize = new Vector2(0, 330),
+            CustomMaximumSize = new Vector2(-1, 620),
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            SizeFlagsVertical = SizeFlags.ExpandFill,
+            ClipContents = true,
+            PropagateMaximumSize = true,
+        };
+        root.AddChild(tabsHost);
         var tabs = new TabContainer
         {
             SizeFlagsHorizontal = SizeFlags.ExpandFill,
             SizeFlagsVertical = SizeFlags.ExpandFill,
         };
-        root.AddChild(tabs);
+        tabs.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
+        tabsHost.AddChild(tabs);
 
         var definition = Tab(tabs, "1 · Définition et parents");
         definition.AddChild(StudioStyle.Label(
@@ -1605,6 +1616,9 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
             Name = title,
             SizeFlagsHorizontal = SizeFlags.ExpandFill,
             SizeFlagsVertical = SizeFlags.ExpandFill,
+            HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
+            VerticalScrollMode = ScrollContainer.ScrollMode.Auto,
+            FollowFocus = true,
         };
         var content = new VBoxContainer
         {
