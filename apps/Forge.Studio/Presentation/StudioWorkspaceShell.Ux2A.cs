@@ -61,6 +61,8 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2LwDOverlay();
         CloseUx2LwEOverlay();
         CloseUx2LwFOverlay();
+        CloseUx2LwGOverlay();
+        CloseUx2LwHOverlay();
         SwitchPage("living-world", notify: false);
         _livingWorldPoliciesOverlay.Open();
         SetStatus("Politiques de zone ouvertes · sélection explicite · aperçu sec obligatoire");
@@ -97,6 +99,8 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2LwDOverlay();
         CloseUx2LwEOverlay();
         CloseUx2LwFOverlay();
+        CloseUx2LwGOverlay();
+        CloseUx2LwHOverlay();
         return _livingWorldPoliciesOverlay.PrepareEvidence(mode);
     }
 

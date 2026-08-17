@@ -8,7 +8,7 @@ using Godot;
 
 namespace Forge.Studio.Presentation;
 
-internal sealed class StudioEncounterScenarioOverlayUx2LwH : Control
+internal sealed partial class StudioEncounterScenarioOverlayUx2LwH : Control
 {
     private readonly StudioSessionController _sourceSession;
     private StudioSessionController _session;
@@ -215,8 +215,8 @@ internal sealed class StudioEncounterScenarioOverlayUx2LwH : Control
         _selection = StudioStyle.Label("Choisissez explicitement une rencontre complète.",
             11, StudioStyle.Warning, wrap: true); root.AddChild(_selection);
 
-        var bodyHost = new Control { CustomMinimumSize = new Vector2(0, 600),
-            CustomMaximumSize = new Vector2(-1, 900), SizeFlagsHorizontal = SizeFlags.ExpandFill,
+        var bodyHost = new Control { CustomMinimumSize = new Vector2(0, 330),
+            CustomMaximumSize = new Vector2(-1, 620), SizeFlagsHorizontal = SizeFlags.ExpandFill,
             SizeFlagsVertical = SizeFlags.ExpandFill, ClipContents = true, PropagateMaximumSize = true };
         root.AddChild(bodyHost);
         var scroll = new ScrollContainer { HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
@@ -770,7 +770,7 @@ internal sealed class StudioEncounterScenarioOverlayUx2LwH : Control
         for (var index = 0; index < _groupChoices.Count; index++)
         {
             _waveGroups.AddItem($"{_groupChoices[index].Label} · {_groupChoices[index].Provenance}");
-            if (selected.Contains(_groupChoices[index].Id)) _waveGroups.Select(index, deselectAll: false);
+            if (selected.Contains(_groupChoices[index].Id)) _waveGroups.Select(index, false);
         }
     }
 

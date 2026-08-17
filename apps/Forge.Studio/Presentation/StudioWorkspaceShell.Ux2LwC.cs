@@ -60,6 +60,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2LwEOverlay();
         CloseUx2LwFOverlay();
         CloseUx2LwGOverlay();
+        CloseUx2LwHOverlay();
         CloseUx4AOverlay();
         CloseUx5APage();
         CloseUx2LwBOverlay();
@@ -101,6 +102,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2LwEOverlay();
         CloseUx2LwFOverlay();
         CloseUx2LwGOverlay();
+        CloseUx2LwHOverlay();
         return _areaUserEventsOverlayUx2LwC.PrepareEvidence(mode);
     }
 

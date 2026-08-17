@@ -305,6 +305,7 @@ public sealed partial class StudioRoot : Control
         var ux2LwEValid = true;
         var ux2LwFValid = true;
         var ux2LwGValid = true;
+        var ux2LwHValid = true;
         var ux2BValid = true;
         var ux2CValid = true;
         var ux2EnvBValid = true;
@@ -336,6 +337,7 @@ public sealed partial class StudioRoot : Control
             var ux2LwEApproval = _session.CaptureLivingWorldTriggerApprovalUx2LwE();
             var ux2LwFApproval = _session.CaptureEncounterApprovalUx2LwF();
             var ux2LwGApproval = _session.CaptureEncounterPolicyApprovalUx2LwG();
+            var ux2LwHApproval = _session.CaptureEncounterScenarioApprovalUx2LwH();
             var ux2BApproval = _session.CaptureTerrainApprovalUx2B();
             var ux2CApproval = _session.CaptureTerrainSurfaceApprovalUx2C();
             var ux2EnvBApproval = _session.CaptureAreaEnvironmentApprovalUx2EnvB();
@@ -366,6 +368,7 @@ public sealed partial class StudioRoot : Control
                 ux2LwEValid = _shell.RunUx2LwESmoke();
                 ux2LwFValid = _shell.RunUx2LwFSmoke();
                 ux2LwGValid = _shell.RunUx2LwGSmoke();
+                ux2LwHValid = _shell.RunUx2LwHSmoke();
                 ux2BValid = _shell.RunUx2BSmoke();
                 ux2CValid = _shell.RunUx2CSmoke();
                 ux2EnvBValid = _shell.RunUx2EnvBSmoke();
@@ -397,6 +400,7 @@ public sealed partial class StudioRoot : Control
                 _session.RestoreLivingWorldTriggerApprovalUx2LwE(ux2LwEApproval);
                 _session.RestoreEncounterApprovalUx2LwF(ux2LwFApproval);
                 _session.RestoreEncounterPolicyApprovalUx2LwG(ux2LwGApproval);
+                _session.RestoreEncounterScenarioApprovalUx2LwH(ux2LwHApproval);
                 _session.RestoreTerrainApprovalUx2B(ux2BApproval);
                 _session.RestoreTerrainSurfaceApprovalUx2C(ux2CApproval);
                 _session.RestoreAreaEnvironmentApprovalUx2EnvB(ux2EnvBApproval);
@@ -427,6 +431,7 @@ public sealed partial class StudioRoot : Control
                 Equals(_session.CaptureLivingWorldTriggerApprovalUx2LwE(), ux2LwEApproval) &&
                 Equals(_session.CaptureEncounterApprovalUx2LwF(), ux2LwFApproval) &&
                 Equals(_session.CaptureEncounterPolicyApprovalUx2LwG(), ux2LwGApproval) &&
+                Equals(_session.CaptureEncounterScenarioApprovalUx2LwH(), ux2LwHApproval) &&
                 Equals(_session.CaptureTerrainApprovalUx2B(), ux2BApproval) &&
                 Equals(_session.CaptureTerrainSurfaceApprovalUx2C(), ux2CApproval) &&
                 Equals(_session.CaptureAreaEnvironmentApprovalUx2EnvB(), ux2EnvBApproval) &&
@@ -480,7 +485,7 @@ public sealed partial class StudioRoot : Control
             !ux1WValid || !ux1XValid || !ux1YValid || !ux1ZValid || !ux1AAValid || !ux1ABValid || !ux1ACValid ||
             !ux1ADValid || !ux1AEValid || !ux1AFValid || !ux1AGValid || !ux1AHValid || !ux1AIValid || !ux1AJValid ||
             !ux2AValid || !ux2LwBValid || !ux2LwCValid || !ux2LwDValid || !ux2LwEValid || !ux2LwFValid ||
-            !ux2LwGValid ||
+            !ux2LwGValid || !ux2LwHValid ||
             !ux2BValid || !ux2CValid ||
             !ux2EnvBValid || !ux2EnvCValid || !ux2EnvDValid || !ux2EnvEValid || !ux2EnvFValid || !ux2EnvGValid ||
             !ux2EnvHValid || !ux2EnvIValid || !ux2EnvJValid ||
@@ -503,7 +508,8 @@ public sealed partial class StudioRoot : Control
                 $"ux1ab={ux1ABValid} ux1ac={ux1ACValid} ux1ad={ux1ADValid} ux1ae={ux1AEValid} " +
                 $"ux1af={ux1AFValid} ux1ag={ux1AGValid} ux1ah={ux1AHValid} ux1ai={ux1AIValid} " +
                 $"ux1aj={ux1AJValid} ux2a={ux2AValid} ux2lwb={ux2LwBValid} ux2lwc={ux2LwCValid} " +
-                $"ux2lwd={ux2LwDValid} ux2lwe={ux2LwEValid} ux2lwf={ux2LwFValid} ux2lwg={ux2LwGValid} ux2b={ux2BValid} " +
+                $"ux2lwd={ux2LwDValid} ux2lwe={ux2LwEValid} ux2lwf={ux2LwFValid} ux2lwg={ux2LwGValid} " +
+                $"ux2lwh={ux2LwHValid} ux2b={ux2BValid} " +
                 $"ux2c={ux2CValid} ux2envb={ux2EnvBValid} ux2envc={ux2EnvCValid} ux2envd={ux2EnvDValid} " +
                 $"ux2enve={ux2EnvEValid} ux2envf={ux2EnvFValid} ux2envg={ux2EnvGValid} " +
                 $"ux2envh={ux2EnvHValid} ux2envi={ux2EnvIValid} ux2envj={ux2EnvJValid} " +
