@@ -307,6 +307,7 @@ public sealed partial class StudioRoot : Control
         var ux2EnvBValid = true;
         var ux2EnvCValid = true;
         var ux2EnvDValid = true;
+        var ux2EnvEValid = true;
         var ux2NavBValid = true;
         var ux2NavCValid = true;
         var ux4AValid = true;
@@ -323,6 +324,7 @@ public sealed partial class StudioRoot : Control
             var ux2EnvBApproval = _session.CaptureAreaEnvironmentApprovalUx2EnvB();
             var ux2EnvCApproval = _session.CaptureClimateApprovalUx2EnvC();
             var ux2EnvDApproval = _session.CaptureRenderingApprovalUx2EnvD();
+            var ux2EnvEApproval = _session.CaptureAudioApprovalUx2EnvE();
             var ux2NavBApproval = _session.CaptureNavigationApprovalUx2NavB();
             var ux2NavCApproval = _session.CaptureWaypointApprovalUx2NavC();
             var ux4AApproval = _session.CaptureFactionApprovalUx4A();
@@ -338,6 +340,7 @@ public sealed partial class StudioRoot : Control
                 ux2EnvBValid = _shell.RunUx2EnvBSmoke();
                 ux2EnvCValid = _shell.RunUx2EnvCSmoke();
                 ux2EnvDValid = _shell.RunUx2EnvDSmoke();
+                ux2EnvEValid = _shell.RunUx2EnvESmoke();
                 ux2NavBValid = _shell.RunUx2NavBSmoke();
                 ux2NavCValid = _shell.RunUx2NavCSmoke();
                 ux4AValid = _shell.RunUx4ASmoke();
@@ -354,6 +357,7 @@ public sealed partial class StudioRoot : Control
                 _session.RestoreAreaEnvironmentApprovalUx2EnvB(ux2EnvBApproval);
                 _session.RestoreClimateApprovalUx2EnvC(ux2EnvCApproval);
                 _session.RestoreRenderingApprovalUx2EnvD(ux2EnvDApproval);
+                _session.RestoreAudioApprovalUx2EnvE(ux2EnvEApproval);
                 _session.RestoreNavigationApprovalUx2NavB(ux2NavBApproval);
                 _session.RestoreWaypointApprovalUx2NavC(ux2NavCApproval);
                 _session.RestoreFactionApprovalUx4A(ux4AApproval);
@@ -369,6 +373,7 @@ public sealed partial class StudioRoot : Control
                 Equals(_session.CaptureAreaEnvironmentApprovalUx2EnvB(), ux2EnvBApproval) &&
                 Equals(_session.CaptureClimateApprovalUx2EnvC(), ux2EnvCApproval) &&
                 Equals(_session.CaptureRenderingApprovalUx2EnvD(), ux2EnvDApproval) &&
+                Equals(_session.CaptureAudioApprovalUx2EnvE(), ux2EnvEApproval) &&
                 Equals(_session.CaptureNavigationApprovalUx2NavB(), ux2NavBApproval) &&
                 Equals(_session.CaptureWaypointApprovalUx2NavC(), ux2NavCApproval) &&
                 Equals(_session.CaptureFactionApprovalUx4A(), ux4AApproval) &&
@@ -405,8 +410,8 @@ public sealed partial class StudioRoot : Control
             !ux1WValid || !ux1XValid || !ux1YValid || !ux1ZValid || !ux1AAValid || !ux1ABValid || !ux1ACValid ||
             !ux1ADValid || !ux1AEValid || !ux1AFValid || !ux1AGValid || !ux1AHValid || !ux1AIValid || !ux1AJValid ||
             !ux2AValid || !ux2LwBValid || !ux2LwCValid || !ux2LwDValid || !ux2BValid || !ux2CValid ||
-            !ux2EnvBValid || !ux2EnvCValid ||
-            !ux2EnvDValid || !ux2NavBValid || !ux2NavCValid ||
+            !ux2EnvBValid || !ux2EnvCValid || !ux2EnvDValid || !ux2EnvEValid ||
+            !ux2NavBValid || !ux2NavCValid ||
             !ux4AValid || !ux5AValid ||
             !candidateApprovalsValid || !evidenceValid)
         {
@@ -426,6 +431,7 @@ public sealed partial class StudioRoot : Control
                 $"ux1aj={ux1AJValid} ux2a={ux2AValid} ux2lwb={ux2LwBValid} ux2lwc={ux2LwCValid} " +
                 $"ux2lwd={ux2LwDValid} ux2b={ux2BValid} " +
                 $"ux2c={ux2CValid} ux2envb={ux2EnvBValid} ux2envc={ux2EnvCValid} ux2envd={ux2EnvDValid} " +
+                $"ux2enve={ux2EnvEValid} " +
                 $"ux2navb={ux2NavBValid} ux2navc={ux2NavCValid} " +
                 $"ux4a={ux4AValid} ux5a={ux5AValid} " +
                 $"candidate_approvals={candidateApprovalsValid} " +

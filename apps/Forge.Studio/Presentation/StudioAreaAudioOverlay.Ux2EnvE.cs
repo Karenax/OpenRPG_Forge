@@ -745,12 +745,19 @@ internal sealed partial class StudioAreaAudioOverlayUx2EnvE : ColorRect
         if (_audioDraft is null) return null;
         return _audioDraft with
         {
-            DayMusic = _day.Text, NightMusic = _night.Text, CombatMusic = _combat.Text,
-            Ambience = _ambience.Text, TransitionSeconds = _transition.Value,
-            Playlist = ReadLinesUx2EnvE(_playlist.Text), OrderMode = (AudioOrderMode)_order.Selected,
-            IntervalSeconds = _interval.Value, IntervalVariationSeconds = _variation.Value,
-            RelativeVolume = _relativeVolume.Value, AdaptiveLayers = _layers.Values,
-            MusicStates = _music.Values, MixBuses = _buses.Values,
+            DayMusic = _day.Text,
+            NightMusic = _night.Text,
+            CombatMusic = _combat.Text,
+            Ambience = _ambience.Text,
+            TransitionSeconds = _transition.Value,
+            Playlist = ReadLinesUx2EnvE(_playlist.Text),
+            OrderMode = (AudioOrderMode)_order.Selected,
+            IntervalSeconds = _interval.Value,
+            IntervalVariationSeconds = _variation.Value,
+            RelativeVolume = _relativeVolume.Value,
+            AdaptiveLayers = _layers.Values,
+            MusicStates = _music.Values,
+            MixBuses = _buses.Values,
         };
     }
 
