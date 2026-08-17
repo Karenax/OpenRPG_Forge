@@ -339,6 +339,14 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
         _status = StudioStyle.Label("Prêt · sélection explicite requise", 10, StudioStyle.Muted, wrap: true);
         reviewColumn.AddChild(_status);
 
+        var actionNote = StudioStyle.Label(
+            "Les détails techniques restent masqués ; le journal conserve la commande et sa révision.",
+            9,
+            StudioStyle.Muted,
+            wrap: true);
+        actionNote.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+        root.AddChild(actionNote);
+
         var actions = new HBoxContainer();
         actions.AddThemeConstantOverride("separation", 8);
         root.AddChild(actions);
@@ -346,15 +354,14 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
         _apply = StudioStyle.Button("Appliquer", primary: true, compact: true);
         _undo = StudioStyle.Button("Annuler", compact: true);
         _redo = StudioStyle.Button("Rétablir", compact: true);
+        _preview.CustomMinimumSize = new Vector2(124, 34);
+        _apply.CustomMinimumSize = new Vector2(108, 34);
+        _undo.CustomMinimumSize = new Vector2(96, 34);
+        _redo.CustomMinimumSize = new Vector2(96, 34);
         actions.AddChild(_preview);
         actions.AddChild(_apply);
         actions.AddChild(_undo);
         actions.AddChild(_redo);
-        actions.AddChild(StudioStyle.Label(
-            "Les détails techniques restent masqués ; le journal conserve la commande et sa révision.",
-            9,
-            StudioStyle.Muted,
-            wrap: true));
 
         ConnectEvents();
         SetEditingEnabled(false);
