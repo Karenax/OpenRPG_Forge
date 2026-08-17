@@ -65,6 +65,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2NavGOverlay();
         CloseUx2NavHOverlay();
         CloseUx2NavIOverlay();
+        CloseUx2EnvJOverlay();
         SwitchPage("navigation", notify: false);
         _waypointLocatorOverlayUx2NavE.Open();
         SetStatus("Ancres ouvertes · sélection explicite · aperçu sec obligatoire");
@@ -104,6 +105,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2NavGOverlay();
         CloseUx2NavHOverlay();
         CloseUx2NavIOverlay();
+        CloseUx2EnvJOverlay();
         return _waypointLocatorOverlayUx2NavE.PrepareEvidence(mode);
     }
 

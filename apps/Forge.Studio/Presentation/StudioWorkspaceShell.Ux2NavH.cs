@@ -64,6 +64,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2NavFOverlay();
         CloseUx2NavGOverlay();
         CloseUx2NavIOverlay();
+        CloseUx2EnvJOverlay();
         SwitchPage("navigation", notify: false);
         _triggerPortalNavigationOverlayUx2NavH.Open();
         SetStatus("Transitions de déclencheur ouvertes · sélection explicite · aperçu sec obligatoire");
@@ -98,6 +99,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2NavFOverlay();
         CloseUx2NavGOverlay();
         CloseUx2NavIOverlay();
+        CloseUx2EnvJOverlay();
         return _triggerPortalNavigationOverlayUx2NavH.PrepareEvidence(mode);
     }
 

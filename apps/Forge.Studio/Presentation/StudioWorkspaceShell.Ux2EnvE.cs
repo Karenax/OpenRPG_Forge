@@ -41,6 +41,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2EnvCOverlay(); CloseUx2EnvDOverlay(); CloseUx2EnvFOverlay(); CloseUx2EnvGOverlay();
         CloseUx2EnvHOverlay();
         CloseUx2EnvIOverlay();
+        CloseUx2EnvJOverlay();
         SwitchPage("environment", notify: false); _areaAudioOverlayUx2EnvE.Open();
         SetStatus("Audio de zone ouvert · sélection explicite · deux aperçus secs obligatoires");
     }
@@ -68,6 +69,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2EnvGOverlay();
         CloseUx2EnvHOverlay();
         CloseUx2EnvIOverlay();
+        CloseUx2EnvJOverlay();
         return _areaAudioOverlayUx2EnvE.PrepareEvidence(mode);
     }
 

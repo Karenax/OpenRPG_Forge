@@ -198,6 +198,7 @@ internal sealed partial class StudioWorkspaceShell : Control
         BuildUx2EnvGActions(headingRow);
         BuildUx2EnvHActions(headingRow);
         BuildUx2EnvIActions(headingRow);
+        BuildUx2EnvJActions(headingRow);
         BuildUx2NavBActions(headingRow);
         BuildUx2NavCActions(headingRow);
         BuildUx2NavDActions(headingRow);
@@ -347,6 +348,7 @@ internal sealed partial class StudioWorkspaceShell : Control
         InitializeUx2EnvGOverlay();
         InitializeUx2EnvHOverlay();
         InitializeUx2EnvIOverlay();
+        InitializeUx2EnvJOverlay();
         InitializeUx2NavBOverlay();
         InitializeUx2NavCOverlay();
         InitializeUx2NavDOverlay();
@@ -571,6 +573,10 @@ internal sealed partial class StudioWorkspaceShell : Control
         {
             return PrepareUx1AJEvidence(mode);
         }
+        if (mode.StartsWith("ux2-area-034", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx2EnvJEvidence(mode);
+        }
         if (mode.StartsWith("ux2-a", StringComparison.OrdinalIgnoreCase))
         {
             return PrepareUx2AEvidence(mode);
@@ -638,6 +644,10 @@ internal sealed partial class StudioWorkspaceShell : Control
         if (mode.StartsWith("ux2-env-i", StringComparison.OrdinalIgnoreCase))
         {
             return PrepareUx2EnvIEvidence(mode);
+        }
+        if (mode.StartsWith("ux2-env-j", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx2EnvJEvidence(mode);
         }
         if (mode.StartsWith("ux2-nav-b", StringComparison.OrdinalIgnoreCase))
         {
@@ -1096,6 +1106,10 @@ internal sealed partial class StudioWorkspaceShell : Control
             CloseUx2EnvHOverlay();
             CloseUx2EnvIOverlay();
         }
+        if (page.Id is not ("environment" or "navigation"))
+        {
+            CloseUx2EnvJOverlay();
+        }
         if (page.Id != "navigation")
         {
             CloseUx2NavBOverlay();
@@ -1203,6 +1217,7 @@ internal sealed partial class StudioWorkspaceShell : Control
         UpdateUx2EnvGActionState();
         UpdateUx2EnvHActionState();
         UpdateUx2EnvIActionState();
+        UpdateUx2EnvJActionState();
         UpdateUx2NavBActionState();
         UpdateUx2NavCActionState();
         UpdateUx2NavDActionState();

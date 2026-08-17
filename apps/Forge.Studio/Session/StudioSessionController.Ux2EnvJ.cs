@@ -179,7 +179,7 @@ internal sealed partial class StudioSessionController
             item.Generate2D,
             item.Generate3D,
             item.FogOfWar)).ToArray();
-        var map = candidateAuthoring.Map;
+        var map = candidateAuthoring!.Map;
         var initialReveal = new AreaMapExplorationState(
             map.ExplorationScope,
             "aperçu-studio",

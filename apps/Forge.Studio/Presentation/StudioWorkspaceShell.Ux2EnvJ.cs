@@ -64,7 +64,16 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2EnvGOverlay();
         CloseUx2EnvHOverlay();
         CloseUx2EnvIOverlay();
-        SwitchPage("environment", notify: false);
+        CloseUx2NavBOverlay();
+        CloseUx2NavCOverlay();
+        CloseUx2NavDOverlay();
+        CloseUx2NavEOverlay();
+        CloseUx2NavFOverlay();
+        CloseUx2NavGOverlay();
+        CloseUx2NavHOverlay();
+        CloseUx2NavIOverlay();
+        var targetPage = PageId == "navigation" ? "navigation" : "environment";
+        SwitchPage(targetPage, notify: false);
         _mapFowLodOverlayUx2EnvJ.Open();
         SetStatus("Carte & LOD ouverts · sélection explicite · aperçu sec obligatoire");
     }
@@ -78,7 +87,8 @@ internal sealed partial class StudioWorkspaceShell
     private void UpdateUx2EnvJActionState()
     {
         if (_mapFowLodButtonUx2EnvJ is null) return;
-        _mapFowLodButtonUx2EnvJ.Visible = PageId == "environment" && _session.Project?.Areas.Count > 0;
+        _mapFowLodButtonUx2EnvJ.Visible = (PageId is "environment" or "navigation") &&
+                                          _session.Project?.Areas.Count > 0;
     }
 
     private void CloseUx2EnvJOverlay()
@@ -88,7 +98,10 @@ internal sealed partial class StudioWorkspaceShell
 
     internal bool PrepareUx2EnvJEvidence(string mode)
     {
-        SwitchPage("environment", notify: false);
+        var targetPage = mode.StartsWith("ux2-area-034", StringComparison.OrdinalIgnoreCase)
+            ? "navigation"
+            : "environment";
+        SwitchPage(targetPage, notify: false);
         CloseUx2EnvBOverlay();
         CloseUx2EnvCOverlay();
         CloseUx2EnvDOverlay();
@@ -97,6 +110,14 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2EnvGOverlay();
         CloseUx2EnvHOverlay();
         CloseUx2EnvIOverlay();
+        CloseUx2NavBOverlay();
+        CloseUx2NavCOverlay();
+        CloseUx2NavDOverlay();
+        CloseUx2NavEOverlay();
+        CloseUx2NavFOverlay();
+        CloseUx2NavGOverlay();
+        CloseUx2NavHOverlay();
+        CloseUx2NavIOverlay();
         return _mapFowLodOverlayUx2EnvJ.PrepareEvidence(mode);
     }
 
