@@ -532,8 +532,23 @@ internal sealed partial class StudioDialogueFoundationPage : Control
         ReleaseEvidenceWorkspace();
         CompleteEvidenceSourceAudit();
         _session = _sourceSession;
-        _session.CancelDialogueUx5A();
         OpenActive();
+    }
+
+    internal void RestoreSourceSurfaceAfterSmoke()
+    {
+        ReleaseEvidenceWorkspace();
+        CompleteEvidenceSourceAudit();
+        _session = _sourceSession;
+        OpenActive(cancelApproval: false);
+    }
+
+    internal void HideSourceSurfaceAfterSmoke()
+    {
+        Visible = false;
+        ReleaseEvidenceWorkspace();
+        CompleteEvidenceSourceAudit();
+        _session = _sourceSession;
     }
 
     internal void Close()
@@ -740,9 +755,12 @@ internal sealed partial class StudioDialogueFoundationPage : Control
         return valid;
     }
 
-    private void OpenActive()
+    private void OpenActive(bool cancelApproval = true)
     {
-        _session.CancelDialogueUx5A();
+        if (cancelApproval)
+        {
+            _session.CancelDialogueUx5A();
+        }
         Visible = true;
         _lastKeyboardReorderExercised = false;
         _lastDragDropReorderExercised = false;

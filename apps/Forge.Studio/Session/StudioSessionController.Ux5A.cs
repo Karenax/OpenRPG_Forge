@@ -400,8 +400,11 @@ internal sealed partial class StudioSessionController
             var explicitSelection = editing.CreateDialogueDraftUx5A() is null;
             var evidenceChoice = editing.DialogueChoicesUx5A.Single(item =>
                 item.Label.Contains("Branche témoin", StringComparison.Ordinal));
-            var draft = editing.CreateDialogueDraftUx5A(evidenceChoice.Id)!;
-            explicitSelection &= draft is not null;
+            var draft = editing.CreateDialogueDraftUx5A(evidenceChoice.Id);
+            if (draft is null)
+            {
+                throw new InvalidOperationException("The isolated UX5-A dialogue draft is unavailable.");
+            }
             var protectedSpeakerId = draft.Lines[0].SpeakerBlueprintId;
             var protectedSpeakerSurfaced = protectedSpeakerId is not null &&
                                             editing.DialogueSpeakerChoicesUx5A.Any(item =>

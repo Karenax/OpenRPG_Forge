@@ -7,6 +7,7 @@ internal sealed partial class StudioWorkspaceShell
 {
     private StudioDialogueFoundationPage _dialogueFoundationPageUx5A = null!;
     private bool _preparingUx5AEvidence;
+    private bool _restoringUx5ASmoke;
 
     private void InitializeUx5APage(Control pageStack)
     {
@@ -18,12 +19,13 @@ internal sealed partial class StudioWorkspaceShell
         pageStack.AddChild(_dialogueFoundationPageUx5A);
     }
 
-    private void UpdateUx5APage(string pageId)
+    private void UpdateUx5APage(string pageId, bool preserveApproval = false)
     {
         if (_dialogueFoundationPageUx5A is null)
         {
             return;
         }
+        preserveApproval |= _restoringUx5ASmoke;
         if (string.Equals(pageId, "dialogues", StringComparison.Ordinal))
         {
             _worldSplit.Visible = false;
@@ -32,13 +34,27 @@ internal sealed partial class StudioWorkspaceShell
             _assetLibraryPage.Visible = false;
             if (!_preparingUx5AEvidence)
             {
-                _dialogueFoundationPageUx5A.Open();
+                if (preserveApproval)
+                {
+                    _dialogueFoundationPageUx5A.RestoreSourceSurfaceAfterSmoke();
+                }
+                else
+                {
+                    _dialogueFoundationPageUx5A.Open();
+                }
             }
             SetStatus(
                 "Dialogues UX5-A · sélection explicite · lignes et choix · dry-run obligatoire");
             return;
         }
-        CloseUx5APage();
+        if (preserveApproval)
+        {
+            _dialogueFoundationPageUx5A.HideSourceSurfaceAfterSmoke();
+        }
+        else
+        {
+            CloseUx5APage();
+        }
     }
 
     private void CloseUx5APage()
@@ -74,6 +90,7 @@ internal sealed partial class StudioWorkspaceShell
 
     internal bool RunUx5ASmoke()
     {
+        var originalPageId = PageId;
         var originalProject = _session.Project;
         var originalHistory = _session.History;
         var originalRevision = originalHistory?.State.Revision;
@@ -107,12 +124,28 @@ internal sealed partial class StudioWorkspaceShell
                       _dialogueFoundationPageUx5A.PaginationIsInventoryOnly &&
                       _dialogueFoundationPageUx5A.ShowsHumanSurface &&
                       _dialogueFoundationPageUx5A.EvidenceSourceUntouched;
+        var keyboardUi = _dialogueFoundationPageUx5A.KeyboardReorderExercised;
+        var dragDropUi = _dialogueFoundationPageUx5A.DragDropReorderExercised;
         _dialogueFoundationPageUx5A.Close();
         var evidenceResourcesReleased = _dialogueFoundationPageUx5A.EvidenceResourcesReleased;
         var evidenceSourceUntouched = _dialogueFoundationPageUx5A.EvidenceSourceUntouched;
         var evidenceSessionRestored = _dialogueFoundationPageUx5A.SourceSessionRestored;
 
         var result = _session.RunUx5AContractSmoke();
+        _restoringUx5ASmoke = true;
+        try
+        {
+            SwitchPage(originalPageId, notify: false);
+            UpdateUx5APage(originalPageId, preserveApproval: true);
+        }
+        finally
+        {
+            _restoringUx5ASmoke = false;
+        }
+        var surfaceRestored = PageId == originalPageId &&
+                              (string.Equals(originalPageId, "dialogues", StringComparison.Ordinal)
+                                  ? _dialogueFoundationPageUx5A.IsOpen
+                                  : !_dialogueFoundationPageUx5A.IsOpen);
         var currentHistory = _session.History;
         var sourceUntouched = ReferenceEquals(originalProject, _session.Project) &&
                               originalHistory is not null && currentHistory is not null &&
@@ -129,7 +162,7 @@ internal sealed partial class StudioWorkspaceShell
         var valid = result.Succeeded && uiTransaction && uiReady &&
                     uiTransactionSourceUntouched && uiTransactionResourcesReleased &&
                     uiTransactionSessionRestored && evidenceSourceUntouched &&
-                    evidenceResourcesReleased && evidenceSessionRestored && sourceUntouched;
+                    evidenceResourcesReleased && evidenceSessionRestored && sourceUntouched && surfaceRestored;
         GD.Print(
             $"OPENRPG_FORGE_STUDIO_UX5A_{(valid ? "PASS" : "FAILED")} " +
             $"explicit_selection={result.ExplicitSelection.ToString().ToLowerInvariant()} " +
@@ -153,10 +186,11 @@ internal sealed partial class StudioWorkspaceShell
             $"undo_redo={result.UndoRedo.ToString().ToLowerInvariant()} " +
             $"roundtrip={result.RoundTrip.ToString().ToLowerInvariant()} " +
             $"preservation={result.StructuralPreservation.ToString().ToLowerInvariant()} " +
-            $"keyboard_ui={_dialogueFoundationPageUx5A.KeyboardReorderExercised.ToString().ToLowerInvariant()} " +
-            $"drag_drop_ui={_dialogueFoundationPageUx5A.DragDropReorderExercised.ToString().ToLowerInvariant()} " +
+            $"keyboard_ui={keyboardUi.ToString().ToLowerInvariant()} " +
+            $"drag_drop_ui={dragDropUi.ToString().ToLowerInvariant()} " +
             $"ui={uiReady.ToString().ToLowerInvariant()} " +
             $"ui_transaction={uiTransaction.ToString().ToLowerInvariant()} " +
+            $"surface_restored={surfaceRestored.ToString().ToLowerInvariant()} " +
             $"source_untouched={sourceUntouched.ToString().ToLowerInvariant()} " +
             $"resources_released={(result.ResourcesReleased && evidenceResourcesReleased).ToString().ToLowerInvariant()} windows=1");
         return valid;
