@@ -226,20 +226,24 @@ internal sealed partial class StudioSessionController
         var matches = project.Module.WorldFeatures.Triggers
             .Where(item => item.Id == requestedProfileId && item.AreaId == area.Id)
             .ToArray();
-        if (matches.Length != 1 || matches[0].Foundation is null)
+        if (matches.Length != 1)
         {
             return null;
         }
 
         var profile = matches[0];
-        var validation = profile.Foundation.Validation;
+        if (profile.Foundation is not { } foundation)
+        {
+            return null;
+        }
+        var validation = foundation.Validation;
         return new StudioTriggerValidationDraft(
             profile.Id,
             profile.BlueprintId,
             profile.AreaId,
             history.State.Revision,
             validation is not null,
-            profile.Foundation.ValidationRequiredAtRuntime,
+            foundation.ValidationRequiredAtRuntime,
             validation?.KnownPortalDestinationIds.ToArray() ?? [],
             validation?.KnownTargetIds.ToArray() ?? [],
             validation?.KnownScriptIds.ToArray() ?? [],
@@ -418,14 +422,15 @@ internal sealed partial class StudioSessionController
             Validation = validation,
             ValidationRequiredAtRuntime = draft.ValidationRequiredAtRuntime,
         };
-        candidateProfile = currentProfile with { Foundation = foundation };
+        var updatedProfile = currentProfile with { Foundation = foundation };
+        candidateProfile = updatedProfile;
         var candidateCatalog = new WorldFeatureCatalog(
             catalog.Id,
             catalog.SchemaVersion,
             catalog.Provenance,
             catalog.Placeables,
             catalog.Doors,
-            catalog.Triggers.Select(item => item.Id == candidateProfile.Id ? candidateProfile : item).ToArray(),
+            catalog.Triggers.Select(item => item.Id == updatedProfile.Id ? updatedProfile : item).ToArray(),
             catalog.Encounters,
             catalog.VehicleRoutes,
             catalog.Merchants,
@@ -790,21 +795,22 @@ internal sealed partial class StudioSessionController
             var appliedCatalog = appliedProject.Module.WorldFeatures;
             var appliedTarget = appliedCatalog.Triggers.Single(item => item.Id == targetProfile.Id);
             var appliedNeighbor = appliedCatalog.Triggers.Single(item => item.Id == neighborProfile.Id);
-            var appliedValidation = appliedTarget.Foundation?.Validation;
-            if (!freshPreview.Succeeded || !apply.Succeeded || appliedValidation is null)
+            var appliedFoundation = appliedTarget.Foundation;
+            if (!freshPreview.Succeeded || !apply.Succeeded ||
+                appliedFoundation?.Validation is not { } appliedValidation)
             {
                 return FailedUx1AISmoke();
             }
 
             var contextCreation = loadedTarget.Foundation!.Validation is null &&
                                   SameValidationUx1AI(freshDraft, appliedValidation);
-            var requiredFlag = appliedTarget.Foundation.ValidationRequiredAtRuntime;
+            var requiredFlag = appliedFoundation.ValidationRequiredAtRuntime;
             var resolution = WorldFeatureRuntimeResolver.ResolveTriggerValidation(appliedTarget);
             var runtimeResolution = resolution.Available && resolution.Validation is not null &&
                                     SameValidationUx1AI(freshDraft, resolution.Validation);
             var foundationNeighborsPreserved = SameFoundationNeighborsByReferenceUx1AI(
                 loadedTarget.Foundation,
-                appliedTarget.Foundation);
+                appliedFoundation);
             var triggerNeighborsPreserved = SameTriggerNeighborsByReferenceUx1AI(loadedTarget, appliedTarget) &&
                                             ReferenceEquals(appliedNeighbor, loadedNeighbor) &&
                                             SameReferencesUx1AI(appliedCatalog.Placeables, initialCatalog.Placeables) &&

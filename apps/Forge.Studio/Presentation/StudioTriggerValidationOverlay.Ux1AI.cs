@@ -252,11 +252,11 @@ internal sealed partial class StudioTriggerValidationOverlay : Control
         var footer = new HBoxContainer();
         footer.AddThemeConstantOverride("separation", 7);
         root.AddChild(footer);
-        _preview = StudioStyle.Button("Prévisualiser", accent: true);
+        _preview = StudioStyle.Button("Prévisualiser", primary: true);
         _preview.TooltipText = "Valider sans modifier le projet.";
         _preview.Pressed += Preview;
         footer.AddChild(_preview);
-        _apply = StudioStyle.Button("Appliquer", accent: true);
+        _apply = StudioStyle.Button("Appliquer", primary: true);
         _apply.TooltipText = "Disponible seulement après un aperçu canonique réussi.";
         _apply.Pressed += Apply;
         footer.AddChild(_apply);
@@ -907,9 +907,10 @@ internal sealed partial class StudioTriggerValidationOverlay : Control
 
     private static CheckBox Check(string text)
     {
-        var check = new CheckBox { Text = text };
-        StudioStyle.ApplyCheckBox(check);
-        return check;
+        var value = new CheckBox { Text = text, FocusMode = FocusModeEnum.All };
+        value.AddThemeFontSizeOverride("font_size", StudioStyle.BaseFontSize);
+        value.AddThemeColorOverride("font_color", StudioStyle.Text);
+        return value;
     }
 
     private static bool SameValidation(
