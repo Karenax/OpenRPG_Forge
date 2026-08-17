@@ -184,6 +184,7 @@ internal sealed partial class StudioWorkspaceShell : Control
         BuildUx2AActions(headingRow);
         BuildUx2LwBActions(headingRow);
         BuildUx2BActions(headingRow);
+        BuildUx2CActions(headingRow);
         BuildUx2EnvBActions(headingRow);
         BuildUx4AActions(headingRow);
         _primaryAction = StudioStyle.Button("Migration en cours", primary: true, compact: true);
@@ -312,6 +313,7 @@ internal sealed partial class StudioWorkspaceShell : Control
         InitializeUx2AOverlay();
         InitializeUx2LwBOverlay();
         InitializeUx2BWorkspace();
+        InitializeUx2CWorkspace();
         InitializeUx2EnvBOverlay();
         InitializeUx4AOverlay();
         InitializeUx5APage(pageStack);
@@ -540,6 +542,10 @@ internal sealed partial class StudioWorkspaceShell : Control
         if (mode.StartsWith("ux2-b", StringComparison.OrdinalIgnoreCase))
         {
             return PrepareUx2BEvidence(mode);
+        }
+        if (mode.StartsWith("ux2-c", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx2CEvidence(mode);
         }
         if (mode.StartsWith("ux2-env-b", StringComparison.OrdinalIgnoreCase))
         {
@@ -952,6 +958,7 @@ internal sealed partial class StudioWorkspaceShell : Control
         if (page.Id != "terrain")
         {
             CloseUx2BWorkspace();
+            CloseUx2CWorkspace();
         }
         if (page.Id != "environment")
         {
@@ -1039,6 +1046,7 @@ internal sealed partial class StudioWorkspaceShell : Control
         UpdateUx2AActionState();
         UpdateUx2LwBActionState();
         UpdateUx2BActionState();
+        UpdateUx2CActionState();
         UpdateUx2EnvBActionState();
         UpdateUx4AActionState();
 

@@ -32,6 +32,7 @@ internal sealed partial class StudioWorkspaceShell
             return;
         }
         SwitchPage("terrain", notify: false);
+        CloseUx2CWorkspace();
         _terrainTilesWorkspaceUx2B.Open();
         SetStatus("Construction modulaire ouverte · sélection explicite · aperçu sec obligatoire");
     }
@@ -56,6 +57,7 @@ internal sealed partial class StudioWorkspaceShell
     internal bool PrepareUx2BEvidence(string mode)
     {
         SwitchPage("terrain", notify: false);
+        CloseUx2CWorkspace();
         return _terrainTilesWorkspaceUx2B.PrepareEvidence(mode);
     }
 

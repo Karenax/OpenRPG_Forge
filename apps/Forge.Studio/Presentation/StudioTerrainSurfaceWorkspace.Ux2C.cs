@@ -164,7 +164,8 @@ internal sealed partial class StudioTerrainSurfaceWorkspaceUx2C : Control
             var text = string.Join(' ', _summary.Text, _diagnostics.Text, _status.Text,
                 _area.GetItemText(Math.Max(0, _area.Selected)), _tabs.GetTabTitle(_tabs.CurrentTab));
             return text.Contains("Aperçu", StringComparison.CurrentCultureIgnoreCase) &&
-                   text.Contains("terrain", StringComparison.CurrentCultureIgnoreCase) &&
+                   (text.Contains("terrain", StringComparison.CurrentCultureIgnoreCase) ||
+                    text.Contains("relief", StringComparison.CurrentCultureIgnoreCase)) &&
                    !text.Contains("UUID", StringComparison.OrdinalIgnoreCase) &&
                    !text.Contains(".json", StringComparison.OrdinalIgnoreCase);
         }
@@ -246,8 +247,8 @@ internal sealed partial class StudioTerrainSurfaceWorkspaceUx2C : Control
         _brushCanvas.TargetChanged += (x, z) =>
         {
             _updating = true;
-            _worldX.Value = x;
-            _worldZ.Value = z;
+            _worldX.Value = Math.Round(x, 3, MidpointRounding.AwayFromZero);
+            _worldZ.Value = Math.Round(z, 3, MidpointRounding.AwayFromZero);
             _updating = false;
             InvalidatePreview();
         };
