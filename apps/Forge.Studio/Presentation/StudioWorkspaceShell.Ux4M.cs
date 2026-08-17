@@ -36,6 +36,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx4HOverlay(); CloseUx4IOverlay(); CloseUx4JOverlay(); CloseUx4KOverlay();
         CloseUx4LOverlay();
         CloseUx4NOverlay();
+        CloseUx4OOverlay();
         _creatureRoleBehaviorOverlayUx4M.Open();
         SetStatus("Rôle, activité et auto-level ouverts · aperçu canonique obligatoire");
     }
@@ -64,6 +65,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx4HOverlay(); CloseUx4IOverlay(); CloseUx4JOverlay(); CloseUx4KOverlay();
         CloseUx4LOverlay();
         CloseUx4NOverlay();
+        CloseUx4OOverlay();
         return _creatureRoleBehaviorOverlayUx4M.PrepareEvidence(mode);
     }
 

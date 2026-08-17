@@ -7,6 +7,9 @@ SemVer ; les versions de schéma persistent séparément dans leurs documents.
 
 ### Changed
 
+- Forge Studio UX4-O : cycle BeforeDamage/DamageApplied/EntityDied et validation complète de la
+  créature via `SetCreatureEventsHandler`, avec profil réel Crypte, bindings UX4-N préservés et
+  matrice portée à 272 routes `functional` / 445 `planned` ;
 - Forge Studio UX4-N : frontière de combat, inventaire, repos, heartbeat budgété et événements
   utilisateur typés via `SetCreatureEventsHandler`, avec profil réel Crypte, tail dégâts/mort
   préservé et matrice portée à 269 routes `functional` / 448 `planned` ;

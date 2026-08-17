@@ -1029,6 +1029,17 @@ sur le vrai profil Crypte. Le tail dégâts/mort est protégé et préservé. La
 `docs/acceptance/STUDIO_UX4_N.md` ; les routes dégâts/mort, IA/événements, spawn et conversation
 restent aux lots UX4 suivants.
 
+### UX4-O — Dégâts, mort et validation créature
+
+`ORF-CRE-036`, `ORF-CRE-043` et `ORF-CRE-049` sont `functional` via le tail
+`CreatureEventProfile.DamageDeath`, `SetCreatureEventsHandler` et la validation projet ciblée :
+BeforeDamage budgété, DamageApplied post-transaction, payload EntityDied et diagnostics complets de
+la créature. Le portail passe 22/22 tests en 124,08 s, le smoke global et trois captures Forward+ FHD,
+dont le vrai profil Crypte. Les bindings UX4-N sont préservés. La matrice atteint 272 routes
+`functional` et 445 `planned`. Preuves et limites sont liées dans
+`docs/acceptance/STUDIO_UX4_O.md` ; les routes IA/événements, spawn et conversation restent aux lots
+UX4 suivants.
+
 ## Gates ergonomiques avant parité
 
 Une page ne passe pas `Parity` si l’un des points suivants manque :
