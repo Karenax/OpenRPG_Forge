@@ -17,6 +17,10 @@ internal sealed record StudioTriggerValidationChoice(
     bool ValidationRequiredAtRuntime,
     bool IsEvidence);
 
+internal sealed record StudioTriggerPortalDestinationChoice(
+    Guid Id,
+    string Label);
+
 internal sealed record StudioTriggerValidationDraft(
     Guid TriggerProfileId,
     BlueprintId BlueprintId,

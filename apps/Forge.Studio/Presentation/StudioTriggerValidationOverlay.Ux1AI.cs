@@ -1,9 +1,192 @@
+using System.Text.RegularExpressions;
 using Forge.Domain.WorldFeatures;
 using Forge.ModuleFormat.Workspaces;
 using Forge.Studio.Session;
 using Godot;
 
 namespace Forge.Studio.Presentation;
+
+internal sealed partial class StudioTriggerPortalDestinationEditor : VBoxContainer
+{
+    private sealed record DestinationEntry(Guid Id, string Label, bool IsProtected);
+
+    private static readonly Regex GuidPattern = new(
+        @"(?<![0-9a-fA-F])(?:[0-9a-fA-F]{32}|[0-9a-fA-F]{8}-(?:[0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12})(?![0-9a-fA-F])",
+        RegexOptions.CultureInvariant);
+
+    private readonly ItemList _items;
+    private readonly OptionButton _choice;
+    private readonly Button _add;
+    private readonly Button _remove;
+    private readonly List<StudioTriggerPortalDestinationChoice> _choices = [];
+    private readonly List<DestinationEntry> _values = [];
+    private int _selectedValue = -1;
+    private int _selectedChoice = -1;
+    private bool _editingEnabled;
+
+    internal event Action? Changed;
+
+    internal IReadOnlyList<Guid> Values => _values.Select(item => item.Id).ToArray();
+
+    internal int ProtectedValueCount => _values.Count(item => item.IsProtected);
+
+    internal bool ShowsOnlyHumanLabels =>
+        _values.Count > 0 &&
+        _choices.Count > 0 &&
+        _values.All(item => !GuidPattern.IsMatch(item.Label)) &&
+        _choices.All(item => !GuidPattern.IsMatch(item.Label));
+
+    internal StudioTriggerPortalDestinationEditor()
+    {
+        AddThemeConstantOverride("separation", 5);
+        _items = new ItemList
+        {
+            CustomMinimumSize = new Vector2(0, 82),
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            SelectMode = ItemList.SelectModeEnum.Single,
+            TooltipText = "Destinations admises par le contexte de validation.",
+        };
+        _items.AddThemeStyleboxOverride("panel", StudioStyle.Box(StudioStyle.Surface, StudioStyle.Border, 6));
+        _items.ItemSelected += index =>
+        {
+            _selectedValue = (int)index;
+            UpdateButtons();
+        };
+        AddChild(_items);
+
+        var row = new HBoxContainer();
+        row.AddThemeConstantOverride("separation", 5);
+        AddChild(row);
+        _choice = new OptionButton { SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        StudioStyle.ApplyOptionButton(_choice);
+        _choice.ItemSelected += index =>
+        {
+            _selectedChoice = (int)index - 1;
+            UpdateButtons();
+        };
+        row.AddChild(_choice);
+        _add = StudioStyle.Button("Ajouter", compact: true);
+        _add.Pressed += AddChoice;
+        row.AddChild(_add);
+        _remove = StudioStyle.Button("Retirer", compact: true);
+        _remove.Pressed += RemoveValue;
+        row.AddChild(_remove);
+        RefreshChoiceMenu();
+        RefreshValues();
+        SetEditingEnabled(false);
+    }
+
+    internal void SetChoices(IEnumerable<StudioTriggerPortalDestinationChoice> choices)
+    {
+        var values = Values;
+        _choices.Clear();
+        _choices.AddRange(choices
+            .Where(item => item.Id != Guid.Empty && !string.IsNullOrWhiteSpace(item.Label))
+            .GroupBy(item => item.Id)
+            .Select(group => group.First())
+            .OrderBy(item => item.Label, StringComparer.CurrentCultureIgnoreCase));
+        SetValues(values);
+        RefreshChoiceMenu();
+    }
+
+    internal void SetValues(IEnumerable<Guid> values)
+    {
+        _values.Clear();
+        var protectedIndex = 0;
+        foreach (var id in values)
+        {
+            var choice = _choices.FirstOrDefault(item => item.Id == id);
+            if (choice is not null)
+            {
+                _values.Add(new DestinationEntry(id, choice.Label, false));
+                continue;
+            }
+            protectedIndex++;
+            _values.Add(new DestinationEntry(
+                id,
+                $"Destination héritée protégée {protectedIndex} · référence interne masquée",
+                true));
+        }
+        RefreshValues();
+        UpdateButtons();
+    }
+
+    internal void SetEditingEnabled(bool enabled)
+    {
+        _editingEnabled = enabled;
+        _choice.Disabled = !enabled;
+        _items.MouseFilter = enabled ? MouseFilterEnum.Stop : MouseFilterEnum.Ignore;
+        UpdateButtons();
+    }
+
+    private void AddChoice()
+    {
+        if (!_editingEnabled || _selectedChoice < 0 || _selectedChoice >= _choices.Count)
+        {
+            return;
+        }
+        var choice = _choices[_selectedChoice];
+        if (_values.Any(item => item.Id == choice.Id))
+        {
+            return;
+        }
+        _values.Add(new DestinationEntry(choice.Id, choice.Label, false));
+        RefreshValues();
+        RefreshChoiceMenu();
+        Changed?.Invoke();
+    }
+
+    private void RemoveValue()
+    {
+        if (!_editingEnabled || _selectedValue < 0 || _selectedValue >= _values.Count ||
+            _values[_selectedValue].IsProtected)
+        {
+            return;
+        }
+        _values.RemoveAt(_selectedValue);
+        RefreshValues();
+        RefreshChoiceMenu();
+        Changed?.Invoke();
+    }
+
+    private void RefreshValues()
+    {
+        _selectedValue = -1;
+        _items.Clear();
+        foreach (var value in _values)
+        {
+            _items.AddItem(value.Label);
+        }
+        UpdateButtons();
+    }
+
+    private void RefreshChoiceMenu()
+    {
+        _selectedChoice = -1;
+        _choice.Clear();
+        _choice.AddItem("Choisir une destination du projet…");
+        foreach (var choice in _choices)
+        {
+            _choice.AddItem(choice.Label);
+        }
+        _choice.Select(0);
+        UpdateButtons();
+    }
+
+    private void UpdateButtons()
+    {
+        var canAdd = _editingEnabled && _selectedChoice >= 0 && _selectedChoice < _choices.Count &&
+                     _values.All(item => item.Id != _choices[_selectedChoice].Id);
+        _add.Disabled = !canAdd;
+        var selected = _selectedValue >= 0 && _selectedValue < _values.Count
+            ? _values[_selectedValue]
+            : null;
+        _remove.Disabled = !_editingEnabled || selected is null || selected.IsProtected;
+        _remove.TooltipText = selected?.IsProtected == true
+            ? "Cette destination héritée reste protégée tant qu’elle n’est pas résolue dans le projet."
+            : "Retirer la destination sélectionnée du contexte connu.";
+    }
+}
 
 internal sealed partial class StudioTriggerValidationOverlay : Control
 {
@@ -23,7 +206,7 @@ internal sealed partial class StudioTriggerValidationOverlay : Control
     private readonly CheckBox _requiredAtRuntime;
     private readonly StudioTriggerStringListEditor _targets;
     private readonly StudioTriggerStringListEditor _scripts;
-    private readonly StudioTriggerStringListEditor _portalDestinations;
+    private readonly StudioTriggerPortalDestinationEditor _portalDestinations;
     private readonly StudioTriggerStringListEditor _layers;
     private readonly VBoxContainer _diagnostics;
     private readonly Label _summary;
@@ -53,7 +236,14 @@ internal sealed partial class StudioTriggerValidationOverlay : Control
     internal bool CanonicalPreviewReady => _canonicalPreviewReady;
 
     internal bool ShowsGroupedDiagnostics => _lastGroups.Count == 7 &&
-                                              _lastGroups.Select(item => item.Key).Distinct().Count() == 7;
+                                               _lastGroups.Select(item => item.Key).Distinct().Count() == 7;
+
+    internal bool ShowsHumanPortalDestinations => _portalDestinations.ShowsOnlyHumanLabels;
+
+    internal bool PreservesProtectedPortalDestinations =>
+        _draft is not null &&
+        _portalDestinations.ProtectedValueCount > 0 &&
+        _portalDestinations.Values.SequenceEqual(_draft.KnownPortalDestinationIds);
 
     internal bool UsesIsolatedEvidence =>
         _evidenceSession is not null && ReferenceEquals(_session, _evidenceSession);
@@ -80,6 +270,7 @@ internal sealed partial class StudioTriggerValidationOverlay : Control
                 _requiredAtRuntime.Text,
                 "Cibles Scripts Portails Couches Validation canonique");
             return HasExplicitSelection &&
+                   ShowsHumanPortalDestinations &&
                    text.Contains("Validation canonique", StringComparison.OrdinalIgnoreCase) &&
                    text.Contains("Cibles", StringComparison.OrdinalIgnoreCase) &&
                    text.Contains("Scripts", StringComparison.OrdinalIgnoreCase) &&
@@ -215,13 +406,11 @@ internal sealed partial class StudioTriggerValidationOverlay : Control
             "Scripts connus",
             "Scripts autorisés pour actions, interactions et événements.",
             _scripts));
-        _portalDestinations = new StudioTriggerStringListEditor(
-            "Aucune destination de portail connue.",
-            "Identifiant de destination");
+        _portalDestinations = new StudioTriggerPortalDestinationEditor();
         lists.AddChild(ListCard(
             "KnownPortalsCard",
             "Portails connus",
-            "Destinations autorisées pour le portail du volume.",
+            "Destinations autorisées, choisies par leur nom. Les références héritées non résolues restent masquées et protégées.",
             _portalDestinations));
         _layers = new StudioTriggerStringListEditor(
             "Aucune couche accessible.",
@@ -371,7 +560,8 @@ internal sealed partial class StudioTriggerValidationOverlay : Control
         _summary.Text = "PREUVE ISOLÉE · le projet source reste strictement inchangé.\n" + _summary.Text;
         SetStatus("Preuve isolée prête · fermeture = suppression de la session temporaire", error: false);
         return !_apply.Disabled && HasExplicitSelection && CanonicalPreviewReady && ShowsGroupedDiagnostics &&
-               ShowsHumanSurface && UsesIsolatedEvidence && EvidenceSourceUntouched;
+               ShowsHumanSurface && ShowsHumanPortalDestinations && PreservesProtectedPortalDestinations &&
+               UsesIsolatedEvidence && EvidenceSourceUntouched;
     }
 
     internal bool RunUiTransactionEvidence()
@@ -702,7 +892,8 @@ internal sealed partial class StudioTriggerValidationOverlay : Control
         _updating = true;
         _validationEnabled.ButtonPressed = draft.ValidationEnabled;
         _requiredAtRuntime.ButtonPressed = draft.ValidationRequiredAtRuntime;
-        _portalDestinations.SetValues(draft.KnownPortalDestinationIds.Select(item => item.ToString("D")));
+        _portalDestinations.SetChoices(_session.TriggerValidationPortalDestinationChoicesUx1AI());
+        _portalDestinations.SetValues(draft.KnownPortalDestinationIds);
         _targets.SetValues(draft.KnownTargetIds);
         _scripts.SetValues(draft.KnownScriptIds);
         _layers.SetValues(draft.AccessibleLayers);
@@ -715,6 +906,7 @@ internal sealed partial class StudioTriggerValidationOverlay : Control
         _updating = true;
         _validationEnabled.ButtonPressed = false;
         _requiredAtRuntime.ButtonPressed = false;
+        _portalDestinations.SetChoices([]);
         _portalDestinations.SetValues([]);
         _targets.SetValues([]);
         _scripts.SetValues([]);
@@ -729,14 +921,11 @@ internal sealed partial class StudioTriggerValidationOverlay : Control
         {
             return null;
         }
-        var portalIds = _portalDestinations.Values
-            .Select(value => Guid.TryParse(value, out var id) ? id : Guid.Empty)
-            .ToArray();
         return _draft with
         {
             ValidationEnabled = _validationEnabled.ButtonPressed,
             ValidationRequiredAtRuntime = _requiredAtRuntime.ButtonPressed,
-            KnownPortalDestinationIds = portalIds,
+            KnownPortalDestinationIds = _portalDestinations.Values,
             KnownTargetIds = _targets.Values,
             KnownScriptIds = _scripts.Values,
             AccessibleLayers = _layers.Values,
@@ -819,10 +1008,11 @@ internal sealed partial class StudioTriggerValidationOverlay : Control
             InvalidatePreview();
         };
         _requiredAtRuntime.Toggled += _ => InvalidatePreview();
-        foreach (var editor in new[] { _targets, _scripts, _portalDestinations, _layers })
+        foreach (var editor in new[] { _targets, _scripts, _layers })
         {
             editor.Changed += InvalidatePreview;
         }
+        _portalDestinations.Changed += InvalidatePreview;
     }
 
     private void InvalidatePreview()
@@ -858,10 +1048,11 @@ internal sealed partial class StudioTriggerValidationOverlay : Control
     private void UpdateValidationControls()
     {
         var enabled = _draft is not null && !_validationEnabled.Disabled && _validationEnabled.ButtonPressed;
-        foreach (var editor in new[] { _targets, _scripts, _portalDestinations, _layers })
+        foreach (var editor in new[] { _targets, _scripts, _layers })
         {
             editor.SetEditingEnabled(enabled);
         }
+        _portalDestinations.SetEditingEnabled(enabled);
     }
 
     private void RenderDiagnosticGroups(IReadOnlyList<StudioTriggerValidationDiagnosticGroup> groups)
@@ -924,7 +1115,7 @@ internal sealed partial class StudioTriggerValidationOverlay : Control
         string name,
         string title,
         string help,
-        StudioTriggerStringListEditor editor)
+        Control editor)
     {
         var panel = StudioStyle.Panel(name, StudioStyle.Surface, 8, 1);
         panel.SizeFlagsHorizontal = SizeFlags.ExpandFill;

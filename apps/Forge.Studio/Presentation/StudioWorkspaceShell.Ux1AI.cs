@@ -105,6 +105,8 @@ internal sealed partial class StudioWorkspaceShell
         var canonicalPreview = _triggerValidationOverlay.CanonicalPreviewReady;
         var groupedDiagnostics = _triggerValidationOverlay.ShowsGroupedDiagnostics;
         var humanSurface = _triggerValidationOverlay.ShowsHumanSurface;
+        var humanPortalDestinations = _triggerValidationOverlay.ShowsHumanPortalDestinations;
+        var protectedPortalDestinations = _triggerValidationOverlay.PreservesProtectedPortalDestinations;
         var isolatedEvidence = _triggerValidationOverlay.UsesIsolatedEvidence;
         var evidenceSourceUntouched = _triggerValidationOverlay.EvidenceSourceUntouched;
         var uiReady = evidencePrepared &&
@@ -115,6 +117,8 @@ internal sealed partial class StudioWorkspaceShell
                       canonicalPreview &&
                       groupedDiagnostics &&
                       humanSurface &&
+                      humanPortalDestinations &&
+                      protectedPortalDestinations &&
                       isolatedEvidence &&
                       evidenceSourceUntouched;
         _triggerValidationOverlay.Close();
@@ -144,6 +148,8 @@ internal sealed partial class StudioWorkspaceShell
                 $"canonical_preview={canonicalPreview.ToString().ToLowerInvariant()} " +
                 $"groups={groupedDiagnostics.ToString().ToLowerInvariant()} " +
                 $"human={humanSurface.ToString().ToLowerInvariant()} " +
+                $"portal_destinations_human={humanPortalDestinations.ToString().ToLowerInvariant()} " +
+                $"protected_portal_destinations={protectedPortalDestinations.ToString().ToLowerInvariant()} " +
                 $"isolated={isolatedEvidence.ToString().ToLowerInvariant()} " +
                 $"source_untouched={evidenceSourceUntouched.ToString().ToLowerInvariant()}");
         }
@@ -172,6 +178,8 @@ internal sealed partial class StudioWorkspaceShell
             $"foundation_neighbors_preserved={result.FoundationNeighborsPreserved.ToString().ToLowerInvariant()} " +
             $"trigger_neighbors_preserved={result.TriggerNeighborsPreserved.ToString().ToLowerInvariant()} " +
             $"human_no_uuid={result.HumanDiagnostics.ToString().ToLowerInvariant()} " +
+            $"portal_destinations_human={humanPortalDestinations.ToString().ToLowerInvariant()} " +
+            $"protected_portal_destinations={protectedPortalDestinations.ToString().ToLowerInvariant()} " +
             $"isolated_evidence={isolatedEvidence.ToString().ToLowerInvariant()} " +
             $"evidence_source_untouched={evidenceSourceUntouched.ToString().ToLowerInvariant()} " +
             $"evidence_released={evidenceResourcesReleased.ToString().ToLowerInvariant()} " +

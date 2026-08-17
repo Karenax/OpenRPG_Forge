@@ -6,6 +6,7 @@ using Forge.Application.Time;
 using Forge.Application.WorldFeatures;
 using Forge.Domain.Areas;
 using Forge.Domain.Blueprints;
+using Forge.Domain.Navigation;
 using Forge.Domain.Projects;
 using Forge.Domain.Spatial;
 using Forge.Domain.Validation;
@@ -17,6 +18,9 @@ namespace Forge.Studio.Session;
 internal sealed partial class StudioSessionController
 {
     private const string Ux1AIEvidenceProvenance = "studio:ux1-ai:evidence";
+    private static readonly System.Text.RegularExpressions.Regex Ux1AIGuidPattern = new(
+        @"(?<![0-9a-fA-F])(?:[0-9a-fA-F]{32}|[0-9a-fA-F]{8}-(?:[0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12})(?![0-9a-fA-F])",
+        System.Text.RegularExpressions.RegexOptions.CultureInvariant);
     private readonly SetWorldFeatureCatalogHandler _setTriggerValidationCatalogUx1AI = new(new SystemClock());
     private StudioTriggerValidationDraft? _approvedTriggerValidationUx1AI;
     private ProjectRevision? _approvedTriggerValidationRevisionUx1AI;
@@ -64,6 +68,137 @@ internal sealed partial class StudioSessionController
                 .OrderBy(item => item.Label, StringComparer.CurrentCultureIgnoreCase)
                 .ToArray();
         }
+    }
+
+    internal IReadOnlyList<StudioTriggerPortalDestinationChoice> TriggerValidationPortalDestinationChoicesUx1AI()
+    {
+        var project = Project;
+        if (project is null)
+        {
+            return [];
+        }
+
+        var resolvedLabels = new Dictionary<Guid, string>();
+        var destinationFallbacks = new Dictionary<Guid, string>();
+        void Resolve(Guid id, string label)
+        {
+            if (id != Guid.Empty && !string.IsNullOrWhiteSpace(label))
+            {
+                resolvedLabels.TryAdd(id, RedactPortalDestinationLabelUx1AI(label));
+            }
+        }
+        void AddDestination(Guid id, string fallbackLabel)
+        {
+            if (id != Guid.Empty && !string.IsNullOrWhiteSpace(fallbackLabel))
+            {
+                destinationFallbacks.TryAdd(id, RedactPortalDestinationLabelUx1AI(fallbackLabel));
+            }
+        }
+
+        var blueprints = project.Blueprints.ToDictionary(item => item.Id);
+        foreach (var blueprint in project.Blueprints.Where(item =>
+                     item.Kind is BlueprintKind.Door or BlueprintKind.Trigger or BlueprintKind.PlayerSpawn))
+        {
+            Resolve(
+                blueprint.Id.Value,
+                $"{HumanizePortalBlueprintKindUx1AI(blueprint.Kind)} · {blueprint.DisplayName} · {blueprint.Slug}");
+        }
+
+        foreach (var area in project.Areas)
+        {
+            foreach (var entity in area.Entities)
+            {
+                if (!blueprints.TryGetValue(entity.BlueprintId, out var blueprint) ||
+                    blueprint.Kind is not (BlueprintKind.Door or BlueprintKind.Trigger or BlueprintKind.PlayerSpawn))
+                {
+                    continue;
+                }
+                Resolve(
+                    entity.Id.Value,
+                    $"{HumanizePortalBlueprintKindUx1AI(blueprint.Kind)} placé · {blueprint.DisplayName} · " +
+                    $"{area.DisplayName} · {blueprint.Slug}");
+            }
+
+            var anchorDefinitions = area.Navigation.Anchors.Definitions.ToDictionary(item => item.Id);
+            foreach (var definition in anchorDefinitions.Values)
+            {
+                Resolve(
+                    definition.Id,
+                    $"{HumanizeAnchorKindUx1AI(definition.Kind)} · {definition.Slug} · {area.DisplayName}");
+            }
+            foreach (var instance in area.Navigation.Anchors.Instances)
+            {
+                var definition = anchorDefinitions.GetValueOrDefault(instance.DefinitionId);
+                Resolve(
+                    instance.Id,
+                    $"{HumanizeAnchorKindUx1AI(definition?.Kind)} placé · " +
+                    $"{definition?.Slug ?? "ancre héritée"} · {area.DisplayName} · position {instance.DisplayOrder + 1}");
+            }
+            foreach (var waypoint in area.Navigation.Waypoints.Waypoints)
+            {
+                Resolve(
+                    waypoint.Id,
+                    $"Point de passage · {waypoint.Name} · {area.DisplayName}");
+            }
+
+            foreach (var portal in area.Portals)
+            {
+                var destinationArea = project.Areas.SingleOrDefault(item => item.Id == portal.DestinationAreaId);
+                Resolve(
+                    portal.DestinationEntityId.Value,
+                    $"Transition · {portal.DisplayName} · vers {destinationArea?.DisplayName ?? "zone externe"}");
+            }
+        }
+
+        var catalog = project.Module.WorldFeatures;
+        foreach (var profile in catalog.Doors)
+        {
+            var blueprint = blueprints.GetValueOrDefault(profile.BlueprintId);
+            var source = blueprint is null
+                ? "porte héritée"
+                : $"{blueprint.DisplayName} · {blueprint.Slug}";
+            Resolve(profile.Id, $"Porte · {source} · profil de monde");
+            if (profile.Foundation?.Portal is { } portal)
+            {
+                AddDestination(
+                    portal.DestinationId,
+                    $"{HumanizeDoorDestinationKindUx1AI(portal.DestinationKind)} · destination de {source}");
+            }
+        }
+        foreach (var profile in catalog.Triggers)
+        {
+            var blueprint = blueprints.GetValueOrDefault(profile.BlueprintId);
+            var area = project.Areas.SingleOrDefault(item => item.Id == profile.AreaId);
+            var source = blueprint is null
+                ? profile.Foundation?.Slug ?? "déclencheur hérité"
+                : $"{blueprint.DisplayName} · {blueprint.Slug}";
+            Resolve(
+                profile.Id,
+                $"Déclencheur · {source} · {area?.DisplayName ?? "zone externe"} · profil de monde");
+            if (profile.Foundation?.Portal is { } portal)
+            {
+                AddDestination(
+                    portal.DestinationId,
+                    $"{HumanizeTriggerDestinationKindUx1AI(portal.Destination)} · destination de {source}");
+            }
+        }
+
+        var choices = new List<StudioTriggerPortalDestinationChoice>();
+        foreach (var group in destinationFallbacks
+                     .Select(item => new StudioTriggerPortalDestinationChoice(
+                         item.Key,
+                         resolvedLabels.GetValueOrDefault(item.Key) ?? item.Value))
+                     .GroupBy(item => item.Label, StringComparer.CurrentCultureIgnoreCase))
+        {
+            var ordered = group.OrderBy(item => item.Id).ToArray();
+            for (var index = 0; index < ordered.Length; index++)
+            {
+                choices.Add(ordered.Length == 1
+                    ? ordered[index]
+                    : ordered[index] with { Label = $"{ordered[index].Label} · variante {index + 1}" });
+            }
+        }
+        return choices.OrderBy(item => item.Label, StringComparer.CurrentCultureIgnoreCase).ToArray();
     }
 
     internal ProjectDefinition? CreateUx1AIEvidenceProject()
@@ -118,7 +253,7 @@ internal sealed partial class StudioSessionController
             "Validation canonique du passage",
             BlueprintKind.Trigger);
         var validation = new TriggerWorldProfile.RuntimeValidationPolicy(
-            [ids[7]],
+            [ids[7], ids[6]],
             [actionTarget],
             [actionScript, enterScript, exitScript],
             ["characters"]);
@@ -567,6 +702,43 @@ internal sealed partial class StudioSessionController
         return "foundation";
     }
 
+    private static string HumanizePortalBlueprintKindUx1AI(BlueprintKind kind) => kind switch
+    {
+        BlueprintKind.Door => "Porte",
+        BlueprintKind.Trigger => "Déclencheur",
+        BlueprintKind.PlayerSpawn => "Point d’apparition",
+        _ => "Destination",
+    };
+
+    private static string RedactPortalDestinationLabelUx1AI(string label) =>
+        Ux1AIGuidPattern.Replace(label.Trim(), "référence masquée");
+
+    private static string HumanizeAnchorKindUx1AI(AnchorKind? kind) => kind switch
+    {
+        AnchorKind.Waypoint => "Point de passage",
+        AnchorKind.Spawn => "Point d’apparition",
+        AnchorKind.TransitionDestination => "Ancre de transition",
+        _ => "Ancre",
+    };
+
+    private static string HumanizeDoorDestinationKindUx1AI(DoorWorldProfile.DestinationKind kind) => kind switch
+    {
+        DoorWorldProfile.DestinationKind.Door => "Porte",
+        DoorWorldProfile.DestinationKind.Trigger => "Déclencheur",
+        DoorWorldProfile.DestinationKind.Waypoint => "Point de passage",
+        DoorWorldProfile.DestinationKind.SpawnAnchor => "Point d’apparition",
+        _ => "Destination",
+    };
+
+    private static string HumanizeTriggerDestinationKindUx1AI(TriggerWorldProfile.DestinationKind kind) => kind switch
+    {
+        TriggerWorldProfile.DestinationKind.Door => "Porte",
+        TriggerWorldProfile.DestinationKind.Trigger => "Déclencheur",
+        TriggerWorldProfile.DestinationKind.Waypoint => "Point de passage",
+        TriggerWorldProfile.DestinationKind.SpawnAnchor => "Point d’apparition",
+        _ => "Destination",
+    };
+
     private static string HumanizeTriggerValidationDiagnosticUx1AI(DomainDiagnostic diagnostic) =>
         diagnostic.Code switch
         {
@@ -796,10 +968,14 @@ internal sealed partial class StudioSessionController
             var initialCatalog = initialProject.Module.WorldFeatures;
             var loadedTarget = initialCatalog.Triggers.Single(item => item.Id == targetProfile.Id);
             var loadedNeighbor = initialCatalog.Triggers.Single(item => item.Id == neighborProfile.Id);
+            var destinationChoices = editing.TriggerValidationPortalDestinationChoicesUx1AI();
             var selectionExplicit = editing.CreateTriggerValidationDraftUx1AI() is null &&
                                     editing.TriggerValidationChoicesUx1AI.Count == 3 &&
                                     editing.TriggerValidationChoicesUx1AI.All(item =>
                                         IsHumanUx1AIMessage(item.Label)) &&
+                                    destinationChoices.Any(item =>
+                                        item.Id == targetProfile.Foundation!.Portal!.DestinationId) &&
+                                    destinationChoices.All(item => IsHumanUx1AIMessage(item.Label)) &&
                                     editing.TriggerValidationChoicesUx1AI.Single(item =>
                                         item.ProfileId == targetProfile.Id).Label.Contains(
                                         targetProfile.Foundation!.Slug,
@@ -1538,9 +1714,7 @@ internal sealed partial class StudioSessionController
         !message.Contains("UUID", StringComparison.OrdinalIgnoreCase) &&
         !message.Contains("hash", StringComparison.OrdinalIgnoreCase) &&
         !message.Contains(".json", StringComparison.OrdinalIgnoreCase) &&
-        !System.Text.RegularExpressions.Regex.IsMatch(
-            message,
-            "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
+        !Ux1AIGuidPattern.IsMatch(message);
 
     private static bool DeleteUx1AITemporaryRoot(string? tempRoot, string requiredPrefix)
     {
