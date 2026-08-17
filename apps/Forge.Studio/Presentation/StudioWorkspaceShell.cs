@@ -189,6 +189,8 @@ internal sealed partial class StudioWorkspaceShell : Control
         BuildUx2EnvBActions(headingRow);
         BuildUx2EnvCActions(headingRow);
         BuildUx2EnvDActions(headingRow);
+        BuildUx2NavBActions(headingRow);
+        BuildUx2NavCActions(headingRow);
         BuildUx4AActions(headingRow);
         _primaryAction = StudioStyle.Button("Migration en cours", primary: true, compact: true);
         _primaryAction.Disabled = true;
@@ -321,6 +323,8 @@ internal sealed partial class StudioWorkspaceShell : Control
         InitializeUx2EnvBOverlay();
         InitializeUx2EnvCOverlay();
         InitializeUx2EnvDOverlay();
+        InitializeUx2NavBOverlay();
+        InitializeUx2NavCOverlay();
         InitializeUx4AOverlay();
         InitializeUx5APage(pageStack);
         if (_session.ActiveArea is null)
@@ -568,6 +572,14 @@ internal sealed partial class StudioWorkspaceShell : Control
         if (mode.StartsWith("ux2-env-d", StringComparison.OrdinalIgnoreCase))
         {
             return PrepareUx2EnvDEvidence(mode);
+        }
+        if (mode.StartsWith("ux2-nav-b", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx2NavBEvidence(mode);
+        }
+        if (mode.StartsWith("ux2-nav-c", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx2NavCEvidence(mode);
         }
         if (mode.StartsWith("ux4-a", StringComparison.OrdinalIgnoreCase))
         {
@@ -985,6 +997,11 @@ internal sealed partial class StudioWorkspaceShell : Control
             CloseUx2EnvCOverlay();
             CloseUx2EnvDOverlay();
         }
+        if (page.Id != "navigation")
+        {
+            CloseUx2NavBOverlay();
+            CloseUx2NavCOverlay();
+        }
         if (page.Id != "social-content")
         {
             CloseUx4AOverlay();
@@ -1072,6 +1089,8 @@ internal sealed partial class StudioWorkspaceShell : Control
         UpdateUx2EnvBActionState();
         UpdateUx2EnvCActionState();
         UpdateUx2EnvDActionState();
+        UpdateUx2NavBActionState();
+        UpdateUx2NavCActionState();
         UpdateUx4AActionState();
 
         var usesWorld = !isAssetLibrary && !isProjectConfiguration && !isDiagnostics &&

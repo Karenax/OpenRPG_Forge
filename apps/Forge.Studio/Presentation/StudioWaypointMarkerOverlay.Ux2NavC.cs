@@ -1175,6 +1175,7 @@ internal sealed partial class StudioWorldViewport
                 OutlineModulate = new Color("101410"),
                 Billboard = BaseMaterial3D.BillboardModeEnum.Enabled,
                 FixedSize = true,
+                PixelSize = .0015f,
                 NoDepthTest = true,
                 FontSize = (int)Math.Round(Math.Clamp(marker.ScreenSize, 8, 96)),
                 OutlineSize = marker.Selected ? 10 : 6,

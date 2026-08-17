@@ -183,7 +183,7 @@ internal sealed partial class StudioSessionController
                 _approvedNavigationRevisionUx2NavB = history.State.Revision;
                 _approvedNavigationFingerprintUx2NavB = NavigationDraftFingerprintUx2NavB(draft);
             }
-            var rebuild = bake.FullRebuild
+            var rebuild = bake.RequiresFullBake
                 ? $"reconstruction complète · {bake.ChangedCells.Count} cellules"
                 : $"mise à jour partielle · {bake.ChangedCells.Count} modifiées · {bake.ReusedCellCount} réutilisées";
             var sampling = displayedCells == surface.WalkableCells.Count
@@ -196,7 +196,7 @@ internal sealed partial class StudioSessionController
                 $"Surface « {HumanUx2NavB(selectedAgent.Name, "Agent")} » · {surface.WalkableCells.Count} cellules marchables · " +
                 $"{surface.OffMeshEdges.Count} liaison(s) résolue(s) · {rebuild} · {sampling}",
                 diff.Count > 0, diff, [], overlay, surface.WalkableCells.Count, displayedCells,
-                bake.ChangedCells.Count, bake.ReusedCellCount, bake.FullRebuild);
+                bake.ChangedCells.Count, bake.ReusedCellCount, bake.RequiresFullBake);
         }
         catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or
                                            OverflowException)
@@ -381,9 +381,11 @@ internal sealed partial class StudioSessionController
             var candidateNavigation = new AreaNavigationDefinition(navigation.Id, draft.CellSize, agents, links,
                 changed ? Ux2NavBProvenance : navigation.Provenance, navigation.SchemaVersion, anchors,
                 navigation.Waypoints);
-            candidateArea = sourceArea.WithNavigation(candidateNavigation);
+            var sourceAreaId = sourceArea.Id;
+            var updatedArea = sourceArea.WithNavigation(candidateNavigation);
+            candidateArea = updatedArea;
             candidateProject = new ProjectDefinition(project.Id, project.Title, project.Module,
-                project.Blueprints, project.Areas.Select(item => item.Id == sourceArea.Id ? candidateArea : item)
+                project.Blueprints, project.Areas.Select(item => item.Id == sourceAreaId ? updatedArea : item)
                     .ToArray(), project.Dialogues, project.Quests);
             command = new SetNavigationTopologyCommand(CommandId.From(Guid.NewGuid()), history.State.Revision,
                 [new AreaNavigationTopologyUpdate(sourceArea.Id, candidateNavigation)], [], null, dryRun);
@@ -799,15 +801,7 @@ internal sealed partial class StudioSessionController
                                    editing.History!.Journal.LastOrDefault()?.CommandName ==
                                    "set_navigation_topology";
             var navigationNeighborsPreserved =
-                ReferenceEquals(sourceArea.Navigation.Waypoints, appliedArea.Navigation.Waypoints) &&
-                ReferenceEquals(sourceArea.Environment, appliedArea.Environment) &&
-                ReferenceEquals(sourceArea.Authoring, appliedArea.Authoring) &&
-                ReferenceEquals(sourceArea.World, appliedArea.World) &&
-                ReferenceEquals(sourceArea.RuntimePolicies, appliedArea.RuntimePolicies) &&
-                ReferenceEquals(sourceArea.Foundation, appliedArea.Foundation) &&
-                ReferenceEquals(sourceArea.Playtest, appliedArea.Playtest) &&
-                sourceArea.Entities.SequenceEqual(appliedArea.Entities) &&
-                sourceArea.Portals.SequenceEqual(appliedArea.Portals);
+                NavigationFoundationNeighborsMatchUx2NavB(sourceArea, appliedArea);
             var appliedNeighbor = appliedProject.Areas.Single(item => item.Id == sourceNeighbor.Id);
             var projectNeighborsPreserved = ReferenceEquals(sourceProject.Module, appliedProject.Module) &&
                                             ReferenceEquals(sourceNeighbor, appliedNeighbor) &&
@@ -894,6 +888,27 @@ internal sealed partial class StudioSessionController
         {
             return false;
         }
+    }
+
+    internal static bool NavigationFoundationNeighborsMatchUx2NavB(
+        AreaDefinition source,
+        AreaDefinition candidate)
+    {
+        var navigation = candidate.Navigation;
+        var expectedNavigation = new AreaNavigationDefinition(
+            navigation.Id,
+            navigation.CellSize,
+            navigation.AgentProfiles,
+            navigation.OffMeshLinks,
+            navigation.Provenance,
+            navigation.SchemaVersion,
+            navigation.Anchors,
+            source.Navigation.Waypoints);
+        var expected = source.WithNavigation(expectedNavigation);
+        return string.Equals(
+            AreaJsonSerializer.Serialize(expected),
+            AreaJsonSerializer.Serialize(candidate),
+            StringComparison.Ordinal);
     }
 
     private static bool ContainsTechnicalIdentifierUx2NavB(string text) =>

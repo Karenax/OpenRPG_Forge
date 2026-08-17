@@ -306,6 +306,8 @@ public sealed partial class StudioRoot : Control
         var ux2EnvBValid = true;
         var ux2EnvCValid = true;
         var ux2EnvDValid = true;
+        var ux2NavBValid = true;
+        var ux2NavCValid = true;
         var ux4AValid = true;
         var ux5AValid = true;
         var candidateApprovalsValid = true;
@@ -319,6 +321,8 @@ public sealed partial class StudioRoot : Control
             var ux2EnvBApproval = _session.CaptureAreaEnvironmentApprovalUx2EnvB();
             var ux2EnvCApproval = _session.CaptureClimateApprovalUx2EnvC();
             var ux2EnvDApproval = _session.CaptureRenderingApprovalUx2EnvD();
+            var ux2NavBApproval = _session.CaptureNavigationApprovalUx2NavB();
+            var ux2NavCApproval = _session.CaptureWaypointApprovalUx2NavC();
             var ux4AApproval = _session.CaptureFactionApprovalUx4A();
             var ux5AApproval = _session.CaptureDialogueApprovalUx5A();
             try
@@ -331,6 +335,8 @@ public sealed partial class StudioRoot : Control
                 ux2EnvBValid = _shell.RunUx2EnvBSmoke();
                 ux2EnvCValid = _shell.RunUx2EnvCSmoke();
                 ux2EnvDValid = _shell.RunUx2EnvDSmoke();
+                ux2NavBValid = _shell.RunUx2NavBSmoke();
+                ux2NavCValid = _shell.RunUx2NavCSmoke();
                 ux4AValid = _shell.RunUx4ASmoke();
                 ux5AValid = _shell.RunUx5ASmoke();
             }
@@ -344,6 +350,8 @@ public sealed partial class StudioRoot : Control
                 _session.RestoreAreaEnvironmentApprovalUx2EnvB(ux2EnvBApproval);
                 _session.RestoreClimateApprovalUx2EnvC(ux2EnvCApproval);
                 _session.RestoreRenderingApprovalUx2EnvD(ux2EnvDApproval);
+                _session.RestoreNavigationApprovalUx2NavB(ux2NavBApproval);
+                _session.RestoreWaypointApprovalUx2NavC(ux2NavCApproval);
                 _session.RestoreFactionApprovalUx4A(ux4AApproval);
                 _session.RestoreDialogueApprovalUx5A(ux5AApproval);
             }
@@ -356,6 +364,8 @@ public sealed partial class StudioRoot : Control
                 Equals(_session.CaptureAreaEnvironmentApprovalUx2EnvB(), ux2EnvBApproval) &&
                 Equals(_session.CaptureClimateApprovalUx2EnvC(), ux2EnvCApproval) &&
                 Equals(_session.CaptureRenderingApprovalUx2EnvD(), ux2EnvDApproval) &&
+                Equals(_session.CaptureNavigationApprovalUx2NavB(), ux2NavBApproval) &&
+                Equals(_session.CaptureWaypointApprovalUx2NavC(), ux2NavCApproval) &&
                 Equals(_session.CaptureFactionApprovalUx4A(), ux4AApproval) &&
                 Equals(_session.CaptureDialogueApprovalUx5A(), ux5AApproval);
             GD.Print(
@@ -378,7 +388,10 @@ public sealed partial class StudioRoot : Control
 
         var nativeWindows = CountAdditionalWindows(GetTree().Root);
         var shellValid = _shell.SectionCount == 8 && _shell.PageCount == 36 && nativeWindows == 0;
-        var worldValid = _shell.WorldViewport.EntityCount > 0 && _session.Project.Areas.Count > 0;
+        var navigationEvidence = !string.IsNullOrWhiteSpace(_evidenceMode) &&
+                                 _evidenceMode.StartsWith("ux2-nav-", StringComparison.OrdinalIgnoreCase);
+        var worldValid = (_shell.WorldViewport.EntityCount > 0 || navigationEvidence) &&
+                         _session.Project.Areas.Count > 0;
         if (!shellValid || !worldValid || !editValid || !ux0AValid || !ux0BValid || !ux0CValid || !ux0DValid ||
             !ux0EValid || !ux0FValid || !ux0GValid || !ux0HValid || !ux0IValid || !ux0JValid || !ux1AValid ||
             !ux1BValid || !ux1CValid || !ux1DValid || !ux1EValid || !ux1FValid || !ux1GValid || !ux1HValid ||
@@ -387,7 +400,7 @@ public sealed partial class StudioRoot : Control
             !ux1WValid || !ux1XValid || !ux1YValid || !ux1ZValid || !ux1AAValid || !ux1ABValid || !ux1ACValid ||
             !ux1ADValid || !ux1AEValid || !ux1AFValid || !ux1AGValid || !ux1AHValid || !ux1AIValid || !ux1AJValid ||
             !ux2AValid || !ux2LwBValid || !ux2LwCValid || !ux2BValid || !ux2CValid || !ux2EnvBValid || !ux2EnvCValid ||
-            !ux2EnvDValid ||
+            !ux2EnvDValid || !ux2NavBValid || !ux2NavCValid ||
             !ux4AValid || !ux5AValid ||
             !candidateApprovalsValid || !evidenceValid)
         {
@@ -406,6 +419,7 @@ public sealed partial class StudioRoot : Control
                 $"ux1af={ux1AFValid} ux1ag={ux1AGValid} ux1ah={ux1AHValid} ux1ai={ux1AIValid} " +
                 $"ux1aj={ux1AJValid} ux2a={ux2AValid} ux2lwb={ux2LwBValid} ux2lwc={ux2LwCValid} ux2b={ux2BValid} " +
                 $"ux2c={ux2CValid} ux2envb={ux2EnvBValid} ux2envc={ux2EnvCValid} ux2envd={ux2EnvDValid} " +
+                $"ux2navb={ux2NavBValid} ux2navc={ux2NavCValid} " +
                 $"ux4a={ux4AValid} ux5a={ux5AValid} " +
                 $"candidate_approvals={candidateApprovalsValid} " +
                 $"evidence={evidenceValid}");

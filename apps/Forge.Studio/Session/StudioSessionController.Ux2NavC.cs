@@ -798,14 +798,7 @@ internal sealed partial class StudioSessionController
             var appliedNeighbor = appliedProject.Areas.Single(item => item.Id == sourceNeighbor.Id);
             var projectNeighborsPreserved = ReferenceEquals(canonicalSource.Module, appliedProject.Module) &&
                                             ReferenceEquals(sourceNeighbor, appliedNeighbor) &&
-                                            ReferenceEquals(sourceArea.Environment, appliedArea.Environment) &&
-                                            ReferenceEquals(sourceArea.Authoring, appliedArea.Authoring) &&
-                                            ReferenceEquals(sourceArea.World, appliedArea.World) &&
-                                            ReferenceEquals(sourceArea.RuntimePolicies,
-                                                appliedArea.RuntimePolicies) &&
-                                            ReferenceEquals(sourceArea.Foundation, appliedArea.Foundation) &&
-                                            ReferenceEquals(sourceArea.Playtest, appliedArea.Playtest) &&
-                                            sourceArea.Entities.SequenceEqual(appliedArea.Entities) &&
+                                            WaypointMarkerNeighborsMatchUx2NavC(sourceArea, appliedArea) &&
                                             canonicalSource.Blueprints.SequenceEqual(appliedProject.Blueprints) &&
                                             canonicalSource.Dialogues.SequenceEqual(appliedProject.Dialogues) &&
                                             canonicalSource.Quests.SequenceEqual(appliedProject.Quests);
@@ -909,6 +902,27 @@ internal sealed partial class StudioSessionController
         {
             return false;
         }
+    }
+
+    internal static bool WaypointMarkerNeighborsMatchUx2NavC(
+        AreaDefinition source,
+        AreaDefinition candidate)
+    {
+        var navigation = source.Navigation;
+        var expectedNavigation = new AreaNavigationDefinition(
+            navigation.Id,
+            navigation.CellSize,
+            navigation.AgentProfiles,
+            navigation.OffMeshLinks,
+            navigation.Provenance,
+            navigation.SchemaVersion,
+            navigation.Anchors,
+            candidate.Navigation.Waypoints);
+        var expected = source.WithNavigation(expectedNavigation);
+        return string.Equals(
+            AreaJsonSerializer.Serialize(expected),
+            AreaJsonSerializer.Serialize(candidate),
+            StringComparison.Ordinal);
     }
 
     private static bool ContainsTechnicalIdentifierUx2NavC(string text) =>

@@ -1887,9 +1887,9 @@ internal sealed partial class StudioNavigationFoundationOverlayUx2NavB : Control
             if (_draft is { } draft)
             {
                 BindViewportToArea(_session, draft.AreaId);
-                if (_lastPreview is { Succeeded: true } preview)
+                if (_lastPreview is { Succeeded: true } currentPreview)
                 {
-                    _worldViewport.ShowNavigationOverlayUx2NavB(preview.Overlay);
+                    _worldViewport.ShowNavigationOverlayUx2NavB(currentPreview.Overlay);
                 }
             }
         }
@@ -1940,9 +1940,9 @@ internal sealed partial class StudioNavigationFoundationOverlayUx2NavB : Control
             if (_draft is { } draft)
             {
                 BindViewportToArea(_session, draft.AreaId);
-                if (_lastPreview is { Succeeded: true } preview)
+                if (_lastPreview is { Succeeded: true } reboundPreview)
                 {
-                    _worldViewport.ShowNavigationOverlayUx2NavB(preview.Overlay);
+                    _worldViewport.ShowNavigationOverlayUx2NavB(reboundPreview.Overlay);
                 }
             }
         }
