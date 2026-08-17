@@ -141,6 +141,7 @@ internal sealed partial class StudioSessionController
         CloseUx2LwG();
         CloseUx2LwH();
         CloseUx2LwI();
+        CloseUx2LwK();
         CloseUx2B();
         CloseUx2C();
         CloseUx2EnvB();
@@ -1102,6 +1103,7 @@ internal sealed partial class StudioSessionController
         CloseUx2LwG();
         CloseUx2LwH();
         CloseUx2LwI();
+        CloseUx2LwK();
         CloseUx2B();
         CloseUx2C();
         CloseUx2EnvB();

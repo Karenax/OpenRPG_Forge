@@ -65,6 +65,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2LwGOverlay();
         CloseUx2LwHOverlay();
         CloseUx2LwIOverlay();
+        CloseUx2LwKOverlay();
         CloseUx4AOverlay();
         CloseUx5APage();
         SwitchPage("living-world", notify: false);
@@ -102,6 +103,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2LwGOverlay();
         CloseUx2LwHOverlay();
         CloseUx2LwIOverlay();
+        CloseUx2LwKOverlay();
         return _triggerLivingWorldOverlayUx2LwE.PrepareEvidence(mode);
     }
 

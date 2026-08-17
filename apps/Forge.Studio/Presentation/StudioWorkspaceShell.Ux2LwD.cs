@@ -65,6 +65,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2LwGOverlay();
         CloseUx2LwHOverlay();
         CloseUx2LwIOverlay();
+        CloseUx2LwKOverlay();
         SwitchPage("living-world", notify: false);
         _areaCombatOverlayUx2LwD.Open();
         SetStatus("Combat de zone ouvert · zone explicite · aperçu sec obligatoire");
@@ -101,6 +102,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2LwGOverlay();
         CloseUx2LwHOverlay();
         CloseUx2LwIOverlay();
+        CloseUx2LwKOverlay();
         return _areaCombatOverlayUx2LwD.PrepareEvidence(mode);
     }
 

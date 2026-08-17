@@ -190,6 +190,7 @@ internal sealed partial class StudioWorkspaceShell : Control
         BuildUx2LwGActions(headingRow);
         BuildUx2LwHActions(headingRow);
         BuildUx2LwIActions(headingRow);
+        BuildUx2LwKActions(headingRow);
         BuildUx2BActions(headingRow);
         BuildUx2CActions(headingRow);
         BuildUx2EnvBActions(headingRow);
@@ -344,6 +345,7 @@ internal sealed partial class StudioWorkspaceShell : Control
         InitializeUx2LwGOverlay();
         InitializeUx2LwHOverlay();
         InitializeUx2LwIOverlay();
+        InitializeUx2LwKOverlay();
         InitializeUx2BWorkspace();
         InitializeUx2CWorkspace();
         InitializeUx2EnvBOverlay();
@@ -621,6 +623,11 @@ internal sealed partial class StudioWorkspaceShell : Control
             mode.StartsWith("ux2-encounter-008-010-014", StringComparison.OrdinalIgnoreCase))
         {
             return PrepareUx2LwIEvidence(mode);
+        }
+        if (mode.StartsWith("ux2-lw-k", StringComparison.OrdinalIgnoreCase) ||
+            mode.StartsWith("ux2-encounter-018", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx2LwKEvidence(mode);
         }
         if (mode.StartsWith("ux2-b", StringComparison.OrdinalIgnoreCase))
         {
@@ -1117,6 +1124,7 @@ internal sealed partial class StudioWorkspaceShell : Control
             CloseUx2LwGOverlay();
             CloseUx2LwHOverlay();
             CloseUx2LwIOverlay();
+            CloseUx2LwKOverlay();
         }
         if (page.Id != "terrain")
         {
@@ -1239,6 +1247,7 @@ internal sealed partial class StudioWorkspaceShell : Control
         UpdateUx2LwGActionState();
         UpdateUx2LwHActionState();
         UpdateUx2LwIActionState();
+        UpdateUx2LwKActionState();
         UpdateUx2BActionState();
         UpdateUx2CActionState();
         UpdateUx2EnvBActionState();
