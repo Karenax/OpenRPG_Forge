@@ -17,6 +17,7 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
     private bool _lastSourceSessionRestored = true;
     private bool _evidenceUsesRealCryptSource;
     private bool _evidenceUsesCanonicalFallback;
+    private bool _lastEvidencePreviewDryRun;
 
     private readonly PanelContainer _dialog;
     private readonly OptionButton _faction;
@@ -92,6 +93,7 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
     internal bool UsesIsolatedEvidence => _evidenceSession is not null && ReferenceEquals(_session, _evidenceSession);
     internal bool UsesRealCryptEvidence => UsesIsolatedEvidence && _evidenceUsesRealCryptSource;
     internal bool UsesCanonicalFallbackEvidence => UsesIsolatedEvidence && _evidenceUsesCanonicalFallback;
+    internal bool EvidencePreviewDryRun => UsesIsolatedEvidence && _lastEvidencePreviewDryRun;
     internal bool EvidenceSourceUntouched => _evidenceSourceSnapshot is { } snapshot
         ? SourceMatchesSnapshot(snapshot)
         : _lastEvidenceSourceUntouched;
@@ -397,6 +399,14 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
         _lastSourceSessionRestored = ReferenceEquals(_session, _sourceSession);
     }
 
+    internal void CloseEvidence()
+    {
+        if (_evidenceSession is not null || _evidenceTempRoot is not null)
+        {
+            CloseIsolatedEvidenceSession();
+        }
+    }
+
     private void CloseIsolatedEvidenceSession()
     {
         var sourceUntouched = _evidenceSourceSnapshot is not { } snapshot || SourceMatchesSnapshot(snapshot);
@@ -416,6 +426,7 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
         _bands.Clear();
         _canonicalPreviewReady = false;
         _applied = false;
+        _lastEvidencePreviewDryRun = false;
     }
 
     private void SelectFaction(long selected)
@@ -774,12 +785,16 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
         RenderDiagnostics(result.Diagnostics);
         _directionalSummary.Text = result.DirectionalSummary;
         _bandSummary.Text = result.BandSummary;
+        var impactedMembers = result.Impact.LegacyMembers + result.Impact.AdvancedMemberships;
+        var impactedReputation = result.Impact.PersonalReputation + result.Impact.ReputationTransactions +
+                                 result.Impact.HeatmapRelationships;
         var impact = result.Impact.Total == 0
             ? "Aucune référence interne affectée."
             : $"Impact interne : {result.Impact.Total} référence(s) · " +
               $"parents {result.Impact.ChildParents}, relations {result.Impact.Relationships}, " +
-              $"membres {result.Impact.LegacyMembers + result.Impact.AdvancedMemberships}, " +
-              $"réputation {result.Impact.PersonalReputation + result.Impact.ReputationTransactions + result.Impact.HeatmapRelationships}.";
+              $"membres {impactedMembers}, héritage {result.Impact.InheritancePolicies}, " +
+              $"témoins {result.Impact.WitnessPolicies}, factions dynamiques {result.Impact.DynamicFactions}, " +
+              $"diplomatie {result.Impact.DiplomacyStates}, réputation {impactedReputation}.";
         _summary.Text = result.Succeeded
             ? $"APERÇU · aucune écriture\n{result.PatchSummary}\n{impact}\nInverse : {result.InverseSummary}"
             : $"APERÇU REFUSÉ · aucune écriture\n{impact}";
@@ -1118,14 +1133,42 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
             Close();
             return false;
         }
+        var evidenceHistory = _session.History;
+        var evidenceProject = _session.Project;
+        if (evidenceHistory is null || evidenceProject is null)
+        {
+            Close();
+            return false;
+        }
+        var evidenceRevision = evidenceHistory.State.Revision;
+        var evidenceJournal = evidenceHistory.Journal.ToArray();
+        var evidenceCanUndo = evidenceHistory.CanUndo;
+        var evidenceCanRedo = evidenceHistory.CanRedo;
+        var evidenceDirty = _session.IsDirty;
         Preview();
+        _lastEvidencePreviewDryRun = ReferenceEquals(evidenceProject, _session.Project) &&
+                                     ReferenceEquals(evidenceHistory, _session.History) &&
+                                     evidenceHistory.State.Revision == evidenceRevision &&
+                                     evidenceHistory.Journal.SequenceEqual(evidenceJournal) &&
+                                     evidenceHistory.CanUndo == evidenceCanUndo &&
+                                     evidenceHistory.CanRedo == evidenceCanRedo &&
+                                     _session.IsDirty == evidenceDirty && EvidenceSourceUntouched;
         var evidenceOrigin = UsesRealCryptEvidence
             ? "CAPTURE RÉELLE CRYPTE · copie temporaire du projet Crypt sélectionné"
             : "FALLBACK CANONIQUE TEMPORAIRE · fixture factions isolée pour la qualification headless";
         _summary.Text = $"{evidenceOrigin} · source strictement inchangée.\n{_summary.Text}";
-        if (!CanonicalPreviewReady)
+        var ready = _lastEvidencePreviewDryRun && HasExplicitSelection && CanonicalPreviewReady &&
+                    ShowsHumanSurface && ShowsDirectionalMatrix && ShowsHierarchy && ShowsBands &&
+                    UsesIsolatedEvidence && EvidenceSourceUntouched &&
+                    (UsesRealCryptEvidence ^ UsesCanonicalFallbackEvidence);
+        if (!ready)
         {
-            SetStatus("Preuve isolée créée, mais l’aperçu canonique a été refusé · aucune application possible", error: true);
+            SetStatus(
+                CanonicalPreviewReady
+                    ? "Preuve isolée incomplète ou non pure · session temporaire libérée sans application"
+                    : "Preuve isolée créée, mais l’aperçu canonique a été refusé · session temporaire libérée",
+                error: true);
+            Close();
             return false;
         }
         SetStatus(
@@ -1133,9 +1176,7 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
                 ? "Preuve Crypt réelle isolée prête · fermeture = suppression de la session temporaire"
                 : "Preuve fallback canonique isolée prête · le module source reste strictement inchangé",
             error: false);
-        return HasExplicitSelection && CanonicalPreviewReady && ShowsHumanSurface && ShowsDirectionalMatrix &&
-               ShowsHierarchy && ShowsBands && UsesIsolatedEvidence && EvidenceSourceUntouched &&
-               (UsesRealCryptEvidence ^ UsesCanonicalFallbackEvidence);
+        return true;
     }
 
     private bool ConfigureEvidenceDraft()
@@ -1276,6 +1317,7 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
             _session = evidenceSession;
             _evidenceUsesRealCryptSource = evidenceProject.UsesRealCryptSource;
             _evidenceUsesCanonicalFallback = evidenceProject.UsesCanonicalFallback;
+            _lastEvidencePreviewDryRun = false;
             _lastEvidenceResourcesReleased = false;
             _lastSourceSessionRestored = false;
             OpenBoundSession();
@@ -1299,6 +1341,7 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
             _session = _sourceSession;
             _evidenceUsesRealCryptSource = false;
             _evidenceUsesCanonicalFallback = false;
+            _lastEvidencePreviewDryRun = false;
             _lastEvidenceResourcesReleased = released;
             _lastSourceSessionRestored = true;
             return false;
@@ -1351,6 +1394,7 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
         _session = _sourceSession;
         _evidenceUsesRealCryptSource = false;
         _evidenceUsesCanonicalFallback = false;
+        _lastEvidencePreviewDryRun = false;
         var released = true;
         try
         {

@@ -133,4 +133,5 @@ internal sealed record StudioUx4ASmokeResult(
     bool ExternalReferenceBlocked,
     bool UndoRedo,
     bool Persistence,
-    bool NeighborsPreserved);
+    bool NeighborsPreserved,
+    bool TemporaryWorkspaceReleased);

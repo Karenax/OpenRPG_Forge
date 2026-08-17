@@ -339,7 +339,7 @@ internal sealed partial class StudioSessionController
         {
             return null;
         }
-        if (IsCryptFactionEvidenceUx4A(project.Module.Factions))
+        if (IsCryptFactionEvidenceUx4A(project))
         {
             return new(project, UsesRealCryptSource: true, UsesCanonicalFallback: false);
         }
@@ -840,8 +840,13 @@ internal sealed partial class StudioSessionController
         throw new InvalidOperationException("Unable to allocate a faction slug.");
     }
 
-    private static bool IsCryptFactionEvidenceUx4A(FactionCatalog catalog)
+    private static bool IsCryptFactionEvidenceUx4A(ProjectDefinition project)
     {
+        if (!string.Equals(project.Module.Slug, "crypt-of-ashes", StringComparison.Ordinal))
+        {
+            return false;
+        }
+        var catalog = project.Module.Factions;
         var slugs = catalog.Factions.Select(item => item.Slug).ToHashSet(StringComparer.Ordinal);
         return slugs.IsSupersetOf(["crypt-covenant", "ash-watch", "surface-alliance"]) &&
                catalog.Relationships.Count >= 2 && catalog.Bands.Count >= 3 &&
@@ -912,18 +917,20 @@ internal sealed partial class StudioSessionController
             "openrpg-forge-studio-ux4a-smoke-" + Guid.NewGuid().ToString("N"));
         var editing = new StudioSessionController();
         var reopened = new StudioSessionController();
-        try
+        StudioUx4ASmokeResult ExecuteSmoke()
         {
-            var parent = new FactionDefinition(
-                Guid.Parse("f4a00000-0000-4000-8000-000000000001"),
-                1,
-                "test:ux4-a",
-                "pacte-cendres",
-                "Pacte des Cendres",
-                false,
-                [],
-                ["guardian"],
-                new Dictionary<string, string> { ["civilian-response"] = "protect" });
+            try
+            {
+                var parent = new FactionDefinition(
+                    Guid.Parse("f4a00000-0000-4000-8000-000000000001"),
+                    1,
+                    "test:ux4-a",
+                    "pacte-cendres",
+                    "Pacte des Cendres",
+                    false,
+                    [],
+                    ["guardian"],
+                    new Dictionary<string, string> { ["civilian-response"] = "protect" });
             var child = new FactionDefinition(
                 Guid.Parse("f4a00000-0000-4000-8000-000000000002"),
                 1,
@@ -1302,20 +1309,33 @@ internal sealed partial class StudioSessionController
                 externalReferenceBlocked,
                 undoRedo,
                 persistence,
-                neighborsPreserved);
+                neighborsPreserved,
+                TemporaryWorkspaceReleased: false);
+            }
+            catch (Exception exception)
+            {
+                Godot.GD.PrintErr(
+                    $"OPENRPG_FORGE_STUDIO_UX4A_CONTRACT_FAILED type={exception.GetType().Name} message={exception.Message}");
+                return FailedUx4ASmoke();
+            }
         }
-        catch (Exception exception)
-        {
-            Godot.GD.PrintErr(
-                $"OPENRPG_FORGE_STUDIO_UX4A_CONTRACT_FAILED type={exception.GetType().Name} message={exception.Message}");
-            return FailedUx4ASmoke();
-        }
-        finally
+
+        var result = ExecuteSmoke();
+        try
         {
             reopened.Close();
             editing.Close();
-            DeleteUx4ASmokeRoot(tempRoot);
         }
+        finally
+        {
+            var released = DeleteUx4ASmokeRoot(tempRoot);
+            result = result with
+            {
+                Succeeded = result.Succeeded && released,
+                TemporaryWorkspaceReleased = released,
+            };
+        }
+        return result;
     }
 
     private static bool ApplyFactionCatalogForSmokeUx4A(
@@ -1354,27 +1374,37 @@ internal sealed partial class StudioSessionController
             right.TryGetValue(item.Key, out var value) && string.Equals(item.Value, value, StringComparison.Ordinal));
     }
 
-    private static void DeleteUx4ASmokeRoot(string tempRoot)
+    private static bool DeleteUx4ASmokeRoot(string tempRoot)
     {
         try
         {
             var fullRoot = Path.GetFullPath(tempRoot);
             var tempBase = Path.GetFullPath(Path.GetTempPath());
-            if (fullRoot.StartsWith(tempBase, StringComparison.OrdinalIgnoreCase) &&
-                Path.GetFileName(fullRoot).StartsWith("openrpg-forge-studio-ux4a-smoke-", StringComparison.Ordinal) &&
-                Directory.Exists(fullRoot))
+            var prefix = tempBase.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) +
+                         Path.DirectorySeparatorChar;
+            if (!fullRoot.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) ||
+                !Path.GetFileName(fullRoot).StartsWith(
+                    "openrpg-forge-studio-ux4a-smoke-",
+                    StringComparison.Ordinal))
+            {
+                return false;
+            }
+            if (Directory.Exists(fullRoot))
             {
                 Directory.Delete(fullRoot, recursive: true);
             }
+            return !Directory.Exists(fullRoot) && !File.Exists(fullRoot);
         }
         catch (Exception exception)
         {
             Godot.GD.PrintErr(
                 $"OPENRPG_FORGE_STUDIO_UX4A_SMOKE_CLEANUP_FAILED type={exception.GetType().Name} message={exception.Message}");
+            return false;
         }
     }
 
     private static StudioUx4ASmokeResult FailedUx4ASmoke() => new(
+        false,
         false,
         false,
         false,

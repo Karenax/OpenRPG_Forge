@@ -117,12 +117,13 @@ internal sealed partial class StudioWorkspaceShell
         var isolatedEvidence = _factionFoundationOverlayUx4A.UsesIsolatedEvidence;
         var realCryptEvidence = _factionFoundationOverlayUx4A.UsesRealCryptEvidence;
         var canonicalFallbackEvidence = _factionFoundationOverlayUx4A.UsesCanonicalFallbackEvidence;
+        var evidencePreviewDryRun = _factionFoundationOverlayUx4A.EvidencePreviewDryRun;
         var evidenceSourceUntouched = _factionFoundationOverlayUx4A.EvidenceSourceUntouched;
         var uiReady = evidencePrepared && PageId == "social-content" && overlayOpen && choiceCount >= 3 &&
                       explicitSelection && canonicalPreview && directionalMatrix && hierarchy && bands &&
-                      humanSurface && isolatedEvidence && evidenceSourceUntouched &&
+                      humanSurface && isolatedEvidence && evidencePreviewDryRun && evidenceSourceUntouched &&
                       (realCryptEvidence ^ canonicalFallbackEvidence);
-        _factionFoundationOverlayUx4A.Close();
+        _factionFoundationOverlayUx4A.CloseEvidence();
         var evidenceResourcesReleased = _factionFoundationOverlayUx4A.EvidenceResourcesReleased;
         var sourceSessionRestored = _factionFoundationOverlayUx4A.SourceSessionRestored;
 
@@ -152,10 +153,11 @@ internal sealed partial class StudioWorkspaceShell
                 $"isolated={isolatedEvidence.ToString().ToLowerInvariant()} " +
                 $"real_crypt={realCryptEvidence.ToString().ToLowerInvariant()} " +
                 $"canonical_fallback={canonicalFallbackEvidence.ToString().ToLowerInvariant()} " +
+                $"preview_dry_run={evidencePreviewDryRun.ToString().ToLowerInvariant()} " +
                 $"source_untouched={evidenceSourceUntouched.ToString().ToLowerInvariant()}");
         }
-        var valid = result.Succeeded && uiReady && uiTransaction && sourceUnchanged &&
-                    evidenceResourcesReleased && sourceSessionRestored;
+        var valid = result.Succeeded && result.TemporaryWorkspaceReleased && uiReady && uiTransaction &&
+                    sourceUnchanged && evidenceResourcesReleased && sourceSessionRestored;
         GD.Print(
             $"OPENRPG_FORGE_STUDIO_UX4A_{(valid ? "PASS" : "FAILED")} " +
             $"selection_explicit={result.ExplicitSelection.ToString().ToLowerInvariant()} " +
@@ -176,9 +178,11 @@ internal sealed partial class StudioWorkspaceShell
             $"undo_redo={result.UndoRedo.ToString().ToLowerInvariant()} " +
             $"round_trip={result.Persistence.ToString().ToLowerInvariant()} " +
             $"neighbors_preserved={result.NeighborsPreserved.ToString().ToLowerInvariant()} " +
+            $"temp_workspace_released={result.TemporaryWorkspaceReleased.ToString().ToLowerInvariant()} " +
             $"isolated_evidence={isolatedEvidence.ToString().ToLowerInvariant()} " +
             $"real_crypt_evidence={realCryptEvidence.ToString().ToLowerInvariant()} " +
             $"canonical_fallback_evidence={canonicalFallbackEvidence.ToString().ToLowerInvariant()} " +
+            $"evidence_preview_dry_run={evidencePreviewDryRun.ToString().ToLowerInvariant()} " +
             $"evidence_source_untouched={evidenceSourceUntouched.ToString().ToLowerInvariant()} " +
             $"evidence_released={evidenceResourcesReleased.ToString().ToLowerInvariant()} " +
             $"source_session_restored={sourceSessionRestored.ToString().ToLowerInvariant()} " +
