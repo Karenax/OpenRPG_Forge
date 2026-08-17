@@ -231,6 +231,17 @@ internal sealed partial class StudioSessionController
         _approvedLivingWorldTriggerSourceFingerprintUx2LwE,
         _approvedLivingWorldTriggerDraftFingerprintUx2LwE);
 
+    internal void RestoreLivingWorldTriggerApprovalUx2LwE(StudioUx2LwEApprovalSnapshot snapshot)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot);
+        _approvedLivingWorldTriggerUx2LwE = snapshot.Draft;
+        _approvedLivingWorldTriggerRevisionUx2LwE = snapshot.Revision;
+        _approvedLivingWorldTriggerSourceFingerprintUx2LwE = snapshot.SourceFingerprint;
+        _approvedLivingWorldTriggerDraftFingerprintUx2LwE = snapshot.DraftFingerprint;
+    }
+
+    internal void CloseUx2LwE() => CancelLivingWorldTriggerPreviewUx2LwE();
+
     internal ProjectDefinition? CreateUx2LwEEvidenceProject()
     {
         var project = Project;
