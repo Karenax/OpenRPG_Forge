@@ -727,8 +727,8 @@ internal sealed partial class StudioSessionController
                 "seuil-inacheve",
                 "Seuil inachevé",
                 BlueprintKind.Trigger);
-            var narrativeDialogue = OriginalModuleAuthoringService.CreateVeilleeDesEclats()
-                .State.Project.Dialogues.Single();
+            var narrativeProject = OriginalModuleAuthoringService.CreateVeilleeDesEclats().State.Project;
+            var narrativeDialogue = narrativeProject.Dialogues.Single();
             var area = new AreaDefinition(
                 AreaId.From(Guid.Parse("a1100000-0000-4000-8000-000000000004")),
                 "sanctuaire-des-veilleurs",
@@ -739,7 +739,7 @@ internal sealed partial class StudioSessionController
             var shell = new ProjectDefinition(
                 ProjectId.From(Guid.Parse("a1100000-0000-4000-8000-000000000005")),
                 "Studio UX1-AI",
-                [targetBlueprint, neighborBlueprint, foundationlessBlueprint],
+                [targetBlueprint, neighborBlueprint, foundationlessBlueprint, ..narrativeProject.Blueprints],
                 [area]);
             var targetProfile = CreateUx1AISmokeTrigger(
                 targetBlueprint.Id,
@@ -775,13 +775,20 @@ internal sealed partial class StudioSessionController
                 shell.Areas,
                 [narrativeDialogue],
                 shell.Quests);
-            if (WorldFeatureCatalogValidator.Validate(project).Count != 0)
+            var initialDiagnostics = WorldFeatureCatalogValidator.Validate(project);
+            if (initialDiagnostics.Count != 0)
             {
+                Godot.GD.PrintErr("OPENRPG_FORGE_STUDIO_UX1AI_CONTRACT_FAILED stage=initial-validation diagnostics=" +
+                                  string.Join("|", initialDiagnostics.Select(item =>
+                                      $"{item.Code}@{item.Path}:{item.Message}")));
                 return FailedUx1AISmoke();
             }
             var created = ProjectSession.Create(tempRoot, project);
             if (!created.Succeeded || !editing.Open(tempRoot).Succeeded)
             {
+                Godot.GD.PrintErr("OPENRPG_FORGE_STUDIO_UX1AI_CONTRACT_FAILED stage=create-open diagnostics=" +
+                                  string.Join("|", created.Diagnostics.Select(item =>
+                                      $"{item.Code}@{item.Path}:{item.Message}")));
                 return FailedUx1AISmoke();
             }
 
@@ -867,6 +874,8 @@ internal sealed partial class StudioSessionController
             if (!freshPreview.Succeeded || !apply.Succeeded ||
                 appliedFoundation?.Validation is not { } appliedValidation)
             {
+                Godot.GD.PrintErr(
+                    $"OPENRPG_FORGE_STUDIO_UX1AI_CONTRACT_FAILED stage=fresh-apply preview={freshPreview.Succeeded} apply={apply.Succeeded} validation={appliedFoundation?.Validation is not null}");
                 return FailedUx1AISmoke();
             }
 
@@ -927,6 +936,7 @@ internal sealed partial class StudioSessionController
             var optionalSourceDraft = editing.CreateTriggerValidationDraftUx1AI(targetProfile.Id);
             if (optionalSourceDraft is null)
             {
+                Godot.GD.PrintErr("OPENRPG_FORGE_STUDIO_UX1AI_CONTRACT_FAILED stage=optional-draft");
                 return FailedUx1AISmoke();
             }
             var optionalDraft = optionalSourceDraft with
@@ -1042,8 +1052,9 @@ internal sealed partial class StudioSessionController
                 triggerNeighborsPreserved,
                 humanDiagnostics);
         }
-        catch
+        catch (Exception exception)
         {
+            Godot.GD.PrintErr("OPENRPG_FORGE_STUDIO_UX1AI_CONTRACT_FAILED stage=exception " + exception);
             return FailedUx1AISmoke();
         }
         finally
