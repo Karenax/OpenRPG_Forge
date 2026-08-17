@@ -959,10 +959,17 @@ internal sealed partial class StudioSessionController
             var neighborRoutes = finalExperience is not null &&
                                  ReferenceEquals(finalExperience.PatrolRoutes.Single(item =>
                                      item.Id == neighborRoute.Id), neighborRoute);
+            var authoringPreserved = finalArea is not null &&
+                                     string.Equals(
+                                         AreaJsonSerializer.Serialize(sourceTarget.WithAuthoring(
+                                             sourceTarget.Authoring)),
+                                         AreaJsonSerializer.Serialize(sourceTarget.WithAuthoring(
+                                             finalArea.Authoring)),
+                                         StringComparison.Ordinal);
             var navigationLots = finalArea is not null &&
                                  ReferenceEquals(finalArea.Navigation, sourceTarget.Navigation) &&
                                  ReferenceEquals(finalArea.Environment, sourceTarget.Environment) &&
-                                 ReferenceEquals(finalArea.Authoring, sourceTarget.Authoring) &&
+                                 authoringPreserved &&
                                  ReferenceEquals(finalArea.World, sourceTarget.World) &&
                                  ReferenceEquals(finalArea.Foundation, sourceTarget.Foundation) &&
                                  ReferenceEquals(finalArea.Playtest, sourceTarget.Playtest);
