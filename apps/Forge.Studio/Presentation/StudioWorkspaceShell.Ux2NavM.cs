@@ -47,7 +47,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx1AIOverlay(); CloseUx1AJOverlay(); CloseUx2AOverlay(); CloseUx4AOverlay();
         CloseUx2NavBOverlay(); CloseUx2NavCOverlay(); CloseUx2NavDOverlay(); CloseUx2NavEOverlay();
         CloseUx2NavFOverlay(); CloseUx2NavGOverlay(); CloseUx2NavHOverlay(); CloseUx2NavIOverlay();
-        CloseUx2NavJOverlay(); CloseUx2EnvJOverlay();
+        CloseUx2NavJOverlay(); CloseUx2NavKOverlay(); CloseUx2NavLOverlay(); CloseUx2EnvJOverlay();
         SwitchPage("navigation", notify: false);
         _cameraAnchorsOverlayUx2NavM.Open();
         SetStatus("Ancres caméra ouvertes · sélection zone/ancre explicite · aperçu sec obligatoire");
@@ -75,7 +75,7 @@ internal sealed partial class StudioWorkspaceShell
         SwitchPage("navigation", notify: false);
         CloseUx2NavBOverlay(); CloseUx2NavCOverlay(); CloseUx2NavDOverlay(); CloseUx2NavEOverlay();
         CloseUx2NavFOverlay(); CloseUx2NavGOverlay(); CloseUx2NavHOverlay(); CloseUx2NavIOverlay();
-        CloseUx2NavJOverlay(); CloseUx2EnvJOverlay();
+        CloseUx2NavJOverlay(); CloseUx2NavKOverlay(); CloseUx2NavLOverlay(); CloseUx2EnvJOverlay();
         return _cameraAnchorsOverlayUx2NavM.PrepareEvidence(mode);
     }
 

@@ -81,6 +81,7 @@ param(
         'ux2-nav-j', 'ux2-nav-j-visibility-occlusion', 'ux2-area-033-visibility',
         'ux2-nav-k', 'ux2-wpt-010',
         'ux2-nav-l', 'ux2-wpt-012',
+        'ux2-nav-m', 'ux2-wpt-013',
         'ux4-a', 'ux4-a-faction-foundation',
         'ux5-a', 'ux5-a-dialogue-foundation')]
     [string]$Evidence,
