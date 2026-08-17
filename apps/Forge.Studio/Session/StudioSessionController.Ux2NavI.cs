@@ -1107,7 +1107,7 @@ internal sealed partial class StudioSessionController
             {
                 var policyRoute = new FlightRouteDefinition(Guid.NewGuid(), 1, "Validation obstacle",
                     route.Nodes.Select(item => new FlightRouteNode(item.Id, item.Name, item.Position,
-                        item.Speed, item.BankDegrees)).ToArray(), FlightRouteCurve.Linear, policy,
+                        (float)item.Speed, (float)item.BankDegrees)).ToArray(), FlightRouteCurve.Linear, policy,
                     false, false, "smoke:ux2-nav-i:policy");
                 var initial = FlightRouteController.CreateInitial(Guid.NewGuid(), policyRoute);
                 var step = FlightRouteController.Step(policyRoute, initial, .25f, .5f,

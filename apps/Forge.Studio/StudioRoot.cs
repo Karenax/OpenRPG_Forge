@@ -322,6 +322,7 @@ public sealed partial class StudioRoot : Control
         var ux2NavFValid = true;
         var ux2NavGValid = true;
         var ux2NavHValid = true;
+        var ux2NavIValid = true;
         var ux4AValid = true;
         var ux5AValid = true;
         var candidateApprovalsValid = true;
@@ -351,6 +352,7 @@ public sealed partial class StudioRoot : Control
             var ux2NavFApproval = _session.CapturePortalApprovalUx2NavF();
             var ux2NavGApproval = _session.CaptureDoorNavigationApprovalUx2NavG();
             var ux2NavHApproval = _session.CaptureTriggerPortalApprovalUx2NavH();
+            var ux2NavIApproval = _session.CaptureAerialApprovalUx2NavI();
             var ux4AApproval = _session.CaptureFactionApprovalUx4A();
             var ux5AApproval = _session.CaptureDialogueApprovalUx5A();
             try
@@ -379,6 +381,7 @@ public sealed partial class StudioRoot : Control
                 ux2NavFValid = _shell.RunUx2NavFSmoke();
                 ux2NavGValid = _shell.RunUx2NavGSmoke();
                 ux2NavHValid = _shell.RunUx2NavHSmoke();
+                ux2NavIValid = _shell.RunUx2NavISmoke();
                 ux4AValid = _shell.RunUx4ASmoke();
                 ux5AValid = _shell.RunUx5ASmoke();
             }
@@ -408,6 +411,7 @@ public sealed partial class StudioRoot : Control
                 _session.RestorePortalApprovalUx2NavF(ux2NavFApproval);
                 _session.RestoreDoorNavigationApprovalUx2NavG(ux2NavGApproval);
                 _session.RestoreTriggerPortalApprovalUx2NavH(ux2NavHApproval);
+                _session.RestoreAerialApprovalUx2NavI(ux2NavIApproval);
                 _session.RestoreFactionApprovalUx4A(ux4AApproval);
                 _session.RestoreDialogueApprovalUx5A(ux5AApproval);
             }
@@ -436,6 +440,7 @@ public sealed partial class StudioRoot : Control
                 Equals(_session.CapturePortalApprovalUx2NavF(), ux2NavFApproval) &&
                 Equals(_session.CaptureDoorNavigationApprovalUx2NavG(), ux2NavGApproval) &&
                 Equals(_session.CaptureTriggerPortalApprovalUx2NavH(), ux2NavHApproval) &&
+                Equals(_session.CaptureAerialApprovalUx2NavI(), ux2NavIApproval) &&
                 Equals(_session.CaptureFactionApprovalUx4A(), ux4AApproval) &&
                 Equals(_session.CaptureDialogueApprovalUx5A(), ux5AApproval);
             GD.Print(
@@ -475,7 +480,7 @@ public sealed partial class StudioRoot : Control
             !ux2EnvBValid || !ux2EnvCValid || !ux2EnvDValid || !ux2EnvEValid || !ux2EnvFValid || !ux2EnvGValid ||
             !ux2EnvHValid || !ux2EnvIValid ||
             !ux2NavBValid || !ux2NavCValid || !ux2NavDValid || !ux2NavEValid || !ux2NavFValid || !ux2NavGValid ||
-            !ux2NavHValid ||
+            !ux2NavHValid || !ux2NavIValid ||
             !ux4AValid || !ux5AValid ||
             !candidateApprovalsValid || !evidenceValid)
         {
@@ -499,6 +504,7 @@ public sealed partial class StudioRoot : Control
                 $"ux2envh={ux2EnvHValid} ux2envi={ux2EnvIValid} " +
                 $"ux2navb={ux2NavBValid} ux2navc={ux2NavCValid} ux2navd={ux2NavDValid} " +
                 $"ux2nave={ux2NavEValid} ux2navf={ux2NavFValid} ux2navg={ux2NavGValid} ux2navh={ux2NavHValid} " +
+                $"ux2navi={ux2NavIValid} " +
                 $"ux4a={ux4AValid} ux5a={ux5AValid} " +
                 $"candidate_approvals={candidateApprovalsValid} " +
                 $"evidence={evidenceValid}");
