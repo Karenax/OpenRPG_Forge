@@ -13650,6 +13650,14 @@ public partial class ForgeEditorPlugin : EditorPlugin
         var eventName = $"area.{appliedArea.Slug}.alarm";
         var dispatched = AreaExperienceAuthoringScriptService.Dispatch(appliedArea, eventName,
             new Dictionary<string, object?> { ["level"] = 2 });
+        var eventRuntime = new NativeForgeScriptRuntime();
+        var eventPayload = new Dictionary<string, object?> { ["level"] = 2 };
+        var eventPreview = AreaUserEventRuntimeService.Dispatch(appliedArea, eventName, eventPayload,
+            eventRuntime, ResolveAreaUserEventSource, requiredAtRuntime: true, dryRun: true,
+            correlationId: Guid.Parse("a0551000-0000-4000-8000-000000000011"));
+        var eventExecution = AreaUserEventRuntimeService.Dispatch(appliedArea, eventName, eventPayload,
+            eventRuntime, ResolveAreaUserEventSource, requiredAtRuntime: true, dryRun: false,
+            correlationId: Guid.Parse("a0551000-0000-4000-8000-000000000012"));
         var map = AreaExperienceAuthoringScriptService.Reveal(appliedArea,
             new(AreaMapExplorationScope.Party, "party:smoke", new HashSet<string>(), new HashSet<Guid>()),
             17, 3, appliedArea.Authoring.Map.Pins[0].Id);
@@ -13663,7 +13671,12 @@ public partial class ForgeEditorPlugin : EditorPlugin
             snapshot.AudioSnapshots.Count != 1 || snapshot.EventBindings.Count != 1 ||
             snapshot.MapPins != 1 || snapshot.VisibilityRooms != 2 || snapshot.VisibilityPortals != 1 ||
             snapshot.Occluders != 1 || snapshot.LodOverrides != 1 || !snapshot.FogOfWar ||
-            dispatched.Subscriptions.Count != 2 || !map.RevealedCells.Contains("2:0") ||
+            dispatched.Subscriptions.Count != 1 ||
+            !eventPreview.Succeeded || !eventPreview.DryRun || eventPreview.Executed ||
+            eventPreview.Compilation?.Success != true || eventPreview.Deliveries.Count != 1 ||
+            !eventExecution.Succeeded || eventExecution.DryRun || !eventExecution.Executed ||
+            eventExecution.Execution?.Status != ForgeScriptExecutionStatus.Completed ||
+            eventExecution.Deliveries.Count != 1 || !map.RevealedCells.Contains("2:0") ||
             map.RevealedPins.Count != 1 || runtime.Handle is null || runtime.Diagnostics.Count != 0 ||
             optional.Diagnostics.Count != 0 ||
             required.Diagnostics.Single().Code != AreaExperienceRuntimeResolver.RequiredMissingCode ||
@@ -13722,6 +13735,21 @@ public partial class ForgeEditorPlugin : EditorPlugin
             "forgescript=typed-handle mcp=filtered-plan-apply-revert build=preflight " +
             "runtime=optional-safe-required-diagnostic");
         return true;
+
+        string? ResolveAreaUserEventSource(string relativePath)
+        {
+            if (_projectSession is null ||
+                !ProjectLifecycleEventProfileValidator.IsSafeScriptPath(relativePath))
+                return null;
+            var root = Path.GetFullPath(_projectSession.RootDirectory)
+                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) +
+                Path.DirectorySeparatorChar;
+            var candidate = Path.GetFullPath(Path.Combine(root,
+                relativePath.Replace('/', Path.DirectorySeparatorChar)));
+            return candidate.StartsWith(root, StringComparison.OrdinalIgnoreCase) && File.Exists(candidate)
+                ? File.ReadAllText(candidate)
+                : null;
+        }
     }
 
     private bool RunAreaLayersR056SmokeTest()

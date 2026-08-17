@@ -165,7 +165,7 @@ public partial class AreaAuthoringWindow : Window
             [new(Guid.Parse("a0551000-0000-4000-8000-000000000010"), eventName,
                 "schema://area/alarm/v1", "scripts/ash_warden_death.forge", 1,
                 ["main"], true, "author:r055-smoke", AreaUserEvent.CurrentSchemaVersion,
-                new Dictionary<string, string> { ["payload"] = "string" },
+                new Dictionary<string, string> { ["level"] = "int" },
                 AreaUserEvent.CurrentForgeScriptApiVersion)],
             map, area.Authoring.Layers, experience);
         Populate(_draft);
