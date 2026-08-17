@@ -145,6 +145,7 @@ internal sealed partial class StudioSessionController
         CloseUx2NavB();
         CloseUx2NavC();
         CloseUx2NavD();
+        CloseUx2NavF();
         CloseUx4A();
         CloseUx5A();
         ActiveAreaId = ResolveArea(preferredAreaId)?.Id ??
@@ -1089,6 +1090,7 @@ internal sealed partial class StudioSessionController
         CloseUx2NavB();
         CloseUx2NavC();
         CloseUx2NavD();
+        CloseUx2NavF();
         CloseUx4A();
         CloseUx5A();
         _searchProfile = null;
