@@ -332,6 +332,17 @@ internal sealed partial class StudioSessionController
         _approvedFactionDraftFingerprintUx4A,
         _approvedFactionCandidateFingerprintUx4A);
 
+    internal void RestoreFactionApprovalUx4A(StudioFactionApprovalSnapshotUx4A snapshot)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot);
+        _approvedFactionDraftUx4A = snapshot.Draft;
+        _approvedFactionCandidateUx4A = snapshot.Candidate;
+        _approvedFactionRevisionUx4A = snapshot.Revision;
+        _approvedFactionProjectFingerprintUx4A = snapshot.ProjectFingerprint;
+        _approvedFactionDraftFingerprintUx4A = snapshot.DraftFingerprint;
+        _approvedFactionCandidateFingerprintUx4A = snapshot.CandidateFingerprint;
+    }
+
     internal StudioFactionEvidenceProjectUx4A? CreateUx4AEvidenceProject()
     {
         var project = Project;
@@ -344,8 +355,26 @@ internal sealed partial class StudioSessionController
             return new(project, UsesRealCryptSource: true, UsesCanonicalFallback: false);
         }
 
-        var fallback = WithFactionCatalogUx4A(project, CreateCanonicalEvidenceCatalogUx4A(project.Id.Value));
+        var fallback = CreateCanonicalEvidenceProjectUx4A(project.Id.Value);
         return new(fallback, UsesRealCryptSource: false, UsesCanonicalFallback: true);
+    }
+
+    private static ProjectDefinition CreateCanonicalEvidenceProjectUx4A(Guid sourceProjectId)
+    {
+        var projectId = ProjectId.From(StableEvidenceIdUx4A(sourceProjectId, "project"));
+        var area = new AreaDefinition(
+            AreaId.From(StableEvidenceIdUx4A(sourceProjectId, "area")),
+            "atelier-factions",
+            "Atelier des factions",
+            [],
+            AreaKind.Interior,
+            new AreaDimensions(32, 32));
+        var project = new ProjectDefinition(
+            projectId,
+            "Studio UX4-A · preuve factions",
+            [],
+            [area]);
+        return WithFactionCatalogUx4A(project, CreateCanonicalEvidenceCatalogUx4A(projectId.Value));
     }
 
     private static bool TryBuildFactionCandidateUx4A(

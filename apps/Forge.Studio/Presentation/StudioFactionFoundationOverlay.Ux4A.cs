@@ -354,9 +354,22 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
         OpenBoundSession();
     }
 
-    private void OpenBoundSession()
+    internal void RestoreSourceSurfaceAfterSmoke()
     {
-        _session.CancelFactionFoundationUx4A();
+        if (_evidenceSession is not null || _evidenceTempRoot is not null)
+        {
+            CloseIsolatedEvidenceSession();
+        }
+        _session = _sourceSession;
+        OpenBoundSession(cancelApproval: false);
+    }
+
+    private void OpenBoundSession(bool cancelApproval = true)
+    {
+        if (cancelApproval)
+        {
+            _session.CancelFactionFoundationUx4A();
+        }
         _choices = _session.FactionChoicesUx4A;
         _faction.Clear();
         _faction.AddItem("Choisissez explicitement une faction…");
@@ -388,6 +401,11 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
         if (_evidenceSession is not null || _evidenceTempRoot is not null)
         {
             CloseIsolatedEvidenceSession();
+            return;
+        }
+
+        if (!Visible)
+        {
             return;
         }
 
@@ -1284,6 +1302,7 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
             {
                 Close();
             }
+            _sourceSession.RestoreFactionApprovalUx4A(sourceSnapshot.Approval);
         }
     }
 

@@ -92,6 +92,8 @@ internal sealed partial class StudioWorkspaceShell
 
     internal bool RunUx4ASmoke()
     {
+        var originalPageId = PageId;
+        var originalSurfaceOpen = _factionFoundationOverlayUx4A.IsOpen;
         var originalProject = _session.Project;
         var originalHistory = _session.History;
         var originalRevision = originalHistory?.State.Revision;
@@ -128,6 +130,14 @@ internal sealed partial class StudioWorkspaceShell
         var sourceSessionRestored = _factionFoundationOverlayUx4A.SourceSessionRestored;
 
         var result = _session.RunUx4AContractSmoke();
+        SwitchPage(originalPageId, notify: false);
+        if (originalSurfaceOpen)
+        {
+            _factionFoundationOverlayUx4A.RestoreSourceSurfaceAfterSmoke();
+        }
+        _session.RestoreFactionApprovalUx4A(originalApproval);
+        var surfaceRestored = PageId == originalPageId &&
+                              _factionFoundationOverlayUx4A.IsOpen == originalSurfaceOpen;
         var currentHistory = _session.History;
         var sourceUnchanged = ReferenceEquals(originalProject, _session.Project) &&
                               ReferenceEquals(originalHistory, currentHistory) &&
@@ -157,7 +167,7 @@ internal sealed partial class StudioWorkspaceShell
                 $"source_untouched={evidenceSourceUntouched.ToString().ToLowerInvariant()}");
         }
         var valid = result.Succeeded && result.TemporaryWorkspaceReleased && uiReady && uiTransaction &&
-                    sourceUnchanged && evidenceResourcesReleased && sourceSessionRestored;
+                    sourceUnchanged && evidenceResourcesReleased && sourceSessionRestored && surfaceRestored;
         GD.Print(
             $"OPENRPG_FORGE_STUDIO_UX4A_{(valid ? "PASS" : "FAILED")} " +
             $"selection_explicit={result.ExplicitSelection.ToString().ToLowerInvariant()} " +
@@ -188,6 +198,7 @@ internal sealed partial class StudioWorkspaceShell
             $"source_session_restored={sourceSessionRestored.ToString().ToLowerInvariant()} " +
             $"ui={uiReady.ToString().ToLowerInvariant()} " +
             $"ui_transaction={uiTransaction.ToString().ToLowerInvariant()} " +
+            $"surface_restored={surfaceRestored.ToString().ToLowerInvariant()} " +
             $"source_unchanged={sourceUnchanged.ToString().ToLowerInvariant()} windows=1");
         return valid;
     }
