@@ -349,6 +349,9 @@ internal sealed partial class StudioTerrainTilesWorkspaceUx2B : Control
 
         _status = StudioStyle.Label("Sélectionnez explicitement une zone.", 10, StudioStyle.Muted, wrap: true);
         root.AddChild(_status);
+        root.AddChild(StudioStyle.Label(
+            "L’aperçu n’écrit rien. Appliquer produit une seule commande de géométrie annulable.",
+            10, StudioStyle.Muted, wrap: true));
         var actions = new HBoxContainer();
         actions.AddThemeConstantOverride("separation", 8);
         _preview = StudioStyle.Button("Prévisualiser", primary: true);
@@ -361,10 +364,11 @@ internal sealed partial class StudioTerrainTilesWorkspaceUx2B : Control
         _redo.Pressed += Redo;
         _save = StudioStyle.Button("Enregistrer");
         _save.Pressed += Save;
-        foreach (var button in new[] { _preview, _apply, _undo, _redo, _save }) actions.AddChild(button);
-        actions.AddChild(StudioStyle.Label(
-            "L’aperçu n’écrit rien. Appliquer produit une seule commande de géométrie annulable.",
-            10, StudioStyle.Muted, wrap: true));
+        foreach (var button in new[] { _preview, _apply, _undo, _redo, _save })
+        {
+            button.CustomMinimumSize = new Vector2(118, 34);
+            actions.AddChild(button);
+        }
         root.AddChild(actions);
         SetProcessUnhandledKeyInput(true);
         UpdateActions();
@@ -447,8 +451,9 @@ internal sealed partial class StudioTerrainTilesWorkspaceUx2B : Control
             {
                 return false;
             }
+            var beforeRevision = _session.History?.State.Revision;
             Apply();
-            var applied = _status.Text.Contains("appliqué", StringComparison.CurrentCultureIgnoreCase);
+            var applied = _session.History?.State.Revision != beforeRevision && _session.CanUndo;
             Undo();
             var undone = _session.CanRedo;
             Redo();
