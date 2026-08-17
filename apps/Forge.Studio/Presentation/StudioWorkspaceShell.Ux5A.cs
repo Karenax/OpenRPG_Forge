@@ -100,6 +100,10 @@ internal sealed partial class StudioWorkspaceShell
                       _dialogueFoundationPageUx5A.PreviewReady &&
                       _dialogueFoundationPageUx5A.MiniMapReadOnly &&
                       _dialogueFoundationPageUx5A.KeyboardReorderAvailable &&
+                      _dialogueFoundationPageUx5A.KeyboardReorderExercised &&
+                      _dialogueFoundationPageUx5A.DragDropReorderExercised &&
+                      _dialogueFoundationPageUx5A.ProtectedSpeakerPreserved &&
+                      _dialogueFoundationPageUx5A.SubgraphRoleProtected &&
                       _dialogueFoundationPageUx5A.PaginationIsInventoryOnly &&
                       _dialogueFoundationPageUx5A.ShowsHumanSurface &&
                       _dialogueFoundationPageUx5A.EvidenceSourceUntouched;
@@ -129,6 +133,11 @@ internal sealed partial class StudioWorkspaceShell
         GD.Print(
             $"OPENRPG_FORGE_STUDIO_UX5A_{(valid ? "PASS" : "FAILED")} " +
             $"explicit_selection={result.ExplicitSelection.ToString().ToLowerInvariant()} " +
+            $"new_dialogue={result.NewDialogue.ToString().ToLowerInvariant()} " +
+            $"protected_speaker={result.ProtectedSpeakerPreserved.ToString().ToLowerInvariant()} " +
+            $"subgraph_protected={result.SubgraphProtected.ToString().ToLowerInvariant()} " +
+            $"structural_choice_diff={result.StructuralChoiceDiff.ToString().ToLowerInvariant()} " +
+            $"identity_diff={result.IdentityDiffHuman.ToString().ToLowerInvariant()} " +
             $"branches_unlimited={result.BranchesUnlimited.ToString().ToLowerInvariant()} " +
             $"multiple_entries={result.MultipleEntries.ToString().ToLowerInvariant()} " +
             $"reference_cycle={result.ReferenceCycleAccepted.ToString().ToLowerInvariant()} " +
@@ -144,6 +153,8 @@ internal sealed partial class StudioWorkspaceShell
             $"undo_redo={result.UndoRedo.ToString().ToLowerInvariant()} " +
             $"roundtrip={result.RoundTrip.ToString().ToLowerInvariant()} " +
             $"preservation={result.StructuralPreservation.ToString().ToLowerInvariant()} " +
+            $"keyboard_ui={_dialogueFoundationPageUx5A.KeyboardReorderExercised.ToString().ToLowerInvariant()} " +
+            $"drag_drop_ui={_dialogueFoundationPageUx5A.DragDropReorderExercised.ToString().ToLowerInvariant()} " +
             $"ui={uiReady.ToString().ToLowerInvariant()} " +
             $"ui_transaction={uiTransaction.ToString().ToLowerInvariant()} " +
             $"source_untouched={sourceUntouched.ToString().ToLowerInvariant()} " +

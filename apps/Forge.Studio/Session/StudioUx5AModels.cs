@@ -16,7 +16,8 @@ internal sealed record StudioDialogueChoiceUx5A(
 
 internal sealed record StudioDialogueSpeakerChoiceUx5A(
     BlueprintId? Id,
-    string Label);
+    string Label,
+    bool Protected);
 
 internal sealed record StudioDialogueChoiceDraftUx5A(
     DialogueChoice Original,
@@ -85,6 +86,11 @@ internal sealed record StudioDialogueEvidenceSourceSnapshotUx5A(
 internal sealed record StudioUx5ASmokeResult(
     bool Succeeded,
     bool ExplicitSelection,
+    bool NewDialogue,
+    bool ProtectedSpeakerPreserved,
+    bool SubgraphProtected,
+    bool StructuralChoiceDiff,
+    bool IdentityDiffHuman,
     bool BranchesUnlimited,
     bool MultipleEntries,
     bool ReferenceCycleAccepted,

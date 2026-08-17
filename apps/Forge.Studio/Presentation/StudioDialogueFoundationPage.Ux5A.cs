@@ -16,6 +16,66 @@ internal sealed partial class StudioDialogueChoiceListUx5A : ItemList
 
     internal bool KeyboardAlternativeEnabled => true;
 
+    internal bool ExerciseKeyboardMoveForEvidence(int sourceIndex, Key keycode)
+    {
+        if (sourceIndex < 0 || sourceIndex >= ItemCount || keycode is not (Key.Up or Key.Down))
+        {
+            return false;
+        }
+
+        var observed = false;
+        void Observe(int source, int target) =>
+            observed |= source == sourceIndex && target == sourceIndex + (keycode == Key.Up ? -1 : 1);
+        ChoiceMoved += Observe;
+        try
+        {
+            Select(sourceIndex);
+            _GuiInput(new InputEventKey
+            {
+                Pressed = true,
+                Echo = false,
+                AltPressed = true,
+                Keycode = keycode,
+            });
+            return observed;
+        }
+        finally
+        {
+            ChoiceMoved -= Observe;
+        }
+    }
+
+    internal bool ExerciseDragDropMoveForEvidence(int sourceIndex, int targetIndex)
+    {
+        if (sourceIndex < 0 || sourceIndex >= ItemCount || targetIndex < 0 || targetIndex >= ItemCount ||
+            sourceIndex == targetIndex)
+        {
+            return false;
+        }
+
+        var observed = false;
+        void Observe(int source, int target) =>
+            observed |= source == sourceIndex && target == targetIndex;
+        ChoiceMoved += Observe;
+        try
+        {
+            Select(sourceIndex);
+            Variant payload = CreateChoicePayload(sourceIndex);
+            var targetRect = GetItemRect(targetIndex);
+            var targetPosition = targetRect.Position + targetRect.Size / 2f;
+            if (!_CanDropData(targetPosition, payload))
+            {
+                return false;
+            }
+            _DropData(targetPosition, payload);
+            return observed;
+        }
+        finally
+        {
+            ChoiceMoved -= Observe;
+        }
+    }
+
     internal StudioDialogueChoiceListUx5A()
     {
         SelectMode = SelectModeEnum.Single;
@@ -40,11 +100,7 @@ internal sealed partial class StudioDialogueChoiceListUx5A : ItemList
             "normal",
             StudioStyle.Box(StudioStyle.Selection, StudioStyle.Success, 6, 1));
         SetDragPreview(preview);
-        return new Godot.Collections.Dictionary
-        {
-            ["kind"] = PayloadKind,
-            ["sourceIndex"] = index,
-        };
+        return CreateChoicePayload(index);
     }
 
     public override bool _CanDropData(Vector2 atPosition, Variant data) =>
@@ -105,6 +161,12 @@ internal sealed partial class StudioDialogueChoiceListUx5A : ItemList
         sourceIndex = dictionary["sourceIndex"].AsInt32();
         return sourceIndex >= 0;
     }
+
+    private static Godot.Collections.Dictionary CreateChoicePayload(int sourceIndex) => new()
+    {
+        ["kind"] = PayloadKind,
+        ["sourceIndex"] = sourceIndex,
+    };
 }
 
 internal sealed partial class StudioDialogueFoundationPage : Control
@@ -143,6 +205,7 @@ internal sealed partial class StudioDialogueFoundationPage : Control
     private readonly Label _status;
     private readonly List<DialogueId> _dialogueIds = [];
     private readonly List<BlueprintId?> _speakerIds = [];
+    private readonly List<bool> _speakerProtected = [];
     private readonly List<DialogueNodeRole> _roles = [];
     private readonly List<DialogueNodeId?> _targetNodeIds = [];
     private readonly List<int> _visibleLineIndexes = [];
@@ -157,6 +220,10 @@ internal sealed partial class StudioDialogueFoundationPage : Control
     private bool _lastEvidenceSourceUntouched = true;
     private bool _lastEvidenceResourcesReleased = true;
     private bool _emptyStateVerified;
+    private bool _lastKeyboardReorderExercised;
+    private bool _lastDragDropReorderExercised;
+    private bool _lastProtectedSpeakerPreserved;
+    private bool _lastSubgraphProtected;
 
     internal event Action<string, bool>? StatusChanged;
 
@@ -171,6 +238,14 @@ internal sealed partial class StudioDialogueFoundationPage : Control
     internal bool MiniMapReadOnly => !_miniMap.Editable;
 
     internal bool KeyboardReorderAvailable => _choices.KeyboardAlternativeEnabled;
+
+    internal bool KeyboardReorderExercised => _lastKeyboardReorderExercised;
+
+    internal bool DragDropReorderExercised => _lastDragDropReorderExercised;
+
+    internal bool ProtectedSpeakerPreserved => _lastProtectedSpeakerPreserved;
+
+    internal bool SubgraphRoleProtected => _lastSubgraphProtected;
 
     internal bool EmptyStateVerified => _emptyStateVerified;
 
@@ -404,6 +479,14 @@ internal sealed partial class StudioDialogueFoundationPage : Control
         {
             _roles.Add(role);
             _role.AddItem(HumanRole(role));
+            if (role == DialogueNodeRole.Subgraph)
+            {
+                var roleIndex = _role.ItemCount - 1;
+                _role.SetItemDisabled(roleIndex, true);
+                _role.SetItemTooltip(
+                    roleIndex,
+                    "Rôle hérité protégé : la clé de sous-dialogue reste préservée hors de cette surface.");
+            }
         }
         _edgeKind.AddItem("Flow · progression");
         _edgeKind.AddItem("Reference · retour intentionnel");
@@ -514,12 +597,13 @@ internal sealed partial class StudioDialogueFoundationPage : Control
             return false;
         }
 
-        MoveChoice(0, 1);
+        var reorderControls = ExerciseReorderControlsForEvidence();
         var previewed = PreviewInternal();
         var ready = previewed && mode.StartsWith("ux5-a", StringComparison.OrdinalIgnoreCase) &&
-                    _emptyStateVerified && HasExplicitSelection && PreviewReady && MiniMapReadOnly &&
-                    KeyboardReorderAvailable && PaginationIsInventoryOnly && ShowsHumanSurface &&
-                    EvidenceSourceUntouched;
+                     _emptyStateVerified && HasExplicitSelection && PreviewReady && MiniMapReadOnly &&
+                     KeyboardReorderAvailable && reorderControls && _lastProtectedSpeakerPreserved &&
+                     _lastSubgraphProtected && PaginationIsInventoryOnly && ShowsHumanSurface &&
+                     EvidenceSourceUntouched;
         if (!ready)
         {
             Close();
@@ -554,7 +638,7 @@ internal sealed partial class StudioDialogueFoundationPage : Control
             }
             var dialogueId = _draft!.DialogueId;
             var originalFirstChoice = _draft.Lines[0].Choices[0].Original.Id;
-            MoveChoice(0, 1);
+            var reorderControls = ExerciseReorderControlsForEvidence();
             var reorderedFirstChoice = _draft.Lines[0].Choices[0].Original.Id;
             var history = _session.History!;
             var beforeProject = _session.Project;
@@ -582,8 +666,11 @@ internal sealed partial class StudioDialogueFoundationPage : Control
                 ProjectJsonSerializer.Serialize(reopened.Project!),
                 serialized,
                 StringComparison.Ordinal);
+            var appliedEntry = _session.Project!.Dialogues.Single(item => item.Id == dialogueId).Nodes[0];
             visible = _emptyStateVerified && HasExplicitSelection && MiniMapReadOnly && KeyboardReorderAvailable &&
-                      PaginationIsInventoryOnly && ShowsHumanSurface && orderApplied;
+                      reorderControls && _lastProtectedSpeakerPreserved && _lastSubgraphProtected &&
+                      PaginationIsInventoryOnly && ShowsHumanSurface && orderApplied &&
+                      appliedEntry.SpeakerBlueprintId == _draft.Lines[0].SpeakerBlueprintId;
         }
         catch (Exception exception)
         {
@@ -657,6 +744,10 @@ internal sealed partial class StudioDialogueFoundationPage : Control
     {
         _session.CancelDialogueUx5A();
         Visible = true;
+        _lastKeyboardReorderExercised = false;
+        _lastDragDropReorderExercised = false;
+        _lastProtectedSpeakerPreserved = false;
+        _lastSubgraphProtected = false;
         PopulateSpeakers();
         PopulateDialogues();
         ClearSelection("Choisissez explicitement un dialogue ; aucune sélection implicite n’est effectuée.");
@@ -688,15 +779,24 @@ internal sealed partial class StudioDialogueFoundationPage : Control
     {
         _speaker.Clear();
         _speakerIds.Clear();
+        _speakerProtected.Clear();
         foreach (var choice in _session.DialogueSpeakerChoicesUx5A)
         {
             _speaker.AddItem(choice.Label);
             _speakerIds.Add(choice.Id);
+            _speakerProtected.Add(choice.Protected);
+            if (choice.Protected)
+            {
+                _speaker.SetItemTooltip(
+                    _speaker.ItemCount - 1,
+                    "Intervenant hérité : sélection humaine conservée, type avancé non modifié.");
+            }
         }
         if (_speakerIds.Count == 0)
         {
             _speaker.AddItem("Narration / système");
             _speakerIds.Add(null);
+            _speakerProtected.Add(false);
         }
     }
 
@@ -860,9 +960,10 @@ internal sealed partial class StudioDialogueFoundationPage : Control
         var line = _draft.Lines[absoluteIndex];
         _loading = true;
         _lineText.Text = line.Text;
-        _role.Select(Math.Max(0, _roles.FindIndex(item => item == line.Role)));
-        var speakerIndex = _speakerIds.FindIndex(item => item == line.SpeakerBlueprintId);
-        _speaker.Select(Math.Max(0, speakerIndex));
+        var roleIndex = _roles.FindIndex(item => item == line.Role);
+        _role.Select(Math.Max(0, roleIndex));
+        var speakerIndex = EnsureSpeakerOption(line.SpeakerBlueprintId);
+        _speaker.Select(speakerIndex);
         _loading = false;
         _lineContext.Text =
             $"Ligne {absoluteIndex + 1:00} · {(line.Original.Id == _draft.EntryNodeId ? "entrée principale" : "ligne liée")} · " +
@@ -997,13 +1098,22 @@ internal sealed partial class StudioDialogueFoundationPage : Control
         var roleIndex = Math.Clamp(_role.Selected, 0, _roles.Count - 1);
         var speakerIndex = Math.Clamp(_speaker.Selected, 0, _speakerIds.Count - 1);
         var speaker = _speakerIds[speakerIndex];
+        var selectedRole = _roles[roleIndex];
+        if (line.Original.Role == DialogueNodeRole.Subgraph)
+        {
+            selectedRole = DialogueNodeRole.Subgraph;
+        }
+        else if (selectedRole == DialogueNodeRole.Subgraph)
+        {
+            selectedRole = line.Role;
+        }
         var participantId = speaker == line.Original.SpeakerBlueprintId
             ? line.Original.ParticipantId
             : DialogueParticipant.FromSpeaker(speaker).Id;
         lines[_selectedLineIndex] = line with
         {
             Text = _lineText.Text,
-            Role = _roles[roleIndex],
+            Role = selectedRole,
             SpeakerBlueprintId = speaker,
             ParticipantId = participantId,
         };
@@ -1369,6 +1479,30 @@ internal sealed partial class StudioDialogueFoundationPage : Control
         return index >= 0 ? _speaker.GetItemText(index) : "intervenant indisponible";
     }
 
+    private int EnsureSpeakerOption(BlueprintId? speakerId)
+    {
+        var index = _speakerIds.FindIndex(item => item == speakerId);
+        if (index >= 0)
+        {
+            return index;
+        }
+
+        _speaker.AddItem(
+            speakerId is null
+                ? "Narration / système"
+                : "Intervenant référencé indisponible · hérité protégé");
+        _speakerIds.Add(speakerId);
+        _speakerProtected.Add(speakerId is not null);
+        index = _speakerIds.Count - 1;
+        if (speakerId is not null)
+        {
+            _speaker.SetItemTooltip(
+                index,
+                "Référence préservée sans identifiant technique visible ; le validateur canonique contrôlera sa résolution.");
+        }
+        return index;
+    }
+
     private void SetEditingState()
     {
         var hasDraft = _draft is not null;
@@ -1380,7 +1514,7 @@ internal sealed partial class StudioDialogueFoundationPage : Control
         _addLine.Disabled = !hasDraft;
         _removeLine.Disabled = !hasLine;
         _setEntry.Disabled = !hasLine;
-        _role.Disabled = !hasLine;
+        _role.Disabled = !hasLine || CurrentLine?.Original.Role == DialogueNodeRole.Subgraph;
         _speaker.Disabled = !hasLine;
         _lineText.Editable = hasLine;
         _addChoice.Disabled = !hasLine;
@@ -1414,7 +1548,53 @@ internal sealed partial class StudioDialogueFoundationPage : Control
         SelectLineAbsolute(0);
         _choices.Select(0);
         SelectChoice(0);
-        return HasExplicitSelection;
+        var selectedSpeakerIndex = _speaker.Selected;
+        var selectedSpeaker = selectedSpeakerIndex >= 0 && selectedSpeakerIndex < _speakerIds.Count
+            ? _speakerIds[selectedSpeakerIndex]
+            : null;
+        var entrySpeaker = _draft.Lines[0].SpeakerBlueprintId;
+        _lineText.Text = _lineText.Text + " · édition UI";
+        UpdateSelectedLine();
+        _lastProtectedSpeakerPreserved = entrySpeaker is not null && selectedSpeaker == entrySpeaker &&
+                                         _speakerProtected[selectedSpeakerIndex] &&
+                                         _draft.Lines[0].SpeakerBlueprintId == entrySpeaker &&
+                                         _speaker.GetItemText(selectedSpeakerIndex).Contains(
+                                             "protégé",
+                                             StringComparison.OrdinalIgnoreCase);
+
+        var subgraphIndex = _draft.Lines.ToList().FindIndex(line =>
+            line.Original.Role == DialogueNodeRole.Subgraph);
+        var subgraphRoleIndex = _roles.FindIndex(role => role == DialogueNodeRole.Subgraph);
+        if (subgraphIndex >= 0 && subgraphRoleIndex >= 0)
+        {
+            SelectLineAbsolute(subgraphIndex);
+            _lastSubgraphProtected = _role.Selected == subgraphRoleIndex && _role.Disabled &&
+                                     _role.IsItemDisabled(subgraphRoleIndex) &&
+                                     _draft.Lines[subgraphIndex].Role == DialogueNodeRole.Subgraph &&
+                                     string.Equals(
+                                         _draft.Lines[subgraphIndex].Original.SubgraphKey,
+                                         "branche-secondaire-protegee",
+                                         StringComparison.Ordinal);
+        }
+
+        SelectLineAbsolute(0);
+        _choices.Select(0);
+        SelectChoice(0);
+        return HasExplicitSelection && _lastProtectedSpeakerPreserved && _lastSubgraphProtected;
+    }
+
+    private bool ExerciseReorderControlsForEvidence()
+    {
+        var line = CurrentLine;
+        if (line is null || line.Choices.Count < 3)
+        {
+            return false;
+        }
+
+        _lastKeyboardReorderExercised = _choices.ExerciseKeyboardMoveForEvidence(0, Key.Down);
+        _lastDragDropReorderExercised = _lastKeyboardReorderExercised &&
+                                        _choices.ExerciseDragDropMoveForEvidence(1, 2);
+        return _lastKeyboardReorderExercised && _lastDragDropReorderExercised;
     }
 
     private bool ActivateEvidenceWorkspace()
@@ -1616,7 +1796,7 @@ internal sealed partial class StudioDialogueFoundationPage : Control
         DialogueNodeRole.Narration => "Narration",
         DialogueNodeRole.System => "Système",
         DialogueNodeRole.ActionOnly => "Action seule",
-        DialogueNodeRole.Subgraph => "Sous-dialogue",
+        DialogueNodeRole.Subgraph => "Sous-dialogue · hérité protégé",
         DialogueNodeRole.End => "Fin",
         _ => "Rôle hérité",
     };

@@ -65,21 +65,35 @@ internal sealed partial class StudioSessionController
                 return [];
             }
 
+            var referencedSpeakerIds = project.Dialogues
+                .SelectMany(dialogue => dialogue.Nodes)
+                .Where(node => node.SpeakerBlueprintId is not null)
+                .Select(node => node.SpeakerBlueprintId!)
+                .ToHashSet();
             var candidates = project.Blueprints
-                .Where(item => item.Kind is BlueprintKind.Creature or BlueprintKind.PlayerSpawn)
+                .Where(item => item.Kind is BlueprintKind.Creature or BlueprintKind.PlayerSpawn ||
+                               referencedSpeakerIds.Contains(item.Id))
                 .ToArray();
             var duplicateNames = candidates
                 .GroupBy(item => item.DisplayName, StringComparer.CurrentCultureIgnoreCase)
                 .Where(group => group.Count() > 1)
                 .Select(group => group.Key)
                 .ToHashSet(StringComparer.CurrentCultureIgnoreCase);
-            return new[] { new StudioDialogueSpeakerChoiceUx5A(null, "Narration / système") }
-                .Concat(candidates.Select(blueprint => new StudioDialogueSpeakerChoiceUx5A(
-                    blueprint.Id,
-                    duplicateNames.Contains(blueprint.DisplayName)
+            return new[] { new StudioDialogueSpeakerChoiceUx5A(null, "Narration / système", false) }
+                .Concat(candidates.Select(blueprint =>
+                {
+                    var protectedSpeaker = blueprint.Kind is not (BlueprintKind.Creature or BlueprintKind.PlayerSpawn);
+                    var label = duplicateNames.Contains(blueprint.DisplayName)
                         ? $"{blueprint.DisplayName} · {blueprint.Slug}"
-                        : blueprint.DisplayName)))
+                        : blueprint.DisplayName;
+                    if (protectedSpeaker)
+                    {
+                        label += " · intervenant hérité protégé";
+                    }
+                    return new StudioDialogueSpeakerChoiceUx5A(blueprint.Id, label, protectedSpeaker);
+                }))
                 .OrderBy(item => item.Id is null ? 0 : 1)
+                .ThenBy(item => item.Protected)
                 .ThenBy(item => item.Label, StringComparer.CurrentCultureIgnoreCase)
                 .ToArray();
         }
@@ -209,7 +223,7 @@ internal sealed partial class StudioSessionController
                 false,
                 diagnostics.FirstOrDefault()?.Message ??
                 "Le graphe canonique a refusé ce brouillon sans modifier le projet.",
-                BuildDialogueDiffUx5A(draft.Source, candidate),
+                BuildDialogueDiffUx5A(draft.Source, candidate, draft.IsNew),
                 false,
                 candidate.Nodes.Count,
                 candidate.Nodes.Sum(node => node.Choices.Count),
@@ -231,7 +245,7 @@ internal sealed partial class StudioSessionController
         return new StudioDialoguePreviewUx5A(
             true,
             "Aperçu validé · aucun document n’a été modifié.",
-            BuildDialogueDiffUx5A(draft.Source, candidate),
+            BuildDialogueDiffUx5A(draft.Source, candidate, draft.IsNew),
             true,
             candidate.Nodes.Count,
             candidate.Nodes.Sum(node => node.Choices.Count),
@@ -388,6 +402,16 @@ internal sealed partial class StudioSessionController
                 item.Label.Contains("Branche témoin", StringComparison.Ordinal));
             var draft = editing.CreateDialogueDraftUx5A(evidenceChoice.Id)!;
             explicitSelection &= draft is not null;
+            var protectedSpeakerId = draft.Lines[0].SpeakerBlueprintId;
+            var protectedSpeakerSurfaced = protectedSpeakerId is not null &&
+                                            editing.DialogueSpeakerChoicesUx5A.Any(item =>
+                                                item.Id == protectedSpeakerId && item.Protected &&
+                                                item.Label.Contains("hérité protégé", StringComparison.OrdinalIgnoreCase) &&
+                                                !Ux5AGuidPattern.IsMatch(item.Label));
+            var protectedSubgraphLine = draft.Lines.SingleOrDefault(line =>
+                line.Role == DialogueNodeRole.Subgraph);
+            var subgraphDraftProtected = protectedSubgraphLine is not null &&
+                                         !string.IsNullOrWhiteSpace(protectedSubgraphLine.Original.SubgraphKey);
             var branchesUnlimited = draft.Lines.Count > 25 && draft.Lines[0].Choices.Count > 25;
             var multipleEntries = draft.Source.EntryPoints.Count > 1 &&
                                   draft.Source.EntryPoints.Select(item => item.Key).Distinct().Count() ==
@@ -395,6 +419,24 @@ internal sealed partial class StudioSessionController
 
             var referencePreview = editing.PreviewDialogueUx5A(draft);
             var referenceCycleAccepted = referencePreview.Succeeded && referencePreview.ReferenceCount > 0;
+            var structuralChoiceDiff = referencePreview.Succeeded &&
+                                       referencePreview.Summary.Contains(
+                                           "0 ligne(s) modifiée(s)",
+                                           StringComparison.Ordinal);
+
+            var identityDisplayName = "Branche témoin renommée";
+            var identitySlug = draft.Source.Slug + "-renommee";
+            var identityCandidate = CopyDialogueUx5A(
+                draft.Source,
+                identityDisplayName,
+                identitySlug,
+                draft.Source.Nodes[1].Id);
+            var identityDiff = BuildDialogueDiffUx5A(draft.Source, identityCandidate, isNew: false);
+            var identityDiffHuman = identityDiff.Contains(identityDisplayName, StringComparison.Ordinal) &&
+                                    identityDiff.Contains(identitySlug, StringComparison.Ordinal) &&
+                                    identityDiff.Contains("entrée", StringComparison.OrdinalIgnoreCase) &&
+                                    identityDiff.Contains("ligne 02", StringComparison.Ordinal) &&
+                                    !Ux5AGuidPattern.IsMatch(identityDiff);
 
             var referenceLineIndex = draft.Lines.ToList().FindIndex(line =>
                 line.Choices.Any(choice => choice.EdgeKind == DialogueEdgeKind.Reference));
@@ -480,6 +522,17 @@ internal sealed partial class StudioSessionController
             var edgesCanonical = appliedDialogue.Edges.SequenceEqual(expectedEdges);
             var structuralPreservation = applied.Succeeded &&
                                          PreservesDialogueNeighborsUx5A(draft.Source, appliedDialogue);
+            var protectedSpeakerPreserved = protectedSpeakerSurfaced && applied.Succeeded &&
+                                            appliedDialogue.Nodes[0].SpeakerBlueprintId == protectedSpeakerId;
+            var appliedSubgraph = protectedSubgraphLine is null
+                ? null
+                : appliedDialogue.Nodes.SingleOrDefault(node => node.Id == protectedSubgraphLine.Original.Id);
+            var subgraphProtected = subgraphDraftProtected && appliedSubgraph is not null &&
+                                    appliedSubgraph.Role == DialogueNodeRole.Subgraph &&
+                                    string.Equals(
+                                        appliedSubgraph.SubgraphKey,
+                                        protectedSubgraphLine!.Original.SubgraphKey,
+                                        StringComparison.Ordinal);
 
             var stalePreview = editing.PreviewDialogueUx5A(draft);
             var staleRevisionBlocked = !stalePreview.Succeeded;
@@ -490,6 +543,32 @@ internal sealed partial class StudioSessionController
             var redone = editing.Project!.Dialogues.Single(item => item.Id == draft.DialogueId)
                 .Nodes[0].Choices[0].Id == reordered.Lines[0].Choices[0].Original.Id;
             var undoRedo = undo.Succeeded && undone && redo.Succeeded && redone;
+
+            var newDialogue = false;
+            var newDraft = editing.CreateNewDialogueDraftUx5A();
+            if (newDraft is not null)
+            {
+                newDraft = newDraft with
+                {
+                    DisplayName = "Nouveau dialogue témoin",
+                    Slug = "nouveau-dialogue-temoin-ux5-a",
+                };
+                var newPreview = editing.PreviewDialogueUx5A(newDraft);
+                var newApplied = newPreview.Succeeded
+                    ? editing.ApplyApprovedDialogueUx5A()
+                    : new StudioDialogueActionResultUx5A(false, "Aperçu du dialogue neuf refusé.");
+                newDialogue = newPreview.Succeeded && newApplied.Succeeded &&
+                              newPreview.Summary.Contains("Dialogue neuf", StringComparison.Ordinal) &&
+                              newPreview.Summary.Contains(newDraft.DisplayName, StringComparison.Ordinal) &&
+                              newPreview.Summary.Contains(newDraft.Slug, StringComparison.Ordinal) &&
+                              newPreview.Summary.Contains("entrée ligne 01", StringComparison.OrdinalIgnoreCase) &&
+                              !Ux5AGuidPattern.IsMatch(newPreview.Summary) &&
+                              editing.Project!.Dialogues.Any(dialogue =>
+                                  dialogue.Id == newDraft.DialogueId && dialogue.DisplayName == newDraft.DisplayName &&
+                                  dialogue.Slug == newDraft.Slug);
+                canonicalCommand &= newApplied.Succeeded &&
+                                    history.Journal.LastOrDefault()?.CommandName == "set_dialogue";
+            }
 
             var serialized = ProjectJsonSerializer.Serialize(editing.Project!);
             var serializerRoundTrip = string.Equals(
@@ -518,7 +597,8 @@ internal sealed partial class StudioSessionController
                                   SelectedEntityIds.SequenceEqual(sourceSelection) &&
                                   SelectedEntityId == sourceSelected &&
                                   Equals(CaptureDialogueApprovalUx5A(), sourceApproval);
-            var succeeded = explicitSelection && branchesUnlimited && multipleEntries &&
+            var succeeded = explicitSelection && newDialogue && protectedSpeakerPreserved && subgraphProtected &&
+                            structuralChoiceDiff && identityDiffHuman && branchesUnlimited && multipleEntries &&
                             referenceCycleAccepted && flowCycleBlocked && missingTargetBlocked &&
                             negativePriorityBlocked && dryRunPure && staleRevisionBlocked &&
                             fingerprintGuard && canonicalCommand && edgesCanonical && reorderDiffHuman && undoRedo &&
@@ -526,6 +606,11 @@ internal sealed partial class StudioSessionController
             result = new StudioUx5ASmokeResult(
                 succeeded,
                 explicitSelection,
+                newDialogue,
+                protectedSpeakerPreserved,
+                subgraphProtected,
+                structuralChoiceDiff,
+                identityDiffHuman,
                 branchesUnlimited,
                 multipleEntries,
                 referenceCycleAccepted,
@@ -792,7 +877,7 @@ internal sealed partial class StudioSessionController
             speakerId,
             speakerSlug,
             "Témoin des branches",
-            BlueprintKind.Creature);
+            BlueprintKind.Placeable);
 
         var dialogueSlug = "branche-temoin-ux5-a";
         slugSuffix = 1;
@@ -849,8 +934,9 @@ internal sealed partial class StudioSessionController
             DialogueNodeRole.SpeakerLine,
             speakingParticipant.Id,
             null);
-        var leaves = leafIds.Select((nodeId, index) => index == 0
-            ? new DialogueNode(
+        var leaves = leafIds.Select((nodeId, index) => index switch
+        {
+            0 => new DialogueNode(
                 nodeId,
                 null,
                 new LocalizedText($"dialogue.ux5a.leaf-{index + 1}", $"Branche {index + 1:00}"),
@@ -868,12 +954,19 @@ internal sealed partial class StudioSessionController
                         priority: 2),
                 ],
                 role: DialogueNodeRole.PlayerChoice,
-                subgraphKey: null)
-            : new DialogueNode(
+                subgraphKey: null),
+            1 => new DialogueNode(
                 nodeId,
                 null,
                 new LocalizedText($"dialogue.ux5a.leaf-{index + 1}", $"Branche {index + 1:00}"),
-                role: DialogueNodeRole.End)).ToArray();
+                role: DialogueNodeRole.Subgraph,
+                subgraphKey: "branche-secondaire-protegee"),
+            _ => new DialogueNode(
+                nodeId,
+                null,
+                new LocalizedText($"dialogue.ux5a.leaf-{index + 1}", $"Branche {index + 1:00}"),
+                role: DialogueNodeRole.End),
+        }).ToArray();
         var dialogue = new DialogueDefinition(
             DialogueId.From(dialogueGuid),
             dialogueSlug,
@@ -935,11 +1028,13 @@ internal sealed partial class StudioSessionController
 
     private static DialogueDefinition CopyDialogueUx5A(
         DialogueDefinition source,
-        string? displayName = null) => new(
+        string? displayName = null,
+        string? slug = null,
+        DialogueNodeId? entryNodeId = null) => new(
         source.Id,
-        source.Slug,
+        slug ?? source.Slug,
         displayName ?? source.DisplayName,
-        source.EntryNodeId,
+        entryNodeId ?? source.EntryNodeId,
         source.Nodes,
         source.Presentation,
         source.SchemaVersion,
@@ -1007,7 +1102,8 @@ internal sealed partial class StudioSessionController
 
     private static string BuildDialogueDiffUx5A(
         DialogueDefinition source,
-        DialogueDefinition candidate)
+        DialogueDefinition candidate,
+        bool isNew)
     {
         var sourceNodes = source.Nodes.ToDictionary(item => item.Id);
         var candidateNodes = candidate.Nodes.ToDictionary(item => item.Id);
@@ -1015,15 +1111,43 @@ internal sealed partial class StudioSessionController
         var removed = sourceNodes.Keys.Count(id => !candidateNodes.ContainsKey(id));
         var modified = candidate.Nodes.Count(node =>
             sourceNodes.TryGetValue(node.Id, out var previous) &&
-            (!string.Equals(previous.Text.Fallback, node.Text.Fallback, StringComparison.Ordinal) ||
-             previous.Role != node.Role || previous.SpeakerBlueprintId != node.SpeakerBlueprintId ||
-             !previous.Choices.SequenceEqual(node.Choices)));
+            !DialogueNodeStructurallyEqualUx5A(previous, node));
         var lines = new List<string>
         {
             $"{candidate.Nodes.Count} ligne(s) · {candidate.Nodes.Sum(item => item.Choices.Count)} réponse(s) · " +
             $"{candidate.Edges.Count(edge => edge.Kind == DialogueEdgeKind.Reference)} référence(s)",
-            $"Diff : {added} ajout(s) · {removed} retrait(s) · {modified} ligne(s) modifiée(s)",
         };
+        if (isNew)
+        {
+            lines.Add(
+                $"Dialogue neuf : « {HumanSnippetUx5A(candidate.DisplayName)} » · " +
+                $"slug « {HumanSnippetUx5A(candidate.Slug)} » · " +
+                $"entrée {HumanEntryUx5A(candidate, candidate.EntryNodeId)}");
+        }
+        else
+        {
+            var identity = new List<string>();
+            if (!string.Equals(source.DisplayName, candidate.DisplayName, StringComparison.Ordinal))
+            {
+                identity.Add(
+                    $"nom « {HumanSnippetUx5A(source.DisplayName)} » → « {HumanSnippetUx5A(candidate.DisplayName)} »");
+            }
+            if (!string.Equals(source.Slug, candidate.Slug, StringComparison.Ordinal))
+            {
+                identity.Add($"slug « {HumanSnippetUx5A(source.Slug)} » → « {HumanSnippetUx5A(candidate.Slug)} »");
+            }
+            if (source.EntryNodeId != candidate.EntryNodeId)
+            {
+                identity.Add(
+                    $"entrée {HumanEntryUx5A(source, source.EntryNodeId)} → " +
+                    HumanEntryUx5A(candidate, candidate.EntryNodeId));
+            }
+            if (identity.Count > 0)
+            {
+                lines.Add("Identité : " + string.Join(" · ", identity));
+            }
+        }
+        lines.Add($"Diff : {added} ajout(s) · {removed} retrait(s) · {modified} ligne(s) modifiée(s)");
         foreach (var node in candidate.Nodes)
         {
             if (!sourceNodes.TryGetValue(node.Id, out var previous))
@@ -1043,6 +1167,42 @@ internal sealed partial class StudioSessionController
         }
         lines.Add("Dry-run : projet, historique et fichiers inchangés.");
         return string.Join('\n', lines);
+    }
+
+    private static bool DialogueNodeStructurallyEqualUx5A(DialogueNode left, DialogueNode right) =>
+        left.Id == right.Id &&
+        left.SpeakerBlueprintId == right.SpeakerBlueprintId &&
+        left.Role == right.Role &&
+        left.ParticipantId == right.ParticipantId &&
+        string.Equals(left.SubgraphKey, right.SubgraphKey, StringComparison.Ordinal) &&
+        LocalizedTextStructurallyEqualUx5A(left.Text, right.Text) &&
+        left.OnEnterActions.SequenceEqual(right.OnEnterActions) &&
+        left.Choices.Count == right.Choices.Count &&
+        left.Choices.Zip(right.Choices).All(pair =>
+            DialogueChoiceStructurallyEqualUx5A(pair.First, pair.Second));
+
+    private static bool DialogueChoiceStructurallyEqualUx5A(DialogueChoice left, DialogueChoice right) =>
+        left.Id == right.Id &&
+        LocalizedTextStructurallyEqualUx5A(left.Text, right.Text) &&
+        left.Conditions.SequenceEqual(right.Conditions) &&
+        left.Actions.SequenceEqual(right.Actions) &&
+        left.TargetNodeId == right.TargetNodeId &&
+        left.EdgeKind == right.EdgeKind &&
+        left.Priority == right.Priority &&
+        left.ConditionCombination == right.ConditionCombination;
+
+    private static bool LocalizedTextStructurallyEqualUx5A(LocalizedText left, LocalizedText right) =>
+        left.Id == right.Id &&
+        left.SchemaVersion == right.SchemaVersion &&
+        string.Equals(left.Provenance, right.Provenance, StringComparison.Ordinal) &&
+        string.Equals(left.Key, right.Key, StringComparison.Ordinal) &&
+        string.Equals(left.Fallback, right.Fallback, StringComparison.Ordinal) &&
+        left.Variants.SequenceEqual(right.Variants);
+
+    private static string HumanEntryUx5A(DialogueDefinition dialogue, DialogueNodeId entryNodeId)
+    {
+        var index = dialogue.Nodes.ToList().FindIndex(node => node.Id == entryNodeId);
+        return index >= 0 ? $"ligne {index + 1:00}" : "indisponible";
     }
 
     private static string HumanSnippetUx5A(string value)
@@ -1180,6 +1340,29 @@ internal sealed partial class StudioSessionController
     }
 
     private static StudioUx5ASmokeResult FailedUx5ASmoke(string message) => new(
-        false, false, false, false, false, false, false, false, false,
-        false, false, false, false, false, false, false, false, false, false, message);
+        Succeeded: false,
+        ExplicitSelection: false,
+        NewDialogue: false,
+        ProtectedSpeakerPreserved: false,
+        SubgraphProtected: false,
+        StructuralChoiceDiff: false,
+        IdentityDiffHuman: false,
+        BranchesUnlimited: false,
+        MultipleEntries: false,
+        ReferenceCycleAccepted: false,
+        FlowCycleBlocked: false,
+        MissingTargetBlocked: false,
+        NegativePriorityBlocked: false,
+        DryRunPure: false,
+        StaleRevisionBlocked: false,
+        FingerprintGuard: false,
+        CanonicalCommand: false,
+        EdgesCanonical: false,
+        ReorderDiffHuman: false,
+        UndoRedo: false,
+        RoundTrip: false,
+        StructuralPreservation: false,
+        SourceUntouched: false,
+        ResourcesReleased: false,
+        Message: message);
 }
