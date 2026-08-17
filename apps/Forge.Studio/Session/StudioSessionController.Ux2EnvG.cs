@@ -424,14 +424,17 @@ internal sealed partial class StudioSessionController
             found.Add(NumberDiagnosticUx2EnvG("audio/selection/seed", "La graine de sélection doit être un entier exact."));
         if (!TryIntUx2EnvG(draft.NoRepeatWindow, out var noRepeat) || noRepeat is < 0 or > 1024)
             found.Add(NumberDiagnosticUx2EnvG("audio/selection/noRepeat", "La fenêtre sans répétition doit rester entre 0 et 1024."));
-        if (!TryFloatUx2EnvG(draft.MinimumIntervalSeconds, out var minimumInterval) ||
-            !TryFloatUx2EnvG(draft.MaximumIntervalSeconds, out var maximumInterval))
+        var minimumIntervalValid = TryFloatUx2EnvG(draft.MinimumIntervalSeconds, out var minimumInterval);
+        var maximumIntervalValid = TryFloatUx2EnvG(draft.MaximumIntervalSeconds, out var maximumInterval);
+        if (!minimumIntervalValid || !maximumIntervalValid)
             found.Add(NumberDiagnosticUx2EnvG("audio/modulation/interval", "La plage d’intervalle exige deux nombres finis."));
-        if (!TryFloatUx2EnvG(draft.MinimumPitchSemitones, out var minimumPitch) ||
-            !TryFloatUx2EnvG(draft.MaximumPitchSemitones, out var maximumPitch))
+        var minimumPitchValid = TryFloatUx2EnvG(draft.MinimumPitchSemitones, out var minimumPitch);
+        var maximumPitchValid = TryFloatUx2EnvG(draft.MaximumPitchSemitones, out var maximumPitch);
+        if (!minimumPitchValid || !maximumPitchValid)
             found.Add(NumberDiagnosticUx2EnvG("audio/modulation/pitch", "La plage de hauteur exige deux nombres finis."));
-        if (!TryFloatUx2EnvG(draft.MinimumVolume, out var minimumVolume) ||
-            !TryFloatUx2EnvG(draft.MaximumVolume, out var maximumVolume))
+        var minimumVolumeValid = TryFloatUx2EnvG(draft.MinimumVolume, out var minimumVolume);
+        var maximumVolumeValid = TryFloatUx2EnvG(draft.MaximumVolume, out var maximumVolume);
+        if (!minimumVolumeValid || !maximumVolumeValid)
             found.Add(NumberDiagnosticUx2EnvG("audio/modulation/volume", "La plage de volume exige deux nombres finis."));
         if (!TryIntUx2EnvG(draft.ModulationSeed, out var modulationSeed))
             found.Add(NumberDiagnosticUx2EnvG("audio/modulation/seed", "La graine de modulation doit être un entier exact."));
