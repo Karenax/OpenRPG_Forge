@@ -58,6 +58,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx1AJOverlay();
         CloseUx2LwBOverlay();
         CloseUx2LwCOverlay();
+        CloseUx2LwDOverlay();
         SwitchPage("living-world", notify: false);
         _livingWorldPoliciesOverlay.Open();
         SetStatus("Politiques de zone ouvertes · sélection explicite · aperçu sec obligatoire");

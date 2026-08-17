@@ -56,6 +56,7 @@ param(
         'ux2-a', 'ux2-a-area-living-world',
         'ux2-lw-b', 'ux2-lw-b-area-lifecycle',
         'ux2-lw-c', 'ux2-lw-c-area-user-events',
+        'ux2-lw-d', 'ux2-lw-d-area-combat-authority',
         'ux2-b', 'ux2-b-terrain-tiles',
         'ux2-c', 'ux2-c-terrain-surface',
         'ux2-env-b', 'ux2-env-b-area-environment',

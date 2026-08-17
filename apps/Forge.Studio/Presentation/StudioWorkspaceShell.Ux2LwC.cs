@@ -56,6 +56,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx1AIOverlay();
         CloseUx1AJOverlay();
         CloseUx2AOverlay();
+        CloseUx2LwDOverlay();
         CloseUx4AOverlay();
         CloseUx5APage();
         CloseUx2LwBOverlay();

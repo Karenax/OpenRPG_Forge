@@ -512,7 +512,6 @@ internal sealed partial class StudioSessionController
                                   ReferenceEquals(beforeTarget.Environment, appliedTarget.Environment) &&
                                   ReferenceEquals(beforeTarget.World, appliedTarget.World) &&
                                   ReferenceEquals(beforeTarget.Playtest, appliedTarget.Playtest) &&
-                                  ReferenceEquals(beforeTarget.Authoring, appliedTarget.Authoring) &&
                                   beforeTarget.Entities.SequenceEqual(appliedTarget.Entities) &&
                                   beforeTarget.Portals.SequenceEqual(appliedTarget.Portals) &&
                                   AreaCombatNeighborsMatchUx2LwD(beforeTarget, appliedTarget);

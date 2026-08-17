@@ -58,6 +58,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx1AJOverlay();
         CloseUx2AOverlay();
         CloseUx2LwCOverlay();
+        CloseUx2LwDOverlay();
         CloseUx4AOverlay();
         CloseUx5APage();
         SwitchPage("living-world", notify: false);

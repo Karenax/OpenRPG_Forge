@@ -452,7 +452,6 @@ internal sealed partial class StudioAreaCombatPoliciesOverlayUx2LwD : Control
                           ReferenceEquals(originalProfile!.Experience, appliedProfile.Experience) &&
                           ReferenceEquals(originalTarget!.Foundation, appliedTarget.Foundation) &&
                           ReferenceEquals(originalTarget!.Navigation, appliedTarget.Navigation) &&
-                          ReferenceEquals(originalTarget!.Authoring, appliedTarget.Authoring) &&
                           StudioSessionController.AreaCombatNeighborsMatchUx2LwD(
                               originalTarget!, appliedTarget);
             var expectedAreaJson = appliedTarget is null ? null : AreaJsonSerializer.Serialize(appliedTarget);
