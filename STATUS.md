@@ -37,8 +37,8 @@ encore qualifiées. Aucun de ces états ne doit être confondu avec une release 
 - parcours produit automatisé : projet, zones, assets, contenu RPG, narration, validation, playtest,
   export et Assistant gouverné ;
 - matrice et procédure d'acceptation de bout en bout sous `docs/acceptance/`.
-- matrice d’accès humain Studio : 717 routes uniques, dont 93 `functional` avec preuve spécifique
-  pour UX0-A à UX1-AC et 624 `planned` ; cette matrice ne réutilise pas le statut `Tested` de l’ancien Creator.
+- matrice d’accès humain Studio : 717 routes uniques, dont 103 `functional` avec preuve spécifique
+  pour UX0-A à UX1-AF et 614 `planned` ; cette matrice ne réutilise pas le statut `Tested` de l’ancien Creator.
 - premier train parallèle contrôlé livré : UX1-V et UX1-W ont été développés dans des worktrees et
   fichiers distincts, audités avant intégration, puis construits, testés, fumés et capturés
   séquentiellement ; six routes seulement ont été promues sur preuve réelle.
@@ -48,8 +48,11 @@ encore qualifiées. Aucun de ces états ne doit être confondu avec une release 
 - troisième train parallèle contrôlé livré : UX1-AA, UX1-AB et UX1-AC ont isolé assemblage/validation
   Placeable, dégâts/chargement/événements Door et Trigger avancé ; onze routes supplémentaires ont
   franchi 20/20 tests ciblés, trois portails incrémentaux et les revues Forward+ FHD/QHD/4K.
+- quatrième train parallèle contrôlé livré : UX1-AD, UX1-AE et UX1-AF ont isolé réactions/assemblage
+  Door, découverte/accès Trigger et plans de zone assistés ; dix routes ont franchi 26/26 tests
+  ciblés, trois portails incrémentaux, les revues Forward+ FHD/QHD/4K et le portail complet.
 - portail local courant réussi avec 1 980 tests .NET, 39 tests Python, des builds sans avertissement
-  et le graphe Roslyn courant déterministe à 9 010 nœuds, 59 698 relations et 0 diagnostic ; les
+  et le graphe Roslyn courant déterministe à 9 062 nœuds, 60 404 relations et 0 diagnostic ; les
   smokes Studio, Runtime, Forward+, MCP et réseau ont également réussi.
 
 Ces nombres prouvent la présence et la non-régression des capacités. Ils ne remplacent pas une
@@ -233,6 +236,15 @@ qualification humaine de release publique.
 - UX1-AC qualifié pour `ORF-TRG-004`, `ORF-TRG-011`, `ORF-TRG-017` et `ORF-TRG-019` : piège,
   filtre, dix volumes et occupation, Foundation requise, preuve isolée, préservation des voisins,
   portail incrémental 10/10 en 59,92 s et captures Forward+ FHD/QHD/4K inspectées ;
+- UX1-AD qualifié pour `ORF-DOOR-016`, `ORF-DOOR-017`, `ORF-DOOR-018` et `ORF-DOOR-020` :
+  capacités, heartbeat/événement personnalisé, conversation/faction et panneaux coordonnés, avec
+  fusion bornée, profils dangereux refusés, portail 4/4 en 68,48 s et preuves FHD/QHD/4K ;
+- UX1-AE qualifié pour `ORF-TRG-005`, `ORF-TRG-008`, `ORF-TRG-012` et `ORF-TRG-013` : secret,
+  clic, justificatif et présentation, avec Foundation exigée, script allowlisté, preuve isolée,
+  portail 5/5 en 68,12 s et preuves FHD/QHD/4K ;
+- UX1-AF qualifié pour `ORF-AI-014` et `ORF-AI-015` : document de plan puis construction de zone,
+  avec confidentialité/provenance, deux historiques, double dry-run, preuve hors ligne isolée,
+  portail 17/17 en 75,68 s et preuves FHD/QHD/4K ;
 - densité native compacte à partir du Full HD : base typographique 12 px, barre 48 px, rail 72 px,
   palette 188 px et inspecteur 280/360 px afin de rendre la vue 3D prioritaire en Full HD et QHD ;
 - retouche d'instance directe : gizmo X/Y/Z dans la 3D, déplacement avec pas fin, clic droit intégré,
@@ -252,8 +264,8 @@ qualification humaine de release publique.
   qualification FHD/QHD/4K. Les événements d’ouverture/fermeture UX1-T et de
   verrouillage/déverrouillage UX1-U, de cycle de vie UX1-V, de zones dynamiques UX1-W, de portes
   UX1-X et de réactions/physique UX1-Z disposent de leur preuve FHD réelle ; leurs revues QHD/4K sont
-  réservées à un jalon ultérieur. UX1-AA, UX1-AB et UX1-AC disposent de preuves FHD/QHD/4K inspectées
-  au jalon de leur nouveau layout.
+  réservées à un jalon ultérieur. UX1-AA à UX1-AF disposent de preuves FHD/QHD/4K inspectées aux
+  jalons de leurs nouveaux layouts.
   La fondation polygonale UX1-Y possède déjà ses preuves FHD/QHD/4K après la correction de layout.
   La revue 4K des autres pages reste à qualifier ;
 - CI rendue indépendante de la cadence du runner et des dossiers locaux `.artifacts` ;

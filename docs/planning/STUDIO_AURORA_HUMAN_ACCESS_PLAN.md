@@ -754,6 +754,42 @@ Le jalon intégré UX1-AA/AB/AC a ensuite passé `scripts/Verify.ps1` dans son i
 59 698 relations sans diagnostic, puis smokes Studio, Runtime, Forward+, MCP et réseau. Ce verdict
 transversal clôt la promotion des onze routes.
 
+## Quatrième train parallèle livré : UX1-AD, UX1-AE et UX1-AF
+
+Le quatrième train a livré dix routes UX1 supplémentaires le 17 août 2026. La matrice compte
+désormais 103 routes `functional` et 614 `planned` ; dix routes de la vague UX1 restent à qualifier.
+Les trois writers ont conservé des fichiers propres à leur lot, tandis que le coordinateur a gardé
+les hooks partagés, les validations séquentielles, les preuves, la matrice et le graphe.
+
+### UX1-AD — Réactions et assemblage de porte
+
+`ORF-DOOR-016`, `ORF-DOOR-017`, `ORF-DOOR-018` et `ORF-DOOR-020` sont `functional`. La surface
+expose capacités, heartbeat/événement personnalisé, conversation/faction et jusqu'à huit panneaux
+coordonnés. La fusion ne remplace que les événements explicitement gérés ; les profils hors bornes
+sont refusés avant tout clamp. Le portail incrémental passe 4/4 en 68,48 s et les captures
+FHD/QHD/4K sont liées à `docs/acceptance/STUDIO_UX1_AD.md`.
+
+### UX1-AE — Découverte et accès du trigger
+
+`ORF-TRG-005`, `ORF-TRG-008`, `ORF-TRG-012` et `ORF-TRG-013` sont `functional`. Secret,
+interaction, présentation et justificatif partagent les contrats canoniques Discovery/Interaction/
+Access. Une Foundation reste obligatoire et le script OnClick doit appartenir à son allowlist de
+validation. Le portail incrémental passe 5/5 en 68,12 s ; les captures FHD/QHD/4K et la preuve isolée
+sont liées à `docs/acceptance/STUDIO_UX1_AE.md`.
+
+### UX1-AF — Plans de zone assistés
+
+`ORF-AI-014` et `ORF-AI-015` sont `functional`. Le document de plan et la construction géométrique
+restent deux transactions et deux historiques distincts, chacun précédé de son dry-run et lié à sa
+révision. Confidentialité, provenance, coût, diff sémantique et politique réseau sont visibles. Le
+portail incrémental hors ligne passe 17/17 en 75,68 s et les captures FHD/QHD/4K sont liées à
+`docs/acceptance/STUDIO_UX1_AF.md`.
+
+Le jalon intégré UX1-AD/AE/AF a ensuite passé `scripts/Verify.ps1` dans son intégralité : 1 980 tests
+.NET, 39 tests Python, builds sans avertissement, graphe Roslyn déterministe à 9 059 nœuds et
+60 404 relations sans diagnostic, puis smokes Studio, Runtime, Forward+, MCP et réseau. Les dix
+routes ne sont promues qu'après ce verdict transversal.
+
 ## Gates ergonomiques avant parité
 
 Une page ne passe pas `Parity` si l’un des points suivants manque :

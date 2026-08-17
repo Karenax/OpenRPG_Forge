@@ -7,6 +7,23 @@ SemVer ; les versions de schéma persistent séparément dans leurs documents.
 
 ### Changed
 
+- Forge Studio UX1-AF : création gouvernée de plan de zone puis construction assistée, avec
+  confidentialité/provenance, deux historiques séparés, doubles gardes de révision, réponses
+  asynchrones périmées bloquées, preuve hors ligne isolée et contrôles Forward+ FHD/QHD/4K ;
+- Forge Studio UX1-AE : trigger secret, clic et présentation, clé/justificatif et feedback d'accès,
+  avec Foundation requise, scripts allowlistés, quatre aperçus runtime, preuve isolée, préservation,
+  undo/redo, round-trip et contrôles Forward+ FHD/QHD/4K ;
+- Forge Studio UX1-AD : réactions de capacité, heartbeat/événement personnalisé,
+  conversation/faction et portes complexes, avec sélection explicite, libellés homonymes lisibles,
+  fusion bornée, assemblages dangereux refusés et contrôles Forward+ FHD/QHD/4K ;
+- matrice d'accès humain Studio portée à 103 routes `functional` et 614 `planned` après preuves
+  individuelles des dix routes UX1-AD/AE/AF ;
+- jalon UX1-AD/AE/AF validé par 26/26 tests ciblés, trois smokes et portails incrémentaux en
+  68,48 s, 68,12 s et 75,68 s, puis par le portail transversal complet : 1 980 tests .NET,
+  39 tests Python, builds sans avertissement, graphe Roslyn à 9 059 nœuds et 60 404 relations,
+  smokes Studio, Runtime, Forward+, MCP et réseau ;
+- smoke Studio UX0-D rendu indépendant de la page initiale afin que la preuve de placement soit
+  exercée depuis sa propre page 3D, y compris lorsque le portail courant cible `plans` ;
 - Forge Studio UX1-AC : piège, filtre de cible, dix volumes de gameplay et occupation, avec
   Foundation exigée, preuve temporaire isolée, double garde de révision, adaptateur runtime,
   préservation, undo/redo, round-trip et contrôles Forward+ Full HD/QHD/4K ;

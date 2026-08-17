@@ -236,6 +236,20 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
   filtre, dix volumes et occupation, Foundation explicitement requise.
 - [x] Clôturer le jalon UX1-AA/AB/AC par 20/20 tests ciblés, trois portails incrémentaux, les preuves
   Forward+ FHD/QHD/4K, la matrice régénérée et le portail transversal complet.
+- [x] Réaliser UX1-AD sur `ORF-DOOR-016`, `ORF-DOOR-017`, `ORF-DOOR-018` et `ORF-DOOR-020` :
+  réactions de capacité, heartbeat/personnalisé, conversation/faction et assemblage complexe.
+- [x] Réaliser UX1-AE sur `ORF-TRG-005`, `ORF-TRG-008`, `ORF-TRG-012` et `ORF-TRG-013` : secret,
+  clic, accès par justificatif et présentation humaine, avec Foundation requise.
+- [x] Réaliser UX1-AF sur `ORF-AI-014` et `ORF-AI-015` : proposition, approbation et construction
+  de plan de zone, avec confidentialité, provenance, historiques séparés et preuve hors ligne.
+- [x] Clôturer le jalon UX1-AD/AE/AF par 26/26 tests ciblés, trois portails incrémentaux, les preuves
+  Forward+ FHD/QHD/4K, la matrice régénérée et le portail transversal complet.
+- [ ] Réaliser UX1-AG sur `ORF-DOOR-004`, `ORF-DOOR-005`, `ORF-DOOR-006`, `ORF-DOOR-012` et
+  `ORF-DOOR-013` : accès, refus, piège et événements d'état/verrou, sans promouvoir le portail UX2.
+- [ ] Réaliser UX1-AH sur `ORF-TRG-009`, `ORF-TRG-010` et `ORF-TRG-018` : automatisation,
+  événement personnalisé et contrôle MJ, avec politique runtime honnête.
+- [ ] Réaliser UX1-AI sur `ORF-DOOR-021` et `ORF-TRG-020` : diagnostics de validation canoniques,
+  sans dupliquer les validateurs runtime dans le Studio.
 - [ ] Achever la tranche Monde : terrain, navigation, puis activer **Tester ici** sur
   snapshot isolé.
 - [ ] Migrer Contenu, Histoire, Gameplay, Tester, Publier, Projet et Assistant page par page, en
