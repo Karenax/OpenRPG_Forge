@@ -133,7 +133,7 @@ internal static class StudioUx2EnvBControls
             .Select(item => $"{item.Key}={item.Value}"));
 }
 
-internal sealed class StudioUx2EnvBTransformEditor : VBoxContainer
+internal sealed partial class StudioUx2EnvBTransformEditor : VBoxContainer
 {
     private readonly SpinBox[] _position;
     private readonly SpinBox[] _rotation;
@@ -216,7 +216,7 @@ internal interface IStudioUx2EnvBValueRow<T>
     void SetEditingEnabled(bool enabled);
 }
 
-internal sealed class StudioUx2EnvBCollectionEditor<T> : VBoxContainer
+internal sealed partial class StudioUx2EnvBCollectionEditor<T> : VBoxContainer
 {
     private readonly VBoxContainer _rows;
     private readonly Button _add;
@@ -279,7 +279,7 @@ internal sealed class StudioUx2EnvBCollectionEditor<T> : VBoxContainer
     }
 }
 
-internal abstract class StudioUx2EnvBRowBase<T> : PanelContainer, IStudioUx2EnvBValueRow<T>
+internal abstract partial class StudioUx2EnvBRowBase<T> : PanelContainer, IStudioUx2EnvBValueRow<T>
 {
     private readonly Button _remove;
     protected readonly VBoxContainer Root;
@@ -317,7 +317,7 @@ internal abstract class StudioUx2EnvBRowBase<T> : PanelContainer, IStudioUx2EnvB
     public virtual void SetEditingEnabled(bool enabled) => _remove.Disabled = !enabled;
 }
 
-internal sealed class StudioUx2EnvBCurveRow : StudioUx2EnvBRowBase<StudioUx2EnvBCurveDraft>
+internal sealed partial class StudioUx2EnvBCurveRow : StudioUx2EnvBRowBase<StudioUx2EnvBCurveDraft>
 {
     private readonly SpinBox _hour;
     private readonly SpinBox _sun;
@@ -356,7 +356,7 @@ internal sealed class StudioUx2EnvBCurveRow : StudioUx2EnvBRowBase<StudioUx2EnvB
     }
 }
 
-internal sealed class StudioUx2EnvBEventRow : StudioUx2EnvBRowBase<StudioUx2EnvBEventDraft>
+internal sealed partial class StudioUx2EnvBEventRow : StudioUx2EnvBRowBase<StudioUx2EnvBEventDraft>
 {
     private readonly Guid _id;
     private readonly SpinBox _hour;
@@ -396,7 +396,7 @@ internal sealed class StudioUx2EnvBEventRow : StudioUx2EnvBRowBase<StudioUx2EnvB
     }
 }
 
-internal sealed class StudioUx2EnvBProbeRow : StudioUx2EnvBRowBase<StudioUx2EnvBProbeDraft>
+internal sealed partial class StudioUx2EnvBProbeRow : StudioUx2EnvBRowBase<StudioUx2EnvBProbeDraft>
 {
     private readonly Guid _id;
     private readonly Forge.Domain.Blueprints.BlueprintId? _blueprintId;
@@ -443,7 +443,7 @@ internal sealed class StudioUx2EnvBProbeRow : StudioUx2EnvBRowBase<StudioUx2EnvB
     }
 }
 
-internal sealed class StudioUx2EnvBLightingVolumeRow : StudioUx2EnvBRowBase<StudioUx2EnvBLightingVolumeDraft>
+internal sealed partial class StudioUx2EnvBLightingVolumeRow : StudioUx2EnvBRowBase<StudioUx2EnvBLightingVolumeDraft>
 {
     private readonly Guid _id;
     private readonly LineEdit _name;
@@ -488,7 +488,7 @@ internal sealed class StudioUx2EnvBLightingVolumeRow : StudioUx2EnvBRowBase<Stud
     }
 }
 
-internal sealed class StudioUx2EnvBFogVolumeRow : StudioUx2EnvBRowBase<StudioUx2EnvBFogVolumeDraft>
+internal sealed partial class StudioUx2EnvBFogVolumeRow : StudioUx2EnvBRowBase<StudioUx2EnvBFogVolumeDraft>
 {
     private readonly Guid _id;
     private readonly LineEdit _name;
@@ -542,7 +542,7 @@ internal sealed class StudioUx2EnvBFogVolumeRow : StudioUx2EnvBRowBase<StudioUx2
     }
 }
 
-internal sealed class StudioUx2EnvBQualityRow : StudioUx2EnvBRowBase<StudioUx2EnvBQualityDraft>
+internal sealed partial class StudioUx2EnvBQualityRow : StudioUx2EnvBRowBase<StudioUx2EnvBQualityDraft>
 {
     private readonly LineEdit _platform;
     private readonly OptionButton _tier;
@@ -568,7 +568,7 @@ internal sealed class StudioUx2EnvBQualityRow : StudioUx2EnvBRowBase<StudioUx2En
     }
 }
 
-internal sealed class StudioAreaEnvironmentFoundationOverlayUx2EnvB : ColorRect
+internal sealed partial class StudioAreaEnvironmentFoundationOverlayUx2EnvB : ColorRect
 {
     private readonly StudioSessionController _sourceSession;
     private StudioSessionController _session;

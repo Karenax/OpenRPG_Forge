@@ -1301,15 +1301,11 @@ internal sealed partial class StudioSessionController
                 ReferenceEquals(sourceTarget.Environment.Weather, appliedTarget.Environment.Weather) &&
                 ReferenceEquals(sourceTarget.Environment.Water, appliedTarget.Environment.Water) &&
                 ReferenceEquals(sourceTarget.Environment.Reverb, appliedTarget.Environment.Reverb);
-            var areaNeighborsPreserved =
-                sourceTarget.Entities.SequenceEqual(appliedTarget.Entities) &&
-                sourceTarget.Portals.SequenceEqual(appliedTarget.Portals) &&
-                ReferenceEquals(sourceTarget.Navigation, appliedTarget.Navigation) &&
-                ReferenceEquals(sourceTarget.Authoring, appliedTarget.Authoring) &&
-                ReferenceEquals(sourceTarget.World, appliedTarget.World) &&
-                ReferenceEquals(sourceTarget.RuntimePolicies, appliedTarget.RuntimePolicies) &&
-                ReferenceEquals(sourceTarget.Foundation, appliedTarget.Foundation) &&
-                ReferenceEquals(sourceTarget.Playtest, appliedTarget.Playtest);
+            var expectedAppliedTarget = sourceTarget.WithEnvironment(appliedTarget.Environment);
+            var areaNeighborsPreserved = string.Equals(
+                AreaJsonSerializer.Serialize(expectedAppliedTarget),
+                AreaJsonSerializer.Serialize(appliedTarget),
+                StringComparison.Ordinal);
             var projectNeighborsPreserved = ReferenceEquals(sourceState.Module, appliedProject.Module) &&
                                             sourceState.Blueprints.SequenceEqual(appliedProject.Blueprints) &&
                                             sourceState.Dialogues.SequenceEqual(appliedProject.Dialogues) &&

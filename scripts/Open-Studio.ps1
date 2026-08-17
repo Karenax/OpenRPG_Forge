@@ -56,6 +56,7 @@ param(
         'ux2-a', 'ux2-a-area-living-world',
         'ux2-lw-b', 'ux2-lw-b-area-lifecycle',
         'ux2-b', 'ux2-b-terrain-tiles',
+        'ux2-env-b', 'ux2-env-b-area-environment',
         'ux4-a', 'ux4-a-faction-foundation',
         'ux5-a', 'ux5-a-dialogue-foundation')]
     [string]$Evidence,
