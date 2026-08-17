@@ -436,7 +436,9 @@ internal sealed partial class StudioSessionController
             var freshPreview = freshCommand is null
                 ? null
                 : editing._setDoorCatalogUx1AG.Handle(history.State, freshCommand);
-            var expectedFreshOrder = loadedOrder.Append(freshProfile?.Id ?? Guid.Empty);
+            var expectedFreshOrder = freshProfile is null
+                ? []
+                : loadedOrder.Append(freshProfile.Id).OrderBy(id => id).ToArray();
             var freshAccess = freshProfile?.AccessEvents;
             var freshPortalScaffold = freshAccess?.PortalUse;
             var freshHiddenPortalScaffold = freshBuilt && freshPreview?.Succeeded == true &&
@@ -448,14 +450,37 @@ internal sealed partial class StudioSessionController
                                                 CompletedBinding: "PortalUseCompleted",
                                             } && freshPortalScaffold.Id != Guid.Empty &&
                                             freshProfile?.AccessEventsRequiredAtRuntime == true;
-            var canonicalCommand = commandBuilt && commandPreview?.Succeeded == true &&
-                                   dryRunCommand is { DryRun: true } && builtProfile?.AccessEvents is not null &&
-                                   dryRunCommand.Catalog.Doors.Select(profile => profile.Id)
-                                       .SequenceEqual(loadedOrder) &&
-                                   freshCommand?.Catalog.Doors.Select(profile => profile.Id)
-                                       .SequenceEqual(expectedFreshOrder) == true &&
-                                   ReferenceEquals(beforePreview, editing.Project) &&
-                                   history.State.Revision == beforeRevision;
+            var canonicalDryRunCommand = commandBuilt && commandPreview?.Succeeded == true &&
+                                         dryRunCommand is { DryRun: true } &&
+                                         builtProfile?.AccessEvents is not null;
+            var replacementOrderPreserved = dryRunCommand?.Catalog.Doors.Select(profile => profile.Id)
+                .SequenceEqual(loadedOrder) == true;
+            var freshDoors = freshCommand?.Catalog.Doors;
+            var freshAddedExactlyOnce = false;
+            if (freshBuilt && freshProfile is not null && freshDoors is not null)
+            {
+                var freshProfileId = freshProfile.Id;
+                freshAddedExactlyOnce = freshDoors.Count == loadedOrder.Length + 1 &&
+                                        freshDoors.Count(profile => profile.Id == freshProfileId) == 1 &&
+                                        loadedOrder.All(id => freshDoors.Count(profile => profile.Id == id) == 1);
+            }
+            var freshCanonicalOrder = freshCommand?.Catalog.Doors.Select(profile => profile.Id)
+                .SequenceEqual(expectedFreshOrder) == true;
+            var canonicalPreviewSourceUntouched = ReferenceEquals(beforePreview, editing.Project) &&
+                                                  history.State.Revision == beforeRevision;
+            var canonicalCommand = canonicalDryRunCommand && replacementOrderPreserved &&
+                                   freshAddedExactlyOnce && freshCanonicalOrder &&
+                                   canonicalPreviewSourceUntouched;
+            if (!canonicalCommand)
+            {
+                Godot.GD.PrintErr(
+                    "OPENRPG_FORGE_STUDIO_UX1AG_CANONICAL_COMMAND_FAILED " +
+                    $"dry_run_command={canonicalDryRunCommand.ToString().ToLowerInvariant()} " +
+                    $"replacement_order={replacementOrderPreserved.ToString().ToLowerInvariant()} " +
+                    $"fresh_added_once={freshAddedExactlyOnce.ToString().ToLowerInvariant()} " +
+                    $"fresh_canonical_order={freshCanonicalOrder.ToString().ToLowerInvariant()} " +
+                    $"source_untouched={canonicalPreviewSourceUntouched.ToString().ToLowerInvariant()}");
+            }
 
             var builtAccess = builtProfile?.AccessEvents;
             var lockAndCredentials = builtProfile is not null && builtAccess is
