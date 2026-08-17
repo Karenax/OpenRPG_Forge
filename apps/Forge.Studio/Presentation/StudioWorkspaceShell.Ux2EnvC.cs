@@ -58,6 +58,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx1AJOverlay();
         CloseUx2AOverlay();
         CloseUx2EnvBOverlay();
+        CloseUx2EnvDOverlay();
         SwitchPage("environment", notify: false);
         _climateWaterReverbOverlayUx2EnvC.Open();
         SetStatus("Climat, eau et réverbération ouverts · sélection explicite · aperçu sec obligatoire");

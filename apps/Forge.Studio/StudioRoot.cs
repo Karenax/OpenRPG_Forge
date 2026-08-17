@@ -305,6 +305,7 @@ public sealed partial class StudioRoot : Control
         var ux2CValid = true;
         var ux2EnvBValid = true;
         var ux2EnvCValid = true;
+        var ux2EnvDValid = true;
         var ux4AValid = true;
         var ux5AValid = true;
         var candidateApprovalsValid = true;
@@ -317,6 +318,7 @@ public sealed partial class StudioRoot : Control
             var ux2CApproval = _session.CaptureTerrainSurfaceApprovalUx2C();
             var ux2EnvBApproval = _session.CaptureAreaEnvironmentApprovalUx2EnvB();
             var ux2EnvCApproval = _session.CaptureClimateApprovalUx2EnvC();
+            var ux2EnvDApproval = _session.CaptureRenderingApprovalUx2EnvD();
             var ux4AApproval = _session.CaptureFactionApprovalUx4A();
             var ux5AApproval = _session.CaptureDialogueApprovalUx5A();
             try
@@ -328,6 +330,7 @@ public sealed partial class StudioRoot : Control
                 ux2CValid = _shell.RunUx2CSmoke();
                 ux2EnvBValid = _shell.RunUx2EnvBSmoke();
                 ux2EnvCValid = _shell.RunUx2EnvCSmoke();
+                ux2EnvDValid = _shell.RunUx2EnvDSmoke();
                 ux4AValid = _shell.RunUx4ASmoke();
                 ux5AValid = _shell.RunUx5ASmoke();
             }
@@ -340,6 +343,7 @@ public sealed partial class StudioRoot : Control
                 _session.RestoreTerrainSurfaceApprovalUx2C(ux2CApproval);
                 _session.RestoreAreaEnvironmentApprovalUx2EnvB(ux2EnvBApproval);
                 _session.RestoreClimateApprovalUx2EnvC(ux2EnvCApproval);
+                _session.RestoreRenderingApprovalUx2EnvD(ux2EnvDApproval);
                 _session.RestoreFactionApprovalUx4A(ux4AApproval);
                 _session.RestoreDialogueApprovalUx5A(ux5AApproval);
             }
@@ -351,6 +355,7 @@ public sealed partial class StudioRoot : Control
                 Equals(_session.CaptureTerrainSurfaceApprovalUx2C(), ux2CApproval) &&
                 Equals(_session.CaptureAreaEnvironmentApprovalUx2EnvB(), ux2EnvBApproval) &&
                 Equals(_session.CaptureClimateApprovalUx2EnvC(), ux2EnvCApproval) &&
+                Equals(_session.CaptureRenderingApprovalUx2EnvD(), ux2EnvDApproval) &&
                 Equals(_session.CaptureFactionApprovalUx4A(), ux4AApproval) &&
                 Equals(_session.CaptureDialogueApprovalUx5A(), ux5AApproval);
             GD.Print(
@@ -382,6 +387,7 @@ public sealed partial class StudioRoot : Control
             !ux1WValid || !ux1XValid || !ux1YValid || !ux1ZValid || !ux1AAValid || !ux1ABValid || !ux1ACValid ||
             !ux1ADValid || !ux1AEValid || !ux1AFValid || !ux1AGValid || !ux1AHValid || !ux1AIValid || !ux1AJValid ||
             !ux2AValid || !ux2LwBValid || !ux2LwCValid || !ux2BValid || !ux2CValid || !ux2EnvBValid || !ux2EnvCValid ||
+            !ux2EnvDValid ||
             !ux4AValid || !ux5AValid ||
             !candidateApprovalsValid || !evidenceValid)
         {
@@ -399,7 +405,7 @@ public sealed partial class StudioRoot : Control
                 $"ux1ab={ux1ABValid} ux1ac={ux1ACValid} ux1ad={ux1ADValid} ux1ae={ux1AEValid} " +
                 $"ux1af={ux1AFValid} ux1ag={ux1AGValid} ux1ah={ux1AHValid} ux1ai={ux1AIValid} " +
                 $"ux1aj={ux1AJValid} ux2a={ux2AValid} ux2lwb={ux2LwBValid} ux2lwc={ux2LwCValid} ux2b={ux2BValid} " +
-                $"ux2c={ux2CValid} ux2envb={ux2EnvBValid} ux2envc={ux2EnvCValid} " +
+                $"ux2c={ux2CValid} ux2envb={ux2EnvBValid} ux2envc={ux2EnvCValid} ux2envd={ux2EnvDValid} " +
                 $"ux4a={ux4AValid} ux5a={ux5AValid} " +
                 $"candidate_approvals={candidateApprovalsValid} " +
                 $"evidence={evidenceValid}");

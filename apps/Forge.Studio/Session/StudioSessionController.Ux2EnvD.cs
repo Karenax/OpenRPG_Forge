@@ -253,6 +253,8 @@ internal sealed partial class StudioSessionController
         _approvedRenderingFingerprintUx2EnvD = null;
     }
 
+    internal void CloseUx2EnvD() => CancelRenderingUx2EnvD();
+
     internal StudioUx2EnvDApprovalSnapshot CaptureRenderingApprovalUx2EnvD() => new(
         _approvedRenderingUx2EnvD,
         _approvedRenderingRevisionUx2EnvD,
@@ -370,9 +372,10 @@ internal sealed partial class StudioSessionController
             if (!diff.HasChanges) environment = source;
             var updatedArea = ReferenceEquals(environment, source) ? sourceArea : sourceArea.WithEnvironment(environment);
             candidateEnvironment = environment; candidateArea = updatedArea;
+            var sourceAreaId = sourceArea.Id;
             var candidateProject = new ProjectDefinition(
                 project.Id, project.Title, project.Module, project.Blueprints,
-                project.Areas.Select(area => area.Id == sourceArea.Id ? updatedArea : area).ToArray(),
+                project.Areas.Select(area => area.Id == sourceAreaId ? updatedArea : area).ToArray(),
                 project.Dialogues, project.Quests);
             var canonicalDiagnostics = ProjectValidator.Validate(candidateProject).Select(item =>
                 new StudioUx2EnvDDiagnostic(item.Code, item.Path,

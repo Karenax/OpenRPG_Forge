@@ -60,6 +60,7 @@ param(
         'ux2-c', 'ux2-c-terrain-surface',
         'ux2-env-b', 'ux2-env-b-area-environment',
         'ux2-env-c', 'ux2-env-c-climate-water-reverb',
+        'ux2-env-d', 'ux2-env-d-rendering-sky',
         'ux4-a', 'ux4-a-faction-foundation',
         'ux5-a', 'ux5-a-dialogue-foundation')]
     [string]$Evidence,
