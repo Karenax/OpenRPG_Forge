@@ -5,7 +5,7 @@ using Godot;
 
 namespace Forge.Studio.Presentation;
 
-internal sealed class StudioDoorDestinationListEditor : VBoxContainer
+internal sealed partial class StudioDoorDestinationListEditor : VBoxContainer
 {
     private readonly Label _empty;
     private readonly VBoxContainer _rows;
@@ -47,7 +47,7 @@ internal sealed class StudioDoorDestinationListEditor : VBoxContainer
     internal void SetValues(IEnumerable<Guid> values)
     {
         _values.Clear();
-        _values.AddRange(values.Where(item => item != Guid.Empty).Distinct());
+        _values.AddRange(values);
         Render();
     }
 
@@ -76,33 +76,47 @@ internal sealed class StudioDoorDestinationListEditor : VBoxContainer
             child.QueueFree();
         }
         _empty.Visible = _values.Count == 0;
-        foreach (var id in _values)
+        var unknownPosition = 0;
+        for (var index = 0; index < _values.Count; index++)
         {
+            var id = _values[index];
             var suggestion = _suggestions.TryGetValue(id, out var known)
                 ? known
                 : new StudioDoorDestinationSuggestion(
                     id,
-                    "Destination qualifiée existante",
+                    $"Destination héritée non reconnue {++unknownPosition}",
                     "Politique enregistrée",
                     false);
+            var duplicate = _values.Count(item => item == id) > 1;
+            var invalid = id == Guid.Empty || duplicate;
+            var protectedValue = suggestion.Protected && !duplicate;
+            var label = id == Guid.Empty
+                ? $"Entrée héritée invalide {index + 1} · destination vide"
+                : duplicate
+                    ? $"{suggestion.Label} · doublon hérité"
+                    : suggestion.Label;
             var row = new HBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
             row.AddThemeConstantOverride("separation", 6);
             row.AddChild(StudioStyle.Label(
-                $"{suggestion.Label} · source : {suggestion.Provenance}",
+                $"{label} · source : {suggestion.Provenance}",
                 10,
-                suggestion.Protected ? StudioStyle.Accent : StudioStyle.Text,
+                invalid ? StudioStyle.Danger : protectedValue ? StudioStyle.Accent : StudioStyle.Text,
                 wrap: true));
-            var remove = StudioStyle.Button(suggestion.Protected ? "Héritée" : "Retirer", compact: true);
-            remove.Disabled = !_editingEnabled || suggestion.Protected;
-            remove.TooltipText = suggestion.Protected
+            var remove = StudioStyle.Button(protectedValue ? "Héritée" : "Retirer", compact: true);
+            remove.Disabled = !_editingEnabled || protectedValue;
+            remove.TooltipText = protectedValue
                 ? "Destination héritée de la fondation : elle reste protégée tant qu’elle figure dans la politique."
-                : "Retirer cette destination du brouillon.";
+                : invalid
+                    ? "Retirer explicitement cette entrée invalide du brouillon."
+                    : "Retirer cette destination du brouillon.";
+            var rowIndex = index;
             remove.Pressed += () =>
             {
-                if (!_editingEnabled || suggestion.Protected || !_values.Remove(id))
+                if (!_editingEnabled || protectedValue || rowIndex < 0 || rowIndex >= _values.Count)
                 {
                     return;
                 }
+                _values.RemoveAt(rowIndex);
                 Render();
                 Changed?.Invoke();
             };
@@ -112,7 +126,7 @@ internal sealed class StudioDoorDestinationListEditor : VBoxContainer
     }
 }
 
-internal sealed class StudioDoorSuggestionPicker : VBoxContainer
+internal sealed partial class StudioDoorSuggestionPicker : VBoxContainer
 {
     private readonly OptionButton _options;
     private readonly Button _add;
@@ -263,12 +277,7 @@ internal sealed partial class StudioDoorValidationOverlay : Control
     {
         get
         {
-            var text = string.Join(' ',
-                _selection.Text,
-                _summary.Text,
-                _status.Text,
-                _authoredCollision.Text,
-                "Destinations Animations Collision Identifiants d’accès Scripts Validation canonique");
+            var text = string.Join(' ', DescendantLabels(_dialog).Select(item => item.Text));
             return HasExplicitSelection &&
                    text.Contains("Validation canonique", StringComparison.OrdinalIgnoreCase) &&
                    text.Contains("Destinations", StringComparison.OrdinalIgnoreCase) &&
@@ -593,6 +602,7 @@ internal sealed partial class StudioDoorValidationOverlay : Control
         try
         {
             var ready = PrepareEvidence("ux1-aj-door-validation");
+            var invalidDestinationsPreserved = ready && VerifyInvalidDestinationPreservationEvidence();
             var transactionSession = _session;
             var transactionHistory = transactionSession.History;
             var originalProject = transactionSession.Project;
@@ -603,7 +613,8 @@ internal sealed partial class StudioDoorValidationOverlay : Control
             var originalDirty = transactionSession.IsDirty;
             var targetId = _draft?.DoorProfileId;
             var expectedDraft = ReadDraft();
-            var dryRun = ready && targetId.HasValue && expectedDraft is not null && originalProject is not null &&
+            var dryRun = ready && invalidDestinationsPreserved && targetId.HasValue && expectedDraft is not null &&
+                         originalProject is not null &&
                          ReferenceEquals(originalProject, transactionSession.Project) &&
                          ReferenceEquals(transactionHistory, transactionSession.History) &&
                          transactionHistory?.State.Revision == originalRevision &&
@@ -662,6 +673,40 @@ internal sealed partial class StudioDoorValidationOverlay : Control
                 Close();
             }
         }
+    }
+
+    private bool VerifyInvalidDestinationPreservationEvidence()
+    {
+        var original = ReadDraft();
+        var knownDestination = original?.KnownDestinationIds.FirstOrDefault(item => item != Guid.Empty) ?? Guid.Empty;
+        if (original is null || knownDestination == Guid.Empty)
+        {
+            return false;
+        }
+
+        var invalidSequence = new[] { knownDestination, Guid.Empty, knownDestination };
+        _destinations.SetValues(invalidSequence);
+        var invalidDraft = ReadDraft();
+        var visibleText = string.Join(' ', DescendantLabels(_destinations).Select(item => item.Text));
+        var preview = invalidDraft is null
+            ? null
+            : _session.PreviewDoorValidationUx1AJ(invalidDraft);
+        var preserved = invalidDraft?.KnownDestinationIds.SequenceEqual(invalidSequence) == true;
+        var blocked = preview is { Succeeded: false } && preview.Groups
+            .SelectMany(item => item.Diagnostics)
+            .Any(item => string.Equals(
+                item.Code,
+                "world.door.validation_context_invalid",
+                StringComparison.Ordinal));
+        var human = visibleText.Contains("destination vide", StringComparison.OrdinalIgnoreCase) &&
+                    visibleText.Contains("doublon hérité", StringComparison.OrdinalIgnoreCase) &&
+                    !visibleText.Contains(knownDestination.ToString("D"), StringComparison.OrdinalIgnoreCase) &&
+                    !visibleText.Contains("UUID", StringComparison.OrdinalIgnoreCase);
+
+        Populate(original);
+        PopulateSuggestions();
+        Preview();
+        return preserved && blocked && human && _canonicalPreviewReady;
     }
 
     private bool TryOpenIsolatedEvidenceSession()
@@ -1283,6 +1328,21 @@ internal sealed partial class StudioDoorValidationOverlay : Control
         value.AddThemeFontSizeOverride("font_size", StudioStyle.BaseFontSize);
         value.AddThemeColorOverride("font_color", StudioStyle.Text);
         return value;
+    }
+
+    private static IEnumerable<Label> DescendantLabels(Node root)
+    {
+        foreach (var child in root.GetChildren())
+        {
+            if (child is Label label)
+            {
+                yield return label;
+            }
+            foreach (var descendant in DescendantLabels(child))
+            {
+                yield return descendant;
+            }
+        }
     }
 
     private static bool SameValidation(

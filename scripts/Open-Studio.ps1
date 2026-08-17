@@ -51,7 +51,8 @@ param(
         'ux1-af', 'ux1-af-assisted-area-plan', 'ux1-af-area-build',
         'ux1-ag', 'ux1-ag-lock', 'ux1-ag-refusal-trap', 'ux1-ag-events',
         'ux1-ah', 'ux1-ah-trigger-automation-director',
-        'ux1-ai', 'ux1-ai-trigger-validation')]
+        'ux1-ai', 'ux1-ai-trigger-validation',
+        'ux1-aj', 'ux1-aj-door-validation')]
     [string]$Evidence,
     [string]$Resolution,
     [switch]$Headless,

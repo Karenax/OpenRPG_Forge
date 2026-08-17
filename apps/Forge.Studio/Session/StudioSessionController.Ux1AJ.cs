@@ -29,41 +29,7 @@ internal sealed partial class StudioSessionController
         get
         {
             var project = Project;
-            if (project is null)
-            {
-                return [];
-            }
-
-            return project.Module.WorldFeatures.Doors.Select(profile =>
-                {
-                    var blueprint = project.Blueprints.FirstOrDefault(item => item.Id == profile.BlueprintId);
-                    var name = blueprint?.DisplayName ?? "Porte sans blueprint";
-                    var instances = project.Areas.Sum(area =>
-                        area.Entities.Count(entity => entity.BlueprintId == profile.BlueprintId));
-                    var prerequisites = profile.Foundation is null
-                        ? "fondation absente"
-                        : profile.Foundation.Navigation is null
-                            ? "navigation absente"
-                            : "fondation et navigation prêtes";
-                    var state = profile.Validation is null
-                        ? profile.ValidationRequiredAtRuntime
-                            ? "contexte requis manquant"
-                            : "non évalué"
-                        : profile.ValidationRequiredAtRuntime
-                            ? "contexte requis configuré"
-                            : "contexte optionnel configuré";
-                    return new StudioDoorValidationChoice(
-                        profile.Id,
-                        profile.BlueprintId,
-                        $"{name} · {prerequisites} · {instances} instance(s) · {state}",
-                        profile.Foundation is not null,
-                        profile.Foundation?.Navigation is not null,
-                        profile.Validation is not null,
-                        profile.ValidationRequiredAtRuntime,
-                        string.Equals(profile.Provenance, Ux1AJEvidenceProvenance, StringComparison.Ordinal));
-                })
-                .OrderBy(item => item.Label, StringComparer.CurrentCultureIgnoreCase)
-                .ToArray();
+            return project is null ? [] : BuildDoorValidationChoicesUx1AJ(project);
         }
     }
 
@@ -72,6 +38,80 @@ internal sealed partial class StudioSessionController
         var history = History;
         var project = Project;
         if (history is null || project is null || requestedProfileId is null)
+        {
+            return null;
+        }
+
+        return CreateDoorValidationDraftUx1AJ(project, history.State.Revision, requestedProfileId);
+    }
+
+    private static IReadOnlyList<StudioDoorValidationChoice> BuildDoorValidationChoicesUx1AJ(
+        ProjectDefinition project)
+    {
+        var entries = project.Module.WorldFeatures.Doors.Select((profile, position) =>
+        {
+            var blueprint = project.Blueprints.FirstOrDefault(item => item.Id == profile.BlueprintId);
+            return new
+            {
+                Profile = profile,
+                Blueprint = blueprint,
+                Name = blueprint?.DisplayName ?? "Porte sans blueprint",
+                Position = position + 1,
+            };
+        }).ToArray();
+        var duplicateNames = entries
+            .GroupBy(item => item.Name, StringComparer.CurrentCultureIgnoreCase)
+            .ToDictionary(group => group.Key, group => group.Count(), StringComparer.CurrentCultureIgnoreCase);
+        var duplicateTargets = entries
+            .GroupBy(item => item.Profile.BlueprintId)
+            .ToDictionary(group => group.Key, group => group.Count());
+
+        return entries.Select(entry =>
+            {
+                var profile = entry.Profile;
+                var name = duplicateTargets[profile.BlueprintId] > 1
+                    ? entry.Blueprint is null
+                        ? $"{entry.Name} · profil {entry.Position}"
+                        : $"{entry.Name} · {entry.Blueprint.Slug} · profil {entry.Position}"
+                    : duplicateNames[entry.Name] > 1
+                    ? entry.Blueprint is null
+                        ? $"{entry.Name} · profil {entry.Position}"
+                        : $"{entry.Name} · {entry.Blueprint.Slug}"
+                    : entry.Name;
+                var instances = project.Areas.Sum(area =>
+                    area.Entities.Count(entity => entity.BlueprintId == profile.BlueprintId));
+                var prerequisites = profile.Foundation is null
+                    ? "fondation absente"
+                    : profile.Foundation.Navigation is null
+                        ? "navigation absente"
+                        : "fondation et navigation prêtes";
+                var state = profile.Validation is null
+                    ? profile.ValidationRequiredAtRuntime
+                        ? "contexte requis manquant"
+                        : "non évalué"
+                    : profile.ValidationRequiredAtRuntime
+                        ? "contexte requis configuré"
+                        : "contexte optionnel configuré";
+                return new StudioDoorValidationChoice(
+                    profile.Id,
+                    profile.BlueprintId,
+                    $"{name} · {prerequisites} · {instances} instance(s) · {state}",
+                    profile.Foundation is not null,
+                    profile.Foundation?.Navigation is not null,
+                    profile.Validation is not null,
+                    profile.ValidationRequiredAtRuntime,
+                    string.Equals(profile.Provenance, Ux1AJEvidenceProvenance, StringComparison.Ordinal));
+            })
+            .OrderBy(item => item.Label, StringComparer.CurrentCultureIgnoreCase)
+            .ToArray();
+    }
+
+    private static StudioDoorValidationDraft? CreateDoorValidationDraftUx1AJ(
+        ProjectDefinition project,
+        ProjectRevision revision,
+        Guid? requestedProfileId)
+    {
+        if (requestedProfileId is null)
         {
             return null;
         }
@@ -87,7 +127,7 @@ internal sealed partial class StudioSessionController
         return new StudioDoorValidationDraft(
             profile.Id,
             profile.BlueprintId,
-            history.State.Revision,
+            revision,
             validation is not null,
             profile.ValidationRequiredAtRuntime,
             validation?.KnownDestinationIds.ToArray() ?? [],
@@ -121,6 +161,20 @@ internal sealed partial class StudioSessionController
                 $"Fondation canonique · {profile.Provenance}",
                 true));
         }
+        foreach (var door in catalog.Doors.Where(item => item.Id != profile.Id))
+        {
+            destinations.Add(new(
+                door.Id,
+                HumanDoorDestinationUx1AJ(project, DoorWorldProfile.DestinationKind.Door, door.Id),
+                $"Catalogue Monde vivant · {door.Provenance}",
+                false));
+        }
+        foreach (var trigger in catalog.Triggers)
+        {
+            destinations.Add(new(trigger.Id,
+                HumanDoorDestinationUx1AJ(project, DoorWorldProfile.DestinationKind.Trigger, trigger.Id),
+                $"Catalogue Monde vivant · {trigger.Provenance}", false));
+        }
         if (profile.Validation is { } existingValidation)
         {
             var position = 1;
@@ -130,19 +184,6 @@ internal sealed partial class StudioSessionController
                     $"Politique enregistrée · {profile.Provenance}",
                     profile.Foundation?.Portal?.DestinationId == id));
             }
-        }
-        foreach (var door in catalog.Doors.Where(item => item.Id != profile.Id))
-        {
-            var label = project.Blueprints.FirstOrDefault(item => item.Id == door.BlueprintId)?.DisplayName ??
-                        "Porte du catalogue";
-            destinations.Add(new(door.Id, $"Porte · {label}", $"Catalogue Monde vivant · {door.Provenance}", false));
-        }
-        foreach (var trigger in catalog.Triggers)
-        {
-            var label = project.Blueprints.FirstOrDefault(item => item.Id == trigger.BlueprintId)?.DisplayName ??
-                        "Déclencheur du catalogue";
-            destinations.Add(new(trigger.Id, $"Déclencheur · {label}",
-                $"Catalogue Monde vivant · {trigger.Provenance}", false));
         }
 
         var animations = new List<StudioDoorValidationSuggestion>();
@@ -486,7 +527,8 @@ internal sealed partial class StudioSessionController
         if (code.Contains("SCRIPT", StringComparison.Ordinal) ||
             diagnostic.Path.Contains("/scripts", StringComparison.Ordinal))
             return "scripts";
-        if (code.Contains("LINK", StringComparison.Ordinal))
+        if (code.Contains("LINK", StringComparison.Ordinal) ||
+            diagnostic.Path.Contains("/links", StringComparison.Ordinal))
             return "context";
         if (code.Contains("validation", StringComparison.OrdinalIgnoreCase) ||
             diagnostic.Path.EndsWith("/validation", StringComparison.Ordinal))
@@ -607,18 +649,36 @@ internal sealed partial class StudioSessionController
         if (kind == DoorWorldProfile.DestinationKind.Door)
         {
             var door = catalog.Doors.FirstOrDefault(item => item.Id == id);
-            var name = door is null
+            var blueprint = door is null
                 ? null
-                : project.Blueprints.FirstOrDefault(item => item.Id == door.BlueprintId)?.DisplayName;
-            return name is null ? "Porte de destination héritée" : $"Porte · {name}";
+                : project.Blueprints.FirstOrDefault(item => item.Id == door.BlueprintId);
+            if (blueprint is null)
+            {
+                return "Porte de destination héritée";
+            }
+            var duplicate = project.Blueprints.Count(item =>
+                item.Kind == BlueprintKind.Door &&
+                string.Equals(item.DisplayName, blueprint.DisplayName, StringComparison.CurrentCultureIgnoreCase)) > 1;
+            return duplicate
+                ? $"Porte · {blueprint.DisplayName} · {blueprint.Slug}"
+                : $"Porte · {blueprint.DisplayName}";
         }
         if (kind == DoorWorldProfile.DestinationKind.Trigger)
         {
             var trigger = catalog.Triggers.FirstOrDefault(item => item.Id == id);
-            var name = trigger is null
+            var blueprint = trigger is null
                 ? null
-                : project.Blueprints.FirstOrDefault(item => item.Id == trigger.BlueprintId)?.DisplayName;
-            return name is null ? "Déclencheur de destination hérité" : $"Déclencheur · {name}";
+                : project.Blueprints.FirstOrDefault(item => item.Id == trigger.BlueprintId);
+            if (blueprint is null)
+            {
+                return "Déclencheur de destination hérité";
+            }
+            var duplicate = project.Blueprints.Count(item =>
+                item.Kind == BlueprintKind.Trigger &&
+                string.Equals(item.DisplayName, blueprint.DisplayName, StringComparison.CurrentCultureIgnoreCase)) > 1;
+            return duplicate
+                ? $"Déclencheur · {blueprint.DisplayName} · {blueprint.Slug}"
+                : $"Déclencheur · {blueprint.DisplayName}";
         }
         return kind == DoorWorldProfile.DestinationKind.Waypoint
             ? "Point d’arrivée hérité de la porte"
@@ -701,7 +761,7 @@ internal sealed partial class StudioSessionController
         var neighborBlueprint = new BlueprintDefinition(
             BlueprintId.From(StableDoorValidationIdUx1AJ(seed, "neighbor-blueprint")),
             "porte-voisine-preservee",
-            "Porte voisine préservée",
+            "Porte de validation canonique",
             BlueprintKind.Door);
         var foundationlessBlueprint = new BlueprintDefinition(
             BlueprintId.From(StableDoorValidationIdUx1AJ(seed, "foundationless-blueprint")),
@@ -1093,15 +1153,52 @@ internal sealed partial class StudioSessionController
                 Foundation = target.Foundation! with { Navigation = null },
             };
 
+            var navigationlessCatalog = new WorldFeatureCatalog(
+                initialCatalog.Id,
+                initialCatalog.SchemaVersion,
+                initialCatalog.Provenance,
+                initialCatalog.Placeables,
+                initialCatalog.Doors.Select(item => item.Id == target.Id ? navigationlessCandidate : item).ToArray(),
+                initialCatalog.Triggers,
+                initialCatalog.Encounters,
+                initialCatalog.VehicleRoutes,
+                initialCatalog.Merchants,
+                initialCatalog.Companions,
+                initialCatalog.Scripts);
+            var navigationlessProject = new ProjectDefinition(
+                initialProject.Id,
+                initialProject.Title,
+                initialProject.Module.WithWorldFeatures(navigationlessCatalog),
+                initialProject.Blueprints,
+                initialProject.Areas,
+                initialProject.Dialogues,
+                initialProject.Quests);
+            var navigationlessChoices = BuildDoorValidationChoicesUx1AJ(navigationlessProject);
+            var choiceLabels = editing.DoorValidationChoicesUx1AJ.Select(item => item.Label).ToArray();
+
             var explicitSelection = editing.CreateDoorValidationDraftUx1AJ() is null &&
                                     editing.DoorValidationChoicesUx1AJ.Count == 3 &&
+                                    choiceLabels.Distinct(StringComparer.CurrentCultureIgnoreCase).Count() ==
+                                    choiceLabels.Length &&
+                                    choiceLabels.Any(item => item.Contains(
+                                        "porte-validation-canonique",
+                                        StringComparison.Ordinal)) &&
+                                    choiceLabels.Any(item => item.Contains(
+                                        "porte-voisine-preservee",
+                                        StringComparison.Ordinal)) &&
                                     editing.DoorValidationChoicesUx1AJ.All(item =>
                                         IsHumanDoorValidationTextUx1AJ(item.Label));
             var prerequisitesRequired =
                 editing.CreateDoorValidationDraftUx1AJ(foundationless.Id) is null &&
                 !HasDoorValidationPrerequisitesUx1AJ(navigationlessCandidate) &&
+                CreateDoorValidationDraftUx1AJ(
+                    navigationlessProject,
+                    editing.History!.State.Revision,
+                    target.Id) is null &&
+                navigationlessChoices.Single(item => item.ProfileId == target.Id) is
+                { HasFoundation: true, HasNavigation: false } &&
                 editing.DoorValidationChoicesUx1AJ.Single(item => item.ProfileId == foundationless.Id) is
-                    { HasFoundation: false };
+                { HasFoundation: false };
 
             var suggestions = editing.GetDoorValidationSuggestionsUx1AJ(target.Id);
             var authoredSuggestion = suggestions.AuthoredCollision;
@@ -1144,9 +1241,9 @@ internal sealed partial class StudioSessionController
                 ValidationRequiredAtRuntime = true,
             });
             var destinationMissing = editing.PreviewDoorValidationUx1AJ(draft with
-                { KnownDestinationIds = [] });
+            { KnownDestinationIds = [] });
             var animationMissing = editing.PreviewDoorValidationUx1AJ(draft with
-                { KnownAnimationIds = [] });
+            { KnownAnimationIds = [] });
             var rejectionAnimation = target.AccessEvents!.Rejection.AnimationId;
             var rejectionAnimationMissing = editing.PreviewDoorValidationUx1AJ(draft with
             {
@@ -1154,13 +1251,13 @@ internal sealed partial class StudioSessionController
                     .Where(item => !string.Equals(item, rejectionAnimation, StringComparison.Ordinal)).ToArray(),
             });
             var collisionMismatch = editing.PreviewDoorValidationUx1AJ(draft with
-                { KnownCollisionProfileIds = ["collision:autre-profil"] });
+            { KnownCollisionProfileIds = ["collision:autre-profil"] });
             var collisionMissing = editing.PreviewDoorValidationUx1AJ(draft with
-                { KnownCollisionProfileIds = [] });
+            { KnownCollisionProfileIds = [] });
             var credentialMissing = editing.PreviewDoorValidationUx1AJ(draft with
-                { KnownCredentialIds = [] });
+            { KnownCredentialIds = [] });
             var scriptMissing = editing.PreviewDoorValidationUx1AJ(draft with
-                { KnownScriptIds = [] });
+            { KnownScriptIds = [] });
 
             var authoredCollisionRemoved = ApplyUx1AJProfileMutation(
                 editing,
@@ -1404,7 +1501,7 @@ internal sealed partial class StudioSessionController
             var suppressedPersisted = suppressionOpened &&
                                       reopened.Project!.Module.WorldFeatures.Doors.Single(item =>
                                           item.Id == target.Id) is
-                                          { Validation: null, ValidationRequiredAtRuntime: false };
+                                      { Validation: null, ValidationRequiredAtRuntime: false };
             reopened.Close();
             var optionalSuppression = suppressionPreview.Succeeded && suppressionApply.Succeeded &&
                                       suppressed is { Validation: null, ValidationRequiredAtRuntime: false } &&
