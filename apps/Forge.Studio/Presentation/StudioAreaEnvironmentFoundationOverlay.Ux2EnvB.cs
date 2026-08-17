@@ -642,7 +642,7 @@ internal sealed partial class StudioAreaEnvironmentFoundationOverlayUx2EnvB : Co
     internal int ChoiceCount => _choices.Count;
     internal bool HasExplicitSelection => _draft is not null && _area.Selected > 0;
     internal bool CanonicalPreviewReady => _canonicalPreviewReady && _lastPreview is
-        { Succeeded: true, CanonicalDryRun: true, TemporalSimulation: true };
+    { Succeeded: true, CanonicalDryRun: true, TemporalSimulation: true };
     internal bool ShowsCompleteCollections => _draft is not null &&
         _curves.Values.Count == _draft.Curves.Count && _events.Values.Count == _draft.Events.Count &&
         _probes.Values.Count == _draft.Probes.Count && _lightingVolumes.Values.Count == _draft.LightingVolumes.Count &&

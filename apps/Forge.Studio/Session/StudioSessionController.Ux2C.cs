@@ -356,109 +356,109 @@ internal sealed partial class StudioSessionController
             switch (draft.Operation)
             {
                 case StudioUx2CTerrainOperation.Sculpt:
-                {
-                    var stroke = new TerrainBrushStroke(
-                        draft.BrushOperation,
-                        draft.WorldX,
-                        draft.WorldZ,
-                        draft.Radius,
-                        draft.Strength,
-                        draft.TargetHeight,
-                        draft.BrushOperation == TerrainBrushOperation.PaintMaterial
-                            ? draft.MaterialLayerId
-                            : Guid.Empty);
-                    var command = new EditTerrainBrushCommand(commandId, state.Revision, area.Id, stroke, true);
-                    plan = new(
-                        dry => _editTerrainBrushUx2C.Handle(state, command with { DryRun = dry }),
-                        area,
-                        [$"{HumanBrushOperationUx2C(draft.BrushOperation)} au point " +
-                         $"{draft.WorldX:0.###}, {draft.WorldZ:0.###} sur un rayon de {draft.Radius:0.###} m."]);
-                    return true;
-                }
-                case StudioUx2CTerrainOperation.Feature:
-                {
-                    if (draft.FeatureId == Guid.Empty || string.IsNullOrWhiteSpace(draft.FeatureName) ||
-                        draft.FeatureControlPoints.Count < 2)
                     {
-                        message = "Choisissez ou créez une feature avec un nom et au moins deux points.";
-                        return false;
+                        var stroke = new TerrainBrushStroke(
+                            draft.BrushOperation,
+                            draft.WorldX,
+                            draft.WorldZ,
+                            draft.Radius,
+                            draft.Strength,
+                            draft.TargetHeight,
+                            draft.BrushOperation == TerrainBrushOperation.PaintMaterial
+                                ? draft.MaterialLayerId
+                                : Guid.Empty);
+                        var command = new EditTerrainBrushCommand(commandId, state.Revision, area.Id, stroke, true);
+                        plan = new(
+                            dry => _editTerrainBrushUx2C.Handle(state, command with { DryRun = dry }),
+                            area,
+                            [$"{HumanBrushOperationUx2C(draft.BrushOperation)} au point " +
+                         $"{draft.WorldX:0.###}, {draft.WorldZ:0.###} sur un rayon de {draft.Radius:0.###} m."]);
+                        return true;
                     }
-                    var feature = new TerrainFeatureDefinition(
-                        draft.FeatureId,
-                        TerrainFeatureDefinition.CurrentSchemaVersion,
-                        draft.FeatureName,
-                        draft.FeatureKind,
-                        draft.FeatureControlPoints,
-                        draft.FeatureWidth,
-                        draft.FeatureHeight,
-                        draft.FeatureBankDegrees,
-                        draft.FeatureCrossingPolicy,
-                        draft.FeatureBiomeTags,
-                        draft.FeatureMaterialResource,
-                        "studio:ux2-c:feature");
-                    var features = area.World.Features.Where(item => item.Id != feature.Id)
-                        .Append(feature).ToArray();
-                    var world = new AreaWorldProfile(
-                        area.World.Id,
-                        area.World.SchemaVersion,
-                        area.World.Terrain,
-                        area.World.Biomes,
-                        features,
-                        area.World.VolumetricNavigation,
-                        area.World.FlightRoutes,
-                        area.World.Loading,
-                        "studio:ux2-c:feature");
-                    var command = new SetAreaWorldProfileCommand(commandId, state.Revision, area.Id, world, true);
-                    plan = new(
-                        dry => _setAreaWorldUx2C.Handle(state, command with { DryRun = dry }),
-                        area,
-                        [$"{(draft.FeatureIsNew ? "Créer" : "Modifier")} la feature " +
+                case StudioUx2CTerrainOperation.Feature:
+                    {
+                        if (draft.FeatureId == Guid.Empty || string.IsNullOrWhiteSpace(draft.FeatureName) ||
+                            draft.FeatureControlPoints.Count < 2)
+                        {
+                            message = "Choisissez ou créez une feature avec un nom et au moins deux points.";
+                            return false;
+                        }
+                        var feature = new TerrainFeatureDefinition(
+                            draft.FeatureId,
+                            TerrainFeatureDefinition.CurrentSchemaVersion,
+                            draft.FeatureName,
+                            draft.FeatureKind,
+                            draft.FeatureControlPoints,
+                            draft.FeatureWidth,
+                            draft.FeatureHeight,
+                            draft.FeatureBankDegrees,
+                            draft.FeatureCrossingPolicy,
+                            draft.FeatureBiomeTags,
+                            draft.FeatureMaterialResource,
+                            "studio:ux2-c:feature");
+                        var features = area.World.Features.Where(item => item.Id != feature.Id)
+                            .Append(feature).ToArray();
+                        var world = new AreaWorldProfile(
+                            area.World.Id,
+                            area.World.SchemaVersion,
+                            area.World.Terrain,
+                            area.World.Biomes,
+                            features,
+                            area.World.VolumetricNavigation,
+                            area.World.FlightRoutes,
+                            area.World.Loading,
+                            "studio:ux2-c:feature");
+                        var command = new SetAreaWorldProfileCommand(commandId, state.Revision, area.Id, world, true);
+                        plan = new(
+                            dry => _setAreaWorldUx2C.Handle(state, command with { DryRun = dry }),
+                            area,
+                            [$"{(draft.FeatureIsNew ? "Créer" : "Modifier")} la feature " +
                          $"« {HumanTerrainSurfaceTextUx2C(draft.FeatureName)} » avec " +
                          $"{draft.FeatureControlPoints.Count} point(s)."]);
-                    return true;
-                }
+                        return true;
+                    }
                 case StudioUx2CTerrainOperation.TileProperty:
-                {
-                    if (draft.PlacementId == Guid.Empty || draft.PropertyId == Guid.Empty ||
-                        string.IsNullOrWhiteSpace(draft.SemanticState))
                     {
-                        message = "Choisissez une tuile et renseignez son état sémantique.";
-                        return false;
-                    }
-                    var property = new TileInstancePropertyProfile(
-                        draft.PropertyId,
-                        draft.PlacementId,
-                        draft.SemanticState,
-                        draft.Animation,
-                        draft.LoopAnimation,
-                        draft.MaterialOverrides,
-                        new(draft.LightEnabled, draft.LightColor, draft.LightIntensity, draft.LightRangeMeters),
-                        draft.CollisionEnabled,
-                        draft.NavigationEnabled,
-                        draft.SocketOverrides,
-                        draft.PropertyOverrides);
-                    var authored = AreaTileAuthoringPlanner.UpsertProperty(area, property);
-                    if (!authored.CanApply)
-                    {
-                        message = HumanTerrainSurfaceDomainDiagnosticUx2C(authored.Diagnostics.FirstOrDefault());
-                        return false;
-                    }
-                    var command = new EditAreaGeometryCommand(
-                        commandId,
-                        state.Revision,
-                        area.Id,
-                        area.Dimensions,
-                        authored.Entities,
-                        "Studio terrain · propriétés de tuile",
-                        true,
-                        authored.Foundation);
-                    plan = new(
-                        dry => _editAreaGeometryUx2C.Handle(state, command with { DryRun = dry }),
-                        area,
-                        [$"Mettre à jour l’état « {HumanTerrainSurfaceTextUx2C(draft.SemanticState)} », " +
+                        if (draft.PlacementId == Guid.Empty || draft.PropertyId == Guid.Empty ||
+                            string.IsNullOrWhiteSpace(draft.SemanticState))
+                        {
+                            message = "Choisissez une tuile et renseignez son état sémantique.";
+                            return false;
+                        }
+                        var property = new TileInstancePropertyProfile(
+                            draft.PropertyId,
+                            draft.PlacementId,
+                            draft.SemanticState,
+                            draft.Animation,
+                            draft.LoopAnimation,
+                            draft.MaterialOverrides,
+                            new(draft.LightEnabled, draft.LightColor, draft.LightIntensity, draft.LightRangeMeters),
+                            draft.CollisionEnabled,
+                            draft.NavigationEnabled,
+                            draft.SocketOverrides,
+                            draft.PropertyOverrides);
+                        var authored = AreaTileAuthoringPlanner.UpsertProperty(area, property);
+                        if (!authored.CanApply)
+                        {
+                            message = HumanTerrainSurfaceDomainDiagnosticUx2C(authored.Diagnostics.FirstOrDefault());
+                            return false;
+                        }
+                        var command = new EditAreaGeometryCommand(
+                            commandId,
+                            state.Revision,
+                            area.Id,
+                            area.Dimensions,
+                            authored.Entities,
+                            "Studio terrain · propriétés de tuile",
+                            true,
+                            authored.Foundation);
+                        plan = new(
+                            dry => _editAreaGeometryUx2C.Handle(state, command with { DryRun = dry }),
+                            area,
+                            [$"Mettre à jour l’état « {HumanTerrainSurfaceTextUx2C(draft.SemanticState)} », " +
                          "l’animation, les matériaux, la lumière, la collision, la navigation et les sockets."]);
-                    return true;
-                }
+                        return true;
+                    }
                 default:
                     message = "Opération de terrain inconnue.";
                     return false;
@@ -486,17 +486,17 @@ internal sealed partial class StudioSessionController
     private static string HumanTerrainSurfaceSummaryUx2C(
         StudioUx2CTerrainDraft draft,
         AreaDefinition target) => draft.Operation switch
-    {
-        StudioUx2CTerrainOperation.Sculpt =>
-            $"Relief {HumanBrushOperationUx2C(draft.BrushOperation).ToLowerInvariant()} · " +
-            $"{target.World.Terrain.SamplesX}×{target.World.Terrain.SamplesZ} échantillons · moteur non muté",
-        StudioUx2CTerrainOperation.Feature =>
-            $"{target.World.Features.Count} feature(s) · collection complète · rendu Godot non reconstruit avant application",
-        StudioUx2CTerrainOperation.TileProperty =>
-            $"{target.Foundation.TileKit.Editing?.Properties.Count ?? 0} fiche(s) de tuile · " +
-            "collision/navigation authorées, sans recalcul moteur",
-        _ => "Aperçu terrain",
-    };
+        {
+            StudioUx2CTerrainOperation.Sculpt =>
+                $"Relief {HumanBrushOperationUx2C(draft.BrushOperation).ToLowerInvariant()} · " +
+                $"{target.World.Terrain.SamplesX}×{target.World.Terrain.SamplesZ} échantillons · moteur non muté",
+            StudioUx2CTerrainOperation.Feature =>
+                $"{target.World.Features.Count} feature(s) · collection complète · rendu Godot non reconstruit avant application",
+            StudioUx2CTerrainOperation.TileProperty =>
+                $"{target.Foundation.TileKit.Editing?.Properties.Count ?? 0} fiche(s) de tuile · " +
+                "collision/navigation authorées, sans recalcul moteur",
+            _ => "Aperçu terrain",
+        };
 
     private static string HumanBrushOperationUx2C(TerrainBrushOperation operation) => operation switch
     {
@@ -534,11 +534,11 @@ internal sealed partial class StudioSessionController
 
     private static string HumanTerrainSurfaceDomainDiagnosticUx2C(
         Forge.Domain.Validation.DomainDiagnostic? diagnostic) => diagnostic?.Code switch
-    {
-        AreaTileEditingValidator.PropertyCode => "Les propriétés de la tuile sont incomplètes ou invalides.",
-        AreaTileEditingValidator.ReferenceCode => "La tuile choisie n’existe plus.",
-        _ => "Le validateur canonique refuse les propriétés de cette tuile.",
-    };
+        {
+            AreaTileEditingValidator.PropertyCode => "Les propriétés de la tuile sont incomplètes ou invalides.",
+            AreaTileEditingValidator.ReferenceCode => "La tuile choisie n’existe plus.",
+            _ => "Le validateur canonique refuse les propriétés de cette tuile.",
+        };
 
     private static string HumanTerrainSurfaceExceptionUx2C(string message) =>
         message.Contains("feature", StringComparison.OrdinalIgnoreCase)
@@ -813,7 +813,8 @@ internal sealed partial class StudioSessionController
             var approvalDraft = editing.SelectTerrainFeatureUx2C(
                 editing.CreateTerrainSurfaceDraftUx2C(area.Id)!,
                 editing.Project.Areas.Single(item => item.Id == area.Id).World.Features[0].Id,
-                createNew: false)! with { FeatureWidth = 3.375f };
+                createNew: false)! with
+            { FeatureWidth = 3.375f };
             var approvalPreview = editing.PreviewTerrainSurfaceUx2C(approvalDraft);
             var approvalMutation = ApplyTerrainSurfaceRevisionMutationUx2C(editing, area.Id, "approval");
             var staleApprovalBlocked = approvalPreview.Succeeded && approvalMutation &&

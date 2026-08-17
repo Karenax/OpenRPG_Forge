@@ -606,7 +606,8 @@ internal sealed partial class StudioClimateWaterReverbOverlayUx2EnvC : ColorRect
             GD.PrintErr($"OPENRPG_FORGE_STUDIO_UX2_ENV_C_EVIDENCE_FAILED mode={mode} " +
                         $"type={exception.GetType().Name} message={exception.Message}");
             var sessionReleased = true;
-            try { evidenceSession.Close(); } catch (Exception releaseException)
+            try { evidenceSession.Close(); }
+            catch (Exception releaseException)
             {
                 sessionReleased = false;
                 GD.PrintErr($"OPENRPG_FORGE_STUDIO_UX2_ENV_C_EVIDENCE_RELEASE_FAILED " +
