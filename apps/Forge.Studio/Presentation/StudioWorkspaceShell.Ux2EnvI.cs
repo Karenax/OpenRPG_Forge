@@ -62,6 +62,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2EnvEOverlay();
         CloseUx2EnvFOverlay();
         CloseUx2EnvGOverlay();
+        CloseUx2EnvHOverlay();
         SwitchPage("environment", notify: false);
         _audioScatterEventsOverlayUx2EnvI.Open();
         SetStatus("Dispersion & événements ouverts · sélection explicite · aperçu sec obligatoire");
@@ -87,6 +88,13 @@ internal sealed partial class StudioWorkspaceShell
     internal bool PrepareUx2EnvIEvidence(string mode)
     {
         SwitchPage("environment", notify: false);
+        CloseUx2EnvBOverlay();
+        CloseUx2EnvCOverlay();
+        CloseUx2EnvDOverlay();
+        CloseUx2EnvEOverlay();
+        CloseUx2EnvFOverlay();
+        CloseUx2EnvGOverlay();
+        CloseUx2EnvHOverlay();
         return _audioScatterEventsOverlayUx2EnvI.PrepareEvidence(mode);
     }
 

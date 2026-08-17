@@ -129,6 +129,7 @@ internal sealed partial class StudioAudioScatterEventsOverlayUx2EnvI : ColorRect
         Visible = false;
 
         _dialog = StudioStyle.Panel("Ux2EnvIAudioScatterEventsDialog", StudioStyle.Surface, 12, 1);
+        _dialog.ClipContents = true;
         AddChild(_dialog);
         var margin = StudioStyle.Margin(14, 12, 14, 12);
         _dialog.AddChild(margin);
@@ -163,7 +164,18 @@ internal sealed partial class StudioAudioScatterEventsOverlayUx2EnvI : ColorRect
             SizeFlagsHorizontal = SizeFlags.ExpandFill,
             SizeFlagsVertical = SizeFlags.ExpandFill,
         };
-        root.AddChild(_tabs);
+        var tabsHost = new Control
+        {
+            CustomMinimumSize = new Vector2(0, 330),
+            CustomMaximumSize = new Vector2(-1, 620),
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            SizeFlagsVertical = SizeFlags.ExpandFill,
+            ClipContents = true,
+            PropagateMaximumSize = true,
+        };
+        root.AddChild(tabsHost);
+        _tabs.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
+        tabsHost.AddChild(_tabs);
 
         var scatterTab = ScrollTabUx2EnvI("Dispersions spatiales");
         var collection = new HBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };

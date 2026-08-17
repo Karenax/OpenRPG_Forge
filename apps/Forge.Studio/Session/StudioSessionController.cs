@@ -147,6 +147,7 @@ internal sealed partial class StudioSessionController
         CancelAudioEmittersApprovalUx2EnvF();
         CancelAudioWorkbenchApprovalUx2EnvG();
         CancelAudioRangeApprovalUx2EnvH();
+        CancelAudioScatterApprovalUx2EnvI();
         CloseUx2NavB();
         CloseUx2NavC();
         CloseUx2NavD();
@@ -1100,6 +1101,7 @@ internal sealed partial class StudioSessionController
         CancelAudioEmittersApprovalUx2EnvF();
         CancelAudioWorkbenchApprovalUx2EnvG();
         CancelAudioRangeApprovalUx2EnvH();
+        CancelAudioScatterApprovalUx2EnvI();
         CloseUx2NavB();
         CloseUx2NavC();
         CloseUx2NavD();

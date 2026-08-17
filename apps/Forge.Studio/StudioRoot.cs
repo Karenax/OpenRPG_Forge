@@ -313,6 +313,7 @@ public sealed partial class StudioRoot : Control
         var ux2EnvFValid = true;
         var ux2EnvGValid = true;
         var ux2EnvHValid = true;
+        var ux2EnvIValid = true;
         var ux2NavBValid = true;
         var ux2NavCValid = true;
         var ux2NavDValid = true;
@@ -340,6 +341,7 @@ public sealed partial class StudioRoot : Control
             var ux2EnvFApproval = _session.CaptureAudioEmittersApprovalUx2EnvF();
             var ux2EnvGApproval = _session.CaptureAudioWorkbenchApprovalUx2EnvG();
             var ux2EnvHApproval = _session.CaptureAudioRangeApprovalUx2EnvH();
+            var ux2EnvIApproval = _session.CaptureAudioScatterApprovalUx2EnvI();
             var ux2NavBApproval = _session.CaptureNavigationApprovalUx2NavB();
             var ux2NavCApproval = _session.CaptureWaypointApprovalUx2NavC();
             var ux2NavDApproval = _session.CapturePatrolApprovalUx2NavD();
@@ -366,6 +368,7 @@ public sealed partial class StudioRoot : Control
                 ux2EnvFValid = _shell.RunUx2EnvFSmoke();
                 ux2EnvGValid = _shell.RunUx2EnvGSmoke();
                 ux2EnvHValid = _shell.RunUx2EnvHSmoke();
+                ux2EnvIValid = _shell.RunUx2EnvISmoke();
                 ux2NavBValid = _shell.RunUx2NavBSmoke();
                 ux2NavCValid = _shell.RunUx2NavCSmoke();
                 ux2NavDValid = _shell.RunUx2NavDSmoke();
@@ -393,6 +396,7 @@ public sealed partial class StudioRoot : Control
                 _session.RestoreAudioEmittersApprovalUx2EnvF(ux2EnvFApproval);
                 _session.RestoreAudioWorkbenchApprovalUx2EnvG(ux2EnvGApproval);
                 _session.RestoreAudioRangeApprovalUx2EnvH(ux2EnvHApproval);
+                _session.RestoreAudioScatterApprovalUx2EnvI(ux2EnvIApproval);
                 _session.RestoreNavigationApprovalUx2NavB(ux2NavBApproval);
                 _session.RestoreWaypointApprovalUx2NavC(ux2NavCApproval);
                 _session.RestorePatrolApprovalUx2NavD(ux2NavDApproval);
@@ -419,6 +423,7 @@ public sealed partial class StudioRoot : Control
                 Equals(_session.CaptureAudioEmittersApprovalUx2EnvF(), ux2EnvFApproval) &&
                 Equals(_session.CaptureAudioWorkbenchApprovalUx2EnvG(), ux2EnvGApproval) &&
                 Equals(_session.CaptureAudioRangeApprovalUx2EnvH(), ux2EnvHApproval) &&
+                Equals(_session.CaptureAudioScatterApprovalUx2EnvI(), ux2EnvIApproval) &&
                 Equals(_session.CaptureNavigationApprovalUx2NavB(), ux2NavBApproval) &&
                 Equals(_session.CaptureWaypointApprovalUx2NavC(), ux2NavCApproval) &&
                 Equals(_session.CapturePatrolApprovalUx2NavD(), ux2NavDApproval) &&
@@ -462,7 +467,7 @@ public sealed partial class StudioRoot : Control
             !ux2AValid || !ux2LwBValid || !ux2LwCValid || !ux2LwDValid || !ux2LwEValid || !ux2LwFValid ||
             !ux2BValid || !ux2CValid ||
             !ux2EnvBValid || !ux2EnvCValid || !ux2EnvDValid || !ux2EnvEValid || !ux2EnvFValid || !ux2EnvGValid ||
-            !ux2EnvHValid ||
+            !ux2EnvHValid || !ux2EnvIValid ||
             !ux2NavBValid || !ux2NavCValid || !ux2NavDValid || !ux2NavEValid || !ux2NavFValid || !ux2NavGValid ||
             !ux2NavHValid ||
             !ux4AValid || !ux5AValid ||
@@ -485,7 +490,7 @@ public sealed partial class StudioRoot : Control
                 $"ux2lwd={ux2LwDValid} ux2lwe={ux2LwEValid} ux2lwf={ux2LwFValid} ux2b={ux2BValid} " +
                 $"ux2c={ux2CValid} ux2envb={ux2EnvBValid} ux2envc={ux2EnvCValid} ux2envd={ux2EnvDValid} " +
                 $"ux2enve={ux2EnvEValid} ux2envf={ux2EnvFValid} ux2envg={ux2EnvGValid} " +
-                $"ux2envh={ux2EnvHValid} " +
+                $"ux2envh={ux2EnvHValid} ux2envi={ux2EnvIValid} " +
                 $"ux2navb={ux2NavBValid} ux2navc={ux2NavCValid} ux2navd={ux2NavDValid} " +
                 $"ux2nave={ux2NavEValid} ux2navf={ux2NavFValid} ux2navg={ux2NavGValid} ux2navh={ux2NavHValid} " +
                 $"ux4a={ux4AValid} ux5a={ux5AValid} " +

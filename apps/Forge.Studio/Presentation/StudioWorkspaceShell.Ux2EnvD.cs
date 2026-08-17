@@ -49,6 +49,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2EnvBOverlay(); CloseUx2EnvCOverlay(); CloseUx2EnvEOverlay(); CloseUx2EnvFOverlay();
         CloseUx2EnvGOverlay();
         CloseUx2EnvHOverlay();
+        CloseUx2EnvIOverlay();
         SwitchPage("environment", notify: false);
         _renderingSkyOverlayUx2EnvD.Open();
         SetStatus("Rendu et ciel ouverts · sélection explicite · aperçu sec obligatoire");
@@ -78,6 +79,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2EnvFOverlay();
         CloseUx2EnvGOverlay();
         CloseUx2EnvHOverlay();
+        CloseUx2EnvIOverlay();
         return _renderingSkyOverlayUx2EnvD.PrepareEvidence(mode);
     }
 

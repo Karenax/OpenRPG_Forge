@@ -306,8 +306,10 @@ internal sealed partial class StudioSessionController
         var values = new List<SpatialScatterEmitter>();
         foreach (var item in draft.ScatterEmitters)
         {
-            var path = $"scatter/{HumanCueUx2EnvI(item.CueId)}";
-            if (!cueIds.Contains((item.CueId ?? string.Empty).Trim()))
+            var cueId = (item.CueId ?? string.Empty).Trim();
+            var provenance = (item.Provenance ?? string.Empty).Trim();
+            var path = $"scatter/{HumanCueUx2EnvI(cueId)}";
+            if (!cueIds.Contains(cueId))
                 found.Add(new(Ux2EnvICueCode, $"{path}/cue",
                     "Choisissez un cue déjà gouverné dans le profil d’expérience de la zone."));
             var numeric = new[]
@@ -340,13 +342,13 @@ internal sealed partial class StudioSessionController
             if (!biomesValid || !exclusionsValid)
                 found.Add(new(Ux2EnvITagsCode, $"{path}/filters",
                     "Les filtres utilisent des tags séparés par des virgules, sans espace interne ni séparateur technique."));
-            if (string.IsNullOrWhiteSpace(item.Provenance))
+            if (string.IsNullOrWhiteSpace(provenance))
                 found.Add(new(Ux2EnvISelectionCode, $"{path}/provenance",
                     "La provenance de la dispersion ne peut pas être vide."));
             if (found.Any(diagnostic => diagnostic.Path.StartsWith(path, StringComparison.Ordinal))) continue;
             values.Add(new SpatialScatterEmitter(
                 item.Id,
-                item.CueId.Trim(),
+                cueId,
                 new Vector3Value(parsed[0].Value, parsed[1].Value, parsed[2].Value),
                 new Vector3Value(parsed[3].Value, parsed[4].Value, parsed[5].Value),
                 item.SurfaceOnly,
@@ -357,7 +359,7 @@ internal sealed partial class StudioSessionController
                 item.RequireNavigable,
                 biomes,
                 exclusions,
-                item.Provenance.Trim()));
+                provenance));
         }
         if (found.Count > 0)
         {
