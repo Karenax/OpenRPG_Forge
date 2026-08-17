@@ -26,7 +26,8 @@ public sealed class EncounterTacticalRuntimeServiceTests
         var cap = EncounterTacticalRuntimeService.ResolveReinforcement(profile, Factions(), Waypoints(),
             Context(alert: 2, elapsed: 3, active: 4));
         var cancelled = EncounterTacticalRuntimeService.ResolveReinforcement(profile, Factions(), Waypoints(),
-            Context(alert: 2, elapsed: 3, active: 1, conditions: ["boss.dead"]));
+            Context(alert: 2, elapsed: 3, active: 1,
+                conditions: new HashSet<string>(["boss.dead"], StringComparer.Ordinal)));
         var visible = EncounterTacticalRuntimeService.ResolveReinforcement(profile, Factions(), Waypoints(),
             Context(alert: 2, elapsed: 3, active: 1, visible: true));
         var denied = EncounterTacticalRuntimeService.ResolveReinforcement(profile, Factions(), Waypoints(),
@@ -63,6 +64,12 @@ public sealed class EncounterTacticalRuntimeServiceTests
                 RequireLineOfSightBlocked = false,
             },
         }, new(10, true, false));
+        var everyMode = Enum.GetValues<EncounterWorldProfile.VisibilityMode>().Select(mode =>
+            EncounterTacticalRuntimeService.ResolveVisibility(profile with
+            {
+                Visibility = new(mode, 0, false,
+                    mode == EncounterWorldProfile.VisibilityMode.Effect ? "vfx.spawn.mode" : string.Empty),
+            }, new(0, mode == EncounterWorldProfile.VisibilityMode.InViewAllowed, false))).ToArray();
 
         Assert.True(approved.SpawnAllowed);
         Assert.Equal("vfx.spawn.ash", approved.SpawnEffectId);
@@ -70,6 +77,7 @@ public sealed class EncounterTacticalRuntimeServiceTests
         Assert.Equal("visible-to-camera", visible.Reason);
         Assert.Equal("line-of-sight-open", openLos.Reason);
         Assert.True(inView.SpawnAllowed);
+        Assert.All(everyMode, result => Assert.True(result.SpawnAllowed));
     }
 
     [Fact]
