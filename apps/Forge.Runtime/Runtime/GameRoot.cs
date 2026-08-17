@@ -4632,7 +4632,9 @@ public partial class GameRoot : Node3D
             .Select(entity => entity.BlueprintId)
             .ToHashSet();
         var connectedPlayers = Math.Max(1, _launcherSession?.Snapshot.Members.Count ?? 1);
-        var voteSatisfied = !string.Equals(narrative.MultiplayerPolicy, "party-vote", StringComparison.Ordinal) ||
+        // The local runtime has no multiplayer vote transport. Only the canonical party-vote policy can
+        // resolve, and only for a one-member local-host session; every other policy remains fail-closed.
+        var voteSatisfied = string.Equals(narrative.MultiplayerPolicy, "party-vote", StringComparison.Ordinal) &&
                             connectedPlayers == 1;
         var result = TriggerLivingWorldRuntimeService.ResolveNarrative(profile, _livingWorldNarrativeState,
             new(DateTimeOffset.UtcNow, true, voteSatisfied, presentParticipants));
