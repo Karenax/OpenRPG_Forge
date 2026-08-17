@@ -932,7 +932,16 @@ atteint 235 routes `functional` et 482 `planned`. Preuves et limites sont liées
 gouvernés avec aperçu d'image réel, référence de modèle/rig, parties du corps, couleurs, ailes et
 queues. Le portail passe 8/8 tests en 100,01 s, le smoke global et cinq captures Forward+ FHD
 inspectées. La matrice atteint 240 routes `functional` et 477 `planned`. Preuves et limites sont
-liées dans `docs/acceptance/STUDIO_UX4_E.md` ; `ORF-CRE-011` à `ORF-CRE-049` restent `planned`.
+liées dans `docs/acceptance/STUDIO_UX4_E.md` ; les règles passent au lot UX4-F.
+
+### UX4-F — Animation et règles de créature
+
+`ORF-CRE-011` à `ORF-CRE-015` sont `functional` : graphe d'animation, état initial et pose,
+ressources, attributs, défenses et sauvegardes via `SetCreatureFoundationHandler`. Le portail passe
+32/32 tests en 106,73 s, le smoke global et six captures Forward+ FHD inspectées, dont cinq sur le
+profil réel de la Crypte. La matrice atteint 245 routes `functional` et 472 `planned`. Preuves et
+limites sont liées dans `docs/acceptance/STUDIO_UX4_F.md` ; `ORF-CRE-016` à `ORF-CRE-049` restent
+`planned`.
 
 ## Gates ergonomiques avant parité
 

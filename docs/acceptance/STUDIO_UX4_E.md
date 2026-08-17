@@ -60,7 +60,8 @@ prétendre les monter sur un acteur runtime.
 - les données réelles auditées n'avaient pas encore de présentation de créature. Les preuves
   riches utilisent donc une copie temporaire canonique, clairement étiquetée, puis vérifient que
   source, historique, état dirty, sélection, approbation et surface sont inchangés ;
-- cette preuve ne qualifie pas `ORF-CRE-011` à `ORF-CRE-049`, qui restent `planned`.
+- cette preuve ne qualifie pas les règles : `ORF-CRE-011` à `ORF-CRE-015` sont qualifiés
+  séparément par UX4-F ; `ORF-CRE-016` à `ORF-CRE-049` restent `planned`.
 
 ## Reproduction
 
