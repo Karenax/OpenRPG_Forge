@@ -176,7 +176,7 @@ internal sealed partial class StudioSessionController
                     item.ResourcePath,
                     string.Join(", ", item.Tags.Select(HumanTokenUx2EnvG)),
                     HumanTokenUx2EnvG(item.Locale),
-                    item.Transcript,
+                    HumanFreeTextUx2EnvG(item.Transcript),
                     HumanTokenUx2EnvG(item.LicenseSpdx),
                     HumanTokenUx2EnvG(item.Provenance),
                     $"{item.LoudnessLufs:0.##} LUFS",
@@ -880,6 +880,14 @@ internal sealed partial class StudioSessionController
         var human = HumanTokenUx2EnvG(value);
         return human == "élément sans nom lisible" ? "Auditeur personnalisé" : human;
     }
+
+    private static string HumanFreeTextUx2EnvG(string? value) =>
+        System.Text.RegularExpressions.Regex.Replace(
+            value ?? string.Empty,
+            @"\b(?:[0-9a-f]{32}|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\b",
+            "identifiant interne",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase |
+            System.Text.RegularExpressions.RegexOptions.CultureInvariant);
 
     private static string HumanTokenUx2EnvG(string? value)
     {
