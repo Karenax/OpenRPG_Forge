@@ -468,14 +468,16 @@ internal sealed partial class StudioSessionController
                     source.Cinematics,
                     rules,
                     source.Experience);
-            candidateArea = sourceArea.WithRuntimePolicies(candidateProfile);
+            var sourceAreaId = sourceArea.Id;
+            var updatedArea = sourceArea.WithRuntimePolicies(candidateProfile);
+            candidateArea = updatedArea;
 
             var candidateProject = new ProjectDefinition(
                 project.Id,
                 project.Title,
                 project.Module,
                 project.Blueprints,
-                project.Areas.Select(area => area.Id == sourceArea.Id ? candidateArea : area).ToArray(),
+                project.Areas.Select(area => area.Id == sourceAreaId ? updatedArea : area).ToArray(),
                 project.Dialogues,
                 project.Quests);
             var canonicalDiagnostics = ProjectValidator.Validate(candidateProject)
