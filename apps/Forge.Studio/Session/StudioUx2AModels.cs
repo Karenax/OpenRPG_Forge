@@ -119,6 +119,7 @@ internal sealed record StudioUx2ASmokeResult(
     bool ExplicitSelection,
     bool RealScriptCatalog,
     bool CompleteCollections,
+    bool NumericValuesPreserved,
     bool InvalidHeartbeatBlocked,
     bool InvalidPerceptionBlocked,
     bool InvalidRestBlocked,

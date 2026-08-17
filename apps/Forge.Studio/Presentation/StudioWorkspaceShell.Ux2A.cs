@@ -105,6 +105,7 @@ internal sealed partial class StudioWorkspaceShell
         var originalApproval = _session.CaptureAreaPolicyApprovalUx2A();
 
         var uiTransaction = _livingWorldPoliciesOverlay.RunUiTransactionEvidence();
+        var uiNumericValues = _livingWorldPoliciesOverlay.LastUiNumericValuesPreserved;
         var evidencePrepared = PrepareUx2AEvidence("ux2-a-area-living-world");
         var overlayOpen = _livingWorldPoliciesOverlay.IsOpen;
         var choiceCount = _livingWorldPoliciesOverlay.ChoiceCount;
@@ -153,13 +154,14 @@ internal sealed partial class StudioWorkspaceShell
                 $"isolated={isolatedEvidence.ToString().ToLowerInvariant()} " +
                 $"source_untouched={evidenceSourceUntouched.ToString().ToLowerInvariant()}");
         }
-        var valid = result.Succeeded && uiReady && uiTransaction && sourceUnchanged &&
+        var valid = result.Succeeded && uiReady && uiTransaction && uiNumericValues && sourceUnchanged &&
                     evidenceResourcesReleased && sourceSessionRestored;
         GD.Print(
             $"OPENRPG_FORGE_STUDIO_UX2A_{(valid ? "PASS" : "FAILED")} " +
             $"selection_explicit={result.ExplicitSelection.ToString().ToLowerInvariant()} " +
             $"real_scripts={result.RealScriptCatalog.ToString().ToLowerInvariant()} " +
             $"complete_collections={result.CompleteCollections.ToString().ToLowerInvariant()} " +
+            $"numeric_values={result.NumericValuesPreserved.ToString().ToLowerInvariant()} " +
             $"invalid_heartbeat={result.InvalidHeartbeatBlocked.ToString().ToLowerInvariant()} " +
             $"invalid_perception={result.InvalidPerceptionBlocked.ToString().ToLowerInvariant()} " +
             $"invalid_rest={result.InvalidRestBlocked.ToString().ToLowerInvariant()} " +
@@ -181,6 +183,7 @@ internal sealed partial class StudioWorkspaceShell
             $"human_text={result.HumanText.ToString().ToLowerInvariant()} " +
             $"ui={uiReady.ToString().ToLowerInvariant()} " +
             $"ui_transaction={uiTransaction.ToString().ToLowerInvariant()} " +
+            $"ui_numeric_values={uiNumericValues.ToString().ToLowerInvariant()} " +
             $"isolated_evidence={isolatedEvidence.ToString().ToLowerInvariant()} " +
             $"evidence_source_untouched={evidenceSourceUntouched.ToString().ToLowerInvariant()} " +
             $"evidence_released={evidenceResourcesReleased.ToString().ToLowerInvariant()} " +

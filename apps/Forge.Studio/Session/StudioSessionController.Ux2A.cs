@@ -1157,13 +1157,13 @@ internal sealed partial class StudioSessionController
             new RestPolicyVolume(
                 Guid.Parse("2a000000-0000-4000-8000-000000000021"),
                 "Sous-bois dangereux",
-                new Vector3Value(-12, 1, 8),
-                new Vector3Value(12, 4, 10),
+                new Vector3Value(-12, 40_000.125f, 8),
+                new Vector3Value(12, 70_000.125f, 10),
                 RestPermissionMode.Forbidden,
                 "Le sous-bois est trop exposé pour installer le camp.",
                 string.Empty,
                 45,
-                0,
+                .1375f,
                 80,
                 Ux2AEvidenceProvenance),
             new RestPolicyVolume(
@@ -1186,7 +1186,7 @@ internal sealed partial class StudioSessionController
             "La clairière doit être sécurisée.",
             "area.secure",
             60,
-            8,
+            8.125f,
             volumes,
             Ux2AEvidenceProvenance);
         var perception = new EnvironmentPerceptionProfile(
@@ -1197,8 +1197,8 @@ internal sealed partial class StudioSessionController
                 new EnvironmentPerceptionModifier(
                     Guid.Parse("2a000000-0000-4000-8000-000000000031"),
                     "hearing",
-                    .8,
-                    .05,
+                    .8123456789,
+                    .0375,
                     "wind"),
                 new EnvironmentPerceptionModifier(
                     Guid.Parse("2a000000-0000-4000-8000-000000000032"),
@@ -1304,6 +1304,17 @@ internal sealed partial class StudioSessionController
                                       originalDraft.Heartbeats.Select(item => item.Id).Distinct().Count() == 2 &&
                                       originalDraft.PerceptionModifiers.Select(item => item.Id).Distinct().Count() == 3 &&
                                       originalDraft.RestVolumes.Select(item => item.Id).Distinct().Count() == 2;
+            var preservedVolume = originalDraft.RestVolumes.Single(item =>
+                item.Id == Guid.Parse("2a000000-0000-4000-8000-000000000021"));
+            var preservedPerception = originalDraft.PerceptionModifiers.Single(item =>
+                item.Id == Guid.Parse("2a000000-0000-4000-8000-000000000031"));
+            var numericValuesPreserved =
+                preservedVolume.Center.Y.Equals(40_000.125f) &&
+                preservedVolume.Size.Y.Equals(70_000.125f) &&
+                preservedVolume.RequiredSecureRadius.Equals(.1375f) &&
+                originalDraft.RestRequiredSecureRadius.Equals(8.125f) &&
+                preservedPerception.Multiplier.Equals(.8123456789) &&
+                preservedPerception.AdditiveModifier.Equals(.0375);
             var realScriptCatalog = editing.FindForgeScripts().Any(item =>
                                         string.Equals(item.RelativePath, Ux2AEvidenceScript,
                                             StringComparison.Ordinal)) &&
@@ -1521,6 +1532,7 @@ internal sealed partial class StudioSessionController
                             string.Join(' ', dryPreview.Diff.Perception) + " " +
                             string.Join(' ', dryPreview.Diff.Rest));
             var succeeded = explicitSelection && realScriptCatalog && completeCollections &&
+                            numericValuesPreserved &&
                             invalidHeartbeatBlocked && invalidPerceptionBlocked && invalidRestBlocked && dryRun &&
                             humanPerceptionDiff && dormantRestHonest && schedulerPolicy && perceptionPolicy &&
                             restPolicy && staleDraftBlocked && staleFingerprintBlocked && staleApprovalBlocked &&
@@ -1531,6 +1543,7 @@ internal sealed partial class StudioSessionController
                 explicitSelection,
                 realScriptCatalog,
                 completeCollections,
+                numericValuesPreserved,
                 invalidHeartbeatBlocked,
                 invalidPerceptionBlocked,
                 invalidRestBlocked,
@@ -1645,6 +1658,7 @@ internal sealed partial class StudioSessionController
             System.Text.RegularExpressions.RegexOptions.CultureInvariant);
 
     private static StudioUx2ASmokeResult FailedUx2ASmoke() => new(
+        false,
         false,
         false,
         false,

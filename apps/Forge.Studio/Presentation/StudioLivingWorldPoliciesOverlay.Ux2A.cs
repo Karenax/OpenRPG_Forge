@@ -33,6 +33,23 @@ internal static class StudioUx2AControls
         return value;
     }
 
+    internal static SpinBox ExactNumber(
+        double minimum,
+        double maximum,
+        double arrowStep,
+        bool allowGreater = false,
+        bool allowLesser = false)
+    {
+        var value = Number(minimum, maximum);
+        value.Step = 0;
+        value.CustomArrowStep = arrowStep;
+        value.CustomArrowRound = false;
+        value.AllowGreater = allowGreater;
+        value.AllowLesser = allowLesser;
+        value.UpdateOnTextChanged = false;
+        return value;
+    }
+
     internal static OptionButton Options(params string[] values)
     {
         var option = new OptionButton
@@ -347,10 +364,10 @@ internal sealed partial class StudioUx2APerceptionRow : PanelContainer
         _sense = StudioUx2AControls.Text("Ex. vision, hearing");
         _sense.Text = value.SenseId;
         row.AddChild(StudioUx2AControls.Field("Sens", _sense, 150));
-        _multiplier = StudioUx2AControls.Number(0, 10, .05);
+        _multiplier = StudioUx2AControls.ExactNumber(0, 10, .05);
         _multiplier.Value = value.Multiplier;
         row.AddChild(StudioUx2AControls.Field("Portée ×", _multiplier, 110));
-        _additive = StudioUx2AControls.Number(-10, 10, .05);
+        _additive = StudioUx2AControls.ExactNumber(-10, 10, .05);
         _additive.Value = value.AdditiveModifier;
         row.AddChild(StudioUx2AControls.Field("Confiance +/−", _additive, 110));
         _condition = StudioUx2AControls.Text("Toujours si vide");
@@ -534,7 +551,7 @@ internal sealed partial class StudioUx2ARestVolumeRow : PanelContainer
         _condition.Text = value.Condition;
         _cooldown = StudioUx2AControls.Number(0, 86_400);
         _cooldown.Value = value.CooldownSeconds;
-        _secureRadius = StudioUx2AControls.Number(0, 512, .25);
+        _secureRadius = StudioUx2AControls.ExactNumber(0, 512, .25);
         _secureRadius.Value = value.RequiredSecureRadius;
         rules.AddChild(StudioUx2AControls.Field("Explication joueur", _reason, 240));
         rules.AddChild(StudioUx2AControls.Field("Condition", _condition, 180));
@@ -561,14 +578,14 @@ internal sealed partial class StudioUx2ARestVolumeRow : PanelContainer
 
     private static SpinBox Coordinate(float value)
     {
-        var spin = StudioUx2AControls.Number(-32_768, 32_768, .25);
+        var spin = StudioUx2AControls.ExactNumber(-32_768, 32_768, .25, allowGreater: true, allowLesser: true);
         spin.Value = value;
         return spin;
     }
 
     private static SpinBox SizeCoordinate(float value)
     {
-        var spin = StudioUx2AControls.Number(0, 65_536, .25);
+        var spin = StudioUx2AControls.ExactNumber(0, 65_536, .25, allowGreater: true);
         spin.Value = value;
         return spin;
     }
@@ -675,6 +692,8 @@ internal sealed partial class StudioLivingWorldPoliciesOverlay : Control
     private bool _lastEvidenceResourcesReleased = true;
     private bool _lastSourceRestored = true;
     private bool _lastEvidencePreviewDryRun;
+    private bool _lastEvidenceNumericValuesPreserved;
+    private bool _lastUiNumericValuesPreserved;
 
     private readonly PanelContainer _dialog;
     private readonly OptionButton _area;
@@ -744,6 +763,7 @@ internal sealed partial class StudioLivingWorldPoliciesOverlay : Control
     internal bool EvidenceResourcesReleased =>
         _evidenceSession is null && _evidenceTempRoot is null && _lastEvidenceResourcesReleased;
     internal bool SourceSessionRestored => ReferenceEquals(_session, _sourceSession) && _lastSourceRestored;
+    internal bool LastUiNumericValuesPreserved => _lastUiNumericValuesPreserved;
 
     internal bool ShowsHumanSurface
     {
@@ -882,7 +902,7 @@ internal sealed partial class StudioLivingWorldPoliciesOverlay : Control
         _restReason = StudioUx2AControls.Text("Message joueur si refusé");
         _restCondition = StudioUx2AControls.Text("Condition si nécessaire");
         _restCooldown = StudioUx2AControls.Number(0, 86_400);
-        _restSecureRadius = StudioUx2AControls.Number(0, 512, .25);
+        _restSecureRadius = StudioUx2AControls.ExactNumber(0, 512, .25);
         restPolicy.AddChild(StudioUx2AControls.Field("Règle par défaut", _restMode, 130));
         restPolicy.AddChild(StudioUx2AControls.Field("Explication joueur", _restReason, 220));
         restPolicy.AddChild(StudioUx2AControls.Field("Condition", _restCondition, 180));
@@ -1040,6 +1060,8 @@ internal sealed partial class StudioLivingWorldPoliciesOverlay : Control
             return false;
         }
 
+        _lastEvidenceNumericValuesPreserved = EvidenceNumericValuesPreserved();
+
         var history = _session.History;
         var project = _session.Project;
         var revision = history?.State.Revision;
@@ -1058,7 +1080,8 @@ internal sealed partial class StudioLivingWorldPoliciesOverlay : Control
         _selection.Text += " · session de preuve isolée";
         _summary.Text = "PREUVE ISOLÉE · le projet source reste strictement inchangé.\n" + _summary.Text;
         SetStatus("Preuve isolée prête · fermeture = suppression de la session temporaire", error: false);
-        return _lastEvidencePreviewDryRun && !_apply.Disabled && HasExplicitSelection &&
+        return _lastEvidencePreviewDryRun && _lastEvidenceNumericValuesPreserved && !_apply.Disabled &&
+               HasExplicitSelection &&
                CanonicalPreviewReady && ShowsCompleteCollections && ShowsHumanPerceptionDiff &&
                ShowsDormantRest && ShowsStructuredDiagnostics && ShowsHumanSurface &&
                UsesIsolatedEvidence && EvidenceSourceUntouched;
@@ -1066,6 +1089,7 @@ internal sealed partial class StudioLivingWorldPoliciesOverlay : Control
 
     internal bool RunUiTransactionEvidence()
     {
+        _lastUiNumericValuesPreserved = false;
         var sourceSnapshot = CaptureSourceSnapshot();
         if (sourceSnapshot is null)
         {
@@ -1079,6 +1103,7 @@ internal sealed partial class StudioLivingWorldPoliciesOverlay : Control
             {
                 return false;
             }
+            _lastUiNumericValuesPreserved = _lastEvidenceNumericValuesPreserved;
             var transactionSession = _session;
             var originalProject = transactionSession.Project;
             var targetId = _draft?.AreaId;
@@ -1086,7 +1111,8 @@ internal sealed partial class StudioLivingWorldPoliciesOverlay : Control
                 ? originalProject?.Areas.SingleOrDefault(item => item.Id == areaId)
                 : null;
             var expectedDraft = ReadDraft();
-            var dryRun = ready && _lastEvidencePreviewDryRun && originalProject is not null &&
+            var dryRun = ready && _lastEvidencePreviewDryRun && _lastUiNumericValuesPreserved &&
+                         originalProject is not null &&
                          sourceArea is not null && expectedDraft is not null &&
                          UsesIsolatedEvidence && SourceMatchesSnapshot(sourceSnapshot);
             Apply();
@@ -1419,7 +1445,7 @@ internal sealed partial class StudioLivingWorldPoliciesOverlay : Control
             PerceptionModifiers = current.PerceptionModifiers.Select(item =>
                 string.Equals(item.SenseId, "vision", StringComparison.Ordinal) &&
                 string.Equals(item.ConditionTag, "fog", StringComparison.Ordinal)
-                    ? item with { Multiplier = .4, AdditiveModifier = -.2 }
+                    ? item with { Multiplier = .4137, AdditiveModifier = -.1875 }
                     : item).ToArray(),
             RestMode = RestPermissionMode.Forbidden,
             RestDenialReason = "La clairière reste dangereuse pendant l’alerte.",
@@ -1429,6 +1455,32 @@ internal sealed partial class StudioLivingWorldPoliciesOverlay : Control
         Populate(configured);
         InvalidatePreview();
         return true;
+    }
+
+    private bool EvidenceNumericValuesPreserved()
+    {
+        var current = ReadDraft();
+        var sourceArea = current is null
+            ? null
+            : _session.Project?.Areas.SingleOrDefault(item => item.Id == current.AreaId);
+        if (current is null || sourceArea is null)
+        {
+            return false;
+        }
+
+        var source = sourceArea.RuntimePolicies;
+        var modifiers = current.PerceptionModifiers.ToDictionary(item => item.Id);
+        var volumes = current.RestVolumes.ToDictionary(item => item.Id);
+        return current.RestRequiredSecureRadius.Equals(source.Rest.RequiredSecureRadius) &&
+               source.Rules.Perception.Modifiers
+                   .Where(item => !(string.Equals(item.SenseId, "vision", StringComparison.Ordinal) &&
+                                    string.Equals(item.ConditionTag, "fog", StringComparison.Ordinal)))
+                   .All(item => modifiers.TryGetValue(item.Id, out var draft) &&
+                                draft.Multiplier.Equals(item.Multiplier) &&
+                                draft.AdditiveModifier.Equals(item.AdditiveModifier)) &&
+               source.Rest.Volumes.All(item => volumes.TryGetValue(item.Id, out var draft) &&
+                                                   draft.Center == item.Center && draft.Size == item.Size &&
+                                                   draft.RequiredSecureRadius.Equals(item.RequiredSecureRadius));
     }
 
     private void Preview()
