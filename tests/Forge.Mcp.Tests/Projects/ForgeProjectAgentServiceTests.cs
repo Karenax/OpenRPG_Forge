@@ -564,7 +564,8 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.Contains("scripts/door_open_rejected", item.Properties["knownScripts"], StringComparison.Ordinal);
         Assert.False(planned.Succeeded);
         Assert.Contains(planned.Diagnostics, diagnostic => diagnostic.Code == "RPG_DOOR_ANIMATION_MISSING" &&
-            diagnostic.Path.StartsWith("module/worldFeatures/doors/", StringComparison.Ordinal));
+            diagnostic.Path is { } path &&
+            path.StartsWith("module/worldFeatures/doors/", StringComparison.Ordinal));
         Assert.Contains(planned.Diagnostics, diagnostic => diagnostic.Code == "RPG_DOOR_COLLISION_PROFILE_MISSING");
         Assert.Contains(planned.Diagnostics, diagnostic => diagnostic.Code == "RPG_DOOR_SCRIPT_MISSING");
         Assert.Equal(0, workspace.Project.GetCurrentRevision());
