@@ -61,14 +61,7 @@ internal sealed partial class StudioDialogueChoiceListUx5A : ItemList
         {
             Select(sourceIndex);
             Variant payload = CreateChoicePayload(sourceIndex);
-            var targetRect = GetItemRect(targetIndex);
-            var targetPosition = targetRect.Position + targetRect.Size / 2f;
-            if (!_CanDropData(targetPosition, payload))
-            {
-                return false;
-            }
-            _DropData(targetPosition, payload);
-            return observed;
+            return DispatchChoiceDropPayload(payload, targetIndex) && observed;
         }
         finally
         {
@@ -106,18 +99,8 @@ internal sealed partial class StudioDialogueChoiceListUx5A : ItemList
     public override bool _CanDropData(Vector2 atPosition, Variant data) =>
         TryReadChoice(data, out _) && GetItemAtPosition(atPosition, true) >= 0;
 
-    public override void _DropData(Vector2 atPosition, Variant data)
-    {
-        if (!TryReadChoice(data, out var sourceIndex))
-        {
-            return;
-        }
-        var targetIndex = GetItemAtPosition(atPosition, true);
-        if (targetIndex >= 0 && targetIndex != sourceIndex)
-        {
-            ChoiceMoved?.Invoke(sourceIndex, targetIndex);
-        }
-    }
+    public override void _DropData(Vector2 atPosition, Variant data) =>
+        DispatchChoiceDropPayload(data, GetItemAtPosition(atPosition, true));
 
     public override void _GuiInput(InputEvent @event)
     {
@@ -160,6 +143,17 @@ internal sealed partial class StudioDialogueChoiceListUx5A : ItemList
         }
         sourceIndex = dictionary["sourceIndex"].AsInt32();
         return sourceIndex >= 0;
+    }
+
+    private bool DispatchChoiceDropPayload(Variant data, int targetIndex)
+    {
+        if (!TryReadChoice(data, out var sourceIndex) || sourceIndex >= ItemCount ||
+            targetIndex < 0 || targetIndex >= ItemCount || targetIndex == sourceIndex)
+        {
+            return false;
+        }
+        ChoiceMoved?.Invoke(sourceIndex, targetIndex);
+        return true;
     }
 
     private static Godot.Collections.Dictionary CreateChoicePayload(int sourceIndex) => new()
@@ -553,6 +547,10 @@ internal sealed partial class StudioDialogueFoundationPage : Control
 
     internal void Close()
     {
+        if (!Visible && ReferenceEquals(_session, _sourceSession) && _evidenceWorkspace is null)
+        {
+            return;
+        }
         if (ReferenceEquals(_session, _sourceSession))
         {
             _sourceSession.CloseUx5A();
@@ -637,7 +635,8 @@ internal sealed partial class StudioDialogueFoundationPage : Control
         }
         _evidenceSourceSnapshot = sourceSnapshot;
         _lastEvidenceSourceUntouched = false;
-        var visible = false;
+        var surfaceVisible = false;
+        var uiStateValid = false;
         var dryRunPure = false;
         var applied = false;
         var undoRedo = false;
@@ -682,10 +681,12 @@ internal sealed partial class StudioDialogueFoundationPage : Control
                 serialized,
                 StringComparison.Ordinal);
             var appliedEntry = _session.Project!.Dialogues.Single(item => item.Id == dialogueId).Nodes[0];
-            visible = _emptyStateVerified && HasExplicitSelection && MiniMapReadOnly && KeyboardReorderAvailable &&
-                      reorderControls && _lastProtectedSpeakerPreserved && _lastSubgraphProtected &&
-                      PaginationIsInventoryOnly && ShowsHumanSurface && orderApplied &&
-                      appliedEntry.SpeakerBlueprintId == _draft.Lines[0].SpeakerBlueprintId;
+            surfaceVisible = Visible;
+            uiStateValid = _emptyStateVerified && HasExplicitSelection && MiniMapReadOnly &&
+                           KeyboardReorderAvailable && reorderControls && _lastKeyboardReorderExercised &&
+                           _lastDragDropReorderExercised && _lastProtectedSpeakerPreserved &&
+                           _lastSubgraphProtected && PaginationIsInventoryOnly && ShowsHumanSurface &&
+                           orderApplied && appliedEntry.SpeakerBlueprintId == _draft.Lines[0].SpeakerBlueprintId;
         }
         catch (Exception exception)
         {
@@ -740,12 +741,15 @@ internal sealed partial class StudioDialogueFoundationPage : Control
             }
         }
 
-        var valid = visible && dryRunPure && applied && undoRedo && persisted && cleanupSucceeded &&
+        var valid = surfaceVisible && uiStateValid && dryRunPure && applied && undoRedo && persisted && cleanupSucceeded &&
                     EvidenceSourceUntouched && EvidenceResourcesReleased && SourceSessionRestored;
         if (!valid)
         {
             GD.PrintErr(
-                $"OPENRPG_FORGE_STUDIO_UX5A_UI_TRANSACTION_FAILED visible={visible.ToString().ToLowerInvariant()} " +
+                $"OPENRPG_FORGE_STUDIO_UX5A_UI_TRANSACTION_FAILED visible={surfaceVisible.ToString().ToLowerInvariant()} " +
+                $"ui_state={uiStateValid.ToString().ToLowerInvariant()} " +
+                $"keyboard_ui={_lastKeyboardReorderExercised.ToString().ToLowerInvariant()} " +
+                $"drag_drop_ui={_lastDragDropReorderExercised.ToString().ToLowerInvariant()} " +
                 $"dry_run={dryRunPure.ToString().ToLowerInvariant()} apply={applied.ToString().ToLowerInvariant()} " +
                 $"undo_redo={undoRedo.ToString().ToLowerInvariant()} persisted={persisted.ToString().ToLowerInvariant()} " +
                 $"source_untouched={EvidenceSourceUntouched.ToString().ToLowerInvariant()} " +

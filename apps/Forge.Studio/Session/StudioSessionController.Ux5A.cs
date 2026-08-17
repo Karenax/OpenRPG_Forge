@@ -325,6 +325,15 @@ internal sealed partial class StudioSessionController
         _approvedDialogueSourceFingerprintUx5A,
         _approvedDialogueCandidateFingerprintUx5A);
 
+    internal void RestoreDialogueApprovalUx5A(StudioDialogueApprovalSnapshotUx5A snapshot)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot);
+        _approvedDialogueCandidateUx5A = snapshot.Candidate;
+        _approvedDialogueRevisionUx5A = snapshot.Revision;
+        _approvedDialogueSourceFingerprintUx5A = snapshot.SourceFingerprint;
+        _approvedDialogueCandidateFingerprintUx5A = snapshot.CandidateFingerprint;
+    }
+
     internal StudioDialogueEvidenceWorkspaceUx5A? CreateUx5AEvidenceWorkspace()
     {
         var evidenceProject = CreateUx5AEvidenceProject();
