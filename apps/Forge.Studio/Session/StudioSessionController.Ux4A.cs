@@ -708,11 +708,11 @@ internal sealed partial class StudioSessionController
 
     private static StudioFactionFoundationDraftUx4A CloneFactionDraftUx4A(
         StudioFactionFoundationDraftUx4A draft) => draft with
-    {
-        ParentIds = draft.ParentIds.ToArray(),
-        Relationships = draft.Relationships.Select(item => item with { }).ToArray(),
-        Bands = draft.Bands.Select(item => item with { }).ToArray(),
-    };
+        {
+            ParentIds = draft.ParentIds.ToArray(),
+            Relationships = draft.Relationships.Select(item => item with { }).ToArray(),
+            Bands = draft.Bands.Select(item => item with { }).ToArray(),
+        };
 
     private static string FingerprintDraftUx4A(StudioFactionFoundationDraftUx4A draft)
     {
@@ -960,386 +960,386 @@ internal sealed partial class StudioSessionController
                     [],
                     ["guardian"],
                     new Dictionary<string, string> { ["civilian-response"] = "protect" });
-            var child = new FactionDefinition(
-                Guid.Parse("f4a00000-0000-4000-8000-000000000002"),
-                1,
-                "test:ux4-a",
-                "veilleurs-braises",
-                "Veilleurs des Braises",
-                false,
-                [parent.Id],
-                ["watch"]);
-            var outsider = new FactionDefinition(
-                Guid.Parse("f4a00000-0000-4000-8000-000000000003"),
-                1,
-                "test:ux4-a",
-                "alliance-surface",
-                "Alliance de la Surface",
-                false,
-                [],
-                ["civilian"]);
-            var createdAt = DateTimeOffset.Parse("2026-08-17T12:00:00Z", CultureInfo.InvariantCulture);
-            var advanced = new FactionAdvancedProfile(
-                Guid.Parse("f4a00000-0000-4000-8000-000000000010"),
-                1,
-                "test:ux4-a-neighbor",
-                true,
-                [new(Guid.Parse("f4a00000-0000-4000-8000-000000000011"), child.Id, true, false, false)],
-                [new(Guid.Parse("f4a00000-0000-4000-8000-000000000012"), child.Id, .6, .5, 20, 120, -10, true)],
-                [new(Guid.Parse("f4a00000-0000-4000-8000-000000000013"), 1, "test:ux4-a-neighbor",
+                var child = new FactionDefinition(
+                    Guid.Parse("f4a00000-0000-4000-8000-000000000002"),
+                    1,
+                    "test:ux4-a",
+                    "veilleurs-braises",
+                    "Veilleurs des Braises",
+                    false,
+                    [parent.Id],
+                    ["watch"]);
+                var outsider = new FactionDefinition(
+                    Guid.Parse("f4a00000-0000-4000-8000-000000000003"),
+                    1,
+                    "test:ux4-a",
+                    "alliance-surface",
+                    "Alliance de la Surface",
+                    false,
+                    [],
+                    ["civilian"]);
+                var createdAt = DateTimeOffset.Parse("2026-08-17T12:00:00Z", CultureInfo.InvariantCulture);
+                var advanced = new FactionAdvancedProfile(
+                    Guid.Parse("f4a00000-0000-4000-8000-000000000010"),
+                    1,
+                    "test:ux4-a-neighbor",
+                    true,
+                    [new(Guid.Parse("f4a00000-0000-4000-8000-000000000011"), child.Id, true, false, false)],
+                    [new(Guid.Parse("f4a00000-0000-4000-8000-000000000012"), child.Id, .6, .5, 20, 120, -10, true)],
+                    [new(Guid.Parse("f4a00000-0000-4000-8000-000000000013"), 1, "test:ux4-a-neighbor",
                     "sentinel", outsider.Id, "observer", null, 20, 1, true, null)],
-                [new(Guid.Parse("f4a00000-0000-4000-8000-000000000014"), 1, "test:ux4-a-neighbor",
+                    [new(Guid.Parse("f4a00000-0000-4000-8000-000000000014"), 1, "test:ux4-a-neighbor",
                     child.Id, DynamicFactionKind.Temporary, createdAt, createdAt.AddDays(2), true, true, 1,
                     [new(Guid.Parse("f4a00000-0000-4000-8000-000000000015"), outsider.Id,
                         FactionDiplomacyStatus.Truce, createdAt, null, "test-truce")])]);
-            var catalog = new FactionCatalog(
-                [parent, child, outsider],
-                [
-                    new(parent.Id, outsider.Id, -70, "ancienne rivalité", "hostile"),
+                var catalog = new FactionCatalog(
+                    [parent, child, outsider],
+                    [
+                        new(parent.Id, outsider.Id, -70, "ancienne rivalité", "hostile"),
                     new(outsider.Id, parent.Id, 20, "commerce prudent", "wary"),
-                ],
-                [
-                    new("hostile", -100, -1, 1),
+                    ],
+                    [
+                        new("hostile", -100, -1, 1),
                     new("neutral", 0, 50, 1),
                     new("allied", 51, 100, 1),
-                ],
-                [new("legacy-observer", outsider.Id)],
-                advanced,
-                true,
-                PersonalReputation: null,
-                RequireFoundationRuntime: true);
+                    ],
+                    [new("legacy-observer", outsider.Id)],
+                    advanced,
+                    true,
+                    PersonalReputation: null,
+                    RequireFoundationRuntime: true);
 
-            var blueprint = new BlueprintDefinition(
-                BlueprintId.From(Guid.Parse("f4a00000-0000-4000-8000-000000000020")),
-                "autel-factionnel",
-                "Autel factionnel",
-                BlueprintKind.Placeable);
-            var triggerBlueprint = new BlueprintDefinition(
-                BlueprintId.From(Guid.Parse("f4a00000-0000-4000-8000-000000000025")),
-                "filtre-factionnel",
-                "Filtre factionnel",
-                BlueprintKind.Trigger);
-            var area = new AreaDefinition(
-                AreaId.From(Guid.Parse("f4a00000-0000-4000-8000-000000000021")),
-                "atelier-factions",
-                "Atelier des factions",
-                [],
-                AreaKind.Interior,
-                new AreaDimensions(32, 32));
-            var project = new ProjectDefinition(
-                ProjectId.From(Guid.Parse("f4a00000-0000-4000-8000-000000000022")),
-                "Studio UX4-A",
-                [blueprint, triggerBlueprint],
-                [area]);
-            var ownership = new PlaceableFactionOwnershipProfile(
-                Guid.Parse("f4a00000-0000-4000-8000-000000000023"),
-                PlaceableFactionOwnershipProfile.CurrentSchemaVersion,
-                "test:ux4-a-external",
-                outsider.Id,
-                [outsider.Id],
-                true,
-                false,
-                false,
-                true);
-            var placeable = CreatePlaceableTransformParent(
-                blueprint,
-                Guid.Parse("f4a00000-0000-4000-8000-000000000024"),
-                "test:ux4-a-placeable") with
-            {
-                FactionOwnership = ownership,
-                FactionOwnershipRequiredAtRuntime = false,
-            };
-            var trigger = CreateUx1ACSmokeTrigger(
-                triggerBlueprint.Id,
-                area.Id,
-                "f4a00000-0000-4000-8001",
-                advanced: true,
-                foundation: true);
-            var triggerAdvanced = trigger.Advanced!;
-            trigger = trigger with
-            {
-                Advanced = triggerAdvanced with
+                var blueprint = new BlueprintDefinition(
+                    BlueprintId.From(Guid.Parse("f4a00000-0000-4000-8000-000000000020")),
+                    "autel-factionnel",
+                    "Autel factionnel",
+                    BlueprintKind.Placeable);
+                var triggerBlueprint = new BlueprintDefinition(
+                    BlueprintId.From(Guid.Parse("f4a00000-0000-4000-8000-000000000025")),
+                    "filtre-factionnel",
+                    "Filtre factionnel",
+                    BlueprintKind.Trigger);
+                var area = new AreaDefinition(
+                    AreaId.From(Guid.Parse("f4a00000-0000-4000-8000-000000000021")),
+                    "atelier-factions",
+                    "Atelier des factions",
+                    [],
+                    AreaKind.Interior,
+                    new AreaDimensions(32, 32));
+                var project = new ProjectDefinition(
+                    ProjectId.From(Guid.Parse("f4a00000-0000-4000-8000-000000000022")),
+                    "Studio UX4-A",
+                    [blueprint, triggerBlueprint],
+                    [area]);
+                var ownership = new PlaceableFactionOwnershipProfile(
+                    Guid.Parse("f4a00000-0000-4000-8000-000000000023"),
+                    PlaceableFactionOwnershipProfile.CurrentSchemaVersion,
+                    "test:ux4-a-external",
+                    outsider.Id,
+                    [outsider.Id],
+                    true,
+                    false,
+                    false,
+                    true);
+                var placeable = CreatePlaceableTransformParent(
+                    blueprint,
+                    Guid.Parse("f4a00000-0000-4000-8000-000000000024"),
+                    "test:ux4-a-placeable") with
                 {
-                    TargetFilter = triggerAdvanced.TargetFilter with { FactionIds = [outsider.Id] },
-                },
-            };
-            var worldFeatures = new WorldFeatureCatalog(
-                project.Module.Id.Value,
-                WorldFeatureCatalog.CurrentSchemaVersion,
-                "test:ux4-a-world",
-                placeables: [placeable],
-                triggers: [trigger]);
-            project = new ProjectDefinition(
-                project.Id,
-                project.Title,
-                project.Module.WithFactions(catalog).WithWorldFeatures(worldFeatures),
-                project.Blueprints,
-                project.Areas,
-                project.Dialogues,
-                project.Quests);
-            if (!ProjectSession.Create(tempRoot, project).Succeeded || !editing.Open(tempRoot).Succeeded)
-            {
-                return FailedUx4ASmoke();
-            }
+                    FactionOwnership = ownership,
+                    FactionOwnershipRequiredAtRuntime = false,
+                };
+                var trigger = CreateUx1ACSmokeTrigger(
+                    triggerBlueprint.Id,
+                    area.Id,
+                    "f4a00000-0000-4000-8001",
+                    advanced: true,
+                    foundation: true);
+                var triggerAdvanced = trigger.Advanced!;
+                trigger = trigger with
+                {
+                    Advanced = triggerAdvanced with
+                    {
+                        TargetFilter = triggerAdvanced.TargetFilter with { FactionIds = [outsider.Id] },
+                    },
+                };
+                var worldFeatures = new WorldFeatureCatalog(
+                    project.Module.Id.Value,
+                    WorldFeatureCatalog.CurrentSchemaVersion,
+                    "test:ux4-a-world",
+                    placeables: [placeable],
+                    triggers: [trigger]);
+                project = new ProjectDefinition(
+                    project.Id,
+                    project.Title,
+                    project.Module.WithFactions(catalog).WithWorldFeatures(worldFeatures),
+                    project.Blueprints,
+                    project.Areas,
+                    project.Dialogues,
+                    project.Quests);
+                if (!ProjectSession.Create(tempRoot, project).Succeeded || !editing.Open(tempRoot).Succeeded)
+                {
+                    return FailedUx4ASmoke();
+                }
 
-            var choices = editing.FactionChoicesUx4A;
-            var explicitSelection = choices.Count == 3 &&
-                                    editing.CreateFactionDraftUx4A(Guid.Empty) is null && choices.All(choice =>
-                !choice.Label.Contains(choice.FactionId.ToString("D"), StringComparison.OrdinalIgnoreCase) &&
-                !choice.Label.Contains("UUID", StringComparison.OrdinalIgnoreCase));
-            var sourceDraft = editing.CreateFactionDraftUx4A(child.Id);
-            if (sourceDraft is null)
-            {
-                return FailedUx4ASmoke();
-            }
-            var typedDraftFingerprint = !string.Equals(
-                FingerprintDraftUx4A(sourceDraft with { Slug = "alpha|beta", DisplayName = "gamma" }),
-                FingerprintDraftUx4A(sourceDraft with { Slug = "alpha", DisplayName = "beta|gamma" }),
-                StringComparison.Ordinal);
-            var editedRelationships = sourceDraft.Relationships.Select(item =>
-                item.SourceId == parent.Id && item.TargetId == outsider.Id
-                    ? item with { Score = "-65", Preset = "hostile", Explanation = "rivalité visible" }
-                    : item).ToArray();
-            var editedBands = sourceDraft.Bands.Select(item => item.Id switch
-            {
-                "neutral" => item with { Maximum = "49" },
-                "allied" => item with { Minimum = "50" },
-                _ => item,
-            }).ToArray();
-            Guid[] editedParents = [parent.Id, outsider.Id];
-            var editedDraft = sourceDraft with
-            {
-                DisplayName = "Veilleurs des Braises unis",
-                ParentIds = editedParents,
-                InheritTags = true,
-                InheritPolicies = true,
-                InheritRelationships = true,
-                Relationships = editedRelationships,
-                Bands = editedBands,
-            };
+                var choices = editing.FactionChoicesUx4A;
+                var explicitSelection = choices.Count == 3 &&
+                                        editing.CreateFactionDraftUx4A(Guid.Empty) is null && choices.All(choice =>
+                    !choice.Label.Contains(choice.FactionId.ToString("D"), StringComparison.OrdinalIgnoreCase) &&
+                    !choice.Label.Contains("UUID", StringComparison.OrdinalIgnoreCase));
+                var sourceDraft = editing.CreateFactionDraftUx4A(child.Id);
+                if (sourceDraft is null)
+                {
+                    return FailedUx4ASmoke();
+                }
+                var typedDraftFingerprint = !string.Equals(
+                    FingerprintDraftUx4A(sourceDraft with { Slug = "alpha|beta", DisplayName = "gamma" }),
+                    FingerprintDraftUx4A(sourceDraft with { Slug = "alpha", DisplayName = "beta|gamma" }),
+                    StringComparison.Ordinal);
+                var editedRelationships = sourceDraft.Relationships.Select(item =>
+                    item.SourceId == parent.Id && item.TargetId == outsider.Id
+                        ? item with { Score = "-65", Preset = "hostile", Explanation = "rivalité visible" }
+                        : item).ToArray();
+                var editedBands = sourceDraft.Bands.Select(item => item.Id switch
+                {
+                    "neutral" => item with { Maximum = "49" },
+                    "allied" => item with { Minimum = "50" },
+                    _ => item,
+                }).ToArray();
+                Guid[] editedParents = [parent.Id, outsider.Id];
+                var editedDraft = sourceDraft with
+                {
+                    DisplayName = "Veilleurs des Braises unis",
+                    ParentIds = editedParents,
+                    InheritTags = true,
+                    InheritPolicies = true,
+                    InheritRelationships = true,
+                    Relationships = editedRelationships,
+                    Bands = editedBands,
+                };
 
-            var originalProject = editing.Project;
-            var originalHistory = editing.History;
-            var originalRevision = originalHistory?.State.Revision;
-            var originalJournal = originalHistory?.Journal.ToArray() ?? [];
-            var originalDirty = editing.IsDirty;
-            var originalCanUndo = originalHistory?.CanUndo;
-            var originalCanRedo = originalHistory?.CanRedo;
-            var preview = editing.PreviewFactionFoundationUx4A(editedDraft);
-            var dryRun = preview.Succeeded && preview.CanApply &&
-                         ReferenceEquals(originalProject, editing.Project) &&
-                         ReferenceEquals(originalHistory, editing.History) &&
-                         originalHistory?.State.Revision == originalRevision &&
-                         (originalHistory?.Journal ?? []).SequenceEqual(originalJournal) &&
-                         originalHistory?.CanUndo == originalCanUndo &&
-                         originalHistory?.CanRedo == originalCanRedo &&
-                         editing.IsDirty == originalDirty &&
-                         editing.Project?.Module.Factions.PersonalReputation is null;
+                var originalProject = editing.Project;
+                var originalHistory = editing.History;
+                var originalRevision = originalHistory?.State.Revision;
+                var originalJournal = originalHistory?.Journal.ToArray() ?? [];
+                var originalDirty = editing.IsDirty;
+                var originalCanUndo = originalHistory?.CanUndo;
+                var originalCanRedo = originalHistory?.CanRedo;
+                var preview = editing.PreviewFactionFoundationUx4A(editedDraft);
+                var dryRun = preview.Succeeded && preview.CanApply &&
+                             ReferenceEquals(originalProject, editing.Project) &&
+                             ReferenceEquals(originalHistory, editing.History) &&
+                             originalHistory?.State.Revision == originalRevision &&
+                             (originalHistory?.Journal ?? []).SequenceEqual(originalJournal) &&
+                             originalHistory?.CanUndo == originalCanUndo &&
+                             originalHistory?.CanRedo == originalCanRedo &&
+                             editing.IsDirty == originalDirty &&
+                             editing.Project?.Module.Factions.PersonalReputation is null;
 
-            var invalidCycle = editing.PreviewFactionFoundationUx4A(
-                sourceDraft with { ParentIds = [child.Id] });
-            var invalidDirection = editing.PreviewFactionFoundationUx4A(sourceDraft with
-            {
-                Relationships =
-                [
-                    .. sourceDraft.Relationships,
+                var invalidCycle = editing.PreviewFactionFoundationUx4A(
+                    sourceDraft with { ParentIds = [child.Id] });
+                var invalidDirection = editing.PreviewFactionFoundationUx4A(sourceDraft with
+                {
+                    Relationships =
+                    [
+                        .. sourceDraft.Relationships,
                     new StudioFactionRelationshipDraftUx4A(child.Id, outsider.Id, "120", "hostile", "hors borne"),
                 ],
-            });
-            var invalidBands = editing.PreviewFactionFoundationUx4A(sourceDraft with
-            {
-                Bands = sourceDraft.Bands.Select(item => item.Id == "hostile"
-                    ? item with { Maximum = "10" }
-                    : item).ToArray(),
-            });
-            var invalidConfiguration = !invalidCycle.Succeeded && !invalidDirection.Succeeded &&
-                                       !invalidBands.Succeeded;
+                });
+                var invalidBands = editing.PreviewFactionFoundationUx4A(sourceDraft with
+                {
+                    Bands = sourceDraft.Bands.Select(item => item.Id == "hostile"
+                        ? item with { Maximum = "10" }
+                        : item).ToArray(),
+                });
+                var invalidConfiguration = !invalidCycle.Succeeded && !invalidDirection.Succeeded &&
+                                           !invalidBands.Succeeded;
 
-            var intermediate = editing.Project!.Module.Factions with
-            {
-                RequireFoundationRuntime = !editing.Project!.Module.Factions.RequireFoundationRuntime,
-            };
-            var intermediateApplied = ApplyFactionCatalogForSmokeUx4A(editing, intermediate);
-            var staleDraftPreview = editing.PreviewFactionFoundationUx4A(editedDraft);
-            var staleDraftBlocked = intermediateApplied && !staleDraftPreview.Succeeded &&
-                                    staleDraftPreview.Diagnostics.Any(item =>
-                                        item.Code is SetFactionCatalogHandler.RevisionConflictCode or
-                                            "RPG_FACTION_REVISION_CONFLICT");
+                var intermediate = editing.Project!.Module.Factions with
+                {
+                    RequireFoundationRuntime = !editing.Project!.Module.Factions.RequireFoundationRuntime,
+                };
+                var intermediateApplied = ApplyFactionCatalogForSmokeUx4A(editing, intermediate);
+                var staleDraftPreview = editing.PreviewFactionFoundationUx4A(editedDraft);
+                var staleDraftBlocked = intermediateApplied && !staleDraftPreview.Succeeded &&
+                                        staleDraftPreview.Diagnostics.Any(item =>
+                                            item.Code is SetFactionCatalogHandler.RevisionConflictCode or
+                                                "RPG_FACTION_REVISION_CONFLICT");
 
-            var freshDraft = editing.CreateFactionDraftUx4A(child.Id)! with
-            {
-                DisplayName = "Veilleurs des Braises unis",
-                ParentIds = editedParents,
-                InheritTags = true,
-                InheritPolicies = true,
-                InheritRelationships = true,
-                Relationships = editedRelationships,
-                Bands = editedBands,
-            };
-            var approvalPreview = editing.PreviewFactionFoundationUx4A(freshDraft);
-            var secondIntermediate = editing.Project!.Module.Factions with
-            {
-                RequireFoundationRuntime = !editing.Project!.Module.Factions.RequireFoundationRuntime,
-            };
-            var secondIntermediateApplied = ApplyFactionCatalogForSmokeUx4A(editing, secondIntermediate);
-            var staleApproval = editing.ApplyApprovedFactionFoundationUx4A(freshDraft);
-            var staleApprovalBlocked = approvalPreview.Succeeded && secondIntermediateApplied &&
-                                       !staleApproval.Succeeded && staleApproval.Message.Contains(
-                                           "Prévisualisez", StringComparison.OrdinalIgnoreCase);
+                var freshDraft = editing.CreateFactionDraftUx4A(child.Id)! with
+                {
+                    DisplayName = "Veilleurs des Braises unis",
+                    ParentIds = editedParents,
+                    InheritTags = true,
+                    InheritPolicies = true,
+                    InheritRelationships = true,
+                    Relationships = editedRelationships,
+                    Bands = editedBands,
+                };
+                var approvalPreview = editing.PreviewFactionFoundationUx4A(freshDraft);
+                var secondIntermediate = editing.Project!.Module.Factions with
+                {
+                    RequireFoundationRuntime = !editing.Project!.Module.Factions.RequireFoundationRuntime,
+                };
+                var secondIntermediateApplied = ApplyFactionCatalogForSmokeUx4A(editing, secondIntermediate);
+                var staleApproval = editing.ApplyApprovedFactionFoundationUx4A(freshDraft);
+                var staleApprovalBlocked = approvalPreview.Succeeded && secondIntermediateApplied &&
+                                           !staleApproval.Succeeded && staleApproval.Message.Contains(
+                                               "Prévisualisez", StringComparison.OrdinalIgnoreCase);
 
-            freshDraft = editing.CreateFactionDraftUx4A(child.Id)! with
-            {
-                DisplayName = "Veilleurs des Braises unis",
-                ParentIds = editedParents,
-                InheritTags = true,
-                InheritPolicies = true,
-                InheritRelationships = true,
-                Relationships = editedRelationships,
-                Bands = editedBands,
-            };
-            var finalPreview = editing.PreviewFactionFoundationUx4A(freshDraft);
-            var beforeApply = editing.Project;
-            var beforeWorldFeatures = beforeApply?.Module.WorldFeatures;
-            var beforeWitnesses = beforeApply?.Module.Factions.Advanced?.WitnessPolicies;
-            var beforeMemberships = beforeApply?.Module.Factions.Advanced?.Memberships;
-            var beforeDynamics = beforeApply?.Module.Factions.Advanced?.DynamicFactions;
-            var beforeCatalog = beforeApply?.Module.Factions;
-            var beforeChild = beforeCatalog?.Factions.Single(item => item.Id == child.Id);
-            var applied = editing.ApplyApprovedFactionFoundationUx4A(freshDraft);
-            var appliedProject = editing.Project;
-            var appliedCatalog = appliedProject?.Module.Factions;
-            var appliedChild = appliedCatalog?.Factions.Single(item => item.Id == child.Id);
-            var canonicalCommand = finalPreview.Succeeded && finalPreview.CanApply && applied.Succeeded &&
-                                   editing.History?.Journal.LastOrDefault()?.CommandName ==
-                                   "set_faction_catalog";
-            var hierarchy = appliedProject is not null &&
-                            appliedProject.Module.Factions.Factions.Single(item => item.Id == child.Id).ParentIds
-                                .SequenceEqual(editedParents) &&
-                            appliedProject.Module.Factions.Advanced?.Inheritance.Single(item =>
-                                item.FactionId == child.Id) is
-                            { InheritTags: true, InheritPolicies: true, InheritRelationships: true };
-            var directional = appliedProject is not null &&
-                              appliedProject.Module.Factions.Relationships.Single(item =>
-                                  item.SourceId == parent.Id && item.TargetId == outsider.Id).Score == -65 &&
-                              appliedProject.Module.Factions.Relationships.Single(item =>
-                                  item.SourceId == outsider.Id && item.TargetId == parent.Id).Score == 20;
-            var bands = appliedProject is not null &&
-                        appliedProject.Module.Factions.Bands.Single(item => item.Id == "neutral").Maximum == 49 &&
-                        appliedProject.Module.Factions.Bands.Single(item => item.Id == "allied").Minimum == 50;
-            var nullPersonalPreserved = appliedProject?.Module.Factions.PersonalReputation is null;
-            var expectedProject = beforeApply is null || appliedCatalog is null
-                ? null
-                : WithFactionCatalogUx4A(beforeApply, appliedCatalog);
-            var neighborsPreserved = expectedProject is not null && appliedProject is not null &&
-                                     ProjectJsonSerializer.Serialize(expectedProject) ==
-                                     ProjectJsonSerializer.Serialize(appliedProject) &&
-                                     beforeCatalog is not null && appliedCatalog is not null &&
-                                     beforeChild is not null && appliedChild is not null &&
-                                     beforeCatalog.Factions.Where(item => item.Id != child.Id)
-                                         .SequenceEqual(appliedCatalog.Factions.Where(item => item.Id != child.Id)) &&
-                                     beforeCatalog.Members.SequenceEqual(appliedCatalog.Members) &&
-                                     beforeCatalog.RequireAdvancedRuntime == appliedCatalog.RequireAdvancedRuntime &&
-                                     beforeCatalog.RequireFoundationRuntime == appliedCatalog.RequireFoundationRuntime &&
-                                     beforeCatalog.RequireReputationRuntime == appliedCatalog.RequireReputationRuntime &&
-                                     ReferenceEquals(beforeCatalog.Reputation, appliedCatalog.Reputation) &&
-                                     beforeChild.Id == appliedChild.Id &&
-                                     beforeChild.SchemaVersion == appliedChild.SchemaVersion &&
-                                     beforeChild.Provenance == appliedChild.Provenance &&
-                                     beforeChild.Slug == appliedChild.Slug &&
-                                     beforeChild.Archived == appliedChild.Archived &&
-                                     beforeChild.Tags.SequenceEqual(appliedChild.Tags) &&
-                                     SamePoliciesUx4A(beforeChild.Policies, appliedChild.Policies) &&
-                                     ReferenceEquals(beforeWorldFeatures, appliedProject.Module.WorldFeatures) &&
-                                     ReferenceEquals(beforeWitnesses,
-                                         appliedProject.Module.Factions.Advanced?.WitnessPolicies) &&
-                                     ReferenceEquals(beforeMemberships,
-                                         appliedProject.Module.Factions.Advanced?.Memberships) &&
-                                     ReferenceEquals(beforeDynamics,
-                                         appliedProject.Module.Factions.Advanced?.DynamicFactions);
+                freshDraft = editing.CreateFactionDraftUx4A(child.Id)! with
+                {
+                    DisplayName = "Veilleurs des Braises unis",
+                    ParentIds = editedParents,
+                    InheritTags = true,
+                    InheritPolicies = true,
+                    InheritRelationships = true,
+                    Relationships = editedRelationships,
+                    Bands = editedBands,
+                };
+                var finalPreview = editing.PreviewFactionFoundationUx4A(freshDraft);
+                var beforeApply = editing.Project;
+                var beforeWorldFeatures = beforeApply?.Module.WorldFeatures;
+                var beforeWitnesses = beforeApply?.Module.Factions.Advanced?.WitnessPolicies;
+                var beforeMemberships = beforeApply?.Module.Factions.Advanced?.Memberships;
+                var beforeDynamics = beforeApply?.Module.Factions.Advanced?.DynamicFactions;
+                var beforeCatalog = beforeApply?.Module.Factions;
+                var beforeChild = beforeCatalog?.Factions.Single(item => item.Id == child.Id);
+                var applied = editing.ApplyApprovedFactionFoundationUx4A(freshDraft);
+                var appliedProject = editing.Project;
+                var appliedCatalog = appliedProject?.Module.Factions;
+                var appliedChild = appliedCatalog?.Factions.Single(item => item.Id == child.Id);
+                var canonicalCommand = finalPreview.Succeeded && finalPreview.CanApply && applied.Succeeded &&
+                                       editing.History?.Journal.LastOrDefault()?.CommandName ==
+                                       "set_faction_catalog";
+                var hierarchy = appliedProject is not null &&
+                                appliedProject.Module.Factions.Factions.Single(item => item.Id == child.Id).ParentIds
+                                    .SequenceEqual(editedParents) &&
+                                appliedProject.Module.Factions.Advanced?.Inheritance.Single(item =>
+                                    item.FactionId == child.Id) is
+                                { InheritTags: true, InheritPolicies: true, InheritRelationships: true };
+                var directional = appliedProject is not null &&
+                                  appliedProject.Module.Factions.Relationships.Single(item =>
+                                      item.SourceId == parent.Id && item.TargetId == outsider.Id).Score == -65 &&
+                                  appliedProject.Module.Factions.Relationships.Single(item =>
+                                      item.SourceId == outsider.Id && item.TargetId == parent.Id).Score == 20;
+                var bands = appliedProject is not null &&
+                            appliedProject.Module.Factions.Bands.Single(item => item.Id == "neutral").Maximum == 49 &&
+                            appliedProject.Module.Factions.Bands.Single(item => item.Id == "allied").Minimum == 50;
+                var nullPersonalPreserved = appliedProject?.Module.Factions.PersonalReputation is null;
+                var expectedProject = beforeApply is null || appliedCatalog is null
+                    ? null
+                    : WithFactionCatalogUx4A(beforeApply, appliedCatalog);
+                var neighborsPreserved = expectedProject is not null && appliedProject is not null &&
+                                         ProjectJsonSerializer.Serialize(expectedProject) ==
+                                         ProjectJsonSerializer.Serialize(appliedProject) &&
+                                         beforeCatalog is not null && appliedCatalog is not null &&
+                                         beforeChild is not null && appliedChild is not null &&
+                                         beforeCatalog.Factions.Where(item => item.Id != child.Id)
+                                             .SequenceEqual(appliedCatalog.Factions.Where(item => item.Id != child.Id)) &&
+                                         beforeCatalog.Members.SequenceEqual(appliedCatalog.Members) &&
+                                         beforeCatalog.RequireAdvancedRuntime == appliedCatalog.RequireAdvancedRuntime &&
+                                         beforeCatalog.RequireFoundationRuntime == appliedCatalog.RequireFoundationRuntime &&
+                                         beforeCatalog.RequireReputationRuntime == appliedCatalog.RequireReputationRuntime &&
+                                         ReferenceEquals(beforeCatalog.Reputation, appliedCatalog.Reputation) &&
+                                         beforeChild.Id == appliedChild.Id &&
+                                         beforeChild.SchemaVersion == appliedChild.SchemaVersion &&
+                                         beforeChild.Provenance == appliedChild.Provenance &&
+                                         beforeChild.Slug == appliedChild.Slug &&
+                                         beforeChild.Archived == appliedChild.Archived &&
+                                         beforeChild.Tags.SequenceEqual(appliedChild.Tags) &&
+                                         SamePoliciesUx4A(beforeChild.Policies, appliedChild.Policies) &&
+                                         ReferenceEquals(beforeWorldFeatures, appliedProject.Module.WorldFeatures) &&
+                                         ReferenceEquals(beforeWitnesses,
+                                             appliedProject.Module.Factions.Advanced?.WitnessPolicies) &&
+                                         ReferenceEquals(beforeMemberships,
+                                             appliedProject.Module.Factions.Advanced?.Memberships) &&
+                                         ReferenceEquals(beforeDynamics,
+                                             appliedProject.Module.Factions.Advanced?.DynamicFactions);
 
-            var undone = editing.UndoFactionFoundationUx4A();
-            var undoRestored = undone.Succeeded && ReferenceEquals(beforeApply, editing.Project);
-            var redone = editing.RedoFactionFoundationUx4A();
-            var undoRedo = undoRestored && redone.Succeeded && ReferenceEquals(appliedProject, editing.Project);
+                var undone = editing.UndoFactionFoundationUx4A();
+                var undoRestored = undone.Succeeded && ReferenceEquals(beforeApply, editing.Project);
+                var redone = editing.RedoFactionFoundationUx4A();
+                var undoRedo = undoRestored && redone.Succeeded && ReferenceEquals(appliedProject, editing.Project);
 
-            var archiveDraft = editing.CreateFactionDraftUx4A(child.Id)! with
-            {
-                Operation = StudioFactionOperationUx4A.Archive,
-            };
-            var archivePreview = editing.PreviewFactionFoundationUx4A(archiveDraft);
-            var archiveApplied = editing.ApplyApprovedFactionFoundationUx4A(archiveDraft);
-            var archive = archivePreview.Succeeded && archiveApplied.Succeeded &&
-                          editing.Project?.Module.Factions.Factions.Single(item => item.Id == child.Id).Archived == true &&
-                          editing.Project!.Module.Factions.PersonalReputation is null;
-            _ = editing.UndoFactionFoundationUx4A();
-
-            var newDraft = editing.CreateNewFactionDraftUx4A()! with
-            {
-                Slug = "observateurs-studio",
-                DisplayName = "Observateurs du Studio",
-            };
-            var createPreview = editing.PreviewFactionFoundationUx4A(newDraft);
-            var createApplied = editing.ApplyApprovedFactionFoundationUx4A(newDraft);
-            var creation = createPreview.Succeeded && createApplied.Succeeded &&
-                           editing.Project?.Module.Factions.Factions.Any(item =>
-                               item.Id == newDraft.WorkingFactionId && item.Slug == "observateurs-studio") == true;
-            var removalDraft = editing.CreateFactionDraftUx4A(newDraft.WorkingFactionId)! with
-            {
-                Operation = StudioFactionOperationUx4A.Remove,
-                MigrationTargetId = null,
-            };
-            var removalPreview = editing.PreviewFactionFoundationUx4A(removalDraft);
-            var removalApplied = editing.ApplyApprovedFactionFoundationUx4A(removalDraft);
-            var safeRemoval = removalPreview.Succeeded && removalApplied.Succeeded &&
-                              editing.Project?.Module.Factions.Factions.All(item =>
-                                  item.Id != newDraft.WorkingFactionId) == true &&
+                var archiveDraft = editing.CreateFactionDraftUx4A(child.Id)! with
+                {
+                    Operation = StudioFactionOperationUx4A.Archive,
+                };
+                var archivePreview = editing.PreviewFactionFoundationUx4A(archiveDraft);
+                var archiveApplied = editing.ApplyApprovedFactionFoundationUx4A(archiveDraft);
+                var archive = archivePreview.Succeeded && archiveApplied.Succeeded &&
+                              editing.Project?.Module.Factions.Factions.Single(item => item.Id == child.Id).Archived == true &&
                               editing.Project!.Module.Factions.PersonalReputation is null;
+                _ = editing.UndoFactionFoundationUx4A();
 
-            var externalDraft = editing.CreateFactionDraftUx4A(outsider.Id)! with
-            {
-                Operation = StudioFactionOperationUx4A.Remove,
-                MigrationTargetId = parent.Id,
-            };
-            var externalPreview = editing.PreviewFactionFoundationUx4A(externalDraft);
-            var externalReferenceBlocked = !externalPreview.Succeeded &&
-                                           externalPreview.Diagnostics.Any(item =>
-                                               item.Code == "world.placeable.faction_reference_missing") &&
-                                           externalPreview.Diagnostics.Any(item =>
-                                               item.Code == "world.trigger.faction_reference_missing") &&
-                                           externalPreview.Diagnostics.All(item =>
-                                               !ContainsGuidUx4A(item.HumanMessage));
+                var newDraft = editing.CreateNewFactionDraftUx4A()! with
+                {
+                    Slug = "observateurs-studio",
+                    DisplayName = "Observateurs du Studio",
+                };
+                var createPreview = editing.PreviewFactionFoundationUx4A(newDraft);
+                var createApplied = editing.ApplyApprovedFactionFoundationUx4A(newDraft);
+                var creation = createPreview.Succeeded && createApplied.Succeeded &&
+                               editing.Project?.Module.Factions.Factions.Any(item =>
+                                   item.Id == newDraft.WorkingFactionId && item.Slug == "observateurs-studio") == true;
+                var removalDraft = editing.CreateFactionDraftUx4A(newDraft.WorkingFactionId)! with
+                {
+                    Operation = StudioFactionOperationUx4A.Remove,
+                    MigrationTargetId = null,
+                };
+                var removalPreview = editing.PreviewFactionFoundationUx4A(removalDraft);
+                var removalApplied = editing.ApplyApprovedFactionFoundationUx4A(removalDraft);
+                var safeRemoval = removalPreview.Succeeded && removalApplied.Succeeded &&
+                                  editing.Project?.Module.Factions.Factions.All(item =>
+                                      item.Id != newDraft.WorkingFactionId) == true &&
+                                  editing.Project!.Module.Factions.PersonalReputation is null;
 
-            var saved = editing.Save().Succeeded;
-            var reopenedOk = saved && reopened.Open(tempRoot).Succeeded;
-            var persistence = reopenedOk &&
-                              ProjectJsonSerializer.Serialize(editing.Project!) ==
-                              ProjectJsonSerializer.Serialize(reopened.Project!) &&
-                              reopened.Project!.Module.Factions.PersonalReputation is null;
-            var succeeded = explicitSelection && creation && hierarchy && directional && bands &&
-                             invalidConfiguration && dryRun && staleDraftBlocked && staleApprovalBlocked &&
-                             typedDraftFingerprint && canonicalCommand && nullPersonalPreserved && archive && safeRemoval &&
-                             externalReferenceBlocked && undoRedo && persistence && neighborsPreserved;
-            return new(
-                succeeded,
-                explicitSelection,
-                creation,
-                hierarchy,
-                directional,
-                bands,
-                invalidConfiguration,
-                dryRun,
-                staleDraftBlocked,
-                staleApprovalBlocked,
-                typedDraftFingerprint,
-                canonicalCommand,
-                nullPersonalPreserved,
-                archive,
-                safeRemoval,
-                externalReferenceBlocked,
-                undoRedo,
-                persistence,
-                neighborsPreserved,
-                TemporaryWorkspaceReleased: false);
+                var externalDraft = editing.CreateFactionDraftUx4A(outsider.Id)! with
+                {
+                    Operation = StudioFactionOperationUx4A.Remove,
+                    MigrationTargetId = parent.Id,
+                };
+                var externalPreview = editing.PreviewFactionFoundationUx4A(externalDraft);
+                var externalReferenceBlocked = !externalPreview.Succeeded &&
+                                               externalPreview.Diagnostics.Any(item =>
+                                                   item.Code == "world.placeable.faction_reference_missing") &&
+                                               externalPreview.Diagnostics.Any(item =>
+                                                   item.Code == "world.trigger.faction_reference_missing") &&
+                                               externalPreview.Diagnostics.All(item =>
+                                                   !ContainsGuidUx4A(item.HumanMessage));
+
+                var saved = editing.Save().Succeeded;
+                var reopenedOk = saved && reopened.Open(tempRoot).Succeeded;
+                var persistence = reopenedOk &&
+                                  ProjectJsonSerializer.Serialize(editing.Project!) ==
+                                  ProjectJsonSerializer.Serialize(reopened.Project!) &&
+                                  reopened.Project!.Module.Factions.PersonalReputation is null;
+                var succeeded = explicitSelection && creation && hierarchy && directional && bands &&
+                                 invalidConfiguration && dryRun && staleDraftBlocked && staleApprovalBlocked &&
+                                 typedDraftFingerprint && canonicalCommand && nullPersonalPreserved && archive && safeRemoval &&
+                                 externalReferenceBlocked && undoRedo && persistence && neighborsPreserved;
+                return new(
+                    succeeded,
+                    explicitSelection,
+                    creation,
+                    hierarchy,
+                    directional,
+                    bands,
+                    invalidConfiguration,
+                    dryRun,
+                    staleDraftBlocked,
+                    staleApprovalBlocked,
+                    typedDraftFingerprint,
+                    canonicalCommand,
+                    nullPersonalPreserved,
+                    archive,
+                    safeRemoval,
+                    externalReferenceBlocked,
+                    undoRedo,
+                    persistence,
+                    neighborsPreserved,
+                    TemporaryWorkspaceReleased: false);
             }
             catch (Exception exception)
             {
