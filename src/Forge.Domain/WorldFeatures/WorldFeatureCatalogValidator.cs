@@ -257,7 +257,7 @@ public static class WorldFeatureCatalogValidator
             if (profile.Narrative is { } narrative && !dialogues.Contains(narrative.DialogueId))
                 Add(diagnostics, "world.reference.dialogue_missing", "Narrative trigger dialogue reference is missing.", $"{path}/narrative/dialogueId");
             ValidateTriggerFoundation(profile, path, diagnostics);
-            ValidateTriggerAdvanced(profile, path, diagnostics);
+            ValidateTriggerAdvanced(profile, path, factionIds, diagnostics);
         }
 
         foreach (var profile in catalog.Encounters)
@@ -1142,7 +1142,10 @@ public static class WorldFeatureCatalogValidator
                transform.Pivot.X, transform.Pivot.Y, transform.Pivot.Z,
            }.Any(value => Math.Abs(value) > 1_000_000);
 
-    private static void ValidateTriggerAdvanced(TriggerWorldProfile profile, string path,
+    private static void ValidateTriggerAdvanced(
+        TriggerWorldProfile profile,
+        string path,
+        IReadOnlySet<Guid> factionIds,
         List<DomainDiagnostic> diagnostics)
     {
         var advancedPath = $"{path}/advanced";
@@ -1194,6 +1197,12 @@ public static class WorldFeatureCatalogValidator
             Add(diagnostics, "world.trigger.target_filter_invalid",
                 "Typed target query tags, factions, components, owner, team and sandbox predicate must be valid.",
                 $"{advancedPath}/targetFilter");
+        foreach (var factionId in query.FactionIds
+                     .Where(id => id != Guid.Empty && !factionIds.Contains(id))
+                     .Distinct())
+            Add(diagnostics, "world.trigger.faction_reference_missing",
+                "Trigger target filter faction reference is missing.",
+                $"{advancedPath}/targetFilter/factionIds/{factionId}");
 
         var volumes = advanced.GameplayVolumes;
         var volumeKinds = Enum.GetValues<TriggerGameplayVolumeKind>();

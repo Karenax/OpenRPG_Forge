@@ -1097,6 +1097,12 @@ public sealed class WorldFeatureCatalogWorkflowTests
     public void R096_AdvancedTriggerUsesCanonicalCommandScriptProjectionAndStableValidationDiagnostics()
     {
         var state = CreateState();
+        var factionId = Guid.Parse("14000000-0000-4000-8000-000000000190");
+        var factions = new FactionCatalog(
+            [new FactionDefinition(factionId, 1, "test:r096", "ash-watch", "Ash Watch", false, [], [])],
+            [],
+            [],
+            []);
         var blueprint = new BlueprintDefinition(
             BlueprintId.From(Guid.Parse("14000000-0000-4000-8000-000000000180")),
             "advanced-trigger", "Advanced trigger", BlueprintKind.Trigger);
@@ -1129,7 +1135,7 @@ public sealed class WorldFeatureCatalogWorkflowTests
                 12, 30, "ash-watch", "vfx:ember", "ash-watch", true, false, true, "#ff7a45",
                 "TrapDetected", "TrapDisarmed", "TrapTriggered", "TrapReset"),
             new(Guid.Parse("14000000-0000-4000-8000-000000000189"), true, ["player"], ["undead"],
-                [Guid.Parse("14000000-0000-4000-8000-000000000190")], ["inventory"], "party", "heroes",
+                [factionId], ["inventory"], "party", "heroes",
                 "quest==active"), volumes,
             new(Guid.Parse("14000000-0000-4000-8000-000000000191"), true, true, true, true, true, true,
                 100));
@@ -1138,7 +1144,7 @@ public sealed class WorldFeatureCatalogWorkflowTests
             foundation, true, advanced, true);
         var catalog = new WorldFeatureCatalog(state.Project.Module.Id.Value, 1, "test:r096", triggers: [trigger]);
         var project = new ProjectDefinition(state.Project.Id, state.Project.Title,
-            state.Project.Module.WithWorldFeatures(catalog), [blueprint], state.Project.Areas);
+            state.Project.Module.WithFactions(factions).WithWorldFeatures(catalog), [blueprint], state.Project.Areas);
         var configuredState = new ProjectState(project, state.Revision);
         var handler = new SetWorldFeatureCatalogHandler(new FixedClock(DateTimeOffset.UnixEpoch));
         var command = new SetWorldFeatureCatalogCommand(CommandId.From(Guid.NewGuid()), state.Revision, catalog,
@@ -1204,6 +1210,24 @@ public sealed class WorldFeatureCatalogWorkflowTests
             project.Module.WithWorldFeatures(requiredCatalog), project.Blueprints, project.Areas);
         Assert.Contains(WorldFeatureCatalogValidator.Validate(requiredProject),
             item => item.Code == "world.trigger.advanced_required");
+
+        var missingFactionId = Guid.Parse("14000000-0000-4000-8000-000000000193");
+        var missingFactionCatalog = new WorldFeatureCatalog(state.Project.Module.Id.Value, 1, "test:r096",
+            triggers:
+            [
+                trigger with
+                {
+                    Advanced = advanced with
+                    {
+                        TargetFilter = advanced.TargetFilter with { FactionIds = [factionId, missingFactionId] },
+                    },
+                },
+            ]);
+        var missingFactionProject = new ProjectDefinition(project.Id, project.Title,
+            project.Module.WithWorldFeatures(missingFactionCatalog), project.Blueprints, project.Areas);
+        Assert.Contains(WorldFeatureCatalogValidator.Validate(missingFactionProject), item =>
+            item.Code == "world.trigger.faction_reference_missing" &&
+            item.Path.EndsWith(missingFactionId.ToString(), StringComparison.Ordinal));
     }
 
     [Fact]

@@ -6,6 +6,7 @@ using Forge.Application.Time;
 using Forge.Application.WorldFeatures;
 using Forge.Domain.Areas;
 using Forge.Domain.Blueprints;
+using Forge.Domain.Factions;
 using Forge.Domain.Projects;
 using Forge.Domain.Spatial;
 using Forge.Domain.WorldFeatures;
@@ -723,6 +724,20 @@ internal sealed partial class StudioSessionController
                 [],
                 AreaKind.Interior,
                 new AreaDimensions(48, 48));
+            var factionId = Guid.Parse("ac100000-0000-4000-8400-000000000001");
+            var factions = new FactionCatalog(
+                [new FactionDefinition(
+                    factionId,
+                    1,
+                    "test:ux1-ac",
+                    "gardiens-des-cendres",
+                    "Gardiens des cendres",
+                    false,
+                    [],
+                    ["guardian"])],
+                [],
+                [],
+                []);
             var shell = new ProjectDefinition(
                 ProjectId.From(Guid.Parse("ac100000-0000-4000-8000-000000000005")),
                 "Studio UX1-AC",
@@ -754,7 +769,7 @@ internal sealed partial class StudioSessionController
             var project = new ProjectDefinition(
                 shell.Id,
                 shell.Title,
-                shell.Module.WithWorldFeatures(catalog),
+                shell.Module.WithFactions(factions).WithWorldFeatures(catalog),
                 shell.Blueprints,
                 shell.Areas,
                 shell.Dialogues,
@@ -785,7 +800,6 @@ internal sealed partial class StudioSessionController
                                     staleDraftPreview.Message.Contains("projet a changé", StringComparison.Ordinal) &&
                                     editing.Undo().Succeeded;
 
-            var factionId = Guid.Parse("ac100000-0000-4000-8400-000000000001");
             var draft = CustomizeUx1ACSmokeDraft(
                 editing.CreateTriggerAdvancedDraftUx1AC(targetProfile.Id)!,
                 factionId);
