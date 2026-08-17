@@ -200,7 +200,7 @@ internal sealed partial class StudioSessionController
             !draft.ProjectRestEnabled,
             runtime.Scheduler,
             runtime.Perception,
-            runtime.Rest);
+            runtime.RestPolicy);
     }
 
     internal StudioUx2AActionResult ApplyApprovedAreaPoliciesUx2A()
@@ -778,7 +778,7 @@ internal sealed partial class StudioSessionController
         }
     }
 
-    private static (string Summary, bool Scheduler, bool Perception, bool Rest) EvaluateAreaPoliciesUx2A(
+    private static (string Summary, bool Scheduler, bool Perception, bool RestPolicy) EvaluateAreaPoliciesUx2A(
         AreaDefinition area,
         AreaRuntimePolicyProfile profile,
         RestLifecycleProfile projectRest)
