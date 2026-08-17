@@ -513,12 +513,14 @@ internal sealed partial class StudioSessionController
         foreach (var profile in project.Module.WorldFeatures.Doors)
         {
             var baseProfile = profile.Id == sourceWithPolicies.Id ? sourceWithPolicies : profile;
-            if (baseProfile.Foundation is null) continue;
+            var profileFoundation = profile.Foundation;
+            var baseFoundation = baseProfile.Foundation;
+            if (profileFoundation is null || baseFoundation is null) continue;
             var links = linkLists[profile.Id].ToArray();
-            if (profile.Id == sourceWithPolicies.Id || !profile.Foundation.Links.SequenceEqual(links))
+            if (profile.Id == sourceWithPolicies.Id || !profileFoundation.Links.SequenceEqual(links))
                 changed[profile.Id] = baseProfile with
                 {
-                    Foundation = baseProfile.Foundation with { Links = links },
+                    Foundation = baseFoundation with { Links = links },
                 };
         }
         replacements = changed;
@@ -796,9 +798,9 @@ internal sealed partial class StudioSessionController
         var neighborBlueprint = new BlueprintDefinition(
             BlueprintId.From(Guid.Parse("2e700000-0000-4000-8000-000000000003")),
             "porte-de-service", "Porte de service", BlueprintKind.Door);
-        var sourceId = Guid.Parse("2e700000-0000-4000-8000-000000000010");
-        var targetId = Guid.Parse("2e700000-0000-4000-8000-000000000011");
-        var neighborId = Guid.Parse("2e700000-0000-4000-8000-000000000012");
+        var sourceId = Guid.Parse("2e700010-0000-4000-8000-000000000010");
+        var targetId = Guid.Parse("2e700011-0000-4000-8000-000000000011");
+        var neighborId = Guid.Parse("2e700012-0000-4000-8000-000000000012");
         const string arrival = "lisiere-arrivee";
         var spawnId = Guid.Parse("2b000000-0000-4000-8000-000000000022");
         var source = CreateCompleteDoorProfileUx1X(sourceBlueprint.Id, sourceId, Guid.NewGuid()) with
@@ -872,15 +874,27 @@ internal sealed partial class StudioSessionController
         {
             var fixture = CreateUx2NavGEvidenceProject(Guid.Parse("2e700000-0000-4000-8000-000000000060"));
             var created = ProjectSession.Create(tempRoot, fixture);
-            if (!created.Succeeded || !editing.Open(tempRoot).Succeeded || editing.Project is null ||
-                editing.History is null)
+            if (!created.Succeeded)
+            {
+                Godot.GD.PrintErr("OPENRPG_FORGE_STUDIO_UX2_NAV_G_CONTRACT_CREATE_FAILED " +
+                                  string.Join(" | ", created.Diagnostics.Select(item =>
+                                      $"{item.Code}:{item.Message}")));
                 return FailedUx2NavGSmoke();
+            }
+            var editingOpened = editing.Open(tempRoot);
+            if (!editingOpened.Succeeded || editing.Project is null || editing.History is null)
+            {
+                Godot.GD.PrintErr("OPENRPG_FORGE_STUDIO_UX2_NAV_G_CONTRACT_OPEN_FAILED " +
+                                  string.Join(" | ", editingOpened.Diagnostics.Select(item =>
+                                      $"{item.Code}:{item.Message}")));
+                return FailedUx2NavGSmoke();
+            }
 
             var project = editing.Project;
             var history = editing.History;
-            var sourceId = Guid.Parse("2e700000-0000-4000-8000-000000000010");
-            var targetId = Guid.Parse("2e700000-0000-4000-8000-000000000011");
-            var neighborId = Guid.Parse("2e700000-0000-4000-8000-000000000012");
+            var sourceId = Guid.Parse("2e700010-0000-4000-8000-000000000010");
+            var targetId = Guid.Parse("2e700011-0000-4000-8000-000000000011");
+            var neighborId = Guid.Parse("2e700012-0000-4000-8000-000000000012");
             var original = project.Module.WorldFeatures.Doors.Single(item => item.Id == sourceId);
             var originalTarget = project.Module.WorldFeatures.Doors.Single(item => item.Id == targetId);
             var originalNeighbor = project.Module.WorldFeatures.Doors.Single(item => item.Id == neighborId);
@@ -893,7 +907,11 @@ internal sealed partial class StudioSessionController
             var destination = editing.DoorDestinationChoicesUx2NavG(sourceId)
                 .Single(item => item.Kind == NavigationDestinationKind.Door && item.Id == targetId);
             var arrival = editing.DoorArrivalChoicesUx2NavG().Single(item => item.AnchorKey == "lisiere-arrivee");
-            if (draft is null) return FailedUx2NavGSmoke();
+            if (draft is null)
+            {
+                Godot.GD.PrintErr("OPENRPG_FORGE_STUDIO_UX2_NAV_G_CONTRACT_DRAFT_FAILED");
+                return FailedUx2NavGSmoke();
+            }
 
             StudioUx2NavGDraft Configure(StudioUx2NavGDraft value) => value with
             {
@@ -966,7 +984,11 @@ internal sealed partial class StudioSessionController
                 return FailedUx2NavGSmoke();
 
             var finalDraft = editing.CreateDoorNavigationDraftUx2NavG(sourceId);
-            if (finalDraft is null) return FailedUx2NavGSmoke();
+            if (finalDraft is null)
+            {
+                Godot.GD.PrintErr("OPENRPG_FORGE_STUDIO_UX2_NAV_G_CONTRACT_FINAL_DRAFT_FAILED");
+                return FailedUx2NavGSmoke();
+            }
             finalDraft = Configure(finalDraft);
             var finalPreview = editing.PreviewDoorNavigationUx2NavG(finalDraft);
             var journalBeforeApply = history.Journal.Count;

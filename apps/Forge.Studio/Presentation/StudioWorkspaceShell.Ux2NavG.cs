@@ -60,6 +60,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2NavBOverlay();
         CloseUx2NavCOverlay();
         CloseUx2NavDOverlay();
+        CloseUx2NavEOverlay();
         CloseUx2NavFOverlay();
         SwitchPage("navigation", notify: false);
         _doorPortalNavigationOverlayUx2NavG.Open();
@@ -91,6 +92,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2NavBOverlay();
         CloseUx2NavCOverlay();
         CloseUx2NavDOverlay();
+        CloseUx2NavEOverlay();
         CloseUx2NavFOverlay();
         return _doorPortalNavigationOverlayUx2NavG.PrepareEvidence(mode);
     }
@@ -112,6 +114,7 @@ internal sealed partial class StudioWorkspaceShell
         var originalNav = _session.CaptureNavigationApprovalUx2NavB();
         var originalWaypoint = _session.CaptureWaypointApprovalUx2NavC();
         var originalPatrol = _session.CapturePatrolApprovalUx2NavD();
+        var originalLocator = _session.CaptureLocatorApprovalUx2NavE();
         var originalPortal = _session.CapturePortalApprovalUx2NavF();
         var originalDoorPortal = _session.CaptureDoorNavigationApprovalUx2NavG();
 
@@ -138,6 +141,7 @@ internal sealed partial class StudioWorkspaceShell
         _session.RestoreNavigationApprovalUx2NavB(originalNav);
         _session.RestoreWaypointApprovalUx2NavC(originalWaypoint);
         _session.RestorePatrolApprovalUx2NavD(originalPatrol);
+        _session.RestoreLocatorApprovalUx2NavE(originalLocator);
         _session.RestorePortalApprovalUx2NavF(originalPortal);
         _session.RestoreDoorNavigationApprovalUx2NavG(originalDoorPortal);
         var surfaceRestored = PageId == originalPage &&
@@ -153,6 +157,7 @@ internal sealed partial class StudioWorkspaceShell
                               _session.CaptureNavigationApprovalUx2NavB() == originalNav &&
                               _session.CaptureWaypointApprovalUx2NavC() == originalWaypoint &&
                               _session.CapturePatrolApprovalUx2NavD() == originalPatrol &&
+                              _session.CaptureLocatorApprovalUx2NavE() == originalLocator &&
                               _session.CapturePortalApprovalUx2NavF() == originalPortal &&
                               _session.CaptureDoorNavigationApprovalUx2NavG() == originalDoorPortal;
         var valid = result.Succeeded && uiReady && uiTransaction && released && restored &&

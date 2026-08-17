@@ -62,6 +62,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2NavCOverlay();
         CloseUx2NavEOverlay();
         CloseUx2NavFOverlay();
+        CloseUx2NavGOverlay();
         SwitchPage("navigation", notify: false);
         _waypointPatrolOverlayUx2NavD.Open();
         SetStatus("Patrouilles ouvertes · sélection explicite · aperçu sec obligatoire");
@@ -98,6 +99,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx2NavCOverlay();
         CloseUx2NavEOverlay();
         CloseUx2NavFOverlay();
+        CloseUx2NavGOverlay();
         return _waypointPatrolOverlayUx2NavD.PrepareEvidence(mode);
     }
 

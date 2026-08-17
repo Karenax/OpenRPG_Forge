@@ -182,11 +182,19 @@ internal sealed partial class StudioDoorPortalNavigationOverlayUx2NavG : Control
             directionGrid));
 
         var eventGrid = Grid();
-        _portalApi = new LineEdit { PlaceholderText = "1.0.0" };
+        _portalApi = new LineEdit
+        {
+            PlaceholderText = "1.0.0",
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            CustomMinimumSize = new Vector2(180, 0),
+        };
         AddField(eventGrid, "API ForgeScript", _portalApi);
         eventGrid.AddChild(StudioStyle.Label("Bindings protégés", 10, StudioStyle.Muted));
-        eventGrid.AddChild(StudioStyle.Label("PortalUseRequested → veto possible → PortalUseCompleted", 10,
-            StudioStyle.Accent, wrap: true));
+        var protectedBindings = StudioStyle.Label(
+            "PortalUseRequested → veto possible → PortalUseCompleted", 10, StudioStyle.Accent);
+        protectedBindings.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+        protectedBindings.CustomMinimumSize = new Vector2(420, 0);
+        eventGrid.AddChild(protectedBindings);
         body.AddChild(Card("PortalUse", "Interception PortalUse existante",
             "L’identité et les voisins de la fiche d’accès UX1 sont préservés ; aucun verrou, piège ou refus n’est reconstruit.",
             eventGrid));
@@ -306,8 +314,20 @@ internal sealed partial class StudioDoorPortalNavigationOverlayUx2NavG : Control
         var root = Path.Combine(Path.GetTempPath(),
             "openrpg-forge-studio-ux2-nav-g-evidence-" + Guid.NewGuid().ToString("N"));
         var controller = new StudioSessionController();
-        if (!ProjectSession.Create(root, fixture).Succeeded || !controller.Open(root).Succeeded)
+        var created = ProjectSession.Create(root, fixture);
+        if (!created.Succeeded)
         {
+            GD.PrintErr("OPENRPG_FORGE_STUDIO_UX2_NAV_G_EVIDENCE_CREATE_FAILED " +
+                        string.Join(" | ", created.Diagnostics.Select(item => $"{item.Code}:{item.Message}")));
+            controller.Close();
+            StudioSessionController.DeleteUx2NavGTemporaryWorkspace(root);
+            return false;
+        }
+        var opened = controller.Open(root);
+        if (!opened.Succeeded)
+        {
+            GD.PrintErr("OPENRPG_FORGE_STUDIO_UX2_NAV_G_EVIDENCE_OPEN_FAILED " +
+                        string.Join(" | ", opened.Diagnostics.Select(item => $"{item.Code}:{item.Message}")));
             controller.Close();
             StudioSessionController.DeleteUx2NavGTemporaryWorkspace(root);
             return false;
