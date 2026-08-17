@@ -7,6 +7,9 @@ SemVer ; les versions de schéma persistent séparément dans leurs documents.
 
 ### Changed
 
+- Forge Studio UX4-E : genre et pronoms, portraits gouvernés réellement prévisualisés, modèle,
+  parties du corps, couleurs, ailes et queues via `CreaturePresentationProfile` et commande
+  canonique ; cinq routes CREATURE qualifiées et matrice portée à 240 `functional` / 477 `planned` ;
 - Forge Studio UX4-D : assistant et fondation de créature, identité localisée, rôle/menace et
   composition d'espèce via commande canonique ; cinq routes CREATURE qualifiées et matrice portée
   à 235 `functional` / 482 `planned` ;

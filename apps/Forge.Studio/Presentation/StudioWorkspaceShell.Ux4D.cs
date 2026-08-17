@@ -32,6 +32,7 @@ internal sealed partial class StudioWorkspaceShell
             return;
         }
         SwitchPage("creatures", notify: false);
+        CloseUx4EOverlay();
         _creatureFoundationOverlayUx4D.Open();
         SetStatus("Assistant créature ouvert · sélection explicite et aperçu canonique obligatoires");
     }
@@ -56,6 +57,7 @@ internal sealed partial class StudioWorkspaceShell
     internal bool PrepareUx4DEvidence(string mode)
     {
         SwitchPage("creatures", notify: false);
+        CloseUx4EOverlay();
         return _creatureFoundationOverlayUx4D.PrepareEvidence(mode);
     }
 

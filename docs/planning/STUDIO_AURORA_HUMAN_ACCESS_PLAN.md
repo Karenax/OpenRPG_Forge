@@ -926,6 +926,14 @@ inspectées, dont la vraie fondation de la Crypte et des preuves dédiées assis
 atteint 235 routes `functional` et 482 `planned`. Preuves et limites sont liées dans
 `docs/acceptance/STUDIO_UX4_D.md` ; `ORF-CRE-006` à `ORF-CRE-049` restent `planned`.
 
+### UX4-E — Présentation de créature
+
+`ORF-CRE-006` à `ORF-CRE-010` sont `functional` : genre et pronoms data-driven, portraits
+gouvernés avec aperçu d'image réel, référence de modèle/rig, parties du corps, couleurs, ailes et
+queues. Le portail passe 8/8 tests en 100,01 s, le smoke global et cinq captures Forward+ FHD
+inspectées. La matrice atteint 240 routes `functional` et 477 `planned`. Preuves et limites sont
+liées dans `docs/acceptance/STUDIO_UX4_E.md` ; `ORF-CRE-011` à `ORF-CRE-049` restent `planned`.
+
 ## Gates ergonomiques avant parité
 
 Une page ne passe pas `Parity` si l’un des points suivants manque :
