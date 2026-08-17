@@ -155,7 +155,8 @@ public sealed record AreaExperienceProfile
     }
 
     private static bool InvalidCue(AudioCueDefinition cue) =>
-        string.IsNullOrWhiteSpace(cue.CueId) || string.IsNullOrWhiteSpace(cue.Bus) || cue.Volume is < 0 or > 4 ||
+        string.IsNullOrWhiteSpace(cue.CueId) || string.IsNullOrWhiteSpace(cue.Bus) ||
+        !float.IsFinite(cue.Volume) || cue.Volume is < 0 or > 4 ||
         string.IsNullOrWhiteSpace(cue.ForgeScriptApiVersion) || string.IsNullOrWhiteSpace(cue.Provenance) ||
         (!string.IsNullOrWhiteSpace(cue.Resource) &&
          (string.IsNullOrWhiteSpace(cue.LicenseSpdx) || !IsSha256(cue.ContentSha256)));
@@ -163,7 +164,9 @@ public sealed record AreaExperienceProfile
     private static bool InvalidScatter(SpatialScatterEmitter item, IReadOnlyList<AudioCueDefinition> cues) =>
         string.IsNullOrWhiteSpace(item.CueId) || !cues.Any(cue => cue.CueId == item.CueId) ||
         item.Size.X <= 0 || item.Size.Y <= 0 || item.Size.Z <= 0 || item.MinimumIntervalSeconds < 0 ||
-        item.MaximumIntervalSeconds < item.MinimumIntervalSeconds || item.Volume is < 0 or > 4 ||
+        !float.IsFinite(item.MinimumIntervalSeconds) || !float.IsFinite(item.MaximumIntervalSeconds) ||
+        item.MaximumIntervalSeconds < item.MinimumIntervalSeconds || !float.IsFinite(item.Volume) ||
+        item.Volume is < 0 or > 4 ||
         string.IsNullOrWhiteSpace(item.Provenance);
 
     private static bool InvalidVoice(CreatureVoiceProfile voice) =>
