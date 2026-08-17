@@ -332,14 +332,20 @@ internal sealed partial class StudioSessionController
         _approvedFactionDraftFingerprintUx4A,
         _approvedFactionCandidateFingerprintUx4A);
 
-    internal ProjectDefinition? CreateUx4AEvidenceProject()
+    internal StudioFactionEvidenceProjectUx4A? CreateUx4AEvidenceProject()
     {
         var project = Project;
-        if (project is null || !IsCryptFactionEvidenceUx4A(project.Module.Factions))
+        if (project is null)
         {
             return null;
         }
-        return project;
+        if (IsCryptFactionEvidenceUx4A(project.Module.Factions))
+        {
+            return new(project, UsesRealCryptSource: true, UsesCanonicalFallback: false);
+        }
+
+        var fallback = WithFactionCatalogUx4A(project, CreateCanonicalEvidenceCatalogUx4A(project.Id.Value));
+        return new(fallback, UsesRealCryptSource: false, UsesCanonicalFallback: true);
     }
 
     private static bool TryBuildFactionCandidateUx4A(
@@ -629,6 +635,8 @@ internal sealed partial class StudioSessionController
             "Deux bandes de même priorité se chevauchent. Ajustez leurs bornes ou leur priorité.",
         "world.placeable.faction_reference_missing" =>
             "Un placeable dépend encore de cette faction. Modifiez cette dépendance avant la suppression.",
+        "world.trigger.faction_reference_missing" =>
+            "Un filtre de déclencheur dépend encore de cette faction. Modifiez cette dépendance avant la suppression.",
         ProjectValidator.MissingCreatureInteractionFactionCode =>
             "Une créature dépend encore de cette faction. Modifiez cette dépendance avant la suppression.",
         _ when !string.IsNullOrWhiteSpace(fallback) && !ContainsGuidUx4A(fallback) => fallback,
@@ -679,33 +687,115 @@ internal sealed partial class StudioSessionController
 
     private static string FingerprintDraftUx4A(StudioFactionFoundationDraftUx4A draft)
     {
-        var builder = new StringBuilder()
-            .Append(draft.BaseRevision.Value).Append('|')
-            .Append(draft.SourceProjectFingerprint).Append('|')
-            .Append(draft.WorkingFactionId.ToString("D")).Append('|')
-            .Append(draft.IsNew).Append('|').Append(draft.Operation).Append('|')
-            .Append(draft.Slug).Append('|').Append(draft.DisplayName).Append('|').Append(draft.Archived).Append('|')
-            .Append(draft.InheritTags).Append('|').Append(draft.InheritPolicies).Append('|')
-            .Append(draft.InheritRelationships).Append('|').Append(draft.AdvancedProfileId.ToString("D")).Append('|')
-            .Append(draft.InheritancePolicyId.ToString("D")).Append('|')
-            .Append(draft.MigrationTargetId?.ToString("D") ?? "none");
-        foreach (var parent in draft.ParentIds)
+        using var stream = new MemoryStream();
+        using (var writer = new BinaryWriter(stream, Encoding.UTF8, leaveOpen: true))
         {
-            builder.Append("|p:").Append(parent.ToString("D"));
+            WriteFingerprintStringUx4A(writer, 1, "openrpg-forge:studio:ux4-a:draft");
+            WriteFingerprintInt64Ux4A(writer, 2, 1);
+            WriteFingerprintInt64Ux4A(writer, 3, draft.BaseRevision.Value);
+            WriteFingerprintStringUx4A(writer, 4, draft.SourceProjectFingerprint);
+            WriteFingerprintGuidUx4A(writer, 5, draft.WorkingFactionId);
+            WriteFingerprintBooleanUx4A(writer, 6, draft.IsNew);
+            WriteFingerprintInt64Ux4A(writer, 7, (int)draft.Operation);
+            WriteFingerprintStringUx4A(writer, 8, draft.Slug);
+            WriteFingerprintStringUx4A(writer, 9, draft.DisplayName);
+            WriteFingerprintBooleanUx4A(writer, 10, draft.Archived);
+            WriteFingerprintBooleanUx4A(writer, 11, draft.InheritTags);
+            WriteFingerprintBooleanUx4A(writer, 12, draft.InheritPolicies);
+            WriteFingerprintBooleanUx4A(writer, 13, draft.InheritRelationships);
+            WriteFingerprintGuidUx4A(writer, 14, draft.AdvancedProfileId);
+            WriteFingerprintGuidUx4A(writer, 15, draft.InheritancePolicyId);
+            WriteFingerprintNullableGuidUx4A(writer, 16, draft.MigrationTargetId);
+
+            WriteFingerprintCollectionUx4A(writer, 17, draft.ParentIds.Count);
+            foreach (var parent in draft.ParentIds)
+            {
+                WriteFingerprintGuidUx4A(writer, 1, parent);
+            }
+
+            WriteFingerprintCollectionUx4A(writer, 18, draft.Relationships.Count);
+            foreach (var relationship in draft.Relationships)
+            {
+                WriteFingerprintRecordUx4A(writer, 1, 5);
+                WriteFingerprintGuidUx4A(writer, 1, relationship.SourceId);
+                WriteFingerprintGuidUx4A(writer, 2, relationship.TargetId);
+                WriteFingerprintStringUx4A(writer, 3, relationship.Score);
+                WriteFingerprintStringUx4A(writer, 4, relationship.Preset);
+                WriteFingerprintStringUx4A(writer, 5, relationship.Explanation);
+            }
+
+            WriteFingerprintCollectionUx4A(writer, 19, draft.Bands.Count);
+            foreach (var band in draft.Bands)
+            {
+                WriteFingerprintRecordUx4A(writer, 1, 4);
+                WriteFingerprintStringUx4A(writer, 1, band.Id);
+                WriteFingerprintStringUx4A(writer, 2, band.Minimum);
+                WriteFingerprintStringUx4A(writer, 3, band.Maximum);
+                WriteFingerprintStringUx4A(writer, 4, band.Priority);
+            }
         }
-        foreach (var relationship in draft.Relationships)
+        return Convert.ToHexString(SHA256.HashData(stream.ToArray()));
+    }
+
+    private static void WriteFingerprintHeaderUx4A(BinaryWriter writer, ushort field, byte type)
+    {
+        writer.Write(field);
+        writer.Write(type);
+    }
+
+    private static void WriteFingerprintStringUx4A(BinaryWriter writer, ushort field, string? value)
+    {
+        WriteFingerprintHeaderUx4A(writer, field, 1);
+        if (value is null)
         {
-            builder.Append("|r:").Append(relationship.SourceId.ToString("D")).Append('>')
-                .Append(relationship.TargetId.ToString("D")).Append('=')
-                .Append(relationship.Score).Append('~').Append(relationship.Preset).Append('~')
-                .Append(relationship.Explanation);
+            writer.Write(-1);
+            return;
         }
-        foreach (var band in draft.Bands)
+        var bytes = Encoding.UTF8.GetBytes(value);
+        writer.Write(bytes.Length);
+        writer.Write(bytes);
+    }
+
+    private static void WriteFingerprintInt64Ux4A(BinaryWriter writer, ushort field, long value)
+    {
+        WriteFingerprintHeaderUx4A(writer, field, 2);
+        writer.Write(value);
+    }
+
+    private static void WriteFingerprintBooleanUx4A(BinaryWriter writer, ushort field, bool value)
+    {
+        WriteFingerprintHeaderUx4A(writer, field, 3);
+        writer.Write(value);
+    }
+
+    private static void WriteFingerprintGuidUx4A(BinaryWriter writer, ushort field, Guid value)
+    {
+        WriteFingerprintHeaderUx4A(writer, field, 4);
+        writer.Write(16);
+        writer.Write(value.ToByteArray());
+    }
+
+    private static void WriteFingerprintNullableGuidUx4A(BinaryWriter writer, ushort field, Guid? value)
+    {
+        WriteFingerprintHeaderUx4A(writer, field, 5);
+        writer.Write(value.HasValue);
+        if (value.HasValue)
         {
-            builder.Append("|b:").Append(band.Id).Append('=').Append(band.Minimum).Append('~')
-                .Append(band.Maximum).Append('~').Append(band.Priority);
+            writer.Write(16);
+            writer.Write(value.Value.ToByteArray());
         }
-        return HashUx4A(builder.ToString());
+    }
+
+    private static void WriteFingerprintCollectionUx4A(BinaryWriter writer, ushort field, int count)
+    {
+        WriteFingerprintHeaderUx4A(writer, field, 6);
+        writer.Write(count);
+    }
+
+    private static void WriteFingerprintRecordUx4A(BinaryWriter writer, ushort field, int fieldCount)
+    {
+        WriteFingerprintHeaderUx4A(writer, field, 7);
+        writer.Write(fieldCount);
     }
 
     private static string FingerprintProjectUx4A(ProjectDefinition project) =>
@@ -757,6 +847,60 @@ internal sealed partial class StudioSessionController
                catalog.Relationships.Count >= 2 && catalog.Bands.Count >= 3 &&
                catalog.Advanced?.Inheritance is { Count: >= 1 } &&
                catalog.PersonalReputation is { Count: >= 1 } && catalog.Reputation is not null;
+    }
+
+    private static FactionCatalog CreateCanonicalEvidenceCatalogUx4A(Guid projectId)
+    {
+        Guid Id(string segment) => StableEvidenceIdUx4A(projectId, segment);
+        var covenant = new FactionDefinition(
+            Id("faction:crypt-covenant"), 1, "studio:ux4-a:evidence-fallback", "crypt-covenant",
+            "Pacte de la crypte", false, [], ["crypt", "guardian"],
+            new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["intruder-response"] = "challenge",
+                ["relic-duty"] = "protect",
+            });
+        var watch = new FactionDefinition(
+            Id("faction:ash-watch"), 1, "studio:ux4-a:evidence-fallback", "ash-watch",
+            "Veilleurs des cendres", false, [covenant.Id], ["watch", "undead"]);
+        var surface = new FactionDefinition(
+            Id("faction:surface-alliance"), 1, "studio:ux4-a:evidence-fallback", "surface-alliance",
+            "Alliance de la surface", false, [], ["adventurer", "civilian"]);
+        var advanced = new FactionAdvancedProfile(
+            Id("advanced"),
+            1,
+            "studio:ux4-a:evidence-fallback",
+            true,
+            [new FactionInheritancePolicy(Id("inheritance:ash-watch"), watch.Id, true, true, true)],
+            [],
+            [],
+            []);
+        return new FactionCatalog(
+            [covenant, watch, surface],
+            [
+                new FactionRelationship(covenant.Id, surface.Id, -75, "intrusion dans la crypte", "hostile"),
+                new FactionRelationship(surface.Id, covenant.Id, -30, "crainte de la crypte", "wary"),
+            ],
+            [
+                new DispositionBand("hostile", -100, -1, 1),
+                new DispositionBand("neutral", 0, 50, 1),
+                new DispositionBand("allied", 51, 100, 1),
+            ],
+            [],
+            advanced,
+            RequireAdvancedRuntime: true,
+            PersonalReputation: null,
+            RequireFoundationRuntime: true);
+    }
+
+    private static Guid StableEvidenceIdUx4A(Guid projectId, string segment)
+    {
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes($"ux4-a:evidence:{projectId:N}:{segment}"));
+        Span<byte> guid = stackalloc byte[16];
+        bytes.AsSpan(0, 16).CopyTo(guid);
+        guid[7] = (byte)((guid[7] & 0x0f) | 0x40);
+        guid[8] = (byte)((guid[8] & 0x3f) | 0x80);
+        return new Guid(guid);
     }
 
     private static string NumberUx4A(double value) => value.ToString("R", CultureInfo.InvariantCulture);
@@ -834,6 +978,11 @@ internal sealed partial class StudioSessionController
                 "autel-factionnel",
                 "Autel factionnel",
                 BlueprintKind.Placeable);
+            var triggerBlueprint = new BlueprintDefinition(
+                BlueprintId.From(Guid.Parse("f4a00000-0000-4000-8000-000000000025")),
+                "filtre-factionnel",
+                "Filtre factionnel",
+                BlueprintKind.Trigger);
             var area = new AreaDefinition(
                 AreaId.From(Guid.Parse("f4a00000-0000-4000-8000-000000000021")),
                 "atelier-factions",
@@ -844,7 +993,7 @@ internal sealed partial class StudioSessionController
             var project = new ProjectDefinition(
                 ProjectId.From(Guid.Parse("f4a00000-0000-4000-8000-000000000022")),
                 "Studio UX4-A",
-                [blueprint],
+                [blueprint, triggerBlueprint],
                 [area]);
             var ownership = new PlaceableFactionOwnershipProfile(
                 Guid.Parse("f4a00000-0000-4000-8000-000000000023"),
@@ -864,11 +1013,26 @@ internal sealed partial class StudioSessionController
                 FactionOwnership = ownership,
                 FactionOwnershipRequiredAtRuntime = false,
             };
+            var trigger = CreateUx1ACSmokeTrigger(
+                triggerBlueprint.Id,
+                area.Id,
+                "f4a00000-0000-4000-8001",
+                advanced: true,
+                foundation: true);
+            var triggerAdvanced = trigger.Advanced!;
+            trigger = trigger with
+            {
+                Advanced = triggerAdvanced with
+                {
+                    TargetFilter = triggerAdvanced.TargetFilter with { FactionIds = [outsider.Id] },
+                },
+            };
             var worldFeatures = new WorldFeatureCatalog(
                 project.Module.Id.Value,
                 WorldFeatureCatalog.CurrentSchemaVersion,
                 "test:ux4-a-world",
-                placeables: [placeable]);
+                placeables: [placeable],
+                triggers: [trigger]);
             project = new ProjectDefinition(
                 project.Id,
                 project.Title,
@@ -892,6 +1056,10 @@ internal sealed partial class StudioSessionController
             {
                 return FailedUx4ASmoke();
             }
+            var typedDraftFingerprint = !string.Equals(
+                FingerprintDraftUx4A(sourceDraft with { Slug = "alpha|beta", DisplayName = "gamma" }),
+                FingerprintDraftUx4A(sourceDraft with { Slug = "alpha", DisplayName = "beta|gamma" }),
+                StringComparison.Ordinal);
             var editedRelationships = sourceDraft.Relationships.Select(item =>
                 item.SourceId == parent.Id && item.TargetId == outsider.Id
                     ? item with { Score = "-65", Preset = "hostile", Explanation = "rivalité visible" }
@@ -1100,6 +1268,8 @@ internal sealed partial class StudioSessionController
             var externalReferenceBlocked = !externalPreview.Succeeded &&
                                            externalPreview.Diagnostics.Any(item =>
                                                item.Code == "world.placeable.faction_reference_missing") &&
+                                           externalPreview.Diagnostics.Any(item =>
+                                               item.Code == "world.trigger.faction_reference_missing") &&
                                            externalPreview.Diagnostics.All(item =>
                                                !ContainsGuidUx4A(item.HumanMessage));
 
@@ -1110,9 +1280,9 @@ internal sealed partial class StudioSessionController
                               ProjectJsonSerializer.Serialize(reopened.Project!) &&
                               reopened.Project!.Module.Factions.PersonalReputation is null;
             var succeeded = explicitSelection && creation && hierarchy && directional && bands &&
-                            invalidConfiguration && dryRun && staleDraftBlocked && staleApprovalBlocked &&
-                            canonicalCommand && nullPersonalPreserved && archive && safeRemoval &&
-                            externalReferenceBlocked && undoRedo && persistence && neighborsPreserved;
+                             invalidConfiguration && dryRun && staleDraftBlocked && staleApprovalBlocked &&
+                             typedDraftFingerprint && canonicalCommand && nullPersonalPreserved && archive && safeRemoval &&
+                             externalReferenceBlocked && undoRedo && persistence && neighborsPreserved;
             return new(
                 succeeded,
                 explicitSelection,
@@ -1124,6 +1294,7 @@ internal sealed partial class StudioSessionController
                 dryRun,
                 staleDraftBlocked,
                 staleApprovalBlocked,
+                typedDraftFingerprint,
                 canonicalCommand,
                 nullPersonalPreserved,
                 archive,
@@ -1204,6 +1375,7 @@ internal sealed partial class StudioSessionController
     }
 
     private static StudioUx4ASmokeResult FailedUx4ASmoke() => new(
+        false,
         false,
         false,
         false,

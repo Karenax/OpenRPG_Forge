@@ -115,10 +115,13 @@ internal sealed partial class StudioWorkspaceShell
         var bands = _factionFoundationOverlayUx4A.ShowsBands;
         var humanSurface = _factionFoundationOverlayUx4A.ShowsHumanSurface;
         var isolatedEvidence = _factionFoundationOverlayUx4A.UsesIsolatedEvidence;
+        var realCryptEvidence = _factionFoundationOverlayUx4A.UsesRealCryptEvidence;
+        var canonicalFallbackEvidence = _factionFoundationOverlayUx4A.UsesCanonicalFallbackEvidence;
         var evidenceSourceUntouched = _factionFoundationOverlayUx4A.EvidenceSourceUntouched;
         var uiReady = evidencePrepared && PageId == "social-content" && overlayOpen && choiceCount >= 3 &&
                       explicitSelection && canonicalPreview && directionalMatrix && hierarchy && bands &&
-                      humanSurface && isolatedEvidence && evidenceSourceUntouched;
+                      humanSurface && isolatedEvidence && evidenceSourceUntouched &&
+                      (realCryptEvidence ^ canonicalFallbackEvidence);
         _factionFoundationOverlayUx4A.Close();
         var evidenceResourcesReleased = _factionFoundationOverlayUx4A.EvidenceResourcesReleased;
         var sourceSessionRestored = _factionFoundationOverlayUx4A.SourceSessionRestored;
@@ -147,6 +150,8 @@ internal sealed partial class StudioWorkspaceShell
                 $"hierarchy={hierarchy.ToString().ToLowerInvariant()} bands={bands.ToString().ToLowerInvariant()} " +
                 $"human={humanSurface.ToString().ToLowerInvariant()} " +
                 $"isolated={isolatedEvidence.ToString().ToLowerInvariant()} " +
+                $"real_crypt={realCryptEvidence.ToString().ToLowerInvariant()} " +
+                $"canonical_fallback={canonicalFallbackEvidence.ToString().ToLowerInvariant()} " +
                 $"source_untouched={evidenceSourceUntouched.ToString().ToLowerInvariant()}");
         }
         var valid = result.Succeeded && uiReady && uiTransaction && sourceUnchanged &&
@@ -162,6 +167,7 @@ internal sealed partial class StudioWorkspaceShell
             $"dry_run={result.DryRun.ToString().ToLowerInvariant()} " +
             $"stale_draft={result.StaleDraftBlocked.ToString().ToLowerInvariant()} " +
             $"stale_approval={result.StaleApprovalBlocked.ToString().ToLowerInvariant()} " +
+            $"typed_fingerprint={result.TypedDraftFingerprint.ToString().ToLowerInvariant()} " +
             $"canonical_command={result.CanonicalCommand.ToString().ToLowerInvariant()} " +
             $"personal_null_preserved={result.NullPersonalPreserved.ToString().ToLowerInvariant()} " +
             $"archive={result.Archive.ToString().ToLowerInvariant()} " +
@@ -171,6 +177,8 @@ internal sealed partial class StudioWorkspaceShell
             $"round_trip={result.Persistence.ToString().ToLowerInvariant()} " +
             $"neighbors_preserved={result.NeighborsPreserved.ToString().ToLowerInvariant()} " +
             $"isolated_evidence={isolatedEvidence.ToString().ToLowerInvariant()} " +
+            $"real_crypt_evidence={realCryptEvidence.ToString().ToLowerInvariant()} " +
+            $"canonical_fallback_evidence={canonicalFallbackEvidence.ToString().ToLowerInvariant()} " +
             $"evidence_source_untouched={evidenceSourceUntouched.ToString().ToLowerInvariant()} " +
             $"evidence_released={evidenceResourcesReleased.ToString().ToLowerInvariant()} " +
             $"source_session_restored={sourceSessionRestored.ToString().ToLowerInvariant()} " +

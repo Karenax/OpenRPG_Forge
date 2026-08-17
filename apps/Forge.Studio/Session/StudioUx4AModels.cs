@@ -109,6 +109,11 @@ internal sealed record StudioFactionEvidenceSourceSnapshotUx4A(
     Forge.Domain.Entities.EntityId? SelectedEntityId,
     StudioFactionApprovalSnapshotUx4A Approval);
 
+internal sealed record StudioFactionEvidenceProjectUx4A(
+    ProjectDefinition Project,
+    bool UsesRealCryptSource,
+    bool UsesCanonicalFallback);
+
 internal sealed record StudioUx4ASmokeResult(
     bool Succeeded,
     bool ExplicitSelection,
@@ -120,6 +125,7 @@ internal sealed record StudioUx4ASmokeResult(
     bool DryRun,
     bool StaleDraftBlocked,
     bool StaleApprovalBlocked,
+    bool TypedDraftFingerprint,
     bool CanonicalCommand,
     bool NullPersonalPreserved,
     bool Archive,

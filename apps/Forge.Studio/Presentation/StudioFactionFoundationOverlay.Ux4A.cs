@@ -15,6 +15,8 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
     private bool _lastEvidenceSourceUntouched = true;
     private bool _lastEvidenceResourcesReleased = true;
     private bool _lastSourceSessionRestored = true;
+    private bool _evidenceUsesRealCryptSource;
+    private bool _evidenceUsesCanonicalFallback;
 
     private readonly PanelContainer _dialog;
     private readonly OptionButton _faction;
@@ -88,6 +90,8 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
     internal bool ShowsBands => _bands.Count >= 3 &&
                                 _bandSummary.Text.Contains("priorité", StringComparison.OrdinalIgnoreCase);
     internal bool UsesIsolatedEvidence => _evidenceSession is not null && ReferenceEquals(_session, _evidenceSession);
+    internal bool UsesRealCryptEvidence => UsesIsolatedEvidence && _evidenceUsesRealCryptSource;
+    internal bool UsesCanonicalFallbackEvidence => UsesIsolatedEvidence && _evidenceUsesCanonicalFallback;
     internal bool EvidenceSourceUntouched => _evidenceSourceSnapshot is { } snapshot
         ? SourceMatchesSnapshot(snapshot)
         : _lastEvidenceSourceUntouched;
@@ -379,18 +383,39 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
 
     internal void Close()
     {
+        if (_evidenceSession is not null || _evidenceTempRoot is not null)
+        {
+            CloseIsolatedEvidenceSession();
+            return;
+        }
+
+        _sourceSession.CancelFactionFoundationUx4A();
+        ResetClosedState();
+        var released = ReleaseIsolatedEvidenceSession();
+        _lastEvidenceSourceUntouched = true;
+        _lastEvidenceResourcesReleased = released;
+        _lastSourceSessionRestored = ReferenceEquals(_session, _sourceSession);
+    }
+
+    private void CloseIsolatedEvidenceSession()
+    {
         var sourceUntouched = _evidenceSourceSnapshot is not { } snapshot || SourceMatchesSnapshot(snapshot);
-        _session.CancelFactionFoundationUx4A();
+        _evidenceSession?.CancelFactionFoundationUx4A();
+        ResetClosedState();
+        var released = ReleaseIsolatedEvidenceSession();
+        _lastEvidenceSourceUntouched = sourceUntouched;
+        _lastEvidenceResourcesReleased = released;
+        _lastSourceSessionRestored = ReferenceEquals(_session, _sourceSession);
+    }
+
+    private void ResetClosedState()
+    {
         Visible = false;
         _draft = null;
         _relationships.Clear();
         _bands.Clear();
         _canonicalPreviewReady = false;
         _applied = false;
-        var released = ReleaseIsolatedEvidenceSession();
-        _lastEvidenceSourceUntouched = sourceUntouched;
-        _lastEvidenceResourcesReleased = released;
-        _lastSourceSessionRestored = ReferenceEquals(_session, _sourceSession);
     }
 
     private void SelectFaction(long selected)
@@ -1094,11 +1119,23 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
             return false;
         }
         Preview();
-        _summary.Text = "PREUVE ISOLÉE · copie temporaire de la Crypte, source strictement inchangée.\n" +
-                        _summary.Text;
-        SetStatus("Preuve Crypt isolée prête · fermeture = suppression de la session temporaire", error: false);
+        var evidenceOrigin = UsesRealCryptEvidence
+            ? "CAPTURE RÉELLE CRYPTE · copie temporaire du projet Crypt sélectionné"
+            : "FALLBACK CANONIQUE TEMPORAIRE · fixture factions isolée pour la qualification headless";
+        _summary.Text = $"{evidenceOrigin} · source strictement inchangée.\n{_summary.Text}";
+        if (!CanonicalPreviewReady)
+        {
+            SetStatus("Preuve isolée créée, mais l’aperçu canonique a été refusé · aucune application possible", error: true);
+            return false;
+        }
+        SetStatus(
+            UsesRealCryptEvidence
+                ? "Preuve Crypt réelle isolée prête · fermeture = suppression de la session temporaire"
+                : "Preuve fallback canonique isolée prête · le module source reste strictement inchangé",
+            error: false);
         return HasExplicitSelection && CanonicalPreviewReady && ShowsHumanSurface && ShowsDirectionalMatrix &&
-               ShowsHierarchy && ShowsBands && UsesIsolatedEvidence && EvidenceSourceUntouched;
+               ShowsHierarchy && ShowsBands && UsesIsolatedEvidence && EvidenceSourceUntouched &&
+               (UsesRealCryptEvidence ^ UsesCanonicalFallbackEvidence);
     }
 
     private bool ConfigureEvidenceDraft()
@@ -1136,6 +1173,11 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
         try
         {
             var ready = PrepareEvidence("ux4-a-faction-foundation");
+            if (!ready || _evidenceSession is null || ReferenceEquals(_session, _sourceSession) ||
+                !ReferenceEquals(_session, _evidenceSession))
+            {
+                return false;
+            }
             var transactionSession = _session;
             var transactionHistory = transactionSession.History;
             var originalProject = transactionSession.Project;
@@ -1145,18 +1187,22 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
             var originalCanRedo = transactionHistory?.CanRedo;
             var originalDirty = transactionSession.IsDirty;
             var draft = ReadDraft();
-            var dryRun = ready && draft is not null && originalProject is not null &&
+            var dryRun = draft is not null && originalProject is not null && transactionHistory is not null &&
                          ReferenceEquals(originalProject, transactionSession.Project) &&
                          ReferenceEquals(transactionHistory, transactionSession.History) &&
-                         transactionHistory?.State.Revision == originalRevision &&
-                         (transactionHistory?.Journal ?? []).SequenceEqual(originalJournal) &&
-                         transactionHistory?.CanUndo == originalCanUndo &&
-                         transactionHistory?.CanRedo == originalCanRedo &&
+                         transactionHistory.State.Revision == originalRevision &&
+                         transactionHistory.Journal.SequenceEqual(originalJournal) &&
+                         transactionHistory.CanUndo == originalCanUndo &&
+                         transactionHistory.CanRedo == originalCanRedo &&
                          transactionSession.IsDirty == originalDirty && SourceMatchesSnapshot(sourceSnapshot);
+            if (!dryRun)
+            {
+                return false;
+            }
             Apply();
             var appliedProject = transactionSession.Project;
-            var applied = dryRun && _applied && appliedProject is not null &&
-                          !ReferenceEquals(originalProject, appliedProject);
+            var applied = _applied && appliedProject is not null &&
+                           !ReferenceEquals(originalProject, appliedProject);
             if (applied)
             {
                 Undo();
@@ -1181,7 +1227,7 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
             reopened?.Close();
             reopened = null;
             Close();
-            return dryRun && applied && undone && redone && saved && persisted && sourceUntouched &&
+            return applied && undone && redone && saved && persisted && sourceUntouched &&
                    EvidenceResourcesReleased && SourceSessionRestored;
         }
         catch (Exception exception)
@@ -1193,7 +1239,7 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
         finally
         {
             reopened?.Close();
-            if (Visible || _evidenceSession is not null || _evidenceTempRoot is not null)
+            if (_evidenceSession is not null || _evidenceTempRoot is not null)
             {
                 Close();
             }
@@ -1214,7 +1260,7 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
         var evidenceSession = new StudioSessionController();
         try
         {
-            var created = ProjectSession.Create(tempRoot, evidenceProject);
+            var created = ProjectSession.Create(tempRoot, evidenceProject.Project);
             if (!created.Succeeded || !evidenceSession.Open(tempRoot).Succeeded)
             {
                 evidenceSession.Close();
@@ -1228,10 +1274,13 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
             _evidenceSession = evidenceSession;
             _evidenceTempRoot = tempRoot;
             _session = evidenceSession;
+            _evidenceUsesRealCryptSource = evidenceProject.UsesRealCryptSource;
+            _evidenceUsesCanonicalFallback = evidenceProject.UsesCanonicalFallback;
             _lastEvidenceResourcesReleased = false;
             _lastSourceSessionRestored = false;
             OpenBoundSession();
-            var ready = _choices.Any(item => item.Slug == "ash-watch") && SourceMatchesSnapshot(snapshot);
+            var ready = _choices.Any(item => item.Slug == "ash-watch") && SourceMatchesSnapshot(snapshot) &&
+                        (_evidenceUsesRealCryptSource ^ _evidenceUsesCanonicalFallback);
             if (!ready)
             {
                 Close();
@@ -1248,6 +1297,8 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
             _evidenceSession = null;
             _evidenceTempRoot = released ? null : tempRoot;
             _session = _sourceSession;
+            _evidenceUsesRealCryptSource = false;
+            _evidenceUsesCanonicalFallback = false;
             _lastEvidenceResourcesReleased = released;
             _lastSourceSessionRestored = true;
             return false;
@@ -1298,6 +1349,8 @@ internal sealed partial class StudioFactionFoundationOverlayUx4A : Control
         _evidenceTempRoot = null;
         _evidenceSourceSnapshot = null;
         _session = _sourceSession;
+        _evidenceUsesRealCryptSource = false;
+        _evidenceUsesCanonicalFallback = false;
         var released = true;
         try
         {
