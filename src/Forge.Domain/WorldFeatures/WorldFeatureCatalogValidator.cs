@@ -451,12 +451,38 @@ public static class WorldFeatureCatalogValidator
             Identity(route.Id, route.SchemaVersion, route.Provenance, path, diagnostics);
             if (!areas.Contains(route.AreaId))
                 Add(diagnostics, "world.reference.area_missing", "Vehicle route area reference is missing.", $"{path}/areaId");
-            if (route.Points.Count < 2 || route.Lanes.Count == 0 || route.DefaultSpeedLimit <= 0 ||
-                route.Points.Any(item => item.Width <= 0) || route.Lanes.Any(item => item.SpeedLimit <= 0))
-                Add(diagnostics, "world.vehicle_route.invalid", "Vehicle route requires points, lanes, width and speed limits.", path);
             var pointIds = route.Points.Select(item => item.Id).ToHashSet();
-            if (route.Stops.Any(item => !pointIds.Contains(item.RoutePointId) || item.WaitSeconds < 0))
-                Add(diagnostics, "world.vehicle_route.stop_invalid", "Vehicle stops must reference route points and non-negative waits.", $"{path}/stops");
+            if (route.Points.Count < 2 || pointIds.Count != route.Points.Count ||
+                route.Points.Any(item => item.Id == Guid.Empty || !double.IsFinite(item.TangentDegrees) ||
+                    !double.IsFinite(item.Width) || item.Width <= 0))
+                Add(diagnostics, "world.vehicle_route.points_invalid",
+                    "Vehicle route points require unique UUIDs, finite tangents and positive finite widths.",
+                    $"{path}/points");
+
+            var laneIds = route.Lanes.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
+            if (route.Lanes.Count == 0 || laneIds.Count != route.Lanes.Count ||
+                route.Lanes.Any(item => !SafeIdentifier(item.Id) || !double.IsFinite(item.LateralOffset) ||
+                    !double.IsFinite(item.SpeedLimit) || item.SpeedLimit <= 0 || !SafeIdentifier(item.Direction)))
+                Add(diagnostics, "world.vehicle_route.lanes_invalid",
+                    "Vehicle lanes require unique identifiers, finite offsets, positive finite speeds and a direction.",
+                    $"{path}/lanes");
+
+            if (!double.IsFinite(route.DefaultSpeedLimit) || route.DefaultSpeedLimit <= 0)
+                Add(diagnostics, "world.vehicle_route.speed_invalid",
+                    "Vehicle route default speed must be positive and finite.", $"{path}/defaultSpeedLimit");
+
+            if (route.NetworkSyncMode is not ("server-snapshots" or "bounded-prediction" or "local"))
+                Add(diagnostics, "world.vehicle_route.network_sync_invalid",
+                    "Vehicle route network sync must use server snapshots, bounded prediction or local mode.",
+                    $"{path}/networkSyncMode");
+
+            var stopIds = route.Stops.Select(item => item.Id).ToHashSet();
+            if (stopIds.Count != route.Stops.Count || route.Stops.Any(item => item.Id == Guid.Empty ||
+                    !pointIds.Contains(item.RoutePointId) || !double.IsFinite(item.WaitSeconds) ||
+                    item.WaitSeconds < 0 || !SafeIdentifier(item.ServiceId)))
+                Add(diagnostics, "world.vehicle_route.stop_invalid",
+                    "Vehicle stops require unique UUIDs, known route points, finite waits and a service identifier.",
+                    $"{path}/stops");
         }
 
         foreach (var profile in catalog.Merchants)
