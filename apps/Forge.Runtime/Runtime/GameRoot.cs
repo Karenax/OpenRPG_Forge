@@ -207,6 +207,9 @@ public partial class GameRoot : Node3D
     private readonly Dictionary<string, SafeJsonHandle> _runtimeJsonHandles = new(StringComparer.Ordinal);
     private readonly RuntimeCameraRig _cameraRig = new();
     private WorldFeatureCatalog? _worldFeatureCatalog;
+    private readonly HashSet<Guid> _livingWorldTriggerOccupancy = [];
+    private readonly HashSet<Guid> _livingWorldTriggerDiagnostics = [];
+    private TriggerNarrativeRuntimeState _livingWorldNarrativeState = TriggerNarrativeRuntimeState.Empty;
     private Node? _doorAccessEventRoot;
     private Node? _encounterCompositionRoot;
     private Node? _encounterScenarioRoot;
@@ -1218,6 +1221,11 @@ public partial class GameRoot : Node3D
         if (_player is null)
         {
             return;
+        }
+
+        if (!IsTimeFrozen())
+        {
+            AdvanceLivingWorldTriggers();
         }
 
         if (_camera is not null && !_sequenceOwnsCamera)
@@ -4493,6 +4501,16 @@ public partial class GameRoot : Node3D
         var position = _player.GlobalPosition;
         var restPosition = new Vector3Value(position.X, position.Y, position.Z);
         var effectivePolicy = _areaRuntimePolicies.Rest.ResolveAt(restPosition);
+        var triggerRest = ResolveLivingWorldRest(restPosition);
+        if (triggerRest is { Allowed: false } denied)
+        {
+            _message = ResolveLivingWorldMessage(denied.MessageKey);
+            _toastQueue?.Show(RuntimeToastKind.Alert, _message, $"trigger-rest:{denied.DiagnosticCode}");
+            GD.Print($"OPENRPG_FORGE_TRIGGER_REST_DENIED code={denied.DiagnosticCode} " +
+                     $"message={denied.MessageKey} summary={denied.Summary}");
+            UpdateHud();
+            return;
+        }
         var result = _restRuntime.Request("player", "player-party", AreaId.Parse(_currentAreaId),
             restPosition, _moduleRuntimePolicies.Rest, _areaRuntimePolicies.Rest,
             secure: _hostiles.Keys.All(hostile => hostile.GlobalPosition.DistanceTo(position) >
@@ -4501,9 +4519,166 @@ public partial class GameRoot : Node3D
         PublishRestEvents(result.Events);
         _restSession = result.Session;
         _message = result.Accepted
-            ? $"Repos en cours ({_moduleRuntimePolicies.Rest.DefaultDurationSeconds} s)…"
+            ? triggerRest is { Available: true } allowed
+                ? $"{ResolveLivingWorldMessage(allowed.MessageKey)} " +
+                  $"({_moduleRuntimePolicies.Rest.DefaultDurationSeconds} s)…"
+                : $"Repos en cours ({_moduleRuntimePolicies.Rest.DefaultDurationSeconds} s)…"
             : result.Events.LastOrDefault()?.Cause ?? result.DiagnosticCode ?? "Repos refusé.";
         UpdateHud();
+    }
+
+    private TriggerRestRuntimeResolution? ResolveLivingWorldRest(Vector3Value position)
+    {
+        if (_worldFeatureCatalog is null || _currentAreaId is null) return null;
+        var currentArea = AreaId.Parse(_currentAreaId);
+        var partyExpected = Math.Max(1, _launcherSession?.Snapshot.Members.Count ?? 1);
+        // Remote avatar presence is not connected yet. A multi-member local-host session therefore cannot
+        // claim that the full party is physically inside a safe-rest volume.
+        var partyPresent = partyExpected == 1 ? 1 : 0;
+        TriggerRestRuntimeResolution? accepted = null;
+        foreach (var profile in _worldFeatureCatalog.Triggers
+                     .Where(item => item.AreaId == currentArea && item.Rest is not null)
+                     .OrderBy(item => item.Id))
+        {
+            var containment = TriggerLivingWorldRuntimeService.Contains(profile, position);
+            if (!containment.Supported)
+            {
+                ReportLivingWorldTriggerDiagnostic(profile, containment.DiagnosticCode, containment.Summary);
+                continue;
+            }
+            if (!containment.Contains) continue;
+            var resolution = TriggerLivingWorldRuntimeService.ResolveRest(profile,
+                new(EvaluateLivingWorldDanger(profile.Rest!.DangerQuery), partyPresent, partyExpected));
+            if (!resolution.Allowed) return resolution;
+            accepted ??= resolution;
+        }
+        return accepted;
+    }
+
+    private bool EvaluateLivingWorldDanger(string query)
+    {
+        if (_blackboard.TryGetValue(query, out var authored) && bool.TryParse(authored, out var parsed))
+            return parsed;
+        if (string.Equals(query, "danger.nearby", StringComparison.Ordinal))
+            return _hostiles.Values.Any(item => !item.IsDead);
+        GD.PrintErr($"OPENRPG_FORGE_TRIGGER_DANGER_QUERY_UNRESOLVED query={query}");
+        return true;
+    }
+
+    private void AdvanceLivingWorldTriggers()
+    {
+        if (_player is null || _worldFeatureCatalog is null || _currentAreaId is null) return;
+        var currentArea = AreaId.Parse(_currentAreaId);
+        var position = _player.GlobalPosition;
+        var worldPosition = new Vector3Value(position.X, position.Y, position.Z);
+        var insideNow = new HashSet<Guid>();
+        foreach (var profile in _worldFeatureCatalog.Triggers
+                     .Where(item => item.AreaId == currentArea &&
+                                    (item.Clue is not null || item.Narrative is not null))
+                     .OrderByDescending(item => item.Narrative?.Priority ?? 0)
+                     .ThenBy(item => item.Id))
+        {
+            var containment = TriggerLivingWorldRuntimeService.Contains(profile, worldPosition);
+            if (!containment.Supported)
+            {
+                ReportLivingWorldTriggerDiagnostic(profile, containment.DiagnosticCode, containment.Summary);
+                continue;
+            }
+            if (!containment.Contains) continue;
+            insideNow.Add(profile.Id);
+            if (_livingWorldTriggerOccupancy.Contains(profile.Id)) continue;
+            ResolveLivingWorldClue(profile);
+            ResolveLivingWorldNarrative(profile);
+        }
+
+        _livingWorldTriggerOccupancy.Clear();
+        _livingWorldTriggerOccupancy.UnionWith(insideNow);
+    }
+
+    private void ResolveLivingWorldClue(TriggerWorldProfile profile)
+    {
+        if (profile.Clue is not { } clue) return;
+        int? skillScore = null;
+        if (_blackboard.TryGetValue($"skill.{clue.SkillId}", out var value) &&
+            int.TryParse(value, System.Globalization.NumberStyles.Integer,
+                System.Globalization.CultureInfo.InvariantCulture, out var parsed))
+            skillScore = parsed;
+        var questActive = clue.QuestId is null ||
+                          _questDefinition?.Id.Value == clue.QuestId && _questMachine is not null;
+        var result = TriggerLivingWorldRuntimeService.ResolveClue(profile, new(skillScore, questActive));
+        if (!result.Revealed)
+        {
+            GD.Print($"OPENRPG_FORGE_TRIGGER_CLUE_SKIPPED code={result.DiagnosticCode} summary={result.Summary}");
+            return;
+        }
+
+        var kind = result.FalseClue ? "Piste incertaine" : "Piste révélée";
+        _message = $"{kind} : {result.TraceId} · direction {result.DirectionDegrees:0.#}° · " +
+                   $"âge {result.AgeHours:0.#} h";
+        _toastQueue?.Show(RuntimeToastKind.Objective, _message, $"trigger-clue:{profile.Id:D}:{result.TraceId}");
+        UpdateHud();
+        GD.Print($"OPENRPG_FORGE_TRIGGER_CLUE_REVEALED trigger={profile.Id:D} trace={result.TraceId} " +
+                 $"false={result.FalseClue.ToString().ToLowerInvariant()} " +
+                 $"quest={result.JournalQuestId?.ToString("D") ?? "none"} summary={result.Summary}");
+    }
+
+    private void ResolveLivingWorldNarrative(TriggerWorldProfile profile)
+    {
+        if (profile.Narrative is not { } narrative || _loadedProject is null || _activeArea is null) return;
+        var presentParticipants = _activeArea.Entities
+            .Where(entity => narrative.Participants.Contains(entity.BlueprintId) &&
+                             _entityNodes.TryGetValue(entity.Id.Value, out var node) &&
+                             GodotObject.IsInstanceValid(node))
+            .Select(entity => entity.BlueprintId)
+            .ToHashSet();
+        var connectedPlayers = Math.Max(1, _launcherSession?.Snapshot.Members.Count ?? 1);
+        var voteSatisfied = !string.Equals(narrative.MultiplayerPolicy, "party-vote", StringComparison.Ordinal) ||
+                            connectedPlayers == 1;
+        var result = TriggerLivingWorldRuntimeService.ResolveNarrative(profile, _livingWorldNarrativeState,
+            new(DateTimeOffset.UtcNow, true, voteSatisfied, presentParticipants));
+        _livingWorldNarrativeState = result.State;
+        if (!result.Fired)
+        {
+            GD.Print($"OPENRPG_FORGE_TRIGGER_NARRATIVE_SKIPPED code={result.DiagnosticCode} " +
+                     $"summary={result.Summary}");
+            return;
+        }
+
+        var dialogue = _loadedProject.Dialogues.SingleOrDefault(item => item.Id.Value == result.DialogueId);
+        if (dialogue is null)
+        {
+            GD.PrintErr($"OPENRPG_FORGE_TRIGGER_NARRATIVE_FAILED code=world.reference.dialogue_missing " +
+                        $"trigger={profile.Id:D}");
+            return;
+        }
+        _elyraDialogue = dialogue;
+        _guideName = dialogue.DisplayName;
+        InteractWithGuide();
+        GD.Print($"OPENRPG_FORGE_TRIGGER_NARRATIVE_FIRED trigger={profile.Id:D} " +
+                 $"dialogue={dialogue.Id} priority={result.Priority} policy={narrative.MultiplayerPolicy}");
+    }
+
+    private void ReportLivingWorldTriggerDiagnostic(
+        TriggerWorldProfile profile,
+        string code,
+        string summary)
+    {
+        if (!_livingWorldTriggerDiagnostics.Add(profile.Id)) return;
+        GD.PrintErr($"OPENRPG_FORGE_TRIGGER_LIVING_WORLD_DIAGNOSTIC trigger={profile.Id:D} " +
+                    $"code={code} summary={summary}");
+    }
+
+    private string ResolveLivingWorldMessage(string key)
+    {
+        if (_loadedProject is null || string.IsNullOrWhiteSpace(key)) return key;
+        try
+        {
+            return _loadedProject.Module.Localization.Resolve(key, _defaultLocale);
+        }
+        catch (KeyNotFoundException)
+        {
+            return key;
+        }
     }
 
     private bool EvaluateRuntimePolicyCondition(string expression)
@@ -8121,6 +8296,35 @@ public partial class GameRoot : Node3D
                     firedTrigger.Effects.Contains("director:audit", StringComparer.Ordinal),
             "Trigger rest, clue, narrative or director policy did not resolve.");
         GD.Print("OPENRPG_FORGE_RUNTIME_G13S_TRIGGER_DIRECTOR_PASS rest=safe clue=tracked narrative=dialogue director=audited");
+
+        var restDanger = TriggerLivingWorldRuntimeService.ResolveRest(trigger, new(true, 2, 2));
+        var restParty = TriggerLivingWorldRuntimeService.ResolveRest(trigger, new(false, 1, 2));
+        var restAllowed = TriggerLivingWorldRuntimeService.ResolveRest(trigger, new(false, 2, 2));
+        var clueFailed = TriggerLivingWorldRuntimeService.ResolveClue(trigger, new(0, true));
+        var cluePassed = TriggerLivingWorldRuntimeService.ResolveClue(trigger, new(20, true));
+        var participants = trigger.Narrative!.Participants.ToHashSet();
+        var narrativePending = TriggerLivingWorldRuntimeService.ResolveNarrative(trigger,
+            TriggerNarrativeRuntimeState.Empty,
+            new(DateTimeOffset.UnixEpoch, true, false, participants));
+        var narrativeFired = TriggerLivingWorldRuntimeService.ResolveNarrative(trigger,
+            TriggerNarrativeRuntimeState.Empty,
+            new(DateTimeOffset.UnixEpoch, true, true, participants));
+        var narrativeRepeated = TriggerLivingWorldRuntimeService.ResolveNarrative(trigger,
+            narrativeFired.State,
+            new(DateTimeOffset.UnixEpoch.AddMinutes(2), true, true, participants));
+        AssertSmoke(restDanger.DiagnosticCode == TriggerLivingWorldRuntimeService.RestDangerCode &&
+                    restParty.DiagnosticCode == TriggerLivingWorldRuntimeService.RestPartyCode &&
+                    restAllowed is { Allowed: true, CampSetupAllowed: true } &&
+                    clueFailed is { Revealed: true, FalseClue: true } &&
+                    cluePassed is { Revealed: true, SkillCheckPassed: true } &&
+                    narrativePending.DiagnosticCode == TriggerLivingWorldRuntimeService.NarrativeVoteCode &&
+                    narrativeFired is { Fired: true, DialogueId: not null } &&
+                    narrativeRepeated.DiagnosticCode == TriggerLivingWorldRuntimeService.NarrativeOnceCode,
+            "Typed living-world trigger rest, clue or narrative resolution failed.");
+        GD.Print("OPENRPG_FORGE_RUNTIME_UX2_LW_E_TRIGGER_PASS " +
+                 "rest=danger-party-camp clue=skill-false-trace-quest " +
+                 "narrative=participants-priority-once-cooldown-policy-dialogue " +
+                 "live=player-position-blackboard-party-authority");
 
         var respawn = WorldFeatureRuntimeResolver.EvaluateEncounter(encounter, 0, 0, false, false, 31);
         AssertSmoke(respawn is { Spawn: true, NextCycle: 1 } && encounter.Scheduler is { HeartbeatEnabled: true },

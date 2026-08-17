@@ -360,6 +360,33 @@ public sealed class WorldFeatureScriptService
                 ["area"] = item.AreaId.ToString(),
                 ["discovery"] = (item.Discovery is not null).ToString(),
                 ["director"] = (item.Director?.AllowManualFire == true).ToString(),
+                ["rest"] = (item.Rest is not null).ToString(),
+                ["restSafe"] = (item.Rest?.Safe == true).ToString(),
+                ["restDangerQuery"] = item.Rest?.DangerQuery ?? string.Empty,
+                ["restWholeParty"] = (item.Rest?.WholePartyRequired == true).ToString(),
+                ["restCampSetup"] = (item.Rest?.AllowCampSetup == true).ToString(),
+                ["restAllowedMessage"] = item.Rest?.AllowedMessageKey ?? string.Empty,
+                ["restDeniedMessage"] = item.Rest?.DeniedMessageKey ?? string.Empty,
+                ["clue"] = (item.Clue is not null).ToString(),
+                ["clueSkill"] = item.Clue?.SkillId ?? string.Empty,
+                ["clueDifficulty"] = item.Clue?.Difficulty.ToString() ?? string.Empty,
+                ["clueTrace"] = item.Clue?.TraceId ?? string.Empty,
+                ["clueDirection"] = item.Clue?.DirectionDegrees.ToString(
+                    "0.###", System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty,
+                ["clueAgeHours"] = item.Clue?.AgeHours.ToString(
+                    "0.###", System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty,
+                ["clueFalseTrace"] = item.Clue?.FalseClueId ?? string.Empty,
+                ["clueQuest"] = item.Clue?.QuestId?.ToString("D") ?? string.Empty,
+                ["narrative"] = (item.Narrative is not null).ToString(),
+                ["narrativeParticipants"] = item.Narrative is null
+                    ? string.Empty
+                    : string.Join(',', item.Narrative.Participants.OrderBy(value => value.Value)),
+                ["narrativePriority"] = item.Narrative?.Priority.ToString() ?? string.Empty,
+                ["narrativeOnce"] = (item.Narrative?.Once == true).ToString(),
+                ["narrativeCooldown"] = item.Narrative?.CooldownSeconds.ToString(
+                    "0.###", System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty,
+                ["narrativeMultiplayer"] = item.Narrative?.MultiplayerPolicy ?? string.Empty,
+                ["narrativeDialogue"] = item.Narrative?.DialogueId.ToString("D") ?? string.Empty,
                 ["foundation"] = (item.Foundation is not null).ToString(),
                 ["shape"] = item.Foundation?.Shape.Kind.ToString() ?? string.Empty,
                 ["actions"] = item.Foundation?.Actions.Count.ToString() ?? "0",

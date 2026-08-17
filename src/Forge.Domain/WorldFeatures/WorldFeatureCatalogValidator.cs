@@ -252,10 +252,48 @@ public static class WorldFeatureCatalogValidator
                 Add(diagnostics, "world.trigger.scheduler_invalid", "Trigger scheduler requires positive cadence and budget.", $"{path}/scheduler");
             if (profile.Access is { } access && string.IsNullOrWhiteSpace(access.CredentialId))
                 Add(diagnostics, "world.trigger.access_invalid", "Trigger access requires a credential.", $"{path}/access");
+            if (profile.Rest is { } rest)
+            {
+                if (string.IsNullOrWhiteSpace(rest.DangerQuery) ||
+                    string.IsNullOrWhiteSpace(rest.AllowedMessageKey) ||
+                    string.IsNullOrWhiteSpace(rest.DeniedMessageKey) ||
+                    !SafeIdentifier(rest.DangerQuery) || !SafeIdentifier(rest.AllowedMessageKey) ||
+                    !SafeIdentifier(rest.DeniedMessageKey))
+                    Add(diagnostics, "world.trigger.rest_invalid",
+                        "Rest trigger policy requires a safe danger query and localized allowed/denied message keys.",
+                        $"{path}/rest");
+            }
+            if (profile.Clue is { } clue)
+            {
+                if (!SafeIdentifier(clue.SkillId) || clue.Difficulty < 0 || !SafeIdentifier(clue.TraceId) ||
+                    !double.IsFinite(clue.DirectionDegrees) || clue.DirectionDegrees is < 0 or >= 360 ||
+                    !double.IsFinite(clue.AgeHours) || clue.AgeHours < 0 ||
+                    clue.FalseClueId is { } falseClue &&
+                    (!SafeIdentifier(falseClue) || string.Equals(falseClue, clue.TraceId, StringComparison.Ordinal)))
+                    Add(diagnostics, "world.trigger.clue_invalid",
+                        "Clue trigger policy requires a skill, difficulty, trace, normalized direction, age and distinct optional false clue.",
+                        $"{path}/clue");
+            }
             if (profile.Clue?.QuestId is { } questId && !quests.Contains(questId))
                 Add(diagnostics, "world.reference.quest_missing", "Trigger clue quest reference is missing.", $"{path}/clue/questId");
-            if (profile.Narrative is { } narrative && !dialogues.Contains(narrative.DialogueId))
-                Add(diagnostics, "world.reference.dialogue_missing", "Narrative trigger dialogue reference is missing.", $"{path}/narrative/dialogueId");
+            if (profile.Narrative is { } narrative)
+            {
+                if (narrative.Participants.Distinct().Count() != narrative.Participants.Count ||
+                    narrative.Priority is < 0 or > 1_000 || !double.IsFinite(narrative.CooldownSeconds) ||
+                    narrative.CooldownSeconds < 0 || !SafeIdentifier(narrative.MultiplayerPolicy))
+                    Add(diagnostics, "world.trigger.narrative_invalid",
+                        "Narrative trigger policy requires unique participants, bounded priority/cooldown and a multiplayer policy.",
+                        $"{path}/narrative");
+                foreach (var participant in narrative.Participants.Where(participant =>
+                             !blueprints.TryGetValue(participant, out var blueprint) ||
+                             blueprint.Kind is not (BlueprintKind.Creature or BlueprintKind.PlayerSpawn)))
+                    Add(diagnostics, "world.trigger.narrative_participant_missing",
+                        "Narrative trigger participant must resolve to a creature or player blueprint.",
+                        $"{path}/narrative/participants/{participant}");
+                if (!dialogues.Contains(narrative.DialogueId))
+                    Add(diagnostics, "world.reference.dialogue_missing",
+                        "Narrative trigger dialogue reference is missing.", $"{path}/narrative/dialogueId");
+            }
             ValidateTriggerFoundation(profile, path, diagnostics);
             ValidateTriggerAdvanced(profile, path, factionIds, diagnostics);
         }
