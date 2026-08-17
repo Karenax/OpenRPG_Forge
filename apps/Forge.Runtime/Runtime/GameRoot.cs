@@ -4586,6 +4586,7 @@ public partial class GameRoot : Node3D
         var worldPosition = new Vector3Value(position.X, position.Y, position.Z);
         var insideNow = new HashSet<Guid>();
         var now = DateTimeOffset.UtcNow;
+        var narrativeClaimed = false;
         foreach (var profile in _worldFeatureCatalog.Triggers
                      .Where(item => item.AreaId == currentArea &&
                                     (item.Clue is not null || item.Narrative is not null))
@@ -4607,7 +4608,8 @@ public partial class GameRoot : Node3D
             _livingWorldTriggerFoundationStates[profile.Id] = entered.State;
             if (!entered.Fired) continue;
             ResolveLivingWorldClue(profile);
-            ResolveLivingWorldNarrative(profile);
+            if (!narrativeClaimed)
+                narrativeClaimed = ResolveLivingWorldNarrative(profile);
         }
 
         foreach (var departedId in _livingWorldTriggerOccupancy.Except(insideNow).ToArray())
@@ -4674,9 +4676,9 @@ public partial class GameRoot : Node3D
                  $"quest={result.JournalQuestId?.ToString("D") ?? "none"} summary={result.Summary}");
     }
 
-    private void ResolveLivingWorldNarrative(TriggerWorldProfile profile)
+    private bool ResolveLivingWorldNarrative(TriggerWorldProfile profile)
     {
-        if (profile.Narrative is not { } narrative || _loadedProject is null || _activeArea is null) return;
+        if (profile.Narrative is not { } narrative || _loadedProject is null || _activeArea is null) return false;
         var presentParticipants = _activeArea.Entities
             .Where(entity => narrative.Participants.Contains(entity.BlueprintId) &&
                              _entityNodes.TryGetValue(entity.Id.Value, out var node) &&
@@ -4695,7 +4697,7 @@ public partial class GameRoot : Node3D
         {
             GD.Print($"OPENRPG_FORGE_TRIGGER_NARRATIVE_SKIPPED code={result.DiagnosticCode} " +
                      $"summary={result.Summary}");
-            return;
+            return false;
         }
 
         var dialogue = _loadedProject.Dialogues.SingleOrDefault(item => item.Id.Value == result.DialogueId);
@@ -4703,13 +4705,29 @@ public partial class GameRoot : Node3D
         {
             GD.PrintErr($"OPENRPG_FORGE_TRIGGER_NARRATIVE_FAILED code=world.reference.dialogue_missing " +
                         $"trigger={profile.Id:D}");
-            return;
+            return false;
         }
         _elyraDialogue = dialogue;
         _guideName = dialogue.DisplayName;
-        InteractWithGuide();
+        ShowLivingWorldInterjection(dialogue);
         GD.Print($"OPENRPG_FORGE_TRIGGER_NARRATIVE_FIRED trigger={profile.Id:D} " +
                  $"dialogue={dialogue.Id} priority={result.Priority} policy={narrative.MultiplayerPolicy}");
+        return true;
+    }
+
+    private void ShowLivingWorldInterjection(DialogueDefinition dialogue)
+    {
+        var traversal = new DialogueTraversal(dialogue);
+        var start = traversal.Start();
+        var evaluator = new RuntimeConditionEvaluator(this);
+        var spokenLine = ApplyDialoguePresentation(start.Node!.Id, evaluator) ?? start.Node.Text.Fallback;
+        if (_actionWheel?.IsOpen == true) _actionWheel.Close();
+        // An interjection presents the authored opening line only. It does not auto-pick a dialogue choice or
+        // execute dialogue actions; the full dialogue traversal remains an explicit player interaction.
+        _dialogueOverlay?.Show(dialogue.DisplayName, "Interjection", spokenLine, []);
+        SyncPlayerInterfaceLock();
+        _message = $"{dialogue.DisplayName} : {spokenLine}";
+        UpdateHud();
     }
 
     private void ReportLivingWorldTriggerDiagnostic(
