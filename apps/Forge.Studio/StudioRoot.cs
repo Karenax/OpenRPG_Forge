@@ -294,6 +294,9 @@ public sealed partial class StudioRoot : Control
         var ux1ADValid = !_smokeRequested || _shell.RunUx1ADSmoke();
         var ux1AEValid = !_smokeRequested || _shell.RunUx1AESmoke();
         var ux1AFValid = !_smokeRequested || _shell.RunUx1AFSmoke();
+        var ux1AGValid = !_smokeRequested || _shell.RunUx1AGSmoke();
+        var ux1AHValid = !_smokeRequested || _shell.RunUx1AHSmoke();
+        var ux1AIValid = !_smokeRequested || _shell.RunUx1AISmoke();
         var evidenceValid = _shell.PrepareEditingEvidence(_evidenceMode);
         GD.Print($"OPENRPG_FORGE_STUDIO_EVIDENCE_PREPARED valid={evidenceValid.ToString().ToLowerInvariant()}");
         for (var frame = 0; frame < 2; frame++)
@@ -317,7 +320,7 @@ public sealed partial class StudioRoot : Control
             !ux1IValid || !ux1JValid || !ux1KValid || !ux1LValid || !ux1MValid || !ux1NValid || !ux1OValid ||
             !ux1PValid || !ux1QValid || !ux1RValid || !ux1SValid || !ux1TValid || !ux1UValid || !ux1VValid ||
             !ux1WValid || !ux1XValid || !ux1YValid || !ux1ZValid || !ux1AAValid || !ux1ABValid || !ux1ACValid ||
-            !ux1ADValid || !ux1AEValid || !ux1AFValid ||
+            !ux1ADValid || !ux1AEValid || !ux1AFValid || !ux1AGValid || !ux1AHValid || !ux1AIValid ||
             !evidenceValid)
         {
             GD.PrintErr(
@@ -332,7 +335,7 @@ public sealed partial class StudioRoot : Control
                 $"ux1t={ux1TValid} ux1u={ux1UValid} ux1v={ux1VValid} ux1w={ux1WValid} " +
                 $"ux1x={ux1XValid} ux1y={ux1YValid} ux1z={ux1ZValid} ux1aa={ux1AAValid} " +
                 $"ux1ab={ux1ABValid} ux1ac={ux1ACValid} ux1ad={ux1ADValid} ux1ae={ux1AEValid} " +
-                $"ux1af={ux1AFValid} " +
+                $"ux1af={ux1AFValid} ux1ag={ux1AGValid} ux1ah={ux1AHValid} ux1ai={ux1AIValid} " +
                 $"evidence={evidenceValid}");
             GetTree().Quit(1);
             return;

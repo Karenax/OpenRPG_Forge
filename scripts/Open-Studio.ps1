@@ -48,7 +48,10 @@ param(
         'ux1-ac', 'ux1-ac-trigger-advanced', 'ux1-ac-filter', 'ux1-ac-volumes', 'ux1-ac-occupation',
         'ux1-ad', 'ux1-ad-reactions', 'ux1-ad-references', 'ux1-ad-assembly',
         'ux1-ae', 'ux1-ae-discovery-access',
-        'ux1-af', 'ux1-af-assisted-area-plan', 'ux1-af-area-build')]
+        'ux1-af', 'ux1-af-assisted-area-plan', 'ux1-af-area-build',
+        'ux1-ag', 'ux1-ag-lock', 'ux1-ag-refusal-trap', 'ux1-ag-events',
+        'ux1-ah', 'ux1-ah-trigger-automation-director',
+        'ux1-ai', 'ux1-ai-trigger-validation')]
     [string]$Evidence,
     [string]$Resolution,
     [switch]$Headless,

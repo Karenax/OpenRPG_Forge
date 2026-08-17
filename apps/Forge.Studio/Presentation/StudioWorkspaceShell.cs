@@ -177,6 +177,9 @@ internal sealed partial class StudioWorkspaceShell : Control
         BuildUx1ADActions(headingRow);
         BuildUx1AEActions(headingRow);
         BuildUx1AFActions(headingRow);
+        BuildUx1AGActions(headingRow);
+        BuildUx1AHActions(headingRow);
+        BuildUx1AIActions(headingRow);
         _primaryAction = StudioStyle.Button("Migration en cours", primary: true, compact: true);
         _primaryAction.Disabled = true;
         _primaryAction.TooltipText = "Cette action sera activée seulement après son branchement transactionnel et ses tests.";
@@ -296,6 +299,9 @@ internal sealed partial class StudioWorkspaceShell : Control
         InitializeUx1ADOverlay();
         InitializeUx1AEOverlay();
         InitializeUx1AFWorkspace();
+        InitializeUx1AGOverlay();
+        InitializeUx1AHOverlay();
+        InitializeUx1AIOverlay();
         if (_session.ActiveArea is null)
         {
             WorldViewport.ShowNoArea(_session);
@@ -493,6 +499,18 @@ internal sealed partial class StudioWorkspaceShell : Control
         if (mode.StartsWith("ux1-af", StringComparison.OrdinalIgnoreCase))
         {
             return PrepareUx1AFEvidence(mode);
+        }
+        if (mode.StartsWith("ux1-ag", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx1AGEvidence(mode);
+        }
+        if (mode.StartsWith("ux1-ah", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx1AHEvidence(mode);
+        }
+        if (mode.StartsWith("ux1-ai", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx1AIEvidence(mode);
         }
         if (mode.StartsWith("ux1-a", StringComparison.OrdinalIgnoreCase))
         {
@@ -894,6 +912,9 @@ internal sealed partial class StudioWorkspaceShell : Control
         CloseUx1ADOverlay();
         CloseUx1AEOverlay();
         CloseUx1AFWorkspace();
+        CloseUx1AGOverlay();
+        CloseUx1AHOverlay();
+        CloseUx1AIOverlay();
         var page = ResolvePage(pageId, SectionId);
         var section = StudioPageCatalog.SectionForPage(page.Id);
         SectionId = section.Id;
@@ -951,6 +972,9 @@ internal sealed partial class StudioWorkspaceShell : Control
         UpdateUx1ADActionState();
         UpdateUx1AEActionState();
         UpdateUx1AFActionState();
+        UpdateUx1AGActionState();
+        UpdateUx1AHActionState();
+        UpdateUx1AIActionState();
 
         var usesWorld = !isAssetLibrary && !isProjectConfiguration && !isDiagnostics &&
                         page.Layout != StudioPageLayout.Specialized;

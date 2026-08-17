@@ -364,6 +364,8 @@ internal sealed partial class StudioSessionController
         _approvedTriggerAutomationDirectorRevisionUx1AH = null;
     }
 
+    private void CloseUx1AH() => CancelTriggerAutomationDirectorUx1AH();
+
     private bool TryBuildTriggerAutomationDirectorUx1AH(
         StudioTriggerAutomationDirectorDraft draft,
         bool dryRun,
