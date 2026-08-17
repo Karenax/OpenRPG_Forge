@@ -790,6 +790,48 @@ Le jalon intégré UX1-AD/AE/AF a ensuite passé `scripts/Verify.ps1` dans son i
 60 404 relations sans diagnostic, puis smokes Studio, Runtime, Forward+, MCP et réseau. Les dix
 routes ne sont promues qu'après ce verdict transversal.
 
+## Cinquième et dernier train UX1 livré : UX1-AG, UX1-AH, UX1-AI et UX1-AJ
+
+Le dernier train UX1 a livré dix routes supplémentaires le 17 août 2026. La matrice compte désormais
+113 routes `functional` et 604 `planned`, et la vague UX1 est close à 71/71. Les quatre lots ont
+conservé leurs surfaces dédiées, tandis que l'intégration des hooks, les validations .NET
+séquentielles, les preuves et la promotion sont restées sérialisées.
+
+### UX1-AG — Accès et événements de porte
+
+`ORF-DOOR-004`, `ORF-DOOR-005`, `ORF-DOOR-006`, `ORF-DOOR-012` et `ORF-DOOR-013` sont
+`functional`. Verrou/clé, refus, piège et événements terminaux partagent le profil canonique. Un
+scaffold PortalUse interne satisfait uniquement l'agrégat neuf et ne promeut pas `ORF-DOOR-011`.
+Le portail passe 18/18 en 75,98 s ; preuves et limites sont liées à
+`docs/acceptance/STUDIO_UX1_AG.md`.
+
+### UX1-AH — Automatisation du trigger
+
+`ORF-TRG-009`, `ORF-TRG-010` et `ORF-TRG-018` sont `functional`. Heartbeat, namespace personnalisé
+et contrôle MJ audité restent une politique bornée : aucun timer ni dispatch Live Director n'est
+simulé. Le portail passe 6/6 en 69,34 s ; preuves et limites sont liées à
+`docs/acceptance/STUDIO_UX1_AH.md`.
+
+### UX1-AI — Validation canonique du trigger
+
+`ORF-TRG-020` est `functional`. Le contexte de cibles, scripts, destinations et couches est optionnel
+ou requis ; les UUID de destination sont projetés en choix humains et les références héritées
+inconnues restent masquées, protégées et préservées. Le portail passe 6/6 en 64,99 s ; preuves et
+limites sont liées à `docs/acceptance/STUDIO_UX1_AI.md`.
+
+### UX1-AJ — Validation canonique de porte
+
+`ORF-DOOR-021` est `functional`. Le même verdict canonique contrôle Studio, commande, MCP et
+prébuild sur destinations, animations, collisions, credentials, scripts et liens. Foundation et
+Navigation restent des prérequis non édités ; `ORF-DOOR-019` n'est pas promu. Le portail passe 18/18
+en 82,17 s ; preuves et limites sont liées à `docs/acceptance/STUDIO_UX1_AJ.md`.
+
+Les quatre surfaces ont des captures Forward+ FHD réelles et une revue corrective QHD/4K. Le jalon
+intégré a ensuite passé `scripts/Verify.ps1` dans son intégralité : 1 988 tests .NET, 39 tests Python,
+builds sans avertissement, graphe Roslyn déterministe à 9 132 nœuds et 61 393 relations sans
+diagnostic, puis smokes Studio, Toolset, Runtime, Forward+, MCP, réseau et sauvegarde. Ce verdict
+transversal clôt la promotion des dix routes et la vague UX1.
+
 ## Gates ergonomiques avant parité
 
 Une page ne passe pas `Parity` si l’un des points suivants manque :

@@ -911,7 +911,7 @@ internal sealed partial class StudioSessionController
             var shell = new ProjectDefinition(
                 ProjectId.From(Guid.Parse("a1100000-0000-4000-8000-000000000005")),
                 "Studio UX1-AI",
-                [targetBlueprint, neighborBlueprint, foundationlessBlueprint, ..narrativeProject.Blueprints],
+                [targetBlueprint, neighborBlueprint, foundationlessBlueprint, .. narrativeProject.Blueprints],
                 [area]);
             var targetProfile = CreateUx1AISmokeTrigger(
                 targetBlueprint.Id,
@@ -1102,7 +1102,7 @@ internal sealed partial class StudioSessionController
                 ? reopened.Project!.Module.WorldFeatures.Triggers.Single(item => item.Id == neighborProfile.Id)
                 : null;
             var persistence = persistedTarget is
-                              { Foundation: { Validation: { } persistedValidation } persistedFoundation } &&
+            { Foundation: { Validation: { } persistedValidation } persistedFoundation } &&
                               SameValidationUx1AI(freshDraft, persistedValidation) &&
                               persistedFoundation.ValidationRequiredAtRuntime &&
                               SameTriggerUx1AI(appliedTarget, persistedTarget) &&

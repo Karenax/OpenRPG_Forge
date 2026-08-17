@@ -19538,80 +19538,123 @@ public partial class ForgeEditorPlugin : EditorPlugin
             { Experience = null, ExperienceRequiredAtRuntime = true });
             var scripts = WorldFeatureRuntimeResolver.ResolveScript(catalog.Scripts, "door.ash", "opened",
                 cameraSequence: true);
-            if (!placeableAccess.Allowed || !placeableFoundation.Available ||
-                placeableFoundation.SnappedTransform?.Position != new Vector3Value(1.25f, 0, -2.5f) ||
-                !placeableFoundation.Overlay.Contains("pivot=0,0.5,0", StringComparison.Ordinal) ||
-                missingRequiredPlaceable.DiagnosticCode != "WORLD_PLACEABLE_FOUNDATION_REQUIRED_MISSING" ||
-                placeableUse.EventBinding != "InteractionExecuted" || placeableUse.ActorId != "smoke-player" ||
-                placeableUse.TargetPoint != new Vector3Value(1, 0, 2) || placeableUse.Result != "success" ||
-                missingOnUsedDiagnostic != "WORLD_PLACEABLE_ON_USED_REQUIRED_MISSING" ||
-                placeableHandle.Properties["foundation"] != bool.TrueString ||
-                placeableHandle.Properties["role"] != "interactable" ||
-                placeableHandle.Properties["onUsed"] != bool.TrueString ||
-                placeableHandle.Properties["validation"] != bool.TrueString || !doorDamage.Breached || !doorInteraction.Accepted ||
-                doorInteraction.CurrentState != "opening" || catalog.Doors[0].Foundation?.States.Count != 9 ||
-                catalog.Doors[0].Foundation?.Links.Count != 0 || !doorNavigationClosed.ObstacleEnabled ||
-                doorNavigationClosed.LinkEnabled || doorNavigationOpen.ObstacleEnabled || !doorNavigationOpen.LinkEnabled ||
-                !doorNavigationClosed.Visualization.Contains("blocked", StringComparison.Ordinal) ||
-                !trigger.Fired || !encounter.Spawn || !encounterActivation.Activated ||
-                catalog.Encounters[0].Foundation?.Candidates.Count != 1 ||
-                !route.AtStop || !merchant.Accepted || !merchantResolution.Available || merchantTrade?.Committed != true ||
-                missingRequiredMerchant.DiagnosticCode != "WORLD_MERCHANT_TRANSACTIONS_REQUIRED_MISSING" ||
-                merchantHandle.Properties["transactions"] != bool.TrueString || merchantHandle.Properties["stock"] != "1" ||
-                !companion.DirectControl || scripts.ScriptId is null ||
-                !scripts.CameraControlLocked || !companionValidation.Available || !companionValidation.DestinationAllowed ||
-                missingRequiredValidation.Diagnostics.All(item => item.Code != "world.companion.validation_required") ||
-                companionHandle.Properties["validation"] != bool.TrueString ||
-                companionHandle.Properties["commands"] != "12" ||
-                companionHandle.Properties["foundation"] != bool.TrueString ||
-                companionHandle.Properties["preRecruitmentContext"] != "not-recruited" ||
-                companionHandle.Properties["ownerContext"] != "recruited-by-speaker" ||
-                companionHandle.Properties["companionSlots"] != "3" ||
-                !companionRecruitPreview.Result.Committed || !companionRecruitApply.Result.Committed ||
-                companionRecruitPreview.TransactionId != companionRecruitApply.TransactionId ||
-                !companionDismiss.Result.Committed || !optionalCompanionFoundation.OptionalFallback ||
-                requiredCompanionFoundation.Diagnostics.All(item =>
-                    item.Code != "RPG_COMPANION_FOUNDATION_REQUIRED") || companionPartyDiagnostics.Count != 0 ||
-                companionHandle.Properties["control"] != bool.TrueString ||
-                companionHandle.Properties["controlOwnership"] != "individual" ||
-                companionHandle.Properties["movementCommands"] != "6" ||
-                companionHandle.Properties["tacticalCommands"] != "6" ||
-                companionHandle.Properties["aiRole"] != "Support" ||
-                companionHandle.Properties["equipmentPermission"] != "full" ||
-                ownershipPreview.PlanId != ownershipApply.PlanId ||
-                ownershipPreview.TransactionId != ownershipApply.TransactionId ||
-                ownershipApply.Current.Kind != CompanionOwnershipKind.Party || !movementOrder.Accepted ||
-                !tacticalOrder.Accepted || !equipmentChange.Accepted || deniedEquipment.Accepted ||
-                CompanionControlService.ValidateAi(CompanionControlFoundationService.CreateAi(companionProfile))
-                    .Count != 0 || !optionalCompanionControl.OptionalFallback ||
-                requiredCompanionControl.Diagnostics.All(item => item.Code != "RPG_COMPANION_CONTROL_REQUIRED") ||
-                companionExperience.Profile is null || deathTransitions.Length != 6 ||
-                !deathTransitions[0].State.Downed || deathTransitions[1].EventName != "CompanionPermanentlyDied" ||
-                !deathTransitions[2].State.CorpseAvailable ||
-                !deathTransitions[3].Effects.Contains("requires:resource:ember", StringComparer.Ordinal) ||
-                deathTransitions[4].State.ReplacementId != "creature:elyra-heir" ||
-                !deathTransitions[5].State.Memorialized ||
-                navigationRecovery.Kind != CohesionRecoveryKind.Navigate ||
-                portalRecovery.Kind != CohesionRecoveryKind.FollowPortal ||
-                teleportRecovery.Kind != CohesionRecoveryKind.SafeTeleport ||
-                blockedRecovery.Kind != CohesionRecoveryKind.None ||
-                partyHud is not
-                {
-                    Portraits: true, Health: true, Resources: true, Statuses: true,
-                    QuickCommands: true, Reorder: true, Keyboard: true, Gamepad: true,
-                    ScreenReaderLabels: true, HighContrast: true
-                } ||
-                CompanionExperienceFoundationService.Validate(companionProfile).Count != 0 ||
-                !optionalCompanionExperience.OptionalFallback ||
-                requiredCompanionExperience.Diagnostics.All(item =>
-                    item.Code != "RPG_COMPANION_EXPERIENCE_REQUIRED") ||
-                companionHandle.Properties["experience"] != bool.TrueString ||
-                companionHandle.Properties["deathMode"] != "recoverable-corpse" ||
-                companionHandle.Properties["cohesionThresholds"] != "10,30,60" ||
-                companionHandle.Properties["partyHudInputs"] != "keyboard-gamepad" ||
-                companionHandle.Properties["partyHudAccessibility"] != "screen-reader-high-contrast")
+            var placeableRuntimeValid = placeableAccess.Allowed && placeableFoundation.Available &&
+                                        placeableFoundation.SnappedTransform?.Position ==
+                                        new Vector3Value(1.25f, 0, -2.5f) &&
+                                        placeableFoundation.Overlay.Contains("pivot=0,0.5,0", StringComparison.Ordinal) &&
+                                        missingRequiredPlaceable.DiagnosticCode ==
+                                        "WORLD_PLACEABLE_FOUNDATION_REQUIRED_MISSING" &&
+                                        placeableUse.EventBinding == "InteractionExecuted" &&
+                                        placeableUse.ActorId == "smoke-player" &&
+                                        placeableUse.TargetPoint == new Vector3Value(1, 0, 2) &&
+                                        placeableUse.Result == "success" &&
+                                        missingOnUsedDiagnostic == "WORLD_PLACEABLE_ON_USED_REQUIRED_MISSING" &&
+                                        placeableHandle.Properties["foundation"] == bool.TrueString &&
+                                        placeableHandle.Properties["role"] == "interactable" &&
+                                        placeableHandle.Properties["onUsed"] == bool.TrueString &&
+                                        placeableHandle.Properties["validation"] == bool.TrueString;
+            var doorRuntimeValid = doorDamage.Breached && doorInteraction.Accepted &&
+                                   doorInteraction.CurrentState == "opening" &&
+                                   catalog.Doors[0].Foundation?.States.Count == 9 &&
+                                   catalog.Doors[0].Foundation?.Links.Count == 0 &&
+                                   doorNavigationClosed.ObstacleEnabled && !doorNavigationClosed.LinkEnabled &&
+                                   !doorNavigationOpen.ObstacleEnabled && doorNavigationOpen.LinkEnabled &&
+                                   doorNavigationClosed.Visualization.Contains("blocked", StringComparison.Ordinal);
+            var worldRuntimeValid = trigger.Fired && encounter.Spawn && encounterActivation.Activated &&
+                                    catalog.Encounters[0].Foundation?.Candidates.Count == 1 && route.AtStop &&
+                                    merchant.Accepted && merchantResolution.Available && merchantTrade?.Committed == true &&
+                                    missingRequiredMerchant.DiagnosticCode ==
+                                    "WORLD_MERCHANT_TRANSACTIONS_REQUIRED_MISSING" &&
+                                    merchantHandle.Properties["transactions"] == bool.TrueString &&
+                                    merchantHandle.Properties["stock"] == "1" && scripts.ScriptId is not null &&
+                                    scripts.CameraControlLocked;
+            var companionRuntimeValid = companion.DirectControl && companionValidation.Available &&
+                                        companionValidation.DestinationAllowed &&
+                                        missingRequiredValidation.Diagnostics.Any(item =>
+                                            item.Code == "world.companion.validation_required") &&
+                                        companionHandle.Properties["validation"] == bool.TrueString &&
+                                        companionHandle.Properties["commands"] == "12";
+            var companionFoundationValid = companionHandle.Properties["foundation"] == bool.TrueString &&
+                                           companionHandle.Properties["preRecruitmentContext"] == "not-recruited" &&
+                                           companionHandle.Properties["ownerContext"] == "recruited-by-speaker" &&
+                                           companionHandle.Properties["companionSlots"] == "3" &&
+                                           companionRecruitPreview.Result.Committed &&
+                                           companionRecruitApply.Result.Committed &&
+                                           companionRecruitPreview.TransactionId == companionRecruitApply.TransactionId &&
+                                           companionDismiss.Result.Committed &&
+                                           optionalCompanionFoundation.OptionalFallback &&
+                                           requiredCompanionFoundation.Diagnostics.Any(item =>
+                                               item.Code == "RPG_COMPANION_FOUNDATION_REQUIRED") &&
+                                           companionPartyDiagnostics.Count == 0;
+            var companionControlValid = companionHandle.Properties["control"] == bool.TrueString &&
+                                        companionHandle.Properties["controlOwnership"] == "individual" &&
+                                        companionHandle.Properties["movementCommands"] == "6" &&
+                                        companionHandle.Properties["tacticalCommands"] == "6" &&
+                                        companionHandle.Properties["aiRole"] == "Support" &&
+                                        companionHandle.Properties["equipmentPermission"] == "full" &&
+                                        ownershipPreview.PlanId == ownershipApply.PlanId &&
+                                        ownershipPreview.TransactionId == ownershipApply.TransactionId &&
+                                        ownershipApply.Current.Kind == CompanionOwnershipKind.Party &&
+                                        movementOrder.Accepted && tacticalOrder.Accepted && equipmentChange.Accepted &&
+                                        !deniedEquipment.Accepted &&
+                                        CompanionControlService.ValidateAi(
+                                            CompanionControlFoundationService.CreateAi(companionProfile)).Count == 0 &&
+                                        optionalCompanionControl.OptionalFallback &&
+                                        requiredCompanionControl.Diagnostics.Any(item =>
+                                            item.Code == "RPG_COMPANION_CONTROL_REQUIRED");
+            var companionExperienceValid = companionExperience.Profile is not null && deathTransitions.Length == 6 &&
+                                           deathTransitions[0].State.Downed &&
+                                           deathTransitions[1].EventName == "CompanionPermanentlyDied" &&
+                                           deathTransitions[2].State.CorpseAvailable &&
+                                           deathTransitions[3].Effects.Contains(
+                                               "requires:resource:ember", StringComparer.Ordinal) &&
+                                           deathTransitions[4].State.ReplacementId == "creature:elyra-heir" &&
+                                           deathTransitions[5].State.Memorialized &&
+                                           navigationRecovery.Kind == CohesionRecoveryKind.Navigate &&
+                                           portalRecovery.Kind == CohesionRecoveryKind.FollowPortal &&
+                                           teleportRecovery.Kind == CohesionRecoveryKind.SafeTeleport &&
+                                           blockedRecovery.Kind == CohesionRecoveryKind.None &&
+                                           partyHud is
+                                           {
+                                               Portraits: true, Health: true, Resources: true, Statuses: true,
+                                               QuickCommands: true, Reorder: true, Keyboard: true, Gamepad: true,
+                                               ScreenReaderLabels: true, HighContrast: true
+                                           } &&
+                                           CompanionExperienceFoundationService.Validate(companionProfile).Count == 0 &&
+                                           optionalCompanionExperience.OptionalFallback &&
+                                           requiredCompanionExperience.Diagnostics.Any(item =>
+                                               item.Code == "RPG_COMPANION_EXPERIENCE_REQUIRED") &&
+                                           companionHandle.Properties["experience"] == bool.TrueString &&
+                                           companionHandle.Properties["deathMode"] == "recoverable-corpse" &&
+                                           companionHandle.Properties["cohesionThresholds"] == "10,30,60" &&
+                                           companionHandle.Properties["partyHudInputs"] == "keyboard-gamepad" &&
+                                           companionHandle.Properties["partyHudAccessibility"] ==
+                                           "screen-reader-high-contrast";
+            if (!placeableRuntimeValid || !doorRuntimeValid || !worldRuntimeValid || !companionRuntimeValid ||
+                !companionFoundationValid || !companionControlValid || !companionExperienceValid)
             {
-                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13N_AB_WORLD_FEATURES_FAILED runtime_resolution");
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13N_AB_WORLD_FEATURES_FAILED runtime_resolution " +
+                            $"placeable={placeableRuntimeValid.ToString().ToLowerInvariant()} " +
+                            $"door={doorRuntimeValid.ToString().ToLowerInvariant()} " +
+                            $"world={worldRuntimeValid.ToString().ToLowerInvariant()} " +
+                            $"companion={companionRuntimeValid.ToString().ToLowerInvariant()} " +
+                            $"foundation={companionFoundationValid.ToString().ToLowerInvariant()} " +
+                            $"control={companionControlValid.ToString().ToLowerInvariant()} " +
+                            $"experience={companionExperienceValid.ToString().ToLowerInvariant()}");
+                if (!doorRuntimeValid)
+                {
+                    GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13N_AB_WORLD_FEATURES_DOOR_DIAGNOSTIC " +
+                                $"breached={doorDamage.Breached.ToString().ToLowerInvariant()} " +
+                                $"accepted={doorInteraction.Accepted.ToString().ToLowerInvariant()} " +
+                                $"state={doorInteraction.CurrentState} " +
+                                $"states={catalog.Doors[0].Foundation?.States.Count ?? -1} " +
+                                $"links={catalog.Doors[0].Foundation?.Links.Count ?? -1} " +
+                                $"closed_obstacle={doorNavigationClosed.ObstacleEnabled.ToString().ToLowerInvariant()} " +
+                                $"closed_link={doorNavigationClosed.LinkEnabled.ToString().ToLowerInvariant()} " +
+                                $"open_obstacle={doorNavigationOpen.ObstacleEnabled.ToString().ToLowerInvariant()} " +
+                                $"open_link={doorNavigationOpen.LinkEnabled.ToString().ToLowerInvariant()} " +
+                                $"closed_visualization={doorNavigationClosed.Visualization}");
+                }
                 return false;
             }
 

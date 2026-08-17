@@ -484,18 +484,18 @@ internal sealed partial class StudioSessionController
 
             var builtAccess = builtProfile?.AccessEvents;
             var lockAndCredentials = builtProfile is not null && builtAccess is
-                                     {
-                                         Lock:
-                                         {
-                                             State: DoorAccessLockState.Locked,
-                                             SkillId: "mechanics",
-                                             Difficulty: 17,
-                                             Hackable: true,
-                                             Relockable: true,
-                                             CanJam: true,
-                                             ConsumeCredential: true,
-                                         },
-                                     } && builtAccess.Lock.CredentialIds.SequenceEqual(draft.CredentialIds) &&
+            {
+                Lock:
+                {
+                    State: DoorAccessLockState.Locked,
+                    SkillId: "mechanics",
+                    Difficulty: 17,
+                    Hackable: true,
+                    Relockable: true,
+                    CanJam: true,
+                    ConsumeCredential: true,
+                },
+            } && builtAccess.Lock.CredentialIds.SequenceEqual(draft.CredentialIds) &&
                                      builtAccess.Lock.Permissions.SequenceEqual(draft.Permissions) &&
                                      PreviewDoorLockUx1AG(builtProfile, draft);
             var rejection = builtProfile is not null && builtAccess is not null &&
@@ -521,15 +521,15 @@ internal sealed partial class StudioSessionController
                                       builtAccess.StateEvents.ClosedBinding == "DoorClosed" &&
                                       PreviewDoorStateEventsUx1AG(builtProfile);
             var terminalLockEvents = builtProfile is not null && builtAccess is
-                                     {
-                                         LockStateEvents:
-                                         {
-                                             ForgeScriptApiVersion: "1.1.0",
-                                             LockedBinding: "DoorLocked",
-                                             UnlockedBinding: "DoorUnlocked",
-                                         },
-                                         LockStateEventsRequiredAtRuntime: true,
-                                     } &&
+            {
+                LockStateEvents:
+                {
+                    ForgeScriptApiVersion: "1.1.0",
+                    LockedBinding: "DoorLocked",
+                    UnlockedBinding: "DoorUnlocked",
+                },
+                LockStateEventsRequiredAtRuntime: true,
+            } &&
                                      PreviewDoorLockEventsUx1AG(builtProfile, draft);
             var portalScaffoldPreserved = builtAccess is not null &&
                                           ReferenceEquals(loadedPortalScaffold, builtAccess.PortalUse);

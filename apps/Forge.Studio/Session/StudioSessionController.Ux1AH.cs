@@ -996,20 +996,20 @@ internal sealed partial class StudioSessionController
 
     private static StudioTriggerAutomationDirectorDraft CustomizeUx1AHSmokeDraft(
         StudioTriggerAutomationDirectorDraft draft) => draft with
-    {
-        SchedulerEnabled = true,
-        IntervalSeconds = 1.75,
-        BudgetPerMinute = 17,
-        WhileOccupiedOnly = true,
-        AggregateOccupants = true,
-        CustomEventNamespace = "trigger.sanctuary.round",
-        DirectorEnabled = true,
-        AllowManualEnter = true,
-        AllowManualExit = false,
-        AllowManualFire = true,
-        RequireTarget = true,
-        Audit = true,
-    };
+        {
+            SchedulerEnabled = true,
+            IntervalSeconds = 1.75,
+            BudgetPerMinute = 17,
+            WhileOccupiedOnly = true,
+            AggregateOccupants = true,
+            CustomEventNamespace = "trigger.sanctuary.round",
+            DirectorEnabled = true,
+            AllowManualEnter = true,
+            AllowManualExit = false,
+            AllowManualFire = true,
+            RequireTarget = true,
+            Audit = true,
+        };
 
     private static bool ApplyUx1AHIntermediateMutation(
         StudioSessionController editing,

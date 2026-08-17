@@ -456,34 +456,34 @@ internal sealed partial class StudioDoorAccessEventsOverlay : Control
         var appliedProfile = _session.Project?.Module.WorldFeatures.Doors.SingleOrDefault(profile =>
             profile.BlueprintId == blueprintId);
         var applied = appliedProfile?.AccessEvents is
-                      {
-                          Lock:
-                          {
-                              State: DoorAccessLockState.Locked,
-                              Difficulty: 16,
-                              ConsumeCredential: true,
-                          },
-                          Rejection:
-                          {
-                              SoundAssetId: "audio:transaction-ag-locked",
-                              ScriptId: "scripts/transaction-ag_rejected",
-                          },
-                          Trap:
-                          {
-                              PayloadId: "damage:transaction-ag-trap",
-                              Armed: true,
-                          },
-                          StateEvents:
-                          {
-                              OpenedBinding: "DoorOpened",
-                              ClosedBinding: "DoorClosed",
-                          },
-                          LockStateEvents:
-                          {
-                              LockedBinding: "DoorLocked",
-                              UnlockedBinding: "DoorUnlocked",
-                          },
-                      } && !_undo.Disabled;
+        {
+            Lock:
+            {
+                State: DoorAccessLockState.Locked,
+                Difficulty: 16,
+                ConsumeCredential: true,
+            },
+            Rejection:
+            {
+                SoundAssetId: "audio:transaction-ag-locked",
+                ScriptId: "scripts/transaction-ag_rejected",
+            },
+            Trap:
+            {
+                PayloadId: "damage:transaction-ag-trap",
+                Armed: true,
+            },
+            StateEvents:
+            {
+                OpenedBinding: "DoorOpened",
+                ClosedBinding: "DoorClosed",
+            },
+            LockStateEvents:
+            {
+                LockedBinding: "DoorLocked",
+                UnlockedBinding: "DoorUnlocked",
+            },
+        } && !_undo.Disabled;
         Undo();
         var undone = ReferenceEquals(originalProject, _session.Project) && _session.IsDirty == originalDirty &&
                      !_redo.Disabled;

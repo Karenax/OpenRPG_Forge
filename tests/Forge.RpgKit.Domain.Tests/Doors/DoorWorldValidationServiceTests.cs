@@ -161,9 +161,9 @@ public sealed class DoorWorldValidationServiceTests
             new(2, "both", 1, 2, 1, "server", 2, "door.unavailable"),
             new(DoorWorldProfile.DestinationKind.Waypoint, destinationId, "anchor:exit", 180, true,
                 ["portal.travel"]), [], new Dictionary<string, string>
-            {
-                [DoorWorldProfile.CollisionProfileOverrideKey] = "collision:ash-gate",
-            },
+                {
+                    [DoorWorldProfile.CollisionProfileOverrideKey] = "collision:ash-gate",
+                },
             new("nav-obstacle:ash-gate", "nav-link:ash-gate", ["closed"], ["open"], .75, .25, true));
         var validation = new DoorWorldProfile.RuntimeValidationPolicy([destinationId],
             ["animation:open", "animation:closed", "animation:opening", "animation:rattle"],

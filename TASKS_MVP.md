@@ -244,12 +244,16 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
   de plan de zone, avec confidentialité, provenance, historiques séparés et preuve hors ligne.
 - [x] Clôturer le jalon UX1-AD/AE/AF par 26/26 tests ciblés, trois portails incrémentaux, les preuves
   Forward+ FHD/QHD/4K, la matrice régénérée et le portail transversal complet.
-- [ ] Réaliser UX1-AG sur `ORF-DOOR-004`, `ORF-DOOR-005`, `ORF-DOOR-006`, `ORF-DOOR-012` et
+- [x] Réaliser UX1-AG sur `ORF-DOOR-004`, `ORF-DOOR-005`, `ORF-DOOR-006`, `ORF-DOOR-012` et
   `ORF-DOOR-013` : accès, refus, piège et événements d'état/verrou, sans promouvoir le portail UX2.
-- [ ] Réaliser UX1-AH sur `ORF-TRG-009`, `ORF-TRG-010` et `ORF-TRG-018` : automatisation,
+- [x] Réaliser UX1-AH sur `ORF-TRG-009`, `ORF-TRG-010` et `ORF-TRG-018` : automatisation,
   événement personnalisé et contrôle MJ, avec politique runtime honnête.
-- [ ] Réaliser UX1-AI sur `ORF-DOOR-021` et `ORF-TRG-020` : diagnostics de validation canoniques,
-  sans dupliquer les validateurs runtime dans le Studio.
+- [x] Réaliser UX1-AI sur `ORF-TRG-020` : diagnostics de validation canoniques du trigger, sans
+  dupliquer le validateur runtime dans le Studio.
+- [x] Réaliser UX1-AJ sur `ORF-DOOR-021` : contexte persistant et validation canonique de porte dans
+  le Studio, la commande projet, MCP et le prébuild, sans promouvoir la navigation UX2.
+- [x] Clôturer UX1 à 71/71 par quatre portails incrémentaux, les preuves Forward+ FHD/QHD/4K, la
+  matrice régénérée et le portail transversal complet.
 - [ ] Achever la tranche Monde : terrain, navigation, puis activer **Tester ici** sur
   snapshot isolé.
 - [ ] Migrer Contenu, Histoire, Gameplay, Tester, Publier, Projet et Assistant page par page, en

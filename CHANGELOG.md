@@ -7,6 +7,26 @@ SemVer ; les versions de schéma persistent séparément dans leurs documents.
 
 ### Changed
 
+- Forge Studio UX1-AJ : validation canonique de porte sur cinq catalogues de références, collision
+  authorée distincte, diagnostics de liens, suggestions humaines et garde commune commande/MCP/
+  prébuild, avec preuve isolée et contrôles Forward+ FHD/QHD/4K ;
+- Forge Studio UX1-AI : contexte de validation du trigger optionnel ou requis, destinations humaines
+  protégées, diagnostics canoniques groupés, dry-run, undo/redo, round-trip et preuves FHD/QHD/4K ;
+- Forge Studio UX1-AH : heartbeat, événement personnalisé et contrôle MJ audité, avec valeurs hors
+  bornes refusées, aucune prétention de dispatch Live Director et preuves isolées FHD/QHD/4K ;
+- Forge Studio UX1-AG : accès, refus, piège et événements terminaux des portes, avec scaffold
+  PortalUse interne non promu, préservation stricte, commande canonique et preuves FHD/QHD/4K ;
+- schémas projet `0.6.37` et workspace `1.29.0`, compatibles en lecture avec `0.6.36` et `1.28.0`,
+  pour la politique optionnelle de validation runtime Door ;
+- matrice d'accès humain Studio portée à 113 routes `functional` et 604 `planned` ; la vague UX1 est
+  close à 71/71 après preuves individuelles des dix routes UX1-AG/AH/AI/AJ ;
+- jalon UX1-AG/AH/AI/AJ validé par 48/48 tests ciblés, quatre smokes et portails incrémentaux en
+  75,98 s, 69,34 s, 64,99 s et 82,17 s, puis par le portail transversal complet : 1 988 tests .NET,
+  39 tests Python, builds sans avertissement, graphe Roslyn à 9 132 nœuds et 61 393 relations,
+  smokes Studio, Toolset, Runtime, Forward+, MCP et réseau ;
+- parcours d'authoring et smoke Toolset G13-N alignés sur la validation Door canonique : ils ne
+  fabriquent plus un lien orphelin vers une destination de portail et rapportent désormais des
+  sous-verdicts runtime nommés ;
 - Forge Studio UX1-AF : création gouvernée de plan de zone puis construction assistée, avec
   confidentialité/provenance, deux historiques séparés, doubles gardes de révision, réponses
   asynchrones périmées bloquées, preuve hors ligne isolée et contrôles Forward+ FHD/QHD/4K ;

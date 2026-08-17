@@ -37,8 +37,9 @@ encore qualifiées. Aucun de ces états ne doit être confondu avec une release 
 - parcours produit automatisé : projet, zones, assets, contenu RPG, narration, validation, playtest,
   export et Assistant gouverné ;
 - matrice et procédure d'acceptation de bout en bout sous `docs/acceptance/`.
-- matrice d’accès humain Studio : 717 routes uniques, dont 103 `functional` avec preuve spécifique
-  pour UX0-A à UX1-AF et 614 `planned` ; cette matrice ne réutilise pas le statut `Tested` de l’ancien Creator.
+- matrice d’accès humain Studio : 717 routes uniques, dont 113 `functional` avec preuve spécifique
+  pour UX0-A à UX1-AJ et 604 `planned` ; les 71/71 routes UX1 sont fonctionnelles et cette matrice
+  ne réutilise pas le statut `Tested` de l’ancien Creator.
 - premier train parallèle contrôlé livré : UX1-V et UX1-W ont été développés dans des worktrees et
   fichiers distincts, audités avant intégration, puis construits, testés, fumés et capturés
   séquentiellement ; six routes seulement ont été promues sur preuve réelle.
@@ -51,9 +52,13 @@ encore qualifiées. Aucun de ces états ne doit être confondu avec une release 
 - quatrième train parallèle contrôlé livré : UX1-AD, UX1-AE et UX1-AF ont isolé réactions/assemblage
   Door, découverte/accès Trigger et plans de zone assistés ; dix routes ont franchi 26/26 tests
   ciblés, trois portails incrémentaux, les revues Forward+ FHD/QHD/4K et le portail complet.
-- portail local courant réussi avec 1 980 tests .NET, 39 tests Python, des builds sans avertissement
-  et le graphe Roslyn courant déterministe à 9 062 nœuds, 60 404 relations et 0 diagnostic ; les
-  smokes Studio, Runtime, Forward+, MCP et réseau ont également réussi.
+- cinquième et dernier train UX1 livré : UX1-AG, UX1-AH, UX1-AI et UX1-AJ ont isolé accès/événements
+  Door, automatisation Trigger et les deux validations canoniques ; dix routes ont franchi 48/48
+  tests ciblés, quatre portails incrémentaux en 75,98 s, 69,34 s, 64,99 s et 82,17 s, les revues
+  Forward+ FHD/QHD/4K et le portail complet. La vague UX1 est close à 71/71.
+- portail local courant réussi avec 1 988 tests .NET, 39 tests Python, des builds sans avertissement
+  et le graphe Roslyn courant déterministe à 9 132 nœuds, 61 393 relations et 0 diagnostic ; les
+  smokes Studio, Toolset, Runtime, Forward+, MCP et réseau ont également réussi.
 
 Ces nombres prouvent la présence et la non-régression des capacités. Ils ne remplacent pas une
 qualification humaine de release publique.
@@ -245,6 +250,18 @@ qualification humaine de release publique.
 - UX1-AF qualifié pour `ORF-AI-014` et `ORF-AI-015` : document de plan puis construction de zone,
   avec confidentialité/provenance, deux historiques, double dry-run, preuve hors ligne isolée,
   portail 17/17 en 75,68 s et preuves FHD/QHD/4K ;
+- UX1-AG qualifié pour `ORF-DOOR-004`, `ORF-DOOR-005`, `ORF-DOOR-006`, `ORF-DOOR-012` et
+  `ORF-DOOR-013` : verrou/clé, refus, piège et événements terminaux, avec scaffold PortalUse interne
+  non promu, préservation stricte, portail 18/18 en 75,98 s et preuves FHD/QHD/4K ;
+- UX1-AH qualifié pour `ORF-TRG-009`, `ORF-TRG-010` et `ORF-TRG-018` : heartbeat, événement
+  personnalisé et contrôle MJ audité, avec preuve isolée et sans dispatch Live Director réel,
+  portail 6/6 en 69,34 s et preuves FHD/QHD/4K ;
+- UX1-AI qualifié pour `ORF-TRG-020` : contexte et diagnostics canoniques du trigger, état optionnel
+  ou requis et références humaines protégées, sans duplication du validateur, portail 6/6 en
+  64,99 s et preuves FHD/QHD/4K ;
+- UX1-AJ qualifié pour `ORF-DOOR-021` : Foundation/Navigation requises, cinq catalogues connus,
+  collision authorée distincte, liens orphelins/inverses et garde canonique commande/MCP/prébuild,
+  sans promouvoir `ORF-DOOR-019`, portail 18/18 en 82,17 s et preuves FHD/QHD/4K ;
 - densité native compacte à partir du Full HD : base typographique 12 px, barre 48 px, rail 72 px,
   palette 188 px et inspecteur 280/360 px afin de rendre la vue 3D prioritaire en Full HD et QHD ;
 - retouche d'instance directe : gizmo X/Y/Z dans la 3D, déplacement avec pas fin, clic droit intégré,
@@ -264,7 +281,7 @@ qualification humaine de release publique.
   qualification FHD/QHD/4K. Les événements d’ouverture/fermeture UX1-T et de
   verrouillage/déverrouillage UX1-U, de cycle de vie UX1-V, de zones dynamiques UX1-W, de portes
   UX1-X et de réactions/physique UX1-Z disposent de leur preuve FHD réelle ; leurs revues QHD/4K sont
-  réservées à un jalon ultérieur. UX1-AA à UX1-AF disposent de preuves FHD/QHD/4K inspectées aux
+  réservées à un jalon ultérieur. UX1-AA à UX1-AJ disposent de preuves FHD/QHD/4K inspectées aux
   jalons de leurs nouveaux layouts.
   La fondation polygonale UX1-Y possède déjà ses preuves FHD/QHD/4K après la correction de layout.
   La revue 4K des autres pages reste à qualifier ;
