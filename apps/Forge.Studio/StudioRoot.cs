@@ -298,9 +298,35 @@ public sealed partial class StudioRoot : Control
         var ux1AHValid = !_smokeRequested || _shell.RunUx1AHSmoke();
         var ux1AIValid = !_smokeRequested || _shell.RunUx1AISmoke();
         var ux1AJValid = !_smokeRequested || _shell.RunUx1AJSmoke();
-        var ux2AValid = !_smokeRequested || _shell.RunUx2ASmoke();
-        var ux4AValid = !_smokeRequested || _shell.RunUx4ASmoke();
-        var ux5AValid = !_smokeRequested || _shell.RunUx5ASmoke();
+        var ux2AValid = true;
+        var ux4AValid = true;
+        var ux5AValid = true;
+        var candidateApprovalsValid = true;
+        if (_smokeRequested)
+        {
+            var ux2AApproval = _session.CaptureAreaPolicyApprovalUx2A();
+            var ux4AApproval = _session.CaptureFactionApprovalUx4A();
+            var ux5AApproval = _session.CaptureDialogueApprovalUx5A();
+            try
+            {
+                ux2AValid = _shell.RunUx2ASmoke();
+                ux4AValid = _shell.RunUx4ASmoke();
+                ux5AValid = _shell.RunUx5ASmoke();
+            }
+            finally
+            {
+                _session.RestoreAreaPolicyApprovalUx2A(ux2AApproval);
+                _session.RestoreFactionApprovalUx4A(ux4AApproval);
+                _session.RestoreDialogueApprovalUx5A(ux5AApproval);
+            }
+            candidateApprovalsValid =
+                Equals(_session.CaptureAreaPolicyApprovalUx2A(), ux2AApproval) &&
+                Equals(_session.CaptureFactionApprovalUx4A(), ux4AApproval) &&
+                Equals(_session.CaptureDialogueApprovalUx5A(), ux5AApproval);
+            GD.Print(
+                $"OPENRPG_FORGE_STUDIO_CANDIDATE_APPROVALS_{(candidateApprovalsValid ? "PASS" : "FAILED")} " +
+                $"preserved={candidateApprovalsValid.ToString().ToLowerInvariant()}");
+        }
         var evidenceValid = _shell.PrepareEditingEvidence(_evidenceMode);
         GD.Print($"OPENRPG_FORGE_STUDIO_EVIDENCE_PREPARED valid={evidenceValid.ToString().ToLowerInvariant()}");
         for (var frame = 0; frame < 2; frame++)
@@ -325,7 +351,7 @@ public sealed partial class StudioRoot : Control
             !ux1PValid || !ux1QValid || !ux1RValid || !ux1SValid || !ux1TValid || !ux1UValid || !ux1VValid ||
             !ux1WValid || !ux1XValid || !ux1YValid || !ux1ZValid || !ux1AAValid || !ux1ABValid || !ux1ACValid ||
             !ux1ADValid || !ux1AEValid || !ux1AFValid || !ux1AGValid || !ux1AHValid || !ux1AIValid || !ux1AJValid ||
-            !ux2AValid || !ux4AValid || !ux5AValid || !evidenceValid)
+            !ux2AValid || !ux4AValid || !ux5AValid || !candidateApprovalsValid || !evidenceValid)
         {
             GD.PrintErr(
                 $"OPENRPG_FORGE_STUDIO_SHELL_FAILED sections={_shell.SectionCount} pages={_shell.PageCount} " +
@@ -341,6 +367,7 @@ public sealed partial class StudioRoot : Control
                 $"ux1ab={ux1ABValid} ux1ac={ux1ACValid} ux1ad={ux1ADValid} ux1ae={ux1AEValid} " +
                 $"ux1af={ux1AFValid} ux1ag={ux1AGValid} ux1ah={ux1AHValid} ux1ai={ux1AIValid} " +
                 $"ux1aj={ux1AJValid} ux2a={ux2AValid} ux4a={ux4AValid} ux5a={ux5AValid} " +
+                $"candidate_approvals={candidateApprovalsValid} " +
                 $"evidence={evidenceValid}");
             GetTree().Quit(1);
             return;
