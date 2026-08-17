@@ -97,11 +97,14 @@ internal sealed partial class StudioDoorDestinationListEditor : VBoxContainer
                     : suggestion.Label;
             var row = new HBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
             row.AddThemeConstantOverride("separation", 6);
-            row.AddChild(StudioStyle.Label(
+            var valueLabel = StudioStyle.Label(
                 $"{label} · source : {suggestion.Provenance}",
                 10,
                 invalid ? StudioStyle.Danger : protectedValue ? StudioStyle.Accent : StudioStyle.Text,
-                wrap: true));
+                wrap: true);
+            valueLabel.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+            valueLabel.CustomMinimumSize = new Vector2(260, 0);
+            row.AddChild(valueLabel);
             var remove = StudioStyle.Button(protectedValue ? "Héritée" : "Retirer", compact: true);
             remove.Disabled = !_editingEnabled || protectedValue;
             remove.TooltipText = protectedValue
@@ -143,7 +146,11 @@ internal sealed partial class StudioDoorSuggestionPicker : VBoxContainer
         var row = new HBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
         row.AddThemeConstantOverride("separation", 5);
         AddChild(row);
-        _options = new OptionButton { SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        _options = new OptionButton
+        {
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            FitToLongestItem = false,
+        };
         StudioStyle.ApplyOptionButton(_options);
         _options.AddItem(emptyLabel);
         row.AddChild(_options);
@@ -345,7 +352,11 @@ internal sealed partial class StudioDoorValidationOverlay : Control
         selector.AddThemeConstantOverride("separation", 8);
         root.AddChild(selector);
         selector.AddChild(StudioStyle.Label("Porte à qualifier", 10, StudioStyle.Muted));
-        _door = new OptionButton { SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        _door = new OptionButton
+        {
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            FitToLongestItem = false,
+        };
         StudioStyle.ApplyOptionButton(_door);
         _door.ItemSelected += SelectDoor;
         selector.AddChild(_door);
@@ -396,7 +407,11 @@ internal sealed partial class StudioDoorValidationOverlay : Control
         content.AddChild(lists);
 
         _destinations = new StudioDoorDestinationListEditor();
-        _destinationSuggestions = new OptionButton { SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        _destinationSuggestions = new OptionButton
+        {
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            FitToLongestItem = false,
+        };
         StudioStyle.ApplyOptionButton(_destinationSuggestions);
         _addDestination = StudioStyle.Button("Ajouter", compact: true);
         _addDestination.Pressed += AddDestinationSuggestion;
