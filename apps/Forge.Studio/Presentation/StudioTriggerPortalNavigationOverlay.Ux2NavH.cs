@@ -184,12 +184,20 @@ internal sealed partial class StudioTriggerPortalNavigationOverlayUx2NavH : Cont
             "Les trois axes restent indépendants de Godot et aucun déplacement n’est exécuté.", orientationGrid));
 
         var permissionGrid = Grid();
-        _permissions = new LineEdit { PlaceholderText = "travel,chapter.two" };
+        _permissions = new LineEdit
+        {
+            PlaceholderText = "travel,chapter.two",
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            CustomMinimumSize = new Vector2(480, 0),
+        };
         AddField(permissionGrid, "Permissions", _permissions);
         permissionGrid.AddChild(StudioStyle.Label("Résolution", 10, StudioStyle.Muted));
-        permissionGrid.AddChild(StudioStyle.Label(
+        var permissionResolution = StudioStyle.Label(
             "L’aperçu vérifie une autorisation et un refus en mémoire lorsqu’une permission est requise.",
-            10, StudioStyle.Muted, wrap: true));
+            10, StudioStyle.Muted, wrap: true);
+        permissionResolution.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+        permissionResolution.CustomMinimumSize = new Vector2(480, 0);
+        permissionGrid.AddChild(permissionResolution);
         body.AddChild(Card("TriggerPortalPermissionsUx2NavH", "Permissions de passage",
             "Séparez les permissions par une virgule sans espaces ; aucune autorité ou règle réseau n’est créée ici.",
             permissionGrid));

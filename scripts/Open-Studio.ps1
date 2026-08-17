@@ -68,7 +68,7 @@ param(
         'ux2-env-f', 'ux2-env-f-audio-emitters',
         'ux2-env-g', 'ux2-env-g-audio-workbench',
         'ux2-env-h', 'ux2-env-h-audio-range-control',
-        'ux2-nav-b', 'ux2-nav-c', 'ux2-nav-d', 'ux2-nav-e', 'ux2-nav-f', 'ux2-nav-g',
+        'ux2-nav-b', 'ux2-nav-c', 'ux2-nav-d', 'ux2-nav-e', 'ux2-nav-f', 'ux2-nav-g', 'ux2-nav-h',
         'ux4-a', 'ux4-a-faction-foundation',
         'ux5-a', 'ux5-a-dialogue-foundation')]
     [string]$Evidence,

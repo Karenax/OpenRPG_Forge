@@ -286,9 +286,10 @@ internal sealed partial class StudioSessionController
             validationSynchronized = portal is null || validation is null ||
                 validation.KnownPortalDestinationIds.Contains(portal.DestinationId);
             var updatedFoundation = foundation with { Portal = portal, Validation = validation };
-            updated = source with { Foundation = updatedFoundation };
+            var updatedProfile = source with { Foundation = updatedFoundation };
+            updated = updatedProfile;
             var world = project.Module.WorldFeatures;
-            var triggers = world.Triggers.Select(item => item.Id == source.Id ? updated : item).ToArray();
+            var triggers = world.Triggers.Select(item => item.Id == source.Id ? updatedProfile : item).ToArray();
             var replacement = new WorldFeatureCatalog(world.Id, world.SchemaVersion, world.Provenance,
                 world.Placeables, world.Doors, triggers, world.Encounters, world.VehicleRoutes,
                 world.Merchants, world.Companions, world.Scripts);
