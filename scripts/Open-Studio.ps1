@@ -107,6 +107,7 @@ param(
         'ux4-q', 'ux4-q-area-voice', 'ux4-q-localized-voice',
         'ux4-r', 'ux4-r-assisted-boss', 'ux4-r-boss-creation',
         'ux4-s', 'ux4-s-items', 'ux4-s-item-authoring',
+        'ux4-t', 'ux4-t-merchants', 'ux4-t-merchant-authoring',
         'ux5-a', 'ux5-a-dialogue-foundation')]
     [string]$Evidence,
     [string]$Resolution,

@@ -1094,6 +1094,17 @@ et 404 `planned`. Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX
 asset, script, projectile, inventaire ou commerce live n’est exécuté. Les marchands et compagnons
 restent aux deux derniers lots UX4.
 
+### UX4-T — Auteur de marchand complet
+
+Les 19 routes `ORF-MER-001..019` sont `functional` via une surface Marchands en cinq onglets et
+`SetWorldFeatureCatalogHandler`. Le parcours couvre boutique, vendeurs, stock, prix, trésorerie,
+restrictions, restock, événements, transactions, monnaies, négociation, marché, services,
+interface et audit avec sélection explicite, dry-run, double garde, historique et persistance. Le
+portail passe 27/27 tests en 150,23 s, le smoke global et la capture Forward+ FHD. La matrice
+atteint 332 routes `functional` et 385 `planned`. Preuves et limites sont liées dans
+`docs/acceptance/STUDIO_UX4_T.md` ; aucun commerce, script, lecteur UI ou transport réseau live
+n’est exécuté. Les compagnons constituent le dernier lot UX4.
+
 ## Gates ergonomiques avant parité
 
 Une page ne passe pas `Parity` si l’un des points suivants manque :

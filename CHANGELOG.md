@@ -7,6 +7,9 @@ SemVer ; les versions de schéma persistent séparément dans leurs documents.
 
 ### Changed
 
+- Forge Studio UX4-T : auteur de marchand complet en cinq sections via la commande canonique du
+  catalogue WorldFeatures, couvrant les 19 routes MER et portant la matrice à 332 routes
+  `functional` / 385 `planned` ;
 - Forge Studio UX4-S : auteur d’objet complet en cinq sections et transaction atomique couvrant
   les 32 routes ITEM, avec matrice portée à 313 routes `functional` / 404 `planned` ;
 - Forge Studio UX4-R : création assistée de boss hors ligne avec approbation explicite, simulation

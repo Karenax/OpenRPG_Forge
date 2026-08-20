@@ -33,6 +33,7 @@ internal sealed partial class StudioWorkspaceShell
         }
         CloseUx4AOverlay();
         CloseUx4BOverlay();
+        CloseUx4TOverlay();
         SwitchPage("social-content", notify: false);
         _factionMatrixOverlayUx4C.Open();
         SetStatus("Matrice factionnelle ouverte · sélection explicite et aperçu canonique obligatoires");
