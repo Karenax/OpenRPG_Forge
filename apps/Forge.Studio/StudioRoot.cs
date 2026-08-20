@@ -352,6 +352,7 @@ public sealed partial class StudioRoot : Control
         var ux4PValid = true;
         var ux4QValid = true;
         var ux4RValid = true;
+        var ux4SValid = true;
         var ux5AValid = true;
         var candidateApprovalsValid = true;
         if (_smokeRequested)
@@ -410,6 +411,7 @@ public sealed partial class StudioRoot : Control
             var ux4PApproval = _session.CaptureCreatureEventAiApprovalUx4P();
             var ux4QApproval = _session.CaptureAreaVoiceApprovalUx4Q();
             var ux4RApproval = _session.CaptureBossApprovalUx4R();
+            var ux4SApproval = _session.CaptureItemApprovalUx4S();
             var ux5AApproval = _session.CaptureDialogueApprovalUx5A();
             try
             {
@@ -467,6 +469,7 @@ public sealed partial class StudioRoot : Control
                 ux4PValid = _shell.RunUx4PSmoke();
                 ux4QValid = _shell.RunUx4QSmoke();
                 ux4RValid = _shell.RunUx4RSmoke();
+                ux4SValid = _shell.RunUx4SSmoke();
                 ux5AValid = _shell.RunUx5ASmoke();
             }
             finally
@@ -525,6 +528,7 @@ public sealed partial class StudioRoot : Control
                 _session.RestoreCreatureEventAiApprovalUx4P(ux4PApproval);
                 _session.RestoreAreaVoiceApprovalUx4Q(ux4QApproval);
                 _session.RestoreBossApprovalUx4R(ux4RApproval);
+                _session.RestoreItemApprovalUx4S(ux4SApproval);
                 _session.RestoreDialogueApprovalUx5A(ux5AApproval);
             }
             candidateApprovalsValid =
@@ -582,6 +586,7 @@ public sealed partial class StudioRoot : Control
                 Equals(_session.CaptureCreatureEventAiApprovalUx4P(), ux4PApproval) &&
                 Equals(_session.CaptureAreaVoiceApprovalUx4Q(), ux4QApproval) &&
                 Equals(_session.CaptureBossApprovalUx4R(), ux4RApproval) &&
+                Equals(_session.CaptureItemApprovalUx4S(), ux4SApproval) &&
                 Equals(_session.CaptureDialogueApprovalUx5A(), ux5AApproval);
             GD.Print(
                 $"OPENRPG_FORGE_STUDIO_CANDIDATE_APPROVALS_{(candidateApprovalsValid ? "PASS" : "FAILED")} " +
@@ -623,7 +628,7 @@ public sealed partial class StudioRoot : Control
             !ux2NavHValid || !ux2NavIValid || !ux2NavJValid || !ux2NavKValid || !ux2NavLValid || !ux2NavMValid ||
             !ux4AValid || !ux4BValid || !ux4CValid || !ux4DValid || !ux4EValid || !ux4FValid || !ux4GValid ||
             !ux4HValid || !ux4IValid || !ux4JValid || !ux4KValid || !ux4LValid || !ux4MValid || !ux4NValid ||
-            !ux4OValid || !ux4PValid || !ux4QValid || !ux4RValid || !ux5AValid ||
+            !ux4OValid || !ux4PValid || !ux4QValid || !ux4RValid || !ux4SValid || !ux5AValid ||
             !candidateApprovalsValid || !evidenceValid)
         {
             GD.PrintErr(
@@ -650,7 +655,7 @@ public sealed partial class StudioRoot : Control
                 $"ux2nave={ux2NavEValid} ux2navf={ux2NavFValid} ux2navg={ux2NavGValid} ux2navh={ux2NavHValid} " +
                 $"ux2navi={ux2NavIValid} ux2navj={ux2NavJValid} ux2navk={ux2NavKValid} ux2navl={ux2NavLValid} " +
                 $"ux2navm={ux2NavMValid} " +
-                $"ux4a={ux4AValid} ux4b={ux4BValid} ux4c={ux4CValid} ux4d={ux4DValid} ux4e={ux4EValid} ux4f={ux4FValid} ux4g={ux4GValid} ux4h={ux4HValid} ux4i={ux4IValid} ux4j={ux4JValid} ux4k={ux4KValid} ux4l={ux4LValid} ux4m={ux4MValid} ux4n={ux4NValid} ux4o={ux4OValid} ux4p={ux4PValid} ux4q={ux4QValid} ux4r={ux4RValid} ux5a={ux5AValid} " +
+                $"ux4a={ux4AValid} ux4b={ux4BValid} ux4c={ux4CValid} ux4d={ux4DValid} ux4e={ux4EValid} ux4f={ux4FValid} ux4g={ux4GValid} ux4h={ux4HValid} ux4i={ux4IValid} ux4j={ux4JValid} ux4k={ux4KValid} ux4l={ux4LValid} ux4m={ux4MValid} ux4n={ux4NValid} ux4o={ux4OValid} ux4p={ux4PValid} ux4q={ux4QValid} ux4r={ux4RValid} ux4s={ux4SValid} ux5a={ux5AValid} " +
                 $"candidate_approvals={candidateApprovalsValid} " +
                 $"evidence={evidenceValid}");
             GetTree().Quit(1);
@@ -680,6 +685,7 @@ public sealed partial class StudioRoot : Control
         // SceneTree teardown. Release them while the tree is still processing so Godot does not
         // race C# disposal against its native shutdown sequence.
         _shell.ReleaseUx4RAutomatedEvidence();
+        _shell.ReleaseUx4SAutomatedEvidence();
         _shell.QueueFree();
         _shell = null;
         await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);

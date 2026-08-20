@@ -1084,6 +1084,16 @@ atteint 281 routes `functional` et 436 `planned`. Preuves et limites sont liées
 `docs/acceptance/STUDIO_UX4_R.md` ; les objets, marchands et compagnons restent aux lots UX4
 suivants.
 
+### UX4-S — Auteur d’objet complet
+
+Les 32 routes `ORF-ITEM-001..032` sont `functional` via une surface unique en cinq onglets et le
+nouveau `SetItemAuthoringBundleHandler`, qui regroupe identité, fondation, création, gameplay,
+opérations et profil avancé dans une seule révision annulable. Le portail passe 42/42 tests en
+140,56 s, le smoke global et la capture Forward+ FHD. La matrice atteint 313 routes `functional`
+et 404 `planned`. Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX4_S.md` ; aucun
+asset, script, projectile, inventaire ou commerce live n’est exécuté. Les marchands et compagnons
+restent aux deux derniers lots UX4.
+
 ## Gates ergonomiques avant parité
 
 Une page ne passe pas `Parity` si l’un des points suivants manque :
