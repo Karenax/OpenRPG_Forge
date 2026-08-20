@@ -926,6 +926,11 @@ inspectées, dont la vraie fondation de la Crypte et des preuves dédiées assis
 atteint 235 routes `functional` et 482 `planned`. Preuves et limites sont liées dans
 `docs/acceptance/STUDIO_UX4_D.md` ; `ORF-CRE-006` à `ORF-CRE-049` restent `planned`.
 
+Complément du 20 août 2026 : `ORF-CRE-033` OnSpawn est désormais `functional` dans la même surface.
+Le handler est préservé avec son identité et son autorité serveur ; l'aperçu émet l'événement typé
+seulement après validation complète. Le portail passe 20/20 tests en 154,82 s avec smoke global et
+capture Forward+ FHD inspectée. La matrice atteint 278 `functional` et 439 `planned`.
+
 ### UX4-E — Présentation de créature
 
 `ORF-CRE-006` à `ORF-CRE-010` sont `functional` : genre et pronoms data-driven, portraits
@@ -1048,7 +1053,7 @@ attaque physique, capacité ciblée, mouvement bloqué avec récupération et co
 Le portail passe 9/9 tests en 117,33 s, le smoke global et trois captures Forward+ FHD, dont le vrai
 profil Crypte. Les profils UX4-D à UX4-O et les autres blueprints sont préservés. La matrice atteint
 277 routes `functional` et 440 `planned`. Preuves et limites sont liées dans
-`docs/acceptance/STUDIO_UX4_P.md` ; OnSpawn et OnConversation restent aux lots UX4 suivants.
+`docs/acceptance/STUDIO_UX4_P.md` ; OnSpawn est clos par UX4-D et OnConversation reste au lot suivant.
 
 ## Gates ergonomiques avant parité
 

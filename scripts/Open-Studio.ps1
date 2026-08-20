@@ -85,7 +85,7 @@ param(
         'ux4-a', 'ux4-a-faction-foundation',
         'ux4-b', 'ux4-b-faction-runtime',
         'ux4-c', 'ux4-c-faction-matrix',
-        'ux4-d', 'ux4-d-creature-foundation', 'ux4-d-wizard', 'ux4-d-species', 'ux4-d-preview',
+        'ux4-d', 'ux4-d-creature-foundation', 'ux4-d-creature-onspawn', 'ux4-d-wizard', 'ux4-d-species', 'ux4-d-preview',
         'ux4-e', 'ux4-e-creature-presentation', 'ux4-e-portraits', 'ux4-e-appearance',
         'ux4-e-colors', 'ux4-e-preview',
         'ux4-f', 'ux4-f-creature-animation-rules', 'ux4-f-animation', 'ux4-f-initial-resources',

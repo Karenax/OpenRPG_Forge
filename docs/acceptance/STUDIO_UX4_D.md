@@ -1,7 +1,7 @@
 # Acceptation Studio — UX4-D Fondation de créature
 
-État local au 17 août 2026 : **fonctionnel et qualifié** pour `ORF-CRE-001` à
-`ORF-CRE-005`. La page **Créatures** expose une fiche spécialisée pour sélectionner une créature,
+État local au 20 août 2026 : **fonctionnel et qualifié** pour `ORF-CRE-001` à
+`ORF-CRE-005` et `ORF-CRE-033`. La page **Créatures** expose une fiche spécialisée pour sélectionner une créature,
 initialiser ou modifier sa fondation, ses textes localisés, son rôle, son niveau de menace et sa
 composition d'espèce.
 
@@ -19,6 +19,10 @@ composition d'espèce.
   `ux4-d-creature-wizard-fhd.png` et aperçu éditorial dans `ux4-d-creature-preview-fhd.png` ;
 - les quatre onglets, le résumé, les diagnostics et les cinq actions restent visibles sans
   clipping ; la provenance de la copie est explicite et aucun UUID n'est affiché.
+- complément OnSpawn réussi en **154,82 s**, résumé dans
+  `artifacts/verification/studio-increment/ux4-d-creature-onspawn.summary.json`, avec build sans
+  avertissement, **20/20 tests ciblés**, smoke global et capture FHD inspectée dans
+  `artifacts/verification/studio-increment/ux4-d-creature-onspawn-fhd.png`.
 
 ### ORF-CRE-001 — Assistant de créature
 
@@ -51,14 +55,20 @@ La surface édite l'espèce, ses parents, ensembles de traits, variantes et sque
 réécrire les profils de règles, interaction ou IA événementielle. Les références héritées non
 éditables restent préservées plutôt que normalisées silencieusement.
 
+### ORF-CRE-033 — OnSpawn
+
+Le handler `creature.spawned` est édité directement dans la fondation sans remplacer son UUID, son
+schéma, sa version ForgeScript ni son autorité serveur. L'aperçu appelle réellement
+`CreatureFoundationValidator.Spawn` après validation complète, initialise les ressources et produit
+un événement typé sur une copie en mémoire. Aucun acteur, nœud Godot, script ou réseau n'est lancé.
+
 ## Limites honnêtes
 
 - l'aperçu est une projection data-driven : aucun modèle ou asset 3D n'est chargé ;
 - aucun script, moteur de combat, navigation, animation ou transport réseau n'est exécuté ;
 - les captures utilisent des copies temporaires. Source, historique, état dirty, sélection,
   approbations, page et surface active sont restaurés exactement ;
-- cette preuve seule ne qualifie pas les routes suivantes ; UX4-E, UX4-F et UX4-G documentent
-  séparément `ORF-CRE-006` à `ORF-CRE-020`.
+- cette preuve seule ne qualifie pas OnConversation, les objets, marchands ou compagnons.
 
 ## Reproduction
 

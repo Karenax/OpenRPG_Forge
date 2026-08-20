@@ -107,6 +107,7 @@ internal sealed partial class StudioWorkspaceShell
                       _creatureFoundationOverlayUx4D.HasExplicitSelection &&
                       _creatureFoundationOverlayUx4D.CanonicalPreviewReady &&
                       _creatureFoundationOverlayUx4D.ShowsFoundation &&
+                      _creatureFoundationOverlayUx4D.ShowsSpawnBinding &&
                       _creatureFoundationOverlayUx4D.ShowsLocalizedIdentity &&
                       _creatureFoundationOverlayUx4D.ShowsWizard &&
                       _creatureFoundationOverlayUx4D.ShowsRoleAndThreat &&
@@ -150,6 +151,7 @@ internal sealed partial class StudioWorkspaceShell
             $"OPENRPG_FORGE_STUDIO_UX4D_{(valid ? "PASS" : "FAILED")} " +
             $"selection_explicit={result.ExplicitSelection.ToString().ToLowerInvariant()} " +
             $"foundation={result.FoundationInitialization.ToString().ToLowerInvariant()} " +
+            $"spawn_binding={result.SpawnBinding.ToString().ToLowerInvariant()} " +
             $"localized_identity={result.LocalizedIdentity.ToString().ToLowerInvariant()} " +
             $"wizard={result.Wizard.ToString().ToLowerInvariant()} " +
             $"role_threat={result.RoleAndThreat.ToString().ToLowerInvariant()} " +

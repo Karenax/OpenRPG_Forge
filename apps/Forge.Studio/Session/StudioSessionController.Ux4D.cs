@@ -84,6 +84,7 @@ internal sealed partial class StudioSessionController
             blueprint,
             foundation,
             foundation?.RequiredAtRuntime ?? true,
+            foundation?.Spawned.Handler ?? "OnSpawned",
             Text(identity?.Names, "fr", blueprint.DisplayName),
             Text(identity?.Names, "en", string.Empty),
             Join(identity?.Aliases ?? []),
@@ -165,12 +166,18 @@ internal sealed partial class StudioSessionController
         _approvedCreatureFoundationDraftFingerprintUx4D = FingerprintCreatureDraftUx4D(frozen);
         _approvedCreatureFoundationCandidateFingerprintUx4D =
             FingerprintCreatureCandidateUx4D(project, draft.BlueprintId, candidate);
+        var spawned = CreatureFoundationValidator.Spawn(candidate, draft.BlueprintId.ToString(),
+            new(StableCreatureIdUx4D(draft.BlueprintId.Value, "spawn-preview"), "studio.preview.area",
+                Forge.Domain.Spatial.TransformValue.Identity, 4201, Forge.Domain.Lifecycle.EventAuthorityScope.Server,
+                "studio.preview"), () => StableCreatureIdUx4D(draft.BlueprintId.Value, "spawn-event-preview"));
         return new(true, true, "Aperçu canonique prêt · aucune donnée du module n’a été modifiée.",
             preview.Patch?.Summary ?? "Fondation de créature prévisualisée.",
             preview.Inverse?.Summary ?? "État précédent restaurable.", [], IdentitySummaryUx4D(draft),
             WizardSummaryUx4D(draft), SpeciesSummaryUx4D(draft),
             $"Projection RPG Kit prête · {runtime.Creature.Identity.Name.DefaultText} · " +
-            $"{runtime.Creature.Authoring.Role} · menace {runtime.Creature.Authoring.ThreatRating:R}.");
+            $"{runtime.Creature.Authoring.Role} · menace {runtime.Creature.Authoring.ThreatRating:R}. " +
+            $"OnSpawn {candidate.Spawned.Handler} validé après construction complète · " +
+            $"{spawned.ResourceState.Count} ressource(s) initialisée(s), sans acteur moteur.");
     }
 
     internal StudioCreatureFoundationActionResultUx4D ApplyApprovedCreatureFoundationUx4D(
@@ -297,7 +304,7 @@ internal sealed partial class StudioSessionController
     internal StudioUx4DSmokeResult RunUx4DContractSmoke()
     {
         var result = new StudioUx4DSmokeResult(false, false, false, false, false, false, false,
-            false, false, false, false, false, false, false, false, false);
+            false, false, false, false, false, false, false, false, false, false);
         var evidence = CreateUx4DEvidenceProject();
         if (evidence is null) return result;
         var root = Path.Combine(Path.GetTempPath(), "openrpg-forge-studio-ux4d-smoke-" + Guid.NewGuid().ToString("N"));
@@ -349,6 +356,9 @@ internal sealed partial class StudioSessionController
             var appliedBlueprint = appliedProject?.Blueprints.Single(item => item.Id == evidence.BlueprintId);
             var applied = appliedBlueprint?.CreatureFoundation;
             var initialized = apply.Succeeded && applied is not null;
+            var spawnBinding = applied?.Spawned.Handler == "OnSpawnWitness" &&
+                               finalPreview.RuntimeSummary.Contains("OnSpawn OnSpawnWitness",
+                                   StringComparison.Ordinal);
             var localized = applied?.Identity.Names.GetValueOrDefault("fr") == "Gardien témoin UX4-D" &&
                             applied.Identity.Names.GetValueOrDefault("en") == "UX4-D Witness Warden" &&
                             applied.Identity.Biographies.GetValueOrDefault("fr")?.Contains("preuve isolée",
@@ -393,10 +403,10 @@ internal sealed partial class StudioSessionController
                             ProjectJsonSerializer.Serialize(reopened.Project!) ==
                             ProjectJsonSerializer.Serialize(editing.Project!);
             result = new(
-                finalPreview.Succeeded && initialized && localized && wizard && roleThreat && species &&
+                finalPreview.Succeeded && initialized && spawnBinding && localized && wizard && roleThreat && species &&
                 invalidBlocked && dryRun && staleDraftBlocked && staleApprovalBlocked && apply.Succeeded &&
                 undone && redone && persisted && neighbors,
-                explicitSelection, initialized, localized, wizard, roleThreat, species, invalidBlocked, dryRun,
+                explicitSelection, initialized, spawnBinding, localized, wizard, roleThreat, species, invalidBlocked, dryRun,
                 staleDraftBlocked, staleApprovalBlocked, finalPreview.Succeeded && apply.Succeeded,
                 undone && redone, persisted, neighbors, false);
         }
@@ -435,6 +445,7 @@ internal sealed partial class StudioSessionController
         TraitSets = "ember.core=heat.resistant,ember.sight\nconstruct.core=artificial",
         Variants = "awakened, ancient",
         RequiredSkeletonId = draft.RigId,
+        SpawnHandler = "OnSpawnWitness",
     };
 
     private bool TryBuildCreatureFoundationCandidateUx4D(
@@ -501,7 +512,7 @@ internal sealed partial class StudioSessionController
             source.Resources,
             source.Movement,
             source.References,
-            source.Spawned,
+            source.Spawned with { Handler = draft.SpawnHandler },
             source.Overrides,
             authoring,
             true,
@@ -649,6 +660,7 @@ internal sealed partial class StudioSessionController
         WriteUx4D(writer, draft.SourceProjectFingerprint);
         WriteUx4D(writer, draft.BlueprintId.ToString());
         writer.Write(draft.RequiredAtRuntime);
+        WriteUx4D(writer, draft.SpawnHandler);
         WriteUx4D(writer, draft.FrenchName); WriteUx4D(writer, draft.EnglishName);
         WriteUx4D(writer, draft.Aliases); WriteUx4D(writer, draft.Pronouns);
         WriteUx4D(writer, draft.FrenchBiography); WriteUx4D(writer, draft.EnglishBiography);

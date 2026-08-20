@@ -33,6 +33,7 @@ internal sealed partial class StudioCreatureFoundationOverlayUx4D : Control
     private readonly Label _context;
     private readonly TabContainer _tabs;
     private readonly CheckBox _required;
+    private readonly LineEdit _spawnHandler;
     private readonly LineEdit _frenchName;
     private readonly LineEdit _englishName;
     private readonly LineEdit _aliases;
@@ -73,6 +74,8 @@ internal sealed partial class StudioCreatureFoundationOverlayUx4D : Control
     internal bool HasExplicitSelection => _creature.Selected > 0 && _draft is not null;
     internal bool CanonicalPreviewReady => _previewResult?.CanApply == true;
     internal bool ShowsFoundation => _context.Text.Contains("fondation", StringComparison.OrdinalIgnoreCase);
+    internal bool ShowsSpawnBinding => _summary.Text.Contains("OnSpawn OnSpawnWitness", StringComparison.Ordinal) &&
+                                       _spawnHandler.Text == "OnSpawnWitness";
     internal bool ShowsLocalizedIdentity => !string.IsNullOrWhiteSpace(_frenchName.Text) &&
                                             _summary.Text.Contains("Identité", StringComparison.OrdinalIgnoreCase);
     internal bool ShowsWizard => _summary.Text.Contains("Assistant", StringComparison.OrdinalIgnoreCase);
@@ -84,6 +87,7 @@ internal sealed partial class StudioCreatureFoundationOverlayUx4D : Control
         {
             var text = string.Join(' ', VisibleText(this));
             return text.Contains("Blueprint et identité", StringComparison.OrdinalIgnoreCase) &&
+                   text.Contains("OnSpawn", StringComparison.OrdinalIgnoreCase) &&
                    text.Contains("Assistant guidé", StringComparison.OrdinalIgnoreCase) &&
                    text.Contains("Race, espèce et sous-type", StringComparison.OrdinalIgnoreCase) &&
                    text.Contains("Aperçu et validation", StringComparison.OrdinalIgnoreCase) &&
@@ -162,6 +166,7 @@ internal sealed partial class StudioCreatureFoundationOverlayUx4D : Control
             9, StudioStyle.Muted, wrap: true));
         _required = new CheckBox { Text = "Fondation requise au runtime" };
         identityTab.AddChild(_required);
+        _spawnHandler = Field(identityTab, "OnSpawn · handler après validation complète", "OnSpawned");
         _frenchName = Field(identityTab, "Nom français obligatoire", "Gardien des Cendres");
         _englishName = Field(identityTab, "Nom anglais facultatif", "Ash Warden");
         _aliases = Field(identityTab, "Aliases", "gardien, veilleur");
@@ -345,6 +350,7 @@ internal sealed partial class StudioCreatureFoundationOverlayUx4D : Control
     {
         _updating = true;
         _required.ButtonPressed = draft.RequiredAtRuntime;
+        _spawnHandler.Text = draft.SpawnHandler;
         _frenchName.Text = draft.FrenchName;
         _englishName.Text = draft.EnglishName;
         _aliases.Text = draft.Aliases;
@@ -390,6 +396,7 @@ internal sealed partial class StudioCreatureFoundationOverlayUx4D : Control
         return _draft with
         {
             RequiredAtRuntime = _required.ButtonPressed,
+            SpawnHandler = _spawnHandler.Text,
             FrenchName = _frenchName.Text,
             EnglishName = _englishName.Text,
             Aliases = _aliases.Text,
@@ -570,7 +577,7 @@ internal sealed partial class StudioCreatureFoundationOverlayUx4D : Control
         _updating = true;
         foreach (var field in new[] { _frenchName, _englishName, _aliases, _pronouns, _narrativeTags, _assetId,
                      _archetype, _ruleset, _rig, _threat, _visualKit, _combatTags, _species, _parents, _variants,
-                     _skeleton }) field.Text = string.Empty;
+                     _skeleton, _spawnHandler }) field.Text = string.Empty;
         foreach (var area in new[] { _frenchBiography, _englishBiography, _authorNotes, _traitSets })
             area.Text = string.Empty;
         _faction.Clear();
@@ -589,7 +596,7 @@ internal sealed partial class StudioCreatureFoundationOverlayUx4D : Control
         _role.ItemSelected += _ => InvalidatePreview();
         foreach (var field in new[] { _frenchName, _englishName, _aliases, _pronouns, _narrativeTags, _assetId,
                      _archetype, _ruleset, _rig, _threat, _visualKit, _combatTags, _species, _parents, _variants,
-                     _skeleton }) field.TextChanged += _ => InvalidatePreview();
+                     _skeleton, _spawnHandler }) field.TextChanged += _ => InvalidatePreview();
         foreach (var area in new[] { _frenchBiography, _englishBiography, _authorNotes, _traitSets })
             area.TextChanged += InvalidatePreview;
         _preview.Pressed += Preview;
@@ -631,6 +638,7 @@ internal sealed partial class StudioCreatureFoundationOverlayUx4D : Control
         }
         _frenchName.Text = _frenchName.Text + " · preuve isolée";
         _authorNotes.Text = "Capture Studio UX4-D · source inchangée";
+        _spawnHandler.Text = "OnSpawnWitness";
         _threat.Text = "8.5";
         _role.Select((int)CreatureAuthoringEncounterRole.Controller);
         var project = _session.Project!;
@@ -648,13 +656,14 @@ internal sealed partial class StudioCreatureFoundationOverlayUx4D : Control
             mode.Contains("species", StringComparison.OrdinalIgnoreCase) ? 2 :
             mode.Contains("preview", StringComparison.OrdinalIgnoreCase) ? 3 : 0;
         var ready = _previewDryRun && CanonicalPreviewReady && HasExplicitSelection && ShowsHumanSurface &&
-                    ShowsFoundation && ShowsLocalizedIdentity && ShowsWizard && ShowsRoleAndThreat && ShowsSpecies &&
+                    ShowsFoundation && ShowsSpawnBinding && ShowsLocalizedIdentity && ShowsWizard &&
+                    ShowsRoleAndThreat && ShowsSpecies &&
                     UsesIsolatedEvidence && EvidenceSourceUntouched && (_usesRealCrypt ^ _usesFallback);
         if (!ready)
         {
             _lastFailure =
                 $"ready:preview={CanonicalPreviewReady}:selection={HasExplicitSelection}:human={ShowsHumanSurface}:" +
-                $"foundation={ShowsFoundation}:identity={ShowsLocalizedIdentity}:wizard={ShowsWizard}:" +
+                $"foundation={ShowsFoundation}:spawn={ShowsSpawnBinding}:identity={ShowsLocalizedIdentity}:wizard={ShowsWizard}:" +
                 $"role={ShowsRoleAndThreat}:species={ShowsSpecies}:isolated={UsesIsolatedEvidence}:" +
                 $"source={EvidenceSourceUntouched}:origin={_usesRealCrypt ^ _usesFallback}";
             GD.PrintErr($"OPENRPG_FORGE_STUDIO_UX4D_EVIDENCE_FAILED failure={_lastFailure}");
