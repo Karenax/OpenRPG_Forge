@@ -127,8 +127,12 @@ internal sealed partial class StudioItemAuthoringOverlayUx4S : Control
         close.CustomMinimumSize = new Vector2(76, 34); close.Pressed += Close; header.AddChild(close); root.AddChild(header);
         _item = Choice(root, "Objet à éditer ou création explicite");
 
-        var tabs = new TabContainer { SizeFlagsVertical = SizeFlags.ExpandFill,
-            SizeFlagsHorizontal = SizeFlags.ExpandFill, CustomMinimumSize = new Vector2(0, 350) };
+        var tabs = new TabContainer
+        {
+            SizeFlagsVertical = SizeFlags.ExpandFill,
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            CustomMinimumSize = new Vector2(0, 350)
+        };
         var identityTab = Tab(tabs, "Identité et création");
         var identity = new GridContainer { Columns = 2, SizeFlagsHorizontal = SizeFlags.ExpandFill };
         _slug = Field(identity, "Slug canonique", "boussole-de-braise");
@@ -190,8 +194,13 @@ internal sealed partial class StudioItemAuthoringOverlayUx4S : Control
         _acceptMigration = new CheckBox { Text = "J’accepte explicitement les pertes d’une migration de type immuable" };
         root.AddChild(_acceptMigration);
         _diagnostics = new VBoxContainer(); root.AddChild(_diagnostics);
-        _summary = new RichTextLabel { BbcodeEnabled = true, CustomMinimumSize = new Vector2(0, 120),
-            FitContent = false, SelectionEnabled = true }; root.AddChild(_summary);
+        _summary = new RichTextLabel
+        {
+            BbcodeEnabled = true,
+            CustomMinimumSize = new Vector2(0, 120),
+            FitContent = false,
+            SelectionEnabled = true
+        }; root.AddChild(_summary);
         root.AddChild(StudioStyle.Label(
             "Prévisualiser ne modifie rien. Appliquer remplace le lot complet dans une seule commande annulable.",
             9, StudioStyle.Muted, wrap: true));
@@ -339,18 +348,29 @@ internal sealed partial class StudioItemAuthoringOverlayUx4S : Control
             var gameplay = foundation.Gameplay!; var operations = foundation.Operations!; var advanced = source.Advanced;
             var type = Parts(_type.Text, 4); var foundationParts = Parts(_foundation.Text, 7);
             var appearance = Parts(_appearance.Text, 6); var inventory = Parts(_inventoryUsage.Text, 17);
-            var localized = Lines(_localizations.Text).Select(line => { var p = Parts(line, 7);
-                return new ItemFoundationText(p[0], p[1], p[2], p[3], p[4], p[5], p[6]); }).ToArray();
-            var properties = Lines(_properties.Text).Select((line, index) => { var p = Parts(line, 4);
+            var localized = Lines(_localizations.Text).Select(line =>
+            {
+                var p = Parts(line, 7);
+                return new ItemFoundationText(p[0], p[1], p[2], p[3], p[4], p[5], p[6]);
+            }).ToArray();
+            var properties = Lines(_properties.Text).Select((line, index) =>
+            {
+                var p = Parts(line, 4);
                 var existing = foundation.Properties.ElementAtOrDefault(index)?.Id ??
                     StudioSessionController.StableItemGuidUx4S(source.BlueprintId.Value, $"property:{index}:{p[0]}");
-                return new ItemFoundationProperty(existing, p[0], Double(p[1]), p[2], Empty(p[3])); }).ToArray();
+                return new ItemFoundationProperty(existing, p[0], Double(p[1]), p[2], Empty(p[3]));
+            }).ToArray();
             var rebuiltCreation = creation with
             {
-                Appearance = creation.Appearance with { MeshAssetIds = CsvValues(appearance[0]),
-                    MaterialAssetIds = CsvValues(appearance[1]), Sockets = CsvValues(appearance[2]),
-                    IconAssetId = appearance[3], VisualEffectAssetIds = CsvValues(appearance[4]),
-                    EquippedPreviewAssetId = appearance[5] },
+                Appearance = creation.Appearance with
+                {
+                    MeshAssetIds = CsvValues(appearance[0]),
+                    MaterialAssetIds = CsvValues(appearance[1]),
+                    Sockets = CsvValues(appearance[2]),
+                    IconAssetId = appearance[3],
+                    VisualEffectAssetIds = CsvValues(appearance[4]),
+                    EquippedPreviewAssetId = appearance[5]
+                },
                 Inventory = new(Double(inventory[0]), Double(inventory[1]), Int(inventory[2]), Int(inventory[3]),
                     Double(inventory[4]), Double(inventory[5])),
                 Stack = new(Int(inventory[6]), inventory[7], Bool(inventory[8])),
@@ -359,54 +379,85 @@ internal sealed partial class StudioItemAuthoringOverlayUx4S : Control
             };
             var critical = Parts(_critical.Text, 7); var transfer = Parts(_transfers.Text, 2);
             var allowed = CsvValues(transfer[0]).ToHashSet(StringComparer.OrdinalIgnoreCase);
-            var modifiers = Lines(_modifiers.Text).Select((line, index) => { var p = Parts(line, 7);
+            var modifiers = Lines(_modifiers.Text).Select((line, index) =>
+            {
+                var p = Parts(line, 7);
                 var id = gameplay.Modifiers.ElementAtOrDefault(index)?.Id ??
                     StudioSessionController.StableItemGuidUx4S(source.BlueprintId.Value, $"modifier:{index}:{p[0]}");
                 return new ItemModifierPolicy(id, 1, gameplay.Provenance, p[0], DoublePairs(p[1]), p[2], Empty(p[3]),
-                    p[4], Empty(p[5]), Empty(p[6])); }).ToArray();
+                    p[4], Empty(p[5]), Empty(p[6]));
+            }).ToArray();
             var ability = Parts(_ability.Text, 7); var abilityProfile = Bool(ability[0])
                 ? new ItemAbilityPolicy(gameplay.Ability?.AbilityDefinitionId ??
                     StudioSessionController.StableItemGuidUx4S(source.BlueprintId.Value, "ability"), ability[1],
                     DoublePairs(ability[2]), Int(ability[3]), Long(ability[4]), ability[5], ability[6]) : null;
-            var slots = Lines(_equipmentSlots.Text).Select(line => { var p = Parts(line, 5);
-                return new ItemEquipmentSlotPolicy(p[0], p[1], p[2], Int(p[3]), CsvValues(p[4])); }).ToArray();
+            var slots = Lines(_equipmentSlots.Text).Select(line =>
+            {
+                var p = Parts(line, 5);
+                return new ItemEquipmentSlotPolicy(p[0], p[1], p[2], Int(p[3]), CsvValues(p[4]));
+            }).ToArray();
             var rebuiltGameplay = gameplay with
             {
                 Critical = new(Bool(critical[0]), Bool(critical[1]), Bool(critical[2]), Bool(critical[3]),
                     Bool(critical[4]), Bool(critical[5]), Bool(critical[6])),
                 Transfer = new(Enum.GetValues<ItemTransferDestination>().ToDictionary(item => item,
                     item => allowed.Contains(item.ToString())), CsvValues(transfer[1])),
-                Modifiers = modifiers, Ability = abilityProfile,
+                Modifiers = modifiers,
+                Ability = abilityProfile,
                 Equipment = new(slots, CsvValues(_requiredSlots.Text))
             };
             var rebuiltFoundation = foundation with
             {
                 TypeId = foundation.TypeId,
-                Type = foundation.Type with { Slug = type[0], AllowedSlots = CsvValues(type[1]),
-                    AllowedPropertyKinds = CsvValues(type[2]), RequiredRig = type[3] },
-                Archetype = _slug.Text.Trim(), AppearanceAssetId = foundationParts[0],
-                AppearanceRig = foundationParts[1], Quality = Int(foundationParts[2]), Level = Int(foundationParts[3]),
-                BaseValue = Decimal(foundationParts[4]), Slots = CsvValues(foundationParts[5]),
-                AllowedInstanceOverrides = CsvValues(foundationParts[6]), Properties = properties, Texts = localized,
-                Creation = rebuiltCreation, Gameplay = rebuiltGameplay
+                Type = foundation.Type with
+                {
+                    Slug = type[0],
+                    AllowedSlots = CsvValues(type[1]),
+                    AllowedPropertyKinds = CsvValues(type[2]),
+                    RequiredRig = type[3]
+                },
+                Archetype = _slug.Text.Trim(),
+                AppearanceAssetId = foundationParts[0],
+                AppearanceRig = foundationParts[1],
+                Quality = Int(foundationParts[2]),
+                Level = Int(foundationParts[3]),
+                BaseValue = Decimal(foundationParts[4]),
+                Slots = CsvValues(foundationParts[5]),
+                AllowedInstanceOverrides = CsvValues(foundationParts[6]),
+                Properties = properties,
+                Texts = localized,
+                Creation = rebuiltCreation,
+                Gameplay = rebuiltGameplay
             };
 
             var economy = Parts(_economy.Text, 7); var requirements = Parts(_requirements.Text, 6);
             var identification = Parts(_identification.Text, 5); var ownership = Parts(_ownership.Text, 4);
-            var knowledge = Lines(_knowledge.Text).Select(line => { var p = Parts(line, 3);
-                return new ItemKnowledgeLevel(p[0], Int(p[1]), CsvValues(p[2])); }).ToArray();
-            var history = Lines(_ownershipHistory.Text).Select((line, index) => { var p = Parts(line, 5);
+            var knowledge = Lines(_knowledge.Text).Select(line =>
+            {
+                var p = Parts(line, 3);
+                return new ItemKnowledgeLevel(p[0], Int(p[1]), CsvValues(p[2]));
+            }).ToArray();
+            var history = Lines(_ownershipHistory.Text).Select((line, index) =>
+            {
+                var p = Parts(line, 5);
                 var id = advanced.Ownership.History.ElementAtOrDefault(index)?.Id ??
                     StudioSessionController.StableItemGuidUx4S(source.BlueprintId.Value, $"owner:{index}:{p[0]}");
                 return new ItemOwnershipEvent(id, p[0], p[1], p[2],
-                    DateTimeOffset.Parse(p[3], CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind), p[4]); }).ToArray();
-            var procs = Lines(_onHit.Text).Select((line, index) => { var p = Parts(line, 7);
+                    DateTimeOffset.Parse(p[3], CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind), p[4]);
+            }).ToArray();
+            var procs = Lines(_onHit.Text).Select((line, index) =>
+            {
+                var p = Parts(line, 7);
                 var id = advanced.OnHitProcs.ElementAtOrDefault(index)?.Id ??
                     StudioSessionController.StableItemGuidUx4S(source.BlueprintId.Value, $"proc:{index}:{p[0]}");
                 return new ItemOnHitProc(id, p[0], Double(p[1]), Double(p[2]), Empty(p[3]), p[4], p[5],
-                    Bool(p[6]), advanced.Provenance); }).ToArray();
-            var weapon = Parts(_weapon.Text, 5); var attacks = Lines(_attacks.Text).Select(line => { var p = Parts(line, 7);
-                return new ItemWeaponAttack(p[0], p[1], Double(p[2]), Double(p[3]), Double(p[4]), p[5], CsvValues(p[6])); }).ToArray();
+                    Bool(p[6]), advanced.Provenance);
+            }).ToArray();
+            var weapon = Parts(_weapon.Text, 5); var attacks = Lines(_attacks.Text).Select(line =>
+            {
+                var p = Parts(line, 7);
+                return new ItemWeaponAttack(p[0], p[1], Double(p[2]), Double(p[3]), Double(p[4]), p[5], CsvValues(p[6]));
+            }).ToArray();
             var weaponProfile = Bool(weapon[0]) ? new ItemWeaponProfile(weapon[1], Double(weapon[2]), Bool(weapon[3]), attacks, CsvValues(weapon[4])) : null;
             var armor = Parts(_armor.Text, 8); var armorProfile = Bool(armor[0]) ? new ItemArmorProfile(CsvValues(armor[1]),
                 Double(armor[2]), Double(armor[3]), Double(armor[4]), armor[5], DoublePairs(armor[6]), CsvValues(armor[7])) : null;
@@ -418,25 +469,37 @@ internal sealed partial class StudioItemAuthoringOverlayUx4S : Control
             var container = Parts(_container.Text, 8); var containerProfile = Bool(container[0]) ? new ItemContainerPolicy(
                 Int(container[1]), Double(container[2]), Int(container[3]), Double(container[4]), CsvValues(container[5]),
                 CsvValues(container[6]), Bool(container[7]), true) : null;
-            var contexts = Lines(_lootContexts.Text).Select((line, index) => { var p = Parts(line, 10);
+            var contexts = Lines(_lootContexts.Text).Select((line, index) =>
+            {
+                var p = Parts(line, 10);
                 var id = advanced.LootContexts.ElementAtOrDefault(index)?.Id ??
                     StudioSessionController.StableItemGuidUx4S(source.BlueprintId.Value, $"context:{index}:{p[0]}");
                 return new ItemLootContextRule(id, p[0], Empty(p[1]), Empty(p[2]), Int(p[3]), Int(p[4]), Empty(p[5]),
-                    CsvValues(p[6]), Empty(p[7]), Empty(p[8]), Double(p[9]), advanced.Provenance); }).ToArray();
+                    CsvValues(p[6]), Empty(p[7]), Empty(p[8]), Double(p[9]), advanced.Provenance);
+            }).ToArray();
             var unique = Parts(_unique.Text, 5); var ownershipLoot = Parts(_lootOwnership.Text, 4);
-            var recipes = Lines(_recipes.Text).Select((line, index) => { var p = Parts(line, 9);
+            var recipes = Lines(_recipes.Text).Select((line, index) =>
+            {
+                var p = Parts(line, 9);
                 var id = advanced.Recipes.ElementAtOrDefault(index)?.Id ??
                     StudioSessionController.StableItemGuidUx4S(source.BlueprintId.Value, $"recipe:{index}:{p[0]}");
-                var ingredients = CsvValues(p[1]).Select(value => { var segments = value.Split(':');
+                var ingredients = CsvValues(p[1]).Select(value =>
+                {
+                    var segments = value.Split(':');
                     if (segments.Length < 4) throw new FormatException("Ingrédient invalide.");
-                    return new ItemIngredientQuery(string.Join(':', segments[..^3]), Int(segments[^3]), Bool(segments[^2]), Int(segments[^1])); }).ToArray();
+                    return new ItemIngredientQuery(string.Join(':', segments[..^3]), Int(segments[^3]), Bool(segments[^2]), Int(segments[^1]));
+                }).ToArray();
                 return new ItemRecipeDefinition(id, p[0], ingredients, p[2], p[3], Int(p[4]), Int(p[5]),
-                    Double(p[6]), CsvValues(p[7]), p[8]); }).ToArray();
-            var generator = Parts(_generator.Text, 7); var affixes = Lines(_affixes.Text).Select((line, index) => { var p = Parts(line, 8);
+                    Double(p[6]), CsvValues(p[7]), p[8]);
+            }).ToArray();
+            var generator = Parts(_generator.Text, 7); var affixes = Lines(_affixes.Text).Select((line, index) =>
+            {
+                var p = Parts(line, 8);
                 var id = advanced.Generator?.Affixes.ElementAtOrDefault(index)?.Id ??
                     StudioSessionController.StableItemGuidUx4S(source.BlueprintId.Value, $"affix:{index}:{p[0]}");
                 return new ItemAffixDefinition(id, p[0], p[1], Int(p[2]), Int(p[3]), p[4], CsvValues(p[5]),
-                    CsvValues(p[6]), p[7]); }).ToArray();
+                    CsvValues(p[6]), p[7]);
+            }).ToArray();
             var generatorProfile = Bool(generator[0]) ? new ItemGeneratorPolicy(true, Int(generator[1]), Int(generator[2]),
                 Int(generator[3]), CsvValues(generator[4]), IntPairs(generator[5]), affixes, Int(generator[6])) : null;
             var rebuiltAdvanced = advanced with
@@ -448,26 +511,42 @@ internal sealed partial class StudioItemAuthoringOverlayUx4S : Control
                 Identification = new(identification[0], Int(identification[1]), Decimal(identification[2]),
                     identification[3], Bool(identification[4]), knowledge),
                 Ownership = new(Bool(ownership[0]), ownership[1], ownership[2], Bool(ownership[3]), history),
-                OnHitProcs = procs, Weapon = weaponProfile, Armor = armorProfile, Ammo = ammoProfile,
-                Durability = durabilityProfile, Container = containerProfile, LootContexts = contexts,
+                OnHitProcs = procs,
+                Weapon = weaponProfile,
+                Armor = armorProfile,
+                Ammo = ammoProfile,
+                Durability = durabilityProfile,
+                Container = containerProfile,
+                LootContexts = contexts,
                 Unique = new(Bool(unique[0]), unique[1], Enum.Parse<ItemUniqueScope>(unique[2], true),
                     Long(unique[3]), Bool(unique[4])),
                 LootOwnership = new(Enum.Parse<ItemLootOwnershipMode>(ownershipLoot[0], true), Long(ownershipLoot[1]),
-                    Bool(ownershipLoot[2]), Bool(ownershipLoot[3])), Recipes = recipes, Generator = generatorProfile
+                    Bool(ownershipLoot[2]), Bool(ownershipLoot[3])),
+                Recipes = recipes,
+                Generator = generatorProfile
             };
-            var lootEntries = Lines(_lootEntries.Text).Select(line => { var p = Parts(line, 8);
+            var lootEntries = Lines(_lootEntries.Text).Select(line =>
+            {
+                var p = Parts(line, 8);
                 if (!_itemReferences.TryGetValue(p[0], out var itemId)) throw new FormatException($"Objet de loot inconnu : {p[0]}");
-                return new ItemLootEntryPolicy(itemId, p[1], Double(p[2]), Int(p[3]), Int(p[4]), Int(p[5]), p[6], Bool(p[7])); }).ToArray();
-            var placements = Lines(_placements.Text).Select((line, index) => { var p = Parts(line, 7);
+                return new ItemLootEntryPolicy(itemId, p[1], Double(p[2]), Int(p[3]), Int(p[4]), Int(p[5]), p[6], Bool(p[7]));
+            }).ToArray();
+            var placements = Lines(_placements.Text).Select((line, index) =>
+            {
+                var p = Parts(line, 7);
                 var id = operations.Inspector.Placements.ElementAtOrDefault(index)?.ItemInstanceId ??
                     StudioSessionController.StableItemGuidUx4S(source.BlueprintId.Value, $"placement:{index}");
                 return new ItemInventoryPlacementPolicy(id, p[0], Empty(p[1]), Int(p[2]), Int(p[3]), Int(p[4]),
-                    CsvValues(p[5]), p[6]); }).ToArray();
-            var bindings = Lines(_events.Text).Select(line => { var p = Parts(line, 3);
+                    CsvValues(p[5]), p[6]);
+            }).ToArray();
+            var bindings = Lines(_events.Text).Select(line =>
+            {
+                var p = Parts(line, 3);
                 var kind = Enum.Parse<ItemLifecycleEventType>(p[0], true);
                 var id = operations.Events.Bindings.FirstOrDefault(item => item.Kind == kind)?.Id ??
                     StudioSessionController.StableItemGuidUx4S(source.BlueprintId.Value, $"event:{kind}");
-                return new ItemLifecycleBindingPolicy(id, 1, operations.Provenance, kind, p[1], p[2]); }).ToArray();
+                return new ItemLifecycleBindingPolicy(id, 1, operations.Provenance, kind, p[1], p[2]);
+            }).ToArray();
             rebuiltFoundation = rebuiltFoundation with
             {
                 Operations = operations with
@@ -477,8 +556,14 @@ internal sealed partial class StudioItemAuthoringOverlayUx4S : Control
                     Events = operations.Events with { Bindings = bindings }
                 }
             };
-            return source with { Slug = _slug.Text.Trim(), DisplayName = _displayName.Text.Trim(),
-                Foundation = rebuiltFoundation, Advanced = rebuiltAdvanced, AcceptTypeMigration = _acceptMigration.ButtonPressed };
+            return source with
+            {
+                Slug = _slug.Text.Trim(),
+                DisplayName = _displayName.Text.Trim(),
+                Foundation = rebuiltFoundation,
+                Advanced = rebuiltAdvanced,
+                AcceptTypeMigration = _acceptMigration.ButtonPressed
+            };
         }
         catch (Exception exception) when (exception is FormatException or OverflowException or ArgumentException)
         { error = exception.Message; return null; }
@@ -586,8 +671,10 @@ internal sealed partial class StudioItemAuthoringOverlayUx4S : Control
             if (undone) Redo(); var redone = undone && ProjectJsonSerializer.Serialize(transaction.Project!) == appliedJson;
             var saved = redone && transaction.Save().Succeeded; var persisted = false;
             if (saved && transaction.Session is { } workspace)
-            { reopened = new(); persisted = reopened.Open(workspace.RootDirectory).Succeeded &&
-                ProjectJsonSerializer.Serialize(reopened.Project!) == appliedJson; }
+            {
+                reopened = new(); persisted = reopened.Open(workspace.RootDirectory).Succeeded &&
+                ProjectJsonSerializer.Serialize(reopened.Project!) == appliedJson;
+            }
             var sourceUntouched = SourceMatches(snapshot); reopened?.Close(); reopened = null; Close();
             return applied && undone && redone && saved && persisted && sourceUntouched &&
                    EvidenceResourcesReleased && SourceSessionRestored;
@@ -595,8 +682,10 @@ internal sealed partial class StudioItemAuthoringOverlayUx4S : Control
         catch (Exception exception)
         { GD.PrintErr($"OPENRPG_FORGE_STUDIO_UX4S_UI_TRANSACTION_FAILED type={exception.GetType().Name} message={exception.Message}"); return false; }
         finally
-        { reopened?.Close(); if (_evidenceSession is not null || _evidenceRoot is not null) Close();
-          _sourceSession.RestoreItemApprovalUx4S(snapshot.Approval); }
+        {
+            reopened?.Close(); if (_evidenceSession is not null || _evidenceRoot is not null) Close();
+            _sourceSession.RestoreItemApprovalUx4S(snapshot.Approval);
+        }
     }
     internal void CloseEvidence() => Close();
     private bool TryOpenEvidence()
@@ -655,23 +744,39 @@ internal sealed partial class StudioItemAuthoringOverlayUx4S : Control
     }
     private static VBoxContainer Tab(TabContainer tabs, string title)
     {
-        var scroll = new ScrollContainer { Name = title, SizeFlagsVertical = SizeFlags.ExpandFill,
-            SizeFlagsHorizontal = SizeFlags.ExpandFill, HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
-            VerticalScrollMode = ScrollContainer.ScrollMode.Auto, FollowFocus = true };
+        var scroll = new ScrollContainer
+        {
+            Name = title,
+            SizeFlagsVertical = SizeFlags.ExpandFill,
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
+            VerticalScrollMode = ScrollContainer.ScrollMode.Auto,
+            FollowFocus = true
+        };
         var form = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill }; form.AddThemeConstantOverride("separation", 7);
         scroll.AddChild(form); tabs.AddChild(scroll); return form;
     }
     private static OptionButton Choice(Container parent, string label)
-    { var box = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill }; box.AddChild(StudioStyle.Label(label, 8, StudioStyle.Muted));
-      var result = new OptionButton { SizeFlagsHorizontal = SizeFlags.ExpandFill }; box.AddChild(result); parent.AddChild(box); return result; }
+    {
+        var box = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill }; box.AddChild(StudioStyle.Label(label, 8, StudioStyle.Muted));
+        var result = new OptionButton { SizeFlagsHorizontal = SizeFlags.ExpandFill }; box.AddChild(result); parent.AddChild(box); return result;
+    }
     private static LineEdit Field(Container parent, string label, string placeholder)
-    { var box = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill }; box.AddChild(StudioStyle.Label(label, 8, StudioStyle.Muted, wrap: true));
-      var result = new LineEdit { PlaceholderText = placeholder, SizeFlagsHorizontal = SizeFlags.ExpandFill };
-      box.AddChild(result); parent.AddChild(box); return result; }
+    {
+        var box = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill }; box.AddChild(StudioStyle.Label(label, 8, StudioStyle.Muted, wrap: true));
+        var result = new LineEdit { PlaceholderText = placeholder, SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        box.AddChild(result); parent.AddChild(box); return result;
+    }
     private static TextEdit Multi(Container parent, string label, float height)
-    { var box = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill }; box.AddChild(StudioStyle.Label(label, 8, StudioStyle.Muted, wrap: true));
-      var result = new TextEdit { CustomMinimumSize = new Vector2(0, height), SizeFlagsHorizontal = SizeFlags.ExpandFill,
-          WrapMode = TextEdit.LineWrappingMode.Boundary }; box.AddChild(result); parent.AddChild(box); return result; }
+    {
+        var box = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill }; box.AddChild(StudioStyle.Label(label, 8, StudioStyle.Muted, wrap: true));
+        var result = new TextEdit
+        {
+            CustomMinimumSize = new Vector2(0, height),
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            WrapMode = TextEdit.LineWrappingMode.Boundary
+        }; box.AddChild(result); parent.AddChild(box); return result;
+    }
     private static IReadOnlyList<string> Lines(string value) => value.Replace("\r", string.Empty, StringComparison.Ordinal)
         .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
     private static string[] Parts(string value, int count)
@@ -694,8 +799,10 @@ internal sealed partial class StudioItemAuthoringOverlayUx4S : Control
     private static IEnumerable<KeyValuePair<string, string>> PairValues(string value)
     {
         foreach (var item in CsvValues(value))
-        { var separator = item.IndexOf('='); if (separator <= 0) throw new FormatException($"Paire clé=valeur invalide : {item}");
-          yield return new(item[..separator].Trim(), item[(separator + 1)..].Trim()); }
+        {
+            var separator = item.IndexOf('='); if (separator <= 0) throw new FormatException($"Paire clé=valeur invalide : {item}");
+            yield return new(item[..separator].Trim(), item[(separator + 1)..].Trim());
+        }
     }
     private static int Int(string value) => int.Parse(value, NumberStyles.Integer, CultureInfo.InvariantCulture);
     private static long Long(string value) => long.Parse(value, NumberStyles.Integer, CultureInfo.InvariantCulture);

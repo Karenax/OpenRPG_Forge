@@ -271,7 +271,8 @@ internal sealed partial class StudioSessionController
                 var recoveryBlocked = !invalidRecovery.Succeeded;
                 var optional = editing.PreviewCreatureEventAiUx4P(changed with
                 {
-                    Enabled = false, RequiredAtRuntime = false
+                    Enabled = false,
+                    RequiredAtRuntime = false
                 });
                 var optionalRemoval = optional.Succeeded && optional.ControllerSummary.Contains("désactivé",
                     StringComparison.OrdinalIgnoreCase);
@@ -370,24 +371,24 @@ internal sealed partial class StudioSessionController
 
     internal static StudioCreatureEventAiDraftUx4P ChangedCreatureEventAiDraftUx4P(
         StudioCreatureEventAiDraftUx4P draft) => draft with
-    {
-        Enabled = true,
-        RequiredAtRuntime = true,
-        AssetId = "asset.creature-event-ai.warden",
-        PerceptionDetectedHandler = "OnStimulusDetected",
-        PerceptionLostHandler = "OnStimulusLost",
-        AttackDeclaredHandler = "BeforePhysicalAttack",
-        AttackResolvedHandler = "OnPhysicalAttackResolved",
-        AbilityTargetedHandler = "BeforeAbilityTargeted",
-        AbilityImpactedHandler = "OnAbilityImpacted",
-        BlockedHandler = "OnMovementBlocked",
-        RecoveryOrder = "Repath, Avoid, Wait, Abort",
-        ControllerKind = CreatureEventAiControllerKind.Utility,
-        ControllerDefinitionId = "ai.utility.warden",
-        Blackboard = "state|Text|guard|true\ntarget|Entity|entity.hero|false\ncourage|Number|0.8|true",
-        AllowedActions = "attack, guard, patrol",
-        Overrides = "decision.threshold=0.65",
-    };
+        {
+            Enabled = true,
+            RequiredAtRuntime = true,
+            AssetId = "asset.creature-event-ai.warden",
+            PerceptionDetectedHandler = "OnStimulusDetected",
+            PerceptionLostHandler = "OnStimulusLost",
+            AttackDeclaredHandler = "BeforePhysicalAttack",
+            AttackResolvedHandler = "OnPhysicalAttackResolved",
+            AbilityTargetedHandler = "BeforeAbilityTargeted",
+            AbilityImpactedHandler = "OnAbilityImpacted",
+            BlockedHandler = "OnMovementBlocked",
+            RecoveryOrder = "Repath, Avoid, Wait, Abort",
+            ControllerKind = CreatureEventAiControllerKind.Utility,
+            ControllerDefinitionId = "ai.utility.warden",
+            Blackboard = "state|Text|guard|true\ntarget|Entity|entity.hero|false\ncourage|Number|0.8|true",
+            AllowedActions = "attack, guard, patrol",
+            Overrides = "decision.threshold=0.65",
+        };
 
     private bool TryBuildCreatureEventAiCandidateUx4P(
         StudioCreatureEventAiDraftUx4P draft,
@@ -515,8 +516,14 @@ internal sealed partial class StudioSessionController
     }
 
     private static EventBinding UpdateEventAiBindingUx4P(EventBinding source, string eventName, string handler) =>
-        source with { SchemaVersion = 1, ForgeScriptApiVersion = "1.0", EventName = eventName,
-            Handler = handler, Authority = EventAuthorityScope.Server };
+        source with
+        {
+            SchemaVersion = 1,
+            ForgeScriptApiVersion = "1.0",
+            EventName = eventName,
+            Handler = handler,
+            Authority = EventAuthorityScope.Server
+        };
 
     private static bool FoundationNeighborsEqualUx4P(CreatureFoundationProfile before,
         CreatureFoundationProfile after) => JsonFoundationWithoutEventAiUx4P(before) ==

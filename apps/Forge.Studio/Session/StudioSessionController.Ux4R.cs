@@ -292,17 +292,25 @@ internal sealed partial class StudioSessionController
 
     private static StudioBossDraftUx4R ConfigureBossEvidenceUx4R(StudioBossDraftUx4R draft,
         StudioBossEvidenceProjectUx4R evidence) => draft with
-    {
-        Slug = "gardienne-des-braises", DisplayName = "Gardienne des Braises",
-        Synopsis = "Une gardienne en trois temps protège le cœur de la zone.", MaximumHealth = 480,
-        Offense = 24, Defense = 12, ThreatRating = 18,
-        AbilityNames = ["Trait de braise", "Cercle de feu", "Couronne ardente"],
-        PhaseScripts = ["scripts/boss_phase_1.forge", "scripts/boss_phase_2.forge", "scripts/boss_phase_3.forge"],
-        SummonBlueprintSlugs = [evidence.SummonSlug], RewardItemSlugs = [evidence.RewardSlug],
-        DeathScript = "scripts/boss_death.forge", ContextCitations = ["contexte-projet#gardienne"],
-        StyleRules = ["combat télégraphié", "lecture claire"], AuthorId = "studio-author", Seed = 20260820,
-        Approved = true,
-    };
+        {
+            Slug = "gardienne-des-braises",
+            DisplayName = "Gardienne des Braises",
+            Synopsis = "Une gardienne en trois temps protège le cœur de la zone.",
+            MaximumHealth = 480,
+            Offense = 24,
+            Defense = 12,
+            ThreatRating = 18,
+            AbilityNames = ["Trait de braise", "Cercle de feu", "Couronne ardente"],
+            PhaseScripts = ["scripts/boss_phase_1.forge", "scripts/boss_phase_2.forge", "scripts/boss_phase_3.forge"],
+            SummonBlueprintSlugs = [evidence.SummonSlug],
+            RewardItemSlugs = [evidence.RewardSlug],
+            DeathScript = "scripts/boss_death.forge",
+            ContextCitations = ["contexte-projet#gardienne"],
+            StyleRules = ["combat télégraphié", "lecture claire"],
+            AuthorId = "studio-author",
+            Seed = 20260820,
+            Approved = true,
+        };
 
     private static AssistedBossBrief BuildBossBriefUx4R(StudioBossDraftUx4R draft) => new(
         draft.BossId, draft.BlueprintId, draft.Slug.Trim(), draft.DisplayName.Trim(), draft.AreaId.Value,
@@ -316,9 +324,12 @@ internal sealed partial class StudioSessionController
 
     private static StudioBossDraftUx4R FreezeBossDraftUx4R(StudioBossDraftUx4R draft) => draft with
     {
-        AbilityNames = draft.AbilityNames.ToArray(), PhaseScripts = draft.PhaseScripts.ToArray(),
-        SummonBlueprintSlugs = draft.SummonBlueprintSlugs.ToArray(), RewardItemSlugs = draft.RewardItemSlugs.ToArray(),
-        ContextCitations = draft.ContextCitations.ToArray(), StyleRules = draft.StyleRules.ToArray(),
+        AbilityNames = draft.AbilityNames.ToArray(),
+        PhaseScripts = draft.PhaseScripts.ToArray(),
+        SummonBlueprintSlugs = draft.SummonBlueprintSlugs.ToArray(),
+        RewardItemSlugs = draft.RewardItemSlugs.ToArray(),
+        ContextCitations = draft.ContextCitations.ToArray(),
+        StyleRules = draft.StyleRules.ToArray(),
     };
     private static StudioBossPreviewUx4R FailedBossUx4R(string message, string code) => new(false, false,
         HumanBossMessageUx4R(code, message), string.Empty, string.Empty,

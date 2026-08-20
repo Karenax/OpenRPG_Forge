@@ -120,8 +120,12 @@ internal sealed partial class StudioCreatureCapabilitiesOverlayUx4H : Control
         _context = StudioStyle.Label("Sélection explicite requise · la fondation UX4-D doit exister.",
             9, StudioStyle.Muted, wrap: true); _context.SizeFlagsHorizontal = SizeFlags.ExpandFill;
         contextRow.AddChild(_context); root.AddChild(contextRow);
-        var tabHost = new Control { CustomMinimumSize = new Vector2(0, 410), SizeFlagsVertical = SizeFlags.ExpandFill,
-            ClipContents = true }; root.AddChild(tabHost);
+        var tabHost = new Control
+        {
+            CustomMinimumSize = new Vector2(0, 410),
+            SizeFlagsVertical = SizeFlags.ExpandFill,
+            ClipContents = true
+        }; root.AddChild(tabHost);
         _tabs = new TabContainer(); _tabs.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect); tabHost.AddChild(_tabs);
 
         var abilities = Tab(_tabs, "1 · Capacités spéciales");
@@ -183,8 +187,13 @@ internal sealed partial class StudioCreatureCapabilitiesOverlayUx4H : Control
         review.AddChild(StudioStyle.Label(
             "Projection Domain/Application uniquement : aucun script, objet, équipement, acteur ou réseau n’est exécuté.",
             9, StudioStyle.Muted, wrap: true)); _diagnostics = new VBoxContainer(); review.AddChild(_diagnostics);
-        _summary = new RichTextLabel { BbcodeEnabled = true, CustomMinimumSize = new Vector2(0, 145),
-            FitContent = false, SelectionEnabled = true }; root.AddChild(_summary);
+        _summary = new RichTextLabel
+        {
+            BbcodeEnabled = true,
+            CustomMinimumSize = new Vector2(0, 145),
+            FitContent = false,
+            SelectionEnabled = true
+        }; root.AddChild(_summary);
         root.AddChild(StudioStyle.Label(
             "Prévisualiser ne modifie rien. Appliquer écrit une commande annulable ; Enregistrer persiste ensuite le workspace.",
             9, StudioStyle.Muted, wrap: true));
@@ -240,8 +249,14 @@ internal sealed partial class StudioCreatureCapabilitiesOverlayUx4H : Control
     private StudioCreatureCapabilityDraftUx4H? ReadDraft(bool commitEditors = true)
     {
         if (_draft is null || commitEditors && !CommitEditors()) return null;
-        return _draft with { Abilities = _abilities.ToArray(), Containers = _containers.ToArray(),
-            EquipmentSlots = _equipment.ToDictionary(), OwnerId = _owner.Text, Persistent = _persistent.ButtonPressed };
+        return _draft with
+        {
+            Abilities = _abilities.ToArray(),
+            Containers = _containers.ToArray(),
+            EquipmentSlots = _equipment.ToDictionary(),
+            OwnerId = _owner.Text,
+            Persistent = _persistent.ButtonPressed
+        };
     }
     private bool CommitEditors()
     {
@@ -367,8 +382,10 @@ internal sealed partial class StudioCreatureCapabilitiesOverlayUx4H : Control
             $"{HumanItemLabel(item.ItemBlueprintId)} · quantité {item.Quantity} · {item.UnitWeight:0.##} kg"), selected, SelectItem);
     }
     private void RebuildEquipmentList(int selected)
-    { Rebuild(_equipmentList, _equipment.OrderBy(item => item.Key, StringComparer.Ordinal).Select(item =>
-        $"{item.Key} · {HumanEntryLabel(item.Value)}"), selected, SelectEquipment); RebuildEquipmentEntryChoices(); }
+    {
+        Rebuild(_equipmentList, _equipment.OrderBy(item => item.Key, StringComparer.Ordinal).Select(item =>
+        $"{item.Key} · {HumanEntryLabel(item.Value)}"), selected, SelectEquipment); RebuildEquipmentEntryChoices();
+    }
     private void Rebuild(ItemList list, IEnumerable<string> labels, int selected, Action<long> select)
     {
         _updating = true; list.Clear(); foreach (var label in labels) list.AddItem(label);

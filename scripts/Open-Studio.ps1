@@ -108,6 +108,7 @@ param(
         'ux4-r', 'ux4-r-assisted-boss', 'ux4-r-boss-creation',
         'ux4-s', 'ux4-s-items', 'ux4-s-item-authoring',
         'ux4-t', 'ux4-t-merchants', 'ux4-t-merchant-authoring',
+        'ux4-u', 'ux4-u-companions', 'ux4-u-companion-authoring',
         'ux5-a', 'ux5-a-dialogue-foundation')]
     [string]$Evidence,
     [string]$Resolution,

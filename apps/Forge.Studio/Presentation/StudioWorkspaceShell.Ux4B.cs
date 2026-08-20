@@ -35,6 +35,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx4AOverlay();
         CloseUx4COverlay();
         CloseUx4TOverlay();
+        CloseUx4UOverlay();
         SwitchPage("social-content", notify: false);
         _factionRuntimeOverlayUx4B.Open();
         SetStatus("Réputation vivante ouverte · sélection explicite et aperçu canonique obligatoires");
@@ -67,6 +68,8 @@ internal sealed partial class StudioWorkspaceShell
         SwitchPage("social-content", notify: false);
         CloseUx4AOverlay();
         CloseUx4COverlay();
+        CloseUx4TOverlay();
+        CloseUx4UOverlay();
         return _factionRuntimeOverlayUx4B.PrepareEvidence(mode);
     }
 

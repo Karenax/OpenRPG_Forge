@@ -266,6 +266,11 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
 - [x] Achever UX2 à 98/98 routes Monde : terrain, environnement/audio, monde vivant et navigation,
   avec 36 portails incrémentaux, smokes, preuves Forward+ FHD, matrice et graphe régénérés, puis
   valider le portail transversal complet avec 2 033 tests .NET et 39 tests Python.
+- [x] Achever UX4 à 140/140 routes Contenu : factions, créatures, voix, boss assisté, objets,
+  marchands et compagnons, avec commandes transactionnelles, preuves isolées et limites runtime
+  honnêtes.
+- [x] Qualifier UX4-U sur `ORF-CMP-001` à `ORF-CMP-024` par 66/66 tests ciblés, smoke global,
+  capture Forward+ FHD inspectée, matrice régénérée et portail transversal complet.
 - [ ] Activer **Tester ici** sur snapshot isolé depuis la tranche Tester, sans élargir rétroactivement
   les claims runtime des aperçus UX2.
 - [ ] Continuer la migration de Contenu, Histoire, Gameplay, Tester, Publier, Projet et Assistant

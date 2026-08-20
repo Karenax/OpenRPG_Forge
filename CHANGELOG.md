@@ -7,6 +7,9 @@ SemVer ; les versions de schéma persistent séparément dans leurs documents.
 
 ### Changed
 
+- Forge Studio UX4-U : auteur de compagnon complet en cinq sections via la commande canonique du
+  catalogue WorldFeatures, couvrant les 24 routes CMP, portant la matrice à 356 routes
+  `functional` / 361 `planned` et clôturant UX4 à 140/140 ;
 - Forge Studio UX4-T : auteur de marchand complet en cinq sections via la commande canonique du
   catalogue WorldFeatures, couvrant les 19 routes MER et portant la matrice à 332 routes
   `functional` / 385 `planned` ;

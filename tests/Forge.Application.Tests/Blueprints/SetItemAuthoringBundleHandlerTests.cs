@@ -147,8 +147,11 @@ public sealed class SetItemAuthoringBundleHandlerTests
         LootOwnership = new(ItemLootOwnershipMode.Personal, 120, true, true),
         Recipes = [new(Guid.Parse("d4010000-0000-4000-8000-000000000043"), "repair-ember-compass",
             [new("tag:ember-metal", 2, true, 1)], "forge", "smithing", 10, 1, 6, [], "test:ux4-s")],
-        Generator = new(true, 6, 1, 2, ["relic"], new Dictionary<string, int> { ["common"] = 80,
-            ["rare"] = 20 }, [new(Guid.Parse("d4010000-0000-4000-8000-000000000044"), "keen", "relic", 2,
+        Generator = new(true, 6, 1, 2, ["relic"], new Dictionary<string, int>
+        {
+            ["common"] = 80,
+            ["rare"] = 20
+        }, [new(Guid.Parse("d4010000-0000-4000-8000-000000000044"), "keen", "relic", 2,
             5, "common", [], ["critical"], "test:ux4-s")], 17)
     };
 

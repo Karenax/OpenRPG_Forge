@@ -160,8 +160,12 @@ internal sealed partial class StudioCreatureProgressionOverlayUx4G : Control
             9, StudioStyle.Muted, wrap: true);
         _context.SizeFlagsHorizontal = SizeFlags.ExpandFill; contextRow.AddChild(_context); root.AddChild(contextRow);
 
-        var tabHost = new Control { CustomMinimumSize = new Vector2(0, 410),
-            SizeFlagsVertical = SizeFlags.ExpandFill, ClipContents = true };
+        var tabHost = new Control
+        {
+            CustomMinimumSize = new Vector2(0, 410),
+            SizeFlagsVertical = SizeFlags.ExpandFill,
+            ClipContents = true
+        };
         root.AddChild(tabHost); _tabs = new TabContainer(); _tabs.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
         tabHost.AddChild(_tabs);
 
@@ -270,8 +274,14 @@ internal sealed partial class StudioCreatureProgressionOverlayUx4G : Control
         var review = StudioStyle.Panel("CreatureProgressionReviewUx4G", StudioStyle.Surface, 10, 1);
         review.CustomMinimumSize = new Vector2(0, 145); root.AddChild(review);
         var reviewBox = new VBoxContainer(); review.AddChild(reviewBox);
-        _summary = new RichTextLabel { BbcodeEnabled = true, FitContent = false, CustomMinimumSize = new Vector2(0, 92),
-            SizeFlagsHorizontal = SizeFlags.ExpandFill, ScrollActive = true };
+        _summary = new RichTextLabel
+        {
+            BbcodeEnabled = true,
+            FitContent = false,
+            CustomMinimumSize = new Vector2(0, 92),
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            ScrollActive = true
+        };
         reviewBox.AddChild(_summary); _diagnostics = new VBoxContainer(); reviewBox.AddChild(_diagnostics);
         root.AddChild(StudioStyle.Label(
             "Prévisualiser ne modifie rien. Appliquer écrit une commande annulable ; Enregistrer persiste ensuite le workspace.",
@@ -355,11 +365,18 @@ internal sealed partial class StudioCreatureProgressionOverlayUx4G : Control
         { SetStatus("Capacité ou mode de loadout invalide.", true); return null; }
         return _draft with
         {
-            RulesetId = _ruleset.Text, AllowMultipleTracks = _allowMultiple.ButtonPressed,
-            RequiredAtRuntime = _requiredRuntime.ButtonPressed, Tracks = _tracks.ToArray(),
-            DispositionAxes = _axes.ToArray(), Skills = _skills.ToArray(), Talents = _talents.ToArray(),
-            LoadoutProviderId = _loadoutProvider.Text, LoadoutMode = mode, LoadoutCapacity = capacity,
-            LearnedAbilityIds = _learned.ToArray(), PreparedAbilities = _prepared.ToArray(),
+            RulesetId = _ruleset.Text,
+            AllowMultipleTracks = _allowMultiple.ButtonPressed,
+            RequiredAtRuntime = _requiredRuntime.ButtonPressed,
+            Tracks = _tracks.ToArray(),
+            DispositionAxes = _axes.ToArray(),
+            Skills = _skills.ToArray(),
+            Talents = _talents.ToArray(),
+            LoadoutProviderId = _loadoutProvider.Text,
+            LoadoutMode = mode,
+            LoadoutCapacity = capacity,
+            LearnedAbilityIds = _learned.ToArray(),
+            PreparedAbilities = _prepared.ToArray(),
         };
     }
 
@@ -771,16 +788,25 @@ internal sealed partial class StudioCreatureProgressionOverlayUx4G : Control
 
     private static VBoxContainer Tab(TabContainer tabs, string title)
     {
-        var scroll = new ScrollContainer { Name = title, HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
-            VerticalScrollMode = ScrollContainer.ScrollMode.Auto, FollowFocus = true };
+        var scroll = new ScrollContainer
+        {
+            Name = title,
+            HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
+            VerticalScrollMode = ScrollContainer.ScrollMode.Auto,
+            FollowFocus = true
+        };
         tabs.AddChild(scroll); tabs.SetTabTitle(tabs.GetTabCount() - 1, title);
         var content = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
         content.AddThemeConstantOverride("separation", 6); scroll.AddChild(content); return content;
     }
     private static ItemList List(Container parent, float height)
     {
-        var list = new ItemList { CustomMinimumSize = new Vector2(0, height),
-            SizeFlagsHorizontal = SizeFlags.ExpandFill, SelectMode = ItemList.SelectModeEnum.Single };
+        var list = new ItemList
+        {
+            CustomMinimumSize = new Vector2(0, height),
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            SelectMode = ItemList.SelectModeEnum.Single
+        };
         parent.AddChild(list); return list;
     }
     private static LineEdit GridField(GridContainer parent, string label, string placeholder)

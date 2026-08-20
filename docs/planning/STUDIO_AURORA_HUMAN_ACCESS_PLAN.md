@@ -1105,6 +1105,17 @@ atteint 332 routes `functional` et 385 `planned`. Preuves et limites sont liées
 `docs/acceptance/STUDIO_UX4_T.md` ; aucun commerce, script, lecteur UI ou transport réseau live
 n’est exécuté. Les compagnons constituent le dernier lot UX4.
 
+### UX4-U — Auteur de compagnon complet
+
+Les 24 routes `ORF-CMP-001..024` sont `functional` via une surface Compagnons en cinq onglets et
+`SetWorldFeatureCatalogHandler`. Le parcours couvre recrutement/dialogues, groupe, propriété,
+ordres, IA/formation, équipement/progression, relation/banter/quête, mort/cohésion,
+pièges/capacités/contrôle direct, HUD/séparation et validation avec sélection explicite, dry-run,
+double garde, historique et persistance. Le portail passe 66/66 tests en 132,09 s, le smoke global
+et la capture Forward+ FHD. La matrice atteint 356 routes `functional` et 361 `planned` ; UX4 est
+close à 140/140. Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX4_U.md` ; aucun
+acteur, dialogue, quête, script, inventaire, caméra ou transport réseau live n’est exécuté.
+
 ## Gates ergonomiques avant parité
 
 Une page ne passe pas `Parity` si l’un des points suivants manque :

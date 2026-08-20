@@ -122,8 +122,12 @@ internal sealed partial class StudioMerchantAuthoringOverlayUx4T : Control
         close.CustomMinimumSize = new Vector2(76, 34); close.Pressed += Close; header.AddChild(close); root.AddChild(header);
         _merchant = Choice(root, "Marchand à éditer ou création explicite");
 
-        var tabs = new TabContainer { SizeFlagsVertical = SizeFlags.ExpandFill,
-            SizeFlagsHorizontal = SizeFlags.ExpandFill, CustomMinimumSize = new Vector2(0, 350) };
+        var tabs = new TabContainer
+        {
+            SizeFlagsVertical = SizeFlags.ExpandFill,
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            CustomMinimumSize = new Vector2(0, 350)
+        };
         var storeTab = Tab(tabs, "Boutique et assistant");
         var identity = new GridContainer { Columns = 2, SizeFlagsHorizontal = SizeFlags.ExpandFill };
         _slug = Field(identity, "Slug canonique", "echoppe-des-braises");
@@ -190,8 +194,13 @@ internal sealed partial class StudioMerchantAuthoringOverlayUx4T : Control
         tabs.CurrentTab = 0; root.AddChild(tabs);
 
         _diagnostics = new VBoxContainer(); root.AddChild(_diagnostics);
-        _summary = new RichTextLabel { BbcodeEnabled = true, CustomMinimumSize = new Vector2(0, 128),
-            FitContent = false, SelectionEnabled = true }; root.AddChild(_summary);
+        _summary = new RichTextLabel
+        {
+            BbcodeEnabled = true,
+            CustomMinimumSize = new Vector2(0, 128),
+            FitContent = false,
+            SelectionEnabled = true
+        }; root.AddChild(_summary);
         root.AddChild(StudioStyle.Label(
             "Prévisualiser ne modifie rien. Appliquer remplace le marchand dans le catalogue en une commande annulable.",
             9, StudioStyle.Muted, wrap: true));
@@ -334,10 +343,15 @@ internal sealed partial class StudioMerchantAuthoringOverlayUx4T : Control
                     vendor, dialogue, p[2], p[3], p[4]);
             }).ToArray();
             var wizardParts = Parts(_wizard.Text, 6); var oldWizard = oldFoundation.Wizard;
-            var wizard = oldWizard with { CreateStoreDefinition = Bool(wizardParts[0]),
-                CreateVendorBinding = Bool(wizardParts[1]), CreateDialogueChoice = Bool(wizardParts[2]),
-                CreateInteraction = Bool(wizardParts[3]), CreateTests = Bool(wizardParts[4]),
-                TestFixtureId = wizardParts[5] };
+            var wizard = oldWizard with
+            {
+                CreateStoreDefinition = Bool(wizardParts[0]),
+                CreateVendorBinding = Bool(wizardParts[1]),
+                CreateDialogueChoice = Bool(wizardParts[2]),
+                CreateInteraction = Bool(wizardParts[3]),
+                CreateTests = Bool(wizardParts[4]),
+                TestFixtureId = wizardParts[5]
+            };
             var stock = Lines(_foundationStock.Text).Select((line, index) =>
             {
                 var p = Parts(line, 10); var item = ResolveItem(p[0]); var variant = p[1];
@@ -349,29 +363,57 @@ internal sealed partial class StudioMerchantAuthoringOverlayUx4T : Control
                     Double(p[5]), Int(p[6]), CsvValues(p[7]), Decimal(p[8]), p[9]);
             }).ToArray();
             var price = Parts(_pricing.Text, 9); var oldPricing = oldFoundation.Pricing;
-            var pricing = oldPricing with { BuyMultiplier = Decimal(price[0]), SellMultiplier = Decimal(price[1]),
-                ReputationFactor = Decimal(price[2]), ScarcityFactor = Decimal(price[3]),
-                ConditionFactor = Decimal(price[4]), NegotiationFactor = Decimal(price[5]),
-                MinimumPrice = Decimal(price[6]), MaximumPrice = Decimal(price[7]),
-                CurrencyRates = DecimalPairs(price[8]), BuyCurve = ParseCurve(_buyCurve.Text),
-                SellCurve = ParseCurve(_sellCurve.Text) };
+            var pricing = oldPricing with
+            {
+                BuyMultiplier = Decimal(price[0]),
+                SellMultiplier = Decimal(price[1]),
+                ReputationFactor = Decimal(price[2]),
+                ScarcityFactor = Decimal(price[3]),
+                ConditionFactor = Decimal(price[4]),
+                NegotiationFactor = Decimal(price[5]),
+                MinimumPrice = Decimal(price[6]),
+                MaximumPrice = Decimal(price[7]),
+                CurrencyRates = DecimalPairs(price[8]),
+                BuyCurve = ParseCurve(_buyCurve.Text),
+                SellCurve = ParseCurve(_sellCurve.Text)
+            };
             var query = Parts(_restrictions.Text, 9); var oldQuery = oldFoundation.Restrictions;
-            var restrictions = oldQuery with { WhitelistTypes = CsvValues(query[0]),
-                WhitelistTags = CsvValues(query[1]), BlacklistTags = CsvValues(query[2]),
-                MinimumQuality = Int(query[3]), MaximumQuality = Int(query[4]),
-                Provenances = CsvValues(query[5]), MinimumCondition = Double(query[6]),
-                OwnerId = Empty(query[7]), CustomRuleBinding = Empty(query[8]) };
-            var foundation = oldFoundation with { Slug = _slug.Text.Trim(),
-                DisplayNameKey = _displayNameKey.Text.Trim(), Locales = CsvValues(_locales.Text),
-                Vendors = vendors, Wizard = wizard, Stock = stock, Pricing = pricing,
-                Restrictions = restrictions };
+            var restrictions = oldQuery with
+            {
+                WhitelistTypes = CsvValues(query[0]),
+                WhitelistTags = CsvValues(query[1]),
+                BlacklistTags = CsvValues(query[2]),
+                MinimumQuality = Int(query[3]),
+                MaximumQuality = Int(query[4]),
+                Provenances = CsvValues(query[5]),
+                MinimumCondition = Double(query[6]),
+                OwnerId = Empty(query[7]),
+                CustomRuleBinding = Empty(query[8])
+            };
+            var foundation = oldFoundation with
+            {
+                Slug = _slug.Text.Trim(),
+                DisplayNameKey = _displayNameKey.Text.Trim(),
+                Locales = CsvValues(_locales.Text),
+                Vendors = vendors,
+                Wizard = wizard,
+                Stock = stock,
+                Pricing = pricing,
+                Restrictions = restrictions
+            };
 
-            var currencies = Lines(_currencies.Text).Select(line => { var p = Parts(line, 5);
+            var currencies = Lines(_currencies.Text).Select(line =>
+            {
+                var p = Parts(line, 5);
                 return new MerchantWorldProfile.CurrencyDefinition(p[0], p[1], Decimal(p[2]),
-                    Bool(p[3]), Bool(p[4])); }).ToArray();
-            var treasury = Lines(_treasury.Text).Select(line => { var p = Parts(line, 6);
+                    Bool(p[3]), Bool(p[4]));
+            }).ToArray();
+            var treasury = Lines(_treasury.Text).Select(line =>
+            {
+                var p = Parts(line, 6);
                 return new MerchantWorldProfile.TreasuryAccount(p[0], Decimal(p[1]), Decimal(p[2]),
-                    Decimal(p[3]), Decimal(p[4]), Decimal(p[5])); }).ToArray();
+                    Decimal(p[3]), Decimal(p[4]), Decimal(p[5]));
+            }).ToArray();
             var purchase = Parts(_purchase.Text, 5);
             var purchasePolicy = new MerchantWorldProfile.PurchasePolicy(Decimal(purchase[0]),
                 Decimal(purchase[1]), DecimalPairs(purchase[2]), Double(purchase[3]), Bool(purchase[4]));
@@ -389,11 +431,14 @@ internal sealed partial class StudioMerchantAuthoringOverlayUx4T : Control
             MerchantWorldProfile.MarketPolicy? marketPolicy = Bool(market[0])
                 ? new(market[1], Double(market[2]), Double(market[3]), DoublePairs(market[4]), Bool(market[5]))
                 : null;
-            var services = Lines(_services.Text).Select((line, index) => { var p = Parts(line, 6);
+            var services = Lines(_services.Text).Select((line, index) =>
+            {
+                var p = Parts(line, 6);
                 var existing = profile.Services.FirstOrDefault(item => item.Kind == p[0] && item.ActionId == p[4]);
                 return new MerchantWorldProfile.ServiceEntry(existing?.Id ??
                     StudioSessionController.StableMerchantGuidUx4T(source.MerchantId, $"service:{index}"),
-                    p[0], p[1], p[2], Decimal(p[3]), p[4], p[5]); }).ToArray();
+                    p[0], p[1], p[2], Decimal(p[3]), p[4], p[5]);
+            }).ToArray();
             var transaction = Parts(_transaction.Text, 7); var oldTransactions = profile.Transactions!;
             var transactionStock = Lines(_transactionStock.Text).Select((line, index) =>
             {
@@ -406,32 +451,65 @@ internal sealed partial class StudioMerchantAuthoringOverlayUx4T : Control
             }).ToArray();
             var scripts = Lines(_transactionScripts.Text).Select(line => Parts(line, 2))
                 .ToDictionary(item => item[0], item => item[1], StringComparer.Ordinal);
-            var transactions = oldTransactions with { VendorInteractionId = transaction[0],
-                DialogueChoiceId = transaction[1], Locales = CsvValues(transaction[2]),
-                RestrictionIds = CsvValues(transaction[3]), BuyerCapacity = Int(transaction[4]),
-                SellerCapacity = Int(transaction[5]), ServerAuthoritative = Bool(transaction[6]),
-                Stock = transactionStock, Scripts = scripts };
+            var transactions = oldTransactions with
+            {
+                VendorInteractionId = transaction[0],
+                DialogueChoiceId = transaction[1],
+                Locales = CsvValues(transaction[2]),
+                RestrictionIds = CsvValues(transaction[3]),
+                BuyerCapacity = Int(transaction[4]),
+                SellerCapacity = Int(transaction[5]),
+                ServerAuthoritative = Bool(transaction[6]),
+                Stock = transactionStock,
+                Scripts = scripts
+            };
             var sessionParts = Parts(_sessions.Text, 7); var oldExperience = profile.Experience!;
-            var sessions = oldExperience.Sessions with { ForgeScriptApiVersion = sessionParts[0],
-                OpenEventBinding = sessionParts[1], CloseEventBinding = sessionParts[2],
-                IncludeCustomer = Bool(sessionParts[3]), IncludeVendor = Bool(sessionParts[4]),
-                IncludePriceContext = Bool(sessionParts[5]), IncludeTransactionSummary = Bool(sessionParts[6]) };
+            var sessions = oldExperience.Sessions with
+            {
+                ForgeScriptApiVersion = sessionParts[0],
+                OpenEventBinding = sessionParts[1],
+                CloseEventBinding = sessionParts[2],
+                IncludeCustomer = Bool(sessionParts[3]),
+                IncludeVendor = Bool(sessionParts[4]),
+                IncludePriceContext = Bool(sessionParts[5]),
+                IncludeTransactionSummary = Bool(sessionParts[6])
+            };
             var ui = Parts(_storeUi.Text, 9);
-            var storeUi = oldExperience.Ui with { KeyboardNavigation = Bool(ui[0]),
-                GamepadNavigation = Bool(ui[1]), Compare = Bool(ui[2]), Filters = Bool(ui[3]),
-                Cart = Bool(ui[4]), Confirmation = Bool(ui[5]), ScreenReaderLabels = Bool(ui[6]),
-                HighContrast = Bool(ui[7]), Columns = CsvValues(ui[8]) };
+            var storeUi = oldExperience.Ui with
+            {
+                KeyboardNavigation = Bool(ui[0]),
+                GamepadNavigation = Bool(ui[1]),
+                Compare = Bool(ui[2]),
+                Filters = Bool(ui[3]),
+                Cart = Bool(ui[4]),
+                Confirmation = Bool(ui[5]),
+                ScreenReaderLabels = Bool(ui[6]),
+                HighContrast = Bool(ui[7]),
+                Columns = CsvValues(ui[8])
+            };
             var experience = oldExperience with { Sessions = sessions, Ui = storeUi };
             var ledger = Parts(_ledger.Text, 6);
             var ledgerPolicy = new MerchantWorldProfile.LedgerPolicy(Bool(ledger[0]), Int(ledger[1]),
                 Decimal(ledger[2]), Bool(ledger[3]), Bool(ledger[4]), Bool(ledger[5]));
-            var rebuilt = profile with { BlueprintId = vendors[0].VendorBlueprintId, Currencies = currencies,
-                Treasury = treasury, Purchase = purchasePolicy, StolenGoods = stolenPolicy,
-                Restock = restockPolicy, Negotiation = negotiationPolicy, Market = marketPolicy,
-                Services = services, Ledger = ledgerPolicy, Transactions = transactions,
-                TransactionsRequiredAtRuntime = true, Foundation = foundation,
-                FoundationRequiredAtRuntime = true, Experience = experience,
-                ExperienceRequiredAtRuntime = true };
+            var rebuilt = profile with
+            {
+                BlueprintId = vendors[0].VendorBlueprintId,
+                Currencies = currencies,
+                Treasury = treasury,
+                Purchase = purchasePolicy,
+                StolenGoods = stolenPolicy,
+                Restock = restockPolicy,
+                Negotiation = negotiationPolicy,
+                Market = marketPolicy,
+                Services = services,
+                Ledger = ledgerPolicy,
+                Transactions = transactions,
+                TransactionsRequiredAtRuntime = true,
+                Foundation = foundation,
+                FoundationRequiredAtRuntime = true,
+                Experience = experience,
+                ExperienceRequiredAtRuntime = true
+            };
             return source with { Profile = rebuilt };
         }
         catch (Exception exception) when (exception is FormatException or OverflowException or ArgumentException)
@@ -654,9 +732,15 @@ internal sealed partial class StudioMerchantAuthoringOverlayUx4T : Control
     }
     private static VBoxContainer Tab(TabContainer tabs, string title)
     {
-        var scroll = new ScrollContainer { Name = title, SizeFlagsVertical = SizeFlags.ExpandFill,
-            SizeFlagsHorizontal = SizeFlags.ExpandFill, HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
-            VerticalScrollMode = ScrollContainer.ScrollMode.Auto, FollowFocus = true };
+        var scroll = new ScrollContainer
+        {
+            Name = title,
+            SizeFlagsVertical = SizeFlags.ExpandFill,
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
+            VerticalScrollMode = ScrollContainer.ScrollMode.Auto,
+            FollowFocus = true
+        };
         var form = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
         form.AddThemeConstantOverride("separation", 7); scroll.AddChild(form); tabs.AddChild(scroll); return form;
     }
@@ -678,8 +762,12 @@ internal sealed partial class StudioMerchantAuthoringOverlayUx4T : Control
     {
         var box = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
         box.AddChild(StudioStyle.Label(label, 8, StudioStyle.Muted, wrap: true));
-        var result = new TextEdit { CustomMinimumSize = new Vector2(0, height),
-            SizeFlagsHorizontal = SizeFlags.ExpandFill, WrapMode = TextEdit.LineWrappingMode.Boundary };
+        var result = new TextEdit
+        {
+            CustomMinimumSize = new Vector2(0, height),
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            WrapMode = TextEdit.LineWrappingMode.Boundary
+        };
         box.AddChild(result); parent.AddChild(box); return result;
     }
     private static IReadOnlyList<string> Lines(string value) => value.Replace("\r", string.Empty,
@@ -721,8 +809,12 @@ internal sealed partial class StudioMerchantAuthoringOverlayUx4T : Control
     private static bool Bool(string value) => bool.Parse(value);
     private static string? Empty(string value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     private static string Join(params object?[] values) => string.Join(" | ", values.Select(value => value switch
-    { bool boolean => boolean.ToString().ToLowerInvariant(), IFormattable formattable =>
-        formattable.ToString(null, CultureInfo.InvariantCulture), _ => value?.ToString() ?? string.Empty }));
+    {
+        bool boolean => boolean.ToString().ToLowerInvariant(),
+        IFormattable formattable =>
+        formattable.ToString(null, CultureInfo.InvariantCulture),
+        _ => value?.ToString() ?? string.Empty
+    }));
     private static IEnumerable<string> VisibleText(Node node)
     {
         if (node is Label label && label.Visible) yield return label.Text;

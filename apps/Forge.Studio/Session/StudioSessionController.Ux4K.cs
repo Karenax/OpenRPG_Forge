@@ -210,7 +210,7 @@ internal sealed partial class StudioSessionController
                 var invalidBlocked = !invalid.Succeeded && invalid.Diagnostics.Any(item =>
                     item.Code is "creature.foundation.movement_invalid" or "studio.creature.movement_number_invalid");
                 var invalidFlight = editing.PreviewCreatureMovementUx4K(changed with
-                    { Mode = CreatureFoundationMovementMode.Flying, MinimumAltitude = "40", MaximumAltitude = "10" });
+                { Mode = CreatureFoundationMovementMode.Flying, MinimumAltitude = "40", MaximumAltitude = "10" });
                 var flightBlocked = !invalidFlight.Succeeded && invalidFlight.Diagnostics.Any(item =>
                     item.Code is "creature.foundation.movement_invalid" or "creature.foundation.flight_altitude_invalid");
 
@@ -273,11 +273,15 @@ internal sealed partial class StudioSessionController
 
     private static StudioCreatureMovementDraftUx4K ChangedCreatureMovementDraftUx4K(
         StudioCreatureMovementDraftUx4K draft) => draft with
-    {
-        Mode = CreatureFoundationMovementMode.Flying,
-        MaximumSpeed = "9.25", Acceleration = "13.5", Deceleration = "7.75",
-        MinimumAltitude = "2.5", MaximumAltitude = "48.125", MaximumSlopeDegrees = "42.25",
-    };
+        {
+            Mode = CreatureFoundationMovementMode.Flying,
+            MaximumSpeed = "9.25",
+            Acceleration = "13.5",
+            Deceleration = "7.75",
+            MinimumAltitude = "2.5",
+            MaximumAltitude = "48.125",
+            MaximumSlopeDegrees = "42.25",
+        };
 
     private static bool TryBuildCreatureMovementCandidateUx4K(StudioCreatureMovementDraftUx4K draft,
         CreatureFoundationProfile source, out CreatureFoundationProfile candidate,

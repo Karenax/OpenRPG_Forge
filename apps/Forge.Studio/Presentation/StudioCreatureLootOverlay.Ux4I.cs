@@ -124,8 +124,12 @@ internal sealed partial class StudioCreatureLootOverlayUx4I : Control
         _context = StudioStyle.Label("Sélection explicite requise · une table de combat doit exister.",
             9, StudioStyle.Muted, wrap: true); _context.SizeFlagsHorizontal = SizeFlags.ExpandFill;
         contextRow.AddChild(_context); root.AddChild(contextRow);
-        var tabHost = new Control { CustomMinimumSize = new Vector2(0, 410), SizeFlagsVertical = SizeFlags.ExpandFill,
-            ClipContents = true }; root.AddChild(tabHost);
+        var tabHost = new Control
+        {
+            CustomMinimumSize = new Vector2(0, 410),
+            SizeFlagsVertical = SizeFlags.ExpandFill,
+            ClipContents = true
+        }; root.AddChild(tabHost);
         _tabs = new TabContainer(); _tabs.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect); tabHost.AddChild(_tabs);
 
         var drops = Tab(_tabs, "1 · Objets droppables");
@@ -180,8 +184,13 @@ internal sealed partial class StudioCreatureLootOverlayUx4I : Control
         review.AddChild(StudioStyle.Label(
             "Projection Domain/Application uniquement : aucun objet, vol, cadavre, acteur ou réseau n’est exécuté.",
             9, StudioStyle.Muted, wrap: true)); _diagnostics = new VBoxContainer(); review.AddChild(_diagnostics);
-        _summary = new RichTextLabel { BbcodeEnabled = true, CustomMinimumSize = new Vector2(0, 145),
-            FitContent = false, SelectionEnabled = true }; root.AddChild(_summary);
+        _summary = new RichTextLabel
+        {
+            BbcodeEnabled = true,
+            CustomMinimumSize = new Vector2(0, 145),
+            FitContent = false,
+            SelectionEnabled = true
+        }; root.AddChild(_summary);
         root.AddChild(StudioStyle.Label(
             "Prévisualiser ne modifie rien. Appliquer écrit une commande annulable ; Enregistrer persiste ensuite le workspace.",
             9, StudioStyle.Muted, wrap: true));
@@ -311,7 +320,8 @@ internal sealed partial class StudioCreatureLootOverlayUx4I : Control
             ? _skillChoices[_perceptionSkill.Selected].SkillId : string.Empty;
         return _draft with
         {
-            RequiredAtRuntime = _required.ButtonPressed, Entries = _entries.ToArray(),
+            RequiredAtRuntime = _required.ButtonPressed,
+            Entries = _entries.ToArray(),
             Theft = new(_theftEnabled.ButtonPressed, skill, perception, theftDifficulty, perceptionDifficulty,
                 _serverConsent.ButtonPressed, _crime.Text, cooldown, _audit.Text),
             Corpse = new((CreatureCorpseMode)_corpseMode.Selected, lifetime, EmptyToNull(_container.Text),

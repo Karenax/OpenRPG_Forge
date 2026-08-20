@@ -288,8 +288,11 @@ internal sealed partial class StudioSessionController
             var drops = applied?.Entries.Any(item => item.DropOnDeath && item.MaximumQuantity >= 2) == true;
             var pickpocket = applied?.Theft is { Enabled: true, RequireServerConsent: true } &&
                              applied.Entries.Any(item => item.Pickpocketable);
-            var corpse = applied?.Corpse is { Mode: CreatureCorpseMode.RagdollContainer,
-                CleanupMode: CorpseCleanupMode.Timed, AllowResurrection: true };
+            var corpse = applied?.Corpse is
+            {
+                Mode: CreatureCorpseMode.RagdollContainer,
+                CleanupMode: CorpseCleanupMode.Timed, AllowResurrection: true
+            };
             var neighbors = ReferenceEquals(beforeBlueprint.Combat, appliedBlueprint.Combat) &&
                             ReferenceEquals(beforeBlueprint.CreaturePresentation, appliedBlueprint.CreaturePresentation) &&
                             ReferenceEquals(beforeBlueprint.CreatureProgression, appliedBlueprint.CreatureProgression) &&
@@ -328,15 +331,24 @@ internal sealed partial class StudioSessionController
         var entry = index >= 0 ? entries[index] : new CreatureLootProfile.LootEntryPolicy(
             StableCreatureRulesIdUx4F(draft.BlueprintId.Value, "ux4i-changed-entry"), item, "pouch", 1, 1,
             1, true, false, LootOwnershipMode.Killer, LootInstancingMode.PerPlayer, null);
-        entry = entry with { MinimumQuantity = 1, MaximumQuantity = 2, Chance = .8, DropOnDeath = true,
-            Pickpocketable = true, Ownership = LootOwnershipMode.Party, Instancing = LootInstancingMode.PerParty,
-            FixedOwnerId = null };
+        entry = entry with
+        {
+            MinimumQuantity = 1,
+            MaximumQuantity = 2,
+            Chance = .8,
+            DropOnDeath = true,
+            Pickpocketable = true,
+            Ownership = LootOwnershipMode.Party,
+            Instancing = LootInstancingMode.PerParty,
+            FixedOwnerId = null
+        };
         if (index >= 0) entries[index] = entry; else entries.Add(entry);
         var skill = skills.FirstOrDefault()?.SkillId ?? "awareness";
         var perception = skills.Skip(1).FirstOrDefault()?.SkillId ?? skill;
         return draft with
         {
-            RequiredAtRuntime = true, Entries = entries.ToArray(),
+            RequiredAtRuntime = true,
+            Entries = entries.ToArray(),
             Theft = new(true, skill, perception, 11, 9, true, "crime.ux4i-theft", 25, "loot.ux4i-pickpocket"),
             Corpse = new(CreatureCorpseMode.RagdollContainer, 75, "corpse.ux4i", "ragdoll.ux4i", true,
                 "party", 12, CorpseCleanupMode.Timed),

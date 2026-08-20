@@ -290,8 +290,11 @@ internal sealed partial class StudioSessionController
             var rules = applied?.RulesComposition;
             var animation = graph is { RetargetProfileId: "retarget.proof" } &&
                             graph.States.Any(item => item.StateId == "victory" && item.Category == "emote");
-            var initial = rules?.InitialState is { LifeState: CreatureRulesInitialLifeState.Sleeping,
-                PoseId: "pose.proof.sleeping", Invisible: true };
+            var initial = rules?.InitialState is
+            {
+                LifeState: CreatureRulesInitialLifeState.Sleeping,
+                PoseId: "pose.proof.sleeping", Invisible: true
+            };
             var resources = applied?.Resources.Any(item => item.ResourceId == "mana" && item.Maximum == 80) == true;
             var attributes = rules?.Attributes.BaseValues.ContainsKey("strength") == true &&
                              rules.Attributes.Derived.Any(item => item.AttributeId == "power");
@@ -420,9 +423,9 @@ internal sealed partial class StudioSessionController
             Avoidance = 5,
             Armor = 3,
             Resistances = new Dictionary<string, double>(StringComparer.Ordinal)
-                { ["fire"] = 0.35, ["cold"] = 0.1 },
+            { ["fire"] = 0.35, ["cold"] = 0.1 },
             Saves = new Dictionary<string, double>(StringComparer.Ordinal)
-                { ["fortitude"] = 6, ["reflex"] = 5, ["will"] = 7 },
+            { ["fortitude"] = 6, ["reflex"] = 5, ["will"] = 7 },
             Immunities = ["sleep"],
             FlatMitigation = 2,
         };
@@ -539,7 +542,7 @@ internal sealed partial class StudioSessionController
                 StringComparer.Ordinal),
             AttributeModifiers = draft.AttributeModifiers.ToArray(),
             DerivedAttributes = draft.DerivedAttributes.Select(item => item with
-                { Dependencies = item.Dependencies.ToArray() }).ToArray(),
+            { Dependencies = item.Dependencies.ToArray() }).ToArray(),
             Resistances = draft.Resistances.ToDictionary(item => item.Key, item => item.Value,
                 StringComparer.Ordinal),
             Saves = draft.Saves.ToDictionary(item => item.Key, item => item.Value, StringComparer.Ordinal),

@@ -317,12 +317,12 @@ internal sealed partial class StudioSessionController
             ? (draft.SourceCatalog.Advanced ?? new(
                 StableFactionRuntimeIdUx4B(project.Id.Value, "advanced"), 1, "studio:ux4-b", true, [], [], [], []))
                 with
-                {
-                    ServerAuthoritative = true,
-                    WitnessPolicies = draft.WitnessPolicies.ToArray(),
-                    Memberships = draft.Memberships.ToArray(),
-                    DynamicFactions = CloneDynamicsUx4B(draft.DynamicFactions),
-                }
+            {
+                ServerAuthoritative = true,
+                WitnessPolicies = draft.WitnessPolicies.ToArray(),
+                Memberships = draft.Memberships.ToArray(),
+                DynamicFactions = CloneDynamicsUx4B(draft.DynamicFactions),
+            }
             : null;
         FactionReputationProfile? reputation = null;
         if (draft.ReputationConfigured)
@@ -333,7 +333,8 @@ internal sealed partial class StudioSessionController
                 StableFactionRuntimeIdUx4B(reputationId, "reaction"), 1, "studio:ux4-b",
                 ReputationScope.World, "world", true, true, true, true, true);
             reputation = (draft.SourceCatalog.Reputation ?? new(reputationId, 1, "studio:ux4-b", [], [], reaction))
-                with { Transactions = draft.ReputationTransactions.ToArray() };
+                with
+            { Transactions = draft.ReputationTransactions.ToArray() };
         }
         candidate = draft.SourceCatalog with
         {

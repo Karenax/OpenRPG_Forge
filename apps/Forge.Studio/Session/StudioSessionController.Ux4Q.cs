@@ -320,11 +320,15 @@ internal sealed partial class StudioSessionController
             item.PhonemeResource, item.LicenseSpdx, item.ContentSha256)).ToArray();
         return draft with
         {
-            VoiceId = voice.Id, DefaultLocale = voice.DefaultLocale,
+            VoiceId = voice.Id,
+            DefaultLocale = voice.DefaultLocale,
             Takes = changedTakes,
-            TtsPluginId = voice.TtsPluginId, SyntheticVoice = true, TtsUseAllowed = true,
+            TtsPluginId = voice.TtsPluginId,
+            SyntheticVoice = true,
+            TtsUseAllowed = true,
             ConsentReference = voice.Consent.ConsentReference,
-            SpeakerAttribution = "voix témoin modifiée", Provenance = "studio:ux4-q:changed",
+            SpeakerAttribution = "voix témoin modifiée",
+            Provenance = "studio:ux4-q:changed",
         };
     }
 
@@ -357,9 +361,11 @@ internal sealed partial class StudioSessionController
         writer.Write(draft.VoiceId.ToByteArray()); WriteAreaVoiceUx4Q(writer, draft.DefaultLocale);
         writer.Write(draft.Takes.Count);
         foreach (var take in draft.Takes)
-        { WriteAreaVoiceUx4Q(writer, take.Locale); WriteAreaVoiceUx4Q(writer, take.Resource);
-          WriteAreaVoiceUx4Q(writer, take.Subtitle); WriteAreaVoiceUx4Q(writer, take.PhonemeResource);
-          WriteAreaVoiceUx4Q(writer, take.LicenseSpdx); WriteAreaVoiceUx4Q(writer, take.ContentSha256); }
+        {
+            WriteAreaVoiceUx4Q(writer, take.Locale); WriteAreaVoiceUx4Q(writer, take.Resource);
+            WriteAreaVoiceUx4Q(writer, take.Subtitle); WriteAreaVoiceUx4Q(writer, take.PhonemeResource);
+            WriteAreaVoiceUx4Q(writer, take.LicenseSpdx); WriteAreaVoiceUx4Q(writer, take.ContentSha256);
+        }
         WriteAreaVoiceUx4Q(writer, draft.TtsPluginId); writer.Write(draft.SyntheticVoice);
         writer.Write(draft.TtsUseAllowed); WriteAreaVoiceUx4Q(writer, draft.ConsentReference);
         WriteAreaVoiceUx4Q(writer, draft.SpeakerAttribution); WriteAreaVoiceUx4Q(writer, draft.Provenance);

@@ -232,98 +232,98 @@ internal sealed partial class StudioSessionController
             try
             {
                 if (!ProjectSession.Create(root, evidence.Project).Succeeded || !editing.Open(root).Succeeded) return empty;
-            var explicitSelection = editing.CreatureInteractionChoicesUx4J.Count > 0;
-            var draft = editing.CreateCreatureInteractionDraftUx4J(evidence.BlueprintId);
-            if (draft is null) return empty with { ExplicitSelection = explicitSelection };
-            var changed = ChangedCreatureInteractionDraftUx4J(draft);
-            var sourceProject = editing.Project!; var sourceHistory = editing.History!;
-            var preview = editing.PreviewCreatureInteractionUx4J(changed);
-            var dryRun = preview.Succeeded && ReferenceEquals(sourceProject, editing.Project) &&
-                         ReferenceEquals(sourceHistory, editing.History) && sourceHistory.State.Revision == draft.BaseRevision;
-            var runtimeProjection = preview.Succeeded && preview.RuntimeSummary.Contains("Projection typée", StringComparison.Ordinal);
+                var explicitSelection = editing.CreatureInteractionChoicesUx4J.Count > 0;
+                var draft = editing.CreateCreatureInteractionDraftUx4J(evidence.BlueprintId);
+                if (draft is null) return empty with { ExplicitSelection = explicitSelection };
+                var changed = ChangedCreatureInteractionDraftUx4J(draft);
+                var sourceProject = editing.Project!; var sourceHistory = editing.History!;
+                var preview = editing.PreviewCreatureInteractionUx4J(changed);
+                var dryRun = preview.Succeeded && ReferenceEquals(sourceProject, editing.Project) &&
+                             ReferenceEquals(sourceHistory, editing.History) && sourceHistory.State.Revision == draft.BaseRevision;
+                var runtimeProjection = preview.Succeeded && preview.RuntimeSummary.Contains("Projection typée", StringComparison.Ordinal);
 
-            var members = changed.Factions.Memberships.ToArray(); members[0] = members[0] with { Weight = 2 };
-            var invalid = editing.PreviewCreatureInteractionUx4J(changed with
-            { Factions = new(changed.Factions.Id, changed.Factions.PrimaryFactionId, members) });
-            var invalidBlocked = !invalid.Succeeded && invalid.Diagnostics.Any(item =>
-                item.Code == "creature.interaction.factions_invalid");
+                var members = changed.Factions.Memberships.ToArray(); members[0] = members[0] with { Weight = 2 };
+                var invalid = editing.PreviewCreatureInteractionUx4J(changed with
+                { Factions = new(changed.Factions.Id, changed.Factions.PrimaryFactionId, members) });
+                var invalidBlocked = !invalid.Succeeded && invalid.Diagnostics.Any(item =>
+                    item.Code == "creature.interaction.factions_invalid");
 
-            var missingFactionId = StableCreatureRulesIdUx4F(draft.BlueprintId.Value, "ux4j-missing-faction");
-            members = changed.Factions.Memberships.ToArray();
-            members[0] = members[0] with { FactionId = missingFactionId };
-            var missingFaction = editing.PreviewCreatureInteractionUx4J(changed with
-            { Factions = new(changed.Factions.Id, missingFactionId, members) });
-            var missingFactionBlocked = !missingFaction.Succeeded && missingFaction.Diagnostics.Any(item =>
-                item.Code is "creature.interaction.faction_missing" or "world.creature.interaction.faction_missing");
+                var missingFactionId = StableCreatureRulesIdUx4F(draft.BlueprintId.Value, "ux4j-missing-faction");
+                members = changed.Factions.Memberships.ToArray();
+                members[0] = members[0] with { FactionId = missingFactionId };
+                var missingFaction = editing.PreviewCreatureInteractionUx4J(changed with
+                { Factions = new(changed.Factions.Id, missingFactionId, members) });
+                var missingFactionBlocked = !missingFaction.Succeeded && missingFaction.Diagnostics.Any(item =>
+                    item.Code is "creature.interaction.faction_missing" or "world.creature.interaction.faction_missing");
 
-            var bindings = changed.DialogueBindings.ToArray();
-            if (bindings.Length > 0)
-                bindings[0] = bindings[0] with
-                { DialogueId = DialogueId.From(StableCreatureRulesIdUx4F(draft.BlueprintId.Value, "ux4j-missing-dialogue")) };
-            var missingDialogue = editing.PreviewCreatureInteractionUx4J(changed with { DialogueBindings = bindings });
-            var missingDialogueBlocked = bindings.Length > 0 && !missingDialogue.Succeeded &&
-                                         missingDialogue.Diagnostics.Any(item =>
-                                             item.Code is "creature.interaction.dialogue_missing" or
-                                                 "world.creature.interaction.dialogue_missing");
+                var bindings = changed.DialogueBindings.ToArray();
+                if (bindings.Length > 0)
+                    bindings[0] = bindings[0] with
+                    { DialogueId = DialogueId.From(StableCreatureRulesIdUx4F(draft.BlueprintId.Value, "ux4j-missing-dialogue")) };
+                var missingDialogue = editing.PreviewCreatureInteractionUx4J(changed with { DialogueBindings = bindings });
+                var missingDialogueBlocked = bindings.Length > 0 && !missingDialogue.Succeeded &&
+                                             missingDialogue.Diagnostics.Any(item =>
+                                                 item.Code is "creature.interaction.dialogue_missing" or
+                                                     "world.creature.interaction.dialogue_missing");
 
-            var approvedBeforeRevision = editing.PreviewCreatureInteractionUx4J(changed);
-            var neighborChanged = ToggleCreatureInteractionNeighborUx4J(editing, evidence.BlueprintId);
-            var staleDraftBlocked = approvedBeforeRevision.Succeeded && neighborChanged &&
-                                    !editing.ApplyApprovedCreatureInteractionUx4J(changed).Succeeded;
-            if (neighborChanged) editing.Undo();
+                var approvedBeforeRevision = editing.PreviewCreatureInteractionUx4J(changed);
+                var neighborChanged = ToggleCreatureInteractionNeighborUx4J(editing, evidence.BlueprintId);
+                var staleDraftBlocked = approvedBeforeRevision.Succeeded && neighborChanged &&
+                                        !editing.ApplyApprovedCreatureInteractionUx4J(changed).Succeeded;
+                if (neighborChanged) editing.Undo();
 
-            var freshDraft = editing.CreateCreatureInteractionDraftUx4J(evidence.BlueprintId)!;
-            var freshChanged = ChangedCreatureInteractionDraftUx4J(freshDraft);
-            var approvedBeforeTamper = editing.PreviewCreatureInteractionUx4J(freshChanged);
-            var staleApprovalBlocked = approvedBeforeTamper.Succeeded &&
-                !editing.ApplyApprovedCreatureInteractionUx4J(freshChanged with
-                { RequiredAtRuntime = !freshChanged.RequiredAtRuntime }).Succeeded;
+                var freshDraft = editing.CreateCreatureInteractionDraftUx4J(evidence.BlueprintId)!;
+                var freshChanged = ChangedCreatureInteractionDraftUx4J(freshDraft);
+                var approvedBeforeTamper = editing.PreviewCreatureInteractionUx4J(freshChanged);
+                var staleApprovalBlocked = approvedBeforeTamper.Succeeded &&
+                    !editing.ApplyApprovedCreatureInteractionUx4J(freshChanged with
+                    { RequiredAtRuntime = !freshChanged.RequiredAtRuntime }).Succeeded;
 
-            freshDraft = editing.CreateCreatureInteractionDraftUx4J(evidence.BlueprintId)!;
-            freshChanged = ChangedCreatureInteractionDraftUx4J(freshDraft);
-            var beforeApply = editing.Project!; var beforeBlueprint = beforeApply.Blueprints.Single(item => item.Id == evidence.BlueprintId);
-            var beforeFoundation = beforeBlueprint.CreatureFoundation!;
-            var finalPreview = editing.PreviewCreatureInteractionUx4J(freshChanged);
-            var appliedAction = finalPreview.Succeeded
-                ? editing.ApplyApprovedCreatureInteractionUx4J(freshChanged)
-                : new StudioCreatureInteractionActionResultUx4J(false, "preview failed");
-            var appliedProject = editing.Project;
-            var appliedBlueprint = appliedProject?.Blueprints.Single(item => item.Id == evidence.BlueprintId);
-            var appliedFoundation = appliedBlueprint?.CreatureFoundation;
-            var appliedProfile = appliedFoundation?.InteractionComposition;
-            var canonical = appliedAction.Succeeded && appliedProfile is not null &&
-                            appliedProfile.Protection.GameMasterPermissions.Contains("creature.preview.inspect") &&
-                            appliedProfile.Perception.MemorySeconds == 18;
-            var factions = canonical && appliedProfile!.Factions.Memberships.Count >= 1 &&
-                           appliedProfile.Factions.Memberships.Any(item => item.Inherited);
-            var perception = canonical && appliedProfile!.Perception.Senses.Count >= 1 &&
-                             appliedProfile.Perception.Senses.All(item => item.Range > 0);
-            var dialogue = canonical && appliedProfile!.DialogueBindings.Count >= 1;
-            var onConversation = canonical && appliedProfile!.OnConversation.Handler == "OnConversationWitness" &&
-                                 finalPreview.RuntimeSummary.Contains("OnConversation=OnConversationWitness",
-                                     StringComparison.Ordinal);
-            var protection = canonical && appliedProfile!.Protection.GameMasterPermissions.Count >= 1;
-            var expectedFoundation = WithCreatureInteractionUx4J(beforeFoundation,
-                CreateCreatureInteractionCandidateUx4J(freshChanged), freshChanged.RequiredAtRuntime);
-            var canonicalProjectPreserved = ProjectJsonSerializer.Serialize(WithCreatureInteractionFoundationUx4J(
-                                                beforeApply, evidence.BlueprintId, expectedFoundation)) ==
-                                            ProjectJsonSerializer.Serialize(appliedProject!);
-            var neighbors = canonical && canonicalProjectPreserved;
-            var afterApplyJson = appliedProject is null ? string.Empty : ProjectJsonSerializer.Serialize(appliedProject);
-            var undo = editing.UndoCreatureInteractionUx4J();
-            var undoRestored = editing.Project?.Blueprints.Single(item => item.Id == evidence.BlueprintId)
-                .CreatureFoundation?.InteractionComposition == freshDraft.SourceFoundation.InteractionComposition;
-            var redo = editing.RedoCreatureInteractionUx4J();
-            var redoRestored = editing.Project?.Blueprints.Single(item => item.Id == evidence.BlueprintId)
-                .CreatureFoundation?.InteractionComposition?.Perception.MemorySeconds == 18;
-            var undoRedo = undo.Succeeded && redo.Succeeded && undoRestored && redoRestored;
-            var saved = editing.Save().Succeeded; editing.Close();
-            var reopenedOk = saved && reopened.Open(root).Succeeded;
-            var persistence = reopenedOk && ProjectJsonSerializer.Serialize(reopened.Project!) == afterApplyJson;
-            reopened.Close();
-            var succeeded = explicitSelection && factions && perception && dialogue && onConversation && protection && invalidBlocked &&
-                             missingFactionBlocked && missingDialogueBlocked && dryRun && runtimeProjection &&
-                             staleDraftBlocked && staleApprovalBlocked && canonical && undoRedo && persistence && neighbors;
+                freshDraft = editing.CreateCreatureInteractionDraftUx4J(evidence.BlueprintId)!;
+                freshChanged = ChangedCreatureInteractionDraftUx4J(freshDraft);
+                var beforeApply = editing.Project!; var beforeBlueprint = beforeApply.Blueprints.Single(item => item.Id == evidence.BlueprintId);
+                var beforeFoundation = beforeBlueprint.CreatureFoundation!;
+                var finalPreview = editing.PreviewCreatureInteractionUx4J(freshChanged);
+                var appliedAction = finalPreview.Succeeded
+                    ? editing.ApplyApprovedCreatureInteractionUx4J(freshChanged)
+                    : new StudioCreatureInteractionActionResultUx4J(false, "preview failed");
+                var appliedProject = editing.Project;
+                var appliedBlueprint = appliedProject?.Blueprints.Single(item => item.Id == evidence.BlueprintId);
+                var appliedFoundation = appliedBlueprint?.CreatureFoundation;
+                var appliedProfile = appliedFoundation?.InteractionComposition;
+                var canonical = appliedAction.Succeeded && appliedProfile is not null &&
+                                appliedProfile.Protection.GameMasterPermissions.Contains("creature.preview.inspect") &&
+                                appliedProfile.Perception.MemorySeconds == 18;
+                var factions = canonical && appliedProfile!.Factions.Memberships.Count >= 1 &&
+                               appliedProfile.Factions.Memberships.Any(item => item.Inherited);
+                var perception = canonical && appliedProfile!.Perception.Senses.Count >= 1 &&
+                                 appliedProfile.Perception.Senses.All(item => item.Range > 0);
+                var dialogue = canonical && appliedProfile!.DialogueBindings.Count >= 1;
+                var onConversation = canonical && appliedProfile!.OnConversation.Handler == "OnConversationWitness" &&
+                                     finalPreview.RuntimeSummary.Contains("OnConversation=OnConversationWitness",
+                                         StringComparison.Ordinal);
+                var protection = canonical && appliedProfile!.Protection.GameMasterPermissions.Count >= 1;
+                var expectedFoundation = WithCreatureInteractionUx4J(beforeFoundation,
+                    CreateCreatureInteractionCandidateUx4J(freshChanged), freshChanged.RequiredAtRuntime);
+                var canonicalProjectPreserved = ProjectJsonSerializer.Serialize(WithCreatureInteractionFoundationUx4J(
+                                                    beforeApply, evidence.BlueprintId, expectedFoundation)) ==
+                                                ProjectJsonSerializer.Serialize(appliedProject!);
+                var neighbors = canonical && canonicalProjectPreserved;
+                var afterApplyJson = appliedProject is null ? string.Empty : ProjectJsonSerializer.Serialize(appliedProject);
+                var undo = editing.UndoCreatureInteractionUx4J();
+                var undoRestored = editing.Project?.Blueprints.Single(item => item.Id == evidence.BlueprintId)
+                    .CreatureFoundation?.InteractionComposition == freshDraft.SourceFoundation.InteractionComposition;
+                var redo = editing.RedoCreatureInteractionUx4J();
+                var redoRestored = editing.Project?.Blueprints.Single(item => item.Id == evidence.BlueprintId)
+                    .CreatureFoundation?.InteractionComposition?.Perception.MemorySeconds == 18;
+                var undoRedo = undo.Succeeded && redo.Succeeded && undoRestored && redoRestored;
+                var saved = editing.Save().Succeeded; editing.Close();
+                var reopenedOk = saved && reopened.Open(root).Succeeded;
+                var persistence = reopenedOk && ProjectJsonSerializer.Serialize(reopened.Project!) == afterApplyJson;
+                reopened.Close();
+                var succeeded = explicitSelection && factions && perception && dialogue && onConversation && protection && invalidBlocked &&
+                                 missingFactionBlocked && missingDialogueBlocked && dryRun && runtimeProjection &&
+                                 staleDraftBlocked && staleApprovalBlocked && canonical && undoRedo && persistence && neighbors;
                 return new(succeeded, explicitSelection, factions, perception, dialogue, onConversation, protection, invalidBlocked,
                     missingFactionBlocked, missingDialogueBlocked, dryRun, runtimeProjection, staleDraftBlocked,
                     staleApprovalBlocked, canonical, undoRedo, persistence, neighbors, false);
@@ -481,14 +481,14 @@ internal sealed partial class StudioSessionController
 
     private static StudioCreatureInteractionDraftUx4J FreezeCreatureInteractionDraftUx4J(
         StudioCreatureInteractionDraftUx4J draft) => draft with
-    {
-        Factions = new(draft.Factions.Id, draft.Factions.PrimaryFactionId, draft.Factions.Memberships.ToArray()),
-        Perception = new(draft.Perception.Id, draft.Perception.Senses.ToArray(), draft.Perception.MemorySeconds),
-        DialogueBindings = draft.DialogueBindings.ToArray(),
-        Protection = new(draft.Protection.Id, draft.Protection.Invulnerable,
+        {
+            Factions = new(draft.Factions.Id, draft.Factions.PrimaryFactionId, draft.Factions.Memberships.ToArray()),
+            Perception = new(draft.Perception.Id, draft.Perception.Senses.ToArray(), draft.Perception.MemorySeconds),
+            DialogueBindings = draft.DialogueBindings.ToArray(),
+            Protection = new(draft.Protection.Id, draft.Protection.Invulnerable,
             draft.Protection.UsesNarrativeDeath, draft.Protection.DialogueInterruptible,
             draft.Protection.GameMasterPermissions.ToArray()),
-    };
+        };
 
     private static string FingerprintProjectUx4J(ProjectDefinition project) =>
         Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(ProjectJsonSerializer.Serialize(project))));
@@ -501,18 +501,24 @@ internal sealed partial class StudioSessionController
         WriteUx4J(writer, draft.BlueprintId.ToString()); writer.Write(draft.RequiredAtRuntime);
         writer.Write(draft.Factions.PrimaryFactionId.ToByteArray()); writer.Write(draft.Factions.Memberships.Count);
         foreach (var item in draft.Factions.Memberships.OrderBy(item => item.Id))
-        { writer.Write(item.Id.ToByteArray()); writer.Write(item.FactionId.ToByteArray()); writer.Write(item.Weight);
-          WriteUx4J(writer, item.Rank); writer.Write(item.PersonalReputation); writer.Write(item.Inherited); }
+        {
+            writer.Write(item.Id.ToByteArray()); writer.Write(item.FactionId.ToByteArray()); writer.Write(item.Weight);
+            WriteUx4J(writer, item.Rank); writer.Write(item.PersonalReputation); writer.Write(item.Inherited);
+        }
         writer.Write(draft.Perception.MemorySeconds); writer.Write(draft.Perception.Senses.Count);
         foreach (var item in draft.Perception.Senses.OrderBy(item => item.Id))
-        { writer.Write(item.Id.ToByteArray()); writer.Write((int)item.Kind); writer.Write(item.Range);
-          writer.Write(item.ConeDegrees); writer.Write(item.UsesOcclusion); writer.Write(item.StimulusTags.Count);
-          foreach (var tag in item.StimulusTags) WriteUx4J(writer, tag); }
+        {
+            writer.Write(item.Id.ToByteArray()); writer.Write((int)item.Kind); writer.Write(item.Range);
+            writer.Write(item.ConeDegrees); writer.Write(item.UsesOcclusion); writer.Write(item.StimulusTags.Count);
+            foreach (var tag in item.StimulusTags) WriteUx4J(writer, tag);
+        }
         writer.Write(draft.DialogueBindings.Count);
         foreach (var item in draft.DialogueBindings.OrderBy(item => item.Id))
-        { writer.Write(item.Id.ToByteArray()); WriteUx4J(writer, item.Context); writer.Write(item.Priority);
-          WriteUx4J(writer, item.DialogueId.ToString()); WriteUx4J(writer, item.InterlocutorId);
-          WriteUx4J(writer, item.RequiredState); writer.Write(item.Fallback); }
+        {
+            writer.Write(item.Id.ToByteArray()); WriteUx4J(writer, item.Context); writer.Write(item.Priority);
+            WriteUx4J(writer, item.DialogueId.ToString()); WriteUx4J(writer, item.InterlocutorId);
+            WriteUx4J(writer, item.RequiredState); writer.Write(item.Fallback);
+        }
         WriteUx4J(writer, draft.OnConversationHandler);
         writer.Write(draft.Protection.Invulnerable); writer.Write(draft.Protection.UsesNarrativeDeath);
         writer.Write(draft.Protection.DialogueInterruptible); writer.Write(draft.Protection.GameMasterPermissions.Count);

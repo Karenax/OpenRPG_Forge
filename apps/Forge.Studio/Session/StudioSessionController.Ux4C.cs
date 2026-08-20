@@ -298,12 +298,12 @@ internal sealed partial class StudioSessionController
 
     private static StudioFactionMatrixDraftUx4C CloneFactionMatrixDraftUx4C(
         StudioFactionMatrixDraftUx4C draft) => draft with
-    {
-        TagsByFaction = draft.TagsByFaction.ToDictionary(
+        {
+            TagsByFaction = draft.TagsByFaction.ToDictionary(
             item => item.Key, item => (IReadOnlyList<string>)item.Value.ToArray()),
-        Relationships = draft.Relationships.ToArray(),
-        HeatmapHistory = draft.HeatmapHistory.Select(CloneHeatmapUx4C).ToArray(),
-    };
+            Relationships = draft.Relationships.ToArray(),
+            HeatmapHistory = draft.HeatmapHistory.Select(CloneHeatmapUx4C).ToArray(),
+        };
 
     private static FactionHeatmapSnapshot CloneHeatmapUx4C(FactionHeatmapSnapshot item) =>
         item with { Relationships = item.Relationships.ToArray() };

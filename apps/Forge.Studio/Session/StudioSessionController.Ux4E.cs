@@ -523,12 +523,12 @@ internal sealed partial class StudioSessionController
 
     private static StudioCreaturePresentationDraftUx4E FreezeCreaturePresentationDraftUx4E(
         StudioCreaturePresentationDraftUx4E draft) => draft with
-    {
-        Portraits = draft.Portraits.ToArray(),
-        BodySlots = draft.BodySlots.Select(item => item with { HiddenSlots = item.HiddenSlots.ToArray() }).ToArray(),
-        MaterialColors = draft.MaterialColors.ToArray(),
-        Attachments = draft.Attachments.ToArray(),
-    };
+        {
+            Portraits = draft.Portraits.ToArray(),
+            BodySlots = draft.BodySlots.Select(item => item with { HiddenSlots = item.HiddenSlots.ToArray() }).ToArray(),
+            MaterialColors = draft.MaterialColors.ToArray(),
+            Attachments = draft.Attachments.ToArray(),
+        };
 
     private static string FingerprintProjectUx4E(ProjectDefinition project) =>
         HashUx4E(ProjectJsonSerializer.Serialize(project));
@@ -620,13 +620,13 @@ internal sealed partial class StudioSessionController
         writer.Write((short)1); writer.Write((short)24); writer.Write(0); writer.Write(pixelBytes);
         writer.Write(2835); writer.Write(2835); writer.Write(0); writer.Write(0);
         for (var y = 0; y < height; y++)
-        for (var x = 0; x < width; x++)
-        {
-            var accent = ((x / 8) + (y / 8)) % 2 == 0;
-            writer.Write((byte)(accent ? 58 : 28));
-            writer.Write((byte)(accent ? 112 : 62));
-            writer.Write((byte)(accent ? 218 : 124));
-        }
+            for (var x = 0; x < width; x++)
+            {
+                var accent = ((x / 8) + (y / 8)) % 2 == 0;
+                writer.Write((byte)(accent ? 58 : 28));
+                writer.Write((byte)(accent ? 112 : 62));
+                writer.Write((byte)(accent ? 218 : 124));
+            }
         writer.Flush();
         return stream.ToArray();
     }

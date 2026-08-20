@@ -358,9 +358,14 @@ internal sealed partial class StudioSessionController
             RulesetId = "forge.generic",
             AllowMultipleTracks = autoLevelOwnsTrackSet ? draft.AllowMultipleTracks : true,
             RequiredAtRuntime = true,
-            Tracks = tracks, DispositionAxes = axes, Skills = skills, Talents = talents,
-            LoadoutProviderId = "prepared", LoadoutMode = AbilityLoadoutMode.Prepared,
-            LoadoutCapacity = Math.Max(3, prepared.Length), LearnedAbilityIds = learned,
+            Tracks = tracks,
+            DispositionAxes = axes,
+            Skills = skills,
+            Talents = talents,
+            LoadoutProviderId = "prepared",
+            LoadoutMode = AbilityLoadoutMode.Prepared,
+            LoadoutCapacity = Math.Max(3, prepared.Length),
+            LearnedAbilityIds = learned,
             PreparedAbilities = prepared,
         };
     }
@@ -461,18 +466,20 @@ internal sealed partial class StudioSessionController
 
     private static StudioCreatureProgressionDraftUx4G FreezeCreatureProgressionDraftUx4G(
         StudioCreatureProgressionDraftUx4G draft) => draft with
-    {
-        Tracks = draft.Tracks.Select(item => item with { GrantedTalentIds = item.GrantedTalentIds.ToArray() }).ToArray(),
-        DispositionAxes = draft.DispositionAxes.ToArray(), Skills = draft.Skills.ToArray(),
-        Talents = draft.Talents.Select(item => item with
         {
-            Prerequisites = item.Prerequisites.ToArray(), GrantedAbilityIds = item.GrantedAbilityIds.ToArray(),
-            HookIds = item.HookIds.ToArray(),
-        }).ToArray(),
-        LearnedAbilityIds = draft.LearnedAbilityIds.ToArray(),
-        PreparedAbilities = draft.PreparedAbilities.Select(item => item with { Modifiers = item.Modifiers.ToArray() })
+            Tracks = draft.Tracks.Select(item => item with { GrantedTalentIds = item.GrantedTalentIds.ToArray() }).ToArray(),
+            DispositionAxes = draft.DispositionAxes.ToArray(),
+            Skills = draft.Skills.ToArray(),
+            Talents = draft.Talents.Select(item => item with
+            {
+                Prerequisites = item.Prerequisites.ToArray(),
+                GrantedAbilityIds = item.GrantedAbilityIds.ToArray(),
+                HookIds = item.HookIds.ToArray(),
+            }).ToArray(),
+            LearnedAbilityIds = draft.LearnedAbilityIds.ToArray(),
+            PreparedAbilities = draft.PreparedAbilities.Select(item => item with { Modifiers = item.Modifiers.ToArray() })
             .ToArray(),
-    };
+        };
 
     private static string FingerprintProjectUx4G(ProjectDefinition project) => HashUx4G(ProjectJsonSerializer.Serialize(project));
     private static string FingerprintCreatureProgressionCandidateUx4G(ProjectDefinition project,

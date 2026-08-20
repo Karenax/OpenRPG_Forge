@@ -411,12 +411,12 @@ internal sealed partial class StudioSessionController
 
     private static StudioCreatureCapabilityDraftUx4H FreezeCreatureCapabilityDraftUx4H(
         StudioCreatureCapabilityDraftUx4H draft) => draft with
-    {
-        Abilities = draft.Abilities.Select(item => item with
-        { Conditions = item.Conditions.ToArray(), AiTags = item.AiTags.ToArray() }).ToArray(),
-        Containers = draft.Containers.Select(container => container with { Items = container.Items.ToArray() }).ToArray(),
-        EquipmentSlots = draft.EquipmentSlots.ToDictionary(),
-    };
+        {
+            Abilities = draft.Abilities.Select(item => item with
+            { Conditions = item.Conditions.ToArray(), AiTags = item.AiTags.ToArray() }).ToArray(),
+            Containers = draft.Containers.Select(container => container with { Items = container.Items.ToArray() }).ToArray(),
+            EquipmentSlots = draft.EquipmentSlots.ToDictionary(),
+        };
 
     private static string FingerprintProjectUx4H(ProjectDefinition project) =>
         Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(ProjectJsonSerializer.Serialize(project))));

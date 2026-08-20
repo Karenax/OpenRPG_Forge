@@ -366,8 +366,11 @@ internal sealed partial class StudioSessionController
             var wizard = applied?.AuthoringComposition is { } authored &&
                          authored.ArchetypeId == "archetype.witness" && authored.RulesetId == "ruleset.core" &&
                          authored.VisualKitId == "visual.witness" && authored.CombatTags.Contains("witness");
-            var roleThreat = applied?.AuthoringComposition is { EncounterRole: CreatureAuthoringEncounterRole.Controller,
-                ThreatRating: 7.25 };
+            var roleThreat = applied?.AuthoringComposition is
+            {
+                EncounterRole: CreatureAuthoringEncounterRole.Controller,
+                ThreatRating: 7.25
+            };
             var species = applied?.AuthoringComposition?.Species is { } authoredSpecies &&
                           authoredSpecies.SpeciesId == "species.emberborn" &&
                           authoredSpecies.ParentSpeciesIds.Contains("species.construct") &&
@@ -426,27 +429,27 @@ internal sealed partial class StudioSessionController
 
     private static StudioCreatureFoundationDraftUx4D ChangedCreatureDraftUx4D(
         StudioCreatureFoundationDraftUx4D draft) => draft with
-    {
-        FrenchName = "Gardien témoin UX4-D",
-        EnglishName = "UX4-D Witness Warden",
-        Aliases = "gardien témoin, veilleur",
-        Pronouns = "iel",
-        FrenchBiography = "Créature de preuve isolée pour le Studio.",
-        AuthorNotes = "Ne jamais muter le module source.",
-        NarrativeTags = "studio, witness",
-        ArchetypeId = "archetype.witness",
-        RulesetId = "ruleset.core",
-        EncounterRole = CreatureAuthoringEncounterRole.Controller,
-        ThreatRating = "7.25",
-        VisualKitId = "visual.witness",
-        CombatTags = "controller, witness",
-        SpeciesId = "species.emberborn",
-        ParentSpeciesIds = "species.construct",
-        TraitSets = "ember.core=heat.resistant,ember.sight\nconstruct.core=artificial",
-        Variants = "awakened, ancient",
-        RequiredSkeletonId = draft.RigId,
-        SpawnHandler = "OnSpawnWitness",
-    };
+        {
+            FrenchName = "Gardien témoin UX4-D",
+            EnglishName = "UX4-D Witness Warden",
+            Aliases = "gardien témoin, veilleur",
+            Pronouns = "iel",
+            FrenchBiography = "Créature de preuve isolée pour le Studio.",
+            AuthorNotes = "Ne jamais muter le module source.",
+            NarrativeTags = "studio, witness",
+            ArchetypeId = "archetype.witness",
+            RulesetId = "ruleset.core",
+            EncounterRole = CreatureAuthoringEncounterRole.Controller,
+            ThreatRating = "7.25",
+            VisualKitId = "visual.witness",
+            CombatTags = "controller, witness",
+            SpeciesId = "species.emberborn",
+            ParentSpeciesIds = "species.construct",
+            TraitSets = "ember.core=heat.resistant,ember.sight\nconstruct.core=artificial",
+            Variants = "awakened, ancient",
+            RequiredSkeletonId = draft.RigId,
+            SpawnHandler = "OnSpawnWitness",
+        };
 
     private bool TryBuildCreatureFoundationCandidateUx4D(
         StudioCreatureFoundationDraftUx4D draft,

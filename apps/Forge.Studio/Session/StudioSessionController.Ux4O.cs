@@ -334,14 +334,14 @@ internal sealed partial class StudioSessionController
 
     internal static StudioCreatureDamageDraftUx4O ChangedCreatureDamageDraftUx4O(
         StudioCreatureDamageDraftUx4O draft) => draft with
-    {
-        DamageDeathEnabled = true,
-        BeforeDamageHandler = "BeforeDamageBounded",
-        DamageAppliedHandler = "OnDamageCommitted",
-        DeathHandler = "OnEntityDeathComplete",
-        BeforeDamageBudgetMilliseconds = "4",
-        MaximumAdjustmentRatio = "0.25",
-    };
+        {
+            DamageDeathEnabled = true,
+            BeforeDamageHandler = "BeforeDamageBounded",
+            DamageAppliedHandler = "OnDamageCommitted",
+            DeathHandler = "OnEntityDeathComplete",
+            BeforeDamageBudgetMilliseconds = "4",
+            MaximumAdjustmentRatio = "0.25",
+        };
 
     private bool TryBuildCreatureDamageCandidateUx4O(
         StudioCreatureDamageDraftUx4O draft,

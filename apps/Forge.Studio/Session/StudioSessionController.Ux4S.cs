@@ -194,16 +194,28 @@ internal sealed partial class StudioSessionController
                 var explicitSelection = editing.ItemChoicesUx4S.Any(item => item.BlueprintId == evidence.BlueprintId);
                 var creation = draft.Foundation.Creation is { Wizard.Sections.Count: 8, Appearance.MeshAssetIds.Count: > 0 };
                 var identity = draft.Foundation.Texts.Count > 0 && draft.Foundation.Type.AllowedSlots.Count > 0;
-                var appearanceInventory = draft.Foundation.Creation is { Inventory.GridWidth: > 0, Stack.Maximum: > 0,
-                    Usage.Durability: > 0 };
-                var gameplay = draft.Foundation.Gameplay is { Transfer.AllowedDestinations.Count: 8, Modifiers.Count: > 0,
-                    Ability: not null };
-                var equipment = draft.Advanced is { Weapon: not null, Armor: not null, Ammo: not null,
-                    Durability: not null, Container: not null };
+                var appearanceInventory = draft.Foundation.Creation is
+                {
+                    Inventory.GridWidth: > 0, Stack.Maximum: > 0,
+                    Usage.Durability: > 0
+                };
+                var gameplay = draft.Foundation.Gameplay is
+                {
+                    Transfer.AllowedDestinations.Count: 8, Modifiers.Count: > 0,
+                    Ability: not null
+                };
+                var equipment = draft.Advanced is
+                {
+                    Weapon: not null, Armor: not null, Ammo: not null,
+                    Durability: not null, Container: not null
+                };
                 var lootCraft = draft.Advanced.LootContexts.Count > 0 && draft.Advanced.Unique.Enabled &&
                                 draft.Advanced.Recipes.Count > 0 && draft.Advanced.Generator is { Enabled: true };
-                var inspectorEvents = draft.Foundation.Operations is { Inspector.Placements.Count: > 0,
-                    Events.Bindings.Count: 9 };
+                var inspectorEvents = draft.Foundation.Operations is
+                {
+                    Inspector.Placements.Count: > 0,
+                    Events.Bindings.Count: 9
+                };
                 var validation = ItemFoundationValidator.Validate(draft.Foundation).Count == 0 &&
                                  ItemAdvancedValidator.Validate(draft.Advanced, "itemAdvanced").Count == 0;
                 var before = editing.Project!; var beforeHistory = editing.History!; var revision = beforeHistory.State.Revision;
@@ -333,13 +345,15 @@ internal sealed partial class StudioSessionController
         var creation = ItemCreationProfile.CreateDefault(StableItemGuidUx4S(blueprintId.Value, "creation"),
             StableItemGuidUx4S(blueprintId.Value, "appearance"), provenance) with
         {
-            RequiredAtRuntime = true, ContentSha256 = new string('b', 64),
+            RequiredAtRuntime = true,
+            ContentSha256 = new string('b', 64),
             Wizard = new(["archetype", "appearance", "slots", "quality", "level", "property", "provenance",
                 "generation-rules"], ["fixed-seed", "preserve-provenance"]),
             Appearance = new(StableItemGuidUx4S(blueprintId.Value, "appearance"), 1, provenance,
                 ["asset.item.ember-compass.mesh"], ["asset.material.ember-steel"], ["hand-r"],
                 "asset.item.ember-compass.icon", ["asset.vfx.ember-glow"], "asset.item.ember-compass.equipped"),
-            Inventory = new(1.25, .4, 1, 2, .5, .25), Stack = new(10, slug, true),
+            Inventory = new(1.25, .4, 1, 2, .5, .25),
+            Stack = new(10, slug, true),
             Usage = new(3, 3, 2, 2, 5_000, 100, false, "rest-or-refill")
         };
         var gameplay = new ItemGameplayProfile(StableItemGuidUx4S(blueprintId.Value, "gameplay"), 1, provenance,

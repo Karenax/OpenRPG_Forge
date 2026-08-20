@@ -165,8 +165,12 @@ internal sealed partial class StudioCreatureRulesOverlayUx4F : Control
             9, StudioStyle.Muted, wrap: true);
         _context.SizeFlagsHorizontal = SizeFlags.ExpandFill; contextRow.AddChild(_context); root.AddChild(contextRow);
 
-        var tabHost = new Control { CustomMinimumSize = new Vector2(0, 410),
-            SizeFlagsVertical = SizeFlags.ExpandFill, ClipContents = true };
+        var tabHost = new Control
+        {
+            CustomMinimumSize = new Vector2(0, 410),
+            SizeFlagsVertical = SizeFlags.ExpandFill,
+            ClipContents = true
+        };
         root.AddChild(tabHost);
         _tabs = new TabContainer(); _tabs.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect); tabHost.AddChild(_tabs);
 
@@ -293,8 +297,13 @@ internal sealed partial class StudioCreatureRulesOverlayUx4F : Control
             9, StudioStyle.Muted, wrap: true));
         _diagnostics = new VBoxContainer(); review.AddChild(_diagnostics);
 
-        _summary = new RichTextLabel { BbcodeEnabled = true, CustomMinimumSize = new Vector2(0, 145),
-            FitContent = false, SelectionEnabled = true };
+        _summary = new RichTextLabel
+        {
+            BbcodeEnabled = true,
+            CustomMinimumSize = new Vector2(0, 145),
+            FitContent = false,
+            SelectionEnabled = true
+        };
         root.AddChild(_summary);
         root.AddChild(StudioStyle.Label(
             "Prévisualiser ne modifie rien. Appliquer écrit une commande annulable ; Enregistrer persiste ensuite le workspace.",
@@ -408,17 +417,24 @@ internal sealed partial class StudioCreatureRulesOverlayUx4F : Control
         }
         return _draft with
         {
-            RetargetProfileId = _retarget.Text, AnimationStates = _states.ToArray(),
-            AnimationTransitions = _transitions.ToArray(), InitialLifeState = life,
-            InitialAnimationLoopAssetId = Optional(_initialLoop.Text), InitialPoseId = Optional(_initialPose.Text),
-            InitiallyInvisible = _initialInvisible.ButtonPressed, Resources = _resources.ToArray(),
+            RetargetProfileId = _retarget.Text,
+            AnimationStates = _states.ToArray(),
+            AnimationTransitions = _transitions.ToArray(),
+            InitialLifeState = life,
+            InitialAnimationLoopAssetId = Optional(_initialLoop.Text),
+            InitialPoseId = Optional(_initialPose.Text),
+            InitiallyInvisible = _initialInvisible.ButtonPressed,
+            Resources = _resources.ToArray(),
             RulesetId = _ruleset.Text,
             BaseAttributes = _baseAttributes.ToDictionary(item => item.Key, item => item.Value, StringComparer.Ordinal),
-            AttributeModifiers = _modifiers.ToArray(), DerivedAttributes = _derived.ToArray(),
-            Avoidance = avoidance, Armor = armor,
+            AttributeModifiers = _modifiers.ToArray(),
+            DerivedAttributes = _derived.ToArray(),
+            Avoidance = avoidance,
+            Armor = armor,
             Resistances = _resistances.ToDictionary(item => item.Key, item => item.Value, StringComparer.Ordinal),
             Saves = _saves.ToDictionary(item => item.Key, item => item.Value, StringComparer.Ordinal),
-            Immunities = _immunities.ToArray(), FlatMitigation = mitigation,
+            Immunities = _immunities.ToArray(),
+            FlatMitigation = mitigation,
         };
     }
 
@@ -934,8 +950,13 @@ internal sealed partial class StudioCreatureRulesOverlayUx4F : Control
 
     private static VBoxContainer Tab(TabContainer tabs, string title)
     {
-        var scroll = new ScrollContainer { Name = title, HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
-            VerticalScrollMode = ScrollContainer.ScrollMode.Auto, FollowFocus = true };
+        var scroll = new ScrollContainer
+        {
+            Name = title,
+            HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
+            VerticalScrollMode = ScrollContainer.ScrollMode.Auto,
+            FollowFocus = true
+        };
         tabs.AddChild(scroll); tabs.SetTabTitle(tabs.GetTabCount() - 1, title);
         var content = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
         content.AddThemeConstantOverride("separation", 6); scroll.AddChild(content); return content;

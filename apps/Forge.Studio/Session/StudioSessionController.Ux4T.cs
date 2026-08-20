@@ -218,8 +218,11 @@ internal sealed partial class StudioSessionController
                 draft = TouchMerchantDraftUx4T(draft, " · preuve contractuelle");
                 var profile = draft.Profile; var foundation = profile.Foundation!;
                 var explicitSelection = editing.MerchantChoicesUx4T.Any(item => item.MerchantId == evidence.MerchantId);
-                var storeWizard = foundation.Wizard is { CreateStoreDefinition: true, CreateVendorBinding: true,
-                    CreateDialogueChoice: true, CreateInteraction: true, CreateTests: true } &&
+                var storeWizard = foundation.Wizard is
+                {
+                    CreateStoreDefinition: true, CreateVendorBinding: true,
+                    CreateDialogueChoice: true, CreateInteraction: true, CreateTests: true
+                } &&
                     foundation.Vendors.Count > 0;
                 var stockPricing = foundation.Stock.Count >= 2 &&
                                    foundation.Stock.Any(item => item.Supply == MerchantSupplyPolicy.Infinite) &&
@@ -233,8 +236,11 @@ internal sealed partial class StudioSessionController
                 var currencies = profile.Currencies.Count > 1 && profile.Negotiation.ServerAuthoritative &&
                                  profile.Market is not null;
                 var services = profile.Services.Count > 0 && profile.Ledger.Enabled &&
-                               profile.Experience?.Ui is { KeyboardNavigation: true, GamepadNavigation: true,
-                                   ScreenReaderLabels: true, HighContrast: true };
+                               profile.Experience?.Ui is
+                               {
+                                   KeyboardNavigation: true, GamepadNavigation: true,
+                                   ScreenReaderLabels: true, HighContrast: true
+                               };
                 var validation = WorldFeatureCatalogValidator.Validate(editing.Project!).Count == 0;
                 var before = editing.Project!; var history = editing.History!; var revision = history.State.Revision;
                 var journal = history.Journal.ToArray(); var preview = editing.PreviewMerchantUx4T(draft);

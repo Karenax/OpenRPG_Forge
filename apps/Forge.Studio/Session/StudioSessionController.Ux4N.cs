@@ -233,8 +233,11 @@ internal sealed partial class StudioSessionController
         if (project is null) return null;
         var real = project.Blueprints.Where(item =>
                 (item.Kind is BlueprintKind.Creature or BlueprintKind.PlayerSpawn) && !item.IsReadOnly() &&
-                item.CreatureEvents is { CombatBoundary: not null, Inventory: not null, Rest: not null,
-                    Heartbeat: not null, CustomEvents.Count: > 0 })
+                item.CreatureEvents is
+                {
+                    CombatBoundary: not null, Inventory: not null, Rest: not null,
+                    Heartbeat: not null, CustomEvents.Count: > 0
+                })
             .OrderBy(item => item.DisplayName, StringComparer.CurrentCultureIgnoreCase)
             .FirstOrDefault(item => CreatureEventValidator.Validate(item.CreatureEvents!).Count == 0);
         if (real is not null) return new(project, real.Id, true, false);
@@ -321,8 +324,11 @@ internal sealed partial class StudioSessionController
                 var inventory = applied?.Inventory?.Accessed.Handler == "OnInventoryInspected" &&
                                 applied.Inventory.Transferred.Handler == "OnItemMoved";
                 var rest = applied?.Rest?.Completed.Handler == "OnRestResolved";
-                var heartbeat = applied?.Heartbeat is { Enabled: true, IntervalMilliseconds: 1_500,
-                    BudgetMilliseconds: 8, SuspendOutsideInterest: true };
+                var heartbeat = applied?.Heartbeat is
+                {
+                    Enabled: true, IntervalMilliseconds: 1_500,
+                    BudgetMilliseconds: 8, SuspendOutsideInterest: true
+                };
                 var custom = applied?.CustomEvents.Count == 1 &&
                              applied.CustomEvents[0].QualifiedName == "crypt.braziers_lit" &&
                              applied.CustomEvents[0].Fields.Count == 2;
@@ -365,23 +371,23 @@ internal sealed partial class StudioSessionController
 
     internal static StudioCreatureEventDraftUx4N ChangedCreatureEventDraftUx4N(
         StudioCreatureEventDraftUx4N draft) => draft with
-    {
-        RequiredAtRuntime = true,
-        CombatEnabled = true,
-        CombatMode = CreatureCombatBoundaryMode.TurnEnded,
-        CombatHandler = "OnCombatRoundBoundary",
-        InventoryEnabled = true,
-        InventoryAccessedHandler = "OnInventoryInspected",
-        ItemTransferredHandler = "OnItemMoved",
-        RestEnabled = true,
-        RestHandler = "OnRestResolved",
-        HeartbeatEnabled = true,
-        HeartbeatIntervalMilliseconds = "1500",
-        HeartbeatBudgetMilliseconds = "8",
-        SuspendOutsideInterest = true,
-        HeartbeatHandler = "OnHeartbeat",
-        CustomEvents = "crypt|braziers_lit|2|true|count:Integer,source:EntityId|OnBraziersLit",
-    };
+        {
+            RequiredAtRuntime = true,
+            CombatEnabled = true,
+            CombatMode = CreatureCombatBoundaryMode.TurnEnded,
+            CombatHandler = "OnCombatRoundBoundary",
+            InventoryEnabled = true,
+            InventoryAccessedHandler = "OnInventoryInspected",
+            ItemTransferredHandler = "OnItemMoved",
+            RestEnabled = true,
+            RestHandler = "OnRestResolved",
+            HeartbeatEnabled = true,
+            HeartbeatIntervalMilliseconds = "1500",
+            HeartbeatBudgetMilliseconds = "8",
+            SuspendOutsideInterest = true,
+            HeartbeatHandler = "OnHeartbeat",
+            CustomEvents = "crypt|braziers_lit|2|true|count:Integer,source:EntityId|OnBraziersLit",
+        };
 
     private bool TryBuildCreatureEventCandidateUx4N(
         StudioCreatureEventDraftUx4N draft,

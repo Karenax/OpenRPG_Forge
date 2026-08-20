@@ -32,7 +32,7 @@ internal sealed partial class StudioWorkspaceShell
             return;
         }
         SwitchPage("social-content", notify: false);
-        CloseUx4AOverlay(); CloseUx4BOverlay(); CloseUx4COverlay();
+        CloseUx4AOverlay(); CloseUx4BOverlay(); CloseUx4COverlay(); CloseUx4UOverlay();
         _merchantAuthoringOverlayUx4T.Open();
         SetStatus("Marchands · sélection ou création explicite, cinq onglets et aperçu canonique.", false);
     }
@@ -56,7 +56,7 @@ internal sealed partial class StudioWorkspaceShell
     internal bool PrepareUx4TEvidence(string mode)
     {
         if (PageId != "social-content") SwitchPage("social-content", notify: false);
-        CloseUx4AOverlay(); CloseUx4BOverlay(); CloseUx4COverlay();
+        CloseUx4AOverlay(); CloseUx4BOverlay(); CloseUx4COverlay(); CloseUx4UOverlay();
         _merchantAuthoringOverlayUx4T.Open();
         return _merchantAuthoringOverlayUx4T.PrepareEvidence(mode);
     }

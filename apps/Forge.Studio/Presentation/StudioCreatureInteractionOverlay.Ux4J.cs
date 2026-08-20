@@ -134,8 +134,12 @@ internal sealed partial class StudioCreatureInteractionOverlayUx4J : Control
         _context = StudioStyle.Label("Sélection explicite requise · fondation de créature obligatoire.",
             9, StudioStyle.Muted, wrap: true); _context.SizeFlagsHorizontal = SizeFlags.ExpandFill;
         contextRow.AddChild(_context); root.AddChild(contextRow);
-        var tabHost = new Control { CustomMinimumSize = new Vector2(0, 410), SizeFlagsVertical = SizeFlags.ExpandFill,
-            ClipContents = true }; root.AddChild(tabHost);
+        var tabHost = new Control
+        {
+            CustomMinimumSize = new Vector2(0, 410),
+            SizeFlagsVertical = SizeFlags.ExpandFill,
+            ClipContents = true
+        }; root.AddChild(tabHost);
         _tabs = new TabContainer(); _tabs.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect); tabHost.AddChild(_tabs);
 
         var factions = Tab(_tabs, "1 · Factions");
@@ -206,8 +210,13 @@ internal sealed partial class StudioCreatureInteractionOverlayUx4J : Control
         review.AddChild(StudioStyle.Label(
             "Projection Domain/RPG Kit uniquement : aucun acteur, dialogue, sens, script ou réseau n’est exécuté.",
             9, StudioStyle.Muted, wrap: true)); _diagnostics = new VBoxContainer(); review.AddChild(_diagnostics);
-        _summary = new RichTextLabel { BbcodeEnabled = true, CustomMinimumSize = new Vector2(0, 142),
-            FitContent = false, SelectionEnabled = true }; root.AddChild(_summary);
+        _summary = new RichTextLabel
+        {
+            BbcodeEnabled = true,
+            CustomMinimumSize = new Vector2(0, 142),
+            FitContent = false,
+            SelectionEnabled = true
+        }; root.AddChild(_summary);
         root.AddChild(StudioStyle.Label(
             "Prévisualiser ne modifie rien. Appliquer écrit une commande annulable ; Enregistrer persiste ensuite le workspace.",
             9, StudioStyle.Muted, wrap: true));

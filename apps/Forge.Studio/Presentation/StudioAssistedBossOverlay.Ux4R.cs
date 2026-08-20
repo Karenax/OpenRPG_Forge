@@ -103,9 +103,13 @@ internal sealed partial class StudioAssistedBossOverlayUx4R : Control
         var close = StudioStyle.Button("Fermer", compact: true); close.CustomMinimumSize = new Vector2(76, 34);
         close.Pressed += Close; header.AddChild(close); root.AddChild(header);
         _area = Choice(root, "Zone du boss");
-        var scroll = new ScrollContainer { SizeFlagsVertical = SizeFlags.ExpandFill,
-            HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled, VerticalScrollMode = ScrollContainer.ScrollMode.Auto,
-            FollowFocus = true };
+        var scroll = new ScrollContainer
+        {
+            SizeFlagsVertical = SizeFlags.ExpandFill,
+            HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
+            VerticalScrollMode = ScrollContainer.ScrollMode.Auto,
+            FollowFocus = true
+        };
         var form = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
         form.AddThemeConstantOverride("separation", 7); scroll.AddChild(form); root.AddChild(scroll);
         form.AddChild(StudioStyle.Label("Identité et intention", 11, StudioStyle.Accent));
@@ -136,8 +140,13 @@ internal sealed partial class StudioAssistedBossOverlayUx4R : Control
             9, StudioStyle.Muted, wrap: true));
         _diagnostics = new VBoxContainer(); form.AddChild(_diagnostics);
         root.AddChild(_approved);
-        _summary = new RichTextLabel { BbcodeEnabled = true, CustomMinimumSize = new Vector2(0, 142),
-            FitContent = false, SelectionEnabled = true }; root.AddChild(_summary);
+        _summary = new RichTextLabel
+        {
+            BbcodeEnabled = true,
+            CustomMinimumSize = new Vector2(0, 142),
+            FitContent = false,
+            SelectionEnabled = true
+        }; root.AddChild(_summary);
         root.AddChild(StudioStyle.Label(
             "Prévisualiser ne modifie rien. Appliquer écrit le blueprint, le dialogue et le document runtime dans une seule commande annulable.",
             9, StudioStyle.Muted, wrap: true));
@@ -195,12 +204,26 @@ internal sealed partial class StudioAssistedBossOverlayUx4R : Control
             !int.TryParse(_defense.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var defense) ||
             !double.TryParse(_threat.Text.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out var threat) ||
             !int.TryParse(_seed.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var seed)) return null;
-        return _draft with { Slug = _slug.Text.Trim(), DisplayName = _displayName.Text.Trim(), Synopsis = _synopsis.Text.Trim(),
-            MaximumHealth = health, Offense = offense, Defense = defense, ThreatRating = threat,
-            AbilityNames = Lines(_abilities.Text), PhaseScripts = Lines(_phaseScripts.Text),
-            SummonBlueprintSlugs = Lines(_summons.Text), RewardItemSlugs = Lines(_rewards.Text),
-            DeathScript = _deathScript.Text.Trim(), ContextCitations = Lines(_citations.Text), StyleRules = Lines(_style.Text),
-            AuthorId = _author.Text.Trim(), Seed = seed, Approved = _approved.ButtonPressed };
+        return _draft with
+        {
+            Slug = _slug.Text.Trim(),
+            DisplayName = _displayName.Text.Trim(),
+            Synopsis = _synopsis.Text.Trim(),
+            MaximumHealth = health,
+            Offense = offense,
+            Defense = defense,
+            ThreatRating = threat,
+            AbilityNames = Lines(_abilities.Text),
+            PhaseScripts = Lines(_phaseScripts.Text),
+            SummonBlueprintSlugs = Lines(_summons.Text),
+            RewardItemSlugs = Lines(_rewards.Text),
+            DeathScript = _deathScript.Text.Trim(),
+            ContextCitations = Lines(_citations.Text),
+            StyleRules = Lines(_style.Text),
+            AuthorId = _author.Text.Trim(),
+            Seed = seed,
+            Approved = _approved.ButtonPressed
+        };
     }
     private void Preview()
     {
@@ -219,8 +242,10 @@ internal sealed partial class StudioAssistedBossOverlayUx4R : Control
     private void Redo() { var result = _session.RedoBossUx4R(); SetStatus(result.Message, !result.Succeeded); if (result.Succeeded) Reload(); }
     private void Save() { var result = _session.Save(); SetStatus(result.Message, !result.Succeeded); }
     private void Reload()
-    { if (_draft is null) return; _draft = _session.CreateBossDraftUx4R(_draft.AreaId); if (_draft is not null) Populate(_draft);
-      _previewResult = null; _apply.Disabled = true; BossChanged?.Invoke(); }
+    {
+        if (_draft is null) return; _draft = _session.CreateBossDraftUx4R(_draft.AreaId); if (_draft is not null) Populate(_draft);
+        _previewResult = null; _apply.Disabled = true; BossChanged?.Invoke();
+    }
     private void RenderPreview(StudioBossPreviewUx4R result)
     {
         foreach (var child in _diagnostics.GetChildren()) child.QueueFree();
@@ -244,8 +269,10 @@ internal sealed partial class StudioAssistedBossOverlayUx4R : Control
         RenderEmpty("Choisissez explicitement une zone.");
     }
     private void SetEditingEnabled(bool enabled)
-    { _preview.Disabled = !enabled; _apply.Disabled = !enabled || !CanonicalPreviewReady; _undo.Disabled = !_session.CanUndo;
-      _redo.Disabled = !_session.CanRedo; _save.Disabled = _session.Project is null; }
+    {
+        _preview.Disabled = !enabled; _apply.Disabled = !enabled || !CanonicalPreviewReady; _undo.Disabled = !_session.CanUndo;
+        _redo.Disabled = !_session.CanRedo; _save.Disabled = _session.Project is null;
+    }
     private void InvalidatePreview()
     { if (_updating) return; _session.CancelBossUx4R(); _previewResult = null; _apply.Disabled = true; }
     private void ConnectEvents()
@@ -312,8 +339,10 @@ internal sealed partial class StudioAssistedBossOverlayUx4R : Control
             if (undone) Redo(); var redone = undone && ProjectJsonSerializer.Serialize(transaction.Project!) == appliedJson;
             var saved = redone && transaction.Save().Succeeded; var persisted = false;
             if (saved && transaction.Session is { } workspace)
-            { reopened = new(); persisted = reopened.Open(workspace.RootDirectory).Succeeded &&
-                ProjectJsonSerializer.Serialize(reopened.Project!) == appliedJson; }
+            {
+                reopened = new(); persisted = reopened.Open(workspace.RootDirectory).Succeeded &&
+                ProjectJsonSerializer.Serialize(reopened.Project!) == appliedJson;
+            }
             var sourceUntouched = SourceMatches(snapshot); reopened?.Close(); reopened = null; Close();
             return applied && undone && redone && saved && persisted && sourceUntouched &&
                    EvidenceResourcesReleased && SourceSessionRestored;
@@ -321,8 +350,10 @@ internal sealed partial class StudioAssistedBossOverlayUx4R : Control
         catch (Exception exception)
         { GD.PrintErr($"OPENRPG_FORGE_STUDIO_UX4R_UI_TRANSACTION_FAILED type={exception.GetType().Name} message={exception.Message}"); return false; }
         finally
-        { reopened?.Close(); if (_evidenceSession is not null || _evidenceRoot is not null) Close();
-          _sourceSession.RestoreBossApprovalUx4R(snapshot.Approval); }
+        {
+            reopened?.Close(); if (_evidenceSession is not null || _evidenceRoot is not null) Close();
+            _sourceSession.RestoreBossApprovalUx4R(snapshot.Approval);
+        }
     }
     internal void CloseEvidence() => Close();
     private bool TryOpenEvidence()
@@ -392,16 +423,26 @@ internal sealed partial class StudioAssistedBossOverlayUx4R : Control
     private static IReadOnlyList<string> Lines(string value) => value.Replace("\r", string.Empty, StringComparison.Ordinal)
         .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
     private static OptionButton Choice(Container parent, string label)
-    { var box = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill }; box.AddChild(StudioStyle.Label(label, 8, StudioStyle.Muted));
-      var result = new OptionButton { SizeFlagsHorizontal = SizeFlags.ExpandFill }; box.AddChild(result); parent.AddChild(box); return result; }
+    {
+        var box = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill }; box.AddChild(StudioStyle.Label(label, 8, StudioStyle.Muted));
+        var result = new OptionButton { SizeFlagsHorizontal = SizeFlags.ExpandFill }; box.AddChild(result); parent.AddChild(box); return result;
+    }
     private static LineEdit Field(Container parent, string label, string placeholder)
-    { var box = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill }; box.AddChild(StudioStyle.Label(label, 8, StudioStyle.Muted));
-      var result = new LineEdit { PlaceholderText = placeholder, SizeFlagsHorizontal = SizeFlags.ExpandFill };
-      box.AddChild(result); parent.AddChild(box); return result; }
+    {
+        var box = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill }; box.AddChild(StudioStyle.Label(label, 8, StudioStyle.Muted));
+        var result = new LineEdit { PlaceholderText = placeholder, SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        box.AddChild(result); parent.AddChild(box); return result;
+    }
     private static TextEdit Multiline(Container parent, string label, float height)
-    { var box = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill }; box.AddChild(StudioStyle.Label(label, 8, StudioStyle.Muted));
-      var result = new TextEdit { CustomMinimumSize = new Vector2(0, height), SizeFlagsHorizontal = SizeFlags.ExpandFill,
-          WrapMode = TextEdit.LineWrappingMode.Boundary }; box.AddChild(result); parent.AddChild(box); return result; }
+    {
+        var box = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill }; box.AddChild(StudioStyle.Label(label, 8, StudioStyle.Muted));
+        var result = new TextEdit
+        {
+            CustomMinimumSize = new Vector2(0, height),
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            WrapMode = TextEdit.LineWrappingMode.Boundary
+        }; box.AddChild(result); parent.AddChild(box); return result;
+    }
     private static IEnumerable<string> VisibleText(Node node)
     {
         if (node is Label label && label.Visible) yield return label.Text;

@@ -1,6 +1,6 @@
 # État vérifié — OpenRPG Forge
 
-Dernière mise à jour : 17 août 2026.
+Dernière mise à jour : 20 août 2026.
 
 ## Verdict
 
@@ -37,8 +37,8 @@ encore qualifiées. Aucun de ces états ne doit être confondu avec une release 
 - parcours produit automatisé : projet, zones, assets, contenu RPG, narration, validation, playtest,
   export et Assistant gouverné ;
 - matrice et procédure d'acceptation de bout en bout sous `docs/acceptance/`.
-- matrice d’accès humain Studio : 717 routes uniques, dont 221 `functional` avec preuve spécifique
-  pour UX0-A à UX1-AJ, les 98/98 routes UX2, UX4-A et UX5-A, et 496 `planned` ; cette matrice ne
+- matrice d’accès humain Studio : 717 routes uniques, dont 356 `functional` avec preuve spécifique
+  pour UX0-A à UX1-AJ, les 98/98 routes UX2, les 140/140 routes UX4 et UX5-A, et 361 `planned` ; cette matrice ne
   réutilise pas le statut `Tested` de l’ancien Creator.
 - premier train parallèle contrôlé livré : UX1-V et UX1-W ont été développés dans des worktrees et
   fichiers distincts, audités avant intégration, puis construits, testés, fumés et capturés
@@ -66,8 +66,13 @@ encore qualifiées. Aucun de ces états ne doit être confondu avec une release 
   limites distinguent authoring, plans/simulations et runtime réellement branché ; les preuves sont
   liées dans `STUDIO_UX2_TERRAIN.md`, `STUDIO_UX2_ENVIRONMENT.md`,
   `STUDIO_UX2_LIVING_WORLD.md` et `STUDIO_UX2_NAVIGATION.md`.
+- vague UX4 close à 140/140 : factions, créatures, voix, assistant de boss, objets, marchands et
+  compagnons disposent de commandes/dry-runs transactionnels, smokes contractuels, persistance et
+  captures Forward+ FHD inspectées. Le dernier lot Compagnons a franchi 66/66 tests ciblés et son
+  portail incrémental en 132,09 s ; les preuves sont liées de `STUDIO_UX4_A.md` à
+  `STUDIO_UX4_U.md`.
 - portail local courant réussi avec 2 033 tests .NET, 39 tests Python, des builds sans avertissement
-  et le graphe Roslyn courant déterministe à 9 968 nœuds et 71 303 relations sans diagnostic ; les
+  et le graphe Roslyn courant déterministe à 10 292 nœuds et 75 342 relations sans diagnostic ; les
   smokes Studio, Toolset, Runtime, Forward+, MCP, réseau et distribution ont également réussi.
 
 Ces nombres prouvent la présence et la non-régression des capacités. Ils ne remplacent pas une
