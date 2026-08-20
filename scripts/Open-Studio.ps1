@@ -109,7 +109,12 @@ param(
         'ux4-s', 'ux4-s-items', 'ux4-s-item-authoring',
         'ux4-t', 'ux4-t-merchants', 'ux4-t-merchant-authoring',
         'ux4-u', 'ux4-u-companions', 'ux4-u-companion-authoring',
-        'ux5-a', 'ux5-a-dialogue-foundation')]
+        'ux5-a', 'ux5-a-dialogue-foundation',
+        'ux5-b', 'ux5-b-dialogue-production',
+        'ux5-c', 'ux5-c-quest-authoring',
+        'ux5-d', 'ux5-d-localization',
+        'ux5-e', 'ux5-e-lore',
+        'ux5-f', 'ux5-f-cinematics')]
     [string]$Evidence,
     [string]$Resolution,
     [switch]$Headless,

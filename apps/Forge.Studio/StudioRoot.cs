@@ -356,6 +356,7 @@ public sealed partial class StudioRoot : Control
         var ux4TValid = true;
         var ux4UValid = true;
         var ux5AValid = true;
+        var ux5BValid = true;
         var candidateApprovalsValid = true;
         if (_smokeRequested)
         {
@@ -417,6 +418,7 @@ public sealed partial class StudioRoot : Control
             var ux4TApproval = _session.CaptureMerchantApprovalUx4T();
             var ux4UApproval = _session.CaptureCompanionApprovalUx4U();
             var ux5AApproval = _session.CaptureDialogueApprovalUx5A();
+            var ux5BApproval = _session.CaptureNarrativeApprovalUx5B();
             try
             {
                 ux2AValid = _shell.RunUx2ASmoke();
@@ -477,6 +479,7 @@ public sealed partial class StudioRoot : Control
                 ux4TValid = _shell.RunUx4TSmoke();
                 ux4UValid = _shell.RunUx4USmoke();
                 ux5AValid = _shell.RunUx5ASmoke();
+                ux5BValid = _shell.RunUx5BSmoke();
             }
             finally
             {
@@ -538,6 +541,7 @@ public sealed partial class StudioRoot : Control
                 _session.RestoreMerchantApprovalUx4T(ux4TApproval);
                 _session.RestoreCompanionApprovalUx4U(ux4UApproval);
                 _session.RestoreDialogueApprovalUx5A(ux5AApproval);
+                _session.RestoreNarrativeApprovalUx5B(ux5BApproval);
             }
             candidateApprovalsValid =
                 Equals(_session.CaptureAreaPolicyApprovalUx2A(), ux2AApproval) &&
@@ -597,7 +601,8 @@ public sealed partial class StudioRoot : Control
                 Equals(_session.CaptureItemApprovalUx4S(), ux4SApproval) &&
                 Equals(_session.CaptureMerchantApprovalUx4T(), ux4TApproval) &&
                 Equals(_session.CaptureCompanionApprovalUx4U(), ux4UApproval) &&
-                Equals(_session.CaptureDialogueApprovalUx5A(), ux5AApproval);
+                Equals(_session.CaptureDialogueApprovalUx5A(), ux5AApproval) &&
+                Equals(_session.CaptureNarrativeApprovalUx5B(), ux5BApproval);
             GD.Print(
                 $"OPENRPG_FORGE_STUDIO_CANDIDATE_APPROVALS_{(candidateApprovalsValid ? "PASS" : "FAILED")} " +
                 $"preserved={candidateApprovalsValid.ToString().ToLowerInvariant()}");
@@ -639,7 +644,7 @@ public sealed partial class StudioRoot : Control
             !ux4AValid || !ux4BValid || !ux4CValid || !ux4DValid || !ux4EValid || !ux4FValid || !ux4GValid ||
             !ux4HValid || !ux4IValid || !ux4JValid || !ux4KValid || !ux4LValid || !ux4MValid || !ux4NValid ||
             !ux4OValid || !ux4PValid || !ux4QValid || !ux4RValid || !ux4SValid || !ux4TValid || !ux4UValid ||
-            !ux5AValid ||
+            !ux5AValid || !ux5BValid ||
             !candidateApprovalsValid || !evidenceValid)
         {
             GD.PrintErr(
@@ -666,7 +671,7 @@ public sealed partial class StudioRoot : Control
                 $"ux2nave={ux2NavEValid} ux2navf={ux2NavFValid} ux2navg={ux2NavGValid} ux2navh={ux2NavHValid} " +
                 $"ux2navi={ux2NavIValid} ux2navj={ux2NavJValid} ux2navk={ux2NavKValid} ux2navl={ux2NavLValid} " +
                 $"ux2navm={ux2NavMValid} " +
-                $"ux4a={ux4AValid} ux4b={ux4BValid} ux4c={ux4CValid} ux4d={ux4DValid} ux4e={ux4EValid} ux4f={ux4FValid} ux4g={ux4GValid} ux4h={ux4HValid} ux4i={ux4IValid} ux4j={ux4JValid} ux4k={ux4KValid} ux4l={ux4LValid} ux4m={ux4MValid} ux4n={ux4NValid} ux4o={ux4OValid} ux4p={ux4PValid} ux4q={ux4QValid} ux4r={ux4RValid} ux4s={ux4SValid} ux4t={ux4TValid} ux4u={ux4UValid} ux5a={ux5AValid} " +
+                $"ux4a={ux4AValid} ux4b={ux4BValid} ux4c={ux4CValid} ux4d={ux4DValid} ux4e={ux4EValid} ux4f={ux4FValid} ux4g={ux4GValid} ux4h={ux4HValid} ux4i={ux4IValid} ux4j={ux4JValid} ux4k={ux4KValid} ux4l={ux4LValid} ux4m={ux4MValid} ux4n={ux4NValid} ux4o={ux4OValid} ux4p={ux4PValid} ux4q={ux4QValid} ux4r={ux4RValid} ux4s={ux4SValid} ux4t={ux4TValid} ux4u={ux4UValid} ux5a={ux5AValid} ux5b={ux5BValid} " +
                 $"candidate_approvals={candidateApprovalsValid} " +
                 $"evidence={evidenceValid}");
             GetTree().Quit(1);

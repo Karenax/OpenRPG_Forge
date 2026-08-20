@@ -7,6 +7,10 @@ SemVer ; les versions de schéma persistent séparément dans leurs documents.
 
 ### Changed
 
+- Forge Studio UX5 complet : workbench narratif en cinq workflows distincts pour Dialogue, Quête,
+  Localisation/typographie, Lore/références et Cinématiques/contrôles, chacun conservant sa commande,
+  son dry-run et son historique canoniques ; les 64 routes restantes portent la matrice à 420 routes
+  `functional` / 297 `planned` et clôturent UX5 à 69/69 ;
 - Forge Studio UX4-U : auteur de compagnon complet en cinq sections via la commande canonique du
   catalogue WorldFeatures, couvrant les 24 routes CMP, portant la matrice à 356 routes
   `functional` / 361 `planned` et clôturant UX4 à 140/140 ;

@@ -37,9 +37,9 @@ encore qualifiées. Aucun de ces états ne doit être confondu avec une release 
 - parcours produit automatisé : projet, zones, assets, contenu RPG, narration, validation, playtest,
   export et Assistant gouverné ;
 - matrice et procédure d'acceptation de bout en bout sous `docs/acceptance/`.
-- matrice d’accès humain Studio : 717 routes uniques, dont 356 `functional` avec preuve spécifique
-  pour UX0-A à UX1-AJ, les 98/98 routes UX2, les 140/140 routes UX4 et UX5-A, et 361 `planned` ; cette matrice ne
-  réutilise pas le statut `Tested` de l’ancien Creator.
+- matrice d’accès humain Studio : 717 routes uniques, dont 420 `functional` avec preuve spécifique
+  pour UX0-A à UX1-AJ, les 98/98 routes UX2, les 140/140 routes UX4 et les 69/69 routes UX5, et
+  297 `planned` ; cette matrice ne réutilise pas le statut `Tested` de l’ancien Creator.
 - premier train parallèle contrôlé livré : UX1-V et UX1-W ont été développés dans des worktrees et
   fichiers distincts, audités avant intégration, puis construits, testés, fumés et capturés
   séquentiellement ; six routes seulement ont été promues sur preuve réelle.
@@ -71,8 +71,13 @@ encore qualifiées. Aucun de ces états ne doit être confondu avec une release 
   captures Forward+ FHD inspectées. Le dernier lot Compagnons a franchi 66/66 tests ciblés et son
   portail incrémental en 132,09 s ; les preuves sont liées de `STUDIO_UX4_A.md` à
   `STUDIO_UX4_U.md`.
-- portail local courant réussi avec 2 033 tests .NET, 39 tests Python, des builds sans avertissement
-  et le graphe Roslyn courant déterministe à 10 292 nœuds et 75 342 relations sans diagnostic ; les
+- vague UX5 close à 69/69 : fondation directe UX5-A puis production complète des dialogues,
+  quêtes, catalogues localisés, typographie, lore et cinématiques dans cinq workflows aux historiques
+  séparés. Le dernier portail couvre 186/186 tests ciblés, le smoke global et cinq captures Forward+
+  FHD inspectées, avec jalon Dialogue également relu en QHD et 4K ; les preuves sont liées dans
+  `STUDIO_UX5_A.md` et `STUDIO_UX5_COMPLETE.md`.
+- portail local courant réussi avec 2 035 tests .NET, 39 tests Python, des builds sans avertissement
+  et le graphe Roslyn courant déterministe à 10 314 nœuds et 75 936 relations sans diagnostic ; les
   smokes Studio, Toolset, Runtime, Forward+, MCP, réseau et distribution ont également réussi.
 
 Ces nombres prouvent la présence et la non-régression des capacités. Ils ne remplacent pas une

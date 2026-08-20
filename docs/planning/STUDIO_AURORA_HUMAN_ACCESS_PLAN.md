@@ -1116,6 +1116,18 @@ et la capture Forward+ FHD. La matrice atteint 356 routes `functional` et 361 `p
 close à 140/140. Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX4_U.md` ; aucun
 acteur, dialogue, quête, script, inventaire, caméra ou transport réseau live n’est exécuté.
 
+### UX5-B à UX5-F — Production narrative complète
+
+Les 64 routes restant après UX5-A sont `functional` dans un workbench à cinq onglets. Dialogue
+utilise `SetDialogueHandler`, Quête `SetQuestHandler`, Localisation le catalogue projet puis
+l’historique workspace de typographie, Lore `SetLoreIndexHandler`, et Cinématiques
+`SetCinematicProfilesHandler`. Chaque agrégat conserve donc son dry-run, son approbation et son
+historique ; aucune atomicité inter-agrégats n’est simulée. Le portail couvre 186/186 tests ciblés,
+le smoke global et cinq captures Forward+ FHD, avec jalon QHD/4K. La matrice atteint 420 routes
+`functional` et 297 `planned` ; UX5 est close à 69/69. Preuves et limites sont liées dans
+`docs/acceptance/STUDIO_UX5_COMPLETE.md` ; aucun dialogue, son, caméra, acteur, script, modèle IA ou
+transport réseau live n’est exécuté par ces aperçus.
+
 ## Gates ergonomiques avant parité
 
 Une page ne passe pas `Parity` si l’un des points suivants manque :

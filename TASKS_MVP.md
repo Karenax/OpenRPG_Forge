@@ -271,6 +271,9 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
   honnêtes.
 - [x] Qualifier UX4-U sur `ORF-CMP-001` à `ORF-CMP-024` par 66/66 tests ciblés, smoke global,
   capture Forward+ FHD inspectée, matrice régénérée et portail transversal complet.
+- [x] Achever UX5 à 69/69 routes Histoire : fondation directe des dialogues, production avancée,
+  quêtes, localisation/typographie, lore/références et cinématiques/contrôles, avec cinq commandes ou
+  historiques explicites, 186/186 tests ciblés, smoke global et captures Forward+ FHD/QHD/4K.
 - [ ] Activer **Tester ici** sur snapshot isolé depuis la tranche Tester, sans élargir rétroactivement
   les claims runtime des aperçus UX2.
 - [ ] Continuer la migration de Contenu, Histoire, Gameplay, Tester, Publier, Projet et Assistant
