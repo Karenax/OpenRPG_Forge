@@ -1,8 +1,9 @@
 # Acceptation Studio — UX4-J Interactions de créature
 
-État local au 17 août 2026 : **fonctionnel et qualifié** pour `ORF-CRE-025`, `ORF-CRE-026`,
-`ORF-CRE-028` et `ORF-CRE-031`. La page **Créatures** expose une fiche spécialisée pour les
-factions, la perception, les conversations associées et les protections narratives.
+État local au 20 août 2026 : **fonctionnel et qualifié** pour `ORF-CRE-025`, `ORF-CRE-026`,
+`ORF-CRE-028`, `ORF-CRE-031` et `ORF-CRE-034`. La page **Créatures** expose une fiche spécialisée
+pour les factions, la perception, les conversations associées, leur handler serveur et les
+protections narratives.
 
 ## Preuves communes
 
@@ -21,6 +22,11 @@ factions, la perception, les conversations associées et les protections narrati
 - les cinq onglets, leurs collections et le footer transactionnel complet restent lisibles à
   1920×1080 sans UUID, JSON ni clipping bloquant. La provenance distingue explicitement la vraie
   Crypte du fallback canonique temporaire.
+- complément OnConversation réussi en **135,91 s**, résumé dans
+  `artifacts/verification/studio-increment/ux4-j-onconversation.summary.json` : build sans
+  avertissement, **9/9 tests ciblés**, smoke `on_conversation=true`, matrice 279/438 et capture
+  Forward+ FHD inspectée dans `ux4-j-onconversation-fhd.png`. Ce portail incrémental reste
+  explicitement `full_gate=false`.
 
 ### ORF-CRE-025 — Faction de créature
 
@@ -46,18 +52,27 @@ La protection couvre invulnérabilité, mort narrative, interruption de dialogue
 maître de jeu. La décision d'interruption est projetée en mémoire ; aucun dialogue, script, acteur,
 dégât ou transport réseau n'est réellement exécuté par Studio.
 
+### ORF-CRE-034 — OnConversation
+
+Le handler `creature.interaction_requested` est édité directement sans remplacer l'UUID, le schéma,
+la version ForgeScript, le nom d'événement ni l'autorité serveur du binding. L'aperçu vérifie la
+projection Application et RPG Kit, le dry-run canonique et la valeur persistée, mais n'exécute ni
+ForgeScript, ni dialogue, ni acteur moteur. Le smoke exige explicitement
+`on_conversation=true` après apply, undo/redo et save/reopen.
+
 ## Limites honnêtes
 
 - l'aperçu résout les contrats Domain/Application/RPG Kit en mémoire ; aucune perception moteur,
   conversation live, modification d'acteur, action maître de jeu, ForgeScript ou réplication réseau
   n'est exécutée ;
-- UX4-J remplace uniquement `CreatureInteractionCompositionProfile`. `OnConversation`, mouvement,
-  présentation, voix, règles, progression, loot, événements et tous les blueprints voisins sont
-  préservés ;
+- UX4-J remplace uniquement `CreatureInteractionCompositionProfile`. Dans `OnConversation`, seul le
+  handler est modifié ; identité, schéma, provenance, API, événement et autorité restent préservés.
+  Mouvement, présentation, voix, règles, progression, loot, événements et tous les blueprints
+  voisins sont inchangés ;
 - les captures emploient une copie temporaire de la vraie Crypte ou un fallback canonique isolé.
   Source, historique, état dirty, sélection, approbations, page et surface active sont restaurés ;
-- cette preuve ne qualifie pas `ORF-CRE-029`, `ORF-CRE-030` ni `ORF-CRE-033` à
-  `ORF-CRE-049`, qui restent `planned` ; `ORF-CRE-027` est qualifiée séparément par UX4-K.
+- les autres routes créature sont qualifiées dans UX4-D à UX4-P ; cette preuve ne qualifie pas les
+  routes item, marchand, compagnon, voix transverse ou assistant de boss restantes d'UX4.
 
 ## Reproduction
 

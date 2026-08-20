@@ -54,6 +54,7 @@ internal sealed partial class StudioCreatureInteractionOverlayUx4J : Control
     private readonly CheckBox _occlusion;
     private readonly LineEdit _memory;
     private readonly ItemList _bindingList;
+    private readonly LineEdit _onConversationHandler;
     private readonly OptionButton _dialogue;
     private readonly LineEdit _dialogueContext;
     private readonly LineEdit _priority;
@@ -81,6 +82,9 @@ internal sealed partial class StudioCreatureInteractionOverlayUx4J : Control
     internal bool ShowsFactions => _memberships.Count > 0 && _summary.Text.Contains("Factions", StringComparison.OrdinalIgnoreCase);
     internal bool ShowsPerception => _senses.Count > 0 && _summary.Text.Contains("Perception", StringComparison.OrdinalIgnoreCase);
     internal bool ShowsDialogue => _bindings.Count > 0 && _summary.Text.Contains("Dialogues", StringComparison.OrdinalIgnoreCase);
+    internal bool ShowsOnConversation =>
+        _onConversationHandler.Text == "OnConversationWitness" &&
+        _summary.Text.Contains("OnConversation=OnConversationWitness", StringComparison.Ordinal);
     internal bool ShowsProtection => _summary.Text.Contains("Protection", StringComparison.OrdinalIgnoreCase);
     internal bool ShowsHumanSurface
     {
@@ -90,6 +94,7 @@ internal sealed partial class StudioCreatureInteractionOverlayUx4J : Control
             return text.Contains("Faction de créature", StringComparison.OrdinalIgnoreCase) &&
                    text.Contains("Perception", StringComparison.OrdinalIgnoreCase) &&
                    text.Contains("Conversation associée", StringComparison.OrdinalIgnoreCase) &&
+                   text.Contains("OnConversation", StringComparison.Ordinal) &&
                    text.Contains("Plot, immortel et interruptibilité", StringComparison.OrdinalIgnoreCase) &&
                    !ContainsGuid(text) && !text.Contains(".json", StringComparison.OrdinalIgnoreCase);
         }
@@ -172,7 +177,12 @@ internal sealed partial class StudioCreatureInteractionOverlayUx4J : Control
         dialogue.AddChild(StudioStyle.Label("Conversation associée", 11, StudioStyle.Accent));
         dialogue.AddChild(StudioStyle.Label(
             "Liaisons vers des dialogues réels : contexte, priorité, interlocuteur, état et fallback.",
-            9, StudioStyle.Muted, wrap: true)); _bindingList = List(dialogue, 112);
+            9, StudioStyle.Muted, wrap: true));
+        _onConversationHandler = Field(dialogue, "Handler OnConversation serveur", "OnConversation");
+        dialogue.AddChild(StudioStyle.Label(
+            "Le handler ForgeScript est validé et persisté ; l’aperçu ne l’exécute pas.",
+            9, StudioStyle.Muted, wrap: true));
+        _bindingList = List(dialogue, 112);
         var dialogueGrid = new GridContainer { Columns = 3, SizeFlagsHorizontal = SizeFlags.ExpandFill };
         _dialogue = Choice(dialogueGrid, "Dialogue", []); _dialogueContext = Field(dialogueGrid, "Contexte", "greeting");
         _priority = Field(dialogueGrid, "Priorité", "1"); _interlocutor = Field(dialogueGrid, "Interlocuteur optionnel", "player.hero");
@@ -254,6 +264,7 @@ internal sealed partial class StudioCreatureInteractionOverlayUx4J : Control
         _updating = true; _required.ButtonPressed = draft.RequiredAtRuntime; _primaryFactionId = draft.Factions.PrimaryFactionId;
         _memberships.Clear(); _memberships.AddRange(draft.Factions.Memberships); _senses.Clear();
         _senses.AddRange(draft.Perception.Senses); _bindings.Clear(); _bindings.AddRange(draft.DialogueBindings);
+        _onConversationHandler.Text = draft.OnConversationHandler;
         _memory.Text = Format(draft.Perception.MemorySeconds); _invulnerable.ButtonPressed = draft.Protection.Invulnerable;
         _narrativeDeath.ButtonPressed = draft.Protection.UsesNarrativeDeath;
         _dialogueInterruptible.ButtonPressed = draft.Protection.DialogueInterruptible;
@@ -401,6 +412,7 @@ internal sealed partial class StudioCreatureInteractionOverlayUx4J : Control
             Factions = new(_draft.Factions.Id, _primaryFactionId, _memberships.ToArray()),
             Perception = new(_draft.Perception.Id, _senses.ToArray(), memory),
             DialogueBindings = _bindings.ToArray(),
+            OnConversationHandler = _onConversationHandler.Text.Trim(),
             Protection = new(_draft.Protection.Id, _invulnerable.ButtonPressed, _narrativeDeath.ButtonPressed,
                 _dialogueInterruptible.ButtonPressed, SplitIdentifiers(_permissions.Text)),
         };
@@ -446,6 +458,7 @@ internal sealed partial class StudioCreatureInteractionOverlayUx4J : Control
     {
         _updating = true; _memberships.Clear(); _senses.Clear(); _bindings.Clear(); _primaryFactionId = Guid.Empty;
         _membershipList.Clear(); _senseList.Clear(); _bindingList.Clear(); _faction.Clear(); _dialogue.Clear();
+        _onConversationHandler.Text = string.Empty;
         _primaryFaction.Text = "Faction principale : aucune"; _updating = false;
     }
     private void ConnectEvents()
@@ -455,6 +468,7 @@ internal sealed partial class StudioCreatureInteractionOverlayUx4J : Control
         _preview.Pressed += Preview; _apply.Pressed += Apply; _undo.Pressed += Undo; _redo.Pressed += Redo; _save.Pressed += Save;
         _required.Toggled += _ => InvalidatePreview(); _invulnerable.Toggled += _ => InvalidatePreview();
         _narrativeDeath.Toggled += _ => InvalidatePreview(); _dialogueInterruptible.Toggled += _ => InvalidatePreview();
+        _onConversationHandler.TextChanged += _ => InvalidatePreview();
     }
 
     internal bool PrepareEvidence(string mode)
@@ -474,6 +488,7 @@ internal sealed partial class StudioCreatureInteractionOverlayUx4J : Control
         _memory.Text = "18"; _bindingList.Select(0); SelectBinding(0);
         _priority.Text = Math.Min(1000, _bindings[0].Priority + 1).ToString(CultureInfo.InvariantCulture);
         if (!SaveBinding(false)) { _lastFailure = "binding"; Close(); return false; }
+        _onConversationHandler.Text = "OnConversationWitness";
         _permissions.Text = string.Join(", ", SplitIdentifiers(_permissions.Text).Append("creature.preview.inspect")
             .Distinct(StringComparer.Ordinal)); _required.ButtonPressed = true;
         var project = _session.Project!; var history = _session.History!; var revision = history.State.Revision;
@@ -483,15 +498,16 @@ internal sealed partial class StudioCreatureInteractionOverlayUx4J : Control
                          _session.IsDirty == dirty && EvidenceSourceUntouched;
         _summary.Text = $"[b]{(_usesRealProfile ? "CAPTURE RÉELLE CRYPTE" : "FALLBACK CANONIQUE TEMPORAIRE")}[/b] · copie isolée, source strictement inchangée.\n{_summary.Text}";
         _tabs.CurrentTab = mode.Contains("perception", StringComparison.OrdinalIgnoreCase) ? 1 :
-            mode.Contains("dialog", StringComparison.OrdinalIgnoreCase) ? 2 :
+            mode.Contains("dialog", StringComparison.OrdinalIgnoreCase) ||
+            mode.Contains("conversation", StringComparison.OrdinalIgnoreCase) ? 2 :
             mode.Contains("protect", StringComparison.OrdinalIgnoreCase) ? 3 :
             mode.Contains("preview", StringComparison.OrdinalIgnoreCase) ? 4 : 0;
         var ready = _previewDryRun && CanonicalPreviewReady && HasExplicitSelection && ShowsHumanSurface &&
-                    ShowsFactions && ShowsPerception && ShowsDialogue && ShowsProtection && UsesIsolatedEvidence &&
+                    ShowsFactions && ShowsPerception && ShowsDialogue && ShowsOnConversation && ShowsProtection && UsesIsolatedEvidence &&
                     EvidenceSourceUntouched && (_usesRealProfile ^ _usesFallback);
         if (!ready)
         {
-            _lastFailure = $"ready:preview={CanonicalPreviewReady}:selection={HasExplicitSelection}:human={ShowsHumanSurface}:factions={ShowsFactions}:perception={ShowsPerception}:dialogue={ShowsDialogue}:protection={ShowsProtection}:isolated={UsesIsolatedEvidence}:source={EvidenceSourceUntouched}:origin={_usesRealProfile ^ _usesFallback}";
+            _lastFailure = $"ready:preview={CanonicalPreviewReady}:selection={HasExplicitSelection}:human={ShowsHumanSurface}:factions={ShowsFactions}:perception={ShowsPerception}:dialogue={ShowsDialogue}:on_conversation={ShowsOnConversation}:protection={ShowsProtection}:isolated={UsesIsolatedEvidence}:source={EvidenceSourceUntouched}:origin={_usesRealProfile ^ _usesFallback}";
             GD.PrintErr($"OPENRPG_FORGE_STUDIO_UX4J_EVIDENCE_FAILED failure={_lastFailure}"); Close(); return false;
         }
         SetStatus("Preuve UX4-J isolée prête · aucune donnée source modifiée.", false); return true;

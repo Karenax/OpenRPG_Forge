@@ -7,6 +7,8 @@ SemVer ; les versions de schéma persistent séparément dans leurs documents.
 
 ### Changed
 
+- Forge Studio UX4-J complété : handler OnConversation serveur éditable avec projection typée,
+  dry-run, historique et persistance, portant la matrice à 279 routes `functional` / 438 `planned` ;
 - Forge Studio UX4-D complété : handler OnSpawn éditable et émission typée uniquement après
   validation complète, avec matrice portée à 278 routes `functional` / 439 `planned` ;
 - Forge Studio UX4-P : perception, attaque physique, capacité ciblée, récupération après blocage et

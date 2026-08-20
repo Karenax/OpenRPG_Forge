@@ -60,8 +60,8 @@ décision déterministe `attack`, mais ne lance ni boucle IA, ni déplacement, n
   Forest utilise une copie temporaire avec fallback canonique ; la Crypte réutilise son vrai profil ;
 - aucun stimulus, attaque, capacité, mouvement, script, acteur ou transport réseau n’est exécuté ;
   le lot qualifie l’authoring, la validation, la persistance et les projections pures ;
-- `ORF-CRE-033` OnSpawn est qualifié séparément par UX4-D ; `ORF-CRE-034` OnConversation reste une
-  autorité distincte et n'est pas promue par ce lot.
+- `ORF-CRE-033` OnSpawn est qualifié séparément par UX4-D et `ORF-CRE-034` OnConversation par UX4-J ;
+  ces bindings restent des autorités distinctes et ne sont pas promus par ce lot.
 
 ## Reproduction
 

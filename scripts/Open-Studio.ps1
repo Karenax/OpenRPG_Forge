@@ -97,7 +97,7 @@ param(
         'ux4-i', 'ux4-i-creature-loot', 'ux4-i-drops', 'ux4-i-pickpocket', 'ux4-i-corpse',
         'ux4-i-preview',
         'ux4-j', 'ux4-j-creature-interaction', 'ux4-j-factions', 'ux4-j-perception',
-        'ux4-j-dialogues', 'ux4-j-protection', 'ux4-j-preview',
+        'ux4-j-dialogues', 'ux4-j-onconversation', 'ux4-j-protection', 'ux4-j-preview',
         'ux4-k', 'ux4-k-creature-movement',
         'ux4-l', 'ux4-l-creature-voice',
         'ux4-m', 'ux4-m-creature-role-behavior', 'ux4-m-ambient', 'ux4-m-auto-level',

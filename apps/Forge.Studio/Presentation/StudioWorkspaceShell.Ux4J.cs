@@ -73,6 +73,7 @@ internal sealed partial class StudioWorkspaceShell
                       _creatureInteractionOverlayUx4J.ShowsFactions &&
                       _creatureInteractionOverlayUx4J.ShowsPerception &&
                       _creatureInteractionOverlayUx4J.ShowsDialogue &&
+                      _creatureInteractionOverlayUx4J.ShowsOnConversation &&
                       _creatureInteractionOverlayUx4J.ShowsProtection &&
                       _creatureInteractionOverlayUx4J.ShowsHumanSurface &&
                       _creatureInteractionOverlayUx4J.UsesIsolatedEvidence &&
@@ -106,7 +107,8 @@ internal sealed partial class StudioWorkspaceShell
         GD.Print($"OPENRPG_FORGE_STUDIO_UX4J_{(valid ? "PASS" : "FAILED")} " +
                  $"selection_explicit={result.ExplicitSelection.ToString().ToLowerInvariant()} " +
                  $"factions={result.Factions.ToString().ToLowerInvariant()} perception={result.Perception.ToString().ToLowerInvariant()} " +
-                 $"dialogue={result.Dialogue.ToString().ToLowerInvariant()} protection={result.Protection.ToString().ToLowerInvariant()} " +
+                 $"dialogue={result.Dialogue.ToString().ToLowerInvariant()} on_conversation={result.OnConversation.ToString().ToLowerInvariant()} " +
+                 $"protection={result.Protection.ToString().ToLowerInvariant()} " +
                  $"invalid_blocked={result.InvalidConfigurationBlocked.ToString().ToLowerInvariant()} " +
                  $"missing_faction_blocked={result.MissingFactionBlocked.ToString().ToLowerInvariant()} " +
                  $"missing_dialogue_blocked={result.MissingDialogueBlocked.ToString().ToLowerInvariant()} " +

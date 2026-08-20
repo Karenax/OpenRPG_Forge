@@ -27,6 +27,7 @@ internal sealed record StudioCreatureInteractionDraftUx4J(
     CreatureInteractionFactionProfile Factions,
     CreatureInteractionPerceptionProfile Perception,
     IReadOnlyList<CreatureInteractionDialogueBinding> DialogueBindings,
+    string OnConversationHandler,
     CreatureInteractionProtectionPolicy Protection);
 
 internal sealed record StudioCreatureInteractionDiagnosticUx4J(string Code, string Path, string HumanMessage);
@@ -79,6 +80,7 @@ internal sealed record StudioUx4JSmokeResult(
     bool Factions,
     bool Perception,
     bool Dialogue,
+    bool OnConversation,
     bool Protection,
     bool InvalidConfigurationBlocked,
     bool MissingFactionBlocked,

@@ -989,6 +989,12 @@ Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX4_J.md` ; `ORF-CRE
 UX4-K, tandis que `ORF-CRE-029`, `ORF-CRE-030` et `ORF-CRE-033` à `ORF-CRE-049` restaient
 `planned` à ce jalon.
 
+Complément du 20 août 2026 : `ORF-CRE-034` OnConversation est désormais `functional` dans la même
+surface. Seul le handler du binding serveur est édité ; son identité, son schéma, sa version API,
+son événement et son autorité restent préservés. Le portail incrémental passe les 9/9 tests et le
+smoke `on_conversation=true` en 135,91 s ; la capture Forward+ FHD est inspectée sans clipping.
+La matrice atteint 279 routes `functional` et 438 `planned` ; le résumé reste `full_gate=false`.
+
 ### UX4-K — Déplacement de créature
 
 `ORF-CRE-027` est `functional` : les six modes de déplacement et les valeurs de vitesse,
@@ -1053,7 +1059,7 @@ attaque physique, capacité ciblée, mouvement bloqué avec récupération et co
 Le portail passe 9/9 tests en 117,33 s, le smoke global et trois captures Forward+ FHD, dont le vrai
 profil Crypte. Les profils UX4-D à UX4-O et les autres blueprints sont préservés. La matrice atteint
 277 routes `functional` et 440 `planned`. Preuves et limites sont liées dans
-`docs/acceptance/STUDIO_UX4_P.md` ; OnSpawn est clos par UX4-D et OnConversation reste au lot suivant.
+`docs/acceptance/STUDIO_UX4_P.md` ; OnSpawn est clos par UX4-D et OnConversation par UX4-J.
 
 ## Gates ergonomiques avant parité
 

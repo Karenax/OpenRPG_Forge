@@ -60,7 +60,7 @@ internal sealed partial class StudioSessionController
         if (interaction is null) return null;
         return new(history.State.Revision, FingerprintProjectUx4J(project), blueprint.Id, blueprint, source, interaction,
             source.InteractionCompositionRequiredAtRuntime, interaction.Factions, interaction.Perception,
-            interaction.DialogueBindings, interaction.Protection);
+            interaction.DialogueBindings, interaction.OnConversation.Handler, interaction.Protection);
     }
 
     internal StudioCreatureInteractionPreviewUx4J PreviewCreatureInteractionUx4J(
@@ -117,9 +117,10 @@ internal sealed partial class StudioSessionController
         _approvedCreatureInteractionCandidateFingerprintUx4J =
             FingerprintCreatureInteractionCandidateUx4J(project, draft.BlueprintId, foundation);
         var runtimeSummary = $"Projection typée : {runtimeCreature.Factions?.Memberships.Count ?? 0} faction(s), " +
-                             $"{runtimeCreature.Perception?.Senses.Count ?? 0} sens, " +
-                             $"dialogue={(request?.Accepted == true ? "résolu" : "sans décision")}, " +
-                             $"protection={(script.Invulnerable ? "invulnérable" : "standard")}.";
+                              $"{runtimeCreature.Perception?.Senses.Count ?? 0} sens, " +
+                              $"dialogue={(request?.Accepted == true ? "résolu" : "sans décision")}, " +
+                              $"OnConversation={script.OnConversationHandler} validé côté serveur sans exécution, " +
+                              $"protection={(script.Invulnerable ? "invulnérable" : "standard")}.";
         return new(true, true, dryRun.Patch?.Summary ?? "Prévisualiser les interactions.",
             dryRun.Patch?.Summary ?? "Définir les interactions.",
             dryRun.Inverse?.Summary ?? "Restaurer les interactions précédentes.", [], FactionSummaryUx4J(draft),
@@ -221,7 +222,7 @@ internal sealed partial class StudioSessionController
 
     internal StudioUx4JSmokeResult RunUx4JContractSmoke()
     {
-        var empty = new StudioUx4JSmokeResult(false, false, false, false, false, false, false, false,
+        var empty = new StudioUx4JSmokeResult(false, false, false, false, false, false, false, false, false,
             false, false, false, false, false, false, false, false, false, false);
         var evidence = CreateUx4JEvidenceProject(); if (evidence is null) return empty;
         var root = Path.Combine(Path.GetTempPath(), "openrpg-forge-studio-ux4j-smoke-" + Guid.NewGuid().ToString("N"));
@@ -298,6 +299,9 @@ internal sealed partial class StudioSessionController
             var perception = canonical && appliedProfile!.Perception.Senses.Count >= 1 &&
                              appliedProfile.Perception.Senses.All(item => item.Range > 0);
             var dialogue = canonical && appliedProfile!.DialogueBindings.Count >= 1;
+            var onConversation = canonical && appliedProfile!.OnConversation.Handler == "OnConversationWitness" &&
+                                 finalPreview.RuntimeSummary.Contains("OnConversation=OnConversationWitness",
+                                     StringComparison.Ordinal);
             var protection = canonical && appliedProfile!.Protection.GameMasterPermissions.Count >= 1;
             var expectedFoundation = WithCreatureInteractionUx4J(beforeFoundation,
                 CreateCreatureInteractionCandidateUx4J(freshChanged), freshChanged.RequiredAtRuntime);
@@ -317,10 +321,10 @@ internal sealed partial class StudioSessionController
             var reopenedOk = saved && reopened.Open(root).Succeeded;
             var persistence = reopenedOk && ProjectJsonSerializer.Serialize(reopened.Project!) == afterApplyJson;
             reopened.Close();
-            var succeeded = explicitSelection && factions && perception && dialogue && protection && invalidBlocked &&
-                            missingFactionBlocked && missingDialogueBlocked && dryRun && runtimeProjection &&
-                            staleDraftBlocked && staleApprovalBlocked && canonical && undoRedo && persistence && neighbors;
-                return new(succeeded, explicitSelection, factions, perception, dialogue, protection, invalidBlocked,
+            var succeeded = explicitSelection && factions && perception && dialogue && onConversation && protection && invalidBlocked &&
+                             missingFactionBlocked && missingDialogueBlocked && dryRun && runtimeProjection &&
+                             staleDraftBlocked && staleApprovalBlocked && canonical && undoRedo && persistence && neighbors;
+                return new(succeeded, explicitSelection, factions, perception, dialogue, onConversation, protection, invalidBlocked,
                     missingFactionBlocked, missingDialogueBlocked, dryRun, runtimeProjection, staleDraftBlocked,
                     staleApprovalBlocked, canonical, undoRedo, persistence, neighbors, false);
             }
@@ -379,6 +383,7 @@ internal sealed partial class StudioSessionController
             Factions = new(draft.Factions.Id, draft.Factions.PrimaryFactionId, memberships),
             Perception = new(draft.Perception.Id, senses, 18),
             DialogueBindings = bindings,
+            OnConversationHandler = "OnConversationWitness",
             Protection = new(draft.Protection.Id, draft.Protection.Invulnerable,
                 draft.Protection.UsesNarrativeDeath, draft.Protection.DialogueInterruptible, permissions),
         };
@@ -388,7 +393,8 @@ internal sealed partial class StudioSessionController
         StudioCreatureInteractionDraftUx4J draft) => new(draft.SourceProfile.Id, draft.SourceProfile.SchemaVersion,
         draft.SourceProfile.Provenance, draft.SourceProfile.AssetId, draft.SourceProfile.PreviewTransform,
         draft.Factions, draft.Perception, draft.DialogueBindings, draft.Protection,
-        draft.SourceProfile.OnConversation, draft.SourceProfile.Overrides);
+        draft.SourceProfile.OnConversation with { Handler = draft.OnConversationHandler },
+        draft.SourceProfile.Overrides);
 
     private static CreatureFoundationProfile WithCreatureInteractionUx4J(CreatureFoundationProfile source,
         CreatureInteractionCompositionProfile profile, bool required) => new(source.Id, source.SchemaVersion,
@@ -507,6 +513,7 @@ internal sealed partial class StudioSessionController
         { writer.Write(item.Id.ToByteArray()); WriteUx4J(writer, item.Context); writer.Write(item.Priority);
           WriteUx4J(writer, item.DialogueId.ToString()); WriteUx4J(writer, item.InterlocutorId);
           WriteUx4J(writer, item.RequiredState); writer.Write(item.Fallback); }
+        WriteUx4J(writer, draft.OnConversationHandler);
         writer.Write(draft.Protection.Invulnerable); writer.Write(draft.Protection.UsesNarrativeDeath);
         writer.Write(draft.Protection.DialogueInterruptible); writer.Write(draft.Protection.GameMasterPermissions.Count);
         foreach (var permission in draft.Protection.GameMasterPermissions) WriteUx4J(writer, permission);

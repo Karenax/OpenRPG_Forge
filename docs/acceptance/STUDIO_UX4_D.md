@@ -68,7 +68,8 @@ un événement typé sur une copie en mémoire. Aucun acteur, nœud Godot, scrip
 - aucun script, moteur de combat, navigation, animation ou transport réseau n'est exécuté ;
 - les captures utilisent des copies temporaires. Source, historique, état dirty, sélection,
   approbations, page et surface active sont restaurés exactement ;
-- cette preuve seule ne qualifie pas OnConversation, les objets, marchands ou compagnons.
+- OnConversation est qualifié séparément par UX4-J ; cette preuve seule ne qualifie pas les objets,
+  marchands ou compagnons.
 
 ## Reproduction
 
