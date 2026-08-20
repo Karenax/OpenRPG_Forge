@@ -7,6 +7,9 @@ SemVer ; les versions de schéma persistent séparément dans leurs documents.
 
 ### Changed
 
+- Forge Studio UX4-Q : prises vocales localisées, sous-titres, phonèmes, fallback TTS et
+  consentement via `SetAreaExperienceProfileHandler`, avec matrice portée à 280 routes
+  `functional` / 437 `planned` ;
 - Forge Studio UX4-J complété : handler OnConversation serveur éditable avec projection typée,
   dry-run, historique et persistance, portant la matrice à 279 routes `functional` / 438 `planned` ;
 - Forge Studio UX4-D complété : handler OnSpawn éditable et émission typée uniquement après

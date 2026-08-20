@@ -33,7 +33,7 @@ internal sealed partial class StudioWorkspaceShell
         }
         SwitchPage("creatures", notify: false);
         CloseUx4DOverlay(); CloseUx4EOverlay(); CloseUx4FOverlay(); CloseUx4HOverlay(); CloseUx4IOverlay(); CloseUx4JOverlay(); CloseUx4KOverlay(); CloseUx4LOverlay(); CloseUx4MOverlay(); CloseUx4NOverlay(); CloseUx4OOverlay(); CloseUx4POverlay();
-        _creatureProgressionOverlayUx4G.Open();
+        CloseUx4QOverlay(); _creatureProgressionOverlayUx4G.Open();
         SetStatus("Progression ouverte · sélection explicite et aperçu canonique obligatoires");
     }
 

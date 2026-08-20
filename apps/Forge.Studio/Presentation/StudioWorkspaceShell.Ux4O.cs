@@ -36,7 +36,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx4HOverlay(); CloseUx4IOverlay(); CloseUx4JOverlay(); CloseUx4KOverlay();
         CloseUx4LOverlay(); CloseUx4MOverlay(); CloseUx4NOverlay();
         CloseUx4POverlay();
-        _creatureDamageOverlayUx4O.Open();
+        CloseUx4QOverlay(); _creatureDamageOverlayUx4O.Open();
         SetStatus("Dégâts, mort et validation ouverts · aperçu canonique obligatoire");
     }
 

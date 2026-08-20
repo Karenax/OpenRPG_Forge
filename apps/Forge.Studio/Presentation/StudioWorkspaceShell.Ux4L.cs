@@ -38,7 +38,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx4NOverlay();
         CloseUx4OOverlay();
         CloseUx4POverlay();
-        _creatureVoiceOverlayUx4L.Open();
+        CloseUx4QOverlay(); _creatureVoiceOverlayUx4L.Open();
         SetStatus("Voix de créature ouverte · sélection explicite et aperçu canonique obligatoires");
     }
 

@@ -33,7 +33,7 @@ internal sealed partial class StudioWorkspaceShell
         }
         SwitchPage("creatures", notify: false);
         CloseOtherCreatureOverlaysUx4P();
-        _creatureEventAiOverlayUx4P.Open();
+        CloseUx4QOverlay(); _creatureEventAiOverlayUx4P.Open();
         SetStatus("Événements et contrôleur IA ouverts · aperçu canonique obligatoire");
     }
 

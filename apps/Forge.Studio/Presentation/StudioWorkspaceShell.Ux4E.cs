@@ -44,7 +44,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx4NOverlay();
         CloseUx4OOverlay();
         CloseUx4POverlay();
-        _creaturePresentationOverlayUx4E.Open();
+        CloseUx4QOverlay(); _creaturePresentationOverlayUx4E.Open();
         SetStatus("Présentation créature ouverte · sélection explicite et aperçu canonique obligatoires");
     }
 

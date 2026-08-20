@@ -44,7 +44,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx4NOverlay();
         CloseUx4OOverlay();
         CloseUx4POverlay();
-        _creatureFoundationOverlayUx4D.Open();
+        CloseUx4QOverlay(); _creatureFoundationOverlayUx4D.Open();
         SetStatus("Assistant créature ouvert · sélection explicite et aperçu canonique obligatoires");
     }
 

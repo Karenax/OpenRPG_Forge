@@ -30,7 +30,7 @@ internal sealed partial class StudioWorkspaceShell
         { SetStatus("Ouvrez d’abord un module avant d’éditer ses créatures.", error: true); return; }
         SwitchPage("creatures", notify: false);
         CloseUx4DOverlay(); CloseUx4EOverlay(); CloseUx4FOverlay(); CloseUx4GOverlay(); CloseUx4IOverlay(); CloseUx4JOverlay(); CloseUx4KOverlay(); CloseUx4LOverlay(); CloseUx4MOverlay(); CloseUx4NOverlay(); CloseUx4OOverlay(); CloseUx4POverlay();
-        _creatureCapabilitiesOverlayUx4H.Open();
+        CloseUx4QOverlay(); _creatureCapabilitiesOverlayUx4H.Open();
         SetStatus("Capacités et inventaire ouverts · sélection explicite et aperçu canonique obligatoires");
     }
 

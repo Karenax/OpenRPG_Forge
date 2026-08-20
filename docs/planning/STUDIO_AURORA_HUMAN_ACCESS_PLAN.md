@@ -1061,6 +1061,18 @@ profil Crypte. Les profils UX4-D à UX4-O et les autres blueprints sont préserv
 277 routes `functional` et 440 `planned`. Preuves et limites sont liées dans
 `docs/acceptance/STUDIO_UX4_P.md` ; OnSpawn est clos par UX4-D et OnConversation par UX4-J.
 
+### UX4-Q — Voix localisée de créature
+
+`ORF-AUD-016` est `functional` via `AreaExperienceProfile.Voices`,
+`SetAreaExperienceProfileHandler` et `AreaExperienceRuntimeService.ResolveVoice`. La surface édite
+les prises localisées complètes, sous-titres, phonèmes, gouvernance média, fallback TTS et
+consentement explicite, sans charger de média ni exécuter de synthèse vocale. Le portail passe
+14/14 tests en 116,00 s, le smoke global et la capture Forward+ FHD. Les profils UX4-D à UX4-P,
+les autres politiques de zone et les racines projet sont préservés. La matrice atteint 280 routes
+`functional` et 437 `planned`. Preuves et limites sont liées dans
+`docs/acceptance/STUDIO_UX4_Q.md` ; l’assistant de boss, les objets, marchands et compagnons restent
+aux lots UX4 suivants.
+
 ## Gates ergonomiques avant parité
 
 Une page ne passe pas `Parity` si l’un des points suivants manque :
