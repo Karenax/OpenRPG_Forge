@@ -23,6 +23,7 @@ internal sealed partial class StudioWorkspaceShell
         SwitchPage("creatures"); CloseUx4DOverlay(); CloseUx4EOverlay(); CloseUx4FOverlay(); CloseUx4GOverlay();
         CloseUx4HOverlay(); CloseUx4IOverlay(); CloseUx4JOverlay(); CloseUx4KOverlay(); CloseUx4LOverlay();
         CloseUx4MOverlay(); CloseUx4NOverlay(); CloseUx4OOverlay(); CloseUx4POverlay();
+        CloseUx4ROverlay();
         _areaVoiceOverlayUx4Q.Open(); SetStatus("Voix localisées · sélection explicite requise.", false);
     }
     private void RefreshAfterUx4QMutation() { RefreshAfterUx1AMutation(); UpdateUx4QActionState(); }

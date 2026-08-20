@@ -37,7 +37,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx4LOverlay(); CloseUx4MOverlay();
         CloseUx4OOverlay();
         CloseUx4POverlay();
-        CloseUx4QOverlay(); _creatureEventsOverlayUx4N.Open();
+        CloseUx4QOverlay(); CloseUx4ROverlay(); _creatureEventsOverlayUx4N.Open();
         SetStatus("Événements avancés ouverts · aperçu canonique obligatoire");
     }
 

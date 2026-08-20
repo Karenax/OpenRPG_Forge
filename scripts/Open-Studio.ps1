@@ -105,6 +105,7 @@ param(
         'ux4-o', 'ux4-o-creature-damage-validation', 'ux4-o-validation',
         'ux4-p', 'ux4-p-creature-event-ai', 'ux4-p-controller', 'ux4-p-qualification',
         'ux4-q', 'ux4-q-area-voice', 'ux4-q-localized-voice',
+        'ux4-r', 'ux4-r-assisted-boss', 'ux4-r-boss-creation',
         'ux5-a', 'ux5-a-dialogue-foundation')]
     [string]$Evidence,
     [string]$Resolution,

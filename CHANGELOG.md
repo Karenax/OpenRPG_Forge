@@ -7,6 +7,9 @@ SemVer ; les versions de schéma persistent séparément dans leurs documents.
 
 ### Changed
 
+- Forge Studio UX4-R : création assistée de boss hors ligne avec approbation explicite, simulation
+  déterministe et lot atomique annulable, portant la matrice à 281 routes `functional` / 436
+  `planned` ;
 - Forge Studio UX4-Q : prises vocales localisées, sous-titres, phonèmes, fallback TTS et
   consentement via `SetAreaExperienceProfileHandler`, avec matrice portée à 280 routes
   `functional` / 437 `planned` ;

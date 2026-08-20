@@ -44,7 +44,7 @@ internal sealed partial class StudioWorkspaceShell
         CloseUx4NOverlay();
         CloseUx4OOverlay();
         CloseUx4POverlay();
-        CloseUx4QOverlay(); _creatureRulesOverlayUx4F.Open();
+        CloseUx4QOverlay(); CloseUx4ROverlay(); _creatureRulesOverlayUx4F.Open();
         SetStatus("Animation et règles ouvertes · sélection explicite et aperçu canonique obligatoires");
     }
 

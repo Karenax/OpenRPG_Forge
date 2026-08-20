@@ -1073,6 +1073,17 @@ les autres politiques de zone et les racines projet sont préservés. La matrice
 `docs/acceptance/STUDIO_UX4_Q.md` ; l’assistant de boss, les objets, marchands et compagnons restent
 aux lots UX4 suivants.
 
+### UX4-R — Création assistée de boss
+
+`ORF-AI-019` est `functional` via `AssistedBossCreationService`, `ApplyAssistedBossHandler` et une
+approbation auteur liée à la révision et aux empreintes du projet/brouillon. La surface compose le
+lot complet blueprint, combat, rencontre, phases, dialogue, récompenses et document runtime, puis
+simule 32 exécutions déterministes sans provider réseau ni exécution live. Le portail passe 6/6
+tests en 121,46 s, deux smokes globaux avec sortie native 0 et la capture Forward+ FHD. La matrice
+atteint 281 routes `functional` et 436 `planned`. Preuves et limites sont liées dans
+`docs/acceptance/STUDIO_UX4_R.md` ; les objets, marchands et compagnons restent aux lots UX4
+suivants.
+
 ## Gates ergonomiques avant parité
 
 Une page ne passe pas `Parity` si l’un des points suivants manque :
