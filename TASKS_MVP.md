@@ -1,6 +1,6 @@
 # File active — consolidation OpenRPG Forge
 
-Dernière mise à jour : 15 août 2026.
+Dernière mise à jour : 21 août 2026.
 
 Les 717 fonctions Aurora et les 187 lots sont clos. Cette file décrit le résultat de la consolidation
 et sépare les tâches réalisables dans le dépôt des décisions externes de release.
@@ -126,6 +126,28 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
 - [x] Régénérer le graphe Roslyn et obtenir zéro diagnostic sur le contrôle complet.
 - [x] Rejouer les tests ciblés, les preuves visuelles Forward+ et le portail intégré.
 - [x] Publier la phase sur `origin/main` avec preuve de worktree propre et divergence nulle.
+
+## C12 — Ruleset RPG systémique et Crypte des Cendres
+
+- [x] Établir un ruleset clean-room canonique couvrant action directe, groupe, exploration libre,
+  progression, magie systémique, furtivité, quêtes, factions, IA, persistance et monde comme arme.
+- [x] Ajouter un manifeste versionné propre à la Crypte avec cinq interactions environnementales :
+  huile, eau, brasero, pilier et pointes.
+- [x] Ajouter les commandes isolées au module : poussée, feu, givre, force et concentration tactique.
+- [x] Brancher les dégâts environnementaux sur le chemin de combat autoritaire existant afin de
+  conserver phases de boss, événements, butin, progression et transitions de quête.
+- [x] Préserver le parcours historique de la Crypte et maintenir le combat direct comme solution.
+- [x] Ajouter la documentation du module et un test de contrat statique ; 8 tests Python passent.
+- [ ] Exécuter `scripts/Verify.ps1`, la compilation complète .NET/Godot et le contrôle du graphe sur
+  l’environnement Windows canonique.
+- [ ] Rejouer la Crypte en Forward+ et vérifier visuellement les cinq dispositifs, les contrôles,
+  la concentration tactique, les collisions et les états de quête.
+- [ ] Généraliser masse, stabilité, surfaces, substances, supports et causalité dans Domain/Application
+  au lieu de conserver ces comportements dans un directeur spécifique au module.
+- [ ] Exposer les propriétés systémiques dans le Creator sans JSON, avec validation, dry-run,
+  diff sémantique, undo/redo et outils de débogage.
+- [ ] Ajouter compagnons, témoins, réputation multidimensionnelle et solutions systémiques aux futurs
+  modules après qualification de la première tranche verticale.
 
 ## Décisions externes avant release publique
 
