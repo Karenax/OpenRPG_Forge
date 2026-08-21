@@ -1,6 +1,6 @@
 # Contexte canonique — OpenRPG Forge
 
-Dernière mise à jour : 15 août 2026.
+Dernière mise à jour : 21 août 2026.
 
 Ce document est l’unique contexte narratif courant du projet. Les états d’exécution sont dans
 `STATUS.md` et `TASKS_MVP.md`; les exigences détaillées et leurs preuves restent dans le tracker et
@@ -124,6 +124,25 @@ neutre lorsqu'une LUT déclarée manque.
 En combat, la lisibilité prime sur l'ornement : l'état réel du joueur, de la cible, des ressources et
 des capacités est visible sans dépendre uniquement de la couleur. Les animations et effets restent
 brefs, bornés par des pools stables et entièrement supprimables par la politique de mouvements réduits.
+
+## Direction gameplay systémique
+
+Le ruleset RPG canonique est `docs/design/OPENRPG_FORGE_RULESET_FR.md`. Il définit un RPG d’action
+systémique en temps réel avec concentration tactique, un groupe pouvant atteindre quatre personnages,
+une progression ouverte mais bornée, des quêtes par états et un monde dont les objets, surfaces,
+structures et mécanismes peuvent devenir des outils ou des armes. Les actions physiques et les
+conséquences narratives doivent partager une même chaîne de causalité.
+
+La Crypte des Cendres est la première tranche verticale jouable de cette direction. Son manifeste
+`apps/Forge.Runtime/content/crypt-of-ashes/systemic-gameplay.json` ajoute cinq démonstrateurs isolés au
+module : huile inflammable, eau gelable, brasero suspendu, pilier fracturé et fosse de pointes. Les
+dégâts environnementaux réutilisent l’état de combat autoritaire existant afin de préserver phases de
+boss, événements, butin, progression et transitions de quête.
+
+Cette tranche prouve un premier parcours de « monde comme arme » ; elle ne vaut pas implémentation
+générique de toutes les propriétés, substances, structures, compagnons et conséquences décrites par
+le ruleset. La généralisation dans le domaine, le Creator et les formats de module reste un chantier
+séparé qui exige compilation, tests runtime et playtests reproductibles.
 
 ## Architecture à préserver
 
