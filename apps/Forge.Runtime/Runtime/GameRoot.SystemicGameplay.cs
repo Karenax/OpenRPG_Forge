@@ -129,6 +129,7 @@ public partial class GameRoot
         var healthBefore = target.Health;
         for (var strike = 0; strike < strikes && !target.IsDead; strike++)
         {
+            PrepareSystemicStrike();
             DamageHostile(hostile);
         }
 
@@ -158,6 +159,7 @@ public partial class GameRoot
         // Reusing it preserves attribution and avoids a second environmental health model.
         for (var strike = 0; strike < 64 && !target.IsDead; strike++)
         {
+            PrepareSystemicStrike();
             DamageHostile(hostile);
         }
 
@@ -173,6 +175,26 @@ public partial class GameRoot
             $"{ResolveSystemicHostileName(hostile)} est vaincu par {cause}.",
             "environmental-defeat");
         return true;
+    }
+
+    private void PrepareSystemicStrike()
+    {
+        if (_playerCombatant is null)
+        {
+            return;
+        }
+
+        var ability = _playerCombatant.Profile.Abilities.FirstOrDefault()
+            ?? throw new InvalidOperationException("The player combat profile has no attack ability.");
+        var requiredResource = Math.Min(
+            _playerCombatant.Profile.Stats.MaximumResource,
+            Math.Max(_playerCombatant.Resource, ability.ResourceCost));
+
+        // Environmental chains are resolved through the authoritative attack path so that
+        // phase changes, creature events, loot, progression and quest transitions stay intact.
+        // Clearing the active cooldown between strikes models one environmental impact with
+        // several damage pulses; the last pulse still leaves the normal cooldown active.
+        _playerCombatant.Restore(_playerCombatant.Health, requiredResource);
     }
 
     internal void PresentSystemicMessage(string message, string eventId)

@@ -256,11 +256,12 @@ public partial class CryptSystemicGameplay : Node3D
     {
         var player = _root!.SystemicPlayer!;
         var oil = Find("oil");
-        if (!_oilSpilled && player.GlobalPosition.DistanceTo(oil.Position) <= KickRange)
+        var oilNode = _nodes[oil.Id];
+        if (!_oilSpilled && player.GlobalPosition.DistanceTo(oilNode.GlobalPosition) <= KickRange)
         {
             _oilSpilled = true;
-            oil.Position += new Vector3(.55f, -.43f, -.25f);
-            oil.Rotation = new Vector3(0, 0, 1.15f);
+            oilNode.Position += new Vector3(.55f, -.43f, -.25f);
+            oilNode.Rotation = new Vector3(0, 0, 1.15f);
             _meshes[oil.Id].Scale = new Vector3(1.8f, .16f, 1.8f);
             _root.PresentSystemicMessage(
                 "L'urne se brise : l'huile funéraire se répand sur les dalles.",
@@ -303,8 +304,9 @@ public partial class CryptSystemicGameplay : Node3D
     {
         if (_waterFrozen) return;
         var water = Find("water");
+        var waterNode = _nodes[water.Id];
         var player = _root!.SystemicPlayer!;
-        if (player.GlobalPosition.DistanceTo(water.Position) > ForceRange)
+        if (player.GlobalPosition.DistanceTo(waterNode.GlobalPosition) > ForceRange)
         {
             _root.PresentSystemicMessage("La rigole est hors de portée du givre.", "frost-out-of-range");
             return;
@@ -322,12 +324,14 @@ public partial class CryptSystemicGameplay : Node3D
         var player = _root!.SystemicPlayer!;
         var brazier = Find("brazier");
         var pillar = Find("pillar");
+        var brazierNode = _nodes[brazier.Id];
+        var pillarNode = _nodes[pillar.Id];
 
-        if (!_brazierReleased && player.GlobalPosition.DistanceTo(brazier.Position) <= ForceRange)
+        if (!_brazierReleased && player.GlobalPosition.DistanceTo(brazierNode.GlobalPosition) <= ForceRange)
         {
             _brazierReleased = true;
-            brazier.Position = new Vector3(brazier.Position.X, .55f, brazier.Position.Z);
-            foreach (var hostile in _root.FindLiveSystemicHostiles(brazier.Position, brazier.Radius))
+            brazierNode.Position = new Vector3(brazierNode.Position.X, .55f, brazierNode.Position.Z);
+            foreach (var hostile in _root.FindLiveSystemicHostiles(brazierNode.GlobalPosition, brazier.Radius))
             {
                 _root.DamageSystemicHostile(hostile, brazier.DamageStrikes, "la chute du brasero");
             }
@@ -337,12 +341,12 @@ public partial class CryptSystemicGameplay : Node3D
             return;
         }
 
-        if (!_pillarCollapsed && player.GlobalPosition.DistanceTo(pillar.Position) <= ForceRange)
+        if (!_pillarCollapsed && player.GlobalPosition.DistanceTo(pillarNode.GlobalPosition) <= ForceRange)
         {
             _pillarCollapsed = true;
-            pillar.Position += new Vector3(1.4f, -1.05f, .3f);
-            pillar.Rotation = new Vector3(0, 0, 1.35f);
-            foreach (var hostile in _root.FindLiveSystemicHostiles(pillar.Position, pillar.Radius))
+            pillarNode.Position += new Vector3(1.4f, -1.05f, .3f);
+            pillarNode.Rotation = new Vector3(0, 0, 1.35f);
+            foreach (var hostile in _root.FindLiveSystemicHostiles(pillarNode.GlobalPosition, pillar.Radius))
             {
                 _root.DamageSystemicHostile(hostile, pillar.DamageStrikes, "l'effondrement du pilier");
             }
@@ -371,7 +375,7 @@ public partial class CryptSystemicGameplay : Node3D
         if (_oilTickElapsed < .65) return;
         _oilTickElapsed = 0;
         var oil = Find("oil");
-        foreach (var hostile in _root!.FindLiveSystemicHostiles(oil.Position, oil.Radius))
+        foreach (var hostile in _root!.FindLiveSystemicHostiles(_nodes[oil.Id].GlobalPosition, oil.Radius))
         {
             _root.DamageSystemicHostile(hostile, Math.Max(1, oil.DamageStrikes), "l'huile enflammée");
         }
@@ -383,7 +387,7 @@ public partial class CryptSystemicGameplay : Node3D
         if (_spikeTickElapsed < .12) return;
         _spikeTickElapsed = 0;
         var spikes = Find("spikes");
-        foreach (var hostile in _root!.FindLiveSystemicHostiles(spikes.Position, spikes.Radius))
+        foreach (var hostile in _root!.FindLiveSystemicHostiles(_nodes[spikes.Id].GlobalPosition, spikes.Radius))
         {
             _root.DefeatSystemicHostile(hostile, "une projection dans les pointes de cendre");
         }
