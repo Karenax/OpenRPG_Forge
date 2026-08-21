@@ -1,6 +1,10 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource path="res://Runtime/GameRoot.cs" type="Script" id="1_game_root"]
+[ext_resource path="res://Runtime/CryptSystemicGameplay.cs" type="Script" id="2_systemic_gameplay"]
 
 [node name="GameRoot" type="Node3D"]
 script = ExtResource("1_game_root")
+
+[node name="CryptSystemicGameplay" type="Node3D" parent="."]
+script = ExtResource("2_systemic_gameplay")
