@@ -1,6 +1,6 @@
 # État vérifié — OpenRPG Forge
 
-Dernière mise à jour : 15 août 2026.
+Dernière mise à jour : 21 août 2026.
 
 ## Verdict
 
@@ -38,6 +38,22 @@ ne doit pas être confondue avec une release publique signée.
 
 Ces nombres prouvent la présence et la non-régression des capacités. Ils ne remplacent pas une
 qualification humaine de release publique.
+
+## Gameplay systémique — preuve actuelle
+
+- ruleset clean-room canonique ajouté dans `docs/design/OPENRPG_FORGE_RULESET_FR.md` ;
+- manifeste versionné propre à la Crypte dans
+  `apps/Forge.Runtime/content/crypt-of-ashes/systemic-gameplay.json` ;
+- cinq interactions environnementales : huile et feu, eau et givre, brasero suspendu, pilier
+  fracturé et fosse de pointes ;
+- contrôles isolés au module : `X` poussée, `F` feu, `G` givre, `B` force et `Y` concentration ;
+- dégâts indirects résolus par le chemin de combat autoritaire existant afin de conserver phases,
+  événements, butin, progression et transitions de quête ;
+- test de contrat Python dédié : 8 tests exécutés avec succès sur la branche d’intégration.
+
+Cette preuve constitue une première tranche verticale, pas une généralisation de tout le ruleset.
+La compilation complète .NET/Godot, le portail Windows et le playtest visuel des cinq dispositifs
+restent à rejouer avant de présenter cette tranche comme qualifiée sur les plateformes supportées.
 
 ## Consolidation réalisée
 
