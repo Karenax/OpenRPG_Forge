@@ -1,6 +1,6 @@
 # File active — consolidation OpenRPG Forge
 
-Dernière mise à jour : 21 août 2026.
+Dernière mise à jour : 22 août 2026.
 
 Les 717 fonctions Aurora et les 187 lots sont clos. Cette file décrit le résultat de la consolidation
 et sépare les tâches réalisables dans le dépôt des décisions externes de release.
@@ -136,12 +136,24 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
 - [x] Ajouter les commandes isolées au module : poussée, feu, givre, force et concentration tactique.
 - [x] Brancher les dégâts environnementaux sur le chemin de combat autoritaire existant afin de
   conserver phases de boss, événements, butin, progression et transitions de quête.
-- [x] Préserver le parcours historique de la Crypte et maintenir le combat direct comme solution.
-- [x] Ajouter la documentation du module et un test de contrat statique ; 8 tests Python passent.
+- [x] Préserver les identifiants du parcours `Elyra → Clé → porte → Sentinelle → Gardien → sortie`.
+- [x] Remplacer la zone canonique 20 × 28 m par une zone 48 × 76 m avec sept espaces de donjon,
+  reliquaires latéraux, murs internes et vraie frontière physique autour de la porte scellée.
+- [x] Recomposer la couche KayKit Dungeon Remastered CC0 selon la nouvelle géométrie : sols, murs,
+  passages, colonnes, escaliers, coffres, tonneaux, torches et éclairage chaud/froid.
+- [x] Repositionner huile, eau, brasero, pilier et pointes dans les salles où leurs interactions sont
+  crédibles ; masquer les prompts au-delà de 7,5 m.
+- [x] Ajouter `docs/design/CRYPT_OF_ASHES_DUNGEON_REBUILD.md` et un contrat statique spécifique
+  `tests/test_crypt_dungeon_rebuild.py`.
+- [ ] Exécuter les deux suites Python sur un checkout de la branche et enregistrer leur résultat.
 - [ ] Exécuter `scripts/Verify.ps1`, la compilation complète .NET/Godot et le contrôle du graphe sur
   l’environnement Windows canonique.
-- [ ] Rejouer la Crypte en Forward+ et vérifier visuellement les cinq dispositifs, les contrôles,
-  la concentration tactique, les collisions et les états de quête.
+- [ ] Rejouer toute la Crypte en Forward+ : spawn, Elyra, clé, porte, Sentinelle, Ossuaire, Nef,
+  Gardien, sortie, sauvegarde/reprise et cinq dispositifs systémiques.
+- [ ] Vérifier navigation des profils, collisions, absence de blocage, caméra, densité du kit CC0,
+  budget lumières et performances en 1920×1080 et 2560×1440.
+- [ ] Remplacer ensuite les colliders de sécurité du décorateur par des volumes entièrement éditables
+  dans le Creator afin que toute la structure reste data-driven.
 - [ ] Généraliser masse, stabilité, surfaces, substances, supports et causalité dans Domain/Application
   au lieu de conserver ces comportements dans un directeur spécifique au module.
 - [ ] Exposer les propriétés systémiques dans le Creator sans JSON, avec validation, dry-run,
