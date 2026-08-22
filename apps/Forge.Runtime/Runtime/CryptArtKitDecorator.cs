@@ -1,8 +1,16 @@
+using System;
+using System.IO;
 using Godot;
 
 namespace Forge.Runtime;
 
-internal sealed record CryptArtKitResult(Node3D Root, int ModelInstances, int FloorTiles, int WallSegments, int Props);
+internal sealed record CryptArtKitResult(
+    Node3D Root,
+    int ModelInstances,
+    int FloorTiles,
+    int WallSegments,
+    int Props,
+    int Zones);
 
 internal static class CryptArtKitDecorator
 {
@@ -11,68 +19,162 @@ internal static class CryptArtKitDecorator
     internal static CryptArtKitResult Build()
     {
         var root = new Node3D { Name = "CryptKayKitArtPass" };
-        var instances = 0;
         var floors = 0;
         var walls = 0;
         var props = 0;
 
-        for (var x = -8; x <= 8; x += 4)
-        {
-            for (var z = -12; z <= 12; z += 4)
-            {
-                Add(root, "floor_tile_large.gltf.glb", new Vector3(x, .015f, z));
-                floors++;
-            }
-        }
+        // Seven spatial beats instead of the historical single rectangular room.
+        FillFloor(root, -8, 8, 29, 37, ref floors);       // Seuil des Braises
+        FillFloor(root, -12, 12, 21, 29, ref floors);     // Sanctuaire d'Elyra
+        FillFloor(root, -20, 20, 7, 19, ref floors);      // Catacombes
+        FillFloor(root, -12, 12, -3, 7, ref floors);      // Salle de la Sentinelle
+        FillFloor(root, -16, 16, -15, -3, ref floors);    // Ossuaire inondé
+        FillFloor(root, -20, 20, -26, -15, ref floors);   // Grande Nef
+        FillFloor(root, -16, 16, -37, -26, ref floors);   // Sanctuaire du Gardien
 
-        for (var z = -12; z <= 12; z += 4)
-        {
-            Add(root, "wall.gltf.glb", new Vector3(-9, 0, z), 90);
-            Add(root, "wall.gltf.glb", new Vector3(9, 0, z), -90);
-            walls += 2;
-        }
+        // Outer shell. Gameplay collision stays data-driven in the area snapshot;
+        // these CC0 pieces are the visible architectural skin.
+        WallLineZ(root, -21, -36, 36, 90, ref walls);
+        WallLineZ(root, 21, -36, 36, -90, ref walls);
+        WallLineX(root, 38, -20, 20, 0, 0, false, ref walls);
+        WallLineX(root, -38, -20, 20, 180, 0, false, ref walls);
 
-        for (var x = -8; x <= 8; x += 4)
-        {
-            Add(root, "wall.gltf.glb", new Vector3(x, 0, -14), 0);
-            walls++;
-            if (x != 0)
-            {
-                Add(root, "wall.gltf.glb", new Vector3(x, 0, 14), 180);
-                walls++;
-            }
-        }
+        // Architectural thresholds. Each keeps a readable central passage.
+        WallLineX(root, 20, -20, 20, 0, 4, true, ref walls);
+        WallLineX(root, 6, -20, 20, 0, 2, true, ref walls);
+        WallLineX(root, -15, -20, 20, 0, 4, true, ref walls);
+        WallLineX(root, -26, -20, 20, 0, 4, true, ref walls);
 
-        Add(root, "wall_doorway.glb", new Vector3(0, 0, 14), 180);
-        walls++;
+        // Catacomb ribs create lateral exploration without obscuring the main axis.
+        WallLineZ(root, -8, 11, 19, 90, ref walls);
+        WallLineZ(root, 8, 11, 19, -90, ref walls);
+        WallLineX(root, 11, -20, -10, 0, 0, false, ref walls);
+        WallLineX(root, 11, 10, 20, 0, 0, false, ref walls);
+
+        // Column rhythm: landmarks, cover and systemic silhouettes.
         foreach (var position in new[]
                  {
-                     new Vector3(-7.5f, 0, 9), new Vector3(7.5f, 0, 9),
-                     new Vector3(-7.5f, 0, 1), new Vector3(7.5f, 0, 1),
-                     new Vector3(-7.5f, 0, -8), new Vector3(7.5f, 0, -8),
+                     new Vector3(-6, 0, 25), new Vector3(6, 0, 25),
+                     new Vector3(-12, 0, 15), new Vector3(12, 0, 15),
+                     new Vector3(-7, 0, -8), new Vector3(7, 0, -8),
+                     new Vector3(-14, 0, -20), new Vector3(-7, 0, -20),
+                     new Vector3(7, 0, -20), new Vector3(14, 0, -20),
+                     new Vector3(-7, 0, -29), new Vector3(7, 0, -29),
                  })
         {
             Add(root, "column.gltf.glb", position);
             props++;
         }
 
-        Add(root, "stairs.gltf.glb", new Vector3(0, 0, 11), 180);
-        Add(root, "chest.glb", new Vector3(-5.8f, 0, -10.5f), 25);
-        Add(root, "barrel_large_decorated.gltf.glb", new Vector3(6.2f, 0, -10.5f), -20);
-        props += 3;
-        foreach (var position in new[]
-                 {
-                     new Vector3(-8.65f, 1.5f, 8), new Vector3(8.65f, 1.5f, 8),
-                     new Vector3(-8.65f, 1.5f, 1), new Vector3(8.65f, 1.5f, 1),
-                     new Vector3(-8.65f, 1.5f, -7), new Vector3(8.65f, 1.5f, -7),
-                 })
+        // Entrance elevation and reliquaries.
+        Add(root, "stairs.gltf.glb", new Vector3(0, 0, 35), 180);
+        Add(root, "stairs.gltf.glb", new Vector3(0, 0, -27));
+        Add(root, "chest.glb", new Vector3(14, 0, 15), -35);
+        Add(root, "chest.glb", new Vector3(-14, 0, 15), 35);
+        Add(root, "barrel_large_decorated.gltf.glb", new Vector3(7, 0, -10), -20);
+        Add(root, "barrel_large_decorated.gltf.glb", new Vector3(-13, 0, -20), 25);
+        Add(root, "barrel_large_decorated.gltf.glb", new Vector3(13, 0, -20), -25);
+        props += 7;
+
+        // Warm pools of light guide the critical path while leaving side lanes darker.
+        var torches = new[]
         {
-            Add(root, "torch_lit.gltf.glb", position, position.X < 0 ? 90 : -90);
+            new Vector3(-7.5f, 1.5f, 33), new Vector3(7.5f, 1.5f, 33),
+            new Vector3(-11.5f, 1.5f, 24), new Vector3(11.5f, 1.5f, 24),
+            new Vector3(-18.5f, 1.5f, 15), new Vector3(18.5f, 1.5f, 15),
+            new Vector3(-10.5f, 1.5f, 1), new Vector3(10.5f, 1.5f, 1),
+            new Vector3(-15.5f, 1.5f, -9), new Vector3(15.5f, 1.5f, -9),
+            new Vector3(-18.5f, 1.5f, -20), new Vector3(18.5f, 1.5f, -20),
+            new Vector3(-14.5f, 1.5f, -31), new Vector3(14.5f, 1.5f, -31),
+        };
+        for (var index = 0; index < torches.Length; index++)
+        {
+            var position = torches[index];
+            var yaw = position.X < 0 ? 90 : -90;
+            Add(root, "torch_lit.gltf.glb", position, yaw);
             props++;
+
+            // Only half of the decorative torches allocate dynamic lights.
+            if ((index & 1) != 0) continue;
+            root.AddChild(new OmniLight3D
+            {
+                Name = $"CryptTorchLight_{index:00}",
+                Position = position + new Vector3(0, .45f, 0),
+                LightColor = new Color("ff8a50"),
+                LightEnergy = 1.55f,
+                OmniRange = 7.5f,
+                ShadowEnabled = index is 0 or 6 or 12,
+            });
         }
 
-        instances = floors + walls + props;
-        return new CryptArtKitResult(root, instances, floors, walls, props);
+        // Cold counter-light in the flooded ossuary makes the water/givre route readable.
+        root.AddChild(new OmniLight3D
+        {
+            Name = "FloodedOssuaryColdLight",
+            Position = new Vector3(0, 3.2f, -9),
+            LightColor = new Color("8fc9e8"),
+            LightEnergy = 1.25f,
+            OmniRange = 12,
+            ShadowEnabled = false,
+        });
+
+        var instances = floors + walls + props;
+        return new CryptArtKitResult(root, instances, floors, walls, props, 7);
+    }
+
+    private static void FillFloor(
+        Node3D root,
+        float minX,
+        float maxX,
+        float minZ,
+        float maxZ,
+        ref int counter)
+    {
+        for (var x = minX; x <= maxX + .01f; x += 4)
+        {
+            for (var z = minZ; z <= maxZ + .01f; z += 4)
+            {
+                Add(root, "floor_tile_large.gltf.glb", new Vector3(x, .015f, z));
+                counter++;
+            }
+        }
+    }
+
+    private static void WallLineZ(
+        Node3D root,
+        float x,
+        float minZ,
+        float maxZ,
+        float yaw,
+        ref int counter)
+    {
+        for (var z = minZ; z <= maxZ + .01f; z += 4)
+        {
+            Add(root, "wall.gltf.glb", new Vector3(x, 0, z), yaw);
+            counter++;
+        }
+    }
+
+    private static void WallLineX(
+        Node3D root,
+        float z,
+        float minX,
+        float maxX,
+        float yaw,
+        float halfGap,
+        bool doorway,
+        ref int counter)
+    {
+        for (var x = minX; x <= maxX + .01f; x += 4)
+        {
+            if (halfGap > 0 && MathF.Abs(x) <= halfGap) continue;
+            Add(root, "wall.gltf.glb", new Vector3(x, 0, z), yaw);
+            counter++;
+        }
+
+        if (!doorway) return;
+        Add(root, "wall_doorway.glb", new Vector3(0, 0, z), yaw);
+        counter++;
     }
 
     private static void Add(Node3D root, string fileName, Vector3 position, float yawDegrees = 0)
