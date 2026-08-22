@@ -1,189 +1,158 @@
-# Crypte des Cendres — intégration du ruleset systémique
+# Crypte des Cendres — donjon systémique de référence
 
-La Crypte des Cendres est le premier module jouable d’OpenRPG Forge et la première tranche verticale du ruleset `openrpg-forge.systemic-rpg.v1`.
+La Crypte des Cendres est la première tranche verticale jouable du ruleset `openrpg-forge.systemic-rpg.v1`.
 
-Le document de référence complet se trouve dans :
+Le ruleset complet est :
 
 `docs/design/OPENRPG_FORGE_RULESET_FR.md`
 
-Le contrat exécutable du module se trouve dans :
+Le contrat exécutable des interactions est :
 
 `apps/Forge.Runtime/content/crypt-of-ashes/systemic-gameplay.json`
 
-## Intention
+La géométrie canonique est portée par le snapshot de zone référencé par `project.json`, et la couche artistique CC0 est construite par `Runtime/CryptArtKitDecorator.cs` à partir de KayKit Dungeon Remastered.
 
-Le parcours historique du prototype est conservé :
+## Reconstruction 2026
 
-1. rencontrer Elyra ;
-2. obtenir la Clé de braise ;
-3. ouvrir le passage scellé ;
-4. vaincre la Sentinelle ;
-5. affronter le Gardien des Cendres ;
-6. atteindre la sortie.
+L'ancienne Crypte était essentiellement une salle de 20 × 28 mètres. La zone canonique mesure maintenant **48 × 76 mètres** et organise le parcours en espaces distincts.
 
-La nouvelle tranche verticale ajoute une seconde lecture de la même zone. Le joueur peut toujours combattre directement, mais il peut aussi lire l’architecture, préparer l’arène et convertir le décor en arme.
+### 1. Seuil des Braises
 
-## Contrôles ajoutés
+Le joueur apparaît dans une entrée étroite et immédiatement lisible. Des escaliers et deux lignes de torches conduisent vers le sanctuaire sans exposer toute la carte d'un seul regard.
+
+### 2. Sanctuaire d'Elyra
+
+Elyra se trouve dans une salle plus large servant de respiration narrative. Deux colonnes structurent la composition et la sortie centrale mène vers les catacombes.
+
+### 3. Catacombes et reliquaires
+
+La carte s'élargit en un espace à circulation multiple. Des murs intérieurs et des nervures de pierre créent un axe central et des voies latérales. La **Clé de braise** est placée dans un reliquaire sur le côté droit : l'exploration devient donc utile avant la progression principale.
+
+### 4. Porte scellée et salle de la Sentinelle
+
+La porte est désormais une vraie frontière : deux murs physiques occupent le reste de la largeur et empêchent de simplement contourner la serrure. La Sentinelle attend dans une salle plus resserrée après cette transition.
+
+### 5. Ossuaire inondé
+
+La salle suivante est plus large et froide. Elle concentre les systèmes eau/givre, huile/feu et poussée. Une lumière froide permet d'identifier immédiatement la zone humide tandis que les torches restent chaudes sur les côtés.
+
+### 6. Grande Nef
+
+La Nef ouvre de nouveau les lignes de déplacement. Quatre colonnes donnent du couvert et des repères. Cette salle prépare visuellement la verticalité et les interactions structurelles du combat final.
+
+### 7. Sanctuaire du Gardien
+
+Le Gardien des Cendres occupe le dernier sanctuaire. Le pilier fracturé, le brasero suspendu et la fosse de pointes sont disposés autour de lui de manière à proposer plusieurs plans de combat sans supprimer le duel direct. La sortie se trouve au-delà du boss.
+
+## Parcours principal conservé
+
+Les identifiants historiques des éléments importants sont conservés. Le parcours narratif reste :
+
+**Elyra → Clé de braise → porte scellée → Sentinelle → Gardien des Cendres → sortie.**
+
+Les positions ont cependant été redistribuées dans le nouveau donjon afin que chaque étape possède son propre espace.
+
+## Couche artistique CC0
+
+La Crypte réutilise le pack **KayKit Dungeon Remastered 1.0** de Kay Lousberg, sous licence **CC0-1.0**.
+
+Les modèles gouvernés présents dans le dépôt comprennent notamment :
+
+- dalles de sol ;
+- murs et murs avec passage ;
+- angles ;
+- colonnes ;
+- escaliers ;
+- coffres ;
+- tonneaux décorés ;
+- torches allumées.
+
+`CryptArtKitDecorator` ne construit plus une boîte rectangulaire. Il compose les sept espaces avec des dalles, silhouettes de salles, arches, colonnes, accessoires et éclairages. Les volumes de gameplay restent séparés de cette peau artistique.
+
+## Contrôles systémiques
 
 | Touche | Action | Usage |
 |---|---|---|
-| `X` | Coup de pied / poussée | Repousser une cible, renverser une urne ou exploiter une surface glissante |
-| `F` | Feu | Enflammer l’huile funéraire |
-| `G` | Givre | Geler la rigole d’eau sépulcrale |
+| `X` | Coup de pied / poussée | Repousser une cible ou renverser l'urne d'huile |
+| `F` | Feu | Enflammer l'huile funéraire |
+| `G` | Givre | Geler la rigole de l'ossuaire |
 | `B` | Force / télékinésie | Projeter une cible, détacher le brasero ou renverser le pilier |
-| `Y` | Concentration tactique | Ralentir temporairement le temps pour lire l’arène |
+| `Y` | Concentration tactique | Ralentir temporairement le temps |
 
-Ces touches évitent les liaisons déjà employées par le déplacement AZERTY, la roue d’action et le mode combat. Les contrôles sont enregistrés à l’exécution par le module et n’altèrent pas les autres modules.
+## Interactions principales
 
-## Interactions jouables
+### Huile + feu
 
-### Urne d’huile funéraire
+Une réserve d'huile se trouve dans l'ossuaire inondé. Une poussée répand l'huile ; le feu la transforme ensuite en zone de dégâts persistante.
 
-L’urne se trouve après le passage scellé. Une poussée la renverse et répand son contenu. Le feu transforme alors la flaque en zone de combustion persistante.
+### Eau + givre + force
 
-Cette interaction démontre :
-
-- objet physique ;
-- substance ;
-- changement d’état ;
-- dégâts de zone ;
-- attribution de causalité au joueur.
-
-### Rigole d’eau sépulcrale
-
-La rigole traverse l’approche du Gardien. Le givre la transforme en glace. Les cibles situées sur cette surface subissent une poussée plus importante.
-
-Cette interaction démontre :
-
-- surface ;
-- réaction eau + froid ;
-- réduction de friction ;
-- combinaison élément + force.
+La rigole centrale de l'ossuaire peut être gelée. Les ennemis présents sur la surface glissante sont davantage déplacés par une poussée ou la télékinésie.
 
 ### Brasero suspendu
 
-Le brasero domine l’arène nord. Une impulsion de force rompt son ancrage. Sa chute inflige plusieurs impacts aux ennemis proches.
-
-Cette interaction démontre :
-
-- verticalité ;
-- masse ;
-- gravité ;
-- impact de zone ;
-- préparation avant engagement.
+Le brasero domine l'entrée du sanctuaire final. Une impulsion de force rompt son ancrage et produit un impact de zone.
 
 ### Pilier fracturé
 
-Le pilier fissuré peut être renversé. Son effondrement blesse les ennemis présents dans sa trajectoire et crée un obstacle visuel.
-
-Cette interaction démontre :
-
-- faiblesse structurelle ;
-- force appliquée ;
-- destruction lisible ;
-- modification temporaire de l’arène.
+Un pilier du sanctuaire final peut être renversé. Il blesse les cibles dans son rayon et modifie la lecture de l'arène.
 
 ### Fosse de pointes
 
-La fosse est placée sur le côté de l’arène. Une cible poussée ou projetée dans son rayon est vaincue par le danger environnemental.
+La fosse se trouve sur le flanc droit du Gardien. Une cible projetée dans sa zone est vaincue par le même chemin de combat autoritaire que les attaques normales.
 
-Cette interaction démontre :
+## Principes appliqués
 
-- coup de pied ;
-- télékinésie ;
-- chaîne de causalité ;
-- défaite environnementale reconnue par le combat normal.
+La nouvelle carte applique directement plusieurs règles du ruleset :
 
-## Approches du module
-
-### Approche narrative
-
-Elyra reste la source principale de contexte. Le joueur peut accepter ou refuser son aide. Les dialogues et la quête existants restent valides.
-
-### Approche d’exploration
-
-Le joueur cherche la clé et observe les nouveaux dispositifs. Les marqueurs tridimensionnels identifient les verbes possibles sans imposer un contour fluorescent permanent.
-
-### Approche martiale
-
-La sentinelle et le Gardien peuvent toujours être vaincus avec les attaques normales. Le décor n’est jamais obligatoire.
-
-### Approche environnementale
-
-Le joueur peut préparer une chaîne : geler la rigole, attirer une cible, la pousser, puis déclencher le brasero ou le pilier.
-
-### Approche tactique
-
-La concentration tactique ralentit le temps pendant que la touche est maintenue. L’échelle temporelle précédente est restaurée à la sortie du mode et lorsque le nœud est détruit.
+- le lieu possède une fonction et une progression spatiale ;
+- le décor sert au gameplay ;
+- la voie directe reste possible ;
+- l'exploration latérale apporte une ressource réelle ;
+- les dangers sont placés là où ils sont crédibles ;
+- les dégâts environnementaux réutilisent le combat existant ;
+- la porte de progression ne peut pas être contournée par une simple erreur de géométrie ;
+- les salles changent de largeur et de rythme afin d'éviter l'effet « grande boîte ».
 
 ## Architecture
 
-`CryptSystemicGameplay.cs` est un directeur de module attaché comme enfant de `GameRoot` dans `Main.tscn`.
+`CryptSystemicGameplay.cs` reste un directeur limité au module `crypt-of-ashes`. Il valide le manifeste, enregistre les commandes, crée les dispositifs systémiques et transmet les dégâts au combat existant.
 
-Le directeur :
+`GameRoot.SystemicGameplay.cs` expose uniquement les opérations nécessaires au directeur : joueur, ennemis, poussée, dégâts, défaite environnementale et messages HUD.
 
-- attend que la Crypte soit complètement initialisée ;
-- se désactive pour tous les autres modules ;
-- charge et valide le manifeste JSON ;
-- enregistre les commandes propres au module ;
-- construit les cinq dispositifs ;
-- résout les interactions et réactions ;
-- transmet les dégâts à l’état de combat existant.
+`CryptArtKitDecorator.cs` est la couche artistique runtime de cette tranche verticale. Le snapshot de zone conserve la structure de gameplay et les positions canoniques.
 
-`GameRoot.SystemicGameplay.cs` est une extension partielle, limitée et interne. Elle expose au directeur uniquement les capacités indispensables :
+## Limites explicites
 
-- lecture du joueur et de la caméra ;
-- recherche des ennemis vivants ;
-- poussée physique ;
-- dégâts attribués au joueur ;
-- défaite environnementale ;
-- présentation des messages dans le HUD.
+Cette reconstruction est substantielle mais n'est pas encore une qualification artistique finale. Restent notamment à valider sur l'environnement Windows/Godot canonique :
 
-Le combat environnemental n’utilise donc pas une seconde barre de vie et ne contourne pas la logique de quête.
+- navigation réelle de tous les agents dans les nouvelles salles ;
+- collisions de chaque passage en playtest ;
+- composition caméra dans les espaces étroits et larges ;
+- budget des lumières et performances Forward+ ;
+- rendu visuel 1080p/QHD ;
+- sérialisation persistante des objets systémiques déplacés ;
+- IA ennemie capable d'utiliser elle-même tous les dispositifs ;
+- remplacement futur des colliders de sécurité runtime par des volumes entièrement éditables dans le Creator.
 
-## Compatibilité
-
-La modification est additive :
-
-- aucun identifiant historique d’entité n’est remplacé ;
-- le fichier `project.json` n’est pas réécrit ;
-- le parcours et les sauvegardes existants restent valides ;
-- le directeur n’est actif que lorsque le module chargé a le slug `crypt-of-ashes` ;
-- les autres modules conservent leurs contrôles et leurs scènes.
-
-## Limites explicites de cette première tranche
-
-Cette intégration valide le langage de base du ruleset, mais n’achève pas encore :
-
-- l’IA ennemie capable de déclencher chaque dispositif ;
-- la sérialisation durable de tous les objets déplacés ;
-- les compagnons narratifs complets de la Crypte ;
-- les surfaces électriques, fumées volumétriques et fluides simulés ;
-- les enquêtes de témoins et crimes appliquées à cette zone ;
-- l’édition visuelle de ces interactions dans le toolset.
-
-Ces éléments restent définis dans le ruleset et devront être convertis en composants génériques. Le module n’emploie pas de faux scripts de victoire : ses interactions passent déjà par l’état de combat existant.
+La généralisation masse/stabilité/surfaces/supports/causalité dans Domain/Application reste également un chantier séparé : la Crypte sert de vertical slice, pas de moteur parallèle.
 
 ## Vérification
 
-Le test `tests/test_crypt_systemic_gameplay.py` vérifie :
-
-- la validité du manifeste ;
-- la présence des cinq interactions ;
-- les chaînes huile/feu, eau/givre/force et poussée/pointes ;
-- la présence de tous les contrôles ;
-- l’attachement du directeur à la scène ;
-- l’existence de la passerelle de combat ;
-- les liens vers le ruleset.
-
-La validation complète reste :
-
-```powershell
-.\scripts\Verify.ps1
-```
-
-La validation ciblée du contrat peut être lancée avec :
+Contrat systémique :
 
 ```powershell
 python -m unittest tests.test_crypt_systemic_gameplay
+```
+
+Reconstruction du donjon :
+
+```powershell
+python -m unittest tests.test_crypt_dungeon_rebuild
+```
+
+Portail complet attendu sur Windows :
+
+```powershell
+.\scripts\Verify.ps1
 ```
