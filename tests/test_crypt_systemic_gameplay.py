@@ -39,6 +39,8 @@ class CryptSystemicGameplayContractTests(unittest.TestCase):
             ["observer", "comprendre", "préparer", "agir", "improviser", "assumer"],
             self.manifest["designLoop"],
         )
+        self.assertEqual(48, self.manifest["mapStructure"]["widthMeters"])
+        self.assertEqual(76, self.manifest["mapStructure"]["depthMeters"])
 
     def test_manifest_declares_required_controls(self) -> None:
         controls = {item["action"]: item["physicalKey"] for item in self.manifest["controls"]}
@@ -69,8 +71,8 @@ class CryptSystemicGameplayContractTests(unittest.TestCase):
                 self.assertTrue(interaction["verbs"])
                 self.assertTrue(interaction["consequence"])
                 position = interaction["position"]
-                self.assertLessEqual(abs(position["x"]), 9)
-                self.assertLessEqual(abs(position["z"]), 13)
+                self.assertLessEqual(abs(position["x"]), 21)
+                self.assertLessEqual(abs(position["z"]), 38)
 
     def test_manifest_declares_required_reaction_chains_and_approaches(self) -> None:
         chain_ids = {chain["id"] for chain in self.manifest["reactionChains"]}
