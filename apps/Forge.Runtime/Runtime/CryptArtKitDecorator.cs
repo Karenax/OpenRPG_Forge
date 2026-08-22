@@ -32,14 +32,27 @@ internal static class CryptArtKitDecorator
         FillFloor(root, -20, 20, -26, -15, ref floors);   // Grande Nef
         FillFloor(root, -16, 16, -37, -26, ref floors);   // Sanctuaire du Gardien
 
-        // Outer shell. Gameplay collision stays data-driven in the area snapshot;
-        // these CC0 pieces are the visible architectural skin.
-        WallLineZ(root, -21, -36, 36, 90, ref walls);
-        WallLineZ(root, 21, -36, 36, -90, ref walls);
-        WallLineX(root, 38, -20, 20, 0, 0, false, ref walls);
-        WallLineX(root, -38, -20, 20, 180, 0, false, ref walls);
+        // Visible side walls follow the room silhouettes, so the player reads actual spaces
+        // instead of one decorated box.
+        WallLineZ(root, -8.5f, 29, 37, 90, ref walls);
+        WallLineZ(root, 8.5f, 29, 37, -90, ref walls);
+        WallLineZ(root, -13.5f, 21, 29, 90, ref walls);
+        WallLineZ(root, 13.5f, 21, 29, -90, ref walls);
+        WallLineZ(root, -20.5f, 7, 19, 90, ref walls);
+        WallLineZ(root, 20.5f, 7, 19, -90, ref walls);
+        WallLineZ(root, -11.5f, -3, 7, 90, ref walls);
+        WallLineZ(root, 11.5f, -3, 7, -90, ref walls);
+        WallLineZ(root, -16.5f, -15, -3, 90, ref walls);
+        WallLineZ(root, 16.5f, -15, -3, -90, ref walls);
+        WallLineZ(root, -20.5f, -26, -15, 90, ref walls);
+        WallLineZ(root, 20.5f, -26, -15, -90, ref walls);
+        WallLineZ(root, -16.5f, -37, -26, 90, ref walls);
+        WallLineZ(root, 16.5f, -37, -26, -90, ref walls);
 
-        // Architectural thresholds. Each keeps a readable central passage.
+        WallLineX(root, 38, -8, 8, 0, 0, false, ref walls);
+        WallLineX(root, -38, -16, 16, 180, 0, false, ref walls);
+
+        // Architectural thresholds keep a readable central passage.
         WallLineX(root, 20, -20, 20, 0, 4, true, ref walls);
         WallLineX(root, 6, -20, 20, 0, 2, true, ref walls);
         WallLineX(root, -15, -20, 20, 0, 4, true, ref walls);
@@ -50,6 +63,20 @@ internal static class CryptArtKitDecorator
         WallLineZ(root, 8, 11, 19, -90, ref walls);
         WallLineX(root, 11, -20, -10, 0, 0, false, ref walls);
         WallLineX(root, 11, 10, 20, 0, 0, false, ref walls);
+
+        // The canonical area snapshot already carries the main gameplay walls. These safety
+        // colliders close the narrower artistic silhouettes so there are no accidental void falls
+        // while the generic collision authoring is being migrated to the richer dungeon layout.
+        AddSafetyWall(root, new Vector3(-8.5f, 1.5f, 33), new Vector3(1, 4, 10));
+        AddSafetyWall(root, new Vector3(8.5f, 1.5f, 33), new Vector3(1, 4, 10));
+        AddSafetyWall(root, new Vector3(-13.5f, 1.5f, 25), new Vector3(1, 4, 10));
+        AddSafetyWall(root, new Vector3(13.5f, 1.5f, 25), new Vector3(1, 4, 10));
+        AddSafetyWall(root, new Vector3(-16.5f, 1.5f, -9), new Vector3(1, 4, 12));
+        AddSafetyWall(root, new Vector3(16.5f, 1.5f, -9), new Vector3(1, 4, 12));
+        AddSafetyWall(root, new Vector3(-20.5f, 2, -20), new Vector3(1, 5, 12));
+        AddSafetyWall(root, new Vector3(20.5f, 2, -20), new Vector3(1, 5, 12));
+        AddSafetyWall(root, new Vector3(-16.5f, 2, -31), new Vector3(1, 5, 12));
+        AddSafetyWall(root, new Vector3(16.5f, 2, -31), new Vector3(1, 5, 12));
 
         // Column rhythm: landmarks, cover and systemic silhouettes.
         foreach (var position in new[]
@@ -66,7 +93,7 @@ internal static class CryptArtKitDecorator
             props++;
         }
 
-        // Entrance elevation and reliquaries.
+        // Entrance elevation, reliquaries and environmental props.
         Add(root, "stairs.gltf.glb", new Vector3(0, 0, 35), 180);
         Add(root, "stairs.gltf.glb", new Vector3(0, 0, -27));
         Add(root, "chest.glb", new Vector3(14, 0, 15), -35);
@@ -74,7 +101,9 @@ internal static class CryptArtKitDecorator
         Add(root, "barrel_large_decorated.gltf.glb", new Vector3(7, 0, -10), -20);
         Add(root, "barrel_large_decorated.gltf.glb", new Vector3(-13, 0, -20), 25);
         Add(root, "barrel_large_decorated.gltf.glb", new Vector3(13, 0, -20), -25);
-        props += 7;
+        // A CC0 lit prop visually anchors the hanging-brazier interaction.
+        Add(root, "torch_lit.gltf.glb", new Vector3(0, 5, -29));
+        props += 8;
 
         // Warm pools of light guide the critical path while leaving side lanes darker.
         var torches = new[]
@@ -90,11 +119,9 @@ internal static class CryptArtKitDecorator
         for (var index = 0; index < torches.Length; index++)
         {
             var position = torches[index];
-            var yaw = position.X < 0 ? 90 : -90;
-            Add(root, "torch_lit.gltf.glb", position, yaw);
+            Add(root, "torch_lit.gltf.glb", position, position.X < 0 ? 90 : -90);
             props++;
 
-            // Only half of the decorative torches allocate dynamic lights.
             if ((index & 1) != 0) continue;
             root.AddChild(new OmniLight3D
             {
@@ -107,7 +134,7 @@ internal static class CryptArtKitDecorator
             });
         }
 
-        // Cold counter-light in the flooded ossuary makes the water/givre route readable.
+        // Cold counter-light makes the water/givre route readable at a glance.
         root.AddChild(new OmniLight3D
         {
             Name = "FloodedOssuaryColdLight",
@@ -122,31 +149,17 @@ internal static class CryptArtKitDecorator
         return new CryptArtKitResult(root, instances, floors, walls, props, 7);
     }
 
-    private static void FillFloor(
-        Node3D root,
-        float minX,
-        float maxX,
-        float minZ,
-        float maxZ,
-        ref int counter)
+    private static void FillFloor(Node3D root, float minX, float maxX, float minZ, float maxZ, ref int counter)
     {
         for (var x = minX; x <= maxX + .01f; x += 4)
+        for (var z = minZ; z <= maxZ + .01f; z += 4)
         {
-            for (var z = minZ; z <= maxZ + .01f; z += 4)
-            {
-                Add(root, "floor_tile_large.gltf.glb", new Vector3(x, .015f, z));
-                counter++;
-            }
+            Add(root, "floor_tile_large.gltf.glb", new Vector3(x, .015f, z));
+            counter++;
         }
     }
 
-    private static void WallLineZ(
-        Node3D root,
-        float x,
-        float minZ,
-        float maxZ,
-        float yaw,
-        ref int counter)
+    private static void WallLineZ(Node3D root, float x, float minZ, float maxZ, float yaw, ref int counter)
     {
         for (var z = minZ; z <= maxZ + .01f; z += 4)
         {
@@ -156,14 +169,7 @@ internal static class CryptArtKitDecorator
     }
 
     private static void WallLineX(
-        Node3D root,
-        float z,
-        float minX,
-        float maxX,
-        float yaw,
-        float halfGap,
-        bool doorway,
-        ref int counter)
+        Node3D root, float z, float minX, float maxX, float yaw, float halfGap, bool doorway, ref int counter)
     {
         for (var x = minX; x <= maxX + .01f; x += 4)
         {
@@ -171,10 +177,16 @@ internal static class CryptArtKitDecorator
             Add(root, "wall.gltf.glb", new Vector3(x, 0, z), yaw);
             counter++;
         }
-
         if (!doorway) return;
         Add(root, "wall_doorway.glb", new Vector3(0, 0, z), yaw);
         counter++;
+    }
+
+    private static void AddSafetyWall(Node3D root, Vector3 position, Vector3 size)
+    {
+        var body = new StaticBody3D { Name = "CryptSafetyWall", Position = position };
+        body.AddChild(new CollisionShape3D { Shape = new BoxShape3D { Size = size } });
+        root.AddChild(body);
     }
 
     private static void Add(Node3D root, string fileName, Vector3 position, float yawDegrees = 0)
