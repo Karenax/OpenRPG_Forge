@@ -1,6 +1,6 @@
 # Contexte canonique — OpenRPG Forge
 
-Dernière mise à jour : 21 août 2026.
+Dernière mise à jour : 22 août 2026.
 
 Ce document est l’unique contexte narratif courant du projet. Les états d’exécution sont dans
 `STATUS.md` et `TASKS_MVP.md`; les exigences détaillées et leurs preuves restent dans le tracker et
@@ -133,16 +133,33 @@ une progression ouverte mais bornée, des quêtes par états et un monde dont le
 structures et mécanismes peuvent devenir des outils ou des armes. Les actions physiques et les
 conséquences narratives doivent partager une même chaîne de causalité.
 
-La Crypte des Cendres est la première tranche verticale jouable de cette direction. Son manifeste
-`apps/Forge.Runtime/content/crypt-of-ashes/systemic-gameplay.json` ajoute cinq démonstrateurs isolés au
-module : huile inflammable, eau gelable, brasero suspendu, pilier fracturé et fosse de pointes. Les
-dégâts environnementaux réutilisent l’état de combat autoritaire existant afin de préserver phases de
-boss, événements, butin, progression et transitions de quête.
+La Crypte des Cendres est la première tranche verticale jouable de cette direction. Son snapshot
+canonique n’est plus la salle historique de 20 × 28 m : la branche de qualification reconstruit une
+zone de 48 × 76 m organisée en Seuil des Braises, sanctuaire d’Elyra, catacombes et reliquaires,
+salle de la Sentinelle, Ossuaire inondé, Grande Nef et sanctuaire du Gardien. Les identifiants de la
+quête principale sont conservés, mais les acteurs et les interactions sont redistribués dans ces
+espaces. La Clé de braise se trouve dans un reliquaire latéral et la porte scellée possède désormais
+une frontière physique qui empêche de la contourner par la géométrie.
+
+La couche visuelle de cette reconstruction réemploie le lot gouverné KayKit Dungeon Remastered
+CC0-1.0 présent dans `apps/Forge.Runtime/art/crypt-kaykit/` : sols, murs, passages, colonnes,
+escaliers, coffres, tonneaux et torches composent les mêmes sept espaces que le snapshot de zone.
+Le document spécialisé `docs/design/CRYPT_OF_ASHES_DUNGEON_REBUILD.md` décrit cette composition et
+ses critères de qualification.
+
+Le manifeste `apps/Forge.Runtime/content/crypt-of-ashes/systemic-gameplay.json` conserve cinq
+démonstrateurs : huile inflammable et eau gelable dans l’Ossuaire, brasero suspendu, pilier fracturé
+et fosse de pointes dans le sanctuaire final. Les dégâts environnementaux réutilisent l’état de
+combat autoritaire existant afin de préserver phases de boss, événements, butin, progression et
+transitions de quête. Les prompts d’interaction sont limités à la proximité du joueur pour ne pas
+traverser visuellement l’ensemble du donjon.
 
 Cette tranche prouve un premier parcours de « monde comme arme » ; elle ne vaut pas implémentation
 générique de toutes les propriétés, substances, structures, compagnons et conséquences décrites par
-le ruleset. La généralisation dans le domaine, le Creator et les formats de module reste un chantier
-séparé qui exige compilation, tests runtime et playtests reproductibles.
+le ruleset. La reconstruction spatiale actuelle reste en qualification : compilation Godot/.NET,
+navigation, collisions, sauvegarde/reprise, performances et revue Forward+ doivent être rejouées
+avant fusion dans `main`. La généralisation dans le domaine, le Creator et les formats de module
+reste un chantier séparé.
 
 ## Architecture à préserver
 
@@ -164,8 +181,7 @@ L’Assistant est un espace natif du Creator. Il peut utiliser des fournisseurs 
 interchangeables. Le projet reste fonctionnel si aucun fournisseur n’est configuré.
 
 Le serveur MCP expose des outils métier de haut niveau, par exemple lire le contexte borné d’une
-zone, proposer un dialogue, construire une quête, préparer un import, compiler un script ou lancer
-un test. Il n’expose ni shell arbitraire ni écriture générique de fichiers.
+zone, proposer un dialogue, construire une quête, préparer un import, compiler un script ou lancer un test. Il n’expose ni shell arbitraire ni écriture générique de fichiers.
 
 Une mutation assistée suit toujours :
 
