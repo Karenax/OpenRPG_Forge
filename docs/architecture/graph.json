@@ -3,7 +3,7 @@
     "schema_version": 2,
     "engine": "roslyn",
     "engine_version": "5.6.0.0",
-    "source_digest": "sha256:ec857f06646139a48f4a06ef5809b3b19e97fcba57e950f5e38a9dc269128e0c",
+    "source_digest": "sha256:8e25c56cfcbbbbdd58a5f186e91514e2a70ab51a5e51344ecc8452eb310c9902",
     "source_file_count": 3949,
     "sources": [
       {
@@ -58,13 +58,13 @@
       },
       {
         "path": ".github/workflows/architecture-graph.yml",
-        "sha256": "sha256:d962632ae730565512204c2080d28b0958a6299adc34d77f0dd7efc48659ebee",
-        "size": 835
+        "sha256": "sha256:43c89bf6a371efa1b7841bf6dabc206c933e20fd04dd0ac0f18841e0eb215123",
+        "size": 832
       },
       {
         "path": ".github/workflows/ci.yml",
-        "sha256": "sha256:07c2a4687b1c44a907cd5b6d3aa55684856d3484d5ab989351f0a17ea2310865",
-        "size": 2603
+        "sha256": "sha256:98e28700143e2858ff4c3a37520cc62dc220e392b020fa03a2e76a3d7ad9a3d2",
+        "size": 2579
       },
       {
         "path": ".hermes/plans/2026-08-14_190031-dynamic-runtime-combat-ui.md",
