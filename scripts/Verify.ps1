@@ -386,7 +386,7 @@ function Invoke-ForgeEngineMarkerTest {
     # Keep those integration gates bounded, while allowing slower Windows runners to finish them.
     $timeoutSeconds = switch ($Name) {
         'toolset' { 180 }
-        'studio' { 480 }
+        'studio' { 720 }
         default { 75 }
     }
     $deadline = [DateTime]::UtcNow.AddSeconds($timeoutSeconds)
