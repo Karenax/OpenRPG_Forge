@@ -40,7 +40,7 @@ public sealed class LegacyWindowMigrationTests
         {
             Assert.Contains(mapping.PageId, pages);
             Assert.Equal(mapping.SectionId, StudioPageCatalog.SectionForPage(mapping.PageId).Id);
-            Assert.Equal("Legacy", mapping.Status);
+            Assert.Equal("Parity", mapping.Status);
         });
     }
 

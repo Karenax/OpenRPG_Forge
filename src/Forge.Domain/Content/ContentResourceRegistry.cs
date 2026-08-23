@@ -153,7 +153,8 @@ public sealed partial class ContentResourceRegistry
 
     private static ContentResourceKind AssetKind(string path) => Path.GetExtension(path).ToLowerInvariant() switch
     {
-        ".png" or ".tif" or ".tiff" or ".exr" or ".ktx2" => ContentResourceKind.Texture,
+        ".png" or ".jpg" or ".jpeg" or ".webp" or ".tif" or ".tiff" or ".exr" or ".ktx2" =>
+            ContentResourceKind.Texture,
         ".gltf" or ".glb" or ".obj" or ".fbx" => ContentResourceKind.Model,
         _ => ContentResourceKind.Asset,
     };

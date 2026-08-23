@@ -842,6 +842,12 @@ internal sealed partial class StudioTriggerFoundationOverlay : Control
         var filters = PanelColumn();
         filters.SizeFlagsHorizontal = SizeFlags.ExpandFill;
         policyColumns.AddChild(filters);
+        filters.AddChild(StudioStyle.SectionLabel("QUAND · UNE ENTITÉ ENTRE OU SORT"));
+        filters.AddChild(StudioStyle.Label(
+            "Choisissez qui peut activer ce volume avant de préciser les conditions et les effets.",
+            10,
+            StudioStyle.Muted,
+            wrap: true));
         filters.AddChild(StudioStyle.SectionLabel("TYPES D’ENTITÉ"));
         _entityKinds = new StudioTriggerStringListEditor("Au moins un type est requis.", "creature");
         filters.AddChild(_entityKinds);
@@ -857,14 +863,14 @@ internal sealed partial class StudioTriggerFoundationOverlay : Control
         var behavior = PanelColumn();
         behavior.SizeFlagsHorizontal = SizeFlags.ExpandFill;
         policyColumns.AddChild(behavior);
-        behavior.AddChild(StudioStyle.SectionLabel("CONDITIONS"));
+        behavior.AddChild(StudioStyle.SectionLabel("SI · CONDITIONS"));
         _conditions = new StudioTriggerStringListEditor("Aucune condition supplémentaire.", "area.ready");
         behavior.AddChild(_conditions);
         var policyGrid = Grid();
         behavior.AddChild(policyGrid);
         _cooldown = AddField(policyGrid, "Délai", Number(0, 86_400, .25, " s"));
         _fire = AddField(policyGrid, "Déclenchement", Option(FirePolicies.Select(HumanizeFire)));
-        behavior.AddChild(StudioStyle.SectionLabel("ACTIONS TYPÉES"));
+        behavior.AddChild(StudioStyle.SectionLabel("ALORS · ACTIONS TYPÉES"));
         _actions = new StudioTriggerActionListEditor();
         behavior.AddChild(_actions);
 

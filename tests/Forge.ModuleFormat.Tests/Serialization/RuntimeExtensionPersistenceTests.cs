@@ -175,8 +175,55 @@ public sealed class RuntimeExtensionPersistenceTests
             post.Gameplay.ZeroGravity with { Enabled = true },
             post.Gameplay.Vehicles with { Enabled = true }, post.Gameplay.Mounts,
             [new GameplayProductionProfile.AchievementDefinition(Guid.NewGuid(), "first-step", "module.started", 1,
-                null, false)], post.Gameplay.CuratedPacks, "test");
-        var configured = new PostLaunchCapabilityProfile(post.Id, 1, gameplay, post.LiveDirector, post.Network,
+                null, false)], post.Gameplay.CuratedPacks with
+                {
+                    Channel = "candidate",
+                    Compatibility = "2.x",
+                    AllowedLicenses = ["MIT", "CC0-1.0"],
+                    RequireTrustedSignature = true,
+                    AllowOfflineFallback = false
+                }, "test");
+        var director = new LiveDirectorProductionProfile(post.LiveDirector.Id, 1,
+            post.LiveDirector.ForcedRest with { Enabled = true, MaximumTargets = 24 },
+            post.LiveDirector.LevelAdjustment with
+            {
+                Enabled = true,
+                MaximumDelta = 7,
+                RequireRollbackSnapshot = true
+            },
+            [new LiveDirectorProductionProfile.SavedGroup(Guid.NewGuid(), "companions",
+                "tag:companions", 3, 24)],
+            post.LiveDirector.AppearanceOverrides with
+            {
+                Enabled = true,
+                MinimumScale = .75f,
+                MaximumScale = 1.75f
+            },
+            post.LiveDirector.SessionRecording with
+            {
+                Enabled = true,
+                ExportFormat = "orp-replay",
+                MaximumMinutes = 180,
+                RedactPrivateData = true
+            }, "test");
+        var network = new NetworkProductionProfile(post.Network.Id, 1,
+            post.Network.Voice with { Enabled = true, MaximumBitrateKbps = 112 },
+            [new NetworkProductionProfile.ShardDefinition(Guid.NewGuid(), "crypt-eu",
+                [project.Module.EntryAreaId.Value], 48, "eu-west")],
+            post.Network.HotReload with
+            {
+                Enabled = true,
+                MaximumPackageMegabytes = 256,
+                DrainTimeoutSeconds = 45
+            },
+            post.Network.ServerExtensions with
+            {
+                Enabled = true,
+                AllowedCapabilities = ["metrics", "world-read"],
+                CpuBudgetMilliseconds = 75
+            },
+            post.Network.Protocol with { MaximumVersion = 3 }, "test");
+        var configured = new PostLaunchCapabilityProfile(post.Id, 1, gameplay, director, network,
             post.CreatorExperience, post.Production, "test");
         var extensions = new ModuleRuntimeExtensionProfile(source.Id, 1, source.RuleSchemas, source.UiDocuments,
             source.JsonDocuments, source.SnapshotPolicy, "test", source.ModernTooling,
@@ -193,6 +240,23 @@ public sealed class RuntimeExtensionPersistenceTests
         var restored = ProjectJsonSerializer.Deserialize(json).Module.RuntimePolicies.Extensions.PostLaunch;
         Assert.True(restored.Gameplay.ZeroGravity.Enabled);
         Assert.Equal("first-step", Assert.Single(restored.Gameplay.Achievements).Key);
+        Assert.Equal("candidate", restored.Gameplay.CuratedPacks.Channel);
+        Assert.Equal(["CC0-1.0", "MIT"], restored.Gameplay.CuratedPacks.AllowedLicenses);
+        Assert.False(restored.Gameplay.CuratedPacks.AllowOfflineFallback);
+        Assert.True(restored.LiveDirector.ForcedRest.Enabled);
+        Assert.Equal(7, restored.LiveDirector.LevelAdjustment.MaximumDelta);
+        Assert.Equal(.75f, restored.LiveDirector.AppearanceOverrides.MinimumScale);
+        Assert.Equal("companions", Assert.Single(restored.LiveDirector.SavedGroups).Key);
+        Assert.True(restored.LiveDirector.SessionRecording.Enabled);
+        Assert.True(restored.LiveDirector.SessionRecording.RedactPrivateData);
+        Assert.True(restored.Network.Voice.Enabled);
+        Assert.Equal(112, restored.Network.Voice.MaximumBitrateKbps);
+        Assert.Equal("crypt-eu", Assert.Single(restored.Network.Shards).Key);
+        Assert.True(restored.Network.HotReload.Enabled);
+        Assert.Equal(45, restored.Network.HotReload.DrainTimeoutSeconds);
+        Assert.True(restored.Network.ServerExtensions.Enabled);
+        Assert.Equal(["metrics", "world-read"], restored.Network.ServerExtensions.AllowedCapabilities);
+        Assert.Equal(3, restored.Network.Protocol.MaximumVersion);
         Assert.Contains("\"formatVersion\": \"0.6.38\"", json, StringComparison.Ordinal);
 
         var old = JsonNode.Parse(json)!.AsObject();

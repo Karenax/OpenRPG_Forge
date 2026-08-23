@@ -51,8 +51,11 @@ public sealed class BlueprintUpdateWorkflowTests
         Assert.Equal(["Monde/Créatures/Gardiens"], updated.Authoring.CategoryPaths);
         Assert.Equal("=1.1.0", applied.State.Project.Areas[0].Entities.Single(item => item.Id == exactId)
             .BlueprintVersionRequirement);
-        Assert.Equal("=1.0.0", applied.State.Project.Areas[0].Entities.Single(item => item.Id == excludedId)
+        Assert.Equal(">=1.0.0", applied.State.Project.Areas[0].Entities.Single(item => item.Id == excludedId)
             .BlueprintVersionRequirement);
+        Assert.DoesNotContain(Forge.Domain.Validation.ProjectValidator.Validate(applied.State.Project), item =>
+            item.Code == Forge.Domain.Validation.ProjectValidator.BlueprintVersionMismatchCode &&
+            item.Message.Contains(excludedId.ToString(), StringComparison.Ordinal));
         Assert.Empty(applied.State.Project.Areas[0].Entities.Single(item => item.Id == exactId).Overrides.Properties);
 
         var history = new ProjectCommandHistory(state);

@@ -428,6 +428,36 @@ internal sealed partial class StudioWorldViewport : SubViewportContainer
         }
     }
 
+    public override void _Input(InputEvent @event)
+    {
+        if (!ContextMenuVisible)
+        {
+            return;
+        }
+
+        if (@event is InputEventKey key && key.Pressed && !key.Echo && key.Keycode == Key.Escape)
+        {
+            HideContextMenu();
+            GetViewport().SetInputAsHandled();
+            return;
+        }
+
+        if (@event is not InputEventMouseButton button ||
+            !button.Pressed ||
+            button.ButtonIndex != MouseButton.Left)
+        {
+            return;
+        }
+
+        var pointer = GetGlobalMousePosition();
+        var insideContextMenu = _contextMenu.Visible && _contextMenu.GetGlobalRect().HasPoint(pointer);
+        var insideDeleteMenu = _deleteMenu.Visible && _deleteMenu.GetGlobalRect().HasPoint(pointer);
+        if (!insideContextMenu && !insideDeleteMenu)
+        {
+            HideContextMenu();
+        }
+    }
+
     private void HandleRightButton(InputEventMouseButton button)
     {
         if (button.Pressed)
@@ -976,7 +1006,7 @@ internal sealed partial class StudioWorldViewport : SubViewportContainer
 
         if (frameArea)
         {
-            FrameArea();
+            FramePrimaryContent();
         }
         else
         {
@@ -1791,6 +1821,32 @@ internal sealed partial class StudioWorldViewport : SubViewportContainer
             var span = Math.Max(maximum.X - minimum.X, maximum.Z - minimum.Z);
             _cameraDistance = Math.Clamp(span * 1.05f + 12, 18, 420);
         }
+        _cameraYaw = .72f;
+        _cameraPitch = .58f;
+        UpdateCamera();
+    }
+
+    private void FramePrimaryContent()
+    {
+        if (_entityNodes.Count < 12)
+        {
+            FrameArea();
+            return;
+        }
+
+        var positions = _entityNodes.Values.Select(node => node.Position).ToArray();
+        var x = positions.Select(position => position.X).Order().ToArray();
+        var y = positions.Select(position => position.Y).Order().ToArray();
+        var z = positions.Select(position => position.Z).Order().ToArray();
+        var lowerQuartile = (positions.Length - 1) / 4;
+        var upperQuartile = ((positions.Length - 1) * 3) / 4;
+        var minimum = new Vector3(x[lowerQuartile], y[lowerQuartile], z[lowerQuartile]);
+        var maximum = new Vector3(x[upperQuartile], y[upperQuartile], z[upperQuartile]);
+
+        _cameraTarget = (minimum + maximum) * .5f;
+        _cameraTarget.Y = Math.Max(_cameraTarget.Y, 0);
+        var span = Math.Max(maximum.X - minimum.X, maximum.Z - minimum.Z);
+        _cameraDistance = Math.Clamp(span * 1.05f + 12, 18, 420);
         _cameraYaw = .72f;
         _cameraPitch = .58f;
         UpdateCamera();

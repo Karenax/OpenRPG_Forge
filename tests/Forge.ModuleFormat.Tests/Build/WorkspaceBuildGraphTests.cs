@@ -144,6 +144,50 @@ public sealed class WorkspaceBuildGraphTests : IDisposable
     }
 
     [Fact]
+    public void UsedBlueprintWithMissingDeclaredDependencyIsRejectedBeforePackaging()
+    {
+        var workspace = CreateFixtureWorkspace();
+        var session = Assert.IsType<ProjectSession>(ProjectSession.Open(workspace).Session);
+        var usedBlueprintId = session.Project.Areas.SelectMany(area => area.Entities).First().BlueprintId;
+        var original = session.Project.Blueprints.Single(item => item.Id == usedBlueprintId);
+        var authoring = new BlueprintAuthoringMetadata(
+            BlueprintAuthoringMetadata.CurrentSchemaVersion,
+            original.Authoring.Version,
+            original.Authoring.PackageNamespace,
+            original.Authoring.ManifestPath,
+            original.Authoring.ExposedParameters,
+            ["assets/missing-dependency.glb"],
+            original.Authoring.PreviewPath,
+            original.Authoring.PlatformByteBudget,
+            original.Authoring.Kit,
+            original.Authoring.Styles,
+            original.Authoring.Compatibility,
+            original.Authoring.Tags,
+            original.Authoring.CategoryPaths,
+            original.Authoring.PromotedDefaults,
+            original.Authoring.AuthorCollections,
+            original.Authoring.PrefabVariant,
+            original.Authoring.PrefabComposition,
+            original.Authoring.AssetBudget);
+        var blueprint = new BlueprintDefinition(
+            original.Id, original.Slug, original.DisplayName, original.Kind, original.Combat,
+            original.PaletteOrigin, original.IsFavorite, original.Provenance,
+            original.CreaturePresentation, original.CreatureProgression, original.CreatureLoot,
+            original.CreatureRoleBehavior, original.CreatureEvents, original.ItemAdvanced, authoring,
+            original.CreatureFoundation, original.ItemFoundation);
+        var project = new ProjectDefinition(
+            session.Project.Id, session.Project.Title, session.Project.Module,
+            session.Project.Blueprints.Select(item => item.Id == blueprint.Id ? blueprint : item).ToArray(),
+            session.Project.Areas, session.Project.Dialogues, session.Project.Quests);
+
+        var exception = Assert.Throws<InvalidDataException>(() =>
+            WorkspaceBuildGraphBuilder.Build(workspace, project, session.ProjectFilePath));
+
+        Assert.Contains("missing-dependency.glb", exception.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain("UUID", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void RequiredContentPackagesAreClosedTransitivelyWithoutUnusedPackages()
     {
         var project = WithPackageCatalog(CreateInstalledPackProject());

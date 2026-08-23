@@ -200,7 +200,7 @@ public partial class NetworkBetaWindow : Window
             invalid.Any(item => item.Code == "NET_REMOTE_ADMIN_POLICY_INVALID") &&
             !optional.Available && optional.Diagnostics.Count == 0 &&
             !required.Available && required.Diagnostics.Single().Code == "NET_WORLD_ADMIN_REQUIRED_MISSING" &&
-            script.Read(script.Handle) is { ProviderCount: 5, SafeCommandCount: 4, RetentionDays: 90 };
+            script.Read(script.Handle) is { ProviderCount: 5, SafeCommandCount: 5, RetentionDays: 90 };
     }
 
     public bool RunR123SmokeTest()

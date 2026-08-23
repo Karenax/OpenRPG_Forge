@@ -7,7 +7,9 @@ public sealed class LivePlayerService(LiveWorldChooser chooser, AuthorizationSer
 {
     public sealed record Player(Guid AccountId, Guid CharacterId, string Identity, string Character, Guid ZoneId, int LatencyMs, Guid? PartyId, string Permission, string VoiceStatus, IReadOnlyList<string> ModerationFlags);
     public sealed record Travel(Guid CommandId, string Mode, Guid PlayerAccountId, Guid GmObjectId, bool Confirmed, long ExpectedRevision);
-    public sealed record Result(bool Applied, string Code, long Revision, IReadOnlyList<Guid> MovedObjects, string SemanticDiff, string AuditEntry);
+    public sealed record Result(bool Applied, string Code, long Revision,
+        IReadOnlyList<Guid> MovedObjects, string SemanticDiff, string CameraTransition,
+        string AuditEntry);
 
     private readonly Dictionary<Guid, Player> _players = [];
     private readonly HashSet<Guid> _processed = [];
@@ -59,7 +61,14 @@ public sealed class LivePlayerService(LiveWorldChooser chooser, AuthorizationSer
             _ => _players.Values.Where(x => x.PartyId == player.PartyId && x.PartyId is not null).Select(x => x.CharacterId).ToArray()
         };
         var diff = $"player.travel:mode={command.Mode}:player={player.AccountId}:objects={string.Join(',', moved)}";
-        if (!apply) return new(false, "LIVE_PLAYER_TRAVEL_PREVIEW", _revision, moved, diff, $"previewed:{diff}:actor={actor.AccountId}");
+        var camera = command.Mode switch
+        {
+            "spectate" => "camera:follow-player",
+            "teleport-gm" => "camera:fade-to-player",
+            _ => "camera:fade-to-director"
+        };
+        if (!apply) return new(false, "LIVE_PLAYER_TRAVEL_PREVIEW", _revision, moved, diff,
+            camera, $"previewed:{diff}:{camera}:actor={actor.AccountId}");
         foreach (var id in moved)
         {
             var entry = chooser.Find(id);
@@ -69,8 +78,10 @@ public sealed class LivePlayerService(LiveWorldChooser chooser, AuthorizationSer
         }
         _processed.Add(command.CommandId);
         _revision++;
-        return new(true, "LIVE_PLAYER_TRAVEL_APPLIED", _revision, moved, diff, $"applied:{diff}:actor={actor.AccountId}:revision={_revision}");
+        return new(true, "LIVE_PLAYER_TRAVEL_APPLIED", _revision, moved, diff, camera,
+            $"applied:{diff}:{camera}:actor={actor.AccountId}:revision={_revision}");
     }
 
-    private Result Reject(string code, Travel command) => new(false, code, _revision, [], "no changes", $"rejected:{code}:command={command.CommandId}");
+    private Result Reject(string code, Travel command) => new(false, code, _revision, [],
+        "no changes", "camera:none", $"rejected:{code}:command={command.CommandId}");
 }

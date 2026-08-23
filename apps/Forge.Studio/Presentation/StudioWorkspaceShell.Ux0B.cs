@@ -319,7 +319,7 @@ internal sealed partial class StudioWorkspaceShell
                 PasteClipboard(WorldViewport.SuggestedPlacementPosition, SemanticPasteMode.Instance);
                 break;
             case EditorKeymapCatalog.RunPlaytest:
-                SetStatus("Le raccourci de playtest est reconnu · pont de processus prévu en UX7");
+                LaunchRuntimePlaytestUx7G();
                 break;
             default:
                 return false;

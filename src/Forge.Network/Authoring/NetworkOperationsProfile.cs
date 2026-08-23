@@ -97,6 +97,17 @@ public static class NetworkOperationsValidator
     {
         ArgumentNullException.ThrowIfNull(profile);
         var diagnostics = new List<NetworkDiagnostic>();
+        if (profile.Content is null || profile.VersionLock is null || profile.Roles is null ||
+            profile.Chat is null || profile.Events is null || profile.Content.AllowedLicenses is null ||
+            profile.Content.TrustedSignerFingerprints is null || profile.Roles.Grants is null ||
+            profile.Chat.Channels is null || profile.Chat.AllowedLanguages is null ||
+            profile.Chat.LanguageFilter is null || profile.Chat.BridgeAdapters is null ||
+            profile.Events.Subscriptions is null)
+        {
+            Add("NET_OPERATIONS_INCOMPLETE", "/network/operations", "The network operations document is incomplete.",
+                profile.Id, diagnostics);
+            return diagnostics;
+        }
         var ids = new[] { profile.Id, profile.Content.Id, profile.VersionLock.Id, profile.Roles.Id,
                 profile.Chat.Id, profile.Events.Id }
             .Concat(profile.Roles.Grants.Select(item => item.Id))
@@ -334,7 +345,9 @@ public sealed record NetworkOperationsResolution(bool Available, NetworkOperatio
     IReadOnlyList<NetworkDiagnostic> Diagnostics);
 
 public sealed record NetworkOperationsRuntime(ContentSynchronizationPolicy ContentPolicy,
-    AuthorizationService Authorization, ChatService Chat, ServerEventBus Events,
+    int ContentChunkBytes, bool ContentDeltaEnabled, VersionLockPolicy VersionLock,
+    RolePermissionPolicy Roles, AuthorizationService Authorization, ChatService Chat,
+    ServerEventBus Events, IReadOnlyList<ServerEventSubscriptionPolicy> EventSubscriptions,
     NetworkOperationsScriptService Scripts);
 
 public static class NetworkOperationsRuntimeAdapter
@@ -358,13 +371,17 @@ public static class NetworkOperationsRuntimeAdapter
             profile.Content.DeduplicateByHash, profile.Content.VerifyHashes, profile.Content.RequireTrustedSigner,
             profile.Content.CacheDirectory, profile.Content.MaximumCacheBytes, profile.Content.AllowedLicenses,
             profile.Content.TrustedSignerFingerprints, profile.Provenance);
-        var authorization = new AuthorizationService();
+        var authorization = new AuthorizationService(profile.Roles.Grants.Select(item =>
+            new AuthorizationRoleGrant(item.Role, item.Capabilities.ToHashSet(),
+                item.CustomCapabilities.ToHashSet(StringComparer.Ordinal), item.ZoneScoped)));
         var clock = timeProvider ?? TimeProvider.System;
         var moderation = new ModerationService(authorization, clock);
         var chatPolicy = new ChatRuntimePolicy(profile.Chat.LocalRadius, profile.Chat.MaximumCharacters,
             profile.Chat.AllowedLanguages, profile.Chat.LanguageFilter, profile.Chat.StructuredLogging,
-            profile.Chat.AccessibilityText, profile.Chat.BridgeAdapters.Count != 0);
-        return new(content, authorization, new(authorization, moderation, clock, chatPolicy, bridges),
-            new(profile.Events.MaximumPendingEvents, profile.Events.TraceEnabled), new(profile));
+            profile.Chat.AccessibilityText, profile.Chat.BridgeAdapters.Count != 0, profile.Chat.Channels);
+        return new(content, profile.Content.ChunkBytes, profile.Content.DeltaEnabled, profile.VersionLock,
+            profile.Roles, authorization, new(authorization, moderation, clock, chatPolicy, bridges),
+            new(profile.Events.MaximumPendingEvents, profile.Events.TraceEnabled),
+            profile.Events.Subscriptions.ToArray(), new(profile));
     }
 }

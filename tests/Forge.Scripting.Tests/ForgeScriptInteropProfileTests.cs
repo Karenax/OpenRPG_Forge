@@ -47,4 +47,37 @@ public sealed class ForgeScriptInteropProfileTests
             if (Directory.Exists(root)) Directory.Delete(root, true);
         }
     }
+
+    [Fact]
+    public async Task Profile_store_retries_a_transient_locked_destination_and_leaves_no_temporary_file()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "openrpg-forge-tests", Guid.NewGuid().ToString("N"));
+        try
+        {
+            var store = new ForgeScriptInteropProfileStore(root);
+            var changed = ForgeScriptInteropProfile.Default with
+            {
+                Provenance = "test:r101:retry",
+                MaximumSources = 1024,
+            };
+            store.Save(ForgeScriptInteropProfile.Default);
+            var destination = Path.Combine(root, ForgeScriptInteropProfileStore.RelativePath);
+
+            var saveTask = Task.CompletedTask;
+            using (File.Open(destination, FileMode.Open, FileAccess.Read, FileShare.None))
+            {
+                saveTask = Task.Run(() => store.Save(changed));
+                await Task.Delay(75);
+                Assert.False(saveTask.IsCompletedSuccessfully);
+            }
+
+            await saveTask;
+            Assert.Equal(changed, store.Load());
+            Assert.Empty(Directory.EnumerateFiles(root, "*.tmp"));
+        }
+        finally
+        {
+            if (Directory.Exists(root)) Directory.Delete(root, true);
+        }
+    }
 }

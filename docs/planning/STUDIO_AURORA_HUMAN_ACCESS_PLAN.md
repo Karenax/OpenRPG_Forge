@@ -1128,6 +1128,926 @@ le smoke global et cinq captures Forward+ FHD, avec jalon QHD/4K. La matrice att
 `docs/acceptance/STUDIO_UX5_COMPLETE.md` ; aucun dialogue, son, caméra, acteur, script, modèle IA ou
 transport réseau live n’est exécuté par ces aperçus.
 
+### UX6-A — Règles et temps du monde
+
+Les routes `ORF-PROJ-023`, `ORF-GAME-017`, `ORF-GAME-023` et `ORF-GAME-024` sont `functional`
+dans un workbench à quatre onglets. Difficultés, mutateurs et packages de règles passent par
+`SetRulesProfilesHandler`, tandis que calendrier, horloge, échelles locales, pauses et horaires
+passent séparément par `SetGameplayControlProfileHandler`. Appliquer un bloc invalide donc
+l’approbation de l’autre au lieu de simuler une atomicité inter-agrégats. Le portail incrémental
+passe 21/21 tests en 163,60 s, le smoke global et une capture Forward+ FHD inspectée. La matrice
+atteint 424 routes `functional` et 293 `planned` ; UX6 reste ouverte à 4/84. Preuves et limites sont
+liées dans `docs/acceptance/STUDIO_UX6_A.md` ; aucun package natif, événement, ForgeScript, nœud
+Godot ou transport réseau n’est exécuté par les aperçus.
+
+### UX6-B — Fondations du gameplay
+
+Les routes `ORF-GAME-001`, `ORF-GAME-010`, `ORF-GAME-012` et `ORF-GAME-013` sont `functional`
+dans un workbench à quatre onglets. Déplacement, verbes d’interaction, catalogues de caméras,
+actions et liaisons sont des collections directement éditables ; une seule commande
+`SetGameplayControlProfileHandler` remplace la fondation et conserve `Foundation.Save` ainsi que
+tous les profils voisins. Les aperçus appellent `Step`, `ResolveFocus`, `ResolveCamera` et
+`ResolveInput` sur des états copiés. Le portail incrémental passe 8/8 tests en 134,00 s, le smoke
+global et une capture Forward+ FHD corrigée puis inspectée. La matrice atteint 428 routes
+`functional` et 289 `planned` ; UX6 reste ouverte à 8/84. Preuves et limites sont liées dans
+`docs/acceptance/STUDIO_UX6_B.md` ; aucun acteur, `Camera3D`, `InputMap`, paquet, ForgeScript ou
+réseau live n’est exécuté par les aperçus.
+
+### UX6-C — Capacités gameplay
+
+Les routes `ORF-GAME-003`, `ORF-GAME-004`, `ORF-GAME-011`, `ORF-GAME-015` et `ORF-GAME-016`
+sont `functional` dans un workbench à cinq onglets. Les profils complets de nage, escalade, menu
+radial, temps tactique et fournisseurs de combat passent ensemble par
+`SetGameplayControlProfileHandler`, avec identités internes stables, double garde et préservation
+par référence de `Foundation`, `Simulation` et `Session`. Les aperçus appellent les résolveurs de
+mouvement, radial et temps sur des états copiés et lisent le fournisseur de combat par défaut.
+Le portail incrémental final passe 7/7 tests en 133,93 s, le smoke global et une capture Forward+
+FHD corrigée puis inspectée. La matrice atteint 433 routes `functional` et 284 `planned` ; UX6
+reste ouverte à 13/84. Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX6_C.md` ; aucun
+acteur, volume, roue native, horloge, combat, ForgeScript ou réseau live n’est exécuté.
+
+### UX6-D — Simulation gameplay
+
+Les routes `ORF-GAME-002`, `ORF-GAME-008`, `ORF-GAME-009` et `ORF-GAME-014` sont `functional`
+dans un workbench à quatre onglets. Vol libre, projectiles, corps/liaisons physiques et ciblage
+passent ensemble par `SetGameplayControlProfileHandler`, avec identités internes stables, double
+garde et préservation de `WorldTime`, `Foundation`, des capacités UX6-C et de `Session`. Les aperçus
+appellent `FlyStep`, `StepProjectile`, `SimulatePhysics` et `PreviewTargeting` sur des états copiés.
+Le portail incrémental passe 11/11 tests en 126,38 s, le smoke global et une capture Forward+ FHD
+inspectée. La matrice atteint 437 routes `functional` et 280 `planned` ; UX6 reste ouverte à 17/84.
+Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX6_D.md` ; aucun acteur, physique Godot,
+projectile natif, caméra, pathfinding, ForgeScript ou réseau live n’est exécuté. Le jalon A–D a
+ensuite repassé le portail transversal complet avec 2 035 tests .NET et 39 tests Python.
+
+### UX6-E — Production gameplay
+
+Les routes `ORF-GAME-005`, `ORF-GAME-006`, `ORF-GAME-007` et `ORF-GAME-028` sont `functional`
+dans un workbench à quatre onglets. Apesanteur, véhicules, montures et succès passent ensemble par
+`SetRuntimeExtensionsHandler`, avec identités internes stables, double garde et préservation du
+reste de `PostLaunch`, des packs gouvernés et des outils opérationnels. Les aperçus appellent
+`ResolveMobility` et `EvaluateAchievement` sur des demandes copiées. Le portail incrémental passe
+13/13 tests en 136,22 s, le smoke global et une capture Forward+ FHD inspectée. La matrice atteint 441 routes
+`functional` et 276 `planned` ; UX6 reste ouverte à 21/84. Preuves et limites sont liées dans
+`docs/acceptance/STUDIO_UX6_E.md` ; aucune gravité, véhicule, monture, plateforme, télémétrie,
+physique, ForgeScript ou réseau live n’est exécuté.
+
+### UX6-F — Fondation ForgeScript
+
+Les routes `ORF-SCR-001`, `ORF-SCR-002`, `ORF-SCR-003`, `ORF-SCR-006` et `ORF-SCR-007` sont
+`functional` dans un atelier unique : sélection explicite, sources `.as` gouvernées, anciens
+`.forge` protégés, éditeur C-like, bindings typés, `main`, compilation/cache et sandbox. Les
+mutations passent par `ForgeScriptSourceHistory`, puis `ForgeScriptSourceStore` écrit atomiquement
+la source et sa métadonnée ; le projet et son historique restent inchangés. Le portail incrémental
+passe 34/34 tests en 284,26 s avec le graphe, le smoke global et une capture Forward+ FHD corrigée puis inspectée.
+La matrice atteint 446 routes `functional` et 271 `planned` ; UX6 reste ouverte à 26/84. Preuves et
+limites sont liées dans `docs/acceptance/STUDIO_UX6_F.md` ; seuls le contrat existant
+`creature.damaged` et la sandbox native bornée sont qualifiés, sans migration `.forge`, hot reload,
+débogage, objet gameplay, événement moteur ou réseau live.
+
+### UX6-G — Éditeur, Wizard et APIs gameplay ForgeScript
+
+Les routes `ORF-SCR-004`, `ORF-SCR-005`, `ORF-SCR-008`, `ORF-SCR-010` et `ORF-SCR-011` sont
+`functional` dans une surface à trois colonnes : analyse/complétions/diagnostics, source canonique
+et Wizard avec simulations gameplay. La page réutilise `ForgeScriptSourceHistory`, le dry-run, la
+compilation, la sandbox et l’écriture atomique UX6-F ; elle n’introduit aucune autorité parallèle.
+Les aperçus appellent les services canoniques sur des états copiés et refusent l’autorité cliente.
+Le portail incrémental passe 25/25 tests en 251,59 s avec le graphe, le smoke global et une capture
+Forward+ FHD corrigée puis inspectée. La matrice atteint 451 routes `functional` et 266 `planned` ;
+UX6 reste ouverte à 31/84. Preuves et limites sont liées dans
+`docs/acceptance/STUDIO_UX6_G.md` ; aucun acteur, objet Godot, fichier du module, événement moteur
+ou transport réseau n’est muté par les simulations. Le jalon UX6-E/F/G repasse ensuite le portail
+transversal complet avec 2 035 tests .NET, 39 tests Python et tous les smokes de livraison.
+
+### UX6-H — APIs monde ForgeScript
+
+Les routes `ORF-SCR-012` à `ORF-SCR-016` sont `functional` dans une surface à deux colonnes et
+cinq onglets : inventaire, journal/quêtes, dialogues, factions/réputation et perception. La page
+réutilise strictement la source, l’historique, le dry-run, la compilation, la sandbox et l’écriture
+atomique UX6-F ; son bloc versionné doit être construit, relu puis inséré explicitement. Les
+catalogues proviennent du projet ouvert, et l’absence de faction dans Forgotten Forest reste un
+état vide honnête ; seule la copie temporaire de preuve reçoit une faction canonique. Le portail
+incrémental passe 13/13 tests en 166,56 s, le smoke global et une capture Forward+ FHD corrigée puis
+inspectée. La matrice atteint 456 routes `functional` et 261 `planned` ; UX6 reste ouverte à 36/84.
+Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX6_H.md` ; les appels natifs sont
+sandboxés, mais aucun inventaire, quête, dialogue, réputation, perception moteur ou réseau live
+n’est muté par l’aperçu.
+
+### UX6-I — Monde, mouvement, utilitaires et sandbox ForgeScript
+
+Les routes `ORF-SCR-009`, `ORF-SCR-017`, `ORF-SCR-021`, `ORF-SCR-022` et `ORF-SCR-027` sont
+`functional` dans une surface à deux colonnes et cinq onglets humains. La page réutilise strictement
+la source, l’historique, le dry-run, la compilation, la sandbox et l’écriture atomique UX6-F ; le
+bloc R013 versionné doit être construit, relu puis inséré explicitement. Zones, tags et blueprints
+proviennent de Forgotten Forest réel, tandis que toutes les intentions monde et mouvement sont
+appliquées à une copie en mémoire. Le portail incrémental passe 18/18 tests en 197,50 s, le smoke
+global et une capture Forward+ FHD inspectée. La matrice atteint 461 routes `functional` et 256
+`planned` ; UX6 reste ouverte à 41/84. Preuves et limites sont liées dans
+`docs/acceptance/STUDIO_UX6_I.md` ; aucun acteur, pathfinding, physique, sauvegarde, fichier,
+processus ou transport réseau live n’est invoqué.
+
+### UX6-J — Sécurité, quotas, déterminisme et API ForgeScript
+
+Les routes `ORF-SCR-028`, `ORF-SCR-029`, `ORF-SCR-030`, `ORF-SCR-031` et `ORF-SCR-036` sont
+`functional` dans une surface à deux colonnes et cinq onglets : handles, instructions, mémoire,
+déterminisme et API. La source UX6-F reste revue et compilée sans mutation ; une politique R014
+séparée passe par son propre historique, son dry-run, son empreinte et son store atomique. Les
+catalogues de zone, objet et ressource proviennent de Forgotten Forest et restent affichés par
+libellés humains. Le portail final passe 27/27 tests en 156,85 s, le smoke global et une capture
+Forward+ FHD corrigée puis inspectée. La matrice atteint 466 routes `functional` et 251 `planned` ;
+UX6 reste ouverte à 46/84. Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX6_J.md` ;
+la sandbox native prouve les quotas et le replay, mais aucun acteur, serveur de partie, fichier
+arbitraire, processus, réseau ou budget matériel live n’est invoqué.
+
+### UX6-K — Permissions ForgeScript par module
+
+`ORF-SCR-039` est `functional` dans une surface à trois onglets : Module, Kits et Liaisons.
+L’allowlist explicite expose les six familles ForgeScript par libellé humain ; chaque kit est un
+sous-ensemble du module et chaque liaison un sous-ensemble du kit. Le manifeste R015 séparé passe
+par son propre historique, son dry-run, son empreinte et son store atomique, tandis que la source
+UX6-F reste revue sans mutation. Le portail final passe 14/14 tests en 159,24 s, le smoke global et
+les captures rendues des trois onglets. La matrice atteint 467 routes `functional` et 250 `planned` ;
+UX6 reste ouverte à 47/84. Preuves et limites sont liées dans
+`docs/acceptance/STUDIO_UX6_K.md` ; la sandbox prouve autorisation, refus, quota et récupération,
+mais Studio ne signe aucun package et n’exécute aucun acteur, session réseau ou runtime de jeu live.
+
+### UX6-L — Outils runtime ForgeScript
+
+`ORF-SCR-019`, `ORF-SCR-020` et `ORF-SCR-023` sont `functional` dans une surface à trois onglets :
+Audio & musique, Horloge & timers et Événements custom. Les formulaires produisent un bloc R099
+versionné à relire, qui reste dans la source et l’historique UX6-F. L’aperçu exerce les états C#
+canoniques, puis compile et exécute réellement les intentions natives audio, temps et événement dans
+la sandbox. Le portail final passe 15/15 tests en 156,29 s, le smoke global et trois captures Forward+ FHD
+inspectées. La matrice atteint 470 routes `functional` et 247 `planned` ; UX6 reste ouverte à 50/84.
+Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX6_L.md` ; aucun lecteur audio, temps
+système, événement de session, acteur Godot ou transport réseau n’est exécuté par Studio.
+
+### UX6-M — Automatisation ForgeScript
+
+`ORF-SCR-018`, `ORF-SCR-024`, `ORF-SCR-025` et `ORF-SCR-026` sont `functional` dans une surface à
+quatre onglets : Caméra & cutscenes, Routage par tags, Switches module et Switches IA. Les collections
+ordonnées reconstruisent uniquement `Module.WorldFeatures.Scripts`, puis passent validation, aperçu
+sec, double garde révision/empreintes, commande canonique, undo/redo et sauvegarde/réouverture. Le
+resolver pur exerce plan, verrou, récupération, skip accessible, route tag/événement, valeur de flag
+et fallback IA. Le portail passe 60/60 tests en 162,07 s, le smoke global et quatre captures Forward+
+FHD inspectées. La matrice atteint 474 routes `functional` et 243 `planned` ; UX6 reste ouverte à
+54/84. Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX6_M.md` ; aucun `Camera3D`, acteur,
+comportement IA, script, moteur ou transport réseau n’est exécuté par Studio.
+
+### UX6-N — Hot reload et débogueur ForgeScript
+
+`ORF-SCR-032` et `ORF-SCR-033` sont `functional` dans les deux nouveaux onglets Hot reload et
+Débogueur de l’unique surface R099. Le bloc versionné reste dans la source et l’historique UX6-F ;
+l’aperçu exerce migration, invalidation des dépendances, rollback, reprise, breakpoint, pile,
+watch, inspection et pas de débogage sur un état copié, puis compile et exécute les intentions
+natives correspondantes dans la sandbox. Le portail passe 28/28 tests en 131,98 s, le smoke global
+et deux captures Forward+ FHD inspectées. La matrice atteint 476 routes `functional` et 241
+`planned` ; UX6 reste ouverte à 56/84. Preuves et limites sont liées dans
+`docs/acceptance/STUDIO_UX6_N.md` ; aucun module chargé, processus distant, acteur Godot, moteur ou
+transport réseau n’est contrôlé par Studio.
+
+### UX6-O — Qualité ForgeScript
+
+`ORF-SCR-034`, `ORF-SCR-035`, `ORF-SCR-037`, `ORF-SCR-038` et `ORF-SCR-040` sont `functional`
+dans les cinq onglets Tests, Profilage, Documentation, Analyse et État. Le profil R100 versionné
+reste distinct de la source UX6-F tout en partageant sa sélection canonique ; aperçu sec,
+simulation, empreintes source/profil, approbation, apply, undo/redo et sauvegarde/réouverture sont
+transactionnels. Le portail passe 16/16 tests en 135,51 s, le smoke global et cinq captures
+Forward+ FHD inspectées. La matrice atteint 481 routes `functional` et 236 `planned` ; UX6 reste
+ouverte à 61/84. Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX6_O.md` ; tests,
+mesures et état portent sur une sandbox copiée, la documentation est générée en mémoire et aucun
+monde, acteur, fichier produit, processus distant ou transport réseau live n’est piloté par Studio.
+
+### UX6-P — Interop éditeur/MCP ForgeScript
+
+`ORF-SCR-041` est `functional` dans une surface à trois vues Profil R101, Liaison et Transactions.
+La source reste l’autorité UX6-F ; le profil interop est persistant et les plans source/binding sont
+exercés par le service MCP isolé avec compilation, diagnostics, tests, apply/revert/redo, snapshot,
+quotas/récupération et adaptateur runtime. Le portail passe 10/10 tests en 135,87 s, le smoke global
+et trois captures Forward+ FHD inspectées. La matrice atteint 482 routes `functional` et 235
+`planned` ; UX6 reste ouverte à 62/84. Preuves et limites sont liées dans
+`docs/acceptance/STUDIO_UX6_P.md` ; aucun acteur, bus live, objet moteur, fichier arbitraire,
+processus ou transport réseau n’est piloté par Studio.
+
+### UX6-Q — Compilateur moderne et création ForgeScript assistée
+
+`ORF-EE-031` et `ORF-AI-018` sont `functional` dans une surface à deux onglets séparant le profil
+compilateur du workflow de source assistée. Le premier passe par `SetRuntimeExtensionsHandler`,
+compile réellement une copie des sources autonomes et prouve cache, réutilisation, invalidation,
+diagnostics stables, télémétrie et conformité. Le second produit localement une proposition
+déterministe, la compile et la teste, puis écrit atomiquement le `.as` et son `.meta.json` seulement
+après dry-run, approbation et permission, avec undo/redo exacts. Le portail passe 16/16 tests en
+137,50 s, le smoke global et deux captures Forward+ FHD inspectées. La matrice atteint 484 routes
+`functional` et 233 `planned` ; UX6 reste ouverte à 64/84. Preuves et limites sont liées dans
+`docs/acceptance/STUDIO_UX6_Q.md` ; aucun fournisseur distant, modèle d’IA, acteur, bus runtime,
+objet Godot, distribution de bytecode ou transport réseau n’est piloté par Studio.
+
+### UX6-R — Données et UI runtime
+
+`ORF-EE-011`, `ORF-EE-012`, `ORF-EE-013`, `ORF-EE-015` et `ORF-EE-016` sont `functional`
+dans quatre onglets Règles, Interface/événements, JSON et État sérialisable. Les collections
+complètes restent dans `ModuleRuntimeExtensionProfile` et une unique commande
+`SetRuntimeExtensionsHandler` porte aperçu sec, approbation, apply, undo/redo et persistance.
+Les changements de sélection sauvegardent le document courant avant d’en charger un autre ; le
+smoke crée deux règles, deux interfaces et deux documents JSON et rend cette conservation
+bloquante. Le portail passe 24/24 tests en 140,90 s, le smoke global et quatre captures Forward+
+FHD inspectées. La matrice atteint 489 routes `functional` et 228 `planned` ; UX6 reste ouverte à
+69/84. Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX6_R.md` ; les services de
+résolution, le bus UI et le store JSON sont exercés en mémoire, mais aucun nœud Godot, acteur,
+sauvegarde produit, bus runtime live, processus ou transport réseau n’est piloté par Studio.
+
+### UX6-S — Politiques Creator techniques
+
+`ORF-EE-014`, `ORF-EE-017`, `ORF-EE-020` et `ORF-EE-021` sont `functional` dans quatre onglets
+Périphériques, Ressources VM, Contrôle de groupe et Progression. Les quatre profils conservent leurs
+identités et reconstruisent uniquement `CreatorExperience` avant un dry-run et une application par
+`SetRuntimeExtensionsHandler`. Les résolveurs PostLaunch exercent filtrage, quotas, capacité du
+groupe et parcours data-driven sur des entrées de simulation séparées. Le portail passe 19/19 tests
+en 140,55 s, le smoke global et quatre captures Forward+ FHD inspectées. La matrice atteint 493
+routes `functional` et 224 `planned` ; UX6 reste ouverte à 73/84. Preuves et limites sont liées dans
+`docs/acceptance/STUDIO_UX6_S.md` ; aucun périphérique, ressource, acteur, ordre IA, classe, niveau,
+écran runtime ou transport réseau n’est exécuté par Studio.
+
+### UX6-T — Indicateur AOE et NUI 2.0
+
+`ORF-EE-022` et `ORF-EE-024` sont `functional` dans deux onglets Zone d’effet et NUI 2.0. Le
+premier conserve l’identité du profil et édite formes, portée, hauteur, couverture, confirmation et
+palettes avant une résolution réelle par `AreaEffectPreviewService` sur des candidats temporaires.
+Le second déclare les sept capacités du toolkit 2.0 en laissant les documents, widgets et bindings
+strictement inchangés. Les deux passent par `SetRuntimeExtensionsHandler`, double garde, undo/redo
+et round-trip. Le portail passe 15/15 tests en 147,77 s, le smoke global et deux captures Forward+
+FHD inspectées. La matrice atteint 495 routes `functional` et 222 `planned` ; UX6 reste ouverte à
+75/84. Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX6_T.md` ; aucun mesh Godot,
+ciblage serveur, document NUI, événement GUI ou transport réseau n’est exécuté par Studio.
+
+### UX6-U — Variables et blackboard
+
+`ORF-GAME-022` est `functional` dans une surface à deux onglets Définition gouvernée et Blackboard
+en mémoire. La première remplace seulement valeur par défaut, réplication, visibilité debug et
+exigence runtime de la variable sélectionnée via `SetModuleConfigurationHandler`; l’éditeur complet
+de création, clé, type et portée reste l’autorité UX0-I. La seconde exerce réellement
+`ProjectBlackboardScriptService` sur une copie : handle typé, mutation normalisée, vue debug,
+delta par audience, snapshot/reload par portée, refus d’un handle périmé et frontière legacy.
+Le portail passe 56/56 tests en 144,09 s, le smoke global et une capture Forward+ FHD inspectée.
+La matrice atteint 496 routes `functional` et 221 `planned` ; UX6 reste ouverte à 76/84. Preuves et
+limites sont liées dans `docs/acceptance/STUDIO_UX6_U.md` ; aucun serveur, client, `GameRoot`,
+ForgeScript, fichier de sauvegarde produit ou transport réseau n’est exécuté par Studio.
+
+### UX6-V — Pathfinding amélioré
+
+`ORF-EE-028` est `functional` dans une surface à trois onglets Surface & agent, Laboratoire A* et
+Adaptation moteur. La première reconstruit uniquement le profil sélectionné et le pas de cellule
+avant `SetNavigationTopologyHandler`. La seconde exécute `NavigationPathfinder` sur une surface
+copiée avec porte, obstacle, coût, récupération et budget. La troisième expose les plans de mise à
+jour dynamique, rebake et `SurfaceNavigationPlanBuilder` sans les présenter comme un mouvement
+live. Le portail passe 10/10 tests en 144,21 s, le smoke global et une capture Forward+ FHD
+inspectée. La matrice atteint 497 routes `functional` et 220 `planned` ; UX6 reste ouverte à 77/84.
+Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX6_V.md` ; aucun `NavigationAgent3D`,
+acteur, évitement local, déplacement, serveur ou transport réseau n’est exécuté par Studio.
+
+### UX6-W — Transformations runtime
+
+`ORF-EE-001` et `ORF-EE-027` sont `functional` dans une surface à trois onglets Overrides,
+Tweens et Aperçu runtime copié. Les collections canoniques du profil cinématique conservent leurs
+identités, parents, transforms, canaux, durées, easing, autorité, sauvegarde et réplication. Une
+unique commande `SetCinematicProfilesHandler` porte dry-run, approbation, apply, undo/redo et
+round-trip, tandis que `TransformOverrideRuntime` et `AnimationTweenRuntime` exercent hiérarchie,
+transform, matériau, état et annulation sur une copie. Le portail final passe 10/10 tests en
+146,60 s, le smoke global et trois captures Forward+ FHD inspectées après correction responsive.
+La matrice atteint 499 routes `functional` et 218 `planned` ; UX6 reste ouverte à 79/84. Preuves
+et limites sont liées dans `docs/acceptance/STUDIO_UX6_W.md` ; aucun nœud Godot, matériau, état
+d’acteur, scène, serveur ou transport réseau live n’est modifié par Studio.
+
+### UX6-X — HUD runtime et typographie
+
+`ORF-GAME-026` et `ORF-EE-026` sont `functional` dans deux onglets Carte, journal et HUD puis
+Police et échelles. Le shell conserve l’autorité `ModuleGameplayControlProfile.Session.Shell` et
+passe par `SetGameplayControlProfileHandler`; les échelles et la chaîne typographique conservent
+l’autorité `EditorWorkspaceProfile` et son historique distinct. L’application effectue donc deux
+transactions explicites avec rollback de la première si la seconde échoue. Les résolveurs opèrent
+sur des copies et l’échantillon Godot reste local. Le portail final repasse 22/22 tests en 162,88 s, le smoke
+global et deux captures Forward+ FHD inspectées après correction de la représentation numérique.
+La matrice atteint 501 routes `functional` et 216 `planned` ; UX6 reste ouverte à 81/84. Preuves
+et limites sont liées dans `docs/acceptance/STUDIO_UX6_X.md` ; aucun HUD, thème global,
+périphérique, viewport, nœud runtime ou session de jeu live n’est modifié par Studio.
+
+### UX6-Y — Météo runtime et streaming de zone
+
+`ORF-GAME-018` et `ORF-EE-023` sont `functional` dans deux onglets Météo runtime et Streaming de
+zone. Le premier reconstruit uniquement la politique du profil météo avant `SetAreaEnvironment` et
+exécute machine déterministe, autorité et événement typé sur copie. Le second reconstruit uniquement
+`Area.World.Loading` avant `SetAreaWorldProfile` et exerce dépendances, progression, cache,
+annulation et benchmark sur un chargeur mémoire déterministe. Les deux commandes sont explicites,
+annulables et protégées par révision et empreintes. Le portail final passe 33/33 tests en 163,69 s,
+le smoke global et deux captures Forward+ FHD inspectées après correction du libellé d’isolation.
+La matrice atteint 503 routes `functional` et 214 `planned` ; UX6 reste ouverte à 83/84. Preuves
+et limites sont liées dans `docs/acceptance/STUDIO_UX6_Y.md` ; aucun réseau, ForgeScript, chunk,
+scène Godot ou chargement moteur live n’est exécuté par Studio.
+
+### UX6-Z — Création assistée de capacité
+
+`ORF-AI-020` est `functional` dans une surface à trois onglets Design de combat, Dépendances &
+gouvernance et Tests & équilibrage. Le porteur est explicite ; effets ordonnés, script réel, objet
+optionnel, tags IA, intention d'équilibrage et gouvernance alimentent le fournisseur local
+déterministe. La proposition traverse cinq scénarios `CombatResolver`, l'équilibrage et le document
+runtime stable avant approbation, dry-run puis `ApplyAssistedAbilityHandler`. Le portail passe 6/6
+tests en 146,31 s, le smoke global et une capture Forward+ FHD inspectée. La matrice atteint 504
+routes `functional` et 213 `planned` ; UX6 est close à 84/84. Preuves et limites sont liées dans
+`docs/acceptance/STUDIO_UX6_Z.md` ; aucun fournisseur distant, ForgeScript, objet, VFX, audio,
+combat moteur, acteur Godot, serveur ou transport réseau live n’est exécuté par Studio.
+
+### UX3-A — Fondation des blueprints et palettes
+
+`ORF-PAL-001`, `ORF-PAL-002`, `ORF-PAL-003`, `ORF-PAL-006` et `ORF-PAL-007` sont
+`functional` dans une surface à trois onglets Définition réutilisable, Instance et dérivation,
+puis Palettes Standard et Projet. L'édition Projet passe par `UpsertBlueprintHandler` ; la
+dérivation retargete uniquement l'instance sélectionnée via `CreateBlueprintFromEntityHandler`.
+La palette Standard reste protégée en lecture seule et les deux inventaires réutilisent l'unique
+catalogue canonique. Le portail final passe 22/22 tests en 144,41 s, le smoke global, trois captures
+Forward+ FHD et le jalon QHD/4K inspecté. La matrice atteint 509 routes `functional` et 208
+`planned` ; UX3 reste ouverte à 5/34. Preuves et limites sont liées dans
+`docs/acceptance/STUDIO_UX3_A.md` ; aucune instance, ressource, scène, asset, script, moteur ou
+transport réseau live n'est exécuté par Studio.
+
+### UX3-B — Propagation, migration et prefabs
+
+`ORF-PAL-004`, `ORF-PAL-005`, `ORF-PAL-008`, `ORF-PAL-013` et `ORF-PAL-014` sont
+`functional` dans une bibliothèque avancée à deux transactions indépendantes : propagation et
+migration sélectives d'une instance réelle, puis variantes et compositions. Les catégories sont
+hiérarchiques, les transforms de nœuds sont complets, les références restent humaines et chaque
+apply refait son dry-run sous garde de révision et d'empreintes. Une exclusion de migration élargit
+sa contrainte à la version précédente plutôt que de conserver une définition cachée
+impossible à sérialiser. Le portail passe 17/17 tests en 146,04 s, le smoke global et deux captures
+Forward+ FHD inspectées. La matrice atteint 514 routes `functional` et 203 `planned` ; UX3 reste
+ouverte à 10/34. Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX3_B.md` ; aucun asset,
+prefab, scène, script, moteur ou transport réseau live n'est chargé ou exécuté par Studio.
+
+### UX3-C — Découverte, miniatures et dépôt
+
+`ORF-PAL-009`, `ORF-PAL-010`, `ORF-PAL-011` et `ORF-PAL-012` sont `functional` dans une
+surface de découverte qui sépare préférences personnelles et placement projet. Favoris/récents,
+recherche combinée et miniature locale gouvernée restent liés au catalogue canonique ; le vrai
+payload Godot est validé par `BlueprintDropPlanner` avant le dry-run et l'application via
+`PlaceRepeatedEntities`. Les deux transactions gardent leurs approbations, historiques et
+persistances indépendants. Le portail passe 23/23 tests en 153,00 s, le smoke global et une capture
+Forward+ FHD inspectée. La matrice atteint 518 routes `functional` et 199 `planned` ; UX3 reste
+ouverte à 14/34. Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX3_C.md` ; aucun asset,
+prefab, scène, script, acteur, moteur ou transport réseau live n'est chargé ou exécuté par Studio.
+
+### UX3-D — Dépendances, provenance et licence
+
+`ORF-PAL-015` et `ORF-PAL-016` sont `functional` dans une surface de gouvernance qui sépare le
+manifeste de dépendances de la provenance distribuable. `WorkspaceBuildGraphBuilder` ferme les
+ressources transitives et refuse avant packaging toute dépendance absente d'un blueprint utilisé ;
+`BlueprintDropPlanner` et `DistributionComplianceValidator` vérifient source, auteur, SPDX,
+permission et SHA-256. Les deux transactions gardent leurs approbations et historiques distincts.
+Le portail passe 45/45 tests en 191,90 s, le smoke global et deux captures Forward+ FHD inspectées.
+La matrice atteint 520 routes `functional` et 197 `planned` ; UX3 reste ouverte à 16/34. Preuves et
+limites sont liées dans `docs/acceptance/STUDIO_UX3_D.md` ; aucun asset, prefab, package, script,
+acteur, moteur ou transport réseau live n'est chargé, créé ou exécuté par Studio.
+
+### UX3-E — Compatibilité artistique et budgets d’asset
+
+`ORF-PAL-017` et `ORF-PAL-018` sont `functional` dans une surface à deux transactions. La première
+mesure les bornes `POSITION` d’un GLB et la résolution d’un PNG, puis localise les six écarts
+artistiques canoniques. La seconde gouverne triangles, matériaux, textures, mémoire, animations,
+LOD et collisions par plateforme, avec avertissement ou refus pré-build explicite. Les deux
+approbations sont indépendantes et protégées par révision et empreintes. Le portail passe 11/11
+tests en 156,86 s, le smoke global et deux captures Forward+ FHD inspectées. La matrice atteint 522
+routes `functional` et 195 `planned` ; UX3 reste ouverte à 18/34. Preuves et limites sont liées dans
+`docs/acceptance/STUDIO_UX3_E.md` ; aucun asset, matériau, GPU, package, script, acteur, moteur ou
+transport réseau live n'est instancié, mesuré, créé ou exécuté par Studio.
+
+### UX3-F — Navigateur, import et aller-retour Blender
+
+`ORF-CONT-013`, `ORF-CONT-014`, `ORF-CONT-020`, `ORF-CONT-021` et `ORF-CONT-022` sont
+`functional` dans une surface qui fusionne ressources module et catalogue, classe réellement les
+textures et modèles, puis sépare profil d’import et édition externe. `AssetImportPlanner` produit un
+plan sec KTX2/GLB ; la configuration Blender ne contient que des opérations typées allowlistées et
+un worker request confiné. Les deux approbations, révisions, empreintes, historiques et stores sont
+indépendants. Le portail passe 32/32 tests en 157,96 s, le smoke global et trois captures Forward+
+FHD inspectées. La matrice atteint 527 routes `functional` et 190 `planned` ; UX3 reste ouverte à
+23/34. Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX3_F.md` ; aucun asset n’est
+téléchargé, transformé ou réimporté et aucun processus Blender, package, script, acteur, moteur ou
+transport réseau live n’est exécuté par Studio.
+
+### UX3-G — Manifestes d’assets de production
+
+`ORF-CONT-008`, `ORF-CONT-015`, `ORF-CONT-016` et `ORF-CONT-017` sont `functional` dans une
+surface qui conserve le manifeste complet : gouvernance, budgets plateforme, chunks ordonnés,
+collision/navigation, clips d’animation, VFX et LOD. Les fichiers réels et leurs hashes sont
+résolus avant l’approbation ; le plan VFX demeure une décision pure. Révision, empreintes,
+dry-run, historique, undo/redo, save/reopen et tails cachés sont préservés. Le portail passe 15/15
+tests en 160,44 s, le smoke global et quatre captures Forward+ FHD inspectées. La matrice atteint
+531 routes `functional` et 186 `planned` ; UX3 reste ouverte à 27/34. Preuves et limites sont liées
+dans `docs/acceptance/STUDIO_UX3_G.md` ; aucun mesh, bake, playback, rendu VFX, LOD, benchmark GPU,
+package, script, acteur, moteur ou transport réseau live n’est produit ou exécuté par Studio.
+
+### UX3-H — Données et transferts de contenu
+
+`ORF-CONT-004`, `ORF-CONT-005`, `ORF-CONT-006` et `ORF-CONT-018` sont `functional` dans un
+workbench à quatre vues : import borné de fichiers ouverts, export déterministe des blueprints et
+de leurs dépendances, catalogue de sources textuelles gouvernées et tables typées. L’import local
+et l’export possèdent chacun leur rollback de fichiers ; la configuration projet conserve sa
+commande, son dry-run et son historique propres. Révision, empreintes, undo/redo, save/reopen,
+voisins et source produit sont préservés. Le portail passe 18/18 tests en 173,10 s, le smoke global
+et cinq captures Forward+ FHD inspectées. La matrice atteint 535 routes `functional` et 182
+`planned` ; UX3 reste ouverte à 31/34. Preuves et limites sont liées dans
+`docs/acceptance/STUDIO_UX3_H.md` ; l’étiquette ERF historique ne signifie pas que le format
+propriétaire est décodé, et aucun package, script, acteur, moteur ou transport réseau live n’est
+installé ou exécuté par Studio.
+
+### UX3-I — Provenance, quarantaine et génération média gouvernée
+
+`ORF-CONT-023`, `ORF-CONT-024` et `ORF-AI-024` sont `functional` dans un workbench à deux
+historiques indépendants. Le premier choisit un asset réel, vérifie provenance, droits, budget,
+hash, format et quarantaine avant une décision humaine ; le scanner produit est fail-closed et la
+preuve déterministe reste confinée à l’isolat. Le second édite la politique projet et planifie un
+candidat Image/Audio/VFX sans appeler de fournisseur. Révision, empreintes, dry-run, undo/redo,
+save/reopen, voisins et source produit sont préservés. Le portail passe 12/12 tests en 171,71 s,
+le smoke global et quatre captures Forward+ FHD inspectées. La matrice atteint 538 routes
+`functional` et 179 `planned` ; UX3 est close à 34/34. Preuves et limites sont liées dans
+`docs/acceptance/STUDIO_UX3_I.md` ; aucun téléchargement, scan antivirus simulé dans le produit,
+génération, import, rendu, playback, publication ou appel distant n’est exécuté par Studio.
+
+### UX7-A — Validation canonique et diagnostics cliquables
+
+`ORF-AREA-037`, `ORF-AUD-020`, `ORF-QA-001` à `ORF-QA-007` et `ORF-QA-021` sont `functional`
+dans l'atelier Validation. Dix cartes humaines agrègent les autorités canoniques existantes pour
+schéma, références, graphes, géométrie, navigation, localisation, licences, préparation de zone et
+audio ; chaque diagnostic conserve son code et son chemin, expose une cible cliquable et peut
+prévisualiser puis appliquer uniquement un correctif déjà gouverné. Révision, empreintes,
+undo/redo, save/reopen, voisins et source produit sont préservés dans l'isolat. Le portail passe
+33/33 tests en 300,73 s, le smoke global et une capture Forward+ FHD inspectée. La matrice atteint
+548 routes `functional` et 169 `planned` ; UX7 reste ouverte à 10/43. Preuves et limites sont liées
+dans `docs/acceptance/STUDIO_UX7_A.md` ; aucun build, package, runtime gameplay, playback, acteur,
+moteur ou transport réseau live n’est exécuté par l'atelier.
+
+### UX7-B — Laboratoire qualité isolé
+
+`ORF-QA-008`, `ORF-QA-010`, `ORF-QA-015` et `ORF-QA-020` sont `functional` dans la page Qualité.
+Le profil est choisi explicitement, prévisualisé puis appliqué par sa commande canonique. Le run
+copie le workspace, permet une annulation réelle entre familles et expose quatre résultats
+navigables : validation Domaine, replay headless, six scénarios de sauvegarde sur fichiers
+`.orpsave` et journal JSON confidentiel. Révision, empreintes, licences, validation, undo/redo,
+save/reopen, source et ressources temporaires sont préservés. Le portail passe 25/25 tests en
+245,20 s, le smoke global et une capture Forward+ FHD corrigée puis inspectée. La matrice atteint
+552 routes `functional` et 165 `planned` ; UX7 reste ouverte à 14/43. Preuves et limites sont liées
+dans `docs/acceptance/STUDIO_UX7_B.md` ; aucun runner xUnit embarqué, runtime Godot de jeu, acteur,
+script, playback, journal joueur ou transport réseau live n'est exécuté par le laboratoire.
+
+### UX7-I — Observabilité Tracy et OpenTelemetry
+
+`ORF-EE-029` est `functional` dans la page Qualité. Le profil canonique autorise explicitement
+Tracy et/ou OpenTelemetry, impose une durée bornée et choisit l'inclusion ForgeScript ; son aperçu
+et son application passent par `SetRuntimeExtensionsHandler`. Le run copie le workspace, produit
+une vraie trace JSON OpenTelemetry confinée couvrant Editor, Runtime, Serveur et ForgeScript,
+expose six résultats navigables, prouve l'annulation et supprime l'isolat. Tracy natif n'est jamais
+simulé : sans Godot instrumenté et capture server compatible, un diagnostic stable explique le
+prérequis. Le portail passe 14/14 tests en 420,22 s, le smoke global et une capture Forward+ FHD
+corrigée puis inspectée. La matrice atteint 624 routes `functional` et 93 `planned` ; UX7 est close
+à 43/43 et le graphe Roslyn frais compte 11 194 nœuds / 86 220 relations sans diagnostic. Preuves
+et limites sont liées dans `docs/acceptance/STUDIO_UX7_I.md` ; aucun build Godot
+personnalisé, capture Tracy native, compteur GPU constructeur, réseau, commit ou publication n'est
+revendiqué.
+
+### UX8-A — Build réel, déterministe et incrémental
+
+`ORF-SHELL-019`, `ORF-EE-004` et `ORF-BUILD-003` à `ORF-BUILD-005` sont `functional` dans la page
+Build. Après sélection explicite, Studio calcule le graphe canonique, copie le workspace dans un
+isolat, lance réellement `Forge.Cli build` deux fois, compare les deux `.orpmod` octet par octet et
+prouve que le second passage ne reconstruit aucune ressource. L'annulation tue l'arbre du processus
+et toute fermeture libère l'isolat ; projet, historique, sélection et Git restent inchangés. Le
+portail passe 61/61 tests en 624,28 s, le smoke global, une capture Forward+ FHD inspectée, la
+matrice à 585 `functional` / 132 `planned` et le graphe Roslyn à 11 032 nœuds / 84 434 relations
+sans diagnostic. Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX8_A.md` ; aucune
+signature, publication, installation ni qualification de distribution n'est revendiquée.
+
+### UX8-B — Maintenance collaborative confinée du build
+
+`ORF-BUILD-006` et `ORF-BUILD-008` à `ORF-BUILD-011` sont `functional` dans la page Build. Après
+sélection explicite, Studio copie le workspace dans un isolat jetable, inventorie et purge le cache,
+normalise les documents, applique les migrations avec sauvegarde et second passage idempotent,
+reconstruit les références avant/arrière puis produit un diff sémantique sans UUID visible. Les
+opérations canoniques sont annulables entre étapes ; le module source, son historique, sa sélection
+et Git restent inchangés. Le portail passe 25/25 tests en 549,47 s, le smoke global et une capture
+Forward+ FHD inspectée ; la matrice atteint 590 `functional` / 127 `planned` et le graphe Roslyn
+11 043 nœuds / 84 530 relations sans diagnostic. Preuves et limites sont liées dans
+`docs/acceptance/STUDIO_UX8_B.md` ; aucun undo multi-fichiers sur la source, shell arbitraire,
+réseau, commit ou publication Git n'est revendiqué.
+
+### UX8-C — Merge assisté et gouvernance du dépôt
+
+`ORF-BUILD-012` à `ORF-BUILD-015` sont `functional` dans la page Build. Le merge assisté exerce
+réellement les autorités listes et graphes sur deux variantes du module, expose les conflits et
+conserve les deux variantes par identités déterministes sans écrire la source. Un onglet séparé
+prévisualise puis persiste uniquement le profil de gouvernance : préfixe et propriété des worktrees,
+sept contrôles CI et catalogue de cinq fixtures. La commande est protégée par révision et empreintes,
+alimente undo/redo/sauvegarde dans un isolat et laisse projet, historique, sélection, approbation et
+Git inchangés. Le portail passe 23/23 tests en 538,11 s, le smoke global et deux captures Forward+
+FHD inspectées ; la matrice atteint 594 `functional` / 123 `planned` et le graphe Roslyn 11 056
+nœuds / 84 680 relations sans diagnostic. Preuves et limites sont liées dans
+`docs/acceptance/STUDIO_UX8_C.md` ; aucun merge Git, agent, runner CI distant, shell arbitraire,
+commit ou publication n'est revendiqué.
+
+### UX8-D — État du dépôt, versions et décisions
+
+`ORF-BUILD-001`, `ORF-BUILD-002`, `ORF-BUILD-018` et `ORF-BUILD-019` sont `functional` dans la page
+Production. Après sélection explicite, Studio inspecte le profil et le dépôt local sans lancer Git :
+garanties de dépôt, huit emplacements standards, versions distinctes Core/kits/package/schémas,
+compatibilité, changelog, dossier/modèle/statuts ADR et preuves de tests/benchmarks. Les dossiers
+absents restent annoncés comme configurés mais non matérialisés. L'inspection est annulable, ses
+quatre résultats sont navigables et le journal reste replié. Le portail passe 19/19 tests en
+535,79 s, le smoke global et une capture Forward+ FHD corrigée puis inspectée ; la matrice atteint
+598 `functional` / 119 `planned` et le graphe Roslyn 11 066 nœuds / 84 755 relations sans diagnostic.
+Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX8_D.md` ; aucune commande Git,
+génération, écriture d'ADR, commit ou publication n'est revendiquée.
+
+### UX8-E — Documentation, tâches, canaux et diagnostics
+
+`ORF-BUILD-020`, `ORF-BUILD-021`, `ORF-BUILD-024` et `ORF-BUILD-025` sont `functional` dans la page
+Production. Après sélection explicite, Studio reconstruit les six catalogues documentaires en mode
+contrôle, valide les manifestes de tâches, prévisualise la transition du canal de release puis crée,
+inspecte et supprime une archive de crash temporaire assainie. Les quatre résultats sont navigables,
+l'inspection est annulable et les journaux restent repliés à la demande. Le portail passe 30/30
+tests en 531,26 s, le smoke global et une capture Forward+ FHD inspectée ; la matrice atteint 602
+`functional` / 115 `planned` et le graphe Roslyn 11 076 nœuds / 84 866 relations sans diagnostic.
+Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX8_E.md` ; aucun agent, écriture
+documentaire, bundle, signature, publisher, publication, dump natif ou collecte de processus n'est
+revendiqué.
+
+### UX8-F — Dépendances, notices, crédits et frontière IP
+
+`ORF-BUILD-022`, `ORF-BUILD-023`, `ORF-CONT-030` et `ORF-CONT-031` sont `functional` dans la page
+Production. L’inspection conserve l’état réel vide de Forgotten Forest ; une approbation complète est
+créée uniquement dans l’isolat de preuve. Le formulaire passe par `DistributionComplianceValidator`
+puis `SetModuleDistributionHandler`, lie l’approbation à la révision et aux empreintes exactes, et
+prouve dry-run, application, undo/redo puis save/reopen. La notice Shipping est générée deux fois et
+comparée octet par octet ; crédits, provenances et frontières IP restent en lecture canonique. Le
+portail passe 20/20 tests en 534,72 s, le smoke global et une capture Forward+ FHD inspectée ; la
+matrice atteint 606 `functional` / 111 `planned` et le graphe Roslyn reste frais sans diagnostic.
+Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX8_F.md` ; aucun téléchargement, audit
+externe, package, signature, écriture du registre d’assets ou publication n'est revendiqué.
+
+### UX8-G — Packages versionnés, priorité et dépendances
+
+`ORF-PROJ-020` et `ORF-CONT-001`, `ORF-CONT-002`, `ORF-CONT-003`, `ORF-CONT-007` sont
+`functional` dans la page Packages. Forgotten Forest conserve son catalogue vide ; la preuve riche
+reste un brouillon local et une transaction dans un workspace temporaire. La surface édite les
+packages et leurs dépendances avec identités stables, recalcule les hashes, prévisualise ordre et
+conflits, puis passe par `SetContentWorkspaceHandler` avant undo/redo et save/reopen.
+`ContentPackageCompiler` produit lock, manifeste et ressources résolues en mémoire. Le portail passe
+47/47 tests en 544,55 s, le smoke global et une capture Forward+ FHD corrigée puis inspectée ; la
+matrice atteint 611 `functional` / 106 `planned` et le graphe Roslyn final 11 105 nœuds / 85 168
+relations sans diagnostic. Preuves et limites sont liées dans
+`docs/acceptance/STUDIO_UX8_G.md` ; aucune installation, écriture de package, exécution de script,
+signature, opération réseau ou publication n'est revendiquée.
+
+### UX8-H — Distribution multi-plateforme, signatures et deltas
+
+`ORF-PROJ-024`, `ORF-BUILD-016`, `ORF-BUILD-017`, `ORF-CONT-028` et `ORF-CONT-029` sont
+`functional` dans la page Export. La surface édite séparément les cinq profils de cible, trois
+plateformes, le packaging Windows, les empreintes publiques de signature et la politique delta,
+puis passe par `SetModuleDistributionHandler` avec dry-run, approbation liée aux empreintes,
+undo/redo et save/reopen. La vérification optionnelle construit des bundles déterministes et exerce
+signature, application et rollback delta uniquement dans un workspace temporaire. Le portail passe
+22/22 tests en 422,07 s, le smoke global et une capture Forward+ FHD inspectée ; la matrice atteint
+616 `functional` / 101 `planned` et le graphe Roslyn final 11 120 nœuds / 85 368 relations sans
+diagnostic. Preuves et limites sont liées dans
+`docs/acceptance/STUDIO_UX8_H.md` ; aucune clé privée, installation, publication, notarisation,
+téléversement ou opération réseau n'est exécuté.
+
+### UX8-I — Compatibilité projet, migrations et plateformes
+
+`ORF-PROJ-025` et `ORF-CONT-025` sont `functional` dans la page Production. Le profil versionné
+préserve toutes les queues de `WorkspaceBuildProfile`, passe par `SetWorkspaceBuildProfileHandler`
+et prévisualise la migration réelle du workspace sans l’appliquer. L’analyse des manifests choisit
+une variante exacte ou `Any`, puis vérifie rôles requis, budget, présence des fichiers, SHA-256 et
+métadonnées compatibles sans dupliquer l’éditeur UX3-G. Le portail passe 64/64 tests en 423,41 s,
+le smoke global et une capture Forward+ FHD inspectée ; la matrice atteint 618 `functional` / 99
+`planned` et le graphe Roslyn final 11 133 nœuds / 85 504 relations sans diagnostic. Preuves et
+limites sont liées dans `docs/acceptance/STUDIO_UX8_I.md` ; aucune migration du module source,
+modification de manifest, mesure matérielle, import runtime, benchmark, commande Git ou publication
+n'est exécuté.
+
+### UX8-J — Sécurité des workers et protection anti-injection
+
+`ORF-AI-023` et `ORF-AI-032` sont `functional` dans la page Sécurité. La politique worker conserve
+Python libre, shell, eval, réseau et chemins non confinés sur refus, tout en exposant une liste
+blanche Blender typée. Le profil Assistant traite le projet comme donnée non fiable et la sonde
+canonique refuse instruction hostile, outil hors liste et élévation de permission. Deux
+consentements, plans, historiques et fichiers distincts restent visibles. Le portail passe 35/35
+tests en 472,65 s, le smoke global et une capture Forward+ FHD inspectée ; la matrice atteint 620
+`functional` / 97 `planned`. Preuves et limites sont liées dans
+`docs/acceptance/STUDIO_UX8_J.md` ; aucun worker, Python, Blender, shell, réseau, fournisseur IA,
+outil sémantique, commande Git ou publication n'est exécuté.
+
+### UX8-K — Import/export en masse confiné
+
+`ORF-BUILD-007` est `functional` dans la page Export. L’atelier sélectionne explicitement le sens,
+les chemins relatifs, le glob, les extensions, la collision, la provenance et la licence, puis
+affiche fichiers, tailles, SHA-256, diff et diagnostics avant consentement. Le transfert passe par
+`ContentBatchTransferService`, la mutation par `SetContentWorkspaceHandler`, et la session coordonne
+rollback, undo/redo, sauvegarde et réouverture sans prétendre fournir une transaction distribuée.
+Le portail passe 51/51 tests en 423,12 s, le smoke global et une capture Forward+ FHD corrigée puis
+inspectée ; la matrice atteint 621 `functional` / 96 `planned`. Preuves et limites sont liées dans
+`docs/acceptance/STUDIO_UX8_K.md` ; aucun téléchargement, source externe, watcher, synchronisation,
+publication, commande Git ou mutation du module source n'est exécuté.
+
+### UX8-L — Synchronisation de dépôt et métadonnées NWSync
+
+`ORF-CONT-009` et `ORF-EE-025` sont `functional` dans la page Packages. La surface sélectionne le
+module, configure reprise, déduplication et vérification SHA-256, confiance signataire, cache,
+quota, licences, canal et compatibilité NWSync, puis affiche le manifeste et le diff avant
+consentement. La mutation passe par `SetRuntimeExtensionsHandler`; la vérification réelle utilise
+uniquement un dépôt local et un cache temporaire via `ContentRepositorySyncService`, avec second
+passage entièrement réutilisé. Le portail passe 61/61 tests en 419,84 s, le smoke global et une
+capture Forward+ FHD inspectée ; la matrice atteint 623 `functional` / 94 `planned` et UX8 43/51.
+Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX8_L.md` ; aucun réseau, téléchargement
+distant, serveur NWSync, watcher, installation, commande Git ou publication n'est exécuté.
+
+### UX8-M — Expérience joueur multijoueur
+
+`ORF-MP-003` à `ORF-MP-006` sont `functional` dans la page Lanceur. La surface sélectionne le
+module, configure découverte, lobby, création et autorité des personnages, puis passe par
+`NetworkPlayerExperienceHistory` avec dry-run, gardes de révision et d'empreintes, undo/redo et
+sauvegarde atomique dans `.forge/network/player-experience.json`. Le profil combat reste strictement
+préservé. Le portail passe 9/9 tests en 443,52 s, le smoke global et quatre captures Forward+ FHD
+corrigées puis inspectées ; la matrice atteint 628 `functional` / 89 `planned`, UX8 47/51 et le
+graphe Roslyn 11 213 nœuds / 86 391 relations sans diagnostic.
+Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX8_M.md` ; aucun transport, serveur,
+annuaire distant, client, compte, monde persistant, commande Git ou publication n'est exécuté.
+
+### UX8-N — Cycle de vie des packages
+
+`ORF-CONT-010`, `ORF-CONT-019`, `ORF-CONT-026` et `ORF-CONT-027` sont `functional` dans la page
+Packages. La surface conserve trois autorités distinctes : `SetRuntimeExtensionsHandler` pour les
+packs curatés, `SetContentWorkspaceHandler` et le registre canonique pour les namespaces, puis les
+stores dédiés pour migration et désinstallation. Les quatre historiques imposent sélection,
+dry-run, consentement, gardes stale, undo/redo et save/reopen ; migration et retrait externe
+produisent des backups restaurables et la collecte ne supprime que les blobs orphelins. Les 22/22
+tests ciblés, le smoke global, quatre captures Forward+ FHD inspectées et le portail en 581,21 s
+ferment UX8 à 51/51 et portent la matrice à 632 `functional` / 85 `planned`. Le graphe Roslyn atteint
+11 234 nœuds / 86 636 relations sans diagnostic. Preuves et limites sont liées dans
+`docs/acceptance/STUDIO_UX8_N.md` ; aucun script de package, agent, shell, réseau, téléchargement,
+commande Git, mutation du module source ou publication n'est exécuté.
+
+### UX9-A — Session réseau locale autoritaire
+
+`ORF-MP-002`, `ORF-MP-007`, `ORF-MP-011` et `ORF-MP-012` sont `functional` dans la page Directeur
+réseau. La surface persiste `NetworkFoundationProfile`, passe par `NetworkFoundationHistory` avec
+dry-run et double garde, puis ouvre après permission et confirmation une session autoritaire locale.
+La preuve connecte un opérateur, refuse une mutation cliente, crée un groupe, calcule un delta
+répliqué sous les six règles d’intérêt, audite chaque décision puis déconnecte réellement le membre.
+Les 17/17 tests ciblés, le smoke global et la capture Forward+ FHD corrigée puis inspectée portent la
+matrice à 636 `functional` / 81 `planned` et UX9 à 4/68. Le portail passe en 643,09 s et le graphe
+Roslyn atteint 11 253 nœuds / 86 841 relations sans diagnostic. Preuves et limites sont liées dans
+`docs/acceptance/STUDIO_UX9_A.md` ; aucun port public, transport distant, serveur dédié durable,
+compte réel, commande Git ou publication n'est utilisé. `ORF-MP-001` reste explicitement planifié.
+
+### UX9-B — Opérations réseau locales gouvernées
+
+`ORF-MP-013`, `ORF-MP-015`, `ORF-MP-017`, `ORF-MP-020` et `ORF-MP-027` sont `functional` dans la
+page Directeur réseau. La surface persiste `NetworkOperationsProfile`, sépare cinq workflows
+humains et passe par `NetworkOperationsHistory` avec sélection, dry-run, permission Administrateur,
+approbation liée à la révision, gardes stale, undo/redo et save/reopen. Les sondes exercent reprise,
+hash et cache adressé, négociation de version, grants configurés, canaux/langues/accessibilité du
+chat et dispatch priorisé avec trace et anti-rejeu. Les 25/25 tests ciblés, le smoke global et cinq
+captures Forward+ FHD inspectées portent la matrice à 641 `functional` / 76 `planned` et UX9 à 9/68.
+Le portail passe en 532,65 s et le graphe Roslyn atteint 11 276 nœuds / 87 071 relations sans
+diagnostic. Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX9_B.md` ; caches et
+workspaces temporaires sont libérés, sans transport distant, serveur public, dépôt de contenu
+distant, compte réel, bridge externe, commande Git ou publication.
+
+### UX9-C — Monde réseau et administration gouvernée
+
+`ORF-MP-009`, `ORF-MP-010`, `ORF-MP-016`, `ORF-MP-018` et `ORF-MP-019` sont `functional` dans la
+page Directeur réseau. La surface persiste `NetworkWorldAdministrationProfile`, sépare cinq
+workflows humains et passe par `NetworkWorldAdministrationHistory` avec sélection, dry-run,
+permission Administrateur, approbation liée à la révision, gardes stale, undo/redo et save/reopen.
+Les sondes exercent instances/entrée de groupe, création dynamique bornée, compte local et erreurs
+non énumérables, commandes sûres/rate limit et modération auditée ; le service MCP existant couvre
+lecture filtrée, plan, apply et revert sous rôle et portée serveur. Les 17/17 tests ciblés, le smoke
+global et cinq captures Forward+ FHD inspectées portent la matrice à 646 `functional` / 71 `planned`
+et UX9 à 14/68. Le portail passe en 548,58 s et le graphe Roslyn atteint 11 299 nœuds / 87 300
+relations sans diagnostic. Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX9_C.md` ;
+Studio n'ouvre aucun listener, socket, compte externe, serveur public, commande Git ou publication.
+
+### UX9-D — Persistance réseau et observabilité locale
+
+`ORF-MP-022`, `ORF-MP-023`, `ORF-MP-028`, `ORF-MP-030` et `ORF-MP-032` sont `functional` dans la
+page Directeur réseau. La surface persiste `NetworkPersistenceObservabilityProfile`, sépare cinq
+workflows humains et passe par `NetworkPersistenceObservabilityHistory` avec sélection, dry-run,
+permission Administrateur, approbation liée à la révision, gardes stale, undo/redo et save/reopen.
+Les sondes exercent snapshot révisionné, opérations `world_flag` allowlistées, métriques et santé
+filtrées, capture bornée du tick et ticket de reconnexion à usage unique avec refus du replay. Les
+12/12 tests ciblés, le smoke global et cinq captures Forward+ FHD inspectées portent la matrice à
+651 `functional` / 66 `planned` et UX9 à 19/68. Le portail passe en 534,22 s et le graphe Roslyn
+final est frais, déterministe et sans diagnostic. Preuves et limites sont liées dans
+`docs/acceptance/STUDIO_UX9_D.md` ; Studio n'ouvre aucun endpoint externe, exporter, socket, serveur
+public, base SQL distante, commande Git ou publication.
+
+### UX9-E — Résilience et capacité réseau
+
+`ORF-MP-033` et `ORF-MP-034` sont `functional` dans la page Directeur réseau. La surface persiste
+`NetworkResilienceCapacityProfile`, sépare sauvegarde/rollback et capacité/file, puis passe par
+`NetworkResilienceCapacityHistory` avec sélection, dry-run, permission Administrateur, approbation
+liée à la révision, gardes stale, undo/redo et save/reopen. Les sondes exercent un vrai snapshot et
+`RollbackService` sur copie mémoire, puis remplissent `ConnectionQueue`, observent les positions 1
+et 2 et promeuvent la première réservation. Les 11/11 tests ciblés, le smoke global et deux captures
+Forward+ FHD inspectées portent la matrice à 653 `functional` / 64 `planned` et UX9 à 21/68. Le
+portail passe en 546,18 s et le graphe Roslyn final est frais, déterministe et sans diagnostic.
+Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX9_E.md` ; Studio n'ouvre aucun stockage
+distant, socket, serveur public, rollback du module réel, commande Git ou publication.
+
+### UX9-F — Espace Live Director
+
+`ORF-DM-001`, `ORF-DM-003`, `ORF-DM-004`, `ORF-DM-005` et `ORF-DM-006` sont `functional` dans la
+page Directeur réseau. La surface persiste `LiveDirectorWorkspaceProfile`, sépare client/Creator,
+spawn spatial et Chooser/focus, puis passe par `LiveDirectorWorkspaceHistory` avec sélection,
+dry-run, permission Administrateur, approbation liée à la révision, gardes stale, undo/redo et
+save/reopen. La sandbox exerce les vrais `DirectorAuthenticationService`, `LiveDirectorClient`,
+`LiveCatalogService`, `LiveSpawnService`, `LiveWorldChooser` et `LiveWorldActionService`, conserve
+les IDs de preview, applique puis compense le spawn, filtre le privé et prouve un focus sans mutation.
+Les 12/12 tests ciblés, 54/54 régressions Live Director, le smoke global et trois captures Forward+
+FHD inspectées portent la matrice à 658 `functional` / 59 `planned` et UX9 à 26/68. Le portail passe
+en 549,52 s et le graphe Roslyn atteint 11 367 nœuds / 87 994 relations sans diagnostic. Preuves et
+limites sont liées dans `docs/acceptance/STUDIO_UX9_F.md` ; Studio n'ouvre aucun socket, compte
+externe, serveur réel, commande Git ou publication.
+
+### UX9-G — Actions Live Director sûres
+
+`ORF-DM-007`, `ORF-DM-008`, `ORF-DM-009`, `ORF-DM-010` et `ORF-DM-012` sont `functional` dans la
+page Directeur réseau. La surface persiste `LiveDirectorActionProfile`, sépare
+téléportation/destruction, soin/limbo et possession/restitution, puis passe par
+`LiveDirectorActionHistory` avec sélection, dry-run, permission Administrateur, approbation liée à
+la révision, gardes stale, undo/redo et save/reopen. La sandbox exerce les vrais
+`AuthorizationService`, `LiveWorldChooser`, `LiveWorldActionService` et
+`LiveDirectorControlService`, conserve l'orientation et l'identité, applique puis compense les
+actions et restitue la possession à expiration. Les 18/18 tests ciblés, 56/56 régressions Live
+Director, le smoke global et trois captures Forward+ FHD corrigées puis inspectées portent la
+matrice à 663 `functional` / 54 `planned` et UX9 à 31/68. Le portail passe en 514,28 s et le graphe
+Roslyn atteint 11 391 nœuds / 88 214 relations sans diagnostic. Preuves et limites sont liées dans
+`docs/acceptance/STUDIO_UX9_G.md` ; Studio n'ouvre aucun socket, compte externe, serveur réel,
+commande Git ou publication.
+
+### UX9-H — Autorité Live Director gouvernée
+
+`ORF-DM-013`, `ORF-DM-014`, `ORF-DM-016`, `ORF-DM-017` et `ORF-DM-019` sont `functional` dans la
+page Directeur réseau. La surface persiste `LiveDirectorAuthorityProfile`, sépare
+incarnation/protection, or/expérience et portes/portails, puis passe par
+`LiveDirectorAuthorityHistory` avec sélection, dry-run, permission Administrateur, approbation liée
+à la révision, gardes stale, undo/redo et save/reopen. La sandbox exerce les vraies autorités de
+contrôle, dégâts, économie, progression et monde, vérifie expiration, round-trip et projection de
+niveau, applique puis compense les ajustements et restaure collision/portail. Les 18/18 tests
+ciblés, 58/58 régressions Live Director, le smoke global et trois captures Forward+ FHD corrigées
+puis inspectées portent la matrice à 668 `functional` / 49 `planned` et UX9 à 36/68. Le portail
+passe en 512,27 s et le graphe Roslyn atteint 11 416 nœuds / 88 452 relations sans diagnostic.
+Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX9_H.md` ; Studio n’ouvre aucun socket,
+compte, serveur ou portefeuille externe, commande Git ou publication.
+
+### UX9-I — Groupes Live Director gouvernés
+
+`ORF-DM-020`, `ORF-DM-021`, `ORF-DM-023`, `ORF-DM-024` et `ORF-DM-026` sont `functional` dans la
+page Directeur réseau. La surface persiste `LiveDirectorGroupProfile`, sépare triggers/sélection,
+déplacement/attaque et voyage joueur, puis passe par `LiveDirectorGroupHistory` avec sélection,
+dry-run, permission Administrateur, consentement du groupe, approbation liée à la révision, gardes
+stale, undo/redo et save/reopen. La sandbox exerce les vrais services de progression, commandes de
+groupe et joueurs, vérifie identifiant stable, plafond, échecs partiels, avertissement de faction et
+transition caméra, puis restaure l’état synthétique. Les 13/13 tests ciblés, 58/58 régressions Live
+Director, le smoke global et trois captures Forward+ FHD inspectées portent la matrice à 673
+`functional` / 44 `planned` et UX9 à 41/68. Le portail passe en 517,61 s et le graphe Roslyn atteint
+11 438 nœuds / 88 669 relations sans diagnostic. Preuves et limites sont liées dans
+`docs/acceptance/STUDIO_UX9_I.md` ; Studio n’ouvre aucun socket, serveur ou joueur réel, commande Git
+ou publication.
+
+### UX9-J — Opérations Live Director gouvernées
+
+`ORF-DM-027`, `ORF-DM-028`, `ORF-DM-029`, `ORF-DM-032` et `ORF-DM-033` sont `functional` dans la
+page Directeur réseau. La surface persiste `LiveDirectorOperationsProfile`, sépare
+recherche/ForgeScript, variables/scène et visibilité MJ, puis passe par
+`LiveDirectorOperationsHistory` avec sélection, dry-run, permission Administrateur, approbation
+liée à la révision, gardes stale, undo/redo et save/reopen. La sandbox exerce les vrais services de
+recherche, scripts, variables, scènes et visibilité, vérifie focus visuel, adaptateur serveur, état
+persistant, cinq facettes, rollback et overlay viewport, puis restaure l’état synthétique. Les 16/16
+tests ciblés, 58/58 régressions Live Director, le smoke global et trois captures Forward+ FHD
+inspectées portent la matrice à 678 `functional` / 39 `planned` et UX9 à 46/68. Le portail passe en
+519,91 s et le graphe Roslyn atteint 11 461 nœuds / 88 901 relations sans diagnostic. Preuves et
+limites sont liées dans `docs/acceptance/STUDIO_UX9_J.md` ; Studio n’ouvre aucun socket, serveur ou
+joueur réel, commande Git ou publication.
+
+### UX9-K — Narration Live Director gouvernée
+
+`ORF-DM-035` et `ORF-DM-036` sont `functional` dans la page Directeur réseau. La surface persiste
+`LiveDirectorNarrativeProfile`, sépare quête et rencontre, puis passe par
+`LiveDirectorNarrativeHistory` avec sélection, dry-run, permission Administrateur, approbation liée
+à la révision, gardes stale, undo/redo et save/reopen. La sandbox exerce les vrais services de quête
+et rencontre : portée tous joueurs ou sélection, quatre conséquences, projection RPG, cinq
+commandes, scaling borné, adaptateurs spawn/IA et rollbacks complets. Les 10/10 tests ciblés, 58/58
+régressions Live Director, le smoke global et trois captures Forward+ FHD inspectées portent la
+matrice à 680 `functional` / 37 `planned` et UX9 à 48/68. Le portail passe en 525,88 s et le graphe
+Roslyn atteint 11 484 nœuds / 89 114 relations sans diagnostic. Preuves et limites sont liées dans
+`docs/acceptance/STUDIO_UX9_K.md` ; Studio n’ouvre aucun socket, serveur ou joueur réel, commande Git
+ou publication.
+
+### UX9-L — Accès et supervision Live Director
+
+`ORF-DM-002`, `ORF-DM-011`, `ORF-DM-025`, `ORF-DM-031` et `ORF-DM-034` sont `functional` dans la
+page Directeur réseau. La surface persiste `LiveDirectorAccessProfile` et expose cinq politiques
+humaines bornées, puis passe par `LiveDirectorAccessHistory` avec sélection, dry-run, permission
+Administrateur, approbation liée à la révision, gardes stale, undo/redo et save/reopen. La sandbox
+exerce les vraies autorités d’authentification, inspection, joueurs, audit et chat sur un scénario
+synthétique, vérifie les cinq handles ForgeScript puis libère les ressources. Les 13/13 tests
+ciblés, 58/58 régressions Live Director, le smoke global et la capture Forward+ FHD corrigée puis
+inspectée portent la matrice à 685 `functional` / 32 `planned` et UX9 à 53/68. Le portail passe en
+503,26 s et le graphe Roslyn atteint 11 502 nœuds / 89 296 relations sans diagnostic. Preuves et
+limites sont liées dans `docs/acceptance/STUDIO_UX9_L.md` ; Studio n’ouvre aucun socket, compte,
+serveur ou canal externe, commande Git ou publication.
+
+### UX9-M — Interventions et enregistrement Live Director
+
+`ORF-DM-015`, `ORF-DM-018`, `ORF-DM-022`, `ORF-DM-030` et `ORF-DM-037` sont `functional` dans la
+page Directeur réseau. La surface édite le `LiveDirectorProductionProfile` canonique du module par
+`SetRuntimeExtensionsHandler` et expose cinq cartes humaines pour repos forcé, niveau avec
+snapshot, apparence bornée, groupe sur raccourci et enregistrement expurgé. Sélection, dry-run,
+permission Administrateur, motif, confirmation, approbation liée à la révision, gardes stale,
+undo/redo, save/reopen et préservation exacte des profils voisins sont vérifiés. La sandbox exerce
+`LiveProductionService` et `PostLaunchCapabilityResolver` sur des identités et un monde synthétiques,
+puis libère les ressources. Les 7/7 tests ciblés, 60/60 régressions Live Director, le smoke global
+et la capture Forward+ FHD corrigée puis inspectée portent la matrice à 690 `functional` / 27
+`planned` et UX9 à 58/68. Le portail passe en 507,90 s et le graphe Roslyn final est frais,
+déterministe et sans diagnostic. Preuves et limites sont liées dans
+`docs/acceptance/STUDIO_UX9_M.md` ; Studio n’ouvre aucun socket, serveur ou joueur réel, commande
+Git ou publication.
+
+### UX9-N — Production réseau avancée
+
+`ORF-MP-014`, `ORF-MP-021`, `ORF-MP-024`, `ORF-MP-025`, `ORF-MP-026` et `ORF-MP-035` sont
+`functional` dans la page Directeur réseau. La surface édite les profils canoniques gameplay et
+réseau du module par `SetRuntimeExtensionsHandler` et expose six cartes humaines pour contenu
+curaté, voix, shard, hot reload, extensions serveur et protocole cross-platform. Sélection, dry-run,
+permission Administrateur, confirmation, approbation liée à la révision, gardes stale, undo/redo,
+save/reopen et préservation exacte des profils voisins sont vérifiés. La sandbox exerce
+`PostLaunchCapabilityResolver` et `ServerProductionService` sur un projet synthétique, puis libère
+les ressources. Les 8/8 tests ciblés, 99/99 régressions réseau, le smoke global et la capture
+Forward+ FHD inspectée portent la matrice à 696 `functional` / 21 `planned` et UX9 à 64/68. Le
+portail passe en 507,54 s et son graphe Roslyn atteint 11 528 nœuds / 89 644 relations sans
+diagnostic, puis est régénéré après promotion. Preuves et limites sont liées dans
+`docs/acceptance/STUDIO_UX9_N.md` ; Studio n’ouvre aucun socket, serveur, audio, extension externe,
+commande Git ou publication.
+
+### UX9-O — Clôture réseau
+
+`ORF-MP-001`, `ORF-MP-008`, `ORF-MP-029` et `ORF-MP-031` sont `functional` dans la page Directeur
+réseau. Quatre cartes humaines coordonnent les profils canoniques de fondation, expérience joueur
+et assurance pour le serveur dédié headless, le PvP/tir ami, les logs structurés privés et
+l’anti-triche autoritaire. Sélection, trois dry-runs canoniques, permission Administrateur,
+confirmation distincte, approbations liées aux trois révisions et empreintes, gardes stale,
+compensation, undo/redo, sauvegarde atomique par document, réouverture et préservation sémantique
+des voisins sont vérifiés. La sandbox exerce la configuration et la session réseau, `PartyService`,
+`CombatAuthority`, `StructuredLogRouter` et `AntiCheatService` sur des identités et sinks mémoire,
+puis libère toutes les ressources. Les 37/37 tests ciblés, 99/99 régressions réseau, 385/385
+régressions ModuleFormat, le smoke global et la capture Forward+ FHD corrigée puis inspectée portent
+la matrice à 700 `functional` / 17 `planned` et closent UX9 à 68/68. Le portail passe en 515,32 s et
+le graphe Roslyn final atteint 11 548 nœuds / 89 923 relations sans diagnostic, frais et
+déterministe. Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX9_O.md` ; Studio n’ouvre aucun
+port, socket, service Windows, serveur persistant, sink distant, commande Git ou publication.
+
+### UX10-A — Contexte, outils et fournisseurs
+
+`ORF-AI-001/002/005/012/013` sont `functional` dans une surface Assistant unifiée accessible depuis
+Contexte. Le module est sélectionné explicitement ; les dix surfaces de contexte, le graphe borné,
+les cinq outils sémantiques, les fournisseurs hors ligne/OpenAI local/Ollama local et les politiques
+de budget, classification et consentement sont visibles avant approbation. La sandbox utilise une
+copie confinée et restaure profil, historique, sélection et surface. Preuve :
+`docs/acceptance/STUDIO_UX10_A.md`.
+
+### UX10-B — Plans, transactions et autorisations
+
+`ORF-AI-006/007/008/009/010` sont `functional` dans Plans. Le plan structuré incomplet est refusé,
+le dry-run conserve révision et empreinte, puis `begin → preview → commit → rollback` produit un diff
+typé et restaure exactement les variables initiales. Les niveaux d’autorisation restent distincts
+et une confirmation absente est refusée. Preuve : `docs/acceptance/STUDIO_UX10_B.md`.
+
+### UX10-C — Audit, prompts et hors ligne
+
+`ORF-AI-011/030/031/033` sont `functional` dans Plans. Prompt versionné et hashé, validation JSON
+Schema, réparation bornée, refus d’élévation de permission/outils et audit expurgé sont exercés sans
+réseau. L’édition manuelle, le build et le runtime restent indépendants des métadonnées IA. Preuve :
+`docs/acceptance/STUDIO_UX10_C.md`.
+
+### UX10-D — 3D assistée et cohérence narrative
+
+`ORF-AI-021/022/029` sont `functional` dans 3D assistée. Les recettes Blender typées et le
+fournisseur text/image-to-3D déterministe imposent provenance CC0, staging, LOD, collision,
+acceptation humaine et rollback ; le contrôle narratif retourne des constats sourcés sans réécrire
+le contenu. Preuve : `docs/acceptance/STUDIO_UX10_D.md`.
+
+Les quatre lots cumulent 66/66 tests ciblés, un smoke global, quatre captures Forward+ FHD
+corrigées puis inspectées et un portail incrémental en 524,12 s. Le graphe Roslyn est frais à
+11 566 nœuds / 90 143 relations / 0 diagnostic et la matrice atteint 717 `functional` / 0
+`planned`. La qualification n’exécute aucun modèle externe ni Blender, ne mute pas le module source
+et ne réalise aucune opération Git ou publication.
+
 ## Gates ergonomiques avant parité
 
 Une page ne passe pas `Parity` si l’un des points suivants manque :

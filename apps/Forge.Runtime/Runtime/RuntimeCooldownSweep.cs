@@ -66,14 +66,22 @@ internal partial class RuntimeCooldownSweep : Control
             : (float)Math.Clamp(_remainingSeconds / _durationSeconds, 0, 1);
         var start = -Mathf.Pi / 2;
         var sweep = Mathf.Tau * ratio;
-        _fan[0] = center;
-        for (var index = 0; index <= SegmentCount; index++)
+        var fill = new Color("090604c9");
+        if (ratio >= .999f)
         {
-            var angle = start + (sweep * index / SegmentCount);
-            _fan[index + 1] = center + Vector2.FromAngle(angle) * radius;
+            DrawCircle(center, radius, fill);
+        }
+        else
+        {
+            _fan[0] = center;
+            for (var index = 0; index <= SegmentCount; index++)
+            {
+                var angle = start + (sweep * index / SegmentCount);
+                _fan[index + 1] = center + Vector2.FromAngle(angle) * radius;
+            }
+            DrawColoredPolygon(_fan, fill);
         }
 
-        DrawColoredPolygon(_fan, new Color("090604c9"));
         var border = MotionPolicy.HighContrast ? RuntimeRpgUiTheme.Bone : RuntimeRpgUiTheme.Gold;
         DrawArc(center, radius, start, start + sweep, SegmentCount, border, 1.5f, true);
     }

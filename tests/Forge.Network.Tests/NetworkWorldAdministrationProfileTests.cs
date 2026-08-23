@@ -119,4 +119,54 @@ public sealed class NetworkWorldAdministrationProfileTests
         Assert.Equal(5, scripts.Read(scripts.Handle).ProviderCount);
         Assert.Throws<InvalidOperationException>(() => scripts.Read(scripts.Handle with { Generation = 2 }));
     }
+
+    [Fact]
+    public void R122_RuntimeBuild_AppliesSafeCommandsRatePolicyAndDynamicAreaBounds()
+    {
+        var initial = NetworkWorldAdministrationProfile.CreateDefault();
+        var profile = initial with
+        {
+            Administration = initial.Administration with
+            {
+                RequestsPerMinute = 2,
+                SafeCommandIds = ["operations.inspect"]
+            }
+        };
+        var runtime = NetworkWorldAdministrationRuntimeAdapter.Build(profile);
+        var template = new ZoneTemplate(Guid.NewGuid(), profile.Instances.TemplateIds[0],
+            profile.Instances.MaximumInstances, profile.Instances.MaximumPlayersPerInstance, true);
+        Assert.Empty(runtime.Instances.RegisterTemplate(template));
+        var invalid = runtime.DynamicAreas.Create(new(template.TemplateId, false, 10, 32,
+            new Dictionary<string, string> { ["forbidden"] = "value" }, Guid.NewGuid()));
+        var created = runtime.DynamicAreas.Create(new(template.TemplateId, false, 10, 32,
+            new Dictionary<string, string> { [profile.DynamicAreas.AllowedOverrideKeys[0]] = "value" },
+            Guid.NewGuid()));
+
+        var admin = new AuthorizationSubject(Guid.NewGuid(), NetworkRole.Administrator, new HashSet<Guid>());
+        var allowed = runtime.Administration.Execute(admin,
+            new(Guid.NewGuid(), admin.AccountId, "operations.inspect", null, null, 0,
+                new Dictionary<string, string>()), false);
+        var denied = runtime.Administration.Execute(admin,
+            new(Guid.NewGuid(), admin.AccountId, "world.save", null, null, 0,
+                new Dictionary<string, string>()), false);
+
+        Assert.Equal("NET_DYNAMIC_AREA_REQUEST_INVALID", invalid.Code);
+        Assert.True(created.Accepted);
+        Assert.Equal("NET_ADMIN_PREVIEW", allowed.Code);
+        Assert.Equal("NET_ADMIN_COMMAND_NOT_ALLOWED", denied.Code);
+        var account = runtime.Accounts.Register("ux9c.operator", "safe-password-2026");
+        Assert.True(runtime.Accounts.Authenticate(account.Login, "safe-password-2026").Authenticated);
+        var moderation = runtime.Moderation.Apply(new(Guid.NewGuid(), NetworkRole.Moderator,
+            new HashSet<Guid>()), ModerationActionKind.Mute, account.AccountId, "evidence", TimeSpan.FromMinutes(5));
+        Assert.True(moderation.Applied);
+    }
+
+    [Fact]
+    public void R122_IncompleteDocument_IsRejectedWithoutNullReferenceFailure()
+    {
+        var exception = Assert.Throws<InvalidDataException>(() =>
+            new NetworkWorldAdministrationStore().Deserialize("{\"schemaVersion\":1}"));
+
+        Assert.Equal("NET_WORLD_ADMIN_INCOMPLETE", exception.Message);
+    }
 }

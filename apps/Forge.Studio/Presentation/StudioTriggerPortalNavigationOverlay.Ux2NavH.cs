@@ -32,6 +32,7 @@ internal sealed partial class StudioTriggerPortalNavigationOverlayUx2NavH : Cont
     private readonly Button _undo;
     private readonly Button _redo;
     private readonly Button _save;
+    private Viewport? _subscribedViewport;
     private IReadOnlyList<StudioUx2NavHTriggerChoice> _triggers = [];
     private IReadOnlyList<StudioUx2NavHDestinationChoice> _destinations = [];
     private IReadOnlyList<StudioUx2NavHArrivalChoice> _arrivals = [];
@@ -242,12 +243,17 @@ internal sealed partial class StudioTriggerPortalNavigationOverlayUx2NavH : Cont
     public override void _Ready()
     {
         UpdateDialogBounds();
-        GetViewport().SizeChanged += UpdateDialogBounds;
+        _subscribedViewport = GetViewport();
+        _subscribedViewport.SizeChanged += UpdateDialogBounds;
     }
 
     public override void _ExitTree()
     {
-        GetViewport().SizeChanged -= UpdateDialogBounds;
+        if (_subscribedViewport is not null)
+        {
+            _subscribedViewport.SizeChanged -= UpdateDialogBounds;
+            _subscribedViewport = null;
+        }
         ReleaseEvidence();
     }
 

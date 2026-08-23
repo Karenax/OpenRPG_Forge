@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Forge.Network.Operations;
 using Forge.Network.Sessions;
+using Forge.Network.World;
 
 namespace Forge.Network.Authoring;
 
@@ -53,7 +54,9 @@ public sealed record PlayerCombatPolicy(
     bool DuelsEnabled,
     bool CrimeEnabled,
     bool SafeZonesEnabled,
-    bool ServerOverride);
+    bool ServerOverride,
+    bool PvpEnabled,
+    FriendlyFirePolicy FriendlyFire);
 
 public sealed record NetworkPlayerExperienceProfile(
     Guid Id,
@@ -84,7 +87,8 @@ public sealed record NetworkPlayerExperienceProfile(
                 CharacterAuthorityMode.ServerManaged,
                 CharacterAuthorityMode.AccountBound
             ], true, true, true, true),
-        new(Guid.Parse("a1210000-0000-4000-8000-000000000006"), true, true, true, true, true, true, true, true));
+        new(Guid.Parse("a1210000-0000-4000-8000-000000000006"), true, true, true, true, true, true, true, true,
+            false, FriendlyFirePolicy.Disabled));
 }
 
 public static class NetworkPlayerExperienceValidator
@@ -93,6 +97,14 @@ public static class NetworkPlayerExperienceValidator
     {
         ArgumentNullException.ThrowIfNull(profile);
         var diagnostics = new List<NetworkDiagnostic>();
+        if (profile.Discovery is null || profile.Lobby is null || profile.CharacterBuilder is null ||
+            profile.CharacterAuthority is null || profile.Combat is null ||
+            profile.CharacterBuilder.TemplateIds is null || profile.CharacterAuthority.AllowedModes is null)
+        {
+            diagnostics.Add(Diagnostic("NET_PLAYER_PROFILE_INCOMPLETE", "/network/playerExperience", profile.Id,
+                "Discovery, lobby, character builder, authority and combat policies are required."));
+            return diagnostics;
+        }
         var ids = new[]
         {
             profile.Id, profile.Discovery.Id, profile.Lobby.Id, profile.CharacterBuilder.Id,
@@ -142,7 +154,8 @@ public static class NetworkPlayerExperienceValidator
                 profile.CharacterAuthority.Id, "Signed, encrypted, migratable server/account character authority is required."));
         if (!profile.Combat.GlobalPolicy || !profile.Combat.AreaOverrides || !profile.Combat.PartyOverrides ||
             !profile.Combat.ConsentRequired || !profile.Combat.DuelsEnabled || !profile.Combat.CrimeEnabled ||
-            !profile.Combat.SafeZonesEnabled || !profile.Combat.ServerOverride)
+            !profile.Combat.SafeZonesEnabled || !profile.Combat.ServerOverride ||
+            !Enum.IsDefined(profile.Combat.FriendlyFire))
             diagnostics.Add(Diagnostic("NET_COMBAT_POLICY_INVALID", "/network/playerExperience/combat", profile.Combat.Id,
                 "Global, area, party, consent, duel, crime, safe-zone and server policies are required."));
         return diagnostics;
@@ -234,11 +247,23 @@ public sealed class NetworkPlayerExperienceHistory
         var changes = new List<string>();
         if (before.Discovery != after.Discovery) changes.Add("discovery");
         if (before.Lobby != after.Lobby) changes.Add("lobby");
-        if (before.CharacterBuilder != after.CharacterBuilder) changes.Add("character-builder");
-        if (before.CharacterAuthority != after.CharacterAuthority) changes.Add("character-authority");
+        if (!CharacterBuilderEquals(before.CharacterBuilder, after.CharacterBuilder)) changes.Add("character-builder");
+        if (!CharacterAuthorityEquals(before.CharacterAuthority, after.CharacterAuthority)) changes.Add("character-authority");
         if (before.Combat != after.Combat) changes.Add("combat");
         return changes.Count == 0 ? "revision-only" : string.Join(',', changes);
     }
+
+    private static bool CharacterBuilderEquals(CharacterBuilderPolicy left, CharacterBuilderPolicy right) =>
+        left.Id == right.Id && string.Equals(left.RulesetId, right.RulesetId, StringComparison.Ordinal) &&
+        left.TemplateIds.SequenceEqual(right.TemplateIds, StringComparer.Ordinal) &&
+        left.PreviewEnabled == right.PreviewEnabled && left.ImportAllowed == right.ImportAllowed &&
+        left.ServerApprovalRequired == right.ServerApprovalRequired &&
+        left.MinimumAttribute == right.MinimumAttribute && left.MaximumAttribute == right.MaximumAttribute;
+
+    private static bool CharacterAuthorityEquals(CharacterAuthorityPolicy left, CharacterAuthorityPolicy right) =>
+        left.Id == right.Id && left.AllowedModes.SequenceEqual(right.AllowedModes) &&
+        left.SignedUploadsRequired == right.SignedUploadsRequired && left.EncryptedAtRest == right.EncryptedAtRest &&
+        left.MigrationEnabled == right.MigrationEnabled && left.AccountBindingRequired == right.AccountBindingRequired;
 }
 
 public sealed class NetworkPlayerExperienceStore
@@ -295,7 +320,9 @@ public sealed record NetworkPlayerExperienceSnapshot(
     int LobbySlots,
     int CharacterTemplates,
     int AuthorityModes,
-    bool ConsentRequired);
+    bool ConsentRequired,
+    bool PvpEnabled,
+    FriendlyFirePolicy FriendlyFire);
 
 public sealed class NetworkPlayerExperienceScriptService(NetworkPlayerExperienceProfile profile)
 {
@@ -309,6 +336,6 @@ public sealed class NetworkPlayerExperienceScriptService(NetworkPlayerExperience
                      Convert.ToInt32(profile.Discovery.CuratedDirectory);
         return new(profile.Id, profile.ServerRevision, routes, profile.Lobby.MaximumSlots,
             profile.CharacterBuilder.TemplateIds.Count, profile.CharacterAuthority.AllowedModes.Count,
-            profile.Combat.ConsentRequired);
+            profile.Combat.ConsentRequired, profile.Combat.PvpEnabled, profile.Combat.FriendlyFire);
     }
 }

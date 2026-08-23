@@ -96,3 +96,18 @@ une seconde fenêtre.
 Chaque étape doit compiler, passer ses tests ciblés, fournir un smoke Godot et être relue sur des
 captures 1920×1080, 2560×1440 et 3840×2160 aux échelles système applicables entre 100 % et 200 %.
 Le build seul ne qualifie jamais l’ergonomie.
+
+## État de qualification au 23 août 2026
+
+- les 717 routes Aurora possèdent une surface Studio `functional` et une preuve spécifique ;
+- les 66 classes `Window` historiques possèdent une destination unique au statut `Parity` ;
+- la revue corrective UX11-B a rejoué quatorze parcours humains et inspecté les 36 pages en
+  1920×1080 à 100 %, 2560×1440 à 150 % et 3840×2160 à 200 % ;
+- **Tester ici** lance un snapshot isolé et restaure le contexte au retour ;
+- le paquet Windows x64 autonome passe export, conformité, intégrité et smoke de distribution ;
+- le paquet Linux x64 passe cross-export, contrôle ELF, assembly C#, conformité, intégrité et smoke
+  runtime Debian 13 sur l'archive exacte ; `STUDIO-043` est clos ;
+- le portail développeur UX0–UX10 reste séparé du smoke autonome et passe depuis le dépôt ;
+- le plugin historique et le lanceur Creator restent inchangés jusqu'à accord utilisateur explicite.
+
+La preuve détaillée est `docs/acceptance/STUDIO_UX11_B.md`.

@@ -1,6 +1,6 @@
 # Acceptation Studio — UX5 Production narrative complète
 
-État local au 20 août 2026 : **fonctionnel et qualifié** pour les 64 routes UX5 restantes.
+État local au 22 août 2026 : **fonctionnel et qualifié** pour les 64 routes UX5 restantes.
 Avec UX5-A (`ORF-DLG-001..005`), la vague Histoire est close à **69/69**.
 
 La surface **Production narrative UX5** réunit cinq workflows humains — Dialogue, Quête,
@@ -156,15 +156,20 @@ et participants proviennent du projet réel.
 ## Preuves
 
 - build `Forge.Studio` Debug : **0 avertissement, 0 erreur** ;
-- portail incrémental : **149,45 s**, 186/186 tests ciblés (Domain 93, Application 62,
-  ModuleFormat 31), smoke global, matrice et capture Forward+ FHD ;
+- portail incrémental requalifié le 22 août 2026 sur l'arbre intégré courant : **518,50 s**, 186/186 tests ciblés (Domain 93, Application 62,
+  ModuleFormat 31), smoke global, matrice, capture Forward+ FHD et graphe Roslyn complet
+  (11 411 nœuds, 88 376 relations, 0 diagnostic, déterministe) ;
 - smoke `OPENRPG_FORGE_STUDIO_UX5B_PASS` : cinq profils complets, deux simulations,
   dry-run, gardes source/approbation, cinq commandes/historiques, undo/redo, save/reopen,
   voisins préservés, transaction UI isolée, source et surface restaurées, ressources libérées ;
 - captures FHD inspectées pour les cinq onglets :
   `ux5-b-dialogue-production-forward-plus-fhd.png`,
-  `ux5-c-quest-authoring-forward-plus-fhd.png`, `ux5-d-localization-forward-plus-fhd.png`,
-  `ux5-e-lore-forward-plus-fhd.png`, `ux5-f-cinematics-forward-plus-fhd.png` ;
+  `ux5-c-quest-authoring-current-forward-plus-fhd.png`,
+  `ux5-d-localization-current-forward-plus-fhd.png`,
+  `ux5-e-lore-current-forward-plus-fhd.png`,
+  `ux5-f-cinematics-current-forward-plus-fhd.png` ;
+- fondation Dialogue UX5-A également recapturée et inspectée sur l'arbre courant dans
+  `ux5-a-dialogue-foundation-current-forward-plus-fhd.png` ;
 - jalon Dialogue inspecté aussi à 2560×1440 et 3840×2160 sous
   `artifacts/verification/studio-shell/ux5-milestone/` : aucun clipping bloquant ni action cachée.
 

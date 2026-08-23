@@ -32,16 +32,64 @@ public sealed class LiveProductionServiceTests
     }
 
     [Fact]
+    public void Forced_rest_requires_reason_and_world_permission_then_updates_the_target()
+    {
+        var (service, chooser, gm) = Create();
+        var player = new AuthorizationSubject(Guid.NewGuid(), NetworkRole.Player,
+            new HashSet<Guid> { Zone });
+        var missingReason = service.Execute(gm,
+            new(Guid.NewGuid(), "force-rest", [Target], 0, ""), false);
+        var denied = service.Execute(player,
+            new(Guid.NewGuid(), "force-rest", [Target], 0, "story beat"), false);
+        var request = new LiveProductionService.InterventionRequest(Guid.NewGuid(),
+            "force-rest", [Target], 0, "story beat");
+
+        var preview = service.Execute(gm, request, false);
+        var applied = service.Execute(gm, request, true);
+
+        Assert.Equal("LIVE_PRODUCTION_REASON_REQUIRED", missingReason.Code);
+        Assert.Equal("LIVE_PRODUCTION_PERMISSION_DENIED", denied.Code);
+        Assert.Equal("LIVE_PRODUCTION_PREVIEW", preview.Code);
+        Assert.True(applied.Applied);
+        Assert.Equal("rest:completed:director", chooser.Find(Target)!.State);
+    }
+
+    [Fact]
+    public void Appearance_requires_confirmation_and_applies_a_bounded_scale()
+    {
+        var (service, chooser, gm) = Create();
+        var unconfirmed = service.Execute(gm,
+            new(Guid.NewGuid(), "appearance", [Target], 0, "scene emphasis",
+                Scale: 1.25f), false);
+        var request = new LiveProductionService.InterventionRequest(Guid.NewGuid(),
+            "appearance", [Target], 0, "scene emphasis", Scale: 1.25f,
+            Confirmed: true);
+
+        var preview = service.Execute(gm, request, false);
+        var applied = service.Execute(gm, request, true);
+
+        Assert.Equal("LIVE_PRODUCTION_CONFIRMATION_REQUIRED", unconfirmed.Code);
+        Assert.Equal("LIVE_PRODUCTION_PREVIEW", preview.Code);
+        Assert.True(applied.Applied);
+        Assert.Equal("appearance-scale:1.25", chooser.Find(Target)!.State);
+    }
+
+    [Fact]
     public void Recording_resolves_saved_group_and_redacts_private_data()
     {
         var (service, _, gm) = Create();
+        var player = new AuthorizationSubject(Guid.NewGuid(), NetworkRole.Player,
+            new HashSet<Guid> { Zone });
         var result = service.StartRecording(gm, 2,
+            new Dictionary<string, IReadOnlyList<Guid>> { ["tag:companions"] = [Target] });
+        var denied = service.StartRecording(player, 2,
             new Dictionary<string, IReadOnlyList<Guid>> { ["tag:companions"] = [Target] });
 
         Assert.True(result.Started);
         Assert.Equal([Target], result.Members);
         Assert.True(result.Redacted);
         Assert.Equal(Recording, result.RecordingId);
+        Assert.Equal("LIVE_RECORDING_PERMISSION_DENIED", denied.Code);
     }
 
     private static (LiveProductionService Service, LiveWorldChooser Chooser, AuthorizationSubject Gm) Create()

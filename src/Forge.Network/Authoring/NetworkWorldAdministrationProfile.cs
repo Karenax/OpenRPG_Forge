@@ -1,7 +1,9 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Forge.Network.Identity;
 using Forge.Network.Operations;
 using Forge.Network.Sessions;
+using Forge.Network.World;
 
 namespace Forge.Network.Authoring;
 
@@ -87,7 +89,8 @@ public sealed record NetworkWorldAdministrationProfile(
                 AuthenticationProviderKind.OpenIdConnect, AuthenticationProviderKind.Platform,
                 AuthenticationProviderKind.Anonymous], true, true, true, true, 120),
         new(Guid.Parse("a1220000-0000-4000-8000-000000000005"), true, true, true, 120,
-            true, true, true, true, ["health.read", "players.kick", "players.ban", "config.preview"]),
+            true, true, true, true,
+            ["operations.inspect", "player.kick", "player.ban", "world.save", "world.rollback"]),
         new(Guid.Parse("a1220000-0000-4000-8000-000000000006"), true, true, true,
             true, true, true, true, true, true, true, 90));
 }
@@ -98,6 +101,15 @@ public static class NetworkWorldAdministrationValidator
     {
         ArgumentNullException.ThrowIfNull(profile);
         var diagnostics = new List<NetworkDiagnostic>();
+        if (profile.Instances is null || profile.DynamicAreas is null || profile.Authentication is null ||
+            profile.Administration is null || profile.Moderation is null ||
+            profile.Instances.TemplateIds is null || profile.DynamicAreas.AllowedOverrideKeys is null ||
+            profile.Authentication.Providers is null || profile.Administration.SafeCommandIds is null)
+        {
+            Add("NET_WORLD_ADMIN_INCOMPLETE", "/network/worldAdministration", profile.Id,
+                "The world administration document is incomplete.", diagnostics);
+            return diagnostics;
+        }
         var ids = new[] { profile.Id, profile.Instances.Id, profile.DynamicAreas.Id,
             profile.Authentication.Id, profile.Administration.Id, profile.Moderation.Id };
         if (ids.Any(id => id == Guid.Empty) || ids.Distinct().Count() != ids.Length)
@@ -113,8 +125,8 @@ public static class NetworkWorldAdministrationValidator
 
         if (profile.Instances.TemplateIds.Count == 0 || profile.Instances.TemplateIds.Any(string.IsNullOrWhiteSpace) ||
             profile.Instances.TemplateIds.Distinct(StringComparer.Ordinal).Count() != profile.Instances.TemplateIds.Count ||
-            profile.Instances.MaximumInstances is < 1 or > 1_024 ||
-            profile.Instances.MaximumPlayersPerInstance is < 1 or > 256 ||
+            profile.Instances.MaximumInstances is < 1 or > 128 ||
+            profile.Instances.MaximumPlayersPerInstance is < 1 or > 64 ||
             !profile.Instances.PartyAllocation || !profile.Instances.PersistenceEnabled ||
             !profile.Instances.RuntimeSceneInstantiation || profile.Instances.GarbageCollectionMinutes is < 1 or > 10_080)
             Add("NET_AREA_INSTANCE_POLICY_INVALID", "/network/worldAdministration/instances", profile.Instances.Id,
@@ -270,6 +282,38 @@ public sealed class NetworkWorldAdministrationStore
 public sealed record NetworkWorldAdministrationResolution(bool Available,
     NetworkWorldAdministrationProfile? Profile, IReadOnlyList<NetworkDiagnostic> Diagnostics);
 
+public sealed record DynamicAreaCreationRequest(Guid TemplateId, bool CloneExisting,
+    int EntityCount, int ResourceMegabytes, IReadOnlyDictionary<string, string> Overrides, Guid PartyId);
+
+public sealed record DynamicAreaCreationDecision(bool Accepted, string Code, ZoneInstance? Instance,
+    string AuditEntry);
+
+public sealed class DynamicAreaRuntimeService(DynamicAreaPolicy policy, ZoneInstanceService zones)
+{
+    public DynamicAreaCreationDecision Create(DynamicAreaCreationRequest request)
+    {
+        if (request.TemplateId == Guid.Empty || request.EntityCount is < 1 ||
+            request.EntityCount > policy.MaximumEntities || request.ResourceMegabytes is < 1 ||
+            request.ResourceMegabytes > policy.MaximumResourceMegabytes || request.Overrides.Count == 0 ||
+            request.Overrides.Keys.Any(key => !policy.AllowedOverrideKeys.Contains(key, StringComparer.Ordinal)))
+            return Reject("NET_DYNAMIC_AREA_REQUEST_INVALID", request.TemplateId);
+        if (request.CloneExisting && !policy.CloneExistingArea ||
+            !request.CloneExisting && !policy.TemplateInstantiation)
+            return Reject("NET_DYNAMIC_AREA_MODE_DENIED", request.TemplateId);
+        var created = zones.Create(request.TemplateId, ZoneLifecycle.Session, request.PartyId);
+        return new(created.Decision.Accepted, created.Decision.Code, created.Instance,
+            created.Decision.AuditEntry);
+    }
+
+    private static DynamicAreaCreationDecision Reject(string code, Guid templateId) =>
+        new(false, code, null, $"rejected:{code}:template={templateId}");
+}
+
+public sealed record NetworkWorldAdministrationRuntime(ZoneInstanceService Instances,
+    DynamicAreaRuntimeService DynamicAreas, AccountService Accounts,
+    AdministrationService Administration, ModerationService Moderation,
+    NetworkWorldAdministrationScriptService Scripts);
+
 public static class NetworkWorldAdministrationRuntimeAdapter
 {
     public static NetworkWorldAdministrationResolution Resolve(NetworkWorldAdministrationProfile? profile,
@@ -282,6 +326,20 @@ public static class NetworkWorldAdministrationRuntimeAdapter
                 : new(false, null, []);
         var diagnostics = NetworkWorldAdministrationValidator.Validate(profile);
         return new(diagnostics.Count == 0, diagnostics.Count == 0 ? profile : null, diagnostics);
+    }
+
+    public static NetworkWorldAdministrationRuntime Build(NetworkWorldAdministrationProfile profile,
+        TimeProvider? timeProvider = null)
+    {
+        var resolution = Resolve(profile, profile.RequiredAtRuntime);
+        if (!resolution.Available) throw new InvalidOperationException(resolution.Diagnostics[0].Code);
+        var authorization = new AuthorizationService();
+        var clock = timeProvider ?? TimeProvider.System;
+        var instances = new ZoneInstanceService();
+        return new(instances, new(profile.DynamicAreas, instances), new AccountService(),
+            new AdministrationService(authorization, profile.Administration.SafeCommandIds,
+                profile.Administration.RequestsPerMinute, clock),
+            new ModerationService(authorization, clock), new(profile));
     }
 }
 

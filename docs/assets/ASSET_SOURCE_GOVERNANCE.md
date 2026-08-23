@@ -1,6 +1,6 @@
 # Gouvernance des sources Asset Vault
 
-Dernière revue : 5 août 2026.
+Dernière revue : 21 août 2026.
 
 Ce registre décrit la décision **OpenRPG Forge**, pas une déclaration générale sur une plateforme.
 Une source reste refusée tant que licence, provenance, redistribution et transport ne sont pas
@@ -18,17 +18,19 @@ prouvés pour les fichiers exacts visés.
 L’acceptation est bornée à ces adaptateurs, variantes et URLs. Un miroir tiers portant le même nom
 de source n’est pas accepté automatiquement.
 
-## Sources exigeant une action manuelle
+## Sources acceptées via import manuel gouverné
 
-| Source | Packs actuellement identifiés | Motif du mode manuel | Conditions avant catalogue |
+| Source | Périmètre admis | Transport | Preuve locale |
 |---|---|---|---|
-| Quaternius | Stylized Nature MegaKit, Medieval Village Pack | Itch.io ou dossier partagé sans URL d’archive stable autorisée par l’adaptateur | téléchargement depuis la page officielle, archive intacte, SHA-256, preuve CC0 exacte, extraction sûre et revue visuelle |
+| Quaternius | Universal Base Characters Standard, Modular Character Outfits Fantasy Standard, LowPoly Animated Easy Enemies | téléchargement humain depuis Itch.io, puis import local épinglé par SHA-256 | `asset_manifests/catalogs/manual_itch_cc0_packs.json` |
+| KayKit | Forest Nature Pack FREE, Character Animations FREE, Fantasy Weapons Bits FREE, RPG Tools Bits FREE, Resource Bits FREE | téléchargement humain depuis Itch.io, licence CC0 interne, puis import local épinglé par SHA-256 | `asset_manifests/catalogs/manual_itch_cc0_packs.json` |
 
-Le pack KayKit Adventurers 1.0 constitue la première admission bornée de KayKit : cinq GLB au
-commit `672074b73ba276876a19e8816ecdc5241817ab47`, sans admission automatique des autres dépôts.
+Les admissions KayKit restent bornées aux dépôts épinglés et aux cinq archives FREE exactes du
+catalogue manuel. Elles n'admettent pas automatiquement les autres packs ou niveaux payants.
 
-La procédure détaillée et les pages épinglées sont dans `MANUAL_DOWNLOADS_REQUIRED.md`. Aucun outil
-ne simule une validation humaine, ne contourne une page ou ne devine une URL interne.
+Il ne reste aucun pack identifié en attente d'une action manuelle. L'historique et les hashes sont
+dans `ASSETS_MANUAL_DOWNLOAD.md` et le catalogue. Aucun outil ne simule une validation humaine,
+ne contourne une page ou ne devine une URL interne.
 
 ## Sources refusées ou différées
 
@@ -61,6 +63,5 @@ Avant d’ajouter un adaptateur ou un pack manuel :
 10. n’élargir le catalogue qu’après validation d’un petit pack cohérent.
 
 La procédure d’implémentation, de revue visuelle et d’admission est détaillée dans
-[`ASSET_SOURCE_AND_PACK_EXTENSION.md`](ASSET_SOURCE_AND_PACK_EXTENSION.md). Le gate AV5 maintient
-actuellement un plafond de 605 entrées ; sa levée exige la décision et les preuves décrites dans
-[`AV5_DELIVERY_AND_EXTENSION.md`](AV5_DELIVERY_AND_EXTENSION.md).
+[`ASSET_SOURCE_AND_PACK_EXTENSION.md`](ASSET_SOURCE_AND_PACK_EXTENSION.md). Les extensions admises
+restent soumises aux preuves décrites dans [`AV5_DELIVERY_AND_EXTENSION.md`](AV5_DELIVERY_AND_EXTENSION.md).

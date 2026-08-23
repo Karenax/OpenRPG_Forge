@@ -131,8 +131,11 @@ public sealed class UnifiedContentBrowser
     private static ContentResourceKind AssetKind(AssetCatalogItem asset)
     {
         var extension = Path.GetExtension(asset.RelativeModelPath ?? string.Empty).ToLowerInvariant();
-        if (asset.Categories.Any(category => category.Contains("texture", StringComparison.OrdinalIgnoreCase)) ||
-            extension is ".png" or ".tif" or ".tiff" or ".exr" or ".ktx2") return ContentResourceKind.Texture;
+        if (asset.Categories.Any(category =>
+                category.Contains("texture", StringComparison.OrdinalIgnoreCase) ||
+                category.Contains("material", StringComparison.OrdinalIgnoreCase)) ||
+            extension is ".png" or ".jpg" or ".jpeg" or ".webp" or ".tif" or ".tiff" or ".exr" or ".ktx2")
+            return ContentResourceKind.Texture;
         if (asset.Categories.Any(category => category.Contains("3d", StringComparison.OrdinalIgnoreCase)) ||
             extension is ".gltf" or ".glb" or ".obj" or ".fbx") return ContentResourceKind.Model;
         return ContentResourceKind.Asset;

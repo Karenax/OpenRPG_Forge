@@ -1,5 +1,7 @@
 using System.Text.Json;
+using Forge.Network.Capacity;
 using Forge.Network.Operations;
+using Forge.Network.Persistence;
 using Forge.Network.Sessions;
 
 namespace Forge.Network.Authoring;
@@ -27,6 +29,12 @@ public static class NetworkResilienceCapacityValidator
     {
         ArgumentNullException.ThrowIfNull(profile);
         var result = new List<NetworkDiagnostic>();
+        if (profile.Backup is null || profile.Capacity is null)
+        {
+            Add("NET_RESILIENCE_INCOMPLETE", "/network/resilienceCapacity",
+                "Backup and capacity policies are required.", profile.Id, result);
+            return result;
+        }
         var ids = new[] { profile.Id, profile.Backup.Id, profile.Capacity.Id };
         if (ids.Any(id => id == Guid.Empty) || ids.Distinct().Count() != ids.Length)
             Add("NET_RESILIENCE_UUID_INVALID", "/network/resilienceCapacity", "UUIDs must be unique.", profile.Id, result);
@@ -124,7 +132,33 @@ public static class NetworkResilienceCapacityRuntimeAdapter
         var diagnostics = NetworkResilienceCapacityValidator.Validate(profile);
         return new(diagnostics.Count == 0, diagnostics.Count == 0 ? profile : null, diagnostics);
     }
+
+    public static NetworkResilienceCapacityRuntime Build(NetworkResilienceCapacityProfile profile,
+        TimeProvider? timeProvider = null)
+    {
+        ArgumentNullException.ThrowIfNull(profile);
+        var diagnostics = NetworkResilienceCapacityValidator.Validate(profile);
+        if (diagnostics.Count != 0) throw new InvalidDataException(diagnostics[0].Code);
+        var clock = timeProvider ?? TimeProvider.System;
+        var snapshots = new InMemoryWorldSnapshotStore(clock);
+        var publicCapacity = profile.Capacity.MaximumPlayers - profile.Capacity.ReservedAdministratorSlots;
+        return new(profile, snapshots, new RollbackService(snapshots),
+            new ConnectionQueue(publicCapacity, clock,
+                TimeSpan.FromSeconds(profile.Capacity.ReservationSeconds)),
+            publicCapacity, profile.Capacity.ReservedAdministratorSlots,
+            new NetworkResilienceCapacityScriptService(profile));
+    }
 }
+
+public sealed record NetworkResilienceCapacityRuntime(
+    NetworkResilienceCapacityProfile Profile,
+    InMemoryWorldSnapshotStore Snapshots,
+    RollbackService Rollback,
+    ConnectionQueue PublicAdmissions,
+    int PublicCapacity,
+    int ReservedAdministratorSlots,
+    NetworkResilienceCapacityScriptService Scripts);
+
 public readonly record struct NetworkResilienceCapacityHandle(Guid ProfileId, int Generation);
 public sealed record NetworkResilienceCapacitySnapshot(Guid Id, long Revision, int SnapshotMinutes, int MaximumPlayers, int ReservedSlots, int ReservationSeconds);
 public sealed class NetworkResilienceCapacityScriptService(NetworkResilienceCapacityProfile profile)

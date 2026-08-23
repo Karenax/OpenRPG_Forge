@@ -164,11 +164,11 @@ public sealed class ForgeScriptInteropProfileStore(string root)
         if (diagnostics.Count > 0) throw new InvalidOperationException(string.Join(';', diagnostics.Select(item => item.Code)));
         Directory.CreateDirectory(_root);
         var destination = Path.Combine(_root, RelativePath);
-        var temporary = destination + ".tmp";
+        var temporary = $"{destination}.{Environment.ProcessId}.{Guid.NewGuid():N}.tmp";
         try
         {
             File.WriteAllText(temporary, JsonSerializer.Serialize(profile, JsonOptions));
-            File.Move(temporary, destination, true);
+            ReplaceWithTransientRetry(temporary, destination);
         }
         finally
         {
@@ -184,5 +184,26 @@ public sealed class ForgeScriptInteropProfileStore(string root)
         var diagnostics = ForgeScriptInteropProfileValidator.Validate(profile);
         if (diagnostics.Count > 0) throw new InvalidOperationException(string.Join(';', diagnostics.Select(item => item.Code)));
         return profile;
+    }
+
+    private static void ReplaceWithTransientRetry(string temporary, string destination)
+    {
+        const int maximumAttempts = 6;
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                File.Move(temporary, destination, true);
+                return;
+            }
+            catch (IOException) when (attempt < maximumAttempts)
+            {
+                Thread.Sleep(TimeSpan.FromMilliseconds(20 * attempt));
+            }
+            catch (UnauthorizedAccessException) when (attempt < maximumAttempts)
+            {
+                Thread.Sleep(TimeSpan.FromMilliseconds(20 * attempt));
+            }
+        }
     }
 }

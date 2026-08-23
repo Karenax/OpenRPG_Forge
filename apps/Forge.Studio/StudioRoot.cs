@@ -1,4 +1,7 @@
+using Forge.ModuleFormat.Serialization;
 using Forge.ModuleFormat.Workspaces;
+using Forge.Studio.Core.Accessibility;
+using Forge.Studio.Core.Navigation;
 using Forge.Studio.Presentation;
 using Forge.Studio.Session;
 using Godot;
@@ -14,10 +17,14 @@ public sealed partial class StudioRoot : Control
     private StudioUserState _userState = StudioUserState.Default;
     private string _defaultWorkspace = string.Empty;
     private bool _smokeRequested;
+    private bool _distributionSmokeRequested;
     private string? _capturePath;
+    private string? _capturePageMatrixPath;
     private Vector2I? _captureSize;
     private string? _requestedPage;
     private string? _evidenceMode;
+    private double? _requestedUiScale;
+    private double _appliedUiScale = 1;
 
     public override void _Ready()
     {
@@ -34,11 +41,24 @@ public sealed partial class StudioRoot : Control
         }
 
         var arguments = OS.GetCmdlineUserArgs();
-        _smokeRequested = arguments.Contains("--studio-smoke-test", StringComparer.Ordinal);
+        _distributionSmokeRequested = arguments.Contains(
+            "--studio-distribution-smoke-test", StringComparer.Ordinal);
+        _smokeRequested = _distributionSmokeRequested ||
+                          arguments.Contains("--studio-smoke-test", StringComparer.Ordinal);
         _capturePath = ReadArgument(arguments, "--capture");
+        _capturePageMatrixPath = ReadArgument(arguments, "--capture-page-matrix");
         _captureSize = ParseCaptureSize(ReadArgument(arguments, "--capture-size"));
         _requestedPage = ReadArgument(arguments, "--page");
         _evidenceMode = ReadArgument(arguments, "--evidence");
+        if (!StudioDisplayScale.TryParseOverride(ReadArgument(arguments, "--ui-scale"), out _requestedUiScale))
+        {
+            GD.PrintErr(
+                $"OPENRPG_FORGE_STUDIO_UI_SCALE_INVALID min={StudioDisplayScale.Minimum:0.##} " +
+                $"max={StudioDisplayScale.Maximum:0.##}");
+            GetTree().Quit(2);
+            return;
+        }
+        ApplyDisplayScale(StudioDisplayScale.Resolve(_requestedUiScale, 1));
         var requestedWorkspace = ReadArgument(arguments, "--workspace");
 
         BuildHub();
@@ -47,7 +67,8 @@ public sealed partial class StudioRoot : Control
             ShowNewProjectWizard();
             RunNewProjectEvidence();
         }
-        else if (!string.IsNullOrWhiteSpace(requestedWorkspace) || _smokeRequested || _capturePath is not null)
+        else if (!string.IsNullOrWhiteSpace(requestedWorkspace) || _smokeRequested || _capturePath is not null ||
+                 _capturePageMatrixPath is not null)
         {
             OpenWorkspace(requestedWorkspace ?? _defaultWorkspace, fromHub: false);
         }
@@ -117,12 +138,14 @@ public sealed partial class StudioRoot : Control
                 result.Diagnostics.Select(diagnostic => $"{diagnostic.Code} · {diagnostic.Message}"));
             _hub?.ShowStatus(message, error: true);
             GD.PrintErr($"OPENRPG_FORGE_STUDIO_PROJECT_INVALID {result.Diagnostics.FirstOrDefault()?.Code}");
-            if (_smokeRequested || _capturePath is not null)
+            if (_smokeRequested || _capturePath is not null || _capturePageMatrixPath is not null)
             {
                 GetTree().Quit(1);
             }
             return;
         }
+
+        ApplyDisplayScale(StudioDisplayScale.Resolve(_requestedUiScale, _session.WorkspaceProfile.UiScale));
 
         _newProjectWizard?.QueueFree();
         _newProjectWizard = null;
@@ -148,10 +171,20 @@ public sealed partial class StudioRoot : Control
         GD.Print(
             $"OPENRPG_FORGE_STUDIO_PROJECT_OPEN title={_session.Project!.Module.DisplayName} " +
             $"areas={_session.Project.Areas.Count} source={(fromHub ? "hub" : "arguments")}");
-        if (_smokeRequested || _capturePath is not null || !string.IsNullOrWhiteSpace(_evidenceMode))
+        if (_smokeRequested || _capturePath is not null || _capturePageMatrixPath is not null ||
+            !string.IsNullOrWhiteSpace(_evidenceMode))
         {
             RunAutomatedEvidence();
         }
+    }
+
+    private void ApplyDisplayScale(double scale)
+    {
+        _appliedUiScale = scale;
+        GetWindow().ContentScaleFactor = (float)scale;
+        GD.Print(
+            $"OPENRPG_FORGE_STUDIO_DISPLAY_SCALE scale={scale:0.##} " +
+            $"source={(_requestedUiScale is null ? "profile" : "override")}");
     }
 
     private void ShowNewProjectWizard()
@@ -251,6 +284,11 @@ public sealed partial class StudioRoot : Control
             GD.Print($"OPENRPG_FORGE_STUDIO_ASSET_WAIT_DONE loaded={_shell.AssetLibraryLoaded.ToString().ToLowerInvariant()} " +
                      $"elapsed={assetWait.Elapsed.TotalSeconds:0.###}");
         }
+        if (_distributionSmokeRequested)
+        {
+            await RunDistributionSmoke();
+            return;
+        }
         var editValid = !_smokeRequested || _shell.RunEditingSmoke();
         var ux0AValid = !_smokeRequested || _shell.RunUx0ASmoke();
         var ux0BValid = !_smokeRequested || _shell.RunUx0BSmoke();
@@ -334,6 +372,15 @@ public sealed partial class StudioRoot : Control
         var ux2NavKValid = true;
         var ux2NavLValid = true;
         var ux2NavMValid = true;
+        var ux3AValid = true;
+        var ux3BValid = true;
+        var ux3CValid = true;
+        var ux3DValid = true;
+        var ux3EValid = true;
+        var ux3FValid = true;
+        var ux3GValid = true;
+        var ux3HValid = true;
+        var ux3IValid = true;
         var ux4AValid = true;
         var ux4BValid = true;
         var ux4CValid = true;
@@ -357,6 +404,71 @@ public sealed partial class StudioRoot : Control
         var ux4UValid = true;
         var ux5AValid = true;
         var ux5BValid = true;
+        var ux6AValid = true;
+        var ux6BValid = true;
+        var ux6CValid = true;
+        var ux6DValid = true;
+        var ux6EValid = true;
+        var ux6FValid = true;
+        var ux6GValid = true;
+        var ux6HValid = true;
+        var ux6IValid = true;
+        var ux6JValid = true;
+        var ux6KValid = true;
+        var ux6LValid = true;
+        var ux6MValid = true;
+        var ux6NValid = true;
+        var ux6OValid = true;
+        var ux6PValid = true;
+        var ux6QValid = true;
+        var ux6RValid = true;
+        var ux6SValid = true;
+        var ux6TValid = true;
+        var ux6UValid = true;
+        var ux6VValid = true;
+        var ux6WValid = true;
+        var ux6XValid = true;
+        var ux6YValid = true;
+        var ux6ZValid = true;
+        var ux7AValid = true;
+        var ux7BValid = true;
+        var ux7CValid = true;
+        var ux7DValid = true;
+        var ux7EValid = true;
+        var ux7FValid = true;
+        var ux7GValid = true;
+        var ux7HValid = true;
+        var ux7IValid = true;
+        var ux8AValid = true;
+        var ux8BValid = true;
+        var ux8CValid = true;
+        var ux8DValid = true;
+        var ux8EValid = true;
+        var ux8FValid = true;
+        var ux8GValid = true;
+        var ux8HValid = true;
+        var ux8IValid = true;
+        var ux8JValid = true;
+        var ux8KValid = true;
+        var ux8LValid = true;
+        var ux8MValid = true;
+        var ux8NValid = true;
+        var ux9AValid = true;
+        var ux9BValid = true;
+        var ux9CValid = true;
+        var ux9DValid = true;
+        var ux9EValid = true;
+        var ux9FValid = true;
+        var ux9GValid = true;
+        var ux9HValid = true;
+        var ux9IValid = true;
+        var ux9JValid = true;
+        var ux9KValid = true;
+        var ux9LValid = true;
+        var ux9MValid = true;
+        var ux9NValid = true;
+        var ux9OValid = true;
+        var ux10Valid = true;
         var candidateApprovalsValid = true;
         if (_smokeRequested)
         {
@@ -396,6 +508,16 @@ public sealed partial class StudioRoot : Control
             var ux2NavKApproval = _session.CaptureCrossAreaPatrolApprovalUx2NavK();
             var ux2NavLApproval = _session.CaptureVehicleRouteApprovalUx2NavL();
             var ux2NavMApproval = _session.CaptureCameraAnchorApprovalUx2NavM();
+            var ux3AApproval = _session.CaptureBlueprintApprovalUx3A();
+            var ux3BApproval = _session.CaptureBlueprintLibraryApprovalUx3B();
+            var ux3CApproval = _session.CaptureBlueprintDiscoveryApprovalUx3C();
+            var ux3DApproval = _session.CaptureBlueprintGovernanceApprovalUx3D();
+            var ux3EApproval = _session.CaptureAssetQualityApprovalUx3E();
+            var ux3FApproval = _session.CaptureAssetAuthoringApprovalUx3F();
+            var ux3GApproval = _session.CaptureManifestApprovalUx3G();
+            var ux3HApproval = _session.CaptureContentApprovalUx3H();
+            var ux3IGovernanceApproval = _session.CaptureGovernanceApprovalUx3I();
+            var ux3IMediaApproval = _session.CaptureMediaApprovalUx3I();
             var ux4AApproval = _session.CaptureFactionApprovalUx4A();
             var ux4BApproval = _session.CaptureFactionRuntimeApprovalUx4B();
             var ux4CApproval = _session.CaptureFactionMatrixApprovalUx4C();
@@ -419,6 +541,54 @@ public sealed partial class StudioRoot : Control
             var ux4UApproval = _session.CaptureCompanionApprovalUx4U();
             var ux5AApproval = _session.CaptureDialogueApprovalUx5A();
             var ux5BApproval = _session.CaptureNarrativeApprovalUx5B();
+            var ux6AApproval = _session.CaptureRulesWorldApprovalUx6A();
+            var ux6BApproval = _session.CaptureGameplayFoundationApprovalUx6B();
+            var ux6CApproval = _session.CaptureGameplayCapabilityApprovalUx6C();
+            var ux6DApproval = _session.CaptureGameplaySimulationApprovalUx6D();
+            var ux6EApproval = _session.CaptureGameplayProductionApprovalUx6E();
+            var ux6FApproval = _session.CaptureScriptApprovalUx6F();
+            var ux6JApproval = _session.CaptureExecutionPolicyApprovalUx6J();
+            var ux6KApproval = _session.CaptureModulePermissionApprovalUx6K();
+            var ux6MApproval = _session.CaptureScriptAutomationApprovalUx6M();
+            var ux6OApproval = _session.CaptureScriptQualityApprovalUx6O();
+            var ux6PApproval = _session.CaptureScriptInteropApprovalUx6P();
+            var ux6QApproval = _session.CaptureCompilerAssistantApprovalUx6Q();
+            var ux6RApproval = _session.CaptureRuntimeDataApprovalUx6R();
+            var ux6SApproval = _session.CaptureCreatorPolicyApprovalUx6S();
+            var ux6TApproval = _session.CaptureModernToolingApprovalUx6T();
+            var ux6UApproval = _session.CaptureBlackboardApprovalUx6U();
+            var ux6VApproval = _session.CapturePathfindingApprovalUx6V();
+            var ux6WApproval = _session.CaptureRuntimeTransformApprovalUx6W();
+            var ux6XApproval = _session.CaptureRuntimeUiApprovalUx6X();
+            var ux6YApproval = _session.CaptureRuntimeOperationsApprovalUx6Y();
+            var ux6ZApproval = _session.CaptureAbilityApprovalUx6Z();
+            var ux7AApproval = _session.CaptureValidationApprovalUx7A();
+            var ux7BApproval = _session.CaptureQualityFoundationApprovalUx7B();
+            var ux7IApproval = _session.CaptureObservabilityApprovalUx7I();
+            var ux8CApproval = _session.CaptureGovernanceApprovalUx8C();
+            var ux8HApproval = _session.CaptureDistributionApprovalUx8H();
+            var ux8IApproval = _session.CaptureCompatibilityApprovalUx8I();
+            var ux8JApproval = _session.CaptureSecurityApprovalUx8J();
+            var ux8KApproval = _session.CaptureBulkApprovalUx8K();
+            var ux8LApproval = _session.CaptureSyncApprovalUx8L();
+            var ux8MApproval = _session.CaptureNetworkExperienceApprovalUx8M();
+            var ux8NApproval = _session.CapturePackageLifecycleApprovalUx8N();
+            var ux9AApproval = _session.CaptureNetworkFoundationApprovalUx9A();
+            var ux9BApproval = _session.CaptureNetworkOperationsApprovalUx9B();
+            var ux9CApproval = _session.CaptureWorldAdministrationApprovalUx9C();
+            var ux9DApproval = _session.CapturePersistenceObservabilityApprovalUx9D();
+            var ux9EApproval = _session.CaptureResilienceCapacityApprovalUx9E();
+            var ux9FApproval = _session.CaptureLiveDirectorApprovalUx9F();
+            var ux9GApproval = _session.CaptureLiveActionApprovalUx9G();
+            var ux9HApproval = _session.CaptureLiveAuthorityApprovalUx9H();
+            var ux9IApproval = _session.CaptureLiveGroupApprovalUx9I();
+            var ux9JApproval = _session.CaptureLiveOperationsApprovalUx9J();
+            var ux9KApproval = _session.CaptureLiveNarrativeApprovalUx9K();
+            var ux9LApproval = _session.CaptureLiveAccessApprovalUx9L();
+            var ux9MApproval = _session.CaptureLiveProductionApprovalUx9M();
+            var ux9NApproval = _session.CaptureNetworkProductionApprovalUx9N();
+            var ux9OApproval = _session.CaptureNetworkClosureApprovalUx9O();
+            var ux10Approval = _session.CaptureAssistantApprovalUx10();
             try
             {
                 ux2AValid = _shell.RunUx2ASmoke();
@@ -457,6 +627,15 @@ public sealed partial class StudioRoot : Control
                 ux2NavKValid = _shell.RunUx2NavKSmoke();
                 ux2NavLValid = _shell.RunUx2NavLSmoke();
                 ux2NavMValid = _shell.RunUx2NavMSmoke();
+                ux3AValid = _shell.RunUx3ASmoke();
+                ux3BValid = _shell.RunUx3BSmoke();
+                ux3CValid = _shell.RunUx3CSmoke();
+                ux3DValid = _shell.RunUx3DSmoke();
+                ux3EValid = _shell.RunUx3ESmoke();
+                ux3FValid = _shell.RunUx3FSmoke();
+                ux3GValid = _shell.RunUx3GSmoke();
+                ux3HValid = _shell.RunUx3HSmoke();
+                ux3IValid = _shell.RunUx3ISmoke();
                 ux4AValid = _shell.RunUx4ASmoke();
                 ux4BValid = _shell.RunUx4BSmoke();
                 ux4CValid = _shell.RunUx4CSmoke();
@@ -480,6 +659,71 @@ public sealed partial class StudioRoot : Control
                 ux4UValid = _shell.RunUx4USmoke();
                 ux5AValid = _shell.RunUx5ASmoke();
                 ux5BValid = _shell.RunUx5BSmoke();
+                ux6AValid = _shell.RunUx6ASmoke();
+                ux6BValid = _shell.RunUx6BSmoke();
+                ux6CValid = _shell.RunUx6CSmoke();
+                ux6DValid = _shell.RunUx6DSmoke();
+                ux6EValid = _shell.RunUx6ESmoke();
+                ux6FValid = _shell.RunUx6FSmoke();
+                ux6GValid = _shell.RunUx6GSmoke();
+                ux6HValid = _shell.RunUx6HSmoke();
+                ux6IValid = _shell.RunUx6ISmoke();
+                ux6JValid = _shell.RunUx6JSmoke();
+                ux6KValid = _shell.RunUx6KSmoke();
+                ux6LValid = _shell.RunUx6LSmoke();
+                ux6MValid = _shell.RunUx6MSmoke();
+                ux6NValid = _shell.RunUx6NSmoke();
+                ux6OValid = _shell.RunUx6OSmoke();
+                ux6PValid = _shell.RunUx6PSmoke();
+                ux6QValid = _shell.RunUx6QSmoke();
+                ux6RValid = _shell.RunUx6RSmoke();
+                ux6SValid = _shell.RunUx6SSmoke();
+                ux6TValid = _shell.RunUx6TSmoke();
+                ux6UValid = _shell.RunUx6USmoke();
+                ux6VValid = _shell.RunUx6VSmoke();
+                ux6WValid = _shell.RunUx6WSmoke();
+                ux6XValid = _shell.RunUx6XSmoke();
+                ux6YValid = _shell.RunUx6YSmoke();
+                ux6ZValid = _shell.RunUx6ZSmoke();
+                ux7AValid = _shell.RunUx7ASmoke();
+                ux7BValid = _shell.RunUx7BSmoke();
+                ux7CValid = _shell.RunUx7CSmoke();
+                ux7DValid = _shell.RunUx7DSmoke();
+                ux7EValid = _shell.RunUx7ESmoke();
+                ux7FValid = _shell.RunUx7FSmoke();
+                ux7GValid = _shell.RunUx7GSmoke();
+                ux7HValid = _shell.RunUx7HSmoke();
+                ux7IValid = _shell.RunUx7ISmoke();
+                ux8AValid = _shell.RunUx8ASmoke();
+                ux8BValid = _shell.RunUx8BSmoke();
+                ux8CValid = _shell.RunUx8CSmoke();
+                ux8DValid = _shell.RunUx8DSmoke();
+                ux8EValid = _shell.RunUx8ESmoke();
+                ux8FValid = _shell.RunUx8FSmoke();
+                ux8GValid = _shell.RunUx8GSmoke();
+                ux8HValid = _shell.RunUx8HSmoke();
+                ux8IValid = _shell.RunUx8ISmoke();
+                ux8JValid = _shell.RunUx8JSmoke();
+                ux8KValid = _shell.RunUx8KSmoke();
+                ux8LValid = _shell.RunUx8LSmoke();
+                ux8MValid = _shell.RunUx8MSmoke();
+                ux8NValid = _shell.RunUx8NSmoke();
+                ux9AValid = _shell.RunUx9ASmoke();
+                ux9BValid = _shell.RunUx9BSmoke();
+                ux9CValid = _shell.RunUx9CSmoke();
+                ux9DValid = _shell.RunUx9DSmoke();
+                ux9EValid = _shell.RunUx9ESmoke();
+                ux9FValid = _shell.RunUx9FSmoke();
+                ux9GValid = _shell.RunUx9GSmoke();
+                ux9HValid = _shell.RunUx9HSmoke();
+                ux9IValid = _shell.RunUx9ISmoke();
+                ux9JValid = _shell.RunUx9JSmoke();
+                ux9KValid = _shell.RunUx9KSmoke();
+                ux9LValid = _shell.RunUx9LSmoke();
+                ux9MValid = _shell.RunUx9MSmoke();
+                ux9NValid = _shell.RunUx9NSmoke();
+                ux9OValid = _shell.RunUx9OSmoke();
+                ux10Valid = _shell.RunUx10Smoke();
             }
             finally
             {
@@ -519,6 +763,16 @@ public sealed partial class StudioRoot : Control
                 _session.RestoreCrossAreaPatrolApprovalUx2NavK(ux2NavKApproval);
                 _session.RestoreVehicleRouteApprovalUx2NavL(ux2NavLApproval);
                 _session.RestoreCameraAnchorApprovalUx2NavM(ux2NavMApproval);
+                _session.RestoreBlueprintApprovalUx3A(ux3AApproval);
+                _session.RestoreBlueprintLibraryApprovalUx3B(ux3BApproval);
+                _session.RestoreBlueprintDiscoveryApprovalUx3C(ux3CApproval);
+                _session.RestoreBlueprintGovernanceApprovalUx3D(ux3DApproval);
+                _session.RestoreAssetQualityApprovalUx3E(ux3EApproval);
+                _session.RestoreAssetAuthoringApprovalUx3F(ux3FApproval);
+                _session.RestoreManifestApprovalUx3G(ux3GApproval);
+                _session.RestoreContentApprovalUx3H(ux3HApproval);
+                _session.RestoreGovernanceApprovalUx3I(ux3IGovernanceApproval);
+                _session.RestoreMediaApprovalUx3I(ux3IMediaApproval);
                 _session.RestoreFactionApprovalUx4A(ux4AApproval);
                 _session.RestoreFactionRuntimeApprovalUx4B(ux4BApproval);
                 _session.RestoreFactionMatrixApprovalUx4C(ux4CApproval);
@@ -542,6 +796,54 @@ public sealed partial class StudioRoot : Control
                 _session.RestoreCompanionApprovalUx4U(ux4UApproval);
                 _session.RestoreDialogueApprovalUx5A(ux5AApproval);
                 _session.RestoreNarrativeApprovalUx5B(ux5BApproval);
+                _session.RestoreRulesWorldApprovalUx6A(ux6AApproval);
+                _session.RestoreGameplayFoundationApprovalUx6B(ux6BApproval);
+                _session.RestoreGameplayCapabilityApprovalUx6C(ux6CApproval);
+                _session.RestoreGameplaySimulationApprovalUx6D(ux6DApproval);
+                _session.RestoreGameplayProductionApprovalUx6E(ux6EApproval);
+                _session.RestoreScriptApprovalUx6F(ux6FApproval);
+                _session.RestoreExecutionPolicyApprovalUx6J(ux6JApproval);
+                _session.RestoreModulePermissionApprovalUx6K(ux6KApproval);
+                _session.RestoreScriptAutomationApprovalUx6M(ux6MApproval);
+                _session.RestoreScriptQualityApprovalUx6O(ux6OApproval);
+                _session.RestoreScriptInteropApprovalUx6P(ux6PApproval);
+                _session.RestoreCompilerAssistantApprovalUx6Q(ux6QApproval);
+                _session.RestoreRuntimeDataApprovalUx6R(ux6RApproval);
+                _session.RestoreCreatorPolicyApprovalUx6S(ux6SApproval);
+                _session.RestoreModernToolingApprovalUx6T(ux6TApproval);
+                _session.RestoreBlackboardApprovalUx6U(ux6UApproval);
+                _session.RestorePathfindingApprovalUx6V(ux6VApproval);
+                _session.RestoreRuntimeTransformApprovalUx6W(ux6WApproval);
+                _session.RestoreRuntimeUiApprovalUx6X(ux6XApproval);
+                _session.RestoreRuntimeOperationsApprovalUx6Y(ux6YApproval);
+                _session.RestoreAbilityApprovalUx6Z(ux6ZApproval);
+                _session.RestoreValidationApprovalUx7A(ux7AApproval);
+                _session.RestoreQualityFoundationApprovalUx7B(ux7BApproval);
+                _session.RestoreObservabilityApprovalUx7I(ux7IApproval);
+                _session.RestoreGovernanceApprovalUx8C(ux8CApproval);
+                _session.RestoreDistributionApprovalUx8H(ux8HApproval);
+                _session.RestoreCompatibilityApprovalUx8I(ux8IApproval);
+                _session.RestoreSecurityApprovalUx8J(ux8JApproval);
+                _session.RestoreBulkApprovalUx8K(ux8KApproval);
+                _session.RestoreSyncApprovalUx8L(ux8LApproval);
+                _session.RestoreNetworkExperienceApprovalUx8M(ux8MApproval);
+                _session.RestorePackageLifecycleApprovalUx8N(ux8NApproval);
+                _session.RestoreNetworkFoundationApprovalUx9A(ux9AApproval);
+                _session.RestoreNetworkOperationsApprovalUx9B(ux9BApproval);
+                _session.RestoreWorldAdministrationApprovalUx9C(ux9CApproval);
+                _session.RestorePersistenceObservabilityApprovalUx9D(ux9DApproval);
+                _session.RestoreResilienceCapacityApprovalUx9E(ux9EApproval);
+                _session.RestoreLiveDirectorApprovalUx9F(ux9FApproval);
+                _session.RestoreLiveActionApprovalUx9G(ux9GApproval);
+                _session.RestoreLiveAuthorityApprovalUx9H(ux9HApproval);
+                _session.RestoreLiveGroupApprovalUx9I(ux9IApproval);
+                _session.RestoreLiveOperationsApprovalUx9J(ux9JApproval);
+                _session.RestoreLiveNarrativeApprovalUx9K(ux9KApproval);
+                _session.RestoreLiveAccessApprovalUx9L(ux9LApproval);
+                _session.RestoreLiveProductionApprovalUx9M(ux9MApproval);
+                _session.RestoreNetworkProductionApprovalUx9N(ux9NApproval);
+                _session.RestoreNetworkClosureApprovalUx9O(ux9OApproval);
+                _session.RestoreAssistantApprovalUx10(ux10Approval);
             }
             candidateApprovalsValid =
                 Equals(_session.CaptureAreaPolicyApprovalUx2A(), ux2AApproval) &&
@@ -580,6 +882,16 @@ public sealed partial class StudioRoot : Control
                 Equals(_session.CaptureCrossAreaPatrolApprovalUx2NavK(), ux2NavKApproval) &&
                 Equals(_session.CaptureVehicleRouteApprovalUx2NavL(), ux2NavLApproval) &&
                 Equals(_session.CaptureCameraAnchorApprovalUx2NavM(), ux2NavMApproval) &&
+                Equals(_session.CaptureBlueprintApprovalUx3A(), ux3AApproval) &&
+                Equals(_session.CaptureBlueprintLibraryApprovalUx3B(), ux3BApproval) &&
+                Equals(_session.CaptureBlueprintDiscoveryApprovalUx3C(), ux3CApproval) &&
+                Equals(_session.CaptureBlueprintGovernanceApprovalUx3D(), ux3DApproval) &&
+                Equals(_session.CaptureAssetQualityApprovalUx3E(), ux3EApproval) &&
+                Equals(_session.CaptureAssetAuthoringApprovalUx3F(), ux3FApproval) &&
+                Equals(_session.CaptureManifestApprovalUx3G(), ux3GApproval) &&
+                Equals(_session.CaptureContentApprovalUx3H(), ux3HApproval) &&
+                Equals(_session.CaptureGovernanceApprovalUx3I(), ux3IGovernanceApproval) &&
+                Equals(_session.CaptureMediaApprovalUx3I(), ux3IMediaApproval) &&
                 Equals(_session.CaptureFactionApprovalUx4A(), ux4AApproval) &&
                 Equals(_session.CaptureFactionRuntimeApprovalUx4B(), ux4BApproval) &&
                 Equals(_session.CaptureFactionMatrixApprovalUx4C(), ux4CApproval) &&
@@ -602,7 +914,58 @@ public sealed partial class StudioRoot : Control
                 Equals(_session.CaptureMerchantApprovalUx4T(), ux4TApproval) &&
                 Equals(_session.CaptureCompanionApprovalUx4U(), ux4UApproval) &&
                 Equals(_session.CaptureDialogueApprovalUx5A(), ux5AApproval) &&
-                Equals(_session.CaptureNarrativeApprovalUx5B(), ux5BApproval);
+                Equals(_session.CaptureNarrativeApprovalUx5B(), ux5BApproval) &&
+                Equals(_session.CaptureRulesWorldApprovalUx6A(), ux6AApproval) &&
+                Equals(_session.CaptureGameplayFoundationApprovalUx6B(), ux6BApproval) &&
+                Equals(_session.CaptureGameplayCapabilityApprovalUx6C(), ux6CApproval) &&
+                Equals(_session.CaptureGameplaySimulationApprovalUx6D(), ux6DApproval) &&
+                Equals(_session.CaptureGameplayProductionApprovalUx6E(), ux6EApproval) &&
+                Equals(_session.CaptureScriptApprovalUx6F(), ux6FApproval) &&
+                Equals(_session.CaptureExecutionPolicyApprovalUx6J(), ux6JApproval) &&
+                Equals(_session.CaptureModulePermissionApprovalUx6K(), ux6KApproval) &&
+                Equals(_session.CaptureScriptAutomationApprovalUx6M(), ux6MApproval) &&
+                Equals(_session.CaptureScriptQualityApprovalUx6O(), ux6OApproval);
+            candidateApprovalsValid = candidateApprovalsValid &&
+                Equals(_session.CaptureScriptInteropApprovalUx6P(), ux6PApproval) &&
+                Equals(_session.CaptureCompilerAssistantApprovalUx6Q(), ux6QApproval) &&
+                Equals(_session.CaptureRuntimeDataApprovalUx6R(), ux6RApproval) &&
+                Equals(_session.CaptureCreatorPolicyApprovalUx6S(), ux6SApproval) &&
+                Equals(_session.CaptureModernToolingApprovalUx6T(), ux6TApproval) &&
+                Equals(_session.CaptureBlackboardApprovalUx6U(), ux6UApproval) &&
+                Equals(_session.CapturePathfindingApprovalUx6V(), ux6VApproval) &&
+                Equals(_session.CaptureRuntimeTransformApprovalUx6W(), ux6WApproval) &&
+                Equals(_session.CaptureRuntimeUiApprovalUx6X(), ux6XApproval);
+            candidateApprovalsValid = candidateApprovalsValid &&
+                Equals(_session.CaptureRuntimeOperationsApprovalUx6Y(), ux6YApproval) &&
+                Equals(_session.CaptureAbilityApprovalUx6Z(), ux6ZApproval) &&
+                Equals(_session.CaptureValidationApprovalUx7A(), ux7AApproval) &&
+                Equals(_session.CaptureQualityFoundationApprovalUx7B(), ux7BApproval) &&
+                Equals(_session.CaptureObservabilityApprovalUx7I(), ux7IApproval);
+            candidateApprovalsValid = candidateApprovalsValid &&
+                Equals(_session.CaptureGovernanceApprovalUx8C(), ux8CApproval) &&
+                Equals(_session.CaptureDistributionApprovalUx8H(), ux8HApproval) &&
+                Equals(_session.CaptureCompatibilityApprovalUx8I(), ux8IApproval) &&
+                Equals(_session.CaptureSecurityApprovalUx8J(), ux8JApproval) &&
+                Equals(_session.CaptureBulkApprovalUx8K(), ux8KApproval) &&
+                Equals(_session.CaptureSyncApprovalUx8L(), ux8LApproval) &&
+                Equals(_session.CaptureNetworkExperienceApprovalUx8M(), ux8MApproval) &&
+                Equals(_session.CapturePackageLifecycleApprovalUx8N(), ux8NApproval) &&
+                Equals(_session.CaptureNetworkFoundationApprovalUx9A(), ux9AApproval) &&
+                Equals(_session.CaptureNetworkOperationsApprovalUx9B(), ux9BApproval) &&
+                Equals(_session.CaptureWorldAdministrationApprovalUx9C(), ux9CApproval) &&
+                Equals(_session.CapturePersistenceObservabilityApprovalUx9D(), ux9DApproval) &&
+                Equals(_session.CaptureResilienceCapacityApprovalUx9E(), ux9EApproval) &&
+                Equals(_session.CaptureLiveDirectorApprovalUx9F(), ux9FApproval) &&
+                Equals(_session.CaptureLiveActionApprovalUx9G(), ux9GApproval) &&
+                Equals(_session.CaptureLiveAuthorityApprovalUx9H(), ux9HApproval) &&
+                Equals(_session.CaptureLiveGroupApprovalUx9I(), ux9IApproval) &&
+                Equals(_session.CaptureLiveOperationsApprovalUx9J(), ux9JApproval) &&
+                Equals(_session.CaptureLiveNarrativeApprovalUx9K(), ux9KApproval) &&
+                Equals(_session.CaptureLiveAccessApprovalUx9L(), ux9LApproval) &&
+                Equals(_session.CaptureLiveProductionApprovalUx9M(), ux9MApproval) &&
+                Equals(_session.CaptureNetworkProductionApprovalUx9N(), ux9NApproval) &&
+                Equals(_session.CaptureNetworkClosureApprovalUx9O(), ux9OApproval) &&
+                Equals(_session.CaptureAssistantApprovalUx10(), ux10Approval);
             GD.Print(
                 $"OPENRPG_FORGE_STUDIO_CANDIDATE_APPROVALS_{(candidateApprovalsValid ? "PASS" : "FAILED")} " +
                 $"preserved={candidateApprovalsValid.ToString().ToLowerInvariant()}");
@@ -615,7 +978,7 @@ public sealed partial class StudioRoot : Control
         }
         _shell.FinalizeEditingEvidenceLayout();
         await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-        if (!string.IsNullOrWhiteSpace(_capturePath))
+        if (!string.IsNullOrWhiteSpace(_capturePath) || !string.IsNullOrWhiteSpace(_capturePageMatrixPath))
         {
             await ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
             RenderingServer.ForceSync();
@@ -641,10 +1004,16 @@ public sealed partial class StudioRoot : Control
             !ux2EnvHValid || !ux2EnvIValid || !ux2EnvJValid || !ux2EnvKValid ||
             !ux2NavBValid || !ux2NavCValid || !ux2NavDValid || !ux2NavEValid || !ux2NavFValid || !ux2NavGValid ||
             !ux2NavHValid || !ux2NavIValid || !ux2NavJValid || !ux2NavKValid || !ux2NavLValid || !ux2NavMValid ||
+            !ux3AValid || !ux3BValid || !ux3CValid || !ux3DValid || !ux3EValid || !ux3FValid || !ux3GValid || !ux3HValid || !ux3IValid ||
             !ux4AValid || !ux4BValid || !ux4CValid || !ux4DValid || !ux4EValid || !ux4FValid || !ux4GValid ||
             !ux4HValid || !ux4IValid || !ux4JValid || !ux4KValid || !ux4LValid || !ux4MValid || !ux4NValid ||
             !ux4OValid || !ux4PValid || !ux4QValid || !ux4RValid || !ux4SValid || !ux4TValid || !ux4UValid ||
-            !ux5AValid || !ux5BValid ||
+            !ux5AValid || !ux5BValid || !ux6AValid || !ux6BValid || !ux6CValid || !ux6DValid ||
+            !ux6EValid || !ux6FValid || !ux6GValid || !ux6HValid || !ux6IValid || !ux6JValid || !ux6KValid ||
+            !ux6LValid || !ux6MValid || !ux6NValid || !ux6OValid || !ux6PValid || !ux6QValid || !ux6RValid ||
+            !ux6SValid || !ux6TValid || !ux6UValid || !ux6VValid || !ux6WValid || !ux6XValid || !ux6YValid ||
+            !ux6ZValid || !ux7AValid || !ux7BValid || !ux7CValid || !ux7DValid || !ux7EValid || !ux7FValid ||
+            !ux7GValid || !ux7HValid || !ux7IValid || !ux8AValid || !ux8BValid || !ux8CValid || !ux8DValid || !ux8EValid || !ux8FValid || !ux8GValid || !ux8HValid || !ux8IValid || !ux8JValid || !ux8KValid || !ux8LValid || !ux8MValid || !ux8NValid || !ux9AValid || !ux9BValid || !ux9CValid || !ux9DValid || !ux9EValid || !ux9FValid || !ux9GValid || !ux9HValid || !ux9IValid || !ux9JValid || !ux9KValid || !ux9LValid || !ux9MValid || !ux9NValid || !ux9OValid || !ux10Valid ||
             !candidateApprovalsValid || !evidenceValid)
         {
             GD.PrintErr(
@@ -670,9 +1039,9 @@ public sealed partial class StudioRoot : Control
                 $"ux2navb={ux2NavBValid} ux2navc={ux2NavCValid} ux2navd={ux2NavDValid} " +
                 $"ux2nave={ux2NavEValid} ux2navf={ux2NavFValid} ux2navg={ux2NavGValid} ux2navh={ux2NavHValid} " +
                 $"ux2navi={ux2NavIValid} ux2navj={ux2NavJValid} ux2navk={ux2NavKValid} ux2navl={ux2NavLValid} " +
-                $"ux2navm={ux2NavMValid} " +
-                $"ux4a={ux4AValid} ux4b={ux4BValid} ux4c={ux4CValid} ux4d={ux4DValid} ux4e={ux4EValid} ux4f={ux4FValid} ux4g={ux4GValid} ux4h={ux4HValid} ux4i={ux4IValid} ux4j={ux4JValid} ux4k={ux4KValid} ux4l={ux4LValid} ux4m={ux4MValid} ux4n={ux4NValid} ux4o={ux4OValid} ux4p={ux4PValid} ux4q={ux4QValid} ux4r={ux4RValid} ux4s={ux4SValid} ux4t={ux4TValid} ux4u={ux4UValid} ux5a={ux5AValid} ux5b={ux5BValid} " +
-                $"candidate_approvals={candidateApprovalsValid} " +
+                $"ux2navm={ux2NavMValid} ux3a={ux3AValid} ux3b={ux3BValid} ux3c={ux3CValid} ux3d={ux3DValid} ux3e={ux3EValid} ux3f={ux3FValid} ux3g={ux3GValid} ux3h={ux3HValid} ux3i={ux3IValid} " +
+                $"ux4a={ux4AValid} ux4b={ux4BValid} ux4c={ux4CValid} ux4d={ux4DValid} ux4e={ux4EValid} ux4f={ux4FValid} ux4g={ux4GValid} ux4h={ux4HValid} ux4i={ux4IValid} ux4j={ux4JValid} ux4k={ux4KValid} ux4l={ux4LValid} ux4m={ux4MValid} ux4n={ux4NValid} ux4o={ux4OValid} ux4p={ux4PValid} ux4q={ux4QValid} ux4r={ux4RValid} ux4s={ux4SValid} ux4t={ux4TValid} ux4u={ux4UValid} ux5a={ux5AValid} ux5b={ux5BValid} ux6a={ux6AValid} ux6b={ux6BValid} ux6c={ux6CValid} ux6d={ux6DValid} ux6e={ux6EValid} ux6f={ux6FValid} ux6g={ux6GValid} ux6h={ux6HValid} ux6i={ux6IValid} ux6j={ux6JValid} ux6k={ux6KValid} ux6l={ux6LValid} ux6m={ux6MValid} ux6n={ux6NValid} ux6o={ux6OValid} ux6p={ux6PValid} ux6q={ux6QValid} ux6r={ux6RValid} ux6s={ux6SValid} ux6t={ux6TValid} ux6u={ux6UValid} ux6v={ux6VValid} ux6w={ux6WValid} ux6x={ux6XValid} ux6y={ux6YValid} ux6z={ux6ZValid} ux7a={ux7AValid} ux7b={ux7BValid} ux7c={ux7CValid} ux7d={ux7DValid} ux7e={ux7EValid} ux7f={ux7FValid} ux7g={ux7GValid} ux7h={ux7HValid} ux7i={ux7IValid} " +
+                $"ux8a={ux8AValid} ux8b={ux8BValid} ux8c={ux8CValid} ux8d={ux8DValid} ux8e={ux8EValid} ux8f={ux8FValid} ux8g={ux8GValid} ux8h={ux8HValid} ux8i={ux8IValid} ux8j={ux8JValid} ux8k={ux8KValid} ux8l={ux8LValid} ux8m={ux8MValid} ux8n={ux8NValid} ux9a={ux9AValid} ux9b={ux9BValid} ux9c={ux9CValid} ux9d={ux9DValid} ux9e={ux9EValid} ux9f={ux9FValid} ux9g={ux9GValid} ux9h={ux9HValid} ux9i={ux9IValid} ux9j={ux9JValid} ux9k={ux9KValid} ux9l={ux9LValid} ux9m={ux9MValid} ux9n={ux9NValid} ux9o={ux9OValid} ux10={ux10Valid} candidate_approvals={candidateApprovalsValid} " +
                 $"evidence={evidenceValid}");
             GetTree().Quit(1);
             return;
@@ -692,6 +1061,15 @@ public sealed partial class StudioRoot : Control
             GD.Print($"OPENRPG_FORGE_STUDIO_CAPTURE_PASS path={path} size={image.GetWidth()}x{image.GetHeight()}");
         }
 
+        if (!string.IsNullOrWhiteSpace(_capturePageMatrixPath))
+        {
+            if (!await CapturePageMatrix())
+            {
+                GetTree().Quit(1);
+                return;
+            }
+        }
+
         GD.Print(
             $"OPENRPG_FORGE_STUDIO_SHELL_PASS sections={_shell.SectionCount} pages={_shell.PageCount} " +
             $"windows=1 module={_session.Project.Module.Slug} areas={_session.Project.Areas.Count} " +
@@ -704,12 +1082,201 @@ public sealed partial class StudioRoot : Control
         _shell.ReleaseUx4SAutomatedEvidence();
         _shell.ReleaseUx4TAutomatedEvidence();
         _shell.ReleaseUx4UAutomatedEvidence();
+        _shell.ReleaseUx3BAutomatedEvidence();
+        _shell.ReleaseUx3CAutomatedEvidence();
+        _shell.ReleaseUx3DAutomatedEvidence();
+        _shell.ReleaseUx3EAutomatedEvidence();
+        _shell.ReleaseUx3FAutomatedEvidence();
+        _shell.ReleaseUx3GAutomatedEvidence();
+        _shell.ReleaseUx3HAutomatedEvidence();
+        _shell.ReleaseUx3IAutomatedEvidence();
+        _shell.ReleaseUx7AAutomatedEvidence();
+        _shell.ReleaseUx7BAutomatedEvidence();
+        _shell.ReleaseUx7CAutomatedEvidence();
+        _shell.ReleaseUx7DAutomatedEvidence();
+        _shell.ReleaseUx7EAutomatedEvidence();
+        _shell.ReleaseUx7FAutomatedEvidence();
+        _shell.ReleaseUx7GAutomatedEvidence();
+        _shell.ReleaseUx7HAutomatedEvidence();
+        _shell.ReleaseUx7IAutomatedEvidence();
+        _shell.ReleaseUx8AAutomatedEvidence();
+        _shell.ReleaseUx8BAutomatedEvidence();
+        _shell.ReleaseUx8CAutomatedEvidence();
+        _shell.ReleaseUx8DAutomatedEvidence();
+        _shell.ReleaseUx8EAutomatedEvidence();
+        _shell.ReleaseUx8FAutomatedEvidence();
+        _shell.ReleaseUx8GAutomatedEvidence();
+        _shell.ReleaseUx8HAutomatedEvidence();
+        _shell.ReleaseUx8IAutomatedEvidence();
+        _shell.ReleaseUx8JAutomatedEvidence();
+        _shell.ReleaseUx8KAutomatedEvidence();
+        _shell.ReleaseUx8LAutomatedEvidence();
+        _shell.ReleaseUx8MAutomatedEvidence();
+        _shell.ReleaseUx8NAutomatedEvidence();
+        _shell.ReleaseUx9AAutomatedEvidence();
+        _shell.ReleaseUx9BAutomatedEvidence();
+        _shell.ReleaseUx9CAutomatedEvidence();
+        _shell.ReleaseUx9DAutomatedEvidence();
+        _shell.ReleaseUx9EAutomatedEvidence();
+        _shell.ReleaseUx9FAutomatedEvidence();
+        _shell.ReleaseUx9GAutomatedEvidence();
+        _shell.ReleaseUx9HAutomatedEvidence();
+        _shell.ReleaseUx9IAutomatedEvidence();
+        _shell.ReleaseUx9JAutomatedEvidence();
+        _shell.ReleaseUx9KAutomatedEvidence();
+        _shell.ReleaseUx9LAutomatedEvidence();
+        _shell.ReleaseUx9MAutomatedEvidence();
+        _shell.ReleaseUx9NAutomatedEvidence();
+        _shell.ReleaseUx9OAutomatedEvidence();
+        _shell.ReleaseUx10AutomatedEvidence();
         _shell.QueueFree();
         _shell = null;
         await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
         _session.Close();
         await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
         GetTree().Quit();
+    }
+
+    private async Task RunDistributionSmoke()
+    {
+        if (_shell is null || _session.Project is null || _session.History is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_STUDIO_DISTRIBUTION_SMOKE_FAILED reason=session-unavailable");
+            GetTree().Quit(1);
+            return;
+        }
+
+        var shell = _shell;
+        var originalProject = _session.Project;
+        var originalProjectJson = ProjectJsonSerializer.Serialize(originalProject);
+        var originalProjectFile = _session.Session!.ProjectFilePath;
+        var originalProjectBytes = File.ReadAllBytes(originalProjectFile);
+        var originalDirty = _session.IsDirty;
+        var originalArea = _session.ActiveAreaId;
+        var originalSelection = _session.SelectedEntityIds.ToArray();
+        var originalSelected = _session.SelectedEntityId;
+        var assetApproval = _session.CaptureAssetAuthoringApprovalUx3F();
+        var dialogueApproval = _session.CaptureDialogueApprovalUx5A();
+        var narrativeApproval = _session.CaptureNarrativeApprovalUx5B();
+        var editValid = false;
+        var ux0IValid = false;
+        var ux2LwCValid = false;
+        var ux3FValid = false;
+        var ux5AValid = false;
+        var ux5BValid = false;
+        var failure = "none";
+
+        try
+        {
+            editValid = shell.RunEditingSmoke();
+            ux0IValid = shell.RunUx0ISmoke();
+            ux2LwCValid = shell.RunUx2LwCSmoke();
+            ux3FValid = shell.RunUx3FSmoke();
+            ux5AValid = shell.RunUx5ASmoke();
+            ux5BValid = shell.RunUx5BSmoke();
+        }
+        catch (Exception exception)
+        {
+            failure = exception.GetType().Name;
+            GD.PrintErr($"OPENRPG_FORGE_STUDIO_DISTRIBUTION_SMOKE_EXCEPTION type={failure}");
+        }
+        finally
+        {
+            _session.RestoreAssetAuthoringApprovalUx3F(assetApproval);
+            _session.RestoreDialogueApprovalUx5A(dialogueApproval);
+            _session.RestoreNarrativeApprovalUx5B(narrativeApproval);
+            _ = _session.SelectEntities(originalSelection, originalSelected);
+        }
+
+        var projectReferenceUnchanged = ReferenceEquals(originalProject, _session.Project);
+        var projectContentUnchanged = string.Equals(
+            ProjectJsonSerializer.Serialize(_session.Project), originalProjectJson, StringComparison.Ordinal);
+        var projectFileUnchanged = File.ReadAllBytes(originalProjectFile).SequenceEqual(originalProjectBytes);
+        var contextRestored = _session.ActiveAreaId == originalArea &&
+                              _session.SelectedEntityIds.SequenceEqual(originalSelection) &&
+                              _session.SelectedEntityId == originalSelected;
+        var approvalsRestored = Equals(_session.CaptureAssetAuthoringApprovalUx3F(), assetApproval) &&
+                                Equals(_session.CaptureDialogueApprovalUx5A(), dialogueApproval) &&
+                                Equals(_session.CaptureNarrativeApprovalUx5B(), narrativeApproval);
+        var sourceUnchanged = projectReferenceUnchanged && projectContentUnchanged && projectFileUnchanged &&
+                              _session.IsDirty == originalDirty && contextRestored && approvalsRestored;
+        var shellReady = shell.SectionCount == StudioPageCatalog.Sections.Count &&
+                         shell.PageCount == StudioPageCatalog.Pages.Count;
+        var valid = editValid && ux0IValid && ux2LwCValid && ux3FValid && ux5AValid && ux5BValid &&
+                    sourceUnchanged && shellReady;
+        var marker = valid
+            ? "OPENRPG_FORGE_STUDIO_DISTRIBUTION_SMOKE_PASS"
+            : "OPENRPG_FORGE_STUDIO_DISTRIBUTION_SMOKE_FAILED";
+        GD.Print(
+            $"{marker} sections={shell.SectionCount} pages={shell.PageCount} windows=1 " +
+            $"module={_session.Project.Module.Slug} edit={editValid.ToString().ToLowerInvariant()} " +
+            $"ux0i={ux0IValid.ToString().ToLowerInvariant()} " +
+            $"ux2lwc={ux2LwCValid.ToString().ToLowerInvariant()} " +
+            $"ux3f={ux3FValid.ToString().ToLowerInvariant()} " +
+            $"ux5a={ux5AValid.ToString().ToLowerInvariant()} " +
+            $"ux5b={ux5BValid.ToString().ToLowerInvariant()} " +
+            $"source_unchanged={sourceUnchanged.ToString().ToLowerInvariant()} " +
+            $"project_reference={projectReferenceUnchanged.ToString().ToLowerInvariant()} " +
+            $"project_content={projectContentUnchanged.ToString().ToLowerInvariant()} " +
+            $"project_file={projectFileUnchanged.ToString().ToLowerInvariant()} " +
+            $"context_restored={contextRestored.ToString().ToLowerInvariant()} " +
+            $"approvals_restored={approvalsRestored.ToString().ToLowerInvariant()} failure={failure}");
+
+        shell.ReleaseUx3FAutomatedEvidence();
+        shell.QueueFree();
+        _shell = null;
+        await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        _session.Close();
+        await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        GetTree().Quit(valid ? 0 : 1);
+    }
+
+    private async Task<bool> CapturePageMatrix()
+    {
+        var directory = Path.GetFullPath(_capturePageMatrixPath!);
+        Directory.CreateDirectory(directory);
+
+        _ = await CaptureEvidenceImage(_shell!);
+        var viewport = _shell!.GetViewport();
+        var captured = 0;
+        foreach (var page in StudioPageCatalog.Pages)
+        {
+            _shell.OpenPageForCapture(page.Id);
+            var readinessFrames = 0;
+            while (!_shell.IsPageReadyForCapture && readinessFrames < 600)
+            {
+                readinessFrames++;
+                await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            }
+            if (!_shell.IsPageReadyForCapture)
+            {
+                GD.PrintErr($"OPENRPG_FORGE_STUDIO_PAGE_MATRIX_FAILED page={page.Id} reason=not-ready");
+                return false;
+            }
+            for (var frame = 0; frame < 3; frame++)
+            {
+                await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            }
+            await ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
+            RenderingServer.ForceSync();
+
+            var image = viewport.GetTexture().GetImage();
+            var path = Path.Combine(directory, $"{captured + 1:00}-{page.Id}.png");
+            if (image.SavePng(path) != Error.Ok)
+            {
+                GD.PrintErr($"OPENRPG_FORGE_STUDIO_PAGE_MATRIX_FAILED page={page.Id} path={path}");
+                return false;
+            }
+            captured++;
+            GD.Print(
+                $"OPENRPG_FORGE_STUDIO_PAGE_CAPTURE_PASS page={page.Id} path={path} " +
+                $"size={image.GetWidth()}x{image.GetHeight()}");
+        }
+
+        GD.Print(
+            $"OPENRPG_FORGE_STUDIO_PAGE_MATRIX_PASS pages={captured} directory={directory} " +
+            $"scale={_appliedUiScale:0.##}");
+        return captured == StudioPageCatalog.Pages.Count;
     }
 
     private async void RunNewProjectEvidence()
@@ -768,6 +1335,10 @@ public sealed partial class StudioRoot : Control
         {
             Name = "StudioEvidenceViewport",
             Size = requested,
+            Size2DOverride = new Vector2I(
+                Math.Max(2, (int)Math.Round(requested.X / _appliedUiScale, MidpointRounding.AwayFromZero)),
+                Math.Max(2, (int)Math.Round(requested.Y / _appliedUiScale, MidpointRounding.AwayFromZero))),
+            Size2DOverrideStretch = true,
             RenderTargetUpdateMode = SubViewport.UpdateMode.Always,
             RenderTargetClearMode = SubViewport.ClearMode.Always,
         };

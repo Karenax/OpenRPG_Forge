@@ -138,6 +138,25 @@ public sealed class PostLaunchCapabilityResolverTests
         Assert.Equal("POST_SOAK_BUDGET_EXCEEDED", failed.Diagnostic);
     }
 
+    [Fact]
+    public void Enabled_observability_requires_at_least_one_compatible_backend()
+    {
+        var source = CreatorExperienceProductionProfile.CreateDefault(Module.Value);
+
+        var exception = Assert.Throws<ArgumentException>(() => new CreatorExperienceProductionProfile(
+            source.Id, source.SchemaVersion, source.Water, source.DeviceQueries, source.ResourceCommands,
+            source.DynamicAreas, source.PartyControl, source.ProgressionTracks, source.RepositoryMetadata,
+            source.Observability with
+            {
+                Enabled = true,
+                TracyCompatible = false,
+                OpenTelemetryCompatible = false,
+            },
+            source.Graphics, "test"));
+
+        Assert.Contains("Tracy or OpenTelemetry", exception.Message, StringComparison.Ordinal);
+    }
+
     private static PostLaunchCapabilityProfile CreateProfile()
     {
         var source = PostLaunchCapabilityProfile.CreateDefault(Module);

@@ -50,6 +50,7 @@ public static class WorkspaceBuildGraphBuilder
         }
 
         var usedBlueprints = ReadUsedBlueprints(project);
+        ValidateDeclaredDependencies(project, usedBlueprints, content.Keys);
         var externalPackages = ReadExternalPackages(project, usedBlueprints);
         var externalNodes = externalPackages.Select(package => new BuildDependencyNode(
             BuildResourceId.ForPath(package.Path),
@@ -215,6 +216,56 @@ public static class WorkspaceBuildGraphBuilder
             }
         }
         return used.Where(byId.ContainsKey).Select(id => byId[id]).OrderBy(item => item.Id.Value).ToArray();
+    }
+
+    private static void ValidateDeclaredDependencies(
+        ProjectDefinition project,
+        IReadOnlyList<BlueprintDefinition> usedBlueprints,
+        IEnumerable<string> workspacePaths)
+    {
+        var localPaths = workspacePaths.ToHashSet(StringComparer.Ordinal);
+        var blueprintManifests = project.Blueprints
+            .Select(item => item.Authoring.ManifestPath)
+            .ToHashSet(StringComparer.Ordinal);
+        var packages = project.Module.Content.Packages.Packages
+            .Select(item => (item.PackageNamespace, item.Version))
+            .ToHashSet();
+        var installedPackages = project.Blueprints
+            .Where(item => item.PaletteOrigin == BlueprintPaletteOrigin.InstalledPack)
+            .Select(item => TryReadPackageRoot(item.Provenance.Source))
+            .Where(item => item is not null)
+            .Select(item => item!.Value)
+            .ToHashSet();
+
+        foreach (var blueprint in usedBlueprints)
+        {
+            foreach (var dependency in blueprint.Authoring.Dependencies)
+            {
+                if (dependency.StartsWith("pack://", StringComparison.Ordinal))
+                {
+                    var package = ParsePackReference(dependency);
+                    if (!packages.Contains(package) && !installedPackages.Contains(package))
+                    {
+                        throw new InvalidDataException(
+                            $"Blueprint '{blueprint.Slug}' dependency '{dependency}' does not resolve to an installed content package.");
+                    }
+                    continue;
+                }
+
+                if (!localPaths.Contains(dependency) && !blueprintManifests.Contains(dependency))
+                {
+                    throw new InvalidDataException(
+                        $"Blueprint '{blueprint.Slug}' dependency '{dependency}' does not resolve to a workspace file or blueprint manifest.");
+                }
+            }
+        }
+    }
+
+    private static (string Namespace, string Version)? TryReadPackageRoot(string source)
+    {
+        if (!source.StartsWith("pack://", StringComparison.Ordinal)) return null;
+        var segments = source[7..].Split('/', StringSplitOptions.RemoveEmptyEntries);
+        return segments.Length < 2 ? null : (segments[0], segments[1]);
     }
 
     private static IReadOnlyList<BuildResourceId> LocalDependencies(

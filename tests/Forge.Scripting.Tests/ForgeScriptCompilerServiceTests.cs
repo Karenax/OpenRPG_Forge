@@ -31,6 +31,32 @@ public sealed class ForgeScriptCompilerServiceTests : IDisposable
     }
 
     [Fact]
+    public void Native_compiler_accepts_dependency_graph_when_each_source_is_a_standalone_script()
+    {
+        var service = new ForgeScriptCompilerService(
+            new ForgeScriptArtifactCache(new NativeForgeScriptRuntime(), _cache),
+            new ForgeScriptCompilerOptions(true, true, true, 2, 4096, ["native-dependencies"]));
+        var units = new[]
+        {
+            new ForgeScriptCompilationUnit("shared.as", "void main() { say(\"shared\"); }", []),
+            new ForgeScriptCompilationUnit("main.as", "void main() { say(\"main\"); }", ["shared.as"]),
+        };
+
+        var first = service.Compile(units);
+        var second = service.Compile(units);
+        var changed = service.Compile(
+        [
+            units[0] with { Source = "void main() { say(\"changed\"); }" },
+            units[1],
+        ]);
+
+        Assert.True(first.Success);
+        Assert.All(first.Entries, entry => Assert.Empty(entry.Diagnostics));
+        Assert.Equal(2, second.Reused);
+        Assert.Equal(2, changed.Compiled);
+    }
+
+    [Fact]
     public void Conformance_reports_expected_success_and_failure()
     {
         var service = new ForgeScriptCompilerService(new ForgeScriptArtifactCache(new FakeRuntime(), _cache),

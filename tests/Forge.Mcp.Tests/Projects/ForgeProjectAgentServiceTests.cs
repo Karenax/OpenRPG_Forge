@@ -2367,7 +2367,7 @@ public sealed class ForgeProjectAgentServiceTests
             MaximumResults: 10));
 
         Assert.Equal(1, result.SchemaVersion);
-        Assert.Equal(665, result.CatalogCount);
+        Assert.Equal(673, result.CatalogCount);
         Assert.Equal(5, result.Sources.Count);
         Assert.Equal(3, result.Items.Count);
         Assert.Empty(result.Diagnostics);

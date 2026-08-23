@@ -25,6 +25,7 @@ public sealed class AssetPackageMigrationStoreTests : IDisposable
         Assert.True(result.Succeeded);
         Assert.Equal("2.0.0", result.Installation.Version);
         Assert.Equal("v2", File.ReadAllText(path));
+        Assert.True(Directory.Exists(Path.Combine(_root, result.BackupRelativePath!)));
         Assert.True(File.Exists(Path.Combine(_root, result.ChangelogRelativePath!)));
         AssetPackageMigrationStore.RestoreBackup(_root, result.BackupRelativePath!, [relative]);
         Assert.Equal("v1", File.ReadAllText(path));

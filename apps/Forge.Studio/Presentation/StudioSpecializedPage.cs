@@ -13,6 +13,9 @@ internal sealed partial class StudioSpecializedPage : Control
     private readonly Label _documentTitle;
     private readonly Label _documentMeta;
     private readonly RichTextLabel _documentBody;
+    private readonly Label _actionGuidance;
+    private readonly LineEdit _search;
+    private IReadOnlyList<ResourceEntry> _allEntries = [];
     private IReadOnlyList<ResourceEntry> _entries = [];
 
     internal StudioSpecializedPage()
@@ -40,7 +43,7 @@ internal sealed partial class StudioSpecializedPage : Control
         var notice = StudioStyle.Panel("MigrationNotice", StudioStyle.AccentDark, 8);
         column.AddChild(notice);
         var noticeRow = new HBoxContainer();
-        noticeRow.AddChild(StudioStyle.Label("FONDATION AUTONOME", 10, StudioStyle.Accent));
+        noticeRow.AddChild(StudioStyle.Label("ESPACE DE TRAVAIL", 10, StudioStyle.Accent));
         noticeRow.AddChild(new Control { SizeFlagsHorizontal = SizeFlags.ExpandFill });
         _mode = StudioStyle.Label(string.Empty, 10, StudioStyle.Muted);
         noticeRow.AddChild(_mode);
@@ -64,11 +67,11 @@ internal sealed partial class StudioSpecializedPage : Control
         resourceMargin.AddChild(resourceColumn);
         _leftTitle = StudioStyle.SectionLabel(string.Empty);
         resourceColumn.AddChild(_leftTitle);
-        var search = new LineEdit { PlaceholderText = "Rechercher…", ClearButtonEnabled = true };
-        StudioStyle.ApplyLineEdit(search);
-        search.Editable = false;
-        search.TooltipText = "Le filtre sera activé avec la migration fonctionnelle de cette page.";
-        resourceColumn.AddChild(search);
+        _search = new LineEdit { PlaceholderText = "Rechercher…", ClearButtonEnabled = true };
+        StudioStyle.ApplyLineEdit(_search);
+        _search.TooltipText = "Filtrer les ressources visibles par leur nom ou leur résumé.";
+        _search.TextChanged += ApplyFilter;
+        resourceColumn.AddChild(_search);
         _resources = new ItemList
         {
             SizeFlagsVertical = SizeFlags.ExpandFill,
@@ -107,10 +110,8 @@ internal sealed partial class StudioSpecializedPage : Control
         _documentBody.AddThemeFontSizeOverride("normal_font_size", 12);
         _documentBody.AddThemeColorOverride("default_color", StudioStyle.Text);
         documentColumn.AddChild(_documentBody);
-        var plannedAction = StudioStyle.Button("Édition transactionnelle en cours de migration", primary: true);
-        plannedAction.Disabled = true;
-        plannedAction.TooltipText = "Les données affichées sont authentiques; l'écriture reste désactivée jusqu'aux tests de non-régression.";
-        documentColumn.AddChild(plannedAction);
+        _actionGuidance = StudioStyle.Label(string.Empty, 11, StudioStyle.Accent, wrap: true);
+        documentColumn.AddChild(_actionGuidance);
     }
 
     internal void ShowPage(StudioPageDefinition page, StudioSessionController session)
@@ -118,10 +119,37 @@ internal sealed partial class StudioSpecializedPage : Control
         ArgumentNullException.ThrowIfNull(page);
         ArgumentNullException.ThrowIfNull(session);
         _mode.Text = page.Id == "dialogues"
-            ? "Lecture réelle · lignes d'abord · graphe réservé à la vue avancée"
-            : "Lecture réelle · édition désactivée jusqu'au branchement transactionnel";
+            ? "Lignes d'abord · graphe réservé à la vue avancée"
+            : "Données du module · outils transactionnels dans l'en-tête";
         _leftTitle.Text = page.LeftPanelTitle;
-        _entries = BuildEntries(page, session);
+        _actionGuidance.Text =
+            "Choisissez un outil nommé dans l'en-tête de la page. Chaque outil prévisualise les changements " +
+            "avant toute application.";
+        _allEntries = BuildEntries(page, session);
+        _search.Text = string.Empty;
+        ApplyFilter(string.Empty);
+
+        if (_entries.Count == 0)
+        {
+            _documentTitle.Text = "Aucune ressource";
+            _documentMeta.Text = page.Title;
+            _documentBody.Text = "Le module ne contient actuellement aucune ressource de ce type.";
+            return;
+        }
+
+        _resources.Select(0);
+        ShowEntry(0);
+    }
+
+    private void ApplyFilter(string query)
+    {
+        var normalized = query.Trim();
+        _entries = string.IsNullOrEmpty(normalized)
+            ? _allEntries
+            : _allEntries.Where(entry =>
+                    entry.Title.Contains(normalized, StringComparison.OrdinalIgnoreCase) ||
+                    entry.Meta.Contains(normalized, StringComparison.OrdinalIgnoreCase))
+                .ToArray();
         _resources.Clear();
         foreach (var entry in _entries)
         {
@@ -130,9 +158,9 @@ internal sealed partial class StudioSpecializedPage : Control
 
         if (_entries.Count == 0)
         {
-            _documentTitle.Text = "Aucune ressource";
-            _documentMeta.Text = page.Title;
-            _documentBody.Text = "Le module ne contient actuellement aucune ressource de ce type.";
+            _documentTitle.Text = "Aucun résultat";
+            _documentMeta.Text = "Modifiez ou effacez le filtre pour revoir toutes les ressources.";
+            _documentBody.Text = string.Empty;
             return;
         }
 
@@ -263,15 +291,14 @@ internal sealed partial class StudioSpecializedPage : Control
             new ResourceEntry(
                 page.Title,
                 $"Module {project.Module.DisplayName} · espace {page.Title}",
-                $"Cette page est correctement routée dans la nouvelle application autonome.\n\n" +
                 $"Données actuellement chargées\n" +
                 $"• {project.Areas.Count} zones\n" +
                 $"• {project.Areas.Sum(area => area.Entities.Count)} objets placés\n" +
                 $"• {project.Blueprints.Count} blueprints\n" +
                 $"• {project.Dialogues.Count} dialogues\n" +
                 $"• {project.Quests.Count} quêtes\n\n" +
-                "La fonction spécialisée sera activée phase par phase avec commandes, annulation, sauvegarde " +
-                "atomique et tests de préservation des données.")
+                "Les outils nommés dans l'en-tête ouvrent les éditeurs directs de cette page. Leurs mutations " +
+                "passent par prévisualisation, commande, annulation et sauvegarde explicite.")
         ];
     }
 

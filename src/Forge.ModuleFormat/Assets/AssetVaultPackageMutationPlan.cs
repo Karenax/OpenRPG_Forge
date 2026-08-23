@@ -7,6 +7,7 @@ public enum AssetVaultMutationOperation
 {
     Install,
     Uninstall,
+    Restore,
 }
 
 public sealed record AssetVaultPackageMutationPlan(

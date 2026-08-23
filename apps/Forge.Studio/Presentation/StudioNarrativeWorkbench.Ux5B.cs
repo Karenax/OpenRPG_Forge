@@ -311,6 +311,11 @@ internal sealed partial class StudioNarrativeWorkbenchUx5B : Control
         _lastPreview = null;
     }
 
+    public override void _ExitTree()
+    {
+        ReleaseEvidence();
+    }
+
     internal void RestoreSourceSurfaceAfterSmoke(StudioNarrativeSectionUx5B section)
     {
         _session = _sourceSession;

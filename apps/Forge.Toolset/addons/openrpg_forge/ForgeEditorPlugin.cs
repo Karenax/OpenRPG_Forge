@@ -15412,7 +15412,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         _assetBrowser.Refresh();
-        if (_assetBrowser.CatalogCount != 665 || _assetBrowser.SourceCount != 5 ||
+        if (_assetBrowser.CatalogCount != 673 || _assetBrowser.SourceCount != 5 ||
             _assetBrowser.FilterForSmokeTest("apple", "ambientcg") != 3 ||
             !_assetBrowser.SelectAssetForSmokeTest("ambientcg:3DApple001") ||
             !_assetBrowser.SelectedHasPreviewMetadata ||
@@ -15432,7 +15432,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
         _assetBrowser.FilterForSmokeTest(string.Empty);
         GD.Print(
-            "OPENRPG_FORGE_TOOLSET_G716_ASSETS_PASS catalog=665 sources=5 facets=search-source-category " +
+            "OPENRPG_FORGE_TOOLSET_G716_ASSETS_PASS catalog=673 sources=5 facets=search-source-category " +
             "uuid=stable hash=addressed license=verified availability=explicit preview=metadata import=governed " +
             "profile=command-dry-run manifest=command-dry-run roundtrip=command-dry-run " +
             "governance=command-dry-run quarantine=pending ip=classified " +

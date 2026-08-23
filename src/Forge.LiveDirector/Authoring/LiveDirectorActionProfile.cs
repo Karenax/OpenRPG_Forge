@@ -1,4 +1,6 @@
 using System.Text.Json;
+using Forge.LiveDirector.Control;
+using Forge.LiveDirector.World;
 using Forge.Network.Authoring;
 using Forge.Network.Operations;
 using Forge.Network.Sessions;
@@ -32,16 +34,35 @@ public sealed record LiveDirectorActionProfile(Guid Id, int SchemaVersion, strin
 
 public static class LiveDirectorActionValidator
 {
-    public static IReadOnlyList<NetworkDiagnostic> Validate(LiveDirectorActionProfile p)
+    public static IReadOnlyList<NetworkDiagnostic> Validate(LiveDirectorActionProfile? p)
     {
         var d = new List<NetworkDiagnostic>();
+        if (p is null)
+        {
+            Add("LIVE_ACTION_PROFILE_INCOMPLETE", "/liveDirector/actions",
+                "Action profile is incomplete.", Guid.Empty, d);
+            return d;
+        }
+        if (p.Relocation is null || p.Destruction is null || p.Healing is null ||
+            p.Limbo is null || p.Possession is null)
+        {
+            Add("LIVE_ACTION_PROFILE_INCOMPLETE", "/liveDirector/actions",
+                "Action policies are incomplete.", p.Id, d);
+            return d;
+        }
         var ids = new[] { p.Id, p.Relocation.Id, p.Destruction.Id, p.Healing.Id, p.Limbo.Id, p.Possession.Id };
         if (ids.Any(x => x == Guid.Empty) || ids.Distinct().Count() != ids.Length) Add("LIVE_ACTION_PROFILE_UUID_INVALID", "/liveDirector/actions", "UUIDs must be unique.", p.Id, d);
         if (p.SchemaVersion != 1) Add("LIVE_ACTION_PROFILE_SCHEMA_UNSUPPORTED", "/liveDirector/actions/schemaVersion", "Only schema v1 is supported.", p.Id, d);
         if (string.IsNullOrWhiteSpace(p.Provenance) || p.AuthorityScope != NetworkAuthorityScope.Server || p.ServerRevision < 0 || string.IsNullOrWhiteSpace(p.AuditIdentity)) Add("LIVE_ACTION_PROFILE_IDENTITY_INVALID", "/liveDirector/actions/identity", "Server identity is required.", p.Id, d);
         if (!p.Relocation.NavigationProbe || !p.Relocation.PlayerConsent || !p.Relocation.PartyPolicy || !p.Relocation.PreserveOrientation || !p.Relocation.Preview) Add("LIVE_RELOCATION_POLICY_INVALID", "/liveDirector/actions/relocation", "Safe consented previewed relocation is required.", p.Relocation.Id, d);
-        if (!p.Destruction.CauseRequired || !p.Destruction.ConfirmationRequired || p.Destruction.LootPolicies.Count != 2 || !p.Destruction.QuestImpactPreview || !p.Destruction.RollbackLimitVisible) Add("LIVE_DESTRUCTION_POLICY_INVALID", "/liveDirector/actions/destruction", "Confirmed destruction with loot quest and rollback policy is required.", p.Destruction.Id, d);
-        if (p.Healing.Scopes.Count != 4 || !p.Healing.ReasonRequired || !p.Healing.Preview || !p.Healing.RuntimeResourceAdapter) Add("LIVE_HEALING_POLICY_INVALID", "/liveDirector/actions/healing", "Previewed reasoned resource healing is required.", p.Healing.Id, d);
+        if (!p.Destruction.CauseRequired || !p.Destruction.ConfirmationRequired ||
+            p.Destruction.LootPolicies is null || p.Destruction.LootPolicies.Count != 2 ||
+            !new[] { "preserve", "discard" }.All(p.Destruction.LootPolicies.Contains) ||
+            !p.Destruction.QuestImpactPreview || !p.Destruction.RollbackLimitVisible) Add("LIVE_DESTRUCTION_POLICY_INVALID", "/liveDirector/actions/destruction", "Confirmed destruction with loot quest and rollback policy is required.", p.Destruction.Id, d);
+        if (p.Healing.Scopes is null || p.Healing.Scopes.Count != 4 ||
+            !new[] { "health", "resources", "effects", "all" }.All(p.Healing.Scopes.Contains) ||
+            !p.Healing.ReasonRequired || !p.Healing.Preview ||
+            !p.Healing.RuntimeResourceAdapter) Add("LIVE_HEALING_POLICY_INVALID", "/liveDirector/actions/healing", "Previewed reasoned resource healing is required.", p.Healing.Id, d);
         if (!p.Limbo.PreserveIdentity || !p.Limbo.AiToggle || !p.Limbo.MovementPolicy || !p.Limbo.CollisionPolicy || !p.Limbo.VisibilityPolicy || !p.Limbo.RuntimeNodeAdapter) Add("LIVE_LIMBO_POLICY_INVALID", "/liveDirector/actions/limbo", "Identity preserving AI limbo adapter is required.", p.Limbo.Id, d);
         if (p.Possession.MaximumMinutes is < 1 or > 120 || !p.Possession.InputContext || !p.Possession.ReturnPoint || !p.Possession.ProtectedPlayerConsent || !p.Possession.Expiry || !p.Possession.RuntimeInputAdapter) Add("LIVE_POSSESSION_POLICY_INVALID", "/liveDirector/actions/possession", "Bounded consented possession with return and expiry is required.", p.Possession.Id, d);
         return d;
@@ -80,7 +101,7 @@ public sealed class LiveDirectorActionHistory
     private LiveDirectorActionResult Result(bool ok, bool applied, LiveDirectorActionProfile p, IReadOnlyList<NetworkDiagnostic> d, string diff, string action, string actor) => new(ok, applied, p, d, diff, $"{action}:live.actions:actor={actor}:revision={p.ServerRevision}");
     private static string Diff(LiveDirectorActionProfile a, LiveDirectorActionProfile b)
     {
-        var v = new[] { a.Relocation != b.Relocation ? "relocation" : null, a.Destruction != b.Destruction ? "destruction" : null, a.Healing != b.Healing ? "healing" : null, a.Limbo != b.Limbo ? "limbo" : null, a.Possession != b.Possession ? "possession" : null }.Where(x => x is not null).ToArray(); return v.Length == 0 ? "revision-only" : string.Join(',', v);
+        var v = new[] { a.Relocation != b.Relocation ? "relocation" : null, a.Destruction != b.Destruction ? "destruction" : null, a.Healing != b.Healing ? "healing" : null, a.Limbo != b.Limbo ? "limbo" : null, a.Possession != b.Possession ? "possession" : null, a.RequiredAtRuntime != b.RequiredAtRuntime ? "runtime" : null }.Where(x => x is not null).ToArray(); return v.Length == 0 ? "revision-only" : string.Join(',', v);
     }
 }
 public sealed class LiveDirectorActionStore
@@ -90,9 +111,61 @@ public sealed class LiveDirectorActionStore
     public LiveDirectorActionProfile Deserialize(string json) { var p = JsonSerializer.Deserialize<LiveDirectorActionProfile>(json, Options) ?? throw new InvalidDataException("LIVE_ACTION_PROFILE_EMPTY"); var d = LiveDirectorActionValidator.Validate(p); if (d.Count != 0) throw new InvalidDataException(d[0].Code); return p; }
 }
 public sealed record LiveDirectorActionResolution(bool Available, LiveDirectorActionProfile? Profile, IReadOnlyList<NetworkDiagnostic> Diagnostics);
+public sealed record LiveDirectorActionRuntime(
+    LiveDirectorActionProfile Profile,
+    AuthorizationService Authorization,
+    LiveWorldChooser Chooser,
+    LiveWorldActionService WorldActions,
+    LiveDirectorControlService Control);
 public static class LiveDirectorActionRuntimeAdapter
 {
     public static LiveDirectorActionResolution Resolve(LiveDirectorActionProfile? p, bool required) { if (p is null) return required ? new(false, null, [new("LIVE_ACTION_PROFILE_REQUIRED_MISSING", "/liveDirector/actions", "Required action profile is missing.")]) : new(false, null, []); var d = LiveDirectorActionValidator.Validate(p); return new(d.Count == 0, d.Count == 0 ? p : null, d); }
+
+    public static LiveDirectorActionRuntime Create(LiveDirectorActionProfile profile,
+        Func<DateTimeOffset> utcNow)
+    {
+        ArgumentNullException.ThrowIfNull(profile);
+        ArgumentNullException.ThrowIfNull(utcNow);
+        var diagnostics = LiveDirectorActionValidator.Validate(profile);
+        if (diagnostics.Count != 0) throw new InvalidDataException(diagnostics[0].Code);
+        var authorization = new AuthorizationService();
+        var chooser = new LiveWorldChooser(authorization);
+        return new(profile, authorization, chooser,
+            new LiveWorldActionService(chooser, authorization),
+            new LiveDirectorControlService(chooser, authorization, utcNow,
+                TimeSpan.FromMinutes(profile.Possession.MaximumMinutes)));
+    }
+}
+
+public static class LiveDirectorActionLocalization
+{
+    public static string French(string? code) => code switch
+    {
+        "LIVE_RELOCATE_NAVIGATION_UNSAFE" => "La destination n'a pas passé le contrôle de navigation.",
+        "LIVE_RELOCATE_CONSENT_REQUIRED" => "Le consentement du joueur protégé est requis.",
+        "LIVE_RELOCATE_PARTY_POLICY_INVALID" => "Choisissez une politique de déplacement du groupe.",
+        "LIVE_DESTROY_CAUSE_REQUIRED" => "Indiquez la cause de la destruction.",
+        "LIVE_DESTROY_CONFIRMATION_REQUIRED" => "Confirmez explicitement la destruction.",
+        "LIVE_DESTROY_LOOT_POLICY_INVALID" => "Choisissez le traitement du butin.",
+        "LIVE_DESTROY_QUEST_IMPACT_REQUIRED" => "Prévisualisez l'impact sur les quêtes.",
+        "LIVE_DESTROY_ROLLBACK_LIMIT_REQUIRED" => "Rendez visible la limite de restauration.",
+        "LIVE_HEAL_SCOPE_INVALID" => "Choisissez ce que le soin doit restaurer.",
+        "LIVE_HEAL_REASON_REQUIRED" => "Indiquez la raison du soin.",
+        "LIVE_FREEZE_AI_INVALID" => "Choisissez l'état de l'intelligence artificielle.",
+        "LIVE_FREEZE_MOVEMENT_INVALID" => "Choisissez la politique de mouvement.",
+        "LIVE_FREEZE_COLLISION_INVALID" => "Choisissez la politique de collision.",
+        "LIVE_FREEZE_VISIBILITY_INVALID" => "Choisissez la politique de visibilité.",
+        "LIVE_POSSESSION_DURATION_INVALID" => "La durée de possession dépasse la limite du profil.",
+        "LIVE_POSSESSION_PLAYER_PROTECTED" => "Le joueur protégé doit donner son consentement.",
+        "LIVE_POSSESSION_RETURN_POINT_REQUIRED" => "Indiquez un point de retour.",
+        "LIVE_POSSESSION_INPUT_CONTEXT_REQUIRED" => "Choisissez le contexte de commandes transféré.",
+        "LIVE_ACTION_PERMISSION_DENIED" or "LIVE_CONTROL_PERMISSION_DENIED" =>
+            "Le rôle courant ne peut pas modifier cette zone.",
+        "LIVE_ACTION_REVISION_STALE" or "LIVE_CONTROL_REVISION_STALE" =>
+            "Le monde a changé; prévisualisez de nouveau l'action.",
+        null or "" => "Action Live Director invalide.",
+        _ => "Action refusée par l'autorité Live Director."
+    };
 }
 public readonly record struct LiveDirectorActionHandle(Guid ProfileId, int Generation);
 public sealed record LiveDirectorActionSnapshot(Guid Id, long Revision, int HealScopeCount, int PossessionMinutes, bool Confirmation, bool Consent);

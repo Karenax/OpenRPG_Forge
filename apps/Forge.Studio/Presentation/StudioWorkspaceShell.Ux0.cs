@@ -49,6 +49,7 @@ internal sealed partial class StudioWorkspaceShell
         ("duplicate-area", "Copier la zone active", "Copie complète ou gabarit vide avec de nouvelles identités internes"),
         ("loading-screen", "Configurer l’écran de chargement", "Média importé, astuces, progression réelle et repli accessible"),
         ("area-layers", "Organiser les calques de la zone", "Groupes, visibilité, verrouillage, responsables, sélection et export partiel"),
+        ("trigger-foundation", "Composer un déclencheur Quand Si Alors", "Volume, activateurs, conditions et actions typées · aperçu obligatoire avant application"),
         ("placeable-blueprint", "Configurer un blueprint de décor", "Visuel, collision, rôle, composants, scripts, transformation et aperçu 3D"),
         ("static-decoration", "Configurer un décor statique", "Regroupement, instanciation, occlusion, fusion et collision optionnelle"),
         ("usable-placeable", "Configurer un objet utilisable", "Actions proposées, portée, ciblage, autorité, conditions et événement OnUsed"),
@@ -406,6 +407,7 @@ internal sealed partial class StudioWorkspaceShell
             case "duplicate-area": OpenAreaDocumentClone(); break;
             case "loading-screen": OpenAreaLoading(); break;
             case "area-layers": OpenAreaLayers(); break;
+            case "trigger-foundation": OpenTriggerFoundationUx1Y(); break;
             case "placeable-blueprint": OpenPlaceableBlueprint(); break;
             case "static-decoration": OpenStaticDecoration(); break;
             case "usable-placeable": OpenInteractablePlaceable(); break;

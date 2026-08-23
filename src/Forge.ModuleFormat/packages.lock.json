@@ -13,6 +13,12 @@
       "forge.domain": {
         "type": "Project"
       },
+      "forge.livedirector": {
+        "type": "Project",
+        "dependencies": {
+          "Forge.Network": "[1.0.0, )"
+        }
+      },
       "forge.network": {
         "type": "Project",
         "dependencies": {

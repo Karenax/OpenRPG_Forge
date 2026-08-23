@@ -38,6 +38,7 @@ internal sealed partial class StudioAreaTransitionsOverlayUx2NavF : Control
     private readonly Button _undo;
     private readonly Button _redo;
     private readonly Button _save;
+    private Viewport? _subscribedViewport;
     private IReadOnlyList<StudioUx2NavFAreaChoice> _areas = [];
     private IReadOnlyList<StudioUx2NavFPortalChoice> _portals = [];
     private IReadOnlyList<StudioUx2NavFEntityChoice> _sourceEntities = [];
@@ -232,12 +233,17 @@ internal sealed partial class StudioAreaTransitionsOverlayUx2NavF : Control
     public override void _Ready()
     {
         UpdateDialogBounds();
-        GetViewport().SizeChanged += UpdateDialogBounds;
+        _subscribedViewport = GetViewport();
+        _subscribedViewport.SizeChanged += UpdateDialogBounds;
     }
 
     public override void _ExitTree()
     {
-        GetViewport().SizeChanged -= UpdateDialogBounds;
+        if (_subscribedViewport is not null)
+        {
+            _subscribedViewport.SizeChanged -= UpdateDialogBounds;
+            _subscribedViewport = null;
+        }
         ReleaseEvidence();
     }
 

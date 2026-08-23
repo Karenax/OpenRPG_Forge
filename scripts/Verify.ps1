@@ -115,7 +115,7 @@ function Invoke-ForgeEngineMarkerTest {
     # Keep the long-lived smoke inventories aligned with the current workspace schema and
     # append lot markers here so every engine invocation uses one canonical gate contract.
     $Markers = @($Markers | ForEach-Object { $_.Replace('format=1.9.0', 'format=1.30.0').Replace('format=1.10.0', 'format=1.30.0').Replace('format=1.11.0', 'format=1.30.0').Replace('format=1.12.0', 'format=1.30.0').Replace('format=1.13.0', 'format=1.30.0').Replace('format=1.14.0', 'format=1.30.0').Replace('format=1.15.0', 'format=1.30.0').Replace('format=1.16.0', 'format=1.30.0').Replace('format=1.17.0', 'format=1.30.0').Replace('format=1.18.0', 'format=1.30.0').Replace('format=1.19.0', 'format=1.30.0').Replace('format=1.20.0', 'format=1.30.0').Replace('format=1.21.0', 'format=1.30.0').Replace('format=1.22.0', 'format=1.30.0').Replace('format=1.23.0', 'format=1.30.0').Replace('format=1.24.0', 'format=1.30.0').Replace('format=1.25.0', 'format=1.30.0').Replace('format=1.26.0', 'format=1.30.0').Replace('format=1.27.0', 'format=1.30.0').Replace('format=1.28.0', 'format=1.30.0').Replace('format=1.29.0', 'format=1.30.0') })
-    $Markers = @($Markers | ForEach-Object { $_.Replace('catalog=605 sources=3', 'catalog=665 sources=5') })
+    $Markers = @($Markers | ForEach-Object { $_.Replace('catalog=605 sources=3', 'catalog=673 sources=5') })
     if ($Name -eq 'toolset') {
         $Markers += 'OPENRPG_FORGE_TOOLSET_AV3_PLACEMENT_PASS models=1 manifests=1 scatter_layers=1 scatter_instances='
         $Markers += 'OPENRPG_FORGE_TOOLSET_G11N_EXPERIENCE_PASS scatter=volume-surface-nav-biome-seed voice=localized-phoneme-subtitle-tts-consent audio=started-completed-interrupted-music-snapshot patrol=cross-area-streaming-owner-resume loading=image-video-tip-progress-accessible-prefetch mcp=governed history=restored persistence=roundtrip'
@@ -386,7 +386,7 @@ function Invoke-ForgeEngineMarkerTest {
     # Keep those integration gates bounded, while allowing slower Windows runners to finish them.
     $timeoutSeconds = switch ($Name) {
         'toolset' { 180 }
-        'studio' { 240 }
+        'studio' { 480 }
         default { 75 }
     }
     $deadline = [DateTime]::UtcNow.AddSeconds($timeoutSeconds)
@@ -1232,14 +1232,14 @@ try {
             '--output', $assetDeliveryReport,
             '--markdown', $assetDeliveryMarkdown,
             '--vault', $assetVault) `
-        -Marker 'OPENRPG_FORGE_AV5_DELIVERY_REPORT_PASS catalog=665 local=617'
+        -Marker 'OPENRPG_FORGE_AV5_DELIVERY_REPORT_PASS catalog=673 local=625'
     if (-not (Test-Path -LiteralPath $assetDeliveryReport) -or
         -not (Test-Path -LiteralPath $assetDeliveryMarkdown)) {
         throw 'AV5 delivery reports were not written.'
     }
     $delivery = Get-Content -LiteralPath $assetDeliveryReport -Raw | ConvertFrom-Json
     if ($delivery.schemaVersion -ne 1 -or -not $delivery.passed -or
-        $delivery.catalog.assets -ne 665 -or $delivery.catalog.localAssets -ne 617 -or
+        $delivery.catalog.assets -ne 673 -or $delivery.catalog.localAssets -ne 625 -or
         $delivery.module.manifests -ne 129 -or $delivery.module.chunks -ne 186 -or
         $delivery.module.assetReferences -ne 809 -or $delivery.module.ungovernedReferences -ne 0 -or
         $delivery.module.chunkIntegrityFailures -ne 0 -or $delivery.performance.checks -ne 16 -or

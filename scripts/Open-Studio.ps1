@@ -3,6 +3,7 @@ param(
     [string]$Workspace,
     [string]$Page = 'zones',
     [string]$Capture,
+    [string]$CapturePageMatrix,
     [ValidateSet(
         'gizmo', 'rotation', 'context', 'editor', 'add', 'delete', 'assets', 'asset-install', 'trigger',
         'ux0-a', 'ux0-a-filter', 'ux0-a-help', 'ux0-a-references',
@@ -82,6 +83,15 @@ param(
         'ux2-nav-k', 'ux2-wpt-010',
         'ux2-nav-l', 'ux2-wpt-012',
         'ux2-nav-m', 'ux2-wpt-013',
+        'ux3-a', 'ux3-a-blueprint-foundation', 'ux3-a-instance', 'ux3-a-palettes',
+        'ux3-b', 'ux3-b-blueprint-library', 'ux3-b-prefabs',
+        'ux3-c', 'ux3-c-blueprint-discovery', 'ux3-c-drag-drop',
+        'ux3-d', 'ux3-d-blueprint-governance', 'ux3-d-dependencies',
+        'ux3-e', 'ux3-e-asset-quality', 'ux3-e-budget',
+        'ux3-f', 'ux3-f-content-browser', 'ux3-f-import-profile', 'ux3-f-blender',
+        'ux3-g', 'ux3-g-asset-manifest', 'ux3-g-collision-navigation', 'ux3-g-animation', 'ux3-g-vfx-lod',
+        'ux3-h', 'ux3-h-content-data', 'ux3-h-batch-import', 'ux3-h-blueprint-export', 'ux3-h-text-sources', 'ux3-h-data-tables',
+        'ux3-i', 'ux3-i-governed-assets', 'ux3-i-provenance', 'ux3-i-quarantine', 'ux3-i-media-generation',
         'ux4-a', 'ux4-a-faction-foundation',
         'ux4-b', 'ux4-b-faction-runtime',
         'ux4-c', 'ux4-c-faction-matrix',
@@ -114,9 +124,99 @@ param(
         'ux5-c', 'ux5-c-quest-authoring',
         'ux5-d', 'ux5-d-localization',
         'ux5-e', 'ux5-e-lore',
-        'ux5-f', 'ux5-f-cinematics')]
+        'ux5-f', 'ux5-f-cinematics',
+        'ux6-a', 'ux6-a-rules',
+        'ux6-b', 'ux6-b-gameplay-foundation',
+        'ux6-c', 'ux6-c-gameplay-capabilities',
+        'ux6-d', 'ux6-d-gameplay-simulation',
+        'ux6-e', 'ux6-e-gameplay-production',
+        'ux6-f', 'ux6-f-script-foundation',
+        'ux6-g', 'ux6-g-script-authoring-gameplay',
+        'ux6-h', 'ux6-h-script-world-apis',
+        'ux6-i', 'ux6-i-world-movement-utilities',
+        'ux6-j', 'ux6-j-script-safety-policy',
+        'ux6-k', 'ux6-k-script-module-permissions', 'ux6-k-kits', 'ux6-k-bindings',
+        'ux6-l', 'ux6-l-script-runtime-tools', 'ux6-l-time', 'ux6-l-events',
+        'ux6-m', 'ux6-m-script-automation', 'ux6-m-camera', 'ux6-m-tags',
+        'ux6-m-module-switches', 'ux6-m-ai-switches',
+        'ux6-n', 'ux6-n-hot-reload', 'ux6-n-debugger', 'ux6-n-hot-reload-debugger',
+        'ux6-o', 'ux6-o-script-quality', 'ux6-o-profile', 'ux6-o-documentation',
+        'ux6-o-analysis', 'ux6-o-state',
+        'ux6-p', 'ux6-p-script-interop', 'ux6-p-binding', 'ux6-p-transactions',
+        'ux6-q', 'ux6-q-compiler-assistant', 'ux6-q-compiler', 'ux6-q-assistant',
+        'ux6-r', 'ux6-r-runtime-data-ui', 'ux6-r-rules', 'ux6-r-ui', 'ux6-r-json', 'ux6-r-snapshot',
+        'ux6-s', 'ux6-s-creator-technical', 'ux6-s-devices', 'ux6-s-resources', 'ux6-s-party', 'ux6-s-progression',
+        'ux6-t', 'ux6-t-aoe', 'ux6-t-nui', 'ux6-t-modern-runtime',
+        'ux6-u', 'ux6-u-blackboard', 'ux6-u-variables',
+        'ux6-v', 'ux6-v-pathfinding', 'ux6-v-advanced-pathfinding',
+        'ux6-w', 'ux6-w-runtime-transforms', 'ux6-w-tweens', 'ux6-w-runtime-preview',
+        'ux6-x', 'ux6-x-runtime-ui', 'ux6-x-hud-shell', 'ux6-x-type-scale',
+        'ux6-y', 'ux6-y-runtime-operations', 'ux6-y-runtime-weather', 'ux6-y-area-loading',
+        'ux6-z', 'ux6-z-assisted-ability', 'ux6-z-governance', 'ux6-z-tests',
+        'ux7-a', 'ux7-a-canonical-validation', 'ux7-a-schema', 'ux7-a-references',
+        'ux7-a-graphs', 'ux7-a-geometry', 'ux7-a-navigation', 'ux7-a-localization',
+        'ux7-a-license', 'ux7-a-area', 'ux7-a-audio', 'ux7-a-clickable',
+        'ux7-b', 'ux7-b-quality-lab', 'ux7-b-domain', 'ux7-b-headless',
+        'ux7-b-saves', 'ux7-b-logs',
+        'ux7-c', 'ux7-c-quality-suites',
+        'ux7-d', 'ux7-d-performance-lab',
+        'ux7-e', 'ux7-e-governance-lab',
+        'ux7-f', 'ux7-f-history-recovery',
+        'ux7-g', 'ux7-g-playtest-lab',
+        'ux7-h', 'ux7-h-visual-regression',
+        'ux7-i', 'ux7-i-observability',
+        'ux8-a', 'ux8-a-build-foundation',
+        'ux8-b', 'ux8-b-build-collaboration',
+        'ux8-c', 'ux8-c-build-governance',
+        'ux8-d', 'ux8-d-repository-readiness',
+        'ux8-e', 'ux8-e-production-evidence',
+        'ux8-f', 'ux8-f-supply-chain-evidence',
+        'ux8-g', 'ux8-g-content-packages',
+        'ux8-h', 'ux8-h-distribution-release',
+        'ux8-i', 'ux8-i-compatibility-migrations',
+        'ux8-j', 'ux8-j-security-workers',
+        'ux8-k', 'ux8-k-bulk-transfer',
+        'ux8-l', 'ux8-l-repository-sync',
+        'ux8-m', 'ux8-m-network-player-experience', 'ux8-m-connection', 'ux8-m-lobby',
+        'ux8-m-character-builder', 'ux8-m-character-authority',
+        'ux8-n', 'ux8-n-package-lifecycle', 'ux8-n-curated-packs',
+        'ux8-n-resource-namespaces', 'ux8-n-package-migration', 'ux8-n-safe-uninstall',
+        'ux9-a', 'ux9-a-network-foundation',
+        'ux9-b', 'ux9-b-network-operations', 'ux9-b-content-sync', 'ux9-b-version-lock',
+        'ux9-b-roles', 'ux9-b-chat', 'ux9-b-event-bus',
+        'ux9-c', 'ux9-c-network-world-administration', 'ux9-c-instances', 'ux9-c-dynamic-areas',
+        'ux9-c-authentication', 'ux9-c-administration', 'ux9-c-moderation',
+        'ux9-d', 'ux9-d-network-persistence-observability', 'ux9-d-persistence', 'ux9-d-sql',
+        'ux9-d-observability', 'ux9-d-metrics', 'ux9-d-profiler', 'ux9-d-reconnection',
+        'ux9-e', 'ux9-e-network-resilience-capacity', 'ux9-e-backup', 'ux9-e-rollback',
+        'ux9-e-capacity', 'ux9-e-queue',
+        'ux9-f', 'ux9-f-live-director-workspace', 'ux9-f-client', 'ux9-f-creator',
+        'ux9-f-spawn', 'ux9-f-chooser', 'ux9-f-focus',
+        'ux9-g', 'ux9-g-live-director-actions', 'ux9-g-relocation', 'ux9-g-destruction',
+        'ux9-g-healing', 'ux9-g-limbo', 'ux9-g-possession', 'ux9-g-return',
+        'ux9-h', 'ux9-h-live-director-authority', 'ux9-h-impersonation', 'ux9-h-protection',
+        'ux9-h-currency', 'ux9-h-experience', 'ux9-h-door', 'ux9-h-portal',
+        'ux9-i', 'ux9-i-live-director-group', 'ux9-i-trigger', 'ux9-i-selection',
+        'ux9-i-movement', 'ux9-i-attack', 'ux9-i-travel', 'ux9-i-player',
+        'ux9-j', 'ux9-j-live-director-operations', 'ux9-j-search', 'ux9-j-script',
+        'ux9-j-variable', 'ux9-j-scene', 'ux9-j-visibility', 'ux9-j-fog',
+        'ux9-k', 'ux9-k-live-director-narrative', 'ux9-k-quest',
+        'ux9-k-encounter', 'ux9-k-rencontre',
+        'ux9-l', 'ux9-l-live-director-access', 'ux9-l-authentication',
+        'ux9-l-inspection', 'ux9-l-players', 'ux9-l-audit', 'ux9-l-chat',
+        'ux9-m', 'ux9-m-live-director-production', 'ux9-m-rest', 'ux9-m-level',
+        'ux9-m-appearance', 'ux9-m-group', 'ux9-m-recording',
+        'ux9-n', 'ux9-n-network-production', 'ux9-n-content', 'ux9-n-voice',
+        'ux9-n-shard', 'ux9-n-hot-reload', 'ux9-n-extensions', 'ux9-n-protocol',
+        'ux9-o', 'ux9-o-network-closure', 'ux9-o-dedicated', 'ux9-o-combat',
+        'ux9-o-logs', 'ux9-o-anti-cheat',
+        'ux10-a', 'ux10-a-context',
+        'ux10-b', 'ux10-b-plans',
+        'ux10-c', 'ux10-c-safety',
+        'ux10-d', 'ux10-d-creative')]
     [string]$Evidence,
     [string]$Resolution,
+    [double]$UiScale,
     [switch]$Headless,
     [switch]$Smoke,
     [switch]$Wait,
@@ -144,6 +244,9 @@ if (-not (Test-Path -LiteralPath (Join-Path $Workspace 'project.json') -PathType
 if ($Headless -and -not [string]::IsNullOrWhiteSpace($Capture)) {
     throw 'Une capture visuelle exige un lancement rendu, sans -Headless.'
 }
+if ($Headless -and -not [string]::IsNullOrWhiteSpace($CapturePageMatrix)) {
+    throw 'Une matrice visuelle exige un lancement rendu, sans -Headless.'
+}
 
 [System.IO.Directory]::CreateDirectory($artifactRoot) | Out-Null
 if (-not $SkipBuild) {
@@ -167,12 +270,25 @@ if (-not [string]::IsNullOrWhiteSpace($Resolution)) {
     $studioArguments += @('--resolution', $Resolution)
 }
 $studioArguments += @('--path', $studioPath, '--log-file', $studioLog, '--', '--workspace', $Workspace, '--page', $Page)
+if ($UiScale -ne 0) {
+    if ($UiScale -lt 0.75 -or $UiScale -gt 2.0) {
+        throw "L'échelle UI '$UiScale' doit être comprise entre 0.75 et 2.0."
+    }
+    $studioArguments += @('--ui-scale', $UiScale.ToString([System.Globalization.CultureInfo]::InvariantCulture))
+}
 if ($Smoke) {
     $studioArguments += '--studio-smoke-test'
 }
 if (-not [string]::IsNullOrWhiteSpace($Capture)) {
     $Capture = [System.IO.Path]::GetFullPath($Capture)
     $studioArguments += @('--capture', $Capture)
+    if (-not [string]::IsNullOrWhiteSpace($Resolution)) {
+        $studioArguments += @('--capture-size', $Resolution)
+    }
+}
+if (-not [string]::IsNullOrWhiteSpace($CapturePageMatrix)) {
+    $CapturePageMatrix = [System.IO.Path]::GetFullPath($CapturePageMatrix)
+    $studioArguments += @('--capture-page-matrix', $CapturePageMatrix)
     if (-not [string]::IsNullOrWhiteSpace($Resolution)) {
         $studioArguments += @('--capture-size', $Resolution)
     }
@@ -191,13 +307,17 @@ if ($Headless) {
     $launch.WindowStyle = 'Hidden'
 }
 $process = Start-Process @launch
-if ($Wait -or $Headless -or $Smoke -or -not [string]::IsNullOrWhiteSpace($Capture)) {
+if ($Wait -or $Headless -or $Smoke -or -not [string]::IsNullOrWhiteSpace($Capture) -or
+    -not [string]::IsNullOrWhiteSpace($CapturePageMatrix)) {
     $process.WaitForExit()
     if ($process.ExitCode -ne 0) {
         throw "OpenRPG Forge Studio a quitté avec le code $($process.ExitCode). Journal : $studioLog"
     }
     if (-not [string]::IsNullOrWhiteSpace($Capture) -and (Test-Path -LiteralPath $studioLog -PathType Leaf)) {
         Copy-Item -LiteralPath $studioLog -Destination "$Capture.log" -Force
+    }
+    if (-not [string]::IsNullOrWhiteSpace($CapturePageMatrix) -and (Test-Path -LiteralPath $studioLog -PathType Leaf)) {
+        Copy-Item -LiteralPath $studioLog -Destination (Join-Path $CapturePageMatrix 'matrix.log') -Force
     }
 }
 

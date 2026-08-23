@@ -68,8 +68,13 @@ public sealed class UpdateBlueprintFromEntityHandler
         var impactById = plan.Instances.ToDictionary(item => item.EntityId);
         var areas = state.Project.Areas.Select(area => area.WithEntities(area.Entities.Select(entity =>
         {
-            if (!impactById.TryGetValue(entity.Id, out var impact) || impact.Action != "upgrade-exact-pin")
+            if (!impactById.TryGetValue(entity.Id, out var impact))
                 return entity;
+            if (impact.Action == "excluded" &&
+                !BlueprintVersionConstraint.Matches(entity.BlueprintVersionRequirement, plan.TargetVersion))
+                return new EntityInstance(entity.Id, entity.BlueprintId, entity.Transform, entity.Tags,
+                    entity.Overrides, $">={plan.PreviousVersion}");
+            if (impact.Action != "upgrade-exact-pin") return entity;
             return new EntityInstance(entity.Id, entity.BlueprintId, entity.Transform, entity.Tags, entity.Overrides,
                 $"={plan.TargetVersion}");
         }).ToArray())).ToArray();

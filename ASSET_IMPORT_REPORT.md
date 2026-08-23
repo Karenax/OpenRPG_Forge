@@ -1,10 +1,35 @@
 # Rapport d'import de la bibliothèque médiévale-fantastique
 
-Date : 7 août 2026
+Date : 7 août 2026 — complément manuel validé le 21 août 2026
 Vault : `E:\OpenRPG_AssetVault`
 Politique : archives originales immuables, CC0 uniquement, aucun nouveau téléchargement Kenney.
 
 ## Résultat
+
+### Complément manuel du 21 août 2026
+
+Les huit archives `AV7-M1` à `AV7-M8` ont été récupérées manuellement depuis les pages officielles
+Itch.io, puis importées par `tools/asset_pipeline/import_manual_cc0_packs.py`. Elles ajoutent 327
+modèles logiques à Asset Atlas, issus de 1 190 fichiers glTF/GLB/FBX/OBJ et de 463 485 351 octets
+d'archives originales. Les 1 190 fichiers 3D possèdent des SHA-256 distincts.
+
+Asset Atlas indexe désormais 6 467 entrées, dont 6 049 directement prévisualisables. Le total par
+source est de 4 681 entrées Kenney préexistantes, 715 KayKit, 468 Quaternius, 553 Poly Haven et
+50 ambientCG.
+
+| Source | Pack/version | Modèles logiques | Licence contrôlée |
+|---|---|---:|---|
+| Quaternius | Universal Base Characters Standard | 10 | `License_Standard.txt` et page officielle CC0 |
+| Quaternius | Modular Character Outfits - Fantasy Standard 2.1 | 24 | `License_Standard.txt` et page officielle CC0 |
+| Quaternius | LowPoly Animated Easy Enemies January-2019 | 6 | page officielle CC0 et archive épinglée par SHA-256 |
+| KayKit | Forest Nature Pack 1.0 FREE | 105 | `License.txt` CC0 |
+| KayKit | Character Animations 1.1 FREE | 16 | `License.txt` CC0 |
+| KayKit | Fantasy Weapons Bits 1.0 FREE | 31 | `License.txt` CC0 |
+| KayKit | RPG Tools Bits 1.0 FREE | 59 | `License.txt` CC0 |
+| KayKit | Resource Bits 1.0 FREE | 76 | `License.txt` CC0 |
+
+Les catégories du complément se recouvrent : `Characters` 56, `Creatures` 6, `Animations` 56,
+`Weapons` 90, `Props` 295, `Nature` 181 et `Materials` 181.
 
 Asset Atlas indexe maintenant 6 140 entrées consultables, modèles, matériaux et HDRI compris. Le total par source est de 4 681 entrées Kenney préexistantes et conservées, 428 KayKit, 428 Quaternius, 553 Poly Haven et 50 ambientCG.
 
@@ -59,9 +84,18 @@ Les catégories se recouvrent pour permettre la recherche. Les comptes portent s
 
 ## Téléchargements manuels et erreurs
 
-Huit packs exclusivement accessibles par le flux Itch.io protégé restent listés dans `ASSETS_MANUAL_DOWNLOAD.md`. Deux détections OpenGameArt ont d'abord échoué à cause du caractère `@` encodé dans l'URL ; le parseur a été corrigé et la seconde exécution a importé les cinq packs avec zéro erreur finale. Tous les catalogues finaux déclarent `error_count: 0`.
+Les huit packs Itch.io sont maintenant importés et consignés dans `ASSETS_MANUAL_DOWNLOAD.md`.
+L'archive Universal Base Characters contenait trois URI glTF erronées (`*_png.png`) ; l'importeur
+les corrige uniquement dans la copie normalisée vers les textures présentes, sans modifier
+l'archive originale. Deux détections OpenGameArt avaient auparavant échoué à cause du caractère
+`@` encodé dans l'URL ; le parseur avait été corrigé. Tous les catalogues finaux déclarent
+`error_count: 0`.
 
 ## Validation
+
+- complément manuel : 8/8 archives, 1 190 fichiers 3D, 327 modèles logiques et zéro doublon SHA-256 ;
+- intégrité du complément : 8 archives et 700 dépendances glTF contrôlées, zéro erreur ;
+- Asset Atlas après complément : 6 467 entrées, dont 6 049 directement prévisualisables ;
 
 - Asset Atlas : 6 140 entrées, 5 752 modèles directement prévisualisables en GLB/glTF ; les FBX/OBJ, matériaux et HDRI utilisent leur miniature locale ;
 - audit des cinq catalogues nouveaux : 59 enregistrements, 184 fichiers et 1 755 dépendances glTF contrôlés, zéro erreur ;

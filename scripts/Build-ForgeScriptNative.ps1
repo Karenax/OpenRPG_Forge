@@ -1,4 +1,6 @@
 param(
+    [ValidateSet('windows-x64', 'linux-x64')]
+    [string]$Platform = 'windows-x64',
     [switch]$SkipDownload
 )
 
@@ -12,8 +14,21 @@ $angelRoot = Join-Path $dependencyRoot 'angelscript-2.38.0\sdk'
 $zigArchive = Join-Path $dependencyRoot 'zig-x86_64-windows-0.16.0.zip'
 $zigRoot = Join-Path $dependencyRoot 'zig-0.16.0\zig-x86_64-windows-0.16.0'
 $zig = Join-Path $zigRoot 'zig.exe'
-$outputRoot = Join-Path $repositoryRoot 'native\ForgeScript\lib\win-x64'
-$output = Join-Path $outputRoot 'forge_script_native.dll'
+$outputDirectoryName = if ($Platform -eq 'windows-x64') { 'win-x64' } else { 'linux-x64' }
+$outputRoot = Join-Path $repositoryRoot "native\ForgeScript\lib\$outputDirectoryName"
+$outputName = if ($Platform -eq 'windows-x64') {
+    'forge_script_native.dll'
+}
+else {
+    'libforge_script_native.so'
+}
+$target = if ($Platform -eq 'windows-x64') {
+    'x86_64-windows-gnu'
+}
+else {
+    'x86_64-linux-gnu'
+}
+$output = Join-Path $outputRoot $outputName
 
 $dependencies = @(
     @{
@@ -96,7 +111,7 @@ $sources += $bridge
 
 $arguments = @(
     'c++',
-    '-target', 'x86_64-windows-gnu',
+    '-target', $target,
     '-std=c++17',
     '-O2',
     '-shared',
@@ -106,9 +121,13 @@ $arguments = @(
     '-D_CRT_SECURE_NO_WARNINGS',
     "-I$angelInclude",
     "-I$angelSource",
-    "-I$stringAddon",
-    '-o', $output
-) + $sources
+    "-I$stringAddon"
+)
+if ($Platform -eq 'linux-x64') {
+    $arguments += '-fPIC'
+}
+$arguments += @('-o', $output)
+$arguments += $sources
 
 & $zig @arguments
 if ($LASTEXITCODE -ne 0) {
@@ -117,6 +136,6 @@ if ($LASTEXITCODE -ne 0) {
 
 $runtimeNativeRoot = Join-Path $repositoryRoot 'apps\Forge.Runtime\native'
 New-Item -ItemType Directory -Force -Path $runtimeNativeRoot | Out-Null
-Copy-Item -LiteralPath $output -Destination (Join-Path $runtimeNativeRoot 'forge_script_native.dll') -Force
+Copy-Item -LiteralPath $output -Destination (Join-Path $runtimeNativeRoot $outputName) -Force
 
-Write-Output "OPENRPG_FORGE_FORGESCRIPT_NATIVE_BUILD_PASS vm=2.38.0 output=$output"
+Write-Output "OPENRPG_FORGE_FORGESCRIPT_NATIVE_BUILD_PASS platform=$Platform vm=2.38.0 output=$output"

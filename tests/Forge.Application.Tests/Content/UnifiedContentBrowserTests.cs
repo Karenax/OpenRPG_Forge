@@ -32,8 +32,9 @@ public sealed class UnifiedContentBrowserTests
         var configured = new ProjectDefinition(project.Id, project.Title, module, project.Blueprints, project.Areas,
             project.Dialogues, project.Quests);
         var asset = CreateAsset();
+        var texture = CreateTextureAsset();
         var browser = new UnifiedContentBrowser(configured,
-            new AssetCatalog("2026-08-08", "cc0-only", "vault", [asset], "test:r017"));
+            new AssetCatalog("2026-08-08", "cc0-only", "vault", [asset, texture], "test:r017"));
 
         Assert.Contains(browser.Items, item => item.Address == "crypt.core:text/rules/encounter");
         Assert.Contains(browser.Items, item => item.Kind == ContentResourceKind.Localization);
@@ -41,6 +42,10 @@ public sealed class UnifiedContentBrowserTests
         Assert.Equal(asset.Id, model.AssetCatalogId);
         Assert.Contains("preview", model.Actions);
         Assert.Contains("plan-import", model.Actions);
+        var material = Assert.Single(browser.Search(new UnifiedContentBrowserQuery(
+            Text: "bark", Kind: ContentResourceKind.Texture)));
+        Assert.Equal(texture.Id, material.AssetCatalogId);
+        Assert.Contains("preview", material.Actions);
         Assert.Contains("crypt.core", browser.PackageNamespaces);
 
         var script = new ContentResourceScriptService(browser);
@@ -54,6 +59,13 @@ public sealed class UnifiedContentBrowserTests
         new string('c', 64), 4096, ["3d-model"], ["tree"], "installed",
         AssetAvailability.ExtractedAvailable, "normalized/kenney/oak.glb", "normalized/kenney/oak.png", null,
         "test:r017", installedPackIds: ["forest-core"]);
+
+    private static AssetCatalogItem CreateTextureAsset() => new(
+        AssetCatalogItemId.ForExternalId("ambientcg:bark"), "ambientcg:bark", "Bark", "ambientcg", "bark",
+        "https://example.invalid/bark", "CC0-1.0", "https://example.invalid/license", true,
+        new string('d', 64), 2048, ["Materials"], ["bark"], "installed",
+        AssetAvailability.ExtractedAvailable, "normalized/ambientcg/bark_color.jpg",
+        "normalized/ambientcg/bark_preview.webp", null, "test:r017");
 
     private static ProjectDefinition CreateProject()
     {

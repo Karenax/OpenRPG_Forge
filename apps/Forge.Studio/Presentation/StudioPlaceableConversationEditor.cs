@@ -373,7 +373,10 @@ internal sealed partial class StudioPlaceableConversationEditor : VBoxContainer
                 $"{dialogue.EntryPointKeys.Count} point(s) d’entrée · {dialogue.Slug}");
         }
         var index = _dialogues.ToList().FindIndex(dialogue => dialogue.Id == selected);
-        option.Select(index >= 0 ? index : 0);
+        if (option.ItemCount > 0)
+        {
+            option.Select(index >= 0 ? index : 0);
+        }
     }
 
     private static void PopulateTriggers(OptionButton option, PlaceableConversationTrigger selected)
@@ -397,7 +400,10 @@ internal sealed partial class StudioPlaceableConversationEditor : VBoxContainer
         }
         var index = dialogue?.EntryPointKeys.ToList().FindIndex(entry =>
             string.Equals(entry, selected, StringComparison.Ordinal)) ?? -1;
-        option.Select(index >= 0 ? index : 0);
+        if (option.ItemCount > 0)
+        {
+            option.Select(index >= 0 ? index : 0);
+        }
     }
 
     private void PopulateItems(OptionButton option, BlueprintId? selected)
@@ -409,7 +415,10 @@ internal sealed partial class StudioPlaceableConversationEditor : VBoxContainer
             option.SetItemTooltip(option.ItemCount - 1, item.Slug);
         }
         var index = _items.ToList().FindIndex(item => item.Id == selected);
-        option.Select(index >= 0 ? index : 0);
+        if (option.ItemCount > 0)
+        {
+            option.Select(index >= 0 ? index : 0);
+        }
     }
 
     private void RebuildPreviewChoices()
@@ -424,7 +433,10 @@ internal sealed partial class StudioPlaceableConversationEditor : VBoxContainer
                 $"{HumanTrigger(TriggerValue(row.Trigger))} · {DialogueLabel(row.Dialogue)}");
         }
         var index = selected is { } selectedId ? _previewBindingIds.IndexOf(selectedId) : -1;
-        _previewBinding.Select(index >= 0 ? index : 0);
+        if (_previewBinding.ItemCount > 0)
+        {
+            _previewBinding.Select(index >= 0 ? index : 0);
+        }
     }
 
     private bool RowIsReady(BindingRow row)

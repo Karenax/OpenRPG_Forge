@@ -4,7 +4,66 @@ namespace Forge.LiveDirector.Tests;
 
 public sealed class LiveDirectorOperationsProfileTests
 {
-    [Fact] public void R129_SearchScriptsVariablesScenesVisibility_AreGoverned() { var p = LiveDirectorOperationsProfile.CreateDefault(); Assert.True(p.VisualFocus && p.ForgeScriptServerAdapter && p.PersistentStateAdapter && p.SceneRuntimeAdapters && p.ViewportOverlayAdapter); Assert.Equal(4, p.VariableKinds.Count); Assert.Equal(5, p.SceneFacets.Count); Assert.Equal(4, p.VisibilityLayers.Count); Assert.Empty(LiveDirectorOperationsValidator.Validate(p)); }
-    [Fact] public void R129_TransactionRoundTripRuntimeScripts_AreCanonical() { var i = LiveDirectorOperationsProfile.CreateDefault(); var c = i with { ServerRevision = 1, NextMatch = true }; var h = new LiveDirectorOperationsHistory(i); var q = new LiveDirectorOperationsCommand(Guid.NewGuid(), 1, "test:r129", 0, "gm", NetworkRole.GameMaster, false, c); Assert.False(h.Execute(q).Applied); Assert.True(h.Execute(q with { Apply = true }).Applied); Assert.Equal(i, h.Undo("gm", NetworkRole.GameMaster).Profile); Assert.Equal(c, h.Redo("gm", NetworkRole.GameMaster).Profile); var s = new LiveDirectorOperationsStore(); Assert.Equal(s.Serialize(c), s.Serialize(s.Deserialize(s.Serialize(c)))); Assert.Empty(LiveDirectorOperationsRuntimeAdapter.Resolve(null, false).Diagnostics); Assert.Equal("LIVE_OPS_REQUIRED_MISSING", Assert.Single(LiveDirectorOperationsRuntimeAdapter.Resolve(null, true).Diagnostics).Code); Assert.True(new LiveDirectorOperationsScriptService(i).Read(new(i.Id, 1)).VisualFocus); }
-    [Fact] public void R129_InvalidPermissionRevision_AreLocalized() { var i = LiveDirectorOperationsProfile.CreateDefault(); var bad = i with { ServerRevision = 1, ViewportOverlayAdapter = false }; Assert.Contains(LiveDirectorOperationsValidator.Validate(bad), x => x.Code == "LIVE_VISIBILITY_POLICY_INVALID"); var r = new LiveDirectorOperationsHistory(i).Execute(new(Guid.NewGuid(), 1, "test", 9, "player", NetworkRole.Player, true, bad)); Assert.Contains(r.Diagnostics, x => x.Code == "LIVE_OPS_PERMISSION_DENIED"); Assert.Contains(r.Diagnostics, x => x.Code == "LIVE_OPS_REVISION_STALE"); }
+    [Fact]
+    public void R129_SearchScriptsVariablesScenesVisibility_AreGoverned()
+    {
+        var profile = LiveDirectorOperationsProfile.CreateDefault();
+        Assert.True(profile.VisualFocus && profile.ForgeScriptServerAdapter &&
+                    profile.PersistentStateAdapter && profile.SceneRuntimeAdapters &&
+                    profile.ViewportOverlayAdapter);
+        Assert.Equal(["bool", "number", "enum", "string"], profile.VariableKinds);
+        Assert.Equal(["spawns", "dialogue", "music", "weather", "triggers"],
+            profile.SceneFacets);
+        Assert.Equal(["hidden-objects", "secrets", "navigation", "encounters"],
+            profile.VisibilityLayers);
+        Assert.Empty(LiveDirectorOperationsValidator.Validate(profile));
+    }
+
+    [Fact]
+    public void R129_TransactionRoundTripRuntimeScripts_AreCanonical()
+    {
+        var initial = LiveDirectorOperationsProfile.CreateDefault();
+        var candidate = initial with { ServerRevision = 1, RequiredAtRuntime = true };
+        var history = new LiveDirectorOperationsHistory(initial);
+        var command = new LiveDirectorOperationsCommand(Guid.NewGuid(), 1, "test:r129", 0,
+            "gm", NetworkRole.GameMaster, false, candidate);
+        var preview = history.Execute(command);
+        Assert.False(preview.Applied);
+        Assert.Equal("runtime", preview.SemanticDiff);
+        Assert.True(history.Execute(command with { Apply = true }).Applied);
+        Assert.Equal(initial, history.Undo("gm", NetworkRole.GameMaster).Profile);
+        Assert.Equal(candidate, history.Redo("gm", NetworkRole.GameMaster).Profile);
+        var store = new LiveDirectorOperationsStore();
+        Assert.Equal(store.Serialize(candidate),
+            store.Serialize(store.Deserialize(store.Serialize(candidate))));
+        Assert.Empty(LiveDirectorOperationsRuntimeAdapter.Resolve(null, false).Diagnostics);
+        Assert.Equal("LIVE_OPS_REQUIRED_MISSING",
+            Assert.Single(LiveDirectorOperationsRuntimeAdapter.Resolve(null, true).Diagnostics)
+                .Code);
+        var runtime = LiveDirectorOperationsRuntimeAdapter.Create(initial,
+            value => value.EndsWith(":valid", StringComparison.Ordinal),
+            () => DateTimeOffset.UnixEpoch);
+        Assert.True(new LiveDirectorOperationsScriptService(initial)
+            .Read(new(initial.Id, 1)).VisualFocus);
+        Assert.Same(initial, runtime.Profile);
+    }
+
+    [Fact]
+    public void R129_InvalidPermissionRevisionAndCanonicalLists_AreLocalized()
+    {
+        var initial = LiveDirectorOperationsProfile.CreateDefault();
+        var bad = initial with
+        {
+            ServerRevision = 1,
+            ViewportOverlayAdapter = false,
+            VariableKinds = ["string", "enum", "number", "bool"]
+        };
+        var diagnostics = LiveDirectorOperationsValidator.Validate(bad);
+        Assert.Contains(diagnostics, item => item.Code == "LIVE_VISIBILITY_POLICY_INVALID");
+        Assert.Contains(diagnostics, item => item.Code == "LIVE_VARIABLE_POLICY_INVALID");
+        var result = new LiveDirectorOperationsHistory(initial).Execute(new(Guid.NewGuid(), 1,
+            "test", 9, "player", NetworkRole.Player, true, bad));
+        Assert.Contains(result.Diagnostics, item => item.Code == "LIVE_OPS_PERMISSION_DENIED");
+        Assert.Contains(result.Diagnostics, item => item.Code == "LIVE_OPS_REVISION_STALE");
+    }
 }

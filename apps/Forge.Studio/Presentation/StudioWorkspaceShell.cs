@@ -47,6 +47,8 @@ internal sealed partial class StudioWorkspaceShell : Control
 
     internal string PageId { get; private set; }
 
+    internal bool IsPageReadyForCapture => PageId != "assets" || _assetLibraryPage.IsLoaded;
+
     internal int SectionCount => StudioPageCatalog.Sections.Count;
 
     internal int PageCount => StudioPageCatalog.Pages.Count;
@@ -136,15 +138,28 @@ internal sealed partial class StudioWorkspaceShell : Control
         center.AddChild(heading);
         var headingMargin = StudioStyle.Margin(12, 7, 12, 7);
         heading.AddChild(headingMargin);
-        var headingRow = new HBoxContainer();
-        headingRow.AddThemeConstantOverride("separation", 8);
-        headingMargin.AddChild(headingRow);
-        var headingText = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        var headingColumn = new VBoxContainer();
+        headingColumn.AddThemeConstantOverride("separation", 5);
+        headingMargin.AddChild(headingColumn);
+        var headingText = new VBoxContainer();
         _pageTitle = StudioStyle.Label(string.Empty, 18);
         _pageSubtitle = StudioStyle.Label(string.Empty, 11, StudioStyle.Muted, wrap: true);
         headingText.AddChild(_pageTitle);
         headingText.AddChild(_pageSubtitle);
-        headingRow.AddChild(headingText);
+        headingColumn.AddChild(headingText);
+        var headingActionsScroll = new ScrollContainer
+        {
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            HorizontalScrollMode = ScrollContainer.ScrollMode.Auto,
+            VerticalScrollMode = ScrollContainer.ScrollMode.Disabled,
+            CustomMinimumSize = new Vector2(0, 48),
+        };
+        headingActionsScroll.TooltipText =
+            "Toutes les actions de la page. Faites glisser la barre horizontale lorsqu'elle apparaît.";
+        headingColumn.AddChild(headingActionsScroll);
+        var headingRow = new HBoxContainer();
+        headingRow.AddThemeConstantOverride("separation", 8);
+        headingActionsScroll.AddChild(headingRow);
         BuildUx1AActions(headingRow);
         BuildUx1BActions(headingRow);
         BuildUx1CActions(headingRow);
@@ -217,6 +232,15 @@ internal sealed partial class StudioWorkspaceShell : Control
         BuildUx2NavKActions(headingRow);
         BuildUx2NavLActions(headingRow);
         BuildUx2NavMActions(headingRow);
+        BuildUx3AActions(headingRow);
+        BuildUx3BActions(headingRow);
+        BuildUx3CActions(headingRow);
+        BuildUx3DActions(headingRow);
+        BuildUx3EActions(headingRow);
+        BuildUx3FActions(headingRow);
+        BuildUx3GActions(headingRow);
+        BuildUx3HActions(headingRow);
+        BuildUx3IActions(headingRow);
         BuildUx4AActions(headingRow);
         BuildUx4BActions(headingRow);
         BuildUx4CActions(headingRow);
@@ -239,9 +263,75 @@ internal sealed partial class StudioWorkspaceShell : Control
         BuildUx4TActions(headingRow);
         BuildUx4UActions(headingRow);
         BuildUx5BActions(headingRow);
-        _primaryAction = StudioStyle.Button("Migration en cours", primary: true, compact: true);
+        BuildUx6AActions(headingRow);
+        BuildUx6BActions(headingRow);
+        BuildUx6CActions(headingRow);
+        BuildUx6DActions(headingRow);
+        BuildUx6EActions(headingRow);
+        BuildUx6FActions(headingRow);
+        BuildUx6GActions(headingRow);
+        BuildUx6HActions(headingRow);
+        BuildUx6IActions(headingRow);
+        BuildUx6JActions(headingRow);
+        BuildUx6KActions(headingRow);
+        BuildUx6LActions(headingRow);
+        BuildUx6MActions(headingRow);
+        BuildUx6NActions(headingRow);
+        BuildUx6OActions(headingRow);
+        BuildUx6PActions(headingRow);
+        BuildUx6QActions(headingRow);
+        BuildUx6RActions(headingRow);
+        BuildUx6SActions(headingRow);
+        BuildUx6TActions(headingRow);
+        BuildUx6UActions(headingRow);
+        BuildUx6VActions(headingRow);
+        BuildUx6WActions(headingRow);
+        BuildUx6XActions(headingRow);
+        BuildUx6YActions(headingRow);
+        BuildUx6ZActions(headingRow);
+        BuildUx7AActions(headingRow);
+        BuildUx7BActions(headingRow);
+        BuildUx7CActions(headingRow);
+        BuildUx7DActions(headingRow);
+        BuildUx7EActions(headingRow);
+        BuildUx7FActions(headingRow);
+        BuildUx7GActions(headingRow);
+        BuildUx7HActions(headingRow);
+        BuildUx7IActions(headingRow);
+        BuildUx8AActions(headingRow);
+        BuildUx8BActions(headingRow);
+        BuildUx8CActions(headingRow);
+        BuildUx8DActions(headingRow);
+        BuildUx8EActions(headingRow);
+        BuildUx8FActions(headingRow);
+        BuildUx8GActions(headingRow);
+        BuildUx8HActions(headingRow);
+        BuildUx8IActions(headingRow);
+        BuildUx8JActions(headingRow);
+        BuildUx8KActions(headingRow);
+        BuildUx8LActions(headingRow);
+        BuildUx8MActions(headingRow);
+        BuildUx8NActions(headingRow);
+        BuildUx9AActions(headingRow);
+        BuildUx9BActions(headingRow);
+        BuildUx9CActions(headingRow);
+        BuildUx9DActions(headingRow);
+        BuildUx9EActions(headingRow);
+        BuildUx9FActions(headingRow);
+        BuildUx9GActions(headingRow);
+        BuildUx9HActions(headingRow);
+        BuildUx9IActions(headingRow);
+        BuildUx9JActions(headingRow);
+        BuildUx9KActions(headingRow);
+        BuildUx9LActions(headingRow);
+        BuildUx9MActions(headingRow);
+        BuildUx9NActions(headingRow);
+        BuildUx9OActions(headingRow);
+        BuildUx10Actions(headingRow);
+        _primaryAction = StudioStyle.Button("Action de page", primary: true, compact: true);
         _primaryAction.Disabled = true;
-        _primaryAction.TooltipText = "Cette action sera activée seulement après son branchement transactionnel et ses tests.";
+        _primaryAction.Visible = false;
+        _primaryAction.TooltipText = "Action principale de la page courante.";
         headingRow.AddChild(_primaryAction);
 
         var pageStack = new Control
@@ -398,6 +488,15 @@ internal sealed partial class StudioWorkspaceShell : Control
         InitializeUx2NavKOverlay();
         InitializeUx2NavLOverlay();
         InitializeUx2NavMOverlay();
+        InitializeUx3AOverlay();
+        InitializeUx3BOverlay();
+        InitializeUx3COverlay();
+        InitializeUx3DOverlay();
+        InitializeUx3EOverlay();
+        InitializeUx3FOverlay();
+        InitializeUx3GOverlay();
+        InitializeUx3HOverlay();
+        InitializeUx3IOverlay();
         InitializeUx4AOverlay();
         InitializeUx4BOverlay();
         InitializeUx4COverlay();
@@ -421,6 +520,70 @@ internal sealed partial class StudioWorkspaceShell : Control
         InitializeUx4UOverlay();
         InitializeUx5APage(pageStack);
         InitializeUx5BOverlay();
+        InitializeUx6AOverlay();
+        InitializeUx6BOverlay();
+        InitializeUx6COverlay();
+        InitializeUx6DOverlay();
+        InitializeUx6EOverlay();
+        InitializeUx6FOverlay();
+        InitializeUx6GOverlay();
+        InitializeUx6HOverlay();
+        InitializeUx6IOverlay();
+        InitializeUx6JOverlay();
+        InitializeUx6KOverlay();
+        InitializeUx6LOverlay();
+        InitializeUx6MOverlay();
+        InitializeUx6OOverlay();
+        InitializeUx6POverlay();
+        InitializeUx6QOverlay();
+        InitializeUx6ROverlay();
+        InitializeUx6SOverlay();
+        InitializeUx6TOverlay();
+        InitializeUx6UOverlay();
+        InitializeUx6VOverlay();
+        InitializeUx6WOverlay();
+        InitializeUx6XOverlay();
+        InitializeUx6YOverlay();
+        InitializeUx6ZOverlay();
+        InitializeUx7AOverlay();
+        InitializeUx7BOverlay();
+        InitializeUx7COverlay();
+        InitializeUx7DOverlay();
+        InitializeUx7EOverlay();
+        InitializeUx7FOverlay();
+        InitializeUx7GOverlay();
+        InitializeUx7HOverlay();
+        InitializeUx7IOverlay();
+        InitializeUx8AOverlay();
+        InitializeUx8BOverlay();
+        InitializeUx8COverlay();
+        InitializeUx8DOverlay();
+        InitializeUx8EOverlay();
+        InitializeUx8FOverlay();
+        InitializeUx8GOverlay();
+        InitializeUx8HOverlay();
+        InitializeUx8IOverlay();
+        InitializeUx8JOverlay();
+        InitializeUx8KOverlay();
+        InitializeUx8LOverlay();
+        InitializeUx8MOverlay();
+        InitializeUx8NOverlay();
+        InitializeUx9AOverlay();
+        InitializeUx9BOverlay();
+        InitializeUx9COverlay();
+        InitializeUx9DOverlay();
+        InitializeUx9EOverlay();
+        InitializeUx9FOverlay();
+        InitializeUx9GOverlay();
+        InitializeUx9HOverlay();
+        InitializeUx9IOverlay();
+        InitializeUx9JOverlay();
+        InitializeUx9KOverlay();
+        InitializeUx9LOverlay();
+        InitializeUx9MOverlay();
+        InitializeUx9NOverlay();
+        InitializeUx9OOverlay();
+        InitializeUx10Overlay();
         if (_session.ActiveArea is null)
         {
             WorldViewport.ShowNoArea(_session);
@@ -791,6 +954,42 @@ internal sealed partial class StudioWorkspaceShell : Control
         {
             return PrepareUx2NavMEvidence(mode);
         }
+        if (mode.StartsWith("ux3-a", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx3AEvidence(mode);
+        }
+        if (mode.StartsWith("ux3-b", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx3BEvidence(mode);
+        }
+        if (mode.StartsWith("ux3-c", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx3CEvidence(mode);
+        }
+        if (mode.StartsWith("ux3-d", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx3DEvidence(mode);
+        }
+        if (mode.StartsWith("ux3-e", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx3EEvidence(mode);
+        }
+        if (mode.StartsWith("ux3-f", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx3FEvidence(mode);
+        }
+        if (mode.StartsWith("ux3-g", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx3GEvidence(mode);
+        }
+        if (mode.StartsWith("ux3-h", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx3HEvidence(mode);
+        }
+        if (mode.StartsWith("ux3-i", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx3IEvidence(mode);
+        }
         if (mode.StartsWith("ux4-a", StringComparison.OrdinalIgnoreCase))
         {
             return PrepareUx4AEvidence(mode);
@@ -886,6 +1085,266 @@ internal sealed partial class StudioWorkspaceShell : Control
             mode.StartsWith("ux5-f", StringComparison.OrdinalIgnoreCase))
         {
             return PrepareUx5BEvidence(mode);
+        }
+        if (mode.StartsWith("ux6-a", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx6AEvidence(mode);
+        }
+        if (mode.StartsWith("ux6-b", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx6BEvidence(mode);
+        }
+        if (mode.StartsWith("ux6-c", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx6CEvidence(mode);
+        }
+        if (mode.StartsWith("ux6-d", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx6DEvidence(mode);
+        }
+        if (mode.StartsWith("ux6-e", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx6EEvidence(mode);
+        }
+        if (mode.StartsWith("ux6-f", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx6FEvidence(mode);
+        }
+        if (mode.StartsWith("ux6-g", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx6GEvidence(mode);
+        }
+        if (mode.StartsWith("ux6-h", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx6HEvidence(mode);
+        }
+        if (mode.StartsWith("ux6-i", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx6IEvidence(mode);
+        }
+        if (mode.StartsWith("ux6-j", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx6JEvidence(mode);
+        }
+        if (mode.StartsWith("ux6-k", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx6KEvidence(mode);
+        }
+        if (mode.StartsWith("ux6-l", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx6LEvidence(mode);
+        }
+        if (mode.StartsWith("ux6-m", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx6MEvidence(mode);
+        }
+        if (mode.StartsWith("ux6-n", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx6NEvidence(mode);
+        }
+        if (mode.StartsWith("ux6-o", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx6OEvidence(mode);
+        }
+        if (mode.StartsWith("ux6-p", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx6PEvidence(mode);
+        }
+        if (mode.StartsWith("ux6-q", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx6QEvidence(mode);
+        }
+        if (mode.StartsWith("ux6-r", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx6REvidence(mode);
+        }
+        if (mode.StartsWith("ux6-s", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx6SEvidence(mode);
+        }
+        if (mode.StartsWith("ux6-t", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx6TEvidence(mode);
+        }
+        if (mode.StartsWith("ux6-u", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx6UEvidence(mode);
+        }
+        if (mode.StartsWith("ux6-v", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx6VEvidence(mode);
+        }
+        if (mode.StartsWith("ux6-w", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx6WEvidence(mode);
+        }
+        if (mode.StartsWith("ux6-x", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx6XEvidence(mode);
+        }
+        if (mode.StartsWith("ux6-y", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx6YEvidence(mode);
+        }
+        if (mode.StartsWith("ux6-z", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx6ZEvidence(mode);
+        }
+        if (mode.StartsWith("ux7-a", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx7AEvidence(mode);
+        }
+        if (mode.StartsWith("ux7-b", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx7BEvidence(mode);
+        }
+        if (mode.StartsWith("ux7-c", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx7CEvidence(mode);
+        }
+        if (mode.StartsWith("ux7-d", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx7DEvidence(mode);
+        }
+        if (mode.StartsWith("ux7-e", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx7EEvidence(mode);
+        }
+        if (mode.StartsWith("ux7-f", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx7FEvidence(mode);
+        }
+        if (mode.StartsWith("ux7-g", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx7GEvidence(mode);
+        }
+        if (mode.StartsWith("ux7-h", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx7HEvidence(mode);
+        }
+        if (mode.StartsWith("ux7-i", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx7IEvidence(mode);
+        }
+        if (mode.StartsWith("ux8-a", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx8AEvidence(mode);
+        }
+        if (mode.StartsWith("ux8-b", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx8BEvidence(mode);
+        }
+        if (mode.StartsWith("ux8-c", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx8CEvidence(mode);
+        }
+        if (mode.StartsWith("ux8-d", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx8DEvidence(mode);
+        }
+        if (mode.StartsWith("ux8-e", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx8EEvidence(mode);
+        }
+        if (mode.StartsWith("ux8-f", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx8FEvidence(mode);
+        }
+        if (mode.StartsWith("ux8-g", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx8GEvidence(mode);
+        }
+        if (mode.StartsWith("ux8-h", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx8HEvidence(mode);
+        }
+        if (mode.StartsWith("ux8-i", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx8IEvidence(mode);
+        }
+        if (mode.StartsWith("ux8-j", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx8JEvidence(mode);
+        }
+        if (mode.StartsWith("ux8-k", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx8KEvidence(mode);
+        }
+        if (mode.StartsWith("ux8-l", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx8LEvidence(mode);
+        }
+        if (mode.StartsWith("ux8-m", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx8MEvidence(mode);
+        }
+        if (mode.StartsWith("ux8-n", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx8NEvidence(mode);
+        }
+        if (mode.StartsWith("ux9-a", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx9AEvidence(mode);
+        }
+        if (mode.StartsWith("ux9-b", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx9BEvidence(mode);
+        }
+        if (mode.StartsWith("ux9-c", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx9CEvidence(mode);
+        }
+        if (mode.StartsWith("ux9-d", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx9DEvidence(mode);
+        }
+        if (mode.StartsWith("ux9-e", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx9EEvidence(mode);
+        }
+        if (mode.StartsWith("ux9-f", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx9FEvidence(mode);
+        }
+        if (mode.StartsWith("ux9-g", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx9GEvidence(mode);
+        }
+        if (mode.StartsWith("ux9-h", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx9HEvidence(mode);
+        }
+        if (mode.StartsWith("ux9-i", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx9IEvidence(mode);
+        }
+        if (mode.StartsWith("ux9-j", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx9JEvidence(mode);
+        }
+        if (mode.StartsWith("ux9-k", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx9KEvidence(mode);
+        }
+        if (mode.StartsWith("ux9-l", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx9LEvidence(mode);
+        }
+        if (mode.StartsWith("ux9-m", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx9MEvidence(mode);
+        }
+        if (mode.StartsWith("ux9-n", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx9NEvidence(mode);
+        }
+        if (mode.StartsWith("ux9-o", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx9OEvidence(mode);
+        }
+        if (mode.StartsWith("ux10-", StringComparison.OrdinalIgnoreCase))
+        {
+            return PrepareUx10Evidence(mode);
         }
         if (mode.StartsWith("ux1-a", StringComparison.OrdinalIgnoreCase))
         {
@@ -1275,6 +1734,12 @@ internal sealed partial class StudioWorkspaceShell : Control
         SwitchPage(PageId);
     }
 
+    internal void OpenPageForCapture(string pageId)
+    {
+        SwitchPage(pageId, notify: false);
+        FinalizeEditingEvidenceLayout();
+    }
+
     private void SwitchPage(string pageId, bool notify = true)
     {
         var page = ResolvePage(pageId, SectionId);
@@ -1329,6 +1794,21 @@ internal sealed partial class StudioWorkspaceShell : Control
             CloseUx2NavLOverlay();
             CloseUx2NavMOverlay();
         }
+        if (page.Id != "blueprints")
+        {
+            CloseUx3AOverlay();
+            CloseUx3BOverlay();
+            CloseUx3COverlay();
+        }
+        if (page.Id is not ("blueprints" or "assets"))
+        {
+            CloseUx3DOverlay();
+            CloseUx3EOverlay();
+            CloseUx3FOverlay();
+            CloseUx3GOverlay();
+            CloseUx3HOverlay();
+            CloseUx3IOverlay();
+        }
         if (page.Id != "social-content")
         {
             CloseUx4AOverlay();
@@ -1363,6 +1843,121 @@ internal sealed partial class StudioWorkspaceShell : Control
         {
             CloseUx5BOverlay();
         }
+        if (page.Id != "rules")
+        {
+            CloseUx6AOverlay();
+        }
+        if (page.Id != "runtime")
+        {
+            CloseUx6BOverlay();
+            CloseUx6COverlay();
+            CloseUx6DOverlay();
+            CloseUx6ROverlay();
+            CloseUx6SOverlay();
+            CloseUx6TOverlay();
+            CloseUx6UOverlay();
+            CloseUx6VOverlay();
+            CloseUx6WOverlay();
+            CloseUx6XOverlay();
+            CloseUx6YOverlay();
+        }
+        if (page.Id is not ("runtime" or "abilities"))
+        {
+            CloseUx6EOverlay();
+        }
+        if (page.Id != "abilities")
+        {
+            CloseUx6ZOverlay();
+        }
+        if (page.Id != "validation")
+        {
+            CloseUx7AOverlay();
+        }
+        if (page.Id != "quality")
+        {
+            CloseUx7BOverlay();
+            CloseUx7COverlay();
+            CloseUx7DOverlay();
+            CloseUx7EOverlay();
+            CloseUx7HOverlay();
+            CloseUx7IOverlay();
+        }
+        if (page.Id != "history")
+        {
+            CloseUx7FOverlay();
+        }
+        if (page.Id != "playtest")
+        {
+            CloseUx7GOverlay();
+        }
+        if (page.Id != "build")
+        {
+            CloseUx8AOverlay();
+            CloseUx8BOverlay();
+            CloseUx8COverlay();
+        }
+        if (page.Id != "production")
+        {
+            CloseUx8DOverlay();
+            CloseUx8EOverlay();
+            CloseUx8FOverlay();
+            CloseUx8IOverlay();
+        }
+        if (page.Id != "packages")
+        {
+            CloseUx8GOverlay();
+            CloseUx8LOverlay();
+            CloseUx8NOverlay();
+        }
+        if (page.Id != "export")
+        {
+            CloseUx8HOverlay();
+            CloseUx8KOverlay();
+        }
+        if (page.Id != "security")
+        {
+            CloseUx8JOverlay();
+        }
+        if (page.Id is not ("launcher" or "network-director"))
+        {
+            CloseUx8MOverlay();
+        }
+        if (page.Id != "network-director")
+        {
+            CloseUx9AOverlay();
+            CloseUx9BOverlay();
+            CloseUx9COverlay();
+            CloseUx9DOverlay();
+            CloseUx9EOverlay();
+            CloseUx9FOverlay();
+            CloseUx9GOverlay();
+            CloseUx9HOverlay();
+            CloseUx9IOverlay();
+            CloseUx9JOverlay();
+            CloseUx9KOverlay();
+            CloseUx9LOverlay();
+            CloseUx9MOverlay();
+            CloseUx9NOverlay();
+            CloseUx9OOverlay();
+        }
+        if (page.Id is not ("contextual" or "plans" or "assisted-3d"))
+        {
+            CloseUx10Overlay();
+        }
+        if (page.Id != "scripts")
+        {
+            CloseUx6FOverlay();
+            CloseUx6GOverlay();
+            CloseUx6HOverlay();
+            CloseUx6IOverlay();
+            CloseUx6JOverlay();
+            CloseUx6KOverlay();
+            CloseUx6LOverlay();
+            CloseUx6MOverlay();
+            CloseUx6OOverlay();
+            CloseUx6POverlay();
+            CloseUx6QOverlay();
+        }
         CloseUx1WOverlay();
         CloseUx1XOverlay();
         CloseUx1YOverlay();
@@ -1380,6 +1975,10 @@ internal sealed partial class StudioWorkspaceShell : Control
         var section = StudioPageCatalog.SectionForPage(page.Id);
         SectionId = section.Id;
         PageId = page.Id;
+        if (page.Layout == StudioPageLayout.Specialized)
+        {
+            ShowNavigationMode(explorer: false);
+        }
         _breadcrumb.Text = $"{section.Title} / {page.Title}";
         _pageTitle.Text = page.Title;
         _pageSubtitle.Text = page.Subtitle;
@@ -1388,12 +1987,13 @@ internal sealed partial class StudioWorkspaceShell : Control
         var isDiagnostics = page.Id == "validation";
         var isDialogues = page.Id == "dialogues";
         var isNarrative = IsNarrativePageUx5B(page.Id);
+        var isRules = page.Id == "rules";
         var canAddEntity = page.Id == "zones";
         _primaryAction.Text = canAddEntity
             ? _session.ActiveArea is null ? "Créer la première zone" : "Ajouter un objet"
             : isProjectConfiguration ? "Prévisualiser" : isDiagnostics ? "Tout vérifier" : page.PrimaryAction;
         _primaryAction.Disabled = !canAddEntity && !isProjectConfiguration && !isDiagnostics;
-        _primaryAction.Visible = !isAssetLibrary && !isNarrative;
+        _primaryAction.Visible = canAddEntity || isProjectConfiguration || isDiagnostics;
         _primaryAction.TooltipText = canAddEntity
             ? _session.ActiveArea is null
                 ? "Ouvrir l’assistant intégré pour créer le premier document de zone."
@@ -1402,7 +2002,7 @@ internal sealed partial class StudioWorkspaceShell : Control
             ? "Valider le formulaire sans modifier ni enregistrer le projet."
             : isDiagnostics
             ? "Relire les diagnostics canoniques et l’activité de la session."
-            : "Cette action sera activée seulement après son branchement transactionnel et ses tests.";
+            : "Utilisez les outils nommés disponibles dans la barre d'actions de cette page.";
         UpdateUx1AActionState();
         UpdateUx1BActionState();
         UpdateUx1CActionState();
@@ -1475,6 +2075,15 @@ internal sealed partial class StudioWorkspaceShell : Control
         UpdateUx2NavKActionState();
         UpdateUx2NavLActionState();
         UpdateUx2NavMActionState();
+        UpdateUx3AActionState();
+        UpdateUx3BActionState();
+        UpdateUx3CActionState();
+        UpdateUx3DActionState();
+        UpdateUx3EActionState();
+        UpdateUx3FActionState();
+        UpdateUx3GActionState();
+        UpdateUx3HActionState();
+        UpdateUx3IActionState();
         UpdateUx4AActionState();
         UpdateUx4BActionState();
         UpdateUx4CActionState();
@@ -1497,6 +2106,71 @@ internal sealed partial class StudioWorkspaceShell : Control
         UpdateUx4TActionState();
         UpdateUx4UActionState();
         UpdateUx5BActionState();
+        UpdateUx6AActionState();
+        UpdateUx6BActionState();
+        UpdateUx6CActionState();
+        UpdateUx6DActionState();
+        UpdateUx6EActionState();
+        UpdateUx6FActionState();
+        UpdateUx6GActionState();
+        UpdateUx6HActionState();
+        UpdateUx6IActionState();
+        UpdateUx6JActionState();
+        UpdateUx6KActionState();
+        UpdateUx6LActionState();
+        UpdateUx6MActionState();
+        UpdateUx6NActionState();
+        UpdateUx6OActionState();
+        UpdateUx6PActionState();
+        UpdateUx6QActionState();
+        UpdateUx6RActionState();
+        UpdateUx6SActionState();
+        UpdateUx6TActionState();
+        UpdateUx6UActionState();
+        UpdateUx6VActionState();
+        UpdateUx6WActionState();
+        UpdateUx6XActionState();
+        UpdateUx6YActionState();
+        UpdateUx6ZActionState();
+        UpdateUx7AActionState();
+        UpdateUx7BActionState();
+        UpdateUx7CActionState();
+        UpdateUx7DActionState();
+        UpdateUx7EActionState();
+        UpdateUx7FActionState();
+        UpdateUx7GActionState();
+        UpdateUx7HActionState();
+        UpdateUx7IActionState();
+        UpdateUx8AActionState();
+        UpdateUx8BActionState();
+        UpdateUx8CActionState();
+        UpdateUx8DActionState();
+        UpdateUx8EActionState();
+        UpdateUx8FActionState();
+        UpdateUx8GActionState();
+        UpdateUx8HActionState();
+        UpdateUx8IActionState();
+        UpdateUx8JActionState();
+        UpdateUx8KActionState();
+        UpdateUx8LActionState();
+        UpdateUx8MActionState();
+        UpdateUx8NActionState();
+        UpdateUx9AActionState();
+        UpdateUx9BActionState();
+        UpdateUx9CActionState();
+        UpdateUx9DActionState();
+        UpdateUx9EActionState();
+        UpdateUx9FActionState();
+        UpdateUx9GActionState();
+        UpdateUx9HActionState();
+        UpdateUx9IActionState();
+        UpdateUx9JActionState();
+        UpdateUx9KActionState();
+        UpdateUx9LActionState();
+        UpdateUx9MActionState();
+        UpdateUx9NActionState();
+        UpdateUx9OActionState();
+        UpdateUx10ActionState();
 
         var usesWorld = !isAssetLibrary && !isProjectConfiguration && !isDiagnostics &&
                         page.Layout != StudioPageLayout.Specialized;
@@ -1548,7 +2222,7 @@ internal sealed partial class StudioWorkspaceShell : Control
             ? _session.ActiveArea is null
                 ? "Projet sans zone · créez sa première zone depuis la configuration du projet"
                 : $"{_session.ActiveArea.DisplayName} · {WorldViewport.EntityCount} objets affichés · vue 3D conservée"
-            : $"{page.Title} · données réelles en lecture · édition planifiée";
+            : $"{page.Title} · données réelles · outils transactionnels disponibles";
         UpdateUx5APage(page.Id);
         if (notify)
         {
@@ -2089,7 +2763,8 @@ internal sealed partial class StudioWorkspaceShell : Control
                 WorldViewport.CancelPlacementTool(notify: false);
                 WorldViewport.HidePlacementPreview();
                 RefreshInspector();
-                SetStatus("Ajout annulé · le module n'a pas été modifié");
+                SetStatus(
+                    "Palette fermée · aucun placement supplémentaire · les ajouts déjà appliqués restent annulables avec Ctrl+Z");
             };
             _inspectorContent.AddChild(addInspector);
             addInspector.PublishPreview();
@@ -2332,7 +3007,9 @@ internal sealed partial class StudioWorkspaceShell : Control
     {
         var compact = Size.X > 0 && Size.X < CompactWidth;
         var assetLibrary = PageId == "assets";
-        var fullPageForm = assetLibrary || PageId is "module" or "validation";
+        var page = StudioPageCatalog.GetPage(PageId);
+        var fullPageForm = assetLibrary || PageId is "module" or "validation" ||
+                           page.Layout == StudioPageLayout.Specialized;
         var layout = _session.WorkspaceProfile.Shell.Layout;
         var navigationVisible = layout.ExplorerVisible || layout.PaletteVisible;
         var contextVisible = layout.InspectorVisible || layout.DiagnosticsVisible || layout.AssistantVisible;

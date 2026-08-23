@@ -26,6 +26,49 @@ public sealed class ProductionNetworkTests
     }
 
     [Fact]
+    public void Server_rejects_invalid_stale_and_replayed_reload_commands()
+    {
+        var service = new ServerProductionService(CreateNetwork());
+        var invalid = service.Reload(new ServerProductionService.ReloadRequest(Guid.NewGuid(),
+            "crypt-eu", 32, 4, 0, "not-a-sha256"), true);
+        var stale = service.Reload(new ServerProductionService.ReloadRequest(Guid.NewGuid(),
+            "crypt-eu", 32, 4, 1, new string('a', 64)), true);
+        var commandId = Guid.NewGuid();
+        var request = new ServerProductionService.ReloadRequest(commandId, "crypt-eu", 32, 4, 0,
+            new string('b', 64));
+        var applied = service.Reload(request, true);
+        var replayed = service.Reload(request with { ExpectedRevision = applied.Revision }, true);
+
+        Assert.Equal("NET_PRODUCTION_FINGERPRINT_INVALID", invalid.Code);
+        Assert.Equal("NET_PRODUCTION_REVISION_STALE", stale.Code);
+        Assert.True(applied.Applied);
+        Assert.Equal("NET_PRODUCTION_COMMAND_REPLAYED", replayed.Code);
+        Assert.False(replayed.Applied);
+    }
+
+    [Fact]
+    public void Protocol_negotiation_filters_capabilities_and_blocks_unsigned_extensions()
+    {
+        var service = new ServerProductionService(CreateNetwork());
+        var signed = service.Negotiate("windows", 1, 3, ["shell", "metrics"],
+            signedExtension: true);
+        var unsigned = service.Negotiate("windows", 1, 3, ["metrics"],
+            signedExtension: false);
+        var unsupported = service.Negotiate("plan9", 1, 3, ["metrics"],
+            signedExtension: true);
+
+        Assert.True(signed.Compatible);
+        Assert.Equal(2, signed.NegotiatedVersion);
+        Assert.True(signed.ExtensionAllowed);
+        Assert.Equal(["metrics"], signed.GrantedCapabilities);
+        Assert.True(unsigned.Compatible);
+        Assert.False(unsigned.ExtensionAllowed);
+        Assert.Empty(unsigned.GrantedCapabilities);
+        Assert.False(unsupported.Compatible);
+        Assert.Equal(0, unsupported.NegotiatedVersion);
+    }
+
+    [Fact]
     public void Soak_report_checks_duration_memory_handles_database_latency_and_players()
     {
         var source = ProductionAutomationProfile.CreateDefault(Guid.Parse("44000000-0000-4000-8000-000000000001"));

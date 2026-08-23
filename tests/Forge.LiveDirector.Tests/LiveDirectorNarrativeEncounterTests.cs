@@ -21,8 +21,15 @@ public sealed class LiveDirectorNarrativeEncounterTests
         var request = new LiveQuestService.Request(Guid.NewGuid(), SubjectId, "completed", "selected", [player], "GM resolution", 0);
         var preview = service.Transition(Gm, request, false);
         Assert.Contains("scripts:authoritative", preview.Consequences);
-        Assert.True(service.Transition(Gm, request, true).Applied);
+        Assert.StartsWith("rpg-kit:quest-journal:", preview.RpgProjection);
+        var applied = service.Transition(Gm, request, true);
+        Assert.True(applied.Applied);
         Assert.Equal("completed", service.Inspect(SubjectId)!.State);
+        Assert.Equal("completed", service.InspectPlayerState(SubjectId, player));
+        var rollback = service.Rollback(Gm, Guid.NewGuid(), "sandbox ended",
+            applied.Revision, true);
+        Assert.True(rollback.Restored);
+        Assert.Equal("started", service.Inspect(SubjectId)!.State);
         Assert.True(audit.Verify());
     }
 
@@ -34,11 +41,22 @@ public sealed class LiveDirectorNarrativeEncounterTests
         service.Upsert(new(SubjectId, "Gardien", "idle", 0, 1m, 4));
         Assert.Equal("LIVE_ENCOUNTER_INSPECTED", service.Execute(Gm, Request("inspect", null, 0), true).Code);
         Assert.True(service.Execute(Gm, Request("activate", null, 0), true).Applied);
-        Assert.Equal(2, service.Execute(Gm, Request("alter-wave", "2", 1), true).After!.Wave);
+        Assert.Equal(2, service.Execute(Gm, Request("wave", "2", 1), true).After!.Wave);
         Assert.Equal(1.5m, service.Execute(Gm, Request("scale", "1.5", 2), true).After!.Scale);
         Assert.Equal("paused", service.Execute(Gm, Request("pause", null, 3), true).After!.State);
         var despawn = service.Execute(Gm, Request("despawn", null, 4), true);
         Assert.Equal(0, despawn.After!.ActiveCreatures);
+        Assert.Equal(["spawn-authority", "ai-runtime"], despawn.RuntimeAdapters);
+        var revision = despawn.Revision;
+        for (var index = 0; index < 5; index++)
+        {
+            var rollback = service.Rollback(Gm, Guid.NewGuid(), "sandbox ended", revision,
+                true);
+            Assert.True(rollback.Restored);
+            revision = rollback.Revision;
+        }
+        Assert.Equal("idle", service.Inspect(SubjectId)!.State);
+        Assert.Equal(0, service.HistoryCount);
         Assert.True(audit.Verify());
     }
 

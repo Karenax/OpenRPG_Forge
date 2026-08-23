@@ -116,4 +116,54 @@ public sealed class NetworkPersistenceObservabilityProfileTests
         Assert.Equal(6, scripts.Read(scripts.Handle).MetricCount);
         Assert.Throws<InvalidOperationException>(() => scripts.Read(scripts.Handle with { Generation = 2 }));
     }
+
+    [Fact]
+    public void R123_RuntimeBuild_AppliesConfiguredSqlMetricsProfilerAndReconnectionPolicies()
+    {
+        var profile = NetworkPersistenceObservabilityProfile.CreateDefault() with { RequiredAtRuntime = true };
+        var runtime = NetworkPersistenceObservabilityRuntimeAdapter.Build(profile);
+        var actor = Guid.NewGuid();
+        var scope = Guid.NewGuid();
+        var snapshot = runtime.Snapshots.Save(0, 1, "{\"world\":\"crypt\"}", actor);
+        var parameters = new DataParameter[]
+        {
+            new("scope_id", DataParameterKind.Uuid, scope),
+            new("key", DataParameterKind.Text, "crypt.gate"),
+            new("value", DataParameterKind.Text, "open")
+        };
+        var applied = runtime.Data.Execute(new("world_flag.upsert", parameters, 0), actor);
+        var queried = runtime.Data.Query("world_flag.by_scope",
+            [new("scope_id", DataParameterKind.Uuid, scope)], actor);
+        var blocked = runtime.Data.Execute(new("account.lookup", [], applied.Revision), actor);
+
+        runtime.Observability.Gauge("server.tps", 60);
+        runtime.Observability.Increment("connections.active", 2);
+        using (runtime.Profiler.Measure("server.tick")) { }
+        var account = Guid.NewGuid();
+        var session = Guid.NewGuid();
+        var ticket = runtime.Reconnection.Issue(account, Guid.NewGuid(), session, snapshot.WorldRevision);
+        var reconnected = runtime.Reconnection.Redeem(ticket.Token, account, session);
+        var replayed = runtime.Reconnection.Redeem(ticket.Token, account, session);
+
+        Assert.True(applied.Applied);
+        Assert.Single(queried);
+        Assert.Equal("NET_DATA_OPERATION_NOT_CONFIGURED", blocked.Code);
+        Assert.Equal(60, runtime.Observability.Snapshot().Gauges["server.tps"]);
+        Assert.Equal(2, runtime.Observability.Snapshot().Counters["connections.active"]);
+        Assert.Equal(HealthStatus.Healthy, runtime.Observability.Health().Status);
+        Assert.Equal("/health", runtime.Observability.HealthEndpoint);
+        Assert.Equal("/metrics", runtime.Observability.MetricsEndpoint);
+        Assert.Single(runtime.Profiler.Snapshot());
+        Assert.True(reconnected.Accepted);
+        Assert.Equal("NET_RECONNECT_TOKEN_INVALID", replayed.Code);
+    }
+
+    [Fact]
+    public void R123_IncompleteDocument_IsRejectedWithoutNullReferenceFailure()
+    {
+        var exception = Assert.Throws<InvalidDataException>(() =>
+            new NetworkPersistenceObservabilityStore().Deserialize("{\"schemaVersion\":1}"));
+
+        Assert.Equal("NET_PERSIST_OBSERVE_INCOMPLETE", exception.Message);
+    }
 }

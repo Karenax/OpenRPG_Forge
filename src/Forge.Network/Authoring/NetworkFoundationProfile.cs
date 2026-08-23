@@ -273,6 +273,10 @@ public sealed class NetworkFoundationStore
     {
         var profile = JsonSerializer.Deserialize<NetworkFoundationProfile>(json, Options)
             ?? throw new InvalidDataException("NET_FOUNDATION_EMPTY");
+        if (profile.Server is null || profile.Dedicated is null || profile.Authority is null ||
+            profile.Party is null || profile.Replication is null || profile.Interest is null ||
+            profile.Replication.Components is null)
+            throw new InvalidDataException("NET_FOUNDATION_INCOMPLETE");
         var diagnostics = NetworkFoundationValidator.Validate(profile);
         if (diagnostics.Count != 0) throw new InvalidDataException(diagnostics[0].Code);
         return profile;

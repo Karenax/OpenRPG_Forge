@@ -33,60 +33,24 @@ et deux démonstrations jouables : Crypte des Cendres et Forgotten Forest. Les 7
 exigences du catalogue Aurora sont classées `Tested` dans 187 lots clos. Cette couverture décrit les
 capacités disponibles ; elle ne remplace pas la qualification d’un logiciel installable et publiable.
 
-`Forge.Studio` possède désormais sa fondation exécutable : Module Hub, une fenêtre produit, huit
-rubriques, trente-six pages, reprise du workspace et de la zone, vue 3D centrale de Forgotten Forest,
-sélection partagée et pages documentaires alimentées par les vraies données. Sa première tranche de
-retouche est transactionnelle : déplacement direct par gizmo X/Y/Z, inspecteur d'instance ouvert au
-clic droit, tags et propriétés locales, ajout filtré, duplication exacte, suppression confirmée,
-undo/redo et sauvegarde atomique. UX0-A à UX0-J qualifient maintenant quarante-deux routes humaines :
-Explorateur, recherche, filtres, références, aide, dispositions et profils nommés, onglets multi-zones,
-comparaison 3D protégée, raccourcis configurables, six modes de viewport, multisélection, caméra
-configurable, gizmos complets, palette contextuelle, favoris et palettes nommées, placement répété ou
-à la brosse avec fantômes valides/invalides, presse-papiers sémantique, assistant de création en cinq
-étapes, métadonnées multilingues, identité interne stable, projet Core sans zone, point de départ
-nommé avec waypoint facultatif, puis vingt liaisons d’événements de cycle de vie et de gameplay
-configurées par cartes et scripts nommés, puis équipement/progression, repos, rythmes globaux,
-signaux utilisateur typés, abandon sûr de cinématique, calendrier/fuseaux/repères astronomiques,
-échelle de progression data-driven, variables globales typées, cache ForgeScript vérifiable et huit
-pages localisées de guide joueur, renommage sûr avec migration de références et identité stable,
-    puis diagnostics structurés, liens profonds, correctifs prévisualisés et export expurgé. L’abandon
-publie réellement le ForgeScript résolu après la restauration ; le cache compile par
-source/API/compilateur et toutes les mutations qualifiées gardent un historique annulable. Les
-    vingt et un incréments UX1 qualifiés ajoutent l’assistant humain de zone, ses gabarits
-    vide/jouable et le document indépendant, puis redimensionnement avec pertes explicites, copie
-    complète ou gabarit avec nouvelles identités, et écran de chargement avec médias importés,
-    astuces, progression réelle et repli accessible, puis calques imbriqués, états hérités,
-    sélection de groupe et export partiel, et enfin blueprint de décor avec ressource humaine,
-    collision, rôle, interaction, transform et scripts, puis accès direct au décor statique avec
-    regroupement, instanciation, occlusion, fusion sûre et collision optionnelle, puis objet utilisable
-    avec actions nommées, portée, focus, autorité, conditions et événement `OnUsed`, puis conteneur
-    avec capacité, masse, propriétaire, droits, persistance, réplication, inventaire, butin et
-    présentation, puis identité et apparence avec noms localisés, tags, notes, meshes, matériaux,
-    icône, portrait et VFX, puis transformation précise avec coordonnées, rotation, échelle, pivot,
-    grille, parent, surface et animation, puis état visuel initial parmi six états, animations,
-    apparences, interaction et transitions prévisualisées, puis destructibilité avec santé, armure,
-    résistances, étapes visuelles, destruction, débris et réparation, puis protection plot avec
-    actions, droits, feedback et dérogation MJ auditée, puis faction principale et appartenances
-    avec effets d’hostilité, crime, accès et ciblage prévisualisés, puis conversations liées aux
-    interactions, états, utilisateurs, objets et événements ; aperçu, undo/redo et round-trip
-    exacts, puis verrouillage avec états, clé, justificatifs, défi, code masqué, piratage, droits,
-    reverrouillage et brouillage prévisualisés, puis politique de clé conservée, consommée, partagée,
-    à charges ou virtuelle avec audit et aperçu, puis piège avec déclencheur, effet, détection,
-    désamorçage, réarmement, propriété, alliés, VFX et usage unique, puis trésor initial avec table
-    d’objets, moment, graine et état généré persistant, puis événements d’ouverture et de fermeture
-    avec bindings ForgeScript et payload canonique, enfin événements avant/après du verrou avec
-    méthode, justificatif, acteur et veto contrôlé portent à 65 les routes Studio qualifiées.
-La vague UX2 qualifie désormais les 98 routes Monde de Terrain, Environnement, Monde vivant et
-Navigation : édition directe des tuiles et profils, audio authoré, événements/rencontres, surfaces,
-waypoints, transitions, visibilité, routes et ancres caméra. Chaque lot possède commande canonique,
-dry-run, undo/redo, round-trip, smoke et preuve Forward+ FHD ; les aperçus distinguent explicitement
-plans déterministes, services de décision et effets moteur réellement exécutés. La matrice Studio
-compte ainsi 221 routes `functional` et 496 `planned`. Le portail transversal de clôture UX2 passe
-avec 2 033 tests .NET, 39 tests Python, des builds sans avertissement, un graphe Roslyn déterministe
-à 9 968 nœuds et 71 303 relations sans diagnostic, puis les smokes Studio, Toolset, Runtime,
-Forward+, MCP, réseau et distribution. Playtest, distribution Windows/Linux et remplacement du
-lanceur Creator historique ne sont pas déclarés terminés avant leur propre migration et
-qualification.
+`Forge.Studio` est désormais l'application Creator autonome qualifiée : Module Hub, une fenêtre
+produit, huit rubriques, trente-six pages, vue 3D centrale lorsque le contexte est spatial et ateliers
+pleine surface pour les dialogues, scripts, données, validation et opérations réseau. La matrice
+d'accès humain contient 717 routes uniques au statut `functional`, de UX0 à UX10, et les 66 fenêtres
+historiques possèdent chacune une destination Studio au statut `Parity`.
+
+Les parcours couvrent l'édition directe du monde, les blueprints et assets gouvernés, la narration,
+ForgeScript, le gameplay, le playtest isolé, la validation, la préparation de distribution, le réseau
+et l'Assistant. Les mutations qualifiées passent par les commandes Application avec validation,
+dry-run, diff, garde de révision, audit, undo/redo, sauvegarde atomique et préservation des données
+voisines ; les aperçus distinguent les plans déterministes des effets moteur réellement exécutés.
+
+La revue corrective UX11-B a inspecté les trente-six pages en Full HD, QHD et 4K. Les distributions
+Studio Windows x64 et Linux x64 embarquent le workspace Forgotten Forest et la bibliothèque
+ForgeScript native de leur plateforme ; le smoke Linux a été rejoué sur Debian 13 x86_64 sans
+éditeur Godot, ce qui ferme `STUDIO-043`. Le portail transversal final passe 2 117 tests .NET,
+44 tests Python et tous ses smokes ; le graphe Roslyn reste frais et déterministe. Cette qualification
+locale ne constitue pas une release publique signée.
 
 Le Creator sait aussi configurer un profil de lanceur par jeu et générer une distribution Windows x64
 atomique. Le lanceur WPF possède une présentation RPG cinématique animée, vérifie ses fichiers, expose
@@ -106,10 +70,10 @@ pings, impacts, caméra, micro hit-stop et audio SFX. Cette présentation reste 
 ni équilibrage ni contenu de module, et se replie proprement avec mouvements réduits, contraste
 élevé, modes de vision des couleurs et texte jusqu'à ×2.
 
-Le chantier courant n’est plus la création de nouvelles familles fonctionnelles. Il est la migration
-progressive des capacités déjà couvertes vers `Forge.Studio`, suivie de la qualification de livraison,
-de la CI distante reproductible et de la finition visuelle. Le plugin historique reste disponible tant
-que la matrice de parité n'est pas close.
+Le chantier courant n’est plus la migration des routes Studio. Il porte sur la consolidation Git, la
+CI distante reproductible et les prérequis de release : licence du code, signature Authenticode,
+revue physique multi-écrans, fournisseur IA réel et autorisation explicite de publication. Le plugin
+historique reste disponible jusqu'à une décision utilisateur explicite de basculer le lanceur Creator.
 
 ## Expérience Creator cible
 
