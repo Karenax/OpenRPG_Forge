@@ -59,8 +59,8 @@ internal static class CryptArtKitDecorator
         WallLineX(root, -26, -20, 20, 0, 4, true, ref walls);
 
         // Catacomb ribs create lateral exploration without obscuring the main axis.
-        WallLineZ(root, -8, 11, 19, 90, ref walls);
-        WallLineZ(root, 8, 11, 19, -90, ref walls);
+        WallLineZ(root, -8, 11, 19, 90, ref walls, doorwayZ: 15);
+        WallLineZ(root, 8, 11, 19, -90, ref walls, doorwayZ: 15);
         WallLineX(root, 11, -20, -10, 0, 0, false, ref walls);
         WallLineX(root, 11, 10, 20, 0, 0, false, ref walls);
 
@@ -94,7 +94,8 @@ internal static class CryptArtKitDecorator
         }
 
         // Entrance elevation, reliquaries and environmental props.
-        Add(root, "stairs.gltf.glb", new Vector3(0, 0, 35), 180);
+        // The entrance stays level: the long decorative stair mesh crossed the initial camera
+        // orbit and hid the player even though it did not participate in collision detection.
         Add(root, "stairs.gltf.glb", new Vector3(0, 0, -27));
         Add(root, "chest.glb", new Vector3(14, 0, 15), -35);
         Add(root, "chest.glb", new Vector3(-14, 0, 15), 35);
@@ -103,7 +104,7 @@ internal static class CryptArtKitDecorator
         Add(root, "barrel_large_decorated.gltf.glb", new Vector3(13, 0, -20), -25);
         // A CC0 lit prop visually anchors the hanging-brazier interaction.
         Add(root, "torch_lit.gltf.glb", new Vector3(0, 5, -29));
-        props += 8;
+        props += 7;
 
         // Warm pools of light guide the critical path while leaving side lanes darker.
         var torches = new[]
@@ -159,13 +160,18 @@ internal static class CryptArtKitDecorator
         }
     }
 
-    private static void WallLineZ(Node3D root, float x, float minZ, float maxZ, float yaw, ref int counter)
+    private static void WallLineZ(
+        Node3D root, float x, float minZ, float maxZ, float yaw, ref int counter, float? doorwayZ = null)
     {
         for (var z = minZ; z <= maxZ + .01f; z += 4)
         {
+            if (doorwayZ is { } opening && MathF.Abs(z - opening) <= .01f) continue;
             Add(root, "wall.gltf.glb", new Vector3(x, 0, z), yaw);
             counter++;
         }
+        if (doorwayZ is not { } doorway) return;
+        Add(root, "wall_doorway.glb", new Vector3(x, 0, doorway), yaw);
+        counter++;
     }
 
     private static void WallLineX(

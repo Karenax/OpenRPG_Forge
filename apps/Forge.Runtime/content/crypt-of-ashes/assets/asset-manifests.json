@@ -1,0 +1,109 @@
+{
+  "formatVersion": "1.0.0",
+  "manifests": [
+    {
+      "schemaVersion": 1,
+      "id": "a54f809c-2879-a850-bf80-5b61ac675fc6",
+      "assetId": "053511fd-e165-1951-9869-6224f82b747f",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-kaykit-knight@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "8d003593fb07e4a00c88d5903ea30fc9cd42201ac0fed6c55d85523181ebf4a2",
+      "platformBudgets": { "windows": 7319064, "linux": 7319064 },
+      "chunks": [
+        {
+          "id": "773025e5-f584-385d-9e1e-169a6b58ba7c",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kaykit-character-pack-adventures-1-0-knight/model.glb",
+          "contentSha256": "df2a4c1c6efcaf47c04736b4f880f2626174a173e1a22212370860db7fdfcb4a",
+          "uncompressedBytes": 3163560,
+          "storedBytes": 3163560,
+          "compression": "none",
+          "platforms": [ "windows", "linux" ]
+        }
+      ],
+      "collision": null,
+      "animation": null,
+      "vfx": null,
+      "lod": null
+    },
+    {
+      "schemaVersion": 1,
+      "id": "0707c23c-fbdb-2f53-9888-59d0374add46",
+      "assetId": "220be95a-282c-cc52-aaf9-4fe811b32609",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-kaykit-mage@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "7376f67a97fba210fb153865c19a2266cbf0dc3b199e6b19961a85dbe5416e7e",
+      "platformBudgets": { "windows": 7178480, "linux": 7178480 },
+      "chunks": [
+        {
+          "id": "a7940b06-769f-2152-b331-5cd25b4f66c7",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kaykit-character-pack-adventures-1-0-mage/model.glb",
+          "contentSha256": "0c36eebb36df2c020355a97ea914f2aa5643dc472fa45e68706ac4cb3c454d0b",
+          "uncompressedBytes": 3091540,
+          "storedBytes": 3091540,
+          "compression": "none",
+          "platforms": [ "windows", "linux" ]
+        }
+      ],
+      "collision": null,
+      "animation": null,
+      "vfx": null,
+      "lod": null
+    },
+    {
+      "schemaVersion": 1,
+      "id": "a402ea14-ba77-7f58-b386-8f518fc02654",
+      "assetId": "056fe96c-5c83-145d-98fd-0623b9350cf5",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-kaykit-rogue-hooded@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "2db42619310d6e929a53a7f9891226c43ad8de1e2baddfc2862e5a5279b159c4",
+      "platformBudgets": { "windows": 7195304, "linux": 7195304 },
+      "chunks": [
+        {
+          "id": "72b0f5e3-0aca-8455-9ddd-4143a974d84f",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kaykit-character-pack-adventures-1-0-rogue-hooded/model.glb",
+          "contentSha256": "94cb0922eb9dbdc7147fa7f11cbba3c4066e0a06debbeeaef05cf217497e29b8",
+          "uncompressedBytes": 3097724,
+          "storedBytes": 3097724,
+          "compression": "none",
+          "platforms": [ "windows", "linux" ]
+        }
+      ],
+      "collision": null,
+      "animation": null,
+      "vfx": null,
+      "lod": null
+    },
+    {
+      "schemaVersion": 1,
+      "id": "3de88495-774c-b25e-8b82-acfb35b97ae2",
+      "assetId": "3bf93c4b-7df6-455c-be89-ba38d40e941c",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-kaykit-barbarian@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "7226eeee9d7f1e1490da37be85e50783926e2973aaaa17b770521e272a166a7e",
+      "platformBudgets": { "windows": 7226536, "linux": 7226536 },
+      "chunks": [
+        {
+          "id": "da8c3a4a-184a-af54-96bb-12e92574f188",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kaykit-character-pack-adventures-1-0-barbarian/model.glb",
+          "contentSha256": "530b7f02ef5d30b7ff200d4df2a776d55905a0ba6a97c5e2aca425ce94c4c56e",
+          "uncompressedBytes": 3114672,
+          "storedBytes": 3114672,
+          "compression": "none",
+          "platforms": [ "windows", "linux" ]
+        }
+      ],
+      "collision": null,
+      "animation": null,
+      "vfx": null,
+      "lod": null
+    }
+  ]
+}

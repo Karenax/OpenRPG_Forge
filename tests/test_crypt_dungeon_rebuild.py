@@ -10,7 +10,11 @@ CRYPT = ROOT / "apps" / "Forge.Runtime" / "content" / "crypt-of-ashes"
 AREA = CRYPT / "areas" / "93b6f81b-49eb-4e3d-a156-08ad78529525-f07a9bf666090558.json"
 MANIFEST = CRYPT / "systemic-gameplay.json"
 ART = ROOT / "apps" / "Forge.Runtime" / "Runtime" / "CryptArtKitDecorator.cs"
+GAME_ROOT = ROOT / "apps" / "Forge.Runtime" / "Runtime" / "GameRoot.cs"
+CAMERA_RIG = ROOT / "apps" / "Forge.Runtime" / "Runtime" / "RuntimeCameraRig.cs"
+HUD = ROOT / "apps" / "Forge.Runtime" / "Runtime" / "RuntimeHud.cs"
 CREDITS = ROOT / "apps" / "Forge.Runtime" / "art" / "crypt-kaykit" / "CREDITS.md"
+CHARACTER_MANIFESTS = CRYPT / "assets" / "asset-manifests.json"
 
 
 class CryptDungeonRebuildTests(unittest.TestCase):
@@ -19,6 +23,9 @@ class CryptDungeonRebuildTests(unittest.TestCase):
         cls.area = json.loads(AREA.read_text(encoding="utf-8"))["area"]
         cls.manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
         cls.art = ART.read_text(encoding="utf-8")
+        cls.game_root = GAME_ROOT.read_text(encoding="utf-8")
+        cls.camera_rig = CAMERA_RIG.read_text(encoding="utf-8")
+        cls.hud = HUD.read_text(encoding="utf-8")
 
     def test_area_is_no_longer_the_legacy_box(self) -> None:
         self.assertEqual({"width": 48, "depth": 76}, self.area["dimensions"])
@@ -81,16 +88,58 @@ class CryptDungeonRebuildTests(unittest.TestCase):
         self.assertIn("wall_doorway.glb", self.art)
         self.assertIn("column.gltf.glb", self.art)
         self.assertIn("stairs.gltf.glb", self.art)
+        self.assertNotIn('"stairs.gltf.glb", new Vector3(0, 0, 35), 180', self.art)
         self.assertIn("chest.glb", self.art)
         self.assertIn("barrel_large_decorated.gltf.glb", self.art)
         self.assertIn("torch_lit.gltf.glb", self.art)
         self.assertIn("FloodedOssuaryColdLight", self.art)
         self.assertIn("AddSafetyWall", self.art)
 
+    def test_lateral_reliquaries_have_matching_visual_and_physical_doorways(self) -> None:
+        self.assertIn("WallLineZ(root, -8, 11, 19, 90, ref walls, doorwayZ: 15)", self.art)
+        self.assertIn("WallLineZ(root, 8, 11, 19, -90, ref walls, doorwayZ: 15)", self.art)
+        self.assertIn('Name = "ReliquaryDividerNorth"', self.game_root)
+        self.assertIn('Name = "ReliquaryDividerSouth"', self.game_root)
+        self.assertIn("OPENRPG_FORGE_CRYPT_CRITICAL_PATH_PASS", self.game_root)
+
     def test_cc0_provenance_remains_documented(self) -> None:
         credits = CREDITS.read_text(encoding="utf-8")
         self.assertIn("KayKit Dungeon Remastered", credits)
         self.assertIn("CC0-1.0", credits)
+
+    def test_continuous_interior_floor_does_not_duplicate_tile_colliders(self) -> None:
+        self.assertIn("var usesInteriorFloorShell = isFloor && _interiorWalkableBounds is not null;", self.game_root)
+        self.assertIn("if (!usesInteriorFloorShell &&", self.game_root)
+
+    def test_crypt_uses_four_governed_animated_character_models(self) -> None:
+        manifests = json.loads(CHARACTER_MANIFESTS.read_text(encoding="utf-8"))["manifests"]
+        self.assertEqual(4, len(manifests))
+        self.assertEqual({"CC0-1.0"}, {item["licenseSpdx"] for item in manifests})
+        for item in manifests:
+            model = CRYPT / item["chunks"][0]["relativePath"]
+            self.assertTrue(model.is_file(), model)
+            self.assertGreater(model.stat().st_size, 3_000_000)
+        self.assertIn("ResolveCryptCharacterVisual", self.game_root)
+        self.assertIn("OPENRPG_FORGE_CRYPT_GROUNDED_MOVEMENT_PASS", self.game_root)
+
+    def test_camera_is_slower_and_releases_wall_collision_smoothly(self) -> None:
+        self.assertIn("MouseYawSensitivity = .0032f", self.camera_rig)
+        self.assertIn("MousePitchSensitivity = .0028f", self.camera_rig)
+        self.assertIn("CollisionReleaseSharpness = 3.25f", self.camera_rig)
+        self.assertIn("SmoothCollisionDistance", self.camera_rig)
+        self.assertIn("OPENRPG_FORGE_CRYPT_CAMERA_RESPONSE_PASS", self.game_root)
+        self.assertIn("_isCryptPrototype ? null : ConstrainCameraPosition", self.game_root)
+        self.assertIn("OPENRPG_FORGE_CRYPT_FREE_CAMERA_PASS", self.game_root)
+        self.assertIn("FirstPersonFieldOfView = 75f", self.camera_rig)
+        self.assertIn("FirstPersonActive", self.camera_rig)
+        self.assertIn("SyncLocalPlayerCameraVisibility", self.game_root)
+        self.assertIn("OPENRPG_FORGE_CRYPT_FIRST_PERSON_ZOOM_PASS", self.game_root)
+
+    def test_objective_and_interaction_guidance_remain_readable(self) -> None:
+        self.assertIn("OffsetLeft = LargeText ? -590 : -410", self.hud)
+        self.assertIn("OffsetBottom = LargeText ? 328 : 292", self.hud)
+        self.assertIn("UpdateInteractionPrompt", self.hud)
+        self.assertIn("reliquaire latéral", self.game_root)
 
 
 if __name__ == "__main__":

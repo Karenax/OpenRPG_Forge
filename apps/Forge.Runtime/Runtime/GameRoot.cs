@@ -148,10 +148,16 @@ public partial class GameRoot : Node3D
     private const string TerrainBenchmarkArgument = "--terrain-benchmark";
     private const float InteractionDistance = 3.0f;
     private const float AttackDistance = 3.5f;
+    private const float CameraHorizontalWallClearance = .85f;
+    private const float CameraDirectHitClearance = .65f;
     private const string VisualAssetProperty = "visual.asset";
     private const string RuntimeRoleProperty = "runtime.role";
     private const string RuntimeAnimationProfileProperty = "runtime.animationProfile";
     private const string RuntimeWorldLabelNodeName = "RuntimeWorldLabel";
+    private const string CryptKnightAssetId = "053511fd-e165-1951-9869-6224f82b747f";
+    private const string CryptMageAssetId = "220be95a-282c-cc52-aaf9-4fe811b32609";
+    private const string CryptRogueAssetId = "056fe96c-5c83-145d-98fd-0623b9350cf5";
+    private const string CryptBarbarianAssetId = "3bf93c4b-7df6-455c-be89-ba38d40e941c";
     private static EntityId? s_pendingPortalSpawn;
     private static string? s_pendingPortalLabel;
     private static int s_connectedWorldSmokeStep;
@@ -331,6 +337,7 @@ public partial class GameRoot : Node3D
     private bool _initializationComplete;
     private bool _portalTransitionInProgress;
     private bool _fpsVisible;
+    private bool _localPlayerHiddenForFirstPerson;
     private GodotAssetModelLibrary? _modelLibrary;
     private int _runtimeModelInstances;
     private int _animatedCharacterInstances;
@@ -389,6 +396,7 @@ public partial class GameRoot : Node3D
         var forgottenForestSmokeTest = userArguments.Contains("--forgotten-forest-smoke-test", StringComparer.Ordinal);
         var combatFeedbackSmokeTest = userArguments.Contains("--combat-feedback-smoke-test", StringComparer.Ordinal);
         var entryGroundSmokeTest = userArguments.Contains("--entry-ground-smoke-test", StringComparer.Ordinal);
+        var cryptMovementSmokeTest = userArguments.Contains("--crypt-movement-smoke-test", StringComparer.Ordinal);
         var connectedWorldTransitionSmokeTest = userArguments.Contains(
             "--connected-world-transition-smoke-test", StringComparer.Ordinal);
         var innUxSmokeTest = userArguments.Contains("--inn-ux-smoke-test", StringComparer.Ordinal);
@@ -408,7 +416,7 @@ public partial class GameRoot : Node3D
         var terrainBenchmarkPath = GetArgumentValue(userArguments, TerrainBenchmarkArgument);
         var automatedTest = smokeTest || genericSmokeTest || rpgKitSmokeTest || forgottenForestSmokeTest ||
             combatFeedbackSmokeTest ||
-            entryGroundSmokeTest ||
+            entryGroundSmokeTest || cryptMovementSmokeTest ||
             connectedWorldTransitionSmokeTest ||
             innUxSmokeTest ||
             flyingMountSmokeTest ||
@@ -492,6 +500,9 @@ public partial class GameRoot : Node3D
             PublishProjectConnectionEvent(PlayerConnectionStage.Joining, "authenticated");
             await ConfigureWorldAsync(startArea.Environment, startArea.World, startArea.Navigation, _isCryptPrototype);
             var selectedSpawn = BuildProject(project, requestedSpawnId);
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            if (_player?.GetNodeOrNull<Node3D>("AuthoredVisual") is { } settledPlayerVisual)
+                AlignPlayerVisualToCapsule(settledPlayerVisual);
             if (!string.IsNullOrWhiteSpace(portalArrivalLabel))
             {
                 _message = $"Arrivée : {portalArrivalLabel}.";
@@ -501,7 +512,8 @@ public partial class GameRoot : Node3D
             ApplyPlaytestLaunch(project, playtestManifest);
             if (_camera is not null && _player is not null)
             {
-                _cameraRig.Snap(_camera, _player.GlobalPosition, ConstrainCameraPosition);
+                _cameraRig.Snap(_camera, _player.GlobalPosition,
+                    _isCryptPrototype ? null : ConstrainCameraPosition);
             }
             EnsureLifecycle(
                 _lifecycle.EnterInitialArea(
@@ -520,7 +532,7 @@ public partial class GameRoot : Node3D
             CreateHud();
             ConfigureWaypointRuntime(startArea.Navigation.Waypoints);
             if (!connectedWorldTransitionSmokeTest && !entryGroundSmokeTest && !innUxSmokeTest &&
-                !combatFeedbackSmokeTest &&
+                !cryptMovementSmokeTest && !combatFeedbackSmokeTest &&
                 !flyingMountSmokeTest && flyingMountVisualCapturePath is null &&
                 combatFeedbackCapturePath is null)
             {
@@ -586,7 +598,8 @@ public partial class GameRoot : Node3D
                 await CaptureFlyingMountVisualProofAsync(flyingMountVisualCapturePath);
                 return;
             }
-            ConfigureCinematics(project, startArea);
+            if (!cryptMovementSmokeTest)
+                ConfigureCinematics(project, startArea);
             UpdateHud();
             EnsureLifecycle(_lifecycle.StartWorld(lifecycleCause), "world_started");
             PublishProjectConnectionEvent(PlayerConnectionStage.Ready, "world-ready");
@@ -619,6 +632,10 @@ public partial class GameRoot : Node3D
             else if (entryGroundSmokeTest)
             {
                 await RunEntryGroundSmokeTestAsync(project);
+            }
+            else if (cryptMovementSmokeTest)
+            {
+                await RunCryptMovementSmokeTestAsync(project);
             }
             else if (forgottenForestSmokeTest)
             {
@@ -1216,7 +1233,8 @@ public partial class GameRoot : Node3D
                 ? _flyingMount.GetGlobalTransformInterpolated().Origin
                 : _player.GetGlobalTransformInterpolated().Origin;
             _cameraRig.Update(_camera, cameraTarget, delta,
-                ConstrainCameraPosition);
+                _isCryptPrototype ? null : ConstrainCameraPosition);
+            SyncLocalPlayerCameraVisibility();
             if (_cameraRig.AlignCharacterFacing && _flyingMount?.IsMounted != true)
             {
                 _player.FaceDirection(_cameraRig.ForwardDirection);
@@ -1380,6 +1398,31 @@ public partial class GameRoot : Node3D
 
     private Vector3 ConstrainCameraPosition(Vector3 focus, Vector3 desired)
     {
+        if (_player is not null)
+        {
+            var horizontalOffset = new Vector3(desired.X - focus.X, 0, desired.Z - focus.Z);
+            var horizontalDistance = horizontalOffset.Length();
+            if (horizontalDistance > .01f)
+            {
+                var horizontalQuery = PhysicsRayQueryParameters3D.Create(focus, focus + horizontalOffset);
+                horizontalQuery.Exclude = _flyingMount is { IsMounted: true }
+                    ? [_player.GetRid(), _flyingMount.GetRid()]
+                    : [_player.GetRid()];
+                horizontalQuery.CollideWithAreas = false;
+                horizontalQuery.CollideWithBodies = true;
+                var horizontalHit = GetWorld3D().DirectSpaceState.IntersectRay(horizontalQuery);
+                if (horizontalHit.TryGetValue("position", out var horizontalPosition))
+                {
+                    var hitDistance = new Vector2(
+                        horizontalPosition.AsVector3().X - focus.X,
+                        horizontalPosition.AsVector3().Z - focus.Z).Length();
+                    var allowedDistance = Math.Max(.75f, hitDistance - CameraHorizontalWallClearance);
+                    var fraction = Math.Clamp(allowedDistance / horizontalDistance, 0, 1);
+                    desired = focus + ((desired - focus) * fraction);
+                }
+            }
+        }
+
         if (_interiorWalkableBounds is { } bounds)
         {
             const float wallClearance = .65f;
@@ -1399,7 +1442,20 @@ public partial class GameRoot : Node3D
         var hit = GetWorld3D().DirectSpaceState.IntersectRay(query);
         if (!hit.TryGetValue("position", out var position)) return desired;
         var direction = (desired - focus).Normalized();
-        return position.AsVector3() - (direction * .45f);
+        return position.AsVector3() - (direction * CameraDirectHitClearance);
+    }
+
+    private void SyncLocalPlayerCameraVisibility()
+    {
+        if (_player is null || _localPlayerHiddenForFirstPerson == _cameraRig.FirstPersonActive) return;
+        _localPlayerHiddenForFirstPerson = _cameraRig.FirstPersonActive;
+        var visible = !_localPlayerHiddenForFirstPerson;
+        if (_player.GetNodeOrNull<Node3D>("AuthoredVisual") is { } authoredVisual)
+            authoredVisual.Visible = visible;
+        foreach (var node in _player.FindChildren("*", "MeshInstance3D", recursive: true, owned: false))
+            if (node is MeshInstance3D mesh) mesh.Visible = visible;
+        foreach (var node in _player.FindChildren("*", "Label3D", recursive: true, owned: false))
+            if (node is Label3D label) label.Visible = visible;
     }
 
     private ProjectDefinition LoadProject(string? snapshotPath, string? modulePackagePath, string? workspacePath)
@@ -2096,9 +2152,10 @@ public partial class GameRoot : Node3D
         root.AddChild(body);
         var hidden = bool.TryParse(GetOverride(entity, "visual.hidden"), out var hide) && hide;
         var collisionProxy = hidden && entity.Tags.Contains("collision", StringComparer.Ordinal);
+        var cryptReliquaryDivider = IsCryptReliquaryDivider(entity);
         if (collisionProxy) root.Scale = Vector3.One;
         var attachedVisual = !hidden && TryAttachVisual(body, entity);
-        if (!attachedVisual && !hidden)
+        if (!attachedVisual && !hidden && !cryptReliquaryDivider)
         {
             var effectiveColor = Color.FromString(GetOverride(entity, "visual.color") ?? string.Empty, color);
             var emission = bool.TryParse(GetOverride(entity, "visual.emission"), out var emit) && emit;
@@ -2136,12 +2193,33 @@ public partial class GameRoot : Node3D
                 ShadowEnabled = false,
             });
         }
-        // A visible walkable floor must remain physical even when an authored decorative
-        // tag also marks its mesh as nonblocking. Without this precedence the detailed
-        // inn floor renders correctly but the player falls through it on the first frame.
-        var requiresFloorCollision = entity.Tags.Contains("floor", StringComparer.Ordinal) &&
-                                     _interiorWalkableBounds is null;
-        if (requiresFloorCollision || !entity.Tags.Contains("nonblocking", StringComparer.Ordinal))
+        // Interior areas already have one continuous floor shell. Rebuilding a collider for
+        // every overlapping floor tile creates invisible seams that trap grounded movement.
+        // Areas without a shell still keep their authored floor colliders.
+        var isFloor = entity.Tags.Contains("floor", StringComparer.Ordinal);
+        var usesInteriorFloorShell = isFloor && _interiorWalkableBounds is not null;
+        var requiresFloorCollision = isFloor && !usesInteriorFloorShell;
+        if (cryptReliquaryDivider)
+        {
+            const float authoredDepth = 7f;
+            const float segmentDepth = 3f;
+            const float segmentCenter = 2.5f;
+            body.AddChild(new CollisionShape3D
+            {
+                Name = "ReliquaryDividerNorth",
+                Position = new Vector3(0, 0, -segmentCenter / authoredDepth),
+                Shape = new BoxShape3D { Size = new Vector3(1, 1, segmentDepth / authoredDepth) },
+            });
+            body.AddChild(new CollisionShape3D
+            {
+                Name = "ReliquaryDividerSouth",
+                Position = new Vector3(0, 0, segmentCenter / authoredDepth),
+                Shape = new BoxShape3D { Size = new Vector3(1, 1, segmentDepth / authoredDepth) },
+            });
+            _collisionCount += 2;
+        }
+        else if (!usesInteriorFloorShell &&
+            (requiresFloorCollision || !entity.Tags.Contains("nonblocking", StringComparer.Ordinal)))
         {
             if (collisionProxy)
             {
@@ -2161,6 +2239,13 @@ public partial class GameRoot : Node3D
         }
         return root;
     }
+
+    private bool IsCryptReliquaryDivider(EntityInstance entity) =>
+        _isCryptPrototype &&
+        entity.Tags.Contains("wall", StringComparer.Ordinal) &&
+        entity.Tags.Contains("cover", StringComparer.Ordinal) &&
+        Math.Abs(Math.Abs(entity.Transform.Position.X) - 8) <= .01f &&
+        Math.Abs(entity.Transform.Position.Z - 15) <= .01f;
 
     private static CollisionShape3D CreateVisualCollision(Node3D? visual)
     {
@@ -2494,6 +2579,22 @@ public partial class GameRoot : Node3D
                 MaterialOverride = CreateMaterial(new Color("ffca55"), emission: true),
             });
         }
+        var clickTarget = new Area3D
+        {
+            Name = "ItemClickTarget",
+            CollisionLayer = 1,
+            CollisionMask = 1,
+            InputRayPickable = true,
+            Monitoring = false,
+            Monitorable = true,
+        };
+        clickTarget.AddChild(new CollisionShape3D
+        {
+            Shape = new SphereShape3D { Radius = .65f },
+        });
+        clickTarget.MouseEntered += () => Input.SetDefaultCursorShape(Input.CursorShape.PointingHand);
+        clickTarget.MouseExited += () => Input.SetDefaultCursorShape(Input.CursorShape.Arrow);
+        root.AddChild(clickTarget);
         _questItemSlug = GetOverride(entity, "runtime.item") ?? itemSlug;
         _questItemDisplayName = GetOverride(entity, "runtime.displayName") ?? displayName;
         _keyItemBlueprint = blueprint;
@@ -4577,7 +4678,8 @@ public partial class GameRoot : Node3D
 
     private bool TryAttachVisual(Node parent, EntityInstance entity, bool applyPlayerVisualTransform = false)
     {
-        var assetId = GetOverride(entity, VisualAssetProperty);
+        var cryptCharacter = _isCryptPrototype ? ResolveCryptCharacterVisual(entity) : null;
+        var assetId = GetOverride(entity, VisualAssetProperty) ?? cryptCharacter?.AssetId;
         if (string.IsNullOrWhiteSpace(assetId)) return false;
         if (_modelLibrary is null)
             throw new InvalidOperationException($"Entity '{entity.Id}' references visual asset '{assetId}' but the module model library is unavailable.");
@@ -4600,14 +4702,8 @@ public partial class GameRoot : Node3D
             var center = (wallMinimum + wallMaximum) * .5f;
             visual.Position -= new Vector3(center.X, 0, center.Z);
         }
-        if (applyPlayerVisualTransform &&
-            TryMeasureNodeBounds(visual, out var playerMinimum, out _))
-        {
-            const float capsuleBottom = -.9f;
-            visual.Position += Vector3.Up * (capsuleBottom - playerMinimum.Y);
-        }
         _runtimeModelInstances++;
-        var animationProfile = GetOverride(entity, RuntimeAnimationProfileProperty);
+        var animationProfile = GetOverride(entity, RuntimeAnimationProfileProperty) ?? cryptCharacter?.AnimationProfile;
         var animation = animationProfile switch
         {
             "humanoid-basic" => GodotAssetAnimationController.Configure(visual),
@@ -4647,8 +4743,32 @@ public partial class GameRoot : Node3D
                 mount.ConfigureAnimations(animation);
             }
         }
+        if (applyPlayerVisualTransform) AlignPlayerVisualToCapsule(visual);
         return true;
     }
+
+    private static void AlignPlayerVisualToCapsule(Node3D visual)
+    {
+        if (!TryMeasureNodeBounds(visual, out var minimum, out var maximum)) return;
+        const float capsuleBottom = -.9f;
+        var center = (minimum + maximum) * .5f;
+        visual.Position += new Vector3(-center.X, capsuleBottom - minimum.Y, -center.Z);
+    }
+
+    private static CryptCharacterVisual? ResolveCryptCharacterVisual(EntityInstance entity)
+    {
+        if (entity.Tags.Contains("player", StringComparer.Ordinal))
+            return new CryptCharacterVisual(CryptKnightAssetId, "kaykit-adventurer");
+        if (entity.Tags.Contains("elyra", StringComparer.Ordinal))
+            return new CryptCharacterVisual(CryptMageAssetId, "kaykit-adventurer");
+        if (entity.Tags.Contains("sentinel", StringComparer.Ordinal))
+            return new CryptCharacterVisual(CryptRogueAssetId, "kaykit-adventurer");
+        if (entity.Tags.Contains("warden", StringComparer.Ordinal))
+            return new CryptCharacterVisual(CryptBarbarianAssetId, "kaykit-adventurer");
+        return null;
+    }
+
+    private sealed record CryptCharacterVisual(string AssetId, string AnimationProfile);
 
     private static void EnhanceFlyingMountMaterials(Node3D visual)
     {
@@ -5506,7 +5626,8 @@ public partial class GameRoot : Node3D
         while (current is not null)
         {
             if (current is Node3D node3D &&
-                (_portalNodes.ContainsKey(node3D) || node3D == _flyingMount))
+                (_portalNodes.ContainsKey(node3D) || node3D == _flyingMount || node3D == _npc ||
+                 node3D == _keyItem || node3D == _door || _corpseLoot.ContainsKey(node3D)))
             {
                 interactiveNode = node3D;
                 break;
@@ -5518,13 +5639,15 @@ public partial class GameRoot : Node3D
         var interactionDistance = _gameplayControls?.Foundation.Interaction.FocusDistance ?? InteractionDistance;
         if (!IsNear(interactiveNode, interactionDistance))
         {
-            if (interactiveNode == _flyingMount)
+            _message = interactiveNode switch
             {
-                _message = "Approchez-vous de Brumaille pour le monter.";
-                UpdateHud();
-                return true;
-            }
-            _message = "Approchez-vous de la porte pour l’ouvrir.";
+                _ when interactiveNode == _flyingMount => "Approchez-vous de Brumaille pour le monter.",
+                _ when interactiveNode == _npc => $"Approchez-vous de {_guideName} pour lui parler.",
+                _ when interactiveNode == _keyItem => $"Approchez-vous de {_questItemDisplayName} pour la prendre.",
+                _ when interactiveNode == _door => $"Approchez-vous de {_gateDisplayName} pour l’ouvrir.",
+                _ when _corpseLoot.ContainsKey(interactiveNode) => "Approchez-vous de la dépouille pour la fouiller.",
+                _ => "Approchez-vous du passage pour l’emprunter."
+            };
             UpdateHud();
             return true;
         }
@@ -5651,7 +5774,7 @@ public partial class GameRoot : Node3D
             else
             {
                 _message = !_hasKey
-                    ? $"{_gateDisplayName} reste fermé. Il manque l’objet lié à la quête."
+                    ? $"{_gateDisplayName} reste fermée. La Clé de braise se trouve dans le reliquaire latéral, avant cette porte."
                     : "La quête n’autorise pas encore le passage.";
             }
 
@@ -6628,6 +6751,29 @@ public partial class GameRoot : Node3D
             _hud.UpdateRules(_resolvedDifficulty.DisplayName, _progressionLevel, _progressionExperience, next,
                 _areaRules.Combat.PvpMode.ToString(), _areaRules.Perception.Modifiers.Count);
         }
+        _hud.UpdateInteractionPrompt(ResolveInteractionPrompt());
+    }
+
+    private string? ResolveInteractionPrompt()
+    {
+        if (_player is null || _gameplayControls is null) return null;
+        var nearest = new Node3D?[] { _flyingMount, _npc, _keyItem, _door }
+            .Where(node => node is not null && GodotObject.IsInstanceValid(node))
+            .Cast<Node3D>()
+            .Concat(_portalNodes.Keys.Where(GodotObject.IsInstanceValid))
+            .Concat(_corpseLoot.Keys.Where(GodotObject.IsInstanceValid))
+            .OrderBy(node => _player.GlobalPosition.DistanceTo(node.GlobalPosition))
+            .FirstOrDefault();
+        var interactionDistance = _gameplayControls.Foundation.Interaction.FocusDistance;
+        if (nearest is null || !IsNear(nearest, interactionDistance)) return null;
+        if (nearest == _npc) return $"Parler à {_guideName}";
+        if (nearest == _keyItem && !_hasKey) return $"Prendre {_questItemDisplayName}";
+        if (nearest == _door && !_doorUnlocked)
+            return _hasKey ? $"Ouvrir {_gateDisplayName}" : $"Examiner {_gateDisplayName}";
+        if (nearest == _flyingMount) return _flyingMount?.IsMounted == true ? "Descendre" : "Monter";
+        if (_corpseLoot.ContainsKey(nearest)) return "Fouiller";
+        if (_portalNodes.ContainsKey(nearest)) return "Emprunter le passage";
+        return null;
     }
 
     private bool HasAttackTargetInRange()
@@ -6729,7 +6875,8 @@ public partial class GameRoot : Node3D
         var state = _questState switch
         {
             PrototypeQuestState.NotStarted => "Elyra attend près du sceau et semble vouloir vous parler.",
-            PrototypeQuestState.Active when !_hasKey => "La clé de braise repose encore quelque part dans les galeries.",
+            PrototypeQuestState.Active when !_hasKey =>
+                "La Clé de braise repose dans le reliquaire latéral à droite des catacombes, avant la porte scellée.",
             PrototypeQuestState.Active when !_doorUnlocked => "La clé pulse à proximité de la Porte des Cendres.",
             PrototypeQuestState.Active => "Le gardien protège la dernière route vers la lumière.",
             PrototypeQuestState.Completed => "La chaleur retombe. Le chemin de sortie est désormais libre.",
@@ -12637,6 +12784,152 @@ public partial class GameRoot : Node3D
             }
             AssertSmoke(remainsInside(), $"The player crossed the {wall} Ember Inn wall.");
         }
+    }
+
+    private async Task RunCryptMovementSmokeTestAsync(ProjectDefinition project)
+    {
+        var area = project.Areas.Single(item => item.Id == project.Module.EntryAreaId);
+        AssertSmoke(_isCryptPrototype && area.Slug == "crypt-of-ashes" && _activeArea?.Id == area.Id,
+            "The crypt movement smoke test must start inside the Crypt of Ashes.");
+        var player = _player ?? throw new InvalidOperationException(
+            "The crypt movement smoke test did not reconstruct the player.");
+        var camera = _camera ?? throw new InvalidOperationException(
+            "The crypt movement smoke test did not reconstruct the camera.");
+        var start = player.GlobalPosition;
+        for (var frame = 0; frame < 120; frame++)
+            await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+
+        AssertSmoke(player.IsOnFloor() && player.GlobalPosition.Y >= start.Y - .5f,
+            $"The player did not establish stable ground contact in the crypt " +
+            $"(start_y={start.Y:0.###}, current_y={player.GlobalPosition.Y:0.###}, " +
+            $"on_floor={player.IsOnFloor()}).");
+        AssertSmoke(_modelLibrary?.Count == 4 && _animatedCharacterInstances == 4,
+            $"The four governed animated crypt characters were not reconstructed " +
+            $"(manifests={_modelLibrary?.Count ?? 0}, animated={_animatedCharacterInstances}).");
+        AssertSmoke(_interiorWalkableBounds is { } cameraBounds &&
+                    !cameraBounds.HasPoint(new Vector2(camera.GlobalPosition.X, camera.GlobalPosition.Z)),
+            $"The crypt camera is still clamped to the authored area bounds " +
+            $"(camera={camera.GlobalPosition.X:0.###},{camera.GlobalPosition.Y:0.###}," +
+            $"{camera.GlobalPosition.Z:0.###}).");
+        GD.Print($"OPENRPG_FORGE_CRYPT_FREE_CAMERA_PASS " +
+                 $"camera={camera.GlobalPosition.X:0.###},{camera.GlobalPosition.Y:0.###}," +
+                 $"{camera.GlobalPosition.Z:0.###} outside_bounds=true " +
+                 $"distance={camera.GlobalPosition.DistanceTo(player.GlobalPosition):0.###}");
+
+        var visual = player.GetNodeOrNull<Node3D>("AuthoredVisual");
+        var visualMinimum = Vector3.Zero;
+        var visualMaximum = Vector3.Zero;
+        AssertSmoke(visual is not null &&
+                    TryMeasureNodeBounds(visual, out visualMinimum, out visualMaximum),
+            "The crypt player has no measurable governed 3D visual.");
+        var visualCenter = (visualMinimum + visualMaximum) * .5f;
+        AssertSmoke(Math.Abs(visualCenter.X) <= .05f && Math.Abs(visualCenter.Z) <= .05f &&
+                    Math.Abs(visualMinimum.Y + .9f) <= .4f,
+            $"The crypt player visual is offset from its physical capsule " +
+            $"(center_x={visualCenter.X:0.###}, center_z={visualCenter.Z:0.###}, " +
+            $"feet_y={visualMinimum.Y:0.###}).");
+
+        var movementStart = player.GlobalPosition;
+        var jumpCount = player.JumpCount;
+        Input.ActionPress("move_forward");
+        try
+        {
+            for (var frame = 0; frame < 30; frame++)
+                await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+        }
+        finally
+        {
+            Input.ActionRelease("move_forward");
+        }
+        var distance = new Vector2(player.GlobalPosition.X - movementStart.X,
+            player.GlobalPosition.Z - movementStart.Z).Length();
+        AssertSmoke(distance >= 4 && player.JumpCount == jumpCount && player.IsOnFloor(),
+            $"Grounded crypt movement remained blocked " +
+            $"(distance_30_frames={distance:0.###}, jumps={player.JumpCount - jumpCount}, " +
+            $"on_floor={player.IsOnFloor()}).");
+
+        var collisionRetracted = RuntimeCameraRig.SmoothCollisionDistance(14, 3, 1d / 60d);
+        var collisionReleased = RuntimeCameraRig.SmoothCollisionDistance(3, 14, 1d / 60d);
+        AssertSmoke(collisionRetracted < 14 && collisionReleased > 3 &&
+                    collisionReleased - 3 <= .65f &&
+                    14 - collisionRetracted > collisionReleased - 3,
+            $"The camera collision response is not retracting quickly and releasing smoothly " +
+            $"(retracted={collisionRetracted:0.###}, released={collisionReleased:0.###}).");
+        GD.Print($"OPENRPG_FORGE_CRYPT_CAMERA_RESPONSE_PASS " +
+                 $"yaw_sensitivity={RuntimeCameraRig.MouseYawSensitivity:0.####} " +
+                 $"pitch_sensitivity={RuntimeCameraRig.MousePitchSensitivity:0.####} " +
+                 $"retracted={collisionRetracted:0.###} released={collisionReleased:0.###}");
+
+        var zoomIn = new InputEventMouseButton { ButtonIndex = MouseButton.WheelUp, Pressed = true };
+        for (var step = 0; step < 16; step++) _cameraRig.HandleInput(zoomIn);
+        _cameraRig.Snap(camera, player.GlobalPosition, null);
+        SyncLocalPlayerCameraVisibility();
+        var playerLabel = player.GetNodeOrNull<Label3D>(RuntimeWorldLabelNodeName);
+        AssertSmoke(_cameraRig.FirstPersonActive &&
+                    camera.GlobalPosition.DistanceTo(player.GlobalPosition) is >= 1f and <= 1.6f &&
+                    visual!.Visible == false && playerLabel?.Visible == false,
+            $"Maximum wheel zoom did not enter a clean first-person view " +
+            $"(active={_cameraRig.FirstPersonActive}, " +
+            $"eye_distance={camera.GlobalPosition.DistanceTo(player.GlobalPosition):0.###}, " +
+            $"visual_visible={visual!.Visible}).");
+        GD.Print($"OPENRPG_FORGE_CRYPT_FIRST_PERSON_ZOOM_PASS " +
+                 $"fov={camera.Fov:0.###} eye_distance={camera.GlobalPosition.DistanceTo(player.GlobalPosition):0.###} " +
+                 $"local_visual_hidden=true");
+        _cameraRig.HandleInput(new InputEventMouseButton
+        {
+            ButtonIndex = MouseButton.WheelDown,
+            Pressed = true,
+        });
+        SyncLocalPlayerCameraVisibility();
+        AssertSmoke(!_cameraRig.FirstPersonActive && visual!.Visible && playerLabel?.Visible == true,
+            "Wheel-down did not restore the orbit camera and local player visual.");
+        _cameraRig.Snap(camera, player.GlobalPosition, null);
+
+        player.ControlLocked = true;
+        player.GlobalPosition = new Vector3(4, _interiorFloorTop + .9f, 15);
+        player.Velocity = Vector3.Zero;
+        for (var frame = 0; frame < 45; frame++)
+        {
+            await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+            player.Velocity = Vector3.Right * 12;
+            player.MoveAndSlide();
+        }
+        AssertSmoke(player.GlobalPosition.X >= 11.5f,
+            $"The east reliquary doorway remains physically blocked " +
+            $"(player_x={player.GlobalPosition.X:0.###}).");
+        var reliquaryExitX = player.GlobalPosition.X;
+
+        var questStart = GetAvailableQuestTransitions().FirstOrDefault();
+        AssertSmoke(questStart is not null, "The crypt quest has no available starting transition.");
+        AdvanceQuest(questStart!);
+        InteractWith(_keyItem ?? throw new InvalidOperationException("The Ember Key is missing."));
+        AssertSmoke(_hasKey && _inventory.Contains(_questItemSlug),
+            "The reachable Ember Key did not enter the player inventory.");
+        InteractWith(_door ?? throw new InvalidOperationException("The sealed gate is missing."));
+        AssertSmoke(_doorUnlocked, "The Ember Key did not unlock the sealed gate.");
+        for (var frame = 0; frame < 3; frame++)
+            await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+
+        player.GlobalPosition = new Vector3(0, _interiorFloorTop + .9f, 8);
+        player.Velocity = Vector3.Zero;
+        for (var frame = 0; frame < 35; frame++)
+        {
+            await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+            player.Velocity = Vector3.Forward * 12;
+            player.MoveAndSlide();
+        }
+        player.ControlLocked = false;
+        AssertSmoke(player.GlobalPosition.Z <= 4.5f,
+            $"The unlocked gate still blocks access to the second room " +
+            $"(player_z={player.GlobalPosition.Z:0.###}).");
+        GD.Print($"OPENRPG_FORGE_CRYPT_CRITICAL_PATH_PASS reliquary_doorway=2m " +
+                 $"reliquary_x={reliquaryExitX:0.###} key=acquired door=unlocked " +
+                 $"second_room=reachable player_z={player.GlobalPosition.Z:0.###}");
+        GD.Print($"OPENRPG_FORGE_CRYPT_GROUNDED_MOVEMENT_PASS distance_30_frames={distance:0.###} " +
+                 $"jumps=0 on_floor={player.IsOnFloor()} manifests={_modelLibrary!.Count} " +
+                 $"animated={_animatedCharacterInstances} visual_center={visualCenter.X:0.###}," +
+                 $"{visualCenter.Z:0.###}");
+        GetTree().Quit(0);
     }
 
     private static bool TryMeasureNodeBounds(Node root, out Vector3 minimum, out Vector3 maximum)

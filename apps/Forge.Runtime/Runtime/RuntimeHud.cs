@@ -443,10 +443,10 @@ public partial class RuntimeHud : CanvasLayer
             Name = "CompactObjective",
             AnchorLeft = 1,
             AnchorRight = 1,
-            OffsetLeft = LargeText ? -590 : -322,
+            OffsetLeft = LargeText ? -590 : -410,
             OffsetTop = 204,
             OffsetRight = -24,
-            OffsetBottom = LargeText ? 328 : 254,
+            OffsetBottom = LargeText ? 328 : 292,
             FocusMode = Control.FocusModeEnum.All,
             TooltipText = "Ouvrir le journal de quête",
         };
@@ -683,13 +683,14 @@ public partial class RuntimeHud : CanvasLayer
         if (_objective is not null) _objective.Text = cleanObjective;
         if (_message is not null) _message.Text = message;
         if (_state is not null) _state.Text = state;
-        if (_interactionPrompt is not null && _interactionTitle is not null)
-        {
-            var interactable = objective.Contains("[E]", StringComparison.OrdinalIgnoreCase);
-            _interactionPrompt.Visible = interactable;
-            _interactionTitle.Text = interactable ? cleanObjective : InteractionLabel;
-            _interactionPrompt.SetMeta("accessible_label", _interactionTitle.Text);
-        }
+    }
+
+    public void UpdateInteractionPrompt(string? interaction)
+    {
+        if (_interactionPrompt is null || _interactionTitle is null) return;
+        _interactionPrompt.Visible = !string.IsNullOrWhiteSpace(interaction);
+        _interactionTitle.Text = interaction ?? InteractionLabel;
+        _interactionPrompt.SetMeta("accessible_label", _interactionTitle.Text);
     }
 
     public void ShowSoundCaption(AudioCaptionPresentation caption)
