@@ -1543,6 +1543,7 @@ public partial class GameRoot : Node3D
             }
 
             var snapshotProject = ProjectJsonSerializer.Deserialize(File.ReadAllText(snapshotPath));
+            _moduleContentRoot = Path.GetDirectoryName(snapshotPath);
             SetUnpackagedModuleIdentity(snapshotProject);
             return snapshotProject;
         }
@@ -8780,8 +8781,8 @@ public partial class GameRoot : Node3D
             $"OPENRPG_FORGE_FORGESCRIPT_SMOKE_PASS vm={scriptRuntime.VirtualMachineVersion} " +
             $"api={scriptRuntime.ApiVersion} events={scriptResult.Events.Count}");
 
-        AssertSmoke(_builtEntityCount == 16, "Expected 16 reconstructed entities.");
-        AssertSmoke(_collisionCount == 10, "Expected 10 static collision shapes.");
+        AssertSmoke(_builtEntityCount == 40, "Expected 40 reconstructed entities.");
+        AssertSmoke(_collisionCount == 30, "Expected 30 static collision shapes.");
         AssertSmoke(_player is not null, "Player was not reconstructed.");
         AssertSmoke(_npc is not null, "NPC was not reconstructed.");
         AssertSmoke(_keyItem is not null, "Key item was not reconstructed.");
@@ -8804,7 +8805,10 @@ public partial class GameRoot : Node3D
             "The authored creature-event profile did not resolve.");
         var authoredCreatureEvents = creatureEvents ??
             throw new InvalidOperationException("The authored creature-event profile is missing.");
+        var smokePlayerPosition = _player!.GlobalPosition;
+        _player.GlobalPosition = _boss!.GlobalPosition;
         AdvanceCreatureEvents(1.5);
+        _player.GlobalPosition = smokePlayerPosition;
         var restCompleted = CreatureEventRuntimeResolver.RestCompleted(authoredCreatureEvents, _boss!.Name, 28_800,
             new Dictionary<string, double> { ["health"] = 12, ["focus"] = 4 }, ["ambush"]);
         AssertSmoke(restCompleted is not null, "RestCompleted did not produce a typed dispatch.");

@@ -572,6 +572,10 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
 - [x] Ajouter les contrats statiques de ruleset et de reconstruction du donjon.
 - [x] Remplacer les personnages de la tranche par quatre modèles 3D KayKit CC0 gouvernés.
 - [x] Ajouter un smoke natif du mouvement, des passages critiques, de la caméra et de la vue subjective.
+- [x] Intégrer la navigation canonique, le passage de porte de 4 m et le déverrouillage par la clé.
+- [x] Rendre le snapshot de playtest autonome en copiant les ressources `assets` et `scripts`.
+- [x] Qualifier le lot par le portail complet : 2 118 tests .NET, 64 tests Python et preuves natives Forward+.
+- [ ] Effectuer une revue visuelle humaine complète FHD/QHD de la Crypte reconstruite.
 - [ ] Remplacer ensuite les colliders de sécurité par des volumes entièrement éditables dans le Studio.
 - [ ] Généraliser masse, stabilité, surfaces, substances, supports et causalité dans Domain/Application.
 - [ ] Exposer les propriétés systémiques dans le Studio avec validation, aperçu, undo/redo et diagnostics.

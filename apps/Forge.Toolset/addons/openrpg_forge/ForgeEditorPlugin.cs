@@ -6937,8 +6937,12 @@ public partial class ForgeEditorPlugin : EditorPlugin
         try
         {
             snapshot = configured is null
-                ? _playtestSnapshots.Create(_history.State.Project, spawnEntityId!)
-                : _playtestSnapshots.Create(_history.State.Project, activeArea!.Id, configured);
+                ? _playtestSnapshots.Create(_history.State.Project, spawnEntityId!, _projectSession?.RootDirectory)
+                : _playtestSnapshots.Create(
+                    _history.State.Project,
+                    activeArea!.Id,
+                    configured,
+                    _projectSession?.RootDirectory);
         }
         catch (Exception exception) when (
             exception is ArgumentException or IOException or UnauthorizedAccessException or
@@ -7141,7 +7145,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
         GD.Print($"OPENRPG_FORGE_WINDOW_TITLE_PASS title={editorWindow.Title}");
         ReloadProject();
-        if (_projectPreview?.EntityCount != 16 || _history is null || _newModuleButton is null ||
+        if (_projectPreview?.EntityCount != 40 || _history is null || _newModuleButton is null ||
             _blueprintPalette is null || _positionX is null || _positionZ is null ||
             _spawnPicker is null || _spawnEntityIds.Count != 1)
         {
@@ -7149,7 +7153,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return;
         }
 
-        GD.Print("OPENRPG_FORGE_TOOLSET_PREVIEW_REBUILD_PASS entities=16");
+        GD.Print("OPENRPG_FORGE_TOOLSET_PREVIEW_REBUILD_PASS entities=40");
         if (!RunCreatorShellSmokeTest())
         {
             return;
@@ -7750,9 +7754,9 @@ public partial class ForgeEditorPlugin : EditorPlugin
         var placeable = _history.State.Project.Blueprints.First(blueprint => blueprint.Kind == BlueprintKind.Placeable);
         _blueprintPalette.Selected = _paletteBlueprintIds.FindIndex(id => id == placeable.Id);
         _positionX.Value = 7;
-        _positionZ.Value = 5;
+        _positionZ.Value = 24;
         var placedEntityId = PlaceSelectedBlueprint();
-        if (placedEntityId is null || _projectPreview.EntityCount != 17)
+        if (placedEntityId is null || _projectPreview.EntityCount != 41)
         {
             GD.PrintErr("OPENRPG_FORGE_TOOLSET_T23_PLACE_FAILED");
             return;
@@ -7800,7 +7804,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         DeleteSelected();
-        if (_projectPreview.EntityCount != 16)
+        if (_projectPreview.EntityCount != 40)
         {
             GD.PrintErr("OPENRPG_FORGE_TOOLSET_T23_DELETE_FAILED");
             return;
@@ -9108,13 +9112,23 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
     private bool RunBuildPipelineSmokeTest()
     {
-        if (_buildPipeline is null || _history is null || !_buildPipeline.AnalyzeForSmokeTest() ||
-            !_buildPipeline.PreviewProfileForSmokeTest() ||
-            _buildPipeline.ResourceCount != 5 || _buildPipeline.ScriptCount != 2 ||
+        if (_buildPipeline is null || _history is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G712_BUILD_FAILED unavailable");
+            return false;
+        }
+
+        var analyzed = _buildPipeline.AnalyzeForSmokeTest();
+        var profilePreviewed = _buildPipeline.PreviewProfileForSmokeTest();
+        if (!analyzed || !profilePreviewed ||
+            _buildPipeline.ResourceCount != 13 || _buildPipeline.ScriptCount != 2 ||
             _buildPipeline.BuildTaskCount < 1 ||
             _buildPipeline.BuildMaximumParallelism != DeterministicBuildTaskScheduler.DefaultMaximumParallelism)
         {
-            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G712_BUILD_FAILED analysis");
+            GD.PrintErr(
+                $"OPENRPG_FORGE_TOOLSET_G712_BUILD_FAILED analysis={analyzed} preview={profilePreviewed} " +
+                $"resources={_buildPipeline.ResourceCount} scripts={_buildPipeline.ScriptCount} " +
+                $"tasks={_buildPipeline.BuildTaskCount} parallelism={_buildPipeline.BuildMaximumParallelism}");
             return false;
         }
 
@@ -10119,8 +10133,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
             {
                 var placeable = _history.State.Project.Blueprints.First(blueprint => blueprint.Kind == BlueprintKind.Placeable);
                 _blueprintPalette.Selected = _paletteBlueprintIds.FindIndex(id => id == placeable.Id);
-                _positionX.Value = -8;
-                _positionZ.Value = 10;
+                _positionX.Value = 6;
+                _positionZ.Value = 24;
                 var beforePlacement = GetActiveArea().Entities.Count;
                 if (_blueprintPalette.Selected < 0 ||
                     !PlaceRepeatedSeries(6, 2f, PlacementDistribution.Grid, 2026) ||
@@ -10208,7 +10222,12 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 AreaTemplateKind.Empty);
             if (comparisonId is null) return false;
             ActivateArea(originalArea.Id);
-            var entity = GetActiveArea().Entities.First();
+            var entity = GetActiveArea().Entities
+                .Where(candidate => _history.State.Project.Blueprints.Any(blueprint =>
+                    blueprint.Id == candidate.BlueprintId && blueprint.Kind == BlueprintKind.Creature))
+                .OrderBy(candidate => candidate.Transform.Position.X * candidate.Transform.Position.X +
+                                      candidate.Transform.Position.Z * candidate.Transform.Position.Z)
+                .First();
             var layerId = Guid.Parse("59000000-0000-4000-8000-000000000059");
             var authoring = GetActiveArea().Authoring;
             var layer = new AreaEditorLayer(layerId, "Gameplay R059", null, true, false, "builder",
@@ -14225,8 +14244,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
             OffMeshNavigationLinkId.From(Guid.Parse("d7140000-0000-4000-8000-000000000001")),
             "Passage de validation",
             NavigationLinkKind.Jump,
-            new Vector3Value(-5, 0, 5),
-            new Vector3Value(4, 0, 1),
+            new Vector3Value(-4, 0, 24),
+            new Vector3Value(4, 0, 24),
             true,
             1.25f,
             "workspace-smoke-test");
@@ -14236,21 +14255,28 @@ public partial class ForgeEditorPlugin : EditorPlugin
             original.AgentProfiles,
             [.. original.OffMeshLinks, link],
             "workspace-smoke-test");
-        if (!_navigationConfiguration.ConfigureForSmokeTest(area.Id, configured) ||
+        var configuredForSmoke = _navigationConfiguration.ConfigureForSmokeTest(area.Id, configured);
+        var previewedForSmoke = _navigationConfiguration.PreviewForSmokeTest();
+        var appliedForSmoke = _navigationConfiguration.ApplyForSmokeTest();
+        if (!configuredForSmoke ||
             _navigationConfiguration.AgentCount != 4 ||
-            _navigationConfiguration.LinkCount != 1 ||
-            !_navigationConfiguration.PreviewForSmokeTest() ||
+            _navigationConfiguration.LinkCount != original.OffMeshLinks.Count + 1 ||
+            !previewedForSmoke ||
             _navigationConfiguration.DiagnosticCount != 0 ||
             _projectPreview.NavigationOverlayCellCount == 0 ||
-            !_navigationConfiguration.ApplyForSmokeTest())
+            !appliedForSmoke)
         {
-            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G714_NAVIGATION_FAILED configuration");
+            GD.PrintErr(
+                $"OPENRPG_FORGE_TOOLSET_G714_NAVIGATION_FAILED configured={configuredForSmoke} " +
+                $"agents={_navigationConfiguration.AgentCount} links={_navigationConfiguration.LinkCount} " +
+                $"preview={previewedForSmoke} diagnostics={_navigationConfiguration.DiagnosticCount} " +
+                $"overlay={_projectPreview.NavigationOverlayCellCount} applied={appliedForSmoke}");
             return false;
         }
 
         var appliedArea = _history.State.Project.Areas.Single(candidate => candidate.Id == area.Id);
         var geometry = AreaGeometryValidator.Validate(_history.State.Project, appliedArea);
-        var agent = appliedArea.Navigation.AgentProfiles.First(profile => profile.Name == "Moyen");
+        var agent = appliedArea.Navigation.AgentProfiles.First(profile => profile.Name == "Grand");
         var current = NavigationSurfaceBuilder.Build(_history.State.Project, appliedArea, agent);
         var closed = NavigationSurfaceBuilder.Build(
             _history.State.Project,
@@ -14281,7 +14307,13 @@ public partial class ForgeEditorPlugin : EditorPlugin
             current.OffMeshEdges.Count == 0 || route?.Succeeded != true ||
             dynamic.ChangedCells.Count != 1 || dynamic.RequiresFullSearchReset)
         {
-            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G714_NAVIGATION_FAILED analysis");
+            GD.PrintErr(
+                $"OPENRPG_FORGE_TOOLSET_G714_NAVIGATION_FAILED geometry={geometry.Count} " +
+                $"reachability={reachability.Diagnostics.Count} full_bake={partial.RequiresFullBake} " +
+                $"changed={partial.ChangedCells.Count} reused={partial.ReusedCellCount} " +
+                $"offmesh={current.OffMeshEdges.Count} route={route?.Succeeded} " +
+                $"dynamic_changed={dynamic.ChangedCells.Count} dynamic_reset={dynamic.RequiresFullSearchReset} " +
+                $"codes={string.Join(',', reachability.Diagnostics.Select(item => item.Code))}");
             return false;
         }
 
@@ -14303,7 +14335,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             var reopened = ProjectSession.Open(smokeRoot);
             var restoredBake = NavigationBakeStore.TryLoad(smokeRoot, appliedArea.Id, agent.Id);
             if (!reopened.Succeeded || reopened.Session is null ||
-                reopened.Session.Project.Areas.Single().Navigation.OffMeshLinks.Single().Id != link.Id ||
+                reopened.Session.Project.Areas.Single().Navigation.OffMeshLinks.All(item => item.Id != link.Id) ||
                 restoredBake?.SourceFingerprint != current.SourceFingerprint)
             {
                 GD.PrintErr("OPENRPG_FORGE_TOOLSET_G714_NAVIGATION_FAILED persistence");

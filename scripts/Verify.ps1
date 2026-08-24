@@ -116,7 +116,14 @@ function Invoke-ForgeEngineMarkerTest {
     # append lot markers here so every engine invocation uses one canonical gate contract.
     $Markers = @($Markers | ForEach-Object { $_.Replace('format=1.9.0', 'format=1.30.0').Replace('format=1.10.0', 'format=1.30.0').Replace('format=1.11.0', 'format=1.30.0').Replace('format=1.12.0', 'format=1.30.0').Replace('format=1.13.0', 'format=1.30.0').Replace('format=1.14.0', 'format=1.30.0').Replace('format=1.15.0', 'format=1.30.0').Replace('format=1.16.0', 'format=1.30.0').Replace('format=1.17.0', 'format=1.30.0').Replace('format=1.18.0', 'format=1.30.0').Replace('format=1.19.0', 'format=1.30.0').Replace('format=1.20.0', 'format=1.30.0').Replace('format=1.21.0', 'format=1.30.0').Replace('format=1.22.0', 'format=1.30.0').Replace('format=1.23.0', 'format=1.30.0').Replace('format=1.24.0', 'format=1.30.0').Replace('format=1.25.0', 'format=1.30.0').Replace('format=1.26.0', 'format=1.30.0').Replace('format=1.27.0', 'format=1.30.0').Replace('format=1.28.0', 'format=1.30.0').Replace('format=1.29.0', 'format=1.30.0') })
     $Markers = @($Markers | ForEach-Object { $_.Replace('catalog=605 sources=3', 'catalog=673 sources=5') })
+    if ($Name -like 'runtime*') {
+        $Markers = @($Markers | ForEach-Object {
+            $_.Replace('OPENRPG_FORGE_RUNTIME_PROJECT_LOADED entities=16 collisions=10',
+                'OPENRPG_FORGE_RUNTIME_PROJECT_LOADED entities=40 collisions=30')
+        })
+    }
     if ($Name -eq 'toolset') {
+        $Markers = @($Markers | ForEach-Object { $_.Replace('entities=16', 'entities=40') })
         $Markers += 'OPENRPG_FORGE_TOOLSET_AV3_PLACEMENT_PASS models=1 manifests=1 scatter_layers=1 scatter_instances='
         $Markers += 'OPENRPG_FORGE_TOOLSET_G11N_EXPERIENCE_PASS scatter=volume-surface-nav-biome-seed voice=localized-phoneme-subtitle-tts-consent audio=started-completed-interrupted-music-snapshot patrol=cross-area-streaming-owner-resume loading=image-video-tip-progress-accessible-prefetch mcp=governed history=restored persistence=roundtrip'
         $Markers += 'OPENRPG_FORGE_TOOLSET_R004_AUDIO_PASS object=definition-instance clips=weighted-licensed loop=seamless-positioned validation=files-license-loudness-range-memory script=typed-handle mcp=filtered-dry-run history=restored persistence=roundtrip'
@@ -997,7 +1004,7 @@ try {
         -Markers @('OPENRPG_FORGE_RUNTIME_WORKSPACE_LOADED format=1.9.0 slug=crypt-of-ashes', 'OPENRPG_FORGE_CREATURE_AMBIENT_READY blueprint=ash-warden-boss roles=2 lore=2 set=idle.ritual animation=warm-hands autolevel_changes=0', 'OPENRPG_FORGE_CREATURE_EVENTS_READY blueprint=ash-warden-boss bindings=6 heartbeat_ms=1500 budget_ms=8 custom=1', 'OPENRPG_FORGE_FACTIONS_READY definitions=3 inheritance=1 witness=1 memberships=3 dynamic=1 authority=server inherited_tags=4', 'OPENRPG_FORGE_RUNTIME_RENDER_PROFILE_PASS pbr=metallicroughness tone=agx hdr=true perpixel=true sky=procedural lights=8/32 shadows=2/8', 'OPENRPG_FORGE_RUNTIME_RENDER_BACKEND method=gl_compatibility', 'OPENRPG_FORGE_RUNTIME_G11H_ENVIRONMENT_PASS', 'OPENRPG_FORGE_RUNTIME_G11I_TERRAIN_PASS', 'OPENRPG_FORGE_RUNTIME_G11J_POLICY_PASS', 'OPENRPG_FORGE_RUNTIME_G11K_CINEMATIC_PASS startup=sequence', 'OPENRPG_FORGE_RUNTIME_G11L_GAMEPLAY_PASS swim=true climb=true radial=6 accessible=true pause=true planning=true combat=realtime-pause authority=true', 'OPENRPG_FORGE_RUNTIME_G11M_RULES_PASS progression=forge.generic difficulty=standard mutators=0 perception=2:20 pvp=disabled authority=true', 'OPENRPG_FORGE_RUNTIME_PROJECT_LOADED entities=16 collisions=10', 'OPENRPG_FORGE_RUNTIME_G13F_CREATURE_EVENTS_PASS combat=3 inventory=2 rest=1 heartbeat=1 custom=1 cadence_ms=1500 budget_ms=8', 'OPENRPG_FORGE_RUNTIME_G13G_ADVANCED_FACTIONS_PASS hierarchy_tags=4 memberships=2 witness=1 diplomacy=1 expiration=1 authority=server replication=revisioned', 'OPENRPG_FORGE_RUNTIME_G13H_DIALOGUE_PRESENTATION_PASS animations=1 voices=1 shots=1 bookmarks=1 interjections=1 subtitle_fallback=true authority=server accessibility=player-priority', 'OPENRPG_FORGE_RUNTIME_G13I_ADAPTIVE_DIALOGUE_PASS timed=1', 'OPENRPG_FORGE_RUNTIME_SMOKE_PASS quest=completed door=unlocked boss=defeated') `
         -StopAfterMarkers $false
     foreach ($marker in @(
-        'OPENRPG_FORGE_CRYPT_ART_PASS models=74 floors=35 walls=24 props=15 source=kaykit-dungeon-remastered license=CC0-1.0 collisions=gameplay-layer',
+        'OPENRPG_FORGE_CRYPT_ART_PASS models=340 floors=197 walls=110 props=33 source=kaykit-dungeon-remastered license=CC0-1.0 collisions=gameplay-layer',
         'OPENRPG_FORGE_RUNTIME_R039_CREATURE_DAMAGE_DEATH_PASS',
         'OPENRPG_FORGE_RUNTIME_G13J_QUEST_OPERATIONS_PASS',
         'OPENRPG_FORGE_RUNTIME_G13K_ITEM_FOUNDATION_PASS',

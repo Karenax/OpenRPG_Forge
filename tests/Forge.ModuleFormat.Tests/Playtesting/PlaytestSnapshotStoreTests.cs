@@ -40,6 +40,29 @@ public sealed class PlaytestSnapshotStoreTests : IDisposable
     }
 
     [Fact]
+    public void Create_CopiesGovernedRuntimeResourcesFromTheSourceWorkspace()
+    {
+        var project = LoadSampleProject();
+        var spawnBlueprintIds = project.Blueprints
+            .Where(blueprint => blueprint.Kind == BlueprintKind.PlayerSpawn)
+            .Select(blueprint => blueprint.Id)
+            .ToHashSet();
+        var spawn = project.Areas.SelectMany(area => area.Entities)
+            .Single(entity => spawnBlueprintIds.Contains(entity.BlueprintId));
+        var source = Path.Combine(_temporaryRoot, "source");
+        Directory.CreateDirectory(Path.Combine(source, "assets", "models", "hero"));
+        Directory.CreateDirectory(Path.Combine(source, "scripts"));
+        File.WriteAllText(Path.Combine(source, "assets", "models", "hero", "manifest.json"), "{}");
+        File.WriteAllText(Path.Combine(source, "scripts", "startup.forge"), "return true");
+
+        var snapshot = new PlaytestSnapshotStore(Path.Combine(_temporaryRoot, "snapshots"))
+            .Create(project, spawn.Id, source);
+
+        Assert.True(File.Exists(Path.Combine(snapshot.DirectoryPath, "assets", "models", "hero", "manifest.json")));
+        Assert.True(File.Exists(Path.Combine(snapshot.DirectoryPath, "scripts", "startup.forge")));
+    }
+
+    [Fact]
     public void Create_RejectsAnEntityThatIsNotAPlayerSpawn()
     {
         var project = LoadSampleProject();

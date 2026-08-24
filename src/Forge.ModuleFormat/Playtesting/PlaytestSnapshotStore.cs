@@ -21,7 +21,10 @@ public sealed class PlaytestSnapshotStore
         _rootDirectory = Path.GetFullPath(rootDirectory);
     }
 
-    public PlaytestSnapshot Create(ProjectDefinition project, EntityId spawnEntityId)
+    public PlaytestSnapshot Create(
+        ProjectDefinition project,
+        EntityId spawnEntityId,
+        string? sourceDirectory = null)
     {
         ArgumentNullException.ThrowIfNull(project);
         ArgumentNullException.ThrowIfNull(spawnEntityId);
@@ -44,10 +47,14 @@ public sealed class PlaytestSnapshotStore
                 nameof(spawnEntityId));
         }
 
-        return Write(project, spawnEntityId, null);
+        return Write(project, spawnEntityId, null, sourceDirectory);
     }
 
-    public PlaytestSnapshot Create(ProjectDefinition project, AreaId areaId, AreaPlaytestProfile profile)
+    public PlaytestSnapshot Create(
+        ProjectDefinition project,
+        AreaId areaId,
+        AreaPlaytestProfile profile,
+        string? sourceDirectory = null)
     {
         ArgumentNullException.ThrowIfNull(project);
         ArgumentNullException.ThrowIfNull(areaId);
@@ -86,11 +93,11 @@ public sealed class PlaytestSnapshotStore
             profile.TestProfile, profile.QuestInjections.Select(item => new PlaytestQuestLaunchState(
                 item.QuestId.ToString(), item.StateId.ToString(), item.Variables)).ToArray(),
             profile.TargetKind.ToString(), profile.TargetId?.ToString(), profile.Headless);
-        return Write(snapshotProject, spawnId, manifest);
+        return Write(snapshotProject, spawnId, manifest, sourceDirectory);
     }
 
     private PlaytestSnapshot Write(ProjectDefinition project, EntityId spawnEntityId,
-        PlaytestLaunchManifest? manifest)
+        PlaytestLaunchManifest? manifest, string? sourceDirectory)
     {
         var serializedProject = ProjectJsonSerializer.Serialize(project);
         Directory.CreateDirectory(_rootDirectory);
@@ -115,6 +122,7 @@ public sealed class PlaytestSnapshotStore
                     new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
                 File.Move(temporaryManifest, manifestPath);
             }
+            CopySupplementalDirectories(sourceDirectory, sessionDirectory);
             return new PlaytestSnapshot(sessionDirectory, snapshotPath, spawnEntityId, manifestPath);
         }
         catch
@@ -125,6 +133,29 @@ public sealed class PlaytestSnapshotStore
             }
 
             throw;
+        }
+    }
+
+    private static void CopySupplementalDirectories(string? sourceDirectory, string sessionDirectory)
+    {
+        if (string.IsNullOrWhiteSpace(sourceDirectory)) return;
+        var sourceRoot = Path.GetFullPath(sourceDirectory);
+        if (!Directory.Exists(sourceRoot))
+            throw new DirectoryNotFoundException($"The playtest source directory does not exist: '{sourceRoot}'.");
+
+        foreach (var name in new[] { "assets", "scripts" })
+        {
+            var source = Path.Combine(sourceRoot, name);
+            if (!Directory.Exists(source)) continue;
+            var destination = Path.Combine(sessionDirectory, name);
+            foreach (var directory in Directory.EnumerateDirectories(source, "*", SearchOption.AllDirectories))
+                Directory.CreateDirectory(Path.Combine(destination, Path.GetRelativePath(source, directory)));
+            foreach (var file in Directory.EnumerateFiles(source, "*", SearchOption.AllDirectories))
+            {
+                var target = Path.Combine(destination, Path.GetRelativePath(source, file));
+                Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+                File.Copy(file, target, overwrite: false);
+            }
         }
     }
 

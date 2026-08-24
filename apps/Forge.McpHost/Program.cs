@@ -129,7 +129,7 @@ static async Task<int> RunScenarioTestAsync(ArgumentMap arguments, string worksp
         [
             "OPENRPG_FORGE_RUNTIME_MODULE_LOADED slug=crypt-of-ashes",
             "OPENRPG_FORGE_RUNTIME_SPAWN_SELECTED id=20000000-0000-4000-8000-000000000010",
-            "OPENRPG_FORGE_RUNTIME_PROJECT_LOADED entities=16 collisions=10",
+            "OPENRPG_FORGE_RUNTIME_PROJECT_LOADED entities=40 collisions=30",
             "OPENRPG_FORGE_RUNTIME_PERF startup_ms=",
             "OPENRPG_FORGE_FORGESCRIPT_SMOKE_PASS",
             "OPENRPG_FORGE_LOOT_GRANTED item=warden-ember quantity=1",

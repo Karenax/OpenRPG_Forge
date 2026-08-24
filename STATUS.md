@@ -490,11 +490,10 @@ confondu avec une release publique signée.
 - portail transversal complet du jalon UX6-A à UX6-D réussi avec 2 035 tests .NET, 39 tests Python
   et les smokes Studio, Toolset, Runtime, Forward+, Forgotten Forest, Blender, MCP, réseau,
   sauvegarde/reprise et distribution ;
-- graphe Roslyn courant sur l'arbre intégré déterministe à 11 213 nœuds et 86 391 relations sans diagnostic.
-
-Ces nombres décrivent la baseline déjà qualifiée. Ils ne constituent pas une preuve d’exécution du
-nouveau lot de reconstruction de la Crypte tant que celui-ci n’a pas été rejoué sur l’environnement
-Windows/Godot canonique.
+- portail transversal complet du lot Crypte réussi avec 2 118 tests .NET, 64 tests Python et les
+  smokes Studio, Toolset, Runtime/Forward+, Forgotten Forest, Blender, MCP, réseau,
+  sauvegarde/reprise et distribution ;
+- graphe Roslyn courant sur l'arbre intégré déterministe à 11 595 nœuds et 90 224 relations sans diagnostic.
 
 ## Gameplay systémique — preuve actuelle
 
@@ -508,10 +507,11 @@ Windows/Godot canonique.
   événements, butin, progression et transitions de quête ;
 - contrat Python historique : 8 tests déjà exécutés avec succès avant la reconstruction spatiale.
 
-## Crypte des Cendres — reconstruction spatiale en cours de qualification
+## Crypte des Cendres — reconstruction spatiale intégrée et qualifiée
 
-La branche `feat/systemic-rules-crypt-of-ashes` remplace désormais la salle canonique 20 × 28 m par
-une zone 48 × 76 m. Les identifiants critiques sont conservés mais répartis dans un petit donjon :
+La reconstruction intégrée à `main` remplace la salle canonique 20 × 28 m par une zone 48 × 76 m,
+40 entités et 30 collisions. Les identifiants critiques sont conservés mais répartis dans un petit
+donjon :
 
 1. Seuil des Braises ;
 2. Sanctuaire d’Elyra ;
@@ -531,10 +531,15 @@ Les interactions systémiques ont été repositionnées dans les nouvelles salle
 l’Ossuaire inondé, brasero, pilier et pointes dans le Sanctuaire. Les prompts d’interaction sont
 maintenant masqués au-delà de 7,5 m afin de ne pas traverser visuellement tout le donjon.
 
-Deux contrats statiques couvrent le lot : `tests/test_crypt_systemic_gameplay.py` et
-`tests/test_crypt_dungeon_rebuild.py`. Le second a été ajouté avec la reconstruction mais n’est pas
-présenté ici comme exécuté : compilation .NET/Godot, portail Windows, navigation, collisions,
-performances et revue Forward+ restent à rejouer avant qualification.
+Les contrats statiques `tests/test_crypt_systemic_gameplay.py` et
+`tests/test_crypt_dungeon_rebuild.py` passent. Le portail Windows complet passe avec 2 118 tests
+.NET et 64 tests Python. Le smoke natif Forward+ sur AMD Radeon RX 7800 XT charge quatre modèles
+KayKit gouvernés et animés, 340 instances artistiques — 197 sols, 110 murs et 33 accessoires —,
+valide les cinq interactions et cinq contrôles, la caméra libre et subjective, le passage critique
+par la porte de 4 m, l’acquisition de la clé, le déverrouillage, la seconde salle et le déplacement
+au sol sans saut parasite. Le snapshot de playtest copie désormais ses ressources `assets` et
+`scripts`, ce qui rend cette preuve autonome. Cette qualification est automatisée ; aucune nouvelle
+revue visuelle humaine complète FHD/QHD n’a été réalisée dans ce lot.
 
 ## Consolidation réalisée
 
@@ -790,8 +795,9 @@ performances et revue Forward+ restent à rejouer avant qualification.
   clic dans la scène, sculpture de terrain transactionnelle et cadrage de la zone active ;
 - rendu Forward+ enrichi par profil avec ciel procédural cinématique, SSAO/SSIL, glow et brouillard
   volumétrique, avec repli GL sûr et neutralisation explicite d'une LUT absente ;
-- baseline précédente de la Crypte habillée par KayKit Dungeon Remastered CC0 ; la branche système
-  reconstruit désormais cette couche en sept espaces et doit être requalifiée visuellement ;
+- Crypte reconstruite en sept espaces, habillée par KayKit Dungeon Remastered CC0 et quatre
+  personnages KayKit gouvernés ; navigation, collisions, mouvement, caméra et parcours critique
+  qualifiés automatiquement en Forward+, la revue visuelle humaine multi-résolution restant externe ;
 - Forgotten Forest corrigée : maillage d'asset réel préféré au cube auxiliaire Blender, arbres
   stylisés gouvernés, échelle et éclairage rééquilibrés, caméra/HUD lisibles ;
 - module connecté démarrant dans l’Auberge du Cerf d’Ambre : déplacement au sol accéléré, mini-carte,
@@ -840,7 +846,8 @@ performances et revue Forward+ restent à rejouer avant qualification.
 ## Publication Git
 
 - `main` est la branche canonique et `origin/main` la publication de référence ;
-- le lot Crypte reste sur sa branche et sa PR tant que les validations natives ci-dessus ne sont pas vertes ;
+- le lot Crypte est intégré à `main`, validé par le portail natif complet et publié sur `origin/main` ;
+- l'ancienne branche de travail Crypte et les worktrees de lots clos sont supprimés après publication ;
 - distributions, installateur et captures constituent des preuves distinctes d’un simple push Git.
 
 ## Commandes de vérité
