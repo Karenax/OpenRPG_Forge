@@ -1,7 +1,7 @@
 # Revue Creator de bout en bout
 
 Durée cible : 25 minutes. Utiliser un dossier temporaire vide et le profil **Débutant**. Ne pas
-modifier Crypte des Cendres ni Forgotten Forest.
+modifier Crypte des Cendres ni Crypte des Cendres.
 
 1. Ouvrir le Creator avec `scripts/Open-Toolset.ps1` et vérifier la marque OpenRPG Forge.
 2. Créer un module vierge et une zone intérieure. Ajouter ensuite une zone extérieure de 64 × 64 m.

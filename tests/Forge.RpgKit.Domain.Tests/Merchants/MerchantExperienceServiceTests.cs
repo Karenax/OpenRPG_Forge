@@ -46,5 +46,5 @@ public sealed class MerchantExperienceServiceTests
     public void Supply_policy_exposes_infinite_finite_generated_crafted_shared_and_personal_modes() => Assert.Equal(6, Enum.GetValues<SupplyPolicy>().Length);
 
     private static PricingPolicy Pricing() => new(1.2m, 0.6m, new Dictionary<string, decimal> { ["shard"] = 1 }, 0.1m, 0.2m, 0.2m, 0.1m, 1, 500);
-    private static StoreDefinition Store() => new(Guid.NewGuid(), 1, "author:test", "vigil", "Veillée", ["fr"], [new("vendor", "interaction", "dialogue", "npc")], [], new HashSet<string> { "shard" }, new Dictionary<string, decimal> { ["shard"] = 100 }, new Dictionary<string, string>());
+    private static StoreDefinition Store() => new(Guid.NewGuid(), 1, "author:test", "demo-store", "Boutique de démonstration", ["fr"], [new("vendor", "interaction", "dialogue", "npc")], [], new HashSet<string> { "shard" }, new Dictionary<string, decimal> { ["shard"] = 100 }, new Dictionary<string, string>());
 }

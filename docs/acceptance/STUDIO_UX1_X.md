@@ -11,7 +11,7 @@ portails et liens, ni la navigation UX2, ni une distribution publique.
   preuve `ux1-x-interaction`, avec résumé dans
   `artifacts/verification/studio-increment/ux1-x-interaction.summary.json` ;
 - tests ciblés : Domain 1/1, Application 3/3 et ModuleFormat 1/1, soit 5/5 ;
-- smoke Studio headless réussi sur Forgotten Forest : sélection explicite, dry-run, application,
+- smoke Studio headless réussi sur Crypte des Cendres : sélection explicite, dry-run, application,
   refus d'une approbation périmée, undo/redo, sauvegarde/réouverture et restauration du projet ;
 - capture Forward+ Full HD inspectée dans
   `artifacts/verification/studio-shell/ux1-x/interaction-fhd.png` : les trois sections

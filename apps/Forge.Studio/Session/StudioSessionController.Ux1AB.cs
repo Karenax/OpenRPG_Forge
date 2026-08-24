@@ -238,7 +238,7 @@ internal sealed partial class StudioSessionController
         var reopened = new StudioSessionController();
         try
         {
-            var authored = OriginalModuleAuthoringService.CreateVeilleeDesEclats().State.Project;
+            var authored = SampleModuleAuthoringService.Create().State.Project;
             var targetBlueprint = authored.Blueprints.Single(blueprint => blueprint.Kind == BlueprintKind.Door);
             var neighborBlueprint = new BlueprintDefinition(
                 BlueprintId.From(Guid.Parse("c1ea0000-0000-4000-8000-000000000002")),

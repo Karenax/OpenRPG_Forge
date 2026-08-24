@@ -754,7 +754,15 @@ internal sealed partial class StudioViewportToolsOverlay : Control
     private void SelectEvidenceEntities()
     {
         _multiSelection.ButtonPressed = true;
-        var ids = _session.ActiveArea!.Entities.Take(3).Select(entity => entity.Id).ToArray();
+        var entities = _session.ActiveArea!.Entities;
+        var selected = entities.Where(entity => entity.Transform.Scale == Vector3Value.One)
+            .Take(3)
+            .ToArray();
+        if (selected.Length < 3)
+        {
+            selected = entities.Take(3).ToArray();
+        }
+        var ids = selected.Select(entity => entity.Id).ToArray();
         _session.SelectEntities(ids, ids.LastOrDefault());
         _viewport.SetSelections(ids, ids.LastOrDefault());
         UpdateSummaries();

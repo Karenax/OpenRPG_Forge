@@ -1,10 +1,27 @@
 # Rapport d'import de la bibliothèque médiévale-fantastique
 
-Date : 7 août 2026 — complément manuel validé le 21 août 2026
+Date : 7 août 2026 — compléments manuels validés les 21 et 24 août 2026
 Vault : `E:\OpenRPG_AssetVault`
 Politique : archives originales immuables, CC0 uniquement, aucun nouveau téléchargement Kenney.
 
 ## Résultat
+
+### Pack Médiéval du 24 août 2026
+
+Les cinq archives fournies dans `E:\3d unity` sont regroupées par
+`asset_manifests/packs/medieval.json`. Le pack expose 365 modèles logiques locaux, issus de 1 136
+fichiers glTF/GLB/FBX/OBJ et de 728 387 757 octets d’archives originales. Les cinq licences internes
+déclarent CC0 1.0 Universal ; l’audit ne trouve ni chemin dangereux, ni chiffrement, ni lien
+symbolique, ni exécutable.
+
+Fantasy Props, Medieval Village, Modular Character Outfits et Stylized Nature correspondaient déjà
+octet pour octet aux originaux du Vault. Seule la version Standard avec root motion de Universal
+Animation Library 2 a été ajoutée : 6 fichiers 3D, 3 modèles logiques et un original SHA-256
+`4008ea208a604773a2b2177d965f0f5d3195498b5bf838c3f5785d68e95f2a68`.
+
+Asset Atlas indexe désormais 6 470 ressources logiques, dont 6 049 directement prévisualisables,
+et expose une facette **Médiéval** de 365 modèles tous présents localement. Le catalogue gouverné
+compte 674 entrées ; Quaternius représente 471 ressources logiques.
 
 ### Complément manuel du 21 août 2026
 
@@ -93,7 +110,10 @@ l'archive originale. Deux détections OpenGameArt avaient auparavant échoué à
 
 ## Validation
 
-- complément manuel : 8/8 archives, 1 190 fichiers 3D, 327 modèles logiques et zéro doublon SHA-256 ;
+- complément manuel initial : 8/8 archives, 1 190 fichiers 3D, 327 modèles logiques et zéro doublon SHA-256 ;
+- catalogue manuel actuel : 9 archives, 1 196 fichiers 3D, 330 modèles logiques et zéro erreur ;
+- pack Médiéval : 5 archives, 1 136 fichiers 3D, 365 modèles logiques locaux et licences CC0 internes vérifiées ;
+- Asset Atlas après le pack : 6 470 ressources logiques, 6 049 prévisualisables et 365 modèles dans la facette Médiéval ;
 - intégrité du complément : 8 archives et 700 dépendances glTF contrôlées, zéro erreur ;
 - Asset Atlas après complément : 6 467 entrées, dont 6 049 directement prévisualisables ;
 

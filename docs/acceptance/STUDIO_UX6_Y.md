@@ -44,7 +44,7 @@ réellement traversés. Aucune ressource ni scène Godot n’est chargée par St
 - Application : **12/12** (machine météo, événement typé, streaming, commandes Environment/World) ;
 - Network : **2/2** (`WeatherReplicationServiceTests`) ;
 - ModuleFormat : **12/12** (`RuntimeSaveStoreTests`, `AreaJsonSerializerTests`) ;
-- smoke Studio complet : `OPENRPG_FORGE_STUDIO_UX6_Y_PASS` et shell Forgotten Forest PASS ;
+- smoke Studio complet : `OPENRPG_FORGE_STUDIO_UX6_Y_PASS` et shell Crypte des Cendres PASS ;
 - captures Forward+ 1920×1080 inspectées :
   `artifacts/verification/studio-ux6-y-runtime-weather-1920x1080.png` et
   `artifacts/verification/studio-ux6-y-area-loading-1920x1080.png` ;

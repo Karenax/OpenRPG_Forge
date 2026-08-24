@@ -50,7 +50,7 @@ faux succès fonctionnel.
 - portail incrémental : **284,70 s** ;
 - matrice Studio avant promotion : **717 lignes**, **36 pages**, 552 fonctionnelles / 165 planifiées,
   PASS ;
-- capture Forward+ **1920×1080** sur Forgotten Forest réel : 2 scripts, 1 dialogue, 1 quête,
+- capture Forward+ **1920×1080** sur Crypte des Cendres réel : 2 scripts, 1 dialogue, 1 quête,
   36 simulations de rencontre et 9 scénarios réseau ; cinq résultats et actions visibles, sans
   clipping bloquant.
 

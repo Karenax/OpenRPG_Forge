@@ -30,7 +30,7 @@ du moteur 3D.
   la palette ;
 - `OPENRPG_FORGE_TOOLSET_AV3_PLACEMENT_PASS` charge réellement un GLB autonome dans le viewport avec
   hash vérifié et sans erreur moteur ;
-- le smoke Forgotten Forest conserve 22 manifestes et 18 instances de modèles de production.
+- le smoke Asset Vault conserve 22 manifestes et 18 instances de modèles de production.
 
 ## Limites explicites
 

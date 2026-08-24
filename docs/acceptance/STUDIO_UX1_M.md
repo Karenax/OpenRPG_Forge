@@ -21,7 +21,7 @@ placeable ni une distribution publique.
 - le smoke contractuel crée un workspace temporaire avec deux placeables et deux instances, refuse
   les politiques incomplètes ou ambiguës, compare le dry-run direct à la commande canonique,
   applique, annule, rétablit, sauvegarde puis rouvre ;
-- le smoke UI crée réellement une protection plot dans Forgotten Forest, applique puis annule en
+- le smoke UI crée réellement une protection plot dans Crypte des Cendres, applique puis annule en
   restaurant exactement le projet courant ;
 - captures et journaux Forward+ inspectés dans `artifacts/verification/studio-shell/ux1-m/` :
   `actions-fhd.png` en 1920×1080, `permissions-qhd.png` en 2560×1440 et `override-4k.png` en

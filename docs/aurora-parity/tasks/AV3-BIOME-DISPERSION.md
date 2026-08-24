@@ -35,7 +35,7 @@ aucune scène générée, ressource de biome parallèle ou nœud moteur ne devie
 - la recette de cette tranche choisit un modèle par biome ; les mélanges pondérés multi-modèles et
   les brosses de densité spécialisées restent des améliorations, pas une nouvelle source de vérité ;
 - les mutations IA/MCP d’assets sont fermées séparément par `AV3-MCP-ASSET-MUTATIONS.md` ;
-- l’habillage audio, les animations et les VFX de Forgotten Forest relèvent des finitions AV5.
+- l’habillage audio, les animations et les VFX de Asset Vault relèvent des finitions AV5.
 
 ## Critère de passage
 

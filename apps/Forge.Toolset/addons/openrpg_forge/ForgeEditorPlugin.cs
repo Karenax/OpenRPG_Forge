@@ -1849,7 +1849,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         identity.AddChild(new Label { Text = "Titre du module · obligatoire" });
         _newModuleTitle = new LineEdit
         {
-            PlaceholderText = "Les Îles Brisées",
+            PlaceholderText = "Module de démonstration",
             Text = "Mon nouveau module",
         };
         identity.AddChild(_newModuleTitle);
@@ -10282,7 +10282,10 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 EditorSplitAxis.Horizontal, .5f, true, true);
             var help = new EditorContextualHelpProfile(originalProfile.Help.Id, 1, "toolset:r059", true, true,
                 "fr-FR", "placement.repeated");
-            var candidate = new EditorWorkspaceProfile(originalProfile.Id, originalProfile.Name, EditorRole.Builder,
+            var builderProfile = EditorWorkspaceProfileStore.TryLoadCatalog(_projectSession.RootDirectory)?.Profiles
+                                     .SingleOrDefault(profile => profile.Role == EditorRole.Builder) ??
+                                 EditorWorkspaceProfile.CreateDefault(EditorRole.Builder, originalArea.Id);
+            var candidate = new EditorWorkspaceProfile(builderProfile.Id, builderProfile.Name, EditorRole.Builder,
                 filter, true, [originalArea.Id, comparisonId], originalArea.Id, comparisonId, true, "toolset:r059",
                 EditorWorkspaceProfile.CurrentSchemaVersion, originalProfile.UiScale, originalProfile.TextScale,
                 originalProfile.PrimaryFontFamily, originalProfile.FallbackFontFamilies,
@@ -10291,21 +10294,27 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 EditorRolePolicy.CreateDefault(originalProfile.Id.Value, EditorRole.Builder));
             var profileDiagnostics = EditorWorkspaceProjectValidator.Validate(candidate, _history.State.Project);
             var helpResult = EditorContextualHelpService.Query(help, "placement", assisted: true);
-            var profileHistory = new EditorWorkspaceProfileCommandHistory(originalProfile);
+            var profileHistory = new EditorWorkspaceProfileCommandHistory(builderProfile);
             var dryRun = profileHistory.Execute(new(Guid.NewGuid(), 1, "toolset:r059", candidate, true));
             var applied = profileHistory.Execute(new(Guid.NewGuid(), 1, "toolset:r059", candidate));
             var undoProfile = profileHistory.Undo(); var redoProfile = profileHistory.Redo();
             SaveWorkspaceProfile(candidate);
             var persisted = EditorWorkspaceProfileStore.TryLoad(_projectSession.RootDirectory);
             var catalog = EditorWorkspaceProfileStore.TryLoadCatalog(_projectSession.RootDirectory);
-            if (failure is null && (profileDiagnostics.Count != 0 || helpResult.Diagnostics.Count != 0 ||
-                helpResult.Citations.Count == 0 || !dryRun.Succeeded || !applied.Succeeded ||
-                !undoProfile.Succeeded || !redoProfile.Succeeded || persisted?.MultiArea.SplitViewEnabled != true ||
-                persisted.RepeatedPlacementProfile.Alignment != EditorPlacementAlignment.SurfaceNormal ||
-                catalog is null || catalog.Profiles.Select(item => item.Role).Distinct().Count() != 7 ||
-                candidate.RolePolicy.VisiblePanels.Count < 5 ||
-                !candidate.RolePolicy.Allows(EditorPermission.EditAreas) ||
-                _multiAreaSplitViewWindow.ViewportCount != 2)) failure = "profile_help_split_persistence";
+            if (failure is null)
+            {
+                var profileFailures = new List<string>();
+                if (profileDiagnostics.Count != 0) profileFailures.Add($"profile-diagnostics-{profileDiagnostics.Count}");
+                if (helpResult.Diagnostics.Count != 0) profileFailures.Add($"help-diagnostics-{helpResult.Diagnostics.Count}");
+                if (helpResult.Citations.Count == 0) profileFailures.Add("help-citations");
+                if (!dryRun.Succeeded || !applied.Succeeded || !undoProfile.Succeeded || !redoProfile.Succeeded) profileFailures.Add("history");
+                if (persisted?.MultiArea.SplitViewEnabled != true) profileFailures.Add("split-persisted");
+                if (persisted?.RepeatedPlacementProfile.Alignment != EditorPlacementAlignment.SurfaceNormal) profileFailures.Add("placement-persisted");
+                if (catalog is null || catalog.Profiles.Count != 7 || catalog.Profiles.Select(item => item.Role).Distinct().Count() != 7) profileFailures.Add("catalog");
+                if (candidate.RolePolicy.VisiblePanels.Count < 5 || !candidate.RolePolicy.Allows(EditorPermission.EditAreas)) profileFailures.Add("permissions");
+                if (_multiAreaSplitViewWindow.ViewportCount != 2) profileFailures.Add($"viewports-{_multiAreaSplitViewWindow.ViewportCount}");
+                if (profileFailures.Count != 0) failure = $"profile_help_split_persistence[{string.Join(',', profileFailures)}]";
+            }
         }
         catch (Exception exception)
         {
@@ -15444,7 +15453,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         _assetBrowser.Refresh();
-        if (_assetBrowser.CatalogCount != 673 || _assetBrowser.SourceCount != 5 ||
+        if (_assetBrowser.CatalogCount != 674 || _assetBrowser.SourceCount != 5 ||
             _assetBrowser.FilterForSmokeTest("apple", "ambientcg") != 3 ||
             !_assetBrowser.SelectAssetForSmokeTest("ambientcg:3DApple001") ||
             !_assetBrowser.SelectedHasPreviewMetadata ||
@@ -15464,7 +15473,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
         _assetBrowser.FilterForSmokeTest(string.Empty);
         GD.Print(
-            "OPENRPG_FORGE_TOOLSET_G716_ASSETS_PASS catalog=673 sources=5 facets=search-source-category " +
+            "OPENRPG_FORGE_TOOLSET_G716_ASSETS_PASS catalog=674 sources=5 facets=search-source-category " +
             "uuid=stable hash=addressed license=verified availability=explicit preview=metadata import=governed " +
             "profile=command-dry-run manifest=command-dry-run roundtrip=command-dry-run " +
             "governance=command-dry-run quarantine=pending ip=classified " +
@@ -21669,30 +21678,6 @@ public partial class ForgeEditorPlugin : EditorPlugin
         var icon = splash.GetRegion(new Rect2I(512, 92, 256, 256));
         icon.Resize(64, 64, Image.Interpolation.Lanczos);
         return icon;
-    }
-
-    private static string GetStartupWorkspaceDirectory(IReadOnlyList<string> userArguments)
-    {
-        var usesVerificationFixture = userArguments.Any(argument =>
-            argument.Contains("smoke-test", StringComparison.Ordinal) ||
-            argument.Contains("ui-capture=", StringComparison.Ordinal));
-        return usesVerificationFixture
-            ? GetBundledWorkspaceDirectory("crypt-of-ashes")
-            : GetDefaultWorkspaceDirectory();
-    }
-
-    private static string GetDefaultWorkspaceDirectory() =>
-        GetBundledWorkspaceDirectory("forgotten-forest");
-
-    private static string GetBundledWorkspaceDirectory(string moduleSlug)
-    {
-        var toolsetDirectory = ProjectSettings.GlobalizePath("res://");
-        return Path.GetFullPath(Path.Combine(
-            toolsetDirectory,
-            "..",
-            "Forge.Runtime",
-            "content",
-            moduleSlug));
     }
 
     private static string GetRepositoryRoot()

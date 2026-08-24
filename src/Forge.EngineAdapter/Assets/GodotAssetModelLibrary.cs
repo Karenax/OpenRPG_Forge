@@ -145,7 +145,9 @@ public sealed class GodotAssetModelLibrary
 
     private PackedScene? TryLoadImportedScene(string absolute)
     {
-        var resourceRoot = Path.GetFullPath(ProjectSettings.GlobalizePath("res://"));
+        var globalResourceRoot = ProjectSettings.GlobalizePath("res://");
+        if (string.IsNullOrWhiteSpace(globalResourceRoot)) return null;
+        var resourceRoot = Path.GetFullPath(globalResourceRoot);
         var relative = Path.GetRelativePath(resourceRoot, absolute);
         if (relative.Equals("..", StringComparison.Ordinal) ||
             relative.StartsWith($"..{Path.DirectorySeparatorChar}", StringComparison.Ordinal) ||
@@ -242,7 +244,7 @@ public sealed class GodotAssetModelLibrary
         return stagedModel;
     }
 
-    private static PackedScene LoadRuntimeGltf(string stagedAbsolute, string sourceAbsolute)
+    internal static PackedScene LoadRuntimeGltf(string stagedAbsolute, string sourceAbsolute)
     {
         EnsureImporterMeshConversionRegistered();
         var document = new GltfDocument();

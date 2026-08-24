@@ -104,7 +104,7 @@ public sealed class QuestQualityProfileTests
             Dependency(4, QuestAiDependencyKind.Asset, "asset:quest-generation-model"),
         };
         var plan = QuestQualityRuntimeService.CreateAiPlan(quest,
-            new LocalizedText("quest.r073.ai.synopsis", "Restaurer la veillée des Cendres."),
+            new LocalizedText("quest.r073.ai.synopsis", "Rétablir le signal des Cendres."),
             dependencies, ["08_QUEST.md#orf-qst-025"], ["style:crypt"], "agent:forge",
             Guid.Parse("c7130000-0000-4000-8000-000000000001"),
             $"preview:quest:{quest.Id}|states:{quest.States.Count}|participants:{quest.Authoring.Participants.Count}");

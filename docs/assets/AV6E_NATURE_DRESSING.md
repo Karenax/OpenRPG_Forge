@@ -3,16 +3,16 @@
 Dernière mise à jour : 5 août 2026.
 
 > Statut historique : cette première passe Kenney a été remplacée le 6 août 2026 par la sélection
-> `forgotten-forest-polyhaven-environment`. Les douze modèles Nature Kit ne sont plus référencés ni
-> distribués dans Forgotten Forest ; ce document conserve la preuve du jalon AV6-E initial.
+> `asset-vault-polyhaven-environment`. Les douze modèles Nature Kit ne sont plus référencés ni
+> distribués dans Asset Vault ; ce document conserve la preuve du jalon AV6-E initial.
 
 ## Résultat
 
-Forgotten Forest réutilise maintenant douze modèles CC0 du pack Kenney Nature Kit déjà présent dans
+Asset Vault réutilise maintenant douze modèles CC0 du pack Kenney Nature Kit déjà présent dans
 le Vault externe. La sélection est bornée à cinq silhouettes d’arbres et sept éléments rapprochés :
 buisson, plante haute, champignons, fleurs, herbe, tronc mort et rocher.
 
-`asset_manifests/packs/forgotten_forest_nature_dressing.json` épingle les chemins sources, tags,
+`asset_manifests/packs/asset_vault_nature_dressing.json` épingle les chemins sources, tags,
 pack et licence. L’installateur vérifie le catalogue, recalcule les SHA-256, préserve le Vault en
 lecture seule et accepte désormais les GLB dont la palette est embarquée. Les crédits sont générés
 par pack puis agrégés dans `assets/CREDITS_ASSETS.md`.
@@ -31,8 +31,8 @@ culling adapté :
 
 Preuves reproductibles :
 
-- `artifacts/verification/forgotten-forest-av6e-world-forward-plus.png` ;
-- `artifacts/verification/forgotten-forest-av6e-close-forward-plus.png` ;
+- `artifacts/verification/asset-vault-av6e-world-forward-plus.png` ;
+- `artifacts/verification/asset-vault-av6e-close-forward-plus.png` ;
 - `OPENRPG_FORGE_AV6E_WORLD_VISUAL_PASS ... sectors=64 scatter=7112` ;
 - smoke complet terminant dialogue, collecte, passage, boss, quête et caméra orbitale.
 
@@ -45,7 +45,7 @@ retargeting entre rigs incompatibles restent des travaux distincts.
 
 ## Remplacement Poly Haven du 6 août 2026
 
-Le manifeste `asset_manifests/packs/forgotten_forest_polyhaven_environment.json` gouverne désormais
+Le manifeste `asset_manifests/packs/asset_vault_polyhaven_environment.json` gouverne désormais
 17 modèles CC0 issus de l'OpenRPG Asset Atlas. Le worker Blender sélectionne les variantes utiles,
 réduit les sapins et éléments lourds, recentre le pivot au sol, produit un GLB autonome et écrit un
 crédit par asset avec page source, licence, identité stable et SHA-256. Les GLTF du Vault restent

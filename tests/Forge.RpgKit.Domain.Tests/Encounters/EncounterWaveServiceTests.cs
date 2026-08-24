@@ -43,6 +43,6 @@ public sealed class EncounterWaveServiceTests
     {
         var candidate = new SpawnCandidate(Guid.NewGuid(), "creature:shardling", EncounterRole.Minion, 1, 4, new HashSet<string>(), [], 5);
         var shape = new TriggerShape(TriggerShapeKind.Box, [], [], new(4, 3, 4), 0, 0);
-        return new(Guid.NewGuid(), 1, "author:test", "shard-vigil", "Veillée", "defense", "glass", "zone:vigil", new(shape, new(new HashSet<string>(), new HashSet<string>(), new HashSet<string>(), new HashSet<string>()), false, 10, null), [candidate], new("ruleset:test", EncounterDifficulty.Standard, 3, 8, 20, 1, 1), ["group"], ["anchor"], ["reward"], 10);
+        return new(Guid.NewGuid(), 1, "author:test", "demo-wave", "Vague de démonstration", "defense", "glass", "zone:vigil", new(shape, new(new HashSet<string>(), new HashSet<string>(), new HashSet<string>(), new HashSet<string>()), false, 10, null), [candidate], new("ruleset:test", EncounterDifficulty.Standard, 3, 8, 20, 1, 1), ["group"], ["anchor"], ["reward"], 10);
     }
 }

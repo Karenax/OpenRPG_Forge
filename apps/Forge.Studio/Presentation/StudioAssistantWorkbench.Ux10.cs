@@ -415,7 +415,7 @@ internal sealed partial class StudioAssistantWorkbenchUx10 : ColorRect
             CustomMinimumSize = new Vector2(0, 104),
             SizeFlagsHorizontal = SizeFlags.ExpandFill,
             WrapMode = TextEdit.LineWrappingMode.Boundary,
-            Text = "Pierre guide stylisée, lisible, sobre et compatible avec Forgotten Forest",
+            Text = "Pierre guide stylisée, lisible, sobre et compatible avec la Crypte des Cendres",
         };
         _assetPrompt.TextChanged += InvalidatePreviewUx10;
         parent.AddChild(_assetPrompt);

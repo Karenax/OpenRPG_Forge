@@ -140,6 +140,7 @@ internal sealed partial class StudioWorldViewport : SubViewportContainer
         CustomMinimumSize = new Vector2(420, 300);
         Stretch = true;
         MouseFilter = MouseFilterEnum.Stop;
+        FocusMode = FocusModeEnum.All;
 
         _viewport = new SubViewport
         {
@@ -235,8 +236,9 @@ internal sealed partial class StudioWorldViewport : SubViewportContainer
         var selection = StudioStyle.Button("Cadrer la sélection", compact: true);
         selection.Pressed += FrameSelection;
         toolbarRow.AddChild(selection);
+        InitializeHumanTransformToolbar(toolbarRow);
         _interactionHint = StudioStyle.Label(
-            "clic sélectionner · flèche déplacer · plan tourner · clic droit éditer · glisser droit orbiter · molette zoom",
+            "clic sélectionner · choisissez Déplacer, Tourner ou Redimensionner · clic droit éditer · glisser droit orbiter",
             10,
             StudioStyle.Muted);
         toolbarRow.AddChild(_interactionHint);
@@ -265,6 +267,7 @@ internal sealed partial class StudioWorldViewport : SubViewportContainer
         UpdateCamera();
         InitializeUx0CViewport();
         InitializeUx0DViewport();
+        InitializeHumanPicking();
         Resized += UpdateToolbarDensity;
     }
 
@@ -286,6 +289,12 @@ internal sealed partial class StudioWorldViewport : SubViewportContainer
             {
                 HideContextMenu();
             }
+            AcceptEvent();
+            return;
+        }
+
+        if (HandleHumanTransformShortcut(@event))
+        {
             AcceptEvent();
             return;
         }
@@ -336,7 +345,7 @@ internal sealed partial class StudioWorldViewport : SubViewportContainer
                         return;
                     }
 
-                    var entityId = FindNearestEntity(button.Position);
+                    var entityId = FindPickedEntity(button.Position);
                     if (entityId is not null)
                     {
                         SelectPointerEntity(entityId, button.CtrlPressed || button.ShiftPressed);
@@ -367,6 +376,7 @@ internal sealed partial class StudioWorldViewport : SubViewportContainer
 
             if ((motion.ButtonMask & MouseButtonMask.Right) != 0)
             {
+                ClearHumanPickingHover();
                 if (!_orbiting && motion.Position.DistanceTo(_rightPressPosition) >= 4)
                 {
                     _rightDragging = true;
@@ -392,9 +402,11 @@ internal sealed partial class StudioWorldViewport : SubViewportContainer
 
             if (!_panning)
             {
+                UpdateHumanPickingHover(motion.Position);
                 return;
             }
 
+            ClearHumanPickingHover();
             if (_orbiting)
             {
                 if (TryNavigateCamera(
@@ -466,7 +478,7 @@ internal sealed partial class StudioWorldViewport : SubViewportContainer
             _rightDragging = false;
             _orbiting = false;
             HideContextMenu();
-            _contextCandidateEntityId = FindNearestEntity(button.Position);
+            _contextCandidateEntityId = FindPickedEntity(button.Position);
             _contextCandidatePosition = TryProjectToGround(button.Position, out var ground)
                 ? SnapPlacement(new Vector3Value(ground.X, ground.Y, ground.Z))
                 : null;
@@ -694,7 +706,8 @@ internal sealed partial class StudioWorldViewport : SubViewportContainer
     private void UpdateGizmo(Vector3 position)
     {
         _moveGizmo.Position = position;
-        var scale = Math.Clamp(_cameraDistance * .045f, .75f, 8f);
+        // Keep handles readable without letting a close-up selection cover the object itself.
+        var scale = Math.Clamp(_cameraDistance * .045f, .18f, 8f);
         _moveGizmo.Scale = Vector3.One * scale;
         _moveGizmo.Visible = true;
     }
@@ -978,6 +991,7 @@ internal sealed partial class StudioWorldViewport : SubViewportContainer
             GD.PushWarning($"OPENRPG_FORGE_STUDIO_TERRAIN_FALLBACK {exception.Message}");
             _areaRoot.AddChild(BuildFallbackGround(area));
         }
+        PrepareCryptVisuals(session, area);
 
         var blueprints = project.Blueprints.ToDictionary(blueprint => blueprint.Id);
         foreach (var source in area.Entities)
@@ -999,6 +1013,7 @@ internal sealed partial class StudioWorldViewport : SubViewportContainer
 
             var node = CreateRepresentation(resolved.Entity, blueprint);
             ApplyMirror(node, resolved.Mirror);
+            ConfigureCryptArchitectureProxy(node, resolved.Entity, blueprint);
             _areaRoot.AddChild(node);
             _entityNodes[source.Id] = node;
             EntityCount++;
@@ -1024,6 +1039,9 @@ internal sealed partial class StudioWorldViewport : SubViewportContainer
         GD.Print(
             $"OPENRPG_FORGE_STUDIO_WORLD_READY area={area.Slug} entities={EntityCount} " +
             $"assets={AssetModelInstanceCount} fallback_assets={UnavailableAssetCount} " +
+            $"crypt_art={_cryptArtPassLoaded.ToString().ToLowerInvariant()} " +
+            $"crypt_models={_cryptArtModelInstanceCount} crypt_characters={_cryptCharacterAssetInstanceCount} " +
+            $"hidden_architecture_proxies={_hiddenCryptArchitectureProxyCount} " +
             $"read_only={_readOnly.ToString().ToLowerInvariant()}");
     }
 
@@ -1070,6 +1088,7 @@ internal sealed partial class StudioWorldViewport : SubViewportContainer
         var area = ViewArea;
         if (project is null || area is null)
         {
+            RefreshHumanPickingProxies();
             return 0;
         }
 
@@ -1104,17 +1123,18 @@ internal sealed partial class StudioWorldViewport : SubViewportContainer
             if (matches)
             {
                 VisibleEntityCount++;
-                if (!_readOnly)
-                {
-                    _editableEntityIds.Add(entity.Id);
-                }
             }
             else if (_displayFilter.GhostHidden)
             {
                 GhostedEntityCount++;
             }
+            if (IsHumanPickable(matches, _displayFilter.GhostHidden, _readOnly))
+            {
+                _editableEntityIds.Add(entity.Id);
+            }
         }
 
+        RefreshHumanPickingProxies();
         RefreshSelectionVisuals();
         _summary.Text = $"{area.DisplayName} · {VisibleEntityCount}/{EntityCount} objets visibles" +
             (GhostedEntityCount == 0 ? string.Empty : $" · {GhostedEntityCount} fantômes");
@@ -1129,7 +1149,7 @@ internal sealed partial class StudioWorldViewport : SubViewportContainer
         }
         if (node is GeometryInstance3D geometry)
         {
-            geometry.Transparency = ghosted ? .82f : 0;
+            geometry.Transparency = ghosted ? .48f : 0;
         }
     }
 
@@ -1145,13 +1165,23 @@ internal sealed partial class StudioWorldViewport : SubViewportContainer
         }
 
         node.Transform = EngineValueConverter.ToEngine(entity.Transform);
+        RefreshHumanPickingProxies();
         SetSelections(session.SelectedEntityIds, session.SelectedEntityId);
     }
 
     internal bool PrepareEditingEvidence(StudioSessionController session, bool showContextMenu)
     {
         ArgumentNullException.ThrowIfNull(session);
-        var entity = session.ActiveArea?.Entities.FirstOrDefault(candidate => _entityNodes.ContainsKey(candidate.Id));
+        var blueprintKinds = session.Project?.Blueprints.ToDictionary(
+            blueprint => blueprint.Id,
+            blueprint => blueprint.Kind) ?? [];
+        var entity = session.ActiveArea?.Entities
+            .Where(candidate => _entityNodes.ContainsKey(candidate.Id))
+            .OrderBy(candidate => blueprintKinds.TryGetValue(candidate.BlueprintId, out var kind)
+                ? HumanKindPriority(kind)
+                : int.MaxValue)
+            .ThenBy(candidate => candidate.Id.Value)
+            .FirstOrDefault();
         if (entity is null)
         {
             return false;
@@ -1179,6 +1209,12 @@ internal sealed partial class StudioWorldViewport : SubViewportContainer
             return false;
         }
 
+        if (!SelectHumanTransformTool(EditorTransformTool.Rotate, reportStatus: false))
+        {
+            GD.PrintErr("OPENRPG_FORGE_STUDIO_GIZMO_ROTATION_FAILED reason=tool_activation");
+            return false;
+        }
+
         var original = _session.ActiveArea.Entities
             .First(entity => entity.Id == _selectedEntityId)
             .Transform;
@@ -1188,51 +1224,54 @@ internal sealed partial class StudioWorldViewport : SubViewportContainer
         Vector2 endPointer = default;
         foreach (var sourcePlane in Enum.GetValues<StudioRotationPlane>())
         {
-            var frame = RotationFrame(sourcePlane);
+            var frame = ConfiguredRotationFrame(sourcePlane);
             var scale = Math.Max(_moveGizmo.Scale.X, .001f);
-            foreach (var angle in new[] { 30f, 45f, 60f })
+            foreach (var radiusRatio in new[] { .92f, .78f, .64f, .5f })
             {
-                var radians = angle * MathF.PI / 180f;
-                var startDirection = frame.First * MathF.Cos(radians) +
-                                     frame.Second * MathF.Sin(radians);
-                var candidatePointer = FromViewportPointer(_camera.UnprojectPosition(
-                    _moveGizmo.GlobalPosition +
-                    startDirection * (RotationPlaneOuterRadius * .88f * scale)));
-                var pickedAxis = PickGizmoAxis(candidatePointer);
-                var pickedPlane = pickedAxis is null
-                    ? PickRotationPlane(candidatePointer)
-                    : null;
-                if (pickedPlane != sourcePlane ||
-                    !TryPointerVectorOnRotationPlane(
-                        candidatePointer,
-                        pickedPlane.Value,
-                        out var pickedDirection,
-                        out _))
+                var radius = RotationPlaneInnerRadius +
+                             (RotationPlaneOuterRadius - RotationPlaneInnerRadius) * radiusRatio;
+                foreach (var angle in Enumerable.Range(2, 17).Select(index => index * 5f))
                 {
-                    continue;
-                }
+                    var radians = angle * MathF.PI / 180f;
+                    var startDirection = frame.First * MathF.Cos(radians) +
+                                         frame.Second * MathF.Sin(radians);
+                    var candidatePointer = FromViewportPointer(_camera.UnprojectPosition(
+                        _moveGizmo.GlobalPosition + startDirection * (radius * scale)));
+                    var pickedPlane = PickConfiguredRotationPlane(candidatePointer);
+                    if (pickedPlane != sourcePlane ||
+                        !TryPointerVectorOnConfiguredPlane(
+                            candidatePointer,
+                            pickedPlane.Value,
+                            out var pickedDirection))
+                    {
+                        continue;
+                    }
 
-                pickablePlanes.Add(sourcePlane);
-                if (selectedPlane is not null)
+                    pickablePlanes.Add(sourcePlane);
+                    if (selectedPlane is not null)
+                    {
+                        break;
+                    }
+
+                    selectedPlane = sourcePlane;
+                    startPointer = candidatePointer;
+                    var pickedFrame = ConfiguredRotationFrame(pickedPlane.Value);
+                    var pickedAngle = MathF.Atan2(
+                        pickedDirection.Dot(pickedFrame.Second),
+                        pickedDirection.Dot(pickedFrame.First));
+                    var endAngle = pickedAngle < MathF.PI * .25f
+                        ? Math.Min(pickedAngle + MathF.PI / 6f, MathF.PI * .46f)
+                        : Math.Max(pickedAngle - MathF.PI / 6f, MathF.PI * .04f);
+                    var endDirection = pickedFrame.First * MathF.Cos(endAngle) +
+                                       pickedFrame.Second * MathF.Sin(endAngle);
+                    endPointer = FromViewportPointer(_camera.UnprojectPosition(
+                        _moveGizmo.GlobalPosition + endDirection * (radius * scale)));
+                    break;
+                }
+                if (pickablePlanes.Contains(sourcePlane))
                 {
                     break;
                 }
-
-                selectedPlane = sourcePlane;
-                startPointer = candidatePointer;
-                var pickedFrame = RotationFrame(pickedPlane.Value);
-                var pickedAngle = MathF.Atan2(
-                    pickedDirection.Dot(pickedFrame.Second),
-                    pickedDirection.Dot(pickedFrame.First));
-                var endAngle = pickedAngle < MathF.PI * .25f
-                    ? Math.Min(pickedAngle + MathF.PI / 6f, MathF.PI * .46f)
-                    : Math.Max(pickedAngle - MathF.PI / 6f, MathF.PI * .04f);
-                var endDirection = pickedFrame.First * MathF.Cos(endAngle) +
-                                   pickedFrame.Second * MathF.Sin(endAngle);
-                endPointer = FromViewportPointer(_camera.UnprojectPosition(
-                    _moveGizmo.GlobalPosition +
-                    endDirection * (RotationPlaneOuterRadius * .88f * scale)));
-                break;
             }
         }
 
@@ -1288,6 +1327,8 @@ internal sealed partial class StudioWorldViewport : SubViewportContainer
     private void ClearArea()
     {
         ClearUx0CViewportArea();
+        ClearCryptVisualState();
+        ClearHumanPickingArea();
         _entityNodes.Clear();
         _editableEntityIds.Clear();
         _selectionMarker.Visible = false;
@@ -1346,8 +1387,12 @@ internal sealed partial class StudioWorldViewport : SubViewportContainer
             Name = SafeNodeName(blueprint.DisplayName),
             Transform = EngineValueConverter.ToEngine(entity.Transform),
         };
-        var assetId = entity.Overrides.Properties.FirstOrDefault(property =>
+        var explicitAssetId = entity.Overrides.Properties.FirstOrDefault(property =>
             string.Equals(property.Key, "visual.asset", StringComparison.Ordinal))?.Value;
+        var cryptCharacter = string.IsNullOrWhiteSpace(explicitAssetId)
+            ? ResolveCryptCharacterVisual(entity)
+            : null;
+        var assetId = explicitAssetId ?? cryptCharacter?.AssetId;
         if (!string.IsNullOrWhiteSpace(assetId) && _modelLibrary is not null &&
             !_unavailableVisualAssets.Contains(assetId))
         {
@@ -1358,6 +1403,7 @@ internal sealed partial class StudioWorldViewport : SubViewportContainer
                 {
                     root.AddChild(model);
                     AssetModelInstanceCount++;
+                    RecordCryptCharacterAssetInstance(cryptCharacter is not null);
                     return root;
                 }
                 _unavailableVisualAssets.Add(assetId);
@@ -1370,6 +1416,7 @@ internal sealed partial class StudioWorldViewport : SubViewportContainer
 
         root.AddChild(new MeshInstance3D
         {
+            Name = FallbackPreviewNodeName,
             Mesh = CreateFallbackMesh(blueprint.Kind, entity.Tags),
             MaterialOverride = new StandardMaterial3D
             {

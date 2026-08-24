@@ -4439,12 +4439,10 @@ public partial class GameRoot
                 new Dictionary<string, float> { ["music"] = .8f }, .75f,
                 $"area.{area.Slug}.combat", "runtime:r055")], r055Visibility, r055Lod, true);
         var r055Event = $"area.{area.Slug}.alarm";
-        var r055UsesModuleScript = _isForgottenForestPrototype || _isCryptPrototype;
-        var r055Script = _isForgottenForestPrototype
-            ? "scripts/root_guardian_death.forge"
-            : _isCryptPrototype
-                ? "scripts/ash_warden_death.forge"
-                : "scripts/area_user_event_smoke.forge";
+        var r055UsesModuleScript = _isCryptPrototype;
+        var r055Script = _isCryptPrototype
+            ? "scripts/ash_warden_death.forge"
+            : "scripts/area_user_event_smoke.forge";
         var r055Subscription = r055UsesModuleScript ? "main" : "OnAreaAlarm";
         string? ResolveR055Source(string path) => r055UsesModuleScript
             ? ReadConfiguredScriptSource(path)
@@ -5722,7 +5720,7 @@ public partial class GameRoot
         var animationSpeedBefore = animationPlayer?.SpeedScale;
         DamageHostile(targetNode);
         var gameplayPresentation = _lastCombatFeedback ?? throw new InvalidOperationException(
-            "The real Forgotten Forest cast produced no combat feedback projection.");
+            "The real runtime cast produced no combat feedback projection.");
         var gameplayDamage = gameplayPresentation.Amounts.Single(item =>
             item.Kind == CombatFeedbackAmountKind.Damage).Value;
         AssertSmoke(targetHealthBefore - target.Health == gameplayDamage &&
@@ -5734,7 +5732,7 @@ public partial class GameRoot
                     feedback.LastPresentedDamage == gameplayDamage &&
                     hud.TargetFrameVisible &&
                     !impacts.LastUsedCueOverride,
-            "Real Forgotten Forest damage did not preserve authoritative combat feedback values.");
+            "Real runtime damage did not preserve authoritative combat feedback values.");
 
         for (var frame = 0; frame < 8; frame++)
             _cameraRig.Update(camera, player.GlobalPosition, 1d / 60d, ConstrainCameraPosition);
@@ -5782,24 +5780,48 @@ public partial class GameRoot
                     (_combatUiPolicy.ReducedMotion ? !hud.PlayerHealthAnimating : hud.PlayerHealthAnimating),
             "Explicit non-gameplay heal/resource/cooldown/player-chip fixture failed.");
 
-        var authoredCue = _areaExperience?.AudioCues.FirstOrDefault(item => LoadAudioStream(item.Resource) is not null)
-            ?? throw new InvalidOperationException("Combat feedback smoke requires one loadable authored area cue.");
-        PlayCombatFeedbackAudio(fixturePresentation with
+        var areaExperienceBeforeAudioFixture = _areaExperience ?? throw new InvalidOperationException(
+            "Combat feedback smoke requires an area experience profile.");
+        var authoredCue = areaExperienceBeforeAudioFixture.AudioCues.FirstOrDefault(item =>
+            LoadAudioStream(item.Resource) is not null);
+        var usesSyntheticAuthoredCue = authoredCue is null;
+        if (usesSyntheticAuthoredCue)
         {
-            TransactionId = Guid.Parse("cf100000-0000-4000-8000-000000000004"),
-            VisualCueKey = authoredCue.CueId,
-        }, targetNode);
-        AssertSmoke(impacts.LastUsedCueOverride,
-            "A matching authored area cue did not override the built-in combat sound.");
-        PlayCombatFeedbackAudio(fixturePresentation with
+            var resource = ProceduralAmbientAudioService.StreamResource;
+            authoredCue = new AudioCueDefinition(
+                Guid.Parse("cf100000-0000-4000-8000-000000000007"), "cue.fixture-authored", resource,
+                "SFX", .65f, false, "CC0-1.0", ProceduralAmbientAudioService.Create(resource).ContentSha256,
+                "1.0.0", "runtime:combat-feedback-smoke");
+            _areaExperience = new AreaExperienceProfile(areaExperienceBeforeAudioFixture.Id,
+                areaExperienceBeforeAudioFixture.SchemaVersion,
+                [.. areaExperienceBeforeAudioFixture.AudioCues, authoredCue],
+                areaExperienceBeforeAudioFixture.ScatterEmitters, areaExperienceBeforeAudioFixture.Voices,
+                areaExperienceBeforeAudioFixture.PatrolRoutes, areaExperienceBeforeAudioFixture.Loading,
+                areaExperienceBeforeAudioFixture.Provenance);
+        }
+        try
         {
-            TransactionId = Guid.Parse("cf100000-0000-4000-8000-000000000005"),
-            VisualCueKey = "cue.fixture-missing",
-        }, targetNode);
-        AssertSmoke(!impacts.LastUsedCueOverride,
-            "A missing area cue did not fall back to the built-in combat sound.");
+            PlayCombatFeedbackAudio(fixturePresentation with
+            {
+                TransactionId = Guid.Parse("cf100000-0000-4000-8000-000000000004"),
+                VisualCueKey = authoredCue!.CueId,
+            }, targetNode);
+            AssertSmoke(impacts.LastUsedCueOverride,
+                "A matching authored area cue did not override the built-in combat sound.");
+            PlayCombatFeedbackAudio(fixturePresentation with
+            {
+                TransactionId = Guid.Parse("cf100000-0000-4000-8000-000000000005"),
+                VisualCueKey = "cue.fixture-missing",
+            }, targetNode);
+            AssertSmoke(!impacts.LastUsedCueOverride,
+                "A missing area cue did not fall back to the built-in combat sound.");
+        }
+        finally
+        {
+            _areaExperience = areaExperienceBeforeAudioFixture;
+        }
         GD.Print($"OPENRPG_FORGE_COMBAT_FEEDBACK_AUDIO_ROUTE_PASS authored={authoredCue.CueId} " +
-                 "fallback=cue.fixture-missing");
+                 $"fixture={usesSyntheticAuthoredCue.ToString().ToLowerInvariant()} fallback=cue.fixture-missing");
 
         var sfxBus = AudioServer.GetBusIndex("SFX");
         AssertSmoke(sfxBus >= 0, "The runtime SFX audio bus is unavailable.");
@@ -5949,320 +5971,6 @@ public partial class GameRoot
         actionBar._Process(delta);
     }
 
-    private async Task RunForgottenForestSmokeTestAsync(ProjectDefinition project, string? benchmarkPath)
-    {
-        AssertSmoke(_isForgottenForestPrototype, "The Forgotten Forest smoke test loaded another module.");
-        var area = project.Areas.Single(candidate => candidate.Slug == "forgotten-forest");
-        AssertSmoke(project.Areas.Count == 6 && project.Areas.Sum(candidate => candidate.Portals.Count) == 10,
-            "The connected world must expose six areas and ten directed portal links.");
-        var inn = project.Areas.Single(candidate => candidate.Slug == "ember-inn");
-        AssertSmoke(project.Module.EntryAreaId == inn.Id,
-            "A new Forgotten Forest game must start inside the Ember Inn.");
-        foreach (var owner in project.Areas)
-            foreach (var portal in owner.Portals)
-            {
-                var travel = PortalLinkRuntimeService.Resolve(project, owner.Id, portal.Id, Vector3Value.Zero, 0);
-                AssertSmoke(travel.DestinationAreaId == portal.DestinationAreaId,
-                    $"Portal '{portal.DisplayName}' did not resolve its authored destination.");
-            }
-        AssertSmoke(area.Kind == AreaKind.Exterior, "Forgotten Forest must remain an exterior area.");
-        AssertSmoke(area.Dimensions == new AreaDimensions(512, 512),
-            "Forgotten Forest must use the authored 512 x 512 production footprint.");
-        AssertSmoke(_terrainVertices == 129 * 129 && _terrainSectors == 64,
-            "The authored 129 x 129 terrain grid was not reconstructed as 64 sectors.");
-        AssertSmoke(_terrainMaterialMode == GodotTerrainMaterialAdapter.ProceduralPbrMode &&
-                    _terrainMaterialLayers == 4,
-            "Forgotten Forest must reconstruct its four-layer procedural PBR terrain material.");
-        AssertSmoke(_terrainScatterLayers == 13,
-            "The biome scatter did not reconstruct the thirteen Poly Haven environment layers.");
-        AssertSmoke(_terrainScatterInstances >= 3_000, "The 512 x 512 dressed forest is too sparse.");
-        AssertSmoke(_terrainWaterSurfaces == 10 && _terrainWaterVolumes == 10,
-            "Forgotten Forest must reconstruct all ten animated river segments and swim volumes.");
-        AssertSmoke(_surfaceNavigationRegions == 1 && _surfaceNavigationPolygons > 0,
-            "Forgotten Forest did not reconstruct its playable surface navigation region.");
-        AssertSmoke(_surfaceNavigationBlockedTriangles > 0 && _surfaceNavigationLinks == 3,
-            "River crossing policy or the three authored bridge traversals are missing from surface navigation.");
-        AssertSmoke(_modelLibrary?.Count >= 122,
-            "All governed environment packs, catalog models and five KayKit variants must be available.");
-        AssertSmoke(_runtimeModelInstances >= 55,
-            "Authored sector landmarks did not use enough governed 3D models.");
-        AssertSmoke(_animatedCharacterInstances == 6 && _animatedCharacterClipNames.Count >= 81,
-            "The five authored KayKit characters and the authored dragon must expose their governed animation clips.");
-        AssertSmoke(_player is not null && _npc is not null && _keyItem is not null && _door is not null &&
-            _boss is not null && _exit is not null, "The playable forest scenario is incomplete.");
-        var playerSpawnPosition = _player!.GlobalPosition;
-        for (var frame = 0; frame < 120; frame++)
-        {
-            await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
-        }
-        AssertSmoke(
-            _player.IsOnFloor() && _player.GlobalPosition.Y >= playerSpawnPosition.Y - .25f,
-            $"The player fell through the terrain at the forest spawn " +
-            $"(start_y={playerSpawnPosition.Y:0.###}, current_y={_player.GlobalPosition.Y:0.###}, " +
-            $"on_floor={_player.IsOnFloor()}).");
-        var exteriorRecoveryStart = _player.GlobalPosition;
-        var exteriorRecoveryCount = _player.FallRecoveryCount;
-        _player.ControlLocked = true;
-        _player.GlobalPosition = exteriorRecoveryStart + (Vector3.Down * 50);
-        for (var frame = 0; frame < 3; frame++)
-            await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
-        AssertSmoke(_player.FallRecoveryCount == exteriorRecoveryCount + 1 &&
-                    _player.GlobalPosition.DistanceTo(exteriorRecoveryStart) <= .1f,
-            "The exterior below-map recovery did not return the player to the last safe terrain position.");
-        _player.ControlLocked = false;
-        GD.Print(
-            $"OPENRPG_FORGE_FORGOTTEN_FOREST_GROUND_CONTACT_PASS " +
-            $"start_y={playerSpawnPosition.Y:0.###} current_y={_player.GlobalPosition.Y:0.###} " +
-            $"on_floor={_player.IsOnFloor()} fall_recovery={_player.FallRecoveryCount}");
-        var movementStart = _player.GlobalPosition;
-        Input.ActionPress("move_forward");
-        try
-        {
-            for (var frame = 0; frame < 30; frame++)
-                await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
-        }
-        finally
-        {
-            Input.ActionRelease("move_forward");
-        }
-        var fastTravel = new Vector2(_player.GlobalPosition.X - movementStart.X,
-            _player.GlobalPosition.Z - movementStart.Z).Length();
-        AssertSmoke(fastTravel >= 4,
-            $"Fast ground movement covered only {fastTravel:0.###} m in 30 physics frames.");
-        GD.Print($"OPENRPG_FORGE_FAST_GROUND_MOVEMENT_PASS multiplier=2.75 distance_30_frames={fastTravel:0.###}");
-        _player.GlobalPosition = movementStart;
-        _player.Velocity = Vector3.Zero;
-        for (var frame = 0; frame < 4; frame++)
-            await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
-        AssertSmoke(_actionBar?.SlotCount == 8,
-            "The fantasy action bar did not reconstruct all eight command slots.");
-        AssertSmoke(HasKeyBinding("jump", Key.Space) && HasKeyBinding("attack", Key.Key1) &&
-                     HasKeyBinding("module_map", Key.M) && HasKeyBinding("toggle_fps", Key.R, ctrl: true),
-            "The runtime keyboard bindings are incomplete.");
-        AssertSmoke(Math.Abs(PlayerController.MovementSpeedMultiplier - 2.75f) < .001f,
-            "The requested fast ground movement is not active.");
-        var runtimeMap = _moduleMap ?? throw new InvalidOperationException("The runtime map was not created.");
-        AssertSmoke(runtimeMap is { MiniMapVisible: true, AreaCount: 6 } &&
-                     runtimeMap.CurrentAreaSlug == "forgotten-forest",
-            "The permanent minimap did not reconstruct the active connected area.");
-        var logicalWidth = ProjectSettings.GetSetting("display/window/size/viewport_width").AsInt64();
-        var logicalHeight = ProjectSettings.GetSetting("display/window/size/viewport_height").AsInt64();
-        AssertSmoke(logicalWidth == 1920 && logicalHeight == 1080,
-            "The runtime HUD must use a Full HD logical canvas for Full HD and QHD displays.");
-        AssertSmoke(runtimeMap.MiniMapLogicalSize is { X: <= 240, Y: <= 150 },
-            $"The minimap is not compact enough ({runtimeMap.MiniMapLogicalSize.X:0}x{runtimeMap.MiniMapLogicalSize.Y:0}).");
-        ToggleModuleMap();
-        AssertSmoke(runtimeMap.GlobalMapVisible && _player.ControlLocked,
-            "The M key module map did not open or lock exploration input.");
-        ToggleModuleMap();
-        AssertSmoke(!runtimeMap.GlobalMapVisible && !_player.ControlLocked,
-            "Closing the module map did not restore exploration input.");
-        _hud!.SetFpsVisible(true);
-        _hud.UpdatePerformance(60);
-        AssertSmoke(_hud.FpsVisible, "The FPS counter could not be enabled.");
-        _hud.SetFpsVisible(false);
-
-        var jumpStartY = _player.GlobalPosition.Y;
-        AssertSmoke(_player.QueueJump(), "The grounded player refused the jump request.");
-        var jumpMaximumY = jumpStartY;
-        for (var frame = 0; frame < 45; frame++)
-        {
-            await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
-            jumpMaximumY = Math.Max(jumpMaximumY, _player.GlobalPosition.Y);
-        }
-        for (var frame = 0; frame < 180 && !_player.IsOnFloor(); frame++)
-        {
-            await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
-        }
-        AssertSmoke(_player.JumpCount == 1 && jumpMaximumY >= jumpStartY + 1f && _player.IsOnFloor(),
-            $"The MMO jump did not complete a stable physical arc " +
-            $"(start_y={jumpStartY:0.###}, max_y={jumpMaximumY:0.###}, " +
-            $"current_y={_player.GlobalPosition.Y:0.###}, count={_player.JumpCount}).");
-        GD.Print(
-            $"OPENRPG_FORGE_FORGOTTEN_FOREST_MMO_CONTROLS_PASS speed_multiplier=2.75 " +
-            $"jump_height={jumpMaximumY - jumpStartY:0.###} action_slots={_actionBar!.SlotCount} " +
-            $"attack=1 jump=space map=m minimap=visible hud={logicalWidth}x{logicalHeight} " +
-            $"minimap_size={runtimeMap.MiniMapLogicalSize.X:0}x{runtimeMap.MiniMapLogicalSize.Y:0} " +
-            "fps=ctrl+r camera=dual-mouse-orbit");
-        AssertSmoke(_hostiles.Count == 7, "Forgotten Forest must reconstruct its scouts, goblins and boss.");
-        AssertSmoke(_portalNodes.Count == 4, "Forgotten Forest must reconstruct its four playable portals.");
-        AssertSmoke(project.Dialogues.Count == 1 && project.Quests.Count == 1,
-            "Forgotten Forest dialogue or quest data is missing.");
-        AssertSmoke(area.RuntimePolicies.Experience.AudioCues.Count == 3 &&
-                    area.RuntimePolicies.Experience.ScatterEmitters.Count == 3,
-            "Forgotten Forest procedural audio authoring is incomplete.");
-        foreach (var cue in area.RuntimePolicies.Experience.AudioCues)
-        {
-            var clip = ProceduralAmbientAudioService.Create(cue.Resource);
-            AssertSmoke(string.Equals(clip.ContentSha256, cue.ContentSha256, StringComparison.Ordinal),
-                $"Procedural audio hash is stale for '{cue.CueId}'.");
-            AssertSmoke(LoadAudioStream(cue.Resource) is AudioStreamWav { Data.Length: > 0 },
-                $"Procedural audio stream could not be reconstructed for '{cue.CueId}'.");
-        }
-        AssertSmoke(_ambientVfxEmitters == 0 && _ambientVfxParticles == 0,
-            "Forgotten Forest must not reconstruct untextured ambient particle quads.");
-        var navigationPathStarted = Stopwatch.GetTimestamp();
-        var navigationPath = Array.Empty<Vector3>();
-        for (var frame = 0; frame < 120 && navigationPath.Length < 2; frame++)
-        {
-            // NavigationServer3D synchronizes regions after the physics step. Querying it directly
-            // from _Ready is timing-dependent on a cold engine launch.
-            await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
-            navigationPath = NavigationServer3D.MapGetPath(
-                GetWorld3D().NavigationMap,
-                _player!.GlobalPosition,
-                _exit!.GlobalPosition,
-                optimize: true);
-        }
-        AssertSmoke(navigationPath.Length >= 2,
-            "Godot surface navigation could not find a path from the forest spawn to the sanctuary.");
-        var navigationPathMilliseconds = Stopwatch.GetElapsedTime(navigationPathStarted).TotalMilliseconds;
-
-        var sculptureHandler = new EditTerrainBrushHandler(new SystemClock());
-        var sculptureStarted = Stopwatch.GetTimestamp();
-        var sculpture = sculptureHandler.Handle(
-            new ProjectState(project, new ProjectRevision(0)),
-            new EditTerrainBrushCommand(
-                CommandId.From(Guid.Parse("f5d1ca15-4a39-46ba-a8e2-74dde7188258")),
-                new ProjectRevision(0),
-                area.Id,
-                new TerrainBrushStroke(TerrainBrushOperation.Raise, -48, -48, 3, .05f),
-                DryRun: false));
-        var sculptureMilliseconds = Stopwatch.GetElapsedTime(sculptureStarted).TotalMilliseconds;
-        AssertSmoke(sculpture.Succeeded && sculpture.NewRevision?.Value == 1,
-            "Transactional terrain sculpture benchmark did not produce an isolated revision.");
-
-        var terrainMetrics = _terrainBuildMetrics ??
-            throw new InvalidOperationException("Terrain build metrics were not captured.");
-        var benchmark = TerrainProductionBenchmark.Evaluate(new TerrainProductionBenchmarkSample(
-            _moduleSlug,
-            area.World.Terrain.Width,
-            area.World.Terrain.Depth,
-            area.World.Terrain.SamplesX * area.World.Terrain.SamplesZ,
-            _terrainVertices,
-            _terrainTriangles,
-            _terrainCollisionShapes,
-            _terrainScatterLayers,
-            _terrainScatterInstances,
-            _surfaceNavigationRegions,
-            _surfaceNavigationPolygons,
-            _surfaceNavigationBlockedTriangles,
-            _surfaceNavigationLinks,
-            navigationPath.Length,
-            _modelLibrary?.LodAssetCount ?? 0,
-            _modelLibrary?.LodLevelCount ?? 0,
-            _terrainCullingGroups,
-            _modelLibrary?.GovernedStoredBytes ?? 0,
-            terrainMetrics.ManagedAllocatedBytes + _surfaceNavigationManagedAllocatedBytes,
-            Math.Max(0, _terrainManagedHeapAfterBytes - _terrainManagedHeapBeforeBytes),
-            Math.Max(0, _terrainWorkingSetAfterBytes - _terrainWorkingSetBeforeBytes),
-            terrainMetrics.TotalMilliseconds,
-            terrainMetrics.CollisionMilliseconds,
-            _surfaceNavigationBuildMilliseconds,
-            sculptureMilliseconds,
-            navigationPathMilliseconds,
-            sculpture.Succeeded), TerrainProductionBenchmarkBudget.ProductionExterior512);
-        if (!string.IsNullOrWhiteSpace(benchmarkPath))
-        {
-            WriteTerrainBenchmark(benchmarkPath, benchmark);
-        }
-        AssertSmoke(benchmark.Passed,
-            $"Terrain benchmark exceeded budget: {string.Join(',', benchmark.Checks.Where(check => !check.Passed).Select(check => check.Key))}.");
-        GD.Print(
-            $"OPENRPG_FORGE_AV4A_TERRAIN_BENCHMARK_PASS area={area.World.Terrain.Width:0}x{area.World.Terrain.Depth:0} " +
-            $"memory_mb={benchmark.Sample.ProcessWorkingSetDeltaBytes / 1048576d:0.###} " +
-            $"rebuild_ms={benchmark.Sample.ReconstructionMilliseconds:0.###} " +
-            $"collision_ms={benchmark.Sample.CollisionMilliseconds:0.###} " +
-            $"nav_ms={benchmark.Sample.NavigationMilliseconds:0.###} " +
-            $"sculpture_ms={benchmark.Sample.SculptureMilliseconds:0.###} " +
-            $"lod_assets={benchmark.Sample.LodAssetCount} lod_levels={benchmark.Sample.LodLevelCount} " +
-            $"culling_groups={benchmark.Sample.CullingGroupCount}");
-        GD.Print(
-            $"OPENRPG_FORGE_RUNTIME_R036_EE_PASS nav_regions={_surfaceNavigationRegions} " +
-            $"nav_polygons={_surfaceNavigationPolygons} blocked={_surfaceNavigationBlockedTriangles} " +
-            $"links={_surfaceNavigationLinks} path_points={navigationPath.Length} " +
-            $"rebuild_ms={_surfaceNavigationBuildMilliseconds:0.###} query_ms={navigationPathMilliseconds:0.###}");
-        GD.Print(
-            $"OPENRPG_FORGE_FORGOTTEN_FOREST_POLISH_PASS audio_cues={area.RuntimePolicies.Experience.AudioCues.Count} " +
-            $"scatter={area.RuntimePolicies.Experience.ScatterEmitters.Count} vfx_emitters={_ambientVfxEmitters} " +
-            $"vfx_particles={_ambientVfxParticles} water_animated={_terrainWaterSurfaces} provenance=builtin");
-        GD.Print(
-            $"OPENRPG_FORGE_FORGOTTEN_FOREST_ANIMATION_PASS characters={_animatedCharacterInstances} " +
-            $"variants=6 clips={_animatedCharacterClipNames.Count} " +
-            "rig=kaykit-rig-medium-41+quaternius-dragon-35 " +
-            "source=kaykit:character-pack-adventures-1.0+quaternius:lowpoly-animated-monsters");
-
-        InteractWith(_npc!);
-        AssertSmoke(_questMachine?.CurrentState.DisplayName == "La Graine de lune",
-            "Guide dialogue did not start the forest quest.");
-        InteractWith(_keyItem!);
-        AssertSmoke(_inventory.Contains("moonseed"), "Moonseed interaction did not update the inventory.");
-        InteractWith(_door!);
-        AssertSmoke(_doorUnlocked && _questMachine?.CurrentState.DisplayName == "Le Gardien des Racines",
-            "The Moonseed did not open the bramble passage.");
-        while (_hostiles.TryGetValue(_boss!, out var combatant) && combatant.Health > 0)
-        {
-            DamageHostile(_boss!);
-        }
-
-        AssertSmoke(_bossPhaseTwo, "The Root Guardian phase two script did not execute.");
-        AssertSmoke(_bossDefeated && _questMachine?.Completed == true,
-            "The Root Guardian defeat did not complete the data-driven quest.");
-        AssertSmoke(_player!.AttackAnimationCount > 0 && _combatHitAnimationCount > 0 &&
-                    _combatDeathAnimationCount == 1,
-            "Combat did not play the governed attack, hit and death animations.");
-        GD.Print(
-            $"OPENRPG_FORGE_FORGOTTEN_FOREST_COMBAT_ANIMATION_PASS " +
-            $"attack={_player.AttackAnimationCount} hit={_combatHitAnimationCount} " +
-            $"death={_combatDeathAnimationCount} clip={_player.CurrentAnimationClip}");
-        _player!.GlobalPosition = _exit!.GlobalPosition;
-        _escaped = true;
-        GD.Print(
-            $"OPENRPG_FORGE_FORGOTTEN_FOREST_SMOKE_PASS terrain={_terrainVertices} sectors={_terrainSectors} " +
-            $"material={_terrainMaterialMode} material_layers={_terrainMaterialLayers} " +
-            $"scatter_layers={_terrainScatterLayers} scatter_instances={_terrainScatterInstances} " +
-            $"water_surfaces={_terrainWaterSurfaces} water_volumes={_terrainWaterVolumes} " +
-            $"nav_regions={_surfaceNavigationRegions} nav_polygons={_surfaceNavigationPolygons} " +
-            $"nav_blocked={_surfaceNavigationBlockedTriangles} nav_links={_surfaceNavigationLinks} " +
-            $"nav_path_points={navigationPath.Length} " +
-            $"manifests={_modelLibrary!.Count} model_instances={_runtimeModelInstances} " +
-            $"animated_characters={_animatedCharacterInstances} animation_clips={_animatedCharacterClipNames.Count} " +
-            $"entities={_builtEntityCount} quest=completed boss=defeated camera=orbit");
-        GetTree().Quit(0);
-    }
-
-    private static void WriteTerrainBenchmark(string path, TerrainProductionBenchmarkReport report)
-    {
-        var absolute = Path.GetFullPath(path);
-        Directory.CreateDirectory(Path.GetDirectoryName(absolute)!);
-        var temporary = $"{absolute}.{Guid.NewGuid():N}.tmp";
-        try
-        {
-            File.WriteAllText(temporary, JsonSerializer.Serialize(report, new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                WriteIndented = true,
-            }), new UTF8Encoding(false));
-            File.Move(temporary, absolute, overwrite: true);
-        }
-        finally
-        {
-            if (File.Exists(temporary)) File.Delete(temporary);
-        }
-    }
-
-    private void RunRpgKitHeadlessSmokeTest(ProjectDefinition project)
-    {
-        AssertSmoke(string.Equals(_moduleSlug, "la-veillee-des-eclats", StringComparison.Ordinal), "Unexpected RPG Kit smoke module.");
-        AssertSmoke(_builtEntityCount == 8, "Expected eight authored entities.");
-        AssertSmoke(_collisionCount >= 3, "Expected authored floor, placeable and door collisions.");
-        AssertSmoke(_player is not null, "The authored player spawn was not reconstructed.");
-        AssertSmoke(_hostiles.Count == 2, "Expected both authored combat profiles to be reconstructed.");
-        AssertSmoke(project.Dialogues.Count == 1 && project.Dialogues.Single().Nodes.Count == 2, "Expected the authored dialogue graph.");
-        AssertSmoke(project.Quests.Count == 1 && project.Quests.Single().States.Count == 3, "Expected the authored quest state machine.");
-        GD.Print($"OPENRPG_FORGE_RUNTIME_G8_MODULE_PASS slug={_moduleSlug} entities={_builtEntityCount} collisions={_collisionCount} combat={_hostiles.Count} dialogues=1 quests=1");
-        GetTree().Quit(0);
-    }
 
     private static void AssertSmoke(bool condition, string message)
     {

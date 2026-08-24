@@ -80,7 +80,7 @@ internal static class Program
         RequiredFile(root, RuntimeProjectRelativePath);
         RequiredFile(root, ContextRelativePath);
         RequiredFile(root, "workspace/AGENTS.md");
-        RequiredFile(root, "workspace/apps/Forge.Runtime/content/forgotten-forest/project.json");
+        RequiredFile(root, "workspace/apps/Forge.Runtime/content/crypt-of-ashes/project.json");
         return new CreatorLayout(enginePath, toolsetPath);
     }
 

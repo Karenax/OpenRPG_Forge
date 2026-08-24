@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 from pathlib import Path, PurePosixPath
 import shutil
@@ -60,6 +61,28 @@ PACKS: tuple[dict[str, Any], ...] = (
         "license_path": "Modular Character Outfits - Fantasy[Standard]/License_Standard.txt",
         "categories": ["Characters", "Animations", "Props"],
         "tags": ["character", "outfit", "modular", "rigged", "fantasy", "medieval"],
+    },
+    {
+        "source": "quaternius",
+        "slug": "universal-animation-library-2-standard-2026-06-16",
+        "name": "Universal Animation Library 2",
+        "author": "Quaternius",
+        "version": "Standard-2026-06-16-root-motion",
+        "archive": "Universal Animation Library 2[Standard].zip",
+        "sha256": "4008ea208a604773a2b2177d965f0f5d3195498b5bf838c3f5785d68e95f2a68",
+        "source_page": "https://quaternius.itch.io/universal-animation-library-2",
+        "license_path": "Universal Animation Library 2[Standard]/License.txt",
+        "categories": ["Animations", "Characters", "Weapons"],
+        "tags": [
+            "animation",
+            "humanoid",
+            "combat",
+            "locomotion",
+            "parkour",
+            "farming",
+            "root-motion",
+            "medieval",
+        ],
     },
     {
         "source": "quaternius",
@@ -289,10 +312,18 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--inbox", type=Path)
     parser.add_argument("--catalog-output", type=Path)
     parser.add_argument("--pack", action="append", choices=[pack["slug"] for pack in PACKS])
+    parser.add_argument(
+        "--merge-existing",
+        action="store_true",
+        help="Preserve unselected entries already present in the destination catalog.",
+    )
     args = parser.parse_args(sys.argv[1:] if argv is None else argv)
     repo_root = Path(__file__).resolve().parents[2]
     vault = (args.vault or default_vault(repo_root)).resolve()
     inbox = (args.inbox or vault / "inbox" / "manual").resolve()
+    output = args.catalog_output or repo_root / "asset_manifests" / "catalogs" / "manual_itch_cc0_packs.json"
+    if not output.is_absolute():
+        output = repo_root / output
     selected = [pack for pack in PACKS if not args.pack or pack["slug"] in args.pack]
     catalog_date = time.strftime("%Y-%m-%d", time.gmtime())
     retrieved_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
@@ -305,6 +336,17 @@ def main(argv: list[str] | None = None) -> int:
         except Exception as error:  # Continue independently audited packs.
             errors.append({"pack_id": f"{pack['source']}:{pack['slug']}", "error": str(error)})
             print(f"[Manual ERROR {index}/{len(selected)}] {pack['slug']}: {error}", flush=True)
+    if args.merge_existing and output.is_file():
+        existing = json.loads(output.read_text(encoding="utf-8"))
+        if existing.get("schema_version") != 1 or existing.get("license_policy") != "cc0-only":
+            raise RuntimeError(f"Cannot merge an incompatible manual catalog: {output}")
+        if existing.get("error_count", 0) != 0:
+            raise RuntimeError(f"Cannot merge a manual catalog that already contains errors: {output}")
+        imported_ids = {item["pack_id"] for item in packs}
+        packs.extend(
+            item for item in existing.get("packs", [])
+            if item.get("pack_id") not in imported_ids
+        )
     packs.sort(key=lambda item: item["pack_id"])
     catalog = {
         "schema_version": 1,
@@ -320,9 +362,6 @@ def main(argv: list[str] | None = None) -> int:
         "errors": errors,
         "packs": packs,
     }
-    output = args.catalog_output or repo_root / "asset_manifests" / "catalogs" / "manual_itch_cc0_packs.json"
-    if not output.is_absolute():
-        output = repo_root / output
     atomic_write_json(output, catalog)
     atomic_write_json(vault / "logs" / "latest-manual-itch-cc0.json", catalog)
     print(f"Catalog: {output}")

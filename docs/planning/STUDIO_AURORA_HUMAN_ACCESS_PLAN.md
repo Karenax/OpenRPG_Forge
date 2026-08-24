@@ -269,7 +269,7 @@ pas une estimation d’effort. Chaque incrément d’implémentation reste born�
 
 ### Ordre interne de chaque vague
 
-1. Reprendre un parcours réel de Forgotten Forest et un cas vide minimal.
+1. Reprendre un parcours réel de Crypte des Cendres et un cas vide minimal.
 2. Sélectionner un lot cohérent de une à cinq IDs dans la matrice.
 3. Écrire le scénario humain et les états vide, chargement, succès, avertissement et erreur.
 4. Brancher la commande Application et la préservation des données avant d’activer le contrôle.
@@ -580,7 +580,7 @@ la ligne est `functional` et liée à `docs/acceptance/STUDIO_UX1_N.md`.
 `UX1-O — Conversation` qualifie `ORF-PLC-011` : dialogue et point d’entrée, cinq sources de
 déclenchement, priorité, usage unique et aperçu sans écriture, avec projection et décision RPG Kit,
 lecture ForgeScript/MCP, préservation du dialogue Aurora historique, undo/redo et round-trip. Les
-captures Forward+ Full HD, QHD et 4K ont été inspectées sur le catalogue réel de Forgotten Forest,
+captures Forward+ Full HD, QHD et 4K ont été inspectées sur le catalogue réel de Crypte des Cendres,
 sans sauvegarder de liaison de preuve ; la ligne est `functional` et liée à
 `docs/acceptance/STUDIO_UX1_O.md`.
 
@@ -590,7 +590,7 @@ sans sauvegarder de liaison de preuve ; la ligne est `functional` et liée à
 compétence et difficulté, code masqué, piratage, droits, reverrouillage, brouillage et aperçu sans
 écriture, avec résolution RPG Kit, lecture ForgeScript/MCP sans secret, préservation, undo/redo et
 round-trip. Les captures Forward+ Full HD, QHD et 4K ont été inspectées sur le catalogue réel de
-Forgotten Forest, sans sauvegarder de verrou de preuve ; la ligne est `functional` et liée à
+Crypte des Cendres, sans sauvegarder de verrou de preuve ; la ligne est `functional` et liée à
 `docs/acceptance/STUDIO_UX1_P.md`.
 
 ## Incrément livré : UX1-Q
@@ -598,7 +598,7 @@ Forgotten Forest, sans sauvegarder de verrou de preuve ; la ligne est `functiona
 `UX1-Q — Clé consommée` qualifie `ORF-PLC-013` : conservation, consommation, charges, partage,
 permission virtuelle et audit, avec aperçu sans écriture, décision RPG Kit, lecture ForgeScript/MCP,
 préservation du verrou et des autres données, undo/redo et round-trip. Les captures Forward+ Full HD,
-QHD et 4K ont été inspectées sur le catalogue réel de Forgotten Forest, sans sauvegarder de politique
+QHD et 4K ont été inspectées sur le catalogue réel de Crypte des Cendres, sans sauvegarder de politique
 de preuve ; la ligne est `functional` et liée à `docs/acceptance/STUDIO_UX1_Q.md`.
 
 ## Incrément livré : UX1-R
@@ -607,7 +607,7 @@ de preuve ; la ligne est `functional` et liée à `docs/acceptance/STUDIO_UX1_Q.
 propriétaire, politique alliée, VFX, état armé et usage unique, avec aperçu sans effet de scène,
 projection RPG Kit, lecture ForgeScript/MCP, sous-profils de sécurité indépendants, préservation des
 événements voisins, undo/redo et round-trip. Les captures Forward+ Full HD, QHD et 4K ont été
-inspectées sur le catalogue réel de Forgotten Forest, sans sauvegarder de piège de preuve ; la ligne
+inspectées sur le catalogue réel de Crypte des Cendres, sans sauvegarder de piège de preuve ; la ligne
 est `functional` et liée à `docs/acceptance/STUDIO_UX1_R.md`.
 
 ## Incrément livré : UX1-S
@@ -617,7 +617,7 @@ qualité, conditions, unicité, moments chargement/ouverture/réinitialisation, 
 persistant, avec remise à zéro explicite et aperçu sans écriture. La projection RPG Kit est
 indépendante du piège et des anciens événements voisins ; lecture ForgeScript/MCP, préservation,
 undo/redo et round-trip sont prouvés. Les captures Forward+ Full HD, QHD et 4K ont été inspectées sur
-le catalogue réel de Forgotten Forest, sans sauvegarder de trésor de preuve ; la ligne est
+le catalogue réel de Crypte des Cendres, sans sauvegarder de trésor de preuve ; la ligne est
 `functional` et liée à `docs/acceptance/STUDIO_UX1_S.md`.
 
 ## Incrément livré : UX1-T
@@ -626,7 +626,7 @@ le catalogue réel de Forgotten Forest, sans sauvegarder de trésor de preuve ; 
 OnClose, acteur, résultat, état précédent et autorité, avec aperçu de dispatch sans écriture. La
 projection RPG Kit est indépendante du piège, du trésor et des autres événements ; lecture
 ForgeScript/MCP, validation optionnelle ou requise, préservation, undo/redo et round-trip sont
-prouvés. La capture Forward+ Full HD a été inspectée sur le catalogue réel de Forgotten Forest,
+prouvés. La capture Forward+ Full HD a été inspectée sur le catalogue réel de Crypte des Cendres,
 sans sauvegarder d’événements de preuve ; la ligne est `functional` et liée à
 `docs/acceptance/STUDIO_UX1_T.md`. Les preuves QHD et 4K sont réservées au jalon multi-lots.
 
@@ -636,7 +636,7 @@ sans sauvegarder d’événements de preuve ; la ligne est `functional` et liée
 avant et après, méthode, justificatif, acteur et veto contrôlé, avec aperçus accepté ou refusé sans
 écriture. La projection RPG Kit est indépendante du piège, du trésor et des événements voisins ;
 lecture ForgeScript/MCP, validation optionnelle ou requise, préservation, undo/redo et round-trip
-sont prouvés. La capture Forward+ Full HD a été inspectée sur le catalogue réel de Forgotten Forest,
+sont prouvés. La capture Forward+ Full HD a été inspectée sur le catalogue réel de Crypte des Cendres,
 sans sauvegarder d’événements de preuve ; la ligne est `functional` et liée à
 `docs/acceptance/STUDIO_UX1_U.md`. Les preuves QHD et 4K sont réservées au jalon multi-lots.
 
@@ -904,7 +904,7 @@ Studio, Toolset, Runtime, Forward+, MCP, réseau et distribution. Cette preuve g
 `ORF-FAC-006` à `ORF-FAC-010` sont `functional`. La page Contenu social édite réputation
 personnelle et globale, propagation par témoins, affiliations multiples et factions dynamiques dans
 le catalogue canonique. Le portail incrémental passe 51/51 tests factions en 102,95 s, le smoke
-global et deux captures Forward+ FHD inspectées : fallback temporaire sur Forgotten Forest et copie
+global et deux captures Forward+ FHD inspectées : fallback temporaire sur Crypte des Cendres et copie
 des données réelles de la Crypte. La matrice atteint 226 routes `functional` et 491 `planned`.
 Les limites runtime et commandes de reproduction sont liées dans
 `docs/acceptance/STUDIO_UX4_B.md` ; `ORF-FAC-011` à `ORF-FAC-014` relevaient du lot UX4-C suivant.
@@ -1224,7 +1224,7 @@ Les routes `ORF-SCR-012` à `ORF-SCR-016` sont `functional` dans une surface à 
 cinq onglets : inventaire, journal/quêtes, dialogues, factions/réputation et perception. La page
 réutilise strictement la source, l’historique, le dry-run, la compilation, la sandbox et l’écriture
 atomique UX6-F ; son bloc versionné doit être construit, relu puis inséré explicitement. Les
-catalogues proviennent du projet ouvert, et l’absence de faction dans Forgotten Forest reste un
+catalogues proviennent du projet ouvert, et l’absence de faction dans Crypte des Cendres reste un
 état vide honnête ; seule la copie temporaire de preuve reçoit une faction canonique. Le portail
 incrémental passe 13/13 tests en 166,56 s, le smoke global et une capture Forward+ FHD corrigée puis
 inspectée. La matrice atteint 456 routes `functional` et 261 `planned` ; UX6 reste ouverte à 36/84.
@@ -1238,7 +1238,7 @@ Les routes `ORF-SCR-009`, `ORF-SCR-017`, `ORF-SCR-021`, `ORF-SCR-022` et `ORF-SC
 `functional` dans une surface à deux colonnes et cinq onglets humains. La page réutilise strictement
 la source, l’historique, le dry-run, la compilation, la sandbox et l’écriture atomique UX6-F ; le
 bloc R013 versionné doit être construit, relu puis inséré explicitement. Zones, tags et blueprints
-proviennent de Forgotten Forest réel, tandis que toutes les intentions monde et mouvement sont
+proviennent de Crypte des Cendres réel, tandis que toutes les intentions monde et mouvement sont
 appliquées à une copie en mémoire. Le portail incrémental passe 18/18 tests en 197,50 s, le smoke
 global et une capture Forward+ FHD inspectée. La matrice atteint 461 routes `functional` et 256
 `planned` ; UX6 reste ouverte à 41/84. Preuves et limites sont liées dans
@@ -1251,7 +1251,7 @@ Les routes `ORF-SCR-028`, `ORF-SCR-029`, `ORF-SCR-030`, `ORF-SCR-031` et `ORF-SC
 `functional` dans une surface à deux colonnes et cinq onglets : handles, instructions, mémoire,
 déterminisme et API. La source UX6-F reste revue et compilée sans mutation ; une politique R014
 séparée passe par son propre historique, son dry-run, son empreinte et son store atomique. Les
-catalogues de zone, objet et ressource proviennent de Forgotten Forest et restent affichés par
+catalogues de zone, objet et ressource proviennent de Crypte des Cendres et restent affichés par
 libellés humains. Le portail final passe 27/27 tests en 156,85 s, le smoke global et une capture
 Forward+ FHD corrigée puis inspectée. La matrice atteint 466 routes `functional` et 251 `planned` ;
 UX6 reste ouverte à 46/84. Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX6_J.md` ;
@@ -1678,7 +1678,7 @@ revendiqué.
 ### UX8-F — Dépendances, notices, crédits et frontière IP
 
 `ORF-BUILD-022`, `ORF-BUILD-023`, `ORF-CONT-030` et `ORF-CONT-031` sont `functional` dans la page
-Production. L’inspection conserve l’état réel vide de Forgotten Forest ; une approbation complète est
+Production. L’inspection conserve l’état réel vide de Crypte des Cendres ; une approbation complète est
 créée uniquement dans l’isolat de preuve. Le formulaire passe par `DistributionComplianceValidator`
 puis `SetModuleDistributionHandler`, lie l’approbation à la révision et aux empreintes exactes, et
 prouve dry-run, application, undo/redo puis save/reopen. La notice Shipping est générée deux fois et
@@ -1691,7 +1691,7 @@ externe, package, signature, écriture du registre d’assets ou publication n'e
 ### UX8-G — Packages versionnés, priorité et dépendances
 
 `ORF-PROJ-020` et `ORF-CONT-001`, `ORF-CONT-002`, `ORF-CONT-003`, `ORF-CONT-007` sont
-`functional` dans la page Packages. Forgotten Forest conserve son catalogue vide ; la preuve riche
+`functional` dans la page Packages. Crypte des Cendres conserve son catalogue vide ; la preuve riche
 reste un brouillon local et une transaction dans un workspace temporaire. La surface édite les
 packages et leurs dépendances avec identités stables, recalcule les hashes, prévisualise ordre et
 conflits, puis passe par `SetContentWorkspaceHandler` avant undo/redo et save/reopen.

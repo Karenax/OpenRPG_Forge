@@ -49,7 +49,7 @@ et l'inspection respecte une annulation coopérative.
 - smoke Godot global : marker `OPENRPG_FORGE_STUDIO_UX8_D_PASS` avec `routes`, `selection`, `git`,
   `layout`, `semver`, `adrs`, `cancel`, `logs`, `navigation`, `ui`, `human`, `source_unchanged` et
   `surface_restored` à `true` ;
-- capture Forward+ **1920×1080** sur Forgotten Forest réel, inspectée après deux corrections : quatre
+- capture Forward+ **1920×1080** sur Crypte des Cendres réel, inspectée après deux corrections : quatre
   cartes, quatre résultats, détail SemVer, trois actions, statut et limites visibles sans clipping ;
 - portail incrémental complet : **PASS en 535,79 s** — build 1,33 s, tests Domain 1,49 s,
   Application 2,32 s et ModuleFormat 3,99 s, smoke 412,90 s, capture 7,50 s, matrice 0,87 s,

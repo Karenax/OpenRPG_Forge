@@ -53,7 +53,7 @@ avant le dry-run. Les types pris en charge sont String, Integer, Number, Boolean
 
 - aucun ForgeScript, acteur, inventaire, repos, scheduler moteur ou réseau n’est exécuté dans Studio ;
   les services Domain/Application produisent seulement des dispatches et snapshots en mémoire ;
-- Forgotten Forest ne possède aucun profil événement riche : sa capture utilise un fallback canonique
+- Crypte des Cendres ne possède aucun profil événement riche : sa capture utilise un fallback canonique
   temporaire. La capture Crypte utilise le vrai `Gardien des Cendres`. Les deux travaillent sur une
   copie isolée et la source reste inchangée ;
 - le profil global reste requis ou optionnel, mais UX4-N ne retire jamais silencieusement les bindings

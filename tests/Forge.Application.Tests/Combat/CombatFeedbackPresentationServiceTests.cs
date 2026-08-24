@@ -93,13 +93,13 @@ public sealed class CombatFeedbackPresentationServiceTests
 
     private static AbilityDefinition DamageAbility(int damage, double cooldown) => new(
         AbilityId,
-        "forest-strike",
+        "test-strike",
         "Frappe de la clairière",
         0,
         cooldown,
         AbilityTargeting.SingleEnemy,
         [new AbilityEffect(AbilityEffectKind.Damage, damage)],
-        new AbilityVisualCue("cue.forest-strike"));
+        new AbilityVisualCue("cue.test-strike"));
 
     private static CombatantState Combatant(
         string id,

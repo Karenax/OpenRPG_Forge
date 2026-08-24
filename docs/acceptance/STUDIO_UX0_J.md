@@ -20,7 +20,7 @@ une publication Git.
   adresse interne, rouvre le projet, renomme une ressource ForgeScript, migre une référence textuelle,
   vérifie l’identité stable, annule/rétablit les deux familles de mutations, bloque un nom invalide,
   applique puis annule/rétablit un correctif réel et exporte deux fois le même bundle déterministe ;
-- Forgotten Forest reste le workspace d’inspection, mais n’est jamais modifiée par le smoke ;
+- Crypte des Cendres reste le workspace d’inspection, mais n’est jamais modifiée par le smoke ;
 - journal headless : `artifacts/verification/studio-shell/ux0-j/headless-smoke.log` ;
 - journaux Forward+ : `forwardplus-fhd.log`, `forwardplus-qhd.log` et `forwardplus-4k.log` dans
   `artifacts/verification/studio-shell/ux0-j/`, sous Godot 4.7.1 Mono, Vulkan et

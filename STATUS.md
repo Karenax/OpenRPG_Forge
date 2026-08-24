@@ -19,15 +19,19 @@ confondu avec une release publique signée.
 
 - Creator historique et runtime 3D séparés, exclusivement présentés sous la marque OpenRPG Forge ;
 - `Forge.Studio` autonome : Module Hub, une fenêtre, huit rubriques, trente-six pages, 717 routes
-  humaines, Forgotten Forest, édition directe, validation, playtest isolé et Assistant gouverné ;
+  humaines, Crypte des Cendres, édition directe, validation, playtest isolé et Assistant gouverné ;
 - neuf espaces du Creator historique, mode Débutant à quatre espaces et outils spécialisés intégrés ;
 - projets, zones, blueprints, assets gouvernés, dialogues, quêtes, scripts et contenu RPG ;
+- pack Asset Vault **Médiéval** : 365 modèles Quaternius locaux, regroupés à partir de cinq archives
+  CC0 vérifiées et visibles comme une collection unique dans le Studio et l’Asset Atlas ;
 - validation, correctifs prévisualisés, undo/redo, playtest, sauvegarde/reprise et export `.orpmod` ;
 - Assistant et host MCP transactionnels, bornés, facultatifs et sans shell arbitraire ;
 - distributions Windows x64 autonomes du Creator et du Runtime ;
 - lanceur Windows configurable par jeu avec branding, réglages persistants et hébergement local autoritaire ;
 - installateur/désinstallateur NSIS avec contrôle de mise à jour et préservation des données utilisateur ;
-- Crypte des Cendres et Forgotten Forest jouables en Forward+ avec modèles 3D gouvernés ;
+- Crypte des Cendres jouable en Forward+ avec modèles 3D gouvernés ;
+- outils réutilisables de terrain, biome forestier et gouvernance d'assets conservés indépendamment
+  du module canonique ;
 - interface de combat runtime autoritaire, animée, accessible et bornée par des pools stables.
 
 ## Couverture et preuves
@@ -289,7 +293,7 @@ confondu avec une release publique signée.
   524,12 s. Le graphe Roslyn atteint 11 566 nœuds / 90 143 relations / 0 diagnostic, frais et
   déterministe. Aucun modèle externe, réseau implicite, exécutable Blender, module source, commit ou
   publication n’est utilisé ou muté par cette qualification.
-- UX11-B termine la revue humaine corrective des 36 pages : module vide et Forgotten Forest,
+- UX11-B termine la revue humaine corrective des 36 pages : module vide et Crypte des Cendres,
   recherche et références, manipulation 3D, ajout/duplication/suppression, sauvegarde/réouverture,
   dialogue, quête UX5, scripts, diagnostics et **Tester ici** ont été rejoués. La seconde matrice
   visuelle couvre 36/36 pages en FHD 100 %, QHD 150 % et 4K 200 % sans défaut bloquant. Les 66 lignes
@@ -493,13 +497,13 @@ confondu avec une release publique signée.
   atteint 624 `functional` / 93 `planned` et `full_gate=false` reste explicite dans
   `docs/acceptance/STUDIO_UX7_I.md`.
 - portail transversal complet du jalon UX6-E à UX6-G réussi avec 2 035 tests .NET, 39 tests Python
-  et les smokes Studio, Toolset, Runtime/Forward+, Forgotten Forest, Blender, MCP, réseau,
+  et les smokes Studio, Toolset, Runtime/Forward+, Crypte des Cendres, Blender, MCP, réseau,
   sauvegarde/reprise et distribution ;
 - portail transversal complet du jalon UX6-A à UX6-D réussi avec 2 035 tests .NET, 39 tests Python
-  et les smokes Studio, Toolset, Runtime, Forward+, Forgotten Forest, Blender, MCP, réseau,
+  et les smokes Studio, Toolset, Runtime, Forward+, Crypte des Cendres, Blender, MCP, réseau,
   sauvegarde/reprise et distribution ;
 - portail transversal complet du lot Crypte réussi avec 2 118 tests .NET, 64 tests Python et les
-  smokes Studio, Toolset, Runtime/Forward+, Forgotten Forest, Blender, MCP, réseau,
+  smokes Studio, Toolset, Runtime/Forward+, Crypte des Cendres, Blender, MCP, réseau,
   sauvegarde/reprise et distribution ;
 - graphe Roslyn courant déterministe et sans diagnostic ; les compteurs évolutifs restent lus dans
   `docs/architecture/graph.json` et ne sont plus recopiés manuellement dans ce statut.
@@ -559,7 +563,7 @@ revue visuelle humaine complète FHD/QHD n’a été réalisée dans ce lot.
   gouvernés en Forward+, sélection 3D et inspecteur unique ;
 - UX0-A qualifié : Explorateur compact synchronisé avec la 3D, filtres enregistrables, recherche
   globale `Ctrl+K`, références inverses et aide contextuelle sourcée ; smoke dédié, preuves FHD/QHD
-  et chargement Forward+ de Forgotten Forest sans fallback ni erreur d’asset ;
+  et chargement Forward+ de Crypte des Cendres sans fallback ni erreur d’asset ;
 - UX0-B qualifié : dispositions et profils nommés, trois onglets de zone avec contexte restauré,
   comparaison Forward+ en lecture seule et quatorze raccourcis configurables avec conflit, dry-run,
   undo/redo et sauvegarde explicite ; preuves FHD/QHD et préférences locales préservées ;
@@ -612,95 +616,95 @@ revue visuelle humaine complète FHD/QHD n’a été réalisée dans ce lot.
 - UX1-D qualifié : calques et groupes accessibles depuis Zones et `Ctrl+K`, arbre déplaçable,
   visibilité et verrouillage hérités, responsables, affectation et sélection 3D par noms humains,
   export partiel gouverné, contrat runtime, undo/redo et round-trip exact ; preuves Forward+
-  FHD/QHD/4K et smoke contractuel sans écriture de Forgotten Forest ;
+  FHD/QHD/4K et smoke contractuel sans écriture de Crypte des Cendres ;
 - UX1-E qualifié pour `ORF-PLC-001` : blueprint de décor accessible depuis Objets & interactions
   et `Ctrl+K`, ressource choisie par nom humain et usage réel, collision, rôle statique ou utilisable,
   interaction, transform indépendant du moteur et scripts ; aperçu canonique, sélection 3D,
   préservation des catalogues voisins, undo/redo et round-trip exact ; preuves Forward+ FHD/QHD/4K
-  et smoke contractuel sans écriture de Forgotten Forest ;
+  et smoke contractuel sans écriture de Crypte des Cendres ;
 - UX1-F qualifié pour `ORF-PLC-002` : accès direct au décor statique depuis Objets & interactions et
   `Ctrl+K`, regroupement, instanciation, occlusion, fusion avec garde collision et collision globale
   optionnelle ; aperçu d’impact, sélection 3D, parité commande/UI, préservation des données masquées,
   undo/redo et round-trip exact ; preuves Forward+ FHD/QHD/4K et smoke contractuel sans écriture de
-  Forgotten Forest ;
+  Crypte des Cendres ;
 - UX1-G qualifié pour `ORF-PLC-003` : accès direct à l’objet utilisable depuis Objets & interactions
   et `Ctrl+K`, cartes d’actions ajoutables, portée, angle, durée, focus, autorité, conditions et
   `OnUsed` gouverné ; aperçu complet, sélection 3D, parité commande/UI, événement runtime typé,
   préservation des données masquées, undo/redo et round-trip exact ; preuves Forward+ FHD/QHD/4K et
-  smoke contractuel sans écriture de Forgotten Forest ;
+  smoke contractuel sans écriture de Crypte des Cendres ;
 - UX1-H qualifié pour `ORF-PLC-004` : accès direct au conteneur depuis Objets & interactions et
   `Ctrl+K`, capacité, masse, propriétaire, droits, persistance, réplication, inventaire, butin et
   présentation ; aperçu canonique, parité commande/UI, projection RPG Kit, lecture ForgeScript,
   préservation des capacités voisines et références supplémentaires, undo/redo et round-trip exact ;
-  preuves Forward+ FHD/QHD/4K et smoke contractuel sans écriture de Forgotten Forest ;
+  preuves Forward+ FHD/QHD/4K et smoke contractuel sans écriture de Crypte des Cendres ;
 - UX1-I qualifié pour `ORF-PLC-005` : accès direct à l’identité et à l’apparence depuis Objets &
   interactions et `Ctrl+K`, nom court, noms/invitations localisés, tags, notes, asset, meshes,
   matériaux, icône, portrait et VFX ; aperçu canonique, parité commande/UI, projection RPG Kit,
   lecture ForgeScript/MCP, préservation, undo/redo et round-trip exact ; preuves Forward+
-  FHD/QHD/4K et smoke contractuel sans écriture de Forgotten Forest ;
+  FHD/QHD/4K et smoke contractuel sans écriture de Crypte des Cendres ;
 - UX1-J qualifié pour `ORF-PLC-006` : transformation précise depuis Objets & interactions et
   `Ctrl+K`, position, rotation, échelle, pivot, grille, parent humain, surface et animation ; aperçu
   canonique, hiérarchie et géométrie validées, parité commande/UI, projection RPG Kit, lecture
   ForgeScript/MCP, préservation, undo/redo et round-trip exact ; preuves Forward+ FHD/QHD/4K et
-  smoke contractuel sans écriture de Forgotten Forest ;
+  smoke contractuel sans écriture de Crypte des Cendres ;
 - UX1-K qualifié pour `ORF-PLC-007` : animation initiale depuis Objets & interactions et `Ctrl+K`,
   six états humains, animation, apparence et interaction par état, transitions ajoutables avec
   déclencheur, durée et condition, puis aperçu sémantique ; validation canonique, projection et
   transition RPG Kit, lecture ForgeScript/MCP, préservation, undo/redo et round-trip exact ; preuves
-  Forward+ FHD/QHD/4K et smoke contractuel sans écriture de Forgotten Forest ;
+  Forward+ FHD/QHD/4K et smoke contractuel sans écriture de Crypte des Cendres ;
 - UX1-L qualifié pour `ORF-PLC-008` : destructibilité depuis Objets & interactions et `Ctrl+K`,
   santé, armure, résistances typées, étapes visuelles, effet de destruction, débris, réparation et
   aperçu local de dégâts ; validation canonique, projection puis dégâts/destruction/réparation RPG
   Kit, lecture ForgeScript/MCP, préservation, undo/redo et round-trip exact ; preuves Forward+
-  FHD/QHD/4K et smoke contractuel restaurant Forgotten Forest ;
+  FHD/QHD/4K et smoke contractuel restaurant Crypte des Cendres ;
 - UX1-M qualifié pour `ORF-PLC-009` : protection plot depuis Objets & interactions et `Ctrl+K`,
   actions protégées, droits requis, feedback joueur et dérogation MJ avec motif et audit gouverné ;
   validation canonique, quatre décisions runtime, lecture ForgeScript/MCP, préservation, undo/redo
-  et round-trip exact ; preuves Forward+ FHD/QHD/4K et smoke contractuel restaurant Forgotten Forest ;
+  et round-trip exact ; preuves Forward+ FHD/QHD/4K et smoke contractuel restaurant Crypte des Cendres ;
 - UX1-N qualifié pour `ORF-PLC-010` : faction et propriété depuis Objets & interactions et `Ctrl+K`,
   faction principale, appartenances, hostilité, crime, accès et ciblage, avec aperçu de décision sans
   écriture ; validation canonique, projection et décisions RPG Kit, lecture ForgeScript/MCP,
   préservation du champ Aurora historique, undo/redo et round-trip exact ; preuves Forward+
-  FHD/QHD/4K sur factions synthétiques en mémoire et smoke contractuel restaurant Forgotten Forest ;
+  FHD/QHD/4K sur factions synthétiques en mémoire et smoke contractuel restaurant Crypte des Cendres ;
 - UX1-O qualifié pour `ORF-PLC-011` : conversation depuis Objets & interactions et `Ctrl+K`,
   dialogue, point d’entrée, interaction, état, utilisateur, objet et événement, priorités et usage
   unique, avec aperçu de résolution sans écriture ; validation canonique, projection et décision RPG
   Kit, lecture ForgeScript/MCP, préservation du dialogue Aurora historique, undo/redo et round-trip
-  exact ; preuves Forward+ FHD/QHD/4K sur le catalogue réel et smoke contractuel restaurant Forgotten Forest ;
+  exact ; preuves Forward+ FHD/QHD/4K sur le catalogue réel et smoke contractuel restaurant Crypte des Cendres ;
 - UX1-P qualifié pour `ORF-PLC-012` : verrouillage depuis Objets & interactions et `Ctrl+K`, quatre
   états, clé item réelle, justificatifs, défi, code masqué, piratage, droits, reverrouillage et
   brouillage, avec aperçu sans écriture ; validation canonique, résolution RPG Kit, lecture
   ForgeScript/MCP sans secret, préservation, undo/redo et round-trip exact ; preuves Forward+
-  FHD/QHD/4K sur le catalogue réel et smoke contractuel restaurant Forgotten Forest ;
+  FHD/QHD/4K sur le catalogue réel et smoke contractuel restaurant Crypte des Cendres ;
 - UX1-Q qualifié pour `ORF-PLC-013` : clé consommée depuis Objets & interactions et `Ctrl+K`, avec
   conservation, consommation, charges, partage, permission virtuelle et audit, plus aperçu de la
   décision sans mutation d’inventaire ; validation canonique, adaptateur RPG Kit, lecture
   ForgeScript/MCP, préservation du verrou et des données cachées, undo/redo et round-trip exact ;
-  preuves Forward+ FHD/QHD/4K sur le catalogue réel et smoke contractuel restaurant Forgotten Forest ;
+  preuves Forward+ FHD/QHD/4K sur le catalogue réel et smoke contractuel restaurant Crypte des Cendres ;
 - UX1-R qualifié pour `ORF-PLC-014` : piège depuis Objets & interactions et `Ctrl+K`, avec
   déclencheur, effet, détection, désamorçage, réarmement, propriétaire, politique alliée, VFX, état
   armé et usage unique, plus aperçu sans effet de scène ; sous-profils de sécurité indépendants,
   validation canonique, adaptateur RPG Kit, lecture ForgeScript/MCP, préservation des événements
   voisins, undo/redo et round-trip exact ; preuves Forward+ FHD/QHD/4K sur le catalogue réel et
-  smoke contractuel restaurant Forgotten Forest ;
+  smoke contractuel restaurant Crypte des Cendres ;
 - UX1-S qualifié pour `ORF-PLC-015` : trésor initial depuis Objets & interactions et `Ctrl+K`, avec
   table d’objets nommés, catégories, poids, quantités, qualité, conditions, unicité, moment, graine et
   état généré persistant ; modification d’un état existant protégée par remise à zéro explicite,
   validation canonique, adaptateur RPG Kit indépendant, lecture ForgeScript/MCP, préservation du
   piège et des événements voisins, undo/redo et round-trip exact ; preuves Forward+ FHD/QHD/4K sur
-  le catalogue réel et smoke contractuel restaurant Forgotten Forest ;
+  le catalogue réel et smoke contractuel restaurant Crypte des Cendres ;
 - UX1-T qualifié pour `ORF-PLC-016` : événements d’ouverture et de fermeture depuis Objets &
   interactions et `Ctrl+K`, avec version ForgeScript, liaisons nommées, acteur, résultat, état
   précédent et autorité ; aperçu du dispatch typé sans écriture, validation canonique, adaptateur RPG
   Kit indépendant, lecture ForgeScript/MCP, préservation du piège, du trésor et des événements
   voisins, undo/redo et round-trip exact ; preuve Forward+ FHD sur le catalogue réel et smoke
-  contractuel restaurant Forgotten Forest ;
+  contractuel restaurant Crypte des Cendres ;
 - UX1-U qualifié pour `ORF-PLC-017` : événements avant et après verrouillage/déverrouillage depuis
   Objets & interactions et `Ctrl+K`, avec version ForgeScript, méthode, justificatif, acteur et veto
   contrôlé ; aperçus accepté ou refusé sans écriture, validation canonique, adaptateur RPG Kit
   indépendant, lecture ForgeScript/MCP, préservation du verrou et des événements voisins, undo/redo
   et round-trip exact ; preuve Forward+ FHD sur le catalogue réel et smoke contractuel restaurant
-  Forgotten Forest ;
+  Crypte des Cendres ;
 - UX1-V qualifié pour `ORF-PLC-018` à `ORF-PLC-020` : événements d'utilisation, de contenu modifié,
   de dégâts et de mort, avec résolveur Domain commun pour les autorités directe/composée, anciens
   JSON, validation runtime, lecture ForgeScript/MCP, préservation, undo/redo et round-trip ; portail
@@ -800,20 +804,16 @@ revue visuelle humaine complète FHD/QHD n’a été réalisée dans ce lot.
   redimensionnables et non exclusives ;
 - parcours Plaçables simplifié dans le Monde : assets prioritaires, sélection de scène,
   déplacement/rotation/échelle avec snap, action de placement fixe et propriétés avancées repliées ;
-- parcours direct du viewport : Forgotten Forest au démarrage normal, choix d'objet ou de brosse,
+- parcours direct du viewport : Crypte des Cendres au démarrage normal, choix d'objet ou de brosse,
   clic dans la scène, sculpture de terrain transactionnelle et cadrage de la zone active ;
 - rendu Forward+ enrichi par profil avec ciel procédural cinématique, SSAO/SSIL, glow et brouillard
   volumétrique, avec repli GL sûr et neutralisation explicite d'une LUT absente ;
 - Crypte reconstruite en sept espaces, habillée par KayKit Dungeon Remastered CC0 et quatre
   personnages KayKit gouvernés ; navigation, collisions, mouvement, caméra et parcours critique
   qualifiés automatiquement en Forward+, la revue visuelle humaine multi-résolution restant externe ;
-- Forgotten Forest corrigée : maillage d'asset réel préféré au cube auxiliaire Blender, arbres
-  stylisés gouvernés, échelle et éclairage rééquilibrés, caméra/HUD lisibles ;
-- module connecté démarrant dans l’Auberge du Cerf d’Ambre : déplacement au sol accéléré, mini-carte,
-  atlas des six zones sur `M` et HUD RPG noir/ambre compact validés en Forward+ à 1920×1080 et 2560×1440 ;
 - feedback de combat branché sur les résultats réels : barres/chip, cible et plaques, nombres,
   recharge exacte, toasts, pings, impacts, caméra, hit-stop et SFX ; 30 captures Forward+ acceptées
-  en 1920×1080/2560×1440, mouvements réduits et texte ×2, puis parcours interactif jusqu'à Clairval ;
+  en 1920×1080/2560×1440, mouvements réduits et texte ×2 ;
 - géométrie jouable de l’auberge sécurisée : plancher physique continu, quatre limites murales
   infranchissables, alignement visuel murs/sol et récupération automatique après chute ;
 - caméra de déplacement stabilisée par interpolation physique, point de visée lissé et évitement des murs ;

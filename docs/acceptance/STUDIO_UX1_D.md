@@ -20,7 +20,7 @@ les distributions Windows/Linux du Studio.
   imbriqués, déplace un enfant, affecte trois objets, vérifie les états hérités, sélectionne un
   groupe, prévisualise l’export, applique, annule, rétablit, sauvegarde puis rouvre ;
 - le smoke UI exécute déplacement, sélection de groupe et aperçu depuis l’overlay réel, puis restaure
-  exactement le projet, la zone active et la sélection, sans écrire Forgotten Forest ;
+  exactement le projet, la zone active et la sélection, sans écrire Crypte des Cendres ;
 - journal headless : `artifacts/verification/studio-shell/ux1-d/headless-smoke.log` ;
 - journaux Forward+ : `tree-fhd.log`, `locked-qhd.log` et `export-4k.log` dans
   `artifacts/verification/studio-shell/ux1-d/` ;

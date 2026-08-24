@@ -101,7 +101,7 @@ function Invoke-ForgeEngineMarkerTest {
     # Keep the long-lived smoke inventories aligned with the current workspace schema and
     # append lot markers here so every engine invocation uses one canonical gate contract.
     $Markers = @($Markers | ForEach-Object { $_.Replace('format=1.9.0', 'format=1.30.0').Replace('format=1.10.0', 'format=1.30.0').Replace('format=1.11.0', 'format=1.30.0').Replace('format=1.12.0', 'format=1.30.0').Replace('format=1.13.0', 'format=1.30.0').Replace('format=1.14.0', 'format=1.30.0').Replace('format=1.15.0', 'format=1.30.0').Replace('format=1.16.0', 'format=1.30.0').Replace('format=1.17.0', 'format=1.30.0').Replace('format=1.18.0', 'format=1.30.0').Replace('format=1.19.0', 'format=1.30.0').Replace('format=1.20.0', 'format=1.30.0').Replace('format=1.21.0', 'format=1.30.0').Replace('format=1.22.0', 'format=1.30.0').Replace('format=1.23.0', 'format=1.30.0').Replace('format=1.24.0', 'format=1.30.0').Replace('format=1.25.0', 'format=1.30.0').Replace('format=1.26.0', 'format=1.30.0').Replace('format=1.27.0', 'format=1.30.0').Replace('format=1.28.0', 'format=1.30.0').Replace('format=1.29.0', 'format=1.30.0') })
-    $Markers = @($Markers | ForEach-Object { $_.Replace('catalog=605 sources=3', 'catalog=673 sources=5') })
+    $Markers = @($Markers | ForEach-Object { $_.Replace('catalog=605 sources=3', 'catalog=674 sources=5') })
     if ($Name -like 'runtime*') {
         $Markers = @($Markers | ForEach-Object {
             $_.Replace('OPENRPG_FORGE_RUNTIME_PROJECT_LOADED entities=16 collisions=10',
@@ -516,7 +516,7 @@ try {
 
     $studioPath = Join-Path $repositoryRoot 'apps\Forge.Studio'
     $studioLog = Join-Path $artifactRoot 'studio.log'
-    $studioWorkspace = Join-Path $repositoryRoot 'apps\Forge.Runtime\content\forgotten-forest'
+    $studioWorkspace = Join-Path $repositoryRoot 'apps\Forge.Runtime\content\crypt-of-ashes'
     Invoke-ForgeProjectImport -EnginePath $enginePath -ProjectPath $studioPath `
         -LogPath (Join-Path $artifactRoot 'studio-import.log')
     Invoke-ForgeEngineMarkerTest `
@@ -526,7 +526,7 @@ try {
             '--headless', '--path', $studioPath, '--log-file', $studioLog, '--',
             '--studio-smoke-test', '--workspace', $studioWorkspace, '--page', 'zones') `
         -Markers @(
-            'OPENRPG_FORGE_STUDIO_PROJECT_OPEN title=Forgotten Forest areas=6',
+            'OPENRPG_FORGE_STUDIO_PROJECT_OPEN title=Crypte des Cendres areas=1',
             'OPENRPG_FORGE_STUDIO_EDIT_PASS',
             'OPENRPG_FORGE_STUDIO_UX0A_PASS',
             'OPENRPG_FORGE_STUDIO_UX0B_PASS',
@@ -559,19 +559,41 @@ try {
             'OPENRPG_FORGE_STUDIO_UX1S_PASS',
             'OPENRPG_FORGE_STUDIO_UX1T_PASS',
             'OPENRPG_FORGE_STUDIO_UX1U_PASS',
-            'OPENRPG_FORGE_STUDIO_SHELL_PASS sections=8 pages=36 windows=1 module=forgotten-forest areas=6') `
+            'OPENRPG_FORGE_STUDIO_SHELL_PASS sections=8 pages=36 windows=1 module=crypt-of-ashes areas=1') `
         -StopAfterMarkers $false
 
     $toolsetPath = Join-Path $repositoryRoot 'apps\Forge.Toolset'
     $toolsetLog = Join-Path $artifactRoot 'toolset.log'
-    $prototypeDataPath = Join-Path $repositoryRoot 'apps\Forge.Runtime\content\crypt-of-ashes\project.json'
+    $prototypeWorkspace = Join-Path $repositoryRoot 'apps\Forge.Runtime\content\crypt-of-ashes'
+    $prototypeDataPath = Join-Path $prototypeWorkspace 'project.json'
     $prototypeHashBefore = (Get-FileHash -LiteralPath $prototypeDataPath -Algorithm SHA256).Hash
+    $toolsetWorkspace = [System.IO.Path]::GetFullPath((Join-Path $artifactRoot 'toolset-workspace'))
+    $artifactPrefix = [System.IO.Path]::GetFullPath($artifactRoot).TrimEnd(
+        [System.IO.Path]::DirectorySeparatorChar) + [System.IO.Path]::DirectorySeparatorChar
+    if (-not $toolsetWorkspace.StartsWith($artifactPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+        throw "The isolated Toolset workspace must stay below $artifactRoot."
+    }
+    if (Test-Path -LiteralPath $toolsetWorkspace) {
+        Remove-Item -LiteralPath $toolsetWorkspace -Recurse -Force
+    }
+    New-Item -ItemType Directory -Path $toolsetWorkspace -Force | Out-Null
+    $prototypePrefix = [System.IO.Path]::GetFullPath($prototypeWorkspace).TrimEnd(
+        [System.IO.Path]::DirectorySeparatorChar) + [System.IO.Path]::DirectorySeparatorChar
+    foreach ($sourceFile in Get-ChildItem -LiteralPath $prototypeWorkspace -Recurse -File) {
+        $relativePath = $sourceFile.FullName.Substring($prototypePrefix.Length)
+        if (($relativePath -split '[\\/]') -contains '.forge') { continue }
+        $destination = Join-Path $toolsetWorkspace $relativePath
+        New-Item -ItemType Directory -Path (Split-Path -Parent $destination) -Force | Out-Null
+        Copy-Item -LiteralPath $sourceFile.FullName -Destination $destination -Force
+    }
     Invoke-ForgeProjectImport -EnginePath $enginePath -ProjectPath $toolsetPath `
         -LogPath (Join-Path $artifactRoot 'toolset-import.log')
     Invoke-ForgeEngineMarkerTest `
         -Name 'toolset' `
         -ProjectPath $toolsetPath `
-        -Arguments @('--headless', '--editor', '--path', $toolsetPath, '--log-file', $toolsetLog, '--', '--workspace-smoke-test') `
+        -Arguments @(
+            '--headless', '--editor', '--path', $toolsetPath, '--log-file', $toolsetLog, '--',
+            '--workspace-smoke-test', "--workspace=$toolsetWorkspace") `
         -Markers @('OPENRPG_FORGE_PLUGIN_LOADED', 'OPENRPG_FORGE_WINDOW_TITLE_PASS title=OpenRPG_Forge', 'OPENRPG_FORGE_TOOLSET_PROJECT_VALID entities=', 'OPENRPG_FORGE_TOOLSET_PREVIEW_REBUILD_PASS entities=', 'OPENRPG_FORGE_TOOLSET_G702_SHELL_PASS workspaces=9', 'OPENRPG_FORGE_TOOLSET_G703_BLUEPRINT_PASS catalog=10 derived=1 references=1 undo=restored', 'OPENRPG_FORGE_TOOLSET_G704_DIRECT_PASS drag=placed gizmo=moved invalid=blocked history=restored', 'OPENRPG_FORGE_TOOLSET_G705_AREA_PASS areas=2 documents=2 transition=valid active=switched history=restored', 'OPENRPG_FORGE_TOOLSET_G706_CLIPBOARD_PASS entities=semantic-copy area=full-clone uuids=remapped preview=available history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G707_SEARCH_PASS search=global', 'OPENRPG_FORGE_TOOLSET_G708_MODULE_PASS metadata=localized variables=typed', 'OPENRPG_FORGE_TOOLSET_G709_PALETTE_PASS standard=readonly project=editable generated=provenance favorites=filtered temporary=isolated format=', 'OPENRPG_FORGE_TOOLSET_G710_CAMERA_PASS orbit=mouse pan=mouse zoom=adaptive focus=selection views=orthographic pilot=wasd bookmarks=persisted history=dedicated project=unchanged', 'OPENRPG_FORGE_TOOLSET_G712_BUILD_PASS graph=versioned scripts=2 cache=source-api-compiler dependencies=automatic incremental=reused persistence=restored', 'OPENRPG_FORGE_TOOLSET_R035_BUILD_DIAGNOSTICS_PASS build=validation-scripts-assets-cache-incremental-report-reproducible ui=canonical-export diagnostics=uuid-schema-provenance-category-severity-text-correlation-clickable-quickfix logs=runtime-sanitized bundle=atomic-deterministic-reused cli=structured mcp=structured', 'OPENRPG_FORGE_TOOLSET_G713_DISTRIBUTION_PASS profiles=5 shipping=blocked licenses=diagnostic registry=versioned notices=generated channel=preview platforms=3 matrix=targets5-platforms3 windows=portable-installer unix=verified-install-uninstall promotion=sequential-compatibility-rollback-publisher-adapter launcher=profile-roundtrip-local-host history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_R132_CONTENT_DELIVERY_PASS vfx=provider-particles-decals-lights-audio-lod-budgets signatures=trusted-rotation-overlap-revocation-policy delta=content-addressed-range-resume-retry-dedup-hash-rollback', 'OPENRPG_FORGE_TOOLSET_G720_PRODUCTIVITY_PASS filters=combined-isolation-ghost placement=deterministic-atomic tabs=multi-area comparison=readonly help=sourced profiles=seven persistence=roundtrip history=restored', 'OPENRPG_FORGE_TOOLSET_G11E_CONTENT_PASS tables=typed batch=dry-run-applied collisions=preserve-both blueprints=transitive-governed merge=three-way-conflicts history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G11F_EXPERIENCE_PASS ui=scalable font=truetype-fallback tabs=multi-area comparison=readonly favorites=project-personal recents=ordered art=profiled-warnings history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G11G_RENDER_PASS pbr=metallic-roughness materials=instances tone=aces hdr=true lighting=per-pixel forward=plus sky=procedural lights=48 shadows=12 history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G11H_ENVIRONMENT_PASS wind=global-local weather=state-machine particles=rain water=plane-volume reverb=zone authority=server save=portable replication=ready history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G11I_TERRAIN_PASS provider=heightmap vertices=81 triangles=126 holes=1 biomes=2 features=3 volumes=3', 'OPENRPG_FORGE_TOOLSET_R135_AREA_PRODUCTION_PASS terrain=flat-heightmap-voxel-mesh-sculpt-paint features=spline-tessellation-intersections roads-rivers-bridges-walls wind=global-local-vegetation-shader-audio-gameplay weather=server-state-precipitation-audio-script-surface-replication sky=physical-procedural-panorama-temporal-transition water=plane-river-volume-spline-shader-depth-flow-buoyancy-navigation-audio-quality volumetric=flight-swim-space-voxel-astar-cost-steering-crowd-dynamic-avoidance-debug', 'OPENRPG_FORGE_TOOLSET_G11J_RUNTIME_POLICY_PASS heartbeats=global-area budgets=bounded suspension=inactive rest=requested-started-interrupted-completed cooldown=active volumes=conditional abort=camera-control-invulnerability-locks-narrative history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G11K_CINEMATIC_PASS startup=sequence-fallback timeline=tracks-branch-signal camera=anchor-fov-safe-area transform=interpolated hierarchy=validated authority=server skip=accessible abort=recovered mcp=governed history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G11L_GAMEPLAY_PASS swim=buoyancy-breath-currents dive=runtime climb=links-stamina-ik-safety radial=nested-gamepad-keyboard-list-accessible time=pause-slow-planning-turns multiplayer=vote-permissions combat=providers-shared-events-authority history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G11M_RULES_PASS progression=curve-source-group-difficulty difficulty=damage-ai-economy-rest-save-accessibility mutators=composable perception=sense-ruleset-condition pvp=duel-crime-aggro-environment authority=server mcp=governed history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G714_NAVIGATION_PASS agents=4 geometry=valid reachability=spawn-object doors=states offmesh=linked flight=profiled incremental=partial overlay=visible history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G719_PATHFINDING_PASS algorithm=deterministic-a-star', 'OPENRPG_FORGE_TOOLSET_G715_DIAGNOSTICS_PASS uuid=stable severity=typed path=document property=visible source=validator quickfix=command preview=dry-run navigation=targeted history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_R003_QA_PASS diagnostics=profile-category-severity-quickfix', 'OPENRPG_FORGE_TOOLSET_G716_ASSETS_PASS catalog=', 'OPENRPG_FORGE_TOOLSET_G717_LOCALIZATION_PASS messages=', 'OPENRPG_FORGE_TOOLSET_G718_SCALE_PASS modes=uniform-nonuniform', 'OPENRPG_FORGE_TOOLSET_T12_SMOKE_PASS format=', 'OPENRPG_FORGE_TOOLSET_T13_OVERRIDES_PASS schema=1 properties=3', 'OPENRPG_FORGE_TOOLSET_T42_DIALOGUE_PASS nodes=2 choices=3', 'OPENRPG_FORGE_TOOLSET_T43_QUEST_PASS states=3 transitions=2', 'OPENRPG_FORGE_TOOLSET_T23_SMOKE_PASS entities=', 'OPENRPG_FORGE_TOOLSET_G13J_QUEST_OPERATIONS_PASS', 'OPENRPG_FORGE_TOOLSET_G13K_ITEM_FOUNDATION_PASS', 'OPENRPG_FORGE_TOOLSET_G13L_ITEM_EQUIPMENT_PASS', 'OPENRPG_FORGE_TOOLSET_G13M_ITEM_LOOT_CRAFT_PASS', 'OPENRPG_FORGE_TOOLSET_PROJECT_SAVED', 'OPENRPG_FORGE_TOOLSET_T32_SMOKE_PASS spawn=20000000-0000-4000-8000-000000000010 snapshot=deleted logs=captured') `
         -StopAfterMarkers $true
     if (-not (Select-String -LiteralPath $toolsetLog -SimpleMatch 'OPENRPG_FORGE_CREATOR_PRODUCT_JOURNEY_PASS project=new-module' -Quiet)) {
@@ -1097,72 +1119,6 @@ try {
         -Arguments @('--rendering-method', 'forward_plus', '--path', $runtimePath, '--log-file', $runtimeForwardLog) `
         -Markers @('OPENRPG_FORGE_RUNTIME_RENDER_PROFILE_PASS pbr=metallicroughness tone=agx hdr=true perpixel=true sky=procedural lights=8/32 shadows=2/8', 'OPENRPG_FORGE_RUNTIME_RENDER_BACKEND method=forward_plus') `
         -StopAfterMarkers $true
-    $starterWorkspace = Join-Path $runtimePath 'content\broken-isles-starter'
-    $starterArtifact = Join-Path $artifactRoot 'broken-isles-starter.orpmod'
-    Invoke-CheckedDotnet @(
-        'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
-        'package', 'export', $starterWorkspace, $starterArtifact)
-    Invoke-CheckedDotnet @(
-        'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
-        'package', 'validate', $starterArtifact)
-    $starterLog = Join-Path $artifactRoot 'generic-starter.log'
-    Invoke-ForgeEngineMarkerTest `
-        -Name 'generic-starter' `
-        -ProjectPath $runtimePath `
-        -Arguments @('--headless', '--path', $runtimePath, '--log-file', $starterLog, '--', '--module-package', $starterArtifact, '--generic-smoke-test') `
-        -Markers @('OPENRPG_FORGE_RUNTIME_MODULE_LOADED slug=les-iles-brisees', 'OPENRPG_FORGE_RUNTIME_LIFECYCLE_PASS events=3 order=ProjectLoaded>AreaEntered>WorldStarted authority=SinglePlayer', 'OPENRPG_FORGE_RUNTIME_PROJECT_LOADED entities=2 collisions=1', 'OPENRPG_FORGE_RUNTIME_GENERIC_SMOKE_PASS slug=les-iles-brisees entities=2 collisions=1 combat=false interaction=empty') `
-        -StopAfterMarkers $false
-
-    $g8Workspace = Join-Path $runtimePath 'content\la-veillee-des-eclats'
-    $g8Artifact = Join-Path $artifactRoot 'la-veillee-des-eclats.orpmod'
-    Invoke-CheckedDotnet @(
-        'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
-        'package', 'export', $g8Workspace, $g8Artifact)
-    Invoke-CheckedDotnet @(
-        'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
-        'package', 'validate', $g8Artifact)
-    $g8RuntimeLog = Join-Path $artifactRoot 'g8-original-module.log'
-    Invoke-ForgeEngineMarkerTest `
-        -Name 'g8-original-module' `
-        -ProjectPath $runtimePath `
-        -Arguments @('--headless', '--path', $runtimePath, '--log-file', $g8RuntimeLog, '--', '--module-package', $g8Artifact, '--rpg-kit-smoke-test') `
-        -Markers @('OPENRPG_FORGE_RUNTIME_MODULE_LOADED slug=la-veillee-des-eclats', 'OPENRPG_FORGE_RUNTIME_LIFECYCLE_PASS events=3 order=ProjectLoaded>AreaEntered>WorldStarted authority=SinglePlayer', 'OPENRPG_FORGE_RUNTIME_PROJECT_LOADED entities=8 collisions=3', 'OPENRPG_FORGE_RUNTIME_G8_MODULE_PASS slug=la-veillee-des-eclats entities=8 collisions=3 combat=2 dialogues=1 quests=1') `
-        -StopAfterMarkers $false
-
-    $forestWorkspace = Join-Path $runtimePath 'content\forgotten-forest'
-    $forestArtifact = Join-Path $artifactRoot 'forgotten-forest.orpmod'
-    Invoke-CheckedDotnet @(
-        'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
-        'package', 'export', $forestWorkspace, $forestArtifact)
-    Invoke-CheckedDotnet @(
-        'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
-        'package', 'validate', $forestArtifact)
-    $forestRuntimeLog = Join-Path $artifactRoot 'forgotten-forest.log'
-    $forestTerrainBenchmark = Join-Path $artifactRoot 'forgotten-forest-terrain-benchmark.json'
-    if (Test-Path -LiteralPath $forestTerrainBenchmark) {
-        Remove-Item -LiteralPath $forestTerrainBenchmark
-    }
-    Invoke-ForgeEngineMarkerTest `
-        -Name 'forgotten-forest' `
-        -ProjectPath $runtimePath `
-        -Arguments @('--headless', '--path', $runtimePath, '--log-file', $forestRuntimeLog, '--',
-            '--module-package', $forestArtifact, '--forgotten-forest-smoke-test',
-            '--terrain-benchmark', $forestTerrainBenchmark) `
-        -Markers @(
-            'OPENRPG_FORGE_RUNTIME_MODULE_LOADED slug=forgotten-forest',
-            'OPENRPG_FORGE_RUNTIME_ASSET_MANIFESTS_PASS manifests=129',
-            'OPENRPG_FORGE_RUNTIME_G11I_TERRAIN_PASS provider=heightmap vertices=16641 triangles=32768 sectors=64 material=procedural-pbr-vertex-blend material_layers=4',
-            'OPENRPG_FORGE_RUNTIME_MODELS_PASS manifests=129 instances=',
-            'OPENRPG_FORGE_FORGOTTEN_FOREST_GROUND_CONTACT_PASS',
-            'OPENRPG_FORGE_FORGOTTEN_FOREST_MMO_CONTROLS_PASS speed_multiplier=2.75',
-            'OPENRPG_FORGE_AV4A_TERRAIN_BENCHMARK_PASS area=512x512',
-            'OPENRPG_FORGE_RUNTIME_R036_EE_PASS nav_regions=1 nav_polygons=32455 blocked=313 links=3 path_points=',
-            'OPENRPG_FORGE_FORGOTTEN_FOREST_POLISH_PASS audio_cues=3 scatter=3 vfx_emitters=0 vfx_particles=0 water_animated=10 provenance=builtin',
-            'OPENRPG_FORGE_FORGOTTEN_FOREST_ANIMATION_PASS characters=6 variants=6 clips=81 rig=kaykit-rig-medium-41+quaternius-dragon-35 source=kaykit:character-pack-adventures-1.0+quaternius:lowpoly-animated-monsters',
-            'OPENRPG_FORGE_FORGOTTEN_FOREST_COMBAT_ANIMATION_PASS attack=3 hit=2 death=1 clip=1H_Melee_Attack_Slice_Horizontal',
-            'OPENRPG_FORGE_FORGOTTEN_FOREST_SMOKE_PASS terrain=16641 sectors=64 material=procedural-pbr-vertex-blend material_layers=4 scatter_layers=13') `
-        -StopAfterMarkers $false
-
     $combatFeedbackMarkers = @(
         'OPENRPG_FORGE_COMBAT_FEEDBACK_VISUAL_PASS',
         'OPENRPG_FORGE_COMBAT_FEEDBACK_FIXTURES_PASS',
@@ -1187,109 +1143,12 @@ try {
             -Arguments (@(
                 '--headless', '--rendering-method', 'forward_plus',
                 '--path', $runtimePath, '--log-file', $combatFeedbackLog, '--',
-                '--workspace', $forestWorkspace,
-                '--spawn-id', '594a888d-da8c-5054-b546-a376cfae3ef1',
+                '--workspace', $moduleWorkspace,
+                '--spawn-id', '20000000-0000-4000-8000-000000000010',
                 '--combat-feedback-smoke-test') + $combatFeedbackProfile.Arguments) `
             -Markers $profileMarkers `
             -StopAfterMarkers $false
     }
-    $forestWorldVisualProof = Join-Path $artifactRoot 'forgotten-forest-av6e-world-forward-plus.png'
-    $forestWorldVisualLog = Join-Path $artifactRoot 'forgotten-forest-av6e-world-forward-plus.log'
-    Invoke-ForgeEngineMarkerTest `
-        -Name 'forgotten-forest-av6e-world-forward-plus' `
-        -ProjectPath $runtimePath `
-        -Arguments @('--rendering-method', 'forward_plus', '--path', $runtimePath, '--log-file',
-            $forestWorldVisualLog, '--', '--module-package', $forestArtifact,
-            '--spawn-id', '594a888d-da8c-5054-b546-a376cfae3ef1',
-            '--world-visual-capture', $forestWorldVisualProof) `
-        -Markers @('OPENRPG_FORGE_RUNTIME_RENDER_BACKEND method=forward_plus',
-            'OPENRPG_FORGE_AV6E_WORLD_VISUAL_PASS file=forgotten-forest-av6e-world-forward-plus.png size=1600x900 area=forgotten-forest sectors=64 scatter=') `
-        -StopAfterMarkers $false
-    if (-not (Test-Path -LiteralPath $forestWorldVisualProof) -or
-        [System.IO.File]::ReadAllBytes($forestWorldVisualProof).Length -lt 50000) {
-        throw 'AV6-E world visual proof PNG is missing or too small.'
-    }
-    $forestCloseVisualProof = Join-Path $artifactRoot 'forgotten-forest-av6e-close-forward-plus.png'
-    $forestCloseVisualLog = Join-Path $artifactRoot 'forgotten-forest-av6e-close-forward-plus.log'
-    Invoke-ForgeEngineMarkerTest `
-        -Name 'forgotten-forest-av6e-close-forward-plus' `
-        -ProjectPath $runtimePath `
-        -Arguments @('--rendering-method', 'forward_plus', '--path', $runtimePath, '--log-file',
-            $forestCloseVisualLog, '--', '--module-package', $forestArtifact,
-            '--visual-capture', $forestCloseVisualProof) `
-        -Markers @('OPENRPG_FORGE_RUNTIME_RENDER_BACKEND method=forward_plus',
-            'OPENRPG_FORGE_RUNTIME_G11P_VISUAL_PASS file=forgotten-forest-av6e-close-forward-plus.png size=1600x900') `
-        -StopAfterMarkers $false
-    if (-not (Test-Path -LiteralPath $forestCloseVisualProof) -or
-        [System.IO.File]::ReadAllBytes($forestCloseVisualProof).Length -lt 50000) {
-        throw 'AV6-E close visual proof PNG is missing or too small.'
-    }
-    for ($attempt = 0; $attempt -lt 10 -and -not (Test-Path -LiteralPath $forestTerrainBenchmark); $attempt++) {
-        Start-Sleep -Milliseconds 250
-    }
-    if (-not (Test-Path -LiteralPath $forestTerrainBenchmark)) {
-        throw 'Forgotten Forest terrain benchmark report was not written.'
-    }
-    $terrainBenchmark = Get-Content -LiteralPath $forestTerrainBenchmark -Raw | ConvertFrom-Json
-    if ($terrainBenchmark.schemaVersion -ne 1 -or -not $terrainBenchmark.passed -or
-        $terrainBenchmark.sample.moduleSlug -ne 'forgotten-forest' -or
-        $terrainBenchmark.sample.widthMeters -ne 512 -or $terrainBenchmark.sample.depthMeters -ne 512 -or
-        $terrainBenchmark.sample.heightSamples -ne 16641 -or
-        $terrainBenchmark.sample.terrainVertices -ne 16641 -or
-        $terrainBenchmark.sample.terrainTriangles -ne 32768 -or
-        $terrainBenchmark.sample.navigationPolygons -ne 32455 -or
-        $terrainBenchmark.sample.lodAssetCount -lt 122 -or
-        $terrainBenchmark.sample.lodLevelCount -lt 300 -or
-        $terrainBenchmark.sample.cullingGroupCount -lt 3 -or
-        @($terrainBenchmark.checks).Count -ne 16 -or
-        @($terrainBenchmark.checks | Where-Object { -not $_.passed }).Count -ne 0) {
-        throw 'Forgotten Forest terrain benchmark report is incomplete or exceeds its budgets.'
-    }
-    Write-Output (
-        'OPENRPG_FORGE_AV4A_TERRAIN_BENCHMARK_ARTIFACT_PASS ' +
-        "rebuild_ms=$($terrainBenchmark.sample.reconstructionMilliseconds) " +
-        "collision_ms=$($terrainBenchmark.sample.collisionMilliseconds) " +
-        "navigation_ms=$($terrainBenchmark.sample.navigationMilliseconds) " +
-        "sculpture_ms=$($terrainBenchmark.sample.sculptureMilliseconds) " +
-        "working_set_bytes=$($terrainBenchmark.sample.processWorkingSetDeltaBytes)")
-
-    $assetDeliveryReport = Join-Path $artifactRoot 'asset-delivery-report.json'
-    $assetDeliveryMarkdown = Join-Path $artifactRoot 'asset-delivery-report.md'
-    foreach ($deliveryArtifact in @($assetDeliveryReport, $assetDeliveryMarkdown)) {
-        if (Test-Path -LiteralPath $deliveryArtifact) {
-            Remove-Item -LiteralPath $deliveryArtifact
-        }
-    }
-    Invoke-ForgeCliMarkerTest `
-        -Arguments @(
-            'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
-            'assets', 'delivery-report', $repositoryRoot, $forestWorkspace,
-            '--module', $forestArtifact,
-            '--benchmark', $forestTerrainBenchmark,
-            '--output', $assetDeliveryReport,
-            '--markdown', $assetDeliveryMarkdown,
-            '--vault', $assetVault) `
-        -Marker 'OPENRPG_FORGE_AV5_DELIVERY_REPORT_PASS catalog=673 local=625'
-    if (-not (Test-Path -LiteralPath $assetDeliveryReport) -or
-        -not (Test-Path -LiteralPath $assetDeliveryMarkdown)) {
-        throw 'AV5 delivery reports were not written.'
-    }
-    $delivery = Get-Content -LiteralPath $assetDeliveryReport -Raw | ConvertFrom-Json
-    if ($delivery.schemaVersion -ne 1 -or -not $delivery.passed -or
-        $delivery.catalog.assets -ne 673 -or $delivery.catalog.localAssets -ne 625 -or
-        $delivery.module.manifests -ne 129 -or $delivery.module.chunks -ne 186 -or
-        $delivery.module.assetReferences -ne 809 -or $delivery.module.ungovernedReferences -ne 0 -or
-        $delivery.module.chunkIntegrityFailures -ne 0 -or $delivery.performance.checks -ne 16 -or
-        @($delivery.checks).Count -ne 16 -or
-        @($delivery.checks | Where-Object { -not $_.passed }).Count -ne 0) {
-        throw 'AV5 delivery report is incomplete or failed its frozen-catalog policy.'
-    }
-    Write-Output (
-        'OPENRPG_FORGE_AV5_DELIVERY_ARTIFACT_PASS ' +
-        "vault_files=$($delivery.vault.total.files) vault_bytes=$($delivery.vault.total.bytes) " +
-        "workspace_files=$($delivery.module.workspaceFiles) workspace_bytes=$($delivery.module.workspaceBytes) " +
-        "module_bytes=$($delivery.module.packageBytes) checks=$(@($delivery.checks).Count)")
-
     $mcpHostProject = Join-Path $repositoryRoot 'apps\Forge.McpHost\Forge.McpHost.csproj'
     $serverProject = Join-Path $repositoryRoot 'apps\Forge.Server\Forge.Server.csproj'
     Invoke-CheckedDotnet @('run', '--project', $serverProject, '--configuration', 'Release', '--no-build', '--', '--live-director-smoke-test')

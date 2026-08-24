@@ -28,13 +28,16 @@ public partial class App
                 argument.StartsWith("--capture=", StringComparison.Ordinal));
             var pageArgument = eventArgs.Args.FirstOrDefault(argument =>
                 argument.StartsWith("--page=", StringComparison.Ordinal));
+            var captureSizeArgument = eventArgs.Args.FirstOrDefault(argument =>
+                argument.StartsWith("--capture-size=", StringComparison.Ordinal));
             var window = new LauncherWindow(verification, settings, settingsPath);
             MainWindow = window;
             if (captureArgument is not null)
             {
                 var capturePath = Path.GetFullPath(captureArgument["--capture=".Length..]);
                 var page = pageArgument?["--page=".Length..] ?? "home";
-                await window.CapturePreviewAsync(capturePath, page);
+                var (width, height) = ParseCaptureSize(captureSizeArgument);
+                await window.CapturePreviewAsync(capturePath, page, width, height);
                 Shutdown(0);
                 return;
             }
@@ -58,6 +61,16 @@ public partial class App
 
             Shutdown(1);
         }
+    }
+
+    private static (int Width, int Height) ParseCaptureSize(string? argument)
+    {
+        if (argument is null) return (1440, 860);
+        var value = argument["--capture-size=".Length..];
+        var parts = value.Split('x', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length != 2 || !int.TryParse(parts[0], out var width) || !int.TryParse(parts[1], out var height))
+            throw new ArgumentException("La taille de capture doit utiliser le format largeurxhauteur.", nameof(argument));
+        return (width, height);
     }
 
     private static void WriteFailure(string root, Exception exception)

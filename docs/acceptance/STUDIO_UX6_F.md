@@ -21,7 +21,7 @@ diagnostics localisés. Le texte source reste l’autorité ; Studio ne génère
 
 Le chemin relatif sûr, l’API, la distribution, le caractère requis, les dépendances et les bindings
 sont persistés dans la métadonnée versionnée. Le mode `Source + bytecode` produit un artefact dérivé
-dans le cache ; les scripts `.forge` Forgotten Forest restent en lecture seule et ne sont jamais
+dans le cache ; les scripts `.forge` Crypte des Cendres restent en lecture seule et ne sont jamais
 migrés ou écrasés par l’atelier.
 
 <a id="orf-scr-003"></a>
@@ -65,7 +65,7 @@ réseau, processus, moteur Godot ou API .NET.
 
 ## Préservation et limites honnêtes
 
-Les preuves copient Forgotten Forest et ses deux sources historiques `.forge` dans un workspace
+Les preuves copient Crypte des Cendres et ses deux sources historiques `.forge` dans un workspace
 temporaire, y ajoutent une seule source `.as` canonique, puis comparent projet, historique projet,
 révision, journal, dirty, zone active et approbation avant/après. L’isolat et son cache sont supprimés.
 Le smoke altère aussi le fichier source hors Studio afin de prouver que l’empreinte disque bloque une

@@ -136,8 +136,6 @@ public partial class GameRoot : Node3D
     private const string SaveFileArgument = "--save-file";
     private const string LoadSaveArgument = "--load-save";
     private const string VisualCaptureArgument = "--visual-capture";
-    private const string WorldVisualCaptureArgument = "--world-visual-capture";
-    private const string FlyingMountVisualCaptureArgument = "--flying-mount-visual-capture";
     private const string ModuleMapVisualCaptureArgument = "--module-map-visual-capture";
     private const string RpgMenuVisualCaptureArgument = "--rpg-menu-visual-capture";
     private const string RpgMenuPageArgument = "--rpg-menu-page";
@@ -146,7 +144,6 @@ public partial class GameRoot : Node3D
     private const string CombatFeedbackCaptureArgument = "--combat-feedback-capture";
     private const string CombatFeedbackCaptureSizeArgument = "--combat-feedback-capture-size";
     private const string VisualRegressionSuiteArgument = "--g11s-visual-suite";
-    private const string TerrainBenchmarkArgument = "--terrain-benchmark";
     private const float InteractionDistance = 3.0f;
     private const float AttackDistance = 3.5f;
     private const float CameraHorizontalWallClearance = .85f;
@@ -155,13 +152,8 @@ public partial class GameRoot : Node3D
     private const string RuntimeRoleProperty = "runtime.role";
     private const string RuntimeAnimationProfileProperty = "runtime.animationProfile";
     private const string RuntimeWorldLabelNodeName = "RuntimeWorldLabel";
-    private const string CryptKnightAssetId = "053511fd-e165-1951-9869-6224f82b747f";
-    private const string CryptMageAssetId = "220be95a-282c-cc52-aaf9-4fe811b32609";
-    private const string CryptRogueAssetId = "056fe96c-5c83-145d-98fd-0623b9350cf5";
-    private const string CryptBarbarianAssetId = "3bf93c4b-7df6-455c-be89-ba38d40e941c";
     private static EntityId? s_pendingPortalSpawn;
     private static string? s_pendingPortalLabel;
-    private static int s_connectedWorldSmokeStep;
     private static int s_innUxSmokeStep;
     private ProjectDefinition? _loadedProject;
     private AuthoritativeSession? _launcherSession;
@@ -287,7 +279,6 @@ public partial class GameRoot : Node3D
     private string _moduleTitle = "OpenRPG Forge";
     private string _moduleSlug = string.Empty;
     private bool _isCryptPrototype;
-    private bool _isForgottenForestPrototype;
     private string _guideName = "Guide";
     private string _questItemSlug = "quest-item";
     private string _questItemDisplayName = "Objet de quête";
@@ -403,20 +394,13 @@ public partial class GameRoot : Node3D
         var userArguments = OS.GetCmdlineUserArgs();
         var smokeTest = userArguments.Contains("--smoke-test", StringComparer.Ordinal);
         var genericSmokeTest = userArguments.Contains("--generic-smoke-test", StringComparer.Ordinal);
-        var rpgKitSmokeTest = userArguments.Contains("--rpg-kit-smoke-test", StringComparer.Ordinal);
-        var forgottenForestSmokeTest = userArguments.Contains("--forgotten-forest-smoke-test", StringComparer.Ordinal);
         var combatFeedbackSmokeTest = userArguments.Contains("--combat-feedback-smoke-test", StringComparer.Ordinal);
         var entryGroundSmokeTest = userArguments.Contains("--entry-ground-smoke-test", StringComparer.Ordinal);
         var cryptMovementSmokeTest = userArguments.Contains("--crypt-movement-smoke-test", StringComparer.Ordinal);
-        var connectedWorldTransitionSmokeTest = userArguments.Contains(
-            "--connected-world-transition-smoke-test", StringComparer.Ordinal);
         var innUxSmokeTest = userArguments.Contains("--inn-ux-smoke-test", StringComparer.Ordinal);
-        var flyingMountSmokeTest = userArguments.Contains("--flying-mount-smoke-test", StringComparer.Ordinal);
         var saveSmokeCreate = userArguments.Contains("--save-smoke-create", StringComparer.Ordinal);
         var saveSmokeResume = userArguments.Contains("--save-smoke-resume", StringComparer.Ordinal);
         var visualCapturePath = GetArgumentValue(userArguments, VisualCaptureArgument);
-        var worldVisualCapturePath = GetArgumentValue(userArguments, WorldVisualCaptureArgument);
-        var flyingMountVisualCapturePath = GetArgumentValue(userArguments, FlyingMountVisualCaptureArgument);
         var moduleMapVisualCapturePath = GetArgumentValue(userArguments, ModuleMapVisualCaptureArgument);
         var rpgMenuVisualCapturePath = GetArgumentValue(userArguments, RpgMenuVisualCaptureArgument);
         var dialogueVisualCapturePath = GetArgumentValue(userArguments, DialogueVisualCaptureArgument);
@@ -424,21 +408,17 @@ public partial class GameRoot : Node3D
         var combatFeedbackCapturePath = GetArgumentValue(userArguments, CombatFeedbackCaptureArgument);
         var combatFeedbackCaptureSize = GetArgumentValue(userArguments, CombatFeedbackCaptureSizeArgument);
         var visualRegressionSuitePath = GetArgumentValue(userArguments, VisualRegressionSuiteArgument);
-        var terrainBenchmarkPath = GetArgumentValue(userArguments, TerrainBenchmarkArgument);
-        var automatedTest = smokeTest || genericSmokeTest || rpgKitSmokeTest || forgottenForestSmokeTest ||
+        var automatedTest = smokeTest || genericSmokeTest ||
             combatFeedbackSmokeTest ||
             entryGroundSmokeTest || cryptMovementSmokeTest ||
-            connectedWorldTransitionSmokeTest ||
             innUxSmokeTest ||
-            flyingMountSmokeTest ||
             saveSmokeCreate || saveSmokeResume ||
-            visualCapturePath is not null || worldVisualCapturePath is not null ||
-            flyingMountVisualCapturePath is not null ||
+            visualCapturePath is not null ||
             moduleMapVisualCapturePath is not null ||
             rpgMenuVisualCapturePath is not null || dialogueVisualCapturePath is not null ||
             actionWheelVisualCapturePath is not null ||
             combatFeedbackCapturePath is not null ||
-            visualRegressionSuitePath is not null || terrainBenchmarkPath is not null;
+            visualRegressionSuitePath is not null;
 
         try
         {
@@ -468,14 +448,10 @@ public partial class GameRoot : Node3D
                 launcherContext,
                 _moduleContentSha256 ?? throw new InvalidOperationException("Loaded module fingerprint is missing."),
                 project.Module.DisplayName);
-            if (requestedSpawnId is null && (forgottenForestSmokeTest || combatFeedbackSmokeTest ||
-                combatFeedbackCapturePath is not null ||
-                flyingMountSmokeTest ||
-                flyingMountVisualCapturePath is not null ||
-                (connectedWorldTransitionSmokeTest && s_connectedWorldSmokeStep == 0)))
+            if (requestedSpawnId is null && (combatFeedbackSmokeTest || combatFeedbackCapturePath is not null))
             {
-                var forest = project.Areas.Single(area => area.Slug == "forgotten-forest");
-                requestedSpawnId = forest.Entities.Single(entity =>
+                var entryArea = project.Areas.Single(area => area.Id == project.Module.EntryAreaId);
+                requestedSpawnId = entryArea.Entities.Single(entity =>
                     entity.Tags.Contains("player", StringComparer.Ordinal)).Id;
             }
             if (playtestManifest is not null &&
@@ -505,7 +481,6 @@ public partial class GameRoot : Node3D
             ConfigureFactions(project.Module.Factions);
             _defaultLocale = project.Module.Metadata.DefaultLocale;
             _isCryptPrototype = string.Equals(_moduleSlug, "crypt-of-ashes", StringComparison.Ordinal);
-            _isForgottenForestPrototype = string.Equals(_moduleSlug, "forgotten-forest", StringComparison.Ordinal);
             ConfigureWorldFeatures(project);
             ConfigurePostLaunch(project);
             _message = $"Explorez {_moduleTitle}.";
@@ -547,9 +522,8 @@ public partial class GameRoot : Node3D
 
             CreateHud();
             ConfigureWaypointRuntime(startArea.Navigation.Waypoints);
-            if (!connectedWorldTransitionSmokeTest && !entryGroundSmokeTest && !innUxSmokeTest &&
+            if (!entryGroundSmokeTest && !innUxSmokeTest &&
                 !cryptMovementSmokeTest && !combatFeedbackSmokeTest &&
-                !flyingMountSmokeTest && flyingMountVisualCapturePath is null &&
                 combatFeedbackCapturePath is null)
             {
                 VerifyModernRuntimeTooling(project, startArea);
@@ -604,16 +578,6 @@ public partial class GameRoot : Node3D
                 await CaptureVisualProofAsync(visualCapturePath);
                 return;
             }
-            if (worldVisualCapturePath is not null)
-            {
-                await CaptureWorldVisualProofAsync(worldVisualCapturePath);
-                return;
-            }
-            if (flyingMountVisualCapturePath is not null)
-            {
-                await CaptureFlyingMountVisualProofAsync(flyingMountVisualCapturePath);
-                return;
-            }
             if (!cryptMovementSmokeTest)
                 ConfigureCinematics(project, startArea);
             UpdateHud();
@@ -633,17 +597,9 @@ public partial class GameRoot : Node3D
             GD.Print($"OPENRPG_FORGE_RUNTIME_SPAWN_SELECTED id={selectedSpawn.Id}");
             GD.Print($"OPENRPG_FORGE_RUNTIME_PROJECT_LOADED entities={_builtEntityCount} collisions={_collisionCount}");
 
-            if (flyingMountSmokeTest)
-            {
-                await RunFlyingMountSmokeTestAsync();
-            }
-            else if (innUxSmokeTest)
+            if (innUxSmokeTest)
             {
                 await RunInnUxSmokeTestAsync(project);
-            }
-            else if (connectedWorldTransitionSmokeTest)
-            {
-                await RunConnectedWorldTransitionSmokeTestAsync(project);
             }
             else if (entryGroundSmokeTest)
             {
@@ -653,17 +609,9 @@ public partial class GameRoot : Node3D
             {
                 await RunCryptMovementSmokeTestAsync(project);
             }
-            else if (forgottenForestSmokeTest)
-            {
-                await RunForgottenForestSmokeTestAsync(project, terrainBenchmarkPath);
-            }
             else if (combatFeedbackSmokeTest)
             {
                 await RunCombatFeedbackSmokeTestAsync();
-            }
-            else if (rpgKitSmokeTest)
-            {
-                RunRpgKitHeadlessSmokeTest(project);
             }
             else if (genericSmokeTest)
             {
@@ -684,7 +632,6 @@ public partial class GameRoot : Node3D
         }
         catch (Exception exception)
         {
-            if (connectedWorldTransitionSmokeTest) s_connectedWorldSmokeStep = 0;
             if (innUxSmokeTest) s_innUxSmokeStep = 0;
             GD.PrintErr($"OPENRPG_FORGE_RUNTIME_STARTUP_FAILED {exception}");
             if (automatedTest)
@@ -703,14 +650,6 @@ public partial class GameRoot : Node3D
         if (!Path.IsPathFullyQualified(destination) || !string.Equals(Path.GetExtension(destination), ".png",
             StringComparison.OrdinalIgnoreCase))
             throw new ArgumentException("The visual proof destination must be an absolute PNG path.", nameof(destination));
-        if (_isForgottenForestPrototype && _camera is not null && _player is not null && _npc is not null)
-        {
-            // Visual-proof framing is intentionally closer than the normal player camera so a
-            // screenshot can validate the authored character silhouettes and their shared scene.
-            var campFocus = (_player.GlobalPosition + _npc.GlobalPosition) * .5f + (Vector3.Up * .9f);
-            _camera.GlobalPosition = campFocus + new Vector3(7, 5.5f, 7);
-            _camera.LookAt(campFocus, Vector3.Up);
-        }
         for (var frame = 0; frame < 4; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
         var image = GetViewport().GetTexture().GetImage();
         Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
@@ -721,81 +660,7 @@ public partial class GameRoot : Node3D
         GetTree().Quit(0);
     }
 
-    private async Task CaptureWorldVisualProofAsync(string destination)
-    {
-        if (!Path.IsPathFullyQualified(destination) || !string.Equals(Path.GetExtension(destination), ".png",
-                StringComparison.OrdinalIgnoreCase))
-            throw new ArgumentException("The world visual proof destination must be an absolute PNG path.", nameof(destination));
-        if (!_isForgottenForestPrototype || _camera is null || _activeArea is null)
-            throw new InvalidOperationException("World visual proof currently requires a Forgotten Forest area.");
 
-        if (_hud is not null) _hud.Visible = false;
-        if (_actionBar is not null) _actionBar.Visible = false;
-        if (_actionWheel is not null) _actionWheel.Visible = false;
-        foreach (var node in FindChildren("*", "GeometryInstance3D", recursive: true, owned: false))
-        {
-            if (node is GeometryInstance3D geometry) geometry.VisibilityRangeEnd = 0;
-        }
-        foreach (var marker in GetTree().GetNodesInGroup("forge_exit_marker"))
-        {
-            if (marker is Node3D exitMarker) exitMarker.Visible = false;
-        }
-        _camera.Fov = 50;
-        var (focus, offset) = _activeArea.Slug switch
-        {
-            "forgotten-forest" => (new Vector3(125, 1.8f, 178), new Vector3(25, 10, 18)),
-            "clairval" => (new Vector3(0, 1.5f, 7), new Vector3(18, 10, -22)),
-            "ember-inn" => (new Vector3(0, 1.4f, 0), new Vector3(12, 7, -14)),
-            "gnoll-fortress" => (new Vector3(0, 2.2f, 10), new Vector3(20, 10, -28)),
-            "amber-desert" => (new Vector3(-16, 1.6f, -4), new Vector3(18, 9, -23)),
-            "snow-pass" => (new Vector3(-19, 3.2f, -7), new Vector3(32, 16, -36)),
-            _ => (new Vector3(0, 1.5f, 0), new Vector3(30, 20, 34)),
-        };
-        _camera.GlobalPosition = focus + offset;
-        _camera.LookAt(focus, Vector3.Up);
-        for (var frame = 0; frame < 8; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-        var image = GetViewport().GetTexture().GetImage();
-        Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
-        if (image.SavePng(destination) != Error.Ok)
-            throw new IOException("World visual proof could not be written.");
-        GD.Print(
-            $"OPENRPG_FORGE_AV6E_WORLD_VISUAL_PASS file={Path.GetFileName(destination)} " +
-            $"size={image.GetWidth()}x{image.GetHeight()} area={_activeArea.Slug} " +
-            $"sectors={_terrainSectors} scatter={_terrainScatterInstances}");
-        GetTree().Quit(0);
-    }
-
-    private async Task CaptureFlyingMountVisualProofAsync(string destination)
-    {
-        ValidateUiCaptureDestination(destination, "flying mount");
-        var mount = _flyingMount ?? throw new InvalidOperationException(
-            "The flying-mount visual proof requires Brumaille in the active area.");
-        var player = _player ?? throw new InvalidOperationException(
-            "The flying-mount visual proof requires a player.");
-        var camera = _camera ?? throw new InvalidOperationException(
-            "The flying-mount visual proof requires a camera.");
-
-        if (_hud is not null) _hud.Visible = false;
-        if (_actionBar is not null) _actionBar.Visible = false;
-        if (_actionWheel is not null) _actionWheel.Visible = false;
-        _moduleMap?.SetExplorationUiVisible(false);
-        mount.Mount(player);
-        mount.GlobalPosition = new Vector3(125, 7.2f, 178);
-        mount.ResetPhysicsInterpolation();
-        camera.Fov = 44;
-        var focus = mount.GlobalPosition + Vector3.Up * .8f;
-        camera.GlobalPosition = focus + new Vector3(8f, 4.6f, 10f);
-        camera.LookAt(focus, Vector3.Up);
-        for (var frame = 0; frame < 8; frame++)
-            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-        var image = GetViewport().GetTexture().GetImage();
-        Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
-        if (image.SavePng(destination) != Error.Ok)
-            throw new IOException("The flying-mount visual proof could not be written.");
-        GD.Print($"OPENRPG_FORGE_FLYING_MOUNT_VISUAL_PASS file={Path.GetFileName(destination)} " +
-                 $"size={image.GetWidth()}x{image.GetHeight()} creature=brumaille state=mounted-airborne");
-        GetTree().Quit(0);
-    }
 
     private async Task CaptureModuleMapVisualProofAsync(string destination)
     {
@@ -1387,14 +1252,6 @@ public partial class GameRoot : Node3D
             GD.Print("OPENRPG_FORGE_PROTOTYPE_COMPLETED");
         }
 
-        if (_isForgottenForestPrototype && !_escaped && _bossDefeated && IsNear(_exit, 3.25f))
-        {
-            _escaped = true;
-            _message = "Le sanctuaire de la forêt est apaisé. Démonstration terminée !";
-            UpdateHud();
-            GD.Print("OPENRPG_FORGE_FORGOTTEN_FOREST_COMPLETED");
-        }
-
         UpdateTacticalHud();
     }
 
@@ -1704,7 +1561,7 @@ public partial class GameRoot : Node3D
         BuildQuestExperienceAdapters(project.Quests);
         BuildQuestQualityAdapters(project.Quests);
         var blueprints = project.Blueprints.ToDictionary(blueprint => blueprint.Id);
-        var guidedPrototype = _isCryptPrototype || _isForgottenForestPrototype;
+        var guidedPrototype = _isCryptPrototype;
         _elyraDialogue = guidedPrototype ? project.Dialogues.SingleOrDefault() : null;
         var quest = guidedPrototype ? project.Quests.SingleOrDefault() : null;
         _questDefinition = quest;
@@ -4952,12 +4809,23 @@ public partial class GameRoot : Node3D
 
     private bool TryAttachVisual(Node parent, EntityInstance entity, bool applyPlayerVisualTransform = false)
     {
+        var authoredAssetId = GetOverride(entity, VisualAssetProperty);
         var cryptCharacter = _isCryptPrototype ? ResolveCryptCharacterVisual(entity) : null;
-        var assetId = GetOverride(entity, VisualAssetProperty) ?? cryptCharacter?.AssetId;
+        var assetId = authoredAssetId ?? cryptCharacter?.AssetId;
         if (string.IsNullOrWhiteSpace(assetId)) return false;
         if (_modelLibrary is null)
+        {
+            if (authoredAssetId is null) return false;
             throw new InvalidOperationException($"Entity '{entity.Id}' references visual asset '{assetId}' but the module model library is unavailable.");
-        var visual = _modelLibrary.Instantiate(assetId);
+        }
+        var visual = authoredAssetId is null
+            ? _modelLibrary.TryInstantiate(assetId)
+            : _modelLibrary.Instantiate(assetId);
+        if (visual is null)
+        {
+            GD.Print($"OPENRPG_FORGE_RUNTIME_CRYPT_VISUAL_FALLBACK entity={entity.Id} asset={assetId}");
+            return false;
+        }
         visual.Name = "AuthoredVisual";
         if (applyPlayerVisualTransform)
         {
@@ -5029,20 +4897,10 @@ public partial class GameRoot : Node3D
         visual.Position += new Vector3(-center.X, capsuleBottom - minimum.Y, -center.Z);
     }
 
-    private static CryptCharacterVisual? ResolveCryptCharacterVisual(EntityInstance entity)
+    private static CryptCharacterVisualDescriptor? ResolveCryptCharacterVisual(EntityInstance entity)
     {
-        if (entity.Tags.Contains("player", StringComparer.Ordinal))
-            return new CryptCharacterVisual(CryptKnightAssetId, "kaykit-adventurer");
-        if (entity.Tags.Contains("elyra", StringComparer.Ordinal))
-            return new CryptCharacterVisual(CryptMageAssetId, "kaykit-adventurer");
-        if (entity.Tags.Contains("sentinel", StringComparer.Ordinal))
-            return new CryptCharacterVisual(CryptRogueAssetId, "kaykit-adventurer");
-        if (entity.Tags.Contains("warden", StringComparer.Ordinal))
-            return new CryptCharacterVisual(CryptBarbarianAssetId, "kaykit-adventurer");
-        return null;
+        return CryptCharacterVisualResolver.Resolve(entity.Tags);
     }
-
-    private sealed record CryptCharacterVisual(string AssetId, string AnimationProfile);
 
     private static void EnhanceFlyingMountMaterials(Node3D visual)
     {
@@ -6252,111 +6110,7 @@ public partial class GameRoot : Node3D
             "A left click on the authored inn door did not begin the portal transition.");
     }
 
-    private async Task RunFlyingMountSmokeTestAsync()
-    {
-        var activeArea = _activeArea ?? throw new InvalidOperationException(
-            "The flying-mount smoke test requires an active area.");
-        var mount = _flyingMount ?? throw new InvalidOperationException(
-            "The flying-mount smoke test did not reconstruct Brumaille.");
-        var player = _player ?? throw new InvalidOperationException(
-            "The flying-mount smoke test did not reconstruct the player.");
-        var bounds = _activeAreaHorizontalBounds ?? throw new InvalidOperationException(
-            "The flying-mount smoke test has no safe horizontal bounds.");
-        AssertSmoke(activeArea.Slug == "forgotten-forest",
-            $"The flying-mount smoke test loaded '{activeArea.Slug}' instead of forgotten-forest.");
 
-        mount.Mount(player);
-        AssertSmoke(mount.IsMounted && player.Visible && player.ControlLocked &&
-                    player.CollisionLayer == 0 && player.CollisionMask == 0,
-            "Mounting did not transfer control from the player to Brumaille.");
-        var travelStart = mount.GlobalPosition;
-        try
-        {
-            Input.ActionPress("move_forward");
-            Input.ActionPress("jump");
-            for (var frame = 0; frame < 55; frame++)
-                await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
-        }
-        finally
-        {
-            Input.ActionRelease("move_forward");
-            Input.ActionRelease("jump");
-        }
-
-        var travelled = travelStart.DistanceTo(mount.GlobalPosition);
-        AssertSmoke(travelled >= 4f && mount.DistanceTravelled >= travelled &&
-                    mount.MaximumHeightAboveGround >= 3f,
-            $"Brumaille did not achieve a stable takeoff (travel={travelled:0.###}, " +
-            $"altitude={mount.MaximumHeightAboveGround:0.###}).");
-
-        mount.GlobalPosition = new Vector3(bounds.End.X + 80f, mount.GlobalPosition.Y,
-            bounds.End.Y + 80f);
-        await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
-        var clampedPoint = new Vector2(mount.GlobalPosition.X, mount.GlobalPosition.Z);
-        AssertSmoke(bounds.Grow(-2.5f).HasPoint(clampedPoint),
-            $"The flying mount escaped the authored map bounds at {clampedPoint}.");
-
-        var dismounted = false;
-        try
-        {
-            Input.ActionPress("dive");
-            for (var frame = 0; frame < 300 && !dismounted; frame++)
-            {
-                await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
-                dismounted = mount.TryDismount();
-            }
-        }
-        finally
-        {
-            Input.ActionRelease("dive");
-        }
-        AssertSmoke(dismounted && !mount.IsMounted && player.Visible && !player.ControlLocked,
-            "A safe near-ground dismount did not restore the player.");
-        var boundaryCollision = player.MoveAndCollide(Vector3.Right * 30f);
-        AssertSmoke(boundaryCollision is not null && player.GlobalPosition.X <= bounds.End.X,
-            $"The exterior collision shell allowed the player through the east map boundary " +
-            $"(x={player.GlobalPosition.X:0.###}, limit={bounds.End.X:0.###}).");
-        GD.Print($"OPENRPG_FORGE_FLYING_MOUNT_PASS area={activeArea.Slug} creature=brumaille " +
-                 $"distance={mount.DistanceTravelled:0.###} altitude={mount.MaximumHeightAboveGround:0.###} " +
-                 "bounds=clamped player_barrier=blocked dismount=safe controls=wasd-space-ctrl");
-        GetTree().Quit(0);
-    }
-
-    private async Task RunConnectedWorldTransitionSmokeTestAsync(ProjectDefinition project)
-    {
-        var route = new[]
-        {
-            "forgotten-forest", "clairval", "ember-inn", "clairval", "forgotten-forest",
-            "gnoll-fortress", "forgotten-forest", "amber-desert", "forgotten-forest",
-            "snow-pass", "forgotten-forest",
-        };
-        AssertSmoke(s_connectedWorldSmokeStep >= 0 && s_connectedWorldSmokeStep < route.Length,
-            "Connected-world smoke route state is invalid.");
-        var activeArea = _activeArea ?? throw new InvalidOperationException(
-            "Connected-world smoke requires an active area.");
-        var expectedSlug = route[s_connectedWorldSmokeStep];
-        AssertSmoke(activeArea.Slug == expectedSlug,
-            $"Connected-world smoke expected '{expectedSlug}' and loaded '{activeArea.Slug}'.");
-        AssertSmoke(activeArea.Portals.Count == _portalNodes.Count,
-            $"Area '{expectedSlug}' did not reconstruct all interactive portals.");
-        GD.Print($"OPENRPG_FORGE_CONNECTED_WORLD_STEP_PASS step={s_connectedWorldSmokeStep} " +
-                 $"area={expectedSlug} portals={_portalNodes.Count} entities={_builtEntityCount}");
-        if (s_connectedWorldSmokeStep == route.Length - 1)
-        {
-            s_connectedWorldSmokeStep = 0;
-            GD.Print("OPENRPG_FORGE_CONNECTED_WORLD_TRANSITIONS_PASS " +
-                     "route=forest>village>inn>village>forest>fortress>forest>desert>forest>snow>forest " +
-                     "areas=6 transitions=10 portals=runtime-reload");
-            GetTree().Quit(0);
-            return;
-        }
-
-        var destinationSlug = route[s_connectedWorldSmokeStep + 1];
-        var portal = activeArea.Portals.Single(candidate =>
-            project.Areas.Single(area => area.Id == candidate.DestinationAreaId).Slug == destinationSlug);
-        s_connectedWorldSmokeStep++;
-        await TransitionThroughPortalAsync(portal);
-    }
 
     private void AttackNearestHostile()
     {
@@ -7321,7 +7075,7 @@ public partial class GameRoot : Node3D
 
         UpdateTacticalHud();
 
-        if (!_isCryptPrototype && !_isForgottenForestPrototype)
+        if (!_isCryptPrototype)
         {
             PresentHudState(
                 "explorer le module",
@@ -7330,37 +7084,6 @@ public partial class GameRoot : Node3D
             return;
         }
 
-        if (_isForgottenForestPrototype)
-        {
-            if (_activeArea?.Slug != "forgotten-forest")
-            {
-                var areaObjective = _activeArea?.Slug switch
-                {
-                    "ember-inn" => "Sortir par la porte vers Clairval",
-                    "clairval" => "Rejoindre la forêt ou visiter l’auberge [E]",
-                    "gnoll-fortress" => "Explorer la forteresse puis retrouver la forêt [E]",
-                    "amber-desert" => "Explorer les dunes puis retrouver la forêt [E]",
-                    "snow-pass" => "Explorer le col puis retrouver la forêt [E]",
-                    _ => "Explorer la zone et trouver un passage [E]",
-                };
-                PresentHudState(areaObjective, _message,
-                    _activeArea?.Slug == "ember-inn"
-                        ? "Approchez-vous de la porte en bois et cliquez directement dessus pour sortir."
-                        : $"Les routes de {_activeArea?.DisplayName ?? _moduleTitle} restent ouvertes. " +
-                          "Consultez la carte pour choisir votre prochaine étape.");
-                return;
-            }
-            var forestObjective = _questMachine?.CurrentState.Journal.Fallback ?? "rencontrer la garde forestière [E]";
-            var forestState = _bossDefeated
-                ? "Le sanctuaire est apaisé. Rejoignez la lumière au-delà des arbres."
-                : _doorUnlocked
-                    ? "Le passage est ouvert. Le gardien du sanctuaire vous attend."
-                    : _hasKey
-                        ? "La relique réagit au sceau forestier. Retournez au passage."
-                        : "La garde forestière recherche une relique perdue sous les frondaisons.";
-            PresentHudState(forestObjective, _message, forestState);
-            return;
-        }
 
         var objective = _questState switch
         {

@@ -30,11 +30,11 @@ public sealed class CuratedAssetPackInstallerTests : IDisposable
         var manifestPath = Path.Combine(repository, "asset_manifests", "packs", "test.json");
         File.WriteAllText(manifestPath,
             """
-            {"schema_version":1,"pack_id":"forgotten-forest-core","version":"1.0.0","display_name":"Test Forest","source_catalog":"asset_manifests/catalogs/kenney_3d_packs.json","source_pack_id":"kenney:mini-forest","license":"CC0-1.0","models":[{"key":"tree","path":"Models/GLB format/tree.glb","tags":["tree"]}]}
+            {"schema_version":1,"pack_id":"asset-vault-core","version":"1.0.0","display_name":"Test Forest","source_catalog":"asset_manifests/catalogs/kenney_3d_packs.json","source_pack_id":"kenney:mini-forest","license":"CC0-1.0","models":[{"key":"tree","path":"Models/GLB format/tree.glb","tags":["tree"]}]}
             """);
 
-        var first = CuratedAssetPackInstaller.InstallForgottenForest(repository, vault, workspace, manifestPath);
-        var second = CuratedAssetPackInstaller.InstallForgottenForest(repository, vault, workspace, manifestPath);
+        var first = CuratedAssetPackInstaller.InstallCuratedPack(repository, vault, workspace, manifestPath);
+        var second = CuratedAssetPackInstaller.InstallCuratedPack(repository, vault, workspace, manifestPath);
 
         var entry = Assert.Single(first.Entries);
         Assert.Equal("CC0-1.0", first.LicenseSpdx);
@@ -50,7 +50,7 @@ public sealed class CuratedAssetPackInstallerTests : IDisposable
         Assert.Contains(package.Chunks, chunk => chunk.RelativePath.EndsWith("Textures/colormap.png", StringComparison.Ordinal));
         Assert.True(File.Exists(Path.Combine(workspace, "assets", "CREDITS_ASSETS.md")));
 
-        var removed = CuratedAssetPackInstaller.RemovePack(workspace, "forgotten-forest-core");
+        var removed = CuratedAssetPackInstaller.RemovePack(workspace, "asset-vault-core");
 
         Assert.Equal(1, removed);
         Assert.Empty(AssetPackageManifestStore.Load(workspace).Manifests);
@@ -87,8 +87,8 @@ public sealed class CuratedAssetPackInstallerTests : IDisposable
         File.WriteAllText(secondManifest, manifest.Replace("nature-dressing", "nature-details", StringComparison.Ordinal)
             .Replace("Nature Dressing", "Nature Details", StringComparison.Ordinal));
 
-        var first = CuratedAssetPackInstaller.InstallForgottenForest(repository, vault, workspace, firstManifest);
-        var second = CuratedAssetPackInstaller.InstallForgottenForest(repository, vault, workspace, secondManifest);
+        var first = CuratedAssetPackInstaller.InstallCuratedPack(repository, vault, workspace, firstManifest);
+        var second = CuratedAssetPackInstaller.InstallCuratedPack(repository, vault, workspace, secondManifest);
 
         Assert.Single(first.Entries);
         Assert.Single(second.Entries);

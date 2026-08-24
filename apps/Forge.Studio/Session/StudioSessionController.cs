@@ -1328,6 +1328,20 @@ internal sealed partial class StudioSessionController
         {
             var loaded = EditorWorkspaceProfileStore.TryLoad(root) ??
                 EditorWorkspaceProfile.CreateDefault(EditorRole.Builder, ActiveAreaId);
+            if (loaded.Provenance.Contains("smoke", StringComparison.OrdinalIgnoreCase) ||
+                loaded.DisplayFilter.Provenance.Contains("smoke", StringComparison.OrdinalIgnoreCase))
+            {
+                var recovered = EditorWorkspaceProfile.CreateDefault(loaded.Role, ActiveAreaId);
+                loaded = EditorWorkspaceProfilePlanner.ConfigureAccessibility(
+                    recovered,
+                    loaded.UiScale,
+                    loaded.TextScale,
+                    loaded.PrimaryFontFamily,
+                    loaded.FallbackFontFamilies);
+                EditorWorkspaceProfileStore.Save(root, loaded);
+                WorkspacePreferenceWarning =
+                    "Un profil temporaire de test a été écarté · vue complète restaurée.";
+            }
             var reconciled = EditorWorkspaceProfilePlanner.ReconcileAreas(
                 loaded,
                 Project!.Areas.Select(area => area.Id).ToArray(),

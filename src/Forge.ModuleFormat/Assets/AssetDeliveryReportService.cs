@@ -18,8 +18,8 @@ public static class AssetDeliveryReportService
         int ExpectedBenchmarkCheckCount,
         string RequiredLicenseSpdx)
     {
-        public static Policy ForgottenForestAv5 { get; } = new(665, 665, 28, 44, 16, "CC0-1.0");
-        public static Policy ForgottenForestAv6E { get; } = new(673, 673, 129, 809, 16, "CC0-1.0");
+        public static Policy AssetVaultAv5 { get; } = new(665, 665, 28, 44, 16, "CC0-1.0");
+        public static Policy AssetVaultAv6E { get; } = new(673, 673, 129, 809, 16, "CC0-1.0");
     }
 
     public sealed record FileMetrics(int Files, long Bytes);
@@ -101,7 +101,7 @@ public static class AssetDeliveryReportService
         Policy? policy = null)
     {
         ArgumentNullException.ThrowIfNull(catalog);
-        policy ??= Policy.ForgottenForestAv6E;
+        policy ??= Policy.AssetVaultAv6E;
         ValidatePolicy(policy);
 
         vaultRoot = RequireDirectory(vaultRoot, nameof(vaultRoot));
@@ -117,7 +117,7 @@ public static class AssetDeliveryReportService
 
         return new Report(
             CurrentSchemaVersion,
-            "forgotten-forest-av6e",
+            "asset-vault-delivery",
             catalogMetrics,
             vaultMetrics,
             moduleMetrics,
@@ -131,7 +131,7 @@ public static class AssetDeliveryReportService
     {
         ArgumentNullException.ThrowIfNull(report);
         var builder = new StringBuilder();
-        builder.AppendLine("# Rapport de livraison Asset Vault et Forgotten Forest");
+        builder.AppendLine("# Rapport de livraison Asset Vault");
         builder.AppendLine();
         builder.AppendLine($"- Schéma : `{report.SchemaVersion}`");
         builder.AppendLine($"- Résultat : **{(report.Passed ? "PASS" : "FAIL")}**");

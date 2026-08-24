@@ -52,18 +52,21 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
 ## C6 — Qualité 3D et démonstration
 
 - [x] Remplacer les primitives dominantes de la Crypte par un kit artistique CC0 gouverné.
-- [x] Recomposer Forgotten Forest avec des arbres stylisés, des échelles cohérentes et une lumière lisible.
+- [x] Consolider les outils génériques de terrain, d'échelle et d'éclairage avec une lumière lisible.
+- [x] Regrouper les cinq archives Quaternius fournies dans le pack Asset Vault **Médiéval**, réutiliser
+  les originaux identiques et importer la nouvelle bibliothèque d’animations v2 avec provenance CC0.
+- [x] Basculer Creator, Studio, distributions et validations produit vers la Crypte, sans supprimer
+  les outils de biome et assets réutilisables.
 - [x] Écarter les cubes auxiliaires Blender lors du rendu des assets multi-maillages.
 - [x] Vérifier collisions, navigation, LOD/budgets et profils de qualité par les gates runtime.
 - [x] Valider caméra, mouvement, combat, dialogue, quête et sauvegarde en Forward+.
-- [x] Démarrer dans l’auberge et valider déplacement rapide, mini-carte et atlas des six zones sur `M`.
+- [x] Démarrer dans la zone d’entrée et valider déplacement, mini-carte et atlas sur `M`.
 - [x] Sécuriser toute la géométrie jouable de l’auberge : sol continu, quatre murs infranchissables,
   porte activée uniquement par interaction, alignement visuel murs/sol et pieds/sol, puis récupération
   après une chute forcée sous une carte intérieure ou extérieure (régression Forward+ automatisée).
-- [x] Supprimer le rebond de caméra pendant la marche et remplacer le bouton central de sortie par un
-  clic gauche sur la porte 3D, avec validation complète de la transition auberge → Clairval.
+- [x] Supprimer le rebond de caméra pendant la marche et valider le clic gauche sur les portes 3D.
 - [x] Recomposer le HUD runtime sur une grille Full HD compacte et le revoir visuellement en 1080p/QHD.
-- [x] Capturer des preuves reproductibles de la carte entière et du playtest rapproché.
+- [x] Capturer des preuves reproductibles du monde et du playtest rapproché.
 
 ## C7 — Preuves et maintenabilité
 
@@ -118,7 +121,7 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
 - [x] Couvrir contraste élevé, modes de vision des couleurs, texte ×1,2/×2 et mouvements réduits.
 - [x] Capturer 30 preuves Forward+ en 1920×1080 et 2560×1440, puis revoir interactivement attaque,
   atlas, roue d'actions et transition Auberge du Cerf d'Ambre → Clairval.
-- [x] Conserver `forest-strike` à sa recharge réelle de zéro seconde et laisser le contenu JSON ainsi
+- [x] Conserver `warden-strike` à sa recharge réelle de zéro seconde et laisser le contenu JSON ainsi
   que l'équilibrage hors du lot.
 
 ## C11 — Qualification et publication de la phase
@@ -138,7 +141,7 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
 - [x] Créer `Forge.Studio.Core`, son catalogue testable et les tests de couverture de la matrice.
 - [x] Créer l'application Godot .NET autonome sans `EditorPlugin`, avec Module Hub et une seule
   fenêtre produit.
-- [x] Ouvrir Forgotten Forest, restaurer workspace/page/zone, afficher la zone active dans une vue
+- [x] Ouvrir Crypte des Cendres, restaurer workspace/page/zone, afficher la zone active dans une vue
   3D permanente, charger les modèles gouvernés et partager la sélection avec l'inspecteur.
 - [x] Fournir la première page spécialisée Dialogues en lecture réelle ligne par ligne et désactiver
   explicitement toute action qui n'est pas encore transactionnelle.
@@ -544,7 +547,7 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
   passent ; le portail en 524,12 s et le graphe Roslyn à 11 566 nœuds / 90 143 relations sans
   diagnostic portent la matrice Studio à 717/717 `functional`, sans commit ni publication.
 - [x] Clôturer le jalon UX6-E à UX6-G par le portail transversal complet : 2 035 tests .NET,
-  39 tests Python et smokes Studio, Toolset, Runtime/Forward+, Forgotten Forest, Blender, MCP,
+  39 tests Python et smokes Studio, Toolset, Runtime/Forward+, Crypte des Cendres, Blender, MCP,
   réseau, sauvegarde/reprise et distribution.
 - [x] Clôturer le jalon UX6-A à UX6-D par le portail transversal complet : 2 035 tests .NET,
   39 tests Python et smokes Studio, Toolset, Runtime, Forward+, MCP, réseau et distribution.

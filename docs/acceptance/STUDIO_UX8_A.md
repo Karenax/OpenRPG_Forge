@@ -57,7 +57,7 @@ inchangés.
 - smoke Godot global : marker `OPENRPG_FORGE_STUDIO_UX8_A_PASS` avec `routes`, `selection`,
   `package`, `optimized`, `cli`, `deterministic`, `incremental`, `cancel`, `navigation`, `isolated`,
   `artifacts`, `ui`, `resources_released`, `source_unchanged` et `surface_restored` à `true` ;
-- capture Forward+ **1920×1080** sur Forgotten Forest réel, inspectée après correction de l'état du
+- capture Forward+ **1920×1080** sur Crypte des Cendres réel, inspectée après correction de l'état du
   bouton `Ouvrir la sortie` : cinq cartes, cinq résultats, détail incrémental, journal à la demande,
   statut et quatre actions visibles sans clipping ;
 - matrice Studio : **585** routes `functional` et **132** `planned`, dont UX8 à **5/51** ;

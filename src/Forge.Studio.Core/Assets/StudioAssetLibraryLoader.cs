@@ -30,6 +30,7 @@ public static class StudioAssetLibraryLoader
                 $"Le Vault de modèles est introuvable : {vaultRoot}");
         }
 
+        var collections = LoadPackCollections(repositoryRoot);
         var items = new Dictionary<string, StudioAssetLibraryItem>(StringComparer.OrdinalIgnoreCase);
         var catalogEntryCount = 0;
         foreach (var catalogPath in Directory.EnumerateFiles(catalogDirectory, "*.json")
@@ -52,7 +53,15 @@ public static class StudioAssetLibraryLoader
                 foreach (var pack in packs.EnumerateArray())
                 {
                     catalogEntryCount++;
-                    foreach (var item in MapPack(pack, vaultRoot)) Add(items, item);
+                    var packId = ReadOptionalString(pack, "pack_id");
+                    var collection = !string.IsNullOrWhiteSpace(packId) &&
+                                     collections.TryGetValue(packId, out var configured)
+                        ? configured
+                        : null;
+                    foreach (var item in MapPack(pack, vaultRoot))
+                    {
+                        Add(items, collection is null ? item : ApplyCollection(item, collection));
+                    }
                 }
             }
         }
@@ -68,6 +77,77 @@ public static class StudioAssetLibraryLoader
                 .ToArray(),
             catalogEntryCount);
     }
+
+    private static IReadOnlyDictionary<string, StudioAssetPackCollection> LoadPackCollections(
+        string repositoryRoot)
+    {
+        var result = new Dictionary<string, StudioAssetPackCollection>(StringComparer.OrdinalIgnoreCase);
+        var directory = Path.Combine(repositoryRoot, "asset_manifests", "packs");
+        if (!Directory.Exists(directory)) return result;
+
+        foreach (var path in Directory.EnumerateFiles(directory, "*.json")
+                     .OrderBy(value => value, StringComparer.Ordinal))
+        {
+            using var document = JsonDocument.Parse(File.ReadAllText(path));
+            var root = document.RootElement;
+            if (!string.Equals(
+                    ReadOptionalString(root, "collection_type"),
+                    "asset-vault-collection",
+                    StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            if (!root.TryGetProperty("schema_version", out var schema) || schema.GetInt32() != 1)
+            {
+                throw new InvalidDataException($"Le pack de collection utilise un schéma non pris en charge : {path}");
+            }
+            var packId = ReadOptionalString(root, "pack_id");
+            var displayName = ReadOptionalString(root, "display_name");
+            var sourcePackIds = ReadStrings(root, "source_pack_ids");
+            if (string.IsNullOrWhiteSpace(packId) || string.IsNullOrWhiteSpace(displayName) ||
+                sourcePackIds.Count == 0)
+            {
+                throw new InvalidDataException($"Le pack de collection est incomplet : {path}");
+            }
+
+            var collection = new StudioAssetPackCollection(packId, displayName, ReadStrings(root, "tags"));
+            foreach (var sourcePackId in sourcePackIds)
+            {
+                if (!result.TryAdd(sourcePackId, collection))
+                {
+                    throw new InvalidDataException(
+                        $"Le pack source '{sourcePackId}' appartient à plusieurs collections Asset Vault.");
+                }
+            }
+        }
+        return result;
+    }
+
+    private static StudioAssetLibraryItem ApplyCollection(
+        StudioAssetLibraryItem item,
+        StudioAssetPackCollection collection) => new(
+        item.ExternalId,
+        item.DisplayName,
+        item.Source,
+        collection.PackId,
+        collection.DisplayName,
+        item.Kind,
+        item.Format,
+        item.RelativeModelPath,
+        item.RelativePreviewPath,
+        item.SourcePage,
+        item.LicenseSpdx,
+        item.LicenseUrl,
+        item.LicenseVerified,
+        item.Author,
+        item.AttributionRequired,
+        item.AttributionText,
+        Normalize(item.Tags.Concat(collection.Tags)),
+        item.Categories,
+        item.Variants,
+        item.FileSize,
+        item.AvailableLocally);
 
     private static StudioAssetLibraryItem? MapAsset(JsonElement asset, string vaultRoot)
     {
@@ -409,4 +489,9 @@ public static class StudioAssetLibraryLoader
         }
         return name;
     }
+
+    private sealed record StudioAssetPackCollection(
+        string PackId,
+        string DisplayName,
+        IReadOnlyList<string> Tags);
 }

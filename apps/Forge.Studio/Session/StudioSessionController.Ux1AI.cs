@@ -899,7 +899,7 @@ internal sealed partial class StudioSessionController
                 "seuil-inacheve",
                 "Seuil inachevé",
                 BlueprintKind.Trigger);
-            var narrativeProject = OriginalModuleAuthoringService.CreateVeilleeDesEclats().State.Project;
+            var narrativeProject = SampleModuleAuthoringService.Create().State.Project;
             var narrativeDialogue = narrativeProject.Dialogues.Single();
             var narrativeParticipant = narrativeProject.Blueprints.First(item =>
                 item.Kind is BlueprintKind.Creature or BlueprintKind.PlayerSpawn);

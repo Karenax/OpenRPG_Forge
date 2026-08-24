@@ -2,7 +2,7 @@
 
 ## Périmètre
 
-Cette tranche ferme le dernier critère AV4A sur la carte extérieure représentative Forgotten Forest
+Cette tranche ferme le dernier critère AV4A sur la carte extérieure représentative Asset Vault
 128 × 128 m. Les mesures proviennent de la reconstruction réelle dans le moteur 3D headless ; elles
 ne remplacent pas la source canonique du terrain et n’autorisent pas encore une extension 512 × 512 m.
 
@@ -39,7 +39,7 @@ lente, tout en bloquant une régression d’ordre de grandeur avant l’extensio
   et les diagnostics d’une reconstruction trop lente avec couverture LOD incomplète ;
 - `Forge.Runtime` compile en Release sans avertissement ;
 - le smoke réel émet `OPENRPG_FORGE_AV4A_TERRAIN_BENCHMARK_PASS area=128x128` et écrit
-  `artifacts/verification/forgotten-forest-terrain-benchmark.json`.
+  `artifacts/verification/asset-vault-terrain-benchmark.json`.
 
 ## Critère de passage
 

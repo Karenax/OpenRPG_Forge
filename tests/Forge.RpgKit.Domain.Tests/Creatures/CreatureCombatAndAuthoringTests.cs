@@ -10,7 +10,7 @@ public sealed class CreatureCombatAndAuthoringTests
     public void Wizard_DryRunAndApplyProduceSameCreatureWithRevisionAndInverse()
     {
         var request = new CreatureWizardRequest(Guid.NewGuid(), 0, Guid.NewGuid(), BlueprintId.From(Guid.NewGuid()), "ilyne-eclaireuse", "Ilyne",
-            new("archetype.scout", "ruleset.veillee", "rig.humanoid", "faction.village", EncounterRole.Support, 3, "visual.coast", new HashSet<string> { "companion" }),
+            new("archetype.scout", "ruleset.sample", "rig.humanoid", "faction.village", EncounterRole.Support, 3, "visual.coast", new HashSet<string> { "companion" }),
             "appearance.ilyne", "perception.scout", "combat.scout", "inventory.ilyne", false);
         var initial = new CreatureCatalogState(0, []);
         var preview = CreatureAuthoringService.CreateFromWizard(initial, request with { DryRun = true });
@@ -50,7 +50,7 @@ internal static class CreatureFactoryTestsDefinition
 {
     public static CreatureDefinition Create() => new(Guid.NewGuid(), 1, "author:test", BlueprintId.From(Guid.NewGuid()),
         new("glass-guard", new("Glass Guard", new Dictionary<string, string>()), [], "it", new("", new Dictionary<string, string>()), "", new HashSet<string>()),
-        new("guard", "veillee", "rig.guard", "glass", EncounterRole.Defender, 5, "glass", new HashSet<string>()), Forge.Domain.Spatial.TransformValue.Identity,
+        new("guard", "sample", "rig.guard", "glass", EncounterRole.Defender, 5, "glass", new HashSet<string>()), Forge.Domain.Spatial.TransformValue.Identity,
         [new("health", 20, 20, 0, true), new("morale", 10, 10, 0, true)], new(CreatureMovementMode.Grounded, 4, 8, 6, 0, 0, 45),
         "appearance.guard", "perception.guard", "combat.guard", null, "inventory.guard", new("spawn.guard", new Dictionary<string, string> { ["damaged"] = "damage.guard" }));
 }

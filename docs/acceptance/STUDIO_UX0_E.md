@@ -23,7 +23,7 @@ publication Git.
 - un projet Core sans zone est créé, sérialisé, rouvert par `StudioSessionController`, puis rendu par
   un `StudioWorkspaceShell` complet sur la page Projet sans `ActiveAreaId` ni viewport de zone ;
 - la route du formulaire Projet exécute un dry-run, une application, puis un undo qui restaure la
-  même instance canonique ; Forgotten Forest reste non modifié et non sauvegardé ;
+  même instance canonique ; Crypte des Cendres reste non modifié et non sauvegardé ;
 - une preuve UI dédiée charge une famille de règles, un mode de jeu et un rôle personnalisés : les
   listes affichent seulement « Profil existant (préservé) » et restituent les trois valeurs exactes ;
 - graphe Roslyn régénéré depuis les sources : 8 543 nœuds, 54 009 relations et zéro diagnostic ;

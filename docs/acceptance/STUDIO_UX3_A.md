@@ -50,7 +50,7 @@ locale parallèle n'est entretenue par Godot.
 - dry-run pur, application canonique, historique global, undo/redo et save/reopen ;
 - garde de révision, empreinte du projet et empreinte binaire typée du brouillon approuvé ;
 - conservation des blueprints voisins, zones voisines, entités voisines, dialogues, quêtes et module ;
-- workspace temporaire isolé, clairement marqué fallback canonique lorsque Forgotten Forest ne
+- workspace temporaire isolé, clairement marqué fallback canonique lorsque Crypte des Cendres ne
   contient pas de palette Standard installée ;
 - projet, historique, dirty state, sélection, approbation et surface source restaurés exactement ;
 - suppression bornée du workspace temporaire.
@@ -99,7 +99,7 @@ $filter = 'FullyQualifiedName~BlueprintAuthoringMetadataTests|' +
   'FullyQualifiedName~BlueprintAuthoringPersistenceTests'
 & .\scripts\Verify-StudioIncrement.ps1 -Page blueprints `
   -Evidence ux3-a-blueprint-foundation `
-  -Workspace apps/Forge.Runtime/content/forgotten-forest `
+  -Workspace apps/Forge.Runtime/content/crypt-of-ashes `
   -TestProject $projects -TestFilter $filter `
   -Capture artifacts/verification/studio-increment/ux3-a-blueprint-foundation-forward-plus-fhd.png
 ```

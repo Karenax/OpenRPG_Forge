@@ -334,7 +334,13 @@ internal sealed partial class StudioZoneDynamicOperationsOverlay : Control
         }
         else
         {
-            var evidenceSelection = _session.ActiveArea?.Entities.Take(2).Select(entity => entity.Id).ToArray() ?? [];
+            var activeEntities = _session.ActiveArea?.Entities ?? [];
+            var evidenceSelection = activeEntities.Where(entity => entity.Transform.Scale == Vector3Value.One)
+                .Take(2).Select(entity => entity.Id).ToArray();
+            if (evidenceSelection.Length == 0)
+            {
+                evidenceSelection = activeEntities.Take(2).Select(entity => entity.Id).ToArray();
+            }
             if (evidenceSelection.Length == 0 ||
                 !_session.SelectEntities(evidenceSelection, evidenceSelection[^1]))
             {
@@ -371,7 +377,12 @@ internal sealed partial class StudioZoneDynamicOperationsOverlay : Control
             return false;
         }
 
-        var evidenceSelection = area.Entities.Take(2).Select(entity => entity.Id).ToArray();
+        var evidenceSelection = area.Entities.Where(entity => entity.Transform.Scale == Vector3Value.One)
+            .Take(2).Select(entity => entity.Id).ToArray();
+        if (evidenceSelection.Length == 0)
+        {
+            evidenceSelection = area.Entities.Take(2).Select(entity => entity.Id).ToArray();
+        }
         _session.SelectEntities(evidenceSelection, evidenceSelection[^1]);
         OpenScale();
         _updating = true;

@@ -56,8 +56,8 @@ décision déterministe `attack`, mais ne lance ni boucle IA, ni déplacement, n
 
 - identité, règles, authoring, interactions, mouvement, présentation, progression, loot, événements
   UX4-N/O, overrides et autres blueprints sont préservés ; seul le tail Event/IA ciblé est remplacé ;
-- le parcours produit refuse une créature sans fondation au lieu d’en synthétiser une. Forgotten
-  Forest utilise une copie temporaire avec fallback canonique ; la Crypte réutilise son vrai profil ;
+- le parcours produit refuse une créature sans fondation au lieu d’en synthétiser une. La
+  démonstration utilise une copie temporaire avec fallback canonique ; la Crypte réutilise son vrai profil ;
 - aucun stimulus, attaque, capacité, mouvement, script, acteur ou transport réseau n’est exécuté ;
   le lot qualifie l’authoring, la validation, la persistance et les projections pures ;
 - `ORF-CRE-033` OnSpawn est qualifié séparément par UX4-D et `ORF-CRE-034` OnConversation par UX4-J ;

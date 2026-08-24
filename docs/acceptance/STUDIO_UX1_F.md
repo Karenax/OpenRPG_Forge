@@ -17,8 +17,8 @@ statique du `PlaceableWorldProfile.FoundationPolicy` directement accessible dans
 - le smoke contractuel crée un workspace temporaire avec un décor statique et deux instances,
   compare le résultat de l’interface à la commande canonique, applique, annule, rétablit, sauvegarde
   et rouvre le document ;
-- le smoke UI applique une fusion sans collision par instance depuis l’overlay réel de Forgotten
-  Forest, puis annule et restaure exactement le projet courant ;
+- le smoke UI applique une fusion sans collision par instance depuis l’overlay réel de la
+  démonstration 3D, puis annule et restaure exactement le projet courant ;
 - journal headless : `artifacts/verification/studio-shell/ux1-f/headless-smoke.log` ;
 - captures et journaux Forward+ inspectés dans `artifacts/verification/studio-shell/ux1-f/` :
   `static-fhd.png` en 1920×1080, `merge-qhd.png` en 2560×1440 et `collisionless-4k.png` en

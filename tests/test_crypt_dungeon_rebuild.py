@@ -9,7 +9,8 @@ ROOT = Path(__file__).resolve().parents[1]
 CRYPT = ROOT / "apps" / "Forge.Runtime" / "content" / "crypt-of-ashes"
 PROJECT = CRYPT / "project.json"
 MANIFEST = CRYPT / "systemic-gameplay.json"
-ART = ROOT / "apps" / "Forge.Runtime" / "Runtime" / "CryptArtKitDecorator.cs"
+ART = ROOT / "src" / "Forge.EngineAdapter" / "Rendering" / "GodotCryptArtKitBuilder.cs"
+ART_DECORATOR = ROOT / "apps" / "Forge.Runtime" / "Runtime" / "CryptArtKitDecorator.cs"
 GAME_ROOT_FILES = sorted((ROOT / "apps" / "Forge.Runtime" / "Runtime").glob("GameRoot*.cs"))
 CAMERA_RIG = ROOT / "apps" / "Forge.Runtime" / "Runtime" / "RuntimeCameraRig.cs"
 HUD = ROOT / "apps" / "Forge.Runtime" / "Runtime" / "RuntimeHud.cs"
@@ -25,6 +26,7 @@ class CryptDungeonRebuildTests(unittest.TestCase):
         cls.area = json.loads((CRYPT / area_path).read_text(encoding="utf-8"))["area"]
         cls.manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
         cls.art = ART.read_text(encoding="utf-8")
+        cls.art_decorator = ART_DECORATOR.read_text(encoding="utf-8")
         cls.game_root = "\n".join(path.read_text(encoding="utf-8") for path in GAME_ROOT_FILES)
         cls.camera_rig = CAMERA_RIG.read_text(encoding="utf-8")
         cls.hud = HUD.read_text(encoding="utf-8")
@@ -84,7 +86,11 @@ class CryptDungeonRebuildTests(unittest.TestCase):
         self.assertEqual(-31.0, interactions["spikes"]["position"]["z"])
 
     def test_cc0_art_pass_builds_seven_zones_and_real_room_silhouettes(self) -> None:
-        self.assertIn("return new CryptArtKitResult(root, instances, floors, walls, props, 7);", self.art)
+        self.assertIn(
+            "return new GodotCryptArtKitResult(root, instances, floors, walls, props, ZoneCount);",
+            self.art,
+        )
+        self.assertIn("GodotCryptArtKitBuilder.Build(InstantiateModel)", self.art_decorator)
         self.assertGreaterEqual(self.art.count("FillFloor(root"), 7)
         self.assertGreaterEqual(self.art.count("WallLineZ(root"), 14)
         self.assertIn("wall_doorway.glb", self.art)
@@ -98,8 +104,14 @@ class CryptDungeonRebuildTests(unittest.TestCase):
         self.assertIn("AddSafetyWall", self.art)
 
     def test_lateral_reliquaries_have_matching_visual_and_physical_doorways(self) -> None:
-        self.assertIn("WallLineZ(root, -8, 11, 19, 90, ref walls, doorwayZ: 15)", self.art)
-        self.assertIn("WallLineZ(root, 8, 11, 19, -90, ref walls, doorwayZ: 15)", self.art)
+        self.assertIn(
+            "WallLineZ(root, -8, 11, 19, 90, instantiateModel, ref walls, doorwayZ: 15)",
+            self.art,
+        )
+        self.assertIn(
+            "WallLineZ(root, 8, 11, 19, -90, instantiateModel, ref walls, doorwayZ: 15)",
+            self.art,
+        )
         dividers = [
             entity for entity in self.area["entities"]
             if "wall" in entity["tags"]

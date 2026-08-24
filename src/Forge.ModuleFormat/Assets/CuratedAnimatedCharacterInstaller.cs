@@ -11,7 +11,7 @@ namespace Forge.ModuleFormat.Assets;
 public static class CuratedAnimatedCharacterInstaller
 {
     public const string DefaultManifestRelativePath =
-        "asset_manifests/packs/forgotten_forest_animated_character.json";
+        "asset_manifests/packs/asset_vault_animated_character.json";
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {

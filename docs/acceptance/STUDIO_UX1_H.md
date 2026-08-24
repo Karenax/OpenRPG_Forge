@@ -20,7 +20,7 @@ route placeable ni une distribution publique.
 - le smoke contractuel crée un workspace temporaire avec deux instances, modifie un conteneur
   existant, compare le brouillon direct à la commande canonique, applique, annule, rétablit,
   sauvegarde et rouvre le document ;
-- le smoke UI applique un conteneur depuis l’overlay réel de Forgotten Forest puis annule et
+- le smoke UI applique un conteneur depuis l’overlay réel de Crypte des Cendres puis annule et
   restaure exactement le projet courant ;
 - journal headless : `artifacts/verification/studio-shell/ux1-h/headless-smoke.log` ;
 - captures et journaux Forward+ inspectés dans `artifacts/verification/studio-shell/ux1-h/` :

@@ -17,7 +17,7 @@ public sealed class SourceScanner
         ".artifacts", ".forge", ".git", ".godot", ".idea", ".mypy_cache", ".pytest_cache", ".ruff_cache",
         ".tmp", ".venv", ".vs", ".vscode", "__pycache__", "artifacts", "bin",
         "build", "coverage", "dist", "generated", "node_modules", "obj", "old",
-        "target", "tmp", "vendor", "venv",
+        "target", "tmp", "vendor", "venv", "exe",
     };
 
     private static readonly HashSet<string> ExcludedSuffixes = new(StringComparer.OrdinalIgnoreCase)
@@ -56,7 +56,9 @@ public sealed class SourceScanner
             foreach (var child in Directory.EnumerateDirectories(directory)
                          .OrderByDescending(path => path, StringComparer.Ordinal))
             {
-                if (!ExcludedDirectories.Contains(Path.GetFileName(child)))
+                var childName = Path.GetFileName(child);
+                if (!ExcludedDirectories.Contains(childName) &&
+                    !childName.StartsWith("exe.", StringComparison.OrdinalIgnoreCase))
                 {
                     pending.Push(child);
                 }

@@ -44,7 +44,7 @@ sans raycast, caméra, acteur, pathfinding ou réseau live.
 - build Debug `Forge.Studio` : **0 avertissement, 0 erreur** ;
 - portail incrémental : **126,38 s**, **11/11** tests ciblés — Domain 3, Application 7,
   ModuleFormat 1 — puis smoke global, capture Forward+ FHD et contrôle de matrice ;
-- smoke `OPENRPG_FORGE_STUDIO_UX6_D_PASS` : sélection explicite, vrai profil Forgotten Forest,
+- smoke `OPENRPG_FORGE_STUDIO_UX6_D_PASS` : sélection explicite, vrai profil Crypte des Cendres,
   quatre invalidités, dry-run sans mutation, quatre résolutions pures, source et approbation
   obsolètes bloquées, commande canonique, undo/redo, round-trip, temps du monde, queues gameplay,
   identités et voisins préservés, transaction UI isolée, ressources libérées, source et surface
@@ -59,14 +59,14 @@ sans raycast, caméra, acteur, pathfinding ou réseau live.
 
 Le jalon UX6-A à UX6-D regroupe désormais quatre lots et dix-sept routes. Le portail transversal
 `scripts/Verify.ps1` a donc été rejoué intégralement après le portail local : **2 035/2 035** tests
-.NET, **39/39** tests Python, smokes Studio, Toolset, Runtime, Forward+, Forgotten Forest, Blender,
+.NET, **39/39** tests Python, smokes Studio, Toolset, Runtime, Forward+, Crypte des Cendres, Blender,
 MCP, réseau, sauvegarde/reprise et distribution, puis `OPENRPG_FORGE_VERIFICATION=PASS`. Le premier
 lancement complet s’était arrêté uniquement sur le contrôle whitespace des fichiers UX6 ; le
 formateur du projet a été appliqué à ces seuls fichiers et le portail a été repris depuis le début.
 
 ## Préservation et limites honnêtes
 
-La preuve copie le vrai projet Forgotten Forest dans un workspace temporaire, compare projet,
+La preuve copie le vrai projet Crypte des Cendres dans un workspace temporaire, compare projet,
 historique, révision, journal, dirty, zone active et approbation avant/après, puis supprime l’isolat.
 Les identités des profils, corps et liaisons restent stables. `WorldTime`, `Foundation`, `Swimming`,
 `Climbing`, `RadialMenu`, `TimeControl`, `CombatModes`, `Session`, les zones, blueprints, dialogues et

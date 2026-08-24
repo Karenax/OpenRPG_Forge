@@ -1941,7 +1941,7 @@ public partial class AreaEnvironmentWindow : Window
         _audioSearch!.Text = "pluie forêt";
         _audioSearchResults!.Text = "3 résultats gouvernés · Pluie douce sous les arbres\n" +
             "audio/forest/rain-soft.ogg · -21.4 LUFS · 48.2 s\n" +
-            "CC0-1.0 · asset-vault:forgotten-forest\nTags: pluie, forêt, ambiance · Transcript: pluie légère et feuillage";
+            "CC0-1.0 · asset-vault:forest-environment\nTags: pluie, forêt, ambiance · Transcript: pluie légère et feuillage";
         _audioWaveform!.Text = "Waveform  ▁▂▅▇▆▃▂▄█▆▃▂▅▇▄▁▃▆█▅▂▁▄▇";
         _r061Order!.Selected = (int)AudioOrderMode.Weighted;
         _audioSeed!.Value = 2026;

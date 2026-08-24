@@ -36,7 +36,7 @@ public sealed partial class StudioRoot : Control
         RenderingServer.SetDefaultClearColor(StudioStyle.Background);
 
         _defaultWorkspace = Path.GetFullPath(ProjectSettings.GlobalizePath(
-            "res://../Forge.Runtime/content/forgotten-forest"));
+            "res://../Forge.Runtime/content/crypt-of-ashes"));
         if (!StudioUserStateStore.TryLoad(out _userState, out var preferenceError))
         {
             GD.PushWarning($"OPENRPG_FORGE_STUDIO_PREFERENCES_INVALID {preferenceError}");
@@ -107,7 +107,7 @@ public sealed partial class StudioRoot : Control
         }
         else
         {
-            _hub.SetDefaultModule("Forgotten Forest", "Le workspace fourni n'est pas disponible.", available: false);
+            _hub.SetDefaultModule("Crypte des Cendres", "Le workspace fourni n'est pas disponible.", available: false);
         }
     }
 

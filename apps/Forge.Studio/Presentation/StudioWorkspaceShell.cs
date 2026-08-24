@@ -357,6 +357,8 @@ internal sealed partial class StudioWorkspaceShell : Control
         WorldViewport.ClipboardPasteRequested += PasteClipboard;
         WorldViewport.RepeatedPlacementRequested += PlaceRepeatedEntities;
         WorldViewport.InteractionStatusChanged += message => SetStatus(message);
+        WorldViewport.TransformToolChanged += RefreshInspector;
+        WorldViewport.DisplayFilterResetRequested += ResetDisplayFilter;
         _primaryAction.Pressed += HandlePrimaryAction;
         _worldSplit.AddChild(WorldViewport);
         ComparisonViewport = new StudioWorldViewport { Visible = false };
@@ -2338,7 +2340,8 @@ internal sealed partial class StudioWorkspaceShell : Control
         WorldViewport.SetSelection(entityId);
         SyncExplorerSelection();
         RefreshInspector();
-        SetStatus("Objet sélectionné · flèches pour déplacer · plans colorés pour tourner · clic droit pour éditer");
+        SetStatus(
+            $"Objet sélectionné · outil {TransformToolLabel(_session.WorkspaceProfile.Shell.DirectManipulation.Transform.Tool)} actif · clic droit pour éditer");
         NavigationChanged?.Invoke();
     }
 
@@ -2858,7 +2861,38 @@ internal sealed partial class StudioWorkspaceShell : Control
             AddInspectorValue("ZONE", area.DisplayName);
             AddInspectorValue("POSITION",
                 $"X {selected.Transform.Position.X:0.##} · Y {selected.Transform.Position.Y:0.##} · Z {selected.Transform.Position.Z:0.##}");
+            AddInspectorValue("TAILLE / ÉCHELLE",
+                $"X {selected.Transform.Scale.X:0.##} · Y {selected.Transform.Scale.Y:0.##} · Z {selected.Transform.Scale.Z:0.##}");
             AddInspectorValue("TAGS", selected.Tags.Count == 0 ? "Aucun" : string.Join(", ", selected.Tags));
+            var resize = StudioStyle.Button(
+                selected.Tags.Contains("floor", StringComparer.OrdinalIgnoreCase)
+                    ? "Redimensionner cette dalle (X · Y · Z)"
+                    : "Redimensionner (X · Y · Z)",
+                compact: true);
+            resize.TooltipText = "Ouvre directement les dimensions numériques de l’objet sélectionné.";
+            resize.Pressed += () =>
+            {
+                _entityEditorSection = StudioEntityEditorSection.Transform;
+                RefreshInspector();
+            };
+            _inspectorContent.AddChild(resize);
+            if (selected.Tags.Contains("floor", StringComparer.OrdinalIgnoreCase))
+            {
+                var floorIds = area.Entities
+                    .Where(entity => entity.Tags.Contains("floor", StringComparer.OrdinalIgnoreCase))
+                    .Select(entity => entity.Id)
+                    .ToArray();
+                var selectFloor = StudioStyle.Button($"Sélectionner les {floorIds.Length} dalles du sol", compact: true);
+                selectFloor.TooltipText =
+                    "Sélectionne toutes les zones de sol afin de les déplacer ou redimensionner comme un ensemble.";
+                selectFloor.Pressed += () => SelectEntities(floorIds, selected.Id);
+                _inspectorContent.AddChild(selectFloor);
+                _inspectorContent.AddChild(StudioStyle.Label(
+                    "Le sol reste découpé en zones de gameplay. Sélectionnez toutes les dalles pour transformer l’ensemble, ou cette dalle pour régler une zone précise.",
+                    9,
+                    StudioStyle.Muted,
+                    wrap: true));
+            }
             var clickTrigger = Forge.Domain.Entities.EntityClickTriggerSettings.Read(selected.Overrides);
             AddInspectorValue(
                 "CLIC GAUCHE DANS LE JEU",
@@ -2893,7 +2927,9 @@ internal sealed partial class StudioWorkspaceShell : Control
             };
             _inspectorContent.AddChild(edit);
             _inspectorContent.AddChild(StudioStyle.Label(
-                "Dans la vue 3D : maintenez une flèche X, Y ou Z pour déplacer. Maintenez un plan coloré entre deux axes pour tourner. Clic droit pour modifier, dupliquer, ajouter à côté ou supprimer.",
+                "Dans la vue 3D, choisissez Déplacer [1], Tourner [2] ou Redimensionner [3]. " +
+                "Glissez ensuite la flèche, la surface de rotation ou la poignée de taille correspondante. " +
+                "Clic droit pour modifier, dupliquer, ajouter à côté ou supprimer.",
                 10,
                 StudioStyle.Muted,
                 wrap: true));

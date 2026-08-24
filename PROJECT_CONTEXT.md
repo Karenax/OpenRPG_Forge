@@ -29,7 +29,7 @@ Un créateur doit pouvoir :
 
 Le dépôt contient le Creator/Toolset historique intégré à l'éditeur Godot, sa nouvelle application
 autonome `Forge.Studio`, un runtime 3D séparé, ForgeScript, un format de module propre, un host MCP
-et deux démonstrations jouables : Crypte des Cendres et Forgotten Forest. Les 717
+et un module canonique : Crypte des Cendres. Les 717
 exigences du catalogue Aurora sont classées `Tested` dans 187 lots clos. Cette couverture décrit les
 capacités disponibles ; elle ne remplace pas la qualification d’un logiciel installable et publiable.
 
@@ -46,7 +46,7 @@ dry-run, diff, garde de révision, audit, undo/redo, sauvegarde atomique et pré
 voisines ; les aperçus distinguent les plans déterministes des effets moteur réellement exécutés.
 
 La revue corrective UX11-B a inspecté les trente-six pages en Full HD, QHD et 4K. Les distributions
-Studio Windows x64 et Linux x64 embarquent le workspace Forgotten Forest et la bibliothèque
+Studio Windows x64 et Linux x64 embarquent le workspace Crypte des Cendres et la bibliothèque
 ForgeScript native de leur plateforme ; le smoke Linux a été rejoué sur Debian 13 x86_64 sans
 éditeur Godot, ce qui ferme `STUDIO-043`. Le portail transversal final passe 2 117 tests .NET,
 44 tests Python et tous ses smokes ; le graphe Roslyn reste frais et déterministe. Cette qualification
@@ -59,7 +59,7 @@ locale autoritaire. La connexion distante reste un aperçu désactivé jusqu'au 
 transport réseau inter-processus. Les restaurations `win-x64` propres aux exports utilisent des
 verrous NuGet temporaires et ne réécrivent pas les `packages.lock.json` canoniques du dépôt.
 
-Le parcours Creator normal ouvre la démonstration Forgotten Forest et privilégie l'édition directe :
+Le parcours Creator normal ouvre la Crypte des Cendres et privilégie l'édition directe :
 choisir un objet ou une brosse de terrain, cliquer dans la vue 3D, cadrer la zone active et conserver
 les détails techniques en second niveau. Les aperçus d'assets externes restent gouvernés ; un asset
 indisponible reçoit un placeholder explicite sans autoriser d'import implicite depuis le réseau.
@@ -148,9 +148,11 @@ sous-jacent est une dépendance technique interne, pas l’identité du logiciel
 
 La cible 3D est un réalisme stylisé lisible : échelle métrique cohérente, matériaux PBR normalisés,
 silhouettes distinctes, éclairage orientant le joueur, collisions et navigation fiables, LOD et
-budgets par profil de qualité. Crypte des Cendres utilise désormais un kit artistique CC0 gouverné et
-Forgotten Forest une composition stylisée avec modèles réels, terrain, navigation, eau et éclairage
-jouables. La passe restante avant démonstration publique est une finition artistique exhaustive et
+budgets par profil de qualité. Crypte des Cendres utilise désormais un kit artistique CC0 gouverné.
+Le Vault externe expose aussi le pack CC0 **Médiéval** : 365 modèles Quaternius de village, décors,
+nature, tenues modulaires et animations, regroupés sans dupliquer les originaux déjà acquis.
+Les outils réutilisables de terrain, biome forestier, navigation, eau et éclairage restent disponibles
+sans être liés à un module canonique. La passe restante avant démonstration publique est une finition artistique exhaustive et
 une revue humaine sur les résolutions et profils matériels supportés, pas un retour aux primitives.
 
 Le rendu Forward+ applique une qualité visuelle gouvernée par profil : ciel procédural cinématique,
@@ -241,7 +243,7 @@ La première version publiable est atteinte lorsque :
   sans perte silencieuse des données non affichées ;
 - les huit rubriques et trente-six pages du Studio sont cohérentes, navigables au clavier et
   utilisables sans connaissance de l'éditeur Godot ;
-- Crypte et Forgotten Forest passent une revue visuelle interactive aux résolutions supportées ;
+- la Crypte passe une revue visuelle interactive aux résolutions supportées ;
 - un module créé, exporté, installé, sauvegardé, repris et mis à niveau passe un test de bout en bout ;
 - l’IA/MCP réussit un parcours plan/dry-run/approbation/test/revert sans accès arbitraire ;
 - version, changelog, licences, SBOM, signatures disponibles et limites connues sont publiés.

@@ -103,14 +103,14 @@ $filter = 'FullyQualifiedName~ContentWorkspaceTests|' +
   'FullyQualifiedName~ContentPackageCompilerTests'
 & .\scripts\Verify-StudioIncrement.ps1 -Page assets `
   -Evidence ux3-h-content-data `
-  -Workspace apps/Forge.Runtime/content/forgotten-forest `
+  -Workspace apps/Forge.Runtime/content/crypt-of-ashes `
   -TestProject $projects -TestFilter $filter `
   -Capture artifacts/verification/studio-increment/ux3-h-content-data-current-forward-plus-fhd.png
 
 foreach ($mode in 'ux3-h-batch-import', 'ux3-h-blueprint-export',
          'ux3-h-text-sources', 'ux3-h-data-tables') {
   & .\scripts\Open-Studio.ps1 -Page assets -Evidence $mode `
-    -Workspace apps/Forge.Runtime/content/forgotten-forest `
+    -Workspace apps/Forge.Runtime/content/crypt-of-ashes `
     -Resolution 1920x1080 -SkipBuild -Wait `
     -Capture "artifacts/verification/studio-increment/$mode-current-forward-plus-fhd.png"
 }

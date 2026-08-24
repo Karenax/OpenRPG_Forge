@@ -235,7 +235,7 @@ $studioLog = Join-Path $artifactRoot 'studio-interactive.log'
 $enginePath = Get-ForgeEnginePath
 
 if ([string]::IsNullOrWhiteSpace($Workspace)) {
-    $Workspace = Join-Path $repositoryRoot 'apps\Forge.Runtime\content\forgotten-forest'
+    $Workspace = Join-Path $repositoryRoot 'apps\Forge.Runtime\content\crypt-of-ashes'
 }
 
 $Workspace = [System.IO.Path]::GetFullPath($Workspace)

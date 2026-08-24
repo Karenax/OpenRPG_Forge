@@ -130,7 +130,7 @@ public sealed class QuestJournalScriptServiceTests
         var source = CreateQuest();
         var objective = new QuestAuthoringObjective(Guid.Parse("c7730000-0000-4000-8000-000000000001"),
             1, "test:r073", 1, QuestObjectiveKind.Boolean,
-            new LocalizedText("quest.r073.objective", "Restaurer la veillée"), 1, [], null, 0, [], null, false);
+            new LocalizedText("quest.r073.objective", "Rétablir le signal"), 1, [], null, 0, [], null, false);
         var participant = new QuestAuthoringParticipant(Guid.Parse("c7730000-0000-4000-8000-000000000002"),
             1, "test:r073", 1, "guide", QuestParticipantBindingKind.Query, "query:guide", [], true);
         var authoring = new QuestAuthoringProfile(Guid.Parse("c7730000-0000-4000-8000-000000000003"),
@@ -155,7 +155,7 @@ public sealed class QuestJournalScriptServiceTests
                 QuestAiDependencyKind.Participant, participant.Id.ToString("D")),
         };
         var plan = QuestQualityRuntimeService.CreateAiPlan(source,
-            new LocalizedText("quest.r073.ai", "Proposer la suite de la veillée."), dependencies,
+            new LocalizedText("quest.r073.ai", "Proposer la suite de la mission."), dependencies,
             ["08_QUEST.md#orf-qst-025"], ["style:crypt"], "agent:test",
             Guid.Parse("c7730000-0000-4000-8000-000000000008"), "preview:quest:r073");
         plan = QuestQualityRuntimeService.Approve(plan, "author:test", DateTimeOffset.UnixEpoch);

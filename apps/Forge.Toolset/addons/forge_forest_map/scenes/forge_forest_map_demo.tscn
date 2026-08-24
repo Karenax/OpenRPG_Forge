@@ -70,10 +70,10 @@ tonemap_mode = 2
 
 [node name="ForgeForestMap" type="Node3D"]
 script = ExtResource("1_map")
-map_id = "forgotten-forest-demo"
-display_name = "Forgotten Forest — démonstration"
-mask_path = "res://forest_maps/forgotten-forest-demo-mask.png"
-definition_path = "res://forest_maps/forgotten-forest-demo.json"
+map_id = "forest-demo"
+display_name = "Forêt — démonstration"
+mask_path = "res://forest_maps/forest-demo-mask.png"
+definition_path = "res://forest_maps/forest-demo.json"
 
 [node name="Ground" type="StaticBody3D" parent="."]
 collision_layer = 1

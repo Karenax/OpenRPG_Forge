@@ -54,7 +54,7 @@
 - les routes aériennes sont persistées et visualisées, sans contrôleur d'animation bancaire ;
 - le coordinateur charge des ressources bornées d'une zone. Le monde ouvert massif et le streaming
   réseau ne font pas partie du MVP ;
-- la sculpture/peinture interactive et la carte Forgotten Forest curatée restent postérieures à la
+- la sculpture/peinture interactive et la carte Asset Vault curatée restent postérieures à la
   fondation générique.
 
 ## Critère de passage

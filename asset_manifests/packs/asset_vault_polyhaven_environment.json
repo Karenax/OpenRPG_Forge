@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "pack_id": "asset-vault-polyhaven-environment",
+  "version": "1.1.0",
+  "display_name": "Asset Vault — Poly Haven environment",
+  "license": "CC0-1.0",
+  "models": [
+    { "external_id": "polyhaven:dutch_ship_large_01", "source_mesh_names": ["dutch_ship_large_01_hull", "dutch_ship_large_01_rigging", "dutch_ship_large_01_sails"], "base_decimation_ratio": 1.0, "maximum_output_bytes": 134217728, "tags": ["boat", "landmark", "ship"] },
+    { "external_id": "polyhaven:modular_wooden_pier", "source_mesh_names": ["modular_wooden_pier_section_02"], "base_decimation_ratio": 1.0, "maximum_output_bytes": 67108864, "tags": ["bridge", "pier", "wood"] },
+    { "external_id": "polyhaven:fern_02", "source_mesh_names": ["fern_02_b"], "base_decimation_ratio": 0.55, "maximum_output_bytes": 33554432, "tags": ["fern", "forest", "plant"] },
+    { "external_id": "polyhaven:fir_sapling", "source_mesh_names": ["fir_sapling_b"], "base_decimation_ratio": 0.03, "maximum_output_bytes": 67108864, "tags": ["fir", "forest", "sapling", "tree"] },
+    { "external_id": "polyhaven:fir_sapling_medium", "source_mesh_names": ["fir_sapling_medium_b_LOD0"], "base_decimation_ratio": 0.01, "maximum_output_bytes": 100663296, "tags": ["fir", "forest", "sapling", "tree"] },
+    { "external_id": "polyhaven:didelta_spinosa", "source_mesh_names": ["didelta_spinosa_small_LOD0"], "base_decimation_ratio": 0.12, "maximum_output_bytes": 67108864, "tags": ["flower", "meadow", "plant"] },
+    { "external_id": "polyhaven:dry_branches_medium_01", "source_mesh_names": ["dry_branches_medium_01_c"], "base_decimation_ratio": 0.5, "maximum_output_bytes": 33554432, "tags": ["branches", "deadwood", "forest"] },
+    { "external_id": "polyhaven:dead_tree_trunk", "source_mesh_names": ["dead_tree_trunk"], "base_decimation_ratio": 0.05, "maximum_output_bytes": 67108864, "tags": ["deadwood", "forest", "trunk"] },
+    { "external_id": "polyhaven:grass_medium_01", "source_mesh_names": ["grass_medium_01_small_a_LOD0"], "base_decimation_ratio": 0.5, "maximum_output_bytes": 33554432, "tags": ["grass", "ground-cover", "meadow"] },
+    { "external_id": "polyhaven:moss_01", "source_mesh_names": ["moss_01_a_LOD0"], "base_decimation_ratio": 1.0, "maximum_output_bytes": 33554432, "tags": ["forest", "ground-cover", "moss"] },
+    { "external_id": "polyhaven:pine_sapling_small", "source_mesh_names": ["pine_sapling_small_b"], "base_decimation_ratio": 0.035, "maximum_output_bytes": 67108864, "tags": ["forest", "pine", "sapling", "tree"] },
+    { "external_id": "polyhaven:rock_moss_set_01", "source_mesh_names": ["rock_moss_set_01_rock01"], "base_decimation_ratio": 0.35, "maximum_output_bytes": 33554432, "tags": ["forest", "moss", "rock"] },
+    { "external_id": "polyhaven:rock_moss_set_02", "source_mesh_names": ["rock_moss_set_02_rock08"], "base_decimation_ratio": 0.45, "maximum_output_bytes": 33554432, "tags": ["forest", "moss", "rock"] },
+    { "external_id": "polyhaven:tree_stump_01", "source_mesh_names": ["tree_stump_01"], "base_decimation_ratio": 0.12, "maximum_output_bytes": 67108864, "tags": ["deadwood", "forest", "stump"] },
+    { "external_id": "polyhaven:tree_stump_02", "source_mesh_names": ["tree_stump_02"], "base_decimation_ratio": 0.08, "maximum_output_bytes": 67108864, "tags": ["deadwood", "forest", "stump"] },
+    { "external_id": "polyhaven:wooden_axe_02", "source_mesh_names": ["wooden_axe_02"], "base_decimation_ratio": 1.0, "maximum_output_bytes": 16777216, "tags": ["axe", "camp", "prop"] },
+    { "external_id": "polyhaven:wooden_axe_03", "source_mesh_names": ["wooden_axe_03"], "base_decimation_ratio": 1.0, "maximum_output_bytes": 16777216, "tags": ["axe", "camp", "prop"] }
+  ]
+}

@@ -37,7 +37,7 @@ navigables, puis supprime l'isolat.
 - tests .NET ciblés : **13/13** — Domain 3, Application 5, ModuleFormat 5 ;
 - smoke Godot global : marker `OPENRPG_FORGE_STUDIO_UX7_H_PASS` avec tous les sous-invariants à
   `true`, puis approbations candidates, evidence et shell global PASS ;
-- capture Forward+ **1920×1080** sur Forgotten Forest réel : cartes QA/Tracy, résultat, huit cas,
+- capture Forward+ **1920×1080** sur Crypte des Cendres réel : cartes QA/Tracy, résultat, huit cas,
   frontière, statut et actions lisibles sans clipping ;
 - portail incrémental : **476,34 s** — build 1,15 s, tests 1,52/2,63/2,88 s, smoke
   334,97 s, capture 26,31 s, matrice 0,89 s, génération du graphe 54,31 s et contrôle intégral

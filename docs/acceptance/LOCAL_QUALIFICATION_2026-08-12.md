@@ -16,13 +16,13 @@
 - la navigation principale, le panneau de sélection et les détails techniques repliés restent lisibles ;
 - Crypte des Cendres démarre, affiche le kit artistique CC0 et accepte les commandes de déplacement
   et d'interaction ;
-- Forgotten Forest affiche les personnages, le HUD, les objectifs et les arbres stylisés sans les
+- Crypte des Cendres affiche les personnages, le HUD, les objectifs et les arbres stylisés sans les
   cubes auxiliaires issus de Blender.
 
 ## Preuves visuelles conservées
 
-- [Forgotten Forest — carte](forgotten-forest-consolidated-world.png)
-- [Forgotten Forest — playtest](forgotten-forest-consolidated-playtest.png)
+- [Crypte des Cendres — carte](crypt-of-ashes-consolidated-world.png)
+- [Crypte des Cendres — playtest](crypt-of-ashes-consolidated-playtest.png)
 
 ## Distribution
 

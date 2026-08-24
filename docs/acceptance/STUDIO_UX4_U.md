@@ -133,7 +133,7 @@ le validateur canonique avant toute mutation.
 
 ## Préservation et limites honnêtes
 
-- Forgotten Forest n’authore aucun compagnon dans son document source ; la preuve riche ajoute
+- Crypte des Cendres n’authore aucun compagnon dans son document source ; la preuve riche ajoute
   donc Maëlys uniquement dans une copie temporaire explicitement étiquetée et y copie les vrais
   scripts `.forge`, puis prouve projet, historique, dirty, sélection et approbation source inchangés ;
 - la transaction remplace seulement le compagnon ciblé et préserve compagnons voisins, toutes les
@@ -157,7 +157,7 @@ $filter = 'FullyQualifiedName~Companion|' +
   'FullyQualifiedName~CryptOfAshesSampleTests'
 & .\scripts\Verify-StudioIncrement.ps1 -Page social-content `
   -Evidence ux4-u-companion-authoring `
-  -Workspace apps/Forge.Runtime/content/forgotten-forest `
+  -Workspace apps/Forge.Runtime/content/crypt-of-ashes `
   -TestProject $projects -TestFilter $filter `
   -Capture artifacts/verification/studio-increment/ux4-u-companion-authoring-fhd.png `
   -NoMatrixCheck

@@ -22,7 +22,8 @@ $studioProject = Join-Path $repositoryRoot 'apps/Forge.Studio'
 $studioProjectFile = Join-Path $studioProject 'Forge.Studio.csproj'
 $studioSolution = Join-Path $studioProject 'Forge.Studio.sln'
 $exportPresets = Join-Path $studioProject 'export_presets.cfg'
-$workspaceSource = Join-Path $repositoryRoot 'apps/Forge.Runtime/content/forgotten-forest'
+$workspaceSource = Join-Path $repositoryRoot 'apps/Forge.Runtime/content/crypt-of-ashes'
+$cryptArtSource = Join-Path $repositoryRoot 'apps/Forge.Runtime/art/crypt-kaykit'
 $nativeBuildScript = Join-Path $PSScriptRoot 'Build-ForgeScriptNative.ps1'
 $nativeLibraryName = if ($Platform -eq 'windows-x64') {
     'forge_script_native.dll'
@@ -64,6 +65,9 @@ foreach ($requiredPath in @($studioProjectFile, $studioSolution, $exportPresets,
     if (-not (Test-Path -LiteralPath $requiredPath -PathType Leaf)) {
         throw "Studio distribution input missing: $requiredPath"
     }
+}
+if (-not (Test-Path -LiteralPath $cryptArtSource -PathType Container)) {
+    throw "Studio Crypt art input missing: $cryptArtSource"
 }
 
 & $nativeBuildScript -Platform $Platform
@@ -173,7 +177,7 @@ if ($null -eq $exportedNativeLibrary) {
     throw "The Studio export does not contain $nativeLibraryName."
 }
 
-$workspaceTarget = Join-Path $outputPath 'workspaces/forgotten-forest'
+$workspaceTarget = Join-Path $outputPath 'workspaces/crypt-of-ashes'
 $sourcePrefix = $workspaceSource.TrimEnd([System.IO.Path]::DirectorySeparatorChar) +
     [System.IO.Path]::DirectorySeparatorChar
 foreach ($sourceFile in Get-ChildItem -LiteralPath $workspaceSource -Recurse -File) {
@@ -183,6 +187,12 @@ foreach ($sourceFile in Get-ChildItem -LiteralPath $workspaceSource -Recurse -Fi
     $destination = Join-Path $workspaceTarget $relativePath
     New-Item -ItemType Directory -Path (Split-Path -Parent $destination) -Force | Out-Null
     Copy-Item -LiteralPath $sourceFile.FullName -Destination $destination -Force
+}
+$cryptArtTarget = Join-Path $workspaceTarget 'art/crypt-kaykit'
+New-Item -ItemType Directory -Path $cryptArtTarget -Force | Out-Null
+foreach ($sourceFile in Get-ChildItem -LiteralPath $cryptArtSource -File |
+        Where-Object { $_.Extension -eq '.glb' -or $_.Name -eq 'CREDITS.md' }) {
+    Copy-Item -LiteralPath $sourceFile.FullName -Destination (Join-Path $cryptArtTarget $sourceFile.Name) -Force
 }
 
 $smokeTested = -not $SkipSmoke
@@ -221,9 +231,10 @@ if ($smokeTested) {
     }
     foreach ($marker in @(
             'OPENRPG_FORGE_STUDIO_EDIT_PASS',
-            'OPENRPG_FORGE_STUDIO_UX5A_PASS',
-            'OPENRPG_FORGE_STUDIO_UX5B_PASS',
-            'OPENRPG_FORGE_STUDIO_DISTRIBUTION_SMOKE_PASS')) {
+             'OPENRPG_FORGE_STUDIO_UX5A_PASS',
+             'OPENRPG_FORGE_STUDIO_UX5B_PASS',
+             'OPENRPG_FORGE_STUDIO_CRYPT_ART_PASS',
+             'OPENRPG_FORGE_STUDIO_DISTRIBUTION_SMOKE_PASS')) {
         if (-not (Select-String -LiteralPath $smokeLog -SimpleMatch $marker -Quiet)) {
             throw "The exported Studio did not emit marker '$marker'. See $smokeLog"
         }
@@ -260,7 +271,7 @@ $manifest = [ordered]@{
     source_dirty = $sourceDirty
     smoke_tested = $smokeTested
     smoke_status = if ($smokeTested) { 'passed' } else { 'not-run-host-unavailable' }
-    workspace = 'workspaces/forgotten-forest/project.json'
+    workspace = 'workspaces/crypt-of-ashes/project.json'
     compliance = 'compliance/sbom.cdx.json'
     files = $files
 }

@@ -343,7 +343,7 @@ internal sealed partial class StudioSessionController
             if (draft is null) return FailedSmokeUx9A();
             var fixture = draft with
             {
-                ServerName = "Forgotten Forest · session locale",
+                ServerName = "Crypte des Cendres · session locale",
                 ServerCapacity = 12,
                 PartyCapacity = 6,
                 Loot = PartyLootPolicy.RoundRobin,

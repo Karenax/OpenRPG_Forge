@@ -1066,7 +1066,7 @@ internal sealed partial class StudioSessionController
 
     private static Ux2LwFSmokeFixture CreateUx2LwFSmokeProject()
     {
-        var source = OriginalModuleAuthoringService.CreateVeilleeDesEclats().State.Project;
+        var source = SampleModuleAuthoringService.Create().State.Project;
         var area = source.Areas.Single();
         var spawnBlueprint = source.Blueprints.First(item => item.Kind == BlueprintKind.PlayerSpawn);
         var definition = new AnchorDefinition(StableUx2LwF(area.Id.Value, "spawn-definition"), 1,

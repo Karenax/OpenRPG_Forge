@@ -48,7 +48,7 @@ La présentation reste liée à la même InteractionPolicy afin d'éviter deux s
   le parcours produit ;
 - Portal, Validation, Advanced, automatisation, narration et autres triggers sont préservés mais non
   édités par ce lot ;
-- Forgotten Forest n'ayant pas de profil Trigger qualifiable, la capture utilise une session
+- Crypte des Cendres n'ayant pas de profil Trigger qualifiable, la capture utilise une session
   temporaire isolée qui reste vivante jusqu'à la preuve puis est supprimée ;
 - la simulation locale exerce les décisions canoniques, sans scène 3D ni transport réseau réel.
 

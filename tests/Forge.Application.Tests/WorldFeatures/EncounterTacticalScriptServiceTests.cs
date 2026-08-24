@@ -52,7 +52,7 @@ public sealed class EncounterTacticalScriptServiceTests
 
     private static Fixture ProjectWithEncounter(bool validReferences, bool reinforcementEnabled = true)
     {
-        var source = OriginalModuleAuthoringService.CreateVeilleeDesEclats().State.Project;
+        var source = SampleModuleAuthoringService.Create().State.Project;
         var area = source.Areas[0];
         var routeId = Guid.Parse("a2092000-0000-4000-8000-000000000001");
         var route = new PatrolRoute(routeId, 1, "test:ux2-lw-j", PatrolTraversalPolicy.Once,

@@ -26,7 +26,7 @@ surface remplace uniquement ses collections `TransformOverrides` et `Tweens`, pu
 - durée, easing, autorité, sauvegarde et réplication conservés avec l’identité persistante ;
 - `AnimationTweenRuntime` exerce les trois canaux, l’autorité, l’état final et l’annulation ;
 - l’état vide des quatre modules réels est affiché honnêtement ; la preuve riche existe uniquement
-  dans un workspace temporaire dérivé de Forgotten Forest.
+  dans un workspace temporaire dérivé de Crypte des Cendres.
 
 ## Transaction et préservation
 

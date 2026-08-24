@@ -1,8 +1,8 @@
-# Décision de périmètre — Asset Vault et Forgotten Forest
+# Décision de périmètre — Asset Vault et Asset Vault
 
 ## Décision
 
-Les fonctions Asset Vault et Forgotten Forest déjà livrées par AV1 à AV6-F constituent la preuve 3D
+Les fonctions Asset Vault et Asset Vault déjà livrées par AV1 à AV6-F constituent la preuve 3D
 requise pour le prototype jouable. Les 25 lots restants `AV7-M*`, `AV8-*`, `AV9-*` et `AV10-*` sont
 classés `OPTIONAL_POST_DEMO`.
 

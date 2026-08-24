@@ -5,10 +5,10 @@
         xmlns:primitives="clr-namespace:System.Windows.Controls.Primitives;assembly=PresentationFramework"
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         Title="OpenRPG Forge"
-        Width="1360"
-        Height="800"
-        MinWidth="1100"
-        MinHeight="700"
+        Width="1440"
+        Height="860"
+        MinWidth="1180"
+        MinHeight="720"
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
         ResizeMode="CanResize"
@@ -35,18 +35,22 @@
         <SolidColorBrush x:Key="TextBrush" Color="#F4EEE2" />
         <SolidColorBrush x:Key="MutedTextBrush" Color="#B8AFA4" />
         <SolidColorBrush x:Key="DimTextBrush" Color="#817A75" />
-        <SolidColorBrush x:Key="PanelBrush" Color="#E60A0D14" />
-        <SolidColorBrush x:Key="FieldBrush" Color="#B91B1C24" />
-        <SolidColorBrush x:Key="FieldHoverBrush" Color="#E026252E" />
-        <SolidColorBrush x:Key="HairlineBrush" Color="#69685146" />
+        <LinearGradientBrush x:Key="PanelBrush" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#F0121720" Offset="0" />
+            <GradientStop Color="#F4080B11" Offset="0.72" />
+            <GradientStop Color="#FC05070C" Offset="1" />
+        </LinearGradientBrush>
+        <SolidColorBrush x:Key="FieldBrush" Color="#E01A1E28" />
+        <SolidColorBrush x:Key="FieldHoverBrush" Color="#F1262934" />
+        <SolidColorBrush x:Key="HairlineBrush" Color="#8A745E4E" />
         <SolidColorBrush x:Key="DangerBrush" Color="#F09880" />
         <SolidColorBrush x:Key="SuccessBrush" Color="#A8D5A8" />
 
         <DropShadowEffect x:Key="PanelShadow"
                           Color="#000000"
-                          BlurRadius="36"
-                          ShadowDepth="10"
-                          Opacity="0.7" />
+                          BlurRadius="44"
+                          ShadowDepth="12"
+                          Opacity="0.78" />
         <DropShadowEffect x:Key="SoftGlow"
                           Color="#BD7B43"
                           BlurRadius="18"
@@ -82,33 +86,34 @@
         </Style>
 
         <Style x:Key="NavRadioStyle" TargetType="RadioButton">
-            <Setter Property="Foreground" Value="#948C83" />
+            <Setter Property="Foreground" Value="#B4AAA0" />
             <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontSize" Value="12.5" />
             <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="Margin" Value="0,0,28,0" />
+            <Setter Property="Margin" Value="0,0,8,0" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
-                        <Grid Height="42">
-                            <Border x:Name="NavSurface" Background="Transparent" />
-                            <StackPanel VerticalAlignment="Center">
-                                <ContentPresenter HorizontalAlignment="Center" />
-                                <Border x:Name="NavMark"
-                                        Height="2"
-                                        Width="0"
-                                        Margin="0,9,0,0"
-                                        Background="{DynamicResource AccentBrightBrush}" />
-                            </StackPanel>
-                        </Grid>
+                        <Border x:Name="NavSurface"
+                                Height="38"
+                                Padding="16,0"
+                                Background="#38171A22"
+                                BorderBrush="#3EFFFFFF"
+                                BorderThickness="1"
+                                CornerRadius="19">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter Property="Foreground" Value="#E6D8C2" />
+                                <Setter TargetName="NavSurface" Property="Background" Value="#722B292C" />
+                                <Setter TargetName="NavSurface" Property="BorderBrush" Value="#9A8B6A50" />
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
                                 <Setter Property="Foreground" Value="#FFF4DD" />
-                                <Setter TargetName="NavMark" Property="Width" Value="34" />
-                                <Setter TargetName="NavMark" Property="Effect" Value="{StaticResource SoftGlow}" />
+                                <Setter TargetName="NavSurface" Property="Background" Value="#A4443024" />
+                                <Setter TargetName="NavSurface" Property="BorderBrush" Value="{DynamicResource AccentBrightBrush}" />
+                                <Setter TargetName="NavSurface" Property="Effect" Value="{StaticResource SoftGlow}" />
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="Opacity" Value="0.28" />
@@ -122,8 +127,8 @@
         <Style x:Key="PrimaryButtonStyle" TargetType="Button">
             <Setter Property="Foreground" Value="#160F0B" />
             <Setter Property="FontWeight" Value="Bold" />
-            <Setter Property="FontSize" Value="13" />
-            <Setter Property="Height" Value="58" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Height" Value="60" />
             <Setter Property="Padding" Value="30,0" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="BorderThickness" Value="0" />
@@ -139,12 +144,12 @@
                         <Grid>
                             <Border x:Name="Glow"
                                     Margin="5"
-                                    CornerRadius="3"
+                                    CornerRadius="6"
                                     Background="{DynamicResource AccentBrush}"
                                     Opacity="0.25"
                                     Effect="{StaticResource SoftGlow}" />
                             <Border x:Name="PrimarySurface"
-                                    CornerRadius="3"
+                                    CornerRadius="6"
                                     BorderBrush="#FFFFD9A1"
                                     BorderThickness="1">
                                 <Border.Background>
@@ -195,14 +200,14 @@
             <Setter Property="BorderBrush" Value="#6B75604D" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="FontSize" Value="11" />
-            <Setter Property="Padding" Value="18,10" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Padding" Value="18,11" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="SecondarySurface"
-                                CornerRadius="2"
+                                CornerRadius="5"
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}">
@@ -233,13 +238,13 @@
             <Setter Property="BorderBrush" Value="{StaticResource HairlineBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Padding" Value="12,0" />
-            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontSize" Value="13" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TextBox">
                         <Border x:Name="FieldSurface"
-                                CornerRadius="2"
+                                CornerRadius="5"
                                  Background="{TemplateBinding Background}"
                                  BorderBrush="{TemplateBinding BorderBrush}"
                                  BorderThickness="{TemplateBinding BorderThickness}">
@@ -317,7 +322,7 @@
                                 <ToggleButton.Template>
                                     <ControlTemplate TargetType="ToggleButton">
                                         <Border x:Name="ComboSurface"
-                                                CornerRadius="2"
+                                                CornerRadius="5"
                                                 Background="{TemplateBinding Background}"
                                                 BorderBrush="{TemplateBinding BorderBrush}"
                                                 BorderThickness="{TemplateBinding BorderThickness}">
@@ -485,12 +490,12 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
                         <Border x:Name="ModeSurface"
-                                MinHeight="82"
-                                Padding="15,13"
-                                Background="#A817181F"
-                                BorderBrush="#5662554A"
+                                MinHeight="94"
+                                Padding="17,15"
+                                Background="#C0161921"
+                                BorderBrush="#786A594C"
                                 BorderThickness="1"
-                                CornerRadius="3">
+                                CornerRadius="6">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="27" />
@@ -524,24 +529,24 @@
 
         <Style x:Key="OverlineStyle" TargetType="TextBlock">
             <Setter Property="Foreground" Value="{DynamicResource AccentBrightBrush}" />
-            <Setter Property="FontSize" Value="10" />
+            <Setter Property="FontSize" Value="11" />
             <Setter Property="FontWeight" Value="Bold" />
         </Style>
         <Style x:Key="PageTitleStyle" TargetType="TextBlock">
             <Setter Property="Foreground" Value="#FFF4E6" />
             <Setter Property="FontFamily" Value="{StaticResource DisplayFont}" />
-            <Setter Property="FontSize" Value="31" />
+            <Setter Property="FontSize" Value="36" />
             <Setter Property="FontWeight" Value="Bold" />
         </Style>
         <Style x:Key="PageSubtitleStyle" TargetType="TextBlock">
             <Setter Property="Foreground" Value="#BEB4A9" />
-            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontSize" Value="13" />
             <Setter Property="TextWrapping" Value="Wrap" />
-            <Setter Property="LineHeight" Value="19" />
+            <Setter Property="LineHeight" Value="21" />
         </Style>
         <Style x:Key="SettingLabelStyle" TargetType="TextBlock">
             <Setter Property="Foreground" Value="#C8BFB5" />
-            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontSize" Value="12" />
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
     </Window.Resources>
@@ -622,12 +627,19 @@
         </Canvas>
         <Canvas x:Name="ParticleCanvas" IsHitTestVisible="False" ClipToBounds="True" />
 
-        <Grid x:Name="HeroIdentity"
-              Width="470"
-              Margin="62,0,0,62"
-              HorizontalAlignment="Left"
-              VerticalAlignment="Bottom"
-              Opacity="0">
+        <Grid Margin="0,52,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="5*" />
+                <ColumnDefinition Width="7*" />
+            </Grid.ColumnDefinitions>
+
+            <Grid x:Name="HeroIdentity"
+                  Grid.Column="0"
+                  MaxWidth="470"
+                  Margin="64,0,28,64"
+                  HorizontalAlignment="Stretch"
+                  VerticalAlignment="Bottom"
+                  Opacity="0">
             <Grid.RenderTransform>
                 <TranslateTransform x:Name="HeroTranslate" Y="24" />
             </Grid.RenderTransform>
@@ -683,16 +695,18 @@
                                FontWeight="SemiBold" />
                 </StackPanel>
             </StackPanel>
-        </Grid>
+            </Grid>
 
-        <Border x:Name="CommandPanel"
-                Width="690"
-                Margin="0,70,46,42"
-                HorizontalAlignment="Right"
+            <Border x:Name="CommandPanel"
+                Grid.Column="1"
+                MinWidth="600"
+                MaxWidth="780"
+                Margin="20,20,48,42"
+                HorizontalAlignment="Stretch"
                 Background="{StaticResource PanelBrush}"
-                BorderBrush="#856E5947"
+                BorderBrush="#B08C684D"
                 BorderThickness="1"
-                CornerRadius="7"
+                CornerRadius="14"
                 Effect="{StaticResource PanelShadow}"
                 Opacity="0">
             <Border.RenderTransform>
@@ -713,11 +727,11 @@
                 <Path Width="13" Height="13" Margin="10" HorizontalAlignment="Right" VerticalAlignment="Top"
                       Data="M 0 0 L 13 0 L 13 13 L 11 13 L 11 2 L 0 2 Z" Fill="{DynamicResource AccentBrush}" />
 
-                <Grid Margin="40,31,40,26">
+                <Grid Margin="42,34,42,28">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="50" />
+                        <RowDefinition Height="52" />
                         <RowDefinition Height="*" />
-                        <RowDefinition Height="48" />
+                        <RowDefinition Height="50" />
                     </Grid.RowDefinitions>
 
                     <StackPanel Grid.Row="0" Orientation="Horizontal">
@@ -773,7 +787,7 @@
                                     <ColumnDefinition Width="12" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
-                                <Border Grid.Column="0" Padding="17" Background="#A815161D" BorderBrush="#55645247" BorderThickness="1" CornerRadius="3">
+                                <Border Grid.Column="0" Padding="18" Background="#B8171A22" BorderBrush="#756B594B" BorderThickness="1" CornerRadius="7">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="43" />
@@ -783,12 +797,12 @@
                                             <TextBlock Text="✦" Foreground="{DynamicResource AccentBrightBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="13" />
                                         </Border>
                                         <StackPanel Grid.Column="1">
-                                            <TextBlock Text="CONFIGURATION" Foreground="#F0E4D3" FontWeight="Bold" FontSize="10" />
-                                            <TextBlock Text="Affichage, son et accessibilité" Foreground="#948C83" FontSize="10" Margin="0,7,0,0" />
+                                            <TextBlock Text="CONFIGURATION" Foreground="#F0E4D3" FontWeight="Bold" FontSize="11" />
+                                            <TextBlock Text="Affichage, son et accessibilité" Foreground="#B0A69B" FontSize="11" Margin="0,7,0,0" />
                                         </StackPanel>
                                     </Grid>
                                 </Border>
-                                <Border Grid.Column="2" Padding="17" Background="#A815161D" BorderBrush="#55645247" BorderThickness="1" CornerRadius="3">
+                                <Border Grid.Column="2" Padding="18" Background="#B8171A22" BorderBrush="#756B594B" BorderThickness="1" CornerRadius="7">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="43" />
@@ -798,41 +812,75 @@
                                             <TextBlock Text="⚔" Foreground="{DynamicResource AccentBrightBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="13" />
                                         </Border>
                                         <StackPanel Grid.Column="1">
-                                            <TextBlock Text="MULTIJOUEUR" Foreground="#F0E4D3" FontWeight="Bold" FontSize="10" />
-                                            <TextBlock x:Name="MultiplayerCardText" Foreground="#948C83" FontSize="10" Margin="0,7,0,0" TextWrapping="Wrap" />
+                                            <TextBlock Text="MULTIJOUEUR" Foreground="#F0E4D3" FontWeight="Bold" FontSize="11" />
+                                            <TextBlock x:Name="MultiplayerCardText" Foreground="#B0A69B" FontSize="11" Margin="0,7,0,0" TextWrapping="Wrap" />
                                         </StackPanel>
                                     </Grid>
                                 </Border>
                             </Grid>
 
-                            <Border Grid.Row="2" Margin="0,22,0,0" Padding="15,12" Background="#7714161C" BorderBrush="#3EFFFFFF" BorderThickness="1,0,1,0">
+                            <Border Grid.Row="2"
+                                    Margin="0,24,0,0"
+                                    Padding="22,20"
+                                    Background="#D0181B23"
+                                    BorderBrush="#A3785B47"
+                                    BorderThickness="1"
+                                    CornerRadius="8">
                                 <Grid>
-                                    <TextBlock Text="SESSION ACTIVE" Foreground="#837B73" FontSize="9" FontWeight="Bold" />
-                                    <TextBlock x:Name="LaunchSummaryText" HorizontalAlignment="Right" Foreground="#DDD2C4" FontSize="11" />
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <TextBlock Text="PRÊT À JOUER" Style="{StaticResource OverlineStyle}" />
+                                            <TextBlock x:Name="LaunchSummaryText"
+                                                       Margin="0,8,0,0"
+                                                       Foreground="#E5D8C7"
+                                                       FontSize="13"
+                                                       TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <Border Grid.Column="1"
+                                                Margin="18,0,0,0"
+                                                Padding="12,7"
+                                                VerticalAlignment="Top"
+                                                Background="#402F4938"
+                                                BorderBrush="#687EA17A"
+                                                BorderThickness="1"
+                                                CornerRadius="14">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Ellipse Width="7" Height="7" Fill="{StaticResource SuccessBrush}" Margin="0,0,8,0" VerticalAlignment="Center" />
+                                                <TextBlock Text="VÉRIFIÉ" Foreground="#D0E3CE" FontSize="10" FontWeight="Bold" />
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+                                    <Grid Grid.Row="1" Margin="0,20,0,0">
+                                        <Button x:Name="PlayButton"
+                                                Width="310"
+                                                HorizontalAlignment="Left"
+                                                Content="ENTRER DANS L’AVENTURE"
+                                                Style="{StaticResource PrimaryButtonStyle}"
+                                                Click="OnPlayClick" />
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <Button x:Name="NewsButton"
+                                                    Content="ACTUALITÉS"
+                                                    Style="{StaticResource SecondaryButtonStyle}"
+                                                    Margin="0,0,9,0"
+                                                    Visibility="Collapsed"
+                                                    Click="OnNewsClick" />
+                                            <Button x:Name="SupportButton"
+                                                    Content="AIDE &amp; SUPPORT"
+                                                    Style="{StaticResource SecondaryButtonStyle}"
+                                                    Visibility="Collapsed"
+                                                    Click="OnSupportClick" />
+                                        </StackPanel>
+                                    </Grid>
                                 </Grid>
                             </Border>
-
-                            <StackPanel Grid.Row="4" Margin="0,26,0,4">
-                                <Button x:Name="PlayButton"
-                                        Width="286"
-                                        HorizontalAlignment="Left"
-                                        Content="ENTRER DANS L’AVENTURE"
-                                        Style="{StaticResource PrimaryButtonStyle}"
-                                        Click="OnPlayClick" />
-                                <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
-                                    <Button x:Name="NewsButton"
-                                            Content="ACTUALITÉS"
-                                            Style="{StaticResource SecondaryButtonStyle}"
-                                            Margin="0,0,9,0"
-                                            Visibility="Collapsed"
-                                            Click="OnNewsClick" />
-                                    <Button x:Name="SupportButton"
-                                            Content="AIDE &amp; SUPPORT"
-                                            Style="{StaticResource SecondaryButtonStyle}"
-                                            Visibility="Collapsed"
-                                            Click="OnSupportClick" />
-                                </StackPanel>
-                            </StackPanel>
                         </Grid>
 
                         <Grid x:Name="SettingsPage" Visibility="Collapsed" Opacity="0">
@@ -851,7 +899,13 @@
                                            Style="{StaticResource PageSubtitleStyle}"
                                            Margin="0,8,0,0" />
                             </StackPanel>
-                            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <Border Grid.Row="1"
+                                    Padding="20,12"
+                                    Background="#A9141820"
+                                    BorderBrush="#756B594B"
+                                    BorderThickness="1"
+                                    CornerRadius="8">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                                 <ScrollViewer.Resources>
                                     <Style TargetType="ScrollBar">
                                         <Setter Property="Width" Value="8" />
@@ -888,25 +942,32 @@
                                         </Setter>
                                     </Style>
                                 </ScrollViewer.Resources>
-                                <Grid Margin="0,3,12,0">
+                                <Grid Margin="0,3,6,0">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="185" />
+                                        <ColumnDefinition Width="165" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
-                                        <RowDefinition Height="46" />
-                                        <RowDefinition Height="46" />
-                                        <RowDefinition Height="46" />
-                                        <RowDefinition Height="40" />
-                                        <RowDefinition Height="40" />
-                                        <RowDefinition Height="40" />
-                                        <RowDefinition Height="40" />
+                                        <RowDefinition Height="48" />
+                                        <RowDefinition Height="72" />
+                                        <RowDefinition Height="48" />
                                         <RowDefinition Height="44" />
+                                        <RowDefinition Height="44" />
+                                        <RowDefinition Height="44" />
+                                        <RowDefinition Height="44" />
+                                        <RowDefinition Height="52" />
                                     </Grid.RowDefinitions>
                                     <TextBlock Grid.Row="0" Text="Résolution" Style="{StaticResource SettingLabelStyle}" />
                                     <ComboBox x:Name="ResolutionSelector" Grid.Row="0" Grid.Column="1" Style="{StaticResource FieldComboStyle}" SelectionChanged="OnSettingsChanged" />
                                     <TextBlock Grid.Row="1" Text="Mode d’affichage" Style="{StaticResource SettingLabelStyle}" />
-                                    <ComboBox x:Name="WindowModeSelector" Grid.Row="1" Grid.Column="1" Style="{StaticResource FieldComboStyle}" SelectionChanged="OnSettingsChanged" />
+                                    <StackPanel Grid.Row="1" Grid.Column="1" VerticalAlignment="Center">
+                                        <ComboBox x:Name="WindowModeSelector" Style="{StaticResource FieldComboStyle}" SelectionChanged="OnSettingsChanged" />
+                                        <TextBlock x:Name="WindowModeHintText"
+                                                   Margin="2,6,0,0"
+                                                   Foreground="#B4A79A"
+                                                   FontSize="10.5"
+                                                   TextWrapping="Wrap" />
+                                    </StackPanel>
                                     <TextBlock Grid.Row="2" Text="Qualité graphique" Style="{StaticResource SettingLabelStyle}" />
                                     <ComboBox x:Name="QualitySelector" Grid.Row="2" Grid.Column="1" Style="{StaticResource FieldComboStyle}" SelectionChanged="OnSettingsChanged" />
                                     <TextBlock Grid.Row="3" Text="Fluidité" Style="{StaticResource SettingLabelStyle}" />
@@ -940,10 +1001,11 @@
                                               Unchecked="OnReduceMotionChanged" />
                                 </Grid>
                             </ScrollViewer>
+                            </Border>
                             <Button Grid.Row="2"
-                                    Width="178"
-                                    Height="42"
-                                    Margin="0,14,0,4"
+                                    Width="190"
+                                    Height="44"
+                                    Margin="0,16,0,4"
                                     HorizontalAlignment="Left"
                                     Content="ENREGISTRER"
                                     Style="{StaticResource SecondaryButtonStyle}"
@@ -956,94 +1018,101 @@
                             </Grid.RenderTransform>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
                                 <RowDefinition Height="*" />
                             </Grid.RowDefinitions>
-                            <StackPanel Grid.Row="0" Margin="0,18,0,18">
+                            <StackPanel Grid.Row="0" Margin="0,18,0,16">
                                 <TextBlock Text="FORGEZ VOTRE COMPAGNIE" Style="{StaticResource OverlineStyle}" Margin="0,0,0,8" />
                                 <TextBlock Text="Multijoueur" Style="{StaticResource PageTitleStyle}" />
                                 <TextBlock Text="Choisissez votre mode de session. L’hôte local conserve l’autorité sur toutes les décisions de jeu."
                                            Style="{StaticResource PageSubtitleStyle}"
                                            Margin="0,8,0,0" />
                             </StackPanel>
+                            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                <StackPanel Margin="0,0,8,4">
+                                    <Grid Margin="0,0,0,18">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <RadioButton x:Name="SoloMode"
+                                                     Grid.Column="0"
+                                                     GroupName="SessionMode"
+                                                     Style="{StaticResource ModeCardStyle}"
+                                                     Checked="OnSessionModeChanged">
+                                            <StackPanel>
+                                                <TextBlock Text="SOLO" Foreground="#F0E6D8" FontWeight="Bold" FontSize="11" />
+                                                <TextBlock Text="Aventure privée" Foreground="#AAA096" FontSize="10" Margin="0,8,0,0" />
+                                            </StackPanel>
+                                        </RadioButton>
+                                        <RadioButton x:Name="LocalHostMode"
+                                                     Grid.Column="1"
+                                                     GroupName="SessionMode"
+                                                     Style="{StaticResource ModeCardStyle}"
+                                                     Checked="OnSessionModeChanged">
+                                            <StackPanel>
+                                                <TextBlock Text="HÔTE LOCAL" Foreground="#F0E6D8" FontWeight="Bold" FontSize="11" />
+                                                <TextBlock Text="Session autoritaire" Foreground="#AAA096" FontSize="10" Margin="0,8,0,0" />
+                                            </StackPanel>
+                                        </RadioButton>
+                                        <RadioButton x:Name="DirectConnectMode"
+                                                     Grid.Column="2"
+                                                     Margin="0"
+                                                     GroupName="SessionMode"
+                                                     Style="{StaticResource ModeCardStyle}"
+                                                     Checked="OnSessionModeChanged">
+                                            <StackPanel>
+                                                <TextBlock Text="REJOINDRE" Foreground="#F0E6D8" FontWeight="Bold" FontSize="11" />
+                                                <TextBlock Text="Transport à venir" Foreground="#AAA096" FontSize="10" Margin="0,8,0,0" />
+                                            </StackPanel>
+                                        </RadioButton>
+                                    </Grid>
 
-                            <Grid Grid.Row="1" Margin="0,0,0,18">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <RadioButton x:Name="SoloMode"
-                                             Grid.Column="0"
-                                             GroupName="SessionMode"
-                                             Style="{StaticResource ModeCardStyle}"
-                                             Checked="OnSessionModeChanged">
-                                    <StackPanel>
-                                        <TextBlock Text="SOLO" Foreground="#F0E6D8" FontWeight="Bold" FontSize="10" />
-                                        <TextBlock Text="Aventure privée" Foreground="#948C83" FontSize="9" Margin="0,7,0,0" />
-                                    </StackPanel>
-                                </RadioButton>
-                                <RadioButton x:Name="LocalHostMode"
-                                             Grid.Column="1"
-                                             GroupName="SessionMode"
-                                             Style="{StaticResource ModeCardStyle}"
-                                             Checked="OnSessionModeChanged">
-                                    <StackPanel>
-                                        <TextBlock Text="HÔTE LOCAL" Foreground="#F0E6D8" FontWeight="Bold" FontSize="10" />
-                                        <TextBlock Text="Session autoritaire" Foreground="#948C83" FontSize="9" Margin="0,7,0,0" />
-                                    </StackPanel>
-                                </RadioButton>
-                                <RadioButton x:Name="DirectConnectMode"
-                                             Grid.Column="2"
-                                             Margin="0"
-                                             GroupName="SessionMode"
-                                             Style="{StaticResource ModeCardStyle}"
-                                             Checked="OnSessionModeChanged">
-                                    <StackPanel>
-                                        <TextBlock Text="REJOINDRE" Foreground="#F0E6D8" FontWeight="Bold" FontSize="10" />
-                                        <TextBlock Text="Transport à venir" Foreground="#948C83" FontSize="9" Margin="0,7,0,0" />
-                                    </StackPanel>
-                                </RadioButton>
-                            </Grid>
+                                    <Border Padding="20,11"
+                                            Background="#A9141820"
+                                            BorderBrush="#756B594B"
+                                            BorderThickness="1"
+                                            CornerRadius="8">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="160" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="54" />
+                                                <RowDefinition Height="54" />
+                                                <RowDefinition Height="54" />
+                                            </Grid.RowDefinitions>
+                                            <TextBlock Grid.Row="0" Text="Nom du joueur" Style="{StaticResource SettingLabelStyle}" />
+                                            <TextBox x:Name="PlayerNameText" Grid.Row="0" Grid.Column="1" Height="42" Style="{StaticResource FieldTextStyle}" TextChanged="OnSettingsChanged" />
+                                            <TextBlock Grid.Row="1" Text="Adresse du serveur" Style="{StaticResource SettingLabelStyle}" />
+                                            <TextBox x:Name="ServerAddressText" Grid.Row="1" Grid.Column="1" Height="42" Style="{StaticResource FieldTextStyle}" TextChanged="OnSettingsChanged" />
+                                            <TextBlock Grid.Row="2" Text="Port" Style="{StaticResource SettingLabelStyle}" />
+                                            <Grid Grid.Row="2" Grid.Column="1">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="42" />
+                                                    <ColumnDefinition Width="42" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBox x:Name="ServerPortText"
+                                                         Height="42"
+                                                         Style="{StaticResource FieldTextStyle}"
+                                                         PreviewTextInput="OnPortPreviewTextInput"
+                                                         TextChanged="OnSettingsChanged" />
+                                                <Button Grid.Column="1" Content="−" Margin="6,0,0,0" Style="{StaticResource SecondaryButtonStyle}" Click="OnPortDownClick" />
+                                                <Button Grid.Column="2" Content="+" Margin="6,0,0,0" Style="{StaticResource SecondaryButtonStyle}" Click="OnPortUpClick" />
+                                            </Grid>
+                                        </Grid>
+                                    </Border>
 
-                            <Grid Grid.Row="2">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="185" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="52" />
-                                    <RowDefinition Height="52" />
-                                    <RowDefinition Height="52" />
-                                </Grid.RowDefinitions>
-                                <TextBlock Grid.Row="0" Text="Nom du joueur" Style="{StaticResource SettingLabelStyle}" />
-                                <TextBox x:Name="PlayerNameText" Grid.Row="0" Grid.Column="1" Height="40" Style="{StaticResource FieldTextStyle}" TextChanged="OnSettingsChanged" />
-                                <TextBlock Grid.Row="1" Text="Adresse du serveur" Style="{StaticResource SettingLabelStyle}" />
-                                <TextBox x:Name="ServerAddressText" Grid.Row="1" Grid.Column="1" Height="40" Style="{StaticResource FieldTextStyle}" TextChanged="OnSettingsChanged" />
-                                <TextBlock Grid.Row="2" Text="Port" Style="{StaticResource SettingLabelStyle}" />
-                                <Grid Grid.Row="2" Grid.Column="1">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="38" />
-                                        <ColumnDefinition Width="38" />
-                                    </Grid.ColumnDefinitions>
-                                    <TextBox x:Name="ServerPortText"
-                                             Height="40"
-                                             Style="{StaticResource FieldTextStyle}"
-                                             PreviewTextInput="OnPortPreviewTextInput"
-                                             TextChanged="OnSettingsChanged" />
-                                    <Button Grid.Column="1" Content="−" Margin="5,0,0,0" Style="{StaticResource SecondaryButtonStyle}" Click="OnPortDownClick" />
-                                    <Button Grid.Column="2" Content="+" Margin="5,0,0,0" Style="{StaticResource SecondaryButtonStyle}" Click="OnPortUpClick" />
-                                </Grid>
-                            </Grid>
-
-                            <Border Grid.Row="3" Margin="0,19,0,4" Padding="14,11" VerticalAlignment="Top" Background="#7917161A" BorderBrush="#65604D42" BorderThickness="1" CornerRadius="3">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="◇" Foreground="{DynamicResource AccentBrightBrush}" FontSize="16" Margin="0,0,10,0" />
-                                    <TextBlock x:Name="MultiplayerNoticeText" MaxWidth="520" Foreground="#B9A999" FontSize="10" TextWrapping="Wrap" LineHeight="16" />
+                                    <Border Margin="0,16,0,0" Padding="16,13" Background="#A31B1719" BorderBrush="#856B5546" BorderThickness="1" CornerRadius="7">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="◇" Foreground="{DynamicResource AccentBrightBrush}" FontSize="17" Margin="0,0,11,0" />
+                                            <TextBlock x:Name="MultiplayerNoticeText" MaxWidth="540" Foreground="#C6B6A7" FontSize="11" TextWrapping="Wrap" LineHeight="18" />
+                                        </StackPanel>
+                                    </Border>
                                 </StackPanel>
-                            </Border>
+                            </ScrollViewer>
                         </Grid>
                     </Grid>
 
@@ -1068,9 +1137,10 @@
                     </Grid>
                 </Grid>
             </Grid>
-        </Border>
+            </Border>
+        </Grid>
 
-        <Grid Height="48" VerticalAlignment="Top" Background="#7805070C" MouseLeftButtonDown="OnTitleBarMouseDown">
+        <Grid Height="52" VerticalAlignment="Top" Background="#D0070A10" MouseLeftButtonDown="OnTitleBarMouseDown">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
@@ -1080,7 +1150,7 @@
                 <TextBlock Text="OPENRPG FORGE"
                            Margin="10,0,0,0"
                            Foreground="#BEB5AA"
-                           FontSize="10"
+                           FontSize="11"
                            FontWeight="Bold"
                            VerticalAlignment="Center" />
             </StackPanel>

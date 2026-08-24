@@ -42,5 +42,5 @@ Date : 2 août 2026.
 - Le catalogue complet peut occuper plusieurs gigaoctets malgré la résolution 1K.
 - Les APIs peuvent évoluer ; les URLs, licences et métadonnées sont donc enregistrées avec une date
   de vérification.
-- Une grande quantité d’assets ne garantit pas une direction artistique cohérente. Forgotten Forest
+- Une grande quantité d’assets ne garantit pas une direction artistique cohérente. Asset Vault
   utilisera une sélection revue visuellement et non le catalogue entier.

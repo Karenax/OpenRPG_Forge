@@ -11,7 +11,7 @@ public sealed class EncounterLifecycleScriptServiceTests
     [Fact]
     public void GetProjectsTypedLifecycleFactionSchedulerAndDiagnosticsWithoutMutation()
     {
-        var source = OriginalModuleAuthoringService.CreateVeilleeDesEclats().State.Project;
+        var source = SampleModuleAuthoringService.Create().State.Project;
         var faction = new FactionDefinition(Guid.Parse("a2081100-0000-4000-8000-000000000001"), 1,
             "test:ux2-lw-i", "ash-watch", "Veilleurs des cendres", false, [], ["guard"]);
         var encounter = new EncounterWorldProfile(Guid.Parse("a2081100-0000-4000-8000-000000000002"), 1,
@@ -40,7 +40,7 @@ public sealed class EncounterLifecycleScriptServiceTests
     [Fact]
     public void GetKeepsOptionalAbsenceAndReportsUnknownFactionByCodeAndPath()
     {
-        var source = OriginalModuleAuthoringService.CreateVeilleeDesEclats().State.Project;
+        var source = SampleModuleAuthoringService.Create().State.Project;
         var encounter = new EncounterWorldProfile(Guid.Parse("a2081100-0000-4000-8000-000000000003"), 1,
             "test:ux2-lw-i", source.Areas[0].Id, null, "unknown", null, null,
             new(EncounterWorldProfile.VisibilityMode.InViewAllowed, 0, false, string.Empty),

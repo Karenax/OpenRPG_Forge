@@ -83,5 +83,5 @@ public sealed class FactionFoundationTests
         Assert.Empty(FactionValidator.Validate(applied.State.Catalog));
     }
 
-    private static FactionDefinition Faction(string slug) => new(Guid.NewGuid(), 1, "author:veillee", slug, slug, false, [], [slug == "village" ? "civilian" : "hostile"]);
+    private static FactionDefinition Faction(string slug) => new(Guid.NewGuid(), 1, "author:sample", slug, slug, false, [], [slug == "village" ? "civilian" : "hostile"]);
 }

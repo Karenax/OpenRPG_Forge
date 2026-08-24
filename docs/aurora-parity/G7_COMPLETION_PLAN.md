@@ -4,7 +4,7 @@ Date de référence : 3 août 2026.
 
 ## État de départ
 
-G7-01 à G7-19 sont franchis. Les deux dernières capacités P0 du gate (`ORF-EE-002` et
+Les lots génériques de G7 à G7-19 sont franchis. Les deux dernières capacités P0 du gate (`ORF-EE-002` et
 `ORF-EE-028`) disposent d’une implémentation, de tests ciblés et d’un smoke applicatif. Les 65
 capacités encore `Researched` sont toutes P1 et sont réparties ci-dessous en lots de cinq exigences
 maximum conformément à `AGENTS.md`.

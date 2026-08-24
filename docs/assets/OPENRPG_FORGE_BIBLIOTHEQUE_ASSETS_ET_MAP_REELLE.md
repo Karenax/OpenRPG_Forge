@@ -548,7 +548,7 @@ OpenRPG_Forge/
     audits/
   demo/
     maps/
-      forgotten_forest/
+      asset_vault/
   tests/
     asset_pipeline/
     asset_library/
@@ -869,7 +869,7 @@ Packs initiaux à créer :
 - `monsters_cc0` ;
 - `materials_pbr_cc0` ;
 - `ui_editor_cc0` ;
-- `forgotten_forest_demo_dependencies`.
+- `asset_vault_demo_dependencies`.
 
 ---
 
@@ -1308,11 +1308,11 @@ Tester plusieurs tailles de cellule et documenter le choix.
 
 ---
 
-# 15. Carte de référence : La Forêt des Ruines oubliées
+# 15. Carte de référence : Asset Vault
 
 Nom de travail :
 
-`Forgotten Forest` / `La Forêt des Ruines oubliées`.
+`Asset Vault` / `Asset Vault`.
 
 ## 15.1 Intention
 
@@ -1798,9 +1798,9 @@ Créer au minimum :
 - `docs/assets/ASSET_ACQUISITION_REPORT.md` ;
 - `docs/assets/REJECTED_OR_RESTRICTED_SOURCES.md` ;
 - `docs/assets/THIRD_PARTY_ASSET_CREDITS.md` ;
-- `docs/maps/FORGOTTEN_FOREST_DESIGN.md` ;
-- `docs/maps/FORGOTTEN_FOREST_PERFORMANCE.md` ;
-- `docs/maps/FORGOTTEN_FOREST_PLAYTEST.md` ;
+- `docs/maps/ASSET_VAULT_DESIGN.md` ;
+- `docs/maps/ASSET_VAULT_PERFORMANCE.md` ;
+- `docs/maps/ASSET_VAULT_PLAYTEST.md` ;
 - `docs/mcp/ASSET_LIBRARY_MCP.md` ;
 - `CHANGELOG.md` mis à jour.
 
@@ -1856,7 +1856,7 @@ La mission est terminée seulement si les éléments suivants existent :
 
 ## Carte
 
-- Forgotten Forest ouvrable ;
+- Asset Vault ouvrable ;
 - terrain finalisé ;
 - végétation dense ;
 - landmarks ;
@@ -1939,7 +1939,7 @@ La mission est terminée seulement si les éléments suivants existent :
 - licences ;
 - crédits.
 
-## Phase 6 - Carte Forgotten Forest
+## Phase 6 - Carte Asset Vault
 
 - terrain ;
 - composition ;
@@ -2066,7 +2066,7 @@ Ne pas annoncer qu'une fonctionnalité est terminée si elle n'est pas testée.
 
 Construire d'abord une petite sélection extrêmement cohérente et une carte réussie, puis élargir massivement le catalogue grâce au système d'installation à la demande.
 
-La carte Forgotten Forest est la preuve de qualité. L'Asset Vault est la preuve de pérennité.
+La carte Asset Vault est la preuve de qualité. L'Asset Vault est la preuve de pérennité.
 
 OpenRPG Forge ne doit pas devenir un simple agrégateur d'assets. Il doit devenir une chaîne complète :
 

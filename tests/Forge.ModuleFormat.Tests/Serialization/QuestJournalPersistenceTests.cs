@@ -205,7 +205,7 @@ public sealed class QuestJournalPersistenceTests : IDisposable
         var quest = source.Quests.Single();
         var objective = new QuestAuthoringObjective(Guid.Parse("c7130000-0000-4000-8000-000000000601"),
             1, "test:r073", 1, QuestObjectiveKind.Boolean,
-            new LocalizedText("quest.r073.objective", "Restaurer la veillée"), 1, [], null, 0, [], null, false);
+            new LocalizedText("quest.r073.objective", "Rétablir le signal"), 1, [], null, 0, [], null, false);
         var participant = new QuestAuthoringParticipant(Guid.Parse("c7130000-0000-4000-8000-000000000602"),
             1, "test:r073", 1, "guide", QuestParticipantBindingKind.Query, "query:guide", [], true);
         var authoring = new QuestAuthoringProfile(Guid.Parse("c7130000-0000-4000-8000-000000000603"),

@@ -331,7 +331,7 @@ public partial class QuestJournalWindow : Window
         _rewardReputation!.Text = "ash-watch=2";
         _rewardUnlocks!.Text = "unlock:crypt";
         _rewardChoices!.Text = "choice:dawn";
-        _notesDesign!.Text = "Restaurer la veillée et exposer trois voies de résolution.";
+        _notesDesign!.Text = "Rétablir le signal et exposer trois voies de résolution.";
         _notesCanon!.Text = "Le pacte des braises lie Elyra à la Crypte des Cendres.";
         _notesOwner!.Text = "author:karen";
         Select(_notesStatus!, QuestEditorialStatus.Review);
@@ -402,7 +402,7 @@ public partial class QuestJournalWindow : Window
             "Nominal|7300", "Failure|7301", "Repetition|7302", "Multiplayer|7303", "SaveResume|7304",
         });
         _qualitySynopsisKey!.Text = "quest.r073.ai.synopsis";
-        _qualitySynopsisText!.Text = "Restaurer la veillée avant l'effondrement de la Crypte des Cendres.";
+        _qualitySynopsisText!.Text = "Rétablir le signal avant l'effondrement de la Crypte des Cendres.";
         var candidate = BuildDraft();
         var participant = candidate.Authoring!.Participants[0].Id;
         _qualityDependencies!.Text = string.Join('\n', new[]
@@ -663,7 +663,7 @@ public partial class QuestJournalWindow : Window
         var aiGrid = new GridContainer { Columns = 2 };
         qualityTab.AddChild(aiGrid);
         _qualitySynopsisKey = Field(aiGrid, "Clé du synopsis IA", "quest.crypt.ai.synopsis");
-        _qualitySynopsisText = Field(aiGrid, "Synopsis proposé", "Restaurer la veillée.");
+        _qualitySynopsisText = Field(aiGrid, "Synopsis proposé", "Rétablir le signal.");
         _qualityRequestedBy = Field(aiGrid, "Agent demandeur", "agent:forge");
         _qualityReviewer = Field(aiGrid, "Validateur humain", "author:karen");
         _qualityDependencies = Multiline(qualityTab,

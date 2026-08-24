@@ -54,7 +54,7 @@ capturé. Le Studio ne pilote ni boucle moteur ni ticking réseau.
 - portail incrémental avec graphe : **251,59 s**, build, tests, smoke global, capture Forward+ FHD,
   contrôle des 717 lignes de matrice, génération et contrôle complet du graphe ;
 - portail transversal complet du jalon UX6-E/F/G : **PASS**, avec **2 035/2 035** tests .NET,
-  **39/39** tests Python et les smokes Studio, Toolset, Runtime/Forward+, Forgotten Forest, Blender,
+  **39/39** tests Python et les smokes Studio, Toolset, Runtime/Forward+, Crypte des Cendres, Blender,
   MCP, réseau, sauvegarde/reprise et distribution ;
 - smoke `OPENRPG_FORGE_STUDIO_UX6_G_PASS` : sélection explicite, autorité UX6-F partagée,
   éditeur, complétion/signature, formatage, diagnostics cliquables, Wizard et rejet invalide,

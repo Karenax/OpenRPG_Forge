@@ -37,7 +37,7 @@ provider, système de particules ou benchmark GPU n’est exécuté.
 
 ## Données réelles et preuve isolée
 
-Le store Forgotten Forest contient **129** manifestes : **105** avec collision, **112** avec
+Le store Crypte des Cendres contient **129** manifestes : **105** avec collision, **112** avec
 animations et **129** avec LOD, mais aucun profil navigation ou VFX. Le parcours produit affiche cet
 état réel sans synthèse. Pour exercer les quatre familles dans la transaction, la preuve copie un
 manifeste réel et un voisin dans un workspace temporaire borné, ajoute seulement dans cette copie
@@ -94,13 +94,13 @@ $filter = 'FullyQualifiedName~AssetPackageManifest|' +
   'FullyQualifiedName~AssetVfxRenderPlanBuilder'
 & .\scripts\Verify-StudioIncrement.ps1 -Page assets `
   -Evidence ux3-g-asset-manifest `
-  -Workspace apps/Forge.Runtime/content/forgotten-forest `
+  -Workspace apps/Forge.Runtime/content/crypt-of-ashes `
   -TestProject $projects -TestFilter $filter `
   -Capture artifacts/verification/studio-increment/ux3-g-asset-manifest-current-forward-plus-fhd.png
 
 foreach ($mode in 'ux3-g-collision-navigation', 'ux3-g-animation', 'ux3-g-vfx-lod') {
   & .\scripts\Open-Studio.ps1 -Page assets -Evidence $mode `
-    -Workspace apps/Forge.Runtime/content/forgotten-forest `
+    -Workspace apps/Forge.Runtime/content/crypt-of-ashes `
     -Resolution 1920x1080 -SkipBuild -Wait `
     -Capture "artifacts/verification/studio-increment/$mode-current-forward-plus-fhd.png"
 }

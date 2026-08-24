@@ -1302,7 +1302,7 @@ public sealed class ForgeProjectAgentServiceTests
             var quest = project.Quests.Single();
             var objective = new QuestAuthoringObjective(Guid.Parse("c7130000-0000-4000-8000-000000000701"),
                 1, "test:r073", 1, QuestObjectiveKind.Boolean,
-                new LocalizedText("quest.r073.objective", "Restaurer la veillée"), 1, [], null, 0, [], null, false);
+                new LocalizedText("quest.r073.objective", "Rétablir le signal"), 1, [], null, 0, [], null, false);
             var participant = new QuestAuthoringParticipant(Guid.Parse("c7130000-0000-4000-8000-000000000702"),
                 1, "test:r073", 1, "guide", QuestParticipantBindingKind.Query, "query:guide", [], true);
             var authoring = new QuestAuthoringProfile(Guid.Parse("c7130000-0000-4000-8000-000000000703"),
@@ -1330,7 +1330,7 @@ public sealed class ForgeProjectAgentServiceTests
                     "test:r073", 3, QuestAiDependencyKind.Zone, project.Areas[0].Slug),
             };
             var plan = QuestQualityRuntimeService.CreateAiPlan(quest,
-                new LocalizedText("quest.r073.ai", "Restaurer la veillée avec validation humaine."), dependencies,
+                new LocalizedText("quest.r073.ai", "Rétablir le signal avec validation humaine."), dependencies,
                 ["08_QUEST.md#orf-qst-025"], ["style:human-review"], "agent:mcp",
                 Guid.Parse("c7130000-0000-4000-8000-000000000709"), "preview:quest:r073");
             plan = QuestQualityRuntimeService.Approve(plan, "author:mcp", DateTimeOffset.UnixEpoch);
@@ -2367,7 +2367,7 @@ public sealed class ForgeProjectAgentServiceTests
             MaximumResults: 10));
 
         Assert.Equal(1, result.SchemaVersion);
-        Assert.Equal(673, result.CatalogCount);
+        Assert.Equal(674, result.CatalogCount);
         Assert.Equal(5, result.Sources.Count);
         Assert.Equal(3, result.Items.Count);
         Assert.Empty(result.Diagnostics);

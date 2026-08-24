@@ -22,7 +22,7 @@ public sealed class CreatureAiServiceTests
     [InlineData(AiControllerKind.Script)]
     public void ControllersAreInterchangeableAndBlackboardInspectable(AiControllerKind kind)
     {
-        var profile = new AiControllerProfile(Guid.NewGuid(), 1, "author:veillee", kind, kind == AiControllerKind.Script ? "script.guard" : "ai.guard",
+        var profile = new AiControllerProfile(Guid.NewGuid(), 1, "author:sample", kind, kind == AiControllerKind.Script ? "script.guard" : "ai.guard",
             new Dictionary<string, AiBlackboardValue> { ["state"] = new("string", "patrol", true), ["target"] = new("entity", "player", false) }, ["patrol", "attack"]);
         Assert.Same(profile, CreatureAiService.Validate(profile));
         var decision = CreatureAiService.Decide(profile, new Dictionary<string, double> { ["patrol"] = .2, ["attack"] = .9 });

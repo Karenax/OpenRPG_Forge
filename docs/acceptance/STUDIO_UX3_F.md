@@ -106,17 +106,17 @@ $filter = 'FullyQualifiedName~AssetExternalEditTests|' +
   'FullyQualifiedName~AssetRoundTripFinalizerTests'
 & .\scripts\Verify-StudioIncrement.ps1 -Page assets `
   -Evidence ux3-f-content-browser `
-  -Workspace apps/Forge.Runtime/content/forgotten-forest `
+  -Workspace apps/Forge.Runtime/content/crypt-of-ashes `
   -TestProject $projects -TestFilter $filter `
   -Capture artifacts/verification/studio-increment/ux3-f-content-browser-fhd.png
 
 & .\scripts\Open-Studio.ps1 -Page assets -Evidence ux3-f-import-profile `
-  -Workspace apps/Forge.Runtime/content/forgotten-forest `
+  -Workspace apps/Forge.Runtime/content/crypt-of-ashes `
   -Resolution 1920x1080 -SkipBuild -Wait `
   -Capture artifacts/verification/studio-increment/ux3-f-import-profile-fhd.png
 
 & .\scripts\Open-Studio.ps1 -Page assets -Evidence ux3-f-blender `
-  -Workspace apps/Forge.Runtime/content/forgotten-forest `
+  -Workspace apps/Forge.Runtime/content/crypt-of-ashes `
   -Resolution 1920x1080 -SkipBuild -Wait `
   -Capture artifacts/verification/studio-increment/ux3-f-blender-fhd.png
 ```

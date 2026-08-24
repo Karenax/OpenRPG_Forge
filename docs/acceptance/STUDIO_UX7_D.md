@@ -44,7 +44,7 @@ confondu avec l’échec technique du runner.
 - portail incrémental : **342,47 s** — build 1,34 s, tests 2,90/3,96/3,73 s, smoke 312,11 s,
   capture 17,09 s et matrice 1,04 s ;
 - matrice avant promotion : **717 lignes**, **36 pages**, 557 fonctionnelles / 160 planifiées, PASS ;
-- capture Forward+ **1920×1080** sur Forgotten Forest réel : trois cartes et trois résultats visibles,
+- capture Forward+ **1920×1080** sur Crypte des Cendres réel : trois cartes et trois résultats visibles,
   détail du profilage, sélection, statut et actions entièrement accessibles, sans clipping bloquant.
 
 Artefacts :

@@ -68,7 +68,7 @@ une capacité manquante bloque l’aperçu avant compilation et écriture.
 
 ## Préservation et limites honnêtes
 
-La preuve copie Forgotten Forest et la source UX6-F dans un workspace temporaire, puis compare le
+La preuve copie Crypte des Cendres et la source UX6-F dans un workspace temporaire, puis compare le
 projet sérialisé complet, l’historique, la révision, le journal, l’état dirty, la zone active, les
 approbations source/politique et les octets du fichier de politique avant/après. L’isolat est supprimé.
 

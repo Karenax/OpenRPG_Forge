@@ -55,7 +55,7 @@ demande et l’utilisateur peut ouvrir la copie appliquée tant que la surface r
 - smoke Godot global : marker `OPENRPG_FORGE_STUDIO_UX8_B_PASS` avec `routes`, `selection`,
   `cache`, `normalization`, `migration`, `references`, `semantic_diff`, `cancel`, `navigation`,
   `isolated`, `ui`, `resources_released`, `source_unchanged` et `surface_restored` à `true` ;
-- capture Forward+ **1920×1080** sur Forgotten Forest réel, inspectée après généralisation du filtre
+- capture Forward+ **1920×1080** sur Crypte des Cendres réel, inspectée après généralisation du filtre
   UUID : cinq cartes, résultats, détail, statut et quatre actions visibles sans clipping ;
 - après smoke et capture : **0** isolat UX8-A ou UX8-B restant sous `%TEMP%`.
 - portail incrémental complet : **PASS en 549,47 s** — build 1,33 s, tests Domain 1,49 s,

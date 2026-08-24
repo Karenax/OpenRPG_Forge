@@ -421,14 +421,30 @@ internal sealed partial class StudioSessionController
     {
         if (source.Areas.Any(area => area.Portals.Count > 0)) return source;
         var owner = source.Areas.FirstOrDefault(area => area.Entities.Count > 0);
-        var target = source.Areas.FirstOrDefault(area => area.Id != owner?.Id && area.Entities.Count > 0);
-        if (owner is null || target is null) return null;
+        if (owner is null) return null;
+        var areas = source.Areas.ToList();
+        var target = areas.FirstOrDefault(area => area.Id != owner.Id && area.Entities.Count > 0);
+        if (target is null)
+        {
+            var sourceEntity = owner.Entities[0];
+            var targetId = AreaId.From(Guid.Parse("2f000000-0000-4000-8000-000000000010"));
+            var targetEntity = new EntityInstance(
+                EntityId.From(Guid.Parse("2f000000-0000-4000-8000-000000000011")),
+                sourceEntity.BlueprintId,
+                sourceEntity.Transform,
+                sourceEntity.Tags,
+                sourceEntity.Overrides,
+                sourceEntity.BlueprintVersionRequirement);
+            target = new AreaDefinition(targetId, "destination-preuve", "Destination de preuve",
+                [targetEntity], owner.Kind, owner.Dimensions);
+            areas.Add(target);
+        }
         var portal = new PortalLink(PortalId.From(Guid.Parse("2f000000-0000-4000-8000-000000000001")),
             "Passage témoin", owner.Entities[0].Id, target.Id, target.Entities[0].Id, true, true,
             provenance: Ux2NavFProvenance);
         var replacement = owner.WithPortals(owner.Portals.Append(portal).ToArray());
         return new ProjectDefinition(source.Id, source.Title, source.Module, source.Blueprints,
-            source.Areas.Select(area => area.Id == owner.Id ? replacement : area).ToArray(),
+            areas.Select(area => area.Id == owner.Id ? replacement : area).ToArray(),
             source.Dialogues, source.Quests);
     }
 

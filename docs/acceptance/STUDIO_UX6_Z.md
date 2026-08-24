@@ -25,7 +25,7 @@ empreinte binaire typée du brouillon protègent contre les changements concurre
 - diagnostics humains et valeurs numériques exactes, sans clamp silencieux ;
 - dry-run pur, application atomique, undo/redo et save/reopen canonique ;
 - conservation du porteur, de ses autres capacités, des autres blueprints et des voisins du module ;
-- preuve UI dans un workspace temporaire isolé dérivé de Forgotten Forest ;
+- preuve UI dans un workspace temporaire isolé dérivé de Crypte des Cendres ;
 - projet, historique, dirty state, sélection, approbations et surface source restaurés exactement ;
 - nettoyage borné des scripts et du workspace temporaires.
 
@@ -58,7 +58,7 @@ $projects = @(
 )
 & .\scripts\Verify-StudioIncrement.ps1 -Page abilities `
   -Evidence ux6-z-assisted-ability `
-  -Workspace apps/Forge.Runtime/content/forgotten-forest `
+  -Workspace apps/Forge.Runtime/content/crypt-of-ashes `
   -TestProject $projects -TestFilter 'FullyQualifiedName~AssistedAbility' `
   -Capture artifacts/verification/studio-increment/ux6-z-assisted-ability-forward-plus-fhd.png
 ```

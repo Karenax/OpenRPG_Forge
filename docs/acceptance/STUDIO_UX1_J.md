@@ -21,7 +21,7 @@ Il ne qualifie aucune autre route placeable ni une distribution publique.
   refuse les transformations invalides, compare la construction directe à la commande canonique,
   applique, annule, rétablit, sauvegarde et rouvre ;
 - le smoke UI édite réellement position, rotation, échelle, pivot, grille, surface et animation dans
-  Forgotten Forest, applique puis annule en restaurant exactement le projet courant ;
+  Crypte des Cendres, applique puis annule en restaurant exactement le projet courant ;
 - captures et journaux Forward+ inspectés dans `artifacts/verification/studio-shell/ux1-j/` :
   `transform-fhd.png` en 1920×1080, `pivot-qhd.png` en 2560×1440 et
   `parent-animation-4k.png` en 3840×2160, chacune accompagnée de `.png.log`.

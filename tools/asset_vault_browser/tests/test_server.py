@@ -95,6 +95,21 @@ class AssetVaultBrowserTests(unittest.TestCase):
             ),
             encoding="utf-8",
         )
+        collection_root = self.root / "packs"
+        collection_root.mkdir()
+        (collection_root / "medieval.json").write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "collection_type": "asset-vault-collection",
+                    "pack_id": "medieval",
+                    "display_name": "Médiéval",
+                    "source_pack_ids": ["kenney:forest-pack"],
+                    "tags": ["medieval"],
+                }
+            ),
+            encoding="utf-8",
+        )
         self.index = CatalogIndex(self.vault, self.main_catalog, self.kenney_catalog)
 
     def tearDown(self) -> None:
@@ -104,6 +119,9 @@ class AssetVaultBrowserTests(unittest.TestCase):
         self.assertEqual(3, len(self.index.items))
         tree = self.index.by_id["kenney:forest-pack:tree"]
         self.assertEqual("glb", tree.format)
+        self.assertEqual("medieval", tree.pack_id)
+        self.assertEqual("Médiéval", tree.pack_name)
+        self.assertIn("medieval", tree.tags)
         self.assertTrue(tree.viewer_supported)
         self.assertEqual(2, len(tree.variants))
         self.assertEqual(1, self.index.query(query="forest tree")["total"])

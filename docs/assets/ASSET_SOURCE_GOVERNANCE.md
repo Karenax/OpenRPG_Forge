@@ -1,6 +1,6 @@
 # Gouvernance des sources Asset Vault
 
-Dernière revue : 21 août 2026.
+Dernière revue : 24 août 2026.
 
 Ce registre décrit la décision **OpenRPG Forge**, pas une déclaration générale sur une plateforme.
 Une source reste refusée tant que licence, provenance, redistribution et transport ne sont pas
@@ -22,7 +22,7 @@ de source n’est pas accepté automatiquement.
 
 | Source | Périmètre admis | Transport | Preuve locale |
 |---|---|---|---|
-| Quaternius | Universal Base Characters Standard, Modular Character Outfits Fantasy Standard, LowPoly Animated Easy Enemies | téléchargement humain depuis Itch.io, puis import local épinglé par SHA-256 | `asset_manifests/catalogs/manual_itch_cc0_packs.json` |
+| Quaternius | Universal Base Characters Standard, LowPoly Animated Easy Enemies et collection Médiéval : Fantasy Props MegaKit Standard, Medieval Village MegaKit Standard, Modular Character Outfits Fantasy Standard, Stylized Nature MegaKit Standard, Universal Animation Library 2 Standard | téléchargement humain depuis Itch.io, puis import local épinglé par SHA-256 ; les octets déjà présents sont réutilisés | `asset_manifests/catalogs/manual_itch_cc0_packs.json`, `asset_manifests/catalogs/quaternius_standard_packs.json`, `asset_manifests/packs/medieval.json` |
 | KayKit | Forest Nature Pack FREE, Character Animations FREE, Fantasy Weapons Bits FREE, RPG Tools Bits FREE, Resource Bits FREE | téléchargement humain depuis Itch.io, licence CC0 interne, puis import local épinglé par SHA-256 | `asset_manifests/catalogs/manual_itch_cc0_packs.json` |
 
 Les admissions KayKit restent bornées aux dépôts épinglés et aux cinq archives FREE exactes du

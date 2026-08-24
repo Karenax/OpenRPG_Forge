@@ -44,7 +44,7 @@ lecture seule et sont résolus par `AssetPlatformParityValidator` puis
 - smoke Godot global : `OPENRPG_FORGE_STUDIO_UX8_I_PASS` avec routes, sélection, compatibilité,
   gate runtime, migration, plateforme, hashes, dry-run, commande, gardes stale, undo/redo,
   persistance, voisins, nettoyage, UI humaine, source inchangée et surface restaurée à `true` ;
-- capture Forward+ **1920×1080** inspectée : Forgotten Forest réel, deux routes nommées, plan de
+- capture Forward+ **1920×1080** inspectée : Crypte des Cendres réel, deux routes nommées, plan de
   migration 1.28.0 → 1.30.0, variante Windows exacte, budget, rôles, chemins humains, diagnostics
   et six actions visibles sans UUID ni clipping ;
 - portail incrémental : **PASS en 423,41 s** — build 1,44 s, tests 1,83 + 2,21 + 7,96 s,

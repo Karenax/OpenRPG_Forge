@@ -55,7 +55,7 @@ leur décision runtime est prévisualisée sans muter d'acteur ni de réseau.
 
 - le Studio authorise et prévisualise des politiques ; il ne propage pas un événement de gameplay,
   ne modifie aucun acteur et ne simule aucun transport réseau ;
-- le fallback n'ajoute rien à Forgotten Forest. La preuve riche vit uniquement dans un workspace
+- le fallback n'ajoute rien à Crypte des Cendres. La preuve riche vit uniquement dans un workspace
   temporaire supprimé après le test ;
 - la capture Crypte utilise les données réelles dans une copie isolée : la source, son historique,
   son état dirty, sa sélection et ses approbations restent inchangés ;

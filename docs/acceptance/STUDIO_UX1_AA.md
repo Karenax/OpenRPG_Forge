@@ -43,7 +43,7 @@ et son dry-run conserve le projet, l'historique et la révision.
 
 - un placeable sans Foundation, collision active, Operations damageable ou DamageEvents cohérents
   reste bloqué avec une explication ; la surface produit ne synthétise aucun de ces voisins ;
-- Forgotten Forest n'ayant pas encore de profil éligible, la preuve utilise un workspace temporaire
+- Crypte des Cendres n'ayant pas encore de profil éligible, la preuve utilise un workspace temporaire
   isolé, supprimé à la fermeture, tandis que le projet source reste inchangé ;
 - la surface édite une entrée socket et une entrée assemblage à la fois ; elle n'ajoute pas encore de
   boutons dédiés pour créer ou supprimer plusieurs entrées au cours de la même ouverture ;

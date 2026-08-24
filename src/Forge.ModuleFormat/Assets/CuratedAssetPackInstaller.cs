@@ -10,7 +10,7 @@ namespace Forge.ModuleFormat.Assets;
 
 public static class CuratedAssetPackInstaller
 {
-    public const string DefaultManifestRelativePath = "asset_manifests/packs/forgotten_forest_core.json";
+    public const string DefaultManifestRelativePath = "asset_manifests/packs/asset_vault_core.json";
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -68,7 +68,7 @@ public static class CuratedAssetPackInstaller
         return removed.Length;
     }
 
-    public static CuratedAssetPackInstallResult InstallForgottenForest(
+    public static CuratedAssetPackInstallResult InstallCuratedPack(
         string repositoryRoot,
         string vaultRoot,
         string workspaceRoot,

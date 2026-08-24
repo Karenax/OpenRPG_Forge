@@ -93,7 +93,7 @@ public sealed class EncounterAuthoringServiceTests
     {
         var shape = new TriggerShape(TriggerShapeKind.ExtrudedPolygon, [new(0, 0, 0), new(8, 0, 0), new(8, 0, 8), new(0, 0, 8)], [], new(0, 0, 0), 4, 0.5);
         var filter = new TriggerFilter(new HashSet<string> { "creature" }, new HashSet<string> { "player" }, new HashSet<string>(), new HashSet<string> { "characters" });
-        return new("glass-vigil", "Veillée de verre", "ambush", "shattered-light", "zone:observatory", EncounterRole.Controller,
+        return new("demo-encounter", "Encounter de démonstration", "ambush", "demo-light", "zone:observatory", EncounterRole.Controller,
             [new(creatureId, "creature:glass-warden", EncounterRole.Controller, 3, 8, new HashSet<string> { "night" }, ["ember"], 4)],
             new(shape, filter, true, 18, "script:encounter-activation"),
             new("ruleset:forge", EncounterDifficulty.Hard, 4, 12, 20, 1.2, 1.5), ["group:vigil"], ["anchor:north"], ["reward:shard"], 12, "author:test");

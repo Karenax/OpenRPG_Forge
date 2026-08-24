@@ -10,7 +10,7 @@ public sealed class ProjectMetadataAndBlackboardTests
         var metadata = CreateMetadata();
 
         Assert.Equal("fr", metadata.DefaultLocale);
-        Assert.Equal("Les Îles", metadata.GetDefaultLocalization().Name);
+        Assert.Equal("Module de test", metadata.GetDefaultLocalization().Name);
         Assert.Equal(["Aventure", "coop"], metadata.Tags);
         Assert.Throws<ArgumentException>(() => new ProjectMetadata(
             metadata.Id,
@@ -79,8 +79,8 @@ public sealed class ProjectMetadataAndBlackboardTests
         ProjectMetadataId.From(Guid.Parse("c3000000-0000-4000-8000-000000000001")),
         "fr",
         [
-            new ProjectLocalizedMetadata("fr", "Les Îles", "Aventure maritime", "Un archipel.", "Équipe Forge"),
-            new ProjectLocalizedMetadata("en", "The Isles", "Sea adventure", "An archipelago.", "Forge Team"),
+            new ProjectLocalizedMetadata("fr", "Module de test", "Aventure de démonstration", "Un monde de test.", "Équipe Forge"),
+            new ProjectLocalizedMetadata("en", "Demo Module", "Sample adventure", "A representative world.", "Forge Team"),
         ],
         "Atelier Forge",
         "1.2.0",

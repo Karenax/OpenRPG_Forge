@@ -282,16 +282,18 @@ internal sealed partial class StudioWorldViewport
         {
             _selectionMarker.Visible = false;
             _moveGizmo.Visible = false;
+            HideHumanSelectionBounds();
             HideContextMenu();
             return;
         }
 
-        _selectionMarker.Position = activeNode.GlobalPosition + new Vector3(0, .035f, 0);
+        PlaceHumanSelectionMarker(_selectionMarker, _selectedEntityId, activeNode, primary: true);
         _selectionMarker.Visible = true;
+        RefreshHumanSelectionBounds(_selectedEntityId);
         foreach (var entityId in _selectedEntityIds.Where(id => id != _selectedEntityId && _editableEntityIds.Contains(id)))
         {
             var marker = BuildSecondarySelectionMarker();
-            marker.Position = _entityNodes[entityId].GlobalPosition + new Vector3(0, .03f, 0);
+            PlaceHumanSelectionMarker(marker, entityId, _entityNodes[entityId], primary: false);
             _world.AddChild(marker);
             _secondarySelectionMarkers[entityId] = marker;
         }
@@ -373,11 +375,11 @@ internal sealed partial class StudioWorldViewport
         _interactionHint.Text = tool switch
         {
             EditorTransformTool.Rotate =>
-                "clic sélectionner · plan coloré tourner · clic droit éditer · glisser droit orbiter · molette zoom",
+                "Tourner [2] · glissez une surface colorée · clic droit éditer · glisser droit orbiter",
             EditorTransformTool.Scale =>
-                "clic sélectionner · carré coloré redimensionner · clic droit éditer · glisser droit orbiter · molette zoom",
+                "Redimensionner [3] · glissez X, Y, Z ou uniforme · clic droit éditer · glisser droit orbiter",
             _ =>
-                "clic sélectionner · flèche déplacer · clic droit éditer · glisser droit orbiter · molette zoom",
+                "Déplacer [1] · glissez une flèche X, Y ou Z · clic droit éditer · glisser droit orbiter",
         };
         foreach (var child in _moveGizmo.GetChildren().OfType<Node3D>())
         {
@@ -398,6 +400,7 @@ internal sealed partial class StudioWorldViewport
                 child.Visible = true;
             }
         }
+        RefreshHumanTransformToolbar();
     }
 
     private bool TryBeginConfiguredGizmoDrag(Vector2 pointer)
@@ -736,31 +739,38 @@ internal sealed partial class StudioWorldViewport
     private StudioRotationPlane? PickConfiguredRotationPlane(Vector2 pointer)
     {
         var screen = ToViewportPointer(pointer);
+        var rayOrigin = _camera.ProjectRayOrigin(screen);
+        var rayDirection = _camera.ProjectRayNormal(screen).Normalized();
         var scale = Math.Max(_moveGizmo.Scale.X, .001f);
         StudioRotationPlane? best = null;
-        var bestDistance = 16f;
+        var bestDistance = float.PositiveInfinity;
         foreach (var plane in Enum.GetValues<StudioRotationPlane>())
         {
-            var (first, second, _) = ConfiguredRotationFrame(plane);
-            Vector2? previous = null;
-            for (var index = 0; index <= 24; index++)
+            var frame = ConfiguredRotationFrame(plane);
+            var denominator = frame.Normal.Dot(rayDirection);
+            if (MathF.Abs(denominator) < .0001f)
             {
-                var angle = index * MathF.PI * .5f / 24;
-                var world = _moveGizmo.GlobalPosition +
-                            (first * MathF.Cos(angle) + second * MathF.Sin(angle)) *
-                            RotationPlaneOuterRadius * scale;
-                var projected = _camera.UnprojectPosition(world);
-                if (previous is not null)
-                {
-                    var distance = DistanceToSegment(screen, previous.Value, projected);
-                    if (distance < bestDistance)
-                    {
-                        best = plane;
-                        bestDistance = distance;
-                    }
-                }
-                previous = projected;
+                continue;
             }
+            var distance = frame.Normal.Dot(_moveGizmo.GlobalPosition - rayOrigin) / denominator;
+            if (!float.IsFinite(distance) || distance <= 0 || distance >= bestDistance)
+            {
+                continue;
+            }
+            var offset = rayOrigin + rayDirection * distance - _moveGizmo.GlobalPosition;
+            offset -= frame.Normal * offset.Dot(frame.Normal);
+            var radius = offset.Length() / scale;
+            if (radius < RotationPlaneInnerRadius || radius > RotationPlaneOuterRadius)
+            {
+                continue;
+            }
+            var direction = offset.Normalized();
+            if (direction.Dot(frame.First) < 0 || direction.Dot(frame.Second) < 0)
+            {
+                continue;
+            }
+            best = plane;
+            bestDistance = distance;
         }
         return best;
     }
@@ -919,6 +929,7 @@ internal sealed partial class StudioWorldViewport
         UpdateViewportModeSummary();
         UpdateViewportModeBadge(Size.X > 0 && Size.X < 850);
         RefreshSelectionVisuals();
+        RefreshHumanTransformToolbar();
     }
 
     private void UpdateViewportModeBadge(bool narrow)

@@ -656,14 +656,6 @@ public partial class RuntimeModuleMap : CanvasLayer
             var center = bounds.GetCenter();
             switch (area.Slug)
             {
-                case "forgotten-forest":
-                    DrawPolyline([
-                        new Vector2(bounds.Position.X + 8, center.Y - 22),
-                        new Vector2(center.X - 32, center.Y - 7),
-                        new Vector2(center.X + 16, center.Y + 13),
-                        new Vector2(bounds.End.X - 8, center.Y + 29),
-                    ], new Color("596f58a8"), 5, true);
-                    break;
                 case "clairval":
                     DrawLine(new Vector2(center.X, bounds.Position.Y + 7), new Vector2(center.X, bounds.End.Y - 7),
                         new Color("617d8980"), 7, true);
@@ -753,7 +745,6 @@ public partial class RuntimeModuleMap : CanvasLayer
             {
                 ["ember-inn"] = new(.20f, .20f),
                 ["clairval"] = new(.36f, .36f),
-                ["forgotten-forest"] = new(.51f, .58f),
                 ["gnoll-fortress"] = new(.79f, .32f),
                 ["amber-desert"] = new(.81f, .76f),
                 ["snow-pass"] = new(.20f, .77f),
@@ -864,13 +855,6 @@ public partial class RuntimeModuleMap : CanvasLayer
                     DrawLine(point + new Vector2(0, 7), point + new Vector2(0, -9), color, 2);
                     DrawLine(point + new Vector2(8, 7), point + new Vector2(8, -3), color, 2);
                     DrawLine(point + new Vector2(-11, 7), point + new Vector2(11, 7), color, 2);
-                    break;
-                case "forgotten-forest":
-                    DrawColoredPolygon([
-                        point + new Vector2(0, -10), point + new Vector2(8, 4), point + new Vector2(3, 4),
-                        point + new Vector2(3, 10), point + new Vector2(-3, 10), point + new Vector2(-3, 4),
-                        point + new Vector2(-8, 4),
-                    ], color);
                     break;
                 case "gnoll-fortress":
                     DrawRect(new Rect2(point + new Vector2(-9, -7), new Vector2(18, 15)), color, false, 2);

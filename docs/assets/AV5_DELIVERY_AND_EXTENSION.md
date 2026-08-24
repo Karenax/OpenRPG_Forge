@@ -6,7 +6,7 @@ Dernière mise à jour : 5 août 2026.
 
 AV5 ferme le chantier Asset Vault avec une preuve unique, versionnée et bloquante. La commande
 `assets delivery-report` mesure le catalogue chargé, les fichiers réellement présents dans le Vault,
-le contenu effectivement référencé par Forgotten Forest, l’intégrité des chunks, le paquet `.orpmod`
+le contenu effectivement référencé par Asset Vault, l’intégrité des chunks, le paquet `.orpmod`
 et le benchmark terrain produit pendant le même gate.
 
 Le rapport n’est pas un inventaire déclaratif : il recalcule les tailles et SHA-256 des 45 chunks du
@@ -16,13 +16,13 @@ gouvernée, tout octet modifié ou toute licence manquante fait échouer la comm
 
 ## Reproduire la preuve
 
-Après un export et le smoke Forgotten Forest :
+Après un export et le smoke Asset Vault :
 
 ```powershell
 dotnet run --project tools/Forge.Cli/Forge.Cli.csproj --configuration Release -- `
-  assets delivery-report . apps/Forge.Runtime/content/forgotten-forest `
-  --module artifacts/verification/forgotten-forest.orpmod `
-  --benchmark artifacts/verification/forgotten-forest-terrain-benchmark.json `
+  assets delivery-report . apps/Forge.Runtime/content/asset-vault `
+  --module artifacts/verification/asset-vault.orpmod `
+  --benchmark artifacts/verification/asset-vault-terrain-benchmark.json `
   --output artifacts/verification/asset-delivery-report.json `
   --markdown artifacts/verification/asset-delivery-report.md `
   --vault E:\OpenRPG_AssetVault
@@ -46,7 +46,7 @@ Le premier passage local du 5 août 2026 a produit les valeurs suivantes :
 | Originaux | 3 158 fichiers, 4 474 798 756 octets |
 | Normalisés | 28 189 fichiers, 663 937 944 octets |
 | Métadonnées | 605 fichiers, 3 504 588 octets |
-| Workspace Forgotten Forest | 75 fichiers, 1 351 930 octets |
+| Workspace Asset Vault | 75 fichiers, 1 351 930 octets |
 | Contenu gouverné | 22 manifestes, 44 chunks, 22 références, 16 assets distincts utilisés |
 | Octets de chunks | 1 073 258 octets |
 | Licences du module | 22 manifestes CC0-1.0 |
@@ -63,7 +63,7 @@ le premier passage AV5.
    les profils de normalisation, les manifestes content-addressed et le worker Blender confiné.
 2. AV3 a relié installation, palette, placement, dispersion de biome et mutations MCP au bus de
    commandes transactionnel, avec vérification de licence et de hash.
-3. AV4 a livré le terrain générique multi-biome, la tranche Forgotten Forest 128 × 128 m, sa
+3. AV4 a livré le terrain générique multi-biome, la tranche Asset Vault 128 × 128 m, sa
    navigation, son eau animée, son scénario jouable, son export et ses budgets runtime.
 4. AV5 consolide ces preuves, documente l’extension et interdit l’augmentation silencieuse du
    catalogue avant une nouvelle décision artistique et technique.
@@ -88,7 +88,7 @@ distribué. Le plafond ne change qu’après validation du pack candidat.
 
 ## Extension AV6-A sans élargissement du catalogue
 
-Le personnage animé de Forgotten Forest réutilise le pack Kenney déjà présent et gouverné dans le
+Le personnage animé de Asset Vault réutilise le pack Kenney déjà présent et gouverné dans le
 Vault. Le catalogue reste donc figé à 605 entrées. La politique de livraison attend désormais
 23 manifestes CC0, 45 chunks et 22 références gouvernées ; le nouveau GLB embarque un rig de 58 os
 et trois clips, tandis que l’ancien modèle statique reste disponible pour les modules existants.

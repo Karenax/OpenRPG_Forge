@@ -46,7 +46,7 @@ Chaque carte indique sa provenance et son caractère modifiable ou protégé san
 hash ou identifiant. Les contenus Standard restent en lecture seule ; les favoris personnels,
 récents, contenus du projet, générés, temporaires et palettes nommées restent distincts. Ajouter ou
 retirer un favori et enregistrer ou supprimer une palette nommée passent par le profil de workspace,
-son historique et sa persistance explicite. Forgotten Forest ne contient actuellement aucun élément
+son historique et sa persistance explicite. Crypte des Cendres ne contient actuellement aucun élément
 `InstalledPack` : la vue existe et son état vide est honnête, sans inventer de contenu.
 
 ### ORF-SHELL-009

@@ -48,7 +48,7 @@ présentation, progression, loot, rôle, règles et références sont revalidés
 
 - combat, inventaire, repos, heartbeat et événements utilisateur UX4-N sont conservés sans
   réécriture ; overrides, profils voisins et autres blueprints restent inchangés ;
-- Forgotten Forest ne possède pas ce profil riche : sa preuve utilise une copie temporaire avec
+- Crypte des Cendres ne possède pas ce profil riche : sa preuve utilise une copie temporaire avec
   fallback canonique. La Crypte utilise le vrai `Gardien des Cendres`. La source reste strictement
   inchangée dans les deux parcours ;
 - aucun dégât, acteur, loot, ForgeScript ou transport réseau n’est exécuté dans Studio ; la surface

@@ -20,7 +20,7 @@ distributions Windows/Linux ni une publication Git.
   gabarits vide et jouable, bloque un nom en doublon, applique/annule/rétablit, sauvegarde, rouvre le
   projet et vérifie l’identité des documents et profils ;
 - le smoke UI applique aussi une création au projet courant en mémoire, l’annule, la rétablit puis
-  restaure exactement le projet et la zone active sans écrire Forgotten Forest ;
+  restaure exactement le projet et la zone active sans écrire Crypte des Cendres ;
 - journal headless : `artifacts/verification/studio-shell/ux1-a/headless-smoke.log` ;
 - journaux Forward+ : `forwardplus-fhd.log`, `forwardplus-qhd.log` et `forwardplus-4k.log` dans
   `artifacts/verification/studio-shell/ux1-a/`, sous Godot 4.7.1 Mono, Vulkan et

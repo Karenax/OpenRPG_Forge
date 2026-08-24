@@ -45,7 +45,7 @@ inter-profils n’est inventée.
   consentement, refus Python/shell/eval/réseau, injection, outil/escalade, dry-run, commandes, audit,
   gardes stale, undo/redo, persistance, voisins, nettoyage, UI humaine, source inchangée et surface
   restaurée à `true` ;
-- capture Forward+ **1920×1080** inspectée : Forgotten Forest réel, deux colonnes lisibles, valeurs
+- capture Forward+ **1920×1080** inspectée : Crypte des Cendres réel, deux colonnes lisibles, valeurs
   sûres verrouillées, listes et signatures hostiles, diagnostics, deux consentements et dix actions
   visibles sans UUID ni clipping ;
 - portail incrémental : **PASS en 472,65 s** — build 1,73 s, tests 1,91 + 3,10 + 3,46 + 5,79 s,

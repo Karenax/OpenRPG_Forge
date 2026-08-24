@@ -276,8 +276,9 @@ internal sealed partial class StudioSessionController
             var appliedProject = editing.Project!;
             var appliedBlueprint = appliedProject.Blueprints.Single(item => item.Id == evidence.BlueprintId);
             var applied = appliedBlueprint.CreatureProgression;
-            var tracks = applied is { AllowMultipleTracks: true } && applied.Tracks.Any(item =>
-                item.TrackId == "scholar" && item.Level == 2);
+            var tracks = applied is not null &&
+                         applied.AllowMultipleTracks == expected.AllowMultipleTracks &&
+                         applied.Tracks.SequenceEqual(expected.Tracks);
             var disposition = applied?.DispositionAxes.Any(item => item.AxisId == "mercy" && item.Value == .55) == true;
             var skills = applied?.Skills.Any(item => item.SkillId == "lore" && item.Expertise && item.Rank == 3) == true;
             var talents = applied?.Talents.Any(item => item.TalentId == "discipline" && item.Passive &&

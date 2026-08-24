@@ -50,7 +50,7 @@ module, les commandes transactionnelles et le plugin historique comme filet de m
 
 ## Conséquences
 
-- La première tranche est volontairement verticale : ouvrir Forgotten Forest, naviguer entre les
+- La première tranche est volontairement verticale : ouvrir Crypte des Cendres, naviguer entre les
   rubriques, conserver la zone et la caméra, sélectionner dans la 3D et prouver l’absence de fenêtres
   parasites.
 - Les fonctions sont migrées par page et non par copie individuelle des anciennes fenêtres.

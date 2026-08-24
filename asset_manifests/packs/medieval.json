@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "collection_type": "asset-vault-collection",
+  "pack_id": "medieval",
+  "version": "1.0.0",
+  "display_name": "Médiéval",
+  "delivery": "external-vault",
+  "source": "quaternius",
+  "author": "Quaternius",
+  "license": "CC0-1.0",
+  "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "license_verified": true,
+  "source_catalogs": [
+    "asset_manifests/catalogs/quaternius_standard_packs.json",
+    "asset_manifests/catalogs/manual_itch_cc0_packs.json"
+  ],
+  "source_pack_ids": [
+    "quaternius:fantasy-props-megakit-standard-1.0",
+    "quaternius:medieval-village-megakit-standard-1.0",
+    "quaternius:modular-character-outfits-fantasy-standard",
+    "quaternius:stylized-nature-megakit-standard-1.0",
+    "quaternius:universal-animation-library-2-standard-2026-06-16"
+  ],
+  "archive_count": 5,
+  "archive_bytes": 728387757,
+  "model_file_count": 1136,
+  "logical_model_count": 365,
+  "vault_environment_variable": "OPENRPG_ASSET_VAULT",
+  "status": "downloaded-and-extracted",
+  "tags": [
+    "medieval",
+    "fantasy",
+    "village",
+    "architecture",
+    "props",
+    "nature",
+    "characters",
+    "animations"
+  ],
+  "archives": [
+    {
+      "pack_id": "quaternius:fantasy-props-megakit-standard-1.0",
+      "name": "Fantasy Props MegaKit[Standard].zip",
+      "source_page": "https://quaternius.itch.io/fantasy-props-megakit",
+      "sha256": "8b6f7e806d222e585478f0e1bdc6b271bbc7bc6f84dd6af8ca703a7c64f0cb1e",
+      "bytes": 150213360,
+      "model_file_count": 282,
+      "logical_model_count": 94
+    },
+    {
+      "pack_id": "quaternius:medieval-village-megakit-standard-1.0",
+      "name": "Medieval Village MegaKit[Standard].zip",
+      "source_page": "https://quaternius.itch.io/medieval-village-megakit",
+      "sha256": "e60dea67c10f30dccccfbff92a7933f5ea5cfe99be0e2a0fa5118cceabeec5c4",
+      "bytes": 161003471,
+      "model_file_count": 528,
+      "logical_model_count": 176
+    },
+    {
+      "pack_id": "quaternius:modular-character-outfits-fantasy-standard",
+      "name": "Modular Character Outfits - Fantasy[Standard].zip",
+      "source_page": "https://quaternius.itch.io/modular-character-outfits-fantasy",
+      "sha256": "c3468b18871cc8c8f05ab14df7712baf22cb9f389cbd870babf130e595187f70",
+      "bytes": 294347394,
+      "model_file_count": 48,
+      "logical_model_count": 24
+    },
+    {
+      "pack_id": "quaternius:stylized-nature-megakit-standard-1.0",
+      "name": "Stylized Nature MegaKit[Standard].zip",
+      "source_page": "https://quaternius.itch.io/stylized-nature-megakit",
+      "sha256": "298f6732b872e4cf7b30e6e7abf9641c7f6dc6b326df37ac089533ed7e3d58c9",
+      "bytes": 104088529,
+      "model_file_count": 272,
+      "logical_model_count": 68
+    },
+    {
+      "pack_id": "quaternius:universal-animation-library-2-standard-2026-06-16",
+      "name": "Universal Animation Library 2[Standard].zip",
+      "source_page": "https://quaternius.itch.io/universal-animation-library-2",
+      "sha256": "4008ea208a604773a2b2177d965f0f5d3195498b5bf838c3f5785d68e95f2a68",
+      "bytes": 18735003,
+      "model_file_count": 6,
+      "logical_model_count": 3
+    }
+  ]
+}

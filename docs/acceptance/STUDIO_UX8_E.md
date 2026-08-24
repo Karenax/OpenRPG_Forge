@@ -49,7 +49,7 @@ dans un dossier temporaire borné, inspectée puis supprimée pendant la même o
 - smoke Godot global : marker `OPENRPG_FORGE_STUDIO_UX8_E_PASS` avec `routes`, `selection`,
   `documentation`, `tasks`, `release_channels`, `crash_artifacts`, `cancel`, `logs`, `navigation`,
   `resources_released`, `ui`, `human`, `source_unchanged` et `surface_restored` à `true` ;
-- capture Forward+ **1920×1080** sur Forgotten Forest réel, inspectée : quatre cartes et quatre
+- capture Forward+ **1920×1080** sur Crypte des Cendres réel, inspectée : quatre cartes et quatre
   résultats lisibles, détail de promotion bloquée, trois actions, statut et frontière honnête
   visibles sans clipping ;
 - portail incrémental complet : **PASS en 531,26 s** — build 1,40 s, tests Domain 2,39 s et

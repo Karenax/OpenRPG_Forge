@@ -47,8 +47,8 @@ depuis l’Assistant et le host MCP ; aucune écriture ni commande système arbi
 
 Objectif : une interface agréable et deux démonstrations visuellement convaincantes.
 
-Sortie : revue responsive et accessible, Crypte habillée, Forgotten Forest recomposée, éclairage et
-eau finalisés, performances/collisions/navigation vérifiées sur les profils supportés.
+Sortie : revue responsive et accessible, Crypte habillée, outils de biome extérieur réutilisables,
+éclairage et performances/collisions/navigation vérifiés sur les profils supportés.
 
 ## Étape 7 — Candidat public
 

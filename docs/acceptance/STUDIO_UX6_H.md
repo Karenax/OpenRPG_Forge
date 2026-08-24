@@ -35,7 +35,7 @@ voix ou réplication réseau n’est lancée.
 <a id="orf-scr-015"></a>
 ## ORF-SCR-015 — API factions et réputation
 
-Acteur, faction active, delta, adhésion et portée sont explicites. Forgotten Forest ne possède pas
+Acteur, faction active, delta, adhésion et portée sont explicites. Crypte des Cendres ne possède pas
 de faction : la preuve riche ajoute donc **Gardiens de la forêt** uniquement dans la copie
 temporaire, tandis que le parcours produit normal conserve et explique cet état vide. La simulation
 ne change ni appartenance ni réputation du projet source.

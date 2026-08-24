@@ -77,7 +77,7 @@ internal sealed partial class StudioModuleHub : Control
         continueCard.SizeFlagsStretchRatio = 1.35f;
         cards.AddChild(continueCard);
         continueColumn.AddChild(StudioStyle.SectionLabel("CONTINUER"));
-        _defaultTitle = StudioStyle.Label("Forgotten Forest", 20);
+        _defaultTitle = StudioStyle.Label("Crypte des Cendres", 20);
         continueColumn.AddChild(_defaultTitle);
         _defaultDetails = StudioStyle.Label("Vérification du module…", 11, StudioStyle.Muted, wrap: true);
         continueColumn.AddChild(_defaultDetails);

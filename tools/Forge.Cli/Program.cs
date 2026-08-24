@@ -1,7 +1,6 @@
 using System.Text.Json;
 using System.Text;
 using System.Security.Cryptography;
-using System.Diagnostics;
 using System.Globalization;
 using Forge.Application.Assets;
 using Forge.Application.Build;
@@ -103,14 +102,9 @@ static int Run(IReadOnlyList<string> arguments)
             return MigrateWorkspace(arguments[2]);
         }
 
-        if (arguments.Count == 2 && arguments[0] == "author-original")
+        if (arguments.Count == 2 && arguments[0] == "author-sample")
         {
-            return AuthorOriginalModule(arguments[1]);
-        }
-
-        if (arguments.Count >= 2 && arguments[0] == "author-forgotten-forest")
-        {
-            return AuthorForgottenForest(arguments.Skip(1).ToArray());
+            return AuthorSampleModule(arguments[1]);
         }
 
         Console.Error.WriteLine(
@@ -124,8 +118,7 @@ static int Run(IReadOnlyList<string> arguments)
             "forge performance run <workspace> | " +
             "forge governance run <workspace> | " +
             "forge <build|validate|test|pack|migrate|normalize|diff|references> ... | forge build-profile <show|set-default|validate> <workspace> | " +
-            "forge workspace migrate <target-directory> | forge author-original <target-directory> | " +
-            "forge author-forgotten-forest <target-directory> [--vault <directory>] [--blender <executable>]");
+             "forge workspace migrate <target-directory> | forge author-sample <target-directory>");
         return 2;
     }
     catch (Exception exception)
@@ -718,15 +711,15 @@ static bool ParseBoolean(string? value, bool defaultValue) => string.IsNullOrWhi
         ? parsed
         : throw new ArgumentException($"'{value}' is not a valid boolean value.");
 
-static int AuthorOriginalModule(string targetDirectory)
+static int AuthorSampleModule(string targetDirectory)
 {
-    var authored = OriginalModuleAuthoringService.CreateVeilleeDesEclats();
+    var authored = SampleModuleAuthoringService.Create();
     var fullPath = Path.GetFullPath(targetDirectory);
     ProjectSessionOpenResult created;
     if (Directory.Exists(fullPath) && File.Exists(Path.Combine(fullPath, ProjectSession.ManifestFileName)))
     {
         var opened = ProjectSession.Open(fullPath);
-        if (!opened.Succeeded || opened.Session?.Project.Module.Slug != "la-veillee-des-eclats")
+        if (!opened.Succeeded || opened.Session?.Project.Module.Slug != "module-de-demonstration")
         {
             Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = opened.Diagnostics }));
             return 1;
@@ -757,288 +750,10 @@ static int AuthorOriginalModule(string targetDirectory)
         dialogues = created.Session.Project.Dialogues.Count,
         quests = created.Session.Project.Quests.Count,
     }));
-    Console.WriteLine($"OPENRPG_FORGE_ORIGINAL_MODULE_AUTHORED slug={created.Session.Project.Module.Slug} commands={authored.Patches.Count} revision={authored.State.Revision.Value}");
+    Console.WriteLine($"OPENRPG_FORGE_SAMPLE_MODULE_AUTHORED slug={created.Session.Project.Module.Slug} commands={authored.Patches.Count} revision={authored.State.Revision.Value}");
     return 0;
 }
 
-static int AuthorForgottenForest(IReadOnlyList<string> arguments)
-{
-    var targetDirectory = Path.GetFullPath(arguments[0]);
-    var options = ParseOptions(arguments.Skip(1).ToArray());
-    var repositoryRoot = AssetCatalogLoader.FindRepositoryRoot(Directory.GetCurrentDirectory())
-        ?? throw new DirectoryNotFoundException("OpenRPG Forge repository root was not found.");
-    var catalog = AssetCatalogLoader.Load(repositoryRoot, options.GetValueOrDefault("vault"));
-    if (catalog.Catalog is null || catalog.Diagnostics.Count > 0)
-    {
-        Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = catalog.Diagnostics }));
-        return 1;
-    }
-
-    var authored = ForgottenForestModuleAuthoringService.Create();
-    ProjectSessionOpenResult created;
-    if (Directory.Exists(targetDirectory) && File.Exists(Path.Combine(targetDirectory, ProjectSession.ManifestFileName)))
-    {
-        var opened = ProjectSession.Open(targetDirectory);
-        if (!opened.Succeeded || opened.Session?.Project.Module.Slug != "forgotten-forest")
-        {
-            Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = opened.Diagnostics }));
-            return 1;
-        }
-
-        var saved = opened.Session.Save(authored.State.Project);
-        created = new ProjectSessionOpenResult(saved.Succeeded ? opened.Session : null, saved.Diagnostics);
-    }
-    else
-    {
-        created = ProjectSession.Create(targetDirectory, authored.State.Project);
-    }
-
-    if (!created.Succeeded || created.Session is null)
-    {
-        Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = created.Diagnostics }));
-        return 1;
-    }
-
-    foreach (var script in authored.Scripts)
-    {
-        var scriptPath = Path.GetFullPath(Path.Combine(
-            created.Session.RootDirectory,
-            script.Key.Replace('/', Path.DirectorySeparatorChar)));
-        var relative = Path.GetRelativePath(created.Session.RootDirectory, scriptPath);
-        if (relative.StartsWith($"..{Path.DirectorySeparatorChar}", StringComparison.Ordinal) || Path.IsPathRooted(relative))
-        {
-            throw new InvalidDataException($"Authored script path '{script.Key}' escapes the module workspace.");
-        }
-
-        Directory.CreateDirectory(Path.GetDirectoryName(scriptPath)!);
-        File.WriteAllText(scriptPath, script.Value, new System.Text.UTF8Encoding(false));
-    }
-
-    var environmentPackManifests = new[]
-    {
-        Path.Combine(repositoryRoot, CuratedAssetPackInstaller.DefaultManifestRelativePath.Replace('/', Path.DirectorySeparatorChar)),
-        Path.Combine(repositoryRoot, "asset_manifests", "packs", "forgotten_forest_fantasy_town.json"),
-        Path.Combine(repositoryRoot, "asset_manifests", "packs", "forgotten_forest_castle.json"),
-        Path.Combine(repositoryRoot, "asset_manifests", "packs", "forgotten_forest_dungeon_dressing.json"),
-        Path.Combine(repositoryRoot, "asset_manifests", "packs", "forgotten_forest_nature_dressing.json"),
-    };
-    var installed = environmentPackManifests.Select(manifest =>
-        CuratedAssetPackInstaller.InstallForgottenForest(
-            repositoryRoot,
-            catalog.VaultRoot,
-            created.Session.RootDirectory,
-            manifest)).ToArray();
-    const int retiredNatureAssets = 0;
-    var catalogModels = new List<CuratedCatalogModelInstallResult>();
-    foreach (var externalId in CuratedCatalogModelPackInstaller.ListExternalIds(repositoryRoot))
-    {
-        var modelPlan = CuratedCatalogModelPackInstaller.Plan(
-            repositoryRoot,
-            catalog.VaultRoot,
-            created.Session.RootDirectory,
-            externalId);
-        if (!modelPlan.Reused)
-        {
-            RunBlenderWorker(
-                repositoryRoot,
-                catalog.VaultRoot,
-                created.Session.RootDirectory,
-                modelPlan.RequestRelativePath,
-                options.GetValueOrDefault("blender"));
-        }
-
-        catalogModels.Add(CuratedCatalogModelPackInstaller.Complete(
-            created.Session.RootDirectory,
-            modelPlan));
-    }
-    var animatedPlan = CuratedAnimatedCharacterInstaller.Plan(
-        repositoryRoot,
-        catalog.VaultRoot,
-        created.Session.RootDirectory);
-    if (!animatedPlan.Reused)
-    {
-        RunBlenderWorker(
-            repositoryRoot,
-            catalog.VaultRoot,
-            created.Session.RootDirectory,
-            animatedPlan.RequestRelativePath,
-            options.GetValueOrDefault("blender"));
-    }
-    var animated = CuratedAnimatedCharacterInstaller.Complete(created.Session.RootDirectory, animatedPlan);
-    var embeddedCharacters = new List<CuratedEmbeddedAnimatedCharacterInstallResult>();
-    var embeddedPackRoot = Path.Combine(repositoryRoot, "asset_manifests", "packs");
-    var embeddedCharacterManifests = Directory.EnumerateFiles(
-            embeddedPackRoot,
-            "forgotten_forest_kaykit_*.json",
-            SearchOption.TopDirectoryOnly)
-        .Concat(Directory.EnumerateFiles(
-            embeddedPackRoot,
-            "forgotten_forest_quaternius_*.json",
-            SearchOption.TopDirectoryOnly))
-        .Order(StringComparer.Ordinal)
-        .ToArray();
-    foreach (var embeddedManifest in embeddedCharacterManifests)
-    {
-        var embeddedPlan = CuratedEmbeddedAnimatedCharacterInstaller.Plan(
-            repositoryRoot,
-            catalog.VaultRoot,
-            created.Session.RootDirectory,
-            embeddedManifest);
-        if (!embeddedPlan.Reused)
-        {
-            RunBlenderWorker(
-                repositoryRoot,
-                catalog.VaultRoot,
-                created.Session.RootDirectory,
-                embeddedPlan.RequestRelativePath,
-                options.GetValueOrDefault("blender"));
-        }
-
-        embeddedCharacters.Add(CuratedEmbeddedAnimatedCharacterInstaller.Complete(
-            created.Session.RootDirectory,
-            embeddedPlan));
-    }
-    Console.WriteLine(JsonSerializer.Serialize(new
-    {
-        valid = true,
-        slug = created.Session.Project.Module.Slug,
-        workspace = created.Session.RootDirectory,
-        areas = created.Session.Project.Areas.Count,
-        entities = created.Session.Project.Areas.Sum(area => area.Entities.Count),
-        blueprints = created.Session.Project.Blueprints.Count,
-        biomes = created.Session.Project.Areas.Sum(area => area.World.Biomes.Count),
-        assets = installed.Sum(pack => pack.Entries.Count) + catalogModels.Count,
-        reusedCount = installed.Sum(pack => pack.ReusedCount) + catalogModels.Count(model => model.Reused),
-        totalBytes = installed.Sum(pack => pack.TotalBytes) + catalogModels.Sum(model => model.OutputBytes),
-        retiredNatureAssets,
-        licenseSpdx = installed.Select(pack => pack.LicenseSpdx).Distinct(StringComparer.Ordinal).Single(),
-        environmentPacks = installed.Select(pack => new
-        {
-            pack.PackId,
-            pack.Version,
-            assets = pack.Entries.Count,
-            pack.ReusedCount,
-        }),
-        catalogModels = catalogModels.Select(model => new
-        {
-            assetId = model.AssetId.ToString(),
-            model.OutputRelativePath,
-            model.TriangleCount,
-            model.OutputBytes,
-            model.Reused,
-            model.LicenseSpdx,
-        }),
-        animatedCharacter = new
-        {
-            assetId = animated.AssetId.ToString(),
-            animated.OutputRelativePath,
-            clips = animated.Clips,
-            animated.TriangleCount,
-            animated.Reused,
-            animated.LicenseSpdx,
-        },
-        animatedCharacters = embeddedCharacters.Select(character => new
-        {
-            assetId = character.AssetId.ToString(),
-            character.OutputRelativePath,
-            clipCount = character.Clips.Count,
-            character.AnimationProfile,
-            semanticClips = character.SemanticClips,
-            character.TriangleCount,
-            character.Reused,
-            character.LicenseSpdx,
-        }),
-    }));
-    Console.WriteLine(
-        $"OPENRPG_FORGE_FORGOTTEN_FOREST_AUTHORED slug=forgotten-forest " +
-        $"entities={created.Session.Project.Areas.Sum(area => area.Entities.Count)} " +
-        $"assets={installed.Sum(pack => pack.Entries.Count) + catalogModels.Count + 1 + embeddedCharacters.Count} " +
-        $"reused={installed.Sum(pack => pack.ReusedCount) + catalogModels.Count(model => model.Reused) + (animated.Reused ? 1 : 0) + embeddedCharacters.Count(character => character.Reused)} " +
-        $"environment_packs={installed.Length} " +
-        $"animated_variants={embeddedCharacters.Count} clips={embeddedCharacters.Min(character => character.Clips.Count)} " +
-        $"profile=kaykit-adventurer license={installed.Select(pack => pack.LicenseSpdx).Distinct(StringComparer.Ordinal).Single()}");
-    return 0;
-}
-
-static void RunBlenderWorker(
-    string repositoryRoot,
-    string vaultRoot,
-    string workspaceRoot,
-    string? requestRelativePath,
-    string? configuredBlender)
-{
-    if (string.IsNullOrWhiteSpace(requestRelativePath))
-    {
-        throw new InvalidOperationException("Blender worker request is missing.");
-    }
-
-    var blender = FindBlenderExecutable(configuredBlender);
-    var python = Environment.GetEnvironmentVariable("OPENRPG_PYTHON");
-    if (string.IsNullOrWhiteSpace(python)) python = "python";
-    var request = Path.GetFullPath(Path.Combine(
-        workspaceRoot,
-        requestRelativePath.Replace('/', Path.DirectorySeparatorChar)));
-    var response = Path.GetFullPath(Path.Combine(
-        workspaceRoot,
-        AssetRoundTripFinalizer.ResponseRelativePath.Replace('/', Path.DirectorySeparatorChar)));
-    var worker = Path.GetFullPath(Path.Combine(repositoryRoot, "tools", "asset_pipeline", "blender_worker.py"));
-    var start = new ProcessStartInfo
-    {
-        FileName = python,
-        WorkingDirectory = repositoryRoot,
-        UseShellExecute = false,
-        RedirectStandardOutput = true,
-        RedirectStandardError = true,
-        CreateNoWindow = true,
-    };
-    foreach (var argument in new[]
-             {
-                 "-X", "utf8", worker,
-                 "--request", request,
-                 "--response", response,
-                 "--source-root", vaultRoot,
-                 "--workspace-root", workspaceRoot,
-                 "--blender", blender,
-             })
-    {
-        start.ArgumentList.Add(argument);
-    }
-
-    using var process = Process.Start(start) ?? throw new InvalidOperationException("Python asset worker did not start.");
-    var outputTask = process.StandardOutput.ReadToEndAsync();
-    var errorTask = process.StandardError.ReadToEndAsync();
-    if (!process.WaitForExit(900_000))
-    {
-        process.Kill(entireProcessTree: true);
-        throw new TimeoutException("Blender worker exceeded 15 minutes.");
-    }
-
-    Task.WaitAll(outputTask, errorTask);
-    if (process.ExitCode != 0)
-    {
-        var detail = string.Concat(outputTask.Result, Environment.NewLine, errorTask.Result).Trim();
-        throw new InvalidOperationException(
-            $"Animated character Blender worker failed with exit code {process.ExitCode}: " +
-            detail[^Math.Min(detail.Length, 2000)..]);
-    }
-}
-
-static string FindBlenderExecutable(string? configured)
-{
-    var candidates = new[]
-    {
-        configured,
-        Environment.GetEnvironmentVariable("OPENRPG_BLENDER"),
-        @"C:\Program Files\Blender Foundation\Blender 4.5\blender.exe",
-        @"C:\Program Files\Blender Foundation\Blender 4.4\blender.exe",
-    };
-    var found = candidates.FirstOrDefault(candidate =>
-        !string.IsNullOrWhiteSpace(candidate) && File.Exists(Path.GetFullPath(candidate)));
-    return found is null
-        ? throw new FileNotFoundException(
-            "Blender was not found. Pass --blender or set OPENRPG_BLENDER to a supported executable.")
-        : Path.GetFullPath(found);
-}
 
 static int RunAssets(IReadOnlyList<string> arguments)
 {

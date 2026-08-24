@@ -40,7 +40,7 @@ n'est renommé en capture Tracy.
 - tests .NET ciblés : **14/14** — Domain 11, ModuleFormat 3 ;
 - smoke Godot global : marker `OPENRPG_FORGE_STUDIO_UX7_I_PASS`, avec transaction UI, capture,
   diagnostic Tracy, annulation, navigation, confinement, cleanup et source intacte à `true` ;
-- capture Forward+ **1920×1080** sur Forgotten Forest réel : sélection, configuration, aperçu sec,
+- capture Forward+ **1920×1080** sur Crypte des Cendres réel : sélection, configuration, aperçu sec,
   six résultats navigables, limite Tracy et sept actions transactionnelles lisibles sans clipping ;
 - portail incrémental : **420,22 s** — build 1,10 s, tests 1,44/2,53 s, smoke 400,29 s, capture
   13,86 s et matrice 0,95 s ;

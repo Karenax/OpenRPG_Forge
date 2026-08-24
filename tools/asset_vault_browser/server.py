@@ -141,6 +141,7 @@ class CatalogIndex:
         self.main_catalog_path = main_catalog.resolve()
         self.kenney_catalog_path = kenney_catalog.resolve()
         self.pack_catalog_paths = tuple(path.resolve() for path in pack_catalogs)
+        self.pack_collections = self._load_pack_collections()
         self.items: list[AssetItem] = []
         self.by_id: dict[str, AssetItem] = {}
         self.catalog_entry_count = 0
@@ -177,10 +178,52 @@ class CatalogIndex:
             pack_count += len(packs)
             for pack in packs:
                 if isinstance(pack, dict):
+                    source_pack_id = str(pack.get("pack_id", "")).strip()
+                    collection = self.pack_collections.get(source_pack_id.casefold())
                     for item in self._pack_items(pack):
+                        if collection is not None:
+                            item.pack_id = collection["pack_id"]
+                            item.pack_name = collection["display_name"]
+                            item.tags = list(dict.fromkeys([*item.tags, *collection["tags"]]))
                         self._add(item)
         self.catalog_entry_count = len(main_assets) + extra_asset_count + pack_count
         self.items.sort(key=lambda item: (item.source.casefold(), (item.pack_name or "").casefold(), item.name.casefold(), item.asset_id))
+
+    def _load_pack_collections(self) -> dict[str, dict[str, Any]]:
+        candidates = (
+            self.main_catalog_path.parent / "packs",
+            self.main_catalog_path.parent.parent / "packs",
+        )
+        directory = next((value for value in candidates if value.is_dir()), None)
+        if directory is None:
+            return {}
+
+        result: dict[str, dict[str, Any]] = {}
+        for path in sorted(directory.glob("*.json")):
+            value = read_json(path)
+            if value.get("collection_type") != "asset-vault-collection":
+                continue
+            if value.get("schema_version") != 1:
+                raise ValueError(f"Unsupported Asset Vault collection schema: {path}")
+            pack_id = str(value.get("pack_id", "")).strip()
+            display_name = str(value.get("display_name", "")).strip()
+            source_pack_ids = value.get("source_pack_ids", [])
+            tags = value.get("tags", [])
+            if not pack_id or not display_name or not isinstance(source_pack_ids, list) or not source_pack_ids:
+                raise ValueError(f"Incomplete Asset Vault collection: {path}")
+            if not isinstance(tags, list):
+                raise ValueError(f"Invalid Asset Vault collection tags: {path}")
+            collection = {
+                "pack_id": pack_id,
+                "display_name": display_name,
+                "tags": [str(tag) for tag in tags],
+            }
+            for source_pack_id in source_pack_ids:
+                key = str(source_pack_id).strip().casefold()
+                if not key or key in result:
+                    raise ValueError(f"Source pack belongs to multiple Asset Vault collections: {source_pack_id}")
+                result[key] = collection
+        return result
 
     def _add(self, item: AssetItem) -> None:
         if item.asset_id in self.by_id:

@@ -62,7 +62,7 @@ non-conformités comme verdicts lisibles et détruit l'isolat. Aucun fixture hos
 - portail incrémental final : **288,36 s** — build 1,14 s, tests 2,17/1,47/2,51/3,95 s,
   smoke 265,37 s, capture 10,85 s et matrice 0,83 s ;
 - matrice avant promotion : **717 lignes**, **36 pages**, 560 fonctionnelles / 157 planifiées, PASS ;
-- capture Forward+ **1920×1080** sur Forgotten Forest réel : module, neuf cartes, neuf résultats,
+- capture Forward+ **1920×1080** sur Crypte des Cendres réel : module, neuf cartes, neuf résultats,
   campagne soak, couverture, gates, détail défilable et actions entièrement lisibles, sans clipping.
 
 Artefacts :
@@ -79,7 +79,7 @@ un matériel ou un logiciel d'assistance réel. Le fuzzing utilise des charges b
 sans attaquant ni réseau réel. Les fixtures malveillantes sont lues et sondées en mémoire ; aucune n'est
 lancée comme module jouable. Le réseau déterministe est un harness en mémoire sans socket ni pair distant.
 Le soak évalue des échantillons simulés sans attente murale de 60 minutes ni charge matérielle réelle ;
-le profil auteur dormant de Forgotten Forest reste inchangé. Le portail a `full_gate=false` et ne
+le profil auteur dormant de Crypte des Cendres reste inchangé. Le portail a `full_gate=false` et ne
 revendique ni `Verify.ps1` global ni contrôle du graphe.
 
 ## Reproduction

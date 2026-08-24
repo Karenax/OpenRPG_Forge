@@ -26,9 +26,9 @@ public sealed class CreatureRulesServiceTests
         Assert.Equal(5, diagnostics.Count); Assert.All(diagnostics, item => Assert.StartsWith($"creatures/{invalid.Id}/", item.Path));
     }
 
-    private static CreatureDefinition RulesCreature() => new(Guid.NewGuid(), 1, "author:veillee", BlueprintId.From(Guid.NewGuid()),
+    private static CreatureDefinition RulesCreature() => new(Guid.NewGuid(), 1, "author:sample", BlueprintId.From(Guid.NewGuid()),
         new("ilyne", new("Ilyne", new Dictionary<string, string>()), [], "elle", new("", new Dictionary<string, string>()), "", new HashSet<string>()),
-        new("scout", "veillee", "rig.humanoid", "village", EncounterRole.Support, 3, "coast", new HashSet<string>()), TransformValue.Identity,
+        new("scout", "sample", "rig.humanoid", "village", EncounterRole.Support, 3, "coast", new HashSet<string>()), TransformValue.Identity,
         [new("health", 30, 30, 0, true)], new(CreatureMovementMode.Grounded, 5, 10, 8, 0, 0, 45), "appearance.ilyne", "perception.ilyne", "combat.ilyne", null, "inventory.ilyne", new("spawn.ilyne", new Dictionary<string, string>()),
         Defenses: new(2, 1, new Dictionary<string, double> { ["glass"] = .4 }, new Dictionary<string, double> { ["reflex"] = 5 }, new HashSet<string> { "radiant" }, 0),
         Abilities: [new("lantern-flare", 1, 3, 6, ["has-lantern"], new HashSet<string> { "ranged", "support" }, "ability.lantern-flare")],

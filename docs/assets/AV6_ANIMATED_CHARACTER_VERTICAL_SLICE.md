@@ -4,7 +4,7 @@ Dernière mise à jour : 5 août 2026.
 
 ## Résultat
 
-Forgotten Forest emploie maintenant un personnage humanoïde animé réellement reconstruit par le
+Asset Vault emploie maintenant un personnage humanoïde animé réellement reconstruit par le
 Creator et le runtime. La tranche reste volontairement petite : une peau cohérente prouve toute la
 chaîne avant d’introduire variantes, retargeting ou animation de combat.
 
@@ -49,7 +49,7 @@ suivant.
   navigation, quête et boss réussis ;
 - rapport de livraison : 16 contrôles réussis, catalogue inchangé à 605 ;
 - capture Vulkan Forward+ 1280 × 720 :
-  `artifacts/verification/forgotten-forest-animation-forward-plus.png`.
+  `artifacts/verification/asset-vault-animation-forward-plus.png`.
 
 ## Limites explicites
 

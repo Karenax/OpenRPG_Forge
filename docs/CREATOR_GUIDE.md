@@ -45,7 +45,8 @@ automatique continue d’utiliser altitude, pente et exclusions. L’aperçu et 
 plan déterministe, le même manifeste et le même contrôle SHA-256.
 
 Le kit Crypte (sol, mur, porte, pilier, personnages et triggers) reste disponible dans le module de
-démonstration ; Forgotten Forest fournit le premier kit extérieur CC0 jouable.
+démonstration ; les outils de biome forestier et leurs assets CC0 restent disponibles comme briques
+réutilisables pour créer un module extérieur.
 
 Pour une créature, ouvrir **Atelier RPG Kit**, puis **Présenter une créature** pour les portraits,
 parties du corps, couleurs, appendices et voix. **Progression & pouvoirs** ouvre ensuite les parcours

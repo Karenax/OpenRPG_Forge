@@ -21,7 +21,7 @@ distributions Windows/Linux ni une publication Git.
   transitions, compare les politiques de retrait/replacement, applique/annule/rétablit les deux
   opérations, sauvegarde, rouvre et vérifie les documents indépendants et les identités remappées ;
 - le smoke UI applique aussi un agrandissement et une copie-gabarit au projet courant en mémoire,
-  annule, rétablit puis restaure exactement le projet et la zone active sans écrire Forgotten Forest ;
+  annule, rétablit puis restaure exactement le projet et la zone active sans écrire Crypte des Cendres ;
 - journal headless : `artifacts/verification/studio-shell/ux1-b/headless-smoke.log` ;
 - journaux Forward+ : `forwardplus-fhd.log`, `forwardplus-qhd.log` et `forwardplus-4k.log` dans
   `artifacts/verification/studio-shell/ux1-b/`, sous Godot 4.7.1 Mono, Vulkan et

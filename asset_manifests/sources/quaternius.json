@@ -9,8 +9,8 @@
     "https://quaternius.itch.io/"
   ],
   "license": "CC0-1.0",
-  "license_verification": "Each imported pack page must identify Quaternius as author and declare CC0; manual Standard/free archives must match their pinned SHA-256 and internal CC0 license when supplied.",
-  "license_verified_at": "2026-08-21",
+  "license_verification": "Each imported pack page must identify Quaternius as author and declare CC0; manual Standard/free archives must match their pinned SHA-256 and internal CC0 license when supplied. The five-archive Medieval collection was rechecked against its embedded licenses on 2026-08-24.",
+  "license_verified_at": "2026-08-24",
   "redistribution_allowed": true,
   "attribution_required_for_assets": false
 }

@@ -78,11 +78,11 @@ public sealed record WorkspaceBuildGovernanceProfile(
         new("tests/fixtures/build/reference-fixtures.json",
         [
             Fixture("b0020000-0000-4000-8000-000000000011", "tiny", ReferenceFixtureKind.Tiny,
-                "apps/Forge.Runtime/content/broken-isles-starter/project.json", "valid"),
+                "apps/Forge.Runtime/content/crypt-of-ashes/project.json", "valid"),
             Fixture("b0020000-0000-4000-8000-000000000012", "vertical-slice", ReferenceFixtureKind.VerticalSlice,
                 "apps/Forge.Runtime/content/crypt-of-ashes/project.json", "valid"),
             Fixture("b0020000-0000-4000-8000-000000000013", "stress", ReferenceFixtureKind.Stress,
-                "apps/Forge.Runtime/content/forgotten-forest/project.json", "valid"),
+                "apps/Forge.Runtime/content/crypt-of-ashes/project.json", "valid"),
             Fixture("b0020000-0000-4000-8000-000000000014", "malicious", ReferenceFixtureKind.Malicious,
                 "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs", "rejected"),
             Fixture("b0020000-0000-4000-8000-000000000015", "migration", ReferenceFixtureKind.Migration,

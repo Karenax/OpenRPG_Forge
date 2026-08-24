@@ -19,7 +19,7 @@ Windows/Linux du Studio et une release publique restent hors de ce lot.
 - le smoke contractuel crée un workspace temporaire avec deux blueprints placeable et trois
   instances, conserve un profil voisin, prévisualise, applique, annule, rétablit, sauvegarde et
   rouvre la fiche canonique ;
-- le smoke UI applique puis annule une modification depuis l’overlay réel de Forgotten Forest et
+- le smoke UI applique puis annule une modification depuis l’overlay réel de Crypte des Cendres et
   restaure exactement le projet, la zone active, la sélection et l’état enregistré ;
 - journal headless : `artifacts/verification/studio-shell/ux1-e/headless-smoke.log` ;
 - journaux Forward+ : `blueprint-fhd.log`, `interaction-qhd.log` et `preview-4k.log` dans

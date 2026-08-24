@@ -27,10 +27,6 @@ tmp/
 # Source models and their explicit provenance files remain versioned.
 apps/Forge.Runtime/art/**/*.import
 apps/Forge.Runtime/art/crypt-kaykit/*_dungeon_texture.png
-apps/Forge.Runtime/content/forgotten-forest/assets/imported/polyhaven-*/*.import
-apps/Forge.Runtime/content/forgotten-forest/assets/imported/polyhaven-*/model_*_*.jpg
-apps/Forge.Runtime/content/forgotten-forest/assets/imported/polyhaven-*/model_*_*.png
-apps/Forge.Runtime/content/forgotten-forest/assets/imported/quaternius-*/*.import
 
 # OS files
 Thumbs.db

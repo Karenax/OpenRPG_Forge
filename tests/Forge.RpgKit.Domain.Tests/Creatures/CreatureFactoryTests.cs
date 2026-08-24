@@ -38,11 +38,11 @@ public sealed class CreatureFactoryTests
     }
 
     private static CreatureDefinition CreateDefinition(CreatureMovementMode mode) => new(
-        Guid.Parse("10000000-0000-4000-8000-000000000001"), 1, "author:veillee",
+        Guid.Parse("10000000-0000-4000-8000-000000000001"), 1, "author:sample",
         BlueprintId.From(Guid.Parse("10000000-0000-4000-8000-000000000002")),
         new CreatureIdentity("sentinelle-de-verre", new("Sentinelle de verre", new Dictionary<string, string> { ["en"] = "Glass Sentinel" }),
             ["sentinelle"], "elle", new("Une gardienne née de la tempête.", new Dictionary<string, string>()), "Antagoniste du phare", new HashSet<string> { "phare", "verre" }),
-        new("archetype.sentinel", "ruleset.veillee", "rig.humanoid", "faction.glass", EncounterRole.Skirmisher, 4.8, "visual.glass", new HashSet<string> { "ranged" }),
+        new("archetype.sentinel", "ruleset.sample", "rig.humanoid", "faction.glass", EncounterRole.Skirmisher, 4.8, "visual.glass", new HashSet<string> { "ranged" }),
         TransformValue.Identity,
         [new("health", 60, 48, 0.5, true), new("morale", 20, 20, 0.1, true)],
         new(mode, 6, 12, 8, 0, mode == CreatureMovementMode.Flying ? 30 : 0, 50),

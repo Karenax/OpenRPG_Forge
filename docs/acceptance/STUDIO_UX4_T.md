@@ -117,7 +117,7 @@ le handler de catalogue avant toute mutation.
 
 ## Préservation et limites honnêtes
 
-- Forgotten Forest et la Crypte n’authorent actuellement aucun marchand dans leur document source ;
+- Crypte des Cendres et la Crypte n’authorent actuellement aucun marchand dans leur document source ;
   la preuve riche ajoute donc un marchand uniquement dans une copie temporaire explicitement
   étiquetée, puis prouve projet, historique, dirty, sélection et approbation source inchangés ;
 - la transaction remplace seulement le marchand ciblé et préserve l’ordre, les marchands voisins,

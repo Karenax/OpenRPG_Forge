@@ -43,7 +43,7 @@ La scène prête à l’emploi est :
 `apps/Forge.Toolset/addons/forge_forest_map/scenes/forge_forest_map_demo.tscn`
 
 Elle fournit un terrain plat de 128 × 128 m, deux pins Sketchfab attribués, une fleur Sketchfab
-attribuée et un rocher procédural. Elle sert de point de départ, pas de carte Forgotten Forest finale.
+attribuée et un rocher procédural. Elle sert de point de départ, pas de carte Asset Vault finale.
 
 ![Capture GPU de la scène de création](screenshots/forge-forest-map-demo.png)
 

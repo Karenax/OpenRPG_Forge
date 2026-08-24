@@ -154,31 +154,32 @@ scores `license`, `sourceTrust`, `technical`, `visual`, `performance`, `metadata
 Une erreur structurelle conserve le rapport mais ne remplace pas le dernier GLB ou aperçu valide.
 Blender est lancé avec l’auto-exécution désactivée, y compris pour les fichiers `.blend` externes.
 
-## Pack curaté Forgotten Forest
+## Pack curaté Asset Vault
 
 La première sélection cohérente est décrite par
-`asset_manifests/packs/forgotten_forest_core.json`. Elle expose individuellement les 22 GLB du pack
+`asset_manifests/packs/asset_vault_core.json`. Elle expose individuellement les 22 GLB du pack
 Kenney Mini Forest au lieu de traiter le ZIP comme un seul asset. L’authoring vérifie la licence
 CC0-1.0 du catalogue, recalcule chaque SHA-256, copie le modèle et sa palette PNG externe dans le
 workspace, puis écrit profils, reçus, manifestes et `assets/CREDITS_ASSETS.md`.
 
 ```powershell
 dotnet run --project tools/Forge.Cli/Forge.Cli.csproj -- `
-  author-forgotten-forest apps/Forge.Runtime/content/forgotten-forest `
+  assets install-pack . asset-vault-core `
+  --id kenney:mini-forest:tree --apply true `
   --vault E:\OpenRPG_AssetVault
 ```
 
 La commande installe aussi la sélection bornée
-`asset_manifests/packs/forgotten_forest_polyhaven_environment.json` depuis l'OpenRPG Asset Atlas.
+`asset_manifests/packs/asset_vault_polyhaven_environment.json` depuis l'OpenRPG Asset Atlas.
 Pour chaque GLTF Poly Haven, le manifeste choisit explicitement les maillages utiles, une décimation
 de base et un budget de sortie. Le worker Blender produit un GLB autonome, une miniature et un
 rapport qualité ; un registre de crédits déterministe est produit par asset puis agrégé dans
-`assets/CREDITS_ASSETS.md`. L'ancien pack `forgotten-forest-nature-dressing` est retiré du workspace
+`assets/CREDITS_ASSETS.md`. L'ancien pack `asset-vault-nature-dressing` est retiré du workspace
 généré quand il est encore présent.
 
-La commande est idempotente et ne modifie jamais `normalized/kenney/mini-forest` ni les originaux
-Poly Haven sous `originals/polyhaven`. Pour authoriser, compiler et lancer la carte en une fois, utiliser
-`scripts/Run-ForgottenForest.ps1`.
+L’installation est idempotente et ne modifie jamais `normalized/kenney/mini-forest` ni les originaux
+Poly Haven sous `originals/polyhaven`. Pour compiler et lancer le module canonique, utiliser
+`scripts/Run-Prototype.ps1`.
 
 ## Mesurer la livraison complète
 

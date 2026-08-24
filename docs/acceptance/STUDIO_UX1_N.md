@@ -24,7 +24,7 @@ placeable ni une distribution publique.
   rouvre ;
 - le smoke UI ajoute seulement en mémoire un catalogue de trois factions de preuve lorsque le
   module courant n’en possède pas, applique puis annule la fiche et le catalogue, et restaure
-  exactement le projet courant ; aucune faction de preuve n’est sauvegardée dans Forgotten Forest ;
+  exactement le projet courant ; aucune faction de preuve n’est sauvegardée dans Crypte des Cendres ;
 - captures et journaux Forward+ inspectés dans `artifacts/verification/studio-shell/ux1-n/` :
   `memberships-fhd.png` en 1920×1080, `policies-qhd.png` en 2560×1440 et `decision-4k.png` en
   3840×2160, chacune accompagnée de `.png.log`.
@@ -88,7 +88,7 @@ identité stable et le profil complet survit au round-trip.
 - UX1-N projette les effets canoniques de propriété, mais n’ajoute ni réaction audiovisuelle de
   crime, ni console de réputation, ni synchronisation réseau de faction ;
 - les captures valident l’interface avec des factions synthétiques en mémoire, pas une mise en scène
-  factionnelle authored de Forgotten Forest ou de Crypt of Ashes ;
+  factionnelle authored de Crypte des Cendres ou de Crypte des Cendres ;
 - l’application demeure en mémoire jusqu’à l’enregistrement explicite ;
 - la migration des 66 fenêtres, l’export autonome Windows/Linux et le retrait du plugin historique
   restent hors de ce lot.

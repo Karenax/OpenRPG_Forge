@@ -20,8 +20,8 @@ const DEFAULT_MASK_PATH := "res://forest_maps/forest-map-mask.png"
 const DEFAULT_DEFINITION_PATH := "res://forest_maps/forest-map.json"
 
 @export_group("Forge map")
-@export var map_id := "forgotten-forest"
-@export var display_name := "Forgotten Forest"
+@export var map_id := "forest-demo"
+@export var display_name := "Forêt — démonstration"
 @export var area_size := Vector2(128.0, 128.0):
     set(value):
         area_size = Vector2(maxf(value.x, 1.0), maxf(value.y, 1.0))

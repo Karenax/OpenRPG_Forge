@@ -4,7 +4,7 @@ Dernière mise à jour : 5 août 2026.
 
 ## Résultat
 
-Le terrain de Forgotten Forest ne dépend plus d’un matériau plat limité à la couleur vertex. Le
+Le terrain de Asset Vault ne dépend plus d’un matériau plat limité à la couleur vertex. Le
 Creator et le runtime partagent `GodotTerrainMaterialAdapter`, qui reconstruit un matériau
 `procedural-pbr-vertex-blend` unique pour les 64 secteurs.
 
@@ -22,7 +22,7 @@ PBR distinct avec grain et centre usé.
 
 ## Environnement et revue visuelle
 
-Forgotten Forest emploie désormais un ciel physique, une énergie de ciel abaissée, une lumière
+Asset Vault emploie désormais un ciel physique, une énergie de ciel abaissée, une lumière
 directionnelle moins lavée et un brouillard deux fois moins dense, repoussé vers l’horizon.
 
 Les captures Forward+ aérienne et rapprochée ont été inspectées à chaque itération. Une couche
@@ -32,8 +32,8 @@ partie du résultat livré.
 
 Preuves locales :
 
-- `artifacts/verification/forgotten-forest-av6d-world-forward-plus.png` ;
-- `artifacts/verification/forgotten-forest-av6d-close-v7-forward-plus.png` ;
+- `artifacts/verification/asset-vault-av6d-world-forward-plus.png` ;
+- `artifacts/verification/asset-vault-av6d-close-v7-forward-plus.png` ;
 - marqueur `OPENRPG_FORGE_AV6D_WORLD_VISUAL_PASS` ;
 - smoke terrain : 16 641 vertices, 32 768 triangles, 64 secteurs, quatre couches de matériau,
   5 564 instances de biome et 32 454 polygones navigables.

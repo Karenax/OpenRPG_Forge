@@ -17,7 +17,7 @@ publication Git.
   persistence_roundtrip=true neighbors_preserved=true human_no_uuid=true ui=true
   ui_transaction=true guide_pages=8 scripts=2 project_restored=true windows=1` ;
 - le smoke crée un workspace temporaire, applique les trois parcours, sauvegarde, ferme, rouvre et
-  compare les identités et valeurs canoniques. Forgotten Forest reste inchangée et aucun profil de
+  compare les identités et valeurs canoniques. Crypte des Cendres reste inchangée et aucun profil de
   build absent avant le smoke n’est laissé derrière lui ;
 - `SetModuleConfigurationCommand` reste l’unique voie Application pour les variables et les pages
   localisées. Dry-run, application, `ProjectCommandHistory`, undo et redo opèrent sur le document

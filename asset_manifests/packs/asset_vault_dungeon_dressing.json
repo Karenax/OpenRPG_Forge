@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "pack_id": "asset-vault-dungeon-dressing",
+  "version": "1.0.0",
+  "display_name": "Asset Vault Medieval Interior Dressing",
+  "source_catalog": "asset_manifests/catalogs/kaykit_medieval_fantasy.json",
+  "source_pack_id": "kaykit:dungeon-remastered-1.0",
+  "license": "CC0-1.0",
+  "models": [
+    { "key": "banner-red", "path": "KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/banner_red.gltf.glb", "tags": ["banner", "interior"] },
+    { "key": "barrel-large-decorated", "path": "KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/barrel_large_decorated.gltf.glb", "tags": ["barrel", "interior", "storage"] },
+    { "key": "barrel-small-stack", "path": "KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/barrel_small_stack.gltf.glb", "tags": ["barrel", "interior", "storage"] },
+    { "key": "bed-decorated", "path": "KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/bed_decorated.gltf.glb", "tags": ["bed", "interior", "rest"] },
+    { "key": "bottle-green", "path": "KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/bottle_A_green.gltf.glb", "tags": ["bottle", "interior", "tabletop"] },
+    { "key": "candle-lit", "path": "KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/candle_lit.gltf.glb", "tags": ["candle", "interior", "light"] },
+    { "key": "candle-triple", "path": "KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/candle_triple.gltf.glb", "tags": ["candle", "interior", "light"] },
+    { "key": "chair", "path": "KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/chair.gltf.glb", "tags": ["chair", "furniture", "interior"] },
+    { "key": "chest", "path": "KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/chest.glb", "tags": ["chest", "interior", "storage"] },
+    { "key": "column", "path": "KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/column.gltf.glb", "tags": ["architecture", "column", "interior"] },
+    { "key": "crates-stacked", "path": "KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/crates_stacked.gltf.glb", "tags": ["crate", "interior", "storage"] },
+    { "key": "floor-wood-large", "path": "KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/floor_wood_large.gltf.glb", "tags": ["architecture", "floor", "interior"] },
+    { "key": "plate-food-a", "path": "KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/plate_food_A.gltf.glb", "tags": ["food", "interior", "tabletop"] },
+    { "key": "plate-food-b", "path": "KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/plate_food_B.gltf.glb", "tags": ["food", "interior", "tabletop"] },
+    { "key": "shelf-large", "path": "KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/shelf_large.gltf.glb", "tags": ["furniture", "interior", "shelf"] },
+    { "key": "shelf-small-candles", "path": "KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/shelf_small_candles.gltf.glb", "tags": ["furniture", "interior", "shelf"] },
+    { "key": "table-long-decorated", "path": "KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/table_long_decorated_A.gltf.glb", "tags": ["furniture", "interior", "table"] },
+    { "key": "table-long-tablecloth", "path": "KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/table_long_tablecloth_decorated_A.gltf.glb", "tags": ["furniture", "interior", "table"] },
+    { "key": "table-medium", "path": "KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/table_medium_decorated_A.gltf.glb", "tags": ["furniture", "interior", "table"] },
+    { "key": "table-small", "path": "KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/table_small_decorated_A.gltf.glb", "tags": ["furniture", "interior", "table"] },
+    { "key": "torch-lit", "path": "KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/torch_lit.gltf.glb", "tags": ["interior", "light", "torch"] },
+    { "key": "wall-doorway", "path": "KayKit-Dungeon-Remastered-1.0-b0ca9bd96a8072ab36a3a5464f00ed1e06a16d07/addons/kaykit_dungeon_remastered/Assets/gltf/wall_doorway.glb", "tags": ["architecture", "door", "interior"] }
+  ]
+}

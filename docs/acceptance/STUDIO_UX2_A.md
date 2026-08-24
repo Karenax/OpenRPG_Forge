@@ -30,7 +30,7 @@ sélectionnée puis les applique dans une seule transaction area-only canonique.
   scrollable, les libellés et valeurs sont lisibles sans clipping, et le bandeau fixe conserve
   l'état de la preuve ainsi que les actions principales visibles ;
 - les trois journaux `.png.log` confirment Forward+, la taille exacte demandée, l'ouverture de
-  Forgotten Forest, la préparation de la preuve et `OPENRPG_FORGE_STUDIO_SHELL_PASS` avec une
+  Crypte des Cendres, la préparation de la preuve et `OPENRPG_FORGE_STUDIO_SHELL_PASS` avec une
   seule fenêtre.
 
 ### ORF-AREA-023
@@ -80,7 +80,7 @@ dormante : l'édition ne l'active pas implicitement.
 Depuis la racine du dépôt, avec les dépendances déjà restaurées :
 
 ```powershell
-$workspace = 'apps/Forge.Runtime/content/forgotten-forest'
+$workspace = 'apps/Forge.Runtime/content/crypt-of-ashes'
 $projects = @(
   'tests/Forge.Domain.Tests/Forge.Domain.Tests.csproj'
   'tests/Forge.Application.Tests/Forge.Application.Tests.csproj'

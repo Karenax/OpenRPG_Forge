@@ -69,7 +69,7 @@ ensuite exécuter à nouveau un script valide, ce qui prouve une récupération 
 
 ## Préservation et limites honnêtes
 
-La preuve copie le projet réel Forgotten Forest et une source canonique dans un workspace
+La preuve copie le projet réel Crypte des Cendres et une source canonique dans un workspace
 temporaire, puis exerce construction, insertion, simulation, compilation, sandbox, aperçu, apply,
 undo, redo et réouverture. Projet sérialisé complet, historique, révision, journal, dirty, zone
 active, approbation et surface source sont comparés avant/après ; le workspace temporaire est

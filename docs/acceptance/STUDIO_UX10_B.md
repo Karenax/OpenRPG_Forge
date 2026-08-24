@@ -39,6 +39,6 @@ visibles et séparées ; une transaction sans confirmation humaine est refusée.
 
 ## Limites
 
-La transaction cible une copie confinée du module Forgotten Forest. Cette preuve ne revendique ni
+La transaction cible une copie confinée du module Crypte des Cendres. Cette preuve ne revendique ni
 mutation autonome du module source, ni résolution automatique de conflits entre auteurs, ni
 publication Git.

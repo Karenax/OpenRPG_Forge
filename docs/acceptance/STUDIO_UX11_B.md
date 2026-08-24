@@ -2,7 +2,7 @@
 
 État local au 23 août 2026 : la revue humaine et visuelle transversale est **terminée** pour les
 717 routes accessibles dans Studio et pour les 66 destinations de fenêtres historiques. Les paquets
-Windows et Linux x64 sont qualifiés sur leur système cible : même workspace Forgotten Forest,
+Windows et Linux x64 sont qualifiés sur leur système cible : même workspace Crypte des Cendres,
 retouche réelle, ForgeScript natif, ouverture autonome et parcours UX5-A/UX5-B. `STUDIO-043` est
 clos techniquement sur les deux systèmes.
 
@@ -15,7 +15,7 @@ Les quatorze scénarios transversaux suivants ont été rejoués dans l'applicat
 
 1. démarrage dans une seule fenêtre produit et ouverture depuis le Module Hub ;
 2. création puis ouverture d'un module vide, avec état vide lisible ;
-3. ouverture de Forgotten Forest et restauration du module, de la zone et de la page ;
+3. ouverture de Crypte des Cendres et restauration du module, de la zone et de la page ;
 4. recherche globale `Ctrl+K`, navigation vers un trigger et retour au contexte ;
 5. sélection d'une instance dans la 3D, translation et rotation par manipulation directe ;
 6. retouche des propriétés dans l'inspecteur unique, avec aperçu avant application ;
@@ -61,7 +61,7 @@ peuplée de 278 assets dans les captures Forward+.
 - UX5 : 69/69 routes, dialogue direct et production narrative complète qualifiés.
 - portail transversal final : 2 117/2 117 tests .NET, 44/44 tests Python, builds sans
   avertissement, graphe Roslyn frais et déterministe à 11 577 nœuds / 90 175 relations / 0
-  diagnostic, puis smokes Studio, Toolset, Runtime/Forward+, Forgotten Forest, Blender, MCP,
+  diagnostic, puis smokes Studio, Toolset, Runtime/Forward+, Crypte des Cendres, Blender, MCP,
   réseau et sauvegarde/reprise ; marqueur `OPENRPG_FORGE_VERIFICATION=PASS`.
 
 La garde ajoutée à l'éditeur de conversation de placeable conserve le module vide ouvrable lorsqu'il
@@ -73,7 +73,7 @@ n'existe aucun choix de locuteur. Les libellés Trigger et l'action de recherche
 ### Windows x64
 
 `artifacts/distribution/studio-windows-x64/` contient 1 109 fichiers, l'assembly
-`Forge.Studio.dll`, `forge_script_native.dll`, le workspace Forgotten Forest, un manifeste SHA-256
+`Forge.Studio.dll`, `forge_script_native.dll`, le workspace Crypte des Cendres, un manifeste SHA-256
 et la conformité CycloneDX 1.6 avec 38 composants et 38 licences. L'exécutable exporté passe le
 smoke de distribution : retouche ajout/duplication/suppression, undo/redo, cache script, ForgeScript
 natif, ouverture autonome UX3-F, `UX5A_PASS`, `UX5B_PASS` et
@@ -117,7 +117,7 @@ l'éditeur Godot dans le produit autonome.
 
 ```powershell
 dotnet test tests/Forge.Studio.Core.Tests/Forge.Studio.Core.Tests.csproj --no-restore
-& .\scripts\Open-Studio.ps1 -Workspace apps\Forge.Runtime\content\forgotten-forest `
+& .\scripts\Open-Studio.ps1 -Workspace apps\Forge.Runtime\content\crypt-of-ashes `
   -Headless -Smoke -SkipBuild -Wait
 & .\scripts\Build-StudioDistribution.ps1 -Platform windows-x64 -Force
 & .\scripts\Verify-StudioDistribution.ps1 `
@@ -131,6 +131,6 @@ Sur un hôte Linux, reconstruire sans `-SkipSmoke` ou exécuter l'archive vérif
 
 ```bash
 ./OpenRPG_Forge_Studio.x86_64 --headless --log-file studio-smoke.log -- \
-  --workspace "$PWD/workspaces/forgotten-forest" --page placement \
+  --workspace "$PWD/workspaces/crypt-of-ashes" --page placement \
   --studio-distribution-smoke-test
 ```

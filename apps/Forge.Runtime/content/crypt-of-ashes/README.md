@@ -10,7 +10,7 @@ Le contrat exécutable des interactions est :
 
 `apps/Forge.Runtime/content/crypt-of-ashes/systemic-gameplay.json`
 
-La géométrie canonique est portée par le snapshot de zone référencé par `project.json`, et la couche artistique CC0 est construite par `Runtime/CryptArtKitDecorator.cs` à partir de KayKit Dungeon Remastered.
+La géométrie canonique est portée par le snapshot de zone référencé par `project.json`, et la couche artistique CC0 est construite par `src/Forge.EngineAdapter/Rendering/GodotCryptArtKitBuilder.cs` à partir de KayKit Dungeon Remastered. Runtime et Studio utilisent ainsi la même composition.
 
 ## Reconstruction 2026
 
@@ -67,7 +67,7 @@ Les modèles gouvernés présents dans le dépôt comprennent notamment :
 - tonneaux décorés ;
 - torches allumées.
 
-`CryptArtKitDecorator` ne construit plus une boîte rectangulaire. Il compose les sept espaces avec des dalles, silhouettes de salles, arches, colonnes, accessoires et éclairages. Les volumes de gameplay restent séparés de cette peau artistique.
+`GodotCryptArtKitBuilder` ne construit plus une boîte rectangulaire. Il compose les sept espaces avec des dalles, silhouettes de salles, arches, colonnes, accessoires et éclairages. Les volumes de gameplay restent séparés de cette peau artistique.
 
 ## Contrôles systémiques
 
@@ -120,7 +120,7 @@ La nouvelle carte applique directement plusieurs règles du ruleset :
 
 `GameRoot.SystemicGameplay.cs` expose uniquement les opérations nécessaires au directeur : joueur, ennemis, poussée, dégâts, défaite environnementale et messages HUD.
 
-`CryptArtKitDecorator.cs` est la couche artistique runtime de cette tranche verticale. Le snapshot de zone conserve la structure de gameplay et les positions canoniques.
+`GodotCryptArtKitBuilder.cs` est la composition artistique partagée de cette tranche verticale. `CryptArtKitDecorator.cs` ne fait plus que résoudre les scènes déjà importées par le Runtime, tandis que Studio importe les mêmes GLB depuis le workspace. Le snapshot de zone conserve la structure de gameplay et les positions canoniques ; Studio masque seulement leurs maillages-proxy quand la peau artistique complète a chargé, afin de préserver la sélection et la manipulation.
 
 ## Limites explicites
 

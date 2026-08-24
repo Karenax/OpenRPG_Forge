@@ -20,7 +20,7 @@ le runtime. Il ne qualifie pas les 66 fenêtres historiques, les distributions W
   ressources de streaming, prévisualise les variantes normale et mouvements réduits, applique,
   annule, rétablit, charge réellement les deux ressources, sauvegarde puis rouvre ;
 - le smoke UI exécute le même parcours dans le projet courant en mémoire, puis restaure exactement
-  le projet, la zone active et l’état enregistré sans écrire Forgotten Forest ;
+  le projet, la zone active et l’état enregistré sans écrire Crypte des Cendres ;
 - journal headless : `artifacts/verification/studio-shell/ux1-c/headless-smoke.log` ;
 - journaux Forward+ : `forwardplus-fhd.log`, `forwardplus-qhd.log` et `forwardplus-4k.log` dans
   `artifacts/verification/studio-shell/ux1-c/`, sous Godot 4.7.1 Mono, Vulkan et

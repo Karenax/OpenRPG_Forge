@@ -11,7 +11,7 @@ namespace Forge.ModuleFormat.Assets;
 public static class CuratedCatalogModelPackInstaller
 {
     public const string DefaultManifestRelativePath =
-        "asset_manifests/packs/forgotten_forest_polyhaven_environment.json";
+        "asset_manifests/packs/asset_vault_polyhaven_environment.json";
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {

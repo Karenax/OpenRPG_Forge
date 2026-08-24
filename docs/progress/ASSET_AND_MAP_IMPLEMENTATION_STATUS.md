@@ -1,6 +1,6 @@
 # État d’implémentation — Asset Vault et carte
 
-Dernière mise à jour : 6 août 2026 — environnement Poly Haven de Forgotten Forest.
+Dernière mise à jour : 6 août 2026 — environnement Poly Haven de Asset Vault.
 
 ## Terminé
 
@@ -59,9 +59,9 @@ Dernière mise à jour : 6 août 2026 — environnement Poly Haven de Forgotten 
 - profil de monde de zone avec terrain `Heightmap`/`Flat`, matériaux, biomes, trous, features,
   volumes de navigation, routes aériennes, collisions et streaming asynchrone partagé par Creator et
   runtime.
-- pack curaté `forgotten-forest-core` de 22 GLB Kenney Mini Forest CC0-1.0, avec identité stable,
+- pack curaté `asset-vault-core` de 22 GLB Kenney Mini Forest CC0-1.0, avec identité stable,
   SHA-256, profil, reçu, chunks modèle/palette, crédits et réinstallation idempotente ;
-- module `forgotten-forest` 128 × 128 m authorisé depuis le domaine : relief 33 × 33, sentier,
+- module `asset-vault` 128 × 128 m authorisé depuis le domaine : relief 33 × 33, sentier,
   ruisseau, quatre biomes, 357 instances MultiMesh, 18 entités modélisées, camp, pont, tour et
   sanctuaire ;
 - caméra orbitale et déplacement relatif à la caméra, HUD compact, terrain double face et échelles
@@ -74,7 +74,7 @@ Dernière mise à jour : 6 août 2026 — environnement Poly Haven de Forgotten 
   le runtime ;
 - export `.orpmod` de 80 fichiers, validation sans diagnostic et smoke depuis le cache du package ;
 - capture Forward+ 1280 × 720 inspectée après correction visuelle.
-- benchmark runtime versionné sur Forgotten Forest 128 × 128 m : 68,806 ms de reconstruction,
+- benchmark runtime versionné sur Asset Vault 128 × 128 m : 68,806 ms de reconstruction,
   5,367 ms de collisions, 10,778 ms de navigation, 3,604 ms de sculpture, 23,649 ms de requête de
   chemin, 1 737 328 octets alloués et +17 506 304 octets de working set ;
 - couverture de performance contrôlée : 1 089 échantillons/vertices, 2 048 triangles, 181 formes de
@@ -84,7 +84,7 @@ Dernière mise à jour : 6 août 2026 — environnement Poly Haven de Forgotten 
   budgets runtime mesurés dans une même preuve JSON/Markdown ;
 - procédure complète d’ajout de sources et packs, avec plafond du catalogue figé à 605 jusqu’à une
   nouvelle revue visuelle et technique documentée ;
-- ambiance Forgotten Forest reconstruite sans nouvel asset externe : vent de canopée, oiseaux et
+- ambiance Asset Vault reconstruite sans nouvel asset externe : vent de canopée, oiseaux et
   ruisseau PCM procéduraux/spatiaux, plus 204 particules animées réparties entre lucioles, feuilles et
   brume au sol ; provenance et hash des trois cues sont persistés dans le profil de zone.
 - tranche AV6-A de personnage animé construite depuis le pack Kenney déjà gouverné
@@ -116,7 +116,7 @@ Dernière mise à jour : 6 août 2026 — environnement Poly Haven de Forgotten 
 - deux routes reconstruites comme rubans continus et texturés procéduralement depuis leurs points de
   contrôle, ciel physique, lumière rééquilibrée et brouillard plus distant ; capture aérienne et
   rapprochée inspectées, avec SSAO/SSIL explicitement retirés après artefacts visibles.
-- pack curaté `forgotten-forest-polyhaven-environment` de dix-sept GLTF Poly Haven CC0, normalisés en
+- pack curaté `asset-vault-polyhaven-environment` de dix-sept GLTF Poly Haven CC0, normalisés en
   GLB autonomes avec sélection de variante, décimation typée, hash, aperçu, rapport qualité et crédit
   par modèle ; les douze anciens modèles Nature Kit non référencés sont retirés du module ;
 - 13 couches de biome, 4 617 instances MultiMesh, 45 manifestes, 67 chunks, 43 modèles placés,
@@ -133,7 +133,7 @@ Les éléments ci-dessous sont reformulés en lots `AV8-*`, `AV9-*` et `AV10-*` 
 - normalisation : profils, cache, staging, passage direct des GLB et worker Blender exécuté ; la
   conversion KTX2, la curation visuelle de masse et les budgets par plateforme restent à livrer ;
 - contrôle qualité : intégrité automatisée présente, revue visuelle/LOD/collisions à ajouter.
-- Forgotten Forest : carte 512 × 512 jouable, navigable, sonorisée, enrichie de VFX, de dix-sept
+- Asset Vault : carte 512 × 512 jouable, navigable, sonorisée, enrichie de VFX, de dix-sept
   modèles Poly Haven et de cinq personnages fantasy avec combat animé ; eau avancée et composition
   manuelle rapprochée propre à chaque secteur restent des finitions de production.
 
@@ -143,7 +143,7 @@ Les éléments ci-dessous sont reformulés en lots `AV8-*`, `AV9-*` et `AV10-*` 
   migrations/désinstallations déjà analysées par le domaine ;
 - génération de miniatures et planches contact ;
 - service de surveillance temps réel ;
-- finition artistique de Forgotten Forest : textures scannées gouvernées, eau avancée et composition
+- finition artistique de Asset Vault : textures scannées gouvernées, eau avancée et composition
   manuelle propre à chacun des 64 secteurs.
 
 ## Prochaine action

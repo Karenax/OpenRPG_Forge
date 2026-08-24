@@ -72,7 +72,11 @@ else {
 foreach ($relativePath in @(
         $executableName,
         'OpenRPG_Forge_Studio.pck',
-        'workspaces/forgotten-forest/project.json')) {
+        'workspaces/crypt-of-ashes/project.json',
+        'workspaces/crypt-of-ashes/art/crypt-kaykit/CREDITS.md',
+        'workspaces/crypt-of-ashes/art/crypt-kaykit/floor_tile_large.gltf.glb',
+        'workspaces/crypt-of-ashes/art/crypt-kaykit/wall.gltf.glb',
+        'workspaces/crypt-of-ashes/art/crypt-kaykit/wall_doorway.glb')) {
     $candidate = Resolve-DistributionRelativePath -RelativePath $relativePath
     if (-not (Test-Path -LiteralPath $candidate -PathType Leaf)) {
         throw "Required Studio distribution file missing: $relativePath"
@@ -155,7 +159,7 @@ if ($RunSmoke) {
         if ($LASTEXITCODE -ne 0) { throw 'Unable to mark the Linux Studio executable as runnable.' }
     }
 
-    $workspace = Join-Path $distributionPath 'workspaces/forgotten-forest'
+    $workspace = Join-Path $distributionPath 'workspaces/crypt-of-ashes'
     $smokeLog = Join-Path $distributionPath 'studio-verification-smoke.log'
     $arguments = @(
         '--headless', '--log-file', "`"$smokeLog`"", '--',
@@ -179,9 +183,10 @@ if ($RunSmoke) {
     }
     foreach ($marker in @(
             'OPENRPG_FORGE_STUDIO_EDIT_PASS',
-            'OPENRPG_FORGE_STUDIO_UX5A_PASS',
-            'OPENRPG_FORGE_STUDIO_UX5B_PASS',
-            'OPENRPG_FORGE_STUDIO_DISTRIBUTION_SMOKE_PASS')) {
+             'OPENRPG_FORGE_STUDIO_UX5A_PASS',
+             'OPENRPG_FORGE_STUDIO_UX5B_PASS',
+             'OPENRPG_FORGE_STUDIO_CRYPT_ART_PASS',
+             'OPENRPG_FORGE_STUDIO_DISTRIBUTION_SMOKE_PASS')) {
         if (-not (Select-String -LiteralPath $smokeLog -SimpleMatch $marker -Quiet)) {
             throw "Studio distribution smoke did not emit '$marker'. See $smokeLog"
         }

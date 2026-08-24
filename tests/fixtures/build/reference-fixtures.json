@@ -7,7 +7,7 @@
       "id": "b0020000-0000-4000-8000-000000000011",
       "name": "tiny",
       "kind": "Tiny",
-      "relativePath": "apps/Forge.Runtime/content/broken-isles-starter/project.json",
+      "relativePath": "apps/Forge.Runtime/content/crypt-of-ashes/project.json",
       "expectedOutcome": "valid"
     },
     {
@@ -21,7 +21,7 @@
       "id": "b0020000-0000-4000-8000-000000000013",
       "name": "stress",
       "kind": "Stress",
-      "relativePath": "apps/Forge.Runtime/content/forgotten-forest/project.json",
+      "relativePath": "apps/Forge.Runtime/content/crypt-of-ashes/project.json",
       "expectedOutcome": "valid"
     },
     {

@@ -14,7 +14,7 @@ qualifie ni la navigation UX2, ni une distribution publique.
 - portail transversal `scripts/Verify.ps1` réussi sur le train intégré : 1 980/1 980 tests .NET,
   39/39 tests Python, builds sans avertissement, smokes Studio/runtime/réseau/MCP, assets, package
   et distribution ; ce portail a été déclenché par le contrat partagé d'UX1-V, pas par UX1-W seul ;
-- smoke Studio headless et capture Forward+ Full HD réussis sur Forgotten Forest, avec preuve
+- smoke Studio headless et capture Forward+ Full HD réussis sur Crypte des Cendres, avec preuve
   visuelle inspectée dans `artifacts/verification/studio-shell/ux1-w/dynamic-fhd.png` et journal
   associé `dynamic-fhd.png.log` ;
 - la capture 1920×1080 utilise Godot 4.7.1 .NET, Vulkan Forward+, une Radeon RX 7800 XT, 278 assets,
@@ -52,7 +52,7 @@ modes de références et d'état ; undo/redo, sauvegarde et réouverture restent
 - les aperçus runtime n'exécutent pas une copie réseau réelle ni une instanciation serveur distante ;
 - le Studio ne connaît pas le propriétaire ni les références d'une entité qui n'existe qu'au
   runtime ; il ne garantit donc leur conservation qu'au travers des tests du service canonique ;
-- Forgotten Forest sert de rendu et de catalogue réels, pas de témoin d'autorité distribuée ;
+- Crypte des Cendres sert de rendu et de catalogue réels, pas de témoin d'autorité distribuée ;
 - l'application reste en mémoire jusqu'à l'enregistrement explicite.
 
 ## Reproduction

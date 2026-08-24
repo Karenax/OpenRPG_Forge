@@ -13,7 +13,7 @@ param(
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $runtimeRoot = Join-Path $repositoryRoot 'apps\Forge.Runtime'
 if ([string]::IsNullOrWhiteSpace($WorkspaceRoot)) {
-    $WorkspaceRoot = Join-Path $runtimeRoot 'content\forgotten-forest'
+    $WorkspaceRoot = Join-Path $runtimeRoot 'content\crypt-of-ashes'
 }
 if ([string]::IsNullOrWhiteSpace($OutputRoot)) {
     $OutputRoot = Join-Path $repositoryRoot 'artifacts\verification\runtime-combat-feedback'
@@ -28,7 +28,7 @@ $enginePath = Get-ForgeEnginePath
 $runId = [DateTime]::UtcNow.ToString('yyyyMMdd-HHmmss')
 $runRoot = Join-Path $OutputRoot "run-$runId"
 [System.IO.Directory]::CreateDirectory($runRoot) | Out-Null
-$spawnId = '594a888d-da8c-5054-b546-a376cfae3ef1'
+$spawnId = '20000000-0000-4000-8000-000000000010'
 $expectedCaptures = @(
     '01-pre-impact.png',
     '02-impact-peak.png',

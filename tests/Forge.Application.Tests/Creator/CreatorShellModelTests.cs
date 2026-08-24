@@ -153,7 +153,7 @@ public sealed class CreatorShellModelTests
         var area = new AreaDefinition(AreaId, "shore", "Rivage", [entity]);
         return new ProjectDefinition(
             ProjectId,
-            "Les Îles Brisées",
+            "Module de test",
             includeReferencedBlueprint ? [blueprint] : [],
             [area]);
     }

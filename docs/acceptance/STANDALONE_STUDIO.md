@@ -4,7 +4,7 @@
 
 - `STUDIO-001` : lancer le Studio produit exactement une fenêtre OpenRPG Forge, sans chrome de
   l’éditeur Godot ni outil secondaire visible.
-- `STUDIO-002` : le Module Hub permet de continuer Forgotten Forest et d’ouvrir un workspace Forge
+- `STUDIO-002` : le Module Hub permet de continuer Crypte des Cendres et d’ouvrir un workspace Forge
   par un sélecteur de dossier ; une erreur reste lisible et ne ferme pas l’application.
 - `STUDIO-003` : un module valide affiche son titre, ses zones, sa zone d’entrée et son état de
   sauvegarde sans exposer de JSON.
@@ -36,7 +36,7 @@
 
 ## Monde et continuité
 
-- `STUDIO-010` : Forgotten Forest apparaît dans une vue 3D centrale et cadrée ; une indisponibilité
+- `STUDIO-010` : Crypte des Cendres apparaît dans une vue 3D centrale et cadrée ; une indisponibilité
   d’asset produit un placeholder explicite, jamais un import réseau implicite.
 - `STUDIO-011` : changer Monde → Dialogues → Monde conserve la zone, la pose de caméra et la
   sélection propre à chaque zone ; orbite, déplacement, zoom, focus, vues, bookmarks et pilotage

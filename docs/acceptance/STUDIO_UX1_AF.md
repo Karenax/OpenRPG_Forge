@@ -41,7 +41,7 @@ périmée.
   projet masqué ; elle ne qualifie aucun fournisseur externe réel ;
 - les deux historiques sont volontairement séparés : annuler le document de plan ne prétend pas
   annuler une géométrie, et inversement ;
-- Forgotten Forest contient déjà des plans construits ; la preuve utilise donc un workspace
+- Crypte des Cendres contient déjà des plans construits ; la preuve utilise donc un workspace
   temporaire isolé, supprimé après capture, et contrôle que la source n'a reçu ni plan ni commande ;
 - la construction applique les commandes géométriques canoniques, mais ne revendique pas de session
   multi-utilisateur ni de réseau vivant.

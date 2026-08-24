@@ -51,7 +51,7 @@ résout uniquement le fournisseur par défaut ; aucun combat, événement ou ré
 - build Debug `Forge.Studio` : **0 avertissement, 0 erreur** ;
 - portail incrémental final : **133,93 s**, **7/7** tests ciblés — Domain 2, Application 4,
   ModuleFormat 1 — puis smoke global, capture Forward+ FHD et contrôle de matrice ;
-- smoke `OPENRPG_FORGE_STUDIO_UX6_C_PASS` : sélection explicite, vrai profil Forgotten Forest,
+- smoke `OPENRPG_FORGE_STUDIO_UX6_C_PASS` : sélection explicite, vrai profil Crypte des Cendres,
   cinq invalidités, dry-run sans mutation, cinq résolutions pures, source et approbation obsolètes
   bloquées, commande canonique, undo/redo, round-trip, fondation et voisins préservés, transaction UI
   isolée, ressources libérées, source et surface restaurées ;
@@ -69,7 +69,7 @@ conserve les valeurs canoniques et ne masque aucun diagnostic.
 
 ## Préservation et limites honnêtes
 
-La preuve copie le vrai projet Forgotten Forest dans un workspace temporaire, compare projet,
+La preuve copie le vrai projet Crypte des Cendres dans un workspace temporaire, compare projet,
 historique, révision, journal, dirty, zone active et approbation avant/après, puis supprime l’isolat.
 Les identités des cinq profils, actions radiales et fournisseurs restent stables. `Foundation`,
 `Simulation`, `Session`, les zones, blueprints, dialogues et quêtes sont préservés.

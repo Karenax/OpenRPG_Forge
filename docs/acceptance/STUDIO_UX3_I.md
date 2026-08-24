@@ -97,13 +97,13 @@ $filter = 'FullyQualifiedName~AssetGovernanceTests|' +
   'FullyQualifiedName~ShippingExport_NeverRedistributesNwnOrCepProprietaryAssets'
 & .\scripts\Verify-StudioIncrement.ps1 -Page assets `
   -Evidence ux3-i-governed-assets `
-  -Workspace apps/Forge.Runtime/content/forgotten-forest `
+  -Workspace apps/Forge.Runtime/content/crypt-of-ashes `
   -TestProject $projects -TestFilter $filter `
   -Capture artifacts/verification/studio-increment/ux3-i-governed-assets-current-forward-plus-fhd.png
 
 foreach ($mode in 'ux3-i-provenance', 'ux3-i-quarantine', 'ux3-i-media-generation') {
   & .\scripts\Open-Studio.ps1 -Page assets -Evidence $mode `
-    -Workspace apps/Forge.Runtime/content/forgotten-forest `
+    -Workspace apps/Forge.Runtime/content/crypt-of-ashes `
     -Resolution 1920x1080 -SkipBuild -Wait `
     -Capture "artifacts/verification/studio-increment/$mode-current-forward-plus-fhd.png"
 }

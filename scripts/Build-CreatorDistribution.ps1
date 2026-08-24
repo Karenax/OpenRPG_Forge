@@ -132,12 +132,7 @@ foreach ($applicationName in @('Forge.Toolset', 'Forge.Runtime')) {
         -Destination (Join-Path $workspaceTarget "apps/$applicationName")
 }
 
-# The old Crypt prototype is intentionally not shipped in the one-click Creator.
-# Forgotten Forest is the single immediately usable example presented to creators.
-$obsoletePrototype = Join-Path $workspaceTarget 'apps/Forge.Runtime/content/crypt-of-ashes'
-if (Test-Path -LiteralPath $obsoletePrototype) {
-    Remove-Item -LiteralPath $obsoletePrototype -Recurse -Force
-}
+# Crypte des Cendres is the immediately usable example presented to creators.
 
 if (-not $SkipGameLauncherTemplate) {
     $gameLauncherTemplate = Join-Path $workspaceTarget 'templates/game-windows-x64'

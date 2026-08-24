@@ -901,7 +901,7 @@ internal sealed partial class StudioSessionController
 
     private static Ux2LwESmokeFixture CreateUx2LwESmokeProject()
     {
-        var narrativeProject = OriginalModuleAuthoringService.CreateVeilleeDesEclats().State.Project;
+        var narrativeProject = SampleModuleAuthoringService.Create().State.Project;
         var dialogue = narrativeProject.Dialogues.Single();
         var participant = narrativeProject.Blueprints.First(item =>
             item.Kind is BlueprintKind.Creature or BlueprintKind.PlayerSpawn).Id;

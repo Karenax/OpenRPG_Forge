@@ -18,7 +18,7 @@ la route est désormais qualifiée séparément par UX4-B.
   voisins et refus canonique des références externes ;
 - preuve FHD de fallback dans
   `artifacts/verification/studio-increment/ux4-a-faction-foundation-forward-plus-fhd.png` : le
-  workspace Forgotten Forest reste la source ouverte, tandis qu'une fixture canonique temporaire
+  workspace Crypte des Cendres reste la source ouverte, tandis qu'une fixture canonique temporaire
   et isolée alimente uniquement la preuve ;
 - preuve FHD réelle et séparée dans
   `artifacts/verification/studio-increment/ux4-a-faction-foundation-real-crypt-forward-plus-fhd.png` :
@@ -77,7 +77,7 @@ priorités invalides sont bloqués par la validation canonique.
   runtime vivante, ni réseau, ni heatmap de gameplay ;
 - la suppression de preuve s'exerce uniquement sur une fixture sûre. Sur un projet produit, toute
   dépendance externe détectée demeure bloquante tant qu'elle n'est pas retirée explicitement ;
-- la preuve fallback ne promeut aucune donnée synthétique dans Forgotten Forest. La session source,
+- la preuve fallback ne promeut aucune donnée synthétique dans Crypte des Cendres. La session source,
   son état dirty, son historique, ses approbations et sa surface active sont restaurés exactement,
   puis le répertoire temporaire est supprimé ;
 - les captures Crypte utilisent une copie temporaire isolée des données réelles : elles qualifient

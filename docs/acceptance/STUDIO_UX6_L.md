@@ -52,7 +52,7 @@ abonnement, construction et publication.
 
 ## Préservation et limites honnêtes
 
-La preuve copie Forgotten Forest et une source UX6-F canonique dans un workspace temporaire. Elle
+La preuve copie Crypte des Cendres et une source UX6-F canonique dans un workspace temporaire. Elle
 compare projet, historique, révision, journal, état dirty, zone active et approbations UX6-F/J/K,
 vérifie le round-trip de la source, puis supprime l’isolat. La commande et l’historique restent ceux
 de UX6-F ; aucune autorité de source parallèle n’est créée.

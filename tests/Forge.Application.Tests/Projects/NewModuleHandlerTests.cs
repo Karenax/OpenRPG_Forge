@@ -25,8 +25,8 @@ public sealed class NewModuleHandlerTests
         Assert.True(result.Audit.Applied);
         Assert.Equal(Timestamp, result.Audit.Timestamp);
         var project = Assert.IsType<ProjectState>(result.State).Project;
-        Assert.Equal("les-iles-brisees", project.Module.Slug);
-        Assert.Equal("archipel-oublie", project.Areas.Single().Slug);
+        Assert.Equal("module-de-test", project.Module.Slug);
+        Assert.Equal("zone-de-test", project.Areas.Single().Slug);
         Assert.Equal(project.Areas.Single().Id, project.Module.EntryAreaId);
         Assert.Equal(2, project.Blueprints.Count);
         Assert.Contains(project.Blueprints, blueprint => blueprint.Kind == BlueprintKind.PlayerSpawn);
@@ -36,7 +36,7 @@ public sealed class NewModuleHandlerTests
         Assert.Equal(ProjectTemplateKind.Rpg, foundation.Template);
         Assert.Equal(project.Id, foundation.Identity.ProjectId);
         Assert.Equal(project.Module.Slug, foundation.Identity.Slug);
-        Assert.Equal("module.les-iles-brisees", foundation.Identity.PackageNamespace);
+        Assert.Equal("module.module-de-test", foundation.Identity.PackageNamespace);
         Assert.Equal(project.Areas.Single().Id, Assert.Single(foundation.PlayerStarts).AreaId);
     }
 
@@ -143,10 +143,10 @@ public sealed class NewModuleHandlerTests
             "fr",
             [
                 new ProjectLocalizedMetadata(
-                    "fr", "Les Îles Brisées", "Aventure maritime", "Un archipel à reconstruire.",
+                    "fr", "Module de test", "Aventure maritime", "Un archipel à reconstruire.",
                     "Atelier Forge", rules: "Règles génériques", controls: "Clavier ou manette"),
                 new ProjectLocalizedMetadata(
-                    "en", "The Shattered Isles", "A sea adventure", "Rebuild a forgotten archipelago.",
+                    "en", "Demo Module", "A sample adventure", "Build a representative world.",
                     "Forge Workshop"),
             ],
             "Atelier Forge",
@@ -170,7 +170,7 @@ public sealed class NewModuleHandlerTests
         var project = Assert.IsType<ProjectState>(applied.State).Project;
         Assert.Equal("fr", project.Module.Metadata.DefaultLocale);
         Assert.Equal(2, project.Module.Metadata.Localizations.Count);
-        Assert.Equal("The Shattered Isles", project.Module.Metadata.Localizations.Single(item => item.Locale == "en").Name);
+        Assert.Equal("Demo Module", project.Module.Metadata.Localizations.Single(item => item.Locale == "en").Name);
         Assert.Equal("Atelier Forge", project.Module.Metadata.Author);
         Assert.Equal("1.2.0", project.Module.Metadata.Version);
         Assert.Equal(135, Assert.Single(project.Module.Metadata.Foundation!.PlayerStarts).OrientationDegrees);
@@ -180,7 +180,7 @@ public sealed class NewModuleHandlerTests
 
     private static NewModuleCommand CreateCommand(
         bool dryRun = false,
-        string title = "Les Îles Brisées",
+        string title = "Module de test",
         ProjectRevision? revision = null) =>
         new(
             CommandId.From(Guid.Parse("8ff97f8b-f9b4-486a-84d5-9defe849f9ef")),
@@ -193,7 +193,7 @@ public sealed class NewModuleHandlerTests
             BlueprintId.From(Guid.Parse("46d891e5-a116-48df-8b2e-0fdebf16bc52")),
             EntityId.From(Guid.Parse("72dd2ac1-381c-4652-a8ff-5d2be82dcb61")),
             title,
-            "Un archipel à reconstruire.",
-            "Archipel oublié",
+            "Un monde de démonstration à construire.",
+            "Zone de test",
             dryRun);
 }

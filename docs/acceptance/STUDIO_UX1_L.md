@@ -22,7 +22,7 @@ placeable ni une distribution publique.
 - le smoke contractuel crée un workspace temporaire avec deux placeables et deux instances, refuse
   les profils incomplets ou ambigus, compare le dry-run direct à la commande canonique, applique,
   annule, rétablit, sauvegarde puis rouvre ;
-- le smoke UI crée réellement un profil destructible dans Forgotten Forest, applique puis annule en
+- le smoke UI crée réellement un profil destructible dans Crypte des Cendres, applique puis annule en
   restaurant exactement le projet courant ;
 - captures et journaux Forward+ inspectés dans `artifacts/verification/studio-shell/ux1-l/` :
   `health-fhd.png` en 1920×1080, `resistances-qhd.png` en 2560×1440 et `destruction-4k.png` en

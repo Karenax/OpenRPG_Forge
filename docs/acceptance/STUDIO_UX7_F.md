@@ -47,7 +47,7 @@ approbations restent inchangés.
 - portail incrémental : **294,03 s** — build 1,17 s, tests 1,49/2,52/4,00 s,
   smoke 272,98 s, capture 10,93 s et matrice 0,88 s ;
 - matrice avant promotion : **717 lignes**, **36 pages**, 569 fonctionnelles / 148 planifiées, PASS ;
-- capture Forward+ **1920×1080** sur Forgotten Forest réel : cinq cartes, cinq résultats, détail de
+- capture Forward+ **1920×1080** sur Crypte des Cendres réel : cinq cartes, cinq résultats, détail de
   crash recovery, frontière, statut et actions entièrement lisibles, sans clipping.
 
 Artefacts :

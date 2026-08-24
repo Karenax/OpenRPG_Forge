@@ -859,7 +859,7 @@ internal sealed partial class StudioSessionController
 
     private static Ux2NavMSmokeFixture CreateUx2NavMSmokeProject()
     {
-        var source = OriginalModuleAuthoringService.CreateVeilleeDesEclats().State.Project;
+        var source = SampleModuleAuthoringService.Create().State.Project;
         var area = source.Areas.Single();
         var target = new CameraAnchorDefinition(StableUx2NavM(area.Id.Value, "smoke-target"),
             "Plan d’ouverture", new(new(-2, 7, -5), QuaternionValue.Identity, Vector3Value.One),

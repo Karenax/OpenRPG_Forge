@@ -47,7 +47,7 @@ créature ciblée dans la même révision annulable.
 
 - aucun acteur, graphe IA, animation, script, waypoint, dialogue, sauvegarde automatique ou réseau
   n’est exécuté dans Studio ; les services Domain/Application calculent seulement la projection ;
-- la capture Forgotten Forest utilise un fallback canonique temporaire, tandis que les trois
+- la capture Crypte des Cendres utilise un fallback canonique temporaire, tandis que les trois
   captures Crypte utilisent le vrai profil `Gardien des Cendres` ; toutes travaillent sur une copie
   isolée et la source reste inchangée ;
 - présentation, règles, capacités, loot, événements, fondation, items et blueprints voisins sont

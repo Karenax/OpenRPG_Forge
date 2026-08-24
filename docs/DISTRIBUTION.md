@@ -26,7 +26,7 @@ Ajouter `-RunSmoke` pour rejouer le scénario complet depuis la distribution. Aj
 
 ## Studio autonome Windows et Linux x64
 
-Le Studio Godot .NET possède ses propres presets et inclut un workspace Forgotten Forest sans cache
+Le Studio Godot .NET possède ses propres presets et inclut un workspace Crypte des Cendres sans cache
 `.forge` :
 
 ```powershell

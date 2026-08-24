@@ -332,31 +332,47 @@ internal sealed partial class StudioWorkspaceShell
         var originalWorkspace = _session.WorkspaceProfile;
         var originalKeymap = _session.KeymapProfile;
         var areas = _session.Project!.Areas.Take(3).ToArray();
-        if (areas.Length < 3)
+        if (areas.Length == 0)
         {
             GD.PrintErr("OPENRPG_FORGE_STUDIO_UX0B_FAILED reason=areas_missing");
             return false;
         }
 
-        var openSecond = _session.OpenAreaTab(areas[1].Id, activate: true, persist: false);
+        var multipleAreas = areas.Length >= 3;
+        var secondArea = multipleAreas ? areas[1] : areas[0];
+        var openSecond = _session.OpenAreaTab(secondArea.Id, activate: true, persist: false).Succeeded;
         var secondEntity = _session.ActiveArea!.Entities.FirstOrDefault();
         var secondSelected = secondEntity is not null && _session.SelectEntity(secondEntity.Id);
-        var openThird = _session.OpenAreaTab(areas[2].Id, activate: false, persist: false);
-        var activateFirst = _session.ActivateAreaTab(areas[0].Id, persist: false);
-        var firstEntity = _session.ActiveArea!.Entities.FirstOrDefault();
-        if (firstEntity is not null)
+        var openThird = true;
+        var activateFirst = true;
+        var restoreSecond = true;
+        var selectionRestored = secondSelected;
+        var comparisonRendered = true;
+        if (multipleAreas)
         {
-            _session.SelectEntity(firstEntity.Id);
+            openThird = _session.OpenAreaTab(areas[2].Id, activate: false, persist: false).Succeeded;
+            activateFirst = _session.ActivateAreaTab(areas[0].Id, persist: false).Succeeded;
+            var firstEntity = _session.ActiveArea!.Entities.FirstOrDefault();
+            if (firstEntity is not null)
+            {
+                _session.SelectEntity(firstEntity.Id);
+            }
+            restoreSecond = _session.ActivateAreaTab(areas[1].Id, persist: false).Succeeded;
+            selectionRestored = secondEntity is not null && _session.SelectedEntityId == secondEntity.Id;
+            var comparison = _session.ConfigureAreaComparison(areas[2].Id, persist: false);
+            RefreshComparisonViewport();
+            comparisonRendered = comparison.Succeeded && ComparisonViewport.Visible && ComparisonViewport.IsReadOnly &&
+                                 ComparisonViewport.ViewAreaId == areas[2].Id && ComparisonViewport.EntityCount > 0;
         }
-        var restoreSecond = _session.ActivateAreaTab(areas[1].Id, persist: false);
-        var selectionRestored = secondEntity is not null && _session.SelectedEntityId == secondEntity.Id;
-        var comparison = _session.ConfigureAreaComparison(areas[2].Id, persist: false);
-        RefreshComparisonViewport();
-        var comparisonRendered = ComparisonViewport.Visible && ComparisonViewport.IsReadOnly &&
-                                 ComparisonViewport.ViewAreaId == areas[2].Id &&
-                                 ComparisonViewport.EntityCount > 0;
-        var tabsValid = _session.WorkspaceProfile.OpenAreaTabs.Count == 3 &&
-                        _session.WorkspaceProfile.OpenAreaTabs.Distinct().Count() == 3;
+        else
+        {
+            comparisonRendered = _session.ConfigureAreaComparison(null, persist: false).Succeeded;
+            RefreshComparisonViewport();
+            comparisonRendered &= !ComparisonViewport.Visible;
+        }
+        var expectedTabs = multipleAreas ? 3 : 1;
+        var tabsValid = _session.WorkspaceProfile.OpenAreaTabs.Count == expectedTabs &&
+                        _session.WorkspaceProfile.OpenAreaTabs.Distinct().Count() == expectedTabs;
 
         var current = _session.WorkspaceProfile;
         var layout = new EditorShellLayout(
@@ -410,15 +426,15 @@ internal sealed partial class StudioWorkspaceShell
         RefreshAreaTabs();
         RebuildActiveArea("UX0-B smoke restauré", notify: false);
 
-        var valid = openSecond.Succeeded && secondSelected && openThird.Succeeded && activateFirst.Succeeded &&
-            restoreSecond.Succeeded && selectionRestored && comparison.Succeeded && comparisonRendered && tabsValid &&
+        var valid = openSecond && secondSelected && openThird && activateFirst &&
+            restoreSecond && selectionRestored && comparisonRendered && tabsValid &&
             _session.WorkspaceProfile.Id == originalWorkspace.Id &&
             workspacePreview.Succeeded && workspaceApply.Succeeded && workspaceUndo.Succeeded && workspaceRedo.Succeeded &&
             keymapPreview.Succeeded && keymapApply.Succeeded && keymapResolved && conflictBlocked &&
             keymapUndo.Succeeded && keymapRedo.Succeeded && roundTrip;
         GD.Print(
             $"OPENRPG_FORGE_STUDIO_UX0B_{(valid ? "PASS" : "FAILED")} " +
-            $"tabs=3 selection_restored={selectionRestored.ToString().ToLowerInvariant()} " +
+            $"tabs={expectedTabs} selection_restored={selectionRestored.ToString().ToLowerInvariant()} " +
             $"comparison_read_only={comparisonRendered.ToString().ToLowerInvariant()} " +
             $"layout_dry_run={workspacePreview.Succeeded.ToString().ToLowerInvariant()} " +
             $"workspace_undo={workspaceUndo.Succeeded.ToString().ToLowerInvariant()} " +

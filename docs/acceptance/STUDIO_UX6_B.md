@@ -44,7 +44,7 @@ Studio ne reconstruit pas l’`InputMap` Godot live.
 - build Debug `Forge.Studio` : **0 avertissement, 0 erreur** ;
 - portail incrémental : **134,00 s**, 8/8 tests ciblés — Domain 3, Application 4,
   ModuleFormat 1 — puis smoke global, capture Forward+ FHD et matrice ;
-- smoke `OPENRPG_FORGE_STUDIO_UX6_B_PASS` : sélection explicite, données réelles Forgotten Forest,
+- smoke `OPENRPG_FORGE_STUDIO_UX6_B_PASS` : sélection explicite, données réelles Crypte des Cendres,
   quatre invalidités, dry-run sans mutation, quatre résolveurs purs, source et approbation obsolètes
   bloquées, commande canonique, undo/redo, round-trip, sauvegarde et voisins préservés, transaction
   UI isolée, ressources libérées, source et surface restaurées ;
@@ -62,7 +62,7 @@ complet, le diff, l’aperçu et les diagnostics sans clipping ni UUID.
 
 ## Préservation et limites honnêtes
 
-La preuve copie le vrai projet Forgotten Forest dans un workspace temporaire, compare projet,
+La preuve copie le vrai projet Crypte des Cendres dans un workspace temporaire, compare projet,
 historique, révision, journal, dirty, zone active et approbation avant/après, puis supprime l’isolat.
 `Foundation.Save`, Swimming, Climbing, RadialMenu, TimeControl, CombatModes, Simulation, Session,
 les six zones, blueprints, dialogues et quêtes restent structurellement préservés.

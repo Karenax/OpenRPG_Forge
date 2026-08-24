@@ -78,8 +78,8 @@ portés ligne par ligne dans `tracking/project/AURORA_CORE_P0_AUDIT.csv`.
 
 | Risque | Mitigation |
 |---|---|
-| Refactor massif du domaine avant un second cas réel | extractions incrémentales avec tests de la Crypte et d’un second module |
-| Nouvelle UI construite sur des contrats spécifiques à la démo | livrer G7-01 runtime générique avant la coque complète |
+| Refactor massif du domaine avant un second cas réel | extractions incrémentales avec tests de la Crypte et des fixtures synthétiques |
+| Nouvelle UI construite sur des contrats spécifiques à la démo | livrer les contrats runtime génériques avant la coque complète |
 | Fichier éditeur monolithique | extraire un workspace ou service par incrément sans réécriture générale |
 | Faux progrès par nombre de lignes du catalogue | mesurer les scénarios Builder, Writer, Scripter, Agent, Network et GM |
 | Perte de frontière IP | conserver le snapshot et produire uniquement des contrats, noms et assets Forge originaux |

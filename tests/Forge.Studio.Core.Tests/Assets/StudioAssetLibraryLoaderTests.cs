@@ -6,16 +6,18 @@ namespace Forge.Studio.Core.Tests.Assets;
 public sealed class StudioAssetLibraryLoaderTests
 {
     [Fact]
-    public void Load_SplitsPackIntoLogicalModelsAndPrefersLocalGlbWithMatchingPreview()
+    public void Load_SplitsAndGroupsPackModelsAndPrefersLocalGlbWithMatchingPreview()
     {
         var root = Path.Combine(Path.GetTempPath(), $"forge-studio-assets-{Guid.NewGuid():N}");
         var repository = Path.Combine(root, "repository");
         var vault = Path.Combine(root, "vault");
         var catalogDirectory = Path.Combine(repository, "asset_manifests", "catalogs");
+        var collectionDirectory = Path.Combine(repository, "asset_manifests", "packs");
         var packRoot = Path.Combine(vault, "normalized", "kenney", "castle-kit");
         try
         {
             Directory.CreateDirectory(catalogDirectory);
+            Directory.CreateDirectory(collectionDirectory);
             Directory.CreateDirectory(Path.Combine(packRoot, "Models", "GLB"));
             Directory.CreateDirectory(Path.Combine(packRoot, "Models", "OBJ"));
             Directory.CreateDirectory(Path.Combine(packRoot, "Previews"));
@@ -52,6 +54,17 @@ public sealed class StudioAssetLibraryLoaderTests
             File.WriteAllText(
                 Path.Combine(catalogDirectory, "test.json"),
                 JsonSerializer.Serialize(payload));
+            File.WriteAllText(
+                Path.Combine(collectionDirectory, "medieval.json"),
+                JsonSerializer.Serialize(new
+                {
+                    schema_version = 1,
+                    collection_type = "asset-vault-collection",
+                    pack_id = "medieval",
+                    display_name = "Médiéval",
+                    source_pack_ids = new[] { "kenney:castle-kit" },
+                    tags = new[] { "medieval" },
+                }));
 
             var index = StudioAssetLibraryLoader.Load(repository, vault);
 
@@ -62,12 +75,15 @@ public sealed class StudioAssetLibraryLoaderTests
             var item = Assert.Single(index.Items, candidate => candidate.ExternalId == "kenney:castle-kit:door");
             Assert.Equal("kenney:castle-kit:door", item.ExternalId);
             Assert.Equal("Door", item.DisplayName);
+            Assert.Equal("medieval", item.PackId);
+            Assert.Equal("Médiéval", item.PackName);
             Assert.Equal("glb", item.Format);
             Assert.True(item.AvailableLocally);
             Assert.True(item.CanInstall);
             Assert.Equal("normalized/kenney/castle-kit/Previews/door.png", item.RelativePreviewPath);
             Assert.Equal(2, item.Variants.Count);
             Assert.Contains("castle", item.SearchText);
+            Assert.Contains("medieval", item.SearchText);
             Assert.True(item.HasThumbnail);
             Assert.True(item.CanPreview3D);
 

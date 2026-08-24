@@ -383,7 +383,7 @@ internal sealed partial class StudioRuntimeOperationsWorkbenchUx6Y : ColorRect
             return;
         }
         _selection.Text = UsesIsolatedEvidence
-            ? "Session de preuve isolée · zone copiée · source Forgotten Forest strictement inchangée."
+            ? "Session de preuve isolée · zone copiée · source Crypte des Cendres strictement inchangée."
             : "Zone sélectionnée · les états météo et la présentation UX1‑C restent protégés.";
         PopulateDraftUx6Y();
         ResetPreviewUx6Y();

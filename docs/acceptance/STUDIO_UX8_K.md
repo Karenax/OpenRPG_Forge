@@ -39,7 +39,7 @@ la fois le projet et le transfert sans inventer une transaction distribuée.
   import, export, collision, confinement, dry-run, commande, gardes stale, undo/redo, persistance,
   voisins, nettoyage, transaction UI, surface humaine, source inchangée et surface restaurée à
   `true` ;
-- capture Forward+ **1920×1080** corrigée puis inspectée : Forgotten Forest réel, sélecteur
+- capture Forward+ **1920×1080** corrigée puis inspectée : Crypte des Cendres réel, sélecteur
   import/export, paramètres, garanties, consentement, aperçu, diff, fichiers, diagnostics et cinq
   actions visibles sans UUID ni clipping ;
 - portail incrémental final : **PASS en 423,12 s** — build 1,26 s, tests 1,65 + 2,74 + 4,62 s,

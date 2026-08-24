@@ -62,7 +62,7 @@ inspection ; la seconde capture ne montre plus le texte technique du handler.
 
 ## Préservation et limites honnêtes
 
-La preuve copie le vrai projet Forgotten Forest dans un workspace temporaire, compare projet,
+La preuve copie le vrai projet Crypte des Cendres dans un workspace temporaire, compare projet,
 historique, révision, journal, dirty, zone active et approbations avant/après, puis supprime l’isolat.
 `ProgressionPolicy`, les règles de zone UX2 et tous les profils gameplay hors `Simulation.WorldTime`
 restent préservés.

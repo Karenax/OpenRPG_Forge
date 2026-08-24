@@ -4,7 +4,7 @@ Dernière mise à jour : 5 août 2026.
 
 ## Résultat
 
-Forgotten Forest occupe maintenant une vraie emprise de 512 × 512 m. Le terrain canonique contient
+Asset Vault occupe maintenant une vraie emprise de 512 × 512 m. Le terrain canonique contient
 129 × 129 échantillons, soit une résolution constante de 4 m, 16 641 vertices et 32 768 triangles.
 Le `chunkSize` de 16 cellules produit 64 secteurs de 64 × 64 m ; ce découpage vient de la source de
 vérité du terrain et ne crée ni scène ni format parallèle.
@@ -48,7 +48,7 @@ smoke et `scripts/Verify.ps1`.
   validation sans diagnostic ;
 - smoke complet : quête, combat, animations, navigation, eau et sortie réussis ;
 - capture aérienne Vulkan Forward+ sans HUD :
-  `artifacts/verification/forgotten-forest-av6c-world-forward-plus.png` ;
+  `artifacts/verification/asset-vault-av6c-world-forward-plus.png` ;
 - marqueur : `OPENRPG_FORGE_AV6C_WORLD_VISUAL_PASS ... sectors=64 scatter=5564`.
 
 ## Limites explicites

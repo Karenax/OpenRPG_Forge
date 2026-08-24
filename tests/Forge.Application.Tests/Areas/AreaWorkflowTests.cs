@@ -37,7 +37,7 @@ public sealed class AreaWorkflowTests
         Assert.Single(dryRun.State.Project.Areas);
         Assert.True(applied.Succeeded);
         var area = Assert.Single(applied.State.Project.Areas, candidate => candidate.Id == command.AreaId);
-        Assert.Equal("forgotten-forest", area.Slug);
+        Assert.Equal("demo-exterior", area.Slug);
         Assert.Equal(AreaKind.Exterior, area.Kind);
         Assert.Equal(new AreaDimensions(128, 96), area.Dimensions);
         Assert.Equal("forge-generic", area.Foundation.Creation.KitKey);
@@ -82,7 +82,7 @@ public sealed class AreaWorkflowTests
         var destinationAnchor = Assert.Single(destination.Entities);
         var portal = new PortalLink(
             PortalId.From(Guid.Parse("1a9db8c3-5178-46b3-899b-0b1649852bec")),
-            "Vers Forgotten Forest",
+            "Vers la zone extérieure",
             EntryAnchorId,
             destination.Id,
             destinationAnchor.Id,
@@ -147,7 +147,7 @@ public sealed class AreaWorkflowTests
             CommandId.From(Guid.Parse("860e1eec-73b3-4be9-8c60-708088132cd7")),
             revision,
             AreaId.From(Guid.Parse("e7947f26-f6d7-4acf-8973-c15cb523ea6c")),
-            "Forgotten Forest",
+            "Demo exterior",
             AreaKind.Exterior,
             new AreaDimensions(128, 96),
             AreaTemplateKind.Playable,

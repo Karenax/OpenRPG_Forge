@@ -16,7 +16,7 @@ configurables et prévisualisables dans l'unique fenêtre `Forge.Studio`. Il ne 
 - portail transversal `scripts/Verify.ps1` réussi après gel de la source : 1 980/1 980 tests .NET,
   39/39 tests Python, builds sans avertissement, smokes Studio/runtime/réseau/MCP, assets, package
   et distribution ;
-- smoke Studio headless et capture Forward+ Full HD réussis sur Forgotten Forest, avec preuve
+- smoke Studio headless et capture Forward+ Full HD réussis sur Crypte des Cendres, avec preuve
   visuelle inspectée dans `artifacts/verification/studio-shell/ux1-v/death-fhd.png` et journal
   associé `death-fhd.png.log` ;
 - la capture 1920×1080 utilise Godot 4.7.1 .NET, Vulkan Forward+, une Radeon RX 7800 XT, 278 assets,
@@ -55,7 +55,7 @@ toucher à la santé réelle de la scène pendant l'aperçu.
 - ce lot qualifie seulement `ORF-PLC-018` à `ORF-PLC-020` ;
 - l'aperçu construit et inspecte le dispatch typé mais n'exécute pas un handler ForgeScript ni des
   effets de scène autoritaires ;
-- Forgotten Forest sert de catalogue et de rendu réel, pas de module de preuve sauvegardé ;
+- Crypte des Cendres sert de catalogue et de rendu réel, pas de module de preuve sauvegardé ;
 - l'application reste en mémoire jusqu'à l'enregistrement explicite.
 
 ## Reproduction

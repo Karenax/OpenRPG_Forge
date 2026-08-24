@@ -24,7 +24,7 @@ qualifie aucune autre route placeable ni une distribution publique.
 - le smoke contractuel crée un workspace temporaire avec deux placeables et deux instances, refuse
   les machines incomplètes ou ambiguës, compare le dry-run direct à la commande canonique, applique,
   annule, rétablit, sauvegarde puis rouvre ;
-- le smoke UI crée réellement une machine d’état dans Forgotten Forest, applique puis annule en
+- le smoke UI crée réellement une machine d’état dans Crypte des Cendres, applique puis annule en
   restaurant exactement le projet courant ;
 - captures et journaux Forward+ inspectés dans `artifacts/verification/studio-shell/ux1-k/` :
   `initial-fhd.png` en 1920×1080, `states-qhd.png` en 2560×1440 et `transition-4k.png` en

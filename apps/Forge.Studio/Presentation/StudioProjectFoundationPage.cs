@@ -496,7 +496,7 @@ internal sealed partial class StudioProjectFoundationPage : Control
             if (_localizations.All(item => !string.Equals(item.Locale, "en", StringComparison.OrdinalIgnoreCase)))
             {
                 _localizations.Add(new StudioLocalizedProjectDraft(
-                    "en", "Forgotten Forest", "A dark forest adventure", "Localized preview prepared without applying.",
+                    "en", "Crypt of Ashes", "A besieged crypt adventure", "Localized preview prepared without applying.",
                     "OpenRPG Forge", string.Empty, string.Empty, string.Empty, string.Empty, string.Empty,
                     "OpenRPG Forge 1.x"));
                 PopulateLanguages(_session.Project!.Module.Metadata.DefaultLocale);

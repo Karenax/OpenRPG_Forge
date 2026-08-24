@@ -99,7 +99,7 @@ public sealed class TriggerLivingWorldWorkflowTests
 
     private static LivingWorldFixture Fixture()
     {
-        var narrativeProject = OriginalModuleAuthoringService.CreateVeilleeDesEclats().State.Project;
+        var narrativeProject = SampleModuleAuthoringService.Create().State.Project;
         var dialogue = narrativeProject.Dialogues.Single();
         var participant = dialogue.Nodes.Select(item => item.SpeakerBlueprintId).First(item => item is not null)!;
         var triggerBlueprint = new BlueprintDefinition(

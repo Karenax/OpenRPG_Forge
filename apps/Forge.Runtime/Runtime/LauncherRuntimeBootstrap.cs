@@ -39,9 +39,12 @@ internal static class LauncherRuntimeBootstrap
 
         ApplyDisplay(root, settings);
         ApplyAudio(settings);
+        var appliedWindow = root.GetWindow();
         GD.Print(
             $"OPENRPG_FORGE_RUNTIME_LAUNCHER_SETTINGS_PASS resolution={settings.ResolutionWidth}x{settings.ResolutionHeight} " +
             $"window={settings.WindowMode.ToString().ToLowerInvariant()} quality={settings.GraphicsQuality.ToString().ToLowerInvariant()} " +
+            $"effective={appliedWindow.Size.X}x{appliedWindow.Size.Y} borderless={appliedWindow.Borderless.ToString().ToLowerInvariant()} " +
+            $"resizable={(!appliedWindow.Unresizable).ToString().ToLowerInvariant()} " +
             $"vsync={settings.VSync.ToString().ToLowerInvariant()} session={expectedMode}");
         return new LauncherRuntimeContext(settings, Path.GetFullPath(settingsPath));
     }
@@ -82,21 +85,38 @@ internal static class LauncherRuntimeBootstrap
     private static void ApplyDisplay(Node root, GameLauncherUserSettings settings)
     {
         var window = root.GetWindow();
-        var size = new Vector2I(settings.ResolutionWidth, settings.ResolutionHeight);
+        var requestedSize = new Vector2I(settings.ResolutionWidth, settings.ResolutionHeight);
+        var usable = DisplayServer.ScreenGetUsableRect(DisplayServer.GetPrimaryScreen());
+        if (usable.Size.X <= 0 || usable.Size.Y <= 0)
+            usable = new Rect2I(Vector2I.Zero, requestedSize);
+        window.AlwaysOnTop = false;
         switch (settings.WindowMode)
         {
             case LauncherWindowMode.Windowed:
                 window.Mode = Window.ModeEnum.Windowed;
                 window.Borderless = false;
-                window.Size = size;
+                window.Unresizable = false;
+                var maximumWindowedSize = new Vector2I(
+                    Math.Max(800, usable.Size.X - 96),
+                    Math.Max(600, usable.Size.Y - 96));
+                var windowedSize = new Vector2I(
+                    Math.Min(requestedSize.X, maximumWindowedSize.X),
+                    Math.Min(requestedSize.Y, maximumWindowedSize.Y));
+                window.Size = windowedSize;
+                window.Position = new Vector2I(
+                    usable.Position.X + Math.Max(0, (usable.Size.X - windowedSize.X) / 2),
+                    usable.Position.Y + Math.Max(0, (usable.Size.Y - windowedSize.Y) / 2));
                 break;
             case LauncherWindowMode.Borderless:
                 window.Mode = Window.ModeEnum.Windowed;
                 window.Borderless = true;
-                window.Size = size;
+                window.Unresizable = true;
+                window.Size = usable.Size;
+                window.Position = usable.Position;
                 break;
             case LauncherWindowMode.Fullscreen:
                 window.Borderless = false;
+                window.Unresizable = false;
                 window.Mode = Window.ModeEnum.Fullscreen;
                 break;
             default:

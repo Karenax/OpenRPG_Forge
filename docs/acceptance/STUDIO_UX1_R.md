@@ -22,7 +22,7 @@ qualifie ni le trésor initial `ORF-PLC-015`, ni une distribution publique.
 - le smoke contractuel emploie un workspace temporaire avec deux instances, un placeable voisin et
   un profil d’événements caché à préserver ; il exerce détection, désamorçage, déclenchement allié et
   hostile, réarmement, usage unique, dry-run, commande, undo/redo, sauvegarde et réouverture ;
-- le smoke UI applique la fiche au vrai projet Forgotten Forest uniquement en mémoire, l’annule puis
+- le smoke UI applique la fiche au vrai projet Crypte des Cendres uniquement en mémoire, l’annule puis
   vérifie la restauration exacte du projet ; aucun piège de preuve n’est sauvegardé ;
 - captures Forward+ inspectées dans `artifacts/verification/studio-shell/ux1-r/` :
   `detection-fhd.png` et `friendly-fhd.png` en 1920×1080, `disarm-qhd.png` en 2560×1440 et
@@ -74,7 +74,7 @@ plan MCP demeure un dry-run.
   placeable conservent leurs routes dédiées ;
 - l’aperçu calcule le résultat du piège mais ne remplace pas l’application autoritaire de dégâts,
   d’effets ou de réplication par le runtime ;
-- Forgotten Forest fournit le catalogue et la scène réels, pas un piège authored nouvellement
+- Crypte des Cendres fournit le catalogue et la scène réels, pas un piège authored nouvellement
   sauvegardé ; cette absence initiale est présentée explicitement dans l’interface ;
 - l’application demeure en mémoire jusqu’à l’enregistrement explicite ;
 - la migration des 66 fenêtres, l’export autonome Windows/Linux et le retrait du plugin historique

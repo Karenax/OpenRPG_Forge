@@ -69,7 +69,7 @@ public sealed class EncounterCompositionServiceTests
     {
         var candidate = new SpawnCandidate(Guid.NewGuid(), "creature:glass-warden", EncounterRole.Controller, 3, 8, new HashSet<string>(), ["ember"], 8);
         var shape = new TriggerShape(TriggerShapeKind.ExtrudedPolygon, [new(0, 0, 0), new(8, 0, 0), new(8, 0, 8)], [], new(0, 0, 0), 4, 0.5);
-        return new(Guid.NewGuid(), 1, "author:test", "glass-vigil", "Veillée de verre", "ambush", "glass", "zone:observatory",
+        return new(Guid.NewGuid(), 1, "author:test", "demo-encounter", "Encounter de démonstration", "ambush", "glass", "zone:observatory",
             new(shape, new(new HashSet<string>(), new HashSet<string>(), new HashSet<string>(), new HashSet<string>()), true, 18, null), [candidate],
             new("ruleset:forge", EncounterDifficulty.Hard, 4, 12, 20, 1.2, 1.5), ["wave:vigil"], ["anchor:north"], [], 12);
     }

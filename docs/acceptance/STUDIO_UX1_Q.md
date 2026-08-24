@@ -22,7 +22,7 @@ aucune autre route placeable ni une distribution publique.
   verrou préexistant, un voisin et deux instances ; il exerce les cinq politiques, les décisions
   autorisée/refusée, le dry-run direct et la commande canonique, puis applique, annule, rétablit,
   sauvegarde et rouvre ;
-- le smoke UI utilise le vrai catalogue de Forgotten Forest, applique uniquement en mémoire puis
+- le smoke UI utilise le vrai catalogue de Crypte des Cendres, applique uniquement en mémoire puis
   annule et restaure exactement le projet courant ; aucune politique de preuve n’est sauvegardée ;
 - captures et journaux Forward+ inspectés dans `artifacts/verification/studio-shell/ux1-q/` :
   `policy-fhd.png` et `denied-fhd.png` en 1920×1080, `charge-qhd.png` en 2560×1440 et
@@ -30,7 +30,7 @@ aucune autre route placeable ni une distribution publique.
 
 Les quatre captures utilisent Godot 4.7.1, Vulkan Forward+, une Radeon RX 7800 XT, 278 assets,
 zéro fallback et une seule fenêtre. Elles montrent le blueprint réel **Décor de la forêt**, le
-visuel **Floor Wood Large** et la clé item **Graine de lune** du catalogue Forgotten Forest. Full HD
+visuel **Floor Wood Large** et la clé item **Graine de lune** du catalogue Crypte des Cendres. Full HD
 confirme la conservation et le refus sans justificatif ; QHD rend le débit d’une charge et son solde
 lisibles ; 4K confirme la permission virtuelle, l’audit et l’aperçu runtime. Cette inspection réelle
 porte sur le catalogue et l’interface ; la persistance canonique reste qualifiée par le workspace
@@ -84,8 +84,8 @@ d’inventaire.
   restent portés par leurs routes dédiées ;
 - la prévisualisation calcule la décision de consommation, mais ne fournit pas un nouveau service
   d’inventaire réseau ni une transaction multijoueur ;
-- les captures valident l’interface avec le catalogue réel de Forgotten Forest, pas une nouvelle
-  politique authored et sauvegardée dans Forgotten Forest ou Crypt of Ashes ;
+- les captures valident l’interface avec le catalogue réel de Crypte des Cendres, pas une nouvelle
+  politique authored et sauvegardée dans Crypte des Cendres ou Crypte des Cendres ;
 - l’application demeure en mémoire jusqu’à l’enregistrement explicite ;
 - la migration des 66 fenêtres, l’export autonome Windows/Linux et le retrait du plugin historique
   restent hors de ce lot.

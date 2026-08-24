@@ -23,7 +23,7 @@ distribution publique.
   objet, plusieurs liaisons et les cinq déclencheurs ; il refuse les références et sélecteurs
   invalides, compare le dry-run direct à la commande canonique, applique, annule, rétablit,
   sauvegarde puis rouvre ;
-- le smoke UI utilise le vrai catalogue de Forgotten Forest, applique uniquement en mémoire puis
+- le smoke UI utilise le vrai catalogue de Crypte des Cendres, applique uniquement en mémoire puis
   annule et restaure exactement le projet courant ; aucune liaison de preuve n’est sauvegardée ;
 - captures et journaux Forward+ inspectés dans `artifacts/verification/studio-shell/ux1-o/` :
   `bindings-fhd.png` en 1920×1080, `sources-qhd.png` en 2560×1440 et `preview-4k.png` en
@@ -31,7 +31,7 @@ distribution publique.
 
 Les trois captures utilisent Godot 4.7.1, Vulkan Forward+, une Radeon RX 7800 XT, 278 assets, zéro
 fallback et une seule fenêtre. Elles montrent les entrées réelles **L’appel de Maëlys**, **Entrée
-principale** et **Graine de lune** du catalogue Forgotten Forest. Full HD montre les liaisons et
+principale** et **Graine de lune** du catalogue Crypte des Cendres. Full HD montre les liaisons et
 l’aperçu sans écriture. QHD rend les champs conditionnels objet/événement et le résumé des cinq
 déclencheurs lisibles. 4K confirme la priorité, l’usage unique et l’action principale sans coupe.
 Cette inspection réelle porte sur le catalogue et l’interface ; la persistance canonique reste
@@ -90,8 +90,8 @@ son identité stable et le profil complet survit au round-trip.
   événements restent portés par leurs routes dédiées ;
 - UX1-O résout la sélection canonique d’un dialogue, mais n’ajoute ni lecteur audiovisuel de
   conversation, ni synchronisation réseau, ni nouvel éditeur de graphe de dialogue ;
-- les captures valident l’interface avec le catalogue réel de Forgotten Forest, pas une nouvelle
-  liaison authored et sauvegardée dans Forgotten Forest ou Crypt of Ashes ;
+- les captures valident l’interface avec le catalogue réel de Crypte des Cendres, pas une nouvelle
+  liaison authored et sauvegardée dans Crypte des Cendres ou Crypte des Cendres ;
 - l’application demeure en mémoire jusqu’à l’enregistrement explicite ;
 - la migration des 66 fenêtres, l’export autonome Windows/Linux et le retrait du plugin historique
   restent hors de ce lot.

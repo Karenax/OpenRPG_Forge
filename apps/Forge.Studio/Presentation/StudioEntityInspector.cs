@@ -125,7 +125,8 @@ internal sealed partial class StudioEntityInspector : VBoxContainer
         apply.Pressed += ApplyTransform;
         column.AddChild(apply);
         column.AddChild(StudioStyle.Label(
-            "Le gizmo déplace directement X, Y ou Z. Ces champs règlent aussi rotation et échelle.",
+            "Choisissez Déplacer, Tourner ou Redimensionner au-dessus de la vue 3D. " +
+            "Ces champs règlent aussi précisément la position, la rotation et la taille X/Y/Z.",
             9,
             StudioStyle.Muted,
             wrap: true));

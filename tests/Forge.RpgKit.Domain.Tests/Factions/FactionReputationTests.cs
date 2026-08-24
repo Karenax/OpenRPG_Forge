@@ -10,12 +10,12 @@ public sealed class FactionReputationTests
     {
         var (catalog, village, glass) = Sample(); var now = DateTimeOffset.Parse("2026-08-03T12:00:00Z");
         var personal = new PersonalReputationOverlay(Guid.NewGuid(), 1, "author:test", "player-1", village, glass, 20, now.AddHours(1), "saved merchant");
-        var transaction = new ReputationTransaction(Guid.NewGuid(), 1, "author:test", ReputationScope.Campaign, "veillée", village, glass, 15, "lighthouse choice", now);
+        var transaction = new ReputationTransaction(Guid.NewGuid(), 1, "author:test", ReputationScope.Campaign, "demo", village, glass, 15, "lighthouse choice", now);
         var mutation = FactionReputationService.Apply(new([personal], []), transaction);
         var context = new ReactionContext("player-1", village, glass, now, 0, 0, 0, null, null);
-        Assert.Equal(-5, FactionReputationService.EffectiveScore(catalog, mutation.State, context, ReputationScope.Campaign, "veillée"));
+        Assert.Equal(-5, FactionReputationService.EffectiveScore(catalog, mutation.State, context, ReputationScope.Campaign, "demo"));
         Assert.Equal(-15, mutation.Inverse.Delta);
-        Assert.Equal(-25, FactionReputationService.EffectiveScore(catalog, mutation.State, context with { At = now.AddHours(2) }, ReputationScope.Campaign, "veillée"));
+        Assert.Equal(-25, FactionReputationService.EffectiveScore(catalog, mutation.State, context with { At = now.AddHours(2) }, ReputationScope.Campaign, "demo"));
     }
 
     [Fact]

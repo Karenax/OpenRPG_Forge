@@ -23,7 +23,7 @@ publique.
   `OPENRPG_FORGE_STUDIO_SHELL_PASS sections=8 pages=36 windows=1` ;
 - le smoke contractuel emploie un workspace temporaire avec deux instances, un placeable voisin,
   deux blueprints Objet, deux lignes de table, un piège voisin à préserver et un état déjà généré ;
-- le smoke UI applique la fiche au vrai projet Forgotten Forest uniquement en mémoire, l’annule puis
+- le smoke UI applique la fiche au vrai projet Crypte des Cendres uniquement en mémoire, l’annule puis
   vérifie la restauration exacte du projet ; aucun trésor de preuve n’est sauvegardé ;
 - captures Forward+ inspectées dans `artifacts/verification/studio-shell/ux1-s/` :
   `table-fhd.png` et `open-fhd.png` en 1920×1080, `reset-qhd.png` en 2560×1440 et
@@ -38,7 +38,7 @@ l’aperçu simultanément lisibles.
 
 La persistance canonique et le garde d’état généré sont qualifiés sur le workspace synthétique afin
 de ne pas modifier le contenu authored. Les captures réelles prouvent l’accès humain et le rendu,
-pas la présence préalable d’un trésor sauvegardé dans Forgotten Forest.
+pas la présence préalable d’un trésor sauvegardé dans Crypte des Cendres.
 
 ### ORF-PLC-015
 
@@ -86,7 +86,7 @@ demeure un dry-run.
   placeable conservent leurs lots dédiés ;
 - l’aperçu calcule les résultats mais ne les insère pas dans un inventaire de scène ; cette mutation
   reste du ressort du runtime autoritaire ;
-- Forgotten Forest fournit le catalogue et la scène réels, pas un trésor authored nouvellement
+- Crypte des Cendres fournit le catalogue et la scène réels, pas un trésor authored nouvellement
   sauvegardé ; cette absence initiale est présentée explicitement dans l’interface ;
 - l’application demeure en mémoire jusqu’à l’enregistrement explicite ;
 - la migration des 66 fenêtres, l’export autonome Windows/Linux et le retrait du plugin historique

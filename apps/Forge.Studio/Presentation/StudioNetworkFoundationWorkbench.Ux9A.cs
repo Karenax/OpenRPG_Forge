@@ -548,7 +548,7 @@ internal sealed partial class StudioNetworkFoundationWorkbenchUx9A : ColorRect
     {
         if (_draft is null) return;
         _updating = true;
-        _serverName.Text = "Forgotten Forest · session locale";
+        _serverName.Text = "Crypte des Cendres · session locale";
         _serverCapacity.Value = 12;
         _partyCapacity.Value = 6;
         _loot.Select((int)PartyLootPolicy.RoundRobin);

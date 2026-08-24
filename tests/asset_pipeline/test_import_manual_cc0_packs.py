@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest import mock
 import zipfile
 
 
@@ -91,6 +93,82 @@ class ImportManualCc0PacksTests(unittest.TestCase):
             repairs = MODULE.apply_gltf_uri_repairs(root, ["model.gltf"], {"normal_png.png": "normal.png"})
             self.assertEqual([{"file": "model.gltf", "from": "normal_png.png", "to": "normal.png"}], repairs)
             self.assertIn('"uri":"normal.png"', model.read_text(encoding="utf-8"))
+
+    def test_merge_existing_preserves_unselected_catalog_entries(self) -> None:
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            vault = root / "vault"
+            inbox = root / "inbox"
+            inbox.mkdir(parents=True)
+            archive = inbox / "new.zip"
+            with zipfile.ZipFile(archive, "w") as bundle:
+                bundle.writestr(
+                    "New/License.txt",
+                    "CC0 1.0 Universal https://creativecommons.org/publicdomain/zero/1.0/",
+                )
+                bundle.writestr("New/model.glb", b"glTF")
+            pack = {
+                "source": "test",
+                "slug": "new",
+                "name": "New",
+                "author": "Author",
+                "version": "1.0",
+                "archive": archive.name,
+                "sha256": MODULE.file_digest(archive),
+                "source_page": "https://example.invalid/new",
+                "license_path": "New/License.txt",
+                "categories": ["Props"],
+                "tags": ["new"],
+            }
+            output = root / "catalog.json"
+            output.write_text(json.dumps({
+                "schema_version": 1,
+                "license_policy": "cc0-only",
+                "error_count": 0,
+                "packs": [{
+                    "pack_id": "test:preserved",
+                    "model_file_count": 1,
+                    "unique_model_name_count": 1,
+                    "total_bytes": 5,
+                }],
+            }), encoding="utf-8")
+
+            with mock.patch.object(MODULE, "PACKS", (pack,)):
+                result = MODULE.main([
+                    "--vault", str(vault),
+                    "--inbox", str(inbox),
+                    "--catalog-output", str(output),
+                    "--pack", "new",
+                    "--merge-existing",
+                ])
+
+            self.assertEqual(0, result)
+            catalog = json.loads(output.read_text(encoding="utf-8"))
+            self.assertEqual(2, catalog["pack_count"])
+            self.assertEqual(["test:new", "test:preserved"], [item["pack_id"] for item in catalog["packs"]])
+
+    def test_medieval_collection_pins_five_cataloged_archives(self) -> None:
+        repository = SCRIPT.parents[2]
+        manifest = json.loads(
+            (repository / "asset_manifests" / "packs" / "medieval.json").read_text(encoding="utf-8")
+        )
+        catalog_packs = {}
+        for relative in manifest["source_catalogs"]:
+            catalog = json.loads((repository / relative).read_text(encoding="utf-8"))
+            catalog_packs.update({item["pack_id"]: item for item in catalog["packs"]})
+
+        self.assertEqual("Médiéval", manifest["display_name"])
+        self.assertEqual(5, manifest["archive_count"])
+        self.assertEqual(5, len(manifest["source_pack_ids"]))
+        self.assertEqual(manifest["source_pack_ids"], [item["pack_id"] for item in manifest["archives"]])
+        for archive in manifest["archives"]:
+            catalog_pack = catalog_packs[archive["pack_id"]]
+            self.assertEqual(archive["sha256"], catalog_pack["archive_sha256"])
+            self.assertEqual(archive["model_file_count"], catalog_pack["model_file_count"])
+            self.assertEqual(archive["logical_model_count"], catalog_pack["unique_model_name_count"])
+        self.assertEqual(manifest["archive_bytes"], sum(item["bytes"] for item in manifest["archives"]))
+        self.assertEqual(manifest["model_file_count"], sum(item["model_file_count"] for item in manifest["archives"]))
+        self.assertEqual(manifest["logical_model_count"], sum(item["logical_model_count"] for item in manifest["archives"]))
 
 
 if __name__ == "__main__":

@@ -386,7 +386,7 @@ internal sealed partial class StudioSessionController
             var fingerprint = new string('b', 64);
             var fixture = draft with
             {
-                ServerName = "Forgotten Forest · dédié local",
+                ServerName = "Crypte des Cendres · dédié local",
                 ServerPort = draft.ServerPort == 5122 ? 5123 : 5122,
                 ServerCapacity = 24,
                 DedicatedRequired = true,

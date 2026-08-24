@@ -10,8 +10,8 @@ Compléter les tests automatisés par une observation réelle du résultat utili
 ## Préparer la revue
 
 1. Lire les critères d'acceptation visuels et le document du sous-système.
-2. Identifier le bon scénario : Toolset, runtime générique, module ou Forgotten Forest.
-3. Utiliser les scripts existants adaptés, notamment `scripts/Open-Toolset.ps1`, `scripts/Run-Prototype.ps1`, `scripts/Run-ForgottenForest.ps1` et `scripts/Capture-ForgeWindow.ps1`.
+2. Identifier le bon scénario : Toolset, runtime générique, module ou démonstration 3D.
+3. Utiliser les scripts existants adaptés, notamment `scripts/Open-Toolset.ps1`, `scripts/Run-Prototype.ps1` et `scripts/Capture-ForgeWindow.ps1`.
 4. Réutiliser un build déjà validé quand il correspond au changement ; ne pas présenter un frontend ou une scène partielle comme l'application complète.
 
 ## Observer le comportement réel

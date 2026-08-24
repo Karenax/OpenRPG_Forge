@@ -53,7 +53,7 @@ runner CI distant, shell arbitraire ou changement Git n'est déclenché.
   `merge_conflict`, `preserve_both`, `worktrees`, `ci`, `fixtures`, `dry_run`, `stale_guard`,
   `undo_redo`, `persistence`, `neighbors`, `ui`, `human`, `resources_released`,
   `source_unchanged` et `surface_restored` à `true` ;
-- captures Forward+ **1920×1080** sur Forgotten Forest réel, inspectées : la vue Merge montre les
+- captures Forward+ **1920×1080** sur Crypte des Cendres réel, inspectées : la vue Merge montre les
   deux variantes, les conflits liste/graphe et le remappage ; la vue Gouvernance montre le profil,
   les sept contrôles CI, les cinq fixtures, le verdict sec et les cinq actions sans clipping ;
 - portail incrémental complet : **PASS en 538,11 s** — build 1,31 s, tests Domain 1,52 s,

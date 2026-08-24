@@ -73,7 +73,7 @@ dans `docs/acceptance/STUDIO_UX2_A.md`.
   faute de catalogues projet canoniques : ces lignes restent explicitement « Non évalué » ;
 - les scripts ne sont exécutés que dans les bridges réellement branchés ; ailleurs, le Studio
   annonce compilation, projection ou binding observé ;
-- Forgotten Forest reste vide pour les familles absentes ; les rencontres riches vivent uniquement
+- Crypte des Cendres reste vide pour les familles absentes ; les rencontres riches vivent uniquement
   dans une session temporaire isolée.
 
 ## Reproduction

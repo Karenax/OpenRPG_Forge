@@ -50,7 +50,7 @@ Lot stable : `R036` / `FC-EE-P0-01` — trois fonctions, aucune fonction hors lo
   `docs/aurora-parity/evidence/r036-ee-build-ui.png` montre le graphe, le plan incrémental, deux tâches,
   la borne de quatre tâches parallèles et l’empreinte d’ordre déterministe ;
 - benchmark navigation déterministe via `PerformanceQualityService`/`WorkspacePerformanceLabService`
-  et métriques de reconstruction/requête émises par le runtime Forgotten Forest ;
+  et métriques de reconstruction/requête émises par le runtime Asset Vault ;
 - tracker, backlog, graphe Roslyn et portail intégré régénérés avant ouverture de R037.
 
 ## Validation de palier

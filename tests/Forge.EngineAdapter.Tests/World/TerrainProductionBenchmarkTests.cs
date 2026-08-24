@@ -33,7 +33,7 @@ public sealed class TerrainProductionBenchmarkTests
     }
 
     private static TerrainProductionBenchmarkSample RepresentativeSample() => new(
-        "forgotten-forest",
+        "representative-exterior",
         128,
         128,
         1_089,

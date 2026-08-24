@@ -641,7 +641,7 @@ internal sealed partial class StudioNetworkClosureWorkbenchUx9O : ColorRect
 
     private void ConfigureEvidenceUx9O(string mode)
     {
-        _serverName.Text = "Forgotten Forest · dédié local";
+        _serverName.Text = "Crypte des Cendres · dédié local";
         _serverPort.Value = 5122;
         _serverCapacity.Value = 24;
         _dedicatedRequired.ButtonPressed = true;

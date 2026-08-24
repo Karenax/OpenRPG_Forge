@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "pack_id": "asset-vault-kaykit-knight",
+  "version": "1.0.0",
+  "display_name": "Dawn Watch Knight",
+  "source_catalog": "asset_manifests/catalogs/kaykit_animated_characters.json",
+  "source_pack_id": "kaykit:character-pack-adventures-1.0",
+  "license": "CC0-1.0",
+  "key": "knight",
+  "model_path": "addons/kaykit_character_pack_adventures/Characters/gltf/Knight.glb",
+  "scale_meters": 1.0,
+  "rig": "kaykit-rig-medium-41",
+  "expected_bone_count": 41,
+  "animation_profile": "kaykit-adventurer",
+  "clips": {
+    "idle": "Idle",
+    "run": "Running_A",
+    "jump": "Jump_Full_Short",
+    "attack": "1H_Melee_Attack_Slice_Horizontal",
+    "hit": "Hit_A",
+    "death": "Death_A"
+  },
+  "tags": ["animated", "character", "fantasy", "forest", "hero", "knight", "stylized"]
+}

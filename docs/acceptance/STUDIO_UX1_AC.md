@@ -45,7 +45,7 @@ d'occupation. L'aperçu annonce exactement les facettes actives sans prétendre 
 ## Limites honnêtes
 
 - un Trigger sans Foundation reste bloqué dans le produit avec renvoi vers UX1-Y ; la preuve sur
-  Forgotten Forest utilise uniquement une session temporaire isolée et supprimée à la fermeture ;
+  Crypte des Cendres utilise uniquement une session temporaire isolée et supprimée à la fermeture ;
 - Foundation, Portal, Validation, transform, overrides et profils voisins sont préservés mais non
   éditables ; `ORF-TRG-003` n'est pas promu ;
 - factions et événements sont saisis par noms lisibles, mais le lot ne construit pas de relation de

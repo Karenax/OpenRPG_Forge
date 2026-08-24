@@ -55,7 +55,13 @@ internal sealed partial class StudioWorkspaceShell
         var originalProject = _session.Project;
         var originalSelection = _session.SelectedEntityIds.ToArray();
         var originalActive = _session.SelectedEntityId;
-        var entities = _session.ActiveArea!.Entities.Take(3).ToArray();
+        var activeEntities = _session.ActiveArea!.Entities;
+        var entities = activeEntities.Where(entity => entity.Transform.Scale == Vector3Value.One)
+            .Take(3).ToArray();
+        if (entities.Length < 3)
+        {
+            entities = activeEntities.Take(3).ToArray();
+        }
         if (entities.Length < 3)
         {
             GD.PrintErr("OPENRPG_FORGE_STUDIO_UX0C_FAILED reason=entities_missing");
@@ -109,11 +115,13 @@ internal sealed partial class StudioWorkspaceShell
         _session.ConfigureViewportMode(EditorViewportMode.Editing, persist: false);
         WorldViewport.SetViewportMode(EditorViewportMode.Editing);
         WorldViewport.RefreshManipulationProfile();
+        var humanTransformToolbar = WorldViewport.RunHumanTransformToolbarEvidence();
 
         var ids = entities.Select(entity => entity.Id).ToArray();
         var multiSelected = _session.SelectEntities(ids, ids[1]);
         WorldViewport.SetSelections(_session.SelectedEntityIds, _session.SelectedEntityId);
         var selectionVisible = WorldViewport.SelectedEntityCount == 3;
+        var humanPicking = WorldViewport.RunHumanPickingRegressionEvidence();
 
         var lockedSelection = new EditorSelectionConfiguration(
             selection.Id,
@@ -262,7 +270,8 @@ internal sealed partial class StudioWorkspaceShell
 
         var valid = modesValid && navigationOverlay && collisionOverlay &&
                     directPreview.Succeeded && directApply.Succeeded &&
-                    multiSelected && selectionVisible && WorldViewport.ScaleGizmoHandleCount == 4 &&
+                    humanTransformToolbar && humanPicking && multiSelected && selectionVisible &&
+                    WorldViewport.ScaleGizmoHandleCount == 4 &&
                     lockApply.Succeeded && workspaceUndo.Succeeded && lockUndone &&
                     workspaceRedo.Succeeded && lockRedone &&
                     translationPreview.Succeeded && projectUnchangedByPreview && translated &&
@@ -278,6 +287,8 @@ internal sealed partial class StudioWorkspaceShell
             $"collision_overlay={collisionOverlay.ToString().ToLowerInvariant()} camera_views={cameraViews} " +
             $"camera_undo={(cameraUndo && cameraRedo).ToString().ToLowerInvariant()} " +
             $"camera_roundtrip={roundTrip.ToString().ToLowerInvariant()} selection={ids.Length} " +
+            $"human_toolbar={humanTransformToolbar.ToString().ToLowerInvariant()} " +
+            $"human_picker={humanPicking.ToString().ToLowerInvariant()} " +
             $"lock={lockRedone.ToString().ToLowerInvariant()} translate={translated.ToString().ToLowerInvariant()} " +
             $"rotate={rotated.ToString().ToLowerInvariant()} scale={scaled.ToString().ToLowerInvariant()} " +
             $"alignment={aligned.ToString().ToLowerInvariant()} " +

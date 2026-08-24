@@ -66,25 +66,33 @@ internal partial class LauncherWindow
             BackdropImage.Source = LoadBitmap(verification.BackgroundImagePath);
 
         ResolutionSelector.ItemsSource = Resolutions.Select(item => item.Label).ToArray();
-        WindowModeSelector.ItemsSource = new[] { "Fenêtré", "Sans bordure", "Plein écran" };
+        WindowModeSelector.ItemsSource = new[]
+        {
+            "Fenêtré · barre de titre",
+            "Plein écran · sans bordure",
+            "Plein écran",
+        };
         QualitySelector.ItemsSource = new[] { "Faible", "Moyenne", "Élevée", "Ultra" };
         LoadSettings(settings);
         ShowPageImmediately("home");
         _initializing = false;
         UpdateModeControls();
+        UpdateWindowModeHint();
         StateChanged += (_, _) => MaximizeButton.Content = WindowState == WindowState.Maximized ? "❐" : "□";
     }
 
-    public async Task CapturePreviewAsync(string path, string page)
+    public async Task CapturePreviewAsync(string path, string page, int width = 1440, int height = 860)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        if (width < 1180 || height < 720 || width > 3840 || height > 2160)
+            throw new ArgumentOutOfRangeException(nameof(width), "La capture du lanceur doit rester entre 1180 × 720 et 3840 × 2160.");
         _captureMode = true;
         _reduceMotion = true;
         WindowStartupLocation = WindowStartupLocation.Manual;
         Left = -32_000;
         Top = -32_000;
-        Width = 1360;
-        Height = 800;
+        Width = width;
+        Height = height;
         ResizeMode = ResizeMode.NoResize;
         Show();
         ShowPageImmediately(NormalizePage(page));
@@ -93,9 +101,9 @@ internal partial class LauncherWindow
 
         var destination = Path.GetFullPath(path);
         Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
-        var width = Math.Max(1, (int)Math.Ceiling(RootVisual.ActualWidth));
-        var height = Math.Max(1, (int)Math.Ceiling(RootVisual.ActualHeight));
-        var bitmap = new RenderTargetBitmap(width, height, 96, 96, PixelFormats.Pbgra32);
+        var renderWidth = Math.Max(1, (int)Math.Ceiling(RootVisual.ActualWidth));
+        var renderHeight = Math.Max(1, (int)Math.Ceiling(RootVisual.ActualHeight));
+        var bitmap = new RenderTargetBitmap(renderWidth, renderHeight, 96, 96, PixelFormats.Pbgra32);
         bitmap.Render(RootVisual);
         var encoder = new PngBitmapEncoder();
         encoder.Frames.Add(BitmapFrame.Create(bitmap));
@@ -479,6 +487,7 @@ internal partial class LauncherWindow
     private void OnSettingsChanged(object sender, RoutedEventArgs eventArgs)
     {
         if (_initializing) return;
+        UpdateWindowModeHint();
         try
         {
             UpdateLaunchSummary(ReadSettings());
@@ -487,6 +496,17 @@ internal partial class LauncherWindow
         {
             // Validation is reported on save or launch.
         }
+    }
+
+    private void UpdateWindowModeHint()
+    {
+        if (WindowModeHintText is null) return;
+        WindowModeHintText.Text = WindowModeSelector.SelectedIndex switch
+        {
+            1 => "Occupe tout l’écran sans barre de titre. Ce mode ne se déplace pas.",
+            2 => "Plein écran dédié. Utilisez Alt+Tab pour revenir au bureau.",
+            _ => "Fenêtre classique avec barre de titre, déplaçable et redimensionnable. La taille reste dans la zone visible.",
+        };
     }
 
     private void OnVolumeChanged(object sender, RoutedPropertyChangedEventArgs<double> eventArgs)

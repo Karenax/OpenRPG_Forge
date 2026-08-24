@@ -83,7 +83,7 @@ static async Task<int> RunSelfTestAsync(ForgeProjectAgentService project)
     var diagnostics = project.GetDiagnostics();
     var assets = project.GetAssets(new Forge.Mcp.Assets.AgentAssetCatalogQuery(MaximumResults: 1));
     if (!sandbox.Succeeded || !first.Succeeded || !second.Succeeded || diagnostics.Count > 0 ||
-        assets.CatalogCount != 673 || assets.Diagnostics.Count > 0)
+        assets.CatalogCount != 674 || assets.Diagnostics.Count > 0)
     {
         Console.Error.WriteLine("OPENRPG_FORGE_MCP_HOST_SMOKE_FAILED");
         return 4;

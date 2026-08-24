@@ -4,7 +4,7 @@
 UX8 atteint ainsi **26/51** routes accessibles dans Studio.
 
 La page `production` expose les dépendances, notices, crédits et frontières IP du module réellement
-ouvert. Forgotten Forest ne déclare actuellement aucune dépendance et ne possède pas de registre de
+ouvert. Crypte des Cendres ne déclare actuellement aucune dépendance et ne possède pas de registre de
 gouvernance d’asset : ces deux états vides restent affichés tels quels, sans synthèse produit. Une
 approbation riche est créée uniquement dans la session de preuve isolée afin d’exercer la transaction
 complète sans modifier la source.
@@ -55,7 +55,7 @@ complète sans modifier la source.
   approbation, notices, crédits, frontière IP, annulation, journaux, dry-run, commande, gardes stale,
   undo/redo, persistance, voisins, navigation, libération, UI, surface humaine, source inchangée et
   restauration de surface à `true` ;
-- capture Forward+ **1920×1080** sur Forgotten Forest réel, inspectée : formulaire complet, aperçu
+- capture Forward+ **1920×1080** sur Crypte des Cendres réel, inspectée : formulaire complet, aperçu
   sec, patch/inverse, empreinte de notice et cinq actions visibles sans clipping ni UUID ;
 - portail incrémental complet : **PASS en 534,72 s** — build 1,22 s, tests Domain 1,62 s,
   Application 2,60 s et ModuleFormat 4,21 s, smoke 410,37 s, capture 8,18 s, matrice 0,87 s,

@@ -1,10 +1,10 @@
 {
-  "catalog_date": "2026-08-21",
+  "catalog_date": "2026-08-24",
   "error_count": 0,
   "errors": [],
   "license_policy": "cc0-only",
-  "model_file_count": 1190,
-  "pack_count": 8,
+  "model_file_count": 1196,
+  "pack_count": 9,
   "packs": [
     {
       "archive_entry_count": 48,
@@ -3370,6 +3370,82 @@
       "version": "Standard-2.1"
     },
     {
+      "archive_entry_count": 19,
+      "archive_sha256": "4008ea208a604773a2b2177d965f0f5d3195498b5bf838c3f5785d68e95f2a68",
+      "archive_uncompressed_bytes": 72807306,
+      "attribution_required": false,
+      "author": "Quaternius",
+      "catalog_date": "2026-08-24",
+      "categories": [
+        "Animations",
+        "Characters",
+        "Weapons"
+      ],
+      "extracted_files": [
+        "Universal Animation Library 2[Standard]/Female Mannequin/Mannequin_F.blend",
+        "Universal Animation Library 2[Standard]/Female Mannequin/README.txt",
+        "Universal Animation Library 2[Standard]/Female Mannequin/Unity/Mannequin_F.fbx",
+        "Universal Animation Library 2[Standard]/Female Mannequin/Unreal-Godot/Mannequin_F.glb",
+        "Universal Animation Library 2[Standard]/Godot_Setup.png",
+        "Universal Animation Library 2[Standard]/License.txt",
+        "Universal Animation Library 2[Standard]/README.txt",
+        "Universal Animation Library 2[Standard]/Unity/UAL2_Standard.fbx",
+        "Universal Animation Library 2[Standard]/Unity/UAL2_Standard_RM.fbx",
+        "Universal Animation Library 2[Standard]/Unity_Setup.png",
+        "Universal Animation Library 2[Standard]/Unreal-Godot/UAL2_Standard.glb",
+        "Universal Animation Library 2[Standard]/Unreal-Godot/UAL2_Standard_RM.glb",
+        "Universal Animation Library 2[Standard]/Unreal_Setup.png"
+      ],
+      "extracted_root": "normalized/quaternius/universal-animation-library-2-standard-2026-06-16",
+      "files": [
+        {
+          "path": "originals/quaternius/universal-animation-library-2-standard-2026-06-16/Universal Animation Library 2[Standard].zip",
+          "sha256": "4008ea208a604773a2b2177d965f0f5d3195498b5bf838c3f5785d68e95f2a68",
+          "size": 18735003,
+          "source_md5": null,
+          "url": "https://quaternius.itch.io/universal-animation-library-2"
+        }
+      ],
+      "license": "CC0-1.0",
+      "license_evidence_files": [
+        "Universal Animation Library 2[Standard]/License.txt"
+      ],
+      "license_url": "https://quaternius.itch.io/universal-animation-library-2",
+      "license_verification": "archive-and-official-page",
+      "license_verified": true,
+      "model_file_count": 6,
+      "model_files": [
+        "Universal Animation Library 2[Standard]/Female Mannequin/Unity/Mannequin_F.fbx",
+        "Universal Animation Library 2[Standard]/Female Mannequin/Unreal-Godot/Mannequin_F.glb",
+        "Universal Animation Library 2[Standard]/Unity/UAL2_Standard.fbx",
+        "Universal Animation Library 2[Standard]/Unity/UAL2_Standard_RM.fbx",
+        "Universal Animation Library 2[Standard]/Unreal-Godot/UAL2_Standard.glb",
+        "Universal Animation Library 2[Standard]/Unreal-Godot/UAL2_Standard_RM.glb"
+      ],
+      "name": "Universal Animation Library 2",
+      "normalized_repairs": [],
+      "pack_id": "quaternius:universal-animation-library-2-standard-2026-06-16",
+      "preview_files": [],
+      "retrieved_at": "2026-08-24T16:29:52Z",
+      "schema_version": 1,
+      "source": "quaternius",
+      "source_page": "https://quaternius.itch.io/universal-animation-library-2",
+      "status": "downloaded-and-extracted",
+      "tags": [
+        "animation",
+        "humanoid",
+        "combat",
+        "locomotion",
+        "parkour",
+        "farming",
+        "root-motion",
+        "medieval"
+      ],
+      "total_bytes": 18735003,
+      "unique_model_name_count": 3,
+      "version": "Standard-2026-06-16-root-motion"
+    },
+    {
       "archive_entry_count": 128,
       "archive_sha256": "fdbf1804c90dfc1ea03e992bff7da2dfd1a79318e13270a660180f9308455f40",
       "archive_uncompressed_bytes": 132571039,
@@ -3599,7 +3675,7 @@
   ],
   "schema_version": 1,
   "source": "manual-itch-cc0",
-  "total_bytes": 463485351,
-  "unique_model_name_count": 327,
+  "total_bytes": 482220354,
+  "unique_model_name_count": 330,
   "vault_root": "${OPENRPG_ASSET_VAULT}"
 }

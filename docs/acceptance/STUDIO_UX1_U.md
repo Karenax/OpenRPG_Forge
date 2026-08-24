@@ -25,7 +25,7 @@ les événements de contenu suivants, ni une distribution publique.
   `OPENRPG_FORGE_STUDIO_SHELL_PASS sections=8 pages=36 windows=1` ;
 - le smoke contractuel emploie un workspace temporaire avec deux instances du blueprint ciblé, un
   placeable voisin, un verrou canonique et des événements de conteneur voisins à préserver ;
-- le smoke UI applique la fiche au vrai projet Forgotten Forest uniquement en mémoire, l’annule et
+- le smoke UI applique la fiche au vrai projet Crypte des Cendres uniquement en mémoire, l’annule et
   vérifie la restauration exacte du projet ; aucun événement de preuve n’est sauvegardé ;
 - capture Forward+ inspectée dans `artifacts/verification/studio-shell/ux1-u/veto-fhd.png`, avec son
   journal `veto-fhd.png.log`.
@@ -38,7 +38,7 @@ technique n’apparaît dans la surface humaine et l’intitulé de l’aperçu 
 
 La persistance canonique est qualifiée sur le workspace synthétique afin de ne pas modifier le
 contenu authored. La capture réelle prouve l’accès humain et le rendu, pas la présence préalable de
-liaisons sauvegardées dans Forgotten Forest. UX1-U ne changeant ni layout, ni viewport, ni densité,
+liaisons sauvegardées dans Crypte des Cendres. UX1-U ne changeant ni layout, ni viewport, ni densité,
 les preuves QHD et 4K restent réservées au prochain jalon multi-lots.
 
 ### ORF-PLC-017
@@ -84,7 +84,7 @@ sans voie d’écriture directe.
   conservent leurs lots dédiés ;
 - l’aperçu construit et inspecte le dispatch typé mais n’exécute pas un handler ForgeScript ni une
   mutation de scène ; ces effets relèvent du runtime autoritaire ;
-- Forgotten Forest fournit le catalogue et la scène réels, pas des liaisons de preuve nouvellement
+- Crypte des Cendres fournit le catalogue et la scène réels, pas des liaisons de preuve nouvellement
   sauvegardées ; cette absence initiale est présentée explicitement dans l’interface ;
 - l’application demeure en mémoire jusqu’à l’enregistrement explicite ;
 - le portail complet est une qualification locale, pas une release signée ou publiée ;

@@ -12,7 +12,7 @@ Cet audit ne change aucun statut fonctionnel du tracker et n'implémente aucun c
 - tracker projet généré `tracking/project/AURORA_PARITY_COVERAGE.csv` ;
 - 168 fiches existantes sous `docs/aurora-parity/tasks/` ;
 - `PROJECT_CONTEXT.md`, `STATUS.md`, `TASKS_MVP.md`, la roadmap et le plan de livraison Aurora ;
-- backlog et état Asset Vault/Forgotten Forest ;
+- backlog et état Asset Vault/Crypte des Cendres ;
 - code, tests et preuves uniquement par les liens déjà portés par le tracker et le portail intégré.
 
 Le catalogue source et le tracker contiennent chacun 717 IDs uniques, sans manque ni ajout.
@@ -23,7 +23,7 @@ Le catalogue source et le tracker contiennent chacun 717 IDs uniques, sans manqu
 - les gates verticaux G0 à G13, leurs démonstrations Creator, RPG, réseau, Live Director, contenu
   moderne et création assistée ;
 - deux modules jouables, l'export `.orpmod`, les sauvegardes, ForgeScript, MCP et le runtime 3D ;
-- Forgotten Forest 512 × 512, personnages animés, navigation, assets gouvernés et Asset Atlas ;
+- Crypte des Cendres 512 × 512, personnages animés, navigation, assets gouvernés et Asset Atlas ;
 - un portail local intégré avec build, tests, smokes, graphes, assets, réseau et exports.
 
 Ces résultats prouvent des parcours utilisables. Ils ne prouvent pas automatiquement tous les

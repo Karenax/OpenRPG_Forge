@@ -18,7 +18,7 @@ localisée et la définition visuelle d’un placeable directement éditables da
 - le même lancement termine par `OPENRPG_FORGE_STUDIO_SHELL_PASS sections=8 pages=36 windows=1` ;
 - le smoke contractuel crée un workspace temporaire avec deux instances, modifie une fiche existante,
   compare le profil direct à la commande canonique, applique, annule, rétablit, sauvegarde et rouvre ;
-- le smoke UI applique identité, langues et apparence depuis l’overlay réel de Forgotten Forest,
+- le smoke UI applique identité, langues et apparence depuis l’overlay réel de Crypte des Cendres,
   puis annule et restaure exactement le projet courant ;
 - captures et journaux Forward+ inspectés dans `artifacts/verification/studio-shell/ux1-i/` :
   `identity-fhd.png` en 1920×1080, `localization-qhd.png` en 2560×1440 et `appearance-4k.png`

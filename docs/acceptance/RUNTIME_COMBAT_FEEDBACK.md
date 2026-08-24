@@ -6,8 +6,8 @@ Dernière validation locale : 15 août 2026.
 
 Le runtime projette désormais chaque `CombatActionResult` résolu vers une couche de présentation
 sans recalculer ni modifier les dégâts, soins, ressources, recharges, décès, butin ou objectifs.
-La tranche verticale de référence est l'attaque réelle `forest-strike` de Forgotten Forest :
-12 dégâts, cible à 22/34 PV, cue `cue.forest-strike` et recharge exacte de 0 seconde. La recharge
+La tranche verticale de référence est l'attaque réelle `warden-strike` de Crypte des Cendres :
+12 dégâts, cible à 22/34 PV, cue `cue.warden-strike` et recharge exacte de 0 seconde. La recharge
 non nulle, le soin, la restauration de ressource et le chip joueur restent des fixtures de
 présentation explicitement marquées hors gameplay.
 
@@ -72,7 +72,7 @@ troncature dans les cadres cible/joueur, plaques, objectif, toasts et prompt d'i
 
 ## Passage interactif
 
-`scripts/Run-ForgottenForest.ps1 -SkipAuthoring` a été rejoué en Forward+ dans une vraie fenêtre :
+`scripts/Run-Prototype.ps1` a été rejoué en Forward+ dans une vraie fenêtre :
 
 - le slot d'attaque sans cible affiche `Aucune cible hostile à portée.` ;
 - l'atlas des six zones s'ouvre et masque le HUD de combat, puis restaure la composition ;
@@ -108,11 +108,11 @@ dotnet test tests\Forge.Application.Tests\Forge.Application.Tests.csproj --confi
   --filter "FullyQualifiedName~Forge.Application.Tests.Combat.CombatFeedbackPresentationServiceTests|FullyQualifiedName~Forge.Application.Tests.Combat.ProceduralCombatFeedbackAudioServiceTests"
 
 & .\scripts\Capture-RuntimeCombatFeedback.ps1 `
-  -WorkspaceRoot .\apps\Forge.Runtime\content\forgotten-forest `
+  -WorkspaceRoot .\apps\Forge.Runtime\content\crypt-of-ashes `
   -OutputRoot .\artifacts\verification\runtime-combat-feedback `
   -Resolutions 1920x1080,2560x1440 `
   -StressFrames 600
 
-& .\scripts\Run-ForgottenForest.ps1 -SkipAuthoring
+& .\scripts\Run-Prototype.ps1
 & .\scripts\Verify.ps1
 ```

@@ -4,7 +4,7 @@ Dernière mise à jour : 5 août 2026.
 
 ## Résultat
 
-Forgotten Forest ne duplique plus une seule peau de démonstration pour tous les rôles. Le joueur,
+Asset Vault ne duplique plus une seule peau de démonstration pour tous les rôles. Le joueur,
 Maëlys, les deux rôdeurs et le Gardien emploient cinq silhouettes fantasy distinctes issues du pack
 KayKit Adventurers : chevalier, mage, voleur, voleur encapuchonné et barbare. Le même contenu
 gouverné est reconstruit dans Creator et dans le runtime.
@@ -30,7 +30,7 @@ dans le module exporté.
 
 ## Contrat des personnages
 
-| Rôle Forgotten Forest | Modèle | Attaque principale |
+| Rôle Asset Vault | Modèle | Attaque principale |
 |---|---|---|
 | joueur | Knight | `1H_Melee_Attack_Slice_Horizontal` |
 | Maëlys | Mage | `Spellcast_Shoot` |
@@ -52,7 +52,7 @@ permettent à chaque rôle de choisir ses clips sans branche spécifique au mod�
 - le runtime charge 18 modèles, cinq variantes animées et 76 pistes ;
 - le benchmark couvre 28 assets, 72 niveaux LOD et seize budgets réussis ;
 - la capture Forward+ rapprochée est
-  `artifacts/verification/forgotten-forest-av6b-forward-plus.png`.
+  `artifacts/verification/asset-vault-av6b-forward-plus.png`.
 
 ## Limites explicites
 

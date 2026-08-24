@@ -4,7 +4,7 @@
 UX8 atteint ainsi **31/51** routes accessibles dans Studio.
 
 La page `packages` expose le catalogue de packages du module ouvert, son ordre de priorité, ses
-dépendances et sa compilation canonique. Forgotten Forest possède actuellement un catalogue vide :
+dépendances et sa compilation canonique. Crypte des Cendres possède actuellement un catalogue vide :
 la surface produit conserve cet état et n’ajoute rien implicitement. Les deux packages visibles dans
 la preuve sont un brouillon local ; la transaction complète est exercée uniquement dans un workspace
 temporaire isolé, sans modifier la source.

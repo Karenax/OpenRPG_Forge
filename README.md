@@ -4,13 +4,12 @@ OpenRPG Forge est un projet de moteur, runtime et toolset à code source disponi
 3D modulaires. Il vise une expérience de création accessible, un domaine RPG indépendant du moteur,
 des modules partageables et une assistance IA facultative et transactionnelle.
 
-Le dépôt contient désormais deux **prototypes fonctionnels** : la Crypte des Cendres et la carte
-extérieure Forgotten Forest. La solution C# compilable fournit
-domaine versionné, application de création **Forge**, runtime 3D jouable, ForgeScript natif, archives
-`.orpmod`, sauvegarde/reprise et host MCP transactionnel. La commande `scripts/Verify.ps1` valide
-l’ensemble localement. Forgotten Forest ajoute terrain canonique 512 × 512 m, caméra orbitale,
-4 617 instances de biome issues de 13 recettes, 17 modèles Poly Haven CC0 gouvernés, rivière
-animée, navigation de surface, quête, combat et export autonome. La tranche verticale G0 à G13 est
+Le dépôt contient un **module canonique** : la tranche verticale jouable Crypte des Cendres. La
+solution C# compilable fournit domaine versionné,
+application de création **Forge**, runtime 3D jouable, ForgeScript natif, archives `.orpmod`,
+sauvegarde/reprise et host MCP transactionnel. La commande `scripts/Verify.ps1` valide l’ensemble
+localement. Les outils génériques de terrain, biome forestier et gouvernance d’assets restent
+disponibles sans imposer un module de démonstration extérieur. La tranche verticale G0 à G13 est
 fermée et les 717 exigences Aurora sont actuellement au statut `Tested`. Le chantier actif est la
 consolidation de la CI, de l’interface, de la distribution et de la qualité visuelle.
 
@@ -74,21 +73,6 @@ Commandes :
 - `F5` / `F9` : sauvegarder / reprendre le checkpoint rapide.
 
 Le parcours actuel permet de parler à Elyra, récupérer la Clé de braise, ouvrir la porte, combattre la Sentinelle puis le Gardien des Cendres, déclencher sa phase 2 et terminer la quête.
-
-Pour lancer la carte extérieure **Forgotten Forest** :
-
-```powershell
-.\scripts\Run-ForgottenForest.ps1
-```
-
-Le lanceur régénère de façon idempotente le module et ses crédits depuis le Vault CC0, compile le
-runtime puis ouvre la carte en Forward+. Le Vault original reste inchangé. Forgotten Forest permet
-de se déplacer sur un terrain 512 × 512 m avec des contrôles MMO modernes, d’orbiter et zoomer la caméra, de suivre le sentier,
-parler à Maëlys, trouver la Graine de lune, ouvrir le Passage des Ronces et affronter le Gardien des
-Racines. Le ruisseau est animé, ses dix volumes appliquent nage et courant, et le chemin de
-navigation relie le camp au sanctuaire en respectant la traversée du pont. Commandes caméra : clic
-gauche pour orbiter librement, clic droit pour orienter caméra et personnage, molette pour zoomer,
-`Début`/`Fin` pour tourner au clavier.
 
 ## Parcourir tous les modèles du Vault
 
@@ -265,7 +249,7 @@ Ce script exécute :
 - smoke test de l’application de création dans le moteur 3D ;
 - export/validation `.orpmod` ;
 - scénario runtime headless complet piloté par l'agent MCP ;
-- export, validation et rechargement headless de Forgotten Forest avec ses assets gouvernés ;
+- export, validation et rechargement headless de la Crypte des Cendres avec ses assets gouvernés ;
 - sauvegarde dans un premier processus puis reprise/fin de quête dans un second.
 
 Voir [`docs/ENVIRONMENT.md`](docs/ENVIRONMENT.md) pour les versions locales utilisées.
