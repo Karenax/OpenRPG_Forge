@@ -55,3 +55,39 @@ function Get-ForgeBlenderPath {
 
     throw 'Blender est introuvable. Installer Blender LTS ou définir OPENRPG_BLENDER.'
 }
+
+function Invoke-ForgeProjectImport {
+    param(
+        [Parameter(Mandatory)][string]$EnginePath,
+        [Parameter(Mandatory)][string]$ProjectPath,
+        [Parameter(Mandatory)][string]$LogPath,
+        [int]$TimeoutSeconds = 180
+    )
+
+    $resolvedEngine = [System.IO.Path]::GetFullPath($EnginePath)
+    $resolvedProject = [System.IO.Path]::GetFullPath($ProjectPath)
+    $resolvedLog = [System.IO.Path]::GetFullPath($LogPath)
+    if (-not (Test-Path -LiteralPath $resolvedEngine -PathType Leaf)) {
+        throw "Godot import engine is missing: $resolvedEngine"
+    }
+    if (-not (Test-Path -LiteralPath (Join-Path $resolvedProject 'project.godot') -PathType Leaf)) {
+        throw "Godot import project is invalid: $resolvedProject"
+    }
+    [System.IO.Directory]::CreateDirectory((Split-Path -Parent $resolvedLog)) | Out-Null
+
+    $process = Start-Process -FilePath $resolvedEngine -ArgumentList @(
+        '--headless', '--import', '--path', "`"$resolvedProject`"", '--log-file', "`"$resolvedLog`""
+    ) -WorkingDirectory $resolvedProject -PassThru -WindowStyle Hidden
+    if (-not $process.WaitForExit($TimeoutSeconds * 1000)) {
+        Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue
+        throw "Godot import exceeded $TimeoutSeconds seconds. Log: $resolvedLog"
+    }
+    if ($process.ExitCode -ne 0) {
+        throw "Godot import failed with exit code $($process.ExitCode). Log: $resolvedLog"
+    }
+    if (-not (Test-Path -LiteralPath (Join-Path $resolvedProject '.godot') -PathType Container)) {
+        throw "Godot import did not create its project cache. Log: $resolvedLog"
+    }
+
+    Write-Host "OPENRPG_FORGE_GODOT_IMPORT_PASS project=$resolvedProject"
+}

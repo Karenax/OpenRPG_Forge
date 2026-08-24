@@ -8,7 +8,7 @@ param(
     [ValidateSet('Auto', 'Core', 'Studio', 'Runtime', 'Assets', 'Network', 'Distribution', 'Full')]
     [string]$Profile = 'Auto',
     [string]$Page = 'zones',
-    [string]$Evidence = 'studio-increment',
+    [string]$Evidence = 'ux1-aa-verbs',
     [ValidateSet('Route', 'Wave', 'Full')]
     [string]$StudioSmokeScope = 'Route',
     [ValidateSet('Studio', 'Runtime', 'All')]

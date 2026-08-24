@@ -1,6 +1,25 @@
 name: Architecture graph
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "**/*.cs"
+      - "**/*.csproj"
+      - "OpenRPGForge.sln"
+      - "Directory.Build.props"
+      - "Directory.Packages.props"
+      - "tools/Forge.ArchitectureGraph/**"
+      - ".github/workflows/architecture-graph.yml"
+  pull_request:
+    paths:
+      - "**/*.cs"
+      - "**/*.csproj"
+      - "OpenRPGForge.sln"
+      - "Directory.Build.props"
+      - "Directory.Packages.props"
+      - "tools/Forge.ArchitectureGraph/**"
+      - ".github/workflows/architecture-graph.yml"
   workflow_dispatch:
 
 permissions:
@@ -9,12 +28,13 @@ permissions:
 jobs:
   architecture-graph:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Set up .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           global-json-file: global.json
 

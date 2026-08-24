@@ -596,11 +596,9 @@ internal sealed partial class StudioBulkTransferWorkbenchUx8K : ColorRect
             if (_evidenceRoot is not null && Directory.Exists(_evidenceRoot))
                 Directory.Delete(_evidenceRoot, recursive: true);
         }
-        catch (IOException)
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-        }
-        catch (UnauthorizedAccessException)
-        {
+            Godot.GD.PrintErr("OPENRPG_FORGE_STUDIO_UX8K_EVIDENCE_CLEANUP_FAILED " + exception.Message);
         }
         _evidenceResourcesReleased = _evidenceRoot is null || !Directory.Exists(_evidenceRoot);
         _evidenceRoot = null;

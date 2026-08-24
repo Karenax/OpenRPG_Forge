@@ -1828,32 +1828,30 @@ public sealed class ForgeProjectAgentService
     public AssistedAreaPlanProposalResource ProposeAssistedAreaPlan(AssistedAreaPlanProposalRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        lock (_gate)
-        {
-            if (request.SchemaVersion != 1)
-                return new(false, null, "no-change", string.Empty, 0, 0, 0, false,
-                    [new AgentDiagnostic("assistant.area_plan.request_invalid", "Area-plan proposal schema is invalid.", "assistant/area-plans")]);
-            var profile = AssistantWorkspaceProfile.CreateDefault();
-            var proposal = AssistedAreaPlanProposalService.ProposeAsync(
-                request.Brief,
-                _history.State.Project,
-                _loreIndexHistory.State.Index,
-                new DeterministicAssistantProvider(profile.ActiveProvider),
-                profile.ActiveProvider,
-                networkAuthorized: false,
-                projectContentAuthorized: false).GetAwaiter().GetResult();
-            return new AssistedAreaPlanProposalResource(
-                proposal.Succeeded,
-                proposal.Plan,
-                proposal.SemanticDiff,
-                proposal.PromptSha256,
-                proposal.InputTokens,
-                proposal.OutputTokens,
-                proposal.EstimatedCostUsd,
-                GeometryApplied: false,
-                proposal.Diagnostics.Select(item =>
-                    new AgentDiagnostic(item.Code, item.Message, "assistant/area-plans")).ToArray());
-        }
+        if (request.SchemaVersion != 1)
+            return new(false, null, "no-change", string.Empty, 0, 0, 0, false,
+                [new AgentDiagnostic("assistant.area_plan.request_invalid", "Area-plan proposal schema is invalid.", "assistant/area-plans")]);
+        var snapshot = CaptureAssistedProposalSnapshot();
+        var profile = AssistantWorkspaceProfile.CreateDefault();
+        var proposal = AssistedAreaPlanProposalService.ProposeAsync(
+            request.Brief,
+            snapshot.Project,
+            snapshot.LoreIndex,
+            new DeterministicAssistantProvider(profile.ActiveProvider),
+            profile.ActiveProvider,
+            networkAuthorized: false,
+            projectContentAuthorized: false).GetAwaiter().GetResult();
+        return new AssistedAreaPlanProposalResource(
+            proposal.Succeeded,
+            proposal.Plan,
+            proposal.SemanticDiff,
+            proposal.PromptSha256,
+            proposal.InputTokens,
+            proposal.OutputTokens,
+            proposal.EstimatedCostUsd,
+            GeometryApplied: false,
+            proposal.Diagnostics.Select(item =>
+                new AgentDiagnostic(item.Code, item.Message, "assistant/area-plans")).ToArray());
     }
 
     public AssistedAreaPlanPlanResult PlanAssistedAreaPlans(AssistedAreaPlanPlanRequest request)
@@ -5821,31 +5819,29 @@ public sealed class ForgeProjectAgentService
     public AssistedDialogueProposalResource ProposeAssistedDialogue(AssistedDialogueProposalRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        lock (_gate)
+        if (request.SchemaVersion != 1)
+            return new(false, null,
+                [new AgentDiagnostic("assistant.dialogue.request_invalid",
+                    "Assisted dialogue proposal schema is invalid.", "assistant/dialogue")]);
+        var snapshot = CaptureAssistedProposalSnapshot();
+        try
         {
-            if (request.SchemaVersion != 1)
-                return new(false, null,
-                    [new AgentDiagnostic("assistant.dialogue.request_invalid",
-                        "Assisted dialogue proposal schema is invalid.", "assistant/dialogue")]);
-            try
-            {
-                var profile = AssistantWorkspaceProfile.CreateDefault();
-                var proposal = AssistedDialogueCreationService.ProposeAsync(
-                    request.Brief,
-                    _history.State.Project,
-                    _loreIndexHistory.State.Index,
-                    new DeterministicAssistantProvider(profile.ActiveProvider),
-                    profile.ActiveProvider,
-                    networkAuthorized: false,
-                    projectContentAuthorized: false).GetAwaiter().GetResult();
-                return new(proposal.Succeeded, proposal,
-                    proposal.Lint.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
-            }
-            catch (ArgumentException exception)
-            {
-                return new(false, null,
-                    [new AgentDiagnostic("assistant.dialogue.brief_invalid", exception.Message, "assistant/dialogue")]);
-            }
+            var profile = AssistantWorkspaceProfile.CreateDefault();
+            var proposal = AssistedDialogueCreationService.ProposeAsync(
+                request.Brief,
+                snapshot.Project,
+                snapshot.LoreIndex,
+                new DeterministicAssistantProvider(profile.ActiveProvider),
+                profile.ActiveProvider,
+                networkAuthorized: false,
+                projectContentAuthorized: false).GetAwaiter().GetResult();
+            return new(proposal.Succeeded, proposal,
+                proposal.Lint.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
+        }
+        catch (ArgumentException exception)
+        {
+            return new(false, null,
+                [new AgentDiagnostic("assistant.dialogue.brief_invalid", exception.Message, "assistant/dialogue")]);
         }
     }
 
@@ -5945,31 +5941,29 @@ public sealed class ForgeProjectAgentService
     public AssistedQuestProposalResource ProposeAssistedQuest(AssistedQuestProposalRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        lock (_gate)
+        if (request.SchemaVersion != 1)
+            return new(false, null,
+                [new AgentDiagnostic("assistant.quest.request_invalid",
+                    "Assisted quest proposal schema is invalid.", "assistant/quest")]);
+        var snapshot = CaptureAssistedProposalSnapshot();
+        try
         {
-            if (request.SchemaVersion != 1)
-                return new(false, null,
-                    [new AgentDiagnostic("assistant.quest.request_invalid",
-                        "Assisted quest proposal schema is invalid.", "assistant/quest")]);
-            try
-            {
-                var profile = AssistantWorkspaceProfile.CreateDefault();
-                var proposal = AssistedQuestCreationService.ProposeAsync(
-                    request.Brief,
-                    _history.State.Project,
-                    _loreIndexHistory.State.Index,
-                    new DeterministicAssistantProvider(profile.ActiveProvider),
-                    profile.ActiveProvider,
-                    networkAuthorized: false,
-                    projectContentAuthorized: false).GetAwaiter().GetResult();
-                return new(proposal.Succeeded, proposal,
-                    proposal.Lint.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
-            }
-            catch (ArgumentException exception)
-            {
-                return new(false, null,
-                    [new AgentDiagnostic("assistant.quest.brief_invalid", exception.Message, "assistant/quest")]);
-            }
+            var profile = AssistantWorkspaceProfile.CreateDefault();
+            var proposal = AssistedQuestCreationService.ProposeAsync(
+                request.Brief,
+                snapshot.Project,
+                snapshot.LoreIndex,
+                new DeterministicAssistantProvider(profile.ActiveProvider),
+                profile.ActiveProvider,
+                networkAuthorized: false,
+                projectContentAuthorized: false).GetAwaiter().GetResult();
+            return new(proposal.Succeeded, proposal,
+                proposal.Lint.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
+        }
+        catch (ArgumentException exception)
+        {
+            return new(false, null,
+                [new AgentDiagnostic("assistant.quest.brief_invalid", exception.Message, "assistant/quest")]);
         }
     }
 
@@ -6070,32 +6064,30 @@ public sealed class ForgeProjectAgentService
     public AssistedBossProposalResource ProposeAssistedBoss(AssistedBossProposalRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        lock (_gate)
+        if (request.SchemaVersion != 1)
+            return new(false, null,
+                [new AgentDiagnostic("assistant.boss.request_invalid",
+                    "Assisted boss proposal schema is invalid.", "assistant/boss")]);
+        var snapshot = CaptureAssistedProposalSnapshot();
+        try
         {
-            if (request.SchemaVersion != 1)
-                return new(false, null,
-                    [new AgentDiagnostic("assistant.boss.request_invalid",
-                        "Assisted boss proposal schema is invalid.", "assistant/boss")]);
-            try
-            {
-                var profile = AssistantWorkspaceProfile.CreateDefault();
-                var proposal = AssistedBossCreationService.ProposeAsync(
-                    request.Brief,
-                    _history.State.Project,
-                    _loreIndexHistory.State.Index,
-                    AvailableForgeScripts(),
-                    new DeterministicAssistantProvider(profile.ActiveProvider),
-                    profile.ActiveProvider,
-                    networkAuthorized: false,
-                    projectContentAuthorized: false).GetAwaiter().GetResult();
-                return new(proposal.Succeeded, proposal,
-                    proposal.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
-            }
-            catch (ArgumentException exception)
-            {
-                return new(false, null,
-                    [new AgentDiagnostic("assistant.boss.brief_invalid", exception.Message, "assistant/boss")]);
-            }
+            var profile = AssistantWorkspaceProfile.CreateDefault();
+            var proposal = AssistedBossCreationService.ProposeAsync(
+                request.Brief,
+                snapshot.Project,
+                snapshot.LoreIndex,
+                AvailableForgeScripts(snapshot.RootDirectory),
+                new DeterministicAssistantProvider(profile.ActiveProvider),
+                profile.ActiveProvider,
+                networkAuthorized: false,
+                projectContentAuthorized: false).GetAwaiter().GetResult();
+            return new(proposal.Succeeded, proposal,
+                proposal.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
+        }
+        catch (ArgumentException exception)
+        {
+            return new(false, null,
+                [new AgentDiagnostic("assistant.boss.brief_invalid", exception.Message, "assistant/boss")]);
         }
     }
 
@@ -6191,32 +6183,30 @@ public sealed class ForgeProjectAgentService
     public AssistedAbilityProposalResource ProposeAssistedAbility(AssistedAbilityProposalRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        lock (_gate)
+        if (request.SchemaVersion != 1)
+            return new(false, null,
+                [new AgentDiagnostic("assistant.ability.request_invalid",
+                    "Assisted ability proposal schema is invalid.", "assistant/ability")]);
+        var snapshot = CaptureAssistedProposalSnapshot();
+        try
         {
-            if (request.SchemaVersion != 1)
-                return new(false, null,
-                    [new AgentDiagnostic("assistant.ability.request_invalid",
-                        "Assisted ability proposal schema is invalid.", "assistant/ability")]);
-            try
-            {
-                var profile = AssistantWorkspaceProfile.CreateDefault();
-                var proposal = AssistedAbilityCreationService.ProposeAsync(
-                    request.Brief,
-                    _history.State.Project,
-                    _loreIndexHistory.State.Index,
-                    AvailableForgeScripts(),
-                    new DeterministicAssistantProvider(profile.ActiveProvider),
-                    profile.ActiveProvider,
-                    networkAuthorized: false,
-                    projectContentAuthorized: false).GetAwaiter().GetResult();
-                return new(proposal.Succeeded, proposal,
-                    proposal.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
-            }
-            catch (ArgumentException exception)
-            {
-                return new(false, null,
-                    [new AgentDiagnostic("assistant.ability.brief_invalid", exception.Message, "assistant/ability")]);
-            }
+            var profile = AssistantWorkspaceProfile.CreateDefault();
+            var proposal = AssistedAbilityCreationService.ProposeAsync(
+                request.Brief,
+                snapshot.Project,
+                snapshot.LoreIndex,
+                AvailableForgeScripts(snapshot.RootDirectory),
+                new DeterministicAssistantProvider(profile.ActiveProvider),
+                profile.ActiveProvider,
+                networkAuthorized: false,
+                projectContentAuthorized: false).GetAwaiter().GetResult();
+            return new(proposal.Succeeded, proposal,
+                proposal.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
+        }
+        catch (ArgumentException exception)
+        {
+            return new(false, null,
+                [new AgentDiagnostic("assistant.ability.brief_invalid", exception.Message, "assistant/ability")]);
         }
     }
 
@@ -6317,29 +6307,27 @@ public sealed class ForgeProjectAgentService
         AssistedBlenderCreationProposalRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        lock (_gate)
+        var snapshot = CaptureAssistedProposalSnapshot();
+        if (request.SchemaVersion != 1)
+            return new(false, snapshot.AssetRevision, null,
+                [new AgentDiagnostic("assistant.blender.request_invalid",
+                    "Assisted Blender proposal schema is invalid.", "assistant/blender")]);
+        try
         {
-            if (request.SchemaVersion != 1)
-                return new(false, _assistedBlenderState.Revision.Value, null,
-                    [new AgentDiagnostic("assistant.blender.request_invalid",
-                        "Assisted Blender proposal schema is invalid.", "assistant/blender")]);
-            try
-            {
-                var profile = AssistantWorkspaceProfile.CreateDefault();
-                var proposal = AssistedBlenderCreationService.ProposeAsync(
-                    request.Brief, _session.RootDirectory, _history.State.Project,
-                    _loreIndexHistory.State.Index, new DeterministicAssistantProvider(profile.ActiveProvider),
-                    profile.ActiveProvider, networkAuthorized: false,
-                    projectContentAuthorized: false).GetAwaiter().GetResult();
-                return new(proposal.Succeeded, _assistedBlenderState.Revision.Value, proposal,
-                    proposal.Diagnostics.Select(code =>
-                        new AgentDiagnostic(code, code, $"assets/assisted-3d/{proposal.Definition.Id:D}")).ToArray());
-            }
-            catch (ArgumentException exception)
-            {
-                return new(false, _assistedBlenderState.Revision.Value, null,
-                    [new AgentDiagnostic("assistant.blender.brief_invalid", exception.Message, "assistant/blender")]);
-            }
+            var profile = AssistantWorkspaceProfile.CreateDefault();
+            var proposal = AssistedBlenderCreationService.ProposeAsync(
+                request.Brief, snapshot.RootDirectory, snapshot.Project,
+                snapshot.LoreIndex, new DeterministicAssistantProvider(profile.ActiveProvider),
+                profile.ActiveProvider, networkAuthorized: false,
+                projectContentAuthorized: false).GetAwaiter().GetResult();
+            return new(proposal.Succeeded, snapshot.AssetRevision, proposal,
+                proposal.Diagnostics.Select(code =>
+                    new AgentDiagnostic(code, code, $"assets/assisted-3d/{proposal.Definition.Id:D}")).ToArray());
+        }
+        catch (ArgumentException exception)
+        {
+            return new(false, snapshot.AssetRevision, null,
+                [new AgentDiagnostic("assistant.blender.brief_invalid", exception.Message, "assistant/blender")]);
         }
     }
 
@@ -6437,35 +6425,33 @@ public sealed class ForgeProjectAgentService
         AssistedModel3DGenerationProposalRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        lock (_gate)
+        var snapshot = CaptureAssistedProposalSnapshot();
+        if (request.SchemaVersion != 1)
+            return new(false, snapshot.AssetRevision, null,
+                [new AgentDiagnostic("assistant.model3d.request_invalid",
+                    "Assisted model 3D proposal schema is invalid.", "assistant/model3d")]);
+        try
         {
-            if (request.SchemaVersion != 1)
-                return new(false, _assistedBlenderState.Revision.Value, null,
-                    [new AgentDiagnostic("assistant.model3d.request_invalid",
-                        "Assisted model 3D proposal schema is invalid.", "assistant/model3d")]);
-            try
-            {
-                IModel3DGenerationProvider provider = request.Brief.Provider.Kind == Model3DProviderKind.DeterministicOffline
-                    ? new DeterministicModel3DGenerationProvider()
-                    : new LoopbackModel3DGenerationProvider(request.Brief.Provider, _model3DHttpClient,
-                        Environment.GetEnvironmentVariable);
-                var proposal = AssistedModel3DGenerationService.ProposeAsync(
-                    request.Brief, _session.RootDirectory, provider, request.NetworkAuthorized)
-                    .GetAwaiter().GetResult();
-                return new(proposal.Succeeded, _assistedBlenderState.Revision.Value, proposal,
-                    proposal.Diagnostics.Select(code => new AgentDiagnostic(code, code,
-                        $"assets/assisted-provider-3d/{proposal.Receipt.Id:D}")).ToArray());
-            }
-            catch (Model3DProviderException exception)
-            {
-                return new(false, _assistedBlenderState.Revision.Value, null,
-                    [new AgentDiagnostic(exception.Code, exception.Message, "assistant/model3d")]);
-            }
-            catch (ArgumentException exception)
-            {
-                return new(false, _assistedBlenderState.Revision.Value, null,
-                    [new AgentDiagnostic("assistant.model3d.brief_invalid", exception.Message, "assistant/model3d")]);
-            }
+            IModel3DGenerationProvider provider = request.Brief.Provider.Kind == Model3DProviderKind.DeterministicOffline
+                ? new DeterministicModel3DGenerationProvider()
+                : new LoopbackModel3DGenerationProvider(request.Brief.Provider, _model3DHttpClient,
+                    Environment.GetEnvironmentVariable);
+            var proposal = AssistedModel3DGenerationService.ProposeAsync(
+                request.Brief, snapshot.RootDirectory, provider, request.NetworkAuthorized)
+                .GetAwaiter().GetResult();
+            return new(proposal.Succeeded, snapshot.AssetRevision, proposal,
+                proposal.Diagnostics.Select(code => new AgentDiagnostic(code, code,
+                    $"assets/assisted-provider-3d/{proposal.Receipt.Id:D}")).ToArray());
+        }
+        catch (Model3DProviderException exception)
+        {
+            return new(false, snapshot.AssetRevision, null,
+                [new AgentDiagnostic(exception.Code, exception.Message, "assistant/model3d")]);
+        }
+        catch (ArgumentException exception)
+        {
+            return new(false, snapshot.AssetRevision, null,
+                [new AgentDiagnostic("assistant.model3d.brief_invalid", exception.Message, "assistant/model3d")]);
         }
     }
 
@@ -6690,32 +6676,30 @@ public sealed class ForgeProjectAgentService
     public AssistedForgeScriptProposalResource ProposeAssistedForgeScript(AssistedForgeScriptProposalRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        lock (_gate)
+        if (request.SchemaVersion != 1)
+            return new(false, null,
+                [new AgentDiagnostic("assistant.script.request_invalid",
+                    "Assisted ForgeScript proposal schema is invalid.", "assistant/script")]);
+        var snapshot = CaptureAssistedProposalSnapshot();
+        try
         {
-            if (request.SchemaVersion != 1)
-                return new(false, null,
-                    [new AgentDiagnostic("assistant.script.request_invalid",
-                        "Assisted ForgeScript proposal schema is invalid.", "assistant/script")]);
-            try
-            {
-                var profile = AssistantWorkspaceProfile.CreateDefault();
-                var proposal = AssistedForgeScriptCreationService.ProposeAsync(
-                    request.Brief,
-                    _session.RootDirectory,
-                    _history.State.Project,
-                    _loreIndexHistory.State.Index,
-                    new DeterministicAssistantProvider(profile.ActiveProvider),
-                    profile.ActiveProvider,
-                    _forgeScriptRuntime,
-                    networkAuthorized: false,
-                    projectContentAuthorized: false).GetAwaiter().GetResult();
-                return new(proposal.Succeeded, proposal, proposal.Diagnostics.Select(MapScript).ToArray());
-            }
-            catch (Exception exception) when (exception is ArgumentException or IOException or UnauthorizedAccessException)
-            {
-                return new(false, null,
-                    [new AgentDiagnostic("assistant.script.brief_invalid", exception.Message, "assistant/script")]);
-            }
+            var profile = AssistantWorkspaceProfile.CreateDefault();
+            var proposal = AssistedForgeScriptCreationService.ProposeAsync(
+                request.Brief,
+                snapshot.RootDirectory,
+                snapshot.Project,
+                snapshot.LoreIndex,
+                new DeterministicAssistantProvider(profile.ActiveProvider),
+                profile.ActiveProvider,
+                _forgeScriptRuntime,
+                networkAuthorized: false,
+                projectContentAuthorized: false).GetAwaiter().GetResult();
+            return new(proposal.Succeeded, proposal, proposal.Diagnostics.Select(MapScript).ToArray());
+        }
+        catch (Exception exception) when (exception is ArgumentException or IOException or UnauthorizedAccessException)
+        {
+            return new(false, null,
+                [new AgentDiagnostic("assistant.script.brief_invalid", exception.Message, "assistant/script")]);
         }
     }
 
@@ -7614,12 +7598,22 @@ public sealed class ForgeProjectAgentService
         new(true, plan.PlanId, plan.TransactionId, plan.Command.BaseRevision.Value, plan.AppliedRevision,
             plan.Diff, plan.Inverse, 0, [], plan.Applied, plan.Reverted, plan.Audit.ToArray());
 
-    private IReadOnlySet<string> AvailableForgeScripts()
+    private (ProjectDefinition Project, LoreIndexDefinition LoreIndex, string RootDirectory, long AssetRevision)
+        CaptureAssistedProposalSnapshot()
     {
-        var root = Path.Combine(_session.RootDirectory, "scripts");
+        lock (_gate)
+        {
+            return (_history.State.Project, _loreIndexHistory.State.Index, _session.RootDirectory,
+                _assistedBlenderState.Revision.Value);
+        }
+    }
+
+    private static IReadOnlySet<string> AvailableForgeScripts(string rootDirectory)
+    {
+        var root = Path.Combine(rootDirectory, "scripts");
         return Directory.Exists(root)
             ? Directory.GetFiles(root, "*.forge", SearchOption.TopDirectoryOnly)
-                .Select(path => Path.GetRelativePath(_session.RootDirectory, path).Replace('\\', '/'))
+                .Select(path => Path.GetRelativePath(rootDirectory, path).Replace('\\', '/'))
                 .ToHashSet(StringComparer.Ordinal)
             : new HashSet<string>(StringComparer.Ordinal);
     }

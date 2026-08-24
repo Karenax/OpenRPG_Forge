@@ -143,7 +143,10 @@ public partial class RuntimeDeclarativeUi : CanvasLayer
                     list.AddChild(label);
                 }
         }
-        catch (InvalidOperationException) { }
+        catch (InvalidOperationException exception)
+        {
+            GD.PushWarning($"OPENRPG_FORGE_RUNTIME_DECLARATIVE_LIST_BINDING_FAILED binding={widget.BindingKey} error={exception.Message}");
+        }
         return list;
     }
 

@@ -310,8 +310,9 @@ internal sealed partial class StudioSessionController
                 invalidBlocked, dryRun, staleDraftBlocked, staleApprovalBlocked, canonical, undone && redone,
                 persisted, neighbors, false);
         }
-        catch
+        catch (Exception exception)
         {
+            Godot.GD.PrintErr("OPENRPG_FORGE_STUDIO_UX4G_CONTRACT_FAILED stage=exception " + exception);
         }
         finally
         {

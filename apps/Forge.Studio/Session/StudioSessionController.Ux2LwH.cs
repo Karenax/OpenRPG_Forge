@@ -1129,8 +1129,10 @@ internal sealed partial class StudioSessionController
         {
             reopened.Close(); editing.Close();
             try { if (Directory.Exists(tempRoot)) Directory.Delete(tempRoot, recursive: true); }
-            catch (IOException) { }
-            catch (UnauthorizedAccessException) { }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                Godot.GD.PrintErr("OPENRPG_FORGE_STUDIO_UX2_LW_H_CLEANUP_FAILED " + exception.Message);
+            }
         }
     }
 

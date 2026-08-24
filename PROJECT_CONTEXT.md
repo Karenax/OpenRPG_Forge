@@ -188,10 +188,10 @@ traverser visuellement l’ensemble du donjon.
 
 Cette tranche prouve un premier parcours de « monde comme arme » ; elle ne vaut pas implémentation
 générique de toutes les propriétés, substances, structures, compagnons et conséquences décrites par
-le ruleset. La reconstruction spatiale actuelle reste en qualification : compilation Godot/.NET,
-navigation, collisions, sauvegarde/reprise, performances et revue Forward+ doivent être rejouées
-avant fusion dans `main`. La généralisation dans le domaine, le Creator et les formats de module
-reste un chantier séparé.
+le ruleset. La reconstruction spatiale est intégrée à `main` et qualifiée par compilation
+Godot/.NET, navigation, collisions, sauvegarde/reprise, performances et revue Forward+. Ces preuves
+restent à rejouer après toute modification qui touche ce parcours. La généralisation dans le
+domaine, le Creator et les formats de module reste un chantier séparé.
 
 ## Architecture à préserver
 

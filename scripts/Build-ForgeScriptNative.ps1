@@ -134,8 +134,4 @@ if ($LASTEXITCODE -ne 0) {
     throw "La compilation native ForgeScript a échoué avec le code $LASTEXITCODE."
 }
 
-$runtimeNativeRoot = Join-Path $repositoryRoot 'apps\Forge.Runtime\native'
-New-Item -ItemType Directory -Force -Path $runtimeNativeRoot | Out-Null
-Copy-Item -LiteralPath $output -Destination (Join-Path $runtimeNativeRoot $outputName) -Force
-
 Write-Output "OPENRPG_FORGE_FORGESCRIPT_NATIVE_BUILD_PASS platform=$Platform vm=2.38.0 output=$output"

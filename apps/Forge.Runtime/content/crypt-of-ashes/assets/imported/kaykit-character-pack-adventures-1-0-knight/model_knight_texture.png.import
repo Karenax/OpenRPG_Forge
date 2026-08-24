@@ -2,16 +2,19 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b4kvw4awl4bwa"
-path="res://.godot/imported/r055-area-experience-ui.png-7d88455b0373fe6eeb69f399927ade90.ctex"
+uid="uid://mwagju62du3o"
+path="res://.godot/imported/model_knight_texture.png-47a6da41032d579b98ddb285c884f130.ctex"
 metadata={
 "vram_texture": false
+}
+generator_parameters={
+"md5": "af4707185c3e9844f7ed166c1a2e24f8"
 }
 
 [deps]
 
-source_file="res://docs/aurora-parity/evidence/r055-area-experience-ui.png"
-dest_files=["res://.godot/imported/r055-area-experience-ui.png-7d88455b0373fe6eeb69f399927ade90.ctex"]
+source_file="res://content/crypt-of-ashes/assets/imported/kaykit-character-pack-adventures-1-0-knight/model_knight_texture.png"
+dest_files=["res://.godot/imported/model_knight_texture.png-47a6da41032d579b98ddb285c884f130.ctex"]
 
 [params]
 
@@ -23,7 +26,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

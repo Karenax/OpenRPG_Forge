@@ -67,7 +67,8 @@ confondu avec une release publique signée.
 - premier train post-UX1 livré : UX2-A, UX4-A et UX5-A ont isolé politiques de zone vivante,
   fondation de factions et fondation de dialogues ; treize routes ont franchi 40 tests dans les
   trois portails incrémentaux, un test RpgKit complémentaire, les smokes, les captures Forward+
-  FHD/QHD/4K et le portail complet. `ORF-FAC-006` reste explicitement `planned`.
+  FHD/QHD/4K et le portail complet. `ORF-FAC-006` est désormais `Tested`, conformément au tracker
+  canonique ; cette mention de lot est historique et ne décrit pas un reste à faire courant.
 - vague UX2 close à 98/98 : huit routes Terrain, 34 Environnement, 29 Monde vivant et 27 Navigation
   disposent de commandes/dry-runs transactionnels, smokes contractuels, sauvegardes/réouvertures et
   captures Forward+ FHD inspectées. Les 36 portails incrémentaux totalisent 3 117,53 s et leurs
@@ -500,7 +501,8 @@ confondu avec une release publique signée.
 - portail transversal complet du lot Crypte réussi avec 2 118 tests .NET, 64 tests Python et les
   smokes Studio, Toolset, Runtime/Forward+, Forgotten Forest, Blender, MCP, réseau,
   sauvegarde/reprise et distribution ;
-- graphe Roslyn courant sur l'arbre intégré déterministe à 11 595 nœuds et 90 224 relations sans diagnostic.
+- graphe Roslyn courant déterministe et sans diagnostic ; les compteurs évolutifs restent lus dans
+  `docs/architecture/graph.json` et ne sont plus recopiés manuellement dans ce statut.
 
 ## Gameplay systémique — preuve actuelle
 

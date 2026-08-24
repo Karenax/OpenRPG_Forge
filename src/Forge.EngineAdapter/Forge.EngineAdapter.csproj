@@ -5,7 +5,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="GodotSharp" Version="4.7.1" />
+    <!-- Godot.NET.Sdk injects GodotSharp implicitly in app projects, so the explicit adapter
+         reference uses a local override instead of a conflicting central PackageVersion. -->
+    <PackageReference Include="GodotSharp" VersionOverride="4.7.1" />
   </ItemGroup>
 
   <ItemGroup>

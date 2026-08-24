@@ -39,7 +39,7 @@ func _capture() -> void:
         await get_tree().process_frame
     await RenderingServer.frame_post_draw
     var image := get_viewport().get_texture().get_image()
-    var path := ProjectSettings.globalize_path("res://../../../artifacts/forest-map-capture.png")
+    var path := ProjectSettings.globalize_path("res://../../artifacts/forest-map-capture.png")
     DirAccess.make_dir_recursive_absolute(path.get_base_dir())
     if image == null or image.is_empty() or image.save_png(path) != OK:
         _fail("capture failed")

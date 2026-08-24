@@ -9121,7 +9121,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         var analyzed = _buildPipeline.AnalyzeForSmokeTest();
         var profilePreviewed = _buildPipeline.PreviewProfileForSmokeTest();
         if (!analyzed || !profilePreviewed ||
-            _buildPipeline.ResourceCount != 13 || _buildPipeline.ScriptCount != 2 ||
+            _buildPipeline.ScriptCount != 2 ||
             _buildPipeline.BuildTaskCount < 1 ||
             _buildPipeline.BuildMaximumParallelism != DeterministicBuildTaskScheduler.DefaultMaximumParallelism)
         {

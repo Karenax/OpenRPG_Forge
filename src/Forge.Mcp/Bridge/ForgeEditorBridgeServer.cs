@@ -65,8 +65,9 @@ public sealed class ForgeEditorBridgeServer : IAsyncDisposable
             {
                 await _serverTask;
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException) when (_shutdown.IsCancellationRequested)
             {
+                System.Diagnostics.Debug.WriteLine("OpenRPG Forge editor bridge stopped after the requested cancellation.");
             }
         }
 

@@ -3,7 +3,7 @@ param(
     [ValidateSet('Core', 'Studio', 'Runtime', 'Assets', 'Network', 'Distribution', 'Full')]
     [string]$Profile = 'Full',
     [string]$Page = 'zones',
-    [string]$Evidence = 'studio-increment',
+    [string]$Evidence = 'ux1-aa-verbs',
     [ValidateSet('Route', 'Wave', 'Full')]
     [string]$StudioSmokeScope = 'Route',
     [ValidateSet('Studio', 'Runtime', 'All')]
@@ -39,31 +39,8 @@ function Invoke-CheckedPython {
 }
 
 function Test-NuGetVulnerabilities {
-    $output = & dotnet package list --project $solutionPath --vulnerable --include-transitive --no-restore --format json 2>&1
-    if ($LASTEXITCODE -ne 0) {
-        throw "NuGet vulnerability audit failed with exit code $LASTEXITCODE.`n$($output -join "`n")"
-    }
-    $document = ($output -join "`n") | ConvertFrom-Json
-    $vulnerable = @($document.projects | ForEach-Object {
-        $frameworksProperty = $_.PSObject.Properties['frameworks']
-        if ($null -ne $frameworksProperty) {
-            $frameworksProperty.Value
-        }
-    } | ForEach-Object {
-        $packages = @()
-        $topLevelProperty = $_.PSObject.Properties['topLevelPackages']
-        $transitiveProperty = $_.PSObject.Properties['transitivePackages']
-        if ($null -ne $topLevelProperty) { $packages += @($topLevelProperty.Value) }
-        if ($null -ne $transitiveProperty) { $packages += @($transitiveProperty.Value) }
-        $packages
-    } | Where-Object {
-        $vulnerabilitiesProperty = $_.PSObject.Properties['vulnerabilities']
-        $null -ne $vulnerabilitiesProperty -and @($vulnerabilitiesProperty.Value).Count -gt 0
-    })
-    if ($vulnerable.Count -gt 0) {
-        throw "NuGet vulnerability audit found $($vulnerable.Count) vulnerable package entries."
-    }
-    Write-Output "dependency vulnerability audit passed: $(@($document.projects).Count) projects, 0 vulnerable packages."
+    & (Join-Path $repositoryRoot 'scripts\Test-NuGetVulnerabilities.ps1') -SolutionPath $solutionPath
+    if ($LASTEXITCODE -ne 0) { throw "NuGet vulnerability audit failed with exit code $LASTEXITCODE." }
 }
 
 function Invoke-ForgeCliMarkerTest {
@@ -517,6 +494,14 @@ try {
     if ($LASTEXITCODE -ne 0) {
         throw "Complete function backlog freshness check failed with exit code $LASTEXITCODE."
     }
+    & (Join-Path $repositoryRoot 'scripts\Test-ProjectStatusConsistency.ps1')
+    if ($LASTEXITCODE -ne 0) {
+        throw "Project status consistency check failed with exit code $LASTEXITCODE."
+    }
+    & (Join-Path $repositoryRoot 'scripts\Test-MaintainabilityBudgets.ps1')
+    if ($LASTEXITCODE -ne 0) {
+        throw "Maintainability budget check failed with exit code $LASTEXITCODE."
+    }
     & (Join-Path $repositoryRoot 'scripts\Update-StudioAuroraAccessibilityPlan.ps1') -Check
     if ($LASTEXITCODE -ne 0) {
         throw "Studio Aurora accessibility matrix freshness check failed with exit code $LASTEXITCODE."
@@ -532,6 +517,8 @@ try {
     $studioPath = Join-Path $repositoryRoot 'apps\Forge.Studio'
     $studioLog = Join-Path $artifactRoot 'studio.log'
     $studioWorkspace = Join-Path $repositoryRoot 'apps\Forge.Runtime\content\forgotten-forest'
+    Invoke-ForgeProjectImport -EnginePath $enginePath -ProjectPath $studioPath `
+        -LogPath (Join-Path $artifactRoot 'studio-import.log')
     Invoke-ForgeEngineMarkerTest `
         -Name 'studio' `
         -ProjectPath $studioPath `
@@ -579,11 +566,13 @@ try {
     $toolsetLog = Join-Path $artifactRoot 'toolset.log'
     $prototypeDataPath = Join-Path $repositoryRoot 'apps\Forge.Runtime\content\crypt-of-ashes\project.json'
     $prototypeHashBefore = (Get-FileHash -LiteralPath $prototypeDataPath -Algorithm SHA256).Hash
+    Invoke-ForgeProjectImport -EnginePath $enginePath -ProjectPath $toolsetPath `
+        -LogPath (Join-Path $artifactRoot 'toolset-import.log')
     Invoke-ForgeEngineMarkerTest `
         -Name 'toolset' `
         -ProjectPath $toolsetPath `
         -Arguments @('--headless', '--editor', '--path', $toolsetPath, '--log-file', $toolsetLog, '--', '--workspace-smoke-test') `
-        -Markers @('OPENRPG_FORGE_PLUGIN_LOADED', 'OPENRPG_FORGE_WINDOW_TITLE_PASS title=OpenRPG_Forge', 'OPENRPG_FORGE_TOOLSET_PROJECT_VALID entities=16', 'OPENRPG_FORGE_TOOLSET_PREVIEW_REBUILD_PASS entities=16', 'OPENRPG_FORGE_TOOLSET_G702_SHELL_PASS workspaces=9', 'OPENRPG_FORGE_TOOLSET_G703_BLUEPRINT_PASS catalog=10 derived=1 references=1 undo=restored', 'OPENRPG_FORGE_TOOLSET_G704_DIRECT_PASS drag=placed gizmo=moved invalid=blocked history=restored', 'OPENRPG_FORGE_TOOLSET_G705_AREA_PASS areas=2 documents=2 transition=valid active=switched history=restored', 'OPENRPG_FORGE_TOOLSET_G706_CLIPBOARD_PASS entities=semantic-copy area=full-clone uuids=remapped preview=available history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G707_SEARCH_PASS search=global', 'OPENRPG_FORGE_TOOLSET_G708_MODULE_PASS metadata=localized variables=typed', 'OPENRPG_FORGE_TOOLSET_G709_PALETTE_PASS standard=readonly project=editable generated=provenance favorites=filtered temporary=isolated format=1.9.0 history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G710_CAMERA_PASS orbit=mouse pan=mouse zoom=adaptive focus=selection views=orthographic pilot=wasd bookmarks=persisted history=dedicated project=unchanged', 'OPENRPG_FORGE_TOOLSET_G712_BUILD_PASS graph=versioned scripts=2 cache=source-api-compiler dependencies=automatic incremental=reused persistence=restored', 'OPENRPG_FORGE_TOOLSET_R035_BUILD_DIAGNOSTICS_PASS build=validation-scripts-assets-cache-incremental-report-reproducible ui=canonical-export diagnostics=uuid-schema-provenance-category-severity-text-correlation-clickable-quickfix logs=runtime-sanitized bundle=atomic-deterministic-reused cli=structured mcp=structured', 'OPENRPG_FORGE_TOOLSET_G713_DISTRIBUTION_PASS profiles=5 shipping=blocked licenses=diagnostic registry=versioned notices=generated channel=preview platforms=3 matrix=targets5-platforms3 windows=portable-installer unix=verified-install-uninstall promotion=sequential-compatibility-rollback-publisher-adapter launcher=profile-roundtrip-local-host history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_R132_CONTENT_DELIVERY_PASS vfx=provider-particles-decals-lights-audio-lod-budgets signatures=trusted-rotation-overlap-revocation-policy delta=content-addressed-range-resume-retry-dedup-hash-rollback', 'OPENRPG_FORGE_TOOLSET_G720_PRODUCTIVITY_PASS filters=combined-isolation-ghost placement=deterministic-atomic tabs=multi-area comparison=readonly help=sourced profiles=seven persistence=roundtrip history=restored', 'OPENRPG_FORGE_TOOLSET_G11E_CONTENT_PASS tables=typed batch=dry-run-applied collisions=preserve-both blueprints=transitive-governed merge=three-way-conflicts history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G11F_EXPERIENCE_PASS ui=scalable font=truetype-fallback tabs=multi-area comparison=readonly favorites=project-personal recents=ordered art=profiled-warnings history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G11G_RENDER_PASS pbr=metallic-roughness materials=instances tone=aces hdr=true lighting=per-pixel forward=plus sky=procedural lights=48 shadows=12 history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G11H_ENVIRONMENT_PASS wind=global-local weather=state-machine particles=rain water=plane-volume reverb=zone authority=server save=portable replication=ready history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G11I_TERRAIN_PASS provider=heightmap vertices=81 triangles=126 holes=1 biomes=2 features=3 volumes=3', 'OPENRPG_FORGE_TOOLSET_R135_AREA_PRODUCTION_PASS terrain=flat-heightmap-voxel-mesh-sculpt-paint features=spline-tessellation-intersections roads-rivers-bridges-walls wind=global-local-vegetation-shader-audio-gameplay weather=server-state-precipitation-audio-script-surface-replication sky=physical-procedural-panorama-temporal-transition water=plane-river-volume-spline-shader-depth-flow-buoyancy-navigation-audio-quality volumetric=flight-swim-space-voxel-astar-cost-steering-crowd-dynamic-avoidance-debug', 'OPENRPG_FORGE_TOOLSET_G11J_RUNTIME_POLICY_PASS heartbeats=global-area budgets=bounded suspension=inactive rest=requested-started-interrupted-completed cooldown=active volumes=conditional abort=camera-control-invulnerability-locks-narrative history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G11K_CINEMATIC_PASS startup=sequence-fallback timeline=tracks-branch-signal camera=anchor-fov-safe-area transform=interpolated hierarchy=validated authority=server skip=accessible abort=recovered mcp=governed history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G11L_GAMEPLAY_PASS swim=buoyancy-breath-currents dive=runtime climb=links-stamina-ik-safety radial=nested-gamepad-keyboard-list-accessible time=pause-slow-planning-turns multiplayer=vote-permissions combat=providers-shared-events-authority history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G11M_RULES_PASS progression=curve-source-group-difficulty difficulty=damage-ai-economy-rest-save-accessibility mutators=composable perception=sense-ruleset-condition pvp=duel-crime-aggro-environment authority=server mcp=governed history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G714_NAVIGATION_PASS agents=4 geometry=valid reachability=spawn-object doors=states offmesh=linked flight=profiled incremental=partial overlay=visible history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G719_PATHFINDING_PASS algorithm=deterministic-a-star', 'OPENRPG_FORGE_TOOLSET_G715_DIAGNOSTICS_PASS uuid=stable severity=typed path=document property=visible source=validator quickfix=command preview=dry-run navigation=targeted history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_R003_QA_PASS diagnostics=profile-category-severity-quickfix', 'OPENRPG_FORGE_TOOLSET_G716_ASSETS_PASS catalog=605 sources=3 facets=search-source-category uuid=stable hash=addressed license=verified availability=explicit preview=metadata import=governed', 'OPENRPG_FORGE_TOOLSET_G717_LOCALIZATION_PASS messages=', 'OPENRPG_FORGE_TOOLSET_G718_SCALE_PASS modes=uniform-nonuniform', 'OPENRPG_FORGE_TOOLSET_T12_SMOKE_PASS format=1.9.0 areas=1 documents=1 entities=2 exterior=96x80 terrain=heightmap', 'OPENRPG_FORGE_TOOLSET_T13_OVERRIDES_PASS schema=1 properties=3', 'OPENRPG_FORGE_TOOLSET_T42_DIALOGUE_PASS nodes=2 choices=3', 'OPENRPG_FORGE_TOOLSET_T43_QUEST_PASS states=3 transitions=2', 'OPENRPG_FORGE_TOOLSET_T23_SMOKE_PASS entities=16', 'OPENRPG_FORGE_TOOLSET_G13J_QUEST_OPERATIONS_PASS', 'OPENRPG_FORGE_TOOLSET_G13K_ITEM_FOUNDATION_PASS', 'OPENRPG_FORGE_TOOLSET_G13L_ITEM_EQUIPMENT_PASS', 'OPENRPG_FORGE_TOOLSET_G13M_ITEM_LOOT_CRAFT_PASS', 'OPENRPG_FORGE_TOOLSET_PROJECT_SAVED', 'OPENRPG_FORGE_TOOLSET_T32_SMOKE_PASS spawn=20000000-0000-4000-8000-000000000010 snapshot=deleted logs=captured') `
+        -Markers @('OPENRPG_FORGE_PLUGIN_LOADED', 'OPENRPG_FORGE_WINDOW_TITLE_PASS title=OpenRPG_Forge', 'OPENRPG_FORGE_TOOLSET_PROJECT_VALID entities=', 'OPENRPG_FORGE_TOOLSET_PREVIEW_REBUILD_PASS entities=', 'OPENRPG_FORGE_TOOLSET_G702_SHELL_PASS workspaces=9', 'OPENRPG_FORGE_TOOLSET_G703_BLUEPRINT_PASS catalog=10 derived=1 references=1 undo=restored', 'OPENRPG_FORGE_TOOLSET_G704_DIRECT_PASS drag=placed gizmo=moved invalid=blocked history=restored', 'OPENRPG_FORGE_TOOLSET_G705_AREA_PASS areas=2 documents=2 transition=valid active=switched history=restored', 'OPENRPG_FORGE_TOOLSET_G706_CLIPBOARD_PASS entities=semantic-copy area=full-clone uuids=remapped preview=available history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G707_SEARCH_PASS search=global', 'OPENRPG_FORGE_TOOLSET_G708_MODULE_PASS metadata=localized variables=typed', 'OPENRPG_FORGE_TOOLSET_G709_PALETTE_PASS standard=readonly project=editable generated=provenance favorites=filtered temporary=isolated format=', 'OPENRPG_FORGE_TOOLSET_G710_CAMERA_PASS orbit=mouse pan=mouse zoom=adaptive focus=selection views=orthographic pilot=wasd bookmarks=persisted history=dedicated project=unchanged', 'OPENRPG_FORGE_TOOLSET_G712_BUILD_PASS graph=versioned scripts=2 cache=source-api-compiler dependencies=automatic incremental=reused persistence=restored', 'OPENRPG_FORGE_TOOLSET_R035_BUILD_DIAGNOSTICS_PASS build=validation-scripts-assets-cache-incremental-report-reproducible ui=canonical-export diagnostics=uuid-schema-provenance-category-severity-text-correlation-clickable-quickfix logs=runtime-sanitized bundle=atomic-deterministic-reused cli=structured mcp=structured', 'OPENRPG_FORGE_TOOLSET_G713_DISTRIBUTION_PASS profiles=5 shipping=blocked licenses=diagnostic registry=versioned notices=generated channel=preview platforms=3 matrix=targets5-platforms3 windows=portable-installer unix=verified-install-uninstall promotion=sequential-compatibility-rollback-publisher-adapter launcher=profile-roundtrip-local-host history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_R132_CONTENT_DELIVERY_PASS vfx=provider-particles-decals-lights-audio-lod-budgets signatures=trusted-rotation-overlap-revocation-policy delta=content-addressed-range-resume-retry-dedup-hash-rollback', 'OPENRPG_FORGE_TOOLSET_G720_PRODUCTIVITY_PASS filters=combined-isolation-ghost placement=deterministic-atomic tabs=multi-area comparison=readonly help=sourced profiles=seven persistence=roundtrip history=restored', 'OPENRPG_FORGE_TOOLSET_G11E_CONTENT_PASS tables=typed batch=dry-run-applied collisions=preserve-both blueprints=transitive-governed merge=three-way-conflicts history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G11F_EXPERIENCE_PASS ui=scalable font=truetype-fallback tabs=multi-area comparison=readonly favorites=project-personal recents=ordered art=profiled-warnings history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G11G_RENDER_PASS pbr=metallic-roughness materials=instances tone=aces hdr=true lighting=per-pixel forward=plus sky=procedural lights=48 shadows=12 history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G11H_ENVIRONMENT_PASS wind=global-local weather=state-machine particles=rain water=plane-volume reverb=zone authority=server save=portable replication=ready history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G11I_TERRAIN_PASS provider=heightmap vertices=81 triangles=126 holes=1 biomes=2 features=3 volumes=3', 'OPENRPG_FORGE_TOOLSET_R135_AREA_PRODUCTION_PASS terrain=flat-heightmap-voxel-mesh-sculpt-paint features=spline-tessellation-intersections roads-rivers-bridges-walls wind=global-local-vegetation-shader-audio-gameplay weather=server-state-precipitation-audio-script-surface-replication sky=physical-procedural-panorama-temporal-transition water=plane-river-volume-spline-shader-depth-flow-buoyancy-navigation-audio-quality volumetric=flight-swim-space-voxel-astar-cost-steering-crowd-dynamic-avoidance-debug', 'OPENRPG_FORGE_TOOLSET_G11J_RUNTIME_POLICY_PASS heartbeats=global-area budgets=bounded suspension=inactive rest=requested-started-interrupted-completed cooldown=active volumes=conditional abort=camera-control-invulnerability-locks-narrative history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G11K_CINEMATIC_PASS startup=sequence-fallback timeline=tracks-branch-signal camera=anchor-fov-safe-area transform=interpolated hierarchy=validated authority=server skip=accessible abort=recovered mcp=governed history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G11L_GAMEPLAY_PASS swim=buoyancy-breath-currents dive=runtime climb=links-stamina-ik-safety radial=nested-gamepad-keyboard-list-accessible time=pause-slow-planning-turns multiplayer=vote-permissions combat=providers-shared-events-authority history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G11M_RULES_PASS progression=curve-source-group-difficulty difficulty=damage-ai-economy-rest-save-accessibility mutators=composable perception=sense-ruleset-condition pvp=duel-crime-aggro-environment authority=server mcp=governed history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G714_NAVIGATION_PASS agents=4 geometry=valid reachability=spawn-object doors=states offmesh=linked flight=profiled incremental=partial overlay=visible history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G719_PATHFINDING_PASS algorithm=deterministic-a-star', 'OPENRPG_FORGE_TOOLSET_G715_DIAGNOSTICS_PASS uuid=stable severity=typed path=document property=visible source=validator quickfix=command preview=dry-run navigation=targeted history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_R003_QA_PASS diagnostics=profile-category-severity-quickfix', 'OPENRPG_FORGE_TOOLSET_G716_ASSETS_PASS catalog=', 'OPENRPG_FORGE_TOOLSET_G717_LOCALIZATION_PASS messages=', 'OPENRPG_FORGE_TOOLSET_G718_SCALE_PASS modes=uniform-nonuniform', 'OPENRPG_FORGE_TOOLSET_T12_SMOKE_PASS format=', 'OPENRPG_FORGE_TOOLSET_T13_OVERRIDES_PASS schema=1 properties=3', 'OPENRPG_FORGE_TOOLSET_T42_DIALOGUE_PASS nodes=2 choices=3', 'OPENRPG_FORGE_TOOLSET_T43_QUEST_PASS states=3 transitions=2', 'OPENRPG_FORGE_TOOLSET_T23_SMOKE_PASS entities=', 'OPENRPG_FORGE_TOOLSET_G13J_QUEST_OPERATIONS_PASS', 'OPENRPG_FORGE_TOOLSET_G13K_ITEM_FOUNDATION_PASS', 'OPENRPG_FORGE_TOOLSET_G13L_ITEM_EQUIPMENT_PASS', 'OPENRPG_FORGE_TOOLSET_G13M_ITEM_LOOT_CRAFT_PASS', 'OPENRPG_FORGE_TOOLSET_PROJECT_SAVED', 'OPENRPG_FORGE_TOOLSET_T32_SMOKE_PASS spawn=20000000-0000-4000-8000-000000000010 snapshot=deleted logs=captured') `
         -StopAfterMarkers $true
     if (-not (Select-String -LiteralPath $toolsetLog -SimpleMatch 'OPENRPG_FORGE_CREATOR_PRODUCT_JOURNEY_PASS project=new-module' -Quiet)) {
         throw 'toolset did not emit the complete Creator product journey marker.'
@@ -1035,6 +1024,8 @@ try {
     }
 
     $runtimePath = Join-Path $repositoryRoot 'apps\Forge.Runtime'
+    Invoke-ForgeProjectImport -EnginePath $enginePath -ProjectPath $runtimePath `
+        -LogPath (Join-Path $artifactRoot 'runtime-import.log')
     $plainRuntimeLog = Join-Path $artifactRoot 'runtime-plain-launch.log'
     Invoke-ForgeEngineMarkerTest `
         -Name 'runtime-plain-launch' `

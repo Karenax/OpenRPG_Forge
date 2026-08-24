@@ -10,7 +10,7 @@ CRYPT = ROOT / "apps" / "Forge.Runtime" / "content" / "crypt-of-ashes"
 PROJECT = CRYPT / "project.json"
 MANIFEST = CRYPT / "systemic-gameplay.json"
 ART = ROOT / "apps" / "Forge.Runtime" / "Runtime" / "CryptArtKitDecorator.cs"
-GAME_ROOT = ROOT / "apps" / "Forge.Runtime" / "Runtime" / "GameRoot.cs"
+GAME_ROOT_FILES = sorted((ROOT / "apps" / "Forge.Runtime" / "Runtime").glob("GameRoot*.cs"))
 CAMERA_RIG = ROOT / "apps" / "Forge.Runtime" / "Runtime" / "RuntimeCameraRig.cs"
 HUD = ROOT / "apps" / "Forge.Runtime" / "Runtime" / "RuntimeHud.cs"
 CREDITS = ROOT / "apps" / "Forge.Runtime" / "art" / "crypt-kaykit" / "CREDITS.md"
@@ -25,7 +25,7 @@ class CryptDungeonRebuildTests(unittest.TestCase):
         cls.area = json.loads((CRYPT / area_path).read_text(encoding="utf-8"))["area"]
         cls.manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
         cls.art = ART.read_text(encoding="utf-8")
-        cls.game_root = GAME_ROOT.read_text(encoding="utf-8")
+        cls.game_root = "\n".join(path.read_text(encoding="utf-8") for path in GAME_ROOT_FILES)
         cls.camera_rig = CAMERA_RIG.read_text(encoding="utf-8")
         cls.hud = HUD.read_text(encoding="utf-8")
 

@@ -1,19 +1,26 @@
 name: CI
 
 on:
+  push:
+    branches: [main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   DOTNET_CLI_TELEMETRY_OPTOUT: "1"
   DOTNET_NOLOGO: "1"
 
 jobs:
-  build-and-test:
+  windows-core:
     runs-on: windows-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
 
     steps:
       - name: Checkout
@@ -26,8 +33,17 @@ jobs:
           cache: true
           cache-dependency-path: "**/packages.lock.json"
 
+      - name: Setup Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.13"
+
       - name: Restore
         run: dotnet restore OpenRPGForge.sln --locked-mode
+
+      - name: Audit NuGet dependencies
+        shell: pwsh
+        run: ./scripts/Test-NuGetVulnerabilities.ps1
 
       - name: Build native ForgeScript bridge
         shell: pwsh
@@ -39,8 +55,14 @@ jobs:
       - name: Build
         run: dotnet build OpenRPGForge.sln --configuration Release --no-restore
 
-      - name: Test
-        run: dotnet test OpenRPGForge.sln --configuration Release --no-build --logger trx --results-directory artifacts/test-results
+      - name: Test with coverage
+        run: dotnet test OpenRPGForge.sln --configuration Release --no-build --logger trx --results-directory artifacts/test-results/windows --collect:"XPlat Code Coverage"
+
+      - name: Test Python tooling
+        shell: pwsh
+        run: |
+          python -m unittest discover -s tests -p "test_*.py"
+          python -m unittest discover -s tools/asset_vault_browser/tests -p "test_*.py"
 
       - name: Validate schemas and generated documentation
         shell: pwsh
@@ -49,6 +71,8 @@ jobs:
           ./scripts/Update-AuroraParityTracker.ps1 -Check
           ./scripts/Test-AuroraEvidencePaths.ps1
           ./scripts/Update-CompleteFunctionBacklog.ps1 -Check
+          ./scripts/Test-ProjectStatusConsistency.ps1
+          ./scripts/Test-MaintainabilityBudgets.ps1
           dotnet run --project tools/Forge.ArchitectureGraph --configuration Release --no-build -- check --full
 
       - name: Validate reference fixtures
@@ -62,3 +86,117 @@ jobs:
           dotnet run --project tools/Forge.Cli --configuration Release --no-build -- package validate artifacts/ci/crypt-of-ashes.orpmod
           dotnet run --project tools/Forge.Cli --configuration Release --no-build -- package compliance apps/Forge.Runtime/content/crypt-of-ashes editor
           dotnet run --project tools/Forge.Cli --configuration Release --no-build -- governance run apps/Forge.Runtime/content/crypt-of-ashes
+
+      - name: Upload Windows evidence
+        if: always()
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        with:
+          name: windows-test-and-coverage
+          path: |
+            artifacts/test-results/windows
+            artifacts/ci
+          if-no-files-found: warn
+
+  linux-core:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: "**/packages.lock.json"
+
+      - name: Setup Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.13"
+
+      - name: Restore
+        run: dotnet restore OpenRPGForge.sln --locked-mode
+
+      - name: Test managed projects with coverage
+        shell: pwsh
+        run: |
+          $projects = @(
+            'tests/Forge.Domain.Tests/Forge.Domain.Tests.csproj',
+            'tests/Forge.Application.Tests/Forge.Application.Tests.csproj',
+            'tests/Forge.ModuleFormat.Tests/Forge.ModuleFormat.Tests.csproj',
+            'tests/Forge.RpgKit.Domain.Tests/Forge.RpgKit.Domain.Tests.csproj',
+            'tests/Forge.Scripting.Tests/Forge.Scripting.Tests.csproj',
+            'tests/Forge.Network.Tests/Forge.Network.Tests.csproj',
+            'tests/Forge.LiveDirector.Tests/Forge.LiveDirector.Tests.csproj',
+            'tests/Forge.Mcp.Tests/Forge.Mcp.Tests.csproj',
+            'tests/Forge.Studio.Core.Tests/Forge.Studio.Core.Tests.csproj',
+            'tests/Forge.ArchitectureGraph.Tests/Forge.ArchitectureGraph.Tests.csproj'
+          )
+          foreach ($project in $projects) {
+            dotnet test $project --configuration Release --no-restore --logger trx --results-directory artifacts/test-results/linux --collect:"XPlat Code Coverage"
+            if ($LASTEXITCODE -ne 0) { throw "Linux tests failed for $project." }
+          }
+
+      - name: Test Python tooling
+        shell: pwsh
+        run: |
+          python -m unittest discover -s tests -p "test_*.py"
+          python -m unittest discover -s tools/asset_vault_browser/tests -p "test_*.py"
+
+      - name: Check architecture graph
+        run: dotnet run --project tools/Forge.ArchitectureGraph --configuration Release --no-restore -- check --full
+
+      - name: Upload Linux evidence
+        if: always()
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        with:
+          name: linux-test-and-coverage
+          path: artifacts/test-results/linux
+          if-no-files-found: warn
+
+  runtime-product-smoke:
+    if: github.event_name != 'pull_request'
+    needs: windows-core
+    runs-on: windows-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: "**/packages.lock.json"
+
+      - name: Install Godot 4.7.1 .NET
+        shell: pwsh
+        run: |
+          $archive = Join-Path $env:RUNNER_TEMP 'godot-mono.zip'
+          $engineRoot = Join-Path $env:RUNNER_TEMP 'godot-mono'
+          Invoke-WebRequest 'https://github.com/godotengine/godot/releases/download/4.7.1-stable/Godot_v4.7.1-stable_mono_win64.zip' -OutFile $archive
+          Expand-Archive -LiteralPath $archive -DestinationPath $engineRoot
+          $engine = Get-ChildItem -LiteralPath $engineRoot -Recurse -Filter 'Godot_v4.7.1-stable_mono_win64_console.exe' -File | Select-Object -First 1
+          if ($null -eq $engine) { throw 'Godot 4.7.1 .NET console executable was not found after extraction.' }
+          $engine.DirectoryName | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Build native ForgeScript bridge
+        shell: pwsh
+        run: ./scripts/Build-ForgeScriptNative.ps1
+
+      - name: Run real runtime smoke
+        shell: pwsh
+        run: ./scripts/Verify.ps1 -Profile Runtime -Restore
+
+      - name: Upload runtime evidence
+        if: always()
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        with:
+          name: runtime-product-smoke
+          path: artifacts/verification
+          if-no-files-found: warn

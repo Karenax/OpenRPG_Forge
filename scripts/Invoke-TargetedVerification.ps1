@@ -9,7 +9,7 @@ param(
     [ValidateSet('Auto', 'Core', 'Studio', 'Runtime', 'Assets', 'Network', 'Distribution', 'Full')]
     [string]$Profile = 'Auto',
     [string]$Page = 'zones',
-    [string]$Evidence = 'studio-increment',
+    [string]$Evidence = 'ux1-aa-verbs',
     [ValidateSet('Route', 'Wave', 'Full')]
     [string]$StudioSmokeScope = 'Route',
     [ValidateSet('Studio', 'Runtime', 'All')]
@@ -366,6 +366,8 @@ function Invoke-EngineSmokeStep {
     $enginePath = Get-ForgeEnginePath
     $safeId = ([string]$Step.id) -replace '[^A-Za-z0-9_.-]', '-'
     $logPath = Join-Path $RunRoot "$safeId.log"
+    $importLogPath = Join-Path $RunRoot "$safeId-import.log"
+    Invoke-ForgeProjectImport -EnginePath $enginePath -ProjectPath $projectPath -LogPath $importLogPath
     $provided = @($Step.arguments | ForEach-Object { [string]$_ })
     $separator = [array]::IndexOf($provided, '--')
     if ($separator -ge 0) {

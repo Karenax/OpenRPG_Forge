@@ -468,11 +468,9 @@ internal sealed partial class StudioSessionController
         {
             if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
         }
-        catch (IOException)
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-        }
-        catch (UnauthorizedAccessException)
-        {
+            Godot.GD.PrintErr("OPENRPG_FORGE_STUDIO_UX8K_CLEANUP_FAILED " + exception.Message);
         }
     }
 }

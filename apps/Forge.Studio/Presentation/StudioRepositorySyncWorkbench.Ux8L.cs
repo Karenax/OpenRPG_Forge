@@ -614,8 +614,10 @@ internal sealed partial class StudioRepositorySyncWorkbenchUx8L : ColorRect
         {
             if (_evidenceRoot is not null && Directory.Exists(_evidenceRoot)) Directory.Delete(_evidenceRoot, true);
         }
-        catch (IOException) { }
-        catch (UnauthorizedAccessException) { }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            Godot.GD.PrintErr("OPENRPG_FORGE_STUDIO_UX8L_EVIDENCE_CLEANUP_FAILED " + exception.Message);
+        }
         _evidenceResourcesReleased = _evidenceRoot is null || !Directory.Exists(_evidenceRoot);
         _evidenceRoot = null;
     }

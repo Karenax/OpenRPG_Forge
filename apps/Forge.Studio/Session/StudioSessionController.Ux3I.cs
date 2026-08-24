@@ -1055,7 +1055,14 @@ internal sealed class StudioWindowsDefenderScannerUx3I : IAssetMalwareScanner
             using var process = Process.Start(start);
             if (process is null || !process.WaitForExit(60_000))
             {
-                try { process?.Kill(entireProcessTree: true); } catch (InvalidOperationException) { }
+                try
+                {
+                    process?.Kill(entireProcessTree: true);
+                }
+                catch (InvalidOperationException exception)
+                {
+                    Godot.GD.PrintErr("OPENRPG_FORGE_STUDIO_UX3I_SCANNER_TERMINATION_FAILED " + exception.Message);
+                }
                 return new(false, "scanner-timeout");
             }
             return process.ExitCode == 0
