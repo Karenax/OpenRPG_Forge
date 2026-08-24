@@ -77,6 +77,10 @@ dotnet build apps/Forge.Studio/Forge.Studio.csproj -c Debug --no-restore
     'tests\Forge.Application.Tests\Forge.Application.Tests.csproj',
     'tests\Forge.ModuleFormat.Tests\Forge.ModuleFormat.Tests.csproj'
   ) `
-  -TestFilter 'FullyQualifiedName~DistributionComplianceValidatorTests|FullyQualifiedName~ActionableDiagnosticTests|FullyQualifiedName~LocalizationCatalogTests|FullyQualifiedName~ApplyDiagnosticQuickFixHandlerTests|FullyQualifiedName~ProjectQualityServicesTests|FullyQualifiedName~LocalizationWorkflowTests|FullyQualifiedName~WorkspaceQualityLabServiceTests|FullyQualifiedName~WorkspaceAudioValidatorTests|FullyQualifiedName~QualityFoundationProfileStoreTests' `
+  -TestFilterByProject @{
+    'Forge.Domain.Tests' = 'FullyQualifiedName~DistributionComplianceValidatorTests|FullyQualifiedName~ActionableDiagnosticTests|FullyQualifiedName~LocalizationCatalogTests'
+    'Forge.Application.Tests' = 'FullyQualifiedName~ApplyDiagnosticQuickFixHandlerTests|FullyQualifiedName~ProjectQualityServicesTests|FullyQualifiedName~LocalizationWorkflowTests|FullyQualifiedName~WorkspaceQualityLabServiceTests|FullyQualifiedName~WorkspaceAudioValidatorTests'
+    'Forge.ModuleFormat.Tests' = 'FullyQualifiedName~QualityFoundationProfileStoreTests'
+  } `
   -Capture 'artifacts\verification\studio-increment\ux7-a-canonical-validation-forward-plus-fhd.png'
 ```

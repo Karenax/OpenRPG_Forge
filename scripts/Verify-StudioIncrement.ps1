@@ -8,6 +8,9 @@ param(
         'tests\Forge.Studio.Core.Tests\Forge.Studio.Core.Tests.csproj'
     ),
     [string]$TestFilter,
+    [hashtable]$TestFilterByProject = @{},
+    [ValidateSet('Route', 'Wave', 'Full')]
+    [string]$SmokeScope = 'Route',
     [switch]$Restore,
     [switch]$SkipBuild,
     [switch]$NoStudioSmoke,
@@ -21,8 +24,13 @@ $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $solutionPath = Join-Path $repositoryRoot 'OpenRPGForge.sln'
 $studioProject = Join-Path $repositoryRoot 'apps\Forge.Studio\Forge.Studio.csproj'
 $artifactRoot = Join-Path $repositoryRoot 'artifacts\verification\studio-increment'
-$summaryPath = Join-Path $artifactRoot "$Evidence.summary.json"
+$evidenceFileName = $Evidence -replace '[^A-Za-z0-9_.-]', '-'
+if ([string]::IsNullOrWhiteSpace($evidenceFileName)) {
+    throw 'Evidence must contain at least one filename-safe character.'
+}
+$summaryPath = Join-Path $artifactRoot "$evidenceFileName.summary.json"
 $timings = [ordered]@{}
+$testResults = [System.Collections.Generic.List[object]]::new()
 $overall = [System.Diagnostics.Stopwatch]::StartNew()
 
 function Resolve-ForgePath {
@@ -53,6 +61,62 @@ function Invoke-CheckedDotnet {
     }
 
     Write-Output "$Name passed in $($timings[$Name])s."
+}
+
+function Invoke-CheckedDotnetTest {
+    param(
+        [Parameter(Mandatory)][string]$Name,
+        [Parameter(Mandatory)][string]$Project,
+        [string]$Filter
+    )
+
+    [System.IO.Directory]::CreateDirectory($artifactRoot) | Out-Null
+    $trxName = "$evidenceFileName.$Name.trx"
+    $trxPath = Join-Path $artifactRoot $trxName
+    if (Test-Path -LiteralPath $trxPath -PathType Leaf) {
+        Remove-Item -LiteralPath $trxPath -Force
+    }
+    $arguments = @(
+        'test', $Project, '--configuration', 'Debug', '--no-restore',
+        '--logger', 'console;verbosity=minimal',
+        '--logger', "trx;LogFileName=$trxName",
+        '--results-directory', $artifactRoot
+    )
+    if (-not [string]::IsNullOrWhiteSpace($Filter)) {
+        $arguments += @('--filter', $Filter)
+    }
+
+    $step = [System.Diagnostics.Stopwatch]::StartNew()
+    & dotnet @arguments
+    $exitCode = $LASTEXITCODE
+    $step.Stop()
+    $timings[$Name] = [math]::Round($step.Elapsed.TotalSeconds, 2)
+    if (-not (Test-Path -LiteralPath $trxPath -PathType Leaf)) {
+        throw "$Name did not produce its TRX result: $trxPath"
+    }
+    [xml]$trx = Get-Content -LiteralPath $trxPath -Raw
+    $counters = $trx.SelectSingleNode("//*[local-name()='Counters']")
+    if ($null -eq $counters) {
+        throw "$Name did not report test counters in $trxPath."
+    }
+    $result = [pscustomobject][ordered]@{
+        project = $Project
+        filter = $Filter
+        total = [int]$counters.GetAttribute('total')
+        executed = [int]$counters.GetAttribute('executed')
+        passed = [int]$counters.GetAttribute('passed')
+        failed = [int]$counters.GetAttribute('failed')
+        skipped = [int]$counters.GetAttribute('notExecuted')
+        trx = $trxPath
+    }
+    $testResults.Add($result)
+    if ($result.executed -eq 0) {
+        throw "$Name selected zero tests. Use a project-specific filter or remove the project. TRX: $trxPath"
+    }
+    if ($exitCode -ne 0 -or $result.failed -ne 0) {
+        throw "$Name failed: passed=$($result.passed) failed=$($result.failed) skipped=$($result.skipped)."
+    }
+    Write-Output "$Name passed $($result.passed)/$($result.executed) tests in $($timings[$Name])s."
 }
 
 function Invoke-CheckedScript {
@@ -97,6 +161,12 @@ try {
         }
         $resolved
     })
+    if (-not [string]::IsNullOrWhiteSpace($TestFilter) -and $resolvedProjects.Count -gt 1) {
+        throw 'A global -TestFilter cannot target multiple projects safely. Use -TestFilterByProject with one filter per project.'
+    }
+    if (-not [string]::IsNullOrWhiteSpace($TestFilter) -and $TestFilterByProject.Count -gt 0) {
+        throw 'Use either -TestFilter for one project or -TestFilterByProject, never both.'
+    }
 
     if ($Restore) {
         Invoke-CheckedDotnet -Name 'restore-locked' -Arguments @(
@@ -113,19 +183,26 @@ try {
     foreach ($project in $resolvedProjects) {
         $projectName = [System.IO.Path]::GetFileNameWithoutExtension($project)
         $testName = "tests-$projectName"
-        $testArguments = @(
-            'test', $project, '--configuration', 'Debug', '--no-restore',
-            '--logger', 'console;verbosity=minimal'
-        )
-        if (-not [string]::IsNullOrWhiteSpace($TestFilter)) {
-            $testArguments += @('--filter', $TestFilter)
+        $relativeProject = [System.IO.Path]::GetRelativePath($repositoryRoot, $project).Replace('\', '/')
+        $projectFilter = $TestFilter
+        $projectFilterWasSpecified = $false
+        foreach ($key in @($project, $relativeProject, $projectName, "$projectName.csproj")) {
+            if ($TestFilterByProject.ContainsKey($key)) {
+                $projectFilter = [string]$TestFilterByProject[$key]
+                $projectFilterWasSpecified = $true
+                break
+            }
         }
-        Invoke-CheckedDotnet -Name $testName -Arguments $testArguments
+        if ($TestFilterByProject.Count -gt 0 -and -not $projectFilterWasSpecified) {
+            throw "No project-specific filter was provided for '$relativeProject'. Use an explicit empty string to request its whole suite."
+        }
+        Invoke-CheckedDotnetTest -Name $testName -Project $project -Filter $projectFilter
     }
 
     if (-not $NoStudioSmoke) {
         $studioArguments = @(
-            '-Page', $Page, '-Evidence', $Evidence, '-Headless', '-Smoke', '-Wait', '-SkipBuild'
+            '-Page', $Page, '-Evidence', $Evidence, '-SmokeScope', $SmokeScope,
+            '-Headless', '-Smoke', '-Wait', '-SkipBuild'
         )
         if (-not [string]::IsNullOrWhiteSpace($Workspace)) {
             $studioArguments += @('-Workspace', $Workspace)
@@ -175,7 +252,10 @@ try {
         evidence = $Evidence
         test_projects = $resolvedProjects
         test_filter = $TestFilter
+        test_filters_by_project = $TestFilterByProject
+        test_results = @($testResults)
         studio_smoke = -not $NoStudioSmoke
+        studio_smoke_scope = $SmokeScope
         forward_plus_fhd_capture = -not [string]::IsNullOrWhiteSpace($Capture)
         matrix_check = -not $NoMatrixCheck
         graph_check = $CheckGraph.IsPresent

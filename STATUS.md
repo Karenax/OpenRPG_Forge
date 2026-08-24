@@ -32,6 +32,13 @@ confondu avec une release publique signée.
 
 ## Couverture et preuves
 
+- validation locale fondée sur le risque : plans JSON explicables, exécution séquentielle, TRX par
+  projet, rejet de zéro test, profils `Core`, `Studio`, `Runtime`, `Assets`, `Network`, `Distribution`
+  et `Full`, plus smokes Studio `Route`, `Wave` et `Full`; le portail transversal historique reste
+  le profil `Full` par défaut ;
+- qualification du routeur le 24 août 2026 : profils Studio, Runtime, Assets, Network, Distribution
+  et Core verts séparément, smokes Studio Route et Wave bornés, puis portail Full vert en 873,66 s
+  avec 2 130 tests .NET, 64 tests Python, les smokes produit et le graphe Roslyn complet ;
 - 717/717 fonctions au statut `Tested`, réparties dans 187/187 lots clos ;
 - P0 : 196/196, P1 : 298/298, P2 : 190/190, P3/P4 : 33/33 ;
 - 5 461 chemins de preuve Aurora contrôlés sans chemin absent ;

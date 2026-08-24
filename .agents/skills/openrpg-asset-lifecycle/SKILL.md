@@ -39,10 +39,12 @@ Ne jamais assimiler un état à l'étape suivante.
 
 ## Prouver l'intégration
 
-1. Exécuter les tests ciblés du pipeline et de `Forge.ModuleFormat`.
+1. Utiliser `$openrpg-targeted-verification` avec le profil `Assets` ou les fichiers exacts pour
+   exécuter les tests du pipeline et de `Forge.ModuleFormat` sans ouvrir les autres surfaces.
 2. Vérifier l'intégrité des manifestes et du package.
 3. Charger l'asset dans le Toolset ou le runtime approprié.
 4. Utiliser `$openrpg-prototype-visual-review` pour une preuve visuelle quand le rendu compte.
-5. Utiliser `$openrpg-delivery-gate` avant une clôture de lot.
+5. Utiliser `$openrpg-delivery-gate` seulement pour un jalon transversal ou une préparation de
+   publication, pas après chaque asset isolé.
 
 Rapporter séparément licence, intégrité, normalisation, installation, preuve visuelle, preuve runtime, performances et travail restant.

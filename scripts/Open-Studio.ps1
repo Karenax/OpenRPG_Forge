@@ -218,6 +218,8 @@ param(
     [string]$Resolution,
     [double]$UiScale,
     [switch]$Headless,
+    [ValidateSet('Route', 'Wave', 'Full')]
+    [string]$SmokeScope = 'Full',
     [switch]$Smoke,
     [switch]$Wait,
     [switch]$SkipBuild
@@ -277,7 +279,7 @@ if ($UiScale -ne 0) {
     $studioArguments += @('--ui-scale', $UiScale.ToString([System.Globalization.CultureInfo]::InvariantCulture))
 }
 if ($Smoke) {
-    $studioArguments += '--studio-smoke-test'
+    $studioArguments += @('--studio-smoke-test', '--smoke-scope', $SmokeScope)
 }
 if (-not [string]::IsNullOrWhiteSpace($Capture)) {
     $Capture = [System.IO.Path]::GetFullPath($Capture)

@@ -1,0 +1,6 @@
+interface:
+  display_name: "OpenRPG Targeted Verification"
+  short_description: "Choisir et lancer les validations utiles"
+  default_prompt: "Use $openrpg-targeted-verification to plan and run the smallest sufficient OpenRPG verification set."
+policy:
+  allow_implicit_invocation: true

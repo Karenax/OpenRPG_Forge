@@ -11,7 +11,7 @@ La boucle incrémentale comprend, dans l’ordre :
 
 1. build Debug de `Forge.Studio` avec les sorties NuGet déjà restaurées ;
 2. tests des projets explicitement concernés, exécutés séquentiellement ;
-3. smoke Studio headless de la page du lot ;
+3. smoke Studio headless de la route du lot (`Route` par défaut, `Wave` au jalon de vague) ;
 4. une capture Forward+ Full HD lorsque la présentation change ;
 5. contrôle de fraîcheur de la matrice Studio ;
 6. chronométrage par étape dans `artifacts/verification/studio-increment/`.
@@ -27,7 +27,11 @@ Exemple pour un lot de placeable :
     'tests\Forge.ModuleFormat.Tests\Forge.ModuleFormat.Tests.csproj'
     'tests\Forge.Studio.Core.Tests\Forge.Studio.Core.Tests.csproj'
   ) `
-  -TestFilter 'FullyQualifiedName~WorldFeature|FullyQualifiedName~Placeable|FullyQualifiedName~Studio' `
+  -TestFilterByProject @{
+    'Forge.Application.Tests' = 'FullyQualifiedName~WorldFeature|FullyQualifiedName~Placeable'
+    'Forge.ModuleFormat.Tests' = 'FullyQualifiedName~WorldFeature|FullyQualifiedName~Placeable'
+    'Forge.Studio.Core.Tests' = 'FullyQualifiedName~Studio'
+  } `
   -Capture 'artifacts\verification\studio-shell\ux1-s\increment-fhd.png'
 ```
 
@@ -57,6 +61,8 @@ elles ne sont pas répétées à chaque correction interne d’un même lot.
 - ne pas réutiliser un smoke Godot si le build Debug, les scripts, les assets importés ou les paramètres
   de scène ont changé ;
 - si un test ciblé échoue, arrêter le lot et ne pas le regrouper avec le suivant ;
+- ne jamais partager un filtre entre plusieurs projets : utiliser `-TestFilterByProject`, et traiter
+  zéro test exécuté comme un échec de sélection ;
 - si l’impact d’un fichier ne peut pas être déterminé, élargir la liste des projets de test ou lancer
   le portail complet.
 

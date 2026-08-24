@@ -1,13 +1,22 @@
 [CmdletBinding()]
-param()
+param(
+    [ValidateSet('Core', 'Studio', 'Runtime', 'Assets', 'Network', 'Distribution', 'Full')]
+    [string]$Profile = 'Full',
+    [string]$Page = 'zones',
+    [string]$Evidence = 'studio-increment',
+    [ValidateSet('Route', 'Wave', 'Full')]
+    [string]$StudioSmokeScope = 'Route',
+    [ValidateSet('Studio', 'Runtime', 'All')]
+    [string]$DistributionProduct = 'All',
+    [string[]]$DistributionDirectory,
+    [switch]$Restore
+)
 
 . (Join-Path $PSScriptRoot 'Common.ps1')
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $solutionPath = Join-Path $repositoryRoot 'OpenRPGForge.sln'
 $artifactRoot = Join-Path $repositoryRoot 'artifacts\verification'
-$enginePath = Get-ForgeEnginePath
-$blenderPath = Get-ForgeBlenderPath -Optional
 
 New-Item -ItemType Directory -Path $artifactRoot -Force | Out-Null
 
@@ -443,6 +452,35 @@ function Invoke-ForgeEngineMarkerTest {
     Write-Output "$Name passed."
 }
 
+if ($Profile -ne 'Full') {
+    $targetedVerification = Join-Path $PSScriptRoot 'Invoke-TargetedVerification.ps1'
+    $profileArguments = @{
+        RepositoryRoot = $repositoryRoot
+        Profile = $Profile
+        Stage = 'Milestone'
+        Page = $Page
+        Evidence = $Evidence
+        StudioSmokeScope = $StudioSmokeScope
+        DistributionProduct = $DistributionProduct
+    }
+    if ($PSBoundParameters.ContainsKey('DistributionDirectory')) {
+        $profileArguments.DistributionDirectory = $DistributionDirectory
+    }
+    if ($Restore) {
+        $profileArguments.Restore = $true
+    }
+
+    & $targetedVerification @profileArguments
+    if (-not $?) {
+        throw "Verification profile '$Profile' failed."
+    }
+    Write-Output "OPENRPG_FORGE_VERIFICATION_PROFILE=$($Profile.ToUpperInvariant()) PASS"
+    return
+}
+
+$enginePath = Get-ForgeEnginePath
+$blenderPath = Get-ForgeBlenderPath -Optional
+
 Push-Location $repositoryRoot
 try {
     Invoke-CheckedDotnet @('restore', $solutionPath, '--locked-mode')
@@ -483,6 +521,7 @@ try {
     if ($LASTEXITCODE -ne 0) {
         throw "Studio Aurora accessibility matrix freshness check failed with exit code $LASTEXITCODE."
     }
+    & (Join-Path $repositoryRoot 'scripts\Test-TargetedVerificationPlanner.ps1')
     Invoke-CheckedPython @('-m', 'unittest', 'discover', '-s', 'tests', '-p', 'test_*.py')
     Invoke-CheckedPython @('-m', 'unittest', 'discover', '-s', 'tests\asset_pipeline', '-p', 'test_*.py')
     $architectureGraphProject = Join-Path $repositoryRoot 'tools\Forge.ArchitectureGraph\Forge.ArchitectureGraph.csproj'

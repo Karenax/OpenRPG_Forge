@@ -3,13 +3,13 @@
     "schema_version": 2,
     "engine": "roslyn",
     "engine_version": "5.6.0.0",
-    "source_digest": "sha256:68ceecef6bd2fb5717470ac47254d39511fe09088a1d0703b19a137d73302b9a",
-    "source_file_count": 3961,
+    "source_digest": "sha256:84bb96ce8a7a297154974e915d08d9c2bd481ac401626f5fd7fd1199653e1270",
+    "source_file_count": 3967,
     "sources": [
       {
         "path": ".agents/skills/openrpg-asset-lifecycle/SKILL.md",
-        "sha256": "sha256:f3176786555ae06d79f0441b26328531410a69bc069358f4cbe284d117ad54ac",
-        "size": 2912
+        "sha256": "sha256:f0f5ff198c0741edc0bc789f058effa9035b246d204d4ff048bb8b4109a7fb5c",
+        "size": 3113
       },
       {
         "path": ".agents/skills/openrpg-asset-lifecycle/agents/openai.yaml",
@@ -18,8 +18,8 @@
       },
       {
         "path": ".agents/skills/openrpg-aurora-increment/SKILL.md",
-        "sha256": "sha256:b47868b901440789420cfad998ab220d9f6dd7a12774ed0afedb8cb21b8d780c",
-        "size": 2844
+        "sha256": "sha256:2ceddeb499eeb5949cb85ebe9cf6254e5a749d1635e520f0bb4611d35c977a7c",
+        "size": 3075
       },
       {
         "path": ".agents/skills/openrpg-aurora-increment/agents/openai.yaml",
@@ -28,8 +28,8 @@
       },
       {
         "path": ".agents/skills/openrpg-delivery-gate/SKILL.md",
-        "sha256": "sha256:dd741ece12dcc5c3dc1c59315aba5e6d77cf030d50042cc555d778293566dc06",
-        "size": 3314
+        "sha256": "sha256:c6c993a4a697df2c289cf7ea9694d4702105985d80549c4b0c903b09a81ac794",
+        "size": 3583
       },
       {
         "path": ".agents/skills/openrpg-delivery-gate/agents/openai.yaml",
@@ -55,6 +55,16 @@
         "path": ".agents/skills/openrpg-publish-main/agents/openai.yaml",
         "sha256": "sha256:63b3e48dec2a4594b3115909ee4e989aef407217e7296ba170fa4814e3213408",
         "size": 266
+      },
+      {
+        "path": ".agents/skills/openrpg-targeted-verification/SKILL.md",
+        "sha256": "sha256:679f02a8f16baa00f910683fbd2117201fddac8faca7673c0781edc8bed379f8",
+        "size": 3832
+      },
+      {
+        "path": ".agents/skills/openrpg-targeted-verification/agents/openai.yaml",
+        "sha256": "sha256:f8fc3888b758ace6a77d1761f3236ef798deb7ad7d8d15fd178c2450b8a59ce5",
+        "size": 286
       },
       {
         "path": ".github/workflows/architecture-graph.yml",
@@ -443,18 +453,18 @@
       },
       {
         "path": "README.md",
-        "sha256": "sha256:2fd32f24a03341a61c772243245d6799dba4b0c820662ed5535920412430356c",
-        "size": 14597
+        "sha256": "sha256:081672073b35c5b208b60f46d06d535629dbd712d9bd2e4af4a28782b37f1a74",
+        "size": 15315
       },
       {
         "path": "STATUS.md",
-        "sha256": "sha256:86753885dcc665830ee32522f069cef9512700ca5be56c61bb04251d495e4e85",
-        "size": 76106
+        "sha256": "sha256:575538df206eed0ce568dfb805d8453c9ff9fac8fe7b0620fafc50c2fc7da8bf",
+        "size": 76738
       },
       {
         "path": "TASKS_MVP.md",
-        "sha256": "sha256:5bfd1dcc48c0275b716a2c5d8db57704aed7b41ad0157d0c4775274bf927b3f4",
-        "size": 49520
+        "sha256": "sha256:f605df2170312add34d37b26e3bd11e5c680e3b0edfc0f990449c5c3731b664c",
+        "size": 49885
       },
       {
         "path": "apps/Forge.CreatorLauncher/Forge.CreatorLauncher.csproj",
@@ -5858,8 +5868,8 @@
       },
       {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "sha256": "sha256:419149192aa50ff7b084d1218cb5e1ecd5de42f83a63aa5b735802109dae8005",
-        "size": 77916
+        "sha256": "sha256:22b6f0859033e4aab87d8ba784123567f31b21c857e8f1d82df76f0e6bde48b2",
+        "size": 83107
       },
       {
         "path": "apps/Forge.Studio/export_presets.cfg",
@@ -6757,6 +6767,11 @@
         "size": 3791
       },
       {
+        "path": "docs/ADR/ADR-0046-risk-based-targeted-verification.md",
+        "sha256": "sha256:ceb520c9d3cca9078bec1b8c986ae37b1be753cb46494498d1f2cc8fb25e6caa",
+        "size": 3746
+      },
+      {
         "path": "docs/ADR/ADR-TEMPLATE.md",
         "sha256": "sha256:f9d59a27103d113272e0d4892128915507f7cb0c74371d390cf2ab9b5bfb82f5",
         "size": 729
@@ -7443,8 +7458,8 @@
       },
       {
         "path": "docs/acceptance/STUDIO_UX7_A.md",
-        "sha256": "sha256:4ef008d0706076c9af3adcca6c8f5456469a3c5ced2b7732106da8b0a61690ad",
-        "size": 5225
+        "sha256": "sha256:56019b9df5570dd7ab5387dae1c2b8242aca88fb258850d67215d6446b3a0358",
+        "size": 5337
       },
       {
         "path": "docs/acceptance/STUDIO_UX7_B.md",
@@ -9363,8 +9378,13 @@
       },
       {
         "path": "docs/planning/STUDIO_INCREMENT_VERIFICATION.md",
-        "sha256": "sha256:866a9a9e66b38aa8fe3030da32f5ed0e81bb847e4a677deb9662a742daed7bc4",
-        "size": 4308
+        "sha256": "sha256:19bd34436d37ccc351acd65454783f363c01409a267e92128fc1f86b605d4118",
+        "size": 4691
+      },
+      {
+        "path": "docs/planning/TARGETED_VERIFICATION.md",
+        "sha256": "sha256:24364580150015a8ebe89900f926e4afc0bf354c8c718d0e42290e2372339b93",
+        "size": 5466
       },
       {
         "path": "docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
@@ -16307,6 +16327,11 @@
         "size": 191
       },
       {
+        "path": "src/Forge.Studio.Core/Verification/StudioSmokeSelection.cs",
+        "sha256": "sha256:030c06481258cd8b2e8456825012da9fa96f78f2e2a7f3e2a8eb0ca02737c405",
+        "size": 6163
+      },
+      {
         "path": "src/Forge.Studio.Core/packages.lock.json",
         "sha256": "sha256:a29c6aa8cfb81874ff8bb78dc369d7416f28c9b8cc47e99592bfc019b20c41eb",
         "size": 61
@@ -19070,6 +19095,11 @@
         "path": "tests/Forge.Studio.Core.Tests/Navigation/StudioPageCatalogTests.cs",
         "sha256": "sha256:8c6d743a0273c04bebee5f4d7cdace37939ef5bd7455890a1a6ee93d2a979a89",
         "size": 1369
+      },
+      {
+        "path": "tests/Forge.Studio.Core.Tests/Verification/StudioSmokeSelectionTests.cs",
+        "sha256": "sha256:c9636edda656b54ad4a7c2cd60f1173094677f323999c773b63fd4e4591100a7",
+        "size": 3754
       },
       {
         "path": "tests/Forge.Studio.Core.Tests/packages.lock.json",
@@ -25093,6 +25123,26 @@
       "kind": "configuration",
       "name": "openai.yaml",
       "path": ".agents/skills/openrpg-publish-main/agents/openai.yaml",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      }
+    },
+    {
+      "id": "file:.agents/skills/openrpg-targeted-verification/SKILL.md",
+      "kind": "document",
+      "name": "SKILL.md",
+      "path": ".agents/skills/openrpg-targeted-verification/SKILL.md",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      }
+    },
+    {
+      "id": "file:.agents/skills/openrpg-targeted-verification/agents/openai.yaml",
+      "kind": "configuration",
+      "name": "openai.yaml",
+      "path": ".agents/skills/openrpg-targeted-verification/agents/openai.yaml",
       "line": 1,
       "metadata": {
         "language": "configuration"
@@ -38499,6 +38549,16 @@
       }
     },
     {
+      "id": "file:docs/ADR/ADR-0046-risk-based-targeted-verification.md",
+      "kind": "decision",
+      "name": "ADR-0046-risk-based-targeted-verification.md",
+      "path": "docs/ADR/ADR-0046-risk-based-targeted-verification.md",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      }
+    },
+    {
       "id": "file:docs/ADR/ADR-TEMPLATE.md",
       "kind": "decision",
       "name": "ADR-TEMPLATE.md",
@@ -43713,6 +43773,16 @@
       "kind": "document",
       "name": "STUDIO_INCREMENT_VERIFICATION.md",
       "path": "docs/planning/STUDIO_INCREMENT_VERIFICATION.md",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      }
+    },
+    {
+      "id": "file:docs/planning/TARGETED_VERIFICATION.md",
+      "kind": "document",
+      "name": "TARGETED_VERIFICATION.md",
+      "path": "docs/planning/TARGETED_VERIFICATION.md",
       "line": 1,
       "metadata": {
         "language": "markdown"
@@ -57599,6 +57669,16 @@
       }
     },
     {
+      "id": "file:src/Forge.Studio.Core/Verification/StudioSmokeSelection.cs",
+      "kind": "file",
+      "name": "StudioSmokeSelection.cs",
+      "path": "src/Forge.Studio.Core/Verification/StudioSmokeSelection.cs",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      }
+    },
+    {
       "id": "file:src/Forge.Studio.Core/packages.lock.json",
       "kind": "configuration",
       "name": "packages.lock.json",
@@ -63123,6 +63203,16 @@
       "kind": "file",
       "name": "StudioPageCatalogTests.cs",
       "path": "tests/Forge.Studio.Core.Tests/Navigation/StudioPageCatalogTests.cs",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      }
+    },
+    {
+      "id": "file:tests/Forge.Studio.Core.Tests/Verification/StudioSmokeSelectionTests.cs",
+      "kind": "file",
+      "name": "StudioSmokeSelectionTests.cs",
+      "path": "tests/Forge.Studio.Core.Tests/Verification/StudioSmokeSelectionTests.cs",
       "line": 1,
       "metadata": {
         "language": "csharp"
@@ -93309,6 +93399,22 @@
       "metadata": null
     },
     {
+      "id": "namespace:Forge.Studio.Core.Tests.Verification",
+      "kind": "namespace",
+      "name": "Forge.Studio.Core.Tests.Verification",
+      "path": null,
+      "line": null,
+      "metadata": null
+    },
+    {
+      "id": "namespace:Forge.Studio.Core.Verification",
+      "kind": "namespace",
+      "name": "Forge.Studio.Core.Verification",
+      "path": null,
+      "line": null,
+      "metadata": null
+    },
+    {
       "id": "namespace:Forge.Studio.Presentation",
       "kind": "namespace",
       "name": "Forge.Studio.Presentation",
@@ -103628,6 +103734,18 @@
       "line": 5,
       "metadata": {
         "namespace": "Forge.Studio.Core.Tests.Navigation",
+        "project": "Forge.Studio.Core.Tests",
+        "symbol_kind": "Class"
+      }
+    },
+    {
+      "id": "test:Forge.Studio.Core.Tests.Verification.StudioSmokeSelectionTests",
+      "kind": "test",
+      "name": "StudioSmokeSelectionTests",
+      "path": "tests/Forge.Studio.Core.Tests/Verification/StudioSmokeSelectionTests.cs",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Studio.Core.Tests.Verification",
         "project": "Forge.Studio.Core.Tests",
         "symbol_kind": "Class"
       }
@@ -133345,6 +133463,30 @@
       }
     },
     {
+      "id": "type:Forge.Studio.Core.Verification.StudioSmokeScope",
+      "kind": "type",
+      "name": "StudioSmokeScope",
+      "path": "src/Forge.Studio.Core/Verification/StudioSmokeSelection.cs",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Studio.Core.Verification",
+        "project": "Forge.Studio.Core",
+        "symbol_kind": "Enum"
+      }
+    },
+    {
+      "id": "type:Forge.Studio.Core.Verification.StudioSmokeSelection",
+      "kind": "type",
+      "name": "StudioSmokeSelection",
+      "path": "src/Forge.Studio.Core/Verification/StudioSmokeSelection.cs",
+      "line": 12,
+      "metadata": {
+        "namespace": "Forge.Studio.Core.Verification",
+        "project": "Forge.Studio.Core",
+        "symbol_kind": "Class"
+      }
+    },
+    {
       "id": "type:Forge.Studio.Presentation.IStudioUx2EnvBValueRow\u003CT\u003E",
       "kind": "type",
       "name": "IStudioUx2EnvBValueRow",
@@ -147929,7 +148071,7 @@
       "kind": "type",
       "name": "StudioRoot",
       "path": "apps/Forge.Studio/StudioRoot.cs",
-      "line": 11,
+      "line": 12,
       "metadata": {
         "namespace": "Forge.Studio",
         "project": "Forge.Studio",
@@ -202481,7 +202623,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "README.md",
-        "line": 249
+        "line": 260
       }
     },
     {
@@ -202525,13 +202667,23 @@
       }
     },
     {
+      "source": "file:README.md",
+      "target": "file:docs/planning/TARGETED_VERIFICATION.md",
+      "kind": "references",
+      "confidence": "syntactic",
+      "evidence": {
+        "path": "README.md",
+        "line": 262
+      }
+    },
+    {
       "source": "file:STATUS.md",
       "target": "file:PROJECT_CONTEXT.md",
       "kind": "references",
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 786
+        "line": 793
       }
     },
     {
@@ -202541,7 +202693,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 786
+        "line": 793
       }
     },
     {
@@ -202551,7 +202703,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 502
+        "line": 509
       }
     },
     {
@@ -202561,7 +202713,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 296
+        "line": 303
       }
     },
     {
@@ -202571,7 +202723,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 343
+        "line": 350
       }
     },
     {
@@ -202581,7 +202733,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 348
+        "line": 355
       }
     },
     {
@@ -202591,7 +202743,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 353
+        "line": 360
       }
     },
     {
@@ -202601,7 +202753,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 358
+        "line": 365
       }
     },
     {
@@ -202611,7 +202763,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 363
+        "line": 370
       }
     },
     {
@@ -202621,7 +202773,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 369
+        "line": 376
       }
     },
     {
@@ -202631,7 +202783,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 374
+        "line": 381
       }
     },
     {
@@ -202641,7 +202793,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 379
+        "line": 386
       }
     },
     {
@@ -202651,7 +202803,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 384
+        "line": 391
       }
     },
     {
@@ -202661,7 +202813,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 390
+        "line": 397
       }
     },
     {
@@ -202671,7 +202823,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 394
+        "line": 401
       }
     },
     {
@@ -202681,7 +202833,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 399
+        "line": 406
       }
     },
     {
@@ -202691,7 +202843,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 404
+        "line": 411
       }
     },
     {
@@ -202701,7 +202853,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 409
+        "line": 416
       }
     },
     {
@@ -202711,7 +202863,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 414
+        "line": 421
       }
     },
     {
@@ -202721,7 +202873,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 419
+        "line": 426
       }
     },
     {
@@ -202731,7 +202883,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 424
+        "line": 431
       }
     },
     {
@@ -202741,7 +202893,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 429
+        "line": 436
       }
     },
     {
@@ -202751,7 +202903,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 434
+        "line": 441
       }
     },
     {
@@ -202761,7 +202913,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 439
+        "line": 446
       }
     },
     {
@@ -202771,7 +202923,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 443
+        "line": 450
       }
     },
     {
@@ -202781,7 +202933,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 447
+        "line": 454
       }
     },
     {
@@ -202791,7 +202943,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 452
+        "line": 459
       }
     },
     {
@@ -202801,7 +202953,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 457
+        "line": 464
       }
     },
     {
@@ -202811,7 +202963,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 462
+        "line": 469
       }
     },
     {
@@ -202821,7 +202973,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 467
+        "line": 474
       }
     },
     {
@@ -202831,7 +202983,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 473
+        "line": 480
       }
     },
     {
@@ -202841,7 +202993,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 479
+        "line": 486
       }
     },
     {
@@ -202851,7 +203003,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 486
+        "line": 493
       }
     },
     {
@@ -202861,7 +203013,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 500
+        "line": 507
       }
     },
     {
@@ -202871,7 +203023,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 535
+        "line": 542
       }
     },
     {
@@ -202881,7 +203033,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 534
+        "line": 541
       }
     },
     {
@@ -202901,7 +203053,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "TASKS_MVP.md",
-        "line": 122
+        "line": 126
       }
     },
     {
@@ -319651,7 +319803,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 14
+        "line": 15
       }
     },
     {
@@ -319661,7 +319813,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 16
+        "line": 17
       }
     },
     {
@@ -319671,7 +319823,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 34
+        "line": 36
       }
     },
     {
@@ -319681,7 +319833,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 991
+        "line": 1007
       }
     },
     {
@@ -319691,7 +319843,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 15
+        "line": 16
       }
     },
     {
@@ -319701,7 +319853,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 134
+        "line": 147
       }
     },
     {
@@ -319711,7 +319863,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 13
+        "line": 14
       }
     },
     {
@@ -319721,7 +319873,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 17
+        "line": 18
       }
     },
     {
@@ -319731,7 +319883,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 846
+        "line": 862
       }
     },
     {
@@ -319741,7 +319893,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 730
+        "line": 746
       }
     },
     {
@@ -319751,7 +319903,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 742
+        "line": 758
       }
     },
     {
@@ -319761,7 +319913,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 743
+        "line": 759
       }
     },
     {
@@ -319771,7 +319923,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 744
+        "line": 760
       }
     },
     {
@@ -319781,7 +319933,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 745
+        "line": 761
       }
     },
     {
@@ -319791,7 +319943,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 746
+        "line": 762
       }
     },
     {
@@ -319801,7 +319953,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 747
+        "line": 763
       }
     },
     {
@@ -319811,7 +319963,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 748
+        "line": 764
       }
     },
     {
@@ -319821,7 +319973,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 749
+        "line": 765
       }
     },
     {
@@ -319831,7 +319983,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 750
+        "line": 766
       }
     },
     {
@@ -319841,7 +319993,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 751
+        "line": 767
       }
     },
     {
@@ -319851,7 +320003,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 752
+        "line": 768
       }
     },
     {
@@ -319861,7 +320013,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 753
+        "line": 769
       }
     },
     {
@@ -319871,7 +320023,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 731
+        "line": 747
       }
     },
     {
@@ -319881,7 +320033,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 732
+        "line": 748
       }
     },
     {
@@ -319891,7 +320043,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 733
+        "line": 749
       }
     },
     {
@@ -319901,7 +320053,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 734
+        "line": 750
       }
     },
     {
@@ -319911,7 +320063,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 735
+        "line": 751
       }
     },
     {
@@ -319921,7 +320073,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 736
+        "line": 752
       }
     },
     {
@@ -319931,7 +320083,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 737
+        "line": 753
       }
     },
     {
@@ -319941,7 +320093,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 738
+        "line": 754
       }
     },
     {
@@ -319951,7 +320103,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 739
+        "line": 755
       }
     },
     {
@@ -319961,7 +320113,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 740
+        "line": 756
       }
     },
     {
@@ -319971,7 +320123,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 741
+        "line": 757
       }
     },
     {
@@ -319981,7 +320133,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 754
+        "line": 770
       }
     },
     {
@@ -319991,7 +320143,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 755
+        "line": 771
       }
     },
     {
@@ -320001,7 +320153,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 756
+        "line": 772
       }
     },
     {
@@ -320011,7 +320163,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 757
+        "line": 773
       }
     },
     {
@@ -320021,7 +320173,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 758
+        "line": 774
       }
     },
     {
@@ -320031,7 +320183,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 759
+        "line": 775
       }
     },
     {
@@ -320041,7 +320193,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 760
+        "line": 776
       }
     },
     {
@@ -320051,7 +320203,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 761
+        "line": 777
       }
     },
     {
@@ -320061,7 +320213,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 762
+        "line": 778
       }
     },
     {
@@ -320071,7 +320223,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 763
+        "line": 779
       }
     },
     {
@@ -320081,7 +320233,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 764
+        "line": 780
       }
     },
     {
@@ -320091,7 +320243,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 765
+        "line": 781
       }
     },
     {
@@ -320101,7 +320253,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 766
+        "line": 782
       }
     },
     {
@@ -320111,7 +320263,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 767
+        "line": 783
       }
     },
     {
@@ -320121,7 +320273,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 768
+        "line": 784
       }
     },
     {
@@ -320131,7 +320283,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 769
+        "line": 785
       }
     },
     {
@@ -320141,7 +320293,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 770
+        "line": 786
       }
     },
     {
@@ -320151,7 +320303,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 771
+        "line": 787
       }
     },
     {
@@ -320161,7 +320313,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 772
+        "line": 788
       }
     },
     {
@@ -320171,7 +320323,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 773
+        "line": 789
       }
     },
     {
@@ -320181,7 +320333,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 774
+        "line": 790
       }
     },
     {
@@ -320191,7 +320343,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 776
+        "line": 792
       }
     },
     {
@@ -320201,7 +320353,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 777
+        "line": 793
       }
     },
     {
@@ -320211,7 +320363,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 778
+        "line": 794
       }
     },
     {
@@ -320221,7 +320373,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 779
+        "line": 795
       }
     },
     {
@@ -320231,7 +320383,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 780
+        "line": 796
       }
     },
     {
@@ -320241,7 +320393,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 781
+        "line": 797
       }
     },
     {
@@ -320251,7 +320403,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 782
+        "line": 798
       }
     },
     {
@@ -320261,7 +320413,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 783
+        "line": 799
       }
     },
     {
@@ -320271,7 +320423,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 784
+        "line": 800
       }
     },
     {
@@ -320281,7 +320433,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 785
+        "line": 801
       }
     },
     {
@@ -320291,7 +320443,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 786
+        "line": 802
       }
     },
     {
@@ -320301,7 +320453,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 787
+        "line": 803
       }
     },
     {
@@ -320311,7 +320463,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 788
+        "line": 804
       }
     },
     {
@@ -320321,7 +320473,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 789
+        "line": 805
       }
     },
     {
@@ -320331,7 +320483,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 790
+        "line": 806
       }
     },
     {
@@ -320341,7 +320493,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 791
+        "line": 807
       }
     },
     {
@@ -320351,7 +320503,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 792
+        "line": 808
       }
     },
     {
@@ -320361,7 +320513,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 793
+        "line": 809
       }
     },
     {
@@ -320371,7 +320523,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 794
+        "line": 810
       }
     },
     {
@@ -320381,7 +320533,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 795
+        "line": 811
       }
     },
     {
@@ -320391,7 +320543,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 796
+        "line": 812
       }
     },
     {
@@ -320401,7 +320553,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 797
+        "line": 813
       }
     },
     {
@@ -320411,7 +320563,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 798
+        "line": 814
       }
     },
     {
@@ -320421,7 +320573,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 799
+        "line": 815
       }
     },
     {
@@ -320431,7 +320583,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 800
+        "line": 816
       }
     },
     {
@@ -320441,7 +320593,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 801
+        "line": 817
       }
     },
     {
@@ -320451,7 +320603,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 802
+        "line": 818
       }
     },
     {
@@ -320461,7 +320613,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 803
+        "line": 819
       }
     },
     {
@@ -320471,7 +320623,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 804
+        "line": 820
       }
     },
     {
@@ -320481,7 +320633,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 805
+        "line": 821
       }
     },
     {
@@ -320491,7 +320643,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 806
+        "line": 822
       }
     },
     {
@@ -320501,7 +320653,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 807
+        "line": 823
       }
     },
     {
@@ -320511,7 +320663,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 808
+        "line": 824
       }
     },
     {
@@ -320521,7 +320673,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 809
+        "line": 825
       }
     },
     {
@@ -320531,7 +320683,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 810
+        "line": 826
       }
     },
     {
@@ -320541,7 +320693,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 811
+        "line": 827
       }
     },
     {
@@ -320551,7 +320703,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 812
+        "line": 828
       }
     },
     {
@@ -320561,7 +320713,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 813
+        "line": 829
       }
     },
     {
@@ -320571,7 +320723,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 814
+        "line": 830
       }
     },
     {
@@ -320581,7 +320733,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 815
+        "line": 831
       }
     },
     {
@@ -320591,7 +320743,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 816
+        "line": 832
       }
     },
     {
@@ -320601,7 +320753,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 817
+        "line": 833
       }
     },
     {
@@ -320611,7 +320763,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 818
+        "line": 834
       }
     },
     {
@@ -320621,7 +320773,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 819
+        "line": 835
       }
     },
     {
@@ -320631,7 +320783,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 820
+        "line": 836
       }
     },
     {
@@ -320641,7 +320793,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 821
+        "line": 837
       }
     },
     {
@@ -320651,7 +320803,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 822
+        "line": 838
       }
     },
     {
@@ -320661,7 +320813,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 823
+        "line": 839
       }
     },
     {
@@ -320671,7 +320823,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 824
+        "line": 840
       }
     },
     {
@@ -320681,7 +320833,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 825
+        "line": 841
       }
     },
     {
@@ -320691,7 +320843,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 826
+        "line": 842
       }
     },
     {
@@ -320701,7 +320853,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 827
+        "line": 843
       }
     },
     {
@@ -320711,7 +320863,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 828
+        "line": 844
       }
     },
     {
@@ -320721,7 +320873,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 829
+        "line": 845
       }
     },
     {
@@ -320731,7 +320883,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 830
+        "line": 846
       }
     },
     {
@@ -320741,7 +320893,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 831
+        "line": 847
       }
     },
     {
@@ -320751,7 +320903,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 832
+        "line": 848
       }
     },
     {
@@ -320761,7 +320913,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 833
+        "line": 849
       }
     },
     {
@@ -320771,7 +320923,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 834
+        "line": 850
       }
     },
     {
@@ -320781,7 +320933,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 835
+        "line": 851
       }
     },
     {
@@ -320791,7 +320943,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 836
+        "line": 852
       }
     },
     {
@@ -320801,7 +320953,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 837
+        "line": 853
       }
     },
     {
@@ -320811,7 +320963,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 838
+        "line": 854
       }
     },
     {
@@ -320821,7 +320973,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 839
+        "line": 855
       }
     },
     {
@@ -320831,7 +320983,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 840
+        "line": 856
       }
     },
     {
@@ -320841,7 +320993,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 841
+        "line": 857
       }
     },
     {
@@ -320851,7 +321003,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 842
+        "line": 858
       }
     },
     {
@@ -320861,7 +321013,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 843
+        "line": 859
       }
     },
     {
@@ -320871,7 +321023,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 844
+        "line": 860
       }
     },
     {
@@ -320881,7 +321033,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 845
+        "line": 861
       }
     },
     {
@@ -320891,7 +321043,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 167
+        "line": 180
       }
     },
     {
@@ -320901,7 +321053,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 148
+        "line": 161
       }
     },
     {
@@ -320911,7 +321063,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 1188
+        "line": 1212
       }
     },
     {
@@ -320921,7 +321073,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 90
+        "line": 103
       }
     },
     {
@@ -320931,7 +321083,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 90
+        "line": 103
       }
     },
     {
@@ -320941,7 +321093,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 1151
+        "line": 1175
       }
     },
     {
@@ -320951,7 +321103,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 85
+        "line": 98
       }
     },
     {
@@ -320961,7 +321113,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 86
+        "line": 99
       }
     },
     {
@@ -320971,7 +321123,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 53
+        "line": 66
       }
     },
     {
@@ -320981,7 +321133,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 249
+        "line": 262
       }
     },
     {
@@ -320991,7 +321143,17 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 249
+        "line": 262
+      }
+    },
+    {
+      "source": "file:apps/Forge.Studio/StudioRoot.cs",
+      "target": "file:src/Forge.Studio.Core/Verification/StudioSmokeSelection.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/StudioRoot.cs",
+        "line": 22
       }
     },
     {
@@ -447672,6 +447834,16 @@
       "evidence": {
         "path": "tests/Forge.Studio.Core.Tests/Navigation/StudioPageCatalogTests.cs",
         "line": 24
+      }
+    },
+    {
+      "source": "file:tests/Forge.Studio.Core.Tests/Verification/StudioSmokeSelectionTests.cs",
+      "target": "file:src/Forge.Studio.Core/Verification/StudioSmokeSelection.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.Studio.Core.Tests/Verification/StudioSmokeSelectionTests.cs",
+        "line": 11
       }
     },
     {
@@ -647121,7 +647293,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 11
+        "line": 12
       }
     },
     {
@@ -647251,6 +647423,26 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Studio.Core.Tests/Navigation/StudioPageCatalogTests.cs",
+        "line": 5
+      }
+    },
+    {
+      "source": "namespace:Forge.Studio.Core.Tests.Verification",
+      "target": "file:tests/Forge.Studio.Core.Tests/Verification/StudioSmokeSelectionTests.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.Studio.Core.Tests/Verification/StudioSmokeSelectionTests.cs",
+        "line": 6
+      }
+    },
+    {
+      "source": "namespace:Forge.Studio.Core.Verification",
+      "target": "file:src/Forge.Studio.Core/Verification/StudioSmokeSelection.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Studio.Core/Verification/StudioSmokeSelection.cs",
         "line": 5
       }
     },
@@ -678155,6 +678347,16 @@
       }
     },
     {
+      "source": "project:src/Forge.Studio.Core/Forge.Studio.Core",
+      "target": "file:src/Forge.Studio.Core/Verification/StudioSmokeSelection.cs",
+      "kind": "contains",
+      "confidence": "syntactic",
+      "evidence": {
+        "path": "src/Forge.Studio.Core/Forge.Studio.Core.csproj",
+        "line": 1
+      }
+    },
+    {
       "source": "project:tests/Forge.Application.Tests/Forge.Application.Tests",
       "target": "file:tests/Forge.Application.Tests/Areas/AreaAudioMixerTests.cs",
       "kind": "contains",
@@ -683797,6 +683999,16 @@
     {
       "source": "project:tests/Forge.Studio.Core.Tests/Forge.Studio.Core.Tests",
       "target": "file:tests/Forge.Studio.Core.Tests/Navigation/StudioPageCatalogTests.cs",
+      "kind": "contains",
+      "confidence": "syntactic",
+      "evidence": {
+        "path": "tests/Forge.Studio.Core.Tests/Forge.Studio.Core.Tests.csproj",
+        "line": 1
+      }
+    },
+    {
+      "source": "project:tests/Forge.Studio.Core.Tests/Forge.Studio.Core.Tests",
+      "target": "file:tests/Forge.Studio.Core.Tests/Verification/StudioSmokeSelectionTests.cs",
       "kind": "contains",
       "confidence": "syntactic",
       "evidence": {
@@ -814315,6 +814527,46 @@
       }
     },
     {
+      "source": "test:Forge.Studio.Core.Tests.Verification.StudioSmokeSelectionTests",
+      "target": "file:tests/Forge.Studio.Core.Tests/Verification/StudioSmokeSelectionTests.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.Studio.Core.Tests/Verification/StudioSmokeSelectionTests.cs",
+        "line": 6
+      }
+    },
+    {
+      "source": "test:Forge.Studio.Core.Tests.Verification.StudioSmokeSelectionTests",
+      "target": "project:tests/Forge.Studio.Core.Tests/Forge.Studio.Core.Tests",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.Studio.Core.Tests/Verification/StudioSmokeSelectionTests.cs",
+        "line": 6
+      }
+    },
+    {
+      "source": "test:Forge.Studio.Core.Tests.Verification.StudioSmokeSelectionTests",
+      "target": "type:Forge.Studio.Core.Verification.StudioSmokeScope",
+      "kind": "tests",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.Studio.Core.Tests/Verification/StudioSmokeSelectionTests.cs",
+        "line": 14
+      }
+    },
+    {
+      "source": "test:Forge.Studio.Core.Tests.Verification.StudioSmokeSelectionTests",
+      "target": "type:Forge.Studio.Core.Verification.StudioSmokeSelection",
+      "kind": "tests",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.Studio.Core.Tests/Verification/StudioSmokeSelectionTests.cs",
+        "line": 11
+      }
+    },
+    {
       "source": "type:ArgumentMap",
       "target": "file:apps/Forge.McpHost/Program.cs",
       "kind": "defined_in",
@@ -925515,6 +925767,56 @@
       }
     },
     {
+      "source": "type:Forge.Studio.Core.Verification.StudioSmokeScope",
+      "target": "file:src/Forge.Studio.Core/Verification/StudioSmokeSelection.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Studio.Core/Verification/StudioSmokeSelection.cs",
+        "line": 5
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Core.Verification.StudioSmokeScope",
+      "target": "project:src/Forge.Studio.Core/Forge.Studio.Core",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Studio.Core/Verification/StudioSmokeSelection.cs",
+        "line": 5
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Core.Verification.StudioSmokeSelection",
+      "target": "file:src/Forge.Studio.Core/Verification/StudioSmokeSelection.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Studio.Core/Verification/StudioSmokeSelection.cs",
+        "line": 12
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Core.Verification.StudioSmokeSelection",
+      "target": "project:src/Forge.Studio.Core/Forge.Studio.Core",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Studio.Core/Verification/StudioSmokeSelection.cs",
+        "line": 12
+      }
+    },
+    {
+      "source": "type:Forge.Studio.Core.Verification.StudioSmokeSelection",
+      "target": "type:Forge.Studio.Core.Verification.StudioSmokeScope",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Studio.Core/Verification/StudioSmokeSelection.cs",
+        "line": 13
+      }
+    },
+    {
       "source": "type:Forge.Studio.Presentation.IStudioUx2EnvBValueRow\u003CT\u003E",
       "target": "file:apps/Forge.Studio/Presentation/StudioAreaEnvironmentFoundationOverlay.Ux2EnvB.cs",
       "kind": "defined_in",
@@ -1035421,7 +1035723,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 1151
+        "line": 1175
       }
     },
     {
@@ -1035431,7 +1035733,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 11
+        "line": 12
       }
     },
     {
@@ -1035441,7 +1035743,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 13
+        "line": 14
       }
     },
     {
@@ -1035451,7 +1035753,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 167
+        "line": 180
       }
     },
     {
@@ -1035461,7 +1035763,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 148
+        "line": 161
       }
     },
     {
@@ -1035471,7 +1035773,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 1188
+        "line": 1212
       }
     },
     {
@@ -1035481,7 +1035783,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 90
+        "line": 103
       }
     },
     {
@@ -1035491,7 +1035793,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 90
+        "line": 103
       }
     },
     {
@@ -1035501,7 +1035803,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 86
+        "line": 99
       }
     },
     {
@@ -1035511,7 +1035813,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 249
+        "line": 262
       }
     },
     {
@@ -1035521,7 +1035823,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 134
+        "line": 147
       }
     },
     {
@@ -1035531,7 +1035833,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 17
+        "line": 18
       }
     },
     {
@@ -1035541,7 +1035843,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 846
+        "line": 862
       }
     },
     {
@@ -1035551,7 +1035853,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 730
+        "line": 746
       }
     },
     {
@@ -1035561,7 +1035863,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 742
+        "line": 758
       }
     },
     {
@@ -1035571,7 +1035873,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 743
+        "line": 759
       }
     },
     {
@@ -1035581,7 +1035883,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 744
+        "line": 760
       }
     },
     {
@@ -1035591,7 +1035893,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 745
+        "line": 761
       }
     },
     {
@@ -1035601,7 +1035903,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 746
+        "line": 762
       }
     },
     {
@@ -1035611,7 +1035913,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 747
+        "line": 763
       }
     },
     {
@@ -1035621,7 +1035923,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 748
+        "line": 764
       }
     },
     {
@@ -1035631,7 +1035933,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 749
+        "line": 765
       }
     },
     {
@@ -1035641,7 +1035943,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 750
+        "line": 766
       }
     },
     {
@@ -1035651,7 +1035953,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 751
+        "line": 767
       }
     },
     {
@@ -1035661,7 +1035963,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 752
+        "line": 768
       }
     },
     {
@@ -1035671,7 +1035973,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 753
+        "line": 769
       }
     },
     {
@@ -1035681,7 +1035983,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 731
+        "line": 747
       }
     },
     {
@@ -1035691,7 +1035993,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 732
+        "line": 748
       }
     },
     {
@@ -1035701,7 +1036003,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 733
+        "line": 749
       }
     },
     {
@@ -1035711,7 +1036013,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 734
+        "line": 750
       }
     },
     {
@@ -1035721,7 +1036023,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 735
+        "line": 751
       }
     },
     {
@@ -1035731,7 +1036033,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 736
+        "line": 752
       }
     },
     {
@@ -1035741,7 +1036043,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 737
+        "line": 753
       }
     },
     {
@@ -1035751,7 +1036053,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 738
+        "line": 754
       }
     },
     {
@@ -1035761,7 +1036063,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 739
+        "line": 755
       }
     },
     {
@@ -1035771,7 +1036073,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 740
+        "line": 756
       }
     },
     {
@@ -1035781,7 +1036083,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 741
+        "line": 757
       }
     },
     {
@@ -1035791,7 +1036093,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 754
+        "line": 770
       }
     },
     {
@@ -1035801,7 +1036103,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 755
+        "line": 771
       }
     },
     {
@@ -1035811,7 +1036113,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 756
+        "line": 772
       }
     },
     {
@@ -1035821,7 +1036123,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 757
+        "line": 773
       }
     },
     {
@@ -1035831,7 +1036133,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 758
+        "line": 774
       }
     },
     {
@@ -1035841,7 +1036143,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 759
+        "line": 775
       }
     },
     {
@@ -1035851,7 +1036153,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 760
+        "line": 776
       }
     },
     {
@@ -1035861,7 +1036163,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 761
+        "line": 777
       }
     },
     {
@@ -1035871,7 +1036173,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 762
+        "line": 778
       }
     },
     {
@@ -1035881,7 +1036183,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 763
+        "line": 779
       }
     },
     {
@@ -1035891,7 +1036193,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 764
+        "line": 780
       }
     },
     {
@@ -1035901,7 +1036203,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 765
+        "line": 781
       }
     },
     {
@@ -1035911,7 +1036213,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 766
+        "line": 782
       }
     },
     {
@@ -1035921,7 +1036223,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 767
+        "line": 783
       }
     },
     {
@@ -1035931,7 +1036233,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 768
+        "line": 784
       }
     },
     {
@@ -1035941,7 +1036243,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 769
+        "line": 785
       }
     },
     {
@@ -1035951,7 +1036253,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 770
+        "line": 786
       }
     },
     {
@@ -1035961,7 +1036263,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 771
+        "line": 787
       }
     },
     {
@@ -1035971,7 +1036273,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 772
+        "line": 788
       }
     },
     {
@@ -1035981,7 +1036283,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 773
+        "line": 789
       }
     },
     {
@@ -1035991,7 +1036293,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 774
+        "line": 790
       }
     },
     {
@@ -1036001,7 +1036303,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 775
+        "line": 791
       }
     },
     {
@@ -1036011,7 +1036313,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 799
+        "line": 815
       }
     },
     {
@@ -1036021,7 +1036323,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 800
+        "line": 816
       }
     },
     {
@@ -1036031,7 +1036333,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 801
+        "line": 817
       }
     },
     {
@@ -1036041,7 +1036343,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 802
+        "line": 818
       }
     },
     {
@@ -1036051,7 +1036353,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 803
+        "line": 819
       }
     },
     {
@@ -1036061,7 +1036363,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 804
+        "line": 820
       }
     },
     {
@@ -1036071,7 +1036373,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 805
+        "line": 821
       }
     },
     {
@@ -1036081,7 +1036383,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 806
+        "line": 822
       }
     },
     {
@@ -1036091,7 +1036393,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 807
+        "line": 823
       }
     },
     {
@@ -1036101,7 +1036403,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 808
+        "line": 824
       }
     },
     {
@@ -1036111,7 +1036413,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 809
+        "line": 825
       }
     },
     {
@@ -1036121,7 +1036423,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 810
+        "line": 826
       }
     },
     {
@@ -1036131,7 +1036433,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 811
+        "line": 827
       }
     },
     {
@@ -1036141,7 +1036443,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 812
+        "line": 828
       }
     },
     {
@@ -1036151,7 +1036453,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 813
+        "line": 829
       }
     },
     {
@@ -1036161,7 +1036463,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 814
+        "line": 830
       }
     },
     {
@@ -1036171,7 +1036473,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 815
+        "line": 831
       }
     },
     {
@@ -1036181,7 +1036483,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 816
+        "line": 832
       }
     },
     {
@@ -1036191,7 +1036493,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 817
+        "line": 833
       }
     },
     {
@@ -1036201,7 +1036503,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 818
+        "line": 834
       }
     },
     {
@@ -1036211,7 +1036513,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 819
+        "line": 835
       }
     },
     {
@@ -1036221,7 +1036523,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 820
+        "line": 836
       }
     },
     {
@@ -1036231,7 +1036533,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 821
+        "line": 837
       }
     },
     {
@@ -1036241,7 +1036543,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 822
+        "line": 838
       }
     },
     {
@@ -1036251,7 +1036553,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 823
+        "line": 839
       }
     },
     {
@@ -1036261,7 +1036563,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 824
+        "line": 840
       }
     },
     {
@@ -1036271,7 +1036573,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 825
+        "line": 841
       }
     },
     {
@@ -1036281,7 +1036583,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 826
+        "line": 842
       }
     },
     {
@@ -1036291,7 +1036593,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 827
+        "line": 843
       }
     },
     {
@@ -1036301,7 +1036603,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 828
+        "line": 844
       }
     },
     {
@@ -1036311,7 +1036613,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 829
+        "line": 845
       }
     },
     {
@@ -1036321,7 +1036623,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 830
+        "line": 846
       }
     },
     {
@@ -1036331,7 +1036633,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 831
+        "line": 847
       }
     },
     {
@@ -1036341,7 +1036643,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 832
+        "line": 848
       }
     },
     {
@@ -1036351,7 +1036653,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 833
+        "line": 849
       }
     },
     {
@@ -1036361,7 +1036663,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 834
+        "line": 850
       }
     },
     {
@@ -1036371,7 +1036673,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 835
+        "line": 851
       }
     },
     {
@@ -1036381,7 +1036683,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 836
+        "line": 852
       }
     },
     {
@@ -1036391,7 +1036693,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 837
+        "line": 853
       }
     },
     {
@@ -1036401,7 +1036703,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 838
+        "line": 854
       }
     },
     {
@@ -1036411,7 +1036713,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 839
+        "line": 855
       }
     },
     {
@@ -1036421,7 +1036723,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 840
+        "line": 856
       }
     },
     {
@@ -1036431,7 +1036733,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 841
+        "line": 857
       }
     },
     {
@@ -1036441,7 +1036743,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 842
+        "line": 858
       }
     },
     {
@@ -1036451,7 +1036753,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 843
+        "line": 859
       }
     },
     {
@@ -1036461,7 +1036763,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 844
+        "line": 860
       }
     },
     {
@@ -1036471,7 +1036773,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 845
+        "line": 861
       }
     },
     {
@@ -1036481,7 +1036783,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 11
+        "line": 12
       }
     },
     {
@@ -1036491,7 +1036793,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 85
+        "line": 98
       }
     },
     {
@@ -1036501,7 +1036803,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 53
+        "line": 66
       }
     },
     {
@@ -1036511,7 +1036813,17 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 249
+        "line": 262
+      }
+    },
+    {
+      "source": "type:Forge.Studio.StudioRoot",
+      "target": "type:Forge.Studio.Core.Verification.StudioSmokeSelection",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.Studio/StudioRoot.cs",
+        "line": 22
       }
     },
     {
@@ -1036521,7 +1036833,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 14
+        "line": 15
       }
     },
     {
@@ -1036531,7 +1036843,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 16
+        "line": 17
       }
     },
     {
@@ -1036541,7 +1036853,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 34
+        "line": 36
       }
     },
     {
@@ -1036551,7 +1036863,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 15
+        "line": 16
       }
     },
     {
@@ -1036561,7 +1036873,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 991
+        "line": 1007
       }
     },
     {
@@ -1036571,7 +1036883,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 792
+        "line": 808
       }
     },
     {
@@ -1036581,7 +1036893,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 793
+        "line": 809
       }
     },
     {
@@ -1036591,7 +1036903,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 796
+        "line": 812
       }
     },
     {
@@ -1036601,7 +1036913,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 783
+        "line": 799
       }
     },
     {
@@ -1036611,7 +1036923,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 790
+        "line": 806
       }
     },
     {
@@ -1036621,7 +1036933,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 791
+        "line": 807
       }
     },
     {
@@ -1036631,7 +1036943,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 789
+        "line": 805
       }
     },
     {
@@ -1036641,7 +1036953,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 779
+        "line": 795
       }
     },
     {
@@ -1036651,7 +1036963,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 785
+        "line": 801
       }
     },
     {
@@ -1036661,7 +1036973,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 784
+        "line": 800
       }
     },
     {
@@ -1036671,7 +1036983,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 786
+        "line": 802
       }
     },
     {
@@ -1036681,7 +1036993,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 780
+        "line": 796
       }
     },
     {
@@ -1036691,7 +1037003,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 782
+        "line": 798
       }
     },
     {
@@ -1036701,7 +1037013,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 788
+        "line": 804
       }
     },
     {
@@ -1036711,7 +1037023,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 781
+        "line": 797
       }
     },
     {
@@ -1036721,7 +1037033,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 787
+        "line": 803
       }
     },
     {
@@ -1036731,7 +1037043,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 797
+        "line": 813
       }
     },
     {
@@ -1036741,7 +1037053,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 776
+        "line": 792
       }
     },
     {
@@ -1036751,7 +1037063,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 778
+        "line": 794
       }
     },
     {
@@ -1036761,7 +1037073,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 777
+        "line": 793
       }
     },
     {
@@ -1036771,7 +1037083,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 794
+        "line": 810
       }
     },
     {
@@ -1036781,7 +1037093,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 795
+        "line": 811
       }
     },
     {
@@ -1036791,7 +1037103,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 798
+        "line": 814
       }
     },
     {
@@ -1036801,7 +1037113,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/StudioRoot.cs",
-        "line": 38
+        "line": 40
       }
     },
     {

@@ -72,6 +72,10 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
 - [x] Rejouer l'installateur sur un profil utilisateur temporaire propre.
 - [x] Extraire la politique de fenêtres, le décorateur de Crypte et le mapping de quêtes MCP.
 - [x] Conserver le portail intégré vert après chaque extraction.
+- [x] Router les validations par risque avec plans JSON, filtres propres à chaque projet, comptes TRX,
+  rejet de zéro test, profils Core/Studio/Runtime/Assets/Network/Distribution/Full et smokes Studio
+  Route/Wave/Full, tout en conservant le portail Full historique ; qualification finale : 2 130 tests
+  .NET, 64 tests Python et portail Full vert en 873,66 s.
 
 ## C8 — Édition manuelle et non destructive
 

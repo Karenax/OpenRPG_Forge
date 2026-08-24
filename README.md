@@ -227,10 +227,21 @@ un second assemblage isolé et compare les octets. Un export inchangé réutilis
 lieu de la réémettre. Le host MCP expose les opérations bornées équivalentes
 `GetBuildProfile`, `ValidateBuild`, `PlanBuild`, `BuildModule` et `TestBuild`, sans shell arbitraire.
 
-## Vérifier tout le dépôt
+## Vérifier au bon niveau
+
+Pour une modification courante, produire puis exécuter un plan ciblé :
 
 ```powershell
-.\scripts\Verify.ps1
+.\scripts\Get-VerificationPlan.ps1 -ChangedPath <fichiers> -Stage Development
+.\scripts\Invoke-TargetedVerification.ps1 -ChangedPath <fichiers> -Stage Development
+```
+
+Les profils `Core`, `Studio`, `Runtime`, `Assets`, `Network` et `Distribution` couvrent les jalons de
+sous-système. Le portail transversal historique reste le profil `Full` et le comportement par défaut :
+
+```powershell
+.\scripts\Verify.ps1 -Profile Studio -Evidence ux2-nav-l -StudioSmokeScope Route
+.\scripts\Verify.ps1 -Profile Full
 ```
 
 Ce script exécute :
@@ -247,6 +258,8 @@ Ce script exécute :
 - sauvegarde dans un premier processus puis reprise/fin de quête dans un second.
 
 Voir [`docs/ENVIRONMENT.md`](docs/ENVIRONMENT.md) pour les versions locales utilisées.
+La politique de sélection et les seuils d'élargissement sont décrits dans
+[`docs/planning/TARGETED_VERIFICATION.md`](docs/planning/TARGETED_VERIFICATION.md).
 
 ## Premier objectif produit
 

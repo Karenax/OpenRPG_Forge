@@ -1,6 +1,6 @@
 ---
 name: openrpg-delivery-gate
-description: Valider une modification bornée, une clôture de lot ou une préparation de livraison dans OpenRPG Forge. Utiliser après une implémentation, avant d'annoncer une capacité terminée, ou lorsqu'une demande exige compilation, tests, vérification du graphe et preuves reproductibles. Ne pas utiliser pour une simple question de statut en lecture seule qui n'autorise aucune régénération.
+description: Valider un jalon transversal, une clôture de vague ou une préparation de livraison dans OpenRPG Forge. Utiliser après plusieurs lots liés, après un changement de contrat partagé, avant d'annoncer un jalon terminé, ou lorsqu'une demande exige le portail global et des preuves reproductibles. Pour une modification courante, utiliser d'abord openrpg-targeted-verification. Ne pas utiliser pour une simple question de statut en lecture seule.
 ---
 
 # Valider une livraison OpenRPG
@@ -37,9 +37,15 @@ Pour une demande de diagnostic ou de statut uniquement, exécuter `check` sans `
 
 ## Valider par paliers
 
-1. Exécuter d'abord les tests ciblés déterminés par le graphe et le sous-système.
-2. Exécuter les builds ou smoke tests directement liés au changement.
-3. Pour du code, une clôture de gate ou une préparation de publication, exécuter le gate intégré :
+1. Utiliser d'abord `$openrpg-targeted-verification` pour les tests, builds et smokes directement liés.
+2. À un jalon de sous-système, exécuter le profil concerné :
+
+```powershell
+& '.\scripts\Verify.ps1' -Profile <Core|Studio|Runtime|Assets|Network|Distribution>
+```
+
+3. Exécuter le portail transversal uniquement après trois à cinq lots liés, dix à vingt routes, une
+   fin de vague, un changement de contrat partagé important ou une préparation de publication :
 
 ```powershell
 & '.\scripts\Verify.ps1'

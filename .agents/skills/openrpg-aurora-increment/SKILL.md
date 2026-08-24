@@ -36,4 +36,7 @@ Préserver la démarche clean-room et distinguer recherche, plan, implémentatio
 3. Utiliser `scripts/Update-AuroraParityTracker.ps1` pour régénérer le tracker lorsqu'une mise à jour est autorisée ; ne pas éditer le snapshot de recherche.
 4. Régénérer `docs/planning/COMPLETE_FUNCTION_BACKLOG.md` avec `scripts/Update-CompleteFunctionBacklog.ps1`, puis exécuter son mode `-Check`.
 5. Mettre à jour les documents de clôture, `STATUS.md` et `TASKS_MVP.md` lorsque l'état réel change.
-6. Terminer avec `$openrpg-delivery-gate` et rapporter explicitement les exigences restant partielles.
+6. Valider chaque incrément avec `$openrpg-targeted-verification`, en transmettant ses feature IDs et
+   sa route Studio. Utiliser `$openrpg-delivery-gate` seulement au jalon de trois à cinq lots liés,
+   dix à vingt routes, fin de vague ou contrat partagé important. Rapporter explicitement les
+   exigences restant partielles.
