@@ -70,9 +70,14 @@ pings, impacts, caméra, micro hit-stop et audio SFX. Cette présentation reste 
 ni équilibrage ni contenu de module, et se replie proprement avec mouvements réduits, contraste
 élevé, modes de vision des couleurs et texte jusqu'à ×2.
 
+Le code propre au projet est distribué sous PolyForm Noncommercial 1.0.0, identifiant SPDX
+`PolyForm-Noncommercial-1.0.0`. Cette licence à code source disponible autorise les finalités non
+commerciales définies par son texte, mais n'accorde pas d'autorisation pour un usage commercial. Les
+composants et assets tiers conservent leurs licences propres.
+
 Le chantier courant n’est plus la migration des routes Studio. Il porte sur la consolidation Git, la
-CI distante reproductible et les prérequis de release : licence du code, signature Authenticode,
-revue physique multi-écrans, fournisseur IA réel et autorisation explicite de publication. Le plugin
+CI distante reproductible et les prérequis de release restants : signature Authenticode, revue
+physique multi-écrans, fournisseur IA réel et autorisation explicite de publication. Le plugin
 historique reste disponible jusqu'à une décision utilisateur explicite de basculer le lanceur Creator.
 
 ## Expérience Creator cible

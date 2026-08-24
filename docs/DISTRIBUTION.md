@@ -129,15 +129,17 @@ Le second portail vérifie le manifeste et le SHA-256, puis exécute sur un prof
 vide une installation silencieuse, le smoke Creator, une mise à jour sur place et une désinstallation.
 Il prouve également que les données utilisateur externes au répertoire d'installation sont préservées.
 
-Chaque distribution Creator et Runtime contient aussi, sous `compliance/` :
+Chaque distribution Creator, Runtime et Studio contient aussi, sous `compliance/` :
 
+- `PROJECT-LICENSE.txt`, copie contrôlée de la licence PolyForm Noncommercial 1.0.0 du projet ;
 - `THIRD-PARTY-NOTICES.txt`, inventaire lisible des dépendances redistribuées ;
 - `ASSET-CREDITS.md` et `FORGESCRIPT-NOTICES.md`, crédits spécialisés ;
 - `licenses.csv`, agrégation déterministe des licences ;
 - `sbom.cdx.json`, SBOM CycloneDX 1.6 déterministe ;
 - `SIGNING-STATUS.txt`, résultat Authenticode et politique de release.
 
-La chaîne technique de distribution est donc testable de bout en bout. Une release publique reste
-cependant conditionnée par deux décisions externes : l'ajout d'une licence explicite pour le code du
-dépôt, et la fourniture d'un certificat Authenticode. Tant que ce certificat manque, le manifeste
-rapporte volontairement `NotSigned` et aucune promesse SmartScreen n'est faite.
+La chaîne technique de distribution est donc testable de bout en bout. Le code propre au projet est
+placé sous PolyForm Noncommercial 1.0.0 ; les licences et notices tierces restent indépendantes. Une
+release publique reste conditionnée par la fourniture d'un certificat Authenticode. Tant que ce
+certificat manque, le manifeste rapporte volontairement `NotSigned` et aucune promesse SmartScreen
+n'est faite.

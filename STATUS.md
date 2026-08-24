@@ -833,6 +833,8 @@ revue visuelle humaine complète FHD/QHD n’a été réalisée dans ce lot.
 
 - version : `0.1.0-dev` ; cible : Windows x64 ;
 - conformité : 38 composants documentés et 38 licences agrégées ;
+- licence du projet : PolyForm Noncommercial 1.0.0 à la racine, recopiée et contrôlée sous
+  `compliance/PROJECT-LICENSE.txt` lors de la génération d'une distribution ;
 - Runtime : manifeste validé et smoke rejoué depuis l'exécutable exporté ;
 - Creator historique : manifeste validé et smoke rejoué depuis le lanceur autonome ;
 - Studio Windows x64 : export autonome, manifeste, conformité 38/38 et smoke de distribution réussi ;
@@ -845,8 +847,8 @@ revue visuelle humaine complète FHD/QHD n’a été réalisée dans ce lot.
 
 ## Limites externes avant release publique
 
-- le dépôt ne possède pas encore de licence explicite pour son propre code ; cette décision juridique
-  appartient au propriétaire du projet ;
+- la licence PolyForm Noncommercial 1.0.0 n'autorise pas les usages commerciaux ; une autorisation
+  distincte du concédant est nécessaire pour ces usages ;
 - aucun certificat Authenticode n'est fourni, donc l'installateur reste un candidat de développement ;
 - aucun tag ni aucune GitHub Release n'est créé sans autorisation distincte ;
 - une revue sur un second écran physique et avec un fournisseur IA réel reste une qualification humaine ;

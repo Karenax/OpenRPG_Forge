@@ -14,9 +14,9 @@ La couche de gameplay utilise encore :
   projet OpenRPG Forge ;
 - les scripts `ash_warden_phase_two.forge` et `ash_warden_death.forge`, code original du projet.
 
-Ces éléments peuvent être distribués sous la même licence que le code du dépôt dès que celle-ci est
-formellement ajoutée. En attendant ce choix, aucun droit de redistribution tiers n'est implicitement
-accordé.
+Ces éléments propres au projet sont distribués sous PolyForm Noncommercial 1.0.0 avec le code du
+dépôt. Cette licence ne couvre pas les composants ou assets tiers, qui conservent chacun leur licence
+et leurs obligations de notice.
 
 ## Composants tiers non artistiques
 

@@ -2,7 +2,9 @@
 
 ## Mission
 
-Construire un moteur et un toolset de RPG 3D libre, moderne et orienté modules, inspiré par la promesse d’Aurora sans reprendre les marques, contenus, règles ou actifs de Neverwinter Nights/D&D.
+Construire un moteur et un toolset de RPG 3D moderne, orienté modules et à code source disponible
+pour les usages non commerciaux, inspiré par la promesse d’Aurora sans reprendre les marques,
+contenus, règles ou actifs de Neverwinter Nights/D&D.
 
 Le produit doit rester utilisable sans IA, sans abonnement et sans outil propriétaire obligatoire.
 

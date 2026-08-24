@@ -201,6 +201,9 @@ $bom = [ordered]@{
             'bom-ref' = "pkg:generic/openrpg-forge@$Version"
             name = $Product
             version = $Version
+            licenses = @([ordered]@{
+                license = [ordered]@{ id = 'PolyForm-Noncommercial-1.0.0' }
+            })
             properties = @(
                 [ordered]@{ name='openrpg-forge:source-revision'; value=$sourceRevision },
                 [ordered]@{ name='openrpg-forge:source-dirty'; value=$sourceDirty.ToString().ToLowerInvariant() }
@@ -213,6 +216,12 @@ $bom = [ordered]@{
 
 $compliancePath = Join-Path $distributionPath 'compliance'
 New-Item -ItemType Directory -Path $compliancePath -Force | Out-Null
+$projectLicensePath = Join-Path $repositoryRoot 'LICENSE.txt'
+if (-not (Test-Path -LiteralPath $projectLicensePath -PathType Leaf)) {
+    throw "Project license missing: $projectLicensePath"
+}
+Copy-Item -LiteralPath $projectLicensePath `
+    -Destination (Join-Path $compliancePath 'PROJECT-LICENSE.txt') -Force
 $bom | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath (Join-Path $compliancePath 'sbom.cdx.json') -Encoding utf8
 $licenseRows | Sort-Object Component,Version | Export-Csv -LiteralPath (Join-Path $compliancePath 'licenses.csv') -NoTypeInformation -Encoding utf8
 

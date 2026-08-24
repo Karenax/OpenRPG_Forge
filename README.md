@@ -1,6 +1,8 @@
 # OpenRPG Forge
 
-OpenRPG Forge est un projet de moteur, runtime et toolset libre pour créer des RPG 3D modulaires. Il vise une expérience de création accessible, un domaine RPG indépendant du moteur, des modules partageables et une assistance IA facultative et transactionnelle.
+OpenRPG Forge est un projet de moteur, runtime et toolset à code source disponible pour créer des RPG
+3D modulaires. Il vise une expérience de création accessible, un domaine RPG indépendant du moteur,
+des modules partageables et une assistance IA facultative et transactionnelle.
 
 Le dépôt contient désormais deux **prototypes fonctionnels** : la Crypte des Cendres et la carte
 extérieure Forgotten Forest. La solution C# compilable fournit
@@ -15,6 +17,15 @@ consolidation de la CI, de l’interface, de la distribution et de la qualité v
 Le lancement utilise un splash **OpenRPG_Forge** dédié, commun au runtime et à l’application de
 création. La fenêtre de l’application porte également le titre **OpenRPG_Forge**. Le visuel peut
 être régénéré avec `scripts/Generate-Branding.ps1`.
+
+## Licence
+
+Le code propre à OpenRPG Forge est distribué sous
+[PolyForm Noncommercial 1.0.0](LICENSE.txt), identifiant SPDX
+`PolyForm-Noncommercial-1.0.0`. La licence autorise l'utilisation, la modification et la
+redistribution pour les finalités non commerciales qu'elle définit ; elle n'accorde pas d'autorisation
+pour un usage commercial. Les dépendances, composants tiers et assets conservent leurs licences et
+notices propres.
 
 ## Sources de vérité
 

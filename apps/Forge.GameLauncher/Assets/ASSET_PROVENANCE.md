@@ -9,8 +9,8 @@
 - Dimensions : 1672 × 941 pixels.
 - SHA-256 : `c1e5ba722a1b648da57e2ea7edde6f4d6e90a8f0c148f8c5861d613628823cc7`.
 - Provenance tierce : aucune image, marque, logo ou œuvre de référence n'a été fourni au générateur.
-- Gouvernance : actif généré pour le projet. Sa redistribution suit la future licence explicite du
-  dépôt ; l'absence actuelle de licence globale reste une limite de qualification publique existante.
+- Gouvernance : actif généré pour le projet. Sa redistribution suit PolyForm Noncommercial 1.0.0,
+  licence explicite du code et des actifs propres au projet qui n'autorise pas les usages commerciaux.
 
 Prompt final :
 

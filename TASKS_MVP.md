@@ -587,7 +587,8 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
 
 ## Décisions externes avant release publique
 
-- [ ] Choisir et ajouter la licence du code du dépôt.
+- [x] Choisir et ajouter PolyForm Noncommercial 1.0.0 pour le code du dépôt, avec notice OpenRPG Forge
+  et copie contrôlée dans les distributions.
 - [ ] Fournir un certificat Authenticode et signer les exécutables.
 - [ ] Rejouer la revue physique multi-écrans et un fournisseur IA réel.
 - [ ] Autoriser explicitement un tag et une GitHub Release.

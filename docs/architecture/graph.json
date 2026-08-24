@@ -3,8 +3,8 @@
     "schema_version": 2,
     "engine": "roslyn",
     "engine_version": "5.6.0.0",
-    "source_digest": "sha256:86514e75d3b4f2e033b3217bdbb486c7e505b712ad6afacd6082065658925fee",
-    "source_file_count": 3969,
+    "source_digest": "sha256:c03900f8823ef8786e3dc844296289af802c400c960490b393e0c03e13ee3885",
+    "source_file_count": 3970,
     "sources": [
       {
         "path": ".agents/skills/openrpg-asset-lifecycle/SKILL.md",
@@ -78,8 +78,8 @@
       },
       {
         "path": "AGENTS.md",
-        "sha256": "sha256:efb020480da0d1dbecf21b20213d90aba8e4bac885f515ac413cea1901950291",
-        "size": 10654
+        "sha256": "sha256:2257eefcaa7b167725f62ede94d42b987943e6119f6df236584e0e8c2cb9b4c9",
+        "size": 10706
       },
       {
         "path": "ASSETS_MANUAL_DOWNLOAD.md",
@@ -453,23 +453,23 @@
       },
       {
         "path": "PROJECT_CONTEXT.md",
-        "sha256": "sha256:33531d797ff8810d60f4cd5750973fe07d5ae8c51ed2b79a8916ea22f9ff01e8",
-        "size": 17515
+        "sha256": "sha256:cd65889e32bf33182d77e7c4f24a10c788afbb6e6de547f3cb8a6c48f1affe62",
+        "size": 17864
       },
       {
         "path": "README.md",
-        "sha256": "sha256:081672073b35c5b208b60f46d06d535629dbd712d9bd2e4af4a28782b37f1a74",
-        "size": 15315
+        "sha256": "sha256:c34555c67bdf3fbde6a32fdab8c46fa94e731f92ad53adda08d6e966a3815534",
+        "size": 15773
       },
       {
         "path": "STATUS.md",
-        "sha256": "sha256:799dd5ba078eeed6268f9592ca37d9ba23d61a0393528866d63fd94644b14336",
-        "size": 76927
+        "sha256": "sha256:b0e30efcf3030c19ea643ad3a4c5e0160ea52811bba093f9b2988821215e3433",
+        "size": 77113
       },
       {
         "path": "TASKS_MVP.md",
-        "sha256": "sha256:f605df2170312add34d37b26e3bd11e5c680e3b0edfc0f990449c5c3731b664c",
-        "size": 49885
+        "sha256": "sha256:90064ae733e0c3c7a87f4f3a276026fa46640a918495e34222cb51377859d3ce",
+        "size": 49981
       },
       {
         "path": "apps/Forge.CreatorLauncher/Forge.CreatorLauncher.csproj",
@@ -493,8 +493,8 @@
       },
       {
         "path": "apps/Forge.GameLauncher/Assets/ASSET_PROVENANCE.md",
-        "sha256": "sha256:ed47777b4e6178afbc18b1be8d1abdf79c1068fa2a2155ac5c57308230821d72",
-        "size": 2299
+        "sha256": "sha256:a577700ee0dd3e3ff04f634a2b3d33088b4703fc9cbb0982a867c0fa48c2304f",
+        "size": 2297
       },
       {
         "path": "apps/Forge.GameLauncher/Forge.GameLauncher.csproj",
@@ -6782,6 +6782,11 @@
         "size": 3746
       },
       {
+        "path": "docs/ADR/ADR-0047-polyform-noncommercial-code-license.md",
+        "sha256": "sha256:552d0c92919fe1f1fb40f57a47c80b8d9bd1c9bbbdca72f77b4038cce516b86d",
+        "size": 3245
+      },
+      {
         "path": "docs/ADR/ADR-TEMPLATE.md",
         "sha256": "sha256:f9d59a27103d113272e0d4892128915507f7cb0c74371d390cf2ab9b5bfb82f5",
         "size": 729
@@ -6803,8 +6808,8 @@
       },
       {
         "path": "docs/ASSET_LICENSES.md",
-        "sha256": "sha256:3df1b1f880895c7af79c2c512d886d2fe8c975139fbf74c0042d021634875b97",
-        "size": 2510
+        "sha256": "sha256:07052ec4e58928c1d8509cb4df322e6668a074ef3728b4c6e066d31d43bca36c",
+        "size": 2526
       },
       {
         "path": "docs/AURORA_CAPABILITY_DELIVERY_PLAN.md",
@@ -6818,8 +6823,8 @@
       },
       {
         "path": "docs/DISTRIBUTION.md",
-        "sha256": "sha256:602913bf993c788dd0255d2dc4d1428d07b1171ae486e37afad99dae152ab45e",
-        "size": 7536
+        "sha256": "sha256:b8df644034af32f7e5871fb22228e767680574846d214dea3cc747dbbb203c57",
+        "size": 7673
       },
       {
         "path": "docs/ENGINE_COMPARISON.md",
@@ -38583,6 +38588,16 @@
       "kind": "decision",
       "name": "ADR-0046-risk-based-targeted-verification.md",
       "path": "docs/ADR/ADR-0046-risk-based-targeted-verification.md",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      }
+    },
+    {
+      "id": "file:docs/ADR/ADR-0047-polyform-noncommercial-code-license.md",
+      "kind": "decision",
+      "name": "ADR-0047-polyform-noncommercial-code-license.md",
+      "path": "docs/ADR/ADR-0047-polyform-noncommercial-code-license.md",
       "line": 1,
       "metadata": {
         "language": "markdown"
@@ -202303,7 +202318,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "AGENTS.md",
-        "line": 13
+        "line": 15
       }
     },
     {
@@ -202313,7 +202328,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "AGENTS.md",
-        "line": 14
+        "line": 16
       }
     },
     {
@@ -202323,7 +202338,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "AGENTS.md",
-        "line": 15
+        "line": 17
       }
     },
     {
@@ -202333,7 +202348,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "AGENTS.md",
-        "line": 114
+        "line": 116
       }
     },
     {
@@ -202343,7 +202358,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "AGENTS.md",
-        "line": 16
+        "line": 18
       }
     },
     {
@@ -202513,7 +202528,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "PROJECT_CONTEXT.md",
-        "line": 248
+        "line": 253
       }
     },
     {
@@ -202543,7 +202558,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "PROJECT_CONTEXT.md",
-        "line": 182
+        "line": 187
       }
     },
     {
@@ -202553,7 +202568,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "PROJECT_CONTEXT.md",
-        "line": 179
+        "line": 184
       }
     },
     {
@@ -202563,7 +202578,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "PROJECT_CONTEXT.md",
-        "line": 162
+        "line": 167
       }
     },
     {
@@ -202573,7 +202588,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "PROJECT_CONTEXT.md",
-        "line": 252
+        "line": 257
       }
     },
     {
@@ -202583,7 +202598,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "README.md",
-        "line": 23
+        "line": 34
       }
     },
     {
@@ -202593,7 +202608,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "README.md",
-        "line": 24
+        "line": 35
       }
     },
     {
@@ -202603,7 +202618,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "README.md",
-        "line": 25
+        "line": 36
       }
     },
     {
@@ -202613,7 +202628,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "README.md",
-        "line": 26
+        "line": 37
       }
     },
     {
@@ -202623,7 +202638,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "README.md",
-        "line": 170
+        "line": 181
       }
     },
     {
@@ -202633,7 +202648,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "README.md",
-        "line": 133
+        "line": 144
       }
     },
     {
@@ -202643,7 +202658,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "README.md",
-        "line": 150
+        "line": 161
       }
     },
     {
@@ -202653,7 +202668,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "README.md",
-        "line": 260
+        "line": 271
       }
     },
     {
@@ -202663,7 +202678,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "README.md",
-        "line": 138
+        "line": 149
       }
     },
     {
@@ -202673,7 +202688,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "README.md",
-        "line": 37
+        "line": 48
       }
     },
     {
@@ -202683,7 +202698,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "README.md",
-        "line": 29
+        "line": 40
       }
     },
     {
@@ -202693,7 +202708,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "README.md",
-        "line": 27
+        "line": 38
       }
     },
     {
@@ -202703,7 +202718,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "README.md",
-        "line": 262
+        "line": 273
       }
     },
     {
@@ -341404,6 +341419,16 @@
       "evidence": {
         "path": "apps/Forge.Toolset/project.godot",
         "line": 25
+      }
+    },
+    {
+      "source": "file:docs/ADR/ADR-0047-polyform-noncommercial-code-license.md",
+      "target": "file:docs/ADR/README.md",
+      "kind": "references",
+      "confidence": "syntactic",
+      "evidence": {
+        "path": "docs/ADR/ADR-0047-polyform-noncommercial-code-license.md",
+        "line": 48
       }
     },
     {
