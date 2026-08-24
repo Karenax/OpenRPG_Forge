@@ -2184,10 +2184,9 @@ public partial class GameRoot : Node3D
         root.AddChild(body);
         var hidden = bool.TryParse(GetOverride(entity, "visual.hidden"), out var hide) && hide;
         var collisionProxy = hidden && entity.Tags.Contains("collision", StringComparer.Ordinal);
-        var cryptReliquaryDivider = IsCryptReliquaryDivider(entity);
         if (collisionProxy) root.Scale = Vector3.One;
         var attachedVisual = !hidden && TryAttachVisual(body, entity);
-        if (!attachedVisual && !hidden && !cryptReliquaryDivider)
+        if (!attachedVisual && !hidden)
         {
             var effectiveColor = Color.FromString(GetOverride(entity, "visual.color") ?? string.Empty, color);
             var emission = bool.TryParse(GetOverride(entity, "visual.emission"), out var emit) && emit;
@@ -2231,26 +2230,7 @@ public partial class GameRoot : Node3D
         var isFloor = entity.Tags.Contains("floor", StringComparer.Ordinal);
         var usesInteriorFloorShell = isFloor && _interiorWalkableBounds is not null;
         var requiresFloorCollision = isFloor && !usesInteriorFloorShell;
-        if (cryptReliquaryDivider)
-        {
-            const float authoredDepth = 7f;
-            const float segmentDepth = 3f;
-            const float segmentCenter = 2.5f;
-            body.AddChild(new CollisionShape3D
-            {
-                Name = "ReliquaryDividerNorth",
-                Position = new Vector3(0, 0, -segmentCenter / authoredDepth),
-                Shape = new BoxShape3D { Size = new Vector3(1, 1, segmentDepth / authoredDepth) },
-            });
-            body.AddChild(new CollisionShape3D
-            {
-                Name = "ReliquaryDividerSouth",
-                Position = new Vector3(0, 0, segmentCenter / authoredDepth),
-                Shape = new BoxShape3D { Size = new Vector3(1, 1, segmentDepth / authoredDepth) },
-            });
-            _collisionCount += 2;
-        }
-        else if (!usesInteriorFloorShell &&
+        if (!usesInteriorFloorShell &&
             (requiresFloorCollision || !entity.Tags.Contains("nonblocking", StringComparer.Ordinal)))
         {
             if (collisionProxy)
@@ -2271,13 +2251,6 @@ public partial class GameRoot : Node3D
         }
         return root;
     }
-
-    private bool IsCryptReliquaryDivider(EntityInstance entity) =>
-        _isCryptPrototype &&
-        entity.Tags.Contains("wall", StringComparer.Ordinal) &&
-        entity.Tags.Contains("cover", StringComparer.Ordinal) &&
-        Math.Abs(Math.Abs(entity.Transform.Position.X) - 8) <= .01f &&
-        Math.Abs(entity.Transform.Position.Z - 15) <= .01f;
 
     private static CollisionShape3D CreateVisualCollision(Node3D? visual)
     {
@@ -13722,7 +13695,7 @@ public partial class GameRoot : Node3D
         AssertSmoke(player.GlobalPosition.Z <= 4.5f,
             $"The unlocked gate still blocks access to the second room " +
             $"(player_z={player.GlobalPosition.Z:0.###}).");
-        GD.Print($"OPENRPG_FORGE_CRYPT_CRITICAL_PATH_PASS reliquary_doorway=2m " +
+        GD.Print($"OPENRPG_FORGE_CRYPT_CRITICAL_PATH_PASS reliquary_doorway=4m " +
                  $"reliquary_x={reliquaryExitX:0.###} key=acquired door=unlocked " +
                  $"second_room=reachable player_z={player.GlobalPosition.Z:0.###}");
         GD.Print($"OPENRPG_FORGE_CRYPT_GROUNDED_MOVEMENT_PASS distance_30_frames={distance:0.###} " +

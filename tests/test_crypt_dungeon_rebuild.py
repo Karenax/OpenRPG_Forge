@@ -7,7 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 CRYPT = ROOT / "apps" / "Forge.Runtime" / "content" / "crypt-of-ashes"
-AREA = CRYPT / "areas" / "93b6f81b-49eb-4e3d-a156-08ad78529525-f07a9bf666090558.json"
+PROJECT = CRYPT / "project.json"
 MANIFEST = CRYPT / "systemic-gameplay.json"
 ART = ROOT / "apps" / "Forge.Runtime" / "Runtime" / "CryptArtKitDecorator.cs"
 GAME_ROOT = ROOT / "apps" / "Forge.Runtime" / "Runtime" / "GameRoot.cs"
@@ -20,7 +20,9 @@ CHARACTER_MANIFESTS = CRYPT / "assets" / "asset-manifests.json"
 class CryptDungeonRebuildTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.area = json.loads(AREA.read_text(encoding="utf-8"))["area"]
+        project = json.loads(PROJECT.read_text(encoding="utf-8"))["project"]
+        area_path = project["areas"][0]["documentPath"]
+        cls.area = json.loads((CRYPT / area_path).read_text(encoding="utf-8"))["area"]
         cls.manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
         cls.art = ART.read_text(encoding="utf-8")
         cls.game_root = GAME_ROOT.read_text(encoding="utf-8")
@@ -98,8 +100,15 @@ class CryptDungeonRebuildTests(unittest.TestCase):
     def test_lateral_reliquaries_have_matching_visual_and_physical_doorways(self) -> None:
         self.assertIn("WallLineZ(root, -8, 11, 19, 90, ref walls, doorwayZ: 15)", self.art)
         self.assertIn("WallLineZ(root, 8, 11, 19, -90, ref walls, doorwayZ: 15)", self.art)
-        self.assertIn('Name = "ReliquaryDividerNorth"', self.game_root)
-        self.assertIn('Name = "ReliquaryDividerSouth"', self.game_root)
+        dividers = [
+            entity for entity in self.area["entities"]
+            if "wall" in entity["tags"]
+            and "cover" in entity["tags"]
+            and abs(abs(entity["transform"]["position"]["x"]) - 8) < 0.01
+        ]
+        self.assertEqual(4, len(dividers))
+        self.assertEqual({12, 18}, {entity["transform"]["position"]["z"] for entity in dividers})
+        self.assertEqual({2}, {entity["transform"]["scale"]["z"] for entity in dividers})
         self.assertIn("OPENRPG_FORGE_CRYPT_CRITICAL_PATH_PASS", self.game_root)
 
     def test_cc0_provenance_remains_documented(self) -> None:

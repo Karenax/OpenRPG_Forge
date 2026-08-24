@@ -29,18 +29,20 @@ public sealed class CryptOfAshesSampleTests
         Assert.Equal(10, project.Blueprints.Count);
         var area = Assert.Single(project.Areas);
         Assert.Equal(area.Id, project.Module.EntryAreaId);
-        Assert.Equal(38, area.Entities.Count);
+        Assert.Equal(40, area.Entities.Count);
         Assert.Contains(project.Blueprints, blueprint => blueprint.Kind == BlueprintKind.PlayerSpawn);
         Assert.Contains(project.Blueprints, blueprint => blueprint.Slug == "ash-warden-boss");
         Assert.Contains(project.Blueprints, blueprint => blueprint.Slug == "ash-key");
         var pillar = Assert.Single(project.Blueprints, blueprint => blueprint.Slug == "crypt-pillar");
         Assert.Equal(4, area.Entities.Count(entity =>
             entity.BlueprintId == pillar.Id && entity.Tags.Contains("pillar", StringComparer.Ordinal)));
-        Assert.Equal(2, area.Entities.Count(entity =>
+        Assert.Equal(4, area.Entities.Count(entity =>
             entity.Tags.Contains("wall", StringComparer.Ordinal) &&
             entity.Tags.Contains("cover", StringComparer.Ordinal) &&
             Math.Abs(Math.Abs(entity.Transform.Position.X) - 8) < .01 &&
-            Math.Abs(entity.Transform.Position.Z - 15) < .01));
+            (Math.Abs(entity.Transform.Position.Z - 12) < .01 ||
+             Math.Abs(entity.Transform.Position.Z - 18) < .01) &&
+            Math.Abs(entity.Transform.Scale.Z - 2) < .01));
         var boss = Assert.Single(area.Entities, entity =>
             project.Blueprints.Single(blueprint => blueprint.Id == entity.BlueprintId).Slug == "ash-warden-boss");
         Assert.Equal(5, boss.Overrides.Properties.Count);

@@ -153,11 +153,11 @@ internal static class CryptArtKitDecorator
     private static void FillFloor(Node3D root, float minX, float maxX, float minZ, float maxZ, ref int counter)
     {
         for (var x = minX; x <= maxX + .01f; x += 4)
-        for (var z = minZ; z <= maxZ + .01f; z += 4)
-        {
-            Add(root, "floor_tile_large.gltf.glb", new Vector3(x, .015f, z));
-            counter++;
-        }
+            for (var z = minZ; z <= maxZ + .01f; z += 4)
+            {
+                Add(root, "floor_tile_large.gltf.glb", new Vector3(x, .015f, z));
+                counter++;
+            }
     }
 
     private static void WallLineZ(
