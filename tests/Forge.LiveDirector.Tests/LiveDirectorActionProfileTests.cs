@@ -30,6 +30,10 @@ public sealed class LiveDirectorActionProfileTests
         Assert.Empty(LiveDirectorActionRuntimeAdapter.Resolve(null, false).Diagnostics);
         Assert.Equal("LIVE_ACTION_PROFILE_REQUIRED_MISSING", Assert.Single(LiveDirectorActionRuntimeAdapter.Resolve(null, true).Diagnostics).Code);
         Assert.Equal(4, new LiveDirectorActionScriptService(initial).Read(new(initial.Id, 1)).HealScopeCount);
+        var runtime = LiveDirectorActionRuntimeAdapter.Create(candidate,
+            () => new DateTimeOffset(2026, 8, 22, 12, 0, 0, TimeSpan.Zero));
+        Assert.Same(runtime.Chooser, runtime.WorldActions is not null ? runtime.Chooser : null);
+        Assert.NotNull(runtime.Control);
     }
     [Fact]
     public void R126_InvalidPolicyPermissionAndRevision_AreLocalized()
@@ -40,5 +44,11 @@ public sealed class LiveDirectorActionProfileTests
         var r = new LiveDirectorActionHistory(initial).Execute(new(Guid.NewGuid(), 1, "test:r126", 9, "player", NetworkRole.Player, true, invalid));
         Assert.Contains(r.Diagnostics, x => x.Code == "LIVE_ACTION_PROFILE_PERMISSION_DENIED");
         Assert.Contains(r.Diagnostics, x => x.Code == "LIVE_ACTION_PROFILE_REVISION_STALE");
+        Assert.Equal("Le joueur protégé doit donner son consentement.",
+            LiveDirectorActionLocalization.French("LIVE_POSSESSION_PLAYER_PROTECTED"));
+        Assert.Contains("runtime", new LiveDirectorActionHistory(initial).Execute(new(
+            Guid.NewGuid(), 1, "test:r126", 0, "gm:karen", NetworkRole.GameMaster,
+            false, initial with { ServerRevision = 1, RequiredAtRuntime = true })).SemanticDiff,
+            StringComparison.Ordinal);
     }
 }

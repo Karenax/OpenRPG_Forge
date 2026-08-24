@@ -15,8 +15,12 @@ public sealed record DoorWorldProfile(
     DoorWorldProfile.AssemblyPolicy? Assembly,
     DoorWorldProfile.FoundationPolicy? Foundation = null,
     DoorAccessEventProfile? AccessEvents = null,
-    bool AccessEventsRequiredAtRuntime = false)
+    bool AccessEventsRequiredAtRuntime = false,
+    DoorWorldProfile.RuntimeValidationPolicy? Validation = null,
+    bool ValidationRequiredAtRuntime = false)
 {
+    public const string CollisionProfileOverrideKey = "collision.profile";
+
     public enum AssemblyKind { Single, Double, Portcullis, Elevator, Airlock }
     public enum PlacementMode { ArchitectureSocket, FreePlacement }
     public enum StateKind { Open, Closed, Opening, Closing, Locked, Jammed, Broken, Disabled, Custom }
@@ -109,6 +113,13 @@ public sealed record DoorWorldProfile(
         double OpeningPassableAt,
         double ClosingBlockedAt,
         bool VisualizeInEditor);
+
+    public sealed record RuntimeValidationPolicy(
+        IReadOnlyList<Guid> KnownDestinationIds,
+        IReadOnlyList<string> KnownAnimationIds,
+        IReadOnlyList<string> KnownCollisionProfileIds,
+        IReadOnlyList<string> KnownCredentialIds,
+        IReadOnlyList<string> KnownScriptIds);
 
     public sealed record FoundationPolicy(
         PlacementMode Placement,

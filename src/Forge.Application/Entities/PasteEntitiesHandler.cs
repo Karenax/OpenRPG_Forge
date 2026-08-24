@@ -89,15 +89,27 @@ public sealed class PasteEntitiesHandler
                 [.. updatedProject.Blueprints, .. copies], updatedProject.Areas, updatedProject.Dialogues, updatedProject.Quests);
         }
         var pasted = new List<EntityInstance>();
+        var remainingBudget = command.AvailableBudgetBytes;
         foreach (var source in command.Payload.Entities)
         {
             var position = new Vector3Value(
                 source.Transform.Position.X + command.PositionOffset.X,
                 source.Transform.Position.Y + command.PositionOffset.Y,
                 source.Transform.Position.Z + command.PositionOffset.Z);
+            var targetBlueprintId = command.Mode == SemanticPasteMode.IndependentCopy
+                ? blueprintMap[source.BlueprintId]
+                : source.BlueprintId;
             var validation = _placementValidator.Validate(
                 updatedProject,
-                new PlacementValidationRequest(command.TargetAreaId, source.BlueprintId, position, 0.25f));
+                new PlacementValidationRequest(
+                    command.TargetAreaId,
+                    targetBlueprintId,
+                    position,
+                    0.25f,
+                    RequiredSocket: command.RequiredSocket,
+                    AvailableSockets: command.AvailableSockets,
+                    AvailableBudgetBytes: remainingBudget,
+                    BlueprintEstimatedBytes: command.BlueprintEstimatedBytes));
             if (!validation.IsValid)
             {
                 return Failure(state, command, validation.Code, validation.Message);
@@ -105,12 +117,16 @@ public sealed class PasteEntitiesHandler
 
             var copy = new EntityInstance(
                 command.EntityIdMap[source.Id],
-                command.Mode == SemanticPasteMode.IndependentCopy ? blueprintMap[source.BlueprintId] : source.BlueprintId,
+                targetBlueprintId,
                 new TransformValue(validation.CorrectedPosition, source.Transform.Rotation, source.Transform.Scale),
                 source.Tags,
                 RemapOverrides(source.Overrides, command.EntityIdMap),
                 source.BlueprintVersionRequirement);
             pasted.Add(copy);
+            if (remainingBudget is not null && command.BlueprintEstimatedBytes is not null)
+            {
+                remainingBudget -= command.BlueprintEstimatedBytes.Value;
+            }
             var currentTarget = updatedProject.Areas.Single(area => area.Id == command.TargetAreaId);
             var updatedArea = currentTarget.WithEntities([.. currentTarget.Entities, copy]);
             updatedProject = ReplaceArea(updatedProject, updatedArea);

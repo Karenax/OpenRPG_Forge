@@ -254,11 +254,13 @@ public partial class WorldFeatureStudioWindow : Window
     public bool ConfigureForSmokeTest()
     {
         Refresh();
+        var ashWatchFaction = _load?.Invoke()?.Project.Module.Factions.Factions
+            .SingleOrDefault(item => item.Slug == "ash-watch");
         if (_choice["placeable.target"].ItemCount == 0 || _choice["door.target"].ItemCount == 0 ||
             _choice["trigger.target"].ItemCount == 0 || _choice["merchant.target"].ItemCount == 0 ||
             _choice["companion.target"].ItemCount == 0 || _choice["encounter.area"].ItemCount == 0 ||
             _choice["encounter.candidate"].ItemCount == 0 || _choice["placeable.lootItem"].ItemCount == 0 ||
-            _choice["placeable.attachmentBlueprint"].ItemCount == 0)
+            _choice["placeable.attachmentBlueprint"].ItemCount == 0 || ashWatchFaction is null)
             return false;
         _text["placeable.faction"].Text = "ash-watch";
         _text["placeable.key"].Text = "key:ember";
@@ -308,6 +310,7 @@ public partial class WorldFeatureStudioWindow : Window
         _text["trigger.knownTargets"].Text = "encounter:crypt-warden";
         _text["trigger.knownScripts"].Text = "scripts/trigger_click,scripts/trigger_enter,scripts/trigger_exit";
         _text["trigger.accessibleLayers"].Text = "characters";
+        _text["trigger.queryFactions"].Text = ashWatchFaction.Id.ToString("D");
         _check["trigger.rest"].ButtonPressed = true;
         _check["trigger.director"].ButtonPressed = true;
         _text["encounter.faction"].Text = "ash-hostile";
@@ -1563,9 +1566,7 @@ public partial class WorldFeatureStudioWindow : Window
                     new(2.5, "both", 1, 2, 1, "server", 2, "door.unavailable"),
                     new(destinationKind, Stable(profileId, "destination"), _text["door.spawnAnchor"].Text.Trim(),
                         180, true, [_text["door.permission"].Text.Trim()]),
-                    [new(Stable(profileId, "link"), Stable(profileId, "destination"),
-                        _check["door.oneWay"].ButtonPressed,
-                        _check["door.oneWay"].ButtonPressed ? string.Empty : "Retour vers la crypte")],
+                    [],
                     new Dictionary<string, string> { ["interaction.prompt"] = "door.open" },
                     new(_text["door.navObstacle"].Text.Trim(), _text["door.navLink"].Text.Trim(),
                         ["closed", "locked", "jammed", "disabled", "custom"], ["open", "broken"],
@@ -2085,17 +2086,17 @@ public partial class WorldFeatureStudioWindow : Window
                 $"override MJ audité {catalog.Placeables.FirstOrDefault()?.Operations?.Protection?.AuditBinding ?? "absent"}\n" +
                 $"Verrou · {catalog.Placeables.FirstOrDefault()?.Operations?.Lock?.InitialState.ToString() ?? "absent"} · " +
                 $"clé/skill/code/hacking/relock/jam/permissions\n" +
-                $"Piège R094 · {catalog.Placeables.FirstOrDefault()?.SecurityEvents?.Trap.PayloadId ?? "absent"} · " +
-                $"detect {catalog.Placeables.FirstOrDefault()?.SecurityEvents?.Trap.DetectionDifficulty ?? 0:0.##} / disarm " +
-                $"{catalog.Placeables.FirstOrDefault()?.SecurityEvents?.Trap.DisarmDifficulty ?? 0:0.##} · reset/owner/VFX/friendly/one-shot\n" +
-                $"Trésor · {catalog.Placeables.FirstOrDefault()?.SecurityEvents?.Loot.Timing.ToString() ?? "absent"} · " +
-                $"seed {catalog.Placeables.FirstOrDefault()?.SecurityEvents?.Loot.Seed ?? 0} · " +
-                $"{catalog.Placeables.FirstOrDefault()?.SecurityEvents?.Loot.LootTable.Entries.Count ?? 0} entrée(s) · état persisté\n" +
-                $"Conteneur · {catalog.Placeables.FirstOrDefault()?.SecurityEvents?.ContainerEvents.OpenedBinding ?? "absent"}/" +
-                $"{catalog.Placeables.FirstOrDefault()?.SecurityEvents?.ContainerEvents.ClosedBinding ?? "absent"} · acteur/résultat/ancien état/autorité\n" +
-                $"Verrou events · {catalog.Placeables.FirstOrDefault()?.SecurityEvents?.LockEvents.ChangingBinding ?? "absent"} → " +
-                $"{catalog.Placeables.FirstOrDefault()?.SecurityEvents?.LockEvents.ChangedBinding ?? "absent"} · méthode/credential/acteur/veto\n" +
-                $"OnDisturbed · {catalog.Placeables.FirstOrDefault()?.SecurityEvents?.ContentsChanged.EventBinding ?? "absent"} · " +
+                $"Piège R094 · {catalog.Placeables.FirstOrDefault()?.SecurityEvents?.Trap?.PayloadId ?? "absent"} · " +
+                $"detect {catalog.Placeables.FirstOrDefault()?.SecurityEvents?.Trap?.DetectionDifficulty ?? 0:0.##} / disarm " +
+                $"{catalog.Placeables.FirstOrDefault()?.SecurityEvents?.Trap?.DisarmDifficulty ?? 0:0.##} · reset/owner/VFX/friendly/one-shot\n" +
+                $"Trésor · {catalog.Placeables.FirstOrDefault()?.SecurityEvents?.Loot?.Timing.ToString() ?? "absent"} · " +
+                $"seed {catalog.Placeables.FirstOrDefault()?.SecurityEvents?.Loot?.Seed ?? 0} · " +
+                $"{catalog.Placeables.FirstOrDefault()?.SecurityEvents?.Loot?.LootTable.Entries.Count ?? 0} entrée(s) · état persisté\n" +
+                $"Conteneur · {catalog.Placeables.FirstOrDefault()?.SecurityEvents?.ContainerEvents?.OpenedBinding ?? "absent"}/" +
+                $"{catalog.Placeables.FirstOrDefault()?.SecurityEvents?.ContainerEvents?.ClosedBinding ?? "absent"} · acteur/résultat/ancien état/autorité\n" +
+                $"Verrou events · {catalog.Placeables.FirstOrDefault()?.SecurityEvents?.LockEvents?.ChangingBinding ?? "absent"} → " +
+                $"{catalog.Placeables.FirstOrDefault()?.SecurityEvents?.LockEvents?.ChangedBinding ?? "absent"} · méthode/credential/acteur/veto\n" +
+                $"OnDisturbed · {catalog.Placeables.FirstOrDefault()?.SecurityEvents?.ContentsChanged?.EventBinding ?? "absent"} · " +
                 $"delta transactionnel/cause/révision/acteur\n" +
                 $"Dégâts R095 · {catalog.Placeables.FirstOrDefault()?.CompositionEvents?.DamageEvents.DamagedBinding ?? "absent"}/" +
                 $"{catalog.Placeables.FirstOrDefault()?.CompositionEvents?.DamageEvents.DestroyedBinding ?? "absent"} · " +

@@ -16,8 +16,12 @@ AngelScript.
   SHA-256. Sa licence zlib est reproduite dans les notices.
 - Le bridge C++ exporte une entrée GDExtension minimale ainsi qu’une ABI C étroite utilisée par le
   wrapper C# `IForgeScriptRuntime`.
-- Le build Windows utilise Zig `0.16.0` comme toolchain locale portable lorsque Visual Studio/CMake
-  ne sont pas disponibles. Zig n’est ni lié aux modules ni distribué dans leur contenu.
+- Le build natif utilise Zig `0.16.0` comme toolchain locale portable lorsque Visual Studio/CMake ne
+  sont pas disponibles. La cible Windows x64 produit `forge_script_native.dll` via
+  `x86_64-windows-gnu` ; la cible Linux x64 produit `libforge_script_native.so` en PIC via
+  `x86_64-linux-gnu`. Zig n’est ni lié aux modules ni distribué dans leur contenu.
+- Le wrapper C# résout uniquement le nom natif de l'OS courant et les distributions copient la DLL
+  ou la bibliothèque ELF dans leur dossier runtime natif respectif.
 - Source, bytecode, version VM et version API forment un artefact indivisible. Un host refuse un
   bytecode produit par une autre version.
 - L’API v1 expose seulement `EntityRef`, santé, variable, parole, capacité, spawn, quête et
@@ -29,8 +33,8 @@ AngelScript.
 
 - Le boss de la Crypte utilise deux sources ForgeScript réelles pour sa phase 2 et sa mort ; le test
   headless prouve nova, deux esprits, variable, quête et continuation.
-- Le binaire natif est reconstructible par `scripts/Build-ForgeScriptNative.ps1` à partir de sources
-  et hashes épinglés.
+- Les deux binaires natifs sont reconstructibles par `scripts/Build-ForgeScriptNative.ps1` avec
+  `-Platform windows-x64` ou `-Platform linux-x64`, à partir de sources et hashes épinglés.
 - Le nom `cast` étant réservé par la grammaire AngelScript, la fonction source est `cast_ability` ;
   elle produit l’événement sémantique `cast` pour le runtime.
 - Les futures API doivent rester opt-in, versionnées et accompagnées de quotas et tests de sandbox.

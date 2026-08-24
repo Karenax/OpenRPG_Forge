@@ -374,18 +374,32 @@ public sealed class RoslynGraphAnalyzer
         var symbolKey = StableTypeName(symbol);
         var nodeId = $"{kind}:{symbolKey}";
         typeNodeIds[symbolKey] = nodeId;
-        builder.AddNode(new GraphNode(
-            nodeId,
-            kind,
-            symbol.Name,
-            path,
-            line,
-            new SortedDictionary<string, string>(StringComparer.Ordinal)
-            {
-                ["namespace"] = symbol.ContainingNamespace?.ToDisplayString() ?? string.Empty,
-                ["project"] = project.Name,
-                ["symbol_kind"] = symbol.TypeKind.ToString(),
-            }));
+        var isPartialType = symbol.DeclaringSyntaxReferences.Length > 1
+            && symbol.DeclaringSyntaxReferences.All(reference =>
+                reference.GetSyntax() is TypeDeclarationSyntax typeDeclaration
+                && typeDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword));
+        var isAnotherDeclarationInSameProject =
+            isPartialType
+            && builder.Nodes.TryGetValue(nodeId, out var existingNode)
+            && existingNode.Kind == kind
+            && existingNode.Name == symbol.Name
+            && existingNode.Metadata?.TryGetValue("project", out var existingProject) == true
+            && existingProject == project.Name;
+        if (!isAnotherDeclarationInSameProject)
+        {
+            builder.AddNode(new GraphNode(
+                nodeId,
+                kind,
+                symbol.Name,
+                path,
+                line,
+                new SortedDictionary<string, string>(StringComparer.Ordinal)
+                {
+                    ["namespace"] = symbol.ContainingNamespace?.ToDisplayString() ?? string.Empty,
+                    ["project"] = project.Name,
+                    ["symbol_kind"] = symbol.TypeKind.ToString(),
+                }));
+        }
         builder.AddEdge(nodeId, $"file:{path}", "defined_in", "semantic", path, line);
         builder.AddEdge(nodeId, project.Id, "belongs_to", "semantic", path, line);
 

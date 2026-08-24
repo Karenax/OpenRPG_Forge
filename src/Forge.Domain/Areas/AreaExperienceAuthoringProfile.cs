@@ -173,13 +173,7 @@ public static class AreaExperienceAuthoringValidator
             Add(result, AudioCode, "Audio snapshots require unique IDs/names, bounded buses and transitions.",
                 $"{root}/experience/audioSnapshots");
 
-        var extended = !string.Equals(profile.Provenance, "migration-default", StringComparison.Ordinal);
-        if (extended && area.Authoring.UserEvents.Any(item => item.Id == Guid.Empty ||
-            !item.NamespacedName.StartsWith($"area.{area.Slug}.", StringComparison.Ordinal) ||
-            item.ApiVersion < 1 || item.Subscriptions.Any(string.IsNullOrWhiteSpace) ||
-            string.IsNullOrWhiteSpace(item.Provenance)))
-            Add(result, EventCode, "Area events require area scope, API version, payload, script and subscriptions.",
-                $"{root}/userEvents");
+        result.AddRange(AreaUserEventValidator.Validate(area));
 
         var map = area.Authoring.Map;
         if (map.Id == Guid.Empty || map.SchemaVersion != 1 || string.IsNullOrWhiteSpace(map.Provenance) ||

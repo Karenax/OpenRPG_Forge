@@ -5,22 +5,41 @@ namespace Forge.Domain.Areas;
 
 public sealed record AreaUserEvent
 {
+    public const int LegacySchemaVersion = 1;
+    public const int CurrentSchemaVersion = 2;
+    public const string CurrentForgeScriptApiVersion = "1.0.0";
+
     public Guid Id { get; }
+    public int SchemaVersion { get; }
     public string NamespacedName { get; }
     public string PayloadSchema { get; }
+    public IReadOnlyDictionary<string, string> PayloadFields { get; }
     public string ScriptPath { get; }
     public int ApiVersion { get; }
+    public string ForgeScriptApiVersion { get; }
     public IReadOnlyList<string> Subscriptions { get; }
     public bool Required { get; }
     public string Provenance { get; }
+
+    [JsonConstructor]
     public AreaUserEvent(Guid id, string namespacedName, string payloadSchema, string scriptPath,
         int apiVersion = 1, IReadOnlyList<string>? subscriptions = null, bool required = false,
-        string provenance = "migration-default")
+        string provenance = "migration-default", int schemaVersion = LegacySchemaVersion,
+        IReadOnlyDictionary<string, string>? payloadFields = null,
+        string forgeScriptApiVersion = CurrentForgeScriptApiVersion)
     {
-        if (id == Guid.Empty || string.IsNullOrWhiteSpace(namespacedName) || !namespacedName.Contains('.', StringComparison.Ordinal) || string.IsNullOrWhiteSpace(payloadSchema) || string.IsNullOrWhiteSpace(scriptPath)) throw new ArgumentException("Area event is invalid.");
-        Id = id; NamespacedName = namespacedName.Trim(); PayloadSchema = payloadSchema.Trim(); ScriptPath = scriptPath.Trim();
+        Id = id;
+        SchemaVersion = schemaVersion == 0 ? LegacySchemaVersion : schemaVersion;
+        NamespacedName = namespacedName?.Trim() ?? string.Empty;
+        PayloadSchema = payloadSchema?.Trim() ?? string.Empty;
+        PayloadFields = (payloadFields ?? new Dictionary<string, string>())
+            .Where(item => !string.IsNullOrWhiteSpace(item.Key))
+            .ToDictionary(item => item.Key.Trim(), item => item.Value?.Trim() ?? string.Empty,
+                StringComparer.Ordinal);
+        ScriptPath = scriptPath?.Trim().Replace('\\', '/') ?? string.Empty;
         ApiVersion = apiVersion;
-        Subscriptions = (subscriptions ?? [namespacedName]).Where(item => !string.IsNullOrWhiteSpace(item))
+        ForgeScriptApiVersion = forgeScriptApiVersion?.Trim() ?? string.Empty;
+        Subscriptions = (subscriptions ?? []).Where(item => !string.IsNullOrWhiteSpace(item))
             .Select(item => item.Trim()).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
         Required = required;
         Provenance = provenance?.Trim() ?? string.Empty;

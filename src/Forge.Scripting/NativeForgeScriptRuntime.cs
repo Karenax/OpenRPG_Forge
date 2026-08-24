@@ -117,13 +117,21 @@ public sealed class NativeForgeScriptRuntime : IForgeScriptRuntime
         }
 
         var assemblyDirectory = Path.GetDirectoryName(assembly.Location) ?? AppContext.BaseDirectory;
-        var candidates = new[]
+        var libraryFileNames = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? new[] { "forge_script_native.dll" }
+            : RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+                ? new[] { "libforge_script_native.so", "forge_script_native.so" }
+                : Array.Empty<string>();
+        var candidates = libraryFileNames.SelectMany(fileName => new[]
         {
-            Path.Combine(assemblyDirectory, "forge_script_native.dll"),
-            Path.Combine(AppContext.BaseDirectory, "forge_script_native.dll"),
-            Path.Combine(Environment.CurrentDirectory, "native", "forge_script_native.dll"),
-        };
-        foreach (var candidate in candidates.Distinct(StringComparer.OrdinalIgnoreCase))
+            Path.Combine(assemblyDirectory, fileName),
+            Path.Combine(AppContext.BaseDirectory, fileName),
+            Path.Combine(Environment.CurrentDirectory, "native", fileName),
+        });
+        var pathComparer = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? StringComparer.OrdinalIgnoreCase
+            : StringComparer.Ordinal;
+        foreach (var candidate in candidates.Distinct(pathComparer))
         {
             if (File.Exists(candidate) && NativeLibrary.TryLoad(candidate, out var handle))
             {

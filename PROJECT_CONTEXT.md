@@ -1,6 +1,6 @@
 # Contexte canonique — OpenRPG Forge
 
-Dernière mise à jour : 22 août 2026.
+Dernière mise à jour : 24 août 2026.
 
 Ce document est l’unique contexte narratif courant du projet. Les états d’exécution sont dans
 `STATUS.md` et `TASKS_MVP.md`; les exigences détaillées et leurs preuves restent dans le tracker et
@@ -27,10 +27,30 @@ Un créateur doit pouvoir :
 
 ## Produit actuel
 
-Le dépôt contient un Creator/Toolset, un runtime 3D séparé, ForgeScript, un format de module propre,
-un host MCP et deux démonstrations jouables : Crypte des Cendres et Forgotten Forest. Les 717
+Le dépôt contient le Creator/Toolset historique intégré à l'éditeur Godot, sa nouvelle application
+autonome `Forge.Studio`, un runtime 3D séparé, ForgeScript, un format de module propre, un host MCP
+et deux démonstrations jouables : Crypte des Cendres et Forgotten Forest. Les 717
 exigences du catalogue Aurora sont classées `Tested` dans 187 lots clos. Cette couverture décrit les
 capacités disponibles ; elle ne remplace pas la qualification d’un logiciel installable et publiable.
+
+`Forge.Studio` est désormais l'application Creator autonome qualifiée : Module Hub, une fenêtre
+produit, huit rubriques, trente-six pages, vue 3D centrale lorsque le contexte est spatial et ateliers
+pleine surface pour les dialogues, scripts, données, validation et opérations réseau. La matrice
+d'accès humain contient 717 routes uniques au statut `functional`, de UX0 à UX10, et les 66 fenêtres
+historiques possèdent chacune une destination Studio au statut `Parity`.
+
+Les parcours couvrent l'édition directe du monde, les blueprints et assets gouvernés, la narration,
+ForgeScript, le gameplay, le playtest isolé, la validation, la préparation de distribution, le réseau
+et l'Assistant. Les mutations qualifiées passent par les commandes Application avec validation,
+dry-run, diff, garde de révision, audit, undo/redo, sauvegarde atomique et préservation des données
+voisines ; les aperçus distinguent les plans déterministes des effets moteur réellement exécutés.
+
+La revue corrective UX11-B a inspecté les trente-six pages en Full HD, QHD et 4K. Les distributions
+Studio Windows x64 et Linux x64 embarquent le workspace Forgotten Forest et la bibliothèque
+ForgeScript native de leur plateforme ; le smoke Linux a été rejoué sur Debian 13 x86_64 sans
+éditeur Godot, ce qui ferme `STUDIO-043`. Le portail transversal final passe 2 117 tests .NET,
+44 tests Python et tous ses smokes ; le graphe Roslyn reste frais et déterministe. Cette qualification
+locale ne constitue pas une release publique signée.
 
 Le Creator sait aussi configurer un profil de lanceur par jeu et générer une distribution Windows x64
 atomique. Le lanceur WPF possède une présentation RPG cinématique animée, vérifie ses fichiers, expose
@@ -50,28 +70,40 @@ pings, impacts, caméra, micro hit-stop et audio SFX. Cette présentation reste 
 ni équilibrage ni contenu de module, et se replie proprement avec mouvements réduits, contraste
 élevé, modes de vision des couleurs et texte jusqu'à ×2.
 
-Le chantier courant n’est plus la création de nouvelles familles fonctionnelles. Il est la
-consolidation du produit : publication contrôlée des derniers correctifs d’interface, CI distante
-reproductible, qualification humaine de bout en bout et finition visuelle.
+Le chantier courant n’est plus la migration des routes Studio. Il porte sur la consolidation Git, la
+CI distante reproductible et les prérequis de release : licence du code, signature Authenticode,
+revue physique multi-écrans, fournisseur IA réel et autorisation explicite de publication. Le plugin
+historique reste disponible jusqu'à une décision utilisateur explicite de basculer le lanceur Creator.
 
 ## Expérience Creator cible
 
-L’interface principale est organisée autour de neuf espaces stables :
+L’interface autonome est organisée autour de huit rubriques stables et trente-six pages : Monde,
+Contenu, Histoire, Gameplay, Tester, Publier, Projet et Assistant. Une seule fenêtre produit contient
+la navigation, la page de travail et un inspecteur contextuel unique. Les onglets éventuels
+représentent des documents ouverts, jamais des familles de fonctions ou des fenêtres système.
 
-- Monde ;
-- Blueprints ;
-- Dialogues ;
-- Quêtes ;
-- Scripts ;
-- Assets ;
-- Validation ;
-- Playtests ;
-- Assistant.
+Les pages spatiales conservent la vue 3D centrale, la zone active, la caméra et la sélection quand
+l'utilisateur change de rubrique. Les pages Dialogues, Quêtes, Scripts, Validation et configuration
+emploient une surface documentaire dédiée sans conserver artificiellement la 3D. Les dialogues sont
+présentés ligne par ligne ; leur graphe reste une vue avancée.
 
-Les outils spécialisés s’ouvrent depuis ces espaces dans une surface secondaire réutilisable. Aucun
-outil secondaire ne s’ouvre au démarrage et un seul est actif à la fois ; il reste déplaçable,
-redimensionnable, maximisable et refermable. La sélection, l’historique, les diagnostics, la
-navigation et le vocabulaire sont partagés.
+Dans une page spatiale, l'objet est manipulé là où il est visible : clic gauche pour sélectionner,
+flèches X/Y/Z pour déplacer, clic droit pour choisir la catégorie de réglages, puis inspecteur unique
+pour la transformation, les tags et les propriétés locales. Le même clic droit permet d'ajouter à
+l'endroit visé, de dupliquer à côté ou de supprimer après confirmation. Ces actions partagent le même
+historique transactionnel et n'ouvrent pas de sous-fenêtre.
+
+Les sélecteurs de fichiers et confirmations système sont les seules fenêtres natives ordinaires.
+Aucun outil secondaire ne s’ouvre au démarrage. La sélection, l’historique, les diagnostics, la
+navigation et le vocabulaire sont partagés par toute la session Studio.
+
+La plage d’affichage officiellement prise en charge par le Studio va de **1920×1080 (Full HD)** à
+**3840×2160 (4K)**, avec **2560×1440 (QHD)** comme résolution de conception et de revue principale.
+Les résolutions inférieures à 1920×1080 ne font plus partie de la cible produit ni des critères
+d’acceptation. En 4K, les pixels supplémentaires agrandissent d’abord la vue 3D, les timelines et les
+listes de travail : les panneaux gardent des largeurs bornées et la typographie ne double pas
+artificiellement. La mise à l’échelle du système reste prise en charge sans construire l’interface
+autour d’une toile fixe ou étirée.
 
 Le mode Débutant présente d’abord les actions indispensables, des valeurs sûres, des explications
 contextuelles et un parcours guidé. Le mode avancé révèle les réglages techniques sans changer le
@@ -165,7 +197,7 @@ reste un chantier séparé.
 
 Flux de mutation officiel :
 
-`Creator / Runtime / MCP -> commandes Application -> Domain -> persistance et adaptateurs`
+`Studio / Creator historique / Runtime / MCP -> commandes Application -> Domain -> persistance et adaptateurs`
 
 - Domain et Application restent indépendants du moteur 3D.
 - Les données métier versionnées sont la source de vérité ; les scènes sont reconstruites.
@@ -202,7 +234,8 @@ La première version publiable est atteinte lorsque :
 - un utilisateur peut réaliser les neuf étapes du but final sans éditer de JSON ;
 - chaque élément nécessaire à un module peut être créé, inspecté, modifié et supprimé manuellement
   sans perte silencieuse des données non affichées ;
-- les neuf espaces sont cohérents, navigables au clavier et utilisables en mode Débutant ;
+- les huit rubriques et trente-six pages du Studio sont cohérentes, navigables au clavier et
+  utilisables sans connaissance de l'éditeur Godot ;
 - Crypte et Forgotten Forest passent une revue visuelle interactive aux résolutions supportées ;
 - un module créé, exporté, installé, sauvegardé, repris et mis à niveau passe un test de bout en bout ;
 - l’IA/MCP réussit un parcours plan/dry-run/approbation/test/revert sans accès arbitraire ;

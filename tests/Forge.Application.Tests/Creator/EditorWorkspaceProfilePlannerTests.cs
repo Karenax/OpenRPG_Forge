@@ -29,6 +29,10 @@ public sealed class EditorWorkspaceProfilePlannerTests
         Assert.Equal(1.5, profile.TextScale);
         Assert.Equal("Atkinson Hyperlegible", profile.PrimaryFontFamily);
 
+        var reactivated = EditorWorkspaceProfilePlanner.OpenArea(profile, first);
+        Assert.Equal([first, second], reactivated.OpenAreaTabs);
+        Assert.Equal(first, reactivated.ActiveAreaId);
+
         var closed = EditorWorkspaceProfilePlanner.CloseArea(profile, second);
         Assert.Equal([first], closed.OpenAreaTabs);
         Assert.Equal(first, closed.ActiveAreaId);

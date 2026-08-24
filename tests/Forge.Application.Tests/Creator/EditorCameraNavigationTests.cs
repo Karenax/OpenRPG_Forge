@@ -143,6 +143,40 @@ public sealed class EditorCameraNavigationTests
         Assert.Equal(piloted.State.Profile.Pose, history.State.Profile.Pose);
     }
 
+    [Fact]
+    public void ExactPoseRestoreIsValidatedDryRunnableAndUndoable()
+    {
+        var initial = Initial();
+        var pose = new EditorCameraPose(
+            new Vector3Value(12, 3, -7),
+            91,
+            24,
+            18,
+            EditorCameraProjection.Orthographic,
+            48,
+            16);
+        var preview = _handler.Handle(
+            initial,
+            Command(initial.Revision, EditorCameraOperation.SetPose) with
+            {
+                Pose = pose,
+                DryRun = true,
+            });
+        var history = new EditorCameraCommandHistory(initial.Profile);
+        var applied = _handler.Handle(
+            history.State,
+            Command(history.State.Revision, EditorCameraOperation.SetPose) with { Pose = pose });
+        history.Record(applied);
+
+        Assert.True(preview.Succeeded);
+        Assert.Same(initial, preview.State);
+        Assert.Equal(pose, history.State.Profile.Pose);
+        Assert.True(history.Undo());
+        Assert.Equal(initial.Profile.Pose, history.State.Profile.Pose);
+        Assert.True(history.Redo());
+        Assert.Equal(pose, history.State.Profile.Pose);
+    }
+
     private EditorCameraCommandResult Apply(
         EditorCameraState state,
         EditorCameraOperation operation,

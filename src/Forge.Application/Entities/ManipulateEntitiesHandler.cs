@@ -86,6 +86,10 @@ public sealed class ManipulateEntitiesHandler
             _ => Vector3Value.Zero,
         };
         var rotationDelta = FromEulerDegrees(Snap(command.Value, command.RotationSnapDegrees));
+        var pivotRotationDelta = command.CoordinateSpace == EditorCoordinateSpace.Local
+            ? Multiply(Multiply(entities[0].Transform.Rotation, rotationDelta),
+                Inverse(entities[0].Transform.Rotation))
+            : rotationDelta;
         var scaleFactor = new Vector3Value(
             Snap(command.Value.X, command.ScaleSnap), Snap(command.Value.Y, command.ScaleSnap), Snap(command.Value.Z, command.ScaleSnap));
         if (command.Tool == EditorTransformTool.Scale &&
@@ -110,9 +114,11 @@ public sealed class ManipulateEntitiesHandler
                         position = Add(source.Position, delta);
                         break;
                     case EditorTransformTool.Rotate:
-                        rotation = Normalize(Multiply(rotationDelta, source.Rotation));
+                        rotation = command.CoordinateSpace == EditorCoordinateSpace.Local
+                            ? Normalize(Multiply(source.Rotation, rotationDelta))
+                            : Normalize(Multiply(rotationDelta, source.Rotation));
                         if (command.PivotMode != EditorPivotMode.Individual)
-                            position = Add(pivot, Rotate(rotationDelta, Subtract(source.Position, pivot)));
+                            position = Add(pivot, Rotate(pivotRotationDelta, Subtract(source.Position, pivot)));
                         break;
                     case EditorTransformTool.Scale:
                         scale = Multiply(source.Scale, scaleFactor);
@@ -187,6 +193,11 @@ public sealed class ManipulateEntitiesHandler
     {
         var length = MathF.Sqrt(q.X * q.X + q.Y * q.Y + q.Z * q.Z + q.W * q.W);
         return new QuaternionValue(q.X / length, q.Y / length, q.Z / length, q.W / length);
+    }
+    private static QuaternionValue Inverse(QuaternionValue q)
+    {
+        var unit = Normalize(q);
+        return new QuaternionValue(-unit.X, -unit.Y, -unit.Z, unit.W);
     }
     private static Vector3Value Rotate(QuaternionValue q, Vector3Value v)
     {

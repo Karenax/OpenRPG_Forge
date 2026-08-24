@@ -24,6 +24,38 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Verify-RuntimeDistri
 
 Ajouter `-RunSmoke` pour rejouer le scénario complet depuis la distribution. Ajouter `-CreateArchive` à la construction pour produire l'archive ZIP.
 
+## Studio autonome Windows et Linux x64
+
+Le Studio Godot .NET possède ses propres presets et inclut un workspace Forgotten Forest sans cache
+`.forge` :
+
+```powershell
+.\scripts\Build-StudioDistribution.ps1 -Platform windows-x64 -Force
+.\scripts\Verify-StudioDistribution.ps1 `
+  -DistributionDirectory artifacts\distribution\studio-windows-x64
+
+.\scripts\Build-StudioDistribution.ps1 -Platform linux-x64 -Force -SkipSmoke
+.\scripts\Verify-StudioDistribution.ps1 `
+  -DistributionDirectory artifacts\distribution\studio-linux-x64
+```
+
+Le script reconstruit automatiquement la bibliothèque ForgeScript native de la plateforme :
+`forge_script_native.dll` pour Windows x64 ou `libforge_script_native.so` compilée en PIC pour Linux
+x64. Chaque paquet contient aussi l'exécutable, le PCK, `Forge.Studio.dll`, le workspace, le manifeste
+SHA-256 et les fichiers de conformité.
+
+Le build Windows rejoue par défaut le smoke de distribution depuis l'exécutable exporté. Ce contrat
+couvre la retouche réelle, undo/redo, le cache script, ForgeScript natif, l'ouverture autonome UX3-F
+et UX5-A/UX5-B, puis compare le modèle et le fichier projet avant/après. Il est volontairement
+distinct du portail développeur UX0–UX10, lequel reste exécuté depuis le dépôt et peut utiliser le
+CLI, les sources et l'éditeur Godot local.
+
+`-SkipSmoke` est réservé au cross-export structurel : sur un hôte Linux, l'omettre puis utiliser
+`-RunSmoke` dans le vérificateur pour rejouer le même contrat. Le runtime .NET du paquet demande ICU ;
+le rendu des textes demande Fontconfig et une police système. La qualification Debian 13 utilise
+`libicu76`, `fontconfig` et `fonts-dejavu-core`, sans installation de l'éditeur Godot. La preuve
+détaillée est dans `docs/acceptance/STUDIO_UX11_B.md`.
+
 ## Lanceur des jeux Windows x64
 
 Chaque projet possède un profil de lanceur sous **Distribution et conformité**. Il permet de régler

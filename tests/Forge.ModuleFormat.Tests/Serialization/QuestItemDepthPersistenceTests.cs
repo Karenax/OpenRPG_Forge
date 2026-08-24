@@ -23,11 +23,11 @@ public sealed class QuestItemDepthPersistenceTests : IDisposable
         var created = ProjectSession.Create(_temporaryRoot, project);
         var reopened = ProjectSession.Open(_temporaryRoot);
 
-        Assert.Contains("\"formatVersion\": \"0.6.34\"", aggregate, StringComparison.Ordinal);
+        Assert.Contains("\"formatVersion\": \"0.6.38\"", aggregate, StringComparison.Ordinal);
         Assert.Equal(aggregate, ProjectJsonSerializer.Serialize(restored));
         Assert.True(created.Succeeded);
         Assert.True(reopened.Succeeded);
-        Assert.Contains("\"formatVersion\": \"1.28.0\"",
+        Assert.Contains("\"formatVersion\": \"1.30.0\"",
             File.ReadAllText(reopened.Session!.ProjectFilePath), StringComparison.Ordinal);
         Assert.Equal(aggregate, ProjectJsonSerializer.Serialize(reopened.Session.Project));
         Assert.Equal(QuestShareMode.Unanimous, restored.Quests.Single().Operations!.Share.Mode);
@@ -71,7 +71,7 @@ public sealed class QuestItemDepthPersistenceTests : IDisposable
 
         Assert.True(reopened.Succeeded);
         Assert.True(save.Succeeded);
-        Assert.Contains("\"formatVersion\": \"1.28.0\"",
+        Assert.Contains("\"formatVersion\": \"1.30.0\"",
             File.ReadAllText(reopened.Session.ProjectFilePath), StringComparison.Ordinal);
     }
 

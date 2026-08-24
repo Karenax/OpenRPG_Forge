@@ -39,6 +39,13 @@ public sealed class PlaceableOperationsRuntimeAdapterTests
 
         Assert.Equal(["active", "broken", "closed", "custom", "idle", "open"],
             runtime.Profile.StateMachine.States.Select(item => item.Id).Order(StringComparer.Ordinal));
+        Assert.Equal("closed", runtime.Profile.StateMachine.InitialState);
+        Assert.Equal("animation:active",
+            runtime.Profile.StateMachine.States.Single(item => item.Id == "active").AnimationId);
+        Assert.Equal("visual:broken",
+            runtime.Profile.StateMachine.States.Single(item => item.Id == "broken").VisualOverrideId);
+        Assert.False(runtime.Profile.StateMachine.States.Single(item => item.Id == "broken").Interactable);
+        Assert.Equal("quest:crypt-open", transition.Transition.Condition);
         Assert.Equal("open", transition.CurrentState);
         Assert.Equal(TimeSpan.FromSeconds(1), transition.PreviewDuration);
     }

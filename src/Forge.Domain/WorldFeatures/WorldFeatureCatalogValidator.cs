@@ -15,8 +15,18 @@ public static class WorldFeatureCatalogValidator
         var blueprints = project.Blueprints.ToDictionary(item => item.Id);
         var areas = project.Areas.Select(item => item.Id).ToHashSet();
         var dialogues = project.Dialogues.Select(item => item.Id.Value).ToHashSet();
+        var dialogueEntryPoints = project.Dialogues.ToDictionary(
+            item => item.Id.Value,
+            item => (IReadOnlySet<string>)item.EntryPoints
+                .Select(entry => entry.Key)
+                .ToHashSet(StringComparer.Ordinal));
+        var itemBlueprintIds = project.Blueprints
+            .Where(item => item.Kind == BlueprintKind.Item)
+            .Select(item => item.Id)
+            .ToHashSet();
         var quests = project.Quests.Select(item => item.Id.Value).ToHashSet();
         var encounters = catalog.Encounters.Select(item => item.Id).ToHashSet();
+        var factionIds = project.Module.Factions.Factions.Select(item => item.Id).ToHashSet();
 
         if (catalog.Id != project.Module.Id.Value)
             Add(diagnostics, "world.catalog.id_mismatch", "The world-feature catalog ID must match the module ID.", "module/worldFeatures/id");
@@ -40,9 +50,30 @@ public static class WorldFeatureCatalogValidator
             Identity(profile.Id, profile.SchemaVersion, profile.Provenance, path, diagnostics);
             if (profile.DialogueId is { } dialogueId && !dialogues.Contains(dialogueId))
                 Add(diagnostics, "world.reference.dialogue_missing", "Placeable dialogue reference is missing.", $"{path}/dialogueId");
-            if (profile.Credential is { } credential && (string.IsNullOrWhiteSpace(credential.CredentialId) || credential.Charges < 0 ||
-                credential.Consumption == PlaceableWorldProfile.CredentialConsumption.Charge && credential.Charges < 1))
-                Add(diagnostics, "world.placeable.credential_invalid", "Credential identity and charge policy are invalid.", $"{path}/credential");
+            if (profile.Credential is null)
+            {
+                if (profile.CredentialRequiredAtRuntime)
+                    Add(diagnostics, "world.placeable.credential_required_missing",
+                        "Required placeable credential policy is missing.", $"{path}/credential");
+            }
+            else
+            {
+                var credential = profile.Credential;
+                if (string.IsNullOrWhiteSpace(credential.CredentialId) || credential.Charges < 0 ||
+                    credential.Consumption == PlaceableWorldProfile.CredentialConsumption.Charge &&
+                    credential.Charges < 1)
+                    Add(diagnostics, "world.placeable.credential_invalid",
+                        "Credential identity and charge policy are invalid.", $"{path}/credential");
+                if (credential.Consumption == PlaceableWorldProfile.CredentialConsumption.VirtualPermission &&
+                    string.IsNullOrWhiteSpace(credential.VirtualPermission))
+                    Add(diagnostics, "world.placeable.credential_virtual_permission_missing",
+                        "Virtual credential policy requires a permission.", $"{path}/credential/virtualPermission");
+                if (credential.CredentialId.StartsWith("item:", StringComparison.OrdinalIgnoreCase) &&
+                    (!Guid.TryParse(credential.CredentialId[5..], out var credentialItemId) ||
+                     !itemBlueprintIds.Contains(BlueprintId.From(credentialItemId))))
+                    Add(diagnostics, "world.placeable.credential_item_missing",
+                        "Placeable credential item reference is missing.", $"{path}/credential/credentialId");
+            }
             ValidateEvents(profile.Reactive.Events, path, diagnostics);
             if (profile.Reactive.Scheduler.Enabled && (profile.Reactive.Scheduler.IntervalSeconds <= 0 ||
                 profile.Reactive.Scheduler.BudgetPerMinute < 1 || string.IsNullOrWhiteSpace(profile.Reactive.Scheduler.CustomNamespace)))
@@ -51,12 +82,44 @@ public static class WorldFeatureCatalogValidator
                 string.IsNullOrWhiteSpace(physics.Authority)))
                 Add(diagnostics, "world.placeable.physics_invalid", "Dynamic physics requires mass, sleep policy and authority.", $"{path}/physics");
             ValidatePlaceableFoundation(profile, path, diagnostics);
-            ValidatePlaceableOperations(profile, path, diagnostics);
+            ValidatePlaceableOperations(profile, path, itemBlueprintIds, diagnostics);
             ValidatePlaceableSecurityEvents(profile, path,
                 blueprints.Keys.Select(item => item.Value).ToHashSet(), diagnostics);
+            ValidatePlaceableDamageEvents(profile, path, diagnostics);
             ValidatePlaceableCompositionEvents(profile, path,
                 blueprints.Keys.Select(item => item.Value).ToHashSet(), diagnostics);
+            ValidatePlaceableFactionOwnership(profile, path, factionIds, diagnostics);
+            ValidatePlaceableConversation(profile, path, dialogueEntryPoints, itemBlueprintIds, diagnostics);
         }
+        foreach (var duplicate in catalog.Placeables
+                     .Where(item => item.FactionOwnership is not null)
+                     .GroupBy(item => item.FactionOwnership!.Id)
+                     .Where(group => group.Key == Guid.Empty || group.Count() > 1))
+        {
+            Add(diagnostics, "world.placeable.faction_ownership_uuid_duplicate",
+                "Faction ownership UUID is reused by multiple placeable profiles.",
+                $"module/worldFeatures/placeables/{duplicate.First().Id}/factionOwnership/{duplicate.Key}");
+        }
+        foreach (var duplicate in catalog.Placeables
+                     .Where(item => item.Conversation is not null)
+                     .GroupBy(item => item.Conversation!.Id)
+                     .Where(group => group.Key == Guid.Empty || group.Count() > 1))
+        {
+            Add(diagnostics, "world.placeable.conversation_uuid_duplicate",
+                "Conversation profile UUID is reused by multiple placeable profiles.",
+                $"module/worldFeatures/placeables/{duplicate.First().Id}/conversation/{duplicate.Key}");
+        }
+        foreach (var duplicate in catalog.Placeables
+                     .Where(item => item.Conversation is not null)
+                     .SelectMany(item => item.Conversation!.Bindings.Select(binding => (item, binding)))
+                     .GroupBy(value => value.binding.Id)
+                     .Where(group => group.Key == Guid.Empty || group.Count() > 1))
+        {
+            Add(diagnostics, "world.placeable.conversation_binding_uuid_duplicate",
+                "Dialogue binding UUID is reused by multiple placeable profiles.",
+                $"module/worldFeatures/placeables/{duplicate.First().item.Id}/conversation/bindings/{duplicate.Key}");
+        }
+        ValidatePlaceableTransformHierarchy(catalog.Placeables, diagnostics);
 
         foreach (var profile in catalog.Doors)
         {
@@ -150,6 +213,7 @@ public static class WorldFeatureCatalogValidator
             else if (profile.AccessEventsRequiredAtRuntime)
                 Add(diagnostics, "world.door.access_events_required",
                     "Door access/events are required by this runtime profile.", $"{path}/accessEvents");
+            ValidateDoorRuntimeValidation(profile, path, diagnostics);
         }
 
         var doorAccessComponentIds = catalog.Doors.Where(item => item.AccessEvents is not null)
@@ -188,12 +252,50 @@ public static class WorldFeatureCatalogValidator
                 Add(diagnostics, "world.trigger.scheduler_invalid", "Trigger scheduler requires positive cadence and budget.", $"{path}/scheduler");
             if (profile.Access is { } access && string.IsNullOrWhiteSpace(access.CredentialId))
                 Add(diagnostics, "world.trigger.access_invalid", "Trigger access requires a credential.", $"{path}/access");
+            if (profile.Rest is { } rest)
+            {
+                if (string.IsNullOrWhiteSpace(rest.DangerQuery) ||
+                    string.IsNullOrWhiteSpace(rest.AllowedMessageKey) ||
+                    string.IsNullOrWhiteSpace(rest.DeniedMessageKey) ||
+                    !SafeIdentifier(rest.DangerQuery) || !SafeIdentifier(rest.AllowedMessageKey) ||
+                    !SafeIdentifier(rest.DeniedMessageKey))
+                    Add(diagnostics, "world.trigger.rest_invalid",
+                        "Rest trigger policy requires a safe danger query and localized allowed/denied message keys.",
+                        $"{path}/rest");
+            }
+            if (profile.Clue is { } clue)
+            {
+                if (!SafeIdentifier(clue.SkillId) || clue.Difficulty < 0 || !SafeIdentifier(clue.TraceId) ||
+                    !double.IsFinite(clue.DirectionDegrees) || clue.DirectionDegrees is < 0 or >= 360 ||
+                    !double.IsFinite(clue.AgeHours) || clue.AgeHours < 0 ||
+                    clue.FalseClueId is { } falseClue &&
+                    (!SafeIdentifier(falseClue) || string.Equals(falseClue, clue.TraceId, StringComparison.Ordinal)))
+                    Add(diagnostics, "world.trigger.clue_invalid",
+                        "Clue trigger policy requires a skill, difficulty, trace, normalized direction, age and distinct optional false clue.",
+                        $"{path}/clue");
+            }
             if (profile.Clue?.QuestId is { } questId && !quests.Contains(questId))
                 Add(diagnostics, "world.reference.quest_missing", "Trigger clue quest reference is missing.", $"{path}/clue/questId");
-            if (profile.Narrative is { } narrative && !dialogues.Contains(narrative.DialogueId))
-                Add(diagnostics, "world.reference.dialogue_missing", "Narrative trigger dialogue reference is missing.", $"{path}/narrative/dialogueId");
+            if (profile.Narrative is { } narrative)
+            {
+                if (narrative.Participants.Distinct().Count() != narrative.Participants.Count ||
+                    narrative.Priority is < 0 or > 1_000 || !double.IsFinite(narrative.CooldownSeconds) ||
+                    narrative.CooldownSeconds < 0 || !SafeIdentifier(narrative.MultiplayerPolicy))
+                    Add(diagnostics, "world.trigger.narrative_invalid",
+                        "Narrative trigger policy requires unique participants, bounded priority/cooldown and a multiplayer policy.",
+                        $"{path}/narrative");
+                foreach (var participant in narrative.Participants.Where(participant =>
+                             !blueprints.TryGetValue(participant, out var blueprint) ||
+                             blueprint.Kind is not (BlueprintKind.Creature or BlueprintKind.PlayerSpawn)))
+                    Add(diagnostics, "world.trigger.narrative_participant_missing",
+                        "Narrative trigger participant must resolve to a creature or player blueprint.",
+                        $"{path}/narrative/participants/{participant}");
+                if (!dialogues.Contains(narrative.DialogueId))
+                    Add(diagnostics, "world.reference.dialogue_missing",
+                        "Narrative trigger dialogue reference is missing.", $"{path}/narrative/dialogueId");
+            }
             ValidateTriggerFoundation(profile, path, diagnostics);
-            ValidateTriggerAdvanced(profile, path, diagnostics);
+            ValidateTriggerAdvanced(profile, path, factionIds, diagnostics);
         }
 
         foreach (var profile in catalog.Encounters)
@@ -202,15 +304,21 @@ public static class WorldFeatureCatalogValidator
             Identity(profile.Id, profile.SchemaVersion, profile.Provenance, path, diagnostics);
             if (!areas.Contains(profile.AreaId))
                 Add(diagnostics, "world.reference.area_missing", "Encounter area reference is missing.", $"{path}/areaId");
-            if (profile.Respawn is { } respawn && (respawn.DelaySeconds < 0 || respawn.MaximumCycles < 0 || respawn.AntiFarmMultiplier is < 0 or > 1))
+            if (profile.Respawn is { } respawn && (!double.IsFinite(respawn.DelaySeconds) ||
+                respawn.DelaySeconds < 0 || respawn.MaximumCycles < 0 ||
+                !double.IsFinite(respawn.AntiFarmMultiplier) || respawn.AntiFarmMultiplier is < 0 or > 1))
                 Add(diagnostics, "world.encounter.respawn_invalid", "Respawn delay, cycles and anti-farm multiplier are invalid.", $"{path}/respawn");
             if (profile.Scheduler is { } scheduler && scheduler.HeartbeatEnabled &&
-                (scheduler.IntervalSeconds <= 0 || scheduler.BudgetPerMinute < 1 || string.IsNullOrWhiteSpace(scheduler.CustomEventNamespace)))
+                (!double.IsFinite(scheduler.IntervalSeconds) || scheduler.IntervalSeconds <= 0 ||
+                 scheduler.BudgetPerMinute < 1 || string.IsNullOrWhiteSpace(scheduler.CustomEventNamespace)))
                 Add(diagnostics, "world.encounter.scheduler_invalid", "Encounter heartbeat requires cadence, budget and namespace.", $"{path}/scheduler");
             if (profile.Reinforcements is { } reinforcement && (reinforcement.RouteId == Guid.Empty ||
-                reinforcement.MaximumActors < 1 || reinforcement.DelaySeconds < 0))
+                reinforcement.MaximumActors < 1 || !double.IsFinite(reinforcement.DelaySeconds) ||
+                reinforcement.DelaySeconds < 0))
                 Add(diagnostics, "world.encounter.reinforcement_invalid", "Reinforcements require route, cap and delay.", $"{path}/reinforcements");
-            if (profile.Visibility.MinimumCameraDistance < 0)
+            if (!Enum.IsDefined(profile.Visibility.Mode) ||
+                !double.IsFinite(profile.Visibility.MinimumCameraDistance) ||
+                profile.Visibility.MinimumCameraDistance < 0)
                 Add(diagnostics, "world.encounter.visibility_invalid", "Visibility distance cannot be negative.", $"{path}/visibility");
             if (profile.Composition is { } composition)
                 diagnostics.AddRange(EncounterCompositionProfileValidator.Validate(composition, profile.Foundation,
@@ -246,7 +354,9 @@ public static class WorldFeatureCatalogValidator
                 EncounterWorldProfile.VolumeShape.Capsule3D => volume.Radius > 0 && volume.Height >= volume.Radius * 2,
                 _ => false,
             };
-            if (!geometryValid || volume.ThreatRadius < 0 ||
+            if (!geometryValid || volume.Points.Any(point => !Finite(point)) || !Finite(volume.Center) ||
+                !double.IsFinite(volume.Height) || !double.IsFinite(volume.Radius) ||
+                !double.IsFinite(volume.ThreatRadius) || volume.ThreatRadius < 0 ||
                 volume.RequiredEntityTags.Any(string.IsNullOrWhiteSpace) ||
                 volume.AllowedFactions.Any(string.IsNullOrWhiteSpace) ||
                 volume.ActivationScriptId is { } activationScript && string.IsNullOrWhiteSpace(activationScript))
@@ -265,12 +375,14 @@ public static class WorldFeatureCatalogValidator
                     candidateBlueprint.Kind is not (BlueprintKind.Creature or BlueprintKind.PlayerSpawn))
                     Add(diagnostics, "world.encounter.candidate_missing",
                         "Encounter candidate must reference a creature blueprint.", $"{candidatePath}/blueprintId");
-                if (candidate.Weight <= 0 || candidate.Cost <= 0 || candidate.MaximumAlive <= 0 ||
+                if (!Enum.IsDefined(candidate.Role) || !double.IsFinite(candidate.Weight) ||
+                    !double.IsFinite(candidate.Cost) || candidate.Weight <= 0 || candidate.Cost <= 0 ||
+                    candidate.MaximumAlive <= 0 ||
                     candidate.Conditions.Any(string.IsNullOrWhiteSpace) || candidate.Variants.Any(string.IsNullOrWhiteSpace))
                     Add(diagnostics, "world.encounter.candidate_invalid",
                         "Candidate weight, role cost, conditions, variants and alive limit are invalid.", candidatePath);
             }
-            if (foundation.SpawnBudget <= 0 ||
+            if (!double.IsFinite(foundation.SpawnBudget) || foundation.SpawnBudget <= 0 ||
                 foundation.Candidates.Count > 0 && foundation.Candidates.All(item => item.Cost > foundation.SpawnBudget))
                 Add(diagnostics, "world.encounter.budget_invalid",
                     "Spawn budget must be positive and admit at least one candidate.", $"{foundationPath}/spawnBudget");
@@ -339,12 +451,38 @@ public static class WorldFeatureCatalogValidator
             Identity(route.Id, route.SchemaVersion, route.Provenance, path, diagnostics);
             if (!areas.Contains(route.AreaId))
                 Add(diagnostics, "world.reference.area_missing", "Vehicle route area reference is missing.", $"{path}/areaId");
-            if (route.Points.Count < 2 || route.Lanes.Count == 0 || route.DefaultSpeedLimit <= 0 ||
-                route.Points.Any(item => item.Width <= 0) || route.Lanes.Any(item => item.SpeedLimit <= 0))
-                Add(diagnostics, "world.vehicle_route.invalid", "Vehicle route requires points, lanes, width and speed limits.", path);
             var pointIds = route.Points.Select(item => item.Id).ToHashSet();
-            if (route.Stops.Any(item => !pointIds.Contains(item.RoutePointId) || item.WaitSeconds < 0))
-                Add(diagnostics, "world.vehicle_route.stop_invalid", "Vehicle stops must reference route points and non-negative waits.", $"{path}/stops");
+            if (route.Points.Count < 2 || pointIds.Count != route.Points.Count ||
+                route.Points.Any(item => item.Id == Guid.Empty || !double.IsFinite(item.TangentDegrees) ||
+                    !double.IsFinite(item.Width) || item.Width <= 0))
+                Add(diagnostics, "world.vehicle_route.points_invalid",
+                    "Vehicle route points require unique UUIDs, finite tangents and positive finite widths.",
+                    $"{path}/points");
+
+            var laneIds = route.Lanes.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
+            if (route.Lanes.Count == 0 || laneIds.Count != route.Lanes.Count ||
+                route.Lanes.Any(item => !SafeIdentifier(item.Id) || !double.IsFinite(item.LateralOffset) ||
+                    !double.IsFinite(item.SpeedLimit) || item.SpeedLimit <= 0 || !SafeIdentifier(item.Direction)))
+                Add(diagnostics, "world.vehicle_route.lanes_invalid",
+                    "Vehicle lanes require unique identifiers, finite offsets, positive finite speeds and a direction.",
+                    $"{path}/lanes");
+
+            if (!double.IsFinite(route.DefaultSpeedLimit) || route.DefaultSpeedLimit <= 0)
+                Add(diagnostics, "world.vehicle_route.speed_invalid",
+                    "Vehicle route default speed must be positive and finite.", $"{path}/defaultSpeedLimit");
+
+            if (route.NetworkSyncMode is not ("server-snapshots" or "bounded-prediction" or "local"))
+                Add(diagnostics, "world.vehicle_route.network_sync_invalid",
+                    "Vehicle route network sync must use server snapshots, bounded prediction or local mode.",
+                    $"{path}/networkSyncMode");
+
+            var stopIds = route.Stops.Select(item => item.Id).ToHashSet();
+            if (stopIds.Count != route.Stops.Count || route.Stops.Any(item => item.Id == Guid.Empty ||
+                    !pointIds.Contains(item.RoutePointId) || !double.IsFinite(item.WaitSeconds) ||
+                    item.WaitSeconds < 0 || !SafeIdentifier(item.ServiceId)))
+                Add(diagnostics, "world.vehicle_route.stop_invalid",
+                    "Vehicle stops require unique UUIDs, known route points, finite waits and a service identifier.",
+                    $"{path}/stops");
         }
 
         foreach (var profile in catalog.Merchants)
@@ -388,6 +526,38 @@ public static class WorldFeatureCatalogValidator
 
         ValidateScripts(catalog.Scripts, diagnostics);
         return diagnostics;
+    }
+
+    private static void ValidateDoorRuntimeValidation(DoorWorldProfile profile, string path,
+        List<DomainDiagnostic> diagnostics)
+    {
+        var validationPath = $"{path}/validation";
+        if (profile.Validation is null)
+        {
+            if (profile.ValidationRequiredAtRuntime)
+                Add(diagnostics, "world.door.validation_required_missing",
+                    "Required door validation context is missing.", validationPath);
+            return;
+        }
+
+        if (profile.Foundation is null)
+            Add(diagnostics, "world.door.validation_foundation_missing",
+                "Door validation context requires an authored foundation.", $"{path}/foundation");
+
+        var validation = profile.Validation;
+        var stringLists = new IReadOnlyList<string>[]
+        {
+            validation.KnownAnimationIds,
+            validation.KnownCollisionProfileIds,
+            validation.KnownCredentialIds,
+            validation.KnownScriptIds,
+        };
+        if (validation.KnownDestinationIds.Any(id => id == Guid.Empty) ||
+            validation.KnownDestinationIds.Distinct().Count() != validation.KnownDestinationIds.Count ||
+            stringLists.Any(values => values.Any(string.IsNullOrWhiteSpace) ||
+                values.Distinct(StringComparer.Ordinal).Count() != values.Count))
+            Add(diagnostics, "world.door.validation_context_invalid",
+                "Door validation references must be non-empty and unique.", validationPath);
     }
 
     private static void ValidatePlaceableFoundation(PlaceableWorldProfile profile, string path,
@@ -448,11 +618,18 @@ public static class WorldFeatureCatalogValidator
         }
 
         var transform = foundation.Transform;
-        if (transform.Scale.X is <= .01f or > 100 || transform.Scale.Y is <= .01f or > 100 ||
+        var transformValues = new[]
+        {
+            transform.Position.X, transform.Position.Y, transform.Position.Z,
+            transform.RotationDegrees.X, transform.RotationDegrees.Y, transform.RotationDegrees.Z,
+            transform.Scale.X, transform.Scale.Y, transform.Scale.Z,
+            transform.Pivot.X, transform.Pivot.Y, transform.Pivot.Z,
+        };
+        if (transformValues.Any(value => !float.IsFinite(value) || Math.Abs(value) > 1_000_000) ||
+            transform.Scale.X is <= .01f or > 100 || transform.Scale.Y is <= .01f or > 100 ||
             transform.Scale.Z is <= .01f or > 100 || !double.IsFinite(transform.SnapIncrement) ||
             transform.SnapIncrement is < 0 or > 10000 || transform.ParentId == profile.Id ||
-            new[] { transform.Position.X, transform.Position.Y, transform.Position.Z,
-                transform.Pivot.X, transform.Pivot.Y, transform.Pivot.Z }.Any(value => Math.Abs(value) > 1_000_000))
+            transform.TransformAnimationId is { Length: 0 } or { Length: > 256 })
             Add(diagnostics, "world.placeable.transform_invalid",
                 "Transform scale, pivot, position, snap and parent must remain finite and bounded.", $"{foundationPath}/transform");
         if (foundation.Components.ScriptBindings.Any(item => string.IsNullOrWhiteSpace(item.Key) || string.IsNullOrWhiteSpace(item.Value)))
@@ -461,7 +638,45 @@ public static class WorldFeatureCatalogValidator
         ValidatePlaceableRuntimeContracts(foundation, foundationPath, diagnostics);
     }
 
-    private static void ValidatePlaceableOperations(PlaceableWorldProfile profile, string path,
+    private static void ValidatePlaceableTransformHierarchy(
+        IReadOnlyList<PlaceableWorldProfile> placeables,
+        List<DomainDiagnostic> diagnostics)
+    {
+        var profiles = placeables.ToDictionary(profile => profile.Id);
+        foreach (var profile in placeables.Where(profile => profile.Foundation?.Transform.ParentId is not null))
+        {
+            var path = $"module/worldFeatures/placeables/{profile.Id}/foundation/transform/parentId";
+            var parentId = profile.Foundation!.Transform.ParentId!.Value;
+            if (!profiles.TryGetValue(parentId, out var parent) || parent.Foundation is null)
+            {
+                Add(diagnostics, "world.placeable.parent_missing",
+                    "Placeable transform parent must resolve to another canonical placeable foundation.", path);
+                continue;
+            }
+
+            var visited = new HashSet<Guid>();
+            PlaceableWorldProfile? current = profile;
+            while (current?.Foundation?.Transform.ParentId is { } nextId)
+            {
+                if (!visited.Add(current.Id) || nextId == profile.Id)
+                {
+                    Add(diagnostics, "world.placeable.parent_cycle",
+                        "Placeable transform hierarchy must remain acyclic.", path);
+                    break;
+                }
+                current = profiles.GetValueOrDefault(nextId);
+                if (current is null)
+                {
+                    break;
+                }
+            }
+        }
+    }
+
+    private static void ValidatePlaceableOperations(
+        PlaceableWorldProfile profile,
+        string path,
+        IReadOnlySet<BlueprintId> itemBlueprintIds,
         List<DomainDiagnostic> diagnostics)
     {
         var operationsPath = $"{path}/operations";
@@ -562,6 +777,7 @@ public static class WorldFeatureCatalogValidator
             if (protection.Id == Guid.Empty || protection.ProtectedActions.Count == 0 ||
                 protection.ProtectedActions.Any(string.IsNullOrWhiteSpace) ||
                 protection.ProtectedActions.Distinct(StringComparer.Ordinal).Count() != protection.ProtectedActions.Count ||
+                protection.RequiredPermissions.Count == 0 ||
                 protection.RequiredPermissions.Any(string.IsNullOrWhiteSpace) ||
                 protection.RequiredPermissions.Distinct(StringComparer.Ordinal).Count() != protection.RequiredPermissions.Count ||
                 string.IsNullOrWhiteSpace(protection.Feedback) || string.IsNullOrWhiteSpace(protection.AuditBinding))
@@ -576,6 +792,10 @@ public static class WorldFeatureCatalogValidator
         if (operations.Lock is { } lockProfile)
         {
             ids.Add(lockProfile.Id);
+            var itemCredentialsValid = lockProfile.CredentialIds
+                .Where(value => value.StartsWith("item:", StringComparison.OrdinalIgnoreCase))
+                .All(value => Guid.TryParse(value[5..], out var itemId) &&
+                              itemBlueprintIds.Contains(BlueprintId.From(itemId)));
             var mechanisms = lockProfile.CredentialIds.Count + lockProfile.RequiredPermissions.Count +
                 (string.IsNullOrWhiteSpace(lockProfile.SkillId) ? 0 : 1) +
                 (string.IsNullOrWhiteSpace(lockProfile.CodeHash) ? 0 : 1) + (lockProfile.Hackable ? 1 : 0);
@@ -586,7 +806,8 @@ public static class WorldFeatureCatalogValidator
                 lockProfile.RequiredPermissions.Distinct(StringComparer.Ordinal).Count() != lockProfile.RequiredPermissions.Count ||
                 lockProfile.SkillId is { Length: 0 } || lockProfile.CodeHash is { Length: 0 } ||
                 !double.IsFinite(lockProfile.Difficulty) || lockProfile.Difficulty < 0 ||
-                lockProfile.Hackable && string.IsNullOrWhiteSpace(lockProfile.SkillId))
+                lockProfile.Hackable && string.IsNullOrWhiteSpace(lockProfile.SkillId) ||
+                !itemCredentialsValid)
                 Add(diagnostics, "world.placeable.lock_invalid",
                     "Lock requires a state and valid credential, skill, code, hacking, relock, jam or permission policy.",
                     $"{operationsPath}/lock");
@@ -595,6 +816,88 @@ public static class WorldFeatureCatalogValidator
         if (ids.Any(id => id == Guid.Empty) || ids.Distinct().Count() != ids.Count)
             Add(diagnostics, "world.placeable.operations_identity_conflict",
                 "Placeable operation identities must be non-empty and unique.", operationsPath);
+    }
+
+    private static void ValidatePlaceableFactionOwnership(
+        PlaceableWorldProfile profile,
+        string path,
+        IReadOnlySet<Guid> factionIds,
+        List<DomainDiagnostic> diagnostics)
+    {
+        var ownershipPath = $"{path}/factionOwnership";
+        if (profile.FactionOwnership is null)
+        {
+            if (profile.FactionOwnershipRequiredAtRuntime)
+            {
+                Add(diagnostics, "world.placeable.faction_ownership_required_missing",
+                    "Required placeable faction ownership profile is missing.", ownershipPath);
+            }
+            return;
+        }
+
+        diagnostics.AddRange(PlaceableFactionOwnershipProfileValidator.Validate(
+            profile.FactionOwnership,
+            factionIds,
+            ownershipPath));
+
+        var occupiedIds = new Guid?[]
+        {
+            profile.Id,
+            profile.Foundation?.Id,
+            profile.Operations?.Id,
+            profile.SecurityEvents?.Id,
+            profile.CompositionEvents?.Id,
+            profile.Conversation?.Id,
+        };
+        if (occupiedIds.Any(id => id == profile.FactionOwnership.Id))
+        {
+            Add(diagnostics, "world.placeable.faction_ownership_identity_conflict",
+                "Faction ownership identity must be distinct from the placeable and its other profiles.",
+                ownershipPath);
+        }
+    }
+
+    private static void ValidatePlaceableConversation(
+        PlaceableWorldProfile profile,
+        string path,
+        IReadOnlyDictionary<Guid, IReadOnlySet<string>> dialogueEntryPoints,
+        IReadOnlySet<BlueprintId> itemBlueprintIds,
+        List<DomainDiagnostic> diagnostics)
+    {
+        var conversationPath = $"{path}/conversation";
+        if (profile.Conversation is null)
+        {
+            if (profile.ConversationRequiredAtRuntime)
+            {
+                Add(diagnostics, "world.placeable.conversation_required_missing",
+                    "Required placeable conversation profile is missing.", conversationPath);
+            }
+            return;
+        }
+
+        diagnostics.AddRange(PlaceableConversationProfileValidator.Validate(
+            profile.Conversation,
+            dialogueEntryPoints,
+            itemBlueprintIds,
+            conversationPath));
+
+        var occupiedIds = new Guid?[]
+        {
+            profile.Id,
+            profile.Foundation?.Id,
+            profile.Operations?.Id,
+            profile.SecurityEvents?.Id,
+            profile.CompositionEvents?.Id,
+            profile.FactionOwnership?.Id,
+        };
+        if (occupiedIds.Any(id => id == profile.Conversation.Id) ||
+            profile.Conversation.Bindings.Any(binding => occupiedIds.Contains(binding.Id) ||
+                                                         binding.Id == profile.Conversation.Id))
+        {
+            Add(diagnostics, "world.placeable.conversation_identity_conflict",
+                "Conversation and binding identities must be distinct from the placeable and its other profiles.",
+                conversationPath);
+        }
     }
 
     private static void ValidatePlaceableSecurityEvents(PlaceableWorldProfile profile, string path,
@@ -606,6 +909,24 @@ public static class WorldFeatureCatalogValidator
             if (profile.SecurityEventsRequiredAtRuntime)
                 Add(diagnostics, "world.placeable.security_events_required_missing",
                     "Required placeable security and event profile is missing.", eventsPath);
+            if (profile.TrapRequiredAtRuntime)
+                Add(diagnostics, "world.placeable.trap_required_missing",
+                    "Required placeable trap profile is missing.", $"{eventsPath}/trap");
+            if (profile.LootRequiredAtRuntime)
+                Add(diagnostics, "world.placeable.loot_required_missing",
+                    "Required placeable initial treasure profile is missing.", $"{eventsPath}/loot");
+            if (profile.ContainerEventsRequiredAtRuntime)
+                Add(diagnostics, "world.placeable.container_events_required_missing",
+                    "Required placeable open and close event profile is missing.",
+                    $"{eventsPath}/containerEvents");
+            if (profile.LockEventsRequiredAtRuntime)
+                Add(diagnostics, "world.placeable.lock_events_required_missing",
+                    "Required placeable lock and unlock event profile is missing.",
+                    $"{eventsPath}/lockEvents");
+            if (profile.ContentsChangedRequiredAtRuntime)
+                Add(diagnostics, "world.placeable.contents_changed_required_missing",
+                    "Required placeable contents changed event profile is missing.",
+                    $"{eventsPath}/contentsChanged");
             return;
         }
 
@@ -614,83 +935,115 @@ public static class WorldFeatureCatalogValidator
         if (profile.Foundation is null)
             Add(diagnostics, "world.placeable.security_events_foundation_missing",
                 "Placeable security and events require the canonical foundation.", eventsPath);
-        else if (!profile.Foundation.Components.HasTrap)
-            Add(diagnostics, "world.placeable.trap_component_missing",
-                "Authored trap data requires the placeable trap component.", $"{eventsPath}/trap");
-        if (profile.Operations is null)
-            Add(diagnostics, "world.placeable.security_events_operations_missing",
-                "Placeable security and events require the canonical operations profile.", eventsPath);
 
-        var ids = new List<Guid>
-        {
-            profile.Id,
-            events.Id,
-            events.Trap.Id,
-            events.Loot.Id,
-            events.Loot.LootTable.Id,
-            events.ContainerEvents.Id,
-            events.LockEvents.Id,
-            events.ContentsChanged.Id,
-        };
+        var ids = new List<Guid> { profile.Id, events.Id };
         if (profile.Foundation is not null) ids.Add(profile.Foundation.Id);
         if (profile.Operations is not null) ids.Add(profile.Operations.Id);
 
-        var trap = events.Trap;
-        if (trap.Id == Guid.Empty || string.IsNullOrWhiteSpace(trap.TriggerId) ||
-            string.IsNullOrWhiteSpace(trap.PayloadId) || !double.IsFinite(trap.DetectionDifficulty) ||
-            trap.DetectionDifficulty < 0 || !double.IsFinite(trap.DisarmDifficulty) ||
-            trap.DisarmDifficulty < 0 || !double.IsFinite(trap.ResetDelaySeconds) ||
-            trap.ResetDelaySeconds < 0 || string.IsNullOrWhiteSpace(trap.OwnerId) ||
-            string.IsNullOrWhiteSpace(trap.VisualEffectId) || string.IsNullOrWhiteSpace(trap.FriendlyPolicy))
-            Add(diagnostics, "world.placeable.trap_invalid",
-                "Trap requires trigger, payload, detection, disarm, reset, ownership, VFX and friendly policy.",
-                $"{eventsPath}/trap");
+        if (events.Trap is { } trap)
+        {
+            ids.Add(trap.Id);
+            if (profile.Foundation is { Components.HasTrap: false })
+                Add(diagnostics, "world.placeable.trap_component_missing",
+                    "Authored trap data requires the placeable trap component.", $"{eventsPath}/trap");
+            if (trap.Id == Guid.Empty || string.IsNullOrWhiteSpace(trap.TriggerId) ||
+                string.IsNullOrWhiteSpace(trap.PayloadId) || !double.IsFinite(trap.DetectionDifficulty) ||
+                trap.DetectionDifficulty < 0 || !double.IsFinite(trap.DisarmDifficulty) ||
+                trap.DisarmDifficulty < 0 || !double.IsFinite(trap.ResetDelaySeconds) ||
+                trap.ResetDelaySeconds < 0 || string.IsNullOrWhiteSpace(trap.OwnerId) ||
+                string.IsNullOrWhiteSpace(trap.VisualEffectId) || string.IsNullOrWhiteSpace(trap.FriendlyPolicy))
+                Add(diagnostics, "world.placeable.trap_invalid",
+                    "Trap requires trigger, payload, detection, disarm, reset, ownership, VFX and friendly policy.",
+                    $"{eventsPath}/trap");
+        }
+        else if (profile.TrapRequiredAtRuntime || profile.Foundation?.Components.HasTrap == true)
+        {
+            Add(diagnostics, "world.placeable.trap_required_missing",
+                "Required placeable trap profile is missing.", $"{eventsPath}/trap");
+        }
 
-        var loot = events.Loot;
-        var lootTable = loot.LootTable;
-        if (loot.Id == Guid.Empty || loot.LootTableId == Guid.Empty || loot.LootTableId != lootTable.Id ||
-            lootTable.Id == Guid.Empty || lootTable.SchemaVersion != 1 ||
-            string.IsNullOrWhiteSpace(lootTable.Provenance) || loot.Generation < 0 ||
-            lootTable.Entries.Count == 0 || lootTable.Entries.Any(item => item.ItemDefinitionId == Guid.Empty ||
-                string.IsNullOrWhiteSpace(item.Group) || !double.IsFinite(item.Weight) || item.Weight <= 0 ||
-                item.MinimumQuantity < 0 || item.MaximumQuantity < item.MinimumQuantity || item.MinimumQuality < 0) ||
-            loot.SavedResults.Any(item => item.ItemDefinitionId == Guid.Empty || item.Quantity < 1 ||
-                item.Quality < 0 || string.IsNullOrWhiteSpace(item.Group)))
-            Add(diagnostics, "world.placeable.loot_spawner_invalid",
-                "Loot spawner requires a valid table, timing, seed, generation and persisted results.",
-                $"{eventsPath}/loot");
-        foreach (var entry in lootTable.Entries.Where(item => !blueprintIds.Contains(item.ItemDefinitionId)))
-            Add(diagnostics, "world.placeable.loot_item_reference_missing",
-                "Placeable loot entry references a missing item blueprint.",
-                $"{eventsPath}/loot/lootTable/entries/{entry.ItemDefinitionId}");
+        if (events.Loot is { } loot)
+        {
+            var lootTable = loot.LootTable;
+            ids.Add(loot.Id);
+            ids.Add(lootTable.Id);
+            if (loot.Id == Guid.Empty || loot.LootTableId == Guid.Empty || loot.LootTableId != lootTable.Id ||
+                lootTable.Id == Guid.Empty || lootTable.SchemaVersion != 1 ||
+                string.IsNullOrWhiteSpace(lootTable.Provenance) || loot.Generation < 0 ||
+                lootTable.Entries.Count == 0 || lootTable.Entries.Any(item => item.ItemDefinitionId == Guid.Empty ||
+                    string.IsNullOrWhiteSpace(item.Group) || !double.IsFinite(item.Weight) || item.Weight <= 0 ||
+                    item.MinimumQuantity < 0 || item.MaximumQuantity < item.MinimumQuantity || item.MinimumQuality < 0) ||
+                loot.SavedResults.Any(item => item.ItemDefinitionId == Guid.Empty || item.Quantity < 1 ||
+                    item.Quality < 0 || string.IsNullOrWhiteSpace(item.Group)))
+                Add(diagnostics, "world.placeable.loot_spawner_invalid",
+                    "Loot spawner requires a valid table, timing, seed, generation and persisted results.",
+                    $"{eventsPath}/loot");
+            foreach (var entry in lootTable.Entries.Where(item => !blueprintIds.Contains(item.ItemDefinitionId)))
+                Add(diagnostics, "world.placeable.loot_item_reference_missing",
+                    "Placeable loot entry references a missing item blueprint.",
+                    $"{eventsPath}/loot/lootTable/entries/{entry.ItemDefinitionId}");
+        }
+        else if (profile.LootRequiredAtRuntime)
+        {
+            Add(diagnostics, "world.placeable.loot_required_missing",
+                "Required placeable initial treasure profile is missing.", $"{eventsPath}/loot");
+        }
 
-        var containerEvents = events.ContainerEvents;
-        if (containerEvents.Id == Guid.Empty || string.IsNullOrWhiteSpace(containerEvents.ForgeScriptApiVersion) ||
-            string.IsNullOrWhiteSpace(containerEvents.OpenedBinding) ||
-            string.IsNullOrWhiteSpace(containerEvents.ClosedBinding) || !containerEvents.IncludeActor ||
-            !containerEvents.IncludeResult || !containerEvents.IncludePreviousState ||
-            !containerEvents.IncludeAuthority)
-            Add(diagnostics, "world.placeable.container_events_invalid",
-                "Container open and close events require bindings, actor, result, previous state and authority.",
+        if (events.ContainerEvents is { } containerEvents)
+        {
+            ids.Add(containerEvents.Id);
+            if (containerEvents.Id == Guid.Empty ||
+                string.IsNullOrWhiteSpace(containerEvents.ForgeScriptApiVersion) ||
+                string.IsNullOrWhiteSpace(containerEvents.OpenedBinding) ||
+                string.IsNullOrWhiteSpace(containerEvents.ClosedBinding) || !containerEvents.IncludeActor ||
+                !containerEvents.IncludeResult || !containerEvents.IncludePreviousState ||
+                !containerEvents.IncludeAuthority)
+                Add(diagnostics, "world.placeable.container_events_invalid",
+                    "Container open and close events require bindings, actor, result, previous state and authority.",
+                    $"{eventsPath}/containerEvents");
+        }
+        else if (profile.ContainerEventsRequiredAtRuntime)
+        {
+            Add(diagnostics, "world.placeable.container_events_required_missing",
+                "Required placeable open and close event profile is missing.",
                 $"{eventsPath}/containerEvents");
+        }
 
-        var lockEvents = events.LockEvents;
-        if (lockEvents.Id == Guid.Empty || profile.Operations?.Lock is null ||
-            string.IsNullOrWhiteSpace(lockEvents.ForgeScriptApiVersion) ||
-            string.IsNullOrWhiteSpace(lockEvents.ChangingBinding) ||
-            string.IsNullOrWhiteSpace(lockEvents.ChangedBinding) || !lockEvents.IncludeMethod ||
-            !lockEvents.IncludeCredential || !lockEvents.IncludeActor || !lockEvents.ControlledVeto)
-            Add(diagnostics, "world.placeable.lock_events_invalid",
-                "Lock events require before/after bindings, method, credential, actor and controlled veto.",
+        if (events.LockEvents is { } lockEvents)
+        {
+            ids.Add(lockEvents.Id);
+            if (lockEvents.Id == Guid.Empty || profile.Operations?.Lock is null ||
+                string.IsNullOrWhiteSpace(lockEvents.ForgeScriptApiVersion) ||
+                string.IsNullOrWhiteSpace(lockEvents.ChangingBinding) ||
+                string.IsNullOrWhiteSpace(lockEvents.ChangedBinding) || !lockEvents.IncludeMethod ||
+                !lockEvents.IncludeCredential || !lockEvents.IncludeActor || !lockEvents.ControlledVeto)
+                Add(diagnostics, "world.placeable.lock_events_invalid",
+                    "Lock events require before/after bindings, method, credential, actor and controlled veto.",
+                    $"{eventsPath}/lockEvents");
+        }
+        else if (profile.LockEventsRequiredAtRuntime)
+        {
+            Add(diagnostics, "world.placeable.lock_events_required_missing",
+                "Required placeable lock and unlock event profile is missing.",
                 $"{eventsPath}/lockEvents");
+        }
 
-        var disturbed = events.ContentsChanged;
-        if (disturbed.Id == Guid.Empty || string.IsNullOrWhiteSpace(disturbed.ForgeScriptApiVersion) ||
-            string.IsNullOrWhiteSpace(disturbed.EventBinding) || !disturbed.IncludeTransactionalDelta ||
-            !disturbed.IncludeCause || !disturbed.IncludeRevision || !disturbed.IncludeActor)
-            Add(diagnostics, "world.placeable.contents_changed_invalid",
-                "Container contents event requires transactional delta, cause, revisions and actor.",
+        if (events.ContentsChanged is { } disturbed)
+        {
+            ids.Add(disturbed.Id);
+            if (disturbed.Id == Guid.Empty || string.IsNullOrWhiteSpace(disturbed.ForgeScriptApiVersion) ||
+                string.IsNullOrWhiteSpace(disturbed.EventBinding) || !disturbed.IncludeTransactionalDelta ||
+                !disturbed.IncludeCause || !disturbed.IncludeRevision || !disturbed.IncludeActor)
+                Add(diagnostics, "world.placeable.contents_changed_invalid",
+                    "Container contents event requires transactional delta, cause, revisions and actor.",
+                    $"{eventsPath}/contentsChanged");
+        }
+        else if (profile.ContentsChangedRequiredAtRuntime)
+        {
+            Add(diagnostics, "world.placeable.contents_changed_required_missing",
+                "Required placeable contents changed event profile is missing.",
                 $"{eventsPath}/contentsChanged");
+        }
 
         if (ids.Any(id => id == Guid.Empty) || ids.Distinct().Count() != ids.Count)
             Add(diagnostics, "world.placeable.security_events_identity_conflict",
@@ -802,6 +1155,57 @@ public static class WorldFeatureCatalogValidator
                 "Placeable composition identities must be non-empty and unique.", compositionPath);
     }
 
+    private static void ValidatePlaceableDamageEvents(PlaceableWorldProfile profile, string path,
+        List<DomainDiagnostic> diagnostics)
+    {
+        var damagePath = $"{path}/damageEvents";
+        var canonical = PlaceableDamageEventsResolver.Resolve(profile);
+        if (canonical.Authority == PlaceableDamageEventsAuthority.Divergent)
+        {
+            Add(diagnostics, PlaceableDamageEventsResolver.CatalogDivergenceDiagnosticCode,
+                "Direct and composition damage event authorities must have the same identity and values.",
+                damagePath);
+            return;
+        }
+
+        if (!canonical.Available || canonical.Profile is null)
+        {
+            if (profile.DamageEventsRequiredAtRuntime)
+                Add(diagnostics, "world.placeable.damage_events_required_missing",
+                    "Required placeable damage and destruction event profile is missing.", damagePath);
+            return;
+        }
+
+        if (canonical.Authority == PlaceableDamageEventsAuthority.Composition)
+            return;
+
+        var damage = canonical.Profile;
+        if (profile.Operations?.Damageable is null)
+            Add(diagnostics, "world.placeable.damage_events_damageable_missing",
+                "Placeable damage and destruction events require the canonical damageable profile.", damagePath);
+        if (damage.Id == Guid.Empty || string.IsNullOrWhiteSpace(damage.ForgeScriptApiVersion) ||
+            string.IsNullOrWhiteSpace(damage.DamagedBinding) ||
+            string.IsNullOrWhiteSpace(damage.DestroyedBinding) || !damage.IncludeSource ||
+            !damage.IncludeAmount || !damage.IncludeDamageType || !damage.IncludePreviousHealth ||
+            !damage.IncludeCurrentHealth || !damage.IncludeContext)
+            Add(diagnostics, "world.placeable.damage_events_invalid",
+                "Damage events require uniform source, amount, type, health and context payloads.", damagePath);
+
+        var occupiedIds = new Guid?[]
+        {
+            profile.Id,
+            profile.Foundation?.Id,
+            profile.Operations?.Id,
+            profile.SecurityEvents?.Id,
+            profile.CompositionEvents?.Id,
+            profile.FactionOwnership?.Id,
+            profile.Conversation?.Id,
+        };
+        if (occupiedIds.Contains(damage.Id))
+            Add(diagnostics, "world.placeable.damage_events_identity_conflict",
+                "Damage event identity must be distinct from the placeable and its other profiles.", damagePath);
+    }
+
     private static bool InvalidCompositionTransform(PlaceableWorldProfile.TransformPolicy transform)
         => transform.Scale.X is <= .01f or > 100 || transform.Scale.Y is <= .01f or > 100 ||
            transform.Scale.Z is <= .01f or > 100 || !double.IsFinite(transform.SnapIncrement) ||
@@ -812,7 +1216,10 @@ public static class WorldFeatureCatalogValidator
                transform.Pivot.X, transform.Pivot.Y, transform.Pivot.Z,
            }.Any(value => Math.Abs(value) > 1_000_000);
 
-    private static void ValidateTriggerAdvanced(TriggerWorldProfile profile, string path,
+    private static void ValidateTriggerAdvanced(
+        TriggerWorldProfile profile,
+        string path,
+        IReadOnlySet<Guid> factionIds,
         List<DomainDiagnostic> diagnostics)
     {
         var advancedPath = $"{path}/advanced";
@@ -864,6 +1271,12 @@ public static class WorldFeatureCatalogValidator
             Add(diagnostics, "world.trigger.target_filter_invalid",
                 "Typed target query tags, factions, components, owner, team and sandbox predicate must be valid.",
                 $"{advancedPath}/targetFilter");
+        foreach (var factionId in query.FactionIds
+                     .Where(id => id != Guid.Empty && !factionIds.Contains(id))
+                     .Distinct())
+            Add(diagnostics, "world.trigger.faction_reference_missing",
+                "Trigger target filter faction reference is missing.",
+                $"{advancedPath}/targetFilter/factionIds/{factionId}");
 
         var volumes = advanced.GameplayVolumes;
         var volumeKinds = Enum.GetValues<TriggerGameplayVolumeKind>();
@@ -1042,7 +1455,13 @@ public static class WorldFeatureCatalogValidator
                 "Required OnUsed policy is missing.", $"{foundationPath}/onUsed");
 
         if (foundation.Validation is not { } validation)
+        {
+            if (foundation.Transform.TransformAnimationId is not null)
+                Add(diagnostics, "world.placeable.animation_reference_missing",
+                    "Transform animation must resolve in the runtime validation policy.",
+                    $"{foundationPath}/validation/animationIds");
             return;
+        }
         var uniqueNonEmpty = (IReadOnlyList<string> values) => values.All(value => !string.IsNullOrWhiteSpace(value)) &&
             values.Distinct(StringComparer.Ordinal).Count() == values.Count;
         if (!uniqueNonEmpty(validation.AnimationIds) ||
@@ -1724,4 +2143,7 @@ public static class WorldFeatureCatalogValidator
 
     private static void Add(List<DomainDiagnostic> diagnostics, string code, string message, string path) =>
         diagnostics.Add(new DomainDiagnostic(code, message, path));
+
+    private static bool Finite(Forge.Domain.Spatial.Vector3Value value) =>
+        float.IsFinite(value.X) && float.IsFinite(value.Y) && float.IsFinite(value.Z);
 }

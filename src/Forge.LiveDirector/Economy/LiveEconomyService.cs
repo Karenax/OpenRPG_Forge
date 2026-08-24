@@ -9,6 +9,7 @@ public sealed class LiveEconomyService(AuthorizationService authorization, long 
 
     private readonly Dictionary<Guid, long> _wallets = [];
     private readonly HashSet<Guid> _processedCommands = [];
+    private readonly Dictionary<Guid, Compensation> _compensations = [];
     private long _revision;
 
     public long Balance(Guid accountId) => _wallets.GetValueOrDefault(accountId);
@@ -30,8 +31,52 @@ public sealed class LiveEconomyService(AuthorizationService authorization, long 
         _wallets[request.WalletAccountId] = balance;
         _processedCommands.Add(request.CommandId);
         _revision++;
+        _compensations[request.CommandId] = new(request.WalletAccountId, previous, balance);
         return new(true, "LIVE_ECONOMY_APPLIED", _revision, previous, balance, diff, $"applied:{diff}:actor={actor.AccountId}:revision={_revision}");
     }
 
+    public Result Compensate(AuthorizationSubject actor, Guid commandId, long expectedRevision,
+        bool apply)
+    {
+        if (!_compensations.TryGetValue(commandId, out var compensation))
+            return RejectCompensation("LIVE_ECONOMY_COMPENSATION_UNKNOWN", commandId);
+        if (expectedRevision != _revision)
+            return RejectCompensation("LIVE_ECONOMY_COMPENSATION_REVISION_STALE", commandId);
+        if (!authorization.Authorize(actor, NetworkCapability.ManageWorld).Allowed)
+            return RejectCompensation("LIVE_ECONOMY_PERMISSION_DENIED", commandId);
+        if (Balance(compensation.AccountId) != compensation.AppliedBalance)
+            return RejectCompensation("LIVE_ECONOMY_COMPENSATION_CONFLICT", commandId);
+        var diff = $"wallet.restore:account={compensation.AccountId}:balance={compensation.AppliedBalance}->{compensation.PreviousBalance}";
+        if (!apply)
+            return new(false, "LIVE_ECONOMY_COMPENSATION_PREVIEW", _revision,
+                compensation.AppliedBalance, compensation.PreviousBalance, diff,
+                $"previewed:{diff}:actor={actor.AccountId}");
+        _wallets[compensation.AccountId] = compensation.PreviousBalance;
+        _compensations.Remove(commandId);
+        _revision++;
+        return new(true, "LIVE_ECONOMY_COMPENSATED", _revision,
+            compensation.AppliedBalance, compensation.PreviousBalance, diff,
+            $"compensated:{diff}:actor={actor.AccountId}:revision={_revision}");
+    }
+
+    public IReadOnlyDictionary<Guid, long> ExportWallets() =>
+        new SortedDictionary<Guid, long>(_wallets);
+
+    public void ImportWallets(IReadOnlyDictionary<Guid, long> wallets)
+    {
+        ArgumentNullException.ThrowIfNull(wallets);
+        if (wallets.Any(item => item.Key == Guid.Empty || item.Value < 0 ||
+                                item.Value > walletCap))
+            throw new InvalidDataException("LIVE_ECONOMY_SNAPSHOT_INVALID");
+        _wallets.Clear();
+        foreach (var item in wallets.OrderBy(item => item.Key)) _wallets[item.Key] = item.Value;
+    }
+
     private Result Reject(string code, Request request, long previous) => new(false, code, _revision, previous, previous, "no changes", $"rejected:{code}:command={request.CommandId}");
+
+    private Result RejectCompensation(string code, Guid commandId) => new(false, code,
+        _revision, 0, 0, "no changes", $"rejected:{code}:command={commandId}");
+
+    private sealed record Compensation(Guid AccountId, long PreviousBalance,
+        long AppliedBalance);
 }

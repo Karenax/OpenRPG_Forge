@@ -103,6 +103,49 @@ public sealed class NetworkOperationsProfileTests
     }
 
     [Fact]
+    public void Runtime_applies_profile_grants_channels_and_operational_parameters()
+    {
+        var profile = NetworkOperationsProfile.CreateDefault();
+        var player = profile.Roles.Grants.Single(item => item.Role == NetworkRole.Player);
+        profile = profile with
+        {
+            Content = profile.Content with { ChunkBytes = 32 * 1024, DeltaEnabled = false },
+            Roles = profile.Roles with
+            {
+                Grants = profile.Roles.Grants.Select(item => item.Role == NetworkRole.Player
+                    ? item with { Capabilities = [NetworkCapability.Play], CustomCapabilities = ["journal.read"] }
+                    : item).ToArray()
+            },
+            Chat = profile.Chat with
+            {
+                Channels = profile.Chat.Channels.Where(item => item != ChatChannelKind.Global).ToArray()
+            }
+        };
+        var runtime = NetworkOperationsRuntimeAdapter.Build(profile);
+        var subject = new AuthorizationSubject(Guid.NewGuid(), NetworkRole.Player, new HashSet<Guid>(),
+            new HashSet<string> { "journal.read" });
+
+        Assert.Equal(32 * 1024, runtime.ContentChunkBytes);
+        Assert.False(runtime.ContentDeltaEnabled);
+        Assert.Equal(profile.VersionLock, runtime.VersionLock);
+        Assert.Equal(profile.Events.Subscriptions, runtime.EventSubscriptions);
+        Assert.Equal("NET_AUTH_CAPABILITY_DENIED",
+            runtime.Authorization.Authorize(subject, NetworkCapability.Chat).Code);
+        Assert.Equal("NET_CHAT_CHANNEL_DENIED",
+            runtime.Chat.Send(subject, null, ChatChannelKind.Global, null, "hello").Code);
+        Assert.Equal(player.Id, runtime.Roles.Grants.Single(item => item.Role == NetworkRole.Player).Id);
+    }
+
+    [Fact]
+    public void Incomplete_operation_document_is_rejected_without_null_reference_failure()
+    {
+        var exception = Assert.Throws<InvalidDataException>(() =>
+            new NetworkOperationsStore().Deserialize("{\"schemaVersion\":1}"));
+
+        Assert.Equal("NET_OPERATIONS_INCOMPLETE", exception.Message);
+    }
+
+    [Fact]
     public void Server_acceptance_scenario_exercises_all_five_capabilities()
     {
         var result = NetworkOperationsAcceptanceScenario.Run();

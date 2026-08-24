@@ -58,14 +58,45 @@ public sealed class WorldAuthorityTests
         var policy = new AreaCombatPolicy(Guid.NewGuid(), 1, AreaPvpMode.DuelsOnly,
             FriendlyFireMode.Enabled, true, true, false, true, "test");
         var authority = new AreaCombatAuthority(parties, policy);
-        Assert.Equal("NET_AREA_DUEL_REQUIRED", authority.AuthorizeDamage(leader, ally, true, 8).Code);
-        Assert.True(authority.AuthorizeDamage(leader, ally, true, 8, duelAuthorized: true).Accepted);
-        Assert.Equal("NET_ENVIRONMENT_DAMAGE_DISABLED", authority.AuthorizeEnvironmentalDamage(8).Code);
+        Assert.Equal("NET_AREA_DUEL_REQUIRED",
+            authority.AuthorizeDamage(leader, ally, true, 8, serverAuthorityGranted: true).Code);
+        Assert.True(authority.AuthorizeDamage(leader, ally, true, 8, serverAuthorityGranted: true,
+            duelAuthorized: true).Accepted);
+        Assert.Equal("NET_ENVIRONMENT_DAMAGE_DISABLED",
+            authority.AuthorizeEnvironmentalDamage(8, serverAuthorityGranted: true).Code);
+        Assert.Equal("NET_AREA_COMBAT_SERVER_REQUIRED",
+            authority.AuthorizeDamage(leader, ally, true, 8, serverAuthorityGranted: false,
+                duelAuthorized: true).Code);
+        Assert.Equal("NET_AREA_COMBAT_SERVER_REQUIRED",
+            authority.AuthorizeEnvironmentalDamage(8, serverAuthorityGranted: false).Code);
         var localPolicy = new AreaCombatPolicy(policy.Id, 1, policy.PvpMode, policy.FriendlyFire,
             policy.CrimeEnabled, policy.AggroEnabled, policy.EnvironmentalDamageEnabled, false, "test");
         var local = new AreaCombatAuthority(parties, localPolicy);
         Assert.Equal("NET_AREA_COMBAT_AUTHORITY_REQUIRED",
-            local.AuthorizeDamage(leader, Guid.NewGuid(), true, 8, duelAuthorized: true).Code);
+            local.AuthorizeDamage(leader, Guid.NewGuid(), true, 8, serverAuthorityGranted: true,
+                duelAuthorized: true).Code);
+    }
+
+    [Fact]
+    public void Area_combat_applies_aggro_before_live_non_player_damage()
+    {
+        var attacker = Guid.NewGuid();
+        var target = Guid.NewGuid();
+        var parties = new PartyService();
+        var disabled = new AreaCombatPolicy(Guid.NewGuid(), 1, AreaPvpMode.Disabled,
+            FriendlyFireMode.Disabled, true, false, true, true, "test");
+        var authority = new AreaCombatAuthority(parties, disabled);
+
+        var rejected = authority.AuthorizeDamage(attacker, target, targetIsPlayer: false, worldRevision: 12,
+            serverAuthorityGranted: true, aggroInitiation: true);
+        var passiveDamage = authority.AuthorizeDamage(attacker, target, targetIsPlayer: false, worldRevision: 13,
+            serverAuthorityGranted: true, aggroInitiation: false);
+
+        Assert.False(rejected.Accepted);
+        Assert.Equal("NET_AREA_AGGRO_DISABLED", rejected.Code);
+        Assert.Equal(12, rejected.Revision);
+        Assert.True(passiveDamage.Accepted);
+        Assert.Equal("NET_DAMAGE_ALLOWED", passiveDamage.Code);
     }
 
     [Fact]

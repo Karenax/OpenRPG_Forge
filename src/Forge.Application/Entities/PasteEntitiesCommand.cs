@@ -17,4 +17,8 @@ public sealed record PasteEntitiesCommand(
     Vector3Value PositionOffset,
     bool DryRun,
     SemanticPasteMode Mode = SemanticPasteMode.Instance,
-    IReadOnlyDictionary<BlueprintId, BlueprintId>? BlueprintIdMap = null);
+    IReadOnlyDictionary<BlueprintId, BlueprintId>? BlueprintIdMap = null,
+    string? RequiredSocket = null,
+    IReadOnlyList<string>? AvailableSockets = null,
+    long? AvailableBudgetBytes = null,
+    long? BlueprintEstimatedBytes = null);

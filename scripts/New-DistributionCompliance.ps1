@@ -235,9 +235,22 @@ Copy-Item -LiteralPath (Join-Path $repositoryRoot 'native/ForgeScript/THIRD_PART
 
 $primaryExecutable = Get-ChildItem -LiteralPath $distributionPath -Filter '*.exe' -File |
     Where-Object { $_.Name -notmatch 'uninstall' } | Select-Object -First 1
+$linuxExecutable = Get-ChildItem -LiteralPath $distributionPath -Filter '*.x86_64' -File |
+    Select-Object -First 1
 $signatureStatus = 'No executable found'
+$signaturePolicy = @(
+    'Public release policy: Authenticode signing is required when a trusted certificate is available.',
+    'An unsigned build is a development candidate and may trigger Windows SmartScreen.'
+)
 if ($null -ne $primaryExecutable) {
     $signatureStatus = [string](Get-AuthenticodeSignature -LiteralPath $primaryExecutable.FullName).Status
+}
+elseif ($null -ne $linuxExecutable) {
+    $signatureStatus = 'NotApplicable (Linux ELF)'
+    $signaturePolicy = @(
+        'Public release policy: Authenticode does not apply to this Linux ELF artifact.',
+        'Linux package signing and repository publication remain separate release operations.'
+    )
 }
 @(
     'OPENRPG FORGE - SIGNING STATUS',
@@ -245,8 +258,7 @@ if ($null -ne $primaryExecutable) {
     "Product: $Product $Version",
     "Executable status: $signatureStatus",
     '',
-    'Public release policy: Authenticode signing is required when a trusted certificate is available.',
-    'An unsigned build is a development candidate and may trigger Windows SmartScreen.'
+    $signaturePolicy
 ) | Set-Content -LiteralPath (Join-Path $compliancePath 'SIGNING-STATUS.txt') -Encoding utf8
 
 Write-Output "OPENRPG_FORGE_DISTRIBUTION_COMPLIANCE_READY product=$Product components=$($components.Count) licenses=$($licenseRows.Count) signature=$signatureStatus"

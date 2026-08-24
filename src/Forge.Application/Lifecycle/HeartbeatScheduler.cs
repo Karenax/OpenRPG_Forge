@@ -47,7 +47,7 @@ public sealed class HeartbeatScheduler
                 var dueAt = _elapsedMilliseconds - accumulated + ((index + 1) * schedule.IntervalMilliseconds);
                 dispatches.Add(new HeartbeatDispatch(schedule.Id, schedule.Name, schedule.Scope,
                     schedule.Scope == HeartbeatScope.Area ? areaId : null, dueAt, schedule.BudgetMilliseconds,
-                    schedule.Handler));
+                    schedule.Handler, schedule.ScriptPath, schedule.RequiredAtRuntime));
             }
 
             if (due > MaximumCatchUpDispatches)

@@ -177,6 +177,11 @@ public sealed class NetworkAssuranceStore
     {
         var profile = JsonSerializer.Deserialize<NetworkAssuranceProfile>(json, Options)
             ?? throw new InvalidDataException("NET_ASSURANCE_EMPTY");
+        if (profile.Logs is null || profile.AntiCheat is null ||
+            profile.DeterministicTests is null || profile.Logs.Categories is null ||
+            profile.Logs.RemoteSinks is null ||
+            profile.AntiCheat.TrustedSignerFingerprints is null)
+            throw new InvalidDataException("NET_ASSURANCE_INCOMPLETE");
         var diagnostics = NetworkAssuranceValidator.Validate(profile);
         if (diagnostics.Count != 0) throw new InvalidDataException(diagnostics[0].Code);
         return profile;

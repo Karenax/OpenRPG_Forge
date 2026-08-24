@@ -97,6 +97,23 @@ public sealed class AssetVaultPackageStoreTests
             var retained = Assert.Single(store.LoadState().BlobReferenceCounts);
             Assert.Equal(Hash(secondModel), retained.Key);
 
+            var restoreFirst = store.RestoreUninstall(removeFirst);
+
+            Assert.True(restoreFirst.Succeeded);
+            Assert.True(restoreFirst.Applied);
+            Assert.Equal(AssetVaultMutationOperation.Restore, restoreFirst.Operation);
+            Assert.Equal(1, restoreFirst.WrittenObjectCount);
+            Assert.Equal(2, store.LoadState().Packages.Count);
+            Assert.Equal(2, store.LoadState().BlobReferenceCounts.Count);
+            Assert.True(File.Exists(Path.Combine(vault, restoreFirst.ReceiptRelativePath!)));
+            var repeatedRestore = store.RestoreUninstall(removeFirst);
+            Assert.False(repeatedRestore.Succeeded);
+            Assert.Contains(repeatedRestore.Diagnostics, diagnostic =>
+                diagnostic.Code == AssetVaultPackageStore.RestoreInvalidCode);
+
+            var removeFirstAgain = store.Apply(store.PlanUninstall("nature-core", dryRun: false));
+            Assert.True(removeFirstAgain.Succeeded);
+
             var removeSecond = store.Apply(store.PlanUninstall("nature-extension", dryRun: false));
 
             Assert.True(removeSecond.Succeeded);

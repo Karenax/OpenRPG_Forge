@@ -35,6 +35,10 @@ public sealed class ConnectionQueue(int capacity, TimeProvider timeProvider, Tim
         return _queue.Count == 0 || OccupiedSlots >= capacity ? null : Reserve(_queue.Dequeue().AccountId);
     }
 
+    public int Capacity => capacity;
+    public int ConnectedCount => _connected.Count;
+    public int ReservationCount => _reservations.Count;
+    public int QueuedCount => _queue.Count;
     public int OccupiedSlots => _connected.Count + _reservations.Count;
     private AdmissionDecision Reserve(Guid accountId)
     {

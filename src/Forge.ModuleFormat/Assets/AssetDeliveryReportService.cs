@@ -19,7 +19,7 @@ public static class AssetDeliveryReportService
         string RequiredLicenseSpdx)
     {
         public static Policy ForgottenForestAv5 { get; } = new(665, 665, 28, 44, 16, "CC0-1.0");
-        public static Policy ForgottenForestAv6E { get; } = new(665, 665, 129, 809, 16, "CC0-1.0");
+        public static Policy ForgottenForestAv6E { get; } = new(673, 673, 129, 809, 16, "CC0-1.0");
     }
 
     public sealed record FileMetrics(int Files, long Bytes);

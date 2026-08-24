@@ -65,6 +65,25 @@ public sealed class ProjectWorldProfileTests
     }
 
     [Fact]
+    public void Ux0GCustomUserEventValidatesItsServerScriptBinding()
+    {
+        var moduleId = Guid.NewGuid();
+        var baseline = ProjectWorldProfile.CreateDefault(moduleId);
+        var configured = new CustomEventSchema(Guid.NewGuid(), 1, "test:ux0-g", "module", "portal_opened",
+            1, new Dictionary<string, string> { ["message"] = "string" }, false,
+            "1.0", "main", EventAuthorityScope.Server, "scripts/portal-opened.forge", true);
+        var profile = new ProjectWorldProfile(moduleId, 1, "test:ux0-g", true, false, [configured],
+            baseline.Clock);
+        Assert.Empty(ProjectWorldProfileValidator.Validate(profile, moduleId));
+
+        var invalid = configured with { ScriptPath = "../portal-opened.forge" };
+        var invalidProfile = new ProjectWorldProfile(moduleId, 1, "test:ux0-g", true, false, [invalid],
+            baseline.Clock);
+        Assert.Contains(ProjectWorldProfileValidator.Validate(invalidProfile, moduleId),
+            item => item.Code == ProjectWorldProfileValidator.EventContractInvalidCode);
+    }
+
+    [Fact]
     public void R052LocalizedPlayerDocumentationExposesEightBoundedPages()
     {
         var localization = new ProjectLocalizedMetadata("fr", "Module", "Résumé", "Synopsis", "Crédits",

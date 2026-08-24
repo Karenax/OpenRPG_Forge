@@ -76,6 +76,7 @@ using Forge.Network.Testing;
 using Forge.Network.Authoring;
 using Forge.Network.Scenarios;
 using Forge.Network.Sessions;
+using Forge.Network.World;
 using Forge.LiveDirector.Authoring;
 using Forge.LiveDirector.Scenarios;
 using Forge.RpgKit.Application.Companions;
@@ -187,6 +188,7 @@ public partial class GameRoot : Node3D
     private readonly CustomWorldEventBus _customWorldEvents = new();
     private WorldClockSnapshot? _worldClockSnapshot;
     private readonly Dictionary<Guid, Node3D> _entityNodes = [];
+    private readonly Dictionary<Node3D, EntityClickTriggerSettings> _clickInteractions = [];
     private readonly Dictionary<Node3D, PortalLink> _portalNodes = [];
     private readonly Dictionary<Guid, CameraAnchorDefinition> _cameraAnchors = [];
     private readonly Dictionary<Guid, double> _scatterDueSeconds = [];
@@ -211,6 +213,12 @@ public partial class GameRoot : Node3D
     private readonly Dictionary<string, SafeJsonHandle> _runtimeJsonHandles = new(StringComparer.Ordinal);
     private readonly RuntimeCameraRig _cameraRig = new();
     private WorldFeatureCatalog? _worldFeatureCatalog;
+    private readonly HashSet<Guid> _livingWorldTriggerOccupancy = [];
+    private readonly HashSet<Guid> _livingWorldTriggerDiagnostics = [];
+    private readonly Dictionary<Guid, WorldFeatureRuntimeResolver.TriggerRuntimeState>
+        _livingWorldTriggerFoundationStates = [];
+    private TriggerNarrativeRuntimeState _livingWorldNarrativeState = TriggerNarrativeRuntimeState.Empty;
+    private EntityInstance? _livingWorldPlayerEntity;
     private Node? _doorAccessEventRoot;
     private Node? _encounterCompositionRoot;
     private Node? _encounterScenarioRoot;
@@ -296,6 +304,9 @@ public partial class GameRoot : Node3D
     private Node3D? _areaWorldRoot;
     private ModuleRuntimePolicyProfile? _moduleRuntimePolicies;
     private AreaRuntimePolicyProfile? _areaRuntimePolicies;
+    private readonly PartyService _areaCombatParties = new();
+    private AreaCombatAuthority? _areaCombatAuthority;
+    private bool _areaCombatServerAuthority;
     private RestSession? _restSession;
     private long _runtimePolicyRevision;
     private SequenceDefinition? _activeSequence;
@@ -477,10 +488,15 @@ public partial class GameRoot : Node3D
                 : RuntimeLifecycleCause.SaveResume;
             _lifecycleEvents.Clear();
             _lifecycle = new RuntimeLifecycleCoordinator(observers: [HandleLifecycleEvent]);
+            var runtimeAuthority = _launcherSession is null
+                ? RuntimeAuthority.SinglePlayer
+                : RuntimeAuthority.Server;
+            _areaCombatServerAuthority = runtimeAuthority is RuntimeAuthority.SinglePlayer or
+                RuntimeAuthority.Server;
             EnsureLifecycle(
                 _lifecycle.LoadProject(
                     project,
-                    _launcherSession is null ? RuntimeAuthority.SinglePlayer : RuntimeAuthority.Server,
+                    runtimeAuthority,
                     lifecycleCause),
                 "project_loaded");
             _blackboard = ProjectBlackboardScriptService.ForRuntime(project.Module.Variables);
@@ -1227,6 +1243,11 @@ public partial class GameRoot : Node3D
             return;
         }
 
+        if (!IsTimeFrozen())
+        {
+            AdvanceLivingWorldTriggers();
+        }
+
         if (_camera is not null && !_sequenceOwnsCamera)
         {
             var cameraTarget = _flyingMount is { IsMounted: true }
@@ -1670,6 +1691,11 @@ public partial class GameRoot : Node3D
     private EntityInstance BuildProject(ProjectDefinition project, EntityId? requestedSpawnId)
     {
         _loadedProject = project;
+        _livingWorldTriggerOccupancy.Clear();
+        _livingWorldTriggerDiagnostics.Clear();
+        _livingWorldTriggerFoundationStates.Clear();
+        _livingWorldNarrativeState = TriggerNarrativeRuntimeState.Empty;
+        _livingWorldPlayerEntity = null;
         BuildDialogueAuthoringAdapters(project.Dialogues);
         BuildDialogueExperienceAdapters(project.Dialogues);
         BuildDialogueProductionAdapters(project.Dialogues);
@@ -1725,6 +1751,11 @@ public partial class GameRoot : Node3D
             {
                 ApplyTileMirror(node, resolvedTile.Mirror);
                 _entityNodes[entity.Id.Value] = node;
+                var clickTrigger = EntityClickTriggerSettings.Read(effectiveEntity.Overrides);
+                if (clickTrigger.Enabled)
+                {
+                    _clickInteractions[node] = clickTrigger;
+                }
             }
             _builtEntityCount++;
         }
@@ -2099,6 +2130,7 @@ public partial class GameRoot : Node3D
 
     private PlayerController CreatePlayer(EntityInstance entity, BlueprintDefinition blueprint)
     {
+        _livingWorldPlayerEntity = entity;
         if (blueprint.Combat is not null)
         {
             _playerCombatant = new CombatantState(entity.Id.ToString(), blueprint.Combat);
@@ -2833,14 +2865,17 @@ public partial class GameRoot : Node3D
             throw new InvalidOperationException("Area experience must be configured before streaming.");
         var imageAvailable = LoadingResourceExists(presentation.ImageResource);
         var videoAvailable = LoadingResourceExists(presentation.VideoResource);
+        var requiredResourceCount = presentation.PrefetchRequiredResources
+            ? profile.Loading.RequiredResources.Count
+            : 0;
         var reduceMotion = OS.GetCmdlineUserArgs().Contains("--reduce-motion", StringComparer.Ordinal);
         var overlay = new RuntimeLoadingOverlay(_moduleContentRoot ?? string.Empty);
         AddChild(overlay);
         var loadingFrame = AreaExperienceRuntimeService.ResolveLoading(presentation, _defaultLocale, 0,
-            profile.Loading.RequiredResources.Count, 0, reduceMotion, imageAvailable, videoAvailable);
+            requiredResourceCount, 0, reduceMotion, imageAvailable, videoAvailable);
         overlay.Apply(loadingFrame);
         await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-        if (profile.Loading.RequiredResources.Count > 0)
+        if (requiredResourceCount > 0)
         {
             if (string.IsNullOrWhiteSpace(_moduleContentRoot))
             {
@@ -2851,7 +2886,7 @@ public partial class GameRoot : Node3D
             var progress = new Progress<AreaStreamingProgress>(update =>
                 overlay.Apply(AreaExperienceRuntimeService.ResolveLoading(presentation, _defaultLocale,
                     update.CompletedResources, Math.Max(update.TotalResources,
-                    profile.Loading.RequiredResources.Count), update.CompletedResources, reduceMotion,
+                    requiredResourceCount), update.CompletedResources, reduceMotion,
                     imageAvailable, videoAvailable), update.CurrentResource));
             streaming = await coordinator.LoadAsync(profile.Loading, progress);
         }
@@ -2869,7 +2904,7 @@ public partial class GameRoot : Node3D
         GD.Print(
             $"OPENRPG_FORGE_RUNTIME_G11N_LOADING_PASS media={loadingFrame.MediaKind.ToString().ToLowerInvariant()} " +
             $"progress={loadingFrame.Progress:0.###} accessible={!string.IsNullOrWhiteSpace(loadingFrame.AccessibleText)} " +
-            $"streamed={loadedResources}");
+            $"prefetch={presentation.PrefetchRequiredResources.ToString().ToLowerInvariant()} streamed={loadedResources}");
 
         var elapsed = Stopwatch.GetElapsedTime(started);
         GD.Print(
@@ -4134,6 +4169,26 @@ public partial class GameRoot : Node3D
         ApplyRuntimeInputProfile(module.Gameplay.Foundation.Input);
         _moduleRules = module.Rules;
         _areaRules = area.Rules;
+        _areaCombatAuthority = new AreaCombatAuthority(_areaCombatParties, area.Rules.Combat);
+        if (!area.Rules.Combat.ServerAuthoritative)
+        {
+            GD.PrintErr("OPENRPG_FORGE_AREA_COMBAT_DIAGNOSTIC " +
+                        "code=NET_AREA_COMBAT_AUTHORITY_REQUIRED " +
+                        "path=area/runtimePolicies/rules/combat/serverAuthoritative");
+        }
+        else if (!_areaCombatServerAuthority)
+        {
+            GD.PrintErr("OPENRPG_FORGE_AREA_COMBAT_DIAGNOSTIC " +
+                        "code=NET_AREA_COMBAT_SERVER_REQUIRED " +
+                        "path=runtime/authority");
+        }
+        else
+        {
+            GD.Print("OPENRPG_FORGE_AREA_COMBAT_READY " +
+                     $"pvp={area.Rules.Combat.PvpMode.ToString().ToLowerInvariant()} " +
+                     $"aggro={area.Rules.Combat.AggroEnabled.ToString().ToLowerInvariant()} " +
+                     $"server={_areaCombatServerAuthority.ToString().ToLowerInvariant()}");
+        }
         _areaExperience = area.Experience;
         _runtimeExtensions = module.Extensions;
         var worldResolution = ProjectWorldRuntimeResolver.Resolve(module.World, module.Id, module.World.RequiredAtRuntime);
@@ -4143,6 +4198,12 @@ public partial class GameRoot : Node3D
         else if (worldResolution.Handle is not null)
         {
             _customWorldEvents.Register(worldResolution.Handle.Profile);
+            foreach (var schema in worldResolution.Handle.Profile.CustomEvents)
+            {
+                _customWorldEvents.Subscribe(schema.Id, _ => DispatchConfiguredEventScript(
+                    schema.ScriptPath, schema.Handler, schema.RequiredAtRuntime,
+                    $"user-event:{schema.Namespace}.{schema.Name}"));
+            }
             _worldClockSnapshot = CustomWorldEventBus.CreateInitialSnapshot(worldResolution.Handle.Profile.Clock);
         }
         foreach (var diagnostic in RuntimeExtensionRuntimeService.ValidateRequired(module.Extensions))
@@ -4447,7 +4508,11 @@ public partial class GameRoot : Node3D
         var aborted = _sequenceState with { Active = false, Completed = false, Skipped = false };
         CompleteSequence(new SequenceEvaluation(aborted, null, new Dictionary<Guid, TransformValue>(), [], [], []),
             "aborted");
-        GD.Print($"OPENRPG_FORGE_RUNTIME_SEQUENCE_ABORTED handler={result.EventHandler} camera_restored={result.CameraRestored.ToString().ToLowerInvariant()}");
+        var scriptResolved = DispatchConfiguredEventScript(policy.Binding.ScriptPath,
+            policy.Binding.Handler, policy.Binding.RequiredAtRuntime, "sequence:aborted");
+        GD.Print($"OPENRPG_FORGE_RUNTIME_SEQUENCE_ABORTED handler={result.EventHandler} " +
+                 $"camera_restored={result.CameraRestored.ToString().ToLowerInvariant()} " +
+                 $"script_resolved={scriptResolved.ToString().ToLowerInvariant()}");
     }
 
     private bool EvaluateSequenceCondition(string condition) => condition switch
@@ -4517,7 +4582,7 @@ public partial class GameRoot : Node3D
         }
     }
 
-    private static void DispatchHeartbeats(HeartbeatAdvanceResult result)
+    private void DispatchHeartbeats(HeartbeatAdvanceResult result)
     {
         foreach (var diagnostic in result.Diagnostics)
         {
@@ -4526,9 +4591,12 @@ public partial class GameRoot : Node3D
 
         foreach (var dispatch in result.Dispatches)
         {
+            var scriptResolved = DispatchConfiguredEventScript(dispatch.ScriptPath, dispatch.Handler,
+                dispatch.RequiredAtRuntime, $"heartbeat:{dispatch.Name}");
             GD.Print(
                 $"OPENRPG_FORGE_RUNTIME_HEARTBEAT handler={dispatch.Handler} scope={dispatch.Scope} " +
-                $"budget_ms={dispatch.BudgetMilliseconds} due_ms={dispatch.DueAtMilliseconds}");
+                $"budget_ms={dispatch.BudgetMilliseconds} due_ms={dispatch.DueAtMilliseconds} " +
+                $"script_resolved={scriptResolved.ToString().ToLowerInvariant()}");
         }
     }
 
@@ -4543,6 +4611,16 @@ public partial class GameRoot : Node3D
         var position = _player.GlobalPosition;
         var restPosition = new Vector3Value(position.X, position.Y, position.Z);
         var effectivePolicy = _areaRuntimePolicies.Rest.ResolveAt(restPosition);
+        var triggerRest = ResolveLivingWorldRest(restPosition);
+        if (triggerRest is { Allowed: false } denied)
+        {
+            _message = ResolveLivingWorldMessage(denied.MessageKey);
+            _toastQueue?.Show(RuntimeToastKind.Alert, _message, $"trigger-rest:{denied.DiagnosticCode}");
+            GD.Print($"OPENRPG_FORGE_TRIGGER_REST_DENIED code={denied.DiagnosticCode} " +
+                     $"message={denied.MessageKey} summary={denied.Summary}");
+            UpdateHud();
+            return;
+        }
         var result = _restRuntime.Request("player", "player-party", AreaId.Parse(_currentAreaId),
             restPosition, _moduleRuntimePolicies.Rest, _areaRuntimePolicies.Rest,
             secure: _hostiles.Keys.All(hostile => hostile.GlobalPosition.DistanceTo(position) >
@@ -4551,9 +4629,229 @@ public partial class GameRoot : Node3D
         PublishRestEvents(result.Events);
         _restSession = result.Session;
         _message = result.Accepted
-            ? $"Repos en cours ({_moduleRuntimePolicies.Rest.DefaultDurationSeconds} s)…"
+            ? triggerRest is { Available: true } allowed
+                ? $"{ResolveLivingWorldMessage(allowed.MessageKey)} " +
+                  $"({_moduleRuntimePolicies.Rest.DefaultDurationSeconds} s)…"
+                : $"Repos en cours ({_moduleRuntimePolicies.Rest.DefaultDurationSeconds} s)…"
             : result.Events.LastOrDefault()?.Cause ?? result.DiagnosticCode ?? "Repos refusé.";
         UpdateHud();
+    }
+
+    private TriggerRestRuntimeResolution? ResolveLivingWorldRest(Vector3Value position)
+    {
+        if (_worldFeatureCatalog is null || _currentAreaId is null) return null;
+        var currentArea = AreaId.Parse(_currentAreaId);
+        var partyExpected = Math.Max(1, _launcherSession?.Snapshot.Members.Count ?? 1);
+        // Remote avatar presence is not connected yet. A multi-member local-host session therefore cannot
+        // claim that the full party is physically inside a safe-rest volume.
+        var partyPresent = partyExpected == 1 ? 1 : 0;
+        TriggerRestRuntimeResolution? accepted = null;
+        foreach (var profile in _worldFeatureCatalog.Triggers
+                     .Where(item => item.AreaId == currentArea && item.Rest is not null)
+                     .OrderBy(item => item.Id))
+        {
+            var containment = TriggerLivingWorldRuntimeService.Contains(profile, position);
+            if (!containment.Supported)
+            {
+                ReportLivingWorldTriggerDiagnostic(profile, containment.DiagnosticCode, containment.Summary);
+                continue;
+            }
+            if (!containment.Contains) continue;
+            var foundationProbe = EnterLivingWorldFoundation(profile,
+                EmptyLivingWorldFoundationState(), position, DateTimeOffset.UtcNow);
+            if (!foundationProbe.Fired) continue;
+            var resolution = TriggerLivingWorldRuntimeService.ResolveRest(profile,
+                new(EvaluateLivingWorldDanger(profile.Rest!.DangerQuery), partyPresent, partyExpected));
+            if (!resolution.Allowed) return resolution;
+            accepted ??= resolution;
+        }
+        return accepted;
+    }
+
+    private bool EvaluateLivingWorldDanger(string query)
+    {
+        if (_blackboard.TryGetValue(query, out var authored) && bool.TryParse(authored, out var parsed))
+            return parsed;
+        if (string.Equals(query, "danger.nearby", StringComparison.Ordinal))
+            return _hostiles.Values.Any(item => !item.IsDead);
+        GD.PrintErr($"OPENRPG_FORGE_TRIGGER_DANGER_QUERY_UNRESOLVED query={query}");
+        return true;
+    }
+
+    private void AdvanceLivingWorldTriggers()
+    {
+        if (_player is null || _livingWorldPlayerEntity is null ||
+            _worldFeatureCatalog is null || _currentAreaId is null) return;
+        var currentArea = AreaId.Parse(_currentAreaId);
+        var position = _player.GlobalPosition;
+        var worldPosition = new Vector3Value(position.X, position.Y, position.Z);
+        var insideNow = new HashSet<Guid>();
+        var now = DateTimeOffset.UtcNow;
+        var narrativeClaimed = false;
+        foreach (var profile in _worldFeatureCatalog.Triggers
+                     .Where(item => item.AreaId == currentArea &&
+                                    (item.Clue is not null || item.Narrative is not null))
+                     .OrderByDescending(item => item.Narrative?.Priority ?? 0)
+                     .ThenBy(item => item.Id))
+        {
+            var containment = TriggerLivingWorldRuntimeService.Contains(profile, worldPosition);
+            if (!containment.Supported)
+            {
+                ReportLivingWorldTriggerDiagnostic(profile, containment.DiagnosticCode, containment.Summary);
+                continue;
+            }
+            if (!containment.Contains) continue;
+            insideNow.Add(profile.Id);
+            if (_livingWorldTriggerOccupancy.Contains(profile.Id)) continue;
+            var foundationState = _livingWorldTriggerFoundationStates.GetValueOrDefault(profile.Id) ??
+                                  EmptyLivingWorldFoundationState();
+            var entered = EnterLivingWorldFoundation(profile, foundationState, worldPosition, now);
+            _livingWorldTriggerFoundationStates[profile.Id] = entered.State;
+            if (!entered.Fired) continue;
+            ResolveLivingWorldClue(profile);
+            if (!narrativeClaimed)
+                narrativeClaimed = ResolveLivingWorldNarrative(profile);
+        }
+
+        foreach (var departedId in _livingWorldTriggerOccupancy.Except(insideNow).ToArray())
+        {
+            var profile = _worldFeatureCatalog.Triggers.SingleOrDefault(item => item.Id == departedId);
+            if (profile?.Foundation is null ||
+                !_livingWorldTriggerFoundationStates.TryGetValue(departedId, out var state)) continue;
+            _livingWorldTriggerFoundationStates[departedId] = WorldFeatureRuntimeResolver.ExitTrigger(
+                profile, state, _livingWorldPlayerEntity.Id.ToString(), now, "player-left-volume").State;
+        }
+
+        _livingWorldTriggerOccupancy.Clear();
+        _livingWorldTriggerOccupancy.UnionWith(insideNow);
+    }
+
+    private WorldFeatureRuntimeResolver.TriggerEnterResult EnterLivingWorldFoundation(
+        TriggerWorldProfile profile,
+        WorldFeatureRuntimeResolver.TriggerRuntimeState state,
+        Vector3Value position,
+        DateTimeOffset now)
+    {
+        var entity = _livingWorldPlayerEntity ??
+                     throw new InvalidOperationException("Living-world player context is unavailable.");
+        var conditions = profile.Foundation!.Conditions.Distinct(StringComparer.Ordinal).ToDictionary(
+            condition => condition,
+            condition => _blackboard.TryGetValue(condition, out var value) ? value : "false",
+            StringComparer.Ordinal);
+        var velocity = _player?.Velocity ?? Vector3.Zero;
+        var direction = velocity.LengthSquared() > .0001f ? velocity.Normalized() : Vector3.Zero;
+        return WorldFeatureRuntimeResolver.EnterTrigger(profile, state, entity.Id.ToString(), "creature",
+            entity.Tags.ToHashSet(StringComparer.Ordinal), new HashSet<string>(["characters"], StringComparer.Ordinal),
+            position, new(direction.X, direction.Y, direction.Z), conditions, now);
+    }
+
+    private static WorldFeatureRuntimeResolver.TriggerRuntimeState EmptyLivingWorldFoundationState() => new(
+        new Dictionary<string, DateTimeOffset>(StringComparer.Ordinal),
+        new Dictionary<string, DateTimeOffset>(StringComparer.Ordinal),
+        new HashSet<string>(StringComparer.Ordinal), false);
+
+    private void ResolveLivingWorldClue(TriggerWorldProfile profile)
+    {
+        if (profile.Clue is not { } clue) return;
+        int? skillScore = null;
+        if (_blackboard.TryGetValue($"skill.{clue.SkillId}", out var value) &&
+            int.TryParse(value, System.Globalization.NumberStyles.Integer,
+                System.Globalization.CultureInfo.InvariantCulture, out var parsed))
+            skillScore = parsed;
+        var questActive = clue.QuestId is null ||
+                          _questDefinition?.Id.Value == clue.QuestId && _questMachine is not null;
+        var result = TriggerLivingWorldRuntimeService.ResolveClue(profile, new(skillScore, questActive));
+        if (!result.Revealed)
+        {
+            GD.Print($"OPENRPG_FORGE_TRIGGER_CLUE_SKIPPED code={result.DiagnosticCode} summary={result.Summary}");
+            return;
+        }
+
+        var kind = result.FalseClue ? "Piste incertaine" : "Piste révélée";
+        _message = $"{kind} : {result.TraceId} · direction {result.DirectionDegrees:0.#}° · " +
+                   $"âge {result.AgeHours:0.#} h";
+        _toastQueue?.Show(RuntimeToastKind.Objective, _message, $"trigger-clue:{profile.Id:D}:{result.TraceId}");
+        UpdateHud();
+        GD.Print($"OPENRPG_FORGE_TRIGGER_CLUE_REVEALED trigger={profile.Id:D} trace={result.TraceId} " +
+                 $"false={result.FalseClue.ToString().ToLowerInvariant()} " +
+                 $"quest={result.JournalQuestId?.ToString("D") ?? "none"} summary={result.Summary}");
+    }
+
+    private bool ResolveLivingWorldNarrative(TriggerWorldProfile profile)
+    {
+        if (profile.Narrative is not { } narrative || _loadedProject is null || _activeArea is null) return false;
+        var presentParticipants = _activeArea.Entities
+            .Where(entity => narrative.Participants.Contains(entity.BlueprintId) &&
+                             _entityNodes.TryGetValue(entity.Id.Value, out var node) &&
+                             GodotObject.IsInstanceValid(node))
+            .Select(entity => entity.BlueprintId)
+            .ToHashSet();
+        var connectedPlayers = Math.Max(1, _launcherSession?.Snapshot.Members.Count ?? 1);
+        // The local runtime has no multiplayer vote transport. Only the canonical party-vote policy can
+        // resolve, and only for a one-member local-host session; every other policy remains fail-closed.
+        var voteSatisfied = string.Equals(narrative.MultiplayerPolicy, "party-vote", StringComparison.Ordinal) &&
+                            connectedPlayers == 1;
+        var result = TriggerLivingWorldRuntimeService.ResolveNarrative(profile, _livingWorldNarrativeState,
+            new(DateTimeOffset.UtcNow, true, voteSatisfied, presentParticipants));
+        _livingWorldNarrativeState = result.State;
+        if (!result.Fired)
+        {
+            GD.Print($"OPENRPG_FORGE_TRIGGER_NARRATIVE_SKIPPED code={result.DiagnosticCode} " +
+                     $"summary={result.Summary}");
+            return false;
+        }
+
+        var dialogue = _loadedProject.Dialogues.SingleOrDefault(item => item.Id.Value == result.DialogueId);
+        if (dialogue is null)
+        {
+            GD.PrintErr($"OPENRPG_FORGE_TRIGGER_NARRATIVE_FAILED code=world.reference.dialogue_missing " +
+                        $"trigger={profile.Id:D}");
+            return false;
+        }
+        _elyraDialogue = dialogue;
+        _guideName = dialogue.DisplayName;
+        ShowLivingWorldInterjection(dialogue);
+        GD.Print($"OPENRPG_FORGE_TRIGGER_NARRATIVE_FIRED trigger={profile.Id:D} " +
+                 $"dialogue={dialogue.Id} priority={result.Priority} policy={narrative.MultiplayerPolicy}");
+        return true;
+    }
+
+    private void ShowLivingWorldInterjection(DialogueDefinition dialogue)
+    {
+        var traversal = new DialogueTraversal(dialogue);
+        var start = traversal.Start();
+        var evaluator = new RuntimeConditionEvaluator(this);
+        var spokenLine = ApplyDialoguePresentation(start.Node!.Id, evaluator) ?? start.Node.Text.Fallback;
+        if (_actionWheel?.IsOpen == true) _actionWheel.Close();
+        // An interjection presents the authored opening line only. It does not auto-pick a dialogue choice or
+        // execute dialogue actions; the full dialogue traversal remains an explicit player interaction.
+        _dialogueOverlay?.Show(dialogue.DisplayName, "Interjection", spokenLine, []);
+        SyncPlayerInterfaceLock();
+        _message = $"{dialogue.DisplayName} : {spokenLine}";
+        UpdateHud();
+    }
+
+    private void ReportLivingWorldTriggerDiagnostic(
+        TriggerWorldProfile profile,
+        string code,
+        string summary)
+    {
+        if (!_livingWorldTriggerDiagnostics.Add(profile.Id)) return;
+        GD.PrintErr($"OPENRPG_FORGE_TRIGGER_LIVING_WORLD_DIAGNOSTIC trigger={profile.Id:D} " +
+                    $"code={code} summary={summary}");
+    }
+
+    private string ResolveLivingWorldMessage(string key)
+    {
+        if (_loadedProject is null || string.IsNullOrWhiteSpace(key)) return key;
+        try
+        {
+            return _loadedProject.Module.Localization.Resolve(key, _defaultLocale);
+        }
+        catch (KeyNotFoundException)
+        {
+            return key;
+        }
     }
 
     private bool EvaluateRuntimePolicyCondition(string expression)
@@ -4576,9 +4874,11 @@ public partial class GameRoot : Node3D
 
             var binding = _moduleRuntimePolicies?.Rest.Bindings.SingleOrDefault(item =>
                 string.Equals(item.EventName, @event.EventName, StringComparison.Ordinal));
+            var scriptResolved = binding is null || DispatchConfiguredEventScript(binding.ScriptPath,
+                binding.Handler, binding.RequiredAtRuntime, $"rest:{@event.Stage}");
             GD.Print(
                 $"OPENRPG_FORGE_RUNTIME_REST_EVENT stage={@event.Stage} handler={binding?.Handler ?? "unbound"} " +
-                $"revision={@event.ServerRevision}");
+                $"revision={@event.ServerRevision} script_resolved={scriptResolved.ToString().ToLowerInvariant()}");
         }
     }
 
@@ -5626,7 +5926,8 @@ public partial class GameRoot : Node3D
         while (current is not null)
         {
             if (current is Node3D node3D &&
-                (_portalNodes.ContainsKey(node3D) || node3D == _flyingMount || node3D == _npc ||
+                (_portalNodes.ContainsKey(node3D) || node3D == _flyingMount ||
+                 _clickInteractions.ContainsKey(node3D) || node3D == _npc ||
                  node3D == _keyItem || node3D == _door || _corpseLoot.ContainsKey(node3D)))
             {
                 interactiveNode = node3D;
@@ -5636,9 +5937,17 @@ public partial class GameRoot : Node3D
         }
         if (interactiveNode is null) return false;
 
-        var interactionDistance = _gameplayControls?.Foundation.Interaction.FocusDistance ?? InteractionDistance;
+        var interactionDistance = _clickInteractions.TryGetValue(interactiveNode, out var clickTrigger)
+            ? clickTrigger.MaximumDistanceMeters
+            : _gameplayControls?.Foundation.Interaction.FocusDistance ?? InteractionDistance;
         if (!IsNear(interactiveNode, interactionDistance))
         {
+            if (clickTrigger is not null)
+            {
+                _message = $"Approchez-vous de l'objet pour l'utiliser ({interactionDistance:0.#} m maximum).";
+                UpdateHud();
+                return true;
+            }
             _message = interactiveNode switch
             {
                 _ when interactiveNode == _flyingMount => "Approchez-vous de Brumaille pour le monter.",
@@ -5653,8 +5962,57 @@ public partial class GameRoot : Node3D
         }
 
         Input.SetDefaultCursorShape(Input.CursorShape.Arrow);
+        if (clickTrigger is not null && interactiveNode != _flyingMount &&
+            !_portalNodes.ContainsKey(interactiveNode))
+        {
+            ExecuteClickInteraction(interactiveNode, clickTrigger);
+            return true;
+        }
         InteractWith(interactiveNode);
         return true;
+    }
+
+    private void ExecuteClickInteraction(Node3D source, EntityClickTriggerSettings settings)
+    {
+        switch (settings.Action)
+        {
+            case EntityClickTriggerAction.ShowMessage:
+                _message = settings.Message;
+                break;
+            case EntityClickTriggerAction.StartDialogue:
+                if (!Guid.TryParse(settings.TargetId, out var dialogueId) || _loadedProject is null ||
+                    _loadedProject.Dialogues.FirstOrDefault(dialogue => dialogue.Id.Value == dialogueId) is not { } dialogue)
+                {
+                    _message = "Le dialogue lié à cet objet n'est plus disponible.";
+                    break;
+                }
+                _elyraDialogue = dialogue;
+                _guideName = dialogue.DisplayName;
+                InteractWithGuide();
+                break;
+            case EntityClickTriggerAction.ToggleVisibility:
+                if (!Guid.TryParse(settings.TargetId, out var entityId) ||
+                    !_entityNodes.TryGetValue(entityId, out var target) ||
+                    !GodotObject.IsInstanceValid(target))
+                {
+                    _message = "L'objet cible de ce déclencheur n'est plus disponible.";
+                    break;
+                }
+                var visible = !target.Visible;
+                target.Visible = visible;
+                foreach (var node in target.FindChildren("*", "CollisionShape3D", recursive: true, owned: false))
+                {
+                    if (node is CollisionShape3D collision) collision.Disabled = !visible;
+                }
+                _message = $"{target.Name} est maintenant {(visible ? "visible" : "masqué")}.";
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(settings), settings.Action,
+                    "Unknown click interaction action.");
+        }
+        UpdateHud();
+        GD.Print($"OPENRPG_FORGE_ENTITY_CLICK_TRIGGER action={EntityClickTriggerSettings.ActionKey(settings.Action)} " +
+                 $"source={source.Name} target={settings.TargetId}");
     }
 
     private void InteractWith(Node3D target)
@@ -6059,6 +6417,10 @@ public partial class GameRoot : Node3D
             RejectCombatAction("Cette cible est déjà vaincue.", "combat:target-dead");
             return;
         }
+        if (!AuthorizeAreaCombatAttack(_playerCombatant, target))
+        {
+            return;
+        }
         if (_playerCombatant.Resource < ability.ResourceCost)
         {
             RejectCombatAction(
@@ -6215,6 +6577,53 @@ public partial class GameRoot : Node3D
         }
 
         UpdateHud();
+    }
+
+    private bool AuthorizeAreaCombatAttack(CombatantState attacker, CombatantState target)
+    {
+        var path = _activeArea is null
+            ? "area/runtimePolicies/rules/combat"
+            : $"areas/{_activeArea.Id}/runtimePolicies/rules/combat";
+        if (_areaCombatAuthority is null ||
+            !Guid.TryParse(attacker.Id, out var attackerId) ||
+            !Guid.TryParse(target.Id, out var targetId))
+        {
+            const string code = "NET_AREA_COMBAT_CONTEXT_INVALID";
+            GD.PrintErr($"OPENRPG_FORGE_AREA_COMBAT_REJECTED code={code} path={path}");
+            RejectCombatAction("Le contexte d’autorité du combat est indisponible.",
+                "combat:authority:context-invalid");
+            return false;
+        }
+
+        var decision = _areaCombatAuthority.AuthorizeDamage(
+            attackerId,
+            targetId,
+            targetIsPlayer: false,
+            worldRevision: checked(++_runtimePolicyRevision),
+            serverAuthorityGranted: _areaCombatServerAuthority,
+            aggroInitiation: true);
+        if (!decision.Accepted)
+        {
+            var message = decision.Code switch
+            {
+                "NET_AREA_COMBAT_SERVER_REQUIRED" =>
+                    "Cette action de combat exige l’autorité du serveur.",
+                "NET_AREA_COMBAT_AUTHORITY_REQUIRED" =>
+                    "La politique de combat de cette zone n’autorise pas une décision locale.",
+                "NET_AREA_AGGRO_DISABLED" =>
+                    "Cette zone interdit l’initiation d’un combat hostile.",
+                _ => "La politique de combat de cette zone refuse cette action.",
+            };
+            GD.PrintErr($"OPENRPG_FORGE_AREA_COMBAT_REJECTED code={decision.Code} path={path} " +
+                        $"revision={decision.Revision}");
+            RejectCombatAction(message, $"combat:authority:{decision.Code.ToLowerInvariant()}");
+            return false;
+        }
+
+        GD.Print($"OPENRPG_FORGE_AREA_COMBAT_AUTHORITY_PASS code={decision.Code} path={path} " +
+                 $"aggro=true server={_areaCombatServerAuthority.ToString().ToLowerInvariant()} " +
+                 $"revision={decision.Revision}");
+        return true;
     }
 
     private void RejectCombatAction(string message, string deduplicationKey)
@@ -6439,13 +6848,127 @@ public partial class GameRoot : Node3D
         return File.ReadAllText(path);
     }
 
-    private void ExecuteForgeScript(ForgeScriptArtifact? artifact, Node3D origin)
+    public bool DispatchAreaUserEvent(
+        string namespacedEvent,
+        IReadOnlyDictionary<string, object?> payload,
+        bool requiredAtRuntime = false)
+    {
+        if (_activeArea is null)
+        {
+            if (requiredAtRuntime)
+                GD.PrintErr($"OPENRPG_FORGE_AREA_USER_EVENT_FAILED event={namespacedEvent} reason=area_missing");
+            return !requiredAtRuntime;
+        }
+        var result = AreaUserEventRuntimeService.Dispatch(
+            _activeArea,
+            namespacedEvent,
+            payload,
+            _forgeScriptRuntime,
+            ReadConfiguredScriptSource,
+            requiredAtRuntime,
+            dryRun: false,
+            execute: artifact => ExecuteForgeScript(artifact, this));
+        if (!result.Succeeded)
+        {
+            foreach (var diagnostic in result.Diagnostics)
+                GD.PrintErr($"OPENRPG_FORGE_AREA_USER_EVENT_FAILED event={namespacedEvent} " +
+                            $"code={diagnostic.Code} path={diagnostic.Path}");
+            return false;
+        }
+        GD.Print($"OPENRPG_FORGE_AREA_USER_EVENT_DISPATCH event={namespacedEvent} " +
+                 $"deliveries={result.Deliveries.Count} executed={result.Executed.ToString().ToLowerInvariant()} " +
+                 $"ignored={result.Ignored.ToString().ToLowerInvariant()}");
+        return true;
+    }
+
+    private string? ReadConfiguredScriptSource(string scriptPath)
+    {
+        var normalized = scriptPath.Replace('\\', '/');
+        return _moduleContentRoot is null
+            ? Godot.FileAccess.GetFileAsString($"res://content/{_moduleSlug}/{normalized}")
+            : ReadCachedModuleScript(normalized);
+    }
+
+    private bool DispatchConfiguredEventScript(
+        string? scriptPath,
+        string handler,
+        bool requiredAtRuntime,
+        string eventName)
+    {
+        if (string.IsNullOrWhiteSpace(scriptPath))
+        {
+            if (requiredAtRuntime)
+            {
+                GD.PrintErr($"OPENRPG_FORGE_EVENT_SCRIPT_FAILED event={eventName} reason=required_missing");
+                return false;
+            }
+            return true;
+        }
+        if (!ProjectLifecycleEventProfileValidator.IsSafeScriptPath(scriptPath))
+        {
+            GD.PrintErr($"OPENRPG_FORGE_EVENT_SCRIPT_FAILED event={eventName} reason=unsafe_path");
+            return false;
+        }
+        try
+        {
+            var normalized = scriptPath.Replace('\\', '/');
+            var source = ReadConfiguredScriptSource(normalized);
+            if (string.IsNullOrWhiteSpace(source))
+            {
+                GD.PrintErr($"OPENRPG_FORGE_EVENT_SCRIPT_FAILED event={eventName} reason=source_missing");
+                return false;
+            }
+            var handlerPattern = @"\bvoid\s+" +
+                                 System.Text.RegularExpressions.Regex.Escape(handler) + @"\s*\(";
+            if (!System.Text.RegularExpressions.Regex.IsMatch(source, handlerPattern,
+                    System.Text.RegularExpressions.RegexOptions.CultureInvariant))
+            {
+                GD.PrintErr($"OPENRPG_FORGE_EVENT_SCRIPT_FAILED event={eventName} reason=handler_missing");
+                return false;
+            }
+            var entrySource = BuildConfiguredEventEntrySource(source, handler);
+            var compilation = _forgeScriptCache?.Compile(entrySource).Compilation ??
+                              _forgeScriptRuntime.Compile(entrySource);
+            if (!compilation.Success || compilation.Artifact is null)
+            {
+                GD.PrintErr($"OPENRPG_FORGE_EVENT_SCRIPT_FAILED event={eventName} reason=compile_failed");
+                return false;
+            }
+            var executed = ExecuteForgeScript(compilation.Artifact, this);
+            GD.Print($"OPENRPG_FORGE_EVENT_SCRIPT_DISPATCH event={eventName} handler={handler} " +
+                     $"executed={executed.ToString().ToLowerInvariant()}");
+            return executed;
+        }
+        catch (Exception exception) when (exception is IOException or InvalidOperationException or
+                                           UnauthorizedAccessException)
+        {
+            GD.PrintErr($"OPENRPG_FORGE_EVENT_SCRIPT_FAILED event={eventName} " +
+                        $"reason={exception.GetType().Name}");
+            return false;
+        }
+    }
+
+    private static string BuildConfiguredEventEntrySource(string source, string handler)
+    {
+        if (string.Equals(handler, "main", StringComparison.Ordinal))
+        {
+            return source;
+        }
+        var withoutMain = System.Text.RegularExpressions.Regex.Replace(source, @"\bvoid\s+main\s*\(",
+            "void __forge_original_main(",
+            System.Text.RegularExpressions.RegexOptions.CultureInvariant,
+            TimeSpan.FromMilliseconds(100));
+        return withoutMain + System.Environment.NewLine + $"void main() {{ {handler}(); }}" +
+               System.Environment.NewLine;
+    }
+
+    private bool ExecuteForgeScript(ForgeScriptArtifact? artifact, Node3D origin)
     {
         if (artifact is null)
         {
             _message = "Le script de gameplay requis est absent.";
             GD.PrintErr("OPENRPG_FORGE_SCRIPT_FAILED missing_artifact");
-            return;
+            return false;
         }
 
         var result = _forgeScriptRuntime.Execute(
@@ -6461,7 +6984,7 @@ public partial class GameRoot : Node3D
             GD.PrintErr(
                 "OPENRPG_FORGE_SCRIPT_FAILED " +
                 string.Join(";", result.Diagnostics.Select(diagnostic => diagnostic.Message)));
-            return;
+            return false;
         }
 
         var spawnIndex = 0;
@@ -6512,6 +7035,7 @@ public partial class GameRoot : Node3D
         }
 
         GD.Print($"OPENRPG_FORGE_SCRIPT_EXECUTED events={result.Events.Count}");
+        return true;
     }
 
     private bool IsTimeFrozen() => _timeControlSession.State is RuntimeTimeState.Paused or
@@ -6800,8 +7324,14 @@ public partial class GameRoot : Node3D
             var progressionEvent = new ProgressionChangedEvent(Guid.NewGuid(), "player:local", previousLevel,
                 _progressionLevel, sourceId, EventAuthorityScope.Server, _runtimePolicyRevision++,
                 DateTimeOffset.UtcNow);
-            _gameplayEvents.Publish(progressionEvent, _moduleRuntimePolicies?.GameplayEvents,
+            var published = _gameplayEvents.Publish(progressionEvent, _moduleRuntimePolicies?.GameplayEvents,
                 _moduleRuntimePolicies?.GameplayEvents.RequiredAtRuntime == true);
+            if (published.Accepted && _moduleRuntimePolicies?.GameplayEvents.Bindings.SingleOrDefault(item =>
+                    item.EventName == progressionEvent.EventName) is { } binding)
+            {
+                DispatchConfiguredEventScript(binding.ScriptPath, binding.Handler, binding.RequiredAtRuntime,
+                    "progression:changed");
+            }
         }
         _message += $" +{result.AwardedExperience:0} XP · niveau {_progressionLevel}.";
         GD.Print($"OPENRPG_FORGE_RUNTIME_PROGRESSION source={sourceId} award={result.AwardedExperience:0.###} " +
@@ -7986,6 +8516,35 @@ public partial class GameRoot : Node3D
             "Trigger rest, clue, narrative or director policy did not resolve.");
         GD.Print("OPENRPG_FORGE_RUNTIME_G13S_TRIGGER_DIRECTOR_PASS rest=safe clue=tracked narrative=dialogue director=audited");
 
+        var restDanger = TriggerLivingWorldRuntimeService.ResolveRest(trigger, new(true, 2, 2));
+        var restParty = TriggerLivingWorldRuntimeService.ResolveRest(trigger, new(false, 1, 2));
+        var restAllowed = TriggerLivingWorldRuntimeService.ResolveRest(trigger, new(false, 2, 2));
+        var clueFailed = TriggerLivingWorldRuntimeService.ResolveClue(trigger, new(0, true));
+        var cluePassed = TriggerLivingWorldRuntimeService.ResolveClue(trigger, new(20, true));
+        var participants = trigger.Narrative!.Participants.ToHashSet();
+        var narrativePending = TriggerLivingWorldRuntimeService.ResolveNarrative(trigger,
+            TriggerNarrativeRuntimeState.Empty,
+            new(DateTimeOffset.UnixEpoch, true, false, participants));
+        var narrativeFired = TriggerLivingWorldRuntimeService.ResolveNarrative(trigger,
+            TriggerNarrativeRuntimeState.Empty,
+            new(DateTimeOffset.UnixEpoch, true, true, participants));
+        var narrativeRepeated = TriggerLivingWorldRuntimeService.ResolveNarrative(trigger,
+            narrativeFired.State,
+            new(DateTimeOffset.UnixEpoch.AddMinutes(2), true, true, participants));
+        AssertSmoke(restDanger.DiagnosticCode == TriggerLivingWorldRuntimeService.RestDangerCode &&
+                    restParty.DiagnosticCode == TriggerLivingWorldRuntimeService.RestPartyCode &&
+                    restAllowed is { Allowed: true, CampSetupAllowed: true } &&
+                    clueFailed is { Revealed: true, FalseClue: true } &&
+                    cluePassed is { Revealed: true, SkillCheckPassed: true } &&
+                    narrativePending.DiagnosticCode == TriggerLivingWorldRuntimeService.NarrativeVoteCode &&
+                    narrativeFired is { Fired: true, DialogueId: not null } &&
+                    narrativeRepeated.DiagnosticCode == TriggerLivingWorldRuntimeService.NarrativeOnceCode,
+            "Typed living-world trigger rest, clue or narrative resolution failed.");
+        GD.Print("OPENRPG_FORGE_RUNTIME_UX2_LW_E_TRIGGER_PASS " +
+                 "rest=danger-party-camp clue=skill-false-trace-quest " +
+                 "narrative=participants-priority-once-cooldown-policy-dialogue " +
+                 "live=player-position-blackboard-party-authority");
+
         var respawn = WorldFeatureRuntimeResolver.EvaluateEncounter(encounter, 0, 0, false, false, 31);
         AssertSmoke(respawn is { Spawn: true, NextCycle: 1 } && encounter.Scheduler is { HeartbeatEnabled: true },
             "Encounter respawn or scheduler policy did not resolve.");
@@ -8533,6 +9092,8 @@ public partial class GameRoot : Node3D
         RunProjectCompatibilityRuntimeSmokeTest(_loadedProject);
         RunProjectGameplayEventsRuntimeSmokeTest(_loadedProject);
         RunProjectWorldRuntimeSmokeTest(_loadedProject);
+        RunUx0GGlobalEventsRuntimeSmokeTest(_loadedProject);
+        RunUx0HWorldTransitionsRuntimeSmokeTest(_loadedProject);
         GD.Print("OPENRPG_FORGE_RUNTIME_SMOKE_PASS quest=completed door=unlocked boss=defeated");
         GetTree().Quit(0);
     }
@@ -8956,9 +9517,9 @@ public partial class GameRoot : Node3D
                     contents.Payload.CurrentRevision == 5 && contents.Payload.Delta.Single().QuantityDelta == -1 &&
                     contents.Payload.Cause == "player-loot" && optional.OptionalFallback &&
                     required.DiagnosticCode == "WORLD_PLACEABLE_SECURITY_EVENTS_REQUIRED_MISSING" &&
-                    restoredPlaceable.SecurityEvents?.Trap.PayloadId == "damage:ember-burst" &&
-                    restoredPlaceable.SecurityEvents.Loot.Timing == PlaceableAuthoredLootSpawnTiming.Open &&
-                    restoredPlaceable.SecurityEvents.LockEvents.ControlledVeto &&
+                    restoredPlaceable.SecurityEvents?.Trap?.PayloadId == "damage:ember-burst" &&
+                    restoredPlaceable.SecurityEvents?.Loot?.Timing == PlaceableAuthoredLootSpawnTiming.Open &&
+                    restoredPlaceable.SecurityEvents?.LockEvents?.ControlledVeto == true &&
                     ProjectJsonSerializer.Serialize(ProjectJsonSerializer.Deserialize(serialized)) == serialized &&
                     root.GetChildCount() == 4 &&
                     panel.GetNodeOrNull<ItemList>("SecurityEventsLayout/LootResults") is { ItemCount: 1 } &&
@@ -9369,6 +9930,8 @@ public partial class GameRoot : Node3D
         RunProjectCompatibilityRuntimeSmokeTest(_loadedProject);
         RunProjectGameplayEventsRuntimeSmokeTest(_loadedProject);
         RunProjectWorldRuntimeSmokeTest(_loadedProject);
+        RunUx0GGlobalEventsRuntimeSmokeTest(_loadedProject);
+        RunUx0HWorldTransitionsRuntimeSmokeTest(_loadedProject);
         RunCanonicalValidationRuntimeSmokeTest();
         RunAreaFoundationRuntimeSmokeTest(_loadedProject ??
             throw new InvalidOperationException("The loaded project is unavailable."));
@@ -11953,10 +12516,24 @@ public partial class GameRoot : Node3D
                 new Dictionary<string, float> { ["music"] = .8f }, .75f,
                 $"area.{area.Slug}.combat", "runtime:r055")], r055Visibility, r055Lod, true);
         var r055Event = $"area.{area.Slug}.alarm";
+        var r055UsesModuleScript = _isForgottenForestPrototype || _isCryptPrototype;
+        var r055Script = _isForgottenForestPrototype
+            ? "scripts/root_guardian_death.forge"
+            : _isCryptPrototype
+                ? "scripts/ash_warden_death.forge"
+                : "scripts/area_user_event_smoke.forge";
+        var r055Subscription = r055UsesModuleScript ? "main" : "OnAreaAlarm";
+        string? ResolveR055Source(string path) => r055UsesModuleScript
+            ? ReadConfiguredScriptSource(path)
+            : string.Equals(path, r055Script, StringComparison.Ordinal)
+                ? "void OnAreaAlarm(CustomEventRef event_ref) { say(\"Area user event smoke\"); }"
+                : null;
         var r055Authoring = new AreaAuthoringProfile(1,
             [new(Guid.Parse("a0557000-0000-4000-8000-000000000006"), r055Event,
-                "schema://area/alarm/v1", "scripts/runtime_alarm.forge", 1, [r055Event], true,
-                "runtime:r055")],
+                "schema://area/alarm/v1", r055Script, 1, [r055Subscription], true,
+                "runtime:r055", AreaUserEvent.CurrentSchemaVersion,
+                new Dictionary<string, string> { ["level"] = "int" },
+                AreaUserEvent.CurrentForgeScriptApiVersion)],
             new(true, true, "hybrid-2d-3d", 2,
                 [new(Guid.Parse("a0557000-0000-4000-8000-000000000007"), "Runtime shrine", 16, 0, 0,
                     false)], Guid.Parse("a0557000-0000-4000-8000-000000000008"), 1, "runtime:r055",
@@ -11964,8 +12541,14 @@ public partial class GameRoot : Node3D
             r055Experience);
         var r055Area = area.WithAuthoring(r055Authoring);
         var r055Snapshot = AreaExperienceAuthoringScriptService.Read(r055Area);
-        var r055Dispatch = AreaExperienceAuthoringScriptService.Dispatch(r055Area, r055Event,
-            new Dictionary<string, object?> { ["level"] = 2 });
+        var r055Payload = new Dictionary<string, object?> { ["level"] = 2 };
+        var r055Preview = AreaUserEventRuntimeService.Dispatch(r055Area, r055Event, r055Payload,
+            _forgeScriptRuntime, ResolveR055Source, requiredAtRuntime: true, dryRun: true,
+            correlationId: Guid.Parse("a0557000-0000-4000-8000-000000000009"));
+        var r055Dispatch = AreaUserEventRuntimeService.Dispatch(r055Area, r055Event, r055Payload,
+            _forgeScriptRuntime, ResolveR055Source, requiredAtRuntime: true, dryRun: false,
+            correlationId: Guid.Parse("a0557000-0000-4000-8000-000000000010"),
+            execute: artifact => ExecuteForgeScript(artifact, this));
         var r055Map = AreaExperienceAuthoringScriptService.Reveal(r055Area,
             new(AreaMapExplorationScope.Party, "party:runtime", new HashSet<string>(), new HashSet<Guid>()),
             17, 3, r055Area.Authoring.Map.Pins[0].Id);
@@ -11978,7 +12561,10 @@ public partial class GameRoot : Node3D
                     r055Snapshot.AudioSnapshots.Count == 1 && r055Snapshot.EventBindings.Count == 1 &&
                     r055Snapshot.MapPins == 1 && r055Snapshot.VisibilityRooms == 1 &&
                     r055Snapshot.Occluders == 1 && r055Snapshot.LodOverrides == 1 &&
-                    r055Dispatch.ApiVersion == 1 && r055Map.RevealedCells.Contains("2:0") &&
+                    r055Preview.Succeeded && !r055Preview.Executed &&
+                    r055Dispatch.Succeeded && r055Dispatch.Executed &&
+                    r055Dispatch.Deliveries.Single().Subscriber == r055Subscription &&
+                    r055Map.RevealedCells.Contains("2:0") &&
                     r055Runtime.Handle is
                     {
                         AudioSnapshots: 1, UserEvents: 1, MapPins: 1,
@@ -11992,9 +12578,11 @@ public partial class GameRoot : Node3D
                     r055Required.Diagnostics.Single().Code == AreaExperienceRuntimeResolver.RequiredMissingCode,
             "R055 area experience runtime optional/required contract failed.");
         GD.Print("OPENRPG_FORGE_RUNTIME_R055_AREA_EXPERIENCE_PASS " +
-                 "audio=snapshots-adaptive-reverb events=namespaced-payload-subscriptions " +
+                 "audio=snapshots-adaptive-reverb events=namespaced-typed-payload-live-forgescript " +
                  "map=2d-3d-exploration-fog-reveal visibility=rooms-portals-occluders-streaming " +
-                 "lod=thresholds-budgets-popping forgescript=typed-handle optional=ignored required=diagnostic");
+                 $"lod=thresholds-budgets-popping forgescript=custom-event-handle " +
+                 $"source={(r055UsesModuleScript ? "module" : "isolated-smoke")} " +
+                 "optional=ignored required=diagnostic");
 
         var r056Root = Guid.Parse("a0567000-0000-4000-8000-000000000001");
         var r056Child = Guid.Parse("a0567000-0000-4000-8000-000000000002");
@@ -12509,19 +13097,42 @@ public partial class GameRoot : Node3D
 
     private void RunProjectOperationsRuntimeSmokeTest(ProjectDefinition project)
     {
+        var sourcePolicies = project.Module.RuntimePolicies;
+        var lifecycleBindings = sourcePolicies.LifecycleEvents.Bindings.Select(binding =>
+            binding.Event == RuntimeLifecycleEventKind.ProjectLoaded && binding.Authority == RuntimeAuthority.Server
+                ? binding with
+                {
+                    Handler = "main",
+                    ScriptPath = "scripts/runtime_project_loaded.forge",
+                    RequiredAtRuntime = true,
+                    Provenance = "runtime:ux0-f",
+                }
+                : binding).ToArray();
+        var lifecycleProfile = new ProjectLifecycleEventProfile(sourcePolicies.LifecycleEvents.Id,
+            sourcePolicies.LifecycleEvents.SchemaVersion, "runtime:ux0-f", true, false, lifecycleBindings);
+        var configuredPolicies = new ModuleRuntimePolicyProfile(sourcePolicies.Id, sourcePolicies.SchemaVersion,
+            sourcePolicies.Heartbeats, sourcePolicies.Rest, sourcePolicies.SequenceAbort, "runtime:ux0-f",
+            sourcePolicies.Cinematics, sourcePolicies.Gameplay, sourcePolicies.Rules, sourcePolicies.Extensions,
+            sourcePolicies.GameplayEvents, sourcePolicies.World, lifecycleProfile);
+        var configuredProject = new ProjectDefinition(project.Id, project.Title,
+            project.Module.WithRuntimePolicies(configuredPolicies), project.Blueprints, project.Areas,
+            project.Dialogues, project.Quests);
         var lifecycleValid = new[] { RuntimeAuthority.Editor, RuntimeAuthority.Client, RuntimeAuthority.Server }
             .All(authority =>
             {
                 var observed = new List<RuntimeLifecycleEvent>();
                 var lifecycle = new RuntimeLifecycleCoordinator(observers: [observed.Add]);
-                var loaded = lifecycle.LoadProject(project, authority, RuntimeLifecycleCause.Playtest);
-                var entered = lifecycle.EnterInitialArea(project.Module.EntryAreaId, null,
+                var loaded = lifecycle.LoadProject(configuredProject, authority, RuntimeLifecycleCause.Playtest);
+                var entered = lifecycle.EnterInitialArea(configuredProject.Module.EntryAreaId, null,
                     RuntimeLifecycleCause.Playtest);
                 var started = lifecycle.StartWorld(RuntimeLifecycleCause.Playtest);
                 return loaded.Succeeded && entered.Succeeded && started.Succeeded &&
                        observed.Select(item => item.Binding)
                            .SequenceEqual(["project.loaded", "area.entered", "world.started"]) &&
-                       observed.All(item => item.Authority == authority);
+                       observed.All(item => item.Authority == authority) &&
+                       (authority != RuntimeAuthority.Server ||
+                        observed[0].ScriptPath == "scripts/runtime_project_loaded.forge" &&
+                        observed[0].ScriptHandler == "main" && observed[0].ScriptRequired);
             });
 
         var typedVariable = new ProjectVariableDefinition(
@@ -12554,7 +13165,7 @@ public partial class GameRoot : Node3D
         GD.Print("OPENRPG_FORGE_RUNTIME_R025_PROJECT_OPERATIONS_PASS " +
                  "lifecycle=editor-client-server-ordered blackboard=strict-schema-legacy-bounded " +
                  "packages=lock-provenance cache=source-api-compiler-hit " +
-                 "targets=five-secrets-separated optional=ignored required=diagnostic");
+                 "targets=five-secrets-separated optional=ignored required=diagnostic scripts=context-bound");
     }
 
     private static void RunProjectCompatibilityRuntimeSmokeTest(ProjectDefinition project)
@@ -12590,7 +13201,19 @@ public partial class GameRoot : Node3D
 
     private static void RunProjectGameplayEventsRuntimeSmokeTest(ProjectDefinition project)
     {
-        var profile = project.Module.RuntimePolicies.GameplayEvents;
+        var source = project.Module.RuntimePolicies.GameplayEvents;
+        var bindings = source.Bindings.Select(binding => binding.EventName == "item.used"
+            ? binding with
+            {
+                Handler = "main",
+                ScriptPath = "scripts/runtime_item_used.forge",
+                RequiredAtRuntime = true,
+                Provenance = "runtime:ux0-f",
+            }
+            : binding).ToArray();
+        var profile = new ProjectGameplayEventProfile(source.Id, source.SchemaVersion, "runtime:ux0-f",
+            source.Enabled, source.RequiredAtRuntime, source.UseDownedState, source.AutoRespawn,
+            source.ReplicateEquipmentAndProgression, bindings);
         var handle = ProjectGameplayEventProfileRuntime.Resolve(profile, true);
         var optional = ProjectGameplayEventProfileRuntime.Resolve(null, false);
         var required = ProjectGameplayEventProfileRuntime.Resolve(null, true);
@@ -12616,7 +13239,10 @@ public partial class GameRoot : Node3D
         var wrongAuthority = bus.Publish(new PlayerConnectionEvent(Guid.NewGuid(), "player:smoke",
             PlayerConnectionStage.Ready, "forged", EventAuthorityScope.Local, 20, now), profile);
 
-        AssertSmoke(handle.Available && handle.Handle!.Bindings.Count == 14 && optional.Diagnostics.Count == 0 &&
+        AssertSmoke(handle.Available && handle.Handle!.Bindings.Count == 14 &&
+                    handle.Handle.Bindings["item.used"].ScriptPath == "scripts/runtime_item_used.forge" &&
+                    handle.Handle.Bindings["item.used"].Handler == "main" &&
+                    handle.Handle.Bindings["item.used"].RequiredAtRuntime && optional.Diagnostics.Count == 0 &&
                     optional.Handle is null && required.Diagnostics.Single().Code ==
                     ProjectGameplayEventProfileValidator.MissingRequiredCode &&
                     published.All(item => item.Accepted) && lifecyclePublished.All(item => item.Accepted) &&
@@ -12628,7 +13254,181 @@ public partial class GameRoot : Node3D
             "OPENRPG_FORGE_RUNTIME_R051_PROJECT_EVENTS_PASS bindings=14 authority=server " +
             "families=connection-inventory-use-death-respawn-equipment-progression " +
             "transaction=veto-journal pipeline=configurable forgescript=typed-handle " +
-            "optional=ignored required=diagnostic");
+            "optional=ignored required=diagnostic scripts=path-handler-resolved");
+    }
+
+    private static void RunUx0GGlobalEventsRuntimeSmokeTest(ProjectDefinition project)
+    {
+        const string scriptPath = "scripts/ux0_g_global_events.forge";
+        var moduleId = project.Module.Id;
+        var gameplaySource = project.Module.RuntimePolicies.GameplayEvents;
+        var gameplayBindings = gameplaySource.Bindings.Select(binding =>
+            binding.EventName is "equipment.changed" or "progression.changed"
+                ? binding with
+                {
+                    Handler = "main",
+                    ScriptPath = scriptPath,
+                    RequiredAtRuntime = true,
+                    Provenance = "runtime:ux0-g",
+                }
+                : binding).ToArray();
+        var gameplay = new ProjectGameplayEventProfile(gameplaySource.Id, gameplaySource.SchemaVersion,
+            "runtime:ux0-g", true, false, gameplaySource.UseDownedState, gameplaySource.AutoRespawn,
+            false, gameplayBindings);
+        var eventBus = new ProjectGameplayEventBus();
+        var now = DateTimeOffset.UnixEpoch;
+        var equipment = eventBus.Publish(new EquipmentChangedEvent(Guid.NewGuid(), "player:smoke",
+            "item:sword", "main-hand", EquipmentChangeKind.Equipped, "runtime-smoke",
+            EventAuthorityScope.Server, 1, now), gameplay);
+        var progression = eventBus.Publish(new ProgressionChangedEvent(Guid.NewGuid(), "player:smoke",
+            1, 2, "runtime-smoke", EventAuthorityScope.Server, 2, now), gameplay);
+
+        var defaults = ModuleRuntimePolicyProfile.CreateDefault(moduleId);
+        var restBindings = defaults.Rest.Bindings.Select(binding => binding with
+        {
+            Handler = "main",
+            ScriptPath = scriptPath,
+            RequiredAtRuntime = binding.EventName == "rest.completed",
+            Provenance = "runtime:ux0-g",
+        }).ToArray();
+        var rest = new RestLifecycleProfile(defaults.Rest.Id, defaults.Rest.SchemaVersion, true,
+            PartyRestPolicy.WholeParty, 12, restBindings, "runtime:ux0-g");
+
+        var heartbeat = new HeartbeatScheduleDefinition(Guid.NewGuid(),
+            HeartbeatScheduleDefinition.CurrentSchemaVersion, "Simulation du monde", HeartbeatScope.Module,
+            true, 1_500, 25, true, "1.0", "main", "runtime:ux0-g", scriptPath, true);
+        var heartbeatDispatch = new HeartbeatScheduler().Advance([heartbeat], 1_500, true)
+            .Dispatches.Single();
+
+        var schema = new Forge.Domain.Lifecycle.CustomEventSchema(Guid.NewGuid(),
+            Forge.Domain.Lifecycle.CustomEventSchema.CurrentSchemaVersion,
+            "runtime:ux0-g", "module", "studio_signal", 1,
+            new Dictionary<string, string> { ["message"] = "string" }, false,
+            "1.0", "main", EventAuthorityScope.Server, scriptPath, true);
+        var worldSource = project.Module.RuntimePolicies.World;
+        var world = new ProjectWorldProfile(moduleId.Value, worldSource.SchemaVersion, "runtime:ux0-g",
+            true, false, [schema], worldSource.Clock);
+        var worldBus = new CustomWorldEventBus();
+        worldBus.Register(world);
+        CustomWorldEvent? observed = null;
+        worldBus.Subscribe(schema.Id, value => observed = value);
+        var userEvent = worldBus.Publish(schema.Id, 1,
+            new Dictionary<string, string> { ["message"] = "bonjour" }, now);
+
+        var scriptRuntime = new NativeForgeScriptRuntime();
+        var compilation = scriptRuntime.Compile("void main() { say(\"UX0-G\"); }");
+        var execution = compilation.Artifact is null ? null : scriptRuntime.Execute(compilation.Artifact,
+            new ForgeScriptQuotas(2_000, 50, 16, 8));
+
+        AssertSmoke(equipment.Accepted && progression.Accepted &&
+                    gameplay.Bindings.Where(item =>
+                            item.EventName is "equipment.changed" or "progression.changed")
+                        .All(item => item.Authority == EventAuthorityScope.Server &&
+                                     item.ScriptPath == scriptPath && item.Handler == "main") &&
+                    rest.Enabled && rest.Bindings.Count == 4 && rest.Bindings.All(item =>
+                        item.ScriptPath == scriptPath && item.Authority == EventAuthorityScope.Server) &&
+                    heartbeatDispatch.ScriptPath == scriptPath && heartbeatDispatch.RequiredAtRuntime &&
+                    heartbeatDispatch.BudgetMilliseconds == 25 && observed == userEvent &&
+                    schema.ScriptPath == scriptPath && schema.RequiredAtRuntime &&
+                    ProjectWorldProfileValidator.Validate(world, moduleId.Value).Count == 0 &&
+                    execution?.Status == ForgeScriptExecutionStatus.Completed,
+            "UX0-G global event runtime contract failed.");
+        GD.Print("OPENRPG_FORGE_RUNTIME_UX0G_GLOBAL_EVENTS_PASS " +
+                 "equipment_progression=typed-server rest=four-stage-resolved " +
+                 "heartbeat=bounded-script-path user_event=namespaced-typed-script-path " +
+                 "forgescript=compiled-executed");
+    }
+
+    private void RunUx0HWorldTransitionsRuntimeSmokeTest(ProjectDefinition project)
+    {
+        var moduleId = project.Module.Id.Value;
+        var areaId = project.Module.EntryAreaId.ToString();
+        var scriptRoot = _moduleContentRoot is null ? null : Path.Combine(_moduleContentRoot, "scripts");
+        var fullScriptPath = scriptRoot is not null && Directory.Exists(scriptRoot)
+            ? Directory.EnumerateFiles(scriptRoot, "*.forge", SearchOption.AllDirectories)
+                .FirstOrDefault(path => System.Text.RegularExpressions.Regex.IsMatch(
+                    File.ReadAllText(path), @"\bvoid\s+main\s*\(",
+                    System.Text.RegularExpressions.RegexOptions.CultureInvariant))
+            : null;
+        if (fullScriptPath is null)
+        {
+            GD.Print("OPENRPG_FORGE_RUNTIME_UX0H_WORLD_TRANSITIONS_SKIPPED reason=no-forgescript-fixture");
+            return;
+        }
+        var relativeScript = Path.GetRelativePath(_moduleContentRoot!, fullScriptPath).Replace('\\', '/');
+
+        var abortSource = project.Module.RuntimePolicies.SequenceAbort;
+        var abortBinding = abortSource.Binding with
+        {
+            Handler = "main",
+            ScriptPath = relativeScript,
+            RequiredAtRuntime = true,
+            Provenance = "runtime:ux0-h",
+        };
+        var abort = new SequenceAbortPolicy(abortSource.Id, abortSource.SchemaVersion, true,
+            abortBinding, SequenceAbortRestoreFlags.All, 32, "runtime:ux0-h");
+        var snapshot = new SequenceRuntimeState("camera.exploration", [], new HashSet<string>(),
+            new HashSet<string>(), 2, Guid.NewGuid().ToString("D"), false);
+        var current = snapshot with
+        {
+            CameraId = "camera.cinematic",
+            ControlStack = [new ControlContext(Guid.NewGuid(), 1, "runtime:ux0-h", "cinematic",
+                false, "cinematic", [])],
+            TemporarilyInvulnerableActors = new HashSet<string> { "player:local" },
+            LockIds = new HashSet<string> { "door:story" },
+            NarrativeRevision = 12,
+            SequenceActive = true,
+        };
+        var aborted = SequenceAbortCoordinator.Abort(abort, current, snapshot);
+        var abortScriptExecuted = DispatchConfiguredEventScript(abort.Binding.ScriptPath,
+            abort.Binding.Handler, abort.Binding.RequiredAtRuntime, "ux0-h:sequence-aborted");
+
+        var worldSource = project.Module.RuntimePolicies.World;
+        var clock = new WorldClockProfile(worldSource.Clock.Id, worldSource.Clock.SchemaVersion,
+            "runtime:ux0-h", 30, 10, 20, 50, 2.5, false, 95,
+            new Dictionary<string, int>(StringComparer.Ordinal) { [areaId] = 25 },
+            new Dictionary<WorldAstronomicalEventKind, int>
+            {
+                [WorldAstronomicalEventKind.Dawn] = 125,
+                [WorldAstronomicalEventKind.Sunrise] = 150,
+                [WorldAstronomicalEventKind.Sunset] = 750,
+                [WorldAstronomicalEventKind.Dusk] = 800,
+                [WorldAstronomicalEventKind.Midnight] = 0,
+            });
+        var world = new ProjectWorldProfile(moduleId, worldSource.SchemaVersion, "runtime:ux0-h",
+            true, false, worldSource.CustomEvents, clock);
+        var initialClock = CustomWorldEventBus.CreateInitialSnapshot(clock);
+        var advancedClock = CustomWorldEventBus.AdvanceClock(clock, initialClock, 2, areaId);
+
+        var progressionSource = project.Module.RuntimePolicies.Rules.Progression;
+        var progression = new ProgressionPolicy(progressionSource.Id, progressionSource.SchemaVersion,
+            progressionSource.RulesetId,
+            [new ProgressionCurvePoint(1, 0), new ProgressionCurvePoint(2, 120),
+                new ProgressionCurvePoint(3, 360), new ProgressionCurvePoint(4, 840)],
+            1.2, .9, new Dictionary<string, double>(StringComparer.Ordinal)
+            {
+                ["combat"] = 1.1,
+                ["exploration"] = .8,
+                ["quest"] = 1.4,
+            }, true, "runtime:ux0-h");
+        var progressionResult = RulesRuntimeService.ResolveProgression(progression, 200, "quest", 2, 0);
+
+        var worldDiagnostics = ProjectWorldProfileValidator.Validate(world, moduleId,
+            new HashSet<string>(StringComparer.Ordinal) { areaId });
+        var clockAdvanced = advancedClock.Snapshot.TotalMinutes == 100;
+        var dawnCrossed = advancedClock.CrossedEvents.Contains(WorldAstronomicalEventKind.Dawn);
+        var progressionResolved = progressionResult.AwardedExperience > 0 && progressionResult.Level >= 2;
+        AssertSmoke(aborted.Accepted && aborted.CameraRestored && aborted.NarrativeRolledBack &&
+                    abortScriptExecuted && worldDiagnostics.Count == 0 && clockAdvanced && dawnCrossed &&
+                    progressionResolved,
+            "UX0-H world transition runtime contract failed: " +
+            $"abort={aborted.Accepted}/{aborted.CameraRestored}/{aborted.NarrativeRolledBack}; " +
+            $"script={abortScriptExecuted}; world={string.Join(',', worldDiagnostics.Select(item => item.Code))}; " +
+            $"clock={advancedClock.Snapshot.TotalMinutes}/100; dawn={dawnCrossed}; " +
+            $"progression={progressionResult.AwardedExperience:0.###}/L{progressionResult.Level}.");
+        GD.Print("OPENRPG_FORGE_RUNTIME_UX0H_WORLD_TRANSITIONS_PASS " +
+                 "sequence_abort=restored-script-executed world_clock=calendar-zone-astronomy-save " +
+                 "progression=curve-source-group-difficulty runtime=resolved");
     }
 
     private static void RunProjectWorldRuntimeSmokeTest(ProjectDefinition project)

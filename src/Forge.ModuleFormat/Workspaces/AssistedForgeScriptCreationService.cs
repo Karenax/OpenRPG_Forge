@@ -174,11 +174,15 @@ public static class AssistedForgeScriptCreationService
     public static string NormalizeRelativePath(string value)
     {
         var normalized = value.Trim().Replace('\\', '/');
+        var supportedExtension = normalized.EndsWith(".forge", StringComparison.OrdinalIgnoreCase) ||
+                                 normalized.EndsWith(".as", StringComparison.OrdinalIgnoreCase);
         if (Path.IsPathRooted(normalized) || normalized.Contains(':', StringComparison.Ordinal) ||
             normalized.Split('/').Any(segment => segment is "" or "." or "..") ||
             !normalized.StartsWith("scripts/", StringComparison.Ordinal) ||
-            !normalized.EndsWith(".forge", StringComparison.OrdinalIgnoreCase))
-            throw new ArgumentException("ForgeScript path must be a confined scripts/*.forge relative path.", nameof(value));
+            !supportedExtension)
+            throw new ArgumentException(
+                "ForgeScript path must be a confined scripts/*.forge legacy path or scripts/*.as canonical path.",
+                nameof(value));
         return normalized;
     }
 

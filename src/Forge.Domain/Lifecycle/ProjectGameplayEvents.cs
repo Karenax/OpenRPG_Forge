@@ -13,7 +13,9 @@ public sealed record EventBinding(
     string ForgeScriptApiVersion,
     string EventName,
     string Handler,
-    EventAuthorityScope Authority);
+    EventAuthorityScope Authority,
+    string? ScriptPath = null,
+    bool RequiredAtRuntime = false);
 
 public abstract record ProjectGameplayEvent(
     Guid Id,

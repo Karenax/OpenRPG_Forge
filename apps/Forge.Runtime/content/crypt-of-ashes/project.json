@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.28.0",
+  "formatVersion": "1.30.0",
   "project": {
     "id": "69ddeadc-4cc1-42d0-aed6-9d99244479cf",
     "title": "Crypte des Cendres \u2014 Tranche verticale",
@@ -298,7 +298,9 @@
               "forgeScriptApiVersion": "1.0",
               "eventName": "rest.completed",
               "handler": "OnRestCompleted",
-              "authority": "server"
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
             },
             {
               "id": "4387f37e-dde1-5210-b6e6-73482338b0f4",
@@ -307,7 +309,9 @@
               "forgeScriptApiVersion": "1.0",
               "eventName": "rest.interrupted",
               "handler": "OnRestInterrupted",
-              "authority": "server"
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
             },
             {
               "id": "539ca862-64ca-5f6c-9e05-6ae35628f5fb",
@@ -316,7 +320,9 @@
               "forgeScriptApiVersion": "1.0",
               "eventName": "rest.requested",
               "handler": "OnRestRequested",
-              "authority": "server"
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
             },
             {
               "id": "8c9fec00-36ad-528d-804e-f1fcbf62ce01",
@@ -325,7 +331,9 @@
               "forgeScriptApiVersion": "1.0",
               "eventName": "rest.started",
               "handler": "OnRestStarted",
-              "authority": "server"
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
             }
           ],
           "provenance": "migration-default"
@@ -341,7 +349,9 @@
             "forgeScriptApiVersion": "1.0",
             "eventName": "sequence.aborted",
             "handler": "OnSequenceAborted",
-            "authority": "server"
+            "authority": "server",
+            "scriptPath": null,
+            "requiredAtRuntime": false
           },
           "restore": "all",
           "maximumNarrativeRollbackSteps": 64,
@@ -2362,6 +2372,103 @@
           },
           "provenance": "sample:g11-o"
         },
+        "lifecycleEvents": {
+          "id": "30000000-0000-4000-8000-000000000001",
+          "schemaVersion": 1,
+          "provenance": "migration-default:ux0-f",
+          "enabled": true,
+          "requiredAtRuntime": false,
+          "bindings": [
+            {
+              "id": "5de8b9c0-a8eb-5bc2-9e63-84d66ba33bb9",
+              "schemaVersion": 1,
+              "provenance": "migration-default:ux0-f",
+              "forgeScriptApiVersion": "1.0.0",
+              "event": "projectLoaded",
+              "authority": "editor",
+              "handler": "OnProjectLoadedEditor",
+              "scriptPath": null,
+              "requiredAtRuntime": false
+            },
+            {
+              "id": "8ab7001f-8a77-56cc-829e-f7da7c194e21",
+              "schemaVersion": 1,
+              "provenance": "migration-default:ux0-f",
+              "forgeScriptApiVersion": "1.0.0",
+              "event": "projectLoaded",
+              "authority": "singlePlayer",
+              "handler": "OnProjectLoadedSinglePlayer",
+              "scriptPath": null,
+              "requiredAtRuntime": false
+            },
+            {
+              "id": "323616f2-e3dd-58ad-9319-2aa8749dd705",
+              "schemaVersion": 1,
+              "provenance": "migration-default:ux0-f",
+              "forgeScriptApiVersion": "1.0.0",
+              "event": "projectLoaded",
+              "authority": "client",
+              "handler": "OnProjectLoadedClient",
+              "scriptPath": null,
+              "requiredAtRuntime": false
+            },
+            {
+              "id": "b1486435-701d-5b7a-aa3d-c0dbb8c44f27",
+              "schemaVersion": 1,
+              "provenance": "migration-default:ux0-f",
+              "forgeScriptApiVersion": "1.0.0",
+              "event": "projectLoaded",
+              "authority": "server",
+              "handler": "OnProjectLoadedServer",
+              "scriptPath": null,
+              "requiredAtRuntime": false
+            },
+            {
+              "id": "676a3de8-02d9-5105-9a84-70b6748671c9",
+              "schemaVersion": 1,
+              "provenance": "migration-default:ux0-f",
+              "forgeScriptApiVersion": "1.0.0",
+              "event": "worldStarted",
+              "authority": "editor",
+              "handler": "OnWorldStartedEditor",
+              "scriptPath": null,
+              "requiredAtRuntime": false
+            },
+            {
+              "id": "a2a482b2-2e6a-5c24-85d9-603c2358f195",
+              "schemaVersion": 1,
+              "provenance": "migration-default:ux0-f",
+              "forgeScriptApiVersion": "1.0.0",
+              "event": "worldStarted",
+              "authority": "singlePlayer",
+              "handler": "OnWorldStartedSinglePlayer",
+              "scriptPath": null,
+              "requiredAtRuntime": false
+            },
+            {
+              "id": "7d5ffa4b-f98f-5e09-8ce9-c028e2f7544a",
+              "schemaVersion": 1,
+              "provenance": "migration-default:ux0-f",
+              "forgeScriptApiVersion": "1.0.0",
+              "event": "worldStarted",
+              "authority": "client",
+              "handler": "OnWorldStartedClient",
+              "scriptPath": null,
+              "requiredAtRuntime": false
+            },
+            {
+              "id": "e1c303f7-87ce-53cd-9868-6bdece731ee4",
+              "schemaVersion": 1,
+              "provenance": "migration-default:ux0-f",
+              "forgeScriptApiVersion": "1.0.0",
+              "event": "worldStarted",
+              "authority": "server",
+              "handler": "OnWorldStartedServer",
+              "scriptPath": null,
+              "requiredAtRuntime": false
+            }
+          ]
+        },
         "gameplayEvents": {
           "id": "30000000-0000-4000-8000-000000000001",
           "schemaVersion": 1,
@@ -2379,7 +2486,9 @@
               "forgeScriptApiVersion": "1.0",
               "eventName": "ability.activated",
               "handler": "OnAbilityActivated",
-              "authority": "server"
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
             },
             {
               "id": "31720018-bb0b-5418-bdde-ab1b5c62691d",
@@ -2388,7 +2497,9 @@
               "forgeScriptApiVersion": "1.0",
               "eventName": "equipment.changed",
               "handler": "OnEquipmentChanged",
-              "authority": "server"
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
             },
             {
               "id": "e8c63cca-44be-583d-97fe-4a204d8d2614",
@@ -2397,7 +2508,9 @@
               "forgeScriptApiVersion": "1.0",
               "eventName": "inventory.changed",
               "handler": "OnInventoryChanged",
-              "authority": "server"
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
             },
             {
               "id": "2807b369-db08-5db9-8582-b515615130a5",
@@ -2406,7 +2519,9 @@
               "forgeScriptApiVersion": "1.0",
               "eventName": "item.used",
               "handler": "OnItemUsed",
-              "authority": "server"
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
             },
             {
               "id": "c56b5505-3d9d-54f3-aceb-15b0724e81ec",
@@ -2415,7 +2530,9 @@
               "forgeScriptApiVersion": "1.0",
               "eventName": "life.dead",
               "handler": "OnLifeDead",
-              "authority": "server"
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
             },
             {
               "id": "60c50834-b932-55a3-bbd9-d30c33b317c7",
@@ -2424,7 +2541,9 @@
               "forgeScriptApiVersion": "1.0",
               "eventName": "life.downed",
               "handler": "OnLifeDowned",
-              "authority": "server"
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
             },
             {
               "id": "9b71c127-e629-59a2-9eb5-73a2f3c722cf",
@@ -2433,7 +2552,9 @@
               "forgeScriptApiVersion": "1.0",
               "eventName": "life.dying",
               "handler": "OnLifeDying",
-              "authority": "server"
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
             },
             {
               "id": "06ae029f-484b-59f4-b940-63e2bf840b7d",
@@ -2442,7 +2563,9 @@
               "forgeScriptApiVersion": "1.0",
               "eventName": "life.respawned",
               "handler": "OnLifeRespawned",
-              "authority": "server"
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
             },
             {
               "id": "6697d687-85e8-5c57-8381-d1140b244282",
@@ -2451,7 +2574,9 @@
               "forgeScriptApiVersion": "1.0",
               "eventName": "life.respawnrequested",
               "handler": "OnLifeRespawnrequested",
-              "authority": "server"
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
             },
             {
               "id": "a1023018-5860-52b7-a6a8-dbf7eca61c04",
@@ -2460,7 +2585,9 @@
               "forgeScriptApiVersion": "1.0",
               "eventName": "player.disconnected",
               "handler": "OnPlayerDisconnected",
-              "authority": "server"
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
             },
             {
               "id": "2c26a569-c9e3-56eb-874c-91948192fd5e",
@@ -2469,7 +2596,9 @@
               "forgeScriptApiVersion": "1.0",
               "eventName": "player.joining",
               "handler": "OnPlayerJoining",
-              "authority": "server"
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
             },
             {
               "id": "ed04bf63-2977-54af-accb-62f9d43bf1ef",
@@ -2478,7 +2607,9 @@
               "forgeScriptApiVersion": "1.0",
               "eventName": "player.leaving",
               "handler": "OnPlayerLeaving",
-              "authority": "server"
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
             },
             {
               "id": "18dd10e8-1355-5144-b45d-b8d532784205",
@@ -2487,7 +2618,9 @@
               "forgeScriptApiVersion": "1.0",
               "eventName": "player.ready",
               "handler": "OnPlayerReady",
-              "authority": "server"
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
             },
             {
               "id": "6fd02a51-4873-5d29-90cf-5fef45fb037f",
@@ -2496,7 +2629,9 @@
               "forgeScriptApiVersion": "1.0",
               "eventName": "progression.changed",
               "handler": "OnProgressionChanged",
-              "authority": "server"
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
             }
           ]
         },
@@ -3447,7 +3582,9 @@
               "forgeScriptApiVersion": "1.0",
               "eventName": "creature.combat_tick_completed",
               "handler": "OnCombatTickCompleted",
-              "authority": "server"
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
             }
           },
           "inventory": {
@@ -3458,7 +3595,9 @@
               "forgeScriptApiVersion": "1.0",
               "eventName": "creature.inventory_accessed",
               "handler": "OnInventoryAccessed",
-              "authority": "server"
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
             },
             "transferred": {
               "id": "a1570000-0000-4000-8000-000000000004",
@@ -3467,7 +3606,9 @@
               "forgeScriptApiVersion": "1.0",
               "eventName": "creature.item_transferred",
               "handler": "OnItemTransferred",
-              "authority": "server"
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
             }
           },
           "rest": {
@@ -3478,7 +3619,9 @@
               "forgeScriptApiVersion": "1.0",
               "eventName": "creature.rest_completed",
               "handler": "OnRestCompleted",
-              "authority": "server"
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
             }
           },
           "heartbeat": {
@@ -3493,7 +3636,9 @@
               "forgeScriptApiVersion": "1.0",
               "eventName": "creature.heartbeat",
               "handler": "OnHeartbeat",
-              "authority": "server"
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
             }
           },
           "customEvents": [
@@ -3514,7 +3659,9 @@
                 "forgeScriptApiVersion": "1.0",
                 "eventName": "custom.crypt.braziers_lit",
                 "handler": "OnBraziersLit",
-                "authority": "server"
+                "authority": "server",
+                "scriptPath": null,
+                "requiredAtRuntime": false
               },
               "qualifiedName": "crypt.braziers_lit"
             }
@@ -3530,7 +3677,9 @@
               "forgeScriptApiVersion": "1.0",
               "eventName": "creature.before_damage",
               "handler": "BeforeDamage",
-              "authority": "server"
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
             },
             "damageApplied": {
               "id": "a1570000-0000-4000-8000-000000000013",
@@ -3539,7 +3688,9 @@
               "forgeScriptApiVersion": "1.0",
               "eventName": "creature.damage_applied",
               "handler": "OnDamaged",
-              "authority": "server"
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
             },
             "died": {
               "id": "a1570000-0000-4000-8000-000000000014",
@@ -3548,7 +3699,9 @@
               "forgeScriptApiVersion": "1.0",
               "eventName": "entity.died",
               "handler": "OnDeath",
-              "authority": "server"
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
             },
             "beforeDamageBudgetMilliseconds": 4,
             "maximumAdjustmentRatio": 0.5
@@ -3660,7 +3813,9 @@
             "forgeScriptApiVersion": "1.0",
             "eventName": "creature.spawned",
             "handler": "OnSpawned",
-            "authority": "server"
+            "authority": "server",
+            "scriptPath": null,
+            "requiredAtRuntime": false
           },
           "overrides": {
             "spawn.policy": "validated"
@@ -4070,7 +4225,9 @@
               "forgeScriptApiVersion": "1.0",
               "eventName": "creature.interaction_requested",
               "handler": "OnConversation",
-              "authority": "server"
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
             },
             "overrides": {
               "interaction.preview": "enabled"
@@ -4109,7 +4266,9 @@
                 "forgeScriptApiVersion": "1.0",
                 "eventName": "creature.stimulus_detected",
                 "handler": "OnPerceptionDetected",
-                "authority": "server"
+                "authority": "server",
+                "scriptPath": null,
+                "requiredAtRuntime": false
               },
               "lost": {
                 "id": "a1800000-0000-4000-8000-000000000003",
@@ -4118,7 +4277,9 @@
                 "forgeScriptApiVersion": "1.0",
                 "eventName": "creature.stimulus_lost",
                 "handler": "OnPerceptionLost",
-                "authority": "server"
+                "authority": "server",
+                "scriptPath": null,
+                "requiredAtRuntime": false
               }
             },
             "physicalAttack": {
@@ -4130,7 +4291,9 @@
                 "forgeScriptApiVersion": "1.0",
                 "eventName": "creature.attack_declared",
                 "handler": "BeforePhysicalAttacked",
-                "authority": "server"
+                "authority": "server",
+                "scriptPath": null,
+                "requiredAtRuntime": false
               },
               "resolved": {
                 "id": "a1800000-0000-4000-8000-000000000006",
@@ -4139,7 +4302,9 @@
                 "forgeScriptApiVersion": "1.0",
                 "eventName": "creature.attack_resolved",
                 "handler": "OnPhysicalAttacked",
-                "authority": "server"
+                "authority": "server",
+                "scriptPath": null,
+                "requiredAtRuntime": false
               }
             },
             "ability": {
@@ -4151,7 +4316,9 @@
                 "forgeScriptApiVersion": "1.0",
                 "eventName": "creature.ability_targeted",
                 "handler": "BeforeAbilityTargeted",
-                "authority": "server"
+                "authority": "server",
+                "scriptPath": null,
+                "requiredAtRuntime": false
               },
               "impacted": {
                 "id": "a1800000-0000-4000-8000-000000000009",
@@ -4160,7 +4327,9 @@
                 "forgeScriptApiVersion": "1.0",
                 "eventName": "creature.ability_impacted",
                 "handler": "OnSpellCastAt",
-                "authority": "server"
+                "authority": "server",
+                "scriptPath": null,
+                "requiredAtRuntime": false
               }
             },
             "blocked": {
@@ -4172,7 +4341,9 @@
                 "forgeScriptApiVersion": "1.0",
                 "eventName": "creature.movement_blocked",
                 "handler": "OnBlocked",
-                "authority": "server"
+                "authority": "server",
+                "scriptPath": null,
+                "requiredAtRuntime": false
               },
               "recoveryOrder": [
                 "repath",

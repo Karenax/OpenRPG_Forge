@@ -8,4 +8,7 @@ public sealed record SetModuleConfigurationCommand(
     ProjectRevision BaseRevision,
     ProjectMetadata Metadata,
     IReadOnlyList<ProjectVariableDefinition> Variables,
-    bool DryRun);
+    bool DryRun,
+    string? ProjectTitle = null,
+    string? ModuleDisplayName = null,
+    string? ModuleDescription = null);

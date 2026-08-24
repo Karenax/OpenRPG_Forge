@@ -33,12 +33,18 @@ Le schéma courant du manifest est `1.2.0`. Le hash SHA-256 couvre, dans un ordr
 chemin UTF-8 puis les octets de chaque entrée hors manifest. L’exporteur écrit une archive
 déterministe dans un fichier temporaire voisin, la valide, puis la remplace atomiquement.
 
-Le document projet courant est `0.6.34` et le workspace `1.28.0`. En plus du
+Le document projet courant est `0.6.36` et le workspace `1.28.0`. En plus du
 `WorldFeatureCatalog` v1, `ModuleRuntimeExtensionProfile` porte un `PostLaunchCapabilityProfile` v1
-pour gameplay avancé, Live Director, réseau, expérience Creator et production. Un projet `0.6.32`
-ou workspace `1.26.0` migre vers un profil post-lancement désactivé à identité stable, puis est
-réécrit dans le format courant. Le round-trip projet, workspace et `.orpmod` conserve ces contrats
-sans autre source de vérité moteur.
+pour gameplay avancé, Live Director, réseau, expérience Creator et production. Les politiques runtime
+portent aussi huit liaisons déterministes de cycle de vie — chargement et démarrage du monde pour les
+contextes Éditeur, Solo, Client et Serveur — ainsi que, pour chaque événement de jeu, un chemin
+ForgeScript relatif facultatif, un handler et son caractère requis. Un projet `0.6.34` migre vers ces
+liaisons sans script. Le format `0.6.36` étend le même contrat aux quatre événements de repos, aux
+heartbeats globaux et aux événements utilisateur typés ; un projet `0.6.35` initialise ces champs
+comme facultatifs sans perdre les calendriers, schémas ou rythmes existants. Un projet `0.6.32` ou
+workspace `1.26.0` conserve également sa migration vers
+un profil post-lancement désactivé à identité stable. Toute réécriture utilise le format courant. Le
+round-trip projet, workspace et `.orpmod` conserve ces contrats sans autre source de vérité moteur.
 
 ## Packages de contenu versionnés
 

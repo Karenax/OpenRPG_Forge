@@ -103,6 +103,43 @@ public sealed class EncounterScenarioProfileTests
         Assert.Contains(diagnostics, item => item.Code == "world.encounter.wave_transition_invalid");
     }
 
+    [Fact]
+    public void Runtime_mapped_enums_are_rejected_before_the_adapter_boundary()
+    {
+        var encounter = Encounter();
+        var phase = encounter.Scenario!.Phases[0];
+        var invalid = encounter.Scenario with
+        {
+            Distribution = (EncounterSpawnDistribution)999,
+            SpawnAnchors =
+            [
+                encounter.Scenario.SpawnAnchors[0] with
+                { Visibility = (EncounterWorldProfile.VisibilityMode)999 },
+            ],
+            Activator = encounter.Scenario.Activator with
+            { RequiredAuthority = (EncounterNetworkAuthority)999 },
+            Phases =
+            [
+                phase with
+                {
+                    Waves =
+                    [
+                        phase.Waves[0] with { Completion = (EncounterWaveCompletionPolicy)999 },
+                        phase.Waves[1],
+                    ],
+                },
+            ],
+        };
+
+        var diagnostics = EncounterScenarioProfileValidator.Validate(invalid, encounter.Foundation,
+            encounter.Composition, "encounter/scenario");
+
+        Assert.Contains(diagnostics, item => item.Code == "world.encounter.spawn_distribution_invalid");
+        Assert.Contains(diagnostics, item => item.Code == "world.encounter.spawn_anchor_policy_invalid");
+        Assert.Contains(diagnostics, item => item.Code == "world.encounter.activator_policy_invalid");
+        Assert.Contains(diagnostics, item => item.Code == "world.encounter.wave_completion_invalid");
+    }
+
     private static EncounterWorldProfile Encounter()
     {
         var encounterId = Guid.Parse("84000000-0000-4000-8000-000000000101");

@@ -24,7 +24,15 @@ public static class PlaceableRules
         if (definition.Interaction is { } interaction && (interaction.Verbs.Count == 0 || interaction.MaximumDistance <= 0 || interaction.MaximumAngleDegrees is <= 0 or > 360 || string.IsNullOrWhiteSpace(interaction.Authority))) diagnostics.Add(new("RPG_PLACEABLE_INTERACTION_INVALID", $"{root}/interaction", "Interaction verbs, range, angle and authority are required."));
         if (definition.Interaction is null && definition.StaticProp is null) diagnostics.Add(new("RPG_PLACEABLE_ROLE_MISSING", $"{root}/components", "A placeable must be interactable or a static prop."));
         if (definition.StaticProp is { MergeEligible: true, CollisionEnabled: true }) diagnostics.Add(new("RPG_PLACEABLE_STATIC_MERGE_COLLISION", $"{root}/static", "Merged static decoration cannot keep per-instance collision."));
-        var scale = definition.Transform.Scale; if (scale.X <= 0 || scale.Y <= 0 || scale.Z <= 0 || definition.Transform.SnapIncrement < 0) diagnostics.Add(new("RPG_PLACEABLE_TRANSFORM_INVALID", $"{root}/transform", "Scale and snap are invalid."));
+        var transform = definition.Transform; var scale = transform.Scale;
+        var values = new[] { transform.Position.X, transform.Position.Y, transform.Position.Z,
+            transform.RotationDegrees.X, transform.RotationDegrees.Y, transform.RotationDegrees.Z,
+            scale.X, scale.Y, scale.Z, transform.Pivot.X, transform.Pivot.Y, transform.Pivot.Z };
+        if (values.Any(value => !double.IsFinite(value) || Math.Abs(value) > 1_000_000) ||
+            scale.X is <= .01 or > 100 || scale.Y is <= .01 or > 100 || scale.Z is <= .01 or > 100 ||
+            !double.IsFinite(transform.SnapIncrement) || transform.SnapIncrement is < 0 or > 10_000 ||
+            transform.ParentId == definition.Id || transform.TransformAnimationId is { Length: 0 } or { Length: > 256 })
+            diagnostics.Add(new("RPG_PLACEABLE_TRANSFORM_INVALID", $"{root}/transform", "Transform must be finite, bounded and acyclic."));
         return diagnostics;
     }
 

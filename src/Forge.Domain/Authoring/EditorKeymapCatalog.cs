@@ -6,6 +6,7 @@ public static class EditorKeymapCatalog
     public const string Undo = "edit.undo";
     public const string Redo = "edit.redo";
     public const string CopySelection = "selection.copy";
+    public const string CutSelection = "selection.cut";
     public const string PasteSelection = "selection.paste";
     public const string DuplicateSelection = "selection.duplicate";
     public const string DeleteSelection = "selection.delete";
@@ -22,6 +23,7 @@ public static class EditorKeymapCatalog
         new(Undo, "Annuler", "Édition"),
         new(Redo, "Rétablir", "Édition"),
         new(CopySelection, "Copier la sélection", "Édition"),
+        new(CutSelection, "Couper la sélection", "Édition"),
         new(PasteSelection, "Coller", "Édition"),
         new(DuplicateSelection, "Dupliquer la sélection", "Édition"),
         new(DeleteSelection, "Supprimer la sélection", "Édition"),

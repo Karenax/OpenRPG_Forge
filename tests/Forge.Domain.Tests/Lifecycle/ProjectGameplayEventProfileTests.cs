@@ -55,4 +55,43 @@ public sealed class ProjectGameplayEventProfileTests
         Assert.Contains(diagnostics, item => item.Code == ProjectGameplayEventProfileValidator.RequiredDisabledCode);
         Assert.All(diagnostics, item => Assert.StartsWith("module/runtimePolicies/gameplayEvents", item.Path));
     }
+
+    [Fact]
+    public void Ux0FGameplayBindingsAcceptSafeOptionalScriptsAndRejectMissingOrUnsafeScripts()
+    {
+        var source = ProjectGameplayEventProfile.CreateDefault(Guid.NewGuid());
+        var configuredBindings = source.Bindings.Select(binding => binding.EventName == "inventory.changed"
+            ? binding with
+            {
+                Handler = "OnInventoryUpdated",
+                ScriptPath = "scripts/inventory-events.forge",
+                RequiredAtRuntime = true,
+                Provenance = "test:ux0-f",
+            }
+            : binding).ToArray();
+        var configured = new ProjectGameplayEventProfile(source.Id, source.SchemaVersion, "test:ux0-f",
+            source.Enabled, source.RequiredAtRuntime, source.UseDownedState, source.AutoRespawn,
+            source.ReplicateEquipmentAndProgression, configuredBindings);
+
+        Assert.Empty(ProjectGameplayEventProfileValidator.Validate(configured, source.Id));
+        var runtime = ProjectGameplayEventProfileRuntime.Resolve(configured, required: true);
+        Assert.True(runtime.Available);
+        Assert.Equal("scripts/inventory-events.forge", runtime.Handle!.Bindings["inventory.changed"].ScriptPath);
+
+        var missing = configuredBindings.Select(binding => binding.EventName == "inventory.changed"
+            ? binding with { ScriptPath = null, RequiredAtRuntime = true }
+            : binding).ToArray();
+        var unsafeBindings = configuredBindings.Select(binding => binding.EventName == "inventory.changed"
+            ? binding with { ScriptPath = "../outside.forge" }
+            : binding).ToArray();
+        var missingProfile = new ProjectGameplayEventProfile(source.Id, source.SchemaVersion, "test:ux0-f",
+            true, false, true, true, true, missing);
+        var unsafeProfile = new ProjectGameplayEventProfile(source.Id, source.SchemaVersion, "test:ux0-f",
+            true, false, true, true, true, unsafeBindings);
+
+        Assert.Contains(ProjectGameplayEventProfileValidator.Validate(missingProfile),
+            item => item.Code == ProjectGameplayEventProfileValidator.BindingContractInvalidCode);
+        Assert.Contains(ProjectGameplayEventProfileValidator.Validate(unsafeProfile),
+            item => item.Code == ProjectGameplayEventProfileValidator.BindingContractInvalidCode);
+    }
 }

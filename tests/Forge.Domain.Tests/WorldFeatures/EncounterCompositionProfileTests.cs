@@ -1,5 +1,6 @@
 using Forge.Domain.Areas;
 using Forge.Domain.Blueprints;
+using Forge.Domain.Projects;
 using Forge.Domain.Spatial;
 using Forge.Domain.WorldFeatures;
 
@@ -103,6 +104,60 @@ public sealed class EncounterCompositionProfileTests
         Assert.True(optional.OptionalFallback);
         Assert.Empty(optional.Diagnostics);
         Assert.Equal("world.encounter.composition_required", Assert.Single(required.Diagnostics).Code);
+    }
+
+    [Fact]
+    public void Non_finite_values_and_unknown_enums_are_rejected_before_runtime_mapping()
+    {
+        var encounter = Encounter();
+        var composition = encounter.Composition! with
+        {
+            PrimaryRole = (EncounterWorldProfile.CandidateRole)999,
+            Difficulty = encounter.Composition!.Difficulty with
+            {
+                Band = (EncounterDifficultyBand)999,
+                BaseBudget = double.NaN,
+            },
+            Groups = [encounter.Composition.Groups[0] with { Budget = double.NaN }],
+            Activation = encounter.Composition.Activation with
+            {
+                Mode = (EncounterActivationMode)999,
+                Distribution = (EncounterSpawnDistribution)999,
+            },
+        };
+        var invalid = encounter with
+        {
+            Composition = composition,
+            Foundation = encounter.Foundation! with
+            {
+                Volume = encounter.Foundation.Volume with { ThreatRadius = double.NaN },
+                Candidates = [encounter.Foundation.Candidates[0] with
+                {
+                    Role = (EncounterWorldProfile.CandidateRole)999,
+                    Weight = double.PositiveInfinity,
+                }],
+                SpawnBudget = double.NaN,
+            },
+        };
+        var blueprintId = invalid.Foundation!.Candidates[0].BlueprintId;
+        var blueprint = new BlueprintDefinition(blueprintId, "warden", "Warden", BlueprintKind.Creature);
+        var area = new AreaDefinition(invalid.AreaId, "encounter-area", "Encounter area", []);
+        var project = new ProjectDefinition(ProjectId.From(Guid.NewGuid()), "Encounter validation", [blueprint], [area]);
+        var catalog = new WorldFeatureCatalog(project.Module.Id.Value, 1, "test:encounter-finite",
+            encounters: [invalid]);
+        project = new ProjectDefinition(project.Id, project.Title, project.Module.WithWorldFeatures(catalog),
+            project.Blueprints, project.Areas);
+
+        var diagnostics = WorldFeatureCatalogValidator.Validate(project);
+        var codes = diagnostics.Select(item => item.Code).ToHashSet(StringComparer.Ordinal);
+
+        Assert.Contains("world.encounter.composition_identity_invalid", codes);
+        Assert.Contains("world.encounter.difficulty_invalid", codes);
+        Assert.Contains("world.encounter.count_range_invalid", codes);
+        Assert.Contains("world.encounter.activation_invalid", codes);
+        Assert.Contains("world.encounter.volume_invalid", codes);
+        Assert.Contains("world.encounter.candidate_invalid", codes);
+        Assert.Contains("world.encounter.budget_invalid", codes);
     }
 
     internal static EncounterWorldProfile Encounter()

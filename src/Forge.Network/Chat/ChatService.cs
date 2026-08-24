@@ -11,10 +11,12 @@ public sealed record ChatRuntimePolicy(
     IReadOnlyDictionary<string, string> LanguageFilter,
     bool StructuredLogging,
     bool AccessibilityText,
-    bool BridgesEnabled)
+    bool BridgesEnabled,
+    IReadOnlyList<ChatChannelKind>? AllowedChannels = null)
 {
     public static ChatRuntimePolicy Default { get; } = new(30, 500, ["common"],
-        new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase), true, true, true);
+        new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase), true, true, true,
+        Enum.GetValues<ChatChannelKind>());
 }
 
 public sealed record ChatSendContext(Guid? ScopeId = null, Guid? TargetAccountId = null,
@@ -55,8 +57,10 @@ public sealed class ChatService
         _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
         _policy = policy ?? ChatRuntimePolicy.Default;
         _bridges = bridges ?? [];
+        var allowedChannels = _policy.AllowedChannels ?? Enum.GetValues<ChatChannelKind>();
         if (_policy.LocalRadius is <= 0 or > 10_000 || _policy.MaximumCharacters is < 1 or > 4_096 ||
             _policy.AllowedLanguages.Count == 0 || _policy.AllowedLanguages.Any(string.IsNullOrWhiteSpace) ||
+            allowedChannels.Count == 0 || allowedChannels.Distinct().Count() != allowedChannels.Count ||
             _bridges.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() != _bridges.Count)
             throw new ArgumentException("NET_CHAT_POLICY_INVALID", nameof(policy));
     }
@@ -69,6 +73,8 @@ public sealed class ChatService
     public ChatDecision Send(AuthorizationSubject sender, Guid? characterId, ChatChannelKind channel,
         string text, ChatSendContext context)
     {
+        var allowedChannels = _policy.AllowedChannels ?? Enum.GetValues<ChatChannelKind>();
+        if (!allowedChannels.Contains(channel)) return Reject("NET_CHAT_CHANNEL_DENIED", sender.AccountId);
         var capability = channel is ChatChannelKind.Shout or ChatChannelKind.System
             ? NetworkCapability.BroadcastChat
             : NetworkCapability.Chat;

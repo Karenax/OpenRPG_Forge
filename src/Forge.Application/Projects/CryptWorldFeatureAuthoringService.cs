@@ -23,6 +23,7 @@ public static class CryptWorldFeatureAuthoringService
         var merchantItem = project.Blueprints.FirstOrDefault(item => item.Kind == BlueprintKind.Item);
         var dialogue = project.Dialogues.Single().Id.Value;
         var quest = project.Quests.Single().Id.Value;
+        var ashWatchFaction = project.Module.Factions.Factions.Single(item => item.Slug == "ash-watch");
         var routeId = Stable(moduleId, "vehicle-route");
         var start = Stable(routeId, "start");
         var end = Stable(routeId, "end");
@@ -172,8 +173,12 @@ public static class CryptWorldFeatureAuthoringService
                 new(2.5, "both", 1, 2, 1, "server", 2, "door.unavailable"),
                 new(DoorWorldProfile.DestinationKind.Waypoint, Stable(moduleId, "door-destination"),
                     "anchor:crypt-exit", 180, true, ["portal.travel"]),
-                [new(Stable(moduleId, "door-link"), Stable(moduleId, "door-destination"), false, "Retour vers la crypte")],
-                new Dictionary<string, string> { ["interaction.prompt"] = "door.open" },
+                [],
+                new Dictionary<string, string>
+                {
+                    ["interaction.prompt"] = "door.open",
+                    [DoorWorldProfile.CollisionProfileOverrideKey] = "collision:crypt-door",
+                },
                 new("nav-obstacle:crypt-door", "nav-link:crypt-door",
                     ["closed", "locked", "jammed", "disabled", "custom"], ["open", "broken"], .75, .25, true)),
             new(Stable(moduleId, "door-ashes-access-events"), 1, "sample:r081",
@@ -228,7 +233,7 @@ public static class CryptWorldFeatureAuthoringService
                     "ash-watch", "vfx:ember-burst", "ash-watch", true, false, true, "#ff7a45",
                     "TrapDetected", "TrapDisarmed", "TrapTriggered", "TrapReset"),
                 new(Stable(moduleId, "trigger-exit-query"), true, ["player"], ["undead"],
-                    [Stable(moduleId, "faction-ash-watch")], ["inventory", "health"], "party", "heroes",
+                    [ashWatchFaction.Id], ["inventory", "health"], "party", "heroes",
                     "quest==active"),
                 Enum.GetValues<TriggerGameplayVolumeKind>()
                     .Select(kind => GameplayVolume(moduleId, kind)).ToArray(),

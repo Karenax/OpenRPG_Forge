@@ -48,7 +48,8 @@ Une décision enregistrée dans un ADR ne doit pas être renversée silencieusem
 - Godot **4.7.1 .NET** comme moteur, runtime et base d’éditeur.
 - C#/.NET comme langage principal.
 - Bibliothèques de domaine C# sans dépendance Godot.
-- Plugin d’éditeur Godot, sans fork du moteur au départ.
+- Application Creator autonome Godot, sans fork du moteur. Le plugin d’éditeur historique reste
+  disponible uniquement pendant la migration et ne reçoit plus de nouvelle surface produit.
 - AngelScript encapsulé dans une GDExtension C++ minimale pour `ForgeScript`.
 - Python uniquement pour Blender, traitement d’assets et workers IA.
 - MCP Host en C# avec le SDK MCP officiel.
@@ -64,7 +65,7 @@ Les couches de domaine et d’application ne doivent jamais référencer Godot.
 
 Flux autorisé :
 
-`Editor/Runtime/MCP -> Application Commands -> Domain -> Persistence/Adapters`
+`Studio/LegacyEditor/Runtime/MCP -> Application Commands -> Domain -> Persistence/Adapters`
 
 L’IA, les plugins et les interfaces ne modifient jamais directement les fichiers du projet. Toute mutation passe par le bus de commandes transactionnel et produit :
 
@@ -129,12 +130,17 @@ Le mode d’emploi et la signification des relations sont documentés dans
 
 ## Conventions Godot
 
-- Réutiliser le viewport 3D, l’inspecteur, les gizmos et l’Undo/Redo natifs avant de recréer un éditeur.
-- Ajouter des écrans spécialisés uniquement pour les domaines qui en ont besoin : dialogues, quêtes, scripts, IA, validation.
+- Construire le Creator autonome avec les contrôles, viewports, gizmos, imports glTF et primitives
+  Godot, sans dépendre de `EditorPlugin`, `EditorInterface` ou de l’arbre de l’éditeur Godot.
+- Conserver une vue 3D centrale sur les pages spatiales et utiliser des pages spécialisées pleine
+  surface uniquement lorsque la 3D n’aide pas : dialogues, quêtes, scripts, IA et validation.
+- Une seule fenêtre produit est visible. Les `Window` natives sont réservées aux dialogues système
+  indispensables ; les rubriques, documents et inspecteurs restent des `Control` intégrés.
 - Les nœuds Godot sont des représentations, pas la source de vérité métier.
 - Les scènes générées doivent pouvoir être reconstruites depuis le modèle de domaine.
 - Tout code d’éditeur doit être isolé du runtime exporté.
-- Le toolset doit fonctionner dans l’éditeur Godot standard avant toute tentative de fork ou de rebranding.
+- Le plugin historique doit rester fonctionnel jusqu’à la parité de la matrice de migration ; sa
+  suppression exige une validation utilisateur du Studio et une distribution autonome qualifiée.
 
 ## ForgeScript
 

@@ -97,12 +97,9 @@ public static class ModulePackager
         }
         var canonicalValidation = WorkspaceCanonicalValidationService.Run(
             workspaceRoot, project, qualityProfileLoad.Profile);
-        var validationPolicy = qualityProfileLoad.Profile.EffectiveValidation;
-        var blockingValidationDiagnostics = canonicalValidation.Diagnostics
-            .Where(item => validationPolicy.Categories.TryGetValue(item.Category, out var category) &&
-                           category.RequiredBeforeBuild)
-            .ToArray();
-        if (blockingValidationDiagnostics.Length > 0)
+        var blockingValidationDiagnostics = WorkspaceCanonicalValidationService.BlockingDiagnostics(
+            project, qualityProfileLoad.Profile, canonicalValidation);
+        if (blockingValidationDiagnostics.Count > 0)
         {
             throw new InvalidOperationException(
                 "Canonical validation failed before build: " + string.Join("; ",

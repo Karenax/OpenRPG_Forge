@@ -20,7 +20,7 @@ public sealed record ProjectCompatibilityProfile(
         CurrentSchemaVersion,
         "openrpg-forge:p0-r026",
         "0.1.0",
-        "1.28.0",
+        "1.30.0",
         true,
         true);
 }

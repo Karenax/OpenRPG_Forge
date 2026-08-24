@@ -1,3 +1,4 @@
+using Forge.Domain.WorldFeatures;
 using Forge.RpgKit.Application.Placeables;
 using Forge.RpgKit.Domain.Placeables;
 
@@ -26,6 +27,87 @@ public sealed class PlaceableCompositionEventsRuntimeAdapterTests
         Assert.Equal("hammer", damaged.Payload.Context["weapon"]);
         Assert.Equal("EntityDestroyed", destroyed.Binding);
         Assert.Equal("EntityDestroyed", destroyed.Payload.Name);
+    }
+
+    [Fact]
+    public void Damage_and_destruction_resolve_without_sockets_or_multi_verbs()
+    {
+        var complete = PlaceableSecurityEventsRuntimeAdapterTests.Placeable();
+        var damageEvents = complete.CompositionEvents!.DamageEvents with
+        {
+            DamagedBinding = "PlaceableDamaged",
+            DestroyedBinding = "PlaceableDestroyed",
+        };
+        var placeable = complete with
+        {
+            CompositionEvents = null,
+            CompositionEventsRequiredAtRuntime = false,
+            DamageEvents = damageEvents,
+            DamageEventsRequiredAtRuntime = true,
+        };
+        var adapter = new PlaceableCompositionEventsRuntimeAdapter();
+        var resolution = adapter.ResolveDamageEvents(placeable);
+        var policy = adapter.BuildDamageEvents(resolution.Handle!, placeable);
+        var damaged = adapter.Damage(resolution.Handle!, placeable, "player", 20, "force", 50, 30);
+        var destroyed = adapter.Damage(resolution.Handle!, placeable, "player", 30, "force", 30, 0);
+
+        Assert.True(resolution.Available);
+        Assert.Equal(damageEvents.Id, policy.Id);
+        Assert.Equal("PlaceableDamaged", damaged.Binding);
+        Assert.Equal("DamageApplied", damaged.Payload.Name);
+        Assert.Equal("PlaceableDestroyed", destroyed.Binding);
+        Assert.Equal("EntityDestroyed", destroyed.Payload.Name);
+        Assert.True(adapter.Resolve(placeable).OptionalFallback);
+
+        var absent = placeable with { DamageEvents = null, DamageEventsRequiredAtRuntime = false };
+        Assert.True(adapter.ResolveDamageEvents(absent).OptionalFallback);
+        Assert.Equal("WORLD_PLACEABLE_DAMAGE_EVENTS_REQUIRED_MISSING",
+            adapter.ResolveDamageEvents(absent with { DamageEventsRequiredAtRuntime = true }).DiagnosticCode);
+        Assert.Throws<InvalidOperationException>(() => adapter.BuildDamageEvents(
+            resolution.Handle! with { ProfileId = Guid.NewGuid() }, placeable));
+    }
+
+    [Fact]
+    public void Canonical_damage_authority_supports_direct_composition_and_matching_dual_profiles()
+    {
+        var compositionOnly = PlaceableSecurityEventsRuntimeAdapterTests.Placeable();
+        var dual = compositionOnly with { DamageEvents = compositionOnly.CompositionEvents!.DamageEvents };
+        var adapter = new PlaceableCompositionEventsRuntimeAdapter();
+        var canonical = PlaceableDamageEventsResolver.Resolve(dual);
+        var compositionResolution = adapter.Resolve(dual);
+        var damageResolution = adapter.ResolveDamageEvents(dual);
+        var throughComposition = adapter.Damage(
+            compositionResolution.Handle!, dual, "player", 10, "fire", 20, 10);
+        var throughCanonical = adapter.Damage(
+            damageResolution.Handle!, dual, "player", 10, "fire", 20, 10);
+
+        Assert.True(canonical.Available);
+        Assert.Equal(PlaceableDamageEventsAuthority.DualCanonical, canonical.Authority);
+        Assert.Equal(throughComposition.Binding, throughCanonical.Binding);
+        Assert.Equal(throughComposition.Payload.Provenance, throughCanonical.Payload.Provenance);
+        Assert.Equal(PlaceableDamageEventsAuthority.Composition,
+            PlaceableDamageEventsResolver.Resolve(compositionOnly).Authority);
+        Assert.Equal(PlaceableDamageEventsAuthority.Direct,
+            PlaceableDamageEventsResolver.Resolve(compositionOnly with
+            {
+                CompositionEvents = null,
+                DamageEvents = compositionOnly.CompositionEvents!.DamageEvents,
+            }).Authority);
+
+        var divergent = dual with
+        {
+            DamageEvents = dual.DamageEvents! with { DestroyedBinding = "DifferentDestroyedBinding" },
+        };
+        Assert.Equal(PlaceableDamageEventsResolver.DivergenceDiagnosticCode,
+            adapter.Resolve(divergent).DiagnosticCode);
+        Assert.Equal(PlaceableDamageEventsResolver.DivergenceDiagnosticCode,
+            adapter.ResolveDamageEvents(divergent).DiagnosticCode);
+        Assert.Equal(PlaceableDamageEventsResolver.DivergenceDiagnosticCode,
+            Assert.Throws<InvalidOperationException>(() =>
+                adapter.Build(compositionResolution.Handle!, divergent)).Message);
+        Assert.Equal(PlaceableDamageEventsResolver.DivergenceDiagnosticCode,
+            Assert.Throws<InvalidOperationException>(() =>
+                adapter.BuildDamageEvents(damageResolution.Handle!, divergent)).Message);
     }
 
     [Fact]

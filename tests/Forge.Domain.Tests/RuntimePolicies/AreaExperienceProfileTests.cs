@@ -60,6 +60,26 @@ public sealed class AreaExperienceProfileTests
             [route], Loading(area), "test"));
     }
 
+    [Theory]
+    [InlineData("cue-volume")]
+    [InlineData("scatter-minimum")]
+    [InlineData("scatter-maximum")]
+    [InlineData("scatter-volume")]
+    public void Non_finite_audio_and_scatter_values_are_rejected(string field)
+    {
+        var area = AreaId.From(Guid.NewGuid());
+        var cue = Cue() with { Volume = field == "cue-volume" ? float.NaN : .8f };
+        var emitter = new SpatialScatterEmitter(Guid.NewGuid(), cue.CueId, Vector3Value.Zero,
+            new(20, 4, 20), true, 2026,
+            field == "scatter-minimum" ? float.NaN : 2,
+            field == "scatter-maximum" ? float.PositiveInfinity : 6,
+            field == "scatter-volume" ? float.NegativeInfinity : .8f,
+            true, ["forest"], ["indoors"], "test");
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => new AreaExperienceProfile(area.Value, 1, [cue],
+            [emitter], [], [], Loading(area), "test"));
+    }
+
     internal static AudioCueDefinition Cue() => new(Guid.NewGuid(), "ambient.owl", string.Empty, "Ambience", .8f,
         false, string.Empty, string.Empty, "1.0", "test");
 

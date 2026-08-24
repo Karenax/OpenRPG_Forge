@@ -11,6 +11,31 @@ public sealed class WorkspaceBuildProfileCommandTests
         new(new FixedClock(DateTimeOffset.Parse("2026-08-07T12:00:00Z")));
 
     [Fact]
+    public void Ux0IScriptCachePresetPreservesGovernanceAcrossDryRunApplyUndoRedo()
+    {
+        var history = new WorkspaceBuildProfileCommandHistory();
+        var original = history.State.Profile;
+        var isolated = WithCache(original, ".forge/cache");
+
+        var preview = _handler.Handle(history.State, Command(history.State.Revision, isolated, true));
+        var applied = _handler.Handle(history.State, Command(history.State.Revision, isolated, false));
+        history.Record(applied);
+
+        Assert.True(preview.Succeeded);
+        Assert.Same(original, preview.State.Profile);
+        Assert.Equal(".forge/cache", history.State.Profile.CachePath);
+        Assert.Equal(original.Id, history.State.Profile.Id);
+        Assert.Equal(original.SchemaVersion, history.State.Profile.SchemaVersion);
+        Assert.Same(original.Governance, history.State.Profile.Governance);
+        Assert.Same(original.Collaboration, history.State.Profile.Collaboration);
+        Assert.Same(original.Compatibility, history.State.Profile.Compatibility);
+        Assert.True(history.Undo());
+        Assert.Same(original, history.State.Profile);
+        Assert.True(history.Redo());
+        Assert.Equal(".forge/cache", history.State.Profile.CachePath);
+    }
+
+    [Fact]
     public void UiAndCliCanShareDryRunApplyUndoRedoCanonicalCommand()
     {
         var history = new WorkspaceBuildProfileCommandHistory();
@@ -123,7 +148,7 @@ public sealed class WorkspaceBuildProfileCommandTests
             source.TextDocuments, source.ExplicitGeneratedFiles, source.ReproducibleAssets, layout,
             source.CliOperations, source.StableOrdering, source.NormalizedTimestamps, source.LockedDependencies,
             source.ContentHashes, source.VerifyReproducibility, source.IncrementalBuild, cachePath,
-            source.RebuildAffectedOnly, source.Governance, source.Collaboration);
+            source.RebuildAffectedOnly, source.Governance, source.Collaboration, source.Compatibility);
     }
 
     private static WorkspaceBuildProfile WithGovernance(

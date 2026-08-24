@@ -22,6 +22,12 @@ public sealed class LiveDirectorGovernanceTests
         var command = new LiveVariableService.Request(Guid.NewGuid(), Target, "difficulty", "hard", "raise tension", 0);
         Assert.Equal("LIVE_VARIABLE_PREVIEW", variables.Set(Gm, command, false).Code);
         Assert.True(variables.Set(Gm, command, true).Applied);
+        var persisted = Assert.Single(variables.ExportState());
+        var restored = new LiveVariableService(new(), Journal());
+        restored.Define(new("difficulty", "enum", null, null,
+            new HashSet<string> { "calm", "hard" }));
+        restored.RestoreState([persisted]);
+        Assert.Equal("hard", restored.Read(Target, "difficulty"));
         Assert.Equal("LIVE_VARIABLE_ROLLED_BACK", variables.Rollback(Gm, "scene ended", Guid.NewGuid()));
         Assert.Equal(2, audit.Entries.Count);
         Assert.True(audit.Verify());
@@ -36,7 +42,13 @@ public sealed class LiveDirectorGovernanceTests
         scenes.Save(new(sceneId, "Tempête", ["wolf", "wolf"], "warning", "storm", "rain", ["gate-enter"], ["despawn", "restore-weather"]));
         var command = Guid.NewGuid();
         Assert.Contains("weather=rain", scenes.Run(Gm, sceneId, command, "dramatic beat", 0, false).Diff);
-        Assert.True(scenes.Run(Gm, sceneId, command, "dramatic beat", 0, true).Applied);
+        var applied = scenes.Run(Gm, sceneId, command, "dramatic beat", 0, true);
+        Assert.True(applied.Applied);
+        Assert.Equal(5, applied.AdaptedFacets);
+        var rollback = scenes.Rollback(Gm, Guid.NewGuid(), "scene ended", applied.Revision,
+            true);
+        Assert.True(rollback.Restored);
+        Assert.Equal(0, scenes.ActiveSceneCount);
         Assert.True(audit.Verify());
     }
 
@@ -46,6 +58,11 @@ public sealed class LiveDirectorGovernanceTests
         var service = new LiveVisibilityService(new());
         var view = service.Configure(Gm, "omniscient", null, true, true, true, true);
         Assert.True(view.Secrets);
+        Assert.Equal(4, view.LayerCount);
+        Assert.StartsWith("viewport-overlay:", view.ViewportOverlay);
+        var selected = service.Configure(Gm, "selected-player", Target, false, true, false,
+            true);
+        Assert.True(selected.PlayerProjection);
         Assert.Throws<ArgumentException>(() => service.Configure(Gm, "selected-player", null, false, false, false, false));
     }
 

@@ -1,5 +1,6 @@
 using Forge.Network.Authoring;
 using Forge.Network.Operations;
+using Forge.Network.World;
 
 namespace Forge.Network.Tests;
 
@@ -52,6 +53,8 @@ public sealed class NetworkPlayerExperienceProfileTests
         Assert.True(profile.Combat.CrimeEnabled);
         Assert.True(profile.Combat.SafeZonesEnabled);
         Assert.True(profile.Combat.ServerOverride);
+        Assert.False(profile.Combat.PvpEnabled);
+        Assert.Equal(FriendlyFirePolicy.Disabled, profile.Combat.FriendlyFire);
     }
 
     [Fact]
@@ -62,7 +65,12 @@ public sealed class NetworkPlayerExperienceProfileTests
         {
             ServerRevision = 1,
             Lobby = initial.Lobby with { MaximumSlots = 12 },
-            CharacterBuilder = initial.CharacterBuilder with { ImportAllowed = false }
+            CharacterBuilder = initial.CharacterBuilder with { ImportAllowed = false },
+            Combat = initial.Combat with
+            {
+                PvpEnabled = true,
+                FriendlyFire = FriendlyFirePolicy.PartyOnly
+            }
         };
         var history = new NetworkPlayerExperienceHistory(initial);
         var command = new NetworkPlayerExperienceCommand(Guid.NewGuid(), 1, "test:r121", 0,
@@ -72,7 +80,7 @@ public sealed class NetworkPlayerExperienceProfileTests
         Assert.True(preview.Succeeded);
         Assert.False(preview.Applied);
         Assert.Equal(initial, history.Current);
-        Assert.Equal("lobby,character-builder", preview.SemanticDiff);
+        Assert.Equal("lobby,character-builder,combat", preview.SemanticDiff);
         Assert.True(history.Execute(command with { Apply = true }).Applied);
         Assert.Equal(initial, history.Undo("author:karen", NetworkRole.Administrator).Profile);
         Assert.Equal(candidate, history.Redo("author:karen", NetworkRole.Administrator).Profile);
@@ -80,6 +88,33 @@ public sealed class NetworkPlayerExperienceProfileTests
         var store = new NetworkPlayerExperienceStore();
         var serialized = store.Serialize(candidate);
         Assert.Equal(serialized, store.Serialize(store.Deserialize(serialized)));
+    }
+
+    [Fact]
+    public void R121_EquivalentCollectionValues_DoNotProduceFalseSemanticChanges()
+    {
+        var initial = NetworkPlayerExperienceProfile.CreateDefault();
+        var equivalent = initial with
+        {
+            ServerRevision = 1,
+            CharacterBuilder = initial.CharacterBuilder with
+            {
+                TemplateIds = initial.CharacterBuilder.TemplateIds.ToArray()
+            },
+            CharacterAuthority = initial.CharacterAuthority with
+            {
+                AllowedModes = initial.CharacterAuthority.AllowedModes.ToArray()
+            }
+        };
+        var history = new NetworkPlayerExperienceHistory(initial);
+
+        var preview = history.Execute(new NetworkPlayerExperienceCommand(
+            Guid.NewGuid(), 1, "test:r121-equivalent", 0, "author:karen", NetworkRole.Administrator, false, equivalent));
+
+        Assert.True(preview.Succeeded);
+        Assert.False(preview.Applied);
+        Assert.Equal("revision-only", preview.SemanticDiff);
+        Assert.Equal(initial, history.Current);
     }
 
     [Fact]

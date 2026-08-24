@@ -44,6 +44,8 @@ public sealed record RuntimeLifecycleEvent
 
     public string? ScriptPath { get; }
 
+    public string? ScriptHandler { get; }
+
     public bool ScriptRequired { get; }
 
     public RuntimeLifecycleEvent(
@@ -61,7 +63,8 @@ public sealed record RuntimeLifecycleEvent
         RuntimeAuthority authority,
         string provenance = "runtime-core",
         string? scriptPath = null,
-        bool scriptRequired = false)
+        bool scriptRequired = false,
+        string? scriptHandler = null)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentNullException.ThrowIfNull(projectId);
@@ -93,6 +96,7 @@ public sealed record RuntimeLifecycleEvent
         Authority = authority;
         Provenance = provenance.Trim();
         ScriptPath = string.IsNullOrWhiteSpace(scriptPath) ? null : scriptPath.Trim();
+        ScriptHandler = string.IsNullOrWhiteSpace(scriptHandler) ? null : scriptHandler.Trim();
         ScriptRequired = scriptRequired;
         DocumentPath = kind switch
         {

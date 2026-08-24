@@ -89,11 +89,55 @@ public sealed class AreaExperienceAuthoringProfileTests
         var eventName = "area.r055.alarm";
         var authoring = new AreaAuthoringProfile(1,
             [new(Guid.Parse("a0550000-0000-4000-8000-000000000018"), eventName,
-                "schema://area/alarm/v1", "scripts/alarm.forge", 1, [eventName], true, "test:r055")],
+                "schema://area/alarm/v1", "scripts/alarm.forge", 1, ["OnAreaAlarm"], true, "test:r055",
+                AreaUserEvent.CurrentSchemaVersion,
+                new Dictionary<string, string> { ["level"] = "int", ["source"] = "string" },
+                AreaUserEvent.CurrentForgeScriptApiVersion)],
             new(true, true, "hybrid-2d-3d", 2,
                 [new(Guid.Parse("a0550000-0000-4000-8000-000000000019"), "Shrine", 16, 0, 0, false)],
                 Guid.Parse("a0550000-0000-4000-8000-000000000020"), 1, "test:r055", true, true,
                 AreaMapExplorationScope.Party, 8, "area.map.reveal"), [], experience);
         return new(AreaId, "r055", "R055", [], authoring: authoring);
+    }
+
+    [Fact]
+    public void Ux2LwCTypedAreaEventsValidateSchemaNamespacePayloadAndSubscriptions()
+    {
+        var source = Area();
+        var binding = Assert.Single(source.Authoring.UserEvents);
+
+        Assert.Empty(AreaUserEventValidator.ValidateExecutable(source));
+        Assert.Equal(AreaUserEvent.CurrentSchemaVersion, binding.SchemaVersion);
+        Assert.Equal("int", binding.PayloadFields["level"]);
+
+        var invalid = new AreaUserEvent(binding.Id, "area.other.alarm", "https://area/alarm",
+            "../alarm.forge", 0, ["bad handler"], true, string.Empty, 99,
+            new Dictionary<string, string> { ["Level!"] = "decimal" }, "9.0");
+        var invalidArea = source.WithAuthoring(new(source.Authoring.SchemaVersion, [invalid],
+            source.Authoring.Map, source.Authoring.Layers, source.Authoring.Experience,
+            source.Authoring.RequireLayerRuntimeMetadata));
+        var diagnostics = AreaUserEventValidator.ValidateExecutable(invalidArea);
+
+        Assert.Contains(diagnostics, item => item.Code == AreaUserEventValidator.IdentityInvalidCode);
+        Assert.Contains(diagnostics, item => item.Code == AreaUserEventValidator.SchemaUnsupportedCode);
+        Assert.Contains(diagnostics, item => item.Code == AreaUserEventValidator.NameInvalidCode);
+        Assert.Contains(diagnostics, item => item.Code == AreaUserEventValidator.PayloadSchemaInvalidCode);
+        Assert.Contains(diagnostics, item => item.Code == AreaUserEventValidator.ScriptInvalidCode);
+        Assert.Contains(diagnostics, item => item.Code == AreaUserEventValidator.ApiUnsupportedCode);
+    }
+
+    [Fact]
+    public void Ux2LwCLegacyAreaEventRemainsReadableButCannotBeDispatchedLive()
+    {
+        var source = Area();
+        var current = Assert.Single(source.Authoring.UserEvents);
+        var legacy = new AreaUserEvent(current.Id, current.NamespacedName, current.PayloadSchema,
+            current.ScriptPath, current.ApiVersion, ["main"], false, "migration:1.9");
+        var area = source.WithAuthoring(new(source.Authoring.SchemaVersion, [legacy], source.Authoring.Map,
+            source.Authoring.Layers, source.Authoring.Experience, source.Authoring.RequireLayerRuntimeMetadata));
+
+        Assert.Empty(AreaUserEventValidator.Validate(area));
+        Assert.Contains(AreaUserEventValidator.ValidateExecutable(area),
+            item => item.Code == AreaUserEventValidator.SchemaUpgradeRequiredCode);
     }
 }

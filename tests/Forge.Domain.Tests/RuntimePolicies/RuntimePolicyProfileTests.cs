@@ -57,6 +57,51 @@ public sealed class RuntimePolicyProfileTests
             PartyRestPolicy.Individual, 8, [binding], "test"));
     }
 
+    [Fact]
+    public void Ux0GHeartbeatAndRestBindingsRequireSafeRelativeScriptsWhenMarkedRequired()
+    {
+        var schedule = new HeartbeatScheduleDefinition(Guid.NewGuid(), 1, "World simulation",
+            HeartbeatScope.Module, true, 1_500, 25, true, "1.0", "main", "test:ux0-g",
+            "scripts/world-simulation.forge", true);
+        Assert.Equal("scripts/world-simulation.forge", schedule.ScriptPath);
+        Assert.True(schedule.RequiredAtRuntime);
+        Assert.Throws<ArgumentOutOfRangeException>(() => new HeartbeatScheduleDefinition(Guid.NewGuid(), 1,
+            "Unsafe", HeartbeatScope.Module, true, 1_000, 20, true, "1.0", "main", "test:ux0-g",
+            "../outside.forge", true));
+
+        var defaults = ModuleRuntimePolicyProfile.CreateDefault(ModuleId.From(Guid.NewGuid()));
+        var requiredWithoutScript = defaults.Rest.Bindings.Select(binding => binding.EventName == "rest.completed"
+            ? binding with { RequiredAtRuntime = true }
+            : binding).ToArray();
+        Assert.Throws<ArgumentException>(() => new RestLifecycleProfile(defaults.Rest.Id, 1, true,
+            PartyRestPolicy.WholeParty, 12, requiredWithoutScript, "test:ux0-g"));
+    }
+
+    [Fact]
+    public void Ux0HSequenceAbortBindingRequiresASafeServerScriptWhenMarkedRequired()
+    {
+        var source = ModuleRuntimePolicyProfile.CreateDefault(ModuleId.From(Guid.NewGuid())).SequenceAbort;
+        var validBinding = source.Binding with
+        {
+            Handler = "main",
+            ScriptPath = "scripts/sequence-abort.forge",
+            RequiredAtRuntime = true,
+            Provenance = "test:ux0-h",
+        };
+
+        var valid = new SequenceAbortPolicy(source.Id, source.SchemaVersion, true, validBinding,
+            SequenceAbortRestoreFlags.All, 32, "test:ux0-h");
+
+        Assert.Equal("scripts/sequence-abort.forge", valid.Binding.ScriptPath);
+        Assert.True(valid.Binding.RequiredAtRuntime);
+        Assert.Throws<ArgumentOutOfRangeException>(() => new SequenceAbortPolicy(source.Id,
+            source.SchemaVersion, true, validBinding with { ScriptPath = "../outside.forge" },
+            SequenceAbortRestoreFlags.All, 32, "test:ux0-h"));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new SequenceAbortPolicy(source.Id,
+            source.SchemaVersion, true, validBinding with { ScriptPath = null },
+            SequenceAbortRestoreFlags.All, 32, "test:ux0-h"));
+    }
+
     private static HeartbeatScheduleDefinition Schedule(string name, HeartbeatScope scope) =>
         new(Guid.NewGuid(), 1, name, scope, true, 1_000, 10, true, "1.0", "OnHeartbeat", "test");
 }

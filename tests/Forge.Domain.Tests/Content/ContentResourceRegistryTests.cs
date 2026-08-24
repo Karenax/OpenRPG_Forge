@@ -13,7 +13,7 @@ public sealed class ContentResourceRegistryTests
             "data/warden.json", ContentSourceKind.Json, true, "CC0-1.0", new string('a', 64), 1024,
             ["legacy.core:text/warden"], []);
         var texture = new ContentPackageAsset(textureId, 1, "test:r017", "portraits/warden",
-            "textures/warden.ktx2", true, "CC0-1.0", new string('b', 64), 4096, [],
+            "textures/warden.jpg", true, "CC0-1.0", new string('b', 64), 4096, [],
             ["crypt.core:text/creatures/warden"]);
         var catalog = Catalog([source], [texture]);
 

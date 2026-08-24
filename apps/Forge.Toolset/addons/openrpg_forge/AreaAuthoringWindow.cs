@@ -163,8 +163,10 @@ public partial class AreaAuthoringWindow : Window
             AreaMapExplorationScope.Party, 8, "area.map.reveal");
         _draft = new(AreaAuthoringProfile.CurrentSchemaVersion,
             [new(Guid.Parse("a0551000-0000-4000-8000-000000000010"), eventName,
-                "schema://area/alarm/v1", "scripts/area_alarm.forge", 1,
-                [eventName, $"area.{area.Slug}.alarm.after"], true, "author:r055-smoke")],
+                "schema://area/alarm/v1", "scripts/ash_warden_death.forge", 1,
+                ["main"], true, "author:r055-smoke", AreaUserEvent.CurrentSchemaVersion,
+                new Dictionary<string, string> { ["level"] = "int" },
+                AreaUserEvent.CurrentForgeScriptApiVersion)],
             map, area.Authoring.Layers, experience);
         Populate(_draft);
         _status!.Text = "✓ R055 prêt · aperçu 2D/3D, cellules, portails, occluder et LOD mesurable";
@@ -238,7 +240,7 @@ public partial class AreaAuthoringWindow : Window
         events.AddChild(Labeled("Schéma de payload", _eventSchema));
         _eventScript = Field("scripts/area_event.forge");
         events.AddChild(Labeled("Script ForgeScript", _eventScript));
-        _eventSubscriptions = Field("area.zone.alarme, area.zone.alarme.after");
+        _eventSubscriptions = Field("main");
         events.AddChild(Labeled("Abonnements", _eventSubscriptions));
         var addEvent = new Button { Text = "+ Ajouter l'événement" };
         addEvent.Pressed += AddEvent;
@@ -441,7 +443,9 @@ public partial class AreaAuthoringWindow : Window
         try
         {
             var item = new AreaUserEvent(Guid.NewGuid(), _eventName!.Text, _eventSchema!.Text, _eventScript!.Text, 1,
-                Split(_eventSubscriptions!.Text), true, "author:toolset");
+                Split(_eventSubscriptions!.Text), true, "author:toolset", AreaUserEvent.CurrentSchemaVersion,
+                new Dictionary<string, string> { ["payload"] = "string" },
+                AreaUserEvent.CurrentForgeScriptApiVersion);
             _draft = new(1, [.. _draft.UserEvents, item], _draft.Map, _draft.Layers, _draft.Experience);
             Populate(_draft);
         }

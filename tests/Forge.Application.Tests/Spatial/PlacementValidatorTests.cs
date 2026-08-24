@@ -40,7 +40,8 @@ public sealed class PlacementValidatorTests
 
         Assert.False(result.IsValid);
         Assert.Equal(PlacementValidator.OccupiedCode, result.Code);
-        Assert.Contains(context.EntityId.ToString()[..8], result.Message);
+        Assert.StartsWith("Cette cellule est déjà occupée.", result.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain(context.EntityId.ToString()[..8], result.Message, StringComparison.Ordinal);
     }
 
     [Fact]

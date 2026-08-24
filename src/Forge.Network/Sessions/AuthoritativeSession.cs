@@ -53,6 +53,13 @@ public sealed class AuthoritativeSession
         return Accept("NET_CHARACTER_SELECTED", connectionId);
     }
 
+    public AuthorityDecision Disconnect(Guid connectionId)
+    {
+        if (!_members.Remove(connectionId)) return Reject("NET_CONNECTION_UNKNOWN", connectionId);
+        _revision++;
+        return Accept("NET_DISCONNECTED", connectionId);
+    }
+
     private AuthorityDecision Accept(string code, Guid connectionId) => new(true, code, _revision, Snapshot, $"accepted:{code}:connection={connectionId}:revision={_revision}");
     private AuthorityDecision Reject(string code, Guid connectionId) => new(false, code, _revision, Snapshot, $"rejected:{code}:connection={connectionId}:revision={_revision}");
 }

@@ -109,6 +109,7 @@ public sealed class NewModuleHandler
                         foundationId, command.ProjectId, moduleSlug, command.AreaId,
                         command.PlayerSpawnEntityId, packageNamespace).PlayerStarts[0] with
                     {
+                        OrientationDegrees = command.PlayerOrientationDegrees,
                         GameMode = command.GameMode,
                         EntryClass = command.EntryClass,
                         PlayerSelectionRule = command.PlayerSelectionRule,
@@ -123,17 +124,19 @@ public sealed class NewModuleHandler
                 RenderPreset = command.RenderPreset,
                 NetworkMode = command.NetworkMode,
             };
+        var localizedMetadata = command.Metadata?.Localizations ??
+        [new ProjectLocalizedMetadata("fr", command.Title.Trim(), command.ModuleDescription.Trim(),
+            command.ModuleDescription.Trim(), string.Empty)];
         var metadata = new ProjectMetadata(
             ProjectMetadataId.From(command.ModuleId.Value),
-            "fr",
-            [new ProjectLocalizedMetadata("fr", command.Title.Trim(), command.ModuleDescription.Trim(),
-                command.ModuleDescription.Trim(), string.Empty)],
-            "Non renseigné",
-            "0.1.0",
-            "UNLICENSED",
-            null,
-            [],
-            "Non classé",
+            command.Metadata?.DefaultLocale ?? "fr",
+            localizedMetadata,
+            command.Metadata?.Author ?? "Non renseigné",
+            command.Metadata?.Version ?? "0.1.0",
+            command.Metadata?.License ?? "UNLICENSED",
+            command.Metadata?.ImagePath,
+            command.Metadata?.Tags ?? [],
+            command.Metadata?.Classification ?? "Non classé",
             "openrpg-forge:project-wizard",
             foundation: foundation);
         var module = new ModuleDefinition(

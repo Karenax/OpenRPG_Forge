@@ -44,6 +44,30 @@ public sealed class LiveDirectorControlTests
         Assert.Contains("possessed-by", applied.Target!.State);
         advance(TimeSpan.FromMinutes(6));
         Assert.Equal("LIVE_POSSESSION_RETURNED:crypt-entry", service.ReleaseExpiredPossession(ActorId));
+        Assert.Equal("active", service.Execute(gm,
+            Request("director.inspect", 2, TimeSpan.Zero,
+                new Dictionary<string, string>()), true).Target!.State);
+    }
+
+    [Fact]
+    public void Possession_can_be_previewed_and_released_to_the_preserved_identity()
+    {
+        var (service, chooser, gm, _) = Create();
+        var request = Request("director.possess", 0, TimeSpan.FromMinutes(5),
+            new Dictionary<string, string>
+            {
+                ["returnPoint"] = "crypt-entry",
+                ["inputContext"] = "director"
+            });
+
+        Assert.True(service.Execute(gm, request, true).Applied);
+        Assert.Equal("LIVE_POSSESSION_RELEASE_PREVIEW",
+            service.ReleasePossession(gm, false).Code);
+        var released = service.ReleasePossession(gm, true);
+
+        Assert.Equal("LIVE_POSSESSION_RETURNED", released.Code);
+        Assert.Equal("active", chooser.Find(TargetId)!.State);
+        Assert.Equal("Gardien", chooser.Find(TargetId)!.Name);
     }
 
     [Fact]

@@ -7,6 +7,7 @@ using Forge.Domain.Dialogues;
 using Forge.Domain.Projects;
 using Forge.Domain.Quality;
 using Forge.Domain.Validation;
+using Forge.RpgKit.Domain.Doors;
 
 namespace Forge.ModuleFormat.Quality;
 
@@ -39,6 +40,7 @@ public static class WorkspaceCanonicalValidationService
     public const string RuntimePolicyMissingCode = "qa.validation.runtime_policy_missing";
     public const string AreaLifecycleScriptMissingCode = "area.foundation.lifecycle_script_missing";
     public const string PortalHookScriptMissingCode = "area.portal.hook_script_missing";
+    public const string AreaUserEventScriptMissingCode = "area.user_event.script_missing";
 
     public static WorkspaceCanonicalValidationReport Run(
         string workspaceRoot,
@@ -53,6 +55,11 @@ public static class WorkspaceCanonicalValidationService
         var diagnostics = new List<(string Category, DomainDiagnostic Diagnostic)>();
         diagnostics.AddRange(QualityFoundationProfileValidator.Validate(profile)
             .Select(item => ("schemas", item)));
+        diagnostics.AddRange(project.Module.WorldFeatures.Doors
+            .Where(item => (item.Validation is not null || item.ValidationRequiredAtRuntime) &&
+                           (policy.References.Enabled || item.ValidationRequiredAtRuntime))
+            .SelectMany(item => DoorWorldValidationService.Validate(project, item.Id).Diagnostics)
+            .Select(item => ("references", new DomainDiagnostic(item.Code, item.Message, item.Path))));
 
         if (policy.Schemas.Enabled)
         {
@@ -111,6 +118,27 @@ public static class WorkspaceCanonicalValidationService
             "openrpg-forge:qa-r027", policy.Id, passed, fingerprint, categoryCounts, structured);
     }
 
+    public static IReadOnlyList<CanonicalValidationDiagnostic> BlockingDiagnostics(
+        ProjectDefinition project,
+        QualityFoundationProfile profile,
+        WorkspaceCanonicalValidationReport report)
+    {
+        ArgumentNullException.ThrowIfNull(project);
+        ArgumentNullException.ThrowIfNull(profile);
+        ArgumentNullException.ThrowIfNull(report);
+        var policy = profile.EffectiveValidation;
+        var requiredDoorDiagnostics = project.Module.WorldFeatures.Doors
+            .Where(item => item.ValidationRequiredAtRuntime)
+            .SelectMany(item => DoorWorldValidationService.Validate(project, item.Id).Diagnostics)
+            .Select(item => (item.Code, item.Path))
+            .ToHashSet();
+        return report.Diagnostics.Where(item =>
+                (policy.Categories.TryGetValue(item.Category, out var category) &&
+                 category.RequiredBeforeBuild) ||
+                requiredDoorDiagnostics.Contains((item.Code, item.Path)))
+            .ToArray();
+    }
+
     public static IReadOnlyList<DomainDiagnostic> ValidateRuntimePolicy(
         QualityFoundationProfile? profile, bool required)
     {
@@ -162,6 +190,15 @@ public static class WorkspaceCanonicalValidationService
     {
         var diagnostics = AreaFoundationValidator.Validate(area, area.Foundation).ToList();
         diagnostics.AddRange(AreaPlaytestProfileValidator.Validate(project, area, area.Playtest));
+        diagnostics.AddRange(AreaUserEventValidator.ValidateExecutable(area));
+        foreach (var binding in area.Authoring.UserEvents.Where(item => item.Required))
+        {
+            var relative = binding.ScriptPath.Replace('/', Path.DirectorySeparatorChar);
+            if (!File.Exists(Path.Combine(root, relative)))
+                diagnostics.Add(new(AreaUserEventScriptMissingCode,
+                    $"Required area user-event script '{binding.ScriptPath}' does not exist.",
+                    $"areas/{area.Id}/authoring/userEvents/{binding.Id:D}/scriptPath"));
+        }
         foreach (var binding in new[] { area.Foundation.Lifecycle.Entered, area.Foundation.Lifecycle.Exited })
         {
             if (binding is null || !binding.Required || string.IsNullOrWhiteSpace(binding.ScriptPath)) continue;

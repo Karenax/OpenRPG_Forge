@@ -75,6 +75,35 @@ public sealed class ManipulateEntitiesHandlerTests
         Assert.Same(state, stale.State);
     }
 
+    [Fact]
+    public void LocalRotationAndTranslationUseTheActiveObjectFrame()
+    {
+        var state = Initial();
+        var rotated = _handler.Handle(
+            state,
+            Command(state.Revision, EditorTransformTool.Rotate, new Vector3Value(0, 90, 0)) with
+            {
+                PivotMode = EditorPivotMode.Individual,
+                RotationSnapDegrees = 15,
+            });
+        var translated = _handler.Handle(
+            rotated.State,
+            Command(rotated.State.Revision, EditorTransformTool.Translate, new Vector3Value(1, 0, 0)) with
+            {
+                CoordinateSpace = EditorCoordinateSpace.Local,
+                PivotMode = EditorPivotMode.ActiveObject,
+            });
+
+        Assert.True(rotated.Succeeded);
+        Assert.True(translated.Succeeded);
+        Assert.All(translated.State.Project.Areas[0].Entities, entity =>
+        {
+            var original = state.Project.Areas[0].Entities.Single(source => source.Id == entity.Id);
+            Assert.NotEqual(original.Transform.Position.X + 1, entity.Transform.Position.X);
+            Assert.NotEqual(original.Transform.Position.Z, entity.Transform.Position.Z);
+        });
+    }
+
     private static ManipulateEntitiesCommand Command(ProjectRevision revision, EditorTransformTool tool, Vector3Value value) => new(
         CommandId.From(Guid.NewGuid()), ManipulateEntitiesHandler.CurrentSchemaVersion, "direct-manipulation-test",
         revision, AreaId, [FirstId, SecondId], tool, value, EditorCoordinateSpace.World,

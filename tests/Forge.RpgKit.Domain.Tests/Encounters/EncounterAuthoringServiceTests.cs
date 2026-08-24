@@ -59,6 +59,36 @@ public sealed class EncounterAuthoringServiceTests
         Assert.Equal(4, candidate.MaximumAlive);
     }
 
+    [Fact]
+    public void Preview_rejects_non_finite_values_and_unknown_roles_or_difficulty()
+    {
+        var creatureId = Guid.NewGuid();
+        var source = Request(creatureId);
+        var request = source with
+        {
+            PrimaryRole = (EncounterRole)999,
+            Candidates = [source.Candidates[0] with
+            {
+                Role = (EncounterRole)999,
+                Weight = double.NaN,
+            }],
+            Volume = source.Volume with { ThreatRadius = double.PositiveInfinity },
+            DifficultyProfile = source.DifficultyProfile with
+            {
+                Difficulty = (EncounterDifficulty)999,
+                BaseBudget = double.NaN,
+            },
+        };
+
+        var preview = EncounterAuthoringService.Preview(request, Context(creatureId));
+
+        Assert.False(preview.CanApply);
+        Assert.Contains(preview.Diagnostics, item => item.Code == "RPG_ENCOUNTER_ROLE_INVALID");
+        Assert.Contains(preview.Diagnostics, item => item.Code == "RPG_ENCOUNTER_CANDIDATE_INVALID");
+        Assert.Contains(preview.Diagnostics, item => item.Code == "RPG_ENCOUNTER_VOLUME_INVALID");
+        Assert.Contains(preview.Diagnostics, item => item.Code == "RPG_ENCOUNTER_BUDGET_INVALID");
+    }
+
     private static EncounterWizardRequest Request(Guid creatureId)
     {
         var shape = new TriggerShape(TriggerShapeKind.ExtrudedPolygon, [new(0, 0, 0), new(8, 0, 0), new(8, 0, 8), new(0, 0, 8)], [], new(0, 0, 0), 4, 0.5);

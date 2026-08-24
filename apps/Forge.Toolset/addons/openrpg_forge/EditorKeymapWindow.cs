@@ -290,7 +290,7 @@ public partial class EditorKeymapWindow : Window
         var diagnostics = EditorKeymapProfileValidator.Validate(_draft);
         if (diagnostics.Count == 0)
         {
-            _diagnostics!.Text = "[color=#79d5ad]✓ Profil valide[/color]\n\n13 commandes accessibles au clavier, sans conflit.";
+            _diagnostics!.Text = $"[color=#79d5ad]✓ Profil valide[/color]\n\n{EditorKeymapCatalog.Commands.Count} commandes accessibles au clavier, sans conflit.";
             _previewButton!.Disabled = false;
         }
         else

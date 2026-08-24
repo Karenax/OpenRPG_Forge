@@ -6,11 +6,18 @@
         "type": "Project",
         "dependencies": {
           "Forge.Domain": "[1.0.0, )",
+          "Forge.RpgKit.Domain": "[1.0.0, )",
           "Forge.Scripting": "[1.0.0, )"
         }
       },
       "forge.domain": {
         "type": "Project"
+      },
+      "forge.livedirector": {
+        "type": "Project",
+        "dependencies": {
+          "Forge.Network": "[1.0.0, )"
+        }
       },
       "forge.network": {
         "type": "Project",

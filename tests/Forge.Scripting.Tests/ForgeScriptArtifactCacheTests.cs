@@ -28,17 +28,20 @@ public sealed class ForgeScriptArtifactCacheTests : IDisposable
     }
 
     [Fact]
-    public void SourceAndCompilerVersionInvalidateIndependently()
+    public void Ux0ISourceApiAndCompilerVersionsInvalidateIndependently()
     {
         var runtime = new CountingRuntime();
         var cache = new ForgeScriptArtifactCache(runtime, _cacheRoot);
         var first = cache.Compile("void main() {}");
         var changedSource = cache.Compile("void main() { say(\"changed\"); }");
+        runtime.ApiVersion = "1.1.0";
+        var changedApi = cache.Compile("void main() {}");
         runtime.CompilerVersion = "2.39.0";
         var changedCompiler = cache.Compile("void main() {}");
 
-        Assert.Equal(3, runtime.CompileCount);
-        Assert.Equal(3, new[] { first.CacheKey, changedSource.CacheKey, changedCompiler.CacheKey }.Distinct().Count());
+        Assert.Equal(4, runtime.CompileCount);
+        Assert.Equal(4, new[] { first.CacheKey, changedSource.CacheKey, changedApi.CacheKey, changedCompiler.CacheKey }
+            .Distinct().Count());
     }
 
     [Fact]
@@ -94,7 +97,7 @@ public sealed class ForgeScriptArtifactCacheTests : IDisposable
 
         public string VirtualMachineVersion => CompilerVersion;
 
-        public string ApiVersion => "1.0.0";
+        public string ApiVersion { get; set; } = "1.0.0";
 
         public ForgeScriptCompileResult Compile(string source)
         {

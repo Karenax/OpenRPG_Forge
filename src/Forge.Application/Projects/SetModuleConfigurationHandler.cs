@@ -11,6 +11,7 @@ public sealed class SetModuleConfigurationHandler
     public const string RevisionConflictCode = "command.revision_conflict";
     public const string DuplicateVariableIdCode = "project.variable.id_duplicate";
     public const string DuplicateVariableKeyCode = "project.variable.key_duplicate";
+    public const string TitleRequiredCode = "module.title_required";
 
     private const string CommandName = "set_module_configuration";
     private readonly IClock _clock;
@@ -36,11 +37,17 @@ public sealed class SetModuleConfigurationHandler
                 $"{variableDiagnostic.Message} Path: {variableDiagnostic.Path}.");
 
         var module = state.Project.Module;
+        var projectTitle = command.ProjectTitle?.Trim() ?? state.Project.Title;
+        var moduleDisplayName = command.ModuleDisplayName?.Trim() ?? module.DisplayName;
+        var moduleDescription = command.ModuleDescription?.Trim() ?? module.Description;
+        if (string.IsNullOrWhiteSpace(projectTitle) || string.IsNullOrWhiteSpace(moduleDisplayName))
+            return Failure(state, command, TitleRequiredCode,
+                "Project and module display names are required.");
         var updatedModule = new ModuleDefinition(
             module.Id,
             module.Slug,
-            module.DisplayName,
-            module.Description,
+            moduleDisplayName,
+            moduleDescription,
             module.EntryAreaId,
             command.Metadata,
             command.Variables,
@@ -53,7 +60,7 @@ public sealed class SetModuleConfigurationHandler
             module.WorldFeatures);
         var updatedProject = new ProjectDefinition(
             state.Project.Id,
-            state.Project.Title,
+            projectTitle,
             updatedModule,
             state.Project.Blueprints,
             state.Project.Areas,
@@ -68,7 +75,7 @@ public sealed class SetModuleConfigurationHandler
         var patch = new ProjectPatch(
             "replace",
             "module/configuration",
-            $"Update {command.Metadata.Localizations.Count} localization(s) and " +
+            $"Update project title, {command.Metadata.Localizations.Count} localization(s) and " +
             $"{command.Variables.Count} typed project variable(s).");
         var inverse = new ProjectPatch(
             "replace",

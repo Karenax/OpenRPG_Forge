@@ -49,6 +49,23 @@ public sealed class AuthoritativeSessionTests
     }
 
     [Fact]
+    public void Disconnect_removes_the_member_advances_revision_and_is_audited()
+    {
+        var connection = Guid.NewGuid();
+        var session = new AuthoritativeSession(Configuration());
+        Assert.True(session.Connect(connection, Identity("Elyra"), "crypt-v1", "1.0").Accepted);
+
+        var disconnected = session.Disconnect(connection);
+
+        Assert.True(disconnected.Accepted);
+        Assert.Equal("NET_DISCONNECTED", disconnected.Code);
+        Assert.Equal(2, disconnected.Revision);
+        Assert.Empty(disconnected.Snapshot.Members);
+        Assert.Contains("accepted:NET_DISCONNECTED", disconnected.AuditEntry, StringComparison.Ordinal);
+        Assert.Equal("NET_CONNECTION_UNKNOWN", session.Disconnect(connection).Code);
+    }
+
+    [Fact]
     public void Invalid_configuration_has_localized_stable_diagnostics()
     {
         var diagnostics = NetworkValidation.Validate(Configuration() with { Port = 80, Capacity = 0 });

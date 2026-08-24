@@ -22,7 +22,7 @@ public sealed class SetRuntimeExtensionsHandler
         var current = state.Project.Module.RuntimePolicies;
         var policies = new ModuleRuntimePolicyProfile(current.Id, current.SchemaVersion, current.Heartbeats,
             current.Rest, current.SequenceAbort, "runtime-extension-command", current.Cinematics, current.Gameplay,
-            current.Rules, command.Profile, current.GameplayEvents, current.World);
+            current.Rules, command.Profile, current.GameplayEvents, current.World, current.LifecycleEvents);
         var project = new ProjectDefinition(state.Project.Id, state.Project.Title,
             state.Project.Module.WithRuntimePolicies(policies), state.Project.Blueprints, state.Project.Areas,
             state.Project.Dialogues, state.Project.Quests);

@@ -341,7 +341,7 @@ internal sealed partial class RuntimeCombatFeedbackLayer : CanvasLayer
                 continue;
             }
 
-            if (widget.Target is not null && GodotObject.IsInstanceValid(widget.Target) &&
+            if (!_policy.ReducedMotion && widget.Target is not null && GodotObject.IsInstanceValid(widget.Target) &&
                 TryProject(widget.Target.GlobalPosition + Vector3.Up * widget.AnchorHeight,
                     out var projected, checkOcclusion: false))
                 widget.LastScreenPosition = projected;

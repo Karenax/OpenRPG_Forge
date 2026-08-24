@@ -529,6 +529,87 @@ public sealed class ForgeProjectAgentServiceTests
     }
 
     [Fact]
+    public void Ux1Aj_DoorValidationContextIsProjectedAndMcpPreviewCannotBypassCanonicalValidation()
+    {
+        using var workspace = new TestWorkspace(project =>
+        {
+            var source = CryptWorldFeatureAuthoringService.Create(project);
+            var door = source.Doors.Single();
+            var foundation = door.Foundation!;
+            var access = door.AccessEvents!;
+            var validation = new DoorWorldProfile.RuntimeValidationPolicy(
+                foundation.Portal is null ? [] : [foundation.Portal.DestinationId],
+                foundation.States.Select(item => item.AnimationId).Append(access.Rejection.AnimationId).ToArray(),
+                ["collision:crypt-door"],
+                access.Lock.CredentialIds,
+                door.Events.Select(item => item.ScriptId).Append(access.Rejection.ScriptId).ToArray());
+            var configuredDoor = door with
+            {
+                Validation = validation,
+                ValidationRequiredAtRuntime = true,
+            };
+            var catalog = WithDoors(source, [configuredDoor]);
+            return new ProjectDefinition(project.Id, project.Title, project.Module.WithWorldFeatures(catalog),
+                project.Blueprints, project.Areas, project.Dialogues, project.Quests);
+        });
+        var canonical = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
+        var door = canonical.Module.WorldFeatures.Doors.Single();
+
+        var resource = workspace.Project.QueryWorldFeatures("door", door.Id.ToString("D"), 1);
+        var invalidDoor = door with { Validation = new([], [], [], [], []) };
+        var invalidCatalog = WithDoors(canonical.Module.WorldFeatures, [invalidDoor]);
+        var planned = workspace.Project.PreviewWorldFeatures(new WorldFeaturePlanRequest(1, 0, invalidCatalog));
+        var mixedCatalog = new WorldFeatureCatalog(Guid.Parse("a0290000-0000-4000-8000-000000000099"),
+            invalidCatalog.SchemaVersion, invalidCatalog.Provenance, invalidCatalog.Placeables, invalidCatalog.Doors,
+            invalidCatalog.Triggers, invalidCatalog.Encounters, invalidCatalog.VehicleRoutes, invalidCatalog.Merchants,
+            invalidCatalog.Companions, invalidCatalog.Scripts);
+        var mixed = workspace.Project.PreviewWorldFeatures(new WorldFeaturePlanRequest(1, 0, mixedCatalog));
+        var missingDoorBlueprint = invalidDoor with
+        {
+            BlueprintId = BlueprintId.From(Guid.Parse("a0290000-0000-4000-8000-000000000097")),
+        };
+        var trigger = Assert.Single(invalidCatalog.Triggers);
+        var missingTriggerBlueprint = trigger with
+        {
+            BlueprintId = BlueprintId.From(Guid.Parse("a0290000-0000-4000-8000-000000000098")),
+        };
+        var sameCodeCatalog = new WorldFeatureCatalog(invalidCatalog.Id, invalidCatalog.SchemaVersion,
+            invalidCatalog.Provenance, invalidCatalog.Placeables, [missingDoorBlueprint], [missingTriggerBlueprint],
+            invalidCatalog.Encounters, invalidCatalog.VehicleRoutes, invalidCatalog.Merchants,
+            invalidCatalog.Companions, invalidCatalog.Scripts);
+        var sameCode = workspace.Project.PreviewWorldFeatures(new WorldFeaturePlanRequest(1, 0, sameCodeCatalog));
+
+        var item = Assert.Single(resource.Items);
+        Assert.Equal("True", item.Properties["validation"]);
+        Assert.Equal("True", item.Properties["validationRequiredAtRuntime"]);
+        Assert.Contains("animation:open", item.Properties["knownAnimations"], StringComparison.Ordinal);
+        Assert.Equal("collision:crypt-door", item.Properties["knownCollisionProfiles"]);
+        Assert.Equal("collision:crypt-door", item.Properties["requiredCollisionProfile"]);
+        Assert.Contains("key:ember", item.Properties["knownCredentials"], StringComparison.Ordinal);
+        Assert.Contains("scripts/door_open_rejected", item.Properties["knownScripts"], StringComparison.Ordinal);
+        Assert.False(planned.Succeeded);
+        Assert.Contains(planned.Diagnostics, diagnostic => diagnostic.Code == "RPG_DOOR_ANIMATION_MISSING" &&
+            diagnostic.Path is { } path &&
+            path.EndsWith("/foundation/states", StringComparison.Ordinal));
+        Assert.Contains(planned.Diagnostics,
+            diagnostic => diagnostic.Code == "RPG_DOOR_COLLISION_PROFILE_MISMATCH" &&
+                          diagnostic.Path?.EndsWith("/foundation/overrides/collision.profile",
+                              StringComparison.Ordinal) == true);
+        Assert.Contains(planned.Diagnostics, diagnostic => diagnostic.Code == "RPG_DOOR_SCRIPT_MISSING");
+        Assert.Contains(mixed.Diagnostics, diagnostic => diagnostic.Code == "RPG_DOOR_ANIMATION_MISSING");
+        Assert.Contains(mixed.Diagnostics, diagnostic => diagnostic.Code == "world.catalog.id_mismatch");
+        Assert.Equal(2, sameCode.Diagnostics.Count(diagnostic =>
+            diagnostic.Code == "world.reference.blueprint_missing"));
+        Assert.Contains(sameCode.Diagnostics, diagnostic =>
+            diagnostic.Code == "world.reference.blueprint_missing" &&
+            diagnostic.Path?.Contains("/doors/", StringComparison.Ordinal) == true);
+        Assert.Contains(sameCode.Diagnostics, diagnostic =>
+            diagnostic.Code == "world.reference.blueprint_missing" &&
+            diagnostic.Path?.Contains("/triggers/", StringComparison.Ordinal) == true);
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
+    }
+
+    [Fact]
     public void R083_Encounter_composition_resource_is_filtered_searchable_and_plan_remains_dry_run()
     {
         using var workspace = new TestWorkspace(project =>
@@ -767,10 +848,34 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.Equal("True", item.Properties["foundation"]);
         Assert.Equal("interactable", item.Properties["role"]);
         Assert.Equal("assets/placeables/crypt-pillar.glb", item.Properties["asset"]);
+        Assert.Equal("crypt-pillar", item.Properties["slug"]);
+        Assert.Equal("en-US:Ash pillar;fr-FR:Pilier des cendres", item.Properties["localizedNames"]);
+        Assert.Equal("architecture,ash,crypt", item.Properties["tags"]);
+        Assert.Equal("Pilier interactif de la crypte.", item.Properties["authorNotes"]);
+        Assert.Equal("mesh:crypt-pillar", item.Properties["meshes"]);
+        Assert.Equal("material:ash-stone", item.Properties["materials"]);
+        Assert.Equal("assets/icons/crypt-pillar.png", item.Properties["icon"]);
+        Assert.Equal("assets/portraits/crypt-pillar.png", item.Properties["portrait"]);
+        Assert.Equal("vfx:ember-glow", item.Properties["visualEffects"]);
+        Assert.Equal("1.25,0,-2.5", item.Properties["position"]);
+        Assert.Equal("0,45,0", item.Properties["rotationDegrees"]);
+        Assert.Equal("1,1,1", item.Properties["scale"]);
+        Assert.Equal("0,0.5,0", item.Properties["pivot"]);
+        Assert.Equal("0.25", item.Properties["snapIncrement"]);
+        Assert.Equal(string.Empty, item.Properties["parent"]);
+        Assert.Equal("True", item.Properties["alignToSurface"]);
+        Assert.Equal("animation:crypt-pillar-rise", item.Properties["transformAnimation"]);
         Assert.Equal("True", item.Properties["onUsed"]);
         Assert.Equal("1.0.0", item.Properties["forgeScriptApi"]);
+        Assert.Equal("InteractionExecuted", item.Properties["onUsedBinding"]);
         Assert.Equal("True", item.Properties["validation"]);
         Assert.Equal("True", item.Properties["requiredAtRuntime"]);
+        Assert.Equal("key:ember", item.Properties["credentialId"]);
+        Assert.Equal("Charge", item.Properties["credentialMode"]);
+        Assert.Equal("3", item.Properties["credentialCharges"]);
+        Assert.Equal(string.Empty, item.Properties["credentialVirtualPermission"]);
+        Assert.Equal("True", item.Properties["credentialAudit"]);
+        Assert.Equal("False", item.Properties["credentialRequiredAtRuntime"]);
         Assert.Equal("True", item.Properties["operations"]);
         Assert.Equal("slots:24;mass:160;owner:party;persistent:True;replicated:True",
             item.Properties["container"]);
@@ -781,27 +886,99 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.Equal("closed", item.Properties["initialVisualState"]);
         Assert.Equal("active,broken,closed,custom,idle,open", item.Properties["visualStates"]);
         Assert.Equal("3", item.Properties["visualTransitions"]);
+        Assert.Equal(
+            "active=animation:active,broken=animation:broken,closed=animation:closed,custom=animation:custom,idle=animation:idle,open=animation:open",
+            item.Properties["visualStateAnimations"]);
+        Assert.Equal(
+            "active=visual:embers,broken=visual:broken,closed=visual:closed,custom=visual:quest,idle=visual:default,open=visual:open",
+            item.Properties["visualStateOverrides"]);
+        Assert.Equal("active,closed,custom,idle,open", item.Properties["interactableVisualStates"]);
+        Assert.Equal(
+            "closed->broken:destroyed@0.25,closed->open:open@1[quest:crypt-open],open->closed:close@1",
+            item.Properties["visualTransitionTriggers"]);
         Assert.Equal("health:100/100;armor:10;stages:3;repair:True", item.Properties["damageable"]);
+        Assert.Equal("100", item.Properties["maximumHealth"]);
+        Assert.Equal("100", item.Properties["currentHealth"]);
+        Assert.Equal("10", item.Properties["damageArmor"]);
+        Assert.Equal("fire=0.25,force=0.5", item.Properties["damageResistances"]);
+        Assert.Equal("0.75,0.5,0.25", item.Properties["visualDamageStages"]);
+        Assert.Equal("vfx:ember-shatter", item.Properties["destructionEffect"]);
+        Assert.Equal("debris:crypt-pillar", item.Properties["debrisDefinition"]);
+        Assert.Equal("True", item.Properties["repairable"]);
+        Assert.Equal("20", item.Properties["repairCost"]);
         Assert.Equal("destroy,move", item.Properties["protection"]);
+        Assert.Equal("destroy,move", item.Properties["protectedActions"]);
+        Assert.Equal("placeable.plot.override", item.Properties["protectionPermissions"]);
+        Assert.Equal("Cet objet appartient à l'histoire.", item.Properties["protectionFeedback"]);
+        Assert.Equal("True", item.Properties["allowGameMasterOverride"]);
         Assert.Equal("PlaceableProtectionOverride", item.Properties["protectionAudit"]);
+        Assert.Equal(string.Empty, item.Properties["primaryFaction"]);
+        Assert.Equal(string.Empty, item.Properties["factionMemberships"]);
+        Assert.Equal(string.Empty, item.Properties["inheritFactionHostility"]);
+        Assert.Equal(string.Empty, item.Properties["unauthorizedFactionActionsAreCrime"]);
+        Assert.Equal(string.Empty, item.Properties["factionMembersOnlyAccess"]);
+        Assert.Equal(string.Empty, item.Properties["blockFriendlyFactionTargeting"]);
+        Assert.Equal(placeable.DialogueId?.ToString("D"), item.Properties["dialogue"]);
+        Assert.Equal(string.Empty, item.Properties["conversationBindingCount"]);
+        Assert.Equal(string.Empty, item.Properties["conversationDialogueIds"]);
+        Assert.Equal(string.Empty, item.Properties["conversationTriggers"]);
+        Assert.Equal(string.Empty, item.Properties["conversationEntryPoints"]);
+        Assert.Equal(string.Empty, item.Properties["conversationRequiredAtRuntime"]);
         Assert.Equal("Locked;credentials:1;skill:mechanics;code:True;hacking:True;relock:True;jam:True",
             item.Properties["lock"]);
+        Assert.Equal("Locked", item.Properties["lockState"]);
+        Assert.Equal("key:ember", item.Properties["lockCredentialIds"]);
+        Assert.Equal("mechanics", item.Properties["lockSkill"]);
+        Assert.Equal("12", item.Properties["lockDifficulty"]);
+        Assert.Equal("True", item.Properties["lockHasCode"]);
+        Assert.Equal("True", item.Properties["lockHackable"]);
+        Assert.Equal("True", item.Properties["lockRelockable"]);
+        Assert.Equal("True", item.Properties["lockCanJam"]);
+        Assert.Equal("placeable.lock.admin", item.Properties["lockPermissions"]);
         Assert.Equal("True", item.Properties["operationsRequiredAtRuntime"]);
         Assert.Equal("True", item.Properties["securityEvents"]);
         Assert.Contains("payload:damage:ember-burst", item.Properties["trap"], StringComparison.Ordinal);
         Assert.Contains("detect:10", item.Properties["trap"], StringComparison.Ordinal);
         Assert.Contains("disarm:12", item.Properties["trap"], StringComparison.Ordinal);
+        Assert.Equal("container:open", item.Properties["trapTrigger"]);
+        Assert.Equal("damage:ember-burst", item.Properties["trapPayload"]);
+        Assert.Equal("10", item.Properties["trapDetection"]);
+        Assert.Equal("12", item.Properties["trapDisarm"]);
+        Assert.Equal("30", item.Properties["trapResetSeconds"]);
+        Assert.Equal("ash-watch", item.Properties["trapOwner"]);
+        Assert.Equal("vfx:ember-burst", item.Properties["trapVisualEffect"]);
+        Assert.Equal("ash-watch", item.Properties["trapFriendlyPolicy"]);
+        Assert.Equal("True", item.Properties["trapArmed"]);
+        Assert.Equal("True", item.Properties["trapOneShot"]);
+        Assert.Equal("False", item.Properties["trapRequiredAtRuntime"]);
         Assert.Contains("timing:Open", item.Properties["lootSpawner"], StringComparison.Ordinal);
         Assert.Contains("seed:42", item.Properties["lootSpawner"], StringComparison.Ordinal);
         Assert.Equal("1", item.Properties["lootEntries"]);
+        Assert.Equal(placeable.SecurityEvents!.Loot!.LootTableId.ToString("D"),
+            item.Properties["lootTableId"]);
+        Assert.Equal("Open", item.Properties["lootTiming"]);
+        Assert.Equal("42", item.Properties["lootSeed"]);
+        Assert.Equal("True", item.Properties["lootPersistGeneratedState"]);
+        Assert.Equal("0", item.Properties["lootGeneration"]);
+        Assert.Equal(string.Empty, item.Properties["lootSavedResults"]);
+        Assert.Contains(
+            placeable.SecurityEvents.Loot.LootTable.Entries.Single().ItemDefinitionId.ToString("D"),
+            item.Properties["lootTableEntries"],
+            StringComparison.Ordinal);
+        Assert.Equal("False", item.Properties["lootRequiredAtRuntime"]);
         Assert.Equal("ContainerOpened", item.Properties["containerOpened"]);
         Assert.Equal("ContainerClosed", item.Properties["containerClosed"]);
         Assert.Equal("actor-result-previous-state-authority", item.Properties["containerEventPayload"]);
+        Assert.Equal("False", item.Properties["containerEventsRequiredAtRuntime"]);
         Assert.Equal("LockStateChanging", item.Properties["lockStateChanging"]);
         Assert.Equal("LockStateChanged", item.Properties["lockStateChanged"]);
+        Assert.Equal("1.0.0", item.Properties["lockEventApi"]);
         Assert.Equal("method-credential-actor-controlled-veto", item.Properties["lockEventPayload"]);
+        Assert.Equal("False", item.Properties["lockEventsRequiredAtRuntime"]);
         Assert.Equal("ContainerContentsChanged", item.Properties["contentsChanged"]);
+        Assert.Equal("1.0.0", item.Properties["contentsChangedApi"]);
         Assert.Equal("transactional-delta-cause-revision-actor", item.Properties["contentsChangedPayload"]);
+        Assert.Equal("False", item.Properties["contentsChangedRequiredAtRuntime"]);
         Assert.Equal("True", item.Properties["securityEventsRequiredAtRuntime"]);
         Assert.Equal("True", item.Properties["compositionEvents"]);
         Assert.Equal("DamageApplied", item.Properties["damageApplied"]);
@@ -809,6 +986,8 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.Equal("1.0.0", item.Properties["damageEventApi"]);
         Assert.Equal("source-amount-damage-type-previous-current-context",
             item.Properties["damageEventPayload"]);
+        Assert.Equal(string.Empty, item.Properties["damageEventsDiagnostic"]);
+        Assert.Equal("False", item.Properties["damageEventsRequiredAtRuntime"]);
         Assert.Equal("lever:mechanism:snap:True:capacity:2", item.Properties["attachmentSockets"]);
         Assert.Contains("lever:", item.Properties["attachments"], StringComparison.Ordinal);
         Assert.Contains("prefab:crypt-pillar-lever", item.Properties["attachments"],
@@ -820,6 +999,58 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.Single(securityEventsSearched.Items);
         Assert.Single(compositionEventsSearched.Items);
         Assert.True(planned.Succeeded);
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
+    }
+
+    [Fact]
+    public void Placeable_direct_damage_authority_is_exposed_to_forgescript_and_mcp()
+    {
+        using var workspace = new TestWorkspace(project =>
+        {
+            var source = CryptWorldFeatureAuthoringService.Create(project);
+            var original = source.Placeables.Single();
+            var direct = original with
+            {
+                CompositionEvents = null,
+                CompositionEventsRequiredAtRuntime = false,
+                DamageEvents = original.CompositionEvents!.DamageEvents with
+                {
+                    DamagedBinding = "DirectDamageApplied",
+                    DestroyedBinding = "DirectEntityDestroyed",
+                },
+                ContentsChangedRequiredAtRuntime = true,
+                DamageEventsRequiredAtRuntime = true,
+            };
+            var catalog = new WorldFeatureCatalog(
+                source.Id,
+                source.SchemaVersion,
+                source.Provenance,
+                [direct],
+                source.Doors,
+                source.Triggers,
+                source.Encounters,
+                source.VehicleRoutes,
+                source.Merchants,
+                source.Companions,
+                source.Scripts);
+            return new ProjectDefinition(project.Id, project.Title, project.Module.WithWorldFeatures(catalog),
+                project.Blueprints, project.Areas, project.Dialogues, project.Quests);
+        });
+        var canonical = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
+        var placeable = canonical.Module.WorldFeatures.Placeables.Single();
+
+        var resource = workspace.Project.QueryWorldFeatures("placeable", placeable.Id.ToString("D"), 1);
+
+        var item = Assert.Single(resource.Items);
+        Assert.Equal("InteractionExecuted", item.Properties["onUsedBinding"]);
+        Assert.Equal("1.0.0", item.Properties["contentsChangedApi"]);
+        Assert.Equal("True", item.Properties["contentsChangedRequiredAtRuntime"]);
+        Assert.Equal("False", item.Properties["compositionEvents"]);
+        Assert.Equal("DirectDamageApplied", item.Properties["damageApplied"]);
+        Assert.Equal("DirectEntityDestroyed", item.Properties["entityDestroyed"]);
+        Assert.Equal("1.0.0", item.Properties["damageEventApi"]);
+        Assert.Equal("True", item.Properties["damageEventsRequiredAtRuntime"]);
+        Assert.Equal(string.Empty, item.Properties["damageEventsDiagnostic"]);
         Assert.Equal(0, workspace.Project.GetCurrentRevision());
     }
 
@@ -2136,7 +2367,7 @@ public sealed class ForgeProjectAgentServiceTests
             MaximumResults: 10));
 
         Assert.Equal(1, result.SchemaVersion);
-        Assert.Equal(665, result.CatalogCount);
+        Assert.Equal(673, result.CatalogCount);
         Assert.Equal(5, result.Sources.Count);
         Assert.Equal(3, result.Items.Count);
         Assert.Empty(result.Diagnostics);
@@ -2863,7 +3094,10 @@ public sealed class ForgeProjectAgentServiceTests
         var eventName = $"area.{area.Slug}.alarm";
         var candidate = new AreaAuthoringProfile(1,
             [new(Guid.Parse("a0556000-0000-4000-8000-000000000005"), eventName,
-                "schema://area/alarm/v1", "scripts/agent_alarm.forge", 1, [eventName], true, "agent:r055")],
+                "schema://area/alarm/v1", "scripts/agent_alarm.forge", 1, ["OnAreaAlarm"], true,
+                "agent:r055", AreaUserEvent.CurrentSchemaVersion,
+                new Dictionary<string, string> { ["level"] = "int" },
+                AreaUserEvent.CurrentForgeScriptApiVersion)],
             new(true, true, "hybrid-2d-3d", 2,
                 [new(Guid.Parse("a0556000-0000-4000-8000-000000000006"), "Agent shrine", 16, 0, 0,
                     false)], Guid.Parse("a0556000-0000-4000-8000-000000000007"), 1, "agent:r055",
@@ -3431,6 +3665,11 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.True(QualityFoundationProfileStore.Load(workspace.RootDirectory,
             ownerId).FileMissing);
     }
+
+    private static WorldFeatureCatalog WithDoors(WorldFeatureCatalog source,
+        IReadOnlyList<DoorWorldProfile> doors) => new(source.Id, source.SchemaVersion, source.Provenance,
+        source.Placeables, doors, source.Triggers, source.Encounters, source.VehicleRoutes, source.Merchants,
+        source.Companions, source.Scripts);
 
     private static DialoguePlanRequest CreatePlan(string workspaceDirectory)
     {

@@ -1,7 +1,10 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Forge.Network.Observability;
 using Forge.Network.Operations;
+using Forge.Network.Persistence;
 using Forge.Network.Sessions;
+using Forge.Network.Storage;
 
 namespace Forge.Network.Authoring;
 
@@ -30,7 +33,7 @@ public sealed record NetworkPersistenceObservabilityProfile(Guid Id, int SchemaV
         new(Guid.Parse("a1230000-0000-4000-8000-000000000002"),
             [PersistenceProviderKind.Embedded, PersistenceProviderKind.Relational], true, true, true, true, 30),
         new(Guid.Parse("a1230000-0000-4000-8000-000000000003"), true, true,
-            ["world.snapshot.write", "world.snapshot.read", "account.lookup"], true, false),
+            ["world_flag.upsert", "world_flag.by_scope"], true, false),
         new(Guid.Parse("a1230000-0000-4000-8000-000000000004"),
             [MetricsExporterKind.Prometheus, MetricsExporterKind.OpenTelemetry],
             ["server.tps", "server.tick.ms", "process.memory", "connections.active", "queues.pending", "scripts.hotspots"],
@@ -46,6 +49,15 @@ public static class NetworkPersistenceObservabilityValidator
     {
         ArgumentNullException.ThrowIfNull(profile);
         var diagnostics = new List<NetworkDiagnostic>();
+        if (profile.Persistence is null || profile.Sql is null || profile.Observability is null ||
+            profile.Profiler is null || profile.Reconnection is null || profile.Persistence.Providers is null ||
+            profile.Sql.AllowedOperationIds is null || profile.Observability.Exporters is null ||
+            profile.Observability.Metrics is null)
+        {
+            Add("NET_PERSIST_OBSERVE_INCOMPLETE", "/network/persistenceObservability", profile.Id,
+                "The persistence and observability document is incomplete.", diagnostics);
+            return diagnostics;
+        }
         var ids = new[] { profile.Id, profile.Persistence.Id, profile.Sql.Id, profile.Observability.Id,
             profile.Profiler.Id, profile.Reconnection.Id };
         if (ids.Any(id => id == Guid.Empty) || ids.Distinct().Count() != ids.Length)
@@ -186,6 +198,91 @@ public sealed class NetworkPersistenceObservabilityStore
 
 public sealed record NetworkPersistenceObservabilityResolution(bool Available,
     NetworkPersistenceObservabilityProfile? Profile, IReadOnlyList<NetworkDiagnostic> Diagnostics);
+
+public sealed record NetworkPersistenceObservabilityRuntime(
+    IWorldSnapshotStore Snapshots,
+    ConfiguredSecureDataService Data,
+    ConfiguredObservabilityService Observability,
+    ConfiguredServerProfiler Profiler,
+    ReconnectionService Reconnection,
+    NetworkPersistenceObservabilityScriptService Scripts);
+
+public sealed class ConfiguredSecureDataService(SecureSqlPolicy policy, ISecureDataStore store)
+{
+    public DataCommandResult Execute(NamedDataCommand command, Guid actorAccountId)
+    {
+        if (!policy.AllowedOperationIds.Contains(command.CommandId, StringComparer.Ordinal))
+            return new(false, "NET_DATA_OPERATION_NOT_CONFIGURED", command.ExpectedRevision, 0,
+                $"rejected:NET_DATA_OPERATION_NOT_CONFIGURED:command={command.CommandId}:actor={actorAccountId}");
+        return store.Execute(command, actorAccountId);
+    }
+
+    public IReadOnlyList<IReadOnlyDictionary<string, object>> Query(string queryId,
+        IReadOnlyList<DataParameter> parameters, Guid actorAccountId)
+    {
+        if (!policy.AllowedOperationIds.Contains(queryId, StringComparer.Ordinal))
+            throw new InvalidOperationException("NET_DATA_OPERATION_NOT_CONFIGURED");
+        return store.Query(queryId, parameters, actorAccountId);
+    }
+}
+
+public sealed class ConfiguredObservabilityService
+{
+    private readonly ServerObservabilityPolicy _policy;
+    private readonly ServerMetrics _metrics = new();
+    private readonly HealthService _health;
+
+    public ConfiguredObservabilityService(ServerObservabilityPolicy policy, TimeProvider timeProvider)
+    {
+        _policy = policy;
+        _health = new(timeProvider);
+        _health.Register("persistence", () => (HealthStatus.Healthy, "ready"));
+        _health.Register("metrics", () => (HealthStatus.Healthy, "ready"));
+    }
+
+    public string HealthEndpoint => _policy.HealthEndpoint;
+    public string MetricsEndpoint => _policy.MetricsEndpoint;
+    public IReadOnlyList<MetricsExporterKind> Exporters => _policy.Exporters;
+
+    public void Gauge(string name, double value)
+    {
+        EnsureMetric(name);
+        _metrics.Gauge(name, value);
+    }
+
+    public void Increment(string name, long amount = 1)
+    {
+        EnsureMetric(name);
+        _metrics.Increment(name, amount);
+    }
+
+    public MetricSnapshot Snapshot() => _metrics.Snapshot();
+    public HealthReport Health() => _health.Check();
+
+    private void EnsureMetric(string name)
+    {
+        if (!_policy.Metrics.Contains(name, StringComparer.Ordinal))
+            throw new InvalidOperationException("NET_METRIC_NOT_CONFIGURED");
+    }
+}
+
+public sealed class ConfiguredServerProfiler(ServerProfilerPolicy policy, TimeProvider timeProvider)
+{
+    private readonly ServerProfiler _profiler = new(timeProvider);
+    private int _captures;
+
+    public IDisposable Measure(string operation)
+    {
+        if (_captures >= policy.MaximumCapturedSpans)
+            throw new InvalidOperationException("NET_PROFILER_CAPTURE_LIMIT");
+        _captures++;
+        return _profiler.Measure(operation);
+    }
+
+    public IReadOnlyList<ProfileAggregate> Snapshot() => _profiler.Snapshot();
+    public int Captures => _captures;
+}
+
 public static class NetworkPersistenceObservabilityRuntimeAdapter
 {
     public static NetworkPersistenceObservabilityResolution Resolve(NetworkPersistenceObservabilityProfile? profile,
@@ -196,6 +293,20 @@ public static class NetworkPersistenceObservabilityRuntimeAdapter
                 "Required persistence and observability profile is missing.")]) : new(false, null, []);
         var diagnostics = NetworkPersistenceObservabilityValidator.Validate(profile);
         return new(diagnostics.Count == 0, diagnostics.Count == 0 ? profile : null, diagnostics);
+    }
+
+    public static NetworkPersistenceObservabilityRuntime Build(NetworkPersistenceObservabilityProfile profile,
+        TimeProvider? timeProvider = null)
+    {
+        var resolution = Resolve(profile, profile.RequiredAtRuntime);
+        if (!resolution.Available) throw new InvalidOperationException(resolution.Diagnostics[0].Code);
+        var clock = timeProvider ?? TimeProvider.System;
+        return new(new InMemoryWorldSnapshotStore(clock),
+            new ConfiguredSecureDataService(profile.Sql, new InMemorySecureDataStore()),
+            new ConfiguredObservabilityService(profile.Observability, clock),
+            new ConfiguredServerProfiler(profile.Profiler, clock),
+            new ReconnectionService(clock, TimeSpan.FromSeconds(profile.Reconnection.GracePeriodSeconds)),
+            new NetworkPersistenceObservabilityScriptService(profile));
     }
 }
 public readonly record struct NetworkPersistenceObservabilityHandle(Guid ProfileId, int Generation);

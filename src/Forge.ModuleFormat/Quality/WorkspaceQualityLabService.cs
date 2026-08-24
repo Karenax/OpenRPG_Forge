@@ -62,9 +62,8 @@ public sealed class WorkspaceQualityLabService(IForgeScriptRuntime scriptRuntime
         var scripts = RunScripts(root, options);
         var qualityProfile = QualityFoundationProfileStore.Load(root, project.Id.Value).Profile;
         var canonicalValidation = WorkspaceCanonicalValidationService.Run(root, project, qualityProfile);
-        var canonicalBlocking = canonicalValidation.Diagnostics.Any(item =>
-            qualityProfile.EffectiveValidation.Categories.TryGetValue(item.Category, out var category) &&
-            category.RequiredBeforeBuild);
+        var canonicalBlocking = WorkspaceCanonicalValidationService.BlockingDiagnostics(
+            project, qualityProfile, canonicalValidation).Count > 0;
         var pseudoPath = options.WritePseudoLocalizationSnapshot
             ? WritePseudoSnapshot(root, LocalizationQualityService.RenderPseudoSnapshotSvg(localization))
             : null;

@@ -56,7 +56,10 @@ public static class WorldFeatureRuntimeResolver
     {
         ArgumentNullException.ThrowIfNull(profile);
         if (profile.Credential is null)
-            return new(true, false, availableCharges, "unrestricted", "access:unrestricted");
+            return profile.CredentialRequiredAtRuntime
+                ? new(false, false, availableCharges, "credential-policy-required-missing",
+                    "access:credential-policy-required-missing")
+                : new(true, false, availableCharges, "unrestricted", "access:unrestricted");
         var policy = profile.Credential;
         var allowed = policy.Consumption == PlaceableWorldProfile.CredentialConsumption.VirtualPermission
             ? policy.VirtualPermission is { } permission && permissions.Contains(permission)
@@ -88,8 +91,9 @@ public static class WorldFeatureRuntimeResolver
                 Position = new(Snap(transform.Position.X), Snap(transform.Position.Y), Snap(transform.Position.Z)),
             };
         }
-        var overlay = FormattableString.Invariant(
-            $"placeable:{profile.Id:D}:pivot={transform.Pivot.X:0.###},{transform.Pivot.Y:0.###},{transform.Pivot.Z:0.###}:snap={transform.SnapIncrement:0.###}:surface={transform.AlignToSurface}");
+        var parent = transform.ParentId?.ToString("D") ?? "root";
+        var animation = transform.TransformAnimationId ?? "none";
+        var overlay = FormattableString.Invariant($"placeable:{profile.Id:D}:position={transform.Position.X:0.###},{transform.Position.Y:0.###},{transform.Position.Z:0.###}:rotation={transform.RotationDegrees.X:0.###},{transform.RotationDegrees.Y:0.###},{transform.RotationDegrees.Z:0.###}:scale={transform.Scale.X:0.###},{transform.Scale.Y:0.###},{transform.Scale.Z:0.###}:pivot={transform.Pivot.X:0.###},{transform.Pivot.Y:0.###},{transform.Pivot.Z:0.###}:snap={transform.SnapIncrement:0.###}:parent={parent}:surface={transform.AlignToSurface}:animation={animation}");
         return new(true, profile.Foundation, transform, string.Empty, overlay);
     }
 

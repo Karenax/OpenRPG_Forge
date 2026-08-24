@@ -13,7 +13,9 @@ public sealed record CustomEventSchema(
     bool RequiredExtension,
     string ForgeScriptApiVersion = "1.0",
     string Handler = "OnCustomWorldEvent",
-    EventAuthorityScope Authority = EventAuthorityScope.Server)
+    EventAuthorityScope Authority = EventAuthorityScope.Server,
+    string? ScriptPath = null,
+    bool RequiredAtRuntime = false)
 {
     public const int CurrentSchemaVersion = 1;
 }

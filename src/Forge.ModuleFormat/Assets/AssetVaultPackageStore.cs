@@ -20,6 +20,8 @@ public sealed class AssetVaultPackageStore
     public const string StateStaleCode = "asset.vault.state.stale";
     public const string ObjectCorruptCode = "asset.vault.object.corrupt";
     public const string SourceChangedCode = "asset.vault.source.changed";
+    public const string RestoreInvalidCode = "asset.vault.restore.invalid";
+    public const string RestoreBackupMissingCode = "asset.vault.restore.backup_missing";
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -44,6 +46,13 @@ public sealed class AssetVaultPackageStore
         {
             return new AssetVaultInstallationState();
         }
+
+        return ReadState(path);
+    }
+
+    private static AssetVaultInstallationState ReadState(string path)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
 
         try
         {
@@ -389,7 +398,7 @@ public sealed class AssetVaultPackageStore
                 }
 
                 Directory.CreateDirectory(Path.GetDirectoryName(orphan.Source)!);
-                File.Move(orphan.Backup, orphan.Source, overwrite: false);
+                File.Copy(orphan.Backup, orphan.Source, overwrite: false);
             }
 
             foreach (var path in written)
@@ -402,6 +411,135 @@ public sealed class AssetVaultPackageStore
 
             WriteCredits(AssetCreditCatalog.Aggregate(current));
             throw;
+        }
+    }
+
+    public AssetVaultPackageMutationResult RestoreUninstall(AssetVaultPackageMutationResult uninstallResult)
+    {
+        ArgumentNullException.ThrowIfNull(uninstallResult);
+        var current = LoadState();
+        var restorePlanId = StableGuid($"restore|{uninstallResult.PlanId:D}|{ComputeRevision(current)}");
+        if (!uninstallResult.Succeeded || !uninstallResult.Applied ||
+            uninstallResult.Operation != AssetVaultMutationOperation.Uninstall ||
+            uninstallResult.BackupRelativePath is null ||
+            !string.Equals(ComputeRevision(current), ComputeRevision(uninstallResult.State), StringComparison.Ordinal))
+        {
+            return RestoreFailure(restorePlanId, uninstallResult.PackageId, current, RestoreInvalidCode,
+                "Only an applied uninstall result matching the current Asset Vault state can be restored.");
+        }
+
+        var expectedBackup = $"metadata/backups/{uninstallResult.PlanId:D}/asset-vault-installations.v1.json";
+        if (!string.Equals(uninstallResult.BackupRelativePath, expectedBackup, StringComparison.Ordinal))
+        {
+            return RestoreFailure(restorePlanId, uninstallResult.PackageId, current, RestoreInvalidCode,
+                "The uninstall backup path does not match the governed plan identity.");
+        }
+
+        var backupPath = ResolveFixed(expectedBackup);
+        if (!File.Exists(backupPath))
+        {
+            return RestoreFailure(restorePlanId, uninstallResult.PackageId, current, RestoreBackupMissingCode,
+                "The governed Asset Vault uninstall backup is missing.");
+        }
+
+        AssetVaultInstallationState previous;
+        try
+        {
+            previous = ReadState(backupPath);
+        }
+        catch (InvalidDataException exception)
+        {
+            return RestoreFailure(restorePlanId, uninstallResult.PackageId, current, RestoreInvalidCode,
+                exception.Message);
+        }
+
+        if (current.Packages.Any(package => string.Equals(package.PackageId,
+                uninstallResult.PackageId, StringComparison.Ordinal)) ||
+            !previous.Packages.Any(package => string.Equals(package.PackageId,
+                uninstallResult.PackageId, StringComparison.Ordinal)))
+        {
+            return RestoreFailure(restorePlanId, uninstallResult.PackageId, current, RestoreInvalidCode,
+                "The uninstall backup does not restore exactly the removed package.");
+        }
+
+        var restoredObjects = new List<string>();
+        string? receiptRelativePath = null;
+        try
+        {
+            var currentHashes = current.BlobReferenceCounts;
+            foreach (var hash in previous.BlobReferenceCounts.Keys
+                         .Where(hash => !currentHashes.ContainsKey(hash))
+                         .Order(StringComparer.Ordinal))
+            {
+                var source = ResolveFixed($"metadata/backups/{uninstallResult.PlanId:D}/objects/{hash}");
+                if (!File.Exists(source) || !string.Equals(HashFile(source), hash, StringComparison.Ordinal))
+                {
+                    throw new InvalidDataException($"Governed object backup '{hash}' is missing or corrupt.");
+                }
+
+                var target = ResolveFixed(ObjectRelativePath(hash));
+                if (File.Exists(target))
+                {
+                    if (!string.Equals(HashFile(target), hash, StringComparison.Ordinal))
+                    {
+                        throw new InvalidDataException($"Content-addressed object '{hash}' is corrupt.");
+                    }
+                    continue;
+                }
+
+                CopyAtomically(source, target);
+                restoredObjects.Add(target);
+            }
+
+            WriteCredits(AssetCreditCatalog.Aggregate(previous));
+            receiptRelativePath = $"metadata/receipts/{restorePlanId:D}.json";
+            WriteAtomically(
+                ResolveFixed(receiptRelativePath),
+                JsonSerializer.Serialize(new ReceiptDocument(
+                    AssetVaultInstallationState.CurrentSchemaVersion,
+                    restorePlanId,
+                    AssetVaultMutationOperation.Restore.ToString().ToLowerInvariant(),
+                    uninstallResult.PackageId,
+                    ComputeRevision(current),
+                    ComputeRevision(previous),
+                    restoredObjects.Count,
+                    0,
+                    0,
+                    0,
+                    0), JsonOptions) + Environment.NewLine);
+            WriteAtomically(ResolveFixed(StateRelativePath), Serialize(previous));
+            return new AssetVaultPackageMutationResult(
+                true,
+                true,
+                restorePlanId,
+                AssetVaultMutationOperation.Restore,
+                uninstallResult.PackageId,
+                previous,
+                restoredObjects.Count,
+                0,
+                0,
+                0,
+                0,
+                receiptRelativePath,
+                expectedBackup,
+                AssetCreditCatalog.Aggregate(previous),
+                []);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or
+                                           InvalidDataException or InvalidOperationException)
+        {
+            if (receiptRelativePath is not null)
+            {
+                var receiptPath = ResolveFixed(receiptRelativePath);
+                if (File.Exists(receiptPath)) File.Delete(receiptPath);
+            }
+            foreach (var path in restoredObjects)
+            {
+                if (File.Exists(path)) File.Delete(path);
+            }
+            WriteCredits(AssetCreditCatalog.Aggregate(current));
+            return RestoreFailure(restorePlanId, uninstallResult.PackageId, current,
+                RestoreBackupMissingCode, exception.Message);
         }
     }
 
@@ -561,7 +699,18 @@ public sealed class AssetVaultPackageStore
 
             var backup = ResolveFixed($"metadata/backups/{planId:D}/objects/{hash}");
             Directory.CreateDirectory(Path.GetDirectoryName(backup)!);
-            File.Move(path, backup, overwrite: false);
+            if (File.Exists(backup))
+            {
+                if (!string.Equals(HashFile(path), HashFile(backup), StringComparison.Ordinal))
+                {
+                    throw new InvalidDataException($"Existing governed object backup '{hash}' is corrupt.");
+                }
+                File.Delete(path);
+            }
+            else
+            {
+                File.Move(path, backup, overwrite: false);
+            }
             staged.Add((path, backup));
             var parent = Path.GetDirectoryName(path)!;
             if (Directory.Exists(parent) && !Directory.EnumerateFileSystemEntries(parent).Any())
@@ -795,6 +944,28 @@ public sealed class AssetVaultPackageStore
         null,
         AssetCreditCatalog.Aggregate(state),
         diagnostics);
+
+    private static AssetVaultPackageMutationResult RestoreFailure(
+        Guid planId,
+        string packageId,
+        AssetVaultInstallationState state,
+        string code,
+        string message) => new(
+        false,
+        false,
+        planId,
+        AssetVaultMutationOperation.Restore,
+        packageId,
+        state,
+        0,
+        0,
+        0,
+        0,
+        0,
+        null,
+        null,
+        AssetCreditCatalog.Aggregate(state),
+        [new DomainDiagnostic(code, message, $"assets/packages/{packageId}/restore")]);
 
     private sealed record StateDocument(
         [property: JsonPropertyName("schema_version")] int SchemaVersion,

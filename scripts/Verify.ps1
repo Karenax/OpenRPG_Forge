@@ -114,8 +114,8 @@ function Invoke-ForgeEngineMarkerTest {
 
     # Keep the long-lived smoke inventories aligned with the current workspace schema and
     # append lot markers here so every engine invocation uses one canonical gate contract.
-    $Markers = @($Markers | ForEach-Object { $_.Replace('format=1.9.0', 'format=1.28.0').Replace('format=1.10.0', 'format=1.28.0').Replace('format=1.11.0', 'format=1.28.0').Replace('format=1.12.0', 'format=1.28.0').Replace('format=1.13.0', 'format=1.28.0').Replace('format=1.14.0', 'format=1.28.0').Replace('format=1.15.0', 'format=1.28.0').Replace('format=1.16.0', 'format=1.28.0').Replace('format=1.17.0', 'format=1.28.0').Replace('format=1.18.0', 'format=1.28.0').Replace('format=1.19.0', 'format=1.28.0').Replace('format=1.20.0', 'format=1.28.0').Replace('format=1.21.0', 'format=1.28.0').Replace('format=1.22.0', 'format=1.28.0').Replace('format=1.23.0', 'format=1.28.0').Replace('format=1.24.0', 'format=1.28.0').Replace('format=1.25.0', 'format=1.28.0').Replace('format=1.26.0', 'format=1.28.0').Replace('format=1.27.0', 'format=1.28.0') })
-    $Markers = @($Markers | ForEach-Object { $_.Replace('catalog=605 sources=3', 'catalog=665 sources=5') })
+    $Markers = @($Markers | ForEach-Object { $_.Replace('format=1.9.0', 'format=1.30.0').Replace('format=1.10.0', 'format=1.30.0').Replace('format=1.11.0', 'format=1.30.0').Replace('format=1.12.0', 'format=1.30.0').Replace('format=1.13.0', 'format=1.30.0').Replace('format=1.14.0', 'format=1.30.0').Replace('format=1.15.0', 'format=1.30.0').Replace('format=1.16.0', 'format=1.30.0').Replace('format=1.17.0', 'format=1.30.0').Replace('format=1.18.0', 'format=1.30.0').Replace('format=1.19.0', 'format=1.30.0').Replace('format=1.20.0', 'format=1.30.0').Replace('format=1.21.0', 'format=1.30.0').Replace('format=1.22.0', 'format=1.30.0').Replace('format=1.23.0', 'format=1.30.0').Replace('format=1.24.0', 'format=1.30.0').Replace('format=1.25.0', 'format=1.30.0').Replace('format=1.26.0', 'format=1.30.0').Replace('format=1.27.0', 'format=1.30.0').Replace('format=1.28.0', 'format=1.30.0').Replace('format=1.29.0', 'format=1.30.0') })
+    $Markers = @($Markers | ForEach-Object { $_.Replace('catalog=605 sources=3', 'catalog=673 sources=5') })
     if ($Name -eq 'toolset') {
         $Markers += 'OPENRPG_FORGE_TOOLSET_AV3_PLACEMENT_PASS models=1 manifests=1 scatter_layers=1 scatter_instances='
         $Markers += 'OPENRPG_FORGE_TOOLSET_G11N_EXPERIENCE_PASS scatter=volume-surface-nav-biome-seed voice=localized-phoneme-subtitle-tts-consent audio=started-completed-interrupted-music-snapshot patrol=cross-area-streaming-owner-resume loading=image-video-tip-progress-accessible-prefetch mcp=governed history=restored persistence=roundtrip'
@@ -193,7 +193,7 @@ function Invoke-ForgeEngineMarkerTest {
         $Markers += 'OPENRPG_FORGE_TOOLSET_G12J_BLENDER_PASS recipe=canonical primitives=typed transforms=bounded material=pbr uv=typed lod=generated collision=generated validation=five-tests glb=export-request provider=fake-offline cost=visible python=forbidden plan=dry-run-transaction permission=apply-approved history=restored persistence=roundtrip mcp=governed'
         $Markers += 'OPENRPG_FORGE_TOOLSET_G12K_MODEL3D_PASS provider=interchangeable offline=deterministic trellis=loopback triposr=loopback input=text-image license=cc0 staging=hashed topology=bounded provenance=receipt acceptance=human blender=typed tests=five plan=dry-run-transaction permission=apply-approved history=restored persistence=roundtrip mcp=governed'
         $Markers += 'OPENRPG_FORGE_TOOLSET_G12L_WORKER_SECURITY_PASS policy=canonical uuid=stable schema=v1 python=forbidden exec=forbidden eval=forbidden shell=forbidden paths=confined network=denied operations=typed timeout=bounded output=bounded ui=visible-empty-error cost=zero transaction=identified plan=dry-run-bound permission=configure audit=generated history=restored persistence=roundtrip mcp=governed'
-        $Markers += 'OPENRPG_FORGE_TOOLSET_G13A_KEYMAP_PASS profiles=standard-aurora-blender commands=searchable bindings=13 conflicts=blocked input=executed ui=visible-empty-error uuid=stable schema=v1 provenance=tracked transaction=identified dry-run=previewed audit=generated history=restored persistence=roundtrip runtime=optional'
+        $Markers += 'OPENRPG_FORGE_TOOLSET_G13A_KEYMAP_PASS profiles=standard-aurora-blender commands=searchable bindings=14 conflicts=blocked input=executed ui=visible-empty-error uuid=stable schema=v1 provenance=tracked transaction=identified dry-run=previewed audit=generated history=restored persistence=roundtrip runtime=optional'
         $Markers += 'OPENRPG_FORGE_TOOLSET_G13B_CREATURE_PRESENTATION_PASS identity=gender-body-pronouns portrait=hashed-multires-ready fallback=3d body=modular-rig-layer-clipping materials=colored attachments=wings-tail voice=bank-language-rights ui=visible-empty-error preview=3d-and-portrait uuid=stable schema=v1 provenance=tracked transaction=identified dry-run=previewed audit=generated history=restored persistence=project-roundtrip package=canonical runtime=optional-safe'
         $Markers += 'OPENRPG_FORGE_TOOLSET_G13C_CREATURE_PROGRESSION_PASS tracks=multiclass-levels disposition=project-axes skills=rank-training-expertise-checks talents=prerequisites-ranks-passive-hooks loadout=learned-prepared-deck-cooldown-charges-resource-modifiers ruleset=data-driven ui=visible-empty-error-summary uuid=stable schema=v1 provenance=tracked transaction=identified dry-run=previewed audit=generated history=restored persistence=project-roundtrip runtime=optional-safe'
         $Markers += 'OPENRPG_FORGE_TOOLSET_G13D_CREATURE_LOOT_PASS entries=item-slot-creature probability=bounded ownership=resolved instancing=shared-player-party theft=skill-perception-server-consent-crime-cooldown-audit corpse=container-ragdoll-lifetime-resurrection-ownership-cleanup ui=visible-empty-error-summary uuid=stable schema=v1 provenance=tracked transaction=identified dry-run=previewed audit=generated history=restored persistence=project-roundtrip runtime=legacy-safe'
@@ -331,7 +331,7 @@ function Invoke-ForgeEngineMarkerTest {
         $Markers += 'OPENRPG_FORGE_RUNTIME_R028_AREA_FOUNDATION_PASS document=canonical-independent tiles=grid-sockets-rules-variants-runtime rotation=policy-mirror lifecycle=entered-exited-context-authority optional=ignored required=diagnostic forgescript=typed'
         $Markers += 'OPENRPG_FORGE_RUNTIME_R029_AREA_RUNTIME_VALIDATION_PASS portal=orientation-velocity-bidirectional-hooks lifecycle=streaming-exit-enter navigation=surface-agents-links-polygons play_from_here=spawn-camera-waypoint-manifest-quest validation=9-categories optional=ignored required=diagnostic forgescript=typed'
         $Markers += 'OPENRPG_FORGE_RUNTIME_G11N_EXPERIENCE_PASS cues=0 scatter=0 voices=0 patrols=0 loading=accessible-progress-prefetch audio_api=started-completed-interrupted-music-snapshot patrol_api=streaming-owner-resume'
-        $Markers += 'OPENRPG_FORGE_RUNTIME_G11N_LOADING_PASS media=accessiblefallback progress=1 accessible=True streamed=0'
+        $Markers += 'OPENRPG_FORGE_RUNTIME_G11N_LOADING_PASS media=accessiblefallback progress=1 accessible=True prefetch=true streamed=0'
         $Markers += 'OPENRPG_FORGE_RUNTIME_G11O_EXTENSIONS_PASS rules=4 ui=1 json=1 snapshot=4 api=1.0 quotas=bounded'
         $Markers += 'OPENRPG_FORGE_RUNTIME_G11P_MODERN_PASS copy=uuid-owner-references-state-authority aoe=mesh-targets-cover-height-colorblind-confirmation nui=2.0-forms-lists-canvas-accessibility-localization-inspector compiler=incremental-stable-telemetry-conformance docs=metadata-generated'
         $Markers += 'OPENRPG_FORGE_RUNTIME_G11Q_RESILIENCE_PASS tasks=bounded-machine-readable crash=sanitized-version-fingerprint-reproduction health=6-domains-healthy recovery=journal-reopen-quarantine-compare sync=resume-dedup-hash-trust-storage'
@@ -344,9 +344,11 @@ function Invoke-ForgeEngineMarkerTest {
         $Markers += 'OPENRPG_FORGE_RUNTIME_G13AC_AL_POST_LAUNCH_PASS slices=10 profile=canonical runtime=domain-application-network-qa'
         $Markers += 'OPENRPG_FORGE_RUNTIME_R051_PROJECT_EVENTS_PASS bindings=14 authority=server families=connection-inventory-use-death-respawn-equipment-progression transaction=veto-journal pipeline=configurable forgescript=typed-handle optional=ignored required=diagnostic'
         $Markers += 'OPENRPG_FORGE_RUNTIME_R052_PROJECT_WORLD_PASS custom=namespaced-typed-server clock=speed-calendar-zone-pause-astronomical-save forgescript=typed-handle docs=8-localized-pages optional=ignored required=diagnostic'
+        $Markers += 'OPENRPG_FORGE_RUNTIME_UX0G_GLOBAL_EVENTS_PASS equipment_progression=typed-server rest=four-stage-resolved heartbeat=bounded-script-path user_event=namespaced-typed-script-path forgescript=compiled-executed'
+        $Markers += 'OPENRPG_FORGE_RUNTIME_UX0H_WORLD_TRANSITIONS_PASS sequence_abort=restored-script-executed world_clock=calendar-zone-astronomy-save progression=curve-source-group-difficulty runtime=resolved'
         $Markers += 'OPENRPG_FORGE_RUNTIME_R053_AREA_TILE_EDITING_PASS groups=editable parameters=typed tools=canonical autofit=deterministic-lock-ambiguity properties=state-animation-material-light-collision-navigation-sockets-overrides resize=loss-migration forgescript=typed-handle optional=ignored required=diagnostic'
         $Markers += 'OPENRPG_FORGE_RUNTIME_R054_AREA_ENVIRONMENT_PASS classification=extensible-subsystems daynight=curves-events-volume-overrides lighting=physical-probes fog=noise-local-volumes-quality forgescript=typed-handle optional=ignored required=diagnostic'
-        $Markers += 'OPENRPG_FORGE_RUNTIME_R055_AREA_EXPERIENCE_PASS audio=snapshots-adaptive-reverb events=namespaced-payload-subscriptions map=2d-3d-exploration-fog-reveal visibility=rooms-portals-occluders-streaming lod=thresholds-budgets-popping forgescript=typed-handle optional=ignored required=diagnostic'
+        $Markers += 'OPENRPG_FORGE_RUNTIME_R055_AREA_EXPERIENCE_PASS audio=snapshots-adaptive-reverb events=namespaced-typed-payload-live-forgescript map=2d-3d-exploration-fog-reveal visibility=rooms-portals-occluders-streaming lod=thresholds-budgets-popping forgescript=custom-event-handle source=module optional=ignored required=diagnostic'
         $Markers += 'OPENRPG_FORGE_RUNTIME_R056_AREA_LAYERS_PASS hierarchy=nested visibility=inherited locking=inherited selection=group-descendants export=partial-governed forgescript=typed-handle optional=ignored required=diagnostic'
         $Markers += 'OPENRPG_FORGE_RUNTIME_R057_PALETTE_PASS blueprint=versioned-promoted-defaults instances=pins-exclusions-overrides taxonomy=hierarchical-multitag preview=turntable-thumbnail-variants-animations-metrics-license search=advanced-facets forgescript=typed-handle optional=ignored required=diagnostic'
         $Markers += 'OPENRPG_FORGE_RUNTIME_R058_PREFAB_PASS variant=inherited-typed-overrides composition=hierarchy-sockets-rules-parameters-scripts collections=author placement=deterministic-group budget=seven-metrics-platform-pass-warn-fail forgescript=typed-handle optional=ignored required=diagnostic'
@@ -380,9 +382,13 @@ function Invoke-ForgeEngineMarkerTest {
         -ArgumentList $effectiveArguments `
         -WindowStyle Hidden `
         -PassThru
-    # The Toolset exercises the complete authoring inventory before its final plugin marker.
-    # Keep that integration gate bounded, while allowing slower Windows runners to finish it.
-    $timeoutSeconds = if ($Name -eq 'toolset') { 180 } else { 75 }
+    # The Toolset and Studio exercise their complete authoring inventories before their final markers.
+    # Keep those integration gates bounded, while allowing slower Windows runners to finish them.
+    $timeoutSeconds = switch ($Name) {
+        'toolset' { 180 }
+        'studio' { 720 }
+        default { 75 }
+    }
     $deadline = [DateTime]::UtcNow.AddSeconds($timeoutSeconds)
     $passed = $false
 
@@ -436,12 +442,17 @@ try {
     Test-NuGetVulnerabilities
     Invoke-CheckedDotnet @('format', $solutionPath, '--verify-no-changes', '--no-restore', '--verbosity', 'minimal')
     Invoke-CheckedDotnet @('build', $solutionPath, '--configuration', 'Release', '--no-restore')
-    Invoke-CheckedDotnet @('test', $solutionPath, '--configuration', 'Release', '--no-build', '--logger', 'console;verbosity=minimal')
+    # Keep project-level test hosts sequential: the full solution otherwise exceeds the workstation memory budget
+    # when VSTest starts every assembly concurrently, which can kill healthy hosts before protocol negotiation.
+    Invoke-CheckedDotnet @('test', $solutionPath, '--configuration', 'Release', '--no-build',
+        '--maxcpucount:1', '--logger', 'console;verbosity=minimal')
     # Godot launches managed editor/runtime assemblies from its Debug cache even after a Release gate build.
     # Refresh those caches explicitly so engine smoke tests never execute stale contracts.
     Invoke-CheckedDotnet @('build', (Join-Path $repositoryRoot 'apps\Forge.Toolset\Forge.Toolset.csproj'),
         '--configuration', 'Debug', '--no-restore')
     Invoke-CheckedDotnet @('build', (Join-Path $repositoryRoot 'apps\Forge.Runtime\Forge.Runtime.csproj'),
+        '--configuration', 'Debug', '--no-restore')
+    Invoke-CheckedDotnet @('build', (Join-Path $repositoryRoot 'apps\Forge.Studio\Forge.Studio.csproj'),
         '--configuration', 'Debug', '--no-restore')
     $documentationCliProject = Join-Path $repositoryRoot 'tools\Forge.Cli\Forge.Cli.csproj'
     Invoke-CheckedDotnet @('run', '--project', $documentationCliProject, '--configuration', 'Release',
@@ -461,12 +472,62 @@ try {
     if ($LASTEXITCODE -ne 0) {
         throw "Complete function backlog freshness check failed with exit code $LASTEXITCODE."
     }
+    & (Join-Path $repositoryRoot 'scripts\Update-StudioAuroraAccessibilityPlan.ps1') -Check
+    if ($LASTEXITCODE -ne 0) {
+        throw "Studio Aurora accessibility matrix freshness check failed with exit code $LASTEXITCODE."
+    }
     Invoke-CheckedPython @('-m', 'unittest', 'discover', '-s', 'tests', '-p', 'test_*.py')
     Invoke-CheckedPython @('-m', 'unittest', 'discover', '-s', 'tests\asset_pipeline', '-p', 'test_*.py')
     $architectureGraphProject = Join-Path $repositoryRoot 'tools\Forge.ArchitectureGraph\Forge.ArchitectureGraph.csproj'
     Invoke-CheckedDotnet @('run', '--project', $architectureGraphProject, '--configuration', 'Release',
         '--no-build', '--', 'check', '--full')
     Test-ForgeBranding
+
+    $studioPath = Join-Path $repositoryRoot 'apps\Forge.Studio'
+    $studioLog = Join-Path $artifactRoot 'studio.log'
+    $studioWorkspace = Join-Path $repositoryRoot 'apps\Forge.Runtime\content\forgotten-forest'
+    Invoke-ForgeEngineMarkerTest `
+        -Name 'studio' `
+        -ProjectPath $studioPath `
+        -Arguments @(
+            '--headless', '--path', $studioPath, '--log-file', $studioLog, '--',
+            '--studio-smoke-test', '--workspace', $studioWorkspace, '--page', 'zones') `
+        -Markers @(
+            'OPENRPG_FORGE_STUDIO_PROJECT_OPEN title=Forgotten Forest areas=6',
+            'OPENRPG_FORGE_STUDIO_EDIT_PASS',
+            'OPENRPG_FORGE_STUDIO_UX0A_PASS',
+            'OPENRPG_FORGE_STUDIO_UX0B_PASS',
+            'OPENRPG_FORGE_STUDIO_UX0C_PASS',
+            'OPENRPG_FORGE_STUDIO_UX0D_PASS',
+            'OPENRPG_FORGE_STUDIO_UX0E_PASS',
+            'OPENRPG_FORGE_STUDIO_UX0F_PASS',
+            'OPENRPG_FORGE_STUDIO_UX0G_PASS',
+            'OPENRPG_FORGE_STUDIO_UX0H_PASS',
+            'OPENRPG_FORGE_STUDIO_UX0I_PASS',
+            'OPENRPG_FORGE_STUDIO_UX0J_PASS',
+            'OPENRPG_FORGE_STUDIO_UX1A_PASS',
+            'OPENRPG_FORGE_STUDIO_UX1B_PASS',
+            'OPENRPG_FORGE_STUDIO_UX1C_PASS',
+            'OPENRPG_FORGE_STUDIO_UX1D_PASS',
+            'OPENRPG_FORGE_STUDIO_UX1E_PASS',
+            'OPENRPG_FORGE_STUDIO_UX1F_PASS',
+            'OPENRPG_FORGE_STUDIO_UX1G_PASS',
+            'OPENRPG_FORGE_STUDIO_UX1H_PASS',
+            'OPENRPG_FORGE_STUDIO_UX1I_PASS',
+            'OPENRPG_FORGE_STUDIO_UX1J_PASS',
+            'OPENRPG_FORGE_STUDIO_UX1K_PASS',
+            'OPENRPG_FORGE_STUDIO_UX1L_PASS',
+            'OPENRPG_FORGE_STUDIO_UX1M_PASS',
+            'OPENRPG_FORGE_STUDIO_UX1N_PASS',
+            'OPENRPG_FORGE_STUDIO_UX1O_PASS',
+            'OPENRPG_FORGE_STUDIO_UX1P_PASS',
+            'OPENRPG_FORGE_STUDIO_UX1Q_PASS',
+            'OPENRPG_FORGE_STUDIO_UX1R_PASS',
+            'OPENRPG_FORGE_STUDIO_UX1S_PASS',
+            'OPENRPG_FORGE_STUDIO_UX1T_PASS',
+            'OPENRPG_FORGE_STUDIO_UX1U_PASS',
+            'OPENRPG_FORGE_STUDIO_SHELL_PASS sections=8 pages=36 windows=1 module=forgotten-forest areas=6') `
+        -StopAfterMarkers $false
 
     $toolsetPath = Join-Path $repositoryRoot 'apps\Forge.Toolset'
     $toolsetLog = Join-Path $artifactRoot 'toolset.log'
@@ -1171,14 +1232,14 @@ try {
             '--output', $assetDeliveryReport,
             '--markdown', $assetDeliveryMarkdown,
             '--vault', $assetVault) `
-        -Marker 'OPENRPG_FORGE_AV5_DELIVERY_REPORT_PASS catalog=665 local=617'
+        -Marker 'OPENRPG_FORGE_AV5_DELIVERY_REPORT_PASS catalog=673 local=625'
     if (-not (Test-Path -LiteralPath $assetDeliveryReport) -or
         -not (Test-Path -LiteralPath $assetDeliveryMarkdown)) {
         throw 'AV5 delivery reports were not written.'
     }
     $delivery = Get-Content -LiteralPath $assetDeliveryReport -Raw | ConvertFrom-Json
     if ($delivery.schemaVersion -ne 1 -or -not $delivery.passed -or
-        $delivery.catalog.assets -ne 665 -or $delivery.catalog.localAssets -ne 617 -or
+        $delivery.catalog.assets -ne 673 -or $delivery.catalog.localAssets -ne 625 -or
         $delivery.module.manifests -ne 129 -or $delivery.module.chunks -ne 186 -or
         $delivery.module.assetReferences -ne 809 -or $delivery.module.ungovernedReferences -ne 0 -or
         $delivery.module.chunkIntegrityFailures -ne 0 -or $delivery.performance.checks -ne 16 -or

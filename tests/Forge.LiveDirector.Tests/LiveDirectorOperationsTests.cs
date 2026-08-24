@@ -39,7 +39,9 @@ public sealed class LiveDirectorOperationsTests
         Assert.Equal(42, panel.LatencyMs);
         var command = new LivePlayerService.Travel(Guid.NewGuid(), "summon-player", Player, GmObject, false, 0);
         Assert.Equal("LIVE_PLAYER_TRAVEL_CONFIRMATION_REQUIRED", players.TravelToPlayer(gm, command, true).Code);
-        Assert.True(players.TravelToPlayer(gm, command with { Confirmed = true }, true).Applied);
+        var applied = players.TravelToPlayer(gm, command with { Confirmed = true }, true);
+        Assert.True(applied.Applied);
+        Assert.Equal("camera:fade-to-director", applied.CameraTransition);
         Assert.Equal("teleported", chooser.Find(Character)!.State);
     }
 
@@ -55,6 +57,7 @@ public sealed class LiveDirectorOperationsTests
         var second = search.NextSaved(gm, queryId);
         Assert.NotEqual(first.Current!.ObjectId, second.Current!.ObjectId);
         Assert.StartsWith("openrpg://live/zone/", first.DeepLink);
+        Assert.StartsWith("viewport-focus:", first.VisualFocus);
     }
 
     [Fact]
@@ -65,7 +68,9 @@ public sealed class LiveDirectorOperationsTests
         var scripts = new LiveScriptService(authorization, value => value.EndsWith(":valid", StringComparison.Ordinal));
         scripts.Register(new("announce", args => new Dictionary<string, string> { ["message"] = args["message"] }));
         var command = new LiveScriptService.Request(Guid.NewGuid(), "registered-command", "announce", null, 100, 0, new Dictionary<string, string> { ["message"] = "Bienvenue" });
-        Assert.Equal("LIVE_SCRIPT_PREVIEW", scripts.Run(gm, command, false).Code);
+        var preview = scripts.Run(gm, command, false);
+        Assert.Equal("LIVE_SCRIPT_PREVIEW", preview.Code);
+        Assert.StartsWith("forgescript:server:", preview.ServerAdapter);
         Assert.Equal("Bienvenue", scripts.Run(gm, command, true).Output["message"]);
         Assert.Equal("LIVE_SCRIPT_FORBIDDEN_API", scripts.Run(gm, new(Guid.NewGuid(), "signed-snippet", "System.IO.File.Delete", "valid", 10, 1, new Dictionary<string, string>()), true).Code);
         Assert.Equal("LIVE_SCRIPT_SIGNATURE_INVALID", scripts.Run(gm, new(Guid.NewGuid(), "signed-snippet", "SetWeather()", "bad", 10, 1, new Dictionary<string, string>()), true).Code);

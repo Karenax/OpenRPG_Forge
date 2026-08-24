@@ -38,6 +38,15 @@ public sealed class LiveWorldActionTests
         Assert.True(result.Applied);
         Assert.Equal(ZoneB, chooser.Find(TargetId)!.ZoneId);
         Assert.Equal((10d, 2d, 30d), (result.Target!.X, result.Target.Y, result.Target.Z));
+        Assert.Equal(87d, result.Target.Heading);
+
+        Assert.Equal("LIVE_ACTION_COMPENSATION_PREVIEW",
+            service.Compensate(gm, request.CommandId, 1, false).Code);
+        var compensated = service.Compensate(gm, request.CommandId, 1, true);
+        Assert.Equal("LIVE_ACTION_COMPENSATED", compensated.Code);
+        Assert.Equal((ZoneA, 1d, 0d, 1d, 87d),
+            (compensated.Target!.ZoneId, compensated.Target.X, compensated.Target.Y,
+                compensated.Target.Z, compensated.Target.Heading));
     }
 
     [Fact]
@@ -66,15 +75,38 @@ public sealed class LiveWorldActionTests
         Assert.Contains("lootPolicy=preserve", result.SemanticDiff);
     }
 
+    [Fact]
+    public void Destroy_can_be_restored_only_by_its_session_compensation_token()
+    {
+        var (service, chooser, gm) = Create();
+        var request = Request("world.destroy", 0, new Dictionary<string, string>
+        {
+            ["cause"] = "GM ruling",
+            ["confirmed"] = "true",
+            ["lootPolicy"] = "preserve",
+            ["questImpact"] = "previewed",
+            ["rollback"] = "session-only"
+        });
+
+        Assert.True(service.Execute(gm, request, true).Applied);
+        Assert.Null(chooser.Find(TargetId));
+        Assert.Equal("LIVE_ACTION_COMPENSATED",
+            service.Compensate(gm, request.CommandId, 1, true).Code);
+        Assert.Equal("Elyra", chooser.Find(TargetId)!.Name);
+        Assert.Equal("LIVE_ACTION_COMPENSATION_UNKNOWN",
+            service.Compensate(gm, request.CommandId, 2, true).Code);
+    }
+
     private static (LiveWorldActionService Service, LiveWorldChooser Chooser, AuthorizationSubject Gm) Create(bool privateTarget = false, bool playerTarget = false)
     {
         var authorization = new AuthorizationService();
         var chooser = new LiveWorldChooser(authorization);
-        chooser.Upsert(new(TargetId, ZoneA, "creature", "Elyra", "player", playerTarget ? ActorId : null, "active", [], "crypt", privateTarget, 1, 0, 1));
-        chooser.Upsert(new(DestinationId, ZoneB, "waypoint", "Camp", "safe", null, "active", [], "surface", false, 10, 2, 30));
+        chooser.Upsert(new(TargetId, ZoneA, "creature", "Elyra", "player", playerTarget ? ActorId : null, "active", [], "crypt", privateTarget, 1, 0, 1, 87));
+        chooser.Upsert(new(DestinationId, ZoneB, "waypoint", "Camp", "safe", null, "active", [], "surface", false, 10, 2, 30, 12));
         return (new(chooser, authorization), chooser, new(ActorId, NetworkRole.Administrator, new HashSet<Guid> { ZoneA, ZoneB }));
     }
 
     private static LiveWorldActionService.Request Request(string kind, long revision, IReadOnlyDictionary<string, string> arguments, Guid? destination = null) =>
         new(Guid.NewGuid(), kind, TargetId, destination, revision, arguments);
+
 }

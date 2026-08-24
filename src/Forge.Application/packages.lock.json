@@ -5,6 +5,12 @@
       "forge.domain": {
         "type": "Project"
       },
+      "forge.rpgkit.domain": {
+        "type": "Project",
+        "dependencies": {
+          "Forge.Domain": "[1.0.0, )"
+        }
+      },
       "forge.scripting": {
         "type": "Project"
       }

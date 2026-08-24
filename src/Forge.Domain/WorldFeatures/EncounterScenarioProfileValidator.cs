@@ -45,12 +45,15 @@ public static class EncounterScenarioProfileValidator
                 "Encounter scenario component UUIDs must be non-empty and unique.", $"{path}/components");
 
         var canonicalAnchors = foundation?.SpawnAnchorIds.ToHashSet(StringComparer.Ordinal) ?? [];
+        if (!Enum.IsDefined(profile.Distribution))
+            Add(diagnostics, "world.encounter.spawn_distribution_invalid",
+                "Encounter spawn distribution must be a supported canonical value.", $"{path}/distribution");
         if (profile.SpawnAnchors.Count == 0 ||
             profile.SpawnAnchors.Select(item => item.AnchorId).Distinct(StringComparer.Ordinal).Count() !=
             profile.SpawnAnchors.Count ||
             profile.SpawnAnchors.Any(item => string.IsNullOrWhiteSpace(item.AnchorId) ||
                 !canonicalAnchors.Contains(item.AnchorId) || item.Capacity <= 0 || !double.IsFinite(item.Weight) ||
-                item.Weight < 0 || !TransformIsBounded(item.Transform)) ||
+                item.Weight < 0 || !Enum.IsDefined(item.Visibility) || !TransformIsBounded(item.Transform)) ||
             profile.SpawnAnchors.All(item => !item.Navigable) ||
             profile.SpawnAnchors.Count(item => item.IsFallback) != 1)
             Add(diagnostics, "world.encounter.spawn_anchor_policy_invalid",
@@ -58,7 +61,8 @@ public static class EncounterScenarioProfileValidator
                 $"{path}/spawnAnchors");
 
         var activator = profile.Activator;
-        if (activator.RequiredTags.Any(string.IsNullOrWhiteSpace) ||
+        if (!Enum.IsDefined(activator.RequiredAuthority) ||
+            activator.RequiredTags.Any(string.IsNullOrWhiteSpace) ||
             activator.RequiredTags.Distinct(StringComparer.Ordinal).Count() != activator.RequiredTags.Count)
             Add(diagnostics, "world.encounter.activator_policy_invalid",
                 "Encounter activator tags must be non-empty and unique.", $"{path}/activator");
@@ -113,7 +117,8 @@ public static class EncounterScenarioProfileValidator
                     wave.DelaySeconds < 0)
                     Add(diagnostics, "world.encounter.wave_composition_invalid",
                         "Encounter waves require known composition groups and non-negative finite delay.", wavePath);
-                if (wave.Completion == EncounterWaveCompletionPolicy.TimerElapsed && wave.DelaySeconds <= 0 ||
+                if (!Enum.IsDefined(wave.Completion) ||
+                    wave.Completion == EncounterWaveCompletionPolicy.TimerElapsed && wave.DelaySeconds <= 0 ||
                     wave.Completion == EncounterWaveCompletionPolicy.Script &&
                     string.IsNullOrWhiteSpace(wave.CompletionTargetId) ||
                     wave.Completion == EncounterWaveCompletionPolicy.ObjectiveCompleted &&

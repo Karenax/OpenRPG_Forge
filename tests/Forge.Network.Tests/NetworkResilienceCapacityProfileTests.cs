@@ -56,6 +56,46 @@ public sealed class NetworkResilienceCapacityProfileTests
     }
 
     [Fact]
+    public void R124_RuntimeAdapter_WiresConfiguredRollbackReservedCapacityQueueAndMetrics()
+    {
+        var initial = NetworkResilienceCapacityProfile.CreateDefault();
+        var profile = initial with
+        {
+            RequiredAtRuntime = true,
+            Capacity = initial.Capacity with
+            {
+                MaximumPlayers = 3,
+                ReservedAdministratorSlots = 1,
+                ReservationSeconds = 20
+            }
+        };
+        var runtime = NetworkResilienceCapacityRuntimeAdapter.Build(profile);
+
+        Assert.Equal(2, runtime.PublicCapacity);
+        Assert.Equal(1, runtime.ReservedAdministratorSlots);
+        Assert.Equal(2, runtime.PublicAdmissions.Capacity);
+
+        var actor = Guid.NewGuid();
+        var snapshot = runtime.Snapshots.Save(0, 2, "{\"state\":\"safe\"}", actor);
+        Assert.Equal("NET_ROLLBACK_PREVIEW", runtime.Rollback.Preview(snapshot.SnapshotId, 5, actor).Code);
+        Assert.Equal("NET_ROLLBACK_APPLIED", runtime.Rollback.Apply(snapshot.SnapshotId, 5, actor).Code);
+
+        var firstAccount = Guid.NewGuid();
+        var secondAccount = Guid.NewGuid();
+        var first = runtime.PublicAdmissions.Request(firstAccount);
+        var second = runtime.PublicAdmissions.Request(secondAccount);
+        Assert.True(runtime.PublicAdmissions.Confirm(first.Reservation!.ReservationId));
+        Assert.True(runtime.PublicAdmissions.Confirm(second.Reservation!.ReservationId));
+        Assert.Equal(1, runtime.PublicAdmissions.Request(Guid.NewGuid()).Position);
+        Assert.Equal(2, runtime.PublicAdmissions.Request(Guid.NewGuid()).Position);
+        Assert.Equal("NET_CAPACITY_RESERVED", runtime.PublicAdmissions.Disconnect(firstAccount)!.Code);
+        Assert.Equal(1, runtime.PublicAdmissions.ConnectedCount);
+        Assert.Equal(1, runtime.PublicAdmissions.ReservationCount);
+        Assert.Equal(1, runtime.PublicAdmissions.QueuedCount);
+        Assert.Equal(3, runtime.Scripts.Read(runtime.Scripts.Handle).MaximumPlayers);
+    }
+
+    [Fact]
     public void R124_InvalidPermissionRevisionAndPolicies_ReturnLocalizedDiagnostics()
     {
         var initial = NetworkResilienceCapacityProfile.CreateDefault();
@@ -65,5 +105,14 @@ public sealed class NetworkResilienceCapacityProfileTests
             "player", NetworkRole.Player, true, invalid));
         Assert.Contains(result.Diagnostics, item => item.Code == "NET_RESILIENCE_PERMISSION_DENIED");
         Assert.Contains(result.Diagnostics, item => item.Code == "NET_RESILIENCE_REVISION_STALE");
+    }
+
+    [Fact]
+    public void R124_IncompleteJson_ReturnsStableDiagnostic()
+    {
+        var exception = Assert.Throws<InvalidDataException>(() =>
+            new NetworkResilienceCapacityStore().Deserialize("{\"schemaVersion\":1}"));
+
+        Assert.Equal("NET_RESILIENCE_INCOMPLETE", exception.Message);
     }
 }

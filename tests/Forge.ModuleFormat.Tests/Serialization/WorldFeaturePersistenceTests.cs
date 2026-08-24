@@ -1,5 +1,6 @@
 using System.Text.Json.Nodes;
 using Forge.Domain.Blueprints;
+using Forge.Domain.Factions;
 using Forge.Domain.Projects;
 using Forge.Domain.Spatial;
 using Forge.Domain.WorldFeatures;
@@ -22,11 +23,11 @@ public sealed class WorldFeaturePersistenceTests : IDisposable
         var created = ProjectSession.Create(_temporaryRoot, project);
         var reopened = ProjectSession.Open(_temporaryRoot);
 
-        Assert.Contains("\"formatVersion\": \"0.6.34\"", aggregate, StringComparison.Ordinal);
+        Assert.Contains("\"formatVersion\": \"0.6.38\"", aggregate, StringComparison.Ordinal);
         Assert.Equal(aggregate, ProjectJsonSerializer.Serialize(restored));
         Assert.True(created.Succeeded);
         Assert.True(reopened.Succeeded);
-        Assert.Contains("\"formatVersion\": \"1.28.0\"", File.ReadAllText(reopened.Session!.ProjectFilePath),
+        Assert.Contains("\"formatVersion\": \"1.30.0\"", File.ReadAllText(reopened.Session!.ProjectFilePath),
             StringComparison.Ordinal);
         var catalog = reopened.Session.Project.Module.WorldFeatures;
         Assert.Single(catalog.Placeables);
@@ -44,19 +45,55 @@ public sealed class WorldFeaturePersistenceTests : IDisposable
         Assert.Equal(100, placeableOperations.Damageable!.MaximumHealth);
         Assert.Equal("PlaceableProtectionOverride", placeableOperations.Protection!.AuditBinding);
         Assert.Equal(PlaceableAuthoredLockState.Locked, placeableOperations.Lock!.InitialState);
+        Assert.Equal("mechanics", placeableOperations.Lock.SkillId);
+        Assert.Equal(12, placeableOperations.Lock.Difficulty);
+        Assert.True(placeableOperations.Lock.Hackable && placeableOperations.Lock.Relockable &&
+                    placeableOperations.Lock.CanJam);
+        Assert.True(catalog.Placeables[0].FactionOwnershipRequiredAtRuntime);
+        var factionOwnership = Assert.IsType<PlaceableFactionOwnershipProfile>(
+            catalog.Placeables[0].FactionOwnership);
+        Assert.Equal(Guid.Parse("15200000-0000-4000-8000-000000000060"),
+            factionOwnership.PrimaryFactionId);
+        Assert.True(factionOwnership.InheritHostility && factionOwnership.UnauthorizedActionsAreCrime &&
+                    factionOwnership.MembersOnlyAccess && factionOwnership.BlockFriendlyTargeting);
+        Assert.True(catalog.Placeables[0].ConversationRequiredAtRuntime);
+        var conversation = Assert.IsType<PlaceableConversationProfile>(catalog.Placeables[0].Conversation);
+        Assert.Equal(2, conversation.Bindings.Count);
+        Assert.Equal(project.Dialogues[0].Id.Value, conversation.Bindings[0].DialogueId);
+        Assert.Equal(PlaceableConversationTrigger.Interaction, conversation.Bindings[0].Trigger);
+        Assert.Equal(PlaceableConversationTrigger.Item, conversation.Bindings[1].Trigger);
+        Assert.Equal(project.Blueprints.Single(blueprint => blueprint.Kind == BlueprintKind.Item).Id,
+            conversation.Bindings[1].ItemBlueprintId);
         Assert.True(catalog.Placeables[0].SecurityEventsRequiredAtRuntime);
+        Assert.True(catalog.Placeables[0].TrapRequiredAtRuntime);
+        Assert.True(catalog.Placeables[0].LootRequiredAtRuntime);
+        Assert.True(catalog.Placeables[0].ContainerEventsRequiredAtRuntime);
+        Assert.True(catalog.Placeables[0].LockEventsRequiredAtRuntime);
+        Assert.True(catalog.Placeables[0].CredentialRequiredAtRuntime);
+        var credential = Assert.IsType<PlaceableWorldProfile.CredentialPolicy>(catalog.Placeables[0].Credential);
+        Assert.Equal("key", credential.CredentialId);
+        Assert.Equal(PlaceableWorldProfile.CredentialConsumption.Consume, credential.Consumption);
+        Assert.Equal(1, credential.Charges);
+        Assert.True(credential.AuditUse);
         var placeableSecurityEvents = Assert.IsType<PlaceableSecurityEventsProfile>(
             catalog.Placeables[0].SecurityEvents);
-        Assert.Equal("damage:ember", placeableSecurityEvents.Trap.PayloadId);
-        Assert.Equal(30, placeableSecurityEvents.Trap.ResetDelaySeconds);
-        Assert.Equal(PlaceableAuthoredLootSpawnTiming.Open, placeableSecurityEvents.Loot.Timing);
+        var trap = Assert.IsType<PlaceableTrapProfile>(placeableSecurityEvents.Trap);
+        var loot = Assert.IsType<PlaceableLootSpawnerProfile>(placeableSecurityEvents.Loot);
+        var containerEvents = Assert.IsType<PlaceableContainerStateEventsProfile>(
+            placeableSecurityEvents.ContainerEvents);
+        var lockEvents = Assert.IsType<PlaceableLockStateEventsProfile>(placeableSecurityEvents.LockEvents);
+        var contentsChanged = Assert.IsType<PlaceableContentsChangedEventProfile>(
+            placeableSecurityEvents.ContentsChanged);
+        Assert.Equal("damage:ember", trap.PayloadId);
+        Assert.Equal(30, trap.ResetDelaySeconds);
+        Assert.Equal(PlaceableAuthoredLootSpawnTiming.Open, loot.Timing);
         Assert.Equal(Guid.Parse("15000000-0000-4000-8000-000000000008"),
-            placeableSecurityEvents.Loot.LootTable.Entries.Single().ItemDefinitionId);
-        Assert.Equal("ContainerOpened", placeableSecurityEvents.ContainerEvents.OpenedBinding);
-        Assert.Equal("ContainerClosed", placeableSecurityEvents.ContainerEvents.ClosedBinding);
-        Assert.Equal("LockStateChanging", placeableSecurityEvents.LockEvents.ChangingBinding);
-        Assert.True(placeableSecurityEvents.LockEvents.ControlledVeto);
-        Assert.Equal("ContainerContentsChanged", placeableSecurityEvents.ContentsChanged.EventBinding);
+            loot.LootTable.Entries.Single().ItemDefinitionId);
+        Assert.Equal("ContainerOpened", containerEvents.OpenedBinding);
+        Assert.Equal("ContainerClosed", containerEvents.ClosedBinding);
+        Assert.Equal("LockStateChanging", lockEvents.ChangingBinding);
+        Assert.True(lockEvents.ControlledVeto);
+        Assert.Equal("ContainerContentsChanged", contentsChanged.EventBinding);
         Assert.Single(catalog.Doors);
         Assert.Equal(9, catalog.Doors[0].Foundation!.States.Count);
         Assert.Equal(DoorWorldProfile.DestinationKind.Waypoint,
@@ -71,6 +108,13 @@ public sealed class WorldFeaturePersistenceTests : IDisposable
         Assert.Equal("DoorClosed", catalog.Doors[0].AccessEvents!.StateEvents.ClosedBinding);
         Assert.True(catalog.Doors[0].AccessEvents!.LockStateEventsRequiredAtRuntime);
         Assert.Equal("DoorUnlocked", catalog.Doors[0].AccessEvents!.LockStateEvents!.UnlockedBinding);
+        Assert.True(catalog.Doors[0].ValidationRequiredAtRuntime);
+        Assert.Equal(Guid.Parse("15200000-0000-4000-8000-000000000010"),
+            catalog.Doors[0].Validation!.KnownDestinationIds.Single());
+        Assert.Equal(10, catalog.Doors[0].Validation!.KnownAnimationIds.Count);
+        Assert.Equal("collision:test-door", catalog.Doors[0].Validation!.KnownCollisionProfileIds.Single());
+        Assert.Equal("key:ember", catalog.Doors[0].Validation!.KnownCredentialIds.Single());
+        Assert.Equal("scripts/rejected", catalog.Doors[0].Validation!.KnownScriptIds.Single());
         Assert.Single(catalog.Triggers);
         Assert.True(catalog.Triggers[0].FoundationRequiredAtRuntime);
         Assert.Equal(TriggerWorldProfile.ShapeKind.ExtrudedPolygon2D, catalog.Triggers[0].Foundation!.Shape.Kind);
@@ -165,7 +209,122 @@ public sealed class WorldFeaturePersistenceTests : IDisposable
         Assert.True(reopened.Succeeded);
         Assert.Empty(reopened.Session!.Project.Module.WorldFeatures.Companions);
         Assert.True(reopened.Session.Save(reopened.Session.Project).Succeeded);
-        Assert.Contains("\"formatVersion\": \"1.28.0\"", File.ReadAllText(path), StringComparison.Ordinal);
+        Assert.Contains("\"formatVersion\": \"1.30.0\"", File.ReadAllText(path), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Placeable_event_extension_fields_default_when_absent_from_existing_json()
+    {
+        var document = JsonNode.Parse(ProjectJsonSerializer.Serialize(CompleteProject()))!.AsObject();
+        var placeable = document["project"]!["module"]!["worldFeatures"]!["placeables"]!
+            .AsArray()[0]!.AsObject();
+        placeable.Remove("contentsChangedRequiredAtRuntime");
+        placeable.Remove("damageEvents");
+        placeable.Remove("damageEventsRequiredAtRuntime");
+
+        var restored = ProjectJsonSerializer.Deserialize(document.ToJsonString());
+        var profile = restored.Module.WorldFeatures.Placeables.Single();
+
+        Assert.False(profile.ContentsChangedRequiredAtRuntime);
+        Assert.Null(profile.DamageEvents);
+        Assert.False(profile.DamageEventsRequiredAtRuntime);
+    }
+
+    [Fact]
+    public void Previous_door_validation_formats_default_to_optional_unqualified_context()
+    {
+        var aggregate = JsonNode.Parse(ProjectJsonSerializer.Serialize(CompleteProject()))!.AsObject();
+        aggregate["formatVersion"] = ProjectJsonSerializer.PreDoorRuntimeValidationFormatVersion;
+        var aggregateDoor = aggregate["project"]!["module"]!["worldFeatures"]!["doors"]!
+            .AsArray()[0]!.AsObject();
+        aggregateDoor.Remove("validation");
+        aggregateDoor.Remove("validationRequiredAtRuntime");
+
+        var restored = ProjectJsonSerializer.Deserialize(aggregate.ToJsonString());
+        Assert.Null(restored.Module.WorldFeatures.Doors.Single().Validation);
+        Assert.False(restored.Module.WorldFeatures.Doors.Single().ValidationRequiredAtRuntime);
+
+        var created = ProjectSession.Create(_temporaryRoot, CompleteProject());
+        var workspace = JsonNode.Parse(File.ReadAllText(created.Session!.ProjectFilePath))!.AsObject();
+        workspace["formatVersion"] = "1.28.0";
+        var workspaceDoor = workspace["project"]!["module"]!["worldFeatures"]!["doors"]!
+            .AsArray()[0]!.AsObject();
+        workspaceDoor.Remove("validation");
+        workspaceDoor.Remove("validationRequiredAtRuntime");
+        File.WriteAllText(created.Session.ProjectFilePath, workspace.ToJsonString());
+
+        var reopened = ProjectSession.Open(_temporaryRoot);
+        Assert.True(reopened.Succeeded);
+        Assert.Null(reopened.Session!.Project.Module.WorldFeatures.Doors.Single().Validation);
+        Assert.False(reopened.Session.Project.Module.WorldFeatures.Doors.Single().ValidationRequiredAtRuntime);
+    }
+
+    [Fact]
+    public void Placeable_direct_damage_events_round_trip_without_composition_profile()
+    {
+        var source = CompleteProject();
+        var original = WithHistoricalDamageComposition(source.Module.WorldFeatures.Placeables.Single());
+        var directDamage = original.CompositionEvents!.DamageEvents with
+        {
+            DamagedBinding = "DirectDamageApplied",
+            DestroyedBinding = "DirectEntityDestroyed",
+        };
+        var direct = original with
+        {
+            CompositionEvents = null,
+            CompositionEventsRequiredAtRuntime = false,
+            DamageEvents = directDamage,
+            DamageEventsRequiredAtRuntime = true,
+        };
+
+        var restored = ProjectJsonSerializer.Deserialize(
+            ProjectJsonSerializer.Serialize(WithPlaceable(source, direct)));
+        var profile = restored.Module.WorldFeatures.Placeables.Single();
+        var canonical = PlaceableDamageEventsResolver.Resolve(profile);
+
+        Assert.Equal(directDamage, profile.DamageEvents);
+        Assert.Null(profile.CompositionEvents);
+        Assert.True(profile.DamageEventsRequiredAtRuntime);
+        Assert.Equal(PlaceableDamageEventsAuthority.Direct, canonical.Authority);
+    }
+
+    [Fact]
+    public void Placeable_composition_damage_events_remain_the_historical_canonical_fallback()
+    {
+        var source = CompleteProject();
+        var historical = WithHistoricalDamageComposition(source.Module.WorldFeatures.Placeables.Single());
+        var restored = ProjectJsonSerializer.Deserialize(
+            ProjectJsonSerializer.Serialize(WithPlaceable(source, historical)));
+        var profile = restored.Module.WorldFeatures.Placeables.Single();
+        var canonical = PlaceableDamageEventsResolver.Resolve(profile);
+
+        Assert.Null(profile.DamageEvents);
+        Assert.NotNull(profile.CompositionEvents?.DamageEvents);
+        Assert.True(canonical.Available);
+        Assert.Equal(profile.CompositionEvents!.DamageEvents, canonical.Profile);
+        Assert.Equal(PlaceableDamageEventsAuthority.Composition, canonical.Authority);
+    }
+
+    [Fact]
+    public void Placeable_matching_dual_damage_events_round_trip_as_one_canonical_authority()
+    {
+        var source = CompleteProject();
+        var original = WithHistoricalDamageComposition(source.Module.WorldFeatures.Placeables.Single());
+        var dual = original with
+        {
+            DamageEvents = original.CompositionEvents!.DamageEvents,
+            DamageEventsRequiredAtRuntime = true,
+        };
+
+        var restored = ProjectJsonSerializer.Deserialize(
+            ProjectJsonSerializer.Serialize(WithPlaceable(source, dual)));
+        var profile = restored.Module.WorldFeatures.Placeables.Single();
+        var canonical = PlaceableDamageEventsResolver.Resolve(profile);
+
+        Assert.Equal(profile.DamageEvents, profile.CompositionEvents!.DamageEvents);
+        Assert.True(canonical.Available);
+        Assert.Equal(PlaceableDamageEventsAuthority.DualCanonical, canonical.Authority);
+        Assert.Null(canonical.DiagnosticCode);
     }
 
     [Fact]
@@ -296,6 +455,62 @@ public sealed class WorldFeaturePersistenceTests : IDisposable
             item => item.Code == "world.companion.experience_required");
     }
 
+    [Fact]
+    public void Aggregate_round_trip_preserves_trap_only_security_profile_and_requirement()
+    {
+        var source = CompleteProject();
+        var catalog = source.Module.WorldFeatures;
+        var original = catalog.Placeables.Single();
+        var trapOnly = original with
+        {
+            SecurityEvents = original.SecurityEvents! with
+            {
+                Loot = null,
+                ContainerEvents = null,
+                LockEvents = null,
+                ContentsChanged = null,
+            },
+            SecurityEventsRequiredAtRuntime = false,
+            TrapRequiredAtRuntime = true,
+            LootRequiredAtRuntime = false,
+            ContainerEventsRequiredAtRuntime = false,
+            LockEventsRequiredAtRuntime = false,
+        };
+        var partialCatalog = new WorldFeatureCatalog(
+            catalog.Id,
+            catalog.SchemaVersion,
+            catalog.Provenance,
+            [trapOnly],
+            catalog.Doors,
+            catalog.Triggers,
+            catalog.Encounters,
+            catalog.VehicleRoutes,
+            catalog.Merchants,
+            catalog.Companions,
+            catalog.Scripts);
+        var project = new ProjectDefinition(
+            source.Id,
+            source.Title,
+            source.Module.WithWorldFeatures(partialCatalog),
+            source.Blueprints,
+            source.Areas,
+            source.Dialogues,
+            source.Quests);
+
+        var json = ProjectJsonSerializer.Serialize(project);
+        var restored = ProjectJsonSerializer.Deserialize(json);
+        var profile = restored.Module.WorldFeatures.Placeables.Single();
+
+        Assert.Equal(json, ProjectJsonSerializer.Serialize(restored));
+        Assert.True(profile.TrapRequiredAtRuntime);
+        Assert.False(profile.SecurityEventsRequiredAtRuntime);
+        Assert.NotNull(profile.SecurityEvents?.Trap);
+        Assert.Null(profile.SecurityEvents?.Loot);
+        Assert.Null(profile.SecurityEvents?.ContainerEvents);
+        Assert.Null(profile.SecurityEvents?.LockEvents);
+        Assert.Null(profile.SecurityEvents?.ContentsChanged);
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(_temporaryRoot)) Directory.Delete(_temporaryRoot, true);
@@ -309,6 +524,63 @@ public sealed class WorldFeaturePersistenceTests : IDisposable
             source.Merchants, [companion], source.Scripts);
         return new(project.Id, project.Title, project.Module.WithWorldFeatures(catalog), project.Blueprints,
             project.Areas, project.Dialogues, project.Quests);
+    }
+
+    private static ProjectDefinition WithPlaceable(ProjectDefinition project, PlaceableWorldProfile placeable)
+    {
+        var source = project.Module.WorldFeatures;
+        var catalog = new WorldFeatureCatalog(source.Id, source.SchemaVersion, source.Provenance,
+            [placeable], source.Doors, source.Triggers, source.Encounters, source.VehicleRoutes,
+            source.Merchants, source.Companions, source.Scripts);
+        return new(project.Id, project.Title, project.Module.WithWorldFeatures(catalog), project.Blueprints,
+            project.Areas, project.Dialogues, project.Quests);
+    }
+
+    private static PlaceableWorldProfile WithHistoricalDamageComposition(PlaceableWorldProfile placeable)
+    {
+        var damageEvents = new PlaceableDamageEventsProfile(
+            Guid.Parse("15200000-0000-4000-8000-000000000070"),
+            "1.0.0",
+            "DamageApplied",
+            "EntityDestroyed",
+            true,
+            true,
+            true,
+            true,
+            true,
+            true);
+        var composition = new PlaceableCompositionEventsProfile(
+            Guid.Parse("15200000-0000-4000-8000-000000000071"),
+            1,
+            "test:historical-placeable-composition",
+            damageEvents,
+            [new(
+                Guid.Parse("15200000-0000-4000-8000-000000000073"),
+                "root",
+                "prop",
+                new(Vector3Value.Zero, Vector3Value.Zero, Vector3Value.One, Vector3Value.Zero,
+                    .25, null, true, null),
+                ["prop"],
+                true,
+                1)],
+            [],
+            new(
+                Guid.Parse("15200000-0000-4000-8000-000000000072"),
+                new[] { "inspect", "use", "open", "talk", "take", "push", "climb", "custom" }
+                    .Select((verb, index) => new PlaceableContextualVerbProfile(
+                        Guid.Parse($"15200000-0000-4000-8000-{(0x74 + index):x12}"),
+                        verb,
+                        $"placeable.{verb}",
+                        1,
+                        [],
+                        [],
+                        $"{verb}Requested"))
+                    .ToArray()));
+        return placeable with
+        {
+            CompositionEvents = composition,
+            CompositionEventsRequiredAtRuntime = true,
+        };
     }
 
     private static ProjectDefinition CompleteProject()
@@ -392,7 +664,29 @@ public sealed class WorldFeaturePersistenceTests : IDisposable
                     new(Guid.Parse("15200000-0000-4000-8000-000000000055"), "1.0.0",
                         "LockStateChanging", "LockStateChanged", true, true, true, true),
                     new(Guid.Parse("15200000-0000-4000-8000-000000000056"), "1.0.0",
-                        "ContainerContentsChanged", true, true, true, true)), true)],
+                        "ContainerContentsChanged", true, true, true, true)), true,
+                FactionOwnership: new(
+                    Guid.Parse("15200000-0000-4000-8000-000000000061"), 1, "test:ux1-n",
+                    Guid.Parse("15200000-0000-4000-8000-000000000060"),
+                    [Guid.Parse("15200000-0000-4000-8000-000000000060")],
+                    true, true, true, true),
+                FactionOwnershipRequiredAtRuntime: true,
+                Conversation: new(
+                    Guid.Parse("15200000-0000-4000-8000-000000000062"), 1, "test:ux1-o",
+                    [
+                        new(Guid.Parse("15200000-0000-4000-8000-000000000063"), dialogue.Id.Value,
+                            PlaceableConversationTrigger.Interaction, "examine", null,
+                            dialogue.EntryPoints[0].Key, 20, true),
+                        new(Guid.Parse("15200000-0000-4000-8000-000000000064"), dialogue.Id.Value,
+                            PlaceableConversationTrigger.Item, string.Empty, item.Id,
+                            dialogue.EntryPoints[0].Key, 10, false),
+                    ]),
+                ConversationRequiredAtRuntime: true,
+                CredentialRequiredAtRuntime: true,
+                TrapRequiredAtRuntime: true,
+                LootRequiredAtRuntime: true,
+                ContainerEventsRequiredAtRuntime: true,
+                LockEventsRequiredAtRuntime: true)],
             [new(Guid.Parse("15100000-0000-4000-8000-000000000002"), 1, "test:g13-p-q", door.Id,
                 new(10, 1, false, "damaged", "breached", true, "debris", "repair"),
                 new(string.Empty, "loading.title", "loading.tip", true, 0), [], dialogue.Id.Value, "ash",
@@ -416,9 +710,11 @@ public sealed class WorldFeaturePersistenceTests : IDisposable
                     new(DoorWorldProfile.DestinationKind.Waypoint,
                         Guid.Parse("15200000-0000-4000-8000-000000000010"), "anchor:exit", 180, true,
                         ["portal.travel"]),
-                    [new(Guid.Parse("15200000-0000-4000-8000-000000000011"),
-                        Guid.Parse("15200000-0000-4000-8000-000000000012"), false, "Retour")],
-                    new Dictionary<string, string>(),
+                    [],
+                    new Dictionary<string, string>
+                    {
+                        [DoorWorldProfile.CollisionProfileOverrideKey] = "collision:test-door",
+                    },
                     new("nav-obstacle:test-door", "nav-link:test-door", ["closed", "locked", "jammed", "disabled", "custom"],
                         ["open", "broken"], .75, .25, true)),
                 new(Guid.Parse("15300000-0000-4000-8000-000000000001"), 1, "test:r081",
@@ -435,7 +731,12 @@ public sealed class WorldFeaturePersistenceTests : IDisposable
                     new(Guid.Parse("15300000-0000-4000-8000-000000000006"), "1.0.0",
                         "DoorOpened", "DoorClosed"), new Dictionary<string, string>(),
                     new(Guid.Parse("15300000-0000-4000-8000-000000000007"), 1, "test:r082", "1.0.0",
-                        "DoorLocked", "DoorUnlocked"), true), true)],
+                        "DoorLocked", "DoorUnlocked"), true), true,
+                new([Guid.Parse("15200000-0000-4000-8000-000000000010")],
+                    ["animation:open", "animation:closed", "animation:opening", "animation:closing",
+                     "animation:locked", "animation:jammed", "animation:broken", "animation:disabled",
+                     "animation:custom", "animation:rattle"],
+                    ["collision:test-door"], ["key:ember"], ["scripts/rejected"]), true)],
             [new(Guid.Parse("15100000-0000-4000-8000-000000000003"), 1, "test:g13-r-s", trigger.Id, area.Id,
                 null, new("inspect", "cursor", "outline", "prompt", "script", true, "use"), null, "trigger",
                 new("key", false, "denied"), new(true, "danger", false, true, "allowed", "denied"),
@@ -471,7 +772,7 @@ public sealed class WorldFeaturePersistenceTests : IDisposable
             [new(routeId, 1, "test:g13-v", area.Id,
                 [new(routePointA, Vector3Value.Zero, 0, 2), new(routePointB, new(5, 0, 0), 0, 2)],
                 [new("lane", 0, 5, "forward")], [new(Guid.Parse("15200000-0000-4000-8000-000000000002"), routePointB, 1, "stop")],
-                5, false, "server")],
+                5, false, "server-snapshots")],
             [new(Guid.Parse("15100000-0000-4000-8000-000000000005"), 1, "test:g13-w-x", creature.Id,
                 [new("gold", "currency.gold", 1, true, false)], [new("gold", 100, 0, 0, 10, 200)],
                 new(50, 100, new Dictionary<string, decimal>(), -1, true),
@@ -569,7 +870,11 @@ public sealed class WorldFeaturePersistenceTests : IDisposable
                     new(Guid.Parse("15300000-0000-4000-8000-000000000033"), 1, "test:r076",
                         true, true, true, true, true, true, true, true, true, true,
                         ["health", "focus"])), true)], scripts);
-        return new(source.Id, source.Title, source.Module.WithWorldFeatures(catalog),
+        var factions = new FactionCatalog(
+            [new(Guid.Parse("15200000-0000-4000-8000-000000000060"), 1, "test:ux1-n",
+                "watchers", "Veilleurs", false, [], ["guard"])],
+            [], [], []);
+        return new(source.Id, source.Title, source.Module.WithFactions(factions).WithWorldFeatures(catalog),
             [.. source.Blueprints, placeable, door, trigger, item], source.Areas, source.Dialogues, source.Quests);
     }
 }

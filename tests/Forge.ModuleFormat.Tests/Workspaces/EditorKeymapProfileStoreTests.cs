@@ -1,3 +1,4 @@
+using System.Text.Json.Nodes;
 using Forge.Domain.Authoring;
 using Forge.ModuleFormat.Workspaces;
 
@@ -58,6 +59,31 @@ public sealed class EditorKeymapProfileStoreTests : IDisposable
         Assert.False(loaded.Succeeded);
         Assert.Equal(EditorKeymapProfileStore.ReadFailedCode, Assert.Single(loaded.Diagnostics).Code);
         Assert.Equal(EditorKeymapPreset.Standard, loaded.Profile.Preset);
+    }
+
+    [Fact]
+    public void ThirteenCommandProfileMigratesCutBindingWithoutLosingExistingShortcuts()
+    {
+        var original = EditorKeymapProfile.CreatePreset(EditorKeymapPreset.Aurora, "author:g13-a-legacy");
+        Assert.True(EditorKeymapProfileStore.Save(_root, original).Succeeded);
+        var path = Path.Combine(_root, ".forge", "editor-keymap.json");
+        var document = JsonNode.Parse(File.ReadAllText(path))!.AsObject();
+        var bindings = document["profile"]!["bindings"]!.AsArray();
+        var cut = bindings.Single(node =>
+            node!["commandId"]!.GetValue<string>() == EditorKeymapCatalog.CutSelection);
+        bindings.Remove(cut);
+        File.WriteAllText(path, document.ToJsonString());
+
+        var loaded = EditorKeymapProfileStore.Load(_root);
+
+        Assert.True(loaded.Succeeded);
+        Assert.False(loaded.FileMissing);
+        Assert.Equal(EditorKeymapCatalog.Commands.Count, loaded.Profile.Bindings.Count);
+        Assert.Equal("Ctrl+X", loaded.Profile.Bindings.Single(binding =>
+            binding.CommandId == EditorKeymapCatalog.CutSelection).Gesture.CanonicalText);
+        Assert.All(original.Bindings.Where(binding => binding.CommandId != EditorKeymapCatalog.CutSelection),
+            binding => Assert.Contains(binding, loaded.Profile.Bindings));
+        Assert.Equal("author:g13-a-legacy", loaded.Profile.Provenance);
     }
 
     public void Dispose()

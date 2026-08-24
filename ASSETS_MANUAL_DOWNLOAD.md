@@ -1,20 +1,25 @@
-# Assets à télécharger manuellement
+# Archives manuelles Itch.io importées
 
-État au 7 août 2026. Ces huit lots sont `OPTIONAL_POST_DEMO` et ne bloquent pas le programme P0.
-Ces entrées sont annoncées CC0 par leur auteur, mais leur archive gratuite reste derrière le flux
-Itch.io protégé par Cloudflare. Aucun login, paiement, CAPTCHA ou lien signé n'a été contourné.
+État au 21 août 2026. Les huit lots `AV7-M1` à `AV7-M8` ont été téléchargés par l'utilisateur depuis
+les pages officielles, sans contournement du flux Itch.io, puis importés dans le Vault externe.
 
-Déposer l'archive originale, sans la renommer ni la modifier, sous `E:\OpenRPG_AssetVault\inbox\manual\<source>\`. L'import devra vérifier la licence contenue dans l'archive, calculer son SHA-256 et conserver l'original avant extraction.
+Les archives déposées sous `E:\OpenRPG_AssetVault\inbox\manual\` restent intactes. Les originaux
+immuables, métadonnées, hashes et copies normalisées sont produits par :
 
-| Lot | Source | Pack | Lien exact | Fichier gratuit attendu tel qu'affiché par Itch.io |
+```powershell
+python tools/asset_pipeline/import_manual_cc0_packs.py --vault E:\OpenRPG_AssetVault
+```
+
+| Lot | Source | Pack | Archive gratuite | État |
 |---|---|---|---|---|
-| `AV7-M1` | Quaternius | Universal Base Characters | https://quaternius.itch.io/universal-base-characters/purchase | `Universal Base Characters[Standard].zip` (122 MB) |
-| `AV7-M2` | Quaternius | Modular Character Outfits - Fantasy | https://quaternius.itch.io/modular-character-outfits-fantasy/purchase | `Modular Character Outfits - Fantasy[Standard].zip` (280 MB) |
-| `AV7-M3` | Quaternius | LowPoly Animated Easy Enemies | https://quaternius.itch.io/animated-easy-enemies/purchase | `Easy Animated Enemy Pack - Jan 2019.zip` (2.9 MB) |
-| `AV7-M4` | KayKit | Forest Nature Pack | https://kaylousberg.itch.io/kaykit-forest/purchase | entrée `Free` (6.1 MB ; conserver le nom réel proposé par Itch) |
-| `AV7-M5` | KayKit | Character Animations | https://kaylousberg.itch.io/kaykit-character-animations/purchase | entrée `Free 1.1` (14 MB ; conserver le nom réel proposé par Itch) |
-| `AV7-M6` | KayKit | Fantasy Weapons Bits | https://kaylousberg.itch.io/fantasy-weapons-bits/purchase | entrée `Free` (3.2 MB ; conserver le nom réel proposé par Itch) |
-| `AV7-M7` | KayKit | RPG Tools Bits | https://kaylousberg.itch.io/rpg-tools-bits/purchase | entrée `Free` (3.7 MB ; conserver le nom réel proposé par Itch) |
-| `AV7-M8` | KayKit | Resource Bits | https://kaylousberg.itch.io/resource-bits/purchase | entrée `Free` (8.1 MB ; conserver le nom réel proposé par Itch) |
+| `AV7-M1` | Quaternius | Universal Base Characters | `Universal Base Characters[Standard].zip` | importé, CC0 vérifiée |
+| `AV7-M2` | Quaternius | Modular Character Outfits - Fantasy | `Modular Character Outfits - Fantasy[Standard].zip` | importé, CC0 vérifiée |
+| `AV7-M3` | Quaternius | LowPoly Animated Easy Enemies | `Easy Animated Enemy Pack - Jan 2019.zip` | importé, CC0 vérifiée sur la page officielle |
+| `AV7-M4` | KayKit | Forest Nature Pack | `KayKit_Forest_Nature_Pack_1.0_FREE.zip` | importé, CC0 vérifiée |
+| `AV7-M5` | KayKit | Character Animations | `KayKit_Character_Animations_1.1.zip` | importé, CC0 vérifiée |
+| `AV7-M6` | KayKit | Fantasy Weapons Bits | `KayKit_FantasyWeaponsBits_1.0_FREE.zip` | importé, CC0 vérifiée |
+| `AV7-M7` | KayKit | RPG Tools Bits | `KayKit_RPGToolsBits_1.0_FREE.zip` | importé, CC0 vérifiée |
+| `AV7-M8` | KayKit | Resource Bits | `KayKit_ResourceBits_1.0_FREE.zip` | importé, CC0 vérifiée |
 
-Ne pas télécharger les niveaux `Pro`, `Extra` ou `Source`. Ne télécharger aucun nouveau pack Kenney. Synty, Fab et toute licence CC-BY, CC-NC, CC-SA ou propriétaire restent exclus.
+Les niveaux `Pro`, `Extra` et `Source` restent exclus. Aucun nouveau pack Kenney, Synty, Fab ou
+contenu sous licence CC-BY, CC-NC, CC-SA ou propriétaire n'a été importé.

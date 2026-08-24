@@ -82,6 +82,10 @@ public sealed record CreatorExperienceProductionProfile
             string.IsNullOrWhiteSpace(repositoryMetadata.Compatibility) || observability.Id == Guid.Empty ||
             observability.MaximumCaptureSeconds is < 1 or > 3_600)
             throw new ArgumentException("Repository metadata and observability settings are invalid.");
+        if (observability.Enabled && !observability.TracyCompatible && !observability.OpenTelemetryCompatible)
+            throw new ArgumentException(
+                "Enabled observability requires a Tracy or OpenTelemetry compatible backend.",
+                nameof(observability));
         if (graphics.Id == Guid.Empty || graphics.AntiAliasing is not ("disabled" or "fxaa" or "msaa2" or "msaa4" or "msaa8") ||
             graphics.AnisotropicLevel is not (1 or 2 or 4 or 8 or 16) ||
             graphics.Upscaling is not ("disabled" or "fsr" or "native"))
