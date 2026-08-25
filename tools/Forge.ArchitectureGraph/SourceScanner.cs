@@ -26,6 +26,11 @@ public sealed class SourceScanner
         ".sqlite3",
     };
 
+    private static readonly string[] ExcludedPathPrefixes =
+    [
+        "apps/Forge.Runtime/content/",
+    ];
+
     private static readonly UTF8Encoding StrictUtf8 = new(false, true);
     private static readonly UTF8Encoding ReplacementUtf8 = new(false, false);
 
@@ -57,8 +62,10 @@ public sealed class SourceScanner
                          .OrderByDescending(path => path, StringComparer.Ordinal))
             {
                 var childName = Path.GetFileName(child);
+                var relativeDirectory = NormalizePath(Path.GetRelativePath(normalizedRoot, child)) + "/";
                 if (!ExcludedDirectories.Contains(childName) &&
-                    !childName.StartsWith("exe.", StringComparison.OrdinalIgnoreCase))
+                    !childName.StartsWith("exe.", StringComparison.OrdinalIgnoreCase) &&
+                    !IsExcludedPath(relativeDirectory))
                 {
                     pending.Push(child);
                 }
@@ -68,7 +75,7 @@ public sealed class SourceScanner
                          .OrderBy(path => path, StringComparer.Ordinal))
             {
                 var relativePath = NormalizePath(Path.GetRelativePath(normalizedRoot, file));
-                if (artifactPaths.Contains(relativePath) || IsExcludedFile(file))
+                if (artifactPaths.Contains(relativePath) || IsExcludedPath(relativePath) || IsExcludedFile(file))
                 {
                     continue;
                 }
@@ -189,4 +196,7 @@ public sealed class SourceScanner
             || ExcludedSuffixes.Contains(suffix)
             || name.EndsWith(".sqlite-journal", StringComparison.OrdinalIgnoreCase);
     }
+
+    private static bool IsExcludedPath(string relativePath) =>
+        ExcludedPathPrefixes.Any(prefix => relativePath.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
 }

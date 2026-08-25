@@ -115,6 +115,88 @@ public sealed record WindProfile
             : new(CurrentSchemaVersion, 0, 0, 0, 0, 8, false, false, string.Empty, 0, []);
 }
 
+public sealed record PrecipitationVisualProfile
+{
+    public const int CurrentSchemaVersion = 1;
+
+    public int SchemaVersion { get; }
+    public float DirectionX { get; }
+    public float DirectionZ { get; }
+    public float WindInfluence { get; }
+    public float SpreadDegrees { get; }
+    public float MinimumVelocity { get; }
+    public float MaximumVelocity { get; }
+    public float GravityY { get; }
+    public float ParticlesPerIntensity { get; }
+    public int MinimumParticles { get; }
+    public float ParticleWidth { get; }
+    public float ParticleLength { get; }
+    public float LifetimeSeconds { get; }
+    public float Randomness { get; }
+    public string Color { get; }
+
+    public PrecipitationVisualProfile(
+        int schemaVersion,
+        float directionX,
+        float directionZ,
+        float windInfluence,
+        float spreadDegrees,
+        float minimumVelocity,
+        float maximumVelocity,
+        float gravityY,
+        float particlesPerIntensity,
+        int minimumParticles,
+        float particleWidth,
+        float particleLength,
+        float lifetimeSeconds,
+        float randomness,
+        string color)
+    {
+        ArgumentNullException.ThrowIfNull(color);
+        if (schemaVersion != CurrentSchemaVersion || !float.IsFinite(directionX) || !float.IsFinite(directionZ) ||
+            directionX is < -4 or > 4 || directionZ is < -4 or > 4 ||
+            !float.IsFinite(windInfluence) || windInfluence is < 0 or > 4 ||
+            !float.IsFinite(spreadDegrees) || spreadDegrees is < 0 or > 180 ||
+            !float.IsFinite(minimumVelocity) || minimumVelocity is < 0 or > 100 ||
+            !float.IsFinite(maximumVelocity) || maximumVelocity < minimumVelocity || maximumVelocity > 100 ||
+            !float.IsFinite(gravityY) || gravityY is < -100 or > 100 ||
+            !float.IsFinite(particlesPerIntensity) || particlesPerIntensity is < 0 or > 100_000 ||
+            minimumParticles is < 0 or > 100_000 ||
+            !float.IsFinite(particleWidth) || particleWidth is < .001f or > 10 ||
+            !float.IsFinite(particleLength) || particleLength is < .001f or > 20 ||
+            !float.IsFinite(lifetimeSeconds) || lifetimeSeconds is < .1f or > 120 ||
+            !float.IsFinite(randomness) || randomness is < 0 or > 1 || !IsHexColor(color))
+        {
+            throw new ArgumentOutOfRangeException(nameof(schemaVersion));
+        }
+
+        SchemaVersion = schemaVersion;
+        DirectionX = directionX;
+        DirectionZ = directionZ;
+        WindInfluence = windInfluence;
+        SpreadDegrees = spreadDegrees;
+        MinimumVelocity = minimumVelocity;
+        MaximumVelocity = maximumVelocity;
+        GravityY = gravityY;
+        ParticlesPerIntensity = particlesPerIntensity;
+        MinimumParticles = minimumParticles;
+        ParticleWidth = particleWidth;
+        ParticleLength = particleLength;
+        LifetimeSeconds = lifetimeSeconds;
+        Randomness = randomness;
+        Color = color.ToLowerInvariant();
+    }
+
+    public static PrecipitationVisualProfile CreateDefault(WeatherKind kind) => kind == WeatherKind.Snow
+        ? new(CurrentSchemaVersion, 0, 0, .12f, 7, 2, 4, -.4f, 1_600, 64,
+            .12f, .12f, 9, .82f, "#ebf5ffd9")
+        : new(CurrentSchemaVersion, 0, 0, 0, 0, 16, 22, -12, 3_000, 128,
+            .025f, .56f, 2.8f, .82f, "#a8d1ff99");
+
+    private static bool IsHexColor(string value) =>
+        value.Length is 7 or 9 && value[0] == '#' && value.Skip(1).All(Uri.IsHexDigit);
+}
+
 public sealed record WeatherStateProfile
 {
     public Guid Id { get; }
@@ -130,11 +212,12 @@ public sealed record WeatherStateProfile
     public float MinimumDurationSeconds { get; }
     public float MaximumDurationSeconds { get; }
     public float TransitionSeconds { get; }
+    public PrecipitationVisualProfile Precipitation { get; }
 
     public WeatherStateProfile(Guid id, string name, WeatherKind kind, float intensity, float humidity,
         float surfaceWetness, bool lightning, string precipitationResource, string audioCue,
         string gameplayEffect, float minimumDurationSeconds, float maximumDurationSeconds,
-        float transitionSeconds)
+        float transitionSeconds, PrecipitationVisualProfile? precipitation = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentNullException.ThrowIfNull(precipitationResource);
@@ -160,6 +243,7 @@ public sealed record WeatherStateProfile
         MinimumDurationSeconds = minimumDurationSeconds;
         MaximumDurationSeconds = maximumDurationSeconds;
         TransitionSeconds = transitionSeconds;
+        Precipitation = precipitation ?? PrecipitationVisualProfile.CreateDefault(kind);
     }
 
     public static string NormalizeOptionalResource(string value)

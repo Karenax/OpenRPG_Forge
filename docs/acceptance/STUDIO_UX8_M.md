@@ -9,6 +9,12 @@ création et l'autorité des personnages. Le profil est persistant dans
 `WorkspaceNetworkPlayerExperienceStore`. L'absence initiale du fichier produit un profil explicite
 en mémoire sans écriture implicite.
 
+Depuis le 25 août 2026, le lanceur et le runtime possèdent par ailleurs un transport TCP direct réel,
+décrit dans `docs/MULTIPLAYER_INTERNET.md` et l'ADR-0048. Cette évolution ne transforme pas
+rétroactivement la surface Studio UX8-M en client réseau : elle configure des contrats plus riches,
+tandis que le chemin actuellement raccordé au runtime couvre l'adresse IP/DNS, le port,
+l'empreinte/protocole, l'admission, la présence et les déplacements.
+
 ## Routes couvertes
 
 <a id="orf-mp-003"></a>
@@ -67,10 +73,11 @@ Artefacts :
 
 ## Limites honnêtes
 
-Studio configure et persiste un contrat d'expérience joueur. Il ne lance aucun transport, serveur,
-annuaire distant, lobby réel, client, session publique ou monde persistant. Aucun secret, compte ou
-personnage joueur n'est stocké dans le module. La surface ne qualifie pas MP-008 et préserve cette
-politique sans la réécrire.
+Studio configure et persiste un contrat d'expérience joueur. Cette surface d'acceptation ne lance
+elle-même aucun transport, serveur, annuaire distant, lobby réel, client, session publique ou monde
+persistant, même si le lanceur/runtime possède désormais le transport direct de l'ADR-0048. Aucun
+secret, compte ou personnage joueur n'est stocké dans le module. La surface ne qualifie pas MP-008
+et préserve cette politique sans la réécrire.
 
 Le portail conserve `full_gate=false` et `graph_check=false` ; il ne remplace ni
 `scripts/Verify.ps1`, ni une qualification réseau inter-processus, ni une release publique signée.

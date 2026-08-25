@@ -16,6 +16,8 @@ internal sealed class RuntimeCameraRig
     private float _maximumDistance = 32f;
     private float _yaw = Mathf.DegToRad(39f);
     private float _pitch = Mathf.DegToRad(24f);
+    private float _minimumPitch = Mathf.DegToRad(-85f);
+    private float _maximumPitch = Mathf.DegToRad(85f);
     private float _distance = 14f;
     private bool _leftOrbiting;
     private bool _rightOrbiting;
@@ -42,6 +44,14 @@ internal sealed class RuntimeCameraRig
 
     internal bool FirstPersonActive => _firstPersonActive;
 
+    internal float PitchDegrees => Mathf.RadToDeg(_pitch);
+
+    internal float FirstPersonPitchDegrees => Mathf.RadToDeg(_firstPersonPitch);
+
+    internal float MinimumPitchDegrees => Mathf.RadToDeg(_minimumPitch);
+
+    internal float MaximumPitchDegrees => Mathf.RadToDeg(_maximumPitch);
+
     internal Vector3 ForwardDirection => new(-MathF.Sin(_yaw), 0, -MathF.Cos(_yaw));
 
     internal float MaximumFocusStep { get; private set; }
@@ -56,18 +66,27 @@ internal sealed class RuntimeCameraRig
 
     internal float MaximumCollisionDistanceStep { get; private set; }
 
+    internal float TerrainClearance { get; private set; } = .9f;
+
+    internal int TerrainProbeSamples { get; private set; } = 32;
+
     internal void Configure(GameplayCameraCatalog catalog)
     {
         var profile = GameplayFoundationRuntime.ResolveCamera(catalog);
         _distance = profile.Distance;
         _minimumDistance = profile.MinimumDistance;
         _maximumDistance = profile.MaximumDistance;
+        _minimumPitch = Mathf.DegToRad(profile.MinimumPitchDegrees);
+        _maximumPitch = Mathf.DegToRad(profile.MaximumPitchDegrees);
         _pitch = Mathf.DegToRad(profile.PitchDegrees);
         _focusOffset = new(profile.FocusOffset.X, profile.FocusOffset.Y, profile.FocusOffset.Z);
         _alignCharacterFacing = profile.AlignCharacterFacing;
         _fieldOfView = profile.FieldOfViewDegrees;
+        TerrainClearance = profile.TerrainClearance;
+        TerrainProbeSamples = profile.TerrainProbeSamples;
+        _yaw = Mathf.DegToRad(profile.InitialYawDegrees);
         _firstPersonActive = false;
-        _firstPersonPitch = 0;
+        _firstPersonPitch = Math.Clamp(0, _minimumPitch, _maximumPitch);
     }
 
     internal void SetYawDegrees(float degrees) => _yaw = Mathf.DegToRad(degrees);
@@ -117,7 +136,7 @@ internal sealed class RuntimeCameraRig
                 {
                     _distance = _minimumDistance;
                     _firstPersonActive = true;
-                    _firstPersonPitch = 0;
+                    _firstPersonPitch = Math.Clamp(0, _minimumPitch, _maximumPitch);
                     _hasCollisionDistance = false;
                 }
             }
@@ -142,12 +161,12 @@ internal sealed class RuntimeCameraRig
             {
                 _firstPersonPitch = Math.Clamp(
                     _firstPersonPitch + motion.Relative.Y * MousePitchSensitivity,
-                    Mathf.DegToRad(-80f), Mathf.DegToRad(80f));
+                    _minimumPitch, _maximumPitch);
             }
             else
             {
                 _pitch = Math.Clamp(_pitch + motion.Relative.Y * MousePitchSensitivity,
-                    Mathf.DegToRad(10f), Mathf.DegToRad(70f));
+                    _minimumPitch, _maximumPitch);
             }
         }
     }
@@ -287,6 +306,34 @@ internal sealed class RuntimeCameraRig
         var sharpness = target < current ? CollisionRetractSharpness : CollisionReleaseSharpness;
         var amount = 1f - MathF.Exp(-sharpness * Math.Max(0, (float)delta));
         return Mathf.Lerp(current, target, amount);
+    }
+
+    internal static Vector3 RaiseForTerrainClearance(
+        Vector3 focus,
+        Vector3 desired,
+        Func<float, float, float> sampleHeight,
+        float clearance,
+        int sampleCount = 24)
+    {
+        ArgumentNullException.ThrowIfNull(sampleHeight);
+        if (!float.IsFinite(clearance) || clearance <= 0)
+            throw new ArgumentOutOfRangeException(nameof(clearance));
+        if (sampleCount is < 4 or > 128)
+            throw new ArgumentOutOfRangeException(nameof(sampleCount));
+
+        var raisedY = desired.Y;
+        for (var index = 1; index <= sampleCount; index++)
+        {
+            var amount = index / (float)sampleCount;
+            var x = Mathf.Lerp(focus.X, desired.X, amount);
+            var z = Mathf.Lerp(focus.Z, desired.Z, amount);
+            var segmentY = Mathf.Lerp(focus.Y, raisedY, amount);
+            var requiredY = sampleHeight(x, z) + clearance;
+            var deficit = requiredY - segmentY;
+            if (deficit > 0)
+                raisedY += deficit / amount;
+        }
+        return new Vector3(desired.X, raisedY, desired.Z);
     }
 
     private static float ZoomStep(float distance) => Math.Max(1.2f, distance * .12f);

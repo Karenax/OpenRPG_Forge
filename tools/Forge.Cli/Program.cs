@@ -754,7 +754,6 @@ static int AuthorSampleModule(string targetDirectory)
     return 0;
 }
 
-
 static int RunAssets(IReadOnlyList<string> arguments)
 {
     if (arguments.Count >= 3 && arguments[0] == "install-pack")

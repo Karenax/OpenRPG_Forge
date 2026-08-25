@@ -1,6 +1,6 @@
 # File active — consolidation OpenRPG Forge
 
-Dernière mise à jour : 24 août 2026.
+Dernière mise à jour : 25 août 2026.
 
 Les 717 fonctions Aurora et les 187 lots sont clos. Cette file décrit le résultat de la consolidation
 et sépare les tâches réalisables dans le dépôt des décisions externes de release.
@@ -96,8 +96,8 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
 
 ## C9 — Lanceur des jeux créés avec OpenRPG Forge
 
-- [x] Ajouter un profil canonique v1 : identité, exécutable, accent, image, liens, réglages,
-  capacité multijoueur et port local.
+- [x] Ajouter un profil canonique v1 : identité, exécutable, accent, image, musique WAV facultative,
+  liens, réglages, capacité multijoueur et port TCP.
 - [x] Ajouter dans le Creator un formulaire direct et l'action **Créer le lanceur du jeu**.
 - [x] Construire un lanceur WPF RPG cinématique avec Accueil, Configuration et Multijoueur, décor
   gouverné, brumes et braises animées, parallaxe, transitions et mode de mouvements réduits.
@@ -107,7 +107,22 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
 - [x] Fournir le CLI, les scripts et le modèle embarqué dans la distribution Creator.
 - [x] Vérifier visuellement les trois écrans WPF sans contrôle Windows natif visible et rejouer le
   smoke sur le runtime exporté.
-- [ ] Brancher un transport réseau inter-processus avant d'activer **Rejoindre par adresse**.
+- [x] Lire la musique du module en boucle avec Play/Stop et curseur synchronisé au volume persistant,
+  sans audio durant les captures automatisées.
+- [x] Brancher le transport TCP inter-processus et activer **Rejoindre par adresse** avec contrôle de
+  l'empreinte du module, version de protocole, snapshots révisionnés et test réel à deux clients.
+- [x] Répliquer la présence, la zone et les déplacements par avatars distants interpolés, depuis un
+  hôte runtime ou le serveur headless partageant le même listener.
+- [x] Centraliser le mode d'emploi, l'état fonctionnel, le serveur headless, les diagnostics et les
+  limites de sécurité dans `docs/MULTIPLAYER_INTERNET.md`.
+- [x] Afficher à l'hôte l'IPv4 publique et le port à partager, fournir la copie directe, rejeter les
+  adresses locales comme `127.0.0.1` et conserver une saisie IPv4/DNS si la détection échoue.
+- [ ] Router combats, inventaires, quêtes, dialogues, changements de zone et sauvegardes par les
+  intentions autoritaires avant de qualifier une campagne coopérative Internet complète.
+- [ ] Ajouter chiffrement et identité d'hôte, reconnexion, relais/NAT et annuaire optionnel avant une
+  exposition à des joueurs non fiables sans configuration manuelle du routeur.
+- [ ] Qualifier deux distributions identiques depuis deux accès Internet distincts : pare-feu,
+  redirection TCP, DNS/IP publique, entrée/sortie, déplacement, déconnexion et diagnostics d'échec.
 
 ## C10 — Interface de combat dynamique du runtime
 
@@ -587,6 +602,39 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
 - [ ] Généraliser masse, stabilité, surfaces, substances, supports et causalité dans Domain/Application.
 - [ ] Exposer les propriétés systémiques dans le Studio avec validation, aperçu, undo/redo et diagnostics.
 - [ ] Ajouter compagnons, témoins, réputation multidimensionnelle et solutions systémiques aux futurs modules.
+
+## C14 — Solaren, Les Vallées Libres
+
+- [x] Conserver la Crypte des Cendres comme module de test et créer Solaren dans un workspace séparé.
+- [x] Créer le Val d’Aubeciel, extérieur canonique de 512 × 512 m avec grandes collines et chemin
+  spline praticable vers le village.
+- [x] Composer un village médiéval avec quatre maisons modulaires closes à deux étages, fondations,
+  portes ouvertes, seuils sans mur collisionnel, escaliers centrés, vitrages, volets, toits, pignons,
+  balcons, cheminées et vignes, puis prouver le franchissement des quatre entrées avec le collider joueur.
+- [x] Installer 39 modèles gouvernés issus des packs Médiéval et Nature, un personnage UAL2 complété
+  par une tête, un visage et des cheveux, et six clips UAL1 retargetés sur le rig UAL2 : attente, course
+  avant, saut, attaque à l'épée, impact au torse et mort ; gouverner aussi deux textures de sol CC0.
+- [x] Texturer la prairie, le sol et le chemin pavé, puis reconstruire 49 181 instances dans seize
+  couches et 809 groupes de culling ; réduire l'échelle et la vitesse de l'herbe, agrandir les arbres
+  et conserver treize couches animées par un vent lent et spatialement phasé.
+- [x] Maintenir le recul de caméra sur les pentes, régler dans le module la marche à 1,2 m/s et la
+  course à 2,64 m/s, puis ajouter une
+  météo aléatoire autoritaire avec états de 7 à 20 minutes, transitions de 60 à 75 secondes, pluie
+  verticale préchauffée, éclaircies, ciel couvert, brume et modulation visuelle.
+- [x] Exposer les limites verticales de caméra dans le profil Forge, autoriser l'orbite Solaren à
+  descendre jusqu'à -85° et vérifier qu'elle vise le ciel au ras du terrain sans traverser le sol.
+- [x] Revoir le rendu Forward+ 1920 × 1080, corriger exposition, palette, cadrage, sol, chemin et
+  silhouettes du village, puis comparer le résultat aux références vidéo fournies.
+- [x] Découpler le jeu du cœur : workspace Studio comme source de vérité, suppression de
+  `author-solaren`, contrats génériques éditables pour rendu, précipitations, caméra, mouvement et
+  animations, contenu module exclu du graphe conformément à l'ADR-0049.
+- [x] Aligner le lanceur sur l'identité solaire d'Aubeciel avec un panorama gouverné, une palette
+  forêt/crème/or, une piste calme originale, leurs hashes/provenances et trois captures distribuées.
+- [x] Valider les deux workspaces, construire le package Solaren reproductible, passer 2 149 tests
+  produit .NET plus 13 tests du graphe d'architecture, le smoke Solaren Forward+ et le smoke complet
+  de non-régression de la Crypte des Cendres.
+- [ ] Étendre cette première tranche avec intérieurs, sons d'ambiance, activités du village,
+  rencontres, quêtes et transitions vers les vallées voisines avant de parler de contenu final.
 
 ## Décisions externes avant release publique
 

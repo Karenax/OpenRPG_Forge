@@ -16,7 +16,7 @@ public sealed class GameLauncherConfigurationTests
         Assert.False(first.Enabled);
         Assert.Equal("Échos : des Cendres", first.DisplayName);
         Assert.Equal("Echos_des_Cendres", first.ExecutableName);
-        Assert.Equal(GameLauncherMultiplayerMode.LocalHost, first.Multiplayer);
+        Assert.Equal(GameLauncherMultiplayerMode.DirectConnectPreview, first.Multiplayer);
         Assert.Equal(5121, first.DefaultServerPort);
     }
 
@@ -27,10 +27,12 @@ public sealed class GameLauncherConfigurationTests
             executableName: "Cendres",
             accentColor: "#a36b42",
             backgroundImagePath: " branding/hero.JPG ",
-            newsUrl: " https://example.com/news ");
+            newsUrl: " https://example.com/news ",
+            musicPath: " branding/calm.WAV ");
 
         Assert.Equal("#A36B42", configuration.AccentColor);
         Assert.Equal("branding/hero.JPG", configuration.BackgroundImagePath);
+        Assert.Equal("branding/calm.WAV", configuration.MusicPath);
         Assert.Equal("https://example.com/news", configuration.NewsUrl);
     }
 
@@ -74,12 +76,27 @@ public sealed class GameLauncherConfigurationTests
             "test"));
     }
 
+    [Theory]
+    [InlineData("../calm.wav")]
+    [InlineData("branding/calm.mp3")]
+    [InlineData("C:\\music\\calm.wav")]
+    public void Constructor_RejectsUnsafeOrUnsupportedMusic(string musicPath)
+    {
+        Assert.Throws<ArgumentException>(() => Create(
+            "Cendres",
+            "#A36B42",
+            "branding/hero.png",
+            "https://example.com/news",
+            musicPath: musicPath));
+    }
+
     private static GameLauncherConfiguration Create(
         string executableName,
         string accentColor,
         string? backgroundImagePath,
         string? newsUrl,
-        int port = 5121) =>
+        int port = 5121,
+        string? musicPath = null) =>
         new(
             GameLauncherConfigurationId.From(Guid.Parse("b9f40000-0000-4000-8000-000000000002")),
             enabled: true,
@@ -93,5 +110,6 @@ public sealed class GameLauncherConfigurationTests
             settingsEnabled: true,
             GameLauncherMultiplayerMode.LocalHost,
             port,
-            "test");
+            "test",
+            musicPath: musicPath);
 }

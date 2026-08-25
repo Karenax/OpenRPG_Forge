@@ -673,6 +673,30 @@ public sealed class ModulePackageTests : IDisposable
     }
 
     [Fact]
+    public void Validate_AllowsOnlyGltfReferencedBinarySidecars()
+    {
+        var referencedPackage = ExportValidPackage();
+        AddEntry(referencedPackage, "content/assets/model.gltf",
+            "{\"asset\":{\"version\":\"2.0\"},\"buffers\":[{\"uri\":\"model.bin\",\"byteLength\":4}]}");
+        AddEntry(referencedPackage, "content/assets/model.bin", "data");
+
+        var referenced = ModulePackageValidator.Validate(referencedPackage);
+
+        Assert.DoesNotContain(referenced.Diagnostics, diagnostic =>
+            diagnostic.Code == ModulePackageValidator.ForbiddenFileCode &&
+            diagnostic.Path == "content/assets/model.bin");
+
+        var unreferencedPackage = ExportValidPackage();
+        AddEntry(unreferencedPackage, "content/assets/hostile.bin", "data");
+
+        var unreferenced = ModulePackageValidator.Validate(unreferencedPackage);
+
+        Assert.Contains(unreferenced.Diagnostics, diagnostic =>
+            diagnostic.Code == ModulePackageValidator.ForbiddenFileCode &&
+            diagnostic.Path == "content/assets/hostile.bin");
+    }
+
+    [Fact]
     public void Validate_RejectsHashMismatchFixture()
     {
         var package = ExportValidPackage();

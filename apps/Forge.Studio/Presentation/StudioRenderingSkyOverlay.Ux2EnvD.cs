@@ -74,6 +74,15 @@ internal sealed partial class StudioRenderingSkyOverlayUx2EnvD : ColorRect
     private readonly SpinBox _exposure;
     private readonly SpinBox _whitePoint;
     private readonly LineEdit _lut;
+    private readonly SpinBox _brightness;
+    private readonly SpinBox _contrastMultiplier;
+    private readonly SpinBox _saturationMultiplier;
+    private readonly SpinBox _ambientOcclusionIntensityMultiplier;
+    private readonly SpinBox _ambientOcclusionPower;
+    private readonly SpinBox _sunPitch;
+    private readonly SpinBox _sunYaw;
+    private readonly SpinBox _sunAngularDistance;
+    private readonly SpinBox _shadowBlur;
     private readonly StudioUx2EnvBCollectionEditor<StudioUx2EnvDLightBudgetDraft> _budgets;
     private readonly OptionButton _skyMode;
     private readonly LineEdit _panorama;
@@ -184,6 +193,12 @@ internal sealed partial class StudioRenderingSkyOverlayUx2EnvD : ColorRect
         _hdrOutput = StudioUx2EnvBControls.Check("Sortie HDR demandée");
         _exposure = Number(.05, 8, .01); _whitePoint = Number(1, 32, .05);
         _lut = StudioUx2EnvBControls.Text("grading/neutral-lut.tres");
+        _brightness = Number(.1, 4, .01); _contrastMultiplier = Number(.25, 4, .01);
+        _saturationMultiplier = Number(0, 4, .01);
+        _ambientOcclusionIntensityMultiplier = Number(0, 4, .01);
+        _ambientOcclusionPower = Number(.1, 8, .01);
+        _sunPitch = Number(-89, 89, .25); _sunYaw = Number(-360, 360, .25);
+        _sunAngularDistance = Number(0, 90, .01); _shadowBlur = Number(0, 10, .01);
         BuildColorTab();
 
         _budgets = new StudioUx2EnvBCollectionEditor<StudioUx2EnvDLightBudgetDraft>(
@@ -381,6 +396,22 @@ internal sealed partial class StudioRenderingSkyOverlayUx2EnvD : ColorRect
         tab.AddChild(StudioUx2EnvBControls.Card("Ux2EnvDColor", "Gestion de couleur",
             "AgX, ACES, Filmic ou linéaire, exposition, point blanc, LUT et demande HDR sont authorés sans certifier un écran HDR.",
             grid));
+        var grading = new GridContainer { Columns = 3, SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        grading.AddChild(StudioUx2EnvBControls.Field("Luminosité", _brightness));
+        grading.AddChild(StudioUx2EnvBControls.Field("Contraste", _contrastMultiplier));
+        grading.AddChild(StudioUx2EnvBControls.Field("Saturation", _saturationMultiplier));
+        grading.AddChild(StudioUx2EnvBControls.Field("Intensité occlusion", _ambientOcclusionIntensityMultiplier));
+        grading.AddChild(StudioUx2EnvBControls.Field("Puissance occlusion", _ambientOcclusionPower));
+        grading.AddChild(new Control());
+        tab.AddChild(StudioUx2EnvBControls.Card("Ux2EnvDVisualTuning", "Étalonnage visuel de la zone",
+            "Ces valeurs appartiennent au module et sont appliquées sans branche dédiée à son nom.", grading));
+        var sun = new GridContainer { Columns = 4, SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        sun.AddChild(StudioUx2EnvBControls.Field("Soleil vertical (°)", _sunPitch));
+        sun.AddChild(StudioUx2EnvBControls.Field("Soleil horizontal (°)", _sunYaw));
+        sun.AddChild(StudioUx2EnvBControls.Field("Diamètre apparent (°)", _sunAngularDistance));
+        sun.AddChild(StudioUx2EnvBControls.Field("Flou des ombres", _shadowBlur));
+        tab.AddChild(StudioUx2EnvBControls.Card("Ux2EnvDSunTuning", "Soleil et ombres",
+            "Orientation, taille apparente et douceur des ombres sont persistées dans la zone.", sun));
     }
 
     private void BuildBudgetsTab()
@@ -502,6 +533,15 @@ internal sealed partial class StudioRenderingSkyOverlayUx2EnvD : ColorRect
         _perPixel.ButtonPressed = draft.PerPixelLighting; _materialInstances.ButtonPressed = draft.MaterialInstances;
         _hdrOutput.ButtonPressed = draft.HdrOutput; _exposure.Value = draft.Exposure;
         _whitePoint.Value = draft.WhitePoint; _lut.Text = draft.LutResource;
+        _brightness.Value = draft.VisualTuning.Brightness;
+        _contrastMultiplier.Value = draft.VisualTuning.ContrastMultiplier;
+        _saturationMultiplier.Value = draft.VisualTuning.SaturationMultiplier;
+        _ambientOcclusionIntensityMultiplier.Value = draft.VisualTuning.AmbientOcclusionIntensityMultiplier;
+        _ambientOcclusionPower.Value = draft.VisualTuning.AmbientOcclusionPower;
+        _sunPitch.Value = draft.VisualTuning.DirectionalLightPitchDegrees;
+        _sunYaw.Value = draft.VisualTuning.DirectionalLightYawDegrees;
+        _sunAngularDistance.Value = draft.VisualTuning.DirectionalLightAngularDistance;
+        _shadowBlur.Value = draft.VisualTuning.ShadowBlur;
         _budgets.SetValues(draft.LightBudgets); RefreshSimulationPlatforms(draft.SimulationPlatform);
         _simulatedDynamic.Value = draft.SimulatedDynamicLights;
         _simulatedShadows.Value = draft.SimulatedShadowCastingLights;
@@ -532,6 +572,17 @@ internal sealed partial class StudioRenderingSkyOverlayUx2EnvD : ColorRect
             Exposure = _exposure.Value,
             WhitePoint = _whitePoint.Value,
             LutResource = _lut.Text,
+            VisualTuning = new AreaVisualTuningProfile(
+                AreaVisualTuningProfile.CurrentSchemaVersion,
+                _brightness.Value,
+                _contrastMultiplier.Value,
+                _saturationMultiplier.Value,
+                _ambientOcclusionIntensityMultiplier.Value,
+                _ambientOcclusionPower.Value,
+                _sunPitch.Value,
+                _sunYaw.Value,
+                _sunAngularDistance.Value,
+                _shadowBlur.Value),
             LightBudgets = _budgets.Values,
             SkyMode = (SkyProfileMode)_skyMode.Selected,
             PanoramaResource = _panorama.Text,
@@ -647,6 +698,10 @@ internal sealed partial class StudioRenderingSkyOverlayUx2EnvD : ColorRect
         _materialInstances.Toggled += _ => InvalidatePreview(); _toneMapping.ItemSelected += _ => InvalidatePreview();
         _hdrOutput.Toggled += _ => InvalidatePreview(); _exposure.ValueChanged += _ => InvalidatePreview();
         _whitePoint.ValueChanged += _ => InvalidatePreview(); _lut.TextChanged += _ => InvalidatePreview();
+        foreach (var control in new[] { _brightness, _contrastMultiplier, _saturationMultiplier,
+                     _ambientOcclusionIntensityMultiplier, _ambientOcclusionPower, _sunPitch, _sunYaw,
+                     _sunAngularDistance, _shadowBlur })
+            control.ValueChanged += _ => InvalidatePreview();
         _budgets.Changed += () =>
         {
             var selectedIndex = (int)_simulationPlatform.Selected - 1;
@@ -685,6 +740,13 @@ internal sealed partial class StudioRenderingSkyOverlayUx2EnvD : ColorRect
         _perPixel.ButtonPressed = false; _materialInstances.ButtonPressed = false;
         _toneMapping.Select(0); _hdrOutput.ButtonPressed = false; _exposure.Value = 1;
         _whitePoint.Value = 6; _lut.Text = string.Empty; _budgets.SetValues([]);
+        var visual = AreaVisualTuningProfile.CreateDefault();
+        _brightness.Value = visual.Brightness; _contrastMultiplier.Value = visual.ContrastMultiplier;
+        _saturationMultiplier.Value = visual.SaturationMultiplier;
+        _ambientOcclusionIntensityMultiplier.Value = visual.AmbientOcclusionIntensityMultiplier;
+        _ambientOcclusionPower.Value = visual.AmbientOcclusionPower;
+        _sunPitch.Value = visual.DirectionalLightPitchDegrees; _sunYaw.Value = visual.DirectionalLightYawDegrees;
+        _sunAngularDistance.Value = visual.DirectionalLightAngularDistance; _shadowBlur.Value = visual.ShadowBlur;
         RefreshSimulationPlatforms(string.Empty); _simulatedDynamic.Value = 0;
         _simulatedShadows.Value = 0; _simulatedElapsed.Value = 0;
         _skyMode.Select(0); _panorama.Text = string.Empty; _zenith.Text = "#4c78a8";
@@ -698,6 +760,9 @@ internal sealed partial class StudioRenderingSkyOverlayUx2EnvD : ColorRect
         _workflow.Disabled = !enabled; _quality.Disabled = !enabled; _forwardPlus.Disabled = !enabled;
         _perPixel.Disabled = !enabled; _materialInstances.Disabled = !enabled; _toneMapping.Disabled = !enabled;
         _hdrOutput.Disabled = !enabled; _exposure.Editable = enabled; _whitePoint.Editable = enabled;
+        foreach (var control in new[] { _brightness, _contrastMultiplier, _saturationMultiplier,
+                     _ambientOcclusionIntensityMultiplier, _ambientOcclusionPower, _sunPitch, _sunYaw,
+                     _sunAngularDistance, _shadowBlur }) control.Editable = enabled;
         _lut.Editable = enabled; _budgets.SetEditingEnabled(enabled); _simulationPlatform.Disabled = !enabled;
         _simulatedDynamic.Editable = enabled; _simulatedShadows.Editable = enabled;
         _simulatedElapsed.Editable = enabled; _skyMode.Disabled = !enabled; _panorama.Editable = enabled;

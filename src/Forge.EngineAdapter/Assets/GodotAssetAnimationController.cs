@@ -125,7 +125,7 @@ public static class GodotAssetAnimationController
         return null;
     }
 
-    private static string ResolveClip(IReadOnlyList<string> clips, string requested)
+    internal static string ResolveClip(IReadOnlyList<string> clips, string requested)
     {
         var exact = clips.FirstOrDefault(candidate =>
             string.Equals(candidate, requested, StringComparison.OrdinalIgnoreCase));
@@ -133,7 +133,16 @@ public static class GodotAssetAnimationController
 
         var qualified = clips.FirstOrDefault(candidate =>
             string.Equals(ClipLeaf(candidate), requested, StringComparison.OrdinalIgnoreCase));
-        return qualified ?? throw new InvalidDataException(
+        if (qualified is not null) return qualified;
+
+        // Godot's glTF importer consumes the conventional `_loop` suffix as an
+        // import hint and exposes the animation without that suffix.
+        var importName = requested.EndsWith("_loop", StringComparison.OrdinalIgnoreCase)
+            ? requested[..^5]
+            : requested;
+        var importedLoop = clips.FirstOrDefault(candidate =>
+            string.Equals(ClipLeaf(candidate), importName, StringComparison.OrdinalIgnoreCase));
+        return importedLoop ?? throw new InvalidDataException(
             $"Required animation clip '{requested}' is missing. Available clips: {string.Join(", ", clips)}.");
     }
 

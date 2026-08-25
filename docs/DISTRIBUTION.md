@@ -59,9 +59,9 @@ détaillée est dans `docs/acceptance/STUDIO_UX11_B.md`.
 ## Lanceur des jeux Windows x64
 
 Chaque projet possède un profil de lanceur sous **Distribution et conformité**. Il permet de régler
-le titre, le slogan, le nom de l'exécutable, la couleur d'accent, une image PNG/JPEG du projet, les
-liens d'actualité/support, les menus de configuration et le mode multijoueur. Après enregistrement,
-**Créer le lanceur du jeu** produit un dossier Windows autonome.
+le titre, le slogan, le nom de l'exécutable, la couleur d'accent, une image PNG/JPEG du projet, une
+musique WAV facultative, les liens d'actualité/support, les menus de configuration et le mode
+multijoueur. Après enregistrement, **Créer le lanceur du jeu** produit un dossier Windows autonome.
 
 Le modèle générique peut aussi être construit et utilisé en ligne de commande :
 
@@ -83,22 +83,63 @@ génération refuse une destination existante et assemble atomiquement :
 - l'exécutable WPF single-file renommé du jeu et son interface RPG cinématique
   Accueil / Configuration / Multijoueur ;
 - le runtime OpenRPG Forge et son PCK sous `runtime/` ;
-- le module `Client` sous `game/` et le branding optionnel sous `branding/` ;
+- le module `Client` sous `game/` et les médias optionnels de fond et de musique sous `branding/` ;
 - `game-launcher.json`, `game-distribution-manifest.json` et `LISEZ-MOI.txt`.
 
 La présentation n'utilise ni WinForms, ni WebView, ni Electron. WPF fournit les transitions de page,
-la parallaxe, les brumes et les braises animées sans dépendance de production supplémentaire. Le
+la parallaxe, les brumes et les particules animées sans dépendance de production supplémentaire. Le
 décor générique embarqué possède une provenance et un SHA-256 documentés ; une image PNG/JPEG
-configurée par le jeu le remplace. Le réglage **Réduire les mouvements** coupe parallaxe et animations.
+configurée par le jeu le remplace. Une musique WAV configurée démarre en boucle et reste contrôlable
+par **Play/Stop** et un curseur synchronisé avec le volume Musique du jeu. Le réglage **Réduire les
+mouvements** coupe parallaxe et animations ; les captures automatisées restent silencieuses.
 
 L'exécutable accepte `--verify` pour une vérification silencieuse et
 `--capture=<fichier.png> --page=home|settings|multiplayer` pour reproduire les preuves visuelles sans
-lancer le jeu.
+lancer le jeu. La page multijoueur accepte aussi `--session-mode=solo|host|join` et, pour une preuve
+Hôte sans exposer l'adresse réelle du poste, `--public-address=<IPv4-ou-DNS>`.
 
 Au lancement, tous les fichiers déclarés sont contrôlés par taille et SHA-256. Les préférences sont
-stockées par jeu dans `%LOCALAPPDATA%\OpenRPG Forge\Games\<slug>`. Le solo et l'hébergement local
-autoritaire sont utilisables. **Rejoindre par adresse** reste désactivé tant que le transport réseau
-inter-processus n'est pas branché ; cette limite est volontairement visible dans l'interface.
+stockées par jeu dans `%LOCALAPPDATA%\OpenRPG Forge\Games\<slug>`. Le solo, l'hébergement local et le
+profil **Internet direct · héberger et rejoindre** sont utilisables. Le client accepte une IPv4 ou un
+nom DNS et refuse la partie avant le monde si l'empreinte du module ou la version du protocole ne
+correspond pas.
+
+En mode **Héberger**, le lanceur tente pendant cinq secondes de détecter l'IPv4 publique via
+`https://api.ipify.org/`, puis affiche avec le port l'adresse à transmettre. Cette aide HTTPS est
+facultative : le champ accepte une saisie manuelle d'IPv4 publique ou de DNS et l'échec du service
+n'empêche pas l'hébergement. L'adresse de boucle locale `127.0.0.1` reste interne au runtime et n'est
+pas présentée comme adresse à partager.
+
+Pour héberger depuis Internet :
+
+1. choisir **Héberger**, vérifier l'adresse affichée et un port TCP entre 1024 et 65535 ;
+2. copier `adresse:port` avec le bouton du lanceur et le transmettre aux invités ;
+3. autoriser le jeu dans le pare-feu Windows lors de la première écoute ;
+4. rediriger ce même port TCP du routeur vers l'IPv4 locale de l'ordinateur hôte.
+
+Le transport direct v1 réplique l'admission, la présence, la zone et les déplacements des avatars.
+Il ne transporte aucun mot de passe ou jeton, mais il n'est pas chiffré et ne prouve pas l'identité
+de l'hôte : l'utiliser avec des joueurs de confiance. Il ne fournit pas encore UPnP/NAT-PMP, relais,
+annuaire public, reconnexion ni synchronisation complète des combats, inventaires, quêtes, dialogues
+et sauvegardes. Ces limites restent visibles et ne doivent pas être décrites comme une campagne
+coopérative Internet entièrement qualifiée.
+
+Le parcours complet, les prérequis routeur/pare-feu, le serveur headless, les codes de diagnostic et
+la matrice exacte des fonctions raccordées sont documentés dans
+[`MULTIPLAYER_INTERNET.md`](MULTIPLAYER_INTERNET.md).
+
+### Distribution versionnée dans le dépôt
+
+Le dossier `exe/` conserve les deux points d'entrée Windows livrables du dépôt :
+
+- `OpenRPG_Forge_Studio.exe`, avec ses données Creator ;
+- `Solaren_Les_Vallees_Libres.exe`, avec `branding/`, `game/`, `runtime/`, `game-launcher.json` et
+  `game-distribution-manifest.json`.
+
+Le manifeste Solaren courant couvre 227 fichiers et inclut explicitement le panorama solaire et la
+musique WAV. `forge launcher verify exe` et `exe\Solaren_Les_Vallees_Libres.exe --verify` doivent tous
+deux réussir avant publication. Les exécutables seuls ne sont pas portables hors de ce dossier et
+restent `NotSigned` tant qu'aucun certificat Authenticode n'a été fourni.
 
 La distribution portable du Creator embarque ce modèle sous
 `workspace/templates/game-windows-x64`, de sorte que la création depuis l'interface n'exige pas le

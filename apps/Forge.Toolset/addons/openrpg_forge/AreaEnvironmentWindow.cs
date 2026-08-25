@@ -1357,7 +1357,8 @@ public partial class AreaEnvironmentWindow : Window
                 _exposure!.Value,
                 _whitePoint!.Value,
                 _current.Rendering.LutResource,
-                budgets);
+                budgets,
+                _current.Rendering.VisualTuning);
             var sky = new SkyProfile(
                 SkyProfile.CurrentSchemaVersion,
                 (SkyProfileMode)_skyMode!.Selected,
@@ -1396,7 +1397,8 @@ public partial class AreaEnvironmentWindow : Window
                 _weatherGameplay!.Text,
                 (float)_weatherMinimumDuration!.Value,
                 (float)_weatherMaximumDuration!.Value,
-                (float)_weatherTransition!.Value);
+                (float)_weatherTransition!.Value,
+                previousWeather.Precipitation);
             var weather = new WeatherProfile(
                 WeatherProfile.CurrentSchemaVersion,
                 initialWeather.Id,

@@ -79,6 +79,20 @@ L’IA, les plugins et les interfaces ne modifient jamais directement les fichie
 - un journal d’audit ;
 - un résultat de test si applicable.
 
+## Frontière moteur–modules
+
+- Un module dépend uniquement des contrats publics et versionnés de Forge ; le moteur, le runtime,
+  l'application et le Studio ne dépendent jamais d'un slug, d'un tag ou d'un asset propre à ce module.
+- Lorsqu'un module révèle un réglage manquant, ajouter une capacité générique au schéma, sa validation,
+  son adaptation runtime et sa surface dans le Creator autonome. Ne pas ajouter un branchement spécial.
+- Le workspace édité par le Creator est la source de vérité pour cartes, placements, assets et réglages.
+  Aucun service de `Forge.Application` ni commande cœur de `Forge.Cli` ne doit régénérer un vrai jeu.
+- Une modification de contenu sous `apps/Forge.Runtime/content/` se valide avec les validateurs et
+  playtests de module ; elle ne déclenche pas à elle seule une régénération du graphe d'architecture.
+- Les tests peuvent nommer un module et vérifier ses valeurs attendues, mais ne doivent pas introduire
+  de comportement de production réservé à ce module. Toute nouvelle capacité est aussi vérifiée sur un
+  second workspace ou par une régression de la Crypte des Cendres.
+
 ## Discipline de développement
 
 - Une tâche bornée par branche ou worktree.

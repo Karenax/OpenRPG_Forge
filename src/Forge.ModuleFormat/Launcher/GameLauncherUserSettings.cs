@@ -82,7 +82,7 @@ public static class GameLauncherUserSettingsValidator
         if (string.IsNullOrWhiteSpace(settings.ServerAddress) || settings.ServerAddress.Length > 253 ||
             settings.ServerAddress.Any(char.IsWhiteSpace))
             diagnostics.Add("launcher.settings.server_address_invalid");
-        if (settings.ServerPort is < 1 or > 65_535) diagnostics.Add("launcher.settings.server_port_invalid");
+        if (settings.ServerPort is < 1024 or > 65_535) diagnostics.Add("launcher.settings.server_port_invalid");
         return diagnostics;
     }
 }

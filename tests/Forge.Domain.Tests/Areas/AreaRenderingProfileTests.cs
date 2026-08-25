@@ -16,6 +16,7 @@ public sealed class AreaRenderingProfileTests
         Assert.True(exterior.Rendering.ForwardPlus);
         Assert.True(exterior.Rendering.PerPixelLighting);
         Assert.True(exterior.Rendering.HdrOutput);
+        Assert.Equal(1, exterior.Rendering.VisualTuning.Brightness);
         Assert.Equal(["desktop", "mobile"], exterior.Rendering.LightBudgets.Select(item => item.Platform));
         Assert.Equal(SkyProfileMode.Physical, exterior.Sky.Mode);
         Assert.Equal(SkyProfileMode.Procedural, interior.Sky.Mode);
@@ -29,5 +30,7 @@ public sealed class AreaRenderingProfileTests
             0, 0, 0, 1, 1));
         Assert.Throws<ArgumentOutOfRangeException>(() => new DynamicLightBudgetProfile(
             "desktop", 8, 9, 4096, 0.8));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new AreaVisualTuningProfile(
+            1, 0, 1, 1, 1, 1, -58, -32, .52, 1.45));
     }
 }

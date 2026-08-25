@@ -1,5 +1,9 @@
 using System.Diagnostics;
 using System.IO;
+using System.Net;
+using System.Net.Http;
+using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -9,6 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Forge.Domain.Modules;
 using Forge.ModuleFormat.Launcher;
+using Forge.Network.Transport;
 
 namespace Forge.GameLauncher;
 
@@ -25,15 +30,26 @@ internal partial class LauncherWindow
 
     private readonly GameLauncherVerification _verification;
     private readonly string _settingsPath;
+    private readonly HttpClient _publicAddressHttpClient;
+    private readonly PublicInternetAddressResolver _publicAddressResolver;
+    private readonly CancellationTokenSource _lifetimeCancellation = new();
+    private readonly MediaPlayer _launcherMusicPlayer = new();
     private bool _initializing = true;
     private bool _captureMode;
+    private bool _publicAddressLookupStarted;
+    private bool _publicAddressLookupInProgress;
+    private bool _publicAddressLookupAttempted;
+    private bool _updatingPublicAddress;
     private bool _reduceMotion;
     private bool _atmosphereStarted;
+    private bool _launcherMusicIsPlaying;
+    private bool _syncingLauncherMusicVolume;
     private string _activePage = "home";
     private double _parallaxTargetX;
     private double _parallaxTargetY;
     private double _parallaxX;
     private double _parallaxY;
+    private string? _capturePublicAddress;
 
     public LauncherWindow(
         GameLauncherVerification verification,
@@ -43,7 +59,18 @@ internal partial class LauncherWindow
         _verification = verification ?? throw new ArgumentNullException(nameof(verification));
         ArgumentNullException.ThrowIfNull(settings);
         _settingsPath = Path.GetFullPath(settingsPath);
+        _publicAddressHttpClient = new HttpClient(new SocketsHttpHandler
+        {
+            AllowAutoRedirect = false,
+            ConnectTimeout = TimeSpan.FromSeconds(3),
+        })
+        {
+            Timeout = Timeout.InfiniteTimeSpan,
+        };
+        _publicAddressResolver = new PublicInternetAddressResolver(_publicAddressHttpClient);
         InitializeComponent();
+        _launcherMusicPlayer.MediaEnded += OnLauncherMusicEnded;
+        _launcherMusicPlayer.MediaFailed += OnLauncherMusicFailed;
 
         Title = verification.Manifest.DisplayName;
         GameTitleText.Text = verification.Manifest.DisplayName.ToUpperInvariant();
@@ -55,9 +82,9 @@ internal partial class LauncherWindow
         LocalHostMode.IsEnabled = verification.Manifest.Multiplayer != GameLauncherMultiplayerMode.Disabled;
         DirectConnectMode.IsEnabled =
             verification.Manifest.Multiplayer == GameLauncherMultiplayerMode.DirectConnectPreview;
-        MultiplayerNoticeText.Text = verification.Manifest.Multiplayer == GameLauncherMultiplayerMode.DirectConnectPreview
-            ? "La connexion distante est préparée dans l’interface, mais reste verrouillée tant que le transport réseau inter-processus n’est pas branché."
-            : "L’hébergement local crée une session autoritaire dans le runtime. Les connexions distantes ne sont pas exposées par ce profil.";
+        var internetEnabled = verification.Manifest.Multiplayer == GameLauncherMultiplayerMode.DirectConnectPreview;
+        HostModeTitleText.Text = internetEnabled ? "HÉBERGER" : "HÔTE LOCAL";
+        HostModeSubtitleText.Text = internetEnabled ? "Partie Internet directe" : "Session sur cet ordinateur";
         NewsButton.Visibility = verification.Manifest.NewsUrl is null ? Visibility.Collapsed : Visibility.Visible;
         SupportButton.Visibility = verification.Manifest.SupportUrl is null ? Visibility.Collapsed : Visibility.Visible;
 
@@ -74,6 +101,7 @@ internal partial class LauncherWindow
         };
         QualitySelector.ItemsSource = new[] { "Faible", "Moyenne", "Élevée", "Ultra" };
         LoadSettings(settings);
+        ConfigureLauncherMusic(settings);
         ShowPageImmediately("home");
         _initializing = false;
         UpdateModeControls();
@@ -81,12 +109,19 @@ internal partial class LauncherWindow
         StateChanged += (_, _) => MaximizeButton.Content = WindowState == WindowState.Maximized ? "❐" : "□";
     }
 
-    public async Task CapturePreviewAsync(string path, string page, int width = 1440, int height = 860)
+    public async Task CapturePreviewAsync(
+        string path,
+        string page,
+        int width = 1440,
+        int height = 860,
+        string? sessionMode = null,
+        string? publicAddress = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
         if (width < 1180 || height < 720 || width > 3840 || height > 2160)
             throw new ArgumentOutOfRangeException(nameof(width), "La capture du lanceur doit rester entre 1180 × 720 et 3840 × 2160.");
         _captureMode = true;
+        _capturePublicAddress = NormalizeCapturePublicAddress(publicAddress);
         _reduceMotion = true;
         WindowStartupLocation = WindowStartupLocation.Manual;
         Left = -32_000;
@@ -95,6 +130,7 @@ internal partial class LauncherWindow
         Height = height;
         ResizeMode = ResizeMode.NoResize;
         Show();
+        SelectCaptureSessionMode(sessionMode);
         ShowPageImmediately(NormalizePage(page));
         await Dispatcher.InvokeAsync(() => UpdateLayout(), DispatcherPriority.Loaded);
         await Dispatcher.InvokeAsync(() => UpdateLayout(), DispatcherPriority.ApplicationIdle);
@@ -112,9 +148,34 @@ internal partial class LauncherWindow
         Close();
     }
 
+    private void SelectCaptureSessionMode(string? sessionMode)
+    {
+        if (string.IsNullOrWhiteSpace(sessionMode)) return;
+        switch (sessionMode.Trim().ToLowerInvariant())
+        {
+            case "solo":
+                SoloMode.IsChecked = true;
+                break;
+            case "host" or "local-host" or "internet-host":
+                LocalHostMode.IsChecked = true;
+                break;
+            case "join" or "internet-join":
+                if (!DirectConnectMode.IsEnabled)
+                    throw new InvalidOperationException("This game does not enable direct Internet connections.");
+                DirectConnectMode.IsChecked = true;
+                break;
+            default:
+                throw new ArgumentException("Le mode de capture doit être solo, host ou join.", nameof(sessionMode));
+        }
+
+        UpdateModeControls();
+    }
+
     private void OnLoaded(object sender, RoutedEventArgs eventArgs)
     {
         CompositionTarget.Rendering += OnCompositionFrame;
+        UpdateModeControls();
+        if (!_captureMode) StartLauncherMusic();
         if (_captureMode || _reduceMotion)
         {
             RevealWithoutMotion();
@@ -131,8 +192,15 @@ internal partial class LauncherWindow
 
     private void OnClosed(object? sender, EventArgs eventArgs)
     {
+        _lifetimeCancellation.Cancel();
+        _publicAddressHttpClient.Dispose();
+        _lifetimeCancellation.Dispose();
         CompositionTarget.Rendering -= OnCompositionFrame;
         StopAtmosphere(createStaticParticles: false);
+        _launcherMusicPlayer.Stop();
+        _launcherMusicPlayer.Close();
+        _launcherMusicPlayer.MediaEnded -= OnLauncherMusicEnded;
+        _launcherMusicPlayer.MediaFailed -= OnLauncherMusicFailed;
     }
 
     private void RevealWithoutMotion()
@@ -192,24 +260,24 @@ internal partial class LauncherWindow
             var size = 1.5 + random.NextDouble() * 3.1;
             var left = random.NextDouble() * width * 0.66;
             var top = height * (0.34 + random.NextDouble() * 0.7);
-            var ember = new System.Windows.Shapes.Ellipse
+            var mote = new System.Windows.Shapes.Ellipse
             {
                 Width = size,
                 Height = size,
-                Opacity = 0.22 + random.NextDouble() * 0.55,
+                Opacity = 0.18 + random.NextDouble() * 0.42,
                 Fill = new RadialGradientBrush(
-                    Color.FromArgb(255, 255, 225, 168),
-                    Color.FromArgb(8, 232, 97, 35)),
+                    Color.FromArgb(255, 255, 244, 188),
+                    Color.FromArgb(6, 255, 220, 116)),
                 IsHitTestVisible = false,
             };
-            Canvas.SetLeft(ember, left);
-            Canvas.SetTop(ember, top);
-            ParticleCanvas.Children.Add(ember);
+            Canvas.SetLeft(mote, left);
+            Canvas.SetTop(mote, top);
+            ParticleCanvas.Children.Add(mote);
             if (!animate) continue;
 
-            var speed = 18 + random.NextDouble() * 24;
-            var travelSeconds = Math.Max(3.5, (top + 40) / speed);
-            ember.BeginAnimation(
+            var speed = 7 + random.NextDouble() * 10;
+            var travelSeconds = Math.Max(8, (top + 40) / speed);
+            mote.BeginAnimation(
                 Canvas.TopProperty,
                 new DoubleAnimation(top, -35, TimeSpan.FromSeconds(travelSeconds))
                 {
@@ -217,7 +285,7 @@ internal partial class LauncherWindow
                     BeginTime = TimeSpan.FromMilliseconds(random.Next(0, 2200)),
                 });
             var drift = new TranslateTransform();
-            ember.RenderTransform = drift;
+            mote.RenderTransform = drift;
             drift.BeginAnimation(
                 TranslateTransform.XProperty,
                 new DoubleAnimation(-10 - random.NextDouble() * 8, 12 + random.NextDouble() * 14,
@@ -227,9 +295,9 @@ internal partial class LauncherWindow
                     RepeatBehavior = RepeatBehavior.Forever,
                     EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut },
                 });
-            ember.BeginAnimation(
+            mote.BeginAnimation(
                 UIElement.OpacityProperty,
-                new DoubleAnimation(0.15, 0.82, TimeSpan.FromSeconds(0.9 + random.NextDouble() * 1.4))
+                new DoubleAnimation(0.12, 0.58, TimeSpan.FromSeconds(1.8 + random.NextDouble() * 2.4))
                 {
                     AutoReverse = true,
                     RepeatBehavior = RepeatBehavior.Forever,
@@ -358,12 +426,88 @@ internal partial class LauncherWindow
         UpdateVolumeLabels();
     }
 
+    private void ConfigureLauncherMusic(GameLauncherUserSettings settings)
+    {
+        if (_verification.MusicPath is null)
+        {
+            LauncherMusicPanel.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        LauncherMusicPanel.Visibility = Visibility.Visible;
+        SyncLauncherMusicVolume(settings.MusicVolume, updateSettingsSlider: false);
+        _launcherMusicPlayer.Open(new Uri(_verification.MusicPath, UriKind.Absolute));
+    }
+
+    private void StartLauncherMusic()
+    {
+        if (_verification.MusicPath is null || _captureMode) return;
+        _launcherMusicPlayer.Play();
+        _launcherMusicIsPlaying = true;
+        LauncherMusicToggleButton.Content = "■ STOP";
+    }
+
+    private void StopLauncherMusic()
+    {
+        if (_verification.MusicPath is null) return;
+        _launcherMusicPlayer.Stop();
+        _launcherMusicIsPlaying = false;
+        LauncherMusicToggleButton.Content = "▶ PLAY";
+    }
+
+    private void OnLauncherMusicToggleClick(object sender, RoutedEventArgs eventArgs)
+    {
+        if (_launcherMusicIsPlaying) StopLauncherMusic();
+        else StartLauncherMusic();
+    }
+
+    private void OnLauncherMusicEnded(object? sender, EventArgs eventArgs)
+    {
+        if (!_launcherMusicIsPlaying || _captureMode) return;
+        _launcherMusicPlayer.Position = TimeSpan.Zero;
+        _launcherMusicPlayer.Play();
+    }
+
+    private void OnLauncherMusicFailed(object? sender, ExceptionEventArgs eventArgs)
+    {
+        _launcherMusicIsPlaying = false;
+        LauncherMusicToggleButton.Content = "▶ PLAY";
+        SetStatus("Musique du lanceur indisponible : " + eventArgs.ErrorException.Message, error: true);
+    }
+
+    private void OnLauncherMusicVolumeChanged(
+        object sender,
+        RoutedPropertyChangedEventArgs<double> eventArgs)
+    {
+        if (_syncingLauncherMusicVolume || LauncherMusicVolumeValue is null) return;
+        SyncLauncherMusicVolume(eventArgs.NewValue, updateSettingsSlider: true);
+        OnSettingsChanged(sender, eventArgs);
+    }
+
+    private void SyncLauncherMusicVolume(double value, bool updateSettingsSlider)
+    {
+        if (_syncingLauncherMusicVolume) return;
+        _syncingLauncherMusicVolume = true;
+        try
+        {
+            var normalized = Math.Clamp(value, 0, 100);
+            LauncherMusicVolumeSlider.Value = normalized;
+            LauncherMusicVolumeValue.Text = $"{(int)Math.Round(normalized)} %";
+            _launcherMusicPlayer.Volume = normalized / 100d;
+            if (updateSettingsSlider) MusicVolumeSlider.Value = normalized;
+        }
+        finally
+        {
+            _syncingLauncherMusicVolume = false;
+        }
+    }
+
     private GameLauncherUserSettings ReadSettings()
     {
         var resolutionIndex = Math.Clamp(ResolutionSelector.SelectedIndex, 0, Resolutions.Length - 1);
         var selectedResolution = Resolutions[resolutionIndex];
         if (!int.TryParse(ServerPortText.Text.Trim(), out var serverPort))
-            throw new InvalidDataException("Le port serveur doit être un nombre entre 1 et 65535.");
+            throw new InvalidDataException("Le port serveur doit être un nombre entre 1024 et 65535.");
         var settings = new GameLauncherUserSettings(
             GameLauncherUserSettings.CurrentSchemaVersion,
             selectedResolution.Width,
@@ -424,12 +568,6 @@ internal partial class LauncherWindow
             _ = Process.Start(startInfo) ?? throw new InvalidOperationException("Le runtime n’a pas démarré.");
             Close();
         }
-        catch (NotSupportedException exception)
-        {
-            SetStatus(exception.Message, error: true);
-            MessageBox.Show(exception.Message, "Connexion distante en préparation", MessageBoxButton.OK,
-                MessageBoxImage.Information);
-        }
         catch (Exception exception) when (exception is ArgumentException or InvalidDataException or IOException or
                                            UnauthorizedAccessException or InvalidOperationException)
         {
@@ -447,14 +585,40 @@ internal partial class LauncherWindow
     private void UpdateModeControls()
     {
         var direct = DirectConnectMode.IsChecked == true;
+        var host = LocalHostMode.IsChecked == true;
+        var internetEnabled = _verification.Manifest.Multiplayer == GameLauncherMultiplayerMode.DirectConnectPreview;
+        var internetHost = host && internetEnabled;
+        ServerAddressLabel.Text = internetHost
+            ? "IP publique à partager"
+            : host
+                ? "Adresse interne"
+                : "Adresse IP ou DNS";
+        ServerAddressText.Visibility = internetHost ? Visibility.Collapsed : Visibility.Visible;
+        PublicJoinAddressPanel.Visibility = internetHost ? Visibility.Visible : Visibility.Collapsed;
         ServerAddressText.IsEnabled = direct;
-        ServerPortText.IsEnabled = direct || LocalHostMode.IsChecked == true;
-        PlayButton.IsEnabled = !direct;
-        PlayButton.Content = LocalHostMode.IsChecked == true
-            ? "HÉBERGER ET JOUER"
+        ServerPortText.IsEnabled = direct || host;
+        PlayButton.IsEnabled = true;
+        MultiplayerPlayButton.IsEnabled = true;
+        var actionContent = host
+            ? internetEnabled
+                ? "HÉBERGER SUR INTERNET"
+                : "HÉBERGER ET JOUER"
             : direct
-                ? "CONNEXION À VENIR"
+                ? "REJOINDRE LA PARTIE"
                 : "ENTRER DANS L’AVENTURE";
+        PlayButton.Content = actionContent;
+        MultiplayerPlayButton.Content = actionContent;
+        if (internetHost && _captureMode)
+        {
+            _publicAddressLookupStarted = true;
+            _publicAddressLookupAttempted = true;
+            SetPublicAddressText(_capturePublicAddress ?? "203.0.113.42");
+        }
+
+        UpdatePublicAddressControls();
+        UpdateMultiplayerNotice();
+        if (internetHost && IsLoaded && !_captureMode)
+            _ = EnsurePublicAddressAsync();
         try
         {
             UpdateLaunchSummary(ReadSettings());
@@ -469,8 +633,11 @@ internal partial class LauncherWindow
     {
         var mode = settings.SessionMode switch
         {
+            LauncherSessionMode.LocalHost when
+                _verification.Manifest.Multiplayer == GameLauncherMultiplayerMode.DirectConnectPreview =>
+                "Hôte Internet direct",
             LauncherSessionMode.LocalHost => "Hôte local",
-            LauncherSessionMode.DirectConnectPreview => "Connexion distante en préparation",
+            LauncherSessionMode.DirectConnectPreview => "Rejoindre par Internet",
             _ => "Mode solo",
         };
         var quality = settings.GraphicsQuality switch
@@ -488,6 +655,8 @@ internal partial class LauncherWindow
     {
         if (_initializing) return;
         UpdateWindowModeHint();
+        UpdatePublicAddressControls();
+        UpdateMultiplayerNotice();
         try
         {
             UpdateLaunchSummary(ReadSettings());
@@ -513,6 +682,8 @@ internal partial class LauncherWindow
     {
         if (MasterVolumeValue is null || MusicVolumeValue is null || EffectsVolumeValue is null) return;
         UpdateVolumeLabels();
+        if (ReferenceEquals(sender, MusicVolumeSlider))
+            SyncLauncherMusicVolume(MusicVolumeSlider.Value, updateSettingsSlider: false);
         OnSettingsChanged(sender, eventArgs);
     }
 
@@ -547,7 +718,188 @@ internal partial class LauncherWindow
         var current = int.TryParse(ServerPortText.Text, out var parsed)
             ? parsed
             : _verification.Manifest.DefaultServerPort;
-        ServerPortText.Text = Math.Clamp(current + delta, 1, 65_535).ToString();
+        ServerPortText.Text = Math.Clamp(current + delta, 1024, 65_535).ToString();
+    }
+
+    private async Task EnsurePublicAddressAsync(bool force = false)
+    {
+        if (_captureMode || _lifetimeCancellation.IsCancellationRequested ||
+            !IsInternetHostMode() || _publicAddressLookupInProgress ||
+            (_publicAddressLookupStarted && !force))
+            return;
+
+        _publicAddressLookupStarted = true;
+        _publicAddressLookupInProgress = true;
+        _publicAddressLookupAttempted = false;
+        SetPublicAddressText("Détection en cours…");
+        UpdatePublicAddressControls();
+        UpdateMultiplayerNotice();
+
+        PublicInternetAddressLookupResult result;
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(_lifetimeCancellation.Token);
+        timeout.CancelAfter(TimeSpan.FromSeconds(5));
+        try
+        {
+            result = await _publicAddressResolver.ResolveIpv4Async(timeout.Token);
+        }
+        catch (OperationCanceledException) when (_lifetimeCancellation.IsCancellationRequested)
+        {
+            return;
+        }
+        catch (ObjectDisposedException) when (_lifetimeCancellation.IsCancellationRequested)
+        {
+            return;
+        }
+        catch (OperationCanceledException)
+        {
+            result = new PublicInternetAddressLookupResult(
+                false,
+                null,
+                PublicInternetAddressResolver.LookupFailedCode);
+        }
+
+        if (_lifetimeCancellation.IsCancellationRequested) return;
+        _publicAddressLookupInProgress = false;
+        _publicAddressLookupAttempted = true;
+        SetPublicAddressText(result.Succeeded ? result.Address ?? string.Empty : string.Empty);
+        UpdatePublicAddressControls();
+        UpdateMultiplayerNotice();
+        SetStatus(
+            result.Succeeded
+                ? "Adresse Internet détectée. Vous pouvez la copier avec le port."
+                : "Adresse Internet non détectée : saisissez une IP publique ou un DNS.",
+            error: !result.Succeeded);
+    }
+
+    private async void OnRefreshPublicAddressClick(object sender, RoutedEventArgs eventArgs) =>
+        await EnsurePublicAddressAsync(force: true);
+
+    private void OnPublicJoinAddressChanged(object sender, TextChangedEventArgs eventArgs)
+    {
+        if (_initializing || _updatingPublicAddress) return;
+        _publicAddressLookupAttempted = true;
+        UpdatePublicAddressControls();
+        UpdateMultiplayerNotice();
+    }
+
+    private void OnCopyPublicAddressClick(object sender, RoutedEventArgs eventArgs)
+    {
+        if (!TryBuildPublicJoinEndpoint(out var endpoint))
+        {
+            SetStatus("Adresse Internet ou port invalide : rien n’a été copié.", error: true);
+            return;
+        }
+
+        try
+        {
+            Clipboard.SetText(endpoint);
+            SetStatus($"Adresse de connexion copiée : {endpoint}", error: false);
+        }
+        catch (Exception exception) when (exception is ExternalException or InvalidOperationException)
+        {
+            SetStatus("Le presse-papiers Windows est temporairement indisponible.", error: true);
+        }
+    }
+
+    private void SetPublicAddressText(string value)
+    {
+        _updatingPublicAddress = true;
+        PublicJoinAddressText.Text = value;
+        _updatingPublicAddress = false;
+    }
+
+    private void UpdatePublicAddressControls()
+    {
+        if (PublicJoinAddressText is null || CopyPublicAddressButton is null || RefreshPublicAddressButton is null)
+            return;
+        PublicJoinAddressText.IsReadOnly = _publicAddressLookupInProgress;
+        CopyPublicAddressButton.IsEnabled = !_publicAddressLookupInProgress &&
+                                            TryBuildPublicJoinEndpoint(out _);
+        RefreshPublicAddressButton.IsEnabled = IsInternetHostMode() && !_publicAddressLookupInProgress;
+    }
+
+    private void UpdateMultiplayerNotice()
+    {
+        if (MultiplayerNoticeText is null) return;
+        var direct = DirectConnectMode.IsChecked == true;
+        var host = LocalHostMode.IsChecked == true;
+        var internetEnabled = _verification.Manifest.Multiplayer == GameLauncherMultiplayerMode.DirectConnectPreview;
+        if (direct)
+        {
+            MultiplayerNoticeText.Text =
+                "Connexion TCP directe : saisissez l’adresse publique ou le nom DNS de l’hôte. Le module et le protocole sont vérifiés avant l’entrée en jeu.";
+            return;
+        }
+
+        if (host && internetEnabled)
+        {
+            if (_publicAddressLookupInProgress)
+            {
+                MultiplayerNoticeText.Text =
+                    $"Recherche de votre IPv4 publique… Le jeu écoutera sur le port TCP {ServerPortText.Text}.";
+            }
+            else if (TryBuildPublicJoinEndpoint(out var endpoint))
+            {
+                MultiplayerNoticeText.Text =
+                    $"Partagez {endpoint} avec les joueurs. Autorisez ce port TCP dans le pare-feu Windows et redirigez-le dans le routeur.";
+            }
+            else if (_publicAddressLookupAttempted)
+            {
+                MultiplayerNoticeText.Text =
+                    "Adresse publique non détectée. Saisissez votre IPv4 publique ou un nom DNS ; n’utilisez pas 127.0.0.1. Le port doit aussi être redirigé dans le routeur.";
+            }
+            else
+            {
+                MultiplayerNoticeText.Text =
+                    $"Le lanceur va détecter l’IPv4 publique à partager. Le jeu écoutera sur le port TCP {ServerPortText.Text}.";
+            }
+
+            return;
+        }
+
+        MultiplayerNoticeText.Text = host
+            ? "Cette session n’accepte que les joueurs de cet ordinateur. Activez le profil Internet du jeu pour recevoir des connexions distantes."
+            : "Le mode solo ne démarre aucun serveur et n’ouvre aucun port réseau.";
+    }
+
+    private bool TryBuildPublicJoinEndpoint(out string endpoint)
+    {
+        endpoint = string.Empty;
+        if (PublicJoinAddressText is null || ServerPortText is null) return false;
+        var address = PublicJoinAddressText.Text.Trim();
+        var addressIsShareable = IsShareableInternetAddress(address) ||
+                                 (_captureMode && IPAddress.TryParse(address, out var captureAddress) &&
+                                  captureAddress.AddressFamily == AddressFamily.InterNetwork);
+        if (!addressIsShareable ||
+            !int.TryParse(ServerPortText.Text.Trim(), out var port) ||
+            port is < 1024 or > 65_535)
+            return false;
+        endpoint = $"{address}:{port}";
+        return true;
+    }
+
+    private bool IsInternetHostMode() =>
+        LocalHostMode.IsChecked == true &&
+        _verification.Manifest.Multiplayer == GameLauncherMultiplayerMode.DirectConnectPreview;
+
+    private static bool IsShareableInternetAddress(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value) || value.Length > 253 || value.Any(char.IsWhiteSpace))
+            return false;
+        if (IPAddress.TryParse(value, out var address))
+            return PublicInternetAddressResolver.IsGloballyRoutableIpv4(address);
+        return value.Contains('.', StringComparison.Ordinal) &&
+               !value.Equals("localhost", StringComparison.OrdinalIgnoreCase) &&
+               Uri.CheckHostName(value) == UriHostNameType.Dns;
+    }
+
+    private static string NormalizeCapturePublicAddress(string? value)
+    {
+        var candidate = string.IsNullOrWhiteSpace(value) ? "203.0.113.42" : value.Trim();
+        if (candidate.Length > 253 || candidate.Any(char.IsWhiteSpace) ||
+            (!IPAddress.TryParse(candidate, out _) && Uri.CheckHostName(candidate) != UriHostNameType.Dns))
+            throw new ArgumentException("L’adresse de capture doit être une adresse IP ou un nom DNS.", nameof(value));
+        return candidate;
     }
 
     private void SetStatus(string text, bool error)
@@ -560,7 +912,7 @@ internal partial class LauncherWindow
     private string MultiplayerTitle() => _verification.Manifest.Multiplayer switch
     {
         GameLauncherMultiplayerMode.Disabled => "Mode solo",
-        GameLauncherMultiplayerMode.DirectConnectPreview => "Hôte local et connexion préparée",
+        GameLauncherMultiplayerMode.DirectConnectPreview => "Héberger ou rejoindre par Internet",
         _ => "Hébergement local autoritaire",
     };
 

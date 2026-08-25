@@ -116,7 +116,8 @@ internal sealed partial class StudioSessionController
                 state.GameplayEffect,
                 state.MinimumDurationSeconds,
                 state.MaximumDurationSeconds,
-                state.TransitionSeconds)).ToArray(),
+                state.TransitionSeconds,
+                state.Precipitation)).ToArray(),
             weather.ServerAuthoritative,
             weather.DeterministicSeed,
             weather.PersistState,
@@ -400,7 +401,8 @@ internal sealed partial class StudioSessionController
                     item.GameplayEffect,
                     item.MinimumDurationSeconds,
                     item.MaximumDurationSeconds,
-                    item.TransitionSeconds);
+                    item.TransitionSeconds,
+                    item.Precipitation);
             }).ToArray();
             var rebuiltWeather = new WeatherProfile(
                 source.Weather.SchemaVersion,
@@ -554,6 +556,7 @@ internal sealed partial class StudioSessionController
                 state.SurfaceWetness is < 0 or > 1 || state.MinimumDurationSeconds < 0 ||
                 state.MaximumDurationSeconds < state.MinimumDurationSeconds ||
                 state.TransitionSeconds is < 0 or > 3_600 ||
+                state.Precipitation is null ||
                 !FiniteUx2EnvC(state.Intensity, state.Humidity, state.SurfaceWetness,
                     state.MinimumDurationSeconds, state.MaximumDurationSeconds, state.TransitionSeconds) ||
                 !SafeOptionalResourceUx2EnvC(state.PrecipitationResource)))
@@ -730,6 +733,14 @@ internal sealed partial class StudioSessionController
                 writer.Write(item.AudioCue ?? string.Empty); writer.Write(item.GameplayEffect ?? string.Empty);
                 writer.Write(item.MinimumDurationSeconds); writer.Write(item.MaximumDurationSeconds);
                 writer.Write(item.TransitionSeconds);
+                writer.Write(item.Precipitation.SchemaVersion);
+                writer.Write(item.Precipitation.DirectionX); writer.Write(item.Precipitation.DirectionZ);
+                writer.Write(item.Precipitation.WindInfluence); writer.Write(item.Precipitation.SpreadDegrees);
+                writer.Write(item.Precipitation.MinimumVelocity); writer.Write(item.Precipitation.MaximumVelocity);
+                writer.Write(item.Precipitation.GravityY); writer.Write(item.Precipitation.ParticlesPerIntensity);
+                writer.Write(item.Precipitation.MinimumParticles); writer.Write(item.Precipitation.ParticleWidth);
+                writer.Write(item.Precipitation.ParticleLength); writer.Write(item.Precipitation.LifetimeSeconds);
+                writer.Write(item.Precipitation.Randomness); writer.Write(item.Precipitation.Color);
             }
             writer.Write(draft.WeatherServerAuthoritative); writer.Write(draft.WeatherDeterministicSeed);
             writer.Write(draft.WeatherPersistState); writer.Write(draft.WeatherReplicateState);
@@ -796,7 +807,7 @@ internal sealed partial class StudioSessionController
         string.Equals(draft.GameplayEffect.Trim(), source.GameplayEffect, StringComparison.Ordinal) &&
         draft.MinimumDurationSeconds.Equals(source.MinimumDurationSeconds) &&
         draft.MaximumDurationSeconds.Equals(source.MaximumDurationSeconds) &&
-        draft.TransitionSeconds.Equals(source.TransitionSeconds);
+        draft.TransitionSeconds.Equals(source.TransitionSeconds) && draft.Precipitation == source.Precipitation;
 
     private static bool SameWaterBodyUx2EnvC(StudioUx2EnvCWaterBodyDraft draft, WaterBodyProfile source) =>
         draft.Id == source.Id && string.Equals(draft.Name.Trim(), source.Name, StringComparison.Ordinal) &&

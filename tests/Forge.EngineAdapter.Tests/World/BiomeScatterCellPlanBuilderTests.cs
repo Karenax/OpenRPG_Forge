@@ -38,21 +38,29 @@ public sealed class BiomeScatterCellPlanBuilderTests
     {
         var ground = Biome("ground-cover");
         var tree = Biome("tree");
+        var lush = Biome("ground-cover", "lush-meadow");
+        var heroTree = Biome("tree", "hero-landscape");
 
         var groundPolicy = BiomeScatterRenderingPolicy.For(ground);
         var treePolicy = BiomeScatterRenderingPolicy.For(tree);
+        var lushPolicy = BiomeScatterRenderingPolicy.For(lush);
+        var heroTreePolicy = BiomeScatterRenderingPolicy.For(heroTree);
 
         Assert.Equal(64, groundPolicy.CellSize);
         Assert.Equal(54, groundPolicy.VisibilityRangeEnd);
         Assert.False(groundPolicy.CastShadows);
         Assert.Equal(96, treePolicy.VisibilityRangeEnd);
         Assert.True(treePolicy.CastShadows);
+        Assert.Equal(92, lushPolicy.VisibilityRangeEnd);
+        Assert.False(lushPolicy.CastShadows);
+        Assert.Equal(280, heroTreePolicy.VisibilityRangeEnd);
+        Assert.True(heroTreePolicy.CastShadows);
     }
 
     private static BiomeScatterPlacement Placement(float x, float z) =>
         new(new Vector3Value(x, 1, z), 0, 1);
 
-    private static BiomeLayerDefinition Biome(string tag) => new(
+    private static BiomeLayerDefinition Biome(params string[] tags) => new(
         Guid.NewGuid(),
         "Test",
         Guid.NewGuid(),
@@ -64,7 +72,7 @@ public sealed class BiomeScatterCellPlanBuilderTests
         1,
         0.1f,
         "asset:test",
-        [tag],
+        tags,
         [],
         1,
         "test");

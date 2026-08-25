@@ -21,7 +21,8 @@ public sealed record GameLauncherManifest(
     string? SupportUrl,
     bool SettingsEnabled,
     GameLauncherMultiplayerMode Multiplayer,
-    int DefaultServerPort)
+    int DefaultServerPort,
+    string? Music = null)
 {
     public const int CurrentSchemaVersion = 1;
 }
@@ -32,7 +33,8 @@ public sealed record GameLauncherVerification(
     string LauncherPath,
     string RuntimePath,
     string ModulePath,
-    string? BackgroundImagePath);
+    string? BackgroundImagePath,
+    string? MusicPath = null);
 
 public sealed record GameDistributionFile(string Path, long Bytes, string Sha256);
 

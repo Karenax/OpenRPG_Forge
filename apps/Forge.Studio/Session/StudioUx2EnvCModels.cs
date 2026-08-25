@@ -34,7 +34,8 @@ internal sealed record StudioUx2EnvCWeatherStateDraft(
     string GameplayEffect,
     float MinimumDurationSeconds,
     float MaximumDurationSeconds,
-    float TransitionSeconds);
+    float TransitionSeconds,
+    PrecipitationVisualProfile Precipitation);
 
 internal sealed record StudioUx2EnvCWaterBodyDraft(
     Guid Id,

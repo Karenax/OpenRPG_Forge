@@ -61,11 +61,16 @@ internal sealed partial class StudioGameplayFoundationWorkbenchUx6B : ColorRect
     private readonly SpinBox _minDistance;
     private readonly SpinBox _maxDistance;
     private readonly SpinBox _pitch;
+    private readonly SpinBox _minimumPitch;
+    private readonly SpinBox _maximumPitch;
     private readonly SpinBox _focusX;
     private readonly SpinBox _focusY;
     private readonly SpinBox _focusZ;
     private readonly CheckBox _collision;
     private readonly CheckBox _alignFacing;
+    private readonly SpinBox _terrainClearance;
+    private readonly SpinBox _terrainProbeSamples;
+    private readonly SpinBox _initialYaw;
 
     private readonly CheckBox _inputRequired;
     private readonly CheckBox _allowRebinding;
@@ -275,15 +280,19 @@ internal sealed partial class StudioGameplayFoundationWorkbenchUx6B : ColorRect
             "Vue du dessus", "Libre", "Véhicule", "Cinématique");
         cameraIdentity.AddChild(FieldUx6B("Clé", _cameraKey)); cameraIdentity.AddChild(FieldUx6B("Nom humain", _cameraName));
         cameraIdentity.AddChild(FieldUx6B("Mode", _cameraMode)); cameraTab.AddChild(cameraIdentity);
-        var optics = GridUx6B(5);
+        var optics = GridUx6B(4);
         _fov = NumberUx6B(20, 140, .5); _distance = NumberUx6B(0, 1000, .1);
         _minDistance = NumberUx6B(0, 1000, .1); _maxDistance = NumberUx6B(0, 1000, .1);
         _pitch = NumberUx6B(-89, 89, .5);
+        _minimumPitch = NumberUx6B(-89, 89, .5, true, true);
+        _maximumPitch = NumberUx6B(-89, 89, .5, true, true);
         optics.AddChild(FieldUx6B("Champ de vue (°)", _fov)); optics.AddChild(FieldUx6B("Distance", _distance));
         optics.AddChild(FieldUx6B("Minimum", _minDistance)); optics.AddChild(FieldUx6B("Maximum", _maxDistance));
-        optics.AddChild(FieldUx6B("Inclinaison (°)", _pitch));
+        optics.AddChild(FieldUx6B("Inclinaison initiale (°)", _pitch));
+        optics.AddChild(FieldUx6B("Limite vers le ciel (°)", _minimumPitch));
+        optics.AddChild(FieldUx6B("Limite vers le sol (°)", _maximumPitch));
         cameraTab.AddChild(StudioUx2EnvBControls.Card("Ux6BCameraOptics", "Optique & distance",
-            "L’aperçu résout le profil; aucune Camera3D n’est déplacée.", optics));
+            "Une limite vers le ciel négative autorise une vue ascendante au ras du terrain. L’aperçu résout le profil; aucune Camera3D n’est déplacée.", optics));
         var focusOffset = GridUx6B(3);
         _focusX = NumberUx6B(-10000, 10000, .05, true, true);
         _focusY = NumberUx6B(-10000, 10000, .05, true, true);
@@ -293,6 +302,16 @@ internal sealed partial class StudioGameplayFoundationWorkbenchUx6B : ColorRect
         _collision = StudioUx2EnvBControls.Check("Évitement de collision");
         _alignFacing = StudioUx2EnvBControls.Check("Aligner le personnage");
         cameraTab.AddChild(_collision); cameraTab.AddChild(_alignFacing);
+        var terrainCollision = GridUx6B(3);
+        _terrainClearance = NumberUx6B(.05, 20, .05);
+        _terrainProbeSamples = NumberUx6B(4, 128, 1);
+        _initialYaw = NumberUx6B(-360, 360, 1, true, true);
+        terrainCollision.AddChild(FieldUx6B("Marge au-dessus du terrain", _terrainClearance));
+        terrainCollision.AddChild(FieldUx6B("Échantillons du relief", _terrainProbeSamples));
+        terrainCollision.AddChild(FieldUx6B("Orientation initiale (°)", _initialYaw));
+        cameraTab.AddChild(StudioUx2EnvBControls.Card("Ux6BCameraTerrain", "Relief extérieur",
+            "La caméra conserve sa distance et se relève au-dessus des pentes selon ces valeurs du module.",
+            terrainCollision));
 
         var inputTab = ScrollTabUx6B("Entrées");
         var inputFlags = new HBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
@@ -698,10 +717,15 @@ internal sealed partial class StudioGameplayFoundationWorkbenchUx6B : ColorRect
         _minDistance.Value = DisplayUx6B(item.MinimumDistance);
         _maxDistance.Value = DisplayUx6B(item.MaximumDistance);
         _pitch.Value = DisplayUx6B(item.PitchDegrees);
+        _minimumPitch.Value = DisplayUx6B(item.MinimumPitchDegrees);
+        _maximumPitch.Value = DisplayUx6B(item.MaximumPitchDegrees);
         _focusX.Value = DisplayUx6B(item.FocusOffset.X);
         _focusY.Value = DisplayUx6B(item.FocusOffset.Y);
         _focusZ.Value = DisplayUx6B(item.FocusOffset.Z);
         _collision.ButtonPressed = item.CollisionAvoidance; _alignFacing.ButtonPressed = item.AlignCharacterFacing;
+        _terrainClearance.Value = DisplayUx6B(item.TerrainClearance);
+        _terrainProbeSamples.Value = item.TerrainProbeSamples;
+        _initialYaw.Value = DisplayUx6B(item.InitialYawDegrees);
         _updating = false;
     }
     private void FlushCameraUx6B()
@@ -718,9 +742,14 @@ internal sealed partial class StudioGameplayFoundationWorkbenchUx6B : ColorRect
             MinimumDistance = (float)_minDistance.Value,
             MaximumDistance = (float)_maxDistance.Value,
             PitchDegrees = (float)_pitch.Value,
+            MinimumPitchDegrees = (float)_minimumPitch.Value,
+            MaximumPitchDegrees = (float)_maximumPitch.Value,
             FocusOffset = new Vector3Value((float)_focusX.Value, (float)_focusY.Value, (float)_focusZ.Value),
             CollisionAvoidance = _collision.ButtonPressed,
-            AlignCharacterFacing = _alignFacing.ButtonPressed
+            AlignCharacterFacing = _alignFacing.ButtonPressed,
+            TerrainClearance = (float)_terrainClearance.Value,
+            TerrainProbeSamples = checked((int)_terrainProbeSamples.Value),
+            InitialYawDegrees = (float)_initialYaw.Value
         };
     }
     private void PopulateActionUx6B()
@@ -785,7 +814,7 @@ internal sealed partial class StudioGameplayFoundationWorkbenchUx6B : ColorRect
     {
         FlushCameraUx6B(); var n = _cameras.Count + 1;
         _cameras.Add(new(Guid.NewGuid(), $"camera-{n}", $"Caméra {n}", GameplayCameraMode.Orbit,
-            60, 8, 1, 40, 20, new(0, 1.25f, 0), true, false));
+            60, 8, 1, 40, 20, new(0, 1.25f, 0), true, false, .9f, 32, 39, -85, 85));
         RebuildCollectionsPreservingUx6B(); _cameraIndex = _cameras.Count - 1;
         _cameraChoice.Select(_cameraIndex); PopulateCameraUx6B(); InvalidatePreviewUx6B();
     }

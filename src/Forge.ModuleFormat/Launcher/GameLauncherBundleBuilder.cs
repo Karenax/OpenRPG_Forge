@@ -69,6 +69,7 @@ public static class GameLauncherBundleBuilder
             File.Copy(package, copiedPackage);
 
             var backgroundRelativePath = CopyBackgroundImage(package, temporary, configuration.BackgroundImagePath);
+            var musicRelativePath = CopyLauncherMusic(package, temporary, configuration.MusicPath);
             var runtimePath = Path.Combine(temporary,
                 RuntimeExecutableRelativePath.Replace('/', Path.DirectorySeparatorChar));
             var manifest = new GameLauncherManifest(
@@ -90,7 +91,8 @@ public static class GameLauncherBundleBuilder
                 configuration.SupportUrl,
                 configuration.SettingsEnabled,
                 configuration.Multiplayer,
-                configuration.DefaultServerPort);
+                configuration.DefaultServerPort,
+                musicRelativePath);
             GameLauncherManifestStore.Save(temporary, manifest);
             File.WriteAllText(
                 Path.Combine(temporary, "LISEZ-MOI.txt"),
@@ -175,6 +177,24 @@ public static class GameLauncherBundleBuilder
         return relativePath;
     }
 
+    private static string? CopyLauncherMusic(string packagePath, string destinationRoot, string? musicPath)
+    {
+        if (musicPath is null) return null;
+        var packageEntryPath = $"content/{musicPath}";
+        using var archive = ZipFile.OpenRead(packagePath);
+        var entry = archive.Entries.SingleOrDefault(item =>
+            string.Equals(item.FullName, packageEntryPath, StringComparison.Ordinal));
+        if (entry is null)
+            throw new FileNotFoundException($"Launcher music is missing from the module package: {musicPath}");
+        var relativePath = "branding/launcher-music.wav";
+        var destination = Path.Combine(destinationRoot, relativePath.Replace('/', Path.DirectorySeparatorChar));
+        Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+        using var source = entry.Open();
+        using var target = File.Create(destination);
+        source.CopyTo(target);
+        return relativePath;
+    }
+
     private static string BuildReadme(GameLauncherManifest manifest) =>
         $"{manifest.DisplayName}{Environment.NewLine}" +
         $"Version {manifest.Version}{Environment.NewLine}{Environment.NewLine}" +
@@ -182,6 +202,7 @@ public static class GameLauncherBundleBuilder
         "Le lanceur vérifie le runtime et le module avant chaque démarrage, puis conserve les préférences " +
         "dans les données locales de l'utilisateur." + Environment.NewLine +
         (manifest.Multiplayer == GameLauncherMultiplayerMode.DirectConnectPreview
-            ? "La connexion distante est visible à titre de préparation et reste désactivée tant que le transport réseau n'est pas branché." + Environment.NewLine
+            ? $"Pour héberger par Internet, autorisez et redirigez le port TCP {manifest.DefaultServerPort}. " +
+              "Les autres joueurs rejoignent avec votre adresse IP publique ou votre nom DNS." + Environment.NewLine
             : string.Empty);
 }

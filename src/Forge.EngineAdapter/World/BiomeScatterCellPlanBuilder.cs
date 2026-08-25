@@ -17,6 +17,13 @@ public sealed record BiomeScatterRenderingPolicy(
     public static BiomeScatterRenderingPolicy For(BiomeLayerDefinition biome)
     {
         ArgumentNullException.ThrowIfNull(biome);
+        if (biome.Tags.Contains("lush-meadow", StringComparer.OrdinalIgnoreCase))
+            return new(64, 92, false);
+        if (biome.Tags.Contains("hero-landscape", StringComparer.OrdinalIgnoreCase) &&
+            biome.Tags.Contains("tree", StringComparer.OrdinalIgnoreCase))
+            return new(64, 280, true);
+        if (biome.Tags.Contains("hero-landscape", StringComparer.OrdinalIgnoreCase))
+            return new(64, 140, false);
         if (biome.Tags.Contains("ground-cover", StringComparer.OrdinalIgnoreCase))
             return new(64, 54, false);
         if (biome.Tags.Contains("tree", StringComparer.OrdinalIgnoreCase))

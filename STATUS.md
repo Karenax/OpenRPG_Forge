@@ -1,6 +1,6 @@
 # État vérifié — OpenRPG Forge
 
-Dernière mise à jour : 24 août 2026.
+Dernière mise à jour : 25 août 2026.
 
 ## Verdict
 
@@ -27,12 +27,77 @@ confondu avec une release publique signée.
 - validation, correctifs prévisualisés, undo/redo, playtest, sauvegarde/reprise et export `.orpmod` ;
 - Assistant et host MCP transactionnels, bornés, facultatifs et sans shell arbitraire ;
 - distributions Windows x64 autonomes du Creator et du Runtime ;
-- lanceur Windows configurable par jeu avec branding, réglages persistants et hébergement local autoritaire ;
+- lanceur Windows configurable par jeu avec fond et musique WAV gouvernés, Play/Stop, volume persistant,
+  hébergement autoritaire, détection facultative de l'IPv4 publique, copie `adresse:port` et connexion
+  directe par IPv4/DNS ;
 - installateur/désinstallateur NSIS avec contrôle de mise à jour et préservation des données utilisateur ;
 - Crypte des Cendres jouable en Forward+ avec modèles 3D gouvernés ;
 - outils réutilisables de terrain, biome forestier et gouvernance d'assets conservés indépendamment
   du module canonique ;
 - interface de combat runtime autoritaire, animée, accessible et bornée par des pools stables.
+
+## Multijoueur Internet direct
+
+- le profil **Internet direct · héberger et rejoindre** est actif dans le Creator et dans le lanceur
+  WPF exporté ; l'hôte runtime écoute en TCP sur `0.0.0.0` et un client rejoint par IPv4 ou DNS ;
+- le mode Hôte affiche l'IPv4 publique à partager avec le port, accepte un DNS de remplacement et
+  conserve `127.0.0.1` comme détail interne non partageable ; l'échec de détection ne bloque pas l'hôte ;
+- `Forge.Server` utilise le même listener et reste actif jusqu'à son arrêt, avec capacité headless
+  configurable de 1 à 64 ; le runtime hôte utilise actuellement une capacité fixe de 8 ;
+- l'admission vérifie empreinte de contenu et protocole avant la présence ; les snapshots révisionnés
+  portent zone, position et orientation, puis le runtime interpole les avatars distants ;
+- ce chemin ne synchronise pas encore combats, inventaires, quêtes, dialogues, transitions et
+  sauvegardes et ne doit donc pas être qualifié de campagne coopérative complète ;
+- le protocole v1 n'est pas chiffré, ne prouve pas l'identité de l'hôte et n'offre ni reconnexion,
+  relais, annuaire ni ouverture NAT automatique ; il est réservé aux joueurs de confiance ;
+- la preuve locale utilise de vrais sockets TCP à deux clients sur loopback. Un essai depuis une
+  seconde connexion Internet, avec pare-feu et redirection du routeur, reste à réaliser ;
+- le mode d'emploi, les diagnostics et la frontière de sécurité sont centralisés dans
+  `docs/MULTIPLAYER_INTERNET.md`.
+
+## Solaren, Les Vallées Libres — première zone jouable
+
+- `Solaren, Les Vallées Libres` est un workspace canonique séparé ; la Crypte des Cendres reste le
+  module de test existant et son contenu n'a pas été remplacé ;
+- ce workspace Studio est désormais l'unique source de vérité du jeu : le générateur et la commande
+  `author-solaren` ont été retirés, et le moteur ne conserve aucun comportement produit dépendant du
+  slug Solaren. Rendu, précipitations, caméra, mouvement et clips sont des profils génériques
+  versionnés, éditables dans le Creator autonome conformément à l'ADR-0049 ;
+- son lanceur emploie désormais un panorama solaire d'Aubeciel issu des captures du module, une
+  palette forêt/crème/or et une piste calme originale de 64 secondes. Le fond PNG, le WAV, leurs
+  SHA-256 et leur provenance vivent dans `content/solaren/branding` ; le profil générique les exporte
+  et le contrôle Play/Stop partage le volume Musique persistant ;
+- `Le Val d’Aubeciel` couvre 512 × 512 m avec 16 641 sommets, 32 768 triangles, 64 secteurs,
+  relief vallonné, place de village, chemin spline et corridor paysager préservant la perspective ;
+- le village assemble quatre maisons modulaires closes et à deux étages, avec fondations, portes
+  ouvertes sur leurs gonds, seuils et escaliers centrés, vitrages, volets, pignons, balcons, cheminées
+  et vignes, ainsi qu'une place pavée, un marché, des clôtures continues, des accessoires et trois
+  habitants ; les quatre capsules joueur traversent réellement chaque entrée sans collider de mur ;
+- 39 modèles 3D gouvernés des packs Médiéval et Nature Quaternius, un personnage UAL2 complété par
+  une tête, un visage et des cheveux, et deux textures de sol CC0 Poly Haven forment 42 manifestes ;
+  les animations UAL1 sont retargetées sur son rig UAL2 et livrent `idle`, `jog_fwd`, `jump_start`,
+  `sword_attack`, `hit_chest` et `death01` aux quatre personnages runtime ;
+- le terrain utilise les textures PBR d'herbe/roche et de pavés, 16 couches reconstruisent 49 181
+  instances dans 809 groupes de culling, dont treize couches au vent ralenti ; l'herbe est courte à
+  l'échelle du héros et les arbres agrandis restent visibles sur les coteaux ;
+- le déplacement du héros est réglé dans le module à 1,2 m/s en marche et 2,64 m/s en course, la
+  caméra conserve son recul horizontal sur les pentes et expose dans le Studio des limites verticales
+  configurables ; l'orbite Solaren descend à -85° et peut viser le ciel depuis sa garde au sol,
+  et la météo autoritaire alterne aléatoirement éclaircies, ciel couvert, pluie et brume après des
+  états de 7 à 20 minutes et des transitions de 60 à 75 secondes ; la pluie préchauffée tombe sans
+  composante horizontale ni dispersion, tandis que lumière, ciel, nuages et brouillard suivent l'état ;
+- la vue Forward+ 1920 × 1080 a été corrigée par comparaison aux références de village et de prairie :
+  exposition réduite, palette rééquilibrée, chemin pavé lisible et volume du village renforcé ;
+- les validations canoniques de Solaren et de la Crypte ne remontent aucun diagnostic ; le package
+  Solaren est reproductible et n'accepte les buffers `.bin` que lorsqu'un glTF sûr les référence.
+  La suite produit passe 2 149 tests .NET, auxquels s'ajoutent 13 tests du graphe d'architecture,
+  soit 2 162 tests .NET au total ; le smoke Solaren Vulkan Forward+ vérifie les quatre
+  franchissements, les clips, la pluie verticale, la météo longue, la caméra en pente, la vue
+  ascendante au ras du terrain et l'absence
+  de dépendance à la Crypte, puis le smoke complet de la Crypte reste vert. Le graphe Roslyn exclut
+  désormais les workspaces de jeux et reste réservé aux contrats, au moteur, au runtime et au Studio.
+- ce jalon est la première tranche artistique jouable de Solaren, pas une qualification de contenu
+  final ni une release publique signée.
 
 ## Couverture et preuves
 
@@ -43,6 +108,16 @@ confondu avec une release publique signée.
 - qualification du routeur le 24 août 2026 : profils Studio, Runtime, Assets, Network, Distribution
   et Core verts séparément, smokes Studio Route et Wave bornés, puis portail Full vert en 873,66 s
   avec 2 130 tests .NET, 64 tests Python, les smokes produit et le graphe Roslyn complet ;
+- qualification lanceur/Internet direct le 25 août 2026 : 521/521 tests Domain, 386/386 ModuleFormat et
+  112/112 Network en Release ; smoke TCP réel à deux clients avec refus d'un module incompatible,
+  détection HTTPS réelle validée sans journaliser l'adresse, distribution Solaren solaire de 228
+  fichiers vérifiée, lecture WAV WPF validée et vues Accueil/Configuration/Hôte inspectées en 1440 x 860 ;
+- gate Full relancé le 25 août 2026 sous PowerShell 7.6.4 : 2 162 tests .NET et 67 tests Python verts,
+  compilation sans avertissement, documentation déterministe, graphe Roslyn complet, Studio, Toolset,
+  runtime, réseau, MCP et sauvegarde/reprise validés ;
+- distribution versionnée `exe/` mise à jour avec les deux exécutables racine Studio et Solaren ; le
+  lanceur Solaren et son manifeste de 227 fichiers passent la vérification depuis leur chemin final,
+  avec fond et musique présents sous `exe/branding/`. Cette preuve locale n'est pas signée et ne constitue pas une release publique ;
 - 717/717 fonctions au statut `Tested`, réparties dans 187/187 lots clos ;
 - P0 : 196/196, P1 : 298/298, P2 : 190/190, P3/P4 : 33/33 ;
 - 5 461 chemins de preuve Aurora contrôlés sans chemin absent ;
@@ -826,8 +901,10 @@ revue visuelle humaine complète FHD/QHD n’a été réalisée dans ce lot.
 - sauvegarde non destructive des profils Objet et Terrain et suppressions transactionnelles ;
 - profil de lanceur v1 persistant, application WPF RPG cinématique, générateur `Client` atomique,
   manifestes SHA-256 complets et modèle embarqué dans la distribution Creator ;
-- réglages d'affichage, qualité, VSync, audio et accessibilité appliqués au runtime ; hébergement
-  local autoritaire validé, connexion distante maintenue comme aperçu explicitement désactivé.
+- réglages d'affichage, qualité, VSync, audio et accessibilité appliqués au runtime ; transport TCP
+  direct partagé avec le serveur headless, admission module/protocole, deux clients et avatars
+  distants validés. Le gameplay RPG complet, le chiffrement, la reconnexion et le relais/NAT restent
+  hors de cette première base Internet.
 
 ## Distribution locale qualifiée
 

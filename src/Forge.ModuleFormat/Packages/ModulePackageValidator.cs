@@ -55,6 +55,7 @@ public static class ModulePackageValidator
         {
             using var archive = ZipFile.OpenRead(packagePath);
             var files = archive.Entries.Where(entry => !IsDirectory(entry)).ToArray();
+            var allowedGltfBinarySidecars = CollectAllowedGltfBinarySidecars(files, limits.MaximumFileBytes);
             if (files.Length > limits.MaximumFileCount)
             {
                 diagnostics.Add(new ModulePackageDiagnostic(
@@ -83,7 +84,9 @@ public static class ModulePackageValidator
                 }
 
                 var extension = Path.GetExtension(entry.FullName);
-                if (!AllowedExtensions.Contains(extension))
+                if (!AllowedExtensions.Contains(extension) &&
+                    !(extension.Equals(".bin", StringComparison.OrdinalIgnoreCase) &&
+                      allowedGltfBinarySidecars.Contains(entry.FullName)))
                 {
                     diagnostics.Add(new ModulePackageDiagnostic(
                         ForbiddenFileCode,
@@ -261,6 +264,77 @@ public static class ModulePackageValidator
         }
 
         return new ModulePackageValidationResult(manifest, project, diagnostics);
+    }
+
+    private static HashSet<string> CollectAllowedGltfBinarySidecars(
+        IReadOnlyList<ZipArchiveEntry> files,
+        long maximumFileBytes)
+    {
+        var sidecars = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var maximumGltfBytes = Math.Min(maximumFileBytes, 16 * 1024 * 1024);
+        foreach (var entry in files.Where(item =>
+                     Path.GetExtension(item.FullName).Equals(".gltf", StringComparison.OrdinalIgnoreCase) &&
+                     item.Length <= maximumGltfBytes))
+        {
+            try
+            {
+                using var stream = entry.Open();
+                using var document = JsonDocument.Parse(stream);
+                if (!document.RootElement.TryGetProperty("buffers", out var buffers) ||
+                    buffers.ValueKind != JsonValueKind.Array)
+                {
+                    continue;
+                }
+
+                foreach (var buffer in buffers.EnumerateArray())
+                {
+                    if (buffer.ValueKind == JsonValueKind.Object &&
+                        buffer.TryGetProperty("uri", out var uriElement) &&
+                        uriElement.ValueKind == JsonValueKind.String &&
+                        TryResolveGltfBinarySidecar(entry.FullName, uriElement.GetString(), out var sidecar))
+                    {
+                        sidecars.Add(sidecar);
+                    }
+                }
+            }
+            catch (JsonException)
+            {
+                // Invalid glTF documents are rejected by asset validation; they cannot authorize a sidecar here.
+            }
+        }
+
+        return sidecars;
+    }
+
+    private static bool TryResolveGltfBinarySidecar(string gltfPath, string? rawUri, out string sidecar)
+    {
+        sidecar = string.Empty;
+        if (string.IsNullOrWhiteSpace(rawUri)) return false;
+
+        string uri;
+        try
+        {
+            uri = Uri.UnescapeDataString(rawUri.Trim()).Replace('\\', '/');
+        }
+        catch (UriFormatException)
+        {
+            return false;
+        }
+
+        if (uri.Contains(':', StringComparison.Ordinal) || uri.Contains('?', StringComparison.Ordinal) ||
+            uri.Contains('#', StringComparison.Ordinal) ||
+            !Path.GetExtension(uri).Equals(".bin", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var segments = uri.Split('/');
+        if (segments.Any(segment => segment is "" or "." or "..")) return false;
+
+        var normalizedGltfPath = gltfPath.Replace('\\', '/');
+        var separator = normalizedGltfPath.LastIndexOf('/');
+        sidecar = separator < 0 ? uri : $"{normalizedGltfPath[..(separator + 1)]}{uri}";
+        return IsSafeArchivePath(sidecar);
     }
 
     private static bool EquivalentApproval(ModuleManifestDependency expected, ModuleManifestDependency actual) =>

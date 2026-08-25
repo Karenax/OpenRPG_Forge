@@ -32,10 +32,17 @@ public sealed class GodotTerrainMaterialAdapterTests
         Assert.Contains("ROUGHNESS", shader, StringComparison.Ordinal);
         Assert.Contains("METALLIC", shader, StringComparison.Ordinal);
         Assert.Contains("AO_LIGHT_AFFECT", shader, StringComparison.Ordinal);
+        Assert.Contains("surface_texture", shader, StringComparison.Ordinal);
+        Assert.Contains("use_surface_texture", shader, StringComparison.Ordinal);
+        Assert.Contains("secondary_surface_texture", shader, StringComparison.Ordinal);
+        Assert.Contains("use_secondary_surface_texture", shader, StringComparison.Ordinal);
 
         var roadShader = GodotTerrainMaterialAdapter.ProceduralRoadShaderCode;
         Assert.Contains("worn_center", roadShader, StringComparison.Ordinal);
         Assert.Contains("ROUGHNESS", roadShader, StringComparison.Ordinal);
         Assert.Contains("world_position", roadShader, StringComparison.Ordinal);
+        Assert.Contains("surface_texture", roadShader, StringComparison.Ordinal);
+        Assert.Contains("use_surface_texture", roadShader, StringComparison.Ordinal);
+        Assert.DoesNotContain("render_mode unshaded", roadShader, StringComparison.Ordinal);
     }
 }

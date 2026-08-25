@@ -1867,6 +1867,331 @@ public partial class GameRoot
         GetTree().Quit(0);
     }
 
+    private async Task RunSolarenHeadlessSmokeTestAsync()
+    {
+        var project = _loadedProject ?? throw new InvalidOperationException("The loaded project is unavailable.");
+        var area = project.Areas.Single();
+        var modelLibrary = _modelLibrary ?? throw new InvalidOperationException("The model library is unavailable.");
+        var solarenPlayer = _player ?? throw new InvalidOperationException("The Solaren player is unavailable.");
+        var gameplayFoundation = _gameplayControls?.Foundation ??
+            throw new InvalidOperationException("The Solaren gameplay foundation is unavailable.");
+        var groundedMovement = gameplayFoundation.GroundedMovement ??
+            throw new InvalidOperationException("The Solaren movement profile is unavailable.");
+        AssertSmoke(string.Equals(_moduleSlug, "solaren-les-vallees-libres", StringComparison.Ordinal),
+            "The Solaren smoke test loaded another module.");
+        AssertSmoke(!_isCryptPrototype && FindChild("AshRune", recursive: true, owned: false) is null,
+            "Solaren unexpectedly reconstructed Crypt-specific atmosphere.");
+        AssertSmoke(area.Kind == AreaKind.Exterior && area.Dimensions.Width == 512 && area.Dimensions.Depth == 512,
+            "Solaren did not reconstruct its bounded 512 metre exterior.");
+        AssertSmoke(area.World.Terrain.SamplesX == 129 && area.World.Terrain.SamplesZ == 129 &&
+                    area.World.Features.Count(item => item.Kind == TerrainFeatureKind.Road) == 1,
+            "Solaren terrain samples or village road are missing.");
+        AssertSmoke(_terrainVertices == 16_641 && _terrainTriangles == 32_768 && _terrainSectors == 64,
+            "Solaren terrain did not reach the expected deterministic render plan.");
+        AssertSmoke(_terrainScatterLayers >= 15 && _terrainScatterInstances >= 30_000 &&
+                    _terrainWindAnimatedLayers == 13 &&
+                    _terrainCullingGroups > 0,
+            "Solaren biome scatter or its thirteen wind-animated layers did not reconstruct the dressed valley.");
+        AssertSmoke(_surfaceTextureCache.Count >= 2,
+            "Solaren meadow and cobblestone surfaces did not resolve their governed textures.");
+        AssertSmoke(modelLibrary.Count == 42 && _runtimeModelInstances == 365,
+            "Solaren governed medieval assets were not all available at runtime.");
+        var normalizedCharacterClipNames = _animatedCharacterClipNames
+            .Select(NormalizeAnimationImportHint)
+            .ToHashSet(StringComparer.Ordinal);
+        AssertSmoke(_animatedCharacterInstances == 4 && normalizedCharacterClipNames.SetEquals(
+            ["death01", "hit_chest", "idle", "jog_fwd", "jump_start", "sword_attack"]),
+            "Solaren villagers did not expose the six governed locomotion and action clips.");
+        AssertSmoke(_characterAnimations.TryGetValue(solarenPlayer, out var playerAnimation) &&
+                    NormalizeAnimationImportHint(playerAnimation.IdleClip) == "idle" &&
+                    NormalizeAnimationImportHint(playerAnimation.RunClip) == "jog_fwd" &&
+                    NormalizeAnimationImportHint(playerAnimation.JumpClip) == "jump_start" &&
+                    playerAnimation.Player.GetAnimation(playerAnimation.IdleClip)?.LoopMode == Animation.LoopModeEnum.Linear &&
+                    playerAnimation.Player.GetAnimation(playerAnimation.RunClip)?.LoopMode == Animation.LoopModeEnum.Linear &&
+                    GodotAssetAnimationController.Play(playerAnimation, playerAnimation.RunClip, 0, restart: true) &&
+                    playerAnimation.CurrentClip == playerAnimation.RunClip,
+            "Solaren player locomotion did not map idle and forward jog to looping clips.");
+        GodotAssetAnimationController.Play(playerAnimation!, playerAnimation!.IdleClip, 0, restart: true);
+        AssertSmoke(Math.Abs(groundedMovement.WalkSpeed - 1.2f) <= .001f &&
+                    Math.Abs(groundedMovement.RunSpeed - 2.64f) <= .001f &&
+                    _npc is not null && _builtEntityCount == 366,
+            "Solaren player, residents or village entities are incomplete.");
+
+        await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+        var doorwayEntities = area.Entities.Where(item => item.Tags.Contains("doorway", StringComparer.Ordinal)).ToArray();
+        var openDoorEntities = area.Entities.Where(item => item.Tags.Contains("open-door", StringComparer.Ordinal)).ToArray();
+        AssertSmoke(doorwayEntities.Length == 4 && openDoorEntities.Length == 4,
+            "Solaren houses do not expose one open entrance per building.");
+        var physics = GetWorld3D().DirectSpaceState;
+        var playerPositionBeforeDoorChecks = solarenPlayer.GlobalPosition;
+        foreach (var doorway in doorwayEntities)
+        {
+            var houseTag = doorway.Tags.Single(tag => tag.StartsWith("house-", StringComparison.Ordinal));
+            var stairs = area.Entities.Single(item => item.Tags.Contains(houseTag, StringComparer.Ordinal) &&
+                item.Tags.Contains("entrance", StringComparer.Ordinal) &&
+                item.Tags.Contains("nonblocking", StringComparer.Ordinal) &&
+                !item.Tags.Contains("open-door", StringComparer.Ordinal));
+            AssertSmoke(_entityNodes.TryGetValue(doorway.Id.Value, out var doorwayNode) &&
+                        doorwayNode.FindChildren("*", "CollisionShape3D", recursive: true, owned: false).Count == 0,
+                $"Solaren entrance '{houseTag}' retained a full-wall collision across the opening.");
+            var outward = doorwayNode!.GlobalTransform.Basis * Vector3.Back;
+            outward.Y = 0;
+            outward = outward.Normalized();
+            var authoredOutside = new Vector3(
+                stairs.Transform.Position.X - doorway.Transform.Position.X,
+                0,
+                stairs.Transform.Position.Z - doorway.Transform.Position.Z);
+            if (outward.Dot(authoredOutside) < 0) outward = -outward;
+            var threshold = doorwayNode.GlobalPosition + (Vector3.Up * 1.05f);
+            var query = PhysicsRayQueryParameters3D.Create(
+                threshold + (outward * 1.25f),
+                threshold - (outward * 1.5f));
+            query.Exclude = [solarenPlayer.GetRid()];
+            AssertSmoke(physics.IntersectRay(query).Count == 0,
+                $"Solaren entrance '{houseTag}' is blocked by an authored collision.");
+
+            var entranceOutside = doorwayNode.GlobalPosition + (outward * 1.2f);
+            var entranceInside = doorwayNode.GlobalPosition - (outward * 1.2f);
+            var maximumGround = Enumerable.Range(0, 13)
+                .Select(index => entranceOutside.Lerp(entranceInside, index / 12f))
+                .Max(point => _activeTerrain?.HeightAt(point.X, point.Z) ?? doorwayNode.GlobalPosition.Y);
+            solarenPlayer.GlobalPosition = new Vector3(
+                entranceOutside.X,
+                maximumGround + 1.05f,
+                entranceOutside.Z);
+            solarenPlayer.Velocity = Vector3.Zero;
+            solarenPlayer.ResetPhysicsInterpolation();
+            await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+            var entranceStart = solarenPlayer.GlobalPosition;
+            var entranceCollision = solarenPlayer.MoveAndCollide(-outward * 2.4f);
+            var enteredDistance = (solarenPlayer.GlobalPosition - entranceStart).Dot(-outward);
+            var entranceCollider = entranceCollision?.GetCollider() as Node;
+            AssertSmoke(entranceCollision is null && enteredDistance >= 2.3f,
+                $"Solaren player could not physically enter '{houseTag}' " +
+                $"(distance={enteredDistance:0.###}, collider={entranceCollider?.Name ?? "unknown"}, " +
+                $"parent={entranceCollider?.GetParent()?.Name ?? "unknown"}, " +
+                $"position={entranceCollision?.GetPosition()}).");
+        }
+        solarenPlayer.GlobalPosition = playerPositionBeforeDoorChecks;
+        solarenPlayer.Velocity = Vector3.Zero;
+        solarenPlayer.ResetPhysicsInterpolation();
+
+        var raisedCamera = RuntimeCameraRig.RaiseForTerrainClearance(
+            new Vector3(0, 2, 0),
+            new Vector3(0, 7, 12),
+            (_, z) => z * .6f,
+            .9f,
+            32);
+        AssertSmoke(raisedCamera.Y > 8 &&
+                    Math.Abs(new Vector2(raisedCamera.X, raisedCamera.Z).Length() - 12) <= .001f,
+            "Solaren slope clearance retracted the camera horizontally instead of raising it above terrain.");
+
+        var roadPoints = area.World.Features.Single(item => item.Kind == TerrainFeatureKind.Road).ControlPoints;
+        var steepestRoadSegment = roadPoints.Zip(roadPoints.Skip(1), (first, second) => (First: first, Second: second))
+            .OrderByDescending(segment => Math.Abs(segment.Second.Y - segment.First.Y))
+            .First();
+        var lower = steepestRoadSegment.First.Y <= steepestRoadSegment.Second.Y
+            ? steepestRoadSegment.First
+            : steepestRoadSegment.Second;
+        var higher = steepestRoadSegment.First.Y <= steepestRoadSegment.Second.Y
+            ? steepestRoadSegment.Second
+            : steepestRoadSegment.First;
+        var uphill = new Vector2(higher.X - lower.X, higher.Z - lower.Z).Normalized();
+        var slopeFocus = new Vector3(lower.X, lower.Y + 1.25f, lower.Z);
+        var slopeDesired = slopeFocus + new Vector3(uphill.X * 14, 5.7f, uphill.Y * 14);
+        var slopeConstrained = ConstrainCameraPosition(slopeFocus, slopeDesired);
+        var constrainedHorizontalDistance = new Vector2(
+            slopeConstrained.X - slopeFocus.X,
+            slopeConstrained.Z - slopeFocus.Z).Length();
+        AssertSmoke(constrainedHorizontalDistance >= 13.5f,
+            $"Solaren's live terrain collision collapsed the slope camera " +
+            $"(horizontal={constrainedHorizontalDistance:0.###}).");
+
+        var solarenCamera = _camera ?? throw new InvalidOperationException("The Solaren camera is unavailable.");
+        var orbitButton = new InputEventMouseButton { ButtonIndex = MouseButton.Right, Pressed = true };
+        _cameraRig.HandleInput(orbitButton);
+        try
+        {
+            _cameraRig.HandleInput(new InputEventMouseMotion { Relative = new Vector2(0, -100_000) });
+        }
+        finally
+        {
+            _cameraRig.HandleInput(new InputEventMouseButton
+            {
+                ButtonIndex = MouseButton.Right,
+                Pressed = false,
+            });
+        }
+        _cameraRig.Snap(solarenCamera, solarenPlayer.GlobalPosition, (focus, desired) =>
+            RuntimeCameraRig.RaiseForTerrainClearance(focus, desired, _activeTerrain!.HeightAt,
+                _cameraRig.TerrainClearance, _cameraRig.TerrainProbeSamples));
+        var groundHeightBelowCamera = _activeTerrain!.HeightAt(
+            solarenCamera.GlobalPosition.X, solarenCamera.GlobalPosition.Z);
+        var upwardView = -solarenCamera.GlobalTransform.Basis.Z;
+        AssertSmoke(_cameraRig.MinimumPitchDegrees <= -84.9f &&
+                    Math.Abs(_cameraRig.PitchDegrees - _cameraRig.MinimumPitchDegrees) <= .01f &&
+                    solarenCamera.GlobalPosition.Y >= groundHeightBelowCamera + _cameraRig.TerrainClearance - .02f &&
+                    upwardView.Y >= .35f,
+            $"Solaren's ground-level orbit camera still cannot look into the sky " +
+            $"(pitch={_cameraRig.PitchDegrees:0.###}, minimum={_cameraRig.MinimumPitchDegrees:0.###}, " +
+            $"view_y={upwardView.Y:0.###}, clearance=" +
+            $"{solarenCamera.GlobalPosition.Y - groundHeightBelowCamera:0.###}).");
+        GD.Print($"OPENRPG_FORGE_SOLAREN_CAMERA_LOOK_UP_PASS " +
+                 $"pitch={_cameraRig.PitchDegrees:0.###} view_y={upwardView.Y:0.###} " +
+                 $"clearance={solarenCamera.GlobalPosition.Y - groundHeightBelowCamera:0.###}");
+        _cameraRig.Configure(gameplayFoundation.Cameras);
+        _cameraRig.Snap(solarenCamera, solarenPlayer.GlobalPosition, ConstrainCameraPosition);
+
+        var initialWeather = _weatherState ??
+            throw new InvalidOperationException("Solaren weather state is unavailable.");
+        var initialWeatherProfile = WeatherRuntimeStateMachine.Resolve(area.Environment.Weather, initialWeather);
+        var afterTwoMinutes = WeatherRuntimeStateMachine.Advance(
+            area.Environment.Weather,
+            initialWeather,
+            120,
+            hasAuthority: true);
+        AssertSmoke(afterTwoMinutes.Transition is null && afterTwoMinutes.State.Revision == 0 &&
+                    area.Environment.Weather.States.All(item => item.MinimumDurationSeconds >= 420),
+            "Solaren weather still changes within two minutes.");
+        var rainProfile = area.Environment.Weather.States.Single(item => item.Kind == WeatherKind.Rain);
+        var rainPlan = AreaClimatePlanBuilder.Build(area.Environment, rainProfile.Id,
+            new(solarenPlayer.GlobalPosition.X, solarenPlayer.GlobalPosition.Y, solarenPlayer.GlobalPosition.Z),
+            "desktop");
+        var rainEffects = GodotClimateAdapter.Build(rainPlan, configureRuntimeAudio: false);
+        var rainParticles = rainEffects.Root.GetChildren().OfType<GpuParticles3D>().Single();
+        var rainMaterial = rainParticles.ProcessMaterial as ParticleProcessMaterial;
+        AssertSmoke(rainMaterial is not null && rainMaterial.Direction == Vector3.Down &&
+                    rainMaterial.Spread == 0 && rainMaterial.Gravity.X == 0 && rainMaterial.Gravity.Z == 0 &&
+                    rainParticles.Amount >= 1_500 && rainParticles.Preprocess >= 2.8f,
+            "Solaren procedural rain is not strictly vertical.");
+        rainEffects.Root.Free();
+        var advancedWeather = WeatherRuntimeStateMachine.Advance(
+            area.Environment.Weather,
+            initialWeather,
+            initialWeatherProfile.MaximumDurationSeconds + 1,
+            hasAuthority: true);
+        AssertSmoke(advancedWeather.Transition is not null && advancedWeather.State.Revision == 1 &&
+                    advancedWeather.State.StateId != initialWeather.StateId,
+            "Solaren random weather did not produce its first authoritative transition.");
+        _weatherState = advancedWeather.State;
+        ApplyClimateEffects(force: true);
+        AssertSmoke(_referenceSun is not null && _worldEnvironment is not null &&
+                    _referenceSun.LightEnergy < _baseDirectionalLightEnergy &&
+                    _worldEnvironment.BackgroundEnergyMultiplier < _baseBackgroundEnergyMultiplier,
+            "Solaren weather transition did not darken the sun and sky.");
+        GD.Print("OPENRPG_FORGE_SOLAREN_SMOKE_PASS " +
+                 $"area={area.Slug} terrain={_terrainVertices}/{_terrainTriangles}/{_terrainSectors} " +
+                 $"scatter={_terrainScatterLayers}/{_terrainScatterInstances}/{_terrainCullingGroups} " +
+                 $"wind={_terrainWindAnimatedLayers} " +
+                 $"models={modelLibrary.Count}/{_runtimeModelInstances} animated={_animatedCharacterInstances}/6 " +
+                 $"entities={_builtEntityCount} movement={groundedMovement.WalkSpeed:0.##}/{groundedMovement.RunSpeed:0.##} " +
+                 $"doors={doorwayEntities.Length}/entered rain=vertical/prewarmed weather_min=420 " +
+                 $"weather_revision={_weatherState.Revision} terrain_camera=raised/look-up crypt=false");
+        GetTree().Quit(0);
+    }
+
+    private static string NormalizeAnimationImportHint(string clip) =>
+        clip.EndsWith("_loop", StringComparison.OrdinalIgnoreCase) ? clip[..^5] : clip;
+
+    private async Task ConfigureSolarenVisualFixtureAsync(string requestedFixture)
+    {
+        if (!string.Equals(_moduleSlug, "solaren-les-vallees-libres", StringComparison.Ordinal))
+            throw new InvalidOperationException("Solaren visual fixtures can only run against the Solaren module.");
+
+        var fixture = requestedFixture.Trim().ToLowerInvariant();
+        if (fixture is not ("door" or "rain" or "idle" or "jog"))
+            throw new ArgumentException(
+                $"Unknown Solaren visual fixture '{requestedFixture}'. Expected door, rain, idle or jog.",
+                nameof(requestedFixture));
+
+        var area = _activeArea ?? throw new InvalidOperationException("The Solaren area is unavailable.");
+        var player = _player ?? throw new InvalidOperationException("The Solaren player is unavailable.");
+        var camera = _camera ?? throw new InvalidOperationException("The Solaren camera is unavailable.");
+        var doorway = area.Entities.First(entity =>
+            entity.Tags.Contains("doorway", StringComparer.Ordinal) &&
+            entity.Tags.Contains("house-1", StringComparer.Ordinal));
+        var stairs = area.Entities.Single(entity =>
+            entity.Tags.Contains("house-1", StringComparer.Ordinal) &&
+            entity.Tags.Contains("entrance", StringComparer.Ordinal) &&
+            entity.Tags.Contains("nonblocking", StringComparer.Ordinal) &&
+            !entity.Tags.Contains("open-door", StringComparer.Ordinal));
+        if (!_entityNodes.TryGetValue(doorway.Id.Value, out var doorwayNode))
+            throw new InvalidOperationException("The first Solaren doorway has no reconstructed runtime node.");
+
+        var doorwayPosition = doorwayNode.GlobalPosition;
+        var stairsPosition = EngineValueConverter.ToEngine(stairs.Transform.Position);
+        var outward = new Vector3(
+            stairsPosition.X - doorwayPosition.X,
+            0,
+            stairsPosition.Z - doorwayPosition.Z).Normalized();
+        if (outward.LengthSquared() < .9f)
+            throw new InvalidOperationException("The first Solaren entrance has no usable outward direction.");
+        var side = Vector3.Up.Cross(outward).Normalized();
+
+        var playerPosition = fixture switch
+        {
+            "door" => doorwayPosition - (outward * .38f) + (Vector3.Up * 1.05f),
+            "rain" => doorwayPosition + (outward * 2.15f) + (Vector3.Up * 1.05f),
+            _ => doorwayPosition + (outward * 3.35f) + (side * 1.5f) + (Vector3.Up * 1.05f),
+        };
+        player.GlobalPosition = playerPosition;
+        player.Velocity = Vector3.Zero;
+        player.ResetPhysicsInterpolation();
+
+        var weatherKind = fixture == "rain" ? WeatherKind.Rain : WeatherKind.Clear;
+        var weather = area.Environment.Weather.States.Single(state => state.Kind == weatherKind);
+        _weatherState = new WeatherRuntimeSnapshot(
+            WeatherRuntimeSnapshot.CurrentSchemaVersion,
+            weather.Id,
+            0,
+            0,
+            0);
+        ApplyClimateEffects(force: true);
+
+        _sequenceOwnsCamera = true;
+        camera.Fov = fixture == "rain" ? 52 : 46;
+        var focus = fixture switch
+        {
+            "door" => doorwayPosition + (Vector3.Up * 1.45f),
+            "rain" => playerPosition + (Vector3.Up * .65f),
+            _ => playerPosition + (Vector3.Up * .7f),
+        };
+        camera.GlobalPosition = fixture switch
+        {
+            "door" => doorwayPosition + (outward * 7.25f) + (side * .35f) + (Vector3.Up * 3.15f),
+            "rain" => playerPosition + (outward * 7.8f) + (side * 2.2f) + (Vector3.Up * 3.6f),
+            _ => playerPosition + (outward * 5.6f) - (side * 4.3f) + (Vector3.Up * 2.75f),
+        };
+        camera.LookAt(focus, Vector3.Up);
+        var cameraDirection = camera.GlobalPosition - playerPosition;
+        cameraDirection.Y = 0;
+        player.FaceDirection(fixture switch
+        {
+            "door" => outward,
+            "jog" => cameraDirection,
+            _ => -outward,
+        });
+
+        if (!_characterAnimations.TryGetValue(player, out var animation))
+            throw new InvalidOperationException("The Solaren player has no governed animation controller.");
+        var clip = fixture == "jog" ? animation.RunClip : animation.IdleClip;
+        if (!GodotAssetAnimationController.Play(animation, clip, 0, restart: true))
+            throw new InvalidOperationException($"The Solaren visual fixture could not play '{clip}'.");
+
+        var settleFrames = fixture == "rain" ? 40 : 12;
+        for (var frame = 0; frame < settleFrames; frame++)
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        if (fixture == "jog")
+        {
+            animation.Player.Seek(.44, update: true);
+            animation.Player.Pause();
+        }
+
+        GD.Print("OPENRPG_FORGE_SOLAREN_VISUAL_FIXTURE_PASS " +
+                 $"fixture={fixture} house=house-1 weather={weatherKind.ToString().ToLowerInvariant()} " +
+                 $"clip={clip} doorway=open player={player.GlobalPosition}");
+    }
+
     private void RunAudioEmitterRuntimeSmokeTest()
     {
         var clipData = ProceduralAmbientAudioService.Create(ProceduralAmbientAudioService.StreamResource);

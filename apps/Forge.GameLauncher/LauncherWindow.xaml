@@ -12,7 +12,7 @@
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
         ResizeMode="CanResize"
-        Background="#070910"
+        Background="#122019"
         Foreground="#F4EEE2"
         FontFamily="{StaticResource BodyFont}"
         UseLayoutRounding="True"
@@ -30,29 +30,29 @@
     </shell:WindowChrome.WindowChrome>
 
     <Window.Resources>
-        <SolidColorBrush x:Key="AccentBrush" Color="#C88A52" />
-        <SolidColorBrush x:Key="AccentBrightBrush" Color="#F0BF78" />
-        <SolidColorBrush x:Key="TextBrush" Color="#F4EEE2" />
-        <SolidColorBrush x:Key="MutedTextBrush" Color="#B8AFA4" />
-        <SolidColorBrush x:Key="DimTextBrush" Color="#817A75" />
+        <SolidColorBrush x:Key="AccentBrush" Color="#D59538" />
+        <SolidColorBrush x:Key="AccentBrightBrush" Color="#F7CF78" />
+        <SolidColorBrush x:Key="TextBrush" Color="#FFF8E8" />
+        <SolidColorBrush x:Key="MutedTextBrush" Color="#D3C8B2" />
+        <SolidColorBrush x:Key="DimTextBrush" Color="#9DAA91" />
         <LinearGradientBrush x:Key="PanelBrush" StartPoint="0,0" EndPoint="1,1">
-            <GradientStop Color="#F0121720" Offset="0" />
-            <GradientStop Color="#F4080B11" Offset="0.72" />
-            <GradientStop Color="#FC05070C" Offset="1" />
+            <GradientStop Color="#ED20332C" Offset="0" />
+            <GradientStop Color="#F4192924" Offset="0.72" />
+            <GradientStop Color="#FA111C18" Offset="1" />
         </LinearGradientBrush>
-        <SolidColorBrush x:Key="FieldBrush" Color="#E01A1E28" />
-        <SolidColorBrush x:Key="FieldHoverBrush" Color="#F1262934" />
-        <SolidColorBrush x:Key="HairlineBrush" Color="#8A745E4E" />
+        <SolidColorBrush x:Key="FieldBrush" Color="#D626362F" />
+        <SolidColorBrush x:Key="FieldHoverBrush" Color="#F0324439" />
+        <SolidColorBrush x:Key="HairlineBrush" Color="#9A9C7D4B" />
         <SolidColorBrush x:Key="DangerBrush" Color="#F09880" />
         <SolidColorBrush x:Key="SuccessBrush" Color="#A8D5A8" />
 
         <DropShadowEffect x:Key="PanelShadow"
                           Color="#000000"
-                          BlurRadius="44"
-                          ShadowDepth="12"
-                          Opacity="0.78" />
+                          BlurRadius="42"
+                          ShadowDepth="10"
+                          Opacity="0.58" />
         <DropShadowEffect x:Key="SoftGlow"
-                          Color="#BD7B43"
+                          Color="#E5AA43"
                           BlurRadius="18"
                           ShadowDepth="0"
                           Opacity="0.42" />
@@ -154,9 +154,9 @@
                                     BorderThickness="1">
                                 <Border.Background>
                                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                        <GradientStop Color="#FFE2A65E" Offset="0" />
-                                        <GradientStop Color="#FFB96B38" Offset="0.55" />
-                                        <GradientStop Color="#FF8E462B" Offset="1" />
+                                <GradientStop Color="#FFF1C86F" Offset="0" />
+                                <GradientStop Color="#FFD99A3A" Offset="0.55" />
+                                <GradientStop Color="#FFB75D2C" Offset="1" />
                                     </LinearGradientBrush>
                                 </Border.Background>
                                 <Grid>
@@ -196,8 +196,8 @@
 
         <Style x:Key="SecondaryButtonStyle" TargetType="Button">
             <Setter Property="Foreground" Value="#D8CFC3" />
-            <Setter Property="Background" Value="#B51C1D25" />
-            <Setter Property="BorderBrush" Value="#6B75604D" />
+            <Setter Property="Background" Value="#C123352D" />
+            <Setter Property="BorderBrush" Value="#819B7B50" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="FontSize" Value="12" />
@@ -215,12 +215,12 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="SecondarySurface" Property="Background" Value="#E02A2527" />
+                                <Setter TargetName="SecondarySurface" Property="Background" Value="#EA34483A" />
                                 <Setter TargetName="SecondarySurface" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
                                 <Setter Property="Foreground" Value="#FFF0DA" />
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="SecondarySurface" Property="Background" Value="#F0382D29" />
+                                <Setter TargetName="SecondarySurface" Property="Background" Value="#F046553E" />
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="Opacity" Value="0.3" />
@@ -567,20 +567,20 @@
         <Rectangle IsHitTestVisible="False">
             <Rectangle.Fill>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                    <GradientStop Color="#3A05070C" Offset="0" />
-                    <GradientStop Color="#6505070C" Offset="0.43" />
-                    <GradientStop Color="#D8080A10" Offset="0.67" />
-                    <GradientStop Color="#F7070910" Offset="1" />
+                    <GradientStop Color="#42132920" Offset="0" />
+                    <GradientStop Color="#24162920" Offset="0.43" />
+                    <GradientStop Color="#98202D27" Offset="0.67" />
+                    <GradientStop Color="#E8111C18" Offset="1" />
                 </LinearGradientBrush>
             </Rectangle.Fill>
         </Rectangle>
         <Rectangle IsHitTestVisible="False">
             <Rectangle.Fill>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                    <GradientStop Color="#69000000" Offset="0" />
+                    <GradientStop Color="#4A102119" Offset="0" />
                     <GradientStop Color="#00000000" Offset="0.32" />
-                    <GradientStop Color="#15000000" Offset="0.67" />
-                    <GradientStop Color="#D9000000" Offset="1" />
+                    <GradientStop Color="#141A281E" Offset="0.67" />
+                    <GradientStop Color="#B50E1814" Offset="1" />
                 </LinearGradientBrush>
             </Rectangle.Fill>
         </Rectangle>
@@ -591,11 +591,11 @@
                      Canvas.Top="530"
                      Width="1100"
                      Height="250"
-                     Opacity="0.17">
+                     Opacity="0.12">
                 <Ellipse.Fill>
                     <RadialGradientBrush>
-                        <GradientStop Color="#B5B6C9D5" Offset="0" />
-                        <GradientStop Color="#00B6C9D5" Offset="1" />
+                        <GradientStop Color="#C8FFF1C6" Offset="0" />
+                        <GradientStop Color="#00FFF1C6" Offset="1" />
                     </RadialGradientBrush>
                 </Ellipse.Fill>
                 <Ellipse.Effect>
@@ -610,11 +610,11 @@
                      Canvas.Top="610"
                      Width="1050"
                      Height="210"
-                     Opacity="0.11">
+                     Opacity="0.10">
                 <Ellipse.Fill>
                     <RadialGradientBrush>
-                        <GradientStop Color="#D4927D6D" Offset="0" />
-                        <GradientStop Color="#00927D6D" Offset="1" />
+                        <GradientStop Color="#D4E9C77F" Offset="0" />
+                        <GradientStop Color="#00E9C77F" Offset="1" />
                     </RadialGradientBrush>
                 </Ellipse.Fill>
                 <Ellipse.Effect>
@@ -643,6 +643,11 @@
             <Grid.RenderTransform>
                 <TranslateTransform x:Name="HeroTranslate" Y="24" />
             </Grid.RenderTransform>
+            <Border Padding="24,22,24,20"
+                    Background="#8D163027"
+                    BorderBrush="#70E8C374"
+                    BorderThickness="1"
+                    CornerRadius="12">
             <StackPanel>
                 <Grid Width="74" Height="74" HorizontalAlignment="Left" Margin="0,0,0,22">
                     <Ellipse Stroke="#9DD7A868" StrokeThickness="1" />
@@ -682,6 +687,45 @@
                            FontSize="14"
                            LineHeight="22"
                            TextWrapping="Wrap" />
+                <Border x:Name="LauncherMusicPanel"
+                        Margin="0,22,0,0"
+                        Padding="13,11"
+                        Background="#C5243A30"
+                        BorderBrush="#8ED6B05F"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Visibility="Collapsed">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="86" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="42" />
+                        </Grid.ColumnDefinitions>
+                        <Button x:Name="LauncherMusicToggleButton"
+                                Width="78"
+                                Height="36"
+                                HorizontalAlignment="Left"
+                                Content="▶ PLAY"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Click="OnLauncherMusicToggleClick" />
+                        <StackPanel Grid.Column="1" Margin="10,0,10,0" VerticalAlignment="Center">
+                            <TextBlock Text="MUSIQUE D’AMBIANCE"
+                                       Foreground="#F7E8C7"
+                                       FontSize="9"
+                                       FontWeight="Bold"
+                                       Margin="0,0,0,5" />
+                            <Slider x:Name="LauncherMusicVolumeSlider"
+                                    Style="{StaticResource RpgSliderStyle}"
+                                    ValueChanged="OnLauncherMusicVolumeChanged" />
+                        </StackPanel>
+                        <TextBlock x:Name="LauncherMusicVolumeValue"
+                                   Grid.Column="2"
+                                   HorizontalAlignment="Right"
+                                   VerticalAlignment="Bottom"
+                                   Foreground="#EAD9B7"
+                                   FontSize="9" />
+                    </Grid>
+                </Border>
                 <StackPanel Orientation="Horizontal" Margin="0,22,0,0">
                     <Ellipse Width="7" Height="7" Fill="{StaticResource SuccessBrush}" Margin="0,0,9,0" VerticalAlignment="Center" />
                     <TextBlock Text="DISTRIBUTION VÉRIFIÉE"
@@ -695,6 +739,7 @@
                                FontWeight="SemiBold" />
                 </StackPanel>
             </StackPanel>
+            </Border>
             </Grid>
 
             <Border x:Name="CommandPanel"
@@ -704,7 +749,7 @@
                 Margin="20,20,48,42"
                 HorizontalAlignment="Stretch"
                 Background="{StaticResource PanelBrush}"
-                BorderBrush="#B08C684D"
+                BorderBrush="#C6D4AA5F"
                 BorderThickness="1"
                 CornerRadius="14"
                 Effect="{StaticResource PanelShadow}"
@@ -787,7 +832,7 @@
                                     <ColumnDefinition Width="12" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
-                                <Border Grid.Column="0" Padding="18" Background="#B8171A22" BorderBrush="#756B594B" BorderThickness="1" CornerRadius="7">
+                                <Border Grid.Column="0" Padding="18" Background="#B723382F" BorderBrush="#8D9E804E" BorderThickness="1" CornerRadius="7">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="43" />
@@ -802,7 +847,7 @@
                                         </StackPanel>
                                     </Grid>
                                 </Border>
-                                <Border Grid.Column="2" Padding="18" Background="#B8171A22" BorderBrush="#756B594B" BorderThickness="1" CornerRadius="7">
+                                <Border Grid.Column="2" Padding="18" Background="#B723382F" BorderBrush="#8D9E804E" BorderThickness="1" CornerRadius="7">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="43" />
@@ -822,8 +867,8 @@
                             <Border Grid.Row="2"
                                     Margin="0,24,0,0"
                                     Padding="22,20"
-                                    Background="#D0181B23"
-                                    BorderBrush="#A3785B47"
+                                    Background="#D020332B"
+                                    BorderBrush="#ADAA874F"
                                     BorderThickness="1"
                                     CornerRadius="8">
                                 <Grid>
@@ -901,8 +946,8 @@
                             </StackPanel>
                             <Border Grid.Row="1"
                                     Padding="20,12"
-                                    Background="#A9141820"
-                                    BorderBrush="#756B594B"
+                                    Background="#B41E3029"
+                                    BorderBrush="#8D9E804E"
                                     BorderThickness="1"
                                     CornerRadius="8">
                             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
@@ -1023,7 +1068,7 @@
                             <StackPanel Grid.Row="0" Margin="0,18,0,16">
                                 <TextBlock Text="FORGEZ VOTRE COMPAGNIE" Style="{StaticResource OverlineStyle}" Margin="0,0,0,8" />
                                 <TextBlock Text="Multijoueur" Style="{StaticResource PageTitleStyle}" />
-                                <TextBlock Text="Choisissez votre mode de session. L’hôte local conserve l’autorité sur toutes les décisions de jeu."
+                                <TextBlock Text="Hébergez une partie autoritaire ou rejoignez directement un hôte par Internet."
                                            Style="{StaticResource PageSubtitleStyle}"
                                            Margin="0,8,0,0" />
                             </StackPanel>
@@ -1051,8 +1096,8 @@
                                                      Style="{StaticResource ModeCardStyle}"
                                                      Checked="OnSessionModeChanged">
                                             <StackPanel>
-                                                <TextBlock Text="HÔTE LOCAL" Foreground="#F0E6D8" FontWeight="Bold" FontSize="11" />
-                                                <TextBlock Text="Session autoritaire" Foreground="#AAA096" FontSize="10" Margin="0,8,0,0" />
+                                                <TextBlock x:Name="HostModeTitleText" Text="HÔTE LOCAL" Foreground="#F0E6D8" FontWeight="Bold" FontSize="11" />
+                                                <TextBlock x:Name="HostModeSubtitleText" Text="Session autoritaire" Foreground="#AAA096" FontSize="10" Margin="0,8,0,0" />
                                             </StackPanel>
                                         </RadioButton>
                                         <RadioButton x:Name="DirectConnectMode"
@@ -1063,7 +1108,7 @@
                                                      Checked="OnSessionModeChanged">
                                             <StackPanel>
                                                 <TextBlock Text="REJOINDRE" Foreground="#F0E6D8" FontWeight="Bold" FontSize="11" />
-                                                <TextBlock Text="Transport à venir" Foreground="#AAA096" FontSize="10" Margin="0,8,0,0" />
+                                                <TextBlock Text="IP ou nom DNS" Foreground="#AAA096" FontSize="10" Margin="0,8,0,0" />
                                             </StackPanel>
                                         </RadioButton>
                                     </Grid>
@@ -1085,8 +1130,36 @@
                                             </Grid.RowDefinitions>
                                             <TextBlock Grid.Row="0" Text="Nom du joueur" Style="{StaticResource SettingLabelStyle}" />
                                             <TextBox x:Name="PlayerNameText" Grid.Row="0" Grid.Column="1" Height="42" Style="{StaticResource FieldTextStyle}" TextChanged="OnSettingsChanged" />
-                                            <TextBlock Grid.Row="1" Text="Adresse du serveur" Style="{StaticResource SettingLabelStyle}" />
+                                            <TextBlock x:Name="ServerAddressLabel" Grid.Row="1" Text="Adresse IP ou DNS" Style="{StaticResource SettingLabelStyle}" />
                                             <TextBox x:Name="ServerAddressText" Grid.Row="1" Grid.Column="1" Height="42" Style="{StaticResource FieldTextStyle}" TextChanged="OnSettingsChanged" />
+                                            <Grid x:Name="PublicJoinAddressPanel"
+                                                  Grid.Row="1"
+                                                  Grid.Column="1"
+                                                  Visibility="Collapsed">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="78" />
+                                                    <ColumnDefinition Width="92" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBox x:Name="PublicJoinAddressText"
+                                                         Height="42"
+                                                         Style="{StaticResource FieldTextStyle}"
+                                                         TextChanged="OnPublicJoinAddressChanged" />
+                                                <Button x:Name="CopyPublicAddressButton"
+                                                        Grid.Column="1"
+                                                        Height="42"
+                                                        Margin="6,0,0,0"
+                                                        Content="COPIER"
+                                                        Style="{StaticResource SecondaryButtonStyle}"
+                                                        Click="OnCopyPublicAddressClick" />
+                                                <Button x:Name="RefreshPublicAddressButton"
+                                                        Grid.Column="2"
+                                                        Height="42"
+                                                        Margin="6,0,0,0"
+                                                        Content="ACTUALISER"
+                                                        Style="{StaticResource SecondaryButtonStyle}"
+                                                        Click="OnRefreshPublicAddressClick" />
+                                            </Grid>
                                             <TextBlock Grid.Row="2" Text="Port" Style="{StaticResource SettingLabelStyle}" />
                                             <Grid Grid.Row="2" Grid.Column="1">
                                                 <Grid.ColumnDefinitions>
@@ -1111,6 +1184,14 @@
                                             <TextBlock x:Name="MultiplayerNoticeText" MaxWidth="540" Foreground="#C6B6A7" FontSize="11" TextWrapping="Wrap" LineHeight="18" />
                                         </StackPanel>
                                     </Border>
+                                    <Button x:Name="MultiplayerPlayButton"
+                                            Width="250"
+                                            Height="48"
+                                            Margin="0,18,0,0"
+                                            HorizontalAlignment="Right"
+                                            Content="ENTRER DANS L’AVENTURE"
+                                            Style="{StaticResource PrimaryButtonStyle}"
+                                            Click="OnPlayClick" />
                                 </StackPanel>
                             </ScrollViewer>
                         </Grid>
@@ -1140,7 +1221,7 @@
             </Border>
         </Grid>
 
-        <Grid Height="52" VerticalAlignment="Top" Background="#D0070A10" MouseLeftButtonDown="OnTitleBarMouseDown">
+        <Grid Height="52" VerticalAlignment="Top" Background="#D314281F" MouseLeftButtonDown="OnTitleBarMouseDown">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />

@@ -147,7 +147,7 @@ la création d'une archive ZIP sont dans [`docs/DISTRIBUTION.md`](docs/DISTRIBUT
 ## Créer le lanceur Windows d'un jeu
 
 Dans **Distribution et conformité**, activez le profil **Lanceur du jeu · Windows x64**, choisissez
-le titre, le branding, les menus et la capacité multijoueur, enregistrez puis cliquez sur
+le titre, le fond, la musique WAV facultative, les menus et la capacité multijoueur, enregistrez puis cliquez sur
 **Créer le lanceur du jeu**. Le même flux est disponible en CLI :
 
 ```powershell
@@ -156,11 +156,21 @@ le titre, le branding, les menus et la capacité multijoueur, enregistrez puis c
 ```
 
 Le dossier obtenu possède son propre `.exe` WPF single-file et une interface RPG cinématique : décor
-personnalisable, brumes et braises animées, parallaxe, transitions, Accueil, Configuration et
-Multijoueur. Le runtime, le `.orpmod` Client et chaque fichier restent couverts par le manifeste
-SHA-256. Le solo et l'hébergement local autoritaire fonctionnent ; la connexion distante reste
-volontairement désactivée tant que le transport réseau inter-processus n'est pas branché. Voir
-[`docs/DISTRIBUTION.md`](docs/DISTRIBUTION.md).
+personnalisable, brumes et particules animées, parallaxe, transitions, musique avec Play/Stop et volume,
+Accueil, Configuration et Multijoueur. Le runtime, le `.orpmod` Client et chaque fichier restent couverts par le manifeste
+SHA-256. Le solo, l'hébergement autoritaire et la connexion Internet directe par IPv4/DNS
+fonctionnent avec contrôle du module/protocole et réplication des avatars. L'hôte doit autoriser et
+rediriger le port TCP choisi ; relais/NAT automatique, chiffrement et synchronisation de tout le
+gameplay RPG ne font pas encore partie de ce premier transport. Voir
+[`docs/DISTRIBUTION.md`](docs/DISTRIBUTION.md) pour l'export et
+[`docs/MULTIPLAYER_INTERNET.md`](docs/MULTIPLAYER_INTERNET.md) pour l'hébergement, la connexion,
+le serveur headless, les diagnostics et les limites de sécurité.
+
+La distribution Windows versionnée sous `exe/` contient exactement les deux points d'entrée produit :
+`OpenRPG_Forge_Studio.exe` pour créer les modules et `Solaren_Les_Vallees_Libres.exe` pour jouer à
+Solaren. Le second utilise le panorama solaire d'Aubeciel et la piste calme gouvernée par le workspace ;
+son manifeste couvre 227 fichiers. Les sous-dossiers `branding/`, `game/` et `runtime/` font partie du
+jeu et doivent rester à côté de l'exécutable. Cette distribution locale reste non signée.
 
 Le kit procédural de la Crypte suit les [conventions d’assets](docs/ASSET_CONVENTIONS.md) : unités,
 axes, pivots, nommage, formes de collision simples et traçabilité des licences.

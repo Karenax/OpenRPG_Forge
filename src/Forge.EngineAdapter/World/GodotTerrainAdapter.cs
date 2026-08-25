@@ -18,6 +18,7 @@ public sealed record GodotTerrainBuildMetrics(
 public sealed record GodotTerrainResult(Node3D Root, int Vertices, int Triangles, int TerrainSectors,
     string TerrainMaterialMode, int TerrainMaterialLayers, int CollisionShapes,
     int FeatureSegments, int DebugVolumes, int FlightRouteSegments, int ScatterLayers, int ScatterInstances,
+    int WindAnimatedScatterLayers,
     int WaterSurfaces, int WaterVolumes, int CullingGroups, GodotTerrainBuildMetrics Metrics,
     IReadOnlyList<DomainDiagnostic> Diagnostics);
 
@@ -26,7 +27,8 @@ public static class GodotTerrainAdapter
     public static GodotTerrainResult Build(
         AreaWorldProfile world,
         Func<string, Mesh?>? scatterMeshResolver = null,
-        IReadOnlyList<WaterBodyProfile>? waterBodies = null)
+        IReadOnlyList<WaterBodyProfile>? waterBodies = null,
+        Func<string, Texture2D?>? surfaceTextureResolver = null)
     {
         ArgumentNullException.ThrowIfNull(world);
         var allocatedBefore = GC.GetAllocatedBytesForCurrentThread();
@@ -38,7 +40,7 @@ public static class GodotTerrainAdapter
         var collisionShapes = 0;
         var meshMilliseconds = 0d;
         var collisionMilliseconds = 0d;
-        var terrainMaterial = GodotTerrainMaterialAdapter.Build(world.Terrain);
+        var terrainMaterial = GodotTerrainMaterialAdapter.Build(world.Terrain, surfaceTextureResolver);
         root.SetMeta("forge_terrain_material_mode", terrainMaterial.Descriptor.Mode);
         root.SetMeta("forge_terrain_material_layers", terrainMaterial.Descriptor.LayerCount);
         if (plan.Enabled && plan.Indices.Count > 0)
@@ -79,9 +81,17 @@ public static class GodotTerrainAdapter
         var featureRoot = new Node3D { Name = "TerrainFeatures" };
         foreach (var feature in plan.Features)
         {
+            if (string.Equals(feature.MaterialResource, "builtin/invisible-scatter-exclusion",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                featureSegments += feature.ControlPoints.Count - 1;
+                continue;
+            }
             if (feature.Kind == TerrainFeatureKind.Road)
             {
-                featureRoot.AddChild(BuildRoad(feature));
+                if (!string.Equals(feature.MaterialResource, "builtin/terrain-painted",
+                        StringComparison.OrdinalIgnoreCase))
+                    featureRoot.AddChild(BuildRoad(feature, world.Terrain, surfaceTextureResolver));
                 featureSegments += feature.ControlPoints.Count - 1;
                 continue;
             }
@@ -164,7 +174,7 @@ public static class GodotTerrainAdapter
         return new GodotTerrainResult(root, plan.Vertices.Count, plan.TriangleCount, plan.ChunkCount,
             terrainMaterial.Descriptor.Mode, terrainMaterial.Descriptor.LayerCount, collisionShapes,
             featureSegments, debugVolumes, routeSegments, scatter.Layers, scatter.Instances,
-            waterSurfaces, waterVolumes, scatter.CullingGroups, metrics, plan.Diagnostics);
+            scatter.WindAnimatedLayers, waterSurfaces, waterVolumes, scatter.CullingGroups, metrics, plan.Diagnostics);
     }
 
     private static ArrayMesh BuildTerrainMesh(
@@ -198,6 +208,9 @@ public static class GodotTerrainAdapter
             AddVertex(indices[triangle + 1]);
         }
 
+        // Re-index the canonical samples before generating normals. Without this pass each
+        // triangle owns isolated vertices and large exterior terrains read as a tiled floor.
+        surface.Index();
         surface.GenerateNormals();
         var mesh = surface.Commit();
         if (material is not null)
@@ -239,7 +252,10 @@ public static class GodotTerrainAdapter
         return node;
     }
 
-    private static MeshInstance3D BuildRoad(TerrainFeatureDefinition feature)
+    private static MeshInstance3D BuildRoad(
+        TerrainFeatureDefinition feature,
+        TerrainDefinition terrain,
+        Func<string, Texture2D?>? surfaceTextureResolver)
     {
         var surface = new SurfaceTool();
         surface.Begin(Mesh.PrimitiveType.Triangles);
@@ -254,9 +270,14 @@ public static class GodotTerrainAdapter
             var next = feature.ControlPoints[Math.Min(feature.ControlPoints.Count - 1, index + 1)];
             var tangent = new Vector3(next.X - previous.X, 0, next.Z - previous.Z).Normalized();
             var perpendicular = new Vector3(tangent.Z, 0, -tangent.X);
-            var center = new Vector3(current.X, current.Y + .012f, current.Z);
-            left[index] = center - perpendicular * halfWidth;
-            right[index] = center + perpendicular * halfWidth;
+            var center = new Vector3(current.X, current.Y, current.Z);
+            var leftPosition = center - perpendicular * halfWidth;
+            var rightPosition = center + perpendicular * halfWidth;
+            var authoredOffset = current.Y - terrain.HeightAt(current.X, current.Z) + .012f;
+            leftPosition.Y = terrain.HeightAt(leftPosition.X, leftPosition.Z) + authoredOffset;
+            rightPosition.Y = terrain.HeightAt(rightPosition.X, rightPosition.Z) + authoredOffset;
+            left[index] = leftPosition;
+            right[index] = rightPosition;
             if (index > 0)
             {
                 var former = feature.ControlPoints[index - 1];
@@ -277,7 +298,12 @@ public static class GodotTerrainAdapter
         }
 
         var mesh = surface.Commit();
-        mesh.SurfaceSetMaterial(0, GodotTerrainMaterialAdapter.BuildRoad(FeatureColor(TerrainFeatureKind.Road)));
+        var surfaceTexture = string.IsNullOrWhiteSpace(feature.MaterialResource) ||
+            feature.MaterialResource.StartsWith("builtin/", StringComparison.OrdinalIgnoreCase)
+                ? null
+                : surfaceTextureResolver?.Invoke(feature.MaterialResource);
+        mesh.SurfaceSetMaterial(0, GodotTerrainMaterialAdapter.BuildRoad(
+            FeatureColor(TerrainFeatureKind.Road), surfaceTexture, 3.6f));
         return new MeshInstance3D
         {
             Name = $"Road_{feature.Id:N}",
@@ -368,7 +394,7 @@ public static class GodotTerrainAdapter
 
     private static Color FeatureColor(TerrainFeatureKind kind) => kind switch
     {
-        TerrainFeatureKind.Road => new Color(.66f, .48f, .27f),
+        TerrainFeatureKind.Road => new Color(.90f, .75f, .52f),
         TerrainFeatureKind.River => new Color(.08f, .36f, .62f, .78f),
         TerrainFeatureKind.Wall => new Color(.44f, .42f, .4f),
         TerrainFeatureKind.Bridge => new Color(.38f, .22f, .1f),

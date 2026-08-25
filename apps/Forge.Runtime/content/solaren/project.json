@@ -1,0 +1,3995 @@
+{
+  "formatVersion": "1.30.0",
+  "project": {
+    "id": "c0d108bb-c07e-aa54-a626-bb32d6176df7",
+    "title": "Solaren, Les Vall\u00E9es Libres",
+    "module": {
+      "id": "07f225dd-2d1b-4f5e-aa20-ebf16f1941c3",
+      "slug": "solaren-les-vallees-libres",
+      "displayName": "Solaren, Les Vall\u00E9es Libres",
+      "description": "Un jeu de r\u00F4le d\u0027exploration dans de vastes vall\u00E9es libres, autour du village d\u0027Aubeciel.",
+      "entryAreaId": "4510a33a-ec5e-ae5c-98b3-27eca856a80d",
+      "metadata": {
+        "id": "07f225dd-2d1b-4f5e-aa20-ebf16f1941c3",
+        "schemaVersion": 1,
+        "defaultLocale": "fr",
+        "localizations": [
+          {
+            "locale": "fr",
+            "name": "Solaren, Les Vall\u00E9es Libres",
+            "summary": "Un jeu de r\u00F4le d\u0027exploration dans de vastes vall\u00E9es libres, autour du village d\u0027Aubeciel.",
+            "description": "Un jeu de r\u00F4le d\u0027exploration dans de vastes vall\u00E9es libres, autour du village d\u0027Aubeciel.",
+            "credits": "",
+            "installation": "",
+            "rules": "",
+            "controls": "",
+            "licenses": "",
+            "warnings": "",
+            "compatibility": ""
+          }
+        ],
+        "author": "Non renseign\u00E9",
+        "version": "0.1.0",
+        "license": "LicenseRef-Proprietary",
+        "imagePath": null,
+        "tags": [],
+        "classification": "Non class\u00E9",
+        "provenance": "openrpg-forge:project-wizard",
+        "foundation": {
+          "id": "490af5b3-16d3-074a-9923-739543b7f766",
+          "schemaVersion": 1,
+          "provenance": "openrpg-forge:project-wizard",
+          "template": "rpg",
+          "kits": [
+            "forge-core",
+            "forge-rpg-kit"
+          ],
+          "targetPlatforms": [
+            "windowsX64"
+          ],
+          "rulesProvider": "forge.generic",
+          "renderPreset": "balanced",
+          "networkMode": "offline",
+          "requiresInitialArea": true,
+          "identity": {
+            "projectId": "c0d108bb-c07e-aa54-a626-bb32d6176df7",
+            "slug": "solaren-les-vallees-libres",
+            "packageNamespace": "module.solaren-les-vallees-libres",
+            "formatCompatibility": "1.x"
+          },
+          "playerStarts": [
+            {
+              "id": "21d7c5c8-8626-1f4c-ac2f-5acc0577805e",
+              "schemaVersion": 1,
+              "provenance": "openrpg-forge:project-wizard",
+              "key": "default",
+              "areaId": "4510a33a-ec5e-ae5c-98b3-27eca856a80d",
+              "spawnEntityId": "d7c42d88-65f8-9a52-86a1-53895c969087",
+              "waypointId": null,
+              "orientationDegrees": 0,
+              "gameMode": "campaign",
+              "entryClass": "adventurer",
+              "playerSelectionRule": "default",
+              "priority": 100,
+              "requiredAtRuntime": true
+            }
+          ],
+          "requiredAtRuntime": true
+        }
+      },
+      "variables": [],
+      "distribution": {
+        "id": "62e2593b-6d87-5465-b078-702f0da70509",
+        "schemaVersion": 1,
+        "targetProfiles": [
+          {
+            "id": "ea9bf5f3-cf85-5b8f-8402-2d3770098ba8",
+            "schemaVersion": 1,
+            "target": "editor",
+            "enabled": true,
+            "includeEditorData": true,
+            "includeDebugSymbols": true,
+            "optimizeContent": false,
+            "requireApprovedLicenses": false,
+            "outputName": "editor",
+            "secretsProfile": "editor",
+            "provenance": "migration-default"
+          },
+          {
+            "id": "0d5ed075-e4dd-516a-a369-4f87ce9c0d90",
+            "schemaVersion": 1,
+            "target": "client",
+            "enabled": true,
+            "includeEditorData": false,
+            "includeDebugSymbols": false,
+            "optimizeContent": true,
+            "requireApprovedLicenses": true,
+            "outputName": "client",
+            "secretsProfile": "client",
+            "provenance": "migration-default"
+          },
+          {
+            "id": "791d2e0f-a8a0-59bd-9bce-a5c51b6cae29",
+            "schemaVersion": 1,
+            "target": "dedicatedServer",
+            "enabled": true,
+            "includeEditorData": false,
+            "includeDebugSymbols": false,
+            "optimizeContent": true,
+            "requireApprovedLicenses": true,
+            "outputName": "dedicatedserver",
+            "secretsProfile": "dedicatedserver",
+            "provenance": "migration-default"
+          },
+          {
+            "id": "6072fec1-e38a-5209-9cb5-3aca85f4bf22",
+            "schemaVersion": 1,
+            "target": "test",
+            "enabled": true,
+            "includeEditorData": true,
+            "includeDebugSymbols": true,
+            "optimizeContent": false,
+            "requireApprovedLicenses": false,
+            "outputName": "test",
+            "secretsProfile": "test",
+            "provenance": "migration-default"
+          },
+          {
+            "id": "492ab57f-54a2-52e2-a4df-6302aa784223",
+            "schemaVersion": 1,
+            "target": "shipping",
+            "enabled": true,
+            "includeEditorData": false,
+            "includeDebugSymbols": false,
+            "optimizeContent": true,
+            "requireApprovedLicenses": true,
+            "outputName": "shipping",
+            "secretsProfile": "shipping",
+            "provenance": "migration-default"
+          }
+        ],
+        "dependencies": [],
+        "release": {
+          "id": "5c3141aa-bbbe-58e3-846a-e02eb526b66f",
+          "schemaVersion": 1,
+          "channel": "development",
+          "platforms": [
+            "windowsX64"
+          ],
+          "signing": {
+            "schemaVersion": 1,
+            "mode": "optional",
+            "signingProfile": "local-signing",
+            "trustedKeyFingerprints": [],
+            "revokedKeyFingerprints": [],
+            "allowUnsignedDevelopment": true
+          },
+          "delta": {
+            "schemaVersion": 1,
+            "enabled": true,
+            "chunkSizeBytes": 1048576,
+            "allowResume": true,
+            "deduplicateByHash": true,
+            "allowRollback": true,
+            "retainedVersions": 2
+          },
+          "windowsPackaging": {
+            "schemaVersion": 1,
+            "mode": "portableAndInstaller",
+            "detectPrerequisites": true,
+            "writeInstallLog": true,
+            "includeUninstaller": true,
+            "prerequisites": [
+              "vulkan-or-d3d12",
+              "windows-x64"
+            ]
+          },
+          "provenance": "migration-default"
+        },
+        "launcher": {
+          "id": "9d864a97-1cf2-5bba-93ed-bec419b66053",
+          "schemaVersion": 1,
+          "enabled": true,
+          "displayName": "Solaren, Les Vall\u00E9es Libres",
+          "tagline": "Explorez les vastes vall\u00E9es libres autour du village d'Aubeciel.",
+          "executableName": "Solaren_Les_Vallees_Libres",
+          "accentColor": "#D59538",
+          "backgroundImagePath": "branding/launcher-solaren-aubeciel-v1.png",
+          "musicPath": "branding/solaren-aubeciel-calm-v1.wav",
+          "newsUrl": null,
+          "supportUrl": null,
+          "settingsEnabled": true,
+          "multiplayer": "directConnectPreview",
+          "defaultServerPort": 5121,
+          "provenance": "project-author"
+        },
+        "provenance": "migration-default"
+      },
+      "localization": {
+        "id": "07f225dd-2d1b-4f5e-aa20-ebf16f1941c3",
+        "schemaVersion": 1,
+        "defaultLocale": "fr",
+        "locales": [
+          "fr"
+        ],
+        "messages": [],
+        "packageNamespace": "project.localization",
+        "licenseSpdx": "CC0-1.0",
+        "provenance": "project-author",
+        "platformByteBudget": 4194304,
+        "contentSha256": "5550d73c23940ab89ec495d64fcf706cf444e71db0a107c5928d3903618028ed"
+      },
+      "content": {
+        "id": "07f225dd-2d1b-4f5e-aa20-ebf16f1941c3",
+        "schemaVersion": 1,
+        "batch": {
+          "glob": "*",
+          "extensions": [
+            ".forge",
+            ".glb",
+            ".json",
+            ".ogg",
+            ".png",
+            ".wav"
+          ],
+          "collisionPolicy": "fail",
+          "provenance": "project-author",
+          "licenseSpdx": "LicenseRef-Proprietary"
+        },
+        "dataTables": [],
+        "mergePolicy": "preserveBoth",
+        "provenance": "project-author",
+        "packages": {
+          "id": "07f225dd-2d1b-4f5e-aa20-ebf16f1941c3",
+          "schemaVersion": 1,
+          "provenance": "project-author",
+          "conflictPolicy": "highestPriority",
+          "packages": []
+        }
+      },
+      "artisticStyle": {
+        "id": "07f225dd-2d1b-4f5e-aa20-ebf16f1941c3",
+        "schemaVersion": 1,
+        "metersPerUnit": 1,
+        "targetTexelDensity": 512,
+        "scaleTolerancePercent": 20,
+        "texelTolerancePercent": 50,
+        "shaderFamily": "pbr-metallic-roughness",
+        "era": "original-fantasy",
+        "realism": "stylizedRealism",
+        "palette": [
+          "earth",
+          "ember",
+          "stone",
+          "vegetation"
+        ],
+        "assets": [],
+        "provenance": "openrpg-forge-default"
+      },
+      "runtimePolicies": {
+        "id": "07f225dd-2d1b-4f5e-aa20-ebf16f1941c3",
+        "schemaVersion": 1,
+        "heartbeats": [],
+        "rest": {
+          "id": "ba2a0862-715a-51a5-b283-1655b76f815e",
+          "schemaVersion": 1,
+          "enabled": false,
+          "partyPolicy": "individual",
+          "defaultDurationSeconds": 8,
+          "bindings": [
+            {
+              "id": "02aab95a-cc7b-5ceb-a9f0-587f44a8507e",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "rest.completed",
+              "handler": "OnRestCompleted",
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
+            },
+            {
+              "id": "79c4a2bd-44b9-5175-aceb-22a79b6b0027",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "rest.interrupted",
+              "handler": "OnRestInterrupted",
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
+            },
+            {
+              "id": "71b1e04e-6b1d-52df-a6be-a055c72006cb",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "rest.requested",
+              "handler": "OnRestRequested",
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
+            },
+            {
+              "id": "2d15026e-15f8-5ab6-b182-c5d494906fbc",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "rest.started",
+              "handler": "OnRestStarted",
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
+            }
+          ],
+          "provenance": "migration-default"
+        },
+        "sequenceAbort": {
+          "id": "7e240f6a-52ce-58c2-ae71-accaf27b2f57",
+          "schemaVersion": 1,
+          "enabled": true,
+          "binding": {
+            "id": "222145eb-3544-52c0-97be-c144a3ca488a",
+            "schemaVersion": 1,
+            "provenance": "migration-default",
+            "forgeScriptApiVersion": "1.0",
+            "eventName": "sequence.aborted",
+            "handler": "OnSequenceAborted",
+            "authority": "server",
+            "scriptPath": null,
+            "requiredAtRuntime": false
+          },
+          "restore": "all",
+          "maximumNarrativeRollbackSteps": 64,
+          "provenance": "migration-default"
+        },
+        "cinematics": {
+          "id": "07f225dd-2d1b-4f5e-aa20-ebf16f1941c3",
+          "schemaVersion": 1,
+          "startup": {
+            "id": "1a8dd62a-35fd-5dc4-8c43-af2c670e7e13",
+            "schemaVersion": 1,
+            "kind": "none",
+            "referenceId": null,
+            "resourcePath": "",
+            "fallbackKind": "none",
+            "fallbackReferenceId": null,
+            "fallbackResourcePath": "",
+            "skippable": true,
+            "skipLabel": "Passer",
+            "provenance": "migration-default"
+          },
+          "sequences": [],
+          "transformOverrides": [],
+          "tweens": [],
+          "provenance": "migration-default"
+        },
+        "gameplay": {
+          "id": "07f225dd-2d1b-4f5e-aa20-ebf16f1941c3",
+          "schemaVersion": 1,
+          "swimming": {
+            "id": "3ec90c22-ab0e-5314-8710-57b58e56458b",
+            "schemaVersion": 1,
+            "enabled": true,
+            "required": false,
+            "buoyancy": 8,
+            "surfaceSnapDistance": 0.75,
+            "surfaceSpeed": 4.5,
+            "diveSpeed": 3,
+            "currentInfluence": 0.65,
+            "breathSeconds": 45,
+            "waterVolumeTags": [
+              "swimmable",
+              "water"
+            ],
+            "surfaceAnimation": "swim.surface",
+            "diveAnimation": "swim.dive",
+            "idleAnimation": "swim.idle",
+            "provenance": "migration-default"
+          },
+          "climbing": {
+            "id": "c7308790-7010-5012-8ac0-0ac5811847a5",
+            "schemaVersion": 1,
+            "enabled": true,
+            "required": false,
+            "climbSpeed": 3,
+            "staminaCapacity": 100,
+            "staminaDrainPerSecond": 12,
+            "ledgeReach": 1.5,
+            "inverseKinematics": true,
+            "requireAuthoredLinks": true,
+            "preventUnsafeDrop": true,
+            "surfaceTags": [
+              "climb",
+              "ladder",
+              "ledge"
+            ],
+            "climbAnimation": "climb.loop",
+            "ledgeAnimation": "climb.ledge",
+            "provenance": "migration-default"
+          },
+          "radialMenu": {
+            "id": "406d09a7-a890-59a3-903a-f056ef3f5a8f",
+            "schemaVersion": 1,
+            "enabled": true,
+            "inputAction": "action_wheel",
+            "deadZone": 0.2,
+            "maximumDepth": 3,
+            "gamepadEnabled": true,
+            "keyboardNavigation": true,
+            "listFallback": true,
+            "screenReaderLabels": true,
+            "actions": [
+              {
+                "id": "df6fb360-0294-5f5d-a81d-62d9b64af567",
+                "key": "interact",
+                "label": "Interagir",
+                "accessibleLabel": "Interagir avec la cible",
+                "kind": "verb",
+                "command": "interact",
+                "parentKey": "",
+                "order": 0,
+                "requiresTarget": true,
+                "tags": [
+                  "world"
+                ]
+              },
+              {
+                "id": "a4bc89c7-a4dd-5b62-9488-2647730405f0",
+                "key": "combat",
+                "label": "Combat",
+                "accessibleLabel": "Actions de combat",
+                "kind": "navigation",
+                "command": "open:combat",
+                "parentKey": "",
+                "order": 1,
+                "requiresTarget": false,
+                "tags": [
+                  "combat"
+                ]
+              },
+              {
+                "id": "ba694f73-4691-5892-8565-29c6ffbf8981",
+                "key": "rest",
+                "label": "Se reposer",
+                "accessibleLabel": "Commencer un repos",
+                "kind": "verb",
+                "command": "rest",
+                "parentKey": "",
+                "order": 2,
+                "requiresTarget": false,
+                "tags": [
+                  "recovery"
+                ]
+              },
+              {
+                "id": "2c53bc90-6ea9-5bc7-9de1-272881c55573",
+                "key": "system",
+                "label": "Syst\u00E8me",
+                "accessibleLabel": "Actions syst\u00E8me",
+                "kind": "navigation",
+                "command": "open:system",
+                "parentKey": "",
+                "order": 3,
+                "requiresTarget": false,
+                "tags": [
+                  "system"
+                ]
+              },
+              {
+                "id": "5ba3d2e3-0e9c-5b3b-b116-7f82534a36c9",
+                "key": "attack",
+                "label": "Attaquer",
+                "accessibleLabel": "Attaquer la cible",
+                "kind": "ability",
+                "command": "attack",
+                "parentKey": "combat",
+                "order": 0,
+                "requiresTarget": true,
+                "tags": [
+                  "combat"
+                ]
+              },
+              {
+                "id": "c89d65bd-0532-567f-983e-20e5945f4120",
+                "key": "save",
+                "label": "Sauvegarde rapide",
+                "accessibleLabel": "Sauvegarder la partie",
+                "kind": "system",
+                "command": "quick_save",
+                "parentKey": "system",
+                "order": 0,
+                "requiresTarget": false,
+                "tags": [
+                  "system"
+                ]
+              }
+            ],
+            "provenance": "migration-default"
+          },
+          "timeControl": {
+            "id": "745b60a2-99f9-5bfa-9c75-1abf814375f0",
+            "schemaVersion": 1,
+            "pauseEnabled": true,
+            "slowMotionEnabled": true,
+            "slowMotionScale": 0.2,
+            "planningEnabled": true,
+            "maximumPlannedActions": 8,
+            "turnModeEnabled": true,
+            "multiplayerPolicy": "hostOnly",
+            "requiredVoteFraction": 0.5,
+            "pausePermissions": [
+              "session.host",
+              "session.moderator"
+            ],
+            "provenance": "migration-default"
+          },
+          "combatModes": {
+            "id": "2dcbf638-5651-57c9-a908-adfcfc17653f",
+            "schemaVersion": 1,
+            "defaultProviderId": "realtime-pause",
+            "providers": [
+              {
+                "id": "c5cdb504-bf83-5d93-8c77-2ec284e649bd",
+                "providerId": "realtime",
+                "displayName": "Temps r\u00E9el",
+                "kind": "realTime",
+                "customProvider": "",
+                "eventContracts": [
+                  "combat.action.requested",
+                  "combat.action.resolved",
+                  "combat.ended",
+                  "combat.started"
+                ],
+                "serverAuthoritative": true
+              },
+              {
+                "id": "e17ae36b-6b9d-595a-a144-b7bb3905ac1a",
+                "providerId": "realtime-pause",
+                "displayName": "Temps r\u00E9el avec pause",
+                "kind": "realTimeWithPause",
+                "customProvider": "",
+                "eventContracts": [
+                  "combat.action.requested",
+                  "combat.action.resolved",
+                  "combat.ended",
+                  "combat.started"
+                ],
+                "serverAuthoritative": true
+              },
+              {
+                "id": "c1bac689-7d28-56eb-879a-153aa9cc8ec4",
+                "providerId": "turn-based",
+                "displayName": "Tour par tour",
+                "kind": "turnBased",
+                "customProvider": "",
+                "eventContracts": [
+                  "combat.action.requested",
+                  "combat.action.resolved",
+                  "combat.ended",
+                  "combat.started"
+                ],
+                "serverAuthoritative": true
+              }
+            ],
+            "provenance": "migration-default",
+            "defaultProvider": {
+              "id": "e17ae36b-6b9d-595a-a144-b7bb3905ac1a",
+              "providerId": "realtime-pause",
+              "displayName": "Temps r\u00E9el avec pause",
+              "kind": "realTimeWithPause",
+              "customProvider": "",
+              "eventContracts": [
+                "combat.action.requested",
+                "combat.action.resolved",
+                "combat.ended",
+                "combat.started"
+              ],
+              "serverAuthoritative": true
+            }
+          },
+          "foundation": {
+            "id": "bc926329-5a4f-5bc4-a2c9-03f0614b8163",
+            "schemaVersion": 1,
+            "provenance": "migration-default",
+            "groundedMovement": {
+              "id": "19ef2e55-4e16-56ef-b71c-a9f6677ddeb6",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "enabled": true,
+              "required": true,
+              "walkSpeed": 1.2,
+              "runSpeed": 2.64,
+              "acceleration": 11.52,
+              "deceleration": 14.4,
+              "maximumSlopeDegrees": 48,
+              "stepHeight": 0.45,
+              "jumpVelocity": 9,
+              "crouchSpeedMultiplier": 0.45,
+              "rootMotion": false,
+              "networkPrediction": true
+            },
+            "interaction": {
+              "id": "1ea2d314-3ccc-5ca3-9ee3-5d75c1e19bf9",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "enabled": true,
+              "required": true,
+              "inputAction": "interact",
+              "targeting": "viewCone",
+              "focusDistance": 3,
+              "viewAngleDegrees": 100,
+              "showPrompt": true,
+              "verbs": [
+                {
+                  "id": "2fb8cc06-ef65-5ef1-b634-561c401dccb7",
+                  "key": "interact",
+                  "label": "Interagir",
+                  "command": "interact",
+                  "holdSeconds": 0,
+                  "targetTags": [
+                    "creature",
+                    "door",
+                    "placeable",
+                    "item"
+                  ],
+                  "serverAuthoritative": true
+                },
+                {
+                  "id": "8f817c36-00f8-5a41-9e13-074e1f4d5e47",
+                  "key": "inspect",
+                  "label": "Examiner",
+                  "command": "inspect",
+                  "holdSeconds": 0.35,
+                  "targetTags": [
+                    "world"
+                  ],
+                  "serverAuthoritative": false
+                }
+              ]
+            },
+            "cameras": {
+              "id": "e55ddf54-4b97-5c5e-8a3f-5acc1dd82edd",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "required": true,
+              "defaultProfileKey": "orbit",
+              "profiles": [
+                {
+                  "id": "d69168c5-e6c1-56b4-b7ac-6fa4d4ef0756",
+                  "key": "isometric",
+                  "displayName": "Isom\u00E9trique",
+                  "mode": "isometric",
+                  "fieldOfViewDegrees": 52,
+                  "distance": 18,
+                  "minimumDistance": 1.5,
+                  "maximumDistance": 40,
+                  "pitchDegrees": 32,
+                  "focusOffset": {
+                    "x": 0,
+                    "y": 1.25,
+                    "z": 0
+                  },
+                  "collisionAvoidance": true,
+                  "alignCharacterFacing": false
+                },
+                {
+                  "id": "542fea57-c2ae-52ed-b683-abe4217ed0b3",
+                  "key": "orbit",
+                  "displayName": "Orbite",
+                  "mode": "orbit",
+                  "fieldOfViewDegrees": 60,
+                  "distance": 14,
+                  "minimumDistance": 1.5,
+                  "maximumDistance": 40,
+                  "pitchDegrees": 24,
+                  "focusOffset": {
+                    "x": 0,
+                    "y": 1.25,
+                    "z": 0
+                  },
+                  "collisionAvoidance": true,
+                  "alignCharacterFacing": true,
+                  "terrainClearance": 0.9,
+                  "terrainProbeSamples": 32,
+                  "initialYawDegrees": 5,
+                  "minimumPitchDegrees": -85,
+                  "maximumPitchDegrees": 85
+                },
+                {
+                  "id": "58046b1d-939b-5d7d-b381-c2bb797d0df7",
+                  "key": "shoulder",
+                  "displayName": "\u00C9paule",
+                  "mode": "shoulder",
+                  "fieldOfViewDegrees": 68,
+                  "distance": 4,
+                  "minimumDistance": 1.5,
+                  "maximumDistance": 40,
+                  "pitchDegrees": 12,
+                  "focusOffset": {
+                    "x": 0,
+                    "y": 1.25,
+                    "z": 0
+                  },
+                  "collisionAvoidance": true,
+                  "alignCharacterFacing": true
+                },
+                {
+                  "id": "9520a209-9afe-5b6a-b78e-dd82b6c88591",
+                  "key": "first-person",
+                  "displayName": "Premi\u00E8re personne",
+                  "mode": "firstPerson",
+                  "fieldOfViewDegrees": 75,
+                  "distance": 0,
+                  "minimumDistance": 0,
+                  "maximumDistance": 0.1,
+                  "pitchDegrees": 0,
+                  "focusOffset": {
+                    "x": 0,
+                    "y": 1.25,
+                    "z": 0
+                  },
+                  "collisionAvoidance": true,
+                  "alignCharacterFacing": true
+                },
+                {
+                  "id": "2ff2294b-f4ac-5351-871b-7aed6213476d",
+                  "key": "top-down",
+                  "displayName": "Vue du dessus",
+                  "mode": "topDown",
+                  "fieldOfViewDegrees": 50,
+                  "distance": 20,
+                  "minimumDistance": 1.5,
+                  "maximumDistance": 40,
+                  "pitchDegrees": 70,
+                  "focusOffset": {
+                    "x": 0,
+                    "y": 1.25,
+                    "z": 0
+                  },
+                  "collisionAvoidance": true,
+                  "alignCharacterFacing": false
+                },
+                {
+                  "id": "a0906247-7fe1-5a31-8f0e-7e43934cc41d",
+                  "key": "free",
+                  "displayName": "Libre",
+                  "mode": "free",
+                  "fieldOfViewDegrees": 65,
+                  "distance": 10,
+                  "minimumDistance": 1.5,
+                  "maximumDistance": 40,
+                  "pitchDegrees": 20,
+                  "focusOffset": {
+                    "x": 0,
+                    "y": 1.25,
+                    "z": 0
+                  },
+                  "collisionAvoidance": true,
+                  "alignCharacterFacing": false
+                },
+                {
+                  "id": "cfcd7085-697a-52d2-938f-d1406f66b9b7",
+                  "key": "vehicle",
+                  "displayName": "V\u00E9hicule",
+                  "mode": "vehicle",
+                  "fieldOfViewDegrees": 70,
+                  "distance": 9,
+                  "minimumDistance": 1.5,
+                  "maximumDistance": 40,
+                  "pitchDegrees": 18,
+                  "focusOffset": {
+                    "x": 0,
+                    "y": 1.25,
+                    "z": 0
+                  },
+                  "collisionAvoidance": true,
+                  "alignCharacterFacing": true
+                },
+                {
+                  "id": "c1c428e4-f93a-51b3-bb83-a38ff4aaf540",
+                  "key": "cinematic",
+                  "displayName": "Cin\u00E9matique",
+                  "mode": "cinematic",
+                  "fieldOfViewDegrees": 50,
+                  "distance": 8,
+                  "minimumDistance": 1.5,
+                  "maximumDistance": 40,
+                  "pitchDegrees": 15,
+                  "focusOffset": {
+                    "x": 0,
+                    "y": 1.25,
+                    "z": 0
+                  },
+                  "collisionAvoidance": true,
+                  "alignCharacterFacing": false
+                }
+              ]
+            },
+            "input": {
+              "id": "46ee53fc-1f81-5d9e-ae6c-ba11c127eba0",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "required": true,
+              "allowRebinding": true,
+              "perPlayerLocal": true,
+              "contexts": [
+                "exploration",
+                "dialogue",
+                "combat",
+                "system"
+              ],
+              "actions": [
+                {
+                  "id": "308fffb9-980c-5c0e-bb87-073df3528ff0",
+                  "key": "move_forward",
+                  "label": "Avancer",
+                  "context": "exploration",
+                  "accessibilityRequired": true
+                },
+                {
+                  "id": "0286bc35-d5ad-51e6-aa26-359a1d452605",
+                  "key": "move_back",
+                  "label": "Reculer",
+                  "context": "exploration",
+                  "accessibilityRequired": true
+                },
+                {
+                  "id": "ea81fe3b-93d2-5fb9-80a1-de23acb866fe",
+                  "key": "move_left",
+                  "label": "Aller \u00E0 gauche",
+                  "context": "exploration",
+                  "accessibilityRequired": true
+                },
+                {
+                  "id": "fca510f5-a553-5a38-9623-fafed8960942",
+                  "key": "move_right",
+                  "label": "Aller \u00E0 droite",
+                  "context": "exploration",
+                  "accessibilityRequired": true
+                },
+                {
+                  "id": "4bd04866-cdd8-5532-b5ce-83376f5aea0e",
+                  "key": "interact",
+                  "label": "Interagir",
+                  "context": "exploration",
+                  "accessibilityRequired": true
+                },
+                {
+                  "id": "a95c5a95-8644-52bf-9a74-0d9a47e39aae",
+                  "key": "jump",
+                  "label": "Sauter",
+                  "context": "exploration",
+                  "accessibilityRequired": true
+                },
+                {
+                  "id": "d1b132ac-cd41-5ba8-9ebe-dd00a5f364f8",
+                  "key": "quick_save",
+                  "label": "Sauvegarde rapide",
+                  "context": "system",
+                  "accessibilityRequired": true
+                },
+                {
+                  "id": "20d4b7d7-4750-57c8-a1a6-1fb78639ca3a",
+                  "key": "quick_load",
+                  "label": "Chargement rapide",
+                  "context": "system",
+                  "accessibilityRequired": true
+                },
+                {
+                  "id": "abc78174-3403-5967-ad42-974482ecb562",
+                  "key": "camera_left",
+                  "label": "Tourner la cam\u00E9ra \u00E0 gauche",
+                  "context": "exploration",
+                  "accessibilityRequired": false
+                },
+                {
+                  "id": "d0507604-aca1-5c85-bdf7-784e7b59cc50",
+                  "key": "camera_right",
+                  "label": "Tourner la cam\u00E9ra \u00E0 droite",
+                  "context": "exploration",
+                  "accessibilityRequired": false
+                }
+              ],
+              "bindings": [
+                {
+                  "id": "5b246f1b-49e0-5f85-85b0-1677d83e6a5e",
+                  "actionKey": "move_forward",
+                  "device": "keyboardMouse",
+                  "binding": "W",
+                  "glyph": "key-w",
+                  "primary": true
+                },
+                {
+                  "id": "529fb3b6-2a3f-5c7c-8e2f-c9538e157d16",
+                  "actionKey": "move_back",
+                  "device": "keyboardMouse",
+                  "binding": "S",
+                  "glyph": "key-s",
+                  "primary": true
+                },
+                {
+                  "id": "a54a0322-a4aa-54bf-8e3a-971d24e60ec1",
+                  "actionKey": "move_left",
+                  "device": "keyboardMouse",
+                  "binding": "A",
+                  "glyph": "key-a",
+                  "primary": true
+                },
+                {
+                  "id": "4cc9c853-d252-53fc-a72b-78b35ad65b2b",
+                  "actionKey": "move_right",
+                  "device": "keyboardMouse",
+                  "binding": "D",
+                  "glyph": "key-d",
+                  "primary": true
+                },
+                {
+                  "id": "504b948c-823f-5d9a-8c58-326210bdf737",
+                  "actionKey": "interact",
+                  "device": "keyboardMouse",
+                  "binding": "E",
+                  "glyph": "key-e",
+                  "primary": true
+                },
+                {
+                  "id": "80500e48-6eef-53a4-a358-b526cbc14ac2",
+                  "actionKey": "interact",
+                  "device": "gamepad",
+                  "binding": "A",
+                  "glyph": "pad-a",
+                  "primary": true
+                },
+                {
+                  "id": "3b43190d-72b0-5079-9d2c-c3021962d5a6",
+                  "actionKey": "jump",
+                  "device": "keyboardMouse",
+                  "binding": "Space",
+                  "glyph": "key-space",
+                  "primary": true
+                },
+                {
+                  "id": "365f0442-0917-5af4-9861-957d00c829f3",
+                  "actionKey": "jump",
+                  "device": "gamepad",
+                  "binding": "B",
+                  "glyph": "pad-b",
+                  "primary": true
+                },
+                {
+                  "id": "8261007e-6da9-55eb-8656-57b88236a6e7",
+                  "actionKey": "quick_save",
+                  "device": "keyboardMouse",
+                  "binding": "F5",
+                  "glyph": "key-f5",
+                  "primary": true
+                },
+                {
+                  "id": "22b5ad4d-cfdc-5552-8083-047a6ac67c39",
+                  "actionKey": "quick_load",
+                  "device": "keyboardMouse",
+                  "binding": "F9",
+                  "glyph": "key-f9",
+                  "primary": true
+                },
+                {
+                  "id": "ac8186df-db30-5f70-8a14-14a2444616ea",
+                  "actionKey": "camera_left",
+                  "device": "keyboardMouse",
+                  "binding": "Home",
+                  "glyph": "key-home",
+                  "primary": true
+                },
+                {
+                  "id": "6b40fb35-3fed-5c4f-b3a3-0f3f0dde70fc",
+                  "actionKey": "camera_right",
+                  "device": "keyboardMouse",
+                  "binding": "End",
+                  "glyph": "key-end",
+                  "primary": true
+                }
+              ]
+            },
+            "save": {
+              "id": "bb30147c-8d81-5eb3-bb39-332511955281",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "required": true,
+              "chunkBytes": 65536,
+              "autosaveIntervalSeconds": 60,
+              "rollbackSlots": 3,
+              "checksumAlgorithm": "SHA-256",
+              "allowMigrations": true,
+              "requireModuleDependencies": true
+            }
+          },
+          "simulation": {
+            "id": "4e383dcb-ae67-5450-a5f2-48fe33d3d315",
+            "schemaVersion": 1,
+            "provenance": "migration-default:r066",
+            "enabled": true,
+            "requiredAtRuntime": false,
+            "flight": {
+              "id": "83a0ade6-0734-59d4-bfd2-976cd401dab3",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r066",
+              "enabled": true,
+              "required": false,
+              "maximumSpeed": 12,
+              "acceleration": 18,
+              "maximumAltitude": 80,
+              "bankingDegrees": 35,
+              "lift": 2,
+              "requiresLandingSurface": true,
+              "volumetricNavigation": true,
+              "landingProbeDistance": 1.5,
+              "inputContext": "flight"
+            },
+            "projectiles": {
+              "id": "af50b1a5-24a6-5c2e-87d2-873d7e6a8ad2",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r066",
+              "enabled": true,
+              "required": false,
+              "mode": "ballistic",
+              "speed": 24,
+              "gravity": 9.81,
+              "lifetimeSeconds": 8,
+              "homingStrength": 10,
+              "collisionRadius": 0.2,
+              "serverAuthoritative": true,
+              "prediction": true,
+              "vfxAssetId": "vfx:projectile-trail",
+              "impactVfxAssetId": "vfx:projectile-impact",
+              "collisionMask": "world,creature,placeable",
+              "serverRevision": 0,
+              "auditTag": "gameplay.projectile"
+            },
+            "physics": {
+              "id": "b85893dc-1f02-5524-925a-c1016bafdc17",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r066",
+              "enabled": true,
+              "required": false,
+              "fixedStepSeconds": 0.016666668,
+              "bodies": [
+                {
+                  "id": "742f2a18-8f7b-53af-a124-fdac1f6359b6",
+                  "schemaVersion": 1,
+                  "provenance": "migration-default:r066",
+                  "name": "Caisse dynamique",
+                  "mode": "rigid",
+                  "mass": 12,
+                  "linearDamping": 0.1,
+                  "gravityScale": 1,
+                  "isTrigger": false,
+                  "interactsWithCharacters": true,
+                  "boundaryMinimum": {
+                    "x": -20,
+                    "y": -4,
+                    "z": -20
+                  },
+                  "boundaryMaximum": {
+                    "x": 20,
+                    "y": 40,
+                    "z": 20
+                  },
+                  "networkPolicy": "server",
+                  "requiredAtRuntime": true
+                },
+                {
+                  "id": "ede62492-efa3-549b-9f1d-23aaa94cd7f2",
+                  "schemaVersion": 1,
+                  "provenance": "migration-default:r066",
+                  "name": "Ancre statique",
+                  "mode": "static",
+                  "mass": 1,
+                  "linearDamping": 0,
+                  "gravityScale": 0,
+                  "isTrigger": false,
+                  "interactsWithCharacters": false,
+                  "boundaryMinimum": {
+                    "x": -20,
+                    "y": -4,
+                    "z": -20
+                  },
+                  "boundaryMaximum": {
+                    "x": 20,
+                    "y": 40,
+                    "z": 20
+                  },
+                  "networkPolicy": "server",
+                  "requiredAtRuntime": false
+                }
+              ],
+              "joints": [
+                {
+                  "id": "0dcc77eb-ae16-5690-a0cf-3704d117eabc",
+                  "schemaVersion": 1,
+                  "provenance": "migration-default:r066",
+                  "name": "Liaison de d\u00E9monstration",
+                  "mode": "hinge",
+                  "bodyAId": "742f2a18-8f7b-53af-a124-fdac1f6359b6",
+                  "bodyBId": "ede62492-efa3-549b-9f1d-23aaa94cd7f2",
+                  "breakForce": 250,
+                  "collisionExcluded": true
+                }
+              ]
+            },
+            "targeting": {
+              "id": "078d32ad-93b1-5ae9-a0c6-e3926cddebbc",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r066",
+              "enabled": true,
+              "required": false,
+              "mode": "cone",
+              "maximumRange": 18,
+              "radius": 4,
+              "angleDegrees": 65,
+              "maximumTargets": 6,
+              "requiresLineOfSight": true,
+              "inputAction": "target",
+              "previewColor": "#55d6be",
+              "requiredTags": [
+                "targetable"
+              ],
+              "blockedTags": [
+                "dead",
+                "hidden"
+              ]
+            },
+            "worldTime": {
+              "id": "11649e88-5836-551f-ac44-a4b3f464c494",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r066",
+              "enabled": true,
+              "required": false,
+              "calendar": {
+                "daysPerMonth": 28,
+                "monthsPerYear": 12,
+                "hoursPerDay": 24,
+                "minutesPerHour": 60
+              },
+              "initialClock": {
+                "totalMinutes": 0,
+                "timeScale": 1,
+                "paused": false,
+                "pauseDomain": "gameplay",
+                "revision": 0
+              },
+              "localTimeScales": {},
+              "pauseDomains": [
+                "gameplay",
+                "cinematic",
+                "world"
+              ],
+              "schedules": [
+                {
+                  "id": "537221b6-d779-5995-a33f-1c45877cb65b",
+                  "schemaVersion": 1,
+                  "provenance": "migration-default:r066",
+                  "key": "dawn-bell",
+                  "minuteOfDay": 360,
+                  "daysOfMonth": [
+                    1,
+                    2,
+                    3,
+                    4,
+                    5,
+                    6,
+                    7
+                  ],
+                  "eventName": "world.dawn",
+                  "pauseDomain": "world",
+                  "serverAuthoritative": true
+                }
+              ]
+            }
+          },
+          "session": {
+            "id": "0308d244-f7ac-52c0-8631-b361e74f33b4",
+            "schemaVersion": 1,
+            "provenance": "migration-default:r067",
+            "enabled": true,
+            "requiredAtRuntime": false,
+            "persistence": {
+              "id": "202f2d79-2689-5f49-91e9-785237118b54",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r067",
+              "scope": "game",
+              "authority": "host",
+              "conflictPolicy": "latestRevisionWins",
+              "cloudAdapterEnabled": false,
+              "containsPersonalData": true,
+              "enabled": true,
+              "requiredAtRuntime": false,
+              "cloudAdapter": "none",
+              "privacyClassification": "personal",
+              "encryptAtRest": true,
+              "maximumSnapshots": 8
+            },
+            "checkpoints": [
+              {
+                "id": "feaa3d3d-5384-5009-8b3c-a040eab441b6",
+                "schemaVersion": 1,
+                "provenance": "migration-default:r067",
+                "waypointId": "waypoint:start",
+                "currencyCost": 0,
+                "partyPolicy": "entireParty",
+                "corpsePolicy": "transferInventory",
+                "safeRadius": 3,
+                "enabled": true,
+                "requiredAtRuntime": false,
+                "respawnDelaySeconds": 3,
+                "requireSafeSpawn": true,
+                "beforeRespawnEvent": "player.respawn.before",
+                "afterRespawnEvent": "player.respawn.after"
+              }
+            ],
+            "shell": {
+              "id": "5d0213e5-342d-5ec8-8efb-911e5d09b032",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r067",
+              "skinId": "forge-aurora-dark",
+              "scale": 1,
+              "mapVisible": true,
+              "journalVisible": true,
+              "hudVisible": true,
+              "inputActions": [
+                "map",
+                "journal",
+                "inventory",
+                "character",
+                "pause"
+              ],
+              "enabled": true,
+              "requiredAtRuntime": false,
+              "kitId": "core-rpg",
+              "inputAgnostic": true,
+              "scalable": true,
+              "layoutDocument": "ui/runtime-shell.json"
+            },
+            "controlLocks": {
+              "id": "7cd6206d-7794-5784-8187-498119796ed7",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r067",
+              "enabled": true,
+              "requiredAtRuntime": false,
+              "contexts": [
+                {
+                  "id": "70212c5e-23bd-5dc6-a953-5cd7a10fc7a6",
+                  "schemaVersion": 1,
+                  "provenance": "migration-default:r067",
+                  "ownerId": "exploration",
+                  "cursorVisible": false,
+                  "cameraMode": "orbit",
+                  "allowedInputActions": [
+                    "move",
+                    "interact",
+                    "map",
+                    "journal"
+                  ],
+                  "restoreOnRelease": true,
+                  "priority": 0
+                },
+                {
+                  "id": "461a61b1-bf3b-5eed-8c16-6037e053cd2d",
+                  "schemaVersion": 1,
+                  "provenance": "migration-default:r067",
+                  "ownerId": "dialogue",
+                  "cursorVisible": true,
+                  "cameraMode": "dialogue",
+                  "allowedInputActions": [
+                    "dialogue.select",
+                    "dialogue.skip"
+                  ],
+                  "restoreOnRelease": true,
+                  "priority": 50
+                },
+                {
+                  "id": "dfb191d5-ba6f-5264-9f32-b670378de2eb",
+                  "schemaVersion": 1,
+                  "provenance": "migration-default:r067",
+                  "ownerId": "cinematic",
+                  "cursorVisible": false,
+                  "cameraMode": "cinematic",
+                  "allowedInputActions": [
+                    "cinematic.skip"
+                  ],
+                  "restoreOnRelease": true,
+                  "priority": 100
+                }
+              ]
+            },
+            "replay": {
+              "id": "47fe6a15-0fd8-5923-8fe8-8bbcd1e0aed1",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r067",
+              "enabled": true,
+              "requiredAtRuntime": false,
+              "recordInputs": true,
+              "recordEvents": true,
+              "recordSeeds": true,
+              "recordStateHashes": true,
+              "headlessReplay": true,
+              "emitDivergenceReport": true,
+              "emitMinimalPackage": true,
+              "maximumFrames": 100000,
+              "packageDirectory": ".artifacts/replays",
+              "includePersonalData": false
+            }
+          },
+          "provenance": "migration-default"
+        },
+        "rules": {
+          "id": "07f225dd-2d1b-4f5e-aa20-ebf16f1941c3",
+          "schemaVersion": 1,
+          "progression": {
+            "id": "8cd39e6e-4189-5d4a-8966-a4cb0118675e",
+            "schemaVersion": 1,
+            "rulesetId": "forge.generic",
+            "curve": [
+              {
+                "level": 1,
+                "requiredExperience": 0
+              },
+              {
+                "level": 2,
+                "requiredExperience": 100
+              },
+              {
+                "level": 3,
+                "requiredExperience": 300
+              },
+              {
+                "level": 4,
+                "requiredExperience": 700
+              },
+              {
+                "level": 5,
+                "requiredExperience": 1500
+              }
+            ],
+            "groupMultiplier": 1,
+            "difficultyMultiplier": 1,
+            "sourceMultipliers": {
+              "combat": 1,
+              "exploration": 0.75,
+              "quest": 1.25
+            },
+            "shareWithParty": true,
+            "provenance": "migration-default"
+          },
+          "difficulties": [
+            {
+              "id": "adee6763-1601-55ad-8175-b9acd6ec7914",
+              "schemaVersion": 1,
+              "key": "standard",
+              "displayName": "Standard",
+              "playerDamageMultiplier": 1,
+              "incomingDamageMultiplier": 1,
+              "aiIntensityMultiplier": 1,
+              "economyMultiplier": 1,
+              "restRecoveryMultiplier": 1,
+              "saveRestrictions": "unrestricted",
+              "friendlyFire": "disabled",
+              "accessibility": {
+                "pauseAssist": true,
+                "telegraphAssist": true,
+                "timingWindowMultiplier": 1,
+                "perceptionCueMultiplier": 1
+              },
+              "provenance": "migration-default"
+            }
+          ],
+          "activeDifficultyKey": "standard",
+          "mutators": {
+            "id": "fa7c94d6-563f-5ddb-97c0-72abc11da02f",
+            "schemaVersion": 1,
+            "mutators": [
+              {
+                "id": "58b411da-a02c-54fc-8511-ed4419248816",
+                "key": "scarce-resources",
+                "displayName": "Ressources rares",
+                "enabled": false,
+                "scalarOverrides": {
+                  "economy": 0.7,
+                  "restRecovery": 0.6
+                },
+                "tags": [
+                  "survival"
+                ]
+              },
+              {
+                "id": "9ddffb68-6330-5497-a39f-bf676029e53a",
+                "key": "story-support",
+                "displayName": "Soutien narratif",
+                "enabled": false,
+                "scalarOverrides": {
+                  "incomingDamage": 0.65,
+                  "progression": 1.25
+                },
+                "tags": [
+                  "accessibility",
+                  "story"
+                ]
+              }
+            ],
+            "provenance": "migration-default"
+          },
+          "plugins": {
+            "id": "6113a35d-2cd0-cc83-2c60-264c008ffe5f",
+            "schemaVersion": 1,
+            "enabled": true,
+            "requiredAtRuntime": true,
+            "activePackageKey": "forge.generic",
+            "packages": [
+              {
+                "id": "abd3ce16-348e-6967-b5c1-3f90f9514258",
+                "schemaVersion": 1,
+                "key": "forge.generic",
+                "version": "1.0.0",
+                "contentPackageId": "content.core",
+                "attributes": [
+                  "ability",
+                  "armor_class",
+                  "health",
+                  "level"
+                ],
+                "effects": [
+                  "damage",
+                  "healing",
+                  "status"
+                ],
+                "abilities": [
+                  "attack",
+                  "interact",
+                  "use_item"
+                ],
+                "inventories": [
+                  "equipment",
+                  "inventory"
+                ],
+                "progressionTracks": [
+                  "character_level"
+                ],
+                "uiPanels": [
+                  "character_sheet",
+                  "inventory",
+                  "progression"
+                ],
+                "provenance": "migration-default"
+              }
+            ],
+            "provenance": "migration-default"
+          },
+          "provenance": "migration-default"
+        },
+        "extensions": {
+          "id": "07f225dd-2d1b-4f5e-aa20-ebf16f1941c3",
+          "schemaVersion": 1,
+          "ruleSchemas": [],
+          "uiDocuments": [],
+          "jsonDocuments": [],
+          "snapshotPolicy": {
+            "id": "60f50244-fae4-5230-ace9-3d865e11e64c",
+            "schemaVersion": 1,
+            "components": [
+              "blackboard",
+              "combat",
+              "inventory",
+              "transform"
+            ],
+            "maxReferences": 256,
+            "maxInventoryItems": 512,
+            "maxBlackboardBytes": 65536,
+            "restoreReferences": true,
+            "provenance": "migration-default"
+          },
+          "modernTooling": {
+            "id": "95c5cbbe-1d8b-53e8-8b78-5d3d80f5379c",
+            "schemaVersion": 1,
+            "runtimeCopy": {
+              "id": "32ee1a46-9179-50d1-ab42-89b6c4711f7c",
+              "schemaVersion": 1,
+              "maxCopiesPerTransaction": 32,
+              "requireServerAuthority": true,
+              "copyOwnership": true,
+              "referenceMode": "remapInternal",
+              "stateComponents": [
+                "blackboard",
+                "combat",
+                "inventory",
+                "transform"
+              ],
+              "provenance": "migration-default"
+            },
+            "areaEffectIndicator": {
+              "id": "4037b8da-2a68-537f-b163-9a35badd52dd",
+              "schemaVersion": 1,
+              "shapes": [
+                "circle",
+                "cone",
+                "rectangle",
+                "line"
+              ],
+              "maxRange": 60,
+              "maxHeightDelta": 12,
+              "evaluateCover": true,
+              "requireServerConfirmation": true,
+              "colorMode": "deuteranopia",
+              "validColor": "4dd6a8a0",
+              "invalidColor": "ff8a5ba0",
+              "provenance": "migration-default"
+            },
+            "uiToolkit": {
+              "id": "8cc9b23f-a773-56e6-8ff9-c584c9f8564a",
+              "schemaVersion": 1,
+              "toolkitVersion": "2.0",
+              "responsiveLayout": true,
+              "forms": true,
+              "lists": true,
+              "canvas": true,
+              "accessibility": true,
+              "localization": true,
+              "developerInspector": true,
+              "provenance": "migration-default"
+            },
+            "compiler": {
+              "id": "5c24988c-3364-5fba-89b6-9cc5d1af1188",
+              "schemaVersion": 1,
+              "incremental": true,
+              "stableDiagnostics": true,
+              "performanceTelemetry": true,
+              "maxParallelism": 4,
+              "maxSourceBytes": 524288,
+              "conformanceSuites": [
+                "diagnostics",
+                "incremental",
+                "sandbox",
+                "syntax"
+              ],
+              "provenance": "migration-default"
+            },
+            "documentation": {
+              "id": "86b73ae0-a797-55b3-8fe7-a20b258f1388",
+              "schemaVersion": 1,
+              "outputDirectory": "docs/generated",
+              "catalogs": [
+                "cli",
+                "coverage",
+                "features",
+                "forgescript-api",
+                "packages",
+                "schemas"
+              ],
+              "includeMcpResources": true,
+              "provenance": "migration-default"
+            },
+            "qualityAssurance": {
+              "id": "97976b17-179c-5fd3-bf6f-9df8da0cc94e",
+              "schemaVersion": 1,
+              "network": {
+                "id": "dc21fb6a-5f89-5b9f-a17e-6202e9891129",
+                "schemaVersion": 1,
+                "clientCount": 3,
+                "latencyTicks": [
+                  0,
+                  3,
+                  8
+                ],
+                "lossPercentages": [
+                  0,
+                  10,
+                  25
+                ],
+                "testReconnect": true,
+                "testContentMismatch": true,
+                "testAuthorityAttacks": true,
+                "provenance": "migration-default"
+              },
+              "visual": {
+                "id": "4c3487a6-2645-5308-9247-02b4b807d4f2",
+                "schemaVersion": 1,
+                "resolutions": [
+                  "1280x720",
+                  "1600x900"
+                ],
+                "cameraFixtures": [
+                  "overview",
+                  "three-quarter"
+                ],
+                "qualityTiers": [
+                  "medium",
+                  "high"
+                ],
+                "pixelTolerance": 0.02,
+                "reviewDirectory": ".forge/quality/visual-reviews",
+                "provenance": "migration-default"
+              },
+              "benchmarks": {
+                "id": "d4b6b411-a262-584a-a0e3-089606d45a45",
+                "schemaVersion": 1,
+                "scenarios": [
+                  "interior",
+                  "exterior",
+                  "stress"
+                ],
+                "iterations": 3,
+                "sampleFrames": 600,
+                "provenance": "migration-default"
+              },
+              "platformBudgets": [
+                {
+                  "id": "d199d755-2670-535e-9a38-004f64d92d5a",
+                  "schemaVersion": 1,
+                  "platform": "dedicated-server",
+                  "maximumFrameMilliseconds": 50,
+                  "maximumMemoryMegabytes": 2048,
+                  "maximumTextureMegabytes": 64,
+                  "maximumDrawCalls": 100,
+                  "maximumDynamicLights": 0,
+                  "maximumScriptMilliseconds": 8,
+                  "maximumNetworkKilobitsPerSecond": 16384,
+                  "warningThreshold": 0.8,
+                  "gateBuild": true,
+                  "provenance": "migration-default"
+                },
+                {
+                  "id": "083407ab-0632-52c9-affa-f57f2b3e590c",
+                  "schemaVersion": 1,
+                  "platform": "desktop",
+                  "maximumFrameMilliseconds": 40,
+                  "maximumMemoryMegabytes": 4096,
+                  "maximumTextureMegabytes": 3072,
+                  "maximumDrawCalls": 24000,
+                  "maximumDynamicLights": 32,
+                  "maximumScriptMilliseconds": 4,
+                  "maximumNetworkKilobitsPerSecond": 6144,
+                  "warningThreshold": 0.8,
+                  "gateBuild": true,
+                  "provenance": "author:solaren:high-density-valley-budget-v1"
+                },
+                {
+                  "id": "735c6085-bf11-55c8-b170-8c6c7374e4ff",
+                  "schemaVersion": 1,
+                  "platform": "mobile",
+                  "maximumFrameMilliseconds": 33.33,
+                  "maximumMemoryMegabytes": 1536,
+                  "maximumTextureMegabytes": 768,
+                  "maximumDrawCalls": 4000,
+                  "maximumDynamicLights": 8,
+                  "maximumScriptMilliseconds": 3,
+                  "maximumNetworkKilobitsPerSecond": 2048,
+                  "warningThreshold": 0.75,
+                  "gateBuild": false,
+                  "provenance": "migration-default"
+                }
+              ],
+              "profiler": {
+                "id": "5874d1cb-a291-5655-a0f1-62b1a9304757",
+                "schemaVersion": 1,
+                "surfaces": [
+                  "editor",
+                  "runtime",
+                  "server"
+                ],
+                "maximumCaptureSeconds": 60,
+                "includeScriptSpans": true,
+                "includeDatabaseSpans": true,
+                "includeNetworkSpans": true,
+                "oneClickCapture": true,
+                "outputDirectory": ".forge/quality/traces",
+                "provenance": "migration-default"
+              },
+              "accessibility": {
+                "id": "f378f580-cb81-559c-ab8c-50b7bfb3b4d7",
+                "schemaVersion": 1,
+                "editorKeyboardOnly": true,
+                "editorScreenReaderLabels": true,
+                "editorColorIndependentStatus": true,
+                "editorShortcutReference": true,
+                "minimumContrastRatio": 4.5,
+                "editorTextScale": 1.25,
+                "runtimeSubtitles": true,
+                "runtimeCaptions": true,
+                "runtimeTextScale": 1.2,
+                "runtimeHighContrast": true,
+                "runtimeColorVisionMode": "deuteranopia",
+                "runtimeInputAssists": true,
+                "runtimeReducedMotion": false,
+                "runtimeDifficultyAssists": true,
+                "provenance": "migration-default"
+              },
+              "securityFuzz": {
+                "id": "60f66433-34e6-5107-8e20-04f924401b26",
+                "schemaVersion": 1,
+                "seed": 2026,
+                "casesPerBoundary": 16,
+                "maximumInputBytes": 65536,
+                "timeBudgetMilliseconds": 10000,
+                "boundaries": [
+                  "forgescript",
+                  "image-header",
+                  "model-header",
+                  "network-json",
+                  "package-archive",
+                  "path-sandbox",
+                  "project-json"
+                ],
+                "requireNoCrash": true,
+                "requireNoPathEscape": true,
+                "provenance": "migration-default"
+              },
+              "clickableDiagnostics": {
+                "id": "c95bec85-02cd-5216-8174-e7b55ae44871",
+                "schemaVersion": 1,
+                "activeProfile": "authoring",
+                "categories": [
+                  "geometry",
+                  "graph",
+                  "license",
+                  "navigation",
+                  "reference",
+                  "runtime",
+                  "schema"
+                ],
+                "severities": [
+                  "error",
+                  "info",
+                  "warning"
+                ],
+                "enableQuickFixes": true,
+                "provenance": "migration-default"
+              },
+              "maliciousFixtures": {
+                "id": "ece0aa98-d5dd-52c0-ac17-df0f43ef9f08",
+                "schemaVersion": 1,
+                "catalogPath": "tests/fixtures/qa/malicious-modules.json",
+                "families": [
+                  "bad-reference",
+                  "huge-array",
+                  "infinite-script",
+                  "injection-text",
+                  "invalid-asset",
+                  "path-traversal",
+                  "zip-bomb"
+                ],
+                "maximumArrayEntries": 65536,
+                "rejectInjectionText": true,
+                "rejectInvalidAssets": true,
+                "provenance": "migration-default"
+              },
+              "auroraParityCoverage": {
+                "id": "c7070aa4-31c2-5497-bf1f-ff42853fc8e0",
+                "schemaVersion": 1,
+                "trackerPath": "tracking/project/AURORA_PARITY_COVERAGE.csv",
+                "allowedStatuses": [
+                  "Deferred",
+                  "Designed",
+                  "Implemented",
+                  "NotStarted",
+                  "Rejected",
+                  "Researched",
+                  "Tested"
+                ],
+                "expectedFeatureCount": 717,
+                "requireEvidenceForTested": true,
+                "provenance": "migration-default"
+              },
+              "acceptanceGates": {
+                "id": "082b76b6-85ba-5f95-aa62-cb5b24e75f12",
+                "schemaVersion": 1,
+                "gateMatrixPath": "tracking/project/AURORA_GATE_MATRIX.csv",
+                "requiredGates": [
+                  "G0",
+                  "G1",
+                  "G2",
+                  "G3",
+                  "G4",
+                  "G5",
+                  "G6",
+                  "G7",
+                  "G8",
+                  "G9",
+                  "G10",
+                  "G11",
+                  "G12",
+                  "G13"
+                ],
+                "requireLinkedTests": true,
+                "requireLinkedDocumentation": true,
+                "requireFeatureEvidence": true,
+                "provenance": "migration-default"
+              },
+              "provenance": "author:solaren:high-density-valley-budget-v1"
+            },
+            "provenance": "author:solaren:high-density-valley-budget-v1"
+          },
+          "operationalReadiness": {
+            "id": "8c7e363e-2260-5b03-8bfa-7377ef699ee2",
+            "schemaVersion": 1,
+            "taskManifests": [
+              {
+                "id": "8ce267d4-f83a-508a-bea2-1ee80a35ca5f",
+                "schemaVersion": 1,
+                "key": "validate-module",
+                "goal": "Validate the module without changing canonical source files.",
+                "scopePaths": [
+                  "areas",
+                  "project.json"
+                ],
+                "forbiddenPaths": [
+                  "Divers/OpenRPG_Forge_Aurora_Feature_Dossier"
+                ],
+                "acceptanceTests": [
+                  "forge docs check",
+                  "forge package validate"
+                ],
+                "owner": "project-maintainers",
+                "dependencies": [],
+                "provenance": "migration-default"
+              }
+            ],
+            "crashArtifacts": {
+              "id": "7d354f7e-cf1e-5530-b4b9-548ccd993e61",
+              "schemaVersion": 1,
+              "captureSanitizedLogs": true,
+              "dumpAdapter": "managed",
+              "maxLogLines": 2000,
+              "maxArtifactBytes": 33554432,
+              "includeVersion": true,
+              "includePackageFingerprint": true,
+              "includeReproductionId": true,
+              "sensitiveKeys": [
+                "authorization",
+                "cookie",
+                "password",
+                "secret",
+                "token"
+              ],
+              "provenance": "migration-default"
+            },
+            "projectHealth": {
+              "id": "9ddfa671-f8ee-5650-a9c9-f9e58c262e49",
+              "schemaVersion": 1,
+              "domains": [
+                "assets",
+                "build",
+                "content",
+                "migrations",
+                "performance",
+                "tests"
+              ],
+              "includeTestStatus": true,
+              "includePerformance": true,
+              "includeLicenses": true,
+              "includeMigrations": true,
+              "includeCoverage": true,
+              "failBuildWhenUnhealthy": true,
+              "provenance": "migration-default"
+            },
+            "recovery": {
+              "id": "f78d17c8-1243-5e7c-9c58-77cea58f0759",
+              "schemaVersion": 1,
+              "autosaveIntervalSeconds": 60,
+              "retainedSnapshots": 12,
+              "offerRecoveryOnOpen": true,
+              "quarantineCorruptFiles": true,
+              "compareBeforeRestore": true,
+              "provenance": "migration-default"
+            },
+            "contentSynchronization": {
+              "id": "04851ca2-1d05-5e16-8d1c-ca099b7eff2a",
+              "schemaVersion": 1,
+              "resumable": true,
+              "deduplicateByHash": true,
+              "verifyContent": true,
+              "requireTrustedSigner": false,
+              "storageDirectory": ".forge/content-cache",
+              "maximumCacheBytes": 10737418240,
+              "allowedLicenses": [
+                "CC0-1.0"
+              ],
+              "trustedSignerFingerprints": [],
+              "provenance": "migration-default"
+            },
+            "provenance": "migration-default"
+          },
+          "postLaunch": {
+            "id": "079ae946-f38c-5652-8132-1daed898ef2b",
+            "schemaVersion": 1,
+            "gameplay": {
+              "id": "3a4b8d0f-340d-51be-8657-253c3ac72ce9",
+              "schemaVersion": 1,
+              "zeroGravity": {
+                "id": "1e2e2861-d38e-56ab-ab9c-4c2d2627a182",
+                "enabled": false,
+                "thrusterAcceleration": 12,
+                "maximumSpeed": 24,
+                "linearDrag": 0.15,
+                "orientationAssist": true,
+                "preserveMomentum": true
+              },
+              "vehicles": {
+                "id": "141e143b-5bd0-5a34-8aa7-f7a8dfddd64c",
+                "enabled": false,
+                "maximumSeats": 4,
+                "motionMode": "kinematic",
+                "maximumIntegrity": 1000,
+                "allowPossession": true,
+                "replicateAuthoritatively": true
+              },
+              "mounts": {
+                "id": "470dc76e-ef14-5961-884f-18597b2aa22d",
+                "enabled": false,
+                "allowCombat": false,
+                "allowInventory": true,
+                "persistRiderState": true,
+                "dismountPolicy": "safe-ground"
+              },
+              "achievements": [],
+              "curatedPacks": {
+                "id": "15976e11-d71f-50e3-9b0d-c8265109dcfc",
+                "channel": "stable",
+                "compatibility": "1.x",
+                "allowedLicenses": [
+                  "CC0-1.0"
+                ],
+                "requireTrustedSignature": true,
+                "allowOfflineFallback": true
+              },
+              "provenance": "migration-default"
+            },
+            "liveDirector": {
+              "id": "822443f9-1e15-5c35-94b4-671ddaedfa58",
+              "schemaVersion": 1,
+              "forcedRest": {
+                "id": "934cfaeb-16b4-5433-8214-ccea3527f351",
+                "enabled": false,
+                "allowRulesOverride": false,
+                "emitCompletedEvent": true,
+                "maximumTargets": 32
+              },
+              "levelAdjustment": {
+                "id": "b84ce818-f604-5fc4-a553-03fef3dee338",
+                "enabled": false,
+                "maximumDelta": 5,
+                "requireRebuild": true,
+                "requireRollbackSnapshot": true
+              },
+              "savedGroups": [],
+              "appearanceOverrides": {
+                "id": "368f8ade-fa1e-5b1c-9cf8-89286b7c67df",
+                "enabled": false,
+                "minimumScale": 0.5,
+                "maximumScale": 2,
+                "maximumDurationSeconds": 3600,
+                "validateAssets": true
+              },
+              "sessionRecording": {
+                "id": "102e3b06-35bc-59c0-9c42-f514174a15aa",
+                "enabled": false,
+                "recordCommands": true,
+                "recordEvents": true,
+                "allowBookmarks": true,
+                "redactPrivateData": true,
+                "exportFormat": "orp-replay",
+                "maximumMinutes": 240
+              },
+              "provenance": "migration-default"
+            },
+            "network": {
+              "id": "35102383-9082-55c3-b824-8635a82d8f1f",
+              "schemaVersion": 1,
+              "voice": {
+                "id": "67490ab3-59fa-5a55-b309-dcfea78e141e",
+                "enabled": false,
+                "codec": "opus",
+                "maximumBitrateKbps": 64,
+                "positional": true,
+                "pushToTalk": true,
+                "moderationEnabled": true
+              },
+              "shards": [],
+              "hotReload": {
+                "id": "48554c30-2039-5c2d-a05a-1b50a4d4a92c",
+                "enabled": false,
+                "atomicSwap": true,
+                "requireRollback": true,
+                "maximumPackageMegabytes": 512,
+                "drainTimeoutSeconds": 60
+              },
+              "serverExtensions": {
+                "id": "47c8e15e-e8b3-5e85-91c2-536f7dfc80eb",
+                "enabled": false,
+                "requireSignature": true,
+                "isolateProcesses": true,
+                "allowedCapabilities": [],
+                "cpuBudgetMilliseconds": 50
+              },
+              "protocol": {
+                "id": "83a00aee-effa-5552-bf00-0956ad9cd9a2",
+                "protocolFamily": "openrpg-net",
+                "minimumVersion": 1,
+                "maximumVersion": 1,
+                "platforms": [
+                  "linux",
+                  "macos",
+                  "windows"
+                ],
+                "rejectUnknownFields": true
+              },
+              "provenance": "migration-default"
+            },
+            "creatorExperience": {
+              "id": "187d2d27-f525-5320-8c7f-b5aec394d597",
+              "schemaVersion": 1,
+              "water": {
+                "id": "244c9d7e-2587-5e99-9fb6-df73c6800c5d",
+                "refraction": true,
+                "screenSpaceReflections": true,
+                "depthColor": true,
+                "fallbackQuality": "medium"
+              },
+              "deviceQueries": {
+                "id": "e4dc7805-e5ef-5ac4-93df-f75c9923f4bd",
+                "enabled": false,
+                "allowedQueries": [
+                  "graphics-tier",
+                  "input-family"
+                ],
+                "requireConsent": true,
+                "redactStableIdentifiers": true
+              },
+              "resourceCommands": {
+                "id": "467e9807-db4f-5076-8a4e-f75f1b674399",
+                "enabled": true,
+                "maximumResults": 256,
+                "maximumBytes": 67108864,
+                "allowedNamespaces": [
+                  "content",
+                  "module",
+                  "runtime"
+                ]
+              },
+              "dynamicAreas": {
+                "id": "e3c71061-c7a8-5ea2-b7ee-cfb80ff7f0ab",
+                "enabled": false,
+                "maximumInstances": 16,
+                "lifetimeSeconds": 3600,
+                "requireServerAuthority": true,
+                "resolveDependencies": true
+              },
+              "partyControl": {
+                "id": "c167f138-4970-5073-add5-39ed66a1d518",
+                "enabled": true,
+                "maximumControlledMembers": 8,
+                "allowDirectSwitch": true,
+                "commands": [
+                  "focus",
+                  "follow",
+                  "hold",
+                  "regroup"
+                ]
+              },
+              "progressionTracks": {
+                "id": "b74de273-0479-5f21-bcfa-e50441c93344",
+                "maximumTracks": 64,
+                "dataDriven": true,
+                "supportLargeSetUi": true
+              },
+              "repositoryMetadata": {
+                "id": "e97c23ba-c171-5dd6-afd8-b327c7bd8dc4",
+                "channel": "stable",
+                "compatibility": "1.x",
+                "requireSignature": true,
+                "requireChangeNotes": true
+              },
+              "observability": {
+                "id": "9e288ed6-3424-5de2-9f6a-595425a78c7f",
+                "enabled": false,
+                "tracyCompatible": true,
+                "openTelemetryCompatible": true,
+                "maximumCaptureSeconds": 60,
+                "includeScripts": true
+              },
+              "graphics": {
+                "id": "782e656f-0ea2-57d6-90b6-d89ce2c0616c",
+                "antiAliasing": "msaa4",
+                "anisotropicLevel": 8,
+                "upscaling": "native",
+                "capabilityFallback": true
+              },
+              "provenance": "migration-default"
+            },
+            "production": {
+              "id": "ce3c2ead-63a0-5bf4-961e-945bb6daf763",
+              "schemaVersion": 1,
+              "mediaGeneration": {
+                "id": "006dc34b-86ea-5b13-9f7d-211271a898e2",
+                "enabled": false,
+                "mediaKinds": [
+                  "audio",
+                  "image",
+                  "vfx"
+                ],
+                "providers": [],
+                "requireRightsMetadata": true,
+                "requireHumanReview": true,
+                "stageBeforeImport": true,
+                "maximumJobs": 8,
+                "maximumBytesPerJob": 268435456,
+                "moduleIndependentFallback": true
+              },
+              "soakTests": {
+                "id": "c822395a-e758-531e-96d7-de953e4b60d2",
+                "enabled": false,
+                "durationMinutes": 60,
+                "virtualPlayers": 32,
+                "sampleIntervalSeconds": 10,
+                "maximumMemoryGrowthMegabytes": 128,
+                "maximumHandleGrowth": 100,
+                "maximumP95LatencyMilliseconds": 250,
+                "assertDatabaseHealth": true
+              },
+              "provenance": "migration-default"
+            },
+            "provenance": "migration-default"
+          },
+          "provenance": "author:solaren:high-density-valley-budget-v1"
+        },
+        "lifecycleEvents": {
+          "id": "07f225dd-2d1b-4f5e-aa20-ebf16f1941c3",
+          "schemaVersion": 1,
+          "provenance": "migration-default:ux0-f",
+          "enabled": true,
+          "requiredAtRuntime": false,
+          "bindings": [
+            {
+              "id": "d2e73d29-f7a0-5580-97ef-0688f9bc91cc",
+              "schemaVersion": 1,
+              "provenance": "migration-default:ux0-f",
+              "forgeScriptApiVersion": "1.0.0",
+              "event": "projectLoaded",
+              "authority": "editor",
+              "handler": "OnProjectLoadedEditor",
+              "scriptPath": null,
+              "requiredAtRuntime": false
+            },
+            {
+              "id": "f60a8913-b017-52c8-9665-943eecc5a4ae",
+              "schemaVersion": 1,
+              "provenance": "migration-default:ux0-f",
+              "forgeScriptApiVersion": "1.0.0",
+              "event": "projectLoaded",
+              "authority": "singlePlayer",
+              "handler": "OnProjectLoadedSinglePlayer",
+              "scriptPath": null,
+              "requiredAtRuntime": false
+            },
+            {
+              "id": "3deaf522-5631-5758-82b2-0677bbd22f03",
+              "schemaVersion": 1,
+              "provenance": "migration-default:ux0-f",
+              "forgeScriptApiVersion": "1.0.0",
+              "event": "projectLoaded",
+              "authority": "client",
+              "handler": "OnProjectLoadedClient",
+              "scriptPath": null,
+              "requiredAtRuntime": false
+            },
+            {
+              "id": "29c17b08-d6f0-5584-aacc-bbc6522b9a1d",
+              "schemaVersion": 1,
+              "provenance": "migration-default:ux0-f",
+              "forgeScriptApiVersion": "1.0.0",
+              "event": "projectLoaded",
+              "authority": "server",
+              "handler": "OnProjectLoadedServer",
+              "scriptPath": null,
+              "requiredAtRuntime": false
+            },
+            {
+              "id": "079d888f-c1c4-5c23-8862-d2d7ab06be7f",
+              "schemaVersion": 1,
+              "provenance": "migration-default:ux0-f",
+              "forgeScriptApiVersion": "1.0.0",
+              "event": "worldStarted",
+              "authority": "editor",
+              "handler": "OnWorldStartedEditor",
+              "scriptPath": null,
+              "requiredAtRuntime": false
+            },
+            {
+              "id": "5a3de3a7-1351-5923-a5d3-db37a56598f7",
+              "schemaVersion": 1,
+              "provenance": "migration-default:ux0-f",
+              "forgeScriptApiVersion": "1.0.0",
+              "event": "worldStarted",
+              "authority": "singlePlayer",
+              "handler": "OnWorldStartedSinglePlayer",
+              "scriptPath": null,
+              "requiredAtRuntime": false
+            },
+            {
+              "id": "5689017e-2659-5bf9-b015-3fef9b88d81b",
+              "schemaVersion": 1,
+              "provenance": "migration-default:ux0-f",
+              "forgeScriptApiVersion": "1.0.0",
+              "event": "worldStarted",
+              "authority": "client",
+              "handler": "OnWorldStartedClient",
+              "scriptPath": null,
+              "requiredAtRuntime": false
+            },
+            {
+              "id": "658f45b5-3eef-5762-88d4-baccfe8e680b",
+              "schemaVersion": 1,
+              "provenance": "migration-default:ux0-f",
+              "forgeScriptApiVersion": "1.0.0",
+              "event": "worldStarted",
+              "authority": "server",
+              "handler": "OnWorldStartedServer",
+              "scriptPath": null,
+              "requiredAtRuntime": false
+            }
+          ]
+        },
+        "gameplayEvents": {
+          "id": "07f225dd-2d1b-4f5e-aa20-ebf16f1941c3",
+          "schemaVersion": 1,
+          "provenance": "migration-default:r051",
+          "enabled": true,
+          "requiredAtRuntime": false,
+          "useDownedState": true,
+          "autoRespawn": true,
+          "replicateEquipmentAndProgression": true,
+          "bindings": [
+            {
+              "id": "a1a7e9aa-ed88-50b5-ba09-5db066c06fca",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "ability.activated",
+              "handler": "OnAbilityActivated",
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
+            },
+            {
+              "id": "a3691360-09fd-5b33-956c-69ca9236e374",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "equipment.changed",
+              "handler": "OnEquipmentChanged",
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
+            },
+            {
+              "id": "29aa5a35-9dd0-575c-988e-c6de9698b624",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "inventory.changed",
+              "handler": "OnInventoryChanged",
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
+            },
+            {
+              "id": "01f6f901-0d0f-539b-933f-da55862f238b",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "item.used",
+              "handler": "OnItemUsed",
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
+            },
+            {
+              "id": "321714b6-abeb-520a-8d24-ffb9030b96e8",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "life.dead",
+              "handler": "OnLifeDead",
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
+            },
+            {
+              "id": "9440c462-c4dc-58c6-9751-04dc86b59a8f",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "life.downed",
+              "handler": "OnLifeDowned",
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
+            },
+            {
+              "id": "1b25845a-fe87-56a8-b91c-3c1de7bd7fff",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "life.dying",
+              "handler": "OnLifeDying",
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
+            },
+            {
+              "id": "164b75c1-f075-5fe5-ab1a-a2a1ccb544b6",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "life.respawned",
+              "handler": "OnLifeRespawned",
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
+            },
+            {
+              "id": "d79331ba-7697-5ed8-99fa-8d4824384fa2",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "life.respawnrequested",
+              "handler": "OnLifeRespawnrequested",
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
+            },
+            {
+              "id": "c6577b27-faa1-54d2-9bd7-e2878ab76356",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "player.disconnected",
+              "handler": "OnPlayerDisconnected",
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
+            },
+            {
+              "id": "24239bf8-b67f-568e-bf42-43caecaecaee",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "player.joining",
+              "handler": "OnPlayerJoining",
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
+            },
+            {
+              "id": "696cce02-577b-51c2-9edb-7eb1bf7c8a20",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "player.leaving",
+              "handler": "OnPlayerLeaving",
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
+            },
+            {
+              "id": "df707ae6-7ff1-5026-9070-a4804e050c36",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "player.ready",
+              "handler": "OnPlayerReady",
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
+            },
+            {
+              "id": "978cf3f0-0043-5e3b-abf0-636694f2a596",
+              "schemaVersion": 1,
+              "provenance": "migration-default:r051",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "progression.changed",
+              "handler": "OnProgressionChanged",
+              "authority": "server",
+              "scriptPath": null,
+              "requiredAtRuntime": false
+            }
+          ]
+        },
+        "world": {
+          "id": "07f225dd-2d1b-4f5e-aa20-ebf16f1941c3",
+          "schemaVersion": 1,
+          "provenance": "migration-default:r052",
+          "enabled": true,
+          "requiredAtRuntime": false,
+          "customEvents": [],
+          "clock": {
+            "id": "6734a02f-af11-5d9a-a47c-bdd6f41ec192",
+            "schemaVersion": 1,
+            "provenance": "migration-default:r052",
+            "daysPerMonth": 28,
+            "monthsPerYear": 12,
+            "hoursPerDay": 24,
+            "minutesPerHour": 60,
+            "speed": 1,
+            "paused": false,
+            "initialMinute": 0,
+            "areaTimeZoneOffsets": {},
+            "astronomicalMinutes": {
+              "dawn": 360,
+              "sunrise": 420,
+              "sunset": 1080,
+              "dusk": 1140,
+              "midnight": 0
+            }
+          }
+        },
+        "provenance": "runtime-extension-command"
+      },
+      "factions": {
+        "factions": [],
+        "relationships": [],
+        "bands": [],
+        "members": [],
+        "advanced": null,
+        "requireAdvancedRuntime": false,
+        "personalReputation": null,
+        "requireFoundationRuntime": false,
+        "reputation": null,
+        "requireReputationRuntime": false,
+        "effectivePersonalReputation": []
+      },
+      "worldFeatures": {
+        "id": "07f225dd-2d1b-4f5e-aa20-ebf16f1941c3",
+        "schemaVersion": 1,
+        "provenance": "migration:world-features-empty",
+        "placeables": [],
+        "doors": [],
+        "triggers": [],
+        "encounters": [],
+        "vehicleRoutes": [],
+        "merchants": [],
+        "companions": [],
+        "scripts": {
+          "id": "07f225dd-2d1b-4f5e-aa20-ebf16f1941c3",
+          "schemaVersion": 1,
+          "provenance": "migration:world-features-empty",
+          "camera": {
+            "shots": [],
+            "abortRecovery": "restore-camera-and-control",
+            "restorePlayerControl": true,
+            "accessibilitySkipEnabled": true
+          },
+          "tagRouting": {
+            "enabled": false,
+            "explicitOnly": true,
+            "routes": []
+          },
+          "moduleFlags": [],
+          "aiSettings": []
+        }
+      }
+    },
+    "blueprints": [
+      {
+        "id": "f99d449e-7832-3f5f-978e-ad3420557ff4",
+        "slug": "solaren-les-vallees-libres-floor",
+        "displayName": "Sol provisoire",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/f99d449e-7832-3f5f-978e-ad3420557ff4/solaren-les-vallees-libres-floor",
+          "author": "Project author",
+          "licenseSpdx": "LicenseRef-Proprietary",
+          "contentHash": "0bb19d9e07728520fe998b751c22392489e15398627923f60bc7557ea7f336c8",
+          "permissionEvidence": "project-author",
+          "isAiGenerated": false,
+          "modifications": []
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.solaren.les.vallees.libres.floor",
+          "manifestPath": "content/blueprints/f99d449e-7832-3f5f-978e-ad3420557ff4/solaren-les-vallees-libres-floor.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/f99d449e-7832-3f5f-978e-ad3420557ff4/solaren-les-vallees-libres-floor.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.solaren.les.vallees.libres.floor",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "7cb66a97-e1c0-fd57-8b4b-2a3b683f35a3",
+        "slug": "player-spawn",
+        "displayName": "Point de d\u00E9part",
+        "kind": "playerSpawn",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/7cb66a97-e1c0-fd57-8b4b-2a3b683f35a3/player-spawn",
+          "author": "Project author",
+          "licenseSpdx": "LicenseRef-Proprietary",
+          "contentHash": "6d3602af5839807ec17e7308218344ab1fbccf912043d90cae058a44532a121c",
+          "permissionEvidence": "project-author",
+          "isAiGenerated": false,
+          "modifications": []
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.player.spawn",
+          "manifestPath": "content/blueprints/7cb66a97-e1c0-fd57-8b4b-2a3b683f35a3/player-spawn.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/7cb66a97-e1c0-fd57-8b4b-2a3b683f35a3/player-spawn.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.player.spawn",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "f041702a-3807-9a5e-b391-655eac3fd021",
+        "slug": "wall-plaster",
+        "displayName": "Mur de maison en torchis",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/f041702a-3807-9a5e-b391-655eac3fd021/wall-plaster",
+          "author": "Project author",
+          "licenseSpdx": "LicenseRef-Proprietary",
+          "contentHash": "7e2680c0c35abc14b4a4a73f02be2ae4b0d0f77b1669584d2f8fcb4aaca35fbe",
+          "permissionEvidence": "project-author",
+          "isAiGenerated": false,
+          "modifications": []
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.wall.plaster",
+          "manifestPath": "content/blueprints/f041702a-3807-9a5e-b391-655eac3fd021/wall-plaster.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/f041702a-3807-9a5e-b391-655eac3fd021/wall-plaster.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.wall.plaster",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "237a11f0-d18b-e55b-a51e-f15afc536a21",
+        "slug": "door-plaster",
+        "displayName": "Fa\u00E7ade en torchis avec porte",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/237a11f0-d18b-e55b-a51e-f15afc536a21/door-plaster",
+          "author": "Project author",
+          "licenseSpdx": "LicenseRef-Proprietary",
+          "contentHash": "37cc29f99b3a9168135824a0e11fabc420dd522059057e580ab23947b87664ee",
+          "permissionEvidence": "project-author",
+          "isAiGenerated": false,
+          "modifications": []
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.door.plaster",
+          "manifestPath": "content/blueprints/237a11f0-d18b-e55b-a51e-f15afc536a21/door-plaster.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/237a11f0-d18b-e55b-a51e-f15afc536a21/door-plaster.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.door.plaster",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "3497e568-d873-3d56-99cf-a703286b3033",
+        "slug": "window-plaster",
+        "displayName": "Fa\u00E7ade en torchis avec fen\u00EAtre",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/3497e568-d873-3d56-99cf-a703286b3033/window-plaster",
+          "author": "Project author",
+          "licenseSpdx": "LicenseRef-Proprietary",
+          "contentHash": "d6671ff3479815ab6b80476bcf4e8b67c01519a9d10a8e583712aedadce86beb",
+          "permissionEvidence": "project-author",
+          "isAiGenerated": false,
+          "modifications": []
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.window.plaster",
+          "manifestPath": "content/blueprints/3497e568-d873-3d56-99cf-a703286b3033/window-plaster.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/3497e568-d873-3d56-99cf-a703286b3033/window-plaster.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.window.plaster",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "43f995db-e727-9755-bd98-787cfec2ae95",
+        "slug": "wall-brick",
+        "displayName": "Mur de maison en briques",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/43f995db-e727-9755-bd98-787cfec2ae95/wall-brick",
+          "author": "Project author",
+          "licenseSpdx": "LicenseRef-Proprietary",
+          "contentHash": "34529f259ae58592dcad866a9630dd4b1be1e1c6ad0e311925348ec292fb78d2",
+          "permissionEvidence": "project-author",
+          "isAiGenerated": false,
+          "modifications": []
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.wall.brick",
+          "manifestPath": "content/blueprints/43f995db-e727-9755-bd98-787cfec2ae95/wall-brick.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/43f995db-e727-9755-bd98-787cfec2ae95/wall-brick.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.wall.brick",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "f0439ed2-d68e-1852-9d23-33c106a8724f",
+        "slug": "door-brick",
+        "displayName": "Fa\u00E7ade en briques avec porte",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/f0439ed2-d68e-1852-9d23-33c106a8724f/door-brick",
+          "author": "Project author",
+          "licenseSpdx": "LicenseRef-Proprietary",
+          "contentHash": "2e03db4ff0d4af1ba8e2e4410272d973be664d1e1f311ea59d71bbacd1f6e473",
+          "permissionEvidence": "project-author",
+          "isAiGenerated": false,
+          "modifications": []
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.door.brick",
+          "manifestPath": "content/blueprints/f0439ed2-d68e-1852-9d23-33c106a8724f/door-brick.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/f0439ed2-d68e-1852-9d23-33c106a8724f/door-brick.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.door.brick",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "c61baa89-1769-435c-aced-bb1101d48840",
+        "slug": "window-brick",
+        "displayName": "Fa\u00E7ade en briques avec fen\u00EAtre",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/c61baa89-1769-435c-aced-bb1101d48840/window-brick",
+          "author": "Project author",
+          "licenseSpdx": "LicenseRef-Proprietary",
+          "contentHash": "11e1277d80097872f04ba13b3d47541d42aa4e2b8f0eca4f399f9eb8630b4fd1",
+          "permissionEvidence": "project-author",
+          "isAiGenerated": false,
+          "modifications": []
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.window.brick",
+          "manifestPath": "content/blueprints/c61baa89-1769-435c-aced-bb1101d48840/window-brick.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/c61baa89-1769-435c-aced-bb1101d48840/window-brick.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.window.brick",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "de2025e6-9303-f152-b362-a7b7451be998",
+        "slug": "roof",
+        "displayName": "Toit de tuiles rondes",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/de2025e6-9303-f152-b362-a7b7451be998/roof",
+          "author": "Project author",
+          "licenseSpdx": "LicenseRef-Proprietary",
+          "contentHash": "043dde573d4ac852fbc80863aa9979073585ab94b30c4aaec971f039cdea714d",
+          "permissionEvidence": "project-author",
+          "isAiGenerated": false,
+          "modifications": []
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.roof",
+          "manifestPath": "content/blueprints/de2025e6-9303-f152-b362-a7b7451be998/roof.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/de2025e6-9303-f152-b362-a7b7451be998/roof.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.roof",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "a901b677-839a-d157-80b5-c88def047277",
+        "slug": "roof-front",
+        "displayName": "Pignon de toiture en pierre",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/a901b677-839a-d157-80b5-c88def047277/roof-front",
+          "author": "Project author",
+          "licenseSpdx": "LicenseRef-Proprietary",
+          "contentHash": "7924cea2626c478f7bdb92155936f9bfe238566c38a8b35b76179ae1979cdfcb",
+          "permissionEvidence": "project-author",
+          "isAiGenerated": false,
+          "modifications": []
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.roof.front",
+          "manifestPath": "content/blueprints/a901b677-839a-d157-80b5-c88def047277/roof-front.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/a901b677-839a-d157-80b5-c88def047277/roof-front.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.roof.front",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "7dbab2a9-bf77-1a50-a2e7-b4c3a0401940",
+        "slug": "stone-floor",
+        "displayName": "Dallage de fondation",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/7dbab2a9-bf77-1a50-a2e7-b4c3a0401940/stone-floor",
+          "author": "Project author",
+          "licenseSpdx": "LicenseRef-Proprietary",
+          "contentHash": "5fadbdc8c3ae5aff1b046fb85bc70a38b38e8651e245f1bb7ab9274d47a442d4",
+          "permissionEvidence": "project-author",
+          "isAiGenerated": false,
+          "modifications": []
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.stone.floor",
+          "manifestPath": "content/blueprints/7dbab2a9-bf77-1a50-a2e7-b4c3a0401940/stone-floor.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/7dbab2a9-bf77-1a50-a2e7-b4c3a0401940/stone-floor.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.stone.floor",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "96cf9b69-834c-4a54-89e5-9ced92f2d2c2",
+        "slug": "door-leaf",
+        "displayName": "Porte ronde en bois",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/96cf9b69-834c-4a54-89e5-9ced92f2d2c2/door-leaf",
+          "author": "Project author",
+          "licenseSpdx": "LicenseRef-Proprietary",
+          "contentHash": "c215bd51398ea57ae2514cd39efd3873a1d313761a3af831b8811592153f0952",
+          "permissionEvidence": "project-author",
+          "isAiGenerated": false,
+          "modifications": []
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.door.leaf",
+          "manifestPath": "content/blueprints/96cf9b69-834c-4a54-89e5-9ced92f2d2c2/door-leaf.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/96cf9b69-834c-4a54-89e5-9ced92f2d2c2/door-leaf.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.door.leaf",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "0210d9ec-d5ff-2a54-9dbf-428afa9a2b5b",
+        "slug": "window-glazed",
+        "displayName": "Fen\u00EAtre ronde vitr\u00E9e",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/0210d9ec-d5ff-2a54-9dbf-428afa9a2b5b/window-glazed",
+          "author": "Project author",
+          "licenseSpdx": "LicenseRef-Proprietary",
+          "contentHash": "7dcf265a68b1f4d6edf3f0e02a2bcc8c722c6536ccd4d4bf33f77599990fd207",
+          "permissionEvidence": "project-author",
+          "isAiGenerated": false,
+          "modifications": []
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.window.glazed",
+          "manifestPath": "content/blueprints/0210d9ec-d5ff-2a54-9dbf-428afa9a2b5b/window-glazed.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/0210d9ec-d5ff-2a54-9dbf-428afa9a2b5b/window-glazed.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.window.glazed",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "ee8f7f8a-89a1-695d-ab6a-29eab848f368",
+        "slug": "window-shutters",
+        "displayName": "Volets ouverts",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/ee8f7f8a-89a1-695d-ab6a-29eab848f368/window-shutters",
+          "author": "Project author",
+          "licenseSpdx": "LicenseRef-Proprietary",
+          "contentHash": "eb4e56e3911b449c4e3b5698b9875cbebd5e0d6e5055e73b32f6902f1a730abc",
+          "permissionEvidence": "project-author",
+          "isAiGenerated": false,
+          "modifications": []
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.window.shutters",
+          "manifestPath": "content/blueprints/ee8f7f8a-89a1-695d-ab6a-29eab848f368/window-shutters.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/ee8f7f8a-89a1-695d-ab6a-29eab848f368/window-shutters.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.window.shutters",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "1b3bcf74-936d-9f58-b86e-0d195cbbcc96",
+        "slug": "house-stairs",
+        "displayName": "Escalier ext\u00E9rieur",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/1b3bcf74-936d-9f58-b86e-0d195cbbcc96/house-stairs",
+          "author": "Project author",
+          "licenseSpdx": "LicenseRef-Proprietary",
+          "contentHash": "68b760f89d8fd01c88291aea3471eba1eebe377ecce4b885626e4632f7878625",
+          "permissionEvidence": "project-author",
+          "isAiGenerated": false,
+          "modifications": []
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.house.stairs",
+          "manifestPath": "content/blueprints/1b3bcf74-936d-9f58-b86e-0d195cbbcc96/house-stairs.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/1b3bcf74-936d-9f58-b86e-0d195cbbcc96/house-stairs.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.house.stairs",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "005b5be6-fb3c-c05b-8119-8975829dd9c3",
+        "slug": "house-balcony",
+        "displayName": "Balcon \u00E0 croisillons",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/005b5be6-fb3c-c05b-8119-8975829dd9c3/house-balcony",
+          "author": "Project author",
+          "licenseSpdx": "LicenseRef-Proprietary",
+          "contentHash": "10c6813d829bf784c2d3594b1470c1541405ba9708ff6383d89a3926f0304ab9",
+          "permissionEvidence": "project-author",
+          "isAiGenerated": false,
+          "modifications": []
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.house.balcony",
+          "manifestPath": "content/blueprints/005b5be6-fb3c-c05b-8119-8975829dd9c3/house-balcony.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/005b5be6-fb3c-c05b-8119-8975829dd9c3/house-balcony.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.house.balcony",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "9ef19e8c-a981-755b-89f0-4a61703a0b68",
+        "slug": "house-chimney",
+        "displayName": "Chemin\u00E9e de maison",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/9ef19e8c-a981-755b-89f0-4a61703a0b68/house-chimney",
+          "author": "Project author",
+          "licenseSpdx": "LicenseRef-Proprietary",
+          "contentHash": "7333daffcf20f5afa50c1763c7faaa04bf4aae968eac022e58a4a97ab5d0a70a",
+          "permissionEvidence": "project-author",
+          "isAiGenerated": false,
+          "modifications": []
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.house.chimney",
+          "manifestPath": "content/blueprints/9ef19e8c-a981-755b-89f0-4a61703a0b68/house-chimney.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/9ef19e8c-a981-755b-89f0-4a61703a0b68/house-chimney.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.house.chimney",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "f212df75-71fb-965b-a776-7dad301f0393",
+        "slug": "house-vine",
+        "displayName": "Vigne de fa\u00E7ade",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/f212df75-71fb-965b-a776-7dad301f0393/house-vine",
+          "author": "Project author",
+          "licenseSpdx": "LicenseRef-Proprietary",
+          "contentHash": "ab31c8b148e69bde6171ad40b88e26e9cd6c3c500319b8f98ed9f06a473c5fca",
+          "permissionEvidence": "project-author",
+          "isAiGenerated": false,
+          "modifications": []
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.house.vine",
+          "manifestPath": "content/blueprints/f212df75-71fb-965b-a776-7dad301f0393/house-vine.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/f212df75-71fb-965b-a776-7dad301f0393/house-vine.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.house.vine",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "4ceffa73-7842-eb5d-a97f-7ebff283c459",
+        "slug": "fence",
+        "displayName": "Cl\u00F4ture de bois",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/4ceffa73-7842-eb5d-a97f-7ebff283c459/fence",
+          "author": "Project author",
+          "licenseSpdx": "LicenseRef-Proprietary",
+          "contentHash": "df00ee1d805f3e126b01791d283f8b757bab4c3df5733c5f31e31f9e24339fdd",
+          "permissionEvidence": "project-author",
+          "isAiGenerated": false,
+          "modifications": []
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.fence",
+          "manifestPath": "content/blueprints/4ceffa73-7842-eb5d-a97f-7ebff283c459/fence.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/4ceffa73-7842-eb5d-a97f-7ebff283c459/fence.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.fence",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "1cef817f-d3c9-035a-a904-228d4f7e7ebd",
+        "slug": "wagon",
+        "displayName": "Chariot du village",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/1cef817f-d3c9-035a-a904-228d4f7e7ebd/wagon",
+          "author": "Project author",
+          "licenseSpdx": "LicenseRef-Proprietary",
+          "contentHash": "a17e6ad24dca3cbd1eb2f42a765eec3a44ff2f66593fe57af1fcf77163d5c7fd",
+          "permissionEvidence": "project-author",
+          "isAiGenerated": false,
+          "modifications": []
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.wagon",
+          "manifestPath": "content/blueprints/1cef817f-d3c9-035a-a904-228d4f7e7ebd/wagon.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/1cef817f-d3c9-035a-a904-228d4f7e7ebd/wagon.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.wagon",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "4856c9fb-b7a9-f05d-88ea-e3a3bfa2cdb3",
+        "slug": "crate",
+        "displayName": "Caisse du village",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/4856c9fb-b7a9-f05d-88ea-e3a3bfa2cdb3/crate",
+          "author": "Project author",
+          "licenseSpdx": "LicenseRef-Proprietary",
+          "contentHash": "67b681fe4071a358f402c38c8432b083096f7d9890cdb047cba6c31ef04d2f49",
+          "permissionEvidence": "project-author",
+          "isAiGenerated": false,
+          "modifications": []
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.crate",
+          "manifestPath": "content/blueprints/4856c9fb-b7a9-f05d-88ea-e3a3bfa2cdb3/crate.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/4856c9fb-b7a9-f05d-88ea-e3a3bfa2cdb3/crate.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.crate",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "3062e89c-55bf-685f-b512-0783ec44bfd9",
+        "slug": "market-stall",
+        "displayName": "\u00C9tal du march\u00E9",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/3062e89c-55bf-685f-b512-0783ec44bfd9/market-stall",
+          "author": "Project author",
+          "licenseSpdx": "LicenseRef-Proprietary",
+          "contentHash": "35d68897d94740cce772795eda7ed855e97c25a9dbf6673cc3bd6b4fa9035f16",
+          "permissionEvidence": "project-author",
+          "isAiGenerated": false,
+          "modifications": []
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.market.stall",
+          "manifestPath": "content/blueprints/3062e89c-55bf-685f-b512-0783ec44bfd9/market-stall.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/3062e89c-55bf-685f-b512-0783ec44bfd9/market-stall.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.market.stall",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "12c42202-c260-5051-a39a-c41ebb62fc3a",
+        "slug": "market-cart",
+        "displayName": "Charrette du march\u00E9",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/12c42202-c260-5051-a39a-c41ebb62fc3a/market-cart",
+          "author": "Project author",
+          "licenseSpdx": "LicenseRef-Proprietary",
+          "contentHash": "bfb3e23ed98f165bd2be5b61a5c16645388d3d2b0c1adba19b8c89e4983be57a",
+          "permissionEvidence": "project-author",
+          "isAiGenerated": false,
+          "modifications": []
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.market.cart",
+          "manifestPath": "content/blueprints/12c42202-c260-5051-a39a-c41ebb62fc3a/market-cart.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/12c42202-c260-5051-a39a-c41ebb62fc3a/market-cart.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.market.cart",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "28eb648e-8427-6e53-a837-a5dfb1355022",
+        "slug": "bench",
+        "displayName": "Banc du village",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/28eb648e-8427-6e53-a837-a5dfb1355022/bench",
+          "author": "Project author",
+          "licenseSpdx": "LicenseRef-Proprietary",
+          "contentHash": "7698461c644db406a28ab37f8f24de11b7765bcd3e54efff73b4721004415b52",
+          "permissionEvidence": "project-author",
+          "isAiGenerated": false,
+          "modifications": []
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.bench",
+          "manifestPath": "content/blueprints/28eb648e-8427-6e53-a837-a5dfb1355022/bench.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/28eb648e-8427-6e53-a837-a5dfb1355022/bench.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.bench",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "6cb2e124-72ed-0653-a092-090472ac8b0e",
+        "slug": "apple-barrel",
+        "displayName": "Tonneau de pommes",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/6cb2e124-72ed-0653-a092-090472ac8b0e/apple-barrel",
+          "author": "Project author",
+          "licenseSpdx": "LicenseRef-Proprietary",
+          "contentHash": "ec61ffad7c3d2bc05e6d92421aec9cbfbf81a668c01a8db568a970029b0f6d17",
+          "permissionEvidence": "project-author",
+          "isAiGenerated": false,
+          "modifications": []
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.apple.barrel",
+          "manifestPath": "content/blueprints/6cb2e124-72ed-0653-a092-090472ac8b0e/apple-barrel.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/6cb2e124-72ed-0653-a092-090472ac8b0e/apple-barrel.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.apple.barrel",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "2124c679-5639-375d-8a4d-75def7b6a155",
+        "slug": "apple-crate",
+        "displayName": "Cagette de pommes",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/2124c679-5639-375d-8a4d-75def7b6a155/apple-crate",
+          "author": "Project author",
+          "licenseSpdx": "LicenseRef-Proprietary",
+          "contentHash": "901d21dd16220c5b53536e830ed690bc863a61ac81c5d136fe07ef77ed0d5ed5",
+          "permissionEvidence": "project-author",
+          "isAiGenerated": false,
+          "modifications": []
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.apple.crate",
+          "manifestPath": "content/blueprints/2124c679-5639-375d-8a4d-75def7b6a155/apple-crate.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/2124c679-5639-375d-8a4d-75def7b6a155/apple-crate.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.apple.crate",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "2ddb863b-f6e2-b856-80f9-2599dea39db8",
+        "slug": "tree-round",
+        "displayName": "Ch\u00EAne rond des vall\u00E9es",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/2ddb863b-f6e2-b856-80f9-2599dea39db8/tree-round",
+          "author": "Project author",
+          "licenseSpdx": "LicenseRef-Proprietary",
+          "contentHash": "99cc04651de53f030a3d2f02e6bad3a6272b28fe757b535de031e0e114f0a356",
+          "permissionEvidence": "project-author",
+          "isAiGenerated": false,
+          "modifications": []
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.tree.round",
+          "manifestPath": "content/blueprints/2ddb863b-f6e2-b856-80f9-2599dea39db8/tree-round.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/2ddb863b-f6e2-b856-80f9-2599dea39db8/tree-round.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.tree.round",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "b396e122-d244-6e5d-84f7-b9bc14895419",
+        "slug": "tree-tall",
+        "displayName": "Arbre \u00E9lanc\u00E9 des vall\u00E9es",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/b396e122-d244-6e5d-84f7-b9bc14895419/tree-tall",
+          "author": "Project author",
+          "licenseSpdx": "LicenseRef-Proprietary",
+          "contentHash": "64e3b6e6fd8a2913b45983fb30906cbf72ca22f7917113bee77b5a22c019f07d",
+          "permissionEvidence": "project-author",
+          "isAiGenerated": false,
+          "modifications": []
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.tree.tall",
+          "manifestPath": "content/blueprints/b396e122-d244-6e5d-84f7-b9bc14895419/tree-tall.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/b396e122-d244-6e5d-84f7-b9bc14895419/tree-tall.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.tree.tall",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "73e3949e-d8fe-8b57-99e6-ea9f9f48861e",
+        "slug": "flower-patch",
+        "displayName": "Parterre de fleurs sauvages",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/73e3949e-d8fe-8b57-99e6-ea9f9f48861e/flower-patch",
+          "author": "Project author",
+          "licenseSpdx": "LicenseRef-Proprietary",
+          "contentHash": "64b94d5deb713c06d806d1b2aebe81a8e52198251a3f9100a22808120433d716",
+          "permissionEvidence": "project-author",
+          "isAiGenerated": false,
+          "modifications": []
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.flower.patch",
+          "manifestPath": "content/blueprints/73e3949e-d8fe-8b57-99e6-ea9f9f48861e/flower-patch.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/73e3949e-d8fe-8b57-99e6-ea9f9f48861e/flower-patch.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.flower.patch",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "10ffaeff-bd27-605a-a277-54a94c202c72",
+        "slug": "meadow-bush",
+        "displayName": "Buisson fleuri des pr\u00E9s",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/10ffaeff-bd27-605a-a277-54a94c202c72/meadow-bush",
+          "author": "Project author",
+          "licenseSpdx": "LicenseRef-Proprietary",
+          "contentHash": "ffb24cfa2ea97fefb3bc20289f540e73c07428606ec4b9c920c52278902f7dc4",
+          "permissionEvidence": "project-author",
+          "isAiGenerated": false,
+          "modifications": []
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.meadow.bush",
+          "manifestPath": "content/blueprints/10ffaeff-bd27-605a-a277-54a94c202c72/meadow-bush.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/10ffaeff-bd27-605a-a277-54a94c202c72/meadow-bush.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.meadow.bush",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "27032d9f-82b0-9a5f-9002-70bb99820905",
+        "slug": "warm-rock",
+        "displayName": "Rocher chaud des coteaux",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/27032d9f-82b0-9a5f-9002-70bb99820905/warm-rock",
+          "author": "Project author",
+          "licenseSpdx": "LicenseRef-Proprietary",
+          "contentHash": "778098bb1749c0c25f158aed340914872fc3d78168f8c5f503be5ac67ae29582",
+          "permissionEvidence": "project-author",
+          "isAiGenerated": false,
+          "modifications": []
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.warm.rock",
+          "manifestPath": "content/blueprints/27032d9f-82b0-9a5f-9002-70bb99820905/warm-rock.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/27032d9f-82b0-9a5f-9002-70bb99820905/warm-rock.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.warm.rock",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "960424ba-d57c-f556-9359-449ee1a5cf54",
+        "slug": "resident",
+        "displayName": "Habitant d\u0027Aubeciel",
+        "kind": "creature",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/960424ba-d57c-f556-9359-449ee1a5cf54/resident",
+          "author": "Project author",
+          "licenseSpdx": "LicenseRef-Proprietary",
+          "contentHash": "e9ce99de3304e87b68e1103f9302fc9eca09f47b43336013549032abbdd25410",
+          "permissionEvidence": "project-author",
+          "isAiGenerated": false,
+          "modifications": []
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.resident",
+          "manifestPath": "content/blueprints/960424ba-d57c-f556-9359-449ee1a5cf54/resident.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/960424ba-d57c-f556-9359-449ee1a5cf54/resident.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.resident",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      }
+    ],
+    "areas": [
+      {
+        "id": "4510a33a-ec5e-ae5c-98b3-27eca856a80d",
+        "slug": "le-val-d-aubeciel",
+        "documentPath": "areas/4510a33a-ec5e-ae5c-98b3-27eca856a80d-b4813e78cd3b2c4f.json"
+      }
+    ],
+    "dialogues": [],
+    "quests": []
+  }
+}

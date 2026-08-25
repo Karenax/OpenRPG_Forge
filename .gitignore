@@ -23,9 +23,15 @@ __pycache__/
 artifacts/
 tmp/
 
+# ForgeScript native intermediates (the runtime DLL is the versioned deliverable).
+native/ForgeScript/lib/win-x64/as_atomic.lib
+native/ForgeScript/lib/win-x64/forge_script_native.pdb
+exe/solaren-camera-look-up-final-smoke.log
+
 # Godot regenerates these import sidecars and embedded GLB textures on first import.
 # Source models and their explicit provenance files remain versioned.
 apps/Forge.Runtime/art/**/*.import
+apps/Forge.Runtime/content/**/*.import
 apps/Forge.Runtime/art/crypt-kaykit/*_dungeon_texture.png
 
 # OS files

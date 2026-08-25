@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import bmesh
 import json
 import math
 import pathlib
@@ -347,7 +348,8 @@ def _merge_animation_sources(sources: list[dict], retarget_profile: dict | None 
         imported_actions = [action for action in bpy.data.actions if action not in before_actions]
         candidates = [
             action for action in imported_actions
-            if action.name.lower() == clip_name or action.name.lower().endswith(f"|{clip_name}")
+            if _blender_base_name(action.name).lower() == clip_name
+            or _blender_base_name(action.name).lower().endswith(f"|{clip_name}")
         ]
         if len(candidates) != 1:
             raise ValueError(
@@ -393,6 +395,12 @@ def _merge_animation_sources(sources: list[dict], retarget_profile: dict | None 
         for clip_name, frame_start, frame_end, translation_scale in retarget_jobs
     ]
     return [action.name for action in selected_actions], retarget_audits
+
+
+def _blender_base_name(value: str) -> str:
+    """Ignore Blender's collision suffix when the same multi-take FBX is imported repeatedly."""
+    stem, separator, suffix = value.rpartition(".")
+    return stem if separator and len(suffix) == 3 and suffix.isdigit() else value
 
 
 def _materialize_embedded_actions_as_nla() -> list[str]:
@@ -551,6 +559,81 @@ def _select_meshes(included_names: list[str]) -> None:
             bpy.data.objects.remove(item, do_unlink=True)
     if not any(item.type == "MESH" for item in bpy.context.scene.objects):
         raise ValueError("Mesh selection removed every renderable object.")
+
+
+def _merge_supplemental_mesh_sources(sources: list[dict]) -> None:
+    """Attach governed skinned mesh fragments to the source model's existing rig.
+
+    Modular character packs commonly distribute the body, face, hair and outfit as separate
+    glTF files that share bone names. The worker keeps one authoritative armature, imports only
+    explicitly allow-listed meshes, trims them at a declared model-space height and rebinds their
+    armature modifiers. This avoids exporting a second static rig or an unintended full base body.
+    """
+    if not sources:
+        return
+    targets = [item for item in bpy.context.scene.objects if item.type == "ARMATURE"]
+    if len(targets) != 1:
+        raise ValueError("Supplemental skinned meshes require exactly one target armature.")
+    target = targets[0]
+    target_bones = {bone.name for bone in target.data.bones}
+    if not target_bones:
+        raise ValueError("Supplemental skinned meshes require a target armature with bones.")
+
+    for source in sources:
+        path = pathlib.Path(str(source.get("path", "")))
+        included_names = set(source.get("includedMeshNames", []))
+        minimum_vertex_z = float(source.get("minimumVertexZ", -1000.0))
+        if not path.is_file():
+            raise ValueError(f"Supplemental mesh source does not exist: {path}")
+        before_objects = set(bpy.data.objects)
+        _import_model(path)
+        imported = [item for item in bpy.data.objects if item not in before_objects]
+        selected = [
+            item for item in imported
+            if item.type == "MESH" and _blender_base_name(item.name) in included_names
+        ]
+        available = {
+            _blender_base_name(item.name) for item in imported if item.type == "MESH"
+        }
+        missing = sorted(included_names - available)
+        if missing:
+            raise ValueError(f"Supplemental mesh is absent from the imported model: {missing[0]}")
+
+        for item in selected:
+            mesh = bmesh.new()
+            try:
+                mesh.from_mesh(item.data)
+                discarded = [vertex for vertex in mesh.verts if vertex.co.z < minimum_vertex_z]
+                if discarded:
+                    bmesh.ops.delete(mesh, geom=discarded, context="VERTS")
+                if not mesh.verts:
+                    raise ValueError(
+                        f"Supplemental mesh height filter removed every vertex from '{item.name}'.")
+                mesh.to_mesh(item.data)
+                item.data.update()
+            finally:
+                mesh.free()
+
+            weighted_bones = {
+                group.name for group in item.vertex_groups if group.name in target_bones
+            }
+            if not weighted_bones:
+                raise ValueError(
+                    f"Supplemental mesh '{item.name}' has no vertex groups compatible with the target rig.")
+            armature_modifiers = [modifier for modifier in item.modifiers if modifier.type == "ARMATURE"]
+            if not armature_modifiers:
+                modifier = item.modifiers.new(name="OpenRPG Forge Supplemental Rig", type="ARMATURE")
+                armature_modifiers = [modifier]
+            for modifier in armature_modifiers:
+                modifier.object = target
+            world_transform = item.matrix_world.copy()
+            item.parent = target
+            item.matrix_world = world_transform
+
+        for item in imported:
+            if item not in selected:
+                bpy.data.objects.remove(item, do_unlink=True)
+        bpy.context.view_layer.update()
 
 
 def _is_generated_lod(item) -> bool:
@@ -881,6 +964,7 @@ def main() -> None:
     else:
         _import_model(source)
         _select_meshes(options.get("includedMeshNames", []))
+        _merge_supplemental_mesh_sources(options.get("supplementalMeshSources", []))
     _apply_material_textures(options.get("materialTextures", []))
     animation_sources = options.get("animationSources", [])
     if animation_sources:

@@ -73,6 +73,7 @@ public partial class DistributionProfilesWindow : Window
     private LineEdit? _launcherExecutableName;
     private LineEdit? _launcherAccentColor;
     private LineEdit? _launcherBackgroundImage;
+    private LineEdit? _launcherMusic;
     private LineEdit? _launcherNewsUrl;
     private LineEdit? _launcherSupportUrl;
     private CheckButton? _launcherSettingsEnabled;
@@ -357,7 +358,7 @@ public partial class DistributionProfilesWindow : Window
         var launcherHelp = new Label
         {
             Text = "Crée une application d'accueil personnalisée avec Jouer, Configuration et Multijoueur. " +
-                   "L'hébergement local est fonctionnel ; la connexion distante reste explicitement en préparation.",
+                   "Le profil Internet permet d'héberger ou de rejoindre directement par IP ou nom DNS.",
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
         };
         launcherHelp.AddThemeColorOverride("font_color", new Color("d8c8ff"));
@@ -368,11 +369,16 @@ public partial class DistributionProfilesWindow : Window
         _launcherExecutableName = AddField(validationContent, "Nom de l'exécutable", "Royaume_des_Cendres");
         _launcherAccentColor = AddField(validationContent, "Couleur d'accent #RRGGBB", "#C77A45");
         _launcherBackgroundImage = AddField(validationContent, "Image PNG/JPEG du projet", "branding/launcher.png");
+        _launcherMusic = AddField(validationContent, "Musique WAV du lanceur (facultative)", "branding/launcher-music.wav");
         _launcherNewsUrl = AddField(validationContent, "Lien actualités (facultatif)", "https://…");
         _launcherSupportUrl = AddField(validationContent, "Lien support (facultatif)", "https://…");
         _launcherSettingsEnabled = AddToggle(validationContent, "Menu de configuration joueur");
         _launcherMultiplayer = AddEnumOptions<GameLauncherMultiplayerMode>(validationContent, "Menu multijoueur");
-        _launcherServerPort = AddField(validationContent, "Port serveur local", "5121");
+        _launcherMultiplayer.SetItemText((int)GameLauncherMultiplayerMode.Disabled, "Désactivé");
+        _launcherMultiplayer.SetItemText((int)GameLauncherMultiplayerMode.LocalHost, "Hébergement local");
+        _launcherMultiplayer.SetItemText((int)GameLauncherMultiplayerMode.DirectConnectPreview,
+            "Internet direct · héberger et rejoindre");
+        _launcherServerPort = AddField(validationContent, "Port serveur TCP", "5121");
         var updateLauncher = new Button { Text = "Mettre à jour le lanceur", CustomMinimumSize = new Vector2(0, 36) };
         updateLauncher.Pressed += UpdateLauncher;
         validationContent.AddChild(updateLauncher);
@@ -428,7 +434,7 @@ public partial class DistributionProfilesWindow : Window
                      _dependencyReviewers, _dependencyRequiredApprovals, _dependencySecurityAudit,
                      _releasePlatforms, _signingProfile, _trustedKeys, _revokedKeys, _deltaChunkKilobytes,
                      _deltaRetainedVersions, _windowsPrerequisites, _launcherDisplayName, _launcherTagline,
-                     _launcherExecutableName, _launcherAccentColor, _launcherBackgroundImage, _launcherNewsUrl,
+                     _launcherExecutableName, _launcherAccentColor, _launcherBackgroundImage, _launcherMusic, _launcherNewsUrl,
                      _launcherSupportUrl, _launcherServerPort,
                  })
         {
@@ -711,6 +717,7 @@ public partial class DistributionProfilesWindow : Window
         _launcherExecutableName!.Text = launcher.ExecutableName;
         _launcherAccentColor!.Text = launcher.AccentColor;
         _launcherBackgroundImage!.Text = launcher.BackgroundImagePath ?? string.Empty;
+        _launcherMusic!.Text = launcher.MusicPath ?? string.Empty;
         _launcherNewsUrl!.Text = launcher.NewsUrl ?? string.Empty;
         _launcherSupportUrl!.Text = launcher.SupportUrl ?? string.Empty;
         _launcherSettingsEnabled!.SetPressedNoSignal(launcher.SettingsEnabled);
@@ -791,7 +798,8 @@ public partial class DistributionProfilesWindow : Window
                 _launcherSettingsEnabled!.ButtonPressed,
                 (GameLauncherMultiplayerMode)_launcherMultiplayer!.Selected,
                 port,
-                "creator-command");
+                "creator-command",
+                musicPath: _launcherMusic!.Text);
             return true;
         }
         catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or OverflowException)

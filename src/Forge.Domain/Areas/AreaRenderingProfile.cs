@@ -65,6 +65,82 @@ public sealed record DynamicLightBudgetProfile
     }
 }
 
+public sealed record AreaVisualTuningProfile
+{
+    public const int CurrentSchemaVersion = 1;
+
+    public int SchemaVersion { get; }
+
+    public double Brightness { get; }
+
+    public double ContrastMultiplier { get; }
+
+    public double SaturationMultiplier { get; }
+
+    public double AmbientOcclusionIntensityMultiplier { get; }
+
+    public double AmbientOcclusionPower { get; }
+
+    public double DirectionalLightPitchDegrees { get; }
+
+    public double DirectionalLightYawDegrees { get; }
+
+    public double DirectionalLightAngularDistance { get; }
+
+    public double ShadowBlur { get; }
+
+    public AreaVisualTuningProfile(
+        int schemaVersion,
+        double brightness,
+        double contrastMultiplier,
+        double saturationMultiplier,
+        double ambientOcclusionIntensityMultiplier,
+        double ambientOcclusionPower,
+        double directionalLightPitchDegrees,
+        double directionalLightYawDegrees,
+        double directionalLightAngularDistance,
+        double shadowBlur)
+    {
+        if (schemaVersion != CurrentSchemaVersion ||
+            !double.IsFinite(brightness) || brightness is < 0.1 or > 4 ||
+            !double.IsFinite(contrastMultiplier) || contrastMultiplier is < 0.25 or > 4 ||
+            !double.IsFinite(saturationMultiplier) || saturationMultiplier is < 0 or > 4 ||
+            !double.IsFinite(ambientOcclusionIntensityMultiplier) ||
+            ambientOcclusionIntensityMultiplier is < 0 or > 4 ||
+            !double.IsFinite(ambientOcclusionPower) || ambientOcclusionPower is < 0.1 or > 8 ||
+            !double.IsFinite(directionalLightPitchDegrees) || directionalLightPitchDegrees is < -89 or > 89 ||
+            !double.IsFinite(directionalLightYawDegrees) || directionalLightYawDegrees is < -360 or > 360 ||
+            !double.IsFinite(directionalLightAngularDistance) || directionalLightAngularDistance is < 0 or > 90 ||
+            !double.IsFinite(shadowBlur) || shadowBlur is < 0 or > 10)
+        {
+            throw new ArgumentOutOfRangeException(nameof(schemaVersion));
+        }
+
+        SchemaVersion = schemaVersion;
+        Brightness = brightness;
+        ContrastMultiplier = contrastMultiplier;
+        SaturationMultiplier = saturationMultiplier;
+        AmbientOcclusionIntensityMultiplier = ambientOcclusionIntensityMultiplier;
+        AmbientOcclusionPower = ambientOcclusionPower;
+        DirectionalLightPitchDegrees = directionalLightPitchDegrees;
+        DirectionalLightYawDegrees = directionalLightYawDegrees;
+        DirectionalLightAngularDistance = directionalLightAngularDistance;
+        ShadowBlur = shadowBlur;
+    }
+
+    public static AreaVisualTuningProfile CreateDefault() => new(
+        CurrentSchemaVersion,
+        brightness: 1,
+        contrastMultiplier: 1,
+        saturationMultiplier: 1,
+        ambientOcclusionIntensityMultiplier: 1,
+        ambientOcclusionPower: 1.35,
+        directionalLightPitchDegrees: -58,
+        directionalLightYawDegrees: -32,
+        directionalLightAngularDistance: .52,
+        shadowBlur: 1.45);
+}
+
 public sealed record AreaRenderingProfile
 {
     public const int CurrentSchemaVersion = 1;
@@ -93,6 +169,8 @@ public sealed record AreaRenderingProfile
 
     public IReadOnlyList<DynamicLightBudgetProfile> LightBudgets { get; }
 
+    public AreaVisualTuningProfile VisualTuning { get; }
+
     public AreaRenderingProfile(
         int schemaVersion,
         PbrMaterialWorkflow materialWorkflow,
@@ -105,7 +183,8 @@ public sealed record AreaRenderingProfile
         double exposure,
         double whitePoint,
         string lutResource,
-        IReadOnlyList<DynamicLightBudgetProfile> lightBudgets)
+        IReadOnlyList<DynamicLightBudgetProfile> lightBudgets,
+        AreaVisualTuningProfile? visualTuning = null)
     {
         if (schemaVersion != CurrentSchemaVersion) throw new ArgumentOutOfRangeException(nameof(schemaVersion));
         ArgumentNullException.ThrowIfNull(lutResource);
@@ -139,6 +218,7 @@ public sealed record AreaRenderingProfile
         WhitePoint = whitePoint;
         LutResource = lutResource.Trim().Replace('\\', '/');
         LightBudgets = budgets;
+        VisualTuning = visualTuning ?? AreaVisualTuningProfile.CreateDefault();
     }
 
     public static AreaRenderingProfile CreateDefault() => new(

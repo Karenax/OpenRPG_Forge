@@ -1,11 +1,44 @@
 using Forge.Domain.Areas;
 using Forge.Domain.Spatial;
 using Forge.EngineAdapter.Rendering;
+using Godot;
 
 namespace Forge.EngineAdapter.Tests.Rendering;
 
 public sealed class AreaClimatePlanBuilderTests
 {
+    [Fact]
+    public void ProceduralRainFallsVerticallyWithoutWindSpread()
+    {
+        var wind = new WindProfile(1, 3.5f, .8f, 2.2f, .4f, 8, true, true, "wind", 0, []);
+
+        var rain = GodotClimateAdapter.DescribePrecipitationMotion(WeatherKind.Rain, wind);
+        var snow = GodotClimateAdapter.DescribePrecipitationMotion(WeatherKind.Snow, wind);
+
+        Assert.Equal(Vector3.Down, rain.Direction);
+        Assert.Equal(0, rain.SpreadDegrees);
+        Assert.Equal(0, rain.Gravity.X);
+        Assert.Equal(0, rain.Gravity.Z);
+        Assert.True(rain.MinimumVelocity >= 16 && rain.MaximumVelocity >= rain.MinimumVelocity);
+        Assert.NotEqual(0, snow.Direction.X);
+        Assert.True(snow.SpreadDegrees > 0);
+    }
+
+    [Fact]
+    public void AuthoredRainMotionCanIgnoreWindAndUseModuleSpeeds()
+    {
+        var wind = new WindProfile(1, 1, .5f, 8, 2, 1, true, true, "wind", 0, []);
+        var visual = new PrecipitationVisualProfile(
+            1, 0, 0, 0, 0, 13, 18, -9.8f, 3000, 128, .025f, .56f, 2.8f, .32f, "#a8d1ff99");
+
+        var motion = GodotClimateAdapter.DescribePrecipitationMotion(WeatherKind.Rain, wind, visual);
+
+        Assert.Equal(Vector3.Down, motion.Direction);
+        Assert.Equal(-9.8f, motion.Gravity.Y);
+        Assert.Equal(13, motion.MinimumVelocity);
+        Assert.Equal(18, motion.MaximumVelocity);
+    }
+
     [Fact]
     public void ResolvesLocalWindReverbAndMobileWaterBudget()
     {

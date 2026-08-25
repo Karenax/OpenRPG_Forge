@@ -175,7 +175,7 @@ Changer de page ne masque ni n’interrompt la tâche.
 | Build & impact | Savoir ce qui sera construit et pourquoi | Cible, changements détectés, impact, bouton build, progression et résultat | Cache, déterminisme, CI, build incrémental, logs et artefacts |
 | Packages & dépendances | Contrôler l’ordre et la provenance du contenu | Liste ordonnée, dépendances nommées, conflits, licence et suppression sûre | Namespace, signatures, migrations, delta, synchronisation et notices |
 | Profils & export | Produire un `.orpmod` ou une distribution vérifiable | Profils, checklist de blocages, destination, taille et manifeste final | Plateformes, canaux, versioning, signatures, SBOM et paramètres par cible |
-| Lanceur du jeu | Prévisualiser l’expérience du joueur avant export | Écrans Accueil/Configuration/Multijoueur, branding et connexion locale | Adresse distante, protocoles, rôles, version locking et diagnostic réseau |
+| Lanceur du jeu | Prévisualiser l’expérience du joueur avant export | Écrans Accueil/Configuration/Multijoueur, branding, hôte local et Internet direct | Adresse IP/DNS, port TCP, empreinte/protocole, rôles, limites et diagnostic réseau |
 
 ### Projet
 
@@ -1774,8 +1774,10 @@ sauvegarde atomique dans `.forge/network/player-experience.json`. Le profil comb
 préservé. Le portail passe 9/9 tests en 443,52 s, le smoke global et quatre captures Forward+ FHD
 corrigées puis inspectées ; la matrice atteint 628 `functional` / 89 `planned`, UX8 47/51 et le
 graphe Roslyn 11 213 nœuds / 86 391 relations sans diagnostic.
-Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX8_M.md` ; aucun transport, serveur,
-annuaire distant, client, compte, monde persistant, commande Git ou publication n'est exécuté.
+Preuves et limites sont liées dans `docs/acceptance/STUDIO_UX8_M.md` ; cette qualification Studio
+n'exécute aucun transport, serveur, annuaire distant, client, compte, monde persistant, commande Git
+ou publication. Le transport TCP direct livré séparément au lanceur/runtime est documenté dans
+`docs/MULTIPLAYER_INTERNET.md` et ne change pas la nature synthétique de ce smoke Studio.
 
 ### UX8-N — Cycle de vie des packages
 

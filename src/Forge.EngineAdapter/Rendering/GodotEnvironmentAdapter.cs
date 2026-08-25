@@ -65,8 +65,21 @@ public static class GodotEnvironmentAdapter
             float threshold = 0.94 - cloud_coverage * 0.62;
             float cloud_mask = smoothstep(threshold, threshold + 0.17, cloud_noise);
             cloud_mask *= smoothstep(-0.01, 0.18, up) * (1.0 - smoothstep(0.72, 0.99, up));
-            vec3 cloud_shadow = mix(horizon_color.rgb, vec3(0.44, 0.52, 0.62), 0.42);
-            vec3 cloud_light = mix(vec3(0.90, 0.93, 0.98), horizon_color.rgb, 0.18) * cloud_brightness;
+            vec2 wispy_uv = vec2(
+                cloud_uv.x * 0.34 + cloud_uv.y * 0.08,
+                cloud_uv.y * 2.45 - cloud_uv.x * 0.04);
+            float wispy_body = forge_sky_fbm(wispy_uv + cloud_offset * 3.2);
+            float wispy_bands = forge_sky_noise(vec2(
+                cloud_uv.x * 0.12 - cloud_uv.y * 0.05,
+                cloud_uv.y * 5.8 + cloud_offset.y * 4.0));
+            float wispy_mask = smoothstep(
+                0.58,
+                0.82,
+                wispy_body * 0.74 + wispy_bands * 0.26 + cloud_coverage * 0.18);
+            wispy_mask *= smoothstep(0.04, 0.20, up) * (1.0 - smoothstep(0.78, 0.99, up));
+            cloud_mask = max(cloud_mask, wispy_mask * cloud_coverage * 0.92);
+            vec3 cloud_shadow = mix(horizon_color.rgb, vec3(0.52, 0.62, 0.72), 0.34);
+            vec3 cloud_light = mix(vec3(1.05, 1.07, 1.10), horizon_color.rgb, 0.10) * cloud_brightness;
             float cloud_detail = forge_sky_noise(cloud_uv * 8.0 - cloud_offset * 5.0);
             vec3 cloud_color = mix(cloud_shadow, cloud_light, 0.44 + cloud_detail * 0.36);
             color = mix(color, cloud_color, cloud_mask * 0.82);
@@ -112,7 +125,7 @@ public static class GodotEnvironmentAdapter
             SsaoEnabled = visual.ScreenSpaceAmbientOcclusion,
             SsaoRadius = visual.AmbientOcclusionRadius,
             SsaoIntensity = visual.AmbientOcclusionIntensity,
-            SsaoPower = 1.35f,
+            SsaoPower = (float)plan.Rendering.VisualTuning.AmbientOcclusionPower,
             SsaoDetail = .65f,
             SsaoSharpness = .86f,
             SsaoLightAffect = .28f,
@@ -135,6 +148,7 @@ public static class GodotEnvironmentAdapter
             VolumetricFogSkyAffect = visual.FogSkyAffect,
             VolumetricFogTemporalReprojectionEnabled = true,
             AdjustmentEnabled = true,
+            AdjustmentBrightness = (float)plan.Rendering.VisualTuning.Brightness,
             AdjustmentContrast = visual.Contrast,
             AdjustmentSaturation = visual.Saturation,
         };

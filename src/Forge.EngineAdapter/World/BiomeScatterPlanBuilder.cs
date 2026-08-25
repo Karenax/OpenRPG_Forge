@@ -18,17 +18,22 @@ public static class BiomeScatterPlanBuilder
             return [];
 
         var largeProductionSurface = terrain.Width * terrain.Depth >= 256f * 256f;
+        var lushMeadow = largeProductionSurface &&
+                         biome.Tags.Contains("lush-meadow", StringComparer.OrdinalIgnoreCase);
         var maximumPlacements = biome.Tags.Contains("ground-cover", StringComparer.OrdinalIgnoreCase)
-            ? largeProductionSurface ? 2_600 : 420
+            ? largeProductionSurface ? lushMeadow ? 16_000 : 2_600 : 420
             : largeProductionSurface ? 1_600 : 220;
+        var coverageDivisor = lushMeadow ? 16d : 90d;
         var target = Math.Clamp(
-            Math.Max(1, (int)Math.Round(terrain.Width * terrain.Depth / 90d * biome.ScatterDensity)),
+            Math.Max(1, (int)Math.Round(terrain.Width * terrain.Depth / coverageDivisor * biome.ScatterDensity)),
             0,
             maximumPlacements);
         var result = new List<BiomeScatterPlacement>(target);
         var biomeSeed = BitConverter.ToInt32(biome.Id.ToByteArray(), 0);
         var random = new StableRandom(unchecked(terrain.Seed ^ biomeSeed));
         var minimumDistance = biome.Tags.Contains("tree", StringComparer.OrdinalIgnoreCase) ? 3.4f : 1.1f;
+        var occupied = new Dictionary<(int X, int Z), List<Vector3Value>>();
+        var focusRegion = FocusRegion(biome);
         var materialPaint = terrain.MaterialPaint.ToDictionary(
             cell => (cell.X, cell.Z),
             cell => cell.MaterialLayerId);
@@ -42,10 +47,12 @@ public static class BiomeScatterPlanBuilder
             var cell = CellAt(terrain, x, z);
             if (height < biome.MinimumAltitude || height > biome.MaximumAltitude ||
                 slope < biome.MinimumSlopeDegrees || slope > biome.MaximumSlopeDegrees ||
+                focusRegion is { } focus &&
+                (x - focus.X) * (x - focus.X) + (z - focus.Z) * (z - focus.Z) > focus.Radius * focus.Radius ||
                 terrain.IsHoleCell(cell.X, cell.Z) ||
                 materialPaint.TryGetValue(cell, out var paintedMaterial) && paintedMaterial != biome.MaterialLayerId ||
                 IsExcluded(world, biome, x, z) ||
-                result.Any(existing => DistanceSquared(existing.Position, x, z) < minimumDistance * minimumDistance))
+                HasNearbyPlacement(occupied, x, z, minimumDistance))
                 continue;
 
             var authoredScale = ScaleMultiplier(biome) is { } multiplier
@@ -56,13 +63,47 @@ public static class BiomeScatterPlanBuilder
                 ? 2.75f
                 : biome.Tags.Contains("ground-cover", StringComparer.OrdinalIgnoreCase) ? 1.35f : 1f;
             var scale = (.84f + random.NextFloat() * .42f) * authoredScale;
+            var position = new Vector3Value(x, height, z);
             result.Add(new BiomeScatterPlacement(
-                new Vector3Value(x, height, z),
+                position,
                 random.NextFloat() * MathF.Tau,
                 scale));
+            AddOccupied(occupied, position, minimumDistance);
         }
 
         return result;
+    }
+
+    private static (float X, float Z, float Radius)? FocusRegion(BiomeLayerDefinition biome)
+    {
+        const string radiusPrefix = "focus-radius:";
+        const string centerPrefix = "focus-center:";
+        var radiusTag = biome.Tags.FirstOrDefault(candidate =>
+            candidate.StartsWith(radiusPrefix, StringComparison.OrdinalIgnoreCase));
+        if (radiusTag is null || !float.TryParse(
+                radiusTag[radiusPrefix.Length..],
+                System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture,
+                out var radius) || !float.IsFinite(radius) || radius <= 0)
+        {
+            return null;
+        }
+
+        var centerTag = biome.Tags.FirstOrDefault(candidate =>
+            candidate.StartsWith(centerPrefix, StringComparison.OrdinalIgnoreCase));
+        if (centerTag is null) return (0, 0, radius);
+        var components = centerTag[centerPrefix.Length..].Split(',', StringSplitOptions.TrimEntries);
+        if (components.Length != 2 ||
+            !float.TryParse(components[0], System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out var x) ||
+            !float.TryParse(components[1], System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out var z) ||
+            !float.IsFinite(x) || !float.IsFinite(z))
+        {
+            return (0, 0, radius);
+        }
+
+        return (x, z, radius);
     }
 
     private static float? ScaleMultiplier(BiomeLayerDefinition biome)
@@ -92,12 +133,20 @@ public static class BiomeScatterPlanBuilder
         foreach (var feature in world.Features)
         {
             var tag = feature.Kind.ToString().ToLowerInvariant();
-            if (!biome.ExclusionTags.Contains(tag, StringComparer.OrdinalIgnoreCase)) continue;
+            var excludedByKind = biome.ExclusionTags.Contains(tag, StringComparer.OrdinalIgnoreCase);
+            var excludedByGuide = string.Equals(feature.MaterialResource, "builtin/invisible-scatter-exclusion",
+                                      StringComparison.OrdinalIgnoreCase) &&
+                                  feature.CompatibleBiomeTags.Any(featureTag =>
+                                      biome.ExclusionTags.Contains(featureTag, StringComparer.OrdinalIgnoreCase));
+            if (!excludedByKind && !excludedByGuide) continue;
             for (var index = 0; index < feature.ControlPoints.Count - 1; index++)
             {
                 var a = feature.ControlPoints[index];
                 var b = feature.ControlPoints[index + 1];
-                if (DistanceToSegment(x, z, a.X, a.Z, b.X, b.Z) <= feature.Width * .5f + 1.5f)
+                var edgeClearance = biome.Tags.Contains("lush-meadow", StringComparer.OrdinalIgnoreCase)
+                    ? .45f
+                    : 1.5f;
+                if (DistanceToSegment(x, z, a.X, a.Z, b.X, b.Z) <= feature.Width * .5f + edgeClearance)
                     return true;
             }
         }
@@ -118,6 +167,41 @@ public static class BiomeScatterPlanBuilder
         var dx = position.X - x;
         var dz = position.Z - z;
         return dx * dx + dz * dz;
+    }
+
+    private static bool HasNearbyPlacement(
+        IReadOnlyDictionary<(int X, int Z), List<Vector3Value>> occupied,
+        float x,
+        float z,
+        float minimumDistance)
+    {
+        var cellX = (int)MathF.Floor(x / minimumDistance);
+        var cellZ = (int)MathF.Floor(z / minimumDistance);
+        var minimumDistanceSquared = minimumDistance * minimumDistance;
+        for (var offsetZ = -1; offsetZ <= 1; offsetZ++)
+        {
+            for (var offsetX = -1; offsetX <= 1; offsetX++)
+            {
+                if (!occupied.TryGetValue((cellX + offsetX, cellZ + offsetZ), out var placements)) continue;
+                if (placements.Any(position => DistanceSquared(position, x, z) < minimumDistanceSquared)) return true;
+            }
+        }
+        return false;
+    }
+
+    private static void AddOccupied(
+        IDictionary<(int X, int Z), List<Vector3Value>> occupied,
+        Vector3Value position,
+        float minimumDistance)
+    {
+        var cell = ((int)MathF.Floor(position.X / minimumDistance),
+            (int)MathF.Floor(position.Z / minimumDistance));
+        if (!occupied.TryGetValue(cell, out var placements))
+        {
+            placements = [];
+            occupied[cell] = placements;
+        }
+        placements.Add(position);
     }
 
     private static float DistanceToSegment(float px, float pz, float ax, float az, float bx, float bz)

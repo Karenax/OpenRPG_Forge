@@ -78,8 +78,11 @@ spéculative n’est créée pour une API externe non résolue. Les routes const
 réflexion et les dépendances exclusivement runtime restent hors couverture statique.
 
 Les dépendances, caches, sorties de build, secrets, bases sensibles et états de travail `.forge/`
-sont exclus. Les smoke tests peuvent ainsi modifier leurs états locaux sans rendre l’index
-d’architecture périmé.
+sont exclus. Les workspaces de modules sous `apps/Forge.Runtime/content/` sont également exclus :
+leur contenu (cartes, placements, assets et réglages) est validé par `forge validate`, pas par le
+graphe du moteur. Une évolution de contrat, de schéma, de runtime ou d'interface Studio reste en
+revanche une évolution d'architecture et impose la régénération du graphe. Les smoke tests peuvent
+ainsi modifier leurs états locaux sans rendre l’index d’architecture périmé.
 
 ## Fichiers générés
 

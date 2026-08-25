@@ -34,6 +34,7 @@ internal sealed record StudioUx2EnvDDraft(
     double Exposure,
     double WhitePoint,
     string LutResource,
+    AreaVisualTuningProfile VisualTuning,
     IReadOnlyList<StudioUx2EnvDLightBudgetDraft> LightBudgets,
     SkyProfileMode SkyMode,
     string PanoramaResource,

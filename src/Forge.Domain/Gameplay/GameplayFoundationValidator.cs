@@ -57,9 +57,31 @@ public static class GameplayFoundationValidator
                 !Enum.IsDefined(item.Mode) || item.FieldOfViewDegrees is < 20 or > 140 ||
                 item.Distance < 0 || item.MinimumDistance < 0 || item.MaximumDistance < item.MinimumDistance ||
                 item.Distance < item.MinimumDistance || item.Distance > item.MaximumDistance ||
-                item.PitchDegrees is < -89 or > 89 || !Finite(item.FocusOffset)))
+                !float.IsFinite(item.PitchDegrees) || item.PitchDegrees is < -89 or > 89 ||
+                !Finite(item.FocusOffset)))
             Add(result, CameraCode, "Camera profiles require unique keys, supported modes and bounded optics.",
                 $"{root}/cameras/{cameras.Id}", cameras.Id);
+        foreach (var camera in cameras.Profiles)
+        {
+            if (!float.IsFinite(camera.TerrainClearance) || camera.TerrainClearance is <= 0 or > 20)
+                Add(result, CameraCode, "Camera terrain clearance must be finite and between 0 and 20 metres.",
+                    $"{root}/cameras/{camera.Id}/terrainClearance", camera.Id);
+            if (camera.TerrainProbeSamples is < 4 or > 128)
+                Add(result, CameraCode, "Camera terrain probing requires between 4 and 128 samples.",
+                    $"{root}/cameras/{camera.Id}/terrainProbeSamples", camera.Id);
+            if (!float.IsFinite(camera.InitialYawDegrees) || camera.InitialYawDegrees is < -360 or > 360)
+                Add(result, CameraCode, "Camera initial yaw must be finite and between -360 and 360 degrees.",
+                    $"{root}/cameras/{camera.Id}/initialYawDegrees", camera.Id);
+            if (!float.IsFinite(camera.MinimumPitchDegrees) || !float.IsFinite(camera.MaximumPitchDegrees) ||
+                camera.MinimumPitchDegrees is < -89 or > 89 ||
+                camera.MaximumPitchDegrees is < -89 or > 89 ||
+                camera.MinimumPitchDegrees >= camera.MaximumPitchDegrees ||
+                camera.PitchDegrees < camera.MinimumPitchDegrees ||
+                camera.PitchDegrees > camera.MaximumPitchDegrees)
+                Add(result, CameraCode,
+                    "Camera pitch limits must be finite, ordered, between -89 and 89 degrees, and include the initial pitch.",
+                    $"{root}/cameras/{camera.Id}/pitchLimits", camera.Id);
+        }
         if (cameras.Profiles.All(item => !string.Equals(item.Key, cameras.DefaultProfileKey, StringComparison.Ordinal)))
             Add(result, CameraDefaultCode, "The default camera key must resolve to a camera profile.",
                 $"{root}/cameras/defaultProfileKey", cameras.Id);

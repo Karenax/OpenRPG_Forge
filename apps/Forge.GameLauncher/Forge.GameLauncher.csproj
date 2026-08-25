@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Forge.ModuleFormat\Forge.ModuleFormat.csproj" />
+    <ProjectReference Include="..\..\src\Forge.Network\Forge.Network.csproj" />
   </ItemGroup>
 
   <ItemGroup>

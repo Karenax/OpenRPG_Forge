@@ -1,7 +1,20 @@
+using System.Net.Sockets;
 using Forge.Network.Configuration;
 using Forge.Network.Sessions;
 using Forge.Network.Scenarios;
+using Forge.Network.Transport;
 using Forge.LiveDirector.Scenarios;
+
+if (args.Contains("--internet-transport-smoke-test", StringComparer.Ordinal))
+{
+    var result = await InternetTransportAcceptanceScenario.RunAsync();
+    Console.WriteLine(
+        $"OPENRPG_FORGE_INTERNET_TRANSPORT_TWO_CLIENTS_PASS session={result.SessionId:D} " +
+        $"revision={result.Revision} players={result.Players} mismatch={result.RejectionCode}");
+    Console.WriteLine($"OPENRPG_FORGE_INTERNET_TRANSPORT={(result.Passed ? "PASS" : "FAILED")}");
+    Environment.ExitCode = result.Passed ? 0 : 7;
+    return;
+}
 
 if (args.Contains("--live-director-smoke-test", StringComparer.Ordinal))
 {
@@ -97,11 +110,33 @@ try
 {
     var path = Path.GetFullPath(configArgument["--config=".Length..]);
     var configuration = new NetworkConfigurationStore().Deserialize(await File.ReadAllTextAsync(path));
-    var session = new AuthoritativeSession(configuration);
-    Console.WriteLine($"OPENRPG_FORGE_SERVER_READY server={configuration.ServerId} session={session.SessionId}");
-    Console.WriteLine($"OPENRPG_FORGE_SERVER_HEALTH status=healthy revision={session.Snapshot.Revision} players={session.Snapshot.Members.Count}");
+    await using var server = new TcpAuthoritativeServer(configuration);
+    server.Start();
+    Console.WriteLine(
+        $"OPENRPG_FORGE_SERVER_READY server={configuration.ServerId} session={server.SessionId} " +
+        $"transport=tcp bind={configuration.BindAddress} port={configuration.Port}");
+    Console.WriteLine("OPENRPG_FORGE_SERVER_HEALTH status=healthy revision=0 players=0 transport=tcp");
+    using var shutdown = new CancellationTokenSource();
+    ConsoleCancelEventHandler cancelHandler = (_, eventArgs) =>
+    {
+        eventArgs.Cancel = true;
+        shutdown.Cancel();
+    };
+    Console.CancelKeyPress += cancelHandler;
+    try
+    {
+        await server.WaitForShutdownAsync(shutdown.Token);
+    }
+    catch (OperationCanceledException) when (shutdown.IsCancellationRequested)
+    {
+    }
+    finally
+    {
+        Console.CancelKeyPress -= cancelHandler;
+    }
 }
-catch (Exception exception) when (exception is IOException or InvalidDataException or UnauthorizedAccessException)
+catch (Exception exception) when (exception is IOException or InvalidDataException or UnauthorizedAccessException or
+                                           ArgumentException or SocketException)
 {
     Console.Error.WriteLine($"OPENRPG_FORGE_SERVER_INVALID {exception.Message}");
     Environment.ExitCode = 3;

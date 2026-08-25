@@ -59,7 +59,12 @@ public sealed record GameplayCameraProfile(
     float PitchDegrees,
     Vector3Value FocusOffset,
     bool CollisionAvoidance,
-    bool AlignCharacterFacing);
+    bool AlignCharacterFacing,
+    float TerrainClearance = .9f,
+    int TerrainProbeSamples = 32,
+    float InitialYawDegrees = 39,
+    float MinimumPitchDegrees = -85,
+    float MaximumPitchDegrees = 85);
 
 public sealed record GameplayCameraCatalog(
     Guid Id,

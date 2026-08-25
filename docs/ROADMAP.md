@@ -1,6 +1,6 @@
 # Roadmap de consolidation
 
-Dernière mise à jour : 13 août 2026.
+Dernière mise à jour : 25 août 2026.
 
 La phase de création des capacités Aurora est terminée : 717 fonctions sont `Tested` dans 187 lots.
 La roadmap ne réénumère plus les anciens gates. Elle conduit le prototype vers un éditeur de RPG
@@ -50,7 +50,17 @@ Objectif : une interface agréable et deux démonstrations visuellement convainc
 Sortie : revue responsive et accessible, Crypte habillée, outils de biome extérieur réutilisables,
 éclairage et performances/collisions/navigation vérifiés sur les profils supportés.
 
-## Étape 7 — Candidat public
+## Étape 7 — Multijoueur Internet qualifié
+
+Objectif : prolonger la base TCP directe désormais fonctionnelle en véritable expérience RPG
+coopérative autoritaire, exploitable au-delà d'un réseau de confiance.
+
+Base livrée : lanceur hôte/rejoint, listener runtime/headless, contrôle module/protocole, présence,
+zone et déplacement des avatars. Sortie restante : intentions de gameplay raccordées, sauvegarde et
+reconnexion, transport sécurisé et identité d'hôte, qualification WAN réelle, puis stratégie
+explicite pour NAT/relais et découverte optionnelle. Voir `MULTIPLAYER_INTERNET.md`.
+
+## Étape 8 — Candidat public
 
 Objectif : transformer la distribution qualifiée en version traçable.
 

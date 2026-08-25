@@ -40,9 +40,7 @@ public static class GameLaunchPlanBuilder
         if (settings.SessionMode == LauncherSessionMode.DirectConnectPreview)
         {
             if (capability != GameLauncherMultiplayerMode.DirectConnectPreview)
-                throw new InvalidOperationException("This game does not expose direct-connect preparation.");
-            throw new NotSupportedException(
-                "Direct remote connection is prepared in the launcher but remains unavailable until the network transport is connected.");
+                throw new InvalidOperationException("This game does not enable direct Internet connections.");
         }
 
         var fullSettingsPath = Path.GetFullPath(settingsPath);
@@ -59,8 +57,10 @@ public static class GameLaunchPlanBuilder
             settings.SessionMode switch
             {
                 LauncherSessionMode.Solo => "solo",
+                LauncherSessionMode.LocalHost when capability == GameLauncherMultiplayerMode.DirectConnectPreview =>
+                    "internet-host",
                 LauncherSessionMode.LocalHost => "local-host",
-                _ => "direct-connect-preview",
+                _ => "internet-join",
             },
             PlayerNameArgument,
             settings.PlayerName.Trim(),

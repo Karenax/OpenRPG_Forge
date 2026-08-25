@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using Forge.Domain.Blueprints;
+using Forge.Domain.Content;
 using Forge.Domain.Modules;
 using Forge.Domain.Projects;
 using Forge.ModuleFormat.Launcher;
@@ -46,7 +47,7 @@ public sealed class GameLauncherTests : IDisposable
     }
 
     [Fact]
-    public void DirectConnect_RemainsAnExplicitUnavailablePreview()
+    public void DirectConnect_CreatesAnInternetJoinLaunchPlan()
     {
         var verification = CreateVerifiedLayout(GameLauncherMultiplayerMode.DirectConnectPreview);
         var settingsPath = Path.Combine(_temporaryRoot, "direct", "launcher-settings.json");
@@ -57,10 +58,30 @@ public sealed class GameLauncherTests : IDisposable
         };
         GameLauncherSettingsStore.Save(settingsPath, settings);
 
-        var exception = Assert.Throws<NotSupportedException>(() =>
-            GameLaunchPlanBuilder.Create(verification, settings, settingsPath));
+        var plan = GameLaunchPlanBuilder.Create(verification, settings, settingsPath);
 
-        Assert.Contains("network transport", exception.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("internet-join", plan.Arguments);
+        Assert.Contains(GameLaunchPlanBuilder.ServerAddressArgument, plan.Arguments);
+        Assert.Contains("game.example.test", plan.Arguments);
+        Assert.Contains("5121", plan.Arguments);
+    }
+
+    [Fact]
+    public void InternetCapableLocalHost_CreatesAnInternetHostLaunchPlan()
+    {
+        var verification = CreateVerifiedLayout(GameLauncherMultiplayerMode.DirectConnectPreview);
+        var settingsPath = Path.Combine(_temporaryRoot, "internet-host", "launcher-settings.json");
+        var settings = GameLauncherUserSettings.CreateDefault(verification.Manifest) with
+        {
+            SessionMode = LauncherSessionMode.LocalHost,
+            PlayerName = "Elyra",
+        };
+        GameLauncherSettingsStore.Save(settingsPath, settings);
+
+        var plan = GameLaunchPlanBuilder.Create(verification, settings, settingsPath);
+
+        Assert.Contains("internet-host", plan.Arguments);
+        Assert.DoesNotContain(GameLaunchPlanBuilder.ServerAddressArgument, plan.Arguments);
     }
 
     [Fact]
@@ -73,6 +94,7 @@ public sealed class GameLauncherTests : IDisposable
         var branding = Path.Combine(workspace, "branding");
         Directory.CreateDirectory(branding);
         File.WriteAllBytes(Path.Combine(branding, "hero.png"), [0x89, 0x50, 0x4e, 0x47]);
+        File.WriteAllBytes(Path.Combine(branding, "calm.wav"), [0x52, 0x49, 0x46, 0x46]);
         var package = Path.Combine(_temporaryRoot, "game.orpmod");
         ModulePackager.Export(workspace, package, target: ModuleTargetKind.Client);
 
@@ -94,6 +116,8 @@ public sealed class GameLauncherTests : IDisposable
         Assert.Equal("Cendres.exe", bundle.Manifest.ExecutableFile);
         Assert.True(File.Exists(Path.Combine(destination, "Cendres.exe")));
         Assert.True(File.Exists(Path.Combine(destination, "branding", "launcher-background.png")));
+        Assert.True(File.Exists(Path.Combine(destination, "branding", "launcher-music.wav")));
+        Assert.Equal("branding/launcher-music.wav", bundle.Manifest.Music);
         Assert.True(File.Exists(Path.Combine(destination, "game", "main-module.orpmod")));
         Assert.Equal(bundle.Manifest.GameId, distribution.GameId);
         Assert.NotEmpty(distribution.Files);
@@ -193,7 +217,8 @@ public sealed class GameLauncherTests : IDisposable
             settingsEnabled: true,
             GameLauncherMultiplayerMode.LocalHost,
             5121,
-            "test:game-launcher");
+            "test:game-launcher",
+            musicPath: "branding/calm.wav");
         var distribution = new ModuleDistributionConfiguration(
             defaults.Id,
             defaults.TargetProfiles,
@@ -201,6 +226,19 @@ public sealed class GameLauncherTests : IDisposable
             "test:game-launcher",
             defaults.Release,
             launcher: launcher);
+        var originalContent = source.Module.Content;
+        var content = new ContentWorkspaceConfiguration(
+            originalContent.Id,
+            new ContentBatchConfiguration(
+                originalContent.Batch.Glob,
+                [.. originalContent.Batch.Extensions, ".wav"],
+                originalContent.Batch.CollisionPolicy,
+                originalContent.Batch.Provenance,
+                originalContent.Batch.LicenseSpdx),
+            originalContent.DataTables,
+            originalContent.MergePolicy,
+            originalContent.Provenance,
+            packages: originalContent.Packages);
         var module = new ModuleDefinition(
             source.Module.Id,
             source.Module.Slug,
@@ -209,7 +247,8 @@ public sealed class GameLauncherTests : IDisposable
             source.Module.EntryAreaId,
             approvedMetadata,
             source.Module.Variables,
-            distribution);
+            distribution,
+            content: content);
         return new ProjectDefinition(
             source.Id,
             source.Title,

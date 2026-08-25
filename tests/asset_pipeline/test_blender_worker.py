@@ -65,6 +65,7 @@ class BlenderWorkerTests(unittest.TestCase):
                 "lodRatios": [0.25, 0.5, 0.5],
                 "generateCollision": True,
                 "animationSources": [],
+                "supplementalMeshSources": [],
                 "materialTextures": [],
                 "includedMeshNames": ["Tree_Main"],
                 "baseDecimationRatio": 0.125,
@@ -247,6 +248,35 @@ class BlenderWorkerTests(unittest.TestCase):
         with self.assertRaises(worker.WorkerError) as context:
             worker.validate_request(document, self.sources, self.workspace)
         self.assertEqual("asset.worker.path_unsafe", context.exception.code)
+
+    def test_validates_governed_supplemental_skinned_mesh_source(self):
+        supplement = self.sources / "base-character.gltf"
+        supplement.write_text('{"asset":{"version":"2.0"}}', encoding="utf-8")
+        document = self.request()
+        document["options"]["supplementalMeshSources"] = [{
+            "relativePath": supplement.name,
+            "contentSha256": hashlib.sha256(supplement.read_bytes()).hexdigest(),
+            "includedMeshNames": ["Eyes", "Eyebrows", "SuperHero_Male"],
+            "minimumVertexZ": 1.46,
+        }]
+
+        normalized = worker.validate_request(document, self.sources, self.workspace)
+        response = worker.execute(
+            normalized,
+            self.root / "missing-blender.exe",
+            self.root / "response.json",
+            True,
+        )
+
+        self.assertTrue(response["valid"])
+        supplement_plan = normalized["options"]["supplementalMeshSources"][0]
+        self.assertEqual(["Eyes", "Eyebrows", "SuperHero_Male"], supplement_plan["includedMeshNames"])
+        self.assertEqual(1.46, supplement_plan["minimumVertexZ"])
+
+        document["options"]["supplementalMeshSources"][0]["includedMeshNames"] = ["../Head"]
+        with self.assertRaises(worker.WorkerError) as context:
+            worker.validate_request(document, self.sources, self.workspace)
+        self.assertEqual("asset.worker.supplemental_mesh_selection_invalid", context.exception.code)
 
     def test_validates_typed_one_to_one_retarget_profile(self):
         animation = self.sources / "run.fbx"

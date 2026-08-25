@@ -93,6 +93,7 @@ internal sealed partial class StudioSessionController
             rendering.Exposure,
             rendering.WhitePoint,
             rendering.LutResource,
+            rendering.VisualTuning,
             rendering.LightBudgets.Select(item => new StudioUx2EnvDLightBudgetDraft(
                 item.Platform,
                 item.MaximumDynamicLights,
@@ -336,7 +337,8 @@ internal sealed partial class StudioSessionController
                 draft.Exposure,
                 draft.WhitePoint,
                 draft.LutResource,
-                budgets);
+                budgets,
+                draft.VisualTuning);
             var rendering = SameRenderingUx2EnvD(source.Rendering, rebuiltRendering)
                 ? source.Rendering
                 : rebuiltRendering;
@@ -410,7 +412,7 @@ internal sealed partial class StudioSessionController
                 "PBR : choisissez un workflow, une qualité et un mode de couleur reconnus."));
         if (!double.IsFinite(draft.Exposure) || !double.IsFinite(draft.WhitePoint) ||
             draft.Exposure is < .05 or > 8 || draft.WhitePoint is < 1 or > 32 ||
-            !SafeOptionalResourceUx2EnvD(draft.LutResource))
+            !SafeOptionalResourceUx2EnvD(draft.LutResource) || draft.VisualTuning is null)
             result.Add(new(Ux2EnvDColorCode, $"areas/{draft.AreaId}/environment/rendering/color",
                 "Couleur : exposition, point blanc et LUT relative doivent respecter le profil canonique."));
 
@@ -466,7 +468,8 @@ internal sealed partial class StudioSessionController
             source.Rendering.HdrOutput != candidate.Rendering.HdrOutput ||
             !source.Rendering.Exposure.Equals(candidate.Rendering.Exposure) ||
             !source.Rendering.WhitePoint.Equals(candidate.Rendering.WhitePoint) ||
-            !string.Equals(source.Rendering.LutResource, candidate.Rendering.LutResource, StringComparison.Ordinal))
+            !string.Equals(source.Rendering.LutResource, candidate.Rendering.LutResource, StringComparison.Ordinal) ||
+            source.Rendering.VisualTuning != candidate.Rendering.VisualTuning)
             color.Add("Tone mapper, HDR, exposition, point blanc ou LUT modifié.");
         var budgets = new List<string>();
         if (!source.Rendering.LightBudgets.SequenceEqual(candidate.Rendering.LightBudgets))
@@ -607,6 +610,16 @@ internal sealed partial class StudioSessionController
             writer.Write(draft.ForwardPlus); writer.Write(draft.PerPixelLighting);
             writer.Write(draft.MaterialInstances); writer.Write(draft.HdrOutput);
             writer.Write(draft.Exposure); writer.Write(draft.WhitePoint); writer.Write(draft.LutResource ?? string.Empty);
+            writer.Write(draft.VisualTuning.SchemaVersion);
+            writer.Write(draft.VisualTuning.Brightness);
+            writer.Write(draft.VisualTuning.ContrastMultiplier);
+            writer.Write(draft.VisualTuning.SaturationMultiplier);
+            writer.Write(draft.VisualTuning.AmbientOcclusionIntensityMultiplier);
+            writer.Write(draft.VisualTuning.AmbientOcclusionPower);
+            writer.Write(draft.VisualTuning.DirectionalLightPitchDegrees);
+            writer.Write(draft.VisualTuning.DirectionalLightYawDegrees);
+            writer.Write(draft.VisualTuning.DirectionalLightAngularDistance);
+            writer.Write(draft.VisualTuning.ShadowBlur);
             writer.Write(draft.LightBudgets.Count);
             foreach (var item in draft.LightBudgets)
             {
@@ -641,6 +654,7 @@ internal sealed partial class StudioSessionController
         source.MaterialInstances == candidate.MaterialInstances && source.HdrOutput == candidate.HdrOutput &&
         source.Exposure.Equals(candidate.Exposure) && source.WhitePoint.Equals(candidate.WhitePoint) &&
         string.Equals(source.LutResource, candidate.LutResource, StringComparison.Ordinal) &&
+        source.VisualTuning == candidate.VisualTuning &&
         source.LightBudgets.SequenceEqual(candidate.LightBudgets);
 
     private static bool ValidBudgetNumberUx2EnvD(double value, int minimum, int maximum) =>

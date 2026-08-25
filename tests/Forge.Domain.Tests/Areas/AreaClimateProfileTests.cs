@@ -35,4 +35,20 @@ public sealed class AreaClimateProfileTests
             Guid.NewGuid(), "Hall", Vector3Value.Zero, new(5, 3, 5), "hall", .5f, 1, 1,
             "audio/hall.wav", string.Empty, string.Empty, string.Empty));
     }
+
+    [Fact]
+    public void WeatherStatePreservesAuthoredPrecipitationVisuals()
+    {
+        var precipitation = new PrecipitationVisualProfile(
+            1, 0, 0, 0, 0, 13, 18, -9.8f, 3000, 128, .025f, .56f, 2.8f, .32f, "#A8D1FF99");
+
+        var weather = new WeatherStateProfile(
+            Guid.NewGuid(), "Vertical rain", WeatherKind.Rain, .58f, .9f, .72f, false,
+            string.Empty, "weather.rain", "surface.wet", 420, 720, 60, precipitation);
+
+        Assert.Same(precipitation, weather.Precipitation);
+        Assert.Equal("#a8d1ff99", weather.Precipitation.Color);
+        Assert.Throws<ArgumentOutOfRangeException>(() => new PrecipitationVisualProfile(
+            1, 0, 0, 0, 0, 18, 13, -9.8f, 3000, 128, .025f, .56f, 2.8f, .32f, "#a8d1ff99"));
+    }
 }

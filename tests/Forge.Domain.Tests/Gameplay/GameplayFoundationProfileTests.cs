@@ -20,6 +20,11 @@ public sealed class GameplayFoundationProfileTests
         Assert.True(first.GroundedMovement.NetworkPrediction);
         Assert.Contains(first.Interaction.Verbs, item => item.Key == "interact");
         Assert.Contains(first.Input.Bindings, item => item.Device == RuntimeInputDevice.Gamepad);
+        Assert.All(first.Cameras.Profiles, camera =>
+        {
+            Assert.Equal(-85, camera.MinimumPitchDegrees);
+            Assert.Equal(85, camera.MaximumPitchDegrees);
+        });
         Assert.Equal("SHA-256", first.Save.ChecksumAlgorithm);
     }
 
@@ -31,7 +36,22 @@ public sealed class GameplayFoundationProfileTests
         {
             GroundedMovement = source.GroundedMovement with { RunSpeed = -1 },
             Interaction = source.Interaction with { InputAction = "missing", Verbs = [] },
-            Cameras = source.Cameras with { DefaultProfileKey = "missing" },
+            Cameras = source.Cameras with
+            {
+                DefaultProfileKey = "missing",
+                Profiles = source.Cameras.Profiles
+                    .Select((camera, index) => index == 0
+                        ? camera with
+                        {
+                            TerrainClearance = -1,
+                            TerrainProbeSamples = 2,
+                            InitialYawDegrees = 500,
+                            MinimumPitchDegrees = 20,
+                            MaximumPitchDegrees = -20,
+                        }
+                        : camera)
+                    .ToArray(),
+            },
             Input = source.Input with { Bindings = [] },
             Save = source.Save with { ChecksumAlgorithm = "MD5" },
         };
@@ -42,6 +62,12 @@ public sealed class GameplayFoundationProfileTests
         Assert.Contains(diagnostics, item => item.Code == GameplayFoundationValidator.InteractionCode && item.Path.Contains("interaction"));
         Assert.Contains(diagnostics, item => item.Code == GameplayFoundationValidator.InteractionReferenceCode);
         Assert.Contains(diagnostics, item => item.Code == GameplayFoundationValidator.CameraDefaultCode);
+        Assert.Contains(diagnostics, item => item.Code == GameplayFoundationValidator.CameraCode &&
+            item.Path.Contains("terrainClearance", StringComparison.Ordinal));
+        Assert.Contains(diagnostics, item => item.Code == GameplayFoundationValidator.CameraCode &&
+            item.Path.Contains("initialYawDegrees", StringComparison.Ordinal));
+        Assert.Contains(diagnostics, item => item.Code == GameplayFoundationValidator.CameraCode &&
+            item.Path.Contains("pitchLimits", StringComparison.Ordinal));
         Assert.Contains(diagnostics, item => item.Code == GameplayFoundationValidator.InputReferenceCode);
         Assert.Contains(diagnostics, item => item.Code == GameplayFoundationValidator.SaveCode && item.Message.Contains(source.Save.Id.ToString("D")));
     }

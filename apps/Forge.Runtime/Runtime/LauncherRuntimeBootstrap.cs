@@ -1,12 +1,53 @@
 using Forge.ModuleFormat.Launcher;
 using Forge.Network.Sessions;
+using Forge.Network.Transport;
 using Godot;
 
 namespace Forge.Runtime;
 
 internal sealed record LauncherRuntimeContext(
     GameLauncherUserSettings Settings,
-    string SettingsPath);
+    string SettingsPath,
+    string RequestedSessionMode);
+
+internal sealed class LauncherRuntimeNetworkSession : IDisposable
+{
+    private bool _disposed;
+
+    internal LauncherRuntimeNetworkSession(
+        string moduleFingerprint,
+        string requestedSessionMode,
+        TcpGameClient client,
+        TcpAuthoritativeServer? server)
+    {
+        ModuleFingerprint = moduleFingerprint;
+        RequestedSessionMode = requestedSessionMode;
+        Client = client;
+        Server = server;
+    }
+
+    internal string ModuleFingerprint { get; }
+
+    internal string RequestedSessionMode { get; }
+
+    internal TcpGameClient Client { get; }
+
+    internal TcpAuthoritativeServer? Server { get; }
+
+    internal bool IsHost => Server is not null;
+
+    internal bool IsInternetHost => RequestedSessionMode == "internet-host";
+
+    internal int ConnectedPlayers => Math.Max(1, Client.LatestSnapshot?.Players.Count ?? 0);
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+        Client.Dispose();
+        Server?.Dispose();
+    }
+}
 
 internal static class LauncherRuntimeBootstrap
 {
@@ -25,17 +66,27 @@ internal static class LauncherRuntimeBootstrap
         var settings = GameLauncherSettingsStore.Load(settingsPath);
         var requestedMode = GetArgumentValue(userArguments, GameLaunchPlanBuilder.SessionModeArgument)
             ?? throw new InvalidOperationException("Launcher session mode is missing.");
-        var expectedMode = settings.SessionMode switch
+        var modeMatches = settings.SessionMode switch
         {
-            LauncherSessionMode.Solo => "solo",
-            LauncherSessionMode.LocalHost => "local-host",
-            _ => "direct-connect-preview",
+            LauncherSessionMode.Solo => requestedMode == "solo",
+            LauncherSessionMode.LocalHost => requestedMode is "local-host" or "internet-host",
+            LauncherSessionMode.DirectConnectPreview => requestedMode == "internet-join",
+            _ => false,
         };
-        if (!string.Equals(requestedMode, expectedMode, StringComparison.Ordinal))
+        if (!modeMatches)
             throw new InvalidOperationException("Launcher arguments do not match the persisted session mode.");
+        var requestedPlayer = GetArgumentValue(userArguments, GameLaunchPlanBuilder.PlayerNameArgument);
+        if (!string.Equals(requestedPlayer, settings.PlayerName.Trim(), StringComparison.Ordinal))
+            throw new InvalidOperationException("Launcher player name does not match the persisted settings.");
+        var requestedPort = GetArgumentValue(userArguments, GameLaunchPlanBuilder.ServerPortArgument);
+        if (!int.TryParse(requestedPort, out var port) || port != settings.ServerPort)
+            throw new InvalidOperationException("Launcher server port does not match the persisted settings.");
         if (settings.SessionMode == LauncherSessionMode.DirectConnectPreview)
-            throw new NotSupportedException(
-                "Direct remote connection remains unavailable until the network transport is connected.");
+        {
+            var requestedAddress = GetArgumentValue(userArguments, GameLaunchPlanBuilder.ServerAddressArgument);
+            if (!string.Equals(requestedAddress, settings.ServerAddress.Trim(), StringComparison.Ordinal))
+                throw new InvalidOperationException("Launcher server address does not match the persisted settings.");
+        }
 
         ApplyDisplay(root, settings);
         ApplyAudio(settings);
@@ -45,41 +96,68 @@ internal static class LauncherRuntimeBootstrap
             $"window={settings.WindowMode.ToString().ToLowerInvariant()} quality={settings.GraphicsQuality.ToString().ToLowerInvariant()} " +
             $"effective={appliedWindow.Size.X}x{appliedWindow.Size.Y} borderless={appliedWindow.Borderless.ToString().ToLowerInvariant()} " +
             $"resizable={(!appliedWindow.Unresizable).ToString().ToLowerInvariant()} " +
-            $"vsync={settings.VSync.ToString().ToLowerInvariant()} session={expectedMode}");
-        return new LauncherRuntimeContext(settings, Path.GetFullPath(settingsPath));
+            $"vsync={settings.VSync.ToString().ToLowerInvariant()} session={requestedMode}");
+        return new LauncherRuntimeContext(settings, Path.GetFullPath(settingsPath), requestedMode);
     }
 
-    internal static AuthoritativeSession? CreateLocalHostSession(
+    internal static async Task<LauncherRuntimeNetworkSession?> CreateNetworkSessionAsync(
         LauncherRuntimeContext? context,
         string moduleFingerprint,
-        string moduleTitle)
+        string moduleTitle,
+        CancellationToken cancellationToken = default)
     {
-        if (context?.Settings.SessionMode != LauncherSessionMode.LocalHost) return null;
+        if (context is null || context.Settings.SessionMode == LauncherSessionMode.Solo) return null;
         ArgumentException.ThrowIfNullOrWhiteSpace(moduleFingerprint);
         ArgumentException.ThrowIfNullOrWhiteSpace(moduleTitle);
         var settings = context.Settings;
-        var configuration = new DedicatedServerConfiguration(
-            Guid.NewGuid(),
-            1,
-            $"{moduleTitle} · Partie locale",
-            "127.0.0.1",
-            settings.ServerPort,
-            8,
-            DiscoveryMode.Lan,
-            moduleFingerprint,
-            "1");
-        var session = new AuthoritativeSession(configuration);
-        var decision = session.Connect(
-            Guid.NewGuid(),
-            new SessionIdentity(Guid.NewGuid(), settings.PlayerName.Trim(), SessionRole.Player),
-            moduleFingerprint,
-            configuration.ProtocolVersion);
-        if (!decision.Accepted)
-            throw new InvalidOperationException($"Local authoritative session refused the player: {decision.Code}");
-        GD.Print(
-            $"OPENRPG_FORGE_RUNTIME_LOCAL_HOST_PASS session={session.SessionId:D} port={settings.ServerPort} " +
-            $"players={session.Snapshot.Members.Count} revision={session.Snapshot.Revision}");
-        return session;
+        TcpAuthoritativeServer? server = null;
+        try
+        {
+            var address = settings.ServerAddress.Trim();
+            if (settings.SessionMode == LauncherSessionMode.LocalHost)
+            {
+                var internetHost = context.RequestedSessionMode == "internet-host";
+                var configuration = new DedicatedServerConfiguration(
+                    Guid.NewGuid(),
+                    1,
+                    internetHost ? $"{moduleTitle} · Partie Internet" : $"{moduleTitle} · Partie locale",
+                    internetHost ? "0.0.0.0" : "127.0.0.1",
+                    settings.ServerPort,
+                    8,
+                    internetHost ? DiscoveryMode.Direct : DiscoveryMode.Lan,
+                    moduleFingerprint,
+                    InternetTransportProtocol.GameProtocolVersion);
+                server = new TcpAuthoritativeServer(configuration);
+                server.Start();
+                address = "127.0.0.1";
+            }
+
+            var client = await TcpGameClient.ConnectAsync(
+                new InternetClientOptions(
+                    address,
+                    settings.ServerPort,
+                    settings.PlayerName.Trim(),
+                    moduleFingerprint),
+                cancellationToken);
+            var networkSession = new LauncherRuntimeNetworkSession(
+                moduleFingerprint,
+                context.RequestedSessionMode,
+                client,
+                server);
+            GD.Print(
+                settings.SessionMode == LauncherSessionMode.LocalHost
+                    ? $"OPENRPG_FORGE_RUNTIME_INTERNET_HOST_PASS session={client.SessionId:D} " +
+                      $"bind={(networkSession.IsInternetHost ? "0.0.0.0" : "127.0.0.1")} " +
+                      $"port={settings.ServerPort} transport=tcp"
+                    : $"OPENRPG_FORGE_RUNTIME_INTERNET_JOIN_PASS session={client.SessionId:D} " +
+                      $"address={address} port={settings.ServerPort} transport=tcp");
+            return networkSession;
+        }
+        catch
+        {
+            server?.Dispose();
+            throw;
+        }
     }
 
     private static void ApplyDisplay(Node root, GameLauncherUserSettings settings)

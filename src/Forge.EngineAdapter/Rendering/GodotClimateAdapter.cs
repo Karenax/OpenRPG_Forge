@@ -11,6 +11,13 @@ public sealed record GodotClimateResult(
     string ReverbPreset,
     IReadOnlyList<DomainDiagnostic> Diagnostics);
 
+public sealed record GodotPrecipitationMotion(
+    Vector3 Direction,
+    Vector3 Gravity,
+    float SpreadDegrees,
+    float MinimumVelocity,
+    float MaximumVelocity);
+
 public static class GodotClimateAdapter
 {
     public const string PrecipitationResourceMissingCode = "environment.weather.resource_missing";
@@ -71,8 +78,8 @@ public static class GodotClimateAdapter
             }
         }
 
-        var snow = plan.Weather.Kind == WeatherKind.Snow;
-        var color = snow ? new Color(0.92f, 0.96f, 1, 0.85f) : new Color(0.48f, 0.72f, 1, 0.62f);
+        var visual = plan.Weather.Precipitation;
+        var color = new Color(visual.Color);
         var drawMaterial = new StandardMaterial3D
         {
             AlbedoColor = color,
@@ -82,29 +89,48 @@ public static class GodotClimateAdapter
         };
         var mesh = new QuadMesh
         {
-            Size = snow ? new Vector2(0.12f, 0.12f) : new Vector2(0.035f, 0.65f),
+            Size = new Vector2(visual.ParticleWidth, visual.ParticleLength),
             Material = drawMaterial,
         };
+        var motion = DescribePrecipitationMotion(plan.Weather.Kind, plan.Wind, visual);
         var process = new ParticleProcessMaterial
         {
             EmissionShape = ParticleProcessMaterial.EmissionShapeEnum.Box,
-            EmissionBoxExtents = new Vector3(24, 1, 24),
-            Direction = new Vector3(plan.Wind.DirectionX * 0.2f, -1, plan.Wind.DirectionZ * 0.2f),
-            InitialVelocityMin = snow ? 2 : 14,
-            InitialVelocityMax = snow ? 4 : 20,
-            Gravity = snow ? new Vector3(0, -0.4f, 0) : new Vector3(0, -9.8f, 0),
+            EmissionBoxExtents = new Vector3(20, 1, 20),
+            Direction = motion.Direction,
+            Spread = motion.SpreadDegrees,
+            InitialVelocityMin = motion.MinimumVelocity,
+            InitialVelocityMax = motion.MaximumVelocity,
+            Gravity = motion.Gravity,
         };
         return new GpuParticles3D
         {
             Name = $"Weather{plan.Weather.Kind}",
             Position = new Vector3(0, 18, 0),
-            Amount = Math.Max(64, (int)(1600 * plan.Weather.Intensity)),
-            Lifetime = snow ? 9 : 3,
+            Amount = Math.Max(visual.MinimumParticles, (int)(visual.ParticlesPerIntensity * plan.Weather.Intensity)),
+            Lifetime = visual.LifetimeSeconds,
+            Preprocess = visual.LifetimeSeconds,
+            Randomness = visual.Randomness,
             VisibilityAabb = new Aabb(new Vector3(-28, -24, -28), new Vector3(56, 30, 56)),
             ProcessMaterial = process,
             DrawPass1 = mesh,
             Emitting = true,
         };
+    }
+
+    public static GodotPrecipitationMotion DescribePrecipitationMotion(
+        WeatherKind kind,
+        WindProfile wind,
+        PrecipitationVisualProfile? visual = null)
+    {
+        ArgumentNullException.ThrowIfNull(wind);
+        visual ??= PrecipitationVisualProfile.CreateDefault(kind);
+        var direction = new Vector3(
+            visual.DirectionX + wind.DirectionX * visual.WindInfluence,
+            -1,
+            visual.DirectionZ + wind.DirectionZ * visual.WindInfluence).Normalized();
+        return new(direction, new Vector3(0, visual.GravityY, 0), visual.SpreadDegrees,
+            visual.MinimumVelocity, visual.MaximumVelocity);
     }
 
     private static Node3D CreateWaterBody(WaterBodyProfile body, WaterQualityTier quality)

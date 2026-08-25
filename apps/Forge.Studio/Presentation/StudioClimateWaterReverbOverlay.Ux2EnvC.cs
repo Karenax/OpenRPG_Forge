@@ -120,12 +120,42 @@ internal sealed partial class StudioUx2EnvCWeatherStateRow : StudioUx2EnvBRowBas
     private readonly SpinBox _minimum;
     private readonly SpinBox _maximum;
     private readonly SpinBox _transition;
+    private readonly SpinBox _precipitationDirectionX;
+    private readonly SpinBox _precipitationDirectionZ;
+    private readonly SpinBox _precipitationWindInfluence;
+    private readonly SpinBox _precipitationSpread;
+    private readonly SpinBox _precipitationMinimumVelocity;
+    private readonly SpinBox _precipitationMaximumVelocity;
+    private readonly SpinBox _precipitationGravity;
+    private readonly SpinBox _precipitationDensity;
+    private readonly SpinBox _precipitationMinimumParticles;
+    private readonly SpinBox _precipitationWidth;
+    private readonly SpinBox _precipitationLength;
+    private readonly SpinBox _precipitationLifetime;
+    private readonly SpinBox _precipitationRandomness;
+    private readonly LineEdit _precipitationColor;
 
     public override StudioUx2EnvCWeatherStateDraft Value => new(
         _id, _name.Text, (WeatherKind)_kind.Selected, (float)_intensity.Value,
         (float)_humidity.Value, (float)_wetness.Value, _lightning.ButtonPressed,
         _precipitation.Text, _audio.Text, _gameplay.Text, (float)_minimum.Value,
-        (float)_maximum.Value, (float)_transition.Value);
+        (float)_maximum.Value, (float)_transition.Value,
+        new PrecipitationVisualProfile(
+            PrecipitationVisualProfile.CurrentSchemaVersion,
+            (float)_precipitationDirectionX.Value,
+            (float)_precipitationDirectionZ.Value,
+            (float)_precipitationWindInfluence.Value,
+            (float)_precipitationSpread.Value,
+            (float)_precipitationMinimumVelocity.Value,
+            (float)_precipitationMaximumVelocity.Value,
+            (float)_precipitationGravity.Value,
+            (float)_precipitationDensity.Value,
+            checked((int)_precipitationMinimumParticles.Value),
+            (float)_precipitationWidth.Value,
+            (float)_precipitationLength.Value,
+            (float)_precipitationLifetime.Value,
+            (float)_precipitationRandomness.Value,
+            _precipitationColor.Text));
 
     internal StudioUx2EnvCWeatherStateRow(StudioUx2EnvCWeatherStateDraft value) : base("État météo")
     {
@@ -141,6 +171,21 @@ internal sealed partial class StudioUx2EnvCWeatherStateRow : StudioUx2EnvBRowBas
         _minimum = Number(0, 1_000_000, 1, value.MinimumDurationSeconds, greater: true);
         _maximum = Number(0, 1_000_000, 1, value.MaximumDurationSeconds, greater: true);
         _transition = Number(0, 3_600, .25, value.TransitionSeconds);
+        var particles = value.Precipitation;
+        _precipitationDirectionX = Number(-4, 4, .01, particles.DirectionX);
+        _precipitationDirectionZ = Number(-4, 4, .01, particles.DirectionZ);
+        _precipitationWindInfluence = Number(0, 4, .01, particles.WindInfluence);
+        _precipitationSpread = Number(0, 180, .25, particles.SpreadDegrees);
+        _precipitationMinimumVelocity = Number(0, 100, .1, particles.MinimumVelocity);
+        _precipitationMaximumVelocity = Number(0, 100, .1, particles.MaximumVelocity);
+        _precipitationGravity = Number(-100, 100, .1, particles.GravityY);
+        _precipitationDensity = Number(0, 100_000, 1, particles.ParticlesPerIntensity);
+        _precipitationMinimumParticles = Number(0, 100_000, 1, particles.MinimumParticles);
+        _precipitationWidth = Number(.001, 10, .001, particles.ParticleWidth);
+        _precipitationLength = Number(.001, 20, .001, particles.ParticleLength);
+        _precipitationLifetime = Number(.1, 120, .1, particles.LifetimeSeconds);
+        _precipitationRandomness = Number(0, 1, .01, particles.Randomness);
+        _precipitationColor = Text(particles.Color);
         var identity = new GridContainer { Columns = 3, SizeFlagsHorizontal = SizeFlags.ExpandFill };
         identity.AddChild(StudioUx2EnvBControls.Field("Nom", _name, 200));
         identity.AddChild(StudioUx2EnvBControls.Field("Phénomène", _kind, 160));
@@ -159,17 +204,47 @@ internal sealed partial class StudioUx2EnvCWeatherStateRow : StudioUx2EnvBRowBas
         bindings.AddChild(StudioUx2EnvBControls.Field("Cue audio", _audio, 180));
         bindings.AddChild(StudioUx2EnvBControls.Field("Effet gameplay déclaratif", _gameplay, 220));
         Root.AddChild(bindings);
+        var motion = new GridContainer { Columns = 4, SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        motion.AddChild(StudioUx2EnvBControls.Field("Direction X", _precipitationDirectionX));
+        motion.AddChild(StudioUx2EnvBControls.Field("Direction Z", _precipitationDirectionZ));
+        motion.AddChild(StudioUx2EnvBControls.Field("Influence du vent", _precipitationWindInfluence));
+        motion.AddChild(StudioUx2EnvBControls.Field("Dispersion (°)", _precipitationSpread));
+        motion.AddChild(StudioUx2EnvBControls.Field("Vitesse minimale", _precipitationMinimumVelocity));
+        motion.AddChild(StudioUx2EnvBControls.Field("Vitesse maximale", _precipitationMaximumVelocity));
+        motion.AddChild(StudioUx2EnvBControls.Field("Gravité Y", _precipitationGravity));
+        motion.AddChild(StudioUx2EnvBControls.Field("Densité", _precipitationDensity));
+        Root.AddChild(motion);
+        var appearance = new GridContainer { Columns = 3, SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        appearance.AddChild(StudioUx2EnvBControls.Field("Particules minimales", _precipitationMinimumParticles));
+        appearance.AddChild(StudioUx2EnvBControls.Field("Largeur", _precipitationWidth));
+        appearance.AddChild(StudioUx2EnvBControls.Field("Longueur", _precipitationLength));
+        appearance.AddChild(StudioUx2EnvBControls.Field("Durée de vie", _precipitationLifetime));
+        appearance.AddChild(StudioUx2EnvBControls.Field("Aléatoire", _precipitationRandomness));
+        appearance.AddChild(StudioUx2EnvBControls.Field("Couleur RGBA", _precipitationColor));
+        Root.AddChild(appearance);
         Watch(_name); Watch(_kind); Watch(_intensity); Watch(_humidity); Watch(_wetness); Watch(_lightning);
         Watch(_precipitation); Watch(_audio); Watch(_gameplay); Watch(_minimum); Watch(_maximum); Watch(_transition);
+        foreach (var control in new[] { _precipitationDirectionX, _precipitationDirectionZ,
+                     _precipitationWindInfluence, _precipitationSpread, _precipitationMinimumVelocity,
+                     _precipitationMaximumVelocity, _precipitationGravity, _precipitationDensity,
+                     _precipitationMinimumParticles, _precipitationWidth, _precipitationLength,
+                     _precipitationLifetime, _precipitationRandomness }) Watch(control);
+        Watch(_precipitationColor);
     }
 
     public override void SetEditingEnabled(bool enabled)
     {
         base.SetEditingEnabled(enabled);
         foreach (var control in new[] { _name, _precipitation, _audio, _gameplay }) control.Editable = enabled;
+        _precipitationColor.Editable = enabled;
         _kind.Disabled = !enabled; _lightning.Disabled = !enabled;
         foreach (var control in new[] { _intensity, _humidity, _wetness, _minimum, _maximum, _transition })
             control.Editable = enabled;
+        foreach (var control in new[] { _precipitationDirectionX, _precipitationDirectionZ,
+                     _precipitationWindInfluence, _precipitationSpread, _precipitationMinimumVelocity,
+                     _precipitationMaximumVelocity, _precipitationGravity, _precipitationDensity,
+                     _precipitationMinimumParticles, _precipitationWidth, _precipitationLength,
+                     _precipitationLifetime, _precipitationRandomness }) control.Editable = enabled;
     }
 
     private static LineEdit Text(string value)
@@ -487,7 +562,8 @@ internal sealed partial class StudioClimateWaterReverbOverlayUx2EnvC : ColorRect
         _weatherStates = new StudioUx2EnvBCollectionEditor<StudioUx2EnvCWeatherStateDraft>(
             "Ajouter un état météo", value => new StudioUx2EnvCWeatherStateRow(value),
             () => new StudioUx2EnvCWeatherStateDraft(Guid.NewGuid(), "Nouvel état", WeatherKind.Clear,
-                0, .35f, 0, false, string.Empty, string.Empty, string.Empty, 300, 600, 8));
+                0, .35f, 0, false, string.Empty, string.Empty, string.Empty, 300, 600, 8,
+                PrecipitationVisualProfile.CreateDefault(WeatherKind.Clear)));
         BuildWeatherTab();
 
         _waterBodies = new StudioUx2EnvBCollectionEditor<StudioUx2EnvCWaterBodyDraft>(

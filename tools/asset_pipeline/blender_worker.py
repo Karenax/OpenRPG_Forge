@@ -438,6 +438,7 @@ def validate_request(document: object, source_root: pathlib.Path, workspace_root
         "lodRatios",
         "generateCollision",
         "animationSources",
+        "supplementalMeshSources",
         "materialTextures",
         "retargetProfile",
         "creationRecipe",
@@ -526,6 +527,69 @@ def validate_request(document: object, source_root: pathlib.Path, workspace_root
             "name": name,
             "relativePath": relative.replace("\\", "/"),
             "contentSha256": _validate_hash(source.get("contentSha256"), f"{root}.contentSha256"),
+            "_absolutePath": str(absolute),
+        })
+
+    supplemental_mesh_sources = options.get("supplementalMeshSources", [])
+    if not isinstance(supplemental_mesh_sources, list):
+        raise WorkerError(
+            "asset.worker.supplemental_mesh_sources_invalid",
+            "supplementalMeshSources must be a list.",
+            "options.supplementalMeshSources",
+        )
+    normalized_supplemental_meshes = []
+    for index, source in enumerate(supplemental_mesh_sources):
+        root = f"options.supplementalMeshSources[{index}]"
+        required_fields = {"relativePath", "contentSha256", "includedMeshNames", "minimumVertexZ"}
+        if not isinstance(source, dict) or set(source) != required_fields:
+            raise WorkerError(
+                "asset.worker.supplemental_mesh_source_invalid",
+                "Supplemental mesh source fields are invalid.",
+                root,
+            )
+        relative = str(source.get("relativePath", ""))
+        absolute = _contained(source_root, relative)
+        if absolute.suffix.lower() not in ALLOWED_INPUT_EXTENSIONS:
+            raise WorkerError(
+                "asset.worker.supplemental_mesh_format_invalid",
+                "Supplemental mesh source format is unsupported.",
+                relative,
+            )
+        mesh_names = source.get("includedMeshNames")
+        if (
+            not isinstance(mesh_names, list)
+            or not mesh_names
+            or len(mesh_names) > 16
+            or any(
+                not isinstance(name, str)
+                or not name
+                or len(name) > 64
+                or any(not (character.isascii() and (character.isalnum() or character in "-_") ) for character in name)
+                for name in mesh_names
+            )
+            or len(set(mesh_names)) != len(mesh_names)
+        ):
+            raise WorkerError(
+                "asset.worker.supplemental_mesh_selection_invalid",
+                "Supplemental mesh sources require unique safe mesh names.",
+                f"{root}.includedMeshNames",
+            )
+        minimum_vertex_z = source.get("minimumVertexZ")
+        if (
+            isinstance(minimum_vertex_z, bool)
+            or not isinstance(minimum_vertex_z, (int, float))
+            or not -1000 <= float(minimum_vertex_z) <= 1000
+        ):
+            raise WorkerError(
+                "asset.worker.supplemental_mesh_height_invalid",
+                "minimumVertexZ must be a finite model-space height between -1000 and 1000.",
+                f"{root}.minimumVertexZ",
+            )
+        normalized_supplemental_meshes.append({
+            "relativePath": relative.replace("\\", "/"),
+            "contentSha256": _validate_hash(source.get("contentSha256"), f"{root}.contentSha256"),
+            "includedMeshNames": mesh_names,
+            "minimumVertexZ": float(minimum_vertex_z),
             "_absolutePath": str(absolute),
         })
 
@@ -692,6 +756,7 @@ def validate_request(document: object, source_root: pathlib.Path, workspace_root
             "lodRatios": normalized_lods,
             "generateCollision": bool(options.get("generateCollision", False)),
             "animationSources": normalized_animations,
+            "supplementalMeshSources": normalized_supplemental_meshes,
             "materialTextures": normalized_textures,
             "retargetProfile": normalized_retarget,
             "creationRecipe": creation_recipe,
@@ -758,6 +823,28 @@ def execute(request: dict, blender: pathlib.Path, response_path: pathlib.Path, v
             raise WorkerError("asset.worker.animation_hash_mismatch", "Animation source hash differs from the request.", source["relativePath"])
         immutable_sources.append((absolute, actual, source["relativePath"]))
         bridge_animations.append({"name": source["name"], "path": str(absolute)})
+    bridge_supplemental_meshes = []
+    for source in request["options"]["supplementalMeshSources"]:
+        absolute = pathlib.Path(source["_absolutePath"])
+        if not absolute.is_file():
+            raise WorkerError(
+                "asset.worker.supplemental_mesh_source_missing",
+                "Supplemental mesh source does not exist.",
+                source["relativePath"],
+            )
+        actual = _sha256(absolute)
+        if actual != source["contentSha256"]:
+            raise WorkerError(
+                "asset.worker.supplemental_mesh_hash_mismatch",
+                "Supplemental mesh source hash differs from the request.",
+                source["relativePath"],
+            )
+        immutable_sources.append((absolute, actual, source["relativePath"]))
+        bridge_supplemental_meshes.append({
+            "path": str(absolute),
+            "includedMeshNames": source["includedMeshNames"],
+            "minimumVertexZ": source["minimumVertexZ"],
+        })
     bridge_textures = []
     for source in request["options"]["materialTextures"]:
         absolute = pathlib.Path(source["_absolutePath"])
@@ -773,6 +860,7 @@ def execute(request: dict, blender: pathlib.Path, response_path: pathlib.Path, v
             "path": str(absolute),
         })
     bridge_options["animationSources"] = bridge_animations
+    bridge_options["supplementalMeshSources"] = bridge_supplemental_meshes
     bridge_options["materialTextures"] = bridge_textures
     if validate_only:
         preview_relative = _sidecar_relative(request["outputRelativePath"], "preview", ".png")

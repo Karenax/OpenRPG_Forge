@@ -37,6 +37,8 @@ public sealed record GameLauncherConfiguration
 
     public string? BackgroundImagePath { get; }
 
+    public string? MusicPath { get; }
+
     public string? NewsUrl { get; }
 
     public string? SupportUrl { get; }
@@ -63,6 +65,7 @@ public sealed record GameLauncherConfiguration
         GameLauncherMultiplayerMode multiplayer,
         int defaultServerPort,
         string provenance,
+        string? musicPath = null,
         int schemaVersion = CurrentSchemaVersion)
     {
         ArgumentNullException.ThrowIfNull(id);
@@ -113,15 +116,24 @@ public sealed record GameLauncherConfiguration
                 nameof(backgroundImagePath));
         }
 
+        var normalizedMusic = NormalizeOptional(musicPath);
+        if (normalizedMusic is not null &&
+            (!IsSafeRelativePath(normalizedMusic) || !IsSupportedMusicExtension(normalizedMusic)))
+        {
+            throw new ArgumentException(
+                "The launcher music must be a safe relative WAV project path.",
+                nameof(musicPath));
+        }
+
         var normalizedNewsUrl = NormalizeOptionalUrl(newsUrl, nameof(newsUrl));
         var normalizedSupportUrl = NormalizeOptionalUrl(supportUrl, nameof(supportUrl));
         if (!Enum.IsDefined(multiplayer))
         {
             throw new ArgumentOutOfRangeException(nameof(multiplayer), "The game launcher multiplayer mode is invalid.");
         }
-        if (defaultServerPort is < 1 or > 65_535)
+        if (defaultServerPort is < 1024 or > 65_535)
         {
-            throw new ArgumentOutOfRangeException(nameof(defaultServerPort), "The launcher server port must be between 1 and 65535.");
+            throw new ArgumentOutOfRangeException(nameof(defaultServerPort), "The launcher server port must be between 1024 and 65535.");
         }
 
         Id = id;
@@ -132,6 +144,7 @@ public sealed record GameLauncherConfiguration
         ExecutableName = normalizedExecutableName;
         AccentColor = normalizedAccent;
         BackgroundImagePath = normalizedBackground;
+        MusicPath = normalizedMusic;
         NewsUrl = normalizedNewsUrl;
         SupportUrl = normalizedSupportUrl;
         SettingsEnabled = settingsEnabled;
@@ -155,7 +168,7 @@ public sealed record GameLauncherConfiguration
             newsUrl: null,
             supportUrl: null,
             settingsEnabled: true,
-            GameLauncherMultiplayerMode.LocalHost,
+            GameLauncherMultiplayerMode.DirectConnectPreview,
             defaultServerPort: 5121,
             "migration-default");
     }
@@ -174,7 +187,7 @@ public sealed record GameLauncherConfiguration
             newsUrl: null,
             supportUrl: null,
             settingsEnabled: true,
-            GameLauncherMultiplayerMode.LocalHost,
+            GameLauncherMultiplayerMode.DirectConnectPreview,
             defaultServerPort: 5121,
             "migration-default");
     }
@@ -234,6 +247,9 @@ public sealed record GameLauncherConfiguration
         Path.GetExtension(path).Equals(".png", StringComparison.OrdinalIgnoreCase) ||
         Path.GetExtension(path).Equals(".jpg", StringComparison.OrdinalIgnoreCase) ||
         Path.GetExtension(path).Equals(".jpeg", StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsSupportedMusicExtension(string path) =>
+        Path.GetExtension(path).Equals(".wav", StringComparison.OrdinalIgnoreCase);
 
     private static bool IsSafeRelativePath(string path) =>
         !Path.IsPathRooted(path) &&

@@ -54,7 +54,12 @@ internal sealed record StudioUx6BCameraDraft(
     float PitchDegrees,
     Vector3Value FocusOffset,
     bool CollisionAvoidance,
-    bool AlignCharacterFacing);
+    bool AlignCharacterFacing,
+    float TerrainClearance,
+    int TerrainProbeSamples,
+    float InitialYawDegrees,
+    float MinimumPitchDegrees,
+    float MaximumPitchDegrees);
 
 internal sealed record StudioUx6BCameraCatalogDraft(
     bool Required,

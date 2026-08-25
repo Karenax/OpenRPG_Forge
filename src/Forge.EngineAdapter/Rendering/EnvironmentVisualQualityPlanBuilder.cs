@@ -26,6 +26,7 @@ public static class EnvironmentVisualQualityPlanBuilder
         ArgumentNullException.ThrowIfNull(plan);
         var highQuality = plan.Rendering.Quality is RenderQualityTier.High or RenderQualityTier.Ultra;
         var forwardPlus = plan.Rendering.ForwardPlus;
+        var tuning = plan.Rendering.VisualTuning;
         var volumetricFog = plan.Fog.Mode == FogMode.Volumetric && forwardPlus;
         var fogLength = Math.Clamp(plan.Fog.EndDistance - plan.Fog.StartDistance, 32f, 512f);
         var fogDensity = Math.Clamp(plan.Fog.Density, .001f, .05f);
@@ -33,7 +34,8 @@ public static class EnvironmentVisualQualityPlanBuilder
         return new EnvironmentVisualQualityPlan(
             ScreenSpaceAmbientOcclusion: highQuality && forwardPlus,
             AmbientOcclusionRadius: plan.Rendering.Quality == RenderQualityTier.Ultra ? 2.2f : 1.75f,
-            AmbientOcclusionIntensity: plan.Rendering.Quality == RenderQualityTier.Ultra ? 2.35f : 1.9f,
+            AmbientOcclusionIntensity: (float)((plan.Rendering.Quality == RenderQualityTier.Ultra ? 2.35 : 1.9) *
+                                               tuning.AmbientOcclusionIntensityMultiplier),
             ScreenSpaceIndirectLighting: highQuality && forwardPlus,
             IndirectLightingRadius: plan.Rendering.Quality == RenderQualityTier.Ultra ? 4.5f : 3.25f,
             IndirectLightingIntensity: plan.Rendering.Quality == RenderQualityTier.Ultra ? 1.25f : 1.05f,
@@ -44,7 +46,7 @@ public static class EnvironmentVisualQualityPlanBuilder
             VolumetricFogDensity: fogDensity,
             VolumetricFogLength: fogLength,
             FogSkyAffect: volumetricFog ? .48f : .24f,
-            Contrast: highQuality ? 1.06f : 1.02f,
-            Saturation: highQuality ? .99f : .985f);
+            Contrast: (float)((highQuality ? 1.06 : 1.02) * tuning.ContrastMultiplier),
+            Saturation: (float)((highQuality ? .99 : .985) * tuning.SaturationMultiplier));
     }
 }

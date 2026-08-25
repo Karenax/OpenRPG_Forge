@@ -72,7 +72,9 @@ internal sealed partial class StudioSessionController
                 cameras.Profiles.Select(item => new StudioUx6BCameraDraft(item.Id, item.Key,
                     item.DisplayName, item.Mode, item.FieldOfViewDegrees, item.Distance,
                     item.MinimumDistance, item.MaximumDistance, item.PitchDegrees,
-                    item.FocusOffset, item.CollisionAvoidance, item.AlignCharacterFacing)).ToArray()),
+                    item.FocusOffset, item.CollisionAvoidance, item.AlignCharacterFacing,
+                    item.TerrainClearance, item.TerrainProbeSamples, item.InitialYawDegrees,
+                    item.MinimumPitchDegrees, item.MaximumPitchDegrees)).ToArray()),
             new StudioUx6BInputDraft(input.Required, input.AllowRebinding, input.PerPlayerLocal,
                 input.Contexts.ToArray(),
                 input.Actions.Select(item => new StudioUx6BActionDraft(item.Id, item.Key,
@@ -227,7 +229,9 @@ internal sealed partial class StudioSessionController
                 draft.Cameras.Profiles.Select(item => new GameplayCameraProfile(item.Id,
                     item.Key.Trim(), item.DisplayName.Trim(), item.Mode, item.FieldOfViewDegrees,
                     item.Distance, item.MinimumDistance, item.MaximumDistance, item.PitchDegrees,
-                    item.FocusOffset, item.CollisionAvoidance, item.AlignCharacterFacing)).ToArray());
+                    item.FocusOffset, item.CollisionAvoidance, item.AlignCharacterFacing,
+                    item.TerrainClearance, item.TerrainProbeSamples, item.InitialYawDegrees,
+                    item.MinimumPitchDegrees, item.MaximumPitchDegrees)).ToArray());
             var input = new RuntimeInputProfile(sourceFoundation.Input.Id,
                 sourceFoundation.Input.SchemaVersion, Ux6BProvenance, draft.Input.Required,
                 draft.Input.AllowRebinding, draft.Input.PerPlayerLocal,
@@ -277,7 +281,8 @@ internal sealed partial class StudioSessionController
         {
             item.FieldOfViewDegrees, item.Distance, item.MinimumDistance,
             item.MaximumDistance, item.PitchDegrees, item.FocusOffset.X,
-            item.FocusOffset.Y, item.FocusOffset.Z,
+            item.FocusOffset.Y, item.FocusOffset.Z, item.TerrainClearance, item.InitialYawDegrees,
+            item.MinimumPitchDegrees, item.MaximumPitchDegrees,
         }));
         if (values.Any(value => !float.IsFinite(value)))
             throw new ArgumentException("Les valeurs numériques doivent être finies.");
@@ -333,7 +338,7 @@ internal sealed partial class StudioSessionController
             focus is null
                 ? "Interaction déterministe · aucune cible éligible avec les réglages actuels."
                 : $"Interaction déterministe · {HumanUx6B(focus.Verb.Label)} à {focus.Distance:0.###} m · maintien {focus.HoldProgress:P0} · {(focus.Ready ? "prête" : "en attente")}.",
-            $"Caméra résolue · {HumanUx6B(camera.DisplayName)} · champ {camera.FieldOfViewDegrees:0.###}° · distance {camera.Distance:0.###} m.",
+            $"Caméra résolue · {HumanUx6B(camera.DisplayName)} · champ {camera.FieldOfViewDegrees:0.###}° · distance {camera.Distance:0.###} m · verticale {camera.MinimumPitchDegrees:0.###}° à {camera.MaximumPitchDegrees:0.###}°.",
             binding is null
                 ? "Entrées déterministes · aucune liaison résolue dans le premier contexte."
                 : $"Entrée résolue · {HumanUx6B(binding.Action.Label)} · {HumanUx6B(binding.Binding.Binding)} · glyphe {HumanUx6B(binding.Glyph)}.",
@@ -431,10 +436,18 @@ internal sealed partial class StudioSessionController
             {
                 Interaction = baseline.Interaction with { InputAction = "action absente" },
             }).Succeeded;
-            var cameraValidation = !editing.PreviewGameplayFoundationUx6B(baseline with
+            var missingCameraValidation = !editing.PreviewGameplayFoundationUx6B(baseline with
             {
                 Cameras = baseline.Cameras with { DefaultProfileKey = "caméra absente" },
             }).Succeeded;
+            var invalidPitchProfiles = baseline.Cameras.Profiles.Select((item, index) => index == 0
+                ? item with { MinimumPitchDegrees = 20, MaximumPitchDegrees = -20 }
+                : item).ToArray();
+            var cameraValidation = missingCameraValidation &&
+                !editing.PreviewGameplayFoundationUx6B(baseline with
+                {
+                    Cameras = baseline.Cameras with { Profiles = invalidPitchProfiles },
+                }).Succeeded;
             var firstAccessible = baseline.Input.Actions.First(item => item.AccessibilityRequired);
             var inputValidation = !editing.PreviewGameplayFoundationUx6B(baseline with
             {

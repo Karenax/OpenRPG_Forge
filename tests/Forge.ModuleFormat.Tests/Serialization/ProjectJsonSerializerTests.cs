@@ -527,7 +527,8 @@ public sealed class ProjectJsonSerializerTests
             settingsEnabled: true,
             GameLauncherMultiplayerMode.DirectConnectPreview,
             6121,
-            "test");
+            "test",
+            musicPath: "branding/calm.wav");
         var distribution = new ModuleDistributionConfiguration(
             defaults.Id,
             defaults.TargetProfiles,
@@ -572,6 +573,7 @@ public sealed class ProjectJsonSerializerTests
         Assert.Equal(GameLauncherMultiplayerMode.DirectConnectPreview,
             restored.Module.Distribution.Launcher.Multiplayer);
         Assert.Equal(6121, restored.Module.Distribution.Launcher.DefaultServerPort);
+        Assert.Equal("branding/calm.wav", restored.Module.Distribution.Launcher.MusicPath);
         Assert.Contains("\"launcher\"", serialized, StringComparison.Ordinal);
         Assert.Contains("\"secretsProfile\"", serialized, StringComparison.Ordinal);
         Assert.DoesNotContain("secretValue", serialized, StringComparison.OrdinalIgnoreCase);

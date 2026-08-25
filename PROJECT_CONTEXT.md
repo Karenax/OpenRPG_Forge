@@ -1,6 +1,6 @@
 # Contexte canonique — OpenRPG Forge
 
-Dernière mise à jour : 24 août 2026.
+Dernière mise à jour : 25 août 2026.
 
 Ce document est l’unique contexte narratif courant du projet. Les états d’exécution sont dans
 `STATUS.md` et `TASKS_MVP.md`; les exigences détaillées et leurs preuves restent dans le tracker et
@@ -22,14 +22,14 @@ Un créateur doit pouvoir :
 5. configurer navigation, environnement, caméra, contrôles, réseau et Live Director ;
 6. jouer immédiatement depuis une sélection, diagnostiquer et corriger les erreurs ;
 7. exporter un module `.orpmod`, le réinstaller et le partager sans dépendance cachée ;
-8. créer un lanceur Windows propre au jeu, avec branding, réglages et hébergement multijoueur local ;
+8. créer un lanceur Windows propre au jeu, avec branding, réglages et multijoueur direct local ou Internet ;
 9. demander à l’IA d’expliquer, proposer, construire ou réparer par des plans vérifiables et annulables.
 
 ## Produit actuel
 
 Le dépôt contient le Creator/Toolset historique intégré à l'éditeur Godot, sa nouvelle application
-autonome `Forge.Studio`, un runtime 3D séparé, ForgeScript, un format de module propre, un host MCP
-et un module canonique : Crypte des Cendres. Les 717
+autonome `Forge.Studio`, un runtime 3D séparé, ForgeScript, un format de module propre, un host MCP,
+la Crypte des Cendres comme module de test et Solaren comme premier jeu distinct. Les 717
 exigences du catalogue Aurora sont classées `Tested` dans 187 lots clos. Cette couverture décrit les
 capacités disponibles ; elle ne remplace pas la qualification d’un logiciel installable et publiable.
 
@@ -52,12 +52,48 @@ ForgeScript native de leur plateforme ; le smoke Linux a été rejoué sur Debia
 44 tests Python et tous ses smokes ; le graphe Roslyn reste frais et déterministe. Cette qualification
 locale ne constitue pas une release publique signée.
 
+Les jeux restent strictement en aval de Forge : leur workspace Studio est la source de vérité de
+leurs cartes, placements, assets et réglages. Le runtime partagé interprète des contrats versionnés
+et ne branche aucun comportement sur un slug ou un pack propre à un jeu. Un besoin nouveau devient
+une capacité générique exposée dans le Creator ; le contenu des workspaces se valide par module et
+n'entre pas dans le graphe d'architecture du moteur. Cette frontière est fixée par l'ADR-0049.
+
 Le Creator sait aussi configurer un profil de lanceur par jeu et générer une distribution Windows x64
-atomique. Le lanceur WPF possède une présentation RPG cinématique animée, vérifie ses fichiers, expose
-Accueil, Configuration et Multijoueur, applique les préférences au runtime et démarre une session
-locale autoritaire. La connexion distante reste un aperçu désactivé jusqu'au branchement d'un
-transport réseau inter-processus. Les restaurations `win-x64` propres aux exports utilisent des
-verrous NuGet temporaires et ne réécrivent pas les `packages.lock.json` canoniques du dépôt.
+atomique. Le profil accepte un fond PNG/JPEG et une musique WAV gouvernés par le workspace du jeu ;
+le lanceur WPF lit cette musique en boucle avec Play/Stop et volume persistant. Sa présentation RPG
+animée vérifie ses fichiers, expose Accueil, Configuration et Multijoueur, applique les préférences au
+runtime et démarre une session autoritaire locale ou Internet. Le transport TCP v1 refuse les modules/protocoles incompatibles et
+réplique la présence ainsi que les déplacements des avatars entre runtimes. En mode Hôte Internet,
+le lanceur détecte facultativement l'IPv4 publique, affiche `adresse:port`, permet de la copier ou de
+la remplacer par un DNS et ne présente jamais `127.0.0.1` comme adresse d'invitation ; l'hôte doit
+toujours autoriser et rediriger le port TCP. Cette base directe n'est pas encore une campagne coopérative
+complète : gameplay RPG, chiffrement, identité d'hôte, reconnexion et relais/NAT restent à raccorder.
+Les restaurations `win-x64` propres aux exports utilisent des verrous NuGet temporaires et ne
+réécrivent pas les `packages.lock.json` canoniques du dépôt.
+
+Solaren exerce cette capacité générique avec une interface solaire inspirée du Val d'Aubeciel : fond
+lumineux dérivé des références réelles du module, palette forêt/crème/or miel, particules de lumière et
+piste calme originale de 64 secondes. Les deux médias et leur provenance restent dans son workspace ;
+aucune branche d'exécution du moteur ne dépend du slug Solaren.
+
+La distribution versionnée sous `exe/` expose deux exécutables racine : `OpenRPG_Forge_Studio.exe`
+pour le Creator et `Solaren_Les_Vallees_Libres.exe` pour le jeu. Le manifeste du lanceur Solaren couvre
+227 fichiers, dont son fond, sa musique, son package Client et le runtime partagé. Les deux exécutables
+restent non signés et leurs sous-dossiers ne sont pas des dépendances facultatives.
+
+### Frontière actuelle du multijoueur Internet
+
+| Couche | État courant |
+| --- | --- |
+| Profil Creator et lanceur | héberger ou rejoindre par IPv4/DNS, détection publique facultative, copie `adresse:port`, port TCP persistant et interface vérifiée |
+| Transport | TCP direct réel, hôte runtime ou `Forge.Server`, admission module/protocole et snapshots révisionnés |
+| Runtime | présence, zone, position, orientation et avatars distants interpolés |
+| Gameplay coopératif | non qualifié : les contrats RPG ne sont pas encore routés par ce transport |
+| Internet public non fiable | non qualifié : la détection d'adresse ne prouve pas la joignabilité ; pas de chiffrement, identité d'hôte, reconnexion, relais ou NAT automatique |
+
+Studio configure des contrats réseau plus riches, mais ses aperçus et scénarios mémoire ne prouvent
+pas à eux seuls leur raccord au transport du lanceur. Le guide opérationnel et la frontière exacte
+sont dans `docs/MULTIPLAYER_INTERNET.md` ; l'ADR-0048 porte la décision de protocole.
 
 Le parcours Creator normal ouvre la Crypte des Cendres et privilégie l'édition directe :
 choisir un objet ou une brosse de terrain, cliquer dans la vue 3D, cadrer la zone active et conserver
@@ -77,8 +113,10 @@ composants et assets tiers conservent leurs licences propres.
 
 Le chantier courant n’est plus la migration des routes Studio. Il porte sur la consolidation Git, la
 CI distante reproductible et les prérequis de release restants : signature Authenticode, revue
-physique multi-écrans, fournisseur IA réel et autorisation explicite de publication. Le plugin
-historique reste disponible jusqu'à une décision utilisateur explicite de basculer le lanceur Creator.
+physique multi-écrans, fournisseur IA réel et autorisation explicite de publication. Le prolongement
+multijoueur est suivi séparément : intentions gameplay autoritaires, sécurité, reconnexion,
+qualification WAN et éventuel relais/NAT. Le plugin historique reste disponible jusqu'à une décision
+utilisateur explicite de basculer le lanceur Creator.
 
 ## Expérience Creator cible
 

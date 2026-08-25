@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -75,7 +76,6 @@ using Forge.Network.Observability;
 using Forge.Network.Testing;
 using Forge.Network.Authoring;
 using Forge.Network.Scenarios;
-using Forge.Network.Sessions;
 using Forge.Network.World;
 using Forge.LiveDirector.Authoring;
 using Forge.LiveDirector.Scenarios;
@@ -136,6 +136,7 @@ public partial class GameRoot : Node3D
     private const string SaveFileArgument = "--save-file";
     private const string LoadSaveArgument = "--load-save";
     private const string VisualCaptureArgument = "--visual-capture";
+    private const string SolarenVisualFixtureArgument = "--solaren-visual-fixture";
     private const string ModuleMapVisualCaptureArgument = "--module-map-visual-capture";
     private const string RpgMenuVisualCaptureArgument = "--rpg-menu-visual-capture";
     private const string RpgMenuPageArgument = "--rpg-menu-page";
@@ -156,8 +157,6 @@ public partial class GameRoot : Node3D
     private static string? s_pendingPortalLabel;
     private static int s_innUxSmokeStep;
     private ProjectDefinition? _loadedProject;
-    private AuthoritativeSession? _launcherSession;
-
     private readonly Dictionary<Node3D, CombatantState> _hostiles = [];
     private readonly Dictionary<Node3D, string> _hostileNames = [];
     private readonly Dictionary<Node3D, BlueprintDefinition> _hostileBlueprints = [];
@@ -186,6 +185,7 @@ public partial class GameRoot : Node3D
     private readonly Dictionary<Guid, double> _scatterDueSeconds = [];
     private readonly Dictionary<Guid, int> _scatterSequences = [];
     private readonly Dictionary<string, AudioStreamWav> _proceduralAudioCache = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, Texture2D> _surfaceTextureCache = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> _animatedCharacterClipNames = new(StringComparer.Ordinal);
     private readonly Dictionary<Node3D, GodotAssetAnimationState> _characterAnimations = [];
     private readonly Dictionary<Node3D, CreatureRoleBehaviorRuntimeSnapshot> _creatureRoleBehaviors = [];
@@ -368,9 +368,21 @@ public partial class GameRoot : Node3D
     private int _terrainCollisionShapes;
     private int _terrainScatterLayers;
     private int _terrainScatterInstances;
+    private int _terrainWindAnimatedLayers;
     private int _terrainCullingGroups;
     private int _terrainWaterSurfaces;
     private int _terrainWaterVolumes;
+    private TerrainDefinition? _activeTerrain;
+    private Godot.Environment? _worldEnvironment;
+    private DirectionalLight3D? _referenceSun;
+    private float _baseAmbientLightEnergy;
+    private float _baseBackgroundEnergyMultiplier;
+    private float _baseTonemapExposure;
+    private float _baseFogDensity;
+    private float _baseFogLightEnergy;
+    private float _baseDirectionalLightEnergy;
+    private float _baseCloudCoverage;
+    private bool _baseFogEnabled;
     private int _ambientVfxEmitters;
     private int _ambientVfxParticles;
     private int _surfaceNavigationRegions;
@@ -394,6 +406,7 @@ public partial class GameRoot : Node3D
         var userArguments = OS.GetCmdlineUserArgs();
         var smokeTest = userArguments.Contains("--smoke-test", StringComparer.Ordinal);
         var genericSmokeTest = userArguments.Contains("--generic-smoke-test", StringComparer.Ordinal);
+        var solarenSmokeTest = userArguments.Contains("--solaren-smoke-test", StringComparer.Ordinal);
         var combatFeedbackSmokeTest = userArguments.Contains("--combat-feedback-smoke-test", StringComparer.Ordinal);
         var entryGroundSmokeTest = userArguments.Contains("--entry-ground-smoke-test", StringComparer.Ordinal);
         var cryptMovementSmokeTest = userArguments.Contains("--crypt-movement-smoke-test", StringComparer.Ordinal);
@@ -401,6 +414,7 @@ public partial class GameRoot : Node3D
         var saveSmokeCreate = userArguments.Contains("--save-smoke-create", StringComparer.Ordinal);
         var saveSmokeResume = userArguments.Contains("--save-smoke-resume", StringComparer.Ordinal);
         var visualCapturePath = GetArgumentValue(userArguments, VisualCaptureArgument);
+        var solarenVisualFixture = GetArgumentValue(userArguments, SolarenVisualFixtureArgument);
         var moduleMapVisualCapturePath = GetArgumentValue(userArguments, ModuleMapVisualCaptureArgument);
         var rpgMenuVisualCapturePath = GetArgumentValue(userArguments, RpgMenuVisualCaptureArgument);
         var dialogueVisualCapturePath = GetArgumentValue(userArguments, DialogueVisualCaptureArgument);
@@ -408,12 +422,13 @@ public partial class GameRoot : Node3D
         var combatFeedbackCapturePath = GetArgumentValue(userArguments, CombatFeedbackCaptureArgument);
         var combatFeedbackCaptureSize = GetArgumentValue(userArguments, CombatFeedbackCaptureSizeArgument);
         var visualRegressionSuitePath = GetArgumentValue(userArguments, VisualRegressionSuiteArgument);
-        var automatedTest = smokeTest || genericSmokeTest ||
+        var automatedTest = smokeTest || genericSmokeTest || solarenSmokeTest ||
             combatFeedbackSmokeTest ||
             entryGroundSmokeTest || cryptMovementSmokeTest ||
             innUxSmokeTest ||
             saveSmokeCreate || saveSmokeResume ||
             visualCapturePath is not null ||
+            solarenVisualFixture is not null ||
             moduleMapVisualCapturePath is not null ||
             rpgMenuVisualCapturePath is not null || dialogueVisualCapturePath is not null ||
             actionWheelVisualCapturePath is not null ||
@@ -444,7 +459,7 @@ public partial class GameRoot : Node3D
                 ? null
                 : PlaytestLaunchManifestStore.Load(playtestManifestPath);
             var project = LoadProject(snapshotPath, modulePackagePath, workspacePath);
-            _launcherSession = LauncherRuntimeBootstrap.CreateLocalHostSession(
+            await AcquireLauncherNetworkSessionAsync(
                 launcherContext,
                 _moduleContentSha256 ?? throw new InvalidOperationException("Loaded module fingerprint is missing."),
                 project.Module.DisplayName);
@@ -464,9 +479,11 @@ public partial class GameRoot : Node3D
                 : RuntimeLifecycleCause.SaveResume;
             _lifecycleEvents.Clear();
             _lifecycle = new RuntimeLifecycleCoordinator(observers: [HandleLifecycleEvent]);
-            var runtimeAuthority = _launcherSession is null
+            var runtimeAuthority = _launcherNetworkSession is null
                 ? RuntimeAuthority.SinglePlayer
-                : RuntimeAuthority.Server;
+                : _launcherNetworkSession.IsHost
+                    ? RuntimeAuthority.Server
+                    : RuntimeAuthority.Client;
             _areaCombatServerAuthority = runtimeAuthority is RuntimeAuthority.SinglePlayer or
                 RuntimeAuthority.Server;
             EnsureLifecycle(
@@ -478,6 +495,7 @@ public partial class GameRoot : Node3D
             _blackboard = ProjectBlackboardScriptService.ForRuntime(project.Module.Variables);
             _moduleTitle = project.Module.DisplayName;
             _moduleSlug = project.Module.Slug;
+            ApplyModuleWindowTitle();
             ConfigureFactions(project.Module.Factions);
             _defaultLocale = project.Module.Metadata.DefaultLocale;
             _isCryptPrototype = string.Equals(_moduleSlug, "crypt-of-ashes", StringComparison.Ordinal);
@@ -487,13 +505,13 @@ public partial class GameRoot : Node3D
             var startArea = ResolveStartArea(project, requestedSpawnId);
             _message = $"Explorez {startArea.DisplayName}.";
             ConfigureRuntimePolicies(project.Module.RuntimePolicies, startArea.RuntimePolicies);
-            _cameraRig.SetYawDegrees(startArea.Slug == "ember-inn" ? 219 : 39);
             PublishProjectConnectionEvent(PlayerConnectionStage.Joining, "authenticated");
             await ConfigureWorldAsync(startArea.Environment, startArea.World, startArea.Navigation, _isCryptPrototype);
             var selectedSpawn = BuildProject(project, requestedSpawnId);
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             if (_player?.GetNodeOrNull<Node3D>("AuthoredVisual") is { } settledPlayerVisual)
                 AlignPlayerVisualToCapsule(settledPlayerVisual);
+            ConfigureLauncherInternetReplication();
             if (!string.IsNullOrWhiteSpace(portalArrivalLabel))
             {
                 _message = $"Arrivée : {portalArrivalLabel}.";
@@ -521,7 +539,15 @@ public partial class GameRoot : Node3D
             }
 
             CreateHud();
+            ApplyModuleWindowTitle();
             ConfigureWaypointRuntime(startArea.Navigation.Waypoints);
+            if (solarenVisualFixture is not null)
+            {
+                if (visualCapturePath is null)
+                    throw new InvalidOperationException(
+                        "A Solaren visual fixture requires an explicit --visual-capture destination.");
+                await ConfigureSolarenVisualFixtureAsync(solarenVisualFixture);
+            }
             if (!entryGroundSmokeTest && !innUxSmokeTest &&
                 !cryptMovementSmokeTest && !combatFeedbackSmokeTest &&
                 combatFeedbackCapturePath is null)
@@ -617,6 +643,10 @@ public partial class GameRoot : Node3D
             {
                 RunGenericHeadlessSmokeTest();
             }
+            else if (solarenSmokeTest)
+            {
+                await RunSolarenHeadlessSmokeTestAsync();
+            }
             else if (saveSmokeCreate)
             {
                 RunSaveCreateSmokeTest();
@@ -632,6 +662,7 @@ public partial class GameRoot : Node3D
         }
         catch (Exception exception)
         {
+            ReleaseLauncherNetworkSessionAfterStartupFailure();
             if (innUxSmokeTest) s_innUxSmokeStep = 0;
             GD.PrintErr($"OPENRPG_FORGE_RUNTIME_STARTUP_FAILED {exception}");
             if (automatedTest)
@@ -652,6 +683,8 @@ public partial class GameRoot : Node3D
             throw new ArgumentException("The visual proof destination must be an absolute PNG path.", nameof(destination));
         for (var frame = 0; frame < 4; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
         var image = GetViewport().GetTexture().GetImage();
+        if (GetViewport().UseHdr2D && image.GetFormat() is Image.Format.Rgb8 or Image.Format.Rgba8)
+            image.LinearToSrgb();
         Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
         var error = image.SavePng(destination);
         if (error != Error.Ok) throw new IOException($"Visual proof could not be written: {error}.");
@@ -1276,7 +1309,18 @@ public partial class GameRoot : Node3D
 
     private Vector3 ConstrainCameraPosition(Vector3 focus, Vector3 desired)
     {
-        if (_player is not null)
+        var exteriorTerrain = _interiorWalkableBounds is null && _activeTerrain?.Enabled == true;
+        if (exteriorTerrain)
+        {
+            desired = RuntimeCameraRig.RaiseForTerrainClearance(
+                focus,
+                desired,
+                _activeTerrain!.HeightAt,
+                clearance: _cameraRig.TerrainClearance,
+                sampleCount: _cameraRig.TerrainProbeSamples);
+        }
+
+        if (_player is not null && !exteriorTerrain)
         {
             var horizontalOffset = new Vector3(desired.X - focus.X, 0, desired.Z - focus.Z);
             var horizontalDistance = horizontalOffset.Length();
@@ -1319,6 +1363,12 @@ public partial class GameRoot : Node3D
         query.CollideWithBodies = true;
         var hit = GetWorld3D().DirectSpaceState.IntersectRay(query);
         if (!hit.TryGetValue("position", out var position)) return desired;
+        if (exteriorTerrain && hit.TryGetValue("collider", out var collider) &&
+            collider.AsGodotObject() is Node terrainCollider &&
+            terrainCollider.Name == "TerrainCollision")
+        {
+            return desired;
+        }
         var direction = (desired - focus).Normalized();
         return position.AsVector3() - (direction * CameraDirectHitClearance);
     }
@@ -2002,7 +2052,6 @@ public partial class GameRoot : Node3D
             _activeArea?.Kind == AreaKind.Interior ? 8 : 30);
         player.MovementCamera = _camera;
         if (_gameplayControls is not null) player.Configure(_gameplayControls);
-
         if (!TryAttachVisual(player, entity, applyPlayerVisualTransform: true))
         {
             player.AddChild(new MeshInstance3D
@@ -2019,7 +2068,10 @@ public partial class GameRoot : Node3D
             Shape = new CapsuleShape3D { Radius = 0.45f, Height = 1.8f },
         });
         var playerLevel = ResolveProgression(blueprint).TotalLevel;
-        CreateLabel(player, blueprint.Combat is null ? "AVATAR" : playerLevel > 0 ? $"HÉROS · NIV. {playerLevel}" : "HÉROS",
+        var authoredDisplayName = GetOverride(entity, "runtime.displayName");
+        CreateLabel(player, !string.IsNullOrWhiteSpace(authoredDisplayName)
+                ? authoredDisplayName.ToUpperInvariant()
+                : blueprint.Combat is null ? "AVATAR" : playerLevel > 0 ? $"HÉROS · NIV. {playerLevel}" : "HÉROS",
             new Color("dff3ff"), 1.5f);
         return player;
     }
@@ -2088,8 +2140,10 @@ public partial class GameRoot : Node3D
         var isFloor = entity.Tags.Contains("floor", StringComparer.Ordinal);
         var usesInteriorFloorShell = isFloor && _interiorWalkableBounds is not null;
         var requiresFloorCollision = isFloor && !usesInteriorFloorShell;
+        var isOpenDoorway = entity.Tags.Contains("doorway", StringComparer.Ordinal);
         if (!usesInteriorFloorShell &&
-            (requiresFloorCollision || !entity.Tags.Contains("nonblocking", StringComparer.Ordinal)))
+            (requiresFloorCollision ||
+             (!isOpenDoorway && !entity.Tags.Contains("nonblocking", StringComparer.Ordinal))))
         {
             if (collisionProxy)
             {
@@ -2539,6 +2593,14 @@ public partial class GameRoot : Node3D
             dynamicLights,
             shadowLights);
         var engineEnvironment = GodotEnvironmentAdapter.Build(_renderPlan);
+        _worldEnvironment = engineEnvironment.Environment;
+        _baseAmbientLightEnergy = _worldEnvironment.AmbientLightEnergy;
+        _baseBackgroundEnergyMultiplier = _worldEnvironment.BackgroundEnergyMultiplier;
+        _baseTonemapExposure = _worldEnvironment.TonemapExposure;
+        _baseFogEnabled = _worldEnvironment.FogEnabled;
+        _baseFogDensity = _worldEnvironment.FogDensity;
+        _baseFogLightEnergy = _worldEnvironment.FogLightEnergy;
+        _baseCloudCoverage = (float)environmentProfile.Sky.CloudCoverage;
         RenderingServer.SetDefaultClearColor(new Color(environmentProfile.Sky.GroundColor));
         AddChild(new WorldEnvironment
         {
@@ -2551,17 +2613,22 @@ public partial class GameRoot : Node3D
         var sun = new DirectionalLight3D
         {
             Name = "ForgeReferenceSun",
-            RotationDegrees = new Vector3(-58, -32, 0),
+            RotationDegrees = new Vector3(
+                (float)environmentProfile.Rendering.VisualTuning.DirectionalLightPitchDegrees,
+                (float)environmentProfile.Rendering.VisualTuning.DirectionalLightYawDegrees,
+                0),
             LightColor = engineEnvironment.DirectionalLightColor,
             LightEnergy = engineEnvironment.DirectionalLightEnergy,
             LightVolumetricFogEnergy = 1.25f,
-            LightAngularDistance = .52f,
+            LightAngularDistance = (float)environmentProfile.Rendering.VisualTuning.DirectionalLightAngularDistance,
             ShadowEnabled = environmentProfile.Lighting.Shadows,
-            ShadowBlur = 1.45f,
+            ShadowBlur = (float)environmentProfile.Rendering.VisualTuning.ShadowBlur,
             DirectionalShadowMode = DirectionalLight3D.ShadowMode.Parallel4Splits,
             DirectionalShadowMaxDistance = 320,
             DirectionalShadowFadeStart = .82f,
         };
+        _referenceSun = sun;
+        _baseDirectionalLightEnergy = sun.LightEnergy;
         AddChild(sun);
 
         if (environmentProfile.Tags.Contains("indoor", StringComparer.OrdinalIgnoreCase))
@@ -2653,10 +2720,12 @@ public partial class GameRoot : Node3D
         _terrainManagedHeapBeforeBytes = GC.GetTotalMemory(forceFullCollection: false);
         _activeBiomeTags = profile.Biomes.SelectMany(item => item.Tags)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        _activeTerrain = profile.Terrain;
         var terrain = GodotTerrainAdapter.Build(
             profile,
             _modelLibrary is null ? null : _modelLibrary.ResolveScatterMesh,
-            _environmentProfile?.Water.Bodies);
+            _environmentProfile?.Water.Bodies,
+            ResolveContentTexture);
         _terrainVertices = terrain.Vertices;
         _terrainTriangles = terrain.Triangles;
         _terrainSectors = terrain.TerrainSectors;
@@ -2665,6 +2734,7 @@ public partial class GameRoot : Node3D
         _terrainCollisionShapes = terrain.CollisionShapes;
         _terrainScatterLayers = terrain.ScatterLayers;
         _terrainScatterInstances = terrain.ScatterInstances;
+        _terrainWindAnimatedLayers = terrain.WindAnimatedScatterLayers;
         _terrainCullingGroups = terrain.CullingGroups;
         _terrainBuildMetrics = terrain.Metrics;
         _terrainWaterSurfaces = terrain.WaterSurfaces;
@@ -2745,11 +2815,35 @@ public partial class GameRoot : Node3D
             $"collisions={terrain.CollisionShapes} " +
             $"features={terrain.FeatureSegments} volumes={terrain.DebugVolumes} routes={terrain.FlightRouteSegments} " +
             $"scatter_layers={terrain.ScatterLayers} scatter_instances={terrain.ScatterInstances} " +
+            $"wind_layers={terrain.WindAnimatedScatterLayers} " +
             $"water_surfaces={terrain.WaterSurfaces} water_volumes={terrain.WaterVolumes} " +
             $"nav_regions={surfaceNavigation.Regions} nav_polygons={surfaceNavigation.Polygons} " +
             $"nav_blocked={surfaceNavigation.BlockedTriangles} nav_links={surfaceNavigation.Links} " +
             $"streamed={streaming?.Resources.Count ?? 0} cache_hits={streaming?.CacheHits ?? 0} " +
             $"elapsed_ms={elapsed.TotalMilliseconds:0.###} target_ms={profile.Loading.TargetLoadMilliseconds}");
+    }
+
+    private Texture2D? ResolveContentTexture(string relativePath)
+    {
+        if (_surfaceTextureCache.TryGetValue(relativePath, out var cached)) return cached;
+        if (string.IsNullOrWhiteSpace(_moduleContentRoot) ||
+            Path.IsPathFullyQualified(relativePath) ||
+            relativePath.Split('/', '\\').Any(segment => segment is "" or "." or ".."))
+        {
+            return null;
+        }
+
+        var root = Path.GetFullPath(_moduleContentRoot);
+        var absolute = Path.GetFullPath(Path.Combine(root,
+            relativePath.Replace('/', Path.DirectorySeparatorChar)));
+        var rootPrefix = root.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        if (!absolute.StartsWith(rootPrefix, StringComparison.OrdinalIgnoreCase) || !File.Exists(absolute))
+            return null;
+        var image = Image.LoadFromFile(absolute);
+        if (image.IsEmpty()) return null;
+        var texture = ImageTexture.CreateFromImage(image);
+        _surfaceTextureCache[relativePath] = texture;
+        return texture;
     }
 
     private bool LoadingResourceExists(string resourcePath) => CinematicResourceExists(resourcePath);
@@ -4472,9 +4566,9 @@ public partial class GameRoot : Node3D
     {
         if (_worldFeatureCatalog is null || _currentAreaId is null) return null;
         var currentArea = AreaId.Parse(_currentAreaId);
-        var partyExpected = Math.Max(1, _launcherSession?.Snapshot.Members.Count ?? 1);
-        // Remote avatar presence is not connected yet. A multi-member local-host session therefore cannot
-        // claim that the full party is physically inside a safe-rest volume.
+        var partyExpected = LauncherConnectedPlayerCount();
+        // Remote poses are visible but are not evaluated against authored safe-rest volumes yet. A
+        // multi-member session therefore cannot claim that the full party is physically inside one.
         var partyPresent = partyExpected == 1 ? 1 : 0;
         TriggerRestRuntimeResolution? accepted = null;
         foreach (var profile in _worldFeatureCatalog.Triggers
@@ -4617,7 +4711,7 @@ public partial class GameRoot : Node3D
                              GodotObject.IsInstanceValid(node))
             .Select(entity => entity.BlueprintId)
             .ToHashSet();
-        var connectedPlayers = Math.Max(1, _launcherSession?.Snapshot.Members.Count ?? 1);
+        var connectedPlayers = LauncherConnectedPlayerCount();
         // The local runtime has no multiplayer vote transport. Only the canonical party-vote policy can
         // resolve, and only for a one-member local-host session; every other policy remains fail-closed.
         var voteSatisfied = string.Equals(narrative.MultiplayerPolicy, "party-vote", StringComparison.Ordinal) &&
@@ -4747,6 +4841,7 @@ public partial class GameRoot : Node3D
         _climateEffects = result.Root;
         _climateSignature = signature;
         AddChild(_climateEffects);
+        ApplyWeatherLighting(plan.Weather);
         if (_climateEffects.GetChildren().OfType<GpuParticles3D>().FirstOrDefault() is { } createdPrecipitation)
         {
             createdPrecipitation.GlobalPosition = listener + (Vector3.Up * 18);
@@ -4763,7 +4858,49 @@ public partial class GameRoot : Node3D
             $"particles={result.PrecipitationEmitters} water={result.WaterSurfaces} reverb={result.ReverbPreset} " +
             $"authority={_environmentProfile.Weather.ServerAuthoritative.ToString().ToLowerInvariant()} " +
             $"save={_environmentProfile.Weather.PersistState.ToString().ToLowerInvariant()} " +
-            $"replicate={_environmentProfile.Weather.ReplicateState.ToString().ToLowerInvariant()}");
+                    $"replicate={_environmentProfile.Weather.ReplicateState.ToString().ToLowerInvariant()}");
+    }
+
+    private void ApplyWeatherLighting(WeatherStateProfile weather)
+    {
+        if (_worldEnvironment is null || _referenceSun is null) return;
+
+        var (sunMultiplier, ambientMultiplier, skyMultiplier, exposureMultiplier,
+            fogDensity, fogEnergy) = weather.Kind switch
+            {
+                WeatherKind.Overcast => (.68f, .82f, .76f, .94f, _baseFogDensity, .82f),
+                WeatherKind.Rain => (.52f, .72f, .64f, .90f,
+                    Math.Max(_baseFogDensity, .0022f + weather.Intensity * .0015f), .72f),
+                WeatherKind.Storm => (.38f, .62f, .48f, .84f,
+                    Math.Max(_baseFogDensity, .0038f + weather.Intensity * .0022f), .62f),
+                WeatherKind.Snow => (.62f, .84f, .78f, .92f,
+                    Math.Max(_baseFogDensity, .0028f + weather.Intensity * .0012f), .86f),
+                WeatherKind.Fog => (.44f, .74f, .58f, .89f,
+                    Math.Max(_baseFogDensity, .0052f + weather.Intensity * .003f), .66f),
+                _ => (1f, 1f, 1f, 1f, _baseFogDensity, 1f),
+            };
+
+        _referenceSun.LightEnergy = _baseDirectionalLightEnergy * sunMultiplier;
+        _worldEnvironment.AmbientLightEnergy = _baseAmbientLightEnergy * ambientMultiplier;
+        _worldEnvironment.BackgroundEnergyMultiplier = _baseBackgroundEnergyMultiplier * skyMultiplier;
+        _worldEnvironment.TonemapExposure = _baseTonemapExposure * exposureMultiplier;
+        _worldEnvironment.FogEnabled = _baseFogEnabled || weather.Kind is WeatherKind.Rain or
+            WeatherKind.Storm or WeatherKind.Snow or WeatherKind.Fog;
+        _worldEnvironment.FogDensity = fogDensity;
+        _worldEnvironment.FogLightEnergy = _baseFogLightEnergy * fogEnergy;
+        if (_worldEnvironment.Sky?.SkyMaterial is ShaderMaterial skyMaterial)
+        {
+            var cloudCoverage = weather.Kind switch
+            {
+                WeatherKind.Overcast => Math.Max(_baseCloudCoverage, .68f),
+                WeatherKind.Rain => Math.Max(_baseCloudCoverage, .86f),
+                WeatherKind.Storm => Math.Max(_baseCloudCoverage, .95f),
+                WeatherKind.Snow => Math.Max(_baseCloudCoverage, .78f),
+                WeatherKind.Fog => Math.Max(_baseCloudCoverage, .64f),
+                _ => _baseCloudCoverage,
+            };
+            skyMaterial.SetShaderParameter("cloud_coverage", cloudCoverage);
+        }
     }
 
     private void CreateFinalCryptAtmosphere()
@@ -4857,6 +4994,14 @@ public partial class GameRoot : Node3D
                 attack: GetOverride(entity, "runtime.animationAttack") ?? "1H_Melee_Attack_Slice_Horizontal",
                 hit: GetOverride(entity, "runtime.animationHit") ?? "Hit_A",
                 death: GetOverride(entity, "runtime.animationDeath") ?? "Death_A"),
+            "authored-clips" => GodotAssetAnimationController.Configure(
+                visual,
+                idle: RequiredAnimationOverride(entity, "runtime.animationIdle"),
+                run: RequiredAnimationOverride(entity, "runtime.animationRun"),
+                jump: RequiredAnimationOverride(entity, "runtime.animationJump"),
+                attack: RequiredAnimationOverride(entity, "runtime.animationAttack"),
+                hit: RequiredAnimationOverride(entity, "runtime.animationHit"),
+                death: RequiredAnimationOverride(entity, "runtime.animationDeath")),
             "quaternius-dragon" => GodotAssetAnimationController.Configure(
                 visual,
                 idle: GetOverride(entity, "runtime.animationIdle") ?? "Dragon_Flying",
@@ -5568,6 +5713,12 @@ public partial class GameRoot : Node3D
         entity.Overrides.Properties.SingleOrDefault(property =>
             string.Equals(property.Key, key, StringComparison.Ordinal))?.Value;
 
+    private static string RequiredAnimationOverride(EntityInstance entity, string key) =>
+        !string.IsNullOrWhiteSpace(GetOverride(entity, key))
+            ? GetOverride(entity, key)!
+            : throw new InvalidDataException(
+                $"Entity '{entity.Id}' uses authored-clips but does not define '{key}'.");
+
     private void CreateHud()
     {
         _combatUiPolicy = RuntimeUiMotionPolicy.Create(
@@ -5641,6 +5792,13 @@ public partial class GameRoot : Node3D
             AddChild(_declarativeUi);
         }
         UpdateTacticalHud();
+    }
+
+    private void ApplyModuleWindowTitle()
+    {
+        var title = $"OpenRPG Forge — {_moduleTitle}";
+        GetWindow().Title = title;
+        DisplayServer.WindowSetTitle(title);
     }
 
     private void RegisterCombatFeedbackTargets()
@@ -7077,8 +7235,9 @@ public partial class GameRoot : Node3D
 
         if (!_isCryptPrototype)
         {
+            var areaName = _activeArea?.DisplayName ?? _moduleTitle;
             PresentHudState(
-                "explorer le module",
+                $"explorer {areaName}",
                 _message,
                 "Parcourez la zone et découvrez ses lieux remarquables.");
             return;

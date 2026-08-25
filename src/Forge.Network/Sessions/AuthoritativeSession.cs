@@ -24,6 +24,7 @@ public sealed class AuthoritativeSession
         if (protocolVersion != _configuration.ProtocolVersion) return Reject("NET_PROTOCOL_MISMATCH", connectionId);
         if (_members.Count >= _configuration.Capacity) return Reject("NET_SERVER_FULL", connectionId);
         if (connectionId == Guid.Empty || identity.AccountId == Guid.Empty) return Reject("NET_IDENTITY_INVALID", connectionId);
+        if (_members.ContainsKey(connectionId)) return Reject("NET_CONNECTION_EXISTS", connectionId);
         _members[connectionId] = new(connectionId, identity, null, false);
         _revision++;
         return Accept("NET_CONNECTED", connectionId);

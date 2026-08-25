@@ -186,6 +186,7 @@ public sealed class RoslynArchitectureGraphTests : IDisposable
         Write("src/Domain/.forge/generated.json", "{}\n");
         Write("src/Domain/secrets.sqlite", "not a database fixture");
         Write(".env", "SECRET=ignored");
+        Write("apps/Forge.Runtime/content/solaren/project.json", "{\"module\":\"content, not architecture\"}\n");
 
         var paths = new SourceScanner().Discover(_root).Select(source => source.Path).ToArray();
 
@@ -195,6 +196,8 @@ public sealed class RoslynArchitectureGraphTests : IDisposable
         Assert.DoesNotContain(paths, path => path.Contains("/.forge/", StringComparison.Ordinal));
         Assert.DoesNotContain(paths, path => path.EndsWith(".sqlite", StringComparison.Ordinal));
         Assert.DoesNotContain(".env", paths);
+        Assert.DoesNotContain(paths, path => path.StartsWith(
+            "apps/Forge.Runtime/content/", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]

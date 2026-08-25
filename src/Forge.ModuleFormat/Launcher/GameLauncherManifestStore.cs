@@ -47,6 +47,9 @@ public static class GameLauncherManifestStore
         var background = manifest.BackgroundImage is null
             ? null
             : ResolveRequiredFile(root, manifest.BackgroundImage, "Launcher background image");
+        var music = manifest.Music is null
+            ? null
+            : ResolveRequiredFile(root, manifest.Music, "Launcher music");
         if (verifyHashes)
         {
             RequireHash(launcher, manifest.LauncherSha256, "Launcher executable");
@@ -54,7 +57,7 @@ public static class GameLauncherManifestStore
             RequireHash(module, manifest.ModuleSha256, "Module package");
         }
 
-        return new GameLauncherVerification(manifest, root, launcher, runtime, module, background);
+        return new GameLauncherVerification(manifest, root, launcher, runtime, module, background, music);
     }
 
     public static void Save(string rootDirectory, GameLauncherManifest manifest)
@@ -122,6 +125,7 @@ public static class GameLauncherManifestStore
             launcher.ModulePackage,
         };
         if (launcher.BackgroundImage is not null) requiredPaths.Add(launcher.BackgroundImage);
+        if (launcher.Music is not null) requiredPaths.Add(launcher.Music);
         var missingRequiredPath = requiredPaths.FirstOrDefault(path => !indexedPaths.Contains(path));
         if (missingRequiredPath is not null)
             throw new InvalidDataException(
@@ -147,12 +151,16 @@ public static class GameLauncherManifestStore
             if (!IsSafeRelativePath(path)) diagnostics.Add("launcher.path_unsafe");
         if (manifest.BackgroundImage is not null && !IsSafeRelativePath(manifest.BackgroundImage))
             diagnostics.Add("launcher.background_unsafe");
+        if (manifest.Music is not null &&
+            (!IsSafeRelativePath(manifest.Music) ||
+             !Path.GetExtension(manifest.Music).Equals(".wav", StringComparison.OrdinalIgnoreCase)))
+            diagnostics.Add("launcher.music_unsafe");
         foreach (var hash in new[] { manifest.LauncherSha256, manifest.RuntimeSha256, manifest.ModuleSha256 })
             if (!IsSha256(hash)) diagnostics.Add("launcher.hash_invalid");
         if (!IsOptionalHttpUrl(manifest.NewsUrl) || !IsOptionalHttpUrl(manifest.SupportUrl))
             diagnostics.Add("launcher.url_invalid");
         if (!Enum.IsDefined(manifest.Multiplayer)) diagnostics.Add("launcher.multiplayer_invalid");
-        if (manifest.DefaultServerPort is < 1 or > 65_535) diagnostics.Add("launcher.port_invalid");
+        if (manifest.DefaultServerPort is < 1024 or > 65_535) diagnostics.Add("launcher.port_invalid");
         return diagnostics.Distinct(StringComparer.Ordinal).ToArray();
     }
 

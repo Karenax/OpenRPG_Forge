@@ -30,6 +30,10 @@ public partial class App
                 argument.StartsWith("--page=", StringComparison.Ordinal));
             var captureSizeArgument = eventArgs.Args.FirstOrDefault(argument =>
                 argument.StartsWith("--capture-size=", StringComparison.Ordinal));
+            var sessionModeArgument = eventArgs.Args.FirstOrDefault(argument =>
+                argument.StartsWith("--session-mode=", StringComparison.Ordinal));
+            var publicAddressArgument = eventArgs.Args.FirstOrDefault(argument =>
+                argument.StartsWith("--public-address=", StringComparison.Ordinal));
             var window = new LauncherWindow(verification, settings, settingsPath);
             MainWindow = window;
             if (captureArgument is not null)
@@ -37,7 +41,9 @@ public partial class App
                 var capturePath = Path.GetFullPath(captureArgument["--capture=".Length..]);
                 var page = pageArgument?["--page=".Length..] ?? "home";
                 var (width, height) = ParseCaptureSize(captureSizeArgument);
-                await window.CapturePreviewAsync(capturePath, page, width, height);
+                var sessionMode = sessionModeArgument?["--session-mode=".Length..];
+                var publicAddress = publicAddressArgument?["--public-address=".Length..];
+                await window.CapturePreviewAsync(capturePath, page, width, height, sessionMode, publicAddress);
                 Shutdown(0);
                 return;
             }
