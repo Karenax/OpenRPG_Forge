@@ -66,7 +66,8 @@ public static class WorkspaceQualityAcceptanceEvidenceValidator
         ArgumentNullException.ThrowIfNull(profile);
         var root = Path.GetFullPath(repositoryRoot);
         var diagnostics = QualityAcceptanceProfileValidator.Validate(profile).ToList();
-        if (!Directory.Exists(root) || !Directory.Exists(Path.Combine(root, ".git")))
+        var gitPath = Path.Combine(root, ".git");
+        if (!Directory.Exists(root) || (!Directory.Exists(gitPath) && !File.Exists(gitPath)))
         {
             diagnostics.Add(Diagnostic(RepositoryRootInvalidCode, "Repository root is missing or is not a Git checkout.", root));
             return new(false, 0, 0, 0, diagnostics);

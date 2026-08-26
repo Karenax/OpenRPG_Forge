@@ -178,7 +178,7 @@ public sealed class ForgeMcpQuestJsonBindingTests
 
         var root = directory?.FullName
             ?? throw new DirectoryNotFoundException("Could not locate the OpenRPG Forge repository root.");
-        var path = Path.Combine(root, "artifacts", "mcp-solaren-context", "quest-proposal.json");
+        var path = Path.Combine(root, "tests", "Forge.Mcp.Tests", "Fixtures", "quest-proposal.json");
         return JsonNode.Parse(File.ReadAllText(path))?.AsObject()
             ?? throw new InvalidDataException($"The fixture '{path}' is not a JSON object.");
     }
