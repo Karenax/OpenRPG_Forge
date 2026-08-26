@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "id": "openrpg-worldgen-quality-reference-v1",
+  "seed": 20260826,
+  "bounds": {
+    "widthMeters": 2000,
+    "depthMeters": 2000,
+    "maximumElevationMeters": 420
+  },
+  "terrain": {
+    "archetype": "temperate-valley",
+    "roughness": 0.55,
+    "erosionPasses": 3,
+    "adaptToStructures": true
+  },
+  "hydrology": {
+    "mainRiver": {
+      "orientation": "north-south",
+      "targetWidthMeters": 18,
+      "requiresDeclaredCrossings": true
+    }
+  },
+  "biomes": [
+    {
+      "key": "dense-temperate-forest",
+      "region": "west",
+      "density": 0.78
+    },
+    {
+      "key": "meadow-and-farmland",
+      "region": "east",
+      "density": 0.42
+    }
+  ],
+  "settlements": [
+    {
+      "key": "reference-village",
+      "type": "village",
+      "buildingCount": 25,
+      "placementRule": "near-main-river",
+      "heroZones": [
+        "arrival",
+        "central-square"
+      ]
+    },
+    {
+      "key": "reference-castle",
+      "type": "castle",
+      "buildingCount": 8,
+      "placementRule": "northern-high-ground",
+      "heroZones": [
+        "main-gate",
+        "courtyard"
+      ]
+    }
+  ],
+  "landmarks": [
+    {
+      "key": "reference-mine",
+      "type": "mine",
+      "placementRule": "mountain-foot"
+    }
+  ],
+  "roads": {
+    "requiredLinks": [
+      "reference-village:reference-castle",
+      "reference-village:reference-mine"
+    ],
+    "requireConnectedIntersections": true
+  },
+  "dungeon": {
+    "type": "crypt-mine-complex",
+    "minimumRooms": 20,
+    "maximumRooms": 30,
+    "floors": 2,
+    "requiresCriticalPath": true,
+    "requiresLoop": true,
+    "requiresSecretRoom": true,
+    "requiresBossRoom": true
+  },
+  "quality": {
+    "preserveManualEdits": true,
+    "requireNavigation": true,
+    "requireVisualCaptures": true,
+    "repeatCount": 3,
+    "secondaryPropPlacementErrorMaximumRatio": 0.005,
+    "maximumFrameTimeRegressionRatio": 0.10,
+    "minimumManualEffortReductionRatio": 0.25,
+    "minimumBlindVisualScoreImprovementRatio": 0.15
+  },
+  "provenance": "openrpg-forge:worldgen-quality-reference-v1"
+}

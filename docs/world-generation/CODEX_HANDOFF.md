@@ -1,85 +1,105 @@
-# Handoff Codex — WorldGeneration
+# Handoff Codex — WorldGeneration qualité
 
 ## État en une minute
 
-Le système fournit une orchestration MCP gouvernée et indépendante du moteur : recettes versionnées,
-dry-run et application transactionnelle, previews déterministes, plans à empreinte stable, sélection
-partielle d'étapes, jobs JSON persistants, audit, annulation et fallback Godot natif. Terrain3D et
-Godot Flow sont facultatifs, épinglés et installés par script.
+Le socle WorldGeneration a été fusionné dans `main` au commit :
 
-Le fallback testé sous Godot 4.7.1 produit un terrain déterministe avec maillage et collision. Les
-autres étapes natives restent surtout des conteneurs/ancres. Les graphes PCG artistiques ne sont pas
-livrés et le worker ne sauvegarde pas encore la scène générée dans le modèle canonique du module.
+```text
+b0a519b1566c4c5dded9db7fe38c0cfc6d99399d
+```
+
+Le travail de qualification et d'amélioration visuelle continue sur :
+
+```text
+feat/worldgen-quality-qualification
+```
+
+Le système fournit déjà recettes versionnées, dry-run, plans déterministes, jobs persistants, audit,
+annulation, régénération partielle, adaptateurs Terrain3D/Graph PCG et fallback natif. Il ne fournit
+pas encore un monde artistique de production : les graphes PCG attendus manquent, la qualification
+réelle des addons sous Godot 4.7.1 reste à faire et la promotion canonique n'existe pas encore.
+
+La première tranche de cette branche conserve l'enum sérialisé `PcgGodot`, mais distingue le
+fournisseur concret par `providerKey` :
+
+```text
+terrain3d
+godot-flow
+gf-pcgodot
+openrpg-native
+```
+
+Cette distinction est nécessaire pour comparer les implémentations sans casser les modules existants.
+
+## Mission suivante
+
+Lire et exécuter :
+
+```text
+docs/world-generation/CODEX_EXECUTION_PLAN.md
+```
+
+Le prochain lot prioritaire est la qualification réelle de Terrain3D et Godot Flow dans une fixture
+Godot 4.7.1, suivie de la carte de référence et de son harness de mesure. Ne commence pas par intégrer
+un nouvel addon.
+
+## Documents de décision
+
+- `docs/world-generation/CODEX_EXECUTION_PLAN.md`
+- `docs/world-generation/QUALITY_BENCHMARK.md`
+- `docs/world-generation/BACKEND_QUALIFICATION.md`
+- `docs/world-generation/README.md`
+- `docs/ADR/ADR-0050-governed-world-generation-orchestration.md`
 
 ## Fichiers importants
 
 | Zone | Fichiers |
 |---|---|
 | Domaine | `src/Forge.Domain/WorldGeneration/WorldGenerationRecipe.cs`, `WorldGenerationRecipeCatalog.cs` |
-| Application | `src/Forge.Application/WorldGeneration/WorldGenerationContracts.cs`, `WorldGenerationPlanner.cs`, `SetWorldGenerationRecipes.cs`, `WorldGenerationJob.cs` |
-| Persistance | `src/Forge.ModuleFormat/Serialization/WorldGeneration*JsonSerializer.cs`, `src/Forge.ModuleFormat/Workspaces/WorldGeneration*Store.cs`, `WorldGenerationWorkspacePath.cs` |
+| Application | `src/Forge.Application/WorldGeneration/` |
+| Persistance | `src/Forge.ModuleFormat/Serialization/WorldGeneration*`, `src/Forge.ModuleFormat/Workspaces/WorldGeneration*` |
 | Adaptateurs | `src/Forge.EngineAdapter/WorldGeneration/` |
-| MCP | `src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs`, `WorldGenerationContracts.cs`, `apps/Forge.McpHost/ForgeWorldGenerationMcpTools.cs` |
+| Identité fournisseurs | `WorldGenerationProviderKeys.cs`, `WorldGenerationBackendCapabilityProbe.cs` |
+| MCP | `src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs`, `apps/Forge.McpHost/ForgeWorldGenerationMcpTools.cs` |
 | Godot | `integrations/godot/addons/openrpg_world_generation/` |
+| Registre graphes | `integrations/godot/addons/openrpg_world_generation/graph_registry.json` |
 | Dépendances | `third_party/world-generation.dependencies.json`, `scripts/Install-WorldGenerationDependencies.ps1` |
-| Décision | `docs/ADR/ADR-0050-governed-world-generation-orchestration.md` |
+| Tests | `tests/*/WorldGeneration/`, `tests/Godot/WorldGenerationNativeSmoke.gd` |
 
 ## Invariants à préserver
 
-- Domain et Application ne référencent jamais Godot, Terrain3D ou Godot Flow.
-- Le MCP orchestre ; il ne reçoit ni n'exécute du GDScript libre.
-- Toute mutation de recette passe par preview/diff, permission, révisions et application du plan.
-- Une exécution n'est mise en file qu'à partir d'un plan persisté et encore cohérent avec la recette.
-- Recipe et plan fingerprints sont des SHA-256 minuscules ; l'empreinte du plan est vérifiée en C#
-  et dans le worker GDScript.
-- Les opérations backend sont allowlistées des deux côtés du bridge.
-- Les fichiers restent sous le workspace ; traversées, chemins absolus, liens et jonctions sont refusés.
-- Le backend natif reste exécutable sans addon externe.
-- Les retouches humaines protégées ne sont pas remplacées par une régénération.
-- `AreaWorldProfile` reste canonique : une scène générée est dérivée tant qu'aucune commande de
-  promotion explicite n'existe.
+- Domain et Application ne référencent jamais Godot, Terrain3D ou un fournisseur Graph PCG.
+- Le MCP orchestre des contrats bornés ; aucun GDScript arbitraire n'est accepté.
+- Toute mutation reste previewée, révisionnée, permissionnée et auditée.
+- Recipe et plan fingerprints restent canoniques et vérifiés des deux côtés du bridge.
+- Les fichiers sont confinés au workspace.
+- Le fallback natif reste disponible pour les contrats et la CI.
+- Les retouches protégées ne sont pas remplacées.
+- `AreaWorldProfile` reste canonique jusqu'à une promotion explicite.
+- Un seul fournisseur possède une couche de production.
+- Aucun gain visuel n'est annoncé sans benchmark et captures normalisées.
 
 ## Tests ciblés
 
 ```powershell
-dotnet test tests/Forge.Application.Tests/Forge.Application.Tests.csproj -c Release --filter FullyQualifiedName~WorldGeneration
-dotnet test tests/Forge.ModuleFormat.Tests/Forge.ModuleFormat.Tests.csproj -c Release --filter FullyQualifiedName~WorldGeneration
-dotnet test tests/Forge.EngineAdapter.Tests/Forge.EngineAdapter.Tests.csproj -c Release --filter FullyQualifiedName~WorldGeneration
-dotnet test tests/Forge.Mcp.Tests/Forge.Mcp.Tests.csproj -c Release --filter FullyQualifiedName~WorldGeneration
-
-$godot = (Get-Command godot* | Where-Object Source -Like '*console.exe' | Select-Object -First 1).Source
-& $godot --headless --check-only --script integrations/godot/addons/openrpg_world_generation/openrpg_world_generation_backend.gd
-& $godot --headless --check-only --script integrations/godot/addons/openrpg_world_generation/world_generation_job_runner.gd
-& $godot --headless --script tests/Godot/WorldGenerationNativeSmoke.gd
-
-./scripts/Install-WorldGenerationDependencies.ps1 -GodotProjectPath ./apps/Forge.Toolset -WhatIf
+dotnet restore OpenRPGForge.sln --locked-mode
+dotnet test tests/Forge.EngineAdapter.Tests/Forge.EngineAdapter.Tests.csproj -c Release --no-restore --filter FullyQualifiedName~WorldGeneration
+dotnet test tests/Forge.Application.Tests/Forge.Application.Tests.csproj -c Release --no-restore --filter FullyQualifiedName~WorldGeneration
+dotnet test tests/Forge.ModuleFormat.Tests/Forge.ModuleFormat.Tests.csproj -c Release --no-restore --filter FullyQualifiedName~WorldGeneration
+dotnet test tests/Forge.Mcp.Tests/Forge.Mcp.Tests.csproj -c Release --no-restore --filter FullyQualifiedName~WorldGeneration
 ```
 
-Puis appliquer la vérification ciblée issue du graphe, régénérer le graphe si une source indexée a
-changé, et terminer par les gates demandés dans `AGENTS.md` et `PROJECT_CONTEXT.md`.
+Puis les gates indiqués par `AGENTS.md`, le formatage, le build complet, les tests complets et le graphe
+d'architecture.
 
-## Scénarios couverts
+## Limites à ne pas masquer
 
-- identité et empreinte de recette déterministes ;
-- empreinte du plan indépendante des GUID de suivi ;
-- régénération partielle triée et chaînée ;
-- rejet de nombres non finis, chemins de nœud dangereux et couples backend/étape incompatibles ;
-- fallback Application vers l'adaptateur natif ;
-- persistance de la révision de recette, du plan, du job et de l'audit ;
-- rejet d'un plan altéré ;
-- réouverture du service MCP avec recette et job conservés ;
-- protocole C#/GDScript partagé, rejet d'opération altérée, maillage/collision et fallback sous Godot.
+1. Les graphes artistiques de production ne sont pas livrés.
+2. Les étapes natives hors terrain restent principalement des ancres déterministes.
+3. Terrain3D et Godot Flow n'ont pas encore été qualifiés ensemble dans une CI réelle sous 4.7.1.
+4. Le worker ne promeut pas automatiquement la scène vers le module canonique.
+5. Navigation et reachability ne sont pas encore prouvées sur la carte de référence complète.
+6. Les fournisseurs concurrents ne sont pas encore comparés avec les mêmes assets et la même seed.
 
-## Limites et prochaines étapes
-
-1. Ajouter des graphes PCG génériques ou propres à un module avec fixtures et budget de performance.
-2. Concevoir une commande explicite qui promeut une génération validée vers les contrats canoniques
-   sans écraser `AreaWorldProfile` ni les retouches humaines.
-3. Sauvegarder atomiquement la scène dérivée et les reçus d'artefacts après succès du worker.
-4. Remplacer les ancres natives par des générateurs complets pour hydrologie, routes, bâtiments,
-   gameplay et navigation, avec collision et reachability réelles.
-5. Qualifier Terrain3D `v1.0.2-stable` et Godot Flow au commit épinglé dans un projet Godot 4.7.1
-   jetable, puis sur une vraie zone extérieure.
-6. Persister l'inverse des plans de mutation de recette si un revert après redémarrage devient requis.
-
-Ne marquer aucune de ces limites comme terminée sur la seule base d'un plan ou d'un marker de scène.
+Ne marque aucune limite comme résolue sur la seule base d'un document, d'un marker de scène ou d'un
+test de présence de plugin.
