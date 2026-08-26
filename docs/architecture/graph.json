@@ -3,7 +3,7 @@
     "schema_version": 2,
     "engine": "roslyn",
     "engine_version": "5.6.0.0",
-    "source_digest": "sha256:fd911158b3723ff433ca0e2add2eecda32a2f2d355836a3420f92c328561a77c",
+    "source_digest": "sha256:32d5abb4fd99638a7a12c12a870d2866c1ea3b4973a458944b683a54bbde9790",
     "source_file_count": 3820,
     "sources": [
       {
@@ -16223,8 +16223,8 @@
       },
       {
         "path": "tests/Forge.ArchitectureGraph.Tests/RoslynArchitectureGraphTests.cs",
-        "sha256": "sha256:e1e16a591aa1a015002e5850355677da231b56a2a25a74caa5bdee11ef1fc02d",
-        "size": 15195
+        "sha256": "sha256:1e833d5297ae59be7c01b5a181e8a6623ac9eb8504a492f85eec740668cf961e",
+        "size": 15465
       },
       {
         "path": "tests/Forge.ArchitectureGraph.Tests/packages.lock.json",
@@ -18953,8 +18953,8 @@
       },
       {
         "path": "tools/Forge.ArchitectureGraph/GraphStore.cs",
-        "sha256": "sha256:f42006640b5e3c2323c7a4ad9c3e22c04b63e4e8691f56193c1404b53e420ce8",
-        "size": 5238
+        "sha256": "sha256:ae82f8670b69b4a2919278c87d84693bb7f92a421154557c13b0a02321044c66",
+        "size": 5340
       },
       {
         "path": "tools/Forge.ArchitectureGraph/Program.cs",
@@ -432500,7 +432500,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ArchitectureGraph.Tests/RoslynArchitectureGraphTests.cs",
-        "line": 145
+        "line": 154
       }
     },
     {
@@ -432520,7 +432520,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ArchitectureGraph.Tests/RoslynArchitectureGraphTests.cs",
-        "line": 259
+        "line": 268
       }
     },
     {
@@ -432540,7 +432540,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ArchitectureGraph.Tests/RoslynArchitectureGraphTests.cs",
-        "line": 306
+        "line": 315
       }
     },
     {
@@ -432550,7 +432550,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ArchitectureGraph.Tests/RoslynArchitectureGraphTests.cs",
-        "line": 191
+        "line": 200
       }
     },
     {
@@ -777270,7 +777270,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ArchitectureGraph.Tests/RoslynArchitectureGraphTests.cs",
-        "line": 150
+        "line": 159
       }
     },
     {
@@ -777290,7 +777290,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ArchitectureGraph.Tests/RoslynArchitectureGraphTests.cs",
-        "line": 267
+        "line": 276
       }
     },
     {
@@ -777310,7 +777310,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ArchitectureGraph.Tests/RoslynArchitectureGraphTests.cs",
-        "line": 145
+        "line": 154
       }
     },
     {
@@ -777320,7 +777320,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ArchitectureGraph.Tests/RoslynArchitectureGraphTests.cs",
-        "line": 259
+        "line": 268
       }
     },
     {
@@ -777340,7 +777340,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ArchitectureGraph.Tests/RoslynArchitectureGraphTests.cs",
-        "line": 267
+        "line": 276
       }
     },
     {
@@ -777350,7 +777350,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ArchitectureGraph.Tests/RoslynArchitectureGraphTests.cs",
-        "line": 264
+        "line": 273
       }
     },
     {
@@ -777360,7 +777360,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ArchitectureGraph.Tests/RoslynArchitectureGraphTests.cs",
-        "line": 306
+        "line": 315
       }
     },
     {
@@ -777370,7 +777370,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ArchitectureGraph.Tests/RoslynArchitectureGraphTests.cs",
-        "line": 191
+        "line": 200
       }
     },
     {

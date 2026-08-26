@@ -122,6 +122,15 @@ public sealed class RoslynArchitectureGraphTests : IDisposable
     }
 
     [Fact]
+    public void Serialize_UsesCanonicalLfLineEndings()
+    {
+        var serialized = System.Text.Encoding.UTF8.GetString(GraphStore.Serialize(BuildGraph()));
+
+        Assert.DoesNotContain('\r', serialized);
+        Assert.EndsWith("\n", serialized);
+    }
+
+    [Fact]
     public void Analyze_AcceptsUtf8BomInProjectFiles()
     {
         var path = Path.Combine(_root, "src", "Domain", "Domain.csproj");
