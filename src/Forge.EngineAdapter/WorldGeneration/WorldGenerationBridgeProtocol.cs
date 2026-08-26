@@ -14,6 +14,7 @@ public sealed record WorldGenerationBridgeRequest(
     Guid RecipeId,
     Guid AreaId,
     string RecipeFingerprint,
+    string PlanFingerprint,
     int Seed,
     bool DryRun,
     WorldGenerationExecutionStep Step,
@@ -69,6 +70,7 @@ public static class WorldGenerationBridgeProtocol
         context.Recipe.Id,
         context.Recipe.AreaId,
         context.Plan.RecipeFingerprint,
+        context.Plan.PlanFingerprint,
         context.Recipe.Seed,
         context.DryRun,
         step,
@@ -83,12 +85,23 @@ public static class WorldGenerationBridgeProtocol
             throw new JsonException("World-generation bridge identifiers cannot be empty.");
         if (request.ProjectRevision < 0 || request.RecipeRevision < 0)
             throw new JsonException("World-generation bridge revisions cannot be negative.");
+        if (request.Recipe is null || request.Step is null)
+            throw new JsonException("World-generation bridge recipe or step is missing.");
         if (!string.Equals(request.RecipeFingerprint, request.Recipe.Fingerprint(), StringComparison.Ordinal))
             throw new JsonException("World-generation bridge recipe fingerprint does not match its payload.");
+        if (string.IsNullOrEmpty(request.PlanFingerprint) || request.PlanFingerprint.Length != 64 ||
+            request.PlanFingerprint.Any(character =>
+                !char.IsAsciiHexDigit(character) || char.IsUpper(character)))
+            throw new JsonException("World-generation bridge plan fingerprint must be a lowercase SHA-256 value.");
         if (request.RecipeId != request.Recipe.Id || request.AreaId != request.Recipe.AreaId ||
             request.Seed != request.Recipe.Seed)
             throw new JsonException("World-generation bridge metadata does not match its recipe.");
-        if (request.Step.Order < 0 || string.IsNullOrWhiteSpace(request.Step.Operation))
+        if (request.Step.Order < 0 || !Enum.IsDefined(request.Step.Stage) ||
+            !Enum.IsDefined(request.Step.Backend) || request.Step.Backend == WorldGenerationBackend.Auto ||
+            !WorldGenerationBackendPolicy.Supports(request.Step.Backend, request.Step.Stage) ||
+            request.Step.Parameters is null || request.Step.DependsOn is null ||
+            !string.Equals(request.Step.Operation,
+                WorldGenerationOperations.For(request.Step.Stage, request.Step.Backend), StringComparison.Ordinal))
             throw new JsonException("World-generation bridge step is invalid.");
     }
 

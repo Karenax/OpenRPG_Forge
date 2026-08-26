@@ -10,7 +10,8 @@ public sealed class WorldGenerationPlanner
         long projectRevision,
         WorldGenerationRecipeRevision recipeRevision,
         Guid transactionId,
-        Guid planId)
+        Guid planId,
+        IReadOnlyCollection<WorldGenerationStage>? stages = null)
     {
         ArgumentNullException.ThrowIfNull(recipe);
         var diagnostics = WorldGenerationRecipeValidator.Validate(recipe).ToList();
@@ -21,9 +22,30 @@ public sealed class WorldGenerationPlanner
         if (planId == Guid.Empty)
             diagnostics.Add(new("world_generation.plan_required", "A plan ID is required.", "world-generation/planId"));
 
-        var steps = Enum.GetValues<WorldGenerationStage>()
+        var selectedStages = stages is null
+            ? Enum.GetValues<WorldGenerationStage>()
+            : stages.Distinct().Where(Enum.IsDefined).Order().ToArray();
+        if (stages is { Count: 0 } || selectedStages.Length == 0)
+            diagnostics.Add(new("world_generation.stages_required",
+                "At least one world-generation stage must be selected.", "world-generation/stages"));
+        if (stages is not null && stages.Any(stage => !Enum.IsDefined(stage)))
+            diagnostics.Add(new("world_generation.stage_invalid",
+                "The execution request contains an unknown world-generation stage.", "world-generation/stages"));
+
+        var steps = selectedStages
             .Select((stage, index) => BuildStep(recipe, stage, index))
             .ToArray();
+        var recipeFingerprint = recipe.Fingerprint();
+        var readyToApply = diagnostics.Count == 0 && recipe.ApprovedForGeneration;
+        var planFingerprint = WorldGenerationExecutionPlanFingerprint.Compute(
+            projectRevision,
+            recipeRevision,
+            recipe.Id,
+            recipe.AreaId,
+            recipe.Seed,
+            recipeFingerprint,
+            readyToApply,
+            steps);
         return new(
             planId,
             transactionId,
@@ -32,10 +54,11 @@ public sealed class WorldGenerationPlanner
             recipe.Id,
             recipe.AreaId,
             recipe.Seed,
-            recipe.Fingerprint(),
+            recipeFingerprint,
+            planFingerprint,
             steps,
             diagnostics,
-            diagnostics.Count == 0 && recipe.ApprovedForGeneration);
+            readyToApply);
     }
 
     private static WorldGenerationExecutionStep BuildStep(
@@ -49,7 +72,7 @@ public sealed class WorldGenerationPlanner
             order,
             stage,
             backend,
-            Operation(stage, backend),
+            WorldGenerationOperations.For(stage, backend),
             parameters,
             order == 0 ? [] : [order - 1]);
     }
@@ -67,21 +90,6 @@ public sealed class WorldGenerationPlanner
             _ => WorldGenerationBackend.GodotNative,
         };
     }
-
-    private static string Operation(WorldGenerationStage stage, WorldGenerationBackend backend) =>
-        (backend, stage) switch
-        {
-            (WorldGenerationBackend.Terrain3D, WorldGenerationStage.Terrain) => "terrain3d.generate_heightfield",
-            (WorldGenerationBackend.Terrain3D, WorldGenerationStage.Hydrology) => "terrain3d.carve_hydrology",
-            (WorldGenerationBackend.PcgGodot, WorldGenerationStage.Biomes) => "pcgodot.generate_biomes",
-            (WorldGenerationBackend.PcgGodot, WorldGenerationStage.Roads) => "pcgodot.generate_road_network",
-            (WorldGenerationBackend.PcgGodot, WorldGenerationStage.Settlements) => "pcgodot.generate_settlements",
-            (WorldGenerationBackend.PcgGodot, WorldGenerationStage.Scatter) => "pcgodot.scatter_environment",
-            (_, WorldGenerationStage.Gameplay) => "godot.generate_gameplay_anchors",
-            (_, WorldGenerationStage.Navigation) => "godot.bake_navigation",
-            (_, WorldGenerationStage.Validation) => "godot.validate_generated_world",
-            _ => $"{backend.ToString().ToLowerInvariant()}.{stage.ToString().ToLowerInvariant()}",
-        };
 
     private static IReadOnlyDictionary<string, string> BuildParameters(
         WorldGenerationRecipe recipe,

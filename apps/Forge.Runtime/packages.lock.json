@@ -37,6 +37,7 @@
       "forge.engineadapter": {
         "type": "Project",
         "dependencies": {
+          "Forge.Application": "[1.0.0, )",
           "Forge.Domain": "[1.0.0, )",
           "GodotSharp": "[4.7.1, )"
         }

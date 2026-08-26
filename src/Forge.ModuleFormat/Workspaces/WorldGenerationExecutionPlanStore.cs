@@ -75,10 +75,11 @@ public static class WorldGenerationExecutionPlanStore
     }
 
     private static string ResolveDirectory(string workspaceRoot) =>
-        Path.Combine(Path.GetFullPath(workspaceRoot), "world", "generation", "plans");
+        WorldGenerationWorkspacePath.Resolve(workspaceRoot, "world", "generation", "plans");
 
     private static string ResolvePath(string workspaceRoot, Guid planId) =>
-        Path.Combine(ResolveDirectory(workspaceRoot), $"{planId:N}.json");
+        WorldGenerationWorkspacePath.Resolve(
+            workspaceRoot, "world", "generation", "plans", $"{planId:N}.json");
 }
 
 public sealed record WorldGenerationExecutionPlanLoadResult(

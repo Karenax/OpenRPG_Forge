@@ -37,7 +37,7 @@ public static class WorldGenerationBackendCapabilityProbe
             Probe(root, WorldGenerationBackend.PcgGodot, PcgGodotCandidates,
                 "284231f060099a8943eb56567c21732b7cd678d3", diagnostics),
             new(WorldGenerationBackend.GodotNative, true,
-                "Forge.EngineAdapter native terrain, biome-scatter and navigation builders", "4.7.1", []),
+                "OpenRPG Godot bridge native fallback", "4.7.1", []),
         ];
     }
 

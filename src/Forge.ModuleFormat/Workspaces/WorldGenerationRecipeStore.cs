@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using Forge.Application.WorldGeneration;
 using Forge.Domain.WorldGeneration;
 using Forge.ModuleFormat.Serialization;
 
@@ -15,20 +16,25 @@ public static class WorldGenerationRecipeStore
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(workspaceRoot);
         var path = ResolvePath(workspaceRoot);
-        if (!File.Exists(path)) return new(WorldGenerationRecipeCatalog.CreateDefault(), true, []);
+        if (!File.Exists(path))
+            return new(WorldGenerationRecipeCatalog.CreateDefault(), WorldGenerationRecipeRevision.Zero, true, []);
         try
         {
-            return new(WorldGenerationRecipeJsonSerializer.Deserialize(File.ReadAllText(path)), false, []);
+            var persisted = WorldGenerationRecipeJsonSerializer.Deserialize(File.ReadAllText(path));
+            return new(persisted.Catalog, persisted.Revision, false, []);
         }
         catch (Exception exception) when (
             exception is IOException or UnauthorizedAccessException or JsonException or NotSupportedException or ArgumentException)
         {
-            return new(WorldGenerationRecipeCatalog.CreateDefault(), false,
+            return new(WorldGenerationRecipeCatalog.CreateDefault(), WorldGenerationRecipeRevision.Zero, false,
                 [new ProjectSessionDiagnostic(ReadFailedCode, exception.Message, path)]);
         }
     }
 
-    public static ProjectSessionSaveResult Save(string workspaceRoot, WorldGenerationRecipeCatalog catalog)
+    public static ProjectSessionSaveResult Save(
+        string workspaceRoot,
+        WorldGenerationRecipeCatalog catalog,
+        WorldGenerationRecipeRevision revision)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(workspaceRoot);
         ArgumentNullException.ThrowIfNull(catalog);
@@ -38,7 +44,7 @@ public static class WorldGenerationRecipeStore
             var directory = Path.GetDirectoryName(path)
                 ?? throw new IOException("The world-generation recipe path has no parent directory.");
             Directory.CreateDirectory(directory);
-            AtomicWorkspaceFile.Write(path, WorldGenerationRecipeJsonSerializer.Serialize(catalog));
+            AtomicWorkspaceFile.Write(path, WorldGenerationRecipeJsonSerializer.Serialize(catalog, revision));
             return new(true, []);
         }
         catch (Exception exception) when (
@@ -49,11 +55,12 @@ public static class WorldGenerationRecipeStore
     }
 
     private static string ResolvePath(string workspaceRoot) =>
-        Path.Combine(Path.GetFullPath(workspaceRoot), "world", "generation", "recipes.json");
+        WorldGenerationWorkspacePath.Resolve(workspaceRoot, "world", "generation", "recipes.json");
 }
 
 public sealed record WorldGenerationRecipeLoadResult(
     WorldGenerationRecipeCatalog Catalog,
+    WorldGenerationRecipeRevision Revision,
     bool FileMissing,
     IReadOnlyList<ProjectSessionDiagnostic> Diagnostics)
 {

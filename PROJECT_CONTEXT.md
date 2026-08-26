@@ -45,6 +45,12 @@ et l'Assistant. Les mutations qualifiées passent par les commandes Application 
 dry-run, diff, garde de révision, audit, undo/redo, sauvegarde atomique et préservation des données
 voisines ; les aperçus distinguent les plans déterministes des effets moteur réellement exécutés.
 
+La fondation `WorldGeneration` applique ces mêmes règles aux grandes zones : recette moteur-neutre,
+seed et empreintes stables, preview d'exécution, étapes partielles, job durable et audit MCP. Terrain3D
+et Godot Flow restent des dépendances facultatives derrière EngineAdapter ; le bridge Godot possède un
+fallback natif réellement maillé pour le terrain. Les scènes produites restent dérivées : elles ne
+deviennent pas une seconde source de vérité et ne remplacent pas implicitement `AreaWorldProfile`.
+
 La revue corrective UX11-B a inspecté les trente-six pages en Full HD, QHD et 4K. Les distributions
 Studio Windows x64 et Linux x64 embarquent le workspace Crypte des Cendres et la bibliothèque
 ForgeScript native de leur plateforme ; le smoke Linux a été rejoué sur Debian 13 x86_64 sans
@@ -262,6 +268,14 @@ domaine, le Creator et les formats de module reste un chantier séparé.
 Flux de mutation officiel :
 
 `Studio / Creator historique / Runtime / MCP -> commandes Application -> Domain -> persistance et adaptateurs`
+
+Pour la génération de monde, le flux spécialisé reste dans cette direction :
+
+`Codex/utilisateur -> MCP -> recette -> plan déterministe -> job persistant -> adaptateurs -> Godot`
+
+Terrain3D et Godot Flow ne sont connus que de l'adaptation et du bootstrap. Le MCP ne dépend pas de
+leurs classes, et un texte fourni par un LLM ne peut sélectionner qu'une opération bornée déjà
+allowlistée. Voir `docs/ADR/ADR-0050-governed-world-generation-orchestration.md`.
 
 - Domain et Application restent indépendants du moteur 3D.
 - Les données métier versionnées sont la source de vérité ; les scènes sont reconstruites.

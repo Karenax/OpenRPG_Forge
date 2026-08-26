@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Forge.Application.WorldGeneration;
 using Forge.Domain.WorldGeneration;
 
 namespace Forge.ModuleFormat.Serialization;
@@ -8,14 +9,18 @@ internal static class WorldGenerationRecipeJsonSerializer
     internal const string CurrentFormatVersion = "1.0.0";
     private static readonly JsonSerializerOptions Options = ProjectJsonSerializer.CreateOptions();
 
-    internal static string Serialize(WorldGenerationRecipeCatalog catalog)
+    internal static string Serialize(
+        WorldGenerationRecipeCatalog catalog,
+        WorldGenerationRecipeRevision revision)
     {
         ArgumentNullException.ThrowIfNull(catalog);
         EnsureValid(catalog);
-        return JsonSerializer.Serialize(new WorldGenerationRecipeDocument(CurrentFormatVersion, catalog), Options);
+        if (revision.Value < 0) throw new ArgumentOutOfRangeException(nameof(revision));
+        return JsonSerializer.Serialize(
+            new WorldGenerationRecipeDocument(CurrentFormatVersion, revision.Value, catalog), Options);
     }
 
-    internal static WorldGenerationRecipeCatalog Deserialize(string json)
+    internal static WorldGenerationRecipePersistenceState Deserialize(string json)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(json);
         var document = JsonSerializer.Deserialize<WorldGenerationRecipeDocument>(json, Options)
@@ -25,8 +30,10 @@ internal static class WorldGenerationRecipeJsonSerializer
                 $"World-generation recipe format '{document.FormatVersion}' is unsupported; expected '{CurrentFormatVersion}'.");
         if (document.Catalog is null)
             throw new JsonException("The world-generation recipe catalog is missing.");
+        if (document.Revision < 0)
+            throw new JsonException("The world-generation recipe revision cannot be negative.");
         EnsureValid(document.Catalog);
-        return document.Catalog;
+        return new(document.Catalog, new(document.Revision));
     }
 
     private static void EnsureValid(WorldGenerationRecipeCatalog catalog)
@@ -48,5 +55,10 @@ internal static class WorldGenerationRecipeJsonSerializer
 
     private sealed record WorldGenerationRecipeDocument(
         string FormatVersion,
+        long Revision,
         WorldGenerationRecipeCatalog? Catalog);
 }
+
+internal sealed record WorldGenerationRecipePersistenceState(
+    WorldGenerationRecipeCatalog Catalog,
+    WorldGenerationRecipeRevision Revision);

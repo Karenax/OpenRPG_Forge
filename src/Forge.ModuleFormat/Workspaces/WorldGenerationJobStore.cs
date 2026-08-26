@@ -82,11 +82,12 @@ public static class WorldGenerationJobStore
     public static string ResolveDirectory(string workspaceRoot)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(workspaceRoot);
-        return Path.Combine(Path.GetFullPath(workspaceRoot), "world", "generation", "jobs");
+        return WorldGenerationWorkspacePath.Resolve(workspaceRoot, "world", "generation", "jobs");
     }
 
     private static string ResolvePath(string workspaceRoot, Guid planId) =>
-        Path.Combine(ResolveDirectory(workspaceRoot), $"{planId:N}.json");
+        WorldGenerationWorkspacePath.Resolve(
+            workspaceRoot, "world", "generation", "jobs", $"{planId:N}.json");
 }
 
 public sealed record WorldGenerationJobLoadResult(

@@ -37,7 +37,8 @@ public sealed record WorldGenerationExecutionPreviewRequest(
     int SchemaVersion,
     long BaseProjectRevision,
     long BaseRecipeRevision,
-    string RecipeId);
+    string RecipeId,
+    IReadOnlyList<WorldGenerationStage>? Stages = null);
 
 public sealed record WorldGenerationExecutionPlanResource(
     bool Succeeded,
@@ -52,12 +53,14 @@ public sealed record WorldGenerationJobResource(
     string RecipeId,
     string AreaId,
     string RecipeFingerprint,
+    string PlanFingerprint,
     long ProjectRevision,
     long RecipeRevision,
     WorldGenerationJobStatus Status,
     DateTimeOffset CreatedAtUtc,
     DateTimeOffset UpdatedAtUtc,
-    IReadOnlyList<AgentDiagnostic> Diagnostics);
+    IReadOnlyList<AgentDiagnostic> Diagnostics,
+    IReadOnlyList<WorldGenerationJobAuditEntry> Audit);
 
 public sealed record WorldGenerationAuditEntry(
     string PlanId,

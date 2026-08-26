@@ -19,10 +19,15 @@ func _enter_tree() -> void:
         add_autoload_singleton(RUNNER_AUTOLOAD_NAME, RUNNER_AUTOLOAD_PATH)
 
 func _exit_tree() -> void:
-    if ProjectSettings.has_setting("autoload/" + RUNNER_AUTOLOAD_NAME):
+    if _owns_autoload(RUNNER_AUTOLOAD_NAME, RUNNER_AUTOLOAD_PATH):
         remove_autoload_singleton(RUNNER_AUTOLOAD_NAME)
-    if ProjectSettings.has_setting("autoload/" + BACKEND_AUTOLOAD_NAME):
+    if _owns_autoload(BACKEND_AUTOLOAD_NAME, BACKEND_AUTOLOAD_PATH):
         remove_autoload_singleton(BACKEND_AUTOLOAD_NAME)
+
+func _owns_autoload(name: String, expected_path: String) -> bool:
+    var key := "autoload/" + name
+    return ProjectSettings.has_setting(key) and \
+        str(ProjectSettings.get_setting(key, "")).trim_prefix("*") == expected_path
 
 func _define_setting(key: String, default_value: Variant, value_type: int) -> void:
     if not ProjectSettings.has_setting(key):

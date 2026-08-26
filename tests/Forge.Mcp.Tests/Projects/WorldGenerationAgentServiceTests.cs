@@ -1,3 +1,4 @@
+using Forge.Application.WorldGeneration;
 using Forge.Domain.Assistant;
 using Forge.Domain.WorldGeneration;
 using Forge.Mcp.Projects;
@@ -48,6 +49,19 @@ public sealed class WorldGenerationAgentServiceTests
         Assert.Equal(WorldGenerationJobStatus.Queued, queued.JobStatus);
         var job = Assert.Single(workspace.Project.GetWorldGenerationJobs());
         Assert.Equal(preview.Plan.PlanId.ToString("D"), job.PlanId);
+        Assert.Equal(preview.Plan.PlanFingerprint, job.PlanFingerprint);
+        Assert.Equal("queued", Assert.Single(job.Audit).Action);
+
+        var reopened = ForgeProjectAgentService.Open(workspace.RootDirectory).Service!;
+        Assert.Equal(applied.NewRecipeRevision.Value,
+            reopened.GetWorldGenerationRecipes().RecipeRevision);
+        var reopenedJob = Assert.Single(reopened.GetWorldGenerationJobs());
+        Assert.Equal(job.JobId, reopenedJob.JobId);
+        Assert.Equal(job.PlanFingerprint, reopenedJob.PlanFingerprint);
+        var idempotentQueue = reopened.QueueWorldGenerationExecutionPlan(preview.Plan.PlanId.ToString("D"));
+        Assert.True(idempotentQueue.Succeeded);
+        Assert.True(idempotentQueue.Queued);
+        Assert.Equal(WorldGenerationJobStatus.Queued, idempotentQueue.JobStatus);
 
         var cancelled = workspace.Project.CancelWorldGenerationJob(preview.Plan.PlanId.ToString("D"));
         Assert.True(cancelled.Succeeded);

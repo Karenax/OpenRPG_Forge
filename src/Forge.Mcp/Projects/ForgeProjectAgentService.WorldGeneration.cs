@@ -92,7 +92,8 @@ public sealed partial class ForgeProjectAgentService
                     state.History.State.Revision.Value, _history.State.Revision.Value, _clock.UtcNow, false));
                 return WithRecipeFailure(plan, result.Diagnostics.Select(ToAgentDiagnostic).ToArray());
             }
-            var saved = WorldGenerationRecipeStore.Save(_session.RootDirectory, result.State.Catalog);
+            var saved = WorldGenerationRecipeStore.Save(
+                _session.RootDirectory, result.State.Catalog, result.State.Revision);
             if (!saved.Succeeded)
             {
                 plan.Audit.Add(new(plan.PlanId, plan.Command.TransactionId.ToString("D"), "apply",
@@ -124,7 +125,8 @@ public sealed partial class ForgeProjectAgentService
             if (!state.History.Undo())
                 return RecipeFailure(plan.Command.BaseRevision.Value, _history.State.Revision.Value,
                     "world_generation.inverse_unavailable", "The world-generation recipe inverse is unavailable.");
-            var saved = WorldGenerationRecipeStore.Save(_session.RootDirectory, state.History.State.Catalog);
+            var saved = WorldGenerationRecipeStore.Save(
+                _session.RootDirectory, state.History.State.Catalog, state.History.State.Revision);
             if (!saved.Succeeded)
             {
                 state.History.Redo();
@@ -167,7 +169,8 @@ public sealed partial class ForgeProjectAgentService
                 _history.State.Revision.Value,
                 state.History.State.Revision,
                 transactionId,
-                planId);
+                planId,
+                request.Stages);
             var saved = WorldGenerationExecutionPlanStore.Save(_session.RootDirectory, plan);
             if (!saved.Succeeded)
                 return new(false, plan,
@@ -200,6 +203,9 @@ public sealed partial class ForgeProjectAgentService
             if (recipe is null || !string.Equals(recipe.Fingerprint(), plan.RecipeFingerprint, StringComparison.Ordinal))
                 return ExecutionFailure("world_generation.recipe_changed",
                     "The execution plan no longer matches its world-generation recipe.");
+            if (!recipe.ApprovedForGeneration || WorldGenerationRecipeValidator.Validate(recipe).Count > 0)
+                return ExecutionFailure("world_generation.recipe_not_approved",
+                    "The execution plan recipe is no longer valid and explicitly approved.");
             if (!plan.ReadyToApply)
                 return new(false, plan, plan.Diagnostics.Concat(
                         [new WorldGenerationValidationIssue("world_generation.plan_not_ready",
@@ -272,7 +278,7 @@ public sealed partial class ForgeProjectAgentService
             var loaded = WorldGenerationRecipeStore.Load(_session.RootDirectory);
             _worldGenerationAgentState = new(
                 new SetWorldGenerationRecipesHandler(_clock),
-                new WorldGenerationRecipeCommandHistory(loaded.Catalog),
+                new WorldGenerationRecipeCommandHistory(loaded.Catalog, loaded.Revision),
                 new WorldGenerationPlanner(),
                 loaded.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)).ToList());
             return _worldGenerationAgentState;
@@ -341,12 +347,14 @@ public sealed partial class ForgeProjectAgentService
         job.Recipe.Id.ToString("D"),
         job.Recipe.AreaId.ToString("D"),
         job.RecipeFingerprint,
+        job.Plan.PlanFingerprint,
         job.ProjectRevision,
         job.RecipeRevision.Value,
         job.Status,
         job.CreatedAtUtc,
         job.UpdatedAtUtc,
-        job.Diagnostics.Select(ToAgentDiagnostic).ToArray());
+        job.Diagnostics.Select(ToAgentDiagnostic).ToArray(),
+        job.Audit);
 
     private sealed class WorldGenerationAgentState
     {

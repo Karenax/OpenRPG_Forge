@@ -76,7 +76,7 @@ public sealed class GodotNativeWorldGenerationAdapter : WorldGenerationBridgeAda
 {
     public override WorldGenerationBackend Backend => WorldGenerationBackend.GodotNative;
 
-    // The native bridge is the capability-safe fallback for every stage. Existing Forge terrain,
-    // biome scatter and navigation adapters consume these requests when an external addon is absent.
+    // The OpenRPG Godot integration addon consumes these requests and provides a native implementation
+    // for every stage when an optional external backend is absent.
     public override bool CanExecute(WorldGenerationExecutionStep step) => true;
 }

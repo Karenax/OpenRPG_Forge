@@ -9,6 +9,20 @@ namespace Forge.Application.Tests.WorldGeneration;
 public sealed class WorldGenerationWorkflowTests
 {
     [Fact]
+    public void DefaultRecipeIdentityAndFingerprintAreDeterministic()
+    {
+        var areaId = Guid.Parse("f0500000-0000-4000-8000-000000000099");
+
+        var first = WorldGenerationRecipe.CreateDefault(areaId, "Deterministic valley", 917);
+        var second = WorldGenerationRecipe.CreateDefault(areaId, "Deterministic valley", 917);
+
+        Assert.Equal(first.Id, second.Id);
+        Assert.Equal(first.Rivers.Select(item => item.Id), second.Rivers.Select(item => item.Id));
+        Assert.Equal(first.Biomes.Select(item => item.Id), second.Biomes.Select(item => item.Id));
+        Assert.Equal(first.Fingerprint(), second.Fingerprint());
+    }
+
+    [Fact]
     public void RecipeFingerprintIsStableAcrossInputCollectionOrdering()
     {
         var areaId = Guid.Parse("f0500000-0000-4000-8000-000000000001");
@@ -18,6 +32,18 @@ public sealed class WorldGenerationWorkflowTests
         Assert.Equal(first.Fingerprint(), second.Fingerprint());
         Assert.Empty(WorldGenerationRecipeValidator.Validate(first));
         Assert.Equal(64, first.Fingerprint().Length);
+    }
+
+    [Fact]
+    public void RecipeFingerprintPreservesStringCollectionBoundaries()
+    {
+        var source = Recipe(Guid.Parse("f0500000-0000-4000-8000-000000000001"));
+        var joined = Copy(source, biomes:
+            [source.Biomes[0] with { AssetTags = ["tree,rock"] }, .. source.Biomes.Skip(1)]);
+        var separate = Copy(source, biomes:
+            [source.Biomes[0] with { AssetTags = ["tree", "rock"] }, .. source.Biomes.Skip(1)]);
+
+        Assert.NotEqual(joined.Fingerprint(), separate.Fingerprint());
     }
 
     [Fact]
@@ -43,6 +69,91 @@ public sealed class WorldGenerationWorkflowTests
             first.Steps.Single(item => item.Stage == WorldGenerationStage.Validation).Backend);
         Assert.Empty(first.Steps[0].DependsOn);
         Assert.All(first.Steps.Skip(1), step => Assert.Equal([step.Order - 1], step.DependsOn));
+        Assert.Equal(first.PlanFingerprint, second.PlanFingerprint);
+        Assert.Equal(first.PlanFingerprint, WorldGenerationExecutionPlanFingerprint.Compute(first));
+    }
+
+    [Fact]
+    public void PlannerSupportsDeterministicPartialRegeneration()
+    {
+        var recipe = Recipe(Guid.Parse("f0500000-0000-4000-8000-000000000001"));
+        var planner = new WorldGenerationPlanner();
+        var partial = planner.Build(recipe, 7, new(2), Guid.NewGuid(), Guid.NewGuid(),
+            [WorldGenerationStage.Validation, WorldGenerationStage.Terrain, WorldGenerationStage.Terrain]);
+        var equivalent = planner.Build(recipe, 7, new(2), Guid.NewGuid(), Guid.NewGuid(),
+            [WorldGenerationStage.Terrain, WorldGenerationStage.Validation]);
+        var complete = planner.Build(recipe, 7, new(2), Guid.NewGuid(), Guid.NewGuid());
+
+        Assert.True(partial.ReadyToApply);
+        Assert.Equal([WorldGenerationStage.Terrain, WorldGenerationStage.Validation],
+            partial.Steps.Select(item => item.Stage));
+        Assert.Empty(partial.Steps[0].DependsOn);
+        Assert.Equal([0], partial.Steps[1].DependsOn);
+        Assert.Equal(partial.PlanFingerprint, equivalent.PlanFingerprint);
+        Assert.NotEqual(partial.PlanFingerprint, complete.PlanFingerprint);
+    }
+
+    [Fact]
+    public void PlanFingerprintMatchesGodotProtocolVector()
+    {
+        var step = new WorldGenerationExecutionStep(
+            0,
+            WorldGenerationStage.Terrain,
+            WorldGenerationBackend.GodotNative,
+            "godotnative.terrain",
+            new Dictionary<string, string>(),
+            []);
+
+        var fingerprint = WorldGenerationExecutionPlanFingerprint.Compute(
+            3,
+            new(2),
+            Guid.Parse("f0540000-0000-4000-8000-000000000001"),
+            Guid.Parse("f0540000-0000-4000-8000-000000000002"),
+            20260826,
+            new string('a', 64),
+            true,
+            [step]);
+
+        Assert.Equal("b32a985db8eb0dadb5befde7dce8191753e4a73853cd992696ce21c8dd37186b",
+            fingerprint);
+    }
+
+    [Fact]
+    public void RecipeValidationRejectsNonFiniteUnsafeAndIncompatibleInputs()
+    {
+        var source = Recipe(Guid.Parse("f0500000-0000-4000-8000-000000000001"));
+        var invalid = Copy(source,
+            bounds: new(double.NaN, source.Bounds.DepthMeters, source.Bounds.MaxElevationMeters),
+            backends: new Dictionary<WorldGenerationStage, WorldGenerationBackend>
+            {
+                [WorldGenerationStage.Gameplay] = WorldGenerationBackend.Terrain3D,
+            },
+            regeneration: new(true, ["../ManualCastle"]));
+
+        var diagnostics = WorldGenerationRecipeValidator.Validate(invalid);
+
+        Assert.Contains(diagnostics, item => item.Code == "world_generation.bounds_invalid");
+        Assert.Contains(diagnostics, item => item.Code == "world_generation.backend_stage_invalid");
+        Assert.Contains(diagnostics, item => item.Code == "world_generation.protected_path_invalid");
+    }
+
+    [Fact]
+    public async Task OrchestratorUsesNativeAdapterWhenRequestedBackendCannotExecute()
+    {
+        var recipe = Recipe(Guid.Parse("f0500000-0000-4000-8000-000000000001"));
+        var plan = new WorldGenerationPlanner().Build(recipe, 7, new(2), Guid.NewGuid(), Guid.NewGuid(),
+            [WorldGenerationStage.Terrain]);
+        var requested = new RecordingAdapter(WorldGenerationBackend.Terrain3D, canExecute: false);
+        var fallback = new RecordingAdapter(WorldGenerationBackend.GodotNative, canExecute: true);
+        var context = new WorldGenerationExecutionContext("/workspace", recipe, plan, true,
+            new MemoryArtifactSink());
+
+        var result = await new WorldGenerationOrchestrator([requested, fallback]).ExecuteAsync(context);
+
+        Assert.True(result.Succeeded);
+        Assert.Empty(requested.Executed);
+        Assert.Single(fallback.Executed);
+        Assert.Equal(WorldGenerationStage.Terrain, fallback.Executed[0].Stage);
     }
 
     [Fact]
@@ -145,5 +256,69 @@ public sealed class WorldGenerationWorkflowTests
             WorldGenerationRecipe.DefaultBackends(),
             true,
             "test:world-generation-v1");
+    }
+
+    private static WorldGenerationRecipe Copy(
+        WorldGenerationRecipe source,
+        WorldGenerationBounds? bounds = null,
+        IReadOnlyList<BiomeGenerationRecipe>? biomes = null,
+        IReadOnlyDictionary<WorldGenerationStage, WorldGenerationBackend>? backends = null,
+        WorldGenerationRegenerationPolicy? regeneration = null) => new(
+        source.Id,
+        source.SchemaVersion,
+        source.AreaId,
+        source.Title,
+        source.Seed,
+        bounds ?? source.Bounds,
+        source.Terrain,
+        source.Rivers,
+        biomes ?? source.Biomes,
+        source.Roads,
+        source.Settlements,
+        source.Scatter,
+        source.Gameplay,
+        source.Navigation,
+        source.Quality,
+        backends ?? source.Backends,
+        source.ApprovedForGeneration,
+        source.Provenance,
+        regeneration ?? source.Regeneration);
+
+    private sealed class RecordingAdapter : IWorldGenerationAdapter
+    {
+        private readonly bool _canExecute;
+
+        public RecordingAdapter(WorldGenerationBackend backend, bool canExecute)
+        {
+            Backend = backend;
+            _canExecute = canExecute;
+        }
+
+        public WorldGenerationBackend Backend { get; }
+        public List<WorldGenerationExecutionStep> Executed { get; } = [];
+
+        public bool CanExecute(WorldGenerationExecutionStep step) => _canExecute;
+
+        public ValueTask<WorldGenerationStepResult> ExecuteAsync(
+            WorldGenerationExecutionContext context,
+            WorldGenerationExecutionStep step,
+            CancellationToken cancellationToken = default)
+        {
+            Executed.Add(step);
+            return ValueTask.FromResult(new WorldGenerationStepResult(
+                true, step.Stage, Backend, [], []));
+        }
+    }
+
+    private sealed class MemoryArtifactSink : IWorldGenerationArtifactSink
+    {
+        public ValueTask WriteTextAsync(
+            string relativePath,
+            string content,
+            CancellationToken cancellationToken = default) => ValueTask.CompletedTask;
+
+        public ValueTask DeleteAsync(
+            string relativePath,
+            CancellationToken cancellationToken = default) => ValueTask.CompletedTask;
     }
 }

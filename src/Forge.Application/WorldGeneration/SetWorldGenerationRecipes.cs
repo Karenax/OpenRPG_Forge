@@ -147,9 +147,11 @@ public sealed class WorldGenerationRecipeCommandHistory
     public bool CanUndo => _undo.Count > 0;
     public bool CanRedo => _redo.Count > 0;
 
-    public WorldGenerationRecipeCommandHistory(WorldGenerationRecipeCatalog? catalog = null)
+    public WorldGenerationRecipeCommandHistory(
+        WorldGenerationRecipeCatalog? catalog = null,
+        WorldGenerationRecipeRevision? revision = null)
     {
-        State = new WorldGenerationRecipeState(catalog);
+        State = new WorldGenerationRecipeState(catalog, revision);
     }
 
     public void Record(WorldGenerationRecipeCommandResult result)

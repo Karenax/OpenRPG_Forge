@@ -27,6 +27,7 @@ public sealed class WorldGenerationBridgeTests
         Assert.Equal(WorldGenerationBridgeProtocol.CurrentVersion, request.ProtocolVersion);
         Assert.Equal(plan.PlanId, request.PlanId);
         Assert.Equal(recipe.Fingerprint(), request.RecipeFingerprint);
+        Assert.Equal(plan.PlanFingerprint, request.PlanFingerprint);
         Assert.True(request.DryRun);
         Assert.Equal("terrain3d.generate_heightfield", request.Step.Operation);
     }

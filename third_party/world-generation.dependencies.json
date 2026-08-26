@@ -10,6 +10,8 @@
       "version": "v1.0.2-stable",
       "archive": "https://github.com/TokisanGames/Terrain3D/releases/download/v1.0.2-stable/Terrain3D_v1.0.2-stable.zip",
       "sha256": "a071850250ec5e596aa54da61c01d75768774eb379ee997584d426a45f4884a2",
+      "upstreamGodotCompatibility": "4.4-4.6+",
+      "openRpgQualificationTarget": "4.7.1-stable",
       "godotTarget": "addons/terrain_3d"
     },
     {
@@ -18,6 +20,8 @@
       "repository": "https://github.com/yabadabu/godot_flow",
       "license": "Apache-2.0",
       "revision": "284231f060099a8943eb56567c21732b7cd678d3",
+      "upstreamGodotCompatibility": "4.7",
+      "openRpgQualificationTarget": "4.7.1-stable",
       "sourceDirectories": [
         "demo/addons/flow_nodes_editor",
         "demo/bin"

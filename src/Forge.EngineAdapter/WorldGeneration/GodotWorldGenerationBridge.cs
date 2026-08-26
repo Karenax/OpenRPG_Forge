@@ -11,8 +11,7 @@ public partial class GodotWorldGenerationBridge : Node
     public const string PcgGodotGroup = "forge_world_generation_pcgodot";
     public const string NativeGroup = "forge_world_generation_native";
 
-    [Signal]
-    public delegate void StepDispatchedEventHandler(string backend, string operation, string requestJson);
+    public event Action<string, string, string>? StepDispatched;
 
     [Export]
     public bool AllowNativeFallback { get; set; } = true;
@@ -37,23 +36,22 @@ public partial class GodotWorldGenerationBridge : Node
         }
 
         var requestedGroup = GroupFor(request.Step.Backend);
-        if (TryDispatch(requestedGroup, requestJson))
+        if (TryDispatch(requestedGroup, requestJson, out var requestedResponse) &&
+            Succeeded(requestedResponse))
         {
-            response["succeeded"] = true;
-            response["backend"] = request.Step.Backend.ToString();
-            EmitSignal(SignalName.StepDispatched, request.Step.Backend.ToString(), request.Step.Operation, requestJson);
-            return response;
+            requestedResponse["backend"] = request.Step.Backend.ToString();
+            StepDispatched?.Invoke(request.Step.Backend.ToString(), request.Step.Operation, requestJson);
+            return requestedResponse;
         }
 
         if (AllowNativeFallback && request.Step.Backend != WorldGenerationBackend.GodotNative &&
-            TryDispatch(NativeGroup, requestJson))
+            TryDispatch(NativeGroup, requestJson, out var fallbackResponse) && Succeeded(fallbackResponse))
         {
-            response["succeeded"] = true;
-            response["fallbackUsed"] = true;
-            response["backend"] = WorldGenerationBackend.GodotNative.ToString();
-            EmitSignal(SignalName.StepDispatched,
+            fallbackResponse["fallbackUsed"] = true;
+            fallbackResponse["backend"] = WorldGenerationBackend.GodotNative.ToString();
+            StepDispatched?.Invoke(
                 WorldGenerationBackend.GodotNative.ToString(), request.Step.Operation, requestJson);
-            return response;
+            return fallbackResponse;
         }
 
         response["backend"] = request.Step.Backend.ToString();
@@ -61,18 +59,27 @@ public partial class GodotWorldGenerationBridge : Node
         return response;
     }
 
-    private bool TryDispatch(string group, string requestJson)
+    private bool TryDispatch(
+        string group,
+        string requestJson,
+        out Godot.Collections.Dictionary response)
     {
+        response = new();
         var tree = GetTree();
         if (tree is null) return false;
         foreach (var candidate in tree.GetNodesInGroup(group))
         {
             if (candidate is not GodotObject handler || !handler.HasMethod(HandlerMethod)) continue;
-            handler.Call(HandlerMethod, requestJson);
+            var result = handler.Call(HandlerMethod, requestJson);
+            if (result.VariantType != Variant.Type.Dictionary) continue;
+            response = result.AsGodotDictionary();
             return true;
         }
         return false;
     }
+
+    private static bool Succeeded(Godot.Collections.Dictionary response) =>
+        response.ContainsKey("succeeded") && response["succeeded"].AsBool();
 
     private static string GroupFor(WorldGenerationBackend backend) => backend switch
     {
