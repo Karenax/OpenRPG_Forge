@@ -13704,7 +13704,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             eventPreview.Compilation?.Success != true || eventPreview.Deliveries.Count != 1 ||
             !eventExecution.Succeeded || eventExecution.DryRun || !eventExecution.Executed ||
             eventExecution.Execution?.Status != ForgeScriptExecutionStatus.Completed ||
-            eventExecution.Deliveries.Count != 1 || !map.RevealedCells.Contains("2:0") ||
+            eventExecution.Deliveries.Count != 1 || !map.RevealedCells.Contains("v1:0:5:5") ||
             map.RevealedPins.Count != 1 || runtime.Handle is null || runtime.Diagnostics.Count != 0 ||
             optional.Diagnostics.Count != 0 ||
             required.Diagnostics.Single().Code != AreaExperienceRuntimeResolver.RequiredMissingCode ||
