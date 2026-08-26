@@ -1173,14 +1173,14 @@ try {
         -Name 'save-create' `
         -ProjectPath $runtimePath `
         -Arguments @('--headless', '--path', $runtimePath, '--log-file', $saveCreateLog, '--', '--module-package', $moduleArtifact, '--save-file', $runtimeSave, '--save-smoke-create') `
-        -Markers @('OPENRPG_FORGE_FORGESCRIPT_CACHE status=', 'OPENRPG_FORGE_RUNTIME_SAVE_WRITTEN format=1.4.0', 'OPENRPG_FORGE_RUNTIME_G11O_SAVE_PASS mode=write', 'OPENRPG_FORGE_RUNTIME_SAVE_PASS') `
+        -Markers @('OPENRPG_FORGE_FORGESCRIPT_CACHE status=', 'OPENRPG_FORGE_RUNTIME_SAVE_WRITTEN format=1.7.0', 'OPENRPG_FORGE_RUNTIME_G11O_SAVE_PASS mode=write', 'OPENRPG_FORGE_RUNTIME_SAVE_PASS') `
         -StopAfterMarkers $false
     $saveResumeLog = Join-Path $artifactRoot 'save-resume.log'
     Invoke-ForgeEngineMarkerTest `
         -Name 'save-resume' `
         -ProjectPath $runtimePath `
         -Arguments @('--headless', '--path', $runtimePath, '--log-file', $saveResumeLog, '--', '--module-package', $moduleArtifact, '--load-save', $runtimeSave, '--save-smoke-resume') `
-        -Markers @('OPENRPG_FORGE_RUNTIME_SAVE_LOADED format=1.4.0', 'OPENRPG_FORGE_RUNTIME_G11O_SAVE_PASS mode=load', 'OPENRPG_FORGE_RUNTIME_SAVE_RESUME_PASS') `
+        -Markers @('OPENRPG_FORGE_RUNTIME_SAVE_LOADED format=1.7.0', 'OPENRPG_FORGE_RUNTIME_G11O_SAVE_PASS mode=load', 'OPENRPG_FORGE_RUNTIME_SAVE_RESUME_PASS') `
         -StopAfterMarkers $false
 }
 finally {
