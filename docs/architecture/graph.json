@@ -3,7 +3,7 @@
     "schema_version": 2,
     "engine": "roslyn",
     "engine_version": "5.6.0.0",
-    "source_digest": "sha256:41a7fdc833c9522b8673c6fd9e6ea090bd4c871bb0b40777078dc21ee3f865e7",
+    "source_digest": "sha256:960961d3cadc28679f96e38a817d6124274ffaa43e6df95939bf80080bc116f3",
     "source_file_count": 3820,
     "sources": [
       {
@@ -3488,8 +3488,8 @@
       },
       {
         "path": "apps/Forge.Studio/Session/StudioSessionController.Ux7B.cs",
-        "sha256": "sha256:a54ec2de8368cc54715d89062b1303d0dffb1827da1f94f787507a34c5283d9b",
-        "size": 49093
+        "sha256": "sha256:056a957ab084221bfdc209922449439b8968f8118a09a24dfcb20fdf7c8eab48",
+        "size": 49122
       },
       {
         "path": "apps/Forge.Studio/Session/StudioSessionController.Ux7C.cs",
@@ -142498,7 +142498,7 @@
       "kind": "type",
       "name": "QualityFileSnapshotUx7B",
       "path": "apps/Forge.Studio/Session/StudioSessionController.Ux7B.cs",
-      "line": 910,
+      "line": 911,
       "metadata": {
         "namespace": "Forge.Studio.Session",
         "project": "Forge.Studio",
@@ -1051740,7 +1051740,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.Ux7B.cs",
-        "line": 910
+        "line": 911
       }
     },
     {
@@ -1051750,7 +1051750,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.Studio/Session/StudioSessionController.Ux7B.cs",
-        "line": 910
+        "line": 911
       }
     },
     {
