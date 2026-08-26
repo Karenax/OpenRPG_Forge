@@ -52,6 +52,16 @@ Assert-VerificationCondition (
     [array]::IndexOf(@($studioPlan.steps.kind), 'studio-smoke')) `
     'Fast Studio tests must precede the engine smoke.'
 
+$visualPlan = & $planner -RepositoryRoot $repositoryRoot -Profile Studio `
+    -Page quality -Evidence ux7-h-visual-regression -StudioSmokeScope Route | ConvertFrom-Json
+$visualRuntimeBuild = @($visualPlan.steps | Where-Object id -eq 'studio-visual-runtime-debug-build')
+Assert-VerificationCondition ($visualRuntimeBuild.Count -eq 1) `
+    'UX7-H Studio verification must build the real Runtime prerequisite exactly once.'
+Assert-VerificationCondition (
+    [array]::IndexOf(@($visualPlan.steps.id), 'studio-visual-runtime-debug-build') -lt
+    [array]::IndexOf(@($visualPlan.steps.kind), 'studio-smoke')) `
+    'The UX7-H Runtime build must precede the Studio visual smoke.'
+
 $publicationPlan = & $planner -RepositoryRoot $repositoryRoot -Stage Publication | ConvertFrom-Json
 Assert-VerificationCondition ($publicationPlan.steps.Count -eq 1) 'Publication must select exactly the Full gate.'
 Assert-VerificationCondition ($publicationPlan.steps[0].kind -eq 'full-gate') 'Publication did not select Full.'
@@ -68,4 +78,4 @@ Assert-VerificationCondition ([bool]$planOnly.policy.sequential) 'Executor plan 
 Assert-VerificationCondition ([bool]$planOnly.policy.fail_on_zero_tests) 'Executor plan permits zero tests.'
 Assert-VerificationCondition ([bool]$planOnly.policy.fail_fast) 'Executor plan is not fail-fast.'
 
-Write-Output 'OPENRPG_FORGE_TARGETED_VERIFICATION_PLANNER_TEST_PASS cases=5'
+Write-Output 'OPENRPG_FORGE_TARGETED_VERIFICATION_PLANNER_TEST_PASS cases=6'

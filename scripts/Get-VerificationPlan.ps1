@@ -280,6 +280,13 @@ function Add-ProfileSteps {
             New-VerificationStep -Id 'studio-debug-build' -Kind 'dotnet-build' `
                 -Target 'apps/Forge.Studio/Forge.Studio.csproj' -Configuration 'Debug' `
                 -Reason 'Studio smoke tests execute the Debug managed cache.' -EstimatedCost medium
+            if ($StudioSmokeScope -eq 'Full' -or
+                $Evidence.StartsWith('ux7-h', [System.StringComparison]::OrdinalIgnoreCase)) {
+                New-VerificationStep -Id 'studio-visual-runtime-debug-build' -Kind 'dotnet-build' `
+                    -Target 'apps/Forge.Runtime/Forge.Runtime.csproj' -Configuration 'Debug' `
+                    -Reason 'UX7-H launches the real Runtime and requires its managed Debug cache.' `
+                    -EstimatedCost medium
+            }
             Add-DotnetProjectSuite -Project $testProjects.Studio `
                 -Reason 'Studio profile validates engine-neutral presentation contracts.'
             New-VerificationStep -Id 'studio-scoped-smoke' -Kind 'studio-smoke' `

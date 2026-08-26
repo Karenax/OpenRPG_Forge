@@ -293,8 +293,35 @@ function Invoke-StudioSmokeStep {
     if ([System.IO.Path]::GetFileName($path) -ne 'Open-Studio.ps1') {
         throw "Studio smoke must use scripts/Open-Studio.ps1: $path"
     }
+    $stepArguments = @($Step.arguments | ForEach-Object { [string]$_ })
+    $evidenceIndex = [array]::IndexOf($stepArguments, '-Evidence')
+    $scopeIndex = [array]::IndexOf($stepArguments, '-SmokeScope')
+    $evidence = if ($evidenceIndex -ge 0 -and $evidenceIndex + 1 -lt $stepArguments.Count) {
+        $stepArguments[$evidenceIndex + 1]
+    }
+    else { '' }
+    $scope = if ($scopeIndex -ge 0 -and $scopeIndex + 1 -lt $stepArguments.Count) {
+        $stepArguments[$scopeIndex + 1]
+    }
+    else { 'Route' }
+    $requiresVisualRuntime = $scope -eq 'Full' -or
+        $evidence.StartsWith('ux7-h', [System.StringComparison]::OrdinalIgnoreCase)
+    if ($requiresVisualRuntime) {
+        $runtimePath = Resolve-RepositoryFile 'apps/Forge.Runtime' -AllowDirectory
+        $runtimeAssembly = @(
+            (Join-Path $runtimePath '.godot\mono\temp\bin\Debug\Forge.Runtime.dll'),
+            (Join-Path $runtimePath '.godot\mono\temp\bin\Release\Forge.Runtime.dll')
+        ) | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
+        if ([string]::IsNullOrWhiteSpace($runtimeAssembly)) {
+            throw 'Studio visual smoke requires a compiled Forge.Runtime cache.'
+        }
+        $runtimeImportLog = Join-Path $RepositoryRoot `
+            'artifacts\verification\studio-shell\runtime-import.log'
+        Invoke-ForgeProjectImport -EnginePath (Get-ForgeEnginePath) -ProjectPath $runtimePath `
+            -LogPath $runtimeImportLog
+    }
     $arguments = @('-NoProfile', '-NonInteractive', '-File', $path) +
-        @($Step.arguments | ForEach-Object { [string]$_ }) +
+        $stepArguments +
         @('-Headless', '-Smoke', '-Wait', '-SkipBuild')
     $execution = Invoke-External -Command (Join-Path $PSHOME 'pwsh.exe') -Arguments $arguments
     if ($execution.exit_code -ne 0) {

@@ -514,6 +514,10 @@ try {
         '--no-build', '--', 'check', '--full')
     Test-ForgeBranding
 
+    $runtimePath = Join-Path $repositoryRoot 'apps\Forge.Runtime'
+    Invoke-ForgeProjectImport -EnginePath $enginePath -ProjectPath $runtimePath `
+        -LogPath (Join-Path $artifactRoot 'runtime-import.log')
+
     $studioPath = Join-Path $repositoryRoot 'apps\Forge.Studio'
     $studioLog = Join-Path $artifactRoot 'studio.log'
     $studioWorkspace = Join-Path $repositoryRoot 'apps\Forge.Runtime\content\crypt-of-ashes'
@@ -1045,9 +1049,6 @@ try {
         Write-Output 'AV6-F retarget smoke skipped: external CC0 rig fixtures unavailable.'
     }
 
-    $runtimePath = Join-Path $repositoryRoot 'apps\Forge.Runtime'
-    Invoke-ForgeProjectImport -EnginePath $enginePath -ProjectPath $runtimePath `
-        -LogPath (Join-Path $artifactRoot 'runtime-import.log')
     $plainRuntimeLog = Join-Path $artifactRoot 'runtime-plain-launch.log'
     Invoke-ForgeEngineMarkerTest `
         -Name 'runtime-plain-launch' `
