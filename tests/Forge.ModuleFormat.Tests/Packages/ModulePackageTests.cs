@@ -673,6 +673,23 @@ public sealed class ModulePackageTests : IDisposable
     }
 
     [Fact]
+    public void Validate_AllowsMp3ButStillRejectsNativeCommunityContent()
+    {
+        var package = ExportValidPackage();
+        AddEntry(package, "content/audio/dialogues/voice.mp3", "ID3-community-voice");
+        AddEntry(package, "content/plugins/hostile.dll", "MZ-hostile");
+
+        var validation = ModulePackageValidator.Validate(package);
+
+        Assert.DoesNotContain(validation.Diagnostics, diagnostic =>
+            diagnostic.Code == ModulePackageValidator.ForbiddenFileCode &&
+            diagnostic.Path == "content/audio/dialogues/voice.mp3");
+        Assert.Contains(validation.Diagnostics, diagnostic =>
+            diagnostic.Code == ModulePackageValidator.ForbiddenFileCode &&
+            diagnostic.Path == "content/plugins/hostile.dll");
+    }
+
+    [Fact]
     public void Validate_AllowsOnlyGltfReferencedBinarySidecars()
     {
         var referencedPackage = ExportValidPackage();

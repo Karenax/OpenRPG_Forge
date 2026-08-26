@@ -93,6 +93,7 @@ internal sealed partial class StudioNarrativeWorkbenchUx5B : Control
         _tabs.TabChanged += index => ActivateSection((StudioNarrativeSectionUx5B)index);
         root.AddChild(_tabs);
         BuildDialogueTab();
+        AddDialogueVoiceImportSurface();
         BuildQuestTab();
         BuildLocalizationTab();
         BuildLoreTab();
@@ -342,6 +343,7 @@ internal sealed partial class StudioNarrativeWorkbenchUx5B : Control
         Populate(_selectors[StudioNarrativeSectionUx5B.Cinematic], "Sélectionner · zone…",
             _session.CinematicAreaChoicesUx5B);
         _updating = false;
+        RefreshDialogueVoiceNodes();
     }
 
     private static void Populate(OptionButton selector, string placeholder,
@@ -361,6 +363,7 @@ internal sealed partial class StudioNarrativeWorkbenchUx5B : Control
     private void SelectionChanged(StudioNarrativeSectionUx5B section)
     {
         if (_updating) return;
+        if (section == StudioNarrativeSectionUx5B.Dialogue) RefreshDialogueVoiceNodes();
         _session.CancelNarrativeApprovalUx5B(section);
         _drafts.Remove(section);
         _lastPreview = null;
@@ -521,6 +524,7 @@ internal sealed partial class StudioNarrativeWorkbenchUx5B : Control
         if (!result.Succeeded) return;
         NarrativeChanged?.Invoke();
         PopulateSelectors();
+        RefreshDialogueVoiceNodes();
         ResetReview(result.Message + " Rechargez explicitement pour poursuivre.");
         UpdateButtons();
     }
@@ -648,6 +652,8 @@ internal sealed partial class StudioNarrativeWorkbenchUx5B : Control
             }
             _tabs.CurrentTab = (int)SectionFromMode(mode);
             PreviewActive();
+            if (SectionFromMode(mode) == StudioNarrativeSectionUx5B.Dialogue)
+                FocusDialogueVoiceEvidence();
             _evidenceSourceUntouched = SourceMatchesSnapshot();
             _context.Text = evidence.UsesRealModule
                 ? "COPIE TEMPORAIRE DU MODULE RÉEL · source strictement inchangée"
@@ -687,14 +693,27 @@ internal sealed partial class StudioNarrativeWorkbenchUx5B : Control
                 if (!_applied) return false;
                 UndoActive();
                 RedoActive();
+                GD.Print($"OPENRPG_FORGE_STUDIO_UX5B_TRANSACTION_STEP section={section} phase=narrative_complete");
             }
+            GD.Print("OPENRPG_FORGE_STUDIO_UX5B_TRANSACTION_STEP phase=voice_begin");
+            var voice = RunDialogueVoiceTransactionEvidence(editing);
+            if (!voice.Succeeded || editing.Session is null) return false;
+            var editingRoot = editing.Session.RootDirectory;
             var saved = editing.Save().Succeeded && editing.SaveWorkspaceProfile().Succeeded;
             var finalJson = editing.Project is null ? string.Empty : ProjectJsonSerializer.Serialize(editing.Project);
             if (!saved || editing.Session is null) return false;
             reopened = new StudioSessionController();
             var persisted = reopened.Open(editing.Session.RootDirectory).Succeeded &&
                             reopened.Project is not null &&
-                            ProjectJsonSerializer.Serialize(reopened.Project) == finalJson;
+                            ProjectJsonSerializer.Serialize(reopened.Project) == finalJson &&
+                            reopened.Project.Dialogues.Single(item => item.Id.Value == voice.DialogueId)
+                                .Presentation!.VoiceCues.Any(item => item.NodeId.Value == voice.NodeId &&
+                                    item.ContentSha256 == voice.Hash && item.Resource == voice.Destination) &&
+                            File.Exists(Path.Combine(editingRoot,
+                                voice.Destination.Replace('/', Path.DirectorySeparatorChar)));
+            if (persisted)
+                GD.Print("OPENRPG_FORGE_STUDIO_DIALOGUE_VOICE_IMPORT_PASS preview=true apply=true " +
+                         "second_blocked=true undo=true redo=true save=true reopen=true immutable_blob=true");
             reopened.Close(); reopened = null;
             var sourceUntouched = SourceMatchesSnapshot();
             CloseEvidence();

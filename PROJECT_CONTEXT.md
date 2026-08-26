@@ -94,9 +94,14 @@ les additionner deux fois après une reprise.
 L’authoring MCP sait installer un modèle logique local, placer une entité avec transform complet, créer un
 émetteur audio, modifier les facettes d’une créature et remplacer l’ensemble des overrides d’une instance.
 Ces capacités restent accessibles humainement dans Studio par l’Asset Library, le viewport, l’inspecteur
-d’entité, les pages Créatures, Navigation et Audio ; elles suivent dry-run, garde de révision, undo/redo et
-sauvegarde/réouverture. Les voix françaises préparées ne sont pas encore intégrées : l’import audio local
-gouverné demeure une capacité distincte à ajouter avant de revendiquer des dialogues doublés. Le
+d’entité, les pages Créatures, Navigation, Audio et le formulaire de voix de dialogue ; elles suivent
+dry-run, garde de révision, undo/redo et sauvegarde/réouverture. L’import vocal gouverné accepte MP3/WAV
+structurellement valides, licence SPDX/LicenseRef, SHA-256 et provenance, publie des blobs immuables
+content-addressed et les lie aux cues par MCP ou Studio. Le runtime revalide le hash, décode les mêmes
+octets et conserve le sous-titre comme fallback. Les quatre prises françaises de Maélis sont intégrées
+et ont atteint le marqueur `completed` dans la session Forward+ interactive. La frontière de sécurité
+couvre les mutations Forge coopératives ; la défense contre un processus local hostile échangeant un
+parent reste un durcissement futur no-follow par handle et verrou interprocessus. Le
 runtime joueur exclut désormais les laboratoires de validation réservés aux smokes et applique la
 mouillure par overrides de matériaux sans duplication profonde des meshes ordinaires ; le démarrage
 Forward+ comparable de Solaren passe ainsi de 45,243 s à 12,207 s.

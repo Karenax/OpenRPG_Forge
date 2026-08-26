@@ -236,19 +236,7 @@ public static partial class DistributionComplianceValidator
     }
 
     public static bool IsApprovedLicense(string? value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return false;
-        }
-
-        var tokens = LicenseTokenRegex().Matches(value)
-            .Select(match => match.Value)
-            .Where(token => token is not "AND" and not "OR" and not "WITH")
-            .ToArray();
-        return tokens.Length > 0 && tokens.All(token =>
-            ApprovedLicenseIdentifiers.Contains(token) || token.StartsWith("LicenseRef-", StringComparison.Ordinal));
-    }
+        => SpdxLicenseValidator.IsSupported(value);
 
     private static bool IsUnknownProvenance(string? value) =>
         string.IsNullOrWhiteSpace(value) ||

@@ -28,7 +28,7 @@ public static class ModulePackageValidator
     private static readonly HashSet<string> AllowedExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
         ".json", ".forge", ".as", ".asbc", ".glb", ".gltf", ".png", ".jpg", ".jpeg",
-        ".webp", ".ogg", ".wav", ".md", ".txt",
+        ".webp", ".ogg", ".wav", ".mp3", ".md", ".txt",
     };
 
     public static ModulePackageValidationResult Validate(

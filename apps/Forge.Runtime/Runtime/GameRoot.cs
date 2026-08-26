@@ -254,6 +254,7 @@ public partial class GameRoot : Node3D
     private string? _mapExplorationAreaId;
     private string? _mapExplorationCell;
     private RuntimeDialogueOverlay? _dialogueOverlay;
+    private RuntimeDialogueVoicePlayer? _dialogueVoicePlayer;
     private Node3D? _npc;
     private readonly Dictionary<Node3D, (BlueprintId BlueprintId, string DisplayName)> _narrativeParticipants = [];
     private Node3D? _activeDialogueParticipant;
@@ -438,6 +439,8 @@ public partial class GameRoot : Node3D
         var smokeTest = userArguments.Contains("--smoke-test", StringComparer.Ordinal);
         var genericSmokeTest = userArguments.Contains("--generic-smoke-test", StringComparer.Ordinal);
         var solarenSmokeTest = userArguments.Contains("--solaren-smoke-test", StringComparer.Ordinal);
+        var dialogueVoiceCompletionSmokeTest = userArguments.Contains(
+            "--dialogue-voice-completion-smoke-test", StringComparer.Ordinal);
         var combatFeedbackSmokeTest = userArguments.Contains("--combat-feedback-smoke-test", StringComparer.Ordinal);
         var entryGroundSmokeTest = userArguments.Contains("--entry-ground-smoke-test", StringComparer.Ordinal);
         var cryptMovementSmokeTest = userArguments.Contains("--crypt-movement-smoke-test", StringComparer.Ordinal);
@@ -462,7 +465,7 @@ public partial class GameRoot : Node3D
         var combatFeedbackCapturePath = GetArgumentValue(userArguments, CombatFeedbackCaptureArgument);
         var combatFeedbackCaptureSize = GetArgumentValue(userArguments, CombatFeedbackCaptureSizeArgument);
         var visualRegressionSuitePath = GetArgumentValue(userArguments, VisualRegressionSuiteArgument);
-        var automatedTest = smokeTest || genericSmokeTest || solarenSmokeTest ||
+        var automatedTest = smokeTest || genericSmokeTest || solarenSmokeTest || dialogueVoiceCompletionSmokeTest ||
             combatFeedbackSmokeTest ||
             entryGroundSmokeTest || cryptMovementSmokeTest ||
             innUxSmokeTest ||
@@ -695,6 +698,10 @@ public partial class GameRoot : Node3D
             else if (solarenSmokeTest)
             {
                 await RunSolarenHeadlessSmokeTestAsync();
+            }
+            else if (dialogueVoiceCompletionSmokeTest)
+            {
+                await RunDialogueVoiceCompletionSmokeTestAsync();
             }
             else if (saveSmokeCreate)
             {
@@ -6241,6 +6248,8 @@ public partial class GameRoot : Node3D
         _dialogueOverlay.ChoiceSelected += HandleDialogueOverlayChoiceSelected;
         _dialogueOverlay.Closed += HandleDialogueOverlayClosed;
         AddChild(_dialogueOverlay);
+        _dialogueVoicePlayer = new RuntimeDialogueVoicePlayer();
+        AddChild(_dialogueVoicePlayer);
         _actionWheel = new RuntimeActionWheel();
         if (_gameplayControls is not null) _actionWheel.Configure(_gameplayControls);
         _actionWheel.SelectionAccepted += command => _actionBar?.NotifyCommandAccepted(command);

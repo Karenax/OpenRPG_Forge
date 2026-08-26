@@ -1123,6 +1123,12 @@ internal sealed partial class StudioSessionController
         var result = Session.Save(History.State.Project);
         if (result.Succeeded)
         {
+            if (_appliedDialogueVoiceImport is not null)
+            {
+                _appliedDialogueVoiceImport.Persisted = true;
+                _appliedDialogueVoiceImport = null;
+            }
+            _approvedDialogueVoiceImport = null;
             return new StudioActionResult(true, "Module enregistré atomiquement");
         }
 
@@ -1133,6 +1139,7 @@ internal sealed partial class StudioSessionController
 
     internal void Close()
     {
+        DiscardUnsavedDialogueVoiceImport();
         Session = null;
         History = null;
         AssetManifests = [];

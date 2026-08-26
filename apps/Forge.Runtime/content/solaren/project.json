@@ -4963,7 +4963,113 @@
             "subgraphKey": null
           }
         ],
-        "presentation": null,
+        "presentation": {
+          "id": "22f68a51-9d8b-bd44-844e-74fdd1430b58",
+          "schemaVersion": 1,
+          "provenance": "generated:edge-tts:2026-08-26",
+          "requiredAtRuntime": false,
+          "serverAuthoritativeInterjections": true,
+          "animationCues": [],
+          "voiceCues": [
+            {
+              "id": "21121b91-2caf-6a42-9a95-0b9ad8851249",
+              "nodeId": "00f251a2-aa30-9749-9888-4f7f90d5f9fd",
+              "participantBlueprintId": "960424ba-d57c-f556-9359-449ee1a5cf54",
+              "locale": "fr-FR",
+              "resource": "audio/dialogues/blobs/sha256/3d/3d3c3a3a14b87c31d7fc3c30ce0e55bffa0341ba576a001c26a9d790d1e8f943.mp3",
+              "take": "maelis-01-repere",
+              "subtitle": {
+                "id": "c0df8cc9-6fef-5c02-b1df-54531138fec5",
+                "schemaVersion": 1,
+                "provenance": "generated:edge-tts:2026-08-26",
+                "key": "solaren.dialogue.maelis_beacon.1",
+                "fallback": "Ma\u00E9lis : La pluie a \u00E9teint le rep\u00E8re. Peux-tu le rallumer ?",
+                "variants": []
+              },
+              "lipSyncProfileId": "viseme-neutral",
+              "emotion": "concerned",
+              "durationMilliseconds": 5208,
+              "licenseSpdx": "LicenseRef-Generated-Edge-TTS",
+              "contentSha256": "3d3c3a3a14b87c31d7fc3c30ce0e55bffa0341ba576a001c26a9d790d1e8f943",
+              "allowSubtitleFallback": true,
+              "provenance": "generated:edge-tts:2026-08-26"
+            },
+            {
+              "id": "90b43897-d59e-9149-bbf6-ed0268a7c4b1",
+              "nodeId": "38dfbe34-10f9-0c40-808e-133c9187db93",
+              "participantBlueprintId": "960424ba-d57c-f556-9359-449ee1a5cf54",
+              "locale": "fr-FR",
+              "resource": "audio/dialogues/blobs/sha256/e6/e690af23ff945693f44a19929f10df11c84259af0bdbbf130fdaafc167fd22cb.mp3",
+              "take": "maelis-03-sud-place",
+              "subtitle": {
+                "id": "1eba775e-5bb4-509d-a87b-0c3d702464c7",
+                "schemaVersion": 1,
+                "provenance": "generated:edge-tts:2026-08-26",
+                "key": "solaren.dialogue.maelis_beacon.3",
+                "fallback": "Ma\u00E9lis : Le rep\u00E8re se dresse au sud de la place. Rallume-le, puis reviens me voir.",
+                "variants": []
+              },
+              "lipSyncProfileId": "viseme-neutral",
+              "emotion": "urgent",
+              "durationMilliseconds": 7152,
+              "licenseSpdx": "LicenseRef-Generated-Edge-TTS",
+              "contentSha256": "e690af23ff945693f44a19929f10df11c84259af0bdbbf130fdaafc167fd22cb",
+              "allowSubtitleFallback": true,
+              "provenance": "generated:edge-tts:2026-08-26"
+            },
+            {
+              "id": "270a6d94-f70d-5f4e-b32e-a811d015c87d",
+              "nodeId": "79e7b610-fd89-0c48-956f-4bd14d5211c4",
+              "participantBlueprintId": "960424ba-d57c-f556-9359-449ee1a5cf54",
+              "locale": "fr-FR",
+              "resource": "audio/dialogues/blobs/sha256/ae/ae0bfe98c8200f218da9f4df9476a7b4d5a4abd8d30a9ce5e65a234025cb51e1.mp3",
+              "take": "maelis-02-voyageurs",
+              "subtitle": {
+                "id": "703f35a5-c2da-548a-9abe-8ac5d4370ed1",
+                "schemaVersion": 1,
+                "provenance": "generated:edge-tts:2026-08-26",
+                "key": "solaren.dialogue.maelis_beacon.2",
+                "fallback": "Ma\u00E9lis : Il guide les voyageurs lorsque la brume couvre Aubeciel.",
+                "variants": []
+              },
+              "lipSyncProfileId": "viseme-neutral",
+              "emotion": "calm",
+              "durationMilliseconds": 4608,
+              "licenseSpdx": "LicenseRef-Generated-Edge-TTS",
+              "contentSha256": "ae0bfe98c8200f218da9f4df9476a7b4d5a4abd8d30a9ce5e65a234025cb51e1",
+              "allowSubtitleFallback": true,
+              "provenance": "generated:edge-tts:2026-08-26"
+            },
+            {
+              "id": "926d551c-e2db-f24d-89ed-2d04f6750131",
+              "nodeId": "f2a74262-0ec2-a945-b895-a6824afa0786",
+              "participantBlueprintId": "960424ba-d57c-f556-9359-449ee1a5cf54",
+              "locale": "fr-FR",
+              "resource": "audio/dialogues/blobs/sha256/86/86fdf45405ea677c5912bf13e563fa8e8a66b3284a07d0bcfebc3929f701fbad.mp3",
+              "take": "maelis-04-reviens",
+              "subtitle": {
+                "id": "239dbffb-88de-5c18-a54a-6cf75b33a6fa",
+                "schemaVersion": 1,
+                "provenance": "generated:edge-tts:2026-08-26",
+                "key": "solaren.dialogue.maelis_beacon.4",
+                "fallback": "Ma\u00E9lis : Reviens quand la lumi\u00E8re sera revenue.",
+                "variants": []
+              },
+              "lipSyncProfileId": "viseme-neutral",
+              "emotion": "hopeful",
+              "durationMilliseconds": 3648,
+              "licenseSpdx": "LicenseRef-Generated-Edge-TTS",
+              "contentSha256": "86fdf45405ea677c5912bf13e563fa8e8a66b3284a07d0bcfebc3929f701fbad",
+              "allowSubtitleFallback": true,
+              "provenance": "generated:edge-tts:2026-08-26"
+            }
+          ],
+          "cameraShots": [],
+          "bookmarks": [],
+          "interjectionRules": [],
+          "timedChoices": [],
+          "variantSets": []
+        },
         "metadata": {
           "kind": "conversation"
         },

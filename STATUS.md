@@ -115,21 +115,22 @@ sur une carte générée et aucune scène dérivée n'est promue automatiquement
   est idempotent ;
 - Maélis, Toman et Orin sont liés par override éditable à trois routes locales et se déplacent avec
   attente, orientation et alternance course/idle. Deux émetteurs audio 3D CC0 — vent des frondaisons et
-  oiseaux de la place — sont reconstruits comme `AudioStreamPlayer3D` ; quatre prises françaises de
-  Maélis sont préparées dans les artefacts mais ne sont pas revendiquées comme intégrées tant qu’un
-  import audio gouverné dédié ne les a pas rattachées au dialogue ;
+  oiseaux de la place — sont reconstruits comme `AudioStreamPlayer3D`. Quatre prises françaises de
+  Maélis sont importées comme blobs MP3 content-addressed gouvernés, liées aux quatre nœuds du dialogue,
+  lues depuis les octets hashés et validées jusqu’au marqueur interactif `completed`, sans fallback ni
+  diagnostic ;
 - les validations canoniques de Solaren et de la Crypte ne remontent aucun diagnostic. Le lot affecté
-  passe 1 742 tests Release (Domain 528, Application 520, ModuleFormat 428, Studio.Core 33, MCP 174,
-  EngineAdapter 59), les builds Runtime/Studio/McpHost sans avertissement, le smoke Studio
-  `UX0D_PASS`, le smoke Solaren Forward+ avec patrouilles et boucle du repère, puis le smoke complet de
-  la Crypte. Les revues indépendantes du data binding, du cycle dialogue/patrouille puis du démarrage/
-  wetness sont vertes ; le graphe Roslyn est frais et
-  déterministe à 11 632 nœuds, 92 991 relations et zéro diagnostic. Deux exports `.orpmod` finaux
-  sont octet pour octet identiques : 496 820 719 octets, SHA-256
-  `4573eed957ced3fd777b2af429e531987a3a2e98bbf6c89b2cc5b4dccac0d3ff` ;
+  après intégration WorldGeneration passe 1 778 tests Release (Domain 538, Application 529,
+  ModuleFormat 439, Studio.Core 34, MCP 177, EngineAdapter 61), les builds Runtime/Studio/McpHost sans
+  avertissement, le smoke Studio UX5-B, les smokes Forward+ Solaren et Crypte et l’audition interactive.
+  La capacité vocale est acceptée dans le modèle des mutations Forge coopératives ; la revue conserve
+  comme durcissement futur une publication no-follow par handle face à un processus local hostile. Le
+  graphe Roslyn est frais et déterministe à 11 807 nœuds, 94 041 relations et zéro diagnostic. Deux
+  exports `.orpmod` incluant les quatre voix sont octet pour octet identiques : 496 919 149 octets,
+  SHA-256 `3ae25b4bc3c3f974346460fc643f659649f9fa8a2669120160bc4cd3fbd517f3` ;
 - ce jalon est la première tranche artistique et narrative jouable de Solaren, pas une qualification de
-  contenu final ni une release publique signée. Voix intégrées, rencontres et transitions vers les
-  vallées voisines restent des extensions de contenu explicites.
+  contenu final ni une release publique signée. Rencontres et transitions vers les vallées voisines
+  restent des extensions de contenu explicites.
 
 ## Couverture et preuves
 

@@ -647,17 +647,20 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
   course/idle, orientation et attente.
 - [x] Livrer la première boucle jouable `Maélis → accepter Le repère de la place → rallumer le repère →
   quête terminée`, avec objectif authored, journal réel, `StartQuest` idempotent, deux ambiances 3D CC0
-  et quatre prises françaises préparées mais non revendiquées comme intégrées.
+  et quatre prises françaises importées comme blobs MP3 content-addressed, liées aux quatre nœuds et
+  lues réellement avec fallback sous-titre.
 - [x] Réserver les laboratoires Quality/Performance/Governance aux smokes, remplacer la duplication
   profonde des meshes ordinaires par des overrides de matériaux wetness et ramener le démarrage
   Forward+ comparable de 45 242,758 ms à 12 206,700 ms (-73,0 %), sans régression visuelle.
-- [x] Valider le lot par 1 742 tests Release, builds Runtime/Studio/McpHost sans avertissement, smoke
-  Studio `UX0D_PASS`, smokes Forward+ Solaren et Crypte, MCP 255 outils, deux `.orpmod` identiques
-  (496 820 719 octets, SHA-256 `4573eed957ced3fd777b2af429e531987a3a2e98bbf6c89b2cc5b4dccac0d3ff`),
-  revues indépendantes et graphe Roslyn déterministe à 11 632 nœuds / 92 991 relations sans diagnostic.
-- [ ] Ajouter un import audio gouverné dédié pour rattacher les prises de Maélis, puis étendre cette
-  première tranche avec rencontres et transitions vers les vallées voisines avant de parler de contenu
-  final.
+- [x] Valider le lot post-WorldGeneration par 1 778 tests Release, builds Runtime/Studio/McpHost sans
+  avertissement, smoke Studio UX5-B, smokes Forward+ Solaren et Crypte, MCP 267 outils, audition
+  interactive et deux `.orpmod` vocaux identiques (496 919 149 octets, SHA-256
+  `3ae25b4bc3c3f974346460fc643f659649f9fa8a2669120160bc4cd3fbd517f3`), avec graphe Roslyn
+  déterministe à 11 807 nœuds / 94 041 relations sans diagnostic.
+- [x] Ajouter un import vocal local gouverné MP3/WAV, son cycle MCP/Studio preview/apply/undo/redo/
+  save-reopen, la lecture runtime sur octets hashés, puis rattacher les quatre prises de Maélis.
+- [ ] Étendre cette première tranche avec rencontres et transitions vers les vallées voisines avant de
+  parler de contenu final.
 
 ## C15 — Orchestration de génération procédurale
 

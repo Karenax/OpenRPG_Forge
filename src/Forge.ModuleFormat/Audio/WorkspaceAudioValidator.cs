@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using Forge.Application.Areas;
+using Forge.Application.Gameplay;
 using Forge.Domain.Audio;
 using Forge.Domain.Projects;
 using Forge.Domain.Validation;
@@ -73,6 +74,24 @@ public static class WorkspaceAudioValidator
                     if (!string.Equals(hash, clip.ContentSha256, StringComparison.OrdinalIgnoreCase))
                         diagnostics.Add(new DomainDiagnostic(ResourceHashCode,
                             $"Audio resource '{clip.ResourcePath}' does not match its SHA-256.", path));
+                }
+            }
+        }
+        foreach (var dialogue in project.Dialogues)
+        {
+            var voiceCues = dialogue.Presentation?.VoiceCues ?? [];
+            for (var index = 0; index < voiceCues.Count; index++)
+            {
+                var cue = voiceCues[index];
+                if (string.IsNullOrWhiteSpace(cue.Resource)) continue;
+                var path = $"dialogues/{dialogue.Id}/presentation/voiceCues/{index}/resource";
+                var verification = DialogueVoiceResourceVerifier.Verify(workspacePath, cue);
+                if (!verification.Succeeded)
+                {
+                    diagnostics.Add(new DomainDiagnostic(
+                        verification.DiagnosticCode ?? ResourceMissingCode,
+                        "Dialogue voice resource is missing, unsafe, or does not match its SHA-256.",
+                        path));
                 }
             }
         }

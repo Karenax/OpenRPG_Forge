@@ -992,6 +992,7 @@ public partial class GameRoot
 
         RunAudioEmitterRuntimeSmokeTest();
         RunDialogueGraphRuntimeSmokeTest();
+        RunDialogueVoicePlaybackSmokeTest();
         RunQuestJournalRuntimeSmokeTest();
         RunWaypointAnchorRuntimeSmokeTest();
         RunGameplayFoundationRuntimeSmokeTest();

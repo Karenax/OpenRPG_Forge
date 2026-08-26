@@ -255,6 +255,7 @@ public partial class GameRoot : Node3D
 
     private void ClearActiveDialogueSession()
     {
+        _dialogueVoicePlayer?.Stop("dialogue-closed");
         _activeDialogueTraversal = null;
         _activeDialogueTraversalDialogueId = null;
         _activeDialogueChoices = [];
@@ -327,6 +328,11 @@ public partial class GameRoot : Node3D
             GD.Print($"OPENRPG_FORGE_DIALOGUE_VOICE locale={resolution.VoiceCue.Locale} " +
                 $"take={resolution.VoiceCue.Take} fallback={resolution.UsesSubtitleFallback.ToString().ToLowerInvariant()} " +
                 $"subtitle={resolution.VoiceCue.Subtitle.Key}");
+            _dialogueVoicePlayer?.Play(_moduleContentRoot, _activeDialogue.Id, resolution.VoiceCue);
+        }
+        else
+        {
+            _dialogueVoicePlayer?.Stop("node-without-voice");
         }
 
         if (resolution.CameraShot is { } shot && _camera is not null)

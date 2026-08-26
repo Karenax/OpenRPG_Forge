@@ -23,5 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Forge.Studio.Core\Forge.Studio.Core.csproj" />
+    <ProjectReference Include="..\..\src\Forge.Domain\Forge.Domain.csproj" />
+    <ProjectReference Include="..\..\apps\Forge.Studio\Forge.Studio.csproj" />
   </ItemGroup>
 </Project>
