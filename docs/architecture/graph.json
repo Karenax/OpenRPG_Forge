@@ -3,8 +3,8 @@
     "schema_version": 2,
     "engine": "roslyn",
     "engine_version": "5.6.0.0",
-    "source_digest": "sha256:b99d5f2b547067b940fa8fd819ff5b6a6e9dc919319bb66eadd3b75da32c35de",
-    "source_file_count": 3819,
+    "source_digest": "sha256:fd911158b3723ff433ca0e2add2eecda32a2f2d355836a3420f92c328561a77c",
+    "source_file_count": 3820,
     "sources": [
       {
         "path": ".agents/skills/openrpg-asset-lifecycle/SKILL.md",
@@ -14118,8 +14118,8 @@
       },
       {
         "path": "src/Forge.ModuleFormat/Quality/WorkspaceQualityAcceptanceEvidenceValidator.cs",
-        "sha256": "sha256:538d3a401e7872935ac17ba54506afab6f38ee03fceeff73c6e496bd69703a2b",
-        "size": 11944
+        "sha256": "sha256:464a66031f91d5898e3e4d2ce82963c97cb80492be793899fcf0847e95d6c645",
+        "size": 12002
       },
       {
         "path": "src/Forge.ModuleFormat/Quality/WorkspaceQualityLabService.cs",
@@ -17082,14 +17082,19 @@
         "size": 2073
       },
       {
+        "path": "tests/Forge.Mcp.Tests/Fixtures/quest-proposal.json",
+        "sha256": "sha256:b4b9fc1a888e67cb9bba99f303e9f779cc98ab622cf06d52bcaca86a72593336",
+        "size": 20155
+      },
+      {
         "path": "tests/Forge.Mcp.Tests/Forge.Mcp.Tests.csproj",
         "sha256": "sha256:6554afc810d5deb0f1407626db7d524c24aac692c826f8007d9f0e03b4bc5350",
         "size": 1306
       },
       {
         "path": "tests/Forge.Mcp.Tests/Host/ForgeMcpQuestJsonBindingTests.cs",
-        "sha256": "sha256:401e5cbf9fa59eb9727cd6873503bc371b66e47c4f144a740e8401c97223990a",
-        "size": 8833
+        "sha256": "sha256:318a6941f93016d3068e38f3edee408f0fb87cf874110813874e48950f075b37",
+        "size": 8837
       },
       {
         "path": "tests/Forge.Mcp.Tests/Host/ForgeMcpSpatialContextTests.cs",
@@ -58652,6 +58657,16 @@
       "line": 1,
       "metadata": {
         "language": "csharp"
+      }
+    },
+    {
+      "id": "file:tests/Forge.Mcp.Tests/Fixtures/quest-proposal.json",
+      "kind": "configuration",
+      "name": "quest-proposal.json",
+      "path": "tests/Forge.Mcp.Tests/Fixtures/quest-proposal.json",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
       }
     },
     {
@@ -125887,7 +125902,7 @@
       "kind": "type",
       "name": "MaliciousFixture",
       "path": "src/Forge.ModuleFormat/Quality/WorkspaceQualityAcceptanceEvidenceValidator.cs",
-      "line": 245,
+      "line": 246,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Quality",
         "project": "Forge.ModuleFormat",
@@ -125899,7 +125914,7 @@
       "kind": "type",
       "name": "MaliciousFixtureCatalog",
       "path": "src/Forge.ModuleFormat/Quality/WorkspaceQualityAcceptanceEvidenceValidator.cs",
-      "line": 242,
+      "line": 243,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Quality",
         "project": "Forge.ModuleFormat",
@@ -918095,7 +918110,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Quality/WorkspaceQualityAcceptanceEvidenceValidator.cs",
-        "line": 245
+        "line": 246
       }
     },
     {
@@ -918105,7 +918120,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Quality/WorkspaceQualityAcceptanceEvidenceValidator.cs",
-        "line": 245
+        "line": 246
       }
     },
     {
@@ -918115,7 +918130,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Quality/WorkspaceQualityAcceptanceEvidenceValidator.cs",
-        "line": 242
+        "line": 243
       }
     },
     {
@@ -918125,7 +918140,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Quality/WorkspaceQualityAcceptanceEvidenceValidator.cs",
-        "line": 242
+        "line": 243
       }
     },
     {
@@ -918135,7 +918150,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Quality/WorkspaceQualityAcceptanceEvidenceValidator.cs",
-        "line": 243
+        "line": 244
       }
     },
     {
@@ -1086605,7 +1086620,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Quality/WorkspaceQualityAcceptanceEvidenceValidator.cs",
-        "line": 82
+        "line": 83
       }
     },
     {
@@ -1086625,7 +1086640,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Quality/WorkspaceQualityAcceptanceEvidenceValidator.cs",
-        "line": 157
+        "line": 158
       }
     },
     {
@@ -1086635,7 +1086650,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Quality/WorkspaceQualityAcceptanceEvidenceValidator.cs",
-        "line": 127
+        "line": 128
       }
     },
     {
@@ -1086645,7 +1086660,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Quality/WorkspaceQualityAcceptanceEvidenceValidator.cs",
-        "line": 81
+        "line": 82
       }
     },
     {
@@ -1086665,7 +1086680,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Quality/WorkspaceQualityAcceptanceEvidenceValidator.cs",
-        "line": 85
+        "line": 86
       }
     },
     {
