@@ -23,6 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Forge.Application\Forge.Application.csproj" />
     <ProjectReference Include="..\..\src\Forge.EngineAdapter\Forge.EngineAdapter.csproj" />
     <ProjectReference Include="..\..\src\Forge.Domain\Forge.Domain.csproj" />
   </ItemGroup>
