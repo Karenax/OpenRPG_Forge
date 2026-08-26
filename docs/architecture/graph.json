@@ -3,7 +3,7 @@
     "schema_version": 2,
     "engine": "roslyn",
     "engine_version": "5.6.0.0",
-    "source_digest": "sha256:32d5abb4fd99638a7a12c12a870d2866c1ea3b4973a458944b683a54bbde9790",
+    "source_digest": "sha256:41a7fdc833c9522b8673c6fd9e6ea090bd4c871bb0b40777078dc21ee3f865e7",
     "source_file_count": 3820,
     "sources": [
       {
@@ -863,8 +863,8 @@
       },
       {
         "path": "apps/Forge.Studio/Presentation/StudioAreaAudioOverlay.Ux2EnvE.cs",
-        "sha256": "sha256:daa88c20bed2badedf5a49d8a8437bb3f7788d6b04e1bc9f3efa3fdef69b974e",
-        "size": 65564
+        "sha256": "sha256:0fb5fe83b6737fb04b71cfd9baf1f0465ce0c458dc1842d8f98c83f922bc0f45",
+        "size": 65568
       },
       {
         "path": "apps/Forge.Studio/Presentation/StudioAreaCombatPoliciesOverlay.Ux2LwD.cs",
@@ -3018,23 +3018,23 @@
       },
       {
         "path": "apps/Forge.Studio/Session/StudioSessionController.Ux2EnvB.cs",
-        "sha256": "sha256:5821b63174e6b672ae2201a075d65632fbd0c0c9a3c5af79f7aa25acec663102",
-        "size": 70962
+        "sha256": "sha256:520e845b48deba96240b0354c5b3f50cf3b298fe8c3699488b44cbef5f2ec7ea",
+        "size": 70964
       },
       {
         "path": "apps/Forge.Studio/Session/StudioSessionController.Ux2EnvC.cs",
-        "sha256": "sha256:ccce8d6b98c8ec1e5f06d33685b7d8d3da79288df5aa0eb5811ac3ad0739b91e",
-        "size": 67444
+        "sha256": "sha256:19d2713be3d5cb32663af76e6166c998a17bebbbe91fc3239219cdea2707bf5f",
+        "size": 67446
       },
       {
         "path": "apps/Forge.Studio/Session/StudioSessionController.Ux2EnvD.cs",
-        "sha256": "sha256:eeda8e20c37c84bfdde838c00e28d466090958031fb0af22261f0021c3e3b96f",
-        "size": 58460
+        "sha256": "sha256:c1f831becb89de0a8f152f1fdbc6147579340ca08dce5396037e8e1c359b4ce4",
+        "size": 58462
       },
       {
         "path": "apps/Forge.Studio/Session/StudioSessionController.Ux2EnvE.cs",
-        "sha256": "sha256:72f5ea5ef18167dae8d8709483459d79fd14b25d141d576522c1ca5d3fb276ca",
-        "size": 87121
+        "sha256": "sha256:50617a15aa79d6556d7ddb5440a92186a1d20a149f3117e758d00cc53faa9a26",
+        "size": 87125
       },
       {
         "path": "apps/Forge.Studio/Session/StudioSessionController.Ux2EnvF.cs",

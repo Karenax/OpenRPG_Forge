@@ -261,7 +261,7 @@ internal sealed partial class StudioSessionController
         history.Record(applied);
         InvalidateContentIndexes();
         return new(true,
-            "Étape 1/2 appliquée par set_area_environment · snapshots inchangés et nouvel aperçu 2/2 requis");
+            "Étape 1/2 appliquée par patch_area_environment · snapshots inchangés et nouvel aperçu 2/2 requis");
     }
 
     internal StudioUx2EnvEActionResult ApplyApprovedSnapshotsUx2EnvE()
@@ -1242,7 +1242,7 @@ internal sealed partial class StudioSessionController
             var journalTail = editing.History!.Journal.TakeLast(2).ToArray();
             var separateCommands = firstPreview.Succeeded && firstApply.Succeeded && secondPreview.Succeeded &&
                                    secondApply.Succeeded && journalTail.Length == 2 &&
-                                   journalTail[0].CommandName == "set_area_environment" &&
+                                   journalTail[0].CommandName == "patch_area_environment" &&
                                    journalTail[1].CommandName == "set_area_authoring" &&
                                    SameSnapshotsUx2EnvE(sourceTarget.Authoring.Experience.AudioSnapshots,
                                        afterAudioTarget.Authoring.Experience.AudioSnapshots) &&
