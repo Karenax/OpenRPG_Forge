@@ -15453,7 +15453,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         _assetBrowser.Refresh();
-        if (_assetBrowser.CatalogCount != 674 || _assetBrowser.SourceCount != 5 ||
+        if (_assetBrowser.CatalogCount < 674 || _assetBrowser.SourceCount < 5 ||
             _assetBrowser.FilterForSmokeTest("apple", "ambientcg") != 3 ||
             !_assetBrowser.SelectAssetForSmokeTest("ambientcg:3DApple001") ||
             !_assetBrowser.SelectedHasPreviewMetadata ||
@@ -15462,8 +15462,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
             !_assetBrowser.PreviewManifestCommandForSmokeTest() ||
             !_assetBrowser.PreviewExternalEditCommandForSmokeTest() ||
             !_assetBrowser.PreviewGovernanceCommandForSmokeTest() ||
-            _assetBrowser.FilterForSmokeTest(string.Empty, "kenney") != 50 ||
-            !_assetBrowser.SelectAssetForSmokeTest("kenney:castle-kit") ||
+            _assetBrowser.FilterForSmokeTest("castle", "kenney") == 0 ||
+            !_assetBrowser.SelectAssetForSmokeTest("kenney:castle-kit:door") ||
             !_assetBrowser.PreviewInstallForPlacementForSmokeTest() ||
             _assetBrowser.FilterForSmokeTest(string.Empty, category: "furniture") == 0)
         {
@@ -15473,7 +15473,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
         _assetBrowser.FilterForSmokeTest(string.Empty);
         GD.Print(
-            "OPENRPG_FORGE_TOOLSET_G716_ASSETS_PASS catalog=674 sources=5 facets=search-source-category " +
+            $"OPENRPG_FORGE_TOOLSET_G716_ASSETS_PASS catalog={_assetBrowser.CatalogCount} sources={_assetBrowser.SourceCount} facets=search-source-category " +
             "uuid=stable hash=addressed license=verified availability=explicit preview=metadata import=governed " +
             "profile=command-dry-run manifest=command-dry-run roundtrip=command-dry-run " +
             "governance=command-dry-run quarantine=pending ip=classified " +

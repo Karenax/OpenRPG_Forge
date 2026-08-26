@@ -3,7 +3,7 @@
     "schema_version": 2,
     "engine": "roslyn",
     "engine_version": "5.6.0.0",
-    "source_digest": "sha256:c4248bba10e7799748db4eb56c8885d8dba201eba60a17a4f3e158cf99638c35",
+    "source_digest": "sha256:0676873f388b9ab570daa70f794f54c6a51571c445ca81898fb6704b64718986",
     "source_file_count": 3820,
     "sources": [
       {
@@ -4813,8 +4813,8 @@
       },
       {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-        "sha256": "sha256:8104623ab0d3a999a98f2b5daba5afadc7a0c7f1023bbbbebe8e79ce47b52c2e",
-        "size": 1161219
+        "sha256": "sha256:d5eb6d452de55c300b78edfa4d06cc50f9926a33729632ef526ac59ad8f1cfc5",
+        "size": 1161269
       },
       {
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeScriptEditorWindow.cs",
