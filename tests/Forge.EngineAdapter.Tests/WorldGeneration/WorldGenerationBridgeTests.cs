@@ -44,9 +44,38 @@ public sealed class WorldGenerationBridgeTests
         try
         {
             var capabilities = WorldGenerationBackendCapabilityProbe.Probe(root);
-            Assert.True(capabilities.Single(item => item.Backend == WorldGenerationBackend.Terrain3D).Available);
-            Assert.True(capabilities.Single(item => item.Backend == WorldGenerationBackend.PcgGodot).Available);
-            Assert.True(capabilities.Single(item => item.Backend == WorldGenerationBackend.GodotNative).Available);
+            var terrain = capabilities.Single(item => item.Backend == WorldGenerationBackend.Terrain3D);
+            var graphPcg = capabilities.Single(item => item.Backend == WorldGenerationBackend.PcgGodot);
+            var native = capabilities.Single(item => item.Backend == WorldGenerationBackend.GodotNative);
+
+            Assert.True(terrain.Available);
+            Assert.Equal(WorldGenerationProviderKeys.Terrain3D, terrain.ProviderKey);
+            Assert.True(graphPcg.Available);
+            Assert.Equal(WorldGenerationProviderKeys.GodotFlow, graphPcg.ProviderKey);
+            Assert.True(native.Available);
+            Assert.Equal(WorldGenerationProviderKeys.OpenRpgNative, native.ProviderKey);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void CapabilityProbeIdentifiesAlternativeGraphPcgProviderWithoutChangingCanonicalBackend()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "openrpg-worldgen-provider-tests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(Path.Combine(root, "addons", "pcgodot"));
+        File.WriteAllText(Path.Combine(root, "project.godot"), "[application]");
+        File.WriteAllText(Path.Combine(root, "addons", "pcgodot", "plugin.cfg"), "[plugin]");
+        try
+        {
+            var capability = WorldGenerationBackendCapabilityProbe.Probe(root)
+                .Single(item => item.Backend == WorldGenerationBackend.PcgGodot);
+
+            Assert.True(capability.Available);
+            Assert.Equal(WorldGenerationProviderKeys.GfPcgodot, capability.ProviderKey);
+            Assert.Equal("unqualified", capability.VersionOrRevision);
         }
         finally
         {

@@ -7,21 +7,27 @@ public sealed record WorldGenerationBackendCapability(
     bool Available,
     string Evidence,
     string VersionOrRevision,
-    IReadOnlyList<string> Diagnostics);
+    IReadOnlyList<string> Diagnostics)
+{
+    public string ProviderKey { get; init; } = string.Empty;
+}
 
 public static class WorldGenerationBackendCapabilityProbe
 {
-    private static readonly string[] Terrain3DCandidates =
+    private const string Terrain3DVersion = "v1.0.2-stable";
+    private const string GodotFlowRevision = "284231f060099a8943eb56567c21732b7cd678d3";
+
+    private static readonly BackendMarker[] Terrain3DCandidates =
     [
-        "addons/terrain_3d/plugin.cfg",
-        "addons/terrain_3d/terrain.gdextension",
+        new("addons/terrain_3d/plugin.cfg", WorldGenerationProviderKeys.Terrain3D, Terrain3DVersion),
+        new("addons/terrain_3d/terrain.gdextension", WorldGenerationProviderKeys.Terrain3D, Terrain3DVersion),
     ];
 
-    private static readonly string[] PcgGodotCandidates =
+    private static readonly BackendMarker[] GraphPcgCandidates =
     [
-        "addons/flow_nodes_editor/plugin.cfg",
-        "addons/pcgodot/plugin.cfg",
-        "addons/godot_flow/plugin.cfg",
+        new("addons/flow_nodes_editor/plugin.cfg", WorldGenerationProviderKeys.GodotFlow, GodotFlowRevision),
+        new("addons/godot_flow/plugin.cfg", WorldGenerationProviderKeys.GodotFlow, GodotFlowRevision),
+        new("addons/pcgodot/plugin.cfg", WorldGenerationProviderKeys.GfPcgodot, "unqualified"),
     ];
 
     public static IReadOnlyList<WorldGenerationBackendCapability> Probe(string godotProjectRoot)
@@ -33,27 +39,53 @@ public static class WorldGenerationBackendCapabilityProbe
             diagnostics.Add("project.godot was not found; addon discovery is filesystem-only.");
         return
         [
-            Probe(root, WorldGenerationBackend.Terrain3D, Terrain3DCandidates, "v1.0.2-stable", diagnostics),
-            Probe(root, WorldGenerationBackend.PcgGodot, PcgGodotCandidates,
-                "284231f060099a8943eb56567c21732b7cd678d3", diagnostics),
+            Probe(root, WorldGenerationBackend.Terrain3D, Terrain3DCandidates, diagnostics),
+            Probe(root, WorldGenerationBackend.PcgGodot, GraphPcgCandidates, diagnostics),
             new(WorldGenerationBackend.GodotNative, true,
-                "OpenRPG Godot bridge native fallback", "4.7.1", []),
+                "OpenRPG Godot bridge native fallback", "4.7.1", [])
+            {
+                ProviderKey = WorldGenerationProviderKeys.OpenRpgNative,
+            },
         ];
     }
 
     private static WorldGenerationBackendCapability Probe(
         string root,
         WorldGenerationBackend backend,
-        IEnumerable<string> candidates,
-        string version,
+        IReadOnlyList<BackendMarker> candidates,
         IReadOnlyList<string> sharedDiagnostics)
     {
-        var evidence = candidates
-            .Select(candidate => (Relative: candidate, Full: Path.Combine(root, candidate.Replace('/', Path.DirectorySeparatorChar))))
-            .FirstOrDefault(candidate => File.Exists(candidate.Full));
-        return evidence == default
-            ? new(backend, false, string.Empty, version,
+        var available = candidates
+            .Where(candidate => File.Exists(Path.Combine(
+                root,
+                candidate.RelativePath.Replace('/', Path.DirectorySeparatorChar))))
+            .ToArray();
+        var expected = candidates[0];
+        if (available.Length == 0)
+        {
+            return new(backend, false, string.Empty, expected.VersionOrRevision,
                 sharedDiagnostics.Concat([$"No {backend} addon marker was found."]).ToArray())
-            : new(backend, true, evidence.Relative, version, sharedDiagnostics.ToArray());
+            {
+                ProviderKey = expected.ProviderKey,
+            };
+        }
+
+        var selected = available[0];
+        var diagnostics = sharedDiagnostics.ToList();
+        if (available.Length > 1)
+        {
+            diagnostics.Add(
+                $"Multiple {backend} providers were detected; '{selected.ProviderKey}' was selected by marker precedence.");
+        }
+
+        return new(backend, true, selected.RelativePath, selected.VersionOrRevision, diagnostics)
+        {
+            ProviderKey = selected.ProviderKey,
+        };
     }
+
+    private sealed record BackendMarker(
+        string RelativePath,
+        string ProviderKey,
+        string VersionOrRevision);
 }

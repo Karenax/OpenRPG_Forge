@@ -4,6 +4,7 @@
   "dependencies": [
     {
       "key": "terrain3d",
+      "providerKey": "terrain3d",
       "displayName": "Terrain3D",
       "repository": "https://github.com/TokisanGames/Terrain3D",
       "license": "MIT",
@@ -16,7 +17,8 @@
     },
     {
       "key": "pcgodot",
-      "displayName": "Godot Flow / PCGODOT-compatible backend",
+      "providerKey": "godot-flow",
+      "displayName": "Godot Flow graph PCG backend",
       "repository": "https://github.com/yabadabu/godot_flow",
       "license": "Apache-2.0",
       "revision": "284231f060099a8943eb56567c21732b7cd678d3",
@@ -39,7 +41,8 @@
   "notes": [
     "The domain and module formats never reference these addons directly.",
     "Terrain3D is installed from a release asset whose SHA-256 is verified.",
-    "The PCG backend is checked out by immutable Git commit and includes its submodules.",
+    "The canonical PcgGodot backend currently resolves to the explicit godot-flow provider.",
+    "Alternative graph PCG providers must pass the OpenRPG qualification benchmark before selection.",
     "Godot 4.7.1 compatibility remains guarded by runtime capability probes and the native fallback."
   ]
 }
