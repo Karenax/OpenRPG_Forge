@@ -850,7 +850,7 @@ try {
         Invoke-CheckedDotnet @(
             'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
             'assets', 'prepare', $repositoryRoot, $assetImportSmoke,
-            '--id', 'kenney:castle-kit', '--kind', 'model', '--vfx', 'true', '--vault', $assetVault)
+            '--id', 'kenney:castle-kit:door', '--kind', 'model', '--vfx', 'true', '--vault', $assetVault)
         Invoke-CheckedDotnet @(
             'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
             'assets', 'prepare', $repositoryRoot, $assetImportSmoke,

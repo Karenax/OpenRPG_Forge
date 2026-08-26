@@ -3,7 +3,7 @@
     "schema_version": 2,
     "engine": "roslyn",
     "engine_version": "5.6.0.0",
-    "source_digest": "sha256:0676873f388b9ab570daa70f794f54c6a51571c445ca81898fb6704b64718986",
+    "source_digest": "sha256:18db61e7ee708132338dcd30947133c9f49349d7a8813374d40bdd660cf42fbd",
     "source_file_count": 3820,
     "sources": [
       {
@@ -6543,8 +6543,8 @@
       },
       {
         "path": "docs/aurora-parity/tasks/G11-A-ASSET-PROCESSING-PROFILES.md",
-        "sha256": "sha256:06d0c573c782d5b6c5fb95fa2e04651674de0e2f019312d5ba6d2b97f6607547",
-        "size": 2794
+        "sha256": "sha256:57272f9ffa6005dff8cd97295fd34df68b3523360b77bb038e4c0148fb024645",
+        "size": 2799
       },
       {
         "path": "docs/aurora-parity/tasks/G11-B-ASSET-PACKAGE-MANIFESTS.md",

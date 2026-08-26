@@ -31,7 +31,7 @@ Vault source.
   fichier, round-trip canonique et diagnostic stable ;
 - `tests/Forge.ModuleFormat.Tests/Assets/AssetImportExecutorTests.cs` : copie GLB, réutilisation du
   cache, staging texture, tâches futures et confinement des chemins ;
-- `scripts/Verify.ps1` : smoke réel optionnel sur `kenney:castle-kit` et
+- `scripts/Verify.ps1` : smoke réel optionnel sur `kenney:castle-kit:door` et
   `ambientcg:3DApple001`, avec contrôle des SHA-256 avant/après ;
 - marqueurs `OPENRPG_FORGE_ASSET_PREPARE_PASS` et
   `OPENRPG_FORGE_TOOLSET_G716_ASSETS_PASS ... profile=command-dry-run` ;
