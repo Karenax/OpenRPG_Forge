@@ -1,0 +1,9 @@
+{
+  "protocolVersion": "1.0.0",
+  "graphs": {
+    "biomes": "res://world/generation/graphs/biomes.tres",
+    "roads": "res://world/generation/graphs/roads.tres",
+    "settlements": "res://world/generation/graphs/settlements.tres",
+    "scatter": "res://world/generation/graphs/scatter.tres"
+  }
+}

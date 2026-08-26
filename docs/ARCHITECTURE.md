@@ -30,6 +30,32 @@ Le prototype MCP emploie exclusivement un pipe nommé limité à l'utilisateur c
 éditeur et `stdio` pour le client MCP. Les plans de mutation passent par les handlers de
 `Forge.Application`; aucun accès générique aux fichiers, au shell ou à une écoute TCP n'est exposé.
 
+## Génération de monde
+
+```text
+MCP
+ |
+ v
+WorldGenerationRecipe (Domain)
+ |
+ v
+WorldGenerationExecutionPlan + Job (Application)
+ |
+ +--> JSON atomique et borné (ModuleFormat)
+ |
+ `--> requête de bridge (EngineAdapter)
+          |
+          +--> Terrain3D
+          +--> Godot Flow / PCG
+          `--> Godot natif
+```
+
+Le MCP conserve l'orchestration, les permissions et les révisions. Il ne référence aucun type des
+addons. Le protocole contient une opération allowlistée et deux empreintes, jamais du code source.
+Les plans et jobs sont reconstructibles après redémarrage ; les scènes moteur qu'ils produisent sont
+dérivées. Le contrat détaillé et ses limites sont dans `docs/world-generation/README.md` et
+`docs/ADR/ADR-0050-governed-world-generation-orchestration.md`.
+
 ## Règles de dépendance
 
 - `Forge.Domain` ne dépend d’aucun framework moteur, stockage ou transport.
@@ -38,6 +64,8 @@ Le prototype MCP emploie exclusivement un pipe nommé limité à l'utilisateur c
 - Les adaptateurs moteur convertissent explicitement les valeurs du domaine.
 - Toolset, Runtime et MCP appellent l’application ; ils ne modifient pas directement l’état persistant.
 - Les objets de scène sont des représentations reconstructibles.
+- Les dépendances de génération externes restent derrière EngineAdapter et l'addon Godot ; leur
+  absence active un fallback natif plutôt que de contaminer Domain ou Application.
 
 ## Profils RPG avancés
 

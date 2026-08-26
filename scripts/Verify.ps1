@@ -514,6 +514,10 @@ try {
         '--no-build', '--', 'check', '--full')
     Test-ForgeBranding
 
+    $runtimePath = Join-Path $repositoryRoot 'apps\Forge.Runtime'
+    Invoke-ForgeProjectImport -EnginePath $enginePath -ProjectPath $runtimePath `
+        -LogPath (Join-Path $artifactRoot 'runtime-import.log')
+
     $studioPath = Join-Path $repositoryRoot 'apps\Forge.Studio'
     $studioLog = Join-Path $artifactRoot 'studio.log'
     $studioWorkspace = Join-Path $repositoryRoot 'apps\Forge.Runtime\content\crypt-of-ashes'
@@ -846,7 +850,7 @@ try {
         Invoke-CheckedDotnet @(
             'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
             'assets', 'prepare', $repositoryRoot, $assetImportSmoke,
-            '--id', 'kenney:castle-kit', '--kind', 'model', '--vfx', 'true', '--vault', $assetVault)
+            '--id', 'kenney:castle-kit:door', '--kind', 'model', '--vfx', 'true', '--vault', $assetVault)
         Invoke-CheckedDotnet @(
             'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
             'assets', 'prepare', $repositoryRoot, $assetImportSmoke,
@@ -946,7 +950,7 @@ try {
         if ($modelSourceHash -ne (Get-FileHash -LiteralPath $modelSource -Algorithm SHA256).Hash -or
             $textureSourceHash -ne (Get-FileHash -LiteralPath $textureSource -Algorithm SHA256).Hash -or
             $roundTripSourceHash -ne (Get-FileHash -LiteralPath $roundTripSource -Algorithm SHA256).Hash -or
-            -not (Test-Path -LiteralPath (Join-Path $assetImportSmoke 'assets\imported\kenney-castle-kit\model.glb')) -or
+            -not (Test-Path -LiteralPath (Join-Path $assetImportSmoke 'assets\imported\kenney-castle-kit-door\model.glb')) -or
             -not (Test-Path -LiteralPath (Join-Path $assetImportSmoke 'assets\imported\ambientcg-3dapple001\import-receipt.json')) -or
             -not (Test-Path -LiteralPath (Join-Path $assetImportSmoke 'assets\asset-manifests.json')) -or
             -not (Test-Path -LiteralPath (Join-Path $assetImportSmoke 'assets\external-edits.json')) -or
@@ -1045,15 +1049,12 @@ try {
         Write-Output 'AV6-F retarget smoke skipped: external CC0 rig fixtures unavailable.'
     }
 
-    $runtimePath = Join-Path $repositoryRoot 'apps\Forge.Runtime'
-    Invoke-ForgeProjectImport -EnginePath $enginePath -ProjectPath $runtimePath `
-        -LogPath (Join-Path $artifactRoot 'runtime-import.log')
     $plainRuntimeLog = Join-Path $artifactRoot 'runtime-plain-launch.log'
     Invoke-ForgeEngineMarkerTest `
         -Name 'runtime-plain-launch' `
         -ProjectPath $runtimePath `
         -Arguments @('--headless', '--path', $runtimePath, '--log-file', $plainRuntimeLog, '--', '--smoke-test') `
-        -Markers @('OPENRPG_FORGE_RUNTIME_WORKSPACE_LOADED format=1.9.0 slug=crypt-of-ashes', 'OPENRPG_FORGE_CREATURE_AMBIENT_READY blueprint=ash-warden-boss roles=2 lore=2 set=idle.ritual animation=warm-hands autolevel_changes=0', 'OPENRPG_FORGE_CREATURE_EVENTS_READY blueprint=ash-warden-boss bindings=6 heartbeat_ms=1500 budget_ms=8 custom=1', 'OPENRPG_FORGE_FACTIONS_READY definitions=3 inheritance=1 witness=1 memberships=3 dynamic=1 authority=server inherited_tags=4', 'OPENRPG_FORGE_RUNTIME_RENDER_PROFILE_PASS pbr=metallicroughness tone=agx hdr=true perpixel=true sky=procedural lights=8/32 shadows=2/8', 'OPENRPG_FORGE_RUNTIME_RENDER_BACKEND method=gl_compatibility', 'OPENRPG_FORGE_RUNTIME_G11H_ENVIRONMENT_PASS', 'OPENRPG_FORGE_RUNTIME_G11I_TERRAIN_PASS', 'OPENRPG_FORGE_RUNTIME_G11J_POLICY_PASS', 'OPENRPG_FORGE_RUNTIME_G11K_CINEMATIC_PASS startup=sequence', 'OPENRPG_FORGE_RUNTIME_G11L_GAMEPLAY_PASS swim=true climb=true radial=6 accessible=true pause=true planning=true combat=realtime-pause authority=true', 'OPENRPG_FORGE_RUNTIME_G11M_RULES_PASS progression=forge.generic difficulty=standard mutators=0 perception=2:20 pvp=disabled authority=true', 'OPENRPG_FORGE_RUNTIME_PROJECT_LOADED entities=16 collisions=10', 'OPENRPG_FORGE_RUNTIME_G13F_CREATURE_EVENTS_PASS combat=3 inventory=2 rest=1 heartbeat=1 custom=1 cadence_ms=1500 budget_ms=8', 'OPENRPG_FORGE_RUNTIME_G13G_ADVANCED_FACTIONS_PASS hierarchy_tags=4 memberships=2 witness=1 diplomacy=1 expiration=1 authority=server replication=revisioned', 'OPENRPG_FORGE_RUNTIME_G13H_DIALOGUE_PRESENTATION_PASS animations=1 voices=1 shots=1 bookmarks=1 interjections=1 subtitle_fallback=true authority=server accessibility=player-priority', 'OPENRPG_FORGE_RUNTIME_G13I_ADAPTIVE_DIALOGUE_PASS timed=1', 'OPENRPG_FORGE_RUNTIME_SMOKE_PASS quest=completed door=unlocked boss=defeated') `
+        -Markers @('OPENRPG_FORGE_RUNTIME_WORKSPACE_LOADED format=1.9.0 slug=crypt-of-ashes', 'OPENRPG_FORGE_CREATURE_AMBIENT_READY blueprint=ash-warden-boss roles=2 lore=2 set=idle.ritual animation=warm-hands autolevel_changes=0', 'OPENRPG_FORGE_CREATURE_EVENTS_READY blueprint=ash-warden-boss bindings=6 heartbeat_ms=1500 budget_ms=8 custom=1', 'OPENRPG_FORGE_FACTIONS_READY definitions=3 inheritance=1 witness=1 memberships=3 dynamic=1 authority=server inherited_tags=4', 'OPENRPG_FORGE_RUNTIME_RENDER_PROFILE_PASS pbr=metallicroughness tone=agx hdr=true perpixel=true sky=procedural lights=8/32 shadows=2/8', 'OPENRPG_FORGE_RUNTIME_RENDER_BACKEND method=gl_compatibility', 'OPENRPG_FORGE_RUNTIME_G11H_ENVIRONMENT_PASS', 'OPENRPG_FORGE_RUNTIME_G11I_TERRAIN_PASS', 'OPENRPG_FORGE_RUNTIME_G11J_POLICY_PASS', 'OPENRPG_FORGE_RUNTIME_G11K_CINEMATIC_PASS startup=sequence', 'OPENRPG_FORGE_RUNTIME_G11L_GAMEPLAY_PASS swim=true climb=true radial=6 accessible=true pause=true planning=true combat=realtime-pause authority=true', 'OPENRPG_FORGE_RUNTIME_G11M_RULES_PASS progression=forge.generic difficulty=standard mutators=0 perception=2:20 pvp=disabled authority=true', 'OPENRPG_FORGE_RUNTIME_PROJECT_LOADED entities=16 collisions=10', 'OPENRPG_FORGE_RUNTIME_G13F_CREATURE_EVENTS_PASS combat=3 inventory=2 rest=1 heartbeat=1 custom=1 cadence_ms=1500 budget_ms=8', 'OPENRPG_FORGE_RUNTIME_G13G_ADVANCED_FACTIONS_PASS hierarchy_tags=4 memberships=2 witness=1 diplomacy=1 expiration=1 authority=server replication=revisioned', 'OPENRPG_FORGE_RUNTIME_G13H_DIALOGUE_PRESENTATION_PASS animations=1 voices=1 shots=1 bookmarks=1 interjections=0 subtitle_fallback=true authority=server accessibility=player-priority', 'OPENRPG_FORGE_RUNTIME_G13I_ADAPTIVE_DIALOGUE_PASS timed=1', 'OPENRPG_FORGE_RUNTIME_SMOKE_PASS quest=completed door=unlocked boss=defeated') `
         -StopAfterMarkers $false
     foreach ($marker in @(
         'OPENRPG_FORGE_CRYPT_ART_PASS models=340 floors=197 walls=110 props=33 source=kaykit-dungeon-remastered license=CC0-1.0 collisions=gameplay-layer',
@@ -1084,7 +1085,8 @@ try {
     Invoke-ForgeEngineMarkerTest `
         -Name 'runtime-g11p-visual' `
         -ProjectPath $runtimePath `
-        -Arguments @('--rendering-method', 'gl_compatibility', '--path', $runtimePath, '--log-file',
+        -Arguments @('--rendering-method', 'gl_compatibility', '--windowed', '--resolution', '1600x900',
+            '--path', $runtimePath, '--log-file',
             $runtimeVisualLog, '--', '--visual-capture', $runtimeVisualProof) `
         -Markers @('OPENRPG_FORGE_RUNTIME_G11P_MODERN_PASS',
             'OPENRPG_FORGE_RUNTIME_G11P_VISUAL_PASS file=runtime-g11p-visual.png size=1600x900') `
@@ -1171,14 +1173,14 @@ try {
         -Name 'save-create' `
         -ProjectPath $runtimePath `
         -Arguments @('--headless', '--path', $runtimePath, '--log-file', $saveCreateLog, '--', '--module-package', $moduleArtifact, '--save-file', $runtimeSave, '--save-smoke-create') `
-        -Markers @('OPENRPG_FORGE_FORGESCRIPT_CACHE status=', 'OPENRPG_FORGE_RUNTIME_SAVE_WRITTEN format=1.4.0', 'OPENRPG_FORGE_RUNTIME_G11O_SAVE_PASS mode=write', 'OPENRPG_FORGE_RUNTIME_SAVE_PASS') `
+        -Markers @('OPENRPG_FORGE_FORGESCRIPT_CACHE status=', 'OPENRPG_FORGE_RUNTIME_SAVE_WRITTEN format=1.7.0', 'OPENRPG_FORGE_RUNTIME_G11O_SAVE_PASS mode=write', 'OPENRPG_FORGE_RUNTIME_SAVE_PASS') `
         -StopAfterMarkers $false
     $saveResumeLog = Join-Path $artifactRoot 'save-resume.log'
     Invoke-ForgeEngineMarkerTest `
         -Name 'save-resume' `
         -ProjectPath $runtimePath `
         -Arguments @('--headless', '--path', $runtimePath, '--log-file', $saveResumeLog, '--', '--module-package', $moduleArtifact, '--load-save', $runtimeSave, '--save-smoke-resume') `
-        -Markers @('OPENRPG_FORGE_RUNTIME_SAVE_LOADED format=1.4.0', 'OPENRPG_FORGE_RUNTIME_G11O_SAVE_PASS mode=load', 'OPENRPG_FORGE_RUNTIME_SAVE_RESUME_PASS') `
+        -Markers @('OPENRPG_FORGE_RUNTIME_SAVE_LOADED format=1.7.0', 'OPENRPG_FORGE_RUNTIME_G11O_SAVE_PASS mode=load', 'OPENRPG_FORGE_RUNTIME_SAVE_RESUME_PASS') `
         -StopAfterMarkers $false
 }
 finally {

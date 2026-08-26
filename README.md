@@ -49,6 +49,23 @@ localement sans service externe. Avant une évolution transversale, obtenir le c
 `dotnet run --project tools/Forge.ArchitectureGraph -- query "<module ou symbole>" --mode impact --format context`.
 Après une modification indexée, exécuter `generate`, puis `check --full` avant de terminer.
 
+## Génération procédurale gouvernée
+
+Le host MCP peut désormais gérer des recettes versionnées, produire des previews déterministes et
+mettre en file des jobs persistants pour les neuf étapes terrain → validation. Terrain3D et Godot
+Flow sont des backends facultatifs derrière des adaptateurs ; un backend Godot natif conserve un
+chemin fonctionnel hors ligne sans addon. Les opérations sont allowlistées, les chemins confinés au
+workspace et les retouches humaines peuvent être verrouillées lors d'une régénération partielle.
+
+```powershell
+./scripts/Install-WorldGenerationDependencies.ps1 -GodotProjectPath ./apps/Forge.Toolset -WhatIf
+```
+
+La simulation ci-dessus ne télécharge rien. Le guide complet, l'installation réelle, les limites et
+le parcours Codex sont dans [`docs/world-generation/README.md`](docs/world-generation/README.md).
+Cette fondation ne remplace pas encore les données canoniques de zone et ne livre pas de graphes PCG
+artistiques prêts pour un jeu.
+
 ## Lancer le prototype
 
 Sous Windows, depuis la racine du dépôt :

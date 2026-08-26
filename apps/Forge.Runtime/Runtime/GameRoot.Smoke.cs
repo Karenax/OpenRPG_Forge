@@ -676,6 +676,10 @@ public partial class GameRoot
         AssertSmoke(_npc is not null && _keyItem is not null && _door is not null && _boss is not null,
             "The save smoke scenario is incomplete.");
         InteractWith(_npc!);
+        var questChoiceIndex = _activeDialogueChoices.ToList().FindIndex(choice =>
+            choice.Actions.Any(action => action.Kind == DialogueActionKind.StartQuest));
+        AssertSmoke(questChoiceIndex >= 0, "NPC dialogue did not expose its authored quest choice.");
+        CommitDialogueChoice(questChoiceIndex);
         InteractWith(_keyItem!);
         InteractWith(_door!);
         DamageHostile(_boss!);

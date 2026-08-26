@@ -35,7 +35,15 @@ confondu avec une release publique signée.
 - Crypte des Cendres jouable en Forward+ avec modèles 3D gouvernés ;
 - outils réutilisables de terrain, biome forestier et gouvernance d'assets conservés indépendamment
   du module canonique ;
+- fondation WorldGeneration gouvernée : recettes et révisions persistantes, previews déterministes,
+  régénération partielle, jobs auditables repris après redémarrage, Terrain3D/Godot Flow facultatifs
+  et terrain natif de fallback avec maillage et collision sous Godot 4.7.1 ;
 - interface de combat runtime autoritaire, animée, accessible et bornée par des pools stables.
+
+La fondation WorldGeneration est exploitable pour orchestrer et tester des générations, mais elle
+n'est pas encore une chaîne artistique complète : les graphes PCG sont fournis par les modules, les
+étapes natives autres que le terrain restent à approfondir, la navigation réelle doit être qualifiée
+sur une carte générée et aucune scène dérivée n'est promue automatiquement vers `AreaWorldProfile`.
 
 ## Multijoueur Internet direct
 

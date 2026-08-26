@@ -8,3 +8,6 @@ Une décision acceptée est immuable. Toute évolution structurelle crée un ADR
 l'ancien au nouveau. Chaque décision référence ses tests ; toute promesse de performance référence
 également le benchmark reproductible correspondant. La revue du lot vérifie ces liens avant
 intégration.
+
+La génération de monde multi-backend et sa frontière avec les données canoniques sont fixées par
+[`ADR-0050`](ADR-0050-governed-world-generation-orchestration.md).

@@ -13,8 +13,12 @@ public static class GraphStore
         WriteIndented = true,
     };
 
-    public static byte[] Serialize(GraphDocument graph) =>
-        Encoding.UTF8.GetBytes(JsonSerializer.Serialize(graph, JsonOptions) + "\n");
+    public static byte[] Serialize(GraphDocument graph)
+    {
+        var json = JsonSerializer.Serialize(graph, JsonOptions)
+            .Replace("\r\n", "\n", StringComparison.Ordinal);
+        return Encoding.UTF8.GetBytes(json + "\n");
+    }
 
     public static GraphDocument Load(string path)
     {

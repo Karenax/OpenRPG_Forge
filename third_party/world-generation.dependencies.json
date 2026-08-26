@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "generatedAtUtc": "2026-08-26T00:00:00Z",
+  "dependencies": [
+    {
+      "key": "terrain3d",
+      "displayName": "Terrain3D",
+      "repository": "https://github.com/TokisanGames/Terrain3D",
+      "license": "MIT",
+      "version": "v1.0.2-stable",
+      "archive": "https://github.com/TokisanGames/Terrain3D/releases/download/v1.0.2-stable/Terrain3D_v1.0.2-stable.zip",
+      "sha256": "a071850250ec5e596aa54da61c01d75768774eb379ee997584d426a45f4884a2",
+      "upstreamGodotCompatibility": "4.4-4.6+",
+      "openRpgQualificationTarget": "4.7.1-stable",
+      "godotTarget": "addons/terrain_3d"
+    },
+    {
+      "key": "pcgodot",
+      "displayName": "Godot Flow / PCGODOT-compatible backend",
+      "repository": "https://github.com/yabadabu/godot_flow",
+      "license": "Apache-2.0",
+      "revision": "284231f060099a8943eb56567c21732b7cd678d3",
+      "upstreamGodotCompatibility": "4.7",
+      "openRpgQualificationTarget": "4.7.1-stable",
+      "sourceDirectories": [
+        "demo/addons/flow_nodes_editor",
+        "demo/bin"
+      ],
+      "godotTargets": [
+        "addons/flow_nodes_editor",
+        "bin"
+      ]
+    }
+  ],
+  "integrationAddon": {
+    "source": "integrations/godot/addons/openrpg_world_generation",
+    "godotTarget": "addons/openrpg_world_generation"
+  },
+  "notes": [
+    "The domain and module formats never reference these addons directly.",
+    "Terrain3D is installed from a release asset whose SHA-256 is verified.",
+    "The PCG backend is checked out by immutable Git commit and includes its submodules.",
+    "Godot 4.7.1 compatibility remains guarded by runtime capability probes and the native fallback."
+  ]
+}

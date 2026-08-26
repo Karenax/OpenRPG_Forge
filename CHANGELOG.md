@@ -7,6 +7,12 @@ SemVer ; les versions de schéma persistent séparément dans leurs documents.
 
 ### Changed
 
+- WorldGeneration : orchestration MCP moteur-neutre avec recettes versionnées, dry-run/application,
+  révisions, empreinte stable de plan, régénération partielle, jobs persistants et audit ; validation
+  renforcée des données, opérations et chemins, protection des retouches humaines, adaptateurs
+  Terrain3D/Godot Flow, fallback Godot 4.7.1 produisant un terrain maillé/collisionné, installateur
+  reproductible non destructif, tests C#/GDScript et documentation centrale avec ADR-0050. Les
+  graphes PCG artistiques et la promotion vers la scène canonique restent explicitement hors de ce lot ;
 - Forge Studio UX11-B : revue humaine corrective de quatorze parcours et seconde matrice visuelle
   36/36 pages en FHD 100 %, QHD 150 % et 4K 200 % ; les 717 routes restent `functional`, les
   66 fenêtres historiques passent `Parity`, les 19/19 tests de matrice et le smoke global passent.

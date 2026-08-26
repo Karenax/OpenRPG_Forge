@@ -1061,7 +1061,7 @@ internal sealed partial class StudioSessionController
             var appliedProject = editing.Project!;
             var appliedTarget = appliedProject.Areas.Single(area => area.Id == target.Id);
             var canonicalCommand = freshPreview.Succeeded && applied.Succeeded &&
-                                   editing.History!.Journal.LastOrDefault()?.CommandName == "set_area_environment" &&
+                                   editing.History!.Journal.LastOrDefault()?.CommandName == "patch_area_environment" &&
                                    appliedTarget.Environment.Wind.Speed.Equals(5.625f) &&
                                    appliedTarget.Environment.Weather.DeterministicSeed == 5_321 &&
                                    appliedTarget.Environment.Reverb.DefaultPreset == "forest-deep";

@@ -1289,7 +1289,7 @@ internal sealed partial class StudioSessionController
             var appliedProject = editing.Project!;
             var appliedTarget = appliedProject.Areas.Single(area => area.Id == target.Id);
             var canonicalCommand = freshPreview.Succeeded && applied.Succeeded &&
-                                   editing.History!.Journal.LastOrDefault()?.CommandName == "set_area_environment" &&
+                                   editing.History!.Journal.LastOrDefault()?.CommandName == "patch_area_environment" &&
                                    appliedTarget.Environment.Lighting.DayLengthMinutes.Equals(43.625f) &&
                                    appliedTarget.Environment.Lighting.AmbientIntensity.Equals(.46875f) &&
                                    appliedTarget.Environment.Fog.Density.Equals(.15625f);

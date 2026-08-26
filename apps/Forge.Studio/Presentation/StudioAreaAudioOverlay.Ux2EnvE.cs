@@ -429,7 +429,7 @@ internal sealed partial class StudioAreaAudioOverlayUx2EnvE : ColorRect
         _previewAudio = ActionButtonUx2EnvE("Prévisualiser audio");
         _applyAudio = ActionButtonUx2EnvE("Appliquer audio");
         audioActions.AddChild(_previewAudio); audioActions.AddChild(_applyAudio);
-        var audioNote = StudioStyle.Label("set_area_environment · première commande, annulable seule",
+        var audioNote = StudioStyle.Label("patch_area_environment · première commande, annulable seule",
             9, StudioStyle.Muted, wrap: true);
         audioNote.SizeFlagsHorizontal = SizeFlags.ExpandFill; audioActions.AddChild(audioNote);
         var snapshotActions = new HBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
@@ -639,7 +639,7 @@ internal sealed partial class StudioAreaAudioOverlayUx2EnvE : ColorRect
         var isolatedProjectBefore = isolated.Project;
         ApplyAudioUx2EnvE();
         var firstApplied = _appliedSteps == 1 && isolated.Project is not null &&
-                           isolated.History?.Journal.LastOrDefault()?.CommandName == "set_area_environment";
+                           isolated.History?.Journal.LastOrDefault()?.CommandName == "patch_area_environment";
         var projectAfterAudio = isolated.Project;
         PreviewSnapshotsUx2EnvE();
         ApplySnapshotsUx2EnvE();

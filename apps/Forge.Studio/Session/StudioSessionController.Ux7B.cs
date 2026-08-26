@@ -687,7 +687,8 @@ internal sealed partial class StudioSessionController
             [new RuntimeEntityStateSave(playerId.ToString("D"), 1,
                 [new RuntimeStateComponentSave("transform", "{\"x\":1,\"y\":2,\"z\":3}")],
                 [], ["quality-token"], [new RuntimeKeyValue("quality.completed", "true")])],
-            new RuntimeWorldClockSave(1, 720, false, 1, "studio:ux7-b"));
+            new RuntimeWorldClockSave(1, 720, false, 1, "studio:ux7-b"),
+            QuestStates: []);
     }
 
     private static IReadOnlyList<string> BuildSemanticDiffUx7B(

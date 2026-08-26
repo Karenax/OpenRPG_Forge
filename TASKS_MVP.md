@@ -659,6 +659,29 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
   première tranche avec rencontres et transitions vers les vallées voisines avant de parler de contenu
   final.
 
+## C15 — Orchestration de génération procédurale
+
+- [x] Ajouter recettes moteur-neutres, catalogue versionné, seed déterministe et validation bornée.
+- [x] Ajouter dry-run/application MCP, révisions, diff, audit, undo/revert de session et permission.
+- [x] Produire des plans ordonnés à empreinte stable et accepter un sous-ensemble d'étapes.
+- [x] Persister atomiquement recettes, révision, plans et jobs ; restaurer recettes et jobs à la
+  réouverture ; confiner tous les chemins au workspace.
+- [x] Isoler Terrain3D et Godot Flow derrière des adaptateurs, pins reproductibles et installateur
+  `-WhatIf` sans réseau ni remplacement global du dossier `bin`.
+- [x] Ajouter un worker Godot à opérations allowlistées, validation d'empreinte et audit du fallback.
+- [x] Fournir un fallback Godot 4.7.1 testé qui génère terrain, maillage et collision sans addon.
+- [x] Préserver les conteneurs manuels verrouillés et les chemins de nœuds protégés lors d'une
+  régénération partielle.
+- [x] Centraliser architecture, dépendances, extension et handoff dans `docs/world-generation/` et
+  accepter l'ADR-0050.
+- [ ] Livrer et qualifier des graphes PCG artistiques sur un vrai module extérieur.
+- [ ] Promouvoir et sauvegarder explicitement les artefacts validés dans les contrats canoniques sans
+  écraser `AreaWorldProfile` ni les retouches humaines.
+- [ ] Remplacer les ancres natives restantes par hydrologie, routes, établissements, gameplay,
+  navigation et validation de production.
+- [ ] Qualifier Terrain3D `v1.0.2-stable` et Godot Flow au commit épinglé sous Godot 4.7.1 avec les
+  addons réellement installés.
+
 ## Décisions externes avant release publique
 
 - [x] Choisir et ajouter PolyForm Noncommercial 1.0.0 pour le code du dépôt, avec notice OpenRPG Forge

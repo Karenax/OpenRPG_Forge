@@ -136,6 +136,7 @@ public partial class GameRoot : Node3D
     private const string SaveFileArgument = "--save-file";
     private const string LoadSaveArgument = "--load-save";
     private const string VisualCaptureArgument = "--visual-capture";
+    private const string VisualCaptureResolution = "1600x900";
     private const string SolarenVisualFixtureArgument = "--solaren-visual-fixture";
     private const string ModuleMapVisualCaptureArgument = "--module-map-visual-capture";
     private const string ModuleMapFloorArgument = "--module-map-floor";
@@ -729,6 +730,15 @@ public partial class GameRoot : Node3D
         if (!Path.IsPathFullyQualified(destination) || !string.Equals(Path.GetExtension(destination), ".png",
             StringComparison.OrdinalIgnoreCase))
             throw new ArgumentException("The visual proof destination must be an absolute PNG path.", nameof(destination));
+
+        // Product launches are fullscreen by default, but verification captures must stay reproducible
+        // across monitors and local/CI runners.
+        var (width, height) = VisualRegressionProfile.ParseResolution(VisualCaptureResolution);
+        var window = GetWindow();
+        window.Mode = Window.ModeEnum.Windowed;
+        window.Borderless = true;
+        window.Size = new Vector2I(width, height);
+        window.Position = Vector2I.Zero;
         for (var frame = 0; frame < 4; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
         var image = GetViewport().GetTexture().GetImage();
         if (GetViewport().UseHdr2D && image.GetFormat() is Image.Format.Rgb8 or Image.Format.Rgba8)

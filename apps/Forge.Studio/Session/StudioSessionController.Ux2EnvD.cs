@@ -911,7 +911,7 @@ internal sealed partial class StudioSessionController
             var appliedProject = editing.Project!;
             var appliedTarget = appliedProject.Areas.Single(area => area.Id == target.Id);
             var canonicalCommand = freshPreview.Succeeded && applied.Succeeded &&
-                                   editing.History!.Journal.LastOrDefault()?.CommandName == "set_area_environment" &&
+                                   editing.History!.Journal.LastOrDefault()?.CommandName == "patch_area_environment" &&
                                    appliedTarget.Environment.Rendering.ToneMapping == ToneMappingProfile.Filmic &&
                                    appliedTarget.Environment.Rendering.Exposure.Equals(1.5) &&
                                    appliedTarget.Environment.Rendering.LightBudgets.Single(item =>
