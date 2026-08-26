@@ -1,5 +1,10 @@
 * text=auto eol=lf
 
+# The Aurora snapshot CSVs are byte-for-byte inputs whose MANIFEST_SHA256.txt
+# entries record their original CRLF line endings.
+Divers/OpenRPG_Forge_Aurora_Feature_Dossier/feature_catalog.csv -text !eol -diff
+Divers/OpenRPG_Forge_Aurora_Feature_Dossier/tracking/*.csv -text !eol -diff
+
 *.glb binary
 *.bin binary
 *.jpg binary
