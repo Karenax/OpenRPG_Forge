@@ -1,3 +1,4 @@
+using Forge.Application.Areas;
 using Forge.Domain.Audio;
 using Forge.ModuleFormat.Serialization;
 using Forge.ModuleFormat.Workspaces;
@@ -392,10 +393,16 @@ internal sealed partial class StudioUx2EnvFDefinitionRow : StudioUx2EnvFRowBase<
         _mixBus.Disabled = !enabled; _required.Disabled = !enabled;
     }
 
-    private static StudioUx2EnvFClipDraft NewClip() => new(
-        Guid.NewGuid(), "builtin://openrpg/audio/new-clip", "1", ["ambiance"], "Nouvelle variante",
-        "fr", "-18", string.Empty, "audio/ogg", "262144", "CC0-1.0", "studio:ux2-env-f",
-        new string('d', 64), string.Empty, [], "0");
+    private static StudioUx2EnvFClipDraft NewClip()
+    {
+        var generated = ProceduralAmbientAudioService.Create(ProceduralAmbientAudioService.StreamResource);
+        return new StudioUx2EnvFClipDraft(
+            Guid.NewGuid(), ProceduralAmbientAudioService.StreamResource, "1", ["ambiance"],
+            "Procédural versionné", "und", "-18", ProceduralAmbientAudioService.StreamResource,
+            "audio/L16", generated.Pcm16Mono.LongLength.ToString(),
+            ProceduralAmbientAudioService.LicenseSpdx, "builtin:openrpg-audio-v1",
+            generated.ContentSha256, "Ruisseau procédural", [], "2.2");
+    }
 
     private static LineEdit Text(string placeholder, string value)
     {
@@ -416,6 +423,9 @@ internal sealed partial class StudioUx2EnvFInstanceRow : StudioUx2EnvFRowBase<St
     private readonly LineEdit[] _scale;
     private readonly CheckBox _enabled;
     private readonly LineEdit _provenance;
+    private readonly LineEdit _volume;
+    private readonly CheckBox _muted;
+    private readonly TextEdit _conditions;
 
     public override StudioUx2EnvFInstanceDraft Value => new(
         _id,
@@ -426,7 +436,10 @@ internal sealed partial class StudioUx2EnvFInstanceRow : StudioUx2EnvFRowBase<St
         _rotation[0].Text, _rotation[1].Text, _rotation[2].Text, _rotation[3].Text,
         _scale[0].Text, _scale[1].Text, _scale[2].Text,
         _enabled.ButtonPressed,
-        _provenance.Text);
+        _provenance.Text,
+        _volume.Text,
+        _muted.ButtonPressed,
+        Lines(_conditions.Text));
 
     internal StudioUx2EnvFInstanceRow(
         StudioUx2EnvFInstanceDraft value,
@@ -446,10 +459,15 @@ internal sealed partial class StudioUx2EnvFInstanceRow : StudioUx2EnvFRowBase<St
         _scale = [Text("X", value.ScaleX), Text("Y", value.ScaleY), Text("Z", value.ScaleZ)];
         _enabled = StudioUx2EnvBControls.Check("Instance active"); _enabled.ButtonPressed = value.Enabled;
         _provenance = Text("studio:audio", value.Provenance);
-        var identity = new GridContainer { Columns = 3, SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        _volume = Text("1", value.Volume);
+        _muted = StudioUx2EnvBControls.Check("Muette"); _muted.ButtonPressed = value.Muted;
+        _conditions = StudioUx2EnvBControls.Lines("Une condition par ligne, par ex. weather==rain", 58);
+        _conditions.Text = string.Join('\n', value.Conditions);
+        var identity = new GridContainer { Columns = 5, SizeFlagsHorizontal = SizeFlags.ExpandFill };
         identity.AddChild(StudioUx2EnvBControls.Field("Émetteur", _definition, 260));
         identity.AddChild(StudioUx2EnvBControls.Field("Provenance", _provenance, 220));
-        identity.AddChild(_enabled); Root.AddChild(identity);
+        identity.AddChild(StudioUx2EnvBControls.Field("Volume 0..4", _volume, 110));
+        identity.AddChild(_enabled); identity.AddChild(_muted); Root.AddChild(identity);
         var transform = new GridContainer { Columns = 5, SizeFlagsHorizontal = SizeFlags.ExpandFill };
         AddVector(transform, "Position", _position, ["X", "Y", "Z"]);
         AddVector(transform, "Rotation quaternion", _rotation, ["X", "Y", "Z", "W"]);
@@ -459,14 +477,21 @@ internal sealed partial class StudioUx2EnvFInstanceRow : StudioUx2EnvFRowBase<St
             "Transform complète",
             "Position, rotation et échelle sont conservées sans arrondi ni clamp silencieux.",
             transform));
-        Watch(_definition); Watch(_enabled); Watch(_provenance);
+        Root.AddChild(StudioUx2EnvBControls.Card(
+            "Ux2EnvFConditions",
+            "Conditions d’activation",
+            "Toutes les conditions doivent être satisfaites par le runtime. Muette désactive le départ sans supprimer l’instance.",
+            _conditions));
+        Watch(_definition); Watch(_enabled); Watch(_muted); Watch(_provenance); Watch(_volume);
+        Watch(_conditions);
         foreach (var edit in _position.Concat(_rotation).Concat(_scale)) Watch(edit);
     }
 
     public override void SetEditingEnabled(bool enabled)
     {
         base.SetEditingEnabled(enabled); _definition.Disabled = !enabled; _enabled.Disabled = !enabled;
-        _provenance.Editable = enabled;
+        _muted.Disabled = !enabled; _provenance.Editable = enabled; _volume.Editable = enabled;
+        _conditions.Editable = enabled;
         foreach (var edit in _position.Concat(_rotation).Concat(_scale)) edit.Editable = enabled;
     }
 
@@ -484,6 +509,10 @@ internal sealed partial class StudioUx2EnvFInstanceRow : StudioUx2EnvFRowBase<St
     {
         var edit = StudioUx2EnvBControls.Text(placeholder); edit.Text = value; return edit;
     }
+
+    private static IReadOnlyList<string> Lines(string text) =>
+        (text ?? string.Empty).Replace("\r", string.Empty).Split('\n')
+            .Select(item => item.Trim()).Where(item => item.Length > 0).ToArray();
 }
 
 internal sealed partial class StudioAudioEmittersOverlayUx2EnvF : ColorRect
@@ -949,6 +978,9 @@ internal sealed partial class StudioAudioEmittersOverlayUx2EnvF : ColorRect
             foreach (var plan in preview.PlaybackPlans)
                 _plans.AddChild(StudioStyle.Label(
                     $"• {plan.Emitter} · clip {plan.Clip} · {plan.Loop} · {plan.Position} · " +
+                    $"volume {plan.Volume:0.##} · " +
+                    (plan.Conditions.Count == 0 ? "sans condition · " :
+                        $"conditions {string.Join(", ", plan.Conditions)} · ") +
                     (plan.Autoplay ? "départ initial planifié" : "attente d’un événement"),
                     9, StudioStyle.Text, wrap: true));
         _summary.Text = preview.Summary.Length > 0 ? preview.Summary : preview.Message;
@@ -1005,17 +1037,21 @@ internal sealed partial class StudioAudioEmittersOverlayUx2EnvF : ColorRect
     private StudioUx2EnvFDefinitionDraft NewDefinition()
     {
         var index = _definitions.Values.Count + 1;
+        var generated = ProceduralAmbientAudioService.Create(ProceduralAmbientAudioService.StreamResource);
         return new StudioUx2EnvFDefinitionDraft(
             Guid.NewGuid(), AudioEmitterDefinition.CurrentSchemaVersion, $"Nouvel émetteur {index}",
             Guid.NewGuid(), AudioClipSet.CurrentSchemaVersion, $"Clips de l’émetteur {index}",
             AudioClipSelectionMode.Ordered,
-            [new StudioUx2EnvFClipDraft(Guid.NewGuid(), "builtin://openrpg/audio/new-clip", "1",
-                ["ambiance"], "Variante principale", "fr", "-18", string.Empty, "audio/ogg", "262144",
-                "CC0-1.0", "studio:ux2-env-f", new string('d', 64), string.Empty, [], "0")],
-            "studio:ux2-env-f", AudioLoopMode.OneShot, "0", "0", "0", "0", string.Empty,
+            [new StudioUx2EnvFClipDraft(Guid.NewGuid(), ProceduralAmbientAudioService.StreamResource, "1",
+                ["ambiance"], "Procédural versionné", "und", "-18",
+                ProceduralAmbientAudioService.StreamResource, "audio/L16",
+                generated.Pcm16Mono.LongLength.ToString(), ProceduralAmbientAudioService.LicenseSpdx,
+                "builtin:openrpg-audio-v1", generated.ContentSha256, "Ruisseau procédural", [], "2.2")],
+            "builtin:openrpg-audio-v1", AudioLoopMode.Loop, "0", "0", "0", "0", string.Empty,
             "1", "25", "inverse-square", "360", "-12", "0", "0", true, null, "0",
-            string.Empty, string.Empty, false, "studio:ux2-env-f", "assets/audio-manifest.json",
-            "CC0-1.0", new string('e', 64));
+            string.Empty, string.Empty, false, "builtin:openrpg-audio-v1",
+            ProceduralAmbientAudioService.PackageManifest, ProceduralAmbientAudioService.LicenseSpdx,
+            generated.ContentSha256);
     }
 
     private StudioUx2EnvFInstanceDraft NewInstance()
@@ -1023,7 +1059,7 @@ internal sealed partial class StudioAudioEmittersOverlayUx2EnvF : ColorRect
         var definitionId = _definitions.Values.FirstOrDefault()?.Id ?? Guid.Empty;
         return new StudioUx2EnvFInstanceDraft(
             Guid.NewGuid(), definitionId, "0", "0", "0", "0", "0", "0", "1", "1", "1", "1",
-            true, "studio:ux2-env-f");
+            true, "studio:ux2-env-f", "1", false, []);
     }
 
     private bool ConfigureEvidenceDraft()

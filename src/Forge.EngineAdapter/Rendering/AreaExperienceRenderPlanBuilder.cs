@@ -33,11 +33,11 @@ public static class AreaExperienceRenderPlanBuilder
         var authoring = area.Authoring;
         var visibility = authoring.Experience.Visibility;
         var lod = authoring.Experience.Lod;
-        var cellsX = (int)Math.Ceiling(area.Dimensions.Width / authoring.Map.ExplorationCellSize);
-        var cellsZ = (int)Math.Ceiling(area.Dimensions.Depth / authoring.Map.ExplorationCellSize);
+        var grid = new AreaMapExplorationGrid(area.Dimensions, authoring.Map.FloorCount,
+            authoring.Map.ExplorationCellSize);
         var floors = Enumerable.Range(0, authoring.Map.FloorCount).Select(floor =>
             new AreaMapFloorRenderPlan(floor, 4,
-                authoring.Map.Pins.Count(pin => pin.Floor == floor), cellsX * cellsZ,
+                authoring.Map.Pins.Count(pin => pin.Floor == floor), grid.CellColumns * grid.CellRows,
                 authoring.Map.Generate2D, authoring.Map.Generate3D, authoring.Map.FogOfWar)).ToArray();
         return new(area.Id, floors, visibility.Rooms, visibility.Portals, visibility.Occluders,
             lod.DistanceThresholds, lod.AssetOverrides, lod.MaximumVisibleTriangles,

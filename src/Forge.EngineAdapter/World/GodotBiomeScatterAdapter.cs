@@ -13,7 +13,12 @@ public sealed record GodotBiomeScatterResult(
     int CollisionShapes,
     int CullingGroups,
     double BuildMilliseconds,
-    double CollisionMilliseconds);
+    double CollisionMilliseconds,
+    double MeshResolutionMilliseconds,
+    double MeshPreparationMilliseconds,
+    double PlacementMilliseconds,
+    double CellPlanningMilliseconds,
+    double InstanceUploadMilliseconds);
 
 public static class GodotBiomeScatterAdapter
 {
@@ -37,6 +42,10 @@ public static class GodotBiomeScatterAdapter
         uniform float flutter_strength : hint_range(0.0, 1.0) = 0.04;
         uniform vec4 foliage_tint : source_color = vec4(1.0);
         uniform float foliage_tint_strength : hint_range(0.0, 1.0) = 0.0;
+        uniform float forge_surface_wetness : hint_range(0.0, 1.0) = 0.0;
+        uniform float forge_wetness_albedo_darkening : hint_range(0.0, 0.35) = 0.14;
+        uniform float forge_wetness_roughness_reduction : hint_range(0.0, 0.8) = 0.36;
+        uniform float forge_wetness_specular_increase : hint_range(0.0, 0.6) = 0.2;
 
         void vertex() {
             vec2 direction = length(gnd_wind_direction) > 0.01
@@ -66,11 +75,14 @@ public static class GodotBiomeScatterAdapter
             float tinted_luminance = clamp(source_luminance * 1.12 + 0.05, 0.12, 0.90);
             vec3 stylized_tint = foliage_tint.rgb * tinted_luminance;
             vegetation_color = mix(vegetation_color, stylized_tint, foliage_tint_strength);
-            ALBEDO = vegetation_color;
+            float wetness = clamp(forge_surface_wetness, 0.0, 1.0);
+            float wet_albedo_scale = 1.0 - forge_wetness_albedo_darkening * wetness;
+            ALBEDO = vegetation_color * wet_albedo_scale;
+            ALPHA = sampled.a;
             EMISSION = vegetation_color * 0.025;
-            ROUGHNESS = material_roughness;
+            ROUGHNESS = clamp(material_roughness - forge_wetness_roughness_reduction * wetness, 0.08, 1.0);
             METALLIC = material_metallic;
-            SPECULAR = 0.24;
+            SPECULAR = clamp(0.24 + forge_wetness_specular_increase * wetness, 0.0, 1.0);
         }
         """;
 
@@ -83,7 +95,8 @@ public static class GodotBiomeScatterAdapter
         var started = Stopwatch.GetTimestamp();
         var root = new Node3D { Name = "BiomeScatter" };
         if (!world.Terrain.Enabled || meshResolver is null)
-            return new(root, 0, 0, 0, 0, 0, Stopwatch.GetElapsedTime(started).TotalMilliseconds, 0);
+            return new(root, 0, 0, 0, 0, 0, Stopwatch.GetElapsedTime(started).TotalMilliseconds,
+                0, 0, 0, 0, 0, 0);
 
         var layers = 0;
         var instances = 0;
@@ -91,17 +104,34 @@ public static class GodotBiomeScatterAdapter
         var collisionShapes = 0;
         var cullingGroups = 0;
         var collisionMilliseconds = 0d;
+        var meshResolutionMilliseconds = 0d;
+        var meshPreparationMilliseconds = 0d;
+        var placementMilliseconds = 0d;
+        var cellPlanningMilliseconds = 0d;
+        var instanceUploadMilliseconds = 0d;
+        var scatterPreparationStarted = Stopwatch.GetTimestamp();
+        var scatterBuild = BiomeScatterPlanBuilder.Prepare(world);
+        placementMilliseconds += Stopwatch.GetElapsedTime(scatterPreparationStarted).TotalMilliseconds;
         foreach (var biome in world.Biomes.Where(candidate => !string.IsNullOrWhiteSpace(candidate.ScatterResource)))
         {
+            var meshResolutionStarted = Stopwatch.GetTimestamp();
             var mesh = meshResolver(biome.ScatterResource);
+            meshResolutionMilliseconds += Stopwatch.GetElapsedTime(meshResolutionStarted).TotalMilliseconds;
             if (mesh is null) continue;
+            var meshPreparationStarted = Stopwatch.GetTimestamp();
             var renderMesh = PrepareScatterMesh(mesh, biome);
-            var placements = BiomeScatterPlanBuilder.Build(world, biome)
+            meshPreparationMilliseconds += Stopwatch.GetElapsedTime(meshPreparationStarted).TotalMilliseconds;
+            var placementStarted = Stopwatch.GetTimestamp();
+            var placements = scatterBuild.Build(biome).Placements
                 .Where(placement => !IsInsideWaterBody(placement.Position.X, placement.Position.Z, waterBodies))
                 .ToList();
+            placementMilliseconds += Stopwatch.GetElapsedTime(placementStarted).TotalMilliseconds;
             if (placements.Count == 0) continue;
             var policy = BiomeScatterRenderingPolicy.For(biome);
+            var cellPlanningStarted = Stopwatch.GetTimestamp();
             var cells = BiomeScatterCellPlanBuilder.Build(world.Terrain, placements, policy.CellSize);
+            cellPlanningMilliseconds += Stopwatch.GetElapsedTime(cellPlanningStarted).TotalMilliseconds;
+            var instanceUploadStarted = Stopwatch.GetTimestamp();
             foreach (var cell in cells)
             {
                 var multiMesh = new MultiMesh
@@ -134,6 +164,7 @@ public static class GodotBiomeScatterAdapter
                         : GeometryInstance3D.ShadowCastingSetting.Off,
                 });
             }
+            instanceUploadMilliseconds += Stopwatch.GetElapsedTime(instanceUploadStarted).TotalMilliseconds;
             layers++;
             if (biome.Tags.Contains(WindAnimatedTag, StringComparer.OrdinalIgnoreCase)) windAnimatedLayers++;
             instances += placements.Count;
@@ -160,7 +191,9 @@ public static class GodotBiomeScatterAdapter
 
         root.SetMeta("forge_wind_animated_layers", windAnimatedLayers);
         return new(root, layers, instances, windAnimatedLayers, collisionShapes, cullingGroups,
-            Stopwatch.GetElapsedTime(started).TotalMilliseconds, collisionMilliseconds);
+            Stopwatch.GetElapsedTime(started).TotalMilliseconds, collisionMilliseconds,
+            meshResolutionMilliseconds, meshPreparationMilliseconds, placementMilliseconds,
+            cellPlanningMilliseconds, instanceUploadMilliseconds);
     }
 
     private static Mesh PrepareScatterMesh(Mesh source, BiomeLayerDefinition biome)
@@ -168,6 +201,7 @@ public static class GodotBiomeScatterAdapter
         if (!biome.Tags.Contains(WindAnimatedTag, StringComparer.OrdinalIgnoreCase)) return source;
         var animated = source.Duplicate() as Mesh
             ?? throw new InvalidOperationException("A scatter mesh could not be duplicated for wind animation.");
+        animated.SetMeta(GodotSurfaceWetnessAdapter.LocalResourceMeta, true);
         for (var surface = 0; surface < animated.GetSurfaceCount(); surface++)
         {
             var sourceMaterial = source.SurfaceGetMaterial(surface) as BaseMaterial3D;

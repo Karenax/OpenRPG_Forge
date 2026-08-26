@@ -87,7 +87,8 @@ public sealed record AgentAssetInstallPlanResult(
     IReadOnlyList<AgentDiagnostic> Diagnostics,
     bool Applied,
     bool Reverted,
-    IReadOnlyList<AgentAssetInstallAuditEntry> Audit);
+    IReadOnlyList<AgentAssetInstallAuditEntry> Audit,
+    bool Reused = false);
 
 public sealed record AgentAssetInstallAuditEntry(
     string PlanId,

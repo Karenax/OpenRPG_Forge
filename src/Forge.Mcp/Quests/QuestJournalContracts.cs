@@ -1,5 +1,7 @@
+using System.ComponentModel;
 using Forge.Application.Commands;
 using Forge.Domain.Quests;
+using System.Text.Json;
 
 namespace Forge.Mcp.Quests;
 
@@ -196,7 +198,14 @@ public sealed record QuestTransitionResource(
     int ConditionCount,
     int ActionCount);
 
+[Description("Serializable MCP quest-journal JSON boundary request schema v1; domain identifiers are mapped and validated inside Forge.Mcp.")]
 public sealed record QuestJournalPlanRequest(
+    [property: Description("Quest-journal MCP schema version; must be 1.")] int SchemaVersion,
+    long BaseRevision,
+    string QuestId,
+    [property: Description("Canonical quest JSON resource schema v1; accepts UUID strings or value wrappers at the boundary.")] JsonElement Quest);
+
+public sealed record QuestJournalDomainPlanRequest(
     int SchemaVersion,
     long BaseRevision,
     string QuestId,

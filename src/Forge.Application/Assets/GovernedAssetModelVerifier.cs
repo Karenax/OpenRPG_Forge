@@ -20,52 +20,56 @@ public static class GovernedAssetModelVerifier
         ArgumentNullException.ThrowIfNull(manifest);
 
         var models = manifest.Chunks.Where(chunk =>
-            chunk.Role == AssetChunkRole.Model && chunk.Required &&
-            string.Equals(Path.GetExtension(chunk.RelativePath), ".glb", StringComparison.OrdinalIgnoreCase))
-            .ToArray();
+            chunk.Role == AssetChunkRole.Model && chunk.Required && IsRuntimeModel(chunk.RelativePath)).ToArray();
         if (models.Length != 1)
         {
             return Failure(
                 CanonicalModelInvalidCode,
-                "Asset installation requires exactly one governed canonical GLB model chunk.");
+                "Asset installation requires exactly one governed glTF or GLB model chunk.");
         }
 
-        var model = models[0];
-        if (!AssetCatalogValidator.IsSafeRelativePath(model.RelativePath))
+        if (manifest.Chunks.Any(chunk => !AssetCatalogValidator.IsSafeRelativePath(chunk.RelativePath)))
         {
-            return Failure(PathUnsafeCode, "The governed model path is not confined to the project workspace.");
+            return Failure(PathUnsafeCode, "A governed asset chunk path is not confined to the project workspace.");
         }
 
         try
         {
             var root = Path.GetFullPath(workspaceRoot);
             var rootPrefix = root.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
-            var absolute = Path.GetFullPath(Path.Combine(
-                root,
-                model.RelativePath.Replace('/', Path.DirectorySeparatorChar)));
-            if (!absolute.StartsWith(rootPrefix, StringComparison.OrdinalIgnoreCase))
+            foreach (var chunk in manifest.Chunks)
             {
-                return Failure(PathUnsafeCode, "The governed model path escapes the project workspace.");
+                var absolute = Path.GetFullPath(Path.Combine(
+                    root,
+                    chunk.RelativePath.Replace('/', Path.DirectorySeparatorChar)));
+                if (!absolute.StartsWith(rootPrefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    return Failure(PathUnsafeCode, "A governed asset chunk path escapes the project workspace.");
+                }
+
+                if (!File.Exists(absolute))
+                {
+                    return Failure(FileMissingCode, $"Governed asset chunk '{chunk.RelativePath}' does not exist.");
+                }
+
+                var length = new FileInfo(absolute).Length;
+                if (length != chunk.StoredBytes)
+                {
+                    return Failure(
+                        SizeMismatchCode,
+                        $"Governed asset chunk '{chunk.RelativePath}' has {length} bytes; expected {chunk.StoredBytes}.");
+                }
+
+                using var stream = File.OpenRead(absolute);
+                var actual = Convert.ToHexString(SHA256.HashData(stream)).ToLowerInvariant();
+                if (!string.Equals(actual, chunk.ContentSha256, StringComparison.OrdinalIgnoreCase))
+                {
+                    return Failure(HashMismatchCode,
+                        $"Governed asset chunk '{chunk.RelativePath}' failed SHA-256 verification.");
+                }
             }
 
-            if (!File.Exists(absolute))
-            {
-                return Failure(FileMissingCode, $"Governed model '{model.RelativePath}' does not exist.");
-            }
-
-            var length = new FileInfo(absolute).Length;
-            if (length != model.StoredBytes)
-            {
-                return Failure(
-                    SizeMismatchCode,
-                    $"Governed model '{model.RelativePath}' has {length} bytes; expected {model.StoredBytes}.");
-            }
-
-            using var stream = File.OpenRead(absolute);
-            var actual = Convert.ToHexString(SHA256.HashData(stream)).ToLowerInvariant();
-            return string.Equals(actual, model.ContentSha256, StringComparison.OrdinalIgnoreCase)
-                ? new GovernedAssetModelVerification(true, null, null)
-                : Failure(HashMismatchCode, $"Governed model '{model.RelativePath}' failed SHA-256 verification.");
+            return new GovernedAssetModelVerification(true, null, null);
         }
         catch (Exception exception) when (
             exception is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException)
@@ -76,6 +80,10 @@ public static class GovernedAssetModelVerifier
 
     private static GovernedAssetModelVerification Failure(string code, string message) =>
         new(false, code, message);
+
+    private static bool IsRuntimeModel(string path) =>
+        string.Equals(Path.GetExtension(path), ".glb", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(Path.GetExtension(path), ".gltf", StringComparison.OrdinalIgnoreCase);
 }
 
 public sealed record GovernedAssetModelVerification(

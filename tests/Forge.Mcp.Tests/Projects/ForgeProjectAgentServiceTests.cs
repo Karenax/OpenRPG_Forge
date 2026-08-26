@@ -366,10 +366,10 @@ public sealed class ForgeProjectAgentServiceTests
         });
 
         var resource = workspace.Project.QueryWaypoints("Braise", 10);
-        var preview = workspace.Project.PreviewWaypointAuthoring(
-            new WaypointAuthoringPlanRequest(1, 0, areaId!, profile!));
-        var invalid = workspace.Project.PreviewWaypointAuthoring(
-            new WaypointAuthoringPlanRequest(2, 0, areaId!, profile!));
+        var preview = workspace.Project.PreviewWaypointAuthoringDomain(
+            new WaypointAuthoringDomainPlanRequest(1, 0, areaId!, profile!));
+        var invalid = workspace.Project.PreviewWaypointAuthoringDomain(
+            new WaypointAuthoringDomainPlanRequest(2, 0, areaId!, profile!));
 
         Assert.Single(resource.Waypoints);
         Assert.Single(resource.PatrolRoutes);
@@ -431,8 +431,8 @@ public sealed class ForgeProjectAgentServiceTests
 
         var all = workspace.Project.QueryWaypoints(areaId, 20);
         var filtered = workspace.Project.QueryWaypoints("Cloche", 20);
-        var preview = workspace.Project.PreviewWaypointAuthoring(
-            new WaypointAuthoringPlanRequest(1, 0, areaId!, profile!));
+        var preview = workspace.Project.PreviewWaypointAuthoringDomain(
+            new WaypointAuthoringDomainPlanRequest(1, 0, areaId!, profile!));
 
         Assert.Equal(2, all.Locators.Count);
         Assert.Single(all.Collections);
@@ -1136,14 +1136,14 @@ public sealed class ForgeProjectAgentServiceTests
         var quest = canonical.Quests.Single();
 
         var resource = workspace.Project.QueryQuestJournals(quest.Slug, 1);
-        var planned = workspace.Project.PreviewQuestJournal(new(1, 0, quest.Id.ToString(), quest));
+        var planned = workspace.Project.PreviewQuestJournalDomain(new(1, 0, quest.Id.ToString(), quest));
         var simulated = workspace.Project.SimulateQuestJournal(new(1, quest.Id.ToString(),
             quest.InstancePolicy.DefaultScope.ToString(),
             "player:mcp", new DateTimeOffset(2026, 8, 7, 12, 0, 0, TimeSpan.Zero)));
         var invalidSimulation = workspace.Project.SimulateQuestJournal(new(1, quest.Id.ToString(), "Invalid",
             "player:mcp", new DateTimeOffset(2026, 8, 7, 12, 0, 0, TimeSpan.Zero)));
-        var wrongSchema = workspace.Project.PreviewQuestJournal(new(2, 0, quest.Id.ToString(), quest));
-        var wrongId = workspace.Project.PreviewQuestJournal(new(1, 0,
+        var wrongSchema = workspace.Project.PreviewQuestJournalDomain(new(2, 0, quest.Id.ToString(), quest));
+        var wrongId = workspace.Project.PreviewQuestJournalDomain(new(1, 0,
             "c7900000-0000-4000-8000-000000000099", quest));
 
         var item = Assert.Single(resource.Items);
@@ -1202,7 +1202,7 @@ public sealed class ForgeProjectAgentServiceTests
         var quest = canonical.Quests.Single();
 
         var resource = workspace.Project.QueryQuestJournals("guide", 1);
-        var planned = workspace.Project.PreviewQuestJournal(new(1, 0, quest.Id.ToString(), quest));
+        var planned = workspace.Project.PreviewQuestJournalDomain(new(1, 0, quest.Id.ToString(), quest));
 
         var authoring = Assert.Single(resource.Items).Authoring;
         Assert.NotNull(authoring);
@@ -1266,12 +1266,12 @@ public sealed class ForgeProjectAgentServiceTests
         var quest = ProjectSession.Open(workspace.RootDirectory).Session!.Project.Quests.Single();
 
         var resource = workspace.Project.QueryQuestJournals("ember-prism", 1);
-        var planned = workspace.Project.PreviewQuestJournal(new(1, 0, quest.Id.ToString(), quest));
+        var planned = workspace.Project.PreviewQuestJournalDomain(new(1, 0, quest.Id.ToString(), quest));
         var invalidQuest = quest.WithExperience(quest.Experience! with
         {
             Resources = [quest.Experience.Resources[0] with { ReferenceId = "missing:asset" }],
         });
-        var rejected = workspace.Project.PreviewQuestJournal(new(1, 0, quest.Id.ToString(), invalidQuest));
+        var rejected = workspace.Project.PreviewQuestJournalDomain(new(1, 0, quest.Id.ToString(), invalidQuest));
         var canonicalProject = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
         var invalidProject = new ProjectDefinition(canonicalProject.Id, canonicalProject.Title,
             canonicalProject.Module, canonicalProject.Blueprints, canonicalProject.Areas,
@@ -1343,7 +1343,7 @@ public sealed class ForgeProjectAgentServiceTests
         var quest = canonicalProject.Quests.Single();
 
         var resource = workspace.Project.QueryQuestJournals("human-review", 1);
-        var planned = workspace.Project.PreviewQuestJournal(new(1, 0, quest.Id.ToString(), quest));
+        var planned = workspace.Project.PreviewQuestJournalDomain(new(1, 0, quest.Id.ToString(), quest));
         var missingDependency = quest.Quality!.AiPlan.Dependencies[^1] with { ReferenceId = "missing-zone" };
         var invalidQuest = quest.WithQuality(quest.Quality with
         {
@@ -1352,7 +1352,7 @@ public sealed class ForgeProjectAgentServiceTests
                 Dependencies = [.. quest.Quality.AiPlan.Dependencies.Take(2), missingDependency],
             },
         });
-        var rejected = workspace.Project.PreviewQuestJournal(new(1, 0, quest.Id.ToString(), invalidQuest));
+        var rejected = workspace.Project.PreviewQuestJournalDomain(new(1, 0, quest.Id.ToString(), invalidQuest));
         var invalidProject = new ProjectDefinition(canonicalProject.Id, canonicalProject.Title,
             canonicalProject.Module, canonicalProject.Blueprints, canonicalProject.Areas,
             canonicalProject.Dialogues, [invalidQuest]);
@@ -2000,7 +2000,7 @@ public sealed class ForgeProjectAgentServiceTests
 
         var proposed = workspace.Project.ProposeAssistedQuest(new(1, brief));
         var approved = proposed.Proposal!.WithApproval(true, "author-approved:mcp-test:g12-f");
-        var planned = workspace.Project.PlanAssistedQuest(new(
+        var planned = workspace.Project.PlanAssistedQuestDomain(new(
             1,
             workspace.Project.GetCurrentRevision(),
             approved,
@@ -2367,8 +2367,8 @@ public sealed class ForgeProjectAgentServiceTests
             MaximumResults: 10));
 
         Assert.Equal(1, result.SchemaVersion);
-        Assert.Equal(674, result.CatalogCount);
-        Assert.Equal(5, result.Sources.Count);
+        Assert.Equal(681, result.CatalogCount);
+        Assert.Equal(6, result.Sources.Count);
         Assert.Equal(3, result.Items.Count);
         Assert.Empty(result.Diagnostics);
         Assert.All(result.Items, item =>
@@ -2779,7 +2779,24 @@ public sealed class ForgeProjectAgentServiceTests
             source.CombatModes.Providers, "mcp-test");
         var foundation = source.Foundation with
         {
-            Cameras = source.Foundation.Cameras with { DefaultProfileKey = "isometric", Provenance = "mcp-test" },
+            Cameras = source.Foundation.Cameras with
+            {
+                DefaultProfileKey = "isometric",
+                Provenance = "mcp-test",
+                Profiles = source.Foundation.Cameras.Profiles.Select((camera, index) => index == 0
+                    ? camera with
+                    {
+                        OcclusionStrategy = CameraOcclusionStrategy.FadeOccluder,
+                        CollisionRetractSharpness = 30,
+                        CollisionReleaseSharpness = 4.5f,
+                        WorldLabelNearDistance = 1.5f,
+                        WorldLabelFarDistance = 32,
+                        WorldLabelMaximumDistance = 48,
+                        WorldLabelNearScale = .5f,
+                        WorldLabelFarScale = 1.25f,
+                    }
+                    : camera).ToArray(),
+            },
             Provenance = "mcp-test",
         };
         var simulation = source.Simulation with
@@ -2823,6 +2840,15 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.Equal("turn-based", persisted.CombatModes.DefaultProviderId);
         Assert.Equal(.3f, persisted.TimeControl.SlowMotionScale);
         Assert.Equal("isometric", persisted.Foundation.Cameras.DefaultProfileKey);
+        var persistedCamera = persisted.Foundation.Cameras.Profiles[0];
+        Assert.Equal(CameraOcclusionStrategy.FadeOccluder, persistedCamera.OcclusionStrategy);
+        Assert.Equal(30, persistedCamera.CollisionRetractSharpness);
+        Assert.Equal(4.5f, persistedCamera.CollisionReleaseSharpness);
+        Assert.Equal(1.5f, persistedCamera.WorldLabelNearDistance);
+        Assert.Equal(32, persistedCamera.WorldLabelFarDistance);
+        Assert.Equal(48, persistedCamera.WorldLabelMaximumDistance);
+        Assert.Equal(.5f, persistedCamera.WorldLabelNearScale);
+        Assert.Equal(1.25f, persistedCamera.WorldLabelFarScale);
         Assert.Equal(TargetingMode.Chain, persisted.Simulation.Targeting.Mode);
         Assert.Equal(PersistenceScope.Server, persisted.Session.Persistence.Scope);
         var reverted = workspace.Project.RevertGameplayControlPlan(planned.PlanId!);
@@ -3027,6 +3053,24 @@ public sealed class ForgeProjectAgentServiceTests
         var project = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
         var area = project.Areas[0];
         var original = area.Environment;
+        var weatherState = original.Weather.States[0];
+        var wetnessMaterial = new SurfaceWetnessMaterialProfile(
+            SurfaceWetnessMaterialProfile.CurrentSchemaVersion, .18f, .42f, .24f);
+        var authoredWeatherState = new WeatherStateProfile(
+            weatherState.Id, weatherState.Name, weatherState.Kind, weatherState.Intensity,
+            weatherState.Humidity, weatherState.SurfaceWetness, weatherState.Lightning,
+            weatherState.PrecipitationResource, weatherState.AudioCue, weatherState.GameplayEffect,
+            weatherState.MinimumDurationSeconds, weatherState.MaximumDurationSeconds,
+            weatherState.TransitionSeconds, weatherState.Precipitation, wetnessMaterial);
+        var authoredWeather = new WeatherProfile(
+            original.Weather.SchemaVersion,
+            original.Weather.InitialStateId,
+            original.Weather.States.Select(state => state.Id == weatherState.Id ? authoredWeatherState : state)
+                .ToArray(),
+            original.Weather.ServerAuthoritative,
+            original.Weather.DeterministicSeed,
+            original.Weather.PersistState,
+            original.Weather.ReplicateState);
         var authoring = new AreaEnvironmentAuthoringProfile(
             Guid.Parse("a0543000-0000-4000-8000-000000000001"), 1, "agent:r054",
             new(original.Classification, "custom:agent-moonlit", "agent-environment-pack",
@@ -3041,7 +3085,7 @@ public sealed class ForgeProjectAgentServiceTests
             original.Classification, [.. original.Tags, "agent-moonlit"],
             new(DayNightMode.Clock, 30, .4f, 1.4f, 5400, true, true),
             new(FogMode.Volumetric, .3f, 4, 90, 1.5f), original.Audio, original.Rendering,
-            original.Sky, original.Wind, original.Weather, original.Water, original.Reverb, authoring, true);
+            original.Sky, original.Wind, authoredWeather, original.Water, original.Reverb, authoring, true);
 
         var before = workspace.Project.GetAreaEnvironment(area.Id.ToString());
         var planned = workspace.Project.PlanAreaEnvironment(new AreaEnvironmentPlanRequest(
@@ -3064,6 +3108,9 @@ public sealed class ForgeProjectAgentServiceTests
         var persisted = ProjectSession.Open(workspace.RootDirectory).Session!.Project.Areas[0].Environment;
         Assert.Equal(candidate.Authoring.Id, persisted.Authoring.Id);
         Assert.Equal(candidate.Authoring.Lighting.PresetKey, persisted.Authoring.Lighting.PresetKey);
+        Assert.Equal(.18f, persisted.Weather.States[0].WetnessMaterial.AlbedoDarkening);
+        Assert.Equal(.42f, persisted.Weather.States[0].WetnessMaterial.RoughnessReduction);
+        Assert.Equal(.24f, persisted.Weather.States[0].WetnessMaterial.SpecularIncrease);
 
         var reverted = workspace.Project.RevertAreaEnvironmentPlan(planned.PlanId!);
         Assert.True(reverted.Reverted);
@@ -3122,11 +3169,17 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.Equal(1, resource.RuntimeView.LodOverrides);
         var persisted = ProjectSession.Open(workspace.RootDirectory).Session!.Project.Areas[0].Authoring;
         Assert.Equal(candidate.Experience.Id, persisted.Experience.Id);
+        Assert.Equal(2, persisted.Map.FloorCount);
+        var persistedPin = Assert.Single(persisted.Map.Pins);
+        Assert.Equal(candidate.Map.Pins[0].Id, persistedPin.Id);
+        Assert.Equal(0, persistedPin.Floor);
+        Assert.False(persistedPin.InitiallyVisible);
 
         var reverted = workspace.Project.RevertAreaExperienceAuthoringPlan(planned.PlanId!);
         Assert.True(reverted.Reverted);
         var restored = ProjectSession.Open(workspace.RootDirectory).Session!.Project.Areas[0].Authoring;
         Assert.Equal(original.Experience.Id, restored.Experience.Id);
+        Assert.Equal(original.Map.Id, restored.Map.Id);
         Assert.Equal(["planned", "apply", "revert"], reverted.Audit.Select(item => item.Action));
     }
 

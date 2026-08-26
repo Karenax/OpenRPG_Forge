@@ -81,7 +81,10 @@ internal sealed record StudioUx2EnvFInstanceDraft(
     string ScaleY,
     string ScaleZ,
     bool Enabled,
-    string Provenance);
+    string Provenance,
+    string Volume,
+    bool Muted,
+    IReadOnlyList<string> Conditions);
 
 internal sealed record StudioUx2EnvFDraft(
     AreaId AreaId,
@@ -115,7 +118,9 @@ internal sealed record StudioUx2EnvFPlaybackPlan(
     string Clip,
     string Loop,
     string Position,
-    bool Autoplay);
+    bool Autoplay,
+    float Volume,
+    IReadOnlyList<string> Conditions);
 
 internal sealed record StudioUx2EnvFPreview(
     bool Succeeded,

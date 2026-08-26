@@ -102,6 +102,8 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
 - [x] Construire un lanceur WPF RPG cinématique avec Accueil, Configuration et Multijoueur, décor
   gouverné, brumes et braises animées, parallaxe, transitions et mode de mouvements réduits.
 - [x] Appliquer au runtime résolution, fenêtre, qualité, VSync, volumes et réduction des mouvements.
+- [x] Ouvrir le module, son lanceur et le Studio en plein écran par défaut ; interpréter le mode
+  fenêtré du module comme un plein écran sans bordure compatible avec les préférences v1.
 - [x] Démarrer et valider une session locale autoritaire depuis le lanceur.
 - [x] Produire atomiquement le dossier du jeu et vérifier chaque fichier par taille et SHA-256.
 - [x] Fournir le CLI, les scripts et le modèle embarqué dans la distribution Creator.
@@ -630,11 +632,32 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
   animations, contenu module exclu du graphe conformément à l'ADR-0049.
 - [x] Aligner le lanceur sur l'identité solaire d'Aubeciel avec un panorama gouverné, une palette
   forêt/crème/or, une piste calme originale, leurs hashes/provenances et trois captures distribuées.
-- [x] Valider les deux workspaces, construire le package Solaren reproductible, passer 2 149 tests
-  produit .NET plus 13 tests du graphe d'architecture, le smoke Solaren Forward+ et le smoke complet
-  de non-régression de la Crypte des Cendres.
-- [ ] Étendre cette première tranche avec intérieurs, sons d'ambiance, activités du village,
-  rencontres, quêtes et transitions vers les vallées voisines avant de parler de contenu final.
+- [x] Relier HUD, groupe, inventaire, personnage, journal, exploration, étages et carte aux données
+  canoniques du workspace, avec sécurité des portraits, socle d’inventaire authoré visible par `HasItem`,
+  acquisitions persistées sans double comptage, migrations legacy, diagnostics de quête suivie et revues
+  indépendantes vertes.
+- [x] Finaliser terrain, caméra, météo, pluie, mouillure et végétation par capacités Forge génériques
+  éditables ; l’atlas mono-zone affiche huit pins sans chevauchement et le scatter descend de 49 181 à
+  36 928 instances, soit -24,9 %.
+- [x] Étendre l’authoring gouverné avec installation locale d’assets, placement à transform complet,
+  création d’émetteurs audio, facettes de créature et remplacement d’overrides d’instances, tout en
+  conservant les surfaces Studio, les dry-runs, undo/redo et sauvegarde/réouverture.
+- [x] Différencier Aerin, Maélis, Toman et Orin par modèles complets et portraits 768 px gouvernés ;
+  enrichir le marché et les quatre seuils, puis relier trois routines de patrouille locales avec
+  course/idle, orientation et attente.
+- [x] Livrer la première boucle jouable `Maélis → accepter Le repère de la place → rallumer le repère →
+  quête terminée`, avec objectif authored, journal réel, `StartQuest` idempotent, deux ambiances 3D CC0
+  et quatre prises françaises préparées mais non revendiquées comme intégrées.
+- [x] Réserver les laboratoires Quality/Performance/Governance aux smokes, remplacer la duplication
+  profonde des meshes ordinaires par des overrides de matériaux wetness et ramener le démarrage
+  Forward+ comparable de 45 242,758 ms à 12 206,700 ms (-73,0 %), sans régression visuelle.
+- [x] Valider le lot par 1 742 tests Release, builds Runtime/Studio/McpHost sans avertissement, smoke
+  Studio `UX0D_PASS`, smokes Forward+ Solaren et Crypte, MCP 255 outils, deux `.orpmod` identiques
+  (496 820 719 octets, SHA-256 `4573eed957ced3fd777b2af429e531987a3a2e98bbf6c89b2cc5b4dccac0d3ff`),
+  revues indépendantes et graphe Roslyn déterministe à 11 632 nœuds / 92 991 relations sans diagnostic.
+- [ ] Ajouter un import audio gouverné dédié pour rattacher les prises de Maélis, puis étendre cette
+  première tranche avec rencontres et transitions vers les vallées voisines avant de parler de contenu
+  final.
 
 ## Décisions externes avant release publique
 

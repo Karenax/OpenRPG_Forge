@@ -13,6 +13,11 @@ public sealed record GodotTerrainBuildMetrics(
     double CollisionMilliseconds,
     double FeatureMilliseconds,
     double ScatterMilliseconds,
+    double ScatterMeshResolutionMilliseconds,
+    double ScatterMeshPreparationMilliseconds,
+    double ScatterPlacementMilliseconds,
+    double ScatterCellPlanningMilliseconds,
+    double ScatterInstanceUploadMilliseconds,
     long ManagedAllocatedBytes);
 
 public sealed record GodotTerrainResult(Node3D Root, int Vertices, int Triangles, int TerrainSectors,
@@ -169,6 +174,11 @@ public static class GodotTerrainAdapter
             collisionMilliseconds,
             featureMilliseconds,
             scatterMilliseconds,
+            scatter.MeshResolutionMilliseconds,
+            scatter.MeshPreparationMilliseconds,
+            scatter.PlacementMilliseconds,
+            scatter.CellPlanningMilliseconds,
+            scatter.InstanceUploadMilliseconds,
             Math.Max(0, GC.GetAllocatedBytesForCurrentThread() - allocatedBefore));
 
         return new GodotTerrainResult(root, plan.Vertices.Count, plan.TriangleCount, plan.ChunkCount,
@@ -190,6 +200,7 @@ public static class GodotTerrainAdapter
         {
             var vertex = plan.Vertices[index];
             surface.SetColor(new Color(vertex.AlbedoColor));
+            surface.SetNormal(new Vector3(vertex.Normal.X, vertex.Normal.Y, vertex.Normal.Z));
             surface.SetUV(new Vector2(vertex.U, vertex.V));
             surface.AddVertex(new Vector3(
                 vertex.Position.X - origin.X,
@@ -208,11 +219,11 @@ public static class GodotTerrainAdapter
             AddVertex(indices[triangle + 1]);
         }
 
-        // Re-index the canonical samples before generating normals. Without this pass each
-        // triangle owns isolated vertices and large exterior terrains read as a tiled floor.
+        // Re-index canonical samples while retaining the normals computed once from the
+        // complete height field. Sector-local normal generation creates visible seams.
         surface.Index();
-        surface.GenerateNormals();
         var mesh = surface.Commit();
+        mesh.SetMeta(GodotSurfaceWetnessAdapter.LocalResourceMeta, true);
         if (material is not null)
             mesh.SurfaceSetMaterial(0, material);
         return mesh;
@@ -298,6 +309,7 @@ public static class GodotTerrainAdapter
         }
 
         var mesh = surface.Commit();
+        mesh.SetMeta(GodotSurfaceWetnessAdapter.LocalResourceMeta, true);
         var surfaceTexture = string.IsNullOrWhiteSpace(feature.MaterialResource) ||
             feature.MaterialResource.StartsWith("builtin/", StringComparison.OrdinalIgnoreCase)
                 ? null

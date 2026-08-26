@@ -81,7 +81,7 @@ public sealed class BuildAssistedAreaPlanHandler
                     areaBefore.Id,
                     entityId,
                     BlueprintId.From(blueprintValue),
-                    new TransformValue(new Vector3Value(node.X, 0, node.Z), QuaternionValue.Identity, Vector3Value.One),
+                    ResolvePlacement(areaBefore, node),
                     dryRun: false,
                     [marker, $"assistant-node:{node.Id:D}", $"plan-seed:{plan.Seed}",
                         "assistant-generated", node.Kind.ToString().ToLowerInvariant()]);
@@ -173,6 +173,25 @@ public sealed class BuildAssistedAreaPlanHandler
     }
 
     private static string Key(DomainDiagnostic diagnostic) => $"{diagnostic.Code}|{diagnostic.Path}";
+
+    private static TransformValue ResolvePlacement(
+        Forge.Domain.Areas.AreaDefinition area,
+        AssistedAreaPlanNode node)
+    {
+        if (node.PlacementMode == AssistedAreaPlacementMode.ExplicitTransform)
+        {
+            return node.PlacementTransform;
+        }
+
+        var authored = node.PlacementTransform;
+        var surface = area.World.Terrain.Enabled
+            ? area.World.Terrain.HeightAt(authored.Position.X, authored.Position.Z)
+            : 0;
+        return new TransformValue(
+            new Vector3Value(authored.Position.X, surface + node.TerrainOffset, authored.Position.Z),
+            authored.Rotation,
+            authored.Scale);
+    }
 
     private static Guid StableId(Guid first, Guid second, Guid third)
     {

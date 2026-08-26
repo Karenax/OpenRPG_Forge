@@ -191,7 +191,7 @@
           "schemaVersion": 1,
           "enabled": true,
           "displayName": "Solaren, Les Vall\u00E9es Libres",
-          "tagline": "Explorez les vastes vall\u00E9es libres autour du village d'Aubeciel.",
+          "tagline": "Explorez les vastes vall\u00E9es libres autour du village d\u0027Aubeciel.",
           "executableName": "Solaren_Les_Vallees_Libres",
           "accentColor": "#D59538",
           "backgroundImagePath": "branding/launcher-solaren-aubeciel-v1.png",
@@ -671,7 +671,23 @@
                     "z": 0
                   },
                   "collisionAvoidance": true,
-                  "alignCharacterFacing": false
+                  "alignCharacterFacing": false,
+                  "terrainClearance": 0.9,
+                  "terrainProbeSamples": 32,
+                  "initialYawDegrees": 39,
+                  "minimumPitchDegrees": -85,
+                  "maximumPitchDegrees": 85,
+                  "occlusionSchemaVersion": 1,
+                  "occlusionStrategy": "retract",
+                  "collisionRetractSharpness": 24,
+                  "collisionReleaseSharpness": 3.25,
+                  "worldLabelSchemaVersion": 1,
+                  "worldLabelNearDistance": 2,
+                  "worldLabelFarDistance": 28,
+                  "worldLabelMaximumDistance": 42,
+                  "worldLabelNearScale": 0.55,
+                  "worldLabelFarScale": 1.15,
+                  "hideLocalHeroLabelInFirstPerson": true
                 },
                 {
                   "id": "542fea57-c2ae-52ed-b683-abe4217ed0b3",
@@ -694,7 +710,18 @@
                   "terrainProbeSamples": 32,
                   "initialYawDegrees": 5,
                   "minimumPitchDegrees": -85,
-                  "maximumPitchDegrees": 85
+                  "maximumPitchDegrees": 85,
+                  "occlusionSchemaVersion": 1,
+                  "occlusionStrategy": "retract",
+                  "collisionRetractSharpness": 24,
+                  "collisionReleaseSharpness": 3.25,
+                  "worldLabelSchemaVersion": 1,
+                  "worldLabelNearDistance": 2,
+                  "worldLabelFarDistance": 28,
+                  "worldLabelMaximumDistance": 42,
+                  "worldLabelNearScale": 0.55,
+                  "worldLabelFarScale": 1.15,
+                  "hideLocalHeroLabelInFirstPerson": true
                 },
                 {
                   "id": "58046b1d-939b-5d7d-b381-c2bb797d0df7",
@@ -712,7 +739,23 @@
                     "z": 0
                   },
                   "collisionAvoidance": true,
-                  "alignCharacterFacing": true
+                  "alignCharacterFacing": true,
+                  "terrainClearance": 0.9,
+                  "terrainProbeSamples": 32,
+                  "initialYawDegrees": 39,
+                  "minimumPitchDegrees": -85,
+                  "maximumPitchDegrees": 85,
+                  "occlusionSchemaVersion": 1,
+                  "occlusionStrategy": "retract",
+                  "collisionRetractSharpness": 24,
+                  "collisionReleaseSharpness": 3.25,
+                  "worldLabelSchemaVersion": 1,
+                  "worldLabelNearDistance": 2,
+                  "worldLabelFarDistance": 28,
+                  "worldLabelMaximumDistance": 42,
+                  "worldLabelNearScale": 0.55,
+                  "worldLabelFarScale": 1.15,
+                  "hideLocalHeroLabelInFirstPerson": true
                 },
                 {
                   "id": "9520a209-9afe-5b6a-b78e-dd82b6c88591",
@@ -730,7 +773,23 @@
                     "z": 0
                   },
                   "collisionAvoidance": true,
-                  "alignCharacterFacing": true
+                  "alignCharacterFacing": true,
+                  "terrainClearance": 0.9,
+                  "terrainProbeSamples": 32,
+                  "initialYawDegrees": 39,
+                  "minimumPitchDegrees": -85,
+                  "maximumPitchDegrees": 85,
+                  "occlusionSchemaVersion": 1,
+                  "occlusionStrategy": "retract",
+                  "collisionRetractSharpness": 24,
+                  "collisionReleaseSharpness": 3.25,
+                  "worldLabelSchemaVersion": 1,
+                  "worldLabelNearDistance": 2,
+                  "worldLabelFarDistance": 28,
+                  "worldLabelMaximumDistance": 42,
+                  "worldLabelNearScale": 0.55,
+                  "worldLabelFarScale": 1.15,
+                  "hideLocalHeroLabelInFirstPerson": true
                 },
                 {
                   "id": "2ff2294b-f4ac-5351-871b-7aed6213476d",
@@ -748,7 +807,23 @@
                     "z": 0
                   },
                   "collisionAvoidance": true,
-                  "alignCharacterFacing": false
+                  "alignCharacterFacing": false,
+                  "terrainClearance": 0.9,
+                  "terrainProbeSamples": 32,
+                  "initialYawDegrees": 39,
+                  "minimumPitchDegrees": -85,
+                  "maximumPitchDegrees": 85,
+                  "occlusionSchemaVersion": 1,
+                  "occlusionStrategy": "retract",
+                  "collisionRetractSharpness": 24,
+                  "collisionReleaseSharpness": 3.25,
+                  "worldLabelSchemaVersion": 1,
+                  "worldLabelNearDistance": 2,
+                  "worldLabelFarDistance": 28,
+                  "worldLabelMaximumDistance": 42,
+                  "worldLabelNearScale": 0.55,
+                  "worldLabelFarScale": 1.15,
+                  "hideLocalHeroLabelInFirstPerson": true
                 },
                 {
                   "id": "a0906247-7fe1-5a31-8f0e-7e43934cc41d",
@@ -766,7 +841,23 @@
                     "z": 0
                   },
                   "collisionAvoidance": true,
-                  "alignCharacterFacing": false
+                  "alignCharacterFacing": false,
+                  "terrainClearance": 0.9,
+                  "terrainProbeSamples": 32,
+                  "initialYawDegrees": 39,
+                  "minimumPitchDegrees": -85,
+                  "maximumPitchDegrees": 85,
+                  "occlusionSchemaVersion": 1,
+                  "occlusionStrategy": "retract",
+                  "collisionRetractSharpness": 24,
+                  "collisionReleaseSharpness": 3.25,
+                  "worldLabelSchemaVersion": 1,
+                  "worldLabelNearDistance": 2,
+                  "worldLabelFarDistance": 28,
+                  "worldLabelMaximumDistance": 42,
+                  "worldLabelNearScale": 0.55,
+                  "worldLabelFarScale": 1.15,
+                  "hideLocalHeroLabelInFirstPerson": true
                 },
                 {
                   "id": "cfcd7085-697a-52d2-938f-d1406f66b9b7",
@@ -784,7 +875,23 @@
                     "z": 0
                   },
                   "collisionAvoidance": true,
-                  "alignCharacterFacing": true
+                  "alignCharacterFacing": true,
+                  "terrainClearance": 0.9,
+                  "terrainProbeSamples": 32,
+                  "initialYawDegrees": 39,
+                  "minimumPitchDegrees": -85,
+                  "maximumPitchDegrees": 85,
+                  "occlusionSchemaVersion": 1,
+                  "occlusionStrategy": "retract",
+                  "collisionRetractSharpness": 24,
+                  "collisionReleaseSharpness": 3.25,
+                  "worldLabelSchemaVersion": 1,
+                  "worldLabelNearDistance": 2,
+                  "worldLabelFarDistance": 28,
+                  "worldLabelMaximumDistance": 42,
+                  "worldLabelNearScale": 0.55,
+                  "worldLabelFarScale": 1.15,
+                  "hideLocalHeroLabelInFirstPerson": true
                 },
                 {
                   "id": "c1c428e4-f93a-51b3-bb83-a38ff4aaf540",
@@ -802,7 +909,23 @@
                     "z": 0
                   },
                   "collisionAvoidance": true,
-                  "alignCharacterFacing": false
+                  "alignCharacterFacing": false,
+                  "terrainClearance": 0.9,
+                  "terrainProbeSamples": 32,
+                  "initialYawDegrees": 39,
+                  "minimumPitchDegrees": -85,
+                  "maximumPitchDegrees": 85,
+                  "occlusionSchemaVersion": 1,
+                  "occlusionStrategy": "retract",
+                  "collisionRetractSharpness": 24,
+                  "collisionReleaseSharpness": 3.25,
+                  "worldLabelSchemaVersion": 1,
+                  "worldLabelNearDistance": 2,
+                  "worldLabelFarDistance": 28,
+                  "worldLabelMaximumDistance": 42,
+                  "worldLabelNearScale": 0.55,
+                  "worldLabelFarScale": 1.15,
+                  "hideLocalHeroLabelInFirstPerson": true
                 }
               ]
             },
@@ -3980,16 +4103,1349 @@
         },
         "creatureFoundation": null,
         "itemFoundation": null
+      },
+      {
+        "id": "d49574cf-eab2-dc5a-aac3-b854da381990",
+        "slug": "asset-quaternius-barrel-apples",
+        "displayName": "Barrel Apples",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": true,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "asset://catalog/quaternius:fantasy-props-megakit-standard-1.0:barrel-apples",
+          "author": "Quaternius",
+          "licenseSpdx": "CC0-1.0",
+          "contentHash": "07520279b51bd1cc75b6db88b572b5ec445fc7decf0b115fba5c9e20f8caa111",
+          "permissionEvidence": "spdx:CC0-1.0",
+          "isAiGenerated": false,
+          "modifications": [
+            "asset.manifest=33516cc2-3f72-a559-9783-80e5f25054a5",
+            "visual.asset=5c47aa06-f356-0350-815c-754c868cd225"
+          ]
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.asset.quaternius.barrel.apples",
+          "manifestPath": "content/blueprints/d49574cf-eab2-dc5a-aac3-b854da381990/asset-quaternius-barrel-apples.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/d49574cf-eab2-dc5a-aac3-b854da381990/asset-quaternius-barrel-apples.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.asset.quaternius.barrel.apples",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "6e3f1f29-7157-085a-907b-14d020254873",
+        "slug": "asset-quaternius-farmcrate-apple",
+        "displayName": "FarmCrate Apple",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": true,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "asset://catalog/quaternius:fantasy-props-megakit-standard-1.0:farmcrate-apple",
+          "author": "Quaternius",
+          "licenseSpdx": "CC0-1.0",
+          "contentHash": "56de7097ddbf22801537f38b77335b2d85a4e2d24bdcbe9ceb1b3bc666a24997",
+          "permissionEvidence": "spdx:CC0-1.0",
+          "isAiGenerated": false,
+          "modifications": [
+            "asset.manifest=d6aadf6e-e770-a45b-8b0d-78f46226c8e9",
+            "visual.asset=016b9352-4cb8-b852-bf05-f386dd35c373"
+          ]
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.asset.quaternius.farmcrate.apple",
+          "manifestPath": "content/blueprints/6e3f1f29-7157-085a-907b-14d020254873/asset-quaternius-farmcrate-apple.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/6e3f1f29-7157-085a-907b-14d020254873/asset-quaternius-farmcrate-apple.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.asset.quaternius.farmcrate.apple",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "858900ab-de17-1a5e-ac99-e09e0719b800",
+        "slug": "asset-quaternius-farmcrate-carrot",
+        "displayName": "FarmCrate Carrot",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": true,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "asset://catalog/quaternius:fantasy-props-megakit-standard-1.0:farmcrate-carrot",
+          "author": "Quaternius",
+          "licenseSpdx": "CC0-1.0",
+          "contentHash": "6aaa750a27ee652c8090fe7415f1bdd1d66b17d6cfecafc0767559afaef3248c",
+          "permissionEvidence": "spdx:CC0-1.0",
+          "isAiGenerated": false,
+          "modifications": [
+            "asset.manifest=3b42c523-ee69-ac59-92df-df8adadd1f82",
+            "visual.asset=09526402-4299-ff59-9017-39fd26a973bb"
+          ]
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.asset.quaternius.farmcrate.carrot",
+          "manifestPath": "content/blueprints/858900ab-de17-1a5e-ac99-e09e0719b800/asset-quaternius-farmcrate-carrot.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/858900ab-de17-1a5e-ac99-e09e0719b800/asset-quaternius-farmcrate-carrot.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.asset.quaternius.farmcrate.carrot",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "036a6fc5-15b0-6e50-99d5-4e7836532709",
+        "slug": "asset-quaternius-crate-wooden",
+        "displayName": "Crate Wooden",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": true,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "asset://catalog/quaternius:fantasy-props-megakit-standard-1.0:crate-wooden",
+          "author": "Quaternius",
+          "licenseSpdx": "CC0-1.0",
+          "contentHash": "fb06d4b7b9bbfbb9dc51fa56ecff3fe7ba8e9142d643cabedd17a55d7ea46ee5",
+          "permissionEvidence": "spdx:CC0-1.0",
+          "isAiGenerated": false,
+          "modifications": [
+            "asset.manifest=5314454f-da72-205a-a5cf-58747df1a292",
+            "visual.asset=6e69ebdb-13ed-6a53-9503-4953f500ce3e"
+          ]
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.asset.quaternius.crate.wooden",
+          "manifestPath": "content/blueprints/036a6fc5-15b0-6e50-99d5-4e7836532709/asset-quaternius-crate-wooden.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/036a6fc5-15b0-6e50-99d5-4e7836532709/asset-quaternius-crate-wooden.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.asset.quaternius.crate.wooden",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "ca77095c-c1e7-d350-b7f8-26951a1b2a03",
+        "slug": "asset-quaternius-lantern-wall",
+        "displayName": "Lantern Wall",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": true,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "asset://catalog/quaternius:fantasy-props-megakit-standard-1.0:lantern-wall",
+          "author": "Quaternius",
+          "licenseSpdx": "CC0-1.0",
+          "contentHash": "9e7623e1d3a16f9212ff7cb41c939746435187f0071bd94849ee7bc6a59785a2",
+          "permissionEvidence": "spdx:CC0-1.0",
+          "isAiGenerated": false,
+          "modifications": [
+            "asset.manifest=c4dbb699-e96c-865c-9976-6acf6e84e9af",
+            "visual.asset=d9959d56-4865-7556-b51d-b4bbdae054e2"
+          ]
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.asset.quaternius.lantern.wall",
+          "manifestPath": "content/blueprints/ca77095c-c1e7-d350-b7f8-26951a1b2a03/asset-quaternius-lantern-wall.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/ca77095c-c1e7-d350-b7f8-26951a1b2a03/asset-quaternius-lantern-wall.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.asset.quaternius.lantern.wall",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "4c110e7e-695d-145f-91d4-7dee30b2ad25",
+        "slug": "asset-quaternius-candlestick-stand",
+        "displayName": "CandleStick Stand",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": true,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "asset://catalog/quaternius:fantasy-props-megakit-standard-1.0:candlestick-stand",
+          "author": "Quaternius",
+          "licenseSpdx": "CC0-1.0",
+          "contentHash": "4255072b144deb6abadaa604cdb52d09a64dfee2df690cd0f1c71c829454380b",
+          "permissionEvidence": "spdx:CC0-1.0",
+          "isAiGenerated": false,
+          "modifications": [
+            "asset.manifest=803e261a-d288-8b5c-97ba-7b1100327f82",
+            "visual.asset=7c347236-48fe-745d-886d-bb09d3ba427d"
+          ]
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.asset.quaternius.candlestick.stand",
+          "manifestPath": "content/blueprints/4c110e7e-695d-145f-91d4-7dee30b2ad25/asset-quaternius-candlestick-stand.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/4c110e7e-695d-145f-91d4-7dee30b2ad25/asset-quaternius-candlestick-stand.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.asset.quaternius.candlestick.stand",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "afbc346d-c462-e65e-a1da-0b61ab4d87e6",
+        "slug": "asset-openrpg-derived-male-ranger-ual2",
+        "displayName": "Aerin Male Ranger UAL2",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": true,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "asset://catalog/openrpg:solaren-character-derivatives-1.0:male-ranger-ual2",
+          "author": "OpenRPG Forge derived from Quaternius CC0",
+          "licenseSpdx": "CC0-1.0",
+          "contentHash": "88649856c224fef6dac4f7b2247d8e41b8b39b672d3b6056576738c23d7e1bfc",
+          "permissionEvidence": "spdx:CC0-1.0",
+          "isAiGenerated": false,
+          "modifications": [
+            "asset.manifest=0765e28a-b059-aa54-a204-fa9320440537",
+            "visual.asset=bdba52b4-6a0f-ff57-8ee0-02e5563a1c4d"
+          ]
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.asset.openrpg.derived.male.ranger.ual2",
+          "manifestPath": "content/blueprints/afbc346d-c462-e65e-a1da-0b61ab4d87e6/asset-openrpg-derived-male-ranger-ual2.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/afbc346d-c462-e65e-a1da-0b61ab4d87e6/asset-openrpg-derived-male-ranger-ual2.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.asset.openrpg.derived.male.ranger.ual2",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "d2c54854-6aec-a15e-8289-1e03722e772e",
+        "slug": "asset-openrpg-derived-female-peasant-ual2",
+        "displayName": "Female Peasant UAL2",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": true,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "asset://catalog/openrpg:solaren-character-derivatives-1.0:female-peasant-ual2",
+          "author": "OpenRPG Forge derived from Quaternius CC0",
+          "licenseSpdx": "CC0-1.0",
+          "contentHash": "fd8f794ef65093360b63b20613bfb74d924f69bcb6cfd9dc5e0a6d9e1500f1b0",
+          "permissionEvidence": "spdx:CC0-1.0",
+          "isAiGenerated": false,
+          "modifications": [
+            "asset.manifest=e7f7fa7b-489d-4b5a-9800-c3e6e53f8beb",
+            "visual.asset=423e2499-aeb6-515f-99b2-e771b6206fce"
+          ]
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.asset.openrpg.derived.female.peasant.ual2",
+          "manifestPath": "content/blueprints/d2c54854-6aec-a15e-8289-1e03722e772e/asset-openrpg-derived-female-peasant-ual2.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/d2c54854-6aec-a15e-8289-1e03722e772e/asset-openrpg-derived-female-peasant-ual2.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.asset.openrpg.derived.female.peasant.ual2",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "b4ddd186-3fca-285d-8a61-93399b8e408c",
+        "slug": "asset-openrpg-derived-female-ranger-ual2",
+        "displayName": "Female Ranger UAL2",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": true,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "asset://catalog/openrpg:solaren-character-derivatives-1.0:female-ranger-ual2",
+          "author": "OpenRPG Forge derived from Quaternius CC0",
+          "licenseSpdx": "CC0-1.0",
+          "contentHash": "5768e94f48a418da7058730de585e1556bb032d7bd3f9ae9284cc88423b3ec6f",
+          "permissionEvidence": "spdx:CC0-1.0",
+          "isAiGenerated": false,
+          "modifications": [
+            "asset.manifest=4d196f13-826a-f451-ba2e-044d85bb608d",
+            "visual.asset=8136ec94-41fa-cc58-8296-7eca59461c3c"
+          ]
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.asset.openrpg.derived.female.ranger.ual2",
+          "manifestPath": "content/blueprints/b4ddd186-3fca-285d-8a61-93399b8e408c/asset-openrpg-derived-female-ranger-ual2.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/b4ddd186-3fca-285d-8a61-93399b8e408c/asset-openrpg-derived-female-ranger-ual2.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.asset.openrpg.derived.female.ranger.ual2",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "6db59df8-3551-da58-9070-170dc5267d65",
+        "slug": "asset-quaternius-torch-metal",
+        "displayName": "Torch Metal",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": true,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "asset://catalog/quaternius:fantasy-props-megakit-standard-1.0:torch-metal",
+          "author": "Quaternius",
+          "licenseSpdx": "CC0-1.0",
+          "contentHash": "f28978f4f351030766996ccb5585f258882b6892f3944bbf06609a761ffb01a5",
+          "permissionEvidence": "spdx:CC0-1.0",
+          "isAiGenerated": false,
+          "modifications": [
+            "asset.manifest=0a3800ed-a1da-6b50-9c00-0477a6e63200",
+            "visual.asset=4e65e392-8ff2-9b53-b444-0e2778170759"
+          ]
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.asset.quaternius.torch.metal",
+          "manifestPath": "content/blueprints/6db59df8-3551-da58-9070-170dc5267d65/asset-quaternius-torch-metal.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/6db59df8-3551-da58-9070-170dc5267d65/asset-quaternius-torch-metal.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.asset.quaternius.torch.metal",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "ff0c53c9-6672-7957-b80f-a4a030c9395d",
+        "slug": "asset-openrpg-derived-aerin-portrait",
+        "displayName": "Aerin Portrait 768",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": true,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "asset://catalog/openrpg:solaren-portrait-carriers-1.0:aerin-portrait",
+          "author": "OpenRPG Forge derived from Quaternius CC0",
+          "licenseSpdx": "CC0-1.0",
+          "contentHash": "bfb01e09a3e26e3a84f24bc6d8c7f0482126ccd44258148c0765eb75f46c30fa",
+          "permissionEvidence": "spdx:CC0-1.0",
+          "isAiGenerated": false,
+          "modifications": [
+            "asset.manifest=f5bf16f7-ec1d-6952-8ae9-6f0ac388cec6",
+            "visual.asset=ccd0edb9-5d82-7357-a905-f687f4b181ff"
+          ]
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.asset.openrpg.derived.aerin.portrait",
+          "manifestPath": "content/blueprints/ff0c53c9-6672-7957-b80f-a4a030c9395d/asset-openrpg-derived-aerin-portrait.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/ff0c53c9-6672-7957-b80f-a4a030c9395d/asset-openrpg-derived-aerin-portrait.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.asset.openrpg.derived.aerin.portrait",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "45f8fed5-a304-255f-bc1b-ee720bebe575",
+        "slug": "asset-openrpg-derived-maelis-portrait",
+        "displayName": "Maelis Portrait 768",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": true,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "asset://catalog/openrpg:solaren-portrait-carriers-1.0:maelis-portrait",
+          "author": "OpenRPG Forge derived from Quaternius CC0",
+          "licenseSpdx": "CC0-1.0",
+          "contentHash": "b17005ba7ea3930fb0e606a5b615304f02b802a64ff4f4572c7a051308ef64f5",
+          "permissionEvidence": "spdx:CC0-1.0",
+          "isAiGenerated": false,
+          "modifications": [
+            "asset.manifest=ed11f1fa-7d65-f759-9a89-4865214545a5",
+            "visual.asset=a6567932-c1ad-e75a-a4ed-f71a0f957ed5"
+          ]
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.asset.openrpg.derived.maelis.portrait",
+          "manifestPath": "content/blueprints/45f8fed5-a304-255f-bc1b-ee720bebe575/asset-openrpg-derived-maelis-portrait.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/45f8fed5-a304-255f-bc1b-ee720bebe575/asset-openrpg-derived-maelis-portrait.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.asset.openrpg.derived.maelis.portrait",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "3ad2a2da-fd9f-7e5e-b267-b62c8ba02a45",
+        "slug": "asset-openrpg-derived-orin-portrait",
+        "displayName": "Orin Portrait 768",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": true,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "asset://catalog/openrpg:solaren-portrait-carriers-1.0:orin-portrait",
+          "author": "OpenRPG Forge derived from Quaternius CC0",
+          "licenseSpdx": "CC0-1.0",
+          "contentHash": "8eebc59b3875f9763b3dbe06a115803a9f4a2c31905d64eb9103f5d513352024",
+          "permissionEvidence": "spdx:CC0-1.0",
+          "isAiGenerated": false,
+          "modifications": [
+            "asset.manifest=5308c03a-a79b-0a50-b277-81341dfe1bc5",
+            "visual.asset=169b1d11-dc11-4b5d-8b15-4d16b8c819fa"
+          ]
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.asset.openrpg.derived.orin.portrait",
+          "manifestPath": "content/blueprints/3ad2a2da-fd9f-7e5e-b267-b62c8ba02a45/asset-openrpg-derived-orin-portrait.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/3ad2a2da-fd9f-7e5e-b267-b62c8ba02a45/asset-openrpg-derived-orin-portrait.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.asset.openrpg.derived.orin.portrait",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
+      },
+      {
+        "id": "4b1f52d3-4183-1a54-a43a-bbb26c9b6b2c",
+        "slug": "asset-openrpg-derived-toman-portrait",
+        "displayName": "Toman Portrait 768",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": true,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "asset://catalog/openrpg:solaren-portrait-carriers-1.0:toman-portrait",
+          "author": "OpenRPG Forge derived from Quaternius CC0",
+          "licenseSpdx": "CC0-1.0",
+          "contentHash": "8a01f643efd3f0fe51cb10fd241530690d3e0e1fedf15a5d2a828cdd8584e593",
+          "permissionEvidence": "spdx:CC0-1.0",
+          "isAiGenerated": false,
+          "modifications": [
+            "asset.manifest=262719b4-b4a5-315e-9d3c-57cf785805c1",
+            "visual.asset=c9d189f3-65fb-ae58-8d6e-e5317ea94a2f"
+          ]
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.asset.openrpg.derived.toman.portrait",
+          "manifestPath": "content/blueprints/4b1f52d3-4183-1a54-a43a-bbb26c9b6b2c/asset-openrpg-derived-toman-portrait.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/4b1f52d3-4183-1a54-a43a-bbb26c9b6b2c/asset-openrpg-derived-toman-portrait.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.asset.openrpg.derived.toman.portrait",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
       }
     ],
     "areas": [
       {
         "id": "4510a33a-ec5e-ae5c-98b3-27eca856a80d",
         "slug": "le-val-d-aubeciel",
-        "documentPath": "areas/4510a33a-ec5e-ae5c-98b3-27eca856a80d-b4813e78cd3b2c4f.json"
+        "documentPath": "areas/4510a33a-ec5e-ae5c-98b3-27eca856a80d-f8a3c711e0d1c595.json"
       }
     ],
-    "dialogues": [],
-    "quests": []
+    "dialogues": [
+      {
+        "id": "c0e2d9b1-4f7a-4b9f-bd80-6fd8ec4cb31e",
+        "schemaVersion": 1,
+        "provenance": "migration-default",
+        "slug": "maelis-beacon",
+        "displayName": "Ma\u00E9lis et le rep\u00E8re de la place",
+        "entryNodeId": "00f251a2-aa30-9749-9888-4f7f90d5f9fd",
+        "nodes": [
+          {
+            "id": "00f251a2-aa30-9749-9888-4f7f90d5f9fd",
+            "speakerBlueprintId": "960424ba-d57c-f556-9359-449ee1a5cf54",
+            "text": {
+              "id": "c0df8cc9-6fef-5c02-b1df-54531138fec5",
+              "schemaVersion": 1,
+              "provenance": "agent:mcp-dialogue-plan",
+              "key": "solaren.dialogue.maelis_beacon.1",
+              "fallback": "Ma\u00E9lis : La pluie a \u00E9teint le rep\u00E8re. Peux-tu le rallumer ?",
+              "variants": []
+            },
+            "onEnterActions": [],
+            "choices": [
+              {
+                "id": "2662fcf7-4fda-714c-80d8-d090202f314c",
+                "text": {
+                  "id": "1b4cb4f0-5b17-5187-afcd-2e9a9b472ec7",
+                  "schemaVersion": 1,
+                  "provenance": "agent:mcp-dialogue-plan",
+                  "key": "solaren.dialogue.maelis_beacon.choice.cause",
+                  "fallback": "Pourquoi ce rep\u00E8re est-il important ?",
+                  "variants": []
+                },
+                "conditions": [],
+                "actions": [],
+                "targetNodeId": "79e7b610-fd89-0c48-956f-4bd14d5211c4",
+                "edgeKind": "flow",
+                "priority": 0,
+                "conditionCombination": "all"
+              }
+            ],
+            "role": "speakerLine",
+            "participantId": "e9d4fc51-1aa5-5db5-b821-9063897ada4f",
+            "subgraphKey": null
+          },
+          {
+            "id": "79e7b610-fd89-0c48-956f-4bd14d5211c4",
+            "speakerBlueprintId": "960424ba-d57c-f556-9359-449ee1a5cf54",
+            "text": {
+              "id": "703f35a5-c2da-548a-9abe-8ac5d4370ed1",
+              "schemaVersion": 1,
+              "provenance": "agent:mcp-dialogue-plan",
+              "key": "solaren.dialogue.maelis_beacon.2",
+              "fallback": "Ma\u00E9lis : Il guide les voyageurs lorsque la brume couvre Aubeciel.",
+              "variants": []
+            },
+            "onEnterActions": [],
+            "choices": [
+              {
+                "id": "4037f164-d055-cb47-be23-5d2e8eb50316",
+                "text": {
+                  "id": "0198824e-e2d3-552a-8cba-37c7f1235b4d",
+                  "schemaVersion": 1,
+                  "provenance": "agent:mcp-dialogue-plan",
+                  "key": "solaren.dialogue.maelis_beacon.choice.help",
+                  "fallback": "Je vais rallumer la lanterne.",
+                  "variants": []
+                },
+                "conditions": [],
+                "actions": [
+                  {
+                    "id": "c69b1cd1-bc48-5f5f-b112-a5c08f522db2",
+                    "schemaVersion": 1,
+                    "provenance": "agent:mcp-dialogue-plan",
+                    "kind": "setVariable",
+                    "key": "quest.offer",
+                    "value": "true",
+                    "required": true
+                  },
+                  {
+                    "id": "1ee1acdb-651d-5cd4-9642-a25e3f7fa43a",
+                    "schemaVersion": 1,
+                    "provenance": "agent:mcp-dialogue-plan",
+                    "kind": "startQuest",
+                    "key": "place-beacon",
+                    "value": "manual",
+                    "required": true
+                  }
+                ],
+                "targetNodeId": "38dfbe34-10f9-0c40-808e-133c9187db93",
+                "edgeKind": "flow",
+                "priority": 0,
+                "conditionCombination": "all"
+              }
+            ],
+            "role": "speakerLine",
+            "participantId": "e9d4fc51-1aa5-5db5-b821-9063897ada4f",
+            "subgraphKey": null
+          },
+          {
+            "id": "38dfbe34-10f9-0c40-808e-133c9187db93",
+            "speakerBlueprintId": "960424ba-d57c-f556-9359-449ee1a5cf54",
+            "text": {
+              "id": "1eba775e-5bb4-509d-a87b-0c3d702464c7",
+              "schemaVersion": 1,
+              "provenance": "agent:mcp-dialogue-plan",
+              "key": "solaren.dialogue.maelis_beacon.3",
+              "fallback": "Ma\u00E9lis : Le rep\u00E8re se dresse au sud de la place. Rallume-le, puis reviens me voir.",
+              "variants": []
+            },
+            "onEnterActions": [],
+            "choices": [
+              {
+                "id": "90529929-9479-8e41-b13d-91f73c26cf8a",
+                "text": {
+                  "id": "1b5fc350-df44-5fc7-90b5-b5957767f2b8",
+                  "schemaVersion": 1,
+                  "provenance": "agent:mcp-dialogue-plan",
+                  "key": "solaren.dialogue.maelis_beacon.choice.finish",
+                  "fallback": "Je m\u2019en occupe.",
+                  "variants": []
+                },
+                "conditions": [],
+                "actions": [],
+                "targetNodeId": "f2a74262-0ec2-a945-b895-a6824afa0786",
+                "edgeKind": "flow",
+                "priority": 0,
+                "conditionCombination": "all"
+              }
+            ],
+            "role": "speakerLine",
+            "participantId": "e9d4fc51-1aa5-5db5-b821-9063897ada4f",
+            "subgraphKey": null
+          },
+          {
+            "id": "f2a74262-0ec2-a945-b895-a6824afa0786",
+            "speakerBlueprintId": "960424ba-d57c-f556-9359-449ee1a5cf54",
+            "text": {
+              "id": "239dbffb-88de-5c18-a54a-6cf75b33a6fa",
+              "schemaVersion": 1,
+              "provenance": "agent:mcp-dialogue-plan",
+              "key": "solaren.dialogue.maelis_beacon.4",
+              "fallback": "Ma\u00E9lis : Reviens quand la lumi\u00E8re sera revenue.",
+              "variants": []
+            },
+            "onEnterActions": [],
+            "choices": [],
+            "role": "speakerLine",
+            "participantId": "e9d4fc51-1aa5-5db5-b821-9063897ada4f",
+            "subgraphKey": null
+          }
+        ],
+        "presentation": null,
+        "metadata": {
+          "kind": "conversation"
+        },
+        "participants": [
+          {
+            "id": "e9d4fc51-1aa5-5db5-b821-9063897ada4f",
+            "schemaVersion": 1,
+            "role": "speaker-960424ba",
+            "blueprintId": "960424ba-d57c-f556-9359-449ee1a5cf54",
+            "provenance": "migration-default"
+          }
+        ],
+        "entryPoints": [
+          {
+            "id": "fa2c04b7-f4cd-5546-9618-2bf589856682",
+            "schemaVersion": 1,
+            "key": "default",
+            "nodeId": "00f251a2-aa30-9749-9888-4f7f90d5f9fd",
+            "order": 0,
+            "provenance": "migration-default"
+          }
+        ],
+        "edges": [
+          {
+            "id": "2662fcf7-4fda-714c-80d8-d090202f314c",
+            "sourceNodeId": "00f251a2-aa30-9749-9888-4f7f90d5f9fd",
+            "targetNodeId": "79e7b610-fd89-0c48-956f-4bd14d5211c4",
+            "kind": "flow",
+            "order": 0,
+            "priority": 0
+          },
+          {
+            "id": "90529929-9479-8e41-b13d-91f73c26cf8a",
+            "sourceNodeId": "38dfbe34-10f9-0c40-808e-133c9187db93",
+            "targetNodeId": "f2a74262-0ec2-a945-b895-a6824afa0786",
+            "kind": "flow",
+            "order": 0,
+            "priority": 0
+          },
+          {
+            "id": "4037f164-d055-cb47-be23-5d2e8eb50316",
+            "sourceNodeId": "79e7b610-fd89-0c48-956f-4bd14d5211c4",
+            "targetNodeId": "38dfbe34-10f9-0c40-808e-133c9187db93",
+            "kind": "flow",
+            "order": 0,
+            "priority": 0
+          }
+        ],
+        "authoring": null,
+        "experience": null,
+        "production": null
+      },
+      {
+        "id": "92763237-0997-505f-a2c1-162aa6839a86",
+        "schemaVersion": 1,
+        "provenance": "migration-default",
+        "slug": "place-beacon-interaction",
+        "displayName": "Le rep\u00E8re lumineux",
+        "entryNodeId": "5b8c300f-eabf-50ce-ba13-a3beaaa32677",
+        "nodes": [
+          {
+            "id": "5b8c300f-eabf-50ce-ba13-a3beaaa32677",
+            "speakerBlueprintId": null,
+            "text": {
+              "id": "a44774a3-2355-5e33-99db-3d0f451a2c2d",
+              "schemaVersion": 1,
+              "provenance": "agent:mcp-dialogue-plan",
+              "key": "solaren.dialogue.beacon.unlit",
+              "fallback": "La lanterne du rep\u00E8re est froide et noy\u00E9e de pluie.",
+              "variants": []
+            },
+            "onEnterActions": [],
+            "choices": [
+              {
+                "id": "135af760-2e54-5bf7-a87e-649bcfa09413",
+                "text": {
+                  "id": "491700ff-9c5d-5ce6-a905-9c74dc1bda1b",
+                  "schemaVersion": 1,
+                  "provenance": "agent:mcp-dialogue-plan",
+                  "key": "solaren.dialogue.beacon.light",
+                  "fallback": "Rallumer le rep\u00E8re.",
+                  "variants": []
+                },
+                "conditions": [],
+                "actions": [
+                  {
+                    "id": "38f43301-804a-55ed-b29a-bbe055250724",
+                    "schemaVersion": 1,
+                    "provenance": "agent:mcp-dialogue-plan",
+                    "kind": "setVariable",
+                    "key": "quest.objectives",
+                    "value": "complete",
+                    "required": true
+                  },
+                  {
+                    "id": "cc04006c-0cf4-5e43-8cea-11a1d8920ef2",
+                    "schemaVersion": 1,
+                    "provenance": "agent:mcp-dialogue-plan",
+                    "kind": "advanceQuest",
+                    "key": "place-beacon",
+                    "value": "manual",
+                    "required": true
+                  }
+                ],
+                "targetNodeId": "e94c63d8-2aaf-515e-a27a-59407ec3bc68",
+                "edgeKind": "flow",
+                "priority": 0,
+                "conditionCombination": "all"
+              }
+            ],
+            "role": "narration",
+            "participantId": "b4d7240b-fbd3-5b50-96df-e6bd2c632683",
+            "subgraphKey": null
+          },
+          {
+            "id": "e94c63d8-2aaf-515e-a27a-59407ec3bc68",
+            "speakerBlueprintId": null,
+            "text": {
+              "id": "526502a4-2a36-5ed7-808d-f8d16c45f84f",
+              "schemaVersion": 1,
+              "provenance": "agent:mcp-dialogue-plan",
+              "key": "solaren.dialogue.beacon.lit",
+              "fallback": "La flamme reprend vie. Sa lueur perce d\u00E9j\u00E0 la brume au-dessus d\u2019Aubeciel.",
+              "variants": []
+            },
+            "onEnterActions": [],
+            "choices": [],
+            "role": "narration",
+            "participantId": "b4d7240b-fbd3-5b50-96df-e6bd2c632683",
+            "subgraphKey": null
+          }
+        ],
+        "presentation": null,
+        "metadata": {
+          "kind": "conversation"
+        },
+        "participants": [
+          {
+            "id": "b4d7240b-fbd3-5b50-96df-e6bd2c632683",
+            "schemaVersion": 1,
+            "role": "narrator",
+            "blueprintId": null,
+            "provenance": "migration-default"
+          }
+        ],
+        "entryPoints": [
+          {
+            "id": "8f270096-eefe-5427-ad47-390f3291d679",
+            "schemaVersion": 1,
+            "key": "default",
+            "nodeId": "5b8c300f-eabf-50ce-ba13-a3beaaa32677",
+            "order": 0,
+            "provenance": "migration-default"
+          }
+        ],
+        "edges": [
+          {
+            "id": "135af760-2e54-5bf7-a87e-649bcfa09413",
+            "sourceNodeId": "5b8c300f-eabf-50ce-ba13-a3beaaa32677",
+            "targetNodeId": "e94c63d8-2aaf-515e-a27a-59407ec3bc68",
+            "kind": "flow",
+            "order": 0,
+            "priority": 0
+          }
+        ],
+        "authoring": null,
+        "experience": null,
+        "production": null
+      }
+    ],
+    "quests": [
+      {
+        "id": "b5a9f2d0-1b67-4e0f-9c31-10d8df3abf41",
+        "schemaVersion": 1,
+        "provenance": "migration-default",
+        "slug": "place-beacon",
+        "displayName": "Le rep\u00E8re de la place",
+        "title": {
+          "id": "158081f4-1eaf-5985-93e9-3aada1fba9d0",
+          "schemaVersion": 1,
+          "provenance": "migration-default",
+          "key": "quest.place-beacon.title",
+          "fallback": "Le rep\u00E8re de la place",
+          "variants": []
+        },
+        "description": {
+          "id": "63a6144a-1ab3-59c0-b3b3-1988cbbbd034",
+          "schemaVersion": 1,
+          "provenance": "migration-default",
+          "key": "quest.place-beacon.description",
+          "fallback": "Le rep\u00E8re de la place",
+          "variants": []
+        },
+        "category": "journal",
+        "priority": 50,
+        "owner": "module",
+        "requiredAtRuntime": false,
+        "instancePolicy": {
+          "defaultScope": "player",
+          "allowedScopes": [
+            "player"
+          ],
+          "requireAuthority": false
+        },
+        "initialStateId": "9648539d-6dd0-a14f-b664-2c662ec69ed2",
+        "states": [
+          {
+            "id": "9648539d-6dd0-a14f-b664-2c662ec69ed2",
+            "schemaVersion": 1,
+            "provenance": "migration-default",
+            "slug": "non-commenc\u00E9e",
+            "displayName": "Non commenc\u00E9e",
+            "journal": {
+              "id": "09c2d156-3184-55e9-95b0-7431b8e43466",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "summary": {
+                "id": "f4c51bff-f574-5b54-bf64-e3c03f241313",
+                "schemaVersion": 1,
+                "provenance": "migration-default",
+                "key": "solaren.quest.place_beacon.dormant",
+                "fallback": "Non commenc\u00E9e \u00B7 Ma\u00E9lis demande \u00E0 Aerin de rallumer le rep\u00E8re lumineux de la place avant le retour de la brume, puis de revenir lui confirmer que les voyageurs peuvent retrouver Aubeciel.",
+                "variants": []
+              },
+              "details": {
+                "id": "f10c6f74-6f6e-5907-9519-10845de14cf4",
+                "schemaVersion": 1,
+                "provenance": "migration-default",
+                "key": "solaren.quest.place_beacon.dormant.details",
+                "fallback": "Non commenc\u00E9e \u00B7 Ma\u00E9lis demande \u00E0 Aerin de rallumer le rep\u00E8re lumineux de la place avant le retour de la brume, puis de revenir lui confirmer que les voyageurs peuvent retrouver Aubeciel.",
+                "variants": []
+              },
+              "objectives": [],
+              "contextLinks": [],
+              "localizationKey": "solaren.quest.place_beacon.dormant",
+              "fallback": "Non commenc\u00E9e \u00B7 Ma\u00E9lis demande \u00E0 Aerin de rallumer le rep\u00E8re lumineux de la place avant le retour de la brume, puis de revenir lui confirmer que les voyageurs peuvent retrouver Aubeciel."
+            },
+            "isTerminal": false,
+            "displayOrder": 1,
+            "legacyJournalIndex": 0,
+            "terminalKind": "none",
+            "customTerminalCode": "",
+            "reactivation": "never"
+          },
+          {
+            "id": "96cebdc8-6e94-1c48-bf03-8b0733188d71",
+            "schemaVersion": 1,
+            "provenance": "migration-default",
+            "slug": "en-cours",
+            "displayName": "En cours",
+            "journal": {
+              "id": "37543b4d-ed27-5f8b-890f-545d90c2a084",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "summary": {
+                "id": "036f982e-0cf1-53df-afad-bb1f75fa594c",
+                "schemaVersion": 1,
+                "provenance": "author:open_rpg:solaren-quest-v2",
+                "key": "solaren.quest.place_beacon.active.summary",
+                "fallback": "Ma\u00E9lis vous a demand\u00E9 de restaurer le rep\u00E8re lumineux avant le retour de la brume.",
+                "variants": []
+              },
+              "details": {
+                "id": "ec9952cf-0a2e-5d79-b2fc-fa659dc75bca",
+                "schemaVersion": 1,
+                "provenance": "author:open_rpg:solaren-quest-v2",
+                "key": "solaren.quest.place_beacon.active.details",
+                "fallback": "Le rep\u00E8re se trouve au sud de la place. Rallumez sa lanterne, puis revenez pr\u00E9venir Ma\u00E9lis.",
+                "variants": []
+              },
+              "objectives": [
+                {
+                  "id": "19c690fb-e7b6-5437-8e4a-84d7cb0649c5",
+                  "schemaVersion": 1,
+                  "provenance": "author:open_rpg:solaren-quest-v2",
+                  "key": "solaren.quest.place_beacon.active.objective.1",
+                  "fallback": "Rallumer le rep\u00E8re lumineux au sud de la place.",
+                  "variants": []
+                }
+              ],
+              "contextLinks": [],
+              "localizationKey": "solaren.quest.place_beacon.active.summary",
+              "fallback": "Ma\u00E9lis vous a demand\u00E9 de restaurer le rep\u00E8re lumineux avant le retour de la brume."
+            },
+            "isTerminal": false,
+            "displayOrder": 2,
+            "legacyJournalIndex": 1,
+            "terminalKind": "none",
+            "customTerminalCode": "",
+            "reactivation": "never"
+          },
+          {
+            "id": "a1910b81-7769-f444-a93f-8645b46d8212",
+            "schemaVersion": 1,
+            "provenance": "migration-default",
+            "slug": "termin\u00E9e",
+            "displayName": "Termin\u00E9e",
+            "journal": {
+              "id": "ba8c66f5-998d-58a7-b399-86e4276fff8d",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "summary": {
+                "id": "a7322a74-77a1-58f7-9b68-3d9ab17d5a78",
+                "schemaVersion": 1,
+                "provenance": "migration-default",
+                "key": "solaren.quest.place_beacon.completed",
+                "fallback": "Termin\u00E9e \u00B7 Ma\u00E9lis demande \u00E0 Aerin de rallumer le rep\u00E8re lumineux de la place avant le retour de la brume, puis de revenir lui confirmer que les voyageurs peuvent retrouver Aubeciel.",
+                "variants": []
+              },
+              "details": {
+                "id": "54b07f5d-7ced-543a-a94c-da429d2ad36f",
+                "schemaVersion": 1,
+                "provenance": "migration-default",
+                "key": "solaren.quest.place_beacon.completed.details",
+                "fallback": "Termin\u00E9e \u00B7 Ma\u00E9lis demande \u00E0 Aerin de rallumer le rep\u00E8re lumineux de la place avant le retour de la brume, puis de revenir lui confirmer que les voyageurs peuvent retrouver Aubeciel.",
+                "variants": []
+              },
+              "objectives": [],
+              "contextLinks": [],
+              "localizationKey": "solaren.quest.place_beacon.completed",
+              "fallback": "Termin\u00E9e \u00B7 Ma\u00E9lis demande \u00E0 Aerin de rallumer le rep\u00E8re lumineux de la place avant le retour de la brume, puis de revenir lui confirmer que les voyageurs peuvent retrouver Aubeciel."
+            },
+            "isTerminal": true,
+            "displayOrder": 3,
+            "legacyJournalIndex": 2,
+            "terminalKind": "completed",
+            "customTerminalCode": "",
+            "reactivation": "never"
+          },
+          {
+            "id": "402442b4-484f-7f48-a798-b1dd2d21f3c8",
+            "schemaVersion": 1,
+            "provenance": "migration-default",
+            "slug": "\u00E9chou\u00E9e",
+            "displayName": "\u00C9chou\u00E9e",
+            "journal": {
+              "id": "1151664c-27fd-5d17-9058-ca0af1c885d2",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "summary": {
+                "id": "b3779735-1d60-5939-9089-31b673c73607",
+                "schemaVersion": 1,
+                "provenance": "migration-default",
+                "key": "solaren.quest.place_beacon.failed",
+                "fallback": "\u00C9chou\u00E9e \u00B7 Ma\u00E9lis demande \u00E0 Aerin de rallumer le rep\u00E8re lumineux de la place avant le retour de la brume, puis de revenir lui confirmer que les voyageurs peuvent retrouver Aubeciel.",
+                "variants": []
+              },
+              "details": {
+                "id": "f741d7e3-07e4-5be3-bf61-a441be2bb52f",
+                "schemaVersion": 1,
+                "provenance": "migration-default",
+                "key": "solaren.quest.place_beacon.failed.details",
+                "fallback": "\u00C9chou\u00E9e \u00B7 Ma\u00E9lis demande \u00E0 Aerin de rallumer le rep\u00E8re lumineux de la place avant le retour de la brume, puis de revenir lui confirmer que les voyageurs peuvent retrouver Aubeciel.",
+                "variants": []
+              },
+              "objectives": [],
+              "contextLinks": [],
+              "localizationKey": "solaren.quest.place_beacon.failed",
+              "fallback": "\u00C9chou\u00E9e \u00B7 Ma\u00E9lis demande \u00E0 Aerin de rallumer le rep\u00E8re lumineux de la place avant le retour de la brume, puis de revenir lui confirmer que les voyageurs peuvent retrouver Aubeciel."
+            },
+            "isTerminal": true,
+            "displayOrder": 4,
+            "legacyJournalIndex": 3,
+            "terminalKind": "completed",
+            "customTerminalCode": "",
+            "reactivation": "never"
+          }
+        ],
+        "transitions": [
+          {
+            "id": "5a4a779d-7cf5-e947-91ef-fe1b2068c072",
+            "schemaVersion": 1,
+            "provenance": "migration-default",
+            "fromStateId": "9648539d-6dd0-a14f-b664-2c662ec69ed2",
+            "toStateId": "96cebdc8-6e94-1c48-bf03-8b0733188d71",
+            "displayOrder": 1,
+            "eventBinding": {
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "kind": "manual",
+              "eventName": "manual",
+              "sourceReference": null
+            },
+            "priority": 50,
+            "idempotence": "none",
+            "idempotenceKey": "",
+            "forgeScriptApiVersion": 1,
+            "conditions": [
+              {
+                "kind": "variableEquals",
+                "key": "quest.offer",
+                "expectedValue": "true"
+              }
+            ],
+            "actions": [
+              {
+                "kind": "setVariable",
+                "key": "quest.active",
+                "value": "true"
+              }
+            ]
+          },
+          {
+            "id": "748bbdb6-2af3-a640-adb7-40a1668cb81c",
+            "schemaVersion": 1,
+            "provenance": "migration-default",
+            "fromStateId": "96cebdc8-6e94-1c48-bf03-8b0733188d71",
+            "toStateId": "a1910b81-7769-f444-a93f-8645b46d8212",
+            "displayOrder": 2,
+            "eventBinding": {
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "kind": "manual",
+              "eventName": "manual",
+              "sourceReference": null
+            },
+            "priority": 50,
+            "idempotence": "none",
+            "idempotenceKey": "",
+            "forgeScriptApiVersion": 1,
+            "conditions": [
+              {
+                "kind": "variableEquals",
+                "key": "quest.objectives",
+                "expectedValue": "complete"
+              }
+            ],
+            "actions": [
+              {
+                "kind": "setVariable",
+                "key": "quest.reward.progression",
+                "value": "50"
+              }
+            ]
+          },
+          {
+            "id": "4376b4b3-0aae-3a42-b0ed-cca51fd7894a",
+            "schemaVersion": 1,
+            "provenance": "migration-default",
+            "fromStateId": "96cebdc8-6e94-1c48-bf03-8b0733188d71",
+            "toStateId": "402442b4-484f-7f48-a798-b1dd2d21f3c8",
+            "displayOrder": 3,
+            "eventBinding": {
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "kind": "manual",
+              "eventName": "manual",
+              "sourceReference": null
+            },
+            "priority": 50,
+            "idempotence": "none",
+            "idempotenceKey": "",
+            "forgeScriptApiVersion": 1,
+            "conditions": [
+              {
+                "kind": "variableEquals",
+                "key": "quest.failed",
+                "expectedValue": "true"
+              }
+            ],
+            "actions": [
+              {
+                "kind": "setVariable",
+                "key": "quest.failure.recorded",
+                "value": "true"
+              }
+            ]
+          }
+        ],
+        "operations": null,
+        "simulation": {
+          "id": "a091a89a-085a-ac49-8d17-62bc449c1599",
+          "schemaVersion": 1,
+          "provenance": "migration-default",
+          "maximumSteps": 100,
+          "initialVariables": {},
+          "events": []
+        },
+        "authoring": null,
+        "experience": null,
+        "quality": null
+      }
+    ]
   }
 }

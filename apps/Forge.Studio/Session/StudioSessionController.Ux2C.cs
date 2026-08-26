@@ -21,6 +21,7 @@ internal sealed partial class StudioSessionController
 
     private readonly EditTerrainBrushHandler _editTerrainBrushUx2C = new(new SystemClock());
     private readonly SetAreaWorldProfileHandler _setAreaWorldUx2C = new(new SystemClock());
+    private readonly PatchAreaBiomesHandler _patchAreaBiomesUx2C = new(new SystemClock());
     private readonly EditAreaGeometryHandler _editAreaGeometryUx2C = new(new SystemClock());
     private StudioUx2CTerrainDraft? _approvedTerrainSurfaceDraftUx2C;
     private ProjectRevision? _approvedTerrainSurfaceRevisionUx2C;
@@ -73,6 +74,12 @@ internal sealed partial class StudioSessionController
             .OrderBy(item => item.Label, StringComparer.CurrentCultureIgnoreCase)
             .ToArray() ?? [];
 
+    internal IReadOnlyList<StudioUx2CNamedChoice> TerrainBiomeChoicesUx2C(AreaId areaId) =>
+        Project?.Areas.SingleOrDefault(item => item.Id == areaId)?.World.Biomes
+            .Select(item => new StudioUx2CNamedChoice(item.Id, HumanTerrainSurfaceTextUx2C(item.Name)))
+            .OrderBy(item => item.Label, StringComparer.CurrentCultureIgnoreCase)
+            .ToArray() ?? [];
+
     internal IReadOnlyList<StudioUx2CPlacementChoice> TerrainPropertyPlacementChoicesUx2C(AreaId areaId)
     {
         var area = Project?.Areas.SingleOrDefault(item => item.Id == areaId);
@@ -96,6 +103,8 @@ internal sealed partial class StudioSessionController
         if (history is null || area is null) return null;
         var material = area.World.Terrain.MaterialLayers.FirstOrDefault()?.Id ?? Guid.Empty;
         var biomeTag = area.World.Biomes.SelectMany(item => item.Tags).FirstOrDefault() ?? string.Empty;
+        var biome = area.World.Biomes.FirstOrDefault();
+        var scatter = biome is null ? new BiomeScatterSettings(null, null, null, null) : BiomeScatterAuthoring.Read(biome);
         return new StudioUx2CTerrainDraft(
             area.Id,
             history.State.Revision,
@@ -132,7 +141,28 @@ internal sealed partial class StudioSessionController
             true,
             true,
             [],
-            new Dictionary<string, string>(StringComparer.Ordinal));
+            new Dictionary<string, string>(StringComparer.Ordinal),
+            biome?.Id ?? Guid.Empty,
+            biome?.ScatterDensity ?? 0,
+            biome?.ScatterResource ?? string.Empty,
+            biome?.MinimumAltitude ?? 0,
+            biome?.MaximumAltitude ?? 0,
+            biome?.MinimumSlopeDegrees ?? 0,
+            biome?.MaximumSlopeDegrees ?? 90,
+            biome?.MinimumMoisture ?? 0,
+            biome?.MaximumMoisture ?? 1,
+            scatter.Scale is not null,
+            scatter.Scale ?? 1,
+            scatter.Tint is not null,
+            scatter.Tint?.Color ?? "#ffffff",
+            scatter.Tint?.Strength ?? 0,
+            scatter.Focus is not null,
+            scatter.Focus?.X ?? 0,
+            scatter.Focus?.Z ?? 0,
+            scatter.Focus?.Radius ?? MathF.Max(1, MathF.Min(area.Dimensions.Width, area.Dimensions.Depth) / 2),
+            biome?.ExclusionTags ?? [],
+            scatter.Seed is not null,
+            scatter.Seed ?? 0);
     }
 
     internal StudioUx2CTerrainDraft? SelectTerrainFeatureUx2C(
@@ -220,6 +250,42 @@ internal sealed partial class StudioSessionController
             SocketOverrides = property?.SocketOverrides ?? [],
             PropertyOverrides = property?.Overrides ??
                                 new Dictionary<string, string>(StringComparer.Ordinal),
+        };
+    }
+
+    internal StudioUx2CTerrainDraft? SelectTerrainBiomeUx2C(
+        StudioUx2CTerrainDraft draft,
+        Guid biomeId)
+    {
+        ArgumentNullException.ThrowIfNull(draft);
+        var biome = Project?.Areas.SingleOrDefault(item => item.Id == draft.AreaId)?.World.Biomes
+            .SingleOrDefault(item => item.Id == biomeId);
+        if (biome is null) return null;
+        var scatter = BiomeScatterAuthoring.Read(biome);
+        return draft with
+        {
+            Operation = StudioUx2CTerrainOperation.Biome,
+            BiomeId = biome.Id,
+            BiomeDensity = biome.ScatterDensity,
+            BiomeResource = biome.ScatterResource,
+            BiomeMinimumAltitude = biome.MinimumAltitude,
+            BiomeMaximumAltitude = biome.MaximumAltitude,
+            BiomeMinimumSlope = biome.MinimumSlopeDegrees,
+            BiomeMaximumSlope = biome.MaximumSlopeDegrees,
+            BiomeMinimumMoisture = biome.MinimumMoisture,
+            BiomeMaximumMoisture = biome.MaximumMoisture,
+            BiomeScaleEnabled = scatter.Scale is not null,
+            BiomeScale = scatter.Scale ?? 1,
+            BiomeTintEnabled = scatter.Tint is not null,
+            BiomeTintColor = scatter.Tint?.Color ?? "#ffffff",
+            BiomeTintStrength = scatter.Tint?.Strength ?? 0,
+            BiomeFocusEnabled = scatter.Focus is not null,
+            BiomeFocusX = scatter.Focus?.X ?? 0,
+            BiomeFocusZ = scatter.Focus?.Z ?? 0,
+            BiomeFocusRadius = scatter.Focus?.Radius ?? 1,
+            BiomeExclusionTags = biome.ExclusionTags,
+            BiomeSeedEnabled = scatter.Seed is not null,
+            BiomeSeed = scatter.Seed ?? 0,
         };
     }
 
@@ -459,6 +525,47 @@ internal sealed partial class StudioSessionController
                          "l’animation, les matériaux, la lumière, la collision, la navigation et les sockets."]);
                         return true;
                     }
+                case StudioUx2CTerrainOperation.Biome:
+                    {
+                        if (draft.BiomeId == Guid.Empty)
+                        {
+                            message = "Choisissez un biome a modifier.";
+                            return false;
+                        }
+                        var patch = new BiomeScatterPatch(
+                            draft.BiomeId,
+                            [
+                                BiomeScatterPatchField.Density,
+                                BiomeScatterPatchField.Resource,
+                                BiomeScatterPatchField.Altitude,
+                                BiomeScatterPatchField.Slope,
+                                BiomeScatterPatchField.Moisture,
+                                BiomeScatterPatchField.Scale,
+                                BiomeScatterPatchField.Tint,
+                                BiomeScatterPatchField.Focus,
+                                BiomeScatterPatchField.ExclusionTags,
+                                BiomeScatterPatchField.Seed,
+                            ],
+                            draft.BiomeDensity,
+                            draft.BiomeResource,
+                            new(draft.BiomeMinimumAltitude, draft.BiomeMaximumAltitude),
+                            new(draft.BiomeMinimumSlope, draft.BiomeMaximumSlope),
+                            new(draft.BiomeMinimumMoisture, draft.BiomeMaximumMoisture),
+                            draft.BiomeScaleEnabled ? draft.BiomeScale : null,
+                            draft.BiomeTintEnabled ? new(draft.BiomeTintColor, draft.BiomeTintStrength) : null,
+                            draft.BiomeFocusEnabled
+                                ? new(draft.BiomeFocusX, draft.BiomeFocusZ, draft.BiomeFocusRadius)
+                                : null,
+                            draft.BiomeExclusionTags,
+                            draft.BiomeSeedEnabled ? draft.BiomeSeed : null);
+                        var command = new PatchAreaBiomesCommand(commandId, state.Revision, area.Id, [patch], true);
+                        plan = new(
+                            dry => _patchAreaBiomesUx2C.Handle(state, command with { DryRun = dry }),
+                            area,
+                            ["Modifier densite, ressource, plages, echelle, teinte, focus, exclusions et graine " +
+                             "du biome selectionne sans toucher au terrain, a l'eau ni aux features."]);
+                        return true;
+                    }
                 default:
                     message = "Opération de terrain inconnue.";
                     return false;
@@ -492,6 +599,8 @@ internal sealed partial class StudioSessionController
                 $"{target.World.Terrain.SamplesX}×{target.World.Terrain.SamplesZ} échantillons · moteur non muté",
             StudioUx2CTerrainOperation.Feature =>
                 $"{target.World.Features.Count} feature(s) · collection complète · rendu Godot non reconstruit avant application",
+            StudioUx2CTerrainOperation.Biome =>
+                $"{target.World.Biomes.Count} biome(s) - dispersion bornee - terrain, eau et features preserves",
             StudioUx2CTerrainOperation.TileProperty =>
                 $"{target.Foundation.TileKit.Editing?.Properties.Count ?? 0} fiche(s) de tuile · " +
                 "collision/navigation authorées, sans recalcul moteur",
@@ -524,9 +633,11 @@ internal sealed partial class StudioSessionController
     private static string HumanTerrainSurfaceDiagnosticUx2C(CommandDiagnostic? diagnostic) => diagnostic?.Code switch
     {
         "command.revision_conflict" => "Le projet a changé. Prévisualisez de nouveau.",
-        "area.terrain.area_missing" or "area.world.area_missing" => "La zone choisie n’existe plus.",
+        "area.terrain.area_missing" or "area.world.area_missing" or "area.biomes.area_missing" =>
+            "La zone choisie n’existe plus.",
         "area.terrain.brush_invalid" => "Les paramètres de la brosse sont invalides.",
         "area.terrain.brush_no_change" => "La brosse ne touche aucun échantillon éditable.",
+        "area.biomes.patch_invalid" => "Les valeurs du biome ou de sa dispersion sont invalides.",
         _ => diagnostic is null
             ? "La commande canonique a refusé cette opération."
             : "Le validateur canonique refuse cette opération de terrain.",
@@ -598,6 +709,27 @@ internal sealed partial class StudioSessionController
             writer.Write(draft.NavigationEnabled);
             WriteUx2CStrings(writer, draft.SocketOverrides);
             WriteUx2CMap(writer, draft.PropertyOverrides);
+            writer.Write(draft.BiomeId.ToByteArray());
+            writer.Write(draft.BiomeDensity);
+            WriteUx2CString(writer, draft.BiomeResource);
+            writer.Write(draft.BiomeMinimumAltitude);
+            writer.Write(draft.BiomeMaximumAltitude);
+            writer.Write(draft.BiomeMinimumSlope);
+            writer.Write(draft.BiomeMaximumSlope);
+            writer.Write(draft.BiomeMinimumMoisture);
+            writer.Write(draft.BiomeMaximumMoisture);
+            writer.Write(draft.BiomeScaleEnabled);
+            writer.Write(draft.BiomeScale);
+            writer.Write(draft.BiomeTintEnabled);
+            WriteUx2CString(writer, draft.BiomeTintColor);
+            writer.Write(draft.BiomeTintStrength);
+            writer.Write(draft.BiomeFocusEnabled);
+            writer.Write(draft.BiomeFocusX);
+            writer.Write(draft.BiomeFocusZ);
+            writer.Write(draft.BiomeFocusRadius);
+            WriteUx2CStrings(writer, draft.BiomeExclusionTags);
+            writer.Write(draft.BiomeSeedEnabled);
+            writer.Write(draft.BiomeSeed);
         }
         return Convert.ToHexString(SHA256.HashData(stream.ToArray()));
     }
@@ -788,6 +920,40 @@ internal sealed partial class StudioSessionController
                                    .Properties.Any(item => item.PlacementId == placementId &&
                                                            item.SemanticState == "mousse-humide");
 
+            var beforeBiomeArea = editing.Project.Areas.Single(item => item.Id == area.Id);
+            var biomeId = beforeBiomeArea.World.Biomes[0].Id;
+            var biomeDraft = editing.SelectTerrainBiomeUx2C(
+                editing.CreateTerrainSurfaceDraftUx2C(area.Id)!, biomeId)! with
+            {
+                BiomeDensity = .73125f,
+                BiomeResource = "assets/nature/studio-proof.glb",
+                BiomeScaleEnabled = true,
+                BiomeScale = 1.125f,
+                BiomeTintEnabled = true,
+                BiomeTintColor = "#79bd39",
+                BiomeTintStrength = .25f,
+                BiomeFocusEnabled = true,
+                BiomeFocusX = 1.25f,
+                BiomeFocusZ = -2.5f,
+                BiomeFocusRadius = 12.5f,
+                BiomeExclusionTags = ["road", "water"],
+                BiomeSeedEnabled = true,
+                BiomeSeed = 9401,
+            };
+            var biomePreview = editing.PreviewTerrainSurfaceUx2C(biomeDraft);
+            var biomeApply = editing.ApplyApprovedTerrainSurfaceUx2C();
+            var afterBiomeArea = editing.Project.Areas.Single(item => item.Id == area.Id);
+            var afterBiome = afterBiomeArea.World.Biomes.Single(item => item.Id == biomeId);
+            var expectedBiomeWorld = new AreaWorldProfile(beforeBiomeArea.World.Id,
+                beforeBiomeArea.World.SchemaVersion, beforeBiomeArea.World.Terrain, afterBiomeArea.World.Biomes,
+                beforeBiomeArea.World.Features, beforeBiomeArea.World.VolumetricNavigation,
+                beforeBiomeArea.World.FlightRoutes, beforeBiomeArea.World.Loading, beforeBiomeArea.World.Provenance);
+            var biome = biomePreview.Succeeded && biomeApply.Succeeded &&
+                        Math.Abs(afterBiome.ScatterDensity - .73125f) < .000001f &&
+                        BiomeScatterAuthoring.Read(afterBiome).Seed == 9401 &&
+                        string.Equals(AreaJsonSerializer.Serialize(beforeBiomeArea.WithWorld(expectedBiomeWorld)),
+                            AreaJsonSerializer.Serialize(afterBiomeArea), StringComparison.Ordinal);
+
             var invalidBrush = editing.PreviewTerrainSurfaceUx2C(
                 editing.CreateTerrainSurfaceDraftUx2C(area.Id)! with { Radius = 0 });
             var invalidFeature = editing.SelectTerrainFeatureUx2C(
@@ -800,9 +966,16 @@ internal sealed partial class StudioSessionController
             {
                 SemanticState = string.Empty,
             };
+            var invalidBiome = editing.SelectTerrainBiomeUx2C(
+                editing.CreateTerrainSurfaceDraftUx2C(area.Id)!, biomeId)! with
+            {
+                BiomeMinimumMoisture = .9f,
+                BiomeMaximumMoisture = .1f,
+            };
             var invalidValuesBlocked = !invalidBrush.Succeeded &&
                                        !editing.PreviewTerrainSurfaceUx2C(invalidFeature).Succeeded &&
-                                       !editing.PreviewTerrainSurfaceUx2C(invalidProperty).Succeeded;
+                                       !editing.PreviewTerrainSurfaceUx2C(invalidProperty).Succeeded &&
+                                       !editing.PreviewTerrainSurfaceUx2C(invalidBiome).Succeeded;
 
             var staleDraft = editing.CreateTerrainSurfaceDraftUx2C(area.Id)!;
             var staleMutation = ApplyTerrainSurfaceRevisionMutationUx2C(editing, area.Id, "draft");
@@ -854,9 +1027,9 @@ internal sealed partial class StudioSessionController
                                   restoredTarget.Foundation.TileKit.Editing?.Properties.Count >= 1 &&
                                   restoredTarget.World.Biomes.Count == area.World.Biomes.Count;
             var humanText = !Ux2CTechnicalId.IsMatch(
-                brushPreview.Message + featurePreview.Summary + propertyPreview.Summary +
+                brushPreview.Message + featurePreview.Summary + propertyPreview.Summary + biomePreview.Summary +
                 string.Join(' ', editing.TerrainSurfaceAreaChoicesUx2C.Select(item => item.Label)));
-            var succeeded = explicitSelection && sculpt && feature && tileProperty && fullCollections && dryRun &&
+            var succeeded = explicitSelection && sculpt && feature && tileProperty && biome && fullCollections && dryRun &&
                             invalidValuesBlocked && staleDraftBlocked && staleApprovalBlocked && canonicalCommands &&
                             undoRedo && persistence && neighboursPreserved && humanText;
             return new(
@@ -875,7 +1048,10 @@ internal sealed partial class StudioSessionController
                 undoRedo,
                 persistence,
                 neighboursPreserved,
-                humanText);
+                humanText)
+            {
+                Biome = biome,
+            };
         }
         catch (Exception exception)
         {

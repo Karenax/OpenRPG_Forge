@@ -47,7 +47,7 @@ public sealed record GameLauncherUserSettings(
             CurrentSchemaVersion,
             1600,
             900,
-            LauncherWindowMode.Windowed,
+            LauncherWindowMode.Fullscreen,
             LauncherGraphicsQuality.High,
             VSync: true,
             MasterVolume: 85,

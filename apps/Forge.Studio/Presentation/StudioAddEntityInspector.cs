@@ -33,6 +33,12 @@ internal sealed partial class StudioAddEntityInspector : VBoxContainer
     private SpinBox _columns = null!;
     private SpinBox _seed = null!;
     private SpinBox _surfaceOffset = null!;
+    private SpinBox _explicitY = null!;
+    private SpinBox _rotationY = null!;
+    private SpinBox _scaleX = null!;
+    private SpinBox _scaleY = null!;
+    private SpinBox _scaleZ = null!;
+    private OptionButton _heightMode = null!;
     private SpinBox _budgetMb = null!;
     private LineEdit _requiredSocket = null!;
     private CheckButton _brush = null!;
@@ -155,6 +161,16 @@ internal sealed partial class StudioAddEntityInspector : VBoxContainer
         _columns.SetValueNoSignal(request.Profile.Columns);
         _seed.SetValueNoSignal(request.Profile.Seed);
         _surfaceOffset.SetValueNoSignal(request.Profile.SurfaceOffset);
+        _explicitY.SetValueNoSignal(request.Origin.Y);
+        _heightMode.Select(request.HeightMode == StudioPlacementHeightMode.TerrainSurface ? 0 : 1);
+        var rotation = request.Rotation ?? QuaternionValue.Identity;
+        _rotationY.SetValueNoSignal(Math.Atan2(
+            2 * ((rotation.W * rotation.Y) + (rotation.X * rotation.Z)),
+            1 - (2 * ((rotation.Y * rotation.Y) + (rotation.Z * rotation.Z)))) * 180 / Math.PI);
+        var scale = request.Scale ?? Vector3Value.One;
+        _scaleX.SetValueNoSignal(scale.X);
+        _scaleY.SetValueNoSignal(scale.Y);
+        _scaleZ.SetValueNoSignal(scale.Z);
         _distribution.Select(request.Profile.Distribution switch
         {
             EditorPlacementDistribution.Line => 0,
@@ -292,6 +308,11 @@ internal sealed partial class StudioAddEntityInspector : VBoxContainer
         _columns = Spin(1, 16, 1, 4);
         _seed = Spin(0, 99_999_999, 1, 2026);
         _surfaceOffset = Spin(-4, 4, .05, 0);
+        _explicitY = Spin(-512, 512, .05, _position.Y);
+        _rotationY = Spin(-180, 180, 1, 0);
+        _scaleX = Spin(.01, 100, .05, 1);
+        _scaleY = Spin(.01, 100, .05, 1);
+        _scaleZ = Spin(.01, 100, .05, 1);
         _budgetMb = Spin(0, 4096, 1, 0);
         _budgetMb.Suffix = " Mo";
         column.AddChild(TwoColumns("QUANTITÉ", _count, "ESPACEMENT", _spacing));
@@ -311,8 +332,17 @@ internal sealed partial class StudioAddEntityInspector : VBoxContainer
         _alignment.ItemSelected += _ => RefreshPreview();
         column.AddChild(Labeled("DISTRIBUTION", _distribution));
         column.AddChild(Labeled("ALIGNEMENT", _alignment));
+        _heightMode = new OptionButton();
+        _heightMode.AddItem("Projeter sur le terrain");
+        _heightMode.AddItem("Y explicite");
+        StudioStyle.ApplyOptionButton(_heightMode);
+        _heightMode.ItemSelected += _ => RefreshPreview();
+        column.AddChild(Labeled("HAUTEUR", _heightMode));
         column.AddChild(TwoColumns("COLONNES", _columns, "GRAINE", _seed));
         column.AddChild(TwoColumns("DÉCALAGE SURFACE", _surfaceOffset, "BUDGET RESTANT", _budgetMb));
+        column.AddChild(TwoColumns("Y EXPLICITE", _explicitY, "ROTATION Y°", _rotationY));
+        column.AddChild(TwoColumns("ÉCHELLE X", _scaleX, "ÉCHELLE Y", _scaleY));
+        column.AddChild(Labeled("ÉCHELLE Z", _scaleZ));
 
         _requiredSocket = new LineEdit
         {
@@ -339,6 +369,10 @@ internal sealed partial class StudioAddEntityInspector : VBoxContainer
         };
         _continuous.Toggled += _ => RefreshPreview();
         _autoCorrect.Toggled += _ => RefreshPreview();
+        foreach (var control in new[] { _explicitY, _rotationY, _scaleX, _scaleY, _scaleZ })
+        {
+            control.ValueChanged += _ => RefreshPreview();
+        }
         column.AddChild(_brush);
         column.AddChild(_continuous);
         column.AddChild(_autoCorrect);
@@ -561,16 +595,26 @@ internal sealed partial class StudioAddEntityInspector : VBoxContainer
             ? null
             : (long?)Math.Round(_budgetMb.Value * 1024 * 1024);
         var blueprint = _session.Project!.Blueprints.Single(candidate => candidate.Id == blueprintId);
+        var halfYaw = (float)(_rotationY.Value * Math.PI / 360d);
+        var origin = new Vector3Value(
+            _position.X,
+            _heightMode.Selected == 0 ? _position.Y : (float)_explicitY.Value,
+            _position.Z);
         return new StudioRepeatedPlacementRequest(
             blueprintId,
-            _position,
+            origin,
             profile,
             (int)_count.Value,
             _autoCorrect.ButtonPressed,
             string.IsNullOrWhiteSpace(_requiredSocket.Text) ? null : _requiredSocket.Text.Trim(),
             _session.AvailablePlacementSockets,
             budget,
-            budget is null ? null : blueprint.Authoring.PlatformByteBudget);
+            budget is null ? null : blueprint.Authoring.PlatformByteBudget,
+            Rotation: new QuaternionValue(0, MathF.Sin(halfYaw), 0, MathF.Cos(halfYaw)),
+            Scale: new Vector3Value((float)_scaleX.Value, (float)_scaleY.Value, (float)_scaleZ.Value),
+            HeightMode: _heightMode.Selected == 0
+                ? StudioPlacementHeightMode.TerrainSurface
+                : StudioPlacementHeightMode.Explicit);
     }
 
     private EditorRepeatedPlacementProfile BuildRepeatedPlacementProfile()

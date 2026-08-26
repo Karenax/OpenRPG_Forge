@@ -34,7 +34,8 @@ public sealed record StudioAssetLibraryItem(
     public bool CanInstall =>
         AvailableLocally &&
         LicenseVerified &&
-        string.Equals(Format, "glb", StringComparison.OrdinalIgnoreCase);
+        (string.Equals(Format, "glb", StringComparison.OrdinalIgnoreCase) ||
+         string.Equals(Format, "gltf", StringComparison.OrdinalIgnoreCase));
 
     public bool HasThumbnail => !string.IsNullOrWhiteSpace(RelativePreviewPath);
 

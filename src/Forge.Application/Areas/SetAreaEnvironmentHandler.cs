@@ -17,32 +17,34 @@ public sealed class SetAreaEnvironmentHandler
         if (command.BaseRevision != state.Revision) return Fail(state, command, "command.revision_conflict", "Project revision changed.");
         var area = state.Project.Areas.SingleOrDefault(item => item.Id == command.AreaId);
         if (area is null) return Fail(state, command, "area.environment.area_missing", "Area does not exist.");
-        var candidateArea = area.WithEnvironment(command.Environment);
-        var environmentDiagnostics = AreaEnvironmentAuthoringValidator.Validate(candidateArea, command.Environment);
+        var semanticPatch = AreaEnvironmentPatch.Between(area.Environment, command.Environment);
+        var environment = command.Environment;
+        var candidateArea = area.WithEnvironment(environment);
+        var environmentDiagnostics = AreaEnvironmentAuthoringValidator.Validate(candidateArea, environment);
         if (environmentDiagnostics.Count > 0)
             return new(false, state, command.BaseRevision, null,
                 environmentDiagnostics.Select(item => new CommandDiagnostic(item.Code, $"{item.Path} · {item.Message}"))
                     .ToArray(), null, null,
                 new AuditEntry(command.CommandId, "set_area_environment", _clock.UtcNow, false));
         var audioDiagnostics = AudioEmitterCatalogValidator.Validate(
-            command.Environment.Audio.Emitters,
-            command.Environment.Audio.Orchestration.MixBuses.Select(item => item.Id).ToHashSet(),
+            environment.Audio.Emitters,
+            environment.Audio.Orchestration.MixBuses.Select(item => item.Id).ToHashSet(),
             path: $"areas/{area.Id}/environment/audio/emitters");
         if (audioDiagnostics.Count > 0)
             return new(false, state, command.BaseRevision, null,
                 audioDiagnostics.Select(item => new CommandDiagnostic(item.Code, item.Message)).ToArray(),
                 null, null, new AuditEntry(command.CommandId, "set_area_environment", _clock.UtcNow, false));
         var audioAuthoringDiagnostics = AudioAuthoringProfileValidator.Validate(
-            command.Environment.Audio.Authoring,
-            command.Environment.Audio.Playlist,
-            command.Environment.Audio.Emitters,
+            environment.Audio.Authoring,
+            environment.Audio.Playlist,
+            environment.Audio.Emitters,
             $"areas/{area.Id}/environment/audio/authoring");
         if (audioAuthoringDiagnostics.Count > 0)
             return new(false, state, command.BaseRevision, null,
                 audioAuthoringDiagnostics.Select(item => new CommandDiagnostic(item.Code,
                     $"{item.Path} · {item.Message}")).ToArray(),
                 null, null, new AuditEntry(command.CommandId, "set_area_environment", _clock.UtcNow, false));
-        var captionDiagnostics = AudioCaptionValidator.Validate(command.Environment.Audio,
+        var captionDiagnostics = AudioCaptionValidator.Validate(environment.Audio,
             $"areas/{area.Id}/environment/audio/orchestration/captions");
         if (captionDiagnostics.Count > 0)
             return new(false, state, command.BaseRevision, null,
@@ -50,12 +52,13 @@ public sealed class SetAreaEnvironmentHandler
                     $"{item.Path} · {item.Message}")).ToArray(),
                 null, null, new AuditEntry(command.CommandId, "set_area_environment", _clock.UtcNow, false));
         var patch = new ProjectPatch("replace", $"areas/{area.Id}/environment",
-            $"Set classification '{command.Environment.Authoring.Classification.Key}', " +
-            $"lighting '{command.Environment.Authoring.Lighting.PresetKey}' with " +
-            $"{command.Environment.Authoring.Lighting.Curves.Count} curve point(s), " +
-            $"{command.Environment.Authoring.Lighting.Probes.Count} probe(s), " +
-            $"{command.Environment.Authoring.Lighting.VolumeOverrides.Count} override volume(s), and " +
-            $"{command.Environment.Authoring.Fog.LocalVolumes.Count} fog volume(s).");
+            $"Set classification '{environment.Authoring.Classification.Key}', " +
+            $"lighting '{environment.Authoring.Lighting.PresetKey}' with " +
+            $"{environment.Authoring.Lighting.Curves.Count} curve point(s), " +
+            $"{environment.Authoring.Lighting.Probes.Count} probe(s), " +
+            $"{environment.Authoring.Lighting.VolumeOverrides.Count} override volume(s), and " +
+            $"{environment.Authoring.Fog.LocalVolumes.Count} fog volume(s). " +
+            $"Changed sections: {string.Join(", ", semanticPatch.Fields.Select(item => item.ToString()))}.");
         var inverse = new ProjectPatch("replace", $"areas/{area.Id}/environment", "Restore previous environment profile.");
         var audit = new AuditEntry(command.CommandId, "set_area_environment", _clock.UtcNow, !command.DryRun);
         if (command.DryRun) return new(true, state, command.BaseRevision, null, [], patch, inverse, audit);

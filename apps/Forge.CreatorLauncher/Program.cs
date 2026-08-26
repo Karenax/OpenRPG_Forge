@@ -43,7 +43,7 @@ internal static class Program
             };
             startInfo.ArgumentList.Add("--rendering-method");
             startInfo.ArgumentList.Add("forward_plus");
-            startInfo.ArgumentList.Add("--maximized");
+            startInfo.ArgumentList.Add("--fullscreen");
             startInfo.ArgumentList.Add("--single-window");
             startInfo.ArgumentList.Add("--editor");
             startInfo.ArgumentList.Add("--path");

@@ -8,7 +8,7 @@ public sealed record RuntimeSaveDocument(
     DateTimeOffset SavedAtUtc,
     RuntimeVector3 PlayerPosition,
     RuntimeCombatantSave Player,
-    IReadOnlyList<string> Inventory,
+    IReadOnlyList<RuntimeInventorySaveStack> Inventory,
     IReadOnlyList<RuntimeKeyValue> Variables,
     string? QuestId,
     string? QuestStateId,
@@ -17,9 +17,15 @@ public sealed record RuntimeSaveDocument(
     RuntimeWeatherSave? Weather,
     RuntimeProgressionSave? Progression = null,
     IReadOnlyList<RuntimeEntityStateSave>? EntitySnapshots = null,
-    RuntimeWorldClockSave? WorldClock = null)
+    RuntimeWorldClockSave? WorldClock = null,
+    IReadOnlyList<RuntimeQuestSaveState>? QuestStates = null,
+    string? TrackedQuestId = null,
+    RuntimeMapExplorationSave? MapExploration = null)
 {
-    public const string CurrentFormatVersion = "1.4.0";
+    public const string CurrentFormatVersion = "1.7.0";
+    public const string PreMapExplorationFormatVersion = "1.6.0";
+    public const string PreQuestCollectionFormatVersion = "1.5.0";
+    public const string PreInventoryStacksFormatVersion = "1.4.0";
     public const string PreWorldClockFormatVersion = "1.3.0";
     public const string PreRuntimeExtensionsFormatVersion = "1.2.0";
     public const string PreRulesFormatVersion = "1.1.0";
@@ -30,6 +36,18 @@ public sealed record RuntimeVector3(double X, double Y, double Z);
 public sealed record RuntimeCombatantSave(string EntityId, int Health, int Resource);
 
 public sealed record RuntimeKeyValue(string Key, string Value);
+
+public sealed record RuntimeQuestSaveState(
+    string QuestId,
+    string StateId,
+    bool IsAccepted);
+
+public sealed record RuntimeMapExplorationSave(
+    string Scope,
+    string ExplorerId,
+    int ActiveFloor,
+    IReadOnlyList<string> RevealedCells,
+    IReadOnlyList<string> RevealedPins);
 
 public sealed record RuntimeWeatherSave(
     int SchemaVersion,
@@ -59,7 +77,7 @@ public sealed record RuntimeEntityStateSave(
     int SchemaVersion,
     IReadOnlyList<RuntimeStateComponentSave> Components,
     IReadOnlyList<string> References,
-    IReadOnlyList<string> Inventory,
+    IReadOnlyList<RuntimeInventorySaveStack> Inventory,
     IReadOnlyList<RuntimeKeyValue> Blackboard);
 
 public sealed record RuntimeStateComponentSave(string Key, string JsonValue);

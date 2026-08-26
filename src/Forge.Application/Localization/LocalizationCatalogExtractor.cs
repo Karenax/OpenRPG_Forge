@@ -36,6 +36,12 @@ public static class LocalizationCatalogExtractor
         Add("module.description", TextOrPlaceholder(defaultMetadata.Description), metadata.Localizations.ToDictionary(item => item.Locale, item => TextOrPlaceholder(item.Description)), "module.metadata");
         Add("module.credits", TextOrPlaceholder(defaultMetadata.Credits),
             metadata.Localizations.ToDictionary(item => item.Locale, item => TextOrPlaceholder(item.Credits)), "module.metadata");
+        Add("module.licenses", TextOrPlaceholder(defaultMetadata.Licenses),
+            metadata.Localizations.ToDictionary(item => item.Locale, item => TextOrPlaceholder(item.Licenses)),
+            "module.metadata");
+        Add("module.compatibility", TextOrPlaceholder(defaultMetadata.Compatibility),
+            metadata.Localizations.ToDictionary(item => item.Locale, item => TextOrPlaceholder(item.Compatibility)),
+            "module.metadata");
 
         foreach (var dialogue in project.Dialogues)
         {

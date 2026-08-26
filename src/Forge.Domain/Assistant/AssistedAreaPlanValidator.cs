@@ -57,6 +57,8 @@ public static partial class AssistedAreaPlanValidator
                 item.Id == Guid.Empty || item.SchemaVersion != 1 || string.IsNullOrWhiteSpace(item.Label) ||
                 item.Label.Length > 120 || !float.IsFinite(item.X) || !float.IsFinite(item.Z) ||
                 !float.IsFinite(item.Width) || !float.IsFinite(item.Depth) ||
+                !Enum.IsDefined(item.PlacementMode) || !float.IsFinite(item.TerrainOffset) ||
+                item.TerrainOffset is < -512 or > 512 ||
                 item.Width is < 2 or > 512 || item.Depth is < 2 or > 512 ||
                 item.Tags.Count > 24 || item.Tags.Any(tag => !SafeToken.IsMatch(tag))))
             diagnostics.Add(new(TopologyInvalidCode, "Area-plan nodes require unique UUIDs and finite bounded geometry hints.", $"{path}/nodes"));

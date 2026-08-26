@@ -6,6 +6,7 @@ namespace Forge.Domain.Gameplay;
 
 public enum InteractionTargetingMode { Nearest, ViewCone, Cursor }
 public enum GameplayCameraMode { Isometric, Orbit, Shoulder, FirstPerson, TopDown, Free, Vehicle, Cinematic }
+public enum CameraOcclusionStrategy { Retract, FadeOccluder, HideOccluder }
 public enum RuntimeInputDevice { KeyboardMouse, Gamepad }
 
 public sealed record GroundedMovementProfile(
@@ -64,7 +65,18 @@ public sealed record GameplayCameraProfile(
     int TerrainProbeSamples = 32,
     float InitialYawDegrees = 39,
     float MinimumPitchDegrees = -85,
-    float MaximumPitchDegrees = 85);
+    float MaximumPitchDegrees = 85,
+    int OcclusionSchemaVersion = 1,
+    CameraOcclusionStrategy OcclusionStrategy = CameraOcclusionStrategy.Retract,
+    float CollisionRetractSharpness = 24,
+    float CollisionReleaseSharpness = 3.25f,
+    int WorldLabelSchemaVersion = 1,
+    float WorldLabelNearDistance = 2,
+    float WorldLabelFarDistance = 28,
+    float WorldLabelMaximumDistance = 42,
+    float WorldLabelNearScale = .55f,
+    float WorldLabelFarScale = 1.15f,
+    bool HideLocalHeroLabelInFirstPerson = true);
 
 public sealed record GameplayCameraCatalog(
     Guid Id,

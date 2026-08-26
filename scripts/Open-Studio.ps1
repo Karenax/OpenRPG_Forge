@@ -263,13 +263,13 @@ $studioArguments = @('--rendering-method', $renderingMethod)
 if ($Headless) {
     $studioArguments += '--headless'
 } elseif ([string]::IsNullOrWhiteSpace($Resolution)) {
-    $studioArguments += '--maximized'
+    $studioArguments += '--fullscreen'
 }
 if (-not [string]::IsNullOrWhiteSpace($Resolution)) {
     if ($Resolution -notmatch '^\d{3,4}x\d{3,4}$') {
         throw "La résolution '$Resolution' doit respecter le format 1600x900."
     }
-    $studioArguments += @('--resolution', $Resolution)
+    $studioArguments += @('--windowed', '--resolution', $Resolution)
 }
 $studioArguments += @('--path', $studioPath, '--log-file', $studioLog, '--', '--workspace', $Workspace, '--page', $Page)
 if ($UiScale -ne 0) {

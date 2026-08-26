@@ -4,6 +4,12 @@ using Forge.Domain.Spatial;
 
 namespace Forge.Studio.Session;
 
+internal enum StudioPlacementHeightMode
+{
+    TerrainSurface,
+    Explicit,
+}
+
 internal sealed record StudioRepeatedPlacementRequest(
     BlueprintId BlueprintId,
     Vector3Value Origin,
@@ -14,13 +20,17 @@ internal sealed record StudioRepeatedPlacementRequest(
     IReadOnlyList<string>? AvailableSockets = null,
     long? AvailableBudgetBytes = null,
     long? BlueprintEstimatedBytes = null,
-    IReadOnlyList<Vector3Value>? BrushSamples = null);
+    IReadOnlyList<Vector3Value>? BrushSamples = null,
+    QuaternionValue? Rotation = null,
+    Vector3Value? Scale = null,
+    StudioPlacementHeightMode HeightMode = StudioPlacementHeightMode.TerrainSurface);
 
 internal sealed record StudioPlacementPosePreview(
     Vector3Value Position,
     bool IsValid,
     string Message,
-    IReadOnlyList<string> Corrections);
+    IReadOnlyList<string> Corrections,
+    TransformValue? Transform = null);
 
 internal sealed record StudioPlacementPreview(
     bool IsValid,

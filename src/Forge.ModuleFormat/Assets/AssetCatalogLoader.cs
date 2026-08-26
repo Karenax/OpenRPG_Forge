@@ -36,6 +36,7 @@ public static class AssetCatalogLoader
                 repositoryRoot,
                 vaultRoot,
                 new AssetVaultInstallationState(),
+                0,
                 diagnostics);
         }
 
@@ -44,6 +45,7 @@ public static class AssetCatalogLoader
             var items = new List<AssetCatalogItem>();
             var catalogDates = new List<string>();
             var licensePolicies = new List<string>();
+            var catalogEntryCount = 0;
             foreach (var catalogPath in Directory.EnumerateFiles(catalogDirectory, "*.json")
                          .OrderBy(path => path, StringComparer.Ordinal))
             {
@@ -54,12 +56,14 @@ public static class AssetCatalogLoader
                 licensePolicies.Add(ReadString(root, "license_policy"));
                 if (root.TryGetProperty("assets", out var assets) && assets.ValueKind == JsonValueKind.Array)
                 {
+                    catalogEntryCount += assets.GetArrayLength();
                     items.AddRange(assets.EnumerateArray().Select(item => MapUnitAsset(item, vaultRoot)));
                 }
 
                 if (root.TryGetProperty("packs", out var packs) && packs.ValueKind == JsonValueKind.Array)
                 {
-                    items.AddRange(packs.EnumerateArray().Select(item => MapPack(item, vaultRoot)));
+                    catalogEntryCount += packs.GetArrayLength();
+                    items.AddRange(packs.EnumerateArray().SelectMany(item => MapPack(item, vaultRoot)));
                 }
             }
 
@@ -82,7 +86,13 @@ public static class AssetCatalogLoader
                 items,
                 "asset_manifests/packs/cc0_3d_all.json");
             diagnostics.AddRange(AssetCatalogValidator.Validate(catalog));
-            return new AssetCatalogLoadResult(catalog, repositoryRoot, vaultRoot, installationState, diagnostics);
+            return new AssetCatalogLoadResult(
+                catalog,
+                repositoryRoot,
+                vaultRoot,
+                installationState,
+                catalogEntryCount,
+                diagnostics);
         }
         catch (Exception exception) when (
             exception is JsonException or IOException or UnauthorizedAccessException or
@@ -97,6 +107,7 @@ public static class AssetCatalogLoader
                 repositoryRoot,
                 vaultRoot,
                 new AssetVaultInstallationState(),
+                0,
                 diagnostics);
         }
     }
@@ -159,9 +170,9 @@ public static class AssetCatalogLoader
             ReadOptionalString(item, "thumbnail_url"));
     }
 
-    private static AssetCatalogItem MapPack(JsonElement item, string vaultRoot)
+    private static IReadOnlyList<AssetCatalogItem> MapPack(JsonElement item, string vaultRoot)
     {
-        var externalId = ReadString(item, "pack_id");
+        var packId = ReadString(item, "pack_id");
         var name = ReadString(item, "name");
         var source = ReadString(item, "source");
         var declaredTags = ReadStrings(item, "tags");
@@ -175,17 +186,42 @@ public static class AssetCatalogLoader
         var categories = declaredCategories.Count > 0
             ? declaredCategories.Concat(["3d-model", "pack"]).Distinct(StringComparer.OrdinalIgnoreCase).ToArray()
             : ["3d-model", "pack"];
-        var modelPath = SelectModelPath(item, ReadOptionalString(item, "extracted_root"));
-        return CreateItem(
-            item,
-            externalId,
-            externalId.Split(':').Last(),
-            categories,
-            tags,
-            modelPath,
-            null,
-            ResolveAvailability(vaultRoot, modelPath),
-            null);
+        var extractedRoot = ReadOptionalString(item, "extracted_root");
+        if (string.IsNullOrWhiteSpace(extractedRoot) ||
+            !item.TryGetProperty("model_files", out var models) ||
+            models.ValueKind != JsonValueKind.Array)
+        {
+            return [];
+        }
+
+        return models.EnumerateArray()
+            .Select(value => value.GetString())
+            .Where(IsSupportedModel)
+            .Cast<string>()
+            .GroupBy(LogicalName, StringComparer.OrdinalIgnoreCase)
+            .OrderBy(group => group.Key, StringComparer.OrdinalIgnoreCase)
+            .Select(group =>
+            {
+                var relativeModel = group
+                    .OrderBy(ModelScore)
+                    .ThenBy(value => value, StringComparer.Ordinal)
+                    .First();
+                var modelPath = CombineRelative(extractedRoot, relativeModel);
+                var logicalName = group.Key;
+                var externalId = $"{packId}:{Slug(logicalName)}";
+                return CreateItem(
+                    item,
+                    externalId,
+                    logicalName,
+                    categories,
+                    tags.Concat([logicalName]).ToArray(),
+                    modelPath,
+                    null,
+                    ResolveAvailability(vaultRoot, modelPath),
+                    null,
+                    Humanize(logicalName));
+            })
+            .ToArray();
     }
 
     private static AssetCatalogItem CreateItem(
@@ -197,10 +233,11 @@ public static class AssetCatalogLoader
         string? modelPath,
         string? previewPath,
         AssetAvailability availability,
-        string? thumbnailUrl) => new(
+        string? thumbnailUrl,
+        string? displayName = null) => new(
         AssetCatalogItemId.ForExternalId(externalId),
         externalId,
-        ReadString(item, "name"),
+        displayName ?? ReadString(item, "name"),
         ReadString(item, "source"),
         sourceAssetId,
         ReadString(item, "source_page"),
@@ -415,6 +452,29 @@ public static class AssetCatalogLoader
 
     private static string CombineRelative(string left, string right) =>
         $"{left.TrimEnd('/', '\\')}/{right.TrimStart('/', '\\')}".Replace('\\', '/');
+
+    private static string LogicalName(string path)
+    {
+        var name = Path.GetFileNameWithoutExtension(path);
+        while (SupportedModelExtensions.Contains(Path.GetExtension(name)))
+        {
+            name = Path.GetFileNameWithoutExtension(name);
+        }
+
+        return name;
+    }
+
+    private static string Humanize(string value) => string.Join(' ',
+        value.Replace('_', '-').Split('-', StringSplitOptions.RemoveEmptyEntries)
+            .Select(part => char.ToUpperInvariant(part[0]) + part[1..]));
+
+    private static string Slug(string value)
+    {
+        var characters = value.ToLowerInvariant()
+            .Select(character => char.IsLetterOrDigit(character) ? character : '-')
+            .ToArray();
+        return string.Concat(characters).Trim('-');
+    }
 }
 
 public sealed record AssetCatalogLoadResult(
@@ -422,6 +482,7 @@ public sealed record AssetCatalogLoadResult(
     string RepositoryRoot,
     string VaultRoot,
     AssetVaultInstallationState InstallationState,
+    int CatalogEntryCount,
     IReadOnlyList<DomainDiagnostic> Diagnostics)
 {
     public bool Succeeded => Catalog is not null && Diagnostics.Count == 0;

@@ -681,12 +681,12 @@ public partial class GameRoot
         DamageHostile(_boss!);
         _player!.GlobalPosition = new Vector3(2, 0.9f, 1);
         AssertSmoke(SaveRuntime(_quickSavePath!), "The runtime checkpoint was not written.");
-        AssertSmoke(_questMachine?.CurrentState.DisplayName == "Gardien des Cendres",
+        AssertSmoke(TrackedQuestRuntimeState?.DisplayName == "Gardien des Cendres",
             "The saved quest did not reach the boss objective.");
         AssertSmoke(_hostiles[_boss!].Health == 3, "The saved boss health is not the expected checkpoint.");
         GD.Print(
             $"OPENRPG_FORGE_RUNTIME_SAVE_PASS file={Path.GetFileName(_quickSavePath)} " +
-            $"quest={_questMachine!.CurrentState.Id} boss_health={_hostiles[_boss!].Health}");
+            $"quest={TrackedQuestRuntimeState!.Id} boss_health={_hostiles[_boss!].Health}");
         GetTree().Quit(0);
     }
 
@@ -694,7 +694,7 @@ public partial class GameRoot
     {
         AssertSmoke(_loadedSave, "The save resume smoke test did not load a checkpoint.");
         AssertSmoke(_hasKey && _doorUnlocked, "Inventory or unlocked door state was not restored.");
-        AssertSmoke(_questMachine?.CurrentState.DisplayName == "Gardien des Cendres",
+        AssertSmoke(TrackedQuestRuntimeState?.DisplayName == "Gardien des Cendres",
             "Quest state was not restored.");
         AssertSmoke(_boss is not null && _hostiles.TryGetValue(_boss, out var boss) && boss.Health == 3,
             "Boss combat state was not restored.");
@@ -705,7 +705,7 @@ public partial class GameRoot
             DamageHostile(_boss!);
         }
 
-        AssertSmoke(_bossDefeated && _questMachine?.Completed == true,
+        AssertSmoke(_bossDefeated && IsQuestTerminal(_loadedProject!.Quests.Single().Id),
             "The restored game could not be completed.");
         AssertSmoke(SaveRuntime(_quickSavePath!), "The completed resumed game was not saved.");
         GD.Print(
@@ -762,29 +762,36 @@ public partial class GameRoot
         DispatchCreatureEvent(restCompleted!);
 
         InteractWith(_npc!);
-        AssertSmoke(_questState == PrototypeQuestState.Active, "NPC interaction did not start the quest.");
-        var dialoguePresentation = _elyraDialogue?.Presentation;
+        var questChoiceIndex = _activeDialogueChoices.ToList().FindIndex(choice =>
+            choice.Actions.Any(action => action.Kind == DialogueActionKind.StartQuest));
+        AssertSmoke(questChoiceIndex >= 0, "NPC dialogue did not expose its authored quest choice.");
+        CommitDialogueChoice(questChoiceIndex);
+        var startedQuest = _loadedProject!.Quests.Single();
+        AssertSmoke(_questTracker?.IsAccepted(startedQuest.Id) == true &&
+                    _questTracker.GetCurrentState(startedQuest.Id)?.Id != startedQuest.InitialStateId,
+            "NPC interaction did not accept and advance the canonical quest.");
+        var dialoguePresentation = _activeDialogue?.Presentation;
         AssertSmoke(dialoguePresentation is not null &&
-                    DialoguePresentationValidator.Validate(_elyraDialogue!).Count == 0,
+                    DialoguePresentationValidator.Validate(_activeDialogue!).Count == 0,
             "The authored dialogue presentation profile did not resolve.");
         AssertSmoke(_dialogueAnimationCueCount == 1 && _dialogueVoiceCueCount == 1 &&
                     _dialogueCameraShotCount == 1 && _dialogueBookmarkCount == 1 &&
-                    _dialogueInterjectionCount == 1 && _dialogueSubtitleFallback,
-            "Dialogue animation, voice fallback, camera, bookmark, or interjection did not execute.");
+                    _dialogueInterjectionCount == 0 && _dialogueSubtitleFallback,
+            "Dialogue animation, voice fallback, camera, bookmark, or authored interjection filtering did not execute.");
         GD.Print($"OPENRPG_FORGE_RUNTIME_G13H_DIALOGUE_PRESENTATION_PASS " +
             $"animations={_dialogueAnimationCueCount} voices={_dialogueVoiceCueCount} " +
             $"shots={_dialogueCameraShotCount} bookmarks={_dialogueBookmarkCount} " +
             $"interjections={_dialogueInterjectionCount} subtitle_fallback={_dialogueSubtitleFallback.ToString().ToLowerInvariant()} " +
             "authority=server accessibility=player-priority");
         var timedRule = AssertSingle(dialoguePresentation!.TimedChoices);
-        var adaptiveTimeout = DialogueAdaptiveRuntimeResolver.Resolve(_elyraDialogue!, _elyraDialogue!.EntryNodeId,
+        var adaptiveTimeout = DialogueAdaptiveRuntimeResolver.Resolve(_activeDialogue!, _activeDialogue!.EntryNodeId,
             timedRule.DurationMilliseconds + 1, AdaptiveDialogueContext(), new RuntimeConditionEvaluator(this));
         AssertSmoke(adaptiveTimeout.Diagnostics.Count == 0 && adaptiveTimeout.TimedChoice is
         { TimedOut: true, SelectedChoiceId: not null, TimeoutScriptId: not null } &&
             adaptiveTimeout.Variant is not null && _dialogueTimedChoiceCount == 1 && _dialogueVariantCount == 1 &&
             !string.IsNullOrWhiteSpace(_dialogueVariantKey),
             "Timed choice or deterministic localized variant did not execute.");
-        var accessibilityPause = DialogueAdaptiveRuntimeResolver.Resolve(_elyraDialogue!, _elyraDialogue!.EntryNodeId,
+        var accessibilityPause = DialogueAdaptiveRuntimeResolver.Resolve(_activeDialogue!, _activeDialogue!.EntryNodeId,
             timedRule.DurationMilliseconds + 1,
             AdaptiveDialogueContext() with { PauseRequested = true, AccessibilityPauseRequested = true },
             new RuntimeConditionEvaluator(this));
@@ -796,7 +803,7 @@ public partial class GameRoot
             $"variants={_dialogueVariantCount} key={_dialogueVariantKey} " +
             $"roll={adaptiveTimeout.Variant!.DeterministicRoll} authority=server revision=1 seed=2026");
         AssertSmoke(
-            _questMachine?.CurrentState.DisplayName == "Clé de braise",
+            TrackedQuestRuntimeState?.DisplayName == "Clé de braise",
             "NPC interaction did not start the data-driven quest.");
         InteractWith(_keyItem!);
         AssertSmoke(_hasKey, "Key interaction did not update inventory state.");
@@ -861,7 +868,7 @@ public partial class GameRoot
         AssertSmoke(_bossDefeated, "Boss was not defeated.");
         var smokeCorpse = _corpseLoot.Keys.FirstOrDefault(GodotObject.IsInstanceValid);
         if (smokeCorpse is not null) InteractWith(smokeCorpse);
-        AssertSmoke(_inventory.Contains("warden-ember"), "Data-driven boss loot was not granted.");
+        AssertSmoke(HasInventoryItem("warden-ember"), "Data-driven boss loot was not granted.");
         AssertSmoke(_creatureEventHeartbeatDispatchCount > 0 && _creatureEventCombatDispatchCount > 0 &&
                     _creatureEventInventoryDispatchCount >= 2 && _creatureEventRestDispatchCount > 0 &&
                     _creatureEventCustomDispatchCount > 0,
@@ -963,15 +970,16 @@ public partial class GameRoot
         RunItemOperationsRuntimeSmokeTest(_loadedProject ??
             throw new InvalidOperationException("The loaded project is unavailable."));
         AssertSmoke(_questState == PrototypeQuestState.Completed, "Quest was not completed.");
-        AssertSmoke(_questMachine?.Completed == true, "Data-driven quest was not completed.");
-        var questOperations = _questDefinition?.Operations ??
+        var completedQuest = _loadedProject!.Quests.Single();
+        AssertSmoke(IsQuestTerminal(completedQuest.Id), "Data-driven quest was not completed.");
+        var questOperations = completedQuest.Operations ??
             throw new InvalidOperationException("The authored quest operations profile is missing.");
-        var repeat = QuestOperationsRuntimeResolver.ResolveRepeat(_questDefinition!, new(
+        var repeat = QuestOperationsRuntimeResolver.ResolveRepeat(completedQuest, new(
             DateTimeOffset.Parse("2026-08-06T12:00:00Z"), DateTimeOffset.Parse("2026-08-06T10:00:00Z"),
             1, 1, 1, true, true, _chosenQuestTransitions));
-        var sortedJournal = QuestOperationsRuntimeResolver.SortJournal([_questDefinition!]);
+        var sortedJournal = QuestOperationsRuntimeResolver.SortJournal([completedQuest]);
         AssertSmoke(repeat.Allowed && repeat.RewardMultiplier == questOperations.Repeat.RewardDecay &&
-                    sortedJournal.Single().Id == _questDefinition!.Id && _chosenQuestTransitions.Count == 3,
+                    sortedJournal.Single().Id == completedQuest.Id && _chosenQuestTransitions.Count == 3,
             "Quest journal, repetition, sharing or exclusive-choice policies did not execute.");
         GD.Print($"OPENRPG_FORGE_RUNTIME_G13J_QUEST_OPERATIONS_PASS priority={questOperations.Journal.Priority} " +
                  $"repeat_seed={repeat.Seed} reward={repeat.RewardMultiplier:0.###} " +
@@ -1867,229 +1875,6 @@ public partial class GameRoot
         GetTree().Quit(0);
     }
 
-    private async Task RunSolarenHeadlessSmokeTestAsync()
-    {
-        var project = _loadedProject ?? throw new InvalidOperationException("The loaded project is unavailable.");
-        var area = project.Areas.Single();
-        var modelLibrary = _modelLibrary ?? throw new InvalidOperationException("The model library is unavailable.");
-        var solarenPlayer = _player ?? throw new InvalidOperationException("The Solaren player is unavailable.");
-        var gameplayFoundation = _gameplayControls?.Foundation ??
-            throw new InvalidOperationException("The Solaren gameplay foundation is unavailable.");
-        var groundedMovement = gameplayFoundation.GroundedMovement ??
-            throw new InvalidOperationException("The Solaren movement profile is unavailable.");
-        AssertSmoke(string.Equals(_moduleSlug, "solaren-les-vallees-libres", StringComparison.Ordinal),
-            "The Solaren smoke test loaded another module.");
-        AssertSmoke(!_isCryptPrototype && FindChild("AshRune", recursive: true, owned: false) is null,
-            "Solaren unexpectedly reconstructed Crypt-specific atmosphere.");
-        AssertSmoke(area.Kind == AreaKind.Exterior && area.Dimensions.Width == 512 && area.Dimensions.Depth == 512,
-            "Solaren did not reconstruct its bounded 512 metre exterior.");
-        AssertSmoke(area.World.Terrain.SamplesX == 129 && area.World.Terrain.SamplesZ == 129 &&
-                    area.World.Features.Count(item => item.Kind == TerrainFeatureKind.Road) == 1,
-            "Solaren terrain samples or village road are missing.");
-        AssertSmoke(_terrainVertices == 16_641 && _terrainTriangles == 32_768 && _terrainSectors == 64,
-            "Solaren terrain did not reach the expected deterministic render plan.");
-        AssertSmoke(_terrainScatterLayers >= 15 && _terrainScatterInstances >= 30_000 &&
-                    _terrainWindAnimatedLayers == 13 &&
-                    _terrainCullingGroups > 0,
-            "Solaren biome scatter or its thirteen wind-animated layers did not reconstruct the dressed valley.");
-        AssertSmoke(_surfaceTextureCache.Count >= 2,
-            "Solaren meadow and cobblestone surfaces did not resolve their governed textures.");
-        AssertSmoke(modelLibrary.Count == 42 && _runtimeModelInstances == 365,
-            "Solaren governed medieval assets were not all available at runtime.");
-        var normalizedCharacterClipNames = _animatedCharacterClipNames
-            .Select(NormalizeAnimationImportHint)
-            .ToHashSet(StringComparer.Ordinal);
-        AssertSmoke(_animatedCharacterInstances == 4 && normalizedCharacterClipNames.SetEquals(
-            ["death01", "hit_chest", "idle", "jog_fwd", "jump_start", "sword_attack"]),
-            "Solaren villagers did not expose the six governed locomotion and action clips.");
-        AssertSmoke(_characterAnimations.TryGetValue(solarenPlayer, out var playerAnimation) &&
-                    NormalizeAnimationImportHint(playerAnimation.IdleClip) == "idle" &&
-                    NormalizeAnimationImportHint(playerAnimation.RunClip) == "jog_fwd" &&
-                    NormalizeAnimationImportHint(playerAnimation.JumpClip) == "jump_start" &&
-                    playerAnimation.Player.GetAnimation(playerAnimation.IdleClip)?.LoopMode == Animation.LoopModeEnum.Linear &&
-                    playerAnimation.Player.GetAnimation(playerAnimation.RunClip)?.LoopMode == Animation.LoopModeEnum.Linear &&
-                    GodotAssetAnimationController.Play(playerAnimation, playerAnimation.RunClip, 0, restart: true) &&
-                    playerAnimation.CurrentClip == playerAnimation.RunClip,
-            "Solaren player locomotion did not map idle and forward jog to looping clips.");
-        GodotAssetAnimationController.Play(playerAnimation!, playerAnimation!.IdleClip, 0, restart: true);
-        AssertSmoke(Math.Abs(groundedMovement.WalkSpeed - 1.2f) <= .001f &&
-                    Math.Abs(groundedMovement.RunSpeed - 2.64f) <= .001f &&
-                    _npc is not null && _builtEntityCount == 366,
-            "Solaren player, residents or village entities are incomplete.");
-
-        await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
-        var doorwayEntities = area.Entities.Where(item => item.Tags.Contains("doorway", StringComparer.Ordinal)).ToArray();
-        var openDoorEntities = area.Entities.Where(item => item.Tags.Contains("open-door", StringComparer.Ordinal)).ToArray();
-        AssertSmoke(doorwayEntities.Length == 4 && openDoorEntities.Length == 4,
-            "Solaren houses do not expose one open entrance per building.");
-        var physics = GetWorld3D().DirectSpaceState;
-        var playerPositionBeforeDoorChecks = solarenPlayer.GlobalPosition;
-        foreach (var doorway in doorwayEntities)
-        {
-            var houseTag = doorway.Tags.Single(tag => tag.StartsWith("house-", StringComparison.Ordinal));
-            var stairs = area.Entities.Single(item => item.Tags.Contains(houseTag, StringComparer.Ordinal) &&
-                item.Tags.Contains("entrance", StringComparer.Ordinal) &&
-                item.Tags.Contains("nonblocking", StringComparer.Ordinal) &&
-                !item.Tags.Contains("open-door", StringComparer.Ordinal));
-            AssertSmoke(_entityNodes.TryGetValue(doorway.Id.Value, out var doorwayNode) &&
-                        doorwayNode.FindChildren("*", "CollisionShape3D", recursive: true, owned: false).Count == 0,
-                $"Solaren entrance '{houseTag}' retained a full-wall collision across the opening.");
-            var outward = doorwayNode!.GlobalTransform.Basis * Vector3.Back;
-            outward.Y = 0;
-            outward = outward.Normalized();
-            var authoredOutside = new Vector3(
-                stairs.Transform.Position.X - doorway.Transform.Position.X,
-                0,
-                stairs.Transform.Position.Z - doorway.Transform.Position.Z);
-            if (outward.Dot(authoredOutside) < 0) outward = -outward;
-            var threshold = doorwayNode.GlobalPosition + (Vector3.Up * 1.05f);
-            var query = PhysicsRayQueryParameters3D.Create(
-                threshold + (outward * 1.25f),
-                threshold - (outward * 1.5f));
-            query.Exclude = [solarenPlayer.GetRid()];
-            AssertSmoke(physics.IntersectRay(query).Count == 0,
-                $"Solaren entrance '{houseTag}' is blocked by an authored collision.");
-
-            var entranceOutside = doorwayNode.GlobalPosition + (outward * 1.2f);
-            var entranceInside = doorwayNode.GlobalPosition - (outward * 1.2f);
-            var maximumGround = Enumerable.Range(0, 13)
-                .Select(index => entranceOutside.Lerp(entranceInside, index / 12f))
-                .Max(point => _activeTerrain?.HeightAt(point.X, point.Z) ?? doorwayNode.GlobalPosition.Y);
-            solarenPlayer.GlobalPosition = new Vector3(
-                entranceOutside.X,
-                maximumGround + 1.05f,
-                entranceOutside.Z);
-            solarenPlayer.Velocity = Vector3.Zero;
-            solarenPlayer.ResetPhysicsInterpolation();
-            await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
-            var entranceStart = solarenPlayer.GlobalPosition;
-            var entranceCollision = solarenPlayer.MoveAndCollide(-outward * 2.4f);
-            var enteredDistance = (solarenPlayer.GlobalPosition - entranceStart).Dot(-outward);
-            var entranceCollider = entranceCollision?.GetCollider() as Node;
-            AssertSmoke(entranceCollision is null && enteredDistance >= 2.3f,
-                $"Solaren player could not physically enter '{houseTag}' " +
-                $"(distance={enteredDistance:0.###}, collider={entranceCollider?.Name ?? "unknown"}, " +
-                $"parent={entranceCollider?.GetParent()?.Name ?? "unknown"}, " +
-                $"position={entranceCollision?.GetPosition()}).");
-        }
-        solarenPlayer.GlobalPosition = playerPositionBeforeDoorChecks;
-        solarenPlayer.Velocity = Vector3.Zero;
-        solarenPlayer.ResetPhysicsInterpolation();
-
-        var raisedCamera = RuntimeCameraRig.RaiseForTerrainClearance(
-            new Vector3(0, 2, 0),
-            new Vector3(0, 7, 12),
-            (_, z) => z * .6f,
-            .9f,
-            32);
-        AssertSmoke(raisedCamera.Y > 8 &&
-                    Math.Abs(new Vector2(raisedCamera.X, raisedCamera.Z).Length() - 12) <= .001f,
-            "Solaren slope clearance retracted the camera horizontally instead of raising it above terrain.");
-
-        var roadPoints = area.World.Features.Single(item => item.Kind == TerrainFeatureKind.Road).ControlPoints;
-        var steepestRoadSegment = roadPoints.Zip(roadPoints.Skip(1), (first, second) => (First: first, Second: second))
-            .OrderByDescending(segment => Math.Abs(segment.Second.Y - segment.First.Y))
-            .First();
-        var lower = steepestRoadSegment.First.Y <= steepestRoadSegment.Second.Y
-            ? steepestRoadSegment.First
-            : steepestRoadSegment.Second;
-        var higher = steepestRoadSegment.First.Y <= steepestRoadSegment.Second.Y
-            ? steepestRoadSegment.Second
-            : steepestRoadSegment.First;
-        var uphill = new Vector2(higher.X - lower.X, higher.Z - lower.Z).Normalized();
-        var slopeFocus = new Vector3(lower.X, lower.Y + 1.25f, lower.Z);
-        var slopeDesired = slopeFocus + new Vector3(uphill.X * 14, 5.7f, uphill.Y * 14);
-        var slopeConstrained = ConstrainCameraPosition(slopeFocus, slopeDesired);
-        var constrainedHorizontalDistance = new Vector2(
-            slopeConstrained.X - slopeFocus.X,
-            slopeConstrained.Z - slopeFocus.Z).Length();
-        AssertSmoke(constrainedHorizontalDistance >= 13.5f,
-            $"Solaren's live terrain collision collapsed the slope camera " +
-            $"(horizontal={constrainedHorizontalDistance:0.###}).");
-
-        var solarenCamera = _camera ?? throw new InvalidOperationException("The Solaren camera is unavailable.");
-        var orbitButton = new InputEventMouseButton { ButtonIndex = MouseButton.Right, Pressed = true };
-        _cameraRig.HandleInput(orbitButton);
-        try
-        {
-            _cameraRig.HandleInput(new InputEventMouseMotion { Relative = new Vector2(0, -100_000) });
-        }
-        finally
-        {
-            _cameraRig.HandleInput(new InputEventMouseButton
-            {
-                ButtonIndex = MouseButton.Right,
-                Pressed = false,
-            });
-        }
-        _cameraRig.Snap(solarenCamera, solarenPlayer.GlobalPosition, (focus, desired) =>
-            RuntimeCameraRig.RaiseForTerrainClearance(focus, desired, _activeTerrain!.HeightAt,
-                _cameraRig.TerrainClearance, _cameraRig.TerrainProbeSamples));
-        var groundHeightBelowCamera = _activeTerrain!.HeightAt(
-            solarenCamera.GlobalPosition.X, solarenCamera.GlobalPosition.Z);
-        var upwardView = -solarenCamera.GlobalTransform.Basis.Z;
-        AssertSmoke(_cameraRig.MinimumPitchDegrees <= -84.9f &&
-                    Math.Abs(_cameraRig.PitchDegrees - _cameraRig.MinimumPitchDegrees) <= .01f &&
-                    solarenCamera.GlobalPosition.Y >= groundHeightBelowCamera + _cameraRig.TerrainClearance - .02f &&
-                    upwardView.Y >= .35f,
-            $"Solaren's ground-level orbit camera still cannot look into the sky " +
-            $"(pitch={_cameraRig.PitchDegrees:0.###}, minimum={_cameraRig.MinimumPitchDegrees:0.###}, " +
-            $"view_y={upwardView.Y:0.###}, clearance=" +
-            $"{solarenCamera.GlobalPosition.Y - groundHeightBelowCamera:0.###}).");
-        GD.Print($"OPENRPG_FORGE_SOLAREN_CAMERA_LOOK_UP_PASS " +
-                 $"pitch={_cameraRig.PitchDegrees:0.###} view_y={upwardView.Y:0.###} " +
-                 $"clearance={solarenCamera.GlobalPosition.Y - groundHeightBelowCamera:0.###}");
-        _cameraRig.Configure(gameplayFoundation.Cameras);
-        _cameraRig.Snap(solarenCamera, solarenPlayer.GlobalPosition, ConstrainCameraPosition);
-
-        var initialWeather = _weatherState ??
-            throw new InvalidOperationException("Solaren weather state is unavailable.");
-        var initialWeatherProfile = WeatherRuntimeStateMachine.Resolve(area.Environment.Weather, initialWeather);
-        var afterTwoMinutes = WeatherRuntimeStateMachine.Advance(
-            area.Environment.Weather,
-            initialWeather,
-            120,
-            hasAuthority: true);
-        AssertSmoke(afterTwoMinutes.Transition is null && afterTwoMinutes.State.Revision == 0 &&
-                    area.Environment.Weather.States.All(item => item.MinimumDurationSeconds >= 420),
-            "Solaren weather still changes within two minutes.");
-        var rainProfile = area.Environment.Weather.States.Single(item => item.Kind == WeatherKind.Rain);
-        var rainPlan = AreaClimatePlanBuilder.Build(area.Environment, rainProfile.Id,
-            new(solarenPlayer.GlobalPosition.X, solarenPlayer.GlobalPosition.Y, solarenPlayer.GlobalPosition.Z),
-            "desktop");
-        var rainEffects = GodotClimateAdapter.Build(rainPlan, configureRuntimeAudio: false);
-        var rainParticles = rainEffects.Root.GetChildren().OfType<GpuParticles3D>().Single();
-        var rainMaterial = rainParticles.ProcessMaterial as ParticleProcessMaterial;
-        AssertSmoke(rainMaterial is not null && rainMaterial.Direction == Vector3.Down &&
-                    rainMaterial.Spread == 0 && rainMaterial.Gravity.X == 0 && rainMaterial.Gravity.Z == 0 &&
-                    rainParticles.Amount >= 1_500 && rainParticles.Preprocess >= 2.8f,
-            "Solaren procedural rain is not strictly vertical.");
-        rainEffects.Root.Free();
-        var advancedWeather = WeatherRuntimeStateMachine.Advance(
-            area.Environment.Weather,
-            initialWeather,
-            initialWeatherProfile.MaximumDurationSeconds + 1,
-            hasAuthority: true);
-        AssertSmoke(advancedWeather.Transition is not null && advancedWeather.State.Revision == 1 &&
-                    advancedWeather.State.StateId != initialWeather.StateId,
-            "Solaren random weather did not produce its first authoritative transition.");
-        _weatherState = advancedWeather.State;
-        ApplyClimateEffects(force: true);
-        AssertSmoke(_referenceSun is not null && _worldEnvironment is not null &&
-                    _referenceSun.LightEnergy < _baseDirectionalLightEnergy &&
-                    _worldEnvironment.BackgroundEnergyMultiplier < _baseBackgroundEnergyMultiplier,
-            "Solaren weather transition did not darken the sun and sky.");
-        GD.Print("OPENRPG_FORGE_SOLAREN_SMOKE_PASS " +
-                 $"area={area.Slug} terrain={_terrainVertices}/{_terrainTriangles}/{_terrainSectors} " +
-                 $"scatter={_terrainScatterLayers}/{_terrainScatterInstances}/{_terrainCullingGroups} " +
-                 $"wind={_terrainWindAnimatedLayers} " +
-                 $"models={modelLibrary.Count}/{_runtimeModelInstances} animated={_animatedCharacterInstances}/6 " +
-                 $"entities={_builtEntityCount} movement={groundedMovement.WalkSpeed:0.##}/{groundedMovement.RunSpeed:0.##} " +
-                 $"doors={doorwayEntities.Length}/entered rain=vertical/prewarmed weather_min=420 " +
-                 $"weather_revision={_weatherState.Revision} terrain_camera=raised/look-up crypt=false");
-        GetTree().Quit(0);
-    }
-
     private static string NormalizeAnimationImportHint(string clip) =>
         clip.EndsWith("_loop", StringComparison.OrdinalIgnoreCase) ? clip[..^5] : clip;
 
@@ -2147,23 +1932,35 @@ public partial class GameRoot
             0,
             0);
         ApplyClimateEffects(force: true);
+        _surfaceWetnessValue = weather.SurfaceWetness;
+        _surfaceWetnessCoefficients = weather.WetnessMaterial;
+        _surfaceWetnessInitialized = true;
+        _surfaceWetnessTransition = SurfaceWetnessTransition.Start(
+            weather.SurfaceWetness,
+            weather.SurfaceWetness,
+            0);
 
         _sequenceOwnsCamera = true;
-        camera.Fov = fixture == "rain" ? 52 : 46;
+        var fixtureFieldOfView = fixture == "rain" ? 52 : 46;
         var focus = fixture switch
         {
             "door" => doorwayPosition + (Vector3.Up * 1.45f),
             "rain" => playerPosition + (Vector3.Up * .65f),
             _ => playerPosition + (Vector3.Up * .7f),
         };
-        camera.GlobalPosition = fixture switch
+        var fixtureCameraPosition = fixture switch
         {
             "door" => doorwayPosition + (outward * 7.25f) + (side * .35f) + (Vector3.Up * 3.15f),
             "rain" => playerPosition + (outward * 7.8f) + (side * 2.2f) + (Vector3.Up * 3.6f),
             _ => playerPosition + (outward * 5.6f) - (side * 4.3f) + (Vector3.Up * 2.75f),
         };
-        camera.LookAt(focus, Vector3.Up);
-        var cameraDirection = camera.GlobalPosition - playerPosition;
+        await MutateCameraInPhysicsAsync(() =>
+        {
+            camera.Fov = fixtureFieldOfView;
+            camera.GlobalPosition = fixtureCameraPosition;
+            camera.LookAt(focus, Vector3.Up);
+        });
+        var cameraDirection = fixtureCameraPosition - playerPosition;
         cameraDirection.Y = 0;
         player.FaceDirection(fixture switch
         {
@@ -4795,9 +4592,16 @@ public partial class GameRoot
             _forgeScriptRuntime, ResolveR055Source, requiredAtRuntime: true, dryRun: false,
             correlationId: Guid.Parse("a0557000-0000-4000-8000-000000000010"),
             execute: artifact => ExecuteForgeScript(artifact, this));
-        var r055Map = AreaExperienceAuthoringScriptService.Reveal(r055Area,
+        var r055Pin = r055Area.Authoring.Map.Pins[0];
+        var r055FloorZeroMap = AreaExperienceAuthoringScriptService.Reveal(r055Area,
             new(AreaMapExplorationScope.Party, "party:runtime", new HashSet<string>(), new HashSet<Guid>()),
-            17, 3, r055Area.Authoring.Map.Pins[0].Id);
+            0, r055Pin.X, r055Pin.Z);
+        var r055FloorZeroMapAgain = AreaExperienceAuthoringScriptService.Reveal(r055Area,
+            r055FloorZeroMap, 0, r055Pin.X, r055Pin.Z);
+        var r055Map = AreaExperienceAuthoringScriptService.Reveal(r055Area,
+            r055FloorZeroMapAgain, 1, r055Pin.X, r055Pin.Z);
+        var r055Grid = new AreaMapExplorationGrid(r055Area.Dimensions,
+            r055Area.Authoring.Map.FloorCount, r055Area.Authoring.Map.ExplorationCellSize);
         var r055Runtime = AreaExperienceRuntimeResolver.Resolve(r055Area, true);
         var r055RenderPlan = AreaExperienceRenderPlanBuilder.Build(r055Area);
         var r055Legacy = area.WithAuthoring(AreaAuthoringProfile.CreateDefault(area.Id));
@@ -4810,7 +4614,11 @@ public partial class GameRoot
                     r055Preview.Succeeded && !r055Preview.Executed &&
                     r055Dispatch.Succeeded && r055Dispatch.Executed &&
                     r055Dispatch.Deliveries.Single().Subscriber == r055Subscription &&
-                    r055Map.RevealedCells.Contains("2:0") &&
+                    r055Map.RevealedCells.SetEquals([
+                        r055Grid.Resolve(0, r055Pin.X, r055Pin.Z).Key,
+                        r055Grid.Resolve(1, r055Pin.X, r055Pin.Z).Key,
+                    ]) &&
+                    r055Map.RevealedPins.SetEquals([r055Pin.Id]) && r055Map.ActiveFloor == 1 &&
                     r055Runtime.Handle is
                     {
                         AudioSnapshots: 1, UserEvents: 1, MapPins: 1,
@@ -5949,7 +5757,7 @@ public partial class GameRoot
         AssertSmoke(questStart is not null, "The crypt quest has no available starting transition.");
         AdvanceQuest(questStart!);
         InteractWith(_keyItem ?? throw new InvalidOperationException("The Ember Key is missing."));
-        AssertSmoke(_hasKey && _inventory.Contains(_questItemSlug),
+        AssertSmoke(_hasKey && HasInventoryItem(_questItemSlug),
             "The reachable Ember Key did not enter the player inventory.");
         InteractWith(_door ?? throw new InvalidOperationException("The sealed gate is missing."));
         AssertSmoke(_doorUnlocked, "The Ember Key did not unlock the sealed gate.");
@@ -6091,8 +5899,12 @@ public partial class GameRoot
         actionBar.ConfigurePrimaryAbility(fixtureAbility);
         actionBar.UpdatePrimaryAbilityState(
             fixturePresentation.CooldownRemainingSeconds, fixture.Resource, targetAvailable: true);
-        hud.UpdatePlayerStatus("FIXTURE — PAS DE GAMEPLAY", 30, 30, 10, 10, 1);
-        hud.UpdatePlayerStatus("FIXTURE — PAS DE GAMEPLAY", 18, 30, 7, 10, 1);
+        hud.UpdatePlayerStatus("FIXTURE — PAS DE GAMEPLAY",
+            new RuntimeModulePresentation.Resource("health", 30, 30),
+            new RuntimeModulePresentation.Resource("resource", 10, 10), 1);
+        hud.UpdatePlayerStatus("FIXTURE — PAS DE GAMEPLAY",
+            new RuntimeModulePresentation.Resource("health", 18, 30),
+            new RuntimeModulePresentation.Resource("resource", 7, 10), 1);
         feedback.Present(fixturePresentation, targetNode);
         feedback.Flash(targetNode, CombatFeedbackAmountKind.Healing);
         impacts.Present(fixturePresentation, targetNode, targetNode.GlobalPosition);
@@ -6328,9 +6140,9 @@ public partial class GameRoot
         return material;
     }
 
-    private static void CreateLabel(Node3D parent, string text, Color color, float height)
+    private void CreateLabel(Node3D parent, string text, Color color, float height, bool isLocalHero = false)
     {
-        parent.AddChild(new Label3D
+        var label = new Label3D
         {
             Name = RuntimeWorldLabelNodeName,
             Text = text,
@@ -6339,7 +6151,10 @@ public partial class GameRoot
             Billboard = BaseMaterial3D.BillboardModeEnum.Enabled,
             FontSize = 32,
             OutlineSize = 8,
-        });
+            FixedSize = false,
+        };
+        parent.AddChild(label);
+        _worldLabels[label] = (color, isLocalHero);
     }
 
     private static string SafeNodeName(string value) =>
@@ -6510,16 +6325,9 @@ public partial class GameRoot
         {
             DialogueConditionKind.VariableEquals =>
                 _runtime._blackboard.TryGetValue(condition.Key, out var value) && value == condition.ExpectedValue,
-            DialogueConditionKind.HasItem => _runtime._inventory.Contains(condition.Key),
+            DialogueConditionKind.HasItem => _runtime.HasInventoryItem(condition.Key),
             DialogueConditionKind.QuestStateEquals =>
-                string.Equals(
-                    _runtime._questMachine?.CurrentState.Id.ToString(),
-                    condition.ExpectedValue,
-                    StringComparison.Ordinal) ||
-                string.Equals(
-                    _runtime._questMachine?.CurrentState.DisplayName,
-                    condition.ExpectedValue,
-                    StringComparison.OrdinalIgnoreCase),
+                _runtime.QuestStateMatches(condition.Key, condition.ExpectedValue),
             _ => false,
         };
 
@@ -6530,7 +6338,7 @@ public partial class GameRoot
                     item.Key.EndsWith($":{condition.Key}", StringComparison.Ordinal) &&
                     item.Value == condition.ExpectedValue) ||
                 _runtime._blackboard.TryGetValue(condition.Key, out var value) && value == condition.ExpectedValue,
-            QuestConditionKind.HasItem => _runtime._inventory.Contains(condition.Key),
+            QuestConditionKind.HasItem => _runtime.HasInventoryItem(condition.Key),
             _ => false,
         };
     }

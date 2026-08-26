@@ -14,7 +14,9 @@ internal sealed record StudioPreparedAssetInstall(
     string WorkspaceRoot,
     AssetCatalogItem CatalogItem,
     AssetPackageManifest Manifest,
-    bool Reused);
+    bool Reused,
+    string VaultRoot,
+    LocalAssetPackageInstallPlan LocalPackage);
 
 internal sealed record StudioAssetPreparationResult(
     bool Succeeded,

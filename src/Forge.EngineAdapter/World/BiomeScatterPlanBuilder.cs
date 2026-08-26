@@ -7,15 +7,23 @@ public sealed record BiomeScatterPlacement(Vector3Value Position, float YawRadia
 
 public static class BiomeScatterPlanBuilder
 {
+    public static BiomeScatterBuildContext Prepare(AreaWorldProfile world) => new(world);
+
     public static IReadOnlyList<BiomeScatterPlacement> Build(
         AreaWorldProfile world,
-        BiomeLayerDefinition biome)
+        BiomeLayerDefinition biome) => Prepare(world).Build(biome).Placements;
+
+    internal static BiomeScatterBuildResult BuildPrepared(
+        AreaWorldProfile world,
+        BiomeLayerDefinition biome,
+        IReadOnlyDictionary<(int X, int Z), Guid> materialPaint,
+        IReadOnlyList<BiomeScatterPreparedFeature> features)
     {
         ArgumentNullException.ThrowIfNull(world);
         ArgumentNullException.ThrowIfNull(biome);
         var terrain = world.Terrain;
         if (!terrain.Enabled || biome.ScatterDensity <= 0 || string.IsNullOrWhiteSpace(biome.ScatterResource))
-            return [];
+            return new([], new(0, 0, 0, 0));
 
         var largeProductionSurface = terrain.Width * terrain.Depth >= 256f * 256f;
         var lushMeadow = largeProductionSurface &&
@@ -30,13 +38,15 @@ public static class BiomeScatterPlanBuilder
             maximumPlacements);
         var result = new List<BiomeScatterPlacement>(target);
         var biomeSeed = BitConverter.ToInt32(biome.Id.ToByteArray(), 0);
-        var random = new StableRandom(unchecked(terrain.Seed ^ biomeSeed));
+        var seed = BiomeScatterAuthoring.Read(biome).Seed ?? unchecked(terrain.Seed ^ biomeSeed);
+        var random = new StableRandom(seed);
         var minimumDistance = biome.Tags.Contains("tree", StringComparer.OrdinalIgnoreCase) ? 3.4f : 1.1f;
         var occupied = new Dictionary<(int X, int Z), List<Vector3Value>>();
         var focusRegion = FocusRegion(biome);
-        var materialPaint = terrain.MaterialPaint.ToDictionary(
-            cell => (cell.X, cell.Z),
-            cell => cell.MaterialLayerId);
+        var exclusionIndex = BiomeScatterExclusionIndex.Create(features, biome);
+        var exclusionQueries = 0L;
+        var candidateSegmentChecks = 0L;
+        var linearCandidateSegmentChecks = 0L;
 
         for (var attempt = 0; attempt < target * 18 && result.Count < target; attempt++)
         {
@@ -50,10 +60,17 @@ public static class BiomeScatterPlanBuilder
                 focusRegion is { } focus &&
                 (x - focus.X) * (x - focus.X) + (z - focus.Z) * (z - focus.Z) > focus.Radius * focus.Radius ||
                 terrain.IsHoleCell(cell.X, cell.Z) ||
-                materialPaint.TryGetValue(cell, out var paintedMaterial) && paintedMaterial != biome.MaterialLayerId ||
-                IsExcluded(world, biome, x, z) ||
-                HasNearbyPlacement(occupied, x, z, minimumDistance))
+                materialPaint.TryGetValue(cell, out var paintedMaterial) && paintedMaterial != biome.MaterialLayerId)
                 continue;
+            exclusionQueries++;
+            var excluded = exclusionIndex.IsExcluded(
+                x,
+                z,
+                out var checkedSegments,
+                out var linearCheckedSegments);
+            candidateSegmentChecks += checkedSegments;
+            linearCandidateSegmentChecks += linearCheckedSegments;
+            if (excluded || HasNearbyPlacement(occupied, x, z, minimumDistance)) continue;
 
             var authoredScale = ScaleMultiplier(biome) is { } multiplier
                 ? multiplier
@@ -71,7 +88,13 @@ public static class BiomeScatterPlanBuilder
             AddOccupied(occupied, position, minimumDistance);
         }
 
-        return result;
+        return new(
+            result,
+            new(
+                exclusionIndex.SegmentCount,
+                exclusionQueries,
+                candidateSegmentChecks,
+                linearCandidateSegmentChecks));
     }
 
     private static (float X, float Z, float Radius)? FocusRegion(BiomeLayerDefinition biome)
@@ -128,32 +151,6 @@ public static class BiomeScatterPlanBuilder
             Math.Min((int)MathF.Floor(normalizedZ * (terrain.SamplesZ - 1)), terrain.SamplesZ - 2));
     }
 
-    private static bool IsExcluded(AreaWorldProfile world, BiomeLayerDefinition biome, float x, float z)
-    {
-        foreach (var feature in world.Features)
-        {
-            var tag = feature.Kind.ToString().ToLowerInvariant();
-            var excludedByKind = biome.ExclusionTags.Contains(tag, StringComparer.OrdinalIgnoreCase);
-            var excludedByGuide = string.Equals(feature.MaterialResource, "builtin/invisible-scatter-exclusion",
-                                      StringComparison.OrdinalIgnoreCase) &&
-                                  feature.CompatibleBiomeTags.Any(featureTag =>
-                                      biome.ExclusionTags.Contains(featureTag, StringComparer.OrdinalIgnoreCase));
-            if (!excludedByKind && !excludedByGuide) continue;
-            for (var index = 0; index < feature.ControlPoints.Count - 1; index++)
-            {
-                var a = feature.ControlPoints[index];
-                var b = feature.ControlPoints[index + 1];
-                var edgeClearance = biome.Tags.Contains("lush-meadow", StringComparer.OrdinalIgnoreCase)
-                    ? .45f
-                    : 1.5f;
-                if (DistanceToSegment(x, z, a.X, a.Z, b.X, b.Z) <= feature.Width * .5f + edgeClearance)
-                    return true;
-            }
-        }
-
-        return false;
-    }
-
     private static float SlopeDegrees(TerrainDefinition terrain, float x, float z)
     {
         const float step = 1f;
@@ -202,18 +199,6 @@ public static class BiomeScatterPlanBuilder
             occupied[cell] = placements;
         }
         placements.Add(position);
-    }
-
-    private static float DistanceToSegment(float px, float pz, float ax, float az, float bx, float bz)
-    {
-        var dx = bx - ax;
-        var dz = bz - az;
-        var length = dx * dx + dz * dz;
-        if (length <= .0001f) return MathF.Sqrt((px - ax) * (px - ax) + (pz - az) * (pz - az));
-        var t = Math.Clamp(((px - ax) * dx + (pz - az) * dz) / length, 0, 1);
-        var x = ax + t * dx;
-        var z = az + t * dz;
-        return MathF.Sqrt((px - x) * (px - x) + (pz - z) * (pz - z));
     }
 
     private sealed class StableRandom

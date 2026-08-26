@@ -74,7 +74,13 @@ internal sealed partial class StudioSessionController
                     item.MinimumDistance, item.MaximumDistance, item.PitchDegrees,
                     item.FocusOffset, item.CollisionAvoidance, item.AlignCharacterFacing,
                     item.TerrainClearance, item.TerrainProbeSamples, item.InitialYawDegrees,
-                    item.MinimumPitchDegrees, item.MaximumPitchDegrees)).ToArray()),
+                    item.MinimumPitchDegrees, item.MaximumPitchDegrees,
+                    item.OcclusionSchemaVersion, item.OcclusionStrategy,
+                    item.CollisionRetractSharpness, item.CollisionReleaseSharpness,
+                    item.WorldLabelSchemaVersion, item.WorldLabelNearDistance,
+                    item.WorldLabelFarDistance, item.WorldLabelMaximumDistance,
+                    item.WorldLabelNearScale, item.WorldLabelFarScale,
+                    item.HideLocalHeroLabelInFirstPerson)).ToArray()),
             new StudioUx6BInputDraft(input.Required, input.AllowRebinding, input.PerPlayerLocal,
                 input.Contexts.ToArray(),
                 input.Actions.Select(item => new StudioUx6BActionDraft(item.Id, item.Key,
@@ -231,7 +237,13 @@ internal sealed partial class StudioSessionController
                     item.Distance, item.MinimumDistance, item.MaximumDistance, item.PitchDegrees,
                     item.FocusOffset, item.CollisionAvoidance, item.AlignCharacterFacing,
                     item.TerrainClearance, item.TerrainProbeSamples, item.InitialYawDegrees,
-                    item.MinimumPitchDegrees, item.MaximumPitchDegrees)).ToArray());
+                    item.MinimumPitchDegrees, item.MaximumPitchDegrees,
+                    item.OcclusionSchemaVersion, item.OcclusionStrategy,
+                    item.CollisionRetractSharpness, item.CollisionReleaseSharpness,
+                    item.WorldLabelSchemaVersion, item.WorldLabelNearDistance,
+                    item.WorldLabelFarDistance, item.WorldLabelMaximumDistance,
+                    item.WorldLabelNearScale, item.WorldLabelFarScale,
+                    item.HideLocalHeroLabelInFirstPerson)).ToArray());
             var input = new RuntimeInputProfile(sourceFoundation.Input.Id,
                 sourceFoundation.Input.SchemaVersion, Ux6BProvenance, draft.Input.Required,
                 draft.Input.AllowRebinding, draft.Input.PerPlayerLocal,
@@ -283,6 +295,9 @@ internal sealed partial class StudioSessionController
             item.MaximumDistance, item.PitchDegrees, item.FocusOffset.X,
             item.FocusOffset.Y, item.FocusOffset.Z, item.TerrainClearance, item.InitialYawDegrees,
             item.MinimumPitchDegrees, item.MaximumPitchDegrees,
+            item.CollisionRetractSharpness, item.CollisionReleaseSharpness,
+            item.WorldLabelNearDistance, item.WorldLabelFarDistance,
+            item.WorldLabelMaximumDistance, item.WorldLabelNearScale, item.WorldLabelFarScale,
         }));
         if (values.Any(value => !float.IsFinite(value)))
             throw new ArgumentException("Les valeurs numériques doivent être finies.");

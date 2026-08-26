@@ -21,7 +21,7 @@ internal sealed partial class StudioSessionController
     private const string Ux2EnvEBusCode = "studio.environment.mix_bus_invalid";
     private const string Ux2EnvESnapshotCode = "studio.environment.audio_snapshot_invalid";
 
-    private readonly SetAreaEnvironmentHandler _setAreaEnvironmentUx2EnvE = new(new SystemClock());
+    private readonly PatchAreaEnvironmentHandler _setAreaEnvironmentUx2EnvE = new(new SystemClock());
     private readonly SetAreaAuthoringHandler _setAreaAuthoringUx2EnvE = new(new SystemClock());
     private StudioUx2EnvEAudioDraft? _approvedAudioUx2EnvE;
     private ProjectRevision? _approvedAudioRevisionUx2EnvE;
@@ -335,7 +335,7 @@ internal sealed partial class StudioSessionController
     private bool TryBuildAudioUx2EnvE(
         StudioUx2EnvEAudioDraft draft,
         bool dryRun,
-        out SetAreaEnvironmentCommand? command,
+        out PatchAreaEnvironmentCommand? command,
         out AreaDefinition? sourceArea,
         out AreaDefinition? candidateArea,
         out AreaEnvironmentProfile? candidateEnvironment,
@@ -423,7 +423,7 @@ internal sealed partial class StudioSessionController
             {
                 diagnostics = projectDiagnostics; message = projectDiagnostics[0].Message; return false;
             }
-            command = new SetAreaEnvironmentCommand(CommandId.From(Guid.NewGuid()), history.State.Revision,
+            command = new PatchAreaEnvironmentCommand(CommandId.From(Guid.NewGuid()), history.State.Revision,
                 sourceArea.Id, environment, dryRun);
             return true;
         }
@@ -1376,7 +1376,7 @@ internal sealed partial class StudioSessionController
             source.Rendering, source.Sky, wind, source.Weather, source.Water, source.Reverb, source.Authoring,
             source.RequireAuthoringRuntimeMetadata);
         var result = controller._setAreaEnvironmentUx2EnvE.Handle(history.State,
-            new SetAreaEnvironmentCommand(CommandId.From(Guid.NewGuid()), history.State.Revision,
+            new PatchAreaEnvironmentCommand(CommandId.From(Guid.NewGuid()), history.State.Revision,
                 area.Id, candidate, false));
         if (!result.Succeeded) return false;
         history.Record(result);

@@ -14,6 +14,8 @@ public sealed class AudioEmitterCatalogValidatorTests
         Assert.Empty(AudioEmitterCatalogValidator.Validate(catalog, new HashSet<Guid> { busId }));
         Assert.Equal(AudioLoopMode.SeamlessRegion, catalog.Definitions.Single().Loop.Mode);
         Assert.Equal(12, catalog.Instances.Single().Transform.Position.X);
+        Assert.Equal(.65f, catalog.Instances.Single().EffectiveControl.Volume);
+        Assert.Equal(["weather==rain"], catalog.Instances.Single().EffectiveControl.Conditions);
     }
 
     [Fact]
@@ -37,7 +39,11 @@ public sealed class AudioEmitterCatalogValidatorTests
         };
         var invalid = new AudioEmitterCatalog(99, [invalidDefinition, invalidDefinition],
         [
-            valid.Instances.Single() with { DefinitionId = Guid.NewGuid() },
+            valid.Instances.Single() with
+            {
+                DefinitionId = Guid.NewGuid(),
+                Control = new AudioEmitterControlProfile(99, 5, false, ["duplicate", "duplicate"]),
+            },
             valid.Instances.Single() with { DefinitionId = Guid.NewGuid() },
         ]);
 
@@ -53,6 +59,7 @@ public sealed class AudioEmitterCatalogValidatorTests
         Assert.Contains(diagnostics, item => item.Code == AudioEmitterCatalogValidator.LoopInvalidCode);
         Assert.Contains(diagnostics, item => item.Code == AudioEmitterCatalogValidator.SpatialInvalidCode);
         Assert.Contains(diagnostics, item => item.Code == AudioEmitterCatalogValidator.InstanceDuplicateCode);
+        Assert.Contains(diagnostics, item => item.Code == AudioEmitterCatalogValidator.ControlInvalidCode);
         Assert.Contains(diagnostics, item => item.Code == AudioEmitterCatalogValidator.DefinitionMissingCode);
         Assert.Contains(diagnostics, item => item.Code == AudioEmitterCatalogValidator.MixBusMissingCode);
         Assert.Contains(diagnostics, item => item.Code == AudioEmitterCatalogValidator.MemoryBudgetCode);
@@ -79,7 +86,8 @@ public sealed class AudioEmitterCatalogValidatorTests
         [
             new AudioEmitterInstance(Guid.Parse("a0040000-0000-4000-8000-000000000005"), definitionId,
                 new TransformValue(new Vector3Value(12, 3, -4), QuaternionValue.Identity, Vector3Value.One),
-                true, "author:audio-test"),
+                true, "author:audio-test",
+                new AudioEmitterControlProfile(1, .65f, false, ["weather==rain"])),
         ]);
     }
 }

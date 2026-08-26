@@ -24,6 +24,10 @@ public static class GodotTerrainMaterialAdapter
         uniform sampler2D surface_texture : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
         uniform bool use_surface_texture = false;
         uniform float surface_uv_scale : hint_range(0.5, 32.0) = 4.0;
+        uniform float forge_surface_wetness : hint_range(0.0, 1.0) = 0.0;
+        uniform float forge_wetness_albedo_darkening : hint_range(0.0, 0.35) = 0.14;
+        uniform float forge_wetness_roughness_reduction : hint_range(0.0, 0.8) = 0.36;
+        uniform float forge_wetness_specular_increase : hint_range(0.0, 0.6) = 0.2;
         varying vec3 world_position;
 
         float forge_road_hash(vec2 value) {
@@ -63,14 +67,16 @@ public static class GodotTerrainMaterialAdapter
             float left_rut = 1.0 - smoothstep(0.05, 0.16, abs(UV.x - 0.32));
             float right_rut = 1.0 - smoothstep(0.05, 0.16, abs(UV.x - 0.68));
             color *= 1.0 - max(left_rut, right_rut) * 0.075;
-            ALBEDO = clamp(color, vec3(0.07), vec3(0.90));
+            float wetness = clamp(forge_surface_wetness, 0.0, 1.0);
+            float wet_albedo_scale = 1.0 - forge_wetness_albedo_darkening * wetness;
+            ALBEDO = clamp(color * wet_albedo_scale, vec3(0.045), vec3(0.90));
             EMISSION = ALBEDO * 0.65;
             float edge = abs(UV.x - 0.5) * 2.0;
             float edge_noise = (forge_road_noise(world_position.xz * 0.62 + vec2(5.0, 17.0)) - 0.5) * 0.13;
             ALPHA = 1.0 - smoothstep(0.72 + edge_noise, 1.0 + edge_noise, edge);
-            ROUGHNESS = clamp(0.92 - broad * 0.13, 0.72, 0.95);
+            ROUGHNESS = clamp(0.92 - broad * 0.13 - forge_wetness_roughness_reduction * wetness, 0.08, 0.95);
             METALLIC = 0.0;
-            SPECULAR = 0.18;
+            SPECULAR = clamp(0.18 + forge_wetness_specular_increase * wetness, 0.0, 1.0);
             AO = 0.82 + broad * 0.16;
             AO_LIGHT_AFFECT = 0.68;
         }
@@ -88,6 +94,10 @@ public static class GodotTerrainMaterialAdapter
         uniform sampler2D secondary_surface_texture : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
         uniform bool use_secondary_surface_texture = false;
         uniform float secondary_surface_uv_scale : hint_range(0.5, 32.0) = 4.0;
+        uniform float forge_surface_wetness : hint_range(0.0, 1.0) = 0.0;
+        uniform float forge_wetness_albedo_darkening : hint_range(0.0, 0.35) = 0.14;
+        uniform float forge_wetness_roughness_reduction : hint_range(0.0, 0.8) = 0.36;
+        uniform float forge_wetness_specular_increase : hint_range(0.0, 0.6) = 0.2;
 
         float forge_hash(vec2 value) {
             return fract(sin(dot(value, vec2(127.1, 311.7))) * 43758.5453123);
@@ -160,16 +170,13 @@ public static class GodotTerrainMaterialAdapter
             float luminance = dot(layered, vec3(0.2126, 0.7152, 0.0722));
             layered = mix(vec3(luminance), layered, 0.96);
 
-            vec2 micro_uv = world_position.xz * 1.65;
-            float normal_x = forge_noise(micro_uv + vec2(0.055, 0.0)) - forge_noise(micro_uv - vec2(0.055, 0.0));
-            float normal_y = forge_noise(micro_uv + vec2(0.0, 0.055)) - forge_noise(micro_uv - vec2(0.0, 0.055));
-            NORMAL_MAP = normalize(vec3(normal_x * 2.8, normal_y * 2.8, 1.0)) * 0.5 + 0.5;
-            NORMAL_MAP_DEPTH = mix(0.34, 0.62, slope);
-
-            ALBEDO = clamp(layered, vec3(0.025), vec3(0.84));
-            ROUGHNESS = clamp(mix(0.94, 0.70, macro) + slope * 0.035, 0.62, 0.96);
+            float wetness = clamp(forge_surface_wetness, 0.0, 1.0);
+            float wet_albedo_scale = 1.0 - forge_wetness_albedo_darkening * wetness;
+            ALBEDO = clamp(layered * wet_albedo_scale, vec3(0.025), vec3(0.84));
+            ROUGHNESS = clamp(mix(0.94, 0.70, macro) + slope * 0.035 -
+                forge_wetness_roughness_reduction * wetness, 0.08, 0.96);
             METALLIC = 0.012;
-            SPECULAR = 0.24;
+            SPECULAR = clamp(0.24 + forge_wetness_specular_increase * wetness, 0.0, 1.0);
             AO = clamp(0.76 + macro * 0.23 - slope * 0.06, 0.62, 1.0);
             AO_LIGHT_AFFECT = 0.72;
         }

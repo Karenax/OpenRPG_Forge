@@ -1,4 +1,6 @@
 using Forge.Studio.Session;
+using Forge.Domain.Spatial;
+using Forge.EngineAdapter.Spatial;
 using Godot;
 
 namespace Forge.Studio.Presentation;
@@ -48,6 +50,8 @@ internal sealed partial class StudioWorldViewport
         foreach (var pose in preview.Poses)
         {
             var color = pose.IsValid ? StudioStyle.Success : StudioStyle.Danger;
+            var authored = pose.Transform ?? new TransformValue(
+                pose.Position, QuaternionValue.Identity, Vector3Value.One);
             var ghost = new MeshInstance3D
             {
                 Name = pose.IsValid ? "ValidPlacementGhost" : "InvalidPlacementGhost",
@@ -62,6 +66,8 @@ internal sealed partial class StudioWorldViewport
                 },
                 MaterialOverride = PlacementGhostMaterial(color),
             };
+            ghost.Quaternion = EngineValueConverter.ToEngine(authored.Rotation).Normalized();
+            ghost.Scale = EngineValueConverter.ToEngine(authored.Scale);
             _placementGhostRoot.AddChild(ghost);
         }
 

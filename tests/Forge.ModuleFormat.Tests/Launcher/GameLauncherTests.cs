@@ -18,6 +18,22 @@ public sealed class GameLauncherTests : IDisposable
         Guid.NewGuid().ToString("N"));
 
     [Fact]
+    public void DefaultDisplay_IsFullscreenAndLegacyWindowedModesAreBorderlessFullscreen()
+    {
+        var verification = CreateVerifiedLayout(GameLauncherMultiplayerMode.LocalHost);
+
+        var settings = GameLauncherUserSettings.CreateDefault(verification.Manifest);
+
+        Assert.Equal(LauncherWindowMode.Fullscreen, settings.WindowMode);
+        Assert.False(LauncherWindowModePolicy.UsesBorderlessFullscreen(settings.WindowMode));
+        Assert.True(LauncherWindowModePolicy.UsesBorderlessFullscreen(LauncherWindowMode.Windowed));
+        Assert.True(LauncherWindowModePolicy.UsesBorderlessFullscreen(LauncherWindowMode.Borderless));
+        Assert.Equal(
+            LauncherWindowMode.Windowed,
+            LauncherWindowModePolicy.Canonicalize(LauncherWindowMode.Borderless));
+    }
+
+    [Fact]
     public void SettingsAndLocalHostLaunchPlan_RoundTripWithoutSecrets()
     {
         var verification = CreateVerifiedLayout(GameLauncherMultiplayerMode.LocalHost);

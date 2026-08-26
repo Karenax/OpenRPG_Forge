@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using Forge.Application.Areas;
 using Forge.Domain.Audio;
 using Forge.Domain.Projects;
 using Forge.Domain.Validation;
@@ -11,6 +12,7 @@ public static class WorkspaceAudioValidator
     public const string ResourceMissingCode = "audio.resource.missing";
     public const string ResourceSizeCode = "audio.resource.size_mismatch";
     public const string ResourceHashCode = "audio.resource.hash_mismatch";
+    public const string BuiltinUnsupportedCode = "audio.resource.builtin_unsupported";
 
     public static IReadOnlyList<DomainDiagnostic> Validate(string workspacePath, ProjectDefinition project)
     {
@@ -30,8 +32,25 @@ public static class WorkspaceAudioValidator
                 for (var clipIndex = 0; clipIndex < definition.ClipSet.Clips.Count; clipIndex++)
                 {
                     var clip = definition.ClipSet.Clips[clipIndex];
-                    if (clip.ResourcePath.StartsWith("builtin://", StringComparison.Ordinal)) continue;
                     var path = $"areas/{area.Id}/environment/audio/emitters/definitions/{definitionIndex}/clipSet/clips/{clipIndex}/resourcePath";
+                    if (clip.ResourcePath.StartsWith("builtin://", StringComparison.Ordinal))
+                    {
+                        if (!ProceduralAmbientAudioService.IsSupported(clip.ResourcePath))
+                        {
+                            diagnostics.Add(new DomainDiagnostic(BuiltinUnsupportedCode,
+                                $"Built-in audio resource '{clip.ResourcePath}' is not supported.", path));
+                            continue;
+                        }
+                        var generated = ProceduralAmbientAudioService.Create(clip.ResourcePath);
+                        if (generated.Pcm16Mono.LongLength != clip.MemoryBytes)
+                            diagnostics.Add(new DomainDiagnostic(ResourceSizeCode,
+                                $"Built-in audio resource '{clip.ResourcePath}' size does not match declared memory bytes.", path));
+                        if (!string.Equals(generated.ContentSha256, clip.ContentSha256,
+                                StringComparison.OrdinalIgnoreCase))
+                            diagnostics.Add(new DomainDiagnostic(ResourceHashCode,
+                                $"Built-in audio resource '{clip.ResourcePath}' does not match its SHA-256.", path));
+                        continue;
+                    }
                     var absolute = Path.GetFullPath(Path.Combine(workspacePath,
                         clip.ResourcePath.Replace('/', Path.DirectorySeparatorChar)));
                     if (!absolute.StartsWith(root, StringComparison.OrdinalIgnoreCase))

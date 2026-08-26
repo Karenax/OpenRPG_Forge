@@ -15,4 +15,6 @@ public sealed record AudioEmitterPlayback(
     float StartDelaySeconds,
     bool Autoplay,
     string ActivatedScript,
-    string CompletedScript);
+    string CompletedScript,
+    float Volume,
+    IReadOnlyList<string> Conditions);

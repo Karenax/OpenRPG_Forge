@@ -18,6 +18,10 @@ public sealed record GodotPrecipitationMotion(
     float MinimumVelocity,
     float MaximumVelocity);
 
+public sealed record GodotPrecipitationAppearance(
+    BaseMaterial3D.BillboardModeEnum BillboardMode,
+    bool AlignYToVelocity);
+
 public static class GodotClimateAdapter
 {
     public const string PrecipitationResourceMissingCode = "environment.weather.resource_missing";
@@ -80,12 +84,13 @@ public static class GodotClimateAdapter
 
         var visual = plan.Weather.Precipitation;
         var color = new Color(visual.Color);
+        var appearance = DescribePrecipitationAppearance(plan.Weather.Kind);
         var drawMaterial = new StandardMaterial3D
         {
             AlbedoColor = color,
             ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
             Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
-            BillboardMode = BaseMaterial3D.BillboardModeEnum.Enabled,
+            BillboardMode = appearance.BillboardMode,
         };
         var mesh = new QuadMesh
         {
@@ -102,6 +107,7 @@ public static class GodotClimateAdapter
             InitialVelocityMin = motion.MinimumVelocity,
             InitialVelocityMax = motion.MaximumVelocity,
             Gravity = motion.Gravity,
+            ParticleFlagAlignY = appearance.AlignYToVelocity,
         };
         return new GpuParticles3D
         {
@@ -131,6 +137,16 @@ public static class GodotClimateAdapter
             visual.DirectionZ + wind.DirectionZ * visual.WindInfluence).Normalized();
         return new(direction, new Vector3(0, visual.GravityY, 0), visual.SpreadDegrees,
             visual.MinimumVelocity, visual.MaximumVelocity);
+    }
+
+    public static GodotPrecipitationAppearance DescribePrecipitationAppearance(WeatherKind kind)
+    {
+        var streak = kind is WeatherKind.Rain or WeatherKind.Storm;
+        return new(
+            streak
+                ? BaseMaterial3D.BillboardModeEnum.Particles
+                : BaseMaterial3D.BillboardModeEnum.Enabled,
+            streak);
     }
 
     private static Node3D CreateWaterBody(WaterBodyProfile body, WaterQualityTier quality)

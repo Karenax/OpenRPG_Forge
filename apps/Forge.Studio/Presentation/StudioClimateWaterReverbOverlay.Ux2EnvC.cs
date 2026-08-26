@@ -113,6 +113,9 @@ internal sealed partial class StudioUx2EnvCWeatherStateRow : StudioUx2EnvBRowBas
     private readonly SpinBox _intensity;
     private readonly SpinBox _humidity;
     private readonly SpinBox _wetness;
+    private readonly SpinBox _wetnessAlbedoDarkening;
+    private readonly SpinBox _wetnessRoughnessReduction;
+    private readonly SpinBox _wetnessSpecularIncrease;
     private readonly CheckBox _lightning;
     private readonly LineEdit _precipitation;
     private readonly LineEdit _audio;
@@ -137,7 +140,13 @@ internal sealed partial class StudioUx2EnvCWeatherStateRow : StudioUx2EnvBRowBas
 
     public override StudioUx2EnvCWeatherStateDraft Value => new(
         _id, _name.Text, (WeatherKind)_kind.Selected, (float)_intensity.Value,
-        (float)_humidity.Value, (float)_wetness.Value, _lightning.ButtonPressed,
+        (float)_humidity.Value, (float)_wetness.Value,
+        new SurfaceWetnessMaterialProfile(
+            SurfaceWetnessMaterialProfile.CurrentSchemaVersion,
+            (float)_wetnessAlbedoDarkening.Value,
+            (float)_wetnessRoughnessReduction.Value,
+            (float)_wetnessSpecularIncrease.Value),
+        _lightning.ButtonPressed,
         _precipitation.Text, _audio.Text, _gameplay.Text, (float)_minimum.Value,
         (float)_maximum.Value, (float)_transition.Value,
         new PrecipitationVisualProfile(
@@ -165,6 +174,9 @@ internal sealed partial class StudioUx2EnvCWeatherStateRow : StudioUx2EnvBRowBas
         _intensity = Number(0, 1, .01, value.Intensity);
         _humidity = Number(0, 1, .01, value.Humidity);
         _wetness = Number(0, 1, .01, value.SurfaceWetness);
+        _wetnessAlbedoDarkening = Number(0, .35, .01, value.WetnessMaterial.AlbedoDarkening);
+        _wetnessRoughnessReduction = Number(0, .8, .01, value.WetnessMaterial.RoughnessReduction);
+        _wetnessSpecularIncrease = Number(0, .6, .01, value.WetnessMaterial.SpecularIncrease);
         _lightning = StudioUx2EnvBControls.Check("Éclairs déclarés"); _lightning.ButtonPressed = value.Lightning;
         _precipitation = Text(value.PrecipitationResource);
         _audio = Text(value.AudioCue); _gameplay = Text(value.GameplayEffect);
@@ -195,6 +207,9 @@ internal sealed partial class StudioUx2EnvCWeatherStateRow : StudioUx2EnvBRowBas
         state.AddChild(StudioUx2EnvBControls.Field("Intensité", _intensity));
         state.AddChild(StudioUx2EnvBControls.Field("Humidité", _humidity));
         state.AddChild(StudioUx2EnvBControls.Field("Sol humide", _wetness));
+        state.AddChild(StudioUx2EnvBControls.Field("Assombrissement mouillé", _wetnessAlbedoDarkening));
+        state.AddChild(StudioUx2EnvBControls.Field("Réduction de rugosité", _wetnessRoughnessReduction));
+        state.AddChild(StudioUx2EnvBControls.Field("Gain spéculaire", _wetnessSpecularIncrease));
         state.AddChild(StudioUx2EnvBControls.Field("Durée minimale (s)", _minimum));
         state.AddChild(StudioUx2EnvBControls.Field("Durée maximale (s)", _maximum));
         state.AddChild(StudioUx2EnvBControls.Field("Transition (s)", _transition));
@@ -222,7 +237,9 @@ internal sealed partial class StudioUx2EnvCWeatherStateRow : StudioUx2EnvBRowBas
         appearance.AddChild(StudioUx2EnvBControls.Field("Aléatoire", _precipitationRandomness));
         appearance.AddChild(StudioUx2EnvBControls.Field("Couleur RGBA", _precipitationColor));
         Root.AddChild(appearance);
-        Watch(_name); Watch(_kind); Watch(_intensity); Watch(_humidity); Watch(_wetness); Watch(_lightning);
+        Watch(_name); Watch(_kind); Watch(_intensity); Watch(_humidity); Watch(_wetness);
+        Watch(_wetnessAlbedoDarkening); Watch(_wetnessRoughnessReduction); Watch(_wetnessSpecularIncrease);
+        Watch(_lightning);
         Watch(_precipitation); Watch(_audio); Watch(_gameplay); Watch(_minimum); Watch(_maximum); Watch(_transition);
         foreach (var control in new[] { _precipitationDirectionX, _precipitationDirectionZ,
                      _precipitationWindInfluence, _precipitationSpread, _precipitationMinimumVelocity,
@@ -238,7 +255,8 @@ internal sealed partial class StudioUx2EnvCWeatherStateRow : StudioUx2EnvBRowBas
         foreach (var control in new[] { _name, _precipitation, _audio, _gameplay }) control.Editable = enabled;
         _precipitationColor.Editable = enabled;
         _kind.Disabled = !enabled; _lightning.Disabled = !enabled;
-        foreach (var control in new[] { _intensity, _humidity, _wetness, _minimum, _maximum, _transition })
+        foreach (var control in new[] { _intensity, _humidity, _wetness, _wetnessAlbedoDarkening,
+                     _wetnessRoughnessReduction, _wetnessSpecularIncrease, _minimum, _maximum, _transition })
             control.Editable = enabled;
         foreach (var control in new[] { _precipitationDirectionX, _precipitationDirectionZ,
                      _precipitationWindInfluence, _precipitationSpread, _precipitationMinimumVelocity,
@@ -562,7 +580,8 @@ internal sealed partial class StudioClimateWaterReverbOverlayUx2EnvC : ColorRect
         _weatherStates = new StudioUx2EnvBCollectionEditor<StudioUx2EnvCWeatherStateDraft>(
             "Ajouter un état météo", value => new StudioUx2EnvCWeatherStateRow(value),
             () => new StudioUx2EnvCWeatherStateDraft(Guid.NewGuid(), "Nouvel état", WeatherKind.Clear,
-                0, .35f, 0, false, string.Empty, string.Empty, string.Empty, 300, 600, 8,
+                0, .35f, 0, SurfaceWetnessMaterialProfile.CreateDefault(), false,
+                string.Empty, string.Empty, string.Empty, 300, 600, 8,
                 PrecipitationVisualProfile.CreateDefault(WeatherKind.Clear)));
         BuildWeatherTab();
 

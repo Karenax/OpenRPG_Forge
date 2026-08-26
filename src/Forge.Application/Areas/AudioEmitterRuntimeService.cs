@@ -5,13 +5,18 @@ public static class AudioEmitterRuntimeService
 {
     public static IReadOnlyList<AudioEmitterPlayback> CreateInitialPlaybacks(
         AudioEmitterCatalog? catalog,
-        int deterministicSeed = 0)
+        int deterministicSeed = 0,
+        Func<string, bool>? conditionEvaluator = null)
     {
         if (catalog is null) return [];
         var definitions = catalog.Definitions.ToDictionary(item => item.Id);
         var results = new List<AudioEmitterPlayback>();
         foreach (var instance in catalog.Instances.Where(item => item.Enabled).OrderBy(item => item.Id))
         {
+            var control = instance.EffectiveControl;
+            if (control.Muted || conditionEvaluator is not null &&
+                control.Conditions.Any(condition => !conditionEvaluator(condition)))
+                continue;
             if (!definitions.TryGetValue(instance.DefinitionId, out var definition) || definition.ClipSet.Clips.Count == 0)
                 continue;
             var clip = SelectClip(definition.ClipSet, deterministicSeed, instance.Id);
@@ -19,7 +24,8 @@ public static class AudioEmitterRuntimeService
                 new AudioEmitterHandle(instance.Id), definition.Id, clip.Id, clip.ResourcePath,
                 instance.Transform, definition.Loop, definition.Spatial, definition.MixBusId,
                 definition.StartDelaySeconds, definition.Loop.Mode != AudioLoopMode.EventDriven,
-                definition.ActivatedScript, definition.CompletedScript));
+                definition.ActivatedScript, definition.CompletedScript, control.Volume,
+                control.Conditions.ToArray()));
         }
         return results;
     }

@@ -24,6 +24,12 @@ public sealed class GameplayFoundationProfileTests
         {
             Assert.Equal(-85, camera.MinimumPitchDegrees);
             Assert.Equal(85, camera.MaximumPitchDegrees);
+            Assert.Equal(CameraOcclusionStrategy.Retract, camera.OcclusionStrategy);
+            Assert.Equal(24, camera.CollisionRetractSharpness);
+            Assert.Equal(3.25f, camera.CollisionReleaseSharpness);
+            Assert.Equal(.55f, camera.WorldLabelNearScale);
+            Assert.Equal(1.15f, camera.WorldLabelFarScale);
+            Assert.True(camera.HideLocalHeroLabelInFirstPerson);
         });
         Assert.Equal("SHA-256", first.Save.ChecksumAlgorithm);
     }
@@ -48,6 +54,10 @@ public sealed class GameplayFoundationProfileTests
                             InitialYawDegrees = 500,
                             MinimumPitchDegrees = 20,
                             MaximumPitchDegrees = -20,
+                            CollisionRetractSharpness = 0,
+                            CollisionReleaseSharpness = 0,
+                            WorldLabelFarDistance = 1,
+                            WorldLabelMaximumDistance = .5f,
                         }
                         : camera)
                     .ToArray(),
@@ -68,6 +78,10 @@ public sealed class GameplayFoundationProfileTests
             item.Path.Contains("initialYawDegrees", StringComparison.Ordinal));
         Assert.Contains(diagnostics, item => item.Code == GameplayFoundationValidator.CameraCode &&
             item.Path.Contains("pitchLimits", StringComparison.Ordinal));
+        Assert.Contains(diagnostics, item => item.Code == GameplayFoundationValidator.CameraCode &&
+            item.Path.Contains("collisionEasing", StringComparison.Ordinal));
+        Assert.Contains(diagnostics, item => item.Code == GameplayFoundationValidator.CameraCode &&
+            item.Path.Contains("worldLabels", StringComparison.Ordinal));
         Assert.Contains(diagnostics, item => item.Code == GameplayFoundationValidator.InputReferenceCode);
         Assert.Contains(diagnostics, item => item.Code == GameplayFoundationValidator.SaveCode && item.Message.Contains(source.Save.Id.ToString("D")));
     }

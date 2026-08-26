@@ -9,8 +9,14 @@ public sealed class DialogueTraversal
     public bool Completed => CurrentNode is null;
 
     public DialogueTraversal(DialogueDefinition dialogue)
+        : this(dialogue, dialogue?.EntryNodeId ?? throw new ArgumentNullException(nameof(dialogue)))
+    {
+    }
+
+    public DialogueTraversal(DialogueDefinition dialogue, DialogueNodeId entryNodeId)
     {
         ArgumentNullException.ThrowIfNull(dialogue);
+        ArgumentNullException.ThrowIfNull(entryNodeId);
         var diagnostics = DialogueValidator.Validate(dialogue);
         if (diagnostics.Count > 0)
         {
@@ -20,7 +26,10 @@ public sealed class DialogueTraversal
         }
 
         _dialogue = dialogue;
-        CurrentNode = dialogue.Nodes.Single(node => node.Id == dialogue.EntryNodeId);
+        CurrentNode = dialogue.Nodes.SingleOrDefault(node => node.Id == entryNodeId)
+            ?? throw new ArgumentException(
+                $"Dialogue entry node '{entryNodeId}' is not part of dialogue '{dialogue.Id}'.",
+                nameof(entryNodeId));
     }
 
     public DialogueStep Start() => new(CurrentNode, CurrentNode!.OnEnterActions, Completed: false);

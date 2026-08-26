@@ -138,6 +138,7 @@ public partial class GameRoot : Node3D
     private const string VisualCaptureArgument = "--visual-capture";
     private const string SolarenVisualFixtureArgument = "--solaren-visual-fixture";
     private const string ModuleMapVisualCaptureArgument = "--module-map-visual-capture";
+    private const string ModuleMapFloorArgument = "--module-map-floor";
     private const string RpgMenuVisualCaptureArgument = "--rpg-menu-visual-capture";
     private const string RpgMenuPageArgument = "--rpg-menu-page";
     private const string DialogueVisualCaptureArgument = "--dialogue-visual-capture";
@@ -163,7 +164,7 @@ public partial class GameRoot : Node3D
     private readonly Dictionary<Node3D, IReadOnlyList<LootGrant>> _corpseLoot = [];
     private readonly Dictionary<Node3D, CreatureEventProfile> _corpseCreatureEvents = [];
     private ProjectBlackboardScriptService _blackboard = ProjectBlackboardScriptService.ForRuntime([]);
-    private readonly HashSet<string> _inventory = new(StringComparer.Ordinal);
+    private readonly RuntimeInventoryState _inventory = new();
     private ItemUniqueRegistryState _uniqueItemRegistry = ItemUniqueRegistryState.Empty;
     private BlueprintDefinition? _keyItemBlueprint;
     private Guid? _keyItemUniqueToken;
@@ -204,6 +205,16 @@ public partial class GameRoot : Node3D
     private readonly ForgeScriptUiEventService _scriptUiEvents = new();
     private readonly Dictionary<string, SafeJsonHandle> _runtimeJsonHandles = new(StringComparer.Ordinal);
     private readonly RuntimeCameraRig _cameraRig = new();
+    private readonly Queue<(long Id, Action Mutation)> _pendingCameraMutations = [];
+    private long _nextCameraMutationId;
+    private long _completedCameraMutationId;
+    private readonly Dictionary<GeometryInstance3D, (bool Visible, float Transparency)> _cameraOccluders = [];
+    private readonly Dictionary<Label3D, (Color BaseColor, bool IsLocalHero)> _worldLabels = [];
+    private SequenceEvaluation? _pendingSequenceCompletion;
+    private string? _pendingSequenceCompletionReason;
+    private float? _pendingCameraFieldOfView;
+    private Vector3? _pendingCameraPosition;
+    private Vector3? _pendingCameraLookAt;
     private WorldFeatureCatalog? _worldFeatureCatalog;
     private readonly HashSet<Guid> _livingWorldTriggerOccupancy = [];
     private readonly HashSet<Guid> _livingWorldTriggerDiagnostics = [];
@@ -237,16 +248,27 @@ public partial class GameRoot : Node3D
     private WaypointMapPresentation? _trackedWaypointMarker;
     private string _lastPresentedObjective = string.Empty;
     private RuntimeRpgMenu? _rpgMenu;
+    private RuntimeModulePresentation? _runtimePresentation;
+    private AreaMapExplorationState? _mapExploration;
+    private string? _mapExplorationAreaId;
+    private string? _mapExplorationCell;
     private RuntimeDialogueOverlay? _dialogueOverlay;
     private Node3D? _npc;
+    private readonly Dictionary<Node3D, (BlueprintId BlueprintId, string DisplayName)> _narrativeParticipants = [];
+    private Node3D? _activeDialogueParticipant;
     private Node3D? _keyItem;
     private Node3D? _door;
     private Node3D? _boss;
     private Node3D? _bossCorpse;
     private Node3D? _exit;
-    private DialogueDefinition? _elyraDialogue;
-    private QuestStateMachine? _questMachine;
-    private QuestDefinition? _questDefinition;
+    private DialogueDefinition? _activeDialogue;
+    private DialogueNodeId? _activeDialogueEntryNodeId;
+    private DialogueTraversal? _activeDialogueTraversal;
+    private DialogueId? _activeDialogueTraversalDialogueId;
+    private IReadOnlyList<DialogueChoice> _activeDialogueChoices = [];
+    private bool _dialogueChoiceCommitted;
+    private RuntimeQuestStateTracker? _questTracker;
+    private QuestDefinition? _trackedQuestDefinition;
     private EntityId? _doorEntityId;
     private ForgeScriptArtifact? _bossPhaseTwoScript;
     private ForgeScriptArtifact? _bossDeathScript;
@@ -292,6 +314,13 @@ public partial class GameRoot : Node3D
     private Node3D? _climateEffects;
     private string? _climateSignature;
     private double _climateProbeElapsed;
+    private readonly GodotSurfaceWetnessAdapter _surfaceWetnessMaterials = new();
+    private SurfaceWetnessTransitionState? _surfaceWetnessTransition;
+    private SurfaceWetnessMaterialProfile? _surfaceWetnessCoefficients;
+    private GodotSurfaceWetnessResult? _surfaceWetnessResult;
+    private float _surfaceWetnessValue;
+    private bool _surfaceWetnessInitialized;
+    private bool _surfaceWetnessBound;
     private Node3D? _areaWorldRoot;
     private ModuleRuntimePolicyProfile? _moduleRuntimePolicies;
     private AreaRuntimePolicyProfile? _areaRuntimePolicies;
@@ -329,6 +358,7 @@ public partial class GameRoot : Node3D
     private Node? _questExperienceRoot;
     private Node? _questQualityRoot;
     private WaypointRuntimeState _waypointRuntimeState = WaypointRuntimeState.Empty;
+    private readonly Dictionary<Node3D, EntityWaypointPatrolState> _entityWaypointPatrols = [];
     private readonly Dictionary<string, AudioStreamPlayer> _adaptiveAmbiencePlayers =
         new(StringComparer.Ordinal);
     private IReadOnlySet<string> _activeBiomeTags = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -416,6 +446,15 @@ public partial class GameRoot : Node3D
         var visualCapturePath = GetArgumentValue(userArguments, VisualCaptureArgument);
         var solarenVisualFixture = GetArgumentValue(userArguments, SolarenVisualFixtureArgument);
         var moduleMapVisualCapturePath = GetArgumentValue(userArguments, ModuleMapVisualCaptureArgument);
+        var moduleMapFloorValue = GetArgumentValue(userArguments, ModuleMapFloorArgument);
+        int? moduleMapFloor = null;
+        if (moduleMapFloorValue is not null)
+        {
+            if (!int.TryParse(moduleMapFloorValue, NumberStyles.Integer, CultureInfo.InvariantCulture,
+                    out var parsedFloor))
+                throw new InvalidOperationException("The requested module map floor must be an integer.");
+            moduleMapFloor = parsedFloor;
+        }
         var rpgMenuVisualCapturePath = GetArgumentValue(userArguments, RpgMenuVisualCaptureArgument);
         var dialogueVisualCapturePath = GetArgumentValue(userArguments, DialogueVisualCaptureArgument);
         var actionWheelVisualCapturePath = GetArgumentValue(userArguments, ActionWheelVisualCaptureArgument);
@@ -521,8 +560,11 @@ public partial class GameRoot : Node3D
             ApplyPlaytestLaunch(project, playtestManifest);
             if (_camera is not null && _player is not null)
             {
-                _cameraRig.Snap(_camera, _player.GlobalPosition,
-                    _isCryptPrototype ? null : ConstrainCameraPosition);
+                var camera = _camera;
+                var target = _player.GlobalPosition;
+                await MutateCameraInPhysicsAsync(() =>
+                    _cameraRig.Snap(camera, target,
+                        _isCryptPrototype ? null : ConstrainCameraPosition));
             }
             EnsureLifecycle(
                 _lifecycle.EnterInitialArea(
@@ -539,6 +581,7 @@ public partial class GameRoot : Node3D
             }
 
             CreateHud();
+            if (moduleMapFloor is { } requestedMapFloor) SetActiveMapFloor(requestedMapFloor);
             ApplyModuleWindowTitle();
             ConfigureWaypointRuntime(startArea.Navigation.Waypoints);
             if (solarenVisualFixture is not null)
@@ -548,9 +591,14 @@ public partial class GameRoot : Node3D
                         "A Solaren visual fixture requires an explicit --visual-capture destination.");
                 await ConfigureSolarenVisualFixtureAsync(solarenVisualFixture);
             }
-            if (!entryGroundSmokeTest && !innUxSmokeTest &&
-                !cryptMovementSmokeTest && !combatFeedbackSmokeTest &&
-                combatFeedbackCapturePath is null)
+            BindSurfaceWetnessMaterials();
+            if (RuntimeStartupVerificationPolicy.ShouldRun(
+                    automatedTest,
+                    entryGroundSmokeTest,
+                    innUxSmokeTest,
+                    cryptMovementSmokeTest,
+                    combatFeedbackSmokeTest,
+                    combatFeedbackCapturePath is not null))
             {
                 VerifyModernRuntimeTooling(project, startArea);
                 VerifyOperationalReadiness(project);
@@ -705,7 +753,8 @@ public partial class GameRoot : Node3D
             throw new InvalidOperationException("The module map visual proof requires an active runtime map.");
 
         _moduleMap.SetGlobalMapVisible(true);
-        for (var frame = 0; frame < 8; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        await ToSignal(GetTree().CreateTimer(.5), SceneTreeTimer.SignalName.Timeout);
+        for (var frame = 0; frame < 20; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
         var image = GetViewport().GetTexture().GetImage();
         Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
         if (image.SavePng(destination) != Error.Ok)
@@ -713,7 +762,9 @@ public partial class GameRoot : Node3D
         GD.Print($"OPENRPG_FORGE_MODULE_MAP_VISUAL_PASS file={Path.GetFileName(destination)} " +
                  $"size={image.GetWidth()}x{image.GetHeight()} area={_activeArea.Slug} " +
                  $"areas={_moduleMap.AreaCount} minimap={_moduleMap.MiniMapVisible.ToString().ToLowerInvariant()} " +
-                 $"global={_moduleMap.GlobalMapVisible.ToString().ToLowerInvariant()}");
+                 $"global={_moduleMap.GlobalMapVisible.ToString().ToLowerInvariant()} " +
+                 $"floor={_moduleMap.DisplayedFloorText} markers={_moduleMap.GlobalRenderedMarkerCount} " +
+                 $"label_overlaps={_moduleMap.GlobalMapLabelOverlapCount}");
         GetTree().Quit(0);
     }
 
@@ -722,16 +773,52 @@ public partial class GameRoot : Node3D
         ValidateUiCaptureDestination(destination, "RPG menu");
         if (_rpgMenu is null)
             throw new InvalidOperationException("The RPG menu visual proof requires the player codex.");
+        if (page == RuntimeRpgMenuPage.Journal &&
+            _runtimePresentation?.Journal.ActiveEntry is null &&
+            _npc is not null && _narrativeParticipants.TryGetValue(_npc, out var participant))
+        {
+            var resolution = RuntimeNarrativeResolver.ResolveDialogue(_loadedProject!, participant.BlueprintId);
+            var startsQuest = resolution?.Dialogue.Nodes.SelectMany(node => node.OnEnterActions
+                    .Concat(node.Choices.SelectMany(choice => choice.Actions)))
+                .Any(action => action.Kind == DialogueActionKind.StartQuest) == true;
+            if (startsQuest && TryActivateNarrativeDialogue(_npc, participant))
+            {
+                for (var step = 0;
+                     step < resolution!.Dialogue.Nodes.Count &&
+                     _runtimePresentation?.Journal.ActiveEntry is null;
+                     step++)
+                {
+                    InteractWithGuide();
+                    CommitDialogueChoice(0);
+                    UpdateHud();
+                }
+                _dialogueOverlay?.Close();
+                SyncPlayerInterfaceLock();
+                UpdateHud();
+            }
+        }
         _moduleMap?.SetGlobalMapVisible(false);
         _rpgMenu.ShowPage(page, focus: false);
         SyncPlayerInterfaceLock();
         for (var frame = 0; frame < 8; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        string? journalTitle = null;
+        string? journalObjective = null;
+        if (page == RuntimeRpgMenuPage.Journal)
+        {
+            journalTitle = (_rpgMenu.FindChild("JournalQuestTitle", recursive: true, owned: false) as Label)?.Text;
+            journalObjective = (_rpgMenu.FindChild("JournalActiveObjective", recursive: true, owned: false) as Label)?.Text;
+            if (string.IsNullOrWhiteSpace(journalTitle) || string.IsNullOrWhiteSpace(journalObjective) ||
+                string.Equals(journalTitle, journalObjective, StringComparison.Ordinal))
+                throw new InvalidOperationException(
+                    "The journal capture requires distinct non-empty title and active-objective controls.");
+        }
         var image = GetViewport().GetTexture().GetImage();
         Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
         if (image.SavePng(destination) != Error.Ok)
             throw new IOException("The RPG menu visual proof could not be written.");
         GD.Print($"OPENRPG_FORGE_RPG_MENU_VISUAL_PASS file={Path.GetFileName(destination)} " +
-                 $"size={image.GetWidth()}x{image.GetHeight()} page={page.ToString().ToLowerInvariant()}");
+                 $"size={image.GetWidth()}x{image.GetHeight()} page={page.ToString().ToLowerInvariant()} " +
+                 $"journal_title={journalTitle ?? "none"} active_objective={journalObjective ?? "none"}");
         GetTree().Quit(0);
     }
 
@@ -862,7 +949,7 @@ public partial class GameRoot : Node3D
 
         toasts.ClearAll();
         map.ClearPings();
-        var objective = _questMachine?.CurrentState.Journal.Fallback ?? "Retrouver la relique de la forêt";
+        var objective = _runtimePresentation?.Journal.ActiveObjective ?? "Retrouver la relique de la forêt";
         toasts.Show(RuntimeToastKind.Objective, $"Objectif : {objective}", $"capture-objective:{objective}");
         var objectivePosition = _trackedWaypointMarker?.Position ??
             (_keyItem is not null && GodotObject.IsInstanceValid(_keyItem)
@@ -898,7 +985,11 @@ public partial class GameRoot : Node3D
         map.ClearPings();
         actionBar.ConfigurePrimaryAbility(fixtureAbility);
         actionBar.UpdatePrimaryAbilityState(.7, fixture.Resource, targetAvailable: true);
-        hud.UpdatePlayerStatus("FIXTURE TEST", 18, 30, fixture.Resource, 10, 1);
+        hud.UpdatePlayerStatus(
+            "FIXTURE TEST",
+            new RuntimeModulePresentation.Resource("health", 18, 30),
+            new RuntimeModulePresentation.Resource("resource", fixture.Resource, 10),
+            1);
         hud.UpdateTargetStatus("FIXTURE S+R", fixture.Health, 30, boss: false, defeated: false);
         feedback.Present(fixturePresentation, targetNode);
         feedback.Flash(targetNode, CombatFeedbackAmountKind.Healing);
@@ -1115,6 +1206,8 @@ public partial class GameRoot : Node3D
 
     public override void _Process(double delta)
     {
+        var framePlan = RuntimeFramePhasePlanner.Plan(RuntimeFramePhase.Process);
+        if (!framePlan.ProcessInputAndUi) return;
         if (!_initializationComplete) return;
         _hud?.UpdatePerformance(Engine.GetFramesPerSecond());
         var toggleFpsRequested = Input.IsActionJustPressed("toggle_fps");
@@ -1131,8 +1224,8 @@ public partial class GameRoot : Node3D
             AdvanceClimate(simulationDelta);
             AdvanceRuntimePolicies(simulationDelta);
             AdvanceAreaExperience(simulationDelta);
-            AdvanceCinematics(simulationDelta);
             AdvanceCreatureAmbientBehavior(simulationDelta);
+            AdvanceEntityWaypointPatrols(simulationDelta);
             AdvanceCreatureEvents(simulationDelta);
         }
 
@@ -1144,21 +1237,14 @@ public partial class GameRoot : Node3D
         if (!IsTimeFrozen())
         {
             AdvanceLivingWorldTriggers();
+            AdvanceMapExploration();
         }
 
         if (_camera is not null && !_sequenceOwnsCamera)
         {
-            var cameraTarget = _flyingMount is { IsMounted: true }
-                ? _flyingMount.GetGlobalTransformInterpolated().Origin
-                : _player.GetGlobalTransformInterpolated().Origin;
-            _cameraRig.Update(_camera, cameraTarget, delta,
-                _isCryptPrototype ? null : ConstrainCameraPosition);
             SyncLocalPlayerCameraVisibility();
-            if (_cameraRig.AlignCharacterFacing && _flyingMount?.IsMounted != true)
-            {
-                _player.FaceDirection(_cameraRig.ForwardDirection);
-            }
         }
+        UpdateWorldLabels();
 
         if (Input.IsActionJustPressed("skip_sequence") && _actionWheel?.IsOpen == true)
         {
@@ -1269,7 +1355,7 @@ public partial class GameRoot : Node3D
         {
             if (_activeSequence.Skippable)
             {
-                CompleteSequence(SequencePlayer.Skip(_activeSequence, _sequenceState), "skipped");
+                QueueSequenceCompletion(SequencePlayer.Skip(_activeSequence, _sequenceState), "skipped");
             }
             else
             {
@@ -1286,6 +1372,68 @@ public partial class GameRoot : Node3D
         }
 
         UpdateTacticalHud();
+    }
+
+    public override void _PhysicsProcess(double delta)
+    {
+        var framePlan = RuntimeFramePhasePlanner.Plan(RuntimeFramePhase.PhysicsProcess);
+        while (_pendingCameraMutations.TryDequeue(out var pendingMutation))
+        {
+            pendingMutation.Mutation();
+            _completedCameraMutationId = pendingMutation.Id;
+        }
+        if (!_initializationComplete || !framePlan.MutateInterpolatedCamera) return;
+        RestoreCameraOccluders();
+
+        if (_pendingSequenceCompletion is { } completion)
+        {
+            var reason = _pendingSequenceCompletionReason ?? "completed";
+            _pendingSequenceCompletion = null;
+            _pendingSequenceCompletionReason = null;
+            CompleteSequence(completion, reason);
+        }
+
+        var simulationDelta = delta * (_timeControlSession.State == RuntimeTimeState.SlowMotion
+            ? _timeControlSession.Scale
+            : 1);
+        if (!IsTimeFrozen() && framePlan.AdvanceCameraCinematics)
+            AdvanceCinematics(simulationDelta);
+
+        if (_camera is null) return;
+        if (_player is not null && !_sequenceOwnsCamera)
+        {
+            var cameraTarget = _flyingMount is { IsMounted: true }
+                ? _flyingMount.GlobalPosition
+                : _player.GlobalPosition;
+            _cameraRig.Update(_camera, cameraTarget, delta,
+                _isCryptPrototype ? null : ConstrainCameraPosition);
+            if (_cameraRig.AlignCharacterFacing && _flyingMount?.IsMounted != true)
+                _player.FaceDirection(_cameraRig.ForwardDirection);
+        }
+        if (_pendingCameraFieldOfView is { } fieldOfView)
+        {
+            _camera.Fov = fieldOfView;
+            _pendingCameraFieldOfView = null;
+        }
+        if (_pendingCameraPosition is { } position)
+        {
+            _camera.GlobalPosition = position;
+            _pendingCameraPosition = null;
+        }
+        if (_pendingCameraLookAt is { } lookAt)
+        {
+            _camera.LookAt(lookAt, Vector3.Up);
+            _pendingCameraLookAt = null;
+        }
+    }
+
+    private async Task MutateCameraInPhysicsAsync(Action mutation)
+    {
+        ArgumentNullException.ThrowIfNull(mutation);
+        var id = ++_nextCameraMutationId;
+        _pendingCameraMutations.Enqueue((id, mutation));
+        while (_completedCameraMutationId < id)
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
     }
 
     public override void _UnhandledInput(InputEvent @event)
@@ -1339,8 +1487,16 @@ public partial class GameRoot : Node3D
                         horizontalPosition.AsVector3().X - focus.X,
                         horizontalPosition.AsVector3().Z - focus.Z).Length();
                     var allowedDistance = Math.Max(.75f, hitDistance - CameraHorizontalWallClearance);
-                    var fraction = Math.Clamp(allowedDistance / horizontalDistance, 0, 1);
-                    desired = focus + ((desired - focus) * fraction);
+                    var horizontalResolution = _cameraRig.ResolveOcclusion(horizontalDistance, allowedDistance);
+                    if (horizontalResolution.OccluderTreatment == CameraOccluderTreatment.None)
+                    {
+                        var fraction = Math.Clamp(horizontalResolution.CameraDistance / horizontalDistance, 0, 1);
+                        desired = focus + ((desired - focus) * fraction);
+                    }
+                    else
+                    {
+                        ApplyCameraOccluderTreatment(horizontalHit, horizontalResolution.OccluderTreatment);
+                    }
                 }
             }
         }
@@ -1370,7 +1526,62 @@ public partial class GameRoot : Node3D
             return desired;
         }
         var direction = (desired - focus).Normalized();
-        return position.AsVector3() - (direction * CameraDirectHitClearance);
+        var idealDistance = focus.DistanceTo(desired);
+        var obstacleDistance = Math.Max(0,
+            focus.DistanceTo(position.AsVector3()) - CameraDirectHitClearance);
+        var resolution = _cameraRig.ResolveOcclusion(idealDistance, obstacleDistance);
+        if (resolution.OccluderTreatment != CameraOccluderTreatment.None)
+        {
+            ApplyCameraOccluderTreatment(hit, resolution.OccluderTreatment);
+            return desired;
+        }
+        return focus + (direction * resolution.CameraDistance);
+    }
+
+    private void ApplyCameraOccluderTreatment(
+        Godot.Collections.Dictionary hit,
+        CameraOccluderTreatment treatment)
+    {
+        if (treatment == CameraOccluderTreatment.None ||
+            !hit.TryGetValue("collider", out var collider) ||
+            collider.AsGodotObject() is not Node colliderNode ||
+            FindCameraOccluderVisual(colliderNode) is not { } visual)
+            return;
+        if (!_cameraOccluders.ContainsKey(visual))
+            _cameraOccluders.Add(visual, (visual.Visible, visual.Transparency));
+        if (treatment == CameraOccluderTreatment.Hide)
+            visual.Visible = false;
+        else
+            visual.Transparency = Math.Max(visual.Transparency, .65f);
+    }
+
+    private GeometryInstance3D? FindCameraOccluderVisual(Node collider)
+    {
+        Node? current = collider;
+        for (var depth = 0; current is not null && depth < 4; depth++, current = current.GetParent())
+        {
+            if (current == this) break;
+            if (current is GeometryInstance3D geometry && !IsLocalPlayerVisual(geometry))
+                return geometry;
+            foreach (var candidate in current.FindChildren("*", "GeometryInstance3D", recursive: true, owned: false))
+                if (candidate is GeometryInstance3D child && !IsLocalPlayerVisual(child))
+                    return child;
+        }
+        return null;
+    }
+
+    private bool IsLocalPlayerVisual(Node node) =>
+        _player is not null && (node == _player || node.IsAncestorOf(_player) || _player.IsAncestorOf(node));
+
+    private void RestoreCameraOccluders()
+    {
+        foreach (var pair in _cameraOccluders)
+        {
+            if (!GodotObject.IsInstanceValid(pair.Key)) continue;
+            pair.Key.Visible = pair.Value.Visible;
+            pair.Key.Transparency = pair.Value.Transparency;
+        }
+        _cameraOccluders.Clear();
     }
 
     private void SyncLocalPlayerCameraVisibility()
@@ -1384,6 +1595,25 @@ public partial class GameRoot : Node3D
             if (node is MeshInstance3D mesh) mesh.Visible = visible;
         foreach (var node in _player.FindChildren("*", "Label3D", recursive: true, owned: false))
             if (node is Label3D label) label.Visible = visible;
+    }
+
+    private void UpdateWorldLabels()
+    {
+        if (_camera is null) return;
+        foreach (var pair in _worldLabels.ToArray())
+        {
+            if (!GodotObject.IsInstanceValid(pair.Key) || !pair.Key.IsInsideTree())
+            {
+                _worldLabels.Remove(pair.Key);
+                continue;
+            }
+            var distance = _camera.GlobalPosition.DistanceTo(pair.Key.GlobalPosition);
+            var presentation = _cameraRig.ResolveWorldLabel(distance, pair.Value.IsLocalHero);
+            pair.Key.Visible = presentation.Visible;
+            pair.Key.Scale = Vector3.One * presentation.UniformScale;
+            var color = pair.Value.BaseColor;
+            pair.Key.Modulate = new Color(color.R, color.G, color.B, color.A * presentation.Opacity);
+        }
     }
 
     private ProjectDefinition LoadProject(string? snapshotPath, string? modulePackagePath, string? workspacePath)
@@ -1556,6 +1786,7 @@ public partial class GameRoot : Node3D
     {
         _playtestQuestVariables.Clear();
         if (manifest is null) return;
+        var restoredQuestStates = new List<RuntimeQuestStateSnapshot>();
         foreach (var injection in manifest.QuestStates)
         {
             var quest = project.Quests.SingleOrDefault(item =>
@@ -1565,31 +1796,35 @@ public partial class GameRoot : Node3D
             if (quest.States.All(item => item.Id != stateId))
                 throw new InvalidOperationException(
                     $"Playtest quest state '{injection.StateId}' does not exist in '{injection.QuestId}'.");
-            if (_questDefinition is null || _questDefinition.Id == quest.Id)
-            {
-                _questDefinition = quest;
-                _questMachine = new QuestStateMachine(quest);
-                _questMachine.Restore(stateId);
-            }
+            var acceptedVariable = injection.Variables.SingleOrDefault(variable =>
+                string.Equals(variable.Key, "quest.accepted", StringComparison.Ordinal));
+            var accepted = string.IsNullOrEmpty(acceptedVariable.Key) ||
+                !bool.TryParse(acceptedVariable.Value, out var parsedAcceptance) || parsedAcceptance;
+            restoredQuestStates.Add(new RuntimeQuestStateSnapshot(quest.Id, stateId, accepted));
             foreach (var variable in injection.Variables)
                 _playtestQuestVariables[$"{quest.Id}:{variable.Key}"] = variable.Value;
         }
         var targetKind = Enum.Parse<PlaytestTargetKind>(manifest.TargetKind, ignoreCase: true);
+        QuestId? trackedQuestId = null;
         if (targetKind == PlaytestTargetKind.SelectedQuest)
         {
             var targetId = QuestId.Parse(manifest.TargetId!);
             var quest = project.Quests.Single(item => item.Id == targetId);
             var injection = manifest.QuestStates.Single(item =>
                 string.Equals(item.QuestId, manifest.TargetId, StringComparison.OrdinalIgnoreCase));
-            _questDefinition = quest;
-            _questMachine = new QuestStateMachine(quest);
-            _questMachine.Restore(QuestStateId.Parse(injection.StateId));
+            var stateId = QuestStateId.Parse(injection.StateId);
+            if (!quest.States.Single(state => state.Id == stateId).IsTerminal &&
+                restoredQuestStates.Single(state => state.QuestId == targetId).IsAccepted)
+                trackedQuestId = targetId;
         }
         else if (targetKind == PlaytestTargetKind.Dialogue)
         {
             var targetId = DialogueId.Parse(manifest.TargetId!);
-            _elyraDialogue = project.Dialogues.Single(item => item.Id == targetId);
+            _activeDialogue = project.Dialogues.Single(item => item.Id == targetId);
+            _activeDialogueEntryNodeId = _activeDialogue.EntryNodeId;
         }
+        _questTracker?.Restore(restoredQuestStates, trackedQuestId);
+        SyncTrackedQuestDefinition();
         GD.Print($"OPENRPG_FORGE_RUNTIME_PLAY_FROM_HERE_PASS mode={manifest.StartMode.ToLowerInvariant()} " +
                  $"profile={manifest.TestProfile} area={manifest.AreaId} quests={manifest.QuestStates.Count} " +
                  $"variables={_playtestQuestVariables.Count} target={targetKind.ToString().ToLowerInvariant()} " +
@@ -1604,6 +1839,12 @@ public partial class GameRoot : Node3D
         _livingWorldTriggerFoundationStates.Clear();
         _livingWorldNarrativeState = TriggerNarrativeRuntimeState.Empty;
         _livingWorldPlayerEntity = null;
+        _narrativeParticipants.Clear();
+        _npc = null;
+        _guideName = "Guide";
+        _activeDialogueParticipant = null;
+        _activeDialogue = null;
+        _activeDialogueEntryNodeId = null;
         BuildDialogueAuthoringAdapters(project.Dialogues);
         BuildDialogueExperienceAdapters(project.Dialogues);
         BuildDialogueProductionAdapters(project.Dialogues);
@@ -1611,13 +1852,11 @@ public partial class GameRoot : Node3D
         BuildQuestExperienceAdapters(project.Quests);
         BuildQuestQualityAdapters(project.Quests);
         var blueprints = project.Blueprints.ToDictionary(blueprint => blueprint.Id);
-        var guidedPrototype = _isCryptPrototype;
-        _elyraDialogue = guidedPrototype ? project.Dialogues.SingleOrDefault() : null;
-        var quest = guidedPrototype ? project.Quests.SingleOrDefault() : null;
-        _questDefinition = quest;
-        _questMachine = quest is null ? null : new QuestStateMachine(quest);
-        if (quest?.Operations is { } questOperations)
+        _questTracker = new RuntimeQuestStateTracker(project.Quests);
+        _trackedQuestDefinition = null;
+        foreach (var quest in project.Quests.Where(quest => quest.Operations is not null))
         {
+            var questOperations = quest.Operations!;
             var notification = QuestOperationsRuntimeResolver.ResolveNotification(quest);
             GD.Print($"OPENRPG_FORGE_RUNTIME_QUEST_OPERATIONS_LOADED profile={questOperations.Id:D} " +
                      $"priority={questOperations.Journal.Priority} repeat={questOperations.Repeat.Enabled.ToString().ToLowerInvariant()} " +
@@ -1642,6 +1881,10 @@ public partial class GameRoot : Node3D
         }
 
         _activeArea = selectedSpawn.Area;
+        _inventory.SetAuthoredBaseline(RuntimeAuthoredInventoryResolver.Resolve(
+            project,
+            selectedSpawn.Area.Id,
+            selectedSpawn.Entity.Id));
         BuildAreaCollisionShell(selectedSpawn.Area);
         foreach (var entity in selectedSpawn.Area.Entities)
         {
@@ -2004,11 +2247,17 @@ public partial class GameRoot : Node3D
         if (entity.Tags.Contains("npc", StringComparer.Ordinal) || HasRuntimeRole(entity, "guide"))
         {
             var guideDisplayName = GetOverride(entity, "runtime.displayName") ?? ProgressionDisplayName(blueprint);
-            _npc = CreateCreature(entity, guideDisplayName, new Color("4ec9b0"), blueprint.CreaturePresentation);
-            _guideName = guideDisplayName;
-            ConfigureCreatureFoundation(_npc, blueprint);
-            ConfigureCreatureRoleBehavior(_npc, blueprint);
-            ConfigureCreatureEvents(_npc, blueprint);
+            var narrativeParticipant = CreateCreature(
+                entity, guideDisplayName, new Color("4ec9b0"), blueprint.CreaturePresentation);
+            _narrativeParticipants.Add(narrativeParticipant, (blueprint.Id, guideDisplayName));
+            if (_npc is null)
+            {
+                _npc = narrativeParticipant;
+                _guideName = guideDisplayName;
+            }
+            ConfigureCreatureFoundation(narrativeParticipant, blueprint);
+            ConfigureCreatureRoleBehavior(narrativeParticipant, blueprint);
+            ConfigureCreatureEvents(narrativeParticipant, blueprint);
             return;
         }
 
@@ -2072,7 +2321,7 @@ public partial class GameRoot : Node3D
         CreateLabel(player, !string.IsNullOrWhiteSpace(authoredDisplayName)
                 ? authoredDisplayName.ToUpperInvariant()
                 : blueprint.Combat is null ? "AVATAR" : playerLevel > 0 ? $"HÉROS · NIV. {playerLevel}" : "HÉROS",
-            new Color("dff3ff"), 1.5f);
+            new Color("dff3ff"), 1.5f, isLocalHero: true);
         return player;
     }
 
@@ -2820,6 +3069,16 @@ public partial class GameRoot : Node3D
             $"nav_regions={surfaceNavigation.Regions} nav_polygons={surfaceNavigation.Polygons} " +
             $"nav_blocked={surfaceNavigation.BlockedTriangles} nav_links={surfaceNavigation.Links} " +
             $"streamed={streaming?.Resources.Count ?? 0} cache_hits={streaming?.CacheHits ?? 0} " +
+            $"plan_ms={terrain.Metrics.PlanMilliseconds:0.###} mesh_ms={terrain.Metrics.MeshMilliseconds:0.###} " +
+            $"collision_ms={terrain.Metrics.CollisionMilliseconds:0.###} " +
+            $"features_ms={terrain.Metrics.FeatureMilliseconds:0.###} " +
+            $"scatter_ms={terrain.Metrics.ScatterMilliseconds:0.###} " +
+            $"scatter_mesh_resolve_ms={terrain.Metrics.ScatterMeshResolutionMilliseconds:0.###} " +
+            $"scatter_mesh_prepare_ms={terrain.Metrics.ScatterMeshPreparationMilliseconds:0.###} " +
+            $"scatter_placement_ms={terrain.Metrics.ScatterPlacementMilliseconds:0.###} " +
+            $"scatter_cells_ms={terrain.Metrics.ScatterCellPlanningMilliseconds:0.###} " +
+            $"scatter_upload_ms={terrain.Metrics.ScatterInstanceUploadMilliseconds:0.###} " +
+            $"managed_allocated={terrain.Metrics.ManagedAllocatedBytes} " +
             $"elapsed_ms={elapsed.TotalMilliseconds:0.###} target_ms={profile.Loading.TargetLoadMilliseconds}");
     }
 
@@ -2913,7 +3172,7 @@ public partial class GameRoot : Node3D
         if (string.IsNullOrWhiteSpace(resourcePath)) return null;
         if (resourcePath.StartsWith("builtin://", StringComparison.Ordinal))
         {
-            if (!ProceduralAmbientAudioService.SupportedResources.Contains(resourcePath, StringComparer.Ordinal))
+            if (!ProceduralAmbientAudioService.IsSupported(resourcePath))
                 return null;
             if (!_proceduralAudioCache.TryGetValue(resourcePath, out var procedural))
             {
@@ -2945,7 +3204,8 @@ public partial class GameRoot : Node3D
 
     private void ConfigureAudioEmitters(AreaAudioProfile profile)
     {
-        var playbacks = AudioEmitterRuntimeService.CreateInitialPlaybacks(profile.Emitters, 2026);
+        var playbacks = AudioEmitterRuntimeService.CreateInitialPlaybacks(
+            profile.Emitters, 2026, EvaluateRuntimePolicyCondition);
         foreach (var playback in playbacks)
         {
             var definition = profile.Emitters.Definitions.Single(item => item.Id == playback.DefinitionId);
@@ -2975,7 +3235,8 @@ public partial class GameRoot : Node3D
                 EmissionAngleEnabled = playback.Spatial.ConeAngleDegrees < 360,
                 EmissionAngleDegrees = Math.Clamp(playback.Spatial.ConeAngleDegrees / 2, 0, 90),
                 EmissionAngleFilterAttenuationDb = playback.Spatial.ConeAttenuationDb,
-                VolumeDb = -24 * playback.Spatial.Occlusion,
+                VolumeDb = Mathf.LinearToDb(Math.Max(.0001f, playback.Volume)) -
+                    (24 * playback.Spatial.Occlusion),
                 Bus = bus,
                 Autoplay = playback.Autoplay && playback.StartDelaySeconds <= 0,
             };
@@ -3151,6 +3412,7 @@ public partial class GameRoot : Node3D
             _moduleMap?.ShowPing(marker.Position, RuntimeMapPingKind.Objective, marker.AccessibleText);
         }
         BuildWaypointLocatorsAndRouteDebug(profile);
+        ConfigureEntityWaypointPatrols(profile);
         var route = profile.PatrolRoutes.FirstOrDefault();
         if (route is null) return;
         var resolution = WaypointRuntimeService.Advance(profile, _waypointRuntimeState, route.Id);
@@ -3841,6 +4103,124 @@ public partial class GameRoot : Node3D
                  $"wait={step.WaitSeconds:0.##}");
     }
 
+    private void ConfigureEntityWaypointPatrols(WaypointAuthoringProfile profile)
+    {
+        _entityWaypointPatrols.Clear();
+        if (_activeArea is not { } area) return;
+        foreach (var entity in area.Entities)
+        {
+            var routeReference = GetOverride(entity, "runtime.patrolRoute");
+            if (!Guid.TryParse(routeReference, out var routeId)) continue;
+            var route = profile.PatrolRoutes.FirstOrDefault(candidate => candidate.Id == routeId);
+            if (route is null || route.Points.Count < 2 ||
+                !_entityNodes.TryGetValue(entity.Id.Value, out var actor) ||
+                !GodotObject.IsInstanceValid(actor))
+            {
+                GD.PrintErr($"OPENRPG_FORGE_RUNTIME_ENTITY_PATROL_INVALID entity={entity.Id} route={routeReference}");
+                continue;
+            }
+
+            var state = new EntityWaypointPatrolState(
+                route,
+                actor.Position,
+                targetIndex: 1,
+                waitRemainingSeconds: Math.Max(0, route.Points[0].WaitSeconds));
+            _entityWaypointPatrols.Add(actor, state);
+            GD.Print($"OPENRPG_FORGE_RUNTIME_ENTITY_PATROL_READY entity={entity.Id} route={route.Id:D} " +
+                     $"points={route.Points.Count}");
+        }
+    }
+
+    private void AdvanceEntityWaypointPatrols(double delta)
+    {
+        foreach (var (actor, state) in _entityWaypointPatrols.ToArray())
+        {
+            if (!GodotObject.IsInstanceValid(actor))
+            {
+                _entityWaypointPatrols.Remove(actor);
+                continue;
+            }
+            if (ReferenceEquals(actor, _activeDialogueParticipant) &&
+                (_dialogueOverlay?.IsOpen == true || _activeDialogueTraversal is not null))
+            {
+                actor.Position = state.Position;
+                PlayEntityPatrolAnimation(actor, moving: false);
+                continue;
+            }
+
+            var remainingSeconds = Math.Max(0, delta);
+            if (state.WaitRemainingSeconds > 0)
+            {
+                var consumed = Math.Min(state.WaitRemainingSeconds, remainingSeconds);
+                state.WaitRemainingSeconds -= consumed;
+                remainingSeconds -= consumed;
+                if (state.WaitRemainingSeconds > 0 || remainingSeconds <= 0)
+                {
+                    PlayEntityPatrolAnimation(actor, moving: false);
+                    continue;
+                }
+            }
+
+            var target = state.Route.Points[state.TargetIndex];
+            var targetPosition = new Vector3(target.Position.X, target.Position.Y, target.Position.Z);
+            var displacement = targetPosition - state.Position;
+            var distance = displacement.Length();
+            if (distance <= .02f)
+            {
+                CompleteEntityPatrolPoint(actor, state, target, targetPosition);
+                continue;
+            }
+
+            var direction = displacement / distance;
+            var distanceStep = Math.Min(distance, Math.Max(.1, target.Speed) * remainingSeconds);
+            state.Position += direction * (float)distanceStep;
+            actor.Position = state.Position;
+            var rotation = actor.Rotation;
+            rotation.Y = Mathf.Atan2(direction.X, direction.Z);
+            actor.Rotation = rotation;
+            if (distanceStep + .02 >= distance)
+                CompleteEntityPatrolPoint(actor, state, target, targetPosition);
+            else
+                PlayEntityPatrolAnimation(actor, moving: true);
+        }
+    }
+
+    private void CompleteEntityPatrolPoint(
+        Node3D actor,
+        EntityWaypointPatrolState state,
+        PatrolPoint point,
+        Vector3 position)
+    {
+        state.Position = position;
+        actor.Position = position;
+        var rotation = actor.Rotation;
+        rotation.Y = Mathf.DegToRad((float)point.FacingDegrees);
+        actor.Rotation = rotation;
+        state.WaitRemainingSeconds = Math.Max(0, point.WaitSeconds);
+        state.TargetIndex = (state.TargetIndex + 1) % state.Route.Points.Count;
+        PlayEntityPatrolAnimation(actor, moving: false);
+    }
+
+    private void PlayEntityPatrolAnimation(Node3D actor, bool moving)
+    {
+        if (!_characterAnimations.TryGetValue(actor, out var animation)) return;
+        var clip = moving ? animation.RunClip : animation.IdleClip;
+        if (!string.Equals(animation.CurrentClip, clip, StringComparison.Ordinal))
+            GodotAssetAnimationController.Play(animation, clip, .12);
+    }
+
+    private sealed class EntityWaypointPatrolState(
+        PatrolRoute route,
+        Vector3 position,
+        int targetIndex,
+        double waitRemainingSeconds)
+    {
+        public PatrolRoute Route { get; } = route;
+        public Vector3 Position { get; set; } = position;
+        public int TargetIndex { get; set; } = targetIndex;
+        public double WaitRemainingSeconds { get; set; } = waitRemainingSeconds;
+    }
+
     private void BuildWaypointLocatorsAndRouteDebug(WaypointAuthoringProfile profile)
     {
         if (_waypointLocatorRoot is not null && GodotObject.IsInstanceValid(_waypointLocatorRoot))
@@ -4073,6 +4453,7 @@ public partial class GameRoot : Node3D
                 $"effect={result.Transition.GameplayEffect} replicate={result.Transition.Replicate.ToString().ToLowerInvariant()} " +
                 $"persist={result.Transition.Persist.ToString().ToLowerInvariant()}");
             ApplyClimateEffects(force: true);
+            RefreshRuntimePresentation();
         }
 
         _climateProbeElapsed += delta;
@@ -4081,6 +4462,7 @@ public partial class GameRoot : Node3D
             _climateProbeElapsed = 0;
             ApplyClimateEffects(force: false);
         }
+        AdvanceSurfaceWetness(delta);
     }
 
     private void ConfigureRuntimePolicies(ModuleRuntimePolicyProfile module, AreaRuntimePolicyProfile area)
@@ -4385,9 +4767,9 @@ public partial class GameRoot : Node3D
         if (evaluation.CameraAnchorId is not null && _camera is not null &&
             _cameraAnchors.TryGetValue(evaluation.CameraAnchorId.Value, out var anchor))
         {
-            _camera.GlobalPosition = EngineValueConverter.ToEngine(anchor.Transform.Position);
-            _camera.Fov = anchor.FieldOfViewDegrees;
-            _camera.LookAt(EngineValueConverter.ToEngine(anchor.LookAt), Vector3.Up);
+            _pendingCameraPosition = EngineValueConverter.ToEngine(anchor.Transform.Position);
+            _pendingCameraFieldOfView = anchor.FieldOfViewDegrees;
+            _pendingCameraLookAt = EngineValueConverter.ToEngine(anchor.LookAt);
         }
 
         foreach (var transform in evaluation.Transforms)
@@ -4417,6 +4799,12 @@ public partial class GameRoot : Node3D
         _sequenceOwnsCamera = false;
     }
 
+    private void QueueSequenceCompletion(SequenceEvaluation evaluation, string reason)
+    {
+        _pendingSequenceCompletion = evaluation;
+        _pendingSequenceCompletionReason = reason;
+    }
+
     private void AbortActiveSequence()
     {
         if (_activeSequence is null || _sequenceState is null || _moduleRuntimePolicies is null) return;
@@ -4431,7 +4819,8 @@ public partial class GameRoot : Node3D
             return;
         }
         var aborted = _sequenceState with { Active = false, Completed = false, Skipped = false };
-        CompleteSequence(new SequenceEvaluation(aborted, null, new Dictionary<Guid, TransformValue>(), [], [], []),
+        QueueSequenceCompletion(
+            new SequenceEvaluation(aborted, null, new Dictionary<Guid, TransformValue>(), [], [], []),
             "aborted");
         var scriptResolved = DispatchConfiguredEventScript(policy.Binding.ScriptPath,
             policy.Binding.Handler, policy.Binding.RequiredAtRuntime, "sequence:aborted");
@@ -4683,8 +5072,11 @@ public partial class GameRoot : Node3D
             int.TryParse(value, System.Globalization.NumberStyles.Integer,
                 System.Globalization.CultureInfo.InvariantCulture, out var parsed))
             skillScore = parsed;
+        var clueQuest = clue.QuestId is null
+            ? null
+            : _questTracker?.ResolveQuest(clue.QuestId.Value.ToString("D"));
         var questActive = clue.QuestId is null ||
-                          _questDefinition?.Id.Value == clue.QuestId && _questMachine is not null;
+                          clueQuest is not null && _questTracker?.IsAccepted(clueQuest.Id) == true;
         var result = TriggerLivingWorldRuntimeService.ResolveClue(profile, new(skillScore, questActive));
         if (!result.Revealed)
         {
@@ -4733,7 +5125,9 @@ public partial class GameRoot : Node3D
                         $"trigger={profile.Id:D}");
             return false;
         }
-        _elyraDialogue = dialogue;
+        _activeDialogue = dialogue;
+        _activeDialogueEntryNodeId = dialogue.EntryNodeId;
+        _activeDialogueParticipant = null;
         _guideName = dialogue.DisplayName;
         ShowLivingWorldInterjection(dialogue);
         GD.Print($"OPENRPG_FORGE_TRIGGER_NARRATIVE_FIRED trigger={profile.Id:D} " +
@@ -4826,6 +5220,7 @@ public partial class GameRoot : Node3D
         }
 
         var signature = $"{plan.Weather.Id}:{plan.ActiveWindZone?.Id}:{plan.ActiveReverbZone?.Id}";
+        SetSurfaceWetnessTarget(plan.Weather);
         if (!force && string.Equals(signature, _climateSignature, StringComparison.Ordinal))
         {
             return;
@@ -4855,10 +5250,64 @@ public partial class GameRoot : Node3D
         GD.Print(
             $"OPENRPG_FORGE_RUNTIME_G11H_ENVIRONMENT_PASS wind={effectiveWindSpeed:0.###} " +
             $"weather={plan.Weather.Kind.ToString().ToLowerInvariant()} revision={_weatherState.Revision} " +
+            $"surface_wetness={plan.Weather.SurfaceWetness:0.###} " +
             $"particles={result.PrecipitationEmitters} water={result.WaterSurfaces} reverb={result.ReverbPreset} " +
             $"authority={_environmentProfile.Weather.ServerAuthoritative.ToString().ToLowerInvariant()} " +
             $"save={_environmentProfile.Weather.PersistState.ToString().ToLowerInvariant()} " +
                     $"replicate={_environmentProfile.Weather.ReplicateState.ToString().ToLowerInvariant()}");
+    }
+
+    private void SetSurfaceWetnessTarget(WeatherStateProfile weather)
+    {
+        var coefficientsChanged = _surfaceWetnessCoefficients != weather.WetnessMaterial;
+        _surfaceWetnessCoefficients = weather.WetnessMaterial;
+        if (!_surfaceWetnessInitialized)
+        {
+            _surfaceWetnessInitialized = true;
+            _surfaceWetnessValue = weather.SurfaceWetness;
+            _surfaceWetnessTransition = SurfaceWetnessTransition.Start(
+                weather.SurfaceWetness, weather.SurfaceWetness, 0);
+        }
+        else if (_surfaceWetnessTransition is null ||
+                 !_surfaceWetnessTransition.TargetValue.Equals(weather.SurfaceWetness))
+        {
+            _surfaceWetnessTransition = SurfaceWetnessTransition.Start(
+                _surfaceWetnessValue,
+                weather.SurfaceWetness,
+                weather.TransitionSeconds);
+        }
+        if (_surfaceWetnessBound && coefficientsChanged)
+            _surfaceWetnessResult = _surfaceWetnessMaterials.Apply(
+                _surfaceWetnessValue,
+                weather.WetnessMaterial);
+    }
+
+    private void AdvanceSurfaceWetness(double delta)
+    {
+        if (!_surfaceWetnessBound || _surfaceWetnessTransition is null ||
+            _surfaceWetnessCoefficients is null) return;
+        var result = SurfaceWetnessTransition.Advance(_surfaceWetnessTransition, delta);
+        _surfaceWetnessTransition = result.State;
+        if (_surfaceWetnessValue.Equals(result.Value)) return;
+        _surfaceWetnessValue = result.Value;
+        _surfaceWetnessResult = _surfaceWetnessMaterials.Apply(
+            _surfaceWetnessValue,
+            _surfaceWetnessCoefficients);
+    }
+
+    private void BindSurfaceWetnessMaterials()
+    {
+        if (_environmentProfile is null || _weatherState is null) return;
+        var weather = WeatherRuntimeStateMachine.Resolve(_environmentProfile.Weather, _weatherState);
+        SetSurfaceWetnessTarget(weather);
+        var result = _surfaceWetnessMaterials.BindAndApply(this, _surfaceWetnessValue, weather.WetnessMaterial);
+        _surfaceWetnessResult = result;
+        _surfaceWetnessBound = true;
+        foreach (var diagnostic in result.Diagnostics)
+            GD.Print($"OPENRPG_FORGE_RUNTIME_WETNESS_FALLBACK {diagnostic}");
+        GD.Print($"OPENRPG_FORGE_RUNTIME_WETNESS_PASS wetness={result.SurfaceWetness:0.###} " +
+                 $"shader_materials={result.ShaderMaterials} pbr_materials={result.PbrMaterials} " +
+                 $"fallback_materials={result.FallbackMaterials} reversible=true");
     }
 
     private void ApplyWeatherLighting(WeatherStateProfile weather)
@@ -5724,6 +6173,8 @@ public partial class GameRoot : Node3D
         _combatUiPolicy = RuntimeUiMotionPolicy.Create(
             _runtimeExtensions?.ModernTooling.QualityAssurance.Accessibility,
             OS.GetCmdlineUserArgs());
+        InitializeMapExploration();
+        _runtimePresentation = BuildRuntimePresentation();
         _hud = new RuntimeHud
         {
             ModuleTitle = _moduleTitle,
@@ -5732,13 +6183,12 @@ public partial class GameRoot : Node3D
             CombatEnabled = _playerCombatant is not null,
             Accessibility = _runtimeExtensions?.ModernTooling.QualityAssurance.Accessibility,
             PartyHud = _worldFeatureCatalog?.Companions.FirstOrDefault()?.Experience?.Hud,
+            Presentation = _runtimePresentation,
             MotionPolicy = _combatUiPolicy,
         };
         _hud.PauseRequested += ToggleTacticalPause;
         _hud.JournalRequested += () => ToggleRpgMenu(RuntimeRpgMenuPage.Journal);
         AddChild(_hud);
-        _hud.UpdatePartyStatus("Elyra", 24, 30,
-            new Dictionary<string, double> { ["health"] = 24, ["focus"] = 4 }, ["prête"]);
         _toastQueue = new RuntimeToastQueue { MotionPolicy = _combatUiPolicy };
         AddChild(_toastQueue);
         _actionBar = new RuntimeActionBar
@@ -5760,7 +6210,7 @@ public partial class GameRoot : Node3D
             RegisterCombatFeedbackTargets();
         }
         _moduleMap = new RuntimeModuleMap { MotionPolicy = _combatUiPolicy };
-        _moduleMap.Configure(_loadedProject!, _activeArea!, _player!);
+        _moduleMap.Configure(_runtimePresentation.Map, _player!);
         _moduleMap.GlobalMapVisibilityChanged += _ => SyncPlayerInterfaceLock();
         _moduleMap.InventoryRequested += () => ShowRpgMenu(RuntimeRpgMenuPage.Inventory);
         _moduleMap.CharacterRequested += () => ShowRpgMenu(RuntimeRpgMenuPage.Character);
@@ -5770,13 +6220,16 @@ public partial class GameRoot : Node3D
         {
             ModuleTitle = _moduleTitle,
             AreaTitle = _activeArea?.DisplayName ?? _moduleTitle,
+            Presentation = _runtimePresentation,
         };
         _rpgMenu.MapRequested += OpenModuleMapFromMenu;
         _rpgMenu.Closed += SyncPlayerInterfaceLock;
         AddChild(_rpgMenu);
-        _rpgMenu.UpdateContext("Les braises oubliées", _message);
+        _rpgMenu.UpdateContext(_runtimePresentation.Journal.ActiveObjective,
+            _runtimePresentation.Journal.ActiveEntry?.Details);
         _dialogueOverlay = new RuntimeDialogueOverlay();
-        _dialogueOverlay.Closed += SyncPlayerInterfaceLock;
+        _dialogueOverlay.ChoiceSelected += HandleDialogueOverlayChoiceSelected;
+        _dialogueOverlay.Closed += HandleDialogueOverlayClosed;
         AddChild(_dialogueOverlay);
         _actionWheel = new RuntimeActionWheel();
         if (_gameplayControls is not null) _actionWheel.Configure(_gameplayControls);
@@ -5792,6 +6245,197 @@ public partial class GameRoot : Node3D
             AddChild(_declarativeUi);
         }
         UpdateTacticalHud();
+    }
+
+    private void InitializeMapExploration()
+    {
+        if (_activeArea is null || _player is null || !_activeArea.Authoring.Map.Enabled)
+        {
+            _mapExploration = null;
+            _mapExplorationAreaId = null;
+            _mapExplorationCell = null;
+            return;
+        }
+
+        if (_mapExploration is null ||
+            !string.Equals(_mapExplorationAreaId, _activeArea.Id.ToString(), StringComparison.OrdinalIgnoreCase))
+        {
+            _mapExploration = new AreaMapExplorationState(
+                _activeArea.Authoring.Map.ExplorationScope,
+                _livingWorldPlayerEntity?.Id.ToString() ?? "player:local",
+                new HashSet<string>(StringComparer.Ordinal),
+                new HashSet<Guid>());
+        }
+
+        var normalized = AreaExperienceAuthoringScriptService.Normalize(_activeArea, _mapExploration);
+        _mapExploration = normalized.State;
+        ReportMapExplorationDiagnostics(normalized.Diagnostics);
+        _mapExplorationAreaId = _activeArea.Id.ToString();
+        if (!TryCurrentMapCell(_activeArea, _mapExploration.ActiveFloor, _player.GlobalPosition, out var cell))
+        {
+            _mapExplorationCell = null;
+            GD.PrintErr($"OPENRPG_FORGE_RUNTIME_MAP_EXPLORATION_IGNORED " +
+                        $"code={AreaMapExplorationGrid.CellOutOfScopeCode} floor={_mapExploration.ActiveFloor}");
+            return;
+        }
+        _mapExploration = AreaExperienceAuthoringScriptService.Reveal(
+            _activeArea,
+            _mapExploration,
+            _mapExploration.ActiveFloor,
+            _player.GlobalPosition.X,
+            _player.GlobalPosition.Z);
+        _mapExplorationCell = cell;
+    }
+
+    private void AdvanceMapExploration()
+    {
+        if (_activeArea is null || _player is null || _mapExploration is null) return;
+        if (!TryCurrentMapCell(_activeArea, _mapExploration.ActiveFloor, _player.GlobalPosition, out var cell))
+            return;
+        if (string.Equals(cell, _mapExplorationCell, StringComparison.Ordinal)) return;
+        _mapExploration = AreaExperienceAuthoringScriptService.Reveal(
+            _activeArea,
+            _mapExploration,
+            _mapExploration.ActiveFloor,
+            _player.GlobalPosition.X,
+            _player.GlobalPosition.Z);
+        _mapExplorationCell = cell;
+        RefreshRuntimePresentation();
+    }
+
+    internal void SetActiveMapFloor(int floor)
+    {
+        if (_activeArea is null || _mapExploration is null)
+            throw new InvalidOperationException("Map exploration is not active.");
+        if (floor < 0 || floor >= _activeArea.Authoring.Map.FloorCount)
+            throw new ArgumentOutOfRangeException(nameof(floor));
+        if (_mapExploration.ActiveFloor == floor) return;
+
+        _mapExploration = _mapExploration with { ActiveFloor = floor };
+        _mapExplorationCell = null;
+        if (_player is not null && TryCurrentMapCell(_activeArea, floor, _player.GlobalPosition, out var cell))
+        {
+            _mapExploration = AreaExperienceAuthoringScriptService.Reveal(
+                _activeArea,
+                _mapExploration,
+                floor,
+                _player.GlobalPosition.X,
+                _player.GlobalPosition.Z);
+            _mapExplorationCell = cell;
+        }
+        RefreshRuntimePresentation();
+    }
+
+    private RuntimeModulePresentation BuildRuntimePresentation()
+    {
+        if (_loadedProject is null || _activeArea is null)
+            throw new InvalidOperationException("The runtime presentation requires a loaded project and active area.");
+        var context = new RuntimeModulePresentationContext(
+            PlayerEntityId: _livingWorldPlayerEntity?.Id,
+            PartyBlueprintIds: _worldFeatureCatalog?.Companions
+                .Select(companion => companion.BlueprintId)
+                .Distinct()
+                .ToArray(),
+            RuntimeInventory: _inventory.Snapshot(),
+            RuntimePlayerResources: BuildLivePlayerResourceSnapshots(),
+            RuntimeProgressionTracks: BuildLiveProgressionTrackSnapshots(),
+            WeatherStateId: _weatherState?.StateId,
+            QuestStates: _questTracker?.Snapshot(),
+            TrackedQuestId: _questTracker?.TrackedQuestId,
+            Exploration: _mapExploration);
+        var presentation = RuntimeModulePresentationProjector.Project(_loadedProject, _activeArea.Id, context);
+        return presentation with
+        {
+            Hero = ResolvePresentationPortrait(presentation.Hero),
+            Party = presentation.Party.Select(ResolvePresentationPortrait).ToArray(),
+        };
+    }
+
+    private IReadOnlyList<RuntimeActorResourceSnapshot> BuildLivePlayerResourceSnapshots()
+    {
+        if (_playerCombatant is null) return [];
+        var authoredResources = ResolveRuntimePlayerBlueprint()?.CreatureFoundation?.Resources ?? [];
+        var healthId = authoredResources.FirstOrDefault(resource =>
+            string.Equals(resource.ResourceId, "health", StringComparison.OrdinalIgnoreCase))?.ResourceId ?? "health";
+        var snapshots = new List<RuntimeActorResourceSnapshot>
+        {
+            new(healthId, _playerCombatant.Health, _playerCombatant.Profile.Stats.MaximumHealth),
+        };
+        if (_playerCombatant.Profile.Stats.MaximumResource > 0)
+        {
+            var resourceId = authoredResources.FirstOrDefault(resource =>
+                !string.Equals(resource.ResourceId, healthId, StringComparison.OrdinalIgnoreCase))?.ResourceId ??
+                "resource";
+            snapshots.Add(new RuntimeActorResourceSnapshot(resourceId, _playerCombatant.Resource,
+                _playerCombatant.Profile.Stats.MaximumResource));
+        }
+
+        return snapshots.OrderBy(snapshot => snapshot.Id, StringComparer.Ordinal).ToArray();
+    }
+
+    private IReadOnlyList<RuntimeProgressionTrackSnapshot> BuildLiveProgressionTrackSnapshots()
+    {
+        if (_moduleRules is null) return [];
+        var authoredTrack = ResolveRuntimePlayerBlueprint()?.CreatureProgression?.Tracks.FirstOrDefault();
+        var maximumLevel = Math.Max(
+            _progressionLevel,
+            authoredTrack?.MaximumLevel ?? _moduleRules.Progression.Curve.Max(point => point.Level));
+        return
+        [
+            new RuntimeProgressionTrackSnapshot(
+                authoredTrack?.TrackId ?? _moduleRules.Progression.RulesetId,
+                authoredTrack?.DisplayName ?? "Progression",
+                _progressionLevel,
+                maximumLevel,
+                _progressionExperience),
+        ];
+    }
+
+    private BlueprintDefinition? ResolveRuntimePlayerBlueprint()
+    {
+        if (_loadedProject is null) return null;
+        if (_livingWorldPlayerEntity is not null)
+        {
+            return _loadedProject.Blueprints.SingleOrDefault(blueprint =>
+                blueprint.Id == _livingWorldPlayerEntity.BlueprintId);
+        }
+
+        return _loadedProject.Blueprints.FirstOrDefault(blueprint => blueprint.Kind == BlueprintKind.PlayerSpawn);
+    }
+
+    private RuntimeModulePresentation.Actor ResolvePresentationPortrait(RuntimeModulePresentation.Actor actor)
+    {
+        var resolved = RuntimeModuleAssetPathResolver.ResolveImage(_moduleContentRoot, actor.PortraitPath);
+        return actor with { PortraitPath = resolved };
+    }
+
+    private void RefreshRuntimePresentation()
+    {
+        if (_loadedProject is null || _activeArea is null) return;
+        _runtimePresentation = BuildRuntimePresentation();
+        _moduleMap?.UpdatePresentation(_runtimePresentation.Map);
+        _rpgMenu?.UpdatePresentation(_runtimePresentation);
+    }
+
+    private static bool TryCurrentMapCell(AreaDefinition area, int floor, Vector3 position, out string cell)
+    {
+        var map = area.Authoring.Map;
+        var grid = new AreaMapExplorationGrid(area.Dimensions, map.FloorCount, map.ExplorationCellSize);
+        if (grid.TryResolve(floor, position.X, position.Z, out var resolved))
+        {
+            cell = resolved.Key;
+            return true;
+        }
+
+        cell = string.Empty;
+        return false;
+    }
+
+    private static void ReportMapExplorationDiagnostics(IReadOnlyList<DomainDiagnostic> diagnostics)
+    {
+        foreach (var diagnostic in diagnostics)
+            GD.PrintErr($"OPENRPG_FORGE_RUNTIME_MAP_EXPLORATION_DIAGNOSTIC " +
+                        $"code={diagnostic.Code} path={diagnostic.Path}");
     }
 
     private void ApplyModuleWindowTitle()
@@ -5874,11 +6518,13 @@ public partial class GameRoot : Node3D
 
     private void InteractWithNearest()
     {
-        var candidates = new Node3D?[] { _flyingMount, _npc, _keyItem, _door }
+        var candidates = new Node3D?[] { _flyingMount, _keyItem, _door }
             .Where(node => node is not null && GodotObject.IsInstanceValid(node))
             .Cast<Node3D>()
+            .Concat(_narrativeParticipants.Keys.Where(GodotObject.IsInstanceValid))
             .Concat(_portalNodes.Keys.Where(GodotObject.IsInstanceValid))
             .Concat(_corpseLoot.Keys.Where(GodotObject.IsInstanceValid))
+            .Distinct()
             .OrderBy(node => _player!.GlobalPosition.DistanceTo(node.GlobalPosition))
             .ToArray();
         var nearest = candidates.FirstOrDefault();
@@ -5917,7 +6563,7 @@ public partial class GameRoot : Node3D
         {
             if (current is Node3D node3D &&
                 (_portalNodes.ContainsKey(node3D) || node3D == _flyingMount ||
-                 _clickInteractions.ContainsKey(node3D) || node3D == _npc ||
+                 _clickInteractions.ContainsKey(node3D) || _narrativeParticipants.ContainsKey(node3D) ||
                  node3D == _keyItem || node3D == _door || _corpseLoot.ContainsKey(node3D)))
             {
                 interactiveNode = node3D;
@@ -5941,7 +6587,8 @@ public partial class GameRoot : Node3D
             _message = interactiveNode switch
             {
                 _ when interactiveNode == _flyingMount => "Approchez-vous de Brumaille pour le monter.",
-                _ when interactiveNode == _npc => $"Approchez-vous de {_guideName} pour lui parler.",
+                _ when _narrativeParticipants.TryGetValue(interactiveNode, out var participant) =>
+                    $"Approchez-vous de {participant.DisplayName} pour lui parler.",
                 _ when interactiveNode == _keyItem => $"Approchez-vous de {_questItemDisplayName} pour la prendre.",
                 _ when interactiveNode == _door => $"Approchez-vous de {_gateDisplayName} pour l’ouvrir.",
                 _ when _corpseLoot.ContainsKey(interactiveNode) => "Approchez-vous de la dépouille pour la fouiller.",
@@ -5976,7 +6623,11 @@ public partial class GameRoot : Node3D
                     _message = "Le dialogue lié à cet objet n'est plus disponible.";
                     break;
                 }
-                _elyraDialogue = dialogue;
+                _activeDialogue = dialogue;
+                _activeDialogueEntryNodeId = dialogue.EntryNodeId;
+                _activeDialogueTraversal = new DialogueTraversal(dialogue, dialogue.EntryNodeId);
+                _activeDialogueTraversalDialogueId = dialogue.Id;
+                _activeDialogueParticipant = source;
                 _guideName = dialogue.DisplayName;
                 InteractWithGuide();
                 break;
@@ -6061,9 +6712,10 @@ public partial class GameRoot : Node3D
             return;
         }
 
-        if (target == _npc)
+        if (_narrativeParticipants.TryGetValue(target, out var narrativeParticipant))
         {
-            InteractWithGuide();
+            if (TryActivateNarrativeDialogue(target, narrativeParticipant))
+                InteractWithGuide();
             UpdateHud();
             return;
         }
@@ -6102,7 +6754,7 @@ public partial class GameRoot : Node3D
                          $"unique_revision={_uniqueItemRegistry.Revision}");
             }
             _hasKey = true;
-            _inventory.Add(_questItemSlug);
+            GrantInventoryItem(_questItemSlug, 1);
             _message = $"Vous obtenez {_questItemDisplayName}.";
             _keyItem.QueueFree();
             UpdateHud();
@@ -6130,23 +6782,10 @@ public partial class GameRoot : Node3D
             return;
         }
 
-        if (target == _npc)
-        {
-            if (_questState == PrototypeQuestState.NotStarted)
-            {
-                _questState = PrototypeQuestState.Active;
-                _message = "Elyra : Retrouvez la clé de braise et terrassez le Gardien.";
-            }
-            else
-            {
-                _message = _bossDefeated
-                    ? "Elyra : La cendre retombe enfin."
-                    : "Elyra : La clé brille dans l’aile est de la crypte.";
-            }
-        }
-        else if (target == _keyItem && !_hasKey)
+        if (target == _keyItem && !_hasKey)
         {
             _hasKey = true;
+            GrantInventoryItem(_questItemSlug, 1);
             _message = "Vous obtenez la Clé de braise.";
             _keyItem.QueueFree();
         }
@@ -6602,13 +7241,17 @@ public partial class GameRoot : Node3D
     {
         foreach (var grant in grants)
         {
-            _inventory.Add(grant.ItemSlug);
+            GrantInventoryItem(grant.ItemSlug, grant.Quantity);
             _toastQueue?.Show(RuntimeToastKind.Loot,
                 $"Butin : {grant.ItemSlug} ×{grant.Quantity}", $"loot:{grant.ItemSlug}");
             GD.Print($"OPENRPG_FORGE_LOOT_GRANTED item={grant.ItemSlug} quantity={grant.Quantity} " +
                 $"owner={grant.OwnerId} instance={grant.InstanceKey} cause={grant.Cause}");
         }
     }
+
+    private void GrantInventoryItem(string slug, int quantity) => _inventory.Grant(slug, quantity);
+
+    private bool HasInventoryItem(string slug) => _inventory.HasItem(slug);
 
     private Node3D CreateLootCorpse(Node3D source, string hostileName, CreatureCorpseSnapshot snapshot)
     {
@@ -6907,11 +7550,10 @@ public partial class GameRoot : Node3D
 
                     break;
                 case "quest":
-                    var questTransition = GetAvailableQuestTransitions().FirstOrDefault();
-                    if (questTransition is not null)
-                    {
-                        AdvanceQuest(questTransition);
-                    }
+                    var eventQuest = _questTracker?.ResolveQuest(scriptEvent.Value);
+                    if (eventQuest is not null && _questTracker!.IsAccepted(eventQuest.Id) &&
+                        !TryAdvanceQuestByEvent(eventQuest, QuestEventKind.Script, "script", scriptEvent.Value))
+                        TryAdvanceQuestByEvent(eventQuest, QuestEventKind.Manual, "manual", sourceReference: null);
 
                     break;
                 case "unlock":
@@ -7026,7 +7668,9 @@ public partial class GameRoot : Node3D
         if (_actionWheel?.IsOpen == true) _actionWheel.Close();
         if (_moduleMap?.GlobalMapVisible == true) _moduleMap.SetGlobalMapVisible(false);
         if (_dialogueOverlay?.IsOpen == true) _dialogueOverlay.Close();
-        _rpgMenu.UpdateContext("Les braises oubliées", _message);
+        RefreshRuntimePresentation();
+        _rpgMenu.UpdateContext(_runtimePresentation?.Journal.ActiveObjective,
+            _runtimePresentation?.Journal.ActiveEntry?.Details);
         _rpgMenu.ShowPage(page);
         SyncPlayerInterfaceLock();
     }
@@ -7135,12 +7779,13 @@ public partial class GameRoot : Node3D
             _activeCombatProvider?.DisplayName ?? _gameplayControls.CombatModes.DefaultProvider.DisplayName,
             _timeControlSession.PlannedActions.Count, movement, _player?.BreathRemaining ?? 0,
             _player?.StaminaRemaining ?? 0);
-        var playerHealth = _playerCombatant?.Health ?? 1;
-        var playerMaximumHealth = _playerCombatant?.Profile.Stats.MaximumHealth ?? 1;
-        var playerResource = _playerCombatant?.Resource ?? 0;
-        var playerMaximumResource = _playerCombatant?.Profile.Stats.MaximumResource ?? 1;
-        _hud.UpdatePlayerStatus("Héros", playerHealth, playerMaximumHealth,
-            playerResource, playerMaximumResource, _progressionLevel);
+        var hero = _runtimePresentation?.Hero;
+        var healthResource = hero?.Resources.FirstOrDefault(resource =>
+            string.Equals(resource.Id, "health", StringComparison.OrdinalIgnoreCase));
+        var primaryResource = hero is null
+            ? null
+            : RuntimePrimaryResourceSelector.Select(hero.Resources);
+        _hud.UpdatePlayerStatus(hero?.DisplayName ?? "Héros", healthResource, primaryResource, hero?.Level);
         if (_playerCombatant?.Profile.Abilities.FirstOrDefault() is { } primaryAbility)
         {
             var nowSeconds = Time.GetTicksMsec() / 1000d;
@@ -7154,11 +7799,13 @@ public partial class GameRoot : Node3D
              (_hostiles.ContainsKey(_currentCombatTarget) && _player is not null &&
               _player.GlobalPosition.DistanceTo(_currentCombatTarget.GlobalPosition) > 45)))
             ClearCombatTargetFocus();
-        if (_moduleRules is not null && _areaRules is not null && _resolvedDifficulty is not null)
+        var progression = _runtimePresentation?.Progression;
+        if (_moduleRules is not null && _areaRules is not null && _resolvedDifficulty is not null &&
+            progression?.Level is { } liveLevel && progression.Experience is { } liveExperience)
         {
-            var next = _moduleRules.Progression.Curve.FirstOrDefault(point => point.Level > _progressionLevel)
+            var next = _moduleRules.Progression.Curve.FirstOrDefault(point => point.Level > liveLevel)
                 ?.RequiredExperience;
-            _hud.UpdateRules(_resolvedDifficulty.DisplayName, _progressionLevel, _progressionExperience, next,
+            _hud.UpdateRules(_resolvedDifficulty.DisplayName, liveLevel, liveExperience, next,
                 _areaRules.Combat.PvpMode.ToString(), _areaRules.Perception.Modifiers.Count);
         }
         _hud.UpdateInteractionPrompt(ResolveInteractionPrompt());
@@ -7167,16 +7814,19 @@ public partial class GameRoot : Node3D
     private string? ResolveInteractionPrompt()
     {
         if (_player is null || _gameplayControls is null) return null;
-        var nearest = new Node3D?[] { _flyingMount, _npc, _keyItem, _door }
+        var nearest = new Node3D?[] { _flyingMount, _keyItem, _door }
             .Where(node => node is not null && GodotObject.IsInstanceValid(node))
             .Cast<Node3D>()
+            .Concat(_narrativeParticipants.Keys.Where(GodotObject.IsInstanceValid))
             .Concat(_portalNodes.Keys.Where(GodotObject.IsInstanceValid))
             .Concat(_corpseLoot.Keys.Where(GodotObject.IsInstanceValid))
+            .Distinct()
             .OrderBy(node => _player.GlobalPosition.DistanceTo(node.GlobalPosition))
             .FirstOrDefault();
         var interactionDistance = _gameplayControls.Foundation.Interaction.FocusDistance;
         if (nearest is null || !IsNear(nearest, interactionDistance)) return null;
-        if (nearest == _npc) return $"Parler à {_guideName}";
+        if (_narrativeParticipants.TryGetValue(nearest, out var participant))
+            return $"Parler à {participant.DisplayName}";
         if (nearest == _keyItem && !_hasKey) return $"Prendre {_questItemDisplayName}";
         if (nearest == _door && !_doorUnlocked)
             return _hasKey ? $"Ouvrir {_gateDisplayName}" : $"Examiner {_gateDisplayName}";
@@ -7231,50 +7881,24 @@ public partial class GameRoot : Node3D
             return;
         }
 
+        RefreshRuntimePresentation();
         UpdateTacticalHud();
-
-        if (!_isCryptPrototype)
-        {
-            var areaName = _activeArea?.DisplayName ?? _moduleTitle;
-            PresentHudState(
-                $"explorer {areaName}",
-                _message,
-                "Parcourez la zone et découvrez ses lieux remarquables.");
-            return;
-        }
-
-
-        var objective = _questState switch
-        {
-            PrototypeQuestState.NotStarted => "parler à Elyra [E]",
-            PrototypeQuestState.Active when !_hasKey => "trouver la Clé de braise",
-            PrototypeQuestState.Active when !_doorUnlocked => "ouvrir la Porte des Cendres",
-            PrototypeQuestState.Active => "vaincre le Gardien des Cendres [1]",
-            PrototypeQuestState.Completed => "rejoindre la sortie lumineuse",
-            _ => "explorer",
-        };
-        if (_questMachine is not null)
-        {
-            objective = _questMachine.CurrentState.Journal.Fallback;
-        }
-
-        var state = _questState switch
-        {
-            PrototypeQuestState.NotStarted => "Elyra attend près du sceau et semble vouloir vous parler.",
-            PrototypeQuestState.Active when !_hasKey =>
-                "La Clé de braise repose dans le reliquaire latéral à droite des catacombes, avant la porte scellée.",
-            PrototypeQuestState.Active when !_doorUnlocked => "La clé pulse à proximité de la Porte des Cendres.",
-            PrototypeQuestState.Active => "Le gardien protège la dernière route vers la lumière.",
-            PrototypeQuestState.Completed => "La chaleur retombe. Le chemin de sortie est désormais libre.",
-            _ => "Les pierres anciennes gardent encore leurs secrets.",
-        };
-        PresentHudState(objective, _message, state);
+        var activeEntry = _runtimePresentation?.Journal.ActiveEntry;
+        PresentHudState(
+            _runtimePresentation?.Journal.ActiveObjective ?? string.Empty,
+            _message,
+            activeEntry?.Summary ?? "Aucune quête active dans ce module.");
     }
 
     private void PresentHudState(string objective, string message, string state)
     {
         _hud?.UpdateState(objective, message, state);
         var cleanObjective = objective.Replace("[E]", string.Empty, StringComparison.OrdinalIgnoreCase).Trim();
+        if (string.IsNullOrWhiteSpace(cleanObjective))
+        {
+            _lastPresentedObjective = string.Empty;
+            return;
+        }
         if (string.Equals(cleanObjective, _lastPresentedObjective, StringComparison.Ordinal)) return;
         _lastPresentedObjective = cleanObjective;
         _toastQueue?.Show(RuntimeToastKind.Objective, $"Objectif : {cleanObjective}",
@@ -7282,528 +7906,6 @@ public partial class GameRoot : Node3D
         if (_trackedWaypointMarker is { } marker)
             _moduleMap?.ShowPing(marker.Position, RuntimeMapPingKind.Objective, marker.AccessibleText);
     }
-
-    private void InteractWithGuide()
-    {
-        if (_elyraDialogue is null)
-        {
-            _message = $"{_guideName} reste silencieux : aucun dialogue n’est lié à ce module.";
-            return;
-        }
-
-        var traversal = new DialogueTraversal(_elyraDialogue);
-        var start = traversal.Start();
-        var evaluator = new RuntimeConditionEvaluator(this);
-        var variantText = ApplyDialoguePresentation(start.Node!.Id, evaluator);
-        var availableChoices = traversal.GetAvailableChoices(evaluator);
-        var spokenLine = variantText ?? start.Node!.Text.Fallback;
-        if (_actionWheel?.IsOpen == true) _actionWheel.Close();
-        _dialogueOverlay?.Show(_guideName,
-            string.Equals(_guideName, "Elyra", StringComparison.OrdinalIgnoreCase)
-                ? "Gardienne des braises"
-                : "Guide du voyage",
-            spokenLine,
-            availableChoices.Select(item => item.Text.Fallback).ToArray());
-        SyncPlayerInterfaceLock();
-        var choice = availableChoices.FirstOrDefault();
-        if (choice is null)
-        {
-            _message = $"{_guideName} : {spokenLine}";
-            return;
-        }
-
-        var step = traversal.Choose(choice.Id, evaluator);
-        ApplyDialogueActions(step.Actions);
-        var destination = step.Node?.Text.Fallback ?? start.Node!.Text.Fallback;
-        _message = variantText is null ? $"{_guideName} : {destination}" :
-            $"{_guideName} : {variantText} → {destination}";
-    }
-
-    private string? ApplyDialoguePresentation(DialogueNodeId nodeId, IDialogueConditionEvaluator evaluator)
-    {
-        if (_elyraDialogue is null) return null;
-        var participant = _elyraDialogue.Nodes.First(item => item.Id == nodeId).SpeakerBlueprintId;
-        IReadOnlyList<DialogueCompanionState> companions = participant is null ? [] :
-            [new(participant, _npc is not null, 100, new HashSet<string>(["guardian"], StringComparer.Ordinal))];
-        var context = new DialoguePresentationRuntimeContext("fr-FR",
-            _elyraDialogue.Presentation?.RequiredAtRuntime == true, false, false, true,
-            DateTimeOffset.UtcNow, companions, new Dictionary<Guid, DateTimeOffset>());
-        var resolution = DialoguePresentationRuntimeResolver.Resolve(_elyraDialogue, nodeId, context);
-        foreach (var diagnostic in resolution.Diagnostics)
-            GD.PrintErr($"OPENRPG_FORGE_DIALOGUE_PRESENTATION_DIAGNOSTIC code={diagnostic.Code} path={diagnostic.Path}");
-        if (resolution.Diagnostics.Count > 0) return null;
-
-        _dialogueAnimationCueCount += resolution.AnimationCues.Count;
-        if (_npc is not null && _characterAnimations.TryGetValue(_npc, out var animation))
-        {
-            foreach (var cue in resolution.AnimationCues)
-            {
-                var clip = animation.Clips.FirstOrDefault(item =>
-                    string.Equals(item, cue.AnimationId, StringComparison.OrdinalIgnoreCase)) ?? animation.IdleClip;
-                GodotAssetAnimationController.Play(animation, clip,
-                    Math.Max(0, cue.BlendMilliseconds) / 1000.0, restart: true);
-            }
-        }
-
-        if (resolution.VoiceCue is not null)
-        {
-            _dialogueVoiceCueCount++;
-            _dialogueSubtitleFallback = resolution.UsesSubtitleFallback;
-            GD.Print($"OPENRPG_FORGE_DIALOGUE_VOICE locale={resolution.VoiceCue.Locale} " +
-                $"take={resolution.VoiceCue.Take} fallback={resolution.UsesSubtitleFallback.ToString().ToLowerInvariant()} " +
-                $"subtitle={resolution.VoiceCue.Subtitle.Key}");
-        }
-
-        if (resolution.CameraShot is { } shot && _camera is not null)
-        {
-            _dialogueCameraShotCount++;
-            _camera.Fov = shot.FieldOfViewDegrees;
-            if (_npc is not null) _camera.LookAt(_npc.GlobalPosition + Vector3.Up, Vector3.Up);
-        }
-        _dialogueBookmarkCount += _elyraDialogue.Presentation?.Bookmarks.Count(item => item.NodeId == nodeId) ?? 0;
-        if (resolution.Interjection is not null) _dialogueInterjectionCount++;
-
-        var adaptive = DialogueAdaptiveRuntimeResolver.Resolve(_elyraDialogue, nodeId, 0,
-            AdaptiveDialogueContext(), evaluator);
-        foreach (var diagnostic in adaptive.Diagnostics)
-            GD.PrintErr($"OPENRPG_FORGE_ADAPTIVE_DIALOGUE_DIAGNOSTIC code={diagnostic.Code} path={diagnostic.Path}");
-        if (adaptive.Diagnostics.Count > 0) return null;
-        if (adaptive.TimedChoice is not null) _dialogueTimedChoiceCount++;
-        if (adaptive.Variant is null) return null;
-        _dialogueVariantCount++;
-        _dialogueVariantKey = adaptive.Variant.Variant.Text.Key;
-        GD.Print($"OPENRPG_FORGE_DIALOGUE_VARIANT set={adaptive.Variant.Set.Key} " +
-            $"key={_dialogueVariantKey} locale={adaptive.Variant.Locale} roll={adaptive.Variant.DeterministicRoll}");
-        return adaptive.Variant.Variant.Text.Fallback;
-    }
-
-    private DialogueAdaptiveRuntimeContext AdaptiveDialogueContext() => new("fr-FR", true, 1, false, false, 2026,
-        _elyraDialogue?.Id.Value ?? Guid.Empty, new Dictionary<Guid, IReadOnlyList<Guid>>());
-
-    private void ApplyDialogueActions(IReadOnlyList<DialogueAction> actions)
-    {
-        foreach (var action in actions)
-        {
-            switch (action.Kind)
-            {
-                case DialogueActionKind.SetVariable:
-                    SetProjectVariable(action.Key, action.Value);
-                    break;
-                case DialogueActionKind.StartQuest:
-                case DialogueActionKind.AdvanceQuest:
-                case DialogueActionKind.CompleteQuest:
-                    var transition = GetAvailableQuestTransitions().FirstOrDefault();
-                    if (transition is not null)
-                    {
-                        AdvanceQuest(transition);
-                    }
-
-                    break;
-                case DialogueActionKind.GiveItem:
-                    _inventory.Add(action.Key);
-                    break;
-                case DialogueActionKind.UnlockEntity:
-                    UnlockEntity(action.Key);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(action), action.Kind, "Unsupported dialogue action.");
-            }
-        }
-    }
-
-    private IReadOnlyList<QuestTransition> GetAvailableQuestTransitions() =>
-        _questMachine?.GetAvailableTransitions(new RuntimeConditionEvaluator(this)) ?? [];
-
-    private void AdvanceQuest(QuestTransition transition)
-    {
-        if (_questMachine is null)
-        {
-            return;
-        }
-
-        if (_questDefinition?.Operations is not null)
-        {
-            var context = QuestOperationsContext();
-            var exclusive = QuestOperationsRuntimeResolver.ResolveExclusive(_questDefinition, transition.Id, context);
-            if (!exclusive.Allowed)
-            {
-                _message = "Cette voie de quête est incompatible avec un choix antérieur.";
-                return;
-            }
-            var share = QuestOperationsRuntimeResolver.ResolveShare(_questDefinition, context);
-            if (!share.Accepted)
-            {
-                _message = "Le groupe n’a pas validé cette progression de quête.";
-                return;
-            }
-            _chosenQuestTransitions.Add(transition.Id);
-        }
-        var result = _questMachine.Advance(transition.Id, new RuntimeConditionEvaluator(this));
-        _questState = result.Completed ? PrototypeQuestState.Completed : PrototypeQuestState.Active;
-        foreach (var action in result.Actions)
-        {
-            switch (action.Kind)
-            {
-                case QuestActionKind.SetVariable:
-                    SetProjectVariable(action.Key, action.Value);
-                    break;
-                case QuestActionKind.GiveItem:
-                    _inventory.Add(action.Key);
-                    break;
-                case QuestActionKind.UnlockEntity:
-                    UnlockEntity(action.Key);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(action), action.Kind, "Unsupported quest action.");
-            }
-        }
-
-        _message = result.State.Journal.Fallback;
-        if (_questDefinition?.Operations is not null)
-        {
-            var notice = QuestOperationsRuntimeResolver.ResolveNotification(_questDefinition);
-            GD.Print($"OPENRPG_FORGE_RUNTIME_QUEST_NOTICE visible={notice.Visible.ToString().ToLowerInvariant()} " +
-                     $"cinematic={notice.Cinematic.ToString().ToLowerInvariant()} group={notice.GroupKey} " +
-                     $"state={result.State.Id}");
-        }
-    }
-
-    private QuestOperationsRuntimeContext QuestOperationsContext() => new(
-        DateTimeOffset.UtcNow, null, 0, 1, 1, true, true, _chosenQuestTransitions);
-
-    private ItemRuntimeContext AdvancedItemContext(ItemAdvancedProfile profile, int seed) => new(
-        6, 20, new HashSet<string>(["lore", "smithing"]), new HashSet<string>(["ash-attuned"]),
-        new HashSet<string>(["surface-alliance"]),
-        new HashSet<string>(_questState == PrototypeQuestState.NotStarted
-            ? ["target.ash-sealed"] : ["target.ash-sealed", "quest.accepted"]),
-        "crypt", profile.Economy.Currency, 1, profile.Durability?.Initial ?? 100, seed, "player:local", true);
-
-    private void UnlockEntity(string entityId)
-    {
-        if (_doorEntityId is null || !string.Equals(entityId, _doorEntityId.ToString(), StringComparison.Ordinal))
-        {
-            return;
-        }
-
-        _doorUnlocked = true;
-        if (_door is not null && GodotObject.IsInstanceValid(_door))
-        {
-            _door.QueueFree();
-        }
-
-        _message = $"{_gateDisplayName} s’ouvre.";
-    }
-
-    private void SetProjectVariable(string key, string value)
-    {
-        if (_blackboard.TrySet(key, value, out var error))
-        {
-            return;
-        }
-
-        _message = $"La variable de projet '{key}' a refusé une valeur incompatible.";
-        GD.PrintErr($"OPENRPG_FORGE_RUNTIME_VARIABLE_REJECTED key={key} error={error}");
-    }
-
-    private bool SaveRuntime(string path)
-    {
-        if (_player is null || _playerCombatant is null || _moduleId is null ||
-            _moduleContentSha256 is null || _currentAreaId is null)
-        {
-            GD.PrintErr("OPENRPG_FORGE_RUNTIME_SAVE_FAILED runtime_not_ready");
-            return false;
-        }
-
-        var position = _player.GlobalPosition;
-        var save = new RuntimeSaveDocument(
-            RuntimeSaveDocument.CurrentFormatVersion,
-            _moduleId,
-            _moduleContentSha256,
-            _currentAreaId,
-            DateTimeOffset.UtcNow,
-            new RuntimeVector3(position.X, position.Y, position.Z),
-            new RuntimeCombatantSave(
-                _playerCombatant.Id,
-                _playerCombatant.Health,
-                _playerCombatant.Resource),
-            _inventory.OrderBy(item => item, StringComparer.Ordinal).ToArray(),
-            _blackboard.Snapshot().OrderBy(item => item.Key, StringComparer.Ordinal)
-                .Select(item => new RuntimeKeyValue(item.Key, item.Value))
-                .ToArray(),
-            _questDefinition?.Id.ToString(),
-            _questMachine?.CurrentState.Id.ToString(),
-            _hostiles.Values
-                .OrderBy(item => item.Id, StringComparer.Ordinal)
-                .Select(item => new RuntimeCombatantSave(item.Id, item.Health, item.Resource))
-                .ToArray(),
-            new RuntimeProgressFlags(
-                _hasKey,
-                _doorUnlocked,
-                _bossPhaseTwo,
-                _bossDefeated,
-                _escaped),
-            _environmentProfile?.Weather.PersistState == true && _weatherState is not null
-                ? new RuntimeWeatherSave(
-                    _weatherState.SchemaVersion,
-                    _weatherState.StateId.ToString(),
-                    _weatherState.Revision,
-                    _weatherState.ServerRevision,
-                    _weatherState.ElapsedSeconds)
-                : null,
-            new RuntimeProgressionSave(1, _progressionExperience, _progressionLevel),
-            BuildEntityStateSnapshots(),
-            _worldClockSnapshot is null ? null : new RuntimeWorldClockSave(1,
-                _worldClockSnapshot.TotalMinutes, _worldClockSnapshot.Paused, _worldClockSnapshot.Revision,
-                _worldClockSnapshot.Provenance));
-        var result = RuntimeSaveStore.Save(path, save);
-        if (!result.Succeeded)
-        {
-            _message = "Échec de la sauvegarde de partie.";
-            GD.PrintErr(
-                "OPENRPG_FORGE_RUNTIME_SAVE_FAILED " +
-                string.Join(";", result.Diagnostics.Select(item => $"{item.Code}:{item.Message}")));
-            return false;
-        }
-
-        if (_gameplayControls?.Foundation.Save is { } savePolicy)
-        {
-            var archived = RuntimeSaveArchiveStore.Save(ArchiveRoot(path), ArchiveSlot(path),
-                Math.Max(1, save.SavedAtUtc.UtcTicks), save, savePolicy, [], save.SavedAtUtc);
-            if (!archived.Succeeded)
-            {
-                GD.PrintErr($"OPENRPG_FORGE_RUNTIME_SAVE_FAILED {archived.Diagnostics[0].Code}:" +
-                            archived.Diagnostics[0].Message);
-                return false;
-            }
-        }
-
-        _message = $"Partie sauvegardée — {Path.GetFileName(path)}";
-        GD.Print(
-            $"OPENRPG_FORGE_RUNTIME_SAVE_WRITTEN format={RuntimeSaveDocument.CurrentFormatVersion} " +
-            $"file={Path.GetFileName(path)} quest={_questMachine?.CurrentState.Id}");
-        GD.Print($"OPENRPG_FORGE_RUNTIME_G11O_SAVE_PASS mode=write entities={save.EntitySnapshots?.Count ?? 0} " +
-            "components=transform-combat-inventory-blackboard schema=1");
-        UpdateHud();
-        return true;
-    }
-
-    private bool LoadRuntimeSave(string path)
-    {
-        if (_moduleId is null || _moduleContentSha256 is null)
-        {
-            GD.PrintErr("OPENRPG_FORGE_RUNTIME_LOAD_FAILED runtime_not_ready");
-            return false;
-        }
-
-        var result = RuntimeSaveStore.Load(path, _moduleId, _moduleContentSha256);
-        if (!result.Succeeded || result.Save is null)
-        {
-            _message = "Cette sauvegarde est absente, invalide ou incompatible avec le module.";
-            GD.PrintErr(
-                "OPENRPG_FORGE_RUNTIME_LOAD_FAILED " +
-                string.Join(";", result.Diagnostics.Select(item => $"{item.Code}:{item.Message}")));
-            return false;
-        }
-        var loadedSave = result.Save;
-
-        var archivePath = ArchiveRoot(path);
-        if (_gameplayControls?.Foundation.Save is { } savePolicy && Directory.Exists(archivePath))
-        {
-            var archived = RuntimeSaveArchiveStore.Load(archivePath, ArchiveSlot(path), 0,
-                _moduleId, _moduleContentSha256, []);
-            if (!archived.Succeeded || archived.Save is null)
-            {
-                GD.PrintErr($"OPENRPG_FORGE_RUNTIME_LOAD_FAILED {archived.Diagnostics[0].Code}:" +
-                            archived.Diagnostics[0].Message);
-                return false;
-            }
-            loadedSave = archived.Save;
-        }
-
-        try
-        {
-            ApplyRuntimeSave(loadedSave);
-        }
-        catch (Exception exception) when (exception is InvalidOperationException or ArgumentOutOfRangeException)
-        {
-            _message = "La sauvegarde référence un état de jeu indisponible.";
-            GD.PrintErr($"OPENRPG_FORGE_RUNTIME_LOAD_FAILED save.state_invalid:{exception.Message}");
-            return false;
-        }
-
-        _loadedSave = true;
-        _message = $"Partie reprise — {Path.GetFileName(path)}";
-        GD.Print(
-            $"OPENRPG_FORGE_RUNTIME_SAVE_LOADED format={loadedSave.FormatVersion} " +
-            $"file={Path.GetFileName(path)} quest={loadedSave.QuestStateId}");
-        GD.Print($"OPENRPG_FORGE_RUNTIME_G11O_SAVE_PASS mode=load entities={loadedSave.EntitySnapshots?.Count ?? 0} " +
-            "components=transform-combat-inventory-blackboard schema=1");
-        return true;
-    }
-
-    private void ApplyRuntimeSave(RuntimeSaveDocument save)
-    {
-        if (_player is null || _playerCombatant is null ||
-            !string.Equals(save.AreaId, _currentAreaId, StringComparison.OrdinalIgnoreCase))
-        {
-            throw new InvalidOperationException("The save area does not match the loaded runtime area.");
-        }
-
-        _player.GlobalPosition = new Vector3(
-            (float)save.PlayerPosition.X,
-            (float)save.PlayerPosition.Y,
-            (float)save.PlayerPosition.Z);
-        _playerCombatant.Restore(save.Player.Health, save.Player.Resource);
-        _inventory.Clear();
-        foreach (var item in save.Inventory)
-        {
-            _inventory.Add(item);
-        }
-
-        _blackboard = ProjectBlackboardScriptService.ForRuntime(_blackboard.Definitions);
-        var variableDiagnostics = _blackboard.Load(save.Variables.ToDictionary(
-            variable => variable.Key,
-            variable => variable.Value,
-            StringComparer.Ordinal));
-        if (variableDiagnostics.Count > 0)
-        {
-            throw new InvalidOperationException(string.Join("; ", variableDiagnostics));
-        }
-
-        if (_questDefinition is not null && _questMachine is not null && save.QuestStateId is not null)
-        {
-            if (!string.Equals(save.QuestId, _questDefinition.Id.ToString(), StringComparison.OrdinalIgnoreCase))
-            {
-                throw new InvalidOperationException("The saved quest does not match the loaded module quest.");
-            }
-
-            _questMachine.Restore(QuestStateId.Parse(save.QuestStateId));
-            _questState = _questMachine.Completed
-                ? PrototypeQuestState.Completed
-                : _questMachine.CurrentState.Id == _questDefinition.InitialStateId
-                    ? PrototypeQuestState.NotStarted
-                    : PrototypeQuestState.Active;
-        }
-
-        if (save.Weather is not null)
-        {
-            if (_environmentProfile is null ||
-                !_environmentProfile.Weather.States.Any(state =>
-                    string.Equals(state.Id.ToString(), save.Weather.StateId, StringComparison.OrdinalIgnoreCase)))
-            {
-                throw new InvalidOperationException("The saved weather state is unavailable in the current area.");
-            }
-
-            _weatherState = new WeatherRuntimeSnapshot(
-                save.Weather.SchemaVersion,
-                Guid.Parse(save.Weather.StateId),
-                save.Weather.Revision,
-                save.Weather.ServerRevision,
-                save.Weather.ElapsedSeconds);
-            ApplyClimateEffects(force: true);
-        }
-
-        var hostileSaves = save.Hostiles.ToDictionary(item => item.EntityId, StringComparer.OrdinalIgnoreCase);
-        foreach (var pair in _hostiles.ToArray())
-        {
-            if (hostileSaves.TryGetValue(pair.Value.Id, out var hostileSave))
-            {
-                pair.Value.Restore(hostileSave.Health, hostileSave.Resource);
-                continue;
-            }
-
-            _hostiles.Remove(pair.Key);
-            _hostileNames.Remove(pair.Key);
-            pair.Key.QueueFree();
-        }
-
-        if (hostileSaves.Keys.Any(id => _hostiles.Values.All(item =>
-                !string.Equals(item.Id, id, StringComparison.OrdinalIgnoreCase))))
-        {
-            throw new InvalidOperationException("A saved hostile is no longer available in the current scene.");
-        }
-
-        ApplyEntityStateSnapshots(save.EntitySnapshots ?? []);
-
-        _hasKey = save.Progress.HasKey;
-        _doorUnlocked = save.Progress.DoorUnlocked;
-        _bossPhaseTwo = save.Progress.BossPhaseTwo;
-        _bossDefeated = save.Progress.BossDefeated;
-        _escaped = save.Progress.Escaped;
-        _progressionExperience = save.Progression?.Experience ?? 0;
-        _progressionLevel = save.Progression?.Level ?? 1;
-        if (save.WorldClock is not null)
-            _worldClockSnapshot = new WorldClockSnapshot(save.WorldClock.TotalMinutes, save.WorldClock.Paused,
-                save.WorldClock.Revision, save.WorldClock.Provenance);
-        if (_hasKey && _keyItem is not null && GodotObject.IsInstanceValid(_keyItem))
-        {
-            _keyItem.QueueFree();
-        }
-
-        if (_doorUnlocked && _door is not null && GodotObject.IsInstanceValid(_door))
-        {
-            _door.QueueFree();
-        }
-    }
-
-    private IReadOnlyList<RuntimeEntityStateSave> BuildEntityStateSnapshots()
-    {
-        if (_moduleRuntimePolicies is null) return [];
-        var policy = _moduleRuntimePolicies.Extensions.SnapshotPolicy;
-        var snapshots = new List<RuntimeEntityStateSave>();
-        foreach (var pair in _entityNodes.OrderBy(item => item.Key))
-        {
-            var components = new List<RuntimeStateComponentSave>();
-            if (policy.Components.Contains("transform"))
-            {
-                var position = pair.Value.GlobalPosition;
-                components.Add(new RuntimeStateComponentSave("transform", JsonSerializer.Serialize(new
-                {
-                    x = position.X,
-                    y = position.Y,
-                    z = position.Z,
-                })));
-            }
-            var combatant = pair.Value == _player ? _playerCombatant : _hostiles.GetValueOrDefault(pair.Value);
-            if (policy.Components.Contains("combat") && combatant is not null)
-                components.Add(new RuntimeStateComponentSave("combat", JsonSerializer.Serialize(new
-                {
-                    health = combatant.Health,
-                    resource = combatant.Resource,
-                })));
-            var isPlayer = pair.Value == _player;
-            var inventory = isPlayer && policy.Components.Contains("inventory")
-                ? _inventory.Order(StringComparer.Ordinal).Take(policy.MaxInventoryItems).ToArray() : [];
-            var blackboard = isPlayer && policy.Components.Contains("blackboard")
-                ? _blackboard.Snapshot().OrderBy(item => item.Key, StringComparer.Ordinal)
-                    .Select(item => new RuntimeKeyValue(item.Key, item.Value)).ToArray() : [];
-            snapshots.Add(new RuntimeEntityStateSave(pair.Key.ToString("D"), 1, components, [], inventory,
-                blackboard));
-        }
-        return snapshots;
-    }
-
-    private void ApplyEntityStateSnapshots(IReadOnlyList<RuntimeEntityStateSave> snapshots)
-    {
-        foreach (var snapshot in snapshots)
-        {
-            if (!Guid.TryParse(snapshot.EntityId, out var id) || !_entityNodes.TryGetValue(id, out var node))
-                throw new InvalidOperationException($"Saved entity '{snapshot.EntityId}' is unavailable.");
-            var transform = snapshot.Components.SingleOrDefault(item => item.Key == "transform");
-            if (transform is null) continue;
-            using var json = JsonDocument.Parse(transform.JsonValue);
-            var root = json.RootElement;
-            node.GlobalPosition = new Vector3(root.GetProperty("x").GetSingle(), root.GetProperty("y").GetSingle(),
-                root.GetProperty("z").GetSingle());
-            node.ResetPhysicsInterpolation();
-        }
-    }
-
-    private bool IsNear(Node3D? target, float distance) =>
-        _player is not null &&
-        target is not null &&
-        GodotObject.IsInstanceValid(target) &&
-        _player.GlobalPosition.DistanceTo(target.GlobalPosition) <= distance;
 
     private void ConfigureWorldFeatures(ProjectDefinition project)
     {

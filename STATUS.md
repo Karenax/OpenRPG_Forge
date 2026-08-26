@@ -1,6 +1,6 @@
 # État vérifié — OpenRPG Forge
 
-Dernière mise à jour : 25 août 2026.
+Dernière mise à jour : 26 août 2026.
 
 ## Verdict
 
@@ -29,7 +29,8 @@ confondu avec une release publique signée.
 - distributions Windows x64 autonomes du Creator et du Runtime ;
 - lanceur Windows configurable par jeu avec fond et musique WAV gouvernés, Play/Stop, volume persistant,
   hébergement autoritaire, détection facultative de l'IPv4 publique, copie `adresse:port` et connexion
-  directe par IPv4/DNS ;
+  directe par IPv4/DNS ; lanceur, module et Studio en plein écran par défaut, avec mode joueur
+  **Fenêtré plein écran** sans bordure ;
 - installateur/désinstallateur NSIS avec contrôle de mise à jour et préservation des données utilisateur ;
 - Crypte des Cendres jouable en Forward+ avec modèles 3D gouvernés ;
 - outils réutilisables de terrain, biome forestier et gouvernance d'assets conservés indépendamment
@@ -71,33 +72,56 @@ confondu avec une release publique signée.
   relief vallonné, place de village, chemin spline et corridor paysager préservant la perspective ;
 - le village assemble quatre maisons modulaires closes et à deux étages, avec fondations, portes
   ouvertes sur leurs gonds, seuils et escaliers centrés, vitrages, volets, pignons, balcons, cheminées
-  et vignes, ainsi qu'une place pavée, un marché, des clôtures continues, des accessoires et trois
-  habitants ; les quatre capsules joueur traversent réellement chaque entrée sans collider de mur ;
-- 39 modèles 3D gouvernés des packs Médiéval et Nature Quaternius, un personnage UAL2 complété par
-  une tête, un visage et des cheveux, et deux textures de sol CC0 Poly Haven forment 42 manifestes ;
-  les animations UAL1 sont retargetées sur son rig UAL2 et livrent `idle`, `jog_fwd`, `jump_start`,
-  `sword_attack`, `hit_chest` et `death01` aux quatre personnages runtime ;
-- le terrain utilise les textures PBR d'herbe/roche et de pavés, 16 couches reconstruisent 49 181
-  instances dans 809 groupes de culling, dont treize couches au vent ralenti ; l'herbe est courte à
-  l'échelle du héros et les arbres agrandis restent visibles sur les coteaux ;
-- le déplacement du héros est réglé dans le module à 1,2 m/s en marche et 2,64 m/s en course, la
-  caméra conserve son recul horizontal sur les pentes et expose dans le Studio des limites verticales
-  configurables ; l'orbite Solaren descend à -85° et peut viser le ciel depuis sa garde au sol,
-  et la météo autoritaire alterne aléatoirement éclaircies, ciel couvert, pluie et brume après des
-  états de 7 à 20 minutes et des transitions de 60 à 75 secondes ; la pluie préchauffée tombe sans
-  composante horizontale ni dispersion, tandis que lumière, ciel, nuages et brouillard suivent l'état ;
-- la vue Forward+ 1920 × 1080 a été corrigée par comparaison aux références de village et de prairie :
-  exposition réduite, palette rééquilibrée, chemin pavé lisible et volume du village renforcé ;
-- les validations canoniques de Solaren et de la Crypte ne remontent aucun diagnostic ; le package
-  Solaren est reproductible et n'accepte les buffers `.bin` que lorsqu'un glTF sûr les référence.
-  La suite produit passe 2 149 tests .NET, auxquels s'ajoutent 13 tests du graphe d'architecture,
-  soit 2 162 tests .NET au total ; le smoke Solaren Vulkan Forward+ vérifie les quatre
-  franchissements, les clips, la pluie verticale, la météo longue, la caméra en pente, la vue
-  ascendante au ras du terrain et l'absence
-  de dépendance à la Crypte, puis le smoke complet de la Crypte reste vert. Le graphe Roslyn exclut
-  désormais les workspaces de jeux et reste réservé aux contrats, au moteur, au runtime et au Studio.
-- ce jalon est la première tranche artistique jouable de Solaren, pas une qualification de contenu
-  final ni une release publique signée.
+  et vignes. Les quatre ouvertures sont franchissables par la capsule joueur ; quatre torches compactes
+  ajoutent une lumière chaude sans bloquer les seuils, tandis que tonneau, cagettes de fruits et repère
+  lumineux enrichissent le marché par placements MCP gouvernés ;
+- le workspace contient désormais 56 manifestes d’assets et 323 chunks vérifiés. Trois personnages
+  complets UAL2 dérivés des sources Quaternius CC0 différencient Aerin, Maélis et Orin ; Toman conserve
+  le paysan masculin complet. Leurs six clips `idle_loop`, `jog_fwd_loop`, `jump_start`,
+  `sword_attack`, `hit_chest` et `death01` restent raccordés, et quatre portraits 768 px passent par le
+  catalogue CC0 et l’installateur gouverné avant d’être projetés dans le HUD ;
+- le terrain utilise les textures PBR d'herbe/roche et de pavés. Le réglage biome MCP reconstruit
+  36 928 instances dans seize couches — 12 253 de moins qu’avant, soit 24,9 % — avec treize couches
+  au vent, des exclusions plus propres autour des seuils et un temps terrain/scatter inférieur au
+  budget interne de 2 000 ms. Le runtime joueur ne lance plus les laboratoires Quality/Performance/
+  Governance réservés aux smokes ; la liaison wetness utilise des overrides de matériaux sans dupliquer
+  profondément les meshes ordinaires. Sur la même session Forward+ Solaren, le démarrage passe de
+  45 242,758 ms à 12 206,700 ms (-73,0 %) et la liaison wetness de 11 497,225 ms à 1 795,927 ms (-84,4 %) ;
+- le déplacement du héros reste réglé dans le module à 1,2 m/s en marche et 2,64 m/s en course. La
+  caméra conserve son recul horizontal sur pente, gère l’occlusion et expose ses limites verticales
+  dans Studio ; l’orbite Solaren descend à -85° et vise le ciel depuis sa garde au sol ;
+- météo, pluie et mouillure sont raccordées aux données du workspace : averse fine alignée au vent,
+  4 060 particules, wetness réversible et coefficients éditables. Le runtime interactif normal reste la
+  référence d’exposition, car les fixtures déterministes sont sensiblement plus sombres ;
+- HUD, groupe, inventaire, personnage, journal et carte proviennent maintenant de la projection
+  canonique du module. Les chemins de portraits sont confinés à la racine ; l’inventaire sépare le socle
+  initial authoré des acquisitions persistées, de sorte que `HasItem`, l’interface et les sauvegardes
+  restent cohérents sans double comptage, avec migration legacy. Les quêtes suivies produisent des
+  diagnostics stables et l’exploration/les étages sont sauvegardés sans données héritées de la Crypte ;
+- la carte mono-zone utilise un atlas local avec huit pins, huit labels sans chevauchement, trois routes,
+  position joueur, exploration persistée et étage borné. Les données fictives `68 %`, `3 routes actives`
+  et `Brume claire` ne sont plus injectées par le runtime ;
+- la première boucle narrative est jouable : dialogue de Maélis, choix, acceptation et suivi de
+  `Le repère de la place`, objectif authored distinct, interaction avec le repère, variable
+  `quest.objectives=complete`, transition terminale et journal mis à jour. Le rejouage de `StartQuest`
+  est idempotent ;
+- Maélis, Toman et Orin sont liés par override éditable à trois routes locales et se déplacent avec
+  attente, orientation et alternance course/idle. Deux émetteurs audio 3D CC0 — vent des frondaisons et
+  oiseaux de la place — sont reconstruits comme `AudioStreamPlayer3D` ; quatre prises françaises de
+  Maélis sont préparées dans les artefacts mais ne sont pas revendiquées comme intégrées tant qu’un
+  import audio gouverné dédié ne les a pas rattachées au dialogue ;
+- les validations canoniques de Solaren et de la Crypte ne remontent aucun diagnostic. Le lot affecté
+  passe 1 742 tests Release (Domain 528, Application 520, ModuleFormat 428, Studio.Core 33, MCP 174,
+  EngineAdapter 59), les builds Runtime/Studio/McpHost sans avertissement, le smoke Studio
+  `UX0D_PASS`, le smoke Solaren Forward+ avec patrouilles et boucle du repère, puis le smoke complet de
+  la Crypte. Les revues indépendantes du data binding, du cycle dialogue/patrouille puis du démarrage/
+  wetness sont vertes ; le graphe Roslyn est frais et
+  déterministe à 11 632 nœuds, 92 991 relations et zéro diagnostic. Deux exports `.orpmod` finaux
+  sont octet pour octet identiques : 496 820 719 octets, SHA-256
+  `4573eed957ced3fd777b2af429e531987a3a2e98bbf6c89b2cc5b4dccac0d3ff` ;
+- ce jalon est la première tranche artistique et narrative jouable de Solaren, pas une qualification de
+  contenu final ni une release publique signée. Voix intégrées, rencontres et transitions vers les
+  vallées voisines restent des extensions de contenu explicites.
 
 ## Couverture et preuves
 

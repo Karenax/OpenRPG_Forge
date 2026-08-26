@@ -213,11 +213,13 @@ public sealed record WeatherStateProfile
     public float MaximumDurationSeconds { get; }
     public float TransitionSeconds { get; }
     public PrecipitationVisualProfile Precipitation { get; }
+    public SurfaceWetnessMaterialProfile WetnessMaterial { get; }
 
     public WeatherStateProfile(Guid id, string name, WeatherKind kind, float intensity, float humidity,
         float surfaceWetness, bool lightning, string precipitationResource, string audioCue,
         string gameplayEffect, float minimumDurationSeconds, float maximumDurationSeconds,
-        float transitionSeconds, PrecipitationVisualProfile? precipitation = null)
+        float transitionSeconds, PrecipitationVisualProfile? precipitation = null,
+        SurfaceWetnessMaterialProfile? wetnessMaterial = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentNullException.ThrowIfNull(precipitationResource);
@@ -244,6 +246,7 @@ public sealed record WeatherStateProfile
         MaximumDurationSeconds = maximumDurationSeconds;
         TransitionSeconds = transitionSeconds;
         Precipitation = precipitation ?? PrecipitationVisualProfile.CreateDefault(kind);
+        WetnessMaterial = wetnessMaterial ?? SurfaceWetnessMaterialProfile.CreateDefault();
     }
 
     public static string NormalizeOptionalResource(string value)
@@ -257,6 +260,36 @@ public sealed record WeatherStateProfile
 
         return normalized;
     }
+}
+
+public sealed record SurfaceWetnessMaterialProfile
+{
+    public const int CurrentSchemaVersion = 1;
+
+    public int SchemaVersion { get; }
+    public float AlbedoDarkening { get; }
+    public float RoughnessReduction { get; }
+    public float SpecularIncrease { get; }
+
+    public SurfaceWetnessMaterialProfile(
+        int schemaVersion,
+        float albedoDarkening,
+        float roughnessReduction,
+        float specularIncrease)
+    {
+        if (schemaVersion != CurrentSchemaVersion ||
+            !float.IsFinite(albedoDarkening) || albedoDarkening is < 0 or > .35f ||
+            !float.IsFinite(roughnessReduction) || roughnessReduction is < 0 or > .8f ||
+            !float.IsFinite(specularIncrease) || specularIncrease is < 0 or > .6f)
+            throw new ArgumentOutOfRangeException(nameof(schemaVersion));
+        SchemaVersion = schemaVersion;
+        AlbedoDarkening = albedoDarkening;
+        RoughnessReduction = roughnessReduction;
+        SpecularIncrease = specularIncrease;
+    }
+
+    public static SurfaceWetnessMaterialProfile CreateDefault() =>
+        new(CurrentSchemaVersion, .14f, .36f, .2f);
 }
 
 public sealed record WeatherProfile

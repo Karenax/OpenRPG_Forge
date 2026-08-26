@@ -81,6 +81,29 @@ public static class GameplayFoundationValidator
                 Add(result, CameraCode,
                     "Camera pitch limits must be finite, ordered, between -89 and 89 degrees, and include the initial pitch.",
                     $"{root}/cameras/{camera.Id}/pitchLimits", camera.Id);
+            if (camera.OcclusionSchemaVersion != 1 || !Enum.IsDefined(camera.OcclusionStrategy) ||
+                !float.IsFinite(camera.CollisionRetractSharpness) ||
+                !float.IsFinite(camera.CollisionReleaseSharpness) ||
+                camera.CollisionRetractSharpness is <= 0 or > 100 ||
+                camera.CollisionReleaseSharpness is <= 0 or > 100)
+                Add(result, CameraCode,
+                    "Camera occlusion requires schema v1, a supported strategy and easing sharpness between 0 and 100.",
+                    $"{root}/cameras/{camera.Id}/collisionEasing", camera.Id);
+            if (camera.WorldLabelSchemaVersion != 1 ||
+                !float.IsFinite(camera.WorldLabelNearDistance) ||
+                !float.IsFinite(camera.WorldLabelFarDistance) ||
+                !float.IsFinite(camera.WorldLabelMaximumDistance) ||
+                !float.IsFinite(camera.WorldLabelNearScale) ||
+                !float.IsFinite(camera.WorldLabelFarScale) ||
+                camera.WorldLabelNearDistance is < 0 or > 100 ||
+                camera.WorldLabelFarDistance <= camera.WorldLabelNearDistance ||
+                camera.WorldLabelMaximumDistance <= camera.WorldLabelFarDistance ||
+                camera.WorldLabelMaximumDistance > 500 ||
+                camera.WorldLabelNearScale is <= 0 or > 4 ||
+                camera.WorldLabelFarScale is <= 0 or > 4)
+                Add(result, CameraCode,
+                    "World labels require schema v1, ordered distance bands and scales between 0 and 4.",
+                    $"{root}/cameras/{camera.Id}/worldLabels", camera.Id);
         }
         if (cameras.Profiles.All(item => !string.Equals(item.Key, cameras.DefaultProfileKey, StringComparison.Ordinal)))
             Add(result, CameraDefaultCode, "The default camera key must resolve to a camera profile.",

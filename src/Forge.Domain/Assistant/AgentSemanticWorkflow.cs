@@ -1,4 +1,6 @@
 using Forge.Domain.Validation;
+using Forge.Domain.Entities;
+using Forge.Domain.Spatial;
 
 namespace Forge.Domain.Assistant;
 
@@ -100,7 +102,20 @@ public sealed record AgentSemanticCommand(
     Guid Id,
     string ToolName,
     Guid TargetObjectId,
-    IReadOnlyDictionary<string, string> Arguments);
+    IReadOnlyDictionary<string, string> Arguments,
+    AgentAreaEntityPlacement? AreaEntityPlacement = null);
+
+public sealed record AgentAreaEntityPlacement(
+    int SchemaVersion,
+    Guid AreaId,
+    Guid EntityId,
+    Guid BlueprintId,
+    TransformValue Transform,
+    IReadOnlyList<string>? Tags = null,
+    EntityPropertyOverrides? Overrides = null)
+{
+    public const int CurrentSchemaVersion = 1;
+}
 
 public sealed record StructuredChangePlan(
     Guid Id,

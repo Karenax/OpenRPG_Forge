@@ -1,0 +1,3237 @@
+{
+  "formatVersion": "1.0.0",
+  "entries": [
+    {
+      "id": "a265a487-e2e8-41ae-b476-f99d45eff7a0",
+      "schemaVersion": 1,
+      "transactionId": "7677b36a-4f31-5647-b5c0-3ed90b756d14",
+      "planId": "7c0509e2-f2e2-5d4b-84cf-f5318e91b572",
+      "rollbackId": "2dd65c71-d5f4-4c4e-ac54-4c27347db41d",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity",
+        "area.add_entity",
+        "area.add_entity",
+        "area.add_entity",
+        "area.add_entity",
+        "area.add_entity",
+        "area.add_entity",
+        "area.add_entity",
+        "area.add_entity",
+        "area.add_entity",
+        "area.add_entity",
+        "area.add_entity"
+      ],
+      "inputHash": "421479704f441295cdff7eb7a8628eb416c10ea2a3864f0717a047a06d084088",
+      "outputHash": "8948f3b4c359202ef1ea9762900d6b012b65564d472aa38b3ce3675892473e2c",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual",
+        "project-diagnostics"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1",
+      "revision": 1,
+      "occurredAt": "2026-08-26T03:44:26.0829362+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "8f1a2cdb-bc2a-473e-a806-97508ea70224",
+      "schemaVersion": 1,
+      "transactionId": "7677b36a-4f31-5647-b5c0-3ed90b756d14",
+      "planId": "7c0509e2-f2e2-5d4b-84cf-f5318e91b572",
+      "rollbackId": "2dd65c71-d5f4-4c4e-ac54-4c27347db41d",
+      "stage": "rejected",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity",
+        "area.add_entity",
+        "area.add_entity",
+        "area.add_entity",
+        "area.add_entity",
+        "area.add_entity",
+        "area.add_entity",
+        "area.add_entity",
+        "area.add_entity",
+        "area.add_entity",
+        "area.add_entity",
+        "area.add_entity"
+      ],
+      "inputHash": "421479704f441295cdff7eb7a8628eb416c10ea2a3864f0717a047a06d084088",
+      "outputHash": "8948f3b4c359202ef1ea9762900d6b012b65564d472aa38b3ce3675892473e2c",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual",
+        "project-diagnostics"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1",
+      "revision": 1,
+      "occurredAt": "2026-08-26T03:44:26.133333+00:00",
+      "succeeded": false
+    },
+    {
+      "id": "a856f71d-f279-4d10-8d34-1496fb7da67e",
+      "schemaVersion": 1,
+      "transactionId": "364a3593-550b-5f65-9158-f19b05039916",
+      "planId": "c27bb174-1c9f-5205-9709-fb808b365c1f",
+      "rollbackId": "2ddcde49-4d37-49d2-a368-3cfa19ebfbfb",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "636de5024d422b1f1119bc00848ef1419302ead45d849afde7747a352b1de67c",
+      "outputHash": "8948f3b4c359202ef1ea9762900d6b012b65564d472aa38b3ce3675892473e2c",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1",
+      "revision": 0,
+      "occurredAt": "2026-08-26T03:46:53.2005935+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "e8754f55-6b7b-4874-a250-ba8f47f22975",
+      "schemaVersion": 1,
+      "transactionId": "364a3593-550b-5f65-9158-f19b05039916",
+      "planId": "c27bb174-1c9f-5205-9709-fb808b365c1f",
+      "rollbackId": "2ddcde49-4d37-49d2-a368-3cfa19ebfbfb",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "636de5024d422b1f1119bc00848ef1419302ead45d849afde7747a352b1de67c",
+      "outputHash": "7b62e113735ee1c53f18c48a226c552a5235130194ef5562c93d4eb55152cfa6",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1",
+      "revision": 0,
+      "occurredAt": "2026-08-26T03:46:53.2600516+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "5e5819c2-21c3-4198-9bc2-1f2fdbec0bea",
+      "schemaVersion": 1,
+      "transactionId": "364a3593-550b-5f65-9158-f19b05039916",
+      "planId": "c27bb174-1c9f-5205-9709-fb808b365c1f",
+      "rollbackId": "2ddcde49-4d37-49d2-a368-3cfa19ebfbfb",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "636de5024d422b1f1119bc00848ef1419302ead45d849afde7747a352b1de67c",
+      "outputHash": "7b62e113735ee1c53f18c48a226c552a5235130194ef5562c93d4eb55152cfa6",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1",
+      "revision": 1,
+      "occurredAt": "2026-08-26T03:46:53.5161826+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "92668697-9cb0-49d6-838d-8cb735859083",
+      "schemaVersion": 1,
+      "transactionId": "259dba2d-27f6-5642-b8a4-dad96178130d",
+      "planId": "5b0ae6a1-467f-5e1f-b916-b779db5c3094",
+      "rollbackId": "549bc9de-6603-4fd5-9275-af7ae39a8e40",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "97efb147e9aca530959e17df9376e7101e392db0e065db27a9248dc129c175d0",
+      "outputHash": "7b62e113735ee1c53f18c48a226c552a5235130194ef5562c93d4eb55152cfa6",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1",
+      "revision": 1,
+      "occurredAt": "2026-08-26T03:46:53.5505489+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "49f329a0-5bc6-4ccf-b69a-d5d56916de40",
+      "schemaVersion": 1,
+      "transactionId": "259dba2d-27f6-5642-b8a4-dad96178130d",
+      "planId": "5b0ae6a1-467f-5e1f-b916-b779db5c3094",
+      "rollbackId": "549bc9de-6603-4fd5-9275-af7ae39a8e40",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "97efb147e9aca530959e17df9376e7101e392db0e065db27a9248dc129c175d0",
+      "outputHash": "63e01d0b7df71edc2bc66dcf560071bca3e1a8619cd2846fdf2cd79858bbfa79",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1",
+      "revision": 1,
+      "occurredAt": "2026-08-26T03:46:53.5908034+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "d4ba398a-6abe-4d0d-91f6-02cda3df980d",
+      "schemaVersion": 1,
+      "transactionId": "259dba2d-27f6-5642-b8a4-dad96178130d",
+      "planId": "5b0ae6a1-467f-5e1f-b916-b779db5c3094",
+      "rollbackId": "549bc9de-6603-4fd5-9275-af7ae39a8e40",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "97efb147e9aca530959e17df9376e7101e392db0e065db27a9248dc129c175d0",
+      "outputHash": "63e01d0b7df71edc2bc66dcf560071bca3e1a8619cd2846fdf2cd79858bbfa79",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1",
+      "revision": 2,
+      "occurredAt": "2026-08-26T03:46:53.749719+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "883cd7c3-a83f-44a4-a4ba-7bbac3c97297",
+      "schemaVersion": 1,
+      "transactionId": "cb23aa58-7e86-5aaf-86dd-92b9bac88e20",
+      "planId": "7aebc011-bb08-5a61-a45b-3807fff51b97",
+      "rollbackId": "7b79c5eb-38cd-4423-a7ad-702a1161f344",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "c9557c394bae80ecb71e076e31da3646e013a7d0ab2d5c5b286ca9f457d07d24",
+      "outputHash": "63e01d0b7df71edc2bc66dcf560071bca3e1a8619cd2846fdf2cd79858bbfa79",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1",
+      "revision": 2,
+      "occurredAt": "2026-08-26T03:46:53.7851785+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "27635057-f795-48af-9e47-1cc7cd345070",
+      "schemaVersion": 1,
+      "transactionId": "cb23aa58-7e86-5aaf-86dd-92b9bac88e20",
+      "planId": "7aebc011-bb08-5a61-a45b-3807fff51b97",
+      "rollbackId": "7b79c5eb-38cd-4423-a7ad-702a1161f344",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "c9557c394bae80ecb71e076e31da3646e013a7d0ab2d5c5b286ca9f457d07d24",
+      "outputHash": "e631919c8f94e61602f28c9e678f3c28efd4322eb89f346cb1fe9099b056e83a",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1",
+      "revision": 2,
+      "occurredAt": "2026-08-26T03:46:53.8245562+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "fe225930-55cc-4690-99bc-18ae596a9793",
+      "schemaVersion": 1,
+      "transactionId": "cb23aa58-7e86-5aaf-86dd-92b9bac88e20",
+      "planId": "7aebc011-bb08-5a61-a45b-3807fff51b97",
+      "rollbackId": "7b79c5eb-38cd-4423-a7ad-702a1161f344",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "c9557c394bae80ecb71e076e31da3646e013a7d0ab2d5c5b286ca9f457d07d24",
+      "outputHash": "e631919c8f94e61602f28c9e678f3c28efd4322eb89f346cb1fe9099b056e83a",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1",
+      "revision": 3,
+      "occurredAt": "2026-08-26T03:46:53.9733767+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "66b93b38-6296-4af5-9e41-ae9b7741289d",
+      "schemaVersion": 1,
+      "transactionId": "3766c801-f633-5272-9886-5b9cc03a6f4f",
+      "planId": "f4c993c6-ffe1-56c4-9d55-00c9a6701b1a",
+      "rollbackId": "181ca7fb-3cdc-471a-8143-21a891aa4644",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "705fb701781ba12ad6ab384b94bfa01f6c0d69266665963d4a949967fa4e7612",
+      "outputHash": "e631919c8f94e61602f28c9e678f3c28efd4322eb89f346cb1fe9099b056e83a",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1",
+      "revision": 3,
+      "occurredAt": "2026-08-26T03:46:54.008345+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "757373c7-5989-497f-bf99-e27452285229",
+      "schemaVersion": 1,
+      "transactionId": "3766c801-f633-5272-9886-5b9cc03a6f4f",
+      "planId": "f4c993c6-ffe1-56c4-9d55-00c9a6701b1a",
+      "rollbackId": "181ca7fb-3cdc-471a-8143-21a891aa4644",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "705fb701781ba12ad6ab384b94bfa01f6c0d69266665963d4a949967fa4e7612",
+      "outputHash": "3303d8576c8db621cb8537551c5bb22801ab99efb73654bcddc6326806e79da5",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1",
+      "revision": 3,
+      "occurredAt": "2026-08-26T03:46:54.0522215+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "382fd511-5c0c-4d2d-a88e-fb8e676d9a8f",
+      "schemaVersion": 1,
+      "transactionId": "3766c801-f633-5272-9886-5b9cc03a6f4f",
+      "planId": "f4c993c6-ffe1-56c4-9d55-00c9a6701b1a",
+      "rollbackId": "181ca7fb-3cdc-471a-8143-21a891aa4644",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "705fb701781ba12ad6ab384b94bfa01f6c0d69266665963d4a949967fa4e7612",
+      "outputHash": "3303d8576c8db621cb8537551c5bb22801ab99efb73654bcddc6326806e79da5",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1",
+      "revision": 4,
+      "occurredAt": "2026-08-26T03:46:54.2058502+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "bbbcb980-23b2-482d-8a1b-1312c7407629",
+      "schemaVersion": 1,
+      "transactionId": "76f84c3c-ba9b-5c65-9386-f75d650350cf",
+      "planId": "ef8d06bb-acb2-5e36-ba60-ea3e10fdefe8",
+      "rollbackId": "63bc163a-bc65-48b5-9d8f-28fa7265028a",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "b770ca7fece4d22a1917e79d15bd1f3a03c0ff9bd965bd7d948f1ca61f3e9c74",
+      "outputHash": "3303d8576c8db621cb8537551c5bb22801ab99efb73654bcddc6326806e79da5",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1",
+      "revision": 4,
+      "occurredAt": "2026-08-26T03:46:54.2420987+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "05ab07aa-e14c-4ab0-82c3-9b54dda4d5c5",
+      "schemaVersion": 1,
+      "transactionId": "76f84c3c-ba9b-5c65-9386-f75d650350cf",
+      "planId": "ef8d06bb-acb2-5e36-ba60-ea3e10fdefe8",
+      "rollbackId": "63bc163a-bc65-48b5-9d8f-28fa7265028a",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "b770ca7fece4d22a1917e79d15bd1f3a03c0ff9bd965bd7d948f1ca61f3e9c74",
+      "outputHash": "55070134163742e932da477674217214037955d702f360343cda2049747d7e01",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1",
+      "revision": 4,
+      "occurredAt": "2026-08-26T03:46:54.286298+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "e1229baa-943d-4da6-a61c-0afe103f60e7",
+      "schemaVersion": 1,
+      "transactionId": "76f84c3c-ba9b-5c65-9386-f75d650350cf",
+      "planId": "ef8d06bb-acb2-5e36-ba60-ea3e10fdefe8",
+      "rollbackId": "63bc163a-bc65-48b5-9d8f-28fa7265028a",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "b770ca7fece4d22a1917e79d15bd1f3a03c0ff9bd965bd7d948f1ca61f3e9c74",
+      "outputHash": "55070134163742e932da477674217214037955d702f360343cda2049747d7e01",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1",
+      "revision": 5,
+      "occurredAt": "2026-08-26T03:46:54.4414338+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "deb75fe6-91ca-4512-bd34-24f27981ac7c",
+      "schemaVersion": 1,
+      "transactionId": "7cb5085c-9a9c-5b15-94c2-6e4ad40a654c",
+      "planId": "fe37f5f8-11a5-5f0f-a23f-187845a4e3fb",
+      "rollbackId": "caf1471e-8d50-4aee-824d-16bc464b7d22",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "86f66b932a26dba5fdb8336a02afb1794b880d93ddaa4516bf630f3ce06fb9fa",
+      "outputHash": "55070134163742e932da477674217214037955d702f360343cda2049747d7e01",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1",
+      "revision": 5,
+      "occurredAt": "2026-08-26T03:46:54.5005355+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "5c18c70b-8563-4d71-ab0f-68e1ae037edb",
+      "schemaVersion": 1,
+      "transactionId": "7cb5085c-9a9c-5b15-94c2-6e4ad40a654c",
+      "planId": "fe37f5f8-11a5-5f0f-a23f-187845a4e3fb",
+      "rollbackId": "caf1471e-8d50-4aee-824d-16bc464b7d22",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "86f66b932a26dba5fdb8336a02afb1794b880d93ddaa4516bf630f3ce06fb9fa",
+      "outputHash": "4da7f1cba4a97113bca19429c9ffccfcd08f9738804b2ccc89c92ab38a225f2d",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1",
+      "revision": 5,
+      "occurredAt": "2026-08-26T03:46:54.5449571+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "65c7e04a-c420-4d24-9eff-e590ee35b3fb",
+      "schemaVersion": 1,
+      "transactionId": "7cb5085c-9a9c-5b15-94c2-6e4ad40a654c",
+      "planId": "fe37f5f8-11a5-5f0f-a23f-187845a4e3fb",
+      "rollbackId": "caf1471e-8d50-4aee-824d-16bc464b7d22",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "86f66b932a26dba5fdb8336a02afb1794b880d93ddaa4516bf630f3ce06fb9fa",
+      "outputHash": "4da7f1cba4a97113bca19429c9ffccfcd08f9738804b2ccc89c92ab38a225f2d",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1",
+      "revision": 6,
+      "occurredAt": "2026-08-26T03:46:54.7010102+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "bd48108d-3abc-436b-a356-08226eb71275",
+      "schemaVersion": 1,
+      "transactionId": "5eb71792-24d5-5447-abbf-0f93097b2c84",
+      "planId": "923baa45-4779-51c7-b55a-d62db7d3fc8d",
+      "rollbackId": "4bb931a6-08a1-43f3-960c-156cdd9c6bf6",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "c53363738f39f989b796d38dc29c7b3f303f25326c5210e61023aac405bb5614",
+      "outputHash": "4da7f1cba4a97113bca19429c9ffccfcd08f9738804b2ccc89c92ab38a225f2d",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1",
+      "revision": 6,
+      "occurredAt": "2026-08-26T03:46:54.7617838+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "9095b02e-6493-4583-8d98-30b45ebdb3d9",
+      "schemaVersion": 1,
+      "transactionId": "5eb71792-24d5-5447-abbf-0f93097b2c84",
+      "planId": "923baa45-4779-51c7-b55a-d62db7d3fc8d",
+      "rollbackId": "4bb931a6-08a1-43f3-960c-156cdd9c6bf6",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "c53363738f39f989b796d38dc29c7b3f303f25326c5210e61023aac405bb5614",
+      "outputHash": "92cf1ec896a15cc22116bdc38e1b8460113ed030442d9d92f85211a0f0f52cb4",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1",
+      "revision": 6,
+      "occurredAt": "2026-08-26T03:46:54.8125269+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "9a14d76a-e6e0-4ce0-b597-18403fa7d75b",
+      "schemaVersion": 1,
+      "transactionId": "5eb71792-24d5-5447-abbf-0f93097b2c84",
+      "planId": "923baa45-4779-51c7-b55a-d62db7d3fc8d",
+      "rollbackId": "4bb931a6-08a1-43f3-960c-156cdd9c6bf6",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "c53363738f39f989b796d38dc29c7b3f303f25326c5210e61023aac405bb5614",
+      "outputHash": "92cf1ec896a15cc22116bdc38e1b8460113ed030442d9d92f85211a0f0f52cb4",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1",
+      "revision": 7,
+      "occurredAt": "2026-08-26T03:46:54.970716+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "af5906b9-fb74-4553-8102-c2739b878a85",
+      "schemaVersion": 1,
+      "transactionId": "d3aee1dd-f4ed-561d-ad2f-addd72b2110e",
+      "planId": "3596d194-4bc7-550d-b0d2-5f51ff9008ea",
+      "rollbackId": "af173e27-308f-4c00-b0e9-f1e499ba81b9",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "813ed4b063b103bc63f8d19109168646cec4ab1e397c20884ae8b8bb161167fa",
+      "outputHash": "92cf1ec896a15cc22116bdc38e1b8460113ed030442d9d92f85211a0f0f52cb4",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1",
+      "revision": 7,
+      "occurredAt": "2026-08-26T03:46:55.0094971+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "293ccf1f-b828-42cc-bac7-77e7418a2cf4",
+      "schemaVersion": 1,
+      "transactionId": "d3aee1dd-f4ed-561d-ad2f-addd72b2110e",
+      "planId": "3596d194-4bc7-550d-b0d2-5f51ff9008ea",
+      "rollbackId": "af173e27-308f-4c00-b0e9-f1e499ba81b9",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "813ed4b063b103bc63f8d19109168646cec4ab1e397c20884ae8b8bb161167fa",
+      "outputHash": "85581f2bf6655cad6ff5af79421dbf4f89dc982616ac600979ea9f0f9c3035c8",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1",
+      "revision": 7,
+      "occurredAt": "2026-08-26T03:46:55.0624566+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "3de72a06-ad62-4c1e-b35d-b9219f037c8f",
+      "schemaVersion": 1,
+      "transactionId": "d3aee1dd-f4ed-561d-ad2f-addd72b2110e",
+      "planId": "3596d194-4bc7-550d-b0d2-5f51ff9008ea",
+      "rollbackId": "af173e27-308f-4c00-b0e9-f1e499ba81b9",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "813ed4b063b103bc63f8d19109168646cec4ab1e397c20884ae8b8bb161167fa",
+      "outputHash": "85581f2bf6655cad6ff5af79421dbf4f89dc982616ac600979ea9f0f9c3035c8",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1",
+      "revision": 8,
+      "occurredAt": "2026-08-26T03:46:55.2214077+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "98d0b2ed-4360-41c6-859b-d4f6e1d0ad6a",
+      "schemaVersion": 1,
+      "transactionId": "cf4e32fb-494e-5fb5-b76d-277d75dbe95c",
+      "planId": "612ef897-52ca-5a87-9cdb-d6084d711e64",
+      "rollbackId": "3a12561e-6a39-4ce0-b018-552b5ab00940",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "fefeba95c24db69c4f169cb3924105e47588a87fe796be526b347f3c5b5157b3",
+      "outputHash": "85581f2bf6655cad6ff5af79421dbf4f89dc982616ac600979ea9f0f9c3035c8",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1",
+      "revision": 8,
+      "occurredAt": "2026-08-26T03:46:55.262227+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "88139755-6416-4341-ad3f-224a27d2ce2b",
+      "schemaVersion": 1,
+      "transactionId": "cf4e32fb-494e-5fb5-b76d-277d75dbe95c",
+      "planId": "612ef897-52ca-5a87-9cdb-d6084d711e64",
+      "rollbackId": "3a12561e-6a39-4ce0-b018-552b5ab00940",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "fefeba95c24db69c4f169cb3924105e47588a87fe796be526b347f3c5b5157b3",
+      "outputHash": "220ab6844aef01fb59c5384f76645eea662f9007f8ee82cca82d2017869aa4a2",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1",
+      "revision": 8,
+      "occurredAt": "2026-08-26T03:46:55.3124709+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "02debeb5-7d0d-4f26-8b42-6b32cdce0caa",
+      "schemaVersion": 1,
+      "transactionId": "cf4e32fb-494e-5fb5-b76d-277d75dbe95c",
+      "planId": "612ef897-52ca-5a87-9cdb-d6084d711e64",
+      "rollbackId": "3a12561e-6a39-4ce0-b018-552b5ab00940",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "fefeba95c24db69c4f169cb3924105e47588a87fe796be526b347f3c5b5157b3",
+      "outputHash": "220ab6844aef01fb59c5384f76645eea662f9007f8ee82cca82d2017869aa4a2",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1",
+      "revision": 9,
+      "occurredAt": "2026-08-26T03:46:55.4723223+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "e5a736cf-0f35-44b3-89be-4373cf7c4476",
+      "schemaVersion": 1,
+      "transactionId": "4607bc89-d619-526e-820f-d222b5c748ba",
+      "planId": "15c0c03b-04d1-58ae-996f-525e243c9bb0",
+      "rollbackId": "89deac50-69f6-4ea9-9279-f7cb8d2aab4e",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "3c5536ec3f018281216ee4f6a18157cbcd8635d89e38ba322d21ce757555731b",
+      "outputHash": "220ab6844aef01fb59c5384f76645eea662f9007f8ee82cca82d2017869aa4a2",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1",
+      "revision": 9,
+      "occurredAt": "2026-08-26T03:46:55.5118847+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "2e47af15-52b4-41a4-b483-4b9660e2a8a2",
+      "schemaVersion": 1,
+      "transactionId": "4607bc89-d619-526e-820f-d222b5c748ba",
+      "planId": "15c0c03b-04d1-58ae-996f-525e243c9bb0",
+      "rollbackId": "89deac50-69f6-4ea9-9279-f7cb8d2aab4e",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "3c5536ec3f018281216ee4f6a18157cbcd8635d89e38ba322d21ce757555731b",
+      "outputHash": "9d5681225c5f2e69675439ac0c18cb8a72c9deaca547919c1024a303807db9f7",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1",
+      "revision": 9,
+      "occurredAt": "2026-08-26T03:46:55.5622443+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "f27406f6-80cb-4071-8ddd-ad6b68616e5f",
+      "schemaVersion": 1,
+      "transactionId": "4607bc89-d619-526e-820f-d222b5c748ba",
+      "planId": "15c0c03b-04d1-58ae-996f-525e243c9bb0",
+      "rollbackId": "89deac50-69f6-4ea9-9279-f7cb8d2aab4e",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "3c5536ec3f018281216ee4f6a18157cbcd8635d89e38ba322d21ce757555731b",
+      "outputHash": "9d5681225c5f2e69675439ac0c18cb8a72c9deaca547919c1024a303807db9f7",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1",
+      "revision": 10,
+      "occurredAt": "2026-08-26T03:46:55.7184686+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "52e72c9e-28a3-41d5-8c6d-c4b7b4a2f7f9",
+      "schemaVersion": 1,
+      "transactionId": "63d27d55-01a1-5284-a813-709668dadfd0",
+      "planId": "8d1afe14-9fdb-5e2f-a96a-7a003941ea54",
+      "rollbackId": "e402a92c-01b0-4d2f-b724-da184b1b59de",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "f192c6b4aea0235dea101ed0c53174a0391712fb7172037d2c214959a2094863",
+      "outputHash": "9d5681225c5f2e69675439ac0c18cb8a72c9deaca547919c1024a303807db9f7",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1",
+      "revision": 10,
+      "occurredAt": "2026-08-26T03:46:55.7564427+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "510c7a8c-7286-4029-9579-50754b08ace6",
+      "schemaVersion": 1,
+      "transactionId": "63d27d55-01a1-5284-a813-709668dadfd0",
+      "planId": "8d1afe14-9fdb-5e2f-a96a-7a003941ea54",
+      "rollbackId": "e402a92c-01b0-4d2f-b724-da184b1b59de",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "f192c6b4aea0235dea101ed0c53174a0391712fb7172037d2c214959a2094863",
+      "outputHash": "61c97b2f8ca47d632a534f240e1f46f19360cb3a5af6caa47032c38ccb946b50",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1",
+      "revision": 10,
+      "occurredAt": "2026-08-26T03:46:55.8053451+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "175860e4-d053-459d-9c34-3ab66dd1671b",
+      "schemaVersion": 1,
+      "transactionId": "63d27d55-01a1-5284-a813-709668dadfd0",
+      "planId": "8d1afe14-9fdb-5e2f-a96a-7a003941ea54",
+      "rollbackId": "e402a92c-01b0-4d2f-b724-da184b1b59de",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "f192c6b4aea0235dea101ed0c53174a0391712fb7172037d2c214959a2094863",
+      "outputHash": "61c97b2f8ca47d632a534f240e1f46f19360cb3a5af6caa47032c38ccb946b50",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1",
+      "revision": 11,
+      "occurredAt": "2026-08-26T03:46:55.9559733+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "90774807-0340-4838-a314-4c7e87ad1453",
+      "schemaVersion": 1,
+      "transactionId": "5e4efb9f-0f89-5c01-8253-46de711506e6",
+      "planId": "d0c3b334-e7e3-5616-9372-0a21236c4122",
+      "rollbackId": "22a4d64f-9c69-4285-bccf-f4f570336874",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "ba3392570c176586008b7532644c1ef7644761633a08c0fcbf9fa92fce4a0387",
+      "outputHash": "61c97b2f8ca47d632a534f240e1f46f19360cb3a5af6caa47032c38ccb946b50",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1",
+      "revision": 11,
+      "occurredAt": "2026-08-26T03:46:55.9935215+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "6b89ae2d-1027-42ec-8948-d8e9673668ba",
+      "schemaVersion": 1,
+      "transactionId": "5e4efb9f-0f89-5c01-8253-46de711506e6",
+      "planId": "d0c3b334-e7e3-5616-9372-0a21236c4122",
+      "rollbackId": "22a4d64f-9c69-4285-bccf-f4f570336874",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "ba3392570c176586008b7532644c1ef7644761633a08c0fcbf9fa92fce4a0387",
+      "outputHash": "20e4e751ac850230702171cf781bba995fb7d5353c31f7c45efbdac571f29359",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1",
+      "revision": 11,
+      "occurredAt": "2026-08-26T03:46:56.0419801+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "58559293-744a-4ebf-900c-36e69100e63b",
+      "schemaVersion": 1,
+      "transactionId": "5e4efb9f-0f89-5c01-8253-46de711506e6",
+      "planId": "d0c3b334-e7e3-5616-9372-0a21236c4122",
+      "rollbackId": "22a4d64f-9c69-4285-bccf-f4f570336874",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "ba3392570c176586008b7532644c1ef7644761633a08c0fcbf9fa92fce4a0387",
+      "outputHash": "20e4e751ac850230702171cf781bba995fb7d5353c31f7c45efbdac571f29359",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1",
+      "revision": 12,
+      "occurredAt": "2026-08-26T03:46:56.1970791+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "01a5cfb9-15f4-4a46-9fc4-a78e43f2877d",
+      "schemaVersion": 1,
+      "transactionId": "36ae3e91-4adf-59e6-bd14-29cd7f779621",
+      "planId": "36e2e6dc-42f8-57dd-9517-856bc2bed4d8",
+      "rollbackId": "ff170c28-fb1a-4e1c-9aca-61a324d6c30b",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "d5e656609c827bcfebc00da1cfb0b9d7bb50a64c4dcea6e1c5a44303c97717ae",
+      "outputHash": "8948f3b4c359202ef1ea9762900d6b012b65564d472aa38b3ce3675892473e2c",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "quaternion-nonzero",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1-quaternion-recovery",
+      "revision": 0,
+      "occurredAt": "2026-08-26T04:00:34.4680974+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "97570c98-2805-4051-b6db-7a3ce6ac4e2b",
+      "schemaVersion": 1,
+      "transactionId": "36ae3e91-4adf-59e6-bd14-29cd7f779621",
+      "planId": "36e2e6dc-42f8-57dd-9517-856bc2bed4d8",
+      "rollbackId": "ff170c28-fb1a-4e1c-9aca-61a324d6c30b",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "d5e656609c827bcfebc00da1cfb0b9d7bb50a64c4dcea6e1c5a44303c97717ae",
+      "outputHash": "a86621d7ee8f70993c136357d51c5c178a011ede03834327a5c09634d4dc7791",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "quaternion-nonzero",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1-quaternion-recovery",
+      "revision": 0,
+      "occurredAt": "2026-08-26T04:00:34.5228918+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "06a16b10-1ac4-4d97-9cc2-08bb879a8521",
+      "schemaVersion": 1,
+      "transactionId": "36ae3e91-4adf-59e6-bd14-29cd7f779621",
+      "planId": "36e2e6dc-42f8-57dd-9517-856bc2bed4d8",
+      "rollbackId": "ff170c28-fb1a-4e1c-9aca-61a324d6c30b",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "d5e656609c827bcfebc00da1cfb0b9d7bb50a64c4dcea6e1c5a44303c97717ae",
+      "outputHash": "a86621d7ee8f70993c136357d51c5c178a011ede03834327a5c09634d4dc7791",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "quaternion-nonzero",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1-quaternion-recovery",
+      "revision": 1,
+      "occurredAt": "2026-08-26T04:00:34.7861723+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "2ccb0c1c-5931-4cb9-8a67-8af6c5c484dd",
+      "schemaVersion": 1,
+      "transactionId": "beebccf1-b40a-511a-a005-434f449d8e09",
+      "planId": "096c948c-7c99-5cf0-b0db-603a010aa541",
+      "rollbackId": "83760bff-2f5b-4fb2-bf4d-1b6f71b58471",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "01ad3523e732ca98859d04c4ec1426a457ba066864e1a61ff559ec6d01043569",
+      "outputHash": "a86621d7ee8f70993c136357d51c5c178a011ede03834327a5c09634d4dc7791",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "quaternion-nonzero",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1-quaternion-recovery",
+      "revision": 1,
+      "occurredAt": "2026-08-26T04:00:34.8094573+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "e2b2ea17-f016-4fb3-adac-787e6261cfa4",
+      "schemaVersion": 1,
+      "transactionId": "beebccf1-b40a-511a-a005-434f449d8e09",
+      "planId": "096c948c-7c99-5cf0-b0db-603a010aa541",
+      "rollbackId": "83760bff-2f5b-4fb2-bf4d-1b6f71b58471",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "01ad3523e732ca98859d04c4ec1426a457ba066864e1a61ff559ec6d01043569",
+      "outputHash": "d954bd5614ac203010f996234755805ee3109483e3d1849fe6dbc871c49101cb",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "quaternion-nonzero",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1-quaternion-recovery",
+      "revision": 1,
+      "occurredAt": "2026-08-26T04:00:34.8527805+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "4dea2c43-c4dd-40f0-8681-851235b77bad",
+      "schemaVersion": 1,
+      "transactionId": "beebccf1-b40a-511a-a005-434f449d8e09",
+      "planId": "096c948c-7c99-5cf0-b0db-603a010aa541",
+      "rollbackId": "83760bff-2f5b-4fb2-bf4d-1b6f71b58471",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "01ad3523e732ca98859d04c4ec1426a457ba066864e1a61ff559ec6d01043569",
+      "outputHash": "d954bd5614ac203010f996234755805ee3109483e3d1849fe6dbc871c49101cb",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "quaternion-nonzero",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1-quaternion-recovery",
+      "revision": 2,
+      "occurredAt": "2026-08-26T04:00:35.0182435+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "0703ec8e-6fdc-4513-87f9-87ad535a2551",
+      "schemaVersion": 1,
+      "transactionId": "df4558b9-d133-5dec-afb2-3946b51ee756",
+      "planId": "e5d24f21-8004-5496-8c49-bab48c134eba",
+      "rollbackId": "7b9d4566-5ba6-4214-8c79-c6dddc3a203d",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "4e63134e2e5c6d1aad38ba07cf752366294836058b76cc1eca819b59afc5c0d4",
+      "outputHash": "d954bd5614ac203010f996234755805ee3109483e3d1849fe6dbc871c49101cb",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "quaternion-nonzero",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1-quaternion-recovery",
+      "revision": 2,
+      "occurredAt": "2026-08-26T04:00:35.0439186+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "d2aa7051-765b-4c8e-ba9e-6f39bd89e25b",
+      "schemaVersion": 1,
+      "transactionId": "df4558b9-d133-5dec-afb2-3946b51ee756",
+      "planId": "e5d24f21-8004-5496-8c49-bab48c134eba",
+      "rollbackId": "7b9d4566-5ba6-4214-8c79-c6dddc3a203d",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "4e63134e2e5c6d1aad38ba07cf752366294836058b76cc1eca819b59afc5c0d4",
+      "outputHash": "0c379887019af55d3d96934283ebe57c71024b1b5543221afaa6114530501625",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "quaternion-nonzero",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1-quaternion-recovery",
+      "revision": 2,
+      "occurredAt": "2026-08-26T04:00:35.0855096+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "dc390a83-844b-428e-97d3-f2faf0d7ce87",
+      "schemaVersion": 1,
+      "transactionId": "df4558b9-d133-5dec-afb2-3946b51ee756",
+      "planId": "e5d24f21-8004-5496-8c49-bab48c134eba",
+      "rollbackId": "7b9d4566-5ba6-4214-8c79-c6dddc3a203d",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "4e63134e2e5c6d1aad38ba07cf752366294836058b76cc1eca819b59afc5c0d4",
+      "outputHash": "0c379887019af55d3d96934283ebe57c71024b1b5543221afaa6114530501625",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "quaternion-nonzero",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1-quaternion-recovery",
+      "revision": 3,
+      "occurredAt": "2026-08-26T04:00:35.2433649+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "0d1e29ae-aff2-4329-b6d7-1c43426a60f8",
+      "schemaVersion": 1,
+      "transactionId": "3e59058c-b9a9-58c6-8c98-ae017d1291c2",
+      "planId": "1e61ce81-f837-5f83-bffb-0b7f450a897b",
+      "rollbackId": "aec63452-ff7a-41b0-8c4a-5ca5c54dc2ff",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "39c0f2fca411c59c62bf038f110a092d0f5d07148166f262045b9d894eff6424",
+      "outputHash": "0c379887019af55d3d96934283ebe57c71024b1b5543221afaa6114530501625",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "quaternion-nonzero",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1-quaternion-recovery",
+      "revision": 3,
+      "occurredAt": "2026-08-26T04:00:35.2669308+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "96edf7f2-8826-4338-82ff-246236db3779",
+      "schemaVersion": 1,
+      "transactionId": "3e59058c-b9a9-58c6-8c98-ae017d1291c2",
+      "planId": "1e61ce81-f837-5f83-bffb-0b7f450a897b",
+      "rollbackId": "aec63452-ff7a-41b0-8c4a-5ca5c54dc2ff",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "39c0f2fca411c59c62bf038f110a092d0f5d07148166f262045b9d894eff6424",
+      "outputHash": "0a7a585aff69eebd60411f7b9ba6fc5dd7df8b1a584b396368768756ee069466",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "quaternion-nonzero",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1-quaternion-recovery",
+      "revision": 3,
+      "occurredAt": "2026-08-26T04:00:35.3063764+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "07507757-7eb5-46e5-9fa2-93ccd60e54a5",
+      "schemaVersion": 1,
+      "transactionId": "3e59058c-b9a9-58c6-8c98-ae017d1291c2",
+      "planId": "1e61ce81-f837-5f83-bffb-0b7f450a897b",
+      "rollbackId": "aec63452-ff7a-41b0-8c4a-5ca5c54dc2ff",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "39c0f2fca411c59c62bf038f110a092d0f5d07148166f262045b9d894eff6424",
+      "outputHash": "0a7a585aff69eebd60411f7b9ba6fc5dd7df8b1a584b396368768756ee069466",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "quaternion-nonzero",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1-quaternion-recovery",
+      "revision": 4,
+      "occurredAt": "2026-08-26T04:00:35.4584032+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "f91be2ef-b97e-48eb-9a36-5cb6b39cf03f",
+      "schemaVersion": 1,
+      "transactionId": "69ea2aa4-dc09-5de1-ab90-d8460be1f62a",
+      "planId": "e989b64e-d71b-5c65-a14e-bed7d061bca4",
+      "rollbackId": "5552d28e-023f-439b-9859-15c8f0670425",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "8ce80624a463f0c0849dfdf394510ef11ec4355eae76bdabbb408f50d7c7af9e",
+      "outputHash": "0a7a585aff69eebd60411f7b9ba6fc5dd7df8b1a584b396368768756ee069466",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "quaternion-nonzero",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1-quaternion-recovery",
+      "revision": 4,
+      "occurredAt": "2026-08-26T04:00:35.4816091+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "f43da90e-863e-453b-8f4f-eb6c1d66ec7b",
+      "schemaVersion": 1,
+      "transactionId": "69ea2aa4-dc09-5de1-ab90-d8460be1f62a",
+      "planId": "e989b64e-d71b-5c65-a14e-bed7d061bca4",
+      "rollbackId": "5552d28e-023f-439b-9859-15c8f0670425",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "8ce80624a463f0c0849dfdf394510ef11ec4355eae76bdabbb408f50d7c7af9e",
+      "outputHash": "2684eca46bd48014fc27700d3d0a1e00b986a02d0b55c76847eb5571cbc7f911",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "quaternion-nonzero",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1-quaternion-recovery",
+      "revision": 4,
+      "occurredAt": "2026-08-26T04:00:35.5224767+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "735045f1-36c3-4b21-9c93-647f847b56b7",
+      "schemaVersion": 1,
+      "transactionId": "69ea2aa4-dc09-5de1-ab90-d8460be1f62a",
+      "planId": "e989b64e-d71b-5c65-a14e-bed7d061bca4",
+      "rollbackId": "5552d28e-023f-439b-9859-15c8f0670425",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "8ce80624a463f0c0849dfdf394510ef11ec4355eae76bdabbb408f50d7c7af9e",
+      "outputHash": "2684eca46bd48014fc27700d3d0a1e00b986a02d0b55c76847eb5571cbc7f911",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "quaternion-nonzero",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1-quaternion-recovery",
+      "revision": 5,
+      "occurredAt": "2026-08-26T04:00:35.68079+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "a2207c77-37ae-401c-afbc-af44f4d6ac89",
+      "schemaVersion": 1,
+      "transactionId": "a677a044-2b73-5880-8fe3-79b96015d057",
+      "planId": "d6ef7d0c-1847-5280-9bbc-54d37c0c4d08",
+      "rollbackId": "ab790e6c-aedb-43eb-a99a-ab7723a3c389",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "b801a4d1851672198eac3fd551b9a49ce7f96246037c334f395849896299330f",
+      "outputHash": "2684eca46bd48014fc27700d3d0a1e00b986a02d0b55c76847eb5571cbc7f911",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "quaternion-nonzero",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1-quaternion-recovery",
+      "revision": 5,
+      "occurredAt": "2026-08-26T04:00:35.7102548+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "653779b4-f95c-43f6-9963-38ce7f8dd3bf",
+      "schemaVersion": 1,
+      "transactionId": "a677a044-2b73-5880-8fe3-79b96015d057",
+      "planId": "d6ef7d0c-1847-5280-9bbc-54d37c0c4d08",
+      "rollbackId": "ab790e6c-aedb-43eb-a99a-ab7723a3c389",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "b801a4d1851672198eac3fd551b9a49ce7f96246037c334f395849896299330f",
+      "outputHash": "e9d9a8513a0fc3844766309ec341309d6792e3aa10c471e3dff202f4f4c1d28f",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "quaternion-nonzero",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1-quaternion-recovery",
+      "revision": 5,
+      "occurredAt": "2026-08-26T04:00:35.7810138+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "b8393e7c-f56f-40e7-b838-e5d202dd2331",
+      "schemaVersion": 1,
+      "transactionId": "a677a044-2b73-5880-8fe3-79b96015d057",
+      "planId": "d6ef7d0c-1847-5280-9bbc-54d37c0c4d08",
+      "rollbackId": "ab790e6c-aedb-43eb-a99a-ab7723a3c389",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "b801a4d1851672198eac3fd551b9a49ce7f96246037c334f395849896299330f",
+      "outputHash": "e9d9a8513a0fc3844766309ec341309d6792e3aa10c471e3dff202f4f4c1d28f",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "quaternion-nonzero",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1-quaternion-recovery",
+      "revision": 6,
+      "occurredAt": "2026-08-26T04:00:35.9416681+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "d9a2bedd-ccc2-47f4-a212-ea32393189a6",
+      "schemaVersion": 1,
+      "transactionId": "357d055e-ccc2-57c6-bfac-7bde963b27ed",
+      "planId": "199fe84c-49b5-5886-bcf6-d4784bb87952",
+      "rollbackId": "a8cc158e-b3e3-4558-a5cd-7eb9fdd4d3b2",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "f182f10d85271b6317a2a50a0ae1bcb7fde120f2c2a63bcc50d3bc3cfffbc896",
+      "outputHash": "e9d9a8513a0fc3844766309ec341309d6792e3aa10c471e3dff202f4f4c1d28f",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "quaternion-nonzero",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1-quaternion-recovery",
+      "revision": 6,
+      "occurredAt": "2026-08-26T04:00:35.9713874+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "f2b93295-8484-4b5e-9d4e-5e59cc22d9dc",
+      "schemaVersion": 1,
+      "transactionId": "357d055e-ccc2-57c6-bfac-7bde963b27ed",
+      "planId": "199fe84c-49b5-5886-bcf6-d4784bb87952",
+      "rollbackId": "a8cc158e-b3e3-4558-a5cd-7eb9fdd4d3b2",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "f182f10d85271b6317a2a50a0ae1bcb7fde120f2c2a63bcc50d3bc3cfffbc896",
+      "outputHash": "aeb006926e378b92f096520701be7d9a732f40ce1e1bdd7baa1113423c777b60",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "quaternion-nonzero",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1-quaternion-recovery",
+      "revision": 6,
+      "occurredAt": "2026-08-26T04:00:36.0220394+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "0d771db0-4510-4c2e-8192-6ef8b7f20abb",
+      "schemaVersion": 1,
+      "transactionId": "357d055e-ccc2-57c6-bfac-7bde963b27ed",
+      "planId": "199fe84c-49b5-5886-bcf6-d4784bb87952",
+      "rollbackId": "a8cc158e-b3e3-4558-a5cd-7eb9fdd4d3b2",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "f182f10d85271b6317a2a50a0ae1bcb7fde120f2c2a63bcc50d3bc3cfffbc896",
+      "outputHash": "aeb006926e378b92f096520701be7d9a732f40ce1e1bdd7baa1113423c777b60",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "quaternion-nonzero",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1-quaternion-recovery",
+      "revision": 7,
+      "occurredAt": "2026-08-26T04:00:36.1862626+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "325e0966-19d6-4e5d-bdbc-7b64a33a5f2c",
+      "schemaVersion": 1,
+      "transactionId": "506d5976-4ba6-584b-a17d-f17816dd7d89",
+      "planId": "651821ce-12ff-568d-85cb-19a1095a586d",
+      "rollbackId": "cca33ec1-a949-4cb3-bd34-0fa2a2c6dde0",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "fd9980ce511667f45852d2498ad6469ff19754615e3afe829fe8f5d01360a04a",
+      "outputHash": "aeb006926e378b92f096520701be7d9a732f40ce1e1bdd7baa1113423c777b60",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "quaternion-nonzero",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1-quaternion-recovery",
+      "revision": 7,
+      "occurredAt": "2026-08-26T04:00:36.2141151+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "d0d3057d-b2df-4fcf-925c-086df59e37db",
+      "schemaVersion": 1,
+      "transactionId": "506d5976-4ba6-584b-a17d-f17816dd7d89",
+      "planId": "651821ce-12ff-568d-85cb-19a1095a586d",
+      "rollbackId": "cca33ec1-a949-4cb3-bd34-0fa2a2c6dde0",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "fd9980ce511667f45852d2498ad6469ff19754615e3afe829fe8f5d01360a04a",
+      "outputHash": "260ef9457b59f5429969ff596469d902a5e5aefb79e18cade1dc23501bc9dce7",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "quaternion-nonzero",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1-quaternion-recovery",
+      "revision": 7,
+      "occurredAt": "2026-08-26T04:00:36.2637775+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "7386d11f-f603-4c66-b590-e6f69c430652",
+      "schemaVersion": 1,
+      "transactionId": "506d5976-4ba6-584b-a17d-f17816dd7d89",
+      "planId": "651821ce-12ff-568d-85cb-19a1095a586d",
+      "rollbackId": "cca33ec1-a949-4cb3-bd34-0fa2a2c6dde0",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "fd9980ce511667f45852d2498ad6469ff19754615e3afe829fe8f5d01360a04a",
+      "outputHash": "260ef9457b59f5429969ff596469d902a5e5aefb79e18cade1dc23501bc9dce7",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "quaternion-nonzero",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1-quaternion-recovery",
+      "revision": 8,
+      "occurredAt": "2026-08-26T04:00:36.4289315+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "1d320304-d55c-43da-84d8-5f5f8febc8f1",
+      "schemaVersion": 1,
+      "transactionId": "e981be4f-83f1-5700-931f-621890abb5a4",
+      "planId": "6920f58a-2a03-564a-a7a3-994e42bfb892",
+      "rollbackId": "3438ac25-fc68-4e18-a568-c0c94ea19a8c",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "f2ddcbff3d412794e8cee7fdce0ff5526f19b261922cdd6d8cc86870e98bb48e",
+      "outputHash": "260ef9457b59f5429969ff596469d902a5e5aefb79e18cade1dc23501bc9dce7",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "quaternion-nonzero",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1-quaternion-recovery",
+      "revision": 8,
+      "occurredAt": "2026-08-26T04:00:36.4570939+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "a40982b7-932a-4c0e-83ba-b671384a2ee6",
+      "schemaVersion": 1,
+      "transactionId": "e981be4f-83f1-5700-931f-621890abb5a4",
+      "planId": "6920f58a-2a03-564a-a7a3-994e42bfb892",
+      "rollbackId": "3438ac25-fc68-4e18-a568-c0c94ea19a8c",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "f2ddcbff3d412794e8cee7fdce0ff5526f19b261922cdd6d8cc86870e98bb48e",
+      "outputHash": "e65069efa96a4bd6f499221c9b12abc6812223c51fa0fc31111269030f70656b",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "quaternion-nonzero",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1-quaternion-recovery",
+      "revision": 8,
+      "occurredAt": "2026-08-26T04:00:36.5067912+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "9c3c37a5-32da-4fd3-8324-f025e26a3714",
+      "schemaVersion": 1,
+      "transactionId": "e981be4f-83f1-5700-931f-621890abb5a4",
+      "planId": "6920f58a-2a03-564a-a7a3-994e42bfb892",
+      "rollbackId": "3438ac25-fc68-4e18-a568-c0c94ea19a8c",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "f2ddcbff3d412794e8cee7fdce0ff5526f19b261922cdd6d8cc86870e98bb48e",
+      "outputHash": "e65069efa96a4bd6f499221c9b12abc6812223c51fa0fc31111269030f70656b",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "quaternion-nonzero",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1-quaternion-recovery",
+      "revision": 9,
+      "occurredAt": "2026-08-26T04:00:36.667924+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "7f5d1764-ea19-42be-ac7b-7cd9f39b202d",
+      "schemaVersion": 1,
+      "transactionId": "dbc4d100-1821-5803-9050-4298d3aadab9",
+      "planId": "95e097cf-a7f7-51a6-8dee-f361c0aa1633",
+      "rollbackId": "dfc28cd7-5a64-4776-993f-51a63ef78cd8",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "92cb0311dbb7a2bcecd2d3676e5ed56aa4b65360ba18e2f7cb625b7efcddc6cd",
+      "outputHash": "e65069efa96a4bd6f499221c9b12abc6812223c51fa0fc31111269030f70656b",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "quaternion-nonzero",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1-quaternion-recovery",
+      "revision": 9,
+      "occurredAt": "2026-08-26T04:00:36.6958684+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "09091337-bfb4-45b3-bac3-738655d384b9",
+      "schemaVersion": 1,
+      "transactionId": "dbc4d100-1821-5803-9050-4298d3aadab9",
+      "planId": "95e097cf-a7f7-51a6-8dee-f361c0aa1633",
+      "rollbackId": "dfc28cd7-5a64-4776-993f-51a63ef78cd8",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "92cb0311dbb7a2bcecd2d3676e5ed56aa4b65360ba18e2f7cb625b7efcddc6cd",
+      "outputHash": "1dfb6524dc1a3b3ce6a869222eeba8a9a0f19ba2bf15d8d7e847c36a752379b1",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "quaternion-nonzero",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1-quaternion-recovery",
+      "revision": 9,
+      "occurredAt": "2026-08-26T04:00:36.7452617+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "7d1cc880-4919-40b9-9c8e-c54755f6e9a7",
+      "schemaVersion": 1,
+      "transactionId": "dbc4d100-1821-5803-9050-4298d3aadab9",
+      "planId": "95e097cf-a7f7-51a6-8dee-f361c0aa1633",
+      "rollbackId": "dfc28cd7-5a64-4776-993f-51a63ef78cd8",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "92cb0311dbb7a2bcecd2d3676e5ed56aa4b65360ba18e2f7cb625b7efcddc6cd",
+      "outputHash": "1dfb6524dc1a3b3ce6a869222eeba8a9a0f19ba2bf15d8d7e847c36a752379b1",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "quaternion-nonzero",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1-quaternion-recovery",
+      "revision": 10,
+      "occurredAt": "2026-08-26T04:00:36.906454+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "0f5fbd23-b9b3-45e7-872b-7545d2e97668",
+      "schemaVersion": 1,
+      "transactionId": "34a91cb6-0041-5ab7-8095-86999656d89c",
+      "planId": "e6e3fe9c-878f-52b1-a785-41cc25c679df",
+      "rollbackId": "f010f21e-cf43-4ccf-920e-d188b723b715",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "cde5038f52a5d7e2421204f20ed36a518e201b3d126cd5acca46b04da5404429",
+      "outputHash": "1dfb6524dc1a3b3ce6a869222eeba8a9a0f19ba2bf15d8d7e847c36a752379b1",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "quaternion-nonzero",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1-quaternion-recovery",
+      "revision": 10,
+      "occurredAt": "2026-08-26T04:00:36.934097+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "800017db-53b6-469a-8e21-385392ef223f",
+      "schemaVersion": 1,
+      "transactionId": "34a91cb6-0041-5ab7-8095-86999656d89c",
+      "planId": "e6e3fe9c-878f-52b1-a785-41cc25c679df",
+      "rollbackId": "f010f21e-cf43-4ccf-920e-d188b723b715",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "cde5038f52a5d7e2421204f20ed36a518e201b3d126cd5acca46b04da5404429",
+      "outputHash": "52d7f51e71bf94dc55f36caecb6944002dddee7844039820a64fbc21fbf77bbe",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "quaternion-nonzero",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1-quaternion-recovery",
+      "revision": 10,
+      "occurredAt": "2026-08-26T04:00:36.983477+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "2d440213-6bec-4b4c-ae9f-097976488270",
+      "schemaVersion": 1,
+      "transactionId": "34a91cb6-0041-5ab7-8095-86999656d89c",
+      "planId": "e6e3fe9c-878f-52b1-a785-41cc25c679df",
+      "rollbackId": "f010f21e-cf43-4ccf-920e-d188b723b715",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "cde5038f52a5d7e2421204f20ed36a518e201b3d126cd5acca46b04da5404429",
+      "outputHash": "52d7f51e71bf94dc55f36caecb6944002dddee7844039820a64fbc21fbf77bbe",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "quaternion-nonzero",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1-quaternion-recovery",
+      "revision": 11,
+      "occurredAt": "2026-08-26T04:00:37.1415849+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "de915b96-7168-477b-95c9-f0f4d906f7ba",
+      "schemaVersion": 1,
+      "transactionId": "38c32092-9087-550f-ac78-9697df751e5d",
+      "planId": "39a9e7ae-2fbc-5a31-81b8-e86b70e6819a",
+      "rollbackId": "cc184d34-2447-480d-b3b2-fd25b2f966dc",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "020d08b3d6819af84d4990d4eefd6fe05e0237b9b90e0e0799d5f16f9b630b7c",
+      "outputHash": "52d7f51e71bf94dc55f36caecb6944002dddee7844039820a64fbc21fbf77bbe",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "quaternion-nonzero",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1-quaternion-recovery",
+      "revision": 11,
+      "occurredAt": "2026-08-26T04:00:37.1690394+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "a1322cfa-3572-43f0-af7a-9474d60031f1",
+      "schemaVersion": 1,
+      "transactionId": "38c32092-9087-550f-ac78-9697df751e5d",
+      "planId": "39a9e7ae-2fbc-5a31-81b8-e86b70e6819a",
+      "rollbackId": "cc184d34-2447-480d-b3b2-fd25b2f966dc",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "020d08b3d6819af84d4990d4eefd6fe05e0237b9b90e0e0799d5f16f9b630b7c",
+      "outputHash": "20d1ad9f95b0b5ed46a961d615aec72127941270f7b606fd303183fb4ef2d6d0",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "quaternion-nonzero",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1-quaternion-recovery",
+      "revision": 11,
+      "occurredAt": "2026-08-26T04:00:37.2186989+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "f040e641-d0a3-4ad5-8cde-89be76d12b4d",
+      "schemaVersion": 1,
+      "transactionId": "38c32092-9087-550f-ac78-9697df751e5d",
+      "planId": "39a9e7ae-2fbc-5a31-81b8-e86b70e6819a",
+      "rollbackId": "cc184d34-2447-480d-b3b2-fd25b2f966dc",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "020d08b3d6819af84d4990d4eefd6fe05e0237b9b90e0e0799d5f16f9b630b7c",
+      "outputHash": "20d1ad9f95b0b5ed46a961d615aec72127941270f7b606fd303183fb4ef2d6d0",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "quaternion-nonzero",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v1-quaternion-recovery",
+      "revision": 12,
+      "occurredAt": "2026-08-26T04:00:37.3749719+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "1dc4e193-59d2-40ff-bc75-83cc4a0b55c3",
+      "schemaVersion": 1,
+      "transactionId": "db4149ad-f83f-5e06-9de1-aa1457a8a1da",
+      "planId": "aa716519-1ca7-56ee-a653-b46f6aef0581",
+      "rollbackId": "1508dddf-9a18-4e5f-bec2-eff737abe009",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "8166113dde6e5453c93013653ffc5fcbb6b30ccaa20c6e2976de09a09bbaf6de",
+      "outputHash": "8948f3b4c359202ef1ea9762900d6b012b65564d472aa38b3ce3675892473e2c",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v2",
+      "revision": 0,
+      "occurredAt": "2026-08-26T04:04:22.147377+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "4d40cec5-c4af-4e19-91e1-dbcf8664c3ff",
+      "schemaVersion": 1,
+      "transactionId": "db4149ad-f83f-5e06-9de1-aa1457a8a1da",
+      "planId": "aa716519-1ca7-56ee-a653-b46f6aef0581",
+      "rollbackId": "1508dddf-9a18-4e5f-bec2-eff737abe009",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "8166113dde6e5453c93013653ffc5fcbb6b30ccaa20c6e2976de09a09bbaf6de",
+      "outputHash": "a86621d7ee8f70993c136357d51c5c178a011ede03834327a5c09634d4dc7791",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v2",
+      "revision": 0,
+      "occurredAt": "2026-08-26T04:04:22.2045191+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "f53a67ae-6ddb-48fb-a1ea-98202b1f29b7",
+      "schemaVersion": 1,
+      "transactionId": "db4149ad-f83f-5e06-9de1-aa1457a8a1da",
+      "planId": "aa716519-1ca7-56ee-a653-b46f6aef0581",
+      "rollbackId": "1508dddf-9a18-4e5f-bec2-eff737abe009",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "8166113dde6e5453c93013653ffc5fcbb6b30ccaa20c6e2976de09a09bbaf6de",
+      "outputHash": "a86621d7ee8f70993c136357d51c5c178a011ede03834327a5c09634d4dc7791",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v2",
+      "revision": 1,
+      "occurredAt": "2026-08-26T04:04:22.4647062+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "81e8c7e7-bd8e-4a15-8055-c470486afa53",
+      "schemaVersion": 1,
+      "transactionId": "8f143ef5-7bc2-5001-8250-6c8e5d804e20",
+      "planId": "81f904ca-f90c-5e7b-a793-2a55296c4993",
+      "rollbackId": "a098203d-e04e-4c76-b31d-5946e54895a1",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "a72d2de392d9f0b2a445dda5f0064489135aabdc8a721c29a9c3ef26823758fe",
+      "outputHash": "a86621d7ee8f70993c136357d51c5c178a011ede03834327a5c09634d4dc7791",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v2",
+      "revision": 1,
+      "occurredAt": "2026-08-26T04:04:22.4880596+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "2f78db51-c857-477a-a4c6-f2b83f95e8ec",
+      "schemaVersion": 1,
+      "transactionId": "8f143ef5-7bc2-5001-8250-6c8e5d804e20",
+      "planId": "81f904ca-f90c-5e7b-a793-2a55296c4993",
+      "rollbackId": "a098203d-e04e-4c76-b31d-5946e54895a1",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "a72d2de392d9f0b2a445dda5f0064489135aabdc8a721c29a9c3ef26823758fe",
+      "outputHash": "3e4d707a5b6e910737ce16300600bd742261376e4f1ab48d4a9b5997cfbbd74e",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v2",
+      "revision": 1,
+      "occurredAt": "2026-08-26T04:04:22.5287608+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "944f321a-2e87-4ac5-b2b7-aaea42c5e685",
+      "schemaVersion": 1,
+      "transactionId": "8f143ef5-7bc2-5001-8250-6c8e5d804e20",
+      "planId": "81f904ca-f90c-5e7b-a793-2a55296c4993",
+      "rollbackId": "a098203d-e04e-4c76-b31d-5946e54895a1",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "a72d2de392d9f0b2a445dda5f0064489135aabdc8a721c29a9c3ef26823758fe",
+      "outputHash": "3e4d707a5b6e910737ce16300600bd742261376e4f1ab48d4a9b5997cfbbd74e",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v2",
+      "revision": 2,
+      "occurredAt": "2026-08-26T04:04:22.6814004+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "6310d37f-f647-492d-8bcd-3d51db074e6c",
+      "schemaVersion": 1,
+      "transactionId": "b45a7e08-dd79-547f-babf-ff61a1b9d8dc",
+      "planId": "3151f9a1-f3dc-5b77-abea-788c68295afe",
+      "rollbackId": "5579adc5-fb13-4f3f-ad41-c4b7ea65be0a",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "5184a8e0254eed55160d566f3211116384e3c43018c3bf9bba4379c1b532fb46",
+      "outputHash": "3e4d707a5b6e910737ce16300600bd742261376e4f1ab48d4a9b5997cfbbd74e",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v2",
+      "revision": 2,
+      "occurredAt": "2026-08-26T04:04:22.7070489+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "3349c500-0c79-497d-83fe-21704420f62c",
+      "schemaVersion": 1,
+      "transactionId": "b45a7e08-dd79-547f-babf-ff61a1b9d8dc",
+      "planId": "3151f9a1-f3dc-5b77-abea-788c68295afe",
+      "rollbackId": "5579adc5-fb13-4f3f-ad41-c4b7ea65be0a",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "5184a8e0254eed55160d566f3211116384e3c43018c3bf9bba4379c1b532fb46",
+      "outputHash": "ac30b29a251a081124f52f503741fe5a68d94ec9234af116ce2e349231a2f87b",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v2",
+      "revision": 2,
+      "occurredAt": "2026-08-26T04:04:22.7495944+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "9be3b1b6-33bb-4e3c-b82a-c3e19e87ba85",
+      "schemaVersion": 1,
+      "transactionId": "b45a7e08-dd79-547f-babf-ff61a1b9d8dc",
+      "planId": "3151f9a1-f3dc-5b77-abea-788c68295afe",
+      "rollbackId": "5579adc5-fb13-4f3f-ad41-c4b7ea65be0a",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "5184a8e0254eed55160d566f3211116384e3c43018c3bf9bba4379c1b532fb46",
+      "outputHash": "ac30b29a251a081124f52f503741fe5a68d94ec9234af116ce2e349231a2f87b",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v2",
+      "revision": 3,
+      "occurredAt": "2026-08-26T04:04:22.8983495+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "467a55a1-ca08-4ec3-9f3f-276b143cd001",
+      "schemaVersion": 1,
+      "transactionId": "f95a0d12-4952-55b8-a565-0c467647b83f",
+      "planId": "d48c3b64-59c9-5a7b-806e-5ea546498aae",
+      "rollbackId": "04435f2a-f367-4399-9d1b-26e9e2b6570e",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "5d397ab08d2d2c0bc60ac1256dd5460887045ed133005589c95fd777b62c3a9f",
+      "outputHash": "ac30b29a251a081124f52f503741fe5a68d94ec9234af116ce2e349231a2f87b",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v2",
+      "revision": 3,
+      "occurredAt": "2026-08-26T04:04:22.9217289+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "2d89aaae-521b-4dcd-a9ad-95fc53873842",
+      "schemaVersion": 1,
+      "transactionId": "f95a0d12-4952-55b8-a565-0c467647b83f",
+      "planId": "d48c3b64-59c9-5a7b-806e-5ea546498aae",
+      "rollbackId": "04435f2a-f367-4399-9d1b-26e9e2b6570e",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "5d397ab08d2d2c0bc60ac1256dd5460887045ed133005589c95fd777b62c3a9f",
+      "outputHash": "4bfd167095f9137958dc0fb43414496a0a769ba5db48b76a38798d2fb3bcb877",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v2",
+      "revision": 3,
+      "occurredAt": "2026-08-26T04:04:22.9622998+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "e797996d-dcc7-4711-bcee-6343d879eafa",
+      "schemaVersion": 1,
+      "transactionId": "f95a0d12-4952-55b8-a565-0c467647b83f",
+      "planId": "d48c3b64-59c9-5a7b-806e-5ea546498aae",
+      "rollbackId": "04435f2a-f367-4399-9d1b-26e9e2b6570e",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "5d397ab08d2d2c0bc60ac1256dd5460887045ed133005589c95fd777b62c3a9f",
+      "outputHash": "4bfd167095f9137958dc0fb43414496a0a769ba5db48b76a38798d2fb3bcb877",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v2",
+      "revision": 4,
+      "occurredAt": "2026-08-26T04:04:23.1052763+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "26f849ea-5111-45df-84b2-ec5771706312",
+      "schemaVersion": 1,
+      "transactionId": "c93bfcba-c128-55aa-84bc-c9a151cee783",
+      "planId": "6e7fcfde-54cd-5cec-b19f-533bd83c0321",
+      "rollbackId": "582c51a1-d42c-4f2f-a887-869e026244fc",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "bed03751a98f058c347c79afbcdbbefed0f0302b17c35352ea1b88b10deb1c9a",
+      "outputHash": "4bfd167095f9137958dc0fb43414496a0a769ba5db48b76a38798d2fb3bcb877",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v2",
+      "revision": 4,
+      "occurredAt": "2026-08-26T04:04:23.1284302+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "efdfc18a-3c9b-41fd-8307-dbca1d9327fd",
+      "schemaVersion": 1,
+      "transactionId": "c93bfcba-c128-55aa-84bc-c9a151cee783",
+      "planId": "6e7fcfde-54cd-5cec-b19f-533bd83c0321",
+      "rollbackId": "582c51a1-d42c-4f2f-a887-869e026244fc",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "bed03751a98f058c347c79afbcdbbefed0f0302b17c35352ea1b88b10deb1c9a",
+      "outputHash": "289f6273ea544f349aa031871de22a2293f234378e968846c35e9e8e2406a333",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v2",
+      "revision": 4,
+      "occurredAt": "2026-08-26T04:04:23.1686938+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "4b8f065e-d94f-4fd0-96aa-60630ad3a27d",
+      "schemaVersion": 1,
+      "transactionId": "c93bfcba-c128-55aa-84bc-c9a151cee783",
+      "planId": "6e7fcfde-54cd-5cec-b19f-533bd83c0321",
+      "rollbackId": "582c51a1-d42c-4f2f-a887-869e026244fc",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "bed03751a98f058c347c79afbcdbbefed0f0302b17c35352ea1b88b10deb1c9a",
+      "outputHash": "289f6273ea544f349aa031871de22a2293f234378e968846c35e9e8e2406a333",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v2",
+      "revision": 5,
+      "occurredAt": "2026-08-26T04:04:23.308431+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "24977a39-3c8a-449a-a8da-038c86616134",
+      "schemaVersion": 1,
+      "transactionId": "f53a57b2-3d46-5ac9-9d70-6c78d0d96df8",
+      "planId": "53d2cb88-af9b-5037-ae30-dac3dc7da5c6",
+      "rollbackId": "56895b88-aa72-44c7-bb09-2c8feaa18b24",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "e3cc0595a960e8661fb0c8b13266e277c663a331a45cc63ebdcadb3f856d8042",
+      "outputHash": "289f6273ea544f349aa031871de22a2293f234378e968846c35e9e8e2406a333",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v2",
+      "revision": 5,
+      "occurredAt": "2026-08-26T04:04:23.3322152+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "e880d135-3ee6-4449-a63e-e34459ecde7d",
+      "schemaVersion": 1,
+      "transactionId": "f53a57b2-3d46-5ac9-9d70-6c78d0d96df8",
+      "planId": "53d2cb88-af9b-5037-ae30-dac3dc7da5c6",
+      "rollbackId": "56895b88-aa72-44c7-bb09-2c8feaa18b24",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "e3cc0595a960e8661fb0c8b13266e277c663a331a45cc63ebdcadb3f856d8042",
+      "outputHash": "3dd696c1b78957609c0b4f58db3961e290b19dc9545f4f74765bb76d1d631db0",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v2",
+      "revision": 5,
+      "occurredAt": "2026-08-26T04:04:23.3737912+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "ca8cfe83-886c-4b99-b9b2-d66f2d2101ab",
+      "schemaVersion": 1,
+      "transactionId": "f53a57b2-3d46-5ac9-9d70-6c78d0d96df8",
+      "planId": "53d2cb88-af9b-5037-ae30-dac3dc7da5c6",
+      "rollbackId": "56895b88-aa72-44c7-bb09-2c8feaa18b24",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "e3cc0595a960e8661fb0c8b13266e277c663a331a45cc63ebdcadb3f856d8042",
+      "outputHash": "3dd696c1b78957609c0b4f58db3961e290b19dc9545f4f74765bb76d1d631db0",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v2",
+      "revision": 6,
+      "occurredAt": "2026-08-26T04:04:23.545798+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "3ef3f3e2-ddb5-4908-801b-6ceb19fecb28",
+      "schemaVersion": 1,
+      "transactionId": "90a9208b-1f38-5919-b086-9247889454d7",
+      "planId": "aeb94b1d-592b-5f15-a723-02676ad2dd9f",
+      "rollbackId": "e5588e25-583c-4ee4-b276-dd9147a33ef7",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "b82a4ae27d3e351357ce98bbaff8ee1bdb87d07d5c8457af83cee42f18c4ebca",
+      "outputHash": "3dd696c1b78957609c0b4f58db3961e290b19dc9545f4f74765bb76d1d631db0",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v2",
+      "revision": 6,
+      "occurredAt": "2026-08-26T04:04:23.5726269+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "56e97684-6471-473b-b0ef-465c10e1cadb",
+      "schemaVersion": 1,
+      "transactionId": "90a9208b-1f38-5919-b086-9247889454d7",
+      "planId": "aeb94b1d-592b-5f15-a723-02676ad2dd9f",
+      "rollbackId": "e5588e25-583c-4ee4-b276-dd9147a33ef7",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "b82a4ae27d3e351357ce98bbaff8ee1bdb87d07d5c8457af83cee42f18c4ebca",
+      "outputHash": "9f510d65919907ebd1d678515fc869c52b43fbd3a36117a1cd8f13f021866667",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v2",
+      "revision": 6,
+      "occurredAt": "2026-08-26T04:04:23.6193888+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "36225c37-bc57-466d-bff7-210eea215fe1",
+      "schemaVersion": 1,
+      "transactionId": "90a9208b-1f38-5919-b086-9247889454d7",
+      "planId": "aeb94b1d-592b-5f15-a723-02676ad2dd9f",
+      "rollbackId": "e5588e25-583c-4ee4-b276-dd9147a33ef7",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "b82a4ae27d3e351357ce98bbaff8ee1bdb87d07d5c8457af83cee42f18c4ebca",
+      "outputHash": "9f510d65919907ebd1d678515fc869c52b43fbd3a36117a1cd8f13f021866667",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v2",
+      "revision": 7,
+      "occurredAt": "2026-08-26T04:04:23.7820913+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "34e6a3f3-482d-4b19-8413-64dd99525dbd",
+      "schemaVersion": 1,
+      "transactionId": "332e3ab0-854a-5a7e-9486-b6f804d31628",
+      "planId": "e2e90887-ce02-5b62-8924-fef80d6da9e9",
+      "rollbackId": "14ad3b5c-b85b-4ad3-8907-7e8d43689554",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "f8a31bf88f2280c959d53ddc0db388d44be06b3da7fb2a0ac030a6fac04d0fa2",
+      "outputHash": "9f510d65919907ebd1d678515fc869c52b43fbd3a36117a1cd8f13f021866667",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v2",
+      "revision": 7,
+      "occurredAt": "2026-08-26T04:04:23.8107101+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "640c0395-dfa8-4f24-8790-e446a8ed7a0a",
+      "schemaVersion": 1,
+      "transactionId": "332e3ab0-854a-5a7e-9486-b6f804d31628",
+      "planId": "e2e90887-ce02-5b62-8924-fef80d6da9e9",
+      "rollbackId": "14ad3b5c-b85b-4ad3-8907-7e8d43689554",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "f8a31bf88f2280c959d53ddc0db388d44be06b3da7fb2a0ac030a6fac04d0fa2",
+      "outputHash": "a98716ae29b53ea591e9daf774b4fe4860e0187ce6e3cbd5ebb4a2b64839a4a2",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v2",
+      "revision": 7,
+      "occurredAt": "2026-08-26T04:04:23.8597766+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "16eb732e-e9cf-4625-95ad-b94a2933676d",
+      "schemaVersion": 1,
+      "transactionId": "332e3ab0-854a-5a7e-9486-b6f804d31628",
+      "planId": "e2e90887-ce02-5b62-8924-fef80d6da9e9",
+      "rollbackId": "14ad3b5c-b85b-4ad3-8907-7e8d43689554",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "f8a31bf88f2280c959d53ddc0db388d44be06b3da7fb2a0ac030a6fac04d0fa2",
+      "outputHash": "a98716ae29b53ea591e9daf774b4fe4860e0187ce6e3cbd5ebb4a2b64839a4a2",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v2",
+      "revision": 8,
+      "occurredAt": "2026-08-26T04:04:24.0206953+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "12b75f4f-e920-4932-9764-f450289206fa",
+      "schemaVersion": 1,
+      "transactionId": "fad43bb7-4f35-5c45-a77e-cda61be47946",
+      "planId": "9aaf1855-c06f-5105-9fc6-64e44266084b",
+      "rollbackId": "cf0020fb-b27a-4fb0-89f7-d31fade8e32f",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "9a9dc0785afde3327105dba9920f5ddfaba7c6cc2d9a9a0b0b14b9db2ec14869",
+      "outputHash": "45c16b90974f0f18d6511e301860f87005ebe43240f79a5ae31258b54e1de698",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v3",
+      "revision": 0,
+      "occurredAt": "2026-08-26T04:12:50.3684683+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "cd6d630e-84d0-4d22-82f4-a5c68d47f873",
+      "schemaVersion": 1,
+      "transactionId": "fad43bb7-4f35-5c45-a77e-cda61be47946",
+      "planId": "9aaf1855-c06f-5105-9fc6-64e44266084b",
+      "rollbackId": "cf0020fb-b27a-4fb0-89f7-d31fade8e32f",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "9a9dc0785afde3327105dba9920f5ddfaba7c6cc2d9a9a0b0b14b9db2ec14869",
+      "outputHash": "b59f7ed1b74a7b83a37f0cfcca9a7ac6caa9e14d6075d718bfce9437b343a5d4",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v3",
+      "revision": 0,
+      "occurredAt": "2026-08-26T04:12:50.4251076+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "8f37961f-356e-41d1-82ea-3b371bea79db",
+      "schemaVersion": 1,
+      "transactionId": "fad43bb7-4f35-5c45-a77e-cda61be47946",
+      "planId": "9aaf1855-c06f-5105-9fc6-64e44266084b",
+      "rollbackId": "cf0020fb-b27a-4fb0-89f7-d31fade8e32f",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "9a9dc0785afde3327105dba9920f5ddfaba7c6cc2d9a9a0b0b14b9db2ec14869",
+      "outputHash": "b59f7ed1b74a7b83a37f0cfcca9a7ac6caa9e14d6075d718bfce9437b343a5d4",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v3",
+      "revision": 1,
+      "occurredAt": "2026-08-26T04:12:50.679564+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "6af9f3ae-6729-447d-8ac1-b9ff4104f465",
+      "schemaVersion": 1,
+      "transactionId": "c8cdf92a-a972-528f-b7d6-41ad90a0bb2b",
+      "planId": "c0b130ae-95d6-56aa-a65f-b62b71eee0cf",
+      "rollbackId": "23d30aaf-678e-459f-b723-639269286027",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "31a3b591a6eeb3a131fda80ff5bf6872ddeca5bfd967f702609481784c17dbbb",
+      "outputHash": "b59f7ed1b74a7b83a37f0cfcca9a7ac6caa9e14d6075d718bfce9437b343a5d4",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v3",
+      "revision": 1,
+      "occurredAt": "2026-08-26T04:12:50.7042284+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "3b47c374-a8cc-4762-a49e-541cbd34fbac",
+      "schemaVersion": 1,
+      "transactionId": "c8cdf92a-a972-528f-b7d6-41ad90a0bb2b",
+      "planId": "c0b130ae-95d6-56aa-a65f-b62b71eee0cf",
+      "rollbackId": "23d30aaf-678e-459f-b723-639269286027",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "31a3b591a6eeb3a131fda80ff5bf6872ddeca5bfd967f702609481784c17dbbb",
+      "outputHash": "eb5f4330ca1ffdef5bd89ee549d3a57a3f6fa356e616d9046319ee767b968c2f",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v3",
+      "revision": 1,
+      "occurredAt": "2026-08-26T04:12:50.7449794+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "a7ff9099-602a-4fba-9245-a7c9f369bd37",
+      "schemaVersion": 1,
+      "transactionId": "c8cdf92a-a972-528f-b7d6-41ad90a0bb2b",
+      "planId": "c0b130ae-95d6-56aa-a65f-b62b71eee0cf",
+      "rollbackId": "23d30aaf-678e-459f-b723-639269286027",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "31a3b591a6eeb3a131fda80ff5bf6872ddeca5bfd967f702609481784c17dbbb",
+      "outputHash": "eb5f4330ca1ffdef5bd89ee549d3a57a3f6fa356e616d9046319ee767b968c2f",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v3",
+      "revision": 2,
+      "occurredAt": "2026-08-26T04:12:50.9038568+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "fc6f6622-bde5-4a7f-9da1-7dbc228118ae",
+      "schemaVersion": 1,
+      "transactionId": "406b460e-14a8-5647-9962-9c0bafe88a93",
+      "planId": "660aa3b2-e690-5801-aaf7-4869ef841dc2",
+      "rollbackId": "f9c25a11-e2c8-4407-9751-28137ba3652d",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "5de4e0788c367ac0a5628f88103b11b0a2bc18bfd27a0b7272a919bf250bd1eb",
+      "outputHash": "eb5f4330ca1ffdef5bd89ee549d3a57a3f6fa356e616d9046319ee767b968c2f",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v3",
+      "revision": 2,
+      "occurredAt": "2026-08-26T04:12:50.9308811+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "ae27b0f7-45f3-4dec-910a-73ba757eb8c2",
+      "schemaVersion": 1,
+      "transactionId": "406b460e-14a8-5647-9962-9c0bafe88a93",
+      "planId": "660aa3b2-e690-5801-aaf7-4869ef841dc2",
+      "rollbackId": "f9c25a11-e2c8-4407-9751-28137ba3652d",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "5de4e0788c367ac0a5628f88103b11b0a2bc18bfd27a0b7272a919bf250bd1eb",
+      "outputHash": "614c5d8fa1441284f29b129b786d9662f048455d2e36ba13ab6ac131db26e283",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v3",
+      "revision": 2,
+      "occurredAt": "2026-08-26T04:12:50.9779021+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "6c168581-6a83-4080-96c0-a27acf96f605",
+      "schemaVersion": 1,
+      "transactionId": "406b460e-14a8-5647-9962-9c0bafe88a93",
+      "planId": "660aa3b2-e690-5801-aaf7-4869ef841dc2",
+      "rollbackId": "f9c25a11-e2c8-4407-9751-28137ba3652d",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "5de4e0788c367ac0a5628f88103b11b0a2bc18bfd27a0b7272a919bf250bd1eb",
+      "outputHash": "614c5d8fa1441284f29b129b786d9662f048455d2e36ba13ab6ac131db26e283",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v3",
+      "revision": 3,
+      "occurredAt": "2026-08-26T04:12:51.133137+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "b08c0f02-ae61-423f-b95b-cd25cdb5c279",
+      "schemaVersion": 1,
+      "transactionId": "acdc11ea-329d-50fe-86ad-8272a4fcde95",
+      "planId": "eef7b85b-c96e-5b52-b7f8-d7649241a417",
+      "rollbackId": "d29f12b7-5892-41e4-8947-5e969f37cad4",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "b63a0de427334829a0a9f06732235b6e027f7a84f71a2b28b99c020b46ac0995",
+      "outputHash": "614c5d8fa1441284f29b129b786d9662f048455d2e36ba13ab6ac131db26e283",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v3",
+      "revision": 3,
+      "occurredAt": "2026-08-26T04:12:51.1608752+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "f696e7e6-f855-4707-8802-a370ac4d2ca9",
+      "schemaVersion": 1,
+      "transactionId": "acdc11ea-329d-50fe-86ad-8272a4fcde95",
+      "planId": "eef7b85b-c96e-5b52-b7f8-d7649241a417",
+      "rollbackId": "d29f12b7-5892-41e4-8947-5e969f37cad4",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "b63a0de427334829a0a9f06732235b6e027f7a84f71a2b28b99c020b46ac0995",
+      "outputHash": "968abe4a1a5b1a2d46dd7621dbe5dd60cadd5cc7263f858bc7b96fc063ec7b8e",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v3",
+      "revision": 3,
+      "occurredAt": "2026-08-26T04:12:51.2071461+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "20c61090-f6ac-4481-a3d0-f1f7896600cf",
+      "schemaVersion": 1,
+      "transactionId": "acdc11ea-329d-50fe-86ad-8272a4fcde95",
+      "planId": "eef7b85b-c96e-5b52-b7f8-d7649241a417",
+      "rollbackId": "d29f12b7-5892-41e4-8947-5e969f37cad4",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "b63a0de427334829a0a9f06732235b6e027f7a84f71a2b28b99c020b46ac0995",
+      "outputHash": "968abe4a1a5b1a2d46dd7621dbe5dd60cadd5cc7263f858bc7b96fc063ec7b8e",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v3",
+      "revision": 4,
+      "occurredAt": "2026-08-26T04:12:51.3589311+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "6bcc1980-1fff-4263-9062-affde839a0a1",
+      "schemaVersion": 1,
+      "transactionId": "6ed62b0f-9f66-555d-85f7-92bd6ac30dab",
+      "planId": "7a7f7201-4c6b-5790-8a6e-3e37711d656c",
+      "rollbackId": "87e48c78-51dd-48f9-9730-19c8335e09d8",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "829fcfc8d0ae5cc986b0031b8fe12faa4cf14ce2c914c1e9829af9bc26dd0f85",
+      "outputHash": "968abe4a1a5b1a2d46dd7621dbe5dd60cadd5cc7263f858bc7b96fc063ec7b8e",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v3",
+      "revision": 4,
+      "occurredAt": "2026-08-26T04:12:51.3861725+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "1ff8022f-8a07-4b30-8d04-23004736cd68",
+      "schemaVersion": 1,
+      "transactionId": "6ed62b0f-9f66-555d-85f7-92bd6ac30dab",
+      "planId": "7a7f7201-4c6b-5790-8a6e-3e37711d656c",
+      "rollbackId": "87e48c78-51dd-48f9-9730-19c8335e09d8",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "829fcfc8d0ae5cc986b0031b8fe12faa4cf14ce2c914c1e9829af9bc26dd0f85",
+      "outputHash": "07022d090be345ff92e7977cf98e8b742ee7c64522c0a851acc8b2a9ed584ade",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v3",
+      "revision": 4,
+      "occurredAt": "2026-08-26T04:12:51.431809+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "041d5d6f-5167-4570-89ec-883e871d6b78",
+      "schemaVersion": 1,
+      "transactionId": "6ed62b0f-9f66-555d-85f7-92bd6ac30dab",
+      "planId": "7a7f7201-4c6b-5790-8a6e-3e37711d656c",
+      "rollbackId": "87e48c78-51dd-48f9-9730-19c8335e09d8",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "829fcfc8d0ae5cc986b0031b8fe12faa4cf14ce2c914c1e9829af9bc26dd0f85",
+      "outputHash": "07022d090be345ff92e7977cf98e8b742ee7c64522c0a851acc8b2a9ed584ade",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v3",
+      "revision": 5,
+      "occurredAt": "2026-08-26T04:12:51.5800769+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "f409d5b8-0e7d-44b1-9a51-7ed04fef24c1",
+      "schemaVersion": 1,
+      "transactionId": "ed7ddbb0-2a85-564b-9a03-3af7d1264f88",
+      "planId": "25474e77-9480-5b38-a3fe-2740d95c54cb",
+      "rollbackId": "e64eeb3c-7977-44b4-b487-2fa66fa35c9e",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "5b2c0e8f248dd0ce2f1e8db525e36d3e3856f0e599c48f8c364e8b978eea443e",
+      "outputHash": "07022d090be345ff92e7977cf98e8b742ee7c64522c0a851acc8b2a9ed584ade",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v3",
+      "revision": 5,
+      "occurredAt": "2026-08-26T04:12:51.6041485+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "05c27253-b227-4b58-9927-ecd847f89630",
+      "schemaVersion": 1,
+      "transactionId": "ed7ddbb0-2a85-564b-9a03-3af7d1264f88",
+      "planId": "25474e77-9480-5b38-a3fe-2740d95c54cb",
+      "rollbackId": "e64eeb3c-7977-44b4-b487-2fa66fa35c9e",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "5b2c0e8f248dd0ce2f1e8db525e36d3e3856f0e599c48f8c364e8b978eea443e",
+      "outputHash": "0737978c7339f6a32f387d966b043cbdb7e5f1ff67ed781665e8f3677f367f59",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v3",
+      "revision": 5,
+      "occurredAt": "2026-08-26T04:12:51.6709781+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "70d740db-fed1-4eec-aab6-b183c9c0727f",
+      "schemaVersion": 1,
+      "transactionId": "ed7ddbb0-2a85-564b-9a03-3af7d1264f88",
+      "planId": "25474e77-9480-5b38-a3fe-2740d95c54cb",
+      "rollbackId": "e64eeb3c-7977-44b4-b487-2fa66fa35c9e",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "5b2c0e8f248dd0ce2f1e8db525e36d3e3856f0e599c48f8c364e8b978eea443e",
+      "outputHash": "0737978c7339f6a32f387d966b043cbdb7e5f1ff67ed781665e8f3677f367f59",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v3",
+      "revision": 6,
+      "occurredAt": "2026-08-26T04:12:51.8231374+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "10a1e4cc-7f76-47be-8936-a590c921fce2",
+      "schemaVersion": 1,
+      "transactionId": "5eb78b32-c797-552d-8c96-ac0a2efcbe81",
+      "planId": "8f95ca54-6c83-5d10-ac6c-41ca2f38a2e3",
+      "rollbackId": "88961440-e852-4bb5-a1d2-360e8cf670f5",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "af2376fbe0b1ecee0bfa02bb41af3592527eb0cc06d955944cb7d6083b78ad62",
+      "outputHash": "0737978c7339f6a32f387d966b043cbdb7e5f1ff67ed781665e8f3677f367f59",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v3",
+      "revision": 6,
+      "occurredAt": "2026-08-26T04:12:51.8477626+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "0b17d212-4bc3-4520-a300-bbe41e251c20",
+      "schemaVersion": 1,
+      "transactionId": "5eb78b32-c797-552d-8c96-ac0a2efcbe81",
+      "planId": "8f95ca54-6c83-5d10-ac6c-41ca2f38a2e3",
+      "rollbackId": "88961440-e852-4bb5-a1d2-360e8cf670f5",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "af2376fbe0b1ecee0bfa02bb41af3592527eb0cc06d955944cb7d6083b78ad62",
+      "outputHash": "9192d3027056cc31c0026bcd2ee12e89de9068c20c324a703f56adfeee2c66f0",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v3",
+      "revision": 6,
+      "occurredAt": "2026-08-26T04:12:51.8915316+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "a2fa3e64-b5a3-4c71-9324-b0b7c21ef383",
+      "schemaVersion": 1,
+      "transactionId": "5eb78b32-c797-552d-8c96-ac0a2efcbe81",
+      "planId": "8f95ca54-6c83-5d10-ac6c-41ca2f38a2e3",
+      "rollbackId": "88961440-e852-4bb5-a1d2-360e8cf670f5",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "af2376fbe0b1ecee0bfa02bb41af3592527eb0cc06d955944cb7d6083b78ad62",
+      "outputHash": "9192d3027056cc31c0026bcd2ee12e89de9068c20c324a703f56adfeee2c66f0",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v3",
+      "revision": 7,
+      "occurredAt": "2026-08-26T04:12:52.0435099+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "15e6f8b1-051a-48a0-89d5-877b58e3b73c",
+      "schemaVersion": 1,
+      "transactionId": "118d4781-a5e5-5e6d-8139-2758d79a7095",
+      "planId": "f83e50d1-f5a0-5672-939b-7e11f4c5b2d6",
+      "rollbackId": "f2226b7d-e8bb-4179-8430-13346aed0703",
+      "stage": "begun",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "a11ef98b7a6b0e45cd8e6d5496d7bca542de68b65a0e5ebe27a9f6f499aeb069",
+      "outputHash": "9192d3027056cc31c0026bcd2ee12e89de9068c20c324a703f56adfeee2c66f0",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v3",
+      "revision": 7,
+      "occurredAt": "2026-08-26T04:12:52.0686257+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "901e94a9-cc1e-4f9d-9482-465b24d66e3f",
+      "schemaVersion": 1,
+      "transactionId": "118d4781-a5e5-5e6d-8139-2758d79a7095",
+      "planId": "f83e50d1-f5a0-5672-939b-7e11f4c5b2d6",
+      "rollbackId": "f2226b7d-e8bb-4179-8430-13346aed0703",
+      "stage": "previewed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "a11ef98b7a6b0e45cd8e6d5496d7bca542de68b65a0e5ebe27a9f6f499aeb069",
+      "outputHash": "70d92bc4c91952296e7cbcfd4e1ae9b606b34047bd99367041674f5ccdc60a28",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v3",
+      "revision": 7,
+      "occurredAt": "2026-08-26T04:12:52.1111507+00:00",
+      "succeeded": true
+    },
+    {
+      "id": "2a9b565b-8770-43cd-bf89-6f1d4aec6a39",
+      "schemaVersion": 1,
+      "transactionId": "118d4781-a5e5-5e6d-8139-2758d79a7095",
+      "planId": "f83e50d1-f5a0-5672-939b-7e11f4c5b2d6",
+      "rollbackId": "f2226b7d-e8bb-4179-8430-13346aed0703",
+      "stage": "committed",
+      "clientId": "open-rpg",
+      "userId": "author:open-rpg",
+      "provider": "offline-ci",
+      "model": null,
+      "commands": [
+        "area.add_entity"
+      ],
+      "inputHash": "a11ef98b7a6b0e45cd8e6d5496d7bca542de68b65a0e5ebe27a9f6f499aeb069",
+      "outputHash": "70d92bc4c91952296e7cbcfd4e1ae9b606b34047bd99367041674f5ccdc60a28",
+      "tests": [
+        "dry-run",
+        "save-reopen",
+        "runtime-visual"
+      ],
+      "provenance": "author:open_rpg:solaren-final-assembly-v3",
+      "revision": 8,
+      "occurredAt": "2026-08-26T04:12:52.2535644+00:00",
+      "succeeded": true
+    }
+  ]
+}

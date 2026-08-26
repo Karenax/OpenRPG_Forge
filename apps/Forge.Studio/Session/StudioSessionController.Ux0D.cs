@@ -404,11 +404,21 @@ internal sealed partial class StudioSessionController
         }
 
         RepeatedPlacementPlan plan;
+        var rotation = request.Rotation ?? QuaternionValue.Identity;
+        var scale = request.Scale ?? Vector3Value.One;
         try
         {
-            PlacementSurfaceSample SampleSurface(Vector3Value position) => new(
-                new Vector3Value(position.X, 0, position.Z),
-                new Vector3Value(0, 1, 0));
+            _ = new TransformValue(request.Origin, rotation, scale);
+            PlacementSurfaceSample SampleSurface(Vector3Value position)
+            {
+                var y = request.HeightMode == StudioPlacementHeightMode.TerrainSurface &&
+                        ActiveArea!.World.Terrain.Enabled
+                    ? ActiveArea.World.Terrain.HeightAt(position.X, position.Z)
+                    : position.Y;
+                return new PlacementSurfaceSample(
+                    new Vector3Value(position.X, y, position.Z),
+                    new Vector3Value(0, 1, 0));
+            }
             plan = request.Profile.BrushMode
                 ? RepeatedPlacementPlanner.PlanBrushStroke(
                     request.Profile,
@@ -436,10 +446,17 @@ internal sealed partial class StudioSessionController
         var assetPlacement = ResolveAssetPlacement(blueprint);
         foreach (var pose in plan.Poses)
         {
+            var projectedPosition = request.HeightMode == StudioPlacementHeightMode.TerrainSurface &&
+                                    ActiveArea!.World.Terrain.Enabled
+                ? new Vector3Value(
+                    pose.Position.X,
+                    ActiveArea.World.Terrain.HeightAt(pose.Position.X, pose.Position.Z) + request.Profile.SurfaceOffset,
+                    pose.Position.Z)
+                : pose.Position;
             var validationRequest = new PlacementValidationRequest(
                 ActiveAreaId,
                 blueprint.Id,
-                pose.Position,
+                projectedPosition,
                 .25f,
                 RequiredSocket: request.RequiredSocket,
                 AvailableSockets: availableSockets,
@@ -467,14 +484,25 @@ internal sealed partial class StudioSessionController
                     validation.CorrectedPosition,
                     false,
                     HumanizePlacementValidation(validation, validationRequest),
-                    validation.Corrections ?? []));
+                    validation.Corrections ?? [],
+                    new TransformValue(validation.CorrectedPosition, rotation, scale)));
                 continue;
             }
 
+            var acceptedPosition = accepted.CorrectedPosition;
+            if (request.HeightMode == StudioPlacementHeightMode.TerrainSurface &&
+                ActiveArea!.World.Terrain.Enabled)
+            {
+                acceptedPosition = new Vector3Value(
+                    acceptedPosition.X,
+                    ActiveArea.World.Terrain.HeightAt(acceptedPosition.X, acceptedPosition.Z) +
+                    request.Profile.SurfaceOffset,
+                    acceptedPosition.Z);
+            }
             var source = new EntityInstance(
                 EntityId.From(Guid.NewGuid()),
                 blueprint.Id,
-                new TransformValue(accepted.CorrectedPosition, QuaternionValue.Identity, Vector3Value.One),
+                new TransformValue(acceptedPosition, rotation, scale),
                 assetPlacement.Tags,
                 assetPlacement.Overrides);
             sources.Add(source);
@@ -484,10 +512,11 @@ internal sealed partial class StudioSessionController
                 remainingBudget -= estimatedBytes.Value;
             }
             poses.Add(new StudioPlacementPosePreview(
-                accepted.CorrectedPosition,
+                acceptedPosition,
                 true,
                 accepted.Message,
-                accepted.Corrections ?? []));
+                accepted.Corrections ?? [],
+                source.Transform));
         }
 
         var invalid = poses.FirstOrDefault(pose => !pose.IsValid);

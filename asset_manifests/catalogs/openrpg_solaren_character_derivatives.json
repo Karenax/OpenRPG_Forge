@@ -1,0 +1,362 @@
+{
+  "schema_version": 1,
+  "catalog_date": "2026-08-26",
+  "license_policy": "cc0-only",
+  "assets": [
+    {
+      "asset_id": "openrpg:solaren-character-derivatives-1.0:male-ranger-ual2",
+      "source_asset_id": "male-ranger-ual2",
+      "name": "Aerin Male Ranger UAL2",
+      "source": "openrpg-derived",
+      "source_page": "https://quaternius.com",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "license_verified": true,
+      "files": [
+        {
+          "path": "normalized/openrpg/solaren-character-derivatives-1.0/male-ranger-ual2.glb",
+          "sha256": "88649856c224fef6dac4f7b2247d8e41b8b39b672d3b6056576738c23d7e1bfc",
+          "size": 56219548
+        },
+        {
+          "path": "normalized/openrpg/solaren-character-derivatives-1.0/male-ranger-ual2.preview.png",
+          "sha256": "6b3dbf4eb32abbc1ac8011a262de20ea0bb8b976d346ef0acab055d8f3db27de",
+          "size": 70476
+        }
+      ],
+      "total_bytes": 56290024,
+      "categories": [
+        "3d-model",
+        "characters",
+        "animations"
+      ],
+      "tags": [
+        "medieval",
+        "fantasy",
+        "character",
+        "rigged",
+        "retargeted",
+        "ual2"
+      ],
+      "status": "downloaded-and-extracted",
+      "attribution_required": false,
+      "author": "OpenRPG Forge derived from Quaternius CC0",
+      "preview_file": "normalized/openrpg/solaren-character-derivatives-1.0/male-ranger-ual2.preview.png",
+      "skeleton": "quaternius-humanoid-65",
+      "animations": [
+        "death01",
+        "hit_chest",
+        "idle_loop",
+        "jog_fwd_loop",
+        "jump_start",
+        "sword_attack"
+      ],
+      "compatibility": [
+        "Godot 4.7",
+        "OpenRPG Forge"
+      ]
+    },
+    {
+      "asset_id": "openrpg:solaren-character-derivatives-1.0:female-peasant-ual2",
+      "source_asset_id": "female-peasant-ual2",
+      "name": "Female Peasant UAL2",
+      "source": "openrpg-derived",
+      "source_page": "https://quaternius.com",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "license_verified": true,
+      "files": [
+        {
+          "path": "normalized/openrpg/solaren-character-derivatives-1.0/female-peasant-ual2.glb",
+          "sha256": "fd8f794ef65093360b63b20613bfb74d924f69bcb6cfd9dc5e0a6d9e1500f1b0",
+          "size": 45822996
+        },
+        {
+          "path": "normalized/openrpg/solaren-character-derivatives-1.0/female-peasant-ual2.preview.png",
+          "sha256": "b14c8df852f63a66bd1a2f290fb9d34aa0578f82d208c94b048e393a9f62b3ce",
+          "size": 55504
+        }
+      ],
+      "total_bytes": 45878500,
+      "categories": [
+        "3d-model",
+        "characters",
+        "animations"
+      ],
+      "tags": [
+        "medieval",
+        "fantasy",
+        "character",
+        "rigged",
+        "retargeted",
+        "ual2"
+      ],
+      "status": "downloaded-and-extracted",
+      "attribution_required": false,
+      "author": "OpenRPG Forge derived from Quaternius CC0",
+      "preview_file": "normalized/openrpg/solaren-character-derivatives-1.0/female-peasant-ual2.preview.png",
+      "skeleton": "quaternius-humanoid-65",
+      "animations": [
+        "death01",
+        "hit_chest",
+        "idle_loop",
+        "jog_fwd_loop",
+        "jump_start",
+        "sword_attack"
+      ],
+      "compatibility": [
+        "Godot 4.7",
+        "OpenRPG Forge"
+      ]
+    },
+    {
+      "asset_id": "openrpg:solaren-character-derivatives-1.0:female-ranger-ual2",
+      "source_asset_id": "female-ranger-ual2",
+      "name": "Female Ranger UAL2",
+      "source": "openrpg-derived",
+      "source_page": "https://quaternius.com",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "license_verified": true,
+      "files": [
+        {
+          "path": "normalized/openrpg/solaren-character-derivatives-1.0/female-ranger-ual2.glb",
+          "sha256": "5768e94f48a418da7058730de585e1556bb032d7bd3f9ae9284cc88423b3ec6f",
+          "size": 56977820
+        },
+        {
+          "path": "normalized/openrpg/solaren-character-derivatives-1.0/female-ranger-ual2.preview.png",
+          "sha256": "7ee3a876dab68e6e583e1ec2350812b872f1d957bdbde9b26e70db1a3e118784",
+          "size": 65988
+        }
+      ],
+      "total_bytes": 57043808,
+      "categories": [
+        "3d-model",
+        "characters",
+        "animations"
+      ],
+      "tags": [
+        "medieval",
+        "fantasy",
+        "character",
+        "rigged",
+        "retargeted",
+        "ual2"
+      ],
+      "status": "downloaded-and-extracted",
+      "attribution_required": false,
+      "author": "OpenRPG Forge derived from Quaternius CC0",
+      "preview_file": "normalized/openrpg/solaren-character-derivatives-1.0/female-ranger-ual2.preview.png",
+      "skeleton": "quaternius-humanoid-65",
+      "animations": [
+        "death01",
+        "hit_chest",
+        "idle_loop",
+        "jog_fwd_loop",
+        "jump_start",
+        "sword_attack"
+      ],
+      "compatibility": [
+        "Godot 4.7",
+        "OpenRPG Forge"
+      ]
+    },
+    {
+      "asset_id": "openrpg:solaren-portrait-carriers-1.0:aerin-portrait",
+      "source_asset_id": "aerin-portrait",
+      "name": "Aerin Portrait 768",
+      "source": "openrpg-derived",
+      "source_page": "https://quaternius.com",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "license_verified": true,
+      "files": [
+        {
+          "path": "normalized/openrpg/solaren-portrait-carriers-1.0/aerin/aerin-portrait.bin",
+          "sha256": "d27f0b420c34117d5b60d72f44a9211bbfb9670ef460e6bfecd81fce9e8a7efb",
+          "size": 140
+        },
+        {
+          "path": "normalized/openrpg/solaren-portrait-carriers-1.0/aerin/aerin-portrait.gltf",
+          "sha256": "bfb01e09a3e26e3a84f24bc6d8c7f0482126ccd44258148c0765eb75f46c30fa",
+          "size": 1769
+        },
+        {
+          "path": "normalized/openrpg/solaren-portrait-carriers-1.0/aerin/aerin-portrait.png",
+          "sha256": "1c48eabbfadf5de11728f5e8614f32165713aaeabf9ce09dbd599083c33bc9d5",
+          "size": 593612
+        }
+      ],
+      "total_bytes": 595521,
+      "categories": [
+        "3d-model",
+        "portrait",
+        "ui"
+      ],
+      "tags": [
+        "medieval",
+        "fantasy",
+        "portrait",
+        "character",
+        "hud"
+      ],
+      "status": "downloaded-and-extracted",
+      "attribution_required": false,
+      "author": "OpenRPG Forge derived from Quaternius CC0",
+      "preview_file": "normalized/openrpg/solaren-portrait-carriers-1.0/aerin/aerin-portrait.png",
+      "style": "stylized-fantasy",
+      "compatibility": [
+        "Godot 4.7",
+        "OpenRPG Forge"
+      ]
+    },
+    {
+      "asset_id": "openrpg:solaren-portrait-carriers-1.0:maelis-portrait",
+      "source_asset_id": "maelis-portrait",
+      "name": "Maelis Portrait 768",
+      "source": "openrpg-derived",
+      "source_page": "https://quaternius.com",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "license_verified": true,
+      "files": [
+        {
+          "path": "normalized/openrpg/solaren-portrait-carriers-1.0/maelis/maelis-portrait.bin",
+          "sha256": "d27f0b420c34117d5b60d72f44a9211bbfb9670ef460e6bfecd81fce9e8a7efb",
+          "size": 140
+        },
+        {
+          "path": "normalized/openrpg/solaren-portrait-carriers-1.0/maelis/maelis-portrait.gltf",
+          "sha256": "b17005ba7ea3930fb0e606a5b615304f02b802a64ff4f4572c7a051308ef64f5",
+          "size": 1778
+        },
+        {
+          "path": "normalized/openrpg/solaren-portrait-carriers-1.0/maelis/maelis-portrait.png",
+          "sha256": "87bdd4b7cd64fedda02fe44f7a9a566886d6bc779002ef6f7dc3dc969dcb6bf7",
+          "size": 497326
+        }
+      ],
+      "total_bytes": 499244,
+      "categories": [
+        "3d-model",
+        "portrait",
+        "ui"
+      ],
+      "tags": [
+        "medieval",
+        "fantasy",
+        "portrait",
+        "character",
+        "hud"
+      ],
+      "status": "downloaded-and-extracted",
+      "attribution_required": false,
+      "author": "OpenRPG Forge derived from Quaternius CC0",
+      "preview_file": "normalized/openrpg/solaren-portrait-carriers-1.0/maelis/maelis-portrait.png",
+      "style": "stylized-fantasy",
+      "compatibility": [
+        "Godot 4.7",
+        "OpenRPG Forge"
+      ]
+    },
+    {
+      "asset_id": "openrpg:solaren-portrait-carriers-1.0:toman-portrait",
+      "source_asset_id": "toman-portrait",
+      "name": "Toman Portrait 768",
+      "source": "openrpg-derived",
+      "source_page": "https://quaternius.com",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "license_verified": true,
+      "files": [
+        {
+          "path": "normalized/openrpg/solaren-portrait-carriers-1.0/toman/toman-portrait.bin",
+          "sha256": "d27f0b420c34117d5b60d72f44a9211bbfb9670ef460e6bfecd81fce9e8a7efb",
+          "size": 140
+        },
+        {
+          "path": "normalized/openrpg/solaren-portrait-carriers-1.0/toman/toman-portrait.gltf",
+          "sha256": "8a01f643efd3f0fe51cb10fd241530690d3e0e1fedf15a5d2a828cdd8584e593",
+          "size": 1773
+        },
+        {
+          "path": "normalized/openrpg/solaren-portrait-carriers-1.0/toman/toman-portrait.png",
+          "sha256": "9023169cb70aa44205e8ae065d0a80dd4a0f6d21474990dd046a1b64f1fa3e4e",
+          "size": 498539
+        }
+      ],
+      "total_bytes": 500452,
+      "categories": [
+        "3d-model",
+        "portrait",
+        "ui"
+      ],
+      "tags": [
+        "medieval",
+        "fantasy",
+        "portrait",
+        "character",
+        "hud"
+      ],
+      "status": "downloaded-and-extracted",
+      "attribution_required": false,
+      "author": "OpenRPG Forge derived from Quaternius CC0",
+      "preview_file": "normalized/openrpg/solaren-portrait-carriers-1.0/toman/toman-portrait.png",
+      "style": "stylized-fantasy",
+      "compatibility": [
+        "Godot 4.7",
+        "OpenRPG Forge"
+      ]
+    },
+    {
+      "asset_id": "openrpg:solaren-portrait-carriers-1.0:orin-portrait",
+      "source_asset_id": "orin-portrait",
+      "name": "Orin Portrait 768",
+      "source": "openrpg-derived",
+      "source_page": "https://quaternius.com",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "license_verified": true,
+      "files": [
+        {
+          "path": "normalized/openrpg/solaren-portrait-carriers-1.0/orin/orin-portrait.bin",
+          "sha256": "d27f0b420c34117d5b60d72f44a9211bbfb9670ef460e6bfecd81fce9e8a7efb",
+          "size": 140
+        },
+        {
+          "path": "normalized/openrpg/solaren-portrait-carriers-1.0/orin/orin-portrait.gltf",
+          "sha256": "8eebc59b3875f9763b3dbe06a115803a9f4a2c31905d64eb9103f5d513352024",
+          "size": 1768
+        },
+        {
+          "path": "normalized/openrpg/solaren-portrait-carriers-1.0/orin/orin-portrait.png",
+          "sha256": "20f7177a1ac78d70237acbfba25a7f9482e570c28cda9a3bcd11007c202b718b",
+          "size": 577692
+        }
+      ],
+      "total_bytes": 579600,
+      "categories": [
+        "3d-model",
+        "portrait",
+        "ui"
+      ],
+      "tags": [
+        "medieval",
+        "fantasy",
+        "portrait",
+        "character",
+        "hud"
+      ],
+      "status": "downloaded-and-extracted",
+      "attribution_required": false,
+      "author": "OpenRPG Forge derived from Quaternius CC0",
+      "preview_file": "normalized/openrpg/solaren-portrait-carriers-1.0/orin/orin-portrait.png",
+      "style": "stylized-fantasy",
+      "compatibility": [
+        "Godot 4.7",
+        "OpenRPG Forge"
+      ]
+    }
+  ]
+}

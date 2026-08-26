@@ -97,7 +97,33 @@ public sealed class AssistedAreaBuildWorkflowTests
         Assert.Equal(BuildAssistedAreaPlanHandler.AlreadyBuiltCode, repeated.Diagnostics[0].Code);
     }
 
-    private static BuildContext Context(bool approved)
+    [Fact]
+    public void TerrainPlacementProjectsHeightAndPreservesRotationScale()
+    {
+        var context = Context(approved: true, exterior: true, authoredTransform: true);
+        var state = new ProjectState(context.Project, new ProjectRevision(0));
+        var handler = new BuildAssistedAreaPlanHandler(new FixedClock(Timestamp));
+        var transaction = Guid.NewGuid();
+        var execution = Guid.NewGuid();
+        BuildAssistedAreaPlanCommand Command(bool dryRun) => new(
+            CommandId.From(Guid.NewGuid()), transaction, execution, state.Revision,
+            context.Plan.Id, AssistantPermissionLevel.ApplyApprovedPlan, dryRun);
+
+        Assert.True(handler.Handle(state, Command(true), context.Catalog).Succeeded);
+        var applied = handler.Handle(state, Command(false), context.Catalog);
+        var node = context.Plan.Nodes.Single(item => item.Label == "Hall");
+        var placed = applied.Command.State.Project.Areas[0].Entities.Single(item =>
+            item.Tags.Contains($"assistant-node:{node.Id:D}", StringComparer.Ordinal));
+        var expectedY = context.Project.Areas[0].World.Terrain.HeightAt(node.X, node.Z) + 0.35f;
+
+        Assert.True(applied.Succeeded);
+        Assert.Equal(expectedY, placed.Transform.Position.Y, 4);
+        Assert.NotEqual(0, placed.Transform.Position.Y);
+        Assert.Equal(new QuaternionValue(0, 0.70710677f, 0, 0.70710677f), placed.Transform.Rotation);
+        Assert.Equal(new Vector3Value(1.5f, 2f, 0.75f), placed.Transform.Scale);
+    }
+
+    private static BuildContext Context(bool approved, bool exterior = false, bool authoredTransform = false)
     {
         var areaId = AreaId.From(Guid.Parse("b1250000-0000-4000-8000-000000000001"));
         var spawnId = BlueprintId.From(Guid.Parse("b1250000-0000-4000-8000-000000000002"));
@@ -107,7 +133,8 @@ public sealed class AssistedAreaBuildWorkflowTests
             spawnId,
             new TransformValue(new Vector3Value(0, 0.8f, 0), QuaternionValue.Identity, Vector3Value.One),
             ["player"]);
-        var area = new AreaDefinition(areaId, "build-test", "Build test", [spawn], AreaKind.Interior,
+        var area = new AreaDefinition(areaId, "build-test", "Build test", [spawn],
+            exterior ? AreaKind.Exterior : AreaKind.Interior,
             new AreaDimensions(64, 64));
         var project = new ProjectDefinition(
             ProjectId.From(Guid.Parse("b1250000-0000-4000-8000-000000000005")),
@@ -120,7 +147,16 @@ public sealed class AssistedAreaBuildWorkflowTests
         var nodes = new[]
         {
             new AssistedAreaPlanNode(Guid.NewGuid(), 1, AssistedAreaPlanNodeKind.Entry, "Entry", -12, 0, 6, 6, [], ["entry"]),
-            new AssistedAreaPlanNode(Guid.NewGuid(), 1, AssistedAreaPlanNodeKind.Exploration, "Hall", -4, 0, 6, 6, [kitId.Value], ["hall"]),
+            new AssistedAreaPlanNode(Guid.NewGuid(), 1, AssistedAreaPlanNodeKind.Exploration, "Hall", -4, 0, 6, 6,
+                [kitId.Value], ["hall"],
+                placementMode: AssistedAreaPlacementMode.TerrainSurface,
+                placementTransform: authoredTransform
+                    ? new TransformValue(
+                        new Vector3Value(-4, 99, 0),
+                        new QuaternionValue(0, 0.70710677f, 0, 0.70710677f),
+                        new Vector3Value(1.5f, 2f, 0.75f))
+                    : null,
+                terrainOffset: authoredTransform ? 0.35f : 0),
             new AssistedAreaPlanNode(Guid.NewGuid(), 1, AssistedAreaPlanNodeKind.Objective, "Objective", 4, 0, 6, 6, [kitId.Value], ["objective"]),
             new AssistedAreaPlanNode(Guid.NewGuid(), 1, AssistedAreaPlanNodeKind.Exit, "Exit", 12, 0, 6, 6, [], ["exit"]),
         };

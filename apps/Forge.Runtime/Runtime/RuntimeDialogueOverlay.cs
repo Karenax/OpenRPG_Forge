@@ -4,9 +4,9 @@ namespace Forge.Runtime;
 
 public partial class RuntimeDialogueOverlay : CanvasLayer
 {
-    private const string ElyraPortrait = "res://assets/ui/portraits/elyra.png";
-
     private Control? _root;
+    private HBoxContainer? _header;
+    private Control? _portrait;
     private Label? _speaker;
     private Label? _role;
     private Label? _line;
@@ -40,10 +40,17 @@ public partial class RuntimeDialogueOverlay : CanvasLayer
         GetViewport().SetInputAsHandled();
     }
 
-    public void Show(string speaker, string role, string line, IReadOnlyList<string> choices)
+    public void Show(
+        string speaker,
+        string role,
+        string line,
+        IReadOnlyList<string> choices,
+        string? portraitPath = null,
+        string? portraitAlt = null)
     {
         if (_root is null || _speaker is null || _role is null || _line is null || _choices is null) return;
         var speakerName = string.IsNullOrWhiteSpace(speaker) ? "Inconnu" : speaker.Split(',', 2)[0].Trim();
+        UpdatePortrait(portraitPath, portraitAlt, speakerName);
         _speaker.Text = speakerName;
         _role.Text = string.IsNullOrWhiteSpace(role) ? "VOYAGEUR" : role.ToUpperInvariant();
         _line.Text = string.IsNullOrWhiteSpace(line) ? "…" : $"« {line.Trim()} »";
@@ -133,11 +140,12 @@ public partial class RuntimeDialogueOverlay : CanvasLayer
         };
         content.AddChild(accent);
 
-        var header = new HBoxContainer();
-        header.AddThemeConstantOverride("separation", 12);
-        content.AddChild(header);
-        var portrait = RuntimeRpgUiTheme.Portrait(ElyraPortrait, 72, RuntimeRpgUiTheme.Gold, selected: true);
-        header.AddChild(portrait);
+        _header = new HBoxContainer();
+        _header.AddThemeConstantOverride("separation", 12);
+        content.AddChild(_header);
+        _portrait = RuntimeRpgUiTheme.Portrait(null, 72, RuntimeRpgUiTheme.Gold, selected: true,
+            fallbackText: "?");
+        _header.AddChild(_portrait);
 
         var identity = new VBoxContainer
         {
@@ -145,10 +153,10 @@ public partial class RuntimeDialogueOverlay : CanvasLayer
             SizeFlagsVertical = Control.SizeFlags.ShrinkCenter,
         };
         identity.AddThemeConstantOverride("separation", 2);
-        header.AddChild(identity);
-        _speaker = Label("Elyra", 21, RuntimeRpgUiTheme.Parchment, true);
+        _header.AddChild(identity);
+        _speaker = Label("Inconnu", 21, RuntimeRpgUiTheme.Parchment, true);
         identity.AddChild(_speaker);
-        _role = Label("GARDIENNE DES BRAISES", 9, RuntimeRpgUiTheme.Gold);
+        _role = Label("VOYAGEUR", 9, RuntimeRpgUiTheme.Gold);
         identity.AddChild(_role);
 
         var badge = Label("◆  PAROLE", 9, RuntimeRpgUiTheme.Gold);
@@ -157,7 +165,7 @@ public partial class RuntimeDialogueOverlay : CanvasLayer
         badge.VerticalAlignment = VerticalAlignment.Center;
         badge.AddThemeStyleboxOverride("normal", RuntimeRpgUiTheme.Frame(
             new Color("2a1d15d4"), RuntimeRpgUiTheme.Border, 8, 4));
-        header.AddChild(badge);
+        _header.AddChild(badge);
         var close = new Button
         {
             Text = "×",
@@ -166,9 +174,9 @@ public partial class RuntimeDialogueOverlay : CanvasLayer
         };
         RuntimeRpgUiTheme.StyleIconButton(close);
         close.Pressed += Close;
-        header.AddChild(close);
+        _header.AddChild(close);
 
-        _line = Label("« Une chaleur ancienne dort sous les pierres. »", 21,
+        _line = Label("…", 21,
             RuntimeRpgUiTheme.Parchment, true, wrap: true);
         _line.CustomMinimumSize = new Vector2(0, 74);
         _line.VerticalAlignment = VerticalAlignment.Center;
@@ -187,6 +195,30 @@ public partial class RuntimeDialogueOverlay : CanvasLayer
         var hint = Label("1–3  CHOISIR      ESC  QUITTER LE DIALOGUE", 8, RuntimeRpgUiTheme.Quiet);
         hint.HorizontalAlignment = HorizontalAlignment.Right;
         content.AddChild(hint);
+    }
+
+    private void UpdatePortrait(string? portraitPath, string? portraitAlt, string speakerName)
+    {
+        if (_header is null || _portrait is null) return;
+        var index = _portrait.GetIndex();
+        _header.RemoveChild(_portrait);
+        _portrait.QueueFree();
+        _portrait = RuntimeRpgUiTheme.Portrait(
+            portraitPath,
+            72,
+            RuntimeRpgUiTheme.Gold,
+            selected: true,
+            fallbackText: Initials(speakerName));
+        _portrait.SetMeta("accessible_label",
+            string.IsNullOrWhiteSpace(portraitAlt) ? $"Portrait de {speakerName}" : portraitAlt);
+        _header.AddChild(_portrait);
+        _header.MoveChild(_portrait, index);
+    }
+
+    private static string Initials(string value)
+    {
+        var parts = value.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        return parts.Length == 0 ? "?" : string.Concat(parts.Take(2).Select(part => part[0])).ToUpperInvariant();
     }
 
     private static Label Label(string text, int size, Color color, bool title = false, bool wrap = false)

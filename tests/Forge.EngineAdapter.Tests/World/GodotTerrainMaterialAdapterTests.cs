@@ -36,6 +36,10 @@ public sealed class GodotTerrainMaterialAdapterTests
         Assert.Contains("use_surface_texture", shader, StringComparison.Ordinal);
         Assert.Contains("secondary_surface_texture", shader, StringComparison.Ordinal);
         Assert.Contains("use_secondary_surface_texture", shader, StringComparison.Ordinal);
+        Assert.Contains("forge_surface_wetness", shader, StringComparison.Ordinal);
+        Assert.Contains("forge_wetness_albedo_darkening", shader, StringComparison.Ordinal);
+        Assert.Contains("forge_wetness_roughness_reduction", shader, StringComparison.Ordinal);
+        Assert.Contains("forge_wetness_specular_increase", shader, StringComparison.Ordinal);
 
         var roadShader = GodotTerrainMaterialAdapter.ProceduralRoadShaderCode;
         Assert.Contains("worn_center", roadShader, StringComparison.Ordinal);
@@ -43,6 +47,21 @@ public sealed class GodotTerrainMaterialAdapterTests
         Assert.Contains("world_position", roadShader, StringComparison.Ordinal);
         Assert.Contains("surface_texture", roadShader, StringComparison.Ordinal);
         Assert.Contains("use_surface_texture", roadShader, StringComparison.Ordinal);
+        Assert.Contains("forge_surface_wetness", roadShader, StringComparison.Ordinal);
         Assert.DoesNotContain("render_mode unshaded", roadShader, StringComparison.Ordinal);
+
+        Assert.Contains("forge_surface_wetness", GodotBiomeScatterAdapter.WindVegetationShaderCode,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ShaderKeepsCanonicalMeshNormalsWithoutTriangleSpaceOverrides()
+    {
+        var shader = GodotTerrainMaterialAdapter.ProceduralPbrShaderCode;
+
+        Assert.Contains("world_normal = normalize", shader, StringComparison.Ordinal);
+        Assert.Contains("float slope", shader, StringComparison.Ordinal);
+        Assert.DoesNotContain("NORMAL_MAP", shader, StringComparison.Ordinal);
+        Assert.DoesNotContain("NORMAL =", shader, StringComparison.Ordinal);
     }
 }

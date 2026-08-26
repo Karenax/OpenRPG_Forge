@@ -29,10 +29,16 @@ public sealed record AreaMapExplorationState(
     AreaMapExplorationScope Scope,
     string ExplorerId,
     IReadOnlySet<string> RevealedCells,
-    IReadOnlySet<Guid> RevealedPins);
+    IReadOnlySet<Guid> RevealedPins,
+    int ActiveFloor = 0);
+
+public sealed record AreaMapExplorationResolution(
+    AreaMapExplorationState State,
+    IReadOnlyList<DomainDiagnostic> Diagnostics);
 
 public static class AreaExperienceAuthoringScriptService
 {
+    public const string ActiveFloorOutOfScopeCode = "area.map.active_floor_out_of_scope";
     public static AreaExperienceAuthoringScriptSnapshot Read(AreaDefinition area)
     {
         ArgumentNullException.ThrowIfNull(area);
@@ -69,6 +75,14 @@ public static class AreaExperienceAuthoringScriptService
         AreaMapExplorationState state,
         float x,
         float z,
+        Guid? pinId = null) => Reveal(area, state, state.ActiveFloor, x, z, pinId);
+
+    public static AreaMapExplorationState Reveal(
+        AreaDefinition area,
+        AreaMapExplorationState state,
+        int activeFloor,
+        float x,
+        float z,
         Guid? pinId = null)
     {
         ArgumentNullException.ThrowIfNull(area);
@@ -79,17 +93,60 @@ public static class AreaExperienceAuthoringScriptService
             throw new InvalidOperationException("Map exploration scope does not match the area policy.");
         if (!float.IsFinite(x) || !float.IsFinite(z))
             throw new ArgumentOutOfRangeException(nameof(x));
-        var cell = $"{MathF.Floor(x / map.ExplorationCellSize):0}:{MathF.Floor(z / map.ExplorationCellSize):0}";
-        var cells = state.RevealedCells.ToHashSet(StringComparer.Ordinal);
-        cells.Add(cell);
-        var pins = state.RevealedPins.ToHashSet();
+
+        var grid = new AreaMapExplorationGrid(area.Dimensions, map.FloorCount, map.ExplorationCellSize);
+        var cell = grid.Resolve(activeFloor, x, z);
+        var normalized = Normalize(area, state);
+        var cells = normalized.State.RevealedCells.ToHashSet(StringComparer.Ordinal);
+        cells.Add(cell.Key);
+        var pins = normalized.State.RevealedPins.ToHashSet();
+        foreach (var pin in map.Pins.Where(pin => !pin.InitiallyVisible && pin.Floor == activeFloor))
+        {
+            if (grid.TryResolve(pin.Floor, pin.X, pin.Z, out var pinCell) && pinCell == cell)
+                pins.Add(pin.Id);
+        }
         if (pinId is { } value)
         {
             if (!map.Pins.Any(item => item.Id == value))
                 throw new InvalidOperationException($"Map pin '{value:D}' is not registered in the area.");
             pins.Add(value);
         }
-        return state with { RevealedCells = cells, RevealedPins = pins };
+        return normalized.State with
+        {
+            RevealedCells = cells,
+            RevealedPins = pins,
+            ActiveFloor = activeFloor,
+        };
+    }
+
+    public static AreaMapExplorationResolution Normalize(
+        AreaDefinition area,
+        AreaMapExplorationState state)
+    {
+        ArgumentNullException.ThrowIfNull(area);
+        ArgumentNullException.ThrowIfNull(state);
+        var map = area.Authoring.Map;
+        if (state.Scope != map.ExplorationScope)
+            throw new InvalidOperationException("Map exploration scope does not match the area policy.");
+        var diagnostics = new List<DomainDiagnostic>();
+        var activeFloor = state.ActiveFloor;
+        if (activeFloor < 0 || activeFloor >= map.FloorCount)
+        {
+            diagnostics.Add(new DomainDiagnostic(
+                ActiveFloorOutOfScopeCode,
+                $"Map floor '{activeFloor}' is outside the active area policy; floor 0 was restored.",
+                "activeFloor"));
+            activeFloor = 0;
+        }
+        if (!map.Enabled)
+            return new AreaMapExplorationResolution(state with { ActiveFloor = activeFloor }, diagnostics);
+
+        var grid = new AreaMapExplorationGrid(area.Dimensions, map.FloorCount, map.ExplorationCellSize);
+        var validation = grid.ValidateKeys(state.RevealedCells);
+        diagnostics.AddRange(validation.Diagnostics);
+        return new AreaMapExplorationResolution(
+            state with { RevealedCells = validation.ValidCells, ActiveFloor = activeFloor },
+            diagnostics);
     }
 
     public static IReadOnlyList<DomainDiagnostic> Validate(AreaDefinition area) =>

@@ -1,4 +1,5 @@
 using Forge.Application.Areas;
+using Forge.Application.Gameplay;
 using Forge.Application.Navigation;
 using Forge.Domain.RuntimeExtensions;
 using Forge.Domain.WorldFeatures;
@@ -8,15 +9,11 @@ namespace Forge.Runtime;
 
 public partial class RuntimeHud : CanvasLayer
 {
-    private const string ElyraPortrait = "res://assets/ui/portraits/elyra.png";
-    private const string BromPortrait = "res://assets/ui/portraits/brom.png";
-    private const string NahlaPortrait = "res://assets/ui/portraits/nahla.png";
-    private const string SorenPortrait = "res://assets/ui/portraits/soren.png";
-
     private Control? _locationReveal;
     private Label? _areaTitle;
     private Label? _moduleTitle;
     private Label? _objective;
+    private Control? _objectiveTracker;
     private Label? _objectiveDistance;
     private Label? _message;
     private Label? _state;
@@ -28,6 +25,7 @@ public partial class RuntimeHud : CanvasLayer
     private Label? _healthText;
     private RuntimeAnimatedBar? _healthBar;
     private RuntimeAnimatedBar? _focusBar;
+    private Label? _focusText;
     private Control? _targetFrame;
     private Label? _targetIdentity;
     private Label? _targetHealthText;
@@ -57,6 +55,8 @@ public partial class RuntimeHud : CanvasLayer
 
     public CompanionWorldProfile.PartyHudProfile? PartyHud { get; init; }
 
+    public RuntimeModulePresentation? Presentation { get; init; }
+
     internal RuntimeUiMotionPolicy MotionPolicy { get; init; } = RuntimeUiMotionPolicy.Create(null, []);
 
     public event Action? PauseRequested;
@@ -79,6 +79,8 @@ public partial class RuntimeHud : CanvasLayer
 
     public bool TargetFrameVisible => _targetFrame?.Visible == true;
 
+    public bool ObjectiveTrackerVisible => _objectiveTracker?.Visible == true;
+
     public string TargetFrameText => _targetIdentity?.Text ?? string.Empty;
 
     public double TargetHealthDisplayed => _targetHealthBar?.FrontValue ?? 0;
@@ -95,6 +97,8 @@ public partial class RuntimeHud : CanvasLayer
 
     public override void _Ready()
     {
+        if (Presentation is null)
+            throw new InvalidOperationException("The runtime HUD requires a module presentation.");
         Layer = 10;
         BuildWorldTreatment();
         BuildLocationReveal();
@@ -211,12 +215,13 @@ public partial class RuntimeHud : CanvasLayer
 
     private void BuildPartyFrame()
     {
+        var members = Presentation!.Party;
         var party = new VBoxContainer
         {
             Name = "PartyHudPanel",
             OffsetLeft = 22,
             OffsetTop = 130,
-            OffsetRight = 92,
+            OffsetRight = members.Count == 0 ? 212 : 92,
             OffsetBottom = 420,
         };
         party.AddThemeConstantOverride("separation", 7);
@@ -232,17 +237,21 @@ public partial class RuntimeHud : CanvasLayer
         party.SetMeta("high_contrast", PartyHud?.HighContrast ?? false);
         AddChild(party);
 
-        party.AddChild(BuildPartyMedallion("Elyra", "Lame-scribe", ElyraPortrait,
-            RuntimeRpgUiTheme.Gold, 82, 44, selected: true));
-        party.AddChild(BuildPartyMedallion("Brom", "Sentinelle", BromPortrait,
-            RuntimeRpgUiTheme.Sage, 94, 66, selected: false));
-        party.AddChild(BuildPartyMedallion("Nahla", "Arcaniste", NahlaPortrait,
-            RuntimeRpgUiTheme.Violet, 71, 88, selected: false));
-        party.AddChild(BuildPartyMedallion("Soren", "Éclaireur", SorenPortrait,
-            RuntimeRpgUiTheme.Ember, 76, 52, selected: false));
+        var accents = new[]
+        {
+            RuntimeRpgUiTheme.Gold,
+            RuntimeRpgUiTheme.Sage,
+            RuntimeRpgUiTheme.Violet,
+            RuntimeRpgUiTheme.Ember,
+        };
+        for (var index = 0; index < members.Count; index++)
+            party.AddChild(BuildPartyMedallion(members[index], accents[index % accents.Length], index == 0));
 
-        _partyHudText = BodyLabel("Elyra · NIV. 18", 9, RuntimeRpgUiTheme.Parchment);
-        _partyHudText.Visible = false;
+        var partySummary = members.Count == 0
+            ? "Aucun compagnon dans le groupe."
+            : string.Join(" · ", members.Select(member => member.DisplayName));
+        _partyHudText = BodyLabel(partySummary, 9, RuntimeRpgUiTheme.Parchment, wrap: true);
+        _partyHudText.Visible = members.Count == 0;
         party.AddChild(_partyHudText);
 
         // The authored companion command contract remains available to gameplay code;
@@ -258,13 +267,18 @@ public partial class RuntimeHud : CanvasLayer
         party.AddChild(commands);
     }
 
-    private Button BuildPartyMedallion(string displayName, string role, string portraitPath, Color accent,
-        double health, double focus, bool selected)
+    private Button BuildPartyMedallion(RuntimeModulePresentation.Actor member, Color accent, bool selected)
     {
+        var healthResource = member.Resources.FirstOrDefault(resource =>
+            string.Equals(resource.Id, "health", StringComparison.OrdinalIgnoreCase));
+        var focusResource = RuntimePrimaryResourceSelector.Select(member.Resources);
+        var health = Percentage(healthResource);
+        var focus = Percentage(focusResource);
+        var role = string.IsNullOrWhiteSpace(member.Role) ? "Rôle non renseigné" : member.Role;
         var button = new Button
         {
-            Name = $"PartyMember{displayName}",
-            TooltipText = $"{displayName} · {role}\n{health:0}% PV · {focus:0}% ressource",
+            Name = $"PartyMember{SanitizeNodeName(member.DisplayName)}",
+            TooltipText = $"{member.DisplayName} · {role}\n{Availability(health)} PV · {Availability(focus)} ressource",
             CustomMinimumSize = new Vector2(68, 68),
             FocusMode = Control.FocusModeEnum.All,
         };
@@ -272,14 +286,16 @@ public partial class RuntimeHud : CanvasLayer
         button.AddThemeStyleboxOverride("hover", MedallionStyle(RuntimeRpgUiTheme.Gold.Lightened(.12f), true));
         button.AddThemeStyleboxOverride("pressed", MedallionStyle(RuntimeRpgUiTheme.Bone, true));
         button.AddThemeStyleboxOverride("focus", MedallionStyle(RuntimeRpgUiTheme.Bone, true));
-        button.SetMeta("accessible_label", $"{displayName}, niveau 18, {role}");
+        var level = member.Level is null ? string.Empty : $", niveau {member.Level}";
+        button.SetMeta("accessible_label", $"{member.DisplayName}{level}, {role}");
 
-        var portrait = Portrait(portraitPath, 58);
+        var portrait = Portrait(member.PortraitPath, 58, fallbackText: Initials(member.DisplayName));
         portrait.Position = new Vector2(5, 4);
         portrait.Size = new Vector2(58, 58);
         button.AddChild(portrait);
 
-        var healthBar = CompactBar(health, 100, RuntimeUiSemanticColor.Damage, 3);
+        var healthBar = CompactBar(health ?? 0, 100, RuntimeUiSemanticColor.Damage, 3);
+        healthBar.Visible = health.HasValue;
         healthBar.AnchorLeft = 0;
         healthBar.AnchorRight = 1;
         healthBar.AnchorTop = 1;
@@ -290,7 +306,8 @@ public partial class RuntimeHud : CanvasLayer
         healthBar.OffsetBottom = -9;
         button.AddChild(healthBar);
 
-        var focusBar = CompactBar(focus, 100, RuntimeUiSemanticColor.Resource, 3);
+        var focusBar = CompactBar(focus ?? 0, 100, RuntimeUiSemanticColor.Resource, 3);
+        focusBar.Visible = focus.HasValue;
         focusBar.AnchorLeft = 0;
         focusBar.AnchorRight = 1;
         focusBar.AnchorTop = 1;
@@ -324,6 +341,10 @@ public partial class RuntimeHud : CanvasLayer
 
     private void BuildPlayerFrame()
     {
+        var hero = Presentation!.Hero;
+        var healthResource = hero.Resources.FirstOrDefault(resource =>
+            string.Equals(resource.Id, "health", StringComparison.OrdinalIgnoreCase));
+        var focusResource = RuntimePrimaryResourceSelector.Select(hero.Resources);
         var margin = new MarginContainer
         {
             AnchorLeft = .5f,
@@ -348,7 +369,8 @@ public partial class RuntimeHud : CanvasLayer
         row.AddThemeConstantOverride("separation", 9);
         panel.AddChild(row);
 
-        var portrait = Portrait(ElyraPortrait, 60, RuntimeRpgUiTheme.Gold, selected: true);
+        var portrait = Portrait(hero.PortraitPath, 60, RuntimeRpgUiTheme.Gold, selected: true,
+            fallbackText: Initials(hero.DisplayName));
         portrait.SetMeta("accessible_label", "Portrait du héros");
         row.AddChild(portrait);
 
@@ -356,34 +378,40 @@ public partial class RuntimeHud : CanvasLayer
         content.AddThemeConstantOverride("separation", LargeText ? 3 : 2);
         row.AddChild(content);
 
-        _playerIdentity = TitleLabel("Héros · NIV. 1", 14, RuntimeRpgUiTheme.Bone);
+        _playerIdentity = TitleLabel(hero.Level is null
+            ? hero.DisplayName
+            : $"{hero.DisplayName} · NIV. {hero.Level}", 14, RuntimeRpgUiTheme.Bone);
         content.AddChild(_playerIdentity);
 
         var healthRow = new HBoxContainer();
         healthRow.AddThemeConstantOverride("separation", 5);
         content.AddChild(healthRow);
         healthRow.AddChild(BodyLabel("PV", 7, RuntimeRpgUiTheme.Health.Lightened(.15f)));
-        _healthBar = CompactBar(100, 100, RuntimeUiSemanticColor.Damage, 4);
+        _healthBar = ResourceBar(healthResource, RuntimeUiSemanticColor.Damage, 4);
         _healthBar.CustomMinimumSize = new Vector2(LargeText ? 116 : 86, 4);
         _healthBar.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         healthRow.AddChild(_healthBar);
-        _healthText = BodyLabel("100 / 100", 7, RuntimeRpgUiTheme.Muted);
+        _healthText = BodyLabel(ResourceValue(healthResource), 7, RuntimeRpgUiTheme.Muted);
         healthRow.AddChild(_healthText);
 
         var focusRow = new HBoxContainer();
         focusRow.AddThemeConstantOverride("separation", 5);
         content.AddChild(focusRow);
         focusRow.AddChild(BodyLabel("RES", 7, RuntimeRpgUiTheme.FocusBlue.Lightened(.2f)));
-        _focusBar = CompactBar(0, 1, RuntimeUiSemanticColor.Resource, 4);
+        _focusBar = ResourceBar(focusResource, RuntimeUiSemanticColor.Resource, 4);
         _focusBar.CustomMinimumSize = new Vector2(LargeText ? 116 : 86, 4);
         _focusBar.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         focusRow.AddChild(_focusBar);
+        _focusText = BodyLabel(ResourceValue(focusResource), 7, RuntimeRpgUiTheme.Muted);
+        focusRow.AddChild(_focusText);
 
         var context = new HBoxContainer();
         context.AddThemeConstantOverride("separation", 6);
         content.AddChild(context);
         _tactical = BodyLabel("Temps réel · Sol", 7, RuntimeRpgUiTheme.Quiet);
-        _rules = BodyLabel("Standard · 0 XP", 7, RuntimeRpgUiTheme.Quiet);
+        var experience = Presentation.Progression.Experience;
+        _rules = BodyLabel(experience is null ? "Progression non renseignée" : $"{experience:0} XP",
+            7, RuntimeRpgUiTheme.Quiet);
         context.AddChild(_tactical);
         context.AddChild(_rules);
     }
@@ -438,6 +466,8 @@ public partial class RuntimeHud : CanvasLayer
 
     private void BuildObjectiveTracker()
     {
+        var activeObjective = Presentation!.Journal.ActiveObjective;
+        var hasActiveObjective = !string.IsNullOrWhiteSpace(activeObjective);
         var objectiveButton = new Button
         {
             Name = "CompactObjective",
@@ -447,9 +477,11 @@ public partial class RuntimeHud : CanvasLayer
             OffsetTop = 204,
             OffsetRight = -24,
             OffsetBottom = LargeText ? 328 : 292,
-            FocusMode = Control.FocusModeEnum.All,
+            FocusMode = hasActiveObjective ? Control.FocusModeEnum.All : Control.FocusModeEnum.None,
             TooltipText = "Ouvrir le journal de quête",
+            Visible = hasActiveObjective,
         };
+        _objectiveTracker = objectiveButton;
         objectiveButton.AddThemeStyleboxOverride("normal", RuntimeRpgUiTheme.Frame(
             new Color("130e0a9c"), new Color("a9855745"), 11, 7));
         objectiveButton.AddThemeStyleboxOverride("hover", RuntimeRpgUiTheme.Frame(
@@ -472,7 +504,8 @@ public partial class RuntimeHud : CanvasLayer
         line.AddThemeConstantOverride("separation", 8);
         content.AddChild(line);
         line.AddChild(TitleLabel("◆", 8, RuntimeRpgUiTheme.Gold));
-        _objective = TitleLabel("Explorer le monde", 14, RuntimeRpgUiTheme.Bone, wrap: true);
+        _objective = TitleLabel(activeObjective ?? string.Empty, 14,
+            RuntimeRpgUiTheme.Bone, wrap: true);
         _objective.VerticalAlignment = VerticalAlignment.Center;
         line.AddChild(_objective);
 
@@ -488,7 +521,8 @@ public partial class RuntimeHud : CanvasLayer
         _caption = BodyLabel(string.Empty, 9, RuntimeRpgUiTheme.Parchment, wrap: true);
         _caption.Visible = false;
         content.AddChild(_caption);
-        objectiveButton.SetMeta("accessible_label", "Objectif actif. Ouvrir le journal de quête");
+        objectiveButton.SetMeta("accessible_label",
+            hasActiveObjective ? "Objectif actif. Ouvrir le journal de quête" : string.Empty);
     }
 
     private void BuildInteractionPrompt()
@@ -622,16 +656,14 @@ public partial class RuntimeHud : CanvasLayer
 
     public void UpdatePlayerStatus(
         string displayName,
-        int health,
-        int maximumHealth,
-        int resource,
-        int maximumResource,
-        int level)
+        RuntimeModulePresentation.Resource? healthResource,
+        RuntimeModulePresentation.Resource? primaryResource,
+        int? level)
     {
-        if (_playerIdentity is not null) _playerIdentity.Text = $"{displayName} · NIV. {level}";
-        _healthBar?.SetAuthoritativeValue(health, Math.Max(1, maximumHealth));
-        _focusBar?.SetAuthoritativeValue(resource, Math.Max(1, maximumResource));
-        if (_healthText is not null) _healthText.Text = $"{health} / {maximumHealth}";
+        if (_playerIdentity is not null)
+            _playerIdentity.Text = level is null ? displayName : $"{displayName} · NIV. {level}";
+        UpdateResource(_healthBar, _healthText, healthResource);
+        UpdateResource(_focusBar, _focusText, primaryResource);
     }
 
     public void UpdateTargetStatus(string displayName, int health, int maximumHealth, bool boss, bool defeated)
@@ -664,7 +696,7 @@ public partial class RuntimeHud : CanvasLayer
         IReadOnlyDictionary<string, double> resources, IReadOnlyList<string> statuses)
     {
         if (_partyHudText is null) return;
-        _partyHudText.Text = $"{displayName} · NIV. 18";
+        _partyHudText.Text = displayName;
         var resourceText = string.Join(", ", resources.Select(item => $"{item.Key} {item.Value:0.##}"));
         var statusText = statuses.Count == 0 ? "aucun statut" : string.Join(", ", statuses);
         _partyHudText.TooltipText = $"{health}/{maximumHealth} PV · {resourceText} · {statusText}";
@@ -681,6 +713,14 @@ public partial class RuntimeHud : CanvasLayer
     {
         var cleanObjective = objective.Replace("[E]", string.Empty, StringComparison.OrdinalIgnoreCase).Trim();
         if (_objective is not null) _objective.Text = cleanObjective;
+        if (_objectiveTracker is not null)
+        {
+            var visible = !string.IsNullOrWhiteSpace(cleanObjective);
+            _objectiveTracker.Visible = visible;
+            _objectiveTracker.FocusMode = visible ? Control.FocusModeEnum.All : Control.FocusModeEnum.None;
+            _objectiveTracker.SetMeta("accessible_label",
+                visible ? "Objectif actif. Ouvrir le journal de quête" : string.Empty);
+        }
         if (_message is not null) _message.Text = message;
         if (_state is not null) _state.Text = state;
     }
@@ -779,59 +819,57 @@ public partial class RuntimeHud : CanvasLayer
         _ => value,
     };
 
-    private static Control Portrait(string path, int size, Color? rim = null, bool selected = false)
+    private static Control Portrait(
+        string? path,
+        int size,
+        Color? rim = null,
+        bool selected = false,
+        string? fallbackText = null) =>
+        RuntimeRpgUiTheme.Portrait(path, size, rim, selected, fallbackText);
+
+    private static double? Percentage(RuntimeModulePresentation.Resource? resource) =>
+        resource is null ? null : resource.Current * 100 / resource.Maximum;
+
+    private static string Availability(double? percentage) =>
+        percentage is null ? "Indisponible" : $"{percentage:0}%";
+
+    private static string ResourceValue(RuntimeModulePresentation.Resource? resource) =>
+        resource is null ? "Indisponible" : $"{resource.Current:0} / {resource.Maximum:0}";
+
+    private static void UpdateResource(
+        RuntimeAnimatedBar? bar,
+        Label? label,
+        RuntimeModulePresentation.Resource? resource)
     {
-        var root = new Control
+        if (bar is not null)
         {
-            CustomMinimumSize = new Vector2(size, size),
-            MouseFilter = Control.MouseFilterEnum.Ignore,
-        };
+            bar.Visible = resource is not null;
+            if (resource is not null) bar.SetAuthoritativeValue(resource.Current, resource.Maximum);
+        }
 
-        var backdrop = new Panel { MouseFilter = Control.MouseFilterEnum.Ignore };
-        backdrop.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
-        backdrop.AddThemeStyleboxOverride("panel", RuntimeRpgUiTheme.Circle(
-            new Color("100c09"), new Color("493b2d"), size / 2));
-        root.AddChild(backdrop);
-
-        var portrait = new TextureRect
-        {
-            Texture = GD.Load<Texture2D>(path),
-            ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
-            StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered,
-            MouseFilter = Control.MouseFilterEnum.Ignore,
-            Material = PortraitMaskMaterial(),
-        };
-        portrait.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
-        portrait.OffsetLeft = 3;
-        portrait.OffsetTop = 3;
-        portrait.OffsetRight = -3;
-        portrait.OffsetBottom = -3;
-        root.AddChild(portrait);
-
-        var ring = new Panel { MouseFilter = Control.MouseFilterEnum.Ignore };
-        ring.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
-        ring.AddThemeStyleboxOverride("panel", MedallionStyle(rim ?? RuntimeRpgUiTheme.Bronze, selected));
-        root.AddChild(ring);
-        return root;
+        if (label is not null) label.Text = ResourceValue(resource);
     }
 
-    private static ShaderMaterial PortraitMaskMaterial() => new()
+    private static string Initials(string displayName)
     {
-        Shader = new Shader
-        {
-            Code = """
-                shader_type canvas_item;
+        var words = displayName.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        return string.Concat(words.Take(2).Select(word => char.ToUpperInvariant(word[0])));
+    }
 
-                void fragment() {
-                    vec2 p = UV * 2.0 - vec2(1.0);
-                    float alpha = 1.0 - smoothstep(0.94, 1.0, length(p));
-                    vec4 source = texture(TEXTURE, UV);
-                    vec3 lifted = source.rgb * 1.28 + vec3(0.018, 0.012, 0.008);
-                    COLOR = vec4(lifted, source.a * alpha);
-                }
-                """,
-        },
-    };
+    private static string SanitizeNodeName(string value) =>
+        new(value.Where(character => char.IsLetterOrDigit(character)).ToArray());
+
+    private RuntimeAnimatedBar ResourceBar(
+        RuntimeModulePresentation.Resource? resource,
+        RuntimeUiSemanticColor semanticColor,
+        float height)
+    {
+        var bar = resource is null
+            ? CompactBar(0, 1, semanticColor, height)
+            : CompactBar(resource.Current, resource.Maximum, semanticColor, height);
+        bar.Visible = resource is not null;
+        return bar;
+    }
 
     private static StyleBoxFlat MedallionStyle(Color border, bool selected) => new()
     {

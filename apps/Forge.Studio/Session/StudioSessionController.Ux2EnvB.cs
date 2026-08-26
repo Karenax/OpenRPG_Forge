@@ -17,7 +17,7 @@ internal sealed partial class StudioSessionController
 {
     private const string Ux2EnvBProvenance = "studio:ux2-env-b:environment-foundation";
 
-    private readonly SetAreaEnvironmentHandler _setAreaEnvironmentUx2EnvB = new(new SystemClock());
+    private readonly PatchAreaEnvironmentHandler _setAreaEnvironmentUx2EnvB = new(new SystemClock());
     private StudioUx2EnvBDraft? _approvedAreaEnvironmentUx2EnvB;
     private ProjectRevision? _approvedAreaEnvironmentRevisionUx2EnvB;
     private string? _approvedAreaEnvironmentFingerprintUx2EnvB;
@@ -322,7 +322,7 @@ internal sealed partial class StudioSessionController
     private bool TryBuildAreaEnvironmentUx2EnvB(
         StudioUx2EnvBDraft draft,
         bool dryRun,
-        out SetAreaEnvironmentCommand? command,
+        out PatchAreaEnvironmentCommand? command,
         out AreaDefinition? sourceArea,
         out AreaDefinition? candidateArea,
         out AreaEnvironmentProfile? candidateEnvironment,
@@ -577,7 +577,7 @@ internal sealed partial class StudioSessionController
                 return false;
             }
 
-            command = new SetAreaEnvironmentCommand(
+            command = new PatchAreaEnvironmentCommand(
                 CommandId.From(Guid.NewGuid()),
                 history.State.Revision,
                 sourceArea.Id,
@@ -1408,7 +1408,7 @@ internal sealed partial class StudioSessionController
             source.RequireAuthoringRuntimeMetadata);
         var result = controller._setAreaEnvironmentUx2EnvB.Handle(
             history.State,
-            new SetAreaEnvironmentCommand(
+            new PatchAreaEnvironmentCommand(
                 CommandId.From(Guid.NewGuid()),
                 history.State.Revision,
                 area.Id,

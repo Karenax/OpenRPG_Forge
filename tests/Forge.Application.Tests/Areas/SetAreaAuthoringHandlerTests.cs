@@ -46,7 +46,7 @@ public sealed class SetAreaAuthoringHandlerTests
             new Dictionary<string, object?> { ["level"] = 2 });
         var explored = AreaExperienceAuthoringScriptService.Reveal(area,
             new(AreaMapExplorationScope.Party, "party:heroes", new HashSet<string>(), new HashSet<Guid>()),
-            17, 3, profile.Map.Pins[0].Id);
+            profile.Map.Pins[0].X, profile.Map.Pins[0].Z, profile.Map.Pins[0].Id);
 
         Assert.True(dryRun.Succeeded);
         Assert.Equal(context.State.Revision, dryRun.State.Revision);
@@ -54,7 +54,10 @@ public sealed class SetAreaAuthoringHandlerTests
         Assert.True(applied.Succeeded);
         Assert.Equal(1, snapshot.VisibilityRooms);
         Assert.Equal("schema://area/alarm/v1", dispatched.PayloadSchema);
-        Assert.Contains("2:0", explored.RevealedCells);
+        var grid = new AreaMapExplorationGrid(area.Dimensions, profile.Map.FloorCount,
+            profile.Map.ExplorationCellSize);
+        Assert.Contains(grid.Resolve(0, profile.Map.Pins[0].X, profile.Map.Pins[0].Z).Key,
+            explored.RevealedCells);
         Assert.Contains(profile.Map.Pins[0].Id, explored.RevealedPins);
         Assert.True(history.Undo().Succeeded);
         Assert.True(history.Redo().Succeeded);
@@ -246,7 +249,7 @@ public sealed class SetAreaAuthoringHandlerTests
                 new Dictionary<string, string> { ["level"] = "int" },
                 AreaUserEvent.CurrentForgeScriptApiVersion)],
             new(true, true, "hybrid-2d-3d", 2,
-                [new(Guid.Parse("a0552000-0000-4000-8000-000000000007"), "Shrine", 16, 0, 0, false)],
+                [new(Guid.Parse("a0552000-0000-4000-8000-000000000007"), "Shrine", 8, 0, 0, false)],
                 Guid.Parse("a0552000-0000-4000-8000-000000000008"), 1, "test:r055", true, true,
                 AreaMapExplorationScope.Party, 8, "area.map.reveal"), [], experience);
     }

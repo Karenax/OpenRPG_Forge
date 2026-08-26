@@ -28,6 +28,7 @@ internal sealed record StudioUx2EnvCWeatherStateDraft(
     float Intensity,
     float Humidity,
     float SurfaceWetness,
+    SurfaceWetnessMaterialProfile WetnessMaterial,
     bool Lightning,
     string PrecipitationResource,
     string AudioCue,

@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using System.Globalization;
 using Forge.Application.Commands;
 using Forge.Application.Build;
 using Forge.Application.Content;
@@ -77,7 +78,7 @@ using Forge.ModuleFormat.Serialization;
 
 namespace Forge.Mcp.Projects;
 
-public sealed class ForgeProjectAgentService
+public sealed partial class ForgeProjectAgentService
 {
     private static readonly HashSet<string> AllowedScriptBindings =
         new(StringComparer.Ordinal)
@@ -91,6 +92,7 @@ public sealed class ForgeProjectAgentService
     private readonly ProjectSession _session;
     private readonly ProjectCommandHistory _history;
     private readonly SetDialogueHandler _dialogueHandler;
+    private readonly PlaceEntityHandler _placeEntityHandler;
     private readonly ApplyAssistedDialogueHandler _assistedDialogueHandler;
     private readonly ApplyAssistedQuestHandler _assistedQuestHandler;
     private readonly IForgeScriptRuntime _forgeScriptRuntime;
@@ -113,6 +115,7 @@ public sealed class ForgeProjectAgentService
     private readonly SetQuestOperationsHandler _questOperationsHandler;
     private readonly SetQuestHandler _questJournalHandler;
     private readonly SetAreaNavigationHandler _areaNavigationHandler;
+    private readonly SetNavigationTopologyHandler _navigationTopologyHandler;
     private readonly SetItemAdvancedProfileHandler _itemAdvancedHandler;
     private readonly SetItemFoundationHandler _itemFoundationHandler;
     private readonly SetWorldFeatureCatalogHandler _worldFeatureHandler;
@@ -121,11 +124,14 @@ public sealed class ForgeProjectAgentService
     private readonly SetCinematicProfilesHandler _cinematicHandler;
     private readonly SetGameplayControlProfileHandler _gameplayControlHandler;
     private readonly SetModuleConfigurationHandler _moduleConfigurationHandler;
+    private readonly PatchModuleMetadataHandler _moduleMetadataPatchHandler;
     private readonly SetProjectFoundationHandler _projectFoundationHandler;
     private readonly SetAreaFoundationHandler _areaFoundationHandler;
     private readonly SetAreaPlaytestHandler _areaPlaytestHandler;
     private readonly SetRulesProfilesHandler _rulesProfilesHandler;
     private readonly SetAreaExperienceProfileHandler _areaExperienceHandler;
+    private readonly PatchAreaBiomesHandler _areaBiomeHandler;
+    private readonly PatchAreaEnvironmentHandler _areaEnvironmentPatchHandler;
     private readonly SetAreaEnvironmentHandler _areaEnvironmentHandler;
     private readonly SetAreaAuthoringHandler _areaAuthoringHandler;
     private readonly SetRuntimeExtensionsHandler _runtimeExtensionsHandler;
@@ -156,12 +162,18 @@ public sealed class ForgeProjectAgentService
     private readonly Dictionary<string, StoredProjectVariablePlan> _projectVariablePlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredProjectDocumentationPlan> _projectDocumentationPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredProjectFoundationPlan> _projectFoundationPlans = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, StoredProjectMetadataPatchPlan> _projectMetadataPatchPlans =
+        new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredAreaFoundationPlan> _areaFoundationPlans = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, StoredAreaBiomePlan> _areaBiomePlans = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, StoredAreaEnvironmentPatchPlan> _areaEnvironmentPatchPlans =
+        new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredAreaEnvironmentPlan> _areaEnvironmentPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredAreaExperienceAuthoringPlan> _areaExperienceAuthoringPlans =
         new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredAreaPlaytestPlan> _areaPlaytestPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredEntityScalePlan> _entityScalePlans = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, StoredWaypointPlan> _waypointPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredRulesProfilePlan> _rulesProfilePlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredAreaExperiencePlan> _areaExperiencePlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredAudioEmitterPlan> _audioEmitterPlans = new(StringComparer.Ordinal);
@@ -191,6 +203,7 @@ public sealed class ForgeProjectAgentService
         _buildProfileHistory = new WorkspaceBuildProfileCommandHistory(buildProfile.Profile);
         _history = new ProjectCommandHistory(new ProjectState(session.Project, new ProjectRevision(0)));
         _dialogueHandler = new SetDialogueHandler(clock);
+        _placeEntityHandler = new PlaceEntityHandler(clock);
         _assistedDialogueHandler = new ApplyAssistedDialogueHandler(clock);
         _assistedQuestHandler = new ApplyAssistedQuestHandler(clock);
         _forgeScriptRuntime = new NativeForgeScriptRuntime();
@@ -221,6 +234,7 @@ public sealed class ForgeProjectAgentService
         _questOperationsHandler = new SetQuestOperationsHandler(clock);
         _questJournalHandler = new SetQuestHandler(clock);
         _areaNavigationHandler = new SetAreaNavigationHandler(clock);
+        _navigationTopologyHandler = new SetNavigationTopologyHandler(clock);
         _itemAdvancedHandler = new SetItemAdvancedProfileHandler(clock);
         _itemFoundationHandler = new SetItemFoundationHandler(clock);
         _worldFeatureHandler = new SetWorldFeatureCatalogHandler(clock);
@@ -228,11 +242,14 @@ public sealed class ForgeProjectAgentService
         _cinematicHandler = new SetCinematicProfilesHandler(clock);
         _gameplayControlHandler = new SetGameplayControlProfileHandler(clock);
         _moduleConfigurationHandler = new SetModuleConfigurationHandler(clock);
+        _moduleMetadataPatchHandler = new PatchModuleMetadataHandler(clock);
         _projectFoundationHandler = new SetProjectFoundationHandler(clock);
         _areaFoundationHandler = new SetAreaFoundationHandler(clock);
         _areaPlaytestHandler = new SetAreaPlaytestHandler(clock);
         _rulesProfilesHandler = new SetRulesProfilesHandler(clock);
         _areaExperienceHandler = new SetAreaExperienceProfileHandler(clock);
+        _areaBiomeHandler = new PatchAreaBiomesHandler(clock);
+        _areaEnvironmentPatchHandler = new PatchAreaEnvironmentHandler(clock);
         _areaEnvironmentHandler = new SetAreaEnvironmentHandler(clock);
         _areaAuthoringHandler = new SetAreaAuthoringHandler(clock);
         _runtimeExtensionsHandler = new SetRuntimeExtensionsHandler(clock);
@@ -937,28 +954,211 @@ public sealed class ForgeProjectAgentService
         ArgumentNullException.ThrowIfNull(request);
         lock (_gate)
         {
-            if (request.SchemaVersion != 1)
-                return new(false, request.BaseRevision, null, null,
-                    [new AgentDiagnostic("waypoint.mcp_schema_unsupported",
-                        "Waypoint MCP request schema must be v1.", "request/schemaVersion")]);
-            if (!Guid.TryParse(request.AreaId, out var parsed) || parsed == Guid.Empty)
-                return new(false, request.BaseRevision, null, null,
-                    [new AgentDiagnostic("waypoint.mcp_area_id_invalid",
-                        "Area ID must be a non-empty UUID.", "request/areaId")]);
-            var areaId = AreaId.From(parsed);
-            var area = _history.State.Project.Areas.SingleOrDefault(item => item.Id == areaId);
-            if (area is null || request.Profile.AreaId != areaId)
-                return new(false, request.BaseRevision, null, null,
-                    [new AgentDiagnostic("waypoint.mcp_area_missing",
-                        "Area must exist and match the canonical waypoint profile.", "request/areaId")]);
-            var result = _areaNavigationHandler.Handle(_history.State, new SetAreaNavigationCommand(
-                CommandId.From(Guid.NewGuid()), new ProjectRevision(request.BaseRevision), areaId,
-                area.Navigation.WithWaypoints(request.Profile), true));
-            return new(result.Succeeded, request.BaseRevision, result.Patch, result.Inverse,
-                result.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message,
-                    $"areas/{request.AreaId}/navigation/waypoints")).ToArray());
+            if (!WaypointJsonBoundaryMapper.TryMap(
+                    _history.State.Project, request, out var mapped, out var diagnostic))
+                return WaypointFailure(request.BaseRevision, diagnostic!);
+            return PreviewWaypointAuthoringCore(mapped!, storePlan: false);
         }
     }
+
+    public WaypointAuthoringPlanResult PreviewWaypointAuthoringDomain(
+        WaypointAuthoringDomainPlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            return PreviewWaypointAuthoringCore(request, storePlan: false);
+        }
+    }
+
+    public WaypointAuthoringPlanResult PlanWaypointAuthoring(WaypointAuthoringPlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (!WaypointJsonBoundaryMapper.TryMap(
+                    _history.State.Project, request, out var mapped, out var diagnostic))
+                return WaypointFailure(request.BaseRevision, diagnostic!);
+            return PreviewWaypointAuthoringCore(mapped!, storePlan: true);
+        }
+    }
+
+    public WaypointAuthoringPlanResult PlanWaypointAuthoringDomain(
+        WaypointAuthoringDomainPlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            return PreviewWaypointAuthoringCore(request, storePlan: true);
+        }
+    }
+
+    public WaypointAuthoringPlanResult ApplyWaypointAuthoringPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_waypointPlans.TryGetValue(planId, out var plan))
+                return WaypointFailure(_history.State.Revision.Value, "waypoint.plan_missing",
+                    $"Waypoint plan '{planId}' does not exist.");
+            if (plan.Applied && !plan.Reverted)
+                return WaypointFailure(plan.Command.BaseRevision.Value, "waypoint.plan_already_applied",
+                    $"Waypoint plan '{planId}' is already applied.");
+            if (plan.Reverted)
+                return WaypointFailure(plan.Command.BaseRevision.Value, "waypoint.plan_requires_redo",
+                    $"Waypoint plan '{planId}' was reverted and must be redone.");
+
+            var command = plan.Command with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false };
+            var result = _navigationTopologyHandler.Handle(_history.State, command);
+            if (!result.Succeeded)
+            {
+                plan.Audit.Add(new(planId, "apply", _history.State.Revision.Value, _clock.UtcNow, false));
+                return ToWaypointResult(plan) with
+                {
+                    Succeeded = false,
+                    Diagnostics = result.Diagnostics.Select(Map).ToArray(),
+                };
+            }
+            var saved = _session.Save(result.State.Project);
+            if (!saved.Succeeded)
+            {
+                plan.Audit.Add(new(planId, "apply", _history.State.Revision.Value, _clock.UtcNow, false));
+                return ToWaypointResult(plan) with
+                {
+                    Succeeded = false,
+                    Diagnostics = saved.Diagnostics.Select(item =>
+                        new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray(),
+                };
+            }
+            _history.Record(result);
+            plan.Applied = true;
+            plan.Reverted = false;
+            plan.AppliedRevision = result.NewRevision!.Value.Value;
+            plan.Audit.Add(new(planId, "apply", plan.AppliedRevision.Value, _clock.UtcNow, true));
+            return ToWaypointResult(plan);
+        }
+    }
+
+    public WaypointAuthoringPlanResult RevertWaypointAuthoringPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_waypointPlans.TryGetValue(planId, out var plan) || !plan.Applied || plan.Reverted)
+                return WaypointFailure(_history.State.Revision.Value, "waypoint.plan_not_applied",
+                    $"Waypoint plan '{planId}' is not currently applied.");
+            if (plan.AppliedRevision != _history.State.Revision.Value)
+                return WaypointFailure(plan.Command.BaseRevision.Value, "waypoint.revert_revision_conflict",
+                    "Only the latest project mutation can be reverted safely.");
+            var undone = _history.Undo();
+            if (!undone.Succeeded)
+                return WaypointFailure(plan.Command.BaseRevision.Value, "waypoint.inverse_unavailable",
+                    "The waypoint inverse is unavailable.");
+            var saved = _session.Save(undone.State.Project);
+            if (!saved.Succeeded)
+            {
+                _history.Redo();
+                return WaypointFailure(plan.Command.BaseRevision.Value, "waypoint.revert_save_failed",
+                    "The reverted waypoint project could not be saved.");
+            }
+            plan.Reverted = true;
+            plan.RevertedRevision = undone.State.Revision.Value;
+            plan.Audit.Add(new(planId, "revert", plan.RevertedRevision.Value, _clock.UtcNow, true));
+            return ToWaypointResult(plan);
+        }
+    }
+
+    public WaypointAuthoringPlanResult RedoWaypointAuthoringPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_waypointPlans.TryGetValue(planId, out var plan) || !plan.Applied || !plan.Reverted)
+                return WaypointFailure(_history.State.Revision.Value, "waypoint.plan_not_reverted",
+                    $"Waypoint plan '{planId}' is not currently reverted.");
+            if (plan.RevertedRevision != _history.State.Revision.Value)
+                return WaypointFailure(plan.Command.BaseRevision.Value, "waypoint.redo_revision_conflict",
+                    "Only the latest reverted project mutation can be redone safely.");
+            var redone = _history.Redo();
+            if (!redone.Succeeded)
+                return WaypointFailure(plan.Command.BaseRevision.Value, "waypoint.redo_unavailable",
+                    "The waypoint redo is unavailable.");
+            var saved = _session.Save(redone.State.Project);
+            if (!saved.Succeeded)
+            {
+                _history.Undo();
+                return WaypointFailure(plan.Command.BaseRevision.Value, "waypoint.redo_save_failed",
+                    "The redone waypoint project could not be saved.");
+            }
+            plan.Reverted = false;
+            plan.AppliedRevision = redone.State.Revision.Value;
+            plan.Audit.Add(new(planId, "redo", plan.AppliedRevision.Value, _clock.UtcNow, true));
+            return ToWaypointResult(plan);
+        }
+    }
+
+    private WaypointAuthoringPlanResult PreviewWaypointAuthoringCore(
+        WaypointAuthoringDomainPlanRequest request,
+        bool storePlan)
+    {
+        if (request.SchemaVersion != 1)
+            return WaypointFailure(request.BaseRevision, "waypoint.mcp_schema_unsupported",
+                "Waypoint MCP request schema must be v1.", "request/schemaVersion");
+        if (!Guid.TryParse(request.AreaId, out var parsed) || parsed == Guid.Empty)
+            return WaypointFailure(request.BaseRevision, "waypoint.mcp_area_id_invalid",
+                "Area ID must be a non-empty UUID.", "request/areaId");
+        var areaId = AreaId.From(parsed);
+        var area = _history.State.Project.Areas.SingleOrDefault(item => item.Id == areaId);
+        if (area is null || request.Profile.AreaId != areaId)
+            return WaypointFailure(request.BaseRevision, "waypoint.mcp_area_missing",
+                "Area must exist and match the canonical waypoint profile.", "request/areaId");
+        var command = new SetNavigationTopologyCommand(
+            CommandId.From(Guid.NewGuid()),
+            new ProjectRevision(request.BaseRevision),
+            [new AreaNavigationTopologyUpdate(areaId, area.Navigation.WithWaypoints(request.Profile))],
+            [],
+            null,
+            true);
+        var result = _navigationTopologyHandler.Handle(_history.State, command);
+        var diagnostics = result.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message,
+            $"areas/{request.AreaId}/navigation/waypoints")).ToArray();
+        var patch = result.Patch is null ? null : new ProjectPatch(
+            result.Patch.Operation,
+            $"areas/{request.AreaId}/navigation/waypoints",
+            $"Configure {request.Profile.Waypoints.Count} waypoint(s), " +
+            $"{request.Profile.PatrolRoutes.Count} patrol route(s), " +
+            $"{request.Profile.Locators.Count} locator(s) and " +
+            $"{request.Profile.Collections.Count} collection(s) through canonical navigation topology.");
+        var inverse = result.Inverse is null ? null : new ProjectPatch(
+            result.Inverse.Operation,
+            $"areas/{request.AreaId}/navigation/waypoints",
+            "Restore the previous canonical waypoint authoring profile.");
+        if (!result.Succeeded || !storePlan)
+            return new(result.Succeeded, null, request.BaseRevision, patch, inverse,
+                diagnostics, false, false, []);
+
+        var planId = Guid.NewGuid().ToString("D");
+        var plan = new StoredWaypointPlan(planId, command, patch!, inverse!,
+            [new WaypointPlanAuditEntry(planId, "planned", request.BaseRevision, _clock.UtcNow, true)]);
+        _waypointPlans.Add(planId, plan);
+        return ToWaypointResult(plan);
+    }
+
+    private static WaypointAuthoringPlanResult WaypointFailure(
+        long revision,
+        AgentDiagnostic diagnostic) =>
+        new(false, null, revision, null, null, [diagnostic], false, false, []);
+
+    private static WaypointAuthoringPlanResult WaypointFailure(
+        long revision,
+        string code,
+        string message,
+        string path = "navigation/waypoints") =>
+        WaypointFailure(revision, new AgentDiagnostic(code, message, path));
+
+    private static WaypointAuthoringPlanResult ToWaypointResult(StoredWaypointPlan plan) =>
+        new(true, plan.PlanId, plan.Command.BaseRevision.Value, plan.Diff, plan.Inverse, [],
+            plan.Applied, plan.Reverted, plan.Audit.ToArray());
 
     public AnchorPlanResult PreviewAnchors(AnchorPlanRequest request)
     {
@@ -989,7 +1189,7 @@ public sealed class ForgeProjectAgentService
         }
     }
 
-    public QuestJournalPlanResult PreviewQuestJournal(QuestJournalPlanRequest request)
+    public QuestJournalPlanResult PreviewQuestJournalDomain(QuestJournalDomainPlanRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
         lock (_gate)
@@ -1009,6 +1209,18 @@ public sealed class ForgeProjectAgentService
             return new(result.Succeeded, request.BaseRevision, result.Patch, result.Inverse,
                 result.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message,
                     $"quests/{request.QuestId}")).ToArray());
+        }
+    }
+
+    public QuestJournalPlanResult PreviewQuestJournal(QuestJournalPlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (!QuestJsonBoundaryMapper.TryMapJournal(
+                    _history.State.Project, request, out var mapped, out var diagnostic))
+                return new(false, request.BaseRevision, null, null, [diagnostic!]);
+            return PreviewQuestJournalDomain(mapped!);
         }
     }
 
@@ -2060,6 +2272,172 @@ public sealed class ForgeProjectAgentService
         }
     }
 
+    public AgentSpatialContextResource GetBoundedSpatialContext(AgentSpatialContextQuery query)
+    {
+        ArgumentNullException.ThrowIfNull(query);
+        lock (_gate)
+        {
+            return GetBoundedSpatialContextCore(query);
+        }
+    }
+
+    private AgentSpatialContextResource GetBoundedSpatialContextCore(AgentSpatialContextQuery query)
+    {
+        var project = _history.State.Project;
+        var revision = _history.State.Revision.Value;
+        var loaded = AssistantWorkspaceProfileStore.Load(_session.RootDirectory);
+        var workflow = loaded.Profile.AgentWorkflow;
+        var diagnostics = loaded.Diagnostics.Select(item =>
+            new AgentDiagnostic(item.Code, item.Message, item.Path)).ToList();
+        var areaSelectors = (query.AreaIds ?? []).Where(item => !string.IsNullOrWhiteSpace(item))
+            .Select(item => item.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+        var entitySelectors = (query.EntityIds ?? []).Where(item => !string.IsNullOrWhiteSpace(item))
+            .Select(item => item.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+
+        AgentSpatialContextResource Empty() => new(
+            AgentReferenceGraphBuilder.StableGuid(
+                $"spatial-context|{project.Id}|{revision}|empty|{query.MaximumEntities}|{query.MaximumReferences}"),
+            1,
+            "openrpg-forge:mcp-spatial-context-v1",
+            revision,
+            query.Permission,
+            query.MaximumEntities,
+            query.MaximumReferences,
+            areaSelectors.Order(StringComparer.Ordinal).ToArray(),
+            entitySelectors.Order(StringComparer.Ordinal).ToArray(),
+            [],
+            [],
+            diagnostics);
+
+        if (query.SchemaVersion != 1)
+        {
+            diagnostics.Add(new("assistant.spatial.schema_unsupported",
+                "Spatial context schema must be 1.", "query/schemaVersion"));
+            return Empty();
+        }
+        if (query.MaximumEntities is < 1 or > 64 || query.MaximumReferences is < 0 or > 256 ||
+            areaSelectors.Length + entitySelectors.Length > 128)
+        {
+            diagnostics.Add(new("assistant.spatial.limit_invalid",
+                "Spatial context requires 1..64 entities, 0..256 references and at most 128 selectors.",
+                "query/limits"));
+            return Empty();
+        }
+        if (areaSelectors.Length == 0 && entitySelectors.Length == 0)
+        {
+            diagnostics.Add(new("assistant.spatial.selection_required",
+                "At least one explicit area or entity UUID is required.", "query/selection"));
+            return Empty();
+        }
+        if (!Enum.TryParse<AssistantPermissionLevel>(query.Permission, true, out var permission) ||
+            !Enum.IsDefined(permission) || permission > workflow.MaximumPermission)
+        {
+            diagnostics.Add(new("assistant.spatial.permission_denied",
+                "Spatial context permission must be defined and cannot exceed the workspace maximum.",
+                "query/permission"));
+            return Empty();
+        }
+
+        var parsedAreaIds = new List<Guid>();
+        var parsedEntityIds = new List<Guid>();
+        foreach (var selector in areaSelectors)
+        {
+            if (!Guid.TryParse(selector, out var parsed) || parsed == Guid.Empty)
+                diagnostics.Add(new("assistant.spatial.selector_invalid",
+                    $"Area selector '{selector}' must be a UUID.", "query/areaIds"));
+            else parsedAreaIds.Add(parsed);
+        }
+        foreach (var selector in entitySelectors)
+        {
+            if (!Guid.TryParse(selector, out var parsed) || parsed == Guid.Empty)
+                diagnostics.Add(new("assistant.spatial.selector_invalid",
+                    $"Entity selector '{selector}' must be a UUID.", "query/entityIds"));
+            else parsedEntityIds.Add(parsed);
+        }
+        if (diagnostics.Any(item => item.Code == "assistant.spatial.selector_invalid"))
+            return Empty();
+
+        var locations = project.Areas.SelectMany(area => area.Entities.Select(entity =>
+                (Area: area, Entity: entity)))
+            .ToDictionary(item => item.Entity.Id.Value);
+        var areasById = project.Areas.ToDictionary(item => item.Id.Value);
+        foreach (var areaId in parsedAreaIds.Where(id => !areasById.ContainsKey(id)))
+            diagnostics.Add(new("assistant.spatial.selector_missing",
+                $"Area selector '{areaId:D}' does not resolve in this workspace.", "query/areaIds"));
+        foreach (var entityId in parsedEntityIds.Where(id => !locations.ContainsKey(id)))
+            diagnostics.Add(new("assistant.spatial.selector_missing",
+                $"Entity selector '{entityId:D}' does not resolve in this workspace.", "query/entityIds"));
+        if (diagnostics.Any(item => item.Code == "assistant.spatial.selector_missing"))
+            return Empty();
+
+        var explicitEntities = parsedEntityIds.Distinct().Order().Select(id => locations[id]);
+        var areaEntities = parsedAreaIds.Distinct().Order().Select(id => areasById[id])
+            .SelectMany(area => area.Entities.OrderBy(item => item.Id.Value)
+                .Select(entity => (Area: area, Entity: entity)));
+        var selected = explicitEntities.Concat(areaEntities)
+            .DistinctBy(item => item.Entity.Id)
+            .Take(Math.Min(query.MaximumEntities, workflow.MaximumContextItems))
+            .OrderBy(item => $"areas/{item.Area.Id}/entities/{item.Entity.Id}", StringComparer.Ordinal)
+            .ThenBy(item => item.Entity.Id.Value)
+            .ToArray();
+        var privacy = workflow.EffectiveGovernance.BudgetPrivacy;
+        var blueprints = project.Blueprints.ToDictionary(item => item.Id);
+        var items = selected.Select(item =>
+        {
+            var blueprint = blueprints[item.Entity.BlueprintId];
+            var hasAsset = AssetBlueprintFactory.TryGetAssetId(blueprint, out var assetId);
+            var transform = item.Entity.Transform;
+            return new AgentSpatialEntityResource(
+                item.Area.Id.ToString(),
+                item.Area.DisplayName,
+                item.Entity.Id.ToString(),
+                blueprint.DisplayName,
+                blueprint.Id.ToString(),
+                hasAsset ? assetId?.ToString() : null,
+                item.Entity.Tags.Where(tag =>
+                        !AgentExecutionGovernanceValidator.IsSensitive(tag, privacy))
+                    .Order(StringComparer.Ordinal).ToArray(),
+                new AgentSpatialTransformResource(
+                    new(transform.Position.X, transform.Position.Y, transform.Position.Z),
+                    new(transform.Rotation.X, transform.Rotation.Y, transform.Rotation.Z, transform.Rotation.W),
+                    new(transform.Scale.X, transform.Scale.Y, transform.Scale.Z)),
+                $"areas/{item.Area.Id}/entities/{item.Entity.Id}");
+        }).ToArray();
+
+        var selectedIds = selected.Select(item => item.Entity.Id.Value)
+            .Concat(parsedAreaIds).ToHashSet();
+        var references = query.MaximumReferences == 0
+            ? []
+            : AgentReferenceGraphBuilder.Build(project,
+                    maximumDepth: workflow.References.MaximumDepth,
+                    maximumNodes: workflow.References.MaximumNodes)
+                .Edges.Where(edge => selectedIds.Contains(edge.SourceId) || selectedIds.Contains(edge.TargetId))
+                .OrderBy(edge => edge.DocumentPath, StringComparer.Ordinal)
+                .ThenBy(edge => edge.Id)
+                .Take(query.MaximumReferences)
+                .Select(edge => new AgentSpatialReferenceResource(
+                    edge.Id.ToString("D"), edge.SourceId.ToString("D"), edge.TargetId.ToString("D"),
+                    edge.Usage.ToString(), edge.DocumentPath))
+                .ToArray();
+        return new AgentSpatialContextResource(
+            AgentReferenceGraphBuilder.StableGuid(
+                $"spatial-context|{project.Id}|{revision}|" +
+                $"{string.Join(',', areaSelectors.Order(StringComparer.Ordinal))}|" +
+                $"{string.Join(',', entitySelectors.Order(StringComparer.Ordinal))}|" +
+                $"{query.MaximumEntities}|{query.MaximumReferences}"),
+            1,
+            "openrpg-forge:mcp-spatial-context-v1",
+            revision,
+            permission.ToString(),
+            query.MaximumEntities,
+            query.MaximumReferences,
+            areaSelectors.Order(StringComparer.Ordinal).ToArray(),
+            entitySelectors.Order(StringComparer.Ordinal).ToArray(),
+            items,
+            references,
+            diagnostics);
+    }
+
     public AgentStructuredContextResource GetStructuredAgentContext(AgentContextQuery? query = null)
     {
         lock (_gate)
@@ -2071,6 +2449,26 @@ public sealed class ForgeProjectAgentService
             var workflow = loaded.Profile.AgentWorkflow;
             var diagnostics = loaded.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)).ToList();
             var requested = Math.Clamp(query.MaximumItems, 1, workflow.MaximumContextItems);
+            var selectedAreaIds = new List<string>();
+            var selectedEntityIds = new List<string>();
+            foreach (var selection in query.SelectionObjectIds ?? [])
+            {
+                if (!Guid.TryParse(selection, out var selectedId))
+                    continue;
+                if (project.Areas.Any(item => item.Id.Value == selectedId))
+                    selectedAreaIds.Add(selectedId.ToString("D"));
+                if (project.Areas.SelectMany(item => item.Entities).Any(item => item.Id.Value == selectedId))
+                    selectedEntityIds.Add(selectedId.ToString("D"));
+            }
+            var spatial = selectedAreaIds.Count == 0 && selectedEntityIds.Count == 0
+                ? null
+                : GetBoundedSpatialContextCore(new AgentSpatialContextQuery(
+                    1,
+                    Math.Min(requested, 64),
+                    Math.Min(requested * 4, 256),
+                    selectedAreaIds,
+                    selectedEntityIds,
+                    AssistantPermissionLevel.ReadOnly.ToString()));
             var graph = AgentReferenceGraphBuilder.Build(project, maximumDepth: workflow.References.MaximumDepth,
                 maximumNodes: workflow.References.MaximumNodes);
             var graphById = graph.Nodes.ToDictionary(item => item.Id);
@@ -2099,7 +2497,7 @@ public sealed class ForgeProjectAgentService
                 [AgentContextResourceKind.Selection] = ResolveSelection(query.SelectionObjectIds, graphById, diagnostics),
             };
 
-            var remaining = requested;
+            var remaining = Math.Max(0, requested - (spatial?.Items.Count ?? 0));
             var sections = new List<AgentContextSection>();
             foreach (var kind in workflow.ContextResources)
             {
@@ -2109,11 +2507,11 @@ public sealed class ForgeProjectAgentService
                 remaining -= items.Length;
                 sections.Add(new AgentContextSection(kind, all.Count, items));
             }
-            var total = sections.Sum(section => section.Items.Count);
+            var total = sections.Sum(section => section.Items.Count) + (spatial?.Items.Count ?? 0);
             return new AgentStructuredContextResource(
                 AgentReferenceGraphBuilder.StableGuid($"context|{project.Id}|{revision}|{requested}"),
                 AgentSemanticWorkflow.CurrentSchemaVersion, workflow.Provenance, revision,
-                workflow.MaximumPermission, total, sections, diagnostics);
+                workflow.MaximumPermission, total, sections, spatial, diagnostics);
         }
     }
 
@@ -2263,10 +2661,11 @@ public sealed class ForgeProjectAgentService
                 return RejectAgentTransaction(stored, "assistant.transaction.revision_conflict",
                     "Project revision or hash changed before preview.");
 
-            var prepared = PrepareProjectVariableBatch(stored);
+            var prepared = PrepareAgentTransaction(stored);
             if (!prepared.Succeeded)
                 return RejectAgentTransaction(stored, prepared.Diagnostics);
             stored.Command = prepared.Command;
+            stored.PlaceCommand = prepared.PlaceCommand;
             stored.SemanticDiff = prepared.SemanticDiff;
             stored.Stage = AgentTransactionStage.Previewed;
             var audit = CreateAgentAudit(stored, AgentTransactionStage.Previewed,
@@ -2293,7 +2692,8 @@ public sealed class ForgeProjectAgentService
                 return AgentTransactionFailure(id, Guid.Empty, Guid.Empty, AgentTransactionStage.Rejected,
                     GetCurrentRevision(), GetCurrentRevision(),
                     [new("assistant.transaction.missing", "Agent transaction does not exist.", "transactionId")]);
-            if (stored.Stage != AgentTransactionStage.Previewed || stored.Command is null || stored.SemanticDiff is null)
+            if (stored.Stage != AgentTransactionStage.Previewed ||
+                stored.Command is null && stored.PlaceCommand is null || stored.SemanticDiff is null)
                 return AgentTransactionStateFailure(stored, "assistant.transaction.commit_state_invalid",
                     "Commit requires a successful preview of the same transaction.");
             if (stored.Request.Plan.BaseRevision != _history.State.Revision.Value ||
@@ -2301,11 +2701,29 @@ public sealed class ForgeProjectAgentService
                 return RejectAgentTransaction(stored, "assistant.transaction.revision_conflict",
                     "Project revision or hash changed before commit.");
 
-            var result = _moduleConfigurationHandler.Handle(_history.State, stored.Command with
+            CommandResult result;
+            if (stored.Command is { } moduleCommand)
             {
-                CommandId = CommandId.From(Guid.NewGuid()),
-                DryRun = false,
-            });
+                result = _moduleConfigurationHandler.Handle(_history.State, moduleCommand with
+                {
+                    CommandId = CommandId.From(Guid.NewGuid()),
+                    DryRun = false,
+                });
+            }
+            else
+            {
+                var place = stored.PlaceCommand!;
+                result = _placeEntityHandler.Handle(_history.State, new PlaceEntityCommand(
+                    CommandId.From(Guid.NewGuid()),
+                    place.BaseRevision,
+                    place.AreaId,
+                    place.EntityId,
+                    place.BlueprintId,
+                    place.Transform,
+                    dryRun: false,
+                    place.Tags,
+                    place.Overrides));
+            }
             if (!result.Succeeded)
                 return RejectAgentTransaction(stored, result.Diagnostics.Select(Map).ToArray());
             var saved = _session.Save(result.State.Project);
@@ -2471,6 +2889,194 @@ public sealed class ForgeProjectAgentService
     private static string ProjectFingerprint(Forge.Domain.Projects.ProjectDefinition project) =>
         Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(ProjectJsonSerializer.Serialize(project)))).ToLowerInvariant();
 
+    private AgentTransactionPreparation PrepareAgentTransaction(StoredAgentChangeTransaction stored)
+    {
+        var commands = stored.Request.Plan.Commands;
+        if (commands.All(command => string.Equals(
+                command.ToolName, "project.set_variable", StringComparison.Ordinal)))
+        {
+            return PrepareProjectVariableBatch(stored);
+        }
+
+        if (commands.Count == 1 && string.Equals(
+                commands[0].ToolName, "area.add_entity", StringComparison.Ordinal))
+        {
+            return PrepareAreaEntityPlacement(stored, commands[0]);
+        }
+
+        return new(false, null, null,
+            [new AgentDiagnostic(
+                "assistant.transaction.adapter_missing",
+                "An atomic transaction must contain project.set_variable commands or one area.add_entity command.",
+                "plan/commands")]);
+    }
+
+    private AgentTransactionPreparation PrepareAreaEntityPlacement(
+        StoredAgentChangeTransaction stored,
+        AgentSemanticCommand semantic)
+    {
+        var diagnostics = new List<AgentDiagnostic>();
+        AgentAreaEntityPlacement? placement = semantic.AreaEntityPlacement;
+        if (placement is null)
+        {
+            placement = ParseAreaEntityPlacement(semantic, diagnostics);
+        }
+
+        if (placement is null) return new(false, null, null, diagnostics);
+        if (placement.SchemaVersion != AgentAreaEntityPlacement.CurrentSchemaVersion)
+        {
+            diagnostics.Add(new AgentDiagnostic(
+                "assistant.transaction.placement_schema_unsupported",
+                "Area entity placement schema must be 1.",
+                $"plan/commands/{semantic.Id:D}/areaEntityPlacement/schemaVersion"));
+        }
+        if (placement.AreaId != semantic.TargetObjectId)
+        {
+            diagnostics.Add(new AgentDiagnostic(
+                "assistant.transaction.target_invalid",
+                "area.add_entity must target the same canonical area UUID carried by its typed arguments.",
+                $"plan/commands/{semantic.Id:D}/targetObjectId"));
+        }
+        if (diagnostics.Count > 0) return new(false, null, null, diagnostics);
+
+        PlaceEntityCommand command;
+        try
+        {
+            command = new PlaceEntityCommand(
+                CommandId.From(Guid.NewGuid()),
+                new ProjectRevision(stored.Request.Plan.BaseRevision),
+                AreaId.From(placement.AreaId),
+                EntityId.From(placement.EntityId),
+                BlueprintId.From(placement.BlueprintId),
+                placement.Transform,
+                dryRun: true,
+                placement.Tags,
+                placement.Overrides);
+        }
+        catch (Exception exception) when (exception is ArgumentException or FormatException or InvalidOperationException)
+        {
+            return new(false, null, null,
+                [new AgentDiagnostic("assistant.transaction.placement_invalid", exception.Message,
+                    $"plan/commands/{semantic.Id:D}/areaEntityPlacement")]);
+        }
+
+        var preview = _placeEntityHandler.Handle(_history.State, command);
+        if (!preview.Succeeded)
+            return new(false, null, null, preview.Diagnostics.Select(Map).ToArray());
+        var candidate = _placeEntityHandler.Handle(_history.State, new PlaceEntityCommand(
+            command.CommandId,
+            command.BaseRevision,
+            command.AreaId,
+            command.EntityId,
+            command.BlueprintId,
+            command.Transform,
+            dryRun: false,
+            command.Tags,
+            command.Overrides));
+        if (!candidate.Succeeded)
+            return new(false, null, null, candidate.Diagnostics.Select(Map).ToArray());
+
+        var path = $"areas/{command.AreaId}/entities/{command.EntityId}";
+        var entry = new AgentSemanticDiffEntry(
+            AgentReferenceGraphBuilder.StableGuid($"agent-diff|{stored.Request.Plan.TransactionId:D}|{command.EntityId}"),
+            AgentSemanticDiffCategory.Objects,
+            AgentSemanticChangeKind.Added,
+            command.EntityId.Value,
+            path,
+            "transform",
+            string.Empty,
+            FormatTransform(command.Transform),
+            $"added entity '{command.EntityId}' from blueprint '{command.BlueprintId}'");
+        var diff = new AgentSemanticDiff(
+            AgentReferenceGraphBuilder.StableGuid($"agent-diff|{stored.Request.Plan.TransactionId:D}"),
+            AgentSemanticDiff.CurrentSchemaVersion,
+            stored.Request.Plan.TransactionId,
+            stored.BeforeHash,
+            ProjectFingerprint(candidate.State.Project),
+            [entry]);
+        return new(true, null, diff, [], command);
+    }
+
+    private static AgentAreaEntityPlacement? ParseAreaEntityPlacement(
+        AgentSemanticCommand semantic,
+        ICollection<AgentDiagnostic> diagnostics)
+    {
+        var arguments = semantic.Arguments;
+        if (!TryGuid(arguments, "areaId", out var areaId) ||
+            !TryGuid(arguments, "entityId", out var entityId) ||
+            !TryGuid(arguments, "blueprintId", out var blueprintId) ||
+            !TryFloat(arguments, "positionX", out var px) ||
+            !TryFloat(arguments, "positionY", out var py) ||
+            !TryFloat(arguments, "positionZ", out var pz) ||
+            !TryFloat(arguments, "rotationX", out var rx) ||
+            !TryFloat(arguments, "rotationY", out var ry) ||
+            !TryFloat(arguments, "rotationZ", out var rz) ||
+            !TryFloat(arguments, "rotationW", out var rw) ||
+            !TryFloat(arguments, "scaleX", out var sx) ||
+            !TryFloat(arguments, "scaleY", out var sy) ||
+            !TryFloat(arguments, "scaleZ", out var sz))
+        {
+            diagnostics.Add(new AgentDiagnostic(
+                "assistant.transaction.placement_arguments_invalid",
+                "area.add_entity requires areaId, entityId, blueprintId and every position, quaternion and scale component.",
+                $"plan/commands/{semantic.Id:D}/arguments"));
+            return null;
+        }
+
+        try
+        {
+            var tags = arguments.GetValueOrDefault("tags", string.Empty)
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Distinct(StringComparer.Ordinal)
+                .Order(StringComparer.Ordinal)
+                .ToArray();
+            var overrides = arguments
+                .Where(item => item.Key.StartsWith("override.", StringComparison.Ordinal))
+                .Select(item => new EntityPropertyOverride(
+                    item.Key["override.".Length..], EntityPropertyValueKind.String, item.Value))
+                .ToArray();
+            return new AgentAreaEntityPlacement(
+                AgentAreaEntityPlacement.CurrentSchemaVersion,
+                areaId,
+                entityId,
+                blueprintId,
+                new TransformValue(
+                    new Vector3Value(px, py, pz),
+                    new QuaternionValue(rx, ry, rz, rw),
+                    new Vector3Value(sx, sy, sz)),
+                tags,
+                new EntityPropertyOverrides(EntityPropertyOverrides.CurrentSchemaVersion, overrides));
+        }
+        catch (ArgumentException exception)
+        {
+            diagnostics.Add(new AgentDiagnostic(
+                "assistant.transaction.placement_arguments_invalid",
+                exception.Message,
+                $"plan/commands/{semantic.Id:D}/arguments"));
+            return null;
+        }
+    }
+
+    private static bool TryGuid(IReadOnlyDictionary<string, string> arguments, string key, out Guid value)
+    {
+        value = Guid.Empty;
+        return arguments.TryGetValue(key, out var raw) && Guid.TryParse(raw, out value) && value != Guid.Empty;
+    }
+
+    private static bool TryFloat(IReadOnlyDictionary<string, string> arguments, string key, out float value)
+    {
+        value = 0;
+        return arguments.TryGetValue(key, out var raw) &&
+               float.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out value) &&
+               float.IsFinite(value);
+    }
+
+    private static string FormatTransform(TransformValue transform) =>
+        string.Create(CultureInfo.InvariantCulture,
+            $"position=({transform.Position.X:G9},{transform.Position.Y:G9},{transform.Position.Z:G9});" +
+            $"rotation=({transform.Rotation.X:G9},{transform.Rotation.Y:G9},{transform.Rotation.Z:G9},{transform.Rotation.W:G9});" +
+            $"scale=({transform.Scale.X:G9},{transform.Scale.Y:G9},{transform.Scale.Z:G9})");
+
     private AgentTransactionPreparation PrepareProjectVariableBatch(StoredAgentChangeTransaction stored)
     {
         var plan = stored.Request.Plan;
@@ -2603,6 +3209,12 @@ public sealed class ForgeProjectAgentService
 
     private static string AgentCommandDocumentPath(AgentSemanticCommand command)
     {
+        if (string.Equals(command.ToolName, "area.add_entity", StringComparison.Ordinal))
+        {
+            var entityId = command.AreaEntityPlacement?.EntityId.ToString("D") ??
+                           command.Arguments.GetValueOrDefault("entityId", command.Id.ToString("D"));
+            return $"areas/{command.TargetObjectId:D}/entities/{entityId}";
+        }
         if (string.Equals(command.ToolName, "project.set_variable", StringComparison.Ordinal) &&
             command.Arguments.TryGetValue("key", out var key))
             return $"module/variables/{key.Trim()}";
@@ -3299,9 +3911,40 @@ public sealed class ForgeProjectAgentService
         ArgumentNullException.ThrowIfNull(request);
         lock (_gate)
         {
+            if (request.SchemaVersion == 2)
+            {
+                if (request.MetadataPatch is null && request.Foundation is null)
+                    return ProjectFoundationFailure(request.BaseRevision,
+                        "project_foundation_plan.patch_required",
+                        "Schema 2 requires a typed metadata patch or foundation.");
+                var patchCommand = new PatchModuleMetadataCommand(CommandId.From(Guid.NewGuid()),
+                    new ProjectRevision(request.BaseRevision), request.MetadataPatch, request.Foundation, true);
+                var patchPreview = _moduleMetadataPatchHandler.Handle(_history.State, patchCommand);
+                if (!patchPreview.Succeeded)
+                    return new(false, null, request.BaseRevision, patchPreview.Patch, patchPreview.Inverse,
+                        patchPreview.Diagnostics.Select(Map).ToArray(), false, false, []);
+                var projection = _moduleMetadataPatchHandler.Handle(_history.State,
+                    patchCommand with { DryRun = false });
+                if (!projection.Succeeded)
+                    return new(false, null, request.BaseRevision, projection.Patch, projection.Inverse,
+                        projection.Diagnostics.Select(Map).ToArray(), false, false, []);
+                var patchPlanId = Guid.NewGuid().ToString("D");
+                var changedPaths = (request.MetadataPatch?.RelativePaths ?? []).ToList();
+                if (request.Foundation is not null) changedPaths.Add("module/metadata/foundation");
+                var review = ModuleMetadataLocalizationReviewBuilder.Build(projection.State.Project);
+                var patchPlan = new StoredProjectMetadataPatchPlan(patchPlanId, patchCommand,
+                    patchPreview.Patch!, patchPreview.Inverse!, changedPaths, review,
+                    [new ProjectFoundationAuditEntry(patchPlanId, "planned", request.BaseRevision,
+                        _clock.UtcNow, true)]);
+                _projectMetadataPatchPlans.Add(patchPlanId, patchPlan);
+                return ToResult(patchPlan);
+            }
             if (request.SchemaVersion != 1)
                 return ProjectFoundationFailure(request.BaseRevision, "project_foundation_plan.schema_unsupported",
-                    "Project foundation plan schema must be 1.");
+                    "Project foundation plan schema must be 1 or 2.");
+            if (request.Foundation is null)
+                return ProjectFoundationFailure(request.BaseRevision, "project_foundation_plan.foundation_required",
+                    "Schema 1 requires a complete project foundation.");
             var command = new SetProjectFoundationCommand(CommandId.From(Guid.NewGuid()),
                 new ProjectRevision(request.BaseRevision), request.Foundation, true);
             var preview = _projectFoundationHandler.Handle(_history.State, command);
@@ -3321,6 +3964,8 @@ public sealed class ForgeProjectAgentService
         ArgumentException.ThrowIfNullOrWhiteSpace(planId);
         lock (_gate)
         {
+            if (_projectMetadataPatchPlans.TryGetValue(planId, out var patchPlan))
+                return ApplyProjectMetadataPatchPlan(patchPlan);
             if (!_projectFoundationPlans.TryGetValue(planId, out var plan))
                 return ProjectFoundationFailure(GetCurrentRevision(), "project_foundation_plan.missing",
                     $"Project foundation plan '{planId}' does not exist.");
@@ -3356,6 +4001,8 @@ public sealed class ForgeProjectAgentService
         ArgumentException.ThrowIfNullOrWhiteSpace(planId);
         lock (_gate)
         {
+            if (_projectMetadataPatchPlans.TryGetValue(planId, out var patchPlan))
+                return RevertProjectMetadataPatchPlan(patchPlan);
             if (!_projectFoundationPlans.TryGetValue(planId, out var plan) || !plan.Applied || plan.Reverted)
                 return ProjectFoundationFailure(GetCurrentRevision(), "project_foundation_plan.not_applied",
                     $"Project foundation plan '{planId}' is not currently applied.");
@@ -3378,6 +4025,63 @@ public sealed class ForgeProjectAgentService
             plan.Audit.Add(new(planId, "revert", undone.State.Revision.Value, _clock.UtcNow, true));
             return ToResult(plan);
         }
+    }
+
+    private ProjectFoundationPlanResult ApplyProjectMetadataPatchPlan(StoredProjectMetadataPatchPlan plan)
+    {
+        if (plan.Applied)
+            return ProjectFoundationFailure(plan.Command.BaseRevision.Value,
+                "project_foundation_plan.already_applied",
+                $"Project foundation plan '{plan.PlanId}' is already applied.");
+        var result = _moduleMetadataPatchHandler.Handle(_history.State,
+            plan.Command with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false });
+        if (!result.Succeeded)
+        {
+            plan.Audit.Add(new(plan.PlanId, "apply", _history.State.Revision.Value, _clock.UtcNow, false));
+            return ToResult(plan) with
+            {
+                Succeeded = false,
+                Diagnostics = result.Diagnostics.Select(Map).ToArray(),
+            };
+        }
+        var saved = _session.Save(result.State.Project);
+        if (!saved.Succeeded)
+            return ToResult(plan) with
+            {
+                Succeeded = false,
+                Diagnostics = saved.Diagnostics.Select(item =>
+                    new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray(),
+            };
+        _history.Record(result);
+        plan.Applied = true;
+        plan.AppliedRevision = result.NewRevision!.Value.Value;
+        plan.Audit.Add(new(plan.PlanId, "apply", plan.AppliedRevision.Value, _clock.UtcNow, true));
+        return ToResult(plan);
+    }
+
+    private ProjectFoundationPlanResult RevertProjectMetadataPatchPlan(StoredProjectMetadataPatchPlan plan)
+    {
+        if (!plan.Applied || plan.Reverted)
+            return ProjectFoundationFailure(GetCurrentRevision(), "project_foundation_plan.not_applied",
+                $"Project foundation plan '{plan.PlanId}' is not currently applied.");
+        if (plan.AppliedRevision != _history.State.Revision.Value)
+            return ProjectFoundationFailure(plan.Command.BaseRevision.Value,
+                "project_foundation_plan.revision_conflict",
+                "Only the most recently applied plan can be reverted without overwriting later work.");
+        var undone = _history.Undo();
+        if (!undone.Succeeded)
+            return ProjectFoundationFailure(plan.Command.BaseRevision.Value,
+                "project_foundation_plan.inverse_unavailable", "The inverse operation is unavailable.");
+        var saved = _session.Save(undone.State.Project);
+        if (!saved.Succeeded)
+        {
+            _history.Redo();
+            return ProjectFoundationFailure(plan.Command.BaseRevision.Value,
+                "project_foundation_plan.save_failed", "The reverted project could not be saved.");
+        }
+        plan.Reverted = true;
+        plan.Audit.Add(new(plan.PlanId, "revert", undone.State.Revision.Value, _clock.UtcNow, true));
+        return ToResult(plan);
     }
 
     public EntityScaleResource GetEntityScales(string? areaId = null, IReadOnlyList<string>? entityIds = null)
@@ -3615,6 +4319,115 @@ public sealed class ForgeProjectAgentService
         }
     }
 
+    public AreaBiomeResource GetAreaBiomes(string areaId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(areaId);
+        lock (_gate)
+        {
+            if (!Guid.TryParse(areaId, out var parsed))
+                return new(2, GetCurrentRevision(), areaId, null, [],
+                    [new("area_biomes.area_id_invalid", "Area ID must be a UUID.", "request/areaId")]);
+            var area = _history.State.Project.Areas.SingleOrDefault(item => item.Id.Value == parsed);
+            return area is null
+                ? new(2, GetCurrentRevision(), areaId, null, [],
+                    [new("area_biomes.area_missing", $"Area '{areaId}' does not exist.", $"areas/{areaId}")])
+                : new(2, GetCurrentRevision(), areaId, area.DisplayName,
+                    area.World.Biomes.Select(item =>
+                        new AreaBiomeLayerResource(item, BiomeScatterAuthoring.Read(item))).ToArray(), []);
+        }
+    }
+
+    public AreaBiomePlanResult PlanAreaBiomes(AreaBiomePlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 2)
+                return AreaBiomeFailure(request.BaseRevision, "area_biomes_plan.schema_unsupported",
+                    "Area biome plan schema must be 2.");
+            if (!Guid.TryParse(request.AreaId, out var areaValue))
+                return AreaBiomeFailure(request.BaseRevision, "area_biomes_plan.area_id_invalid",
+                    "Area ID must be a UUID.");
+            var command = new PatchAreaBiomesCommand(CommandId.From(Guid.NewGuid()),
+                new ProjectRevision(request.BaseRevision), AreaId.From(areaValue), request.Patches, true);
+            var preview = _areaBiomeHandler.Handle(_history.State, command);
+            if (!preview.Succeeded)
+                return new(false, null, request.BaseRevision, preview.Patch, preview.Inverse,
+                    preview.Diagnostics.Select(Map).ToArray(), false, false, []);
+            var planId = Guid.NewGuid().ToString("D");
+            var plan = new StoredAreaBiomePlan(planId, command, preview.Patch!, preview.Inverse!,
+                [new AreaBiomeAuditEntry(planId, "planned", request.BaseRevision, _clock.UtcNow, true)]);
+            _areaBiomePlans.Add(planId, plan);
+            return ToResult(plan);
+        }
+    }
+
+    public AreaBiomePlanResult ApplyAreaBiomePlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_areaBiomePlans.TryGetValue(planId, out var plan))
+                return AreaBiomeFailure(GetCurrentRevision(), "area_biomes_plan.missing",
+                    $"Area biome plan '{planId}' does not exist.");
+            if (plan.Applied)
+                return AreaBiomeFailure(plan.Command.BaseRevision.Value, "area_biomes_plan.already_applied",
+                    $"Area biome plan '{planId}' is already applied.");
+            var result = _areaBiomeHandler.Handle(_history.State,
+                plan.Command with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false });
+            if (!result.Succeeded)
+            {
+                plan.Audit.Add(new(planId, "apply", _history.State.Revision.Value, _clock.UtcNow, false));
+                return ToResult(plan) with
+                {
+                    Succeeded = false,
+                    Diagnostics = result.Diagnostics.Select(Map).ToArray(),
+                };
+            }
+            var saved = _session.Save(result.State.Project);
+            if (!saved.Succeeded)
+                return ToResult(plan) with
+                {
+                    Succeeded = false,
+                    Diagnostics = saved.Diagnostics.Select(item =>
+                        new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray(),
+                };
+            _history.Record(result);
+            plan.Applied = true;
+            plan.AppliedRevision = result.NewRevision!.Value.Value;
+            plan.Audit.Add(new(planId, "apply", plan.AppliedRevision.Value, _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
+    public AreaBiomePlanResult RevertAreaBiomePlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_areaBiomePlans.TryGetValue(planId, out var plan) || !plan.Applied || plan.Reverted)
+                return AreaBiomeFailure(GetCurrentRevision(), "area_biomes_plan.not_applied",
+                    $"Area biome plan '{planId}' is not currently applied.");
+            if (plan.AppliedRevision != _history.State.Revision.Value)
+                return AreaBiomeFailure(plan.Command.BaseRevision.Value, "area_biomes_plan.revision_conflict",
+                    "Only the most recently applied plan can be reverted without overwriting later work.");
+            var undone = _history.Undo();
+            if (!undone.Succeeded)
+                return AreaBiomeFailure(plan.Command.BaseRevision.Value, "area_biomes_plan.inverse_unavailable",
+                    "The inverse operation is unavailable.");
+            var saved = _session.Save(undone.State.Project);
+            if (!saved.Succeeded)
+            {
+                _history.Redo();
+                return AreaBiomeFailure(plan.Command.BaseRevision.Value, "area_biomes_plan.save_failed",
+                    "The reverted project could not be saved.");
+            }
+            plan.Reverted = true;
+            plan.Audit.Add(new(planId, "revert", undone.State.Revision.Value, _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
     public AreaEnvironmentResource GetAreaEnvironment(string areaId)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(areaId);
@@ -3638,9 +4451,35 @@ public sealed class ForgeProjectAgentService
         ArgumentNullException.ThrowIfNull(request);
         lock (_gate)
         {
+            if (request.SchemaVersion == 2)
+            {
+                if (request.Patch is null)
+                    return AreaEnvironmentFailure(request.BaseRevision, "area_environment_plan.patch_required",
+                        "Schema 2 requires a typed partial environment patch.");
+                if (!Guid.TryParse(request.AreaId, out var patchAreaValue))
+                    return AreaEnvironmentFailure(request.BaseRevision, "area_environment_plan.area_id_invalid",
+                        "Area ID must be a UUID.");
+                var patchCommand = new PatchAreaEnvironmentCommand(CommandId.From(Guid.NewGuid()),
+                    new ProjectRevision(request.BaseRevision), AreaId.From(patchAreaValue), request.Patch, true);
+                var patchPreview = _areaEnvironmentPatchHandler.Handle(_history.State, patchCommand);
+                if (!patchPreview.Succeeded)
+                    return new(false, null, request.BaseRevision, patchPreview.Patch, patchPreview.Inverse,
+                        patchPreview.Diagnostics.Select(Map).ToArray(), false, false, []);
+                var patchPlanId = Guid.NewGuid().ToString("D");
+                var changedPaths = request.Patch.RelativePaths
+                    .Select(path => $"areas/{request.AreaId}/{path}").ToArray();
+                var patchPlan = new StoredAreaEnvironmentPatchPlan(patchPlanId, patchCommand,
+                    patchPreview.Patch!, patchPreview.Inverse!, changedPaths,
+                    [new AreaEnvironmentAuditEntry(patchPlanId, "planned", request.BaseRevision, _clock.UtcNow, true)]);
+                _areaEnvironmentPatchPlans.Add(patchPlanId, patchPlan);
+                return ToResult(patchPlan);
+            }
             if (request.SchemaVersion != 1)
                 return AreaEnvironmentFailure(request.BaseRevision, "area_environment_plan.schema_unsupported",
-                    "Area environment plan schema must be 1.");
+                    "Area environment plan schema must be 1 or 2.");
+            if (request.Environment is null)
+                return AreaEnvironmentFailure(request.BaseRevision, "area_environment_plan.environment_required",
+                    "Schema 1 requires a complete environment profile.");
             if (!Guid.TryParse(request.AreaId, out var areaValue))
                 return AreaEnvironmentFailure(request.BaseRevision, "area_environment_plan.area_id_invalid",
                     "Area ID must be a UUID.");
@@ -3663,6 +4502,8 @@ public sealed class ForgeProjectAgentService
         ArgumentException.ThrowIfNullOrWhiteSpace(planId);
         lock (_gate)
         {
+            if (_areaEnvironmentPatchPlans.TryGetValue(planId, out var patchPlan))
+                return ApplyAreaEnvironmentPatchPlan(patchPlan);
             if (!_areaEnvironmentPlans.TryGetValue(planId, out var plan))
                 return AreaEnvironmentFailure(GetCurrentRevision(), "area_environment_plan.missing",
                     $"Area environment plan '{planId}' does not exist.");
@@ -3702,6 +4543,8 @@ public sealed class ForgeProjectAgentService
         ArgumentException.ThrowIfNullOrWhiteSpace(planId);
         lock (_gate)
         {
+            if (_areaEnvironmentPatchPlans.TryGetValue(planId, out var patchPlan))
+                return RevertAreaEnvironmentPatchPlan(patchPlan);
             if (!_areaEnvironmentPlans.TryGetValue(planId, out var plan) || !plan.Applied || plan.Reverted)
                 return AreaEnvironmentFailure(GetCurrentRevision(), "area_environment_plan.not_applied",
                     $"Area environment plan '{planId}' is not currently applied.");
@@ -3724,6 +4567,63 @@ public sealed class ForgeProjectAgentService
             plan.Audit.Add(new(planId, "revert", undone.State.Revision.Value, _clock.UtcNow, true));
             return ToResult(plan);
         }
+    }
+
+    private AreaEnvironmentPlanResult ApplyAreaEnvironmentPatchPlan(StoredAreaEnvironmentPatchPlan plan)
+    {
+        if (plan.Applied)
+            return AreaEnvironmentFailure(plan.Command.BaseRevision.Value,
+                "area_environment_plan.already_applied",
+                $"Area environment plan '{plan.PlanId}' is already applied.");
+        var result = _areaEnvironmentPatchHandler.Handle(_history.State,
+            plan.Command with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false });
+        if (!result.Succeeded)
+        {
+            plan.Audit.Add(new(plan.PlanId, "apply", _history.State.Revision.Value, _clock.UtcNow, false));
+            return ToResult(plan) with
+            {
+                Succeeded = false,
+                Diagnostics = result.Diagnostics.Select(Map).ToArray(),
+            };
+        }
+        var saved = _session.Save(result.State.Project);
+        if (!saved.Succeeded)
+            return ToResult(plan) with
+            {
+                Succeeded = false,
+                Diagnostics = saved.Diagnostics.Select(item =>
+                    new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray(),
+            };
+        _history.Record(result);
+        plan.Applied = true;
+        plan.AppliedRevision = result.NewRevision!.Value.Value;
+        plan.Audit.Add(new(plan.PlanId, "apply", plan.AppliedRevision.Value, _clock.UtcNow, true));
+        return ToResult(plan);
+    }
+
+    private AreaEnvironmentPlanResult RevertAreaEnvironmentPatchPlan(StoredAreaEnvironmentPatchPlan plan)
+    {
+        if (!plan.Applied || plan.Reverted)
+            return AreaEnvironmentFailure(GetCurrentRevision(), "area_environment_plan.not_applied",
+                $"Area environment plan '{plan.PlanId}' is not currently applied.");
+        if (plan.AppliedRevision != _history.State.Revision.Value)
+            return AreaEnvironmentFailure(plan.Command.BaseRevision.Value,
+                "area_environment_plan.revision_conflict",
+                "Only the most recently applied plan can be reverted without overwriting later work.");
+        var undone = _history.Undo();
+        if (!undone.Succeeded)
+            return AreaEnvironmentFailure(plan.Command.BaseRevision.Value,
+                "area_environment_plan.inverse_unavailable", "The inverse operation is unavailable.");
+        var saved = _session.Save(undone.State.Project);
+        if (!saved.Succeeded)
+        {
+            _history.Redo();
+            return AreaEnvironmentFailure(plan.Command.BaseRevision.Value,
+                "area_environment_plan.save_failed", "The reverted project could not be saved.");
+        }
+        plan.Reverted = true;
+        plan.Audit.Add(new(plan.PlanId, "revert", undone.State.Revision.Value, _clock.UtcNow, true));
+        return ToResult(plan);
     }
 
     public AreaExperienceAuthoringResource GetAreaExperienceAuthoring(string areaId)
@@ -4207,10 +5107,25 @@ public sealed class ForgeProjectAgentService
         plan.Command.BaseRevision.Value, plan.Diff, plan.Inverse, [], plan.Applied, plan.Reverted,
         plan.Audit.ToArray());
 
+    private static ProjectFoundationPlanResult ToResult(StoredProjectMetadataPatchPlan plan) =>
+        new ProjectFoundationPlanResult(true, plan.PlanId, plan.Command.BaseRevision.Value, plan.Diff,
+            plan.Inverse, [], plan.Applied, plan.Reverted, plan.Audit.ToArray())
+        {
+            ChangedPaths = plan.ChangedPaths,
+            LocalizationReview = plan.LocalizationReview,
+        };
+
     private static AreaFoundationPlanResult AreaFoundationFailure(long revision, string code, string message) =>
         new(false, null, revision, null, null, [new AgentDiagnostic(code, message)], false, false, []);
 
     private static AreaFoundationPlanResult ToResult(StoredAreaFoundationPlan plan) => new(true, plan.PlanId,
+        plan.Command.BaseRevision.Value, plan.Diff, plan.Inverse, [], plan.Applied, plan.Reverted,
+        plan.Audit.ToArray());
+
+    private static AreaBiomePlanResult AreaBiomeFailure(long revision, string code, string message) =>
+        new(false, null, revision, null, null, [new AgentDiagnostic(code, message)], false, false, []);
+
+    private static AreaBiomePlanResult ToResult(StoredAreaBiomePlan plan) => new(true, plan.PlanId,
         plan.Command.BaseRevision.Value, plan.Diff, plan.Inverse, [], plan.Applied, plan.Reverted,
         plan.Audit.ToArray());
 
@@ -4220,6 +5135,13 @@ public sealed class ForgeProjectAgentService
     private static AreaEnvironmentPlanResult ToResult(StoredAreaEnvironmentPlan plan) => new(true, plan.PlanId,
         plan.Command.BaseRevision.Value, plan.Diff, plan.Inverse, [], plan.Applied, plan.Reverted,
         plan.Audit.ToArray());
+
+    private static AreaEnvironmentPlanResult ToResult(StoredAreaEnvironmentPatchPlan plan) =>
+        new AreaEnvironmentPlanResult(true, plan.PlanId, plan.Command.BaseRevision.Value, plan.Diff, plan.Inverse,
+            [], plan.Applied, plan.Reverted, plan.Audit.ToArray())
+        {
+            ChangedPaths = plan.ChangedPaths,
+        };
 
     private static AreaExperienceAuthoringPlanResult AreaExperienceAuthoringFailure(
         long revision, string code, string message) =>
@@ -4869,6 +5791,7 @@ public sealed class ForgeProjectAgentService
             _history.Record(result);
             plan.Applied = true;
             plan.AppliedRevision = result.NewRevision!.Value.Value;
+            plan.AppliedCommandId = result.Audit.CommandId.Value;
             plan.Audit.Add(new AudioEmitterAuditEntry(planId, "apply", plan.AppliedRevision.Value, _clock.UtcNow, true));
             return ToResult(plan);
         }
@@ -4882,7 +5805,7 @@ public sealed class ForgeProjectAgentService
             if (!_audioEmitterPlans.TryGetValue(planId, out var plan) || !plan.Applied || plan.Reverted)
                 return AudioEmitterFailure(GetCurrentRevision(), "audio_emitter_plan.not_applied",
                     $"Audio emitter plan '{planId}' is not currently applied.");
-            if (plan.AppliedRevision != _history.State.Revision.Value)
+            if (_history.Journal.LastOrDefault(entry => entry.IsApplied)?.Id != plan.AppliedCommandId)
                 return AudioEmitterFailure(plan.Command.BaseRevision.Value, "audio_emitter_plan.revision_conflict",
                     "Only the most recently applied plan can be reverted without overwriting later work.");
             var undone = _history.Undo();
@@ -5555,1234 +6478,6 @@ public sealed class ForgeProjectAgentService
     private static EditorProductivityPlanResult EditorProductivityFailure(long revision, string code, string message) =>
         new(false, null, revision, null, null, null, [new(code, message, "editorProductivityPlan")], false, false, []);
 
-    public AgentAssetCatalogResult GetAssets(AgentAssetCatalogQuery? query = null)
-    {
-        query ??= new AgentAssetCatalogQuery();
-        lock (_gate)
-        {
-            var repositoryRoot = AssetCatalogLoader.FindRepositoryRoot(_session.RootDirectory) ??
-                AssetCatalogLoader.FindRepositoryRoot(AppContext.BaseDirectory);
-            if (repositoryRoot is null)
-            {
-                return new AgentAssetCatalogResult(
-                    1,
-                    0,
-                    0,
-                    [],
-                    [],
-                    [],
-                    [new AgentDiagnostic(
-                        AssetCatalogLoader.CatalogMissingCode,
-                        "The OpenRPG Forge Asset Vault catalogs could not be located.",
-                        "asset_manifests/catalogs")]);
-            }
-
-            var load = AssetCatalogLoader.Load(repositoryRoot);
-            if (load.Catalog is null)
-            {
-                return new AgentAssetCatalogResult(
-                    1,
-                    0,
-                    0,
-                    [],
-                    [],
-                    [],
-                    load.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
-            }
-
-            var browser = new AssetCatalogBrowser(load.Catalog);
-            var items = browser.Search(new AssetCatalogQuery(
-                query.Text,
-                query.Source,
-                query.Category,
-                query.LicenseSpdx,
-                ParseAssetAvailability(query.Availability),
-                query.MaximumResults,
-                query.Installed,
-                query.Tag,
-                query.MaximumWidth,
-                query.MaximumHeight,
-                query.MaximumDepth,
-                query.Style,
-                query.Skeleton,
-                query.Material,
-                query.MaximumTriangleCount,
-                query.Author,
-                query.Compatibility,
-                query.Variant));
-            return new AgentAssetCatalogResult(
-                load.Catalog.SchemaVersion,
-                load.Catalog.Items.Count,
-                load.Catalog.Items.Count(item => item.Availability != AssetAvailability.CatalogOnly),
-                browser.Sources,
-                browser.Categories,
-                items.Select(item => new AgentAssetCatalogItem(
-                    item.Id.ToString(),
-                    item.SchemaVersion,
-                    item.ExternalId,
-                    item.DisplayName,
-                    item.Source,
-                    item.SourceAssetId,
-                    item.SourcePage,
-                    item.LicenseSpdx,
-                    item.LicenseVerified,
-                    item.ContentSha256,
-                    item.TotalBytes,
-                    item.Categories,
-                    item.Tags,
-                    item.CatalogStatus,
-                    item.Availability.ToString(),
-                    item.RelativeModelPath,
-                    item.RelativePreviewPath,
-                    item.ThumbnailUrl,
-                    item.CanPlanImport,
-                    item.Provenance,
-                    item.Author,
-                    item.AttributionRequired,
-                    item.AttributionText,
-                    item.Installed,
-                    item.InstalledPackIds,
-                    new AgentAssetTechnicalMetadata(
-                        item.TechnicalMetadata.Dimensions?.Width,
-                        item.TechnicalMetadata.Dimensions?.Height,
-                        item.TechnicalMetadata.Dimensions?.Depth,
-                        item.TechnicalMetadata.Style,
-                        item.TechnicalMetadata.Skeleton,
-                        item.TechnicalMetadata.Materials,
-                        item.TechnicalMetadata.TriangleCount,
-                        item.TechnicalMetadata.Variants,
-                        item.TechnicalMetadata.Animations,
-                        item.TechnicalMetadata.Compatibility))).ToArray(),
-                load.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
-        }
-    }
-
-    public AgentAssetInstallPlanResult PlanAssetInstall(AgentAssetInstallPlanRequest request)
-    {
-        ArgumentNullException.ThrowIfNull(request);
-        lock (_gate)
-        {
-            if (request.SchemaVersion != 1)
-                return AssetInstallFailure(request.BaseRevision, request.AssetId,
-                    "asset_install_plan.schema_unsupported", "Asset install plan schema must be 1.");
-
-            AssetCatalogItemId assetId;
-            try
-            {
-                assetId = AssetCatalogItemId.Parse(request.AssetId);
-            }
-            catch (Exception exception) when (exception is ArgumentException or FormatException)
-            {
-                return AssetInstallFailure(request.BaseRevision, request.AssetId,
-                    "asset_install_plan.asset_invalid", exception.Message);
-            }
-
-            var repositoryRoot = AssetCatalogLoader.FindRepositoryRoot(_session.RootDirectory) ??
-                AssetCatalogLoader.FindRepositoryRoot(AppContext.BaseDirectory);
-            if (repositoryRoot is null)
-                return AssetInstallFailure(request.BaseRevision, request.AssetId,
-                    AssetCatalogLoader.CatalogMissingCode,
-                    "The OpenRPG Forge Asset Vault catalogs could not be located.");
-            var catalogLoad = AssetCatalogLoader.Load(repositoryRoot);
-            if (catalogLoad.Catalog is null)
-            {
-                var diagnostic = catalogLoad.Diagnostics.FirstOrDefault();
-                return AssetInstallFailure(request.BaseRevision, request.AssetId,
-                    diagnostic?.Code ?? AssetCatalogLoader.CatalogInvalidCode,
-                    diagnostic?.Message ?? "The Asset Vault catalog is invalid.");
-            }
-
-            var item = catalogLoad.Catalog.Items.SingleOrDefault(candidate => candidate.Id == assetId);
-            if (item is null)
-                return AssetInstallFailure(request.BaseRevision, request.AssetId,
-                    "asset_install_plan.asset_missing", $"Catalog asset '{request.AssetId}' does not exist.");
-            var manifestLoad = AssetPackageManifestStore.Load(_session.RootDirectory);
-            if (!manifestLoad.Succeeded)
-            {
-                var diagnostic = manifestLoad.Diagnostics[0];
-                return AssetInstallFailure(request.BaseRevision, request.AssetId,
-                    diagnostic.Code, diagnostic.Message);
-            }
-
-            var manifest = manifestLoad.Manifests.SingleOrDefault(candidate => candidate.AssetId == assetId);
-            if (manifest is null)
-                return AssetInstallFailure(request.BaseRevision, request.AssetId,
-                    "asset_install_plan.manifest_missing",
-                    $"Catalog asset '{item.ExternalId}' has no governed package manifest in this workspace.");
-            var command = new InstallAssetBlueprintCommand(
-                CommandId.From(Guid.NewGuid()),
-                new ProjectRevision(request.BaseRevision),
-                item,
-                manifest,
-                DryRun: true);
-            var preview = _assetInstallHandler.Handle(_history.State, command);
-            if (!preview.Succeeded)
-                return new AgentAssetInstallPlanResult(
-                    false, null, request.BaseRevision, item.Id.ToString(), item.LicenseSpdx,
-                    preview.Patch, preview.Inverse, preview.Diagnostics.Select(Map).ToArray(), false, false, []);
-
-            var artifact = GovernedAssetModelVerifier.Verify(_session.RootDirectory, manifest);
-            if (!artifact.Succeeded)
-                return AssetInstallFailure(request.BaseRevision, item.Id.ToString(),
-                    artifact.DiagnosticCode!, artifact.DiagnosticMessage!);
-
-            var planId = Guid.NewGuid().ToString("D");
-            var plan = new StoredAssetInstallPlan(
-                planId,
-                command,
-                preview.Patch!,
-                preview.Inverse!,
-                [AssetInstallAudit(planId, "planned", request.BaseRevision, true, item)]);
-            _assetInstallPlans.Add(planId, plan);
-            return ToResult(plan);
-        }
-    }
-
-    public AgentAssetInstallPlanResult ApplyAssetInstallPlan(string planId)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
-        lock (_gate)
-        {
-            if (!_assetInstallPlans.TryGetValue(planId, out var plan))
-                return AssetInstallFailure(_history.State.Revision.Value, null,
-                    "asset_install_plan.missing", $"Asset install plan '{planId}' does not exist.");
-            if (plan.Applied)
-                return AssetInstallFailure(plan.Command.BaseRevision.Value, plan.Command.Item.Id.ToString(),
-                    "asset_install_plan.already_applied", $"Asset install plan '{planId}' is already applied.");
-
-            var command = plan.Command with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false };
-            var result = _assetInstallHandler.Handle(_history.State, command);
-            if (!result.Succeeded)
-            {
-                plan.Audit.Add(AssetInstallAudit(planId, "apply", _history.State.Revision.Value, false,
-                    plan.Command.Item));
-                return ToResult(plan) with
-                {
-                    Succeeded = false,
-                    Diagnostics = result.Diagnostics.Select(Map).ToArray(),
-                };
-            }
-
-            var saved = _session.Save(result.State.Project);
-            if (!saved.Succeeded)
-            {
-                plan.Audit.Add(AssetInstallAudit(planId, "apply", _history.State.Revision.Value, false,
-                    plan.Command.Item));
-                return ToResult(plan) with
-                {
-                    Succeeded = false,
-                    Diagnostics = saved.Diagnostics.Select(item =>
-                        new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray(),
-                };
-            }
-
-            _history.Record(result);
-            plan.Applied = true;
-            plan.AppliedRevision = result.NewRevision!.Value.Value;
-            plan.Audit.Add(AssetInstallAudit(planId, "apply", plan.AppliedRevision.Value, true,
-                plan.Command.Item));
-            return ToResult(plan);
-        }
-    }
-
-    public AgentAssetInstallPlanResult RevertAssetInstallPlan(string planId)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
-        lock (_gate)
-        {
-            if (!_assetInstallPlans.TryGetValue(planId, out var plan) || !plan.Applied || plan.Reverted)
-                return AssetInstallFailure(_history.State.Revision.Value, null,
-                    "asset_install_plan.not_applied", $"Asset install plan '{planId}' is not currently applied.");
-            if (plan.AppliedRevision != _history.State.Revision.Value)
-                return AssetInstallFailure(plan.Command.BaseRevision.Value, plan.Command.Item.Id.ToString(),
-                    "asset_install_plan.revision_conflict",
-                    "Only the most recently applied plan can be reverted without overwriting later work.");
-            var undone = _history.Undo();
-            if (!undone.Succeeded)
-                return AssetInstallFailure(plan.Command.BaseRevision.Value, plan.Command.Item.Id.ToString(),
-                    "asset_install_plan.inverse_unavailable", "The inverse operation is unavailable.");
-            var saved = _session.Save(undone.State.Project);
-            if (!saved.Succeeded)
-            {
-                _history.Redo();
-                return AssetInstallFailure(plan.Command.BaseRevision.Value, plan.Command.Item.Id.ToString(),
-                    "asset_install_plan.save_failed", "The reverted project could not be saved.");
-            }
-
-            plan.Reverted = true;
-            plan.Audit.Add(AssetInstallAudit(planId, "revert", undone.State.Revision.Value, true,
-                plan.Command.Item));
-            return ToResult(plan);
-        }
-    }
-
-    public AssistedDialogueProposalResource ProposeAssistedDialogue(AssistedDialogueProposalRequest request)
-    {
-        ArgumentNullException.ThrowIfNull(request);
-        if (request.SchemaVersion != 1)
-            return new(false, null,
-                [new AgentDiagnostic("assistant.dialogue.request_invalid",
-                    "Assisted dialogue proposal schema is invalid.", "assistant/dialogue")]);
-        var snapshot = CaptureAssistedProposalSnapshot();
-        try
-        {
-            var profile = AssistantWorkspaceProfile.CreateDefault();
-            var proposal = AssistedDialogueCreationService.ProposeAsync(
-                request.Brief,
-                snapshot.Project,
-                snapshot.LoreIndex,
-                new DeterministicAssistantProvider(profile.ActiveProvider),
-                profile.ActiveProvider,
-                networkAuthorized: false,
-                projectContentAuthorized: false).GetAwaiter().GetResult();
-            return new(proposal.Succeeded, proposal,
-                proposal.Lint.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
-        }
-        catch (ArgumentException exception)
-        {
-            return new(false, null,
-                [new AgentDiagnostic("assistant.dialogue.brief_invalid", exception.Message, "assistant/dialogue")]);
-        }
-    }
-
-    public AssistedDialogueApplyPlanResult PlanAssistedDialogue(AssistedDialogueApplyPlanRequest request)
-    {
-        ArgumentNullException.ThrowIfNull(request);
-        lock (_gate)
-        {
-            if (request.SchemaVersion != 1 || request.BaseRevision < 0)
-                return AssistedDialogueFailure(_history.State.Revision.Value,
-                    "assistant.dialogue.request_invalid", "Assisted dialogue request schema or revision is invalid.");
-            var transactionId = Guid.NewGuid();
-            var executionPlanId = Guid.NewGuid();
-            var command = new ApplyAssistedDialogueCommand(
-                CommandId.From(Guid.NewGuid()), transactionId, executionPlanId,
-                new ProjectRevision(request.BaseRevision), request.Proposal, request.Permission, DryRun: true);
-            var preview = _assistedDialogueHandler.Handle(_history.State, command);
-            if (!preview.Succeeded || preview.Command.Patch is null || preview.Command.Inverse is null)
-                return new(false, null, transactionId.ToString("D"), request.Proposal.Dialogue.Id.ToString(),
-                    request.BaseRevision, null, null, "no-change", request.Proposal.Citations,
-                    request.Proposal.LocalizationPlaceholders, request.Proposal.Lint.Select(item => item.Code).ToArray(),
-                    request.Proposal.EstimatedCostUsd, preview.Diagnostics.Select(Map).ToArray(), false, false, []);
-            var key = executionPlanId.ToString("D");
-            var stored = new StoredAssistedDialoguePlan(
-                key,
-                command,
-                preview.Command.Patch,
-                preview.Command.Inverse,
-                [new PlanAuditEntry(key, "planned", request.BaseRevision, _clock.UtcNow, true)]);
-            _assistedDialoguePlans.Add(key, stored);
-            return ToResult(stored);
-        }
-    }
-
-    public AssistedDialogueApplyPlanResult ApplyAssistedDialoguePlan(string planId)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
-        lock (_gate)
-        {
-            if (!_assistedDialoguePlans.TryGetValue(planId, out var plan))
-                return AssistedDialogueFailure(_history.State.Revision.Value,
-                    "assistant.dialogue.plan_missing", $"Assisted dialogue plan '{planId}' does not exist.");
-            if (plan.Applied)
-                return AssistedDialogueFailure(plan.Command.BaseRevision.Value,
-                    "assistant.dialogue.plan_already_applied", $"Assisted dialogue plan '{planId}' is already applied.");
-            var result = _assistedDialogueHandler.Handle(
-                _history.State,
-                plan.Command with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false });
-            if (!result.Succeeded)
-            {
-                plan.Audit.Add(new(plan.PlanId, "apply", _history.State.Revision.Value, _clock.UtcNow, false));
-                return WithFailure(plan, result.Diagnostics.Select(Map).ToArray());
-            }
-            var saved = _session.Save(result.Command.State.Project);
-            if (!saved.Succeeded)
-            {
-                plan.Audit.Add(new(plan.PlanId, "apply", _history.State.Revision.Value, _clock.UtcNow, false));
-                return WithFailure(plan, saved.Diagnostics.Select(item =>
-                    new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
-            }
-            _history.Record(result.Command);
-            plan.Applied = true;
-            plan.AppliedRevision = _history.State.Revision.Value;
-            plan.Audit.Add(new(plan.PlanId, "apply", plan.AppliedRevision.Value, _clock.UtcNow, true));
-            return ToResult(plan);
-        }
-    }
-
-    public AssistedDialogueApplyPlanResult RevertAssistedDialoguePlan(string planId)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
-        lock (_gate)
-        {
-            if (!_assistedDialoguePlans.TryGetValue(planId, out var plan) || !plan.Applied || plan.Reverted)
-                return AssistedDialogueFailure(_history.State.Revision.Value,
-                    "assistant.dialogue.plan_not_applied", $"Assisted dialogue plan '{planId}' is not currently applied.");
-            if (plan.AppliedRevision != _history.State.Revision.Value)
-                return AssistedDialogueFailure(plan.Command.BaseRevision.Value,
-                    "assistant.dialogue.revert_conflict", "Only the latest project mutation can be reverted safely.");
-            var undone = _history.Undo();
-            if (!undone.Succeeded)
-                return AssistedDialogueFailure(plan.Command.BaseRevision.Value,
-                    "assistant.dialogue.inverse_unavailable", "The assisted dialogue inverse is unavailable.");
-            var saved = _session.Save(undone.State.Project);
-            if (!saved.Succeeded)
-            {
-                _history.Redo();
-                return WithFailure(plan, saved.Diagnostics.Select(item =>
-                    new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
-            }
-            plan.Reverted = true;
-            plan.Audit.Add(new(plan.PlanId, "revert", undone.State.Revision.Value, _clock.UtcNow, true));
-            return ToResult(plan);
-        }
-    }
-
-    public AssistedQuestProposalResource ProposeAssistedQuest(AssistedQuestProposalRequest request)
-    {
-        ArgumentNullException.ThrowIfNull(request);
-        if (request.SchemaVersion != 1)
-            return new(false, null,
-                [new AgentDiagnostic("assistant.quest.request_invalid",
-                    "Assisted quest proposal schema is invalid.", "assistant/quest")]);
-        var snapshot = CaptureAssistedProposalSnapshot();
-        try
-        {
-            var profile = AssistantWorkspaceProfile.CreateDefault();
-            var proposal = AssistedQuestCreationService.ProposeAsync(
-                request.Brief,
-                snapshot.Project,
-                snapshot.LoreIndex,
-                new DeterministicAssistantProvider(profile.ActiveProvider),
-                profile.ActiveProvider,
-                networkAuthorized: false,
-                projectContentAuthorized: false).GetAwaiter().GetResult();
-            return new(proposal.Succeeded, proposal,
-                proposal.Lint.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
-        }
-        catch (ArgumentException exception)
-        {
-            return new(false, null,
-                [new AgentDiagnostic("assistant.quest.brief_invalid", exception.Message, "assistant/quest")]);
-        }
-    }
-
-    public AssistedQuestApplyPlanResult PlanAssistedQuest(AssistedQuestApplyPlanRequest request)
-    {
-        ArgumentNullException.ThrowIfNull(request);
-        lock (_gate)
-        {
-            if (request.SchemaVersion != 1 || request.BaseRevision < 0)
-                return AssistedQuestFailure(_history.State.Revision.Value,
-                    "assistant.quest.request_invalid", "Assisted quest request schema or revision is invalid.");
-            var transactionId = Guid.NewGuid();
-            var executionPlanId = Guid.NewGuid();
-            var command = new ApplyAssistedQuestCommand(
-                CommandId.From(Guid.NewGuid()), transactionId, executionPlanId,
-                new ProjectRevision(request.BaseRevision), request.Proposal, request.Permission, DryRun: true);
-            var preview = _assistedQuestHandler.Handle(_history.State, command);
-            if (!preview.Succeeded || preview.Command.Patch is null || preview.Command.Inverse is null)
-                return new(false, null, transactionId.ToString("D"), request.Proposal.Quest.Id.ToString(),
-                    request.BaseRevision, null, null, "no-change", request.Proposal.Citations,
-                    request.Proposal.Lint.Select(item => item.Code).ToArray(),
-                    request.Proposal.TestScenarios.Select(item => item.Kind.ToString()).ToArray(),
-                    request.Proposal.EstimatedCostUsd, preview.Diagnostics.Select(Map).ToArray(), false, false, []);
-            var key = executionPlanId.ToString("D");
-            var stored = new StoredAssistedQuestPlan(
-                key,
-                command,
-                preview.Command.Patch,
-                preview.Command.Inverse,
-                [new PlanAuditEntry(key, "planned", request.BaseRevision, _clock.UtcNow, true)]);
-            _assistedQuestPlans.Add(key, stored);
-            return ToResult(stored);
-        }
-    }
-
-    public AssistedQuestApplyPlanResult ApplyAssistedQuestPlan(string planId)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
-        lock (_gate)
-        {
-            if (!_assistedQuestPlans.TryGetValue(planId, out var plan))
-                return AssistedQuestFailure(_history.State.Revision.Value,
-                    "assistant.quest.plan_missing", $"Assisted quest plan '{planId}' does not exist.");
-            if (plan.Applied)
-                return AssistedQuestFailure(plan.Command.BaseRevision.Value,
-                    "assistant.quest.plan_already_applied", $"Assisted quest plan '{planId}' is already applied.");
-            var result = _assistedQuestHandler.Handle(
-                _history.State,
-                plan.Command with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false });
-            if (!result.Succeeded)
-            {
-                plan.Audit.Add(new(plan.PlanId, "apply", _history.State.Revision.Value, _clock.UtcNow, false));
-                return WithFailure(plan, result.Diagnostics.Select(Map).ToArray());
-            }
-            var saved = _session.Save(result.Command.State.Project);
-            if (!saved.Succeeded)
-            {
-                plan.Audit.Add(new(plan.PlanId, "apply", _history.State.Revision.Value, _clock.UtcNow, false));
-                return WithFailure(plan, saved.Diagnostics.Select(item =>
-                    new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
-            }
-            _history.Record(result.Command);
-            plan.Applied = true;
-            plan.AppliedRevision = _history.State.Revision.Value;
-            plan.Audit.Add(new(plan.PlanId, "apply", plan.AppliedRevision.Value, _clock.UtcNow, true));
-            return ToResult(plan);
-        }
-    }
-
-    public AssistedQuestApplyPlanResult RevertAssistedQuestPlan(string planId)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
-        lock (_gate)
-        {
-            if (!_assistedQuestPlans.TryGetValue(planId, out var plan) || !plan.Applied || plan.Reverted)
-                return AssistedQuestFailure(_history.State.Revision.Value,
-                    "assistant.quest.plan_not_applied", $"Assisted quest plan '{planId}' is not currently applied.");
-            if (plan.AppliedRevision != _history.State.Revision.Value)
-                return AssistedQuestFailure(plan.Command.BaseRevision.Value,
-                    "assistant.quest.revert_conflict", "Only the latest project mutation can be reverted safely.");
-            var undone = _history.Undo();
-            if (!undone.Succeeded)
-                return AssistedQuestFailure(plan.Command.BaseRevision.Value,
-                    "assistant.quest.inverse_unavailable", "The assisted quest inverse is unavailable.");
-            var saved = _session.Save(undone.State.Project);
-            if (!saved.Succeeded)
-            {
-                _history.Redo();
-                return WithFailure(plan, saved.Diagnostics.Select(item =>
-                    new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
-            }
-            plan.Reverted = true;
-            plan.Audit.Add(new(plan.PlanId, "revert", undone.State.Revision.Value, _clock.UtcNow, true));
-            return ToResult(plan);
-        }
-    }
-
-    public AssistedBossProposalResource ProposeAssistedBoss(AssistedBossProposalRequest request)
-    {
-        ArgumentNullException.ThrowIfNull(request);
-        if (request.SchemaVersion != 1)
-            return new(false, null,
-                [new AgentDiagnostic("assistant.boss.request_invalid",
-                    "Assisted boss proposal schema is invalid.", "assistant/boss")]);
-        var snapshot = CaptureAssistedProposalSnapshot();
-        try
-        {
-            var profile = AssistantWorkspaceProfile.CreateDefault();
-            var proposal = AssistedBossCreationService.ProposeAsync(
-                request.Brief,
-                snapshot.Project,
-                snapshot.LoreIndex,
-                AvailableForgeScripts(snapshot.RootDirectory),
-                new DeterministicAssistantProvider(profile.ActiveProvider),
-                profile.ActiveProvider,
-                networkAuthorized: false,
-                projectContentAuthorized: false).GetAwaiter().GetResult();
-            return new(proposal.Succeeded, proposal,
-                proposal.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
-        }
-        catch (ArgumentException exception)
-        {
-            return new(false, null,
-                [new AgentDiagnostic("assistant.boss.brief_invalid", exception.Message, "assistant/boss")]);
-        }
-    }
-
-    public AssistedBossApplyPlanResult PlanAssistedBoss(AssistedBossApplyPlanRequest request)
-    {
-        ArgumentNullException.ThrowIfNull(request);
-        lock (_gate)
-        {
-            if (request.SchemaVersion != 1 || request.BaseRevision < 0)
-                return AssistedBossFailure(_history.State.Revision.Value,
-                    "assistant.boss.request_invalid", "Assisted boss request schema or revision is invalid.");
-            var transactionId = Guid.NewGuid();
-            var executionPlanId = Guid.NewGuid();
-            var command = new ApplyAssistedBossCommand(
-                CommandId.From(Guid.NewGuid()), transactionId, executionPlanId,
-                new ProjectRevision(request.BaseRevision), request.Proposal, request.Permission, DryRun: true);
-            var preview = _assistedBossHandler.Handle(_history.State, command);
-            if (!preview.Succeeded || preview.Command.Patch is null || preview.Command.Inverse is null)
-                return new(false, null, transactionId.ToString("D"), request.Proposal.Boss.Id.ToString("D"),
-                    request.BaseRevision, null, null, "no-change", request.Proposal.Citations,
-                    request.Proposal.Diagnostics.Select(item => item.Code).ToArray(),
-                    request.Proposal.Balance.Runs, request.Proposal.Balance.Passed,
-                    request.Proposal.EstimatedCostUsd, preview.Diagnostics.Select(Map).ToArray(), false, false, []);
-            var key = executionPlanId.ToString("D");
-            var stored = new StoredAssistedBossPlan(key, command, preview.Command.Patch, preview.Command.Inverse,
-                [new PlanAuditEntry(key, "planned", request.BaseRevision, _clock.UtcNow, true)]);
-            _assistedBossPlans.Add(key, stored);
-            return ToResult(stored);
-        }
-    }
-
-    public AssistedBossApplyPlanResult ApplyAssistedBossPlan(string planId)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
-        lock (_gate)
-        {
-            if (!_assistedBossPlans.TryGetValue(planId, out var plan))
-                return AssistedBossFailure(_history.State.Revision.Value,
-                    "assistant.boss.plan_missing", $"Assisted boss plan '{planId}' does not exist.");
-            if (plan.Applied)
-                return AssistedBossFailure(plan.Command.BaseRevision.Value,
-                    "assistant.boss.plan_already_applied", $"Assisted boss plan '{planId}' is already applied.");
-            var result = _assistedBossHandler.Handle(_history.State,
-                plan.Command with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false });
-            if (!result.Succeeded)
-            {
-                plan.Audit.Add(new(plan.PlanId, "apply", _history.State.Revision.Value, _clock.UtcNow, false));
-                return WithFailure(plan, result.Diagnostics.Select(Map).ToArray());
-            }
-            var saved = _session.Save(result.Command.State.Project);
-            if (!saved.Succeeded)
-            {
-                plan.Audit.Add(new(plan.PlanId, "apply", _history.State.Revision.Value, _clock.UtcNow, false));
-                return WithFailure(plan, saved.Diagnostics.Select(item =>
-                    new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
-            }
-            _history.Record(result.Command);
-            plan.Applied = true;
-            plan.AppliedRevision = _history.State.Revision.Value;
-            plan.Audit.Add(new(plan.PlanId, "apply", plan.AppliedRevision.Value, _clock.UtcNow, true));
-            return ToResult(plan);
-        }
-    }
-
-    public AssistedBossApplyPlanResult RevertAssistedBossPlan(string planId)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
-        lock (_gate)
-        {
-            if (!_assistedBossPlans.TryGetValue(planId, out var plan) || !plan.Applied || plan.Reverted)
-                return AssistedBossFailure(_history.State.Revision.Value,
-                    "assistant.boss.plan_not_applied", $"Assisted boss plan '{planId}' is not currently applied.");
-            if (plan.AppliedRevision != _history.State.Revision.Value)
-                return AssistedBossFailure(plan.Command.BaseRevision.Value,
-                    "assistant.boss.revert_conflict", "Only the latest project mutation can be reverted safely.");
-            var undone = _history.Undo();
-            if (!undone.Succeeded)
-                return AssistedBossFailure(plan.Command.BaseRevision.Value,
-                    "assistant.boss.inverse_unavailable", "The assisted boss inverse is unavailable.");
-            var saved = _session.Save(undone.State.Project);
-            if (!saved.Succeeded)
-            {
-                _history.Redo();
-                return WithFailure(plan, saved.Diagnostics.Select(item =>
-                    new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
-            }
-            plan.Reverted = true;
-            plan.Audit.Add(new(plan.PlanId, "revert", undone.State.Revision.Value, _clock.UtcNow, true));
-            return ToResult(plan);
-        }
-    }
-
-    public AssistedAbilityProposalResource ProposeAssistedAbility(AssistedAbilityProposalRequest request)
-    {
-        ArgumentNullException.ThrowIfNull(request);
-        if (request.SchemaVersion != 1)
-            return new(false, null,
-                [new AgentDiagnostic("assistant.ability.request_invalid",
-                    "Assisted ability proposal schema is invalid.", "assistant/ability")]);
-        var snapshot = CaptureAssistedProposalSnapshot();
-        try
-        {
-            var profile = AssistantWorkspaceProfile.CreateDefault();
-            var proposal = AssistedAbilityCreationService.ProposeAsync(
-                request.Brief,
-                snapshot.Project,
-                snapshot.LoreIndex,
-                AvailableForgeScripts(snapshot.RootDirectory),
-                new DeterministicAssistantProvider(profile.ActiveProvider),
-                profile.ActiveProvider,
-                networkAuthorized: false,
-                projectContentAuthorized: false).GetAwaiter().GetResult();
-            return new(proposal.Succeeded, proposal,
-                proposal.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
-        }
-        catch (ArgumentException exception)
-        {
-            return new(false, null,
-                [new AgentDiagnostic("assistant.ability.brief_invalid", exception.Message, "assistant/ability")]);
-        }
-    }
-
-    public AssistedAbilityApplyPlanResult PlanAssistedAbility(AssistedAbilityApplyPlanRequest request)
-    {
-        ArgumentNullException.ThrowIfNull(request);
-        lock (_gate)
-        {
-            if (request.SchemaVersion != 1 || request.BaseRevision < 0)
-                return AssistedAbilityFailure(_history.State.Revision.Value,
-                    "assistant.ability.request_invalid", "Assisted ability request schema or revision is invalid.");
-            var transactionId = Guid.NewGuid();
-            var executionPlanId = Guid.NewGuid();
-            var command = new ApplyAssistedAbilityCommand(
-                CommandId.From(Guid.NewGuid()), transactionId, executionPlanId,
-                new ProjectRevision(request.BaseRevision), request.Proposal, request.Permission, DryRun: true);
-            var preview = _assistedAbilityHandler.Handle(_history.State, command);
-            if (!preview.Succeeded || preview.Command.Patch is null || preview.Command.Inverse is null)
-                return new(false, null, transactionId.ToString("D"),
-                    request.Proposal.Orchestration.Id.ToString("D"),
-                    request.Proposal.Orchestration.OwnerBlueprintId.ToString(), request.BaseRevision,
-                    null, null, "no-change", request.Proposal.Citations,
-                    request.Proposal.Diagnostics.Select(item => item.Code).ToArray(),
-                    request.Proposal.Tests.Select(item => item.Kind.ToString()).ToArray(),
-                    request.Proposal.Tests.Count(item => item.Passed), request.Proposal.Balance.Passed,
-                    request.Proposal.Balance.PowerScore, request.Proposal.EstimatedCostUsd,
-                    preview.Diagnostics.Select(Map).ToArray(), false, false, []);
-            var key = executionPlanId.ToString("D");
-            var stored = new StoredAssistedAbilityPlan(key, command, preview.Command.Patch, preview.Command.Inverse,
-                [new PlanAuditEntry(key, "planned", request.BaseRevision, _clock.UtcNow, true)]);
-            _assistedAbilityPlans.Add(key, stored);
-            return ToResult(stored);
-        }
-    }
-
-    public AssistedAbilityApplyPlanResult ApplyAssistedAbilityPlan(string planId)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
-        lock (_gate)
-        {
-            if (!_assistedAbilityPlans.TryGetValue(planId, out var plan))
-                return AssistedAbilityFailure(_history.State.Revision.Value,
-                    "assistant.ability.plan_missing", $"Assisted ability plan '{planId}' does not exist.");
-            if (plan.Applied)
-                return AssistedAbilityFailure(plan.Command.BaseRevision.Value,
-                    "assistant.ability.plan_already_applied", $"Assisted ability plan '{planId}' is already applied.");
-            var result = _assistedAbilityHandler.Handle(_history.State,
-                plan.Command with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false });
-            if (!result.Succeeded)
-            {
-                plan.Audit.Add(new(plan.PlanId, "apply", _history.State.Revision.Value, _clock.UtcNow, false));
-                return WithFailure(plan, result.Diagnostics.Select(Map).ToArray());
-            }
-            var saved = _session.Save(result.Command.State.Project);
-            if (!saved.Succeeded)
-            {
-                plan.Audit.Add(new(plan.PlanId, "apply", _history.State.Revision.Value, _clock.UtcNow, false));
-                return WithFailure(plan, saved.Diagnostics.Select(item =>
-                    new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
-            }
-            _history.Record(result.Command);
-            plan.Applied = true;
-            plan.AppliedRevision = _history.State.Revision.Value;
-            plan.Audit.Add(new(plan.PlanId, "apply", plan.AppliedRevision.Value, _clock.UtcNow, true));
-            return ToResult(plan);
-        }
-    }
-
-    public AssistedAbilityApplyPlanResult RevertAssistedAbilityPlan(string planId)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
-        lock (_gate)
-        {
-            if (!_assistedAbilityPlans.TryGetValue(planId, out var plan) || !plan.Applied || plan.Reverted)
-                return AssistedAbilityFailure(_history.State.Revision.Value,
-                    "assistant.ability.plan_not_applied", $"Assisted ability plan '{planId}' is not currently applied.");
-            if (plan.AppliedRevision != _history.State.Revision.Value)
-                return AssistedAbilityFailure(plan.Command.BaseRevision.Value,
-                    "assistant.ability.revert_conflict", "Only the latest project mutation can be reverted safely.");
-            var undone = _history.Undo();
-            if (!undone.Succeeded)
-                return AssistedAbilityFailure(plan.Command.BaseRevision.Value,
-                    "assistant.ability.inverse_unavailable", "The assisted ability inverse is unavailable.");
-            var saved = _session.Save(undone.State.Project);
-            if (!saved.Succeeded)
-            {
-                _history.Redo();
-                return WithFailure(plan, saved.Diagnostics.Select(item =>
-                    new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
-            }
-            plan.Reverted = true;
-            plan.Audit.Add(new(plan.PlanId, "revert", undone.State.Revision.Value, _clock.UtcNow, true));
-            return ToResult(plan);
-        }
-    }
-
-    public AssistedBlenderCreationProposalResource ProposeAssistedBlenderCreation(
-        AssistedBlenderCreationProposalRequest request)
-    {
-        ArgumentNullException.ThrowIfNull(request);
-        var snapshot = CaptureAssistedProposalSnapshot();
-        if (request.SchemaVersion != 1)
-            return new(false, snapshot.AssetRevision, null,
-                [new AgentDiagnostic("assistant.blender.request_invalid",
-                    "Assisted Blender proposal schema is invalid.", "assistant/blender")]);
-        try
-        {
-            var profile = AssistantWorkspaceProfile.CreateDefault();
-            var proposal = AssistedBlenderCreationService.ProposeAsync(
-                request.Brief, snapshot.RootDirectory, snapshot.Project,
-                snapshot.LoreIndex, new DeterministicAssistantProvider(profile.ActiveProvider),
-                profile.ActiveProvider, networkAuthorized: false,
-                projectContentAuthorized: false).GetAwaiter().GetResult();
-            return new(proposal.Succeeded, snapshot.AssetRevision, proposal,
-                proposal.Diagnostics.Select(code =>
-                    new AgentDiagnostic(code, code, $"assets/assisted-3d/{proposal.Definition.Id:D}")).ToArray());
-        }
-        catch (ArgumentException exception)
-        {
-            return new(false, snapshot.AssetRevision, null,
-                [new AgentDiagnostic("assistant.blender.brief_invalid", exception.Message, "assistant/blender")]);
-        }
-    }
-
-    public AssistedBlenderCreationApplyPlanResult PlanAssistedBlenderCreation(
-        AssistedBlenderCreationApplyPlanRequest request)
-    {
-        ArgumentNullException.ThrowIfNull(request);
-        lock (_gate)
-        {
-            if (request.SchemaVersion != 1 || request.BaseRevision < 0)
-                return AssistedBlenderFailure(_assistedBlenderState.Revision.Value,
-                    "assistant.blender.request_invalid", "Assisted Blender request schema or revision is invalid.");
-            var transactionId = Guid.NewGuid();
-            var executionPlanId = Guid.NewGuid();
-            var command = new ApplyAssistedBlenderCreationCommand(
-                CommandId.From(Guid.NewGuid()), transactionId, executionPlanId,
-                new AssetExternalEditRevision(request.BaseRevision), request.Proposal, request.Permission, DryRun: true);
-            var preview = _assistedBlenderCreationHandler.Handle(_session.RootDirectory, _assistedBlenderState, command);
-            if (!preview.Succeeded)
-                return new(false, null, transactionId.ToString("D"), request.Proposal.Definition.Id.ToString("D"),
-                    request.Proposal.Configuration.AssetId.ToString(), request.BaseRevision, preview.Patches,
-                    preview.SemanticDiff, request.Proposal.RecipeRelativePath,
-                    request.Proposal.Definition.OutputRelativePath, request.Proposal.Citations,
-                    request.Proposal.Diagnostics, request.Proposal.Tests.Select(item => item.Id).ToArray(),
-                    request.Proposal.Tests.Count(item => item.Passed), request.Proposal.EstimatedCostUsd,
-                    preview.Diagnostics.Select(code => new AgentDiagnostic(code, code, "assistant/blender")).ToArray(),
-                    false, false, []);
-            var key = executionPlanId.ToString("D");
-            var stored = new StoredAssistedBlenderCreationPlan(key, command, preview.Patches,
-                _assistedBlenderState.Configurations,
-                [new PlanAuditEntry(key, "planned", request.BaseRevision, _clock.UtcNow, true)]);
-            _assistedBlenderCreationPlans.Add(key, stored);
-            return ToResult(stored);
-        }
-    }
-
-    public AssistedBlenderCreationApplyPlanResult ApplyAssistedBlenderCreationPlan(string planId)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
-        lock (_gate)
-        {
-            if (!_assistedBlenderCreationPlans.TryGetValue(planId, out var plan))
-                return AssistedBlenderFailure(_assistedBlenderState.Revision.Value,
-                    "assistant.blender.plan_missing", $"Assisted Blender plan '{planId}' does not exist.");
-            if (plan.Applied)
-                return AssistedBlenderFailure(plan.Command.BaseRevision.Value,
-                    "assistant.blender.plan_already_applied", $"Assisted Blender plan '{planId}' is already applied.");
-            var result = _assistedBlenderCreationHandler.Handle(_session.RootDirectory, _assistedBlenderState,
-                plan.Command with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false });
-            if (!result.Succeeded)
-            {
-                plan.Audit.Add(new(plan.PlanId, "apply", _assistedBlenderState.Revision.Value, _clock.UtcNow, false));
-                return WithFailure(plan,
-                    result.Diagnostics.Select(code => new AgentDiagnostic(code, code, "assistant/blender")).ToArray());
-            }
-            _assistedBlenderState = result.State;
-            plan.FileDiff = result.Patches;
-            plan.Applied = true;
-            plan.AppliedRevision = _assistedBlenderState.Revision.Value;
-            plan.Audit.Add(new(plan.PlanId, "apply", plan.AppliedRevision.Value, _clock.UtcNow, true));
-            return ToResult(plan);
-        }
-    }
-
-    public AssistedBlenderCreationApplyPlanResult RevertAssistedBlenderCreationPlan(string planId)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
-        lock (_gate)
-        {
-            if (!_assistedBlenderCreationPlans.TryGetValue(planId, out var plan) || !plan.Applied || plan.Reverted)
-                return AssistedBlenderFailure(_assistedBlenderState.Revision.Value,
-                    "assistant.blender.plan_not_applied", $"Assisted Blender plan '{planId}' is not currently applied.");
-            if (plan.AppliedRevision != _assistedBlenderState.Revision.Value)
-                return AssistedBlenderFailure(plan.Command.BaseRevision.Value,
-                    "assistant.blender.revert_conflict", "Only the latest assisted Blender mutation can be reverted safely.");
-            try
-            {
-                ApplyAssistedBlenderCreationHandler.Restore(_session.RootDirectory, plan.FileDiff, useAfter: false);
-                _assistedBlenderState = new AssetExternalEditState(
-                    plan.BeforeConfigurations, _assistedBlenderState.Revision.Next());
-                plan.Reverted = true;
-                plan.Audit.Add(new(plan.PlanId, "revert", _assistedBlenderState.Revision.Value, _clock.UtcNow, true));
-                return ToResult(plan);
-            }
-            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException)
-            {
-                plan.Audit.Add(new(plan.PlanId, "revert", _assistedBlenderState.Revision.Value, _clock.UtcNow, false));
-                return WithFailure(plan,
-                    [new AgentDiagnostic("assistant.blender.revert_failed", exception.Message, "assistant/blender")]);
-            }
-        }
-    }
-
-    public AssistedModel3DGenerationProposalResource ProposeAssistedModel3DGeneration(
-        AssistedModel3DGenerationProposalRequest request)
-    {
-        ArgumentNullException.ThrowIfNull(request);
-        var snapshot = CaptureAssistedProposalSnapshot();
-        if (request.SchemaVersion != 1)
-            return new(false, snapshot.AssetRevision, null,
-                [new AgentDiagnostic("assistant.model3d.request_invalid",
-                    "Assisted model 3D proposal schema is invalid.", "assistant/model3d")]);
-        try
-        {
-            IModel3DGenerationProvider provider = request.Brief.Provider.Kind == Model3DProviderKind.DeterministicOffline
-                ? new DeterministicModel3DGenerationProvider()
-                : new LoopbackModel3DGenerationProvider(request.Brief.Provider, _model3DHttpClient,
-                    Environment.GetEnvironmentVariable);
-            var proposal = AssistedModel3DGenerationService.ProposeAsync(
-                request.Brief, snapshot.RootDirectory, provider, request.NetworkAuthorized)
-                .GetAwaiter().GetResult();
-            return new(proposal.Succeeded, snapshot.AssetRevision, proposal,
-                proposal.Diagnostics.Select(code => new AgentDiagnostic(code, code,
-                    $"assets/assisted-provider-3d/{proposal.Receipt.Id:D}")).ToArray());
-        }
-        catch (Model3DProviderException exception)
-        {
-            return new(false, snapshot.AssetRevision, null,
-                [new AgentDiagnostic(exception.Code, exception.Message, "assistant/model3d")]);
-        }
-        catch (ArgumentException exception)
-        {
-            return new(false, snapshot.AssetRevision, null,
-                [new AgentDiagnostic("assistant.model3d.brief_invalid", exception.Message, "assistant/model3d")]);
-        }
-    }
-
-    public AssistedModel3DGenerationApplyPlanResult PlanAssistedModel3DGeneration(
-        AssistedModel3DGenerationApplyPlanRequest request)
-    {
-        ArgumentNullException.ThrowIfNull(request);
-        lock (_gate)
-        {
-            if (request.SchemaVersion != 1 || request.BaseRevision < 0)
-                return AssistedModel3DFailure(_assistedBlenderState.Revision.Value,
-                    "assistant.model3d.request_invalid", "Assisted model 3D request schema or revision is invalid.");
-            var transactionId = Guid.NewGuid();
-            var executionPlanId = Guid.NewGuid();
-            var command = new ApplyAssistedModel3DGenerationCommand(
-                CommandId.From(Guid.NewGuid()), transactionId, executionPlanId,
-                new AssetExternalEditRevision(request.BaseRevision), request.Proposal, request.Permission, DryRun: true);
-            var preview = _assistedModel3DGenerationHandler.Handle(
-                _session.RootDirectory, _assistedBlenderState, command);
-            if (!preview.Succeeded)
-                return new(false, null, transactionId.ToString("D"), request.Proposal.Receipt.Id.ToString("D"),
-                    request.Proposal.Configuration.AssetId.ToString(), request.BaseRevision, preview.Patches,
-                    preview.SemanticDiff, request.Proposal.Receipt.SourceRelativePath,
-                    request.Proposal.ReceiptRelativePath, request.Proposal.Receipt.OutputRelativePath,
-                    request.Proposal.Citations, request.Proposal.Diagnostics,
-                    request.Proposal.Tests.Select(item => item.Id).ToArray(),
-                    request.Proposal.Tests.Count(item => item.Passed), request.Proposal.EstimatedCostUsd,
-                    request.Proposal.Receipt.Provider.Key, request.Proposal.Receipt.LicenseSpdx,
-                    request.Proposal.Receipt.ProviderProvenance,
-                    preview.Diagnostics.Select(code => new AgentDiagnostic(code, code, "assistant/model3d")).ToArray(),
-                    false, false, []);
-            var key = executionPlanId.ToString("D");
-            var stored = new StoredAssistedModel3DGenerationPlan(key, command, preview.Patches,
-                _assistedBlenderState.Configurations,
-                [new PlanAuditEntry(key, "planned", request.BaseRevision, _clock.UtcNow, true)]);
-            _assistedModel3DGenerationPlans.Add(key, stored);
-            return ToResult(stored);
-        }
-    }
-
-    public AssistedModel3DGenerationApplyPlanResult ApplyAssistedModel3DGenerationPlan(string planId)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
-        lock (_gate)
-        {
-            if (!_assistedModel3DGenerationPlans.TryGetValue(planId, out var plan))
-                return AssistedModel3DFailure(_assistedBlenderState.Revision.Value,
-                    "assistant.model3d.plan_missing", $"Assisted model 3D plan '{planId}' does not exist.");
-            if (plan.Applied)
-                return AssistedModel3DFailure(plan.Command.BaseRevision.Value,
-                    "assistant.model3d.plan_already_applied", $"Assisted model 3D plan '{planId}' is already applied.");
-            var result = _assistedModel3DGenerationHandler.Handle(_session.RootDirectory, _assistedBlenderState,
-                plan.Command with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false });
-            if (!result.Succeeded)
-            {
-                plan.Audit.Add(new(plan.PlanId, "apply", _assistedBlenderState.Revision.Value, _clock.UtcNow, false));
-                return WithFailure(plan,
-                    result.Diagnostics.Select(code => new AgentDiagnostic(code, code, "assistant/model3d")).ToArray());
-            }
-            _assistedBlenderState = result.State;
-            plan.FileDiff = result.Patches;
-            plan.Applied = true;
-            plan.AppliedRevision = _assistedBlenderState.Revision.Value;
-            plan.Audit.Add(new(plan.PlanId, "apply", plan.AppliedRevision.Value, _clock.UtcNow, true));
-            return ToResult(plan);
-        }
-    }
-
-    public AssistedModel3DGenerationApplyPlanResult RevertAssistedModel3DGenerationPlan(string planId)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
-        lock (_gate)
-        {
-            if (!_assistedModel3DGenerationPlans.TryGetValue(planId, out var plan) || !plan.Applied || plan.Reverted)
-                return AssistedModel3DFailure(_assistedBlenderState.Revision.Value,
-                    "assistant.model3d.plan_not_applied", $"Assisted model 3D plan '{planId}' is not currently applied.");
-            if (plan.AppliedRevision != _assistedBlenderState.Revision.Value)
-                return AssistedModel3DFailure(plan.Command.BaseRevision.Value,
-                    "assistant.model3d.revert_conflict", "Only the latest assisted model 3D mutation can be reverted safely.");
-            try
-            {
-                ApplyAssistedModel3DGenerationHandler.Restore(_session.RootDirectory, plan.FileDiff, useAfter: false);
-                _assistedBlenderState = new AssetExternalEditState(
-                    plan.BeforeConfigurations, _assistedBlenderState.Revision.Next());
-                plan.Reverted = true;
-                plan.Audit.Add(new(plan.PlanId, "revert", _assistedBlenderState.Revision.Value, _clock.UtcNow, true));
-                return ToResult(plan);
-            }
-            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException)
-            {
-                plan.Audit.Add(new(plan.PlanId, "revert", _assistedBlenderState.Revision.Value, _clock.UtcNow, false));
-                return WithFailure(plan,
-                    [new AgentDiagnostic("assistant.model3d.revert_failed", exception.Message, "assistant/model3d")]);
-            }
-        }
-    }
-
-    public ExternalWorkerSecurityResource GetExternalWorkerSecurity()
-    {
-        lock (_gate)
-        {
-            return new(
-                ExternalWorkerSecurityPolicy.CurrentSchemaVersion,
-                _externalWorkerSecurityHistory.State.Revision.Value,
-                _externalWorkerSecurityHistory.State.Policy,
-                _externalWorkerSecurityLoadDiagnostics.ToArray());
-        }
-    }
-
-    public ExternalWorkerSecurityPlanResult PlanExternalWorkerSecurity(ExternalWorkerSecurityPlanRequest request)
-    {
-        ArgumentNullException.ThrowIfNull(request);
-        lock (_gate)
-        {
-            if (request.SchemaVersion != 1 || request.BaseRevision < 0)
-                return ExternalWorkerSecurityFailure(_externalWorkerSecurityHistory.State.Revision.Value,
-                    "asset.worker_security.request_invalid", "Worker security request schema or revision is invalid.");
-            var transactionId = Guid.NewGuid();
-            var planId = Guid.NewGuid();
-            var command = new SetExternalWorkerSecurityPolicyCommand(
-                CommandId.From(transactionId),
-                planId,
-                new ExternalWorkerSecurityPolicyRevision(request.BaseRevision),
-                request.Policy,
-                request.Permission,
-                DryRun: true);
-            var preview = _externalWorkerSecurityHandler.Handle(_externalWorkerSecurityHistory.State, command);
-            if (!preview.Succeeded)
-                return new(false, null, transactionId.ToString("D"), request.BaseRevision, null,
-                    preview.Patch, preview.Inverse, 0,
-                    preview.Diagnostics.Select(item =>
-                        new AgentDiagnostic(item.Code, item.Message, "assets/worker-security")).ToArray(),
-                    false, false, []);
-            var key = planId.ToString("D");
-            var stored = new StoredExternalWorkerSecurityPlan(
-                key,
-                transactionId.ToString("D"),
-                command,
-                preview.Patch!,
-                preview.Inverse!,
-                [new PlanAuditEntry(key, "planned", request.BaseRevision, _clock.UtcNow, true)]);
-            _externalWorkerSecurityPlans.Add(key, stored);
-            return ToResult(stored);
-        }
-    }
-
-    public ExternalWorkerSecurityPlanResult ApplyExternalWorkerSecurityPlan(string planId)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
-        lock (_gate)
-        {
-            if (!_externalWorkerSecurityPlans.TryGetValue(planId, out var plan))
-                return ExternalWorkerSecurityFailure(_externalWorkerSecurityHistory.State.Revision.Value,
-                    "asset.worker_security.plan_missing", $"Worker security plan '{planId}' does not exist.");
-            if (plan.Applied)
-                return ExternalWorkerSecurityFailure(plan.Command.BaseRevision.Value,
-                    "asset.worker_security.plan_already_applied", $"Worker security plan '{planId}' is already applied.");
-            var result = _externalWorkerSecurityHandler.Handle(
-                _externalWorkerSecurityHistory.State,
-                plan.Command with { DryRun = false });
-            if (!result.Succeeded)
-            {
-                plan.Audit.Add(new(plan.PlanId, "apply", _externalWorkerSecurityHistory.State.Revision.Value,
-                    _clock.UtcNow, false));
-                return ToResult(plan) with
-                {
-                    Succeeded = false,
-                    Diagnostics = result.Diagnostics.Select(item =>
-                        new AgentDiagnostic(item.Code, item.Message, "assets/worker-security")).ToArray(),
-                };
-            }
-            var saved = ExternalWorkerSecurityPolicyStore.Save(_session.RootDirectory, result.State.Policy);
-            if (!saved.Succeeded)
-            {
-                plan.Audit.Add(new(plan.PlanId, "apply", _externalWorkerSecurityHistory.State.Revision.Value,
-                    _clock.UtcNow, false));
-                return ToResult(plan) with
-                {
-                    Succeeded = false,
-                    Diagnostics = saved.Diagnostics.Select(item =>
-                        new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray(),
-                };
-            }
-            _externalWorkerSecurityHistory.Record(result);
-            _externalWorkerSecurityLoadDiagnostics.Clear();
-            plan.Applied = true;
-            plan.AppliedRevision = result.NewRevision!.Value.Value;
-            plan.Audit.Add(new(plan.PlanId, "apply", plan.AppliedRevision.Value, _clock.UtcNow, true));
-            return ToResult(plan);
-        }
-    }
-
-    public ExternalWorkerSecurityPlanResult RevertExternalWorkerSecurityPlan(string planId)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
-        lock (_gate)
-        {
-            if (!_externalWorkerSecurityPlans.TryGetValue(planId, out var plan) || !plan.Applied || plan.Reverted)
-                return ExternalWorkerSecurityFailure(_externalWorkerSecurityHistory.State.Revision.Value,
-                    "asset.worker_security.plan_not_applied", $"Worker security plan '{planId}' is not currently applied.");
-            if (plan.AppliedRevision != _externalWorkerSecurityHistory.State.Revision.Value)
-                return ExternalWorkerSecurityFailure(plan.Command.BaseRevision.Value,
-                    "asset.worker_security.revert_conflict", "Only the latest worker security mutation can be reverted safely.");
-            if (!_externalWorkerSecurityHistory.Undo())
-                return ExternalWorkerSecurityFailure(plan.Command.BaseRevision.Value,
-                    "asset.worker_security.inverse_unavailable", "Worker security inverse operation is unavailable.");
-            var saved = ExternalWorkerSecurityPolicyStore.Save(
-                _session.RootDirectory, _externalWorkerSecurityHistory.State.Policy);
-            if (!saved.Succeeded)
-            {
-                _externalWorkerSecurityHistory.Redo();
-                return ExternalWorkerSecurityFailure(plan.Command.BaseRevision.Value,
-                    "asset.worker_security.save_failed", "Reverted worker security policy could not be saved.");
-            }
-            plan.Reverted = true;
-            plan.Audit.Add(new(plan.PlanId, "revert", _externalWorkerSecurityHistory.State.Revision.Value,
-                _clock.UtcNow, true));
-            return ToResult(plan);
-        }
-    }
-
-    public AssistedForgeScriptProposalResource ProposeAssistedForgeScript(AssistedForgeScriptProposalRequest request)
-    {
-        ArgumentNullException.ThrowIfNull(request);
-        if (request.SchemaVersion != 1)
-            return new(false, null,
-                [new AgentDiagnostic("assistant.script.request_invalid",
-                    "Assisted ForgeScript proposal schema is invalid.", "assistant/script")]);
-        var snapshot = CaptureAssistedProposalSnapshot();
-        try
-        {
-            var profile = AssistantWorkspaceProfile.CreateDefault();
-            var proposal = AssistedForgeScriptCreationService.ProposeAsync(
-                request.Brief,
-                snapshot.RootDirectory,
-                snapshot.Project,
-                snapshot.LoreIndex,
-                new DeterministicAssistantProvider(profile.ActiveProvider),
-                profile.ActiveProvider,
-                _forgeScriptRuntime,
-                networkAuthorized: false,
-                projectContentAuthorized: false).GetAwaiter().GetResult();
-            return new(proposal.Succeeded, proposal, proposal.Diagnostics.Select(MapScript).ToArray());
-        }
-        catch (Exception exception) when (exception is ArgumentException or IOException or UnauthorizedAccessException)
-        {
-            return new(false, null,
-                [new AgentDiagnostic("assistant.script.brief_invalid", exception.Message, "assistant/script")]);
-        }
-    }
-
-    public AssistedForgeScriptApplyPlanResult PlanAssistedForgeScript(AssistedForgeScriptApplyPlanRequest request)
-    {
-        ArgumentNullException.ThrowIfNull(request);
-        lock (_gate)
-        {
-            if (request.SchemaVersion != 1 || request.BaseRevision < 0)
-                return AssistedForgeScriptFailure(_history.State.Revision.Value,
-                    "assistant.script.request_invalid", "Assisted ForgeScript request schema or revision is invalid.");
-            var transactionId = Guid.NewGuid();
-            var executionPlanId = Guid.NewGuid();
-            var command = new ApplyAssistedForgeScriptCommand(
-                Guid.NewGuid(), transactionId, executionPlanId, request.BaseRevision,
-                request.Proposal, request.Permission, DryRun: true);
-            var preview = _assistedForgeScriptHandler.Handle(_session.RootDirectory, _history.State.Revision.Value, command);
-            if (!preview.Succeeded || preview.Patch is null)
-                return new(false, null, transactionId.ToString("D"), request.Proposal.ScriptId.ToString("D"),
-                    request.Proposal.RelativePath, request.BaseRevision, null, "no-change",
-                    request.Proposal.ForgeScriptApiVersion, request.Proposal.EventBinding,
-                    request.Proposal.Tests.Select(item => item.Id).ToArray(),
-                    preview.Diagnostics.Select(code => new AgentDiagnostic(code, code, request.Proposal.RelativePath)).ToArray(),
-                    request.Proposal.EstimatedCostUsd, false, false, []);
-            var key = executionPlanId.ToString("D");
-            var stored = new StoredAssistedForgeScriptPlan(
-                key,
-                command,
-                preview.Patch,
-                [new PlanAuditEntry(key, "planned", request.BaseRevision, _clock.UtcNow, true)]);
-            _assistedForgeScriptPlans.Add(key, stored);
-            return ToResult(stored);
-        }
-    }
-
-    public AssistedForgeScriptApplyPlanResult ApplyAssistedForgeScriptPlan(string planId)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
-        lock (_gate)
-        {
-            if (!_assistedForgeScriptPlans.TryGetValue(planId, out var plan))
-                return AssistedForgeScriptFailure(_history.State.Revision.Value,
-                    "assistant.script.plan_missing", $"Assisted ForgeScript plan '{planId}' does not exist.");
-            if (plan.Applied)
-                return AssistedForgeScriptFailure(plan.Command.BaseRevision,
-                    "assistant.script.plan_already_applied", $"Assisted ForgeScript plan '{planId}' is already applied.");
-            var result = _assistedForgeScriptHandler.Handle(
-                _session.RootDirectory,
-                _history.State.Revision.Value,
-                plan.Command with { CommandId = Guid.NewGuid(), DryRun = false });
-            if (!result.Succeeded)
-            {
-                plan.Audit.Add(new(plan.PlanId, "apply", _history.State.Revision.Value, _clock.UtcNow, false));
-                return WithFailure(plan, result.Diagnostics.Select(code =>
-                    new AgentDiagnostic(code, code, plan.Command.Proposal.RelativePath)).ToArray());
-            }
-            plan.Applied = true;
-            plan.Audit.Add(new(plan.PlanId, "apply", _history.State.Revision.Value, _clock.UtcNow, true));
-            return ToResult(plan);
-        }
-    }
-
-    public AssistedForgeScriptApplyPlanResult RevertAssistedForgeScriptPlan(string planId)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
-        lock (_gate)
-        {
-            if (!_assistedForgeScriptPlans.TryGetValue(planId, out var plan) || !plan.Applied || plan.Reverted)
-                return AssistedForgeScriptFailure(_history.State.Revision.Value,
-                    "assistant.script.plan_not_applied", $"Assisted ForgeScript plan '{planId}' is not currently applied.");
-            var path = AssistedForgeScriptCreationService.ResolvePath(_session.RootDirectory, plan.Patch.RelativePath);
-            var current = File.Exists(path) ? File.ReadAllText(path, Encoding.UTF8) : string.Empty;
-            if (!string.Equals(AssistedForgeScriptCreationService.Sha256(current),
-                    plan.Command.Proposal.SourceSha256, StringComparison.Ordinal))
-                return AssistedForgeScriptFailure(_history.State.Revision.Value,
-                    "assistant.script.revert_conflict", "ForgeScript source changed after the plan was applied.");
-            ApplyAssistedForgeScriptHandler.Restore(_session.RootDirectory, plan.Patch, useAfter: false);
-            plan.Reverted = true;
-            plan.Audit.Add(new(plan.PlanId, "revert", _history.State.Revision.Value, _clock.UtcNow, true));
-            return ToResult(plan);
-        }
-    }
-
     public DialoguePlanResult PlanDialogue(DialoguePlanRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -7292,6 +6987,44 @@ public sealed class ForgeProjectAgentService
         AssetCatalogItem item) =>
         new(planId, action, revision, _clock.UtcNow, succeeded, item.Id.ToString(), item.LicenseSpdx);
 
+    private IReadOnlyList<AgentDiagnostic> RestoreAssetInstallMaterialization(StoredAssetInstallPlan plan)
+    {
+        var diagnostics = new List<AgentDiagnostic>();
+        if (plan.ManifestFileMissing)
+        {
+            var manifestPath = Path.Combine(
+                _session.RootDirectory,
+                AssetPackageManifestStore.RelativePath.Replace('/', Path.DirectorySeparatorChar));
+            try
+            {
+                if (File.Exists(manifestPath)) File.Delete(manifestPath);
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                diagnostics.Add(new AgentDiagnostic(
+                    AssetPackageManifestStore.WriteFailedCode,
+                    exception.Message,
+                    AssetPackageManifestStore.RelativePath));
+            }
+        }
+        else
+        {
+            var restored = AssetPackageManifestStore.Save(_session.RootDirectory, plan.PreviousManifests);
+            diagnostics.AddRange(restored.Diagnostics.Select(item =>
+                new AgentDiagnostic(item.Code, item.Message, item.Path)));
+        }
+
+        if (plan.PackageExecution is { } execution)
+        {
+            var reverted = LocalAssetPackageInstaller.Revert(_session.RootDirectory, execution);
+            diagnostics.AddRange(reverted.Diagnostics.Select(item =>
+                new AgentDiagnostic(item.Code, item.Message, item.Path)));
+            if (reverted.Succeeded) plan.PackageExecution = null;
+        }
+
+        return diagnostics;
+    }
+
     private static AgentAssetInstallPlanResult AssetInstallFailure(
         long revision,
         string? assetId,
@@ -7311,7 +7044,8 @@ public sealed class ForgeProjectAgentService
         [],
         plan.Applied,
         plan.Reverted,
-        plan.Audit.ToArray());
+        plan.Audit.ToArray(),
+        plan.LocalPackage?.Reused ?? true);
 
     private static AssistedDialogueApplyPlanResult AssistedDialogueFailure(
         long revision,
@@ -8182,13 +7916,22 @@ public sealed class ForgeProjectAgentService
         InstallAssetBlueprintCommand command,
         ProjectPatch diff,
         ProjectPatch inverse,
-        List<AgentAssetInstallAuditEntry> audit)
+        List<AgentAssetInstallAuditEntry> audit,
+        string vaultRoot,
+        LocalAssetPackageInstallPlan? localPackage,
+        IReadOnlyList<AssetPackageManifest> previousManifests,
+        bool manifestFileMissing)
     {
         public string PlanId { get; } = planId;
         public InstallAssetBlueprintCommand Command { get; } = command;
         public ProjectPatch Diff { get; } = diff;
         public ProjectPatch Inverse { get; } = inverse;
         public List<AgentAssetInstallAuditEntry> Audit { get; } = audit;
+        public string VaultRoot { get; } = vaultRoot;
+        public LocalAssetPackageInstallPlan? LocalPackage { get; } = localPackage;
+        public IReadOnlyList<AssetPackageManifest> PreviousManifests { get; } = previousManifests;
+        public bool ManifestFileMissing { get; } = manifestFileMissing;
+        public LocalAssetPackageApplyResult? PackageExecution { get; set; }
         public bool Applied { get; set; }
         public bool Reverted { get; set; }
         public long? AppliedRevision { get; set; }
@@ -8323,6 +8066,23 @@ public sealed class ForgeProjectAgentService
         public long? AppliedRevision { get; set; }
     }
 
+    private sealed class StoredProjectMetadataPatchPlan(string planId, PatchModuleMetadataCommand command,
+        ProjectPatch diff, ProjectPatch inverse, IReadOnlyList<string> changedPaths,
+        IReadOnlyList<ModuleMetadataLocalizationReview> localizationReview,
+        List<ProjectFoundationAuditEntry> audit)
+    {
+        public string PlanId { get; } = planId;
+        public PatchModuleMetadataCommand Command { get; } = command;
+        public ProjectPatch Diff { get; } = diff;
+        public ProjectPatch Inverse { get; } = inverse;
+        public IReadOnlyList<string> ChangedPaths { get; } = changedPaths;
+        public IReadOnlyList<ModuleMetadataLocalizationReview> LocalizationReview { get; } = localizationReview;
+        public List<ProjectFoundationAuditEntry> Audit { get; } = audit;
+        public bool Applied { get; set; }
+        public bool Reverted { get; set; }
+        public long? AppliedRevision { get; set; }
+    }
+
     private sealed class StoredProjectFoundationPlan(string planId, SetProjectFoundationCommand command,
         ProjectPatch diff, ProjectPatch inverse, List<ProjectFoundationAuditEntry> audit)
     {
@@ -8344,6 +8104,34 @@ public sealed class ForgeProjectAgentService
         public ProjectPatch Diff { get; } = diff;
         public ProjectPatch Inverse { get; } = inverse;
         public List<AreaFoundationAuditEntry> Audit { get; } = audit;
+        public bool Applied { get; set; }
+        public bool Reverted { get; set; }
+        public long? AppliedRevision { get; set; }
+    }
+
+    private sealed class StoredAreaBiomePlan(string planId, PatchAreaBiomesCommand command,
+        ProjectPatch diff, ProjectPatch inverse, List<AreaBiomeAuditEntry> audit)
+    {
+        public string PlanId { get; } = planId;
+        public PatchAreaBiomesCommand Command { get; } = command;
+        public ProjectPatch Diff { get; } = diff;
+        public ProjectPatch Inverse { get; } = inverse;
+        public List<AreaBiomeAuditEntry> Audit { get; } = audit;
+        public bool Applied { get; set; }
+        public bool Reverted { get; set; }
+        public long? AppliedRevision { get; set; }
+    }
+
+    private sealed class StoredAreaEnvironmentPatchPlan(string planId, PatchAreaEnvironmentCommand command,
+        ProjectPatch diff, ProjectPatch inverse, IReadOnlyList<string> changedPaths,
+        List<AreaEnvironmentAuditEntry> audit)
+    {
+        public string PlanId { get; } = planId;
+        public PatchAreaEnvironmentCommand Command { get; } = command;
+        public ProjectPatch Diff { get; } = diff;
+        public ProjectPatch Inverse { get; } = inverse;
+        public IReadOnlyList<string> ChangedPaths { get; } = changedPaths;
+        public List<AreaEnvironmentAuditEntry> Audit { get; } = audit;
         public bool Applied { get; set; }
         public bool Reverted { get; set; }
         public long? AppliedRevision { get; set; }
@@ -8401,6 +8189,24 @@ public sealed class ForgeProjectAgentService
         public long? AppliedRevision { get; set; }
     }
 
+    private sealed class StoredWaypointPlan(
+        string planId,
+        SetNavigationTopologyCommand command,
+        ProjectPatch diff,
+        ProjectPatch inverse,
+        List<WaypointPlanAuditEntry> audit)
+    {
+        public string PlanId { get; } = planId;
+        public SetNavigationTopologyCommand Command { get; } = command;
+        public ProjectPatch Diff { get; } = diff;
+        public ProjectPatch Inverse { get; } = inverse;
+        public List<WaypointPlanAuditEntry> Audit { get; } = audit;
+        public bool Applied { get; set; }
+        public bool Reverted { get; set; }
+        public long? AppliedRevision { get; set; }
+        public long? RevertedRevision { get; set; }
+    }
+
     private sealed class StoredRulesProfilePlan(string planId, SetRulesProfilesCommand command,
         ProjectPatch diff, ProjectPatch inverse, List<RulesProfileAuditEntry> audit)
     {
@@ -8438,6 +8244,7 @@ public sealed class ForgeProjectAgentService
         public bool Applied { get; set; }
         public bool Reverted { get; set; }
         public long? AppliedRevision { get; set; }
+        public Guid? AppliedCommandId { get; set; }
     }
 
     private sealed class StoredRuntimeExtensionPlan(string planId, SetRuntimeExtensionsCommand command,
@@ -8465,6 +8272,7 @@ public sealed class ForgeProjectAgentService
         public string BeforeHash { get; } = beforeHash;
         public AgentTransactionStage Stage { get; set; } = AgentTransactionStage.Begun;
         public SetModuleConfigurationCommand? Command { get; set; }
+        public PlaceEntityCommand? PlaceCommand { get; set; }
         public AgentSemanticDiff? SemanticDiff { get; set; }
         public long? AppliedRevision { get; set; }
         public List<AgentAiAuditEntry> Audit { get; } = [];
@@ -8486,7 +8294,8 @@ public sealed class ForgeProjectAgentService
         bool Succeeded,
         SetModuleConfigurationCommand? Command,
         AgentSemanticDiff? SemanticDiff,
-        IReadOnlyList<AgentDiagnostic> Diagnostics);
+        IReadOnlyList<AgentDiagnostic> Diagnostics,
+        PlaceEntityCommand? PlaceCommand = null);
 }
 
 public sealed record ForgeProjectAgentOpenResult(

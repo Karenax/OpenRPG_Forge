@@ -48,8 +48,29 @@ public sealed class AudioEmitterRuntimeServiceTests
         Assert.Empty(AudioEmitterRuntimeService.CreateInitialPlaybacks(null));
     }
 
+    [Fact]
+    public void Applies_volume_mute_and_runtime_conditions_without_losing_authoring_data()
+    {
+        var definitionId = Guid.NewGuid();
+        var instanceId = Guid.NewGuid();
+        var control = new AudioEmitterControlProfile(1, .35f, false, ["weather==rain"]);
+        var catalog = Catalog(definitionId, instanceId, AudioClipSelectionMode.Ordered,
+            [Clip(Guid.NewGuid(), "audio/rain.ogg", 1)], AudioLoopMode.Loop, control);
+
+        Assert.Empty(AudioEmitterRuntimeService.CreateInitialPlaybacks(catalog, 0, _ => false));
+        var playback = Assert.Single(AudioEmitterRuntimeService.CreateInitialPlaybacks(
+            catalog, 0, condition => condition == "weather==rain"));
+        Assert.Equal(.35f, playback.Volume);
+        Assert.Equal(["weather==rain"], playback.Conditions);
+
+        var muted = catalog.Instances.Single() with { Control = control with { Muted = true } };
+        Assert.Empty(AudioEmitterRuntimeService.CreateInitialPlaybacks(
+            new AudioEmitterCatalog(1, catalog.Definitions, [muted]), 0, _ => true));
+    }
+
     private static AudioEmitterCatalog Catalog(Guid definitionId, Guid instanceId,
-        AudioClipSelectionMode selection, IReadOnlyList<AudioClipDefinition> clips, AudioLoopMode loopMode) =>
+        AudioClipSelectionMode selection, IReadOnlyList<AudioClipDefinition> clips, AudioLoopMode loopMode,
+        AudioEmitterControlProfile? control = null) =>
         new(1,
         [
             new(definitionId, 1, "Emitter", new AudioClipSet(Guid.NewGuid(), 1, "Clips", selection, clips, "test"),
@@ -60,7 +81,8 @@ public sealed class AudioEmitterRuntimeServiceTests
                 new string('b', 64)),
         ],
         [new(instanceId, definitionId,
-            new TransformValue(new Vector3Value(4, 2, -1), QuaternionValue.Identity, Vector3Value.One), true, "test")]);
+            new TransformValue(new Vector3Value(4, 2, -1), QuaternionValue.Identity, Vector3Value.One), true,
+            "test", control)]);
 
     private static AudioClipDefinition Clip(Guid id, string path, float weight) =>
         new(id, path, weight, ["ambient"], "default", "fr", -18, string.Empty, "audio/ogg", 128,

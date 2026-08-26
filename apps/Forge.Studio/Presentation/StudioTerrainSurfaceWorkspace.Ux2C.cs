@@ -127,6 +127,27 @@ internal sealed partial class StudioTerrainSurfaceWorkspaceUx2C : Control
     private readonly CheckBox _navigation;
     private readonly LineEdit _sockets;
     private readonly TextEdit _propertyOverrides;
+    private readonly OptionButton _biome;
+    private readonly SpinBox _biomeDensity;
+    private readonly LineEdit _biomeResource;
+    private readonly SpinBox _biomeMinimumAltitude;
+    private readonly SpinBox _biomeMaximumAltitude;
+    private readonly SpinBox _biomeMinimumSlope;
+    private readonly SpinBox _biomeMaximumSlope;
+    private readonly SpinBox _biomeMinimumMoisture;
+    private readonly SpinBox _biomeMaximumMoisture;
+    private readonly CheckBox _biomeScaleEnabled;
+    private readonly SpinBox _biomeScale;
+    private readonly CheckBox _biomeTintEnabled;
+    private readonly LineEdit _biomeTintColor;
+    private readonly SpinBox _biomeTintStrength;
+    private readonly CheckBox _biomeFocusEnabled;
+    private readonly SpinBox _biomeFocusX;
+    private readonly SpinBox _biomeFocusZ;
+    private readonly SpinBox _biomeFocusRadius;
+    private readonly LineEdit _biomeExclusions;
+    private readonly CheckBox _biomeSeedEnabled;
+    private readonly SpinBox _biomeSeed;
     private readonly Label _summary;
     private readonly Label _diagnostics;
     private readonly Label _status;
@@ -139,6 +160,7 @@ internal sealed partial class StudioTerrainSurfaceWorkspaceUx2C : Control
     private IReadOnlyList<StudioUx2CNamedChoice> _materialChoices = [];
     private IReadOnlyList<StudioUx2CNamedChoice> _featureChoices = [];
     private IReadOnlyList<StudioUx2CPlacementChoice> _placementChoices = [];
+    private IReadOnlyList<StudioUx2CNamedChoice> _biomeChoices = [];
     private StudioUx2CTerrainDraft? _draft;
     private StudioSessionController? _evidenceSession;
     private string? _evidenceRoot;
@@ -150,10 +172,11 @@ internal sealed partial class StudioTerrainSurfaceWorkspaceUx2C : Control
     internal bool HasExplicitSelection => _draft is not null && _area.Selected > 0;
     internal bool CanonicalPreviewReady { get; private set; }
     internal bool DirectBrushInputExercised => _brushCanvas.DirectInputExercised;
-    internal bool ShowsAllModes => _tabs.GetTabCount() == 3 &&
+    internal bool ShowsAllModes => _tabs.GetTabCount() == 4 &&
                                    _tabs.GetTabTitle(0).Contains("Sculpter", StringComparison.Ordinal) &&
                                    _tabs.GetTabTitle(1).Contains("Features", StringComparison.Ordinal) &&
-                                   _tabs.GetTabTitle(2).Contains("Propriétés", StringComparison.Ordinal);
+                                   _tabs.GetTabTitle(2).Contains("Propriétés", StringComparison.Ordinal) &&
+                                   _tabs.GetTabTitle(3).Contains("Biomes", StringComparison.Ordinal);
     internal bool UsesIsolatedEvidence => _evidenceSession is not null && ReferenceEquals(_session, _evidenceSession);
     internal bool EvidenceResourcesReleased => _evidenceSession is null && _evidenceRoot is null;
     internal bool SourceSessionRestored => ReferenceEquals(_session, _sourceSession);
@@ -316,12 +339,54 @@ internal sealed partial class StudioTerrainSurfaceWorkspaceUx2C : Control
         _sockets = Field(propertyScroll, "Sockets", Line("passage, mur-nord"));
         _propertyOverrides = Field(propertyScroll, "Attributs avancés · clé=valeur", Multiline("audio.step=stone", 70));
 
+        var biomeTab = Tab("Biomes et dispersion");
+        var biomeBody = new HBoxContainer
+        {
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            SizeFlagsVertical = SizeFlags.ExpandFill,
+        };
+        biomeBody.AddThemeConstantOverride("separation", 9);
+        biomeTab.AddChild(biomeBody);
+        var biomeList = Form(biomeBody, 310);
+        _biome = Field(biomeList, "Biome", new OptionButton());
+        StudioStyle.ApplyOptionButton(_biome);
+        biomeList.AddChild(StudioStyle.Label(
+            "La fiche agit uniquement sur le biome choisi. Terrain, eau, features et autres biomes restent intacts.",
+            10, StudioStyle.Muted, wrap: true));
+        var biomeScroll = ScrollForm(biomeBody);
+        _biomeDensity = Field(biomeScroll, "Densité", Number(0, 1, .01));
+        _biomeResource = Field(biomeScroll, "Ressource dispersée", Line("assets/nature/vegetation.glb"));
+        _biomeMinimumAltitude = Field(biomeScroll, "Altitude minimale", Number(-100000, 100000, .25, " m"));
+        _biomeMaximumAltitude = Field(biomeScroll, "Altitude maximale", Number(-100000, 100000, .25, " m"));
+        _biomeMinimumSlope = Field(biomeScroll, "Pente minimale", Number(0, 90, .5, "°"));
+        _biomeMaximumSlope = Field(biomeScroll, "Pente maximale", Number(0, 90, .5, "°"));
+        _biomeMinimumMoisture = Field(biomeScroll, "Humidité minimale", Number(0, 1, .01));
+        _biomeMaximumMoisture = Field(biomeScroll, "Humidité maximale", Number(0, 1, .01));
+        _biomeScaleEnabled = new CheckBox { Text = "Échelle personnalisée" };
+        biomeScroll.AddChild(_biomeScaleEnabled);
+        _biomeScale = Field(biomeScroll, "Échelle", Number(.1, 16, .05));
+        _biomeTintEnabled = new CheckBox { Text = "Teinte du feuillage" };
+        biomeScroll.AddChild(_biomeTintEnabled);
+        _biomeTintColor = Field(biomeScroll, "Couleur de teinte", Line("#ffffff"));
+        _biomeTintStrength = Field(biomeScroll, "Force de teinte", Number(0, 1, .01));
+        _biomeFocusEnabled = new CheckBox { Text = "Limiter à une zone de focus" };
+        biomeScroll.AddChild(_biomeFocusEnabled);
+        _biomeFocusX = Field(biomeScroll, "Centre du focus X", Number(-100000, 100000, .25, " m"));
+        _biomeFocusZ = Field(biomeScroll, "Centre du focus Z", Number(-100000, 100000, .25, " m"));
+        _biomeFocusRadius = Field(biomeScroll, "Rayon du focus", Number(.001, 100000, .25, " m"));
+        _biomeExclusions = Field(biomeScroll, "Exclusions", Line("eau, route, village"));
+        _biomeSeedEnabled = new CheckBox { Text = "Graine propre au biome" };
+        biomeScroll.AddChild(_biomeSeedEnabled);
+        _biomeSeed = Field(biomeScroll, "Graine", Number(int.MinValue, int.MaxValue, 1));
+
         _tabs.AddChild(sculpt);
         _tabs.SetTabTitle(0, "Sculpter");
         _tabs.AddChild(featureTab);
         _tabs.SetTabTitle(1, "Features");
         _tabs.AddChild(propertyTab);
         _tabs.SetTabTitle(2, "Propriétés de tuile");
+        _tabs.AddChild(biomeTab);
+        _tabs.SetTabTitle(3, "Biomes & dispersion");
 
         var review = StudioStyle.Panel("TerrainSurfaceReviewUx2C", StudioStyle.Surface, 8);
         review.CustomMinimumSize = new Vector2(0, 106);
@@ -475,6 +540,7 @@ internal sealed partial class StudioTerrainSurfaceWorkspaceUx2C : Control
         _materialChoices = _session.TerrainMaterialChoicesUx2C(choice.AreaId);
         _featureChoices = _session.TerrainFeatureChoicesUx2C(choice.AreaId);
         _placementChoices = _session.TerrainPropertyPlacementChoicesUx2C(choice.AreaId);
+        _biomeChoices = _session.TerrainBiomeChoicesUx2C(choice.AreaId);
         _material.Clear();
         foreach (var item in _materialChoices) _material.AddItem(item.Label);
         if (_materialChoices.Count > 0) _material.Select(0);
@@ -486,10 +552,20 @@ internal sealed partial class StudioTerrainSurfaceWorkspaceUx2C : Control
         _placement.AddItem("Choisir une tuile…");
         foreach (var item in _placementChoices) _placement.AddItem(item.Label);
         _placement.Select(0);
+        _biome.Clear();
+        _biome.AddItem("Choisir un biome…");
+        foreach (var item in _biomeChoices) _biome.AddItem(item.Label);
+        _biome.Select(0);
         if (_draft is not null)
         {
             var area = _session.Project!.Areas.Single(item => item.Id == choice.AreaId);
             PopulateBrush(_draft, area.Dimensions);
+            var biomeIndex = FindIndex(_biomeChoices, item => item.Id == _draft.BiomeId);
+            if (biomeIndex >= 0)
+            {
+                _biome.Select(biomeIndex + 1);
+                PopulateBiome(_draft);
+            }
         }
         _summary.Text = choice.HasEditableTerrain
             ? "Zone chargée · sculptez directement ou choisissez une collection à éditer."
@@ -540,6 +616,16 @@ internal sealed partial class StudioTerrainSurfaceWorkspaceUx2C : Control
         InvalidatePreview();
     }
 
+    private void SelectBiome(int index)
+    {
+        if (_updating || _draft is null || index <= 0 || index > _biomeChoices.Count) return;
+        var selected = _session.SelectTerrainBiomeUx2C(_draft, _biomeChoices[index - 1].Id);
+        if (selected is null) return;
+        _draft = selected;
+        PopulateBiome(selected);
+        InvalidatePreview();
+    }
+
     private void Preview()
     {
         var draft = ReadDraft();
@@ -583,6 +669,7 @@ internal sealed partial class StudioTerrainSurfaceWorkspaceUx2C : Control
         var operation = (StudioUx2CTerrainOperation)_tabs.CurrentTab;
         if (operation == StudioUx2CTerrainOperation.Feature && _draft.FeatureId == Guid.Empty) return null;
         if (operation == StudioUx2CTerrainOperation.TileProperty && _draft.PlacementId == Guid.Empty) return null;
+        if (operation == StudioUx2CTerrainOperation.Biome && _draft.BiomeId == Guid.Empty) return null;
         return _draft with
         {
             Operation = operation,
@@ -614,6 +701,26 @@ internal sealed partial class StudioTerrainSurfaceWorkspaceUx2C : Control
             NavigationEnabled = _navigation.ButtonPressed,
             SocketOverrides = ParseList(_sockets.Text),
             PropertyOverrides = ParseMap(_propertyOverrides.Text),
+            BiomeDensity = (float)_biomeDensity.Value,
+            BiomeResource = _biomeResource.Text.Trim(),
+            BiomeMinimumAltitude = (float)_biomeMinimumAltitude.Value,
+            BiomeMaximumAltitude = (float)_biomeMaximumAltitude.Value,
+            BiomeMinimumSlope = (float)_biomeMinimumSlope.Value,
+            BiomeMaximumSlope = (float)_biomeMaximumSlope.Value,
+            BiomeMinimumMoisture = (float)_biomeMinimumMoisture.Value,
+            BiomeMaximumMoisture = (float)_biomeMaximumMoisture.Value,
+            BiomeScaleEnabled = _biomeScaleEnabled.ButtonPressed,
+            BiomeScale = (float)_biomeScale.Value,
+            BiomeTintEnabled = _biomeTintEnabled.ButtonPressed,
+            BiomeTintColor = _biomeTintColor.Text.Trim(),
+            BiomeTintStrength = (float)_biomeTintStrength.Value,
+            BiomeFocusEnabled = _biomeFocusEnabled.ButtonPressed,
+            BiomeFocusX = (float)_biomeFocusX.Value,
+            BiomeFocusZ = (float)_biomeFocusZ.Value,
+            BiomeFocusRadius = (float)_biomeFocusRadius.Value,
+            BiomeExclusionTags = ParseList(_biomeExclusions.Text),
+            BiomeSeedEnabled = _biomeSeedEnabled.ButtonPressed,
+            BiomeSeed = checked((int)_biomeSeed.Value),
         };
     }
 
@@ -662,6 +769,32 @@ internal sealed partial class StudioTerrainSurfaceWorkspaceUx2C : Control
         _updating = false;
     }
 
+    private void PopulateBiome(StudioUx2CTerrainDraft draft)
+    {
+        _updating = true;
+        _biomeDensity.Value = draft.BiomeDensity;
+        _biomeResource.Text = draft.BiomeResource;
+        _biomeMinimumAltitude.Value = draft.BiomeMinimumAltitude;
+        _biomeMaximumAltitude.Value = draft.BiomeMaximumAltitude;
+        _biomeMinimumSlope.Value = draft.BiomeMinimumSlope;
+        _biomeMaximumSlope.Value = draft.BiomeMaximumSlope;
+        _biomeMinimumMoisture.Value = draft.BiomeMinimumMoisture;
+        _biomeMaximumMoisture.Value = draft.BiomeMaximumMoisture;
+        _biomeScaleEnabled.ButtonPressed = draft.BiomeScaleEnabled;
+        _biomeScale.Value = draft.BiomeScale;
+        _biomeTintEnabled.ButtonPressed = draft.BiomeTintEnabled;
+        _biomeTintColor.Text = draft.BiomeTintColor;
+        _biomeTintStrength.Value = draft.BiomeTintStrength;
+        _biomeFocusEnabled.ButtonPressed = draft.BiomeFocusEnabled;
+        _biomeFocusX.Value = draft.BiomeFocusX;
+        _biomeFocusZ.Value = draft.BiomeFocusZ;
+        _biomeFocusRadius.Value = draft.BiomeFocusRadius;
+        _biomeExclusions.Text = string.Join(", ", draft.BiomeExclusionTags);
+        _biomeSeedEnabled.ButtonPressed = draft.BiomeSeedEnabled;
+        _biomeSeed.Value = draft.BiomeSeed;
+        _updating = false;
+    }
+
     private void ReloadCurrentArea()
     {
         if (_draft is null) return;
@@ -682,11 +815,14 @@ internal sealed partial class StudioTerrainSurfaceWorkspaceUx2C : Control
         _materialChoices = [];
         _featureChoices = [];
         _placementChoices = [];
+        _biomeChoices = [];
         _material.Clear();
         _feature.Clear();
         _feature.AddItem("Choisir une feature…");
         _placement.Clear();
         _placement.AddItem("Choisir une tuile…");
+        _biome.Clear();
+        _biome.AddItem("Choisir un biome…");
         _summary.Text = "Aucun aperçu. Choisissez explicitement une zone.";
         _diagnostics.Text = "Aucune donnée n’est synthétisée dans le module source.";
         CanonicalPreviewReady = false;
@@ -714,6 +850,7 @@ internal sealed partial class StudioTerrainSurfaceWorkspaceUx2C : Control
         {
             1 => _draft.FeatureId != Guid.Empty,
             2 => _draft.PlacementId != Guid.Empty,
+            3 => _draft.BiomeId != Guid.Empty,
             _ => true,
         });
         _preview.Disabled = !ready;
@@ -750,17 +887,24 @@ internal sealed partial class StudioTerrainSurfaceWorkspaceUx2C : Control
         _feature.ItemSelected += index => SelectFeature((int)index);
         _newFeature.Pressed += NewFeature;
         _placement.ItemSelected += index => SelectProperty((int)index);
+        _biome.ItemSelected += index => SelectBiome((int)index);
         foreach (var control in new Control[] { _brushOperation, _material, _featureKind, _featureCrossing })
             ((OptionButton)control).ItemSelected += _ => InvalidatePreview();
         foreach (var spin in new[] { _worldX, _worldZ, _radius, _strength, _targetHeight, _featureWidth,
-                     _featureHeight, _featureBank, _lightIntensity, _lightRange })
+                     _featureHeight, _featureBank, _lightIntensity, _lightRange, _biomeDensity,
+                     _biomeMinimumAltitude, _biomeMaximumAltitude, _biomeMinimumSlope, _biomeMaximumSlope,
+                     _biomeMinimumMoisture, _biomeMaximumMoisture, _biomeScale, _biomeTintStrength,
+                     _biomeFocusX, _biomeFocusZ, _biomeFocusRadius, _biomeSeed })
             spin.ValueChanged += _ => InvalidatePreview();
         foreach (var edit in new[] { _featureName, _featureTags, _featureMaterial, _semanticState, _animation,
-                     _lightColor, _sockets })
+                     _lightColor, _sockets, _biomeResource, _biomeTintColor, _biomeExclusions })
             edit.TextChanged += _ => InvalidatePreview();
         foreach (var edit in new[] { _featurePoints, _materialOverrides, _propertyOverrides })
             edit.TextChanged += () => InvalidatePreview();
         foreach (var check in new[] { _loopAnimation, _lightEnabled, _collision, _navigation })
+            check.Toggled += _ => InvalidatePreview();
+        foreach (var check in new[] { _biomeScaleEnabled, _biomeTintEnabled, _biomeFocusEnabled,
+                     _biomeSeedEnabled })
             check.Toggled += _ => InvalidatePreview();
     }
 

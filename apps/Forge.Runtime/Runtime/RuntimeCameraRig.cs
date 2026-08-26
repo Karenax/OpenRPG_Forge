@@ -25,6 +25,11 @@ internal sealed class RuntimeCameraRig
     private Vector3 _focusOffset = Vector3.Up * 1.25f;
     private bool _alignCharacterFacing = true;
     private float _fieldOfView = 60;
+    private bool _collisionAvoidance = true;
+    private CameraOcclusionStrategy _occlusionStrategy = CameraOcclusionStrategy.Retract;
+    private float _collisionRetractSharpness = CollisionRetractSharpness;
+    private float _collisionReleaseSharpness = CollisionReleaseSharpness;
+    private GameplayCameraProfile? _profile;
     private Vector3 _smoothedTarget;
     private Vector3 _lastMeasuredFocus;
     private Vector3 _lastMeasuredFocusStep;
@@ -70,9 +75,12 @@ internal sealed class RuntimeCameraRig
 
     internal int TerrainProbeSamples { get; private set; } = 32;
 
+    internal CameraOcclusionStrategy OcclusionStrategy => _occlusionStrategy;
+
     internal void Configure(GameplayCameraCatalog catalog)
     {
         var profile = GameplayFoundationRuntime.ResolveCamera(catalog);
+        _profile = profile;
         _distance = profile.Distance;
         _minimumDistance = profile.MinimumDistance;
         _maximumDistance = profile.MaximumDistance;
@@ -82,12 +90,29 @@ internal sealed class RuntimeCameraRig
         _focusOffset = new(profile.FocusOffset.X, profile.FocusOffset.Y, profile.FocusOffset.Z);
         _alignCharacterFacing = profile.AlignCharacterFacing;
         _fieldOfView = profile.FieldOfViewDegrees;
+        _collisionAvoidance = profile.CollisionAvoidance;
+        _occlusionStrategy = profile.OcclusionStrategy;
+        _collisionRetractSharpness = profile.CollisionRetractSharpness;
+        _collisionReleaseSharpness = profile.CollisionReleaseSharpness;
         TerrainClearance = profile.TerrainClearance;
         TerrainProbeSamples = profile.TerrainProbeSamples;
         _yaw = Mathf.DegToRad(profile.InitialYawDegrees);
         _firstPersonActive = false;
         _firstPersonPitch = Math.Clamp(0, _minimumPitch, _maximumPitch);
     }
+
+    internal CameraOcclusionResolution ResolveOcclusion(float idealDistance, float? obstacleDistance) =>
+        CameraOcclusionPolicy.Resolve(
+            _profile ?? throw new InvalidOperationException("The camera rig must be configured before occlusion resolution."),
+            idealDistance,
+            obstacleDistance);
+
+    internal WorldLabelPresentation ResolveWorldLabel(float distance, bool isLocalHero) =>
+        WorldLabelPolicy.Resolve(
+            _profile ?? throw new InvalidOperationException("The camera rig must be configured before label resolution."),
+            distance,
+            isLocalHero,
+            _firstPersonActive);
 
     internal void SetYawDegrees(float degrees) => _yaw = Mathf.DegToRad(degrees);
 
@@ -278,7 +303,9 @@ internal sealed class RuntimeCameraRig
         var idealDistance = idealOffset.Length();
         if (idealDistance <= .001f) return ideal;
         var direction = idealOffset / idealDistance;
-        var constrained = constrainPosition?.Invoke(focus, ideal) ?? ideal;
+        var constrained = _collisionAvoidance
+            ? constrainPosition?.Invoke(focus, ideal) ?? ideal
+            : ideal;
         var targetDistance = Math.Min(idealDistance, focus.DistanceTo(constrained));
         if (!_hasCollisionDistance)
         {
@@ -288,13 +315,16 @@ internal sealed class RuntimeCameraRig
         else
         {
             var previous = _collisionDistance;
-            _collisionDistance = SmoothCollisionDistance(previous, targetDistance, delta);
+            _collisionDistance = SmoothCollisionDistance(previous, targetDistance, delta,
+                _collisionRetractSharpness, _collisionReleaseSharpness);
             MaximumCollisionDistanceStep = Math.Max(MaximumCollisionDistanceStep,
                 Math.Abs(_collisionDistance - previous));
         }
 
         var resolved = focus + (direction * _collisionDistance);
-        var safe = constrainPosition?.Invoke(focus, resolved) ?? resolved;
+        var safe = _collisionAvoidance
+            ? constrainPosition?.Invoke(focus, resolved) ?? resolved
+            : resolved;
         var safeDistance = focus.DistanceTo(safe);
         if (safeDistance < _collisionDistance)
             _collisionDistance = safeDistance;
@@ -302,8 +332,21 @@ internal sealed class RuntimeCameraRig
     }
 
     internal static float SmoothCollisionDistance(float current, float target, double delta)
+        => SmoothCollisionDistance(current, target, delta,
+            CollisionRetractSharpness, CollisionReleaseSharpness);
+
+    internal static float SmoothCollisionDistance(
+        float current,
+        float target,
+        double delta,
+        float retractSharpness,
+        float releaseSharpness)
     {
-        var sharpness = target < current ? CollisionRetractSharpness : CollisionReleaseSharpness;
+        if (!float.IsFinite(retractSharpness) || retractSharpness <= 0)
+            throw new ArgumentOutOfRangeException(nameof(retractSharpness));
+        if (!float.IsFinite(releaseSharpness) || releaseSharpness <= 0)
+            throw new ArgumentOutOfRangeException(nameof(releaseSharpness));
+        var sharpness = target < current ? retractSharpness : releaseSharpness;
         var amount = 1f - MathF.Exp(-sharpness * Math.Max(0, (float)delta));
         return Mathf.Lerp(current, target, amount);
     }

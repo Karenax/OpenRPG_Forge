@@ -11,19 +11,33 @@ public sealed record ProceduralAmbientAudioClip(
 
 public static class ProceduralAmbientAudioService
 {
-    public const string CanopyWindResource = "builtin://forest/canopy-wind";
-    public const string BirdsongResource = "builtin://forest/birdsong";
-    public const string StreamResource = "builtin://forest/stream";
+    public const string CanopyWindResource = "builtin://openrpg/audio/v1/canopy-wind";
+    public const string BirdsongResource = "builtin://openrpg/audio/v1/birdsong";
+    public const string StreamResource = "builtin://openrpg/audio/v1/stream";
+    public const string LicenseSpdx = "CC0-1.0";
+    public const string PackageManifest = "builtin://openrpg/audio/v1/catalog";
     public const int SampleRate = 22050;
+
+    private static readonly IReadOnlyDictionary<string, string> LegacyAliases =
+        new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["builtin://forest/canopy-wind"] = CanopyWindResource,
+            ["builtin://forest/birdsong"] = BirdsongResource,
+            ["builtin://forest/stream"] = StreamResource,
+        };
 
     public static IReadOnlyList<string> SupportedResources { get; } =
         [CanopyWindResource, BirdsongResource, StreamResource];
 
+    public static bool IsSupported(string resource) =>
+        SupportedResources.Contains(resource, StringComparer.Ordinal) || LegacyAliases.ContainsKey(resource);
+
     public static ProceduralAmbientAudioClip Create(string resource)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(resource);
-        if (!SupportedResources.Contains(resource, StringComparer.Ordinal))
+        if (!IsSupported(resource))
             throw new KeyNotFoundException($"Unknown procedural ambient audio resource '{resource}'.");
+        resource = LegacyAliases.TryGetValue(resource, out var canonical) ? canonical : resource;
 
         var durationSeconds = resource switch
         {

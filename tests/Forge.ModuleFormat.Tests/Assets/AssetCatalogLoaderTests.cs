@@ -41,6 +41,7 @@ public sealed class AssetCatalogLoaderTests
 
             Assert.True(result.Succeeded, string.Join(Environment.NewLine, result.Diagnostics));
             Assert.Equal(3, result.Catalog!.Items.Count);
+            Assert.Equal(3, result.CatalogEntryCount);
             Assert.Equal(result.Catalog.Items.Select(item => item.Id), repeated.Catalog!.Items.Select(item => item.Id));
             var apple = result.Catalog.Items.Single(item => item.ExternalId == "ambientcg:Apple");
             Assert.Equal(AssetAvailability.ExtractedAvailable, apple.Availability);
@@ -54,9 +55,9 @@ public sealed class AssetCatalogLoaderTests
             Assert.Equal("lq", Assert.Single(apple.TechnicalMetadata.Variants));
             Assert.Equal(1_234, apple.TechnicalMetadata.TriangleCount);
             Assert.Equal(2, apple.TechnicalMetadata.Dimensions!.Height);
-            var nature = result.Catalog.Items.Single(item => item.ExternalId == "kenney:nature");
+            var nature = result.Catalog.Items.Single(item => item.ExternalId == "kenney:nature:tree");
             Assert.Equal("normalized/kenney/nature/tree.glb", nature.RelativeModelPath);
-            var dungeon = result.Catalog.Items.Single(item => item.ExternalId == "kaykit:dungeon");
+            var dungeon = result.Catalog.Items.Single(item => item.ExternalId == "kaykit:dungeon:door");
             Assert.Equal("normalized/kaykit/dungeon/door.fbx", dungeon.RelativeModelPath);
             Assert.Contains("dungeon", dungeon.Categories);
         }

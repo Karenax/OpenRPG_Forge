@@ -71,6 +71,15 @@ internal sealed partial class StudioGameplayFoundationWorkbenchUx6B : ColorRect
     private readonly SpinBox _terrainClearance;
     private readonly SpinBox _terrainProbeSamples;
     private readonly SpinBox _initialYaw;
+    private readonly OptionButton _occlusionStrategy;
+    private readonly SpinBox _collisionRetractSharpness;
+    private readonly SpinBox _collisionReleaseSharpness;
+    private readonly SpinBox _worldLabelNearDistance;
+    private readonly SpinBox _worldLabelFarDistance;
+    private readonly SpinBox _worldLabelMaximumDistance;
+    private readonly SpinBox _worldLabelNearScale;
+    private readonly SpinBox _worldLabelFarScale;
+    private readonly CheckBox _hideLocalHeroLabelInFirstPerson;
 
     private readonly CheckBox _inputRequired;
     private readonly CheckBox _allowRebinding;
@@ -312,6 +321,33 @@ internal sealed partial class StudioGameplayFoundationWorkbenchUx6B : ColorRect
         cameraTab.AddChild(StudioUx2EnvBControls.Card("Ux6BCameraTerrain", "Relief extérieur",
             "La caméra conserve sa distance et se relève au-dessus des pentes selon ces valeurs du module.",
             terrainCollision));
+        var occlusion = GridUx6B(3);
+        _occlusionStrategy = StudioUx2EnvBControls.Options("Retrait de la caméra", "Fondu de l’obstacle",
+            "Masquage de l’obstacle");
+        _collisionRetractSharpness = NumberUx6B(.05, 100, .05);
+        _collisionReleaseSharpness = NumberUx6B(.05, 100, .05);
+        occlusion.AddChild(FieldUx6B("Stratégie", _occlusionStrategy));
+        occlusion.AddChild(FieldUx6B("Vitesse de retrait", _collisionRetractSharpness));
+        occlusion.AddChild(FieldUx6B("Vitesse de libération", _collisionReleaseSharpness));
+        cameraTab.AddChild(StudioUx2EnvBControls.Card("Ux6BCameraOcclusion", "Obstacle entre joueur et caméra",
+            "Le retrait rapproche la caméra; le fondu et le masquage gardent le recul et traitent seulement l’obstacle courant.",
+            occlusion));
+        var worldLabels = GridUx6B(3);
+        _worldLabelNearDistance = NumberUx6B(0, 100, .25);
+        _worldLabelFarDistance = NumberUx6B(.25, 250, .25);
+        _worldLabelMaximumDistance = NumberUx6B(.5, 500, .25);
+        _worldLabelNearScale = NumberUx6B(.05, 4, .05);
+        _worldLabelFarScale = NumberUx6B(.05, 4, .05);
+        _hideLocalHeroLabelInFirstPerson = StudioUx2EnvBControls.Check("Masquer le label du héros local en première personne");
+        worldLabels.AddChild(FieldUx6B("Distance proche", _worldLabelNearDistance));
+        worldLabels.AddChild(FieldUx6B("Distance lisible", _worldLabelFarDistance));
+        worldLabels.AddChild(FieldUx6B("Distance de masquage", _worldLabelMaximumDistance));
+        worldLabels.AddChild(FieldUx6B("Échelle proche", _worldLabelNearScale));
+        worldLabels.AddChild(FieldUx6B("Échelle distante", _worldLabelFarScale));
+        worldLabels.AddChild(_hideLocalHeroLabelInFirstPerson);
+        cameraTab.AddChild(StudioUx2EnvBControls.Card("Ux6BWorldLabels", "Labels du monde",
+            "Les labels proches rétrécissent, restent lisibles à distance puis disparaissent progressivement.",
+            worldLabels));
 
         var inputTab = ScrollTabUx6B("Entrées");
         var inputFlags = new HBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
@@ -726,6 +762,15 @@ internal sealed partial class StudioGameplayFoundationWorkbenchUx6B : ColorRect
         _terrainClearance.Value = DisplayUx6B(item.TerrainClearance);
         _terrainProbeSamples.Value = item.TerrainProbeSamples;
         _initialYaw.Value = DisplayUx6B(item.InitialYawDegrees);
+        _occlusionStrategy.Select((int)item.OcclusionStrategy);
+        _collisionRetractSharpness.Value = DisplayUx6B(item.CollisionRetractSharpness);
+        _collisionReleaseSharpness.Value = DisplayUx6B(item.CollisionReleaseSharpness);
+        _worldLabelNearDistance.Value = DisplayUx6B(item.WorldLabelNearDistance);
+        _worldLabelFarDistance.Value = DisplayUx6B(item.WorldLabelFarDistance);
+        _worldLabelMaximumDistance.Value = DisplayUx6B(item.WorldLabelMaximumDistance);
+        _worldLabelNearScale.Value = DisplayUx6B(item.WorldLabelNearScale);
+        _worldLabelFarScale.Value = DisplayUx6B(item.WorldLabelFarScale);
+        _hideLocalHeroLabelInFirstPerson.ButtonPressed = item.HideLocalHeroLabelInFirstPerson;
         _updating = false;
     }
     private void FlushCameraUx6B()
@@ -749,7 +794,18 @@ internal sealed partial class StudioGameplayFoundationWorkbenchUx6B : ColorRect
             AlignCharacterFacing = _alignFacing.ButtonPressed,
             TerrainClearance = (float)_terrainClearance.Value,
             TerrainProbeSamples = checked((int)_terrainProbeSamples.Value),
-            InitialYawDegrees = (float)_initialYaw.Value
+            InitialYawDegrees = (float)_initialYaw.Value,
+            OcclusionSchemaVersion = 1,
+            OcclusionStrategy = (CameraOcclusionStrategy)_occlusionStrategy.Selected,
+            CollisionRetractSharpness = (float)_collisionRetractSharpness.Value,
+            CollisionReleaseSharpness = (float)_collisionReleaseSharpness.Value,
+            WorldLabelSchemaVersion = 1,
+            WorldLabelNearDistance = (float)_worldLabelNearDistance.Value,
+            WorldLabelFarDistance = (float)_worldLabelFarDistance.Value,
+            WorldLabelMaximumDistance = (float)_worldLabelMaximumDistance.Value,
+            WorldLabelNearScale = (float)_worldLabelNearScale.Value,
+            WorldLabelFarScale = (float)_worldLabelFarScale.Value,
+            HideLocalHeroLabelInFirstPerson = _hideLocalHeroLabelInFirstPerson.ButtonPressed
         };
     }
     private void PopulateActionUx6B()
@@ -814,7 +870,9 @@ internal sealed partial class StudioGameplayFoundationWorkbenchUx6B : ColorRect
     {
         FlushCameraUx6B(); var n = _cameras.Count + 1;
         _cameras.Add(new(Guid.NewGuid(), $"camera-{n}", $"Caméra {n}", GameplayCameraMode.Orbit,
-            60, 8, 1, 40, 20, new(0, 1.25f, 0), true, false, .9f, 32, 39, -85, 85));
+            60, 8, 1, 40, 20, new(0, 1.25f, 0), true, false, .9f, 32, 39, -85, 85,
+            1, CameraOcclusionStrategy.Retract, 24, 3.25f,
+            1, 2, 28, 42, .55f, 1.15f, true));
         RebuildCollectionsPreservingUx6B(); _cameraIndex = _cameras.Count - 1;
         _cameraChoice.Select(_cameraIndex); PopulateCameraUx6B(); InvalidatePreviewUx6B();
     }

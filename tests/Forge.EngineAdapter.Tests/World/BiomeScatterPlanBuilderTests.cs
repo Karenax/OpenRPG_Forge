@@ -1,10 +1,17 @@
+using System.Diagnostics;
 using Forge.Domain.Areas;
+using Forge.Domain.Spatial;
 using Forge.EngineAdapter.World;
+using Xunit.Abstractions;
 
 namespace Forge.EngineAdapter.Tests.World;
 
 public sealed class BiomeScatterPlanBuilderTests
 {
+    private readonly ITestOutputHelper _output;
+
+    public BiomeScatterPlanBuilderTests(ITestOutputHelper output) => _output = output;
+
     [Fact]
     public void BuildsStablePlacementsForTheSameRecipeAndSeed()
     {
@@ -23,6 +30,32 @@ public sealed class BiomeScatterPlanBuilderTests
             Assert.InRange(placement.YawRadians, 0, MathF.Tau);
             Assert.True(placement.UniformScale > 0);
         });
+    }
+
+    [Fact]
+    public void AuthoredBiomeSeedOverridesTheTerrainDerivedSeedDeterministically()
+    {
+        var source = BuildWorld([]);
+        var biome = source.Biomes.Single(candidate => candidate.Tags.Contains("meadow"));
+        var firstWorld = BiomeScatterAuthoring.Apply(source,
+        [
+            new BiomeScatterPatch(biome.Id, [BiomeScatterPatchField.Seed], Seed: 8201),
+        ]);
+        var secondWorld = BiomeScatterAuthoring.Apply(source,
+        [
+            new BiomeScatterPatch(biome.Id, [BiomeScatterPatchField.Seed], Seed: 8202),
+        ]);
+
+        var first = BiomeScatterPlanBuilder.Build(firstWorld,
+            firstWorld.Biomes.Single(candidate => candidate.Id == biome.Id));
+        var firstAgain = BiomeScatterPlanBuilder.Build(firstWorld,
+            firstWorld.Biomes.Single(candidate => candidate.Id == biome.Id));
+        var second = BiomeScatterPlanBuilder.Build(secondWorld,
+            secondWorld.Biomes.Single(candidate => candidate.Id == biome.Id));
+
+        Assert.NotEmpty(first);
+        Assert.Equal(first, firstAgain);
+        Assert.NotEqual(first, second);
     }
 
     [Fact]
@@ -154,6 +187,78 @@ public sealed class BiomeScatterPlanBuilderTests
         Assert.NotEmpty(placements);
         Assert.All(placements, placement =>
             Assert.True(MathF.Pow(placement.Position.X - 4, 2) + MathF.Pow(placement.Position.Z + 3, 2) <= 12 * 12));
+    }
+
+    [Fact]
+    public void PreparedExclusionIndexAvoidsMeasuredRepeatedSegmentScans()
+    {
+        var areaId = AreaId.From(Guid.Parse("a23d0000-0000-4000-8000-000000000021"));
+        var source = AreaWorldProfile.CreateDefault(areaId, AreaKind.Exterior, new AreaDimensions(512, 512));
+        var meadow = source.Terrain.MaterialLayers.Single(candidate => candidate.Name == "Prairie");
+        var biome = new BiomeLayerDefinition(
+            Guid.Parse("a23d0000-0000-4000-8000-000000000022"),
+            "Indexed meadow",
+            meadow.Id,
+            -512,
+            512,
+            0,
+            90,
+            0,
+            1,
+            .92f,
+            "asset:indexed-meadow",
+            ["ground-cover", "lush-meadow", "meadow"],
+            ["road"],
+            20,
+            "test:indexed-scatter");
+        var roadPoints = Enumerable.Range(0, 129)
+            .Select(index => new Vector3Value(-256 + index * 4, 0, MathF.Sin(index * .2f) * 12))
+            .ToArray();
+        var road = new TerrainFeatureDefinition(
+            Guid.Parse("a23d0000-0000-4000-8000-000000000023"),
+            TerrainFeatureDefinition.CurrentSchemaVersion,
+            "Long road",
+            TerrainFeatureKind.Road,
+            roadPoints,
+            4.2f,
+            0,
+            0,
+            TerrainFeatureCrossingPolicy.Allow,
+            ["meadow"],
+            "builtin/road",
+            "test:indexed-scatter");
+        var world = new AreaWorldProfile(
+            source.Id,
+            source.SchemaVersion,
+            source.Terrain,
+            [biome],
+            [road],
+            source.VolumetricNavigation,
+            source.FlightRoutes,
+            source.Loading,
+            "test:indexed-scatter");
+
+        var started = Stopwatch.GetTimestamp();
+        var prepared = BiomeScatterPlanBuilder.Prepare(world);
+        var measured = prepared.Build(biome);
+        var elapsed = Stopwatch.GetElapsedTime(started);
+
+        _output.WriteLine(
+            "placements={0} indexed_checks={1} linear_checks={2} elapsed_ms={3:0.###}",
+            measured.Placements.Count,
+            measured.Diagnostics.CandidateSegmentChecks,
+            measured.Diagnostics.LinearCandidateSegmentChecks,
+            elapsed.TotalMilliseconds);
+
+        Assert.Equal(1, prepared.MaterialPaintPreparationPasses);
+        Assert.Equal(128, measured.Diagnostics.PreparedExclusionSegments);
+        Assert.True(measured.Diagnostics.LinearCandidateSegmentChecks > 100_000);
+        Assert.True(
+            measured.Diagnostics.CandidateSegmentChecks * 8 <
+            measured.Diagnostics.LinearCandidateSegmentChecks,
+            $"indexed={measured.Diagnostics.CandidateSegmentChecks} " +
+            $"linear={measured.Diagnostics.LinearCandidateSegmentChecks}");
+        Assert.Equal(BiomeScatterPlanBuilder.Build(world, biome), measured.Placements);
     }
 
     private static AreaWorldProfile BuildWorld(IReadOnlyList<TerrainMaterialPaintCell> paint)

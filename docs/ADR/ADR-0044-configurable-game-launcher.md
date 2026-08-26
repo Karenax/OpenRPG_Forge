@@ -37,6 +37,10 @@ interdit à un module communautaire de remplacer le runtime ou de charger du cod
 - Les préférences du joueur restent hors du module, sous `%LOCALAPPDATA%/OpenRPG Forge/Games/<slug>`.
   Elles couvrent résolution, mode fenêtré/sans bordure/plein écran, qualité, VSync, volumes,
   réduction des mouvements, mode de session, joueur et port.
+- À compter du 25 août 2026, une nouvelle configuration démarre en plein écran. Le choix produit
+  **Fenêtré plein écran** occupe le moniteur sans bordure et conserve Alt+Tab ; les anciennes valeurs
+  v1 `Windowed` et `Borderless` convergent vers ce même rendu afin de migrer les préférences sans les
+  invalider. Le lanceur WPF et le Studio s'ouvrent eux aussi en plein écran par défaut.
 - La décision initiale conditionne la connexion distante à un transport inter-processus réel. Cette
   condition est satisfaite par l'ADR-0048 : le profil Internet direct peut désormais exposer
   **Héberger** et **Rejoindre**. Un profil local continue d'écouter uniquement sur loopback, et le

@@ -24,7 +24,7 @@ if (-not $SkipBuild) {
 }
 
 $arguments = @('--rendering-method', 'forward_plus')
-if ($Headless) { $arguments += '--headless' }
+if ($Headless) { $arguments += '--headless' } else { $arguments += '--fullscreen' }
 $arguments += @('--editor', '--path', $toolsetPath, '--log-file', $toolsetLog)
 if ($UserArgument.Count -gt 0) { $arguments += '--'; $arguments += $UserArgument }
 $launch = @{

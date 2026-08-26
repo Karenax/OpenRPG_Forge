@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 1,
+  "jobId": "78e63d52-ba8f-5a31-8730-cb3cb303ff2f",
+  "assetId": "solaren:quaternius:female-ranger-ual2",
+  "sourceRelativePath": "normalized/quaternius/modular-character-outfits-fantasy-standard/Modular Character Outfits - Fantasy[Standard]/Exports/glTF (Godot-Unreal)/Outfits/Female_Ranger.gltf",
+  "outputRelativePath": "artifacts/solaren/female-ranger-ual2.glb",
+  "sourceSha256": "9b98b2ae6af3b4a1ec22bf8928b939e0751f08b25b636de82bfa7364fb34d3e1",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "asset-vault:quaternius:modular-character-outfits-fantasy-standard+universal-base-characters-standard+universal-animation-library-standard-1.0+universal-animation-library-2-standard-2026-08-16",
+  "operations": [
+    "validate_model",
+    "export_glb",
+    "generate_thumbnail",
+    "audit_quality"
+  ],
+  "options": {
+    "applyTransforms": false,
+    "scaleMeters": 1.0,
+    "pivot": "keep",
+    "lodRatios": [],
+    "generateCollision": false,
+    "animationSources": [
+      {
+        "name": "idle_loop",
+        "relativePath": "normalized/quaternius/universal-animation-library-standard-1.0/Animation Library[Standard]/Unity/AnimationLibrary_Unity_Standard.fbx",
+        "contentSha256": "42f16a4ed61d1e9f5fc7c2526894c5487148ac6ba82b64281ceb7943570f3c37"
+      },
+      {
+        "name": "jog_fwd_loop",
+        "relativePath": "normalized/quaternius/universal-animation-library-standard-1.0/Animation Library[Standard]/Unity/AnimationLibrary_Unity_Standard.fbx",
+        "contentSha256": "42f16a4ed61d1e9f5fc7c2526894c5487148ac6ba82b64281ceb7943570f3c37"
+      },
+      {
+        "name": "jump_start",
+        "relativePath": "normalized/quaternius/universal-animation-library-standard-1.0/Animation Library[Standard]/Unity/AnimationLibrary_Unity_Standard.fbx",
+        "contentSha256": "42f16a4ed61d1e9f5fc7c2526894c5487148ac6ba82b64281ceb7943570f3c37"
+      },
+      {
+        "name": "sword_attack",
+        "relativePath": "normalized/quaternius/universal-animation-library-standard-1.0/Animation Library[Standard]/Unity/AnimationLibrary_Unity_Standard.fbx",
+        "contentSha256": "42f16a4ed61d1e9f5fc7c2526894c5487148ac6ba82b64281ceb7943570f3c37"
+      },
+      {
+        "name": "hit_chest",
+        "relativePath": "normalized/quaternius/universal-animation-library-standard-1.0/Animation Library[Standard]/Unity/AnimationLibrary_Unity_Standard.fbx",
+        "contentSha256": "42f16a4ed61d1e9f5fc7c2526894c5487148ac6ba82b64281ceb7943570f3c37"
+      },
+      {
+        "name": "death01",
+        "relativePath": "normalized/quaternius/universal-animation-library-standard-1.0/Animation Library[Standard]/Unity/AnimationLibrary_Unity_Standard.fbx",
+        "contentSha256": "42f16a4ed61d1e9f5fc7c2526894c5487148ac6ba82b64281ceb7943570f3c37"
+      }
+    ],
+    "supplementalMeshSources": [
+      {
+        "relativePath": "normalized/quaternius/universal-base-characters-standard/Universal Base Characters[Standard]/Base Characters/Godot - UE/Superhero_Female_FullBody.gltf",
+        "contentSha256": "215f2af81ad91eecfcee807bad19b541704b800844d997286b78d5dbed7a3b5e",
+        "includedMeshNames": [
+          "Eyebrows",
+          "Eyes",
+          "Superhero_Female"
+        ],
+        "minimumVertexZ": 1.46
+      },
+      {
+        "relativePath": "normalized/quaternius/universal-base-characters-standard/Universal Base Characters[Standard]/Hairstyles/Rigged to Head Bone/glTF (Godot -Unreal)/Hair_Long.gltf",
+        "contentSha256": "27e2c63e8f98c79fb600268ffcc92b36c621b8653b5a7dcbadb08328f3f887a9",
+        "includedMeshNames": [
+          "Hair_Long"
+        ],
+        "minimumVertexZ": -1000.0
+      }
+    ],
+    "materialTextures": [],
+    "retargetProfile": {
+      "profileId": "quaternius-ual1-53-to-ual2-65-v1",
+      "sourceRig": "quaternius-ual1-standard-53",
+      "targetRig": "quaternius-ual2-standard-65",
+      "sourceBoneCount": 53,
+      "targetBoneCount": 65,
+      "rootMotionTarget": "root",
+      "minimumMappedBoneRatio": 0.8,
+      "maximumBoundsExpansion": 3.0,
+      "bones": {
+        "root": "root",
+        "pelvis": "DEF-hips",
+        "spine_01": "DEF-spine.001",
+        "spine_02": "DEF-spine.002",
+        "spine_03": "DEF-spine.003",
+        "neck_01": "DEF-neck",
+        "Head": "DEF-head",
+        "clavicle_l": "DEF-shoulder.L",
+        "upperarm_l": "DEF-upper_arm.L",
+        "lowerarm_l": "DEF-forearm.L",
+        "hand_l": "DEF-hand.L",
+        "thumb_01_l": "DEF-thumb.01.L",
+        "thumb_02_l": "DEF-thumb.02.L",
+        "thumb_03_l": "DEF-thumb.03.L",
+        "index_01_l": "DEF-f_index.01.L",
+        "index_02_l": "DEF-f_index.02.L",
+        "index_03_l": "DEF-f_index.03.L",
+        "middle_01_l": "DEF-f_middle.01.L",
+        "middle_02_l": "DEF-f_middle.02.L",
+        "middle_03_l": "DEF-f_middle.03.L",
+        "ring_01_l": "DEF-f_ring.01.L",
+        "ring_02_l": "DEF-f_ring.02.L",
+        "ring_03_l": "DEF-f_ring.03.L",
+        "pinky_01_l": "DEF-f_pinky.01.L",
+        "pinky_02_l": "DEF-f_pinky.02.L",
+        "pinky_03_l": "DEF-f_pinky.03.L",
+        "clavicle_r": "DEF-shoulder.R",
+        "upperarm_r": "DEF-upper_arm.R",
+        "lowerarm_r": "DEF-forearm.R",
+        "hand_r": "DEF-hand.R",
+        "thumb_01_r": "DEF-thumb.01.R",
+        "thumb_02_r": "DEF-thumb.02.R",
+        "thumb_03_r": "DEF-thumb.03.R",
+        "index_01_r": "DEF-f_index.01.R",
+        "index_02_r": "DEF-f_index.02.R",
+        "index_03_r": "DEF-f_index.03.R",
+        "middle_01_r": "DEF-f_middle.01.R",
+        "middle_02_r": "DEF-f_middle.02.R",
+        "middle_03_r": "DEF-f_middle.03.R",
+        "ring_01_r": "DEF-f_ring.01.R",
+        "ring_02_r": "DEF-f_ring.02.R",
+        "ring_03_r": "DEF-f_ring.03.R",
+        "pinky_01_r": "DEF-f_pinky.01.R",
+        "pinky_02_r": "DEF-f_pinky.02.R",
+        "pinky_03_r": "DEF-f_pinky.03.R",
+        "thigh_l": "DEF-thigh.L",
+        "calf_l": "DEF-shin.L",
+        "foot_l": "DEF-foot.L",
+        "ball_l": "DEF-toe.L",
+        "thigh_r": "DEF-thigh.R",
+        "calf_r": "DEF-shin.R",
+        "foot_r": "DEF-foot.R",
+        "ball_r": "DEF-toe.R"
+      }
+    }
+  }
+}

@@ -20,7 +20,7 @@ internal sealed partial class StudioSessionController
     private const string Ux2EnvDBudgetCode = "studio.environment.light_budget_invalid";
     private const string Ux2EnvDSkyCode = "studio.environment.sky_invalid";
 
-    private readonly SetAreaEnvironmentHandler _setAreaEnvironmentUx2EnvD = new(new SystemClock());
+    private readonly PatchAreaEnvironmentHandler _setAreaEnvironmentUx2EnvD = new(new SystemClock());
     private StudioUx2EnvDDraft? _approvedRenderingUx2EnvD;
     private ProjectRevision? _approvedRenderingRevisionUx2EnvD;
     private string? _approvedRenderingFingerprintUx2EnvD;
@@ -272,7 +272,7 @@ internal sealed partial class StudioSessionController
     private bool TryBuildRenderingUx2EnvD(
         StudioUx2EnvDDraft draft,
         bool dryRun,
-        out SetAreaEnvironmentCommand? command,
+        out PatchAreaEnvironmentCommand? command,
         out AreaDefinition? sourceArea,
         out AreaDefinition? candidateArea,
         out AreaEnvironmentProfile? candidateEnvironment,
@@ -386,7 +386,7 @@ internal sealed partial class StudioSessionController
             {
                 diagnostics = canonicalDiagnostics; message = canonicalDiagnostics[0].Message; return false;
             }
-            command = new SetAreaEnvironmentCommand(
+            command = new PatchAreaEnvironmentCommand(
                 CommandId.From(Guid.NewGuid()), history.State.Revision, sourceArea.Id, environment, dryRun);
             return true;
         }
@@ -1005,7 +1005,7 @@ internal sealed partial class StudioSessionController
             source.Lighting, source.Fog, source.Audio, source.Rendering, source.Sky, wind, source.Weather,
             source.Water, source.Reverb, source.Authoring, source.RequireAuthoringRuntimeMetadata);
         var result = controller._setAreaEnvironmentUx2EnvD.Handle(history.State,
-            new SetAreaEnvironmentCommand(CommandId.From(Guid.NewGuid()), history.State.Revision,
+            new PatchAreaEnvironmentCommand(CommandId.From(Guid.NewGuid()), history.State.Revision,
                 area.Id, candidate, false));
         if (!result.Succeeded) return false;
         history.Record(result);

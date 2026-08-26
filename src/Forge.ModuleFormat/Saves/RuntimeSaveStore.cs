@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using Forge.Domain.Areas;
 
 namespace Forge.ModuleFormat.Saves;
 
@@ -145,15 +146,72 @@ public static class RuntimeSaveStore
         return fullPath;
     }
 
-    internal static RuntimeSaveDocument Migrate(RuntimeSaveDocument save) =>
-        string.Equals(save.FormatVersion, RuntimeSaveDocument.CurrentFormatVersion, StringComparison.Ordinal) &&
-        save.EntitySnapshots is not null
-            ? save
-            : save with
+    internal static RuntimeSaveDocument Migrate(RuntimeSaveDocument save)
+    {
+        if (string.Equals(save.FormatVersion, RuntimeSaveDocument.CurrentFormatVersion, StringComparison.Ordinal))
+        {
+            return save with
             {
-                FormatVersion = RuntimeSaveDocument.CurrentFormatVersion,
                 EntitySnapshots = save.EntitySnapshots ?? [],
+                QuestStates = save.QuestStates ?? [],
+                MapExploration = MigrateMapExploration(save.MapExploration),
             };
+        }
+
+        var supportedLegacyVersion =
+            string.Equals(save.FormatVersion, RuntimeSaveDocument.PreMapExplorationFormatVersion,
+                StringComparison.Ordinal) ||
+            string.Equals(save.FormatVersion, RuntimeSaveDocument.PreQuestCollectionFormatVersion,
+                StringComparison.Ordinal) ||
+            string.Equals(save.FormatVersion, RuntimeSaveDocument.PreInventoryStacksFormatVersion,
+                StringComparison.Ordinal) ||
+            string.Equals(save.FormatVersion, RuntimeSaveDocument.PreWorldClockFormatVersion,
+                StringComparison.Ordinal) ||
+            string.Equals(save.FormatVersion, RuntimeSaveDocument.PreRuntimeExtensionsFormatVersion,
+                StringComparison.Ordinal) ||
+            string.Equals(save.FormatVersion, RuntimeSaveDocument.PreRulesFormatVersion,
+                StringComparison.Ordinal);
+        if (!supportedLegacyVersion)
+            return save;
+
+        var questStates = save.QuestStates ?? [];
+        var trackedQuestId = save.TrackedQuestId;
+        if (questStates.Count == 0 && save.QuestId is not null && save.QuestStateId is not null)
+        {
+            var accepted = save.Variables
+                .Where(item => string.Equals(item.Key, "quest.accepted", StringComparison.Ordinal))
+                .Select(item => bool.TryParse(item.Value, out var value) && value)
+                .SingleOrDefault();
+            questStates = [new RuntimeQuestSaveState(save.QuestId, save.QuestStateId, accepted)];
+            trackedQuestId = accepted ? save.QuestId : null;
+        }
+
+        return save with
+        {
+            FormatVersion = RuntimeSaveDocument.CurrentFormatVersion,
+            EntitySnapshots = save.EntitySnapshots ?? [],
+            QuestStates = questStates,
+            TrackedQuestId = trackedQuestId,
+            MapExploration = MigrateMapExploration(save.MapExploration),
+        };
+    }
+
+    private static RuntimeMapExplorationSave? MigrateMapExploration(RuntimeMapExplorationSave? exploration)
+    {
+        if (exploration is null) return null;
+        var cells = exploration.RevealedCells
+            .Select(key => AreaMapCell.TryParse(key, out var cell, out var legacy)
+                ? legacy ? cell.LegacyKey : cell.Key
+                : key)
+            .Distinct(StringComparer.Ordinal)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+        var pins = exploration.RevealedPins
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Order(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+        return exploration with { RevealedCells = cells, RevealedPins = pins };
+    }
 
     private static RuntimeSaveOperationResult Failure(string code, string message, string? path) =>
         new(false, null, [new RuntimeSaveDiagnostic(code, message, path)]);

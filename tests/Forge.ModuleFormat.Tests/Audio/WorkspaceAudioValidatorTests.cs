@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using Forge.Application.Areas;
 using Forge.ModuleFormat.Audio;
 using Forge.ModuleFormat.Tests.Serialization;
 
@@ -37,6 +38,29 @@ public sealed class WorkspaceAudioValidatorTests : IDisposable
         var diagnostic = Assert.Single(WorkspaceAudioValidator.Validate(_workspace, project),
             item => item.Code == WorkspaceAudioValidator.ResourceMissingCode);
         Assert.EndsWith("/resourcePath", diagnostic.Path, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Versioned_builtin_is_verified_and_unknown_or_forged_builtin_is_rejected()
+    {
+        Directory.CreateDirectory(_workspace);
+        var generated = ProceduralAmbientAudioService.Create(ProceduralAmbientAudioService.StreamResource);
+        var project = AudioEmitterPersistenceTests.WithAudio(TestProjectFactory.CreateValid(),
+            AudioEmitterPersistenceTests.CreateCatalog(ProceduralAmbientAudioService.StreamResource,
+                generated.Pcm16Mono.LongLength, generated.ContentSha256));
+        Assert.Empty(WorkspaceAudioValidator.Validate(_workspace, project));
+
+        var forged = AudioEmitterPersistenceTests.WithAudio(TestProjectFactory.CreateValid(),
+            AudioEmitterPersistenceTests.CreateCatalog(ProceduralAmbientAudioService.StreamResource,
+                generated.Pcm16Mono.LongLength, new string('0', 64)));
+        Assert.Contains(WorkspaceAudioValidator.Validate(_workspace, forged),
+            item => item.Code == WorkspaceAudioValidator.ResourceHashCode);
+
+        var unknown = AudioEmitterPersistenceTests.WithAudio(TestProjectFactory.CreateValid(),
+            AudioEmitterPersistenceTests.CreateCatalog("builtin://openrpg/audio/v1/unknown", 1,
+                new string('a', 64)));
+        Assert.Contains(WorkspaceAudioValidator.Validate(_workspace, unknown),
+            item => item.Code == WorkspaceAudioValidator.BuiltinUnsupportedCode);
     }
 
     public void Dispose()

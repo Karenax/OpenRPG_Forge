@@ -264,6 +264,26 @@ public sealed class ForgeMcpTools
         _project.PreviewCreatureFoundation(request);
 
     [McpServerTool]
+    [Description("Plans one canonical creature authoring mutation for foundation, presentation, progression or role behavior. The plan is dry-run only and returns diff/inverse/audit metadata.")]
+    public CreatureAuthoringPlanResult PlanCreatureAuthoring(CreatureAuthoringPlanRequest request) =>
+        _project.PlanCreatureAuthoring(request);
+
+    [McpServerTool]
+    [Description("Applies a previously previewed canonical creature authoring plan and saves the project workspace.")]
+    public CreatureAuthoringPlanResult ApplyCreatureAuthoringPlan(string planId) =>
+        _project.ApplyCreatureAuthoringPlan(planId);
+
+    [McpServerTool]
+    [Description("Reverts the latest applied canonical creature authoring plan and saves the restored project workspace.")]
+    public CreatureAuthoringPlanResult RevertCreatureAuthoringPlan(string planId) =>
+        _project.RevertCreatureAuthoringPlan(planId);
+
+    [McpServerTool]
+    [Description("Redoes the next reverted canonical creature authoring plan and saves the project workspace.")]
+    public CreatureAuthoringPlanResult RedoCreatureAuthoringPlan(string planId) =>
+        _project.RedoCreatureAuthoringPlan(planId);
+
+    [McpServerTool]
     [Description("Returns canonical creature-event profiles filtered by blueprint ID, slug or display name without mutation.")]
     public CreatureEventResource QueryCreatureEvents(string? blueprintIdOrSearch = null, int limit = 50) =>
         _project.QueryCreatureEvents(blueprintIdOrSearch, limit);
@@ -762,6 +782,17 @@ public sealed class ForgeMcpTools
     [Description("Returns canonical audio emitters filtered by area, emitter UUID or search text.")]
     public AudioEmitterResource GetAudioEmitters(string? areaId = null, string? emitterId = null,
         string? search = null) => _project.GetAudioEmitters(areaId, emitterId, search);
+
+    [McpServerTool(Name = "forge_get_builtin_audio_resources", ReadOnly = true, Destructive = false,
+        Idempotent = true, OpenWorld = false)]
+    [Description("Returns the versioned offline procedural audio resources with license, hash, size and manifest receipt.")]
+    public BuiltinAudioResourceCatalog GetBuiltinAudioResources() => _project.GetBuiltinAudioResources();
+
+    [McpServerTool(Name = "forge_plan_audio_emitter", ReadOnly = false, Destructive = false,
+        Idempotent = false, OpenWorld = false)]
+    [Description("Validates a governed workspace or versioned built-in audio source and dry-runs one positioned emitter through the canonical area-environment command.")]
+    public AudioEmitterPlanResult PlanAudioEmitter(AudioEmitterCreatePlanRequest request) =>
+        _project.PlanAudioEmitter(request);
 
     [McpServerTool(Name = "forge_plan_audio_emitters", ReadOnly = false, Destructive = false,
         Idempotent = false, OpenWorld = false)]

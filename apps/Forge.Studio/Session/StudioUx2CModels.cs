@@ -10,6 +10,7 @@ internal enum StudioUx2CTerrainOperation
     Sculpt,
     Feature,
     TileProperty,
+    Biome,
 }
 
 internal sealed record StudioUx2CAreaChoice(
@@ -59,7 +60,28 @@ internal sealed record StudioUx2CTerrainDraft(
     bool CollisionEnabled,
     bool NavigationEnabled,
     IReadOnlyList<string> SocketOverrides,
-    IReadOnlyDictionary<string, string> PropertyOverrides);
+    IReadOnlyDictionary<string, string> PropertyOverrides,
+    Guid BiomeId,
+    float BiomeDensity,
+    string BiomeResource,
+    float BiomeMinimumAltitude,
+    float BiomeMaximumAltitude,
+    float BiomeMinimumSlope,
+    float BiomeMaximumSlope,
+    float BiomeMinimumMoisture,
+    float BiomeMaximumMoisture,
+    bool BiomeScaleEnabled,
+    float BiomeScale,
+    bool BiomeTintEnabled,
+    string BiomeTintColor,
+    float BiomeTintStrength,
+    bool BiomeFocusEnabled,
+    float BiomeFocusX,
+    float BiomeFocusZ,
+    float BiomeFocusRadius,
+    IReadOnlyList<string> BiomeExclusionTags,
+    bool BiomeSeedEnabled,
+    int BiomeSeed);
 
 internal sealed record StudioUx2CTerrainPreview(
     bool Succeeded,
@@ -96,4 +118,7 @@ internal sealed record StudioUx2CSmokeResult(
     bool UndoRedo,
     bool Persistence,
     bool NeighboursPreserved,
-    bool HumanText);
+    bool HumanText)
+{
+    internal bool Biome { get; init; }
+}

@@ -45,6 +45,13 @@ internal sealed class TestWorkspace : IDisposable
 
     private static string FindRepositoryRoot()
     {
+        var configured = Environment.GetEnvironmentVariable("OPENRPG_FORGE_REPOSITORY_ROOT");
+        if (!string.IsNullOrWhiteSpace(configured) &&
+            File.Exists(Path.Combine(configured, "OpenRPGForge.sln")))
+        {
+            return Path.GetFullPath(configured);
+        }
+
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
         while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "OpenRPGForge.sln")))
         {

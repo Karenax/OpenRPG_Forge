@@ -162,7 +162,10 @@ internal sealed partial class StudioSessionController
         InvariantUx2EnvF(item.Transform.Scale.Y),
         InvariantUx2EnvF(item.Transform.Scale.Z),
         item.Enabled,
-        item.Provenance);
+        item.Provenance,
+        InvariantUx2EnvF(item.EffectiveControl.Volume),
+        item.EffectiveControl.Muted,
+        item.EffectiveControl.Conditions.ToArray());
 
     internal StudioUx2EnvFPreview PreviewAudioEmittersUx2EnvF(StudioUx2EnvFDraft draft)
     {
@@ -209,7 +212,9 @@ internal sealed partial class StudioSessionController
                 HumanLoopUx2EnvF(playback.Loop.Mode),
                 $"X {playback.Transform.Position.X:0.##} · Y {playback.Transform.Position.Y:0.##} · " +
                 $"Z {playback.Transform.Position.Z:0.##}",
-                playback.Autoplay);
+                playback.Autoplay,
+                playback.Volume,
+                playback.Conditions);
         }).ToArray();
         if (diff.HasChanges)
         {
@@ -220,7 +225,9 @@ internal sealed partial class StudioSessionController
         var summary =
             $"Plan déterministe : {candidateCatalog.Definitions.Count} émetteur(s), " +
             $"{candidateCatalog.Definitions.Sum(item => item.ClipSet.Clips.Count)} clip(s), " +
-            $"{candidateCatalog.Instances.Count} instance(s), {plans.Length} départ(s) initial(aux). " +
+            $"{candidateCatalog.Instances.Count} instance(s), " +
+            $"{candidateCatalog.Instances.Count(item => item.EffectiveControl.Muted)} muette(s), " +
+            $"{plans.Length} départ(s) initial(aux). " +
             "La sélection pondérée utilise une graine stable; les positions, boucles et distances sont des données auteur. " +
             "Cet aperçu Studio ne charge aucune ressource et n’instancie aucun AudioStreamPlayer3D : " +
             "le playback réel reste la responsabilité du runtime Godot.";
@@ -426,7 +433,10 @@ internal sealed partial class StudioSessionController
                     new Vector3Value(ExactFloatUx2EnvF(item.ScaleX), ExactFloatUx2EnvF(item.ScaleY),
                         ExactFloatUx2EnvF(item.ScaleZ)));
                 var rebuilt = new AudioEmitterInstance(item.Id, item.DefinitionId, transform,
-                    item.Enabled, item.Provenance.Trim());
+                    item.Enabled, item.Provenance.Trim(),
+                    new AudioEmitterControlProfile(AudioEmitterControlProfile.CurrentSchemaVersion,
+                        ExactFloatUx2EnvF(item.Volume), item.Muted,
+                        item.Conditions.Select(condition => condition.Trim()).ToArray()));
                 return sourceInstances.TryGetValue(item.Id, out var existing) &&
                        SameInstanceUx2EnvF(existing, rebuilt)
                     ? existing
@@ -586,11 +596,14 @@ internal sealed partial class StudioSessionController
                 !ValidTransformNumberUx2EnvF(item.RotationW) ||
                 !TryFloatUx2EnvF(item.ScaleX, out var scaleX) || scaleX <= 0 ||
                 !TryFloatUx2EnvF(item.ScaleY, out var scaleY) || scaleY <= 0 ||
-                !TryFloatUx2EnvF(item.ScaleZ, out var scaleZ) || scaleZ <= 0))
+                !TryFloatUx2EnvF(item.ScaleZ, out var scaleZ) || scaleZ <= 0 ||
+                !TryFloatUx2EnvF(item.Volume, out var volume) || volume is < 0 or > 4 ||
+                item.Conditions.Any(string.IsNullOrWhiteSpace) ||
+                item.Conditions.Distinct(StringComparer.Ordinal).Count() != item.Conditions.Count))
             diagnostics.Add(new(Ux2EnvFInstanceCode,
                 $"areas/{draft.AreaId}/environment/audio/emitters/instances",
                 "Chaque instance requiert un émetteur existant, une position, une rotation et une échelle 3D " +
-                "finies, ainsi qu’une provenance."));
+                "finies, un volume 0..4, des conditions uniques et une provenance."));
         return diagnostics;
     }
 
@@ -653,7 +666,8 @@ internal sealed partial class StudioSessionController
             diagnostic.Path.Contains("loop", StringComparison.OrdinalIgnoreCase) ||
             diagnostic.Path.Contains("spatial", StringComparison.OrdinalIgnoreCase)) return "loops";
         if (diagnostic.Code is Ux2EnvFInstanceCode or AudioEmitterCatalogValidator.InstanceInvalidCode or
-            AudioEmitterCatalogValidator.InstanceDuplicateCode or AudioEmitterCatalogValidator.DefinitionMissingCode ||
+            AudioEmitterCatalogValidator.InstanceDuplicateCode or AudioEmitterCatalogValidator.DefinitionMissingCode or
+            AudioEmitterCatalogValidator.ControlInvalidCode ||
             diagnostic.Path.Contains("instances", StringComparison.OrdinalIgnoreCase)) return "instances";
         return "definitions";
     }
@@ -680,7 +694,8 @@ internal sealed partial class StudioSessionController
         Ux2EnvFSpatialCode or AudioEmitterCatalogValidator.SpatialInvalidCode =>
             "La portée, le cône, l’occlusion ou la hauteur de l’émetteur n’est pas valide.",
         Ux2EnvFInstanceCode or AudioEmitterCatalogValidator.InstanceInvalidCode or
-            AudioEmitterCatalogValidator.InstanceDuplicateCode or AudioEmitterCatalogValidator.DefinitionMissingCode =>
+            AudioEmitterCatalogValidator.InstanceDuplicateCode or AudioEmitterCatalogValidator.DefinitionMissingCode or
+            AudioEmitterCatalogValidator.ControlInvalidCode =>
             "Une instance 3D ou sa référence d’émetteur n’est pas valide.",
         AudioEmitterCatalogValidator.MixBusMissingCode =>
             "Le bus de mixage choisi n’existe plus dans cette zone.",
@@ -759,7 +774,12 @@ internal sealed partial class StudioSessionController
     private static bool SameInstanceUx2EnvF(AudioEmitterInstance source, AudioEmitterInstance candidate) =>
         source.Id == candidate.Id && source.DefinitionId == candidate.DefinitionId &&
         source.Transform == candidate.Transform && source.Enabled == candidate.Enabled &&
-        string.Equals(source.Provenance, candidate.Provenance, StringComparison.Ordinal);
+        string.Equals(source.Provenance, candidate.Provenance, StringComparison.Ordinal) &&
+        source.EffectiveControl.SchemaVersion == candidate.EffectiveControl.SchemaVersion &&
+        source.EffectiveControl.Volume.Equals(candidate.EffectiveControl.Volume) &&
+        source.EffectiveControl.Muted == candidate.EffectiveControl.Muted &&
+        source.EffectiveControl.Conditions.SequenceEqual(candidate.EffectiveControl.Conditions,
+            StringComparer.Ordinal);
 
     private static string AudioEmitterSourceFingerprintUx2EnvF(AreaDefinition area)
     {
@@ -852,6 +872,10 @@ internal sealed partial class StudioSessionController
                 writer.Write(item.ScaleZ ?? string.Empty);
                 writer.Write(item.Enabled);
                 writer.Write(item.Provenance ?? string.Empty);
+                writer.Write(item.Volume ?? string.Empty);
+                writer.Write(item.Muted);
+                writer.Write(item.Conditions.Count);
+                foreach (var condition in item.Conditions) writer.Write(condition ?? string.Empty);
             }
             writer.Write(draft.MixBuses.Count);
             foreach (var item in draft.MixBuses)
@@ -1213,7 +1237,13 @@ internal sealed partial class StudioSessionController
                     }
                     : item).ToArray(),
                 Instances = baseDraft.Instances.Select((item, index) => index == 0
-                    ? item with { PositionX = "9.5" }
+                    ? item with
+                    {
+                        PositionX = "9.5",
+                        Volume = "0.55",
+                        Muted = false,
+                        Conditions = ["weather==rain"],
+                    }
                     : item).ToArray(),
             };
             var dryPreview = editing.PreviewAudioEmittersUx2EnvF(dryDraft);
@@ -1226,7 +1256,9 @@ internal sealed partial class StudioSessionController
                                   dryPreview.CanonicalDryRun && dryStatePreserved;
             var deterministicPlans = dryPreview.DeterministicPlansBuilt && dryPreview.PlaybackPlans.Count == 1 &&
                                      dryPreview.PlaybackPlans[0].Loop == "répétition finie" &&
-                                     dryPreview.PlaybackPlans[0].Position.Contains("X 9", StringComparison.Ordinal);
+                                     dryPreview.PlaybackPlans[0].Position.Contains("X 9", StringComparison.Ordinal) &&
+                                     dryPreview.PlaybackPlans[0].Volume.Equals(.55f) &&
+                                     dryPreview.PlaybackPlans[0].Conditions.SequenceEqual(["weather==rain"]);
             var noLivePlaybackClaim = dryPreview.PlayerInstantiationSkipped &&
                                       dryPreview.ResourceLoadingSkipped && dryPreview.RuntimeClaimsBounded &&
                                       dryPreview.Summary.Contains("aucun AudioStreamPlayer3D", StringComparison.Ordinal) &&
@@ -1286,7 +1318,15 @@ internal sealed partial class StudioSessionController
                     }
                     : item).ToArray(),
                 Instances = fresh.Instances.Select((item, index) => index == 0
-                    ? item with { PositionX = "11", PositionY = "3.25", PositionZ = "-7" }
+                    ? item with
+                    {
+                        PositionX = "11",
+                        PositionY = "3.25",
+                        PositionZ = "-7",
+                        Volume = "0.6",
+                        Muted = false,
+                        Conditions = ["chapter==2"],
+                    }
                     : item).ToArray(),
             };
             var preview = editing.PreviewAudioEmittersUx2EnvF(fresh);
@@ -1308,6 +1348,9 @@ internal sealed partial class StudioSessionController
                        (sourceClip.WaveformPeaks ?? []).SequenceEqual(finalClip.WaveformPeaks ?? []) &&
                        sourceClip.DurationSeconds.Equals(finalClip.DurationSeconds);
             });
+            var authoredControl = finalCatalog.Instances[0].EffectiveControl;
+            var controlAuthored = authoredControl.Volume.Equals(.6f) && !authoredControl.Muted &&
+                                  authoredControl.Conditions.SequenceEqual(["chapter==2"]);
             var sourceAudioAfterGuards = sourceTarget.Environment.Audio;
             var finalAudio = finalTarget.Environment.Audio;
             var audioTailsPreserved =
@@ -1386,7 +1429,7 @@ internal sealed partial class StudioSessionController
                             !invalidLoop.Succeeded && !invalidSpatial.Succeeded && !invalidInstance.Succeeded &&
                             canonicalDryRun && deterministicPlans && noLivePlaybackClaim &&
                             staleRevisionBlocked && approvalFingerprintBlocked && applyUndoRedo && persistence &&
-                            clipOrderPreserved && hiddenClipTailsPreserved && environmentLotsPreserved &&
+                            clipOrderPreserved && hiddenClipTailsPreserved && controlAuthored && environmentLotsPreserved &&
                             audioTailsPreserved && areaNeighborsPreserved && projectNeighborsPreserved &&
                             structuredDiagnostics && humanText;
             return new StudioUx2EnvFSmokeResult(

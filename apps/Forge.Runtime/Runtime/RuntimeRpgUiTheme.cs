@@ -170,7 +170,12 @@ internal static class RuntimeRpgUiTheme
         CornerRadiusBottomRight = radius,
     };
 
-    internal static Control Portrait(string path, int size, Color? rim = null, bool selected = false)
+    internal static Control Portrait(
+        string? path,
+        int size,
+        Color? rim = null,
+        bool selected = false,
+        string? fallbackText = null)
     {
         var root = new Control
         {
@@ -186,20 +191,37 @@ internal static class RuntimeRpgUiTheme
         shadow.AddThemeStyleboxOverride("panel", shadowStyle);
         root.AddChild(shadow);
 
-        var portrait = new TextureRect
+        var texture = LoadPortraitTexture(path);
+        if (texture is not null)
         {
-            Texture = GD.Load<Texture2D>(path),
-            ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
-            StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered,
-            MouseFilter = Control.MouseFilterEnum.Ignore,
-            Material = PortraitMaskMaterial(),
-        };
-        portrait.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
-        portrait.OffsetLeft = 3;
-        portrait.OffsetTop = 3;
-        portrait.OffsetRight = -3;
-        portrait.OffsetBottom = -3;
-        root.AddChild(portrait);
+            var portrait = new TextureRect
+            {
+                Texture = texture,
+                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+                StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered,
+                MouseFilter = Control.MouseFilterEnum.Ignore,
+                Material = PortraitMaskMaterial(),
+            };
+            portrait.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
+            portrait.OffsetLeft = 3;
+            portrait.OffsetTop = 3;
+            portrait.OffsetRight = -3;
+            portrait.OffsetBottom = -3;
+            root.AddChild(portrait);
+        }
+        else
+        {
+            var fallback = new Label
+            {
+                Text = string.IsNullOrWhiteSpace(fallbackText) ? "◇" : fallbackText.Trim().ToUpperInvariant(),
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                MouseFilter = Control.MouseFilterEnum.Ignore,
+            };
+            fallback.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
+            StyleTitle(fallback, Math.Max(11, size / 3), rim ?? Bone);
+            root.AddChild(fallback);
+        }
 
         var ring = new Panel { MouseFilter = Control.MouseFilterEnum.Ignore };
         ring.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
@@ -213,6 +235,14 @@ internal static class RuntimeRpgUiTheme
         ring.AddThemeStyleboxOverride("panel", ringStyle);
         root.AddChild(ring);
         return root;
+    }
+
+    private static Texture2D? LoadPortraitTexture(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path)) return null;
+        if (!Path.IsPathFullyQualified(path) || !File.Exists(path)) return null;
+        var image = Image.LoadFromFile(path);
+        return image.IsEmpty() ? null : ImageTexture.CreateFromImage(image);
     }
 
     internal static StyleBoxFlat SearchField() => Frame(

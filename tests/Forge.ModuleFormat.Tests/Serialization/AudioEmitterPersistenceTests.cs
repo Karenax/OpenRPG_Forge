@@ -24,6 +24,9 @@ public sealed class AudioEmitterPersistenceTests
         Assert.Equal("audio/bell.ogg", restoredArea.Environment.Audio.Emitters.Definitions.Single()
             .ClipSet.Clips.Single().ResourcePath);
         Assert.Equal(new Vector3Value(2, 1, -3), restoredArea.Environment.Audio.Emitters.Instances.Single().Transform.Position);
+        Assert.Equal(.8f, restoredArea.Environment.Audio.Emitters.Instances.Single().EffectiveControl.Volume);
+        Assert.Equal(["weather==rain"], restoredArea.Environment.Audio.Emitters.Instances.Single()
+            .EffectiveControl.Conditions);
     }
 
     [Fact]
@@ -172,7 +175,7 @@ public sealed class AudioEmitterPersistenceTests
         [
             new(Guid.Parse("a0040000-0000-4000-8000-000000000104"), definitionId,
                 new TransformValue(new Vector3Value(2, 1, -3), QuaternionValue.Identity, Vector3Value.One),
-                true, "test:audio"),
+                true, "test:audio", new AudioEmitterControlProfile(1, .8f, false, ["weather==rain"])),
         ]);
     }
 }

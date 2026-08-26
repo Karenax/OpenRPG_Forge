@@ -749,9 +749,10 @@ internal sealed partial class StudioAssetLibraryPage : Control
         if (installed) return "Ce modèle est déjà disponible dans la palette du module.";
         if (!item.AvailableLocally) return "Le fichier n'est pas installé dans le Vault local.";
         if (!item.LicenseVerified) return "L'import est bloqué tant que la licence n'est pas vérifiée.";
-        if (!string.Equals(item.Format, "glb", StringComparison.OrdinalIgnoreCase))
-            return "Cette version peut être prévisualisée, mais l'ajout exige une variante GLB canonique.";
-        return "Copier ce modèle gouverné dans le module et créer son blueprint de palette.";
+        if (!string.Equals(item.Format, "glb", StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(item.Format, "gltf", StringComparison.OrdinalIgnoreCase))
+            return "Cette version peut être prévisualisée, mais l'ajout exige une variante glTF ou GLB gouvernée.";
+        return "Copier ce modèle et ses dépendances gouvernées dans le module, puis créer son blueprint de palette.";
     }
 
     private static string FormatBytes(long bytes) => bytes switch

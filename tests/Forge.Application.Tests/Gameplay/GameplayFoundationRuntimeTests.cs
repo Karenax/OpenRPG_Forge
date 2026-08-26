@@ -71,4 +71,59 @@ public sealed class GameplayFoundationRuntimeTests
         Assert.NotNull(handle);
         Assert.Equal("orbit", scripts.Read(handle!.Value).Key);
     }
+
+    [Fact]
+    public void Interpolated_camera_work_is_reserved_for_physics_while_input_and_ui_stay_in_process()
+    {
+        var process = RuntimeFramePhasePlanner.Plan(RuntimeFramePhase.Process);
+        var physics = RuntimeFramePhasePlanner.Plan(RuntimeFramePhase.PhysicsProcess);
+
+        Assert.True(process.ProcessInputAndUi);
+        Assert.False(process.MutateInterpolatedCamera);
+        Assert.False(process.AdvanceCameraCinematics);
+        Assert.False(physics.ProcessInputAndUi);
+        Assert.True(physics.MutateInterpolatedCamera);
+        Assert.True(physics.AdvanceCameraCinematics);
+    }
+
+    [Fact]
+    public void Nearby_occluder_retracts_or_is_transiently_treated_without_hiding_the_player_forever()
+    {
+        var profile = GameplayFoundationRuntime.ResolveCamera(Profile.Cameras);
+        var retracted = CameraOcclusionPolicy.Resolve(profile, 14, 3);
+        var clearAgain = CameraOcclusionPolicy.Resolve(profile, 14, null);
+        var faded = CameraOcclusionPolicy.Resolve(
+            profile with { OcclusionStrategy = CameraOcclusionStrategy.FadeOccluder }, 14, 3);
+        var hidden = CameraOcclusionPolicy.Resolve(
+            profile with { OcclusionStrategy = CameraOcclusionStrategy.HideOccluder }, 14, 3);
+
+        Assert.Equal(3, retracted.CameraDistance);
+        Assert.Equal(CameraOccluderTreatment.None, retracted.OccluderTreatment);
+        Assert.Equal(14, clearAgain.CameraDistance);
+        Assert.Equal(CameraOccluderTreatment.Fade, faded.OccluderTreatment);
+        Assert.Equal(14, faded.CameraDistance);
+        Assert.Equal(CameraOccluderTreatment.Hide, hidden.OccluderTreatment);
+        Assert.Equal(14, hidden.CameraDistance);
+    }
+
+    [Fact]
+    public void World_labels_shrink_nearby_remain_readable_at_range_and_hide_by_policy()
+    {
+        var profile = GameplayFoundationRuntime.ResolveCamera(Profile.Cameras);
+
+        var nearNpc = WorldLabelPolicy.Resolve(profile, 1, isLocalHero: false, firstPerson: false);
+        var distantNpc = WorldLabelPolicy.Resolve(profile, 24, isLocalHero: false, firstPerson: false);
+        var tooFar = WorldLabelPolicy.Resolve(profile, 60, isLocalHero: false, firstPerson: false);
+        var localFirstPerson = WorldLabelPolicy.Resolve(profile, 1, isLocalHero: true, firstPerson: true);
+        var npcFirstPerson = WorldLabelPolicy.Resolve(profile, 8, isLocalHero: false, firstPerson: true);
+
+        Assert.True(nearNpc.Visible);
+        Assert.InRange(nearNpc.UniformScale, .1f, .8f);
+        Assert.True(distantNpc.Visible);
+        Assert.True(distantNpc.UniformScale > nearNpc.UniformScale);
+        Assert.True(distantNpc.Opacity > 0);
+        Assert.False(tooFar.Visible);
+        Assert.False(localFirstPerson.Visible);
+        Assert.True(npcFirstPerson.Visible);
+    }
 }

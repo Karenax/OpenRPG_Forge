@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using Forge.Domain.Assistant;
 
 namespace Forge.Mcp.Assistant;
@@ -26,7 +27,57 @@ public sealed record AgentStructuredContextResource(
     AssistantPermissionLevel Permission,
     int Total,
     IReadOnlyList<AgentContextSection> Sections,
+    AgentSpatialContextResource? Spatial,
     IReadOnlyList<AgentDiagnostic> Diagnostics);
+
+public sealed record AgentSpatialContextQuery(
+    [property: Description("Spatial context schema version; must be 1.")] int SchemaVersion = 1,
+    [property: Description("Maximum selected entities; must be between 1 and 64.")] int MaximumEntities = 32,
+    [property: Description("Maximum typed references; must be between 0 and 256.")] int MaximumReferences = 64,
+    [property: Description("Explicit canonical area UUID selection; at least one area or entity is required.")] IReadOnlyList<string>? AreaIds = null,
+    [property: Description("Explicit canonical entity UUID selection; at least one area or entity is required.")] IReadOnlyList<string>? EntityIds = null,
+    [property: Description("Requested read permission, bounded by the workspace maximum permission.")] string Permission = "ReadOnly");
+
+public sealed record AgentSpatialContextResource(
+    Guid Id,
+    int SchemaVersion,
+    string Provenance,
+    long Revision,
+    string Permission,
+    int MaximumEntities,
+    int MaximumReferences,
+    IReadOnlyList<string> AreaIds,
+    IReadOnlyList<string> EntityIds,
+    IReadOnlyList<AgentSpatialEntityResource> Items,
+    IReadOnlyList<AgentSpatialReferenceResource> References,
+    IReadOnlyList<AgentDiagnostic> Diagnostics);
+
+public sealed record AgentSpatialEntityResource(
+    string AreaId,
+    string AreaDisplayName,
+    string EntityId,
+    string DisplayName,
+    string BlueprintId,
+    string? AssetId,
+    IReadOnlyList<string> Tags,
+    AgentSpatialTransformResource Transform,
+    string DocumentPath);
+
+public sealed record AgentSpatialTransformResource(
+    AgentSpatialVector3Resource Position,
+    AgentSpatialQuaternionResource Rotation,
+    AgentSpatialVector3Resource Scale);
+
+public sealed record AgentSpatialVector3Resource(float X, float Y, float Z);
+
+public sealed record AgentSpatialQuaternionResource(float X, float Y, float Z, float W);
+
+public sealed record AgentSpatialReferenceResource(
+    string ReferenceId,
+    string SourceId,
+    string TargetId,
+    string ReferenceType,
+    string DocumentPath);
 
 public sealed record AgentReferenceNode(
     Guid Id,

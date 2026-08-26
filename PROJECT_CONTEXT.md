@@ -1,6 +1,6 @@
 # Contexte canonique — OpenRPG Forge
 
-Dernière mise à jour : 25 août 2026.
+Dernière mise à jour : 26 août 2026.
 
 Ce document est l’unique contexte narratif courant du projet. Les états d’exécution sont dans
 `STATUS.md` et `TASKS_MVP.md`; les exigences détaillées et leurs preuves restent dans le tracker et
@@ -68,6 +68,9 @@ le lanceur détecte facultativement l'IPv4 publique, affiche `adresse:port`, per
 la remplacer par un DNS et ne présente jamais `127.0.0.1` comme adresse d'invitation ; l'hôte doit
 toujours autoriser et rediriger le port TCP. Cette base directe n'est pas encore une campagne coopérative
 complète : gameplay RPG, chiffrement, identité d'hôte, reconnexion et relais/NAT restent à raccorder.
+Le lanceur, le module et le Studio démarrent en plein écran ; le choix joueur **Fenêtré plein écran**
+projette les anciennes préférences `Windowed`/`Borderless` vers une fenêtre sans bordure couvrant le
+moniteur.
 Les restaurations `win-x64` propres aux exports utilisent des verrous NuGet temporaires et ne
 réécrivent pas les `packages.lock.json` canoniques du dépôt.
 
@@ -75,6 +78,22 @@ Solaren exerce cette capacité générique avec une interface solaire inspirée 
 lumineux dérivé des références réelles du module, palette forêt/crème/or miel, particules de lumière et
 piste calme originale de 64 secondes. Les deux médias et leur provenance restent dans son workspace ;
 aucune branche d'exécution du moteur ne dépend du slug Solaren.
+
+La première tranche narrative de Solaren est maintenant reliée de bout en bout aux données du workspace :
+HUD et menus honnêtes, atlas local, exploration persistée, personnages et portraits gouvernés, dialogue
+de Maélis, quête du repère, interaction terminale, trois routines locales et deux ambiances 3D CC0.
+Le runtime traite l’inventaire initial des règles de créature comme un socle authoré consultable par
+`HasItem`, séparé des acquisitions sauvegardées ; l’interface conserve ainsi les quantités exactes sans
+les additionner deux fois après une reprise.
+L’authoring MCP sait installer un modèle logique local, placer une entité avec transform complet, créer un
+émetteur audio, modifier les facettes d’une créature et remplacer l’ensemble des overrides d’une instance.
+Ces capacités restent accessibles humainement dans Studio par l’Asset Library, le viewport, l’inspecteur
+d’entité, les pages Créatures, Navigation et Audio ; elles suivent dry-run, garde de révision, undo/redo et
+sauvegarde/réouverture. Les voix françaises préparées ne sont pas encore intégrées : l’import audio local
+gouverné demeure une capacité distincte à ajouter avant de revendiquer des dialogues doublés. Le
+runtime joueur exclut désormais les laboratoires de validation réservés aux smokes et applique la
+mouillure par overrides de matériaux sans duplication profonde des meshes ordinaires ; le démarrage
+Forward+ comparable de Solaren passe ainsi de 45,243 s à 12,207 s.
 
 La distribution versionnée sous `exe/` expose deux exécutables racine : `OpenRPG_Forge_Studio.exe`
 pour le Creator et `Solaren_Les_Vallees_Libres.exe` pour le jeu. Le manifeste du lanceur Solaren couvre

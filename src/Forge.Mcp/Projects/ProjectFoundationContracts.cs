@@ -14,7 +14,8 @@ public sealed record ProjectFoundationResource(
 public sealed record ProjectFoundationPlanRequest(
     int SchemaVersion,
     long BaseRevision,
-    ProjectFoundationProfile Foundation);
+    ProjectFoundationProfile? Foundation = null,
+    ModuleMetadataPatch? MetadataPatch = null);
 
 public sealed record ProjectFoundationPlanResult(
     bool Succeeded,
@@ -25,7 +26,23 @@ public sealed record ProjectFoundationPlanResult(
     IReadOnlyList<AgentDiagnostic> Diagnostics,
     bool Applied,
     bool Reverted,
-    IReadOnlyList<ProjectFoundationAuditEntry> Audit);
+    IReadOnlyList<ProjectFoundationAuditEntry> Audit)
+{
+    public IReadOnlyList<string> ChangedPaths { get; init; } = [];
+    public IReadOnlyList<ModuleMetadataLocalizationReview> LocalizationReview { get; init; } = [];
+}
+
+public sealed record ModuleMetadataLocalizationReview(
+    string MessageKey,
+    string Locale,
+    string Text,
+    int EstimatedCharacters,
+    int CharacterBudget,
+    bool OverflowRisk,
+    string PseudoText,
+    int PseudoEstimatedCharacters,
+    bool PseudoOverflowRisk,
+    IReadOnlyList<string> QualityCodes);
 
 public sealed record ProjectFoundationAuditEntry(
     string PlanId,

@@ -17,7 +17,8 @@ public sealed record AreaEnvironmentPlanRequest(
     int SchemaVersion,
     long BaseRevision,
     string AreaId,
-    AreaEnvironmentProfile Environment);
+    AreaEnvironmentProfile? Environment = null,
+    AreaEnvironmentPatch? Patch = null);
 
 public sealed record AreaEnvironmentPlanResult(
     bool Succeeded,
@@ -28,7 +29,10 @@ public sealed record AreaEnvironmentPlanResult(
     IReadOnlyList<AgentDiagnostic> Diagnostics,
     bool Applied,
     bool Reverted,
-    IReadOnlyList<AreaEnvironmentAuditEntry> Audit);
+    IReadOnlyList<AreaEnvironmentAuditEntry> Audit)
+{
+    public IReadOnlyList<string> ChangedPaths { get; init; } = [];
+}
 
 public sealed record AreaEnvironmentAuditEntry(
     string PlanId,

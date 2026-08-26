@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using Forge.ModuleFormat.Saves;
 
 namespace Forge.ModuleFormat.Tests.Saves;
@@ -10,6 +12,192 @@ public sealed class RuntimeSaveStoreTests : IDisposable
         Path.GetTempPath(),
         "openrpg-forge-save-tests",
         Guid.NewGuid().ToString("N"));
+
+    [Fact]
+    public void Inventory_stack_quantities_round_trip_and_snapshot_budget_counts_stacks_not_units()
+    {
+        var path = Path.Combine(_directory, "inventory-stacks.orpsave");
+        var save = CreateSave() with
+        {
+            Inventory =
+            [
+                new RuntimeInventorySaveStack("governed-item", 5),
+                new RuntimeInventorySaveStack("unknown-alpha", 1),
+                new RuntimeInventorySaveStack("unknown-beta", 1),
+            ],
+            EntitySnapshots =
+            [
+                CreateSave().EntitySnapshots![0] with
+                {
+                    Inventory = [new RuntimeInventorySaveStack("bulk-stack", 5000)],
+                },
+            ],
+        };
+
+        var stored = RuntimeSaveStore.Save(path, save);
+        var loaded = RuntimeSaveStore.Load(path, ModuleId, ModuleHash);
+
+        Assert.True(stored.Succeeded);
+        Assert.True(loaded.Succeeded);
+        Assert.Equal(RuntimeSaveDocument.CurrentFormatVersion, loaded.Save!.FormatVersion);
+        Assert.Equal(save.Inventory, loaded.Save.Inventory);
+        Assert.Equal(5, loaded.Save.Inventory.Single(stack => stack.Slug == "governed-item").Quantity);
+        Assert.Equal(3, loaded.Save.Inventory.Count);
+        var snapshotStack = Assert.Single(Assert.Single(loaded.Save.EntitySnapshots!).Inventory);
+        Assert.Equal(5000, snapshotStack.Quantity);
+    }
+
+    [Fact]
+    public void Quest_states_acceptance_and_tracking_round_trip_without_collapsing_other_quests()
+    {
+        var path = Path.Combine(_directory, "quest-states.orpsave");
+        var trackedQuestId = "50000000-0000-4000-8000-000000000002";
+        var save = CreateSave() with
+        {
+            QuestId = null,
+            QuestStateId = null,
+            QuestStates =
+            [
+                new("50000000-0000-4000-8000-000000000001",
+                    "51000000-0000-4000-8000-000000000001", IsAccepted: false),
+                new(trackedQuestId, "51000000-0000-4000-8000-000000000002", IsAccepted: true),
+                new("50000000-0000-4000-8000-000000000003",
+                    "51000000-0000-4000-8000-000000000003", IsAccepted: true),
+                new("50000000-0000-4000-8000-000000000004",
+                    "51000000-0000-4000-8000-000000000004", IsAccepted: true),
+            ],
+            TrackedQuestId = trackedQuestId,
+        };
+
+        Assert.True(RuntimeSaveStore.Save(path, save).Succeeded);
+        var loaded = RuntimeSaveStore.Load(path, ModuleId, ModuleHash);
+
+        Assert.True(loaded.Succeeded);
+        Assert.Equal(save.QuestStates, loaded.Save!.QuestStates);
+        Assert.Equal(trackedQuestId, loaded.Save.TrackedQuestId);
+        Assert.False(loaded.Save.QuestStates![0].IsAccepted);
+        Assert.Equal(4, loaded.Save.QuestStates.Count);
+    }
+
+    [Fact]
+    public void Load_migrates_the_legacy_single_quest_and_its_acceptance_to_the_typed_collection()
+    {
+        var path = Path.Combine(_directory, "legacy-single-quest.orpsave");
+        var legacy = CreateSave() with
+        {
+            FormatVersion = RuntimeSaveDocument.PreQuestCollectionFormatVersion,
+            QuestStates = null,
+            TrackedQuestId = null,
+        };
+        Directory.CreateDirectory(_directory);
+        File.WriteAllText(path, JsonSerializer.Serialize(legacy,
+            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
+
+        var loaded = RuntimeSaveStore.Load(path, ModuleId, ModuleHash);
+
+        Assert.True(loaded.Succeeded);
+        var state = Assert.Single(loaded.Save!.QuestStates!);
+        Assert.Equal(legacy.QuestId, state.QuestId);
+        Assert.Equal(legacy.QuestStateId, state.StateId);
+        Assert.True(state.IsAccepted);
+        Assert.Equal(legacy.QuestId, loaded.Save.TrackedQuestId);
+        Assert.Equal(RuntimeSaveDocument.CurrentFormatVersion, loaded.Save!.FormatVersion);
+    }
+
+    [Fact]
+    public void Save_and_load_reject_duplicate_tracked_quest_states_without_throwing()
+    {
+        const string questId = "50000000-0000-4000-8000-000000000010";
+        var invalid = CreateSave() with
+        {
+            QuestStates =
+            [
+                new RuntimeQuestSaveState(questId, "51000000-0000-4000-8000-000000000010", true),
+                new RuntimeQuestSaveState(
+                    Guid.Parse(questId).ToString("B"),
+                    "51000000-0000-4000-8000-000000000011",
+                    true),
+            ],
+            TrackedQuestId = questId,
+        };
+        RuntimeSaveOperationResult? rejectedSave = null;
+        var saveException = Record.Exception(() => rejectedSave = RuntimeSaveStore.Save(
+            Path.Combine(_directory, "duplicate-tracked-save.orpsave"), invalid));
+
+        var loadPath = Path.Combine(_directory, "duplicate-tracked-load.orpsave");
+        Directory.CreateDirectory(_directory);
+        File.WriteAllText(loadPath, JsonSerializer.Serialize(invalid,
+            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
+        RuntimeSaveOperationResult? rejectedLoad = null;
+        var loadException = Record.Exception(() => rejectedLoad = RuntimeSaveStore.Load(
+            loadPath, ModuleId, ModuleHash));
+
+        Assert.Null(saveException);
+        Assert.Null(loadException);
+        Assert.Contains(rejectedSave!.Diagnostics,
+            diagnostic => diagnostic.Code == RuntimeSaveValidator.QuestReferenceInvalidCode);
+        Assert.Contains(rejectedLoad!.Diagnostics,
+            diagnostic => diagnostic.Code == RuntimeSaveValidator.QuestReferenceInvalidCode);
+    }
+
+    [Fact]
+    public void Load_migrates_legacy_inventory_slug_arrays_to_quantity_one()
+    {
+        var path = Path.Combine(_directory, "legacy-inventory.orpsave");
+        var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+        var document = JsonNode.Parse(JsonSerializer.Serialize(CreateSave(), options))!.AsObject();
+        document["formatVersion"] = RuntimeSaveDocument.PreInventoryStacksFormatVersion;
+        document["inventory"] = new JsonArray(JsonValue.Create("ash-key"), JsonValue.Create("legacy-token"));
+        document["entitySnapshots"]![0]!["inventory"] =
+            new JsonArray(JsonValue.Create("ash-key"), JsonValue.Create("legacy-token"));
+        Directory.CreateDirectory(_directory);
+        File.WriteAllText(path, document.ToJsonString(options));
+
+        var loaded = RuntimeSaveStore.Load(path, ModuleId, ModuleHash);
+
+        Assert.True(loaded.Succeeded);
+        Assert.Equal(RuntimeSaveDocument.CurrentFormatVersion, loaded.Save!.FormatVersion);
+        Assert.Equal(
+            [new RuntimeInventorySaveStack("ash-key", 1), new RuntimeInventorySaveStack("legacy-token", 1)],
+            loaded.Save.Inventory);
+        Assert.All(Assert.Single(loaded.Save.EntitySnapshots!).Inventory,
+            stack => Assert.Equal(1, stack.Quantity));
+    }
+
+    [Fact]
+    public void Save_and_load_reject_invalid_or_stale_inventory_quantities()
+    {
+        var invalid = CreateSave() with { Inventory = [new RuntimeInventorySaveStack("ash-key", 0)] };
+        var rejectedSave = RuntimeSaveStore.Save(Path.Combine(_directory, "invalid-quantity.orpsave"), invalid);
+
+        var stalePath = Path.Combine(_directory, "stale-quantity.orpsave");
+        var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+        var document = JsonNode.Parse(JsonSerializer.Serialize(CreateSave(), options))!.AsObject();
+        document["inventory"] = new JsonArray(new JsonObject { ["slug"] = "ash-key" });
+        Directory.CreateDirectory(_directory);
+        File.WriteAllText(stalePath, document.ToJsonString(options));
+        var rejectedLoad = RuntimeSaveStore.Load(stalePath, ModuleId, ModuleHash);
+
+        Assert.Equal(RuntimeSaveValidator.InventoryQuantityInvalidCode,
+            Assert.Single(rejectedSave.Diagnostics).Code);
+        Assert.Equal(RuntimeSaveValidator.InventoryQuantityInvalidCode,
+            Assert.Single(rejectedLoad.Diagnostics).Code);
+    }
+
+    [Fact]
+    public void Load_rejects_unknown_future_save_version_without_migrating_it()
+    {
+        var path = Path.Combine(_directory, "future-version.orpsave");
+        var future = CreateSave() with { FormatVersion = "99.0.0" };
+        Directory.CreateDirectory(_directory);
+        File.WriteAllText(path, JsonSerializer.Serialize(future,
+            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
+
+        var loaded = RuntimeSaveStore.Load(path, ModuleId, ModuleHash);
+
+        Assert.False(loaded.Succeeded);
+        Assert.Equal(RuntimeSaveValidator.VersionUnsupportedCode, Assert.Single(loaded.Diagnostics).Code);
+    }
 
     [Fact]
     public void SaveAndLoadRoundTripAtomically()

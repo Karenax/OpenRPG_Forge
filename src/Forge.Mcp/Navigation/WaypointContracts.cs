@@ -1,5 +1,7 @@
 using Forge.Application.Commands;
 using Forge.Domain.Navigation;
+using System.ComponentModel;
+using System.Text.Json;
 
 namespace Forge.Mcp.Navigation;
 
@@ -104,6 +106,12 @@ public sealed record RouteVisualizationResourceItem(
     bool RequiredAtRuntime);
 
 public sealed record WaypointAuthoringPlanRequest(
+    [property: Description("MCP waypoint request schema version; must be 1.")] int SchemaVersion,
+    long BaseRevision,
+    string AreaId,
+    [property: Description("Canonical waypoint profile JSON using boundary schema v1.")] JsonElement Profile);
+
+public sealed record WaypointAuthoringDomainPlanRequest(
     int SchemaVersion,
     long BaseRevision,
     string AreaId,
@@ -111,7 +119,18 @@ public sealed record WaypointAuthoringPlanRequest(
 
 public sealed record WaypointAuthoringPlanResult(
     bool Succeeded,
+    string? PlanId,
     long BaseRevision,
     ProjectPatch? SemanticDiff,
     ProjectPatch? Inverse,
-    IReadOnlyList<AgentDiagnostic> Diagnostics);
+    IReadOnlyList<AgentDiagnostic> Diagnostics,
+    bool Applied,
+    bool Reverted,
+    IReadOnlyList<WaypointPlanAuditEntry> Audit);
+
+public sealed record WaypointPlanAuditEntry(
+    string PlanId,
+    string Operation,
+    long Revision,
+    DateTimeOffset At,
+    bool Succeeded);

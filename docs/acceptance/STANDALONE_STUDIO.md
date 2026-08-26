@@ -2,8 +2,8 @@
 
 ## Coque et ouverture
 
-- `STUDIO-001` : lancer le Studio produit exactement une fenêtre OpenRPG Forge, sans chrome de
-  l’éditeur Godot ni outil secondaire visible.
+- `STUDIO-001` : lancer le Studio produit exactement une fenêtre OpenRPG Forge en plein écran par
+  défaut, sans chrome de l’éditeur Godot ni outil secondaire visible.
 - `STUDIO-002` : le Module Hub permet de continuer Crypte des Cendres et d’ouvrir un workspace Forge
   par un sélecteur de dossier ; une erreur reste lisible et ne ferme pas l’application.
 - `STUDIO-003` : un module valide affiche son titre, ses zones, sa zone d’entrée et son état de

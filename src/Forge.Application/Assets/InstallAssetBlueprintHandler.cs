@@ -47,13 +47,13 @@ public sealed class InstallAssetBlueprintHandler
 
         var modelChunks = command.Manifest.Chunks.Where(chunk => chunk.Role == AssetChunkRole.Model).ToArray();
         if (modelChunks.Length != 1 || !modelChunks[0].Required ||
-            !string.Equals(Path.GetExtension(modelChunks[0].RelativePath), ".glb", StringComparison.OrdinalIgnoreCase))
+            !IsRuntimeModel(modelChunks[0].RelativePath))
         {
             return Failure(
                 state,
                 command,
                 CanonicalModelRequiredCode,
-                "Asset blueprint placement requires one governed canonical GLB model chunk.");
+                "Asset blueprint placement requires one governed glTF or GLB model chunk.");
         }
 
         var blueprint = AssetBlueprintFactory.Create(command.Item, command.Manifest);
@@ -125,4 +125,8 @@ public sealed class InstallAssetBlueprintHandler
 
     private AuditEntry Audit(InstallAssetBlueprintCommand command, bool applied) =>
         new(command.CommandId, CommandName, _clock.UtcNow, applied);
+
+    private static bool IsRuntimeModel(string path) =>
+        string.Equals(Path.GetExtension(path), ".glb", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(Path.GetExtension(path), ".gltf", StringComparison.OrdinalIgnoreCase);
 }

@@ -16,6 +16,7 @@ internal sealed partial class StudioSessionController
 {
     private readonly NewModuleHandler _newModule = new(new SystemClock());
     private readonly SetModuleConfigurationHandler _setModuleConfiguration = new(new SystemClock());
+    private readonly PatchModuleMetadataHandler _patchModuleMetadataUx0E = new(new SystemClock());
 
     internal StudioProjectPreview PreviewNewProject(StudioNewProjectDraft draft)
     {
@@ -311,17 +312,22 @@ internal sealed partial class StudioSessionController
             return new StudioProjectPreview(false, HumanizeException(exception), string.Empty);
         }
 
-        var defaultLocalization = metadata.GetDefaultLocalization();
-        var command = new SetModuleConfigurationCommand(
+        var currentMetadata = Project.Module.Metadata;
+        var metadataPatch = ModuleMetadataPatch.Between(currentMetadata, metadata);
+        var foundationPatch = currentMetadata.Foundation == metadata.Foundation ? null : metadata.Foundation;
+        if (metadataPatch.Fields.Count == 0 && (metadataPatch.Localizations?.Count ?? 0) == 0 &&
+            foundationPatch is null)
+        {
+            return new StudioProjectPreview(true, "Aucune modification à appliquer",
+                $"{metadata.Localizations.Count} langue(s) · métadonnées déjà à jour");
+        }
+        var command = new PatchModuleMetadataCommand(
             CommandId.From(Guid.NewGuid()),
             History.State.Revision,
-            metadata,
-            Project.Module.Variables,
-            DryRun: !apply,
-            ProjectTitle: defaultLocalization.Name,
-            ModuleDisplayName: defaultLocalization.Name,
-            ModuleDescription: defaultLocalization.Description);
-        var preview = _setModuleConfiguration.Handle(History.State, command with { DryRun = true });
+            metadataPatch,
+            foundationPatch,
+            DryRun: !apply);
+        var preview = _patchModuleMetadataUx0E.Handle(History.State, command with { DryRun = true });
         if (!preview.Succeeded)
         {
             return new StudioProjectPreview(false, Humanize(preview.Diagnostics.FirstOrDefault()?.Code), string.Empty);
@@ -334,7 +340,7 @@ internal sealed partial class StudioSessionController
                 $"{metadata.Localizations.Count} langue(s) · {metadata.Foundation?.TargetPlatforms.Count ?? 0} plateforme(s)");
         }
 
-        var applied = _setModuleConfiguration.Handle(History.State, command with { DryRun = false });
+        var applied = _patchModuleMetadataUx0E.Handle(History.State, command with { DryRun = false });
         if (!applied.Succeeded)
         {
             return new StudioProjectPreview(false, Humanize(applied.Diagnostics.FirstOrDefault()?.Code), string.Empty);

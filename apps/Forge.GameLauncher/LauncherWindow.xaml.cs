@@ -28,6 +28,12 @@ internal partial class LauncherWindow
         ("3840 × 2160", 3840, 2160),
     ];
 
+    private static readonly (string Label, LauncherWindowMode Mode)[] WindowModes =
+    [
+        ("Fenêtré plein écran · sans bordure", LauncherWindowMode.Windowed),
+        ("Plein écran", LauncherWindowMode.Fullscreen),
+    ];
+
     private readonly GameLauncherVerification _verification;
     private readonly string _settingsPath;
     private readonly HttpClient _publicAddressHttpClient;
@@ -93,12 +99,7 @@ internal partial class LauncherWindow
             BackdropImage.Source = LoadBitmap(verification.BackgroundImagePath);
 
         ResolutionSelector.ItemsSource = Resolutions.Select(item => item.Label).ToArray();
-        WindowModeSelector.ItemsSource = new[]
-        {
-            "Fenêtré · barre de titre",
-            "Plein écran · sans bordure",
-            "Plein écran",
-        };
+        WindowModeSelector.ItemsSource = WindowModes.Select(item => item.Label).ToArray();
         QualitySelector.ItemsSource = new[] { "Faible", "Moyenne", "Élevée", "Ultra" };
         LoadSettings(settings);
         ConfigureLauncherMusic(settings);
@@ -124,6 +125,7 @@ internal partial class LauncherWindow
         _capturePublicAddress = NormalizeCapturePublicAddress(publicAddress);
         _reduceMotion = true;
         WindowStartupLocation = WindowStartupLocation.Manual;
+        WindowState = WindowState.Normal;
         Left = -32_000;
         Top = -32_000;
         Width = width;
@@ -409,7 +411,9 @@ internal partial class LauncherWindow
         var resolutionIndex = Array.FindIndex(Resolutions, item =>
             item.Width == settings.ResolutionWidth && item.Height == settings.ResolutionHeight);
         ResolutionSelector.SelectedIndex = Math.Max(0, resolutionIndex);
-        WindowModeSelector.SelectedIndex = (int)settings.WindowMode;
+        var canonicalWindowMode = LauncherWindowModePolicy.Canonicalize(settings.WindowMode);
+        var windowModeIndex = Array.FindIndex(WindowModes, item => item.Mode == canonicalWindowMode);
+        WindowModeSelector.SelectedIndex = Math.Max(0, windowModeIndex);
         QualitySelector.SelectedIndex = (int)settings.GraphicsQuality;
         VSyncCheck.IsChecked = settings.VSync;
         MasterVolumeSlider.Value = settings.MasterVolume;
@@ -506,13 +510,15 @@ internal partial class LauncherWindow
     {
         var resolutionIndex = Math.Clamp(ResolutionSelector.SelectedIndex, 0, Resolutions.Length - 1);
         var selectedResolution = Resolutions[resolutionIndex];
+        var windowModeIndex = Math.Clamp(WindowModeSelector.SelectedIndex, 0, WindowModes.Length - 1);
+        var selectedWindowMode = WindowModes[windowModeIndex].Mode;
         if (!int.TryParse(ServerPortText.Text.Trim(), out var serverPort))
             throw new InvalidDataException("Le port serveur doit être un nombre entre 1024 et 65535.");
         var settings = new GameLauncherUserSettings(
             GameLauncherUserSettings.CurrentSchemaVersion,
             selectedResolution.Width,
             selectedResolution.Height,
-            (LauncherWindowMode)Math.Max(0, WindowModeSelector.SelectedIndex),
+            selectedWindowMode,
             (LauncherGraphicsQuality)Math.Max(0, QualitySelector.SelectedIndex),
             VSyncCheck.IsChecked == true,
             (int)Math.Round(MasterVolumeSlider.Value),
@@ -672,9 +678,8 @@ internal partial class LauncherWindow
         if (WindowModeHintText is null) return;
         WindowModeHintText.Text = WindowModeSelector.SelectedIndex switch
         {
-            1 => "Occupe tout l’écran sans barre de titre. Ce mode ne se déplace pas.",
-            2 => "Plein écran dédié. Utilisez Alt+Tab pour revenir au bureau.",
-            _ => "Fenêtre classique avec barre de titre, déplaçable et redimensionnable. La taille reste dans la zone visible.",
+            1 => "Plein écran par défaut. Utilisez Alt+Tab pour revenir au bureau.",
+            _ => "Fenêtré plein écran sans bordure : toute la surface du moniteur, avec Alt+Tab immédiat.",
         };
     }
 

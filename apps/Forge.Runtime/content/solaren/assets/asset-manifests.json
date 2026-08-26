@@ -3,6 +3,332 @@
   "manifests": [
     {
       "schemaVersion": 1,
+      "id": "d6aadf6e-e770-a45b-8b0d-78f46226c8e9",
+      "assetId": "016b9352-4cb8-b852-bf05-f386dd35c373",
+      "modificationProvenance": "asset-vault:quaternius:fantasy-props-megakit-standard-1.0:farmcrate-apple",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "83c3d0b15498269b467c386cdd4616fdfa24a99d9e565271c68bc8e6503c57cc",
+      "platformBudgets": {
+        "any": 24503985
+      },
+      "chunks": [
+        {
+          "id": "9f1b1307-c806-6d5a-b324-5240e917bc9d",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/016b9352-4cb8-b852-bf05-f386dd35c373/FarmCrate_Apple.gltf",
+          "contentSha256": "56de7097ddbf22801537f38b77335b2d85a4e2d24bdcbe9ceb1b3bc666a24997",
+          "uncompressedBytes": 6263,
+          "storedBytes": 6263,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "04416005-bbae-fb5b-b3e0-2b2c5a9bf53e",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/016b9352-4cb8-b852-bf05-f386dd35c373/FarmCrate_Apple.bin",
+          "contentSha256": "9f764bf2f2e960ec32ff31198f6b54787391e71bec166da59372f596299d24e6",
+          "uncompressedBytes": 134488,
+          "storedBytes": 134488,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "768395c6-948e-3e59-9da1-6e903fa7c08f",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/016b9352-4cb8-b852-bf05-f386dd35c373/T_Trim_Furniture_BaseColor.png",
+          "contentSha256": "075fbc9ec2fabc15732bd4025b6f63a0b25762df38440d06bf30437565d39bab",
+          "uncompressedBytes": 2232961,
+          "storedBytes": 2232961,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "4bd46da6-10e4-935f-8c8e-921ce778b649",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/016b9352-4cb8-b852-bf05-f386dd35c373/T_Trim_Furniture_Normal.png",
+          "contentSha256": "3340c4cc47ff06d5e94a2dbe2a2a12d914d0ef055fcf66f63d876666bd160e42",
+          "uncompressedBytes": 3485710,
+          "storedBytes": 3485710,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "7fc529ae-23aa-dd5c-89ed-a4291e416e5f",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/016b9352-4cb8-b852-bf05-f386dd35c373/T_Trim_Furniture_ORM.png",
+          "contentSha256": "7bf417e82baf313793c5791bf48cdc8e573f1f7136197785bf0eb235cb0f8153",
+          "uncompressedBytes": 2064585,
+          "storedBytes": 2064585,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "9a95aa79-e341-c850-8dba-d44551f29484",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/016b9352-4cb8-b852-bf05-f386dd35c373/T_Trim_Metal_BaseColor.png",
+          "contentSha256": "50422bbda9661effc259caf8b386224cac4b5ca811d2c5b3b8b25ae8efc714db",
+          "uncompressedBytes": 1361221,
+          "storedBytes": 1361221,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "6853a53b-6a21-0554-a9f4-02c1afcfcb4a",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/016b9352-4cb8-b852-bf05-f386dd35c373/T_Trim_Metal_Normal.png",
+          "contentSha256": "ab7315c864c9a9e6d716c940a599928506e1569d3b0c9085f8f1a64ec520d790",
+          "uncompressedBytes": 3625541,
+          "storedBytes": 3625541,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "85dd0d73-50a1-455d-937f-95807901c50b",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/016b9352-4cb8-b852-bf05-f386dd35c373/T_Trim_Metal_ORM.png",
+          "contentSha256": "7407bccfc39ca74ecd68a61217395959bf56ac2063e6c93b384b11f07f5687c5",
+          "uncompressedBytes": 1871475,
+          "storedBytes": 1871475,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "041d6f47-5a10-935b-a437-7be392e5963e",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/016b9352-4cb8-b852-bf05-f386dd35c373/T_Trim_Props_BaseColor.png",
+          "contentSha256": "75225a4ccfd8cc358c871de7a7a3cab7118ef197419a88464e807b81716215c8",
+          "uncompressedBytes": 2263132,
+          "storedBytes": 2263132,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "e7a8d729-d24c-bd56-91a2-05a05c22cc54",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/016b9352-4cb8-b852-bf05-f386dd35c373/T_Trim_Props_Normal.png",
+          "contentSha256": "c4b28a8ba8efe3108cd11356ecab67e8bf75a10cebf29c78ee7724552c305a3e",
+          "uncompressedBytes": 4441458,
+          "storedBytes": 4441458,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "9d797450-0c35-2758-8fd1-17ba6608e6c6",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/016b9352-4cb8-b852-bf05-f386dd35c373/T_Trim_Props_ORM.png",
+          "contentSha256": "2d83d8df79aca2c8f630d389b43f09113afee98e746dfd42ddc3ce3302a136a2",
+          "uncompressedBytes": 3017151,
+          "storedBytes": 3017151,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        }
+      ],
+      "collision": null,
+      "animation": null,
+      "vfx": null,
+      "lod": null,
+      "modelMetadata": null,
+      "navigation": null,
+      "font": null
+    },
+    {
+      "schemaVersion": 1,
+      "id": "3b42c523-ee69-ac59-92df-df8adadd1f82",
+      "assetId": "09526402-4299-ff59-9017-39fd26a973bb",
+      "modificationProvenance": "asset-vault:quaternius:fantasy-props-megakit-standard-1.0:farmcrate-carrot",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "83c3d0b15498269b467c386cdd4616fdfa24a99d9e565271c68bc8e6503c57cc",
+      "platformBudgets": {
+        "any": 24573799
+      },
+      "chunks": [
+        {
+          "id": "40ac9fbc-8031-a357-9956-a17f01174f4e",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/09526402-4299-ff59-9017-39fd26a973bb/FarmCrate_Carrot.gltf",
+          "contentSha256": "6aaa750a27ee652c8090fe7415f1bdd1d66b17d6cfecafc0767559afaef3248c",
+          "uncompressedBytes": 6273,
+          "storedBytes": 6273,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "b615785d-507d-4f5e-84c3-cbfeb0e0a0a9",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/09526402-4299-ff59-9017-39fd26a973bb/FarmCrate_Carrot.bin",
+          "contentSha256": "18858970c67b1e6fb2d174a4b4a946787cdde12b42d88cce9d846fc4ede50e19",
+          "uncompressedBytes": 204292,
+          "storedBytes": 204292,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "c76796ed-1db1-0c52-85ca-20dda2ddc9d6",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/09526402-4299-ff59-9017-39fd26a973bb/T_Trim_Furniture_BaseColor.png",
+          "contentSha256": "075fbc9ec2fabc15732bd4025b6f63a0b25762df38440d06bf30437565d39bab",
+          "uncompressedBytes": 2232961,
+          "storedBytes": 2232961,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "96d2fd97-f29c-7a5b-9722-bc3bf745aaa8",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/09526402-4299-ff59-9017-39fd26a973bb/T_Trim_Furniture_Normal.png",
+          "contentSha256": "3340c4cc47ff06d5e94a2dbe2a2a12d914d0ef055fcf66f63d876666bd160e42",
+          "uncompressedBytes": 3485710,
+          "storedBytes": 3485710,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "d60ca7cc-2376-0157-b189-9e87f88a71c0",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/09526402-4299-ff59-9017-39fd26a973bb/T_Trim_Furniture_ORM.png",
+          "contentSha256": "7bf417e82baf313793c5791bf48cdc8e573f1f7136197785bf0eb235cb0f8153",
+          "uncompressedBytes": 2064585,
+          "storedBytes": 2064585,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "ade868b7-6bda-2455-b5d8-d7c1bc3b5484",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/09526402-4299-ff59-9017-39fd26a973bb/T_Trim_Metal_BaseColor.png",
+          "contentSha256": "50422bbda9661effc259caf8b386224cac4b5ca811d2c5b3b8b25ae8efc714db",
+          "uncompressedBytes": 1361221,
+          "storedBytes": 1361221,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "b42c9140-6e43-a951-ae4c-52f3ea49b2c6",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/09526402-4299-ff59-9017-39fd26a973bb/T_Trim_Metal_Normal.png",
+          "contentSha256": "ab7315c864c9a9e6d716c940a599928506e1569d3b0c9085f8f1a64ec520d790",
+          "uncompressedBytes": 3625541,
+          "storedBytes": 3625541,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "ec8cab1c-96ec-3b5c-882c-a3bf0c0a0c12",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/09526402-4299-ff59-9017-39fd26a973bb/T_Trim_Metal_ORM.png",
+          "contentSha256": "7407bccfc39ca74ecd68a61217395959bf56ac2063e6c93b384b11f07f5687c5",
+          "uncompressedBytes": 1871475,
+          "storedBytes": 1871475,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "c721f387-93a3-e255-9eea-917ccd6d8096",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/09526402-4299-ff59-9017-39fd26a973bb/T_Trim_Props_BaseColor.png",
+          "contentSha256": "75225a4ccfd8cc358c871de7a7a3cab7118ef197419a88464e807b81716215c8",
+          "uncompressedBytes": 2263132,
+          "storedBytes": 2263132,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "f1a2b8f1-f802-3e5a-8c17-ba4a98dfa2bc",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/09526402-4299-ff59-9017-39fd26a973bb/T_Trim_Props_Normal.png",
+          "contentSha256": "c4b28a8ba8efe3108cd11356ecab67e8bf75a10cebf29c78ee7724552c305a3e",
+          "uncompressedBytes": 4441458,
+          "storedBytes": 4441458,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "deab2da9-3ae0-0f5c-ba21-00fbeb090f72",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/09526402-4299-ff59-9017-39fd26a973bb/T_Trim_Props_ORM.png",
+          "contentSha256": "2d83d8df79aca2c8f630d389b43f09113afee98e746dfd42ddc3ce3302a136a2",
+          "uncompressedBytes": 3017151,
+          "storedBytes": 3017151,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        }
+      ],
+      "collision": null,
+      "animation": null,
+      "vfx": null,
+      "lod": null,
+      "modelMetadata": null,
+      "navigation": null,
+      "font": null
+    },
+    {
+      "schemaVersion": 1,
       "id": "207717dc-adbf-1656-b3a0-52f51b424a6e",
       "assetId": "0b34dcaa-a946-4851-92f2-757a3dc140ed",
       "modificationProvenance": "author:solaren:governed-gltf:quaternius:medieval-village-megakit-standard-1.0@1.0.0",
@@ -53,6 +379,65 @@
           "platforms": [
             "windows",
             "linux"
+          ]
+        }
+      ],
+      "collision": null,
+      "animation": null,
+      "vfx": null,
+      "lod": null,
+      "modelMetadata": null,
+      "navigation": null,
+      "font": null
+    },
+    {
+      "schemaVersion": 1,
+      "id": "5308c03a-a79b-0a50-b277-81341dfe1bc5",
+      "assetId": "169b1d11-dc11-4b5d-8b15-4d16b8c819fa",
+      "modificationProvenance": "asset-vault:openrpg:solaren-portrait-carriers-1.0:orin-portrait",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "24126a6978fa6cbafa6980683fc5d1ec4ac7d29268b4fcc7c67a3d7ea5cf52b6",
+      "platformBudgets": {
+        "any": 579600
+      },
+      "chunks": [
+        {
+          "id": "d8a0d384-8630-ec53-aeaf-e16d23a9182b",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/169b1d11-dc11-4b5d-8b15-4d16b8c819fa/orin-portrait.gltf",
+          "contentSha256": "8eebc59b3875f9763b3dbe06a115803a9f4a2c31905d64eb9103f5d513352024",
+          "uncompressedBytes": 1768,
+          "storedBytes": 1768,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "1e249f38-d803-9750-ae9a-d698fa8f7a4e",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/169b1d11-dc11-4b5d-8b15-4d16b8c819fa/orin-portrait.bin",
+          "contentSha256": "d27f0b420c34117d5b60d72f44a9211bbfb9670ef460e6bfecd81fce9e8a7efb",
+          "uncompressedBytes": 140,
+          "storedBytes": 140,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "1bf6bb9d-f3eb-7059-940b-fd5005b80835",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/169b1d11-dc11-4b5d-8b15-4d16b8c819fa/orin-portrait.png",
+          "contentSha256": "20f7177a1ac78d70237acbfba25a7f9482e570c28cda9a3bcd11007c202b718b",
+          "uncompressedBytes": 577692,
+          "storedBytes": 577692,
+          "compression": "none",
+          "platforms": [
+            "any"
           ]
         }
       ],
@@ -871,6 +1256,124 @@
     },
     {
       "schemaVersion": 1,
+      "id": "e7f7fa7b-489d-4b5a-9800-c3e6e53f8beb",
+      "assetId": "423e2499-aeb6-515f-99b2-e771b6206fce",
+      "modificationProvenance": "asset-vault:openrpg:solaren-character-derivatives-1.0:female-peasant-ual2",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "808fdb4d5e3645535ed83cbfc382903a66d987cfb716daa3083e9601209aa618",
+      "platformBudgets": {
+        "any": 45822996
+      },
+      "chunks": [
+        {
+          "id": "da5d3f73-d6a5-7b5b-aac8-205f15fce61d",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/423e2499-aeb6-515f-99b2-e771b6206fce/female-peasant-ual2.glb",
+          "contentSha256": "fd8f794ef65093360b63b20613bfb74d924f69bcb6cfd9dc5e0a6d9e1500f1b0",
+          "uncompressedBytes": 45822996,
+          "storedBytes": 45822996,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        }
+      ],
+      "collision": null,
+      "animation": null,
+      "vfx": null,
+      "lod": null,
+      "modelMetadata": null,
+      "navigation": null,
+      "font": null
+    },
+    {
+      "schemaVersion": 1,
+      "id": "0a3800ed-a1da-6b50-9c00-0477a6e63200",
+      "assetId": "4e65e392-8ff2-9b53-b444-0e2778170759",
+      "modificationProvenance": "asset-vault:quaternius:fantasy-props-megakit-standard-1.0:torch-metal",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "83c3d0b15498269b467c386cdd4616fdfa24a99d9e565271c68bc8e6503c57cc",
+      "platformBudgets": {
+        "any": 6899540
+      },
+      "chunks": [
+        {
+          "id": "7825bd7a-aff8-3d5a-8f5d-8f0cce2db732",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/4e65e392-8ff2-9b53-b444-0e2778170759/Torch_Metal.gltf",
+          "contentSha256": "f28978f4f351030766996ccb5585f258882b6892f3944bbf06609a761ffb01a5",
+          "uncompressedBytes": 2203,
+          "storedBytes": 2203,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "4ece5620-3c96-895a-b343-e0cb6494c3f4",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/4e65e392-8ff2-9b53-b444-0e2778170759/T_Trim_Metal_BaseColor.png",
+          "contentSha256": "50422bbda9661effc259caf8b386224cac4b5ca811d2c5b3b8b25ae8efc714db",
+          "uncompressedBytes": 1361221,
+          "storedBytes": 1361221,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "5e3ef9d4-758b-8f5f-8590-86b6bc055d27",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/4e65e392-8ff2-9b53-b444-0e2778170759/T_Trim_Metal_Normal.png",
+          "contentSha256": "ab7315c864c9a9e6d716c940a599928506e1569d3b0c9085f8f1a64ec520d790",
+          "uncompressedBytes": 3625541,
+          "storedBytes": 3625541,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "f787de3e-2fd7-385e-bd5e-6fbb28637d79",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/4e65e392-8ff2-9b53-b444-0e2778170759/T_Trim_Metal_ORM.png",
+          "contentSha256": "7407bccfc39ca74ecd68a61217395959bf56ac2063e6c93b384b11f07f5687c5",
+          "uncompressedBytes": 1871475,
+          "storedBytes": 1871475,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "694719c9-cbed-845c-9d45-7cbe907023d0",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/4e65e392-8ff2-9b53-b444-0e2778170759/Torch_Metal.bin",
+          "contentSha256": "522de8798b4c2e0db9ba640d69a5c6e506b558f22b98e95c0cfc95ba2d7b79e7",
+          "uncompressedBytes": 39100,
+          "storedBytes": 39100,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        }
+      ],
+      "collision": null,
+      "animation": null,
+      "vfx": null,
+      "lod": null,
+      "modelMetadata": null,
+      "navigation": null,
+      "font": null
+    },
+    {
+      "schemaVersion": 1,
       "id": "2add62e5-6081-f85c-92d9-73210e727e0b",
       "assetId": "587f80ae-6226-b95d-aaca-a984b0cb3ebc",
       "modificationProvenance": "author:solaren:governed-gltf:quaternius:medieval-village-megakit-standard-1.0@1.0.0",
@@ -949,6 +1452,169 @@
           "platforms": [
             "windows",
             "linux"
+          ]
+        }
+      ],
+      "collision": null,
+      "animation": null,
+      "vfx": null,
+      "lod": null,
+      "modelMetadata": null,
+      "navigation": null,
+      "font": null
+    },
+    {
+      "schemaVersion": 1,
+      "id": "33516cc2-3f72-a559-9783-80e5f25054a5",
+      "assetId": "5c47aa06-f356-0350-815c-754c868cd225",
+      "modificationProvenance": "asset-vault:quaternius:fantasy-props-megakit-standard-1.0:barrel-apples",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "83c3d0b15498269b467c386cdd4616fdfa24a99d9e565271c68bc8e6503c57cc",
+      "platformBudgets": {
+        "any": 24474075
+      },
+      "chunks": [
+        {
+          "id": "6f80131e-c330-815b-ac9a-ff9b6096fc73",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/5c47aa06-f356-0350-815c-754c868cd225/Barrel_Apples.gltf",
+          "contentSha256": "07520279b51bd1cc75b6db88b572b5ec445fc7decf0b115fba5c9e20f8caa111",
+          "uncompressedBytes": 6241,
+          "storedBytes": 6241,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "1b50e0e7-61b1-bc50-9ee1-ee4f1e41be57",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/5c47aa06-f356-0350-815c-754c868cd225/Barrel_Apples.bin",
+          "contentSha256": "774c97d9b2b2faa04ef40c681540ca3be74a3942ab8bbbd8c8d260b66121f8c8",
+          "uncompressedBytes": 104600,
+          "storedBytes": 104600,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "aa097902-1494-5554-81f0-520a8d5c46c5",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/5c47aa06-f356-0350-815c-754c868cd225/T_Trim_Furniture_BaseColor.png",
+          "contentSha256": "075fbc9ec2fabc15732bd4025b6f63a0b25762df38440d06bf30437565d39bab",
+          "uncompressedBytes": 2232961,
+          "storedBytes": 2232961,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "e7aa984f-5073-215d-a2f9-72f1f4fe860c",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/5c47aa06-f356-0350-815c-754c868cd225/T_Trim_Furniture_Normal.png",
+          "contentSha256": "3340c4cc47ff06d5e94a2dbe2a2a12d914d0ef055fcf66f63d876666bd160e42",
+          "uncompressedBytes": 3485710,
+          "storedBytes": 3485710,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "774c6657-7c53-e953-b5ea-6918b5c683d9",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/5c47aa06-f356-0350-815c-754c868cd225/T_Trim_Furniture_ORM.png",
+          "contentSha256": "7bf417e82baf313793c5791bf48cdc8e573f1f7136197785bf0eb235cb0f8153",
+          "uncompressedBytes": 2064585,
+          "storedBytes": 2064585,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "a2967985-d6a5-bd56-a5bd-e83fcc24688b",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/5c47aa06-f356-0350-815c-754c868cd225/T_Trim_Metal_BaseColor.png",
+          "contentSha256": "50422bbda9661effc259caf8b386224cac4b5ca811d2c5b3b8b25ae8efc714db",
+          "uncompressedBytes": 1361221,
+          "storedBytes": 1361221,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "f923753b-123c-6257-9689-67ea0eea595e",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/5c47aa06-f356-0350-815c-754c868cd225/T_Trim_Metal_Normal.png",
+          "contentSha256": "ab7315c864c9a9e6d716c940a599928506e1569d3b0c9085f8f1a64ec520d790",
+          "uncompressedBytes": 3625541,
+          "storedBytes": 3625541,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "0eed59f6-55cd-5950-ba79-7761eb4d6fb3",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/5c47aa06-f356-0350-815c-754c868cd225/T_Trim_Metal_ORM.png",
+          "contentSha256": "7407bccfc39ca74ecd68a61217395959bf56ac2063e6c93b384b11f07f5687c5",
+          "uncompressedBytes": 1871475,
+          "storedBytes": 1871475,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "e7dded47-fb7f-c35a-b33e-90b2d57b5d75",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/5c47aa06-f356-0350-815c-754c868cd225/T_Trim_Props_BaseColor.png",
+          "contentSha256": "75225a4ccfd8cc358c871de7a7a3cab7118ef197419a88464e807b81716215c8",
+          "uncompressedBytes": 2263132,
+          "storedBytes": 2263132,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "177b5f23-958e-be5f-94ab-91a3a6abab97",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/5c47aa06-f356-0350-815c-754c868cd225/T_Trim_Props_Normal.png",
+          "contentSha256": "c4b28a8ba8efe3108cd11356ecab67e8bf75a10cebf29c78ee7724552c305a3e",
+          "uncompressedBytes": 4441458,
+          "storedBytes": 4441458,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "3fb56d3d-eed2-2652-9c0f-e8098570b146",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/5c47aa06-f356-0350-815c-754c868cd225/T_Trim_Props_ORM.png",
+          "contentSha256": "2d83d8df79aca2c8f630d389b43f09113afee98e746dfd42ddc3ce3302a136a2",
+          "uncompressedBytes": 3017151,
+          "storedBytes": 3017151,
+          "compression": "none",
+          "platforms": [
+            "any"
           ]
         }
       ],
@@ -1361,6 +2027,130 @@
     },
     {
       "schemaVersion": 1,
+      "id": "5314454f-da72-205a-a5cf-58747df1a292",
+      "assetId": "6e69ebdb-13ed-6a53-9503-4953f500ce3e",
+      "modificationProvenance": "asset-vault:quaternius:fantasy-props-megakit-standard-1.0:crate-wooden",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "83c3d0b15498269b467c386cdd4616fdfa24a99d9e565271c68bc8e6503c57cc",
+      "platformBudgets": {
+        "any": 14712401
+      },
+      "chunks": [
+        {
+          "id": "37e27579-69f9-ef52-b5d5-deed9bdecee0",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/6e69ebdb-13ed-6a53-9503-4953f500ce3e/Crate_Wooden.gltf",
+          "contentSha256": "fb06d4b7b9bbfbb9dc51fa56ecff3fe7ba8e9142d643cabedd17a55d7ea46ee5",
+          "uncompressedBytes": 4412,
+          "storedBytes": 4412,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "bc0cbd56-1dcb-2b55-9a33-7dd82d69b48d",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/6e69ebdb-13ed-6a53-9503-4953f500ce3e/Crate_Wooden.bin",
+          "contentSha256": "7ae016386790e5998fbdf1656a5dc53a3f1374c3525b22798d84397a36ae937b",
+          "uncompressedBytes": 66496,
+          "storedBytes": 66496,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "b7f9d0ea-3404-545f-ad41-d8f10e6e7522",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/6e69ebdb-13ed-6a53-9503-4953f500ce3e/T_Trim_Furniture_BaseColor.png",
+          "contentSha256": "075fbc9ec2fabc15732bd4025b6f63a0b25762df38440d06bf30437565d39bab",
+          "uncompressedBytes": 2232961,
+          "storedBytes": 2232961,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "92aa3ebc-5a22-cb59-8207-358d9d74ef5b",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/6e69ebdb-13ed-6a53-9503-4953f500ce3e/T_Trim_Furniture_Normal.png",
+          "contentSha256": "3340c4cc47ff06d5e94a2dbe2a2a12d914d0ef055fcf66f63d876666bd160e42",
+          "uncompressedBytes": 3485710,
+          "storedBytes": 3485710,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "42b06437-aff6-f154-8d08-7d41454fd084",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/6e69ebdb-13ed-6a53-9503-4953f500ce3e/T_Trim_Furniture_ORM.png",
+          "contentSha256": "7bf417e82baf313793c5791bf48cdc8e573f1f7136197785bf0eb235cb0f8153",
+          "uncompressedBytes": 2064585,
+          "storedBytes": 2064585,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "52aaea39-22e9-f957-b0c3-3cbfe83419c3",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/6e69ebdb-13ed-6a53-9503-4953f500ce3e/T_Trim_Metal_BaseColor.png",
+          "contentSha256": "50422bbda9661effc259caf8b386224cac4b5ca811d2c5b3b8b25ae8efc714db",
+          "uncompressedBytes": 1361221,
+          "storedBytes": 1361221,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "35ce0761-2ed1-dd55-ac47-09f18ccd1375",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/6e69ebdb-13ed-6a53-9503-4953f500ce3e/T_Trim_Metal_Normal.png",
+          "contentSha256": "ab7315c864c9a9e6d716c940a599928506e1569d3b0c9085f8f1a64ec520d790",
+          "uncompressedBytes": 3625541,
+          "storedBytes": 3625541,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "e54e70ca-b493-b251-892b-24defb394150",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/6e69ebdb-13ed-6a53-9503-4953f500ce3e/T_Trim_Metal_ORM.png",
+          "contentSha256": "7407bccfc39ca74ecd68a61217395959bf56ac2063e6c93b384b11f07f5687c5",
+          "uncompressedBytes": 1871475,
+          "storedBytes": 1871475,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        }
+      ],
+      "collision": null,
+      "animation": null,
+      "vfx": null,
+      "lod": null,
+      "modelMetadata": null,
+      "navigation": null,
+      "font": null
+    },
+    {
+      "schemaVersion": 1,
       "id": "f17278b2-586e-d85d-a53f-50eecb137112",
       "assetId": "732a0dcb-8007-3c5e-b76a-338bdeabf7ff",
       "modificationProvenance": "author:solaren:governed-gltf:quaternius:stylized-nature-megakit-standard-1.0@1.0.0",
@@ -1614,6 +2404,130 @@
           "platforms": [
             "windows",
             "linux"
+          ]
+        }
+      ],
+      "collision": null,
+      "animation": null,
+      "vfx": null,
+      "lod": null,
+      "modelMetadata": null,
+      "navigation": null,
+      "font": null
+    },
+    {
+      "schemaVersion": 1,
+      "id": "803e261a-d288-8b5c-97ba-7b1100327f82",
+      "assetId": "7c347236-48fe-745d-886d-bb09d3ba427d",
+      "modificationProvenance": "asset-vault:quaternius:fantasy-props-megakit-standard-1.0:candlestick-stand",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "83c3d0b15498269b467c386cdd4616fdfa24a99d9e565271c68bc8e6503c57cc",
+      "platformBudgets": {
+        "any": 16810553
+      },
+      "chunks": [
+        {
+          "id": "b1d8153e-8688-6457-80da-6f8be4777d24",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/7c347236-48fe-745d-886d-bb09d3ba427d/CandleStick_Stand.gltf",
+          "contentSha256": "4255072b144deb6abadaa604cdb52d09a64dfee2df690cd0f1c71c829454380b",
+          "uncompressedBytes": 4347,
+          "storedBytes": 4347,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "dc25aa8f-cf29-f956-b816-ae4cb87da316",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/7c347236-48fe-745d-886d-bb09d3ba427d/CandleStick_Stand.bin",
+          "contentSha256": "8d3300e0ab2563b72f4f7ae7f1c7032f9f7c8a0f13f37177b43689a61e5568b2",
+          "uncompressedBytes": 226228,
+          "storedBytes": 226228,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "9370b74c-c69f-955d-b356-b9e055e133fb",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/7c347236-48fe-745d-886d-bb09d3ba427d/T_Trim_Metal_BaseColor.png",
+          "contentSha256": "50422bbda9661effc259caf8b386224cac4b5ca811d2c5b3b8b25ae8efc714db",
+          "uncompressedBytes": 1361221,
+          "storedBytes": 1361221,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "5a368a20-8edf-ca5a-8e1b-9b9c5442200d",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/7c347236-48fe-745d-886d-bb09d3ba427d/T_Trim_Metal_Normal.png",
+          "contentSha256": "ab7315c864c9a9e6d716c940a599928506e1569d3b0c9085f8f1a64ec520d790",
+          "uncompressedBytes": 3625541,
+          "storedBytes": 3625541,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "41f7cebb-88b7-3b55-975e-67ea2cc80130",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/7c347236-48fe-745d-886d-bb09d3ba427d/T_Trim_Metal_ORM.png",
+          "contentSha256": "7407bccfc39ca74ecd68a61217395959bf56ac2063e6c93b384b11f07f5687c5",
+          "uncompressedBytes": 1871475,
+          "storedBytes": 1871475,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "3c18731c-3e9e-be5a-9b47-5f643c12758d",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/7c347236-48fe-745d-886d-bb09d3ba427d/T_Trim_Props_BaseColor.png",
+          "contentSha256": "75225a4ccfd8cc358c871de7a7a3cab7118ef197419a88464e807b81716215c8",
+          "uncompressedBytes": 2263132,
+          "storedBytes": 2263132,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "86cfbe68-9742-455b-bd34-63b6eade14dc",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/7c347236-48fe-745d-886d-bb09d3ba427d/T_Trim_Props_Normal.png",
+          "contentSha256": "c4b28a8ba8efe3108cd11356ecab67e8bf75a10cebf29c78ee7724552c305a3e",
+          "uncompressedBytes": 4441458,
+          "storedBytes": 4441458,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "4e50d16a-a718-c257-a5a2-08d71e2ae208",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/7c347236-48fe-745d-886d-bb09d3ba427d/T_Trim_Props_ORM.png",
+          "contentSha256": "2d83d8df79aca2c8f630d389b43f09113afee98e746dfd42ddc3ce3302a136a2",
+          "uncompressedBytes": 3017151,
+          "storedBytes": 3017151,
+          "compression": "none",
+          "platforms": [
+            "any"
           ]
         }
       ],
@@ -1922,6 +2836,39 @@
           "platforms": [
             "windows",
             "linux"
+          ]
+        }
+      ],
+      "collision": null,
+      "animation": null,
+      "vfx": null,
+      "lod": null,
+      "modelMetadata": null,
+      "navigation": null,
+      "font": null
+    },
+    {
+      "schemaVersion": 1,
+      "id": "4d196f13-826a-f451-ba2e-044d85bb608d",
+      "assetId": "8136ec94-41fa-cc58-8296-7eca59461c3c",
+      "modificationProvenance": "asset-vault:openrpg:solaren-character-derivatives-1.0:female-ranger-ual2",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "6734db2ee48b63d6e0dd8919d9e1d6804c2f8e11d879290556161d865bacf26f",
+      "platformBudgets": {
+        "any": 56977820
+      },
+      "chunks": [
+        {
+          "id": "9d9f76d5-3274-3c53-ba1b-bd972d50a10a",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/8136ec94-41fa-cc58-8296-7eca59461c3c/female-ranger-ual2.glb",
+          "contentSha256": "5768e94f48a418da7058730de585e1556bb032d7bd3f9ae9284cc88423b3ec6f",
+          "uncompressedBytes": 56977820,
+          "storedBytes": 56977820,
+          "compression": "none",
+          "platforms": [
+            "any"
           ]
         }
       ],
@@ -2258,6 +3205,65 @@
           "platforms": [
             "windows",
             "linux"
+          ]
+        }
+      ],
+      "collision": null,
+      "animation": null,
+      "vfx": null,
+      "lod": null,
+      "modelMetadata": null,
+      "navigation": null,
+      "font": null
+    },
+    {
+      "schemaVersion": 1,
+      "id": "ed11f1fa-7d65-f759-9a89-4865214545a5",
+      "assetId": "a6567932-c1ad-e75a-a4ed-f71a0f957ed5",
+      "modificationProvenance": "asset-vault:openrpg:solaren-portrait-carriers-1.0:maelis-portrait",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "14e4ffa23ed4a0e8c2f076a257eb753f249d0d9be7b0091e49488b3903675e39",
+      "platformBudgets": {
+        "any": 499244
+      },
+      "chunks": [
+        {
+          "id": "65ae0d23-8cba-a55e-a203-9d1805f340ac",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/a6567932-c1ad-e75a-a4ed-f71a0f957ed5/maelis-portrait.gltf",
+          "contentSha256": "b17005ba7ea3930fb0e606a5b615304f02b802a64ff4f4572c7a051308ef64f5",
+          "uncompressedBytes": 1778,
+          "storedBytes": 1778,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "63184298-a4dd-2955-bec1-5010a4c65598",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/a6567932-c1ad-e75a-a4ed-f71a0f957ed5/maelis-portrait.bin",
+          "contentSha256": "d27f0b420c34117d5b60d72f44a9211bbfb9670ef460e6bfecd81fce9e8a7efb",
+          "uncompressedBytes": 140,
+          "storedBytes": 140,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "52367599-7423-e351-ab63-4863b528a667",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/a6567932-c1ad-e75a-a4ed-f71a0f957ed5/maelis-portrait.png",
+          "contentSha256": "87bdd4b7cd64fedda02fe44f7a9a566886d6bc779002ef6f7dc3dc969dcb6bf7",
+          "uncompressedBytes": 497326,
+          "storedBytes": 497326,
+          "compression": "none",
+          "platforms": [
+            "any"
           ]
         }
       ],
@@ -2943,6 +3949,157 @@
     },
     {
       "schemaVersion": 1,
+      "id": "0765e28a-b059-aa54-a204-fa9320440537",
+      "assetId": "bdba52b4-6a0f-ff57-8ee0-02e5563a1c4d",
+      "modificationProvenance": "asset-vault:openrpg:solaren-character-derivatives-1.0:male-ranger-ual2",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "f19c8a3e2873ca6c097150b129a7902946339feb163316929e38ab3ed2542325",
+      "platformBudgets": {
+        "any": 56219548
+      },
+      "chunks": [
+        {
+          "id": "1d3bbbff-58fa-b454-9a05-e7c5a12b4af1",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/bdba52b4-6a0f-ff57-8ee0-02e5563a1c4d/male-ranger-ual2.glb",
+          "contentSha256": "88649856c224fef6dac4f7b2247d8e41b8b39b672d3b6056576738c23d7e1bfc",
+          "uncompressedBytes": 56219548,
+          "storedBytes": 56219548,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        }
+      ],
+      "collision": null,
+      "animation": null,
+      "vfx": null,
+      "lod": null,
+      "modelMetadata": null,
+      "navigation": null,
+      "font": null
+    },
+    {
+      "schemaVersion": 1,
+      "id": "262719b4-b4a5-315e-9d3c-57cf785805c1",
+      "assetId": "c9d189f3-65fb-ae58-8d6e-e5317ea94a2f",
+      "modificationProvenance": "asset-vault:openrpg:solaren-portrait-carriers-1.0:toman-portrait",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "fc2e39a2c41b09248103a4d6057b3049a7fa38cc43e500dafbc821fc90294ec8",
+      "platformBudgets": {
+        "any": 500452
+      },
+      "chunks": [
+        {
+          "id": "a8fccc9a-4d12-0c56-9e3e-c3e1da79c5c0",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/c9d189f3-65fb-ae58-8d6e-e5317ea94a2f/toman-portrait.gltf",
+          "contentSha256": "8a01f643efd3f0fe51cb10fd241530690d3e0e1fedf15a5d2a828cdd8584e593",
+          "uncompressedBytes": 1773,
+          "storedBytes": 1773,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "64823b48-9b19-1351-b444-c9e97c78b53a",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/c9d189f3-65fb-ae58-8d6e-e5317ea94a2f/toman-portrait.bin",
+          "contentSha256": "d27f0b420c34117d5b60d72f44a9211bbfb9670ef460e6bfecd81fce9e8a7efb",
+          "uncompressedBytes": 140,
+          "storedBytes": 140,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "463ad52c-b94f-9058-851a-237646cb1124",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/c9d189f3-65fb-ae58-8d6e-e5317ea94a2f/toman-portrait.png",
+          "contentSha256": "9023169cb70aa44205e8ae065d0a80dd4a0f6d21474990dd046a1b64f1fa3e4e",
+          "uncompressedBytes": 498539,
+          "storedBytes": 498539,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        }
+      ],
+      "collision": null,
+      "animation": null,
+      "vfx": null,
+      "lod": null,
+      "modelMetadata": null,
+      "navigation": null,
+      "font": null
+    },
+    {
+      "schemaVersion": 1,
+      "id": "f5bf16f7-ec1d-6952-8ae9-6f0ac388cec6",
+      "assetId": "ccd0edb9-5d82-7357-a905-f687f4b181ff",
+      "modificationProvenance": "asset-vault:openrpg:solaren-portrait-carriers-1.0:aerin-portrait",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "d67ed67335f99c0f18c8e983a7cac98b48edb557dbdb6b0f07e55c5e2c540e16",
+      "platformBudgets": {
+        "any": 595521
+      },
+      "chunks": [
+        {
+          "id": "63ad399e-42a2-1356-a53c-a44dd3837956",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/ccd0edb9-5d82-7357-a905-f687f4b181ff/aerin-portrait.gltf",
+          "contentSha256": "bfb01e09a3e26e3a84f24bc6d8c7f0482126ccd44258148c0765eb75f46c30fa",
+          "uncompressedBytes": 1769,
+          "storedBytes": 1769,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "f31b5bb3-9f16-7a56-ab5f-46525afae3c7",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/ccd0edb9-5d82-7357-a905-f687f4b181ff/aerin-portrait.bin",
+          "contentSha256": "d27f0b420c34117d5b60d72f44a9211bbfb9670ef460e6bfecd81fce9e8a7efb",
+          "uncompressedBytes": 140,
+          "storedBytes": 140,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "548a7240-c436-7254-800c-f410b7abb719",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/ccd0edb9-5d82-7357-a905-f687f4b181ff/aerin-portrait.png",
+          "contentSha256": "1c48eabbfadf5de11728f5e8614f32165713aaeabf9ce09dbd599083c33bc9d5",
+          "uncompressedBytes": 593612,
+          "storedBytes": 593612,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        }
+      ],
+      "collision": null,
+      "animation": null,
+      "vfx": null,
+      "lod": null,
+      "modelMetadata": null,
+      "navigation": null,
+      "font": null
+    },
+    {
+      "schemaVersion": 1,
       "id": "c1952694-f467-3d5c-9708-16d808a6bd4b",
       "assetId": "cd2518e5-b20e-3e5f-b461-9650373a71b0",
       "modificationProvenance": "author:solaren:governed-gltf:quaternius:stylized-nature-megakit-standard-1.0@1.0.0",
@@ -3553,6 +4710,91 @@
           "platforms": [
             "windows",
             "linux"
+          ]
+        }
+      ],
+      "collision": null,
+      "animation": null,
+      "vfx": null,
+      "lod": null,
+      "modelMetadata": null,
+      "navigation": null,
+      "font": null
+    },
+    {
+      "schemaVersion": 1,
+      "id": "c4dbb699-e96c-865c-9976-6acf6e84e9af",
+      "assetId": "d9959d56-4865-7556-b51d-b4bbdae054e2",
+      "modificationProvenance": "asset-vault:quaternius:fantasy-props-megakit-standard-1.0:lantern-wall",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "83c3d0b15498269b467c386cdd4616fdfa24a99d9e565271c68bc8e6503c57cc",
+      "platformBudgets": {
+        "any": 6980476
+      },
+      "chunks": [
+        {
+          "id": "2f5ff0a6-51f8-8755-9a8a-e7c72fa3ca97",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/d9959d56-4865-7556-b51d-b4bbdae054e2/Lantern_Wall.gltf",
+          "contentSha256": "9e7623e1d3a16f9212ff7cb41c939746435187f0071bd94849ee7bc6a59785a2",
+          "uncompressedBytes": 2203,
+          "storedBytes": 2203,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "d24861a6-76c4-c25e-b632-a45a56de9faa",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/d9959d56-4865-7556-b51d-b4bbdae054e2/Lantern_Wall.bin",
+          "contentSha256": "fe9f3816130587308b73bb8b4b28031b71fe9405a111f115463022709fa04b2e",
+          "uncompressedBytes": 120036,
+          "storedBytes": 120036,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "c0ac23fb-1040-d15b-82b8-685cbca7977c",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/d9959d56-4865-7556-b51d-b4bbdae054e2/T_Trim_Metal_BaseColor.png",
+          "contentSha256": "50422bbda9661effc259caf8b386224cac4b5ca811d2c5b3b8b25ae8efc714db",
+          "uncompressedBytes": 1361221,
+          "storedBytes": 1361221,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "8ba8c063-7236-5554-b54e-1ea2878e06f1",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/d9959d56-4865-7556-b51d-b4bbdae054e2/T_Trim_Metal_Normal.png",
+          "contentSha256": "ab7315c864c9a9e6d716c940a599928506e1569d3b0c9085f8f1a64ec520d790",
+          "uncompressedBytes": 3625541,
+          "storedBytes": 3625541,
+          "compression": "none",
+          "platforms": [
+            "any"
+          ]
+        },
+        {
+          "id": "f9a44179-5d07-185b-8eac-b05402247dde",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/d9959d56-4865-7556-b51d-b4bbdae054e2/T_Trim_Metal_ORM.png",
+          "contentSha256": "7407bccfc39ca74ecd68a61217395959bf56ac2063e6c93b384b11f07f5687c5",
+          "uncompressedBytes": 1871475,
+          "storedBytes": 1871475,
+          "compression": "none",
+          "platforms": [
+            "any"
           ]
         }
       ],

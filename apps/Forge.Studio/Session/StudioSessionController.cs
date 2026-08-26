@@ -800,52 +800,34 @@ internal sealed partial class StudioSessionController
         {
             return new StudioAssetPreparationResult(
                 false,
-                "Ce modèle n'a pas de variante GLB locale avec une licence vérifiée.");
+                "Ce modèle n'a pas de variante glTF ou GLB locale avec une licence vérifiée.");
         }
 
         vaultRoot = Path.GetFullPath(vaultRoot);
         workspaceRoot = Path.GetFullPath(workspaceRoot);
-        var sourcePath = Path.GetFullPath(Path.Combine(
-            vaultRoot,
-            libraryItem.RelativeModelPath.Replace('/', Path.DirectorySeparatorChar)));
-        var vaultPrefix = vaultRoot.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
-        if (!sourcePath.StartsWith(vaultPrefix, StringComparison.OrdinalIgnoreCase) || !File.Exists(sourcePath))
-        {
-            return new StudioAssetPreparationResult(false, "Le fichier choisi n'existe plus dans le Vault local.");
-        }
-
         try
         {
-            var contentSha256 = HashFile(sourcePath);
-            var item = new AssetCatalogItem(
-                AssetCatalogItemId.ForExternalId(libraryItem.ExternalId),
-                libraryItem.ExternalId,
-                libraryItem.DisplayName,
-                libraryItem.Source,
-                libraryItem.ExternalId.Split(':').Last(),
-                string.IsNullOrWhiteSpace(libraryItem.SourcePage)
-                    ? $"asset://vault/{libraryItem.ExternalId}"
-                    : libraryItem.SourcePage,
-                libraryItem.LicenseSpdx,
-                string.IsNullOrWhiteSpace(libraryItem.LicenseUrl)
-                    ? $"asset://vault/{libraryItem.ExternalId}/license"
-                    : libraryItem.LicenseUrl,
-                libraryItem.LicenseVerified,
-                contentSha256,
-                libraryItem.FileSize,
-                libraryItem.Categories,
-                libraryItem.Tags,
-                "downloaded-and-extracted",
-                AssetAvailability.ExtractedAvailable,
-                libraryItem.RelativeModelPath,
-                libraryItem.RelativePreviewPath,
-                null,
-                $"asset-atlas:{libraryItem.ExternalId}",
-                author: libraryItem.Author,
-                attributionRequired: libraryItem.AttributionRequired,
-                attributionText: libraryItem.AttributionText);
-            var profile = AssetImportPlanner.CreateDefaultProfile(item, AssetProcessingKind.Model);
-            var planned = AssetImportPlanner.Plan(item, profile);
+            var repositoryRoot = AssetCatalogLoader.FindRepositoryRoot(workspaceRoot) ??
+                                 AssetCatalogLoader.FindRepositoryRoot(AppContext.BaseDirectory);
+            if (repositoryRoot is null)
+            {
+                return new StudioAssetPreparationResult(
+                    false,
+                    "Le catalogue versionné OpenRPG Forge est introuvable.");
+            }
+
+            var catalog = AssetCatalogLoader.Load(repositoryRoot, vaultRoot);
+            var item = catalog.Catalog?.Items.SingleOrDefault(candidate =>
+                string.Equals(candidate.ExternalId, libraryItem.ExternalId, StringComparison.OrdinalIgnoreCase));
+            if (item is null)
+            {
+                return new StudioAssetPreparationResult(
+                    false,
+                    $"Le modèle logique '{libraryItem.ExternalId}' n'existe plus dans le catalogue gouverné.");
+            }
+
+            var planned = LocalAssetPackageInstaller.Plan(
+                repositoryRoot, vaultRoot, workspaceRoot, item);
             if (!planned.Succeeded || planned.Plan is null)
             {
                 return new StudioAssetPreparationResult(
@@ -853,36 +835,16 @@ internal sealed partial class StudioSessionController
                     string.Join(" · ", planned.Diagnostics.Select(diagnostic => diagnostic.Message)));
             }
 
-            var executed = AssetImportExecutor.Execute(planned.Plan, vaultRoot, workspaceRoot);
-            if (!executed.Succeeded || executed.Execution is null)
-            {
-                return new StudioAssetPreparationResult(
-                    false,
-                    string.Join(" · ", executed.Diagnostics.Select(diagnostic => diagnostic.Message)));
-            }
-            if (executed.Execution.Status != AssetImportExecutionStatus.CanonicalReady)
-            {
-                return new StudioAssetPreparationResult(
-                    false,
-                    "Le modèle a été copié, mais sa conversion GLB canonique reste nécessaire.");
-            }
-
-            var manifest = AssetPackageManifestFactory.Create(
-                item,
-                profile,
-                new AssetManifestArtifactInput(
-                    executed.Execution.OutputRelativePath,
-                    executed.Execution.OutputContentSha256,
-                    executed.Execution.OutputBytes,
-                    CanonicalReady: true));
             return new StudioAssetPreparationResult(
                 true,
                 $"{libraryItem.DisplayName} prêt à être ajouté",
                 new StudioPreparedAssetInstall(
                     workspaceRoot,
                     item,
-                    manifest,
-                    executed.Execution.Reused));
+                    planned.Plan.Manifest,
+                    planned.Plan.Reused,
+                    vaultRoot,
+                    planned.Plan));
         }
         catch (Exception exception) when (
             exception is IOException or UnauthorizedAccessException or ArgumentException or InvalidOperationException)
@@ -936,6 +898,22 @@ internal sealed partial class StudioSessionController
                 return new StudioAssetInstallResult(false, Failure(preview).Message);
             }
 
+            var materialized = LocalAssetPackageInstaller.Apply(
+                prepared.VaultRoot, prepared.WorkspaceRoot, prepared.LocalPackage);
+            if (!materialized.Succeeded)
+            {
+                return new StudioAssetInstallResult(
+                    false,
+                    string.Join(" · ", materialized.Diagnostics.Select(diagnostic => diagnostic.Message)));
+            }
+
+            var governed = GovernedAssetModelVerifier.Verify(prepared.WorkspaceRoot, manifest);
+            if (!governed.Succeeded)
+            {
+                _ = LocalAssetPackageInstaller.Revert(prepared.WorkspaceRoot, materialized);
+                return new StudioAssetInstallResult(false, governed.DiagnosticMessage!);
+            }
+
             var previousManifests = AssetManifests;
             var updatedManifests = previousManifests
                 .Where(candidate => candidate.AssetId != manifest.AssetId)
@@ -945,6 +923,7 @@ internal sealed partial class StudioSessionController
             var manifestSave = AssetPackageManifestStore.Save(Session.RootDirectory, updatedManifests);
             if (!manifestSave.Succeeded)
             {
+                _ = LocalAssetPackageInstaller.Revert(prepared.WorkspaceRoot, materialized);
                 return new StudioAssetInstallResult(
                     false,
                     string.Join(" · ", manifestSave.Diagnostics.Select(diagnostic => diagnostic.Message)));
@@ -960,6 +939,7 @@ internal sealed partial class StudioSessionController
             if (!applied.Succeeded)
             {
                 _ = AssetPackageManifestStore.Save(Session.RootDirectory, previousManifests);
+                _ = LocalAssetPackageInstaller.Revert(prepared.WorkspaceRoot, materialized);
                 return new StudioAssetInstallResult(false, Failure(applied).Message);
             }
             History.Record(applied);

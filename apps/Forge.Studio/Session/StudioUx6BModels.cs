@@ -59,7 +59,18 @@ internal sealed record StudioUx6BCameraDraft(
     int TerrainProbeSamples,
     float InitialYawDegrees,
     float MinimumPitchDegrees,
-    float MaximumPitchDegrees);
+    float MaximumPitchDegrees,
+    int OcclusionSchemaVersion,
+    CameraOcclusionStrategy OcclusionStrategy,
+    float CollisionRetractSharpness,
+    float CollisionReleaseSharpness,
+    int WorldLabelSchemaVersion,
+    float WorldLabelNearDistance,
+    float WorldLabelFarDistance,
+    float WorldLabelMaximumDistance,
+    float WorldLabelNearScale,
+    float WorldLabelFarScale,
+    bool HideLocalHeroLabelInFirstPerson);
 
 internal sealed record StudioUx6BCameraCatalogDraft(
     bool Required,

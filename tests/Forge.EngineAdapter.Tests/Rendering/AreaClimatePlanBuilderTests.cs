@@ -40,6 +40,20 @@ public sealed class AreaClimatePlanBuilderTests
     }
 
     [Fact]
+    public void RainStreaksAlignToVelocityWhileSnowRemainsCameraFacing()
+    {
+        var rain = GodotClimateAdapter.DescribePrecipitationAppearance(WeatherKind.Rain);
+        var storm = GodotClimateAdapter.DescribePrecipitationAppearance(WeatherKind.Storm);
+        var snow = GodotClimateAdapter.DescribePrecipitationAppearance(WeatherKind.Snow);
+
+        Assert.True(rain.AlignYToVelocity);
+        Assert.True(storm.AlignYToVelocity);
+        Assert.Equal(BaseMaterial3D.BillboardModeEnum.Particles, rain.BillboardMode);
+        Assert.False(snow.AlignYToVelocity);
+        Assert.Equal(BaseMaterial3D.BillboardModeEnum.Enabled, snow.BillboardMode);
+    }
+
+    [Fact]
     public void ResolvesLocalWindReverbAndMobileWaterBudget()
     {
         var source = AreaEnvironmentProfile.CreateDefault(AreaKind.Exterior);

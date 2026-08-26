@@ -164,33 +164,21 @@ internal static class LauncherRuntimeBootstrap
     {
         var window = root.GetWindow();
         var requestedSize = new Vector2I(settings.ResolutionWidth, settings.ResolutionHeight);
-        var usable = DisplayServer.ScreenGetUsableRect(DisplayServer.GetPrimaryScreen());
-        if (usable.Size.X <= 0 || usable.Size.Y <= 0)
-            usable = new Rect2I(Vector2I.Zero, requestedSize);
+        var primaryScreen = DisplayServer.GetPrimaryScreen();
+        var screen = new Rect2I(
+            DisplayServer.ScreenGetPosition(primaryScreen),
+            DisplayServer.ScreenGetSize(primaryScreen));
+        if (screen.Size.X <= 0 || screen.Size.Y <= 0)
+            screen = new Rect2I(Vector2I.Zero, requestedSize);
         window.AlwaysOnTop = false;
-        switch (settings.WindowMode)
+        switch (LauncherWindowModePolicy.Canonicalize(settings.WindowMode))
         {
             case LauncherWindowMode.Windowed:
                 window.Mode = Window.ModeEnum.Windowed;
-                window.Borderless = false;
-                window.Unresizable = false;
-                var maximumWindowedSize = new Vector2I(
-                    Math.Max(800, usable.Size.X - 96),
-                    Math.Max(600, usable.Size.Y - 96));
-                var windowedSize = new Vector2I(
-                    Math.Min(requestedSize.X, maximumWindowedSize.X),
-                    Math.Min(requestedSize.Y, maximumWindowedSize.Y));
-                window.Size = windowedSize;
-                window.Position = new Vector2I(
-                    usable.Position.X + Math.Max(0, (usable.Size.X - windowedSize.X) / 2),
-                    usable.Position.Y + Math.Max(0, (usable.Size.Y - windowedSize.Y) / 2));
-                break;
-            case LauncherWindowMode.Borderless:
-                window.Mode = Window.ModeEnum.Windowed;
                 window.Borderless = true;
                 window.Unresizable = true;
-                window.Size = usable.Size;
-                window.Position = usable.Position;
+                window.Size = screen.Size;
+                window.Position = screen.Position;
                 break;
             case LauncherWindowMode.Fullscreen:
                 window.Borderless = false;

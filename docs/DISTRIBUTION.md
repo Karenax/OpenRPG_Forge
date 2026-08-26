@@ -86,6 +86,11 @@ génération refuse une destination existante et assemble atomiquement :
 - le module `Client` sous `game/` et les médias optionnels de fond et de musique sous `branding/` ;
 - `game-launcher.json`, `game-distribution-manifest.json` et `LISEZ-MOI.txt`.
 
+Le lanceur WPF, le module et OpenRPG Forge Studio s'ouvrent en plein écran par défaut. Dans les
+réglages du jeu, **Fenêtré plein écran · sans bordure** utilise toute la surface du moniteur sans
+changer de mode d'affichage ; les préférences v1 `Windowed` et `Borderless` existantes sont toutes
+deux interprétées de cette façon.
+
 La présentation n'utilise ni WinForms, ni WebView, ni Electron. WPF fournit les transitions de page,
 la parallaxe, les brumes et les particules animées sans dépendance de production supplémentaire. Le
 décor générique embarqué possède une provenance et un SHA-256 documentés ; une image PNG/JPEG

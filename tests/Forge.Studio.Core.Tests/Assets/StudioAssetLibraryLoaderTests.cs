@@ -6,6 +6,21 @@ namespace Forge.Studio.Core.Tests.Assets;
 public sealed class StudioAssetLibraryLoaderTests
 {
     [Fact]
+    public void GovernedLocalGltfIsInstallable()
+    {
+        var item = new StudioAssetLibraryItem(
+            "test:pack:stall", "Stall", "test", "test:pack", "Test Pack",
+            "model", "gltf", "normalized/test/stall.gltf", null,
+            "https://example.invalid/stall", "CC0-1.0",
+            "https://creativecommons.org/publicdomain/zero/1.0/", true,
+            "Test", false, string.Empty, ["stall"], ["props"],
+            [new StudioAssetVariant("gltf", "normalized/test/stall.gltf", true, 128)],
+            128, true);
+
+        Assert.True(item.CanInstall);
+    }
+
+    [Fact]
     public void Load_SplitsAndGroupsPackModelsAndPrefersLocalGlbWithMatchingPreview()
     {
         var root = Path.Combine(Path.GetTempPath(), $"forge-studio-assets-{Guid.NewGuid():N}");

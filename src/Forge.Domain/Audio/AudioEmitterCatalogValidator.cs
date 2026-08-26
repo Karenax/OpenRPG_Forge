@@ -13,6 +13,7 @@ public static class AudioEmitterCatalogValidator
     public const string LoopInvalidCode = "audio.loop.invalid";
     public const string SpatialInvalidCode = "audio.spatial.invalid";
     public const string InstanceInvalidCode = "audio.emitter.instance_invalid";
+    public const string ControlInvalidCode = "audio.emitter.control_invalid";
     public const string InstanceDuplicateCode = "audio.emitter.instance_duplicate";
     public const string DefinitionMissingCode = "audio.emitter.definition_missing";
     public const string MixBusMissingCode = "audio.emitter.mix_bus_missing";
@@ -61,6 +62,15 @@ public static class AudioEmitterCatalogValidator
             var instancePath = $"{path}/instances/{instanceIndex}";
             if (instance.Id == Guid.Empty || instance.DefinitionId == Guid.Empty || string.IsNullOrWhiteSpace(instance.Provenance))
                 Add(InstanceInvalidCode, "Audio emitter instance requires UUID, definition and provenance.", instancePath);
+            var control = instance.EffectiveControl;
+            if (control.SchemaVersion != AudioEmitterControlProfile.CurrentSchemaVersion ||
+                !float.IsFinite(control.Volume) || control.Volume is < 0 or > 4 ||
+                control.Conditions is null || control.Conditions.Any(condition =>
+                    string.IsNullOrWhiteSpace(condition) || condition.Length > 256) ||
+                control.Conditions.Distinct(StringComparer.Ordinal).Count() != control.Conditions.Count)
+                Add(ControlInvalidCode,
+                    "Audio emitter control requires schema v1, volume 0..4 and unique non-empty conditions.",
+                    $"{instancePath}/control");
             if (!instanceIds.Add(instance.Id))
                 Add(InstanceDuplicateCode, $"Audio emitter instance '{instance.Id}' is duplicated.", $"{instancePath}/id");
             if (!definitionIds.Contains(instance.DefinitionId))

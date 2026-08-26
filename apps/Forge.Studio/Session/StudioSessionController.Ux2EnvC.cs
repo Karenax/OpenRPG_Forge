@@ -22,7 +22,7 @@ internal sealed partial class StudioSessionController
     private const string Ux2EnvCWaterCode = "studio.environment.water_invalid";
     private const string Ux2EnvCReverbCode = "studio.environment.reverb_invalid";
 
-    private readonly SetAreaEnvironmentHandler _setAreaEnvironmentUx2EnvC = new(new SystemClock());
+    private readonly PatchAreaEnvironmentHandler _setAreaEnvironmentUx2EnvC = new(new SystemClock());
     private StudioUx2EnvCDraft? _approvedClimateUx2EnvC;
     private ProjectRevision? _approvedClimateRevisionUx2EnvC;
     private string? _approvedClimateFingerprintUx2EnvC;
@@ -110,6 +110,7 @@ internal sealed partial class StudioSessionController
                 state.Intensity,
                 state.Humidity,
                 state.SurfaceWetness,
+                state.WetnessMaterial,
                 state.Lightning,
                 state.PrecipitationResource,
                 state.AudioCue,
@@ -312,7 +313,7 @@ internal sealed partial class StudioSessionController
     private bool TryBuildClimateUx2EnvC(
         StudioUx2EnvCDraft draft,
         bool dryRun,
-        out SetAreaEnvironmentCommand? command,
+        out PatchAreaEnvironmentCommand? command,
         out AreaDefinition? sourceArea,
         out AreaDefinition? candidateArea,
         out AreaEnvironmentProfile? candidateEnvironment,
@@ -402,7 +403,8 @@ internal sealed partial class StudioSessionController
                     item.MinimumDurationSeconds,
                     item.MaximumDurationSeconds,
                     item.TransitionSeconds,
-                    item.Precipitation);
+                    item.Precipitation,
+                    item.WetnessMaterial);
             }).ToArray();
             var rebuiltWeather = new WeatherProfile(
                 source.Weather.SchemaVersion,
@@ -510,7 +512,7 @@ internal sealed partial class StudioSessionController
                 return false;
             }
 
-            command = new SetAreaEnvironmentCommand(
+            command = new PatchAreaEnvironmentCommand(
                 CommandId.From(Guid.NewGuid()),
                 history.State.Revision,
                 sourceArea.Id,
@@ -557,8 +559,15 @@ internal sealed partial class StudioSessionController
                 state.MaximumDurationSeconds < state.MinimumDurationSeconds ||
                 state.TransitionSeconds is < 0 or > 3_600 ||
                 state.Precipitation is null ||
+                state.WetnessMaterial is null ||
+                state.WetnessMaterial.SchemaVersion != SurfaceWetnessMaterialProfile.CurrentSchemaVersion ||
+                state.WetnessMaterial.AlbedoDarkening is < 0 or > .35f ||
+                state.WetnessMaterial.RoughnessReduction is < 0 or > .8f ||
+                state.WetnessMaterial.SpecularIncrease is < 0 or > .6f ||
                 !FiniteUx2EnvC(state.Intensity, state.Humidity, state.SurfaceWetness,
-                    state.MinimumDurationSeconds, state.MaximumDurationSeconds, state.TransitionSeconds) ||
+                    state.MinimumDurationSeconds, state.MaximumDurationSeconds, state.TransitionSeconds,
+                    state.WetnessMaterial.AlbedoDarkening, state.WetnessMaterial.RoughnessReduction,
+                    state.WetnessMaterial.SpecularIncrease) ||
                 !SafeOptionalResourceUx2EnvC(state.PrecipitationResource)))
             result.Add(new(Ux2EnvCWeatherCode, $"areas/{draft.AreaId}/environment/weather",
                 "Météo : choisissez un état initial et gardez des états uniques, bornés et des ressources relatives sûres."));
@@ -729,6 +738,10 @@ internal sealed partial class StudioSessionController
             {
                 writer.Write(item.Id.ToByteArray()); writer.Write(item.Name ?? string.Empty); writer.Write((int)item.Kind);
                 writer.Write(item.Intensity); writer.Write(item.Humidity); writer.Write(item.SurfaceWetness);
+                writer.Write(item.WetnessMaterial.SchemaVersion);
+                writer.Write(item.WetnessMaterial.AlbedoDarkening);
+                writer.Write(item.WetnessMaterial.RoughnessReduction);
+                writer.Write(item.WetnessMaterial.SpecularIncrease);
                 writer.Write(item.Lightning); writer.Write(item.PrecipitationResource ?? string.Empty);
                 writer.Write(item.AudioCue ?? string.Empty); writer.Write(item.GameplayEffect ?? string.Empty);
                 writer.Write(item.MinimumDurationSeconds); writer.Write(item.MaximumDurationSeconds);
@@ -801,6 +814,7 @@ internal sealed partial class StudioSessionController
         draft.Id == source.Id && string.Equals(draft.Name.Trim(), source.Name, StringComparison.Ordinal) &&
         draft.Kind == source.Kind && draft.Intensity.Equals(source.Intensity) &&
         draft.Humidity.Equals(source.Humidity) && draft.SurfaceWetness.Equals(source.SurfaceWetness) &&
+        draft.WetnessMaterial == source.WetnessMaterial &&
         draft.Lightning == source.Lightning && string.Equals(NormalizeResourceUx2EnvC(draft.PrecipitationResource),
             source.PrecipitationResource, StringComparison.Ordinal) &&
         string.Equals(draft.AudioCue.Trim(), source.AudioCue, StringComparison.Ordinal) &&
@@ -1137,7 +1151,7 @@ internal sealed partial class StudioSessionController
             source.Lighting, source.Fog, source.Audio, source.Rendering, source.Sky, wind, source.Weather,
             source.Water, source.Reverb, source.Authoring, source.RequireAuthoringRuntimeMetadata);
         var result = controller._setAreaEnvironmentUx2EnvC.Handle(history.State,
-            new SetAreaEnvironmentCommand(CommandId.From(Guid.NewGuid()), history.State.Revision,
+            new PatchAreaEnvironmentCommand(CommandId.From(Guid.NewGuid()), history.State.Revision,
                 area.Id, candidate, false));
         if (!result.Succeeded) return false;
         history.Record(result);
