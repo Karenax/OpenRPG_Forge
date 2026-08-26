@@ -3,7 +3,7 @@
     "schema_version": 2,
     "engine": "roslyn",
     "engine_version": "5.6.0.0",
-    "source_digest": "sha256:960961d3cadc28679f96e38a817d6124274ffaa43e6df95939bf80080bc116f3",
+    "source_digest": "sha256:c4cc3e2685da43eeff26b01d0379b1bd466ac396e7fda0bff3f707567e8bbcd6",
     "source_file_count": 3820,
     "sources": [
       {
@@ -3503,8 +3503,8 @@
       },
       {
         "path": "apps/Forge.Studio/Session/StudioSessionController.Ux7E.cs",
-        "sha256": "sha256:04cd1d899fcb45c8e4c10d6a7235b7d86ad5c2aa3ffdaf4682186b9d84e84b17",
-        "size": 40810
+        "sha256": "sha256:5d078120ac9c4ca243959bd7d25fda7e6860150d7c269edb7a38a2e9f60daf31",
+        "size": 40887
       },
       {
         "path": "apps/Forge.Studio/Session/StudioSessionController.Ux7F.cs",

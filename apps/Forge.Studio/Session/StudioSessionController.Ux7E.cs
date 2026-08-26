@@ -663,8 +663,9 @@ internal sealed partial class StudioSessionController
             var directory = new DirectoryInfo(Path.GetFullPath(start));
             while (directory is not null)
             {
+                var gitMetadata = Path.Combine(directory.FullName, ".git");
                 if (File.Exists(Path.Combine(directory.FullName, "OpenRPGForge.sln")) &&
-                    Directory.Exists(Path.Combine(directory.FullName, ".git")))
+                    (Directory.Exists(gitMetadata) || File.Exists(gitMetadata)))
                     return directory.FullName;
                 directory = directory.Parent;
             }
