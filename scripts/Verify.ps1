@@ -1085,7 +1085,8 @@ try {
     Invoke-ForgeEngineMarkerTest `
         -Name 'runtime-g11p-visual' `
         -ProjectPath $runtimePath `
-        -Arguments @('--rendering-method', 'gl_compatibility', '--path', $runtimePath, '--log-file',
+        -Arguments @('--rendering-method', 'gl_compatibility', '--windowed', '--resolution', '1600x900',
+            '--path', $runtimePath, '--log-file',
             $runtimeVisualLog, '--', '--visual-capture', $runtimeVisualProof) `
         -Markers @('OPENRPG_FORGE_RUNTIME_G11P_MODERN_PASS',
             'OPENRPG_FORGE_RUNTIME_G11P_VISUAL_PASS file=runtime-g11p-visual.png size=1600x900') `
