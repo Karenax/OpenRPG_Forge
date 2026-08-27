@@ -7,6 +7,14 @@ SemVer ; les versions de schéma persistent séparément dans leurs documents.
 
 ### Changed
 
+- Audio de dialogue : import MP3/WAV durci de bout en bout (structure réelle, hash, licence,
+  provenance, plan canonique, archive et fallback runtime), quatre voix Solaren remplacées par des
+  WAV CC0 reproductibles et divulgués, documentation auteur/MCP/licences centralisée ; le dossier de
+  qualification accepte aussi un lanceur Crypte à manifestes nommés sans croiser le module Solaren ;
+  le plafond d’archive reste borné mais passe de 512 Mio à 1 Gio afin de couvrir les 661 Mo
+  décompressés du workspace canonique actuel. La requalification Full passe 2 314 tests .NET,
+  67 tests Python, les builds sans avertissement et le graphe Roslyn déterministe à 11 809 nœuds /
+  94 068 relations / zéro diagnostic ;
 - WorldGeneration : orchestration MCP moteur-neutre avec recettes versionnées, dry-run/application,
   révisions, empreinte stable de plan, régénération partielle, jobs persistants et audit ; validation
   renforcée des données, opérations et chemins, protection des retouches humaines, adaptateurs

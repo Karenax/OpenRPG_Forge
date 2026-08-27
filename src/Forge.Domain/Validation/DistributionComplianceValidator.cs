@@ -26,6 +26,8 @@ public static partial class DistributionComplianceValidator
     public const string ContentPackageProvenanceUnknownCode = "distribution.content_package.provenance_unknown";
     public const string ContentResourceLicenseUnknownCode = "distribution.content_resource.license_unknown";
     public const string ContentResourceProvenanceUnknownCode = "distribution.content_resource.provenance_unknown";
+    public const string DialogueVoiceLicenseUnknownCode = "distribution.dialogue_voice.license_unknown";
+    public const string DialogueVoiceProvenanceUnknownCode = "distribution.dialogue_voice.provenance_unknown";
 
     private static readonly HashSet<string> ApprovedLicenseIdentifiers = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -217,6 +219,25 @@ public static partial class DistributionComplianceValidator
             foreach (var asset in package.Assets)
                 ValidateContentResource(asset.Id, asset.LogicalResourceId, asset.LicenseSpdx,
                     asset.Provenance, asset.ContentSha256, $"{packagePath}/assets/{asset.Id}", diagnostics);
+        }
+
+        foreach (var dialogue in project.Dialogues)
+        {
+            var voiceCues = dialogue.Presentation?.VoiceCues ?? [];
+            for (var index = 0; index < voiceCues.Count; index++)
+            {
+                var cue = voiceCues[index];
+                if (string.IsNullOrWhiteSpace(cue.Resource)) continue;
+                var path = $"dialogues/{dialogue.Id}/presentation/voiceCues/{index}";
+                if (!IsApprovedLicense(cue.LicenseSpdx))
+                    diagnostics.Add(new DomainDiagnostic(DialogueVoiceLicenseUnknownCode,
+                        $"Dialogue voice '{cue.Take}' does not declare an approved SPDX license.",
+                        $"{path}/licenseSpdx"));
+                if (IsUnknownProvenance(cue.Provenance))
+                    diagnostics.Add(new DomainDiagnostic(DialogueVoiceProvenanceUnknownCode,
+                        $"Dialogue voice '{cue.Take}' has unknown publication provenance.",
+                        $"{path}/provenance"));
+            }
         }
 
         return diagnostics;

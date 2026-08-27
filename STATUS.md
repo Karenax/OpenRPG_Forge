@@ -115,19 +115,22 @@ sur une carte générée et aucune scène dérivée n'est promue automatiquement
   est idempotent ;
 - Maélis, Toman et Orin sont liés par override éditable à trois routes locales et se déplacent avec
   attente, orientation et alternance course/idle. Deux émetteurs audio 3D CC0 — vent des frondaisons et
-  oiseaux de la place — sont reconstruits comme `AudioStreamPlayer3D`. Quatre prises françaises de
-  Maélis sont importées comme blobs MP3 content-addressed gouvernés, liées aux quatre nœuds du dialogue,
-  lues depuis les octets hashés et validées jusqu’au marqueur interactif `completed`, sans fallback ni
-  diagnostic ;
-- les validations canoniques de Solaren et de la Crypte ne remontent aucun diagnostic. Le lot affecté
-  après intégration WorldGeneration passe 1 778 tests Release (Domain 538, Application 529,
-  ModuleFormat 439, Studio.Core 34, MCP 177, EngineAdapter 61), les builds Runtime/Studio/McpHost sans
-  avertissement, le smoke Studio UX5-B, les smokes Forward+ Solaren et Crypte et l’audition interactive.
-  La capacité vocale est acceptée dans le modèle des mutations Forge coopératives ; la revue conserve
-  comme durcissement futur une publication no-follow par handle face à un processus local hostile. Le
-  graphe Roslyn est frais et déterministe à 11 807 nœuds, 94 041 relations et zéro diagnostic. Deux
-  exports `.orpmod` incluant les quatre voix sont octet pour octet identiques : 496 919 149 octets,
-  SHA-256 `3ae25b4bc3c3f974346460fc643f659649f9fa8a2669120160bc4cd3fbd517f3` ;
+  oiseaux de la place — sont reconstruits comme `AudioStreamPlayer3D`. Les quatre prises françaises de
+  Maélis sont des blobs WAV CC0-1.0 content-addressed, synthétiques et reproductibles avec eSpeak NG
+  1.52.0 ; `voice-assets.json` divulgue le générateur, les paramètres, l’autorisation, les hashes et
+  l’absence de redistribution de l’outil. Elles sont liées aux quatre nœuds, lues depuis les octets
+  hashés et conservent le sous-titre comme fallback accessible ;
+- l’audit vocal refuse désormais les médias MP3/WAV tronqués, les licences ou provenances inconnues,
+  les hashes faux, les chemins non canoniques et les plans d’import forgés au workspace, au package,
+  à la conformité et au runtime. Le plafond décompressé par défaut d’un `.orpmod` reste borné à 1 Gio.
+  La gate Full du 26 août 2026 passe 2 314 tests .NET et 67 tests Python, tous les builds sans
+  avertissement et les smokes produit. Le graphe Roslyn est frais et déterministe à 11 809 nœuds,
+  94 068 relations et zéro diagnostic. Le package Client Solaren contient quatre WAV et aucun MP3 :
+  648 594 126 octets, SHA-256
+  `549b8b812daa6f568f0e1ac21245348ff4a01080ddc61e5c24455296f3cc9fb5`. La frontière de sécurité
+  couvre les mutations Forge coopératives ; une publication no-follow par handle et un verrou
+  interprocessus restent le durcissement prévu contre l’échange hostile d’un parent par un autre
+  processus local ;
 - ce jalon est la première tranche artistique et narrative jouable de Solaren, pas une qualification de
   contenu final ni une release publique signée. Rencontres et transitions vers les vallées voisines
   restent des extensions de contenu explicites.
@@ -148,9 +151,14 @@ sur une carte générée et aucune scène dérivée n'est promue automatiquement
 - gate Full relancé le 25 août 2026 sous PowerShell 7.6.4 : 2 162 tests .NET et 67 tests Python verts,
   compilation sans avertissement, documentation déterministe, graphe Roslyn complet, Studio, Toolset,
   runtime, réseau, MCP et sauvegarde/reprise validés ;
-- distribution versionnée `exe/` mise à jour avec les deux exécutables racine Studio et Solaren ; le
-  lanceur Solaren et son manifeste de 227 fichiers passent la vérification depuis leur chemin final,
-  avec fond et musique présents sous `exe/branding/`. Cette preuve locale n'est pas signée et ne constitue pas une release publique ;
+- requalification Full du 26 août 2026 : 2 314 tests .NET et 67 tests Python verts, builds sans
+  avertissement, documentation générée, graphe Roslyn, Studio, Toolset, Runtime/Forward+, assets,
+  Blender, MCP, réseau, sauvegarde/reprise et distributions validés ;
+- distribution versionnée `exe/` de 515 fichiers mise à jour avec trois exécutables racine : Studio,
+  Solaren et `Cendres.exe`. Les manifestes Studio, Solaren et Crypte couvrent respectivement 281, 227
+  et 224 fichiers ; les vérifications ont été exécutées depuis leurs chemins finaux. Solaren embarque
+  son package Client ; Crypte conserve son `.orpmod` Editor comme régression interne. Cette preuve
+  locale reste `NotSigned` et ne constitue pas une release publique ;
 - 717/717 fonctions au statut `Tested`, réparties dans 187/187 lots clos ;
 - P0 : 196/196, P1 : 298/298, P2 : 190/190, P3/P4 : 33/33 ;
 - 5 461 chemins de preuve Aurora contrôlés sans chemin absent ;

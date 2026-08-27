@@ -16,6 +16,7 @@ public static class DialogueVoiceResourceVerifier
     public const string UnsafeCode = "dialogue.voice.runtime.resource_unsafe";
     public const string HashMismatchCode = "dialogue.voice.runtime.hash_mismatch";
     public const string HashInvalidCode = "dialogue.voice.runtime.hash_invalid";
+    public const string StructureInvalidCode = "dialogue.voice.runtime.structure_invalid";
     public const long MaximumBytes = 64L * 1024 * 1024;
 
     public static DialogueVoiceResourceVerification Verify(string? moduleContentRoot, DialogueVoiceCue cue)
@@ -33,9 +34,11 @@ public static class DialogueVoiceResourceVerifier
         try
         {
             var actual = Convert.ToHexString(SHA256.HashData(verified.Bytes)).ToLowerInvariant();
-            return string.Equals(actual, cue.ContentSha256, StringComparison.OrdinalIgnoreCase)
+            if (!string.Equals(actual, cue.ContentSha256, StringComparison.OrdinalIgnoreCase))
+                return Failure(HashMismatchCode, cue.AllowSubtitleFallback);
+            return AudioMediaStructureValidator.Matches(verified.Extension, verified.Bytes)
                 ? new(true, verified.Bytes, verified.Extension, null, false)
-                : Failure(HashMismatchCode, cue.AllowSubtitleFallback);
+                : Failure(StructureInvalidCode, cue.AllowSubtitleFallback);
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {

@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "generatedAtUtc": "2026-08-26T20:18:00Z",
+  "syntheticVoiceDisclosure": "These dialogue takes use deterministic formant speech synthesis; no human performer or cloned voice is represented.",
+  "generator": {
+    "name": "eSpeak NG",
+    "version": "1.52.0",
+    "voice": "fr+f3",
+    "sourceUrl": "https://github.com/espeak-ng/espeak-ng",
+    "releaseUrl": "https://github.com/espeak-ng/espeak-ng/releases/tag/1.52.0",
+    "installerSha256": "7f673c709ea5dd579d3b5ebb98688cc575328a6ab7438d2bc405b88cedaeafb9",
+    "licenseSpdx": "GPL-3.0-or-later",
+    "licenseUrl": "https://github.com/espeak-ng/espeak-ng/blob/1.52.0/COPYING",
+    "outputRightsEvidenceUrl": "https://www.gnu.org/licenses/gpl-faq.html#GPLOutput",
+    "redistributedWithModule": false,
+    "parameters": {
+      "speed": 145,
+      "pitch": 55,
+      "amplitude": 120,
+      "wordGap": 3
+    }
+  },
+  "outputLicenseSpdx": "CC0-1.0",
+  "outputLicenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/legalcode",
+  "author": "OpenRPG Forge contributors",
+  "permissionEvidence": "The dialogue text is project-authored. The generated WAV output is dedicated to CC0-1.0 by the project authors; eSpeak NG and its data are not redistributed in the module.",
+  "reproductionScript": "scripts/Generate-SolarenDialogueVoices.ps1",
+  "assets": [
+    {
+      "take": "maelis-01-repere",
+      "speaker": "Maélis",
+      "locale": "fr-FR",
+      "text": "La pluie a éteint le repère. Peux-tu le rallumer ?",
+      "resource": "audio/dialogues/blobs/sha256/4d/4d9342843ef690163db8ad4385f47a2ab265d13abd7b098ca657c3799f047080.wav",
+      "mimeType": "audio/wav",
+      "bytes": 161094,
+      "durationMilliseconds": 3652,
+      "contentSha256": "4d9342843ef690163db8ad4385f47a2ab265d13abd7b098ca657c3799f047080"
+    },
+    {
+      "take": "maelis-02-voyageurs",
+      "speaker": "Maélis",
+      "locale": "fr-FR",
+      "text": "Il guide les voyageurs lorsque la brume couvre Aubeciel.",
+      "resource": "audio/dialogues/blobs/sha256/c5/c552652b1b118ac27fb19d9d2b8b05573da7d8ebb656ec64cff98f64605f3d09.wav",
+      "mimeType": "audio/wav",
+      "bytes": 168296,
+      "durationMilliseconds": 3815,
+      "contentSha256": "c552652b1b118ac27fb19d9d2b8b05573da7d8ebb656ec64cff98f64605f3d09"
+    },
+    {
+      "take": "maelis-03-sud-place",
+      "speaker": "Maélis",
+      "locale": "fr-FR",
+      "text": "Le repère se dresse au sud de la place. Rallume-le, puis reviens me voir.",
+      "resource": "audio/dialogues/blobs/sha256/f1/f15ee8478e97e3c33b5a0cbc7f55b7149de82688994aa59fdee1ff5e0e305f3f.wav",
+      "mimeType": "audio/wav",
+      "bytes": 247158,
+      "durationMilliseconds": 5603,
+      "contentSha256": "f15ee8478e97e3c33b5a0cbc7f55b7149de82688994aa59fdee1ff5e0e305f3f"
+    },
+    {
+      "take": "maelis-04-reviens",
+      "speaker": "Maélis",
+      "locale": "fr-FR",
+      "text": "Reviens quand la lumière sera revenue.",
+      "resource": "audio/dialogues/blobs/sha256/ad/ad1ee34ed5718aed29aaaeb1e2e3ef7124b9a75ff059379aca7d8f3c132146a1.wav",
+      "mimeType": "audio/wav",
+      "bytes": 124042,
+      "durationMilliseconds": 2812,
+      "contentSha256": "ad1ee34ed5718aed29aaaeb1e2e3ef7124b9a75ff059379aca7d8f3c132146a1"
+    }
+  ]
+}

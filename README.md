@@ -183,11 +183,13 @@ gameplay RPG ne font pas encore partie de ce premier transport. Voir
 [`docs/MULTIPLAYER_INTERNET.md`](docs/MULTIPLAYER_INTERNET.md) pour l'hébergement, la connexion,
 le serveur headless, les diagnostics et les limites de sécurité.
 
-La distribution Windows versionnée sous `exe/` contient exactement les deux points d'entrée produit :
-`OpenRPG_Forge_Studio.exe` pour créer les modules et `Solaren_Les_Vallees_Libres.exe` pour jouer à
-Solaren. Le second utilise le panorama solaire d'Aubeciel et la piste calme gouvernée par le workspace ;
-son manifeste couvre 227 fichiers. Les sous-dossiers `branding/`, `game/` et `runtime/` font partie du
-jeu et doivent rester à côté de l'exécutable. Cette distribution locale reste non signée.
+La distribution Windows versionnée sous `exe/` contient 515 fichiers et trois exécutables racine :
+`OpenRPG_Forge_Studio.exe` pour créer les modules, `Solaren_Les_Vallees_Libres.exe` pour jouer au
+package Client Solaren et `Cendres.exe` pour la régression interne de la Crypte. Leurs manifestes
+couvrent respectivement 281, 227 et 224 fichiers. Les deux lanceurs utilisent des couples de manifestes
+distincts afin de ne jamais croiser leurs modules ; la Crypte reste volontairement une fixture Editor,
+pas une livraison Client/Publication. Les sous-dossiers `branding/`, `game/` et `runtime/` font partie
+du produit et doivent rester à côté des exécutables. Cette distribution locale reste non signée.
 
 Le kit procédural de la Crypte suit les [conventions d’assets](docs/ASSET_CONVENTIONS.md) : unités,
 axes, pivots, nommage, formes de collision simples et traçabilité des licences.
@@ -203,6 +205,14 @@ Le runtime reconstruit les lecteurs 3D depuis ce document, sans stocker de nœud
 domaine. Le host MCP expose `forge_get_audio_emitters`, filtrable par zone, UUID ou recherche, puis
 un plan dry-run/apply/revert. ForgeScript expose uniquement `AudioEmitterRef`,
 `audio_is_active` et la demande validée `audio_set_active`.
+
+Les voix de dialogue suivent un flux distinct mais les mêmes garanties : Studio et MCP importent un
+fichier local MP3/WAV avec licence SPDX ou `LicenseRef`, provenance et SHA-256, puis appliquent un plan
+recalculé vers un blob immuable. Workspace, package, conformité et runtime revalident chemin, hash et
+structure ; le sous-titre reste le fallback accessible. Les quatre voix Solaren courantes sont des WAV
+CC0-1.0 synthétiques et reproductibles, accompagnés d’un manifeste de génération. Le workflow auteur,
+les trois outils MCP et la frontière de sécurité sont détaillés dans le
+[guide des voix de dialogue](docs/DIALOGUE_VOICE.md).
 
 ## Profil et commandes de build
 

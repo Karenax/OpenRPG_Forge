@@ -54,9 +54,10 @@ deviennent pas une seconde source de vérité et ne remplacent pas implicitement
 La revue corrective UX11-B a inspecté les trente-six pages en Full HD, QHD et 4K. Les distributions
 Studio Windows x64 et Linux x64 embarquent le workspace Crypte des Cendres et la bibliothèque
 ForgeScript native de leur plateforme ; le smoke Linux a été rejoué sur Debian 13 x86_64 sans
-éditeur Godot, ce qui ferme `STUDIO-043`. Le portail transversal final passe 2 117 tests .NET,
-44 tests Python et tous ses smokes ; le graphe Roslyn reste frais et déterministe. Cette qualification
-locale ne constitue pas une release publique signée.
+éditeur Godot, ce qui ferme `STUDIO-043`. Le portail associé à cette revue passait alors 2 117 tests
+.NET, 44 tests Python et tous ses smokes ; la requalification transversale courante est consignée plus
+bas avec l’audit vocal et la distribution. Cette qualification locale ne constitue pas une release
+publique signée.
 
 Les jeux restent strictement en aval de Forge : leur workspace Studio est la source de vérité de
 leurs cartes, placements, assets et réglages. Le runtime partagé interprète des contrats versionnés
@@ -97,19 +98,28 @@ Ces capacités restent accessibles humainement dans Studio par l’Asset Library
 d’entité, les pages Créatures, Navigation, Audio et le formulaire de voix de dialogue ; elles suivent
 dry-run, garde de révision, undo/redo et sauvegarde/réouverture. L’import vocal gouverné accepte MP3/WAV
 structurellement valides, licence SPDX/LicenseRef, SHA-256 et provenance, publie des blobs immuables
-content-addressed et les lie aux cues par MCP ou Studio. Le runtime revalide le hash, décode les mêmes
-octets et conserve le sous-titre comme fallback. Les quatre prises françaises de Maélis sont intégrées
-et ont atteint le marqueur `completed` dans la session Forward+ interactive. La frontière de sécurité
-couvre les mutations Forge coopératives ; la défense contre un processus local hostile échangeant un
-parent reste un durcissement futur no-follow par handle et verrou interprocessus. Le
+content-addressed et les lie aux cues par MCP ou Studio. Le plan est recalculé à l’application ; le
+workspace, le package et le runtime revalident chemin, hash et structure avant décodage, tandis que
+Client/Serveur dédié/Publication refusent une licence ou provenance inconnue. Le sous-titre reste le
+fallback accessible. Les quatre prises françaises de Maélis sont désormais des WAV CC0-1.0
+synthétiques et reproductibles avec eSpeak NG 1.52.0 ; leur manifeste divulgue la synthèse, les
+paramètres et les hashes, sans redistribuer le générateur. Les anciens octets Edge TTS sans preuve de
+redistribution ont été retirés. La frontière de sécurité couvre les mutations Forge coopératives ; la
+défense contre un processus local hostile échangeant un parent reste un durcissement futur no-follow
+par handle et verrou interprocessus. Le
 runtime joueur exclut désormais les laboratoires de validation réservés aux smokes et applique la
 mouillure par overrides de matériaux sans duplication profonde des meshes ordinaires ; le démarrage
 Forward+ comparable de Solaren passe ainsi de 45,243 s à 12,207 s.
 
-La distribution versionnée sous `exe/` expose deux exécutables racine : `OpenRPG_Forge_Studio.exe`
-pour le Creator et `Solaren_Les_Vallees_Libres.exe` pour le jeu. Le manifeste du lanceur Solaren couvre
-227 fichiers, dont son fond, sa musique, son package Client et le runtime partagé. Les deux exécutables
-restent non signés et leurs sous-dossiers ne sont pas des dépendances facultatives.
+La distribution versionnée sous `exe/` contient 515 fichiers et expose trois exécutables racine :
+`OpenRPG_Forge_Studio.exe` pour le Creator, `Solaren_Les_Vallees_Libres.exe` pour le jeu Client et
+`Cendres.exe` pour la régression interne. Les manifestes Studio, Solaren et Crypte couvrent
+respectivement 281, 227 et 224 fichiers. Les deux lanceurs partagent le runtime mais sélectionnent des
+couples de manifestes distincts : aucun ne peut charger silencieusement le module de l’autre. Solaren
+embarque `solaren-les-vallees-libres.orpmod` en cible Client ; la Crypte et son
+`crypt-of-ashes-current.orpmod` restent volontairement en cible Editor tant que leurs champs hérités
+ne satisfont pas la conformité Client/Publication. La distribution reste `NotSigned`, et les
+exécutables seuls ne sont pas portables hors de ce dossier.
 
 ### Frontière actuelle du multijoueur Internet
 

@@ -13,13 +13,17 @@ public static class GameLauncherManifestStore
 
     private static readonly JsonSerializerOptions Options = CreateOptions();
 
-    public static GameLauncherManifest Load(string rootDirectory, bool verifyHashes = true)
+    public static GameLauncherManifest Load(
+        string rootDirectory,
+        bool verifyHashes = true,
+        string? manifestFileName = null)
     {
         var root = RequireDirectory(rootDirectory);
-        var path = Path.Combine(root, FileName);
+        var fileName = RequireManifestFileName(manifestFileName ?? FileName);
+        var path = Path.Combine(root, fileName);
         if (!File.Exists(path))
         {
-            throw new FileNotFoundException($"Game launcher manifest is missing: {FileName}", path);
+            throw new FileNotFoundException($"Game launcher manifest is missing: {fileName}", path);
         }
 
         var manifest = JsonSerializer.Deserialize<GameLauncherManifest>(File.ReadAllText(path), Options)
@@ -60,7 +64,10 @@ public static class GameLauncherManifestStore
         return new GameLauncherVerification(manifest, root, launcher, runtime, module, background, music);
     }
 
-    public static void Save(string rootDirectory, GameLauncherManifest manifest)
+    public static void Save(
+        string rootDirectory,
+        GameLauncherManifest manifest,
+        string? manifestFileName = null)
     {
         ArgumentNullException.ThrowIfNull(manifest);
         var root = Path.GetFullPath(rootDirectory);
@@ -71,10 +78,14 @@ public static class GameLauncherManifestStore
             throw new InvalidDataException("Game launcher manifest is invalid: " + string.Join("; ", diagnostics));
         }
 
-        WriteAtomic(Path.Combine(root, FileName), JsonSerializer.Serialize(manifest, Options) + Environment.NewLine);
+        var fileName = RequireManifestFileName(manifestFileName ?? FileName);
+        WriteAtomic(Path.Combine(root, fileName), JsonSerializer.Serialize(manifest, Options) + Environment.NewLine);
     }
 
-    public static void SaveDistribution(string rootDirectory, GameDistributionManifest manifest)
+    public static void SaveDistribution(
+        string rootDirectory,
+        GameDistributionManifest manifest,
+        string? distributionFileName = null)
     {
         ArgumentNullException.ThrowIfNull(manifest);
         if (manifest.SchemaVersion != GameDistributionManifest.CurrentSchemaVersion || manifest.GameId == Guid.Empty ||
@@ -87,17 +98,23 @@ public static class GameLauncherManifestStore
 
         var root = Path.GetFullPath(rootDirectory);
         Directory.CreateDirectory(root);
+        var fileName = RequireDistributionFileName(distributionFileName ?? DistributionFileName);
         WriteAtomic(
-            Path.Combine(root, DistributionFileName),
+            Path.Combine(root, fileName),
             JsonSerializer.Serialize(manifest, Options) + Environment.NewLine);
     }
 
-    public static GameDistributionManifest LoadAndVerifyDistribution(string rootDirectory)
+    public static GameDistributionManifest LoadAndVerifyDistribution(
+        string rootDirectory,
+        string? manifestFileName = null,
+        string? distributionFileName = null)
     {
         var root = RequireDirectory(rootDirectory);
-        var path = Path.Combine(root, DistributionFileName);
+        var launcherFileName = RequireManifestFileName(manifestFileName ?? FileName);
+        var distributionName = RequireDistributionFileName(distributionFileName ?? DistributionFileName);
+        var path = Path.Combine(root, distributionName);
         if (!File.Exists(path))
-            throw new FileNotFoundException($"Game distribution manifest is missing: {DistributionFileName}", path);
+            throw new FileNotFoundException($"Game distribution manifest is missing: {distributionName}", path);
         var manifest = JsonSerializer.Deserialize<GameDistributionManifest>(File.ReadAllText(path), Options)
             ?? throw new InvalidDataException("The game distribution manifest is empty.");
         if (manifest.SchemaVersion != GameDistributionManifest.CurrentSchemaVersion || manifest.GameId == Guid.Empty ||
@@ -114,11 +131,11 @@ public static class GameLauncherManifestStore
             RequireHash(resolved, file.Sha256, $"Game distribution file '{file.Path}'");
         }
 
-        var launcher = Load(root, verifyHashes: false);
+        var launcher = Load(root, verifyHashes: false, launcherFileName);
         var indexedPaths = manifest.Files.Select(file => file.Path).ToHashSet(StringComparer.Ordinal);
         var requiredPaths = new List<string>
         {
-            FileName,
+            launcherFileName,
             launcher.ExecutableFile,
             launcher.RuntimeExecutable,
             "runtime/OpenRPG_Forge_Runtime.pck",
@@ -131,6 +148,37 @@ public static class GameLauncherManifestStore
             throw new InvalidDataException(
                 $"Game distribution manifest does not cover required file: {missingRequiredPath}");
         return manifest;
+    }
+
+    public static GameLauncherManifestFileSet ForExecutable(string executableFileName)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(executableFileName);
+        if (!string.Equals(Path.GetFileName(executableFileName), executableFileName, StringComparison.Ordinal) ||
+            !Path.GetExtension(executableFileName).Equals(".exe", StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException("Launcher executable name must be a simple .exe file name.",
+                nameof(executableFileName));
+        var stem = Path.GetFileNameWithoutExtension(executableFileName);
+        return new($"{stem}.game-launcher.json", $"{stem}.game-distribution-manifest.json");
+    }
+
+    public static GameLauncherManifestFileSet ResolveFileSet(string rootDirectory, string executableFileName)
+    {
+        var root = RequireDirectory(rootDirectory);
+        var specific = ForExecutable(executableFileName);
+        var hasManifest = File.Exists(Path.Combine(root, specific.ManifestFileName));
+        var hasDistribution = File.Exists(Path.Combine(root, specific.DistributionFileName));
+        if (hasManifest != hasDistribution)
+            throw new InvalidDataException(
+                $"Executable-specific launcher manifests are incomplete for '{executableFileName}'.");
+        if (hasManifest) return specific;
+
+        var fallback = new GameLauncherManifestFileSet(FileName, DistributionFileName);
+        var fallbackManifest = Load(root, verifyHashes: false, fallback.ManifestFileName);
+        if (!string.Equals(fallbackManifest.ExecutableFile, executableFileName,
+                StringComparison.OrdinalIgnoreCase))
+            throw new InvalidDataException(
+                $"No launcher manifest pair matches executable '{executableFileName}'.");
+        return fallback;
     }
 
     public static IReadOnlyList<string> Validate(GameLauncherManifest manifest)
@@ -200,6 +248,21 @@ public static class GameLauncherManifestStore
         return root;
     }
 
+    private static string RequireManifestFileName(string value) =>
+        RequireJsonFileName(value, ".game-launcher.json", FileName);
+
+    private static string RequireDistributionFileName(string value) =>
+        RequireJsonFileName(value, ".game-distribution-manifest.json", DistributionFileName);
+
+    private static string RequireJsonFileName(string value, string specificSuffix, string defaultName)
+    {
+        if (!string.Equals(Path.GetFileName(value), value, StringComparison.Ordinal) ||
+            !value.Equals(defaultName, StringComparison.Ordinal) &&
+            !value.EndsWith(specificSuffix, StringComparison.Ordinal))
+            throw new ArgumentException($"Launcher manifest file name is invalid: {value}", nameof(value));
+        return value;
+    }
+
     private static string ResolveRequiredFile(string root, string relativePath, string label)
     {
         if (!IsSafeRelativePath(relativePath))
@@ -253,3 +316,7 @@ public static class GameLauncherManifestStore
         }
     }
 }
+
+public sealed record GameLauncherManifestFileSet(
+    string ManifestFileName,
+    string DistributionFileName);

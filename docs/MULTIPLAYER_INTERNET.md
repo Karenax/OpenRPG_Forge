@@ -197,6 +197,12 @@ une qualification offensive proportionnée.
 - portail Full vert avec 2 162 tests .NET et 67 tests Python, puis graphe Roslyn complet frais,
   déterministe et sans diagnostic.
 
+Ces compteurs décrivent le jalon réseau du 25 août. La requalification transversale du 26 août passe
+2 314 tests .NET, 67 tests Python et la gate Full complète ; la distribution courante conserve le
+manifeste Solaren à 227 fichiers et ajoute le lanceur Crypte de régression par un couple de manifestes
+nommé, sans modifier le protocole réseau décrit ici. L’état courant détaillé des artefacts reste tenu
+dans [`DISTRIBUTION.md`](DISTRIBUTION.md).
+
 Ces preuves utilisent de vrais sockets TCP sur loopback. Elles ne remplacent pas encore un essai WAN
 entre deux accès Internet, un soak multijoueur, une matrice de perte/latence réelle ni une revue de
 sécurité du protocole exposé.

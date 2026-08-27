@@ -39,6 +39,8 @@ sur `stdio`. Les journaux sont isolés sur stderr. La surface testée comprend :
 
 - `get_project_summary`, `get_current_revision` et `get_project_diagnostics` en lecture seule ;
 - le schéma, la préparation, l'application et la réversion d'un plan de dialogue ;
+- `plan_dialogue_voice_import`, `apply_dialogue_voice_import_plan` et
+  `revert_dialogue_voice_import_plan` pour une prise MP3/WAV locale, content-addressed et auditée ;
 - `query_world_features` filtre les profils canoniques du Monde vivant et
   `preview_world_features` valide/dry-run un catalogue v1 sans l'appliquer ;
 - `forge_get_post_launch_capabilities` lit une section du profil post-lancement et
@@ -61,6 +63,9 @@ Le scénario d'intégration complet est exécuté par `scripts/Verify.ps1` et pr
 
 La génération VFX/audio/image reste un plan gouverné : provider allowlisté, droits, provenance,
 quota, staging et fallback. MCP ne reçoit aucun accès direct à un fournisseur ni aux fichiers.
+L’import vocal n’est pas une génération : le client fournit une source locale approuvée et son hash,
+Forge revalide ses octets puis applique uniquement un `planId` lié à la révision. Le contrat complet
+est documenté dans [`DIALOGUE_VOICE.md`](DIALOGUE_VOICE.md).
 
 ## Contrat de création de maps
 

@@ -29,6 +29,18 @@ et leurs obligations de notice.
 - Le moteur 3D .NET est une dépendance de développement/runtime séparée ; ses fichiers ne sont pas
   des assets du module de démonstration.
 
+## Voix de référence de Solaren
+
+Les quatre prises françaises de Maélis sont des sorties WAV synthétiques déterministes créées par les
+auteurs du projet et dédiées à CC0-1.0. Leur texte, licence, provenance, paramètres et SHA-256 sont
+enregistrés dans `apps/Forge.Runtime/content/solaren/audio/dialogues/voice-assets.json`. Elles signalent
+explicitement leur nature synthétique et ne représentent aucune interprète humaine ni voix clonée.
+
+eSpeak NG 1.52.0, voix `fr+f3`, sert uniquement d’outil de build reproductible sous
+GPL-3.0-or-later ; son exécutable et ses données ne sont pas redistribués dans Solaren. Les anciens
+octets Edge TTS ont été retirés faute de preuve de redistribution enregistrée. La procédure et la
+frontière juridique/technique sont détaillées dans [`DIALOGUE_VOICE.md`](DIALOGUE_VOICE.md).
+
 ## Règle pour les futurs modules
 
 Tout asset importé devra déclarer source, auteur, licence, URL ou preuve d'achat, modifications et
@@ -39,4 +51,5 @@ Depuis G7-13, cette règle est exécutable pour les métadonnées actuellement c
 Client, DedicatedServer et Shipping refusent avant écriture un module, un blueprint ou une
 dépendance requise dont la licence SPDX ou la provenance est inconnue. L’export inscrit les
 dépendances approuvées dans le manifest et génère `THIRD-PARTY-NOTICES.txt`, revérifié au chargement.
-Les futurs documents d’assets importés devront rejoindre le même validateur dès leur introduction.
+Les futurs documents d’assets importés, y compris les prises vocales, devront rejoindre le même
+validateur dès leur introduction.

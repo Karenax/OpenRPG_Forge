@@ -15,7 +15,7 @@ public sealed class DialogueVoiceResourceVerifierTests : IDisposable
         var relative = "audio/dialogues/test/node/speaker/take.mp3";
         var path = Path.Combine(_root, relative.Replace('/', Path.DirectorySeparatorChar));
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-        var bytes = new byte[] { 0x49, 0x44, 0x33, 0x04, 0, 0, 1, 2 };
+        var bytes = FakeMp3("verified voice");
         File.WriteAllBytes(path, bytes);
         var hash = Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
         var cue = Cue(relative, hash, fallback: true);
@@ -33,10 +33,40 @@ public sealed class DialogueVoiceResourceVerifierTests : IDisposable
         Assert.DoesNotContain(_root, changed.DiagnosticCode ?? string.Empty, StringComparison.OrdinalIgnoreCase);
     }
 
+    [Fact]
+    public void RejectsTruncatedMediaAfterHashVerificationAndKeepsSubtitleFallback()
+    {
+        var relative = "audio/dialogues/test/node/speaker/truncated.mp3";
+        var path = Path.Combine(_root, relative.Replace('/', Path.DirectorySeparatorChar));
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        var bytes = new byte[] { (byte)'I', (byte)'D', (byte)'3', 0x04, 0, 0, 0, 0, 1, 0 };
+        File.WriteAllBytes(path, bytes);
+        var hash = Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
+
+        var result = DialogueVoiceResourceVerifier.Verify(_root, Cue(relative, hash, fallback: true));
+
+        Assert.False(result.Succeeded);
+        Assert.Null(result.VerifiedBytes);
+        Assert.Equal(DialogueVoiceResourceVerifier.StructureInvalidCode, result.DiagnosticCode);
+        Assert.True(result.UseSubtitleFallback);
+    }
+
     private static DialogueVoiceCue Cue(string resource, string hash, bool fallback) => new(
         Guid.NewGuid(), DialogueNodeId.From(Guid.NewGuid()), BlueprintId.From(Guid.NewGuid()), "fr-FR",
         resource, "take-01", new("voice.test", "Test"), "neutral", "neutral", 1000,
         "CC0-1.0", hash, fallback, "test:voice");
+
+    private static byte[] FakeMp3(string payload)
+    {
+        var frame = new byte[417];
+        frame[0] = 0xff;
+        frame[1] = 0xfb;
+        frame[2] = 0x90;
+        frame[3] = 0x00;
+        var text = System.Text.Encoding.UTF8.GetBytes(payload);
+        text.AsSpan(0, Math.Min(text.Length, frame.Length - 4)).CopyTo(frame.AsSpan(4));
+        return frame;
+    }
 
     public void Dispose()
     {

@@ -13,8 +13,13 @@ public partial class App
         var root = AppContext.BaseDirectory;
         try
         {
-            _ = GameLauncherManifestStore.LoadAndVerifyDistribution(root);
-            var manifest = GameLauncherManifestStore.Load(root, verifyHashes: false);
+            var executableFileName = Path.GetFileName(Environment.ProcessPath)
+                ?? throw new InvalidOperationException("Launcher executable path is unavailable.");
+            var fileSet = GameLauncherManifestStore.ResolveFileSet(root, executableFileName);
+            _ = GameLauncherManifestStore.LoadAndVerifyDistribution(
+                root, fileSet.ManifestFileName, fileSet.DistributionFileName);
+            var manifest = GameLauncherManifestStore.Load(
+                root, verifyHashes: false, fileSet.ManifestFileName);
             var verification = GameLauncherManifestStore.Verify(root, manifest, verifyHashes: false);
             var settingsPath = GameLauncherSettingsStore.GetDefaultPath(manifest);
             var settings = GameLauncherSettingsStore.LoadOrDefault(settingsPath, manifest);

@@ -92,6 +92,27 @@ public sealed class DialoguePresentationTests
     }
 
     [Fact]
+    public void ResourceVoiceRejectsUnsupportedLicenseIdentifier()
+    {
+        var dialogue = Complete();
+        var profile = dialogue.Presentation!;
+        var invalid = dialogue.WithPresentation(profile with
+        {
+            VoiceCues = [profile.VoiceCues[0] with
+            {
+                Resource = "audio/dialogues/voice.wav",
+                LicenseSpdx = "banana",
+                ContentSha256 = new string('a', 64),
+            }],
+        });
+
+        var diagnostic = Assert.Single(DialoguePresentationValidator.Validate(invalid),
+            item => item.Code == DialoguePresentationValidator.VoiceInvalidCode);
+
+        Assert.Contains("license", diagnostic.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void MissingProfileHasOptionalFallbackOrRequiredDiagnostic()
     {
         var dialogue = Complete().WithPresentation(null);

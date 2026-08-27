@@ -1,6 +1,6 @@
 # ADR-0037 — Présentation canonique des dialogues
 
-Date : 6 août 2026
+Date : 6 août 2026 ; complété le 26 août 2026
 Statut : accepté
 
 ## Décision
@@ -17,6 +17,12 @@ ressource n’est valide qu’avec repli sous-titre explicite. La caméra respec
 la réduction des mouvements et les marges sûres. Les interjections sont sélectionnées de façon
 déterministe par présence, personnalité, relation, priorité, cooldown et politique de conflit ;
 seul le serveur autoritaire peut les déclencher.
+
+Le complément de 2026 fixe l’adresse immuable sous `audio/dialogues/blobs/sha256`, limite chaque
+prise à 64 Mio et impose la cohérence extension/MIME/structure au plan, à l’application, au package
+et au runtime. Une licence arbitraire non reconnue n’est plus acceptée. Client, Serveur dédié et
+Publication contrôlent aussi licence et provenance de chaque cue référencé. L’annulation retire le
+cue mais conserve le blob immuable ; une collecte de contenu sera une opération séparée.
 
 `SetDialoguePresentationHandler` est l’unique frontière de mutation : révision de base, validation
 globale, dry-run, diff, inverse, audit et historique. Le Toolset et MCP l’appellent sans écrire le

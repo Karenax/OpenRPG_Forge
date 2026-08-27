@@ -3,8 +3,8 @@
     "schema_version": 2,
     "engine": "roslyn",
     "engine_version": "5.6.0.0",
-    "source_digest": "sha256:80beed33abd3badf8bdfc9fbf7b3f05c89d013be03ae907fff94f4639ba38505",
-    "source_file_count": 3838,
+    "source_digest": "sha256:921e0a5c724e707d2a4418fbaeb388ca59b9d5f34f29508db7686ceaa5a2ab56",
+    "source_file_count": 3839,
     "sources": [
       {
         "path": ".agents/skills/openrpg-asset-lifecycle/SKILL.md",
@@ -93,8 +93,8 @@
       },
       {
         "path": "CHANGELOG.md",
-        "sha256": "sha256:530a6f4efb7516f84a58729e084fcd0f8d50a019aa191c66eaabdd71469ce002",
-        "size": 61661
+        "sha256": "sha256:1318646cd6d85ea18eb83785572cabbfaa8d0477c0afa9297d23c0ffe62d3d58",
+        "size": 62395
       },
       {
         "path": "Directory.Build.props",
@@ -453,23 +453,23 @@
       },
       {
         "path": "PROJECT_CONTEXT.md",
-        "sha256": "sha256:391608fd104f27d096159b9b729f4e5496866010fc5e6802d5f9fe8942cb8127",
-        "size": 24412
+        "sha256": "sha256:d36ddf2c511fee27206287d4ef004d863ed60ab2b0dec3bdaf9d6c157cf5d32d",
+        "size": 25277
       },
       {
         "path": "README.md",
-        "sha256": "sha256:6615790f856153a9359b2a333dd74d2c58be4cc738cee64e1e98bd71940f9eed",
-        "size": 16689
+        "sha256": "sha256:4789d320bb4526913bbcb8c17c4501c6523947ec3fbde3faf4e6632e5c4e1ddb",
+        "size": 17543
       },
       {
         "path": "STATUS.md",
-        "sha256": "sha256:42c7d697cfff950fc484ec2fe6f100ed8ddeca2ac20b9edb5c89191eb23a1b2c",
-        "size": 86953
+        "sha256": "sha256:31a28ae2f81fc9381a4ee15ce05c8b91323a23e58d31e209b4e9f92d12084a3e",
+        "size": 87584
       },
       {
         "path": "TASKS_MVP.md",
-        "sha256": "sha256:f4325a35c2ffafa71c5606ce2fc6026f9f49b6aa10b394dafc66287fbdc9d6ea",
-        "size": 58429
+        "sha256": "sha256:9839eb07ab4ade69b64f22188c2ca70dca2c8d03b35047609c0ba7d169b54bb8",
+        "size": 59064
       },
       {
         "path": "apps/Forge.CreatorLauncher/Forge.CreatorLauncher.csproj",
@@ -488,8 +488,8 @@
       },
       {
         "path": "apps/Forge.GameLauncher/App.xaml.cs",
-        "sha256": "sha256:b5baa658d2faf684a697c56c7ef49a14994c29cfb31d15ec25bf1886140b2dae",
-        "size": 4543
+        "sha256": "sha256:bf5cd368164c31e36b84aa48c90b07658f66ce1782a83c9622d2a9a1ef97956e",
+        "size": 4932
       },
       {
         "path": "apps/Forge.GameLauncher/Assets/ASSET_PROVENANCE.md",
@@ -753,8 +753,8 @@
       },
       {
         "path": "apps/Forge.Runtime/Runtime/RuntimeDialogueVoicePlayer.cs",
-        "sha256": "sha256:14b2e9c592e6cd4d7eca4c516e479d73ef30b8564c979c1cb8d009abb0126dcd",
-        "size": 3802
+        "sha256": "sha256:f929e54cc380a49209d590f697101f9fb10230c59709f56731cf2ee5306da1b8",
+        "size": 3801
       },
       {
         "path": "apps/Forge.Runtime/Runtime/RuntimeFlyingMount.cs",
@@ -2798,8 +2798,8 @@
       },
       {
         "path": "apps/Forge.Studio/Session/StudioSessionController.DialogueVoice.cs",
-        "sha256": "sha256:21e68fd1a545cfa4c1cada9ff4065786113f8fd7294ff962bfec596a4491ef4c",
-        "size": 12629
+        "sha256": "sha256:3d0c8b9b34d266e632de319e206d489f83451ed05bcf98f0997fc066fdd1ccb6",
+        "size": 12628
       },
       {
         "path": "apps/Forge.Studio/Session/StudioSessionController.Ux0C.cs",
@@ -5338,8 +5338,8 @@
       },
       {
         "path": "docs/ADR/ADR-0028-area-experience-audio-patrol-loading.md",
-        "sha256": "sha256:df13d188891c5f9e1cf41881c0998232e81ca4aff3669c975a26df83a9d2e5fb",
-        "size": 1980
+        "sha256": "sha256:6aedce85f074c17a4c947873f7c80d8fb223c64b704e3110406b200c84dc80d5",
+        "size": 2466
       },
       {
         "path": "docs/ADR/ADR-0029-runtime-extensions-ui-json-state.md",
@@ -5383,8 +5383,8 @@
       },
       {
         "path": "docs/ADR/ADR-0037-canonical-dialogue-presentation.md",
-        "sha256": "sha256:e3a02d8ab032dbe782cb3e9cd86b153014cf7ad3eaf9abbfd5b7193b0f45bc3e",
-        "size": 2261
+        "sha256": "sha256:f1be39a45d519121567b9ed5764ad1a5a83cbeacef58e077f06bec8df27aa577",
+        "size": 2796
       },
       {
         "path": "docs/ADR/ADR-0038-deterministic-adaptive-dialogue.md",
@@ -5418,8 +5418,8 @@
       },
       {
         "path": "docs/ADR/ADR-0044-configurable-game-launcher.md",
-        "sha256": "sha256:b20a9e0e3471a7afb38abd62c213c3265fdb477785ca046215539602b97f4713",
-        "size": 5426
+        "sha256": "sha256:be9949ebc816515aa948539928a3038f6d76109bf8b36d02b5bf76890d78dcef",
+        "size": 5927
       },
       {
         "path": "docs/ADR/ADR-0045-standalone-godot-studio.md",
@@ -5473,8 +5473,8 @@
       },
       {
         "path": "docs/ASSET_LICENSES.md",
-        "sha256": "sha256:07052ec4e58928c1d8509cb4df322e6668a074ef3728b4c6e066d31d43bca36c",
-        "size": 2526
+        "sha256": "sha256:065dbcf07d260943f58d7ec8d35c1757e3c99044d5b71fd7b356e342d8f67135",
+        "size": 3403
       },
       {
         "path": "docs/AURORA_CAPABILITY_DELIVERY_PLAN.md",
@@ -5483,13 +5483,18 @@
       },
       {
         "path": "docs/CREATOR_GUIDE.md",
-        "sha256": "sha256:62469c11bf42930b197c59f3af1f957961d72290c11ab5c1ac954cbf2a0c807f",
-        "size": 9873
+        "sha256": "sha256:4ac5ba8b393df6bfd43de9ce89ef7fc8770acac23ad4da071d8cec7b94e57d2e",
+        "size": 10794
+      },
+      {
+        "path": "docs/DIALOGUE_VOICE.md",
+        "sha256": "sha256:42d3b75182f8a98962fb978d384f7dc9a88a4c34fce51e17c6096d726325c331",
+        "size": 5876
       },
       {
         "path": "docs/DISTRIBUTION.md",
-        "sha256": "sha256:76c591e76939e723f1d63ef9ef23cf539412aa8b764f7d85f2916b7db1c25c88",
-        "size": 10752
+        "sha256": "sha256:d9e20c4c3d2b5811e46a18e637957bd687c9db5a14d1e7fce623ac1c857ae58e",
+        "size": 11970
       },
       {
         "path": "docs/ENGINE_COMPARISON.md",
@@ -5508,18 +5513,18 @@
       },
       {
         "path": "docs/MCP_AI_ARCHITECTURE.md",
-        "sha256": "sha256:6ded98f91c36853ed175e23a9696b7e73be667dafd9c70ade5e0002ddb769ed6",
-        "size": 3789
+        "sha256": "sha256:8ccfb745925ad4d0c6d633907ca9c4efbc716ed9d9b47e8f061e3aca6b2fc145",
+        "size": 4234
       },
       {
         "path": "docs/MODULE_FORMAT.md",
-        "sha256": "sha256:d53a1c141969ccda557e083987a10e35c7c600ae62cbc75a9c95fe76dec6bd69",
-        "size": 7107
+        "sha256": "sha256:89d1ab18f8188770f77ad92cf438bbffa938e0d28a2a120b80c0b0ae9bdf6ec0",
+        "size": 8056
       },
       {
         "path": "docs/MULTIPLAYER_INTERNET.md",
-        "sha256": "sha256:178f28095fcbbf0602e12d63dc96154479806565c88dc6105777a0960561349d",
-        "size": 10985
+        "sha256": "sha256:ab864e52b179db35e680448f0e75dcbb9b2dd87ccc118c8ef20ee249efca07b3",
+        "size": 11448
       },
       {
         "path": "docs/PERFORMANCE_MVP.md",
@@ -6348,8 +6353,8 @@
       },
       {
         "path": "docs/assets/ASSET_LICENSE_POLICY.md",
-        "sha256": "sha256:bea13d73c047211e9efb602b2ceadac9b36a0a2fd61027b6d5559ca9f8ccda52",
-        "size": 1991
+        "sha256": "sha256:0bdcedad128adb765f8844048fd79e14b075594f3763f4a757e4d64e5683259b",
+        "size": 2411
       },
       {
         "path": "docs/assets/ASSET_PIPELINE_USAGE.md",
@@ -6363,8 +6368,8 @@
       },
       {
         "path": "docs/assets/ASSET_SOURCE_GOVERNANCE.md",
-        "sha256": "sha256:20bf521dd1557d6948d6fc57d550ce30707a3ed307cd273b99bae1e411304095",
-        "size": 5096
+        "sha256": "sha256:6776a27a57155767adec699e8fb3cc19f7992b786c8d0c18e5934472936ac986",
+        "size": 5754
       },
       {
         "path": "docs/assets/AV5_DELIVERY_AND_EXTENSION.md",
@@ -8003,7 +8008,7 @@
       },
       {
         "path": "docs/governance/VERSIONING.md",
-        "sha256": "sha256:ecf1da9316c734ed00cebea1bb4762ee1d2f1db42e87621e6d3ac89e8e7569f0",
+        "sha256": "sha256:5edc7be00fa7ce1248fcda6b2e28b815147b5b2cfe4b57131803b9597e896238",
         "size": 884
       },
       {
@@ -9682,14 +9687,19 @@
         "size": 521
       },
       {
+        "path": "src/Forge.Application/Gameplay/AudioMediaStructureValidator.cs",
+        "sha256": "sha256:6dc84b33f2ed40d6ea4346a6eb7adb620243a73b00868af6e0be38e415cd04bb",
+        "size": 6159
+      },
+      {
         "path": "src/Forge.Application/Gameplay/CameraOcclusionPolicy.cs",
         "sha256": "sha256:a32185ff751a3ca6aa7745bb0655341d75cb11267d896515d4dc2e10bf5a1590",
         "size": 1500
       },
       {
         "path": "src/Forge.Application/Gameplay/DialogueVoiceResourceVerifier.cs",
-        "sha256": "sha256:673dfced7bb9e412cb095dc5acf10a868db87ad0423982b12aee35e272b7b795",
-        "size": 2385
+        "sha256": "sha256:c5b57182a96ea206c305bf6895575b3b34f10d8df8b012875b613e10ee60d329",
+        "size": 2648
       },
       {
         "path": "src/Forge.Application/Gameplay/GameplayFoundationRuntime.cs",
@@ -11478,8 +11488,8 @@
       },
       {
         "path": "src/Forge.Domain/Dialogues/DialoguePresentationValidator.cs",
-        "sha256": "sha256:86551f6e4e2ba6f9c94e4e05a497b6cc032c559b64c0e09b469c5619c4365d89",
-        "size": 10983
+        "sha256": "sha256:025fafb7a5e9c8faa28f9c98b0435c6af64485fb15347753ee727c6a2d62af99",
+        "size": 11052
       },
       {
         "path": "src/Forge.Domain/Dialogues/DialogueProductionProfile.cs",
@@ -12623,8 +12633,8 @@
       },
       {
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
-        "sha256": "sha256:bea5f944850b750652ffcd31790948510c1e7e68cc19125b77e20c2ed5c2cfdc",
-        "size": 13193
+        "sha256": "sha256:52c8415f55b0ca25e31185116e97e98a901c71e7a0b1290adb1f25c8199569b7",
+        "size": 14430
       },
       {
         "path": "src/Forge.Domain/Validation/DomainDiagnostic.cs",
@@ -13797,24 +13807,19 @@
         "size": 1241
       },
       {
-        "path": "src/Forge.ModuleFormat/Audio/AudioMediaStructureValidator.cs",
-        "sha256": "sha256:acccec84dd45f5dd61bae3d40f4b2be5f8712e831c4e149d7e9ebdc276c94c3e",
-        "size": 5799
-      },
-      {
         "path": "src/Forge.ModuleFormat/Audio/GovernedAudioSourceValidator.cs",
         "sha256": "sha256:1d60a201f090efbc890a75ad12a01b6928ade004593d6aa82a268e24c9afa404",
         "size": 6025
       },
       {
         "path": "src/Forge.ModuleFormat/Audio/GovernedDialogueVoiceImportService.cs",
-        "sha256": "sha256:85c184588494e9110a4685023a25ad9f63add830c38e0a7e440d60708cbae82e",
-        "size": 13603
+        "sha256": "sha256:bb535ceb6a2841029f8ca56b2b84ae0598ef89813446775f3d7289d0a7cd50a3",
+        "size": 14020
       },
       {
         "path": "src/Forge.ModuleFormat/Audio/WorkspaceAudioValidator.cs",
-        "sha256": "sha256:9c3986e9448c6b0bfa7625cccaab75572fbb1a8fc9fedecea7f863685df0428b",
-        "size": 5756
+        "sha256": "sha256:3f320655bcdbec47ccdb18810fa45127d84e515f76435a24afa8ccb1c67a6280",
+        "size": 5767
       },
       {
         "path": "src/Forge.ModuleFormat/Content/BlueprintExportManifest.cs",
@@ -13963,8 +13968,8 @@
       },
       {
         "path": "src/Forge.ModuleFormat/Launcher/GameLauncherManifestStore.cs",
-        "sha256": "sha256:eb4523e5334d89e5c3e03c9b3528ef705bb2a92e07037831300737d35621e424",
-        "size": 12187
+        "sha256": "sha256:f0fa4e7feb08d71c9c9f12d496a6cc7036679519cfee5c35bd74c7cc410303be",
+        "size": 15620
       },
       {
         "path": "src/Forge.ModuleFormat/Launcher/GameLauncherSettingsStore.cs",
@@ -14108,8 +14113,8 @@
       },
       {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageLimits.cs",
-        "sha256": "sha256:d4c0408f00814f1843dc1c6865b6cac3060cf511aa5a986150ede4bf1fa0402c",
-        "size": 254
+        "sha256": "sha256:b7ab53d55901ef509dd29a644e8955770a21761d19480520b15faf7e284f0dea",
+        "size": 260
       },
       {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageLoader.cs",
@@ -14123,8 +14128,8 @@
       },
       {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
-        "sha256": "sha256:5ab588858afeafb01862da263ac61cb9633722ba574fc7025c9881415bfcfc38",
-        "size": 17541
+        "sha256": "sha256:53162d6ef4c4b6cf9646c407daa1aa4417395a0421b47b25f928f93684413024",
+        "size": 18858
       },
       {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackager.cs",
@@ -16568,8 +16573,8 @@
       },
       {
         "path": "tests/Forge.Domain.Tests/Dialogues/DialoguePresentationTests.cs",
-        "sha256": "sha256:3c44672da2f41f7476171e487ccb5d1ce4a3b8a8458f640f9e0f88193ee02ed1",
-        "size": 7199
+        "sha256": "sha256:0c3ebee582522c79739bdaa0168dcd70f4735008037b5c8ef8969a8eb0f5f084",
+        "size": 7948
       },
       {
         "path": "tests/Forge.Domain.Tests/Dialogues/DialogueProductionProfileTests.cs",
@@ -16863,8 +16868,8 @@
       },
       {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "sha256": "sha256:942a6a80134e26c1d8eded8ebdc543c1304b89ca29e6beca4614eaf59a370730",
-        "size": 13230
+        "sha256": "sha256:55d5cf65b3d7a5df2f737db4fe196c703c79ecb4c43e0162203f00f38b6f3131",
+        "size": 14460
       },
       {
         "path": "tests/Forge.Domain.Tests/Validation/GenericValidationPrimitiveTests.cs",
@@ -17428,8 +17433,8 @@
       },
       {
         "path": "tests/Forge.ModuleFormat.Tests/Audio/GovernedDialogueVoiceImportTests.cs",
-        "sha256": "sha256:b3f8938355b931036572d33807420dd7b0943d95915d9f49212fc85780719cd0",
-        "size": 8430
+        "sha256": "sha256:c3e26a87d75168534ab5b416cf5baae3566223117d3e0988a5ba8106d7e6b3aa",
+        "size": 9804
       },
       {
         "path": "tests/Forge.ModuleFormat.Tests/Audio/WorkspaceAudioValidatorTests.cs",
@@ -17473,8 +17478,8 @@
       },
       {
         "path": "tests/Forge.ModuleFormat.Tests/Launcher/GameLauncherTests.cs",
-        "sha256": "sha256:1d82cc466aa80bc558f53be1aebf2321814920b461ab31f797403021c86f931c",
-        "size": 12218
+        "sha256": "sha256:a418b8b0cbec3ba25c935c26755797981d7c9c959e0e5b0c7f1d78cc41138c80",
+        "size": 17049
       },
       {
         "path": "tests/Forge.ModuleFormat.Tests/LiveDirector/WorkspaceLiveDirectorAccessStoreTests.cs",
@@ -17563,8 +17568,8 @@
       },
       {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "sha256": "sha256:d47d804392f02f033ba3b3a3e603f345ff19be3d1ca1009fca226812b5670f8e",
-        "size": 58579
+        "sha256": "sha256:c262c0402fb4bb9c27cfaa246bac370071fdb53ec5eeb447198e1bee4c7ec235",
+        "size": 60394
       },
       {
         "path": "tests/Forge.ModuleFormat.Tests/Playtesting/PlaytestSnapshotStoreTests.cs",
@@ -17603,8 +17608,8 @@
       },
       {
         "path": "tests/Forge.ModuleFormat.Tests/RuntimePresentation/DialogueVoiceResourceVerifierTests.cs",
-        "sha256": "sha256:d9b9762a17cbc6de5a0d138cb2be502b8b19a57d4126b91a797f5e0f47d5efde",
-        "size": 2205
+        "sha256": "sha256:fedccc8529d3c9c019ae9dedfe26b71e45ea3cc07f5eef3159614dc8fcd98611",
+        "size": 3444
       },
       {
         "path": "tests/Forge.ModuleFormat.Tests/RuntimePresentation/DialogueVoiceSurfaceBoundaryTests.cs",
@@ -18448,8 +18453,8 @@
       },
       {
         "path": "tests/Forge.Studio.Core.Tests/packages.lock.json",
-        "sha256": "sha256:dd7257862655cdf63fc0fe250e1fc43e3a53925149ff2777d072245c4ed1418c",
-        "size": 3976
+        "sha256": "sha256:2cc14267776b834585b9a814ce7987ec2b6b5464795f3318bc27cbd345ef613d",
+        "size": 7059
       },
       {
         "path": "tests/Godot/WorldGenerationNativeSmoke.gd",
@@ -19083,8 +19088,8 @@
       },
       {
         "path": "tools/Forge.Cli/Program.cs",
-        "sha256": "sha256:3c47725af45a49324bbd60ad5e59e040f6c483e6b3cb1b14e4d851a53907575c",
-        "size": 95508
+        "sha256": "sha256:b2bc318ec03f64089a2e7b72756f801ffdc023c686fa560d915663390d25bb23",
+        "size": 95957
       },
       {
         "path": "tools/Forge.Cli/packages.lock.json",
@@ -35572,6 +35577,16 @@
       }
     },
     {
+      "id": "file:docs/DIALOGUE_VOICE.md",
+      "kind": "document",
+      "name": "DIALOGUE_VOICE.md",
+      "path": "docs/DIALOGUE_VOICE.md",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      }
+    },
+    {
       "id": "file:docs/DISTRIBUTION.md",
       "kind": "document",
       "name": "DISTRIBUTION.md",
@@ -43962,6 +43977,16 @@
       }
     },
     {
+      "id": "file:src/Forge.Application/Gameplay/AudioMediaStructureValidator.cs",
+      "kind": "file",
+      "name": "AudioMediaStructureValidator.cs",
+      "path": "src/Forge.Application/Gameplay/AudioMediaStructureValidator.cs",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      }
+    },
+    {
       "id": "file:src/Forge.Application/Gameplay/CameraOcclusionPolicy.cs",
       "kind": "file",
       "name": "CameraOcclusionPolicy.cs",
@@ -52186,16 +52211,6 @@
       "kind": "file",
       "name": "UntrustedAssetHeaderValidator.cs",
       "path": "src/Forge.ModuleFormat/Assets/UntrustedAssetHeaderValidator.cs",
-      "line": 1,
-      "metadata": {
-        "language": "csharp"
-      }
-    },
-    {
-      "id": "file:src/Forge.ModuleFormat/Audio/AudioMediaStructureValidator.cs",
-      "kind": "file",
-      "name": "AudioMediaStructureValidator.cs",
-      "path": "src/Forge.ModuleFormat/Audio/AudioMediaStructureValidator.cs",
       "line": 1,
       "metadata": {
         "language": "csharp"
@@ -99780,7 +99795,7 @@
       "kind": "test",
       "name": "DistributionComplianceValidatorTests",
       "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-      "line": 10,
+      "line": 11,
       "metadata": {
         "namespace": "Forge.Domain.Tests.Validation",
         "project": "Forge.Domain.Tests",
@@ -125900,6 +125915,18 @@
       }
     },
     {
+      "id": "type:Forge.ModuleFormat.Launcher.GameLauncherManifestFileSet",
+      "kind": "type",
+      "name": "GameLauncherManifestFileSet",
+      "path": "src/Forge.ModuleFormat/Launcher/GameLauncherManifestStore.cs",
+      "line": 320,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Launcher",
+        "project": "Forge.ModuleFormat",
+        "symbol_kind": "Class"
+      }
+    },
+    {
       "id": "type:Forge.ModuleFormat.Launcher.GameLauncherManifestStore",
       "kind": "type",
       "name": "GameLauncherManifestStore",
@@ -150320,6 +150347,18 @@
       }
     },
     {
+      "id": "validator:Forge.Application.Gameplay.AudioMediaStructureValidator",
+      "kind": "validator",
+      "name": "AudioMediaStructureValidator",
+      "path": "src/Forge.Application/Gameplay/AudioMediaStructureValidator.cs",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Gameplay",
+        "project": "Forge.Application",
+        "symbol_kind": "Class"
+      }
+    },
+    {
       "id": "validator:Forge.Application.Spatial.PlacementValidator",
       "kind": "validator",
       "name": "PlacementValidator",
@@ -151544,18 +151583,6 @@
       }
     },
     {
-      "id": "validator:Forge.ModuleFormat.Audio.AudioMediaStructureValidator",
-      "kind": "validator",
-      "name": "AudioMediaStructureValidator",
-      "path": "src/Forge.ModuleFormat/Audio/AudioMediaStructureValidator.cs",
-      "line": 5,
-      "metadata": {
-        "namespace": "Forge.ModuleFormat.Audio",
-        "project": "Forge.ModuleFormat",
-        "symbol_kind": "Class"
-      }
-    },
-    {
       "id": "validator:Forge.ModuleFormat.Audio.GovernedAudioSourceValidator",
       "kind": "validator",
       "name": "GovernedAudioSourceValidator",
@@ -151608,7 +151635,7 @@
       "kind": "validator",
       "name": "ModulePackageValidator",
       "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
-      "line": 8,
+      "line": 9,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Packages",
         "project": "Forge.ModuleFormat",
@@ -205802,7 +205829,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "PROJECT_CONTEXT.md",
-        "line": 331
+        "line": 341
       }
     },
     {
@@ -205832,7 +205859,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "PROJECT_CONTEXT.md",
-        "line": 283
+        "line": 293
       }
     },
     {
@@ -205842,7 +205869,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "PROJECT_CONTEXT.md",
-        "line": 126
+        "line": 136
       }
     },
     {
@@ -205852,7 +205879,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "PROJECT_CONTEXT.md",
-        "line": 254
+        "line": 264
       }
     },
     {
@@ -205862,7 +205889,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "PROJECT_CONTEXT.md",
-        "line": 237
+        "line": 247
       }
     },
     {
@@ -205872,7 +205899,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "PROJECT_CONTEXT.md",
-        "line": 335
+        "line": 345
       }
     },
     {
@@ -205922,7 +205949,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "README.md",
-        "line": 192
+        "line": 194
       }
     },
     {
@@ -205933,6 +205960,16 @@
       "evidence": {
         "path": "README.md",
         "line": 145
+      }
+    },
+    {
+      "source": "file:README.md",
+      "target": "file:docs/DIALOGUE_VOICE.md",
+      "kind": "references",
+      "confidence": "syntactic",
+      "evidence": {
+        "path": "README.md",
+        "line": 215
       }
     },
     {
@@ -205952,7 +205989,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "README.md",
-        "line": 282
+        "line": 292
       }
     },
     {
@@ -206012,7 +206049,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "README.md",
-        "line": 284
+        "line": 294
       }
     },
     {
@@ -206032,7 +206069,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 907
+        "line": 915
       }
     },
     {
@@ -206042,7 +206079,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 907
+        "line": 915
       }
     },
     {
@@ -206062,7 +206099,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 416
+        "line": 424
       }
     },
     {
@@ -206072,7 +206109,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 463
+        "line": 471
       }
     },
     {
@@ -206082,7 +206119,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 468
+        "line": 476
       }
     },
     {
@@ -206092,7 +206129,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 473
+        "line": 481
       }
     },
     {
@@ -206102,7 +206139,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 478
+        "line": 486
       }
     },
     {
@@ -206112,7 +206149,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 483
+        "line": 491
       }
     },
     {
@@ -206122,7 +206159,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 489
+        "line": 497
       }
     },
     {
@@ -206132,7 +206169,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 494
+        "line": 502
       }
     },
     {
@@ -206142,7 +206179,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 499
+        "line": 507
       }
     },
     {
@@ -206152,7 +206189,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 504
+        "line": 512
       }
     },
     {
@@ -206162,7 +206199,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 510
+        "line": 518
       }
     },
     {
@@ -206172,7 +206209,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 514
+        "line": 522
       }
     },
     {
@@ -206182,7 +206219,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 519
+        "line": 527
       }
     },
     {
@@ -206192,7 +206229,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 524
+        "line": 532
       }
     },
     {
@@ -206202,7 +206239,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 529
+        "line": 537
       }
     },
     {
@@ -206212,7 +206249,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 534
+        "line": 542
       }
     },
     {
@@ -206222,7 +206259,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 539
+        "line": 547
       }
     },
     {
@@ -206232,7 +206269,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 544
+        "line": 552
       }
     },
     {
@@ -206242,7 +206279,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 549
+        "line": 557
       }
     },
     {
@@ -206252,7 +206289,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 554
+        "line": 562
       }
     },
     {
@@ -206262,7 +206299,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 559
+        "line": 567
       }
     },
     {
@@ -206272,7 +206309,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 563
+        "line": 571
       }
     },
     {
@@ -206282,7 +206319,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 567
+        "line": 575
       }
     },
     {
@@ -206292,7 +206329,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 572
+        "line": 580
       }
     },
     {
@@ -206302,7 +206339,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 577
+        "line": 585
       }
     },
     {
@@ -206312,7 +206349,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 582
+        "line": 590
       }
     },
     {
@@ -206322,7 +206359,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 587
+        "line": 595
       }
     },
     {
@@ -206332,7 +206369,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 593
+        "line": 601
       }
     },
     {
@@ -206342,7 +206379,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 599
+        "line": 607
       }
     },
     {
@@ -206352,7 +206389,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 606
+        "line": 614
       }
     },
     {
@@ -206362,7 +206399,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 621
+        "line": 629
       }
     },
     {
@@ -206372,7 +206409,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 656
+        "line": 664
       }
     },
     {
@@ -206382,7 +206419,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 655
+        "line": 663
       }
     },
     {
@@ -206422,7 +206459,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.GameLauncher/App.xaml.cs",
-        "line": 37
+        "line": 42
       }
     },
     {
@@ -206432,7 +206469,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.GameLauncher/App.xaml.cs",
-        "line": 18
+        "line": 23
       }
     },
     {
@@ -206442,7 +206479,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.GameLauncher/App.xaml.cs",
-        "line": 16
+        "line": 18
       }
     },
     {
@@ -206452,7 +206489,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.GameLauncher/App.xaml.cs",
-        "line": 19
+        "line": 24
       }
     },
     {
@@ -206462,7 +206499,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.GameLauncher/App.xaml.cs",
-        "line": 37
+        "line": 42
       }
     },
     {
@@ -346736,6 +346773,16 @@
       }
     },
     {
+      "source": "file:docs/ASSET_LICENSES.md",
+      "target": "file:docs/DIALOGUE_VOICE.md",
+      "kind": "references",
+      "confidence": "syntactic",
+      "evidence": {
+        "path": "docs/ASSET_LICENSES.md",
+        "line": 42
+      }
+    },
+    {
       "source": "file:docs/AURORA_CAPABILITY_DELIVERY_PLAN.md",
       "target": "file:docs/planning/ASSET_SCOPE_DECISION_2026-08-07.md",
       "kind": "references",
@@ -346796,13 +346843,53 @@
       }
     },
     {
+      "source": "file:docs/CREATOR_GUIDE.md",
+      "target": "file:docs/DIALOGUE_VOICE.md",
+      "kind": "references",
+      "confidence": "syntactic",
+      "evidence": {
+        "path": "docs/CREATOR_GUIDE.md",
+        "line": 84
+      }
+    },
+    {
       "source": "file:docs/DISTRIBUTION.md",
       "target": "file:docs/MULTIPLAYER_INTERNET.md",
       "kind": "references",
       "confidence": "syntactic",
       "evidence": {
         "path": "docs/DISTRIBUTION.md",
-        "line": 134
+        "line": 143
+      }
+    },
+    {
+      "source": "file:docs/MCP_AI_ARCHITECTURE.md",
+      "target": "file:docs/DIALOGUE_VOICE.md",
+      "kind": "references",
+      "confidence": "syntactic",
+      "evidence": {
+        "path": "docs/MCP_AI_ARCHITECTURE.md",
+        "line": 68
+      }
+    },
+    {
+      "source": "file:docs/MODULE_FORMAT.md",
+      "target": "file:docs/DIALOGUE_VOICE.md",
+      "kind": "references",
+      "confidence": "syntactic",
+      "evidence": {
+        "path": "docs/MODULE_FORMAT.md",
+        "line": 94
+      }
+    },
+    {
+      "source": "file:docs/MULTIPLAYER_INTERNET.md",
+      "target": "file:docs/DISTRIBUTION.md",
+      "kind": "references",
+      "confidence": "syntactic",
+      "evidence": {
+        "path": "docs/MULTIPLAYER_INTERNET.md",
+        "line": 204
       }
     },
     {
@@ -346917,12 +347004,22 @@
     },
     {
       "source": "file:docs/assets/ASSET_SOURCE_GOVERNANCE.md",
+      "target": "file:docs/DIALOGUE_VOICE.md",
+      "kind": "references",
+      "confidence": "syntactic",
+      "evidence": {
+        "path": "docs/assets/ASSET_SOURCE_GOVERNANCE.md",
+        "line": 69
+      }
+    },
+    {
+      "source": "file:docs/assets/ASSET_SOURCE_GOVERNANCE.md",
       "target": "file:docs/assets/ASSET_SOURCE_AND_PACK_EXTENSION.md",
       "kind": "references",
       "confidence": "syntactic",
       "evidence": {
         "path": "docs/assets/ASSET_SOURCE_GOVERNANCE.md",
-        "line": 66
+        "line": 72
       }
     },
     {
@@ -346932,7 +347029,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "docs/assets/ASSET_SOURCE_GOVERNANCE.md",
-        "line": 67
+        "line": 73
       }
     },
     {
@@ -366117,12 +366214,22 @@
     },
     {
       "source": "file:src/Forge.Application/Gameplay/DialogueVoiceResourceVerifier.cs",
+      "target": "file:src/Forge.Application/Gameplay/AudioMediaStructureValidator.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/Gameplay/DialogueVoiceResourceVerifier.cs",
+        "line": 39
+      }
+    },
+    {
+      "source": "file:src/Forge.Application/Gameplay/DialogueVoiceResourceVerifier.cs",
       "target": "file:src/Forge.Application/Gameplay/RuntimeModuleAssetPathResolver.cs",
       "kind": "imports",
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Application/Gameplay/DialogueVoiceResourceVerifier.cs",
-        "line": 28
+        "line": 29
       }
     },
     {
@@ -366132,7 +366239,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Application/Gameplay/DialogueVoiceResourceVerifier.cs",
-        "line": 21
+        "line": 22
       }
     },
     {
@@ -380392,7 +380499,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Dialogues/DialoguePresentationValidator.cs",
-        "line": 10
+        "line": 11
       }
     },
     {
@@ -380402,7 +380509,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Dialogues/DialoguePresentationValidator.cs",
-        "line": 155
+        "line": 156
       }
     },
     {
@@ -380412,7 +380519,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Dialogues/DialoguePresentationValidator.cs",
-        "line": 22
+        "line": 23
       }
     },
     {
@@ -380422,7 +380529,17 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Dialogues/DialoguePresentationValidator.cs",
-        "line": 9
+        "line": 10
+      }
+    },
+    {
+      "source": "file:src/Forge.Domain/Dialogues/DialoguePresentationValidator.cs",
+      "target": "file:src/Forge.Domain/Validation/SpdxLicenseValidator.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Domain/Dialogues/DialoguePresentationValidator.cs",
+        "line": 54
       }
     },
     {
@@ -387302,7 +387419,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
-        "line": 203
+        "line": 205
       }
     },
     {
@@ -387312,7 +387429,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
-        "line": 183
+        "line": 185
       }
     },
     {
@@ -387322,7 +387439,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
-        "line": 41
+        "line": 43
       }
     },
     {
@@ -387332,7 +387449,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
-        "line": 63
+        "line": 65
       }
     },
     {
@@ -387342,7 +387459,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
-        "line": 41
+        "line": 43
       }
     },
     {
@@ -387352,7 +387469,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
-        "line": 72
+        "line": 74
       }
     },
     {
@@ -387362,7 +387479,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
-        "line": 53
+        "line": 55
       }
     },
     {
@@ -387372,7 +387489,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
-        "line": 53
+        "line": 55
       }
     },
     {
@@ -387382,7 +387499,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
-        "line": 55
+        "line": 57
       }
     },
     {
@@ -387392,7 +387509,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
-        "line": 55
+        "line": 57
       }
     },
     {
@@ -387402,7 +387519,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
-        "line": 38
+        "line": 40
       }
     },
     {
@@ -387412,7 +387529,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
-        "line": 43
+        "line": 45
       }
     },
     {
@@ -387422,7 +387539,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
-        "line": 137
+        "line": 139
       }
     },
     {
@@ -387432,7 +387549,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
-        "line": 108
+        "line": 110
       }
     },
     {
@@ -387442,7 +387559,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
-        "line": 73
+        "line": 75
       }
     },
     {
@@ -387452,7 +387569,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
-        "line": 38
+        "line": 40
       }
     },
     {
@@ -387462,7 +387579,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
-        "line": 38
+        "line": 40
       }
     },
     {
@@ -387472,7 +387589,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
-        "line": 239
+        "line": 260
       }
     },
     {
@@ -400247,12 +400364,22 @@
     },
     {
       "source": "file:src/Forge.ModuleFormat/Audio/GovernedDialogueVoiceImportService.cs",
+      "target": "file:src/Forge.Application/Gameplay/AudioMediaStructureValidator.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Audio/GovernedDialogueVoiceImportService.cs",
+        "line": 101
+      }
+    },
+    {
+      "source": "file:src/Forge.ModuleFormat/Audio/GovernedDialogueVoiceImportService.cs",
       "target": "file:src/Forge.Application/Gameplay/RuntimeModuleAssetPathResolver.cs",
       "kind": "imports",
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Audio/GovernedDialogueVoiceImportService.cs",
-        "line": 79
+        "line": 80
       }
     },
     {
@@ -400272,17 +400399,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Audio/GovernedDialogueVoiceImportService.cs",
-        "line": 243
-      }
-    },
-    {
-      "source": "file:src/Forge.ModuleFormat/Audio/GovernedDialogueVoiceImportService.cs",
-      "target": "file:src/Forge.ModuleFormat/Audio/AudioMediaStructureValidator.cs",
-      "kind": "imports",
-      "confidence": "semantic",
-      "evidence": {
-        "path": "src/Forge.ModuleFormat/Audio/GovernedDialogueVoiceImportService.cs",
-        "line": 100
+        "line": 248
       }
     },
     {
@@ -402097,12 +402214,32 @@
     },
     {
       "source": "file:src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
+      "target": "file:src/Forge.Application/Gameplay/AudioMediaStructureValidator.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
+        "line": 393
+      }
+    },
+    {
+      "source": "file:src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
+      "target": "file:src/Forge.Application/Gameplay/DialogueVoiceResourceVerifier.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
+        "line": 108
+      }
+    },
+    {
+      "source": "file:src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
       "target": "file:src/Forge.Domain/Modules/ModuleDefinition.cs",
       "kind": "imports",
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
-        "line": 193
+        "line": 205
       }
     },
     {
@@ -402112,7 +402249,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
-        "line": 210
+        "line": 222
       }
     },
     {
@@ -402122,7 +402259,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
-        "line": 43
+        "line": 45
       }
     },
     {
@@ -402132,7 +402269,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
-        "line": 202
+        "line": 214
       }
     },
     {
@@ -402142,7 +402279,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
-        "line": 238
+        "line": 250
       }
     },
     {
@@ -402152,7 +402289,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
-        "line": 158
+        "line": 170
       }
     },
     {
@@ -402162,7 +402299,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
-        "line": 42
+        "line": 44
       }
     },
     {
@@ -402172,7 +402309,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
-        "line": 212
+        "line": 224
       }
     },
     {
@@ -402182,7 +402319,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
-        "line": 142
+        "line": 154
       }
     },
     {
@@ -402192,7 +402329,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
-        "line": 143
+        "line": 155
       }
     },
     {
@@ -402202,7 +402339,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
-        "line": 41
+        "line": 43
       }
     },
     {
@@ -402212,7 +402349,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
-        "line": 36
+        "line": 38
       }
     },
     {
@@ -402222,7 +402359,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
-        "line": 34
+        "line": 36
       }
     },
     {
@@ -402232,7 +402369,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
-        "line": 146
+        "line": 158
       }
     },
     {
@@ -402242,7 +402379,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
-        "line": 249
+        "line": 261
       }
     },
     {
@@ -402252,7 +402389,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
-        "line": 179
+        "line": 191
       }
     },
     {
@@ -437782,7 +437919,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Dialogues/DialoguePresentationTests.cs",
-        "line": 115
+        "line": 136
       }
     },
     {
@@ -437792,7 +437929,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Dialogues/DialoguePresentationTests.cs",
-        "line": 136
+        "line": 157
       }
     },
     {
@@ -437812,7 +437949,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Dialogues/DialoguePresentationTests.cs",
-        "line": 112
+        "line": 133
       }
     },
     {
@@ -437822,7 +437959,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Dialogues/DialoguePresentationTests.cs",
-        "line": 113
+        "line": 134
       }
     },
     {
@@ -437862,7 +437999,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Dialogues/DialoguePresentationTests.cs",
-        "line": 126
+        "line": 147
       }
     },
     {
@@ -442562,7 +442699,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 186
+        "line": 215
       }
     },
     {
@@ -442572,7 +442709,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 187
+        "line": 216
       }
     },
     {
@@ -442582,7 +442719,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 66
+        "line": 67
       }
     },
     {
@@ -442592,7 +442729,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 51
+        "line": 52
       }
     },
     {
@@ -442602,7 +442739,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 191
+        "line": 220
       }
     },
     {
@@ -442612,7 +442749,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 197
+        "line": 226
       }
     },
     {
@@ -442622,7 +442759,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 59
+        "line": 60
       }
     },
     {
@@ -442632,7 +442769,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 97
+        "line": 126
       }
     },
     {
@@ -442642,7 +442779,27 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 106
+        "line": 135
+      }
+    },
+    {
+      "source": "file:tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
+      "target": "file:src/Forge.Domain/Dialogues/DialogueDefinition.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
+        "line": 98
+      }
+    },
+    {
+      "source": "file:tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
+      "target": "file:src/Forge.Domain/Dialogues/DialoguePresentationProfile.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
+        "line": 99
       }
     },
     {
@@ -442652,7 +442809,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 85
+        "line": 86
       }
     },
     {
@@ -442662,7 +442819,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 159
+        "line": 188
       }
     },
     {
@@ -442672,7 +442829,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 17
+        "line": 18
       }
     },
     {
@@ -442682,7 +442839,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 15
+        "line": 16
       }
     },
     {
@@ -442692,7 +442849,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 156
+        "line": 185
       }
     },
     {
@@ -442702,7 +442859,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 154
+        "line": 183
       }
     },
     {
@@ -442712,7 +442869,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 21
+        "line": 22
       }
     },
     {
@@ -442722,7 +442879,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 27
+        "line": 28
       }
     },
     {
@@ -442732,7 +442889,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 232
+        "line": 261
       }
     },
     {
@@ -442742,7 +442899,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 229
+        "line": 258
       }
     },
     {
@@ -442752,7 +442909,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 230
+        "line": 259
       }
     },
     {
@@ -442762,7 +442919,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 209
+        "line": 238
       }
     },
     {
@@ -442772,7 +442929,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 210
+        "line": 239
       }
     },
     {
@@ -442782,7 +442939,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 161
+        "line": 190
       }
     },
     {
@@ -442792,7 +442949,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 160
+        "line": 189
       }
     },
     {
@@ -442802,7 +442959,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 36
+        "line": 37
       }
     },
     {
@@ -442812,7 +442969,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 250
+        "line": 279
       }
     },
     {
@@ -442822,7 +442979,17 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 36
+        "line": 37
+      }
+    },
+    {
+      "source": "file:tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
+      "target": "file:tests/Forge.Domain.Tests/Dialogues/DialoguePresentationTests.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
+        "line": 97
       }
     },
     {
@@ -448332,7 +448499,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Audio/GovernedDialogueVoiceImportTests.cs",
-        "line": 158
+        "line": 191
       }
     },
     {
@@ -449032,7 +449199,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Launcher/GameLauncherTests.cs",
-        "line": 208
+        "line": 308
       }
     },
     {
@@ -449042,7 +449209,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Launcher/GameLauncherTests.cs",
-        "line": 216
+        "line": 316
       }
     },
     {
@@ -449052,7 +449219,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Launcher/GameLauncherTests.cs",
-        "line": 248
+        "line": 348
       }
     },
     {
@@ -449062,7 +449229,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Launcher/GameLauncherTests.cs",
-        "line": 257
+        "line": 357
       }
     },
     {
@@ -449072,7 +449239,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Launcher/GameLauncherTests.cs",
-        "line": 246
+        "line": 346
       }
     },
     {
@@ -449122,7 +449289,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Launcher/GameLauncherTests.cs",
-        "line": 197
+        "line": 297
       }
     },
     {
@@ -449242,7 +449409,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Launcher/GameLauncherTests.cs",
-        "line": 195
+        "line": 295
       }
     },
     {
@@ -450082,7 +450249,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 860
+        "line": 889
       }
     },
     {
@@ -450122,7 +450289,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 952
+        "line": 981
       }
     },
     {
@@ -450132,7 +450299,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 799
+        "line": 828
       }
     },
     {
@@ -450142,7 +450309,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 808
+        "line": 837
       }
     },
     {
@@ -450152,7 +450319,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 794
+        "line": 823
       }
     },
     {
@@ -450162,7 +450329,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 795
+        "line": 824
       }
     },
     {
@@ -450172,7 +450339,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 796
+        "line": 825
       }
     },
     {
@@ -450182,7 +450349,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 792
+        "line": 821
       }
     },
     {
@@ -450192,7 +450359,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 793
+        "line": 822
       }
     },
     {
@@ -450322,7 +450489,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 959
+        "line": 988
       }
     },
     {
@@ -450342,7 +450509,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 761
+        "line": 790
       }
     },
     {
@@ -450362,7 +450529,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 933
+        "line": 962
       }
     },
     {
@@ -450372,7 +450539,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 962
+        "line": 991
       }
     },
     {
@@ -450382,7 +450549,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 963
+        "line": 992
       }
     },
     {
@@ -450432,7 +450599,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 763
+        "line": 792
       }
     },
     {
@@ -450462,7 +450629,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 776
+        "line": 805
       }
     },
     {
@@ -450572,7 +450739,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 867
+        "line": 896
       }
     },
     {
@@ -451202,7 +451369,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/RuntimePresentation/DialogueVoiceResourceVerifierTests.cs",
-        "line": 37
+        "line": 55
       }
     },
     {
@@ -451212,7 +451379,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/RuntimePresentation/DialogueVoiceResourceVerifierTests.cs",
-        "line": 37
+        "line": 55
       }
     },
     {
@@ -648497,6 +648664,16 @@
     },
     {
       "source": "namespace:Forge.Application.Gameplay",
+      "target": "file:src/Forge.Application/Gameplay/AudioMediaStructureValidator.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/Gameplay/AudioMediaStructureValidator.cs",
+        "line": 5
+      }
+    },
+    {
+      "source": "namespace:Forge.Application.Gameplay",
       "target": "file:src/Forge.Application/Gameplay/CameraOcclusionPolicy.cs",
       "kind": "defined_in",
       "confidence": "semantic",
@@ -657062,7 +657239,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 10
+        "line": 11
       }
     },
     {
@@ -660447,16 +660624,6 @@
     },
     {
       "source": "namespace:Forge.ModuleFormat.Audio",
-      "target": "file:src/Forge.ModuleFormat/Audio/AudioMediaStructureValidator.cs",
-      "kind": "defined_in",
-      "confidence": "semantic",
-      "evidence": {
-        "path": "src/Forge.ModuleFormat/Audio/AudioMediaStructureValidator.cs",
-        "line": 5
-      }
-    },
-    {
-      "source": "namespace:Forge.ModuleFormat.Audio",
       "target": "file:src/Forge.ModuleFormat/Audio/GovernedAudioSourceValidator.cs",
       "kind": "defined_in",
       "confidence": "semantic",
@@ -661092,7 +661259,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
-        "line": 8
+        "line": 9
       }
     },
     {
@@ -686567,6 +686734,16 @@
     },
     {
       "source": "project:src/Forge.Application/Forge.Application",
+      "target": "file:src/Forge.Application/Gameplay/AudioMediaStructureValidator.cs",
+      "kind": "contains",
+      "confidence": "syntactic",
+      "evidence": {
+        "path": "src/Forge.Application/Forge.Application.csproj",
+        "line": 1
+      }
+    },
+    {
+      "source": "project:src/Forge.Application/Forge.Application",
       "target": "file:src/Forge.Application/Gameplay/CameraOcclusionPolicy.cs",
       "kind": "contains",
       "confidence": "syntactic",
@@ -694868,16 +695045,6 @@
     {
       "source": "project:src/Forge.ModuleFormat/Forge.ModuleFormat",
       "target": "file:src/Forge.ModuleFormat/Assets/UntrustedAssetHeaderValidator.cs",
-      "kind": "contains",
-      "confidence": "syntactic",
-      "evidence": {
-        "path": "src/Forge.ModuleFormat/Forge.ModuleFormat.csproj",
-        "line": 1
-      }
-    },
-    {
-      "source": "project:src/Forge.ModuleFormat/Forge.ModuleFormat",
-      "target": "file:src/Forge.ModuleFormat/Audio/AudioMediaStructureValidator.cs",
       "kind": "contains",
       "confidence": "syntactic",
       "evidence": {
@@ -731772,7 +731939,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Audio/GovernedDialogueVoiceImportService.cs",
-        "line": 71
+        "line": 72
       }
     },
     {
@@ -731782,7 +731949,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Audio/GovernedDialogueVoiceImportService.cs",
-        "line": 124
+        "line": 125
       }
     },
     {
@@ -731792,7 +731959,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Audio/GovernedDialogueVoiceImportService.cs",
-        "line": 65
+        "line": 66
       }
     },
     {
@@ -731802,7 +731969,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Audio/GovernedDialogueVoiceImportService.cs",
-        "line": 67
+        "line": 68
       }
     },
     {
@@ -731812,7 +731979,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Audio/GovernedDialogueVoiceImportService.cs",
-        "line": 220
+        "line": 225
       }
     },
     {
@@ -731832,7 +731999,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Audio/GovernedDialogueVoiceImportService.cs",
-        "line": 79
+        "line": 80
       }
     },
     {
@@ -731842,7 +732009,17 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Audio/GovernedDialogueVoiceImportService.cs",
-        "line": 126
+        "line": 127
+      }
+    },
+    {
+      "source": "service:Forge.ModuleFormat.Audio.GovernedDialogueVoiceImportService",
+      "target": "validator:Forge.Application.Gameplay.AudioMediaStructureValidator",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Audio/GovernedDialogueVoiceImportService.cs",
+        "line": 101
       }
     },
     {
@@ -731852,17 +732029,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Audio/GovernedDialogueVoiceImportService.cs",
-        "line": 243
-      }
-    },
-    {
-      "source": "service:Forge.ModuleFormat.Audio.GovernedDialogueVoiceImportService",
-      "target": "validator:Forge.ModuleFormat.Audio.AudioMediaStructureValidator",
-      "kind": "references",
-      "confidence": "semantic",
-      "evidence": {
-        "path": "src/Forge.ModuleFormat/Audio/GovernedDialogueVoiceImportService.cs",
-        "line": 100
+        "line": 248
       }
     },
     {
@@ -788402,7 +788569,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Dialogues/DialoguePresentationTests.cs",
-        "line": 115
+        "line": 136
       }
     },
     {
@@ -788412,7 +788579,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Dialogues/DialoguePresentationTests.cs",
-        "line": 136
+        "line": 157
       }
     },
     {
@@ -788442,7 +788609,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Dialogues/DialoguePresentationTests.cs",
-        "line": 112
+        "line": 133
       }
     },
     {
@@ -788452,7 +788619,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Dialogues/DialoguePresentationTests.cs",
-        "line": 113
+        "line": 134
       }
     },
     {
@@ -788482,7 +788649,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Dialogues/DialoguePresentationTests.cs",
-        "line": 120
+        "line": 141
       }
     },
     {
@@ -788492,7 +788659,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Dialogues/DialoguePresentationTests.cs",
-        "line": 129
+        "line": 150
       }
     },
     {
@@ -788502,7 +788669,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Dialogues/DialoguePresentationTests.cs",
-        "line": 126
+        "line": 147
       }
     },
     {
@@ -788512,7 +788679,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Dialogues/DialoguePresentationTests.cs",
-        "line": 120
+        "line": 141
       }
     },
     {
@@ -788522,7 +788689,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Dialogues/DialoguePresentationTests.cs",
-        "line": 133
+        "line": 154
       }
     },
     {
@@ -788572,7 +788739,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Dialogues/DialoguePresentationTests.cs",
-        "line": 126
+        "line": 147
       }
     },
     {
@@ -797572,7 +797739,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 10
+        "line": 11
       }
     },
     {
@@ -797582,7 +797749,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 186
+        "line": 215
       }
     },
     {
@@ -797592,7 +797759,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 187
+        "line": 216
       }
     },
     {
@@ -797602,7 +797769,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 51
+        "line": 52
       }
     },
     {
@@ -797612,7 +797779,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 191
+        "line": 220
       }
     },
     {
@@ -797622,7 +797789,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 197
+        "line": 226
       }
     },
     {
@@ -797632,7 +797799,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 97
+        "line": 126
       }
     },
     {
@@ -797642,7 +797809,27 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 100
+        "line": 129
+      }
+    },
+    {
+      "source": "test:Forge.Domain.Tests.Validation.DistributionComplianceValidatorTests",
+      "target": "model:Forge.Domain.Dialogues.DialogueDefinition",
+      "kind": "tests",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
+        "line": 98
+      }
+    },
+    {
+      "source": "test:Forge.Domain.Tests.Validation.DistributionComplianceValidatorTests",
+      "target": "model:Forge.Domain.Dialogues.DialoguePresentationProfile",
+      "kind": "tests",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
+        "line": 99
       }
     },
     {
@@ -797652,7 +797839,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 85
+        "line": 86
       }
     },
     {
@@ -797662,7 +797849,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 15
+        "line": 16
       }
     },
     {
@@ -797672,7 +797859,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 21
+        "line": 22
       }
     },
     {
@@ -797682,7 +797869,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 27
+        "line": 28
       }
     },
     {
@@ -797692,7 +797879,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 230
+        "line": 259
       }
     },
     {
@@ -797702,7 +797889,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 210
+        "line": 239
       }
     },
     {
@@ -797712,7 +797899,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 36
+        "line": 37
       }
     },
     {
@@ -797722,7 +797909,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 250
+        "line": 279
       }
     },
     {
@@ -797732,7 +797919,17 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 10
+        "line": 11
+      }
+    },
+    {
+      "source": "test:Forge.Domain.Tests.Validation.DistributionComplianceValidatorTests",
+      "target": "test:Forge.Domain.Tests.Dialogues.DialoguePresentationTests",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
+        "line": 97
       }
     },
     {
@@ -797742,7 +797939,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 66
+        "line": 67
       }
     },
     {
@@ -797752,7 +797949,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 59
+        "line": 60
       }
     },
     {
@@ -797762,7 +797959,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 104
+        "line": 133
       }
     },
     {
@@ -797772,7 +797969,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 103
+        "line": 132
       }
     },
     {
@@ -797782,7 +797979,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 106
+        "line": 135
       }
     },
     {
@@ -797792,7 +797989,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 159
+        "line": 188
       }
     },
     {
@@ -797802,7 +797999,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 17
+        "line": 18
       }
     },
     {
@@ -797812,7 +798009,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 156
+        "line": 185
       }
     },
     {
@@ -797822,7 +798019,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 154
+        "line": 183
       }
     },
     {
@@ -797832,7 +798029,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 232
+        "line": 261
       }
     },
     {
@@ -797842,7 +798039,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 229
+        "line": 258
       }
     },
     {
@@ -797852,7 +798049,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 209
+        "line": 238
       }
     },
     {
@@ -797862,7 +798059,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 161
+        "line": 190
       }
     },
     {
@@ -797872,7 +798069,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 160
+        "line": 189
       }
     },
     {
@@ -797882,7 +798079,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
-        "line": 36
+        "line": 37
       }
     },
     {
@@ -811582,7 +811779,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Audio/GovernedDialogueVoiceImportTests.cs",
-        "line": 158
+        "line": 191
       }
     },
     {
@@ -812702,7 +812899,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Launcher/GameLauncherTests.cs",
-        "line": 208
+        "line": 308
       }
     },
     {
@@ -812762,7 +812959,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Launcher/GameLauncherTests.cs",
-        "line": 169
+        "line": 176
       }
     },
     {
@@ -812792,7 +812989,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Launcher/GameLauncherTests.cs",
-        "line": 195
+        "line": 295
       }
     },
     {
@@ -812802,7 +812999,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Launcher/GameLauncherTests.cs",
-        "line": 216
+        "line": 316
       }
     },
     {
@@ -812812,7 +813009,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Launcher/GameLauncherTests.cs",
-        "line": 248
+        "line": 348
       }
     },
     {
@@ -812822,7 +813019,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Launcher/GameLauncherTests.cs",
-        "line": 257
+        "line": 357
       }
     },
     {
@@ -812832,7 +813029,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Launcher/GameLauncherTests.cs",
-        "line": 246
+        "line": 346
       }
     },
     {
@@ -812842,7 +813039,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Launcher/GameLauncherTests.cs",
-        "line": 223
+        "line": 323
       }
     },
     {
@@ -812872,7 +813069,17 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Launcher/GameLauncherTests.cs",
-        "line": 197
+        "line": 297
+      }
+    },
+    {
+      "source": "test:Forge.ModuleFormat.Tests.Launcher.GameLauncherTests",
+      "target": "type:Forge.ModuleFormat.Launcher.GameDistributionFile",
+      "kind": "tests",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.ModuleFormat.Tests/Launcher/GameLauncherTests.cs",
+        "line": 381
       }
     },
     {
@@ -812903,6 +813110,16 @@
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Launcher/GameLauncherTests.cs",
         "line": 120
+      }
+    },
+    {
+      "source": "test:Forge.ModuleFormat.Tests.Launcher.GameLauncherTests",
+      "target": "type:Forge.ModuleFormat.Launcher.GameLauncherManifestFileSet",
+      "kind": "tests",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.ModuleFormat.Tests/Launcher/GameLauncherTests.cs",
+        "line": 211
       }
     },
     {
@@ -814602,7 +814819,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 862
+        "line": 891
       }
     },
     {
@@ -814702,7 +814919,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 1012
+        "line": 1041
       }
     },
     {
@@ -814722,7 +814939,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 883
+        "line": 912
       }
     },
     {
@@ -814772,7 +814989,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 799
+        "line": 828
       }
     },
     {
@@ -814782,7 +814999,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 802
+        "line": 831
       }
     },
     {
@@ -814792,7 +815009,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 794
+        "line": 823
       }
     },
     {
@@ -814802,7 +815019,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 795
+        "line": 824
       }
     },
     {
@@ -814812,7 +815029,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 796
+        "line": 825
       }
     },
     {
@@ -814822,7 +815039,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 792
+        "line": 821
       }
     },
     {
@@ -814832,7 +815049,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 793
+        "line": 822
       }
     },
     {
@@ -814932,7 +815149,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 761
+        "line": 790
       }
     },
     {
@@ -814942,7 +815159,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 963
+        "line": 992
       }
     },
     {
@@ -815182,7 +815399,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 860
+        "line": 889
       }
     },
     {
@@ -815192,7 +815409,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 883
+        "line": 912
       }
     },
     {
@@ -815212,7 +815429,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 862
+        "line": 891
       }
     },
     {
@@ -815232,7 +815449,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 952
+        "line": 981
       }
     },
     {
@@ -815242,7 +815459,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 806
+        "line": 835
       }
     },
     {
@@ -815252,7 +815469,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 805
+        "line": 834
       }
     },
     {
@@ -815262,7 +815479,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 808
+        "line": 837
       }
     },
     {
@@ -815302,7 +815519,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 1047
+        "line": 1096
       }
     },
     {
@@ -815322,7 +815539,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 1056
+        "line": 1105
       }
     },
     {
@@ -815392,7 +815609,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 1042
+        "line": 1091
       }
     },
     {
@@ -815402,7 +815619,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 959
+        "line": 988
       }
     },
     {
@@ -815412,7 +815629,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 933
+        "line": 962
       }
     },
     {
@@ -815422,7 +815639,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 962
+        "line": 991
       }
     },
     {
@@ -815462,7 +815679,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 776
+        "line": 805
       }
     },
     {
@@ -815522,7 +815739,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 867
+        "line": 896
       }
     },
     {
@@ -815562,7 +815779,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 873
+        "line": 902
       }
     },
     {
@@ -815602,7 +815819,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
-        "line": 763
+        "line": 792
       }
     },
     {
@@ -816542,7 +816759,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/RuntimePresentation/DialogueVoiceResourceVerifierTests.cs",
-        "line": 37
+        "line": 55
       }
     },
     {
@@ -816552,7 +816769,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/RuntimePresentation/DialogueVoiceResourceVerifierTests.cs",
-        "line": 37
+        "line": 55
       }
     },
     {
@@ -853582,7 +853799,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Application/Gameplay/DialogueVoiceResourceVerifier.cs",
-        "line": 32
+        "line": 33
       }
     },
     {
@@ -853592,7 +853809,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Application/Gameplay/DialogueVoiceResourceVerifier.cs",
-        "line": 21
+        "line": 22
       }
     },
     {
@@ -853602,7 +853819,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Application/Gameplay/DialogueVoiceResourceVerifier.cs",
-        "line": 28
+        "line": 29
       }
     },
     {
@@ -853612,7 +853829,17 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Application/Gameplay/DialogueVoiceResourceVerifier.cs",
-        "line": 21
+        "line": 22
+      }
+    },
+    {
+      "source": "type:Forge.Application.Gameplay.DialogueVoiceResourceVerifier",
+      "target": "validator:Forge.Application.Gameplay.AudioMediaStructureValidator",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/Gameplay/DialogueVoiceResourceVerifier.cs",
+        "line": 39
       }
     },
     {
@@ -898332,7 +898559,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.GameLauncher/App.xaml.cs",
-        "line": 37
+        "line": 42
       }
     },
     {
@@ -898352,7 +898579,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.GameLauncher/App.xaml.cs",
-        "line": 18
+        "line": 23
       }
     },
     {
@@ -898367,12 +898594,22 @@
     },
     {
       "source": "type:Forge.GameLauncher.App",
+      "target": "type:Forge.ModuleFormat.Launcher.GameLauncherManifestFileSet",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.GameLauncher/App.xaml.cs",
+        "line": 20
+      }
+    },
+    {
+      "source": "type:Forge.GameLauncher.App",
       "target": "type:Forge.ModuleFormat.Launcher.GameLauncherManifestStore",
       "kind": "references",
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.GameLauncher/App.xaml.cs",
-        "line": 16
+        "line": 18
       }
     },
     {
@@ -898382,7 +898619,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.GameLauncher/App.xaml.cs",
-        "line": 19
+        "line": 24
       }
     },
     {
@@ -898392,7 +898629,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.GameLauncher/App.xaml.cs",
-        "line": 37
+        "line": 42
       }
     },
     {
@@ -898402,7 +898639,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "apps/Forge.GameLauncher/App.xaml.cs",
-        "line": 37
+        "line": 42
       }
     },
     {
@@ -919106,6 +919343,26 @@
       }
     },
     {
+      "source": "type:Forge.ModuleFormat.Launcher.GameLauncherManifestFileSet",
+      "target": "file:src/Forge.ModuleFormat/Launcher/GameLauncherManifestStore.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Launcher/GameLauncherManifestStore.cs",
+        "line": 320
+      }
+    },
+    {
+      "source": "type:Forge.ModuleFormat.Launcher.GameLauncherManifestFileSet",
+      "target": "project:src/Forge.ModuleFormat/Forge.ModuleFormat",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Launcher/GameLauncherManifestStore.cs",
+        "line": 320
+      }
+    },
+    {
       "source": "type:Forge.ModuleFormat.Launcher.GameLauncherManifestStore",
       "target": "file:src/Forge.ModuleFormat/Launcher/GameLauncherManifestStore.cs",
       "kind": "defined_in",
@@ -919122,7 +919379,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Launcher/GameLauncherManifestStore.cs",
-        "line": 77
+        "line": 87
       }
     },
     {
@@ -919147,12 +919404,22 @@
     },
     {
       "source": "type:Forge.ModuleFormat.Launcher.GameLauncherManifestStore",
+      "target": "type:Forge.ModuleFormat.Launcher.GameLauncherManifestFileSet",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Launcher/GameLauncherManifestStore.cs",
+        "line": 153
+      }
+    },
+    {
+      "source": "type:Forge.ModuleFormat.Launcher.GameLauncherManifestStore",
       "target": "type:Forge.ModuleFormat.Launcher.GameLauncherVerification",
       "kind": "references",
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Launcher/GameLauncherManifestStore.cs",
-        "line": 31
+        "line": 35
       }
     },
     {
@@ -1078776,6 +1079043,26 @@
       }
     },
     {
+      "source": "validator:Forge.Application.Gameplay.AudioMediaStructureValidator",
+      "target": "file:src/Forge.Application/Gameplay/AudioMediaStructureValidator.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/Gameplay/AudioMediaStructureValidator.cs",
+        "line": 5
+      }
+    },
+    {
+      "source": "validator:Forge.Application.Gameplay.AudioMediaStructureValidator",
+      "target": "project:src/Forge.Application/Forge.Application",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/Gameplay/AudioMediaStructureValidator.cs",
+        "line": 5
+      }
+    },
+    {
       "source": "validator:Forge.Application.Spatial.PlacementValidator",
       "target": "file:src/Forge.Application/Spatial/PlacementValidator.cs",
       "kind": "defined_in",
@@ -1083002,7 +1083289,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Dialogues/DialoguePresentationValidator.cs",
-        "line": 10
+        "line": 11
       }
     },
     {
@@ -1083012,7 +1083299,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Dialogues/DialoguePresentationValidator.cs",
-        "line": 155
+        "line": 156
       }
     },
     {
@@ -1083022,7 +1083309,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Dialogues/DialoguePresentationValidator.cs",
-        "line": 22
+        "line": 23
       }
     },
     {
@@ -1083032,7 +1083319,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Dialogues/DialoguePresentationValidator.cs",
-        "line": 9
+        "line": 10
       }
     },
     {
@@ -1083052,7 +1083339,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Dialogues/DialoguePresentationValidator.cs",
-        "line": 87
+        "line": 88
       }
     },
     {
@@ -1083062,7 +1083349,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Dialogues/DialoguePresentationValidator.cs",
-        "line": 65
+        "line": 66
       }
     },
     {
@@ -1083072,7 +1083359,17 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Dialogues/DialoguePresentationValidator.cs",
-        "line": 119
+        "line": 120
+      }
+    },
+    {
+      "source": "validator:Forge.Domain.Dialogues.DialoguePresentationValidator",
+      "target": "validator:Forge.Domain.Validation.SpdxLicenseValidator",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Domain/Dialogues/DialoguePresentationValidator.cs",
+        "line": 54
       }
     },
     {
@@ -1086882,7 +1087179,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
-        "line": 108
+        "line": 110
       }
     },
     {
@@ -1086892,7 +1087189,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
-        "line": 41
+        "line": 43
       }
     },
     {
@@ -1086902,7 +1087199,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
-        "line": 38
+        "line": 40
       }
     },
     {
@@ -1086912,7 +1087209,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
-        "line": 43
+        "line": 45
       }
     },
     {
@@ -1086922,7 +1087219,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
-        "line": 38
+        "line": 40
       }
     },
     {
@@ -1086932,7 +1087229,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
-        "line": 38
+        "line": 40
       }
     },
     {
@@ -1086952,7 +1087249,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
-        "line": 203
+        "line": 205
       }
     },
     {
@@ -1086962,7 +1087259,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
-        "line": 183
+        "line": 185
       }
     },
     {
@@ -1086972,7 +1087269,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
-        "line": 63
+        "line": 65
       }
     },
     {
@@ -1086982,7 +1087279,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
-        "line": 41
+        "line": 43
       }
     },
     {
@@ -1086992,7 +1087289,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
-        "line": 72
+        "line": 74
       }
     },
     {
@@ -1087002,7 +1087299,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
-        "line": 53
+        "line": 55
       }
     },
     {
@@ -1087012,7 +1087309,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
-        "line": 53
+        "line": 55
       }
     },
     {
@@ -1087022,7 +1087319,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
-        "line": 55
+        "line": 57
       }
     },
     {
@@ -1087032,7 +1087329,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
-        "line": 55
+        "line": 57
       }
     },
     {
@@ -1087042,7 +1087339,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
-        "line": 137
+        "line": 139
       }
     },
     {
@@ -1087052,7 +1087349,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
-        "line": 73
+        "line": 75
       }
     },
     {
@@ -1087062,7 +1087359,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
-        "line": 239
+        "line": 260
       }
     },
     {
@@ -1090456,26 +1090753,6 @@
       }
     },
     {
-      "source": "validator:Forge.ModuleFormat.Audio.AudioMediaStructureValidator",
-      "target": "file:src/Forge.ModuleFormat/Audio/AudioMediaStructureValidator.cs",
-      "kind": "defined_in",
-      "confidence": "semantic",
-      "evidence": {
-        "path": "src/Forge.ModuleFormat/Audio/AudioMediaStructureValidator.cs",
-        "line": 5
-      }
-    },
-    {
-      "source": "validator:Forge.ModuleFormat.Audio.AudioMediaStructureValidator",
-      "target": "project:src/Forge.ModuleFormat/Forge.ModuleFormat",
-      "kind": "belongs_to",
-      "confidence": "semantic",
-      "evidence": {
-        "path": "src/Forge.ModuleFormat/Audio/AudioMediaStructureValidator.cs",
-        "line": 5
-      }
-    },
-    {
       "source": "validator:Forge.ModuleFormat.Audio.GovernedAudioSourceValidator",
       "target": "file:src/Forge.ModuleFormat/Audio/GovernedAudioSourceValidator.cs",
       "kind": "defined_in",
@@ -1090732,7 +1091009,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
-        "line": 179
+        "line": 191
       }
     },
     {
@@ -1090742,7 +1091019,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
-        "line": 8
+        "line": 9
       }
     },
     {
@@ -1090752,7 +1091029,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
-        "line": 193
+        "line": 205
       }
     },
     {
@@ -1090762,7 +1091039,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
-        "line": 43
+        "line": 45
       }
     },
     {
@@ -1090772,7 +1091049,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
-        "line": 42
+        "line": 44
       }
     },
     {
@@ -1090782,7 +1091059,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
-        "line": 41
+        "line": 43
       }
     },
     {
@@ -1090792,7 +1091069,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
-        "line": 34
+        "line": 36
       }
     },
     {
@@ -1090802,7 +1091079,17 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
-        "line": 8
+        "line": 9
+      }
+    },
+    {
+      "source": "validator:Forge.ModuleFormat.Packages.ModulePackageValidator",
+      "target": "type:Forge.Application.Gameplay.DialogueVoiceResourceVerifier",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
+        "line": 108
       }
     },
     {
@@ -1090812,7 +1091099,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
-        "line": 210
+        "line": 222
       }
     },
     {
@@ -1090822,7 +1091109,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
-        "line": 238
+        "line": 250
       }
     },
     {
@@ -1090832,7 +1091119,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
-        "line": 158
+        "line": 170
       }
     },
     {
@@ -1090842,7 +1091129,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
-        "line": 212
+        "line": 224
       }
     },
     {
@@ -1090852,7 +1091139,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
-        "line": 142
+        "line": 154
       }
     },
     {
@@ -1090862,7 +1091149,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
-        "line": 36
+        "line": 38
       }
     },
     {
@@ -1090872,7 +1091159,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
-        "line": 146
+        "line": 158
       }
     },
     {
@@ -1090882,7 +1091169,17 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
-        "line": 249
+        "line": 261
+      }
+    },
+    {
+      "source": "validator:Forge.ModuleFormat.Packages.ModulePackageValidator",
+      "target": "validator:Forge.Application.Gameplay.AudioMediaStructureValidator",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
+        "line": 393
       }
     },
     {
@@ -1090892,7 +1091189,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
-        "line": 202
+        "line": 214
       }
     },
     {
@@ -1090902,7 +1091199,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs",
-        "line": 143
+        "line": 155
       }
     },
     {

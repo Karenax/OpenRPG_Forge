@@ -9,6 +9,11 @@ reste en quarantaine et ne peut pas être exportée dans un pack public.
 Chaque entrée de catalogue conserve au minimum la source, l’identifiant source, la page de l’asset,
 la licence, l’URL de licence, la date de vérification, les fichiers téléchargés et leurs hashes.
 
+Une prise vocale ajoute le texte autorisé, le locuteur, la locale, la divulgation humaine/synthétique,
+le consentement ou l’autorité de l’auteur, le générateur et ses paramètres le cas échéant, ainsi que
+la preuve des droits sur la sortie. L’outil de synthèse et la sortie audio sont deux objets juridiques
+distincts ; aucun binaire ou modèle du générateur n’entre dans le module sans revue propre.
+
 ## Sources actuellement admises
 
 - Poly Haven : assets annoncés CC0 ; l’usage de l’API en direct doit afficher une provenance Poly

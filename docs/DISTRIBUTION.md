@@ -86,6 +86,15 @@ génération refuse une destination existante et assemble atomiquement :
 - le module `Client` sous `game/` et les médias optionnels de fond et de musique sous `branding/` ;
 - `game-launcher.json`, `game-distribution-manifest.json` et `LISEZ-MOI.txt`.
 
+Le couple sans préfixe reste celui du jeu principal. Pour faire coexister plusieurs lanceurs dans un
+même dossier de qualification, un exécutable additionnel utilise obligatoirement les deux fichiers
+`<exécutable>.game-launcher.json` et `<exécutable>.game-distribution-manifest.json`. Un couple partiel
+est refusé. Vérification explicite :
+
+```powershell
+dotnet run --project tools/Forge.Cli -- launcher verify <dossier> --executable Cendres.exe
+```
+
 Le lanceur WPF, le module et OpenRPG Forge Studio s'ouvrent en plein écran par défaut. Dans les
 réglages du jeu, **Fenêtré plein écran · sans bordure** utilise toute la surface du moniteur sans
 changer de mode d'affichage ; les préférences v1 `Windowed` et `Borderless` existantes sont toutes
@@ -135,16 +144,31 @@ la matrice exacte des fonctions raccordées sont documentés dans
 
 ### Distribution versionnée dans le dépôt
 
-Le dossier `exe/` conserve les deux points d'entrée Windows livrables du dépôt :
+Le dossier `exe/` courant contient 515 fichiers et conserve trois points d’entrée Windows :
 
-- `OpenRPG_Forge_Studio.exe`, avec ses données Creator ;
+- `OpenRPG_Forge_Studio.exe`, avec ses données Creator et un manifeste de 281 fichiers ;
 - `Solaren_Les_Vallees_Libres.exe`, avec `branding/`, `game/`, `runtime/`, `game-launcher.json` et
-  `game-distribution-manifest.json`.
+  `game-distribution-manifest.json` ;
+- `Cendres.exe`, lanceur de régression interne associé à `Cendres.game-launcher.json` et
+  `Cendres.game-distribution-manifest.json`.
 
-Le manifeste Solaren courant couvre 227 fichiers et inclut explicitement le panorama solaire et la
-musique WAV. `forge launcher verify exe` et `exe\Solaren_Les_Vallees_Libres.exe --verify` doivent tous
-deux réussir avant publication. Les exécutables seuls ne sont pas portables hors de ce dossier et
-restent `NotSigned` tant qu'aucun certificat Authenticode n'a été fourni.
+Le manifeste Solaren couvre 227 fichiers et inclut explicitement le panorama solaire, la musique WAV,
+le runtime partagé et le package Client `solaren-les-vallees-libres.orpmod` (648 594 126 octets,
+SHA-256 `549b8b812daa6f568f0e1ac21245348ff4a01080ddc61e5c24455296f3cc9fb5`). Le manifeste Crypte couvre
+224 fichiers et conserve `crypt-of-ashes-current.orpmod` (4 344 187 octets, SHA-256
+`a80926ac226f19c11699bc75c3fe4c5f121967e5998c2e5a81ffa460222e6f1f`) en cible Editor : il s’agit
+d’une fixture de régression, pas d’un module Client/Publication qualifié. Les commandes suivantes
+doivent toutes réussir avant publication :
+
+```powershell
+forge launcher verify exe
+forge launcher verify exe --executable Cendres.exe
+exe\Solaren_Les_Vallees_Libres.exe --verify
+exe\Cendres.exe --verify
+```
+
+Les exécutables seuls ne sont pas portables hors de ce dossier et la distribution reste `NotSigned`
+tant qu'aucun certificat Authenticode n'a été fourni.
 
 La distribution portable du Creator embarque ce modèle sous
 `workspace/templates/game-windows-x64`, de sorte que la création depuis l'interface n'exige pas le

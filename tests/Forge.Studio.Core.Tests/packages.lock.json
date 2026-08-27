@@ -35,6 +35,19 @@
         "resolved": "3.1.4",
         "contentHash": "5mj99LvCqrq3CNi06xYdyIAXOEh+5b33F2nErCzI5zWiDdLHXiPXEWFSUAF8zlIv0ZWqjZNCwHTQeAPYbF3pCg=="
       },
+      "GodotSharp": {
+        "type": "Transitive",
+        "resolved": "4.7.1",
+        "contentHash": "OCTPz0MtENY0J1e9Sw4VB9qxS0DK9xpEQLAIMRzCtnVKiJvHZUAAnJ9mU4ewW5+88V4beewp3dl8OE813Qw73g=="
+      },
+      "GodotSharpEditor": {
+        "type": "Transitive",
+        "resolved": "4.7.1",
+        "contentHash": "MAX9wPgjX9BM+EOMxuF++mWKdvO2y0ZiEAfv6D68HGseQc8mX//yc7QrJizXSJ4ii1nh3krXZSyIJ77nmjOgYA==",
+        "dependencies": {
+          "GodotSharp": "4.7.1"
+        }
+      },
       "Microsoft.CodeCoverage": {
         "type": "Transitive",
         "resolved": "17.14.1",
@@ -97,6 +110,94 @@
         "contentHash": "yMb6vMESlSrE3Wfj7V6cjQ3S4TXdXpRqYeNEI3zsX31uTsGMJjEw6oD5F5u1cHnMptjhEECnmZSsPxB6ChZHDQ==",
         "dependencies": {
           "xunit.extensibility.core": "[2.9.3]"
+        }
+      },
+      "forge.application": {
+        "type": "Project",
+        "dependencies": {
+          "Forge.Domain": "[1.0.0, )",
+          "Forge.RpgKit.Domain": "[1.0.0, )",
+          "Forge.Scripting": "[1.0.0, )"
+        }
+      },
+      "forge.domain": {
+        "type": "Project"
+      },
+      "forge.engineadapter": {
+        "type": "Project",
+        "dependencies": {
+          "Forge.Application": "[1.0.0, )",
+          "Forge.Domain": "[1.0.0, )",
+          "GodotSharp": "[4.7.1, )"
+        }
+      },
+      "forge.livedirector": {
+        "type": "Project",
+        "dependencies": {
+          "Forge.Network": "[1.0.0, )"
+        }
+      },
+      "forge.mcp": {
+        "type": "Project",
+        "dependencies": {
+          "Forge.Application": "[1.0.0, )",
+          "Forge.LiveDirector": "[1.0.0, )",
+          "Forge.ModuleFormat": "[1.0.0, )",
+          "Forge.Network": "[1.0.0, )",
+          "Forge.RpgKit.Application": "[1.0.0, )",
+          "Forge.RpgKit.Domain": "[1.0.0, )",
+          "Forge.Scripting": "[1.0.0, )"
+        }
+      },
+      "forge.moduleformat": {
+        "type": "Project",
+        "dependencies": {
+          "Forge.Application": "[1.0.0, )",
+          "Forge.Domain": "[1.0.0, )",
+          "Forge.LiveDirector": "[1.0.0, )",
+          "Forge.Network": "[1.0.0, )",
+          "Forge.RpgKit.Domain": "[1.0.0, )",
+          "Forge.Scripting": "[1.0.0, )"
+        }
+      },
+      "forge.network": {
+        "type": "Project",
+        "dependencies": {
+          "Forge.Domain": "[1.0.0, )",
+          "Forge.RpgKit.Domain": "[1.0.0, )"
+        }
+      },
+      "forge.rpgkit.application": {
+        "type": "Project",
+        "dependencies": {
+          "Forge.Application": "[1.0.0, )",
+          "Forge.RpgKit.Domain": "[1.0.0, )"
+        }
+      },
+      "forge.rpgkit.domain": {
+        "type": "Project",
+        "dependencies": {
+          "Forge.Domain": "[1.0.0, )"
+        }
+      },
+      "forge.scripting": {
+        "type": "Project"
+      },
+      "forge.studio": {
+        "type": "Project",
+        "dependencies": {
+          "Forge.Application": "[1.0.0, )",
+          "Forge.Domain": "[1.0.0, )",
+          "Forge.EngineAdapter": "[1.0.0, )",
+          "Forge.LiveDirector": "[1.0.0, )",
+          "Forge.Mcp": "[1.0.0, )",
+          "Forge.ModuleFormat": "[1.0.0, )",
+          "Forge.Network": "[1.0.0, )",
+          "Forge.RpgKit.Application": "[1.0.0, )",
+          "Forge.Scripting": "[1.0.0, )",
+          "Forge.Studio.Core": "[1.0.0, )",
+          "GodotSharp": "[4.7.1, )",
+          "GodotSharpEditor": "[4.7.1, )"
         }
       },
       "forge.studio.core": {

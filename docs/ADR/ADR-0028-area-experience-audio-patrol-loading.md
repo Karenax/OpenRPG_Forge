@@ -2,7 +2,8 @@
 
 ## Statut
 
-Accepté le 5 août 2026.
+Accepté le 5 août 2026. Complété le 26 août 2026 par le parcours vocal gouverné décrit dans
+`docs/DIALOGUE_VOICE.md`.
 
 ## Décision
 
@@ -17,6 +18,11 @@ peut employer un plug-in TTS que si le profil contient un consentement explicite
 ForgeScript reçoit un handle et un instantané copié ; ses mutations audio ne modifient que l'état
 runtime typé. Toute mutation persistante passe par `SetAreaExperienceProfileHandler` avec dry-run,
 diff, inverse et historique.
+
+Une prise vocale de dialogue réelle utilise un blob MP3/WAV content-addressed. L’import, le package
+et le runtime vérifient également structure binaire, MIME, taille, provenance et licence. La
+génération synthétique reste un processus de production distinct : ses sorties exigent une
+divulgation et une preuve de droits propres, sans redistribuer implicitement le générateur.
 
 Une patrouille inter-zones référence une aire source, une aire destination, un portail et un point
 de reprise. Le validateur projet contrôle ces références. Le transfert ne progresse qu'après le

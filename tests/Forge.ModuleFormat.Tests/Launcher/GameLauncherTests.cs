@@ -155,6 +155,106 @@ public sealed class GameLauncherTests : IDisposable
             GameLauncherManifestStore.LoadAndVerifyDistribution(destination));
     }
 
+    [Fact]
+    public void ExecutableSpecificManifestsCanCoexistWithoutCrossLoadingAnotherGame()
+    {
+        var root = Path.Combine(_temporaryRoot, "multi-game-layout");
+        Directory.CreateDirectory(Path.Combine(root, "runtime"));
+        Directory.CreateDirectory(Path.Combine(root, "game"));
+        var launcher = Path.Combine(root, "Cendres.exe");
+        var runtime = Path.Combine(root, "runtime", "OpenRPG_Forge_Runtime.exe");
+        var runtimePackage = Path.Combine(root, "runtime", "OpenRPG_Forge_Runtime.pck");
+        var module = Path.Combine(root, "game", "crypt-of-ashes-current.orpmod");
+        var defaultLauncher = Path.Combine(root, "Solaren.exe");
+        var defaultModule = Path.Combine(root, "game", "solaren.orpmod");
+        File.WriteAllBytes(launcher, [1]);
+        File.WriteAllBytes(defaultLauncher, [5]);
+        File.WriteAllBytes(runtime, [2]);
+        File.WriteAllBytes(runtimePackage, [3]);
+        File.WriteAllBytes(module, [4]);
+        File.WriteAllBytes(defaultModule, [6]);
+        var manifest = new GameLauncherManifest(
+            GameLauncherManifest.CurrentSchemaVersion,
+            Guid.Parse("b9f40000-0000-4000-8000-000000000020"),
+            "crypt-of-ashes",
+            "La Crypte des Cendres",
+            "Les braises vous attendent.",
+            "0.8.0",
+            "#C77A45",
+            "Cendres.exe",
+            "runtime/OpenRPG_Forge_Runtime.exe",
+            "game/crypt-of-ashes-current.orpmod",
+            Hash(launcher),
+            Hash(runtime),
+            Hash(module),
+            null,
+            null,
+            null,
+            true,
+            GameLauncherMultiplayerMode.LocalHost,
+            5121);
+        var files = new[]
+        {
+            Entry(root, "Cendres.exe"),
+            Entry(root, "runtime/OpenRPG_Forge_Runtime.exe"),
+            Entry(root, "runtime/OpenRPG_Forge_Runtime.pck"),
+            Entry(root, "game/crypt-of-ashes-current.orpmod"),
+        };
+        var distribution = new GameDistributionManifest(
+            GameDistributionManifest.CurrentSchemaVersion,
+            manifest.GameId,
+            manifest.DisplayName,
+            manifest.Version,
+            "windows-x64",
+            files);
+        var fileSet = GameLauncherManifestStore.ForExecutable("Cendres.exe");
+        GameLauncherManifestStore.Save(root, manifest, fileSet.ManifestFileName);
+        GameLauncherManifestStore.SaveDistribution(root, distribution, fileSet.DistributionFileName);
+        files = [.. files, Entry(root, fileSet.ManifestFileName)];
+        GameLauncherManifestStore.SaveDistribution(root,
+            distribution with { Files = files }, fileSet.DistributionFileName);
+
+        var defaultManifest = manifest with
+        {
+            GameId = Guid.Parse("b9f40000-0000-4000-8000-000000000021"),
+            Slug = "solaren",
+            DisplayName = "Solaren",
+            ExecutableFile = "Solaren.exe",
+            ModulePackage = "game/solaren.orpmod",
+            LauncherSha256 = Hash(defaultLauncher),
+            ModuleSha256 = Hash(defaultModule),
+        };
+        GameLauncherManifestStore.Save(root, defaultManifest);
+        var defaultFiles = new[]
+        {
+            Entry(root, "Solaren.exe"),
+            Entry(root, "runtime/OpenRPG_Forge_Runtime.exe"),
+            Entry(root, "runtime/OpenRPG_Forge_Runtime.pck"),
+            Entry(root, "game/solaren.orpmod"),
+            Entry(root, GameLauncherManifestStore.FileName),
+        };
+        GameLauncherManifestStore.SaveDistribution(root, distribution with
+        {
+            GameId = defaultManifest.GameId,
+            Product = defaultManifest.DisplayName,
+            Files = defaultFiles,
+        });
+
+        var selected = GameLauncherManifestStore.ResolveFileSet(root, "Cendres.exe");
+        var verified = GameLauncherManifestStore.LoadAndVerifyDistribution(
+            root, selected.ManifestFileName, selected.DistributionFileName);
+        var defaultSelected = GameLauncherManifestStore.ResolveFileSet(root, "Solaren.exe");
+
+        Assert.Equal(fileSet, selected);
+        Assert.Equal(new GameLauncherManifestFileSet(
+            GameLauncherManifestStore.FileName,
+            GameLauncherManifestStore.DistributionFileName), defaultSelected);
+        Assert.Equal(manifest.GameId, verified.GameId);
+        Assert.Equal(manifest, GameLauncherManifestStore.Load(root, manifestFileName: selected.ManifestFileName));
+        Assert.Throws<InvalidDataException>(() =>
+            GameLauncherManifestStore.ResolveFileSet(root, "Renamed.exe"));
+    }
+
     private GameLauncherVerification CreateVerifiedLayout(GameLauncherMultiplayerMode multiplayer)
     {
         var root = Path.Combine(_temporaryRoot, $"layout-{multiplayer}");
@@ -277,6 +377,12 @@ public sealed class GameLauncherTests : IDisposable
 
     private static string Hash(string path) =>
         Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(path))).ToLowerInvariant();
+
+    private static GameDistributionFile Entry(string root, string relativePath)
+    {
+        var path = Path.Combine(root, relativePath.Replace('/', Path.DirectorySeparatorChar));
+        return new(relativePath, new FileInfo(path).Length, Hash(path));
+    }
 
     public void Dispose()
     {

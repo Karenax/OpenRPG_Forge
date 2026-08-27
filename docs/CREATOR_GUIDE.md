@@ -75,6 +75,14 @@ déclare `void main()` et n'accède qu'à l'API allowlistée documentée dans
 `docs/FORGESCRIPT_API.md`. Les erreurs de compilation et de quota restent diagnostiquées sans arrêter
 le runtime.
 
+La section **Prise vocale gouvernée** importe réellement un MP3 ou WAV local et le lie à la réplique
+sélectionnée. Renseigner licence SPDX, provenance, locale, prise, sous-titre et durée, puis utiliser
+**Prévisualiser la voix** avant **Importer et lier**. Forge vérifie confinement, MIME, structure,
+taille et SHA-256, et publie un blob immuable sous `content/audio/dialogues/`. Annuler/Rétablir retire
+ou restaure le cue ; la sauvegarde rend la transaction persistante. Le guide complet, les outils MCP,
+le repli sous-titre et la politique de génération synthétique sont dans
+[`DIALOGUE_VOICE.md`](DIALOGUE_VOICE.md).
+
 Le workspace **Scripts** ouvre l'analyse **Scripts & Build incrémental** : ressources, liens,
 hashes, licences, packs externes et impact du prochain export. `REBUILD` désigne ce qui sera
 recalculé, `CACHE` ce qui peut être réutilisé. L'analyse est en lecture seule et ne modifie jamais le
@@ -134,6 +142,10 @@ Le client commence par lire le résumé, la révision et les diagnostics. Pour u
 plan : validation et dry-run produisent diff, inverse et `planId`; l'application n'est possible que si
 la révision correspond encore. `revert_dialogue_plan` annule le dernier plan appliqué. Aucun outil de
 shell ou d'écriture libre n'est exposé.
+
+Pour une prise audio, `plan_dialogue_voice_import`, `apply_dialogue_voice_import_plan` et
+`revert_dialogue_voice_import_plan` reproduisent le parcours Studio avec les mêmes gardes de chemin,
+hash, licence, provenance et révision. L’application n’accepte que le `planId` inspecté.
 
 Les outils `query_world_features` et `preview_world_features` donnent le même accès filtré au Monde
 vivant. Ils retournent des contrats typés et une prévisualisation ; l'application reste soumise à la

@@ -1640,10 +1640,17 @@ static int FinalizeAssetRoundTrip(IReadOnlyList<string> arguments)
 
 static int RunLauncher(IReadOnlyList<string> arguments)
 {
-    if (arguments.Count == 2 && arguments[0] == "verify")
+    if ((arguments.Count == 2 || arguments.Count == 4 && arguments[2] == "--executable") &&
+        arguments[0] == "verify")
     {
         var root = Path.GetFullPath(arguments[1]);
-        var manifest = GameLauncherManifestStore.LoadAndVerifyDistribution(root);
+        var fileSet = arguments.Count == 4
+            ? GameLauncherManifestStore.ResolveFileSet(root, arguments[3])
+            : new GameLauncherManifestFileSet(
+                GameLauncherManifestStore.FileName,
+                GameLauncherManifestStore.DistributionFileName);
+        var manifest = GameLauncherManifestStore.LoadAndVerifyDistribution(
+            root, fileSet.ManifestFileName, fileSet.DistributionFileName);
         Console.WriteLine(JsonSerializer.Serialize(new
         {
             valid = true,
@@ -1718,7 +1725,7 @@ static int RunLauncher(IReadOnlyList<string> arguments)
 
     Console.Error.WriteLine(
         "Usage: forge launcher build <workspace> <template-directory> <destination-directory> | " +
-        "forge launcher verify <game-distribution-directory>");
+        "forge launcher verify <game-distribution-directory> [--executable <launcher.exe>]");
     return 2;
 }
 

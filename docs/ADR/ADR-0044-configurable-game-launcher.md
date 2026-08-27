@@ -1,7 +1,8 @@
 # ADR 0044 — Lanceur de jeu configurable et vérifiable
 
 Date : 14 août 2026
-Statut : accepté, complété par l'ADR-0048 le 25 août 2026
+Statut : accepté, complété par l'ADR-0048 le 25 août 2026 et par la coexistence de manifestes le
+26 août 2026
 
 ## Contexte
 
@@ -34,6 +35,11 @@ interdit à un module communautaire de remplacer le runtime ou de charger du cod
   Une destination existante n'est jamais écrasée. `game-launcher.json` décrit le produit et
   `game-distribution-manifest.json` enregistre taille et SHA-256 de chaque fichier redistribué.
   L'application vérifie le manifeste complet avant d'afficher le bouton Jouer.
+- Plusieurs lanceurs peuvent partager un runtime dans un dossier de qualification. Le couple
+  historique `game-launcher.json` / `game-distribution-manifest.json` reste celui du jeu principal ;
+  un exécutable additionnel utilise le couple complet `<exécutable>.game-launcher.json` /
+  `<exécutable>.game-distribution-manifest.json`. Un couple partiel est refusé afin qu’un lanceur ne
+  charge jamais par accident le module d’un autre jeu.
 - Les préférences du joueur restent hors du module, sous `%LOCALAPPDATA%/OpenRPG Forge/Games/<slug>`.
   Elles couvrent résolution, mode fenêtré/sans bordure/plein écran, qualité, VSync, volumes,
   réduction des mouvements, mode de session, joueur et port.

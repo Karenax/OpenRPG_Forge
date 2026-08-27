@@ -12,6 +12,11 @@ Divers/OpenRPG_Forge_Aurora_Feature_Dossier/tracking/*.csv -text !eol -diff
 *.wav binary
 *.zip binary
 
+# Large Solaren derivative source textures are versioned through Git LFS.
+apps/Forge.Runtime/content/solaren/assets/imported/423e2499-aeb6-515f-99b2-e771b6206fce/female-peasant-ual2_T_*.png filter=lfs diff=lfs merge=lfs -text
+apps/Forge.Runtime/content/solaren/assets/imported/8136ec94-41fa-cc58-8296-7eca59461c3c/female-ranger-ual2_T_*.png filter=lfs diff=lfs merge=lfs -text
+apps/Forge.Runtime/content/solaren/assets/imported/bdba52b4-6a0f-ff57-8ee0-02e5563a1c4d/male-ranger-ual2_T_*.png filter=lfs diff=lfs merge=lfs -text
+
 # Versioned Windows distributions are opaque build artifacts.
 exe/** filter=lfs diff=lfs merge=lfs -text
 exe.before-launcher-fix-20260824/** filter=lfs diff=lfs merge=lfs -text

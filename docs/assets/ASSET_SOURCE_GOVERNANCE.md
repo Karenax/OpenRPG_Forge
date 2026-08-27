@@ -40,6 +40,7 @@ ne contourne une page ou ne devine une URL interne.
 | agrégateurs à licences mixtes | différée | une licence de plateforme ne suffit pas ; chaque fichier, auteur et texte d’attribution doivent être vérifiés |
 | miroirs, reuploads et liens communautaires | refusée | chaîne de provenance et intégrité non vérifiables |
 | génération IA sans provenance/licence explicites | quarantaine | auteur, données, droits de redistribution ou fournisseur non gouvernés |
+| synthèse vocale locale reproductible | admise au cas par cas | texte autorisé, divulgation synthétique, outil/version/paramètres, preuve des droits de sortie, hash et licence de chaque sortie obligatoires ; le générateur n’est pas redistribué implicitement |
 | packs CC-BY, copyleft ou non commerciaux | pack optionnel différé | la chaîne d’attribution et de redistribution par module n’est pas encore validée de bout en bout |
 | téléchargements nécessitant contournement, scraping de session ou secret embarqué | refusée | transport non reproductible ou contraire aux règles de sécurité du projet |
 
@@ -61,6 +62,11 @@ Avant d’ajouter un adaptateur ou un pack manuel :
 8. produire crédits et notices depuis les assets réellement installés/utilisés ;
 9. ajouter tests, documentation et manifeste `asset_manifests/sources/<source>.json` ;
 10. n’élargir le catalogue qu’après validation d’un petit pack cohérent.
+
+Pour une voix de dialogue, le registre doit aussi identifier le locuteur fictif, la locale, le texte,
+la prise, la nature humaine ou synthétique et le consentement applicable. Une URL de service TTS ou
+la licence d’un outil ne suffit jamais à autoriser la redistribution des octets produits. Le parcours
+opérationnel est défini dans [`../DIALOGUE_VOICE.md`](../DIALOGUE_VOICE.md).
 
 La procédure d’implémentation, de revue visuelle et d’admission est détaillée dans
 [`ASSET_SOURCE_AND_PACK_EXTENSION.md`](ASSET_SOURCE_AND_PACK_EXTENSION.md). Les extensions admises

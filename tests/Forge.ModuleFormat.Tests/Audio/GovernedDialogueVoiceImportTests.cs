@@ -113,10 +113,16 @@ public sealed class GovernedDialogueVoiceImportTests : IDisposable
 
         var mp3 = GovernedDialogueVoiceImportService.Plan(WorkspaceRoot,
             Request("audio/dialogues/blobs/sha256/aa/" + Hash(truncatedMp3) + ".mp3",
-                Hash(truncatedMp3), "audio/mpeg") with { SourceRelativePath = "truncated.mp3" });
+                Hash(truncatedMp3), "audio/mpeg") with
+            {
+                SourceRelativePath = "truncated.mp3",
+            });
         var wav = GovernedDialogueVoiceImportService.Plan(WorkspaceRoot,
             Request("audio/dialogues/blobs/sha256/bb/" + Hash(truncatedWav) + ".wav",
-                Hash(truncatedWav), "audio/wav") with { SourceRelativePath = "truncated.wav" });
+                Hash(truncatedWav), "audio/wav") with
+            {
+                SourceRelativePath = "truncated.wav",
+            });
 
         Assert.Contains(mp3.Diagnostics, item => item.Code == GovernedDialogueVoiceImportService.MimeInvalidCode);
         Assert.Contains(wav.Diagnostics, item => item.Code == GovernedDialogueVoiceImportService.MimeInvalidCode);
@@ -132,9 +138,36 @@ public sealed class GovernedDialogueVoiceImportTests : IDisposable
 
         var result = GovernedDialogueVoiceImportService.Plan(WorkspaceRoot,
             Request("audio/dialogues/blobs/sha256/cc/" + Hash(bytes) + ".mp3",
-                Hash(bytes), "audio/mpeg") with { LicenseSpdx = "banana" });
+                Hash(bytes), "audio/mpeg") with
+            {
+                LicenseSpdx = "banana",
+            });
 
         Assert.Contains(result.Diagnostics, item => item.Code == GovernedDialogueVoiceImportService.LicenseInvalidCode);
+    }
+
+    [Fact]
+    public void ForgedPlanDestinationIsRejectedWithoutWritingOutsidePlannedBlob()
+    {
+        Directory.CreateDirectory(SourceRoot);
+        Directory.CreateDirectory(WorkspaceRoot);
+        var bytes = FakeMp3("immutable plan");
+        File.WriteAllBytes(Path.Combine(SourceRoot, "take.mp3"), bytes);
+        var hash = Hash(bytes);
+        var plannedDestination = $"audio/dialogues/blobs/sha256/{hash[..2]}/{hash}.mp3";
+        var planned = GovernedDialogueVoiceImportService.Plan(WorkspaceRoot,
+            Request(plannedDestination, hash, "audio/mpeg"));
+        Assert.True(planned.Succeeded, Describe(planned.Diagnostics));
+        var forged = planned.Plan! with { DestinationRelativePath = "audio/dialogues/forged.mp3" };
+
+        var result = GovernedDialogueVoiceImportService.Apply(WorkspaceRoot, forged);
+
+        Assert.False(result.Succeeded);
+        Assert.Contains(result.Diagnostics,
+            item => item.Code == GovernedDialogueVoiceImportService.PlanMismatchCode);
+        Assert.False(File.Exists(Path.Combine(WorkspaceRoot, "audio", "dialogues", "forged.mp3")));
+        Assert.False(File.Exists(Path.Combine(WorkspaceRoot,
+            plannedDestination.Replace('/', Path.DirectorySeparatorChar))));
     }
 
     private GovernedDialogueVoiceImportRequest Request(string destination, string hash, string mime) =>

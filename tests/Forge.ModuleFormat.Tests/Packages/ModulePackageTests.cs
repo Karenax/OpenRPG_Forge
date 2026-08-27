@@ -662,6 +662,21 @@ public sealed class ModulePackageTests : IDisposable
     }
 
     [Fact]
+    public void Validate_DefaultTotalBudgetIsOneGibibyteAndCustomLowerBudgetRemainsEnforced()
+    {
+        var package = ExportValidPackage();
+        var defaults = new ModulePackageLimits();
+
+        var validation = ModulePackageValidator.Validate(
+            package,
+            defaults with { MaximumTotalBytes = 1 });
+
+        Assert.Equal(1L * 1024 * 1024 * 1024, defaults.MaximumTotalBytes);
+        Assert.Contains(validation.Diagnostics, diagnostic =>
+            diagnostic.Code == ModulePackageValidator.TotalSizeCode);
+    }
+
+    [Fact]
     public void Validate_RejectsNativeDllFixture()
     {
         var package = ExportValidPackage();
@@ -673,10 +688,10 @@ public sealed class ModulePackageTests : IDisposable
     }
 
     [Fact]
-    public void Validate_AllowsMp3ButStillRejectsNativeCommunityContent()
+    public void Validate_AllowsStructurallyValidMp3ButStillRejectsNativeCommunityContent()
     {
         var package = ExportValidPackage();
-        AddEntry(package, "content/audio/dialogues/voice.mp3", "ID3-community-voice");
+        AddEntry(package, "content/audio/dialogues/voice.mp3", FakeMp3("community voice"));
         AddEntry(package, "content/plugins/hostile.dll", "MZ-hostile");
 
         var validation = ModulePackageValidator.Validate(package);
@@ -687,6 +702,20 @@ public sealed class ModulePackageTests : IDisposable
         Assert.Contains(validation.Diagnostics, diagnostic =>
             diagnostic.Code == ModulePackageValidator.ForbiddenFileCode &&
             diagnostic.Path == "content/plugins/hostile.dll");
+    }
+
+    [Fact]
+    public void Validate_RejectsTruncatedDialogueAudioEvenWhenExtensionIsAllowed()
+    {
+        var package = ExportValidPackage();
+        AddEntry(package, "content/audio/dialogues/truncated.mp3",
+            [(byte)'I', (byte)'D', (byte)'3', 0x04, 0, 0, 0, 0, 1, 0]);
+
+        var validation = ModulePackageValidator.Validate(package);
+
+        Assert.Contains(validation.Diagnostics, diagnostic =>
+            diagnostic.Code == ModulePackageValidator.InvalidMediaCode &&
+            diagnostic.Path == "content/audio/dialogues/truncated.mp3");
     }
 
     [Fact]
@@ -1023,6 +1052,26 @@ public sealed class ModulePackageTests : IDisposable
         var entry = archive.CreateEntry(path, CompressionLevel.Optimal);
         using var writer = new StreamWriter(entry.Open(), new UTF8Encoding(false));
         writer.Write(content);
+    }
+
+    private static void AddEntry(string package, string path, byte[] content)
+    {
+        using var archive = ZipFile.Open(package, ZipArchiveMode.Update);
+        var entry = archive.CreateEntry(path, CompressionLevel.Optimal);
+        using var stream = entry.Open();
+        stream.Write(content);
+    }
+
+    private static byte[] FakeMp3(string payload)
+    {
+        var frame = new byte[417];
+        frame[0] = 0xff;
+        frame[1] = 0xfb;
+        frame[2] = 0x90;
+        frame[3] = 0x00;
+        var text = Encoding.UTF8.GetBytes(payload);
+        text.AsSpan(0, Math.Min(text.Length, frame.Length - 4)).CopyTo(frame.AsSpan(4));
+        return frame;
     }
 
     private static void ReplaceEntry(string package, string path, string content)

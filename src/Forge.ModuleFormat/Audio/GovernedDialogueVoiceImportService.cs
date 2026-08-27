@@ -54,6 +54,7 @@ public static class GovernedDialogueVoiceImportService
     public const string LicenseInvalidCode = "dialogue.voice.import.license_invalid";
     public const string ProvenanceInvalidCode = "dialogue.voice.import.provenance_invalid";
     public const string CollisionCode = "dialogue.voice.import.destination_collision";
+    public const string PlanMismatchCode = "dialogue.voice.import.plan_mismatch";
     public const string ApplyFailedCode = "dialogue.voice.import.apply_failed";
     public const string RevertConflictCode = "dialogue.voice.import.revert_conflict";
     public const string BlobRetainedCode = "dialogue.voice.import.blob_retained";
@@ -133,16 +134,20 @@ public static class GovernedDialogueVoiceImportService
             {
                 var refreshed = Plan(workspaceRoot, plan.Request);
                 if (!refreshed.Succeeded) return new(false, false, false, refreshed.Diagnostics);
-                if (!string.Equals(refreshed.Plan!.ContentSha256, plan.ContentSha256,
-                        StringComparison.OrdinalIgnoreCase))
-                    return new(false, false, false, [new(HashMismatchCode,
-                        "Voice source changed after planning.", "sourceRelativePath")]);
-                if (refreshed.Plan.Reused) return new(true, false, true, []);
+                var canonicalPlan = refreshed.Plan!;
+                if (!string.Equals(canonicalPlan.DestinationRelativePath, plan.DestinationRelativePath,
+                        StringComparison.Ordinal) ||
+                    !string.Equals(canonicalPlan.ContentSha256, plan.ContentSha256,
+                        StringComparison.OrdinalIgnoreCase) || canonicalPlan.SourceBytes != plan.SourceBytes)
+                    return new(false, false, false, [new(PlanMismatchCode,
+                        "Voice import plan no longer matches its canonical request and source.",
+                        "destinationRelativePath")]);
+                if (canonicalPlan.Reused) return new(true, false, true, []);
 
                 var source = RuntimeModuleAssetPathResolver.ResolveVoiceAudio(plan.Request.SourceRoot,
                     plan.Request.SourceRelativePath);
                 var destination = RuntimeModuleAssetPathResolver.ResolveVoiceAudioDestination(workspaceRoot,
-                    plan.DestinationRelativePath);
+                    canonicalPlan.DestinationRelativePath);
                 if (source is null || destination is null)
                     return new(false, false, false, [new(DestinationPathUnsafeCode,
                         "Voice source or destination is no longer safely contained.", "destinationRelativePath")]);
@@ -156,7 +161,7 @@ public static class GovernedDialogueVoiceImportService
                 var directory = Path.GetDirectoryName(destination)!;
                 Directory.CreateDirectory(directory);
                 var rechecked = RuntimeModuleAssetPathResolver.ResolveVoiceAudioDestination(workspaceRoot,
-                    plan.DestinationRelativePath);
+                    canonicalPlan.DestinationRelativePath);
                 if (!string.Equals(destination, rechecked, PathComparison()))
                     return new(false, false, false, [new(DestinationPathUnsafeCode,
                         "Voice destination changed after directory creation.", "destinationRelativePath")]);
@@ -249,4 +254,3 @@ public static class GovernedDialogueVoiceImportService
         exception is IOException or UnauthorizedAccessException or CryptographicException or
             ArgumentException or NotSupportedException;
 }
-

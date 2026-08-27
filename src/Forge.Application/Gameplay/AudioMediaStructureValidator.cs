@@ -1,9 +1,18 @@
 using System.Buffers.Binary;
 
-namespace Forge.ModuleFormat.Audio;
+namespace Forge.Application.Gameplay;
 
 public static class AudioMediaStructureValidator
 {
+    public static bool Matches(string extension, ReadOnlySpan<byte> bytes)
+    {
+        if (extension.Equals(".mp3", StringComparison.OrdinalIgnoreCase))
+            return IsStructurallyValidMp3(bytes);
+        if (extension.Equals(".wav", StringComparison.OrdinalIgnoreCase))
+            return IsStructurallyValidWav(bytes);
+        return false;
+    }
+
     public static bool Matches(string extension, string mimeType, ReadOnlySpan<byte> bytes)
     {
         if (extension.Equals(".mp3", StringComparison.OrdinalIgnoreCase))

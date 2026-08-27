@@ -90,7 +90,7 @@ public static class WorkspaceAudioValidator
                 {
                     diagnostics.Add(new DomainDiagnostic(
                         verification.DiagnosticCode ?? ResourceMissingCode,
-                        "Dialogue voice resource is missing, unsafe, or does not match its SHA-256.",
+                        "Dialogue voice resource is missing, unsafe, malformed, or does not match its SHA-256.",
                         path));
                 }
             }

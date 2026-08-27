@@ -235,4 +235,3 @@ internal sealed partial class StudioSessionController
         internal bool Persisted { get; set; }
     }
 }
-

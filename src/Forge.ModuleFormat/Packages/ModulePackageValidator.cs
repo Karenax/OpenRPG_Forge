@@ -1,5 +1,6 @@
 using System.IO.Compression;
 using System.Text.Json;
+using Forge.Application.Gameplay;
 using Forge.Domain.Validation;
 using Forge.ModuleFormat.Serialization;
 
@@ -24,6 +25,7 @@ public static class ModulePackageValidator
     public const string NoticeMismatchCode = "module.archive.notice_mismatch";
     public const string DistributionComplianceCode = "module.archive.distribution_noncompliant";
     public const string DependencyApprovalMismatchCode = "module.archive.dependency_approval_mismatch";
+    public const string InvalidMediaCode = "module.archive.media_invalid";
 
     private static readonly HashSet<string> AllowedExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -99,6 +101,16 @@ public static class ModulePackageValidator
                     diagnostics.Add(new ModulePackageDiagnostic(
                         FileSizeCode,
                         $"File '{entry.FullName}' exceeds the per-file limit.",
+                        entry.FullName));
+                }
+
+                if (IsDialogueAudio(entry.FullName, extension) &&
+                    entry.Length <= Math.Min(limits.MaximumFileBytes, DialogueVoiceResourceVerifier.MaximumBytes) &&
+                    !HasValidAudioStructure(entry, extension))
+                {
+                    diagnostics.Add(new ModulePackageDiagnostic(
+                        InvalidMediaCode,
+                        $"Dialogue audio '{entry.FullName}' has a malformed or mismatched media structure.",
                         entry.FullName));
                 }
 
@@ -366,6 +378,20 @@ public static class ModulePackageValidator
 
     private static bool IsDirectory(ZipArchiveEntry entry) =>
         entry.FullName.EndsWith("/", StringComparison.Ordinal);
+
+    private static bool IsDialogueAudio(string path, string extension) =>
+        path.StartsWith("content/audio/dialogues/", StringComparison.Ordinal) &&
+        extension is ".mp3" or ".MP3" or ".wav" or ".WAV";
+
+    private static bool HasValidAudioStructure(ZipArchiveEntry entry, string extension)
+    {
+        if (entry.Length > int.MaxValue) return false;
+        using var input = entry.Open();
+        using var buffer = new MemoryStream((int)entry.Length);
+        input.CopyTo(buffer);
+        return buffer.Length == entry.Length &&
+               AudioMediaStructureValidator.Matches(extension, buffer.GetBuffer().AsSpan(0, (int)buffer.Length));
+    }
 
     private static string ReadText(ZipArchiveEntry entry)
     {

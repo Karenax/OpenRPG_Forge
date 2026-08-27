@@ -9,6 +9,7 @@ param(
     [ValidateSet('Studio', 'Runtime', 'All')]
     [string]$DistributionProduct = 'All',
     [string[]]$DistributionDirectory,
+    [string]$SolutionArtifactsPath,
     [switch]$Restore
 )
 
@@ -17,6 +18,23 @@ param(
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $solutionPath = Join-Path $repositoryRoot 'OpenRPGForge.sln'
 $artifactRoot = Join-Path $repositoryRoot 'artifacts\verification'
+$solutionArtifactArguments = @()
+
+if (-not [string]::IsNullOrWhiteSpace($SolutionArtifactsPath)) {
+    if (-not [System.IO.Path]::IsPathRooted($SolutionArtifactsPath)) {
+        $SolutionArtifactsPath = Join-Path $repositoryRoot $SolutionArtifactsPath
+    }
+    $SolutionArtifactsPath = [System.IO.Path]::GetFullPath($SolutionArtifactsPath)
+    $repositoryArtifacts = [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot 'artifacts'))
+    $allowedPrefix = $repositoryArtifacts.TrimEnd([System.IO.Path]::DirectorySeparatorChar) +
+        [System.IO.Path]::DirectorySeparatorChar
+    if (-not $SolutionArtifactsPath.StartsWith(
+            $allowedPrefix,
+            [System.StringComparison]::OrdinalIgnoreCase)) {
+        throw "SolutionArtifactsPath must be below $repositoryArtifacts."
+    }
+    $solutionArtifactArguments = @('--artifacts-path', $SolutionArtifactsPath)
+}
 
 New-Item -ItemType Directory -Path $artifactRoot -Force | Out-Null
 
@@ -461,13 +479,17 @@ $blenderPath = Get-ForgeBlenderPath -Optional
 Push-Location $repositoryRoot
 try {
     Invoke-CheckedDotnet @('restore', $solutionPath, '--locked-mode')
+    if ($solutionArtifactArguments.Count -gt 0) {
+        Invoke-CheckedDotnet (@('restore', $solutionPath, '--locked-mode') + $solutionArtifactArguments)
+    }
     Test-NuGetVulnerabilities
     Invoke-CheckedDotnet @('format', $solutionPath, '--verify-no-changes', '--no-restore', '--verbosity', 'minimal')
-    Invoke-CheckedDotnet @('build', $solutionPath, '--configuration', 'Release', '--no-restore')
+    Invoke-CheckedDotnet (@('build', $solutionPath, '--configuration', 'Release', '--no-restore') +
+        $solutionArtifactArguments)
     # Keep project-level test hosts sequential: the full solution otherwise exceeds the workstation memory budget
     # when VSTest starts every assembly concurrently, which can kill healthy hosts before protocol negotiation.
-    Invoke-CheckedDotnet @('test', $solutionPath, '--configuration', 'Release', '--no-build',
-        '--maxcpucount:1', '--logger', 'console;verbosity=minimal')
+    Invoke-CheckedDotnet (@('test', $solutionPath, '--configuration', 'Release', '--no-build',
+        '--maxcpucount:1', '--logger', 'console;verbosity=minimal') + $solutionArtifactArguments)
     # Godot launches managed editor/runtime assemblies from its Debug cache even after a Release gate build.
     # Refresh those caches explicitly so engine smoke tests never execute stale contracts.
     Invoke-CheckedDotnet @('build', (Join-Path $repositoryRoot 'apps\Forge.Toolset\Forge.Toolset.csproj'),

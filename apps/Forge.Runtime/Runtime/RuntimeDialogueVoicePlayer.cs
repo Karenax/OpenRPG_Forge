@@ -97,4 +97,3 @@ internal sealed partial class RuntimeDialogueVoicePlayer : Node
         GD.Print($"OPENRPG_FORGE_DIALOGUE_VOICE event=completed dialogue={dialogueId} node={nodeId}");
     }
 }
-

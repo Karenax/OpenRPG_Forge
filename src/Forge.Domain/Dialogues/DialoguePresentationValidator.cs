@@ -5,6 +5,7 @@ namespace Forge.Domain.Dialogues;
 public static class DialoguePresentationValidator
 {
     public const string RequiredMissingCode = "dialogue.presentation.required_missing";
+    public const string VoiceInvalidCode = "dialogue.voice.invalid";
 
     public static IReadOnlyList<DomainDiagnostic> Validate(
         DialogueDefinition dialogue,
@@ -50,10 +51,10 @@ public static class DialoguePresentationValidator
             if (string.IsNullOrWhiteSpace(cue.Locale) || string.IsNullOrWhiteSpace(cue.Take) ||
                 string.IsNullOrWhiteSpace(cue.LipSyncProfileId) || string.IsNullOrWhiteSpace(cue.Emotion) ||
                 cue.DurationMilliseconds is < 1 or > 3_600_000 || string.IsNullOrWhiteSpace(cue.Provenance) ||
-                (hasResource && (!IsSafeResource(cue.Resource!) || string.IsNullOrWhiteSpace(cue.LicenseSpdx) ||
+                (hasResource && (!IsSafeResource(cue.Resource!) || !SpdxLicenseValidator.IsSupported(cue.LicenseSpdx) ||
                                  !IsSha256(cue.ContentSha256))) ||
                 (!hasResource && !cue.AllowSubtitleFallback))
-                diagnostics.Add(new("dialogue.voice.invalid",
+                diagnostics.Add(new(VoiceInvalidCode,
                     "Voice locale, take, lipsync, duration, licensed resource, hash, or subtitle fallback is invalid.", path));
         }
 

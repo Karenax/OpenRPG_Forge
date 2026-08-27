@@ -647,18 +647,24 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
   course/idle, orientation et attente.
 - [x] Livrer la première boucle jouable `Maélis → accepter Le repère de la place → rallumer le repère →
   quête terminée`, avec objectif authored, journal réel, `StartQuest` idempotent, deux ambiances 3D CC0
-  et quatre prises françaises importées comme blobs MP3 content-addressed, liées aux quatre nœuds et
+  et quatre prises françaises importées comme blobs WAV content-addressed, liées aux quatre nœuds et
   lues réellement avec fallback sous-titre.
 - [x] Réserver les laboratoires Quality/Performance/Governance aux smokes, remplacer la duplication
   profonde des meshes ordinaires par des overrides de matériaux wetness et ramener le démarrage
   Forward+ comparable de 45 242,758 ms à 12 206,700 ms (-73,0 %), sans régression visuelle.
-- [x] Valider le lot post-WorldGeneration par 1 778 tests Release, builds Runtime/Studio/McpHost sans
-  avertissement, smoke Studio UX5-B, smokes Forward+ Solaren et Crypte, MCP 267 outils, audition
-  interactive et deux `.orpmod` vocaux identiques (496 919 149 octets, SHA-256
-  `3ae25b4bc3c3f974346460fc643f659649f9fa8a2669120160bc4cd3fbd517f3`), avec graphe Roslyn
-  déterministe à 11 807 nœuds / 94 041 relations sans diagnostic.
+- [x] Requalifier le lot post-WorldGeneration et l’audit vocal par la gate Full : 2 314 tests .NET,
+  67 tests Python, builds sans avertissement, smokes Studio/Toolset/Runtime/Forward+/assets/Blender/
+  MCP/réseau/distribution et graphe Roslyn déterministe à 11 809 nœuds / 94 068 relations / zéro
+  diagnostic. Le `.orpmod` Client Solaren courant fait 648 594 126 octets, SHA-256
+  `549b8b812daa6f568f0e1ac21245348ff4a01080ddc61e5c24455296f3cc9fb5`, avec quatre WAV et zéro MP3.
 - [x] Ajouter un import vocal local gouverné MP3/WAV, son cycle MCP/Studio preview/apply/undo/redo/
   save-reopen, la lecture runtime sur octets hashés, puis rattacher les quatre prises de Maélis.
+- [x] Auditer le lot vocal : rejeter les médias tronqués, les licences/provenances inconnues et les
+  plans forgés ; répéter ces contrôles au workspace, au package, à la conformité et au runtime.
+- [x] Remplacer les anciens clips Edge TTS non qualifiés par quatre WAV CC0-1.0 reproductibles avec
+  eSpeak NG 1.52.0, manifeste de provenance et divulgation synthétique.
+- [x] Permettre à Solaren et au lanceur de régression Crypte de partager `exe/` avec des couples de
+  manifestes distincts et vérifiables, sans qu’un exécutable puisse charger le module de l’autre.
 - [ ] Étendre cette première tranche avec rencontres et transitions vers les vallées voisines avant de
   parler de contenu final.
 

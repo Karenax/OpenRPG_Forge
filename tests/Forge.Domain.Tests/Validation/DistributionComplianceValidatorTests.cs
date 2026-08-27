@@ -4,6 +4,7 @@ using Forge.Domain.Content;
 using Forge.Domain.Modules;
 using Forge.Domain.Projects;
 using Forge.Domain.Validation;
+using Forge.Domain.Tests.Dialogues;
 
 namespace Forge.Domain.Tests.Validation;
 
@@ -87,6 +88,34 @@ public sealed class DistributionComplianceValidatorTests
         Assert.Equal("MIT", dependency.LicenseSpdx);
         Assert.Equal("quarterly", dependency.UpdateCadence);
         Assert.False(string.IsNullOrWhiteSpace(dependency.RemovalPlan));
+    }
+
+    [Fact]
+    public void ShippingBlocksDialogueVoiceWithUnknownLicenseOrProvenance()
+    {
+        var project = CreateProject(compliant: true);
+        var dialogue = DialoguePresentationTests.Complete();
+        var profile = dialogue.Presentation!;
+        var candidateDialogue = dialogue.WithPresentation(profile with
+        {
+            VoiceCues = [profile.VoiceCues[0] with
+            {
+                Resource = "audio/dialogues/voice.wav",
+                LicenseSpdx = "banana",
+                ContentSha256 = new string('a', 64),
+                Provenance = "unknown",
+            }],
+        });
+        var candidate = new ProjectDefinition(
+            project.Id, project.Title, project.Module, project.Blueprints, project.Areas,
+            [candidateDialogue], project.Quests);
+
+        var diagnostics = DistributionComplianceValidator.Validate(candidate, ModuleTargetKind.Shipping);
+
+        Assert.Contains(diagnostics,
+            item => item.Code == DistributionComplianceValidator.DialogueVoiceLicenseUnknownCode);
+        Assert.Contains(diagnostics,
+            item => item.Code == DistributionComplianceValidator.DialogueVoiceProvenanceUnknownCode);
     }
 
     [Fact]
