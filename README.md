@@ -56,13 +56,16 @@ mettre en file des jobs persistants pour les neuf étapes terrain → validation
 Flow sont des backends facultatifs derrière des adaptateurs ; un backend Godot natif conserve un
 chemin fonctionnel hors ligne sans addon. Les opérations sont allowlistées, les chemins confinés au
 workspace et les retouches humaines peuvent être verrouillées lors d'une régénération partielle.
+Les formats persistés conservent leurs backends canoniques tandis que `providerKey` distingue
+`terrain3d`, `godot-flow`, `gf-pcgodot` et `openrpg-native` pour les benchmarks et diagnostics.
 
 ```powershell
 ./scripts/Install-WorldGenerationDependencies.ps1 -GodotProjectPath ./apps/Forge.Toolset -WhatIf
 ```
 
 La simulation ci-dessus ne télécharge rien. Le guide complet, l'installation réelle, les limites et
-le parcours Codex sont dans [`docs/world-generation/README.md`](docs/world-generation/README.md).
+le parcours Codex sont dans [`docs/world-generation/README.md`](docs/world-generation/README.md) ; la
+qualification comparative est cadrée par `BACKEND_QUALIFICATION.md` et `QUALITY_BENCHMARK.md`.
 Cette fondation ne remplace pas encore les données canoniques de zone et ne livre pas de graphes PCG
 artistiques prêts pour un jeu.
 

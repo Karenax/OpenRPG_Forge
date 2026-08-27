@@ -8,10 +8,10 @@ Le socle WorldGeneration a été fusionné dans `main` au commit :
 b0a519b1566c4c5dded9db7fe38c0cfc6d99399d
 ```
 
-Le travail de qualification et d'amélioration visuelle continue sur :
+La première tranche de qualification des fournisseurs a été intégrée dans `main` au commit :
 
 ```text
-feat/worldgen-quality-qualification
+f68a8547d7a1856ccac5891206d702425da20597
 ```
 
 Le système fournit déjà recettes versionnées, dry-run, plans déterministes, jobs persistants, audit,
@@ -19,7 +19,7 @@ annulation, régénération partielle, adaptateurs Terrain3D/Graph PCG et fallba
 pas encore un monde artistique de production : les graphes PCG attendus manquent, la qualification
 réelle des addons sous Godot 4.7.1 reste à faire et la promotion canonique n'existe pas encore.
 
-La première tranche de cette branche conserve l'enum sérialisé `PcgGodot`, mais distingue le
+Cette tranche conserve l'enum sérialisé `PcgGodot`, mais distingue le
 fournisseur concret par `providerKey` :
 
 ```text

@@ -2,16 +2,11 @@
 
 ## Mandat
 
-Tu travailles dans `Karenax/OpenRPG_Forge` sur la branche :
+Tu travailles dans `Karenax/OpenRPG_Forge` sur `main`. La tranche initiale d'identité des fournisseurs
+et de cadrage qualité a été intégrée le 27 août 2026 par le commit de fusion :
 
 ```text
-feat/worldgen-quality-qualification
-```
-
-Cette branche part du commit de fusion WorldGeneration présent dans `main` :
-
-```text
-b0a519b1566c4c5dded9db7fe38c0cfc6d99399d
+f68a8547d7a1856ccac5891206d702425da20597
 ```
 
 L'objectif n'est pas d'ajouter le plus grand nombre possible d'addons Godot. L'objectif est de
@@ -31,7 +26,7 @@ n'est acceptée que si elle améliore réellement la carte de référence défin
   une migration versionnée serait nécessaire.
 - Le fournisseur réellement épinglé derrière ce backend est actuellement `godot-flow`, pas
   `GF-PCGODOT`.
-- La branche de qualification ajoute des `providerKey` explicites afin de pouvoir comparer plusieurs
+- La tranche de qualification intégrée ajoute des `providerKey` explicites afin de comparer plusieurs
   implémentations sans casser les recettes existantes.
 - Les graphes artistiques `biomes.tres`, `roads.tres`, `settlements.tres` et `scatter.tres` attendus
   par le registre ne sont pas encore livrés.
@@ -62,8 +57,8 @@ document à jour et conserve la compatibilité des formats persistés.
 git status
 git remote -v
 git fetch origin --prune
-git switch feat/worldgen-quality-qualification
-git pull --ff-only origin feat/worldgen-quality-qualification
+git switch main
+git pull --ff-only origin main
 git log --oneline --decorate --graph -20
 ```
 
@@ -124,9 +119,9 @@ avant de continuer.
 
 ## Lot 0 — identité des fournisseurs et compatibilité
 
-État : commencé sur cette branche.
+État : terminé et intégré à `main`.
 
-Travail attendu :
+Travail livré :
 
 - conserver l'enum sérialisé `PcgGodot` ;
 - exposer l'identité concrète du fournisseur via `providerKey` ;

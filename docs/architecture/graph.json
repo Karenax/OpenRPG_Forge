@@ -3,8 +3,8 @@
     "schema_version": 2,
     "engine": "roslyn",
     "engine_version": "5.6.0.0",
-    "source_digest": "sha256:921e0a5c724e707d2a4418fbaeb388ca59b9d5f34f29508db7686ceaa5a2ab56",
-    "source_file_count": 3839,
+    "source_digest": "sha256:f500e7c190dc02e6e5c46f52ea8a0fcf49d7d65f727ae03f74b8fafe69158ece",
+    "source_file_count": 3844,
     "sources": [
       {
         "path": ".agents/skills/openrpg-asset-lifecycle/SKILL.md",
@@ -93,8 +93,8 @@
       },
       {
         "path": "CHANGELOG.md",
-        "sha256": "sha256:1318646cd6d85ea18eb83785572cabbfaa8d0477c0afa9297d23c0ffe62d3d58",
-        "size": 62395
+        "sha256": "sha256:ebc050d46468607b7d1251a11039869a8506b8d54536e82b19d5ff3853bff580",
+        "size": 62763
       },
       {
         "path": "Directory.Build.props",
@@ -453,23 +453,23 @@
       },
       {
         "path": "PROJECT_CONTEXT.md",
-        "sha256": "sha256:d36ddf2c511fee27206287d4ef004d863ed60ab2b0dec3bdaf9d6c157cf5d32d",
-        "size": 25277
+        "sha256": "sha256:7ea819b6c04a13e23d3cf0e52d7db4195625032d304ce5bc5dfd2d3120438c1a",
+        "size": 25664
       },
       {
         "path": "README.md",
-        "sha256": "sha256:4789d320bb4526913bbcb8c17c4501c6523947ec3fbde3faf4e6632e5c4e1ddb",
-        "size": 17543
+        "sha256": "sha256:d400fb0e542e104b468192a34107f8c7f8f3d9a53e44c3ac992797e33aed3f71",
+        "size": 17834
       },
       {
         "path": "STATUS.md",
-        "sha256": "sha256:31a28ae2f81fc9381a4ee15ce05c8b91323a23e58d31e209b4e9f92d12084a3e",
-        "size": 87584
+        "sha256": "sha256:36b85825586d2d09aa79d336653ddec35aef5eb15cb16370318534d941876a95",
+        "size": 88002
       },
       {
         "path": "TASKS_MVP.md",
-        "sha256": "sha256:9839eb07ab4ade69b64f22188c2ca70dca2c8d03b35047609c0ba7d169b54bb8",
-        "size": 59064
+        "sha256": "sha256:f940db0758f27591b3c083109e586aae87e10c42e35d3041c1fa44df93ded57c",
+        "size": 59466
       },
       {
         "path": "apps/Forge.CreatorLauncher/Forge.CreatorLauncher.csproj",
@@ -8072,9 +8072,19 @@
         "size": 12832
       },
       {
+        "path": "docs/world-generation/BACKEND_QUALIFICATION.md",
+        "sha256": "sha256:7e7759106f06c2ee0fa47356d1dabca36da3957fee682ce452509c4013689a35",
+        "size": 7272
+      },
+      {
+        "path": "docs/world-generation/CODEX_EXECUTION_PLAN.md",
+        "sha256": "sha256:fb362c1fa6e8c127fbb30b27ce2466f9abcc026be0f3f4067b3925c159919407",
+        "size": 14585
+      },
+      {
         "path": "docs/world-generation/CODEX_HANDOFF.md",
-        "sha256": "sha256:e08225186aabecbd23d3aec66e4f636b3dba415624092ba4f15f31ef4d7dbfa2",
-        "size": 5522
+        "sha256": "sha256:9591078cc615833b2d714ad37a4fc63be7e834d5e02708c3efa811bec06ac193",
+        "size": 4845
       },
       {
         "path": "docs/world-generation/DEPENDENCIES.md",
@@ -8082,9 +8092,19 @@
         "size": 3001
       },
       {
+        "path": "docs/world-generation/QUALITY_BENCHMARK.md",
+        "sha256": "sha256:c57929f01badd438af418f3438c03c5ea6e4b3e1ea40654dcbc17e629e4c501c",
+        "size": 7033
+      },
+      {
         "path": "docs/world-generation/README.md",
         "sha256": "sha256:927f6e0cdcaeb0314874b1474f18fbb70f64f5fcd8f9f0aa35bdd0bc83a6d38e",
         "size": 9713
+      },
+      {
+        "path": "docs/world-generation/fixtures/reference-world-v1.json",
+        "sha256": "sha256:bffef24bc0b0a1866649e7dce229061a614e8a93db23430163d92b551c655ce0",
+        "size": 2088
       },
       {
         "path": "global.json",
@@ -13043,8 +13063,8 @@
       },
       {
         "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
-        "sha256": "sha256:4964c4304f8cd209f228c1839cc78829775fae80a7cdbd6263c6707044f99670",
-        "size": 2336
+        "sha256": "sha256:78a8d268a91f34bf3e965453434425c65fb213fec6c0346d3bd41da28743e775",
+        "size": 3540
       },
       {
         "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBridgeAdapters.cs",
@@ -13055,6 +13075,11 @@
         "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBridgeProtocol.cs",
         "sha256": "sha256:5d16c1f04008aaf8ba402c7d8410fafe1a2f2d06be9c3a84337276f04d0fd175",
         "size": 5260
+      },
+      {
+        "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationProviderKeys.cs",
+        "sha256": "sha256:e8c8c658e85f542f5af6f21b614794ae0b2e7c0630a58f7fcb2baa12c638ccd1",
+        "size": 307
       },
       {
         "path": "src/Forge.EngineAdapter/packages.lock.json",
@@ -17048,8 +17073,8 @@
       },
       {
         "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
-        "sha256": "sha256:50c8eb0f01f629fea632bf4911ee898b4fb39b1e3319da85f9a10405a9781d20",
-        "size": 3476
+        "sha256": "sha256:0f13ca1e8727033ab4484712db885ea11abd4727d7d86ebcf9ccb741abe56920",
+        "size": 4829
       },
       {
         "path": "tests/Forge.EngineAdapter.Tests/packages.lock.json",
@@ -19018,8 +19043,8 @@
       },
       {
         "path": "third_party/world-generation.dependencies.json",
-        "sha256": "sha256:ac61debed09cde845861577558e63897e185a3490a36948c0ab0ee5e2781f39b",
-        "size": 1682
+        "sha256": "sha256:f3d5a2a08fd0c4e2dfe7f5f083b03e23870ba5a1f325251f14373966ad8aaeeb",
+        "size": 1845
       },
       {
         "path": "tools/Forge.ArchitectureGraph/ArchitectureGraphService.cs",
@@ -40747,6 +40772,26 @@
       }
     },
     {
+      "id": "file:docs/world-generation/BACKEND_QUALIFICATION.md",
+      "kind": "document",
+      "name": "BACKEND_QUALIFICATION.md",
+      "path": "docs/world-generation/BACKEND_QUALIFICATION.md",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      }
+    },
+    {
+      "id": "file:docs/world-generation/CODEX_EXECUTION_PLAN.md",
+      "kind": "document",
+      "name": "CODEX_EXECUTION_PLAN.md",
+      "path": "docs/world-generation/CODEX_EXECUTION_PLAN.md",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      }
+    },
+    {
       "id": "file:docs/world-generation/CODEX_HANDOFF.md",
       "kind": "document",
       "name": "CODEX_HANDOFF.md",
@@ -40767,6 +40812,16 @@
       }
     },
     {
+      "id": "file:docs/world-generation/QUALITY_BENCHMARK.md",
+      "kind": "document",
+      "name": "QUALITY_BENCHMARK.md",
+      "path": "docs/world-generation/QUALITY_BENCHMARK.md",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      }
+    },
+    {
       "id": "file:docs/world-generation/README.md",
       "kind": "document",
       "name": "README.md",
@@ -40774,6 +40829,16 @@
       "line": 1,
       "metadata": {
         "language": "markdown"
+      }
+    },
+    {
+      "id": "file:docs/world-generation/fixtures/reference-world-v1.json",
+      "kind": "configuration",
+      "name": "reference-world-v1.json",
+      "path": "docs/world-generation/fixtures/reference-world-v1.json",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
       }
     },
     {
@@ -50711,6 +50776,16 @@
       "kind": "file",
       "name": "WorldGenerationBridgeProtocol.cs",
       "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBridgeProtocol.cs",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      }
+    },
+    {
+      "id": "file:src/Forge.EngineAdapter/WorldGeneration/WorldGenerationProviderKeys.cs",
+      "kind": "file",
+      "name": "WorldGenerationProviderKeys.cs",
+      "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationProviderKeys.cs",
       "line": 1,
       "metadata": {
         "language": "csharp"
@@ -100239,7 +100314,7 @@
       "kind": "test",
       "name": "MemorySink",
       "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
-      "line": 57,
+      "line": 86,
       "metadata": {
         "namespace": "Forge.EngineAdapter.Tests.WorldGeneration",
         "project": "Forge.EngineAdapter.Tests",
@@ -120687,7 +120762,19 @@
       "kind": "type",
       "name": "WorldGenerationBackendCapabilityProbe",
       "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
-      "line": 12,
+      "line": 15,
+      "metadata": {
+        "namespace": "Forge.EngineAdapter.WorldGeneration",
+        "project": "Forge.EngineAdapter",
+        "symbol_kind": "Class"
+      }
+    },
+    {
+      "id": "type:Forge.EngineAdapter.WorldGeneration.WorldGenerationBackendCapabilityProbe.BackendMarker",
+      "kind": "type",
+      "name": "BackendMarker",
+      "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
+      "line": 87,
       "metadata": {
         "namespace": "Forge.EngineAdapter.WorldGeneration",
         "project": "Forge.EngineAdapter",
@@ -120712,6 +120799,18 @@
       "name": "WorldGenerationBridgeReceipt",
       "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBridgeProtocol.cs",
       "line": 23,
+      "metadata": {
+        "namespace": "Forge.EngineAdapter.WorldGeneration",
+        "project": "Forge.EngineAdapter",
+        "symbol_kind": "Class"
+      }
+    },
+    {
+      "id": "type:Forge.EngineAdapter.WorldGeneration.WorldGenerationProviderKeys",
+      "kind": "type",
+      "name": "WorldGenerationProviderKeys",
+      "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationProviderKeys.cs",
+      "line": 3,
       "metadata": {
         "namespace": "Forge.EngineAdapter.WorldGeneration",
         "project": "Forge.EngineAdapter",
@@ -205829,7 +205928,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "PROJECT_CONTEXT.md",
-        "line": 341
+        "line": 345
       }
     },
     {
@@ -205859,7 +205958,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "PROJECT_CONTEXT.md",
-        "line": 293
+        "line": 297
       }
     },
     {
@@ -205869,7 +205968,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "PROJECT_CONTEXT.md",
-        "line": 136
+        "line": 140
       }
     },
     {
@@ -205879,7 +205978,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "PROJECT_CONTEXT.md",
-        "line": 264
+        "line": 268
       }
     },
     {
@@ -205889,7 +205988,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "PROJECT_CONTEXT.md",
-        "line": 247
+        "line": 251
       }
     },
     {
@@ -205899,7 +205998,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "PROJECT_CONTEXT.md",
-        "line": 345
+        "line": 349
       }
     },
     {
@@ -205949,7 +206048,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "README.md",
-        "line": 194
+        "line": 197
       }
     },
     {
@@ -205959,7 +206058,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "README.md",
-        "line": 145
+        "line": 148
       }
     },
     {
@@ -205969,7 +206068,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "README.md",
-        "line": 215
+        "line": 218
       }
     },
     {
@@ -205979,7 +206078,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "README.md",
-        "line": 162
+        "line": 165
       }
     },
     {
@@ -205989,7 +206088,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "README.md",
-        "line": 292
+        "line": 295
       }
     },
     {
@@ -205999,7 +206098,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "README.md",
-        "line": 183
+        "line": 186
       }
     },
     {
@@ -206009,7 +206108,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "README.md",
-        "line": 150
+        "line": 153
       }
     },
     {
@@ -206049,7 +206148,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "README.md",
-        "line": 294
+        "line": 297
       }
     },
     {
@@ -206059,7 +206158,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "README.md",
-        "line": 65
+        "line": 67
       }
     },
     {
@@ -206069,7 +206168,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 915
+        "line": 919
       }
     },
     {
@@ -206079,7 +206178,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 915
+        "line": 919
       }
     },
     {
@@ -206089,7 +206188,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 65
+        "line": 69
       }
     },
     {
@@ -206099,7 +206198,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 424
+        "line": 428
       }
     },
     {
@@ -206109,7 +206208,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 471
+        "line": 475
       }
     },
     {
@@ -206119,7 +206218,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 476
+        "line": 480
       }
     },
     {
@@ -206129,7 +206228,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 481
+        "line": 485
       }
     },
     {
@@ -206139,7 +206238,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 486
+        "line": 490
       }
     },
     {
@@ -206149,7 +206248,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 491
+        "line": 495
       }
     },
     {
@@ -206159,7 +206258,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 497
+        "line": 501
       }
     },
     {
@@ -206169,7 +206268,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 502
+        "line": 506
       }
     },
     {
@@ -206179,7 +206278,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 507
+        "line": 511
       }
     },
     {
@@ -206189,7 +206288,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 512
+        "line": 516
       }
     },
     {
@@ -206199,7 +206298,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 518
+        "line": 522
       }
     },
     {
@@ -206209,7 +206308,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 522
+        "line": 526
       }
     },
     {
@@ -206219,7 +206318,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 527
+        "line": 531
       }
     },
     {
@@ -206229,7 +206328,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 532
+        "line": 536
       }
     },
     {
@@ -206239,7 +206338,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 537
+        "line": 541
       }
     },
     {
@@ -206249,7 +206348,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 542
+        "line": 546
       }
     },
     {
@@ -206259,7 +206358,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 547
+        "line": 551
       }
     },
     {
@@ -206269,7 +206368,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 552
+        "line": 556
       }
     },
     {
@@ -206279,7 +206378,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 557
+        "line": 561
       }
     },
     {
@@ -206289,7 +206388,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 562
+        "line": 566
       }
     },
     {
@@ -206299,7 +206398,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 567
+        "line": 571
       }
     },
     {
@@ -206309,7 +206408,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 571
+        "line": 575
       }
     },
     {
@@ -206319,7 +206418,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 575
+        "line": 579
       }
     },
     {
@@ -206329,7 +206428,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 580
+        "line": 584
       }
     },
     {
@@ -206339,7 +206438,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 585
+        "line": 589
       }
     },
     {
@@ -206349,7 +206448,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 590
+        "line": 594
       }
     },
     {
@@ -206359,7 +206458,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 595
+        "line": 599
       }
     },
     {
@@ -206369,7 +206468,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 601
+        "line": 605
       }
     },
     {
@@ -206379,7 +206478,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 607
+        "line": 611
       }
     },
     {
@@ -206389,7 +206488,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 614
+        "line": 618
       }
     },
     {
@@ -206399,7 +206498,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 629
+        "line": 633
       }
     },
     {
@@ -206409,7 +206508,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 664
+        "line": 668
       }
     },
     {
@@ -206419,7 +206518,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 663
+        "line": 667
       }
     },
     {
@@ -347773,6 +347872,26 @@
       }
     },
     {
+      "source": "file:docs/world-generation/CODEX_EXECUTION_PLAN.md",
+      "target": "file:docs/world-generation/QUALITY_BENCHMARK.md",
+      "kind": "references",
+      "confidence": "syntactic",
+      "evidence": {
+        "path": "docs/world-generation/CODEX_EXECUTION_PLAN.md",
+        "line": 18
+      }
+    },
+    {
+      "source": "file:docs/world-generation/CODEX_EXECUTION_PLAN.md",
+      "target": "file:docs/world-generation/README.md",
+      "kind": "references",
+      "confidence": "syntactic",
+      "evidence": {
+        "path": "docs/world-generation/CODEX_EXECUTION_PLAN.md",
+        "line": 324
+      }
+    },
+    {
       "source": "file:docs/world-generation/README.md",
       "target": "file:docs/ADR/ADR-0050-governed-world-generation-orchestration.md",
       "kind": "references",
@@ -391340,6 +391459,16 @@
       "evidence": {
         "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
         "line": 6
+      }
+    },
+    {
+      "source": "file:src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
+      "target": "file:src/Forge.EngineAdapter/WorldGeneration/WorldGenerationProviderKeys.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
+        "line": 22
       }
     },
     {
@@ -445330,6 +445459,16 @@
       "evidence": {
         "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
         "line": 26
+      }
+    },
+    {
+      "source": "file:tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
+      "target": "file:src/Forge.EngineAdapter/WorldGeneration/WorldGenerationProviderKeys.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
+        "line": 52
       }
     },
     {
@@ -658533,6 +658672,16 @@
       }
     },
     {
+      "source": "namespace:Forge.EngineAdapter.WorldGeneration",
+      "target": "file:src/Forge.EngineAdapter/WorldGeneration/WorldGenerationProviderKeys.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationProviderKeys.cs",
+        "line": 3
+      }
+    },
+    {
       "source": "namespace:Forge.GameLauncher",
       "target": "file:apps/Forge.GameLauncher/App.xaml.cs",
       "kind": "defined_in",
@@ -693475,6 +693624,16 @@
     {
       "source": "project:src/Forge.EngineAdapter/Forge.EngineAdapter",
       "target": "file:src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBridgeProtocol.cs",
+      "kind": "contains",
+      "confidence": "syntactic",
+      "evidence": {
+        "path": "src/Forge.EngineAdapter/Forge.EngineAdapter.csproj",
+        "line": 1
+      }
+    },
+    {
+      "source": "project:src/Forge.EngineAdapter/Forge.EngineAdapter",
+      "target": "file:src/Forge.EngineAdapter/WorldGeneration/WorldGenerationProviderKeys.cs",
       "kind": "contains",
       "confidence": "syntactic",
       "evidence": {
@@ -803053,13 +803212,23 @@
       }
     },
     {
+      "source": "test:Forge.EngineAdapter.Tests.WorldGeneration.WorldGenerationBridgeTests",
+      "target": "type:Forge.EngineAdapter.WorldGeneration.WorldGenerationProviderKeys",
+      "kind": "tests",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
+        "line": 52
+      }
+    },
+    {
       "source": "test:Forge.EngineAdapter.Tests.WorldGeneration.WorldGenerationBridgeTests.MemorySink",
       "target": "file:tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
       "kind": "defined_in",
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
-        "line": 57
+        "line": 86
       }
     },
     {
@@ -803069,7 +803238,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
-        "line": 57
+        "line": 86
       }
     },
     {
@@ -803079,7 +803248,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
-        "line": 57
+        "line": 86
       }
     },
     {
@@ -803089,7 +803258,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
-        "line": 57
+        "line": 86
       }
     },
     {
@@ -898369,7 +898538,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
-        "line": 12
+        "line": 15
       }
     },
     {
@@ -898379,7 +898548,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
-        "line": 12
+        "line": 15
       }
     },
     {
@@ -898389,7 +898558,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
-        "line": 36
+        "line": 42
       }
     },
     {
@@ -898399,7 +898568,47 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
-        "line": 27
+        "line": 33
+      }
+    },
+    {
+      "source": "type:Forge.EngineAdapter.WorldGeneration.WorldGenerationBackendCapabilityProbe",
+      "target": "type:Forge.EngineAdapter.WorldGeneration.WorldGenerationBackendCapabilityProbe.BackendMarker",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
+        "line": 20
+      }
+    },
+    {
+      "source": "type:Forge.EngineAdapter.WorldGeneration.WorldGenerationBackendCapabilityProbe",
+      "target": "type:Forge.EngineAdapter.WorldGeneration.WorldGenerationProviderKeys",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
+        "line": 22
+      }
+    },
+    {
+      "source": "type:Forge.EngineAdapter.WorldGeneration.WorldGenerationBackendCapabilityProbe.BackendMarker",
+      "target": "file:src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
+        "line": 87
+      }
+    },
+    {
+      "source": "type:Forge.EngineAdapter.WorldGeneration.WorldGenerationBackendCapabilityProbe.BackendMarker",
+      "target": "project:src/Forge.EngineAdapter/Forge.EngineAdapter",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
+        "line": 87
       }
     },
     {
@@ -898550,6 +898759,26 @@
       "evidence": {
         "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBridgeProtocol.cs",
         "line": 30
+      }
+    },
+    {
+      "source": "type:Forge.EngineAdapter.WorldGeneration.WorldGenerationProviderKeys",
+      "target": "file:src/Forge.EngineAdapter/WorldGeneration/WorldGenerationProviderKeys.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationProviderKeys.cs",
+        "line": 3
+      }
+    },
+    {
+      "source": "type:Forge.EngineAdapter.WorldGeneration.WorldGenerationProviderKeys",
+      "target": "project:src/Forge.EngineAdapter/Forge.EngineAdapter",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationProviderKeys.cs",
+        "line": 3
       }
     },
     {

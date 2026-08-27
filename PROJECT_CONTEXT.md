@@ -1,6 +1,6 @@
 # Contexte canonique — OpenRPG Forge
 
-Dernière mise à jour : 26 août 2026.
+Dernière mise à jour : 27 août 2026.
 
 Ce document est l’unique contexte narratif courant du projet. Les états d’exécution sont dans
 `STATUS.md` et `TASKS_MVP.md`; les exigences détaillées et leurs preuves restent dans le tracker et
@@ -50,6 +50,10 @@ seed et empreintes stables, preview d'exécution, étapes partielles, job durabl
 et Godot Flow restent des dépendances facultatives derrière EngineAdapter ; le bridge Godot possède un
 fallback natif réellement maillé pour le terrain. Les scènes produites restent dérivées : elles ne
 deviennent pas une seconde source de vérité et ne remplacent pas implicitement `AreaWorldProfile`.
+La tranche de qualification intégrée le 27 août 2026 conserve les backends sérialisés mais nomme le
+fournisseur concret par `providerKey` (`terrain3d`, `godot-flow`, `gf-pcgodot` ou `openrpg-native`).
+Elle ajoute un benchmark de référence et un plan d'exécution comparatif ; elle ne prétend pas encore
+qualifier un addon réel ni choisir le fournisseur Graph PCG de production.
 
 La revue corrective UX11-B a inspecté les trente-six pages en Full HD, QHD et 4K. Les distributions
 Studio Windows x64 et Linux x64 embarquent le workspace Crypte des Cendres et la bibliothèque

@@ -1,6 +1,6 @@
 # État vérifié — OpenRPG Forge
 
-Dernière mise à jour : 26 août 2026.
+Dernière mise à jour : 27 août 2026.
 
 ## Verdict
 
@@ -37,13 +37,17 @@ confondu avec une release publique signée.
   du module canonique ;
 - fondation WorldGeneration gouvernée : recettes et révisions persistantes, previews déterministes,
   régénération partielle, jobs auditables repris après redémarrage, Terrain3D/Godot Flow facultatifs
-  et terrain natif de fallback avec maillage et collision sous Godot 4.7.1 ;
+  et terrain natif de fallback avec maillage et collision sous Godot 4.7.1 ; identité concrète des
+  fournisseurs stabilisée par `providerKey` et benchmark comparatif documenté ;
 - interface de combat runtime autoritaire, animée, accessible et bornée par des pools stables.
 
 La fondation WorldGeneration est exploitable pour orchestrer et tester des générations, mais elle
 n'est pas encore une chaîne artistique complète : les graphes PCG sont fournis par les modules, les
 étapes natives autres que le terrain restent à approfondir, la navigation réelle doit être qualifiée
 sur une carte générée et aucune scène dérivée n'est promue automatiquement vers `AreaWorldProfile`.
+La qualification des fournisseurs est intégrée à `main` : elle distingue `terrain3d`, `godot-flow`,
+`gf-pcgodot` et `openrpg-native` sans modifier l'enum sérialisé `PcgGodot`. Terrain3D et Godot Flow
+doivent encore être exécutés ensemble dans une fixture Godot 4.7.1 avant toute promotion de production.
 
 ## Multijoueur Internet direct
 

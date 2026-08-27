@@ -1,6 +1,6 @@
 # File active — consolidation OpenRPG Forge
 
-Dernière mise à jour : 25 août 2026.
+Dernière mise à jour : 27 août 2026.
 
 Les 717 fonctions Aurora et les 187 lots sont clos. Cette file décrit le résultat de la consolidation
 et sépare les tâches réalisables dans le dépôt des décisions externes de release.
@@ -683,6 +683,10 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
   régénération partielle.
 - [x] Centraliser architecture, dépendances, extension et handoff dans `docs/world-generation/` et
   accepter l'ADR-0050.
+- [x] Stabiliser l'identité concrète des fournisseurs par `providerKey` sans migrer l'enum sérialisé
+  `PcgGodot`, puis couvrir la compatibilité et la détection de propriétaires concurrents.
+- [x] Définir une carte de référence, les métriques de comparaison et le plan d'exécution Codex pour
+  qualifier les fournisseurs sur des preuves reproductibles plutôt que sur leur seule présence.
 - [ ] Livrer et qualifier des graphes PCG artistiques sur un vrai module extérieur.
 - [ ] Promouvoir et sauvegarder explicitement les artefacts validés dans les contrats canoniques sans
   écraser `AreaWorldProfile` ni les retouches humaines.

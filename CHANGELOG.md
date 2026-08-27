@@ -21,6 +21,10 @@ SemVer ; les versions de schéma persistent séparément dans leurs documents.
   Terrain3D/Godot Flow, fallback Godot 4.7.1 produisant un terrain maillé/collisionné, installateur
   reproductible non destructif, tests C#/GDScript et documentation centrale avec ADR-0050. Les
   graphes PCG artistiques et la promotion vers la scène canonique restent explicitement hors de ce lot ;
+- qualification WorldGeneration : identité concrète `providerKey` pour Terrain3D, Godot Flow,
+  GF-PCGODOT et le fallback natif sans migration de l'enum `PcgGodot`, détection des propriétaires
+  concurrents, carte de référence, benchmark qualité et plan Codex intégrés. Aucun addon n'est déclaré
+  qualifié ni promu en production par cette seule tranche ;
 - Forge Studio UX11-B : revue humaine corrective de quatorze parcours et seconde matrice visuelle
   36/36 pages en FHD 100 %, QHD 150 % et 4K 200 % ; les 717 routes restent `functional`, les
   66 fenêtres historiques passent `Parity`, les 19/19 tests de matrice et le smoke global passent.
