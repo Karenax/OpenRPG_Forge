@@ -3,7 +3,7 @@
     "schema_version": 2,
     "engine": "roslyn",
     "engine_version": "5.6.0.0",
-    "source_digest": "sha256:f500e7c190dc02e6e5c46f52ea8a0fcf49d7d65f727ae03f74b8fafe69158ece",
+    "source_digest": "sha256:3982b0766e3cab9817addfc04ff12b741972c8856a471f71f252d012f4227c01",
     "source_file_count": 3844,
     "sources": [
       {
@@ -93,8 +93,8 @@
       },
       {
         "path": "CHANGELOG.md",
-        "sha256": "sha256:ebc050d46468607b7d1251a11039869a8506b8d54536e82b19d5ff3853bff580",
-        "size": 62763
+        "sha256": "sha256:7628b1f6741dd4d103a2985c3fdf10142898b659538720744a9957bc8c8648ab",
+        "size": 62791
       },
       {
         "path": "Directory.Build.props",
@@ -463,13 +463,13 @@
       },
       {
         "path": "STATUS.md",
-        "sha256": "sha256:36b85825586d2d09aa79d336653ddec35aef5eb15cb16370318534d941876a95",
-        "size": 88002
+        "sha256": "sha256:7fed4aed165f326061cd90e28e9be2eca04ae2d3a4ac8e998b0c4b560cb9453a",
+        "size": 88421
       },
       {
         "path": "TASKS_MVP.md",
-        "sha256": "sha256:f940db0758f27591b3c083109e586aae87e10c42e35d3041c1fa44df93ded57c",
-        "size": 59466
+        "sha256": "sha256:5ef5fe71739909a3a08a9e54aff988c5cc1742f589dd21d9793ec8e6f4cb6126",
+        "size": 59471
       },
       {
         "path": "apps/Forge.CreatorLauncher/Forge.CreatorLauncher.csproj",
@@ -206168,7 +206168,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 919
+        "line": 923
       }
     },
     {
@@ -206178,7 +206178,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 919
+        "line": 923
       }
     },
     {
@@ -206198,7 +206198,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 428
+        "line": 432
       }
     },
     {
@@ -206208,7 +206208,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 475
+        "line": 479
       }
     },
     {
@@ -206218,7 +206218,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 480
+        "line": 484
       }
     },
     {
@@ -206228,7 +206228,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 485
+        "line": 489
       }
     },
     {
@@ -206238,7 +206238,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 490
+        "line": 494
       }
     },
     {
@@ -206248,7 +206248,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 495
+        "line": 499
       }
     },
     {
@@ -206258,7 +206258,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 501
+        "line": 505
       }
     },
     {
@@ -206268,7 +206268,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 506
+        "line": 510
       }
     },
     {
@@ -206278,7 +206278,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 511
+        "line": 515
       }
     },
     {
@@ -206288,7 +206288,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 516
+        "line": 520
       }
     },
     {
@@ -206298,7 +206298,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 522
+        "line": 526
       }
     },
     {
@@ -206308,7 +206308,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 526
+        "line": 530
       }
     },
     {
@@ -206318,7 +206318,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 531
+        "line": 535
       }
     },
     {
@@ -206328,7 +206328,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 536
+        "line": 540
       }
     },
     {
@@ -206338,7 +206338,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 541
+        "line": 545
       }
     },
     {
@@ -206348,7 +206348,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 546
+        "line": 550
       }
     },
     {
@@ -206358,7 +206358,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 551
+        "line": 555
       }
     },
     {
@@ -206368,7 +206368,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 556
+        "line": 560
       }
     },
     {
@@ -206378,7 +206378,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 561
+        "line": 565
       }
     },
     {
@@ -206388,7 +206388,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 566
+        "line": 570
       }
     },
     {
@@ -206398,7 +206398,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 571
+        "line": 575
       }
     },
     {
@@ -206408,7 +206408,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 575
+        "line": 579
       }
     },
     {
@@ -206418,7 +206418,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 579
+        "line": 583
       }
     },
     {
@@ -206428,7 +206428,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 584
+        "line": 588
       }
     },
     {
@@ -206438,7 +206438,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 589
+        "line": 593
       }
     },
     {
@@ -206448,7 +206448,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 594
+        "line": 598
       }
     },
     {
@@ -206458,7 +206458,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 599
+        "line": 603
       }
     },
     {
@@ -206468,7 +206468,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 605
+        "line": 609
       }
     },
     {
@@ -206478,7 +206478,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 611
+        "line": 615
       }
     },
     {
@@ -206488,7 +206488,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 618
+        "line": 622
       }
     },
     {
@@ -206498,7 +206498,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 633
+        "line": 637
       }
     },
     {
@@ -206508,7 +206508,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 668
+        "line": 672
       }
     },
     {
@@ -206518,7 +206518,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 667
+        "line": 671
       }
     },
     {

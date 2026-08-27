@@ -127,9 +127,9 @@ doivent encore être exécutés ensemble dans une fixture Godot 4.7.1 avant tout
 - l’audit vocal refuse désormais les médias MP3/WAV tronqués, les licences ou provenances inconnues,
   les hashes faux, les chemins non canoniques et les plans d’import forgés au workspace, au package,
   à la conformité et au runtime. Le plafond décompressé par défaut d’un `.orpmod` reste borné à 1 Gio.
-  La gate Full du 26 août 2026 passe 2 314 tests .NET et 67 tests Python, tous les builds sans
-  avertissement et les smokes produit. Le graphe Roslyn est frais et déterministe à 11 809 nœuds,
-  94 068 relations et zéro diagnostic. Le package Client Solaren contient quatre WAV et aucun MP3 :
+  La gate Full intégrée du 27 août 2026 passe 2 315 tests .NET et 67 tests Python, tous les builds sans
+  avertissement et les smokes produit. Le graphe Roslyn est frais et déterministe à 11 816 nœuds,
+  94 081 relations et zéro diagnostic. Le package Client Solaren contient quatre WAV et aucun MP3 :
   648 594 126 octets, SHA-256
   `549b8b812daa6f568f0e1ac21245348ff4a01080ddc61e5c24455296f3cc9fb5`. La frontière de sécurité
   couvre les mutations Forge coopératives ; une publication no-follow par handle et un verrou
@@ -158,6 +158,10 @@ doivent encore être exécutés ensemble dans une fixture Godot 4.7.1 avant tout
 - requalification Full du 26 août 2026 : 2 314 tests .NET et 67 tests Python verts, builds sans
   avertissement, documentation générée, graphe Roslyn, Studio, Toolset, Runtime/Forward+, assets,
   Blender, MCP, réseau, sauvegarde/reprise et distributions validés ;
+- qualification Full intégrée du 27 août 2026 après fusion WorldGeneration : 2 315 tests .NET et
+  67 tests Python verts, 32 projets NuGet sans vulnérabilité, builds sans avertissement, documentation
+  déterministe, graphe Roslyn à 11 816 nœuds / 94 081 relations / zéro diagnostic, Studio, Toolset,
+  Runtime/Forward+, assets, Blender, MCP, réseau, sauvegarde/reprise et distributions validés ;
 - distribution versionnée `exe/` de 515 fichiers mise à jour avec trois exécutables racine : Studio,
   Solaren et `Cendres.exe`. Les manifestes Studio, Solaren et Crypte couvrent respectivement 281, 227
   et 224 fichiers ; les vérifications ont été exécutées depuis leurs chemins finaux. Solaren embarque

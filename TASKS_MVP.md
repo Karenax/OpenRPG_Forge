@@ -652,9 +652,9 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
 - [x] Réserver les laboratoires Quality/Performance/Governance aux smokes, remplacer la duplication
   profonde des meshes ordinaires par des overrides de matériaux wetness et ramener le démarrage
   Forward+ comparable de 45 242,758 ms à 12 206,700 ms (-73,0 %), sans régression visuelle.
-- [x] Requalifier le lot post-WorldGeneration et l’audit vocal par la gate Full : 2 314 tests .NET,
+- [x] Requalifier le lot WorldGeneration intégré et l’audit vocal par la gate Full : 2 315 tests .NET,
   67 tests Python, builds sans avertissement, smokes Studio/Toolset/Runtime/Forward+/assets/Blender/
-  MCP/réseau/distribution et graphe Roslyn déterministe à 11 809 nœuds / 94 068 relations / zéro
+  MCP/réseau/distribution et graphe Roslyn déterministe à 11 816 nœuds / 94 081 relations / zéro
   diagnostic. Le `.orpmod` Client Solaren courant fait 648 594 126 octets, SHA-256
   `549b8b812daa6f568f0e1ac21245348ff4a01080ddc61e5c24455296f3cc9fb5`, avec quatre WAV et zéro MP3.
 - [x] Ajouter un import vocal local gouverné MP3/WAV, son cycle MCP/Studio preview/apply/undo/redo/
