@@ -1,9 +1,13 @@
+@tool
 extends Node
 
 const PROTOCOL_VERSION := "1.0.0"
 const GRAPH_REGISTRY_PATH := "res://addons/openrpg_world_generation/graph_registry.json"
+const FLOW_EXECUTOR_SCRIPT_PATH := "res://addons/flow_nodes_editor/flow_node.gd"
+const NEUTRAL_BAKER_SCRIPT_PATH := "res://addons/openrpg_world_generation/neutral_world_baker.gd"
 const GENERATED_ROOT_NAME := "OpenRPGGeneratedWorld"
 const MANUAL_LOCK_META := "openrpg_manual_lock"
+const TERRAIN_FALLBACK_REGION_SIZE := 256
 
 const ALLOWED_OPERATIONS := {
     "terrain3d:terrain": "terrain3d.generate_heightfield",
@@ -24,12 +28,33 @@ const ALLOWED_OPERATIONS := {
 }
 
 var _graph_registry: Dictionary = {}
+var _pending_surface_projections: Array[Dictionary] = []
 
 func _ready() -> void:
     add_to_group("forge_world_generation_terrain3d")
     add_to_group("forge_world_generation_pcgodot")
     add_to_group("forge_world_generation_native")
     _graph_registry = _load_graph_registry()
+
+func _process(_delta: float) -> void:
+    for pending_index in range(_pending_surface_projections.size() - 1, -1, -1):
+        var pending := _pending_surface_projections[pending_index]
+        var executor: Node = (pending.executor as WeakRef).get_ref()
+        var generated_root: Node = (pending.generatedRoot as WeakRef).get_ref()
+        if executor == null or generated_root == null:
+            _pending_surface_projections.remove_at(pending_index)
+            continue
+        var result := _align_multimeshes_to_terrain(executor, generated_root)
+        var completed := int(result.get("aligned", 0)) + int(result.get("failed", 0)) > 0
+        if completed:
+            executor.set_meta("openrpg_surface_aligned_instances", int(result.get("aligned", 0)))
+            executor.set_meta("openrpg_surface_projection_failures", int(result.get("failed", 0)))
+            _pending_surface_projections.remove_at(pending_index)
+            continue
+        pending.attempts = int(pending.get("attempts", 0)) + 1
+        if int(pending.attempts) >= 60:
+            executor.set_meta("openrpg_surface_projection_failures", -1)
+            _pending_surface_projections.remove_at(pending_index)
 
 func execute_forge_world_generation_step(request_json: String) -> Dictionary:
     var request_variant: Variant = JSON.parse_string(request_json)
@@ -60,6 +85,22 @@ func execute_forge_world_generation_step(request_json: String) -> Dictionary:
             return fallback
     return result
 
+func bake_forge_generated_world(recipe_id: String, output_path: String) -> Dictionary:
+    var safe_recipe_id := recipe_id.to_lower().replace("-", "")
+    if safe_recipe_id.length() != 32 or not safe_recipe_id.is_valid_hex_number(false):
+        return _failure("world_generation.bake.recipe_id_invalid", "Bake recipe ID is invalid.")
+    var scene_root := get_tree().edited_scene_root if Engine.is_editor_hint() else get_tree().current_scene
+    if scene_root == null:
+        scene_root = self
+    var generated_root := scene_root.get_node_or_null("%s_%s" % [GENERATED_ROOT_NAME, safe_recipe_id]) as Node3D
+    if generated_root == null:
+        return _failure("world_generation.bake.root_missing", "Generated world root was not found.")
+    var baker_script := load(NEUTRAL_BAKER_SCRIPT_PATH) as Script
+    if baker_script == null or not baker_script.can_instantiate():
+        return _failure("world_generation.bake.unavailable", "Neutral world baker could not be loaded.")
+    var baker: RefCounted = baker_script.new()
+    return baker.call("bake", generated_root, output_path) as Dictionary
+
 func _execute_terrain3d(request: Dictionary) -> Dictionary:
     if not ClassDB.class_exists("Terrain3D"):
         return _failure("world_generation.terrain3d.unavailable", "Terrain3D is not installed or did not load.")
@@ -82,20 +123,43 @@ func _execute_terrain3d(request: Dictionary) -> Dictionary:
         return _failure("world_generation.terrain3d.data_unavailable", "Terrain3D data import API is unavailable.")
 
     var recipe: Dictionary = request.get("recipe", {})
-    var image := _build_height_image(recipe)
-    var images: Array[Image] = [image]
+    var terrain_region_size := TERRAIN_FALLBACK_REGION_SIZE
+    if terrain.has_method("get_region_size"):
+        terrain_region_size = maxi(int(terrain.call("get_region_size")), 1)
+    var height_sample_count := terrain_region_size
+    var image := _build_height_image(recipe, height_sample_count)
+    var images: Array[Image] = []
+    images.resize(3)
+    images[0] = image
     var bounds: Dictionary = recipe.get("bounds", {})
+    var width := maxf(float(bounds.get("widthMeters", 2048.0)), 1.0)
+    var depth := maxf(float(bounds.get("depthMeters", 2048.0)), 1.0)
+    var vertex_spacing := maxf(width, depth) / float(terrain_region_size)
+    terrain.set("vertex_spacing", vertex_spacing)
+    var applied_vertex_spacing := float(terrain.get("vertex_spacing"))
+    if not is_equal_approx(applied_vertex_spacing, vertex_spacing):
+        return _failure(
+            "world_generation.terrain3d.vertex_spacing_rejected",
+            "Terrain3D applied vertex spacing %.3f instead of %.3f." % [applied_vertex_spacing, vertex_spacing])
     var scale := maxf(float(bounds.get("maxElevationMeters", 320.0)), 1.0)
     data.call("import_images", images, Vector3.ZERO, 0.0, scale)
     if data.has_method("calc_height_range"):
         data.call("calc_height_range", true)
     terrain.set_meta("openrpg_recipe_id", str(request.get("recipeId", "")))
     terrain.set_meta("openrpg_recipe_fingerprint", str(request.get("recipeFingerprint", "")))
-    return _success([terrain.get_path()])
+    terrain.set_meta("openrpg_requested_width_meters", width)
+    terrain.set_meta("openrpg_requested_depth_meters", depth)
+    var result := _success([terrain.get_path()])
+    result["vertexSpacingMeters"] = applied_vertex_spacing
+    result["regionSizeVertices"] = terrain_region_size
+    return result
 
 func _execute_pcg(request: Dictionary) -> Dictionary:
-    if not ClassDB.class_exists("FlowGraphNode3D"):
+    if not ResourceLoader.exists(FLOW_EXECUTOR_SCRIPT_PATH):
         return _failure("world_generation.pcg.unavailable", "Flow Nodes Editor/PCGODOT is not installed or did not load.")
+    var executor_script := load(FLOW_EXECUTOR_SCRIPT_PATH) as Script
+    if executor_script == null or not executor_script.can_instantiate():
+        return _failure("world_generation.pcg.unavailable", "FlowGraphNode3D script could not be instantiated.")
     var step: Dictionary = request.get("step", {})
     var stage := str(step.get("stage", "")).to_lower()
     var graph_path := str(_graph_registry.get(stage, ""))
@@ -112,7 +176,7 @@ func _execute_pcg(request: Dictionary) -> Dictionary:
         if _is_protected(previous, request, node_name):
             return _preserved(previous, node_name)
         previous.free()
-    var executor: Node3D = ClassDB.instantiate("FlowGraphNode3D") as Node3D
+    var executor: Node3D = executor_script.new() as Node3D
     if executor == null:
         return _failure("world_generation.pcg.instantiate_failed", "FlowGraphNode3D could not be instantiated.")
     executor.name = node_name
@@ -127,11 +191,82 @@ func _execute_pcg(request: Dictionary) -> Dictionary:
             if override != null:
                 override.set("enabled", true)
                 override.set("value", _coerce_parameter(parameters[key]))
+    elif "args" in executor:
+        executor.set("args", parameters.duplicate(true))
     if executor.has_method("regenerate"):
         executor.call("regenerate")
+    elif executor.has_method("execute"):
+        executor.call("execute")
+    else:
+        executor.free()
+        return _failure("world_generation.pcg.execution_api_missing", "Graph PCG executor exposes neither regenerate nor execute.")
+    var source_distinct_positions := _distinct_multimesh_horizontal_positions(executor)
+    var surface_alignment := _align_multimeshes_to_terrain(executor, generated_root)
+    var surface_projection_queued := int(surface_alignment.get("aligned", 0)) == 0 and \
+        int(surface_alignment.get("failed", 0)) == 0
+    if surface_projection_queued:
+        _pending_surface_projections.append({
+            "executor": weakref(executor),
+            "generatedRoot": weakref(generated_root),
+            "attempts": 0,
+        })
+    elif int(surface_alignment.get("failed", 0)) > 0:
+        executor.free()
+        return _failure(
+            "world_generation.pcg.surface_projection_failed",
+            "Graph PCG left %d generated instances outside Terrain3D." % int(surface_alignment.failed))
     executor.set_meta("openrpg_recipe_id", str(request.get("recipeId", "")))
     executor.set_meta("openrpg_recipe_fingerprint", str(request.get("recipeFingerprint", "")))
-    return _success([executor.get_path(), graph_path])
+    var result := _success([executor.get_path(), graph_path])
+    result["surfaceAlignedInstances"] = int(surface_alignment.get("aligned", 0))
+    result["surfaceProjectionQueued"] = surface_projection_queued
+    result["sourceDistinctHorizontalPositions"] = source_distinct_positions
+    return result
+
+func _distinct_multimesh_horizontal_positions(node: Node) -> int:
+    var positions := {}
+    for multimesh_instance in _find_multimesh_instances(node):
+        var multimesh: MultiMesh = multimesh_instance.multimesh
+        if multimesh == null:
+            continue
+        for index in multimesh.instance_count:
+            var position := multimesh.get_instance_transform(index).origin
+            positions["%.4f,%.4f" % [position.x, position.z]] = true
+    return positions.size()
+
+func _align_multimeshes_to_terrain(executor: Node, generated_root: Node) -> Dictionary:
+    var terrain := generated_root.get_node_or_null("Terrain3D")
+    if terrain == null:
+        return { "aligned": 0, "failed": 0 }
+    var data: Variant = terrain.get("data")
+    if data == null or not data.has_method("get_height"):
+        return { "aligned": 0, "failed": 0 }
+    var aligned := 0
+    var failed := 0
+    for multimesh_instance in _find_multimesh_instances(executor):
+        var multimesh: MultiMesh = multimesh_instance.multimesh
+        if multimesh == null:
+            continue
+        for index in multimesh.instance_count:
+            var transform := multimesh.get_instance_transform(index)
+            var world_position := multimesh_instance.global_transform * transform.origin
+            var height := float(data.call("get_height", world_position))
+            if not is_finite(height):
+                failed += 1
+                continue
+            world_position.y = height
+            transform.origin = multimesh_instance.global_transform.affine_inverse() * world_position
+            multimesh.set_instance_transform(index, transform)
+            aligned += 1
+    return { "aligned": aligned, "failed": failed }
+
+func _find_multimesh_instances(node: Node) -> Array[MultiMeshInstance3D]:
+    var results: Array[MultiMeshInstance3D] = []
+    if node is MultiMeshInstance3D:
+        results.append(node as MultiMeshInstance3D)
+    for child in node.get_children():
+        results.append_array(_find_multimesh_instances(child))
+    return results
 
 func _execute_native(request: Dictionary) -> Dictionary:
     var step: Dictionary = request.get("step", {})
@@ -306,7 +441,7 @@ func _generated_root(request: Dictionary) -> Node3D:
     _assign_owner(root)
     return root
 
-func _build_height_image(recipe: Dictionary, sample_count: int = 257) -> Image:
+func _build_height_image(recipe: Dictionary, sample_count: int = TERRAIN_FALLBACK_REGION_SIZE) -> Image:
     var image := Image.create(sample_count, sample_count, false, Image.FORMAT_RF)
     var seed_value := int(recipe.get("seed", 1))
     var terrain: Dictionary = recipe.get("terrain", {})

@@ -19,12 +19,18 @@ SemVer ; les versions de schéma persistent séparément dans leurs documents.
   révisions, empreinte stable de plan, régénération partielle, jobs persistants et audit ; validation
   renforcée des données, opérations et chemins, protection des retouches humaines, adaptateurs
   Terrain3D/Godot Flow, fallback Godot 4.7.1 produisant un terrain maillé/collisionné, installateur
-  reproductible non destructif, tests C#/GDScript et documentation centrale avec ADR-0050. Les
-  graphes PCG artistiques et la promotion vers la scène canonique restent explicitement hors de ce lot ;
+  reproductible non destructif, tests C#/GDScript et documentation centrale avec ADR-0050 ; promotion
+  canonique ajoutée par candidat provider-free et rapport validé, preview/permission/révisions,
+  provenance, copie/manifeste atomiques, référence `AreaWorldProfile`, réouverture et inverse ;
 - qualification WorldGeneration : identité concrète `providerKey` pour Terrain3D, Godot Flow,
   GF-PCGODOT et le fallback natif sans migration de l'enum `PcgGodot`, détection des propriétaires
-  concurrents, carte de référence, benchmark qualité et plan Codex intégrés. Aucun addon n'est déclaré
-  qualifié ni promu en production par cette seule tranche ;
+  concurrents, reçu schema 2, fixture et CI dédiées. Terrain3D avec les deux fournisseurs PCG réels
+  passe localement sous Godot 4.7.1 Windows sur un proxy 2 km : trois runs, zéro fallback, 5 904
+  instances, collision, navigation à 131 points, sauvegarde/réouverture, cinq captures identiques et
+  candidat canonique neutre. GF-PCGODOT reste expérimental (+13,04 % sur l'échantillon final) et
+  Godot Flow reste la baseline ; Linux, exports et qualification artistique demeurent ouverts. Le
+  build Release complet passe sans avertissement, 2 323/2 323 tests .NET passent séquentiellement et
+  le graphe Roslyn atteint 11 860 nœuds / 94 284 relations sans diagnostic ;
 - Forge Studio UX11-B : revue humaine corrective de quatorze parcours et seconde matrice visuelle
   36/36 pages en FHD 100 %, QHD 150 % et 4K 200 % ; les 717 routes restent `functional`, les
   66 fenêtres historiques passent `Parity`, les 19/19 tests de matrice et le smoke global passent.

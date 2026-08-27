@@ -1,4 +1,5 @@
 using Forge.Application.Commands;
+using Forge.Application.Projects;
 using Forge.Application.Tests.Entities;
 using Forge.Application.WorldGeneration;
 using Forge.Domain.Assistant;
@@ -192,6 +193,146 @@ public sealed class WorldGenerationWorkflowTests
         Assert.Empty(history.State.Catalog.Recipes);
         Assert.True(history.Redo());
         Assert.Equal(recipe.Fingerprint(), Assert.Single(history.State.Catalog.Recipes).Fingerprint());
+    }
+
+    [Fact]
+    public void CanonicalPromotionRequiresSuccessfulPreviewAndReferencesNeutralScene()
+    {
+        var context = new EntityMutationTestContext();
+        var recipe = Recipe(context.AreaId.Value);
+        var recipeState = new WorldGenerationRecipeState(
+            new WorldGenerationRecipeCatalog(
+                Guid.Parse("f0500000-0000-4000-8000-000000000050"),
+                WorldGenerationRecipeCatalog.CurrentSchemaVersion,
+                [recipe],
+                "test:promotion"),
+            new WorldGenerationRecipeRevision(4));
+        var plan = new WorldGenerationPlanner().Build(
+            recipe,
+            context.State.Revision.Value,
+            recipeState.Revision,
+            Guid.Parse("f0500000-0000-4000-8000-000000000051"),
+            Guid.Parse("f0500000-0000-4000-8000-000000000052"));
+        var job = WorldGenerationJob.Queue(plan, recipe, EntityMutationTestContext.Timestamp)
+            .WithStatus(WorldGenerationJobStatus.Succeeded, EntityMutationTestContext.Timestamp.AddSeconds(1));
+        var report = PromotionReport(job);
+        var handler = new PromoteWorldGenerationHandler(new FixedClock(EntityMutationTestContext.Timestamp));
+        var transactionId = Guid.Parse("f0500000-0000-4000-8000-000000000053");
+        var promotionPlanId = Guid.Parse("f0500000-0000-4000-8000-000000000054");
+        var canonicalPath = PromoteWorldGenerationHandler.CanonicalScenePath(recipe.AreaId);
+        PromoteWorldGenerationCommand Command(bool dryRun) => new(
+            CommandId.From(Guid.NewGuid()),
+            transactionId,
+            promotionPlanId,
+            context.State.Revision,
+            recipeState.Revision,
+            job.PlanId,
+            report,
+            $"world/generation/artifacts/{job.PlanId:N}/derived-world.tscn",
+            canonicalPath,
+            null,
+            "human-review:test",
+            AssistantPermissionLevel.ApplyApprovedPlan,
+            dryRun);
+
+        var refused = handler.Handle(context.State, recipeState, job, Command(false));
+        var preview = handler.Handle(context.State, recipeState, job, Command(true));
+        var applied = handler.Handle(context.State, recipeState, job, Command(false));
+
+        Assert.Equal(PromoteWorldGenerationHandler.PlanNotPreviewedCode,
+            Assert.Single(refused.Command.Diagnostics).Code);
+        Assert.True(preview.Succeeded);
+        Assert.False(preview.Applied);
+        Assert.NotNull(preview.Command.Patch);
+        Assert.NotNull(preview.Command.Inverse);
+        Assert.True(applied.Succeeded);
+        Assert.True(applied.Applied);
+        Assert.Equal(context.State.Revision.Next(), applied.Command.NewRevision);
+        Assert.Contains(canonicalPath,
+            applied.Command.State.Project.Areas.Single(item => item.Id == context.AreaId)
+                .World.Loading.RequiredResources);
+        Assert.Equal(report.ContentFingerprint, applied.Promotion!.ContentFingerprint);
+        Assert.Equal(recipe.Seed, applied.Promotion.Seed);
+        Assert.Equal("godot-flow", applied.Promotion.Providers
+            .Single(item => item.Stage == WorldGenerationStage.Biomes).ProviderKey);
+        Assert.True(applied.Command.Audit.Applied);
+    }
+
+    [Fact]
+    public void CanonicalPromotionRejectsStaleFailedOrUnacceptedEvidence()
+    {
+        var context = new EntityMutationTestContext();
+        var recipe = Recipe(context.AreaId.Value);
+        var recipeState = new WorldGenerationRecipeState(
+            new WorldGenerationRecipeCatalog(Guid.NewGuid(), 1, [recipe], "test:promotion"),
+            new WorldGenerationRecipeRevision(2));
+        var plan = new WorldGenerationPlanner().Build(recipe, context.State.Revision.Value,
+            recipeState.Revision, Guid.NewGuid(), Guid.NewGuid());
+        var queued = WorldGenerationJob.Queue(plan, recipe, EntityMutationTestContext.Timestamp);
+        var report = PromotionReport(queued);
+        var handler = new PromoteWorldGenerationHandler(new FixedClock(EntityMutationTestContext.Timestamp));
+        PromoteWorldGenerationCommand Command(WorldGenerationJob job, WorldGenerationValidationReport evidence,
+            ProjectRevision revision, string acceptance = "human-review:test") => new(
+            CommandId.From(Guid.NewGuid()), Guid.NewGuid(), Guid.NewGuid(), revision, recipeState.Revision,
+            job.PlanId, evidence, $"world/generation/artifacts/{job.PlanId:N}/derived-world.tscn",
+            PromoteWorldGenerationHandler.CanonicalScenePath(recipe.AreaId), null, acceptance,
+            AssistantPermissionLevel.ApplyApprovedPlan, true);
+
+        var unfinished = handler.Handle(context.State, recipeState, queued,
+            Command(queued, report, context.State.Revision));
+        var stale = handler.Handle(context.State, recipeState,
+            queued.WithStatus(WorldGenerationJobStatus.Succeeded, EntityMutationTestContext.Timestamp.AddSeconds(1)),
+            Command(queued, report, context.State.Revision.Next()));
+        var unaccepted = handler.Handle(context.State, recipeState,
+            queued.WithStatus(WorldGenerationJobStatus.Succeeded, EntityMutationTestContext.Timestamp.AddSeconds(1)),
+            Command(queued, report, context.State.Revision, string.Empty));
+
+        Assert.Equal(PromoteWorldGenerationHandler.JobNotSucceededCode,
+            Assert.Single(unfinished.Command.Diagnostics).Code);
+        Assert.Equal(PromoteWorldGenerationHandler.RevisionConflictCode,
+            Assert.Single(stale.Command.Diagnostics).Code);
+        Assert.Equal(PromoteWorldGenerationHandler.AcceptanceRequiredCode,
+            Assert.Single(unaccepted.Command.Diagnostics).Code);
+        Assert.All([unfinished, stale, unaccepted], result => Assert.Same(context.State, result.Command.State));
+    }
+
+    private static WorldGenerationValidationReport PromotionReport(WorldGenerationJob job)
+    {
+        var providers = job.Plan.Steps.Select(step => new WorldGenerationProviderEvidence(
+            step.Stage,
+            step.Backend,
+            step.Backend switch
+            {
+                WorldGenerationBackend.Terrain3D => "terrain3d",
+                WorldGenerationBackend.PcgGodot => "godot-flow",
+                _ => "openrpg-native",
+            },
+            step.Backend switch
+            {
+                WorldGenerationBackend.Terrain3D => "v1.0.2-stable",
+                WorldGenerationBackend.PcgGodot => "284231f060099a8943eb56567c21732b7cd678d3",
+                _ => "1.0.0",
+            },
+            new string(step.Order % 2 == 0 ? 'a' : 'b', 64))).ToArray();
+        return new WorldGenerationValidationReport(
+            WorldGenerationValidationReport.CurrentSchemaVersion,
+            job.JobId,
+            job.PlanId,
+            job.Recipe.Id,
+            job.Recipe.AreaId,
+            job.ProjectRevision,
+            job.RecipeRevision,
+            job.RecipeFingerprint,
+            job.Plan.PlanFingerprint,
+            new string('c', 64),
+            new string('d', 64),
+            new string('e', 64),
+            true,
+            true,
+            true,
+            true,
+            providers,
+            []);
     }
 
     private static WorldGenerationRecipe Recipe(Guid areaId, bool reverse = false)

@@ -33,9 +33,15 @@ monde canoniques restent dans les contrats Forge et que les scènes moteur soien
 - Une régénération peut sélectionner un sous-ensemble d'étapes. Les nœuds marqués par la métadonnée
   `openrpg_manual_lock` ou déclarés dans `regeneration.protectedNodePaths` sont préservés lorsque
   `preserveManualEdits` est actif.
+- Un job complet réussi produit une scène dérivée provider-free et un rapport de validation lié aux
+  révisions, empreintes et fournisseurs réellement exécutés. Cette sortie reste non canonique.
+- La promotion canonique est une seconde mutation MCP explicite : preview liée à la transaction,
+  permission `ApplyApprovedPlan`, provenance d'acceptation, contrôle du SHA-256 de destination,
+  copie atomique vers `world/areas/<areaId>/generated-world.tscn`, manifeste de provenance, référence
+  depuis `AreaWorldProfile`, sauvegarde/réouverture et inverse fichier/projet.
 - Les dépendances facultatives sont installées par un bootstrap : archive Terrain3D vérifiée par
-  SHA-256 et dépôt Godot Flow fixé à un commit immuable. Aucun binaire tiers volumineux n'entre dans
-  Git.
+  SHA-256 et fournisseur Graph PCG fixé à un commit immuable. Godot Flow et GF-PCGODOT sont installés
+  uniquement dans des fixtures séparées. Aucun binaire tiers volumineux n'entre dans Git.
 
 ## Preuves
 
@@ -44,16 +50,23 @@ monde canoniques restent dans les contrats Forge et que les scènes moteur soien
 - Tests : `tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs`
 - Tests : `tests/Forge.Mcp.Tests/Projects/WorldGenerationAgentServiceTests.cs`
 - Smoke Godot : `tests/Godot/WorldGenerationNativeSmoke.gd`
+- Qualification addon : `scripts/Invoke-WorldGenerationAddonQualification.ps1`
+- Comparaison provider-neutral : `scripts/Compare-WorldGenerationAddonQualifications.ps1`
 - Bootstrap : `scripts/Install-WorldGenerationDependencies.ps1 -WhatIf`
 
 ## Conséquences
 
 Le même contrat fonctionne avec les addons spécialisés ou uniquement avec Godot. Les recettes,
-plans et jobs peuvent être audités indépendamment de la scène. Cette fondation ne qualifie pas encore
-un générateur artistique complet : les graphes PCG propres à un module ne sont pas livrés, les étapes
-natives autres que le terrain produisent surtout des ancres déterministes, et le worker ne sauvegarde
-pas encore automatiquement une scène générée dans le modèle canonique. `AreaWorldProfile` demeure la
-source de vérité existante tant qu'une commande explicite de promotion n'a pas été conçue et validée.
+plans, jobs, rapports et promotions peuvent être audités indépendamment de la scène moteur active.
+`AreaWorldProfile` demeure la source de vérité : le worker n'y écrit jamais et seule la commande de
+promotion validée peut ajouter la référence canonique stable.
+
+Terrain3D, Godot Flow et GF-PCGODOT ont franchi la qualification technique locale Windows sous Godot
+4.7.1 sur le proxy de référence, mais cette fondation ne qualifie toujours pas un générateur
+artistique complet. Les graphes et assets d'un module de production ne sont pas livrés, les étapes
+natives autres que le terrain produisent surtout des ancres déterministes, et les gates Linux,
+exports, scoring visuel aveugle et effort de correction restent nécessaires avant un choix final du
+fournisseur Graph PCG.
 
 ## Remplacement
 

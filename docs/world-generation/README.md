@@ -27,6 +27,15 @@ Addon Godot OpenRPG
         |
         v
 Gameplay, navigation et validation
+        |
+        v
+Scène dérivée neutre + rapport de validation
+        |
+        v
+MCP -- preview, acceptation explicite, promotion atomique, inverse
+        |
+        v
+Scène canonique référencée par AreaWorldProfile
 ```
 
 ## Recette et exécution
@@ -90,7 +99,11 @@ Les écritures C# sont atomiques et les fichiers sont confinés au workspace :
 - `world/generation/recipes.json` : catalogue et révision ;
 - `world/generation/plans/<planId>.json` : preview déterministe ;
 - `world/generation/jobs/<planId>.json` : état et audit du worker ;
-- `world/generation/artifacts/` : requêtes de bridge produites par les adaptateurs.
+- `world/generation/artifacts/<planId>/derived-world.tscn` : candidat neutre produit par le worker ;
+- `world/generation/artifacts/<planId>/validation-report.json` : preuve liée au job, aux révisions,
+  aux empreintes et aux fournisseurs ;
+- `world/generation/promotions/<areaId>.json` : manifeste de la promotion canonique ;
+- `world/areas/<areaId>/generated-world.tscn` : copie canonique référencée par le profil de chargement.
 
 Le plugin Godot lit les jobs `queued`, vérifie schéma, identifiants, révisions, empreintes, ordre,
 dépendances et opérations, écrit `running`, exécute séquentiellement, puis écrit un état terminal.
@@ -98,6 +111,20 @@ Après une interruption, un job resté `running` est repris et réexécuté de m
 une entrée d'audit `resumed`. Une annulation persistée est contrôlée entre les étapes et n'est pas
 écrasée par le worker. Un job déjà terminal n'est pas rejoué. La preview et l'inverse d'une mutation de recette restent, elles, limitées à la session MCP ;
 le catalogue appliqué et sa révision sont bien restaurés.
+
+## Promotion canonique
+
+Le worker ne promeut jamais par effet secondaire. Après un job complet réussi, il bake une scène
+sans référence Terrain3D, Godot Flow ou GF-PCGODOT et écrit un rapport de validation. La commande MCP
+de promotion vérifie le job, les révisions projet/recette, les empreintes recette/plan/scène/contenu,
+la collision, la navigation, la préservation des retouches et exactement un fournisseur prouvé par
+étape. Une première promotion exige toutes les étapes du plan.
+
+La preview exige `ApplyApprovedPlan` et une provenance d'acceptation explicite. L'application recopie
+atomiquement la scène vers le chemin stable de l'area, conserve le manifeste de provenance, ajoute la
+ressource au `AreaWorldProfile.Loading.RequiredResources`, sauvegarde le projet puis vérifie sa
+réouverture. Le remplacement d'une scène existante exige son SHA-256 courant. L'inverse restaure à la
+fois les fichiers et l'état projet ; les retouches concurrentes non reconnues sont refusées.
 
 Configurer dans Godot :
 
@@ -117,7 +144,13 @@ Codex doit employer les outils MCP, sans modifier directement les JSON :
 6. vérifier `readyToApply`, les backends, étapes et empreintes ;
 7. appeler `QueueWorldGenerationExecutionPlan(planId)` ;
 8. suivre `GetWorldGenerationJob(s)` et ne déclarer le résultat produit qu'après l'état terminal ;
-9. utiliser `CancelWorldGenerationJob` pour un job actif ou
+9. appeler `PlanWorldGenerationPromotion` avec la provenance de l'acceptation et, en cas de
+   remplacement, le SHA-256 canonique actuellement observé ;
+10. examiner le diff, l'inverse, la scène cible et les diagnostics de preuve ;
+11. appeler `ApplyWorldGenerationPromotion(promotionPlanId)` sans changer les révisions ;
+12. vérifier avec `GetCanonicalWorldGenerationPromotion`, puis employer
+   `RevertWorldGenerationPromotion` si l'application doit être annulée ;
+13. utiliser `CancelWorldGenerationJob` pour un job actif ou
    `RevertWorldGenerationRecipePlan` pour la dernière mutation de recette encore réversible dans la
    session.
 
@@ -158,7 +191,9 @@ collision, navigation et accessibilité. Ne coder aucun nom de module ou de jeu 
 ## Validation
 
 Les tests ciblés couvrent déterminisme, sélection partielle, fallback, persistance/réouverture,
-altération d'empreinte, audit, bridge et exécution native Godot. Les commandes reproductibles sont
+altération d'empreinte, audit, bridge, exécution native Godot et promotion preview/apply/reopen/revert.
+Le harnais qualifie en plus les addons réels, trois exécutions déterministes, collision, navigation,
+scène neutre, cinq captures techniques et candidat de promotion. Les commandes reproductibles sont
 réunies dans [CODEX_HANDOFF.md](CODEX_HANDOFF.md).
 
 ## Limites actuelles
@@ -167,12 +202,14 @@ réunies dans [CODEX_HANDOFF.md](CODEX_HANDOFF.md).
   d'extension attendus dans chaque module ; aucun graphe artistique générique n'est livré ici.
 - Le fallback natif fournit un terrain réellement maillé et collisionné. Les autres étapes sont une
   fondation déterministe à ancres, pas un générateur artistique de production.
-- Le worker modifie l'arbre de scène actif mais ne promeut ni ne sauvegarde encore automatiquement
-  ces résultats dans `AreaWorldProfile` ou une scène canonique du workspace.
-- Le contrat Navigation ne constitue pas encore une preuve de bake et de reachability sur une vraie
-  carte générée ; cette qualification doit accompagner le premier module consommateur.
-- Terrain3D annonce officiellement Godot 4.4 à 4.6+ pour la version épinglée. Le smoke natif et le
-  parsing du bridge passent sous 4.7.1, mais Terrain3D 4.7.1 doit être validé avec l'addon installé.
+- La carte de référence actuelle est un proxy technique de 2 048 m avec 5 904 instances et une
+  navigation réelle. Elle ne contient pas encore les graphes, assets et finitions artistiques d'un
+  module extérieur de production ; ses captures ne prouvent donc aucun gain visuel.
+- Terrain3D `v1.0.2-stable`, Godot Flow et GF-PCGODOT ont été exécutés avec leurs binaires réels sous
+  Godot `4.7.1-stable` sur Windows. Le job Linux est configuré mais n'a pas encore produit de preuve
+  GitHub, et les exports provider-free Windows/Linux restent à qualifier.
+- La promotion canonique existe et reste volontairement explicite. Elle ne transforme pas le proxy
+  technique en monde artistique et ne choisit pas à elle seule le fournisseur Graph PCG final.
 
 Voir aussi [les dépendances](DEPENDENCIES.md), [le handoff Codex](CODEX_HANDOFF.md) et
 [l'ADR-0050](../ADR/ADR-0050-governed-world-generation-orchestration.md).

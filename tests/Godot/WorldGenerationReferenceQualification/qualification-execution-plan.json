@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "planId": "f0540000-0000-4000-8000-000000000203",
+  "transactionId": "f0540000-0000-4000-8000-000000000204",
+  "steps": [
+    { "order": 0, "stage": "terrain", "backend": "terrain3D", "operation": "terrain3d.generate_heightfield" },
+    { "order": 1, "stage": "hydrology", "backend": "terrain3D", "operation": "terrain3d.carve_hydrology", "dependsOn": [0] },
+    { "order": 2, "stage": "biomes", "backend": "pcgGodot", "operation": "pcgodot.generate_biomes", "dependsOn": [0, 1] },
+    { "order": 3, "stage": "roads", "backend": "pcgGodot", "operation": "pcgodot.generate_road_network", "dependsOn": [0, 1, 2] },
+    { "order": 4, "stage": "settlements", "backend": "pcgGodot", "operation": "pcgodot.generate_settlements", "dependsOn": [0, 1, 2, 3] },
+    { "order": 5, "stage": "scatter", "backend": "pcgGodot", "operation": "pcgodot.scatter_environment", "dependsOn": [0, 1, 2, 3, 4] },
+    { "order": 6, "stage": "gameplay", "backend": "godotNative", "operation": "godot.generate_gameplay_anchors", "dependsOn": [0, 1, 2, 3, 4, 5] },
+    { "order": 7, "stage": "navigation", "backend": "godotNative", "operation": "godot.bake_navigation", "dependsOn": [0, 1, 2, 3, 4, 5, 6] },
+    { "order": 8, "stage": "validation", "backend": "godotNative", "operation": "godot.validate_generated_world", "dependsOn": [0, 1, 2, 3, 4, 5, 6, 7] }
+  ],
+  "derivedOutput": "qualification-output/generated_world.tscn"
+}

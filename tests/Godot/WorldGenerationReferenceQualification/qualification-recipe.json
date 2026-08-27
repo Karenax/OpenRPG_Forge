@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "f0540000-0000-4000-8000-000000000201",
+  "areaId": "f0540000-0000-4000-8000-000000000202",
+  "seed": 20260827,
+  "bounds": {
+    "widthMeters": 2048.0,
+    "depthMeters": 2048.0,
+    "maximumElevationMeters": 320.0
+  },
+  "terrain": {
+    "archetype": "temperate-valley",
+    "roughness": 0.58,
+    "providerKey": "terrain3d"
+  },
+  "graphLayers": [
+    { "stage": "biomes", "resource": "res://world/generation/graphs/biomes.tres", "expectedInstances": 1600 },
+    { "stage": "roads", "resource": "res://world/generation/graphs/roads.tres", "expectedInstances": 183 },
+    { "stage": "settlements", "resource": "res://world/generation/graphs/settlements.tres", "expectedInstances": 25 },
+    { "stage": "scatter", "resource": "res://world/generation/graphs/scatter.tres", "expectedInstances": 4096 }
+  ],
+  "regeneration": {
+    "preserveManualEdits": true,
+    "protectedNodePaths": []
+  },
+  "provenance": "openrpg-forge:world-generation-reference-2km-v1"
+}

@@ -7,6 +7,10 @@ const WORKSPACE_SETTING := "openrpg/world_generation/workspace_root"
 const AUTO_PROCESS_SETTING := "openrpg/world_generation/auto_process_jobs"
 const POLL_SECONDS_SETTING := "openrpg/world_generation/poll_seconds"
 const JOBS_RELATIVE_DIRECTORY := "world/generation/jobs"
+const ARTIFACTS_RELATIVE_DIRECTORY := "world/generation/artifacts"
+const PROVIDER_RECEIPT_RELATIVE_PATH := ".openrpg/world-generation/provider-installation.json"
+const BACKEND_SCRIPT_PATH := "res://addons/openrpg_world_generation/openrpg_world_generation_backend.gd"
+const SOURCE_BACKEND_SCRIPT_PATH := "res://integrations/godot/addons/openrpg_world_generation/openrpg_world_generation_backend.gd"
 const ALLOWED_OPERATIONS := {
     "terrain3d:terrain": "terrain3d.generate_heightfield",
     "terrain3d:hydrology": "terrain3d.carve_hydrology",
@@ -24,6 +28,17 @@ const ALLOWED_OPERATIONS := {
     "godotnative:navigation": "godot.bake_navigation",
     "godotnative:validation": "godot.validate_generated_world",
 }
+const CANONICAL_PROMOTION_STAGES := [
+    "terrain",
+    "hydrology",
+    "biomes",
+    "roads",
+    "settlements",
+    "scatter",
+    "gameplay",
+    "navigation",
+    "validation",
+]
 
 var _elapsed := 0.0
 var _processing := false
@@ -64,7 +79,7 @@ func process_pending_jobs() -> Dictionary:
     file_names.sort()
 
     for queued_file in file_names:
-        var outcome := _process_job_file(directory_path.path_join(queued_file))
+        var outcome := await _process_job_file(directory_path.path_join(queued_file))
         if bool(outcome.get("processed", false)):
             processed += 1
         if not bool(outcome.get("succeeded", true)):
@@ -118,6 +133,7 @@ func _process_job_file(path: String) -> Dictionary:
     var plan: Dictionary = job.get("plan", {})
     var recipe: Dictionary = job.get("recipe", {})
     var diagnostics: Array = []
+    var provider_evidence: Array = []
     var steps: Array = plan.get("steps", [])
     steps.sort_custom(func(left: Dictionary, right: Dictionary) -> bool:
         return int(left.get("order", 0)) < int(right.get("order", 0)))
@@ -159,10 +175,37 @@ func _process_job_file(path: String) -> Dictionary:
             _append_audit(job, "fallback", true,
                 "Stage '%s' used the native Godot fallback because backend '%s' was unavailable." % [
                     str(step.get("stage", "unknown")), str(result.get("requestedBackend", "unknown"))])
+        var evidence := _provider_evidence_for_step(step, result)
+        if evidence.is_empty():
+            diagnostics.append(_diagnostic(
+                "world_generation.worker.provider_evidence_missing",
+                "No verified provider receipt was available for stage '%s'." % str(step.get("stage", "unknown")),
+                "world-generation/job/providerEvidence"))
+            break
+        provider_evidence.append(evidence)
+        if str(step.get("backend", "")).to_lower() == "pcggodot":
+            for _settle_index in 3:
+                await get_tree().physics_frame
+                await get_tree().process_frame
 
     var succeeded := diagnostics.is_empty()
     if _job_status(path) == "cancelled":
         return { "succeeded": true, "processed": true, "cancelled": true }
+    if succeeded and _can_create_promotion_candidate(steps, provider_evidence):
+        var candidate := _create_promotion_candidate(job, backend, provider_evidence)
+        if not bool(candidate.get("succeeded", false)):
+            var candidate_diagnostics_variant: Variant = candidate.get("diagnostics", [])
+            if typeof(candidate_diagnostics_variant) == TYPE_ARRAY:
+                diagnostics.append_array(candidate_diagnostics_variant as Array)
+            if diagnostics.is_empty():
+                diagnostics.append(_diagnostic(
+                    "world_generation.worker.promotion_candidate_failed",
+                    "Provider-neutral canonical-promotion candidate could not be created.",
+                    "world-generation/job/promotion"))
+            succeeded = false
+        elif bool(candidate.get("created", false)):
+            _append_audit(job, "promotion-candidate", true,
+                "Provider-neutral derived scene and validation report were persisted for explicit promotion.")
     _finish_job(wrapper, job, "succeeded" if succeeded else "failed", diagnostics, path)
     return { "succeeded": succeeded, "processed": true }
 
@@ -400,10 +443,239 @@ func _finish_job(wrapper: Dictionary, job: Dictionary, status: String, diagnosti
     wrapper["job"] = job
     _write_json_atomic(path, wrapper)
 
+func _build_promotion_validation_report(
+        job: Dictionary,
+        bake_result: Dictionary,
+        providers: Array) -> Dictionary:
+    var plan_variant: Variant = job.get("plan", {})
+    var recipe_variant: Variant = job.get("recipe", {})
+    if typeof(plan_variant) != TYPE_DICTIONARY or typeof(recipe_variant) != TYPE_DICTIONARY:
+        return {}
+    var plan := plan_variant as Dictionary
+    var recipe := recipe_variant as Dictionary
+    var asset_selection_source := {
+        "terrain": recipe.get("terrain", {}),
+        "rivers": recipe.get("rivers", []),
+        "biomes": recipe.get("biomes", []),
+        "roads": recipe.get("roads", []),
+        "settlements": recipe.get("settlements", []),
+        "scatter": recipe.get("scatter", []),
+        "gameplay": recipe.get("gameplay", {}),
+    }
+    var asset_selection_fingerprint := (
+        "openrpg-world-generation-asset-selection-v1|" +
+        _canonical_json(asset_selection_source)).sha256_text()
+    var bake_diagnostics_variant: Variant = bake_result.get("diagnostics", [])
+    var bake_diagnostics: Array = \
+        bake_diagnostics_variant as Array if typeof(bake_diagnostics_variant) == TYPE_ARRAY else []
+    var regeneration_variant: Variant = recipe.get("regeneration", {})
+    var regeneration: Dictionary = \
+        regeneration_variant as Dictionary if typeof(regeneration_variant) == TYPE_DICTIONARY else {}
+    return {
+        "schemaVersion": 1,
+        "jobId": str(job.get("jobId", "")),
+        "planId": str(job.get("planId", "")),
+        "recipeId": str(recipe.get("id", "")),
+        "areaId": str(recipe.get("areaId", "")),
+        "projectRevision": int(job.get("projectRevision", -1)),
+        "recipeRevision": job.get("recipeRevision", { "value": -1 }),
+        "recipeFingerprint": str(job.get("recipeFingerprint", "")),
+        "planFingerprint": str(plan.get("planFingerprint", "")),
+        "derivedSceneSha256": str(bake_result.get("sha256", "")),
+        "contentFingerprint": str(bake_result.get("contentFingerprint", "")),
+        "assetSelectionFingerprint": asset_selection_fingerprint,
+        "validationSucceeded": bool(bake_result.get("succeeded", false)) and bake_diagnostics.is_empty(),
+        "collisionValidated": int(bake_result.get("collisionShapes", 0)) > 0,
+        "navigationValidated": int(bake_result.get("navigationPolygons", 0)) > 0,
+        "manualEditsPreserved": bool(regeneration.get("preserveManualEdits", true)),
+        "providers": providers,
+        "diagnostics": bake_diagnostics,
+    }
+
+func _can_create_promotion_candidate(steps: Array, providers: Array) -> bool:
+    if steps.size() != CANONICAL_PROMOTION_STAGES.size() or providers.size() != steps.size():
+        return false
+    var stages := {}
+    for step_variant in steps:
+        if typeof(step_variant) == TYPE_DICTIONARY:
+            stages[str((step_variant as Dictionary).get("stage", "")).to_lower()] = true
+    if stages.size() != CANONICAL_PROMOTION_STAGES.size() or CANONICAL_PROMOTION_STAGES.any(
+            func(stage: String) -> bool: return not stages.has(stage)):
+        return false
+    var provider_keys := providers.map(func(item: Variant) -> String:
+        return str((item as Dictionary).get("providerKey", "")) if typeof(item) == TYPE_DICTIONARY else "")
+    return provider_keys.has("terrain3d") and (
+        provider_keys.has("godot-flow") or provider_keys.has("gf-pcgodot"))
+
+func _create_promotion_candidate(job: Dictionary, backend: Node, providers: Array) -> Dictionary:
+    var plan_id := str(job.get("planId", ""))
+    var recipe_variant: Variant = job.get("recipe", {})
+    if not _is_guid(plan_id) or typeof(recipe_variant) != TYPE_DICTIONARY:
+        return {
+            "succeeded": false,
+            "created": false,
+            "diagnostics": [_diagnostic(
+                "world_generation.worker.promotion_identity_invalid",
+                "Promotion candidate identifiers are invalid.",
+                "world-generation/job/promotion")],
+        }
+    var recipe := recipe_variant as Dictionary
+    var compact_plan_id := plan_id.replace("-", "").to_lower()
+    var temporary_scene := "res://.openrpg/world-generation/derived/%s.tscn" % compact_plan_id
+    var bake_result_variant: Variant = backend.call(
+        "bake_forge_generated_world", str(recipe.get("id", "")), temporary_scene)
+    if typeof(bake_result_variant) != TYPE_DICTIONARY:
+        return {
+            "succeeded": false,
+            "created": false,
+            "diagnostics": [_diagnostic(
+                "world_generation.worker.promotion_bake_invalid",
+                "Provider-neutral baker returned no structured result.",
+                "world-generation/job/promotion")],
+        }
+    var bake_result := bake_result_variant as Dictionary
+    if not bool(bake_result.get("succeeded", false)):
+        return {
+            "succeeded": false,
+            "created": false,
+            "diagnostics": bake_result.get("diagnostics", []),
+        }
+    var source_file := FileAccess.open(temporary_scene, FileAccess.READ)
+    if source_file == null:
+        return {
+            "succeeded": false,
+            "created": false,
+            "diagnostics": [_diagnostic(
+                "world_generation.worker.promotion_scene_missing",
+                "Provider-neutral baked scene could not be reopened.",
+                "world-generation/job/promotion")],
+        }
+    var scene_bytes := source_file.get_buffer(source_file.get_length())
+    source_file.close()
+    var artifact_directory := _workspace_root().path_join(
+        "%s/%s" % [ARTIFACTS_RELATIVE_DIRECTORY, compact_plan_id])
+    var derived_path := artifact_directory.path_join("derived-world.tscn")
+    var report_path := artifact_directory.path_join("validation-report.json")
+    if not _write_bytes_atomic(derived_path, scene_bytes):
+        return {
+            "succeeded": false,
+            "created": false,
+            "diagnostics": [_diagnostic(
+                "world_generation.worker.promotion_scene_write_failed",
+                "Provider-neutral derived scene could not be persisted atomically.",
+                "world-generation/job/promotion")],
+        }
+    bake_result["sha256"] = FileAccess.get_sha256(derived_path)
+    var report := _build_promotion_validation_report(job, bake_result, providers)
+    if report.is_empty() or not _write_json_atomic(report_path, report):
+        DirAccess.remove_absolute(derived_path)
+        return {
+            "succeeded": false,
+            "created": false,
+            "diagnostics": [_diagnostic(
+                "world_generation.worker.promotion_report_write_failed",
+                "Canonical-promotion validation report could not be persisted atomically.",
+                "world-generation/job/promotion")],
+        }
+    DirAccess.remove_absolute(ProjectSettings.globalize_path(temporary_scene))
+    return {
+        "succeeded": true,
+        "created": true,
+        "derivedScene": derived_path,
+        "validationReport": report_path,
+        "contentFingerprint": str(bake_result.get("contentFingerprint", "")),
+        "sha256": str(bake_result.get("sha256", "")),
+        "diagnostics": [],
+    }
+
+func _provider_evidence_for_step(step: Dictionary, result: Dictionary) -> Dictionary:
+    var requested_backend := str(step.get("backend", ""))
+    var requested_key := requested_backend.to_lower()
+    if bool(result.get("fallbackUsed", false)) or requested_key == "godotnative":
+        var native_path := BACKEND_SCRIPT_PATH if FileAccess.file_exists(BACKEND_SCRIPT_PATH) else \
+            SOURCE_BACKEND_SCRIPT_PATH
+        var native_sha := FileAccess.get_sha256(native_path)
+        if not _is_lower_sha256(native_sha):
+            return {}
+        return {
+            "stage": str(step.get("stage", "")),
+            "requestedBackend": requested_backend,
+            "providerKey": "openrpg-native",
+            "providerVersion": FORMAT_VERSION,
+            "evidenceSha256": native_sha,
+        }
+
+    var receipt := _provider_receipt()
+    if receipt.is_empty() or int(receipt.get("schemaVersion", 0)) != 1:
+        return {}
+    var backend_key := "pcgodot" if requested_key == "pcggodot" else requested_key
+    var providers_variant: Variant = receipt.get("providers", [])
+    if typeof(providers_variant) != TYPE_ARRAY:
+        return {}
+    for provider_variant in providers_variant as Array:
+        if typeof(provider_variant) != TYPE_DICTIONARY:
+            continue
+        var provider := provider_variant as Dictionary
+        if str(provider.get("backend", "")).to_lower() != backend_key:
+            continue
+        var evidence_variant: Variant = provider.get("evidence", [])
+        if typeof(evidence_variant) != TYPE_ARRAY or (evidence_variant as Array).is_empty():
+            return {}
+        var marker_variant: Variant = (evidence_variant as Array)[0]
+        if typeof(marker_variant) != TYPE_DICTIONARY:
+            return {}
+        var marker := marker_variant as Dictionary
+        var relative_path := str(marker.get("relativePath", ""))
+        var expected_sha := str(marker.get("sha256", ""))
+        var marker_path := "res://%s" % relative_path
+        if relative_path.is_empty() or relative_path.contains("..") or \
+                not FileAccess.file_exists(marker_path):
+            return {}
+        var actual_sha := FileAccess.get_sha256(marker_path)
+        if not _is_lower_sha256(expected_sha) or actual_sha != expected_sha:
+            return {}
+        return {
+            "stage": str(step.get("stage", "")),
+            "requestedBackend": requested_backend,
+            "providerKey": str(provider.get("providerKey", "")),
+            "providerVersion": str(provider.get("versionOrRevision", "")),
+            "evidenceSha256": actual_sha,
+        }
+    return {}
+
+func _provider_receipt() -> Dictionary:
+    var project_receipt := "res://%s" % PROVIDER_RECEIPT_RELATIVE_PATH
+    if FileAccess.file_exists(project_receipt):
+        return _read_json_object(ProjectSettings.globalize_path(project_receipt))
+    return _read_json_object(_workspace_root().path_join(PROVIDER_RECEIPT_RELATIVE_PATH))
+
+func _canonical_json(value: Variant) -> String:
+    match typeof(value):
+        TYPE_DICTIONARY:
+            var dictionary := value as Dictionary
+            var keys := PackedStringArray()
+            for key: Variant in dictionary.keys():
+                keys.append(str(key))
+            keys.sort()
+            var fields := PackedStringArray()
+            for key in keys:
+                fields.append("%s:%s" % [JSON.stringify(key), _canonical_json(dictionary.get(key))])
+            return "{%s}" % ",".join(fields)
+        TYPE_ARRAY:
+            var entries := PackedStringArray()
+            for entry: Variant in value as Array:
+                entries.append(_canonical_json(entry))
+            return "[%s]" % ",".join(entries)
+        _:
+            return JSON.stringify(value)
+
 func _jobs_directory() -> String:
+    return _workspace_root().path_join(JOBS_RELATIVE_DIRECTORY)
+
+func _workspace_root() -> String:
     var configured := str(ProjectSettings.get_setting(WORKSPACE_SETTING, "res://"))
-    var root := ProjectSettings.globalize_path(configured) if configured.begins_with("res://") or configured.begins_with("user://") else configured
-    return root.path_join(JOBS_RELATIVE_DIRECTORY)
+    return ProjectSettings.globalize_path(configured) \
+        if configured.begins_with("res://") or configured.begins_with("user://") else configured
 
 func _read_json_object(path: String) -> Dictionary:
     if not FileAccess.file_exists(path):
@@ -420,12 +692,40 @@ func _job_status(path: String) -> String:
     return str((job_variant as Dictionary).get("status", "")) if typeof(job_variant) == TYPE_DICTIONARY else ""
 
 func _write_json_atomic(path: String, value: Dictionary) -> bool:
+    var directory_error := DirAccess.make_dir_recursive_absolute(path.get_base_dir())
+    if directory_error != OK:
+        return false
     var temporary_path := path + ".tmp"
     var backup_path := path + ".bak"
     var temporary := FileAccess.open(temporary_path, FileAccess.WRITE)
     if temporary == null:
         return false
     temporary.store_string(JSON.stringify(value, "  "))
+    temporary.flush()
+    temporary.close()
+    if FileAccess.file_exists(backup_path):
+        DirAccess.remove_absolute(backup_path)
+    if FileAccess.file_exists(path) and DirAccess.rename_absolute(path, backup_path) != OK:
+        DirAccess.remove_absolute(temporary_path)
+        return false
+    if DirAccess.rename_absolute(temporary_path, path) != OK:
+        if FileAccess.file_exists(backup_path):
+            DirAccess.rename_absolute(backup_path, path)
+        return false
+    if FileAccess.file_exists(backup_path):
+        DirAccess.remove_absolute(backup_path)
+    return true
+
+func _write_bytes_atomic(path: String, content: PackedByteArray) -> bool:
+    var directory_error := DirAccess.make_dir_recursive_absolute(path.get_base_dir())
+    if directory_error != OK:
+        return false
+    var temporary_path := path + ".tmp"
+    var backup_path := path + ".bak"
+    var temporary := FileAccess.open(temporary_path, FileAccess.WRITE)
+    if temporary == null:
+        return false
+    temporary.store_buffer(content)
     temporary.flush()
     temporary.close()
     if FileAccess.file_exists(backup_path):

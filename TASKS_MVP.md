@@ -688,12 +688,16 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
 - [x] Définir une carte de référence, les métriques de comparaison et le plan d'exécution Codex pour
   qualifier les fournisseurs sur des preuves reproductibles plutôt que sur leur seule présence.
 - [ ] Livrer et qualifier des graphes PCG artistiques sur un vrai module extérieur.
-- [ ] Promouvoir et sauvegarder explicitement les artefacts validés dans les contrats canoniques sans
-  écraser `AreaWorldProfile` ni les retouches humaines.
+- [x] Promouvoir et sauvegarder explicitement les artefacts validés par preview MCP, preuve acceptée,
+  empreinte de destination, copie/manifeste atomiques, référence `AreaWorldProfile`, réouverture et
+  inverse, sans promotion implicite du worker ni écrasement silencieux des retouches.
 - [ ] Remplacer les ancres natives restantes par hydrologie, routes, établissements, gameplay,
   navigation et validation de production.
-- [ ] Qualifier Terrain3D `v1.0.2-stable` et Godot Flow au commit épinglé sous Godot 4.7.1 avec les
-  addons réellement installés.
+- [x] Qualifier localement sous Windows Terrain3D `v1.0.2-stable`, Godot Flow et GF-PCGODOT aux
+  commits épinglés sous Godot 4.7.1 avec addons réellement chargés, trois runs, zéro fallback,
+  collision, navigation, sauvegarde/réouverture, cinq captures et candidat de promotion provider-free.
+- [ ] Exécuter la qualification addon sur la CI Linux et qualifier les exports provider-free
+  Windows/Linux avant de déclarer la pile multiplateforme prête pour la production.
 
 ## Décisions externes avant release publique
 

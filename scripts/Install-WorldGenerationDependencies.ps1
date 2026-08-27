@@ -3,7 +3,11 @@ param(
     [Parameter(Mandatory = $true)]
     [string]$GodotProjectPath,
 
+    [ValidateSet('godot-flow', 'gf-pcgodot')]
+    [string]$GraphProvider = 'godot-flow',
+
     [switch]$Force,
+    [switch]$BuildPcgFromSource,
     [switch]$SkipTerrain3D,
     [switch]$SkipPcgGodot
 )
@@ -27,12 +31,17 @@ if (-not (Test-Path $manifestPath)) {
 if (-not (Test-Path $integrationSource -PathType Container)) {
     throw "OpenRPG integration addon '$integrationSource' was not found."
 }
+if ($BuildPcgFromSource -and $SkipPcgGodot) {
+    throw 'BuildPcgFromSource cannot be combined with SkipPcgGodot.'
+}
 
 $manifest = Get-Content $manifestPath -Raw | ConvertFrom-Json
-$terrain = @($manifest.dependencies | Where-Object key -eq 'terrain3d')
-$pcg = @($manifest.dependencies | Where-Object key -eq 'pcgodot')
-if ($manifest.schemaVersion -ne 1 -or $terrain.Count -ne 1 -or $pcg.Count -ne 1) {
-    throw 'The world-generation dependency manifest does not match schema version 1.'
+$terrain = @($manifest.dependencies | Where-Object backend -eq 'terrain3d')
+$graphProviders = @($manifest.dependencies | Where-Object backend -eq 'pcgodot')
+$pcg = @($graphProviders | Where-Object providerKey -eq $GraphProvider)
+if ($manifest.schemaVersion -ne 2 -or $terrain.Count -ne 1 -or
+    $graphProviders.Count -ne 2 -or $pcg.Count -ne 1) {
+    throw 'The world-generation dependency manifest does not match schema version 2.'
 }
 $terrain = $terrain[0]
 $pcg = $pcg[0]
@@ -41,7 +50,10 @@ if ([string]$terrain.archive -notmatch '^https://' -or
     throw 'Terrain3D must use an HTTPS archive and a lowercase SHA-256 pin.'
 }
 if ([string]$pcg.repository -notmatch '^https://' -or
-    [string]$pcg.revision -notmatch '^[0-9a-f]{40}$') {
+    [string]$pcg.revision -notmatch '^[0-9a-f]{40}$' -or
+    @($pcg.sourceDirectories).Count -lt 1 -or
+    @($pcg.sourceDirectories).Count -gt 2 -or
+    @($pcg.sourceDirectories).Count -ne @($pcg.godotTargets).Count) {
     throw 'The PCG backend must use an HTTPS repository and an immutable lowercase Git commit.'
 }
 
@@ -58,17 +70,32 @@ function Resolve-ProjectTarget {
 }
 
 $terrainTarget = Resolve-ProjectTarget ([string]$terrain.godotTarget)
-$pcgAddonTarget = Resolve-ProjectTarget ([string]$pcg.godotTargets[0])
-$pcgBinaryTarget = Resolve-ProjectTarget ([string]$pcg.godotTargets[1])
+$pcgSourceDirectories = @($pcg.sourceDirectories | ForEach-Object { [string]$_ })
+$pcgGodotTargets = @($pcg.godotTargets | ForEach-Object { [string]$_ })
+$pcgResolvedTargets = @($pcgGodotTargets | ForEach-Object { Resolve-ProjectTarget $_ })
 $integrationTarget = Resolve-ProjectTarget ([string]$manifest.integrationAddon.godotTarget)
+$receiptTarget = Resolve-ProjectTarget '.openrpg/world-generation/provider-installation.json'
 
 if ($WhatIfPreference) {
     if (-not $SkipTerrain3D) { $PSCmdlet.ShouldProcess($terrainTarget, "Install pinned Terrain3D $($terrain.version)") | Out-Null }
     if (-not $SkipPcgGodot) {
-        $PSCmdlet.ShouldProcess($pcgAddonTarget, "Install pinned Godot Flow commit $($pcg.revision)") | Out-Null
-        $PSCmdlet.ShouldProcess($pcgBinaryTarget, 'Merge pinned Godot Flow runtime binaries') | Out-Null
+        for ($targetIndex = 0; $targetIndex -lt $pcgResolvedTargets.Count; $targetIndex++) {
+            $verb = if ($targetIndex -eq 0) {
+                "Install pinned $($pcg.displayName) commit $($pcg.revision)"
+            }
+            else {
+                "Merge pinned $($pcg.displayName) runtime binaries"
+            }
+            $PSCmdlet.ShouldProcess($pcgResolvedTargets[$targetIndex], $verb) | Out-Null
+        }
+        if ($BuildPcgFromSource) {
+            $PSCmdlet.ShouldProcess(
+                $pcgResolvedTargets[0],
+                "Build the pinned $($pcg.displayName) editor extension for the current platform") | Out-Null
+        }
     }
     $PSCmdlet.ShouldProcess($integrationTarget, 'Install the OpenRPG world-generation bridge') | Out-Null
+    $PSCmdlet.ShouldProcess($receiptTarget, 'Write the versioned provider installation receipt') | Out-Null
     return
 }
 
@@ -159,7 +186,64 @@ function Copy-DirectoryContentsChecked {
     }
 }
 
+function Get-ProviderEvidence {
+    param([Parameter(Mandatory = $true)][object]$Dependency)
+    $evidence = @()
+    foreach ($relativePathValue in @($Dependency.evidencePaths)) {
+        $relativePath = [string]$relativePathValue
+        $target = Resolve-ProjectTarget $relativePath
+        if (-not (Test-Path -LiteralPath $target -PathType Leaf)) {
+            throw "Provider evidence '$relativePath' was not installed."
+        }
+        $evidence += [ordered]@{
+            relativePath = $relativePath.Replace('\\', '/')
+            sha256 = (Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash.ToLowerInvariant()
+        }
+    }
+    if ($evidence.Count -eq 0) {
+        throw "Provider '$($Dependency.providerKey)' has no evidence paths."
+    }
+    return @($evidence)
+}
+
+function Write-ProviderReceipt {
+    param([Parameter(Mandatory = $true)][object[]]$Providers)
+
+    $receiptDirectory = Split-Path -Parent $receiptTarget
+    New-Item -ItemType Directory -Path $receiptDirectory -Force | Out-Null
+    $staging = Join-Path $receiptDirectory (
+        '.provider-installation.staging-' + [guid]::NewGuid().ToString('N') + '.json')
+    $backup = Join-Path $receiptDirectory (
+        '.provider-installation.backup-' + [guid]::NewGuid().ToString('N') + '.json')
+    $receipt = [ordered]@{
+        schemaVersion = 1
+        generatedAtUtc = [DateTimeOffset]::UtcNow.ToString('O')
+        installer = 'openrpg-forge/world-generation-dependencies@1'
+        providers = @($Providers)
+    }
+    try {
+        $receipt | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $staging -Encoding utf8NoBOM
+        if (Test-Path -LiteralPath $receiptTarget) {
+            Move-Item -LiteralPath $receiptTarget -Destination $backup
+        }
+        Move-Item -LiteralPath $staging -Destination $receiptTarget
+        if (Test-Path -LiteralPath $backup) {
+            Remove-Item -LiteralPath $backup -Force
+        }
+    }
+    catch {
+        if (Test-Path -LiteralPath $staging) {
+            Remove-Item -LiteralPath $staging -Force
+        }
+        if ((Test-Path -LiteralPath $backup) -and -not (Test-Path -LiteralPath $receiptTarget)) {
+            Move-Item -LiteralPath $backup -Destination $receiptTarget
+        }
+        throw
+    }
+}
+
 try {
+    $installedProviders = [System.Collections.Generic.List[object]]::new()
     if (-not $SkipTerrain3D) {
         $archive = Join-Path $tempRoot 'terrain3d.zip'
         Invoke-WebRequest -Uri $terrain.archive -OutFile $archive
@@ -174,6 +258,14 @@ try {
             Select-Object -First 1
         if ($null -eq $plugin) { throw 'Terrain3D addon directory was not found in the verified archive.' }
         Copy-DirectoryChecked -Source $plugin.Directory.FullName -Destination $terrainTarget
+        $installedProviders.Add([ordered]@{
+            backend = 'terrain3d'
+            providerKey = [string]$terrain.providerKey
+            repository = [string]$terrain.repository
+            versionOrRevision = [string]$terrain.version
+            sourceArchiveSha256 = [string]$terrain.sha256
+            evidence = @(Get-ProviderEvidence -Dependency $terrain)
+        })
     }
 
     if (-not $SkipPcgGodot) {
@@ -188,18 +280,140 @@ try {
         if ($LASTEXITCODE -ne 0) { throw 'Unable to initialize PCG backend submodules.' }
         $resolved = (& $git.Source -C $clone rev-parse HEAD).Trim()
         if ($resolved -ne [string]$pcg.revision) { throw "PCG revision mismatch: $resolved." }
-        Copy-DirectoryChecked -Source (Join-Path $clone 'demo/addons/flow_nodes_editor') -Destination $pcgAddonTarget
-        Copy-DirectoryContentsChecked -Source (Join-Path $clone 'demo/bin') -Destination $pcgBinaryTarget
+        $treeRevision = (& $git.Source -C $clone rev-parse 'HEAD^{tree}').Trim()
+        if ($treeRevision -notmatch '^[0-9a-f]{40}$') {
+            throw "PCG tree revision is invalid: $treeRevision."
+        }
+        $submodules = @()
+        foreach ($lineValue in @(& $git.Source -C $clone submodule status --recursive)) {
+            $line = [string]$lineValue
+            if ($line -notmatch '^[ +\-U]?([0-9a-f]{40})\s+([^\s]+)') {
+                throw "Unable to parse PCG submodule status '$line'."
+            }
+            $submodules += [ordered]@{
+                path = $Matches[2].Replace('\\', '/')
+                revision = $Matches[1]
+            }
+        }
+        $sourceBuild = $null
+        if ($BuildPcgFromSource) {
+            $scons = Get-Command scons -ErrorAction SilentlyContinue
+            if ($null -eq $scons) {
+                throw 'SCons is required when BuildPcgFromSource is selected.'
+            }
+            Push-Location $clone
+            try {
+                & $scons.Source target=editor
+                if ($LASTEXITCODE -ne 0) {
+                    throw "Unable to build $($pcg.displayName) from pinned sources."
+                }
+            }
+            finally {
+                Pop-Location
+            }
+            $platformName = if ([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform(
+                    [System.Runtime.InteropServices.OSPlatform]::Windows)) {
+                'windows'
+            }
+            elseif ([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform(
+                    [System.Runtime.InteropServices.OSPlatform]::Linux)) {
+                'linux'
+            }
+            elseif ([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform(
+                    [System.Runtime.InteropServices.OSPlatform]::OSX)) {
+                'macos'
+            }
+            else {
+                throw 'The current platform is not supported by the pinned PCG source build.'
+            }
+            $architecture = switch ([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture) {
+                'X64' { 'x86_64' }
+                'Arm64' { 'arm64' }
+                default { throw "Unsupported PCG source-build architecture '$($_)'." }
+            }
+            $extension = if ($platformName -eq 'windows') { '.dll' } elseif ($platformName -eq 'linux') { '.so' } else { '' }
+            $builtLibrary = Get-ChildItem -LiteralPath (Join-Path $clone 'demo') -File -Recurse |
+                Where-Object Name -Like "libflow.$platformName.editor.$architecture*$extension" |
+                Select-Object -First 1
+            if ($null -eq $builtLibrary) {
+                throw "The pinned PCG source build produced no editor library for $platformName/$architecture."
+            }
+            $artifactRelativePath = $null
+            for ($sourceIndex = 0; $sourceIndex -lt $pcgSourceDirectories.Count; $sourceIndex++) {
+                $sourceRoot = [System.IO.Path]::GetFullPath(
+                    (Join-Path $clone $pcgSourceDirectories[$sourceIndex]))
+                $sourcePrefix = $sourceRoot.TrimEnd(
+                    [System.IO.Path]::DirectorySeparatorChar,
+                    [System.IO.Path]::AltDirectorySeparatorChar) + [System.IO.Path]::DirectorySeparatorChar
+                if ($builtLibrary.FullName.StartsWith(
+                        $sourcePrefix,
+                        [System.StringComparison]::OrdinalIgnoreCase)) {
+                    $relativeLibrary = [System.IO.Path]::GetRelativePath($sourceRoot, $builtLibrary.FullName)
+                    $artifactRelativePath = (Join-Path $pcgGodotTargets[$sourceIndex] $relativeLibrary).Replace('\', '/')
+                    break
+                }
+            }
+            if ([string]::IsNullOrWhiteSpace($artifactRelativePath)) {
+                throw "Built PCG library '$($builtLibrary.FullName)' is outside the declared source directories."
+            }
+            $sourceBuild = [ordered]@{
+                target = 'editor'
+                platform = $platformName
+                architecture = $architecture
+                artifact = $artifactRelativePath
+                sha256 = (Get-FileHash -LiteralPath $builtLibrary.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            }
+        }
+        for ($sourceIndex = 0; $sourceIndex -lt $pcgSourceDirectories.Count; $sourceIndex++) {
+            $sourceDirectory = Join-Path $clone $pcgSourceDirectories[$sourceIndex]
+            if ($sourceIndex -eq 0) {
+                Copy-DirectoryChecked -Source $sourceDirectory -Destination $pcgResolvedTargets[$sourceIndex]
+            }
+            else {
+                Copy-DirectoryContentsChecked -Source $sourceDirectory -Destination $pcgResolvedTargets[$sourceIndex]
+            }
+        }
+        if ($null -ne $sourceBuild -and $sourceBuild.platform -eq 'linux') {
+            $gdextensionEvidence = @($pcg.evidencePaths | Where-Object {
+                [System.IO.Path]::GetFileName([string]$_) -eq 'flow.gdextension'
+            })
+            if ($gdextensionEvidence.Count -ne 1) {
+                throw 'The PCG provider must declare exactly one flow.gdextension evidence path.'
+            }
+            $gdextensionPath = Resolve-ProjectTarget ([string]$gdextensionEvidence[0])
+            $gdextensionText = Get-Content -LiteralPath $gdextensionPath -Raw
+            $libraryKey = "linux.$($sourceBuild.architecture).editor"
+            if ($gdextensionText -notmatch "(?m)^$([regex]::Escape($libraryKey))\s*=") {
+                $libraryEntry = "$libraryKey = `"res://$($sourceBuild.artifact)`""
+                $gdextensionText = $gdextensionText -replace '(?m)^\[libraries\]\s*$', "[libraries]`n$libraryEntry"
+                Set-Content -LiteralPath $gdextensionPath -Value $gdextensionText -Encoding utf8NoBOM
+            }
+        }
+        $pcgReceipt = [ordered]@{
+            backend = 'pcgodot'
+            providerKey = [string]$pcg.providerKey
+            repository = [string]$pcg.repository
+            versionOrRevision = [string]$pcg.revision
+            treeRevision = $treeRevision
+            submodules = @($submodules)
+            evidence = @(Get-ProviderEvidence -Dependency $pcg)
+        }
+        if ($null -ne $sourceBuild) {
+            $pcgReceipt.sourceBuild = $sourceBuild
+        }
+        $installedProviders.Add($pcgReceipt)
     }
 
     Copy-DirectoryChecked -Source $integrationSource -Destination $integrationTarget
+    Write-ProviderReceipt -Providers @($installedProviders)
 
     Write-Host ''
     Write-Host 'World-generation dependencies installed.'
     Write-Host 'In Godot, enable these editor plugins:'
     if (-not $SkipTerrain3D) { Write-Host '  - Terrain3D' }
-    if (-not $SkipPcgGodot) { Write-Host '  - Flow Nodes Editor' }
+    if (-not $SkipPcgGodot) { Write-Host "  - $($pcg.displayName)" }
     Write-Host '  - OpenRPG World Generation Bridge'
+    Write-Host "Provider receipt: $receiptTarget"
     Write-Host 'Then create or assign the reusable graphs under res://world/generation/graphs/.'
 }
 finally {

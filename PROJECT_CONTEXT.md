@@ -50,10 +50,17 @@ seed et empreintes stables, preview d'exécution, étapes partielles, job durabl
 et Godot Flow restent des dépendances facultatives derrière EngineAdapter ; le bridge Godot possède un
 fallback natif réellement maillé pour le terrain. Les scènes produites restent dérivées : elles ne
 deviennent pas une seconde source de vérité et ne remplacent pas implicitement `AreaWorldProfile`.
-La tranche de qualification intégrée le 27 août 2026 conserve les backends sérialisés mais nomme le
+La promotion explicite exige désormais un job complet réussi, une preuve acceptée, des empreintes et
+révisions exactes, puis copie atomiquement une scène provider-free vers un chemin canonique référencé
+par `AreaWorldProfile`, avec manifeste de provenance, réouverture et inverse.
+
+La tranche de qualification du 27 août 2026 conserve les backends sérialisés mais nomme le
 fournisseur concret par `providerKey` (`terrain3d`, `godot-flow`, `gf-pcgodot` ou `openrpg-native`).
-Elle ajoute un benchmark de référence et un plan d'exécution comparatif ; elle ne prétend pas encore
-qualifier un addon réel ni choisir le fournisseur Graph PCG de production.
+Terrain3D avec Godot Flow puis GF-PCGODOT a été exécuté réellement sous Godot 4.7.1 Windows dans des
+fixtures isolées. Le proxy 2 km prouve déterminisme, collision, navigation, sauvegarde/réouverture,
+5 904 instances, cinq captures identiques et candidat canonique neutre. Il ne qualifie ni les exports
+Linux/Windows ni une qualité artistique ; Godot Flow reste la baseline et aucun fournisseur final
+n'est choisi.
 
 La revue corrective UX11-B a inspecté les trente-six pages en Full HD, QHD et 4K. Les distributions
 Studio Windows x64 et Linux x64 embarquent le workspace Crypte des Cendres et la bibliothèque
@@ -290,7 +297,7 @@ Flux de mutation officiel :
 
 Pour la génération de monde, le flux spécialisé reste dans cette direction :
 
-`Codex/utilisateur -> MCP -> recette -> plan déterministe -> job persistant -> adaptateurs -> Godot`
+`Codex/utilisateur -> MCP -> recette -> plan déterministe -> job persistant -> adaptateurs -> Godot -> rapport/scène dérivée -> promotion MCP -> scène canonique`
 
 Terrain3D et Godot Flow ne sont connus que de l'adaptation et du bootstrap. Le MCP ne dépend pas de
 leurs classes, et un texte fourni par un LLM ne peut sélectionner qu'une opération bornée déjà

@@ -29,11 +29,16 @@ n'est acceptée que si elle améliore réellement la carte de référence défin
 - La tranche de qualification intégrée ajoute des `providerKey` explicites afin de comparer plusieurs
   implémentations sans casser les recettes existantes.
 - Les graphes artistiques `biomes.tres`, `roads.tres`, `settlements.tres` et `scatter.tres` attendus
-  par le registre ne sont pas encore livrés.
+  par le registre ne sont pas encore livrés pour un vrai module de production ; les fixtures de
+  qualification contiennent uniquement des graphes techniques déterministes.
 - Le fallback Godot natif garantit les contrats et la CI, mais il n'est pas un générateur visuel de
   production pour les villes, routes, biomes et scatters.
-- La promotion atomique d'une scène générée validée vers les données canoniques du module reste à
-  construire.
+- La promotion atomique d'une scène validée est implémentée dans l'arbre courant : candidat neutre,
+  rapport lié au job, preview/permission/révisions, copie et manifeste atomiques, référence
+  `AreaWorldProfile`, sauvegarde/réouverture et inverse.
+- Terrain3D avec Godot Flow puis GF-PCGODOT a été exécuté localement sous Godot 4.7.1 Windows, sans
+  fallback. Le proxy 2 km donne une parité fonctionnelle et des cinq captures, mais aucune preuve de
+  gain artistique. Godot Flow reste donc la baseline et GF-PCGODOT reste expérimental.
 
 ## Documents à lire avant toute modification
 
@@ -136,6 +141,8 @@ peuvent nommer le fournisseur réellement utilisé.
 
 ## Lot 1 — qualification réelle des addons sous Godot 4.7.1
 
+État : preuve Windows locale terminée ; job Linux configuré, exécution GitHub encore requise.
+
 Ajouter un projet Godot jetable ou une fixture dédiée et un job CI
 `world-generation-addon-integration` qui :
 
@@ -153,6 +160,11 @@ Ajouter un projet Godot jetable ou une fixture dédiée et un job CI
 Ne marque pas ce lot terminé si seul le fallback natif a fonctionné.
 
 ## Lot 2 — carte de référence et harness de mesure
+
+État : proxy technique 2 048 m et harnais reproductible terminés. Le profil prouve 5 904 instances,
+collision, navigation, retouche verrouillée, scène provider-free, promotion et cinq vues fixes. Les
+assets artistiques, douze vues complètes, triangles/draw calls, exports et temps de correction
+manuelle restent à livrer ; ce lot n'est donc pas clos au sens artistique de `QUALITY_BENCHMARK.md`.
 
 Implémenter la carte fixe décrite dans `QUALITY_BENCHMARK.md` :
 
@@ -181,6 +193,11 @@ Le harness doit produire :
 - rapport final comparable entre fournisseurs.
 
 ## Lot 3 — choix du fournisseur Graph PCG
+
+État : comparaison technique Godot Flow/GF-PCGODOT terminée sur entrées identiques. Parité de contenu,
+de candidat canonique et de captures ; GF-PCGODOT est +13,04 % sur un seul échantillon de bake
+Windows. Aucun gain visuel ou d'auteur n'étant prouvé, le choix final reste ouvert et la production
+reste sur Godot Flow.
 
 Comparer d'abord `godot-flow` et `gf-pcgodot` avec exactement la même carte, la même seed et les mêmes
 assets. Tester ProtonScatter uniquement pour la couche scatter si le besoin persiste.
@@ -216,6 +233,9 @@ Avant d'ajouter d'autres addons, construire :
 Les lieux héroïques doivent être générés comme base, corrigés, validés puis verrouillés.
 
 ## Lot 5 — promotion canonique
+
+État : implémenté et couvert de bout en bout dans l'arbre courant. La clôture de produit dépend encore
+d'une promotion issue d'un vrai module artistique et des gates multiplateformes.
 
 Concevoir une commande explicite de promotion qui :
 
@@ -279,6 +299,9 @@ dotnet test tests/Forge.EngineAdapter.Tests/Forge.EngineAdapter.Tests.csproj -c 
 dotnet test tests/Forge.Application.Tests/Forge.Application.Tests.csproj -c Release --no-restore --filter FullyQualifiedName~WorldGeneration
 dotnet test tests/Forge.ModuleFormat.Tests/Forge.ModuleFormat.Tests.csproj -c Release --no-restore --filter FullyQualifiedName~WorldGeneration
 dotnet test tests/Forge.Mcp.Tests/Forge.Mcp.Tests.csproj -c Release --no-restore --filter FullyQualifiedName~WorldGeneration
+./scripts/Test-WorldGenerationDependencyInstaller.ps1
+./scripts/Invoke-WorldGenerationAddonQualification.ps1 -GraphProvider godot-flow -QualificationProfile reference-2km -RunId <run-id>
+./scripts/Invoke-WorldGenerationAddonQualification.ps1 -GraphProvider gf-pcgodot -QualificationProfile reference-2km -RunId <run-id>
 ```
 
 Puis applique les gates du dépôt :

@@ -3,8 +3,8 @@
     "schema_version": 2,
     "engine": "roslyn",
     "engine_version": "5.6.0.0",
-    "source_digest": "sha256:3982b0766e3cab9817addfc04ff12b741972c8856a471f71f252d012f4227c01",
-    "source_file_count": 3844,
+    "source_digest": "sha256:51fb391d3cc3ddbb9ee7b9ad4f813c86eba6c3cf23c7f2dbb9d7748a9717050e",
+    "source_file_count": 3868,
     "sources": [
       {
         "path": ".agents/skills/openrpg-asset-lifecycle/SKILL.md",
@@ -73,8 +73,8 @@
       },
       {
         "path": ".github/workflows/ci.yml",
-        "sha256": "sha256:7dc46bab1cf44eb1644e6ea364e1195785bfb3a8cdee71649b8ff12da612259e",
-        "size": 7987
+        "sha256": "sha256:8e45e7c9aca4112ad46c5b9011ac99e2a5adaedef488a36edb606a7f1601f484",
+        "size": 14515
       },
       {
         "path": "AGENTS.md",
@@ -93,8 +93,8 @@
       },
       {
         "path": "CHANGELOG.md",
-        "sha256": "sha256:7628b1f6741dd4d103a2985c3fdf10142898b659538720744a9957bc8c8648ab",
-        "size": 62791
+        "sha256": "sha256:456e8a4cc7e0103dc520a5a26b5e6f8a6255e9cabc2840a49e057fae7f851a1f",
+        "size": 63401
       },
       {
         "path": "Directory.Build.props",
@@ -453,23 +453,23 @@
       },
       {
         "path": "PROJECT_CONTEXT.md",
-        "sha256": "sha256:7ea819b6c04a13e23d3cf0e52d7db4195625032d304ce5bc5dfd2d3120438c1a",
-        "size": 25664
+        "sha256": "sha256:b44d7464dc3a57177838ee1a996b27bef25b4012e9e453dc6344fb280a0e272f",
+        "size": 26252
       },
       {
         "path": "README.md",
-        "sha256": "sha256:d400fb0e542e104b468192a34107f8c7f8f3d9a53e44c3ac992797e33aed3f71",
-        "size": 17834
+        "sha256": "sha256:348521fa75f2f88e0030e8be6ebfad8e5b554b98b33b0c84d1f6fa2643f8da36",
+        "size": 18100
       },
       {
         "path": "STATUS.md",
-        "sha256": "sha256:7fed4aed165f326061cd90e28e9be2eca04ae2d3a4ac8e998b0c4b560cb9453a",
-        "size": 88421
+        "sha256": "sha256:e93574d9d212418ffd8cdd4f82364bb5007e65ddd3d34c2fbed98b5bff808e6d",
+        "size": 89367
       },
       {
         "path": "TASKS_MVP.md",
-        "sha256": "sha256:5ef5fe71739909a3a08a9e54aff988c5cc1742f589dd21d9793ec8e6f4cb6126",
-        "size": 59471
+        "sha256": "sha256:c8c0a164c17a5c5e1c5eab5136cbf3d1f61c5d22e4e208ec6a6f9683949bf4d2",
+        "size": 59950
       },
       {
         "path": "apps/Forge.CreatorLauncher/Forge.CreatorLauncher.csproj",
@@ -548,8 +548,8 @@
       },
       {
         "path": "apps/Forge.McpHost/ForgeWorldGenerationMcpTools.cs",
-        "sha256": "sha256:91112dd4ba24476e7a83961bdec021214311d929804f1e466f976785bb133489",
-        "size": 3070
+        "sha256": "sha256:818935f089a5e5a87ac46723dd959dd689e25fe320b96a5271eae300cb0e3dfe",
+        "size": 4535
       },
       {
         "path": "apps/Forge.McpHost/Program.cs",
@@ -5448,8 +5448,8 @@
       },
       {
         "path": "docs/ADR/ADR-0050-governed-world-generation-orchestration.md",
-        "sha256": "sha256:9cbe44087636ae26a4ed27e7cd7cb5dae785851dab1ce4fbcdc37d89cb038aaf",
-        "size": 3845
+        "sha256": "sha256:07005299380ffaddd1493a779b7b05d6fa7a76223d941bd7ce6e85b7cc687571",
+        "size": 4944
       },
       {
         "path": "docs/ADR/ADR-TEMPLATE.md",
@@ -8073,33 +8073,33 @@
       },
       {
         "path": "docs/world-generation/BACKEND_QUALIFICATION.md",
-        "sha256": "sha256:7e7759106f06c2ee0fa47356d1dabca36da3957fee682ce452509c4013689a35",
-        "size": 7272
+        "sha256": "sha256:ed04ee36a26c8f44efd61a149fa59668186dec34799d6a98f9d97bed59b9c178",
+        "size": 9926
       },
       {
         "path": "docs/world-generation/CODEX_EXECUTION_PLAN.md",
-        "sha256": "sha256:fb362c1fa6e8c127fbb30b27ce2466f9abcc026be0f3f4067b3925c159919407",
-        "size": 14585
+        "sha256": "sha256:73c9a91bd4ecda90c6da17018b384ee14b4c39fbf1945dd1fcb3ddddeaf89b0e",
+        "size": 16487
       },
       {
         "path": "docs/world-generation/CODEX_HANDOFF.md",
-        "sha256": "sha256:9591078cc615833b2d714ad37a4fc63be7e834d5e02708c3efa811bec06ac193",
-        "size": 4845
+        "sha256": "sha256:bc063cf3c7d01550e082243e6b2eeb1745c1c9bd83e4603307dbc79a5fbcccee",
+        "size": 6574
       },
       {
         "path": "docs/world-generation/DEPENDENCIES.md",
-        "sha256": "sha256:268821abc5b017617070c7f2ccb226167c59f0e8d8097dd4f61e135297b05cb0",
-        "size": 3001
+        "sha256": "sha256:1cd5b89cf9073c3ad66c826b17a4dfc8d8a31760194d4693b420f3890bbefff3",
+        "size": 3934
       },
       {
         "path": "docs/world-generation/QUALITY_BENCHMARK.md",
-        "sha256": "sha256:c57929f01badd438af418f3438c03c5ea6e4b3e1ea40654dcbc17e629e4c501c",
-        "size": 7033
+        "sha256": "sha256:a9e951e59ec7dfd217dec48ceb0372de786615be0c4012d266dbf514d20688fd",
+        "size": 7508
       },
       {
         "path": "docs/world-generation/README.md",
-        "sha256": "sha256:927f6e0cdcaeb0314874b1474f18fbb70f64f5fcd8f9f0aa35bdd0bc83a6d38e",
-        "size": 9713
+        "sha256": "sha256:da43055f354236e2dbfa6cf4eb10e03dc17447ee53732cf2cd0c8e2eaf56157c",
+        "size": 12164
       },
       {
         "path": "docs/world-generation/fixtures/reference-world-v1.json",
@@ -8117,9 +8117,14 @@
         "size": 297
       },
       {
+        "path": "integrations/godot/addons/openrpg_world_generation/neutral_world_baker.gd",
+        "sha256": "sha256:e7a2369a9b6a911ea2e9f3af205b06b8b6b2859647550e1b69ae563b2cf7f492",
+        "size": 12402
+      },
+      {
         "path": "integrations/godot/addons/openrpg_world_generation/openrpg_world_generation_backend.gd",
-        "sha256": "sha256:1a16460caacdb62b0d4f3d00d8bc79f023410c4b3e10612f1386ec27830da088",
-        "size": 20881
+        "sha256": "sha256:acff8e53ebd60055e61961a192371cfb9bd04b2c7c0c57b3cb53dad83eaab477",
+        "size": 28324
       },
       {
         "path": "integrations/godot/addons/openrpg_world_generation/plugin.cfg",
@@ -8133,8 +8138,8 @@
       },
       {
         "path": "integrations/godot/addons/openrpg_world_generation/world_generation_job_runner.gd",
-        "sha256": "sha256:f16177e1b5421ffd083d47115e977450960c7b73a5368b5e8938aa4adafe8eac",
-        "size": 28435
+        "sha256": "sha256:15f178eb2f1edd144276b49d522d896ac2f758a6c808b6efecd789aebff514f5",
+        "size": 42884
       },
       {
         "path": "native/ForgeScript/THIRD_PARTY_NOTICES.md",
@@ -10390,6 +10395,11 @@
         "path": "src/Forge.Application/WorldFeatures/WorldFeatureScriptService.cs",
         "sha256": "sha256:00faafed78568d6d8ed9aa2fd47ef8ff067022b9044fd538465227d602d15e2d",
         "size": 48891
+      },
+      {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "sha256": "sha256:0678422ea57a36b16c3d446bc57337c26db4f66d9475ffa72d0c731edc674229",
+        "size": 19062
       },
       {
         "path": "src/Forge.Application/WorldGeneration/SetWorldGenerationRecipes.cs",
@@ -13063,8 +13073,8 @@
       },
       {
         "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
-        "sha256": "sha256:78a8d268a91f34bf3e965453434425c65fb213fec6c0346d3bd41da28743e775",
-        "size": 3540
+        "sha256": "sha256:2697579c0af3cb28c08710904875f258ed37c9fa9fa43203c65fcc7acec88ea9",
+        "size": 17751
       },
       {
         "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBridgeAdapters.cs",
@@ -13578,8 +13588,8 @@
       },
       {
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
-        "sha256": "sha256:c794f4c630fc0050376d05ec785c8706f9cbef8f3c2b0ea79c3c7a152fcecbd5",
-        "size": 20352
+        "sha256": "sha256:ea173bd0727c1618dfeefd760a68f45d3a1944f01bca38bd488c41a763820f4b",
+        "size": 35659
       },
       {
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
@@ -13648,8 +13658,8 @@
       },
       {
         "path": "src/Forge.Mcp/Projects/WorldGenerationContracts.cs",
-        "sha256": "sha256:5b5a03e7c2756726807084cb7356a812232068c1d8dfb27d2e33c1657fe8fb8a",
-        "size": 2115
+        "sha256": "sha256:bf391371ea586487b9f9f09d1ba6db814a2fd3ef2b74a47aec4ce1e9a6e6e074",
+        "size": 3113
       },
       {
         "path": "src/Forge.Mcp/Quality/QualityFoundationContracts.cs",
@@ -14515,6 +14525,11 @@
         "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationJobStore.cs",
         "sha256": "sha256:b3551ce567fa7b27fcab7aaae65504b6cc5932115096c4672388724d99fbb3ba",
         "size": 4372
+      },
+      {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "sha256": "sha256:691d1ce88361dac07d55d763556075aa15c61b26ccde850b8f25226abc9fd482",
+        "size": 21139
       },
       {
         "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationRecipeStore.cs",
@@ -16298,8 +16313,8 @@
       },
       {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "sha256": "sha256:dc230aec4f9135262770e141b874f234f9803174146ca701e9d36a683c34a982",
-        "size": 14262
+        "sha256": "sha256:cb40f409a2a1ba6b2bb39c8d0c162e50a62255d928ef59cbe3d150c526f5fab5",
+        "size": 21464
       },
       {
         "path": "tests/Forge.Application.Tests/packages.lock.json",
@@ -17073,8 +17088,8 @@
       },
       {
         "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
-        "sha256": "sha256:0f13ca1e8727033ab4484712db885ea11abd4727d7d86ebcf9ccb741abe56920",
-        "size": 4829
+        "sha256": "sha256:3077dd45b64abeba6485d7f688a0c103cad2c1b48ca1c45e1e9dc1f91ef62327",
+        "size": 10929
       },
       {
         "path": "tests/Forge.EngineAdapter.Tests/packages.lock.json",
@@ -17333,8 +17348,8 @@
       },
       {
         "path": "tests/Forge.Mcp.Tests/Projects/WorldGenerationAgentServiceTests.cs",
-        "sha256": "sha256:02a78c4526526dd2ece38aa870e8360170acbae3b695540a4157564d3fa5cb1b",
-        "size": 3800
+        "sha256": "sha256:0bfb181b1f3e5ecb9f056b52f9845504dee2581c461f2de268fa756f6454f526",
+        "size": 9012
       },
       {
         "path": "tests/Forge.Mcp.Tests/Scripts/ForgeScriptAgentServiceTests.cs",
@@ -17888,8 +17903,8 @@
       },
       {
         "path": "tests/Forge.ModuleFormat.Tests/Workspaces/WorldGenerationStoreTests.cs",
-        "sha256": "sha256:6afa47265d1a339b0abc74c862619122bd5f4bd09bbc4b3ef5e36789ddb7ba73",
-        "size": 6558
+        "sha256": "sha256:4d55b159cfbf22dcb01c42c4f8b54b47db0aaafa70c304218aecafedbfd4e961",
+        "size": 12884
       },
       {
         "path": "tests/Forge.ModuleFormat.Tests/packages.lock.json",
@@ -18482,9 +18497,114 @@
         "size": 7059
       },
       {
+        "path": "tests/Godot/WorldGenerationAddonQualification/project.godot",
+        "sha256": "sha256:1bcdf4af1fd896c892c0e436e24d836ea6197ea9cc1c737dff9e4f93855d143f",
+        "size": 474
+      },
+      {
+        "path": "tests/Godot/WorldGenerationAddonQualification/provider_load_smoke.gd",
+        "sha256": "sha256:e43be9d1e4cd577f946473d0df97679b04714c7d94284fe8b7c7e661d434b705",
+        "size": 2820
+      },
+      {
+        "path": "tests/Godot/WorldGenerationAddonQualification/qualification-execution-plan.json",
+        "sha256": "sha256:8f38082386ac5f9883b0a0d4db86aca062add3f51113e3758ad414a9161aa654",
+        "size": 668
+      },
+      {
+        "path": "tests/Godot/WorldGenerationAddonQualification/qualification-recipe.json",
+        "sha256": "sha256:f641f3c7f60894ff422efdaea9ef1488d2f32b0fb75e16a74237dadb943f66a1",
+        "size": 629
+      },
+      {
+        "path": "tests/Godot/WorldGenerationAddonQualification/runtime.project.godot",
+        "sha256": "sha256:45e5bf9aeec029dc12f2f56e47db58204f40c40a332c8c1a961f2196e982cead",
+        "size": 395
+      },
+      {
+        "path": "tests/Godot/WorldGenerationAddonQualification/world/generation/graphs/biomes.tres",
+        "sha256": "sha256:171480f44151778a65e41d8aaa666961d3f8530019b4336f2957d099ff7351e5",
+        "size": 1063
+      },
+      {
+        "path": "tests/Godot/WorldGenerationAddonQualification/world_generation_capture.gd",
+        "sha256": "sha256:d8a5f13549a8de25b2f8ab05112161df5adaed4841eb5d8e9e7a47eb704ef0ac",
+        "size": 4342
+      },
+      {
+        "path": "tests/Godot/WorldGenerationAddonQualification/world_generation_live_smoke.gd",
+        "sha256": "sha256:b9b8dcc97328aa7ccc2b61cc8e4285ce293022803ad7380ba61d002703d8f822",
+        "size": 11397
+      },
+      {
+        "path": "tests/Godot/WorldGenerationAddonQualification/world_generation_reopen_smoke.gd",
+        "sha256": "sha256:297ca92082a814b5cba498134a9cb236194e46480b09aee61cd1910042b27db0",
+        "size": 6265
+      },
+      {
         "path": "tests/Godot/WorldGenerationNativeSmoke.gd",
-        "sha256": "sha256:5a20b79fe8092cd3de14b24ba704279981a66f016f309ec591e264476556150f",
-        "size": 9330
+        "sha256": "sha256:211c76d02e5cccea37705916fa7a06c609c05e65cbc69dae5931aad65d4c629b",
+        "size": 12140
+      },
+      {
+        "path": "tests/Godot/WorldGenerationReferenceQualification/project.godot",
+        "sha256": "sha256:c05afb0f9ae85e0c3662a754391595c8d0d8b8901331db1e65c9761728c27cdf",
+        "size": 490
+      },
+      {
+        "path": "tests/Godot/WorldGenerationReferenceQualification/provider_load_smoke.gd",
+        "sha256": "sha256:e43be9d1e4cd577f946473d0df97679b04714c7d94284fe8b7c7e661d434b705",
+        "size": 2820
+      },
+      {
+        "path": "tests/Godot/WorldGenerationReferenceQualification/qualification-execution-plan.json",
+        "sha256": "sha256:b1ca91543995cef4bd381cbe4fee6527a539fe243f38c926b70ae2140bb897d0",
+        "size": 1430
+      },
+      {
+        "path": "tests/Godot/WorldGenerationReferenceQualification/qualification-recipe.json",
+        "sha256": "sha256:91ced2a0c02a44da2c0e56216042521f1ac7e9b992cd7f338af2c41c0808bb56",
+        "size": 993
+      },
+      {
+        "path": "tests/Godot/WorldGenerationReferenceQualification/runtime.project.godot",
+        "sha256": "sha256:5ff2785f7505be939e7bc9e78d8827936e6b75b00c1a576f5ed3f061bcb57b82",
+        "size": 405
+      },
+      {
+        "path": "tests/Godot/WorldGenerationReferenceQualification/world/generation/graphs/biomes.tres",
+        "sha256": "sha256:558673cff12abfc02ecf74e78a9bb20170f2b1a9d1422e70abf94bda8a4203d7",
+        "size": 1109
+      },
+      {
+        "path": "tests/Godot/WorldGenerationReferenceQualification/world/generation/graphs/roads.tres",
+        "sha256": "sha256:8422f9e6cffbfc1c7115a844bac561f2f9a4cfe31adbccb9ef6afdfaf991f567",
+        "size": 1106
+      },
+      {
+        "path": "tests/Godot/WorldGenerationReferenceQualification/world/generation/graphs/scatter.tres",
+        "sha256": "sha256:fc0f9914bfb0b66c42418b0fea2c6e28782f69ec4e0683a4b90a2cfb01c904de",
+        "size": 1122
+      },
+      {
+        "path": "tests/Godot/WorldGenerationReferenceQualification/world/generation/graphs/settlements.tres",
+        "sha256": "sha256:61e0a62c60b08a63ec7bbde8b20333168cbc0cde2b6e1d229c5f42747f47aca6",
+        "size": 1150
+      },
+      {
+        "path": "tests/Godot/WorldGenerationReferenceQualification/world_generation_capture.gd",
+        "sha256": "sha256:d8a5f13549a8de25b2f8ab05112161df5adaed4841eb5d8e9e7a47eb704ef0ac",
+        "size": 4342
+      },
+      {
+        "path": "tests/Godot/WorldGenerationReferenceQualification/world_generation_live_smoke.gd",
+        "sha256": "sha256:8be0fdc3a70f79c28929a16ce7de2078d9a865ce11383982c1e0bd2c408cc7c5",
+        "size": 22362
+      },
+      {
+        "path": "tests/Godot/WorldGenerationReferenceQualification/world_generation_reopen_smoke.gd",
+        "sha256": "sha256:f8e43b1d9c5f476abf6232e5a38342e678e1d662b0f67cbe5d50d9a1c0a8ba3a",
+        "size": 6284
       },
       {
         "path": "tests/asset_pipeline/test_asset_vault_lifecycle.py",
@@ -19043,8 +19163,8 @@
       },
       {
         "path": "third_party/world-generation.dependencies.json",
-        "sha256": "sha256:f3d5a2a08fd0c4e2dfe7f5f083b03e23870ba5a1f325251f14373966ad8aaeeb",
-        "size": 1845
+        "sha256": "sha256:4908790834a76730cc36571f1fbae4ed765df671d7330732dd8de9753073c45c",
+        "size": 2959
       },
       {
         "path": "tools/Forge.ArchitectureGraph/ArchitectureGraphService.cs",
@@ -40862,6 +40982,16 @@
       }
     },
     {
+      "id": "file:integrations/godot/addons/openrpg_world_generation/neutral_world_baker.gd",
+      "kind": "configuration",
+      "name": "neutral_world_baker.gd",
+      "path": "integrations/godot/addons/openrpg_world_generation/neutral_world_baker.gd",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      }
+    },
+    {
       "id": "file:integrations/godot/addons/openrpg_world_generation/openrpg_world_generation_backend.gd",
       "kind": "configuration",
       "name": "openrpg_world_generation_backend.gd",
@@ -45406,6 +45536,16 @@
       "kind": "file",
       "name": "WorldFeatureScriptService.cs",
       "path": "src/Forge.Application/WorldFeatures/WorldFeatureScriptService.cs",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      }
+    },
+    {
+      "id": "file:src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+      "kind": "file",
+      "name": "PromoteWorldGeneration.cs",
+      "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
       "line": 1,
       "metadata": {
         "language": "csharp"
@@ -53662,6 +53802,16 @@
       }
     },
     {
+      "id": "file:src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+      "kind": "file",
+      "name": "WorldGenerationPromotionStore.cs",
+      "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      }
+    },
+    {
       "id": "file:src/Forge.ModuleFormat/Workspaces/WorldGenerationRecipeStore.cs",
       "kind": "file",
       "name": "WorldGenerationRecipeStore.cs",
@@ -61592,10 +61742,220 @@
       }
     },
     {
+      "id": "file:tests/Godot/WorldGenerationAddonQualification/project.godot",
+      "kind": "configuration",
+      "name": "project.godot",
+      "path": "tests/Godot/WorldGenerationAddonQualification/project.godot",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      }
+    },
+    {
+      "id": "file:tests/Godot/WorldGenerationAddonQualification/provider_load_smoke.gd",
+      "kind": "configuration",
+      "name": "provider_load_smoke.gd",
+      "path": "tests/Godot/WorldGenerationAddonQualification/provider_load_smoke.gd",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      }
+    },
+    {
+      "id": "file:tests/Godot/WorldGenerationAddonQualification/qualification-execution-plan.json",
+      "kind": "configuration",
+      "name": "qualification-execution-plan.json",
+      "path": "tests/Godot/WorldGenerationAddonQualification/qualification-execution-plan.json",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      }
+    },
+    {
+      "id": "file:tests/Godot/WorldGenerationAddonQualification/qualification-recipe.json",
+      "kind": "configuration",
+      "name": "qualification-recipe.json",
+      "path": "tests/Godot/WorldGenerationAddonQualification/qualification-recipe.json",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      }
+    },
+    {
+      "id": "file:tests/Godot/WorldGenerationAddonQualification/runtime.project.godot",
+      "kind": "configuration",
+      "name": "runtime.project.godot",
+      "path": "tests/Godot/WorldGenerationAddonQualification/runtime.project.godot",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      }
+    },
+    {
+      "id": "file:tests/Godot/WorldGenerationAddonQualification/world/generation/graphs/biomes.tres",
+      "kind": "configuration",
+      "name": "biomes.tres",
+      "path": "tests/Godot/WorldGenerationAddonQualification/world/generation/graphs/biomes.tres",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      }
+    },
+    {
+      "id": "file:tests/Godot/WorldGenerationAddonQualification/world_generation_capture.gd",
+      "kind": "configuration",
+      "name": "world_generation_capture.gd",
+      "path": "tests/Godot/WorldGenerationAddonQualification/world_generation_capture.gd",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      }
+    },
+    {
+      "id": "file:tests/Godot/WorldGenerationAddonQualification/world_generation_live_smoke.gd",
+      "kind": "configuration",
+      "name": "world_generation_live_smoke.gd",
+      "path": "tests/Godot/WorldGenerationAddonQualification/world_generation_live_smoke.gd",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      }
+    },
+    {
+      "id": "file:tests/Godot/WorldGenerationAddonQualification/world_generation_reopen_smoke.gd",
+      "kind": "configuration",
+      "name": "world_generation_reopen_smoke.gd",
+      "path": "tests/Godot/WorldGenerationAddonQualification/world_generation_reopen_smoke.gd",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      }
+    },
+    {
       "id": "file:tests/Godot/WorldGenerationNativeSmoke.gd",
       "kind": "configuration",
       "name": "WorldGenerationNativeSmoke.gd",
       "path": "tests/Godot/WorldGenerationNativeSmoke.gd",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      }
+    },
+    {
+      "id": "file:tests/Godot/WorldGenerationReferenceQualification/project.godot",
+      "kind": "configuration",
+      "name": "project.godot",
+      "path": "tests/Godot/WorldGenerationReferenceQualification/project.godot",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      }
+    },
+    {
+      "id": "file:tests/Godot/WorldGenerationReferenceQualification/provider_load_smoke.gd",
+      "kind": "configuration",
+      "name": "provider_load_smoke.gd",
+      "path": "tests/Godot/WorldGenerationReferenceQualification/provider_load_smoke.gd",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      }
+    },
+    {
+      "id": "file:tests/Godot/WorldGenerationReferenceQualification/qualification-execution-plan.json",
+      "kind": "configuration",
+      "name": "qualification-execution-plan.json",
+      "path": "tests/Godot/WorldGenerationReferenceQualification/qualification-execution-plan.json",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      }
+    },
+    {
+      "id": "file:tests/Godot/WorldGenerationReferenceQualification/qualification-recipe.json",
+      "kind": "configuration",
+      "name": "qualification-recipe.json",
+      "path": "tests/Godot/WorldGenerationReferenceQualification/qualification-recipe.json",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      }
+    },
+    {
+      "id": "file:tests/Godot/WorldGenerationReferenceQualification/runtime.project.godot",
+      "kind": "configuration",
+      "name": "runtime.project.godot",
+      "path": "tests/Godot/WorldGenerationReferenceQualification/runtime.project.godot",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      }
+    },
+    {
+      "id": "file:tests/Godot/WorldGenerationReferenceQualification/world/generation/graphs/biomes.tres",
+      "kind": "configuration",
+      "name": "biomes.tres",
+      "path": "tests/Godot/WorldGenerationReferenceQualification/world/generation/graphs/biomes.tres",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      }
+    },
+    {
+      "id": "file:tests/Godot/WorldGenerationReferenceQualification/world/generation/graphs/roads.tres",
+      "kind": "configuration",
+      "name": "roads.tres",
+      "path": "tests/Godot/WorldGenerationReferenceQualification/world/generation/graphs/roads.tres",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      }
+    },
+    {
+      "id": "file:tests/Godot/WorldGenerationReferenceQualification/world/generation/graphs/scatter.tres",
+      "kind": "configuration",
+      "name": "scatter.tres",
+      "path": "tests/Godot/WorldGenerationReferenceQualification/world/generation/graphs/scatter.tres",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      }
+    },
+    {
+      "id": "file:tests/Godot/WorldGenerationReferenceQualification/world/generation/graphs/settlements.tres",
+      "kind": "configuration",
+      "name": "settlements.tres",
+      "path": "tests/Godot/WorldGenerationReferenceQualification/world/generation/graphs/settlements.tres",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      }
+    },
+    {
+      "id": "file:tests/Godot/WorldGenerationReferenceQualification/world_generation_capture.gd",
+      "kind": "configuration",
+      "name": "world_generation_capture.gd",
+      "path": "tests/Godot/WorldGenerationReferenceQualification/world_generation_capture.gd",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      }
+    },
+    {
+      "id": "file:tests/Godot/WorldGenerationReferenceQualification/world_generation_live_smoke.gd",
+      "kind": "configuration",
+      "name": "world_generation_live_smoke.gd",
+      "path": "tests/Godot/WorldGenerationReferenceQualification/world_generation_live_smoke.gd",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      }
+    },
+    {
+      "id": "file:tests/Godot/WorldGenerationReferenceQualification/world_generation_reopen_smoke.gd",
+      "kind": "configuration",
+      "name": "world_generation_reopen_smoke.gd",
+      "path": "tests/Godot/WorldGenerationReferenceQualification/world_generation_reopen_smoke.gd",
       "line": 1,
       "metadata": {
         "language": "gdscript"
@@ -64013,6 +64373,18 @@
       "line": 10,
       "metadata": {
         "namespace": "Forge.Application.WorldFeatures",
+        "project": "Forge.Application",
+        "symbol_kind": "Class"
+      }
+    },
+    {
+      "id": "handler:Forge.Application.WorldGeneration.PromoteWorldGenerationHandler",
+      "kind": "handler",
+      "name": "PromoteWorldGenerationHandler",
+      "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+      "line": 93,
+      "metadata": {
+        "namespace": "Forge.Application.WorldGeneration",
         "project": "Forge.Application",
         "symbol_kind": "Class"
       }
@@ -67438,6 +67810,18 @@
       }
     },
     {
+      "id": "model:Forge.Application.WorldGeneration.PromoteWorldGenerationCommand",
+      "kind": "model",
+      "name": "PromoteWorldGenerationCommand",
+      "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+      "line": 44,
+      "metadata": {
+        "namespace": "Forge.Application.WorldGeneration",
+        "project": "Forge.Application",
+        "symbol_kind": "Class"
+      }
+    },
+    {
       "id": "model:Forge.Application.WorldGeneration.SetWorldGenerationRecipesCommand",
       "kind": "model",
       "name": "SetWorldGenerationRecipesCommand",
@@ -67467,6 +67851,18 @@
       "name": "WorldGenerationJobAuditEntry",
       "path": "src/Forge.Application/WorldGeneration/WorldGenerationJob.cs",
       "line": 14,
+      "metadata": {
+        "namespace": "Forge.Application.WorldGeneration",
+        "project": "Forge.Application",
+        "symbol_kind": "Class"
+      }
+    },
+    {
+      "id": "model:Forge.Application.WorldGeneration.WorldGenerationPromotionCommandResult",
+      "kind": "model",
+      "name": "WorldGenerationPromotionCommandResult",
+      "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+      "line": 85,
       "metadata": {
         "namespace": "Forge.Application.WorldGeneration",
         "project": "Forge.Application",
@@ -77510,7 +77906,7 @@
       "kind": "model",
       "name": "WorldGenerationAgentState",
       "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
-      "line": 359,
+      "line": 621,
       "metadata": {
         "namespace": "Forge.Mcp.Projects",
         "project": "Forge.Mcp",
@@ -77870,7 +78266,7 @@
       "kind": "model",
       "name": "WorldGenerationAuditEntry",
       "path": "src/Forge.Mcp/Projects/WorldGenerationContracts.cs",
-      "line": 65,
+      "line": 97,
       "metadata": {
         "namespace": "Forge.Mcp.Projects",
         "project": "Forge.Mcp",
@@ -77883,6 +78279,30 @@
       "name": "WorldGenerationExecutionPreviewRequest",
       "path": "src/Forge.Mcp/Projects/WorldGenerationContracts.cs",
       "line": 36,
+      "metadata": {
+        "namespace": "Forge.Mcp.Projects",
+        "project": "Forge.Mcp",
+        "symbol_kind": "Class"
+      }
+    },
+    {
+      "id": "model:Forge.Mcp.Projects.WorldGenerationPromotionPlanRequest",
+      "kind": "model",
+      "name": "WorldGenerationPromotionPlanRequest",
+      "path": "src/Forge.Mcp/Projects/WorldGenerationContracts.cs",
+      "line": 65,
+      "metadata": {
+        "namespace": "Forge.Mcp.Projects",
+        "project": "Forge.Mcp",
+        "symbol_kind": "Class"
+      }
+    },
+    {
+      "id": "model:Forge.Mcp.Projects.WorldGenerationPromotionPlanResult",
+      "kind": "model",
+      "name": "WorldGenerationPromotionPlanResult",
+      "path": "src/Forge.Mcp/Projects/WorldGenerationContracts.cs",
+      "line": 74,
       "metadata": {
         "namespace": "Forge.Mcp.Projects",
         "project": "Forge.Mcp",
@@ -79918,6 +80338,18 @@
       }
     },
     {
+      "id": "model:Forge.ModuleFormat.Workspaces.WorldGenerationCanonicalExpectationResult",
+      "kind": "model",
+      "name": "WorldGenerationCanonicalExpectationResult",
+      "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+      "line": 416,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Workspaces",
+        "project": "Forge.ModuleFormat",
+        "symbol_kind": "Class"
+      }
+    },
+    {
       "id": "model:Forge.ModuleFormat.Workspaces.WorldGenerationExecutionPlanLoadResult",
       "kind": "model",
       "name": "WorldGenerationExecutionPlanLoadResult",
@@ -79935,6 +80367,66 @@
       "name": "WorldGenerationJobLoadResult",
       "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationJobStore.cs",
       "line": 93,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Workspaces",
+        "project": "Forge.ModuleFormat",
+        "symbol_kind": "Class"
+      }
+    },
+    {
+      "id": "model:Forge.ModuleFormat.Workspaces.WorldGenerationNeutralSceneValidationResult",
+      "kind": "model",
+      "name": "WorldGenerationNeutralSceneValidationResult",
+      "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+      "line": 409,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Workspaces",
+        "project": "Forge.ModuleFormat",
+        "symbol_kind": "Class"
+      }
+    },
+    {
+      "id": "model:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionFilePatch",
+      "kind": "model",
+      "name": "WorldGenerationPromotionFilePatch",
+      "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+      "line": 421,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Workspaces",
+        "project": "Forge.ModuleFormat",
+        "symbol_kind": "Class"
+      }
+    },
+    {
+      "id": "model:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionInspectionResult",
+      "kind": "model",
+      "name": "WorldGenerationPromotionInspectionResult",
+      "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+      "line": 401,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Workspaces",
+        "project": "Forge.ModuleFormat",
+        "symbol_kind": "Class"
+      }
+    },
+    {
+      "id": "model:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionLoadResult",
+      "kind": "model",
+      "name": "WorldGenerationPromotionLoadResult",
+      "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+      "line": 431,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Workspaces",
+        "project": "Forge.ModuleFormat",
+        "symbol_kind": "Class"
+      }
+    },
+    {
+      "id": "model:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionWriteResult",
+      "kind": "model",
+      "name": "WorldGenerationPromotionWriteResult",
+      "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+      "line": 426,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Workspaces",
         "project": "Forge.ModuleFormat",
@@ -98346,7 +98838,7 @@
       "kind": "test",
       "name": "WorldGenerationWorkflowTests",
       "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-      "line": 9,
+      "line": 10,
       "metadata": {
         "namespace": "Forge.Application.Tests.WorldGeneration",
         "project": "Forge.Application.Tests",
@@ -98358,7 +98850,7 @@
       "kind": "test",
       "name": "MemoryArtifactSink",
       "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-      "line": 313,
+      "line": 454,
       "metadata": {
         "namespace": "Forge.Application.Tests.WorldGeneration",
         "project": "Forge.Application.Tests",
@@ -98370,7 +98862,7 @@
       "kind": "test",
       "name": "RecordingAdapter",
       "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-      "line": 287,
+      "line": 428,
       "metadata": {
         "namespace": "Forge.Application.Tests.WorldGeneration",
         "project": "Forge.Application.Tests",
@@ -100302,7 +100794,7 @@
       "kind": "test",
       "name": "WorldGenerationBridgeTests",
       "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
-      "line": 7,
+      "line": 9,
       "metadata": {
         "namespace": "Forge.EngineAdapter.Tests.WorldGeneration",
         "project": "Forge.EngineAdapter.Tests",
@@ -100314,7 +100806,19 @@
       "kind": "test",
       "name": "MemorySink",
       "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
-      "line": 86,
+      "line": 244,
+      "metadata": {
+        "namespace": "Forge.EngineAdapter.Tests.WorldGeneration",
+        "project": "Forge.EngineAdapter.Tests",
+        "symbol_kind": "Class"
+      }
+    },
+    {
+      "id": "test:Forge.EngineAdapter.Tests.WorldGeneration.WorldGenerationBridgeTests.ProviderReceiptSpec",
+      "kind": "test",
+      "name": "ProviderReceiptSpec",
+      "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
+      "line": 236,
       "metadata": {
         "namespace": "Forge.EngineAdapter.Tests.WorldGeneration",
         "project": "Forge.EngineAdapter.Tests",
@@ -108686,6 +109190,18 @@
       }
     },
     {
+      "id": "type:Forge.Application.WorldGeneration.WorldGenerationCanonicalPromotion",
+      "kind": "type",
+      "name": "WorldGenerationCanonicalPromotion",
+      "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+      "line": 59,
+      "metadata": {
+        "namespace": "Forge.Application.WorldGeneration",
+        "project": "Forge.Application",
+        "symbol_kind": "Class"
+      }
+    },
+    {
       "id": "type:Forge.Application.WorldGeneration.WorldGenerationExecutionContext",
       "kind": "type",
       "name": "WorldGenerationExecutionContext",
@@ -108794,6 +109310,18 @@
       }
     },
     {
+      "id": "type:Forge.Application.WorldGeneration.WorldGenerationProviderEvidence",
+      "kind": "type",
+      "name": "WorldGenerationProviderEvidence",
+      "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+      "line": 14,
+      "metadata": {
+        "namespace": "Forge.Application.WorldGeneration",
+        "project": "Forge.Application",
+        "symbol_kind": "Class"
+      }
+    },
+    {
       "id": "type:Forge.Application.WorldGeneration.WorldGenerationRecipeCommandHistory",
       "kind": "type",
       "name": "WorldGenerationRecipeCommandHistory",
@@ -108815,6 +109343,18 @@
         "namespace": "Forge.Application.WorldGeneration",
         "project": "Forge.Application",
         "symbol_kind": "Struct"
+      }
+    },
+    {
+      "id": "type:Forge.Application.WorldGeneration.WorldGenerationValidationReport",
+      "kind": "type",
+      "name": "WorldGenerationValidationReport",
+      "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+      "line": 21,
+      "metadata": {
+        "namespace": "Forge.Application.WorldGeneration",
+        "project": "Forge.Application",
+        "symbol_kind": "Class"
       }
     },
     {
@@ -120750,7 +121290,7 @@
       "kind": "type",
       "name": "WorldGenerationBackendCapability",
       "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
-      "line": 5,
+      "line": 7,
       "metadata": {
         "namespace": "Forge.EngineAdapter.WorldGeneration",
         "project": "Forge.EngineAdapter",
@@ -120762,7 +121302,7 @@
       "kind": "type",
       "name": "WorldGenerationBackendCapabilityProbe",
       "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
-      "line": 15,
+      "line": 19,
       "metadata": {
         "namespace": "Forge.EngineAdapter.WorldGeneration",
         "project": "Forge.EngineAdapter",
@@ -120774,7 +121314,31 @@
       "kind": "type",
       "name": "BackendMarker",
       "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
-      "line": 87,
+      "line": 395,
+      "metadata": {
+        "namespace": "Forge.EngineAdapter.WorldGeneration",
+        "project": "Forge.EngineAdapter",
+        "symbol_kind": "Class"
+      }
+    },
+    {
+      "id": "type:Forge.EngineAdapter.WorldGeneration.WorldGenerationBackendCapabilityProbe.ProviderEvidence",
+      "kind": "type",
+      "name": "ProviderEvidence",
+      "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
+      "line": 407,
+      "metadata": {
+        "namespace": "Forge.EngineAdapter.WorldGeneration",
+        "project": "Forge.EngineAdapter",
+        "symbol_kind": "Class"
+      }
+    },
+    {
+      "id": "type:Forge.EngineAdapter.WorldGeneration.WorldGenerationBackendCapabilityProbe.ProviderInstallation",
+      "kind": "type",
+      "name": "ProviderInstallation",
+      "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
+      "line": 400,
       "metadata": {
         "namespace": "Forge.EngineAdapter.WorldGeneration",
         "project": "Forge.EngineAdapter",
@@ -124106,11 +124670,23 @@
       }
     },
     {
+      "id": "type:Forge.Mcp.Projects.ForgeProjectAgentService.StoredWorldGenerationPromotionPlan",
+      "kind": "type",
+      "name": "StoredWorldGenerationPromotionPlan",
+      "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
+      "line": 648,
+      "metadata": {
+        "namespace": "Forge.Mcp.Projects",
+        "project": "Forge.Mcp",
+        "symbol_kind": "Class"
+      }
+    },
+    {
       "id": "type:Forge.Mcp.Projects.ForgeProjectAgentService.StoredWorldGenerationRecipePlan",
       "kind": "type",
       "name": "StoredWorldGenerationRecipePlan",
       "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
-      "line": 381,
+      "line": 681,
       "metadata": {
         "namespace": "Forge.Mcp.Projects",
         "project": "Forge.Mcp",
@@ -124375,6 +124951,18 @@
       "name": "UnifiedContentResourceQuery",
       "path": "src/Forge.Mcp/Projects/ContentAuthoringContracts.cs",
       "line": 30,
+      "metadata": {
+        "namespace": "Forge.Mcp.Projects",
+        "project": "Forge.Mcp",
+        "symbol_kind": "Class"
+      }
+    },
+    {
+      "id": "type:Forge.Mcp.Projects.WorldGenerationCanonicalPromotionResource",
+      "kind": "type",
+      "name": "WorldGenerationCanonicalPromotionResource",
+      "path": "src/Forge.Mcp/Projects/WorldGenerationContracts.cs",
+      "line": 91,
       "metadata": {
         "namespace": "Forge.Mcp.Projects",
         "project": "Forge.Mcp",
@@ -127327,6 +127915,18 @@
       "name": "WorldGenerationJobStore",
       "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationJobStore.cs",
       "line": 7,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Workspaces",
+        "project": "Forge.ModuleFormat",
+        "symbol_kind": "Class"
+      }
+    },
+    {
+      "id": "type:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionStore",
+      "kind": "type",
+      "name": "WorldGenerationPromotionStore",
+      "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+      "line": 9,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Workspaces",
         "project": "Forge.ModuleFormat",
@@ -205928,7 +206528,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "PROJECT_CONTEXT.md",
-        "line": 345
+        "line": 352
       }
     },
     {
@@ -205958,7 +206558,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "PROJECT_CONTEXT.md",
-        "line": 297
+        "line": 304
       }
     },
     {
@@ -205968,7 +206568,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "PROJECT_CONTEXT.md",
-        "line": 140
+        "line": 147
       }
     },
     {
@@ -205978,7 +206578,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "PROJECT_CONTEXT.md",
-        "line": 268
+        "line": 275
       }
     },
     {
@@ -205988,7 +206588,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "PROJECT_CONTEXT.md",
-        "line": 251
+        "line": 258
       }
     },
     {
@@ -205998,7 +206598,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "PROJECT_CONTEXT.md",
-        "line": 349
+        "line": 356
       }
     },
     {
@@ -206048,7 +206648,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "README.md",
-        "line": 197
+        "line": 199
       }
     },
     {
@@ -206058,7 +206658,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "README.md",
-        "line": 148
+        "line": 150
       }
     },
     {
@@ -206068,7 +206668,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "README.md",
-        "line": 218
+        "line": 220
       }
     },
     {
@@ -206078,7 +206678,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "README.md",
-        "line": 165
+        "line": 167
       }
     },
     {
@@ -206088,7 +206688,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "README.md",
-        "line": 295
+        "line": 297
       }
     },
     {
@@ -206098,7 +206698,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "README.md",
-        "line": 186
+        "line": 188
       }
     },
     {
@@ -206108,7 +206708,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "README.md",
-        "line": 153
+        "line": 155
       }
     },
     {
@@ -206148,7 +206748,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "README.md",
-        "line": 297
+        "line": 299
       }
     },
     {
@@ -206158,7 +206758,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "README.md",
-        "line": 67
+        "line": 69
       }
     },
     {
@@ -206168,7 +206768,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 923
+        "line": 934
       }
     },
     {
@@ -206178,7 +206778,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 923
+        "line": 934
       }
     },
     {
@@ -206188,7 +206788,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 69
+        "line": 76
       }
     },
     {
@@ -206198,7 +206798,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 432
+        "line": 443
       }
     },
     {
@@ -206208,7 +206808,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 479
+        "line": 490
       }
     },
     {
@@ -206218,7 +206818,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 484
+        "line": 495
       }
     },
     {
@@ -206228,7 +206828,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 489
+        "line": 500
       }
     },
     {
@@ -206238,7 +206838,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 494
+        "line": 505
       }
     },
     {
@@ -206248,7 +206848,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 499
+        "line": 510
       }
     },
     {
@@ -206258,7 +206858,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 505
+        "line": 516
       }
     },
     {
@@ -206268,7 +206868,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 510
+        "line": 521
       }
     },
     {
@@ -206278,7 +206878,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 515
+        "line": 526
       }
     },
     {
@@ -206288,7 +206888,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 520
+        "line": 531
       }
     },
     {
@@ -206298,7 +206898,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 526
+        "line": 537
       }
     },
     {
@@ -206308,7 +206908,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 530
+        "line": 541
       }
     },
     {
@@ -206318,7 +206918,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 535
+        "line": 546
       }
     },
     {
@@ -206328,7 +206928,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 540
+        "line": 551
       }
     },
     {
@@ -206338,7 +206938,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 545
+        "line": 556
       }
     },
     {
@@ -206348,7 +206948,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 550
+        "line": 561
       }
     },
     {
@@ -206358,7 +206958,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 555
+        "line": 566
       }
     },
     {
@@ -206368,7 +206968,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 560
+        "line": 571
       }
     },
     {
@@ -206378,7 +206978,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 565
+        "line": 576
       }
     },
     {
@@ -206388,7 +206988,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 570
+        "line": 581
       }
     },
     {
@@ -206398,7 +206998,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 575
+        "line": 586
       }
     },
     {
@@ -206408,7 +207008,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 579
+        "line": 590
       }
     },
     {
@@ -206418,7 +207018,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 583
+        "line": 594
       }
     },
     {
@@ -206428,7 +207028,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 588
+        "line": 599
       }
     },
     {
@@ -206438,7 +207038,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 593
+        "line": 604
       }
     },
     {
@@ -206448,7 +207048,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 598
+        "line": 609
       }
     },
     {
@@ -206458,7 +207058,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 603
+        "line": 614
       }
     },
     {
@@ -206468,7 +207068,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 609
+        "line": 620
       }
     },
     {
@@ -206478,7 +207078,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 615
+        "line": 626
       }
     },
     {
@@ -206488,7 +207088,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 622
+        "line": 633
       }
     },
     {
@@ -206498,7 +207098,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 637
+        "line": 648
       }
     },
     {
@@ -206508,7 +207108,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 672
+        "line": 683
       }
     },
     {
@@ -206518,7 +207118,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "STATUS.md",
-        "line": 671
+        "line": 682
       }
     },
     {
@@ -347888,7 +348488,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "docs/world-generation/CODEX_EXECUTION_PLAN.md",
-        "line": 324
+        "line": 347
       }
     },
     {
@@ -347898,7 +348498,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "docs/world-generation/README.md",
-        "line": 178
+        "line": 215
       }
     },
     {
@@ -347908,7 +348508,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "docs/world-generation/README.md",
-        "line": 162
+        "line": 197
       }
     },
     {
@@ -347918,7 +348518,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "docs/world-generation/README.md",
-        "line": 177
+        "line": 214
       }
     },
     {
@@ -347929,6 +348529,16 @@
       "evidence": {
         "path": "integrations/godot/addons/openrpg_world_generation/plugin.cfg",
         "line": 7
+      }
+    },
+    {
+      "source": "file:integrations/godot/addons/openrpg_world_generation/world_generation_job_runner.gd",
+      "target": "file:integrations/godot/addons/openrpg_world_generation/openrpg_world_generation_backend.gd",
+      "kind": "imports",
+      "confidence": "syntactic",
+      "evidence": {
+        "path": "integrations/godot/addons/openrpg_world_generation/world_generation_job_runner.gd",
+        "line": 13
       }
     },
     {
@@ -374902,6 +375512,166 @@
       }
     },
     {
+      "source": "file:src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+      "target": "file:src/Forge.Application/Commands/AuditEntry.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 270
+      }
+    },
+    {
+      "source": "file:src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+      "target": "file:src/Forge.Application/Commands/CommandDiagnostic.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 285
+      }
+    },
+    {
+      "source": "file:src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+      "target": "file:src/Forge.Application/Commands/CommandId.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 45
+      }
+    },
+    {
+      "source": "file:src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+      "target": "file:src/Forge.Application/Commands/CommandResult.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 87
+      }
+    },
+    {
+      "source": "file:src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+      "target": "file:src/Forge.Application/Commands/ProjectPatch.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 210
+      }
+    },
+    {
+      "source": "file:src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+      "target": "file:src/Forge.Application/Projects/ProjectRevision.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 48
+      }
+    },
+    {
+      "source": "file:src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+      "target": "file:src/Forge.Application/Projects/ProjectState.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 116
+      }
+    },
+    {
+      "source": "file:src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+      "target": "file:src/Forge.Application/Time/IClock.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 106
+      }
+    },
+    {
+      "source": "file:src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+      "target": "file:src/Forge.Application/WorldGeneration/WorldGenerationContracts.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 28
+      }
+    },
+    {
+      "source": "file:src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+      "target": "file:src/Forge.Application/WorldGeneration/WorldGenerationJob.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 118
+      }
+    },
+    {
+      "source": "file:src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+      "target": "file:src/Forge.Domain/Areas/AreaLoadingProfile.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 156
+      }
+    },
+    {
+      "source": "file:src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+      "target": "file:src/Forge.Domain/Areas/AreaWorldProfile.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 168
+      }
+    },
+    {
+      "source": "file:src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+      "target": "file:src/Forge.Domain/Assistant/AssistantPermissionLevel.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 56
+      }
+    },
+    {
+      "source": "file:src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+      "target": "file:src/Forge.Domain/Projects/ProjectDefinition.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 150
+      }
+    },
+    {
+      "source": "file:src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+      "target": "file:src/Forge.Domain/WorldGeneration/WorldGenerationRecipe.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 15
+      }
+    },
+    {
+      "source": "file:src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+      "target": "file:src/Forge.Domain/WorldGeneration/WorldGenerationRecipeCatalog.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 302
+      }
+    },
+    {
       "source": "file:src/Forge.Application/WorldGeneration/SetWorldGenerationRecipes.cs",
       "target": "file:src/Forge.Application/Commands/AuditEntry.cs",
       "kind": "imports",
@@ -391458,7 +392228,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
-        "line": 6
+        "line": 8
       }
     },
     {
@@ -391468,7 +392238,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
-        "line": 22
+        "line": 28
       }
     },
     {
@@ -395388,7 +396158,17 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
-        "line": 308
+        "line": 506
+      }
+    },
+    {
+      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
+      "target": "file:src/Forge.Application/Commands/CommandHistoryResult.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
+        "line": 423
       }
     },
     {
@@ -395399,6 +396179,16 @@
       "evidence": {
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
         "line": 43
+      }
+    },
+    {
+      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
+      "target": "file:src/Forge.Application/Commands/CommandResult.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
+        "line": 326
       }
     },
     {
@@ -395418,7 +396208,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
-        "line": 385
+        "line": 654
       }
     },
     {
@@ -395449,6 +396239,16 @@
       "evidence": {
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
         "line": 63
+      }
+    },
+    {
+      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
+      "target": "file:src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
+        "line": 287
       }
     },
     {
@@ -395523,6 +396323,16 @@
     },
     {
       "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/ProjectSessionDiagnostic.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
+        "line": 512
+      }
+    },
+    {
+      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
       "target": "file:src/Forge.ModuleFormat/Workspaces/ProjectSessionSaveResult.cs",
       "kind": "imports",
       "confidence": "semantic",
@@ -395549,6 +396359,16 @@
       "evidence": {
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
         "line": 216
+      }
+    },
+    {
+      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
+        "line": 298
       }
     },
     {
@@ -398129,6 +398949,16 @@
       "evidence": {
         "path": "src/Forge.Mcp/Projects/WorldGenerationContracts.cs",
         "line": 29
+      }
+    },
+    {
+      "source": "file:src/Forge.Mcp/Projects/WorldGenerationContracts.cs",
+      "target": "file:src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/WorldGenerationContracts.cs",
+        "line": 93
       }
     },
     {
@@ -406159,6 +406989,76 @@
       "evidence": {
         "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationJobStore.cs",
         "line": 85
+      }
+    },
+    {
+      "source": "file:src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+      "target": "file:src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 46
+      }
+    },
+    {
+      "source": "file:src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+      "target": "file:src/Forge.Application/WorldGeneration/WorldGenerationJob.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 70
+      }
+    },
+    {
+      "source": "file:src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+      "target": "file:src/Forge.Domain/WorldGeneration/WorldGenerationRecipe.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 86
+      }
+    },
+    {
+      "source": "file:src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/ProjectSessionDiagnostic.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 64
+      }
+    },
+    {
+      "source": "file:src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/ProjectSessionSaveResult.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 44
+      }
+    },
+    {
+      "source": "file:src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/WorldGenerationRecipeStore.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 58
+      }
+    },
+    {
+      "source": "file:src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/WorldGenerationWorkspacePath.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 339
       }
     },
     {
@@ -434123,12 +435023,42 @@
     },
     {
       "source": "file:tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
+      "target": "file:src/Forge.Application/Commands/AuditEntry.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
+        "line": 258
+      }
+    },
+    {
+      "source": "file:tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
       "target": "file:src/Forge.Application/Commands/CommandId.cs",
       "kind": "imports",
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 174
+        "line": 175
+      }
+    },
+    {
+      "source": "file:tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
+      "target": "file:src/Forge.Application/Commands/CommandResult.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
+        "line": 243
+      }
+    },
+    {
+      "source": "file:tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
+      "target": "file:src/Forge.Application/Projects/ProjectRevision.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
+        "line": 212
       }
     },
     {
@@ -434138,7 +435068,17 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 182
+        "line": 183
+      }
+    },
+    {
+      "source": "file:tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
+      "target": "file:src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
+        "line": 219
       }
     },
     {
@@ -434148,7 +435088,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 169
+        "line": 170
       }
     },
     {
@@ -434158,7 +435098,17 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 59
+        "line": 60
+      }
+    },
+    {
+      "source": "file:tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
+      "target": "file:src/Forge.Application/WorldGeneration/WorldGenerationJob.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
+        "line": 216
       }
     },
     {
@@ -434168,7 +435118,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 56
+        "line": 57
       }
     },
     {
@@ -434178,7 +435128,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 163
+        "line": 164
       }
     },
     {
@@ -434188,7 +435138,17 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 179
+        "line": 180
+      }
+    },
+    {
+      "source": "file:tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
+      "target": "file:src/Forge.Domain/Projects/ProjectDefinition.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
+        "line": 252
       }
     },
     {
@@ -434198,7 +435158,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 16
+        "line": 17
       }
     },
     {
@@ -434208,7 +435168,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 164
+        "line": 165
       }
     },
     {
@@ -434218,7 +435178,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 162
+        "line": 163
       }
     },
     {
@@ -434228,7 +435188,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 170
+        "line": 171
       }
     },
     {
@@ -445408,7 +446368,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
-        "line": 19
+        "line": 21
       }
     },
     {
@@ -445418,7 +446378,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
-        "line": 15
+        "line": 17
       }
     },
     {
@@ -445428,7 +446388,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
-        "line": 12
+        "line": 14
       }
     },
     {
@@ -445438,7 +446398,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
-        "line": 46
+        "line": 48
       }
     },
     {
@@ -445448,7 +446408,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
-        "line": 22
+        "line": 24
       }
     },
     {
@@ -445458,7 +446418,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
-        "line": 26
+        "line": 28
       }
     },
     {
@@ -445468,7 +446428,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
-        "line": 52
+        "line": 54
       }
     },
     {
@@ -457983,6 +458943,16 @@
     },
     {
       "source": "file:tests/Forge.ModuleFormat.Tests/Workspaces/WorldGenerationStoreTests.cs",
+      "target": "file:src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/WorldGenerationStoreTests.cs",
+        "line": 154
+      }
+    },
+    {
+      "source": "file:tests/Forge.ModuleFormat.Tests/Workspaces/WorldGenerationStoreTests.cs",
       "target": "file:src/Forge.Application/WorldGeneration/WorldGenerationContracts.cs",
       "kind": "imports",
       "confidence": "semantic",
@@ -458069,6 +459039,16 @@
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Workspaces/WorldGenerationStoreTests.cs",
         "line": 45
+      }
+    },
+    {
+      "source": "file:tests/Forge.ModuleFormat.Tests/Workspaces/WorldGenerationStoreTests.cs",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+      "kind": "imports",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/WorldGenerationStoreTests.cs",
+        "line": 148
       }
     },
     {
@@ -475329,6 +476309,256 @@
       "evidence": {
         "path": "src/Forge.Application/WorldFeatures/SetWorldFeatureCatalogHandler.cs",
         "line": 29
+      }
+    },
+    {
+      "source": "handler:Forge.Application.WorldGeneration.PromoteWorldGenerationHandler",
+      "target": "file:src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 93
+      }
+    },
+    {
+      "source": "handler:Forge.Application.WorldGeneration.PromoteWorldGenerationHandler",
+      "target": "model:Forge.Application.Commands.AuditEntry",
+      "kind": "uses_model",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 270
+      }
+    },
+    {
+      "source": "handler:Forge.Application.WorldGeneration.PromoteWorldGenerationHandler",
+      "target": "model:Forge.Application.Commands.CommandDiagnostic",
+      "kind": "uses_model",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 285
+      }
+    },
+    {
+      "source": "handler:Forge.Application.WorldGeneration.PromoteWorldGenerationHandler",
+      "target": "model:Forge.Application.Commands.CommandResult",
+      "kind": "uses_model",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 262
+      }
+    },
+    {
+      "source": "handler:Forge.Application.WorldGeneration.PromoteWorldGenerationHandler",
+      "target": "model:Forge.Application.Commands.ProjectPatch",
+      "kind": "uses_model",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 210
+      }
+    },
+    {
+      "source": "handler:Forge.Application.WorldGeneration.PromoteWorldGenerationHandler",
+      "target": "model:Forge.Application.Projects.ProjectState",
+      "kind": "uses_model",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 116
+      }
+    },
+    {
+      "source": "handler:Forge.Application.WorldGeneration.PromoteWorldGenerationHandler",
+      "target": "model:Forge.Application.WorldGeneration.PromoteWorldGenerationCommand",
+      "kind": "uses_model",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 119
+      }
+    },
+    {
+      "source": "handler:Forge.Application.WorldGeneration.PromoteWorldGenerationHandler",
+      "target": "model:Forge.Application.WorldGeneration.WorldGenerationPromotionCommandResult",
+      "kind": "uses_model",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 115
+      }
+    },
+    {
+      "source": "handler:Forge.Application.WorldGeneration.PromoteWorldGenerationHandler",
+      "target": "model:Forge.Application.WorldGeneration.WorldGenerationRecipeState",
+      "kind": "uses_model",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 117
+      }
+    },
+    {
+      "source": "handler:Forge.Application.WorldGeneration.PromoteWorldGenerationHandler",
+      "target": "model:Forge.Domain.Areas.AreaLoadingProfile",
+      "kind": "uses_model",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 156
+      }
+    },
+    {
+      "source": "handler:Forge.Application.WorldGeneration.PromoteWorldGenerationHandler",
+      "target": "model:Forge.Domain.Areas.AreaWorldProfile",
+      "kind": "uses_model",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 168
+      }
+    },
+    {
+      "source": "handler:Forge.Application.WorldGeneration.PromoteWorldGenerationHandler",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition",
+      "kind": "uses_model",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 150
+      }
+    },
+    {
+      "source": "handler:Forge.Application.WorldGeneration.PromoteWorldGenerationHandler",
+      "target": "project:src/Forge.Application/Forge.Application",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 93
+      }
+    },
+    {
+      "source": "handler:Forge.Application.WorldGeneration.PromoteWorldGenerationHandler",
+      "target": "type:Forge.Application.Projects.ProjectRevision",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 107
+      }
+    },
+    {
+      "source": "handler:Forge.Application.WorldGeneration.PromoteWorldGenerationHandler",
+      "target": "type:Forge.Application.Time.IClock",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 106
+      }
+    },
+    {
+      "source": "handler:Forge.Application.WorldGeneration.PromoteWorldGenerationHandler",
+      "target": "type:Forge.Application.WorldGeneration.WorldGenerationCanonicalPromotion",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 188
+      }
+    },
+    {
+      "source": "handler:Forge.Application.WorldGeneration.PromoteWorldGenerationHandler",
+      "target": "type:Forge.Application.WorldGeneration.WorldGenerationJob",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 118
+      }
+    },
+    {
+      "source": "handler:Forge.Application.WorldGeneration.PromoteWorldGenerationHandler",
+      "target": "type:Forge.Application.WorldGeneration.WorldGenerationJobStatus",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 139
+      }
+    },
+    {
+      "source": "handler:Forge.Application.WorldGeneration.PromoteWorldGenerationHandler",
+      "target": "type:Forge.Application.WorldGeneration.WorldGenerationRecipeRevision",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 108
+      }
+    },
+    {
+      "source": "handler:Forge.Application.WorldGeneration.PromoteWorldGenerationHandler",
+      "target": "type:Forge.Application.WorldGeneration.WorldGenerationValidationReport",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 207
+      }
+    },
+    {
+      "source": "handler:Forge.Application.WorldGeneration.PromoteWorldGenerationHandler",
+      "target": "type:Forge.Domain.Assistant.AssistantPermissionLevel",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 136
+      }
+    },
+    {
+      "source": "handler:Forge.Application.WorldGeneration.PromoteWorldGenerationHandler",
+      "target": "type:Forge.Domain.WorldGeneration.WorldGenerationRecipe",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 150
+      }
+    },
+    {
+      "source": "handler:Forge.Application.WorldGeneration.PromoteWorldGenerationHandler",
+      "target": "type:Forge.Domain.WorldGeneration.WorldGenerationRecipeCatalog",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 302
+      }
+    },
+    {
+      "source": "handler:Forge.Application.WorldGeneration.PromoteWorldGenerationHandler",
+      "target": "type:Forge.Domain.WorldGeneration.WorldGenerationStage",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 322
+      }
+    },
+    {
+      "source": "handler:Forge.Application.WorldGeneration.PromoteWorldGenerationHandler",
+      "target": "validator:Forge.Application.WorldGeneration.WorldGenerationJobValidator",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 300
       }
     },
     {
@@ -578252,6 +579482,76 @@
       }
     },
     {
+      "source": "model:Forge.Application.WorldGeneration.PromoteWorldGenerationCommand",
+      "target": "file:src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 44
+      }
+    },
+    {
+      "source": "model:Forge.Application.WorldGeneration.PromoteWorldGenerationCommand",
+      "target": "model:Forge.Application.Commands.CommandId",
+      "kind": "relationship",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 45
+      }
+    },
+    {
+      "source": "model:Forge.Application.WorldGeneration.PromoteWorldGenerationCommand",
+      "target": "project:src/Forge.Application/Forge.Application",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 44
+      }
+    },
+    {
+      "source": "model:Forge.Application.WorldGeneration.PromoteWorldGenerationCommand",
+      "target": "type:Forge.Application.Projects.ProjectRevision",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 48
+      }
+    },
+    {
+      "source": "model:Forge.Application.WorldGeneration.PromoteWorldGenerationCommand",
+      "target": "type:Forge.Application.WorldGeneration.WorldGenerationRecipeRevision",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 49
+      }
+    },
+    {
+      "source": "model:Forge.Application.WorldGeneration.PromoteWorldGenerationCommand",
+      "target": "type:Forge.Application.WorldGeneration.WorldGenerationValidationReport",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 51
+      }
+    },
+    {
+      "source": "model:Forge.Application.WorldGeneration.PromoteWorldGenerationCommand",
+      "target": "type:Forge.Domain.Assistant.AssistantPermissionLevel",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 56
+      }
+    },
+    {
       "source": "model:Forge.Application.WorldGeneration.SetWorldGenerationRecipesCommand",
       "target": "file:src/Forge.Application/WorldGeneration/SetWorldGenerationRecipes.cs",
       "kind": "defined_in",
@@ -578379,6 +579679,46 @@
       "evidence": {
         "path": "src/Forge.Application/WorldGeneration/WorldGenerationJob.cs",
         "line": 14
+      }
+    },
+    {
+      "source": "model:Forge.Application.WorldGeneration.WorldGenerationPromotionCommandResult",
+      "target": "file:src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 85
+      }
+    },
+    {
+      "source": "model:Forge.Application.WorldGeneration.WorldGenerationPromotionCommandResult",
+      "target": "model:Forge.Application.Commands.CommandResult",
+      "kind": "relationship",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 87
+      }
+    },
+    {
+      "source": "model:Forge.Application.WorldGeneration.WorldGenerationPromotionCommandResult",
+      "target": "project:src/Forge.Application/Forge.Application",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 85
+      }
+    },
+    {
+      "source": "model:Forge.Application.WorldGeneration.WorldGenerationPromotionCommandResult",
+      "target": "type:Forge.Application.WorldGeneration.WorldGenerationCanonicalPromotion",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 90
       }
     },
     {
@@ -611608,7 +612948,17 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
-        "line": 359
+        "line": 621
+      }
+    },
+    {
+      "source": "model:Forge.Mcp.Projects.ForgeProjectAgentService.WorldGenerationAgentState",
+      "target": "handler:Forge.Application.WorldGeneration.PromoteWorldGenerationHandler",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
+        "line": 624
       }
     },
     {
@@ -611618,7 +612968,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
-        "line": 361
+        "line": 623
       }
     },
     {
@@ -611628,7 +612978,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
-        "line": 364
+        "line": 627
       }
     },
     {
@@ -611638,7 +612988,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
-        "line": 359
+        "line": 621
       }
     },
     {
@@ -611648,7 +612998,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
-        "line": 366
+        "line": 629
       }
     },
     {
@@ -611658,7 +613008,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
-        "line": 363
+        "line": 626
       }
     },
     {
@@ -611668,7 +613018,17 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
-        "line": 362
+        "line": 625
+      }
+    },
+    {
+      "source": "model:Forge.Mcp.Projects.ForgeProjectAgentService.WorldGenerationAgentState",
+      "target": "type:Forge.Mcp.Projects.ForgeProjectAgentService.StoredWorldGenerationPromotionPlan",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
+        "line": 630
       }
     },
     {
@@ -611678,7 +613038,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
-        "line": 365
+        "line": 628
       }
     },
     {
@@ -612568,7 +613928,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Mcp/Projects/WorldGenerationContracts.cs",
-        "line": 65
+        "line": 97
       }
     },
     {
@@ -612578,7 +613938,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Mcp/Projects/WorldGenerationContracts.cs",
-        "line": 65
+        "line": 97
       }
     },
     {
@@ -612599,6 +613959,76 @@
       "evidence": {
         "path": "src/Forge.Mcp/Projects/WorldGenerationContracts.cs",
         "line": 36
+      }
+    },
+    {
+      "source": "model:Forge.Mcp.Projects.WorldGenerationPromotionPlanRequest",
+      "target": "file:src/Forge.Mcp/Projects/WorldGenerationContracts.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/WorldGenerationContracts.cs",
+        "line": 65
+      }
+    },
+    {
+      "source": "model:Forge.Mcp.Projects.WorldGenerationPromotionPlanRequest",
+      "target": "project:src/Forge.Mcp/Forge.Mcp",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/WorldGenerationContracts.cs",
+        "line": 65
+      }
+    },
+    {
+      "source": "model:Forge.Mcp.Projects.WorldGenerationPromotionPlanResult",
+      "target": "file:src/Forge.Mcp/Projects/WorldGenerationContracts.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/WorldGenerationContracts.cs",
+        "line": 74
+      }
+    },
+    {
+      "source": "model:Forge.Mcp.Projects.WorldGenerationPromotionPlanResult",
+      "target": "model:Forge.Application.Commands.ProjectPatch",
+      "kind": "relationship",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/WorldGenerationContracts.cs",
+        "line": 84
+      }
+    },
+    {
+      "source": "model:Forge.Mcp.Projects.WorldGenerationPromotionPlanResult",
+      "target": "model:Forge.Mcp.AgentDiagnostic",
+      "kind": "relationship",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/WorldGenerationContracts.cs",
+        "line": 86
+      }
+    },
+    {
+      "source": "model:Forge.Mcp.Projects.WorldGenerationPromotionPlanResult",
+      "target": "model:Forge.Mcp.Projects.WorldGenerationAuditEntry",
+      "kind": "relationship",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/WorldGenerationContracts.cs",
+        "line": 89
+      }
+    },
+    {
+      "source": "model:Forge.Mcp.Projects.WorldGenerationPromotionPlanResult",
+      "target": "project:src/Forge.Mcp/Forge.Mcp",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/WorldGenerationContracts.cs",
+        "line": 74
       }
     },
     {
@@ -618352,6 +619782,36 @@
       }
     },
     {
+      "source": "model:Forge.ModuleFormat.Workspaces.WorldGenerationCanonicalExpectationResult",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 416
+      }
+    },
+    {
+      "source": "model:Forge.ModuleFormat.Workspaces.WorldGenerationCanonicalExpectationResult",
+      "target": "model:Forge.ModuleFormat.Workspaces.ProjectSessionDiagnostic",
+      "kind": "relationship",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 419
+      }
+    },
+    {
+      "source": "model:Forge.ModuleFormat.Workspaces.WorldGenerationCanonicalExpectationResult",
+      "target": "project:src/Forge.ModuleFormat/Forge.ModuleFormat",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 416
+      }
+    },
+    {
       "source": "model:Forge.ModuleFormat.Workspaces.WorldGenerationExecutionPlanLoadResult",
       "target": "file:src/Forge.ModuleFormat/Workspaces/WorldGenerationExecutionPlanStore.cs",
       "kind": "defined_in",
@@ -618429,6 +619889,176 @@
       "evidence": {
         "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationJobStore.cs",
         "line": 94
+      }
+    },
+    {
+      "source": "model:Forge.ModuleFormat.Workspaces.WorldGenerationNeutralSceneValidationResult",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 409
+      }
+    },
+    {
+      "source": "model:Forge.ModuleFormat.Workspaces.WorldGenerationNeutralSceneValidationResult",
+      "target": "model:Forge.ModuleFormat.Workspaces.ProjectSessionDiagnostic",
+      "kind": "relationship",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 411
+      }
+    },
+    {
+      "source": "model:Forge.ModuleFormat.Workspaces.WorldGenerationNeutralSceneValidationResult",
+      "target": "project:src/Forge.ModuleFormat/Forge.ModuleFormat",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 409
+      }
+    },
+    {
+      "source": "model:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionFilePatch",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 421
+      }
+    },
+    {
+      "source": "model:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionFilePatch",
+      "target": "project:src/Forge.ModuleFormat/Forge.ModuleFormat",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 421
+      }
+    },
+    {
+      "source": "model:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionInspectionResult",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 401
+      }
+    },
+    {
+      "source": "model:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionInspectionResult",
+      "target": "model:Forge.ModuleFormat.Workspaces.ProjectSessionDiagnostic",
+      "kind": "relationship",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 404
+      }
+    },
+    {
+      "source": "model:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionInspectionResult",
+      "target": "project:src/Forge.ModuleFormat/Forge.ModuleFormat",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 401
+      }
+    },
+    {
+      "source": "model:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionInspectionResult",
+      "target": "type:Forge.Application.WorldGeneration.WorldGenerationValidationReport",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 402
+      }
+    },
+    {
+      "source": "model:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionLoadResult",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 431
+      }
+    },
+    {
+      "source": "model:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionLoadResult",
+      "target": "model:Forge.ModuleFormat.Workspaces.ProjectSessionDiagnostic",
+      "kind": "relationship",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 435
+      }
+    },
+    {
+      "source": "model:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionLoadResult",
+      "target": "project:src/Forge.ModuleFormat/Forge.ModuleFormat",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 431
+      }
+    },
+    {
+      "source": "model:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionLoadResult",
+      "target": "type:Forge.Application.WorldGeneration.WorldGenerationCanonicalPromotion",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 432
+      }
+    },
+    {
+      "source": "model:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionWriteResult",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 426
+      }
+    },
+    {
+      "source": "model:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionWriteResult",
+      "target": "model:Forge.ModuleFormat.Workspaces.ProjectSessionDiagnostic",
+      "kind": "relationship",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 429
+      }
+    },
+    {
+      "source": "model:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionWriteResult",
+      "target": "model:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionFilePatch",
+      "kind": "relationship",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 428
+      }
+    },
+    {
+      "source": "model:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionWriteResult",
+      "target": "project:src/Forge.ModuleFormat/Forge.ModuleFormat",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 426
       }
     },
     {
@@ -651628,7 +653258,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 9
+        "line": 10
       }
     },
     {
@@ -651749,6 +653379,16 @@
       "evidence": {
         "path": "src/Forge.Application/WorldFeatures/WorldFeatureScriptService.cs",
         "line": 6
+      }
+    },
+    {
+      "source": "namespace:Forge.Application.WorldGeneration",
+      "target": "file:src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 14
       }
     },
     {
@@ -658448,7 +660088,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
-        "line": 7
+        "line": 9
       }
     },
     {
@@ -658648,7 +660288,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
-        "line": 5
+        "line": 7
       }
     },
     {
@@ -663139,6 +664779,16 @@
       "evidence": {
         "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationJobStore.cs",
         "line": 7
+      }
+    },
+    {
+      "source": "namespace:Forge.ModuleFormat.Workspaces",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 9
       }
     },
     {
@@ -688253,6 +689903,16 @@
     },
     {
       "source": "project:src/Forge.Application/Forge.Application",
+      "target": "file:src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+      "kind": "contains",
+      "confidence": "syntactic",
+      "evidence": {
+        "path": "src/Forge.Application/Forge.Application.csproj",
+        "line": 1
+      }
+    },
+    {
+      "source": "project:src/Forge.Application/Forge.Application",
       "target": "file:src/Forge.Application/WorldGeneration/SetWorldGenerationRecipes.cs",
       "kind": "contains",
       "confidence": "syntactic",
@@ -696574,6 +698234,16 @@
     {
       "source": "project:src/Forge.ModuleFormat/Forge.ModuleFormat",
       "target": "file:src/Forge.ModuleFormat/Workspaces/WorldGenerationJobStore.cs",
+      "kind": "contains",
+      "confidence": "syntactic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Forge.ModuleFormat.csproj",
+        "line": 1
+      }
+    },
+    {
+      "source": "project:src/Forge.ModuleFormat/Forge.ModuleFormat",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
       "kind": "contains",
       "confidence": "syntactic",
       "evidence": {
@@ -723583,6 +725253,16 @@
     },
     {
       "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
+      "target": "handler:Forge.Application.WorldGeneration.PromoteWorldGenerationHandler",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
+        "line": 287
+      }
+    },
+    {
+      "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
       "target": "handler:Forge.Application.WorldGeneration.SetWorldGenerationRecipesHandler",
       "kind": "references",
       "confidence": "semantic",
@@ -724178,7 +725858,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
-        "line": 308
+        "line": 506
       }
     },
     {
@@ -724239,6 +725919,16 @@
       "evidence": {
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.EntityOverrides.cs",
         "line": 115
+      }
+    },
+    {
+      "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
+      "target": "model:Forge.Application.Commands.CommandHistoryResult",
+      "kind": "accesses_model",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
+        "line": 423
       }
     },
     {
@@ -724369,6 +726059,16 @@
       "evidence": {
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.EntityOverrides.cs",
         "line": 40
+      }
+    },
+    {
+      "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
+      "target": "model:Forge.Application.Commands.CommandResult",
+      "kind": "accesses_model",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
+        "line": 326
       }
     },
     {
@@ -724753,12 +726453,32 @@
     },
     {
       "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
+      "target": "model:Forge.Application.WorldGeneration.PromoteWorldGenerationCommand",
+      "kind": "accesses_model",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
+        "line": 310
+      }
+    },
+    {
+      "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
       "target": "model:Forge.Application.WorldGeneration.SetWorldGenerationRecipesCommand",
       "kind": "accesses_model",
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
         "line": 42
+      }
+    },
+    {
+      "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
+      "target": "model:Forge.Application.WorldGeneration.WorldGenerationPromotionCommandResult",
+      "kind": "accesses_model",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
+        "line": 326
       }
     },
     {
@@ -726323,6 +728043,26 @@
     },
     {
       "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
+      "target": "model:Forge.Mcp.Projects.WorldGenerationPromotionPlanRequest",
+      "kind": "accesses_model",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
+        "line": 274
+      }
+    },
+    {
+      "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
+      "target": "model:Forge.Mcp.Projects.WorldGenerationPromotionPlanResult",
+      "kind": "accesses_model",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
+        "line": 273
+      }
+    },
+    {
+      "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
       "target": "model:Forge.Mcp.Projects.WorldGenerationRecipePlanRequest",
       "kind": "accesses_model",
       "confidence": "semantic",
@@ -726877,6 +728617,16 @@
       "kind": "accesses_model",
       "confidence": "semantic",
       "evidence": {
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
+        "line": 512
+      }
+    },
+    {
+      "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
+      "target": "model:Forge.ModuleFormat.Workspaces.ProjectSessionDiagnostic",
+      "kind": "accesses_model",
+      "confidence": "semantic",
+      "evidence": {
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
         "line": 6938
       }
@@ -726963,12 +728713,22 @@
     },
     {
       "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
+      "target": "model:Forge.ModuleFormat.Workspaces.WorldGenerationCanonicalExpectationResult",
+      "kind": "accesses_model",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
+        "line": 304
+      }
+    },
+    {
+      "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
       "target": "model:Forge.ModuleFormat.Workspaces.WorldGenerationExecutionPlanLoadResult",
       "kind": "accesses_model",
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
-        "line": 292
+        "line": 490
       }
     },
     {
@@ -726983,12 +728743,42 @@
     },
     {
       "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
+      "target": "model:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionInspectionResult",
+      "kind": "accesses_model",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
+        "line": 299
+      }
+    },
+    {
+      "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
+      "target": "model:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionLoadResult",
+      "kind": "accesses_model",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
+        "line": 463
+      }
+    },
+    {
+      "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
+      "target": "model:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionWriteResult",
+      "kind": "accesses_model",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
+        "line": 387
+      }
+    },
+    {
+      "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
       "target": "model:Forge.ModuleFormat.Workspaces.WorldGenerationRecipeLoadResult",
       "kind": "accesses_model",
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
-        "line": 281
+        "line": 479
       }
     },
     {
@@ -729823,6 +731613,16 @@
     },
     {
       "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
+      "target": "type:Forge.Mcp.Projects.ForgeProjectAgentService.StoredWorldGenerationPromotionPlan",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
+        "line": 332
+      }
+    },
+    {
+      "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
       "target": "type:Forge.Mcp.Projects.ForgeProjectAgentService.StoredWorldGenerationRecipePlan",
       "kind": "references",
       "confidence": "semantic",
@@ -730049,6 +731849,16 @@
       "evidence": {
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
         "line": 5519
+      }
+    },
+    {
+      "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
+      "target": "type:Forge.Mcp.Projects.WorldGenerationCanonicalPromotionResource",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
+        "line": 453
       }
     },
     {
@@ -730719,6 +732529,16 @@
       "evidence": {
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
         "line": 216
+      }
+    },
+    {
+      "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
+      "target": "type:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionStore",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
+        "line": 298
       }
     },
     {
@@ -780278,7 +782098,17 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 9
+        "line": 10
+      }
+    },
+    {
+      "source": "test:Forge.Application.Tests.WorldGeneration.WorldGenerationWorkflowTests",
+      "target": "handler:Forge.Application.WorldGeneration.PromoteWorldGenerationHandler",
+      "kind": "tests",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
+        "line": 219
       }
     },
     {
@@ -780288,7 +782118,17 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 170
+        "line": 171
+      }
+    },
+    {
+      "source": "test:Forge.Application.Tests.WorldGeneration.WorldGenerationWorkflowTests",
+      "target": "model:Forge.Application.Commands.AuditEntry",
+      "kind": "tests",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
+        "line": 258
       }
     },
     {
@@ -780298,7 +782138,17 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 174
+        "line": 175
+      }
+    },
+    {
+      "source": "test:Forge.Application.Tests.WorldGeneration.WorldGenerationWorkflowTests",
+      "target": "model:Forge.Application.Commands.CommandResult",
+      "kind": "tests",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
+        "line": 243
       }
     },
     {
@@ -780308,7 +782158,17 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 182
+        "line": 183
+      }
+    },
+    {
+      "source": "test:Forge.Application.Tests.WorldGeneration.WorldGenerationWorkflowTests",
+      "target": "model:Forge.Application.WorldGeneration.PromoteWorldGenerationCommand",
+      "kind": "tests",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
+        "line": 223
       }
     },
     {
@@ -780318,7 +782178,17 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 173
+        "line": 174
+      }
+    },
+    {
+      "source": "test:Forge.Application.Tests.WorldGeneration.WorldGenerationWorkflowTests",
+      "target": "model:Forge.Application.WorldGeneration.WorldGenerationPromotionCommandResult",
+      "kind": "tests",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
+        "line": 243
       }
     },
     {
@@ -780328,7 +782198,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 186
+        "line": 187
       }
     },
     {
@@ -780338,7 +782208,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 177
+        "line": 178
       }
     },
     {
@@ -780348,7 +782218,17 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 163
+        "line": 164
+      }
+    },
+    {
+      "source": "test:Forge.Application.Tests.WorldGeneration.WorldGenerationWorkflowTests",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition",
+      "kind": "tests",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
+        "line": 252
       }
     },
     {
@@ -780358,7 +782238,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 9
+        "line": 10
       }
     },
     {
@@ -780368,7 +782248,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 162
+        "line": 163
       }
     },
     {
@@ -780378,7 +782258,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 170
+        "line": 171
       }
     },
     {
@@ -780388,7 +782268,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 149
+        "line": 150
       }
     },
     {
@@ -780398,7 +782278,27 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 146
+        "line": 147
+      }
+    },
+    {
+      "source": "test:Forge.Application.Tests.WorldGeneration.WorldGenerationWorkflowTests",
+      "target": "type:Forge.Application.Projects.ProjectRevision",
+      "kind": "tests",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
+        "line": 212
+      }
+    },
+    {
+      "source": "test:Forge.Application.Tests.WorldGeneration.WorldGenerationWorkflowTests",
+      "target": "type:Forge.Application.WorldGeneration.WorldGenerationCanonicalPromotion",
+      "kind": "tests",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
+        "line": 255
       }
     },
     {
@@ -780408,7 +782308,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 148
+        "line": 149
       }
     },
     {
@@ -780418,7 +782318,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 59
+        "line": 60
       }
     },
     {
@@ -780428,7 +782328,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 73
+        "line": 74
       }
     },
     {
@@ -780438,7 +782338,27 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 99
+        "line": 100
+      }
+    },
+    {
+      "source": "test:Forge.Application.Tests.WorldGeneration.WorldGenerationWorkflowTests",
+      "target": "type:Forge.Application.WorldGeneration.WorldGenerationJob",
+      "kind": "tests",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
+        "line": 216
+      }
+    },
+    {
+      "source": "test:Forge.Application.Tests.WorldGeneration.WorldGenerationWorkflowTests",
+      "target": "type:Forge.Application.WorldGeneration.WorldGenerationJobStatus",
+      "kind": "tests",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
+        "line": 217
       }
     },
     {
@@ -780448,7 +782368,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 151
+        "line": 152
       }
     },
     {
@@ -780458,7 +782378,17 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 56
+        "line": 57
+      }
+    },
+    {
+      "source": "test:Forge.Application.Tests.WorldGeneration.WorldGenerationWorkflowTests",
+      "target": "type:Forge.Application.WorldGeneration.WorldGenerationProviderEvidence",
+      "kind": "tests",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
+        "line": 301
       }
     },
     {
@@ -780468,7 +782398,27 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 169
+        "line": 170
+      }
+    },
+    {
+      "source": "test:Forge.Application.Tests.WorldGeneration.WorldGenerationWorkflowTests",
+      "target": "type:Forge.Application.WorldGeneration.WorldGenerationRecipeRevision",
+      "kind": "tests",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
+        "line": 209
+      }
+    },
+    {
+      "source": "test:Forge.Application.Tests.WorldGeneration.WorldGenerationWorkflowTests",
+      "target": "type:Forge.Application.WorldGeneration.WorldGenerationValidationReport",
+      "kind": "tests",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
+        "line": 230
       }
     },
     {
@@ -780478,7 +782428,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 179
+        "line": 180
       }
     },
     {
@@ -780488,7 +782438,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 206
+        "line": 347
       }
     },
     {
@@ -780498,7 +782448,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 201
+        "line": 342
       }
     },
     {
@@ -780508,7 +782458,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 213
+        "line": 354
       }
     },
     {
@@ -780518,7 +782468,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 227
+        "line": 368
       }
     },
     {
@@ -780528,7 +782478,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 220
+        "line": 361
       }
     },
     {
@@ -780538,7 +782488,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 65
+        "line": 66
       }
     },
     {
@@ -780548,7 +782498,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 126
+        "line": 127
       }
     },
     {
@@ -780558,7 +782508,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 16
+        "line": 17
       }
     },
     {
@@ -780568,7 +782518,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 164
+        "line": 165
       }
     },
     {
@@ -780578,7 +782528,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 266
+        "line": 407
       }
     },
     {
@@ -780588,7 +782538,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 64
+        "line": 65
       }
     },
     {
@@ -780598,7 +782548,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 33
+        "line": 34
       }
     },
     {
@@ -780608,7 +782558,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 313
+        "line": 454
       }
     },
     {
@@ -780618,7 +782568,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 313
+        "line": 454
       }
     },
     {
@@ -780628,7 +782578,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 313
+        "line": 454
       }
     },
     {
@@ -780638,7 +782588,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 313
+        "line": 454
       }
     },
     {
@@ -780648,7 +782598,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 287
+        "line": 428
       }
     },
     {
@@ -780658,7 +782608,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 287
+        "line": 428
       }
     },
     {
@@ -780668,7 +782618,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 287
+        "line": 428
       }
     },
     {
@@ -780678,7 +782628,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 302
+        "line": 443
       }
     },
     {
@@ -780688,7 +782638,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 287
+        "line": 428
       }
     },
     {
@@ -780698,7 +782648,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 303
+        "line": 444
       }
     },
     {
@@ -780708,7 +782658,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 298
+        "line": 439
       }
     },
     {
@@ -780718,7 +782668,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Application.Tests/WorldGeneration/WorldGenerationWorkflowTests.cs",
-        "line": 291
+        "line": 432
       }
     },
     {
@@ -803068,7 +805018,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
-        "line": 22
+        "line": 24
       }
     },
     {
@@ -803078,7 +805028,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
-        "line": 22
+        "line": 24
       }
     },
     {
@@ -803088,7 +805038,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
-        "line": 7
+        "line": 9
       }
     },
     {
@@ -803098,7 +805048,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
-        "line": 27
+        "line": 29
       }
     },
     {
@@ -803108,7 +805058,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
-        "line": 7
+        "line": 9
       }
     },
     {
@@ -803118,7 +805068,17 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
-        "line": 18
+        "line": 20
+      }
+    },
+    {
+      "source": "test:Forge.EngineAdapter.Tests.WorldGeneration.WorldGenerationBridgeTests",
+      "target": "test:Forge.EngineAdapter.Tests.WorldGeneration.WorldGenerationBridgeTests.ProviderReceiptSpec",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
+        "line": 74
       }
     },
     {
@@ -803128,7 +805088,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
-        "line": 19
+        "line": 21
       }
     },
     {
@@ -803138,7 +805098,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
-        "line": 19
+        "line": 21
       }
     },
     {
@@ -803148,7 +805108,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
-        "line": 32
+        "line": 34
       }
     },
     {
@@ -803158,7 +805118,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
-        "line": 15
+        "line": 17
       }
     },
     {
@@ -803168,7 +805128,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
-        "line": 47
+        "line": 49
       }
     },
     {
@@ -803178,7 +805138,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
-        "line": 12
+        "line": 14
       }
     },
     {
@@ -803188,7 +805148,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
-        "line": 20
+        "line": 22
       }
     },
     {
@@ -803198,7 +805158,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
-        "line": 46
+        "line": 48
       }
     },
     {
@@ -803208,7 +805168,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
-        "line": 26
+        "line": 28
       }
     },
     {
@@ -803218,7 +805178,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
-        "line": 52
+        "line": 54
       }
     },
     {
@@ -803228,7 +805188,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
-        "line": 86
+        "line": 244
       }
     },
     {
@@ -803238,7 +805198,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
-        "line": 86
+        "line": 244
       }
     },
     {
@@ -803248,7 +805208,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
-        "line": 86
+        "line": 244
       }
     },
     {
@@ -803258,7 +805218,27 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
-        "line": 86
+        "line": 244
+      }
+    },
+    {
+      "source": "test:Forge.EngineAdapter.Tests.WorldGeneration.WorldGenerationBridgeTests.ProviderReceiptSpec",
+      "target": "file:tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
+        "line": 236
+      }
+    },
+    {
+      "source": "test:Forge.EngineAdapter.Tests.WorldGeneration.WorldGenerationBridgeTests.ProviderReceiptSpec",
+      "target": "project:tests/Forge.EngineAdapter.Tests/Forge.EngineAdapter.Tests",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.EngineAdapter.Tests/WorldGeneration/WorldGenerationBridgeTests.cs",
+        "line": 236
       }
     },
     {
@@ -809313,6 +811293,16 @@
     },
     {
       "source": "test:Forge.Mcp.Tests.Projects.WorldGenerationAgentServiceTests",
+      "target": "model:Forge.Mcp.Projects.WorldGenerationPromotionPlanResult",
+      "kind": "tests",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.Mcp.Tests/Projects/WorldGenerationAgentServiceTests.cs",
+        "line": 128
+      }
+    },
+    {
+      "source": "test:Forge.Mcp.Tests.Projects.WorldGenerationAgentServiceTests",
       "target": "model:Forge.Mcp.Projects.WorldGenerationRecipePlanResult",
       "kind": "tests",
       "confidence": "semantic",
@@ -809349,6 +811339,16 @@
       "evidence": {
         "path": "tests/Forge.Mcp.Tests/Projects/WorldGenerationAgentServiceTests.cs",
         "line": 14
+      }
+    },
+    {
+      "source": "test:Forge.Mcp.Tests.Projects.WorldGenerationAgentServiceTests",
+      "target": "type:Forge.Mcp.Projects.WorldGenerationCanonicalPromotionResource",
+      "kind": "tests",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.Mcp.Tests/Projects/WorldGenerationAgentServiceTests.cs",
+        "line": 143
       }
     },
     {
@@ -828043,6 +830043,16 @@
     },
     {
       "source": "test:Forge.ModuleFormat.Tests.Workspaces.WorldGenerationStoreTests",
+      "target": "handler:Forge.Application.WorldGeneration.PromoteWorldGenerationHandler",
+      "kind": "tests",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/WorldGenerationStoreTests.cs",
+        "line": 175
+      }
+    },
+    {
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.WorldGenerationStoreTests",
       "target": "model:Forge.ModuleFormat.Workspaces.ProjectSessionSaveResult",
       "kind": "tests",
       "confidence": "semantic",
@@ -828053,12 +830063,72 @@
     },
     {
       "source": "test:Forge.ModuleFormat.Tests.Workspaces.WorldGenerationStoreTests",
+      "target": "model:Forge.ModuleFormat.Workspaces.WorldGenerationCanonicalExpectationResult",
+      "kind": "tests",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/WorldGenerationStoreTests.cs",
+        "line": 194
+      }
+    },
+    {
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.WorldGenerationStoreTests",
       "target": "model:Forge.ModuleFormat.Workspaces.WorldGenerationExecutionPlanLoadResult",
       "kind": "tests",
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Workspaces/WorldGenerationStoreTests.cs",
         "line": 31
+      }
+    },
+    {
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.WorldGenerationStoreTests",
+      "target": "model:Forge.ModuleFormat.Workspaces.WorldGenerationJobLoadResult",
+      "kind": "tests",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/WorldGenerationStoreTests.cs",
+        "line": 46
+      }
+    },
+    {
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.WorldGenerationStoreTests",
+      "target": "model:Forge.ModuleFormat.Workspaces.WorldGenerationNeutralSceneValidationResult",
+      "kind": "tests",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/WorldGenerationStoreTests.cs",
+        "line": 227
+      }
+    },
+    {
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.WorldGenerationStoreTests",
+      "target": "model:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionInspectionResult",
+      "kind": "tests",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/WorldGenerationStoreTests.cs",
+        "line": 165
+      }
+    },
+    {
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.WorldGenerationStoreTests",
+      "target": "model:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionLoadResult",
+      "kind": "tests",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/WorldGenerationStoreTests.cs",
+        "line": 187
+      }
+    },
+    {
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.WorldGenerationStoreTests",
+      "target": "model:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionWriteResult",
+      "kind": "tests",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/WorldGenerationStoreTests.cs",
+        "line": 180
       }
     },
     {
@@ -828079,6 +830149,16 @@
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Workspaces/WorldGenerationStoreTests.cs",
         "line": 7
+      }
+    },
+    {
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.WorldGenerationStoreTests",
+      "target": "type:Forge.Application.WorldGeneration.WorldGenerationCanonicalPromotion",
+      "kind": "tests",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/WorldGenerationStoreTests.cs",
+        "line": 169
       }
     },
     {
@@ -828123,12 +830203,42 @@
     },
     {
       "source": "test:Forge.ModuleFormat.Tests.Workspaces.WorldGenerationStoreTests",
+      "target": "type:Forge.Application.WorldGeneration.WorldGenerationProviderEvidence",
+      "kind": "tests",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/WorldGenerationStoreTests.cs",
+        "line": 154
+      }
+    },
+    {
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.WorldGenerationStoreTests",
       "target": "type:Forge.Application.WorldGeneration.WorldGenerationRecipeRevision",
       "kind": "tests",
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Workspaces/WorldGenerationStoreTests.cs",
         "line": 24
+      }
+    },
+    {
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.WorldGenerationStoreTests",
+      "target": "type:Forge.Application.WorldGeneration.WorldGenerationValidationReport",
+      "kind": "tests",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/WorldGenerationStoreTests.cs",
+        "line": 159
+      }
+    },
+    {
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.WorldGenerationStoreTests",
+      "target": "type:Forge.Domain.WorldGeneration.WorldGenerationBackend",
+      "kind": "tests",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/WorldGenerationStoreTests.cs",
+        "line": 156
       }
     },
     {
@@ -828179,6 +830289,16 @@
       "evidence": {
         "path": "tests/Forge.ModuleFormat.Tests/Workspaces/WorldGenerationStoreTests.cs",
         "line": 45
+      }
+    },
+    {
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.WorldGenerationStoreTests",
+      "target": "type:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionStore",
+      "kind": "tests",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/WorldGenerationStoreTests.cs",
+        "line": 148
       }
     },
     {
@@ -862102,6 +864222,36 @@
       }
     },
     {
+      "source": "type:Forge.Application.WorldGeneration.WorldGenerationCanonicalPromotion",
+      "target": "file:src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 59
+      }
+    },
+    {
+      "source": "type:Forge.Application.WorldGeneration.WorldGenerationCanonicalPromotion",
+      "target": "project:src/Forge.Application/Forge.Application",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 59
+      }
+    },
+    {
+      "source": "type:Forge.Application.WorldGeneration.WorldGenerationCanonicalPromotion",
+      "target": "type:Forge.Application.WorldGeneration.WorldGenerationProviderEvidence",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 78
+      }
+    },
+    {
       "source": "type:Forge.Application.WorldGeneration.WorldGenerationExecutionContext",
       "target": "file:src/Forge.Application/WorldGeneration/WorldGenerationContracts.cs",
       "kind": "defined_in",
@@ -862662,6 +864812,46 @@
       }
     },
     {
+      "source": "type:Forge.Application.WorldGeneration.WorldGenerationProviderEvidence",
+      "target": "file:src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 14
+      }
+    },
+    {
+      "source": "type:Forge.Application.WorldGeneration.WorldGenerationProviderEvidence",
+      "target": "project:src/Forge.Application/Forge.Application",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 14
+      }
+    },
+    {
+      "source": "type:Forge.Application.WorldGeneration.WorldGenerationProviderEvidence",
+      "target": "type:Forge.Domain.WorldGeneration.WorldGenerationBackend",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 16
+      }
+    },
+    {
+      "source": "type:Forge.Application.WorldGeneration.WorldGenerationProviderEvidence",
+      "target": "type:Forge.Domain.WorldGeneration.WorldGenerationStage",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 15
+      }
+    },
+    {
       "source": "type:Forge.Application.WorldGeneration.WorldGenerationRecipeCommandHistory",
       "target": "file:src/Forge.Application/WorldGeneration/SetWorldGenerationRecipes.cs",
       "kind": "defined_in",
@@ -862749,6 +864939,56 @@
       "evidence": {
         "path": "src/Forge.Application/WorldGeneration/WorldGenerationContracts.cs",
         "line": 8
+      }
+    },
+    {
+      "source": "type:Forge.Application.WorldGeneration.WorldGenerationValidationReport",
+      "target": "file:src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 21
+      }
+    },
+    {
+      "source": "type:Forge.Application.WorldGeneration.WorldGenerationValidationReport",
+      "target": "project:src/Forge.Application/Forge.Application",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 21
+      }
+    },
+    {
+      "source": "type:Forge.Application.WorldGeneration.WorldGenerationValidationReport",
+      "target": "type:Forge.Application.WorldGeneration.WorldGenerationProviderEvidence",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 38
+      }
+    },
+    {
+      "source": "type:Forge.Application.WorldGeneration.WorldGenerationValidationReport",
+      "target": "type:Forge.Application.WorldGeneration.WorldGenerationRecipeRevision",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 28
+      }
+    },
+    {
+      "source": "type:Forge.Application.WorldGeneration.WorldGenerationValidationReport",
+      "target": "type:Forge.Domain.WorldGeneration.WorldGenerationValidationIssue",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Application/WorldGeneration/PromoteWorldGeneration.cs",
+        "line": 39
       }
     },
     {
@@ -898508,7 +900748,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
-        "line": 5
+        "line": 7
       }
     },
     {
@@ -898518,7 +900758,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
-        "line": 5
+        "line": 7
       }
     },
     {
@@ -898528,7 +900768,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
-        "line": 6
+        "line": 8
       }
     },
     {
@@ -898538,7 +900778,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
-        "line": 15
+        "line": 19
       }
     },
     {
@@ -898548,7 +900788,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
-        "line": 15
+        "line": 19
       }
     },
     {
@@ -898558,7 +900798,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
-        "line": 42
+        "line": 54
       }
     },
     {
@@ -898568,7 +900808,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
-        "line": 33
+        "line": 38
       }
     },
     {
@@ -898578,7 +900818,27 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
-        "line": 20
+        "line": 26
+      }
+    },
+    {
+      "source": "type:Forge.EngineAdapter.WorldGeneration.WorldGenerationBackendCapabilityProbe",
+      "target": "type:Forge.EngineAdapter.WorldGeneration.WorldGenerationBackendCapabilityProbe.ProviderEvidence",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
+        "line": 284
+      }
+    },
+    {
+      "source": "type:Forge.EngineAdapter.WorldGeneration.WorldGenerationBackendCapabilityProbe",
+      "target": "type:Forge.EngineAdapter.WorldGeneration.WorldGenerationBackendCapabilityProbe.ProviderInstallation",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
+        "line": 130
       }
     },
     {
@@ -898588,7 +900848,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
-        "line": 22
+        "line": 28
       }
     },
     {
@@ -898598,7 +900858,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
-        "line": 87
+        "line": 395
       }
     },
     {
@@ -898608,7 +900868,57 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
-        "line": 87
+        "line": 395
+      }
+    },
+    {
+      "source": "type:Forge.EngineAdapter.WorldGeneration.WorldGenerationBackendCapabilityProbe.ProviderEvidence",
+      "target": "file:src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
+        "line": 407
+      }
+    },
+    {
+      "source": "type:Forge.EngineAdapter.WorldGeneration.WorldGenerationBackendCapabilityProbe.ProviderEvidence",
+      "target": "project:src/Forge.EngineAdapter/Forge.EngineAdapter",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
+        "line": 407
+      }
+    },
+    {
+      "source": "type:Forge.EngineAdapter.WorldGeneration.WorldGenerationBackendCapabilityProbe.ProviderInstallation",
+      "target": "file:src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
+        "line": 400
+      }
+    },
+    {
+      "source": "type:Forge.EngineAdapter.WorldGeneration.WorldGenerationBackendCapabilityProbe.ProviderInstallation",
+      "target": "project:src/Forge.EngineAdapter/Forge.EngineAdapter",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
+        "line": 400
+      }
+    },
+    {
+      "source": "type:Forge.EngineAdapter.WorldGeneration.WorldGenerationBackendCapabilityProbe.ProviderInstallation",
+      "target": "type:Forge.EngineAdapter.WorldGeneration.WorldGenerationBackendCapabilityProbe.ProviderEvidence",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.EngineAdapter/WorldGeneration/WorldGenerationBackendCapabilityProbe.cs",
+        "line": 405
       }
     },
     {
@@ -908862,13 +911172,93 @@
       }
     },
     {
+      "source": "type:Forge.Mcp.Projects.ForgeProjectAgentService.StoredWorldGenerationPromotionPlan",
+      "target": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
+        "line": 648
+      }
+    },
+    {
+      "source": "type:Forge.Mcp.Projects.ForgeProjectAgentService.StoredWorldGenerationPromotionPlan",
+      "target": "model:Forge.Application.Commands.ProjectPatch",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
+        "line": 654
+      }
+    },
+    {
+      "source": "type:Forge.Mcp.Projects.ForgeProjectAgentService.StoredWorldGenerationPromotionPlan",
+      "target": "model:Forge.Application.WorldGeneration.PromoteWorldGenerationCommand",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
+        "line": 651
+      }
+    },
+    {
+      "source": "type:Forge.Mcp.Projects.ForgeProjectAgentService.StoredWorldGenerationPromotionPlan",
+      "target": "model:Forge.Mcp.Projects.WorldGenerationAuditEntry",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
+        "line": 656
+      }
+    },
+    {
+      "source": "type:Forge.Mcp.Projects.ForgeProjectAgentService.StoredWorldGenerationPromotionPlan",
+      "target": "model:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionFilePatch",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
+        "line": 660
+      }
+    },
+    {
+      "source": "type:Forge.Mcp.Projects.ForgeProjectAgentService.StoredWorldGenerationPromotionPlan",
+      "target": "project:src/Forge.Mcp/Forge.Mcp",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
+        "line": 648
+      }
+    },
+    {
+      "source": "type:Forge.Mcp.Projects.ForgeProjectAgentService.StoredWorldGenerationPromotionPlan",
+      "target": "type:Forge.Application.WorldGeneration.WorldGenerationCanonicalPromotion",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
+        "line": 653
+      }
+    },
+    {
+      "source": "type:Forge.Mcp.Projects.ForgeProjectAgentService.StoredWorldGenerationPromotionPlan",
+      "target": "type:Forge.Application.WorldGeneration.WorldGenerationJob",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
+        "line": 652
+      }
+    },
+    {
       "source": "type:Forge.Mcp.Projects.ForgeProjectAgentService.StoredWorldGenerationRecipePlan",
       "target": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
       "kind": "defined_in",
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
-        "line": 381
+        "line": 681
       }
     },
     {
@@ -908878,7 +911268,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
-        "line": 385
+        "line": 685
       }
     },
     {
@@ -908888,7 +911278,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
-        "line": 384
+        "line": 684
       }
     },
     {
@@ -908898,7 +911288,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
-        "line": 388
+        "line": 688
       }
     },
     {
@@ -908908,7 +911298,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.WorldGeneration.cs",
-        "line": 381
+        "line": 681
       }
     },
     {
@@ -909689,6 +912079,46 @@
       "evidence": {
         "path": "src/Forge.Mcp/Projects/ContentAuthoringContracts.cs",
         "line": 30
+      }
+    },
+    {
+      "source": "type:Forge.Mcp.Projects.WorldGenerationCanonicalPromotionResource",
+      "target": "file:src/Forge.Mcp/Projects/WorldGenerationContracts.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/WorldGenerationContracts.cs",
+        "line": 91
+      }
+    },
+    {
+      "source": "type:Forge.Mcp.Projects.WorldGenerationCanonicalPromotionResource",
+      "target": "model:Forge.Mcp.AgentDiagnostic",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/WorldGenerationContracts.cs",
+        "line": 95
+      }
+    },
+    {
+      "source": "type:Forge.Mcp.Projects.WorldGenerationCanonicalPromotionResource",
+      "target": "project:src/Forge.Mcp/Forge.Mcp",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/WorldGenerationContracts.cs",
+        "line": 91
+      }
+    },
+    {
+      "source": "type:Forge.Mcp.Projects.WorldGenerationCanonicalPromotionResource",
+      "target": "type:Forge.Application.WorldGeneration.WorldGenerationCanonicalPromotion",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.Mcp/Projects/WorldGenerationContracts.cs",
+        "line": 93
       }
     },
     {
@@ -913723,6 +916153,26 @@
     },
     {
       "source": "type:Forge.McpHost.ForgeWorldGenerationMcpTools",
+      "target": "model:Forge.Mcp.Projects.WorldGenerationPromotionPlanRequest",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.McpHost/ForgeWorldGenerationMcpTools.cs",
+        "line": 63
+      }
+    },
+    {
+      "source": "type:Forge.McpHost.ForgeWorldGenerationMcpTools",
+      "target": "model:Forge.Mcp.Projects.WorldGenerationPromotionPlanResult",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.McpHost/ForgeWorldGenerationMcpTools.cs",
+        "line": 62
+      }
+    },
+    {
+      "source": "type:Forge.McpHost.ForgeWorldGenerationMcpTools",
       "target": "model:Forge.Mcp.Projects.WorldGenerationRecipePlanRequest",
       "kind": "references",
       "confidence": "semantic",
@@ -913759,6 +916209,16 @@
       "evidence": {
         "path": "apps/Forge.McpHost/ForgeWorldGenerationMcpTools.cs",
         "line": 10
+      }
+    },
+    {
+      "source": "type:Forge.McpHost.ForgeWorldGenerationMcpTools",
+      "target": "type:Forge.Mcp.Projects.WorldGenerationCanonicalPromotionResource",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "apps/Forge.McpHost/ForgeWorldGenerationMcpTools.cs",
+        "line": 78
       }
     },
     {
@@ -925329,6 +927789,176 @@
       "evidence": {
         "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationJobStore.cs",
         "line": 85
+      }
+    },
+    {
+      "source": "type:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionStore",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+      "kind": "defined_in",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 9
+      }
+    },
+    {
+      "source": "type:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionStore",
+      "target": "handler:Forge.Application.WorldGeneration.PromoteWorldGenerationHandler",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 145
+      }
+    },
+    {
+      "source": "type:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionStore",
+      "target": "model:Forge.ModuleFormat.Workspaces.ProjectSessionDiagnostic",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 64
+      }
+    },
+    {
+      "source": "type:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionStore",
+      "target": "model:Forge.ModuleFormat.Workspaces.ProjectSessionSaveResult",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 44
+      }
+    },
+    {
+      "source": "type:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionStore",
+      "target": "model:Forge.ModuleFormat.Workspaces.WorldGenerationCanonicalExpectationResult",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 139
+      }
+    },
+    {
+      "source": "type:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionStore",
+      "target": "model:Forge.ModuleFormat.Workspaces.WorldGenerationNeutralSceneValidationResult",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 94
+      }
+    },
+    {
+      "source": "type:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionStore",
+      "target": "model:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionFilePatch",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 186
+      }
+    },
+    {
+      "source": "type:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionStore",
+      "target": "model:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionInspectionResult",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 68
+      }
+    },
+    {
+      "source": "type:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionStore",
+      "target": "model:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionLoadResult",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 248
+      }
+    },
+    {
+      "source": "type:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionStore",
+      "target": "model:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionWriteResult",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 179
+      }
+    },
+    {
+      "source": "type:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionStore",
+      "target": "project:src/Forge.ModuleFormat/Forge.ModuleFormat",
+      "kind": "belongs_to",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 9
+      }
+    },
+    {
+      "source": "type:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionStore",
+      "target": "type:Forge.Application.WorldGeneration.WorldGenerationCanonicalPromotion",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 181
+      }
+    },
+    {
+      "source": "type:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionStore",
+      "target": "type:Forge.Application.WorldGeneration.WorldGenerationJob",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 70
+      }
+    },
+    {
+      "source": "type:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionStore",
+      "target": "type:Forge.Application.WorldGeneration.WorldGenerationValidationReport",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 46
+      }
+    },
+    {
+      "source": "type:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionStore",
+      "target": "type:Forge.Domain.WorldGeneration.WorldGenerationRecipe",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 86
+      }
+    },
+    {
+      "source": "type:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionStore",
+      "target": "type:Forge.ModuleFormat.Workspaces.AtomicWorkspaceFile",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 58
+      }
+    },
+    {
+      "source": "type:Forge.ModuleFormat.Workspaces.WorldGenerationPromotionStore",
+      "target": "type:Forge.ModuleFormat.Workspaces.WorldGenerationWorkspacePath",
+      "kind": "references",
+      "confidence": "semantic",
+      "evidence": {
+        "path": "src/Forge.ModuleFormat/Workspaces/WorldGenerationPromotionStore.cs",
+        "line": 339
       }
     },
     {

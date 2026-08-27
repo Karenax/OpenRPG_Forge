@@ -1,0 +1,15 @@
+; OpenRPG disposable qualification fixture. Third-party addons are installed at test time.
+config_version=5
+
+[application]
+
+config/name="OpenRPG World Generation Addon Qualification"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/terrain_3d/plugin.cfg", "res://addons/flow_nodes_editor/plugin.cfg", "res://addons/openrpg_world_generation/plugin.cfg")
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"

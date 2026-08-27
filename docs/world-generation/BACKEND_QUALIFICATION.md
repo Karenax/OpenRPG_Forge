@@ -8,17 +8,17 @@ seul backend concret produit ensuite chaque type d'artefact.
 
 | Responsabilité | Propriétaire cible | Statut |
 |---|---|---|
-| Terrain extérieur final | Terrain3D | confirmé, qualification 4.7.1 à compléter |
+| Terrain extérieur final | Terrain3D | qualifié localement sous Godot 4.7.1/Windows ; exports à qualifier |
 | Relief, hydrologie et masques | OpenRPG Terrain Compiler | à construire |
-| Graphe PCG général | un seul fournisseur Graph PCG | benchmark requis |
+| Graphe PCG général | Godot Flow baseline ; GF-PCGODOT expérimental | proxy 2 km comparé ; choix artistique différé |
 | Routes structurées | Graph PCG actuel ou Road Generator | prototype comparatif |
 | Topologie de donjon | OpenRPG DungeonAssembler | à construire |
 | Habillage de donjon | fournisseur Graph PCG retenu | après choix |
 | Scatter de production | fournisseur Graph PCG retenu, ou ProtonScatter si gain prouvé | benchmark requis |
 | Eau visible | renderer OpenRPG initial | spécialisé plus tard si nécessaire |
-| Navigation | Godot natif, validée sur la géométrie finale | qualification réelle requise |
+| Navigation | Godot natif, validée sur la géométrie finale | proxy technique réel validé ; module de production requis |
 | Gameplay et quêtes | contrats OpenRPG | confirmé |
-| Promotion canonique | commande OpenRPG gouvernée | à construire |
+| Promotion canonique | commande OpenRPG gouvernée | implémentée, testée et réversible |
 
 ## Matrice de décision
 
@@ -27,14 +27,17 @@ seul backend concret produit ensuite chaque type d'artefact.
 Pourquoi : terrain éditable, matériaux, LOD, trous, humidité, détilement et végétation massive. Il
 améliore directement le terrain final et évite de développer un renderer de terrain complet.
 
+Preuve obtenue : l'addon `v1.0.2-stable` est installé avec reçu et SHA-256, chargé sous Godot
+`4.7.1-stable` Windows, exécuté trois fois sans fallback, sauvegardé puis rouvert avec collision et
+navigation. La scène de promotion produite est provider-free.
+
 Conditions restantes :
 
-- test réel sous Godot 4.7.1 ;
-- sauvegarde/réouverture ;
 - export Windows et Linux ;
-- contrôle des matériaux et des LOD sur la carte de référence.
+- exécution du job CI Linux déjà configuré ;
+- contrôle artistique des matériaux et des LOD sur un vrai module extérieur.
 
-### Godot Flow — `current-unqualified`
+### Godot Flow — `baseline-qualified-windows`
 
 Pourquoi : fournisseur réellement épinglé aujourd'hui, graphes, splines, opérations spatiales,
 subgraphs et spawn de scènes.
@@ -42,17 +45,28 @@ subgraphs et spawn de scènes.
 Risques : retour d'expérience limité sur un projet de production, graphes artistiques absents du
 dépôt, dépendances natives à qualifier, streaming PCG non équivalent à un système runtime complet.
 
-Action : servir de baseline du benchmark Graph PCG.
+Résultat : le commit `284231f060099a8943eb56567c21732b7cd678d3` passe le smoke addon et le proxy
+2 km sous Godot 4.7.1 Windows avec 5 904 instances, zéro fallback, une route de navigation à 131
+points, sauvegarde/réouverture, cinq captures et candidat de promotion neutre.
 
-### GF-PCGODOT — `candidate`
+Action : conserver ce fournisseur comme baseline actuelle. Cette preuve technique ne vaut ni choix
+artistique final ni qualification Linux/export.
+
+### GF-PCGODOT — `experimental-qualified-windows`
 
 Pourquoi : fork enrichi, plus de nœuds et fonctions proches du PCG d'Unreal.
 
 Risques : migration et compatibilité des graphes, extensions natives par plateforme, génération
 hiérarchique et asynchrone encore incomplètes, coût de maintenance d'un fork supplémentaire.
 
-Action : l'installer dans une fixture isolée et comparer à Godot Flow. Ne pas l'ajouter en parallèle
-au projet de production.
+Résultat : le commit `91471c10d671ecf9e9214d801e8f5b68d3a7df07` a été installé dans une fixture
+isolée et comparé sur les mêmes recette, plan, seed et proxy 2 km. Les empreintes de contenu, les
+5 904 instances, la navigation, les cinq captures et le candidat de promotion sont identiques à la
+baseline. Sur l'unique mesure Windows finale à neuf étapes, le bake live a duré 14 435 ms contre
+12 770 ms pour Godot Flow, soit +13,04 % ; ce nombre n'est pas un benchmark statistique.
+
+Action : garder GF-PCGODOT expérimental et hors du projet de production. Il n'a démontré ni gain
+visuel aveugle de 15 %, ni réduction de 25 % des retouches, donc Godot Flow reste inchangé.
 
 ### ProtonScatter — `candidate-scatter-only`
 
@@ -186,3 +200,29 @@ Chaque candidat reçoit un statut :
 
 La décision est enregistrée dans une ADR avec les versions, données de benchmark et coûts de
 maintenance.
+
+## Preuves locales du 27 août 2026
+
+Le harnais reproductible `scripts/Invoke-WorldGenerationAddonQualification.ps1` a produit, pour les
+deux fournisseurs, les artefacts `environment.json`, `providers.json`, reçu d'installation,
+recette/plan, métriques, violations, manifeste de scène, scène provider-free, rapport de validation,
+candidat de promotion, cinq captures et journaux. Le script
+`scripts/Compare-WorldGenerationAddonQualifications.ps1` refuse des entrées différentes et vérifie
+les parités fonctionnelle, déterministe, visuelle et de candidat canonique.
+
+Résultat du proxy 2 km Windows :
+
+| Mesure | Godot Flow | GF-PCGODOT |
+|---|---:|---:|
+| Exécutions déterministes | 3 | 3 |
+| Fallback | 0 | 0 |
+| Instances | 5 904 | 5 904 |
+| Points du chemin de navigation | 131 | 131 |
+| Captures normalisées | 5 | 5 |
+| Références fournisseur dans la scène promouvable | 0 | 0 |
+| Bake live, échantillon Windows | 12 770 ms | 14 435 ms |
+
+La parité des cinq captures montre que les deux adaptateurs ont produit le même proxy technique ;
+elle ne prouve pas que ce proxy est beau. Le scoring aveugle, le temps de correction manuelle, un
+vrai module artistique, les exports Windows/Linux et l'exécution CI Linux restent ouverts. Aucune
+nouvelle ADR de sélection n'est donc créée.

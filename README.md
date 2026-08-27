@@ -58,6 +58,8 @@ chemin fonctionnel hors ligne sans addon. Les opérations sont allowlistées, le
 workspace et les retouches humaines peuvent être verrouillées lors d'une régénération partielle.
 Les formats persistés conservent leurs backends canoniques tandis que `providerKey` distingue
 `terrain3d`, `godot-flow`, `gf-pcgodot` et `openrpg-native` pour les benchmarks et diagnostics.
+Un job complet validé peut être promu par une seconde preview MCP : scène provider-free, contrôle
+des révisions et empreintes, copie/manifeste atomiques, référence `AreaWorldProfile` et inverse.
 
 ```powershell
 ./scripts/Install-WorldGenerationDependencies.ps1 -GodotProjectPath ./apps/Forge.Toolset -WhatIf
@@ -66,8 +68,8 @@ Les formats persistés conservent leurs backends canoniques tandis que `provider
 La simulation ci-dessus ne télécharge rien. Le guide complet, l'installation réelle, les limites et
 le parcours Codex sont dans [`docs/world-generation/README.md`](docs/world-generation/README.md) ; la
 qualification comparative est cadrée par `BACKEND_QUALIFICATION.md` et `QUALITY_BENCHMARK.md`.
-Cette fondation ne remplace pas encore les données canoniques de zone et ne livre pas de graphes PCG
-artistiques prêts pour un jeu.
+La qualification locale Windows prouve le proxy technique sous Godot 4.7.1 avec les addons réels ;
+elle ne livre pas encore de graphes PCG artistiques prêts pour un jeu ni de preuve Linux/export.
 
 ## Lancer le prototype
 

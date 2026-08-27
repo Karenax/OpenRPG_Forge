@@ -56,4 +56,25 @@ public sealed class ForgeWorldGenerationMcpTools
     [Description("Cancels a queued or running world-generation job. Completed or already-cancelled jobs are immutable.")]
     public WorldGenerationExecutionPlanResource CancelWorldGenerationJob(string planId) =>
         _project.CancelWorldGenerationJob(planId);
+
+    [McpServerTool]
+    [Description("Validates and previews canonical promotion of one successful world-generation job. Requires accepted validation evidence, exact revisions, and an acknowledged canonical destination fingerprint when replacing a scene.")]
+    public WorldGenerationPromotionPlanResult PlanWorldGenerationPromotion(
+        WorldGenerationPromotionPlanRequest request) =>
+        _project.PlanWorldGenerationPromotion(request);
+
+    [McpServerTool]
+    [Description("Atomically applies a previously previewed world-generation promotion, persists its provider-neutral scene and provenance manifest, and references it from the target area.")]
+    public WorldGenerationPromotionPlanResult ApplyWorldGenerationPromotion(string promotionPlanId) =>
+        _project.ApplyWorldGenerationPromotion(promotionPlanId);
+
+    [McpServerTool]
+    [Description("Reverts the most recently applied world-generation promotion through its persisted file and project inverse.")]
+    public WorldGenerationPromotionPlanResult RevertWorldGenerationPromotion(string promotionPlanId) =>
+        _project.RevertWorldGenerationPromotion(promotionPlanId);
+
+    [McpServerTool]
+    [Description("Returns the canonical world-generation promotion manifest and verified scene fingerprint for one area.")]
+    public WorldGenerationCanonicalPromotionResource GetCanonicalWorldGenerationPromotion(string areaId) =>
+        _project.GetCanonicalWorldGenerationPromotion(areaId);
 }

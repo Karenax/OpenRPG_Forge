@@ -1,0 +1,45 @@
+[gd_resource type="Resource" script_class="FlowGraphResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://addons/flow_nodes_editor/flow_graph_resource.gd" id="1_graph"]
+
+[resource]
+script = ExtResource("1_graph")
+data = {
+"frames": [],
+"links": [{
+"from_node": &"openrpg_biome_grid",
+"from_port": 0,
+"keep_alive": false,
+"to_node": &"openrpg_biome_spawn",
+"to_port": 0
+}],
+"min_pos": Vector2(0, 0),
+"nodes": [{
+"args_port": {},
+"name": &"openrpg_biome_grid",
+"position": Vector2(0, 0),
+"settings": {
+"origin": Vector3(64, 400, 64),
+"random_seed": 20260827,
+"size": 6.0,
+"step": Vector3(48, 1, 48),
+"title": "OpenRPG Biome Reference Grid",
+"x": 40,
+"y": 1,
+"z": 40
+},
+"show_disconnected_inputs": false,
+"template": "grid"
+}, {
+"args_port": { "In": { "connected": true, "port": 0 } },
+"name": &"openrpg_biome_spawn",
+"position": Vector2(220, 0),
+"settings": { "random_seed": 20260827, "title": "OpenRPG Biome Proxies" },
+"show_disconnected_inputs": false,
+"template": "spawn_meshes"
+}],
+"type": "flow_graph_nodes",
+"version": 1
+}
+graph_name = "openrpg_reference_biomes"
+new_name_counter = 2

@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "f0540000-0000-4000-8000-000000000101",
+  "areaId": "f0540000-0000-4000-8000-000000000102",
+  "seed": 20260827,
+  "bounds": {
+    "widthMeters": 256.0,
+    "depthMeters": 256.0,
+    "maximumElevationMeters": 48.0
+  },
+  "terrain": {
+    "archetype": "temperate-valley",
+    "roughness": 0.45,
+    "providerKey": "terrain3d"
+  },
+  "graph": {
+    "resource": "res://world/generation/graphs/biomes.tres",
+    "expectedInstances": 16
+  },
+  "regeneration": {
+    "preserveManualEdits": true,
+    "protectedNodePaths": []
+  },
+  "provenance": "openrpg-forge:world-generation-addon-qualification-v1"
+}

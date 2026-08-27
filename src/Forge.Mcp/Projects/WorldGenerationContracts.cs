@@ -62,6 +62,38 @@ public sealed record WorldGenerationJobResource(
     IReadOnlyList<AgentDiagnostic> Diagnostics,
     IReadOnlyList<WorldGenerationJobAuditEntry> Audit);
 
+public sealed record WorldGenerationPromotionPlanRequest(
+    int SchemaVersion,
+    long BaseProjectRevision,
+    long BaseRecipeRevision,
+    string JobPlanId,
+    string? ExpectedCanonicalSceneSha256,
+    string AcceptanceProvenance,
+    AssistantPermissionLevel Permission);
+
+public sealed record WorldGenerationPromotionPlanResult(
+    bool Succeeded,
+    string? PromotionPlanId,
+    string? TransactionId,
+    string? JobPlanId,
+    long BaseProjectRevision,
+    long? NewProjectRevision,
+    long BaseRecipeRevision,
+    string? CanonicalSceneRelativePath,
+    string? CanonicalSceneSha256,
+    ProjectPatch? Diff,
+    ProjectPatch? Inverse,
+    IReadOnlyList<AgentDiagnostic> Diagnostics,
+    bool Applied,
+    bool Reverted,
+    IReadOnlyList<WorldGenerationAuditEntry> Audit);
+
+public sealed record WorldGenerationCanonicalPromotionResource(
+    bool Succeeded,
+    WorldGenerationCanonicalPromotion? Promotion,
+    string? SceneSha256,
+    IReadOnlyList<AgentDiagnostic> Diagnostics);
+
 public sealed record WorldGenerationAuditEntry(
     string PlanId,
     string TransactionId,

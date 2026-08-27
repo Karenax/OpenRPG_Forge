@@ -38,16 +38,23 @@ confondu avec une release publique signée.
 - fondation WorldGeneration gouvernée : recettes et révisions persistantes, previews déterministes,
   régénération partielle, jobs auditables repris après redémarrage, Terrain3D/Godot Flow facultatifs
   et terrain natif de fallback avec maillage et collision sous Godot 4.7.1 ; identité concrète des
-  fournisseurs stabilisée par `providerKey` et benchmark comparatif documenté ;
+  fournisseurs stabilisée par `providerKey`, qualification réelle Windows, benchmark comparatif et
+  promotion canonique explicite, atomique et réversible ;
 - interface de combat runtime autoritaire, animée, accessible et bornée par des pools stables.
 
 La fondation WorldGeneration est exploitable pour orchestrer et tester des générations, mais elle
 n'est pas encore une chaîne artistique complète : les graphes PCG sont fournis par les modules, les
-étapes natives autres que le terrain restent à approfondir, la navigation réelle doit être qualifiée
-sur une carte générée et aucune scène dérivée n'est promue automatiquement vers `AreaWorldProfile`.
-La qualification des fournisseurs est intégrée à `main` : elle distingue `terrain3d`, `godot-flow`,
-`gf-pcgodot` et `openrpg-native` sans modifier l'enum sérialisé `PcgGodot`. Terrain3D et Godot Flow
-doivent encore être exécutés ensemble dans une fixture Godot 4.7.1 avant toute promotion de production.
+étapes natives autres que le terrain restent à approfondir et les graphes/assets de production ne
+sont pas livrés. Le proxy technique 2 km prouve localement sous Windows 5 904 instances, collision,
+navigation à 131 points, sauvegarde/réouverture, cinq captures et candidat canonique provider-free
+avec Terrain3D et chacun des fournisseurs PCG réels sous Godot 4.7.1. Les mêmes entrées donnent une
+parité exacte ; GF-PCGODOT reste expérimental faute de gain artistique ou d'auteur démontré.
+
+La promotion ne se produit jamais automatiquement : le MCP exige preview, permission, révisions,
+job réussi, rapport accepté, empreintes exactes et SHA-256 de destination en cas de remplacement. Il
+copie atomiquement la scène, persiste sa provenance, la référence depuis `AreaWorldProfile`, vérifie
+la réouverture et fournit un inverse. Le job CI Linux est configuré, mais sa preuve ainsi que les
+exports provider-free Windows/Linux et la revue artistique restent ouverts.
 
 ## Multijoueur Internet direct
 
@@ -162,6 +169,10 @@ doivent encore être exécutés ensemble dans une fixture Godot 4.7.1 avant tout
   67 tests Python verts, 32 projets NuGet sans vulnérabilité, builds sans avertissement, documentation
   déterministe, graphe Roslyn à 11 816 nœuds / 94 081 relations / zéro diagnostic, Studio, Toolset,
   Runtime/Forward+, assets, Blender, MCP, réseau, sauvegarde/reprise et distributions validés ;
+- vérification de la tranche WorldGeneration courante : build Release complet sans avertissement,
+  2 323/2 323 tests .NET verts en passe séquentielle, tests ciblés WorldGeneration, smoke Godot 4.7.1,
+  installateur, YAML CI, cohérence projet et budgets verts ; graphe Roslyn déterministe à 11 860
+  nœuds / 94 284 relations / zéro diagnostic. Cette passe n'est pas une nouvelle gate Full produit ;
 - distribution versionnée `exe/` de 515 fichiers mise à jour avec trois exécutables racine : Studio,
   Solaren et `Cendres.exe`. Les manifestes Studio, Solaren et Crypte couvrent respectivement 281, 227
   et 224 fichiers ; les vérifications ont été exécutées depuis leurs chemins finaux. Solaren embarque

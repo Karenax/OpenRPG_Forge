@@ -47,7 +47,7 @@ un meilleur pack que les autres.
 Chaque exécution écrit sous un dossier identifié par fournisseur, version, seed et fingerprint :
 
 ```text
-artifacts/world-generation/qualification/<provider>/<version>/<run-id>/
+artifacts/world-generation/reference-2km/<provider>/<version>/<run-id>/
 ```
 
 Le dossier contient au minimum :
@@ -60,6 +60,7 @@ Le dossier contient au minimum :
 - `violations.json` ;
 - `manual-review.json` ;
 - `scene-manifest.json` ;
+- `promotion-candidate/derived-world.tscn` et son `validation-report.json` ;
 - scène sauvegardée ou package dérivé ;
 - captures normalisées ;
 - logs du worker et du smoke runtime.
@@ -82,6 +83,11 @@ Les caméras, exposition, heure, météo et résolution sont figées. Générer 
 12. vue nocturne.
 
 Aucune capture marketing manuelle ne remplace ces points de vue.
+
+Le profil automatisé `reference-2km` actuel produit cinq vues techniques fixes (aérienne et quatre
+cardinales) afin de prouver la reproductibilité et de comparer les pixels des fournisseurs. Il ne
+couvre pas encore les douze vues artistiques ci-dessus. Une parité de ces cinq PNG signifie que les
+adaptateurs ont produit le même proxy, pas que la qualité visuelle a franchi la gate humaine.
 
 ## Mesures fonctionnelles
 

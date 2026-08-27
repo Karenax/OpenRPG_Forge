@@ -26,6 +26,62 @@ func _initialize() -> void:
     if bool(tampered_validation.get("succeeded", true)):
         _fail("Godot accepted a tampered execution job.")
         return
+    var report_variant: Variant = runner.call(
+        "_build_promotion_validation_report",
+        job,
+        {
+            "succeeded": true,
+            "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "contentFingerprint": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "collisionShapes": 1,
+            "navigationPolygons": 8,
+        },
+        [{
+            "stage": "terrain",
+            "requestedBackend": "godotNative",
+            "providerKey": "openrpg-native",
+            "providerVersion": "1.0.0",
+            "evidenceSha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        }])
+    if typeof(report_variant) != TYPE_DICTIONARY:
+        _fail("Godot did not create a structured canonical-promotion validation report.")
+        return
+    var report := report_variant as Dictionary
+    if int(report.get("schemaVersion", 0)) != 1 or \
+            str(report.get("jobId", "")) != str(job.jobId) or \
+            str(report.get("planFingerprint", "")) != str(job.plan.planFingerprint) or \
+            str(report.get("derivedSceneSha256", "")).length() != 64 or \
+            str(report.get("assetSelectionFingerprint", "")).length() != 64 or \
+            not bool(report.get("collisionValidated", false)) or \
+            not bool(report.get("navigationValidated", false)) or \
+            not bool(report.get("manualEditsPreserved", false)):
+        _fail("Godot canonical-promotion report did not preserve governed evidence: %s" % report)
+        return
+    var partial_steps := [
+        { "stage": "terrain" },
+        { "stage": "biomes" },
+        { "stage": "navigation" },
+        { "stage": "validation" },
+    ]
+    var partial_providers := [
+        { "providerKey": "terrain3d" },
+        { "providerKey": "godot-flow" },
+        { "providerKey": "openrpg-native" },
+        { "providerKey": "openrpg-native" },
+    ]
+    var full_steps: Array = []
+    var full_providers: Array = []
+    for stage in ["terrain", "hydrology", "biomes", "roads", "settlements", "scatter", "gameplay", "navigation", "validation"]:
+        full_steps.append({ "stage": stage })
+        full_providers.append({
+            "providerKey": "terrain3d" if stage in ["terrain", "hydrology"] else (
+                "godot-flow" if stage in ["biomes", "roads", "settlements", "scatter"] else
+                "openrpg-native"),
+        })
+    if bool(runner.call("_can_create_promotion_candidate", partial_steps, partial_providers)) or \
+            not bool(runner.call("_can_create_promotion_candidate", full_steps, full_providers)):
+        _fail("Canonical-promotion candidate gate did not require the complete nine-stage plan.")
+        return
     var resumed_job := job.duplicate(true)
     resumed_job.status = "running"
     resumed_job.audit.append({
@@ -41,7 +97,8 @@ func _initialize() -> void:
         return
     resume_file.store_string(JSON.stringify({ "formatVersion": "1.0.0", "job": resumed_job }, "  "))
     resume_file.close()
-    var resume_outcome: Dictionary = runner.call("_process_job_file", ProjectSettings.globalize_path(resume_path))
+    var resume_outcome: Dictionary = await runner.call(
+        "_process_job_file", ProjectSettings.globalize_path(resume_path))
     var resumed_wrapper: Dictionary = runner.call("_read_json_object", ProjectSettings.globalize_path(resume_path))
     DirAccess.remove_absolute(ProjectSettings.globalize_path(resume_path))
     var resumed_persisted: Dictionary = resumed_wrapper.get("job", {})
@@ -100,7 +157,7 @@ func _initialize() -> void:
         _fail("A non-allowlisted backend operation was accepted.")
         return
 
-    print("WORLD_GENERATION_GODOT_SMOKE_PASS native_mesh=1 collision=1 terrain3d_fallback=1 pcg_fallback=1 manual_lock=1 protocol_vector=1 resume=1 validation=1 tamper_rejected=1")
+    print("WORLD_GENERATION_GODOT_SMOKE_PASS native_mesh=1 collision=1 terrain3d_fallback=1 pcg_fallback=1 manual_lock=1 protocol_vector=1 promotion_report=1 full_plan_gate=1 resume=1 validation=1 tamper_rejected=1")
     quit(0)
 
 func _request(backend: String, operation: String, stage: String = "terrain") -> Dictionary:
