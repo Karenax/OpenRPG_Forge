@@ -883,7 +883,7 @@ internal sealed partial class StudioCompanionAuthoringOverlayUx4U : Control
         try
         {
             if (!ProjectSession.Create(root, evidence.Project).Succeeded ||
-                !StudioSessionController.CopyCompanionScriptsUx4U(sourceWorkspace.RootDirectory, root) ||
+                !StudioSessionController.CopyForgeScriptsForEvidence(sourceWorkspace.RootDirectory, root) ||
                 !session.Open(root).Succeeded)
             { session.Close(); _resourcesReleased = DeleteEvidenceRoot(root); return false; }
             _sourceSnapshot = snapshot; _evidenceSession = session; _evidenceRoot = root;

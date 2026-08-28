@@ -237,6 +237,10 @@ internal sealed partial class StudioWorkspaceShell
         RefreshInspector();
         RefreshAreaTabs();
         RefreshComparisonViewport();
+        if (PageId == "world-generation")
+        {
+            _worldGenerationPage.Activate();
+        }
         SetStatus(message);
         if (notify)
         {

@@ -14,7 +14,6 @@ using Forge.Domain.RuntimePolicies;
 using Forge.Domain.Validation;
 using Forge.Domain.Build;
 using Forge.Domain.WorldFeatures;
-using Forge.Application.Projects;
 using Forge.ModuleFormat.Build;
 using Forge.ModuleFormat.Packages;
 using Forge.ModuleFormat.Quality;
@@ -57,7 +56,7 @@ public sealed class ModulePackageTests : IDisposable
     {
         var workspace = CreateWorkspace();
         var session = ProjectSession.Open(workspace).Session!;
-        var catalog = CryptWorldFeatureAuthoringService.Create(session.Project);
+        var catalog = session.Project.Module.WorldFeatures;
         var door = Assert.Single(catalog.Doors);
         var foundation = door.Foundation!;
         var access = door.AccessEvents!;

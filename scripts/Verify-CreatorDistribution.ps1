@@ -44,6 +44,21 @@ if ($launcherVerification.ExitCode -ne 0) {
     throw 'The Creator launcher layout verification failed.'
 }
 
+if (-not $manifest.mcp_inventory_verified -or -not $manifest.mcp_smoke_verified -or
+    [int]$manifest.mcp_tool_count -ne 271) {
+    throw 'The Creator manifest does not prove the complete 271-tool MCP host.'
+}
+$mcpHost = Join-Path $distributionPath 'mcp/Forge.McpHost.exe'
+$mcpWorkspace = Join-Path $distributionPath 'workspace/apps/Forge.Runtime/content/crypt-of-ashes'
+& $mcpHost '--tool-inventory'
+if ($LASTEXITCODE -ne 0) {
+    throw "The distributed MCP inventory failed with exit code $LASTEXITCODE."
+}
+& $mcpHost '--workspace' $mcpWorkspace '--self-test'
+if ($LASTEXITCODE -ne 0) {
+    throw "The distributed MCP self-test failed with exit code $LASTEXITCODE."
+}
+
 if ($RunSmoke) {
     # The editor writes import and filesystem caches even in headless mode. Exercise a byte-for-byte
     # copy so verification never invalidates the distribution manifest it just checked.
@@ -109,4 +124,4 @@ if ($RunSmoke) {
     }
 }
 
-Write-Output "OPENRPG_FORGE_CREATOR_DISTRIBUTION_VERIFY_PASS files=$($manifest.files.Count) smoke=$RunSmoke source=$($manifest.source_revision)"
+Write-Output "OPENRPG_FORGE_CREATOR_DISTRIBUTION_VERIFY_PASS files=$($manifest.files.Count) smoke=$RunSmoke mcp_tools=$($manifest.mcp_tool_count) source=$($manifest.source_revision)"

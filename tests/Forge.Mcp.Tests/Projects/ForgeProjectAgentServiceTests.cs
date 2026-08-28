@@ -1,7 +1,6 @@
 using System.Text.Json;
 using Forge.Application.Assistant;
 using Forge.Application.Assets;
-using Forge.Application.Projects;
 using Forge.Application.Quality;
 using Forge.Application.Validation;
 using Forge.Domain.Assets;
@@ -310,9 +309,13 @@ public sealed class ForgeProjectAgentServiceTests
                 AnchorKind.Waypoint, AnchorScope.Area,
                 ["ember", "quest"], null, null, false);
             var instance = new AnchorInstance(Guid.Parse("a9030000-0000-4000-8000-000000000002"), 1,
-                "test:r009", definition.Id, TransformValue.Identity, 1, EntityPropertyOverrides.Empty, null, null);
-            catalog = new AnchorCatalog(Guid.Parse("a9030000-0000-4000-8000-000000000003"), 1,
-                "test:r009", area.Id, false, [definition], [instance]);
+                "test:r009", definition.Id, TransformValue.Identity,
+                area.Navigation.Anchors.Instances.Count + 1, EntityPropertyOverrides.Empty, null, null);
+            var source = area.Navigation.Anchors;
+            catalog = new AnchorCatalog(source.Id, source.SchemaVersion,
+                source.Provenance, area.Id, source.RequiredAtRuntime,
+                source.Definitions.Concat([definition]).ToArray(),
+                source.Instances.Concat([instance]).ToArray());
             var changed = area.WithNavigation(area.Navigation.WithAnchors(catalog));
             return new ProjectDefinition(project.Id, project.Title, project.Module, project.Blueprints,
                 project.Areas.Select(item => item.Id == area.Id ? changed : item).ToArray(),
@@ -494,7 +497,7 @@ public sealed class ForgeProjectAgentServiceTests
     {
         using var workspace = new TestWorkspace(project =>
         {
-            var catalog = CryptWorldFeatureAuthoringService.Create(project);
+            var catalog = project.Module.WorldFeatures;
             return new ProjectDefinition(project.Id, project.Title, project.Module.WithWorldFeatures(catalog),
                 project.Blueprints, project.Areas, project.Dialogues, project.Quests);
         });
@@ -533,7 +536,7 @@ public sealed class ForgeProjectAgentServiceTests
     {
         using var workspace = new TestWorkspace(project =>
         {
-            var source = CryptWorldFeatureAuthoringService.Create(project);
+            var source = project.Module.WorldFeatures;
             var door = source.Doors.Single();
             var foundation = door.Foundation!;
             var access = door.AccessEvents!;
@@ -614,7 +617,7 @@ public sealed class ForgeProjectAgentServiceTests
     {
         using var workspace = new TestWorkspace(project =>
         {
-            var catalog = CryptWorldFeatureAuthoringService.Create(project);
+            var catalog = project.Module.WorldFeatures;
             return new ProjectDefinition(project.Id, project.Title, project.Module.WithWorldFeatures(catalog),
                 project.Blueprints, project.Areas, project.Dialogues, project.Quests);
         });
@@ -644,7 +647,7 @@ public sealed class ForgeProjectAgentServiceTests
     {
         using var workspace = new TestWorkspace(project =>
         {
-            var catalog = CryptWorldFeatureAuthoringService.Create(project);
+            var catalog = project.Module.WorldFeatures;
             return new ProjectDefinition(project.Id, project.Title, project.Module.WithWorldFeatures(catalog),
                 project.Blueprints, project.Areas, project.Dialogues, project.Quests);
         });
@@ -679,7 +682,7 @@ public sealed class ForgeProjectAgentServiceTests
     {
         using var workspace = new TestWorkspace(project =>
         {
-            var catalog = CryptWorldFeatureAuthoringService.Create(project);
+            var catalog = project.Module.WorldFeatures;
             return new ProjectDefinition(project.Id, project.Title, project.Module.WithWorldFeatures(catalog),
                 project.Blueprints, project.Areas, project.Dialogues, project.Quests);
         });
@@ -709,7 +712,7 @@ public sealed class ForgeProjectAgentServiceTests
     {
         using var workspace = new TestWorkspace(project =>
         {
-            var catalog = CryptWorldFeatureAuthoringService.Create(project);
+            var catalog = project.Module.WorldFeatures;
             return new ProjectDefinition(project.Id, project.Title, project.Module.WithWorldFeatures(catalog),
                 project.Blueprints, project.Areas, project.Dialogues, project.Quests);
         });
@@ -782,7 +785,7 @@ public sealed class ForgeProjectAgentServiceTests
     {
         using var workspace = new TestWorkspace(project =>
         {
-            var catalog = CryptWorldFeatureAuthoringService.Create(project);
+            var catalog = project.Module.WorldFeatures;
             return new ProjectDefinition(project.Id, project.Title, project.Module.WithWorldFeatures(catalog),
                 project.Blueprints, project.Areas, project.Dialogues, project.Quests);
         });
@@ -797,16 +800,17 @@ public sealed class ForgeProjectAgentServiceTests
 
         var item = Assert.Single(resource.Items);
         Assert.Equal("True", item.Properties["transactions"]);
-        Assert.Equal("1", item.Properties["stock"]);
+        Assert.Equal(merchant.Transactions!.Stock.Count.ToString(), item.Properties["stock"]);
         Assert.Equal("True", item.Properties["requiredAtRuntime"]);
         Assert.Equal("True", item.Properties["foundation"]);
         Assert.Equal("crypt-vigil-market", item.Properties["storeSlug"]);
         Assert.Equal("store-vendor-dialogue-interaction-tests", item.Properties["wizard"]);
-        Assert.Equal("1", item.Properties["foundationStock"]);
-        Assert.Equal("Infinite", item.Properties["supplyModes"]);
+        Assert.Equal(merchant.Foundation!.Stock.Count.ToString(), item.Properties["foundationStock"]);
+        Assert.Equal(string.Join(',', merchant.Foundation.Stock.Select(entry => entry.Supply)
+            .Distinct().Order()), item.Properties["supplyModes"]);
         Assert.Equal("2", item.Properties["buyCurve"]);
         Assert.Equal("2", item.Properties["sellCurve"]);
-        Assert.Equal("scripts/merchant_rule", item.Properties["customRule"]);
+        Assert.Equal(merchant.Foundation.Restrictions.CustomRuleBinding, item.Properties["customRule"]);
         Assert.Equal("True", item.Properties["foundationRequiredAtRuntime"]);
         Assert.Equal("True", item.Properties["experience"]);
         Assert.Equal("1.0.0", item.Properties["sessionApi"]);
@@ -828,7 +832,7 @@ public sealed class ForgeProjectAgentServiceTests
     {
         using var workspace = new TestWorkspace(project =>
         {
-            var catalog = CryptWorldFeatureAuthoringService.Create(project);
+            var catalog = project.Module.WorldFeatures;
             return new ProjectDefinition(project.Id, project.Title, project.Module.WithWorldFeatures(catalog),
                 project.Blueprints, project.Areas, project.Dialogues, project.Quests);
         });
@@ -1007,7 +1011,7 @@ public sealed class ForgeProjectAgentServiceTests
     {
         using var workspace = new TestWorkspace(project =>
         {
-            var source = CryptWorldFeatureAuthoringService.Create(project);
+            var source = project.Module.WorldFeatures;
             var original = source.Placeables.Single();
             var direct = original with
             {
@@ -1059,7 +1063,7 @@ public sealed class ForgeProjectAgentServiceTests
     {
         using var workspace = new TestWorkspace(project =>
         {
-            var catalog = CryptWorldFeatureAuthoringService.Create(project);
+            var catalog = project.Module.WorldFeatures;
             return new ProjectDefinition(project.Id, project.Title, project.Module.WithWorldFeatures(catalog),
                 project.Blueprints, project.Areas, project.Dialogues, project.Quests);
         });
@@ -3409,6 +3413,40 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.Equal(["planned", "apply", "revert"], reverted.Audit.Select(item => item.Action));
         persisted = ProjectSession.Open(workspace.RootDirectory).Session!;
         Assert.DoesNotContain(persisted.Project.Dialogues, item => item.Id.ToString() == request.DialogueId);
+    }
+
+    [Fact]
+    public void ConcurrentAgentServicesRejectAStaleApplyWithoutOverwritingTheWorkspace()
+    {
+        using var workspace = new TestWorkspace();
+        var staleService = Assert.IsType<ForgeProjectAgentService>(
+            ForgeProjectAgentService.Open(workspace.RootDirectory).Service);
+        var firstRequest = CreatePlan(workspace.RootDirectory);
+        var project = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
+        var speaker = project.Blueprints.First().Id.ToString();
+        var staleDialogueId = Guid.Parse("7b02e466-b43a-442b-a833-8613a1c71952").ToString("D");
+        var staleNodeId = Guid.Parse("659eb07b-5d3f-4f87-80de-26ec4b20c838").ToString("D");
+        var staleRequest = new DialoguePlanRequest(
+            1,
+            0,
+            staleDialogueId,
+            "stale-dialogue",
+            "Stale dialogue",
+            staleNodeId,
+            [new DialogueNodeInput(staleNodeId, speaker, "dialogue.stale", "Must not overwrite")]);
+
+        var firstPlan = workspace.Project.PlanDialogue(firstRequest);
+        var stalePlan = staleService.PlanDialogue(staleRequest);
+        var firstApplied = workspace.Project.ApplyDialoguePlan(firstPlan.PlanId!);
+        var staleApplied = staleService.ApplyDialoguePlan(stalePlan.PlanId!);
+        var persisted = ProjectSession.Open(workspace.RootDirectory).Session!;
+
+        Assert.True(firstApplied.Succeeded);
+        Assert.False(staleApplied.Succeeded);
+        Assert.Contains(staleApplied.Diagnostics, item => item.Code == ProjectSession.RevisionConflictCode);
+        Assert.Contains(persisted.Project.Dialogues, item => item.Id.ToString() == firstRequest.DialogueId);
+        Assert.DoesNotContain(persisted.Project.Dialogues, item => item.Id.ToString() == staleDialogueId);
+        Assert.Equal(1, persisted.Revision);
     }
 
     [Fact]

@@ -5,12 +5,15 @@ using Forge.Domain.Entities;
 using Forge.Domain.Creatures;
 using Forge.Domain.Navigation;
 using Forge.Domain.Quests;
-using Forge.Application.Projects;
 using Forge.Domain.Projects;
+using Forge.Domain.RuntimeExtensions;
 using Forge.Domain.Validation;
 using Forge.Domain.WorldFeatures;
+using Forge.Application.Quality;
+using Forge.ModuleFormat.Quality;
 using Forge.ModuleFormat.Serialization;
 using Forge.ModuleFormat.Workspaces;
+using System.Text.RegularExpressions;
 
 namespace Forge.ModuleFormat.Tests.Serialization;
 
@@ -45,11 +48,28 @@ public sealed class CryptOfAshesSampleTests
             Math.Abs(entity.Transform.Scale.Z - 2) < .01));
         var boss = Assert.Single(area.Entities, entity =>
             project.Blueprints.Single(blueprint => blueprint.Id == entity.BlueprintId).Slug == "ash-warden-boss");
-        Assert.Equal(5, boss.Overrides.Properties.Count);
+        Assert.Equal(7, boss.Overrides.Properties.Count);
         Assert.Equal("180", boss.Overrides.Properties.Single(property => property.Key == "hitPoints").Value);
         Assert.Equal(
             "scripts/ash_warden_phase_two.forge",
             boss.Overrides.Properties.Single(property => property.Key == "phaseTwoScript").Value);
+        var authoredCharacterAssets = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["player"] = "053511fd-e165-1951-9869-6224f82b747f",
+            ["elyra"] = "220be95a-282c-cc52-aaf9-4fe811b32609",
+            ["sentinel"] = "056fe96c-5c83-145d-98fd-0623b9350cf5",
+            ["warden"] = "3bf93c4b-7df6-455c-be89-ba38d40e941c",
+        };
+        foreach (var authored in authoredCharacterAssets)
+        {
+            var character = Assert.Single(area.Entities,
+                entity => entity.Tags.Contains(authored.Key, StringComparer.OrdinalIgnoreCase));
+            Assert.Equal(authored.Value,
+                character.Overrides.Properties.Single(property => property.Key == "visual.asset").Value);
+            Assert.Equal("kaykit-adventurer",
+                character.Overrides.Properties.Single(property =>
+                    property.Key == "runtime.animationProfile").Value);
+        }
         var dialogue = Assert.Single(project.Dialogues);
         Assert.Equal("elyra-crypt-of-ashes", dialogue.Slug);
         Assert.Equal(4, dialogue.Nodes.Count);
@@ -81,18 +101,24 @@ public sealed class CryptOfAshesSampleTests
         Assert.Equal("OnPhysicalAttacked", eventAi.PhysicalAttack.Resolved.Handler);
         Assert.Equal("OnSpellCastAt", eventAi.Ability.Impacted.Handler);
         Assert.Equal("OnBlocked", eventAi.Blocked.Blocked.Handler);
+        var creatureEvents = Assert.IsType<CreatureEventProfile>(bossBlueprint.CreatureEvents);
+        var phaseTwoEvent = creatureEvents.Overrides["runtime.phase_two.custom_event"];
+        Assert.Equal("crypt.braziers_lit", phaseTwoEvent);
+        Assert.Contains(creatureEvents.CustomEvents,
+            item => string.Equals(item.QualifiedName, phaseTwoEvent, StringComparison.Ordinal));
     }
 
     [Fact]
-    public void SampleProject_WorldFeatureFixtureIsCanonicalAndRuntimeResolvable()
+    public void SampleProject_AuthoredWorldFeaturesAreCanonicalAndRuntimeResolvable()
     {
         var fixtureDirectory = Path.Combine(AppContext.BaseDirectory, "Fixtures", "crypt-of-ashes");
         var project = ProjectSession.Open(fixtureDirectory).Session!.Project;
-        var catalog = CryptWorldFeatureAuthoringService.Create(project);
+        var catalog = project.Module.WorldFeatures;
         var configured = new ProjectDefinition(project.Id, project.Title, project.Module.WithWorldFeatures(catalog),
             project.Blueprints, project.Areas, project.Dialogues, project.Quests);
 
         Assert.Empty(ProjectValidator.Validate(configured));
+        Assert.NotEqual("migration-default", project.Module.RuntimePolicies.Extensions.PostLaunch.Provenance);
         Assert.Single(catalog.Placeables);
         Assert.Single(catalog.Doors);
         Assert.Single(catalog.Triggers);
@@ -110,10 +136,42 @@ public sealed class CryptOfAshesSampleTests
         Assert.Equal(EncounterActivationMode.PopulationMaintained, encounter.Composition.Activation.Mode);
         Assert.True(encounter.ScenarioRequiredAtRuntime);
         Assert.Equal("anchor:crypt-north", Assert.Single(encounter.Scenario!.SpawnAnchors).AnchorId);
+        var encounterAnchorDefinition = Assert.Single(project.Areas[0].Navigation.Anchors.Definitions,
+            item => item.Slug == "anchor:crypt-north");
+        Assert.Equal(AnchorKind.Spawn, encounterAnchorDefinition.Kind);
+        Assert.Equal(BlueprintKind.PlayerSpawn,
+            project.Blueprints.Single(item => item.Id == encounterAnchorDefinition.BlueprintId).Kind);
+        var encounterAnchorInstance = Assert.Single(project.Areas[0].Navigation.Anchors.Instances,
+            item => item.DefinitionId == encounterAnchorDefinition.Id);
+        Assert.Equal("ash-hostile", Assert.IsType<SpawnAnchorProfile>(encounterAnchorInstance.Spawn).Team);
+        var encounterAnchorReference = NavigationDestinationCatalog.Build(project)
+            .FindArrivalAnchor("anchor:crypt-north");
+        Assert.NotNull(encounterAnchorReference);
+        Assert.Equal(project.Areas[0].Id, encounterAnchorReference.AreaId);
         Assert.Equal(EncounterNetworkAuthority.Server, encounter.Scenario.Activator.RequiredAuthority);
+        Assert.Equal("ash-watch", encounter.SpawnFactionId);
+        var reinforcement = Assert.IsType<EncounterWorldProfile.ReinforcementPolicy>(encounter.Reinforcements);
+        Assert.Equal("ash-watch", reinforcement.FactionId);
+        Assert.Contains(project.Areas[0].Navigation.Waypoints.PatrolRoutes,
+            route => route.Id == reinforcement.RouteId && route.Points.Count >= 2);
+        Assert.Empty(EncounterLifecycleRuntimeService.Validate(encounter, project.Module.Factions));
+        Assert.Empty(EncounterTacticalRuntimeService.Validate(encounter, project.Module.Factions,
+            project.Areas[0].Navigation.Waypoints));
         Assert.Equal("EncounterEntered", encounter.Scenario.Lifecycle.Entered.Binding);
         Assert.Equal("EncounterExited", encounter.Scenario.Lifecycle.Exited.Binding);
         Assert.Equal("EncounterExhausted", encounter.Scenario.Lifecycle.Exhausted.Binding);
+        foreach (var relativePath in new[]
+                 {
+                     encounter.Foundation!.Volume.ActivationScriptId,
+                     encounter.Scenario.Lifecycle.Entered.ScriptId,
+                     encounter.Scenario.Lifecycle.Exited.ScriptId,
+                     encounter.Scenario.Lifecycle.Exhausted.ScriptId,
+                 })
+        {
+            Assert.NotNull(relativePath);
+            Assert.True(File.Exists(Path.Combine(fixtureDirectory,
+                relativePath!.Replace('/', Path.DirectorySeparatorChar))), relativePath);
+        }
         Assert.Equal(2, Assert.Single(encounter.Scenario.Phases).Waves.Count);
         var roundTrip = ProjectJsonSerializer.Deserialize(ProjectJsonSerializer.Serialize(configured));
         Assert.Equal("challenge-rating",
@@ -187,6 +245,29 @@ public sealed class CryptOfAshesSampleTests
         Assert.Equal("DoorLocked", doorAccess.Profile.LockStateEvents!.LockedBinding);
         Assert.Equal("DoorUnlocked", doorAccess.Profile.LockStateEvents.UnlockedBinding);
         Assert.NotNull(WorldFeatureRuntimeResolver.ResolveScript(catalog.Scripts, "door.ash", "opened").ScriptId);
+        var merchant = Assert.Single(catalog.Merchants);
+        Assert.Equal(2, merchant.Foundation!.Stock.Count);
+        Assert.Equal(2, merchant.Transactions!.Stock.Count);
+        var serialized = File.ReadAllText(Path.Combine(fixtureDirectory, "project.json"));
+        var authoredScripts = Regex.Matches(serialized, @"scripts/[A-Za-z0-9_.\-/]+")
+            .Select(match => match.Value)
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+        Assert.NotEmpty(authoredScripts);
+        Assert.All(authoredScripts, relativePath =>
+        {
+            Assert.EndsWith(".forge", relativePath, StringComparison.Ordinal);
+            Assert.True(File.Exists(Path.Combine(fixtureDirectory,
+                relativePath.Replace('/', Path.DirectorySeparatorChar))), relativePath);
+        });
+        var performance = new WorkspacePerformanceLabService().Run(fixtureDirectory, project,
+            new WorkspacePerformanceLabOptions(WriteArtifacts: false));
+        Assert.True(performance.Passed);
+        Assert.DoesNotContain(performance.Benchmarks.Budgets,
+            item => item.Status == PerformanceBudgetStatus.Failed);
+        Assert.Contains(performance.Benchmarks.Budgets,
+            item => item.Platform == "desktop" && item.Scenario == AreaBenchmarkKind.Stress &&
+                    item.Status == PerformanceBudgetStatus.Warning);
     }
 
     [Fact]
@@ -194,7 +275,7 @@ public sealed class CryptOfAshesSampleTests
     {
         var fixtureDirectory = Path.Combine(AppContext.BaseDirectory, "Fixtures", "crypt-of-ashes");
         var project = ProjectSession.Open(fixtureDirectory).Session!.Project;
-        var catalog = CryptWorldFeatureAuthoringService.Create(project);
+        var catalog = project.Module.WorldFeatures;
         var companion = catalog.Companions[0];
         var invalid = companion with
         {
@@ -237,7 +318,7 @@ public sealed class CryptOfAshesSampleTests
         ]);
         var projectWithPortal = new ProjectDefinition(project.Id, project.Title, project.Module,
             project.Blueprints, [source, destination], project.Dialogues, project.Quests);
-        var catalog = CryptWorldFeatureAuthoringService.Create(projectWithPortal);
+        var catalog = projectWithPortal.Module.WorldFeatures;
         var companion = catalog.Companions[0];
         companion = companion with
         {

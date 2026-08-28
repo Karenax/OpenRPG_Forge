@@ -89,9 +89,9 @@ La reconstruction applique les règles suivantes de `OPENRPG_FORGE_RULESET_FR.md
 
 ## Art CC0
 
-Le lot `apps/Forge.Runtime/art/crypt-kaykit/` est utilisé sans nouvelle acquisition externe.
+Le lot `apps/Forge.Runtime/art/kaykit-dungeon-remastered/` est utilisé sans nouvelle acquisition externe.
 
-`CryptArtKitDecorator` place les sols, murs, passages, colonnes, escaliers, coffres, tonneaux et torches selon la nouvelle géométrie. Les pièces sont répétées comme kit modulaire plutôt que comme props isolés.
+La disposition `art-kits/kaykit-dungeon-remastered.layout.json`, interprétée par `GodotArtKitBuilder`, place les sols, murs, passages, colonnes, escaliers, coffres, tonneaux et torches selon la nouvelle géométrie. Les pièces sont répétées comme kit modulaire plutôt que comme props isolés.
 
 ## Limites avant qualification
 

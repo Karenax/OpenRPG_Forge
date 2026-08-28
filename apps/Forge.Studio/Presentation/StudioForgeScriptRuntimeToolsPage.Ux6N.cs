@@ -72,7 +72,7 @@ internal sealed partial class StudioForgeScriptRuntimeToolsPageUx6L
         reloadPage.AddChild(StudioStyle.Label(
             "Hot reload · version, migration d’état et dépendances",
             12, StudioStyle.Text));
-        _reloadModuleUx6N = Text("crypt-of-ashes");
+        _reloadModuleUx6N = Text("active-module");
         _activeVersionUx6N = Number(1, 100_000, 1, 1);
         reloadPage.AddChild(Pair("Module logique", _reloadModuleUx6N,
             "Version active", _activeVersionUx6N));

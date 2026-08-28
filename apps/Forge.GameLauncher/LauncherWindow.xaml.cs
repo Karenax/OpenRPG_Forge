@@ -4,6 +4,8 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -56,6 +58,11 @@ internal partial class LauncherWindow
     private double _parallaxX;
     private double _parallaxY;
     private string? _capturePublicAddress;
+    private Guid _networkAccountId;
+    private string _networkJoinToken = string.Empty;
+    private string _serverCertificateSha256 = string.Empty;
+    private string _hostCertificatePath = string.Empty;
+    private string _hostCertificatePassword = string.Empty;
 
     public LauncherWindow(
         GameLauncherVerification verification,
@@ -427,6 +434,11 @@ internal partial class LauncherWindow
         PlayerNameText.Text = settings.PlayerName;
         ServerAddressText.Text = settings.ServerAddress;
         ServerPortText.Text = settings.ServerPort.ToString();
+        _networkAccountId = settings.NetworkAccountId;
+        _networkJoinToken = settings.NetworkJoinToken;
+        _serverCertificateSha256 = settings.ServerCertificateSha256;
+        _hostCertificatePath = settings.HostCertificatePath;
+        _hostCertificatePassword = settings.HostCertificatePassword;
         UpdateVolumeLabels();
     }
 
@@ -514,6 +526,21 @@ internal partial class LauncherWindow
         var selectedWindowMode = WindowModes[windowModeIndex].Mode;
         if (!int.TryParse(ServerPortText.Text.Trim(), out var serverPort))
             throw new InvalidDataException("Le port serveur doit être un nombre entre 1024 et 65535.");
+        var sessionMode = LocalHostMode.IsChecked == true
+            ? LauncherSessionMode.LocalHost
+            : DirectConnectMode.IsChecked == true
+                ? LauncherSessionMode.DirectConnectPreview
+                : LauncherSessionMode.Solo;
+        var serverAddress = ServerAddressText.Text.Trim();
+        if (sessionMode == LauncherSessionMode.DirectConnectPreview &&
+            InternetSessionInvite.TryDecode(serverAddress, out var invite))
+        {
+            serverAddress = invite.Address;
+            serverPort = invite.Port;
+            _networkJoinToken = invite.AuthenticationToken;
+            _serverCertificateSha256 = invite.CertificateSha256.ToLowerInvariant();
+        }
+        if (_networkAccountId == Guid.Empty) _networkAccountId = Guid.NewGuid();
         var settings = new GameLauncherUserSettings(
             GameLauncherUserSettings.CurrentSchemaVersion,
             selectedResolution.Width,
@@ -525,14 +552,15 @@ internal partial class LauncherWindow
             (int)Math.Round(MusicVolumeSlider.Value),
             (int)Math.Round(EffectsVolumeSlider.Value),
             ReduceMotionCheck.IsChecked == true,
-            LocalHostMode.IsChecked == true
-                ? LauncherSessionMode.LocalHost
-                : DirectConnectMode.IsChecked == true
-                    ? LauncherSessionMode.DirectConnectPreview
-                    : LauncherSessionMode.Solo,
+            sessionMode,
             PlayerNameText.Text.Trim(),
-            ServerAddressText.Text.Trim(),
-            serverPort);
+            serverAddress,
+            serverPort,
+            _networkAccountId,
+            _networkJoinToken,
+            _serverCertificateSha256,
+            _hostCertificatePath,
+            _hostCertificatePassword);
         var diagnostics = GameLauncherUserSettingsValidator.Validate(settings);
         if (diagnostics.Count > 0)
             throw new InvalidDataException("Réglages invalides : " + string.Join(", ", diagnostics));
@@ -545,6 +573,7 @@ internal partial class LauncherWindow
     {
         try
         {
+            if (IsInternetHostMode()) EnsureHostSecurityMaterial();
             var settings = ReadSettings();
             GameLauncherSettingsStore.Save(_settingsPath, settings);
             SetStatus("Configuration enregistrée.", error: false);
@@ -561,6 +590,7 @@ internal partial class LauncherWindow
     {
         try
         {
+            if (IsInternetHostMode()) EnsureHostSecurityMaterial();
             var settings = ReadSettings();
             GameLauncherSettingsStore.Save(_settingsPath, settings);
             var plan = GameLaunchPlanBuilder.Create(_verification, settings, _settingsPath);
@@ -598,7 +628,7 @@ internal partial class LauncherWindow
             ? "IP publique à partager"
             : host
                 ? "Adresse interne"
-                : "Adresse IP ou DNS";
+                : "Invitation openrpg2:";
         ServerAddressText.Visibility = internetHost ? Visibility.Collapsed : Visibility.Visible;
         PublicJoinAddressPanel.Visibility = internetHost ? Visibility.Visible : Visibility.Collapsed;
         ServerAddressText.IsEnabled = direct;
@@ -797,12 +827,88 @@ internal partial class LauncherWindow
 
         try
         {
-            Clipboard.SetText(endpoint);
-            SetStatus($"Adresse de connexion copiée : {endpoint}", error: false);
+            EnsureHostSecurityMaterial();
+            var separator = endpoint.LastIndexOf(':');
+            var invite = new InternetSessionInvite(
+                InternetSessionInvite.CurrentSchemaVersion,
+                endpoint[..separator],
+                int.Parse(endpoint[(separator + 1)..], System.Globalization.CultureInfo.InvariantCulture),
+                _serverCertificateSha256,
+                _networkJoinToken);
+            Clipboard.SetText(invite.Encode());
+            GameLauncherSettingsStore.Save(_settingsPath, ReadSettings());
+            SetStatus($"Invitation TLS copiée pour {endpoint}. Elle contient un jeton privé : partagez-la uniquement avec vos joueurs.", error: false);
         }
-        catch (Exception exception) when (exception is ExternalException or InvalidOperationException)
+        catch (Exception exception) when (exception is ExternalException or InvalidOperationException or
+                                           IOException or UnauthorizedAccessException or CryptographicException or
+                                           ArgumentException or InvalidDataException)
         {
-            SetStatus("Le presse-papiers Windows est temporairement indisponible.", error: true);
+            SetStatus("Invitation non copiée : " + exception.Message, error: true);
+        }
+    }
+
+    private void EnsureHostSecurityMaterial()
+    {
+        if (_captureMode) return;
+        var settingsDirectory = Path.GetDirectoryName(_settingsPath)
+            ?? throw new InvalidOperationException("Le dossier des réglages du lanceur est indisponible.");
+        Directory.CreateDirectory(settingsDirectory);
+        var certificatePath = Path.Combine(settingsDirectory, "internet-host-certificate.pfx");
+        if (string.Equals(_hostCertificatePath, certificatePath, StringComparison.OrdinalIgnoreCase) &&
+            _networkJoinToken.Length is >= 24 and <= 256 &&
+            _hostCertificatePassword.Length is >= 24 and <= 256 &&
+            _serverCertificateSha256.Length == 64 && File.Exists(certificatePath))
+        {
+            try
+            {
+                using var existing = X509CertificateLoader.LoadPkcs12FromFile(
+                    certificatePath,
+                    _hostCertificatePassword,
+                    X509KeyStorageFlags.Exportable | X509KeyStorageFlags.DefaultKeySet);
+                if (string.Equals(
+                        InternetTransportSecurity.CertificateSha256(existing),
+                        _serverCertificateSha256,
+                        StringComparison.OrdinalIgnoreCase) &&
+                    existing.NotAfter.ToUniversalTime() > DateTime.UtcNow.AddDays(1))
+                    return;
+            }
+            catch (CryptographicException)
+            {
+                // Rotate invalid or unreadable local host material below.
+            }
+        }
+
+        _networkJoinToken = Base64Url(RandomNumberGenerator.GetBytes(32));
+        _hostCertificatePassword = Base64Url(RandomNumberGenerator.GetBytes(32));
+        using var certificate = InternetTransportSecurity.CreateSelfSignedCertificate(
+            $"{_verification.Manifest.Slug}-internet-host");
+        _serverCertificateSha256 = InternetTransportSecurity.CertificateSha256(certificate);
+        _hostCertificatePath = certificatePath;
+        var content = certificate.Export(X509ContentType.Pfx, _hostCertificatePassword);
+        var temporary = Path.Combine(
+            settingsDirectory,
+            $".{Path.GetFileName(certificatePath)}.{Guid.NewGuid():N}.tmp");
+        try
+        {
+            File.WriteAllBytes(temporary, content);
+            File.Move(temporary, certificatePath, overwrite: true);
+        }
+        finally
+        {
+            CryptographicOperations.ZeroMemory(content);
+            if (File.Exists(temporary)) File.Delete(temporary);
+        }
+    }
+
+    private static string Base64Url(byte[] value)
+    {
+        try
+        {
+            return Convert.ToBase64String(value).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+        }
+        finally
+        {
+            CryptographicOperations.ZeroMemory(value);
         }
     }
 
@@ -832,7 +938,7 @@ internal partial class LauncherWindow
         if (direct)
         {
             MultiplayerNoticeText.Text =
-                "Connexion TCP directe : saisissez l’adresse publique ou le nom DNS de l’hôte. Le module et le protocole sont vérifiés avant l’entrée en jeu.";
+                "Collez l’invitation openrpg2: de l’hôte. Elle épingle son certificat TLS, authentifie la session et contient un jeton privé à ne pas publier.";
             return;
         }
 
@@ -846,7 +952,7 @@ internal partial class LauncherWindow
             else if (TryBuildPublicJoinEndpoint(out var endpoint))
             {
                 MultiplayerNoticeText.Text =
-                    $"Partagez {endpoint} avec les joueurs. Autorisez ce port TCP dans le pare-feu Windows et redirigez-le dans le routeur.";
+                    $"Utilisez COPIER pour partager une invitation TLS privée vers {endpoint}. Autorisez ce port TCP dans le pare-feu Windows et redirigez-le dans le routeur.";
             }
             else if (_publicAddressLookupAttempted)
             {

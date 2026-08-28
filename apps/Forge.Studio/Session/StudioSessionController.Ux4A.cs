@@ -350,7 +350,7 @@ internal sealed partial class StudioSessionController
         {
             return null;
         }
-        if (IsCryptFactionEvidenceUx4A(project))
+        if (HasFactionEvidenceUx4A(project))
         {
             return new(project, UsesRealCryptSource: true, UsesCanonicalFallback: false);
         }
@@ -869,12 +869,8 @@ internal sealed partial class StudioSessionController
         throw new InvalidOperationException("Unable to allocate a faction slug.");
     }
 
-    private static bool IsCryptFactionEvidenceUx4A(ProjectDefinition project)
+    private static bool HasFactionEvidenceUx4A(ProjectDefinition project)
     {
-        if (!string.Equals(project.Module.Slug, "crypt-of-ashes", StringComparison.Ordinal))
-        {
-            return false;
-        }
         var catalog = project.Module.Factions;
         var slugs = catalog.Factions.Select(item => item.Slug).ToHashSet(StringComparer.Ordinal);
         return slugs.IsSupersetOf(["crypt-covenant", "ash-watch", "surface-alliance"]) &&

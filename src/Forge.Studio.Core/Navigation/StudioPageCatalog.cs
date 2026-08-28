@@ -9,6 +9,8 @@ public static class StudioPageCatalog
                 StudioPageLayout.Spatial, "Ajouter un objet", "ZONES ET CALQUES", "VUE 3D DE LA ZONE", "SÉLECTION"),
             Page("terrain", "Terrain & biomes", "Sculpter, peindre et relire le terrain dans son contexte.",
                 StudioPageLayout.Spatial, "Choisir une brosse", "BROSSES ET BIOMES", "TERRAIN 3D", "BROSSE ACTIVE"),
+            Page("world-generation", "Génération de monde", "Prévisualiser, exécuter et promouvoir une recette gouvernée.",
+                StudioPageLayout.Specialized, "Préparer une recette", "RECETTE ET JOBS", "PIPELINE GOUVERNÉ", "PREUVE ET PROMOTION"),
             Page("placement", "Objets & interactions", "Placer portes, triggers, rencontres et décor par manipulation directe.",
                 StudioPageLayout.Spatial, "Placer", "PALETTE CONTEXTUELLE", "SCÈNE ET INTERACTIONS", "OBJET SÉLECTIONNÉ"),
             Page("environment", "Environnement & audio", "Régler ciel, lumière, météo, eau et ambiance en direct.",

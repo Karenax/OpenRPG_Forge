@@ -56,7 +56,8 @@ Lot stable : `R009` / `FC-WAYPOINT-P0-01` — quatre fonctions, aucune fonction 
 ## Résultat livré
 
 - catalogue d'ancres v1 intégré au document de navigation de chaque zone, rétrocompatible avec les
-  zones historiques et cloné avec remappage déterministe des UUID et références locales ;
+  zones historiques et cloné avec remappage déterministe des UUID, références locales et slugs
+  globalement uniques ;
 - définition localisée et instance transformée séparées avec slug, type, scope, tags, blueprint,
   asset, ordre, provenance, exigence runtime et overrides ;
 - profils de départ avec clearance, équipe, priorité, orientation, exigence de navigation et repli,
@@ -80,4 +81,6 @@ Lot stable : `R009` / `FC-WAYPOINT-P0-01` — quatre fonctions, aucune fonction 
   diagnostic, puis promotion limitée aux quatre IDs R009 ;
 - portail post-promotion final relancé sur l'état livré, y compris le diagnostic non bloquant des
   doublons de définition ;
+- consolidation du 28 août 2026 : copie complète et gabarit d'une zone porteuse d'ancres revalidés
+  dans le même projet, avec smoke Studio UX1-B et test domaine dédiés ;
 - aucun P1/P2, AV7–AV10, commit ou push.

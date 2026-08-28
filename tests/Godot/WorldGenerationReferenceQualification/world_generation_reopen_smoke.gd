@@ -41,13 +41,20 @@ func _initialize() -> void:
     var multimeshes := scene.get_node("GeneratedContent").find_children(
         "*", "MultiMeshInstance3D", true, false)
     var instance_count := 0
+    var distributed_layers := 0
     for candidate in multimeshes:
         var instance := candidate as MultiMeshInstance3D
         if instance != null and instance.multimesh != null:
             instance_count += instance.multimesh.instance_count
-    if multimeshes.size() != 4 or instance_count != EXPECTED_INSTANCES:
-        _fail("Neutral scene lost layered provider content: layers=%d instances=%d." % [
-            multimeshes.size(), instance_count])
+            var positions := {}
+            for instance_index in instance.multimesh.instance_count:
+                var position := instance.multimesh.get_instance_transform(instance_index).origin
+                positions["%.3f,%.3f" % [position.x, position.z]] = true
+            if instance.multimesh.instance_count <= 1 or positions.size() > 1:
+                distributed_layers += 1
+    if multimeshes.size() != 4 or instance_count != EXPECTED_INSTANCES or distributed_layers != 4:
+        _fail("Neutral scene lost layered provider content: layers=%d instances=%d distributed=%d." % [
+            multimeshes.size(), instance_count, distributed_layers])
         return
 
     var center := terrain_bounds.get_center()
@@ -112,11 +119,12 @@ func _initialize() -> void:
 
     NavigationServer3D.free_rid(navigation_region)
     NavigationServer3D.free_rid(navigation_map)
-    print("WORLD_GENERATION_REOPEN_PASS provider_dependencies=0 terrain_mesh=1 collision_hit=1 navigation_polygons=%d navigation_path=%d navigation_distance=%.3f pcg_layers=4 pcg_instances=%d scene_sha256=%s" % [
+    print("WORLD_GENERATION_REOPEN_PASS provider_dependencies=0 terrain_mesh=1 collision_hit=1 navigation_polygons=%d navigation_path=%d navigation_distance=%.3f pcg_layers=4 pcg_instances=%d distributed_layers=%d scene_sha256=%s" % [
         navigation.navigation_mesh.get_polygon_count(),
         path.size(),
         endpoint_distance,
         instance_count,
+        distributed_layers,
         FileAccess.get_sha256(GENERATED_SCENE_PATH)])
     quit(0)
 

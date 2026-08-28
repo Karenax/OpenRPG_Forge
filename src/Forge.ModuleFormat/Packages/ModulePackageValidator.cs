@@ -1,8 +1,10 @@
 using System.IO.Compression;
 using System.Text.Json;
 using Forge.Application.Gameplay;
+using Forge.Application.WorldGeneration;
 using Forge.Domain.Validation;
 using Forge.ModuleFormat.Serialization;
+using Forge.ModuleFormat.Workspaces;
 
 namespace Forge.ModuleFormat.Packages;
 
@@ -26,6 +28,7 @@ public static class ModulePackageValidator
     public const string DistributionComplianceCode = "module.archive.distribution_noncompliant";
     public const string DependencyApprovalMismatchCode = "module.archive.dependency_approval_mismatch";
     public const string InvalidMediaCode = "module.archive.media_invalid";
+    public const string InvalidGeneratedWorldCode = "module.archive.generated_world_invalid";
 
     private static readonly HashSet<string> AllowedExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -88,7 +91,9 @@ public static class ModulePackageValidator
                 var extension = Path.GetExtension(entry.FullName);
                 if (!AllowedExtensions.Contains(extension) &&
                     !(extension.Equals(".bin", StringComparison.OrdinalIgnoreCase) &&
-                      allowedGltfBinarySidecars.Contains(entry.FullName)))
+                      allowedGltfBinarySidecars.Contains(entry.FullName)) &&
+                    !(extension.Equals(".tscn", StringComparison.OrdinalIgnoreCase) &&
+                      TryParseCanonicalGeneratedScenePath(entry.FullName, out _)))
                 {
                     diagnostics.Add(new ModulePackageDiagnostic(
                         ForbiddenFileCode,
@@ -211,6 +216,8 @@ public static class ModulePackageValidator
                             "Manifest identity or entry area does not match content/project.json."));
                     }
 
+                    diagnostics.AddRange(ValidateGeneratedWorldScenes(files, project));
+
                     foreach (var diagnostic in DistributionComplianceValidator.Validate(project, manifest.Target))
                     {
                         diagnostics.Add(new ModulePackageDiagnostic(
@@ -318,6 +325,73 @@ public static class ModulePackageValidator
         return sidecars;
     }
 
+    private static IReadOnlyList<ModulePackageDiagnostic> ValidateGeneratedWorldScenes(
+        IReadOnlyList<ZipArchiveEntry> files,
+        Forge.Domain.Projects.ProjectDefinition project)
+    {
+        var diagnostics = new List<ModulePackageDiagnostic>();
+        foreach (var sceneEntry in files.Where(entry =>
+                     Path.GetExtension(entry.FullName).Equals(".tscn", StringComparison.OrdinalIgnoreCase) &&
+                     TryParseCanonicalGeneratedScenePath(entry.FullName, out _)))
+        {
+            TryParseCanonicalGeneratedScenePath(sceneEntry.FullName, out var areaId);
+            var relativeScenePath = sceneEntry.FullName["content/".Length..];
+            var area = project.Areas.SingleOrDefault(candidate => candidate.Id.Value == areaId);
+            if (area is null || !area.World.Loading.RequiredResources.Contains(
+                    relativeScenePath, StringComparer.Ordinal))
+            {
+                diagnostics.Add(new ModulePackageDiagnostic(
+                    InvalidGeneratedWorldCode,
+                    "Canonical generated scene is not owned by its area loading contract.",
+                    sceneEntry.FullName));
+                continue;
+            }
+
+            var promotionPath = $"content/{WorldGenerationPromotionStore.PromotionManifestRelativePath(areaId)}";
+            var promotionEntry = files.SingleOrDefault(entry =>
+                string.Equals(entry.FullName, promotionPath, StringComparison.Ordinal));
+            if (promotionEntry is null)
+            {
+                diagnostics.Add(new ModulePackageDiagnostic(
+                    InvalidGeneratedWorldCode,
+                    "Canonical generated scene has no matching promotion manifest.",
+                    sceneEntry.FullName));
+                continue;
+            }
+
+            var validation = WorldGenerationPromotionStore.ValidatePackagedCanonicalScene(
+                areaId,
+                relativeScenePath,
+                ReadBytes(sceneEntry),
+                ReadText(promotionEntry));
+            foreach (var diagnostic in validation.Diagnostics)
+            {
+                diagnostics.Add(new ModulePackageDiagnostic(
+                    InvalidGeneratedWorldCode,
+                    $"{diagnostic.Code}: {diagnostic.Message}",
+                    sceneEntry.FullName));
+            }
+        }
+
+        return diagnostics;
+    }
+
+    private static bool TryParseCanonicalGeneratedScenePath(string archivePath, out Guid areaId)
+    {
+        areaId = Guid.Empty;
+        const string prefix = "content/world/areas/";
+        const string suffix = "/generated-world.tscn";
+        if (!archivePath.StartsWith(prefix, StringComparison.Ordinal) ||
+            !archivePath.EndsWith(suffix, StringComparison.Ordinal))
+            return false;
+        var identity = archivePath[prefix.Length..^suffix.Length];
+        if (!Guid.TryParseExact(identity, "N", out areaId)) return false;
+        return string.Equals(
+            archivePath,
+            $"content/{PromoteWorldGenerationHandler.CanonicalScenePath(areaId)}",
+            StringComparison.Ordinal);
+    }
+
     private static bool TryResolveGltfBinarySidecar(string gltfPath, string? rawUri, out string sidecar)
     {
         sidecar = string.Empty;
@@ -397,5 +471,17 @@ public static class ModulePackageValidator
     {
         using var reader = new StreamReader(entry.Open());
         return reader.ReadToEnd();
+    }
+
+    private static byte[] ReadBytes(ZipArchiveEntry entry)
+    {
+        if (entry.Length > int.MaxValue)
+            throw new InvalidDataException($"Archive entry '{entry.FullName}' is too large to materialize.");
+        using var input = entry.Open();
+        using var buffer = new MemoryStream((int)entry.Length);
+        input.CopyTo(buffer);
+        if (buffer.Length != entry.Length)
+            throw new InvalidDataException($"Archive entry '{entry.FullName}' was truncated.");
+        return buffer.ToArray();
     }
 }

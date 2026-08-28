@@ -168,7 +168,7 @@ internal sealed partial class StudioSessionController
         var real = project.Blueprints.FirstOrDefault(item => !item.IsReadOnly() &&
             (item.Kind is BlueprintKind.Creature or BlueprintKind.PlayerSpawn) &&
             item.CreatureFoundation is { } profile && CreatureFoundationValidator.Validate(profile).Count == 0);
-        if (string.Equals(project.Module.Slug, "crypt-of-ashes", StringComparison.Ordinal) && real is not null)
+        if (real is not null)
             return new(project, real.Id, true, false);
         var fallback = CreateUx4DEvidenceProject();
         if (fallback is null) return null;

@@ -87,17 +87,28 @@ func bake(generated_root: Node3D, output_path: String) -> Dictionary:
     generated_content.name = "GeneratedContent"
     baked_root.add_child(generated_content)
     var copied_instances := 0
+    var artistic_instances := 0
+    var artistic_roles := {}
     var generated_multimeshes := generated_root.find_children("*", "MultiMeshInstance3D", true, false)
     for source_node in generated_multimeshes:
         var source_instance := source_node as MultiMeshInstance3D
         if source_instance == null or source_instance.multimesh == null:
             continue
         var neutral_instance := MultiMeshInstance3D.new()
-        neutral_instance.name = "BiomeProxies" if copied_instances == 0 else "GeneratedInstances_%03d" % copied_instances
+        var artistic_role := str(source_instance.get_meta("openrpg_artistic_role", "")).to_lower()
+        neutral_instance.name = (
+            "Artistic_%s_%03d" % [artistic_role.capitalize(), copied_instances]
+            if not artistic_role.is_empty() else "GeneratedInstances_%03d" % copied_instances)
         neutral_instance.multimesh = _copy_multimesh(source_instance.multimesh)
         if source_instance.material_override != null:
             neutral_instance.material_override = source_instance.material_override.duplicate(true)
         generated_content.add_child(neutral_instance)
+        if not artistic_role.is_empty():
+            neutral_instance.set_meta("openrpg_artistic_role", artistic_role)
+            neutral_instance.set_meta("openrpg_recipe_driven", true)
+            artistic_instances += neutral_instance.multimesh.instance_count
+            artistic_roles[artistic_role] = int(artistic_roles.get(artistic_role, 0)) + \
+                neutral_instance.multimesh.instance_count
         copied_instances += neutral_instance.multimesh.instance_count
     if copied_instances == 0:
         baked_root.free()
@@ -143,6 +154,8 @@ func bake(generated_root: Node3D, output_path: String) -> Dictionary:
         "navigationCellSize": navigation_mesh.cell_size,
         "navigationCellHeight": navigation_mesh.cell_height,
         "generatedInstances": copied_instances,
+        "artisticInstances": artistic_instances,
+        "artisticRoles": artistic_roles,
         "contentFingerprint": content_fingerprint,
         "sha256": FileAccess.get_sha256(safe_path),
     }
@@ -161,6 +174,11 @@ func _copy_multimesh(source: MultiMesh) -> MultiMesh:
             result.set_instance_color(index, source.get_instance_color(index))
         if source.use_custom_data:
             result.set_instance_custom_data(index, source.get_instance_custom_data(index))
+    # ResourceSaver serializes the packed MultiMesh buffer, not the transient
+    # per-instance mutation calls reliably. Assigning the complete buffer makes
+    # the provider-neutral scene preserve every generated transform on disk.
+    if not source.buffer.is_empty():
+        result.buffer = source.buffer.duplicate()
     return result
 
 func _mesh_faces(mesh: Mesh) -> PackedVector3Array:

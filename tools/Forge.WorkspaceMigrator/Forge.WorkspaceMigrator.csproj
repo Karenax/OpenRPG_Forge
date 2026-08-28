@@ -3,6 +3,8 @@
     <OutputType>Exe</OutputType>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Forge.Application\Forge.Application.csproj" />
+    <ProjectReference Include="..\..\src\Forge.Mcp\Forge.Mcp.csproj" />
     <ProjectReference Include="..\..\src\Forge.ModuleFormat\Forge.ModuleFormat.csproj" />
   </ItemGroup>
 </Project>

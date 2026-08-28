@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "promotionId": "94f7d278-607a-4a31-85e6-48c9ccfc3398",
+  "transactionId": "104e9570-c0f6-45e9-9057-bcccb25d53cb",
+  "jobId": "943671ae-2074-4a70-86f0-20dec5b3a255",
+  "planId": "a4cb1276-0f06-4c31-953f-6120ef2614e8",
+  "recipeId": "4317dab7-3625-5b01-9084-8dfb9776be6a",
+  "areaId": "b51f4fb1-7ab7-58ea-bc2f-d256056fa802",
+  "baseProjectRevision": 13,
+  "newProjectRevision": 14,
+  "recipeRevision": 1,
+  "recipeFingerprint": "9413a452d2444378a81a2c1831a4f652323cc5aab642835223bb12b00f5b6215",
+  "planFingerprint": "e8e78a91974c89ce93a17a56e2778faab044a5146c1188370ac3d8164d899b7e",
+  "seed": 20260828,
+  "derivedSceneRelativePath": "world/generation/artifacts/a4cb12760f064c31953f6120ef2614e8/derived-world.tscn",
+  "canonicalSceneRelativePath": "world/areas/b51f4fb17ab758eabc2fd256056fa802/generated-world.tscn",
+  "canonicalSceneSha256": "99a2cd3fcb17427c63ea4e09068d256b062516636eef87e37b25ce9d62dde7df",
+  "contentFingerprint": "c0ceaa64692a3f14f02acfab21b2f3959ce325550524e0726db42845679e8c5e",
+  "assetSelectionFingerprint": "3892ecf100b95fc51b658f943ba6d8a2431690ec33d623288b90889842101ef9",
+  "providers": [
+    {
+      "stage": "terrain",
+      "requestedBackend": "terrain3D",
+      "providerKey": "terrain3d",
+      "providerVersion": "v1.0.2-stable",
+      "evidenceSha256": "4abed84e508aaa19e21e70778b3e3bb58f61c4080444005981f9911e71ebd305"
+    },
+    {
+      "stage": "hydrology",
+      "requestedBackend": "terrain3D",
+      "providerKey": "terrain3d",
+      "providerVersion": "v1.0.2-stable",
+      "evidenceSha256": "4abed84e508aaa19e21e70778b3e3bb58f61c4080444005981f9911e71ebd305"
+    },
+    {
+      "stage": "biomes",
+      "requestedBackend": "pcgGodot",
+      "providerKey": "godot-flow",
+      "providerVersion": "284231f060099a8943eb56567c21732b7cd678d3",
+      "evidenceSha256": "62269b96e1d0987c1f1c662f4af26aa22cc95bfc392569fefc42d43297876784"
+    },
+    {
+      "stage": "roads",
+      "requestedBackend": "pcgGodot",
+      "providerKey": "godot-flow",
+      "providerVersion": "284231f060099a8943eb56567c21732b7cd678d3",
+      "evidenceSha256": "62269b96e1d0987c1f1c662f4af26aa22cc95bfc392569fefc42d43297876784"
+    },
+    {
+      "stage": "settlements",
+      "requestedBackend": "pcgGodot",
+      "providerKey": "godot-flow",
+      "providerVersion": "284231f060099a8943eb56567c21732b7cd678d3",
+      "evidenceSha256": "62269b96e1d0987c1f1c662f4af26aa22cc95bfc392569fefc42d43297876784"
+    },
+    {
+      "stage": "scatter",
+      "requestedBackend": "pcgGodot",
+      "providerKey": "godot-flow",
+      "providerVersion": "284231f060099a8943eb56567c21732b7cd678d3",
+      "evidenceSha256": "62269b96e1d0987c1f1c662f4af26aa22cc95bfc392569fefc42d43297876784"
+    },
+    {
+      "stage": "gameplay",
+      "requestedBackend": "godotNative",
+      "providerKey": "openrpg-native",
+      "providerVersion": "1.0.0",
+      "evidenceSha256": "1ce81643bbf651d5d13d76754902f2611726fa1933e4e16c8d1eda44c25231e5"
+    },
+    {
+      "stage": "navigation",
+      "requestedBackend": "godotNative",
+      "providerKey": "openrpg-native",
+      "providerVersion": "1.0.0",
+      "evidenceSha256": "1ce81643bbf651d5d13d76754902f2611726fa1933e4e16c8d1eda44c25231e5"
+    },
+    {
+      "stage": "validation",
+      "requestedBackend": "godotNative",
+      "providerKey": "openrpg-native",
+      "providerVersion": "1.0.0",
+      "evidenceSha256": "1ce81643bbf651d5d13d76754902f2611726fa1933e4e16c8d1eda44c25231e5"
+    }
+  ],
+  "protectedNodePaths": [],
+  "acceptanceProvenance": "codex:human-visual-review:2026-08-28:five-captures"
+}

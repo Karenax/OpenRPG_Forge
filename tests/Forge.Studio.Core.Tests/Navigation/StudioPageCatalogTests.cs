@@ -5,10 +5,10 @@ namespace Forge.Studio.Core.Tests.Navigation;
 public sealed class StudioPageCatalogTests
 {
     [Fact]
-    public void CatalogDefinesEightSectionsAndThirtySixUniquePages()
+    public void CatalogDefinesEightSectionsAndThirtySevenUniquePages()
     {
         Assert.Equal(8, StudioPageCatalog.Sections.Count);
-        Assert.Equal(36, StudioPageCatalog.Pages.Count);
+        Assert.Equal(37, StudioPageCatalog.Pages.Count);
         Assert.Equal(
             StudioPageCatalog.Sections.Count,
             StudioPageCatalog.Sections.Select(section => section.Id).Distinct(StringComparer.Ordinal).Count());
@@ -26,5 +26,6 @@ public sealed class StudioPageCatalogTests
         Assert.Contains(StudioPageCatalog.Pages, page => page.Layout == StudioPageLayout.Specialized);
         Assert.Equal(StudioPageLayout.Spatial, StudioPageCatalog.GetPage("zones").Layout);
         Assert.Equal(StudioPageLayout.Specialized, StudioPageCatalog.GetPage("dialogues").Layout);
+        Assert.Equal(StudioPageLayout.Specialized, StudioPageCatalog.GetPage("world-generation").Layout);
     }
 }

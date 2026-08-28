@@ -79,7 +79,13 @@ internal static class WorkspaceProjectJsonSerializer
             areaDocuments);
     }
 
-    internal static ProjectDefinition Deserialize(string json, Func<string, string> readAreaDocument)
+    internal static ProjectDefinition Deserialize(string json, Func<string, string> readAreaDocument) =>
+        Deserialize(json, readAreaDocument, null);
+
+    internal static ProjectDefinition Deserialize(
+        string json,
+        Func<string, string> readAreaDocument,
+        IReadOnlySet<string>? allowedMigrationDiagnosticCodes)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(json);
         ArgumentNullException.ThrowIfNull(readAreaDocument);
@@ -170,7 +176,7 @@ internal static class WorkspaceProjectJsonSerializer
             areas,
             document.Project.Dialogues ?? [],
             document.Project.Quests ?? []);
-        EnsureValid(project);
+        EnsureValid(project, allowedMigrationDiagnosticCodes);
         return project;
     }
 
@@ -188,12 +194,17 @@ internal static class WorkspaceProjectJsonSerializer
             string.Equals(Path.GetExtension(segments[1]), ".json", StringComparison.OrdinalIgnoreCase);
     }
 
-    private static void EnsureValid(ProjectDefinition project)
+    private static void EnsureValid(
+        ProjectDefinition project,
+        IReadOnlySet<string>? allowedMigrationDiagnosticCodes = null)
     {
         var diagnostics = ProjectValidator.Validate(project);
-        if (diagnostics.Count > 0)
+        var blockingDiagnostics = allowedMigrationDiagnosticCodes is null
+            ? diagnostics
+            : diagnostics.Where(item => !allowedMigrationDiagnosticCodes.Contains(item.Code)).ToArray();
+        if (blockingDiagnostics.Count > 0)
         {
-            throw new ProjectValidationException(diagnostics);
+            throw new ProjectValidationException(blockingDiagnostics);
         }
     }
 }

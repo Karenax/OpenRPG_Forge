@@ -132,6 +132,15 @@ Configurer dans Godot :
 - `openrpg/world_generation/auto_process_jobs` à `true` pour le polling automatique ;
 - `openrpg/world_generation/poll_seconds` selon la fréquence souhaitée, minimum 0,25 s.
 
+## Utilisation depuis Studio
+
+La page **Monde > Génération de monde** est le parcours humain du même workflow. Elle affiche la
+zone, la recette, la seed, les backends, les révisions, le plan, le job et la promotion courante.
+Les actions de preview, application, exécution et promotion utilisent la session persistante du
+workspace : une mutation MCP concurrente provoque donc un conflit de révision au lieu d'être
+écrasée. Le worker est lancé hors processus et ses journaux, rapports et captures restent liés au
+plan affiché. Studio ne transforme jamais un texte libre en permission d'application.
+
 ## Utilisation depuis Codex
 
 Codex doit employer les outils MCP, sans modifier directement les JSON :
@@ -196,15 +205,24 @@ Le harnais qualifie en plus les addons réels, trois exécutions déterministes,
 scène neutre, cinq captures techniques et candidat de promotion. Les commandes reproductibles sont
 réunies dans [CODEX_HANDOFF.md](CODEX_HANDOFF.md).
 
+La tranche Solaren du 28 août 2026 prouve en plus le cycle produit complet : recette ouverte dans le
+workspace, exécution réelle GPU, promotion vers une seconde zone, chargement par Runtime, transition
+avec état de session conservé, revue Forward+ et empaquetage `.orpmod`. Le runtime vérifie la scène
+canonique `generated-world.tscn` et émet son SHA-256, le nombre de meshes, MultiMeshes, collisions et
+navigations. Les preuves reproductibles sont sous
+`artifacts/world-generation/solaren-vertical-slice/` et la décision dans
+[`ADR-0055`](../ADR/ADR-0055-runtime-world-generation-vertical-slice.md).
+
 ## Limites actuelles
 
-- Les graphes `biomes.tres`, `roads.tres`, `settlements.tres` et `scatter.tres` sont des points
-  d'extension attendus dans chaque module ; aucun graphe artistique générique n'est livré ici.
-- Le fallback natif fournit un terrain réellement maillé et collisionné. Les autres étapes sont une
-  fondation déterministe à ancres, pas un générateur artistique de production.
-- La carte de référence actuelle est un proxy technique de 2 048 m avec 5 904 instances et une
-  navigation réelle. Elle ne contient pas encore les graphes, assets et finitions artistiques d'un
-  module extérieur de production ; ses captures ne prouvent donc aucun gain visuel.
+- Les graphes `biomes.tres`, `roads.tres`, `settlements.tres` et `scatter.tres` restent détenus par
+  les modules. Le worker de référence sait produire une composition artistique bornée, mais ce style
+  n'est ni une bibliothèque universelle ni un remplacement de la direction artistique humaine.
+- Le fallback natif fournit un terrain réellement maillé et collisionné. Hors de la recette Solaren,
+  les étapes natives restent principalement déterministes et techniques.
+- Solaren exerce une vraie zone jouable de référence de 2 048 m avec 5 904 instances, quatre rôles
+  visuels, collision et navigation. Sa capture Forward+ prouve que le runtime charge bien le monde
+  généré ; elle ne prouve pas une qualité finale, un gain visuel aveugle ni un coût de retouche réduit.
 - Terrain3D `v1.0.2-stable`, Godot Flow et GF-PCGODOT ont été exécutés avec leurs binaires réels sous
   Godot `4.7.1-stable` sur Windows. Le job Linux est configuré mais n'a pas encore produit de preuve
   GitHub, et les exports provider-free Windows/Linux restent à qualifier.
@@ -212,4 +230,5 @@ réunies dans [CODEX_HANDOFF.md](CODEX_HANDOFF.md).
   technique en monde artistique et ne choisit pas à elle seule le fournisseur Graph PCG final.
 
 Voir aussi [les dépendances](DEPENDENCIES.md), [le handoff Codex](CODEX_HANDOFF.md) et
-[l'ADR-0050](../ADR/ADR-0050-governed-world-generation-orchestration.md).
+[l'ADR-0050](../ADR/ADR-0050-governed-world-generation-orchestration.md) et
+[l'ADR-0055](../ADR/ADR-0055-runtime-world-generation-vertical-slice.md).

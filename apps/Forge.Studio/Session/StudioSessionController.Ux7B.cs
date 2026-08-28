@@ -677,18 +677,22 @@ internal sealed partial class StudioSessionController
         var playerId = StableUx7B(moduleId, "save-player");
         var hostileId = StableUx7B(moduleId, "save-hostile");
         var contentHash = HashTextUx7B(ProjectJsonSerializer.Serialize(project));
+        var hostile = new RuntimeCombatantSave(hostileId.ToString("D"), 3, 1);
+        var entitySnapshot = new RuntimeEntityStateSave(hostileId.ToString("D"), 1,
+            [new RuntimeStateComponentSave("transform", "{\"x\":1,\"y\":2,\"z\":3}")],
+            [], ["quality-token"], [new RuntimeKeyValue("quality.completed", "true")]);
+        var areaState = new RuntimeAreaSaveState(areaId.ToString("D"), [hostile], null,
+            [entitySnapshot], null);
         return new(RuntimeSaveDocument.CurrentFormatVersion, moduleId.ToString("D"), contentHash,
             areaId.ToString("D"), new DateTimeOffset(2026, 8, 21, 12, 0, 0, TimeSpan.Zero),
             new RuntimeVector3(1, 2, 3), new RuntimeCombatantSave(playerId.ToString("D"), 10, 5),
             ["quality-token"], [new RuntimeKeyValue("quality.completed", "true")], null, null,
-            [new RuntimeCombatantSave(hostileId.ToString("D"), 3, 1)],
+            [hostile],
             new RuntimeProgressFlags(false, false, false, false, false), null,
             new RuntimeProgressionSave(1, 120, 2),
-            [new RuntimeEntityStateSave(playerId.ToString("D"), 1,
-                [new RuntimeStateComponentSave("transform", "{\"x\":1,\"y\":2,\"z\":3}")],
-                [], ["quality-token"], [new RuntimeKeyValue("quality.completed", "true")])],
+            [entitySnapshot],
             new RuntimeWorldClockSave(1, 720, false, 1, "studio:ux7-b"),
-            QuestStates: []);
+            QuestStates: [], AreaStates: [areaState]);
     }
 
     private static IReadOnlyList<string> BuildSemanticDiffUx7B(

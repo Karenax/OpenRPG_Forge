@@ -187,6 +187,23 @@ public sealed class WorldGenerationStoreTests
             Assert.True(reopened.Succeeded);
             Assert.Equal(promotion.ContentFingerprint, reopened.Promotion!.ContentFingerprint);
             Assert.Equal(sceneSha, reopened.SceneSha256);
+            var promotionManifestPath = Path.Combine(root,
+                WorldGenerationPromotionStore.PromotionManifestRelativePath(recipe.AreaId)
+                    .Replace('/', Path.DirectorySeparatorChar));
+            var packaged = WorldGenerationPromotionStore.ValidatePackagedCanonicalScene(
+                recipe.AreaId,
+                promotion.CanonicalSceneRelativePath,
+                File.ReadAllBytes(canonicalPath),
+                File.ReadAllText(promotionManifestPath));
+            var tamperedPackage = WorldGenerationPromotionStore.ValidatePackagedCanonicalScene(
+                recipe.AreaId,
+                promotion.CanonicalSceneRelativePath,
+                System.Text.Encoding.UTF8.GetBytes(scene + "\n[node name=\"tampered\" type=\"Node3D\"]\n"),
+                File.ReadAllText(promotionManifestPath));
+            Assert.True(packaged.Succeeded);
+            Assert.False(tamperedPackage.Succeeded);
+            Assert.Equal(WorldGenerationPromotionStore.EvidenceMismatchCode,
+                Assert.Single(tamperedPackage.Diagnostics).Code);
             var unacknowledged = WorldGenerationPromotionStore.ValidateCanonicalExpectation(
                 root, recipe.AreaId, expectedCanonicalSceneSha256: null);
             var acknowledged = WorldGenerationPromotionStore.ValidateCanonicalExpectation(
@@ -227,6 +244,65 @@ public sealed class WorldGenerationStoreTests
             Assert.False(neutral.Succeeded);
             Assert.Equal(WorldGenerationPromotionStore.ProviderDependencyCode,
                 Assert.Single(neutral.Diagnostics).Code);
+        }
+        finally
+        {
+            if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Theory]
+    [InlineData("[ext_resource type=\"Script\" path=\"res://evil.gd\" id=\"1\"]")]
+    [InlineData("[sub_resource type=\"GDScript\" id=\"1\"]\nscript/source = \"extends Node\"")]
+    public void PromotionRejectsExecutableOrExternalSceneContent(string unsafeContent)
+    {
+        var root = Path.Combine(Path.GetTempPath(), "openrpg-worldgen-promotion-unsafe-tests",
+            Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        try
+        {
+            var planId = Guid.NewGuid();
+            var relative = WorldGenerationPromotionStore.DerivedSceneRelativePath(planId);
+            var path = Path.Combine(root, relative.Replace('/', Path.DirectorySeparatorChar));
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            File.WriteAllText(path, $"[gd_scene format=3]\n{unsafeContent}\n");
+
+            var result = WorldGenerationPromotionStore.ValidateNeutralScene(root, relative);
+
+            Assert.False(result.Succeeded);
+            Assert.Equal(WorldGenerationPromotionStore.UnsafeSceneCode, Assert.Single(result.Diagnostics).Code);
+        }
+        finally
+        {
+            if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void PromotionRejectsArtisticMultiMeshWithoutSerializedTransforms()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "openrpg-worldgen-promotion-transform-tests",
+            Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        try
+        {
+            var relative = WorldGenerationPromotionStore.DerivedSceneRelativePath(Guid.NewGuid());
+            var path = Path.Combine(root, relative.Replace('/', Path.DirectorySeparatorChar));
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            File.WriteAllText(path, """
+                [gd_scene format=4]
+                [sub_resource type="MultiMesh" id="MultiMesh_missing"]
+                transform_format = 1
+                instance_count = 12
+                [node name="Trees" type="MultiMeshInstance3D"]
+                metadata/openrpg_artistic_role = "biomes"
+                """);
+
+            var result = WorldGenerationPromotionStore.ValidateNeutralScene(root, relative);
+
+            Assert.False(result.Succeeded);
+            Assert.Equal(WorldGenerationPromotionStore.GeneratedContentMissingCode,
+                Assert.Single(result.Diagnostics).Code);
         }
         finally
         {

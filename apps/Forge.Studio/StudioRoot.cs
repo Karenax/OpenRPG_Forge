@@ -1001,7 +1001,7 @@ public sealed partial class StudioRoot : Control
         }
 
         var nativeWindows = CountAdditionalWindows(GetTree().Root);
-        var shellValid = _shell.SectionCount == 8 && _shell.PageCount == 36 && nativeWindows == 0;
+        var shellValid = _shell.SectionCount == 8 && _shell.PageCount == 37 && nativeWindows == 0;
         var navigationEvidence = !string.IsNullOrWhiteSpace(_evidenceMode) &&
                                  _evidenceMode.StartsWith("ux2-nav-", StringComparison.OrdinalIgnoreCase);
         var worldValid = (_shell.WorldViewport.EntityCount > 0 || navigationEvidence) &&

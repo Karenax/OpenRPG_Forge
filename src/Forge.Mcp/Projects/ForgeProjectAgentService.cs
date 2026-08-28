@@ -194,14 +194,19 @@ public sealed partial class ForgeProjectAgentService
     private readonly Dictionary<string, StoredProjectCompatibilityPlan> _projectCompatibilityPlans =
         new(StringComparer.Ordinal);
 
-    private ForgeProjectAgentService(ProjectSession session, IClock clock)
+    private ForgeProjectAgentService(
+        ProjectSession session,
+        IClock clock,
+        ProjectCommandHistory? sharedHistory = null)
     {
         _session = session;
         _clock = clock;
         var buildProfile = WorkspaceBuildProfileStore.Load(session.RootDirectory);
         _buildProfileHandler = new SetWorkspaceBuildProfileHandler(clock);
         _buildProfileHistory = new WorkspaceBuildProfileCommandHistory(buildProfile.Profile);
-        _history = new ProjectCommandHistory(new ProjectState(session.Project, new ProjectRevision(0)));
+        _history = sharedHistory ?? new ProjectCommandHistory(new ProjectState(
+            session.Project,
+            new ProjectRevision(session.Revision)));
         _dialogueHandler = new SetDialogueHandler(clock);
         _placeEntityHandler = new PlaceEntityHandler(clock);
         _assistedDialogueHandler = new ApplyAssistedDialogueHandler(clock);
@@ -285,6 +290,22 @@ public sealed partial class ForgeProjectAgentService
             : new ForgeProjectAgentOpenResult(
                 new ForgeProjectAgentService(opened.Session, clock ?? new SystemClock()),
                 []);
+    }
+
+    public static ForgeProjectAgentService Attach(
+        ProjectSession session,
+        ProjectCommandHistory sharedHistory,
+        IClock? clock = null)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        ArgumentNullException.ThrowIfNull(sharedHistory);
+        if (sharedHistory.State.Revision.Value < session.Revision)
+            throw new InvalidOperationException(
+                "Shared project history is older than the persisted workspace session.");
+        if (sharedHistory.State.Project.Id != session.Project.Id)
+            throw new InvalidOperationException(
+                "Shared project history does not belong to the workspace session.");
+        return new ForgeProjectAgentService(session, clock ?? new SystemClock(), sharedHistory);
     }
 
     public ForgeProjectSummary GetSummary()

@@ -330,40 +330,44 @@ public partial class NavigationConfigurationWindow : Window
         if (state is null || area is null) return false;
         var spawnBlueprint = state.Project.Blueprints.FirstOrDefault(item => item.Kind == BlueprintKind.PlayerSpawn);
         if (spawnBlueprint is null) return false;
-        var spawnDefinition = CreateSmokeDefinition("player-start", "anchor.player_start", "Départ du joueur",
-            AnchorKind.Spawn, ["player", "spawn"], spawnBlueprint.Id);
-        var destinationDefinition = CreateSmokeDefinition("crypt-exit", "anchor.crypt_exit", "Sortie de la crypte",
-            AnchorKind.TransitionDestination, ["exit", "portal"], null);
-        var waypointDefinition = CreateSmokeDefinition("ember-marker", "anchor.ember_marker", "Repère de la braise",
-            AnchorKind.Waypoint, ["ember", "quest"], null);
+        const string smokeProvenance = "toolset:r009";
+        _anchorDefinitions.RemoveAll(item => string.Equals(
+            item.Provenance, smokeProvenance, StringComparison.Ordinal));
+        _anchorInstances.RemoveAll(item => string.Equals(
+            item.Provenance, smokeProvenance, StringComparison.Ordinal));
+        var spawnDefinition = CreateSmokeDefinition("r009-player-start", "anchor.r009.player_start", "Départ de preuve",
+            AnchorKind.Spawn, ["player", "spawn", "r009-smoke"], spawnBlueprint.Id);
+        var destinationDefinition = CreateSmokeDefinition("r009-exit", "anchor.r009.exit", "Sortie de preuve",
+            AnchorKind.TransitionDestination, ["exit", "portal", "r009-smoke"], null);
+        var waypointDefinition = CreateSmokeDefinition("r009-marker", "anchor.r009.marker", "Repère de preuve",
+            AnchorKind.Waypoint, ["ember", "quest", "r009-smoke"], null);
         var spawnId = Guid.NewGuid();
         var destinationId = Guid.NewGuid();
         var waypointId = Guid.NewGuid();
-        _anchorDefinitions.Clear();
         _anchorDefinitions.AddRange([spawnDefinition, destinationDefinition, waypointDefinition]);
-        _anchorInstances.Clear();
+        var displayOrder = _anchorInstances.Count == 0 ? 1 : _anchorInstances.Max(item => item.DisplayOrder) + 1;
         _anchorInstances.AddRange([
-            new AnchorInstance(spawnId, 1, "toolset:r009", spawnDefinition.Id,
-                At(0, 0, 9, 180), 1, EntityPropertyOverrides.Empty,
-                new SpawnAnchorProfile("player", new Vector3Value(1.2f, 2f, 1.2f), 100, "heroes", 180,
+            new AnchorInstance(spawnId, 1, smokeProvenance, spawnDefinition.Id,
+                At(0, 0, 9, 180), displayOrder, EntityPropertyOverrides.Empty,
+                new SpawnAnchorProfile("r009-player", new Vector3Value(1.2f, 2f, 1.2f), 100, "r009-team", 180,
                     null, true), null),
-            new AnchorInstance(destinationId, 1, "toolset:r009", destinationDefinition.Id,
-                At(4, 0, 1, 90), 2, EntityPropertyOverrides.Empty, null,
+            new AnchorInstance(destinationId, 1, smokeProvenance, destinationDefinition.Id,
+                At(4, 0, 1, 90), displayOrder + 1, EntityPropertyOverrides.Empty, null,
                 new PortalAnchorDestination(area.Id, waypointId, PortalOrientationPolicy.AnchorRotation, 0,
                     PortalVelocityPolicy.RedirectForward, true)),
-            new AnchorInstance(waypointId, 1, "toolset:r009", waypointDefinition.Id,
-                At(-3, 0, -2, 45), 3,
+            new AnchorInstance(waypointId, 1, smokeProvenance, waypointDefinition.Id,
+                At(-3, 0, -2, 45), displayOrder + 2,
                 new EntityPropertyOverrides(1, [new EntityPropertyOverride("quest.marker", EntityPropertyValueKind.String, "ember")]),
                 null, null),
         ]);
-        _catalogId = Guid.NewGuid();
-        _catalogProvenance = "toolset:r009";
-        _catalogRequiredAtRuntime = true;
         RefreshAnchorList();
-        _anchorList!.Select(0);
-        SelectAnchor(0);
+        var selectedIndex = _anchorInstances.FindIndex(item => item.Id == spawnId);
+        _anchorList!.Select(selectedIndex);
+        SelectAnchor(selectedIndex);
         Preview();
-        return DiagnosticCount == 0 && AnchorCount == 3;
+        return DiagnosticCount == 0 &&
+               _anchorInstances.Count(item => string.Equals(
+                   item.Provenance, smokeProvenance, StringComparison.Ordinal)) == 3;
     }
 
     public bool ConfigureForR064SmokeTest()

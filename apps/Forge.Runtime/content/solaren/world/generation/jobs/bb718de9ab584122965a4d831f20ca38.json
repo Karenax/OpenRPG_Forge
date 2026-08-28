@@ -1,0 +1,325 @@
+{
+  "formatVersion": "1.0.0",
+  "job": {
+    "audit": [
+      {
+        "action": "queued",
+        "detail": "Execution plan persisted for the Godot worker.",
+        "occurredAtUtc": "2026-08-28T10:15:52.3392827+00:00",
+        "succeeded": true
+      },
+      {
+        "action": "running",
+        "detail": "Godot worker accepted the validated execution plan.",
+        "occurredAtUtc": "2026-08-28T10:16:04Z",
+        "succeeded": true
+      },
+      {
+        "action": "promotion-candidate",
+        "detail": "Provider-neutral derived scene and validation report were persisted for explicit promotion.",
+        "occurredAtUtc": "2026-08-28T10:16:05Z",
+        "succeeded": true
+      },
+      {
+        "action": "succeeded",
+        "detail": "Job completed successfully.",
+        "occurredAtUtc": "2026-08-28T10:16:05Z",
+        "succeeded": true
+      }
+    ],
+    "createdAtUtc": "2026-08-28T10:15:52.3392827+00:00",
+    "diagnostics": [],
+    "jobId": "55d3b48e-eadd-40fc-b8b7-69a2748d4bf1",
+    "plan": {
+      "areaId": "b51f4fb1-7ab7-58ea-bc2f-d256056fa802",
+      "diagnostics": [],
+      "planFingerprint": "209eb958668130a23a9d663e00eb92a65f57b15deabdf675b5068c3214a5f394",
+      "planId": "bb718de9-ab58-4122-965a-4d831f20ca38",
+      "projectRevision": 3.0,
+      "readyToApply": true,
+      "recipeFingerprint": "9413a452d2444378a81a2c1831a4f652323cc5aab642835223bb12b00f5b6215",
+      "recipeId": "4317dab7-3625-5b01-9084-8dfb9776be6a",
+      "recipeRevision": {
+        "value": 1.0
+      },
+      "seed": 20260828.0,
+      "steps": [
+        {
+          "backend": "terrain3D",
+          "dependsOn": [],
+          "operation": "terrain3d.generate_heightfield",
+          "order": 0.0,
+          "parameters": {
+            "adaptToStructures": "True",
+            "archetype": "temperate-valley",
+            "areaId": "b51f4fb1-7ab7-58ea-bc2f-d256056fa802",
+            "depthMeters": "2048",
+            "erosionPasses": "2",
+            "maxElevationMeters": "320",
+            "recipeId": "4317dab7-3625-5b01-9084-8dfb9776be6a",
+            "roughness": "0.45",
+            "seed": "20260828",
+            "widthMeters": "2048"
+          },
+          "stage": "terrain"
+        },
+        {
+          "backend": "terrain3D",
+          "dependsOn": [
+            0.0
+          ],
+          "operation": "terrain3d.carve_hydrology",
+          "order": 1.0,
+          "parameters": {
+            "areaId": "b51f4fb1-7ab7-58ea-bc2f-d256056fa802",
+            "recipeId": "4317dab7-3625-5b01-9084-8dfb9776be6a",
+            "riverCount": "1",
+            "riverIds": "a266cd0d-1cfa-510d-9646-4edf56ab214c",
+            "seed": "20260828"
+          },
+          "stage": "hydrology"
+        },
+        {
+          "backend": "pcgGodot",
+          "dependsOn": [
+            1.0
+          ],
+          "operation": "pcgodot.generate_biomes",
+          "order": 2.0,
+          "parameters": {
+            "areaId": "b51f4fb1-7ab7-58ea-bc2f-d256056fa802",
+            "biomeCount": "1",
+            "biomeIds": "b14a2f74-bbc1-5912-acb6-3bac8003dc6d",
+            "recipeId": "4317dab7-3625-5b01-9084-8dfb9776be6a",
+            "seed": "20260828"
+          },
+          "stage": "biomes"
+        },
+        {
+          "backend": "pcgGodot",
+          "dependsOn": [
+            2.0
+          ],
+          "operation": "pcgodot.generate_road_network",
+          "order": 3.0,
+          "parameters": {
+            "areaId": "b51f4fb1-7ab7-58ea-bc2f-d256056fa802",
+            "recipeId": "4317dab7-3625-5b01-9084-8dfb9776be6a",
+            "roadCount": "1",
+            "roadIds": "aada6052-baed-52e9-b64e-8b1b4b587295",
+            "seed": "20260828"
+          },
+          "stage": "roads"
+        },
+        {
+          "backend": "pcgGodot",
+          "dependsOn": [
+            3.0
+          ],
+          "operation": "pcgodot.generate_settlements",
+          "order": 4.0,
+          "parameters": {
+            "adaptTerrain": "True",
+            "areaId": "b51f4fb1-7ab7-58ea-bc2f-d256056fa802",
+            "recipeId": "4317dab7-3625-5b01-9084-8dfb9776be6a",
+            "seed": "20260828",
+            "settlementCount": "1",
+            "settlementIds": "d8355a38-559b-51c2-8e82-460b9df1fe34"
+          },
+          "stage": "settlements"
+        },
+        {
+          "backend": "pcgGodot",
+          "dependsOn": [
+            4.0
+          ],
+          "operation": "pcgodot.scatter_environment",
+          "order": 5.0,
+          "parameters": {
+            "areaId": "b51f4fb1-7ab7-58ea-bc2f-d256056fa802",
+            "generateLod": "True",
+            "recipeId": "4317dab7-3625-5b01-9084-8dfb9776be6a",
+            "scatterRuleCount": "1",
+            "scatterRuleIds": "d953a14b-1908-5e68-ad1c-9d9ea258e21f",
+            "seed": "20260828"
+          },
+          "stage": "scatter"
+        },
+        {
+          "backend": "godotNative",
+          "dependsOn": [
+            5.0
+          ],
+          "operation": "godot.generate_gameplay_anchors",
+          "order": 6.0,
+          "parameters": {
+            "areaId": "b51f4fb1-7ab7-58ea-bc2f-d256056fa802",
+            "encounterTables": "highlands-encounters",
+            "lootTables": "highlands-supplies",
+            "questAnchors": "True",
+            "recipeId": "4317dab7-3625-5b01-9084-8dfb9776be6a",
+            "seed": "20260828",
+            "wildlifeTables": "highlands-wildlife"
+          },
+          "stage": "gameplay"
+        },
+        {
+          "backend": "godotNative",
+          "dependsOn": [
+            6.0
+          ],
+          "operation": "godot.bake_navigation",
+          "order": 7.0,
+          "parameters": {
+            "agentRadiusMeters": "0.5",
+            "areaId": "b51f4fb1-7ab7-58ea-bc2f-d256056fa802",
+            "bakeNavigation": "True",
+            "recipeId": "4317dab7-3625-5b01-9084-8dfb9776be6a",
+            "seed": "20260828",
+            "validateReachability": "True"
+          },
+          "stage": "navigation"
+        },
+        {
+          "backend": "godotNative",
+          "dependsOn": [
+            7.0
+          ],
+          "operation": "godot.validate_generated_world",
+          "order": 8.0,
+          "parameters": {
+            "areaId": "b51f4fb1-7ab7-58ea-bc2f-d256056fa802",
+            "maxObjectsPerCell": "2000",
+            "recipeId": "4317dab7-3625-5b01-9084-8dfb9776be6a",
+            "runAutomatedPlaytest": "True",
+            "seed": "20260828",
+            "streamingCellSizeMeters": "256"
+          },
+          "stage": "validation"
+        }
+      ],
+      "transactionId": "3dd96ae4-f7d1-4f68-8b2b-3dbe284f0d4e"
+    },
+    "planId": "bb718de9-ab58-4122-965a-4d831f20ca38",
+    "projectRevision": 3.0,
+    "recipe": {
+      "approvedForGeneration": true,
+      "areaId": "b51f4fb1-7ab7-58ea-bc2f-d256056fa802",
+      "backends": {
+        "biomes": "pcgGodot",
+        "gameplay": "godotNative",
+        "hydrology": "terrain3D",
+        "navigation": "godotNative",
+        "roads": "pcgGodot",
+        "scatter": "pcgGodot",
+        "settlements": "pcgGodot",
+        "terrain": "terrain3D",
+        "validation": "godotNative"
+      },
+      "biomes": [
+        {
+          "assetTags": [
+            "ground-cover",
+            "rock",
+            "tree"
+          ],
+          "biomeKey": "temperate-forest",
+          "density": 0.55,
+          "id": "b14a2f74-bbc1-5912-acb6-3bac8003dc6d",
+          "regionRule": "all"
+        }
+      ],
+      "bounds": {
+        "depthMeters": 2048.0,
+        "maxElevationMeters": 320.0,
+        "widthMeters": 2048.0
+      },
+      "gameplay": {
+        "encounterTables": [
+          "highlands-encounters"
+        ],
+        "generateQuestAnchors": true,
+        "lootTables": [
+          "highlands-supplies"
+        ],
+        "wildlifeTables": [
+          "highlands-wildlife"
+        ]
+      },
+      "id": "4317dab7-3625-5b01-9084-8dfb9776be6a",
+      "navigation": {
+        "agentRadiusMeters": 0.5,
+        "bakeNavigation": true,
+        "validateReachability": true
+      },
+      "provenance": "module-author:world-generation-vertical-slice-v1",
+      "quality": {
+        "generateLod": true,
+        "maxObjectsPerCell": 2000.0,
+        "runAutomatedPlaytest": true,
+        "streamingCellSizeMeters": 256.0
+      },
+      "regeneration": {
+        "preserveManualEdits": true,
+        "protectedNodePaths": []
+      },
+      "rivers": [
+        {
+          "depthMeters": 2.0,
+          "flowRule": "highlands-to-valley",
+          "id": "a266cd0d-1cfa-510d-9646-4edf56ab214c",
+          "name": "Ruisseau des Brumes",
+          "widthMeters": 12.0
+        }
+      ],
+      "roads": [
+        {
+          "fromRule": "entry-spawn",
+          "id": "aada6052-baed-52e9-b64e-8b1b4b587295",
+          "kind": "mountain-path",
+          "toRule": "settlement-center",
+          "widthMeters": 5.0
+        }
+      ],
+      "scatter": [
+        {
+          "assetTag": "environment-props",
+          "density": 0.2,
+          "id": "d953a14b-1908-5e68-ad1c-9d9ea258e21f",
+          "minSpacingMeters": 3.0,
+          "regionRule": "all"
+        }
+      ],
+      "schemaVersion": 1.0,
+      "seed": 20260828.0,
+      "settlements": [
+        {
+          "buildingCount": 8.0,
+          "id": "d8355a38-559b-51c2-8e82-460b9df1fe34",
+          "kind": "hamlet",
+          "placementRule": "sheltered-ridge-near-road",
+          "requiredLandmarks": [
+            "inn",
+            "watchtower"
+          ],
+          "style": "free-valleys",
+          "walled": false
+        }
+      ],
+      "terrain": {
+        "adaptToStructures": true,
+        "archetype": "temperate-valley",
+        "erosionPasses": 2.0,
+        "roughness": 0.45
+      },
+      "title": "Les Hautes Brumes — tranche verticale"
+    },
+    "recipeFingerprint": "9413a452d2444378a81a2c1831a4f652323cc5aab642835223bb12b00f5b6215",
+    "recipeRevision": {
+      "value": 1.0
+    },
+    "schemaVersion": 1.0,
+    "status": "succeeded",
+    "updatedAtUtc": "2026-08-28T10:16:05Z"
+  }
+}

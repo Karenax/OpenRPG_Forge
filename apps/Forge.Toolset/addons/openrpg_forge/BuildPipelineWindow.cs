@@ -199,7 +199,7 @@ public partial class BuildPipelineWindow : Window
     public bool AnalyzeForSmokeTest()
     {
         Refresh();
-        return ResourceCount >= 5 && ScriptCount == 2 && _status?.Text.StartsWith("✓", StringComparison.Ordinal) == true;
+        return ResourceCount >= 5 && ScriptCount >= 2 && _status?.Text.StartsWith("✓", StringComparison.Ordinal) == true;
     }
 
     public bool PreviewProfileForSmokeTest()

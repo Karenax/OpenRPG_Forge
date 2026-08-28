@@ -227,6 +227,96 @@ public sealed class RuntimeSaveStoreTests : IDisposable
     }
 
     [Fact]
+    public void SaveAndLoadAllowAPlayerWithoutACombatComponent()
+    {
+        var path = Path.Combine(_directory, "non-combat-player.orpsave");
+        var save = CreateSave() with { Player = null! };
+
+        var stored = RuntimeSaveStore.Save(path, save);
+        var loaded = RuntimeSaveStore.Load(path, ModuleId, ModuleHash);
+
+        Assert.True(stored.Succeeded);
+        Assert.True(loaded.Succeeded);
+        Assert.Null(loaded.Save!.Player);
+    }
+
+    [Fact]
+    public void SaveAndLoadRoundTripIndependentAreaStates()
+    {
+        const string secondAreaId = "93b6f81b-49eb-4e3d-a156-08ad78529526";
+        var path = Path.Combine(_directory, "multi-area.orpsave");
+        var save = CreateSave();
+        var currentAreaState = new RuntimeAreaSaveState(
+            save.AreaId,
+            save.Hostiles,
+            save.Weather,
+            save.EntitySnapshots!,
+            save.MapExploration);
+        var secondAreaState = new RuntimeAreaSaveState(
+            secondAreaId,
+            [],
+            new RuntimeWeatherSave(1, "6f550000-0000-4000-8000-000000000003", 8, 12, 42),
+            [],
+            null);
+        save = save with { AreaStates = [currentAreaState, secondAreaState] };
+
+        Assert.True(RuntimeSaveStore.Save(path, save).Succeeded);
+        var loaded = RuntimeSaveStore.Load(path, ModuleId, ModuleHash);
+
+        Assert.True(loaded.Succeeded);
+        Assert.Equal(2, loaded.Save!.AreaStates!.Count);
+        var loadedSecondArea = loaded.Save.AreaStates.Single(state => state.AreaId == secondAreaId);
+        Assert.Empty(loadedSecondArea.Hostiles);
+        Assert.Empty(loadedSecondArea.EntitySnapshots);
+        Assert.Equal(secondAreaState.Weather, loadedSecondArea.Weather);
+        Assert.Null(loadedSecondArea.MapExploration);
+    }
+
+    [Fact]
+    public void LoadMigratesVersionOneSevenCurrentAreaStateIntoTheAreaCollection()
+    {
+        var path = Path.Combine(_directory, "legacy-area-state.orpsave");
+        var legacy = CreateSave() with
+        {
+            FormatVersion = RuntimeSaveDocument.PreAreaStateCollectionFormatVersion,
+            AreaStates = null,
+        };
+        Directory.CreateDirectory(_directory);
+        File.WriteAllText(path, JsonSerializer.Serialize(legacy,
+            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
+
+        var loaded = RuntimeSaveStore.Load(path, ModuleId, ModuleHash);
+
+        Assert.True(loaded.Succeeded);
+        var areaState = Assert.Single(loaded.Save!.AreaStates!);
+        Assert.Equal(legacy.AreaId, areaState.AreaId);
+        Assert.Equal(legacy.Hostiles, areaState.Hostiles);
+        Assert.Equal(legacy.Weather, areaState.Weather);
+        Assert.Equal(legacy.EntitySnapshots!.Select(item => item.EntityId),
+            areaState.EntitySnapshots.Select(item => item.EntityId));
+        Assert.Equal(RuntimeSaveDocument.CurrentFormatVersion, loaded.Save.FormatVersion);
+    }
+
+    [Fact]
+    public void SaveRejectsDuplicateAreaStates()
+    {
+        var save = CreateSave();
+        var areaState = new RuntimeAreaSaveState(
+            save.AreaId,
+            save.Hostiles,
+            save.Weather,
+            save.EntitySnapshots!,
+            save.MapExploration);
+
+        var result = RuntimeSaveStore.Save(
+            Path.Combine(_directory, "duplicate-area.orpsave"),
+            save with { AreaStates = [areaState, areaState] });
+
+        Assert.False(result.Succeeded);
+        Assert.Contains(result.Diagnostics, item => item.Code == RuntimeSaveValidator.AreaStateInvalidCode);
+    }
+
+    [Fact]
     public void LoadMigratesPreExtensionSaveToCanonicalEmptySnapshots()
     {
         var path = Path.Combine(_directory, "legacy.orpsave");

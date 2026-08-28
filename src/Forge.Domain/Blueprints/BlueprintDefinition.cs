@@ -145,6 +145,11 @@ public sealed record BlueprintDefinition
         CreaturePresentation, CreatureProgression, CreatureLoot, CreatureRoleBehavior, CreatureEvents, profile, Authoring,
         CreatureFoundation, ItemFoundation);
 
+    public BlueprintDefinition WithCreatureEvents(CreatureEventProfile? profile) => new(
+        Id, Slug, DisplayName, Kind, Combat, PaletteOrigin, IsFavorite, Provenance,
+        CreaturePresentation, CreatureProgression, CreatureLoot, CreatureRoleBehavior, profile, ItemAdvanced, Authoring,
+        CreatureFoundation, ItemFoundation);
+
     public BlueprintDefinition WithCreatureFoundation(CreatureFoundationProfile? profile) => new(
         Id, Slug, DisplayName, Kind, Combat, PaletteOrigin, IsFavorite, Provenance,
         CreaturePresentation, CreatureProgression, CreatureLoot, CreatureRoleBehavior, CreatureEvents, ItemAdvanced,

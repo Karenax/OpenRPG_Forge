@@ -374,7 +374,7 @@ public partial class WorldFeatureStudioWindow : Window
         _text["merchant.provenances"].Text = "author:forge";
         _number["merchant.minimumCondition"].Value = .5;
         _text["merchant.owner"].Text = string.Empty;
-        _text["merchant.customRule"].Text = "scripts/merchant_rule";
+        _text["merchant.customRule"].Text = "scripts/merchant_rule.forge";
         _check["merchant.experienceRequired"].ButtonPressed = true;
         _text["merchant.apiVersion"].Text = "1.0.0";
         _text["merchant.onOpened"].Text = "StoreSessionOpened";
@@ -431,7 +431,7 @@ public partial class WorldFeatureStudioWindow : Window
         _check["companion.crossZone"].ButtonPressed = (_load?.Invoke()?.Project.Areas.Count ?? 0) > 1;
         _text["script.tag"].Text = "door.ash";
         _text["script.event"].Text = "opened";
-        _text["script.route"].Text = "scripts/door_ash_opened";
+        _text["script.route"].Text = "scripts/door_ash_opened.forge";
         RebuildSummary();
         return true;
     }
@@ -1057,7 +1057,7 @@ public partial class WorldFeatureStudioWindow : Window
         Text(form, "merchant.provenances", "Provenances autorisées", "author:forge");
         Number(form, "merchant.minimumCondition", "État minimal", 0, 1, .5, .05);
         Text(form, "merchant.owner", "Propriétaire requis", string.Empty);
-        Text(form, "merchant.customRule", "Règle ForgeScript personnalisée", "scripts/merchant_rule");
+        Text(form, "merchant.customRule", "Règle ForgeScript personnalisée", "scripts/merchant_rule.forge");
         Section(form, "SESSIONS ONOPEN & ONCLOSE", "Émettre des événements typés avec client, vendeur, contexte de prix et bilan transactionnel.");
         Toggle(form, "merchant.experienceRequired", "Expérience boutique P1 requise au runtime", true);
         Text(form, "merchant.apiVersion", "Version API ForgeScript", "1.0.0");
@@ -1242,7 +1242,7 @@ public partial class WorldFeatureStudioWindow : Window
         Toggle(form, "script.lock", "Verrouiller le contrôle joueur pendant le plan", true);
         Text(form, "script.tag", "Tag explicite de blueprint", "door.ash");
         Text(form, "script.event", "Événement routé", "opened");
-        Text(form, "script.route", "Script appelé", "scripts/door_ash_opened");
+        Text(form, "script.route", "Script appelé", "scripts/door_ash_opened.forge");
         Text(form, "script.flag", "Feature flag nommé", "rest.enabled");
         Toggle(form, "script.flagDefault", "Valeur par défaut du flag", true);
         Text(form, "script.ai", "Réglage IA nommé", "combat.aggression");
@@ -1784,57 +1784,90 @@ public partial class WorldFeatureStudioWindow : Window
         var merchants = current.Merchants;
         if (SelectedBlueprint("merchant.target") is { } merchantId)
         {
+            var existingMerchant = merchants.FirstOrDefault(item => item.BlueprintId == merchantId);
             var currency = _text["merchant.currency"].Text.Trim();
             var balance = (decimal)_number["merchant.balance"].Value;
             var cap = (decimal)_number["merchant.cap"].Value;
             var stockItem = SelectedBlueprint("merchant.stockItem");
             var restrictions = Csv(_text["merchant.restrictions"].Text);
-            var transactions = stockItem is null ? null : new MerchantWorldProfile.TransactionPolicy(
-                Stable(moduleId, $"merchant-transactions:{merchantId}"), 1, "toolset:r045",
-                _text["merchant.vendorInteraction"].Text.Trim(), _text["merchant.dialogueChoice"].Text.Trim(),
-                [new(Stable(moduleId, $"merchant-stock:{merchantId}:{stockItem}"), stockItem,
-                    _text["merchant.variant"].Text.Trim(), (int)_number["merchant.stockQuantity"].Value,
-                    (decimal)_number["merchant.unitPrice"].Value, currency, restrictions)],
-                Csv(_text["merchant.locales"].Text), restrictions,
-                new Dictionary<string, string> { ["onOpen"] = _text["merchant.onOpen"].Text.Trim() },
-                (int)_number["merchant.buyerCapacity"].Value, (int)_number["merchant.sellerCapacity"].Value, true);
+            MerchantWorldProfile.TransactionPolicy? transactions = null;
+            if (stockItem is not null)
+            {
+                var variant = _text["merchant.variant"].Text.Trim();
+                var transactionStock = UpsertPreservingOrder(
+                    existingMerchant?.Transactions?.Stock ?? [],
+                    new MerchantWorldProfile.StockEntry(
+                        Stable(moduleId, $"merchant-stock:{merchantId}:{stockItem}"), stockItem, variant,
+                        (int)_number["merchant.stockQuantity"].Value,
+                        (decimal)_number["merchant.unitPrice"].Value, currency, restrictions),
+                    item => item.ItemBlueprintId == stockItem &&
+                            string.Equals(item.VariantId, variant, StringComparison.OrdinalIgnoreCase));
+                var transactionScripts = existingMerchant?.Transactions?.Scripts
+                    .ToDictionary(item => item.Key, item => item.Value, StringComparer.Ordinal)
+                    ?? new Dictionary<string, string>(StringComparer.Ordinal);
+                transactionScripts["onOpen"] = _text["merchant.onOpen"].Text.Trim();
+                transactions = new MerchantWorldProfile.TransactionPolicy(
+                    Stable(moduleId, $"merchant-transactions:{merchantId}"), 1, "toolset:r045",
+                    _text["merchant.vendorInteraction"].Text.Trim(), _text["merchant.dialogueChoice"].Text.Trim(),
+                    transactionStock, Csv(_text["merchant.locales"].Text), restrictions, transactionScripts,
+                    (int)_number["merchant.buyerCapacity"].Value,
+                    (int)_number["merchant.sellerCapacity"].Value, true);
+            }
             var dialogueId = GuidOrNull(_text["merchant.dialogue"].Text);
-            var foundation = stockItem is null || dialogueId is null ? null : new MerchantFoundationProfile(
-                Stable(moduleId, $"merchant-foundation:{merchantId}"), 1, "toolset:r091",
-                _text["merchant.storeSlug"].Text.Trim(), _text["merchant.displayKey"].Text.Trim(),
-                Csv(_text["merchant.locales"].Text),
-                [new(Stable(moduleId, $"merchant-vendor:{merchantId}"), merchantId, dialogueId.Value,
+            MerchantFoundationProfile? foundation = null;
+            if (stockItem is not null && dialogueId is not null)
+            {
+                var variant = _text["merchant.variant"].Text.Trim();
+                var vendor = new MerchantVendorBindingProfile(
+                    Stable(moduleId, $"merchant-vendor:{merchantId}"), merchantId, dialogueId.Value,
                     _text["merchant.dialogueChoice"].Text.Trim(),
-                    _text["merchant.vendorInteraction"].Text.Trim(), "npc")],
-                new(Stable(moduleId, $"merchant-wizard:{merchantId}"), 1, "toolset:r091",
-                    _check["merchant.wizard"].ButtonPressed, _check["merchant.wizard"].ButtonPressed,
-                    _check["merchant.wizard"].ButtonPressed, _check["merchant.wizard"].ButtonPressed,
-                    _check["merchant.wizard"].ButtonPressed, _text["merchant.fixture"].Text.Trim()),
-                [new(Stable(moduleId, $"merchant-foundation-stock:{merchantId}:{stockItem}"), stockItem,
-                    _text["merchant.variant"].Text.Trim(),
-                    (MerchantSupplyPolicy)_choice["merchant.supply"].Selected,
-                    (int)_number["merchant.stockQuantity"].Value, Null(_text["merchant.supplier"].Text),
-                    _number["merchant.stockRestock"].Value, (int)_number["merchant.displayOrder"].Value,
-                    Csv(_text["merchant.hiddenConditions"].Text), (decimal)_number["merchant.unitPrice"].Value,
-                    currency)],
-                new(Stable(moduleId, $"merchant-pricing:{merchantId}"), 1, "toolset:r091",
-                    (decimal)_number["merchant.buyMultiplier"].Value,
-                    (decimal)_number["merchant.sellMultiplier"].Value,
-                    PriceCurve(_text["merchant.buyCurve"].Text), PriceCurve(_text["merchant.sellCurve"].Text),
-                    DecimalValues(_text["merchant.currencyRates"].Text),
-                    (decimal)_number["merchant.reputationFactor"].Value,
-                    (decimal)_number["merchant.scarcityFactor"].Value,
-                    (decimal)_number["merchant.conditionFactor"].Value,
-                    (decimal)_number["merchant.negotiationFactor"].Value,
-                    (decimal)_number["merchant.minimumPrice"].Value,
-                    (decimal)_number["merchant.maximumPrice"].Value),
-                new(Stable(moduleId, $"merchant-query:{merchantId}"), 1, "toolset:r091",
-                    Csv(_text["merchant.whitelistTypes"].Text), Csv(_text["merchant.whitelistTags"].Text),
-                    Csv(_text["merchant.blacklistTags"].Text),
-                    (int)_number["merchant.minimumQuality"].Value,
-                    (int)_number["merchant.maximumQuality"].Value,
-                    Csv(_text["merchant.provenances"].Text), _number["merchant.minimumCondition"].Value,
-                    Null(_text["merchant.owner"].Text), Null(_text["merchant.customRule"].Text)));
+                    _text["merchant.vendorInteraction"].Text.Trim(), "npc");
+                var vendors = UpsertPreservingOrder(existingMerchant?.Foundation?.Vendors ?? [], vendor,
+                    item => item.VendorBlueprintId == merchantId);
+                var foundationStock = UpsertPreservingOrder(
+                    existingMerchant?.Foundation?.Stock ?? [],
+                    new MerchantStockEntryProfile(
+                        Stable(moduleId, $"merchant-foundation-stock:{merchantId}:{stockItem}"), stockItem, variant,
+                        (MerchantSupplyPolicy)_choice["merchant.supply"].Selected,
+                        (int)_number["merchant.stockQuantity"].Value, Null(_text["merchant.supplier"].Text),
+                        _number["merchant.stockRestock"].Value, (int)_number["merchant.displayOrder"].Value,
+                        Csv(_text["merchant.hiddenConditions"].Text),
+                        (decimal)_number["merchant.unitPrice"].Value, currency),
+                    item => item.ItemBlueprintId == stockItem &&
+                            string.Equals(item.VariantId, variant, StringComparison.OrdinalIgnoreCase));
+                var currencyRates = existingMerchant?.Foundation?.Pricing.CurrencyRates
+                    .ToDictionary(item => item.Key, item => item.Value, StringComparer.Ordinal)
+                    ?? new Dictionary<string, decimal>(StringComparer.Ordinal);
+                foreach (var item in DecimalValues(_text["merchant.currencyRates"].Text))
+                    currencyRates[item.Key] = item.Value;
+                foundation = new MerchantFoundationProfile(
+                    Stable(moduleId, $"merchant-foundation:{merchantId}"), 1, "toolset:r091",
+                    _text["merchant.storeSlug"].Text.Trim(), _text["merchant.displayKey"].Text.Trim(),
+                    Csv(_text["merchant.locales"].Text), vendors,
+                    new(Stable(moduleId, $"merchant-wizard:{merchantId}"), 1, "toolset:r091",
+                        _check["merchant.wizard"].ButtonPressed, _check["merchant.wizard"].ButtonPressed,
+                        _check["merchant.wizard"].ButtonPressed, _check["merchant.wizard"].ButtonPressed,
+                        _check["merchant.wizard"].ButtonPressed, _text["merchant.fixture"].Text.Trim()),
+                    foundationStock,
+                    new(Stable(moduleId, $"merchant-pricing:{merchantId}"), 1, "toolset:r091",
+                        (decimal)_number["merchant.buyMultiplier"].Value,
+                        (decimal)_number["merchant.sellMultiplier"].Value,
+                        PriceCurve(_text["merchant.buyCurve"].Text), PriceCurve(_text["merchant.sellCurve"].Text),
+                        currencyRates,
+                        (decimal)_number["merchant.reputationFactor"].Value,
+                        (decimal)_number["merchant.scarcityFactor"].Value,
+                        (decimal)_number["merchant.conditionFactor"].Value,
+                        (decimal)_number["merchant.negotiationFactor"].Value,
+                        (decimal)_number["merchant.minimumPrice"].Value,
+                        (decimal)_number["merchant.maximumPrice"].Value),
+                    new(Stable(moduleId, $"merchant-query:{merchantId}"), 1, "toolset:r091",
+                        Csv(_text["merchant.whitelistTypes"].Text), Csv(_text["merchant.whitelistTags"].Text),
+                        Csv(_text["merchant.blacklistTags"].Text),
+                        (int)_number["merchant.minimumQuality"].Value,
+                        (int)_number["merchant.maximumQuality"].Value,
+                        Csv(_text["merchant.provenances"].Text), _number["merchant.minimumCondition"].Value,
+                        Null(_text["merchant.owner"].Text), Null(_text["merchant.customRule"].Text)));
+            }
             var experience = new MerchantStoreExperienceProfile(
                 Stable(moduleId, $"merchant-experience:{merchantId}"), 1, "toolset:r092",
                 new(Stable(moduleId, $"merchant-sessions:{merchantId}"), 1, "toolset:r092",
@@ -1849,16 +1882,28 @@ public partial class WorldFeatureStudioWindow : Window
                     _check["merchant.uiCart"].ButtonPressed, _check["merchant.uiConfirmation"].ButtonPressed,
                     _check["merchant.uiScreenReader"].ButtonPressed,
                     _check["merchant.uiHighContrast"].ButtonPressed, Csv(_text["merchant.uiColumns"].Text)));
+            var currencies = UpsertPreservingOrder(existingMerchant?.Currencies ?? [],
+                new MerchantWorldProfile.CurrencyDefinition(currency, $"currency.{currency}", 1, true, false),
+                item => string.Equals(item.Id, currency, StringComparison.Ordinal));
+            var treasury = UpsertPreservingOrder(existingMerchant?.Treasury ?? [],
+                new MerchantWorldProfile.TreasuryAccount(
+                    currency, balance, 0, 0, balance / 10, Math.Max(balance, 1) * 2),
+                item => string.Equals(item.CurrencyId, currency, StringComparison.Ordinal));
+            var serviceKind = _text["merchant.service"].Text.Trim();
+            var services = UpsertPreservingOrder(existingMerchant?.Services ?? [],
+                new MerchantWorldProfile.ServiceEntry(
+                    Stable(moduleId, $"merchant-service:{merchantId}"), serviceKind,
+                    $"service.{serviceKind}", currency, Math.Min(cap, 25),
+                    $"service.{serviceKind}", "true"),
+                item => string.Equals(item.Kind, serviceKind, StringComparison.OrdinalIgnoreCase));
             var profile = new MerchantWorldProfile(Stable(moduleId, $"merchant:{merchantId}"), 1, "toolset:g13-w-x", merchantId,
-                [new(currency, $"currency.{currency}", 1, true, false)], [new(currency, balance, 0, 0, balance / 10, Math.Max(balance, 1) * 2)],
+                currencies, treasury,
                 new(cap, cap * 2, new Dictionary<string, decimal>(), -1, true),
                 new(_check["merchant.stolen"].ButtonPressed, ["authored-jurisdiction"], false, false, .25, "crime.stolen-goods"),
                 new(_number["merchant.restock"].Value, "market.restock", route?.Id, true, true),
                 new("bargain", 10, _number["merchant.discount"].Value / 100, .2, 60, true),
                 _check["merchant.market"].ButtonPressed ? new("authored-region", .25, .5, new Dictionary<string, double>(), true) : null,
-                [new(Stable(moduleId, $"merchant-service:{merchantId}"), _text["merchant.service"].Text.Trim(),
-                    $"service.{_text["merchant.service"].Text.Trim()}", currency, Math.Min(cap, 25),
-                    $"service.{_text["merchant.service"].Text.Trim()}", "true")],
+                services,
                 new(_check["merchant.ledger"].ButtonPressed, 90, Math.Max(100, cap), true, true, true),
                 transactions, _check["merchant.transactionsRequired"].ButtonPressed,
                 foundation, _check["merchant.foundationRequired"].ButtonPressed,
@@ -2262,6 +2307,29 @@ public partial class WorldFeatureStudioWindow : Window
 
     private static IReadOnlyList<T> Upsert<T>(IReadOnlyList<T> source, T value, Func<T, bool> match) =>
         [.. source.Where(item => !match(item)), value];
+
+    private static IReadOnlyList<T> UpsertPreservingOrder<T>(
+        IReadOnlyList<T> source,
+        T value,
+        Func<T, bool> match)
+    {
+        var result = new List<T>(source.Count + 1);
+        var replaced = false;
+        foreach (var item in source)
+        {
+            if (match(item))
+            {
+                if (!replaced) result.Add(value);
+                replaced = true;
+            }
+            else
+            {
+                result.Add(item);
+            }
+        }
+        if (!replaced) result.Add(value);
+        return result;
+    }
 
     private BlueprintId? SelectedBlueprint(string key)
     {

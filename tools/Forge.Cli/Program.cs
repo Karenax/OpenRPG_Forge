@@ -37,6 +37,12 @@ static int Run(IReadOnlyList<string> arguments)
 {
     try
     {
+        if (arguments.Count == 1 && arguments[0] == "--self-test")
+        {
+            Console.WriteLine("OPENRPG_FORGE_CLI_SMOKE_PASS assembly=loaded");
+            return 0;
+        }
+
         if (arguments.Count >= 1 && arguments[0] is "build" or "validate" or "test" or "pack" or "migrate" or "normalize" or "diff" or "references")
         {
             return RunCanonicalBuildCli(arguments);

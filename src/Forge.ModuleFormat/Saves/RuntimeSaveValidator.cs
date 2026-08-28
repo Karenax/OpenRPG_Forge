@@ -19,12 +19,14 @@ public static class RuntimeSaveValidator
     public const string EntitySnapshotInvalidCode = "save.entity_snapshot_invalid";
     public const string WorldClockInvalidCode = "save.world_clock_invalid";
     public const string MapExplorationInvalidCode = "save.map_exploration_invalid";
+    public const string AreaStateInvalidCode = "save.area_state_invalid";
 
     public static IReadOnlyList<RuntimeSaveDiagnostic> Validate(RuntimeSaveDocument save)
     {
         ArgumentNullException.ThrowIfNull(save);
         var diagnostics = new List<RuntimeSaveDiagnostic>();
         if (!string.Equals(save.FormatVersion, RuntimeSaveDocument.CurrentFormatVersion, StringComparison.Ordinal) &&
+            !string.Equals(save.FormatVersion, RuntimeSaveDocument.PreAreaStateCollectionFormatVersion, StringComparison.Ordinal) &&
             !string.Equals(save.FormatVersion, RuntimeSaveDocument.PreMapExplorationFormatVersion, StringComparison.Ordinal) &&
             !string.Equals(save.FormatVersion, RuntimeSaveDocument.PreQuestCollectionFormatVersion, StringComparison.Ordinal) &&
             !string.Equals(save.FormatVersion, RuntimeSaveDocument.PreInventoryStacksFormatVersion, StringComparison.Ordinal) &&
@@ -57,7 +59,10 @@ public static class RuntimeSaveValidator
             diagnostics.Add(new RuntimeSaveDiagnostic(AreaIdInvalidCode, "The area ID must be a non-empty UUID.", "areaId"));
         }
 
-        ValidateCombatant(save.Player, "player", PlayerInvalidCode, diagnostics);
+        if (save.Player is not null)
+        {
+            ValidateCombatant(save.Player, "player", PlayerInvalidCode, diagnostics);
+        }
         if (save.Inventory.Any(stack => string.IsNullOrWhiteSpace(stack.Slug)) ||
             save.Inventory.Select(stack => stack.Slug).Distinct(StringComparer.Ordinal).Count() != save.Inventory.Count)
         {
@@ -84,18 +89,7 @@ public static class RuntimeSaveValidator
                 "variables"));
         }
 
-        foreach (var hostile in save.Hostiles)
-        {
-            ValidateCombatant(hostile, $"hostiles/{hostile.EntityId}", HostileInvalidCode, diagnostics);
-        }
-
-        if (save.Hostiles.Select(item => item.EntityId).Distinct(StringComparer.Ordinal).Count() != save.Hostiles.Count)
-        {
-            diagnostics.Add(new RuntimeSaveDiagnostic(
-                HostileInvalidCode,
-                "Hostile entity IDs must be unique.",
-                "hostiles"));
-        }
+        ValidateHostiles(save.Hostiles, "hostiles", diagnostics);
 
         if ((save.QuestId is null) != (save.QuestStateId is null) ||
             save.QuestId is not null &&
@@ -139,17 +133,7 @@ public static class RuntimeSaveValidator
                 "questStates"));
         }
 
-        if (save.Weather is not null &&
-            (save.Weather.SchemaVersion != 1 ||
-             !Guid.TryParse(save.Weather.StateId, out var weatherStateId) || weatherStateId == Guid.Empty ||
-             save.Weather.Revision < 0 || save.Weather.ServerRevision < 0 ||
-             save.Weather.ElapsedSeconds < 0 || !double.IsFinite(save.Weather.ElapsedSeconds)))
-        {
-            diagnostics.Add(new RuntimeSaveDiagnostic(
-                WeatherInvalidCode,
-                "Weather state requires schema v1, a non-empty state UUID and non-negative runtime counters.",
-                "weather"));
-        }
+        ValidateWeather(save.Weather, "weather", diagnostics);
 
         if (save.Progression is not null && (save.Progression.SchemaVersion != 1 ||
             !double.IsFinite(save.Progression.Experience) || save.Progression.Experience < 0 ||
@@ -169,43 +153,134 @@ public static class RuntimeSaveValidator
                 "worldClock"));
         }
 
-        if (save.MapExploration is { } exploration)
+        ValidateMapExploration(save.MapExploration, "mapExploration", diagnostics);
+        ValidateEntitySnapshots(save.EntitySnapshots ?? [], "entitySnapshots", diagnostics);
+
+        var areaStates = save.AreaStates ?? [];
+        if (areaStates.Select(item => item.AreaId).Distinct(StringComparer.OrdinalIgnoreCase).Count() != areaStates.Count)
         {
-            var validScope = string.Equals(exploration.Scope, "player", StringComparison.Ordinal) ||
-                             string.Equals(exploration.Scope, "party", StringComparison.Ordinal) ||
-                             string.Equals(exploration.Scope, "world", StringComparison.Ordinal);
-            var parsedCells = exploration.RevealedCells.Select(key =>
-            {
-                var parsed = AreaMapCell.TryParse(key, out var cell, out var legacy);
-                return (Key: key, Parsed: parsed, Cell: cell, Legacy: legacy);
-            }).ToArray();
-            var invalid = !validScope || string.IsNullOrWhiteSpace(exploration.ExplorerId) ||
-                          exploration.ActiveFloor < 0 || exploration.RevealedCells.Count > 1_000_000 ||
-                          parsedCells.Any(item => !item.Parsed ||
-                              (item.Legacy && !string.Equals(item.Key, item.Cell.LegacyKey,
-                                  StringComparison.Ordinal)) ||
-                              item.Cell.Floor < 0 ||
-                              item.Cell.X < 0 || item.Cell.Z < 0) ||
-                          exploration.RevealedCells.Distinct(StringComparer.Ordinal).Count() !=
-                          exploration.RevealedCells.Count ||
-                          exploration.RevealedPins.Count > 65_536 ||
-                          exploration.RevealedPins.Any(pin => !Guid.TryParse(pin, out var id) || id == Guid.Empty) ||
-                          exploration.RevealedPins.Distinct(StringComparer.OrdinalIgnoreCase).Count() !=
-                          exploration.RevealedPins.Count;
-            if (invalid)
-                diagnostics.Add(new RuntimeSaveDiagnostic(
-                    MapExplorationInvalidCode,
-                    "Map exploration requires a known scope, active floor, canonical unique cells and pin UUIDs.",
-                    "mapExploration"));
+            diagnostics.Add(new RuntimeSaveDiagnostic(
+                AreaStateInvalidCode,
+                "Area runtime states must use unique area IDs.",
+                "areaStates"));
         }
 
-        var snapshots = save.EntitySnapshots ?? [];
+        foreach (var areaState in areaStates)
+        {
+            var path = $"areaStates/{areaState.AreaId}";
+            if (!Guid.TryParse(areaState.AreaId, out var stateAreaId) || stateAreaId == Guid.Empty)
+            {
+                diagnostics.Add(new RuntimeSaveDiagnostic(
+                    AreaStateInvalidCode,
+                    "An area runtime state requires a non-empty area UUID.",
+                    path));
+            }
+
+            ValidateHostiles(areaState.Hostiles, $"{path}/hostiles", diagnostics);
+            ValidateWeather(areaState.Weather, $"{path}/weather", diagnostics);
+            ValidateEntitySnapshots(areaState.EntitySnapshots, $"{path}/entitySnapshots", diagnostics);
+            ValidateMapExploration(areaState.MapExploration, $"{path}/mapExploration", diagnostics);
+        }
+
+        return diagnostics;
+    }
+
+    private static bool IsJson(string value)
+    {
+        try { using var document = System.Text.Json.JsonDocument.Parse(value); return true; }
+        catch (System.Text.Json.JsonException) { return false; }
+    }
+
+    private static void ValidateHostiles(
+        IReadOnlyList<RuntimeCombatantSave> hostiles,
+        string path,
+        ICollection<RuntimeSaveDiagnostic> diagnostics)
+    {
+        foreach (var hostile in hostiles)
+        {
+            ValidateCombatant(hostile, $"{path}/{hostile.EntityId}", HostileInvalidCode, diagnostics);
+        }
+
+        if (hostiles.Select(item => item.EntityId).Distinct(StringComparer.OrdinalIgnoreCase).Count() != hostiles.Count)
+        {
+            diagnostics.Add(new RuntimeSaveDiagnostic(
+                HostileInvalidCode,
+                "Hostile entity IDs must be unique.",
+                path));
+        }
+    }
+
+    private static void ValidateWeather(
+        RuntimeWeatherSave? weather,
+        string path,
+        ICollection<RuntimeSaveDiagnostic> diagnostics)
+    {
+        if (weather is not null &&
+            (weather.SchemaVersion != 1 ||
+             !Guid.TryParse(weather.StateId, out var weatherStateId) || weatherStateId == Guid.Empty ||
+             weather.Revision < 0 || weather.ServerRevision < 0 ||
+             weather.ElapsedSeconds < 0 || !double.IsFinite(weather.ElapsedSeconds)))
+        {
+            diagnostics.Add(new RuntimeSaveDiagnostic(
+                WeatherInvalidCode,
+                "Weather state requires schema v1, a non-empty state UUID and non-negative runtime counters.",
+                path));
+        }
+    }
+
+    private static void ValidateMapExploration(
+        RuntimeMapExplorationSave? exploration,
+        string path,
+        ICollection<RuntimeSaveDiagnostic> diagnostics)
+    {
+        if (exploration is null) return;
+
+        var validScope = string.Equals(exploration.Scope, "player", StringComparison.Ordinal) ||
+                         string.Equals(exploration.Scope, "party", StringComparison.Ordinal) ||
+                         string.Equals(exploration.Scope, "world", StringComparison.Ordinal);
+        var parsedCells = exploration.RevealedCells.Select(key =>
+        {
+            var parsed = AreaMapCell.TryParse(key, out var cell, out var legacy);
+            return (Key: key, Parsed: parsed, Cell: cell, Legacy: legacy);
+        }).ToArray();
+        var invalid = !validScope || string.IsNullOrWhiteSpace(exploration.ExplorerId) ||
+                      exploration.ActiveFloor < 0 || exploration.RevealedCells.Count > 1_000_000 ||
+                      parsedCells.Any(item => !item.Parsed ||
+                          (item.Legacy && !string.Equals(item.Key, item.Cell.LegacyKey,
+                              StringComparison.Ordinal)) ||
+                          item.Cell.Floor < 0 ||
+                          item.Cell.X < 0 || item.Cell.Z < 0) ||
+                      exploration.RevealedCells.Distinct(StringComparer.Ordinal).Count() !=
+                      exploration.RevealedCells.Count ||
+                      exploration.RevealedPins.Count > 65_536 ||
+                      exploration.RevealedPins.Any(pin => !Guid.TryParse(pin, out var id) || id == Guid.Empty) ||
+                      exploration.RevealedPins.Distinct(StringComparer.OrdinalIgnoreCase).Count() !=
+                      exploration.RevealedPins.Count;
+        if (invalid)
+        {
+            diagnostics.Add(new RuntimeSaveDiagnostic(
+                MapExplorationInvalidCode,
+                "Map exploration requires a known scope, active floor, canonical unique cells and pin UUIDs.",
+                path));
+        }
+    }
+
+    private static void ValidateEntitySnapshots(
+        IReadOnlyList<RuntimeEntityStateSave> snapshots,
+        string rootPath,
+        ICollection<RuntimeSaveDiagnostic> diagnostics)
+    {
         if (snapshots.Select(item => item.EntityId).Distinct(StringComparer.OrdinalIgnoreCase).Count() != snapshots.Count)
-            diagnostics.Add(new RuntimeSaveDiagnostic(EntitySnapshotInvalidCode,
-                "Entity snapshot IDs must be unique.", "entitySnapshots"));
+        {
+            diagnostics.Add(new RuntimeSaveDiagnostic(
+                EntitySnapshotInvalidCode,
+                "Entity snapshot IDs must be unique.",
+                rootPath));
+        }
+
         foreach (var snapshot in snapshots)
         {
-            var path = $"entitySnapshots/{snapshot.EntityId}";
+            var path = $"{rootPath}/{snapshot.EntityId}";
             var invalid = snapshot.SchemaVersion != 1 ||
                 !Guid.TryParse(snapshot.EntityId, out var entityId) || entityId == Guid.Empty ||
                 snapshot.Components.Count > 64 || snapshot.References.Count > 4096 ||
@@ -220,18 +295,13 @@ public static class RuntimeSaveValidator
                 snapshot.Blackboard.Any(item => string.IsNullOrWhiteSpace(item.Key)) ||
                 snapshot.Blackboard.Select(item => item.Key).Distinct(StringComparer.Ordinal).Count() != snapshot.Blackboard.Count;
             if (invalid)
-                diagnostics.Add(new RuntimeSaveDiagnostic(EntitySnapshotInvalidCode,
+            {
+                diagnostics.Add(new RuntimeSaveDiagnostic(
+                    EntitySnapshotInvalidCode,
                     "Entity state requires schema v1, resolved UUID references, unique bounded components, positive inventory stacks and blackboard values.",
                     path));
+            }
         }
-
-        return diagnostics;
-    }
-
-    private static bool IsJson(string value)
-    {
-        try { using var document = System.Text.Json.JsonDocument.Parse(value); return true; }
-        catch (System.Text.Json.JsonException) { return false; }
     }
 
     private static void ValidateCombatant(

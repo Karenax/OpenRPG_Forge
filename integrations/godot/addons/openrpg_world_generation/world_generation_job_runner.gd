@@ -4,6 +4,7 @@ extends Node
 const FORMAT_VERSION := "1.0.0"
 const PROTOCOL_VERSION := "1.0.0"
 const WORKSPACE_SETTING := "openrpg/world_generation/workspace_root"
+const WORKSPACE_ENVIRONMENT := "OPENRPG_WORLD_GENERATION_WORKSPACE"
 const AUTO_PROCESS_SETTING := "openrpg/world_generation/auto_process_jobs"
 const POLL_SECONDS_SETTING := "openrpg/world_generation/poll_seconds"
 const JOBS_RELATIVE_DIRECTORY := "world/generation/jobs"
@@ -191,21 +192,28 @@ func _process_job_file(path: String) -> Dictionary:
     var succeeded := diagnostics.is_empty()
     if _job_status(path) == "cancelled":
         return { "succeeded": true, "processed": true, "cancelled": true }
-    if succeeded and _can_create_promotion_candidate(steps, provider_evidence):
-        var candidate := _create_promotion_candidate(job, backend, provider_evidence)
-        if not bool(candidate.get("succeeded", false)):
-            var candidate_diagnostics_variant: Variant = candidate.get("diagnostics", [])
-            if typeof(candidate_diagnostics_variant) == TYPE_ARRAY:
-                diagnostics.append_array(candidate_diagnostics_variant as Array)
-            if diagnostics.is_empty():
-                diagnostics.append(_diagnostic(
-                    "world_generation.worker.promotion_candidate_failed",
-                    "Provider-neutral canonical-promotion candidate could not be created.",
-                    "world-generation/job/promotion"))
+    if succeeded and _requires_provider_candidate(steps):
+        if not _can_create_promotion_candidate(steps, provider_evidence):
+            diagnostics.append(_diagnostic(
+                "world_generation.worker.promotion_providers_invalid",
+                "The complete provider-backed plan did not retain verified Terrain3D and graph PCG evidence.",
+                "world-generation/job/promotion"))
             succeeded = false
-        elif bool(candidate.get("created", false)):
-            _append_audit(job, "promotion-candidate", true,
-                "Provider-neutral derived scene and validation report were persisted for explicit promotion.")
+        else:
+            var candidate := _create_promotion_candidate(job, backend, provider_evidence)
+            if not bool(candidate.get("succeeded", false)):
+                var candidate_diagnostics_variant: Variant = candidate.get("diagnostics", [])
+                if typeof(candidate_diagnostics_variant) == TYPE_ARRAY:
+                    diagnostics.append_array(candidate_diagnostics_variant as Array)
+                if diagnostics.is_empty():
+                    diagnostics.append(_diagnostic(
+                        "world_generation.worker.promotion_candidate_failed",
+                        "Provider-neutral canonical-promotion candidate could not be created.",
+                        "world-generation/job/promotion"))
+                succeeded = false
+            elif bool(candidate.get("created", false)):
+                _append_audit(job, "promotion-candidate", true,
+                    "Provider-neutral derived scene and validation report were persisted for explicit promotion.")
     _finish_job(wrapper, job, "succeeded" if succeeded else "failed", diagnostics, path)
     return { "succeeded": succeeded, "processed": true }
 
@@ -488,6 +496,8 @@ func _build_promotion_validation_report(
         "collisionValidated": int(bake_result.get("collisionShapes", 0)) > 0,
         "navigationValidated": int(bake_result.get("navigationPolygons", 0)) > 0,
         "manualEditsPreserved": bool(regeneration.get("preserveManualEdits", true)),
+        "artisticInstances": int(bake_result.get("artisticInstances", 0)),
+        "artisticRoles": bake_result.get("artisticRoles", {}),
         "providers": providers,
         "diagnostics": bake_diagnostics,
     }
@@ -506,6 +516,17 @@ func _can_create_promotion_candidate(steps: Array, providers: Array) -> bool:
         return str((item as Dictionary).get("providerKey", "")) if typeof(item) == TYPE_DICTIONARY else "")
     return provider_keys.has("terrain3d") and (
         provider_keys.has("godot-flow") or provider_keys.has("gf-pcgodot"))
+
+func _requires_provider_candidate(steps: Array) -> bool:
+    if steps.size() != CANONICAL_PROMOTION_STAGES.size():
+        return false
+    for step_variant in steps:
+        if typeof(step_variant) != TYPE_DICTIONARY:
+            continue
+        var backend := str((step_variant as Dictionary).get("backend", "")).to_lower()
+        if backend == "terrain3d" or backend == "pcggodot":
+            return true
+    return false
 
 func _create_promotion_candidate(job: Dictionary, backend: Node, providers: Array) -> Dictionary:
     var plan_id := str(job.get("planId", ""))
@@ -673,6 +694,9 @@ func _jobs_directory() -> String:
     return _workspace_root().path_join(JOBS_RELATIVE_DIRECTORY)
 
 func _workspace_root() -> String:
+    var environment_root := OS.get_environment(WORKSPACE_ENVIRONMENT).strip_edges()
+    if not environment_root.is_empty():
+        return environment_root
     var configured := str(ProjectSettings.get_setting(WORKSPACE_SETTING, "res://"))
     return ProjectSettings.globalize_path(configured) \
         if configured.begins_with("res://") or configured.begins_with("user://") else configured
@@ -700,7 +724,9 @@ func _write_json_atomic(path: String, value: Dictionary) -> bool:
     var temporary := FileAccess.open(temporary_path, FileAccess.WRITE)
     if temporary == null:
         return false
-    temporary.store_string(JSON.stringify(value, "  "))
+    # Godot parses every JSON number as a float. Normalize mathematically integral
+    # values before persistence so .NET int/long contracts can reopen worker receipts.
+    temporary.store_string(JSON.stringify(_normalize_integral_json_numbers(value), "  "))
     temporary.flush()
     temporary.close()
     if FileAccess.file_exists(backup_path):
@@ -715,6 +741,25 @@ func _write_json_atomic(path: String, value: Dictionary) -> bool:
     if FileAccess.file_exists(backup_path):
         DirAccess.remove_absolute(backup_path)
     return true
+
+func _normalize_integral_json_numbers(value: Variant) -> Variant:
+    match typeof(value):
+        TYPE_FLOAT:
+            var number := float(value)
+            return int(number) if is_finite(number) and number == floorf(number) else number
+        TYPE_ARRAY:
+            var normalized_array: Array = []
+            for item in value as Array:
+                normalized_array.append(_normalize_integral_json_numbers(item))
+            return normalized_array
+        TYPE_DICTIONARY:
+            var normalized_dictionary := {}
+            for key in (value as Dictionary).keys():
+                normalized_dictionary[key] = _normalize_integral_json_numbers(
+                    (value as Dictionary).get(key))
+            return normalized_dictionary
+        _:
+            return value
 
 func _write_bytes_atomic(path: String, content: PackedByteArray) -> bool:
     var directory_error := DirAccess.make_dir_recursive_absolute(path.get_base_dir())

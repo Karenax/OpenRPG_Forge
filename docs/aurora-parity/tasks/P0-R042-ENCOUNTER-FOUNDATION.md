@@ -27,9 +27,9 @@ Lot stable : `R042` / `FC-ENCOUNTER-P0-01` — trois fonctions, aucune fonction 
 | volume 2D/3D et filtres | `EncounterWorldProfile.ActivationVolume` | capture inspectée `evidence/r042-encounter-foundation-ui.png` et round-trip ModuleFormat |
 | candidats pondérés | `SpawnCandidate` et `FoundationPolicy` | `R042_EncounterActivationFiltersAndSelectsBoundedCandidatePool` |
 | chemin nominal/échec | `ActivateEncounter` | test Domain : activation, absence de ligne de vue et pool épuisé |
-| validation complète | `WorldFeatureCatalogValidator` | `R042_EncounterValidationRejectsGeometryPoolReferencesBudgetAnchorsRewardsAndCap` |
+| validation complète | `WorldFeatureCatalogValidator` et `NavigationDestinationCatalog` | `R042_EncounterValidationRejectsGeometryPoolReferencesBudgetAnchorsRewardsAndCap` et validation de la résolution réelle de l'ancre |
 | transaction auteur | `WorldFeatureStudioWindow` et `SetWorldFeatureCatalogHandler` | smoke Toolset R042 avec dry-run invalide rejeté |
-| projet canonique | `CryptWorldFeatureAuthoringService` | profil Crypte avec volume, candidat, budget, ancre, récompense et cap réseau |
+| projet canonique | catalogue `WorldFeatures` matérialisé ; migrations ponctuelles `CryptWorldFeatureMigration` et `CryptNavigationMigration` | profil Crypte avec volume, candidat, budget, définition/instance d'ancre `anchor:crypt-north`, récompense et cap réseau |
 | ForgeScript/MCP | script d'activation et ressource/plan monde filtrés | suites Application/MCP existantes et portail intégré |
 
 ## Non-objectifs
@@ -40,6 +40,7 @@ Lot stable : `R042` / `FC-ENCOUNTER-P0-01` — trois fonctions, aucune fonction 
 ## Validation finale
 
 - tests ciblés Domain, Application et ModuleFormat verts ;
+- ouverture stricte refusée si une ancre de rencontre est absente, migration explicitement bornée au diagnostic puis réouverture stricte verte ;
 - capture 1540×940 inspectée, volume 2D/3D et paramètres d'activation lisibles ;
 - smoke `OPENRPG_FORGE_TOOLSET_R042_ENCOUNTER_FOUNDATION_PASS` ;
 - tracker/backlog, documentation et graphe régénérés, puis portail intégré avant R043.

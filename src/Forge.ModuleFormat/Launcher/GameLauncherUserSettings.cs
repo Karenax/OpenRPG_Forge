@@ -36,9 +36,14 @@ public sealed record GameLauncherUserSettings(
     LauncherSessionMode SessionMode,
     string PlayerName,
     string ServerAddress,
-    int ServerPort)
+    int ServerPort,
+    Guid NetworkAccountId = default,
+    string NetworkJoinToken = "",
+    string ServerCertificateSha256 = "",
+    string HostCertificatePath = "",
+    string HostCertificatePassword = "")
 {
-    public const int CurrentSchemaVersion = 1;
+    public const int CurrentSchemaVersion = 2;
 
     public static GameLauncherUserSettings CreateDefault(GameLauncherManifest manifest)
     {
@@ -57,7 +62,8 @@ public sealed record GameLauncherUserSettings(
             LauncherSessionMode.Solo,
             "Joueur",
             "127.0.0.1",
-            manifest.DefaultServerPort);
+            manifest.DefaultServerPort,
+            Guid.NewGuid());
     }
 }
 
@@ -83,6 +89,26 @@ public static class GameLauncherUserSettingsValidator
             settings.ServerAddress.Any(char.IsWhiteSpace))
             diagnostics.Add("launcher.settings.server_address_invalid");
         if (settings.ServerPort is < 1024 or > 65_535) diagnostics.Add("launcher.settings.server_port_invalid");
+        if (settings.NetworkAccountId == Guid.Empty)
+            diagnostics.Add("launcher.settings.network_account_invalid");
+        var token = settings.NetworkJoinToken ?? string.Empty;
+        var certificate = settings.ServerCertificateSha256 ?? string.Empty;
+        var hostCertificatePath = settings.HostCertificatePath ?? string.Empty;
+        var hostCertificatePassword = settings.HostCertificatePassword ?? string.Empty;
+        if (token.Length > 0 && (token.Length is < 24 or > 256 || token.Any(char.IsWhiteSpace)))
+            diagnostics.Add("launcher.settings.network_token_invalid");
+        if (certificate.Length > 0 &&
+            (certificate.Length != 64 || certificate.Any(character => !Uri.IsHexDigit(character))))
+            diagnostics.Add("launcher.settings.server_certificate_invalid");
+        if ((hostCertificatePath.Length == 0) != (hostCertificatePassword.Length == 0) ||
+            (hostCertificatePath.Length > 0 &&
+             (!Path.IsPathFullyQualified(hostCertificatePath) ||
+              !string.Equals(Path.GetExtension(hostCertificatePath), ".pfx", StringComparison.OrdinalIgnoreCase) ||
+              hostCertificatePassword.Length is < 24 or > 256)))
+            diagnostics.Add("launcher.settings.host_certificate_invalid");
+        if (settings.SessionMode == LauncherSessionMode.DirectConnectPreview &&
+            (token.Length == 0 || certificate.Length == 0))
+            diagnostics.Add("launcher.settings.secure_invite_required");
         return diagnostics;
     }
 }

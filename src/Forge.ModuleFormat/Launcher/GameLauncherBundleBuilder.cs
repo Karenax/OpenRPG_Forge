@@ -120,7 +120,7 @@ public static class GameLauncherBundleBuilder
                     manifest.Version,
                     "windows-x64",
                     distributionFiles));
-            Directory.Move(temporary, destination);
+            MoveDirectoryAtomically(temporary, destination);
             var outputFiles = Directory.EnumerateFiles(destination, "*", SearchOption.AllDirectories).ToArray();
             return new GameLauncherBundleResult(
                 destination,
@@ -141,6 +141,32 @@ public static class GameLauncherBundleBuilder
         if (!path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) || !File.Exists(path))
             throw new FileNotFoundException($"Launcher template file is missing: {relativePath}", path);
         return path;
+    }
+
+    private static void MoveDirectoryAtomically(string source, string destination)
+    {
+        const int maximumAttempts = 5;
+        for (var attempt = 1; ; attempt++)
+        {
+            if (Directory.Exists(destination) || File.Exists(destination))
+                throw new IOException($"Game distribution destination already exists: {destination}");
+            try
+            {
+                Directory.Move(source, destination);
+                return;
+            }
+            catch (Exception exception) when (
+                attempt < maximumAttempts &&
+                exception is IOException or UnauthorizedAccessException &&
+                Directory.Exists(source) &&
+                !Directory.Exists(destination) &&
+                !File.Exists(destination))
+            {
+                // Antivirus and indexers can briefly retain a handle after manifest hashing on
+                // Windows. Retry only while the source still exists and the target is untouched.
+                Thread.Sleep(TimeSpan.FromMilliseconds(50 * attempt));
+            }
+        }
     }
 
     private static void CopyTree(string sourceDirectory, string destinationDirectory)

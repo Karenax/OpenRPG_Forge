@@ -284,9 +284,7 @@ internal sealed partial class StudioSessionController
         if (project is null) return null;
         var realCreature = project.Blueprints.FirstOrDefault(item => item.Kind == BlueprintKind.Creature &&
             item.CreatureFoundation?.AuthoringComposition is not null && !item.IsReadOnly());
-        var real = string.Equals(project.Module.Slug, "crypt-of-ashes", StringComparison.Ordinal) &&
-                   realCreature is not null;
-        if (realCreature is not null && real)
+        if (realCreature is not null)
         {
             return new(project, realCreature.Id, true, false);
         }

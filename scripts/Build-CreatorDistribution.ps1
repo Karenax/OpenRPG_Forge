@@ -107,6 +107,20 @@ Invoke-Dotnet @('restore', (Join-Path $repositoryRoot 'apps/Forge.McpHost/Forge.
 Invoke-Dotnet @('publish', (Join-Path $repositoryRoot 'apps/Forge.McpHost/Forge.McpHost.csproj'),
     '--configuration', 'Release', '--runtime', 'win-x64', '--self-contained', 'true',
     '--no-restore', '-p:DebugType=None', '--output', $mcpTarget)
+$mcpExecutable = Join-Path $mcpTarget 'Forge.McpHost.exe'
+if (-not (Test-Path -LiteralPath $mcpExecutable -PathType Leaf)) {
+    throw 'The Creator distribution MCP publish did not produce Forge.McpHost.exe.'
+}
+& $mcpExecutable '--tool-inventory'
+if ($LASTEXITCODE -ne 0) {
+    throw "The Creator distribution MCP tool inventory failed with exit code $LASTEXITCODE."
+}
+$mcpToolManifest = Get-Content -LiteralPath (Join-Path $mcpTarget 'mcp-tools.json') -Raw |
+    ConvertFrom-Json
+$mcpToolCount = @($mcpToolManifest.toolNames).Count
+if ($mcpToolCount -ne 271) {
+    throw "The Creator distribution MCP inventory contains $mcpToolCount tools instead of 271."
+}
 
 $engineTarget = Join-Path $outputPath 'engine'
 New-Item -ItemType Directory -Path $engineTarget -Force | Out-Null
@@ -130,6 +144,12 @@ foreach ($directoryName in @('src', 'asset_manifests', 'native', 'third_party'))
 foreach ($applicationName in @('Forge.Toolset', 'Forge.Runtime')) {
     Copy-PortableTree -Source (Join-Path $repositoryRoot "apps/$applicationName") `
         -Destination (Join-Path $workspaceTarget "apps/$applicationName")
+}
+
+$mcpSmokeWorkspace = Join-Path $workspaceTarget 'apps/Forge.Runtime/content/crypt-of-ashes'
+& $mcpExecutable '--workspace' $mcpSmokeWorkspace '--self-test'
+if ($LASTEXITCODE -ne 0) {
+    throw "The Creator distribution MCP host smoke failed with exit code $LASTEXITCODE."
 }
 
 # Crypte des Cendres is the immediately usable example presented to creators.
@@ -190,6 +210,9 @@ $manifest = [ordered]@{
     source_revision = (& git -C $repositoryRoot rev-parse HEAD).Trim()
     source_dirty = @(& git -C $repositoryRoot status --porcelain --untracked-files=normal).Count -gt 0
     launcher_verified = $true
+    mcp_inventory_verified = $true
+    mcp_smoke_verified = $true
+    mcp_tool_count = $mcpToolCount
     compliance = 'compliance/sbom.cdx.json'
     files = $files
 }
@@ -206,4 +229,4 @@ if ($CreateArchive) {
 }
 
 $gameLauncherTemplateStatus = if ($SkipGameLauncherTemplate) { 'skipped' } else { 'bundled' }
-Write-Output "OPENRPG_FORGE_CREATOR_DISTRIBUTION_READY path=$outputPath files=$($files.Count) launcher=verified mcp=bundled game_launcher_template=$gameLauncherTemplateStatus"
+Write-Output "OPENRPG_FORGE_CREATOR_DISTRIBUTION_READY path=$outputPath files=$($files.Count) launcher=verified mcp=verified tools=$mcpToolCount game_launcher_template=$gameLauncherTemplateStatus"

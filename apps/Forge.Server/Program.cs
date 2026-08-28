@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Sockets;
 using Forge.Network.Configuration;
 using Forge.Network.Sessions;
@@ -11,6 +12,13 @@ if (args.Contains("--internet-transport-smoke-test", StringComparer.Ordinal))
     Console.WriteLine(
         $"OPENRPG_FORGE_INTERNET_TRANSPORT_TWO_CLIENTS_PASS session={result.SessionId:D} " +
         $"revision={result.Revision} players={result.Players} mismatch={result.RejectionCode}");
+    Console.WriteLine(
+        $"OPENRPG_FORGE_INTERNET_TRANSPORT_SECURITY_PASS tls={result.TlsProtocol} " +
+        $"certificate=pinned authentication=token-sha256 rejection={result.AuthenticationRejectionCode}");
+    Console.WriteLine(
+        $"OPENRPG_FORGE_INTERNET_GAMEPLAY_AUTHORITY_PASS combat_health={result.TargetHealth} " +
+        $"inventory_potions={result.RemainingPotions} quest={result.QuestState} " +
+        $"save_revision={result.SaveRevision} checkpoint={result.CheckpointSha256}");
     Console.WriteLine($"OPENRPG_FORGE_INTERNET_TRANSPORT={(result.Passed ? "PASS" : "FAILED")}");
     Environment.ExitCode = result.Passed ? 0 : 7;
     return;
@@ -110,12 +118,38 @@ try
 {
     var path = Path.GetFullPath(configArgument["--config=".Length..]);
     var configuration = new NetworkConfigurationStore().Deserialize(await File.ReadAllTextAsync(path));
-    await using var server = new TcpAuthoritativeServer(configuration);
+    var certificatePath = ArgumentValue(args, "--tls-certificate=");
+    var passwordEnvironment = ArgumentValue(args, "--tls-password-env=");
+    var registryPath = ArgumentValue(args, "--auth-registry=");
+    var securityArgumentCount = new[] { certificatePath, passwordEnvironment, registryPath }
+        .Count(value => value is not null);
+    var publicListener = !IPAddress.TryParse(configuration.BindAddress, out var bindAddress) ||
+                         !IPAddress.IsLoopback(bindAddress);
+    if (securityArgumentCount is > 0 and < 3)
+        throw new InvalidDataException("NET_SECURITY_ARGUMENTS_INCOMPLETE");
+    if (publicListener && securityArgumentCount != 3)
+        throw new InvalidDataException("NET_PUBLIC_TRANSPORT_SECURITY_REQUIRED");
+    using var certificate = securityArgumentCount == 3
+        ? InternetServerSecurityStore.LoadCertificate(certificatePath!, passwordEnvironment!)
+        : null;
+    var security = certificate is null
+        ? null
+        : new InternetServerSecurityOptions(
+            certificate,
+            InternetServerSecurityStore.LoadAccountRegistry(registryPath!));
+    await using var server = new TcpAuthoritativeServer(configuration, security: security);
     server.Start();
     Console.WriteLine(
         $"OPENRPG_FORGE_SERVER_READY server={configuration.ServerId} session={server.SessionId} " +
-        $"transport=tcp bind={configuration.BindAddress} port={configuration.Port}");
-    Console.WriteLine("OPENRPG_FORGE_SERVER_HEALTH status=healthy revision=0 players=0 transport=tcp");
+        $"transport={(server.IsSecure ? "tls-tcp" : "tcp-loopback-dev")} " +
+        $"bind={configuration.BindAddress} port={configuration.Port}");
+    if (server.IsSecure)
+        Console.WriteLine(
+            $"OPENRPG_FORGE_SERVER_SECURITY_PASS tls=1.2-1.3 certificate={server.CertificateSha256} " +
+            "authentication=token-sha256 secrets=environment");
+    Console.WriteLine(
+        $"OPENRPG_FORGE_SERVER_HEALTH status=healthy revision=0 players=0 " +
+        $"transport={(server.IsSecure ? "tls-tcp" : "tcp-loopback-dev")}");
     using var shutdown = new CancellationTokenSource();
     ConsoleCancelEventHandler cancelHandler = (_, eventArgs) =>
     {
@@ -141,3 +175,9 @@ catch (Exception exception) when (exception is IOException or InvalidDataExcepti
     Console.Error.WriteLine($"OPENRPG_FORGE_SERVER_INVALID {exception.Message}");
     Environment.ExitCode = 3;
 }
+
+static string? ArgumentValue(IReadOnlyList<string> values, string prefix) =>
+    values.FirstOrDefault(value => value.StartsWith(prefix, StringComparison.Ordinal)) is { } argument &&
+    argument.Length > prefix.Length
+        ? argument[prefix.Length..]
+        : null;

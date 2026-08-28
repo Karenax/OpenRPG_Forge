@@ -52,14 +52,25 @@ public sealed class PlaytestSnapshotStoreTests : IDisposable
         var source = Path.Combine(_temporaryRoot, "source");
         Directory.CreateDirectory(Path.Combine(source, "assets", "models", "hero"));
         Directory.CreateDirectory(Path.Combine(source, "scripts"));
+        Directory.CreateDirectory(Path.Combine(source, "art-kits"));
+        Directory.CreateDirectory(Path.Combine(source, ".forge"));
+        Directory.CreateDirectory(Path.Combine(source, "artifacts"));
         File.WriteAllText(Path.Combine(source, "assets", "models", "hero", "manifest.json"), "{}");
         File.WriteAllText(Path.Combine(source, "scripts", "startup.forge"), "return true");
+        File.WriteAllText(Path.Combine(source, "art-kits", "dungeon.layout.json"), "{}");
+        File.WriteAllText(Path.Combine(source, ".forge", "project-session.json"), "{}");
+        File.WriteAllText(Path.Combine(source, "artifacts", "build-report.json"), "{}");
+        File.WriteAllText(Path.Combine(source, "README.md"), "# Playtest module");
 
         var snapshot = new PlaytestSnapshotStore(Path.Combine(_temporaryRoot, "snapshots"))
             .Create(project, spawn.Id, source);
 
         Assert.True(File.Exists(Path.Combine(snapshot.DirectoryPath, "assets", "models", "hero", "manifest.json")));
         Assert.True(File.Exists(Path.Combine(snapshot.DirectoryPath, "scripts", "startup.forge")));
+        Assert.True(File.Exists(Path.Combine(snapshot.DirectoryPath, "art-kits", "dungeon.layout.json")));
+        Assert.True(File.Exists(Path.Combine(snapshot.DirectoryPath, "README.md")));
+        Assert.False(Directory.Exists(Path.Combine(snapshot.DirectoryPath, ".forge")));
+        Assert.False(Directory.Exists(Path.Combine(snapshot.DirectoryPath, "artifacts")));
     }
 
     [Fact]

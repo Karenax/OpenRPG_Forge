@@ -320,7 +320,9 @@ internal sealed partial class StudioObservabilityWorkbenchUx7I : ColorRect
             _tracyCompatible.ButtonPressed = true;
             _openTelemetryCompatible.ButtonPressed = true;
             _includeScripts.ButtonPressed = true;
-            _maximumSeconds.Value = Math.Max(60, _maximumSeconds.Value);
+            _maximumSeconds.Value = _maximumSeconds.Value >= 3600
+                ? 3599
+                : Math.Max(30, _maximumSeconds.Value) + 1;
             _requestedSeconds.Value = 30;
             _backend.Select(0);
             DraftChangedUx7I();

@@ -11,7 +11,7 @@ public sealed class RuntimeStartupVerificationPolicyTests
             automatedTest: false,
             entryGroundSmokeTest: false,
             innUxSmokeTest: false,
-            cryptMovementSmokeTest: false,
+            moduleMovementSmokeTest: false,
             combatFeedbackSmokeTest: false,
             combatFeedbackCaptureRequested: false));
     }
@@ -23,7 +23,7 @@ public sealed class RuntimeStartupVerificationPolicyTests
             automatedTest: true,
             entryGroundSmokeTest: false,
             innUxSmokeTest: false,
-            cryptMovementSmokeTest: false,
+            moduleMovementSmokeTest: false,
             combatFeedbackSmokeTest: false,
             combatFeedbackCaptureRequested: false));
     }
@@ -37,7 +37,7 @@ public sealed class RuntimeStartupVerificationPolicyTests
     public void Specialized_automated_paths_skip_unrelated_verification_labs(
         bool entryGroundSmokeTest,
         bool innUxSmokeTest,
-        bool cryptMovementSmokeTest,
+        bool moduleMovementSmokeTest,
         bool combatFeedbackSmokeTest,
         bool combatFeedbackCaptureRequested)
     {
@@ -45,7 +45,7 @@ public sealed class RuntimeStartupVerificationPolicyTests
             automatedTest: true,
             entryGroundSmokeTest,
             innUxSmokeTest,
-            cryptMovementSmokeTest,
+            moduleMovementSmokeTest,
             combatFeedbackSmokeTest,
             combatFeedbackCaptureRequested));
     }

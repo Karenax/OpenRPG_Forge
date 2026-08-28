@@ -392,7 +392,8 @@ internal sealed partial class StudioSessionController
         CancellationToken cancellationToken,
         Action runtimeStarted)
     {
-        var start = new ProcessStartInfo(ResolveDotnetUx8A())
+        var isManagedAssembly = string.Equals(Path.GetExtension(cliPath), ".dll", StringComparison.OrdinalIgnoreCase);
+        var start = new ProcessStartInfo(isManagedAssembly ? ResolveDotnetUx8A() : cliPath)
         {
             UseShellExecute = false,
             CreateNoWindow = true,
@@ -401,7 +402,10 @@ internal sealed partial class StudioSessionController
             WorkingDirectory = Path.GetDirectoryName(cliPath)!,
             WindowStyle = ProcessWindowStyle.Hidden,
         };
-        foreach (var argument in new[] { cliPath, "build", workspaceRoot, outputPath })
+        var arguments = isManagedAssembly
+            ? new[] { cliPath, "build", workspaceRoot, outputPath }
+            : new[] { "build", workspaceRoot, outputPath };
+        foreach (var argument in arguments)
             start.ArgumentList.Add(argument);
         using var process = Process.Start(start) ??
                             throw new InvalidOperationException("Forge.Cli n’a pas pu démarrer.");
@@ -463,6 +467,13 @@ internal sealed partial class StudioSessionController
         var explicitPath = Environment.GetEnvironmentVariable("OPENRPG_FORGE_CLI_DLL");
         if (!string.IsNullOrWhiteSpace(explicitPath) && File.Exists(explicitPath))
             return Path.GetFullPath(explicitPath);
+        foreach (var fileName in OperatingSystem.IsWindows()
+                     ? new[] { "Forge.Cli.exe", "Forge.Cli.dll" }
+                     : new[] { "Forge.Cli", "Forge.Cli.dll" })
+        {
+            var bundled = Path.Combine(AppContext.BaseDirectory, "forge-cli", fileName);
+            if (File.Exists(bundled)) return bundled;
+        }
         var root = FindRepositoryRootUx7E();
         foreach (var configuration in new[] { "Debug", "Release" })
         {

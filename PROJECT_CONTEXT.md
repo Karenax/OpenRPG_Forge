@@ -1,6 +1,6 @@
 # Contexte canonique — OpenRPG Forge
 
-Dernière mise à jour : 27 août 2026.
+Dernière mise à jour : 28 août 2026.
 
 Ce document est l’unique contexte narratif courant du projet. Les états d’exécution sont dans
 `STATUS.md` et `TASKS_MVP.md`; les exigences détaillées et leurs preuves restent dans le tracker et
@@ -34,7 +34,7 @@ exigences du catalogue Aurora sont classées `Tested` dans 187 lots clos. Cette 
 capacités disponibles ; elle ne remplace pas la qualification d’un logiciel installable et publiable.
 
 `Forge.Studio` est désormais l'application Creator autonome qualifiée : Module Hub, une fenêtre
-produit, huit rubriques, trente-six pages, vue 3D centrale lorsque le contexte est spatial et ateliers
+produit, huit rubriques, trente-sept pages, vue 3D centrale lorsque le contexte est spatial et ateliers
 pleine surface pour les dialogues, scripts, données, validation et opérations réseau. La matrice
 d'accès humain contient 717 routes uniques au statut `functional`, de UX0 à UX10, et les 66 fenêtres
 historiques possèdent chacune une destination Studio au statut `Parity`.
@@ -54,6 +54,29 @@ La promotion explicite exige désormais un job complet réussi, une preuve accep
 révisions exactes, puis copie atomiquement une scène provider-free vers un chemin canonique référencé
 par `AreaWorldProfile`, avec manifeste de provenance, réouverture et inverse.
 
+La trente-septième page **Génération de monde** porte ce cycle dans Studio et partage les révisions
+persistantes avec MCP. Solaren fournit une seconde zone réellement promue, chargée par Runtime depuis
+le workspace puis depuis un `.orpmod` : 5 904 instances en quatre rôles, collision, navigation et
+SHA-256 canonique contrôlé. Cette tranche ferme l'absence d'intégration produit sans prétendre fournir
+une direction artistique universelle ni les qualifications Linux/export encore ouvertes.
+
+La consolidation du 28 août ferme les défauts de fiabilité révélés par les audits croisés. Studio et
+MCP partagent une révision durable et une empreinte de tous les documents dans
+`.forge/project-session.json`; une sauvegarde prend un verrou interprocessus et refuse une session
+obsolète au lieu d'écraser le disque. Le journal `.forge/project-transactions` récupère les écritures
+multi-fichiers interrompues. Le format de sauvegarde `1.8.0` accepte un protagoniste sans combat,
+conserve l'état global entre portails et stocke les états locaux par zone ; Solaren peut donc être
+sauvegardé et une reprise hors de la zone d'entrée recharge la bonne zone.
+
+Le host Release expose exactement les 271 outils déclarés, dont voix et WorldGeneration, et les
+distributions exécutent les self-tests du host et du CLI réellement redistribués. La Crypte ne dépend
+plus de branches fonctionnelles de slug dans le moteur : tags, propriétés, scripts et overrides du
+module pilotent la tranche. Sa rencontre de référence possède une faction active, une vraie route de
+patrouille, une ancre navigable et quatre ForgeScripts présents ; les 27 scripts du module compilent
+et s'exécutent dans le laboratoire qualité. Le Studio refuse ces références si elles ne se résolvent
+pas réellement. Les budgets automatiques maintiennent les familles `GameRoot`,
+`StudioSessionController`, MCP et plugin sous leurs plafonds pendant le découpage progressif.
+
 La tranche de qualification du 27 août 2026 conserve les backends sérialisés mais nomme le
 fournisseur concret par `providerKey` (`terrain3d`, `godot-flow`, `gf-pcgodot` ou `openrpg-native`).
 Terrain3D avec Godot Flow puis GF-PCGODOT a été exécuté réellement sous Godot 4.7.1 Windows dans des
@@ -62,7 +85,9 @@ fixtures isolées. Le proxy 2 km prouve déterminisme, collision, navigation, sa
 Linux/Windows ni une qualité artistique ; Godot Flow reste la baseline et aucun fournisseur final
 n'est choisi.
 
-La revue corrective UX11-B a inspecté les trente-six pages en Full HD, QHD et 4K. Les distributions
+La revue corrective UX11-B a inspecté les trente-six pages historiques en Full HD, QHD et 4K. La page
+WorldGeneration ajoutée ensuite possède ses tests fonctionnels et sa preuve runtime ; sa revue
+humaine multi-résolution rejoint la prochaine qualification visuelle globale. Les distributions
 Studio Windows x64 et Linux x64 embarquent le workspace Crypte des Cendres et la bibliothèque
 ForgeScript native de leur plateforme ; le smoke Linux a été rejoué sur Debian 13 x86_64 sans
 éditeur Godot, ce qui ferme `STUDIO-043`. Le portail associé à cette revue passait alors 2 117 tests
@@ -80,12 +105,12 @@ Le Creator sait aussi configurer un profil de lanceur par jeu et générer une d
 atomique. Le profil accepte un fond PNG/JPEG et une musique WAV gouvernés par le workspace du jeu ;
 le lanceur WPF lit cette musique en boucle avec Play/Stop et volume persistant. Sa présentation RPG
 animée vérifie ses fichiers, expose Accueil, Configuration et Multijoueur, applique les préférences au
-runtime et démarre une session autoritaire locale ou Internet. Le transport TCP v1 refuse les modules/protocoles incompatibles et
-réplique la présence ainsi que les déplacements des avatars entre runtimes. En mode Hôte Internet,
-le lanceur détecte facultativement l'IPv4 publique, affiche `adresse:port`, permet de la copier ou de
-la remplacer par un DNS et ne présente jamais `127.0.0.1` comme adresse d'invitation ; l'hôte doit
-toujours autoriser et rediriger le port TCP. Cette base directe n'est pas encore une campagne coopérative
-complète : gameplay RPG, chiffrement, identité d'hôte, reconnexion et relais/NAT restent à raccorder.
+runtime et démarre une session autoritaire locale ou Internet. Le transport v2 refuse les modules et
+protocoles incompatibles, emploie TLS 1.2/1.3 avec certificat épinglé et authentifie un jeton privé.
+Le lanceur détecte facultativement l'IPv4 publique puis copie une invitation `openrpg2:` contenant
+adresse, port, pin et jeton ; `127.0.0.1` n'est jamais présenté comme destination Internet. Présence
+et déplacements sont répliqués, et une tranche serveur réelle exerce attaque, potion, quête et
+checkpoint. Reconnexion, relais/NAT et projection de toute une campagne restent à raccorder.
 Le lanceur, le module et le Studio démarrent en plein écran ; le choix joueur **Fenêtré plein écran**
 projette les anciennes préférences `Windowed`/`Borderless` vers une fenêtre sans bordure couvrant le
 moniteur.
@@ -115,9 +140,10 @@ Client/Serveur dédié/Publication refusent une licence ou provenance inconnue. 
 fallback accessible. Les quatre prises françaises de Maélis sont désormais des WAV CC0-1.0
 synthétiques et reproductibles avec eSpeak NG 1.52.0 ; leur manifeste divulgue la synthèse, les
 paramètres et les hashes, sans redistribuer le générateur. Les anciens octets Edge TTS sans preuve de
-redistribution ont été retirés. La frontière de sécurité couvre les mutations Forge coopératives ; la
-défense contre un processus local hostile échangeant un parent reste un durcissement futur no-follow
-par handle et verrou interprocessus. Le
+redistribution ont été retirés. La frontière de sécurité couvre les mutations Forge coopératives.
+Le verrou interprocessus, la révision persistée et l'empreinte disque empêchent désormais deux
+sessions ordinaires de s'écraser ; la publication no-follow par handle reste un durcissement futur
+contre l'échange hostile d'un parent par un processus local. Le
 runtime joueur exclut désormais les laboratoires de validation réservés aux smokes et applique la
 mouillure par overrides de matériaux sans duplication profonde des meshes ordinaires ; le démarrage
 Forward+ comparable de Solaren passe ainsi de 45,243 s à 12,207 s.
@@ -136,15 +162,15 @@ exécutables seuls ne sont pas portables hors de ce dossier.
 
 | Couche | État courant |
 | --- | --- |
-| Profil Creator et lanceur | héberger ou rejoindre par IPv4/DNS, détection publique facultative, copie `adresse:port`, port TCP persistant et interface vérifiée |
-| Transport | TCP direct réel, hôte runtime ou `Forge.Server`, admission module/protocole et snapshots révisionnés |
+| Profil Creator et lanceur | héberger ou rejoindre par invitation privée `openrpg2:`, détection publique facultative et port TCP persistant |
+| Transport | TLS 1.2/1.3 épinglé, jeton authentifié, hôte runtime ou `Forge.Server`, admission module/protocole et snapshots révisionnés |
 | Runtime | présence, zone, position, orientation et avatars distants interpolés |
-| Gameplay coopératif | non qualifié : les contrats RPG ne sont pas encore routés par ce transport |
-| Internet public non fiable | non qualifié : la détection d'adresse ne prouve pas la joignabilité ; pas de chiffrement, identité d'hôte, reconnexion, relais ou NAT automatique |
+| Gameplay coopératif | tranche autoritaire prouvée : combat, potion, quête et checkpoint ; campagne complète non qualifiée |
+| Internet public non fiable | partiel : chiffrement et identité d'hôte présents ; WAN, reconnexion, révocation, relais et NAT automatique non qualifiés |
 
 Studio configure des contrats réseau plus riches, mais ses aperçus et scénarios mémoire ne prouvent
 pas à eux seuls leur raccord au transport du lanceur. Le guide opérationnel et la frontière exacte
-sont dans `docs/MULTIPLAYER_INTERNET.md` ; l'ADR-0048 porte la décision de protocole.
+sont dans `docs/MULTIPLAYER_INTERNET.md` ; l'ADR-0056 porte le protocole sécurisé courant.
 
 Le parcours Creator normal ouvre la Crypte des Cendres et privilégie l'édition directe :
 choisir un objet ou une brosse de terrain, cliquer dans la vue 3D, cadrer la zone active et conserver
@@ -165,13 +191,13 @@ composants et assets tiers conservent leurs licences propres.
 Le chantier courant n’est plus la migration des routes Studio. Il porte sur la consolidation Git, la
 CI distante reproductible et les prérequis de release restants : signature Authenticode, revue
 physique multi-écrans, fournisseur IA réel et autorisation explicite de publication. Le prolongement
-multijoueur est suivi séparément : intentions gameplay autoritaires, sécurité, reconnexion,
+multijoueur est suivi séparément : couverture de campagne, reconnexion, révocation,
 qualification WAN et éventuel relais/NAT. Le plugin historique reste disponible jusqu'à une décision
 utilisateur explicite de basculer le lanceur Creator.
 
 ## Expérience Creator cible
 
-L’interface autonome est organisée autour de huit rubriques stables et trente-six pages : Monde,
+L’interface autonome est organisée autour de huit rubriques stables et trente-sept pages : Monde,
 Contenu, Histoire, Gameplay, Tester, Publier, Projet et Assistant. Une seule fenêtre produit contient
 la navigation, la page de travail et un inspecteur contextuel unique. Les onglets éventuels
 représentent des documents ouverts, jamais des familles de fonctions ou des fenêtres système.
@@ -270,7 +296,7 @@ espaces. La Clé de braise se trouve dans un reliquaire latéral et la porte sce
 une frontière physique qui empêche de la contourner par la géométrie.
 
 La couche visuelle de cette reconstruction réemploie le lot gouverné KayKit Dungeon Remastered
-CC0-1.0 présent dans `apps/Forge.Runtime/art/crypt-kaykit/` : sols, murs, passages, colonnes,
+CC0-1.0 présent dans `apps/Forge.Runtime/art/kaykit-dungeon-remastered/` : sols, murs, passages, colonnes,
 escaliers, coffres, tonneaux et torches composent les mêmes sept espaces que le snapshot de zone.
 Le document spécialisé `docs/design/CRYPT_OF_ASHES_DUNGEON_REBUILD.md` décrit cette composition et
 ses critères de qualification.
@@ -338,7 +364,7 @@ La première version publiable est atteinte lorsque :
 - un utilisateur peut réaliser les neuf étapes du but final sans éditer de JSON ;
 - chaque élément nécessaire à un module peut être créé, inspecté, modifié et supprimé manuellement
   sans perte silencieuse des données non affichées ;
-- les huit rubriques et trente-six pages du Studio sont cohérentes, navigables au clavier et
+- les huit rubriques et trente-sept pages du Studio sont cohérentes, navigables au clavier et
   utilisables sans connaissance de l'éditeur Godot ;
 - la Crypte passe une revue visuelle interactive aux résolutions supportées ;
 - un module créé, exporté, installé, sauvegardé, repris et mis à niveau passe un test de bout en bout ;

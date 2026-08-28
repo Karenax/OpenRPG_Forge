@@ -1,14 +1,14 @@
 [gd_scene load_steps=4 format=3]
 
 [ext_resource path="res://Runtime/GameRoot.cs" type="Script" id="1_game_root"]
-[ext_resource path="res://Runtime/CryptSystemicGameplay.cs" type="Script" id="2_systemic_gameplay"]
-[ext_resource path="res://Runtime/CryptSystemicPromptVisibility.cs" type="Script" id="3_systemic_prompts"]
+[ext_resource path="res://Runtime/SystemicEnvironmentGameplay.cs" type="Script" id="2_systemic_gameplay"]
+[ext_resource path="res://Runtime/SystemicPromptVisibility.cs" type="Script" id="3_systemic_prompts"]
 
 [node name="GameRoot" type="Node3D"]
 script = ExtResource("1_game_root")
 
-[node name="CryptSystemicGameplay" type="Node3D" parent="."]
+[node name="SystemicEnvironmentGameplay" type="Node3D" parent="."]
 script = ExtResource("2_systemic_gameplay")
 
-[node name="CryptSystemicPromptVisibility" type="Node" parent="."]
+[node name="SystemicPromptVisibility" type="Node" parent="."]
 script = ExtResource("3_systemic_prompts")

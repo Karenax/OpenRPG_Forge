@@ -1,6 +1,9 @@
 using System.Collections.Concurrent;
 using System.Net;
+using System.Net.Security;
 using System.Net.Sockets;
+using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
 using Forge.Network.Sessions;
 
 namespace Forge.Network.Transport;
@@ -14,6 +17,8 @@ public sealed class TcpAuthoritativeServer : IAsyncDisposable, IDisposable
     private readonly object _gate = new();
     private readonly DedicatedServerConfiguration _configuration;
     private readonly AuthoritativeSession _session;
+    private readonly InternetServerSecurityOptions? _security;
+    private readonly InternetAuthoritativeGameplay _gameplay;
     private readonly CancellationTokenSource _lifetime = new();
     private readonly ConcurrentDictionary<int, Task> _clientTasks = new();
     private readonly Dictionary<Guid, ClientConnection> _connections = [];
@@ -23,7 +28,10 @@ public sealed class TcpAuthoritativeServer : IAsyncDisposable, IDisposable
     private long _worldRevision;
     private bool _disposed;
 
-    public TcpAuthoritativeServer(DedicatedServerConfiguration configuration, Guid? sessionId = null)
+    public TcpAuthoritativeServer(
+        DedicatedServerConfiguration configuration,
+        Guid? sessionId = null,
+        InternetServerSecurityOptions? security = null)
     {
         ArgumentNullException.ThrowIfNull(configuration);
         var diagnostics = NetworkValidation.Validate(configuration);
@@ -32,11 +40,17 @@ public sealed class TcpAuthoritativeServer : IAsyncDisposable, IDisposable
             throw new ArgumentException("NET_BIND_ADDRESS_INVALID", nameof(configuration));
         _configuration = configuration;
         _session = new AuthoritativeSession(configuration, sessionId);
+        _security = security;
+        _gameplay = new InternetAuthoritativeGameplay(_session.SessionId);
     }
 
     public Guid SessionId => _session.SessionId;
 
     public bool IsRunning => _listener is not null && !_disposed;
+
+    public bool IsSecure => _security is not null;
+
+    public string? CertificateSha256 => _security?.CertificateSha256;
 
     public int ConnectedPlayers
     {
@@ -56,7 +70,10 @@ public sealed class TcpAuthoritativeServer : IAsyncDisposable, IDisposable
         var listener = new TcpListener(address, _configuration.Port);
         listener.Start(_configuration.Capacity);
         _listener = listener;
-        _acceptTask = AcceptLoopAsync(listener, _lifetime.Token);
+        // The server can be created from an engine synchronization context (Godot's main
+        // thread in particular). Keep the transport lifetime on the thread pool so a long
+        // synchronous scene load cannot stall accepts, TLS handshakes, or broadcasts.
+        _acceptTask = Task.Run(() => AcceptLoopAsync(listener, _lifetime.Token));
     }
 
     public async Task WaitForShutdownAsync(CancellationToken cancellationToken = default)
@@ -97,7 +114,7 @@ public sealed class TcpAuthoritativeServer : IAsyncDisposable, IDisposable
         var sessionConnected = false;
         try
         {
-            await using var stream = client.GetStream();
+            await using var stream = await CreateTransportStreamAsync(client.GetStream(), serverCancellation);
             using var handshake = CancellationTokenSource.CreateLinkedTokenSource(serverCancellation);
             handshake.CancelAfter(HandshakeTimeout);
             var packet = await InternetFrameCodec.ReadAsync<InternetClientPacket>(stream, handshake.Token);
@@ -119,8 +136,23 @@ public sealed class TcpAuthoritativeServer : IAsyncDisposable, IDisposable
                     hello.ProtocolVersion);
                 if (decision.Accepted)
                 {
-                    connection = new ClientConnection(client, stream, hello.ConnectionId, hello.DisplayName.Trim());
-                    sessionConnected = true;
+                    var gameplayDecision = _gameplay.Connect(hello.ConnectionId, hello.AccountId);
+                    if (!gameplayDecision.Accepted)
+                    {
+                        _ = _session.Disconnect(hello.ConnectionId);
+                        decision = new AuthorityDecision(
+                            false,
+                            gameplayDecision.Code,
+                            _session.Snapshot.Revision,
+                            _session.Snapshot,
+                            $"rejected:{gameplayDecision.Code}:connection={hello.ConnectionId}");
+                    }
+                    else
+                    {
+                        connection = new ClientConnection(
+                            client, stream, hello.ConnectionId, hello.DisplayName.Trim());
+                        sessionConnected = true;
+                    }
                 }
             }
 
@@ -139,6 +171,7 @@ public sealed class TcpAuthoritativeServer : IAsyncDisposable, IDisposable
                 _worldRevision = Math.Max(_worldRevision + 1, decision.Revision);
             }
             await BroadcastSnapshotAsync(serverCancellation);
+            await BroadcastGameplayAsync(serverCancellation);
 
             while (!serverCancellation.IsCancellationRequested)
             {
@@ -162,6 +195,15 @@ public sealed class TcpAuthoritativeServer : IAsyncDisposable, IDisposable
                         else
                             await BroadcastSnapshotAsync(serverCancellation);
                         break;
+                    case InternetTransportProtocol.GameplayIntentKind:
+                        var gameplayCode = ApplyGameplayIntent(activeConnection, packet.GameplayIntent);
+                        if (gameplayCode is not null)
+                        {
+                            LastTransportCode = gameplayCode;
+                            await activeConnection.SendAsync(Error(gameplayCode), serverCancellation);
+                        }
+                        await BroadcastGameplayAsync(serverCancellation);
+                        break;
                     case InternetTransportProtocol.PingKind:
                         await activeConnection.SendAsync(
                             new InternetServerPacket(
@@ -178,7 +220,8 @@ public sealed class TcpAuthoritativeServer : IAsyncDisposable, IDisposable
         catch (OperationCanceledException) when (serverCancellation.IsCancellationRequested)
         {
         }
-        catch (Exception exception) when (exception is IOException or SocketException or InvalidDataException)
+        catch (Exception exception) when (exception is IOException or SocketException or InvalidDataException or
+                                                   AuthenticationException)
         {
             LastTransportCode = exception.Message;
         }
@@ -193,6 +236,7 @@ public sealed class TcpAuthoritativeServer : IAsyncDisposable, IDisposable
                     if (sessionConnected)
                     {
                         _ = _session.Disconnect(connection.ConnectionId);
+                        _gameplay.Disconnect(connection.ConnectionId);
                         if (removed) _worldRevision++;
                     }
                 }
@@ -202,6 +246,7 @@ public sealed class TcpAuthoritativeServer : IAsyncDisposable, IDisposable
                     try
                     {
                         await BroadcastSnapshotAsync(serverCancellation);
+                        await BroadcastGameplayAsync(serverCancellation);
                     }
                     catch (Exception exception) when (exception is IOException or SocketException or
                                                        OperationCanceledException or ObjectDisposedException)
@@ -215,6 +260,32 @@ public sealed class TcpAuthoritativeServer : IAsyncDisposable, IDisposable
     }
 
     private void RemoveClientTask(int taskId) => _clientTasks.TryRemove(taskId, out Task? _);
+
+    private async Task<Stream> CreateTransportStreamAsync(
+        NetworkStream networkStream,
+        CancellationToken cancellationToken)
+    {
+        if (_security is null) return networkStream;
+        var secureStream = new SslStream(networkStream, leaveInnerStreamOpen: false);
+        try
+        {
+            await secureStream.AuthenticateAsServerAsync(
+                new SslServerAuthenticationOptions
+                {
+                    ServerCertificate = _security.ServerCertificate,
+                    ClientCertificateRequired = false,
+                    EnabledSslProtocols = _security.EnabledProtocols,
+                    CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
+                },
+                cancellationToken);
+            return secureStream;
+        }
+        catch
+        {
+            await secureStream.DisposeAsync();
+            throw;
+        }
+    }
 
     private string? ApplyPose(ClientConnection connection, InternetPlayerPose? pose)
     {
@@ -242,6 +313,21 @@ public sealed class TcpAuthoritativeServer : IAsyncDisposable, IDisposable
         return null;
     }
 
+    private string? ApplyGameplayIntent(
+        ClientConnection connection,
+        InternetGameplayIntent? intent)
+    {
+        lock (_gate)
+        {
+            if (!_connections.ContainsKey(connection.ConnectionId)) return "NET_CONNECTION_UNKNOWN";
+            var decision = _gameplay.Apply(
+                connection.ConnectionId,
+                intent,
+                connectionId => _connections.GetValueOrDefault(connectionId)?.LastPose);
+            return decision.Accepted ? null : decision.Code;
+        }
+    }
+
     private async Task SendWelcomeAsync(
         Stream stream,
         bool accepted,
@@ -256,7 +342,15 @@ public sealed class TcpAuthoritativeServer : IAsyncDisposable, IDisposable
             new InternetServerPacket(
                 InternetTransportProtocol.SchemaVersion,
                 InternetTransportProtocol.WelcomeKind,
-                new InternetTransportWelcome(accepted, code, SessionId, connectionId, revision)),
+                new InternetTransportWelcome(
+                    accepted,
+                    code,
+                    SessionId,
+                    connectionId,
+                    revision,
+                    Encrypted: _security is not null,
+                    Authenticated: accepted && _security is not null,
+                    CertificateSha256: _security?.CertificateSha256)),
             cancellationToken);
     }
 
@@ -307,7 +401,36 @@ public sealed class TcpAuthoritativeServer : IAsyncDisposable, IDisposable
         }));
     }
 
-    private static string? ValidateHello(InternetClientPacket? packet)
+    private async Task BroadcastGameplayAsync(CancellationToken cancellationToken)
+    {
+        (ClientConnection Connection, InternetGameplaySnapshot Snapshot)[] packets;
+        lock (_gate)
+        {
+            packets = _connections.Values
+                .OrderBy(item => item.ConnectionId)
+                .Select(item => (item, _gameplay.Snapshot(item.ConnectionId)))
+                .ToArray();
+        }
+
+        await Task.WhenAll(packets.Select(async item =>
+        {
+            try
+            {
+                await item.Connection.SendAsync(
+                    new InternetServerPacket(
+                        InternetTransportProtocol.SchemaVersion,
+                        InternetTransportProtocol.GameplaySnapshotKind,
+                        GameplaySnapshot: item.Snapshot),
+                    cancellationToken);
+            }
+            catch (Exception exception) when (exception is IOException or SocketException or ObjectDisposedException)
+            {
+                item.Connection.Dispose();
+            }
+        }));
+    }
+
+    private string? ValidateHello(InternetClientPacket? packet)
     {
         if (packet is null || packet.SchemaVersion != InternetTransportProtocol.SchemaVersion ||
             !string.Equals(packet.Kind, InternetTransportProtocol.HelloKind, StringComparison.Ordinal) ||
@@ -319,7 +442,7 @@ public sealed class TcpAuthoritativeServer : IAsyncDisposable, IDisposable
             string.IsNullOrWhiteSpace(hello.ModuleFingerprint) ||
             string.IsNullOrWhiteSpace(hello.ProtocolVersion))
             return "NET_HELLO_INVALID";
-        return null;
+        return _security?.Authenticate(hello.AccountId, hello.AuthenticationToken);
     }
 
     private static InternetServerPacket Error(string code) => new(
@@ -385,7 +508,7 @@ public sealed class TcpAuthoritativeServer : IAsyncDisposable, IDisposable
 
     private sealed class ClientConnection(
         TcpClient client,
-        NetworkStream stream,
+        Stream stream,
         Guid connectionId,
         string displayName) : IDisposable
     {

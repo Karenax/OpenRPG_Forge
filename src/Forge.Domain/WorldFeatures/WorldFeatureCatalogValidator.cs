@@ -1,5 +1,6 @@
 using Forge.Domain.Areas;
 using Forge.Domain.Blueprints;
+using Forge.Domain.Navigation;
 using Forge.Domain.Projects;
 using Forge.Domain.Validation;
 
@@ -27,6 +28,15 @@ public static class WorldFeatureCatalogValidator
         var quests = project.Quests.Select(item => item.Id.Value).ToHashSet();
         var encounters = catalog.Encounters.Select(item => item.Id).ToHashSet();
         var factionIds = project.Module.Factions.Factions.Select(item => item.Id).ToHashSet();
+        var spawnAnchorsByArea = NavigationDestinationCatalog.Build(project).Entries
+            .Where(item => item.Kind == NavigationDestinationKind.SpawnAnchor &&
+                           item.AreaId is not null &&
+                           !string.IsNullOrWhiteSpace(item.ArrivalAnchorKey))
+            .GroupBy(item => item.AreaId!)
+            .ToDictionary(
+                group => group.Key,
+                group => (IReadOnlySet<string>)group.Select(item => item.ArrivalAnchorKey!)
+                    .ToHashSet(StringComparer.Ordinal));
 
         if (catalog.Id != project.Module.Id.Value)
             Add(diagnostics, "world.catalog.id_mismatch", "The world-feature catalog ID must match the module ID.", "module/worldFeatures/id");
@@ -391,6 +401,17 @@ public static class WorldFeatureCatalogValidator
                 foundation.SpawnAnchorIds.Distinct(StringComparer.Ordinal).Count() != foundation.SpawnAnchorIds.Count)
                 Add(diagnostics, "world.encounter.anchors_invalid",
                     "Encounter requires unique reachable spawn anchors.", $"{foundationPath}/spawnAnchorIds");
+            else
+            {
+                spawnAnchorsByArea.TryGetValue(profile.AreaId, out var availableSpawnAnchors);
+                var missingSpawnAnchors = foundation.SpawnAnchorIds
+                    .Where(anchorId => availableSpawnAnchors is null || !availableSpawnAnchors.Contains(anchorId))
+                    .ToArray();
+                if (missingSpawnAnchors.Length > 0)
+                    Add(diagnostics, "world.encounter.anchor_reference_missing",
+                        $"Encounter spawn anchors do not resolve in area '{profile.AreaId}': " +
+                        string.Join(", ", missingSpawnAnchors), $"{foundationPath}/spawnAnchorIds");
+            }
             if (foundation.RewardIds.Any(string.IsNullOrWhiteSpace))
                 Add(diagnostics, "world.encounter.rewards_invalid",
                     "Encounter reward references cannot be empty.", $"{foundationPath}/rewardIds");

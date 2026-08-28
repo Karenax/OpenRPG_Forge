@@ -58,8 +58,10 @@ chemin fonctionnel hors ligne sans addon. Les opérations sont allowlistées, le
 workspace et les retouches humaines peuvent être verrouillées lors d'une régénération partielle.
 Les formats persistés conservent leurs backends canoniques tandis que `providerKey` distingue
 `terrain3d`, `godot-flow`, `gf-pcgodot` et `openrpg-native` pour les benchmarks et diagnostics.
-Un job complet validé peut être promu par une seconde preview MCP : scène provider-free, contrôle
-des révisions et empreintes, copie/manifeste atomiques, référence `AreaWorldProfile` et inverse.
+Un job complet validé peut être promu depuis MCP ou la page **Génération de monde** de Studio : scène
+provider-free, contrôle des révisions et empreintes, copie/manifeste atomiques, référence
+`AreaWorldProfile` et inverse. Solaren exerce ce parcours jusqu'au chargement Runtime et au package
+`.orpmod` avec une seconde zone de 5 904 instances, collision et navigation.
 
 ```powershell
 ./scripts/Install-WorldGenerationDependencies.ps1 -GodotProjectPath ./apps/Forge.Toolset -WhatIf
@@ -68,8 +70,9 @@ des révisions et empreintes, copie/manifeste atomiques, référence `AreaWorldP
 La simulation ci-dessus ne télécharge rien. Le guide complet, l'installation réelle, les limites et
 le parcours Codex sont dans [`docs/world-generation/README.md`](docs/world-generation/README.md) ; la
 qualification comparative est cadrée par `BACKEND_QUALIFICATION.md` et `QUALITY_BENCHMARK.md`.
-La qualification locale Windows prouve le proxy technique sous Godot 4.7.1 avec les addons réels ;
-elle ne livre pas encore de graphes PCG artistiques prêts pour un jeu ni de preuve Linux/export.
+La qualification locale Windows prouve le proxy comparatif et la tranche jouable Solaren sous Godot
+4.7.1 avec les addons réels. Elle ne qualifie pas encore une bibliothèque artistique universelle,
+les exports provider-free Linux/Windows ni la CI Linux.
 
 ## Lancer le prototype
 
@@ -180,10 +183,11 @@ le titre, le fond, la musique WAV facultative, les menus et la capacité multijo
 Le dossier obtenu possède son propre `.exe` WPF single-file et une interface RPG cinématique : décor
 personnalisable, brumes et particules animées, parallaxe, transitions, musique avec Play/Stop et volume,
 Accueil, Configuration et Multijoueur. Le runtime, le `.orpmod` Client et chaque fichier restent couverts par le manifeste
-SHA-256. Le solo, l'hébergement autoritaire et la connexion Internet directe par IPv4/DNS
-fonctionnent avec contrôle du module/protocole et réplication des avatars. L'hôte doit autoriser et
-rediriger le port TCP choisi ; relais/NAT automatique, chiffrement et synchronisation de tout le
-gameplay RPG ne font pas encore partie de ce premier transport. Voir
+SHA-256. Le solo, l'hébergement autoritaire et la connexion Internet directe par invitation privée
+`openrpg2:` fonctionnent avec TLS épinglé, jeton authentifié, contrôle du module/protocole et
+réplication des avatars. Une tranche serveur exerce combat, inventaire, quête et checkpoint sans
+accepter l'état calculé par le client. L'hôte doit toujours autoriser et rediriger le port TCP choisi ;
+reconnexion, relais/NAT automatique et projection de toute une campagne restent ouverts. Voir
 [`docs/DISTRIBUTION.md`](docs/DISTRIBUTION.md) pour l'export et
 [`docs/MULTIPLAYER_INTERNET.md`](docs/MULTIPLAYER_INTERNET.md) pour l'hébergement, la connexion,
 le serveur headless, les diagnostics et les limites de sécurité.

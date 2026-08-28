@@ -100,6 +100,7 @@ public sealed record AnchorCatalog
         var definitions = source.Definitions.Select(item => item with
         {
             Id = definitionMap[item.Id],
+            Slug = $"{item.Slug}-clone-{destinationAreaId.ToString()[..8]}",
             Provenance = "area-clone",
         }).ToArray();
         var instances = source.Instances.Select(item => item with

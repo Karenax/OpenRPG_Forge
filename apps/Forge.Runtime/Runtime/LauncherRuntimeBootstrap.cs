@@ -2,6 +2,7 @@ using Forge.ModuleFormat.Launcher;
 using Forge.Network.Sessions;
 using Forge.Network.Transport;
 using Godot;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Forge.Runtime;
 
@@ -18,12 +19,14 @@ internal sealed class LauncherRuntimeNetworkSession : IDisposable
         string moduleFingerprint,
         string requestedSessionMode,
         TcpGameClient client,
-        TcpAuthoritativeServer? server)
+        TcpAuthoritativeServer? server,
+        X509Certificate2? hostCertificate = null)
     {
         ModuleFingerprint = moduleFingerprint;
         RequestedSessionMode = requestedSessionMode;
         Client = client;
         Server = server;
+        HostCertificate = hostCertificate;
     }
 
     internal string ModuleFingerprint { get; }
@@ -33,6 +36,8 @@ internal sealed class LauncherRuntimeNetworkSession : IDisposable
     internal TcpGameClient Client { get; }
 
     internal TcpAuthoritativeServer? Server { get; }
+
+    private X509Certificate2? HostCertificate { get; }
 
     internal bool IsHost => Server is not null;
 
@@ -46,6 +51,7 @@ internal sealed class LauncherRuntimeNetworkSession : IDisposable
         _disposed = true;
         Client.Dispose();
         Server?.Dispose();
+        HostCertificate?.Dispose();
     }
 }
 
@@ -111,12 +117,29 @@ internal static class LauncherRuntimeBootstrap
         ArgumentException.ThrowIfNullOrWhiteSpace(moduleTitle);
         var settings = context.Settings;
         TcpAuthoritativeServer? server = null;
+        X509Certificate2? hostCertificate = null;
         try
         {
             var address = settings.ServerAddress.Trim();
+            var secureInternet = context.RequestedSessionMode is "internet-host" or "internet-join";
             if (settings.SessionMode == LauncherSessionMode.LocalHost)
             {
                 var internetHost = context.RequestedSessionMode == "internet-host";
+                InternetServerSecurityOptions? serverSecurity = null;
+                if (internetHost)
+                {
+                    hostCertificate = LoadHostCertificate(settings, context.SettingsPath);
+                    var actualFingerprint = InternetTransportSecurity.CertificateSha256(hostCertificate);
+                    if (!string.Equals(
+                            actualFingerprint,
+                            settings.ServerCertificateSha256,
+                            StringComparison.OrdinalIgnoreCase))
+                        throw new InvalidOperationException(
+                            "Launcher host certificate does not match the persisted invitation pin.");
+                    serverSecurity = new InternetServerSecurityOptions(
+                        hostCertificate,
+                        [new(Guid.Empty, InternetTransportSecurity.TokenSha256(settings.NetworkJoinToken))]);
+                }
                 var configuration = new DedicatedServerConfiguration(
                     Guid.NewGuid(),
                     1,
@@ -127,7 +150,7 @@ internal static class LauncherRuntimeBootstrap
                     internetHost ? DiscoveryMode.Direct : DiscoveryMode.Lan,
                     moduleFingerprint,
                     InternetTransportProtocol.GameProtocolVersion);
-                server = new TcpAuthoritativeServer(configuration);
+                server = new TcpAuthoritativeServer(configuration, security: serverSecurity);
                 server.Start();
                 address = "127.0.0.1";
             }
@@ -137,27 +160,66 @@ internal static class LauncherRuntimeBootstrap
                     address,
                     settings.ServerPort,
                     settings.PlayerName.Trim(),
-                    moduleFingerprint),
+                    moduleFingerprint,
+                    AccountId: settings.NetworkAccountId,
+                    AuthenticationToken: secureInternet ? settings.NetworkJoinToken : null,
+                    RequireTls: secureInternet,
+                    PinnedServerCertificateSha256: secureInternet
+                        ? settings.ServerCertificateSha256
+                        : null),
                 cancellationToken);
             var networkSession = new LauncherRuntimeNetworkSession(
                 moduleFingerprint,
                 context.RequestedSessionMode,
                 client,
-                server);
+                server,
+                hostCertificate);
+            hostCertificate = null;
             GD.Print(
                 settings.SessionMode == LauncherSessionMode.LocalHost
                     ? $"OPENRPG_FORGE_RUNTIME_INTERNET_HOST_PASS session={client.SessionId:D} " +
                       $"bind={(networkSession.IsInternetHost ? "0.0.0.0" : "127.0.0.1")} " +
-                      $"port={settings.ServerPort} transport=tcp"
+                      $"port={settings.ServerPort} transport={(client.IsEncrypted ? "tls-tcp" : "tcp-loopback-dev")} " +
+                      $"authenticated={client.IsAuthenticated.ToString().ToLowerInvariant()}"
                     : $"OPENRPG_FORGE_RUNTIME_INTERNET_JOIN_PASS session={client.SessionId:D} " +
-                      $"address={address} port={settings.ServerPort} transport=tcp");
+                      $"address={address} port={settings.ServerPort} transport=tls-tcp " +
+                      $"authenticated={client.IsAuthenticated.ToString().ToLowerInvariant()}");
             return networkSession;
         }
         catch
         {
             server?.Dispose();
+            hostCertificate?.Dispose();
             throw;
         }
+    }
+
+    private static X509Certificate2 LoadHostCertificate(
+        GameLauncherUserSettings settings,
+        string settingsPath)
+    {
+        if (string.IsNullOrWhiteSpace(settings.NetworkJoinToken) ||
+            string.IsNullOrWhiteSpace(settings.ServerCertificateSha256) ||
+            string.IsNullOrWhiteSpace(settings.HostCertificatePath) ||
+            string.IsNullOrWhiteSpace(settings.HostCertificatePassword))
+            throw new InvalidOperationException("Secure Internet host material is incomplete.");
+        var settingsDirectory = Path.GetDirectoryName(Path.GetFullPath(settingsPath))
+            ?? throw new InvalidOperationException("Launcher settings directory is unavailable.");
+        var certificatePath = Path.GetFullPath(settings.HostCertificatePath);
+        if (!string.Equals(
+                Path.GetDirectoryName(certificatePath),
+                settingsDirectory,
+                StringComparison.OrdinalIgnoreCase) ||
+            !string.Equals(Path.GetExtension(certificatePath), ".pfx", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("Launcher host certificate must stay beside its settings file.");
+        var file = new FileInfo(certificatePath);
+        if (!file.Exists || file.Length is < 1 or > 1024 * 1024 ||
+            file.Attributes.HasFlag(FileAttributes.ReparsePoint))
+            throw new InvalidOperationException("Launcher host certificate file is invalid.");
+        return X509CertificateLoader.LoadPkcs12FromFile(
+            certificatePath,
+            settings.HostCertificatePassword,
+            X509KeyStorageFlags.Exportable | X509KeyStorageFlags.DefaultKeySet);
     }
 
     private static void ApplyDisplay(Node root, GameLauncherUserSettings settings)

@@ -13,4 +13,8 @@
     <ProjectReference Include="..\..\src\Forge.Mcp\Forge.Mcp.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="mcp-tools.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

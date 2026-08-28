@@ -29,6 +29,7 @@ const ALLOWED_OPERATIONS := {
 
 var _graph_registry: Dictionary = {}
 var _pending_surface_projections: Array[Dictionary] = []
+var _artistic_meshes: Dictionary = {}
 
 func _ready() -> void:
     add_to_group("forge_world_generation_terrain3d")
@@ -100,6 +101,15 @@ func bake_forge_generated_world(recipe_id: String, output_path: String) -> Dicti
         return _failure("world_generation.bake.unavailable", "Neutral world baker could not be loaded.")
     var baker: RefCounted = baker_script.new()
     return baker.call("bake", generated_root, output_path) as Dictionary
+
+func release_forge_world_generation_editor_state() -> void:
+    _pending_surface_projections.clear()
+    var scene_root := get_tree().edited_scene_root if Engine.is_editor_hint() else get_tree().current_scene
+    if scene_root == null:
+        scene_root = self
+    for child in scene_root.get_children():
+        if child.name.begins_with(GENERATED_ROOT_NAME):
+            child.queue_free()
 
 func _execute_terrain3d(request: Dictionary) -> Dictionary:
     if not ClassDB.class_exists("Terrain3D"):
@@ -200,6 +210,13 @@ func _execute_pcg(request: Dictionary) -> Dictionary:
     else:
         executor.free()
         return _failure("world_generation.pcg.execution_api_missing", "Graph PCG executor exposes neither regenerate nor execute.")
+    _remap_generated_instances(executor, stage, request)
+    var artistic_instances := _apply_artistic_stage_visuals(executor, stage, request)
+    if artistic_instances == 0:
+        executor.free()
+        return _failure(
+            "world_generation.pcg.artistic_output_missing",
+            "Graph PCG stage '%s' produced no recipe-driven artistic instances." % stage)
     var source_distinct_positions := _distinct_multimesh_horizontal_positions(executor)
     var surface_alignment := _align_multimeshes_to_terrain(executor, generated_root)
     var surface_projection_queued := int(surface_alignment.get("aligned", 0)) == 0 and \
@@ -221,6 +238,8 @@ func _execute_pcg(request: Dictionary) -> Dictionary:
     result["surfaceAlignedInstances"] = int(surface_alignment.get("aligned", 0))
     result["surfaceProjectionQueued"] = surface_projection_queued
     result["sourceDistinctHorizontalPositions"] = source_distinct_positions
+    result["artisticInstances"] = artistic_instances
+    result["artisticRole"] = stage
     return result
 
 func _distinct_multimesh_horizontal_positions(node: Node) -> int:
@@ -267,6 +286,186 @@ func _find_multimesh_instances(node: Node) -> Array[MultiMeshInstance3D]:
     for child in node.get_children():
         results.append_array(_find_multimesh_instances(child))
     return results
+
+func _remap_generated_instances(executor: Node, stage: String, request: Dictionary) -> void:
+    var recipe_variant: Variant = request.get("recipe", {})
+    var recipe: Dictionary = recipe_variant as Dictionary if typeof(recipe_variant) == TYPE_DICTIONARY else {}
+    var bounds_variant: Variant = recipe.get("bounds", {})
+    var bounds: Dictionary = bounds_variant as Dictionary if typeof(bounds_variant) == TYPE_DICTIONARY else {}
+    var width := maxf(float(bounds.get("widthMeters", 2048.0)), 32.0)
+    var depth := maxf(float(bounds.get("depthMeters", 2048.0)), 32.0)
+    var seed := int(request.get("seed", 1))
+    var global_index := 0
+    for multimesh_instance in _find_multimesh_instances(executor):
+        var multimesh: MultiMesh = multimesh_instance.multimesh
+        if multimesh == null:
+            continue
+        for index in multimesh.instance_count:
+            var transform := multimesh.get_instance_transform(index)
+            var normalized_index := float(global_index) / maxf(float(multimesh.instance_count - 1), 1.0)
+            var horizontal := Vector2.ZERO
+            match stage:
+                "roads":
+                    horizontal = Vector2(
+                        24.0 + normalized_index * maxf(width - 48.0, 1.0),
+                        depth * 0.5 + sin(normalized_index * TAU * 2.0) * minf(depth * 0.12, 96.0))
+                "settlements":
+                    var angle := normalized_index * TAU * 2.0
+                    var ring := 18.0 + float(global_index % 5) * 14.0
+                    horizontal = Vector2(width * 0.72 + cos(angle) * ring, depth * 0.72 + sin(angle) * ring)
+                _:
+                    horizontal = Vector2(
+                        16.0 + _unit_hash(seed, stage, global_index, 0) * maxf(width - 32.0, 1.0),
+                        16.0 + _unit_hash(seed, stage, global_index, 1) * maxf(depth - 32.0, 1.0))
+            transform.origin = Vector3(
+                clampf(horizontal.x, 1.0, width - 1.0),
+                400.0,
+                clampf(horizontal.y, 1.0, depth - 1.0))
+            var variation := 0.82 + _unit_hash(seed, stage, global_index, 2) * 0.38
+            transform.basis = Basis.IDENTITY.scaled(Vector3.ONE * variation)
+            multimesh.set_instance_transform(index, transform)
+            global_index += 1
+
+func _unit_hash(seed: int, stage: String, index: int, channel: int) -> float:
+    var digest := ("%d|%s|%d|%d" % [seed, stage, index, channel]).sha256_text()
+    return float(digest.substr(0, 8).hex_to_int()) / 4294967295.0
+
+func _apply_artistic_stage_visuals(executor: Node, stage: String, request: Dictionary) -> int:
+    var mesh := _artistic_mesh_for(stage)
+    if mesh == null:
+        return 0
+    var recipe_variant: Variant = request.get("recipe", {})
+    var recipe: Dictionary = recipe_variant as Dictionary if typeof(recipe_variant) == TYPE_DICTIONARY else {}
+    var count := 0
+    var visual_index := 0
+    for instance in _find_multimesh_instances(executor):
+        if instance.multimesh == null:
+            continue
+        instance.name = "Artistic_%s_%02d" % [stage.capitalize(), visual_index]
+        instance.multimesh.mesh = mesh
+        instance.material_override = null
+        instance.set_meta("openrpg_artistic_role", stage)
+        instance.set_meta("openrpg_recipe_driven", true)
+        instance.set_meta("openrpg_recipe_title", str(recipe.get("title", "generated-world")))
+        count += instance.multimesh.instance_count
+        visual_index += 1
+    return count
+
+func _artistic_mesh_for(stage: String) -> ArrayMesh:
+    if _artistic_meshes.has(stage):
+        return _artistic_meshes[stage] as ArrayMesh
+    var surface := SurfaceTool.new()
+    surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+    match stage:
+        "biomes":
+            _add_box(surface, Vector3(0, 1.2, 0), Vector3(0.45, 2.4, 0.45), Color("#5b3822"))
+            _add_cone(surface, Vector3(0, 1.4, 0), 1.45, 2.8, 8, Color("#315f3a"))
+            _add_cone(surface, Vector3(0, 2.7, 0), 1.05, 2.2, 8, Color("#447a45"))
+        "roads":
+            _add_box(surface, Vector3(0, 0.08, 0), Vector3(1.8, 0.16, 4.4), Color("#756a58"))
+            _add_box(surface, Vector3(-0.78, 0.15, 0), Vector3(0.18, 0.14, 4.2), Color("#95866d"))
+            _add_box(surface, Vector3(0.78, 0.15, 0), Vector3(0.18, 0.14, 4.2), Color("#95866d"))
+        "settlements":
+            _add_box(surface, Vector3(0, 1.4, 0), Vector3(2.8, 2.8, 2.5), Color("#c8aa73"))
+            _add_pyramid(surface, Vector3(0, 2.8, 0), Vector2(3.4, 3.1), 1.6, Color("#7d352d"))
+            _add_box(surface, Vector3(0, 0.9, 1.28), Vector3(0.7, 1.8, 0.12), Color("#4a2f25"))
+        "scatter":
+            _add_rock(surface, Vector3(-0.45, 0.55, 0), 0.85, Color("#66706b"))
+            _add_rock(surface, Vector3(0.55, 0.35, 0.25), 0.55, Color("#7b8277"))
+            _add_rock(surface, Vector3(0.1, 0.25, -0.55), 0.4, Color("#59635c"))
+        _:
+            _add_pyramid(surface, Vector3.ZERO, Vector2(1.2, 1.2), 2.0, Color("#d18a45"))
+    var mesh := surface.commit() as ArrayMesh
+    if mesh == null:
+        return null
+    var material := StandardMaterial3D.new()
+    material.vertex_color_use_as_albedo = true
+    material.roughness = 0.88
+    mesh.surface_set_material(0, material)
+    _artistic_meshes[stage] = mesh
+    return mesh
+
+func _add_box(surface: SurfaceTool, center: Vector3, size: Vector3, color: Color) -> void:
+    var half := size * 0.5
+    var p := [
+        center + Vector3(-half.x, -half.y, -half.z), center + Vector3(half.x, -half.y, -half.z),
+        center + Vector3(half.x, half.y, -half.z), center + Vector3(-half.x, half.y, -half.z),
+        center + Vector3(-half.x, -half.y, half.z), center + Vector3(half.x, -half.y, half.z),
+        center + Vector3(half.x, half.y, half.z), center + Vector3(-half.x, half.y, half.z),
+    ]
+    _add_quad(surface, p[0], p[3], p[2], p[1], color)
+    _add_quad(surface, p[4], p[5], p[6], p[7], color)
+    _add_quad(surface, p[0], p[4], p[7], p[3], color)
+    _add_quad(surface, p[1], p[2], p[6], p[5], color)
+    _add_quad(surface, p[3], p[7], p[6], p[2], color)
+    _add_quad(surface, p[0], p[1], p[5], p[4], color)
+
+func _add_cone(
+        surface: SurfaceTool,
+        base_center: Vector3,
+        radius: float,
+        height: float,
+        segments: int,
+        color: Color) -> void:
+    var top := base_center + Vector3.UP * height
+    for segment in segments:
+        var first_angle := TAU * float(segment) / float(segments)
+        var second_angle := TAU * float(segment + 1) / float(segments)
+        var first := base_center + Vector3(cos(first_angle) * radius, 0, sin(first_angle) * radius)
+        var second := base_center + Vector3(cos(second_angle) * radius, 0, sin(second_angle) * radius)
+        _add_triangle(surface, first, second, top, color)
+        _add_triangle(surface, base_center, second, first, color.darkened(0.12))
+
+func _add_pyramid(
+        surface: SurfaceTool,
+        base_center: Vector3,
+        size: Vector2,
+        height: float,
+        color: Color) -> void:
+    var half := size * 0.5
+    var corners := [
+        base_center + Vector3(-half.x, 0, -half.y), base_center + Vector3(half.x, 0, -half.y),
+        base_center + Vector3(half.x, 0, half.y), base_center + Vector3(-half.x, 0, half.y),
+    ]
+    var top := base_center + Vector3.UP * height
+    _add_quad(surface, corners[0], corners[1], corners[2], corners[3], color.darkened(0.15))
+    for index in 4:
+        _add_triangle(surface, corners[index], corners[(index + 1) % 4], top, color)
+
+func _add_rock(surface: SurfaceTool, center: Vector3, radius: float, color: Color) -> void:
+    var ring := []
+    for index in 6:
+        var angle := TAU * float(index) / 6.0
+        var variation := 0.78 + float(index % 3) * 0.11
+        ring.append(center + Vector3(cos(angle) * radius * variation, 0, sin(angle) * radius))
+    var top := center + Vector3.UP * radius
+    var bottom := center - Vector3.UP * radius * 0.45
+    for index in 6:
+        var next := (index + 1) % 6
+        _add_triangle(surface, ring[index], ring[next], top, color.lightened(float(index % 2) * 0.06))
+        _add_triangle(surface, ring[next], ring[index], bottom, color.darkened(0.12))
+
+func _add_quad(
+        surface: SurfaceTool,
+        first: Vector3,
+        second: Vector3,
+        third: Vector3,
+        fourth: Vector3,
+        color: Color) -> void:
+    _add_triangle(surface, first, second, third, color)
+    _add_triangle(surface, first, third, fourth, color)
+
+func _add_triangle(
+        surface: SurfaceTool,
+        first: Vector3,
+        second: Vector3,
+        third: Vector3,
+        color: Color) -> void:
+    var normal := (second - first).cross(third - first).normalized()
+    for vertex in [first, second, third]:
+        surface.set_normal(normal)
+        surface.set_color(color)
+        surface.add_vertex(vertex)
 
 func _execute_native(request: Dictionary) -> Dictionary:
     var step: Dictionary = request.get("step", {})

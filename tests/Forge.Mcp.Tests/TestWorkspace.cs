@@ -29,7 +29,18 @@ internal sealed class TestWorkspace : IDisposable
             var opened = ProjectSession.Open(RootDirectory).Session
                 ?? throw new InvalidOperationException("The MCP fixture could not be opened for mutation.");
             var saved = opened.Save(mutate(opened.Project));
-            if (!saved.Succeeded) throw new InvalidOperationException("The MCP fixture mutation could not be saved.");
+            if (!saved.Succeeded)
+                throw new InvalidOperationException("The MCP fixture mutation could not be saved: " +
+                                                    string.Join(';', saved.Diagnostics.Select(item =>
+                                                        $"{item.Code}:{item.Path}:{item.Message}")));
+
+            // Fixture seeding defines revision zero; operational revision state belongs to the
+            // service under test and must not leak from this setup-only save.
+            var operationalStateDirectory = Path.Combine(RootDirectory, ".forge");
+            if (Directory.Exists(operationalStateDirectory))
+            {
+                Directory.Delete(operationalStateDirectory, recursive: true);
+            }
         }
         Project = ForgeProjectAgentService.Open(RootDirectory).Service
             ?? throw new InvalidOperationException("The MCP test project did not open.");

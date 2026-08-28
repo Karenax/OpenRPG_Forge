@@ -16,7 +16,7 @@ seul backend concret produit ensuite chaque type d'artefact.
 | Habillage de donjon | fournisseur Graph PCG retenu | après choix |
 | Scatter de production | fournisseur Graph PCG retenu, ou ProtonScatter si gain prouvé | benchmark requis |
 | Eau visible | renderer OpenRPG initial | spécialisé plus tard si nécessaire |
-| Navigation | Godot natif, validée sur la géométrie finale | proxy technique réel validé ; module de production requis |
+| Navigation | Godot natif, validée sur la géométrie finale | proxy comparatif et tranche Solaren runtime validés ; production finale requise |
 | Gameplay et quêtes | contrats OpenRPG | confirmé |
 | Promotion canonique | commande OpenRPG gouvernée | implémentée, testée et réversible |
 
@@ -226,3 +226,16 @@ La parité des cinq captures montre que les deux adaptateurs ont produit le mêm
 elle ne prouve pas que ce proxy est beau. Le scoring aveugle, le temps de correction manuelle, un
 vrai module artistique, les exports Windows/Linux et l'exécution CI Linux restent ouverts. Aucune
 nouvelle ADR de sélection n'est donc créée.
+
+## Tranche produit Solaren du 28 août 2026
+
+La qualification comparative ci-dessus reste inchangée : elle mesure les fournisseurs sur une
+entrée commune. Un second jalon exerce maintenant la chaîne produit dans Solaren avec Studio, le
+worker GPU, la promotion, Runtime et le package. La scène canonique contient 5 904 instances réparties
+en quatre rôles, une collision et une navigation. Son SHA-256 est
+`99a2cd3fcb17427c63ea4e09068d256b062516636eef87e37b25ce9d62dde7df` et son chargement est prouvé
+depuis le workspace et depuis le `.orpmod`.
+
+Ce jalon ferme l'absence d'intégration réelle à un module et d'interface Studio. Il ne change pas la
+sélection des fournisseurs ni les gates artistiques, Linux, export et CI restantes. Voir
+[`ADR-0055`](../ADR/ADR-0055-runtime-world-generation-vertical-slice.md).

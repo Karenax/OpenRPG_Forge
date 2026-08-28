@@ -72,14 +72,44 @@ else {
 foreach ($relativePath in @(
         $executableName,
         'OpenRPG_Forge_Studio.pck',
+        'world-generation/Invoke-WorldGenerationWorkspaceWorker.ps1',
+        'world-generation/Install-WorldGenerationDependencies.ps1',
+        'world-generation/world-generation.dependencies.json',
+        'world-generation/worker-project/project.godot',
+        'world-generation/worker-project/process_workspace_jobs.gd',
+        'world-generation/addons/openrpg_world_generation/world_generation_job_runner.gd',
         'workspaces/crypt-of-ashes/project.json',
-        'workspaces/crypt-of-ashes/art/crypt-kaykit/CREDITS.md',
-        'workspaces/crypt-of-ashes/art/crypt-kaykit/floor_tile_large.gltf.glb',
-        'workspaces/crypt-of-ashes/art/crypt-kaykit/wall.gltf.glb',
-        'workspaces/crypt-of-ashes/art/crypt-kaykit/wall_doorway.glb')) {
+        'workspaces/crypt-of-ashes/art/kaykit-dungeon-remastered/CREDITS.md',
+        'workspaces/crypt-of-ashes/art/kaykit-dungeon-remastered/floor_tile_large.gltf.glb',
+        'workspaces/crypt-of-ashes/art/kaykit-dungeon-remastered/wall.gltf.glb',
+        'workspaces/crypt-of-ashes/art/kaykit-dungeon-remastered/wall_doorway.glb')) {
     $candidate = Resolve-DistributionRelativePath -RelativePath $relativePath
     if (-not (Test-Path -LiteralPath $candidate -PathType Leaf)) {
         throw "Required Studio distribution file missing: $relativePath"
+    }
+}
+$worldGenerationWorker = [string]$manifest.world_generation_worker
+if ($worldGenerationWorker -ne 'world-generation/Invoke-WorldGenerationWorkspaceWorker.ps1') {
+    throw 'The Studio manifest does not declare its governed WorldGeneration worker.'
+}
+$cliRelativePath = [string]$manifest.cli
+if ([string]::IsNullOrWhiteSpace($cliRelativePath)) {
+    throw 'The Studio manifest does not declare its isolated Forge CLI.'
+}
+$cliPath = Resolve-DistributionRelativePath -RelativePath $cliRelativePath
+if (-not (Test-Path -LiteralPath $cliPath -PathType Leaf)) {
+    throw "Bundled Forge CLI missing: $cliRelativePath"
+}
+$isWindowsHost = [System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform(
+    [System.Runtime.InteropServices.OSPlatform]::Windows)
+$isLinuxHost = [System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform(
+    [System.Runtime.InteropServices.OSPlatform]::Linux)
+$cliSmokeRan = ($manifest.platform -eq 'windows-x64' -and $isWindowsHost) -or
+    ($manifest.platform -eq 'linux-x64' -and $isLinuxHost)
+if ($cliSmokeRan) {
+    & $cliPath '--self-test'
+    if ($LASTEXITCODE -ne 0) {
+        throw "The bundled Forge CLI dependency smoke failed with exit code $LASTEXITCODE."
     }
 }
 $executablePath = Resolve-DistributionRelativePath -RelativePath $executableName
@@ -193,4 +223,4 @@ if ($RunSmoke) {
     }
 }
 
-Write-Output "OPENRPG_FORGE_STUDIO_DISTRIBUTION_VERIFY_PASS platform=$($manifest.platform) files=$($manifest.files.Count) smoke=$RunSmoke source=$($manifest.source_revision)"
+Write-Output "OPENRPG_FORGE_STUDIO_DISTRIBUTION_VERIFY_PASS platform=$($manifest.platform) files=$($manifest.files.Count) smoke=$RunSmoke cli=$cliSmokeRan source=$($manifest.source_revision)"

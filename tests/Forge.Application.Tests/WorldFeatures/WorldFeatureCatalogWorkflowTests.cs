@@ -5,7 +5,9 @@ using Forge.Application.WorldFeatures;
 using Forge.Domain.Areas;
 using Forge.Domain.Blueprints;
 using Forge.Domain.Dialogues;
+using Forge.Domain.Entities;
 using Forge.Domain.Factions;
+using Forge.Domain.Navigation;
 using Forge.Domain.Projects;
 using Forge.Domain.Spatial;
 using Forge.Domain.Validation;
@@ -208,6 +210,27 @@ public sealed class WorldFeatureCatalogWorkflowTests
         Assert.Contains("world.encounter.anchors_invalid", codes);
         Assert.Contains("world.encounter.rewards_invalid", codes);
         Assert.Contains("world.encounter.network_cap_invalid", codes);
+    }
+
+    [Fact]
+    public void R042_EncounterValidationRequiresSpawnAnchorResolvedInEncounterArea()
+    {
+        var state = CreateState();
+        var creatureBlueprint = new BlueprintDefinition(
+            BlueprintId.From(Guid.Parse("14000000-0000-4000-8000-000000000032")),
+            "encounter-anchor-creature", "Encounter anchor creature", BlueprintKind.Creature);
+        var encounter = Encounter(state.Project.Areas[0].Id, creatureBlueprint.Id);
+        var catalog = new WorldFeatureCatalog(state.Project.Module.Id.Value, 1, "test:r042-anchor",
+            encounters: [encounter]);
+        var unresolved = new ProjectDefinition(state.Project.Id, state.Project.Title,
+            state.Project.Module.WithWorldFeatures(catalog), [creatureBlueprint], state.Project.Areas);
+        var resolved = WithEncounterAnchor(unresolved);
+
+        Assert.Contains(WorldFeatureCatalogValidator.Validate(unresolved),
+            item => item.Code == "world.encounter.anchor_reference_missing" &&
+                    item.Path.EndsWith("/foundation/spawnAnchorIds", StringComparison.Ordinal));
+        Assert.DoesNotContain(WorldFeatureCatalogValidator.Validate(resolved),
+            item => item.Code == "world.encounter.anchor_reference_missing");
     }
 
     [Fact]
@@ -1354,8 +1377,8 @@ public sealed class WorldFeatureCatalogWorkflowTests
         var encounter = WithComposition(Encounter(state.Project.Areas[0].Id, blueprint.Id));
         var catalog = new WorldFeatureCatalog(state.Project.Module.Id.Value, 1, "test:r083",
             encounters: [encounter]);
-        var configured = new ProjectDefinition(state.Project.Id, state.Project.Title,
-            state.Project.Module.WithWorldFeatures(catalog), [blueprint], state.Project.Areas);
+        var configured = WithEncounterAnchor(new ProjectDefinition(state.Project.Id, state.Project.Title,
+            state.Project.Module.WithWorldFeatures(catalog), [blueprint], state.Project.Areas));
         var configuredState = new ProjectState(configured, state.Revision);
         var handler = new SetWorldFeatureCatalogHandler(new FixedClock(DateTimeOffset.UnixEpoch));
 
@@ -1407,8 +1430,8 @@ public sealed class WorldFeatureCatalogWorkflowTests
         };
         var catalog = new WorldFeatureCatalog(state.Project.Module.Id.Value, 1, "test:r083",
             encounters: [first, second]);
-        var project = new ProjectDefinition(state.Project.Id, state.Project.Title,
-            state.Project.Module.WithWorldFeatures(catalog), [blueprint], state.Project.Areas);
+        var project = WithEncounterAnchor(new ProjectDefinition(state.Project.Id, state.Project.Title,
+            state.Project.Module.WithWorldFeatures(catalog), [blueprint], state.Project.Areas));
 
         var diagnostics = WorldFeatureCatalogValidator.Validate(project);
 
@@ -1427,8 +1450,8 @@ public sealed class WorldFeatureCatalogWorkflowTests
         var encounter = WithScenario(WithComposition(Encounter(state.Project.Areas[0].Id, blueprint.Id)));
         var catalog = new WorldFeatureCatalog(state.Project.Module.Id.Value, 1, "test:r084",
             encounters: [encounter]);
-        var configured = new ProjectDefinition(state.Project.Id, state.Project.Title,
-            state.Project.Module.WithWorldFeatures(catalog), [blueprint], state.Project.Areas);
+        var configured = WithEncounterAnchor(new ProjectDefinition(state.Project.Id, state.Project.Title,
+            state.Project.Module.WithWorldFeatures(catalog), [blueprint], state.Project.Areas));
         var configuredState = new ProjectState(configured, state.Revision);
         var handler = new SetWorldFeatureCatalogHandler(new FixedClock(DateTimeOffset.UnixEpoch));
 
@@ -1463,8 +1486,8 @@ public sealed class WorldFeatureCatalogWorkflowTests
         var second = first with { Id = Guid.Parse("14000000-0000-4000-8000-0000000000c2") };
         var catalog = new WorldFeatureCatalog(state.Project.Module.Id.Value, 1, "test:r084",
             encounters: [first, second]);
-        var project = new ProjectDefinition(state.Project.Id, state.Project.Title,
-            state.Project.Module.WithWorldFeatures(catalog), [blueprint], state.Project.Areas);
+        var project = WithEncounterAnchor(new ProjectDefinition(state.Project.Id, state.Project.Title,
+            state.Project.Module.WithWorldFeatures(catalog), [blueprint], state.Project.Areas));
 
         var diagnostics = WorldFeatureCatalogValidator.Validate(project);
 
@@ -1482,8 +1505,8 @@ public sealed class WorldFeatureCatalogWorkflowTests
             Encounter(state.Project.Areas[0].Id, blueprint.Id))));
         var catalog = new WorldFeatureCatalog(state.Project.Module.Id.Value, 1, "test:r085",
             encounters: [encounter]);
-        var configured = new ProjectDefinition(state.Project.Id, state.Project.Title,
-            state.Project.Module.WithWorldFeatures(catalog), [blueprint], state.Project.Areas);
+        var configured = WithEncounterAnchor(new ProjectDefinition(state.Project.Id, state.Project.Title,
+            state.Project.Module.WithWorldFeatures(catalog), [blueprint], state.Project.Areas));
         var configuredState = new ProjectState(configured, state.Revision);
         var handler = new SetWorldFeatureCatalogHandler(new FixedClock(DateTimeOffset.UnixEpoch));
 
@@ -1512,6 +1535,30 @@ public sealed class WorldFeatureCatalogWorkflowTests
             item => item.Code == "world.encounter.statistics_configuration_invalid");
         Assert.Contains(invalid.Diagnostics,
             item => item.Code == "world.encounter.statistics_percentiles_invalid");
+    }
+
+    private static ProjectDefinition WithEncounterAnchor(ProjectDefinition project)
+    {
+        var area = project.Areas[0];
+        var spawnBlueprint = new BlueprintDefinition(
+            BlueprintId.From(Guid.Parse("14000000-0000-4000-8000-0000000000f0")),
+            "encounter-anchor-spawn", "Encounter anchor spawn", BlueprintKind.PlayerSpawn);
+        var definition = new AnchorDefinition(
+            Guid.Parse("14000000-0000-4000-8000-0000000000f1"), 1, "test:r042-anchor",
+            "anchor:test", new LocalizedText("anchor.test", "Test anchor"), AnchorKind.Spawn,
+            AnchorScope.Area, ["encounter"], spawnBlueprint.Id, null, true);
+        var instance = new AnchorInstance(
+            Guid.Parse("14000000-0000-4000-8000-0000000000f2"), 1, "test:r042-anchor",
+            definition.Id, TransformValue.Identity, 1, EntityPropertyOverrides.Empty,
+            new SpawnAnchorProfile("encounter", new Vector3Value(1.2f, 2.2f, 1.2f), 80,
+                "hostile", 0, null, true), null);
+        var anchors = new AnchorCatalog(
+            Guid.Parse("14000000-0000-4000-8000-0000000000f3"), 1, "test:r042-anchor",
+            area.Id, true, [definition], [instance]);
+        var anchoredArea = area.WithNavigation(area.Navigation.WithAnchors(anchors));
+        var areas = project.Areas.Select(item => item.Id == area.Id ? anchoredArea : item).ToArray();
+        return new ProjectDefinition(project.Id, project.Title, project.Module,
+            project.Blueprints.Append(spawnBlueprint).ToArray(), areas, project.Dialogues, project.Quests);
     }
 
     private static ProjectState CreateState()

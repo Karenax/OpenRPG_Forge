@@ -1,6 +1,9 @@
+using Forge.Application.Projects;
+using Forge.Domain.Areas;
 using Forge.Domain.Blueprints;
 using Forge.Domain.Creatures;
 using Forge.Domain.Dialogues;
+using Forge.Domain.Entities;
 using Forge.Domain.Factions;
 using Forge.Domain.Lifecycle;
 using Forge.Domain.Items;
@@ -10,6 +13,7 @@ using Forge.Domain.RuntimeExtensions;
 using Forge.Domain.RuntimePolicies;
 using Forge.Domain.Sequences;
 using Forge.ModuleFormat.Workspaces;
+using Forge.WorkspaceMigrator;
 
 var addRuntimeExtensionSample = args.Contains("--runtime-extension-sample", StringComparer.Ordinal);
 var addCreatureLootSample = args.Contains("--creature-loot-sample", StringComparer.Ordinal);
@@ -19,17 +23,31 @@ var addAdvancedFactionSample = args.Contains("--faction-advanced-sample", String
 var addDialoguePresentationSample = args.Contains("--dialogue-presentation-sample", StringComparer.Ordinal);
 var addQuestOperationsSample = args.Contains("--quest-operations-sample", StringComparer.Ordinal);
 var addItemAdvancedSample = args.Contains("--item-advanced-sample", StringComparer.Ordinal);
+var materializeCryptRuntimeContent = args.Contains("--materialize-crypt-runtime-content", StringComparer.Ordinal);
+var materializeWorldGenerationSlice = args.Contains("--materialize-world-generation-slice", StringComparer.Ordinal);
+var queueWorldGenerationSlice = args.Contains("--queue-world-generation-slice", StringComparer.Ordinal);
+var forceWorldGenerationSlice = args.Contains("--force-world-generation-slice", StringComparer.Ordinal);
+var promoteWorldGenerationSlice = args.Contains("--promote-world-generation-slice", StringComparer.Ordinal);
+var contentMigrationRequested = addRuntimeExtensionSample || addCreatureLootSample ||
+    addCreatureRoleBehaviorSample || addCreatureEventsSample || addAdvancedFactionSample ||
+    addDialoguePresentationSample || addQuestOperationsSample || addItemAdvancedSample ||
+    materializeCryptRuntimeContent || materializeWorldGenerationSlice;
+var worldGenerationOperationOnly = (queueWorldGenerationSlice || promoteWorldGenerationSlice) &&
+    !contentMigrationRequested;
 var workspaceArguments = args.Where(argument => !argument.StartsWith("--", StringComparison.Ordinal)).ToArray();
 if (workspaceArguments.Length == 0)
 {
-    Console.Error.WriteLine("Usage: Forge.WorkspaceMigrator [--runtime-extension-sample] [--creature-loot-sample] [--creature-role-behavior-sample] [--creature-events-sample] [--faction-advanced-sample] [--dialogue-presentation-sample] [--quest-operations-sample] [--item-advanced-sample] <workspace> [workspace ...]");
+    Console.Error.WriteLine("Usage: Forge.WorkspaceMigrator [--runtime-extension-sample] [--creature-loot-sample] [--creature-role-behavior-sample] [--creature-events-sample] [--faction-advanced-sample] [--dialogue-presentation-sample] [--quest-operations-sample] [--item-advanced-sample] [--materialize-crypt-runtime-content] [--materialize-world-generation-slice] [--queue-world-generation-slice] [--force-world-generation-slice] [--promote-world-generation-slice] <workspace> [workspace ...]");
     return 2;
 }
 
 foreach (var argument in workspaceArguments)
 {
     var root = Path.GetFullPath(argument);
-    var opened = ProjectSession.Open(root);
+    var opened = materializeCryptRuntimeContent
+        ? ProjectSession.OpenForMigration(root,
+            new HashSet<string>(["world.encounter.anchor_reference_missing"], StringComparer.Ordinal))
+        : ProjectSession.Open(root);
     if (!opened.Succeeded || opened.Session is null)
     {
         Console.Error.WriteLine($"MIGRATION_FAILED root={root} diagnostics=" +
@@ -44,18 +62,241 @@ foreach (var argument in workspaceArguments)
     if (addDialoguePresentationSample) project = AddDialoguePresentationSample(project);
     if (addQuestOperationsSample) project = AddQuestOperationsSample(project);
     if (addItemAdvancedSample) project = AddItemAdvancedSample(project);
-    var saved = opened.Session.Save(project);
-    if (!saved.Succeeded)
+    if (materializeCryptRuntimeContent) project = MaterializeCryptRuntimeContent(project);
+    if (materializeWorldGenerationSlice) project = WorldGenerationVerticalSliceMigration.Create(project);
+    if (!worldGenerationOperationOnly)
     {
-        Console.Error.WriteLine($"MIGRATION_FAILED root={root} diagnostics=" +
-            string.Join(';', saved.Diagnostics.Select(item => $"{item.Code}:{item.Message}")));
-        return 4;
+        var saved = opened.Session.Save(project);
+        if (!saved.Succeeded)
+        {
+            Console.Error.WriteLine($"MIGRATION_FAILED root={root} diagnostics=" +
+                string.Join(';', saved.Diagnostics.Select(item => $"{item.Code}:{item.Message}")));
+            return 4;
+        }
+        if (materializeCryptRuntimeContent && !MaterializeCryptEncounterScripts(root))
+        {
+            Console.Error.WriteLine($"MIGRATION_FAILED root={root} diagnostics=crypt.encounter.scripts_write_failed");
+            return 5;
+        }
+        Console.WriteLine($"OPENRPG_FORGE_WORKSPACE_MIGRATED root={root} " +
+            $"workspace={ProjectSession.CurrentProjectFormatVersion}");
     }
-    Console.WriteLine($"OPENRPG_FORGE_WORKSPACE_MIGRATED root={root} " +
-        $"workspace={ProjectSession.CurrentProjectFormatVersion}");
+    else
+    {
+        Console.WriteLine($"OPENRPG_FORGE_WORKSPACE_OPENED root={root} " +
+            $"revision={opened.Session.Revision} workspace={ProjectSession.CurrentProjectFormatVersion}");
+    }
+    if (queueWorldGenerationSlice)
+    {
+        var queue = WorldGenerationVerticalSliceOrchestrator.Queue(root, project, forceWorldGenerationSlice);
+        Console.WriteLine($"OPENRPG_FORGE_WORLD_GENERATION_QUEUED root={root} " +
+            $"plan={queue.PlanId} job={queue.JobId} projectRevision={queue.ProjectRevision} " +
+            $"recipeRevision={queue.RecipeRevision} status={queue.Status} reused={queue.Reused}");
+    }
+    if (promoteWorldGenerationSlice)
+    {
+        var promotion = WorldGenerationVerticalSliceOrchestrator.PromoteLatest(
+            root,
+            project,
+            "codex:human-visual-review:2026-08-28:five-captures");
+        Console.WriteLine($"OPENRPG_FORGE_WORLD_GENERATION_PROMOTED root={root} " +
+            $"promotionPlan={promotion.PromotionPlanId} jobPlan={promotion.JobPlanId} " +
+            $"scene={promotion.CanonicalSceneRelativePath} sha256={promotion.CanonicalSceneSha256} " +
+            $"projectRevision={promotion.ProjectRevision}");
+    }
 }
 
 return 0;
+
+static bool MaterializeCryptEncounterScripts(string root)
+{
+    try
+    {
+        var scripts = Path.Combine(root, "scripts");
+        Directory.CreateDirectory(scripts);
+        var authored = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["encounter_activate.forge"] =
+                "void main()\n{\n    variable(\"encounter.warden.active\", \"true\");\n}\n",
+            ["encounter_entered.forge"] =
+                "void main()\n{\n    variable(\"encounter.warden.state\", \"entered\");\n}\n",
+            ["encounter_exited.forge"] =
+                "void main()\n{\n    variable(\"encounter.warden.state\", \"exited\");\n}\n",
+            ["encounter_exhausted.forge"] =
+                "void main()\n{\n    variable(\"encounter.warden.state\", \"exhausted\");\n}\n",
+        };
+        foreach (var name in new[]
+                 {
+                     "pillar_attack", "pillar_ability", "pillar_heartbeat", "pillar_pulse", "pillar_used",
+                     "pillar_before_used", "pillar_after_used", "door_damage", "door_destroyed", "door_attack",
+                     "door_ability", "door_heartbeat", "door_seal", "door_open_rejected", "door_ash_opened",
+                     "trigger_click", "trigger_enter", "trigger_exit", "merchant_open", "merchant_rule",
+                     "companion_recruit",
+                 })
+            authored[$"{name}.forge"] =
+                $"void main()\n{{\n    variable(\"crypt.script.last\", \"{name}\");\n}}\n";
+        foreach (var script in authored)
+        {
+            var path = Path.Combine(scripts, script.Key);
+            if (!File.Exists(path)) File.WriteAllText(path, script.Value);
+        }
+        return true;
+    }
+    catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+    {
+        return false;
+    }
+}
+
+static ProjectDefinition MaterializeCryptRuntimeContent(ProjectDefinition project)
+{
+    if (!string.Equals(project.Module.Slug, "crypt-of-ashes", StringComparison.Ordinal)) return project;
+
+    project = AddCreatureEventsSample(project);
+    var extensions = QualifyCryptPerformanceBudgets(
+        ProductionCapabilityTemplateFactory.Create(project, "module-author:crypt-of-ashes"));
+    var sourcePolicies = project.Module.RuntimePolicies;
+    var policies = new ModuleRuntimePolicyProfile(
+        sourcePolicies.Id,
+        sourcePolicies.SchemaVersion,
+        sourcePolicies.Heartbeats,
+        sourcePolicies.Rest,
+        sourcePolicies.SequenceAbort,
+        "module-author:crypt-of-ashes",
+        sourcePolicies.Cinematics,
+        sourcePolicies.Gameplay,
+        sourcePolicies.Rules,
+        extensions,
+        sourcePolicies.GameplayEvents,
+        sourcePolicies.World,
+        sourcePolicies.LifecycleEvents);
+    var catalog = CryptWorldFeatureMigration.Create(project);
+    var module = project.Module.WithRuntimePolicies(policies).WithWorldFeatures(catalog);
+    var playerSpawnBlueprint = project.Blueprints.Single(item => item.Kind == BlueprintKind.PlayerSpawn);
+    var areas = project.Areas.Select(area => area.Id == project.Module.EntryAreaId
+        ? MaterializeCryptEntryArea(area, playerSpawnBlueprint.Id)
+        : area).ToArray();
+    return new ProjectDefinition(project.Id, project.Title, module, project.Blueprints, areas,
+        project.Dialogues, project.Quests);
+}
+
+static ModuleRuntimeExtensionProfile QualifyCryptPerformanceBudgets(ModuleRuntimeExtensionProfile extensions)
+{
+    const string provenance = "module-author:crypt-of-ashes:performance-qualified";
+    var tooling = extensions.ModernTooling;
+    var quality = tooling.QualityAssurance;
+    var budgets = quality.PlatformBudgets.Select(budget => new PlatformPerformanceBudget(
+        budget.Id,
+        budget.SchemaVersion,
+        budget.Platform,
+        budget.MaximumFrameMilliseconds,
+        budget.MaximumMemoryMegabytes,
+        budget.MaximumTextureMegabytes,
+        budget.MaximumDrawCalls,
+        budget.MaximumDynamicLights,
+        budget.Platform switch
+        {
+            "dedicated-server" => 20,
+            "desktop" => 16.67,
+            _ => budget.MaximumScriptMilliseconds,
+        },
+        budget.MaximumNetworkKilobitsPerSecond,
+        budget.WarningThreshold,
+        budget.GateBuild,
+        provenance)).ToArray();
+    var qualifiedQuality = new QualityAssuranceProfile(
+        quality.Id,
+        quality.SchemaVersion,
+        quality.Network,
+        quality.Visual,
+        quality.Benchmarks,
+        budgets,
+        quality.Profiler,
+        provenance,
+        quality.Accessibility,
+        quality.SecurityFuzz,
+        quality.ClickableDiagnostics,
+        quality.MaliciousFixtures,
+        quality.AuroraParityCoverage,
+        quality.AcceptanceGates);
+    var qualifiedTooling = new ModernRuntimeToolingProfile(
+        tooling.Id,
+        tooling.SchemaVersion,
+        tooling.RuntimeCopy,
+        tooling.AreaEffectIndicator,
+        tooling.UiToolkit,
+        tooling.Compiler,
+        tooling.Documentation,
+        tooling.Provenance,
+        qualifiedQuality);
+    return new ModuleRuntimeExtensionProfile(
+        extensions.Id,
+        extensions.SchemaVersion,
+        extensions.RuleSchemas,
+        extensions.UiDocuments,
+        extensions.JsonDocuments,
+        extensions.SnapshotPolicy,
+        extensions.Provenance,
+        qualifiedTooling,
+        extensions.OperationalReadiness,
+        extensions.PostLaunch);
+}
+
+static AreaDefinition MaterializeCryptEntryArea(AreaDefinition area, BlueprintId playerSpawnBlueprintId)
+{
+    var environment = area.Environment;
+    var tags = environment.Tags.Concat([
+        "art-kit:kaykit-dungeon-remastered",
+        "atmosphere:ember",
+        "camera:unbounded",
+        "completion:boss-exit",
+        "systemic:world-as-weapon",
+    ]).ToArray();
+    var authoredEnvironment = new AreaEnvironmentProfile(
+        environment.SchemaVersion,
+        environment.Classification,
+        tags,
+        environment.Lighting,
+        environment.Fog,
+        environment.Audio,
+        environment.Rendering,
+        environment.Sky,
+        environment.Wind,
+        environment.Weather,
+        environment.Water,
+        environment.Reverb,
+        environment.Authoring,
+        environment.RequireAuthoringRuntimeMetadata);
+    var entities = area.Entities.Select(MaterializeCryptCharacterVisual).ToArray();
+    return CryptNavigationMigration.MaterializeEncounterAnchor(
+        area.WithEnvironment(authoredEnvironment).WithEntities(entities), playerSpawnBlueprintId);
+}
+
+static EntityInstance MaterializeCryptCharacterVisual(EntityInstance entity)
+{
+    var assetId = entity.Tags.Contains("player", StringComparer.OrdinalIgnoreCase)
+        ? "053511fd-e165-1951-9869-6224f82b747f"
+        : entity.Tags.Contains("elyra", StringComparer.OrdinalIgnoreCase)
+            ? "220be95a-282c-cc52-aaf9-4fe811b32609"
+            : entity.Tags.Contains("sentinel", StringComparer.OrdinalIgnoreCase)
+                ? "056fe96c-5c83-145d-98fd-0623b9350cf5"
+                : entity.Tags.Contains("warden", StringComparer.OrdinalIgnoreCase)
+                    ? "3bf93c4b-7df6-455c-be89-ba38d40e941c"
+                    : null;
+    if (assetId is null) return entity;
+
+    var properties = entity.Overrides.Properties
+        .Where(item => item.Key is not "visual.asset" and not "runtime.animationProfile")
+        .Concat([
+            new EntityPropertyOverride("visual.asset", EntityPropertyValueKind.String, assetId),
+            new EntityPropertyOverride("runtime.animationProfile", EntityPropertyValueKind.String,
+                "kaykit-adventurer"),
+        ])
+        .ToArray();
+    return new EntityInstance(entity.Id, entity.BlueprintId, entity.Transform, entity.Tags,
+        new EntityPropertyOverrides(EntityPropertyOverrides.CurrentSchemaVersion, properties),
+        entity.BlueprintVersionRequirement);
+}
 
 static ProjectDefinition AddQuestOperationsSample(ProjectDefinition project)
 {
@@ -290,8 +531,25 @@ static ProjectDefinition AddCreatureEventsSample(ProjectDefinition project)
     var blueprints = project.Blueprints.Select(blueprint =>
     {
         if (!string.Equals(blueprint.Slug, "ash-warden-boss", StringComparison.Ordinal)) return blueprint;
-        static EventBinding Binding(string id, string eventName, string handler) => new(
-            Guid.Parse(id), 1, "sample:g13-f", "1.0", eventName, handler, EventAuthorityScope.Server);
+        static EventBinding Binding(
+            string id,
+            string eventName,
+            string handler,
+            string provenance = "sample:g13-f") => new(
+            Guid.Parse(id), 1, provenance, "1.0", eventName, handler, EventAuthorityScope.Server);
+        var overrides = blueprint.CreatureEvents?.Overrides.ToDictionary(item => item.Key, item => item.Value,
+                            StringComparer.Ordinal) ??
+                        new Dictionary<string, string>(StringComparer.Ordinal);
+        overrides["runtime.phase_two.custom_event"] = "crypt.braziers_lit";
+        overrides["telemetry.channel"] = "ash-warden";
+        var damageDeath = blueprint.CreatureEvents?.DamageDeath ?? new(
+            Binding("a1570000-0000-4000-8000-000000000012", "creature.before_damage", "BeforeDamage",
+                "sample:r039"),
+            Binding("a1570000-0000-4000-8000-000000000013", "creature.damage_applied", "OnDamaged",
+                "sample:r039"),
+            Binding("a1570000-0000-4000-8000-000000000014", "entity.died", "OnDeath", "sample:r039"),
+            4,
+            0.5);
         var events = new CreatureEventProfile(
             Guid.Parse("a1570000-0000-4000-8000-000000000001"), 1, "sample:g13-f", true,
             new(CreatureCombatBoundaryMode.CombatTickCompleted,
@@ -313,11 +571,9 @@ static ProjectDefinition AddCreatureEventsSample(ProjectDefinition project)
                     ["source"] = CreatureCustomFieldType.EntityId,
                 }, true, Binding("a1570000-0000-4000-8000-000000000011", "custom.crypt.braziers_lit",
                     "OnBraziersLit"))],
-            new Dictionary<string, string> { ["telemetry.channel"] = "ash-warden" });
-        return new BlueprintDefinition(blueprint.Id, blueprint.Slug, blueprint.DisplayName, blueprint.Kind,
-            blueprint.Combat, blueprint.PaletteOrigin, blueprint.IsFavorite, blueprint.Provenance,
-            blueprint.CreaturePresentation, blueprint.CreatureProgression, blueprint.CreatureLoot,
-            blueprint.CreatureRoleBehavior, events, blueprint.ItemAdvanced);
+            overrides,
+            damageDeath);
+        return blueprint.WithCreatureEvents(events);
     }).ToArray();
     return new ProjectDefinition(project.Id, project.Title, project.Module, blueprints, project.Areas,
         project.Dialogues, project.Quests);

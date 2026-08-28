@@ -270,14 +270,36 @@ internal sealed partial class StudioSessionController
             source.Blueprints, source.Areas, source.Dialogues, source.Quests);
     }
 
-    internal static bool WriteUx2LwLEvidenceScript(string root)
+    internal static bool WriteUx2LwLEvidenceScripts(
+        string? sourceRoot,
+        string root,
+        ProjectDefinition project)
     {
+        ArgumentNullException.ThrowIfNull(project);
         try
         {
             var scripts = Path.Combine(root, "scripts");
             Directory.CreateDirectory(scripts);
             File.WriteAllText(Path.Combine(scripts, "encounter_activate.forge"),
                 "void OnEncounterActivate() { }\n", Encoding.UTF8);
+            if (!string.IsNullOrWhiteSpace(sourceRoot))
+            {
+                var referenced = project.Module.WorldFeatures.Encounters
+                    .SelectMany(profile => EncounterScriptReferencesUx2LwL(
+                        profile, $"module/worldFeatures/encounters/{profile.Id}"))
+                    .Select(item => item.ScriptId)
+                    .Where(path => !string.Equals(path, "scripts/encounter_activate.forge", StringComparison.Ordinal))
+                    .Where(IsSafeRelativeScriptUx2LwL)
+                    .Distinct(StringComparer.Ordinal);
+                foreach (var relativePath in referenced)
+                {
+                    var sourcePath = Path.Combine(sourceRoot, relativePath.Replace('/', Path.DirectorySeparatorChar));
+                    if (!File.Exists(sourcePath)) continue;
+                    var targetPath = Path.Combine(root, relativePath.Replace('/', Path.DirectorySeparatorChar));
+                    Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
+                    File.Copy(sourcePath, targetPath, overwrite: true);
+                }
+            }
             return true;
         }
         catch (IOException)
@@ -682,7 +704,8 @@ internal sealed partial class StudioSessionController
         {
             var fixture = CreateUx2LwLEvidenceProject();
             if (fixture is null || !ProjectSession.Create(tempRoot, fixture).Succeeded ||
-                !WriteUx2LwLEvidenceScript(tempRoot) || !editing.Open(tempRoot).Succeeded)
+                !WriteUx2LwLEvidenceScripts(Session?.RootDirectory, tempRoot, fixture) ||
+                !editing.Open(tempRoot).Succeeded)
                 return FailedUx2LwLSmoke();
             var target = editing.Project!.Module.WorldFeatures.Encounters.Single(item =>
                 string.Equals(item.Provenance, Ux2LwLEvidenceProvenance, StringComparison.Ordinal));

@@ -1,124 +1,93 @@
-# Multijoueur Internet direct
+# Multijoueur Internet direct sécurisé
 
-Dernière mise à jour : 25 août 2026.
+Dernière mise à jour : 28 août 2026.
 
-Ce document décrit le transport réellement utilisable depuis le lanceur de jeu, ses prérequis et
-ses limites. Il ne faut pas confondre cette première base Internet avec l'ensemble des contrats
-multijoueur configurables dans Studio ni avec une campagne RPG coopérative entièrement synchronisée.
+Ce guide décrit le transport réellement utilisé par le lanceur et `Forge.Server`. Le protocole v2
+chiffre et authentifie les nouvelles sessions Internet, réplique les déplacements et contient une
+tranche d'autorité gameplay. Il ne constitue pas encore une campagne coopérative complète ni un
+service Internet public administré.
 
 ## État fonctionnel
 
-| Parcours | Écoute ou destination | État actuel |
+| Parcours | Transport | État vérifié |
 | --- | --- | --- |
 | Solo | aucun socket | fonctionnel |
-| Hôte local | `127.0.0.1:<port>` | fonctionnel, limité à l'ordinateur hôte |
-| Hôte Internet du lanceur | écoute `0.0.0.0:<port TCP>` ; affiche `IPv4 publique:<port>` | fonctionnel, capacité actuelle de 8 joueurs |
-| Rejoindre par Internet | IPv4 publique ou nom DNS et port TCP | fonctionnel en connexion directe |
-| `Forge.Server` headless | adresse et capacité du fichier de configuration | listener TCP fonctionnel, capacité configurable de 1 à 64 |
+| Hôte local | TCP en clair sur `127.0.0.1` sans jeton | développement local uniquement |
+| Hôte Internet du lanceur | TLS 1.2/1.3 sur `0.0.0.0:<port>` | certificat auto-signé épinglé, invitation privée, capacité 8 |
+| Rejoindre par le lanceur | invitation `openrpg2:` | pin et jeton obligatoires, contenu et protocole vérifiés |
+| `Forge.Server` loopback | TCP local | autorisé sans TLS pour test isolé |
+| `Forge.Server` non loopback | TLS et registre de comptes | refus de démarrer si un élément de sécurité manque |
 
-Le profil **Internet direct · héberger et rejoindre** active les deux parcours Internet dans le
-lanceur. L'hôte et les clients utilisent le même transport de `Forge.Network`; le serveur headless
-ne duplique pas les règles d'admission.
+La présence, la zone, la position et l'orientation sont diffusées par snapshots révisionnés. Le
+serveur v2 accepte aussi une allowlist d'intentions pour une tranche verticale : attaque spatiale,
+usage d'une potion, progression d'une quête de preuve et checkpoint canonique. Il calcule l'état ;
+le client ne peut envoyer ni dégâts, ni quantité d'inventaire, ni payload de sauvegarde.
 
-## Configurer le lanceur du jeu
+## Héberger depuis le lanceur
 
-Dans **Distribution et conformité** :
+1. Ouvrir **Multijoueur**, choisir **Héberger**, puis confirmer l'adresse publique ou le DNS et le
+   port TCP.
+2. Cliquer **Copier l'invitation**. Le lanceur génère au besoin un certificat, un jeton aléatoire et
+   une invitation commençant par `openrpg2:`.
+3. Transmettre cette invitation par un canal privé. Elle est un secret porteur : toute personne qui
+   la possède peut rejoindre tant qu'elle reste valable.
+4. Autoriser le runtime dans le pare-feu Windows et rediriger le port TCP du routeur vers la machine
+   hôte.
+5. Garder le runtime hôte actif pendant la partie.
 
-1. activer **Lanceur du jeu · Windows x64** ;
-2. choisir **Internet direct · héberger et rejoindre** comme mode multijoueur ;
-3. choisir un port TCP entre 1024 et 65535, 5121 étant la valeur par défaut ;
-4. enregistrer le profil puis choisir **Créer le lanceur du jeu** ;
-5. vérifier le dossier produit avec `forge launcher verify` ou le script de distribution.
+Le certificat PFX, son mot de passe, le jeton et l'identifiant de compte sont conservés sous
+`%LOCALAPPDATA%\OpenRPG Forge\Games\<slug>`, dans ou à côté des préférences du lanceur. Ils ne font
+pas partie de la distribution et ne doivent pas être publiés. Supprimer/régénérer ce profil révoque
+de fait les anciennes invitations de cet hôte.
 
-Le paquet distribué contient le lanceur WPF, le runtime, le module Client et un manifeste SHA-256.
-Les préférences du joueur restent sous `%LOCALAPPDATA%\OpenRPG Forge\Games\<slug>` et ne doivent pas
-être partagées avec les invités.
+La détection d'IPv4 publique utilise facultativement `https://api.ipify.org/`, avec réponse bornée et
+délai de cinq secondes. Elle ne teste ni le pare-feu, ni la redirection, ni le CGNAT. Un nom DNS ne
+contourne pas l'absence d'une adresse joignable.
 
-## Adresse affichée par le lanceur
+## Rejoindre depuis le lanceur
 
-Quand **Héberger** est sélectionné avec le profil Internet, le lanceur demande facultativement
-l'IPv4 publique à `https://api.ipify.org/` par HTTPS. La réponse est bornée à 64 octets et n'est
-acceptée que si elle contient une IPv4 publique. La requête expire après cinq secondes, ne demande
-aucun compte et ne transmet que les métadonnées HTTP usuelles ; comme tout service de ce type,
-l'opérateur du point d'accès voit nécessairement l'adresse source de la requête.
+1. Installer exactement la même distribution du jeu.
+2. Ouvrir **Multijoueur**, choisir **Rejoindre** et coller l'invitation `openrpg2:` complète dans le
+   champ d'adresse.
+3. Lancer. Le lanceur extrait adresse, port, pin du certificat et jeton ; Runtime refuse un certificat
+   différent, un jeton invalide, un module différent ou un protocole incompatible avant publication
+   du joueur.
 
-L'adresse détectée n'est pas stockée dans les préférences. Le champ reste modifiable afin d'utiliser
-un nom DNS ou de corriger une adresse fournie par un VPN ou un proxy. Si la détection échoue,
-l'hébergement reste disponible et le lanceur demande une saisie manuelle. `127.0.0.1` n'est jamais
-proposé comme adresse Internet à partager : cette adresse de boucle locale ne désigne que
-l'ordinateur sur lequel elle est saisie.
+Une ancienne préférence v1 de connexion directe est migrée vers Solo. Elle ne peut donc pas se
+reconnecter silencieusement en clair. Une adresse nue `hôte:port` ne remplace pas une invitation v2.
 
-Cette aide ne teste pas si le port est joignable, ne crée pas de règle de pare-feu et ne configure
-pas le routeur. Elle ne peut pas non plus rendre redirigeable une connexion placée derrière un CGNAT.
+## Contrat du transport v2
 
-## Héberger une partie Internet
+- TCP avec trames JSON UTF-8 préfixées par une longueur 32 bits big-endian ; 64 Kio maximum ;
+- schéma de trame `2` et protocole de jeu `2` ;
+- TLS 1.2 ou 1.3 et épinglage exact du SHA-256 du certificat pour Internet ;
+- jeton d'invitation envoyé seulement après établissement de TLS, comparé en temps constant à son
+  SHA-256 côté serveur ;
+- admission par UUID de connexion et de compte, nom borné, empreinte du module et protocole ;
+- positions séquencées, coordonnées bornées, pas aberrant refusé et snapshot global révisionné ;
+- intentions gameplay avec UUID anti-rejeu, révision attendue, payload borné et allowlist fermée ;
+- état privé d'inventaire et de quête envoyé seulement au compte concerné ; santé et présence
+  publiques ;
+- pompes socket indépendantes du thread principal Godot, y compris pendant un chargement de scène.
 
-1. ouvrir **Multijoueur**, puis choisir **Héberger** ;
-2. attendre l'IPv4 publique détectée ou saisir une IPv4 publique/un nom DNS, puis confirmer le port ;
-3. utiliser **Copier** pour obtenir l'adresse complète `adresse:port` à transmettre aux invités ;
-4. autoriser l'exécutable du runtime ou ce port entrant dans le pare-feu Windows ;
-5. rediriger le même port TCP du routeur vers l'IPv4 locale de l'ordinateur hôte ;
-6. conserver le runtime hôte ouvert pendant toute la partie.
+## Autorité gameplay actuellement raccordée au transport
 
-L'hôte écoute sur toutes les interfaces IPv4 avec `0.0.0.0`, mais le runtime de l'hôte se connecte
-lui-même au serveur par `127.0.0.1`. Cette adresse interne n'est pas celle affichée aux invités. Le
-mode n'ouvre pas automatiquement le routeur et ne crée aucune règle de pare-feu.
+| Intention | Contrôles serveur | Résultat serveur |
+| --- | --- | --- |
+| `combat.attack` | attaquant/cible valides, même zone, distance ≤ 6 m, vivants | 30 dégâts fixes et compteur d'attaque |
+| `inventory.use` | seul `healing-potion`, stock disponible, soin applicable | stock décrémenté, +25 PV plafonné à 100 |
+| `quest.advance` | transition `available → active → completed`, attaque requise | état privé de `network-trial` |
+| `save.checkpoint` | payload client interdit | révision et SHA-256 calculés sur l'état canonique |
 
-## Rejoindre une partie
-
-1. installer ou copier exactement la même distribution du jeu ;
-2. ouvrir **Multijoueur**, puis choisir **Rejoindre** ;
-3. saisir l'IPv4 publique ou le nom DNS de l'hôte et le même port TCP ;
-4. lancer la partie ; le module et le protocole sont contrôlés avant l'entrée dans le monde.
-
-Un test depuis le même réseau local ne prouve pas la redirection Internet. La qualification WAN doit
-être réalisée depuis une seconde connexion, par exemple un autre accès fixe ou un partage mobile.
-Certains routeurs ne prennent pas en charge le retour NAT vers leur propre adresse publique.
-
-Si l'accès Internet de l'hôte utilise un double NAT ou un CGNAT sans IPv4 publique redirigeable, ce
-mode direct peut être inaccessible. Le projet ne fournit pas encore de relais ni d'ouverture NAT
-automatique ; un nom DNS ne contourne pas cette limite.
-
-## Contrat du transport v1
-
-- TCP avec trames JSON UTF-8 préfixées par une longueur 32 bits big-endian ;
-- schéma de trame `1`, protocole de jeu `1` et taille maximale de 64 Kio par trame ;
-- admission par UUID de connexion et de compte éphémères, nom borné, empreinte du contenu du module
-  et version de protocole ;
-- refus avant publication du joueur si le contenu, le protocole, l'identité ou la capacité diffère ;
-- positions séquencées, coordonnées bornées, pas de déplacement aberrant refusé et snapshots portant
-  une révision globale ;
-- snapshots plus anciens ignorés par le client ; départ d'un joueur rediffusé aux autres clients.
-
-L'empreinte du module garantit que les deux runtimes ont le même contenu. Elle ne constitue ni un
-mot de passe, ni une identité du joueur, ni une preuve cryptographique de l'hôte.
-
-## Réplication runtime actuelle
-
-Le runtime transmet actuellement :
-
-- l'admission et le départ des joueurs ;
-- le nom visible ;
-- la zone active ;
-- la position et l'orientation ;
-- les avatars distants interpolés et le nombre de joueurs connectés.
-
-Il ne route pas encore par ce transport :
-
-- combats, dégâts, soins, pouvoirs et RNG autoritaire ;
-- inventaires, butin, marchands et économie ;
-- quêtes, dialogues, variables, cinématiques et choix de groupe ;
-- transitions de zone et vérification spatiale collective ;
-- personnages persistants, sauvegardes et reprise de session ;
-- chat, voix, Live Director distant et administration publique.
-
-Ces contrats existent pour partie dans `Forge.Network`, mais leur présence dans Domain, Studio ou les
-scénarios mémoire ne signifie pas qu'ils sont raccordés au transport TCP du lanceur.
+Cette tranche est exécutée par deux vrais runtimes Godot dans
+`scripts/Invoke-SecureInternetRuntimeSmoke.ps1`. Les actions normales de tous les modules, dialogues,
+butin, économie, transitions collectives, cinématiques et sauvegardes `.orpsave` complètes ne sont
+pas encore toutes projetées vers ces quatre intentions. La preuve garantit la frontière serveur,
+pas une campagne coopérative exhaustive.
 
 ## Serveur headless
 
-Le lanceur hôte n'exige pas un processus `Forge.Server` séparé. Pour une machine dédiée, le serveur
-headless utilise un fichier JSON conforme à `DedicatedServerConfiguration` :
+Le fichier de configuration conserve le schéma serveur 1, mais son `protocolVersion` doit être `2` :
 
 ```json
 {
@@ -129,88 +98,79 @@ headless utilise un fichier JSON conforme à `DedicatedServerConfiguration` :
   "port": 5121,
   "capacity": 8,
   "discovery": "direct",
-  "moduleFingerprint": "<contentSha256 du manifest.json du module>",
-  "protocolVersion": "1"
+  "moduleFingerprint": "<contentSha256 du manifest.json>",
+  "protocolVersion": "2"
 }
 ```
 
-`moduleFingerprint` correspond à `contentSha256` dans `manifest.json` à l'intérieur du `.orpmod`, et
-non au hash du fichier `.orpmod` complet. Le manifeste peut être inspecté sans l'extraire :
+Le registre d'authentification ne contient jamais les jetons en clair :
 
-```powershell
-tar -xOf E:\Jeux\MonJeu\game\mon-jeu.orpmod manifest.json
+```json
+{
+  "schemaVersion": 1,
+  "accounts": [
+    {
+      "accountId": "22222222-3333-4444-8555-666666666666",
+      "tokenSha256": "<64 caractères hexadécimaux>"
+    }
+  ]
+}
 ```
 
-Depuis le dépôt de développement :
+Le PFX et le registre doivent être des chemins absolus, des fichiers ordinaires non-reparse et de
+taille bornée. Le mot de passe du PFX, long de 12 à 256 caractères, vient d'une variable
+d'environnement dont le nom est passé en argument :
 
 ```powershell
-dotnet run --project apps/Forge.Server --configuration Release -- --config=E:\Serveur\openrpg-server.json
+$env:OPENRPG_SERVER_PFX_PASSWORD = '<secret local>'
+dotnet run --project apps/Forge.Server -c Release --no-build -- `
+  --config=E:\Serveur\openrpg-server.json `
+  --tls-certificate=E:\Serveur\server.pfx `
+  --tls-password-env=OPENRPG_SERVER_PFX_PASSWORD `
+  --auth-registry=E:\Serveur\accounts.json
 ```
 
-Le marqueur `OPENRPG_FORGE_SERVER_READY` confirme l'écoute. Le processus reste actif jusqu'à son
-arrêt par `Ctrl+C`. L'exploitation comme service Windows, le déploiement automatisé, TLS et la
-supervision distante restent des qualifications séparées.
+Une écoute non loopback sans les trois arguments échoue avec
+`NET_PUBLIC_TRANSPORT_SECURITY_REQUIRED`. Le marqueur `OPENRPG_FORGE_SERVER_SECURITY_PASS` publie
+le pin du certificat, jamais le secret.
 
 ## Diagnostics principaux
 
 | Code | Signification |
 | --- | --- |
-| `NET_PUBLIC_ADDRESS_RESOLVED` | IPv4 publique détectée et validée dans le lanceur |
-| `NET_PUBLIC_ADDRESS_LOOKUP_FAILED` | service indisponible, délai dépassé ou réponse HTTP refusée ; saisie manuelle possible |
-| `NET_PUBLIC_ADDRESS_RESPONSE_INVALID` | réponse reçue mais non partageable sur Internet |
-| `NET_CONNECT_FAILED` / `NET_CONNECT_TIMEOUT` | adresse, port, pare-feu, routeur ou serveur indisponible |
-| `NET_CONTENT_MISMATCH` | contenu de module différent entre client et hôte |
-| `NET_PROTOCOL_MISMATCH` | version de protocole incompatible |
-| `NET_SERVER_FULL` | capacité de la session atteinte |
-| `NET_CONNECTION_EXISTS` | identifiant de connexion déjà présent |
-| `NET_POSE_STEP_REJECTED` | déplacement reçu trop important dans une même zone |
-| `NET_SERVER_DISCONNECTED` | connexion TCP interrompue |
+| `NET_SERVER_CERTIFICATE_MISMATCH` | le certificat reçu ne correspond pas au pin de l'invitation |
+| `NET_TLS_HANDSHAKE_FAILED` | négociation TLS impossible |
+| `NET_AUTH_INVALID_CREDENTIALS` | compte ou jeton refusé |
+| `NET_AUTH_TOKEN_REQUIRES_TLS` | tentative locale d'envoyer un jeton en clair, bloquée avant socket |
+| `NET_PUBLIC_TRANSPORT_SECURITY_REQUIRED` | serveur public lancé sans TLS et registre complets |
+| `NET_CONTENT_MISMATCH` | contenu du module différent |
+| `NET_PROTOCOL_MISMATCH` | protocole différent de v2 |
+| `NET_GAMEPLAY_REVISION_STALE` | intention fondée sur un état ancien |
+| `NET_GAMEPLAY_INTENT_REPLAYED` | UUID d'intention déjà consommé |
+| `NET_GAMEPLAY_INTENT_FORBIDDEN` | type d'intention hors allowlist |
+| `NET_POSE_STEP_REJECTED` | déplacement trop important dans une même zone |
+| `NET_CONNECT_FAILED` / `NET_CONNECT_TIMEOUT` | serveur, réseau, pare-feu ou routeur indisponible |
 
-## Sécurité et exploitation
+## Limites de sécurité et d'exploitation
 
-Le protocole v1 est destiné à des joueurs de confiance :
+- l'invitation est partageable et ne porte pas de date d'expiration ni de révocation individuelle ;
+- le lanceur stocke localement les secrets de l'hôte, sans coffre-fort matériel ;
+- pas encore de limitation par IP, bannissement transport, détection DDoS ou audit offensif WAN ;
+- pas de reconnexion authentifiée, reprise durable de session, rotation en ligne ou base serveur ;
+- pas de relais, STUN/TURN, ouverture NAT automatique, annuaire ni preuve de joignabilité ;
+- le certificat auto-signé est fiable par pin, pas par une autorité PKI ;
+- l'essai local ne remplace pas un test WAN, un soak, une matrice perte/latence ou une revue sécurité.
 
-- aucun mot de passe ou jeton de compte n'est envoyé ;
-- le trafic n'est pas chiffré et l'identité de l'hôte n'est pas prouvée ;
-- il n'existe pas encore d'authentification de joueur, bannissement réseau ou limitation par IP sur
-  ce chemin direct ;
-- l'adresse publique et le port exposés peuvent être scannés tant que l'hôte écoute ;
-- la règle de pare-feu et la redirection doivent être retirées ou désactivées lorsqu'elles ne sont
-  plus nécessaires.
+## Preuves locales du 28 août 2026
 
-Avant une exposition à des joueurs non fiables, il faut au minimum ajouter un transport sécurisé,
-une identité d'hôte vérifiable, une authentification bornée, la reconnexion, des limites de débit et
-une qualification offensive proportionnée.
+- 118/118 tests `Forge.Network.Tests` en Release ;
+- scénario serveur TLS avec deux clients, mauvais jeton et mauvais pin refusés ;
+- deux processus Godot 4.7.1 réels, TLS 1.3, deux joueurs, présence et poses ;
+- attaque calculée à 70 PV, potion décrémentée et soin à 95 PV, quête terminée ;
+- checkpoint serveur révision 1 et SHA-256 canonique ;
+- builds Release de `Forge.Server` et `Forge.GameLauncher`, build Debug du Runtime, sans warning ;
+- journaux sous `artifacts/network/secure-runtime/`.
 
-## Preuves locales au 25 août 2026
-
-- 521/521 tests `Forge.Domain.Tests` en Release ;
-- 386/386 tests `Forge.ModuleFormat.Tests` en Release ;
-- 112/112 tests `Forge.Network.Tests` en Release, dont 10 cas ciblés pour la détection et le rejet
-  des adresses locales, privées ou invalides ;
-- appel HTTPS réel à `api.ipify.org` validé comme IPv4, valeur volontairement masquée dans la preuve ;
-- builds Release de `Forge.Server`, `Forge.GameLauncher`, `Forge.Runtime` et `Forge.Toolset` sans
-  avertissement ni erreur ;
-- smoke TCP réel à deux clients avec deux positions répliquées et refus `NET_CONTENT_MISMATCH` ;
-- distribution Solaren de 228 fichiers au total, dont 227 contrôlés par manifeste ;
-- état visuel **Héberger** avec adresse et port partageables inspecté en 1440 × 860 ;
-- portail Full vert avec 2 162 tests .NET et 67 tests Python, puis graphe Roslyn complet frais,
-  déterministe et sans diagnostic.
-
-Ces compteurs décrivent le jalon réseau du 25 août. La requalification transversale du 26 août passe
-2 314 tests .NET, 67 tests Python et la gate Full complète ; la distribution courante conserve le
-manifeste Solaren à 227 fichiers et ajoute le lanceur Crypte de régression par un couple de manifestes
-nommé, sans modifier le protocole réseau décrit ici. L’état courant détaillé des artefacts reste tenu
-dans [`DISTRIBUTION.md`](DISTRIBUTION.md).
-
-Ces preuves utilisent de vrais sockets TCP sur loopback. Elles ne remplacent pas encore un essai WAN
-entre deux accès Internet, un soak multijoueur, une matrice de perte/latence réelle ni une revue de
-sécurité du protocole exposé.
-
-## Décisions et suivi
-
-- `docs/ADR/ADR-0021-network-kit-authority.md` : autorité indépendante du moteur ;
-- `docs/ADR/ADR-0044-configurable-game-launcher.md` : produit lanceur et condition d'activation ;
-- `docs/ADR/ADR-0048-direct-internet-multiplayer-transport.md` : protocole TCP direct retenu ;
-- `TASKS_MVP.md`, section C9 : raccords gameplay, sécurité, reconnexion, NAT/relais et qualification
-  WAN encore ouverts.
+Voir [`ADR-0056`](ADR/ADR-0056-secure-authoritative-internet-transport.md). La signature des
+exécutables, la CI distante, la qualification WAN et l'exploitation publique restent des gates
+séparées.

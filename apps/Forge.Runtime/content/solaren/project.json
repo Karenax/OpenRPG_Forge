@@ -4803,13 +4803,65 @@
         },
         "creatureFoundation": null,
         "itemFoundation": null
+      },
+      {
+        "id": "e937de21-a10d-5368-add8-09d33867e074",
+        "slug": "world-generation-portal",
+        "displayName": "Passage vers un monde g\u00E9n\u00E9r\u00E9",
+        "kind": "trigger",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/e937de21-a10d-5368-add8-09d33867e074/world-generation-portal",
+          "author": "Project author",
+          "licenseSpdx": "UNLICENSED",
+          "contentHash": "unverified",
+          "permissionEvidence": "project-author",
+          "isAiGenerated": false,
+          "modifications": []
+        },
+        "creaturePresentation": null,
+        "creatureProgression": null,
+        "creatureLoot": null,
+        "creatureRoleBehavior": null,
+        "creatureEvents": null,
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.world.generation.portal",
+          "manifestPath": "content/blueprints/e937de21-a10d-5368-add8-09d33867e074/world-generation-portal.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/e937de21-a10d-5368-add8-09d33867e074/world-generation-portal.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.world.generation.portal",
+          "styles": [],
+          "compatibility": [],
+          "tags": [],
+          "categoryPaths": [],
+          "promotedDefaults": [],
+          "authorCollections": [],
+          "prefabVariant": null,
+          "prefabComposition": null,
+          "assetBudget": null
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
       }
     ],
     "areas": [
       {
         "id": "4510a33a-ec5e-ae5c-98b3-27eca856a80d",
         "slug": "le-val-d-aubeciel",
-        "documentPath": "areas/4510a33a-ec5e-ae5c-98b3-27eca856a80d-f8a3c711e0d1c595.json"
+        "documentPath": "areas/4510a33a-ec5e-ae5c-98b3-27eca856a80d-4ee6317bfe9acaa8.json"
+      },
+      {
+        "id": "b51f4fb1-7ab7-58ea-bc2f-d256056fa802",
+        "slug": "les-hautes-brumes-generees",
+        "documentPath": "areas/b51f4fb1-7ab7-58ea-bc2f-d256056fa802-5a973061dd1d02b9.json"
       }
     ],
     "dialogues": [
@@ -4966,7 +5018,7 @@
         "presentation": {
           "id": "22f68a51-9d8b-bd44-844e-74fdd1430b58",
           "schemaVersion": 1,
-          "provenance": "author:openrpg-forge;audio:espeak-ng-1.52.0:fr+f3:2026-08-26",
+          "provenance": "author:openrpg-forge;audio:espeak-ng-1.52.0:fr\u002Bf3:2026-08-26",
           "requiredAtRuntime": false,
           "serverAuthoritativeInterjections": true,
           "animationCues": [],
@@ -4992,7 +5044,7 @@
               "licenseSpdx": "CC0-1.0",
               "contentSha256": "4d9342843ef690163db8ad4385f47a2ab265d13abd7b098ca657c3799f047080",
               "allowSubtitleFallback": true,
-              "provenance": "generated:espeak-ng:1.52.0:fr+f3;author:openrpg-forge;license:CC0-1.0"
+              "provenance": "generated:espeak-ng:1.52.0:fr\u002Bf3;author:openrpg-forge;license:CC0-1.0"
             },
             {
               "id": "90b43897-d59e-9149-bbf6-ed0268a7c4b1",
@@ -5015,7 +5067,7 @@
               "licenseSpdx": "CC0-1.0",
               "contentSha256": "f15ee8478e97e3c33b5a0cbc7f55b7149de82688994aa59fdee1ff5e0e305f3f",
               "allowSubtitleFallback": true,
-              "provenance": "generated:espeak-ng:1.52.0:fr+f3;author:openrpg-forge;license:CC0-1.0"
+              "provenance": "generated:espeak-ng:1.52.0:fr\u002Bf3;author:openrpg-forge;license:CC0-1.0"
             },
             {
               "id": "270a6d94-f70d-5f4e-b32e-a811d015c87d",
@@ -5038,7 +5090,7 @@
               "licenseSpdx": "CC0-1.0",
               "contentSha256": "c552652b1b118ac27fb19d9d2b8b05573da7d8ebb656ec64cff98f64605f3d09",
               "allowSubtitleFallback": true,
-              "provenance": "generated:espeak-ng:1.52.0:fr+f3;author:openrpg-forge;license:CC0-1.0"
+              "provenance": "generated:espeak-ng:1.52.0:fr\u002Bf3;author:openrpg-forge;license:CC0-1.0"
             },
             {
               "id": "926d551c-e2db-f24d-89ed-2d04f6750131",
@@ -5061,7 +5113,7 @@
               "licenseSpdx": "CC0-1.0",
               "contentSha256": "ad1ee34ed5718aed29aaaeb1e2e3ef7124b9a75ff059379aca7d8f3c132146a1",
               "allowSubtitleFallback": true,
-              "provenance": "generated:espeak-ng:1.52.0:fr+f3;author:openrpg-forge;license:CC0-1.0"
+              "provenance": "generated:espeak-ng:1.52.0:fr\u002Bf3;author:openrpg-forge;license:CC0-1.0"
             }
           ],
           "cameraShots": [],

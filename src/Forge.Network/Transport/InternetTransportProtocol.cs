@@ -9,7 +9,8 @@ public sealed record InternetTransportHello(
     Guid AccountId,
     string DisplayName,
     string ModuleFingerprint,
-    string ProtocolVersion);
+    string ProtocolVersion,
+    string? AuthenticationToken = null);
 
 public sealed record InternetPlayerPose(
     long Sequence,
@@ -23,14 +24,18 @@ public sealed record InternetClientPacket(
     int SchemaVersion,
     string Kind,
     InternetTransportHello? Hello = null,
-    InternetPlayerPose? Pose = null);
+    InternetPlayerPose? Pose = null,
+    InternetGameplayIntent? GameplayIntent = null);
 
 public sealed record InternetTransportWelcome(
     bool Accepted,
     string Code,
     Guid SessionId,
     Guid ConnectionId,
-    long Revision);
+    long Revision,
+    bool Encrypted = false,
+    bool Authenticated = false,
+    string? CertificateSha256 = null);
 
 public sealed record InternetPlayerState(
     Guid ConnectionId,
@@ -47,22 +52,52 @@ public sealed record InternetWorldSnapshot(
     long Revision,
     IReadOnlyList<InternetPlayerState> Players);
 
+public sealed record InternetGameplayIntent(
+    Guid IntentId,
+    long ExpectedRevision,
+    string Kind,
+    IReadOnlyDictionary<string, string> Payload);
+
+public sealed record InternetPublicCombatantState(
+    Guid ConnectionId,
+    int Health,
+    int MaximumHealth,
+    bool Defeated);
+
+public sealed record InternetPrivateGameplayState(
+    Guid AccountId,
+    IReadOnlyDictionary<string, int> Inventory,
+    IReadOnlyDictionary<string, string> Quests,
+    int AttacksLanded,
+    long SaveRevision,
+    string? CheckpointSha256);
+
+public sealed record InternetGameplaySnapshot(
+    Guid SessionId,
+    long Revision,
+    string EventCode,
+    IReadOnlyList<InternetPublicCombatantState> Combatants,
+    InternetPrivateGameplayState PrivateState);
+
 public sealed record InternetServerPacket(
     int SchemaVersion,
     string Kind,
     InternetTransportWelcome? Welcome = null,
     InternetWorldSnapshot? Snapshot = null,
+    InternetGameplaySnapshot? GameplaySnapshot = null,
     string? Code = null);
 
 public static class InternetTransportProtocol
 {
-    public const int SchemaVersion = 1;
-    public const string GameProtocolVersion = "1";
+    public const int SchemaVersion = 2;
+    public const string GameProtocolVersion = "2";
     public const int MaximumFrameBytes = 64 * 1024;
     public const string HelloKind = "hello";
     public const string WelcomeKind = "welcome";
     public const string PlayerPoseKind = "player.pose";
     public const string SnapshotKind = "world.snapshot";
+    public const string GameplayIntentKind = "gameplay.intent";
+    public const string GameplaySnapshotKind = "gameplay.snapshot";
     public const string PingKind = "ping";
     public const string PongKind = "pong";
     public const string ErrorKind = "error";

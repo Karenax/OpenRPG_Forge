@@ -31,7 +31,7 @@ ForgeScript présents sont néanmoins validés par le catalogue d'événements.
 | blocage testé | collision des états bloquants et lien des états praticables | test Domain et marker `blocking=tested` |
 | validation avant application | diagnostics `world.door.navigation_invalid`, `navigation_state_mismatch`, `transition_loop` | `R041_DoorValidationReportsNavigationCollisionAndTransitionLoopBeforeApply` et dry-run Toolset rejeté |
 | persistance | navigation sérialisée dans `FoundationPolicy` | `WorldFeaturePersistenceTests` vérifie IDs et option de visualisation après rechargement |
-| projet canonique | `CryptWorldFeatureAuthoringService` construit fondation et navigation complètes | suites Application/ModuleFormat et portail intégré |
+| projet canonique | catalogue matérialisé par la migration ponctuelle `CryptWorldFeatureMigration` | suites Application/ModuleFormat et portail intégré |
 
 ## Non-objectifs
 

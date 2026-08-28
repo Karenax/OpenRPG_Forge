@@ -127,16 +127,16 @@ pas présentée comme adresse à partager.
 Pour héberger depuis Internet :
 
 1. choisir **Héberger**, vérifier l'adresse affichée et un port TCP entre 1024 et 65535 ;
-2. copier `adresse:port` avec le bouton du lanceur et le transmettre aux invités ;
+2. copier l'invitation privée `openrpg2:` avec le bouton du lanceur et la transmettre aux invités ;
 3. autoriser le jeu dans le pare-feu Windows lors de la première écoute ;
 4. rediriger ce même port TCP du routeur vers l'IPv4 locale de l'ordinateur hôte.
 
-Le transport direct v1 réplique l'admission, la présence, la zone et les déplacements des avatars.
-Il ne transporte aucun mot de passe ou jeton, mais il n'est pas chiffré et ne prouve pas l'identité
-de l'hôte : l'utiliser avec des joueurs de confiance. Il ne fournit pas encore UPnP/NAT-PMP, relais,
-annuaire public, reconnexion ni synchronisation complète des combats, inventaires, quêtes, dialogues
-et sauvegardes. Ces limites restent visibles et ne doivent pas être décrites comme une campagne
-coopérative Internet entièrement qualifiée.
+Le transport direct v2 emploie TLS 1.2/1.3, épingle le certificat de l'hôte et authentifie le jeton de
+l'invitation avant publication du joueur. Il réplique admission, présence, zone et déplacements, et
+une tranche autoritaire exerce attaque, potion, quête et checkpoint. Il ne fournit pas encore
+UPnP/NAT-PMP, relais, annuaire public, reconnexion ni synchronisation complète des dialogues,
+transitions, cinématiques et sauvegardes de campagne. Ces limites restent visibles et ne doivent pas
+être décrites comme une campagne coopérative Internet entièrement qualifiée.
 
 Le parcours complet, les prérequis routeur/pare-feu, le serveur headless, les codes de diagnostic et
 la matrice exacte des fonctions raccordées sont documentés dans

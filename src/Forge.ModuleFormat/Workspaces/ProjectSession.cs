@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using System.Security.Cryptography;
 using Forge.Domain.Projects;
 using Forge.ModuleFormat.Serialization;
 
@@ -19,10 +20,15 @@ public sealed class ProjectSession
     public const string AreaPathUnsafeCode = "workspace.area_path_unsafe";
     public const string AreaMissingCode = "workspace.area_missing";
     public const string SaveFailedCode = "workspace.save_failed";
+    public const string RevisionConflictCode = "workspace.revision_conflict";
     public const string DirectoryNotEmptyCode = "workspace.directory_not_empty";
     public const string CreateFailedCode = "workspace.create_failed";
     public const string DefaultProjectFileName = "project.json";
     public const string CurrentProjectFormatVersion = WorkspaceProjectJsonSerializer.CurrentFormatVersion;
+    public const string RevisionStateRelativePath = ".forge/project-session.json";
+
+    private const int CurrentRevisionStateSchemaVersion = 1;
+    private const string RevisionLockRelativePath = ".forge/project-session.lock";
 
     private static readonly JsonSerializerOptions ManifestOptions = new()
     {
@@ -39,19 +45,50 @@ public sealed class ProjectSession
 
     public ProjectDefinition Project { get; private set; }
 
+    public long Revision { get; private set; }
+
+    private string _observedFingerprint;
+    private IReadOnlySet<string>? _allowedMigrationDiagnosticCodes;
+
     private ProjectSession(
         string rootDirectory,
         string manifestPath,
         string projectFilePath,
-        ProjectDefinition project)
+        ProjectDefinition project,
+        long revision,
+        string observedFingerprint,
+        IReadOnlySet<string>? allowedMigrationDiagnosticCodes)
     {
         RootDirectory = rootDirectory;
         ManifestPath = manifestPath;
         ProjectFilePath = projectFilePath;
         Project = project;
+        Revision = revision;
+        _observedFingerprint = observedFingerprint;
+        _allowedMigrationDiagnosticCodes = allowedMigrationDiagnosticCodes is null
+            ? null
+            : new HashSet<string>(allowedMigrationDiagnosticCodes, StringComparer.Ordinal);
     }
 
-    public static ProjectSessionOpenResult Open(string workspaceDirectory)
+    public static ProjectSessionOpenResult Open(string workspaceDirectory) =>
+        OpenCore(workspaceDirectory, null);
+
+    public static ProjectSessionOpenResult OpenForMigration(
+        string workspaceDirectory,
+        IReadOnlySet<string> allowedProjectDiagnosticCodes)
+    {
+        ArgumentNullException.ThrowIfNull(allowedProjectDiagnosticCodes);
+        if (allowedProjectDiagnosticCodes.Count == 0 ||
+            allowedProjectDiagnosticCodes.Any(string.IsNullOrWhiteSpace))
+            throw new ArgumentException(
+                "Migration opening requires an explicit non-empty diagnostic allowlist.",
+                nameof(allowedProjectDiagnosticCodes));
+        return OpenCore(workspaceDirectory, allowedProjectDiagnosticCodes);
+    }
+
+    private static ProjectSessionOpenResult OpenCore(
+        string workspaceDirectory,
+        IReadOnlySet<string>? allowedProjectDiagnosticCodes)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(workspaceDirectory);
 
@@ -73,6 +110,20 @@ public sealed class ProjectSession
                 rootDirectory);
         }
 
+        FileStream? revisionLock = null;
+        try
+        {
+            revisionLock = AcquireRevisionLock(rootDirectory);
+            ProjectWorkspaceTransaction.RecoverPending(rootDirectory);
+        }
+        catch (Exception exception) when (
+            exception is IOException or UnauthorizedAccessException or JsonException)
+        {
+            revisionLock?.Dispose();
+            return Failure(ProjectInvalidCode, exception.Message, rootDirectory);
+        }
+        using var heldRevisionLock = revisionLock;
+
         var manifestPath = Path.Combine(rootDirectory, ManifestFileName);
         if (!File.Exists(manifestPath))
         {
@@ -83,10 +134,12 @@ public sealed class ProjectSession
         }
 
         ProjectWorkspaceManifest? manifest;
+        string manifestJson;
         try
         {
+            manifestJson = File.ReadAllText(manifestPath);
             manifest = JsonSerializer.Deserialize<ProjectWorkspaceManifest>(
-                File.ReadAllText(manifestPath),
+                manifestJson,
                 ManifestOptions);
         }
         catch (Exception exception) when (
@@ -134,14 +187,31 @@ public sealed class ProjectSession
         {
             var projectDirectory = Path.GetDirectoryName(projectFilePath)
                 ?? throw new IOException("The project index does not have a parent directory.");
+            var projectJson = File.ReadAllText(projectFilePath);
+            var areaDocuments = new Dictionary<string, string>(StringComparer.Ordinal);
             var project = WorkspaceProjectJsonSerializer.Deserialize(
-                File.ReadAllText(projectFilePath),
-                relativePath => ReadAreaDocument(projectDirectory, relativePath));
+                projectJson,
+                relativePath =>
+                {
+                    var document = ReadAreaDocument(projectDirectory, relativePath);
+                    areaDocuments[relativePath] = document;
+                    return document;
+                },
+                allowedProjectDiagnosticCodes);
+            var fingerprint = ComputeWorkspaceFingerprint(
+                manifestJson,
+                Path.GetRelativePath(rootDirectory, projectFilePath),
+                projectJson,
+                areaDocuments);
+            var revision = ReadEffectiveRevision(rootDirectory, fingerprint);
             var session = new ProjectSession(
                 rootDirectory,
                 manifestPath,
                 projectFilePath,
-                project);
+                project,
+                revision,
+                fingerprint,
+                allowedProjectDiagnosticCodes);
             return new ProjectSessionOpenResult(session, []);
         }
         catch (AreaDocumentReadException exception)
@@ -221,9 +291,20 @@ public sealed class ProjectSession
         }
     }
 
-    public ProjectSessionSaveResult Save(ProjectDefinition project)
+    public ProjectSessionSaveResult Save(ProjectDefinition project) =>
+        Save(project, targetRevision: null);
+
+    public ProjectSessionSaveResult Save(ProjectDefinition project, long targetRevision) =>
+        Save(project, (long?)targetRevision);
+
+    private ProjectSessionSaveResult Save(ProjectDefinition project, long? targetRevision)
     {
         ArgumentNullException.ThrowIfNull(project);
+
+        if (targetRevision is < 0)
+        {
+            return SaveFailure(ProjectInvalidCode, "A workspace revision cannot be negative.", ProjectFilePath);
+        }
 
         WorkspaceProjectBundle bundle;
         try
@@ -238,8 +319,35 @@ public sealed class ProjectSession
 
         try
         {
-            WriteWorkspaceBundle(ProjectFilePath, bundle);
+            using var revisionLock = AcquireRevisionLock(RootDirectory);
+            var currentFingerprint = ComputeWorkspaceFingerprintFromDisk(
+                RootDirectory,
+                ManifestPath,
+                ProjectFilePath,
+                _allowedMigrationDiagnosticCodes);
+            if (!string.Equals(currentFingerprint, _observedFingerprint, StringComparison.Ordinal))
+            {
+                return SaveFailure(
+                    RevisionConflictCode,
+                    "The Forge workspace changed on disk after this session was opened. Reload and reapply the pending command.",
+                    ProjectFilePath);
+            }
+
+            var nextRevision = Math.Max(targetRevision ?? checked(Revision + 1), checked(Revision + 1));
+            var manifestJson = File.ReadAllText(ManifestPath);
+            var savedFingerprint = ComputeWorkspaceFingerprint(
+                manifestJson,
+                Path.GetRelativePath(RootDirectory, ProjectFilePath),
+                bundle.ProjectJson,
+                bundle.AreaDocuments);
+            var revisionStateJson = SerializeRevisionState(nextRevision, savedFingerprint);
+            ProjectWorkspaceTransaction.Commit(
+                RootDirectory,
+                BuildWorkspaceTransactionDocuments(bundle, revisionStateJson));
             Project = project;
+            Revision = nextRevision;
+            _observedFingerprint = savedFingerprint;
+            _allowedMigrationDiagnosticCodes = null;
             return new ProjectSessionSaveResult(true, []);
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
@@ -327,6 +435,32 @@ public sealed class ProjectSession
         WriteAllTextAtomically(projectFilePath, bundle.ProjectJson);
     }
 
+    private IReadOnlyDictionary<string, string> BuildWorkspaceTransactionDocuments(
+        WorkspaceProjectBundle bundle,
+        string revisionStateJson)
+    {
+        var documents = new Dictionary<string, string>(StringComparer.Ordinal);
+        var projectDirectory = Path.GetDirectoryName(ProjectFilePath)
+            ?? throw new IOException("The project index does not have a parent directory.");
+        foreach (var areaDocument in bundle.AreaDocuments)
+        {
+            if (!TryResolveProjectPath(projectDirectory, areaDocument.Key, out var areaPath))
+            {
+                throw new IOException($"Area document path '{areaDocument.Key}' is unsafe.");
+            }
+
+            documents.Add(
+                Path.GetRelativePath(RootDirectory, areaPath).Replace('\\', '/'),
+                areaDocument.Value);
+        }
+
+        documents.Add(
+            Path.GetRelativePath(RootDirectory, ProjectFilePath).Replace('\\', '/'),
+            bundle.ProjectJson);
+        documents.Add(RevisionStateRelativePath, revisionStateJson);
+        return documents;
+    }
+
     private static void WriteAllTextAtomically(string targetPath, string content)
     {
         var directory = Path.GetDirectoryName(targetPath)
@@ -366,6 +500,117 @@ public sealed class ProjectSession
         }
     }
 
+    private static FileStream AcquireRevisionLock(string rootDirectory)
+    {
+        var lockPath = Path.Combine(
+            rootDirectory,
+            RevisionLockRelativePath.Replace('/', Path.DirectorySeparatorChar));
+        Directory.CreateDirectory(Path.GetDirectoryName(lockPath)!);
+        var deadline = DateTime.UtcNow.AddSeconds(5);
+        IOException? lastError = null;
+        do
+        {
+            try
+            {
+                return new FileStream(
+                    lockPath,
+                    FileMode.OpenOrCreate,
+                    FileAccess.ReadWrite,
+                    FileShare.None,
+                    bufferSize: 1,
+                    FileOptions.WriteThrough);
+            }
+            catch (IOException exception)
+            {
+                lastError = exception;
+                Thread.Sleep(25);
+            }
+        } while (DateTime.UtcNow < deadline);
+
+        throw new IOException("The Forge workspace is currently being saved by another process.", lastError);
+    }
+
+    private static string ComputeWorkspaceFingerprintFromDisk(
+        string rootDirectory,
+        string manifestPath,
+        string projectFilePath,
+        IReadOnlySet<string>? allowedMigrationDiagnosticCodes)
+    {
+        var manifestJson = File.ReadAllText(manifestPath);
+        var projectJson = File.ReadAllText(projectFilePath);
+        var projectDirectory = Path.GetDirectoryName(projectFilePath)
+            ?? throw new IOException("The project index does not have a parent directory.");
+        var areaDocuments = new Dictionary<string, string>(StringComparer.Ordinal);
+        _ = WorkspaceProjectJsonSerializer.Deserialize(
+            projectJson,
+            relativePath =>
+            {
+                var document = ReadAreaDocument(projectDirectory, relativePath);
+                areaDocuments[relativePath] = document;
+                return document;
+            },
+            allowedMigrationDiagnosticCodes);
+        return ComputeWorkspaceFingerprint(
+            manifestJson,
+            Path.GetRelativePath(rootDirectory, projectFilePath),
+            projectJson,
+            areaDocuments);
+    }
+
+    private static string ComputeWorkspaceFingerprint(
+        string manifestJson,
+        string relativeProjectPath,
+        string projectJson,
+        IReadOnlyDictionary<string, string> areaDocuments)
+    {
+        using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+        AppendFingerprintComponent(hash, ProjectSession.ManifestFileName, manifestJson);
+        AppendFingerprintComponent(
+            hash,
+            relativeProjectPath.Replace('\\', '/'),
+            projectJson);
+        foreach (var areaDocument in areaDocuments.OrderBy(item => item.Key, StringComparer.Ordinal))
+        {
+            AppendFingerprintComponent(hash, areaDocument.Key.Replace('\\', '/'), areaDocument.Value);
+        }
+
+        return Convert.ToHexString(hash.GetHashAndReset()).ToLowerInvariant();
+    }
+
+    private static void AppendFingerprintComponent(IncrementalHash hash, string path, string content)
+    {
+        hash.AppendData(Encoding.UTF8.GetBytes(path));
+        hash.AppendData([0]);
+        hash.AppendData(Encoding.UTF8.GetBytes(content));
+        hash.AppendData([byte.MaxValue]);
+    }
+
+    private static long ReadEffectiveRevision(string rootDirectory, string currentFingerprint)
+    {
+        var statePath = Path.Combine(
+            rootDirectory,
+            RevisionStateRelativePath.Replace('/', Path.DirectorySeparatorChar));
+        if (!File.Exists(statePath)) return 0;
+
+        var state = JsonSerializer.Deserialize<ProjectSessionRevisionState>(
+            File.ReadAllText(statePath),
+            ManifestOptions);
+        if (state is null || state.SchemaVersion != CurrentRevisionStateSchemaVersion || state.Revision < 0 ||
+            string.IsNullOrWhiteSpace(state.Fingerprint))
+        {
+            throw new JsonException("The Forge workspace revision state is invalid.");
+        }
+
+        return string.Equals(state.Fingerprint, currentFingerprint, StringComparison.Ordinal)
+            ? state.Revision
+            : checked(state.Revision + 1);
+    }
+
+    private static string SerializeRevisionState(long revision, string fingerprint) =>
+        JsonSerializer.Serialize(
+            new ProjectSessionRevisionState(CurrentRevisionStateSchemaVersion, revision, fingerprint),
+            ManifestOptions);
+
     private static void DeleteCreatedFile(string path)
     {
         if (File.Exists(path))
@@ -393,4 +638,9 @@ public sealed class ProjectSession
             Path = path;
         }
     }
+
+    private sealed record ProjectSessionRevisionState(
+        int SchemaVersion,
+        long Revision,
+        string Fingerprint);
 }

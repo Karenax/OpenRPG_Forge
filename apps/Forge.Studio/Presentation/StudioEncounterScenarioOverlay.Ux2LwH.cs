@@ -420,7 +420,11 @@ internal sealed partial class StudioEncounterScenarioOverlayUx2LwH : Control
             Visible = true;
             FitDialog();
             Reload(clearSelection: true);
-            var index = _encounterEntries.FindIndex(item => item is { IsFoundationComplete: true, HasScenario: true });
+            var index = _encounterEntries.FindIndex(item =>
+                item is { IsFoundationComplete: true, HasScenario: true, IsEvidence: true });
+            if (index <= 0)
+                index = _encounterEntries.FindIndex(item =>
+                    item is { IsFoundationComplete: true, HasScenario: true });
             if (index <= 0) { ReleaseEvidence(); return false; }
             _encounter.Select(index); SelectEncounter(index);
             if (_draft is null) { ReleaseEvidence(); return false; }
@@ -442,6 +446,16 @@ internal sealed partial class StudioEncounterScenarioOverlayUx2LwH : Control
                     : phase).ToArray(),
             };
             PopulateDraft(); Preview();
+            if (_lastPreview is not { Succeeded: true, CanApply: true })
+            {
+                var diagnosticSummary = _lastPreview is null
+                    ? "preview-missing"
+                    : string.Join(" | ", _lastPreview.Diagnostics.Select(item =>
+                        $"{item.Code}@{item.Path}:{item.Message}"));
+                GD.PrintErr(
+                    $"OPENRPG_FORGE_STUDIO_UX2_LW_H_EVIDENCE_PREVIEW_FAILED " +
+                    $"message={_lastPreview?.Message ?? "none"} diagnostics={diagnosticSummary}");
+            }
             _lastEvidenceSourceUntouched = SourceMatchesSnapshot(snapshot);
             SetStatus($"Preuve isolée prête · {HumanMode(mode)} · source intacte", false);
             return _lastPreview?.Succeeded == true && _lastPreview.CanApply && _lastEvidenceSourceUntouched;

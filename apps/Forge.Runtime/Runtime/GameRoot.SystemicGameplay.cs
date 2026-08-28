@@ -9,13 +9,17 @@ public partial class GameRoot
 {
     internal bool IsSystemicRuntimeInitialized => _initializationComplete;
 
-    internal bool IsCryptSystemicModule => _isCryptPrototype;
+    internal bool IsSystemicGameplayEnabled => _moduleExperience.SystemicGameplayEnabled;
 
-    internal bool IsCryptSystemicGameplayReady =>
+    internal bool IsSystemicGameplayReady =>
         _initializationComplete &&
-        _isCryptPrototype &&
+        _moduleExperience.SystemicGameplayEnabled &&
         _player is not null &&
         _camera is not null;
+
+    internal string SystemicModuleSlug => _moduleSlug;
+
+    internal string ReadSystemicManifest() => ReadModuleContentFile("systemic-gameplay.json");
 
     internal PlayerController? SystemicPlayer => _player;
 
@@ -166,7 +170,7 @@ public partial class GameRoot
         if (!target.IsDead)
         {
             GD.PushWarning(
-                $"OPENRPG_FORGE_CRYPT_SYSTEMIC_DEFEAT_INCOMPLETE target={hostile.Name} " +
+                $"OPENRPG_FORGE_SYSTEMIC_DEFEAT_INCOMPLETE target={hostile.Name} " +
                 $"remaining_health={target.Health}");
             return false;
         }
@@ -205,7 +209,7 @@ public partial class GameRoot
         _message = message.Trim();
         UpdateHud();
         GD.Print(
-            $"OPENRPG_FORGE_CRYPT_SYSTEMIC_EVENT id={eventId.Trim()} " +
+            $"OPENRPG_FORGE_SYSTEMIC_EVENT id={eventId.Trim()} " +
             $"message={message.Trim().Replace(' ', '_')}");
     }
 

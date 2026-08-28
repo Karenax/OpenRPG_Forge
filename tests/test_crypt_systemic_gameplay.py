@@ -10,7 +10,7 @@ RULESET = ROOT / "docs" / "design" / "OPENRPG_FORGE_RULESET_FR.md"
 CRYPT_ROOT = ROOT / "apps" / "Forge.Runtime" / "content" / "crypt-of-ashes"
 MANIFEST = CRYPT_ROOT / "systemic-gameplay.json"
 MODULE_README = CRYPT_ROOT / "README.md"
-DIRECTOR = ROOT / "apps" / "Forge.Runtime" / "Runtime" / "CryptSystemicGameplay.cs"
+DIRECTOR = ROOT / "apps" / "Forge.Runtime" / "Runtime" / "SystemicEnvironmentGameplay.cs"
 BRIDGE = ROOT / "apps" / "Forge.Runtime" / "Runtime" / "GameRoot.SystemicGameplay.cs"
 MAIN_SCENE = ROOT / "apps" / "Forge.Runtime" / "Main.tscn"
 
@@ -86,14 +86,18 @@ class CryptSystemicGameplayContractTests(unittest.TestCase):
             <= approaches
         )
 
-    def test_runtime_director_is_attached_and_scoped_to_the_crypt(self) -> None:
+    def test_runtime_director_is_attached_and_scoped_by_module_contract(self) -> None:
         scene = MAIN_SCENE.read_text(encoding="utf-8")
         director = DIRECTOR.read_text(encoding="utf-8")
-        self.assertIn('res://Runtime/CryptSystemicGameplay.cs', scene)
-        self.assertIn('name="CryptSystemicGameplay"', scene)
-        self.assertIn("IsCryptSystemicModule", director)
-        self.assertIn("OPENRPG_FORGE_CRYPT_SYSTEMIC_READY", director)
-        self.assertIn("ManifestPath", director)
+        bridge = BRIDGE.read_text(encoding="utf-8")
+        self.assertIn('res://Runtime/SystemicEnvironmentGameplay.cs', scene)
+        self.assertIn('name="SystemicEnvironmentGameplay"', scene)
+        self.assertIn("IsSystemicGameplayEnabled", director)
+        self.assertIn("OPENRPG_FORGE_SYSTEMIC_READY", director)
+        self.assertIn("ReadSystemicManifest", director)
+        self.assertIn('ReadModuleContentFile("systemic-gameplay.json")', bridge)
+        self.assertNotIn('$"res://content/{_moduleSlug}/systemic-gameplay.json"', bridge)
+        self.assertNotIn("IsCryptSystemicModule", director + bridge)
         for action in (
             "systemic_kick",
             "systemic_fire",

@@ -1,7 +1,7 @@
 # ADR-0048 — Transport multijoueur Internet direct
 
 Date : 2026-08-25
-Statut : accepté
+Statut : remplacé par ADR-0056
 UUID : `3d584584-ef77-4f22-8ac4-2fb5682744a8`
 Schéma : v1
 Provenance : `author:openrpg-forge`
@@ -72,3 +72,7 @@ d'identité de l'hôte, la reconnexion, le relais/NAT et un annuaire optionnel r
 Cette décision concrétise la frontière prévue par ADR-0021 et satisfait la condition d'activation
 énoncée par ADR-0044 sans remplacer ces décisions. Une évolution incompatible du protocole créera
 un nouvel ADR et conservera un refus explicite des versions non compatibles.
+
+Le protocole v1 en clair est remplacé pour toute nouvelle session Internet par
+[`ADR-0056`](ADR-0056-secure-authoritative-internet-transport.md). Le principe de connexion directe
+sans service propriétaire demeure applicable.

@@ -1,6 +1,6 @@
 # État vérifié — OpenRPG Forge
 
-Dernière mise à jour : 27 août 2026.
+Dernière mise à jour : 28 août 2026.
 
 ## Verdict
 
@@ -18,7 +18,7 @@ confondu avec une release publique signée.
 ## Produit disponible
 
 - Creator historique et runtime 3D séparés, exclusivement présentés sous la marque OpenRPG Forge ;
-- `Forge.Studio` autonome : Module Hub, une fenêtre, huit rubriques, trente-six pages, 717 routes
+- `Forge.Studio` autonome : Module Hub, une fenêtre, huit rubriques, trente-sept pages, 717 routes
   humaines, Crypte des Cendres, édition directe, validation, playtest isolé et Assistant gouverné ;
 - neuf espaces du Creator historique, mode Débutant à quatre espaces et outils spécialisés intégrés ;
 - projets, zones, blueprints, assets gouvernés, dialogues, quêtes, scripts et contenu RPG ;
@@ -28,8 +28,8 @@ confondu avec une release publique signée.
 - Assistant et host MCP transactionnels, bornés, facultatifs et sans shell arbitraire ;
 - distributions Windows x64 autonomes du Creator et du Runtime ;
 - lanceur Windows configurable par jeu avec fond et musique WAV gouvernés, Play/Stop, volume persistant,
-  hébergement autoritaire, détection facultative de l'IPv4 publique, copie `adresse:port` et connexion
-  directe par IPv4/DNS ; lanceur, module et Studio en plein écran par défaut, avec mode joueur
+  hébergement autoritaire, détection facultative de l'IPv4 publique, invitation privée `openrpg2:` et
+  connexion TLS épinglée ; lanceur, module et Studio en plein écran par défaut, avec mode joueur
   **Fenêtré plein écran** sans bordure ;
 - installateur/désinstallateur NSIS avec contrôle de mise à jour et préservation des données utilisateur ;
 - Crypte des Cendres jouable en Forward+ avec modèles 3D gouvernés ;
@@ -38,17 +38,16 @@ confondu avec une release publique signée.
 - fondation WorldGeneration gouvernée : recettes et révisions persistantes, previews déterministes,
   régénération partielle, jobs auditables repris après redémarrage, Terrain3D/Godot Flow facultatifs
   et terrain natif de fallback avec maillage et collision sous Godot 4.7.1 ; identité concrète des
-  fournisseurs stabilisée par `providerKey`, qualification réelle Windows, benchmark comparatif et
-  promotion canonique explicite, atomique et réversible ;
+  fournisseurs stabilisée par `providerKey`, qualification réelle Windows, benchmark comparatif,
+  page Studio et promotion canonique explicite, atomique et réversible ;
 - interface de combat runtime autoritaire, animée, accessible et bornée par des pools stables.
 
-La fondation WorldGeneration est exploitable pour orchestrer et tester des générations, mais elle
-n'est pas encore une chaîne artistique complète : les graphes PCG sont fournis par les modules, les
-étapes natives autres que le terrain restent à approfondir et les graphes/assets de production ne
-sont pas livrés. Le proxy technique 2 km prouve localement sous Windows 5 904 instances, collision,
-navigation à 131 points, sauvegarde/réouverture, cinq captures et candidat canonique provider-free
-avec Terrain3D et chacun des fournisseurs PCG réels sous Godot 4.7.1. Les mêmes entrées donnent une
-parité exacte ; GF-PCGODOT reste expérimental faute de gain artistique ou d'auteur démontré.
+WorldGeneration possède désormais une tranche produit : la page Studio partage les révisions MCP,
+Solaren porte une seconde zone promue et Runtime la charge depuis le workspace puis le `.orpmod`.
+La scène contient 5 904 instances en quatre rôles, collision et navigation, avec capture Forward+
+inspectée. La chaîne n'est pas encore une bibliothèque artistique universelle : graphes et assets
+restent détenus par les modules, les exports provider-free et la CI Linux restent à qualifier, et
+GF-PCGODOT demeure expérimental faute de gain artistique ou d'auteur démontré.
 
 La promotion ne se produit jamais automatiquement : le MCP exige preview, permission, révisions,
 job réussi, rapport accepté, empreintes exactes et SHA-256 de destination en cas de remplacement. Il
@@ -58,18 +57,17 @@ exports provider-free Windows/Linux et la revue artistique restent ouverts.
 
 ## Multijoueur Internet direct
 
-- le profil **Internet direct · héberger et rejoindre** est actif dans le Creator et dans le lanceur
-  WPF exporté ; l'hôte runtime écoute en TCP sur `0.0.0.0` et un client rejoint par IPv4 ou DNS ;
-- le mode Hôte affiche l'IPv4 publique à partager avec le port, accepte un DNS de remplacement et
-  conserve `127.0.0.1` comme détail interne non partageable ; l'échec de détection ne bloque pas l'hôte ;
+- le profil **Internet direct · héberger et rejoindre** est actif dans le Creator et le lanceur WPF ;
+  l'hôte écoute en TLS sur `0.0.0.0` et le client colle une invitation privée `openrpg2:` ;
+- le mode Hôte détecte facultativement l'IPv4 publique, accepte un DNS et génère certificat, pin et
+  jeton ; `127.0.0.1` reste interne et l'échec de détection ne bloque pas l'hôte ;
 - `Forge.Server` utilise le même listener et reste actif jusqu'à son arrêt, avec capacité headless
   configurable de 1 à 64 ; le runtime hôte utilise actuellement une capacité fixe de 8 ;
-- l'admission vérifie empreinte de contenu et protocole avant la présence ; les snapshots révisionnés
-  portent zone, position et orientation, puis le runtime interpole les avatars distants ;
-- ce chemin ne synchronise pas encore combats, inventaires, quêtes, dialogues, transitions et
-  sauvegardes et ne doit donc pas être qualifié de campagne coopérative complète ;
-- le protocole v1 n'est pas chiffré, ne prouve pas l'identité de l'hôte et n'offre ni reconnexion,
-  relais, annuaire ni ouverture NAT automatique ; il est réservé aux joueurs de confiance ;
+- l'admission vérifie pin TLS, jeton, empreinte de contenu et protocole avant la présence ; les
+  snapshots révisionnés portent zone, position et orientation, puis Runtime interpole les avatars ;
+- une tranche serveur réelle refuse le calcul client et exerce attaque, potion, quête et checkpoint ;
+  dialogues, transitions collectives et sauvegardes de campagne restent à projeter ;
+- reconnexion, révocation individuelle, relais, annuaire et ouverture NAT automatique restent absents ;
 - la preuve locale utilise de vrais sockets TCP à deux clients sur loopback. Un essai depuis une
   seconde connexion Internet, avec pare-feu et redirection du routeur, reste à réaliser ;
 - le mode d'emploi, les diagnostics et la frontière de sécurité sont centralisés dans
@@ -169,6 +167,11 @@ exports provider-free Windows/Linux et la revue artistique restent ouverts.
   67 tests Python verts, 32 projets NuGet sans vulnérabilité, builds sans avertissement, documentation
   déterministe, graphe Roslyn à 11 816 nœuds / 94 081 relations / zéro diagnostic, Studio, Toolset,
   Runtime/Forward+, assets, Blender, MCP, réseau, sauvegarde/reprise et distributions validés ;
+- qualification consolidée du 28 août 2026 après les audits croisés : 2 345 tests .NET et 68 tests
+  Python verts, 32 projets NuGet sans vulnérabilité, builds sans avertissement, documentation et
+  717 routes Aurora cohérentes, budgets de maintenabilité verts, MCP à 271 outils, Network à 118 tests,
+  Studio à 37 pages et graphe Roslyn déterministe à 11 971 nœuds / 97 386 relations / zéro diagnostic ;
+  les smokes produit et distributions de cette gate sont les preuves locales, sans signature publique ;
 - vérification de la tranche WorldGeneration courante : build Release complet sans avertissement,
   2 323/2 323 tests .NET verts en passe séquentielle, tests ciblés WorldGeneration, smoke Godot 4.7.1,
   installateur, YAML CI, cohérence projet et budgets verts ; graphe Roslyn déterministe à 11 860
@@ -671,7 +674,7 @@ donjon :
 
 Le snapshot de zone lui-même a été modifié : sols, murs internes, verrou spatial de la porte, zones
 latérales et positions des acteurs ne reposent plus uniquement sur un décorateur runtime. La couche
-artistique `CryptArtKitDecorator` compose les mêmes espaces à partir du lot KayKit Dungeon
+artistique pilotée par `kaykit-dungeon-remastered.layout.json` compose les mêmes espaces via `GodotArtKitBuilder`
 Remastered CC0-1.0 déjà gouverné. Des colliders de sécurité ferment les silhouettes étroites jusqu’à
 leur exposition complète dans le Creator.
 
@@ -961,10 +964,10 @@ revue visuelle humaine complète FHD/QHD n’a été réalisée dans ce lot.
 - sauvegarde non destructive des profils Objet et Terrain et suppressions transactionnelles ;
 - profil de lanceur v1 persistant, application WPF RPG cinématique, générateur `Client` atomique,
   manifestes SHA-256 complets et modèle embarqué dans la distribution Creator ;
-- réglages d'affichage, qualité, VSync, audio et accessibilité appliqués au runtime ; transport TCP
-  direct partagé avec le serveur headless, admission module/protocole, deux clients et avatars
-  distants validés. Le gameplay RPG complet, le chiffrement, la reconnexion et le relais/NAT restent
-  hors de cette première base Internet.
+- réglages d'affichage, qualité, VSync, audio et accessibilité appliqués au runtime ; transport TLS
+  direct partagé avec le serveur headless, pin, jeton, admission module/protocole, deux clients,
+  avatars distants et tranche gameplay autoritaire validés. La campagne complète, la reconnexion et
+  le relais/NAT restent hors de cette base Internet.
 
 ## Distribution locale qualifiée
 

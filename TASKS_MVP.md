@@ -121,8 +121,11 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
   adresses locales comme `127.0.0.1` et conserver une saisie IPv4/DNS si la détection échoue.
 - [ ] Router combats, inventaires, quêtes, dialogues, changements de zone et sauvegardes par les
   intentions autoritaires avant de qualifier une campagne coopérative Internet complète.
-- [ ] Ajouter chiffrement et identité d'hôte, reconnexion, relais/NAT et annuaire optionnel avant une
-  exposition à des joueurs non fiables sans configuration manuelle du routeur.
+- [x] Ajouter TLS 1.2/1.3, identité d'hôte épinglée, invitation privée authentifiée et refus du
+  serveur public non sécurisé ; prouver une tranche autoritaire combat/inventaire/quête/checkpoint
+  avec deux runtimes Godot réels.
+- [ ] Ajouter reconnexion authentifiée, rotation/révocation, relais/NAT et annuaire optionnel avant
+  une exposition publique sans configuration manuelle du routeur.
 - [ ] Qualifier deux distributions identiques depuis deux accès Internet distincts : pare-feu,
   redirection TCP, DNS/IP publique, entrée/sortie, déplacement, déconnexion et diagnostics d'échec.
 

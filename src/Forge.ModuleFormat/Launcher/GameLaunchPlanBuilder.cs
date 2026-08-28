@@ -43,6 +43,16 @@ public static class GameLaunchPlanBuilder
                 throw new InvalidOperationException("This game does not enable direct Internet connections.");
         }
 
+        if (settings.SessionMode == LauncherSessionMode.LocalHost &&
+            capability == GameLauncherMultiplayerMode.DirectConnectPreview &&
+            (string.IsNullOrWhiteSpace(settings.NetworkJoinToken) ||
+             string.IsNullOrWhiteSpace(settings.ServerCertificateSha256) ||
+             string.IsNullOrWhiteSpace(settings.HostCertificatePath) ||
+             string.IsNullOrWhiteSpace(settings.HostCertificatePassword) ||
+             !File.Exists(settings.HostCertificatePath)))
+            throw new InvalidOperationException(
+                "Internet hosting requires launcher-generated TLS and invitation material.");
+
         var fullSettingsPath = Path.GetFullPath(settingsPath);
         if (!File.Exists(fullSettingsPath))
             throw new FileNotFoundException("Launcher settings must be saved before starting the game.", fullSettingsPath);

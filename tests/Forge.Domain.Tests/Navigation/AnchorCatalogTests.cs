@@ -127,6 +127,25 @@ public sealed class AnchorCatalogTests
         Assert.Contains(diagnostics, item => item.Code == AnchorCatalogValidator.DefinitionDuplicateCode);
     }
 
+    [Fact]
+    public void Area_clone_remaps_anchor_slugs_and_remains_valid_in_the_same_project()
+    {
+        var data = CreateProject();
+        var source = data.Project.Areas[0];
+        var destinationId = AreaId.From(Guid.Parse("a9010000-0000-4000-8000-000000000099"));
+        var clonedCatalog = AnchorCatalog.CloneForArea(source.Navigation.Anchors, destinationId);
+        var clone = new AreaDefinition(destinationId, "source-copy", "Source copy", [],
+            navigation: AreaNavigationDefinition.CreateDefault(destinationId).WithAnchors(clonedCatalog));
+        var project = new ProjectDefinition(data.Project.Id, data.Project.Title, data.Project.Module,
+            data.Project.Blueprints, [.. data.Project.Areas, clone]);
+
+        Assert.Empty(source.Navigation.Anchors.Definitions.Select(item => item.Slug)
+            .Intersect(clonedCatalog.Definitions.Select(item => item.Slug), StringComparer.Ordinal));
+        Assert.All(clonedCatalog.Definitions,
+            item => Assert.EndsWith(destinationId.ToString()[..8], item.Slug, StringComparison.Ordinal));
+        Assert.Empty(AnchorCatalogValidator.Validate(project, clone));
+    }
+
     private static AnchorTestData CreateProject()
     {
         var sourceId = AreaId.From(Guid.Parse("a9010000-0000-4000-8000-000000000001"));

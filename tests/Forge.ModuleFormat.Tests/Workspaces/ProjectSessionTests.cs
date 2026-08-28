@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Forge.Domain.Areas;
 using Forge.Domain.Modules;
+using Forge.Domain.Navigation;
 using Forge.Domain.Projects;
 using Forge.ModuleFormat.Serialization;
 using Forge.ModuleFormat.Tests.Serialization;
@@ -89,6 +90,95 @@ public sealed class ProjectSessionTests : IDisposable
     }
 
     [Fact]
+    public void Save_RejectsAStaleConcurrentSessionWithoutChangingTheWorkspace()
+    {
+        WriteWorkspace(TestProjectFactory.CreateValid());
+        var first = Assert.IsType<ProjectSession>(ProjectSession.Open(_temporaryRoot).Session);
+        var stale = Assert.IsType<ProjectSession>(ProjectSession.Open(_temporaryRoot).Session);
+
+        var firstResult = first.Save(WithTitle(first.Project, "Première sauvegarde"));
+        var afterFirstSave = File.ReadAllText(first.ProjectFilePath);
+        var staleResult = stale.Save(WithTitle(stale.Project, "Écrasement obsolète"));
+
+        Assert.True(firstResult.Succeeded);
+        Assert.False(staleResult.Succeeded);
+        Assert.Equal(ProjectSession.RevisionConflictCode, Assert.Single(staleResult.Diagnostics).Code);
+        Assert.Equal(afterFirstSave, File.ReadAllText(first.ProjectFilePath));
+        Assert.Equal("Première sauvegarde", Assert.IsType<ProjectSession>(
+            ProjectSession.Open(_temporaryRoot).Session).Project.Title);
+    }
+
+    [Fact]
+    public void Save_PersistsTheWorkspaceRevisionAcrossReopen()
+    {
+        WriteWorkspace(TestProjectFactory.CreateValid());
+        var first = Assert.IsType<ProjectSession>(ProjectSession.Open(_temporaryRoot).Session);
+
+        Assert.Equal(0, first.Revision);
+        Assert.True(first.Save(WithTitle(first.Project, "Révision persistée")).Succeeded);
+        Assert.Equal(1, first.Revision);
+
+        var reopened = Assert.IsType<ProjectSession>(ProjectSession.Open(_temporaryRoot).Session);
+        Assert.Equal(1, reopened.Revision);
+        Assert.True(reopened.Save(WithTitle(reopened.Project, "Révision suivante")).Succeeded);
+        Assert.Equal(2, reopened.Revision);
+        Assert.True(File.Exists(Path.Combine(
+            _temporaryRoot,
+            ProjectSession.RevisionStateRelativePath.Replace('/', Path.DirectorySeparatorChar))));
+    }
+
+    [Fact]
+    public void Save_RejectsAManualProjectEditMadeAfterOpen()
+    {
+        WriteWorkspace(TestProjectFactory.CreateValid());
+        var session = Assert.IsType<ProjectSession>(ProjectSession.Open(_temporaryRoot).Session);
+        var manuallyEdited = WithTitle(session.Project, "Modification externe");
+        File.WriteAllText(session.ProjectFilePath, ProjectJsonSerializer.Serialize(manuallyEdited));
+        var externalBytes = File.ReadAllText(session.ProjectFilePath);
+
+        var result = session.Save(WithTitle(session.Project, "Écrasement Studio"));
+
+        Assert.False(result.Succeeded);
+        Assert.Equal(ProjectSession.RevisionConflictCode, Assert.Single(result.Diagnostics).Code);
+        Assert.Equal(externalBytes, File.ReadAllText(session.ProjectFilePath));
+    }
+
+    [Fact]
+    public void Open_RollsBackAnInterruptedMultiDocumentSave()
+    {
+        WriteWorkspace(TestProjectFactory.CreateValid());
+        var session = Assert.IsType<ProjectSession>(ProjectSession.Open(_temporaryRoot).Session);
+        var originalProjectJson = File.ReadAllText(session.ProjectFilePath);
+        ProjectWorkspaceTransaction.TestWriteProbe = appliedDocuments =>
+        {
+            if (appliedDocuments == 2)
+            {
+                throw new ProjectWorkspaceSimulatedCrashException("Simulated process interruption.");
+            }
+        };
+
+        try
+        {
+            Assert.Throws<ProjectWorkspaceSimulatedCrashException>(() =>
+                session.Save(WithTitle(session.Project, "Sauvegarde interrompue")));
+        }
+        finally
+        {
+            ProjectWorkspaceTransaction.TestWriteProbe = null;
+        }
+
+        var reopened = ProjectSession.Open(_temporaryRoot);
+
+        Assert.True(reopened.Succeeded, string.Join(" | ", reopened.Diagnostics.Select(item => item.Message)));
+        Assert.Equal("OpenRPG Forge test project", reopened.Session!.Project.Title);
+        Assert.Equal(originalProjectJson, File.ReadAllText(session.ProjectFilePath));
+        Assert.False(File.Exists(Path.Combine(
+            _temporaryRoot,
+            ProjectSession.RevisionStateRelativePath.Replace('/', Path.DirectorySeparatorChar))));
+        Assert.False(ProjectWorkspaceTransaction.HasPending(_temporaryRoot));
+    }
+
+    [Fact]
     public void Save_LeavesTheExistingFileUntouchedWhenValidationFails()
     {
         WriteWorkspace(TestProjectFactory.CreateValid());
@@ -106,6 +196,47 @@ public sealed class ProjectSessionTests : IDisposable
         Assert.Equal(ProjectSession.ProjectInvalidCode, Assert.Single(result.Diagnostics).Code);
         Assert.Equal(original, File.ReadAllText(session.ProjectFilePath));
         Assert.Empty(Directory.EnumerateFiles(_temporaryRoot, "*.tmp", SearchOption.AllDirectories));
+    }
+
+    [Fact]
+    public void OpenForMigration_AllowsOnlyExplicitDiagnosticsAndSavesAValidatedRepair()
+    {
+        var targetDirectory = Path.Combine(_temporaryRoot, "migration-repair");
+        var created = ProjectSession.Create(targetDirectory, TestProjectFactory.CreateValid());
+        var createdSession = Assert.IsType<ProjectSession>(created.Session);
+        var areaPath = Assert.Single(Directory.EnumerateFiles(
+            Path.Combine(targetDirectory, "areas"), "*.json", SearchOption.TopDirectoryOnly));
+        var areaDocument = JsonNode.Parse(File.ReadAllText(areaPath))!.AsObject();
+        areaDocument["area"]!["navigation"]!["anchors"]!["requiredAtRuntime"] = true;
+        File.WriteAllText(areaPath, areaDocument.ToJsonString());
+
+        var strictOpen = ProjectSession.Open(targetDirectory);
+        var migrationOpen = ProjectSession.OpenForMigration(targetDirectory,
+            new HashSet<string>([AnchorCatalogValidator.RequiredContentCode], StringComparer.Ordinal));
+        var migrationSession = Assert.IsType<ProjectSession>(migrationOpen.Session);
+        var area = Assert.Single(migrationSession.Project.Areas);
+        var anchors = area.Navigation.Anchors;
+        var repairedAnchors = new AnchorCatalog(anchors.Id, anchors.SchemaVersion, anchors.Provenance,
+            area.Id, false, anchors.Definitions, anchors.Instances);
+        var repairedArea = area.WithNavigation(area.Navigation.WithAnchors(repairedAnchors));
+        var repairedProject = new ProjectDefinition(
+            migrationSession.Project.Id,
+            migrationSession.Project.Title,
+            migrationSession.Project.Module,
+            migrationSession.Project.Blueprints,
+            [repairedArea],
+            migrationSession.Project.Dialogues,
+            migrationSession.Project.Quests);
+
+        var saved = migrationSession.Save(repairedProject);
+        var reopened = ProjectSession.Open(targetDirectory);
+
+        Assert.False(strictOpen.Succeeded);
+        Assert.True(migrationOpen.Succeeded);
+        Assert.True(saved.Succeeded, string.Join(" | ", saved.Diagnostics.Select(item => item.Message)));
+        Assert.True(reopened.Succeeded);
+        Assert.False(Assert.Single(reopened.Session!.Project.Areas).Navigation.Anchors.RequiredAtRuntime);
+        Assert.True(createdSession.Revision <= migrationSession.Revision);
     }
 
     [Fact]

@@ -211,7 +211,10 @@ internal sealed partial class StudioSessionController
         {
             try
             {
-                if (!ProjectSession.Create(root, evidence.Project).Succeeded || !editing.Open(root).Succeeded)
+                if (!ProjectSession.Create(root, evidence.Project).Succeeded ||
+                    (Session is { } sourceWorkspace &&
+                     !CopyForgeScriptsForEvidence(sourceWorkspace.RootDirectory, root)) ||
+                    !editing.Open(root).Succeeded)
                     return empty;
                 var draft = editing.CreateMerchantDraftUx4T(evidence.MerchantId); if (draft is null) return empty;
                 draft = editing.CompleteMerchantDraftUx4T(draft);

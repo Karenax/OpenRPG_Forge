@@ -71,6 +71,8 @@ public sealed class GameLauncherTests : IDisposable
         {
             SessionMode = LauncherSessionMode.DirectConnectPreview,
             ServerAddress = "game.example.test",
+            NetworkJoinToken = "direct-connect-token-20260828",
+            ServerCertificateSha256 = new string('a', 64),
         };
         GameLauncherSettingsStore.Save(settingsPath, settings);
 
@@ -87,10 +89,17 @@ public sealed class GameLauncherTests : IDisposable
     {
         var verification = CreateVerifiedLayout(GameLauncherMultiplayerMode.DirectConnectPreview);
         var settingsPath = Path.Combine(_temporaryRoot, "internet-host", "launcher-settings.json");
+        var certificatePath = Path.Combine(_temporaryRoot, "internet-host", "internet-host-certificate.pfx");
+        Directory.CreateDirectory(Path.GetDirectoryName(certificatePath)!);
+        File.WriteAllBytes(certificatePath, [1, 2, 3]);
         var settings = GameLauncherUserSettings.CreateDefault(verification.Manifest) with
         {
             SessionMode = LauncherSessionMode.LocalHost,
             PlayerName = "Elyra",
+            NetworkJoinToken = "internet-host-token-20260828",
+            ServerCertificateSha256 = new string('b', 64),
+            HostCertificatePath = certificatePath,
+            HostCertificatePassword = "internet-host-password-20260828",
         };
         GameLauncherSettingsStore.Save(settingsPath, settings);
 

@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using Forge.Application.WorldGeneration;
 
 namespace Forge.ModuleFormat.Workspaces;
@@ -12,6 +13,8 @@ public static class WorldGenerationPromotionStore
     public const string WriteFailedCode = "world_generation.promotion.write_failed";
     public const string EvidenceMismatchCode = "world_generation.promotion.evidence_mismatch";
     public const string ProviderDependencyCode = "world_generation.promotion.provider_dependency";
+    public const string UnsafeSceneCode = "world_generation.promotion.unsafe_scene";
+    public const string GeneratedContentMissingCode = "world_generation.promotion.generated_content_missing";
     public const string CanonicalConflictCode = "world_generation.promotion.canonical_conflict";
     private static readonly string[] ForbiddenSceneTokens =
     [
@@ -21,7 +24,17 @@ public static class WorldGenerationPromotionStore
         "FlowGraphNode3D",
         "GDExtension",
     ];
+    private static readonly string[] UnsafeSceneTokens =
+    [
+        "[ext_resource",
+        "type=\"Script\"",
+        "script = ExtResource",
+        "script/source",
+    ];
     private static readonly JsonSerializerOptions Options = CreateOptions();
+    private static readonly Regex MultiMeshResourcePattern = new(
+        "(?ms)^\\[sub_resource type=\"MultiMesh\"[^\\]]*\\]\\s*(?<body>.*?)(?=^\\[(?:sub_resource|node)\\b|\\z)",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     public static string DerivedSceneRelativePath(Guid planId)
     {
@@ -120,19 +133,102 @@ public static class WorldGenerationPromotionStore
             if (!File.Exists(path))
                 throw new FileNotFoundException("Generated scene is missing.", path);
             var bytes = File.ReadAllBytes(path);
-            var text = Encoding.UTF8.GetString(bytes);
+            return ValidateNeutralSceneContent(relativePath, bytes);
+        }
+        catch (Exception exception) when (IsStoreException(exception))
+        {
+            return new(null,
+                [new ProjectSessionDiagnostic(ReadFailedCode, exception.Message, relativePath)]);
+        }
+    }
+
+    public static WorldGenerationNeutralSceneValidationResult ValidateNeutralSceneContent(
+        string relativePath,
+        byte[] content)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(relativePath);
+        ArgumentNullException.ThrowIfNull(content);
+        try
+        {
+            if (!IsSafeRelativePath(relativePath) ||
+                !relativePath.EndsWith(".tscn", StringComparison.OrdinalIgnoreCase))
+                throw new ArgumentException("Generated scene path must be a safe relative .tscn path.",
+                    nameof(relativePath));
+            var text = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false,
+                throwOnInvalidBytes: true).GetString(content);
             var forbidden = ForbiddenSceneTokens.FirstOrDefault(token =>
                 text.Contains(token, StringComparison.OrdinalIgnoreCase));
             if (forbidden is not null)
                 return new(null,
                     [new ProjectSessionDiagnostic(ProviderDependencyCode,
                         $"Provider-neutral scene still references '{forbidden}'.", relativePath)]);
-            return new(Sha256(bytes), []);
+            var unsafeToken = UnsafeSceneTokens.FirstOrDefault(token =>
+                text.Contains(token, StringComparison.OrdinalIgnoreCase));
+            if (unsafeToken is not null)
+                return new(null,
+                    [new ProjectSessionDiagnostic(UnsafeSceneCode,
+                        $"Provider-neutral scene contains executable or external content '{unsafeToken}'.",
+                        relativePath)]);
+            if (text.Contains("metadata/openrpg_artistic_role", StringComparison.Ordinal))
+            {
+                var multiMeshes = MultiMeshResourcePattern.Matches(text);
+                var missingBuffer = multiMeshes.Cast<Match>().FirstOrDefault(match =>
+                    Regex.IsMatch(match.Groups["body"].Value,
+                        "(?m)^instance_count\\s*=\\s*[1-9][0-9]*\\s*$",
+                        RegexOptions.CultureInvariant) &&
+                    !Regex.IsMatch(match.Groups["body"].Value,
+                        "(?m)^buffer\\s*=\\s*PackedFloat32Array\\(",
+                        RegexOptions.CultureInvariant));
+                if (multiMeshes.Count == 0 || missingBuffer is not null)
+                    return new(null,
+                        [new ProjectSessionDiagnostic(GeneratedContentMissingCode,
+                            "Provider-neutral artistic MultiMesh transforms were not serialized on disk.",
+                            relativePath)]);
+            }
+            return new(Sha256(content), []);
         }
         catch (Exception exception) when (IsStoreException(exception))
         {
             return new(null,
                 [new ProjectSessionDiagnostic(ReadFailedCode, exception.Message, relativePath)]);
+        }
+    }
+
+    public static WorldGenerationPromotionLoadResult ValidatePackagedCanonicalScene(
+        Guid areaId,
+        string sceneRelativePath,
+        byte[] sceneContent,
+        string promotionManifestJson)
+    {
+        if (areaId == Guid.Empty) throw new ArgumentOutOfRangeException(nameof(areaId));
+        ArgumentException.ThrowIfNullOrWhiteSpace(sceneRelativePath);
+        ArgumentNullException.ThrowIfNull(sceneContent);
+        ArgumentException.ThrowIfNullOrWhiteSpace(promotionManifestJson);
+        try
+        {
+            var expectedPath = PromoteWorldGenerationHandler.CanonicalScenePath(areaId);
+            if (!string.Equals(sceneRelativePath, expectedPath, StringComparison.Ordinal))
+                throw new InvalidDataException("Packaged generated scene path is not canonical for its area.");
+            var promotion = JsonSerializer.Deserialize<WorldGenerationCanonicalPromotion>(
+                    promotionManifestJson, Options)
+                ?? throw new JsonException("World-generation promotion manifest is empty.");
+            ValidatePromotion(promotion);
+            if (promotion.AreaId != areaId ||
+                !string.Equals(promotion.CanonicalSceneRelativePath, expectedPath, StringComparison.Ordinal))
+                throw new InvalidDataException("Packaged promotion identity does not match its area.");
+            var scene = ValidateNeutralSceneContent(sceneRelativePath, sceneContent);
+            if (!scene.Succeeded)
+                return new(null, scene.SceneSha256, false, scene.Diagnostics);
+            if (!string.Equals(scene.SceneSha256, promotion.CanonicalSceneSha256, StringComparison.Ordinal))
+                return new(null, scene.SceneSha256, false,
+                    [new ProjectSessionDiagnostic(EvidenceMismatchCode,
+                        "Packaged canonical scene does not match its promotion manifest.", sceneRelativePath)]);
+            return new(promotion, scene.SceneSha256, false, []);
+        }
+        catch (Exception exception) when (IsStoreException(exception))
+        {
+            return new(null, null, false,
+                [new ProjectSessionDiagnostic(ReadFailedCode, exception.Message, sceneRelativePath)]);
         }
     }
 
@@ -383,7 +479,7 @@ public static class WorldGenerationPromotionStore
 
     private static bool IsStoreException(Exception exception) =>
         exception is IOException or UnauthorizedAccessException or JsonException or NotSupportedException or
-            ArgumentException or InvalidOperationException;
+            ArgumentException or InvalidOperationException or DecoderFallbackException;
 
     private static JsonSerializerOptions CreateOptions()
     {

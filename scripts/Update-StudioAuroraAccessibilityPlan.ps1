@@ -54,6 +54,7 @@ foreach ($proof in $proofRows) {
 $pageDefinitions = @{
     zones = @{ Section = 'world'; Surface = 'spatial'; Wave = 'UX1' }
     terrain = @{ Section = 'world'; Surface = 'spatial'; Wave = 'UX2' }
+    'world-generation' = @{ Section = 'world'; Surface = 'hybrid'; Wave = 'UX2' }
     placement = @{ Section = 'world'; Surface = 'spatial'; Wave = 'UX1' }
     environment = @{ Section = 'world'; Surface = 'spatial'; Wave = 'UX2' }
     navigation = @{ Section = 'world'; Surface = 'spatial'; Wave = 'UX2' }
@@ -94,10 +95,11 @@ $catalogText = Get-Content -LiteralPath $catalogPath -Raw -Encoding UTF8
 $catalogPageIds = @([regex]::Matches($catalogText, 'Page\("(?<id>[^"]+)"') |
     ForEach-Object { $_.Groups['id'].Value } | Sort-Object -Unique)
 $plannedPageIds = @($pageDefinitions.Keys | Sort-Object)
-if ($catalogPageIds.Count -ne 36 -or $plannedPageIds.Count -ne 36 -or
+if ($catalogPageIds.Count -ne $plannedPageIds.Count -or
     @($catalogPageIds | Where-Object { $_ -notin $plannedPageIds }).Count -gt 0 -or
     @($plannedPageIds | Where-Object { $_ -notin $catalogPageIds }).Count -gt 0) {
-    throw 'Studio page catalog and accessibility page definitions are not an exact 36-page match.'
+    throw "Studio page catalog and accessibility page definitions do not match exactly " +
+          "(catalog=$($catalogPageIds.Count), accessibility=$($plannedPageIds.Count))."
 }
 
 function Get-NormalizedText {

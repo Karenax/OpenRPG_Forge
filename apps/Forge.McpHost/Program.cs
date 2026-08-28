@@ -14,9 +14,18 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 
-const string McpSdkVersion = "1.4.1";
-
 var arguments = ArgumentMap.Parse(args);
+if (arguments.ContainsKey("list-tools"))
+{
+    Console.WriteLine(McpToolInventory.SerializeCurrentManifest());
+    return 0;
+}
+
+if (arguments.ContainsKey("tool-inventory"))
+{
+    return ReportToolInventory();
+}
+
 if (!arguments.TryGetValue("workspace", out var workspaceDirectory))
 {
     Console.Error.WriteLine("Missing --workspace <Forge project directory>.");
@@ -73,6 +82,7 @@ return 0;
 
 static async Task<int> RunSelfTestAsync(ForgeProjectAgentService project)
 {
+    var toolInventory = McpToolInventory.Validate();
     var scripts = new ForgeScriptAgentService(new NativeForgeScriptRuntime());
     var sandbox = scripts.TestInSandbox("void main() { say(\"mcp-ready\"); }");
     var discoveryDirectory = Path.Combine(Path.GetTempPath(), "openrpg-forge-mcp", Guid.NewGuid().ToString("N"));
@@ -83,17 +93,46 @@ static async Task<int> RunSelfTestAsync(ForgeProjectAgentService project)
     var second = await client.QueryAsync("project.revision");
     var diagnostics = project.GetDiagnostics();
     var assets = project.GetAssets(new Forge.Mcp.Assets.AgentAssetCatalogQuery(MaximumResults: 1));
-    if (!sandbox.Succeeded || !first.Succeeded || !second.Succeeded || diagnostics.Count > 0 ||
+    if (!toolInventory.Succeeded || !sandbox.Succeeded || !first.Succeeded || !second.Succeeded || diagnostics.Count > 0 ||
         assets.CatalogCount < 674 || assets.Diagnostics.Count > 0)
     {
+        ReportToolInventory(toolInventory);
         Console.Error.WriteLine("OPENRPG_FORGE_MCP_HOST_SMOKE_FAILED");
         return 4;
     }
 
     Console.WriteLine(
-        $"OPENRPG_FORGE_MCP_HOST_SMOKE_PASS sdk={McpSdkVersion} transport=stdio " +
+        $"OPENRPG_FORGE_MCP_HOST_SMOKE_PASS sdk={McpToolInventory.SdkVersion} transport=stdio " +
+        $"tools={toolInventory.Discovered.Count} manifest=matched " +
         $"bridge={bridge.Discovery.Transport} revision={project.GetCurrentRevision()} diagnostics={diagnostics.Count} " +
         $"assets={assets.CatalogCount}");
+    return 0;
+}
+
+static int ReportToolInventory(McpToolInventoryValidation? validation = null)
+{
+    validation ??= McpToolInventory.Validate();
+    if (!validation.Succeeded)
+    {
+        Console.Error.WriteLine($"OPENRPG_FORGE_MCP_TOOL_INVENTORY_FAILED error={validation.Error}");
+        foreach (var name in validation.Missing)
+        {
+            Console.Error.WriteLine($"missing={name}");
+        }
+        foreach (var name in validation.Unexpected)
+        {
+            Console.Error.WriteLine($"unexpected={name}");
+        }
+        foreach (var name in validation.Duplicates ?? [])
+        {
+            Console.Error.WriteLine($"duplicate={name}");
+        }
+        return 7;
+    }
+
+    Console.WriteLine(
+        $"OPENRPG_FORGE_MCP_TOOL_INVENTORY_PASS sdk={McpToolInventory.SdkVersion} " +
+        $"tools={validation.Discovered.Count} manifest=matched");
     return 0;
 }
 

@@ -214,7 +214,7 @@ public partial class PostLaunchStudioWindow : Window
     private ModuleRuntimeExtensionProfile BuildProfile()
     {
         var state = _load?.Invoke() ?? throw new InvalidOperationException("Aucun projet Forge ouvert.");
-        var template = CryptPostLaunchAuthoringService.Create(state.Project, "forge-ui:g13-ac-al");
+        var template = ProductionCapabilityTemplateFactory.Create(state.Project, "forge-ui:g13-ac-al");
         var source = template.PostLaunch;
         var achievements = _checks["content.achievement"].ButtonPressed ? source.Gameplay.Achievements : [];
         var gameplay = new GameplayProductionProfile(source.Gameplay.Id, 1,

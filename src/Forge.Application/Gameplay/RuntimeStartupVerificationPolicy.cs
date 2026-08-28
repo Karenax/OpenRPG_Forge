@@ -6,13 +6,13 @@ public static class RuntimeStartupVerificationPolicy
         bool automatedTest,
         bool entryGroundSmokeTest,
         bool innUxSmokeTest,
-        bool cryptMovementSmokeTest,
+        bool moduleMovementSmokeTest,
         bool combatFeedbackSmokeTest,
         bool combatFeedbackCaptureRequested) =>
         automatedTest &&
         !entryGroundSmokeTest &&
         !innUxSmokeTest &&
-        !cryptMovementSmokeTest &&
+        !moduleMovementSmokeTest &&
         !combatFeedbackSmokeTest &&
         !combatFeedbackCaptureRequested;
 }

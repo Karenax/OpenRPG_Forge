@@ -18,6 +18,12 @@ Set-StrictMode -Version Latest
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $manifestPath = Join-Path $repositoryRoot 'third_party/world-generation.dependencies.json'
 $integrationSource = Join-Path $repositoryRoot 'integrations/godot/addons/openrpg_world_generation'
+if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf) -and
+    (Test-Path -LiteralPath (Join-Path $PSScriptRoot 'world-generation.dependencies.json') -PathType Leaf)) {
+    # Self-contained Studio distributions place the pinned manifest and bridge beside this script.
+    $manifestPath = Join-Path $PSScriptRoot 'world-generation.dependencies.json'
+    $integrationSource = Join-Path $PSScriptRoot 'addons/openrpg_world_generation'
+}
 $projectRoot = [System.IO.Path]::GetFullPath($GodotProjectPath)
 $projectPrefix = $projectRoot.TrimEnd([System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar) +
     [System.IO.Path]::DirectorySeparatorChar

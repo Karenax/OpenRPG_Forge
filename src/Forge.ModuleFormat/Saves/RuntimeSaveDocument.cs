@@ -7,7 +7,7 @@ public sealed record RuntimeSaveDocument(
     string AreaId,
     DateTimeOffset SavedAtUtc,
     RuntimeVector3 PlayerPosition,
-    RuntimeCombatantSave Player,
+    RuntimeCombatantSave? Player,
     IReadOnlyList<RuntimeInventorySaveStack> Inventory,
     IReadOnlyList<RuntimeKeyValue> Variables,
     string? QuestId,
@@ -20,9 +20,11 @@ public sealed record RuntimeSaveDocument(
     RuntimeWorldClockSave? WorldClock = null,
     IReadOnlyList<RuntimeQuestSaveState>? QuestStates = null,
     string? TrackedQuestId = null,
-    RuntimeMapExplorationSave? MapExploration = null)
+    RuntimeMapExplorationSave? MapExploration = null,
+    IReadOnlyList<RuntimeAreaSaveState>? AreaStates = null)
 {
-    public const string CurrentFormatVersion = "1.7.0";
+    public const string CurrentFormatVersion = "1.8.0";
+    public const string PreAreaStateCollectionFormatVersion = "1.7.0";
     public const string PreMapExplorationFormatVersion = "1.6.0";
     public const string PreQuestCollectionFormatVersion = "1.5.0";
     public const string PreInventoryStacksFormatVersion = "1.4.0";
@@ -48,6 +50,13 @@ public sealed record RuntimeMapExplorationSave(
     int ActiveFloor,
     IReadOnlyList<string> RevealedCells,
     IReadOnlyList<string> RevealedPins);
+
+public sealed record RuntimeAreaSaveState(
+    string AreaId,
+    IReadOnlyList<RuntimeCombatantSave> Hostiles,
+    RuntimeWeatherSave? Weather,
+    IReadOnlyList<RuntimeEntityStateSave> EntitySnapshots,
+    RuntimeMapExplorationSave? MapExploration);
 
 public sealed record RuntimeWeatherSave(
     int SchemaVersion,

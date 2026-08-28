@@ -252,8 +252,15 @@ internal sealed partial class StudioSessionController
         var project = CreateUx2LwFEvidenceProject();
         var activeAreaId = ActiveAreaId;
         if (project is null || activeAreaId is null) return null;
+        var realAnchorIds = NavigationDestinationCatalog.Build(project).Entries
+            .Where(item => item.AreaId == activeAreaId &&
+                           item.Kind is NavigationDestinationKind.SpawnAnchor or NavigationDestinationKind.Waypoint)
+            .Select(item => item.ArrivalAnchorKey ?? $"waypoint:{item.Slug}")
+            .ToHashSet(StringComparer.Ordinal);
         var target = project.Module.WorldFeatures.Encounters.FirstOrDefault(item =>
-            item.AreaId == activeAreaId && IsFoundationCompleteUx2LwH(item));
+            item.AreaId == activeAreaId && IsFoundationCompleteUx2LwH(item) &&
+            item.Foundation is { SpawnAnchorIds.Count: > 0 } &&
+            item.Foundation.SpawnAnchorIds.All(realAnchorIds.Contains));
         if (target is null) return null;
         if (target.Scenario is not null) return project;
         var anchorId = target.Foundation!.SpawnAnchorIds.FirstOrDefault();

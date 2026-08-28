@@ -10,7 +10,7 @@ Le contrat exécutable des interactions est :
 
 `apps/Forge.Runtime/content/crypt-of-ashes/systemic-gameplay.json`
 
-La géométrie canonique est portée par le snapshot de zone référencé par `project.json`, et la couche artistique CC0 est construite par `src/Forge.EngineAdapter/Rendering/GodotCryptArtKitBuilder.cs` à partir de KayKit Dungeon Remastered. Runtime et Studio utilisent ainsi la même composition.
+La géométrie canonique est portée par le snapshot de zone référencé par `project.json`. La couche artistique CC0 est décrite par `art-kits/kaykit-dungeon-remastered.layout.json` puis construite par le composant générique `GodotArtKitBuilder`. Runtime et Studio utilisent ainsi la même composition détenue par le module.
 
 ## Reconstruction 2026
 
@@ -67,7 +67,7 @@ Les modèles gouvernés présents dans le dépôt comprennent notamment :
 - tonneaux décorés ;
 - torches allumées.
 
-`GodotCryptArtKitBuilder` ne construit plus une boîte rectangulaire. Il compose les sept espaces avec des dalles, silhouettes de salles, arches, colonnes, accessoires et éclairages. Les volumes de gameplay restent séparés de cette peau artistique.
+La disposition du kit compose les sept espaces avec des dalles, silhouettes de salles, arches, colonnes, accessoires et éclairages. Les volumes de gameplay restent séparés de cette peau artistique.
 
 ## Contrôles systémiques
 
@@ -116,19 +116,16 @@ La nouvelle carte applique directement plusieurs règles du ruleset :
 
 ## Architecture
 
-`CryptSystemicGameplay.cs` reste un directeur limité au module `crypt-of-ashes`. Il valide le manifeste, enregistre les commandes, crée les dispositifs systémiques et transmet les dégâts au combat existant.
+`SystemicEnvironmentGameplay.cs` est un directeur générique activé par le tag `systemic:world-as-weapon`. Il charge le manifeste depuis le contenu réellement ouvert, valide son identité, enregistre les commandes, crée les dispositifs systémiques et transmet les dégâts au combat existant.
 
 `GameRoot.SystemicGameplay.cs` expose uniquement les opérations nécessaires au directeur : joueur, ennemis, poussée, dégâts, défaite environnementale et messages HUD.
 
-`GodotCryptArtKitBuilder.cs` est la composition artistique partagée de cette tranche verticale. `CryptArtKitDecorator.cs` ne fait plus que résoudre les scènes déjà importées par le Runtime, tandis que Studio importe les mêmes GLB depuis le workspace. Le snapshot de zone conserve la structure de gameplay et les positions canoniques ; Studio masque seulement leurs maillages-proxy quand la peau artistique complète a chargé, afin de préserver la sélection et la manipulation.
+`GodotArtKitBuilder.cs` interprète la composition artistique partagée. `BundledArtKitResolver.cs` résout les scènes déjà importées par le Runtime, tandis que Studio importe les mêmes GLB depuis le workspace. Le snapshot de zone conserve la structure de gameplay et les positions canoniques ; Studio masque seulement leurs maillages-proxy quand la peau artistique complète a chargé, afin de préserver la sélection et la manipulation.
 
 ## Limites explicites
 
-Cette reconstruction est substantielle mais n'est pas encore une qualification artistique finale. Restent notamment à valider sur l'environnement Windows/Godot canonique :
+Cette reconstruction est substantielle mais n'est pas encore une qualification artistique finale. Godot 4.7.1 valide déjà le mouvement au sol, la caméra, les passages, la porte, les quatre personnages animés et le parcours critique. Restent notamment :
 
-- navigation réelle de tous les agents dans les nouvelles salles ;
-- collisions de chaque passage en playtest ;
-- composition caméra dans les espaces étroits et larges ;
 - budget des lumières et performances Forward+ ;
 - rendu visuel 1080p/QHD ;
 - sérialisation persistante des objets systémiques déplacés ;

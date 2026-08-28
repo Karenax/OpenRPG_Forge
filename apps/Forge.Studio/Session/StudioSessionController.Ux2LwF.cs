@@ -273,8 +273,11 @@ internal sealed partial class StudioSessionController
         var project = Project;
         var area = ActiveArea;
         if (project is null || area is null) return null;
+        var realAnchorIds = EncounterAnchorChoicesUx2LwF(area.Id).Select(item => item.Id)
+            .ToHashSet(StringComparer.Ordinal);
         if (project.Module.WorldFeatures.Encounters.Any(item => item.AreaId == area.Id &&
-            item.Foundation is not null && item.Composition is not null))
+            item.Foundation is { SpawnAnchorIds.Count: > 0 } && item.Composition is not null &&
+            item.Foundation.SpawnAnchorIds.All(realAnchorIds.Contains)))
             return project;
         var creature = project.Blueprints.FirstOrDefault(item => item.Kind == BlueprintKind.Creature);
         var spawnBlueprint = project.Blueprints.FirstOrDefault(item => item.Kind == BlueprintKind.PlayerSpawn);

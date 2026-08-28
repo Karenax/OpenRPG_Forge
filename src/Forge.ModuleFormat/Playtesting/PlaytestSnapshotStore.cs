@@ -13,6 +13,10 @@ public sealed class PlaytestSnapshotStore
 {
     public const string SnapshotFileName = "project.json";
 
+    private static readonly HashSet<string> ExcludedContentDirectories = new(
+        [".forge", ".git", ".hg", ".svn", ".godot", "artifacts", "bin", "obj"],
+        StringComparer.OrdinalIgnoreCase);
+
     private readonly string _rootDirectory;
 
     public PlaytestSnapshotStore(string rootDirectory)
@@ -143,10 +147,10 @@ public sealed class PlaytestSnapshotStore
         if (!Directory.Exists(sourceRoot))
             throw new DirectoryNotFoundException($"The playtest source directory does not exist: '{sourceRoot}'.");
 
-        foreach (var name in new[] { "assets", "scripts" })
+        foreach (var source in Directory.EnumerateDirectories(sourceRoot))
         {
-            var source = Path.Combine(sourceRoot, name);
-            if (!Directory.Exists(source)) continue;
+            var name = Path.GetFileName(source);
+            if (ExcludedContentDirectories.Contains(name)) continue;
             var destination = Path.Combine(sessionDirectory, name);
             foreach (var directory in Directory.EnumerateDirectories(source, "*", SearchOption.AllDirectories))
                 Directory.CreateDirectory(Path.Combine(destination, Path.GetRelativePath(source, directory)));
@@ -156,6 +160,15 @@ public sealed class PlaytestSnapshotStore
                 Directory.CreateDirectory(Path.GetDirectoryName(target)!);
                 File.Copy(file, target, overwrite: false);
             }
+        }
+
+        foreach (var file in Directory.EnumerateFiles(sourceRoot))
+        {
+            var name = Path.GetFileName(file);
+            if (name.Equals(SnapshotFileName, StringComparison.OrdinalIgnoreCase) ||
+                name.Equals(PlaytestLaunchManifestStore.FileName, StringComparison.OrdinalIgnoreCase))
+                continue;
+            File.Copy(file, Path.Combine(sessionDirectory, name), overwrite: false);
         }
     }
 

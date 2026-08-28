@@ -140,7 +140,8 @@ public partial class GameRoot
             throw new InvalidOperationException("The Solaren movement profile is unavailable.");
         AssertSmoke(string.Equals(_moduleSlug, "solaren-les-vallees-libres", StringComparison.Ordinal),
             "The Solaren smoke test loaded another module.");
-        AssertSmoke(!_isCryptPrototype && FindChild("AshRune", recursive: true, owned: false) is null,
+        AssertSmoke(_moduleExperience.ArtKitId is null &&
+                    FindChild("AshRune", recursive: true, owned: false) is null,
             "Solaren unexpectedly reconstructed Crypt-specific atmosphere.");
         AssertSmoke(area.Kind == AreaKind.Exterior && area.Dimensions.Width == 512 && area.Dimensions.Depth == 512,
             "Solaren did not reconstruct its bounded 512 metre exterior.");
@@ -279,14 +280,20 @@ public partial class GameRoot
         GD.Print($"OPENRPG_FORGE_RUNTIME_SOLAREN_BEACON_PASS beacon={beaconEntity.Id} " +
                  $"dialogue={beaconInteraction.TargetId} quest={solarenQuest.Id} state={beaconState?.Id} " +
                  "variable=quest.objectives:complete");
-        AssertSmoke(solarenPresentation.Map.Markers.Count == 8 &&
+        var expectedVisiblePortalMarkers = area.Portals.Count(portal =>
+            area.Entities.Any(entity => entity.Id == portal.SourceEntityId));
+        var expectedVisibleMarkers = area.Authoring.Map.Pins.Count(pin => pin.InitiallyVisible) +
+                                     area.Navigation.Waypoints.Waypoints.Count(waypoint =>
+                                         waypoint.Appearance.Visible && waypoint.Marker is not null) +
+                                     expectedVisiblePortalMarkers;
+        AssertSmoke(solarenPresentation.Map.Markers.Count == expectedVisibleMarkers &&
                     _moduleMap is
                     {
                         GlobalMapUsesLocalAtlas: true,
-                        GlobalRenderedMarkerCount: 8,
+                        GlobalRenderedMarkerCount: var renderedMarkerCount,
                         GlobalMapLabelOverlapCount: 0,
-                    },
-            "The one-area Solaren atlas counts authored pins without rendering its local markers.");
+                    } && renderedMarkerCount == expectedVisibleMarkers,
+            "The Solaren atlas did not project its current authored pins, waypoints and portals.");
 
         await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
         var doorwayEntities = area.Entities.Where(item => item.Tags.Contains("doorway", StringComparer.Ordinal)).ToArray();
@@ -618,6 +625,23 @@ public partial class GameRoot
                     Math.Abs(_surfaceWetnessValue - advancedWeatherProfile.SurfaceWetness) <= .001f &&
                     _surfaceWetnessResult is { ShaderMaterials: > 0 },
             "Solaren weather transition did not darken the sun and sky.");
+        var savedPosition = solarenPlayer.GlobalPosition;
+        var savedWeatherRevision = _weatherState?.Revision ??
+            throw new InvalidOperationException("Solaren weather disappeared before the save proof.");
+        var savedQuestState = solarenQuestTracker.GetCurrentState(solarenQuest.Id)?.Id;
+        AssertSmoke(_quickSavePath is not null && SaveRuntime(_quickSavePath),
+            "Solaren could not save a player without a combat profile.");
+        solarenPlayer.GlobalPosition += new Vector3(8, 0, 8);
+        _progressionExperience += 99;
+        AssertSmoke(LoadRuntimeSave(_quickSavePath!),
+            "Solaren could not reload its non-combat player save.");
+        AssertSmoke(_playerCombatant is null && solarenPlayer.GlobalPosition.IsEqualApprox(savedPosition) &&
+                    _weatherState?.Revision == savedWeatherRevision &&
+                    solarenQuestTracker.GetCurrentState(solarenQuest.Id)?.Id == savedQuestState,
+            "Solaren did not restore position, weather and quest state without combat data.");
+        GD.Print($"OPENRPG_FORGE_SOLAREN_SAVE_PASS format={RuntimeSaveDocument.CurrentFormatVersion} " +
+                 $"combat=optional-none weather_revision={savedWeatherRevision} quest={savedQuestState} " +
+                 "position=restored");
         GD.Print("OPENRPG_FORGE_SOLAREN_SMOKE_PASS " +
                  $"area={area.Slug} terrain={_terrainVertices}/{_terrainTriangles}/{_terrainSectors} " +
                  $"scatter={_terrainScatterLayers}/{_terrainScatterInstances}/{_terrainCullingGroups} " +
@@ -625,7 +649,7 @@ public partial class GameRoot
                  $"models={modelLibrary.Count}/{_runtimeModelInstances} animated={_animatedCharacterInstances}/6 " +
                  $"entities={_builtEntityCount} movement={groundedMovement.WalkSpeed:0.##}/{groundedMovement.RunSpeed:0.##} " +
                  $"doors={doorwayEntities.Length}/entered rain=authored/prewarmed weather_min=420 " +
-                 $"weather_revision={_weatherState.Revision} wetness={_surfaceWetnessValue:0.###}/reversible " +
+                 $"weather_revision={savedWeatherRevision} wetness={_surfaceWetnessValue:0.###}/reversible " +
                  "terrain_camera=raised/look-up/occlusion labels=adaptive crypt=false");
         GetTree().Quit(0);
     }

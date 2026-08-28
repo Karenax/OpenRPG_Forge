@@ -991,7 +991,7 @@ internal sealed partial class StudioWorldViewport : SubViewportContainer
             GD.PushWarning($"OPENRPG_FORGE_STUDIO_TERRAIN_FALLBACK {exception.Message}");
             _areaRoot.AddChild(BuildFallbackGround(area));
         }
-        PrepareCryptVisuals(session, area);
+        PrepareAuthoredArtKit(session, area);
 
         var blueprints = project.Blueprints.ToDictionary(blueprint => blueprint.Id);
         foreach (var source in area.Entities)
@@ -1013,7 +1013,7 @@ internal sealed partial class StudioWorldViewport : SubViewportContainer
 
             var node = CreateRepresentation(resolved.Entity, blueprint);
             ApplyMirror(node, resolved.Mirror);
-            ConfigureCryptArchitectureProxy(node, resolved.Entity, blueprint);
+            ConfigureArtKitArchitectureProxy(node, resolved.Entity, blueprint);
             _areaRoot.AddChild(node);
             _entityNodes[source.Id] = node;
             EntityCount++;
@@ -1039,9 +1039,9 @@ internal sealed partial class StudioWorldViewport : SubViewportContainer
         GD.Print(
             $"OPENRPG_FORGE_STUDIO_WORLD_READY area={area.Slug} entities={EntityCount} " +
             $"assets={AssetModelInstanceCount} fallback_assets={UnavailableAssetCount} " +
-            $"crypt_art={_cryptArtPassLoaded.ToString().ToLowerInvariant()} " +
-            $"crypt_models={_cryptArtModelInstanceCount} crypt_characters={_cryptCharacterAssetInstanceCount} " +
-            $"hidden_architecture_proxies={_hiddenCryptArchitectureProxyCount} " +
+            $"art_kit={_artKitPassLoaded.ToString().ToLowerInvariant()} " +
+            $"art_kit_models={_artKitModelInstanceCount} " +
+            $"hidden_architecture_proxies={_hiddenArchitectureProxyCount} " +
             $"read_only={_readOnly.ToString().ToLowerInvariant()}");
     }
 
@@ -1327,7 +1327,7 @@ internal sealed partial class StudioWorldViewport : SubViewportContainer
     private void ClearArea()
     {
         ClearUx0CViewportArea();
-        ClearCryptVisualState();
+        ClearArtKitState();
         ClearHumanPickingArea();
         _entityNodes.Clear();
         _editableEntityIds.Clear();
@@ -1389,10 +1389,7 @@ internal sealed partial class StudioWorldViewport : SubViewportContainer
         };
         var explicitAssetId = entity.Overrides.Properties.FirstOrDefault(property =>
             string.Equals(property.Key, "visual.asset", StringComparison.Ordinal))?.Value;
-        var cryptCharacter = string.IsNullOrWhiteSpace(explicitAssetId)
-            ? ResolveCryptCharacterVisual(entity)
-            : null;
-        var assetId = explicitAssetId ?? cryptCharacter?.AssetId;
+        var assetId = explicitAssetId;
         if (!string.IsNullOrWhiteSpace(assetId) && _modelLibrary is not null &&
             !_unavailableVisualAssets.Contains(assetId))
         {
@@ -1403,7 +1400,6 @@ internal sealed partial class StudioWorldViewport : SubViewportContainer
                 {
                     root.AddChild(model);
                     AssetModelInstanceCount++;
-                    RecordCryptCharacterAssetInstance(cryptCharacter is not null);
                     return root;
                 }
                 _unavailableVisualAssets.Add(assetId);

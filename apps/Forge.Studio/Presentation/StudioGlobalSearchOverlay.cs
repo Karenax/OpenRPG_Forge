@@ -116,7 +116,7 @@ internal sealed partial class StudioGlobalSearchOverlay : Control
         _detailPath = StudioStyle.Label(string.Empty, 10, StudioStyle.Muted, wrap: true);
         details.AddChild(_detailPath);
         _detailBody = StudioStyle.Label(
-            "La recherche couvre les 36 pages, les actions du shell et le contenu canonique du module.",
+            "La recherche couvre les 37 pages, les actions du shell et le contenu canonique du module.",
             11,
             StudioStyle.Muted,
             wrap: true);

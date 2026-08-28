@@ -34,6 +34,31 @@ public static class GameLauncherSettingsStore
                            File.ReadAllText(fullPath),
                            GameLauncherManifestStore.CreateOptions())
                        ?? throw new InvalidDataException("Launcher settings are empty.");
+        if (settings.SchemaVersion == 1)
+        {
+            settings = settings with
+            {
+                SchemaVersion = GameLauncherUserSettings.CurrentSchemaVersion,
+                SessionMode = settings.SessionMode == LauncherSessionMode.DirectConnectPreview
+                    ? LauncherSessionMode.Solo
+                    : settings.SessionMode,
+                NetworkAccountId = Guid.NewGuid(),
+                NetworkJoinToken = string.Empty,
+                ServerCertificateSha256 = string.Empty,
+                HostCertificatePath = string.Empty,
+                HostCertificatePassword = string.Empty,
+            };
+        }
+        else
+        {
+            settings = settings with
+            {
+                NetworkJoinToken = settings.NetworkJoinToken ?? string.Empty,
+                ServerCertificateSha256 = settings.ServerCertificateSha256 ?? string.Empty,
+                HostCertificatePath = settings.HostCertificatePath ?? string.Empty,
+                HostCertificatePassword = settings.HostCertificatePassword ?? string.Empty,
+            };
+        }
         RequireValid(settings);
         return settings;
     }

@@ -11,7 +11,7 @@ internal sealed partial class StudioSessionController
     private const string Ux6NEndMarker = "// </studio:ux6-n-live-tools>";
 
     internal StudioUx6NLiveDraft DefaultLiveToolsDraftUx6N() => new(
-        "crypt-of-ashes",
+        Project?.Module.Slug ?? "active-module",
         1,
         2,
         "sha256:active-reviewed",

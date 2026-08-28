@@ -200,7 +200,7 @@ public sealed class RuntimePresentationBoundaryTests
     public void Runtime_refresh_rebuilds_once_before_hud_reads_and_pushes_the_same_live_presentation_to_menu()
     {
         var runtimeRoot = Path.Combine(FindRepositoryRoot(), "apps", "Forge.Runtime", "Runtime");
-        var gameRoot = File.ReadAllText(Path.Combine(runtimeRoot, "GameRoot.cs"));
+        var gameRoot = ReadRuntimeGameRootSources(runtimeRoot);
         var hud = File.ReadAllText(Path.Combine(runtimeRoot, "RuntimeHud.cs"));
         var updateHudStart = gameRoot.IndexOf("private void UpdateHud()", StringComparison.Ordinal);
         var updateHudEnd = gameRoot.IndexOf("private void PresentHudState", updateHudStart, StringComparison.Ordinal);
@@ -347,7 +347,7 @@ public sealed class RuntimePresentationBoundaryTests
         Assert.Contains("Toman", actorNames);
         Assert.Contains("Orin", actorNames);
 
-        var area = session.Project.Areas.Single();
+        var area = FindAreaWithPlayer(session, "Aerin");
         var player = FindPlayer(session, area, "Aerin");
         var presentation = RuntimeModulePresentationProjector.Project(
             session.Project,
@@ -380,7 +380,7 @@ public sealed class RuntimePresentationBoundaryTests
     public void Entity_authored_portrait_override_precedes_shared_blueprint_portrait()
     {
         var session = OpenRuntimeWorkspace("solaren");
-        var area = session.Project.Areas.Single();
+        var area = FindAreaWithPlayer(session, "Aerin");
         var player = FindPlayer(session, area, "Aerin");
         const string portrait = "assets/imported/portrait/aerin.png";
         var overrides = new EntityPropertyOverrides(
@@ -426,7 +426,7 @@ public sealed class RuntimePresentationBoundaryTests
     public void Solaren_projection_has_honest_empty_party_inventory_progression_and_journal()
     {
         var session = OpenRuntimeWorkspace("solaren");
-        var area = session.Project.Areas.Single();
+        var area = FindAreaWithPlayer(session, "Aerin");
         var player = FindPlayer(session, area, "Aerin");
 
         var presentation = RuntimeModulePresentationProjector.Project(
@@ -455,7 +455,7 @@ public sealed class RuntimePresentationBoundaryTests
     {
         var session = OpenRuntimeWorkspace("solaren");
         var project = session.Project;
-        var area = project.Areas.Single();
+        var area = FindAreaWithPlayer(session, "Aerin");
         var player = FindPlayer(session, area, "Aerin");
         var exploration = new AreaMapExplorationState(
             area.Authoring.Map.ExplorationScope,
@@ -595,6 +595,15 @@ public sealed class RuntimePresentationBoundaryTests
         string.Equals(property.Value, displayName, StringComparison.Ordinal)) &&
         session.Project.Blueprints.Single(blueprint => blueprint.Id == entity.BlueprintId).Kind ==
         BlueprintKind.PlayerSpawn);
+
+    private static Forge.Domain.Areas.AreaDefinition FindAreaWithPlayer(
+        ProjectSession session,
+        string displayName) => session.Project.Areas.Single(area => area.Entities.Any(entity =>
+        entity.Overrides.Properties.Any(property =>
+            string.Equals(property.Key, "runtime.displayName", StringComparison.Ordinal) &&
+            string.Equals(property.Value, displayName, StringComparison.Ordinal)) &&
+        session.Project.Blueprints.Single(blueprint => blueprint.Id == entity.BlueprintId).Kind ==
+        BlueprintKind.PlayerSpawn));
 
     private static SyntheticInventoryFixture CreateSyntheticInventoryProject()
     {

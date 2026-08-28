@@ -21,9 +21,10 @@ $distributionRoot = [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot 'ar
 $studioProject = Join-Path $repositoryRoot 'apps/Forge.Studio'
 $studioProjectFile = Join-Path $studioProject 'Forge.Studio.csproj'
 $studioSolution = Join-Path $studioProject 'Forge.Studio.sln'
+$cliProject = Join-Path $repositoryRoot 'tools/Forge.Cli/Forge.Cli.csproj'
 $exportPresets = Join-Path $studioProject 'export_presets.cfg'
 $workspaceSource = Join-Path $repositoryRoot 'apps/Forge.Runtime/content/crypt-of-ashes'
-$cryptArtSource = Join-Path $repositoryRoot 'apps/Forge.Runtime/art/crypt-kaykit'
+$cryptArtSource = Join-Path $repositoryRoot 'apps/Forge.Runtime/art/kaykit-dungeon-remastered'
 $nativeBuildScript = Join-Path $PSScriptRoot 'Build-ForgeScriptNative.ps1'
 $nativeLibraryName = if ($Platform -eq 'windows-x64') {
     'forge_script_native.dll'
@@ -33,6 +34,16 @@ else {
 }
 $nativeLibraryDirectoryName = if ($Platform -eq 'windows-x64') { 'win-x64' } else { 'linux-x64' }
 $nativeLibrarySource = Join-Path $repositoryRoot "native/ForgeScript/lib/$nativeLibraryDirectoryName/$nativeLibraryName"
+$cliRuntimeIdentifier = if ($Platform -eq 'windows-x64') { 'win-x64' } else { 'linux-x64' }
+
+function Invoke-Dotnet {
+    param([Parameter(Mandatory)][string[]]$Arguments)
+
+    & dotnet @Arguments
+    if ($LASTEXITCODE -ne 0) {
+        throw "dotnet $($Arguments -join ' ') failed with exit code $LASTEXITCODE."
+    }
+}
 
 if ([string]::IsNullOrWhiteSpace($OutputDirectory)) {
     $OutputDirectory = "artifacts/distribution/studio-$Platform"
@@ -177,6 +188,41 @@ if ($null -eq $exportedNativeLibrary) {
     throw "The Studio export does not contain $nativeLibraryName."
 }
 
+# Godot includes the Forge.Cli apphost metadata because Studio builds the CLI project, but it does
+# not copy Forge.Cli.dll when ReferenceOutputAssembly=false. Ship an isolated self-contained CLI
+# instead, so the exported Studio never depends on a machine-wide .NET installation.
+$studioManagedDirectory = Split-Path -Parent $studioAssembly.FullName
+Get-ChildItem -LiteralPath $studioManagedDirectory -Filter 'Forge.Cli.*' -File -ErrorAction SilentlyContinue |
+    Remove-Item -Force
+$cliTarget = Join-Path $studioManagedDirectory 'forge-cli'
+$cliRestoreLock = Join-Path $outputPath '.cli.restore.lock.json'
+Invoke-Dotnet @(
+    'restore', $cliProject, '--runtime', $cliRuntimeIdentifier, '--force',
+    "-p:NuGetLockFilePath=$cliRestoreLock", '-p:RestorePackagesWithLockFile=false'
+)
+Invoke-Dotnet @(
+    'publish', $cliProject, '--configuration', $Configuration, '--runtime', $cliRuntimeIdentifier,
+    '--self-contained', 'true', '--no-restore', '-p:PublishSingleFile=true',
+    '-p:IncludeNativeLibrariesForSelfExtract=true', '-p:DebugType=None', '--output', $cliTarget
+)
+Remove-Item -LiteralPath $cliRestoreLock -Force -ErrorAction SilentlyContinue
+$cliExecutableName = if ($Platform -eq 'windows-x64') { 'Forge.Cli.exe' } else { 'Forge.Cli' }
+$cliExecutable = Join-Path $cliTarget $cliExecutableName
+if (-not (Test-Path -LiteralPath $cliExecutable -PathType Leaf)) {
+    throw "The Studio export does not contain the self-contained Forge CLI: $cliExecutable"
+}
+if ($Platform -eq 'linux-x64' -and $isLinuxHost) {
+    & chmod +x $cliExecutable
+    if ($LASTEXITCODE -ne 0) { throw 'Unable to mark the bundled Forge CLI as runnable.' }
+}
+if (($Platform -eq 'windows-x64' -and $isWindowsHost) -or
+    ($Platform -eq 'linux-x64' -and $isLinuxHost)) {
+    & $cliExecutable '--self-test'
+    if ($LASTEXITCODE -ne 0) {
+        throw "The bundled Forge CLI failed its dependency smoke test with exit code $LASTEXITCODE."
+    }
+}
+
 $workspaceTarget = Join-Path $outputPath 'workspaces/crypt-of-ashes'
 $sourcePrefix = $workspaceSource.TrimEnd([System.IO.Path]::DirectorySeparatorChar) +
     [System.IO.Path]::DirectorySeparatorChar
@@ -188,11 +234,40 @@ foreach ($sourceFile in Get-ChildItem -LiteralPath $workspaceSource -Recurse -Fi
     New-Item -ItemType Directory -Path (Split-Path -Parent $destination) -Force | Out-Null
     Copy-Item -LiteralPath $sourceFile.FullName -Destination $destination -Force
 }
-$cryptArtTarget = Join-Path $workspaceTarget 'art/crypt-kaykit'
+$cryptArtTarget = Join-Path $workspaceTarget 'art/kaykit-dungeon-remastered'
 New-Item -ItemType Directory -Path $cryptArtTarget -Force | Out-Null
 foreach ($sourceFile in Get-ChildItem -LiteralPath $cryptArtSource -File |
         Where-Object { $_.Extension -eq '.glb' -or $_.Name -eq 'CREDITS.md' }) {
     Copy-Item -LiteralPath $sourceFile.FullName -Destination (Join-Path $cryptArtTarget $sourceFile.Name) -Force
+}
+
+# Bundle the governed WorldGeneration worker next to the exported Studio. The worker still installs
+# only the immutable providers declared by the shipped manifest and runs in an isolated cache.
+$worldGenerationTarget = Join-Path $outputPath 'world-generation'
+New-Item -ItemType Directory -Path $worldGenerationTarget -Force | Out-Null
+foreach ($source in @(
+        (Join-Path $repositoryRoot 'scripts/Invoke-WorldGenerationWorkspaceWorker.ps1'),
+        (Join-Path $repositoryRoot 'scripts/Install-WorldGenerationDependencies.ps1'),
+        (Join-Path $repositoryRoot 'third_party/world-generation.dependencies.json'))) {
+    Copy-Item -LiteralPath $source -Destination (Join-Path $worldGenerationTarget (Split-Path -Leaf $source)) -Force
+}
+foreach ($bundleDirectory in @(
+        [pscustomobject]@{
+            Source = Join-Path $repositoryRoot 'integrations/godot/world_generation_worker'
+            Target = Join-Path $worldGenerationTarget 'worker-project'
+        },
+        [pscustomobject]@{
+            Source = Join-Path $repositoryRoot 'integrations/godot/addons/openrpg_world_generation'
+            Target = Join-Path $worldGenerationTarget 'addons/openrpg_world_generation'
+        })) {
+    $bundlePrefix = $bundleDirectory.Source.TrimEnd([System.IO.Path]::DirectorySeparatorChar) +
+        [System.IO.Path]::DirectorySeparatorChar
+    foreach ($sourceFile in Get-ChildItem -LiteralPath $bundleDirectory.Source -Recurse -File) {
+        $relativePath = $sourceFile.FullName.Substring($bundlePrefix.Length)
+        $destination = Join-Path $bundleDirectory.Target $relativePath
+        New-Item -ItemType Directory -Path (Split-Path -Parent $destination) -Force | Out-Null
+        Copy-Item -LiteralPath $sourceFile.FullName -Destination $destination -Force
+    }
 }
 
 $smokeTested = -not $SkipSmoke
@@ -271,6 +346,10 @@ $manifest = [ordered]@{
     source_dirty = $sourceDirty
     smoke_tested = $smokeTested
     smoke_status = if ($smokeTested) { 'passed' } else { 'not-run-host-unavailable' }
+    cli = $studioAssembly.Directory.Name + '/forge-cli/' + $cliExecutableName
+    cli_dependency_smoke = if (($Platform -eq 'windows-x64' -and $isWindowsHost) -or
+        ($Platform -eq 'linux-x64' -and $isLinuxHost)) { 'passed' } else { 'not-run-host-unavailable' }
+    world_generation_worker = 'world-generation/Invoke-WorldGenerationWorkspaceWorker.ps1'
     workspace = 'workspaces/crypt-of-ashes/project.json'
     compliance = 'compliance/sbom.cdx.json'
     files = $files

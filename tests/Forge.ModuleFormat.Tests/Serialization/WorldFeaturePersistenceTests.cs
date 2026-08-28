@@ -1,6 +1,9 @@
 using System.Text.Json.Nodes;
 using Forge.Domain.Blueprints;
+using Forge.Domain.Dialogues;
+using Forge.Domain.Entities;
 using Forge.Domain.Factions;
+using Forge.Domain.Navigation;
 using Forge.Domain.Projects;
 using Forge.Domain.Spatial;
 using Forge.Domain.WorldFeatures;
@@ -585,7 +588,7 @@ public sealed class WorldFeaturePersistenceTests : IDisposable
 
     private static ProjectDefinition CompleteProject()
     {
-        var source = TestProjectFactory.CreateValid();
+        var source = TestProjectFactory.CreateNavigationValid();
         var placeable = new BlueprintDefinition(BlueprintId.From(Guid.Parse("15000000-0000-4000-8000-000000000001")),
             "world-placeable", "World placeable", BlueprintKind.Placeable);
         var door = new BlueprintDefinition(BlueprintId.From(Guid.Parse("15000000-0000-4000-8000-000000000002")),
@@ -594,8 +597,22 @@ public sealed class WorldFeaturePersistenceTests : IDisposable
             "world-trigger", "World trigger", BlueprintKind.Trigger);
         var item = new BlueprintDefinition(BlueprintId.From(Guid.Parse("15000000-0000-4000-8000-000000000008")),
             "world-item", "World item", BlueprintKind.Item);
-        var creature = source.Blueprints.Single();
-        var area = source.Areas.Single();
+        var creature = source.Blueprints.Single(item => item.Kind == BlueprintKind.Creature);
+        var playerSpawn = source.Blueprints.Single(item => item.Kind == BlueprintKind.PlayerSpawn);
+        var sourceArea = source.Areas.Single();
+        var anchorDefinition = new AnchorDefinition(
+            Guid.Parse("15000000-0000-4000-8000-000000000009"), 1, "test:g13-t-u",
+            "anchor:test", new LocalizedText("anchor.test", "Test encounter anchor"), AnchorKind.Spawn,
+            AnchorScope.Area, ["encounter"], playerSpawn.Id, null, true);
+        var anchorInstance = new AnchorInstance(
+            Guid.Parse("15000000-0000-4000-8000-00000000000a"), 1, "test:g13-t-u",
+            anchorDefinition.Id, TransformValue.Identity, 1, EntityPropertyOverrides.Empty,
+            new SpawnAnchorProfile("encounter", new Vector3Value(1.2f, 2.2f, 1.2f), 80,
+                "hostile", 0, null, true), null);
+        var anchorCatalog = new AnchorCatalog(
+            Guid.Parse("15000000-0000-4000-8000-00000000000b"), 1, "test:g13-t-u",
+            sourceArea.Id, true, [anchorDefinition], [anchorInstance]);
+        var area = sourceArea.WithNavigation(sourceArea.Navigation.WithAnchors(anchorCatalog));
         var dialogue = source.Dialogues.Single();
         var quest = source.Quests.Single();
         var routeId = Guid.Parse("15000000-0000-4000-8000-000000000004");
@@ -875,6 +892,6 @@ public sealed class WorldFeaturePersistenceTests : IDisposable
                 "watchers", "Veilleurs", false, [], ["guard"])],
             [], [], []);
         return new(source.Id, source.Title, source.Module.WithFactions(factions).WithWorldFeatures(catalog),
-            [.. source.Blueprints, placeable, door, trigger, item], source.Areas, source.Dialogues, source.Quests);
+            [.. source.Blueprints, placeable, door, trigger, item], [area], source.Dialogues, source.Quests);
     }
 }

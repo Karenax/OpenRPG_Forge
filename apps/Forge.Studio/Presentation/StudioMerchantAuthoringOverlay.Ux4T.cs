@@ -643,12 +643,14 @@ internal sealed partial class StudioMerchantAuthoringOverlayUx4T : Control
     private bool TryOpenEvidence()
     {
         var snapshot = CaptureSource(); var evidence = _sourceSession.CreateUx4TEvidenceProject();
-        if (snapshot is null || evidence is null) return false;
+        if (snapshot is null || evidence is null || _sourceSession.Session is not { } sourceWorkspace) return false;
         var root = Path.Combine(Path.GetTempPath(), "openrpg-forge-studio-ux4t-evidence-" + Guid.NewGuid().ToString("N"));
         var session = new StudioSessionController();
         try
         {
-            if (!ProjectSession.Create(root, evidence.Project).Succeeded || !session.Open(root).Succeeded)
+            if (!ProjectSession.Create(root, evidence.Project).Succeeded ||
+                !StudioSessionController.CopyForgeScriptsForEvidence(sourceWorkspace.RootDirectory, root) ||
+                !session.Open(root).Succeeded)
             { session.Close(); _resourcesReleased = DeleteEvidenceRoot(root); return false; }
             _sourceSnapshot = snapshot; _evidenceSession = session; _evidenceRoot = root;
             _evidenceMerchantId = evidence.MerchantId; _session = session;

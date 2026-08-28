@@ -14,6 +14,7 @@ using Forge.Domain.Entities;
 using Forge.Domain.Spatial;
 using Forge.ModuleFormat.Assets;
 using Forge.ModuleFormat.Workspaces;
+using Forge.Mcp.Projects;
 using Forge.Studio.Core.Assets;
 
 namespace Forge.Studio.Session;
@@ -39,6 +40,7 @@ internal sealed partial class StudioSessionController
     private IReadOnlyList<CreatorWorkspaceResource>? _workspaceResources;
     private Forge.Domain.Projects.ProjectDefinition? _resourceCatalogProject;
     private CreatorWorkspaceResourceCatalog? _resourceCatalog;
+    private ForgeProjectAgentService? _worldGenerationAgent;
 
     internal ProjectSession? Session { get; private set; }
 
@@ -106,7 +108,10 @@ internal sealed partial class StudioSessionController
         }
 
         Session = opened.Session;
-        History = new ProjectCommandHistory(new ProjectState(Session.Project, new ProjectRevision(0)));
+        History = new ProjectCommandHistory(new ProjectState(
+            Session.Project,
+            new ProjectRevision(Session.Revision)));
+        _worldGenerationAgent = ForgeProjectAgentService.Attach(Session, History);
         AssetManifests = manifests.Manifests;
         _areaSelections.Clear();
         CloseUx0C();
@@ -1120,7 +1125,7 @@ internal sealed partial class StudioSessionController
             return new StudioActionResult(false, "Aucun module n'est ouvert.");
         }
 
-        var result = Session.Save(History.State.Project);
+        var result = Session.Save(History.State.Project, History.State.Revision.Value);
         if (result.Succeeded)
         {
             if (_appliedDialogueVoiceImport is not null)
@@ -1142,6 +1147,7 @@ internal sealed partial class StudioSessionController
         DiscardUnsavedDialogueVoiceImport();
         Session = null;
         History = null;
+        _worldGenerationAgent = null;
         AssetManifests = [];
         ActiveAreaId = null;
         SelectedEntityId = null;

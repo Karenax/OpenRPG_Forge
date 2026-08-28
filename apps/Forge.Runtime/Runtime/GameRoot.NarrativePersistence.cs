@@ -579,7 +579,7 @@ public partial class GameRoot : Node3D
 
     private bool SaveRuntime(string path)
     {
-        if (_player is null || _playerCombatant is null || _moduleId is null ||
+        if (_player is null || _moduleId is null ||
             _moduleContentSha256 is null || _currentAreaId is null)
         {
             GD.PrintErr("OPENRPG_FORGE_RUNTIME_SAVE_FAILED runtime_not_ready");
@@ -587,62 +587,9 @@ public partial class GameRoot : Node3D
         }
 
         var position = _player.GlobalPosition;
-        var save = new RuntimeSaveDocument(
-            RuntimeSaveDocument.CurrentFormatVersion,
-            _moduleId,
-            _moduleContentSha256,
+        var save = BuildRuntimeSave(
             _currentAreaId,
-            DateTimeOffset.UtcNow,
-            new RuntimeVector3(position.X, position.Y, position.Z),
-            new RuntimeCombatantSave(
-                _playerCombatant.Id,
-                _playerCombatant.Health,
-                _playerCombatant.Resource),
-            _inventory.Snapshot()
-                .Select(stack => new RuntimeInventorySaveStack(stack.Slug, stack.Quantity))
-                .ToArray(),
-            _blackboard.Snapshot().OrderBy(item => item.Key, StringComparer.Ordinal)
-                .Select(item => new RuntimeKeyValue(item.Key, item.Value))
-                .ToArray(),
-            null,
-            null,
-            _hostiles.Values
-                .OrderBy(item => item.Id, StringComparer.Ordinal)
-                .Select(item => new RuntimeCombatantSave(item.Id, item.Health, item.Resource))
-                .ToArray(),
-            new RuntimeProgressFlags(
-                _hasKey,
-                _doorUnlocked,
-                _bossPhaseTwo,
-                _bossDefeated,
-                _escaped),
-            _environmentProfile?.Weather.PersistState == true && _weatherState is not null
-                ? new RuntimeWeatherSave(
-                    _weatherState.SchemaVersion,
-                    _weatherState.StateId.ToString(),
-                    _weatherState.Revision,
-                    _weatherState.ServerRevision,
-                    _weatherState.ElapsedSeconds)
-                : null,
-            new RuntimeProgressionSave(1, _progressionExperience, _progressionLevel),
-            BuildEntityStateSnapshots(),
-            _worldClockSnapshot is null ? null : new RuntimeWorldClockSave(1,
-                _worldClockSnapshot.TotalMinutes, _worldClockSnapshot.Paused, _worldClockSnapshot.Revision,
-                _worldClockSnapshot.Provenance),
-            _questTracker?.Snapshot()
-                .Select(state => new RuntimeQuestSaveState(
-                    state.QuestId.ToString(), state.StateId.ToString(), state.IsAccepted))
-                .ToArray() ?? [],
-            _questTracker?.TrackedQuestId?.ToString(),
-            _mapExploration is null
-                ? null
-                : new RuntimeMapExplorationSave(
-                    _mapExploration.Scope.ToString().ToLowerInvariant(),
-                    _mapExploration.ExplorerId,
-                    _mapExploration.ActiveFloor,
-                    _mapExploration.RevealedCells.Order(StringComparer.Ordinal).ToArray(),
-                    _mapExploration.RevealedPins.Select(id => id.ToString("D"))
-                        .Order(StringComparer.Ordinal).ToArray()));
+            new RuntimeVector3(position.X, position.Y, position.Z));
         var result = RuntimeSaveStore.Save(path, save);
         if (!result.Succeeded)
         {
@@ -669,11 +616,107 @@ public partial class GameRoot : Node3D
         GD.Print(
             $"OPENRPG_FORGE_RUNTIME_SAVE_WRITTEN format={RuntimeSaveDocument.CurrentFormatVersion} " +
             $"file={Path.GetFileName(path)} quests={save.QuestStates?.Count ?? 0} " +
-            $"tracked={save.TrackedQuestId ?? "none"}");
+            $"tracked={save.TrackedQuestId ?? "none"} areas={save.AreaStates?.Count ?? 0} " +
+            $"combat={(save.Player is null ? "optional-none" : "present")}");
         GD.Print($"OPENRPG_FORGE_RUNTIME_G11O_SAVE_PASS mode=write entities={save.EntitySnapshots?.Count ?? 0} " +
             "components=transform-combat-inventory-blackboard schema=1");
         UpdateHud();
         return true;
+    }
+
+    private RuntimeSaveDocument BuildRuntimeSave(string targetAreaId, RuntimeVector3 playerPosition)
+    {
+        if (_player is null || _moduleId is null || _moduleContentSha256 is null || _currentAreaId is null)
+        {
+            throw new InvalidOperationException("The runtime is not ready to capture persistent state.");
+        }
+
+        var currentAreaState = CaptureCurrentAreaState();
+        _runtimeAreaStates[currentAreaState.AreaId] = currentAreaState;
+        _runtimeAreaStates.TryGetValue(targetAreaId, out var targetAreaState);
+        return new RuntimeSaveDocument(
+            RuntimeSaveDocument.CurrentFormatVersion,
+            _moduleId,
+            _moduleContentSha256,
+            targetAreaId,
+            DateTimeOffset.UtcNow,
+            playerPosition,
+            _playerCombatant is null
+                ? null
+                : new RuntimeCombatantSave(
+                    _playerCombatant.Id,
+                    _playerCombatant.Health,
+                    _playerCombatant.Resource),
+            _inventory.Snapshot()
+                .Select(stack => new RuntimeInventorySaveStack(stack.Slug, stack.Quantity))
+                .ToArray(),
+            _blackboard.Snapshot().OrderBy(item => item.Key, StringComparer.Ordinal)
+                .Select(item => new RuntimeKeyValue(item.Key, item.Value))
+                .ToArray(),
+            null,
+            null,
+            targetAreaState?.Hostiles ?? [],
+            new RuntimeProgressFlags(
+                _hasKey,
+                _doorUnlocked,
+                _bossPhaseTwo,
+                _bossDefeated,
+                _escaped),
+            targetAreaState?.Weather,
+            new RuntimeProgressionSave(1, _progressionExperience, _progressionLevel),
+            targetAreaState?.EntitySnapshots ?? [],
+            _worldClockSnapshot is null ? null : new RuntimeWorldClockSave(1,
+                _worldClockSnapshot.TotalMinutes, _worldClockSnapshot.Paused, _worldClockSnapshot.Revision,
+                _worldClockSnapshot.Provenance),
+            _questTracker?.Snapshot()
+                .Select(state => new RuntimeQuestSaveState(
+                    state.QuestId.ToString(), state.StateId.ToString(), state.IsAccepted))
+                .ToArray() ?? [],
+            _questTracker?.TrackedQuestId?.ToString(),
+            targetAreaState?.MapExploration,
+            _runtimeAreaStates.Values
+                .OrderBy(state => state.AreaId, StringComparer.OrdinalIgnoreCase)
+                .ToArray());
+    }
+
+    private RuntimeAreaSaveState CaptureCurrentAreaState()
+    {
+        if (_currentAreaId is null)
+            throw new InvalidOperationException("The current runtime area is unavailable.");
+        var playerEntityId = _entityNodes
+            .Where(pair => pair.Value == _player)
+            .Select(pair => (Guid?)pair.Key)
+            .SingleOrDefault();
+        var entitySnapshots = BuildEntityStateSnapshots()
+            .Where(snapshot => playerEntityId is null ||
+                               !string.Equals(snapshot.EntityId, playerEntityId.Value.ToString("D"),
+                                   StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+        return new RuntimeAreaSaveState(
+            _currentAreaId,
+            _hostiles.Values
+                .OrderBy(item => item.Id, StringComparer.Ordinal)
+                .Select(item => new RuntimeCombatantSave(item.Id, item.Health, item.Resource))
+                .ToArray(),
+            _environmentProfile?.Weather.PersistState == true && _weatherState is not null
+                ? new RuntimeWeatherSave(
+                    _weatherState.SchemaVersion,
+                    _weatherState.StateId.ToString(),
+                    _weatherState.Revision,
+                    _weatherState.ServerRevision,
+                    _weatherState.ElapsedSeconds)
+                : null,
+            entitySnapshots,
+            _mapExploration is null ||
+            !string.Equals(_mapExplorationAreaId, _currentAreaId, StringComparison.OrdinalIgnoreCase)
+                ? null
+                : new RuntimeMapExplorationSave(
+                    _mapExploration.Scope.ToString().ToLowerInvariant(),
+                    _mapExploration.ExplorerId,
+                    _mapExploration.ActiveFloor,
+                    _mapExploration.RevealedCells.Order(StringComparer.Ordinal).ToArray(),
+                    _mapExploration.RevealedPins.Select(id => id.ToString("D"))
+                        .Order(StringComparer.Ordinal).ToArray()));
     }
 
     private bool LoadRuntimeSave(string path)
@@ -733,7 +776,7 @@ public partial class GameRoot : Node3D
 
     private void ApplyRuntimeSave(RuntimeSaveDocument save)
     {
-        if (_player is null || _playerCombatant is null ||
+        if (_player is null ||
             !string.Equals(save.AreaId, _currentAreaId, StringComparison.OrdinalIgnoreCase))
         {
             throw new InvalidOperationException("The save area does not match the loaded runtime area.");
@@ -743,34 +786,19 @@ public partial class GameRoot : Node3D
             (float)save.PlayerPosition.X,
             (float)save.PlayerPosition.Y,
             (float)save.PlayerPosition.Z);
-        _playerCombatant.Restore(save.Player.Health, save.Player.Resource);
-        _inventory.Replace(save.Inventory.Select(stack => new RuntimeInventoryStack(stack.Slug, stack.Quantity)));
-
-        if (save.MapExploration is null)
+        if (save.Player is not null)
         {
-            _mapExploration = null;
-            _mapExplorationAreaId = null;
-            _mapExplorationCell = null;
+            if (_playerCombatant is null)
+                throw new InvalidOperationException("The save contains combat state for a non-combat player.");
+            _playerCombatant.Restore(save.Player.Health, save.Player.Resource);
         }
-        else
+        _inventory.Replace(save.Inventory.Select(stack => new RuntimeInventoryStack(stack.Slug, stack.Quantity)));
+        _runtimeAreaStates.Clear();
+        foreach (var persistedAreaState in save.AreaStates ??
+                 [new RuntimeAreaSaveState(save.AreaId, save.Hostiles, save.Weather,
+                     save.EntitySnapshots ?? [], save.MapExploration)])
         {
-            if (_activeArea is null ||
-                !Enum.TryParse<AreaMapExplorationScope>(save.MapExploration.Scope, true, out var scope))
-            {
-                throw new InvalidOperationException("The saved map exploration scope is unavailable.");
-            }
-
-            var restored = new AreaMapExplorationState(
-                scope,
-                save.MapExploration.ExplorerId,
-                save.MapExploration.RevealedCells.ToHashSet(StringComparer.Ordinal),
-                save.MapExploration.RevealedPins.Select(Guid.Parse).ToHashSet(),
-                save.MapExploration.ActiveFloor);
-            var normalized = AreaExperienceAuthoringScriptService.Normalize(_activeArea, restored);
-            _mapExploration = normalized.State;
-            _mapExplorationAreaId = _activeArea.Id.ToString();
-            _mapExplorationCell = null;
-            ReportMapExplorationDiagnostics(normalized.Diagnostics);
+            _runtimeAreaStates[persistedAreaState.AreaId] = persistedAreaState;
         }
 
         _blackboard = ProjectBlackboardScriptService.ForRuntime(_blackboard.Definitions);
@@ -802,45 +830,8 @@ public partial class GameRoot : Node3D
                     : PrototypeQuestState.NotStarted;
         }
 
-        if (save.Weather is not null)
-        {
-            if (_environmentProfile is null ||
-                !_environmentProfile.Weather.States.Any(state =>
-                    string.Equals(state.Id.ToString(), save.Weather.StateId, StringComparison.OrdinalIgnoreCase)))
-            {
-                throw new InvalidOperationException("The saved weather state is unavailable in the current area.");
-            }
-
-            _weatherState = new WeatherRuntimeSnapshot(
-                save.Weather.SchemaVersion,
-                Guid.Parse(save.Weather.StateId),
-                save.Weather.Revision,
-                save.Weather.ServerRevision,
-                save.Weather.ElapsedSeconds);
-            ApplyClimateEffects(force: true);
-        }
-
-        var hostileSaves = save.Hostiles.ToDictionary(item => item.EntityId, StringComparer.OrdinalIgnoreCase);
-        foreach (var pair in _hostiles.ToArray())
-        {
-            if (hostileSaves.TryGetValue(pair.Value.Id, out var hostileSave))
-            {
-                pair.Value.Restore(hostileSave.Health, hostileSave.Resource);
-                continue;
-            }
-
-            _hostiles.Remove(pair.Key);
-            _hostileNames.Remove(pair.Key);
-            pair.Key.QueueFree();
-        }
-
-        if (hostileSaves.Keys.Any(id => _hostiles.Values.All(item =>
-                !string.Equals(item.Id, id, StringComparison.OrdinalIgnoreCase))))
-        {
-            throw new InvalidOperationException("A saved hostile is no longer available in the current scene.");
-        }
-
-        ApplyEntityStateSnapshots(save.EntitySnapshots ?? []);
+        if (_currentAreaId is not null && _runtimeAreaStates.TryGetValue(_currentAreaId, out var areaState))
+            ApplyRuntimeAreaState(areaState);
 
         _hasKey = save.Progress.HasKey;
         _doorUnlocked = save.Progress.DoorUnlocked;
@@ -861,6 +852,77 @@ public partial class GameRoot : Node3D
         {
             _door.QueueFree();
         }
+    }
+
+    private void ApplyRuntimeAreaState(RuntimeAreaSaveState areaState)
+    {
+        if (areaState.MapExploration is null)
+        {
+            _mapExploration = null;
+            _mapExplorationAreaId = null;
+            _mapExplorationCell = null;
+        }
+        else
+        {
+            if (_activeArea is null ||
+                !Enum.TryParse<AreaMapExplorationScope>(areaState.MapExploration.Scope, true, out var scope))
+            {
+                throw new InvalidOperationException("The saved map exploration scope is unavailable.");
+            }
+
+            var restored = new AreaMapExplorationState(
+                scope,
+                areaState.MapExploration.ExplorerId,
+                areaState.MapExploration.RevealedCells.ToHashSet(StringComparer.Ordinal),
+                areaState.MapExploration.RevealedPins.Select(Guid.Parse).ToHashSet(),
+                areaState.MapExploration.ActiveFloor);
+            var normalized = AreaExperienceAuthoringScriptService.Normalize(_activeArea, restored);
+            _mapExploration = normalized.State;
+            _mapExplorationAreaId = _activeArea.Id.ToString();
+            _mapExplorationCell = null;
+            ReportMapExplorationDiagnostics(normalized.Diagnostics);
+        }
+
+        if (areaState.Weather is not null)
+        {
+            if (_environmentProfile is null ||
+                !_environmentProfile.Weather.States.Any(state =>
+                    string.Equals(state.Id.ToString(), areaState.Weather.StateId,
+                        StringComparison.OrdinalIgnoreCase)))
+            {
+                throw new InvalidOperationException("The saved weather state is unavailable in the current area.");
+            }
+
+            _weatherState = new WeatherRuntimeSnapshot(
+                areaState.Weather.SchemaVersion,
+                Guid.Parse(areaState.Weather.StateId),
+                areaState.Weather.Revision,
+                areaState.Weather.ServerRevision,
+                areaState.Weather.ElapsedSeconds);
+            ApplyClimateEffects(force: true);
+        }
+
+        var hostileSaves = areaState.Hostiles.ToDictionary(item => item.EntityId, StringComparer.OrdinalIgnoreCase);
+        foreach (var pair in _hostiles.ToArray())
+        {
+            if (hostileSaves.TryGetValue(pair.Value.Id, out var hostileSave))
+            {
+                pair.Value.Restore(hostileSave.Health, hostileSave.Resource);
+                continue;
+            }
+
+            _hostiles.Remove(pair.Key);
+            _hostileNames.Remove(pair.Key);
+            pair.Key.QueueFree();
+        }
+
+        if (hostileSaves.Keys.Any(id => _hostiles.Values.All(item =>
+                !string.Equals(item.Id, id, StringComparison.OrdinalIgnoreCase))))
+        {
+            throw new InvalidOperationException("A saved hostile is no longer available in the current scene.");
+        }
+
+        ApplyEntityStateSnapshots(areaState.EntitySnapshots);
     }
 
     private IReadOnlyList<RuntimeEntityStateSave> BuildEntityStateSnapshots()
@@ -907,6 +969,7 @@ public partial class GameRoot : Node3D
         {
             if (!Guid.TryParse(snapshot.EntityId, out var id) || !_entityNodes.TryGetValue(id, out var node))
                 throw new InvalidOperationException($"Saved entity '{snapshot.EntityId}' is unavailable.");
+            if (node == _player) continue;
             var transform = snapshot.Components.SingleOrDefault(item => item.Key == "transform");
             if (transform is null) continue;
             using var json = JsonDocument.Parse(transform.JsonValue);

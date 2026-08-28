@@ -306,7 +306,9 @@ internal sealed partial class StudioSessionController
                 TracyCompatible = true,
                 OpenTelemetryCompatible = true,
                 IncludeScripts = true,
-                MaximumCaptureSeconds = Math.Max(30, draft.MaximumCaptureSeconds),
+                MaximumCaptureSeconds = draft.MaximumCaptureSeconds >= 3600
+                    ? 3599
+                    : Math.Max(30, draft.MaximumCaptureSeconds) + 1,
                 RequestedCaptureSeconds = 30,
                 Backend = ObservabilityCaptureBackend.OpenTelemetry,
             };

@@ -284,7 +284,8 @@ internal sealed partial class StudioEncounterValidationOverlayUx2LwL : Control
         try
         {
             if (!ProjectSession.Create(root, project).Succeeded ||
-                !StudioSessionController.WriteUx2LwLEvidenceScript(root))
+                !StudioSessionController.WriteUx2LwLEvidenceScripts(
+                    _sourceSession.Session?.RootDirectory, root, project))
             {
                 ReleaseEvidence();
                 return false;

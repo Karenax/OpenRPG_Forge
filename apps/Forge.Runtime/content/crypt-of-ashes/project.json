@@ -211,6 +211,7 @@
           "executableName": "Jeu_OpenRPG",
           "accentColor": "#C77A45",
           "backgroundImagePath": null,
+          "musicPath": null,
           "newsUrl": null,
           "supportUrl": null,
           "settingsEnabled": true,
@@ -735,7 +736,23 @@
                     "z": 0
                   },
                   "collisionAvoidance": true,
-                  "alignCharacterFacing": false
+                  "alignCharacterFacing": false,
+                  "terrainClearance": 0.9,
+                  "terrainProbeSamples": 32,
+                  "initialYawDegrees": 39,
+                  "minimumPitchDegrees": -85,
+                  "maximumPitchDegrees": 85,
+                  "occlusionSchemaVersion": 1,
+                  "occlusionStrategy": "retract",
+                  "collisionRetractSharpness": 24,
+                  "collisionReleaseSharpness": 3.25,
+                  "worldLabelSchemaVersion": 1,
+                  "worldLabelNearDistance": 2,
+                  "worldLabelFarDistance": 28,
+                  "worldLabelMaximumDistance": 42,
+                  "worldLabelNearScale": 0.55,
+                  "worldLabelFarScale": 1.15,
+                  "hideLocalHeroLabelInFirstPerson": true
                 },
                 {
                   "id": "45f0dc17-bc78-5a81-8c36-2946a1df896b",
@@ -754,7 +771,22 @@
                   },
                   "collisionAvoidance": true,
                   "alignCharacterFacing": true,
-                  "initialYawDegrees": 219
+                  "terrainClearance": 0.9,
+                  "terrainProbeSamples": 32,
+                  "initialYawDegrees": 219,
+                  "minimumPitchDegrees": -85,
+                  "maximumPitchDegrees": 85,
+                  "occlusionSchemaVersion": 1,
+                  "occlusionStrategy": "retract",
+                  "collisionRetractSharpness": 24,
+                  "collisionReleaseSharpness": 3.25,
+                  "worldLabelSchemaVersion": 1,
+                  "worldLabelNearDistance": 2,
+                  "worldLabelFarDistance": 28,
+                  "worldLabelMaximumDistance": 42,
+                  "worldLabelNearScale": 0.55,
+                  "worldLabelFarScale": 1.15,
+                  "hideLocalHeroLabelInFirstPerson": true
                 },
                 {
                   "id": "5c28b84c-5a9a-53b6-94d1-558261a95fb1",
@@ -772,7 +804,23 @@
                     "z": 0
                   },
                   "collisionAvoidance": true,
-                  "alignCharacterFacing": true
+                  "alignCharacterFacing": true,
+                  "terrainClearance": 0.9,
+                  "terrainProbeSamples": 32,
+                  "initialYawDegrees": 39,
+                  "minimumPitchDegrees": -85,
+                  "maximumPitchDegrees": 85,
+                  "occlusionSchemaVersion": 1,
+                  "occlusionStrategy": "retract",
+                  "collisionRetractSharpness": 24,
+                  "collisionReleaseSharpness": 3.25,
+                  "worldLabelSchemaVersion": 1,
+                  "worldLabelNearDistance": 2,
+                  "worldLabelFarDistance": 28,
+                  "worldLabelMaximumDistance": 42,
+                  "worldLabelNearScale": 0.55,
+                  "worldLabelFarScale": 1.15,
+                  "hideLocalHeroLabelInFirstPerson": true
                 },
                 {
                   "id": "1ad7c566-c951-58ef-a691-ee06eee05dd4",
@@ -790,7 +838,23 @@
                     "z": 0
                   },
                   "collisionAvoidance": true,
-                  "alignCharacterFacing": true
+                  "alignCharacterFacing": true,
+                  "terrainClearance": 0.9,
+                  "terrainProbeSamples": 32,
+                  "initialYawDegrees": 39,
+                  "minimumPitchDegrees": -85,
+                  "maximumPitchDegrees": 85,
+                  "occlusionSchemaVersion": 1,
+                  "occlusionStrategy": "retract",
+                  "collisionRetractSharpness": 24,
+                  "collisionReleaseSharpness": 3.25,
+                  "worldLabelSchemaVersion": 1,
+                  "worldLabelNearDistance": 2,
+                  "worldLabelFarDistance": 28,
+                  "worldLabelMaximumDistance": 42,
+                  "worldLabelNearScale": 0.55,
+                  "worldLabelFarScale": 1.15,
+                  "hideLocalHeroLabelInFirstPerson": true
                 },
                 {
                   "id": "ae5cb922-2de4-5958-ae79-f0a53ba13d3d",
@@ -808,7 +872,23 @@
                     "z": 0
                   },
                   "collisionAvoidance": true,
-                  "alignCharacterFacing": false
+                  "alignCharacterFacing": false,
+                  "terrainClearance": 0.9,
+                  "terrainProbeSamples": 32,
+                  "initialYawDegrees": 39,
+                  "minimumPitchDegrees": -85,
+                  "maximumPitchDegrees": 85,
+                  "occlusionSchemaVersion": 1,
+                  "occlusionStrategy": "retract",
+                  "collisionRetractSharpness": 24,
+                  "collisionReleaseSharpness": 3.25,
+                  "worldLabelSchemaVersion": 1,
+                  "worldLabelNearDistance": 2,
+                  "worldLabelFarDistance": 28,
+                  "worldLabelMaximumDistance": 42,
+                  "worldLabelNearScale": 0.55,
+                  "worldLabelFarScale": 1.15,
+                  "hideLocalHeroLabelInFirstPerson": true
                 },
                 {
                   "id": "7b96da99-29e8-52aa-849c-05d970ee5f2f",
@@ -826,7 +906,23 @@
                     "z": 0
                   },
                   "collisionAvoidance": true,
-                  "alignCharacterFacing": false
+                  "alignCharacterFacing": false,
+                  "terrainClearance": 0.9,
+                  "terrainProbeSamples": 32,
+                  "initialYawDegrees": 39,
+                  "minimumPitchDegrees": -85,
+                  "maximumPitchDegrees": 85,
+                  "occlusionSchemaVersion": 1,
+                  "occlusionStrategy": "retract",
+                  "collisionRetractSharpness": 24,
+                  "collisionReleaseSharpness": 3.25,
+                  "worldLabelSchemaVersion": 1,
+                  "worldLabelNearDistance": 2,
+                  "worldLabelFarDistance": 28,
+                  "worldLabelMaximumDistance": 42,
+                  "worldLabelNearScale": 0.55,
+                  "worldLabelFarScale": 1.15,
+                  "hideLocalHeroLabelInFirstPerson": true
                 },
                 {
                   "id": "a8b82fed-a10c-5cea-9fff-212633c36062",
@@ -844,7 +940,23 @@
                     "z": 0
                   },
                   "collisionAvoidance": true,
-                  "alignCharacterFacing": true
+                  "alignCharacterFacing": true,
+                  "terrainClearance": 0.9,
+                  "terrainProbeSamples": 32,
+                  "initialYawDegrees": 39,
+                  "minimumPitchDegrees": -85,
+                  "maximumPitchDegrees": 85,
+                  "occlusionSchemaVersion": 1,
+                  "occlusionStrategy": "retract",
+                  "collisionRetractSharpness": 24,
+                  "collisionReleaseSharpness": 3.25,
+                  "worldLabelSchemaVersion": 1,
+                  "worldLabelNearDistance": 2,
+                  "worldLabelFarDistance": 28,
+                  "worldLabelMaximumDistance": 42,
+                  "worldLabelNearScale": 0.55,
+                  "worldLabelFarScale": 1.15,
+                  "hideLocalHeroLabelInFirstPerson": true
                 },
                 {
                   "id": "a7107ffb-1014-50c2-898b-82586a90578c",
@@ -862,7 +974,23 @@
                     "z": 0
                   },
                   "collisionAvoidance": true,
-                  "alignCharacterFacing": false
+                  "alignCharacterFacing": false,
+                  "terrainClearance": 0.9,
+                  "terrainProbeSamples": 32,
+                  "initialYawDegrees": 39,
+                  "minimumPitchDegrees": -85,
+                  "maximumPitchDegrees": 85,
+                  "occlusionSchemaVersion": 1,
+                  "occlusionStrategy": "retract",
+                  "collisionRetractSharpness": 24,
+                  "collisionReleaseSharpness": 3.25,
+                  "worldLabelSchemaVersion": 1,
+                  "worldLabelNearDistance": 2,
+                  "worldLabelFarDistance": 28,
+                  "worldLabelMaximumDistance": 42,
+                  "worldLabelNearScale": 0.55,
+                  "worldLabelFarScale": 1.15,
+                  "hideLocalHeroLabelInFirstPerson": true
                 }
               ]
             },
@@ -1863,11 +1991,11 @@
                   "maximumTextureMegabytes": 64,
                   "maximumDrawCalls": 100,
                   "maximumDynamicLights": 0,
-                  "maximumScriptMilliseconds": 8,
+                  "maximumScriptMilliseconds": 20,
                   "maximumNetworkKilobitsPerSecond": 16384,
                   "warningThreshold": 0.8,
                   "gateBuild": true,
-                  "provenance": "migration-default"
+                  "provenance": "module-author:crypt-of-ashes:performance-qualified"
                 },
                 {
                   "id": "6170a100-3b11-5889-8367-91dd258e00cb",
@@ -1878,11 +2006,11 @@
                   "maximumTextureMegabytes": 2048,
                   "maximumDrawCalls": 12000,
                   "maximumDynamicLights": 32,
-                  "maximumScriptMilliseconds": 4,
+                  "maximumScriptMilliseconds": 16.67,
                   "maximumNetworkKilobitsPerSecond": 4096,
                   "warningThreshold": 0.8,
                   "gateBuild": true,
-                  "provenance": "migration-default"
+                  "provenance": "module-author:crypt-of-ashes:performance-qualified"
                 },
                 {
                   "id": "b98c6227-50bc-542c-99ea-400ad710c101",
@@ -1897,7 +2025,7 @@
                   "maximumNetworkKilobitsPerSecond": 2048,
                   "warningThreshold": 0.75,
                   "gateBuild": false,
-                  "provenance": "migration-default"
+                  "provenance": "module-author:crypt-of-ashes:performance-qualified"
                 }
               ],
               "profiler": {
@@ -2036,7 +2164,7 @@
                 "requireFeatureEvidence": true,
                 "provenance": "migration-default"
               },
-              "provenance": "migration-default"
+              "provenance": "module-author:crypt-of-ashes:performance-qualified"
             },
             "provenance": "migration-default"
           },
@@ -2138,64 +2266,82 @@
               "schemaVersion": 1,
               "zeroGravity": {
                 "id": "595ecfe0-c594-5747-83bc-8e3f57c84f7c",
-                "enabled": false,
-                "thrusterAcceleration": 12,
-                "maximumSpeed": 24,
+                "enabled": true,
+                "thrusterAcceleration": 14,
+                "maximumSpeed": 28,
                 "linearDrag": 0.15,
                 "orientationAssist": true,
                 "preserveMomentum": true
               },
               "vehicles": {
                 "id": "39d0fd5c-8900-594d-8582-07727e56c683",
-                "enabled": false,
-                "maximumSeats": 4,
-                "motionMode": "kinematic",
+                "enabled": true,
+                "maximumSeats": 6,
+                "motionMode": "physics",
                 "maximumIntegrity": 1000,
                 "allowPossession": true,
                 "replicateAuthoritatively": true
               },
               "mounts": {
                 "id": "d239574d-33c7-5503-b7a9-9ac38ac9916a",
-                "enabled": false,
-                "allowCombat": false,
+                "enabled": true,
+                "allowCombat": true,
                 "allowInventory": true,
                 "persistRiderState": true,
                 "dismountPolicy": "safe-ground"
               },
-              "achievements": [],
+              "achievements": [
+                {
+                  "id": "3460bf77-896d-ba40-801b-9f7d8b0e9437",
+                  "key": "crypt-of-ashes-completed",
+                  "eventName": "quest.completed",
+                  "threshold": 1,
+                  "platformKey": "crypt-of-ashes-completed",
+                  "privacySafeTelemetry": false
+                }
+              ],
               "curatedPacks": {
                 "id": "9bc7a2cb-8c46-5a7b-9264-9a619ca06d0c",
                 "channel": "stable",
                 "compatibility": "1.x",
                 "allowedLicenses": [
-                  "CC0-1.0"
+                  "CC0-1.0",
+                  "MIT"
                 ],
                 "requireTrustedSignature": true,
                 "allowOfflineFallback": true
               },
-              "provenance": "migration-default"
+              "provenance": "module-author:crypt-of-ashes"
             },
             "liveDirector": {
               "id": "0d114845-c873-5cdb-9371-8f38a05374fd",
               "schemaVersion": 1,
               "forcedRest": {
                 "id": "b500d280-6849-5262-8258-3279bcc4ede7",
-                "enabled": false,
-                "allowRulesOverride": false,
+                "enabled": true,
+                "allowRulesOverride": true,
                 "emitCompletedEvent": true,
                 "maximumTargets": 32
               },
               "levelAdjustment": {
                 "id": "567f35f1-ef11-54ab-9dc5-3d3943eda2e1",
-                "enabled": false,
+                "enabled": true,
                 "maximumDelta": 5,
                 "requireRebuild": true,
                 "requireRollbackSnapshot": true
               },
-              "savedGroups": [],
+              "savedGroups": [
+                {
+                  "id": "4ec7ce27-88de-0041-ab1c-8de656ff6297",
+                  "key": "crypt-of-ashes-actors",
+                  "query": "tag:guardian",
+                  "hotkey": 1,
+                  "maximumMembers": 32
+                }
+              ],
               "appearanceOverrides": {
                 "id": "d016c259-2cb9-558e-9818-510222215cbd",
-                "enabled": false,
+                "enabled": true,
                 "minimumScale": 0.5,
                 "maximumScale": 2,
                 "maximumDurationSeconds": 3600,
@@ -2203,7 +2349,7 @@
               },
               "sessionRecording": {
                 "id": "64e9a21a-ac4e-5b16-ac39-437fa5effbdf",
-                "enabled": false,
+                "enabled": true,
                 "recordCommands": true,
                 "recordEvents": true,
                 "allowBookmarks": true,
@@ -2211,42 +2357,55 @@
                 "exportFormat": "orp-replay",
                 "maximumMinutes": 240
               },
-              "provenance": "migration-default"
+              "provenance": "module-author:crypt-of-ashes"
             },
             "network": {
               "id": "46ff9c56-7568-5db5-bcc9-9084cf945650",
               "schemaVersion": 1,
               "voice": {
                 "id": "8c569ffd-f06f-53da-a30f-760d09725f13",
-                "enabled": false,
+                "enabled": true,
                 "codec": "opus",
-                "maximumBitrateKbps": 64,
+                "maximumBitrateKbps": 96,
                 "positional": true,
                 "pushToTalk": true,
                 "moderationEnabled": true
               },
-              "shards": [],
+              "shards": [
+                {
+                  "id": "ac7ad5b6-ba52-064c-b285-d12aa682d9a4",
+                  "key": "crypt-of-ashes-default",
+                  "areaIds": [
+                    "93b6f81b-49eb-4e3d-a156-08ad78529525"
+                  ],
+                  "maximumPlayers": 64,
+                  "region": "local"
+                }
+              ],
               "hotReload": {
                 "id": "dab36a8f-9444-5d1e-8ae9-0d48b380a629",
-                "enabled": false,
+                "enabled": true,
                 "atomicSwap": true,
                 "requireRollback": true,
                 "maximumPackageMegabytes": 512,
-                "drainTimeoutSeconds": 60
+                "drainTimeoutSeconds": 45
               },
               "serverExtensions": {
                 "id": "c20df217-d525-5460-a85f-a9e9ba658bd3",
-                "enabled": false,
+                "enabled": true,
                 "requireSignature": true,
                 "isolateProcesses": true,
-                "allowedCapabilities": [],
+                "allowedCapabilities": [
+                  "metrics",
+                  "world-read"
+                ],
                 "cpuBudgetMilliseconds": 50
               },
               "protocol": {
                 "id": "ca8890d2-fa43-5379-809a-7d5f2d91ec09",
                 "protocolFamily": "openrpg-net",
                 "minimumVersion": 1,
-                "maximumVersion": 1,
+                "maximumVersion": 2,
                 "platforms": [
                   "linux",
                   "macos",
@@ -2254,7 +2413,7 @@
                 ],
                 "rejectUnknownFields": true
               },
-              "provenance": "migration-default"
+              "provenance": "module-author:crypt-of-ashes"
             },
             "creatorExperience": {
               "id": "c991958d-a7c6-5f84-93a3-8fbdeee6f658",
@@ -2264,11 +2423,11 @@
                 "refraction": true,
                 "screenSpaceReflections": true,
                 "depthColor": true,
-                "fallbackQuality": "medium"
+                "fallbackQuality": "high"
               },
               "deviceQueries": {
                 "id": "d32962b1-796f-536a-ae74-3b1d0e8076e0",
-                "enabled": false,
+                "enabled": true,
                 "allowedQueries": [
                   "graphics-tier",
                   "input-family"
@@ -2289,8 +2448,8 @@
               },
               "dynamicAreas": {
                 "id": "863eed55-c2ac-5af1-8c43-d7b7e7475213",
-                "enabled": false,
-                "maximumInstances": 16,
+                "enabled": true,
+                "maximumInstances": 8,
                 "lifetimeSeconds": 3600,
                 "requireServerAuthority": true,
                 "resolveDependencies": true
@@ -2322,7 +2481,7 @@
               },
               "observability": {
                 "id": "e5e26c3c-aa12-5c29-95f5-e2c3ff77d0fc",
-                "enabled": false,
+                "enabled": true,
                 "tracyCompatible": true,
                 "openTelemetryCompatible": true,
                 "maximumCaptureSeconds": 60,
@@ -2330,25 +2489,27 @@
               },
               "graphics": {
                 "id": "af59a490-e2d7-58a9-9034-6ec84f8e9e04",
-                "antiAliasing": "msaa4",
-                "anisotropicLevel": 8,
+                "antiAliasing": "msaa8",
+                "anisotropicLevel": 16,
                 "upscaling": "native",
                 "capabilityFallback": true
               },
-              "provenance": "migration-default"
+              "provenance": "module-author:crypt-of-ashes"
             },
             "production": {
               "id": "8ce8936f-d8f2-5bb2-a1ce-17ec8c0d94a1",
               "schemaVersion": 1,
               "mediaGeneration": {
                 "id": "91877b1c-0277-5eaf-81e8-a5fdceed3edc",
-                "enabled": false,
+                "enabled": true,
                 "mediaKinds": [
                   "audio",
                   "image",
                   "vfx"
                 ],
-                "providers": [],
+                "providers": [
+                  "local"
+                ],
                 "requireRightsMetadata": true,
                 "requireHumanReview": true,
                 "stageBeforeImport": true,
@@ -2358,20 +2519,20 @@
               },
               "soakTests": {
                 "id": "2a4c62ab-b123-5bf2-8b9f-d33661e3bed3",
-                "enabled": false,
-                "durationMinutes": 60,
-                "virtualPlayers": 32,
+                "enabled": true,
+                "durationMinutes": 120,
+                "virtualPlayers": 64,
                 "sampleIntervalSeconds": 10,
-                "maximumMemoryGrowthMegabytes": 128,
-                "maximumHandleGrowth": 100,
-                "maximumP95LatencyMilliseconds": 250,
+                "maximumMemoryGrowthMegabytes": 256,
+                "maximumHandleGrowth": 500,
+                "maximumP95LatencyMilliseconds": 200,
                 "assertDatabaseHealth": true
               },
-              "provenance": "migration-default"
+              "provenance": "module-author:crypt-of-ashes"
             },
-            "provenance": "migration-default"
+            "provenance": "module-author:crypt-of-ashes"
           },
-          "provenance": "sample:g11-o"
+          "provenance": "module-author:crypt-of-ashes"
         },
         "lifecycleEvents": {
           "id": "30000000-0000-4000-8000-000000000001",
@@ -2664,7 +2825,7 @@
             }
           }
         },
-        "provenance": "migration-default"
+        "provenance": "module-author:crypt-of-ashes"
       },
       "factions": {
         "factions": [
@@ -3007,31 +3168,2487 @@
       "worldFeatures": {
         "id": "30000000-0000-4000-8000-000000000001",
         "schemaVersion": 1,
-        "provenance": "migration:world-features-empty",
-        "placeables": [],
-        "doors": [],
-        "triggers": [],
-        "encounters": [],
-        "vehicleRoutes": [],
-        "merchants": [],
-        "companions": [],
+        "provenance": "sample:g13-n-ab",
+        "placeables": [
+          {
+            "id": "0fd21d6f-e060-43e9-b6b0-3035bea3fd8e",
+            "schemaVersion": 1,
+            "provenance": "sample:g13-n-o",
+            "blueprintId": "10000000-0000-4000-8000-000000000010",
+            "factionId": "ash-watch",
+            "dialogueId": "40000000-0000-4000-8000-000000000001",
+            "credential": {
+              "credentialId": "key:ember",
+              "consumption": "charge",
+              "charges": 3,
+              "virtualPermission": null,
+              "auditUse": true
+            },
+            "reactive": {
+              "events": [
+                {
+                  "event": "physical-attack-resolved",
+                  "scriptId": "scripts/pillar_attack.forge",
+                  "before": false,
+                  "authoritative": true
+                },
+                {
+                  "event": "ability-impacted",
+                  "scriptId": "scripts/pillar_ability.forge",
+                  "before": false,
+                  "authoritative": true
+                },
+                {
+                  "event": "heartbeat",
+                  "scriptId": "scripts/pillar_heartbeat.forge",
+                  "before": false,
+                  "authoritative": true
+                },
+                {
+                  "event": "custom:crypt:pillar-pulse",
+                  "scriptId": "scripts/pillar_pulse.forge",
+                  "before": false,
+                  "authoritative": true
+                }
+              ],
+              "scheduler": {
+                "enabled": true,
+                "intervalSeconds": 5,
+                "budgetPerMinute": 12,
+                "suspendWhenUnobserved": true,
+                "customNamespace": "crypt.placeable"
+              }
+            },
+            "physics": {
+              "mode": "rigid",
+              "mass": 12,
+              "constraints": [
+                "lock-y"
+              ],
+              "replicated": true,
+              "sleepAfterSeconds": 4,
+              "convertToStaticWhenSleeping": true,
+              "authority": "server"
+            },
+            "foundation": {
+              "id": "26508d26-1a83-48ef-abd8-79ca20207b6e",
+              "schemaVersion": 1,
+              "provenance": "sample:r046",
+              "slug": "crypt-pillar",
+              "texts": [
+                {
+                  "locale": "fr-FR",
+                  "name": "Pilier des cendres",
+                  "prompt": "Examiner"
+                },
+                {
+                  "locale": "en-US",
+                  "name": "Ash pillar",
+                  "prompt": "Examine"
+                }
+              ],
+              "tags": [
+                "crypt",
+                "ash",
+                "architecture"
+              ],
+              "authorNotes": "Pilier interactif de la crypte.",
+              "visual": {
+                "assetId": "assets/placeables/crypt-pillar.glb",
+                "meshIds": [
+                  "mesh:crypt-pillar"
+                ],
+                "materialIds": [
+                  "material:ash-stone"
+                ],
+                "iconAssetId": "assets/icons/crypt-pillar.png",
+                "portraitAssetId": "assets/portraits/crypt-pillar.png",
+                "visualEffectIds": [
+                  "vfx:ember-glow"
+                ]
+              },
+              "collision": {
+                "shape": "box",
+                "size": {
+                  "x": 1,
+                  "y": 1.5,
+                  "z": 0.5
+                },
+                "enabled": true,
+                "navigationObstacle": true,
+                "physicsLayer": "world"
+              },
+              "interaction": {
+                "verbs": [
+                  {
+                    "id": "3b4243e5-2b21-418d-ae98-ef6e2b801a36",
+                    "labelKey": "placeable.examine",
+                    "eventName": "placeable-used",
+                    "condition": "quest:crypt-open"
+                  }
+                ],
+                "maximumDistance": 2.5,
+                "maximumAngleDegrees": 120,
+                "requiresFocus": true,
+                "promptKey": "placeable.examine",
+                "durationSeconds": 1,
+                "authority": "server",
+                "conditions": [
+                  "quest:crypt-open"
+                ]
+              },
+              "staticProp": null,
+              "components": {
+                "hasHealth": true,
+                "hasContainer": true,
+                "hasLock": true,
+                "hasTrap": true,
+                "hasPhysics": true,
+                "scriptBindings": {
+                  "onUsed": "scripts/pillar_used.forge"
+                }
+              },
+              "transform": {
+                "position": {
+                  "x": 1.25,
+                  "y": 0,
+                  "z": -2.5
+                },
+                "rotationDegrees": {
+                  "x": 0,
+                  "y": 45,
+                  "z": 0
+                },
+                "scale": {
+                  "x": 1,
+                  "y": 1,
+                  "z": 1
+                },
+                "pivot": {
+                  "x": 0,
+                  "y": 0.5,
+                  "z": 0
+                },
+                "snapIncrement": 0.25,
+                "parentId": null,
+                "alignToSurface": true,
+                "transformAnimationId": "animation:crypt-pillar-rise"
+              },
+              "overrides": {
+                "material": "ash-stone",
+                "variant": "lit"
+              },
+              "onUsed": {
+                "id": "ba5128f6-2245-4218-938e-1d93ec2ed3e0",
+                "schemaVersion": 1,
+                "provenance": "sample:r047",
+                "forgeScriptApiVersion": "1.0.0",
+                "eventBinding": "InteractionExecuted",
+                "beforeScriptId": "scripts/pillar_before_used.forge",
+                "afterScriptId": "scripts/pillar_after_used.forge"
+              },
+              "validation": {
+                "animationIds": [
+                  "animation:crypt-pillar-rise"
+                ],
+                "lockIds": [
+                  "lock:crypt-pillar"
+                ],
+                "trapIds": [
+                  "trap:ember"
+                ],
+                "inventoryIds": [
+                  "inventory:crypt-pillar"
+                ],
+                "physicsProfileIds": [
+                  "physics:rigid-placeable"
+                ],
+                "drawCallBudget": 8,
+                "scriptBudget": 8
+              },
+              "onUsedRequiredAtRuntime": true
+            },
+            "foundationRequiredAtRuntime": true,
+            "operations": {
+              "id": "4c9b1f85-2d76-4430-abf7-f606f0188ec3",
+              "schemaVersion": 1,
+              "provenance": "sample:r093",
+              "container": {
+                "id": "22b93014-7b44-4682-8b07-91d1895f3eb5",
+                "capacitySlots": 24,
+                "capacityMass": 160,
+                "ownershipPolicy": "party",
+                "accessPermissions": [
+                  "container.open",
+                  "container.deposit",
+                  "container.withdraw"
+                ],
+                "persistent": true,
+                "lootPolicyId": "loot:crypt-pillar",
+                "uiProfileId": "ui:placeable-chest",
+                "replicated": true,
+                "inventoryId": "inventory:crypt-pillar"
+              },
+              "stateMachine": {
+                "id": "3cecef67-9d87-40f4-b133-6e840b6daa75",
+                "initialStateId": "closed",
+                "states": [
+                  {
+                    "id": "1a783ab5-24c9-4342-8b43-a0a3a38c5a9d",
+                    "stateId": "idle",
+                    "animationId": "animation:idle",
+                    "visualOverrideId": "visual:default",
+                    "interactable": true
+                  },
+                  {
+                    "id": "328e0d23-d8de-4405-9121-410ecdfbbd59",
+                    "stateId": "open",
+                    "animationId": "animation:open",
+                    "visualOverrideId": "visual:open",
+                    "interactable": true
+                  },
+                  {
+                    "id": "39961cb3-86f4-4999-ad2c-56226eeca5a7",
+                    "stateId": "closed",
+                    "animationId": "animation:closed",
+                    "visualOverrideId": "visual:closed",
+                    "interactable": true
+                  },
+                  {
+                    "id": "42d84566-3b5a-40d0-b894-afbe1cec254e",
+                    "stateId": "broken",
+                    "animationId": "animation:broken",
+                    "visualOverrideId": "visual:broken",
+                    "interactable": false
+                  },
+                  {
+                    "id": "fd446fcc-a809-418f-9de9-948c676f7195",
+                    "stateId": "active",
+                    "animationId": "animation:active",
+                    "visualOverrideId": "visual:embers",
+                    "interactable": true
+                  },
+                  {
+                    "id": "884954b8-51e2-4b68-a9ad-09039bb0fcb4",
+                    "stateId": "custom",
+                    "animationId": "animation:custom",
+                    "visualOverrideId": "visual:quest",
+                    "interactable": true
+                  }
+                ],
+                "transitions": [
+                  {
+                    "id": "e8133040-8c10-4828-88df-4aec3464334d",
+                    "fromStateId": "closed",
+                    "toStateId": "open",
+                    "trigger": "open",
+                    "durationSeconds": 1,
+                    "condition": "quest:crypt-open"
+                  },
+                  {
+                    "id": "f57ef0d1-eda4-4ce0-a35c-69084e14105e",
+                    "fromStateId": "open",
+                    "toStateId": "closed",
+                    "trigger": "close",
+                    "durationSeconds": 1,
+                    "condition": null
+                  },
+                  {
+                    "id": "1f3be982-8cbf-4106-9010-09c04f312a58",
+                    "fromStateId": "closed",
+                    "toStateId": "broken",
+                    "trigger": "destroyed",
+                    "durationSeconds": 0.25,
+                    "condition": null
+                  }
+                ]
+              },
+              "damageable": {
+                "id": "c7417ec0-aaad-4c95-9c77-512df0532e02",
+                "maximumHealth": 100,
+                "currentHealth": 100,
+                "armor": 10,
+                "resistances": {
+                  "fire": 0.25,
+                  "force": 0.5
+                },
+                "visualStageThresholds": [
+                  0.75,
+                  0.5,
+                  0.25
+                ],
+                "destructionEffectId": "vfx:ember-shatter",
+                "debrisDefinitionId": "debris:crypt-pillar",
+                "repairable": true,
+                "repairCost": 20
+              },
+              "protection": {
+                "id": "42906c7d-1b87-4bbe-9f7a-6258e1c237e6",
+                "protectedActions": [
+                  "destroy",
+                  "move"
+                ],
+                "requiredPermissions": [
+                  "placeable.plot.override"
+                ],
+                "feedback": "Cet objet appartient \u00E0 l\u0027histoire.",
+                "allowGameMasterOverride": true,
+                "auditBinding": "PlaceableProtectionOverride"
+              },
+              "lock": {
+                "id": "b0576b8d-febe-4b03-b399-37c982928ff1",
+                "initialState": "locked",
+                "credentialIds": [
+                  "key:ember"
+                ],
+                "skillId": "mechanics",
+                "difficulty": 12,
+                "codeHash": "sha256:042",
+                "hackable": true,
+                "relockable": true,
+                "canJam": true,
+                "requiredPermissions": [
+                  "placeable.lock.admin"
+                ]
+              }
+            },
+            "operationsRequiredAtRuntime": true,
+            "securityEvents": {
+              "id": "8e27bad5-012e-4425-8489-acf75a9b8129",
+              "schemaVersion": 1,
+              "provenance": "sample:r094",
+              "trap": {
+                "id": "3817f8b7-9d63-4c7d-a850-4db6a0118ab2",
+                "triggerId": "container:open",
+                "payloadId": "damage:ember-burst",
+                "detectionDifficulty": 10,
+                "disarmDifficulty": 12,
+                "resetDelaySeconds": 30,
+                "ownerId": "ash-watch",
+                "visualEffectId": "vfx:ember-burst",
+                "friendlyPolicy": "ash-watch",
+                "armed": true,
+                "oneShot": true
+              },
+              "loot": {
+                "id": "020ebd5c-3b54-46b8-b410-b493a6f64f90",
+                "lootTableId": "f33d7f6c-62d4-4f4f-93d7-e4382c5f67d3",
+                "timing": "open",
+                "seed": 42,
+                "persistGeneratedState": true,
+                "savedResults": [],
+                "generation": 0,
+                "lootTable": {
+                  "id": "f33d7f6c-62d4-4f4f-93d7-e4382c5f67d3",
+                  "schemaVersion": 1,
+                  "provenance": "sample:r094",
+                  "entries": [
+                    {
+                      "itemDefinitionId": "10000000-0000-4000-8000-000000000008",
+                      "group": "crypt-relic",
+                      "weight": 1,
+                      "minimumQuantity": 1,
+                      "maximumQuantity": 2,
+                      "minimumQuality": 1,
+                      "condition": "quest:crypt-open",
+                      "unique": true
+                    }
+                  ]
+                }
+              },
+              "containerEvents": {
+                "id": "2d4e79cc-9f98-427d-9662-6380deba0636",
+                "forgeScriptApiVersion": "1.0.0",
+                "openedBinding": "ContainerOpened",
+                "closedBinding": "ContainerClosed",
+                "includeActor": true,
+                "includeResult": true,
+                "includePreviousState": true,
+                "includeAuthority": true
+              },
+              "lockEvents": {
+                "id": "6279db66-f99c-4cfc-8fcd-b3a1de084c39",
+                "forgeScriptApiVersion": "1.0.0",
+                "changingBinding": "LockStateChanging",
+                "changedBinding": "LockStateChanged",
+                "includeMethod": true,
+                "includeCredential": true,
+                "includeActor": true,
+                "controlledVeto": true
+              },
+              "contentsChanged": {
+                "id": "ea26721e-49c1-4f91-a2ad-0bbb1c25a0a1",
+                "forgeScriptApiVersion": "1.0.0",
+                "eventBinding": "ContainerContentsChanged",
+                "includeTransactionalDelta": true,
+                "includeCause": true,
+                "includeRevision": true,
+                "includeActor": true
+              }
+            },
+            "securityEventsRequiredAtRuntime": true,
+            "compositionEvents": {
+              "id": "c7bcd38d-759f-4c28-957d-2dfeb27817e8",
+              "schemaVersion": 1,
+              "provenance": "sample:r095",
+              "damageEvents": {
+                "id": "9c559e59-447f-473a-81ec-9fb244956aaa",
+                "forgeScriptApiVersion": "1.0.0",
+                "damagedBinding": "DamageApplied",
+                "destroyedBinding": "EntityDestroyed",
+                "includeSource": true,
+                "includeAmount": true,
+                "includeDamageType": true,
+                "includePreviousHealth": true,
+                "includeCurrentHealth": true,
+                "includeContext": true
+              },
+              "sockets": [
+                {
+                  "id": "0453e7df-76fd-427d-8a7e-bee38bdecac2",
+                  "socketId": "lever",
+                  "kind": "mechanism",
+                  "localTransform": {
+                    "position": {
+                      "x": 0,
+                      "y": 1.2,
+                      "z": 0
+                    },
+                    "rotationDegrees": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "pivot": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "snapIncrement": 0.1,
+                    "parentId": null,
+                    "alignToSurface": false,
+                    "transformAnimationId": null
+                  },
+                  "allowedAttachmentTags": [
+                    "lever",
+                    "vfx",
+                    "prop"
+                  ],
+                  "snapEnabled": true,
+                  "maximumAttachments": 2
+                }
+              ],
+              "attachments": [
+                {
+                  "id": "20fd0c7f-236f-4655-953a-37aaefcc4c8a",
+                  "socketId": "lever",
+                  "childBlueprintId": "10000000-0000-4000-8000-000000000008",
+                  "tags": [
+                    "lever",
+                    "prop"
+                  ],
+                  "transform": {
+                    "position": {
+                      "x": 9,
+                      "y": 9,
+                      "z": 9
+                    },
+                    "rotationDegrees": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "pivot": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "snapIncrement": 0.1,
+                    "parentId": null,
+                    "alignToSurface": false,
+                    "transformAnimationId": null
+                  },
+                  "prefabId": "prefab:crypt-pillar-lever"
+                }
+              ],
+              "multiVerb": {
+                "id": "62266333-eded-4662-b5fc-9ee9fcbbb5c2",
+                "verbs": [
+                  {
+                    "id": "b4ce420a-b131-45b4-af46-24da6b6bb0a2",
+                    "verbId": "inspect",
+                    "labelKey": "placeable.inspect",
+                    "basePriority": 5,
+                    "requiredContext": [],
+                    "forbiddenContext": [],
+                    "eventBinding": "InspectRequested"
+                  },
+                  {
+                    "id": "6ed2efc9-59d0-478f-8e5e-29f6e65d26c4",
+                    "verbId": "use",
+                    "labelKey": "placeable.use",
+                    "basePriority": 5,
+                    "requiredContext": [],
+                    "forbiddenContext": [],
+                    "eventBinding": "UseRequested"
+                  },
+                  {
+                    "id": "3c4a4159-8906-457b-bd3d-642a9024f7e7",
+                    "verbId": "open",
+                    "labelKey": "placeable.open",
+                    "basePriority": 5,
+                    "requiredContext": [
+                      "unlocked"
+                    ],
+                    "forbiddenContext": [],
+                    "eventBinding": "OpenRequested"
+                  },
+                  {
+                    "id": "4b5481ac-e1f3-43c4-8400-9e09baf16005",
+                    "verbId": "talk",
+                    "labelKey": "placeable.talk",
+                    "basePriority": 5,
+                    "requiredContext": [
+                      "interlocutor"
+                    ],
+                    "forbiddenContext": [],
+                    "eventBinding": "TalkRequested"
+                  },
+                  {
+                    "id": "474fb435-aea1-446d-84eb-8066fca6b884",
+                    "verbId": "take",
+                    "labelKey": "placeable.take",
+                    "basePriority": 9,
+                    "requiredContext": [
+                      "portable"
+                    ],
+                    "forbiddenContext": [],
+                    "eventBinding": "TakeRequested"
+                  },
+                  {
+                    "id": "5725dfc4-2518-4eba-b9de-48ad4fa83a0b",
+                    "verbId": "push",
+                    "labelKey": "placeable.push",
+                    "basePriority": 10,
+                    "requiredContext": [],
+                    "forbiddenContext": [
+                      "anchored"
+                    ],
+                    "eventBinding": "PushRequested"
+                  },
+                  {
+                    "id": "170f4a4b-a2b6-4d4a-97ae-62ae291db19c",
+                    "verbId": "climb",
+                    "labelKey": "placeable.climb",
+                    "basePriority": 5,
+                    "requiredContext": [
+                      "climbable"
+                    ],
+                    "forbiddenContext": [],
+                    "eventBinding": "ClimbRequested"
+                  },
+                  {
+                    "id": "7276b286-b239-46ce-bd95-00dc50ef7721",
+                    "verbId": "custom-ring",
+                    "labelKey": "placeable.ring",
+                    "basePriority": 6,
+                    "requiredContext": [
+                      "ash-rune"
+                    ],
+                    "forbiddenContext": [],
+                    "eventBinding": "RingRequested"
+                  }
+                ]
+              }
+            },
+            "compositionEventsRequiredAtRuntime": true,
+            "factionOwnership": null,
+            "factionOwnershipRequiredAtRuntime": false,
+            "conversation": null,
+            "conversationRequiredAtRuntime": false,
+            "credentialRequiredAtRuntime": false,
+            "trapRequiredAtRuntime": false,
+            "lootRequiredAtRuntime": false,
+            "containerEventsRequiredAtRuntime": false,
+            "lockEventsRequiredAtRuntime": false,
+            "contentsChangedRequiredAtRuntime": false,
+            "damageEvents": null,
+            "damageEventsRequiredAtRuntime": false
+          }
+        ],
+        "doors": [
+          {
+            "id": "4609a644-4a4f-44d0-925e-7bf824a8aaa5",
+            "schemaVersion": 1,
+            "provenance": "sample:g13-p-q",
+            "blueprintId": "10000000-0000-4000-8000-000000000003",
+            "damage": {
+              "maximumHealth": 40,
+              "hardness": 4,
+              "plotProtected": false,
+              "damagedVisual": "door.damaged",
+              "breachedVisual": "door.breached",
+              "updateNavigation": true,
+              "debrisAssetId": "assets/debris/ash-door.glb",
+              "repairServiceId": "service.repair-door"
+            },
+            "loading": {
+              "imageAssetId": "assets/loading/crypt-of-ashes.png",
+              "titleKey": "loading.crypt.title",
+              "tipKey": "loading.crypt.tip",
+              "useDestinationFallback": true,
+              "minimumDisplaySeconds": 0.5
+            },
+            "events": [
+              {
+                "event": "damage-applied",
+                "scriptId": "scripts/door_damage.forge",
+                "before": false,
+                "authoritative": true
+              },
+              {
+                "event": "entity-destroyed",
+                "scriptId": "scripts/door_destroyed.forge",
+                "before": false,
+                "authoritative": true
+              },
+              {
+                "event": "physical-attack-resolved",
+                "scriptId": "scripts/door_attack.forge",
+                "before": false,
+                "authoritative": true
+              },
+              {
+                "event": "ability-impacted",
+                "scriptId": "scripts/door_ability.forge",
+                "before": false,
+                "authoritative": true
+              },
+              {
+                "event": "heartbeat",
+                "scriptId": "scripts/door_heartbeat.forge",
+                "before": false,
+                "authoritative": true
+              },
+              {
+                "event": "custom:crypt:door-seal",
+                "scriptId": "scripts/door_seal.forge",
+                "before": false,
+                "authoritative": true
+              }
+            ],
+            "dialogueId": "40000000-0000-4000-8000-000000000001",
+            "factionId": "ash-watch",
+            "assembly": {
+              "kind": "double",
+              "panels": [
+                {
+                  "id": "649a0776-636c-47bc-9b20-3a3d534e7a43",
+                  "role": "left",
+                  "openOffset": -1,
+                  "delaySeconds": 0,
+                  "reversed": false
+                },
+                {
+                  "id": "947305a4-0729-49df-b380-d6d8edbb06be",
+                  "role": "right",
+                  "openOffset": 1,
+                  "delaySeconds": 0.1,
+                  "reversed": true
+                }
+              ],
+              "sequence": "open-together",
+              "interlocked": true,
+              "failureRecovery": "close-and-restore"
+            },
+            "foundation": {
+              "placement": "architectureSocket",
+              "architectureSocketId": "socket:crypt-arch",
+              "adapter": {
+                "kitId": "kit.crypt",
+                "socketKind": "arched",
+                "materialBindings": {
+                  "door": "material.ash"
+                },
+                "widthOffset": 0,
+                "heightOffset": 0,
+                "depthOffset": 0
+              },
+              "initialStateId": "closed",
+              "states": [
+                {
+                  "id": "open",
+                  "kind": "open",
+                  "animationId": "animation:open",
+                  "collisionEnabled": false,
+                  "interactionEnabled": true
+                },
+                {
+                  "id": "closed",
+                  "kind": "closed",
+                  "animationId": "animation:closed",
+                  "collisionEnabled": true,
+                  "interactionEnabled": true
+                },
+                {
+                  "id": "opening",
+                  "kind": "opening",
+                  "animationId": "animation:opening",
+                  "collisionEnabled": false,
+                  "interactionEnabled": false
+                },
+                {
+                  "id": "closing",
+                  "kind": "closing",
+                  "animationId": "animation:closing",
+                  "collisionEnabled": true,
+                  "interactionEnabled": false
+                },
+                {
+                  "id": "locked",
+                  "kind": "locked",
+                  "animationId": "animation:locked",
+                  "collisionEnabled": true,
+                  "interactionEnabled": true
+                },
+                {
+                  "id": "jammed",
+                  "kind": "jammed",
+                  "animationId": "animation:jammed",
+                  "collisionEnabled": true,
+                  "interactionEnabled": true
+                },
+                {
+                  "id": "broken",
+                  "kind": "broken",
+                  "animationId": "animation:broken",
+                  "collisionEnabled": false,
+                  "interactionEnabled": false
+                },
+                {
+                  "id": "disabled",
+                  "kind": "disabled",
+                  "animationId": "animation:disabled",
+                  "collisionEnabled": true,
+                  "interactionEnabled": false
+                },
+                {
+                  "id": "custom",
+                  "kind": "custom",
+                  "animationId": "animation:custom",
+                  "collisionEnabled": true,
+                  "interactionEnabled": true
+                }
+              ],
+              "transitions": [
+                {
+                  "fromStateId": "closed",
+                  "toStateId": "opening",
+                  "trigger": "interact",
+                  "durationSeconds": 1,
+                  "condition": null
+                },
+                {
+                  "fromStateId": "opening",
+                  "toStateId": "open",
+                  "trigger": "animation-complete",
+                  "durationSeconds": 0,
+                  "condition": null
+                },
+                {
+                  "fromStateId": "open",
+                  "toStateId": "closing",
+                  "trigger": "interact",
+                  "durationSeconds": 1,
+                  "condition": null
+                },
+                {
+                  "fromStateId": "closing",
+                  "toStateId": "closed",
+                  "trigger": "animation-complete",
+                  "durationSeconds": 0,
+                  "condition": null
+                }
+              ],
+              "interaction": {
+                "range": 2.5,
+                "allowedSide": "both",
+                "clearanceWidth": 1,
+                "clearanceHeight": 2,
+                "clearanceDepth": 1,
+                "authority": "server",
+                "queueCapacity": 2,
+                "failureFeedbackKey": "door.unavailable"
+              },
+              "portal": {
+                "destinationKind": "waypoint",
+                "destinationId": "63cdbc45-bbe9-40e5-a135-6a61505876de",
+                "spawnAnchorId": "anchor:crypt-exit",
+                "exitYawDegrees": 180,
+                "preload": true,
+                "permissions": [
+                  "portal.travel"
+                ]
+              },
+              "links": [],
+              "overrides": {
+                "interaction.prompt": "door.open",
+                "collision.profile": "collision:crypt-door"
+              },
+              "navigation": {
+                "obstacleId": "nav-obstacle:crypt-door",
+                "linkId": "nav-link:crypt-door",
+                "blockingStateIds": [
+                  "closed",
+                  "locked",
+                  "jammed",
+                  "disabled",
+                  "custom"
+                ],
+                "traversableStateIds": [
+                  "open",
+                  "broken"
+                ],
+                "openingPassableAt": 0.75,
+                "closingBlockedAt": 0.25,
+                "visualizeInEditor": true
+              }
+            },
+            "accessEvents": {
+              "id": "3b7325ef-cba3-4585-9f6b-28477972e315",
+              "schemaVersion": 1,
+              "provenance": "sample:r081",
+              "assetId": "assets/doors/ash-gate.glb",
+              "transform": {
+                "position": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "rotation": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0,
+                  "w": 1
+                },
+                "scale": {
+                  "x": 1,
+                  "y": 1,
+                  "z": 1
+                }
+              },
+              "lock": {
+                "id": "3405d3c0-1624-4868-be2b-35ffdc836686",
+                "state": "locked",
+                "credentialIds": [
+                  "key:ember"
+                ],
+                "skillId": "mechanics",
+                "difficulty": 12,
+                "codeHash": null,
+                "hackable": true,
+                "relockable": true,
+                "canJam": true,
+                "consumeCredential": true,
+                "permissions": [
+                  "door.unlock"
+                ]
+              },
+              "rejection": {
+                "id": "d5938ba9-b79b-476c-a80e-49a02d37c0fc",
+                "forgeScriptApiVersion": "1.0.0",
+                "eventBinding": "DoorOpenRejected",
+                "texts": [
+                  {
+                    "locale": "fr-FR",
+                    "text": "La porte des cendres reste verrouill\u00E9e."
+                  },
+                  {
+                    "locale": "en-US",
+                    "text": "The ash gate remains locked."
+                  }
+                ],
+                "soundAssetId": "audio:door-locked",
+                "animationId": "animation:rattle",
+                "scriptId": "scripts/door_open_rejected.forge"
+              },
+              "trap": {
+                "id": "b7d4af27-1e04-4a26-a96d-c9ba278e388c",
+                "triggerId": "door:open",
+                "payloadId": "damage:ember-burst",
+                "detectionDifficulty": 10,
+                "disarmDifficulty": 12,
+                "resetDelaySeconds": 30,
+                "ownerId": "ash-watch",
+                "visualEffectId": "vfx:ember-burst",
+                "friendlyPolicy": "ash-watch",
+                "armed": true,
+                "oneShot": false,
+                "sides": [
+                  "front",
+                  "back"
+                ],
+                "events": [
+                  "interact",
+                  "portal-use-requested"
+                ]
+              },
+              "portalUse": {
+                "id": "84b1b2b6-06fa-4ae5-a752-0abebd986f95",
+                "forgeScriptApiVersion": "1.0.0",
+                "requestedBinding": "PortalUseRequested",
+                "completedBinding": "PortalUseCompleted"
+              },
+              "stateEvents": {
+                "id": "c9f5d58b-f9ac-48ca-8fbc-1560f3e2037b",
+                "forgeScriptApiVersion": "1.0.0",
+                "openedBinding": "DoorOpened",
+                "closedBinding": "DoorClosed"
+              },
+              "overrides": {
+                "failure.priority": "lock-before-trap"
+              },
+              "lockStateEvents": {
+                "id": "f56efca8-caaa-4dc1-9b1f-3f2c74d2c76d",
+                "schemaVersion": 1,
+                "provenance": "sample:r082",
+                "forgeScriptApiVersion": "1.0.0",
+                "lockedBinding": "DoorLocked",
+                "unlockedBinding": "DoorUnlocked"
+              },
+              "lockStateEventsRequiredAtRuntime": true
+            },
+            "accessEventsRequiredAtRuntime": true,
+            "validation": null,
+            "validationRequiredAtRuntime": false
+          }
+        ],
+        "triggers": [
+          {
+            "id": "6eeb20aa-2f08-4a64-b23e-7d7b38ac22b1",
+            "schemaVersion": 1,
+            "provenance": "sample:g13-r-s",
+            "blueprintId": "10000000-0000-4000-8000-000000000009",
+            "areaId": "93b6f81b-49eb-4e3d-a156-08ad78529525",
+            "discovery": {
+              "senses": [
+                "sight",
+                "search"
+              ],
+              "difficulty": 10,
+              "revealTargetId": "918a95d7-8883-4f28-87c0-6079953dd865",
+              "feedbackId": "feedback.secret",
+              "permanent": true,
+              "scope": "party"
+            },
+            "interaction": {
+              "verb": "inspect",
+              "icon": "cursor.secret",
+              "outline": "outline.gold",
+              "promptKey": "trigger.secret.prompt",
+              "scriptId": "scripts/trigger_click.forge",
+              "visible": true,
+              "permission": "player"
+            },
+            "scheduler": {
+              "intervalSeconds": 2,
+              "budgetPerMinute": 30,
+              "whileOccupiedOnly": true,
+              "aggregateOccupants": true
+            },
+            "customEventNamespace": "crypt.trigger",
+            "access": {
+              "credentialId": "key:ember",
+              "consume": false,
+              "deniedFeedbackKey": "trigger.key.denied"
+            },
+            "rest": {
+              "safe": true,
+              "dangerQuery": "danger.nearby",
+              "wholePartyRequired": true,
+              "allowCampSetup": true,
+              "allowedMessageKey": "rest.allowed",
+              "deniedMessageKey": "rest.denied"
+            },
+            "clue": {
+              "skillId": "tracking",
+              "difficulty": 8,
+              "traceId": "ash-tracks",
+              "directionDegrees": 45,
+              "ageHours": 2,
+              "falseClueId": "false-trail",
+              "questId": "50000000-0000-4000-8000-000000000001"
+            },
+            "narrative": {
+              "participants": [
+                "10000000-0000-4000-8000-000000000004"
+              ],
+              "priority": 4,
+              "once": true,
+              "cooldownSeconds": 60,
+              "multiplayerPolicy": "party-vote",
+              "dialogueId": "40000000-0000-4000-8000-000000000001"
+            },
+            "director": {
+              "allowManualEnter": true,
+              "allowManualExit": true,
+              "allowManualFire": true,
+              "requireTarget": true,
+              "audit": true
+            },
+            "foundation": {
+              "id": "c01c3473-3c0b-4e04-a608-54f42db3e5f5",
+              "schemaVersion": 1,
+              "provenance": "sample:r048",
+              "slug": "crypt-exit-threshold",
+              "shape": {
+                "kind": "extrudedPolygon2D",
+                "vertices": [
+                  {
+                    "x": -2,
+                    "y": 0,
+                    "z": -2
+                  },
+                  {
+                    "x": 2,
+                    "y": 0,
+                    "z": -2
+                  },
+                  {
+                    "x": 2,
+                    "y": 0,
+                    "z": 2
+                  },
+                  {
+                    "x": -2,
+                    "y": 0,
+                    "z": 2
+                  }
+                ],
+                "holes": [
+                  [
+                    {
+                      "x": -0.5,
+                      "y": 0,
+                      "z": -0.5
+                    },
+                    {
+                      "x": 0.5,
+                      "y": 0,
+                      "z": -0.5
+                    },
+                    {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0.5
+                    }
+                  ]
+                ],
+                "size": {
+                  "x": 4,
+                  "y": 3,
+                  "z": 4
+                },
+                "height": 3,
+                "snapIncrement": 0.25,
+                "visualizeInEditor": true
+              },
+              "filter": {
+                "entityKinds": [
+                  "creature"
+                ],
+                "requiredTags": [
+                  "player"
+                ],
+                "excludedTags": [
+                  "undead"
+                ],
+                "layers": [
+                  "characters"
+                ]
+              },
+              "conditions": [
+                "crypt.open"
+              ],
+              "cooldownSeconds": 5,
+              "fire": "oncePerEntity",
+              "actions": [
+                {
+                  "id": "606bdb53-5c27-4f4c-b2cc-fd0d2ba93012",
+                  "kind": "start-encounter",
+                  "targetId": "encounter:crypt-warden",
+                  "parameters": {
+                    "source": "trigger"
+                  }
+                }
+              ],
+              "portal": {
+                "destination": "waypoint",
+                "destinationId": "c3d76f65-94d0-4767-8803-15acb0efa6f7",
+                "spawnAnchorId": "anchor:crypt-exit",
+                "exitOrientationDegrees": {
+                  "x": 0,
+                  "y": 180,
+                  "z": 0
+                },
+                "preload": true,
+                "permissions": [
+                  "portal.travel"
+                ]
+              },
+              "transform": {
+                "position": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "rotationDegrees": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "scale": {
+                  "x": 1,
+                  "y": 1,
+                  "z": 1
+                },
+                "parentId": null
+              },
+              "overrides": {
+                "editor.overlay": "volume"
+              },
+              "onEnter": {
+                "id": "a8f81cd3-4310-43ba-9b9e-ed1c093403de",
+                "schemaVersion": 1,
+                "provenance": "sample:r048",
+                "forgeScriptApiVersion": "1.0.0",
+                "eventBinding": "VolumeEntered",
+                "beforeScriptId": null,
+                "afterScriptId": "scripts/trigger_enter.forge"
+              },
+              "onExit": {
+                "id": "e2867770-79d8-4ca9-96e2-a95ebaa0e932",
+                "schemaVersion": 1,
+                "provenance": "sample:r048",
+                "forgeScriptApiVersion": "1.0.0",
+                "eventBinding": "VolumeExited",
+                "beforeScriptId": null,
+                "afterScriptId": "scripts/trigger_exit.forge"
+              },
+              "validation": {
+                "knownPortalDestinationIds": [
+                  "c3d76f65-94d0-4767-8803-15acb0efa6f7"
+                ],
+                "knownTargetIds": [
+                  "encounter:crypt-warden"
+                ],
+                "knownScriptIds": [
+                  "scripts/trigger_click.forge",
+                  "scripts/trigger_enter.forge",
+                  "scripts/trigger_exit.forge"
+                ],
+                "accessibleLayers": [
+                  "characters"
+                ]
+              },
+              "validationRequiredAtRuntime": true
+            },
+            "foundationRequiredAtRuntime": true,
+            "advanced": {
+              "id": "c5ea4f35-f6bc-4001-b01e-a2bc08643759",
+              "schemaVersion": 1,
+              "provenance": "sample:r096",
+              "forgeScriptApiVersion": "1.0.0",
+              "trap": {
+                "id": "88fcaf0a-9531-4167-8139-02cacd996772",
+                "triggerId": "enter",
+                "payloadId": "damage:ember-burst",
+                "detectionDifficulty": 10,
+                "disarmDifficulty": 12,
+                "resetDelaySeconds": 30,
+                "ownerId": "ash-watch",
+                "visualEffectId": "vfx:ember-burst",
+                "friendlyPolicy": "ash-watch",
+                "armed": true,
+                "oneShot": false,
+                "gameMasterVisualization": true,
+                "visualizationColor": "#ff7a45",
+                "detectedBinding": "TrapDetected",
+                "disarmedBinding": "TrapDisarmed",
+                "triggeredBinding": "TrapTriggered",
+                "resetBinding": "TrapReset"
+              },
+              "targetFilter": {
+                "id": "b9824c6d-f549-4c0b-a521-c995a7f07d86",
+                "playersOnly": true,
+                "requiredTags": [
+                  "player"
+                ],
+                "excludedTags": [
+                  "undead"
+                ],
+                "factionIds": [
+                  "b2050000-0000-4000-8000-000000000002"
+                ],
+                "requiredComponents": [
+                  "inventory",
+                  "health"
+                ],
+                "ownerId": "party",
+                "teamId": "heroes",
+                "sandboxPredicate": "quest==active"
+              },
+              "gameplayVolumes": [
+                {
+                  "id": "0cef93ec-b267-4d15-8a75-554a1fc5cad9",
+                  "kind": "damage",
+                  "numericParameters": {
+                    "health": -10
+                  },
+                  "textParameters": {},
+                  "enterBinding": "DamageVolumeEntered",
+                  "exitBinding": "DamageVolumeExited",
+                  "enabled": true
+                },
+                {
+                  "id": "2b3575b3-7f4e-47be-806d-a4fe8bb99eda",
+                  "kind": "heal",
+                  "numericParameters": {
+                    "health": 10
+                  },
+                  "textParameters": {},
+                  "enterBinding": "HealVolumeEntered",
+                  "exitBinding": "HealVolumeExited",
+                  "enabled": true
+                },
+                {
+                  "id": "4ba5f773-9de2-4e44-880f-ee1e17bf9462",
+                  "kind": "gravity",
+                  "numericParameters": {
+                    "gravity": 0.5
+                  },
+                  "textParameters": {},
+                  "enterBinding": "GravityVolumeEntered",
+                  "exitBinding": "GravityVolumeExited",
+                  "enabled": true
+                },
+                {
+                  "id": "701bfd2d-5209-4267-99ef-74fe190ec304",
+                  "kind": "water",
+                  "numericParameters": {
+                    "movement": 0.6
+                  },
+                  "textParameters": {},
+                  "enterBinding": "WaterVolumeEntered",
+                  "exitBinding": "WaterVolumeExited",
+                  "enabled": true
+                },
+                {
+                  "id": "d7283d7f-0889-4740-86ec-53ffc6206276",
+                  "kind": "climb",
+                  "numericParameters": {
+                    "climb": 1
+                  },
+                  "textParameters": {},
+                  "enterBinding": "ClimbVolumeEntered",
+                  "exitBinding": "ClimbVolumeExited",
+                  "enabled": true
+                },
+                {
+                  "id": "d6237116-9bbd-4658-874a-d58b98692c40",
+                  "kind": "noBuild",
+                  "numericParameters": {
+                    "build": 0
+                  },
+                  "textParameters": {},
+                  "enterBinding": "NoBuildVolumeEntered",
+                  "exitBinding": "NoBuildVolumeExited",
+                  "enabled": true
+                },
+                {
+                  "id": "20353d28-71e0-4440-adb8-d154949a5d43",
+                  "kind": "camera",
+                  "numericParameters": {
+                    "camera": 1
+                  },
+                  "textParameters": {},
+                  "enterBinding": "CameraVolumeEntered",
+                  "exitBinding": "CameraVolumeExited",
+                  "enabled": true
+                },
+                {
+                  "id": "19f1b0fb-9051-489a-9afb-1d2a0f9688e3",
+                  "kind": "audio",
+                  "numericParameters": {
+                    "audio": 1
+                  },
+                  "textParameters": {},
+                  "enterBinding": "AudioVolumeEntered",
+                  "exitBinding": "AudioVolumeExited",
+                  "enabled": true
+                },
+                {
+                  "id": "fae70f99-8e65-4a3f-a1bc-a9cf94722a5c",
+                  "kind": "weather",
+                  "numericParameters": {
+                    "weather": 1
+                  },
+                  "textParameters": {},
+                  "enterBinding": "WeatherVolumeEntered",
+                  "exitBinding": "WeatherVolumeExited",
+                  "enabled": true
+                },
+                {
+                  "id": "a9295dea-dae9-48ac-ae96-bd47a79cf9ed",
+                  "kind": "checkpoint",
+                  "numericParameters": {
+                    "checkpoint": 1
+                  },
+                  "textParameters": {},
+                  "enterBinding": "CheckpointVolumeEntered",
+                  "exitBinding": "CheckpointVolumeExited",
+                  "enabled": true
+                }
+              ],
+              "occupancyDebug": {
+                "id": "9ecb7462-0bff-4be8-8386-da4fcd89bd86",
+                "enabled": true,
+                "showOccupants": true,
+                "showLastFires": true,
+                "showCooldowns": true,
+                "showFilters": true,
+                "showEventTrace": true,
+                "maximumTraceEntries": 100
+              }
+            },
+            "advancedRequiredAtRuntime": true
+          }
+        ],
+        "encounters": [
+          {
+            "id": "c0a8ee45-0706-44ae-bd75-3c97e3255ed6",
+            "schemaVersion": 1,
+            "provenance": "sample:g13-t-u",
+            "areaId": "93b6f81b-49eb-4e3d-a156-08ad78529525",
+            "respawn": {
+              "delaySeconds": 30,
+              "maximumCycles": 3,
+              "condition": "area.occupied",
+              "resetWhenEmpty": true,
+              "persistent": true,
+              "antiFarmMultiplier": 0.5
+            },
+            "spawnFactionId": "ash-watch",
+            "scheduler": {
+              "heartbeatEnabled": true,
+              "intervalSeconds": 5,
+              "budgetPerMinute": 12,
+              "customEventNamespace": "crypt.encounter"
+            },
+            "reinforcements": {
+              "minimumAlertLevel": 2,
+              "factionId": "ash-watch",
+              "routeId": "9da1d2b3-e7de-46e1-9185-4d4de2d6ffb8",
+              "maximumActors": 4,
+              "delaySeconds": 3,
+              "cancelCondition": "boss.dead"
+            },
+            "visibility": {
+              "mode": "behindCover",
+              "minimumCameraDistance": 10,
+              "requireLineOfSightBlocked": true,
+              "spawnEffectId": "vfx.spawn.ash"
+            },
+            "cleanup": {
+              "deadAfterSeconds": 30,
+              "escapedAfterSeconds": 30,
+              "abandonedAfterSeconds": 120,
+              "cleanupOnAreaUnload": true,
+              "preservePersistentActors": true
+            },
+            "foundation": {
+              "volume": {
+                "shape": "extrudedPolygon2D",
+                "points": [
+                  {
+                    "x": -4,
+                    "y": 0,
+                    "z": -4
+                  },
+                  {
+                    "x": 4,
+                    "y": 0,
+                    "z": -4
+                  },
+                  {
+                    "x": 4,
+                    "y": 0,
+                    "z": 4
+                  },
+                  {
+                    "x": -4,
+                    "y": 0,
+                    "z": 4
+                  }
+                ],
+                "center": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "height": 4,
+                "radius": 8,
+                "requiredEntityTags": [
+                  "player"
+                ],
+                "allowedFactions": [
+                  "party"
+                ],
+                "requireLineOfSight": true,
+                "threatRadius": 18,
+                "activationScriptId": "scripts/encounter_activate.forge",
+                "visualizeInEditor": true
+              },
+              "candidates": [
+                {
+                  "id": "817e481f-832b-468b-a753-04b6dbcf3e1c",
+                  "blueprintId": "10000000-0000-4000-8000-000000000004",
+                  "role": "controller",
+                  "weight": 3,
+                  "cost": 8,
+                  "conditions": [
+                    "area.occupied"
+                  ],
+                  "variants": [
+                    "ember"
+                  ],
+                  "maximumAlive": 4
+                }
+              ],
+              "spawnBudget": 36,
+              "spawnAnchorIds": [
+                "anchor:crypt-north"
+              ],
+              "rewardIds": [
+                "reward:ember-shard"
+              ],
+              "networkActorCap": 12
+            },
+            "composition": {
+              "id": "e5506d0d-50e7-4350-9abd-b04953441e41",
+              "schemaVersion": 1,
+              "provenance": "sample:r083",
+              "slug": "crypt-warden-ambush",
+              "displayName": "Gardien des cendres",
+              "category": "ambush",
+              "theme": "ash-crypt",
+              "primaryRole": "controller",
+              "difficulty": {
+                "id": "77ef7f22-e384-4802-aaa0-6a8723831be8",
+                "rulesetId": "ruleset:forge",
+                "partyAssessmentProviderId": "party:forge-generic",
+                "band": "hard",
+                "expectedPartySize": 4,
+                "expectedPartyPower": 12,
+                "baseBudget": 20,
+                "partySizeMultiplier": 1.2,
+                "difficultyMultiplier": 1.5,
+                "effectiveBudget": 36
+              },
+              "groups": [
+                {
+                  "id": "576211c3-88d9-490f-b86b-8f036bd91ac7",
+                  "slug": "wave:warden",
+                  "minimum": 2,
+                  "maximum": 4,
+                  "budget": 36,
+                  "candidateIds": [
+                    "817e481f-832b-468b-a753-04b6dbcf3e1c"
+                  ]
+                }
+              ],
+              "selection": {
+                "id": "13bd73a4-7d84-4f25-9307-894afa1fb5b4",
+                "partyAssessmentProviderId": "party:forge-generic",
+                "strategy": "challenge-rating",
+                "deterministicSeed": 42,
+                "previewComposition": true
+              },
+              "activation": {
+                "id": "b36c7e09-8c09-461d-b69e-f846d6f6f259",
+                "mode": "populationMaintained",
+                "intervalSeconds": 30,
+                "scriptId": null,
+                "distribution": "weighted"
+              },
+              "overrides": {
+                "selection.fallback": "lowest-cost"
+              }
+            },
+            "compositionRequiredAtRuntime": true,
+            "scenario": {
+              "id": "b87a9895-22d9-44be-a184-1ccc4badb41e",
+              "schemaVersion": 1,
+              "provenance": "sample:r084",
+              "spawnAnchors": [
+                {
+                  "id": "021d86fe-0da9-45db-a2d0-3e5f4dbeaf99",
+                  "anchorId": "anchor:crypt-north",
+                  "transform": {
+                    "position": {
+                      "x": 2,
+                      "y": 0,
+                      "z": 4
+                    },
+                    "rotation": {
+                      "x": 0,
+                      "y": 0,
+                      "z": 0,
+                      "w": 1
+                    },
+                    "scale": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    }
+                  },
+                  "capacity": 8,
+                  "navigable": true,
+                  "visibility": "behindCover",
+                  "isFallback": true,
+                  "weight": 10
+                }
+              ],
+              "distribution": "weighted",
+              "activator": {
+                "id": "65695d87-1785-4334-846d-4081ece73c80",
+                "playersOnly": true,
+                "ignoreSummons": true,
+                "ignoreCompanions": true,
+                "ignoreGameMasters": true,
+                "ignoreSpectators": true,
+                "requiredAuthority": "server",
+                "requiredTags": [
+                  "party"
+                ]
+              },
+              "lifecycle": {
+                "id": "c22766b5-47d5-4d19-a19b-4137f8c0b53c",
+                "forgeScriptApiVersion": "1.0.0",
+                "entered": {
+                  "id": "e71fb114-b49f-4288-9a92-09dc36baa891",
+                  "binding": "EncounterEntered",
+                  "scriptId": "scripts/encounter_entered.forge"
+                },
+                "exited": {
+                  "id": "facbd9ac-2bed-4812-a3a1-79a827bf5652",
+                  "binding": "EncounterExited",
+                  "scriptId": "scripts/encounter_exited.forge"
+                },
+                "exhausted": {
+                  "id": "eaeeab62-58bf-4f5a-a80d-9f08a745d6d3",
+                  "binding": "EncounterExhausted",
+                  "scriptId": "scripts/encounter_exhausted.forge"
+                }
+              },
+              "phases": [
+                {
+                  "id": "6c9ac04c-2356-403d-bd71-52e4b30d6cb9",
+                  "order": 1,
+                  "displayName": "Assaut du gardien",
+                  "entryConditions": [
+                    "area.occupied"
+                  ],
+                  "waves": [
+                    {
+                      "id": "f4c0554b-5216-42db-a15b-8d2dd02cedcf",
+                      "order": 1,
+                      "groupIds": [
+                        "576211c3-88d9-490f-b86b-8f036bd91ac7"
+                      ],
+                      "delaySeconds": 0,
+                      "completion": "allDefeated",
+                      "completionTargetId": null,
+                      "questId": null,
+                      "objectiveId": null,
+                      "voiceCueId": "audio:encounter-warden-warning",
+                      "nextWaveId": "44924360-27fd-46e5-bd8d-572a90948402"
+                    },
+                    {
+                      "id": "44924360-27fd-46e5-bd8d-572a90948402",
+                      "order": 2,
+                      "groupIds": [
+                        "576211c3-88d9-490f-b86b-8f036bd91ac7"
+                      ],
+                      "delaySeconds": 2,
+                      "completion": "objectiveCompleted",
+                      "completionTargetId": null,
+                      "questId": "50000000-0000-4000-8000-000000000001",
+                      "objectiveId": "crypt-warden-defeated",
+                      "voiceCueId": "audio:encounter-warden-fallen",
+                      "nextWaveId": null
+                    }
+                  ],
+                  "reinforcementEncounterIds": []
+                }
+              ],
+              "overrides": {
+                "graph.layout": "left-to-right"
+              }
+            },
+            "scenarioRequiredAtRuntime": true,
+            "statistics": {
+              "id": "f668fed9-373c-44f4-80cd-08a35c0d1ea2",
+              "schemaVersion": 1,
+              "provenance": "sample:r085",
+              "runs": 64,
+              "baseSeed": 840,
+              "durationEstimatorId": "duration:actors-linear",
+              "secondsPerActor": 5,
+              "rewardEstimatorId": "reward:cost-linear",
+              "rewardPerCost": 0.5,
+              "percentiles": [
+                0.5,
+                0.9,
+                0.99
+              ],
+              "includeRunDetails": true,
+              "overrides": {
+                "report.format": "distribution"
+              }
+            },
+            "statisticsRequiredAtRuntime": true
+          }
+        ],
+        "vehicleRoutes": [
+          {
+            "id": "c49d29a5-6aab-45ce-89a9-33fc22b2cec0",
+            "schemaVersion": 1,
+            "provenance": "sample:g13-v",
+            "areaId": "93b6f81b-49eb-4e3d-a156-08ad78529525",
+            "points": [
+              {
+                "id": "14df2d2f-3b26-490c-b82c-dadb460a2dbe",
+                "position": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "tangentDegrees": 0,
+                "width": 3
+              },
+              {
+                "id": "a0714bf7-17d8-4ffc-a79d-6510fadf91f3",
+                "position": {
+                  "x": 20,
+                  "y": 0,
+                  "z": 0
+                },
+                "tangentDegrees": 0,
+                "width": 3
+              }
+            ],
+            "lanes": [
+              {
+                "id": "service",
+                "lateralOffset": 0,
+                "speedLimit": 8,
+                "direction": "forward"
+              }
+            ],
+            "stops": [
+              {
+                "id": "6a6e7a8f-d3a7-43e7-b24f-ada3d7b1f0ca",
+                "routePointId": "a0714bf7-17d8-4ffc-a79d-6510fadf91f3",
+                "waitSeconds": 5,
+                "serviceId": "crypt-lift"
+              }
+            ],
+            "defaultSpeedLimit": 8,
+            "allowOvertaking": false,
+            "networkSyncMode": "server-snapshots"
+          }
+        ],
+        "merchants": [
+          {
+            "id": "ff2e56eb-2ed3-4630-a322-d499644cf576",
+            "schemaVersion": 1,
+            "provenance": "sample:g13-w-x",
+            "blueprintId": "10000000-0000-4000-8000-000000000004",
+            "currencies": [
+              {
+                "id": "ember-crown",
+                "displayNameKey": "currency.ember-crown",
+                "exchangeRate": 1,
+                "tradeable": true,
+                "reputationBacked": false
+              },
+              {
+                "id": "covenant-token",
+                "displayNameKey": "currency.covenant-token",
+                "exchangeRate": 2,
+                "tradeable": true,
+                "reputationBacked": true
+              }
+            ],
+            "treasury": [
+              {
+                "currencyId": "ember-crown",
+                "balance": 1000,
+                "creditLimit": 100,
+                "debt": 0,
+                "replenishAmount": 100,
+                "maximumBalance": 2000
+              },
+              {
+                "currencyId": "covenant-token",
+                "balance": 500,
+                "creditLimit": 0,
+                "debt": 0,
+                "replenishAmount": 50,
+                "maximumBalance": 1000
+              }
+            ],
+            "purchase": {
+              "maximumPerItem": 500,
+              "maximumPerTransaction": 800,
+              "categoryCaps": {
+                "weapon": 300
+              },
+              "minimumRelationship": -0.5,
+              "requireTreasuryFunds": true
+            },
+            "stolenGoods": {
+              "accepted": false,
+              "jurisdictions": [
+                "crypt"
+              ],
+              "requireProof": true,
+              "fenceRoleRequired": true,
+              "riskPremium": 0.25,
+              "crimeEventId": "crime.stolen-goods"
+            },
+            "restock": {
+              "intervalWorldHours": 24,
+              "eventId": "market.new-day",
+              "supplierRouteId": "c49d29a5-6aab-45ce-89a9-33fc22b2cec0",
+              "demandAware": true,
+              "persistent": true
+            },
+            "negotiation": {
+              "skillId": "bargain",
+              "difficulty": 12,
+              "maximumDiscount": 0.2,
+              "maximumMarkup": 0.2,
+              "cooldownSeconds": 60,
+              "serverAuthoritative": true
+            },
+            "market": {
+              "regionId": "ashlands",
+              "supplyWeight": 0.25,
+              "demandWeight": 0.5,
+              "eventModifiers": {
+                "warden-defeated": -0.1
+              },
+              "adminOverrideAllowed": true
+            },
+            "services": [
+              {
+                "id": "b8aaa784-e9d8-48bc-a4d9-95cc830fedb8",
+                "kind": "repair",
+                "labelKey": "service.repair",
+                "currencyId": "ember-crown",
+                "price": 25,
+                "actionId": "repair.item",
+                "requirement": "item.damaged"
+              }
+            ],
+            "ledger": {
+              "enabled": true,
+              "retentionDays": 90,
+              "anomalyThreshold": 500,
+              "recordActor": true,
+              "recordItem": true,
+              "recordSourceAndSink": true
+            },
+            "transactions": {
+              "id": "effc0c38-1340-454e-a08e-4e07e8f105e6",
+              "schemaVersion": 1,
+              "provenance": "sample:r045",
+              "vendorInteractionId": "interaction:trade",
+              "dialogueChoiceId": "choice:trade",
+              "stock": [
+                {
+                  "id": "fe2c3201-ba69-407a-a083-774c73e9fc0d",
+                  "itemBlueprintId": "10000000-0000-4000-8000-000000000008",
+                  "variantId": "standard",
+                  "quantity": 12,
+                  "unitPrice": 5,
+                  "currencyId": "ember-crown",
+                  "restrictionIds": [
+                    "quest:crypt-open"
+                  ]
+                },
+                {
+                  "id": "c1ddd4fe-aa13-4f26-bba3-a2ec0e9d86ea",
+                  "itemBlueprintId": "10000000-0000-4000-8000-000000000008",
+                  "variantId": "ritual",
+                  "quantity": 4,
+                  "unitPrice": 9,
+                  "currencyId": "covenant-token",
+                  "restrictionIds": []
+                }
+              ],
+              "locales": [
+                "fr-FR",
+                "en-US"
+              ],
+              "restrictionIds": [
+                "quest:crypt-open"
+              ],
+              "scripts": {
+                "onOpen": "scripts/merchant_open.forge"
+              },
+              "buyerCapacity": 100,
+              "sellerCapacity": 1000,
+              "serverAuthoritative": true
+            },
+            "transactionsRequiredAtRuntime": true,
+            "foundation": {
+              "id": "166eeeeb-b34d-438b-9573-15567a0ea32c",
+              "schemaVersion": 1,
+              "provenance": "sample:r091",
+              "slug": "crypt-vigil-market",
+              "displayNameKey": "merchant.crypt-vigil.name",
+              "locales": [
+                "fr-FR",
+                "en-US"
+              ],
+              "vendors": [
+                {
+                  "id": "c75c5f46-395f-4083-abac-94ec69f46c8a",
+                  "vendorBlueprintId": "10000000-0000-4000-8000-000000000004",
+                  "dialogueId": "40000000-0000-4000-8000-000000000001",
+                  "dialogueChoiceId": "choice:trade",
+                  "interactionId": "interaction:trade",
+                  "channel": "npc"
+                }
+              ],
+              "wizard": {
+                "id": "9a714533-5ede-49d8-b257-b6e8fb909708",
+                "schemaVersion": 1,
+                "provenance": "sample:r091",
+                "createStoreDefinition": true,
+                "createVendorBinding": true,
+                "createDialogueChoice": true,
+                "createInteraction": true,
+                "createTests": true,
+                "testFixtureId": "merchant-crypt-vigil-nominal"
+              },
+              "stock": [
+                {
+                  "id": "233f63c8-6fa8-476f-ad54-bf036f199136",
+                  "itemBlueprintId": "10000000-0000-4000-8000-000000000008",
+                  "variantId": "standard",
+                  "supply": "infinite",
+                  "quantity": 12,
+                  "supplierId": "supplier:ember-guild",
+                  "restockWorldHours": 12,
+                  "displayOrder": 1,
+                  "hiddenConditions": [
+                    "quest:market-closed"
+                  ],
+                  "baseValue": 5,
+                  "currencyId": "ember-crown"
+                },
+                {
+                  "id": "1b9b336c-2a2e-43a4-9e76-39dedf4e85f2",
+                  "itemBlueprintId": "10000000-0000-4000-8000-000000000008",
+                  "variantId": "ritual",
+                  "supply": "finite",
+                  "quantity": 4,
+                  "supplierId": null,
+                  "restockWorldHours": 12,
+                  "displayOrder": 2,
+                  "hiddenConditions": [],
+                  "baseValue": 9,
+                  "currencyId": "covenant-token"
+                }
+              ],
+              "pricing": {
+                "id": "cb7eabd1-e18c-4e03-9a15-9ff4a4b45b06",
+                "schemaVersion": 1,
+                "provenance": "sample:r091",
+                "buyMultiplier": 1.2,
+                "sellMultiplier": 0.6,
+                "buyCurve": [
+                  {
+                    "baseValue": 0,
+                    "multiplier": 1
+                  },
+                  {
+                    "baseValue": 100,
+                    "multiplier": 1.1
+                  }
+                ],
+                "sellCurve": [
+                  {
+                    "baseValue": 0,
+                    "multiplier": 1
+                  },
+                  {
+                    "baseValue": 100,
+                    "multiplier": 0.9
+                  }
+                ],
+                "currencyRates": {
+                  "ember-crown": 1,
+                  "covenant-token": 2
+                },
+                "reputationFactor": 0.1,
+                "scarcityFactor": 0.2,
+                "conditionFactor": 0.2,
+                "negotiationFactor": 0.1,
+                "minimumPrice": 1,
+                "maximumPrice": 500
+              },
+              "restrictions": {
+                "id": "13ac7f14-1453-4125-b781-eb3e7c40e544",
+                "schemaVersion": 1,
+                "provenance": "sample:r091",
+                "whitelistTypes": [
+                  "relic",
+                  "consumable"
+                ],
+                "whitelistTags": [
+                  "merchant-approved"
+                ],
+                "blacklistTags": [
+                  "stolen",
+                  "cursed"
+                ],
+                "minimumQuality": 1,
+                "maximumQuality": 5,
+                "provenances": [
+                  "author:forge"
+                ],
+                "minimumCondition": 0.5,
+                "ownerId": null,
+                "customRuleBinding": "scripts/merchant_rule.forge"
+              }
+            },
+            "foundationRequiredAtRuntime": true,
+            "experience": {
+              "id": "eb8dcd73-9b8b-480b-b3b2-df5de84cc06a",
+              "schemaVersion": 1,
+              "provenance": "sample:r092",
+              "sessions": {
+                "id": "5034afb0-b78e-441c-a7fb-22cbf8dfecf0",
+                "schemaVersion": 1,
+                "provenance": "sample:r092",
+                "forgeScriptApiVersion": "1.0.0",
+                "openEventBinding": "StoreSessionOpened",
+                "closeEventBinding": "StoreSessionClosed",
+                "includeCustomer": true,
+                "includeVendor": true,
+                "includePriceContext": true,
+                "includeTransactionSummary": true
+              },
+              "ui": {
+                "id": "47c00751-1a4d-4186-a641-774431188aa7",
+                "schemaVersion": 1,
+                "provenance": "sample:r092",
+                "keyboardNavigation": true,
+                "gamepadNavigation": true,
+                "compare": true,
+                "filters": true,
+                "cart": true,
+                "confirmation": true,
+                "screenReaderLabels": true,
+                "highContrast": true,
+                "columns": [
+                  "name",
+                  "compare",
+                  "price",
+                  "quantity"
+                ]
+              }
+            },
+            "experienceRequiredAtRuntime": true
+          }
+        ],
+        "companions": [
+          {
+            "id": "ed4c8c5c-a291-4fc4-b181-8aa145f8fd3a",
+            "schemaVersion": 1,
+            "provenance": "sample:g13-y-z",
+            "blueprintId": "10000000-0000-4000-8000-000000000004",
+            "dialogue": {
+              "dialogueId": "40000000-0000-4000-8000-000000000001",
+              "ownerBehavior": "full",
+              "partyBehavior": "limited",
+              "outsiderBehavior": "greeting",
+              "gameMasterBehavior": "full",
+              "hostileBehavior": "deny"
+            },
+            "formation": {
+              "formationId": "wedge",
+              "slot": 1,
+              "spacing": 1.5,
+              "adaptToObstacles": true,
+              "indoorMode": true,
+              "networkSynchronized": true
+            },
+            "progression": {
+              "mode": "playerDirected",
+              "currentLevel": 4,
+              "maximumLevel": 20,
+              "previewEnabled": true,
+              "allowRespec": true,
+              "milestones": [
+                5,
+                10,
+                15
+              ]
+            },
+            "relationship": {
+              "affinity": 0.5,
+              "trust": 0.6,
+              "fear": 0,
+              "loyalty": 0.75,
+              "tags": [
+                "friend"
+              ],
+              "history": [
+                "crypt-rescue"
+              ]
+            },
+            "banter": {
+              "requiredParticipants": [
+                "10000000-0000-4000-8000-000000000004"
+              ],
+              "priority": 2,
+              "cooldownSeconds": 90,
+              "locations": [
+                "crypt"
+              ],
+              "interruptible": true,
+              "dialogueId": "40000000-0000-4000-8000-000000000001"
+            },
+            "personalQuest": {
+              "questId": "50000000-0000-4000-8000-000000000001",
+              "availabilityCondition": "loyalty\u003E=0.5",
+              "departureState": "departed",
+              "minimumLoyalty": 0.5,
+              "partyConsequence": "camp-reaction"
+            },
+            "traps": {
+              "detect": true,
+              "disarm": true,
+              "maximumRisk": 4,
+              "requiredSense": "sight",
+              "skillId": "disable-device",
+              "requirePlayerCommand": true
+            },
+            "abilities": {
+              "allowed": [
+                "heal",
+                "shield"
+              ],
+              "reserved": [
+                "ultimate"
+              ],
+              "healthThreshold": 0.3,
+              "targetRule": "lowest-health",
+              "allowPlayerOverrides": true
+            },
+            "directControl": {
+              "enabled": true,
+              "allowPossession": true,
+              "allowCharacterSwitch": true,
+              "returnToAi": true,
+              "multiplayerPermission": "party.owner-or-gm"
+            },
+            "partySplit": {
+              "followOwner": true,
+              "allowRegroupRequest": true,
+              "instanceSelection": "owner-instance",
+              "synchronizeQuests": true,
+              "maximumSeparationSeconds": 120
+            },
+            "validation": {
+              "id": "d5e96945-9df1-4a87-8ad4-44e4c9d47f3a",
+              "schemaVersion": 1,
+              "provenance": "sample:r037",
+              "recruitment": {
+                "allowDialogue": true,
+                "allowScript": true,
+                "scriptId": "scripts/companion_recruit.forge",
+                "currencyId": "ember-crown",
+                "cost": 25,
+                "minimumReputation": 0.25
+              },
+              "ownership": {
+                "kind": "party",
+                "authority": "server",
+                "transferAllowed": true
+              },
+              "commandIds": [
+                "move",
+                "follow",
+                "hold",
+                "rally",
+                "guard",
+                "interact",
+                "attack",
+                "defend",
+                "focus-fire",
+                "protect",
+                "disengage",
+                "use-ability"
+              ],
+              "equipment": {
+                "inventoryId": "companion.inventory",
+                "equipmentPolicyId": "companion.standard",
+                "slots": [
+                  "main-hand",
+                  "off-hand",
+                  "armor"
+                ]
+              },
+              "death": {
+                "policyId": "companion.recoverable",
+                "mode": "recoverable-corpse",
+                "recoverySeconds": 30
+              },
+              "dialogueContexts": [
+                {
+                  "contextId": "recruit",
+                  "dialogueId": "40000000-0000-4000-8000-000000000001",
+                  "binding": "dialogue.recruit"
+                },
+                {
+                  "contextId": "owner",
+                  "dialogueId": "40000000-0000-4000-8000-000000000001",
+                  "binding": "dialogue.owner"
+                }
+              ],
+              "crossZoneNavigation": {
+                "enabled": false,
+                "allowedAreaIds": [
+                  "93b6f81b-49eb-4e3d-a156-08ad78529525"
+                ],
+                "followPortals": true,
+                "safeFallback": true,
+                "fallbackAnchorTag": "party.safe",
+                "timeoutSeconds": 15
+              }
+            },
+            "validationRequiredAtRuntime": true,
+            "foundation": {
+              "id": "002a6a71-0e19-4cdb-9500-f664838328b4",
+              "schemaVersion": 1,
+              "provenance": "sample:r074",
+              "recruitable": {
+                "id": "913d5f93-64cb-40c9-9f34-fd98d92e0bf9",
+                "schemaVersion": 1,
+                "provenance": "sample:r074",
+                "enabled": true,
+                "conditions": [
+                  "quest:crypt-open"
+                ],
+                "cost": 25,
+                "currencyId": "ember-crown",
+                "minimumReputation": 0.25,
+                "consequenceIds": [
+                  "relation:elyra-increase"
+                ],
+                "allowDialogue": true,
+                "allowScript": true,
+                "scriptId": "scripts/companion_recruit.forge"
+              },
+              "preRecruitment": {
+                "id": "5d9e59f6-1168-4ae5-a703-0c480d86c292",
+                "schemaVersion": 1,
+                "provenance": "sample:r074",
+                "dialogueId": "40000000-0000-4000-8000-000000000001",
+                "contextId": "not-recruited",
+                "conditions": [
+                  "quest:crypt-open"
+                ],
+                "offerNodeId": "offer.join",
+                "refusalNodeId": "offer.refuse",
+                "consequenceIds": [
+                  "relation:elyra-increase"
+                ]
+              },
+              "ownerDialogue": {
+                "id": "1521627e-43d1-4911-9726-cb669426ef27",
+                "schemaVersion": 1,
+                "provenance": "sample:r074",
+                "dialogueId": "40000000-0000-4000-8000-000000000001",
+                "contextId": "recruited-by-speaker",
+                "commandIds": [
+                  "move",
+                  "follow",
+                  "hold",
+                  "rally",
+                  "guard",
+                  "interact",
+                  "attack",
+                  "defend",
+                  "focus-fire",
+                  "protect",
+                  "disengage",
+                  "use-ability"
+                ],
+                "exposeRelationship": true,
+                "exposeEquipment": true,
+                "exposeProgression": true,
+                "departureActionId": "companion.depart"
+              },
+              "membership": {
+                "id": "5a235edf-5cc4-4c60-9fba-d8c753a67965",
+                "schemaVersion": 1,
+                "provenance": "sample:r074",
+                "enforcePartyCapacity": true,
+                "transferOwnership": true,
+                "transferInventory": true,
+                "preserveDismissPosition": true,
+                "persistence": "campaign",
+                "inventoryId": "companion.inventory",
+                "dismissAnchorTag": "party.safe",
+                "atomic": true
+              },
+              "party": {
+                "id": "cc420e94-b32c-4c30-a0e8-ad225184724f",
+                "schemaVersion": 1,
+                "provenance": "sample:r074",
+                "companionSlots": 3,
+                "summonSlots": 1,
+                "petSlots": 1,
+                "temporaryAllySlots": 1,
+                "serverActorLimit": 8,
+                "roleLimits": {
+                  "Support": 2
+                }
+              }
+            },
+            "foundationRequiredAtRuntime": true,
+            "control": {
+              "id": "26a02eb6-3960-4e2c-8da9-a3cb2dd1bc7c",
+              "schemaVersion": 1,
+              "provenance": "sample:r075",
+              "ownership": {
+                "id": "78e9a4b8-e2cf-446f-9d01-c80a76c0019d",
+                "schemaVersion": 1,
+                "provenance": "sample:r075",
+                "kind": "individual",
+                "controllerIds": [
+                  "player:owner"
+                ],
+                "transferAllowed": true,
+                "allowedTargetKinds": [
+                  "party",
+                  "shared",
+                  "game-master"
+                ],
+                "revision": 1
+              },
+              "movement": {
+                "id": "ae39db81-df77-4518-a973-8a7767c39354",
+                "schemaVersion": 1,
+                "provenance": "sample:r075",
+                "commandKinds": [
+                  "move",
+                  "follow",
+                  "hold",
+                  "rally",
+                  "guard",
+                  "interact"
+                ],
+                "defaultFormationId": "wedge",
+                "waypointQuery": "party-waypoints",
+                "minimumPriority": 0,
+                "maximumPriority": 100
+              },
+              "tactical": {
+                "id": "f09d4772-9697-4ef4-97b7-44355b911b22",
+                "schemaVersion": 1,
+                "provenance": "sample:r075",
+                "commandKinds": [
+                  "attack",
+                  "defend",
+                  "focus-fire",
+                  "protect",
+                  "disengage",
+                  "use-ability"
+                ],
+                "stances": [
+                  "passive",
+                  "defensive",
+                  "balanced",
+                  "aggressive"
+                ],
+                "abilityIds": [
+                  "heal",
+                  "shield"
+                ],
+                "minimumPriority": 0,
+                "maximumPriority": 100
+              },
+              "ai": {
+                "id": "9755f9e1-c392-49d6-8502-81b559a30de4",
+                "schemaVersion": 1,
+                "provenance": "sample:r075",
+                "autonomy": 0.6,
+                "riskTolerance": 0.4,
+                "resourceUsage": 0.5,
+                "allowFriendlyFire": false,
+                "role": "Support",
+                "followDistance": 3,
+                "allowedAbilityTags": [
+                  "heal",
+                  "shield"
+                ],
+                "planId": "4ef09306-c053-46eb-bd1a-90a9e320f82a",
+                "transactionId": "13f71ddc-ca0f-4aa7-a1f3-8006761de57b",
+                "semanticDiff": "replace:/companion/control/ai|role:Support|autonomy:0.6",
+                "authorizationLevel": "owner-or-gm"
+              },
+              "equipment": {
+                "id": "f22ca974-df59-4b3c-97a3-a8592a71d980",
+                "schemaVersion": 1,
+                "provenance": "sample:r075",
+                "permission": "full",
+                "lockedItemIds": [
+                  "5ba8c659-3529-47c9-a10d-1b86b2500c71"
+                ],
+                "suggestedLoadout": {
+                  "main-hand": "3da34a3f-2bdb-4d1a-95bf-2083495019fa"
+                },
+                "allowCompare": true,
+                "inventoryOwnerId": "player:owner"
+              }
+            },
+            "controlRequiredAtRuntime": true,
+            "experience": {
+              "id": "fcaab920-24ca-4978-a68c-d50bc03c6999",
+              "schemaVersion": 1,
+              "provenance": "sample:r076",
+              "death": {
+                "id": "59a9c8e7-77a0-40bd-9a42-01b1536d6c40",
+                "schemaVersion": 1,
+                "provenance": "sample:r076",
+                "mode": "recoverable-corpse",
+                "downedDurationSeconds": 30,
+                "resurrectionResourceId": "resource:ember",
+                "replacementCreatureId": "creature:elyra-heir",
+                "memorialId": "memorial:elyra",
+                "dropInventory": true
+              },
+              "cohesion": {
+                "id": "99dcdc15-f0f5-408b-b02e-4e37e774cbd4",
+                "schemaVersion": 1,
+                "provenance": "sample:r076",
+                "navigateThreshold": 10,
+                "portalThreshold": 30,
+                "teleportThreshold": 60,
+                "followPortals": true,
+                "allowSafeTeleport": true,
+                "safeAnchorTags": [
+                  "party.safe"
+                ]
+              },
+              "hud": {
+                "id": "b1904dd5-3c22-42c0-85a8-c8b78f42a30a",
+                "schemaVersion": 1,
+                "provenance": "sample:r076",
+                "portraits": true,
+                "health": true,
+                "resources": true,
+                "statuses": true,
+                "quickCommands": true,
+                "reorder": true,
+                "keyboard": true,
+                "gamepad": true,
+                "screenReaderLabels": true,
+                "highContrast": true,
+                "visibleResourceIds": [
+                  "health",
+                  "focus"
+                ]
+              }
+            },
+            "experienceRequiredAtRuntime": true
+          }
+        ],
         "scripts": {
           "id": "30000000-0000-4000-8000-000000000001",
           "schemaVersion": 1,
-          "provenance": "migration:world-features-empty",
+          "provenance": "sample:g13-aa-ab",
           "camera": {
-            "shots": [],
+            "shots": [
+              {
+                "id": "55b61ca0-78bd-477b-911b-4650ad3d56f9",
+                "rigId": "rig.dialogue",
+                "shotId": "shot.door",
+                "durationSeconds": 3,
+                "blendSeconds": 0.5,
+                "lockPlayerControl": true,
+                "skippable": true
+              }
+            ],
             "abortRecovery": "restore-camera-and-control",
             "restorePlayerControl": true,
             "accessibilitySkipEnabled": true
           },
           "tagRouting": {
-            "enabled": false,
+            "enabled": true,
             "explicitOnly": true,
-            "routes": []
+            "routes": [
+              {
+                "blueprintTag": "door.ash",
+                "event": "opened",
+                "scriptId": "scripts/door_ash_opened.forge",
+                "enabled": true
+              }
+            ]
           },
-          "moduleFlags": [],
-          "aiSettings": []
+          "moduleFlags": [
+            {
+              "id": "rest.enabled",
+              "kind": "boolean",
+              "defaultValue": "true",
+              "scope": "module",
+              "documentation": "Allows safe-rest volumes.",
+              "introducedSchemaVersion": 1
+            }
+          ],
+          "aiSettings": [
+            {
+              "id": "combat.aggression",
+              "kind": "choice",
+              "defaultValue": "balanced",
+              "allowedValues": [
+                "passive",
+                "balanced",
+                "aggressive"
+              ],
+              "preview": "Balanced target and risk selection.",
+              "serverAuthoritative": true
+            }
+          ]
         }
       }
     },
@@ -3668,6 +6285,7 @@
             }
           ],
           "overrides": {
+            "runtime.phase_two.custom_event": "crypt.braziers_lit",
             "telemetry.channel": "ash-warden"
           },
           "damageDeath": {
@@ -4876,7 +7494,7 @@
       {
         "id": "93b6f81b-49eb-4e3d-a156-08ad78529525",
         "slug": "crypt-of-ashes",
-        "documentPath": "areas/93b6f81b-49eb-4e3d-a156-08ad78529525-1c816f628c3c7b10.json"
+        "documentPath": "areas/93b6f81b-49eb-4e3d-a156-08ad78529525-9f7750e8b9c1be96.json"
       }
     ],
     "dialogues": [

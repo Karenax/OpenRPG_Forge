@@ -40,6 +40,9 @@
     <None Include="..\..\apps\Forge.Runtime\content\crypt-of-ashes\areas\*.json"
           Link="Fixtures\crypt-of-ashes\areas\%(Filename)%(Extension)"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\apps\Forge.Runtime\content\crypt-of-ashes\scripts\*.forge"
+          Link="Fixtures\crypt-of-ashes\scripts\%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

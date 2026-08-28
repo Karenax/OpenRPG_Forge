@@ -4,7 +4,7 @@
 
 La couche artistique de la Crypte utilise neuf modèles issus de **KayKit Dungeon Remastered 1.0**
 par Kay Lousberg, sous licence **CC0-1.0**. Le détail, la source et le hash de l'archive sont conservés
-dans `apps/Forge.Runtime/art/crypt-kaykit/CREDITS.md`. La composition est originale OpenRPG Forge.
+dans `apps/Forge.Runtime/art/kaykit-dungeon-remastered/CREDITS.md`. La composition est originale OpenRPG Forge.
 
 La couche de gameplay utilise encore :
 

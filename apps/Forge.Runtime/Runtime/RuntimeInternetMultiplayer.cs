@@ -27,6 +27,14 @@ internal partial class RuntimeInternetMultiplayer : Node3D
         ProcessMode = ProcessModeEnum.Always;
     }
 
+    internal void Stop()
+    {
+        ProcessMode = ProcessModeEnum.Disabled;
+        _client = null;
+        _localPlayer = null;
+        _areaId = null;
+    }
+
     public override void _Process(double delta)
     {
         if (_client is null || _localPlayer is null || _areaId is null) return;

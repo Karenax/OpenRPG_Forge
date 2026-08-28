@@ -155,10 +155,13 @@ public static class RuntimeSaveStore
                 EntitySnapshots = save.EntitySnapshots ?? [],
                 QuestStates = save.QuestStates ?? [],
                 MapExploration = MigrateMapExploration(save.MapExploration),
+                AreaStates = MigrateAreaStates(save),
             };
         }
 
         var supportedLegacyVersion =
+            string.Equals(save.FormatVersion, RuntimeSaveDocument.PreAreaStateCollectionFormatVersion,
+                StringComparison.Ordinal) ||
             string.Equals(save.FormatVersion, RuntimeSaveDocument.PreMapExplorationFormatVersion,
                 StringComparison.Ordinal) ||
             string.Equals(save.FormatVersion, RuntimeSaveDocument.PreQuestCollectionFormatVersion,
@@ -193,7 +196,28 @@ public static class RuntimeSaveStore
             QuestStates = questStates,
             TrackedQuestId = trackedQuestId,
             MapExploration = MigrateMapExploration(save.MapExploration),
+            AreaStates = MigrateAreaStates(save),
         };
+    }
+
+    private static IReadOnlyList<RuntimeAreaSaveState> MigrateAreaStates(RuntimeSaveDocument save)
+    {
+        var areaStates = save.AreaStates ??
+        [
+            new RuntimeAreaSaveState(
+                save.AreaId,
+                save.Hostiles,
+                save.Weather,
+                save.EntitySnapshots ?? [],
+                save.MapExploration),
+        ];
+        return areaStates
+            .Select(state => state with
+            {
+                MapExploration = MigrateMapExploration(state.MapExploration),
+            })
+            .OrderBy(state => state.AreaId, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
     }
 
     private static RuntimeMapExplorationSave? MigrateMapExploration(RuntimeMapExplorationSave? exploration)

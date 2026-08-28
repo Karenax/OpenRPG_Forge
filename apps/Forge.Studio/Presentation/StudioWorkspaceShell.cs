@@ -35,6 +35,7 @@ internal sealed partial class StudioWorkspaceShell : Control
     private readonly StudioSpecializedPage _specializedPage;
     private readonly StudioAssetLibraryPage _assetLibraryPage;
     private readonly StudioProjectFoundationPage _projectPage;
+    private readonly StudioWorldGenerationPage _worldGenerationPage;
     private bool _compactInspectorRequested;
     private StudioEntityEditorSection? _entityEditorSection;
     private Vector3Value? _placementPosition;
@@ -367,6 +368,18 @@ internal sealed partial class StudioWorkspaceShell : Control
         _specializedPage = new StudioSpecializedPage();
         _specializedPage.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
         pageStack.AddChild(_specializedPage);
+        _worldGenerationPage = new StudioWorldGenerationPage(_session);
+        _worldGenerationPage.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
+        _worldGenerationPage.StatusChanged += SetStatus;
+        _worldGenerationPage.ProjectChanged += () =>
+        {
+            PopulateAreas();
+            UpdateCommandState();
+            RebuildExplorer();
+            RefreshInspector();
+            NavigationChanged?.Invoke();
+        };
+        pageStack.AddChild(_worldGenerationPage);
         InitializeUx0JPage(pageStack);
         _projectPage = new StudioProjectFoundationPage(_session);
         _projectPage.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
@@ -1988,6 +2001,7 @@ internal sealed partial class StudioWorkspaceShell : Control
         var isProjectConfiguration = page.Id == "module";
         var isDiagnostics = page.Id == "validation";
         var isDialogues = page.Id == "dialogues";
+        var isWorldGeneration = page.Id == "world-generation";
         var isNarrative = IsNarrativePageUx5B(page.Id);
         var isRules = page.Id == "rules";
         var canAddEntity = page.Id == "zones";
@@ -2178,7 +2192,8 @@ internal sealed partial class StudioWorkspaceShell : Control
                         page.Layout != StudioPageLayout.Specialized;
         _worldSplit.Visible = usesWorld;
         _specializedPage.Visible = !usesWorld && !isAssetLibrary && !isProjectConfiguration && !isDiagnostics &&
-                                   !isDialogues;
+                                   !isDialogues && !isWorldGeneration;
+        _worldGenerationPage.Visible = isWorldGeneration;
         _projectPage.Visible = isProjectConfiguration;
         _assetLibraryPage.Visible = isAssetLibrary;
         if (isDiagnostics)
@@ -2203,6 +2218,11 @@ internal sealed partial class StudioWorkspaceShell : Control
         else if (isDiagnostics)
         {
             _placementPosition = null;
+        }
+        else if (isWorldGeneration)
+        {
+            _placementPosition = null;
+            _worldGenerationPage.Activate();
         }
         else if (!usesWorld && !isDialogues)
         {
