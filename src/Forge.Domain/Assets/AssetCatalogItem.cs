@@ -54,6 +54,8 @@ public sealed record AssetCatalogItem
 
     public AssetTechnicalMetadata TechnicalMetadata { get; }
 
+    public AssetIntelligenceProfile Intelligence { get; }
+
     public bool Installed => InstalledPackIds.Count > 0;
 
     public bool CanPreviewLocally => Availability != AssetAvailability.CatalogOnly &&
@@ -87,7 +89,8 @@ public sealed record AssetCatalogItem
         bool attributionRequired = false,
         string? attributionText = null,
         IReadOnlyList<string>? installedPackIds = null,
-        AssetTechnicalMetadata? technicalMetadata = null)
+        AssetTechnicalMetadata? technicalMetadata = null,
+        AssetIntelligenceProfile? intelligence = null)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(externalId);
@@ -132,6 +135,10 @@ public sealed record AssetCatalogItem
         AttributionText = attributionText?.Trim() ?? string.Empty;
         InstalledPackIds = Normalize(installedPackIds);
         TechnicalMetadata = technicalMetadata ?? new AssetTechnicalMetadata();
+        Intelligence = intelligence ?? AssetIntelligenceProfile.CreateUnclassified(
+            ExternalId,
+            DisplayName,
+            Source);
     }
 
     public AssetCatalogItem WithInstalledPacks(IReadOnlyList<string> installedPackIds) => new(
@@ -159,7 +166,45 @@ public sealed record AssetCatalogItem
         AttributionRequired,
         AttributionText,
         installedPackIds,
-        TechnicalMetadata);
+        TechnicalMetadata,
+        Intelligence);
+
+    public AssetCatalogItem WithIntelligence(AssetIntelligenceProfile intelligence)
+    {
+        ArgumentNullException.ThrowIfNull(intelligence);
+        if (!string.Equals(intelligence.ExternalId, ExternalId, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ArgumentException("Asset intelligence external ID does not match the catalog item.", nameof(intelligence));
+        }
+
+        return new AssetCatalogItem(
+            Id,
+            ExternalId,
+            DisplayName,
+            Source,
+            SourceAssetId,
+            SourcePage,
+            LicenseSpdx,
+            LicenseUrl,
+            LicenseVerified,
+            ContentSha256,
+            TotalBytes,
+            Categories,
+            Tags,
+            CatalogStatus,
+            Availability,
+            RelativeModelPath,
+            RelativePreviewPath,
+            ThumbnailUrl,
+            Provenance,
+            SchemaVersion,
+            Author,
+            AttributionRequired,
+            AttributionText,
+            InstalledPackIds,
+            TechnicalMetadata,
+            intelligence);
+    }
 
     private static IReadOnlyList<string> Normalize(IReadOnlyList<string>? values) => (values ?? [])
         .Where(value => !string.IsNullOrWhiteSpace(value))

@@ -20,4 +20,9 @@ public sealed record AssetCatalogQuery(
     long? MaximumTriangleCount = null,
     string? Author = null,
     string? Compatibility = null,
-    string? Variant = null);
+    string? Variant = null,
+    string? SemanticType = null,
+    string? AssemblyRole = null,
+    string? PlacementSurface = null,
+    string? Readiness = null,
+    bool? HumanReviewed = null);

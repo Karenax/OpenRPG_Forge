@@ -215,7 +215,7 @@ try {
     if ($workerOutput -notmatch 'OPENRPG_FORGE_WORLD_GENERATION_GODOT_WORKER_PASS') {
         throw "Godot worker did not emit its success marker. See '$(Join-Path $runRoot 'process-jobs.log')'."
     }
-    if ($workerOutput -notmatch 'Using Device:\s*.+') {
+    if ($workerOutput -notmatch 'Using Device(?: #\d+)?:\s*.+') {
         throw "Godot worker did not initialize a real rendering device. Provider MultiMesh transforms cannot be qualified with the dummy headless renderer."
     }
 
@@ -280,10 +280,12 @@ try {
                     "res://candidate-review/$compactPlanId/captures"
                 $captureOutput = Invoke-GodotWorkerStep -Name "capture-candidate-$compactPlanId" `
                     -LogPath (Join-Path $runRoot "capture-candidate-$compactPlanId.log") `
-                    -Arguments @('--path', $cacheRoot, '--script', 'res://capture_candidate_scene.gd')
+                    -Arguments @('--rendering-method', 'forward_plus', '--rendering-driver', 'vulkan',
+                        '--path', $cacheRoot, '--script', 'res://capture_candidate_scene.gd')
                 if ($captureOutput -notmatch 'OPENRPG_FORGE_WORLD_GENERATION_CANDIDATE_CAPTURE_PASS' -or
-                    $captureOutput -notmatch 'Using Device:\s*.+') {
-                    throw "Job '$planId' did not produce a real-device candidate capture proof."
+                    $captureOutput -notmatch '(?i)Vulkan.*Forward\+' -or
+                    $captureOutput -notmatch 'Using Device(?: #\d+)?:\s*.+') {
+                    throw "Job '$planId' did not produce a Forward+ Vulkan candidate capture proof."
                 }
             }
             finally {
@@ -308,6 +310,7 @@ try {
             planId = $planId
             status = 'succeeded'
             providerCandidateValidated = $candidateValidated
+            candidateCaptureBackend = if ($requiresProviderCandidate) { 'forward-plus-vulkan' } else { $null }
             captures = if ($requiresProviderCandidate) {
                 @($captureFiles | ForEach-Object { "captures/$compactPlanId/$($_.Name)" })
             }

@@ -116,7 +116,7 @@ static int Run(IReadOnlyList<string> arguments)
         Console.Error.WriteLine(
             "Usage: forge package <export|validate|load|analyze|compliance|keygen|sign|verify-signature|delta|apply-delta|bundle|spatial|diagnose> ... | " +
             "forge launcher <build|verify> ... | " +
-            "forge assets <list|install-pack|uninstall-pack|report|delivery-report|credits|prepare|roundtrip|finalize-roundtrip|generate-model3d> ... | " +
+            "forge assets <list|analyze-catalog|install-pack|uninstall-pack|report|delivery-report|credits|prepare|roundtrip|finalize-roundtrip|generate-model3d> ... | " +
             "forge content <batch|export-blueprints|merge-table> ... | " +
             "forge docs <generate|check> | " +
             "forge readiness <validate|health|crash|recovery|sync-plan> ... | " +
@@ -762,6 +762,11 @@ static int AuthorSampleModule(string targetDirectory)
 
 static int RunAssets(IReadOnlyList<string> arguments)
 {
+    if (arguments.Count >= 2 && arguments[0] == "analyze-catalog")
+    {
+        return AnalyzeAssetCatalog(arguments);
+    }
+
     if (arguments.Count >= 3 && arguments[0] == "install-pack")
     {
         return InstallAssetPack(arguments);
@@ -812,7 +817,11 @@ static int RunAssets(IReadOnlyList<string> arguments)
         Console.Error.WriteLine(
             "Usage: forge assets list <repository-or-workspace> [--query <text>] [--source <source>] " +
             "[--category <category>] [--license <spdx>] [--availability <catalog|original|extracted>] " +
-            "[--installed <true|false>] [--limit <count>] [--vault <directory>] | " +
+            "[--installed <true|false>] [--semantic-type <type>] [--assembly-role <role>] " +
+            "[--placement-surface <surface>] [--readiness <state>] [--human-reviewed <true|false>] " +
+            "[--limit <count>] [--vault <directory>] | " +
+            "forge assets analyze-catalog <repository-or-workspace> [--id <external-id[,external-id]>] " +
+            "[--apply <true|false>] [--vault <directory>] | " +
             "forge assets install-pack <repository-or-workspace> <pack-id> --id <external-id[,external-id]> " +
             "[--version <version>] [--apply <true|false>] [--vault <directory>] | " +
             "forge assets uninstall-pack <repository-or-workspace> <pack-id> " +
@@ -872,7 +881,12 @@ static int RunAssets(IReadOnlyList<string> arguments)
           ParseNullableLong(options.GetValueOrDefault("max-triangles"), "max-triangles"),
           options.GetValueOrDefault("author"),
           options.GetValueOrDefault("compatibility"),
-          options.GetValueOrDefault("variant"));
+          options.GetValueOrDefault("variant"),
+          options.GetValueOrDefault("semantic-type"),
+          options.GetValueOrDefault("assembly-role"),
+          options.GetValueOrDefault("placement-surface"),
+          options.GetValueOrDefault("readiness"),
+          ParseNullableBooleanOption(options.GetValueOrDefault("human-reviewed"), "human-reviewed"));
     var browser = new AssetCatalogBrowser(load.Catalog);
     var items = browser.Search(query);
     Console.WriteLine(JsonSerializer.Serialize(new
@@ -913,12 +927,67 @@ static int RunAssets(IReadOnlyList<string> arguments)
             item.Installed,
             item.InstalledPackIds,
             item.Provenance,
+            intelligence = item.Intelligence,
         }),
     }));
     Console.WriteLine(
         $"OPENRPG_FORGE_ASSET_BROWSER_PASS catalog={load.Catalog.Items.Count} results={items.Count} " +
         $"sources={browser.Sources.Count} schema={load.Catalog.SchemaVersion}");
     return load.Diagnostics.Count == 0 ? 0 : 1;
+}
+
+static int AnalyzeAssetCatalog(IReadOnlyList<string> arguments)
+{
+    var options = ParseOptions(arguments.Skip(2).ToArray());
+    var context = LoadAssetVaultContext(arguments[1], options.GetValueOrDefault("vault"));
+    if (context.Load.Catalog is null || context.Load.Diagnostics.Count > 0)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = context.Load.Diagnostics }));
+        return 1;
+    }
+
+    var ids = (options.GetValueOrDefault("id") ?? string.Empty)
+        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+    var plan = AssetIntelligenceCatalogEnricher.Plan(context.Load.Catalog, ids);
+    var apply = ParseBooleanOption(options.GetValueOrDefault("apply"), defaultValue: false, "apply");
+    AssetIntelligenceIndexSaveResult? saved = null;
+    if (apply && plan.CanApply)
+    {
+        var existing = AssetIntelligenceIndexStore.Load(context.Load.VaultRoot);
+        if (!existing.Succeeded)
+        {
+            Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = existing.Diagnostics }));
+            return 1;
+        }
+
+        var merged = existing.Profiles.ToDictionary(
+            profile => profile.ExternalId,
+            StringComparer.OrdinalIgnoreCase);
+        foreach (var profile in plan.Profiles) merged[profile.ExternalId] = profile;
+        saved = AssetIntelligenceIndexStore.Save(context.Load.VaultRoot, merged.Values.ToArray());
+    }
+
+    var succeeded = plan.CanApply && (saved is null || saved.Succeeded);
+    Console.WriteLine(JsonSerializer.Serialize(new
+    {
+        valid = succeeded,
+        applied = saved?.Succeeded ?? false,
+        plan.ProfileCount,
+        plan.ModelAnalyzedCount,
+        plan.GeometryProfileCount,
+        reviewRequired = plan.Profiles.Count(profile => profile.ReviewStatus != "human-reviewed"),
+        indexPath = saved?.Path,
+        diagnostics = plan.Diagnostics.Concat(saved?.Diagnostics ?? []).ToArray(),
+    }));
+    if (succeeded)
+    {
+        Console.WriteLine(
+            $"OPENRPG_FORGE_ASSET_INTELLIGENCE_{(saved?.Succeeded == true ? "APPLY" : "PLAN")}_PASS " +
+            $"profiles={plan.ProfileCount} analyzed={plan.ModelAnalyzedCount} geometry={plan.GeometryProfileCount} " +
+            $"review_required={plan.Profiles.Count(profile => profile.ReviewStatus != "human-reviewed")}");
+    }
+
+    return succeeded ? 0 : 1;
 }
 
 static int GenerateModel3DAsset(IReadOnlyList<string> arguments)

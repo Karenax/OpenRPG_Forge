@@ -77,4 +77,10 @@ public sealed class ForgeWorldGenerationMcpTools
     [Description("Returns the canonical world-generation promotion manifest and verified scene fingerprint for one area.")]
     public WorldGenerationCanonicalPromotionResource GetCanonicalWorldGenerationPromotion(string areaId) =>
         _project.GetCanonicalWorldGenerationPromotion(areaId);
+
+    [McpServerTool]
+    [Description("Finds read-only placement candidates from the area’s canonical terrain surface and environment occupancy. Use this before authoring exterior buildings; it rejects steep, barren or vegetation-overlapping sites according to explicit thresholds.")]
+    public TerrainPlacementCandidateResource FindTerrainPlacementCandidates(
+        TerrainPlacementCandidateRequest request) =>
+        _project.FindTerrainPlacementCandidates(request);
 }

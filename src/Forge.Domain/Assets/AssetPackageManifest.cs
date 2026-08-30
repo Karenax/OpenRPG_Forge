@@ -215,7 +215,8 @@ public sealed record AssetPackageManifest(
     AssetLodManifest? Lod,
     AssetModelMetadata? ModelMetadata = null,
     AssetNavigationManifest? Navigation = null,
-    AssetFontManifest? Font = null)
+    AssetFontManifest? Font = null,
+    AssetIntelligenceProfile? Intelligence = null)
 {
     public const int CurrentSchemaVersion = 1;
 }

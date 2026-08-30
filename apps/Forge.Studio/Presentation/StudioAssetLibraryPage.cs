@@ -617,7 +617,20 @@ internal sealed partial class StudioAssetLibraryPage : Control
             : "Aucune vignette ni scène 3D prévisualisable pour ce fichier.";
         _turntable.Load(item, _index!.VaultRoot);
         var size = item.FileSize <= 0 ? "taille inconnue" : FormatBytes(item.FileSize);
+        var dimensions = item.WidthMeters is not null && item.HeightMeters is not null && item.DepthMeters is not null
+            ? $"{item.WidthMeters:0.###} × {item.HeightMeters:0.###} × {item.DepthMeters:0.###} m"
+            : "à mesurer lors de l’intégration";
+        var pivotPosition = item.PivotXMeters is not null && item.PivotYMeters is not null && item.PivotZMeters is not null
+            ? $" ({item.PivotXMeters:0.###}, {item.PivotYMeters:0.###}, {item.PivotZMeters:0.###} m)"
+            : string.Empty;
+        var pivotReview = item.PivotRequiresReview ? " · à contrôler" : string.Empty;
+        var review = item.ReviewStatus == "human-reviewed" ? "validé humainement" : "généré · contrôle requis";
         _detailMetadata.Text =
+            $"{item.Description}\n\n" +
+            $"Type : {item.SemanticType} · famille : {item.Family}\n" +
+            $"Rôle : {item.AssemblyRole} · surface : {item.PlacementSurface}\n" +
+            $"Dimensions : {dimensions} · pivot : {item.PivotKind}{pivotPosition} [{item.PivotClass}]{pivotReview}\n" +
+            $"Métadonnées : {item.Readiness} · {review} · confiance {item.MetadataConfidence:P0}\n\n" +
             $"Format choisi : {item.Format.ToUpperInvariant()} · {size}\n" +
             $"Variantes : {string.Join(", ", item.Variants.Select(variant => variant.Format.ToUpperInvariant()).Distinct())}\n" +
             $"Identifiant : {item.ExternalId}";

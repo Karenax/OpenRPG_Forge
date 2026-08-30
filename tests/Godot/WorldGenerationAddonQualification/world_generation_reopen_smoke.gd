@@ -36,6 +36,9 @@ func _initialize() -> void:
     if scatter == null or scatter.multimesh == null or scatter.multimesh.instance_count != 16:
         _fail("Neutral scene lost its provider-generated instances.")
         return
+    if _distinct_serialized_positions(scatter.multimesh) <= 1:
+        _fail("Neutral scene collapsed its provider-generated instance transforms.")
+        return
 
     var space := scene.get_world_3d().direct_space_state
     var ray := PhysicsRayQueryParameters3D.create(Vector3(0.0, 128.0, 0.0), Vector3(0.0, -128.0, 0.0))
@@ -113,6 +116,19 @@ func _initialize() -> void:
         path.size(),
         FileAccess.get_sha256(GENERATED_SCENE_PATH)])
     quit(0)
+
+func _distinct_serialized_positions(multimesh: MultiMesh) -> int:
+    if multimesh.transform_format != MultiMesh.TRANSFORM_3D:
+        return 0
+    var stride := 12 + (4 if multimesh.use_colors else 0) + (4 if multimesh.use_custom_data else 0)
+    var serialized := multimesh.buffer
+    if serialized.size() != multimesh.instance_count * stride:
+        return 0
+    var positions := {}
+    for instance_index in multimesh.instance_count:
+        var offset := instance_index * stride
+        positions["%.3f,%.3f" % [serialized[offset + 3], serialized[offset + 11]]] = true
+    return positions.size()
 
 func _fail(message: String) -> void:
     push_error(message)

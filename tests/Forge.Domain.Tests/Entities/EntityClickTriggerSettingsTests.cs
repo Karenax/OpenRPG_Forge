@@ -61,4 +61,24 @@ public sealed class EntityClickTriggerSettingsTests
         Assert.Throws<ArgumentException>(() =>
             EntityClickTriggerSettings.Merge(EntityPropertyOverrides.Empty, settings));
     }
+
+    [Fact]
+    public void Merge_RoundTripsIndependentDoorToggleWithoutTarget()
+    {
+        var settings = new EntityClickTriggerSettings(
+            true,
+            EntityClickTriggerAction.ToggleDoor,
+            null,
+            null,
+            3.5f);
+
+        var merged = EntityClickTriggerSettings.Merge(EntityPropertyOverrides.Empty, settings);
+        var read = EntityClickTriggerSettings.Read(merged);
+
+        Assert.True(read.Enabled);
+        Assert.Equal(EntityClickTriggerAction.ToggleDoor, read.Action);
+        Assert.Equal(3.5f, read.MaximumDistanceMeters);
+        Assert.DoesNotContain(merged.Properties,
+            property => property.Key == EntityClickTriggerSettings.TargetProperty);
+    }
 }

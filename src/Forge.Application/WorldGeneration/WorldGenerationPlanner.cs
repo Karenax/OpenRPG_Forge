@@ -126,6 +126,8 @@ public sealed class WorldGenerationPlanner
                 break;
             case WorldGenerationStage.Settlements:
                 values["settlementCount"] = recipe.Settlements.Count.ToString(CultureInfo.InvariantCulture);
+                values["buildingCount"] = recipe.Settlements.Sum(item => item.BuildingCount)
+                    .ToString(CultureInfo.InvariantCulture);
                 values["settlementIds"] = string.Join(',', recipe.Settlements.Select(item => item.Id.ToString("D")));
                 values["adaptTerrain"] = recipe.Terrain.AdaptToStructures.ToString(CultureInfo.InvariantCulture);
                 break;

@@ -1,6 +1,6 @@
 # État vérifié — OpenRPG Forge
 
-Dernière mise à jour : 28 août 2026.
+Dernière mise à jour : 29 août 2026.
 
 ## Verdict
 
@@ -23,7 +23,11 @@ confondu avec une release publique signée.
 - neuf espaces du Creator historique, mode Débutant à quatre espaces et outils spécialisés intégrés ;
 - projets, zones, blueprints, assets gouvernés, dialogues, quêtes, scripts et contenu RPG ;
 - pack Asset Vault **Médiéval** : 365 modèles Quaternius locaux, regroupés à partir de cinq archives
-  CC0 vérifiées et visibles comme une collection unique dans le Studio et l’Asset Atlas ;
+  CC0 vérifiées et visibles comme une collection unique dans le Studio et l’Asset Atlas ; leurs
+  mesures Blender alimentent des profils individuels de description, rôle, placement et pivot ;
+- catalogue Asset Vault enrichi par 6 279 profils v1 individuels, dont 6 076 avec géométrie : hashes
+  du modèle et de ses dépendances, sémantique, usages, métriques, preuves et revue requise sont exposés
+  à Studio et au MCP ; toute intégration de pack reconstruit automatiquement ces métadonnées ;
 - validation, correctifs prévisualisés, undo/redo, playtest, sauvegarde/reprise et export `.orpmod` ;
 - Assistant et host MCP transactionnels, bornés, facultatifs et sans shell arbitraire ;
 - distributions Windows x64 autonomes du Creator et du Runtime ;
@@ -52,7 +56,15 @@ GF-PCGODOT demeure expérimental faute de gain artistique ou d'auteur démontré
 La promotion ne se produit jamais automatiquement : le MCP exige preview, permission, révisions,
 job réussi, rapport accepté, empreintes exactes et SHA-256 de destination en cas de remplacement. Il
 copie atomiquement la scène, persiste sa provenance, la référence depuis `AreaWorldProfile`, vérifie
-la réouverture et fournit un inverse. Le job CI Linux est configuré, mais sa preuve ainsi que les
+la réouverture et fournit un inverse. Depuis la correction du 29 août, une nouvelle promotion fournit
+aussi une surface de placement et une occupation environnementale canoniques. Le MCP recherche des
+sites plats, denses autour mais libres dans l'emprise ; la construction extérieure recalcule `Y`,
+rejette les maisons en lévitation ou dans la végétation, refuse un décor tagué PNJ et exige une
+composition fondation/murs/toit pour une maison. La densité est normalisée par hectare et vérifiée
+autour de chaque nœud de contenu, les ancres structure/capsule sont distinctes et Runtime consomme la
+surface promue pour ses limites extérieures, sa caméra et son sol de sécurité. La qualification réelle de référence 2 km passe
+trois exécutions avec 5 904 instances réparties, collision, navigation longue distance, réouverture
+provider-free et candidat de promotion. Le job CI Linux est configuré, mais sa preuve ainsi que les
 exports provider-free Windows/Linux et la revue artistique restent ouverts.
 
 ## Multijoueur Internet direct
@@ -169,7 +181,7 @@ exports provider-free Windows/Linux et la revue artistique restent ouverts.
   Runtime/Forward+, assets, Blender, MCP, réseau, sauvegarde/reprise et distributions validés ;
 - qualification consolidée du 28 août 2026 après les audits croisés : 2 345 tests .NET et 68 tests
   Python verts, 32 projets NuGet sans vulnérabilité, builds sans avertissement, documentation et
-  717 routes Aurora cohérentes, budgets de maintenabilité verts, MCP à 271 outils, Network à 118 tests,
+  717 routes Aurora cohérentes, budgets de maintenabilité verts, MCP à 281 outils, Network à 118 tests,
   Studio à 37 pages et graphe Roslyn déterministe à 11 971 nœuds / 97 386 relations / zéro diagnostic ;
   les smokes produit et distributions de cette gate sont les preuves locales, sans signature publique ;
 - vérification de la tranche WorldGeneration courante : build Release complet sans avertissement,

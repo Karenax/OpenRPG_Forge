@@ -12,8 +12,9 @@ public sealed class McpToolInventoryTests
         Assert.True(validation.Succeeded,
             $"{validation.Error} Missing: {string.Join(", ", validation.Missing)}; " +
             $"unexpected: {string.Join(", ", validation.Unexpected)}");
-        Assert.Equal(271, validation.Discovered.Count);
+        Assert.Equal(281, validation.Discovered.Count);
         Assert.Contains("GetWorldGenerationRecipes", validation.Discovered);
+        Assert.Contains("FindTerrainPlacementCandidates", validation.Discovered);
         Assert.Contains("PlanDialogueVoiceImport", validation.Discovered);
         Assert.Contains("forge_get_network_assurance", validation.Discovered);
     }

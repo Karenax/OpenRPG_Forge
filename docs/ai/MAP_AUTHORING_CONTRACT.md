@@ -1,6 +1,6 @@
 # Contrat de création de maps par l'IA
 
-Version : `1.0.0`
+Version : `2.3.0`
 
 Ce document est le contrat statique et versionné utilisé par l'assistant de planification de zones
 d'OpenRPG Forge. Il complète le contexte narratif canonique du projet sans le remplacer. Les faits
@@ -31,6 +31,30 @@ requête.
 - Le fournisseur ne décide pas de la hauteur `Y`, de la rotation, du relief ou de la pente. Ces
   décisions appartiennent aux services canoniques de terrain et de placement.
 
+## Placement extérieur canonique
+
+- Une zone extérieure générée n'est constructible qu'après promotion d'une surface de placement et
+  d'une occupation environnementale canoniques, chacune liée au rapport par une empreinte SHA-256.
+- L'orchestrateur recherche les sites avec `FindTerrainPlacementCandidates` avant de proposer les
+  coordonnées d'un bâtiment. Un candidat doit satisfaire la pente maximale, la densité
+  environnementale demandée et l'absence d'instances dans son emprise.
+- Un plan extérieur utilise `TerrainSurface`. `ExplicitTransform` est interdit : aucune hauteur `Y`
+  issue du modèle ou d'un script auxiliaire ne peut contourner la surface promue.
+- Les cinq échantillons de l'emprise complète d'une structure doivent rester dans les limites de la
+  surface et respecter la variation verticale approuvée. La racine est ancrée au minimum mesuré afin
+  qu'aucune partie rigide ne lévite.
+- `FindTerrainPlacementCandidates` expose séparément `structureAnchorHeight` et
+  `playerSpawnAnchorHeight`. Le second inclut le décalage canonique du centre de capsule; un spawn
+  ne doit jamais être posé directement à `groundHeight`.
+- Les spawns, PNJ et waypoints de patrouille sont eux aussi recherchés avec leur emprise réelle et
+  une variation de surface bornée. Une route ne peut pas réutiliser une hauteur devinée ni une
+  tolérance de pente élargie pour forcer un résultat.
+- La présence de végétation demandée est un intent versionné et quantifié en nombre brut **et** en
+  instances par hectare. La densité minimale ne peut pas être diluée artificiellement en agrandissant
+  le rayon de recherche : chaque nœud de contenu est validé séparément, avec un plancher canonique de
+  6 instances/ha. Toute végétation canonique intersectant l'emprise d'une structure bloque la construction.
+- Une surface, une occupation ou une empreinte absente ou incohérente provoque un échec sans mutation.
+
 ## Topologie jouable
 
 - La réponse contient exactement `nodeCount` nœuds.
@@ -56,6 +80,18 @@ requête.
   approuvé soit constructible.
 - L'absence d'un asset adapté doit être signalée par une réponse invalide ; elle ne justifie pas une
   référence inventée.
+- Un nœud tagué `npc` ou `villager` référence exclusivement un blueprint `Creature`; un placeable,
+  meuble ou décor ne peut jamais être converti en personnage par son seul libellé.
+- Un nœud tagué `village-house` référence une composition de prefab complète contenant au minimum
+  les rôles `foundation`, `wall` et `roof`. Une pièce modulaire isolée n'est pas une maison. Chaque
+  composition de maison contient aussi exactement un encadrement `doorway` + `entrance`, une porte
+  fermée et bloquante `interactive-door` + `entrance`, et un escalier `entrance-stairs` + `entrance`.
+- La porte d'une maison commence fermée dans l'ouverture, possède l'action cliquable `toggle-door` et
+  tourne autour de son gond sans être détruite. L'origine de la feuille ne doit pas être confondue avec
+  son centre visuel : le pivot de gond reste à `0,25–1,00 m` du centre de l'encadrement tandis que le
+  centre réel du maillage fermé reste à moins de `0,10 m` de l'axe et `0,20 m` du plan de l'ouverture.
+  L'escalier partage l'orientation de l'encadrement, son centre visuel reste à moins de `0,10 m` de
+  l'axe et sa marche haute rejoint le bas visuel de la porte avec un écart maximal de `0,12 m`.
 - Les originaux, licences et hashes restent gouvernés par le catalogue d'assets et le Vault. La
   topologie ne peut pas modifier leur provenance.
 
@@ -129,8 +165,37 @@ plan, de nœud et de connexion ne sont jamais choisis par le fournisseur.
 
 ## Cycle gouverné
 
-`contexte dynamique -> proposition JSON -> désérialisation stricte -> validation du domaine -> dry-run -> diff sémantique -> approbation -> construction -> validation navigation/éclairage -> audit -> revert`
+`preuves spatiales promues -> recherche de sites -> contexte dynamique -> proposition JSON -> désérialisation stricte -> validation du domaine -> dry-run -> diff sémantique -> approbation -> construction -> validation emprise/navigation/éclairage -> audit runtime Forward+ -> revue visuelle de toutes les vues obligatoires -> acceptation ou correction/reprise -> revert`
 
 Une étape en échec arrête le cycle sans mutation. Le mode hors ligne déterministe peut produire sa
 topologie localement, mais il utilise le même brief, le même contrat de validation et le même cycle
 transactionnel que les fournisseurs de modèles.
+
+Les quantités visibles du brief sont des attentes d'audit, pas de simples indications de génération.
+Après construction, le runtime doit charger le workspace complet et vérifier au minimum :
+
+- le nombre demandé de groupes de bâtiments et de patrouilleurs ;
+- un visuel gouverné et un contrôleur d'animation pour chaque patrouilleur ;
+- le contact au sol de la racine et des pieds pendant le déplacement ;
+- la cohérence entre vitesse mesurée et clip de locomotion ;
+- l'espacement d'échantillonnage du terrain, les textures réellement résolues, les couches de peinture
+  matière et leur couverture ;
+- les strates de végétation réellement matérialisées, sans intersection avec l'emprise complète des
+  bâtiments ni arbre dans leur marge de lisibilité ;
+- la densité locale de couverture du sol autour de la zone jouable ;
+- l'absence de vide visible sous les fondations ;
+- pour chaque maison demandée, une entrée complète, une porte cliquable qui s'ouvre réellement,
+  un centre de maillage fermé à moins de `0,10 m` de l'axe et `0,20 m` du plan de l'encadrement,
+  un écart angulaire inférieur à `3°`, un escalier centré à `0,10 m` près et un raccord
+  escalier-seuil inférieur à `0,12 m` ; les origines logiques seules ne constituent jamais cette preuve ;
+- la réponse réelle des contrôles d'orbite et de zoom ;
+- trois captures de base du vrai renderer : vue d'ensemble, vue aérienne et vue au niveau du sol ;
+- une capture cadrée sur un patrouilleur si le brief demande un PNJ et une capture de détail si le
+  brief demande un bâtiment, sans végétation haute obstruant le corridor vers le sujet ;
+- si le brief demande un bâtiment, deux captures rapprochées du même cadrage, `door-closed` puis
+  `door-open`, avec la porte réellement actionnée et l'escalier visible dans l'axe du seuil.
+
+Le succès machine reste incomplet tant qu'un réviseur n'a pas inspecté toutes les images obligatoires.
+La revue nomme la baseline produit comparée et atteste explicitement l'absence de régression. Elle est
+liée aux SHA-256 des captures ; toute modification d'une capture invalide l'acceptation. Un défaut visible
+rejette la carte même si les fingerprints déterministes et les budgets techniques sont corrects.

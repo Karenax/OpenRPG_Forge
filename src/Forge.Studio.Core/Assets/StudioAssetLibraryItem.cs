@@ -27,7 +27,24 @@ public sealed record StudioAssetLibraryItem(
     IReadOnlyList<string> Categories,
     IReadOnlyList<StudioAssetVariant> Variants,
     long FileSize,
-    bool AvailableLocally)
+    bool AvailableLocally,
+    string Description = "",
+    string SemanticType = "unclassified",
+    string Family = "unclassified",
+    string AssemblyRole = "unspecified",
+    string PlacementSurface = "unspecified",
+    string PivotClass = "unknown",
+    double? WidthMeters = null,
+    double? HeightMeters = null,
+    double? DepthMeters = null,
+    string Readiness = "catalogued",
+    string ReviewStatus = "generated-review-required",
+    double MetadataConfidence = 0.1,
+    string PivotKind = "unknown",
+    double? PivotXMeters = null,
+    double? PivotYMeters = null,
+    double? PivotZMeters = null,
+    bool PivotRequiresReview = true)
 {
     public const long MaximumInlinePreviewBytes = 128L * 1024L * 1024L;
 
@@ -54,6 +71,15 @@ public sealed record StudioAssetLibraryItem(
             PackName ?? string.Empty,
             Kind,
             Format,
+            Description,
+            SemanticType,
+            Family,
+            AssemblyRole,
+            PlacementSurface,
+            PivotClass,
+            PivotKind,
+            Readiness,
+            ReviewStatus,
         }.Concat(Tags).Concat(Categories)).ToLowerInvariant();
 }
 

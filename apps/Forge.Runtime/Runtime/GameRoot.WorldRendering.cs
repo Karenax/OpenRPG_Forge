@@ -364,6 +364,7 @@ public partial class GameRoot
             $"OPENRPG_FORGE_RUNTIME_G11I_TERRAIN_PASS provider={profile.Terrain.Provider.ToString().ToLowerInvariant()} " +
             $"vertices={terrain.Vertices} triangles={terrain.Triangles} sectors={terrain.TerrainSectors} " +
             $"material={terrain.TerrainMaterialMode} material_layers={terrain.TerrainMaterialLayers} " +
+            $"resolved_textures={terrain.Root.GetMeta("forge_terrain_resolved_textures", 0).AsInt32()} " +
             $"collisions={terrain.CollisionShapes} " +
             $"features={terrain.FeatureSegments} volumes={terrain.DebugVolumes} routes={terrain.FlightRouteSegments} " +
             $"scatter_layers={terrain.ScatterLayers} scatter_instances={terrain.ScatterInstances} " +

@@ -120,6 +120,35 @@ de promotion vérifie le job, les révisions projet/recette, les empreintes rece
 la collision, la navigation, la préservation des retouches et exactement un fournisseur prouvé par
 étape. Une première promotion exige toutes les étapes du plan.
 
+Le rapport publie aussi deux preuves spatiales liées par empreinte : une surface de placement régulière
+extraite du mesh final et une occupation environnementale agrégée en cellules de quatre mètres. Elles
+sont validées puis persistées dans `AreaWorldProfile`. Elles restent disponibles même lorsque le
+provider de terrain est désactivé au profit de la scène neutre ; l'authoring ne doit donc jamais relire
+ou approximer la géométrie du `.tscn` pour décider d'une hauteur ou d'un site.
+
+Une promotion canonique est un livrable de production, pas la validation d'une preview technique.
+La recette déclare donc un `artDirection` de niveau `Production` et une zone extérieure de référence.
+La promotion matérialise sur le relief final ses couches de terrain réellement texturées, ses biomes
+dotés de ressources de scatter, son environnement et les routes texturées demandées par la recette.
+Elle refuse notamment une surface trop peu échantillonnée pour sa taille, une peinture matière
+incomplète, une référence sans trois strates de végétation, une route demandée sans matériau, un point
+joueur dont le corridor caméra de 64 m est trop accidenté, ou une fondation générée éloignée de plus de
+1,25 m de la surface canonique. Si la recette autorise `adaptToStructures`, une dérive locale inférieure
+ou égale à 2 m est corrigée de façon déterministe sous l'emprise complète du groupe de bâtiment puis
+revalidée ; une dérive plus grande reste bloquante. La surface de placement persistée est toujours cette
+surface finale. Les proxies du worker restent utiles au diagnostic, mais sont supprimés au runtime dès
+que ces preuves de production sont présentes.
+
+Pour un établissement généré, les couches de couverture du sol et d'arbustes sont concentrées autour
+des fondations. Leur budget est calculé sur cette emprise locale et les candidats y sont tirés
+directement ; agrandir la carte ne peut donc ni diluer l'herbe près du village ni multiplier les
+tentatives hors zone. L'emprise réelle de chaque maison produit aussi des exclusions invisibles pour la
+végétation basse et une marge distincte pour les arbres ; une liste de tags vide signifie ici « toute
+strate compatible » et non « aucune exclusion ». La promotion refuse aussi une patrouille lente qui ne
+possède qu'une animation de course. Au runtime, les acteurs terrestres recalculent leur hauteur sur le
+terrain pendant toute la patrouille et leur visuel est aligné sur ses pieds, pas sur le pivot arbitraire
+du fichier importé.
+
 La preview exige `ApplyApprovedPlan` et une provenance d'acceptation explicite. L'application recopie
 atomiquement la scène vers le chemin stable de l'area, conserve le manifeste de provenance, ajoute la
 ressource au `AreaWorldProfile.Loading.RequiredResources`, sauvegarde le projet puis vérifie sa
@@ -153,13 +182,21 @@ Codex doit employer les outils MCP, sans modifier directement les JSON :
 6. vérifier `readyToApply`, les backends, étapes et empreintes ;
 7. appeler `QueueWorldGenerationExecutionPlan(planId)` ;
 8. suivre `GetWorldGenerationJob(s)` et ne déclarer le résultat produit qu'après l'état terminal ;
-9. appeler `PlanWorldGenerationPromotion` avec la provenance de l'acceptation et, en cas de
+9. inspecter le candidat dans le vrai renderer Forward+ puis appeler `PlanWorldGenerationPromotion`
+   avec une provenance `human-forward-plus:<revue>` et, en cas de
    remplacement, le SHA-256 canonique actuellement observé ;
 10. examiner le diff, l'inverse, la scène cible et les diagnostics de preuve ;
 11. appeler `ApplyWorldGenerationPromotion(promotionPlanId)` sans changer les révisions ;
-12. vérifier avec `GetCanonicalWorldGenerationPromotion`, puis employer
+12. vérifier avec `GetCanonicalWorldGenerationPromotion`, puis appeler
+   `FindTerrainPlacementCandidates` avant tout plan extérieur contenant des structures ; conserver les
+   empreintes de surface et d'occupation, la variation du sol, la densité voisine et le compte nul dans
+   l'emprise ;
+13. construire le plan en mode `TerrainSurface`, avec un `environmentIntent` explicite ; le dry-run
+   doit refuser toute emprise pentue, hors surface, végétalisée, tout placeable tagué PNJ et toute maison
+   sans composition `foundation` + `wall` + `roof` ;
+14. employer
    `RevertWorldGenerationPromotion` si l'application doit être annulée ;
-13. utiliser `CancelWorldGenerationJob` pour un job actif ou
+15. utiliser `CancelWorldGenerationJob` pour un job actif ou
    `RevertWorldGenerationRecipePlan` pour la dernière mutation de recette encore réversible dans la
    session.
 
@@ -205,6 +242,25 @@ Le harnais qualifie en plus les addons réels, trois exécutions déterministes,
 scène neutre, cinq captures techniques et candidat de promotion. Les commandes reproductibles sont
 réunies dans [CODEX_HANDOFF.md](CODEX_HANDOFF.md).
 
+La qualification de la carte finale intervient après la construction assistée, lorsque terrain,
+bâtiments, personnages, patrouilles et caméra sont présents ensemble. Lancer
+`scripts/Invoke-MapQualityAudit.ps1` avec le workspace, le spawn et les minima issus du brief. Le
+runtime Forward+ Vulkan écrit `map-quality-machine-audit.json` et au minimum trois PNG. Aux vues
+`overview`, `overhead` et `ground-level` s'ajoutent obligatoirement `patrol-character` si le brief
+demande un PNJ et, s'il demande un bâtiment, `building-detail`, `door-closed`, puis `door-open`
+sur le même sujet après exécution réelle de l'interaction. L'audit mesure la résolution et la
+couverture matière du terrain, la densité locale, les contacts racine/pieds, la cohérence
+vitesse-animation, le bas visuel des fondations, les intersections végétation-bâtiments, la marge des
+arbres, le centre et le plan du maillage réel de la porte fermée par rapport à l'encadrement, le centre
+visuel de l'escalier, le raccord escalier-seuil, le caractère cliquable de chaque
+porte, son ouverture puis sa fermeture, et l'absence d'occlusion dans les corridors de capture. Le marqueur machine ne vaut pas
+acceptation : le réviseur inspecte chaque image, puis appelle
+`scripts/Confirm-MapQualityVisualReview.ps1` avec la baseline produit réellement comparée et
+l'attestation `EntrancesAlignedAndOperable` en plus de l'absence de régression. L'acceptation finale
+est liée aux SHA-256 des captures.
+Une carte visible ne doit jamais être déclarée réussie à partir des seules captures techniques du
+worker ou de compteurs globaux de scène.
+
 La tranche Solaren du 28 août 2026 prouve en plus le cycle produit complet : recette ouverte dans le
 workspace, exécution réelle GPU, promotion vers une seconde zone, chargement par Runtime, transition
 avec état de session conservé, revue Forward+ et empaquetage `.orpmod`. Le runtime vérifie la scène
@@ -226,9 +282,13 @@ navigations. Les preuves reproductibles sont sous
 - Terrain3D `v1.0.2-stable`, Godot Flow et GF-PCGODOT ont été exécutés avec leurs binaires réels sous
   Godot `4.7.1-stable` sur Windows. Le job Linux est configuré mais n'a pas encore produit de preuve
   GitHub, et les exports provider-free Windows/Linux restent à qualifier.
-- La promotion canonique existe et reste volontairement explicite. Elle ne transforme pas le proxy
-  technique en monde artistique et ne choisit pas à elle seule le fournisseur Graph PCG final.
+- La promotion canonique hérite désormais un vocabulaire visuel de production explicite ; elle ne crée
+  toutefois pas une direction artistique originale et ne remplace pas la passe corrective humaine en
+  Forward+.
 
 Voir aussi [les dépendances](DEPENDENCIES.md), [le handoff Codex](CODEX_HANDOFF.md) et
 [l'ADR-0050](../ADR/ADR-0050-governed-world-generation-orchestration.md) et
-[l'ADR-0055](../ADR/ADR-0055-runtime-world-generation-vertical-slice.md).
+[l'ADR-0055](../ADR/ADR-0055-runtime-world-generation-vertical-slice.md), puis
+[l'ADR-0058](../ADR/ADR-0058-canonical-generated-world-placement-evidence.md).
+Voir aussi [l'ADR-0059](../ADR/ADR-0059-production-world-generation-art-direction.md) pour les gates
+visuels de production.

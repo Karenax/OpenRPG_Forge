@@ -55,10 +55,16 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
 - [x] Consolider les outils génériques de terrain, d'échelle et d'éclairage avec une lumière lisible.
 - [x] Regrouper les cinq archives Quaternius fournies dans le pack Asset Vault **Médiéval**, réutiliser
   les originaux identiques et importer la nouvelle bibliothèque d’animations v2 avec provenance CC0.
+- [x] Construire automatiquement un profil d'intelligence individuel lors de toute intégration de pack :
+  description, sémantique, rôle, bornes, pivot suggéré, métriques, hashes, preuves et statut de revue.
 - [x] Basculer Creator, Studio, distributions et validations produit vers la Crypte, sans supprimer
   les outils de biome et assets réutilisables.
 - [x] Écarter les cubes auxiliaires Blender lors du rendu des assets multi-maillages.
 - [x] Vérifier collisions, navigation, LOD/budgets et profils de qualité par les gates runtime.
+- [x] Promouvoir surface de placement et occupation environnementale, rechercher les sites extérieurs
+  par MCP et bloquer durablement lévitation, végétation dans les bâtiments, faux PNJ et maisons
+  modulaires incomplètes ; normaliser la densité végétale par hectare autour de chaque contenu et
+  partager la surface promue avec les limites, la caméra et les ancres de capsule du Runtime.
 - [x] Valider caméra, mouvement, combat, dialogue, quête et sauvegarde en Forward+.
 - [x] Démarrer dans la zone d’entrée et valider déplacement, mini-carte et atlas sur `M`.
 - [x] Sécuriser toute la géométrie jouable de l’auberge : sol continu, quatre murs infranchissables,

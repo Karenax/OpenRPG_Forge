@@ -40,6 +40,12 @@ public sealed class GodotTerrainMaterialAdapterTests
         Assert.Contains("forge_wetness_albedo_darkening", shader, StringComparison.Ordinal);
         Assert.Contains("forge_wetness_roughness_reduction", shader, StringComparison.Ordinal);
         Assert.Contains("forge_wetness_specular_increase", shader, StringComparison.Ordinal);
+        Assert.Contains("0.64 + grass_mask", shader, StringComparison.Ordinal);
+        Assert.Contains("0.48,", shader, StringComparison.Ordinal);
+        Assert.Contains("surface_rotated", shader, StringComparison.Ordinal);
+        Assert.Contains("surface_large", shader, StringComparison.Ordinal);
+        Assert.Contains("secondary_rotated", shader, StringComparison.Ordinal);
+        Assert.Contains("secondary_large", shader, StringComparison.Ordinal);
 
         var roadShader = GodotTerrainMaterialAdapter.ProceduralRoadShaderCode;
         Assert.Contains("worn_center", roadShader, StringComparison.Ordinal);

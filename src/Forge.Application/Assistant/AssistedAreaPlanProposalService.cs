@@ -9,7 +9,7 @@ namespace Forge.Application.Assistant;
 public static class AssistedAreaPlanProposalService
 {
     public const string PromptKey = "area-plan";
-    public const string PromptVersion = "2.0.0";
+    public const string PromptVersion = "3.0.0";
     private const int MaximumContextEntities = 16;
     private const int MaximumLoreCharacters = 2_000;
     private const string ResponseJsonSchema = """
@@ -140,6 +140,8 @@ public static class AssistedAreaPlanProposalService
                     targetArea.World.Terrain.Width,
                     targetArea.World.Terrain.Depth,
                     targetArea.World.Terrain.HeightScale,
+                    promotedPlacementSurface = targetArea.World.PlacementSurface is not null,
+                    environmentOccupancyCells = targetArea.World.EnvironmentOccupancy?.Cells.Count ?? 0,
                 },
                 navigation = new
                 {
@@ -185,6 +187,7 @@ public static class AssistedAreaPlanProposalService
                 constraints = brief.Constraints,
                 objectives = brief.Objectives,
                 loreSourceIds = brief.LoreSourceIds,
+                environmentIntent = brief.EnvironmentIntent ?? AssistedAreaEnvironmentIntent.Default,
             },
             targetArea = areaContext,
             availableKits,

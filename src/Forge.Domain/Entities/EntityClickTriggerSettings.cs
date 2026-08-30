@@ -7,6 +7,7 @@ public enum EntityClickTriggerAction
     ShowMessage,
     StartDialogue,
     ToggleVisibility,
+    ToggleDoor,
 }
 
 public sealed record EntityClickTriggerSettings
@@ -123,7 +124,7 @@ public sealed record EntityClickTriggerSettings
                     EntityPropertyValueKind.String,
                     settings.Message));
             }
-            else
+            else if (settings.Action != EntityClickTriggerAction.ToggleDoor)
             {
                 properties.Add(new EntityPropertyOverride(
                     TargetProperty,
@@ -139,6 +140,7 @@ public sealed record EntityClickTriggerSettings
         EntityClickTriggerAction.ShowMessage => "message",
         EntityClickTriggerAction.StartDialogue => "dialogue",
         EntityClickTriggerAction.ToggleVisibility => "toggle-visibility",
+        EntityClickTriggerAction.ToggleDoor => "toggle-door",
         _ => throw new ArgumentOutOfRangeException(nameof(action), action, "Unknown click trigger action."),
     };
 
@@ -146,6 +148,7 @@ public sealed record EntityClickTriggerSettings
     {
         "dialogue" => EntityClickTriggerAction.StartDialogue,
         "toggle-visibility" => EntityClickTriggerAction.ToggleVisibility,
+        "toggle-door" => EntityClickTriggerAction.ToggleDoor,
         _ => EntityClickTriggerAction.ShowMessage,
     };
 }

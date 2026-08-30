@@ -18,6 +18,7 @@ public static class AssetPackageManifestValidator
     public const string VfxInvalidCode = "asset.manifest.vfx_invalid";
     public const string LodInvalidCode = "asset.manifest.lod_invalid";
     public const string ModelMetadataInvalidCode = "asset.manifest.model_metadata_invalid";
+    public const string IntelligenceInvalidCode = "asset.manifest.intelligence_invalid";
 
     public static IReadOnlyList<DomainDiagnostic> Validate(AssetPackageManifest manifest)
     {
@@ -76,6 +77,26 @@ public static class AssetPackageManifestValidator
         ValidateVfx(manifest.Vfx, chunkIds, root, diagnostics);
         ValidateLod(manifest.Lod, chunkIds, root, diagnostics);
         ValidateModelMetadata(manifest.ModelMetadata, chunkIds, root, diagnostics);
+        if (manifest.Intelligence is not null)
+        {
+            var intelligenceDiagnostics = AssetIntelligenceProfileValidator.Validate(
+                manifest.Intelligence,
+                $"{root}/intelligence");
+            if (intelligenceDiagnostics.Count > 0)
+            {
+                diagnostics.Add(new(
+                    IntelligenceInvalidCode,
+                    intelligenceDiagnostics[0].Message,
+                    intelligenceDiagnostics[0].Path));
+            }
+            else if (manifest.Intelligence.ExternalId.Length == 0)
+            {
+                diagnostics.Add(new(
+                    IntelligenceInvalidCode,
+                    "Asset intelligence must identify its catalog asset.",
+                    $"{root}/intelligence/externalId"));
+            }
+        }
         return diagnostics;
     }
 

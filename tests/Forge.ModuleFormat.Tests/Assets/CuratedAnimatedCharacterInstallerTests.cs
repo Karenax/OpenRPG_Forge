@@ -43,6 +43,8 @@ public sealed class CuratedAnimatedCharacterInstallerTests : IDisposable
 
         Assert.False(plan.Reused);
         Assert.Equal("CC0-1.0", plan.Item.LicenseSpdx);
+        Assert.Equal("character", plan.Item.Intelligence.SemanticType);
+        Assert.Equal(64, plan.Manifest.Intelligence!.DependencyClosureSha256.Length);
         Assert.Equal(2, plan.Animations.Count);
         Assert.Equal(2, request.RootElement.GetProperty("options").GetProperty("animationSources").GetArrayLength());
         Assert.Equal("base_color", request.RootElement.GetProperty("options").GetProperty("materialTextures")[0]

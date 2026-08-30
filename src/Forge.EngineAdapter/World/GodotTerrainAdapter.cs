@@ -48,6 +48,7 @@ public static class GodotTerrainAdapter
         var terrainMaterial = GodotTerrainMaterialAdapter.Build(world.Terrain, surfaceTextureResolver);
         root.SetMeta("forge_terrain_material_mode", terrainMaterial.Descriptor.Mode);
         root.SetMeta("forge_terrain_material_layers", terrainMaterial.Descriptor.LayerCount);
+        root.SetMeta("forge_terrain_resolved_textures", terrainMaterial.ResolvedTextureCount);
         if (plan.Enabled && plan.Indices.Count > 0)
         {
             var meshStarted = Stopwatch.GetTimestamp();

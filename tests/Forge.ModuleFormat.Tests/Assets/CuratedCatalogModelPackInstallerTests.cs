@@ -49,6 +49,8 @@ public sealed class CuratedCatalogModelPackInstallerTests : IDisposable
 
         Assert.False(plan.Reused);
         Assert.Equal("CC0-1.0", plan.Item.LicenseSpdx);
+        Assert.Equal("vegetation", plan.Item.Intelligence.SemanticType);
+        Assert.Equal(64, plan.Manifest.Intelligence!.ModelContentSha256.Length);
         Assert.Equal("curated-pack:forest-polyhaven@1.0.0;source:polyhaven:fir", plan.Item.Provenance);
         Assert.Equal("fir_b", request.RootElement.GetProperty("options").GetProperty("includedMeshNames")[0].GetString());
         Assert.Equal(0.125m,

@@ -147,6 +147,13 @@ public partial class GameRoot : Node3D
     private const string CombatFeedbackCaptureArgument = "--combat-feedback-capture";
     private const string CombatFeedbackCaptureSizeArgument = "--combat-feedback-capture-size";
     private const string VisualRegressionSuiteArgument = "--g11s-visual-suite";
+    private const string MapQualityAuditArgument = "--map-quality-audit";
+    private const string MapQualityMinimumPatrolActorsArgument = "--map-quality-min-patrols";
+    private const string MapQualityMinimumBuildingGroupsArgument = "--map-quality-min-building-groups";
+    private const string MapQualityRequiredVegetationStrataArgument =
+        "--map-quality-required-vegetation-strata";
+    private const string MapQualityMinimumGroundCoverDensityArgument =
+        "--map-quality-min-ground-cover-density";
     private const float InteractionDistance = 3.0f;
     private const float AttackDistance = 3.5f;
     private const float CameraHorizontalWallClearance = .85f;
@@ -474,6 +481,15 @@ public partial class GameRoot : Node3D
         var combatFeedbackCapturePath = GetArgumentValue(userArguments, CombatFeedbackCaptureArgument);
         var combatFeedbackCaptureSize = GetArgumentValue(userArguments, CombatFeedbackCaptureSizeArgument);
         var visualRegressionSuitePath = GetArgumentValue(userArguments, VisualRegressionSuiteArgument);
+        var mapQualityAuditPath = GetArgumentValue(userArguments, MapQualityAuditArgument);
+        var mapQualityMinimumPatrolActors = ParseMapQualityNonNegativeInteger(
+            userArguments, MapQualityMinimumPatrolActorsArgument, 0);
+        var mapQualityMinimumBuildingGroups = ParseMapQualityNonNegativeInteger(
+            userArguments, MapQualityMinimumBuildingGroupsArgument, 0);
+        var mapQualityRequiredVegetationStrata = ParseMapQualityOptionalNonNegativeInteger(
+            userArguments, MapQualityRequiredVegetationStrataArgument);
+        var mapQualityMinimumGroundCoverDensity = ParseMapQualityOptionalNonNegativeDouble(
+            userArguments, MapQualityMinimumGroundCoverDensityArgument);
         var automatedTest = smokeTest || genericSmokeTest || solarenSmokeTest || dialogueVoiceCompletionSmokeTest ||
             combatFeedbackSmokeTest ||
             entryGroundSmokeTest || moduleMovementSmokeTest ||
@@ -486,7 +502,8 @@ public partial class GameRoot : Node3D
             rpgMenuVisualCapturePath is not null || dialogueVisualCapturePath is not null ||
             actionWheelVisualCapturePath is not null ||
             combatFeedbackCapturePath is not null ||
-            visualRegressionSuitePath is not null;
+            visualRegressionSuitePath is not null ||
+            mapQualityAuditPath is not null;
 
         try
         {
@@ -641,7 +658,8 @@ public partial class GameRoot : Node3D
                     innUxSmokeTest,
                     moduleMovementSmokeTest,
                     combatFeedbackSmokeTest,
-                    combatFeedbackCapturePath is not null))
+                    combatFeedbackCapturePath is not null,
+                    mapQualityAuditPath is not null))
             {
                 VerifyModernRuntimeTooling(project, startArea);
                 VerifyOperationalReadiness(project);
@@ -714,7 +732,16 @@ public partial class GameRoot : Node3D
             GD.Print($"OPENRPG_FORGE_RUNTIME_SPAWN_SELECTED id={selectedSpawn.Id}");
             GD.Print($"OPENRPG_FORGE_RUNTIME_PROJECT_LOADED entities={_builtEntityCount} collisions={_collisionCount}");
 
-            if (secureInternetRuntimeSmokeTest)
+            if (mapQualityAuditPath is not null)
+            {
+                await RunMapQualityAuditAsync(
+                    mapQualityAuditPath,
+                    mapQualityMinimumPatrolActors,
+                    mapQualityMinimumBuildingGroups,
+                    mapQualityRequiredVegetationStrata,
+                    mapQualityMinimumGroundCoverDensity);
+            }
+            else if (secureInternetRuntimeSmokeTest)
             {
                 await RunSecureInternetRuntimeSmokeTestAsync();
             }
@@ -1037,13 +1064,13 @@ public partial class GameRoot : Node3D
 
     private Vector3 ConstrainCameraPosition(Vector3 focus, Vector3 desired)
     {
-        var exteriorTerrain = _interiorWalkableBounds is null && _activeTerrain?.Enabled == true;
+        var exteriorTerrain = TryGetExteriorGroundHeight(out var groundHeightAt);
         if (exteriorTerrain)
         {
             desired = RuntimeCameraRig.RaiseForTerrainClearance(
                 focus,
                 desired,
-                _activeTerrain!.HeightAt,
+                groundHeightAt,
                 clearance: _cameraRig.TerrainClearance,
                 sampleCount: _cameraRig.TerrainProbeSamples);
         }
@@ -1100,8 +1127,7 @@ public partial class GameRoot : Node3D
         var hit = GetWorld3D().DirectSpaceState.IntersectRay(query);
         if (!hit.TryGetValue("position", out var position)) return desired;
         if (exteriorTerrain && hit.TryGetValue("collider", out var collider) &&
-            collider.AsGodotObject() is Node terrainCollider &&
-            terrainCollider.Name == "TerrainCollision")
+            IsTerrainCollision(collider.AsGodotObject()))
         {
             return desired;
         }
@@ -1117,6 +1143,30 @@ public partial class GameRoot : Node3D
         }
         return focus + (direction * resolution.CameraDistance);
     }
+
+    private bool TryGetExteriorGroundHeight(out Func<float, float, float> heightAt)
+    {
+        if (_interiorWalkableBounds is null && _activeArea?.Kind == AreaKind.Exterior)
+        {
+            if (_activeArea.World.PlacementSurface is { } placementSurface)
+            {
+                heightAt = placementSurface.HeightAt;
+                return true;
+            }
+            if (_activeTerrain?.Enabled == true)
+            {
+                heightAt = _activeTerrain.HeightAt;
+                return true;
+            }
+        }
+
+        heightAt = static (_, _) => 0;
+        return false;
+    }
+
+    private static bool IsTerrainCollision(GodotObject? collider) => collider is Node node &&
+        (node.Name == "TerrainCollision" ||
+         node.HasMeta("openrpg_terrain_collision") && node.GetMeta("openrpg_terrain_collision").AsBool());
 
     private void ApplyCameraOccluderTreatment(
         Godot.Collections.Dictionary hit,

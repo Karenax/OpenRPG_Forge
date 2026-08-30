@@ -22,6 +22,7 @@ public sealed record AssistedAreaPlanDefinition
     public decimal EstimatedCostUsd { get; }
     public string ProviderKey { get; }
     public string Provenance { get; }
+    public AssistedAreaEnvironmentIntent EnvironmentIntent { get; }
 
     public AssistedAreaPlanDefinition(
         Guid id,
@@ -41,7 +42,8 @@ public sealed record AssistedAreaPlanDefinition
         bool approvedForConstruction,
         decimal estimatedCostUsd,
         string providerKey,
-        string provenance)
+        string provenance,
+        AssistedAreaEnvironmentIntent? environmentIntent = null)
     {
         Id = id;
         SchemaVersion = schemaVersion;
@@ -61,11 +63,13 @@ public sealed record AssistedAreaPlanDefinition
         EstimatedCostUsd = estimatedCostUsd;
         ProviderKey = (providerKey ?? string.Empty).Trim().ToLowerInvariant();
         Provenance = (provenance ?? string.Empty).Trim();
+        EnvironmentIntent = environmentIntent ?? AssistedAreaEnvironmentIntent.Default;
     }
 
     public AssistedAreaPlanDefinition WithApproval(bool approved, string provenance) =>
         new(Id, SchemaVersion, AreaId, Title, Archetype, Seed, WidthMeters, DepthMeters, KitBlueprintIds,
-            Constraints, Objectives, Nodes, Links, LoreSourceIds, approved, EstimatedCostUsd, ProviderKey, provenance);
+            Constraints, Objectives, Nodes, Links, LoreSourceIds, approved, EstimatedCostUsd, ProviderKey,
+            provenance, EnvironmentIntent);
 
     private static IReadOnlyList<string> Normalize(IReadOnlyList<string>? values, bool lower = false) =>
         (values ?? []).Select(item => (item ?? string.Empty).Trim())

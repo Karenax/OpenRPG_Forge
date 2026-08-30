@@ -24,6 +24,8 @@ public sealed record AssetVaultInstalledAsset
 
     public IReadOnlyList<AssetVaultInstalledFile> Files { get; }
 
+    public AssetIntelligenceProfile? Intelligence { get; }
+
     public AssetVaultInstalledAsset(
         AssetCatalogItemId assetId,
         string externalId,
@@ -35,7 +37,8 @@ public sealed record AssetVaultInstalledAsset
         string licenseUrl,
         bool attributionRequired,
         string attributionText,
-        IReadOnlyList<AssetVaultInstalledFile> files)
+        IReadOnlyList<AssetVaultInstalledFile> files,
+        AssetIntelligenceProfile? intelligence = null)
     {
         ArgumentNullException.ThrowIfNull(assetId);
         ArgumentException.ThrowIfNullOrWhiteSpace(externalId);
@@ -67,5 +70,20 @@ public sealed record AssetVaultInstalledAsset
         AttributionRequired = attributionRequired;
         AttributionText = attributionText?.Trim() ?? string.Empty;
         Files = files.OrderBy(file => file.Role).ToArray();
+        if (intelligence is not null)
+        {
+            if (!string.Equals(intelligence.ExternalId, ExternalId, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new ArgumentException("Installed asset intelligence external ID does not match the asset.", nameof(intelligence));
+            }
+
+            var diagnostic = AssetIntelligenceProfileValidator.Validate(intelligence).FirstOrDefault();
+            if (diagnostic is not null)
+            {
+                throw new ArgumentException(diagnostic.Message, nameof(intelligence));
+            }
+        }
+
+        Intelligence = intelligence;
     }
 }

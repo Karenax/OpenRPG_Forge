@@ -102,6 +102,11 @@ public static class WorldGenerationPromotionStore
                 !string.Equals(report.PlanFingerprint, job.Plan.PlanFingerprint, StringComparison.Ordinal))
                 return InspectionFailure(EvidenceMismatchCode,
                     "Validation report does not match the completed job.", reportRelative);
+            var spatialDiagnostics = WorldGenerationSpatialEvidenceValidator.Validate(
+                report.TerrainSurface, report.EnvironmentOccupancy);
+            if (spatialDiagnostics.Count > 0)
+                return InspectionFailure(EvidenceMismatchCode,
+                    string.Join(" | ", spatialDiagnostics), reportRelative);
 
             var neutral = ValidateNeutralScene(workspaceRoot, sceneRelative);
             if (!neutral.Succeeded)
@@ -411,8 +416,40 @@ public static class WorldGenerationPromotionStore
             !string.Equals(promotion.CanonicalSceneRelativePath,
                 PromoteWorldGenerationHandler.CanonicalScenePath(promotion.AreaId), StringComparison.Ordinal) ||
             promotion.Providers is null || promotion.Providers.Count == 0 ||
-            promotion.ProtectedNodePaths is null || string.IsNullOrWhiteSpace(promotion.AcceptanceProvenance))
+            promotion.ProtectedNodePaths is null || string.IsNullOrWhiteSpace(promotion.AcceptanceProvenance) ||
+            promotion.ProductionVisuals is null ||
+            promotion.ProductionVisuals.SchemaVersion is < 2 or > WorldGenerationProductionVisualEvidence.CurrentSchemaVersion ||
+            promotion.ProductionVisuals.SourceAreaId == Guid.Empty ||
+            promotion.ProductionVisuals.TexturedTerrainLayerCount <= 0 ||
+            promotion.ProductionVisuals.ScatterResourceCount <= 0 ||
+            promotion.ProductionVisuals.VegetationStrata is null ||
+            promotion.ProductionVisuals.VegetationStrata.Count < 3 ||
+            promotion.ProductionVisuals.SpatialQuality is null ||
+            promotion.ProductionVisuals.SpatialQuality.CameraSpawnCount < 0 ||
+            !float.IsFinite(promotion.ProductionVisuals.SpatialQuality.MaximumCameraReliefMeters) ||
+            promotion.ProductionVisuals.SpatialQuality.MaximumCameraReliefMeters < 0 ||
+            promotion.ProductionVisuals.SpatialQuality.GroundedFoundationCount < 0 ||
+            !float.IsFinite(promotion.ProductionVisuals.SpatialQuality.MaximumFoundationOffsetMeters) ||
+            promotion.ProductionVisuals.SpatialQuality.MaximumFoundationOffsetMeters < 0 ||
+            !IsSha256(promotion.ProductionVisuals.Fingerprint))
             throw new InvalidDataException("World-generation canonical promotion manifest is invalid.");
+        if (promotion.ProductionVisuals.SchemaVersion >= 3 &&
+            (promotion.ProductionVisuals.ProductionFeatureCount < 0 ||
+             promotion.ProductionVisuals.TexturedRoadCount < 0 ||
+             promotion.ProductionVisuals.TexturedRoadCount > promotion.ProductionVisuals.ProductionFeatureCount))
+            throw new InvalidDataException("World-generation production feature evidence is invalid.");
+        if (promotion.ProductionVisuals.SchemaVersion >= 4 &&
+            (promotion.ProductionVisuals.PaintedTerrainCellCount <= 0 ||
+             promotion.ProductionVisuals.PaintedTerrainLayerCount <= 0 ||
+             !float.IsFinite(promotion.ProductionVisuals.TerrainSampleSpacingMeters) ||
+             promotion.ProductionVisuals.TerrainSampleSpacingMeters <= 0))
+            throw new InvalidDataException("World-generation production terrain evidence is invalid.");
+        if ((promotion.TerrainSurface is null) != (promotion.EnvironmentOccupancy is null))
+            throw new InvalidDataException("World-generation spatial evidence must be complete.");
+        if (promotion.TerrainSurface is not null &&
+            WorldGenerationSpatialEvidenceValidator.Validate(
+                promotion.TerrainSurface, promotion.EnvironmentOccupancy).Count > 0)
+            throw new InvalidDataException("World-generation spatial evidence is invalid.");
     }
 
     private static WorldGenerationPromotionInspectionResult InspectionFailure(

@@ -28,7 +28,7 @@ public static class AssetBlueprintFactory
             BlueprintId.From(new Guid(bytes[..16])),
             slug,
             item.DisplayName,
-            BlueprintKind.Placeable,
+            ResolveKind(item.Intelligence.SemanticType),
             paletteOrigin: BlueprintPaletteOrigin.ProjectContent,
             isFavorite: true,
             provenance: new BlueprintProvenance(
@@ -66,4 +66,14 @@ public static class AssetBlueprintFactory
             return false;
         }
     }
+
+    private static BlueprintKind ResolveKind(string semanticType) => semanticType.Trim().ToLowerInvariant() switch
+    {
+        "door" => BlueprintKind.Door,
+        "character" or "creature" => BlueprintKind.Creature,
+        "item" or "weapon" => BlueprintKind.Item,
+        "spawn" or "player-spawn" => BlueprintKind.PlayerSpawn,
+        "trigger" => BlueprintKind.Trigger,
+        _ => BlueprintKind.Placeable,
+    };
 }

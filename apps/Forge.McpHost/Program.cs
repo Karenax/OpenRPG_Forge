@@ -60,6 +60,8 @@ var toolSerializerOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web
     TypeInfoResolver = new DefaultJsonTypeInfoResolver(),
 };
 toolSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+toolSerializerOptions.Converters.Add(new McpBlueprintIdJsonConverter());
+toolSerializerOptions.Converters.Add(new McpEntityIdJsonConverter());
 toolSerializerOptions.Converters.Add(new McpVector3ValueJsonConverter());
 toolSerializerOptions.Converters.Add(new McpQuaternionValueJsonConverter());
 

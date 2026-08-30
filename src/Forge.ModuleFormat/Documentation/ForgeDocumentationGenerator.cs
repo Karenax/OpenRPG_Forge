@@ -15,7 +15,7 @@ public static class ForgeDocumentationGenerator
 {
     private static readonly IReadOnlyList<string> CliCommands =
     [
-        "assets list|install-pack|uninstall-pack|report|delivery-report|credits|prepare|roundtrip|finalize-roundtrip",
+        "assets list|analyze-catalog|install-pack|uninstall-pack|report|delivery-report|credits|prepare|roundtrip|finalize-roundtrip",
         "content batch|export-blueprints|merge-table",
         "docs generate|check", "package export|validate|load|analyze|compliance|keygen|sign|verify-signature",
         "package delta|apply-delta|bundle|spatial|diagnose", "workspace migrate", "author-sample",

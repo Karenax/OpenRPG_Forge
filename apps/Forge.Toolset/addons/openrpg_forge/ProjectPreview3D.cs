@@ -1233,6 +1233,8 @@ public partial class ProjectPreview3D : SubViewportContainer
                     "kaykit-adventurer" => GodotAssetAnimationController.Configure(
                         model,
                         idle: AnimationClip("runtime.animationIdle", "Idle"),
+                        walk: entity.Overrides.Properties.SingleOrDefault(property =>
+                            string.Equals(property.Key, "runtime.animationWalk", StringComparison.Ordinal))?.Value,
                         run: AnimationClip("runtime.animationRun", "Running_A"),
                         jump: AnimationClip("runtime.animationJump", "Jump_Full_Short"),
                         attack: AnimationClip("runtime.animationAttack", "1H_Melee_Attack_Slice_Horizontal"),

@@ -108,6 +108,7 @@ public sealed partial class ForgeProjectAgentService
     private readonly List<AgentDiagnostic> _externalWorkerSecurityLoadDiagnostics;
     private readonly SetEntityOverridesHandler _overridesHandler;
     private readonly ScaleEntitiesHandler _scaleEntitiesHandler;
+    private readonly TranslateEntitiesHandler _translateEntitiesHandler;
     private readonly SetCreatureEventsHandler _creatureEventsHandler;
     private readonly SetCreatureFoundationHandler _creatureFoundationHandler;
     private readonly SetFactionCatalogHandler _factionHandler;
@@ -173,6 +174,8 @@ public sealed partial class ForgeProjectAgentService
         new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredAreaPlaytestPlan> _areaPlaytestPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredEntityScalePlan> _entityScalePlans = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, StoredEntityTranslationPlan> _entityTranslationPlans =
+        new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredWaypointPlan> _waypointPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredRulesProfilePlan> _rulesProfilePlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredAreaExperiencePlan> _areaExperiencePlans = new(StringComparer.Ordinal);
@@ -232,6 +235,7 @@ public sealed partial class ForgeProjectAgentService
             new AgentDiagnostic(item.Code, item.Message, item.Path)).ToList();
         _overridesHandler = new SetEntityOverridesHandler(clock);
         _scaleEntitiesHandler = new ScaleEntitiesHandler(clock);
+        _translateEntitiesHandler = new TranslateEntitiesHandler(clock);
         _creatureEventsHandler = new SetCreatureEventsHandler(clock);
         _creatureFoundationHandler = new SetCreatureFoundationHandler(clock);
         _factionHandler = new SetFactionCatalogHandler(clock);
@@ -4235,6 +4239,117 @@ public sealed partial class ForgeProjectAgentService
         }
     }
 
+    public EntityTranslationPlanResult PlanEntityTranslation(EntityTranslationPlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1)
+                return EntityTranslationFailure(request.BaseRevision,
+                    "entity_translation_plan.schema_unsupported", "Entity translation plan schema must be 1.");
+            if (!Guid.TryParse(request.AreaId, out var areaValue))
+                return EntityTranslationFailure(request.BaseRevision,
+                    "entity_translation_plan.area_id_invalid", "Area ID must be a UUID.");
+            var entityIds = new List<EntityId>();
+            foreach (var value in request.EntityIds)
+            {
+                if (!Guid.TryParse(value, out var parsed))
+                    return EntityTranslationFailure(request.BaseRevision,
+                        "entity_translation_plan.entity_id_invalid", $"Entity ID '{value}' must be a UUID.");
+                entityIds.Add(EntityId.From(parsed));
+            }
+
+            var command = new TranslateEntitiesCommand(
+                CommandId.From(Guid.NewGuid()),
+                new ProjectRevision(request.BaseRevision),
+                AreaId.From(areaValue),
+                entityIds,
+                request.Delta,
+                DryRun: true);
+            var preview = _translateEntitiesHandler.Handle(_history.State, command);
+            if (!preview.Succeeded)
+                return new(false, null, request.BaseRevision, preview.Patch, preview.Inverse,
+                    preview.Diagnostics.Select(Map).ToArray(), false, false, []);
+
+            var planId = Guid.NewGuid().ToString("D");
+            var plan = new StoredEntityTranslationPlan(planId, command, preview.Patch!, preview.Inverse!,
+                [new EntityTranslationAuditEntry(planId, "planned", request.BaseRevision, _clock.UtcNow, true)]);
+            _entityTranslationPlans.Add(planId, plan);
+            return ToResult(plan);
+        }
+    }
+
+    public EntityTranslationPlanResult ApplyEntityTranslationPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_entityTranslationPlans.TryGetValue(planId, out var plan))
+                return EntityTranslationFailure(GetCurrentRevision(), "entity_translation_plan.missing",
+                    $"Entity translation plan '{planId}' does not exist.");
+            if (plan.Applied)
+                return EntityTranslationFailure(plan.Command.BaseRevision.Value,
+                    "entity_translation_plan.already_applied",
+                    $"Entity translation plan '{planId}' is already applied.");
+
+            var command = plan.Command with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false };
+            var result = _translateEntitiesHandler.Handle(_history.State, command);
+            if (!result.Succeeded)
+            {
+                plan.Audit.Add(new(planId, "apply", _history.State.Revision.Value, _clock.UtcNow, false));
+                return ToResult(plan) with
+                {
+                    Succeeded = false,
+                    Diagnostics = result.Diagnostics.Select(Map).ToArray(),
+                };
+            }
+
+            var saved = _session.Save(result.State.Project);
+            if (!saved.Succeeded)
+                return ToResult(plan) with
+                {
+                    Succeeded = false,
+                    Diagnostics = saved.Diagnostics.Select(item =>
+                        new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray(),
+                };
+            _history.Record(result);
+            plan.Applied = true;
+            plan.AppliedRevision = result.NewRevision!.Value.Value;
+            plan.Audit.Add(new(planId, "apply", plan.AppliedRevision.Value, _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
+    public EntityTranslationPlanResult RevertEntityTranslationPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_entityTranslationPlans.TryGetValue(planId, out var plan) || !plan.Applied || plan.Reverted)
+                return EntityTranslationFailure(GetCurrentRevision(), "entity_translation_plan.not_applied",
+                    $"Entity translation plan '{planId}' is not currently applied.");
+            if (plan.AppliedRevision != _history.State.Revision.Value)
+                return EntityTranslationFailure(plan.Command.BaseRevision.Value,
+                    "entity_translation_plan.revision_conflict",
+                    "Only the most recently applied plan can be reverted without overwriting later work.");
+
+            var undone = _history.Undo();
+            if (!undone.Succeeded)
+                return EntityTranslationFailure(plan.Command.BaseRevision.Value,
+                    "entity_translation_plan.inverse_unavailable", "The inverse operation is unavailable.");
+            var saved = _session.Save(undone.State.Project);
+            if (!saved.Succeeded)
+            {
+                _history.Redo();
+                return EntityTranslationFailure(plan.Command.BaseRevision.Value,
+                    "entity_translation_plan.save_failed", "The reverted project could not be saved.");
+            }
+            plan.Reverted = true;
+            plan.Audit.Add(new(planId, "revert", undone.State.Revision.Value, _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
     public AreaFoundationResource GetAreaFoundation(string areaId)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(areaId);
@@ -5185,6 +5300,16 @@ public sealed partial class ForgeProjectAgentService
     private static EntityScalePlanResult ToResult(StoredEntityScalePlan plan) => new(true, plan.PlanId,
         plan.Command.BaseRevision.Value, plan.Diff, plan.Inverse, [], plan.Applied, plan.Reverted,
         plan.Audit.ToArray());
+
+    private static EntityTranslationPlanResult EntityTranslationFailure(
+        long revision,
+        string code,
+        string message) =>
+        new(false, null, revision, null, null, [new AgentDiagnostic(code, message)], false, false, []);
+
+    private static EntityTranslationPlanResult ToResult(StoredEntityTranslationPlan plan) =>
+        new(true, plan.PlanId, plan.Command.BaseRevision.Value, plan.Diff, plan.Inverse, [], plan.Applied,
+            plan.Reverted, plan.Audit.ToArray());
 
     public RulesProfileResource GetRules(string? areaId = null)
     {
@@ -6271,8 +6396,9 @@ public sealed partial class ForgeProjectAgentService
                 request.CompositionNodes.Select(item => new PrefabCompositionNode(Guid.Parse(item.NodeId),
                     BlueprintId.Parse(item.BlueprintId), string.IsNullOrWhiteSpace(item.ParentNodeId)
                         ? null : Guid.Parse(item.ParentNodeId), item.Socket,
-                    new TransformValue(new Vector3Value(item.X, item.Y, item.Z), QuaternionValue.Identity,
-                        Vector3Value.One))).ToArray(), request.AssemblyRules, request.Parameters,
+                    item.Transform ?? new TransformValue(new Vector3Value(item.X, item.Y, item.Z),
+                        QuaternionValue.Identity, Vector3Value.One), item.Tags, item.Overrides)).ToArray(),
+                request.AssemblyRules, request.Parameters,
                 request.AssemblyScripts, request.CompositionRequired);
         BlueprintAssetBudgetProfile? budget = null;
         if (request.AssetMetrics is not null || request.PlatformBudgets.Count > 0)
@@ -6306,7 +6432,8 @@ public sealed partial class ForgeProjectAgentService
             variant?.RequiredAtRuntime ?? false, composition?.Nodes.Select(value =>
                 new AgentPrefabCompositionNode(value.Id.ToString("D"), value.BlueprintId.ToString(),
                     value.ParentNodeId?.ToString("D"), value.Socket, value.Transform.Position.X,
-                    value.Transform.Position.Y, value.Transform.Position.Z)).ToArray() ?? [],
+                    value.Transform.Position.Y, value.Transform.Position.Z, value.Transform, value.Tags,
+                    value.Overrides)).ToArray() ?? [],
             composition?.AssemblyRules ?? [], composition?.Parameters ?? [], composition?.AssemblyScripts ?? [],
             composition?.RequiredAtRuntime ?? false, budget is null ? null : new AgentAssetBudgetMetrics(
                 budget.Metrics.TriangleCount, budget.Metrics.MaterialCount, budget.Metrics.TextureCount,
@@ -8205,6 +8332,23 @@ public sealed partial class ForgeProjectAgentService
         public ProjectPatch Diff { get; } = diff;
         public ProjectPatch Inverse { get; } = inverse;
         public List<EntityScaleAuditEntry> Audit { get; } = audit;
+        public bool Applied { get; set; }
+        public bool Reverted { get; set; }
+        public long? AppliedRevision { get; set; }
+    }
+
+    private sealed class StoredEntityTranslationPlan(
+        string planId,
+        TranslateEntitiesCommand command,
+        ProjectPatch diff,
+        ProjectPatch inverse,
+        List<EntityTranslationAuditEntry> audit)
+    {
+        public string PlanId { get; } = planId;
+        public TranslateEntitiesCommand Command { get; } = command;
+        public ProjectPatch Diff { get; } = diff;
+        public ProjectPatch Inverse { get; } = inverse;
+        public List<EntityTranslationAuditEntry> Audit { get; } = audit;
         public bool Applied { get; set; }
         public bool Reverted { get; set; }
         public long? AppliedRevision { get; set; }

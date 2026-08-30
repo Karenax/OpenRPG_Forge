@@ -99,6 +99,18 @@ func _initialize() -> void:
                 absf(float(terrain_aabb_size[2]) - 256.0) > 1.0:
             _fail("Provider-neutral terrain extent does not match the 256 m recipe: %s" % [terrain_aabb_size])
             return
+        var placement_surface: Dictionary = run_bake_result.get("terrainSurface", {})
+        var environment_occupancy: Dictionary = run_bake_result.get("environmentOccupancy", {})
+        if int(placement_surface.get("schemaVersion", 0)) != 1 or \
+                int(placement_surface.get("width", 0)) != 256 or \
+                int(placement_surface.get("depth", 0)) != 256 or \
+                (placement_surface.get("heights", []) as Array).is_empty() or \
+                str(placement_surface.get("fingerprint", "")).length() != 64 or \
+                int(environment_occupancy.get("schemaVersion", 0)) != 1 or \
+                (environment_occupancy.get("cells", []) as Array).is_empty() or \
+                str(environment_occupancy.get("fingerprint", "")).length() != 64:
+            _fail("Provider-neutral bake did not publish canonical placement/environment evidence: %s" % [run_bake_result])
+            return
         scene_content_fingerprints.append(str(run_bake_result.contentFingerprint))
         bake_result = run_bake_result
 

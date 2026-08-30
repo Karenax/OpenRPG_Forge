@@ -8,6 +8,9 @@ const NEUTRAL_BAKER_SCRIPT_PATH := "res://addons/openrpg_world_generation/neutra
 const GENERATED_ROOT_NAME := "OpenRPGGeneratedWorld"
 const MANUAL_LOCK_META := "openrpg_manual_lock"
 const TERRAIN_FALLBACK_REGION_SIZE := 256
+const PRODUCTION_TERRAIN_SAMPLE_SPACING_METERS := 4.0
+const MAX_CANONICAL_TERRAIN_CELLS := 256
+const GOLDEN_ANGLE_RADIANS := 2.399963229728653
 
 const ALLOWED_OPERATIONS := {
     "terrain3d:terrain": "terrain3d.generate_heightfield",
@@ -133,18 +136,23 @@ func _execute_terrain3d(request: Dictionary) -> Dictionary:
         return _failure("world_generation.terrain3d.data_unavailable", "Terrain3D data import API is unavailable.")
 
     var recipe: Dictionary = request.get("recipe", {})
+    var bounds: Dictionary = recipe.get("bounds", {})
+    var width := maxf(float(bounds.get("widthMeters", 2048.0)), 1.0)
+    var depth := maxf(float(bounds.get("depthMeters", 2048.0)), 1.0)
     var terrain_region_size := TERRAIN_FALLBACK_REGION_SIZE
     if terrain.has_method("get_region_size"):
         terrain_region_size = maxi(int(terrain.call("get_region_size")), 1)
-    var height_sample_count := terrain_region_size
+    var effective_region_size := mini(terrain_region_size, MAX_CANONICAL_TERRAIN_CELLS)
+    var desired_cell_count := ceili(maxf(width, depth) / PRODUCTION_TERRAIN_SAMPLE_SPACING_METERS)
+    var region_count := maxi(1, ceili(float(desired_cell_count) / float(effective_region_size)))
+    var height_sample_count := mini(
+        region_count * effective_region_size,
+        MAX_CANONICAL_TERRAIN_CELLS)
     var image := _build_height_image(recipe, height_sample_count)
     var images: Array[Image] = []
     images.resize(3)
     images[0] = image
-    var bounds: Dictionary = recipe.get("bounds", {})
-    var width := maxf(float(bounds.get("widthMeters", 2048.0)), 1.0)
-    var depth := maxf(float(bounds.get("depthMeters", 2048.0)), 1.0)
-    var vertex_spacing := maxf(width, depth) / float(terrain_region_size)
+    var vertex_spacing := maxf(width, depth) / float(height_sample_count)
     terrain.set("vertex_spacing", vertex_spacing)
     var applied_vertex_spacing := float(terrain.get("vertex_spacing"))
     if not is_equal_approx(applied_vertex_spacing, vertex_spacing):
@@ -162,6 +170,8 @@ func _execute_terrain3d(request: Dictionary) -> Dictionary:
     var result := _success([terrain.get_path()])
     result["vertexSpacingMeters"] = applied_vertex_spacing
     result["regionSizeVertices"] = terrain_region_size
+    result["heightmapCellCount"] = height_sample_count
+    result["terrainRegionsPerAxis"] = maxi(1, height_sample_count / effective_region_size)
     return result
 
 func _execute_pcg(request: Dictionary) -> Dictionary:
@@ -290,6 +300,8 @@ func _find_multimesh_instances(node: Node) -> Array[MultiMeshInstance3D]:
 func _remap_generated_instances(executor: Node, stage: String, request: Dictionary) -> void:
     var recipe_variant: Variant = request.get("recipe", {})
     var recipe: Dictionary = recipe_variant as Dictionary if typeof(recipe_variant) == TYPE_DICTIONARY else {}
+    if stage == "settlements":
+        _apply_settlement_building_count(executor, recipe)
     var bounds_variant: Variant = recipe.get("bounds", {})
     var bounds: Dictionary = bounds_variant as Dictionary if typeof(bounds_variant) == TYPE_DICTIONARY else {}
     var width := maxf(float(bounds.get("widthMeters", 2048.0)), 32.0)
@@ -310,8 +322,9 @@ func _remap_generated_instances(executor: Node, stage: String, request: Dictiona
                         24.0 + normalized_index * maxf(width - 48.0, 1.0),
                         depth * 0.5 + sin(normalized_index * TAU * 2.0) * minf(depth * 0.12, 96.0))
                 "settlements":
-                    var angle := normalized_index * TAU * 2.0
-                    var ring := 18.0 + float(global_index % 5) * 14.0
+                    var angle := float(global_index) * GOLDEN_ANGLE_RADIANS + \
+                        _unit_hash(seed, stage, 0, 3) * TAU
+                    var ring := 22.0 + sqrt(float(global_index)) * 16.0
                     horizontal = Vector2(width * 0.72 + cos(angle) * ring, depth * 0.72 + sin(angle) * ring)
                 _:
                     horizontal = Vector2(
@@ -325,6 +338,33 @@ func _remap_generated_instances(executor: Node, stage: String, request: Dictiona
             transform.basis = Basis.IDENTITY.scaled(Vector3.ONE * variation)
             multimesh.set_instance_transform(index, transform)
             global_index += 1
+
+func _apply_settlement_building_count(executor: Node, recipe: Dictionary) -> void:
+    var settlement_variants: Variant = recipe.get("settlements", [])
+    if typeof(settlement_variants) != TYPE_ARRAY:
+        return
+    var requested_count := 0
+    var has_building_count := false
+    for settlement_variant: Variant in settlement_variants as Array:
+        if typeof(settlement_variant) != TYPE_DICTIONARY:
+            continue
+        var settlement := settlement_variant as Dictionary
+        if not settlement.has("buildingCount"):
+            continue
+        has_building_count = true
+        requested_count += maxi(int(settlement.get("buildingCount", 0)), 0)
+    if not has_building_count:
+        return
+    var instances := _find_multimesh_instances(executor)
+    if instances.is_empty():
+        return
+    var count_per_instance := requested_count / instances.size()
+    var remainder := requested_count % instances.size()
+    for instance_index in instances.size():
+        var multimesh := instances[instance_index].multimesh
+        if multimesh == null:
+            continue
+        multimesh.instance_count = count_per_instance + (1 if instance_index < remainder else 0)
 
 func _unit_hash(seed: int, stage: String, index: int, channel: int) -> float:
     var digest := ("%d|%s|%d|%d" % [seed, stage, index, channel]).sha256_text()
@@ -345,7 +385,9 @@ func _apply_artistic_stage_visuals(executor: Node, stage: String, request: Dicti
         instance.multimesh.mesh = mesh
         instance.material_override = null
         instance.set_meta("openrpg_artistic_role", stage)
+        instance.set_meta("openrpg_environment_category", "vegetation" if stage == "biomes" else stage)
         instance.set_meta("openrpg_recipe_driven", true)
+        instance.set_meta("openrpg_visual_tier", "technical_proxy")
         instance.set_meta("openrpg_recipe_title", str(recipe.get("title", "generated-world")))
         count += instance.multimesh.instance_count
         visual_index += 1
@@ -509,7 +551,6 @@ func _execute_native_validation(request: Dictionary) -> Dictionary:
     return _success([generated_root.get_path(), terrain.get_path()])
 
 func _execute_native_terrain(request: Dictionary) -> Dictionary:
-    const SAMPLE_COUNT := 65
     var generated_root := _generated_root(request)
     var node_name := "Native_Terrain"
     var previous := generated_root.get_node_or_null(node_name)
@@ -523,26 +564,31 @@ func _execute_native_terrain(request: Dictionary) -> Dictionary:
     var width := maxf(float(bounds.get("widthMeters", 2048.0)), 1.0)
     var depth := maxf(float(bounds.get("depthMeters", 2048.0)), 1.0)
     var elevation := maxf(float(bounds.get("maxElevationMeters", 320.0)), 1.0)
-    var image := _build_height_image(recipe, SAMPLE_COUNT)
+    var sample_cell_count := clampi(
+        ceili(maxf(width, depth) / PRODUCTION_TERRAIN_SAMPLE_SPACING_METERS),
+        1,
+        MAX_CANONICAL_TERRAIN_CELLS)
+    var sample_count := sample_cell_count + 1
+    var image := _build_height_image(recipe, sample_count)
     var vertices := PackedVector3Array()
     var normals := PackedVector3Array()
     var uvs := PackedVector2Array()
     var indices := PackedInt32Array()
-    vertices.resize(SAMPLE_COUNT * SAMPLE_COUNT)
-    normals.resize(SAMPLE_COUNT * SAMPLE_COUNT)
-    uvs.resize(SAMPLE_COUNT * SAMPLE_COUNT)
-    for z in range(SAMPLE_COUNT):
-        for x in range(SAMPLE_COUNT):
-            var index := z * SAMPLE_COUNT + x
-            var u := float(x) / float(SAMPLE_COUNT - 1)
-            var v := float(z) / float(SAMPLE_COUNT - 1)
+    vertices.resize(sample_count * sample_count)
+    normals.resize(sample_count * sample_count)
+    uvs.resize(sample_count * sample_count)
+    for z in range(sample_count):
+        for x in range(sample_count):
+            var index := z * sample_count + x
+            var u := float(x) / float(sample_count - 1)
+            var v := float(z) / float(sample_count - 1)
             vertices[index] = Vector3((u - 0.5) * width, image.get_pixel(x, z).r * elevation, (v - 0.5) * depth)
             normals[index] = Vector3.UP
             uvs[index] = Vector2(u, v)
-    for z in range(SAMPLE_COUNT - 1):
-        for x in range(SAMPLE_COUNT - 1):
-            var top_left := z * SAMPLE_COUNT + x
-            var bottom_left := top_left + SAMPLE_COUNT
+    for z in range(sample_count - 1):
+        for x in range(sample_count - 1):
+            var top_left := z * sample_count + x
+            var bottom_left := top_left + sample_count
             indices.append_array(PackedInt32Array([
                 top_left, bottom_left, top_left + 1,
                 top_left + 1, bottom_left, bottom_left + 1,

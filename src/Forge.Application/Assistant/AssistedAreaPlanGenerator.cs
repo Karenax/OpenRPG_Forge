@@ -118,7 +118,8 @@ public static class AssistedAreaPlanGenerator
             approvedForConstruction: false,
             estimatedCostUsd,
             providerKey,
-            $"{brief.Provenance}:{providerProvenance}{contractProvenance}:prompt-{promptSha256}");
+            $"{brief.Provenance}:{providerProvenance}{contractProvenance}:prompt-{promptSha256}",
+            brief.EnvironmentIntent);
         var catalog = new AssistedAreaPlanCatalog(
             Guid.Parse("b1240000-0000-4000-8000-000000000001"),
             1,

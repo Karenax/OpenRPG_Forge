@@ -360,6 +360,18 @@ func _validate_bake(result: Dictionary) -> String:
         return "instance-count"
     if str(result.get("contentFingerprint", "")).length() != 64:
         return "content-fingerprint"
+    var placement_surface: Dictionary = result.get("terrainSurface", {})
+    var environment_occupancy: Dictionary = result.get("environmentOccupancy", {})
+    if int(placement_surface.get("schemaVersion", 0)) != 1 or \
+            int(placement_surface.get("width", 0)) != 2048 or \
+            int(placement_surface.get("depth", 0)) != 2048 or \
+            (placement_surface.get("heights", []) as Array).is_empty() or \
+            str(placement_surface.get("fingerprint", "")).length() != 64:
+        return "terrain-placement-evidence"
+    if int(environment_occupancy.get("schemaVersion", 0)) != 1 or \
+            (environment_occupancy.get("cells", []) as Array).is_empty() or \
+            str(environment_occupancy.get("fingerprint", "")).length() != 64:
+        return "environment-occupancy-evidence"
     var terrain_size: Array = result.get("terrainAabbSize", [])
     if terrain_size.size() != 3 or absf(float(terrain_size[0]) - 2048.0) > 1.0 or \
             absf(float(terrain_size[2]) - 2048.0) > 1.0:

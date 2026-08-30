@@ -101,6 +101,11 @@ public static class CuratedAnimatedCharacterInstaller
             null,
             null,
             provenance);
+        item = item.WithIntelligence(AssetIntelligenceProfileAnalyzer.Analyze(
+            item,
+            modelPath,
+            new[] { skinPath }.Concat(animations.Select(animation =>
+                ResolveContained(vault, animation.RelativePath))).ToArray()));
         var profile = new AssetProcessingProfile(
             assetId,
             AssetProcessingProfile.CurrentSchemaVersion,

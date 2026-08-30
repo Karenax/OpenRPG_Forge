@@ -13,4 +13,5 @@ public sealed record AssistedAreaPlanBrief(
     IReadOnlyList<string> Constraints,
     IReadOnlyList<string> Objectives,
     IReadOnlyList<string> LoreSourceIds,
-    string Provenance);
+    string Provenance,
+    Forge.Domain.Assistant.AssistedAreaEnvironmentIntent? EnvironmentIntent = null);

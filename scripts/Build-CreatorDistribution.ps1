@@ -118,8 +118,8 @@ if ($LASTEXITCODE -ne 0) {
 $mcpToolManifest = Get-Content -LiteralPath (Join-Path $mcpTarget 'mcp-tools.json') -Raw |
     ConvertFrom-Json
 $mcpToolCount = @($mcpToolManifest.toolNames).Count
-if ($mcpToolCount -ne 271) {
-    throw "The Creator distribution MCP inventory contains $mcpToolCount tools instead of 271."
+if ($mcpToolCount -ne 275) {
+    throw "The Creator distribution MCP inventory contains $mcpToolCount tools instead of 275."
 }
 
 $engineTarget = Join-Path $outputPath 'engine'

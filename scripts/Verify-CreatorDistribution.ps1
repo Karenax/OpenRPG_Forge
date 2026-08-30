@@ -45,8 +45,8 @@ if ($launcherVerification.ExitCode -ne 0) {
 }
 
 if (-not $manifest.mcp_inventory_verified -or -not $manifest.mcp_smoke_verified -or
-    [int]$manifest.mcp_tool_count -ne 271) {
-    throw 'The Creator manifest does not prove the complete 271-tool MCP host.'
+    [int]$manifest.mcp_tool_count -ne 275) {
+    throw 'The Creator manifest does not prove the complete 275-tool MCP host.'
 }
 $mcpHost = Join-Path $distributionPath 'mcp/Forge.McpHost.exe'
 $mcpWorkspace = Join-Path $distributionPath 'workspace/apps/Forge.Runtime/content/crypt-of-ashes'

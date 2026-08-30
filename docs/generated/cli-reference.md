@@ -1,6 +1,6 @@
 # Référence CLI OpenRPG Forge
 
-- `forge assets list|install-pack|uninstall-pack|report|delivery-report|credits|prepare|roundtrip|finalize-roundtrip`
+- `forge assets list|analyze-catalog|install-pack|uninstall-pack|report|delivery-report|credits|prepare|roundtrip|finalize-roundtrip`
 - `forge content batch|export-blueprints|merge-table`
 - `forge docs generate|check`
 - `forge package export|validate|load|analyze|compliance|keygen|sign|verify-signature`

@@ -267,6 +267,9 @@ public partial class GameRoot
 
     private Node3D CreateBox(EntityInstance entity, string displayName, Color color)
     {
+        var clickInteraction = EntityClickTriggerSettings.Read(entity.Overrides);
+        var isInteractiveDoor = clickInteraction.Enabled &&
+                                clickInteraction.Action == EntityClickTriggerAction.ToggleDoor;
         var root = new Node3D
         {
             Name = SafeNodeName(displayName),
@@ -275,6 +278,12 @@ public partial class GameRoot
         AddChild(root);
 
         var body = new StaticBody3D();
+        if (isInteractiveDoor)
+        {
+            body.InputRayPickable = true;
+            body.MouseEntered += () => Input.SetDefaultCursorShape(Input.CursorShape.PointingHand);
+            body.MouseExited += () => Input.SetDefaultCursorShape(Input.CursorShape.Arrow);
+        }
         if (_gameplayControls?.Climbing.Enabled == true && entity.Tags.Any(tag =>
                 _gameplayControls.Climbing.SurfaceTags.Contains(tag, StringComparer.OrdinalIgnoreCase)))
         {
@@ -332,6 +341,7 @@ public partial class GameRoot
         var isOpenDoorway = entity.Tags.Contains("doorway", StringComparer.Ordinal);
         if (!usesInteriorFloorShell &&
             (requiresFloorCollision ||
+             isInteractiveDoor ||
              (!isOpenDoorway && !entity.Tags.Contains("nonblocking", StringComparer.Ordinal))))
         {
             if (collisionProxy)
@@ -518,7 +528,7 @@ public partial class GameRoot
         {
             BuildProceduralCreatureVisual(root, species, color);
         }
-        else if (!TryAttachVisual(root, entity))
+        else if (!TryAttachVisual(root, entity, alignGroundedVisual: true))
         {
             root.AddChild(new MeshInstance3D
             {

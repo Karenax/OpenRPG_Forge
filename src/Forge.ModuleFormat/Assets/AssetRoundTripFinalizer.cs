@@ -169,6 +169,37 @@ public static class AssetRoundTripFinalizer
                 response.Preview.Bytes,
                 NormalizeRelativePath(response.QualityReportRelativePath),
                 HashFileSha256(qualityPath));
+            var intelligence = manifest.Intelligence ?? item.Intelligence;
+            if (metrics.BoundsMinMeters is { Length: 3 } boundsMinimum &&
+                metrics.BoundsMaxMeters is { Length: 3 } boundsMaximum)
+            {
+                // Blender audits Z-up coordinates. The governed GLB export is Y-up and maps
+                // Blender (x, y, z) to Forge (x, z, -y).
+                var bounds = new AssetMetadataBounds(
+                    new AssetMetadataVector3(
+                        (double)boundsMinimum[0],
+                        (double)boundsMinimum[2],
+                        (double)-boundsMaximum[1]),
+                    new AssetMetadataVector3(
+                        (double)boundsMaximum[0],
+                        (double)boundsMaximum[2],
+                        (double)-boundsMinimum[1]));
+                intelligence = AssetIntelligenceProfileAnalyzer.WithBlenderGeometry(
+                    intelligence,
+                    bounds,
+                    new AssetIntelligenceTechnicalProfile(
+                        metrics.BaseMeshCount,
+                        metrics.VertexCount,
+                        metrics.TriangleCount,
+                        metrics.MaterialCount,
+                        metrics.TextureCount,
+                        metrics.ArmatureCount,
+                        metrics.BoneCount,
+                        metrics.AnimationClipCount,
+                        item.TechnicalMetadata.Materials,
+                        metrics.AnimationClips ?? item.TechnicalMetadata.Animations),
+                    metrics.PivotClass ?? "unknown");
+            }
             var updated = manifest with
             {
                 Chunks = chunks,
@@ -194,6 +225,7 @@ public static class AssetRoundTripFinalizer
                             .ToArray(),
                     },
                 ModelMetadata = metadata,
+                Intelligence = intelligence,
             };
             var diagnostics = AssetPackageManifestValidator.Validate(updated);
             if (diagnostics.Count > 0)
@@ -331,7 +363,15 @@ public static class AssetRoundTripFinalizer
         int TriangleCount,
         int MaterialCount,
         int TextureCount,
-        decimal[] DimensionsMeters);
+        decimal[] DimensionsMeters,
+        decimal[]? BoundsMinMeters = null,
+        decimal[]? BoundsMaxMeters = null,
+        string? PivotClass = null,
+        string? PivotPolicy = null,
+        int? ArmatureCount = null,
+        int? BoneCount = null,
+        int? AnimationClipCount = null,
+        string[]? AnimationClips = null);
 
     private sealed record QualityScores(int Overall);
 }

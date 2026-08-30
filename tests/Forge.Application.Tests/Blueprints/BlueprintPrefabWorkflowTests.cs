@@ -4,6 +4,7 @@ using Forge.Application.Projects;
 using Forge.Application.Tests.Entities;
 using Forge.Domain.Assets;
 using Forge.Domain.Blueprints;
+using Forge.Domain.Entities;
 using Forge.Domain.Projects;
 using Forge.Domain.Spatial;
 
@@ -27,7 +28,10 @@ public sealed class BlueprintPrefabWorkflowTests
              new(PrefabVariantOverrideKind.Material, "body", "asset:ember")], true);
         var composition = new PrefabCompositionDefinition(Guid.NewGuid(), 1, "test:r058",
             [new(nodeId, baseBlueprint.Id, null, "floor", new TransformValue(new Vector3Value(2, 0, 3),
-                QuaternionValue.Identity, Vector3Value.One))], ["socket-compatible"], ["intensity"],
+                QuaternionValue.Identity, Vector3Value.One), ["house-piece"],
+                new EntityPropertyOverrides(1,
+                    [new EntityPropertyOverride("visual.asset", EntityPropertyValueKind.String, "asset:wall")]))],
+            ["socket-compatible"], ["intensity"],
             ["scripts/assemble_ember.as"], true);
         var budget = new BlueprintAssetBudgetProfile(Guid.NewGuid(), 1, "test:r058",
             new(10_000, 2, 3, 4_000_000, 1, 2, 1),
@@ -74,6 +78,51 @@ public sealed class BlueprintPrefabWorkflowTests
         var added = Assert.Single(placed.State.Project.Areas.Single().Entities, item =>
             item.Tags.Contains($"composition:{target.Id}", StringComparer.Ordinal));
         Assert.Equal(new Vector3Value(12, 0, 23), added.Transform.Position);
+        Assert.Contains("house-piece", added.Tags);
+        Assert.Equal("asset:wall", Assert.Single(added.Overrides.Properties).Value);
+    }
+
+    [Fact]
+    public void CompositionPlacementComposesParentRotationScaleAndPreservesNodeContent()
+    {
+        var context = new PlaceEntityTestContext();
+        var child = context.State.Project.Blueprints.Single();
+        var holder = new BlueprintDefinition(BlueprintId.From(Guid.Parse("b0580000-0000-4000-8000-000000000111")),
+            "house-prefab", "House prefab", child.Kind,
+            authoring: new BlueprintAuthoringMetadata(1, "1.0.0", "test.house", "content/house.json",
+                prefabComposition: new PrefabCompositionDefinition(
+                    Guid.Parse("b0580000-0000-4000-8000-000000000112"), 1, "test:house",
+                    [
+                        new PrefabCompositionNode(Guid.Parse("b0580000-0000-4000-8000-000000000113"),
+                            child.Id, null, null,
+                            new TransformValue(new Vector3Value(1, 0, 0), QuaternionValue.Identity,
+                                Vector3Value.One), ["foundation", "nonblocking"],
+                            new EntityPropertyOverrides(1,
+                                [new EntityPropertyOverride("visual.asset", EntityPropertyValueKind.String,
+                                    "asset:foundation")])),
+                        new PrefabCompositionNode(Guid.Parse("b0580000-0000-4000-8000-000000000114"),
+                            child.Id, Guid.Parse("b0580000-0000-4000-8000-000000000113"), null,
+                            new TransformValue(new Vector3Value(0, 0, 1), QuaternionValue.Identity,
+                                Vector3Value.One), ["wall", "nonblocking"],
+                            new EntityPropertyOverrides(1,
+                                [new EntityPropertyOverride("visual.asset", EntityPropertyValueKind.String,
+                                    "asset:wall")]))
+                    ], [], [], [])));
+        var project = new ProjectDefinition(context.State.Project.Id, context.State.Project.Title,
+            context.State.Project.Module, [child, holder], context.State.Project.Areas);
+        var placement = new TransformValue(new Vector3Value(10, 0, 20),
+            new QuaternionValue(0, 0.70710677f, 0, 0.70710677f), new Vector3Value(2, 2, 2));
+
+        var plan = PrefabCompositionPlacementPlanner.Build(project, holder.Id, project.Areas.Single().Id,
+            placement, Guid.Parse("b0580000-0000-4000-8000-000000000115"));
+
+        Assert.Equal(2, plan.Entities.Count);
+        var foundation = plan.Entities.Single(item => item.Tags.Contains("foundation"));
+        var wall = plan.Entities.Single(item => item.Tags.Contains("wall"));
+        Assert.Equal(new Vector3Value(10, 0, 18), foundation.Transform.Position);
+        Assert.Equal(new Vector3Value(12, 0, 18), wall.Transform.Position);
+        Assert.Equal(new Vector3Value(2, 2, 2), wall.Transform.Scale);
+        Assert.Equal("asset:wall", Assert.Single(wall.Overrides.Properties).Value);
     }
 
     [Fact]

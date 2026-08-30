@@ -498,6 +498,8 @@ func _build_promotion_validation_report(
         "manualEditsPreserved": bool(regeneration.get("preserveManualEdits", true)),
         "artisticInstances": int(bake_result.get("artisticInstances", 0)),
         "artisticRoles": bake_result.get("artisticRoles", {}),
+        "terrainSurface": bake_result.get("terrainSurface", {}),
+        "environmentOccupancy": bake_result.get("environmentOccupancy", {}),
         "providers": providers,
         "diagnostics": bake_diagnostics,
     }

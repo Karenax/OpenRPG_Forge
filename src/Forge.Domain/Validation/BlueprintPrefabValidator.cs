@@ -12,6 +12,7 @@ public static class BlueprintPrefabValidator
     public const string CompositionIdentityCode = "blueprint.composition.identity_invalid";
     public const string CompositionReferenceCode = "blueprint.composition.reference_missing";
     public const string CompositionHierarchyCode = "blueprint.composition.hierarchy_invalid";
+    public const string CompositionNodeContentCode = "blueprint.composition.node_content_invalid";
     public const string CompositionAssemblyCode = "blueprint.composition.assembly_invalid";
     public const string AssetBudgetIdentityCode = "blueprint.asset_budget.identity_invalid";
     public const string AssetBudgetMetricsCode = "blueprint.asset_budget.metrics_invalid";
@@ -77,10 +78,10 @@ public static class BlueprintPrefabValidator
             Add(diagnostics, CompositionIdentityCode,
                 "Prefab composition requires UUID, supported schema and provenance.", path);
         var ids = composition.Nodes.Select(item => item.Id).ToArray();
-        if (ids.Length == 0 || ids.Any(item => item == Guid.Empty) || ids.Distinct().Count() != ids.Length ||
+        if (ids.Length is 0 or > 512 || ids.Any(item => item == Guid.Empty) || ids.Distinct().Count() != ids.Length ||
             composition.Nodes.Count(item => item.ParentNodeId is null) != 1 || HasHierarchyCycle(composition))
             Add(diagnostics, CompositionHierarchyCode,
-                "Prefab composition requires unique node UUIDs, one root and an acyclic hierarchy.", $"{path}/nodes");
+                "Prefab composition requires 1 to 512 unique node UUIDs, one root and an acyclic hierarchy.", $"{path}/nodes");
         var knownIds = ids.ToHashSet();
         var knownBlueprints = project.Blueprints.Select(item => item.Id).ToHashSet();
         if (composition.Nodes.Any(item => !knownBlueprints.Contains(item.BlueprintId) ||
@@ -88,6 +89,10 @@ public static class BlueprintPrefabValidator
                                           item.ParentNodeId is { } parent && !knownIds.Contains(parent)))
             Add(diagnostics, CompositionReferenceCode,
                 "Composition nodes must reference existing child blueprints and existing parents.", $"{path}/nodes");
+        if (composition.Nodes.Any(item => item.Tags.Count > 24 || item.Tags.Any(InvalidToken) ||
+                                          item.Overrides.Properties.Count > 128))
+            Add(diagnostics, CompositionNodeContentCode,
+                "Composition nodes require at most 24 safe tags and 128 typed property overrides.", $"{path}/nodes");
         if (composition.AssemblyRules.Any(InvalidToken) || composition.Parameters.Any(InvalidToken) ||
             composition.AssemblyScripts.Any(item => !SafeScriptPath(item)))
             Add(diagnostics, CompositionAssemblyCode,

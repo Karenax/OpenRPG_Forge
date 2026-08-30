@@ -2,6 +2,7 @@ extends SceneTree
 
 const BackendScript := preload("res://integrations/godot/addons/openrpg_world_generation/openrpg_world_generation_backend.gd")
 const RunnerScript := preload("res://integrations/godot/addons/openrpg_world_generation/world_generation_job_runner.gd")
+const BakerScript := preload("res://integrations/godot/addons/openrpg_world_generation/neutral_world_baker.gd")
 
 func _initialize() -> void:
     var scene := Node3D.new()
@@ -14,6 +15,24 @@ func _initialize() -> void:
     var runner: Node = RunnerScript.new()
     root.add_child(runner)
     await process_frame
+
+    var baker: RefCounted = BakerScript.new()
+    var terrain_fingerprint := str(baker.call("_terrain_surface_fingerprint", {
+        "width": 64, "depth": 64, "samplesX": 2, "samplesZ": 2,
+        "heightScale": 10.0, "heights": [0.0, 0.25, -0.5, 1.0], "cellDiagonal": "main",
+    }))
+    var environment_fingerprint := str(baker.call("_environment_occupancy_fingerprint", {
+        "width": 64, "depth": 64, "cellSizeMeters": 4.0,
+        "cells": [
+            { "category": "scatter", "role": "scatter", "x": -2.0, "z": 4.0, "count": 3 },
+            { "category": "vegetation", "role": "biomes", "x": 8.0, "z": -4.0, "count": 12 },
+        ],
+    }))
+    if terrain_fingerprint != "4f223fa87aa1abead044938b4adaac046206f3b8638ec742c2b9a3ec09b7569a" or \
+            environment_fingerprint != "ce30d56f66e0176741ec618333b01dd9114c07967afb3aba7c3ea0f8b3a008db":
+        _fail("Godot spatial-evidence fingerprints diverged from the shared C# vector: %s %s" % [
+            terrain_fingerprint, environment_fingerprint])
+        return
 
     var job := _job_protocol_vector()
     var job_validation: Dictionary = runner.call("_validate_job", job)
@@ -35,6 +54,8 @@ func _initialize() -> void:
             "contentFingerprint": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
             "collisionShapes": 1,
             "navigationPolygons": 8,
+            "terrainSurface": { "schemaVersion": 1, "fingerprint": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" },
+            "environmentOccupancy": { "schemaVersion": 1, "fingerprint": "9999999999999999999999999999999999999999999999999999999999999999" },
         },
         [{
             "stage": "terrain",
@@ -52,6 +73,8 @@ func _initialize() -> void:
             str(report.get("planFingerprint", "")) != str(job.plan.planFingerprint) or \
             str(report.get("derivedSceneSha256", "")).length() != 64 or \
             str(report.get("assetSelectionFingerprint", "")).length() != 64 or \
+            str((report.get("terrainSurface", {}) as Dictionary).get("fingerprint", "")).length() != 64 or \
+            str((report.get("environmentOccupancy", {}) as Dictionary).get("fingerprint", "")).length() != 64 or \
             not bool(report.get("collisionValidated", false)) or \
             not bool(report.get("navigationValidated", false)) or \
             not bool(report.get("manualEditsPreserved", false)):
@@ -157,7 +180,7 @@ func _initialize() -> void:
         _fail("A non-allowlisted backend operation was accepted.")
         return
 
-    print("WORLD_GENERATION_GODOT_SMOKE_PASS native_mesh=1 collision=1 terrain3d_fallback=1 pcg_fallback=1 manual_lock=1 protocol_vector=1 promotion_report=1 full_plan_gate=1 resume=1 validation=1 tamper_rejected=1")
+    print("WORLD_GENERATION_GODOT_SMOKE_PASS native_mesh=1 collision=1 terrain3d_fallback=1 pcg_fallback=1 manual_lock=1 protocol_vector=1 spatial_fingerprint_v2=1 promotion_report=1 full_plan_gate=1 resume=1 validation=1 tamper_rejected=1")
     quit(0)
 
 func _request(backend: String, operation: String, stage: String = "terrain") -> Dictionary:

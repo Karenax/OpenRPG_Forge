@@ -1,4 +1,5 @@
 using Forge.Domain.Assets;
+using Forge.Domain.Entities;
 using Forge.Domain.Spatial;
 
 namespace Forge.Domain.Blueprints;
@@ -24,12 +25,66 @@ public sealed record PrefabVariantDefinition(
     public const int CurrentSchemaVersion = 1;
 }
 
-public sealed record PrefabCompositionNode(
-    Guid Id,
-    BlueprintId BlueprintId,
-    Guid? ParentNodeId,
-    string? Socket,
-    TransformValue Transform);
+public sealed class PrefabCompositionNode : IEquatable<PrefabCompositionNode>
+{
+    public Guid Id { get; }
+    public BlueprintId BlueprintId { get; }
+    public Guid? ParentNodeId { get; }
+    public string? Socket { get; }
+    public TransformValue Transform { get; }
+    public IReadOnlyList<string> Tags { get; }
+    public EntityPropertyOverrides Overrides { get; }
+
+    public PrefabCompositionNode(
+        Guid id,
+        BlueprintId blueprintId,
+        Guid? parentNodeId,
+        string? socket,
+        TransformValue transform,
+        IReadOnlyList<string>? tags = null,
+        EntityPropertyOverrides? overrides = null)
+    {
+        ArgumentNullException.ThrowIfNull(blueprintId);
+        ArgumentNullException.ThrowIfNull(transform);
+
+        Id = id;
+        BlueprintId = blueprintId;
+        ParentNodeId = parentNodeId;
+        Socket = string.IsNullOrWhiteSpace(socket) ? null : socket.Trim();
+        Transform = transform;
+        Tags = (tags ?? [])
+            .Select(item => (item ?? string.Empty).Trim().ToLowerInvariant())
+            .Where(item => item.Length > 0)
+            .Distinct(StringComparer.Ordinal)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+        Overrides = overrides ?? EntityPropertyOverrides.Empty;
+    }
+
+    public bool Equals(PrefabCompositionNode? other) => other is not null &&
+        Id == other.Id &&
+        BlueprintId == other.BlueprintId &&
+        ParentNodeId == other.ParentNodeId &&
+        string.Equals(Socket, other.Socket, StringComparison.Ordinal) &&
+        Transform == other.Transform &&
+        Tags.SequenceEqual(other.Tags, StringComparer.Ordinal) &&
+        Overrides.ContentEquals(other.Overrides);
+
+    public override bool Equals(object? obj) => Equals(obj as PrefabCompositionNode);
+
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        hash.Add(Id);
+        hash.Add(BlueprintId);
+        hash.Add(ParentNodeId);
+        hash.Add(Socket, StringComparer.Ordinal);
+        hash.Add(Transform);
+        foreach (var tag in Tags) hash.Add(tag, StringComparer.Ordinal);
+        foreach (var property in Overrides.Properties) hash.Add(property);
+        return hash.ToHashCode();
+    }
+}
 
 public sealed record PrefabCompositionDefinition(
     Guid Id,

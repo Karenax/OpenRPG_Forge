@@ -50,6 +50,8 @@ public static class AssetCatalogValidator
                     $"Installed asset '{item.ExternalId}' has no supported model path.",
                     $"{path}/relativeModelPath"));
             }
+
+            diagnostics.AddRange(AssetIntelligenceProfileValidator.Validate(item.Intelligence, $"{path}/intelligence"));
         }
 
         return diagnostics;

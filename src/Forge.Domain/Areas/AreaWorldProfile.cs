@@ -17,11 +17,15 @@ public sealed record AreaWorldProfile
     public IReadOnlyList<FlightRouteDefinition> FlightRoutes { get; }
     public AreaLoadingProfile Loading { get; }
     public string Provenance { get; }
+    public TerrainPlacementSurfaceDefinition? PlacementSurface { get; }
+    public AreaEnvironmentOccupancyProfile? EnvironmentOccupancy { get; }
 
     public AreaWorldProfile(Guid id, int schemaVersion, TerrainDefinition terrain,
         IReadOnlyList<BiomeLayerDefinition> biomes, IReadOnlyList<TerrainFeatureDefinition> features,
         VolumetricNavigationProfile volumetricNavigation, IReadOnlyList<FlightRouteDefinition> flightRoutes,
-        AreaLoadingProfile loading, string provenance)
+        AreaLoadingProfile loading, string provenance,
+        TerrainPlacementSurfaceDefinition? placementSurface = null,
+        AreaEnvironmentOccupancyProfile? environmentOccupancy = null)
     {
         ArgumentNullException.ThrowIfNull(terrain);
         ArgumentNullException.ThrowIfNull(biomes);
@@ -54,7 +58,13 @@ public sealed record AreaWorldProfile
         FlightRoutes = routeValues;
         Loading = loading;
         Provenance = provenance.Trim();
+        PlacementSurface = placementSurface;
+        EnvironmentOccupancy = environmentOccupancy;
     }
+
+    public float GroundHeightAt(float worldX, float worldZ) => PlacementSurface is { } surface
+        ? surface.HeightAt(worldX, worldZ)
+        : Terrain.Enabled ? Terrain.HeightAt(worldX, worldZ) : 0;
 
     public static AreaWorldProfile CreateDefault(AreaId areaId, AreaKind kind, AreaDimensions dimensions)
     {
@@ -160,8 +170,22 @@ public sealed record AreaWorldProfile
             source.Loading.AsyncStreaming, source.Loading.PrefetchDependencies, source.Loading.CancellationEnabled,
             source.Loading.CacheBudgetMegabytes, source.Loading.MaximumConcurrentLoads, source.Loading.ChunkRadius,
             source.Loading.TargetLoadMilliseconds, source.Loading.RequiredResources, "area-clone");
+        var placementSurface = source.PlacementSurface is null
+            ? null
+            : new TerrainPlacementSurfaceDefinition(StableGuid(destinationAreaId, "placement-surface"),
+                source.PlacementSurface.SchemaVersion, source.PlacementSurface.Width,
+                source.PlacementSurface.Depth, source.PlacementSurface.SamplesX,
+                source.PlacementSurface.SamplesZ, source.PlacementSurface.HeightScale,
+                source.PlacementSurface.Heights, source.PlacementSurface.CellDiagonal,
+                source.PlacementSurface.SourceFingerprint, "area-clone");
+        var occupancy = source.EnvironmentOccupancy is null
+            ? null
+            : new AreaEnvironmentOccupancyProfile(StableGuid(destinationAreaId, "environment-occupancy"),
+                source.EnvironmentOccupancy.SchemaVersion, source.EnvironmentOccupancy.Width,
+                source.EnvironmentOccupancy.Depth, source.EnvironmentOccupancy.CellSizeMeters,
+                source.EnvironmentOccupancy.Cells, source.EnvironmentOccupancy.SourceFingerprint, "area-clone");
         return new AreaWorldProfile(StableGuid(destinationAreaId, "world"), source.SchemaVersion, terrain, biomes,
-            features, volume, routes, loading, "area-clone");
+            features, volume, routes, loading, "area-clone", placementSurface, occupancy);
     }
 
     public static AreaWorldProfile ResizeForArea(AreaWorldProfile source, AreaDimensions dimensions)

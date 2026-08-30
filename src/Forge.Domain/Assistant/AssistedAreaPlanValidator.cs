@@ -49,6 +49,24 @@ public static partial class AssistedAreaPlanValidator
             string.IsNullOrWhiteSpace(plan.ProviderKey) || !SafeToken.IsMatch(plan.ProviderKey) ||
             string.IsNullOrWhiteSpace(plan.Provenance))
             diagnostics.Add(new(GovernanceMissingCode, "Area plan provider, cost and provenance are invalid.", path));
+        if (plan.EnvironmentIntent.SchemaVersion != AssistedAreaEnvironmentIntent.CurrentSchemaVersion ||
+            !Enum.IsDefined(plan.EnvironmentIntent.Vegetation) ||
+            plan.EnvironmentIntent.MinimumNearbyInstances is < 0 or > 1_000_000 ||
+            (plan.EnvironmentIntent.Vegetation == AssistedAreaVegetationIntent.RequirePresence &&
+             plan.EnvironmentIntent.MinimumNearbyInstances == 0) ||
+            !float.IsFinite(plan.EnvironmentIntent.EvaluationRadiusMeters) ||
+            plan.EnvironmentIntent.EvaluationRadiusMeters is < 4 or > 512 ||
+            !float.IsFinite(plan.EnvironmentIntent.MinimumVegetationDensityPerHectare) ||
+            plan.EnvironmentIntent.MinimumVegetationDensityPerHectare is < 0 or > 100_000 ||
+            (plan.EnvironmentIntent.Vegetation == AssistedAreaVegetationIntent.RequirePresence &&
+             plan.EnvironmentIntent.MinimumVegetationDensityPerHectare <
+             AssistedAreaEnvironmentIntent.MinimumRequiredVegetationDensityPerHectare) ||
+            !float.IsFinite(plan.EnvironmentIntent.MaximumStructureSurfaceVariationMeters) ||
+            plan.EnvironmentIntent.MaximumStructureSurfaceVariationMeters is < .01f or > 1f ||
+            string.IsNullOrWhiteSpace(plan.EnvironmentIntent.Provenance))
+            diagnostics.Add(new(ContentInvalidCode,
+                "Area-plan environment intent requires bounded vegetation and structure-grounding criteria.",
+                $"{path}/environmentIntent"));
         if (plan.LoreSourceIds.Count > 64 || plan.LoreSourceIds.Any(item => !SafeSource.IsMatch(item)))
             diagnostics.Add(new(ContentInvalidCode, "Area plan lore sources are invalid.", $"{path}/loreSourceIds"));
 

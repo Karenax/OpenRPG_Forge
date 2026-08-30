@@ -63,6 +63,12 @@ public sealed class AssetCatalogBrowser
                 item.TechnicalMetadata.Compatibility.Contains(query.Compatibility.Trim(), StringComparer.OrdinalIgnoreCase))
             .Where(item => string.IsNullOrWhiteSpace(query.Variant) ||
                 item.TechnicalMetadata.Variants.Contains(query.Variant.Trim(), StringComparer.OrdinalIgnoreCase))
+            .Where(item => Matches(query.SemanticType, item.Intelligence.SemanticType))
+            .Where(item => Matches(query.AssemblyRole, item.Intelligence.AssemblyRole))
+            .Where(item => Matches(query.PlacementSurface, item.Intelligence.Placement.Surface))
+            .Where(item => Matches(query.Readiness, item.Intelligence.Readiness))
+            .Where(item => query.HumanReviewed is null ||
+                (item.Intelligence.ReviewStatus == "human-reviewed") == query.HumanReviewed)
             .Take(query.MaximumResults)
             .ToArray();
     }
@@ -84,7 +90,18 @@ public sealed class AssetCatalogBrowser
             string.Join(' ', item.TechnicalMetadata.Materials),
             string.Join(' ', item.TechnicalMetadata.Variants),
             string.Join(' ', item.TechnicalMetadata.Animations),
-            string.Join(' ', item.TechnicalMetadata.Compatibility)));
+            string.Join(' ', item.TechnicalMetadata.Compatibility),
+            string.Join(' ', item.Intelligence.Descriptions.Values),
+            item.Intelligence.SemanticType,
+            item.Intelligence.Family,
+            item.Intelligence.AssemblyRole,
+            item.Intelligence.Placement.Surface,
+            item.Intelligence.Placement.SnapMode,
+            item.Intelligence.Geometry?.PivotClass,
+            item.Intelligence.Readiness,
+            item.Intelligence.ReviewStatus,
+            string.Join(' ', item.Intelligence.UseCases),
+            string.Join(' ', item.Intelligence.Placement.Anchors.Select(anchor => anchor.Kind))));
         return haystack.Contains(query, StringComparison.Ordinal);
     }
 

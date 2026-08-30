@@ -1,5 +1,7 @@
 using Forge.Application.WorldGeneration;
+using Forge.Domain.Areas;
 using Forge.Domain.Assistant;
+using Forge.Domain.Projects;
 using Forge.Domain.WorldGeneration;
 using Forge.Mcp.Projects;
 using Forge.ModuleFormat.Workspaces;
@@ -8,6 +10,9 @@ namespace Forge.Mcp.Tests.Projects;
 
 public sealed class WorldGenerationAgentServiceTests
 {
+    private static readonly Guid ProductionSourceAreaId =
+        Guid.Parse("f0530000-0000-4000-8000-000000000090");
+
     [Fact]
     public void RecipePlanApplyExecutionQueueCancelAndRevertAreGovernedAndPersistent()
     {
@@ -76,11 +81,18 @@ public sealed class WorldGenerationAgentServiceTests
     [Fact]
     public void SuccessfulJobCanBePreviewedPromotedReopenedAndReverted()
     {
-        using var workspace = new TestWorkspace();
+        using var workspace = new TestWorkspace(AddProductionSource);
         var project = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
         var source = workspace.Project.GetWorldGenerationRecipes();
-        var recipe = WorldGenerationRecipe.CreateDefault(project.Areas[0].Id.Value,
-                "Canonical MCP valley", 20260827)
+        var draft = WorldGenerationRecipe.CreateDefault(project.Areas[0].Id.Value,
+            "Canonical MCP valley", 20260827);
+        var recipe = new WorldGenerationRecipe(
+                draft.Id, draft.SchemaVersion, draft.AreaId, draft.Title, draft.Seed, draft.Bounds,
+                draft.Terrain, draft.Rivers, draft.Biomes, draft.Roads, draft.Settlements, draft.Scatter,
+                draft.Gameplay, draft.Navigation, draft.Quality, draft.Backends,
+                draft.ApprovedForGeneration, draft.Provenance, draft.Regeneration,
+                new WorldGenerationArtDirectionProfile(
+                    WorldGenerationVisualTier.Production, ProductionSourceAreaId, true, 3))
             .WithApproval(true, "test:mcp-promotion-approved");
         var catalog = new WorldGenerationRecipeCatalog(
             Guid.Parse("f0530000-0000-4000-8000-000000000011"), 1, [recipe],
@@ -110,10 +122,23 @@ public sealed class WorldGenerationAgentServiceTests
             step.Backend == WorldGenerationBackend.PcgGodot ? "godot-flow" :
                 step.Backend == WorldGenerationBackend.Terrain3D ? "terrain3d" : "openrpg-native",
             "test-version", new string('a', 64))).ToArray();
+        const int surfaceSamplesPerAxis = 257;
+        var surfaceHeights = new float[surfaceSamplesPerAxis * surfaceSamplesPerAxis];
+        AreaEnvironmentOccupancyCell[] occupancyCells = [new("vegetation", "biomes", 0, 0, 24)];
+        var terrainSurface = new WorldGenerationTerrainSurfaceEvidence(
+            1, 2048, 2048, surfaceSamplesPerAxis, surfaceSamplesPerAxis, 10, surfaceHeights,
+            TerrainCellDiagonal.Main,
+            WorldGenerationSpatialEvidenceFingerprint.ComputeTerrain(
+                2048, 2048, surfaceSamplesPerAxis, surfaceSamplesPerAxis, 10, surfaceHeights,
+                TerrainCellDiagonal.Main));
+        var environmentOccupancy = new WorldGenerationEnvironmentOccupancyEvidence(
+            1, 2048, 2048, 4, occupancyCells,
+            WorldGenerationSpatialEvidenceFingerprint.ComputeEnvironment(2048, 2048, 4, occupancyCells));
         var report = new WorldGenerationValidationReport(
             1, job.JobId, job.PlanId, recipe.Id, recipe.AreaId, job.ProjectRevision, job.RecipeRevision,
             job.RecipeFingerprint, job.Plan.PlanFingerprint, sceneSha, new string('b', 64),
-            new string('c', 64), true, true, true, true, providers, []);
+            new string('c', 64), true, true, true, true, providers, [],
+            terrainSurface, environmentOccupancy);
         Assert.True(WorldGenerationPromotionStore.SaveValidationReport(
             workspace.RootDirectory, report).Succeeded);
 
@@ -123,7 +148,7 @@ public sealed class WorldGenerationAgentServiceTests
             recipeApplied.NewRecipeRevision.Value,
             job.PlanId.ToString("D"),
             null,
-            "human-review:mcp-test",
+            "human-forward-plus:mcp-test",
             AssistantPermissionLevel.ApplyApprovedPlan));
         Assert.True(planned.Succeeded,
             string.Join(" | ", planned.Diagnostics.Select(item => item.Message)));
@@ -146,6 +171,26 @@ public sealed class WorldGenerationAgentServiceTests
         Assert.Contains(applied.CanonicalSceneRelativePath,
             reopenedProject.Areas.Single(item => item.Id.Value == recipe.AreaId)
                 .World.Loading.RequiredResources);
+        var reopenedWorld = reopenedProject.Areas.Single(item => item.Id.Value == recipe.AreaId).World;
+        Assert.Equal(terrainSurface.Fingerprint, reopenedWorld.PlacementSurface!.SourceFingerprint);
+        Assert.Equal(environmentOccupancy.Fingerprint,
+            reopenedWorld.EnvironmentOccupancy!.SourceFingerprint);
+        var reopenedService = ForgeProjectAgentService.Open(workspace.RootDirectory).Service!;
+        var unboundedVegetation = reopenedService.FindTerrainPlacementCandidates(new(
+            1, recipe.AreaId.ToString("D"), 8, 8, 100, 100, 32, 8, .35f,
+            "vegetation", 1, 64, 0, 3));
+        Assert.False(unboundedVegetation.Succeeded);
+        Assert.Equal("assistant.terrain_candidates.vegetation_density_missing",
+            Assert.Single(unboundedVegetation.Diagnostics).Code);
+        var placement = reopenedService.FindTerrainPlacementCandidates(new(
+            1, recipe.AreaId.ToString("D"), 8, 8, 100, 100, 32, 8, .35f,
+            "vegetation", 0, 64, 0, 3, 0));
+        Assert.True(placement.Succeeded,
+            string.Join(" | ", placement.Diagnostics.Select(item => item.Message)));
+        Assert.Equal(terrainSurface.Fingerprint, placement.SurfaceFingerprint);
+        Assert.Equal(environmentOccupancy.Fingerprint, placement.EnvironmentFingerprint);
+        Assert.NotEmpty(placement.Candidates);
+        Assert.All(placement.Candidates, item => Assert.Equal(0, item.FootprintEnvironmentInstances));
 
         var reverted = workspace.Project.RevertWorldGenerationPromotion(planned.PromotionPlanId!);
 
@@ -157,5 +202,85 @@ public sealed class WorldGenerationAgentServiceTests
         Assert.DoesNotContain(applied.CanonicalSceneRelativePath,
             reopenedAfterRevert.Areas.Single(item => item.Id.Value == recipe.AreaId)
                 .World.Loading.RequiredResources);
+    }
+
+    private static ProjectDefinition AddProductionSource(ProjectDefinition project)
+    {
+        var target = project.Areas[0];
+        var generatedDimensions = new AreaDimensions(2048, 2048);
+        target = new AreaDefinition(
+            target.Id,
+            target.Slug,
+            target.DisplayName,
+            target.Entities,
+            target.Kind,
+            generatedDimensions,
+            target.Portals,
+            target.SchemaVersion,
+            target.Navigation,
+            target.Environment,
+            target.Authoring,
+            AreaWorldProfile.CreateDefault(target.Id, target.Kind, generatedDimensions),
+            target.RuntimePolicies,
+            target.Foundation,
+            target.Playtest);
+        var sourceId = AreaId.From(ProductionSourceAreaId);
+        var source = new AreaDefinition(
+            sourceId,
+            "production-art-source",
+            "Production art source",
+            [],
+            AreaKind.Exterior,
+            new AreaDimensions(512, 512));
+        var sourceWorld = source.World;
+        var materialId = Guid.Parse("f0530000-0000-4000-8000-000000000091");
+        var terrain = new TerrainDefinition(
+            sourceWorld.Terrain.Id,
+            TerrainDefinition.CurrentSchemaVersion,
+            TerrainProviderKind.Heightmap,
+            512,
+            512,
+            2,
+            2,
+            2,
+            7,
+            20,
+            [0, 0, 0, 0],
+            [new TerrainMaterialLayer(materialId, "Meadow", "#5f8345", "assets/ground.png", 4)],
+            [],
+            string.Empty,
+            string.Empty,
+            string.Empty,
+            "test:production-source");
+        var biomes = new[]
+        {
+            new BiomeLayerDefinition(Guid.Parse("f0530000-0000-4000-8000-000000000092"),
+                "Canopy", materialId, -512, 512, 0, 30, 0, 1, .2f, "asset:tree",
+                ["tree"], [], 30, "test:production-source"),
+            new BiomeLayerDefinition(Guid.Parse("f0530000-0000-4000-8000-000000000093"),
+                "Shrubs", materialId, -512, 512, 0, 30, 0, 1, .3f, "asset:shrub",
+                ["shrub"], [], 20, "test:production-source"),
+            new BiomeLayerDefinition(Guid.Parse("f0530000-0000-4000-8000-000000000094"),
+                "Meadow grass", materialId, -512, 512, 0, 30, 0, 1, .6f, "asset:grass",
+                ["ground-cover"], [], 10, "test:production-source"),
+        };
+        source = source.WithWorld(new AreaWorldProfile(
+            sourceWorld.Id,
+            sourceWorld.SchemaVersion,
+            terrain,
+            biomes,
+            sourceWorld.Features,
+            sourceWorld.VolumetricNavigation,
+            sourceWorld.FlightRoutes,
+            sourceWorld.Loading,
+            "test:production-source"));
+        return new ProjectDefinition(
+            project.Id,
+            project.Title,
+            project.Module,
+            project.Blueprints,
+            [target, .. project.Areas.Skip(1), source],
+            project.Dialogues,
+            project.Quests);
     }
 }

@@ -1,6 +1,7 @@
 namespace Forge.Mcp.Assets;
 
 using Forge.Application.Commands;
+using Forge.Domain.Assets;
 
 public sealed record AgentAssetCatalogQuery(
     string? Text = null,
@@ -20,7 +21,12 @@ public sealed record AgentAssetCatalogQuery(
     long? MaximumTriangleCount = null,
     string? Author = null,
     string? Compatibility = null,
-    string? Variant = null);
+    string? Variant = null,
+    string? SemanticType = null,
+    string? AssemblyRole = null,
+    string? PlacementSurface = null,
+    string? Readiness = null,
+    bool? HumanReviewed = null);
 
 public sealed record AgentAssetTechnicalMetadata(
     double? Width,
@@ -60,7 +66,27 @@ public sealed record AgentAssetCatalogItem(
     string AttributionText,
     bool Installed,
     IReadOnlyList<string> InstalledPackIds,
-    AgentAssetTechnicalMetadata TechnicalMetadata);
+    AgentAssetTechnicalMetadata TechnicalMetadata,
+    AgentAssetIntelligenceProfile Intelligence);
+
+public sealed record AgentAssetIntelligenceProfile(
+    int SchemaVersion,
+    string Description,
+    IReadOnlyDictionary<string, string> Descriptions,
+    string SemanticType,
+    string Family,
+    string AssemblyRole,
+    IReadOnlyList<string> UseCases,
+    string ModelContentSha256,
+    string DependencyClosureSha256,
+    AssetGeometryIntelligence? Geometry,
+    AssetPlacementIntelligence Placement,
+    AssetIntelligenceTechnicalProfile Technical,
+    string Readiness,
+    string ReviewStatus,
+    string GeneratedBy,
+    double Confidence,
+    IReadOnlyList<AssetMetadataEvidence> Evidence);
 
 public sealed record AgentAssetCatalogResult(
     int SchemaVersion,

@@ -172,6 +172,9 @@ public sealed class AssetVaultPackageStore
 
             if (files.Any(file => file.Role == AssetVaultFileRole.Model))
             {
+                var intelligence = AssetIntelligenceProfileAnalyzer.Analyze(
+                    item,
+                    ResolveContained(item.RelativeModelPath!));
                 installedAssets.Add(new AssetVaultInstalledAsset(
                     item.Id,
                     item.ExternalId,
@@ -183,7 +186,8 @@ public sealed class AssetVaultPackageStore
                     item.LicenseUrl,
                     item.AttributionRequired,
                     item.AttributionText,
-                    files));
+                    files,
+                    intelligence));
             }
         }
 
@@ -794,7 +798,8 @@ public sealed class AssetVaultPackageStore
                     file.ContentSha256,
                     file.Bytes,
                     file.SourceRelativePath,
-                    file.OriginalFileName)).ToArray())).ToArray())).ToArray());
+                    file.OriginalFileName)).ToArray(),
+                asset.Intelligence)).ToArray())).ToArray());
 
     private static AssetVaultInstalledPackage MapPackage(PackageDocument package)
     {
@@ -822,7 +827,8 @@ public sealed class AssetVaultPackageStore
                     file.ContentSha256,
                     file.Bytes,
                     file.SourceRelativePath,
-                    file.OriginalFileName)).ToArray())).ToArray());
+                    file.OriginalFileName)).ToArray(),
+                asset.Intelligence)).ToArray());
     }
 
     private static bool PackagesEquivalent(
@@ -987,7 +993,8 @@ public sealed class AssetVaultPackageStore
         [property: JsonPropertyName("license_url")] string LicenseUrl,
         [property: JsonPropertyName("attribution_required")] bool AttributionRequired,
         [property: JsonPropertyName("attribution_text")] string AttributionText,
-        IReadOnlyList<FileDocument> Files);
+        IReadOnlyList<FileDocument> Files,
+        AssetIntelligenceProfile? Intelligence = null);
 
     private sealed record FileDocument(
         string Role,

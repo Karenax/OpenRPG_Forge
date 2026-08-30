@@ -1,6 +1,6 @@
 {
   "formatVersion": "1.0.0",
-  "revision": 1,
+  "revision": 2,
   "catalog": {
     "id": "e0870000-0000-4000-8000-000000000001",
     "schemaVersion": 1,
@@ -111,13 +111,19 @@
           "validation": "godotNative"
         },
         "approvedForGeneration": true,
-        "provenance": "module-author:world-generation-vertical-slice-v1",
+        "provenance": "module-author:world-generation-vertical-slice-v2-production-art-direction",
         "regeneration": {
           "preserveManualEdits": true,
           "protectedNodePaths": []
+        },
+        "artDirection": {
+          "visualTier": "production",
+          "sourceAreaId": "4510a33a-ec5e-ae5c-98b3-27eca856a80d",
+          "inheritEnvironment": true,
+          "minimumVegetationStrata": 3
         }
       }
     ],
-    "provenance": "module-author:world-generation-vertical-slice-v1"
+    "provenance": "module-author:world-generation-vertical-slice-v2-production-art-direction"
   }
 }

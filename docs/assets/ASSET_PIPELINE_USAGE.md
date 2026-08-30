@@ -11,6 +11,29 @@ $env:OPENRPG_ASSET_VAULT = 'D:\OpenRPG_AssetVault'
 Le Vault reste extérieur à Git. Le dépôt conserve son catalogue portable dans
 `asset_manifests/catalogs/cc0_3d_all.json`.
 
+## Construire les profils intelligents
+
+Chaque entrée de catalogue reçoit automatiquement une description, un type sémantique, une famille,
+un rôle d'assemblage, des usages, une stratégie de placement, des métriques techniques, des hashes et
+des preuves. Le profil complet est décrit dans
+[`ASSET_METADATA_SCHEMA.md`](ASSET_METADATA_SCHEMA.md).
+
+La commande suivante effectue une passe à blanc sur le catalogue. `--apply true` écrit ensuite
+atomiquement l'index dans `metadata/asset-intelligence.v1.json` du Vault :
+
+```powershell
+dotnet run --project tools/Forge.Cli/Forge.Cli.csproj -- `
+  assets analyze-catalog . --vault E:\OpenRPG_AssetVault
+
+dotnet run --project tools/Forge.Cli/Forge.Cli.csproj -- `
+  assets analyze-catalog . --vault E:\OpenRPG_AssetVault --apply true
+```
+
+L'intégration d'un pack par le CLI, Studio ou le MCP ne dépend pas de cette commande : elle recalcule
+automatiquement le profil de chaque modèle effectivement importé et l'embarque dans l'état du pack ou
+son manifeste de workspace. Une finalisation Blender remplace les déclarations moins fiables par ses
+mesures. Les pivots et ancres produits automatiquement restent `generated-review-required`.
+
 ## Installer et désinstaller des packs locaux
 
 Le registre installé et les blobs dédupliqués restent dans le Vault externe. Les commandes sont en
@@ -33,8 +56,9 @@ dotnet run --project tools/Forge.Cli/Forge.Cli.csproj -- `
   assets uninstall-pack . food-props --apply true
 ```
 
-L’installation recalcule chaque SHA-256, refuse une licence non vérifiée ou non CC0, copie une seule
-fois chaque contenu sous `packages/objects/sha256/`, puis écrit registre, reçu et crédits agrégés.
+L’installation recalcule chaque SHA-256, refuse une licence non vérifiée ou non CC0, construit le
+profil d'intelligence de chaque modèle, copie une seule fois chaque contenu sous
+`packages/objects/sha256/`, puis écrit registre, reçu et crédits agrégés.
 La désinstallation sauvegarde le registre et conserve tout objet encore référencé par un autre pack.
 Les répertoires `originals/` et `normalized/` ne sont jamais modifiés.
 

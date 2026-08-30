@@ -166,6 +166,10 @@ public static class CuratedAssetPackInstaller
                 null,
                 null,
                 provenance);
+            item = item.WithIntelligence(AssetIntelligenceProfileAnalyzer.Analyze(
+                item,
+                sourcePath,
+                sharedTexturePath is null ? [] : [sharedTexturePath]));
             var defaultProfile = AssetImportPlanner.CreateDefaultProfile(item, AssetProcessingKind.Model);
             var profile = new AssetProcessingProfile(
                 defaultProfile.AssetId,

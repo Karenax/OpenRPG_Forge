@@ -23,6 +23,11 @@ public sealed class LocalAssetPackageInstallerTests
         Assert.Equal(3, first.Plan.Files.Count);
         Assert.Single(first.Plan.Manifest.Chunks, chunk => chunk.Role == AssetChunkRole.Model);
         Assert.Equal(2, first.Plan.Manifest.Chunks.Count(chunk => chunk.Role != AssetChunkRole.Model));
+        Assert.NotNull(first.Plan.Manifest.Intelligence);
+        Assert.Equal("test:medieval:market-stall", first.Plan.Manifest.Intelligence!.ExternalId);
+        Assert.Equal(64, first.Plan.Manifest.Intelligence.ModelContentSha256.Length);
+        Assert.Equal(64, first.Plan.Manifest.Intelligence.DependencyClosureSha256.Length);
+        Assert.Equal("generated-review-required", first.Plan.Manifest.Intelligence.ReviewStatus);
         Assert.Empty(Directory.EnumerateFiles(fixture.FirstWorkspace, "*", SearchOption.AllDirectories));
 
         var applied = LocalAssetPackageInstaller.Apply(fixture.VaultRoot, fixture.FirstWorkspace, first.Plan);

@@ -41,6 +41,8 @@ public sealed class CuratedEmbeddedAnimatedCharacterInstallerTests : IDisposable
             plan.RequestRelativePath!.Replace('/', Path.DirectorySeparatorChar))));
 
         Assert.False(plan.Reused);
+        Assert.Equal("character", plan.Item.Intelligence.SemanticType);
+        Assert.Equal(64, plan.Manifest.Intelligence!.ModelContentSha256.Length);
         Assert.Equal("kaykit-rig-medium-41", plan.Rig);
         Assert.Equal(41, plan.ExpectedBoneCount);
         Assert.Equal("kaykit-adventurer", plan.AnimationProfile);

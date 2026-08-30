@@ -1,6 +1,6 @@
 # Contexte canonique — OpenRPG Forge
 
-Dernière mise à jour : 28 août 2026.
+Dernière mise à jour : 29 août 2026.
 
 Ce document est l’unique contexte narratif courant du projet. Les états d’exécution sont dans
 `STATUS.md` et `TASKS_MVP.md`; les exigences détaillées et leurs preuves restent dans le tracker et
@@ -53,6 +53,19 @@ deviennent pas une seconde source de vérité et ne remplacent pas implicitement
 La promotion explicite exige désormais un job complet réussi, une preuve acceptée, des empreintes et
 révisions exactes, puis copie atomiquement une scène provider-free vers un chemin canonique référencé
 par `AreaWorldProfile`, avec manifeste de provenance, réouverture et inverse.
+Chaque nouvelle promotion publie en plus une surface de placement et une occupation environnementale
+canoniques liées au rapport par SHA-256. La création assistée d'une zone extérieure recherche ses sites
+sur ces preuves par le MCP, interdit les hauteurs explicites, ancre les structures sur toute leur
+emprise et bloque
+pente, végétation intersectante, placeable utilisé comme PNJ et maison modulaire incomplète. La
+présence végétale est contrôlée en compte et en densité par hectare autour de chaque contenu ; les
+structures et capsules joueur ont des ancres distinctes. Runtime réutilise cette même surface pour
+l'enveloppe extérieure, la caméra et le sol de sécurité. Ces règles sont génériques : aucun nom de
+Solaren, de kit ou de biome n'entre dans le moteur.
+Les établissements de production concentrent désormais leur couverture végétale sur l'emprise réelle
+des fondations avec un budget indépendant de la taille globale de la carte. Les patrouilles terrestres
+restent collées au terrain à chaque frame, les visuels de créatures sont alignés sur leurs pieds et une
+boucle de course ne peut plus être associée à une vitesse de marche.
 
 La trente-septième page **Génération de monde** porte ce cycle dans Studio et partage les révisions
 persistantes avec MCP. Solaren fournit une seconde zone réellement promue, chargée par Runtime depuis
@@ -68,7 +81,8 @@ multi-fichiers interrompues. Le format de sauvegarde `1.8.0` accepte un protagon
 conserve l'état global entre portails et stocke les états locaux par zone ; Solaren peut donc être
 sauvegardé et une reprise hors de la zone d'entrée recharge la bonne zone.
 
-Le host Release expose exactement les 271 outils déclarés, dont voix et WorldGeneration, et les
+Le host Release expose exactement les 281 outils déclarés, dont voix, WorldGeneration, intelligence
+d'assets, translation d'entités et recherche de sites de terrain, et les
 distributions exécutent les self-tests du host et du CLI réellement redistribués. La Crypte ne dépend
 plus de branches fonctionnelles de slug dans le moteur : tags, propriétés, scripts et overrides du
 module pilotent la tranche. Sa rencontre de référence possède une faction active, une vraie route de
@@ -132,7 +146,14 @@ L’authoring MCP sait installer un modèle logique local, placer une entité av
 émetteur audio, modifier les facettes d’une créature et remplacer l’ensemble des overrides d’une instance.
 Ces capacités restent accessibles humainement dans Studio par l’Asset Library, le viewport, l’inspecteur
 d’entité, les pages Créatures, Navigation, Audio et le formulaire de voix de dialogue ; elles suivent
-dry-run, garde de révision, undo/redo et sauvegarde/réouverture. L’import vocal gouverné accepte MP3/WAV
+dry-run, garde de révision, undo/redo et sauvegarde/réouverture.
+Le catalogue Asset Vault porte désormais un profil d'intelligence v1 pour chacune de ses 6 279 entrées.
+Il distingue description, sémantique, rôle d'assemblage, placement, géométrie, pivot, métriques, hashes,
+confiance et preuves ; les 365 modèles Médiéval réemploient les mesures Blender gouvernées. Le chargement
+du catalogue, l'intégration d'un pack dans le Vault ou un workspace et la finalisation Blender construisent
+ou renforcent automatiquement ce profil. Studio et le MCP le consultent, mais les pivots inférés restent
+explicitement soumis à une revue humaine.
+L’import vocal gouverné accepte MP3/WAV
 structurellement valides, licence SPDX/LicenseRef, SHA-256 et provenance, publie des blobs immuables
 content-addressed et les lie aux cues par MCP ou Studio. Le plan est recalculé à l’application ; le
 workspace, le package et le runtime revalident chemin, hash et structure avant décodage, tandis que

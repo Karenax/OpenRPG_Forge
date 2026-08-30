@@ -802,6 +802,18 @@ def _audit(options: dict, operations: list[str], preview: pathlib.Path, retarget
     if base_meshes:
         minimum, maximum = _bounds(base_meshes)
     dimensions = maximum - minimum
+    center = (minimum + maximum) * 0.5
+    pivot_tolerance = max(0.0001, max(dimensions) * 0.01)
+    pivot_grounded = abs(minimum.z) <= pivot_tolerance
+    pivot_centered_horizontal = abs(center.x) <= pivot_tolerance and abs(center.y) <= pivot_tolerance
+    if pivot_grounded and pivot_centered_horizontal:
+        pivot_class = "center-base"
+    elif pivot_grounded:
+        pivot_class = "base-offset"
+    elif pivot_centered_horizontal and abs(center.z) <= pivot_tolerance:
+        pivot_class = "bounds-center"
+    else:
+        pivot_class = "offset"
     required_lods = len(base_meshes) * len(options["lodRatios"])
     collision_required = "generate_collision" in operations or options["generateCollision"]
     preview_required = "generate_thumbnail" in operations
@@ -944,6 +956,10 @@ def _audit(options: dict, operations: list[str], preview: pathlib.Path, retarget
             "missingTextureCount": len(missing_textures),
             "invalidNormalCount": invalid_normals,
             "dimensionsMeters": [round(value, 6) for value in dimensions],
+            "boundsMinMeters": [round(value, 6) for value in minimum],
+            "boundsMaxMeters": [round(value, 6) for value in maximum],
+            "pivotClass": pivot_class,
+            "pivotPolicy": options["pivot"],
             "armatureCount": len(armatures),
             "boneCount": sum(len(item.data.bones) for item in armatures),
             "animationClipCount": len(animation_clips),

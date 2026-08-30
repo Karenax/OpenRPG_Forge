@@ -115,6 +115,10 @@ public static class LocalAssetPackageInstaller
             AssetChunkCompression.None,
             [AssetTargetPlatform.Any])).ToArray();
         var totalBytes = Math.Max(1, chunks.Sum(chunk => chunk.StoredBytes));
+        var intelligence = AssetIntelligenceProfileAnalyzer.Analyze(
+            item,
+            modelSource,
+            sources.Select(source => source.Absolute).ToArray());
         var manifest = new AssetPackageManifest(
             AssetPackageManifest.CurrentSchemaVersion,
             AssetPackageManifestId.ForAsset(item.Id),
@@ -127,7 +131,8 @@ public static class LocalAssetPackageInstaller
             null,
             null,
             null,
-            null);
+            null,
+            Intelligence: intelligence);
         diagnostics.AddRange(AssetPackageManifestValidator.Validate(manifest));
         if (diagnostics.Count > 0) return Failure(diagnostics);
         var reused = files.All(file => TryResolveContained(

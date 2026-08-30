@@ -123,6 +123,91 @@ public sealed class AssistedAreaBuildWorkflowTests
         Assert.Equal(new Vector3Value(1.5f, 2f, 0.75f), placed.Transform.Scale);
     }
 
+    [Fact]
+    public void ApprovedPlanExpandsPrefabCompositionWithPerNodeVisualsAndProvenance()
+    {
+        var source = Context(approved: true);
+        var child = source.Project.Blueprints.Single(item => item.Kind == BlueprintKind.Placeable);
+        var holderId = BlueprintId.From(Guid.Parse("b1250000-0000-4000-8000-000000000021"));
+        var rootId = Guid.Parse("b1250000-0000-4000-8000-000000000022");
+        var childId = Guid.Parse("b1250000-0000-4000-8000-000000000023");
+        var roofId = Guid.Parse("b1250000-0000-4000-8000-000000000030");
+        var composition = new PrefabCompositionDefinition(
+            Guid.Parse("b1250000-0000-4000-8000-000000000024"), 1, "test:assisted-house",
+            [
+                new PrefabCompositionNode(rootId, child.Id, null, null,
+                    new TransformValue(new Vector3Value(-1, 0, 0), QuaternionValue.Identity, Vector3Value.One),
+                    ["foundation", "house-piece", "nonblocking"],
+                    new EntityPropertyOverrides(1,
+                        [new EntityPropertyOverride("visual.asset", EntityPropertyValueKind.String,
+                            "asset:foundation")])),
+                new PrefabCompositionNode(childId, child.Id, rootId, null,
+                    new TransformValue(new Vector3Value(2, 0, 0), QuaternionValue.Identity, Vector3Value.One),
+                    ["house-piece", "nonblocking", "wall"],
+                    new EntityPropertyOverrides(1,
+                        [new EntityPropertyOverride("visual.asset", EntityPropertyValueKind.String,
+                            "asset:wall")])),
+                new PrefabCompositionNode(roofId, child.Id, rootId, null,
+                    new TransformValue(new Vector3Value(0, 3, 0), QuaternionValue.Identity, Vector3Value.One),
+                    ["house-piece", "nonblocking", "roof"],
+                    new EntityPropertyOverrides(1,
+                        [new EntityPropertyOverride("visual.asset", EntityPropertyValueKind.String,
+                            "asset:roof")]))
+            ], ["modular-house"], [], []);
+        var holder = new BlueprintDefinition(holderId, "medieval-house-prefab", "Medieval house prefab",
+            BlueprintKind.Placeable,
+            authoring: new BlueprintAuthoringMetadata(1, "1.0.0", "test.assisted.house",
+                "content/blueprints/medieval-house-prefab.json", prefabComposition: composition));
+        var project = new ProjectDefinition(source.Project.Id, source.Project.Title, source.Project.Module,
+            [.. source.Project.Blueprints, holder], source.Project.Areas, source.Project.Dialogues,
+            source.Project.Quests);
+        var nodes = new[]
+        {
+            new AssistedAreaPlanNode(Guid.Parse("b1250000-0000-4000-8000-000000000025"), 1,
+                AssistedAreaPlanNodeKind.Entry, "Entry", -12, 0, 6, 6, [], ["entry"]),
+            new AssistedAreaPlanNode(Guid.Parse("b1250000-0000-4000-8000-000000000026"), 1,
+                AssistedAreaPlanNodeKind.Social, "House", -4, 0, 8, 8, [holderId.Value], ["village-house"]),
+            new AssistedAreaPlanNode(Guid.Parse("b1250000-0000-4000-8000-000000000027"), 1,
+                AssistedAreaPlanNodeKind.Objective, "Square", 4, 0, 6, 6, [], ["square"]),
+            new AssistedAreaPlanNode(Guid.Parse("b1250000-0000-4000-8000-000000000028"), 1,
+                AssistedAreaPlanNodeKind.Exit, "Exit", 12, 0, 6, 6, [], ["exit"]),
+        };
+        var links = Enumerable.Range(1, nodes.Length - 1).Select(index =>
+            new AssistedAreaPlanLink(Guid.Parse($"b1250000-0000-4000-8000-{index:000000000000}"), 1,
+                nodes[index - 1].Id, nodes[index].Id, "path", true)).ToArray();
+        var plan = new AssistedAreaPlanDefinition(
+            Guid.Parse("b1250000-0000-4000-8000-000000000029"), 1,
+            project.Areas.Single().Id.Value, "Prefab village", AssistedAreaArchetype.Village, 2026, 48, 32,
+            [holderId.Value], ["Keep navigation."], ["Build a complete house."], nodes, links,
+            [$"project:{project.Id}"], true, 0, "offline-ci", "test:assisted-prefab");
+        var catalog = new AssistedAreaPlanCatalog(Guid.NewGuid(), 1, [plan], "test:assisted-prefab");
+        var state = new ProjectState(project, new ProjectRevision(0));
+        var handler = new BuildAssistedAreaPlanHandler(new FixedClock(Timestamp));
+        var transaction = Guid.NewGuid();
+        var execution = Guid.NewGuid();
+        BuildAssistedAreaPlanCommand Command(bool dryRun) => new(
+            CommandId.From(Guid.NewGuid()), transaction, execution, state.Revision, plan.Id,
+            AssistantPermissionLevel.ApplyApprovedPlan, dryRun);
+
+        var preview = handler.Handle(state, Command(true), catalog);
+        var applied = handler.Handle(state, Command(false), catalog);
+
+        Assert.True(preview.Succeeded, string.Join(" | ", preview.Diagnostics.Select(item => item.Message)));
+        Assert.Equal(3, preview.EntityIds.Count);
+        Assert.True(applied.Succeeded, string.Join(" | ", applied.Diagnostics.Select(item => item.Message)));
+        var added = applied.Command.State.Project.Areas.Single().Entities
+            .Except(project.Areas.Single().Entities).ToArray();
+        Assert.Equal(3, added.Length);
+        Assert.DoesNotContain(added, item => item.BlueprintId == holderId);
+        Assert.All(added, item =>
+        {
+            Assert.Contains("house-piece", item.Tags);
+            Assert.Contains("village-house", item.Tags);
+            Assert.Contains($"assistant-plan:{plan.Id:D}", item.Tags);
+            Assert.Contains(item.Overrides.Properties, property => property.Key == "visual.asset");
+        });
+    }
+
     private static BuildContext Context(bool approved, bool exterior = false, bool authoredTransform = false)
     {
         var areaId = AreaId.From(Guid.Parse("b1250000-0000-4000-8000-000000000001"));

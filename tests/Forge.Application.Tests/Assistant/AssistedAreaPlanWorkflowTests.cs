@@ -117,8 +117,9 @@ public sealed class AssistedAreaPlanWorkflowTests
     [Fact]
     public void MapAuthoringContractIsEmbeddedVersionedAndHasStableSha256()
     {
-        Assert.Equal("1.0.0", MapAuthoringContract.Version);
+        Assert.Equal("2.2.0", MapAuthoringContract.Version);
         Assert.Contains("## Cycle gouverné", MapAuthoringContract.Content, StringComparison.Ordinal);
+        Assert.Contains("## Placement extérieur canonique", MapAuthoringContract.Content, StringComparison.Ordinal);
         Assert.Equal(64, MapAuthoringContract.ContentSha256.Length);
         Assert.All(MapAuthoringContract.ContentSha256,
             character => Assert.True(char.IsAsciiHexDigit(character) && !char.IsUpper(character)));

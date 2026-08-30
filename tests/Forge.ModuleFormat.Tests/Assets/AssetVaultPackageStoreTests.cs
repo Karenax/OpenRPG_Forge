@@ -44,6 +44,10 @@ public sealed class AssetVaultPackageStoreTests
             Assert.True(File.Exists(Path.Combine(vault, firstResult.ReceiptRelativePath!)));
             Assert.Equal(originalHash, Hash(firstModel));
             Assert.Equal(2, store.LoadState().BlobReferenceCounts.Count);
+            var installedProfile = Assert.Single(Assert.Single(store.LoadState().Packages).Assets).Intelligence;
+            Assert.NotNull(installedProfile);
+            Assert.Equal(Hash(firstModel), installedProfile!.ModelContentSha256);
+            Assert.Equal("generated-review-required", installedProfile.ReviewStatus);
 
             var idempotent = store.Apply(store.PlanInstall(
                 catalog,

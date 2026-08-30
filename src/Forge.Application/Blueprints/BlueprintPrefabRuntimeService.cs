@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using System.Numerics;
 using Forge.Domain.Areas;
 using Forge.Domain.Assets;
 using Forge.Domain.Blueprints;
@@ -28,7 +29,9 @@ public sealed record PrefabCompositionRuntimeNode(
     BlueprintId BlueprintId,
     Guid? ParentNodeId,
     string? Socket,
-    TransformValue Transform);
+    TransformValue Transform,
+    IReadOnlyList<string> Tags,
+    EntityPropertyOverrides Overrides);
 
 public sealed record PrefabCompositionRuntimeSnapshot(
     BlueprintId BlueprintId,
@@ -78,7 +81,7 @@ public sealed class BlueprintPrefabRuntimeService
             return new(blueprintId, [], [], [], [], required ?
                 [$"{RequiredCompositionMissingCode}: blueprints/{blueprintId}/authoring/prefabComposition"] : []);
         return new(blueprintId, composition.Nodes.Select(item => new PrefabCompositionRuntimeNode(item.Id,
-                item.BlueprintId, item.ParentNodeId, item.Socket, item.Transform)).ToArray(),
+                item.BlueprintId, item.ParentNodeId, item.Socket, item.Transform, item.Tags, item.Overrides)).ToArray(),
             composition.AssemblyRules, composition.Parameters, composition.AssemblyScripts, []);
     }
 
@@ -117,6 +120,11 @@ public static class PrefabCompositionPlacementPlanner
 {
     public static PrefabCompositionPlacementPlan Build(ProjectDefinition project, BlueprintId blueprintId,
         AreaId areaId, Vector3Value origin, Guid commandSeed)
+        => Build(project, blueprintId, areaId,
+            new TransformValue(origin, QuaternionValue.Identity, Vector3Value.One), commandSeed);
+
+    public static PrefabCompositionPlacementPlan Build(ProjectDefinition project, BlueprintId blueprintId,
+        AreaId areaId, TransformValue placement, Guid commandSeed)
     {
         var blueprint = project.Blueprints.SingleOrDefault(item => item.Id == blueprintId)
             ?? throw new ArgumentException("Composition blueprint does not exist.", nameof(blueprintId));
@@ -131,25 +139,50 @@ public static class PrefabCompositionPlacementPlanner
         TransformValue Resolve(PrefabCompositionNode node)
         {
             if (transforms.TryGetValue(node.Id, out var cached)) return cached;
-            var parent = node.ParentNodeId is { } parentId ? Resolve(byId[parentId]) : TransformValue.Identity;
-            var position = new Vector3Value(parent.Position.X + node.Transform.Position.X +
-                                            (node.ParentNodeId is null ? origin.X : 0),
-                parent.Position.Y + node.Transform.Position.Y + (node.ParentNodeId is null ? origin.Y : 0),
-                parent.Position.Z + node.Transform.Position.Z + (node.ParentNodeId is null ? origin.Z : 0));
-            return transforms[node.Id] = new TransformValue(position, node.Transform.Rotation,
-                new Vector3Value(parent.Scale.X * node.Transform.Scale.X, parent.Scale.Y * node.Transform.Scale.Y,
-                    parent.Scale.Z * node.Transform.Scale.Z));
+            var parent = node.ParentNodeId is { } parentId ? Resolve(byId[parentId]) : placement;
+            return transforms[node.Id] = Compose(parent, node.Transform);
         }
         var entities = composition.Nodes.Select(node => new EntityInstance(
             EntityId.From(DeterministicGuid(commandSeed, node.Id)), node.BlueprintId, Resolve(node),
-            [$"composition:{blueprintId}", $"composition-node:{node.Id}"],
-            blueprint.Authoring.PromotedDefaults.Count == 0
-                ? EntityPropertyOverrides.Empty
-                : new EntityPropertyOverrides(EntityPropertyOverrides.CurrentSchemaVersion,
-                    blueprint.Authoring.PromotedDefaults),
+            [.. node.Tags, $"composition:{blueprintId}", $"composition-node:{node.Id}"],
+            MergeOverrides(blueprint.Authoring.PromotedDefaults, node.Overrides),
             $"={project.Blueprints.Single(item => item.Id == node.BlueprintId).Authoring.Version}"))
             .ToArray();
         return new(blueprintId, areaId, entities);
+    }
+
+    private static TransformValue Compose(TransformValue parent, TransformValue local)
+    {
+        var parentRotation = Quaternion.Normalize(new Quaternion(
+            parent.Rotation.X, parent.Rotation.Y, parent.Rotation.Z, parent.Rotation.W));
+        var localRotation = Quaternion.Normalize(new Quaternion(
+            local.Rotation.X, local.Rotation.Y, local.Rotation.Z, local.Rotation.W));
+        var scaledLocalPosition = new Vector3(
+            local.Position.X * parent.Scale.X,
+            local.Position.Y * parent.Scale.Y,
+            local.Position.Z * parent.Scale.Z);
+        var rotatedLocalPosition = Vector3.Transform(scaledLocalPosition, parentRotation);
+        var rotation = Quaternion.Normalize(parentRotation * localRotation);
+        return new TransformValue(
+            new Vector3Value(
+                parent.Position.X + rotatedLocalPosition.X,
+                parent.Position.Y + rotatedLocalPosition.Y,
+                parent.Position.Z + rotatedLocalPosition.Z),
+            new QuaternionValue(rotation.X, rotation.Y, rotation.Z, rotation.W),
+            new Vector3Value(
+                parent.Scale.X * local.Scale.X,
+                parent.Scale.Y * local.Scale.Y,
+                parent.Scale.Z * local.Scale.Z));
+    }
+
+    private static EntityPropertyOverrides MergeOverrides(
+        IReadOnlyList<EntityPropertyOverride> promotedDefaults,
+        EntityPropertyOverrides nodeOverrides)
+    {
+        if (promotedDefaults.Count == 0) return nodeOverrides;
+        var merged = promotedDefaults.ToDictionary(item => item.Key, StringComparer.Ordinal);
+        foreach (var property in nodeOverrides.Properties) merged[property.Key] = property;
+        return new EntityPropertyOverrides(EntityPropertyOverrides.CurrentSchemaVersion, merged.Values.ToArray());
     }
 
     private static Guid DeterministicGuid(Guid seed, Guid nodeId)

@@ -19,11 +19,11 @@ public static class WorldGenerationRuntimeSceneResolver
         var canonicalPath = Forge.Application.WorldGeneration.PromoteWorldGenerationHandler
             .CanonicalScenePath(areaId);
         if (!requiredResources.Contains(canonicalPath, StringComparer.Ordinal))
-            return new(null, null, null, []);
+            return new(null, null, null, null, []);
 
         var promotion = WorldGenerationPromotionStore.Load(workspaceRoot, areaId);
         if (!promotion.Succeeded || promotion.Promotion is null || promotion.SceneSha256 is null)
-            return new(null, null, null, promotion.Diagnostics);
+            return new(null, null, null, null, promotion.Diagnostics);
         if (!string.Equals(promotion.Promotion.CanonicalSceneRelativePath, canonicalPath,
                 StringComparison.Ordinal))
             return Failure(ResourceMissingCode,
@@ -41,7 +41,7 @@ public static class WorldGenerationRuntimeSceneResolver
             if (!string.Equals(sha256, promotion.SceneSha256, StringComparison.Ordinal))
                 return Failure(WorldGenerationPromotionStore.EvidenceMismatchCode,
                     "Canonical generated scene changed after its promotion was verified.", canonicalPath);
-            return new(canonicalPath, sha256, bytes, []);
+            return new(canonicalPath, sha256, bytes, promotion.Promotion.ProductionVisuals, []);
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException)
         {
@@ -50,13 +50,14 @@ public static class WorldGenerationRuntimeSceneResolver
     }
 
     private static WorldGenerationRuntimeSceneResolution Failure(string code, string message, string path) =>
-        new(null, null, null, [new ProjectSessionDiagnostic(code, message, path)]);
+        new(null, null, null, null, [new ProjectSessionDiagnostic(code, message, path)]);
 }
 
 public sealed record WorldGenerationRuntimeSceneResolution(
     string? RelativePath,
     string? Sha256,
     byte[]? Content,
+    Forge.Application.WorldGeneration.WorldGenerationProductionVisualEvidence? ProductionVisuals,
     IReadOnlyList<ProjectSessionDiagnostic> Diagnostics)
 {
     public bool HasScene => RelativePath is not null && Sha256 is not null && Content is not null &&

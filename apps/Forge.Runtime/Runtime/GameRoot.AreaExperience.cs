@@ -1045,14 +1045,20 @@ public partial class GameRoot
                 continue;
             }
 
+            Func<float, float, float>? groundHeightAt =
+                TryGetExteriorGroundHeight(out var terrainHeightAt) ? terrainHeightAt : null;
+            var initialPosition = groundHeightAt is null
+                ? actor.Position
+                : GodotTerrainGroundedPatrolMotion.Snap(actor.Position, groundHeightAt);
+            actor.Position = initialPosition;
             var state = new EntityWaypointPatrolState(
                 route,
-                actor.Position,
+                initialPosition,
                 targetIndex: 1,
                 waitRemainingSeconds: Math.Max(0, route.Points[0].WaitSeconds));
             _entityWaypointPatrols.Add(actor, state);
             GD.Print($"OPENRPG_FORGE_RUNTIME_ENTITY_PATROL_READY entity={entity.Id} route={route.Id:D} " +
-                     $"points={route.Points.Count}");
+                      $"points={route.Points.Count} terrain_grounded={groundHeightAt is not null}");
         }
     }
 
@@ -1088,25 +1094,26 @@ public partial class GameRoot
 
             var target = state.Route.Points[state.TargetIndex];
             var targetPosition = new Vector3(target.Position.X, target.Position.Y, target.Position.Z);
-            var displacement = targetPosition - state.Position;
-            var distance = displacement.Length();
-            if (distance <= .02f)
-            {
-                CompleteEntityPatrolPoint(actor, state, target, targetPosition);
-                continue;
-            }
-
-            var direction = displacement / distance;
-            var distanceStep = Math.Min(distance, Math.Max(.1, target.Speed) * remainingSeconds);
-            state.Position += direction * (float)distanceStep;
+            Func<float, float, float>? groundHeightAt =
+                TryGetExteriorGroundHeight(out var terrainHeightAt) ? terrainHeightAt : null;
+            var step = GodotTerrainGroundedPatrolMotion.Advance(
+                state.Position,
+                targetPosition,
+                Math.Max(.1, target.Speed),
+                remainingSeconds,
+                groundHeightAt);
+            state.Position = step.Position;
             actor.Position = state.Position;
-            var rotation = actor.Rotation;
-            rotation.Y = Mathf.Atan2(direction.X, direction.Z);
-            actor.Rotation = rotation;
-            if (distanceStep + .02 >= distance)
-                CompleteEntityPatrolPoint(actor, state, target, targetPosition);
+            if (step.Direction.LengthSquared() > .000001f)
+            {
+                var rotation = actor.Rotation;
+                rotation.Y = Mathf.Atan2(step.Direction.X, step.Direction.Z);
+                actor.Rotation = rotation;
+            }
+            if (step.Arrived)
+                CompleteEntityPatrolPoint(actor, state, target, step.Position);
             else
-                PlayEntityPatrolAnimation(actor, moving: true);
+                PlayEntityPatrolAnimation(actor, moving: true, target.Speed);
         }
     }
 
@@ -1126,10 +1133,14 @@ public partial class GameRoot
         PlayEntityPatrolAnimation(actor, moving: false);
     }
 
-    private void PlayEntityPatrolAnimation(Node3D actor, bool moving)
+    private void PlayEntityPatrolAnimation(Node3D actor, bool moving, double speedMetersPerSecond = 0)
     {
         if (!_characterAnimations.TryGetValue(actor, out var animation)) return;
-        var clip = moving ? animation.RunClip : animation.IdleClip;
+        var clip = moving
+            ? PatrolLocomotionPolicy.IsWalkingPace(speedMetersPerSecond) && animation.WalkClip is not null
+                ? animation.WalkClip
+                : animation.RunClip
+            : animation.IdleClip;
         if (!string.Equals(animation.CurrentClip, clip, StringComparison.Ordinal))
             GodotAssetAnimationController.Play(animation, clip, .12);
     }
@@ -1193,6 +1204,11 @@ public partial class GameRoot
         AddChild(_waypointLocatorRoot);
 
         _waypointRouteDebugRoot = new Node3D { Name = "WaypointRouteDiagnostics" };
+        if (!profile.RouteVisualization.RequiredAtRuntime)
+        {
+            AddChild(_waypointRouteDebugRoot);
+            return;
+        }
         var known = profile.Waypoints.Select(item => item.Id)
             .Concat(profile.Locators.Select(item => item.Id)).ToHashSet();
         foreach (var route in profile.PatrolRoutes)

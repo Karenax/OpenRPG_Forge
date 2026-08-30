@@ -51,6 +51,10 @@ internal sealed class RuntimeCameraRig
 
     internal float PitchDegrees => Mathf.RadToDeg(_pitch);
 
+    internal float YawDegrees => Mathf.RadToDeg(_yaw);
+
+    internal float Distance => _distance;
+
     internal float FirstPersonPitchDegrees => Mathf.RadToDeg(_firstPersonPitch);
 
     internal float MinimumPitchDegrees => Mathf.RadToDeg(_minimumPitch);

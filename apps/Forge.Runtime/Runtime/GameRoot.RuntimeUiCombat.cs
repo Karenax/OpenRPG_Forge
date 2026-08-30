@@ -482,6 +482,7 @@ public partial class GameRoot
         var candidates = new Node3D?[] { _flyingMount, _keyItem, _door }
             .Where(node => node is not null && GodotObject.IsInstanceValid(node))
             .Cast<Node3D>()
+            .Concat(_clickInteractions.Keys.Where(GodotObject.IsInstanceValid))
             .Concat(_narrativeParticipants.Keys.Where(GodotObject.IsInstanceValid))
             .Concat(_portalNodes.Keys.Where(GodotObject.IsInstanceValid))
             .Concat(_corpseLoot.Keys.Where(GodotObject.IsInstanceValid))
@@ -607,6 +608,10 @@ public partial class GameRoot
                     if (node is CollisionShape3D collision) collision.Disabled = !visible;
                 }
                 _message = $"{target.Name} est maintenant {(visible ? "visible" : "masqué")}.";
+                break;
+            case EntityClickTriggerAction.ToggleDoor:
+                if (!ToggleEnvironmentDoor(source))
+                    _message = "Cette porte n'est plus disponible.";
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(settings), settings.Action,

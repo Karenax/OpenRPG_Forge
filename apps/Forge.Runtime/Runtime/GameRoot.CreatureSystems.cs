@@ -127,7 +127,11 @@ namespace Forge.Runtime;
 
 public partial class GameRoot
 {
-    private bool TryAttachVisual(Node parent, EntityInstance entity, bool applyPlayerVisualTransform = false)
+    private bool TryAttachVisual(
+        Node parent,
+        EntityInstance entity,
+        bool applyPlayerVisualTransform = false,
+        bool alignGroundedVisual = false)
     {
         var authoredAssetId = GetOverride(entity, VisualAssetProperty);
         var assetId = authoredAssetId;
@@ -168,6 +172,7 @@ public partial class GameRoot
             "kaykit-adventurer" => GodotAssetAnimationController.Configure(
                 visual,
                 idle: GetOverride(entity, "runtime.animationIdle") ?? "Idle",
+                walk: GetOverride(entity, "runtime.animationWalk"),
                 run: GetOverride(entity, "runtime.animationRun") ?? "Running_A",
                 jump: GetOverride(entity, "runtime.animationJump") ?? "Jump_Full_Short",
                 attack: GetOverride(entity, "runtime.animationAttack") ?? "1H_Melee_Attack_Slice_Horizontal",
@@ -176,6 +181,7 @@ public partial class GameRoot
             "authored-clips" => GodotAssetAnimationController.Configure(
                 visual,
                 idle: RequiredAnimationOverride(entity, "runtime.animationIdle"),
+                walk: GetOverride(entity, "runtime.animationWalk"),
                 run: RequiredAnimationOverride(entity, "runtime.animationRun"),
                 jump: RequiredAnimationOverride(entity, "runtime.animationJump"),
                 attack: RequiredAnimationOverride(entity, "runtime.animationAttack"),
@@ -209,7 +215,10 @@ public partial class GameRoot
                 mount.ConfigureAnimations(animation);
             }
         }
-        if (applyPlayerVisualTransform) AlignPlayerVisualToCapsule(visual);
+        if (applyPlayerVisualTransform)
+            AlignPlayerVisualToCapsule(visual);
+        else if (alignGroundedVisual)
+            AlignGroundedVisualToOrigin(visual);
         return true;
     }
 
@@ -219,6 +228,12 @@ public partial class GameRoot
         const float capsuleBottom = -.9f;
         var center = (minimum + maximum) * .5f;
         visual.Position += new Vector3(-center.X, capsuleBottom - minimum.Y, -center.Z);
+    }
+
+    private static void AlignGroundedVisualToOrigin(Node3D visual)
+    {
+        if (!TryMeasureNodeBounds(visual, out var minimum, out var maximum)) return;
+        visual.Position += GodotTerrainGroundedPatrolMotion.GroundedVisualOffset(minimum, maximum);
     }
 
     private static void EnhanceFlyingMountMaterials(Node3D visual)

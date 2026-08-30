@@ -73,8 +73,46 @@ public static class AssetCatalogLoader
             }
 
             var installationState = new AssetVaultPackageStore(vaultRoot).LoadState();
-            items = items.Select(item => item.WithInstalledPacks(
-                    installationState.FindPackageIds(item.Id)))
+            var repositoryIntelligence = AssetIntelligenceIndexStore.LoadDirectory(Path.Combine(
+                repositoryRoot,
+                "asset_manifests",
+                "intelligence"));
+            var vaultIntelligence = AssetIntelligenceIndexStore.Load(vaultRoot);
+            diagnostics.AddRange(repositoryIntelligence.Diagnostics);
+            diagnostics.AddRange(vaultIntelligence.Diagnostics);
+            var repositoryProfiles = repositoryIntelligence.Profiles.ToDictionary(
+                profile => profile.ExternalId,
+                StringComparer.OrdinalIgnoreCase);
+            var vaultProfiles = vaultIntelligence.Profiles.ToDictionary(
+                profile => profile.ExternalId,
+                StringComparer.OrdinalIgnoreCase);
+            var installedProfiles = installationState.Packages
+                .SelectMany(package => package.Assets)
+                .Where(asset => asset.Intelligence is not null)
+                .GroupBy(asset => asset.ExternalId, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(
+                    group => group.Key,
+                    group => group.Select(asset => asset.Intelligence!)
+                        .Aggregate(AssetIntelligenceProfileAnalyzer.PreferProfile),
+                    StringComparer.OrdinalIgnoreCase);
+            items = items.Select(item =>
+                {
+                    var profile = item.Intelligence;
+                    if (vaultProfiles.TryGetValue(item.ExternalId, out var indexed))
+                    {
+                        profile = AssetIntelligenceProfileAnalyzer.PreferProfile(profile, indexed);
+                    }
+                    if (repositoryProfiles.TryGetValue(item.ExternalId, out var curated))
+                    {
+                        profile = AssetIntelligenceProfileAnalyzer.PreferProfile(profile, curated);
+                    }
+                    if (installedProfiles.TryGetValue(item.ExternalId, out var installed))
+                    {
+                        profile = AssetIntelligenceProfileAnalyzer.PreferProfile(profile, installed);
+                    }
+                    return item.WithIntelligence(profile).WithInstalledPacks(
+                        installationState.FindPackageIds(item.Id));
+                })
                 .ToList();
             var catalogDate = catalogDates
                 .OrderByDescending(value => value, StringComparer.Ordinal)
@@ -234,30 +272,34 @@ public static class AssetCatalogLoader
         string? previewPath,
         AssetAvailability availability,
         string? thumbnailUrl,
-        string? displayName = null) => new(
-        AssetCatalogItemId.ForExternalId(externalId),
-        externalId,
-        displayName ?? ReadString(item, "name"),
-        ReadString(item, "source"),
-        sourceAssetId,
-        ReadString(item, "source_page"),
-        ReadString(item, "license"),
-        ReadString(item, "license_url"),
-        ReadBoolean(item, "license_verified"),
-        FingerprintFiles(item),
-        ReadInt64(item, "total_bytes"),
-        categories,
-        tags,
-        ReadString(item, "status"),
-        availability,
-        modelPath,
-        previewPath,
-        thumbnailUrl,
-        $"asset-catalog:{externalId}",
-        author: ReadOptionalString(item, "author"),
-        attributionRequired: ReadBoolean(item, "attribution_required"),
-        attributionText: ReadOptionalString(item, "attribution_text"),
-        technicalMetadata: ReadTechnicalMetadata(item));
+        string? displayName = null)
+    {
+        var result = new AssetCatalogItem(
+            AssetCatalogItemId.ForExternalId(externalId),
+            externalId,
+            displayName ?? ReadString(item, "name"),
+            ReadString(item, "source"),
+            sourceAssetId,
+            ReadString(item, "source_page"),
+            ReadString(item, "license"),
+            ReadString(item, "license_url"),
+            ReadBoolean(item, "license_verified"),
+            FingerprintFiles(item),
+            ReadInt64(item, "total_bytes"),
+            categories,
+            tags,
+            ReadString(item, "status"),
+            availability,
+            modelPath,
+            previewPath,
+            thumbnailUrl,
+            $"asset-catalog:{externalId}",
+            author: ReadOptionalString(item, "author"),
+            attributionRequired: ReadBoolean(item, "attribution_required"),
+            attributionText: ReadOptionalString(item, "attribution_text"),
+            technicalMetadata: ReadTechnicalMetadata(item));
+        return result.WithIntelligence(AssetIntelligenceProfileAnalyzer.CreateCatalogProfile(result));
+    }
 
     private static AssetTechnicalMetadata ReadTechnicalMetadata(JsonElement item)
     {

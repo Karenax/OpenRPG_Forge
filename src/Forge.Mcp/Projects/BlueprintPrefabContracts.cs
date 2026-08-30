@@ -1,4 +1,6 @@
 using Forge.Application.Commands;
+using Forge.Domain.Entities;
+using Forge.Domain.Spatial;
 
 namespace Forge.Mcp.Projects;
 
@@ -33,7 +35,10 @@ public sealed record AgentPrefabCompositionNode(
     string? Socket,
     float X,
     float Y,
-    float Z);
+    float Z,
+    TransformValue? Transform = null,
+    IReadOnlyList<string>? Tags = null,
+    EntityPropertyOverrides? Overrides = null);
 
 public sealed record AgentAssetBudgetMetrics(
     int TriangleCount,

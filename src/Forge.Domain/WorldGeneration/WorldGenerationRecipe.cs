@@ -106,6 +106,22 @@ public sealed record WorldGenerationQualityProfile(
     bool GenerateLod,
     bool RunAutomatedPlaytest);
 
+public enum WorldGenerationVisualTier
+{
+    TechnicalPreview = 0,
+    Production = 1,
+}
+
+public sealed record WorldGenerationArtDirectionProfile(
+    WorldGenerationVisualTier VisualTier,
+    Guid? SourceAreaId,
+    bool InheritEnvironment,
+    int MinimumVegetationStrata)
+{
+    public static WorldGenerationArtDirectionProfile ProductionDefault { get; } =
+        new(WorldGenerationVisualTier.Production, null, true, 3);
+}
+
 public sealed record WorldGenerationRegenerationPolicy(
     bool PreserveManualEdits,
     IReadOnlyList<string> ProtectedNodePaths);
@@ -135,6 +151,7 @@ public sealed record WorldGenerationRecipe
     public bool ApprovedForGeneration { get; }
     public string Provenance { get; }
     public WorldGenerationRegenerationPolicy Regeneration { get; }
+    public WorldGenerationArtDirectionProfile ArtDirection { get; }
 
     public WorldGenerationRecipe(
         Guid id,
@@ -155,7 +172,8 @@ public sealed record WorldGenerationRecipe
         IReadOnlyDictionary<WorldGenerationStage, WorldGenerationBackend>? backends,
         bool approvedForGeneration,
         string provenance,
-        WorldGenerationRegenerationPolicy? regeneration = null)
+        WorldGenerationRegenerationPolicy? regeneration = null,
+        WorldGenerationArtDirectionProfile? artDirection = null)
     {
         Id = id;
         SchemaVersion = schemaVersion;
@@ -177,6 +195,7 @@ public sealed record WorldGenerationRecipe
         ApprovedForGeneration = approvedForGeneration;
         Provenance = (provenance ?? string.Empty).Trim();
         Regeneration = Normalize(regeneration ?? new(true, []));
+        ArtDirection = artDirection ?? WorldGenerationArtDirectionProfile.ProductionDefault;
     }
 
     public WorldGenerationBackend BackendFor(WorldGenerationStage stage) =>
@@ -184,7 +203,7 @@ public sealed record WorldGenerationRecipe
 
     public WorldGenerationRecipe WithApproval(bool approved, string provenance) =>
         new(Id, SchemaVersion, AreaId, Title, Seed, Bounds, Terrain, Rivers, Biomes, Roads, Settlements, Scatter,
-            Gameplay, Navigation, Quality, Backends, approved, provenance, Regeneration);
+            Gameplay, Navigation, Quality, Backends, approved, provenance, Regeneration, ArtDirection);
 
     public string Fingerprint()
     {
@@ -280,6 +299,10 @@ public sealed record WorldGenerationRecipe
         AppendFingerprint(value, Quality.MaxObjectsPerCell.ToString(CultureInfo.InvariantCulture));
         AppendFingerprint(value, Quality.GenerateLod.ToString(CultureInfo.InvariantCulture));
         AppendFingerprint(value, Quality.RunAutomatedPlaytest.ToString(CultureInfo.InvariantCulture));
+        AppendFingerprint(value, ArtDirection.VisualTier.ToString());
+        AppendFingerprint(value, ArtDirection.SourceAreaId?.ToString("D") ?? string.Empty);
+        AppendFingerprint(value, ArtDirection.InheritEnvironment.ToString(CultureInfo.InvariantCulture));
+        AppendFingerprint(value, ArtDirection.MinimumVegetationStrata.ToString(CultureInfo.InvariantCulture));
         AppendFingerprint(value, Regeneration.PreserveManualEdits.ToString(CultureInfo.InvariantCulture));
         AppendFingerprint(value, Regeneration.ProtectedNodePaths.Count.ToString(CultureInfo.InvariantCulture));
         foreach (var path in Regeneration.ProtectedNodePaths) AppendFingerprint(value, path);
@@ -316,7 +339,8 @@ public sealed record WorldGenerationRecipe
             DefaultBackends(),
             false,
             "openrpg-default:world-generation-v1",
-            new(true, []));
+            new(true, []),
+            WorldGenerationArtDirectionProfile.ProductionDefault);
     }
 
     public static IReadOnlyDictionary<WorldGenerationStage, WorldGenerationBackend> DefaultBackends() =>
@@ -438,6 +462,16 @@ public static class WorldGenerationRecipeValidator
         if (recipe.Quality.StreamingCellSizeMeters is <= 0 or > 8_192 ||
             recipe.Quality.MaxObjectsPerCell is <= 0 or > 1_000_000)
             issues.Add(new("world_generation.quality_invalid", "Streaming cell size and object budget must be positive.", "world-generation/quality"));
+        if (!Enum.IsDefined(recipe.ArtDirection.VisualTier) ||
+            recipe.ArtDirection.SourceAreaId == Guid.Empty ||
+            recipe.ArtDirection.MinimumVegetationStrata is < 1 or > 8)
+            issues.Add(new("world_generation.art_direction_invalid",
+                "Art direction requires a supported visual tier, a non-empty optional source area and between 1 and 8 vegetation strata.",
+                "world-generation/artDirection"));
+        if (recipe.ArtDirection.SourceAreaId == recipe.AreaId)
+            issues.Add(new("world_generation.art_direction_recursive",
+                "The generated area cannot be its own art-direction source.",
+                "world-generation/artDirection/sourceAreaId"));
         if (recipe.Rivers.Count > 128 || recipe.Biomes.Count > 128 || recipe.Roads.Count > 512 ||
             recipe.Settlements.Count > 256 || recipe.Scatter.Count > 512)
             issues.Add(new("world_generation.collection_limit",

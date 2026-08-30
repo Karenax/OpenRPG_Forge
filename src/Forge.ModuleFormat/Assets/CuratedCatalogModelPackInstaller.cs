@@ -94,7 +94,10 @@ public static class CuratedCatalogModelPackInstaller
             author: catalogItem.Author,
             attributionRequired: catalogItem.AttributionRequired,
             attributionText: catalogItem.AttributionText,
-            installedPackIds: catalogItem.InstalledPackIds);
+            installedPackIds: catalogItem.InstalledPackIds,
+            technicalMetadata: catalogItem.TechnicalMetadata,
+            intelligence: catalogItem.Intelligence);
+        item = item.WithIntelligence(AssetIntelligenceProfileAnalyzer.Analyze(item, sourcePath));
         var profile = new AssetProcessingProfile(
             item.Id,
             AssetProcessingProfile.CurrentSchemaVersion,

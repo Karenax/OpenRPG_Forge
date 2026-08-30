@@ -69,6 +69,24 @@ public sealed class InstallAssetBlueprintHandlerTests
         Assert.Equal(InstallAssetBlueprintHandler.CanonicalModelRequiredCode, Assert.Single(result.Diagnostics).Code);
     }
 
+    [Fact]
+    public void BlueprintKindFollowsGovernedAssetSemantics()
+    {
+        var item = CatalogItem();
+        item = item.WithIntelligence(item.Intelligence with
+        {
+            SemanticType = "door",
+            Family = "architecture",
+            AssemblyRole = "interactive-leaf",
+            UseCases = ["opening"],
+            Placement = new AssetPlacementIntelligence("opening", "hinge", null, []),
+        });
+
+        var blueprint = AssetBlueprintFactory.Create(item, Manifest(item, "assets/door.glb", canonical: true));
+
+        Assert.Equal(BlueprintKind.Door, blueprint.Kind);
+    }
+
     private static InstallAssetBlueprintCommand Command(
         ProjectRevision revision,
         AssetCatalogItem item,

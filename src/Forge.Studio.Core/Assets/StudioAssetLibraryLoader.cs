@@ -31,6 +31,7 @@ public static class StudioAssetLibraryLoader
         }
 
         var collections = LoadPackCollections(repositoryRoot);
+        var intelligence = LoadIntelligenceProfiles(repositoryRoot, vaultRoot);
         var items = new Dictionary<string, StudioAssetLibraryItem>(StringComparer.OrdinalIgnoreCase);
         var catalogEntryCount = 0;
         foreach (var catalogPath in Directory.EnumerateFiles(catalogDirectory, "*.json")
@@ -43,7 +44,7 @@ public static class StudioAssetLibraryLoader
                 foreach (var asset in assets.EnumerateArray())
                 {
                     catalogEntryCount++;
-                    var item = MapAsset(asset, vaultRoot);
+                    var item = MapAsset(asset, vaultRoot, intelligence);
                     if (item is not null) Add(items, item);
                 }
             }
@@ -58,7 +59,7 @@ public static class StudioAssetLibraryLoader
                                      collections.TryGetValue(packId, out var configured)
                         ? configured
                         : null;
-                    foreach (var item in MapPack(pack, vaultRoot))
+                    foreach (var item in MapPack(pack, vaultRoot, intelligence))
                     {
                         Add(items, collection is null ? item : ApplyCollection(item, collection));
                     }
@@ -147,9 +148,29 @@ public static class StudioAssetLibraryLoader
         item.Categories,
         item.Variants,
         item.FileSize,
-        item.AvailableLocally);
+        item.AvailableLocally,
+        item.Description,
+        item.SemanticType,
+        item.Family,
+        item.AssemblyRole,
+        item.PlacementSurface,
+        item.PivotClass,
+        item.WidthMeters,
+        item.HeightMeters,
+        item.DepthMeters,
+        item.Readiness,
+        item.ReviewStatus,
+        item.MetadataConfidence,
+        item.PivotKind,
+        item.PivotXMeters,
+        item.PivotYMeters,
+        item.PivotZMeters,
+        item.PivotRequiresReview);
 
-    private static StudioAssetLibraryItem? MapAsset(JsonElement asset, string vaultRoot)
+    private static StudioAssetLibraryItem? MapAsset(
+        JsonElement asset,
+        string vaultRoot,
+        IReadOnlyDictionary<string, StudioAssetIntelligence> intelligence)
     {
         var externalId = ReadOptionalString(asset, "asset_id");
         var source = ReadOptionalString(asset, "source");
@@ -193,10 +214,14 @@ public static class StudioAssetLibraryLoader
             ReadStrings(asset, "tags"),
             ReadStrings(asset, "categories"),
             variants,
-            vaultRoot);
+            vaultRoot,
+            intelligence);
     }
 
-    private static IReadOnlyList<StudioAssetLibraryItem> MapPack(JsonElement pack, string vaultRoot)
+    private static IReadOnlyList<StudioAssetLibraryItem> MapPack(
+        JsonElement pack,
+        string vaultRoot,
+        IReadOnlyDictionary<string, StudioAssetIntelligence> intelligence)
     {
         var packId = ReadOptionalString(pack, "pack_id");
         if (string.IsNullOrWhiteSpace(packId)) return [];
@@ -258,7 +283,8 @@ public static class StudioAssetLibraryLoader
                 packTags.Concat([packSlug, logicalName]).ToArray(),
                 packCategories.Concat([isAnimation ? "animation" : "3d-model"]).ToArray(),
                 variants,
-                vaultRoot));
+                vaultRoot,
+                intelligence));
         }
         return result;
     }
@@ -276,8 +302,12 @@ public static class StudioAssetLibraryLoader
         IReadOnlyList<string> tags,
         IReadOnlyList<string> categories,
         IReadOnlyList<StudioAssetVariant> variants,
-        string vaultRoot)
+        string vaultRoot,
+        IReadOnlyDictionary<string, StudioAssetIntelligence> intelligence)
     {
+        var metadata = intelligence.TryGetValue(externalId, out var enriched)
+            ? enriched
+            : StudioAssetIntelligence.CreateFallback(externalId, displayName, sourceLabel, tags, categories);
         return new StudioAssetLibraryItem(
             externalId,
             displayName,
@@ -300,7 +330,24 @@ public static class StudioAssetLibraryLoader
             Normalize(categories),
             variants,
             selected.FileSize,
-            selected.AvailableLocally);
+            selected.AvailableLocally,
+            metadata.Description,
+            metadata.SemanticType,
+            metadata.Family,
+            metadata.AssemblyRole,
+            metadata.PlacementSurface,
+            metadata.PivotClass,
+            metadata.WidthMeters,
+            metadata.HeightMeters,
+            metadata.DepthMeters,
+            metadata.Readiness,
+            metadata.ReviewStatus,
+            metadata.Confidence,
+            metadata.PivotKind,
+            metadata.PivotXMeters,
+            metadata.PivotYMeters,
+            metadata.PivotZMeters,
+            metadata.PivotRequiresReview);
     }
 
     private static string? ResolveUnitPreview(JsonElement asset, string? extractedRoot, string vaultRoot)
@@ -488,6 +535,204 @@ public static class StudioAssetLibraryLoader
             name = Path.GetFileNameWithoutExtension(name);
         }
         return name;
+    }
+
+    private static IReadOnlyDictionary<string, StudioAssetIntelligence> LoadIntelligenceProfiles(
+        string repositoryRoot,
+        string vaultRoot)
+    {
+        var result = new Dictionary<string, StudioAssetIntelligence>(StringComparer.OrdinalIgnoreCase);
+        var paths = new List<string>();
+        var overlayDirectory = Path.Combine(repositoryRoot, "asset_manifests", "intelligence");
+        if (Directory.Exists(overlayDirectory))
+        {
+            paths.AddRange(Directory.EnumerateFiles(overlayDirectory, "*.json"));
+        }
+        var vaultIndex = Path.Combine(vaultRoot, "metadata", "asset-intelligence.v1.json");
+        if (File.Exists(vaultIndex)) paths.Add(vaultIndex);
+        foreach (var path in paths.OrderBy(value => value, StringComparer.Ordinal))
+        {
+            using var document = JsonDocument.Parse(File.ReadAllText(path));
+            if (!document.RootElement.TryGetProperty("schema_version", out var schema) ||
+                !schema.TryGetInt32(out var schemaVersion) || schemaVersion != 1 ||
+                !document.RootElement.TryGetProperty("profiles", out var profiles) ||
+                profiles.ValueKind != JsonValueKind.Array)
+            {
+                throw new InvalidDataException($"Le profil d’intelligence d’assets est invalide : {path}");
+            }
+            foreach (var profile in profiles.EnumerateArray()) AddIntelligence(result, profile);
+        }
+
+        var installationState = Path.Combine(vaultRoot, "metadata", "asset-vault-installations.v1.json");
+        if (File.Exists(installationState))
+        {
+            using var document = JsonDocument.Parse(File.ReadAllText(installationState));
+            if (document.RootElement.TryGetProperty("packages", out var packages) &&
+                packages.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var asset in packages.EnumerateArray()
+                             .Where(package => package.TryGetProperty("assets", out _))
+                             .SelectMany(package => package.GetProperty("assets").EnumerateArray()))
+                {
+                    if (asset.TryGetProperty("intelligence", out var profile) &&
+                        profile.ValueKind == JsonValueKind.Object)
+                    {
+                        AddIntelligence(result, profile);
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    private static void AddIntelligence(
+        IDictionary<string, StudioAssetIntelligence> result,
+        JsonElement profile)
+    {
+        var externalId = ReadOptionalString(profile, "external_id");
+        if (string.IsNullOrWhiteSpace(externalId)) return;
+        var descriptions = profile.TryGetProperty("descriptions", out var values) &&
+                           values.ValueKind == JsonValueKind.Object
+            ? values
+            : default;
+        var description = descriptions.ValueKind == JsonValueKind.Object &&
+                          descriptions.TryGetProperty("fr", out var french) &&
+                          french.ValueKind == JsonValueKind.String
+            ? french.GetString() ?? string.Empty
+            : descriptions.ValueKind == JsonValueKind.Object &&
+              descriptions.TryGetProperty("en", out var english) &&
+              english.ValueKind == JsonValueKind.String
+                ? english.GetString() ?? string.Empty
+                : string.Empty;
+        JsonElement geometry = default;
+        JsonElement dimensions = default;
+        var hasGeometry = profile.TryGetProperty("geometry", out geometry) &&
+                          geometry.ValueKind == JsonValueKind.Object;
+        var hasDimensions = hasGeometry && geometry.TryGetProperty("dimensions_meters", out dimensions) &&
+                            dimensions.ValueKind == JsonValueKind.Object;
+        JsonElement placement = default;
+        var hasPlacement = profile.TryGetProperty("placement", out placement) &&
+                           placement.ValueKind == JsonValueKind.Object;
+        JsonElement suggestedPivot = default;
+        var hasSuggestedPivot = hasPlacement &&
+                                placement.TryGetProperty("suggested_pivot", out suggestedPivot) &&
+                                suggestedPivot.ValueKind == JsonValueKind.Object;
+        JsonElement pivotPosition = default;
+        var hasPivotPosition = hasSuggestedPivot &&
+                               suggestedPivot.TryGetProperty("position_meters", out pivotPosition) &&
+                               pivotPosition.ValueKind == JsonValueKind.Object;
+        var candidate = new StudioAssetIntelligence(
+            description,
+            ReadOptionalString(profile, "semantic_type") ?? "unclassified",
+            ReadOptionalString(profile, "family") ?? "unclassified",
+            ReadOptionalString(profile, "assembly_role") ?? "unspecified",
+            hasPlacement ? ReadOptionalString(placement, "surface") ?? "unspecified" : "unspecified",
+            hasGeometry ? ReadOptionalString(geometry, "pivot_class") ?? "unknown" : "unknown",
+            hasDimensions ? ReadOptionalDouble(dimensions, "x") : null,
+            hasDimensions ? ReadOptionalDouble(dimensions, "y") : null,
+            hasDimensions ? ReadOptionalDouble(dimensions, "z") : null,
+            ReadOptionalString(profile, "readiness") ?? "catalogued",
+            ReadOptionalString(profile, "review_status") ?? "generated-review-required",
+            ReadOptionalDouble(profile, "confidence") ?? 0.1,
+            hasSuggestedPivot ? ReadOptionalString(suggestedPivot, "kind") ?? "unknown" : "unknown",
+            hasPivotPosition ? ReadOptionalDouble(pivotPosition, "x") : null,
+            hasPivotPosition ? ReadOptionalDouble(pivotPosition, "y") : null,
+            hasPivotPosition ? ReadOptionalDouble(pivotPosition, "z") : null,
+            hasSuggestedPivot && (ReadOptionalBooleanValue(suggestedPivot, "requires_review") ?? true),
+            ReadOptionalString(profile, "generated_by") ?? string.Empty,
+            hasGeometry && geometry.TryGetProperty("bounds", out var bounds) &&
+            bounds.ValueKind == JsonValueKind.Object);
+        if (!result.TryGetValue(externalId, out var existing) || candidate.Score > existing.Score)
+        {
+            result[externalId] = candidate;
+        }
+    }
+
+    private static double? ReadOptionalDouble(JsonElement value, string name) =>
+        value.TryGetProperty(name, out var property) && property.TryGetDouble(out var parsed)
+            ? parsed
+            : null;
+
+    private static bool? ReadOptionalBooleanValue(JsonElement value, string name) =>
+        value.TryGetProperty(name, out var property) && property.ValueKind is JsonValueKind.True or JsonValueKind.False
+            ? property.GetBoolean()
+            : null;
+
+    private sealed record StudioAssetIntelligence(
+        string Description,
+        string SemanticType,
+        string Family,
+        string AssemblyRole,
+        string PlacementSurface,
+        string PivotClass,
+        double? WidthMeters,
+        double? HeightMeters,
+        double? DepthMeters,
+        string Readiness,
+        string ReviewStatus,
+        double Confidence,
+        string PivotKind,
+        double? PivotXMeters,
+        double? PivotYMeters,
+        double? PivotZMeters,
+        bool PivotRequiresReview,
+        string GeneratedBy,
+        bool HasBounds)
+    {
+        internal int Score =>
+            (ReviewStatus == "human-reviewed" ? 100 : 0) +
+            (HasBounds ? 25 : 0) +
+            (GeneratedBy.Contains("blender", StringComparison.OrdinalIgnoreCase) ||
+             GeneratedBy.Contains("inventory", StringComparison.OrdinalIgnoreCase) ? 20 : 0) +
+            (int)Math.Round(Math.Clamp(Confidence, 0, 1) * 20);
+
+        internal static StudioAssetIntelligence CreateFallback(
+            string externalId,
+            string displayName,
+            string source,
+            IEnumerable<string> tags,
+            IEnumerable<string> categories)
+        {
+            var text = string.Join(' ', new[] { externalId, displayName }.Concat(tags).Concat(categories))
+                .ToLowerInvariant();
+            var tokens = text.Split(
+                    text.Where(character => !char.IsLetterOrDigit(character)).Distinct().ToArray(),
+                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .ToHashSet(StringComparer.Ordinal);
+            var semantic = tokens.Contains("door") ? "door" :
+                tokens.Contains("character") || tokens.Contains("creature") ? "character" :
+                tokens.Contains("wall") || tokens.Contains("floor") || tokens.Contains("roof") ? "architecture" :
+                tokens.Contains("tree") || tokens.Contains("plant") ? "vegetation" : "prop";
+            var role = semantic switch
+            {
+                "door" => "interactive-leaf",
+                "architecture" => "modular-structure",
+                "vegetation" => "terrain-scatter",
+                "character" => "actor",
+                _ => "standalone-prop",
+            };
+            return new StudioAssetIntelligence(
+                $"{displayName} est un asset de type {semantic} provenant de {source}.",
+                semantic,
+                categories.FirstOrDefault(value => !string.Equals(value, "3d-model", StringComparison.OrdinalIgnoreCase))
+                    ?.ToLowerInvariant() ?? source.ToLowerInvariant(),
+                role,
+                semantic == "door" ? "opening" : "ground",
+                "unknown",
+                null,
+                null,
+                null,
+                "semantic-enriched",
+                "generated-review-required",
+                0.4,
+                "unknown",
+                null,
+                null,
+                null,
+                true,
+                "openrpg-studio-catalog-fallback/1",
+                false);
+        }
     }
 
     private sealed record StudioAssetPackCollection(

@@ -1005,7 +1005,7 @@ public sealed class ForgeMcpTools
         _project.RevertEditorProductivityPlan(planId);
 
     [McpServerTool]
-    [Description("Searches the versioned local Asset Vault catalog by text, tags, dimensions, style, skeleton, material, polycount, license, author, compatibility and variant.")]
+    [Description("Searches the versioned local Asset Vault by text, semantics, descriptions, placement, pivot readiness, tags, dimensions, style, skeleton, material, polycount, license, author, compatibility and variant.")]
     public AgentAssetCatalogResult GetAssetCatalog(
         string? query = null,
         string? source = null,
@@ -1024,7 +1024,12 @@ public sealed class ForgeMcpTools
         long? maximumTriangleCount = null,
         string? author = null,
         string? compatibility = null,
-        string? variant = null) =>
+        string? variant = null,
+        string? semanticType = null,
+        string? assemblyRole = null,
+        string? placementSurface = null,
+        string? readiness = null,
+        bool? humanReviewed = null) =>
         _project.GetAssets(new AgentAssetCatalogQuery(
             query,
             source,
@@ -1043,7 +1048,12 @@ public sealed class ForgeMcpTools
             maximumTriangleCount,
             author,
             compatibility,
-            variant));
+            variant,
+            semanticType,
+            assemblyRole,
+            placementSurface,
+            readiness,
+            humanReviewed));
 
     [McpServerTool]
     [Description("Validates and dry-runs installation of a governed catalog asset as a project blueprint. License, manifest, identity and canonical GLB checks run before a plan is returned.")]
@@ -1312,4 +1322,19 @@ public sealed class ForgeMcpTools
     [Description("Reverts the latest applied entity scale transaction when no later mutation exists.")]
     public EntityScalePlanResult RevertEntityScalePlan(string planId) =>
         _project.RevertEntityScalePlan(planId);
+
+    [McpServerTool]
+    [Description("Validates and dry-runs an atomic translation of selected entities with a semantic diff.")]
+    public EntityTranslationPlanResult PlanEntityTranslation(EntityTranslationPlanRequest request) =>
+        _project.PlanEntityTranslation(request);
+
+    [McpServerTool]
+    [Description("Applies a previously validated entity translation transaction at its base revision.")]
+    public EntityTranslationPlanResult ApplyEntityTranslationPlan(string planId) =>
+        _project.ApplyEntityTranslationPlan(planId);
+
+    [McpServerTool]
+    [Description("Reverts the latest applied entity translation transaction when no later mutation exists.")]
+    public EntityTranslationPlanResult RevertEntityTranslationPlan(string planId) =>
+        _project.RevertEntityTranslationPlan(planId);
 }

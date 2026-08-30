@@ -7,6 +7,7 @@ public sealed class GodotAssetAnimationState
     internal GodotAssetAnimationState(
         AnimationPlayer player,
         string idleClip,
+        string? walkClip,
         string runClip,
         string jumpClip,
         string? attackClip,
@@ -16,6 +17,7 @@ public sealed class GodotAssetAnimationState
     {
         Player = player;
         IdleClip = idleClip;
+        WalkClip = walkClip;
         RunClip = runClip;
         JumpClip = jumpClip;
         AttackClip = attackClip;
@@ -27,6 +29,8 @@ public sealed class GodotAssetAnimationState
     public AnimationPlayer Player { get; }
 
     public string IdleClip { get; }
+
+    public string? WalkClip { get; }
 
     public string RunClip { get; }
 
@@ -52,7 +56,8 @@ public static class GodotAssetAnimationController
         string jump = "jump",
         string? attack = null,
         string? hit = null,
-        string? death = null)
+        string? death = null,
+        string? walk = null)
     {
         ArgumentNullException.ThrowIfNull(root);
         var player = FindAnimationPlayer(root) ?? throw new InvalidDataException(
@@ -64,6 +69,7 @@ public static class GodotAssetAnimationController
             .Order(StringComparer.Ordinal)
             .ToArray();
         var idleClip = ResolveClip(clips, idle);
+        var walkClip = ResolveOptionalClip(clips, walk);
         var runClip = ResolveClip(clips, run);
         var jumpClip = ResolveClip(clips, jump);
         var attackClip = ResolveOptionalClip(clips, attack);
@@ -72,6 +78,7 @@ public static class GodotAssetAnimationController
 
         player.Active = true;
         SetLoopMode(player, idleClip, Animation.LoopModeEnum.Linear);
+        SetOptionalLoopMode(player, walkClip, Animation.LoopModeEnum.Linear);
         SetLoopMode(player, runClip, Animation.LoopModeEnum.Linear);
         SetLoopMode(player, jumpClip, Animation.LoopModeEnum.None);
         SetOptionalLoopMode(player, attackClip, Animation.LoopModeEnum.None);
@@ -80,6 +87,7 @@ public static class GodotAssetAnimationController
         return new GodotAssetAnimationState(
             player,
             idleClip,
+            walkClip,
             runClip,
             jumpClip,
             attackClip,

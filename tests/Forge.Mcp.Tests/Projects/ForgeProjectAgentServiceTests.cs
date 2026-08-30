@@ -88,6 +88,42 @@ public sealed class ForgeProjectAgentServiceTests
     }
 
     [Fact]
+    public void EntityTranslationPlanIsAtomicDryRunPersistentAndRevertible()
+    {
+        using var workspace = new TestWorkspace();
+        var opened = ProjectSession.Open(workspace.RootDirectory).Session!;
+        var area = opened.Project.Areas[0];
+        var entities = area.Entities.Skip(6).Take(2).ToArray();
+        Assert.Equal(2, entities.Length);
+        var before = entities.ToDictionary(item => item.Id, item => item.Transform.Position);
+        var delta = new Vector3Value(1, 0, 1);
+
+        var plan = workspace.Project.PlanEntityTranslation(new EntityTranslationPlanRequest(
+            1, 0, area.Id.ToString(), entities.Select(item => item.Id.ToString()).ToArray(), delta));
+
+        Assert.True(plan.Succeeded, string.Join(" | ", plan.Diagnostics.Select(item => item.Message)));
+        Assert.False(plan.Applied);
+        Assert.Equal("replace", plan.Diff!.Operation);
+        Assert.All(ProjectSession.Open(workspace.RootDirectory).Session!.Project.Areas[0].Entities
+            .Where(item => before.ContainsKey(item.Id)), item => Assert.Equal(before[item.Id], item.Transform.Position));
+
+        var applied = workspace.Project.ApplyEntityTranslationPlan(plan.PlanId!);
+        Assert.True(applied.Succeeded, string.Join(" | ", applied.Diagnostics.Select(item => item.Message)));
+        Assert.True(applied.Applied);
+        Assert.All(ProjectSession.Open(workspace.RootDirectory).Session!.Project.Areas[0].Entities
+            .Where(item => before.ContainsKey(item.Id)), item => Assert.Equal(
+                new Vector3Value(before[item.Id].X + delta.X, before[item.Id].Y, before[item.Id].Z + delta.Z),
+                item.Transform.Position));
+
+        var reverted = workspace.Project.RevertEntityTranslationPlan(plan.PlanId!);
+        Assert.True(reverted.Succeeded, string.Join(" | ", reverted.Diagnostics.Select(item => item.Message)));
+        Assert.True(reverted.Reverted);
+        Assert.All(ProjectSession.Open(workspace.RootDirectory).Session!.Project.Areas[0].Entities
+            .Where(item => before.ContainsKey(item.Id)), item => Assert.Equal(before[item.Id], item.Transform.Position));
+        Assert.Equal(["planned", "apply", "revert"], reverted.Audit.Select(item => item.Operation));
+    }
+
+    [Fact]
     public void StructuredAgentResultIsValidatedAndOfflineReadinessNeedsNoAssistantFile()
     {
         using var workspace = new TestWorkspace();
@@ -2368,7 +2404,8 @@ public sealed class ForgeProjectAgentServiceTests
         var result = workspace.Project.GetAssets(new AgentAssetCatalogQuery(
             Text: "apple",
             Source: "ambientcg",
-            MaximumResults: 10));
+            MaximumResults: 10,
+            SemanticType: "prop"));
 
         Assert.Equal(1, result.SchemaVersion);
         Assert.Equal(681, result.CatalogCount);
@@ -2384,6 +2421,10 @@ public sealed class ForgeProjectAgentServiceTests
             Assert.Equal("ambientcg", item.Source);
             Assert.False(string.IsNullOrWhiteSpace(item.Author));
             Assert.NotNull(item.InstalledPackIds);
+            Assert.Equal("prop", item.Intelligence.SemanticType);
+            Assert.False(string.IsNullOrWhiteSpace(item.Intelligence.Description));
+            Assert.Equal("generated-review-required", item.Intelligence.ReviewStatus);
+            Assert.NotEmpty(item.Intelligence.Evidence);
         });
         Assert.Equal(0, workspace.Project.GetCurrentRevision());
     }
@@ -2435,7 +2476,13 @@ public sealed class ForgeProjectAgentServiceTests
             [new AgentPrefabVariantOverride("Material", "body", "asset:ember"),
              new AgentPrefabVariantOverride("Stat", "armor", "18")], true,
             [new AgentPrefabCompositionNode(nodeId.ToString("D"), baseBlueprint.Id.ToString(), null, "floor",
-                2, 0, 3)], ["socket-compatible"], ["intensity"], ["scripts/assemble.as"], true,
+                2, 0, 3,
+                new TransformValue(new Vector3Value(2, 0, 3),
+                    new QuaternionValue(0, 0.70710677f, 0, 0.70710677f), new Vector3Value(1, 2, 1)),
+                ["house-piece", "nonblocking"], new EntityPropertyOverrides(1,
+                    [new EntityPropertyOverride("visual.asset", EntityPropertyValueKind.String,
+                        "asset:house-wall")]))],
+            ["socket-compatible"], ["intensity"], ["scripts/assemble.as"], true,
             new AgentAssetBudgetMetrics(12_000, 2, 3, 8_000_000, 1, 3, 2),
             [new AgentAssetPlatformBudget("Windows", 20_000, 4, 6, 16_000_000, 2, 4, 3, true)],
             true, ["Crypt/Architecture", "Smoke/Prefabs"]);
@@ -2445,7 +2492,10 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.True(planned.Succeeded, string.Join(" | ", planned.Diagnostics.Select(item => item.Message)));
         Assert.Equal("replace", planned.Diff?.Operation);
         Assert.Equal(2, planned.Preview!.VariantOverrides.Count);
-        Assert.Single(planned.Preview.CompositionNodes);
+        var previewNode = Assert.Single(planned.Preview.CompositionNodes);
+        Assert.Equal(new Vector3Value(1, 2, 1), previewNode.Transform!.Scale);
+        Assert.Contains("house-piece", previewNode.Tags!);
+        Assert.Equal("asset:house-wall", Assert.Single(previewNode.Overrides!.Properties).Value);
         Assert.Single(planned.Preview.PlatformBudgets);
         Assert.Equal(0, workspace.Project.GetCurrentRevision());
         Assert.Empty(workspace.Project.QueryBlueprintPrefabs(target.Id.ToString(), 10).Items);
@@ -2460,7 +2510,10 @@ public sealed class ForgeProjectAgentServiceTests
         var persisted = ProjectSession.Open(workspace.RootDirectory).Session!.Project.Blueprints
             .Single(item => item.Id == target.Id);
         Assert.Equal(baseBlueprint.Id, persisted.Authoring.PrefabVariant!.BaseBlueprintId);
-        Assert.Single(persisted.Authoring.PrefabComposition!.Nodes);
+        var persistedNode = Assert.Single(persisted.Authoring.PrefabComposition!.Nodes);
+        Assert.Equal(new Vector3Value(1, 2, 1), persistedNode.Transform.Scale);
+        Assert.Contains("house-piece", persistedNode.Tags);
+        Assert.Equal("asset:house-wall", Assert.Single(persistedNode.Overrides.Properties).Value);
         Assert.Single(persisted.Authoring.AssetBudget!.Platforms);
 
         var reverted = workspace.Project.RevertBlueprintPrefabPlan(planned.PlanId!);

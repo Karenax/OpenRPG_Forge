@@ -181,6 +181,37 @@ Le mode d’emploi et la signification des relations sont documentés dans
 - Les modèles IA et fournisseurs 3D doivent rester interchangeables.
 - Tout asset généré conserve sa provenance et sa licence.
 
+## Qualification des cartes générées
+
+- Les exigences visibles du brief deviennent des seuils d'audit explicites. Un nombre demandé de
+  maisons ou de PNJ ne doit jamais être remplacé par un simple comptage technique de nœuds.
+- Après la construction complète de la zone, lancer `scripts/Invoke-MapQualityAudit.ps1` sur le vrai
+  workspace et le spawn joueur, dans le renderer Forward+ Vulkan. Renseigner au minimum les nombres
+  demandés de patrouilleurs et de groupes de bâtiments ; une carte verdoyante conserve les seuils de
+  strates et de densité locale de couverture du sol.
+- Le marqueur `OPENRPG_FORGE_MAP_QUALITY_MACHINE_PASS` est une preuve intermédiaire. Il contrôle le
+  terrain texturé réellement résolu, son espacement d'échantillonnage, ses couches de peinture et leur
+  couverture, les MultiMeshes de végétation matérialisés, les acteurs animés, leur déplacement et
+  contact au sol pendant plusieurs frames, les fondations visibles, les intersections entre végétation
+  et bâtiments, les corridors de cadrage ainsi que les entrées orbit/zoom de la caméra.
+- Inspecter ensuite soi-même tous les PNG obligatoires du runtime : `overview`, `overhead`,
+  `ground-level`, puis `patrol-character` dès qu'un PNJ est demandé et `building-detail` dès qu'un
+  bâtiment est demandé, complété par les gros plans du même seuil `door-closed` et `door-open`. Ne
+  lancer `scripts/Confirm-MapQualityVisualReview.ps1` que si texture du sol, végétation, bâtiments,
+  entrées, personnages et cadrages sont crédibles dans chaque image ; renseigner explicitement
+  `EntrancesAlignedAndOperable`. Ce script est le
+  seul à émettre `OPENRPG_FORGE_MAP_QUALITY_PASS` ; il exige la baseline produit comparée et lie la
+  revue aux SHA-256 des captures.
+- Une image faible, vide, illisible, contenant un faux personnage ou un objet flottant rejette le lot,
+  même si tous les tests et métriques passent. Corriger la cause générique, relancer l'audit complet et
+  réinspecter toutes les vues avant de présenter la carte à l'utilisateur.
+- Comparer la carte à la référence produit courante. Le déterminisme, les graphes et un `PASS` local ne
+  prouvent pas une amélioration : ne déclarer le nouveau processus supérieur qu'après la gate
+  comparative du benchmark (effort de correction ou score visuel à l'aveugle) sans régression
+  éliminatoire.
+- Une provenance `human-forward-plus:` ne doit jamais être déclarée à partir des logs, empreintes ou
+  captures techniques du worker seuls. Elle suppose une inspection visuelle réelle du résultat chargé.
+
 ## Sécurité des modules
 
 - Refuser les chemins absolus et les traversées `..`.

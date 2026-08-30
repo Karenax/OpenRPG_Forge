@@ -25,15 +25,24 @@ public static class BiomeScatterPlanBuilder
         if (!terrain.Enabled || biome.ScatterDensity <= 0 || string.IsNullOrWhiteSpace(biome.ScatterResource))
             return new([], new(0, 0, 0, 0));
 
+        var focusRegion = FocusRegion(biome);
         var largeProductionSurface = terrain.Width * terrain.Depth >= 256f * 256f;
         var lushMeadow = largeProductionSurface &&
                          biome.Tags.Contains("lush-meadow", StringComparer.OrdinalIgnoreCase);
         var maximumPlacements = biome.Tags.Contains("ground-cover", StringComparer.OrdinalIgnoreCase)
             ? largeProductionSurface ? lushMeadow ? 16_000 : 2_600 : 420
             : largeProductionSurface ? 1_600 : 220;
-        var coverageDivisor = lushMeadow ? 16d : 90d;
+        // A focus region is a local composition surface, not a post-filter over the whole terrain.
+        // Sampling and budgeting it directly keeps local density independent of map dimensions and
+        // avoids spending almost every attempt outside the authored landscape.
+        var coverageSurface = focusRegion is { } focus
+            ? Math.Min(terrain.Width * terrain.Depth, Math.PI * focus.Radius * focus.Radius)
+            : terrain.Width * terrain.Depth;
+        var coverageDivisor = lushMeadow
+            ? focusRegion is null ? 16d : 2.5d
+            : focusRegion is null ? 90d : 40d;
         var target = Math.Clamp(
-            Math.Max(1, (int)Math.Round(terrain.Width * terrain.Depth / coverageDivisor * biome.ScatterDensity)),
+            Math.Max(1, (int)Math.Round(coverageSurface / coverageDivisor * biome.ScatterDensity)),
             0,
             maximumPlacements);
         var result = new List<BiomeScatterPlacement>(target);
@@ -42,7 +51,6 @@ public static class BiomeScatterPlanBuilder
         var random = new StableRandom(seed);
         var minimumDistance = biome.Tags.Contains("tree", StringComparer.OrdinalIgnoreCase) ? 3.4f : 1.1f;
         var occupied = new Dictionary<(int X, int Z), List<Vector3Value>>();
-        var focusRegion = FocusRegion(biome);
         var exclusionIndex = BiomeScatterExclusionIndex.Create(features, biome);
         var exclusionQueries = 0L;
         var candidateSegmentChecks = 0L;
@@ -50,15 +58,17 @@ public static class BiomeScatterPlanBuilder
 
         for (var attempt = 0; attempt < target * 18 && result.Count < target; attempt++)
         {
-            var x = (random.NextFloat() - .5f) * terrain.Width;
-            var z = (random.NextFloat() - .5f) * terrain.Depth;
+            var (x, z) = SampleCandidate(random, terrain, focusRegion);
+            if (x < -terrain.Width / 2f || x > terrain.Width / 2f ||
+                z < -terrain.Depth / 2f || z > terrain.Depth / 2f)
+            {
+                continue;
+            }
             var height = terrain.HeightAt(x, z);
             var slope = SlopeDegrees(terrain, x, z);
             var cell = CellAt(terrain, x, z);
             if (height < biome.MinimumAltitude || height > biome.MaximumAltitude ||
                 slope < biome.MinimumSlopeDegrees || slope > biome.MaximumSlopeDegrees ||
-                focusRegion is { } focus &&
-                (x - focus.X) * (x - focus.X) + (z - focus.Z) * (z - focus.Z) > focus.Radius * focus.Radius ||
                 terrain.IsHoleCell(cell.X, cell.Z) ||
                 materialPaint.TryGetValue(cell, out var paintedMaterial) && paintedMaterial != biome.MaterialLayerId)
                 continue;
@@ -95,6 +105,25 @@ public static class BiomeScatterPlanBuilder
                 exclusionQueries,
                 candidateSegmentChecks,
                 linearCandidateSegmentChecks));
+    }
+
+    private static (float X, float Z) SampleCandidate(
+        StableRandom random,
+        TerrainDefinition terrain,
+        (float X, float Z, float Radius)? focusRegion)
+    {
+        if (focusRegion is not { } focus)
+        {
+            return (
+                (random.NextFloat() - .5f) * terrain.Width,
+                (random.NextFloat() - .5f) * terrain.Depth);
+        }
+
+        var angle = random.NextFloat() * MathF.Tau;
+        var radius = MathF.Sqrt(random.NextFloat()) * focus.Radius;
+        return (
+            focus.X + MathF.Cos(angle) * radius,
+            focus.Z + MathF.Sin(angle) * radius);
     }
 
     private static (float X, float Z, float Radius)? FocusRegion(BiomeLayerDefinition biome)

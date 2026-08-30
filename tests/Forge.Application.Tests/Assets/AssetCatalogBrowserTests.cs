@@ -175,6 +175,39 @@ public sealed class AssetCatalogBrowserTests
         Assert.Empty(browser.Search(new AssetCatalogQuery(MaximumTriangleCount: 100)));
     }
 
+    [Fact]
+    public void SemanticSearchUsesDescriptionsPlacementReadinessAndReviewState()
+    {
+        var item = CreateItem("fixture:oak-door", "Porte en chêne", "fixture", ["architecture"], ["oak"]);
+        var fallback = AssetIntelligenceProfile.CreateUnclassified(item.ExternalId, item.DisplayName, item.Source);
+        item = item.WithIntelligence(fallback with
+        {
+            Descriptions = new Dictionary<string, string>
+            {
+                ["fr"] = "Porte médiévale lourde destinée à une ouverture fortifiée.",
+            },
+            SemanticType = "door",
+            Family = "architecture",
+            AssemblyRole = "interactive-leaf",
+            UseCases = ["opening", "interaction"],
+            Placement = new AssetPlacementIntelligence("opening", "hinge", null, []),
+            Readiness = "placement-suggested",
+            ReviewStatus = "generated-review-required",
+            Confidence = 0.75,
+        });
+        var browser = new AssetCatalogBrowser(new AssetCatalog(
+            "2026-08-29", "cc0-only", "vault", [item], "fixture"));
+
+        Assert.Same(item, Assert.Single(browser.Search(new AssetCatalogQuery(
+            Text: "fortifiee",
+            SemanticType: "door",
+            AssemblyRole: "interactive-leaf",
+            PlacementSurface: "opening",
+            Readiness: "placement-suggested",
+            HumanReviewed: false))));
+        Assert.Empty(browser.Search(new AssetCatalogQuery(HumanReviewed: true)));
+    }
+
     private static AssetCatalogItem CreateItem(
         string externalId,
         string name,

@@ -105,7 +105,8 @@ public static class AssetPackageManifestFactory
             collision,
             animation,
             vfx,
-            lod);
+            lod,
+            Intelligence: item.Intelligence);
         var diagnostics = AssetPackageManifestValidator.Validate(manifest);
         if (diagnostics.Count > 0)
         {

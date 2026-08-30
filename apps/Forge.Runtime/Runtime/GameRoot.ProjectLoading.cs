@@ -433,6 +433,7 @@ public partial class GameRoot
                 if (clickTrigger.Enabled)
                 {
                     _clickInteractions[node] = clickTrigger;
+                    RegisterEnvironmentDoor(node, effectiveEntity, clickTrigger);
                 }
             }
             _builtEntityCount++;
@@ -523,12 +524,19 @@ public partial class GameRoot
         const float wallThickness = 2.5f;
         const float overheadClearance = 48f;
         const float undergroundClearance = 18f;
-        var minimumTerrainHeight = area.World.Terrain.Heights.Count == 0
-            ? -4f
-            : area.World.Terrain.Heights.Min();
-        var maximumTerrainHeight = area.World.Terrain.Heights.Count == 0
-            ? 8f
-            : area.World.Terrain.Heights.Max();
+        var groundHeights = area.World.PlacementSurface?.Heights
+            .Select(value => value * area.World.PlacementSurface.HeightScale)
+            .ToArray();
+        var minimumTerrainHeight = groundHeights is { Length: > 0 }
+            ? groundHeights.Min()
+            : area.World.Terrain.Heights.Count == 0
+                ? -4f
+                : area.World.Terrain.Heights.Min();
+        var maximumTerrainHeight = groundHeights is { Length: > 0 }
+            ? groundHeights.Max()
+            : area.World.Terrain.Heights.Count == 0
+                ? 8f
+                : area.World.Terrain.Heights.Max();
         var wallBottom = minimumTerrainHeight - undergroundClearance;
         var wallTop = maximumTerrainHeight + overheadClearance;
         var wallHeight = wallTop - wallBottom;

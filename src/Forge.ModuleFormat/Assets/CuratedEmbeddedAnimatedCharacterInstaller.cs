@@ -81,6 +81,7 @@ public static class CuratedEmbeddedAnimatedCharacterInstaller
             null,
             null,
             provenance);
+        item = item.WithIntelligence(AssetIntelligenceProfileAnalyzer.Analyze(item, modelPath));
         var profile = new AssetProcessingProfile(
             assetId,
             AssetProcessingProfile.CurrentSchemaVersion,

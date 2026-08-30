@@ -106,9 +106,20 @@ class McpStdioTests(unittest.TestCase):
             summary = receive()
             self.assertFalse(summary["result"].get("isError", False))
             self.assertIn("crypt-of-ashes", json.dumps(summary["result"]))
+            send(
+                {
+                    "jsonrpc": "2.0",
+                    "id": 4,
+                    "method": "tools/call",
+                    "params": {"name": "get_current_revision", "arguments": {}},
+                }
+            )
+            revision = receive()
+            self.assertFalse(revision["result"].get("isError", False))
+            current_revision = int(revision["result"]["content"][0]["text"])
             dialogue_request = {
                 "schemaVersion": 1,
-                "baseRevision": 0,
+                "baseRevision": current_revision,
                 "dialogueId": "71000000-0000-4000-8000-000000000001",
                 "slug": "ai-variant",
                 "displayName": "Variante IA",
@@ -125,7 +136,7 @@ class McpStdioTests(unittest.TestCase):
             send(
                 {
                     "jsonrpc": "2.0",
-                    "id": 4,
+                    "id": 5,
                     "method": "tools/call",
                     "params": {"name": "plan_dialogue", "arguments": {"request": dialogue_request}},
                 }
@@ -138,7 +149,7 @@ class McpStdioTests(unittest.TestCase):
             send(
                 {
                     "jsonrpc": "2.0",
-                    "id": 5,
+                    "id": 6,
                     "method": "tools/call",
                     "params": {
                         "name": "apply_dialogue_plan",
@@ -151,7 +162,7 @@ class McpStdioTests(unittest.TestCase):
             send(
                 {
                     "jsonrpc": "2.0",
-                    "id": 6,
+                    "id": 7,
                     "method": "tools/call",
                     "params": {
                         "name": "revert_dialogue_plan",

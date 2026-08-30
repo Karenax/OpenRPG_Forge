@@ -1,6 +1,8 @@
 using Forge.Application.WorldGeneration;
+using Forge.Domain.Areas;
 using Forge.Domain.WorldGeneration;
 using Forge.ModuleFormat.Workspaces;
+using System.Text.Json;
 
 namespace Forge.ModuleFormat.Tests.Workspaces;
 
@@ -156,10 +158,20 @@ public sealed class WorldGenerationStoreTests
                 step.Backend == WorldGenerationBackend.PcgGodot ? "godot-flow" :
                     step.Backend == WorldGenerationBackend.Terrain3D ? "terrain3d" : "openrpg-native",
                 "test-version", new string('a', 64))).ToArray();
+            float[] surfaceHeights = [0, .2f, .4f, 1];
+            AreaEnvironmentOccupancyCell[] occupancyCells = [new("vegetation", "biomes", 0, 0, 16)];
+            var terrainSurface = new WorldGenerationTerrainSurfaceEvidence(
+                1, 2048, 2048, 2, 2, 10, surfaceHeights, TerrainCellDiagonal.Main,
+                WorldGenerationSpatialEvidenceFingerprint.ComputeTerrain(
+                    2048, 2048, 2, 2, 10, surfaceHeights, TerrainCellDiagonal.Main));
+            var environmentOccupancy = new WorldGenerationEnvironmentOccupancyEvidence(
+                1, 2048, 2048, 32, occupancyCells,
+                WorldGenerationSpatialEvidenceFingerprint.ComputeEnvironment(2048, 2048, 32, occupancyCells));
             var report = new WorldGenerationValidationReport(
                 1, job.JobId, job.PlanId, recipe.Id, recipe.AreaId, job.ProjectRevision, job.RecipeRevision,
                 job.RecipeFingerprint, job.Plan.PlanFingerprint, sceneSha, new string('b', 64),
-                new string('c', 64), true, true, true, true, providers, []);
+                new string('c', 64), true, true, true, true, providers, [],
+                terrainSurface, environmentOccupancy);
             Assert.True(WorldGenerationPromotionStore.SaveValidationReport(root, report).Succeeded);
             var inspected = WorldGenerationPromotionStore.Inspect(root, job);
             Assert.True(inspected.Succeeded,
@@ -174,7 +186,22 @@ public sealed class WorldGenerationStoreTests
                 WorldGenerationPromotionStore.DerivedSceneRelativePath(plan.PlanId),
                 PromoteWorldGenerationHandler.CanonicalScenePath(recipe.AreaId),
                 sceneSha, report.ContentFingerprint, report.AssetSelectionFingerprint,
-                providers, recipe.Regeneration.ProtectedNodePaths, "human-review:test");
+                providers, recipe.Regeneration.ProtectedNodePaths, "human-forward-plus:test",
+                terrainSurface, environmentOccupancy,
+                new WorldGenerationProductionVisualEvidence(
+                    WorldGenerationProductionVisualEvidence.CurrentSchemaVersion,
+                    Guid.Parse("f0510000-0000-4000-8000-000000000099"),
+                    2,
+                    16_384,
+                    3,
+                    4,
+                    3,
+                    ["canopy", "shrub", "ground-cover"],
+                    2,
+                    1,
+                    true,
+                    new WorldGenerationProductionSpatialQualityEvidence(1, 4, 6, .5f),
+                    new string('d', 64)));
             var applied = WorldGenerationPromotionStore.Apply(root, promotion, expectedCanonicalSceneSha256: null);
 
             Assert.True(applied.Succeeded,
@@ -195,12 +222,27 @@ public sealed class WorldGenerationStoreTests
                 promotion.CanonicalSceneRelativePath,
                 File.ReadAllBytes(canonicalPath),
                 File.ReadAllText(promotionManifestPath));
+            var legacyProductionVisuals = promotion.ProductionVisuals! with
+            {
+                SchemaVersion = 2,
+                ProductionFeatureCount = 0,
+                TexturedRoadCount = 0,
+            };
+            var legacyManifest = JsonSerializer.Serialize(
+                promotion with { ProductionVisuals = legacyProductionVisuals },
+                new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            var legacyPackaged = WorldGenerationPromotionStore.ValidatePackagedCanonicalScene(
+                recipe.AreaId,
+                promotion.CanonicalSceneRelativePath,
+                File.ReadAllBytes(canonicalPath),
+                legacyManifest);
             var tamperedPackage = WorldGenerationPromotionStore.ValidatePackagedCanonicalScene(
                 recipe.AreaId,
                 promotion.CanonicalSceneRelativePath,
                 System.Text.Encoding.UTF8.GetBytes(scene + "\n[node name=\"tampered\" type=\"Node3D\"]\n"),
                 File.ReadAllText(promotionManifestPath));
             Assert.True(packaged.Succeeded);
+            Assert.True(legacyPackaged.Succeeded);
             Assert.False(tamperedPackage.Succeeded);
             Assert.Equal(WorldGenerationPromotionStore.EvidenceMismatchCode,
                 Assert.Single(tamperedPackage.Diagnostics).Code);

@@ -8,11 +8,13 @@ public static class RuntimeStartupVerificationPolicy
         bool innUxSmokeTest,
         bool moduleMovementSmokeTest,
         bool combatFeedbackSmokeTest,
-        bool combatFeedbackCaptureRequested) =>
+        bool combatFeedbackCaptureRequested,
+        bool mapQualityAuditRequested = false) =>
         automatedTest &&
         !entryGroundSmokeTest &&
         !innUxSmokeTest &&
         !moduleMovementSmokeTest &&
         !combatFeedbackSmokeTest &&
-        !combatFeedbackCaptureRequested;
+        !combatFeedbackCaptureRequested &&
+        !mapQualityAuditRequested;
 }

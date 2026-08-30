@@ -148,7 +148,65 @@ internal static class AssetPackageManifestJsonSerializer
                     Levels = (manifest.Lod.Levels ?? []).OrderBy(level => level.Level).ToArray(),
                 },
             ModelMetadata = NormalizeModelMetadata(manifest.ModelMetadata),
+            Intelligence = NormalizeIntelligence(manifest.Intelligence),
         };
+
+    private static AssetIntelligenceProfile? NormalizeIntelligence(AssetIntelligenceProfile? profile)
+    {
+        if (profile is null) return null;
+        return profile with
+        {
+            ExternalId = profile.ExternalId.Trim(),
+            ModelContentSha256 = profile.ModelContentSha256.Trim().ToLowerInvariant(),
+            DependencyClosureSha256 = profile.DependencyClosureSha256.Trim().ToLowerInvariant(),
+            Descriptions = (profile.Descriptions ?? new Dictionary<string, string>())
+                .Where(item => !string.IsNullOrWhiteSpace(item.Key) && !string.IsNullOrWhiteSpace(item.Value))
+                .OrderBy(item => item.Key, StringComparer.Ordinal)
+                .ToDictionary(
+                    item => item.Key.Trim().ToLowerInvariant(),
+                    item => item.Value.Trim(),
+                    StringComparer.Ordinal),
+            SemanticType = profile.SemanticType.Trim().ToLowerInvariant(),
+            Family = profile.Family.Trim().ToLowerInvariant(),
+            AssemblyRole = profile.AssemblyRole.Trim().ToLowerInvariant(),
+            UseCases = (profile.UseCases ?? [])
+                .Where(value => !string.IsNullOrWhiteSpace(value))
+                .Select(value => value.Trim().ToLowerInvariant())
+                .Distinct(StringComparer.Ordinal)
+                .Order(StringComparer.Ordinal)
+                .ToArray(),
+            Placement = profile.Placement with
+            {
+                Surface = profile.Placement.Surface.Trim().ToLowerInvariant(),
+                SnapMode = profile.Placement.SnapMode.Trim().ToLowerInvariant(),
+                Anchors = (profile.Placement.Anchors ?? [])
+                    .OrderBy(anchor => anchor.Name, StringComparer.Ordinal)
+                    .ToArray(),
+            },
+            Technical = profile.Technical with
+            {
+                Materials = (profile.Technical.Materials ?? [])
+                    .Where(value => !string.IsNullOrWhiteSpace(value))
+                    .Select(value => value.Trim().ToLowerInvariant())
+                    .Distinct(StringComparer.Ordinal)
+                    .Order(StringComparer.Ordinal)
+                    .ToArray(),
+                Animations = (profile.Technical.Animations ?? [])
+                    .Where(value => !string.IsNullOrWhiteSpace(value))
+                    .Select(value => value.Trim().ToLowerInvariant())
+                    .Distinct(StringComparer.Ordinal)
+                    .Order(StringComparer.Ordinal)
+                    .ToArray(),
+            },
+            Readiness = profile.Readiness.Trim().ToLowerInvariant(),
+            ReviewStatus = profile.ReviewStatus.Trim().ToLowerInvariant(),
+            GeneratedBy = profile.GeneratedBy.Trim().ToLowerInvariant(),
+            Evidence = (profile.Evidence ?? [])
+                .OrderBy(item => item.Field, StringComparer.Ordinal)
+                .ThenBy(item => item.Source, StringComparer.Ordinal)
+                .ToArray(),
+        };
+    }
 
     private static AssetModelMetadata? NormalizeModelMetadata(AssetModelMetadata? metadata)
     {

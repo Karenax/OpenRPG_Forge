@@ -36,7 +36,9 @@ public sealed record WorldGenerationValidationReport(
     bool NavigationValidated,
     bool ManualEditsPreserved,
     IReadOnlyList<WorldGenerationProviderEvidence> Providers,
-    IReadOnlyList<WorldGenerationValidationIssue> Diagnostics)
+    IReadOnlyList<WorldGenerationValidationIssue> Diagnostics,
+    WorldGenerationTerrainSurfaceEvidence? TerrainSurface = null,
+    WorldGenerationEnvironmentOccupancyEvidence? EnvironmentOccupancy = null)
 {
     public const int CurrentSchemaVersion = 1;
 }
@@ -77,7 +79,10 @@ public sealed record WorldGenerationCanonicalPromotion(
     string AssetSelectionFingerprint,
     IReadOnlyList<WorldGenerationProviderEvidence> Providers,
     IReadOnlyList<string> ProtectedNodePaths,
-    string AcceptanceProvenance)
+    string AcceptanceProvenance,
+    WorldGenerationTerrainSurfaceEvidence? TerrainSurface = null,
+    WorldGenerationEnvironmentOccupancyEvidence? EnvironmentOccupancy = null,
+    WorldGenerationProductionVisualEvidence? ProductionVisuals = null)
 {
     public const int CurrentSchemaVersion = 1;
 }
@@ -139,9 +144,9 @@ public sealed class PromoteWorldGenerationHandler
         if (job.Status != WorldGenerationJobStatus.Succeeded)
             return Failure(state, command, JobNotSucceededCode,
                 "Only a successfully completed world-generation job can be promoted.");
-        if (string.IsNullOrWhiteSpace(command.AcceptanceProvenance))
+        if (command.AcceptanceProvenance?.StartsWith("human-forward-plus:", StringComparison.Ordinal) != true)
             return Failure(state, command, AcceptanceRequiredCode,
-                "Canonical promotion requires explicit validation acceptance provenance.");
+                "Canonical promotion requires explicit human Forward+ validation provenance using the 'human-forward-plus:' prefix.");
 
         var evidenceDiagnostics = ValidateEvidence(state, recipeState, job, command);
         if (evidenceDiagnostics.Count > 0)
@@ -153,6 +158,42 @@ public sealed class PromoteWorldGenerationHandler
         var requiredResources = loading.RequiredResources.Concat([canonicalPath])
             .Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
         var provenance = $"world-generation-promotion:{command.PromotionPlanId:D}";
+        var surfaceEvidence = command.ValidationReport.TerrainSurface!;
+        var environmentEvidence = command.ValidationReport.EnvironmentOccupancy!;
+        var productionArt = WorldGenerationProductionArtDirection.Materialize(
+            state.Project, area, job.Recipe, surfaceEvidence, provenance);
+        if (!productionArt.Succeeded)
+            return Failure(state, command, EvidenceInvalidCode, string.Join(" | ", productionArt.Diagnostics));
+        var productionTerrain = productionArt.Terrain!;
+        var placementSurfaceFingerprint = WorldGenerationSpatialEvidenceFingerprint.ComputeTerrain(
+            productionTerrain.Width,
+            productionTerrain.Depth,
+            productionTerrain.SamplesX,
+            productionTerrain.SamplesZ,
+            productionTerrain.HeightScale,
+            productionTerrain.Heights,
+            surfaceEvidence.CellDiagonal);
+        var placementSurface = new TerrainPlacementSurfaceDefinition(
+            StableId(area.Id.Value, "placement-surface"),
+            TerrainPlacementSurfaceDefinition.CurrentSchemaVersion,
+            productionTerrain.Width,
+            productionTerrain.Depth,
+            productionTerrain.SamplesX,
+            productionTerrain.SamplesZ,
+            productionTerrain.HeightScale,
+            productionTerrain.Heights,
+            surfaceEvidence.CellDiagonal,
+            placementSurfaceFingerprint,
+            provenance);
+        var environmentOccupancy = new AreaEnvironmentOccupancyProfile(
+            StableId(area.Id.Value, "environment-occupancy"),
+            AreaEnvironmentOccupancyProfile.CurrentSchemaVersion,
+            environmentEvidence.Width,
+            environmentEvidence.Depth,
+            environmentEvidence.CellSizeMeters,
+            environmentEvidence.Cells,
+            environmentEvidence.Fingerprint,
+            provenance);
         var promotedLoading = new AreaLoadingProfile(
             loading.Id,
             loading.SchemaVersion,
@@ -168,14 +209,16 @@ public sealed class PromoteWorldGenerationHandler
         var world = new AreaWorldProfile(
             area.World.Id,
             area.World.SchemaVersion,
-            area.World.Terrain,
-            area.World.Biomes,
-            area.World.Features,
+            productionArt.Terrain!,
+            productionArt.Biomes,
+            productionArt.Features,
             area.World.VolumetricNavigation,
             area.World.FlightRoutes,
             promotedLoading,
-            provenance);
-        var updatedArea = area.WithWorld(world);
+            provenance,
+            placementSurface,
+            environmentOccupancy);
+        var updatedArea = area.WithWorld(world).WithEnvironment(productionArt.Environment!);
         var project = new ProjectDefinition(
             state.Project.Id,
             state.Project.Title,
@@ -206,15 +249,18 @@ public sealed class PromoteWorldGenerationHandler
             command.ValidationReport.AssetSelectionFingerprint,
             command.ValidationReport.Providers.OrderBy(item => item.Stage).ToArray(),
             job.Recipe.Regeneration.ProtectedNodePaths,
-            command.AcceptanceProvenance.Trim());
+            command.AcceptanceProvenance.Trim(),
+            surfaceEvidence,
+            environmentEvidence,
+            productionArt.Evidence);
         var patch = new ProjectPatch(
             "add",
-            $"areas/{area.Id}/world/loading/requiredResources/{canonicalPath}",
-            $"Promote validated generated world '{job.Recipe.Title}' as canonical scene {canonicalPath}.");
+            $"areas/{area.Id}/world/generatedEvidence",
+            $"Promote validated generated world '{job.Recipe.Title}' with canonical scene, placement surface and environment occupancy.");
         var inverse = new ProjectPatch(
             "remove",
-            $"areas/{area.Id}/world/loading/requiredResources/{canonicalPath}",
-            $"Restore the previous canonical world reference for area {area.Id}.");
+            $"areas/{area.Id}/world/generatedEvidence",
+            $"Restore the previous canonical world reference and spatial evidence for area {area.Id}.");
         var fingerprint = Fingerprint(command, promotion);
 
         if (command.DryRun)
@@ -318,6 +364,21 @@ public sealed class PromoteWorldGenerationHandler
             !report.NavigationValidated || !report.ManualEditsPreserved ||
             report.Diagnostics is null || report.Diagnostics.Count > 0)
             diagnostics.Add("The validation report does not prove collision, navigation and manual-edit preservation.");
+        diagnostics.AddRange(WorldGenerationSpatialEvidenceValidator.Validate(
+            report.TerrainSurface, report.EnvironmentOccupancy));
+        diagnostics.AddRange(WorldGenerationProductionArtDirection.ValidateSource(
+            state.Project,
+            state.Project.Areas.Single(item => item.Id.Value == job.Recipe.AreaId),
+            job.Recipe));
+        if (report.TerrainSurface is { } qualitySurface)
+            diagnostics.AddRange(WorldGenerationProductionArtDirection.ValidateSpatialQuality(
+                state.Project.Areas.Single(item => item.Id.Value == job.Recipe.AreaId),
+                qualitySurface,
+                job.Recipe.Terrain.AdaptToStructures));
+        if (report.TerrainSurface is { } surface &&
+            (surface.Width != (int)Math.Round(job.Recipe.Bounds.WidthMeters) ||
+             surface.Depth != (int)Math.Round(job.Recipe.Bounds.DepthMeters)))
+            diagnostics.Add("Terrain-placement surface bounds do not match the approved recipe.");
         if (command.ExpectedCanonicalSceneSha256 is null &&
             Enum.GetValues<WorldGenerationStage>().Except(job.Plan.Steps.Select(item => item.Stage)).Any())
             diagnostics.Add("Initial canonical promotion requires a complete world-generation execution plan.");
@@ -388,6 +449,9 @@ public sealed class PromoteWorldGenerationHandler
         Append(value, promotion.CanonicalSceneRelativePath);
         Append(value, command.ExpectedCanonicalSceneSha256 ?? string.Empty);
         Append(value, promotion.AcceptanceProvenance);
+        Append(value, promotion.TerrainSurface?.Fingerprint ?? string.Empty);
+        Append(value, promotion.EnvironmentOccupancy?.Fingerprint ?? string.Empty);
+        Append(value, promotion.ProductionVisuals?.Fingerprint ?? string.Empty);
         foreach (var provider in promotion.Providers)
         {
             Append(value, provider.Stage.ToString());
@@ -402,4 +466,14 @@ public sealed class PromoteWorldGenerationHandler
 
     private static void Append(StringBuilder target, string value) =>
         target.Append(value.Length.ToString(CultureInfo.InvariantCulture)).Append(':').Append(value).Append(';');
+
+    private static Guid StableId(Guid areaId, string discriminator)
+    {
+        var hash = SHA256.HashData(Encoding.UTF8.GetBytes($"openrpg-forge:{areaId:D}:{discriminator}"));
+        Span<byte> bytes = stackalloc byte[16];
+        hash.AsSpan(0, 16).CopyTo(bytes);
+        bytes[6] = (byte)((bytes[6] & 0x0f) | 0x40);
+        bytes[8] = (byte)((bytes[8] & 0x3f) | 0x80);
+        return new Guid(bytes);
+    }
 }

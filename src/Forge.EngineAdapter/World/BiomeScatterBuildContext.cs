@@ -83,8 +83,10 @@ internal sealed class BiomeScatterExclusionIndex
         {
             var excludedByKind = biome.ExclusionTags.Contains(feature.KindTag, StringComparer.OrdinalIgnoreCase);
             var excludedByGuide = feature.IsInvisibleExclusionGuide &&
-                                  feature.CompatibleBiomeTags.Any(tag =>
-                                      biome.ExclusionTags.Contains(tag, StringComparer.OrdinalIgnoreCase));
+                                  (feature.CompatibleBiomeTags.Count == 0 ||
+                                   feature.CompatibleBiomeTags.Any(tag =>
+                                       biome.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase) ||
+                                       biome.ExclusionTags.Contains(tag, StringComparer.OrdinalIgnoreCase)));
             if (!excludedByKind && !excludedByGuide) continue;
 
             var radius = feature.Width * .5f + edgeClearance;

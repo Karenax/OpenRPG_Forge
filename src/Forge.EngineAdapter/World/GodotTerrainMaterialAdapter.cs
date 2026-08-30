@@ -10,7 +10,10 @@ public sealed record TerrainMaterialDescriptor(
     bool UsesMacroVariation,
     bool PhysicallyBased);
 
-public sealed record GodotTerrainMaterialResult(Material Material, TerrainMaterialDescriptor Descriptor);
+public sealed record GodotTerrainMaterialResult(
+    Material Material,
+    TerrainMaterialDescriptor Descriptor,
+    int ResolvedTextureCount);
 
 public static class GodotTerrainMaterialAdapter
 {
@@ -134,7 +137,8 @@ public static class GodotTerrainMaterialAdapter
         void fragment() {
             float macro = forge_fbm(world_position.xz * 0.035);
             float detail = forge_noise(world_position.xz * 0.31);
-            float slope = pow(clamp(1.0 - abs(world_normal.y), 0.0, 1.0), 1.35);
+            float raw_slope = clamp(1.0 - abs(world_normal.y), 0.0, 1.0);
+            float slope = pow(raw_slope, 1.35);
             float damp = smoothstep(0.30, 0.78, forge_noise(world_position.xz * 0.012 + vec2(23.0, 41.0)));
 
             vec3 base = COLOR.rgb;
@@ -151,24 +155,62 @@ public static class GodotTerrainMaterialAdapter
             float grass_mask = smoothstep(0.015, 0.16, base.g - max(base.r, base.b)) * (1.0 - slope);
             float soil_mask = smoothstep(0.025, 0.15, base.r - base.g) * (1.0 - slope * 0.72);
             if (use_surface_texture) {
-                vec3 surface = texture(surface_texture, world_position.xz / surface_uv_scale).rgb;
+                mat2 surface_rotation = mat2(vec2(0.80, -0.60), vec2(0.60, 0.80));
+                vec2 surface_uv = world_position.xz / surface_uv_scale;
+                vec3 surface_fine = texture(surface_texture, surface_uv).rgb;
+                vec3 surface_rotated = texture(
+                    surface_texture,
+                    surface_rotation * surface_uv * 0.73 + vec2(31.7, 11.3)).rgb;
+                vec3 surface_large = texture(
+                    surface_texture,
+                    surface_rotation * surface_uv * 0.31 + vec2(7.1, 43.9)).rgb;
+                float surface_breakup = forge_noise(world_position.xz * 0.021 + vec2(13.0, 29.0));
+                vec3 surface = mix(surface_fine, surface_rotated, 0.30 + surface_breakup * 0.24);
+                surface = mix(surface, surface_large, 0.16);
                 float surface_luminance = max(dot(surface, vec3(0.2126, 0.7152, 0.0722)), 0.08);
                 vec3 surface_chroma = clamp(surface / surface_luminance, vec3(0.58), vec3(1.42));
-                vec3 stylized_surface = mix(surface, base * surface_chroma, 0.12);
-                stylized_surface *= 0.92 + surface_luminance * 0.12;
-                layered = mix(layered, stylized_surface, grass_mask * 0.90);
+                vec3 stylized_surface = mix(surface, base * surface_chroma, 0.06);
+                stylized_surface *= 0.96 + surface_luminance * 0.10;
+                // A production terrain must remain visibly textured even when a coarse
+                // heightfield makes a broad, locally walkable cell inherit a rock biome.
+                // The previous grass-only mask could therefore turn an entire generated
+                // village plateau into an untextured grey surface. Keep the biome colour
+                // direction, but guarantee a real texture contribution on every surface.
+                float surface_weight = clamp(
+                    0.64 + grass_mask * 0.32 - raw_slope * 0.18,
+                    0.48,
+                    0.96);
+                layered = mix(layered, stylized_surface, surface_weight);
             }
             if (use_secondary_surface_texture) {
-                vec3 secondary = texture(
+                mat2 secondary_rotation = mat2(vec2(0.64, -0.77), vec2(0.77, 0.64));
+                vec2 secondary_uv = world_position.xz / secondary_surface_uv_scale;
+                vec3 secondary_fine = texture(
                     secondary_surface_texture,
-                    world_position.xz / secondary_surface_uv_scale).rgb;
+                    secondary_uv).rgb;
+                vec3 secondary_rotated = texture(
+                    secondary_surface_texture,
+                    secondary_rotation * secondary_uv * 0.67 + vec2(19.4, 37.2)).rgb;
+                vec3 secondary_large = texture(
+                    secondary_surface_texture,
+                    secondary_rotation * secondary_uv * 0.29 + vec2(47.3, 5.8)).rgb;
+                float secondary_breakup = forge_noise(world_position.xz * 0.017 + vec2(41.0, 3.0));
+                vec3 secondary = mix(
+                    secondary_fine,
+                    secondary_rotated,
+                    0.28 + secondary_breakup * 0.22);
+                secondary = mix(secondary, secondary_large, 0.14);
                 float secondary_luminance = dot(secondary, vec3(0.2126, 0.7152, 0.0722));
                 vec3 stylized_secondary = mix(vec3(secondary_luminance), secondary, 0.82);
                 stylized_secondary *= vec3(0.96, 0.98, 1.04);
-                layered = mix(layered, stylized_secondary, soil_mask * 0.94);
+                float secondary_weight = clamp(
+                    soil_mask * 0.82 + raw_slope * 1.10,
+                    0.0,
+                    0.78);
+                layered = mix(layered, stylized_secondary, secondary_weight);
             }
             float luminance = dot(layered, vec3(0.2126, 0.7152, 0.0722));
-            layered = mix(vec3(luminance), layered, 0.96);
+            layered = mix(vec3(luminance), layered, 0.99);
 
             float wetness = clamp(forge_surface_wetness, 0.0, 1.0);
             float wet_albedo_scale = 1.0 - forge_wetness_albedo_darkening * wetness;
@@ -231,7 +273,10 @@ public static class GodotTerrainMaterialAdapter
             material.SetShaderParameter("secondary_surface_texture", secondarySurfaceTexture);
             material.SetShaderParameter("secondary_surface_uv_scale", secondaryTexturedLayer!.UvScale);
         }
-        return new GodotTerrainMaterialResult(material, descriptor);
+        return new GodotTerrainMaterialResult(
+            material,
+            descriptor,
+            (surfaceTexture is null ? 0 : 1) + (secondarySurfaceTexture is null ? 0 : 1));
     }
 
     public static Material BuildRoad(Color baseColor, Texture2D? surfaceTexture = null, float surfaceUvScale = 4)

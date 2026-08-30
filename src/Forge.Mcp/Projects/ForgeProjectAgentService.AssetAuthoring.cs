@@ -135,7 +135,12 @@ public sealed partial class ForgeProjectAgentService
                 query.MaximumTriangleCount,
                 query.Author,
                 query.Compatibility,
-                query.Variant));
+                query.Variant,
+                query.SemanticType,
+                query.AssemblyRole,
+                query.PlacementSurface,
+                query.Readiness,
+                query.HumanReviewed));
             return new AgentAssetCatalogResult(
                 load.Catalog.SchemaVersion,
                 load.CatalogEntryCount,
@@ -178,7 +183,25 @@ public sealed partial class ForgeProjectAgentService
                         item.TechnicalMetadata.TriangleCount,
                         item.TechnicalMetadata.Variants,
                         item.TechnicalMetadata.Animations,
-                        item.TechnicalMetadata.Compatibility))).ToArray(),
+                        item.TechnicalMetadata.Compatibility),
+                    new AgentAssetIntelligenceProfile(
+                        item.Intelligence.SchemaVersion,
+                        item.Intelligence.Description("fr"),
+                        item.Intelligence.Descriptions,
+                        item.Intelligence.SemanticType,
+                        item.Intelligence.Family,
+                        item.Intelligence.AssemblyRole,
+                        item.Intelligence.UseCases,
+                        item.Intelligence.ModelContentSha256,
+                        item.Intelligence.DependencyClosureSha256,
+                        item.Intelligence.Geometry,
+                        item.Intelligence.Placement,
+                        item.Intelligence.Technical,
+                        item.Intelligence.Readiness,
+                        item.Intelligence.ReviewStatus,
+                        item.Intelligence.GeneratedBy,
+                        item.Intelligence.Confidence,
+                        item.Intelligence.Evidence))).ToArray(),
                 load.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
         }
     }

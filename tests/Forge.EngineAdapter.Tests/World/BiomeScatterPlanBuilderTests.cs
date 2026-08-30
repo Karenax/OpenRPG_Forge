@@ -185,8 +185,82 @@ public sealed class BiomeScatterPlanBuilderTests
         var placements = BiomeScatterPlanBuilder.Build(source, biome);
 
         Assert.NotEmpty(placements);
+        Assert.InRange(placements.Count, 1, 6);
         Assert.All(placements, placement =>
             Assert.True(MathF.Pow(placement.Position.X - 4, 2) + MathF.Pow(placement.Position.Z + 3, 2) <= 12 * 12));
+    }
+
+    [Fact]
+    public void FocusRegionDensityBudgetDoesNotScaleWithTheWholeTerrain()
+    {
+        var areaId = AreaId.From(Guid.Parse("a23d0000-0000-4000-8000-000000000031"));
+        var smallSource = AreaWorldProfile.CreateDefault(areaId, AreaKind.Exterior, new AreaDimensions(512, 512));
+        var largeSource = AreaWorldProfile.CreateDefault(areaId, AreaKind.Exterior, new AreaDimensions(2048, 2048));
+        BiomeLayerDefinition Create(AreaWorldProfile source) => new(
+            Guid.Parse("a23d0000-0000-4000-8000-000000000032"),
+            "Focused production meadow",
+            source.Terrain.MaterialLayers[0].Id,
+            -512,
+            512,
+            0,
+            90,
+            0,
+            1,
+            .42f,
+            "asset:focused-production-meadow",
+            ["ground-cover", "lush-meadow", "focus-radius:106", "focus-center:0,0"],
+            [],
+            20,
+            "test:focus-density-budget");
+        AreaWorldProfile World(AreaWorldProfile source, BiomeLayerDefinition biome) => new(
+            source.Id, source.SchemaVersion, source.Terrain, [biome], source.Features,
+            source.VolumetricNavigation, source.FlightRoutes, source.Loading, source.Provenance);
+        var smallBiome = Create(smallSource);
+        var largeBiome = Create(largeSource);
+
+        var smallPlacements = BiomeScatterPlanBuilder.Build(World(smallSource, smallBiome), smallBiome);
+        var largePlacements = BiomeScatterPlanBuilder.Build(World(largeSource, largeBiome), largeBiome);
+
+        Assert.NotEmpty(smallPlacements);
+        Assert.Equal(smallPlacements.Count, largePlacements.Count);
+        Assert.InRange(largePlacements.Count, 5_500, 6_500);
+    }
+
+    [Fact]
+    public void UntaggedInvisibleGuideExcludesEveryVegetationLayerFromAStructureEnvelope()
+    {
+        var source = BuildWorld([]);
+        var meadow = source.Biomes.Single(candidate => candidate.Tags.Contains("meadow"));
+        var guide = new TerrainFeatureDefinition(
+            Guid.Parse("a23d0000-0000-4000-8000-000000000041"),
+            TerrainFeatureDefinition.CurrentSchemaVersion,
+            "Universal building envelope",
+            TerrainFeatureKind.Building,
+            [new Vector3Value(-8, 0, 0), new Vector3Value(8, 0, 0)],
+            12,
+            0,
+            0,
+            TerrainFeatureCrossingPolicy.Allow,
+            [],
+            "builtin/invisible-scatter-exclusion",
+            "test:universal-building-envelope");
+        var world = new AreaWorldProfile(
+            source.Id,
+            source.SchemaVersion,
+            source.Terrain,
+            source.Biomes,
+            [guide],
+            source.VolumetricNavigation,
+            source.FlightRoutes,
+            source.Loading,
+            "test:universal-building-envelope");
+
+        var measured = BiomeScatterPlanBuilder.Prepare(world).Build(meadow);
+
+        Assert.Equal(1, measured.Diagnostics.PreparedExclusionSegments);
+        Assert.NotEmpty(measured.Placements);
+        Assert.DoesNotContain(measured.Placements, placement =>
+            placement.Position.X is >= -8 and <= 8 && Math.Abs(placement.Position.Z) < 7.5f);
     }
 
     [Fact]

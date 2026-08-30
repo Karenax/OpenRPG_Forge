@@ -28,6 +28,19 @@ public sealed class RuntimeStartupVerificationPolicyTests
             combatFeedbackCaptureRequested: false));
     }
 
+    [Fact]
+    public void Map_quality_audit_skips_unrelated_verification_labs()
+    {
+        Assert.False(RuntimeStartupVerificationPolicy.ShouldRun(
+            automatedTest: true,
+            entryGroundSmokeTest: false,
+            innUxSmokeTest: false,
+            moduleMovementSmokeTest: false,
+            combatFeedbackSmokeTest: false,
+            combatFeedbackCaptureRequested: false,
+            mapQualityAuditRequested: true));
+    }
+
     [Theory]
     [InlineData(true, false, false, false, false)]
     [InlineData(false, true, false, false, false)]

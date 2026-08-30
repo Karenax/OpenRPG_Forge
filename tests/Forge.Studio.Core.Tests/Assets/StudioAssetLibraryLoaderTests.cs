@@ -80,6 +80,46 @@ public sealed class StudioAssetLibraryLoaderTests
                     source_pack_ids = new[] { "kenney:castle-kit" },
                     tags = new[] { "medieval" },
                 }));
+            var intelligenceDirectory = Path.Combine(vault, "metadata");
+            Directory.CreateDirectory(intelligenceDirectory);
+            File.WriteAllText(
+                Path.Combine(intelligenceDirectory, "asset-intelligence.v1.json"),
+                JsonSerializer.Serialize(new
+                {
+                    schema_version = 1,
+                    profiles = new[]
+                    {
+                        new
+                        {
+                            schema_version = 1,
+                            external_id = "kenney:castle-kit:door",
+                            descriptions = new { fr = "Porte de château modulaire." },
+                            semantic_type = "door",
+                            family = "architecture",
+                            assembly_role = "interactive-leaf",
+                            geometry = new
+                            {
+                                dimensions_meters = new { x = 1.2, y = 2.1, z = 0.2 },
+                                pivot_class = "edge-base",
+                                bounds = new { minimum = new { x = 0, y = 0, z = 0 } },
+                            },
+                            placement = new
+                            {
+                                surface = "opening",
+                                suggested_pivot = new
+                                {
+                                    kind = "hinge-side",
+                                    position_meters = new { x = -0.6, y = 0.0, z = 0.0 },
+                                    requires_review = true,
+                                },
+                            },
+                            readiness = "placement-suggested",
+                            review_status = "generated-review-required",
+                            confidence = 0.9,
+                            generated_by = "openrpg-test-inventory/1",
+                        },
+                    },
+                }));
 
             var index = StudioAssetLibraryLoader.Load(repository, vault);
 
@@ -101,6 +141,14 @@ public sealed class StudioAssetLibraryLoaderTests
             Assert.Contains("medieval", item.SearchText);
             Assert.True(item.HasThumbnail);
             Assert.True(item.CanPreview3D);
+            Assert.Equal("door", item.SemanticType);
+            Assert.Equal("interactive-leaf", item.AssemblyRole);
+            Assert.Equal("edge-base", item.PivotClass);
+            Assert.Equal("hinge-side", item.PivotKind);
+            Assert.Equal(-0.6, item.PivotXMeters);
+            Assert.True(item.PivotRequiresReview);
+            Assert.Equal(2.1, item.HeightMeters);
+            Assert.Contains("modulaire", item.Description);
 
             var nested = Assert.Single(index.Items, candidate =>
                 candidate.ExternalId == "kenney:castle-kit:window");

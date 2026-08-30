@@ -47,6 +47,10 @@ public sealed class CuratedAssetPackInstallerTests : IDisposable
             "colormap.png")));
         var package = Assert.Single(AssetPackageManifestStore.Load(workspace).Manifests);
         Assert.Equal(2, package.Chunks.Count);
+        Assert.NotNull(package.Intelligence);
+        Assert.Equal("vegetation", package.Intelligence.SemanticType);
+        Assert.Equal(64, package.Intelligence.ModelContentSha256.Length);
+        Assert.Equal(64, package.Intelligence.DependencyClosureSha256.Length);
         Assert.Contains(package.Chunks, chunk => chunk.RelativePath.EndsWith("Textures/colormap.png", StringComparison.Ordinal));
         Assert.True(File.Exists(Path.Combine(workspace, "assets", "CREDITS_ASSETS.md")));
 

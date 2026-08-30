@@ -5,7 +5,7 @@ namespace Forge.Application.Assistant;
 
 public static class MapAuthoringContract
 {
-    public const string Version = "1.0.0";
+    public const string Version = "2.2.0";
     public const string ResourceName = "OpenRPGForge.Assistant.MapAuthoringContract.md";
 
     private static readonly Lazy<string> EmbeddedContent = new(LoadContent);

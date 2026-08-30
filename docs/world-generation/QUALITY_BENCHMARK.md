@@ -93,7 +93,9 @@ adaptateurs ont produit le même proxy, pas que la qualité visuelle a franchi l
 
 - déterminisme de la recette, du plan et de la scène ;
 - nombre de générations strictement reproductibles ;
-- accessibilité des portes et entrées ;
+- accessibilité des portes et entrées : pivot de gond distinct du centre, centre visuel de la porte
+  fermée et de l'escalier à `0,10 m` près de l'axe, plan de porte à `0,20 m`, raccord de seuil à
+  `0,12 m`, collision fermée et ouverture réelle ;
 - connexions du réseau routier ;
 - passages de rivière déclarés ;
 - reachability des lieux obligatoires ;
@@ -170,6 +172,21 @@ Un candidat est rejeté s'il ne satisfait pas tous les points suivants :
 - aucune traversée de rivière majeure n'existe sans pont, gué ou tunnel déclaré ;
 - aucun objet flottant n'est accepté dans une zone héroïque ;
 - moins de 0,5 % des props échantillonnés sont flottants ou enterrés dans les zones secondaires ;
+- chaque PNJ demandé est matérialisé comme personnage gouverné, animé et visible, jamais comme
+  placeable de substitution ;
+- chaque patrouilleur reste au contact du terrain pendant le déplacement et sa vitesse mesurée est
+  cohérente avec son clip de marche ou de course ;
+- les textures de sol et les strates végétales attendues sont réellement résolues par le runtime ;
+  une densité globale ne peut pas masquer une couverture locale vide autour de la zone jouable ;
+- l'espacement d'échantillonnage du terrain respecte le budget de production, au moins deux couches
+  de peinture matière couvrent 90 % de la surface et le shader casse la répétition aux échelles proche
+  et lointaine ;
+- aucune instance végétale ne recoupe l'emprise réelle d'un bâtiment et aucun arbre ne viole sa marge
+  de lisibilité ;
+- la caméra répond effectivement aux entrées d'orbite et de zoom ;
+- les captures Forward+ de base — ensemble, aérienne et niveau du sol — ainsi qu'une vue par type de
+  sujet demandé — patrouilleur et bâtiment — possèdent un corridor non obstrué et sont inspectées avec
+  leurs SHA-256 avant toute présentation ;
 - les retouches verrouillées survivent à une régénération partielle ;
 - la scène se sauvegarde, se rouvre et se reconstruit ;
 - aucune licence ou provenance n'est manquante ;
