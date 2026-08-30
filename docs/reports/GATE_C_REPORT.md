@@ -58,6 +58,7 @@ the versions of all 46 existing upstream entries.
 | second acquisition | PASS, identical commit/tree/status |
 | clean Forge clone without Cadle | PASS, boundary reports `checkout_present=False` |
 | clean Forge clone acquisition twice | PASS, exact identity and clean Forge tree |
+| two clean Forge clones at `158fdef7` | PASS end-to-end in `GateC-Clean-A-158fdef` and `GateC-Clean-B-158fdef`; identical LF overlay, acquisition, `npm ci`, build, four checks and boundary |
 | canonical Cadle checkout | PASS, detached/exact/clean |
 | Forge boundary check | PASS; only README, source lock and qualification lock allowed under tracked `upstream/` |
 | isolated qualification clone | PASS; only `package-lock.json` differs |
@@ -110,7 +111,7 @@ only under the local-reference policy: no lifecycle scripts, no redistribution, 
 ## Residual limitations
 
 - native Linux execution is not proven;
-- both isolated reproductions used the same physical Windows machine, not two physical machines;
+- both clean-clone reproductions used the same physical Windows machine, not two physical machines;
 - the upstream lock remains invalid and would reopen Gate C if the tracked overlay or ADR exception
   were removed;
 - Gate 1 still needs its own midrange GPU, native/WASM and Studio-authored comparative evidence.
