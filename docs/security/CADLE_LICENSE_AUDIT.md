@@ -12,8 +12,9 @@ bound to the commit and tree, not to the moving branch or the version tag.
 ## Verdict
 
 The code-level MIT grant is clear enough for later, attributed code reuse, but Gate C does not copy
-any code. Media reuse is prohibited by Forge policy. The npm dependency evidence is incomplete
-because the upstream lockfile is stale, so no distribution licence conclusion is possible yet.
+any code. Media reuse is prohibited by Forge policy. The upstream npm lock remains defective; the
+separate ADR-0003 qualification overlay supplies a complete local-install inventory, not a
+redistribution authorization.
 
 ## Cadle grant and media boundary
 
@@ -49,13 +50,34 @@ packages. This contradicts the upstream notice statement that none of the depend
 those 46 entries only. It does not cover the five missing direct dependencies or their transitive
 graph and must not be interpreted as a complete Cadle vulnerability audit.
 
+## Forge qualification overlay audit
+
+ADR-0003 tracks a byte-pinned derived lock solely for an ignored disposable qualification clone. It
+contains 118 package entries, matches all ten direct dependencies and has root version `0.6.0`.
+Two independent generations produced SHA-256
+`2e84d2a98f193fd53a9af0dc68c9cb7e1f0773c1bf2459613824524b6abd7c25`; the normal reproduction path
+uses that tracked file and does not regenerate it.
+
+Licence metadata in the complete graph is: MIT 45, Apache-2.0 27, MPL-2.0 12,
+LGPL-3.0-or-later 20, Apache-2.0 AND LGPL-3.0-or-later 6,
+Apache-2.0 AND LGPL-3.0-or-later AND MIT 3, ISC 2, Zlib 1, BSD-3-Clause 1 and 0BSD 1. The LGPL entries
+come from Sharp/libvips platform packages and the MPL entries from Lightning CSS. Nothing in this
+graph is packaged by Forge.
+
+The complete-lock audit reports one high-severity advisory on the direct development dependency
+Sharp 0.34.5, inherited from libvips (GHSA-f88m-g3jw-g9cj). npm proposes Sharp 0.35.4 as a semver-major
+fix. Gate C records rather than mutates the reference: lifecycle scripts are disabled, Sharp is not
+needed by the Forge product, and Cadle dependencies/builds remain local-only.
+
 The deterministic machine-readable inventory is
-`docs/evidence/cadle-dependency-audit.json`. Its manifest hashes are:
+`docs/evidence/cadle-dependency-audit.json`; the separate complete overlay inventory is
+`docs/evidence/cadle-overlay-dependency-audit.json`. Their manifest hashes are:
 
 | File | SHA-256 |
 |---|---|
 | `package.json` | `95952a2f2d4114c619a6c182b610c46d12db4c366aa59292c0a7ffc28650bcfc` |
 | `package-lock.json` | `1d01d9703a7679fecb0ce2f4144eef382c0adc832d0298da19a9efb515af82a3` |
+| Forge qualification overlay | `2e84d2a98f193fd53a9af0dc68c9cb7e1f0773c1bf2459613824524b6abd7c25` |
 | `LICENSE` | `8f653f3f69f17d2dabacaba945334989d0d459c05f8adb790d29057365cc1de9` |
 | `NOTICE` | `cdca80e358e0d7b97fa0badf71bc22e8ffd2f4e7a3bfdd9da5243b92486a5f24` |
 
@@ -75,8 +97,9 @@ whether the relationship is conceptual or substantive.
 
 ## Required controls
 
-1. Obtain an upstream commit with a synchronized lock before claiming reproducible installation.
-2. Re-run licence, SBOM and vulnerability audits from that exact lock.
+1. Preserve the defective upstream lock as evidence and use only the reviewed ADR-0003 overlay in a
+   disposable qualification clone.
+2. Re-run licence, SBOM and vulnerability audits if either snapshot or overlay hash changes.
 3. Preserve the Cadle MIT notice and add SPDX headers only when exact code is actually reused.
 4. Record every reused source path, destination, attribution and test in the reuse matrix.
 5. Never copy or publish Cadle media, including media outside the two paths named by `NOTICE`.

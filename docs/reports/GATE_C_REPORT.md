@@ -4,92 +4,116 @@ Date: 2026-08-30
 
 Branch: `Rust`
 
-Verdict: **BLOCKED / Gate C remains open**.
+Verdict: **PASS under the bounded ADR-0003 qualification overlay**.
 
-Gate 0 and Gate 1 were not started. No Cargo workspace, Rust/Bevy code, Cadle source, generated output
-or Cadle asset was added to Forge.
+Gate 0 may start. No Rust port, Cadle source, Cadle asset, generated Cadle build or capture was added
+to Forge while closing this gate.
 
 ## Executive result
 
-The Cadle snapshot is reproducibly acquired at commit
+The canonical Cadle snapshot is reproducibly acquired at commit
 `ea0da62549980816a6a27e08b75808b1f56d70e7` and tree
-`f0d52e434454fe302052d22eafde203bc361cc1f`; detached HEAD, origin and clean-tree checks pass and a
-second acquisition is idempotent. Licence and asset boundaries are now documented and automated.
-Static upstream checks pass. The reuse matrix is complete.
+`f0d52e434454fe302052d22eafde203bc361cc1f`; origin, detached HEAD, clean tree and idempotence checks
+pass. Licences and asset boundaries are documented and automated. The reuse matrix is complete.
 
-Gate C cannot pass because upstream `package-lock.json` is stale: `npm ci` fails before installing.
-Build, launch, GPU captures and performance measurements obtained through an untracked fallback are
-useful characterization only and do not replace a reproducible intact install.
+Cadle's upstream npm lock remains defective. No official branch or v0.6 tag fixes it, and the last
+synchronized historical lock predates the selected reference by 144 commits and 438 changed files.
+ADR-0003 therefore preserves the source checkout intact and qualifies a separate disposable clone
+where the only tracked delta is the reviewed Forge `package-lock.json` overlay. This result is named
+**Cadle baseline under Forge overlay**, never an intact upstream installation.
 
 ## Gate results
 
 | Lot | Result | Evidence |
 |---|---|---|
-| C-A acquisition | PASS | lock, Windows and shell acquisition scripts, exact commit/tree verification, idempotence |
-| C-B licences/isolation | PASS with future-reuse conditions | licence audit, notices preparation, boundary check; no asset/code copied |
-| C-C intact reproduction | FAIL | `npm ci` exits 1 `EUSAGE`; invariants/check/curvecheck pass; fallback build is non-qualifying |
-| C-D visual/performance | PARTIAL / non-qualifying | real RX 7800 XT captures and diagnostic metrics; dependency provenance is not reproducible |
-| C-E reuse matrix | PASS | classified source families, destinations, attribution/tests and deferred lots |
+| C-A acquisition | PASS | exact lock, Windows/shell acquisition, commit/tree/URL/detached verification, idempotence |
+| C-B licences/isolation | PASS with local-only conditions | licence audits, notices, boundary check, no Cadle asset/code copied |
+| C-C source-intact reproduction | PASS under ADR-0003 | two byte-identical lock generations; two `npm ci`/builds; scripted isolated clone |
+| C-D visual/performance | PASS on documented RX 7800 XT machine | real GPU, fixed 1080p High scenes, 30-second frame sample and inspected captures |
+| C-E reuse matrix | PASS | source families classified with destination, attribution, tests and deferred lots |
+
+## Immutable identities
+
+| Evidence | SHA-256 / identity |
+|---|---|
+| Cadle commit | `ea0da62549980816a6a27e08b75808b1f56d70e7` |
+| Cadle tree | `f0d52e434454fe302052d22eafde203bc361cc1f` |
+| `package.json` | `95952a2f2d4114c619a6c182b610c46d12db4c366aa59292c0a7ffc28650bcfc` |
+| upstream lock (defective, preserved) | `1d01d9703a7679fecb0ce2f4144eef382c0adc832d0298da19a9efb515af82a3` |
+| Forge qualification overlay | `2e84d2a98f193fd53a9af0dc68c9cb7e1f0773c1bf2459613824524b6abd7c25` |
+| `LICENSE` | `8f653f3f69f17d2dabacaba945334989d0d459c05f8adb790d29057365cc1de9` |
+| `NOTICE` | `cdca80e358e0d7b97fa0badf71bc22e8ffd2f4e7a3bfdd9da5243b92486a5f24` |
+
+The overlay was independently generated twice with Node 22.22.3/npm 10.9.8 and was byte-identical.
+It changes the root version 0.1.0 → 0.6.0, locks ten rather than five direct dependencies and retains
+the versions of all 46 existing upstream entries.
 
 ## Exact validation ledger
 
 | Validation | Result |
 |---|---|
 | PowerShell acquisition and `-VerifyOnly` | PASS |
-| Git Bash `get-cadle.sh --verify-only` | PASS on Windows Git Bash; native Linux still unproven |
+| Git Bash `get-cadle.sh --verify-only` | PASS on Windows Git Bash; native Linux remains unproven |
 | second acquisition | PASS, identical commit/tree/status |
-| clean Forge clone without Cadle checkout | PASS, boundary check reports `checkout_present=False` |
-| acquisition twice from clean Forge clone | PASS, exact commit/tree both times; Forge worktree remains clean |
-| Cadle checkout | detached, exact commit/tree, clean |
-| Forge boundary check | PASS; only lock/README allowed under tracked `upstream/` |
-| dependency audit export | PASS; 46 locked packages, 5 direct dependencies missing |
-| `npm ci --ignore-scripts --no-audit --no-fund` | FAIL `EUSAGE`, no tracked mutation |
-| `npm audit --package-lock-only --ignore-scripts --json` | PASS for stale 46-package lock only; 0 reported vulnerabilities |
-| `node tools/invariants.mjs` | PASS |
-| `node tools/check.mjs` | PASS, 91 files |
-| `node tools/curvecheck.mjs` | PASS, 65 quests / 10 regions |
-| fallback `npm run build` | PASS, non-qualifying, 106 modules |
-| fallback `node tools/buildcheck.mjs` | PASS, non-qualifying |
+| clean Forge clone without Cadle | PASS, boundary reports `checkout_present=False` |
+| clean Forge clone acquisition twice | PASS, exact identity and clean Forge tree |
+| canonical Cadle checkout | PASS, detached/exact/clean |
+| Forge boundary check | PASS; only README, source lock and qualification lock allowed under tracked `upstream/` |
+| isolated qualification clone | PASS; only `package-lock.json` differs |
+| two independent derived locks | PASS; byte-identical SHA-256 |
+| two `npm ci --ignore-scripts --no-audit --no-fund` | PASS |
+| two `npm run build` | PASS, 106 modules |
+| invariants/check/curvecheck/buildcheck | PASS in both independent probes; scripted gate PASS |
+| dependency inventories | PASS; upstream defect and complete overlay inventories kept separately |
+| `npm audit` on complete overlay | FAIL as evidence: one high Sharp/libvips advisory, retained and bounded |
 | real-GPU check | PASS, RX 7800 XT / ANGLE D3D11; SwiftShader rejected |
-| The Vale / Whisperwood / water / dense / movement captures | PASS as exploratory characterization; visually inspected locally |
+| Vale, forest, water and dense/movement captures | PASS; inspected locally, non-blank, no harness/game errors |
+| canonical checkout after execution | PASS, unchanged |
 
-## Audited execution allowlist
+## Performance result
 
-Upstream agent instructions (`.claude/`, `.mcp.json`, `CLAUDE.md`) were treated only as untrusted
-data. No command or instruction from them was followed. The Gate C allowlist was limited to:
+Protocol: 1920×1080, High, seed 1337, VSync/browser cap disabled, RX 7800 XT, Chrome for Testing
+151.0.7922.34, 31-second initial wait and 40-second dense-scene settling time.
 
-- read-only Git identity, tree and status checks;
-- `npm ci --ignore-scripts --no-audit --no-fund` as the required intact install attempt;
-- `npm audit --package-lock-only --ignore-scripts --json` on the existing lock;
-- `node tools/invariants.mjs`, `check.mjs` and `curvecheck.mjs`, audited as local static checks;
-- after the intact install failed, an explicitly non-qualifying local fallback with lifecycle scripts
-  disabled, followed by `npm run build`, `buildcheck.mjs`, the local Vite server, `gputest.mjs` and
-  bounded `inspect.mjs` scripts whose outputs stayed in ignored `tools/out/`.
+Dense engine window: 169.5 FPS, mean 5.90 ms, p95 7.7 ms, p99 9.4 ms, CPU mean 5.69 ms, GPU mean
+4.59 ms / p95 6.87 ms, 227 calls, 2,872,960 triangles and 414.8 MiB JS heap.
 
-`gate.mjs`, asset acquisition/generation scripts, progress publication, cloud/MCP/Tripo integrations
-and any upstream repair command were excluded.
+Independent 30-second rAF sample: 5,062 frames, mean 5.929 ms, p95 8.0 ms, p99 9.6 ms, max 14.3
+ms, **1% low 94.6 FPS**, zero hitches above 16.7 ms and zero above 33.3 ms. Warm-up observations:
+sky 275/276 ms, terrain preview 106 ms, full terrain 424 ms, vegetation 752 ms and EZTrees 1,623 ms.
 
-## Licence conclusion
+These figures qualify the Gate C reference on this machine. They do not satisfy Gate 1's separate
+RTX 3060/RX 6600-class hardware requirement.
 
-Cadle code is MIT, copyright Ian Cadle 2026, subject to retaining its notice. Cadle excludes
-`public/assets/`, `docs/concepts/` and recorded audio from that grant. Forge conservatively excludes
-all Cadle media regardless of path, including `docs/intro-ref/`, `progress/shots/` and scratch images.
-The stale lock contains 12 MPL-2.0 `lightningcss` entries, so the upstream claim that dependencies have
-no copyleft is inaccurate. The missing Sharp graph may include LGPL libvips components. No complete
-redistribution conclusion is made.
+## Visual inspection
 
-## Blocking issue and recovery condition
+- Vale: terrain, grass, landmark, HUD and weapon rendered in all three 1920×1080 views.
+- Whisperwood: trunks, canopy, undergrowth and light shafts rendered; no blank frame.
+- Water: reflection/refraction and golden-hour views rendered; the known noon-island occlusion remains.
+- Dense village: live player, buildings, NPCs and well rendered after warm-up.
+- Movement: the player moved from `[125.22, 6.80, -108]` to `[118.47, 6.51, -98.14]` and stopped
+  against the well masonry; both frames were inspected.
+- Existing Three.js deprecation, non-indexed geometry and shader warnings remain visible; error arrays
+  were empty.
 
-Preferred recovery: pin a reviewed Cadle commit whose `package-lock.json` matches `package.json`, then
-repeat C-014 through C-033 from clean Forge clones. Do not repair the current upstream checkout and do
-not silently generate a replacement lock. If the commit must remain fixed, any separately generated
-lock must live in a clearly derived environment and cannot be called the intact baseline.
+Raw reports and images remain ignored and local. Their hashes and detailed numbers are recorded in
+`docs/baselines/cadle-ea0da625.md`.
 
-Gate 0 may start only after a new Gate C report records a successful reproducible install, build,
-launch, visual/performance protocol and independent clean-clone reproduction. Until then the global
-state remains Gate C blocked.
+## Licence and security conclusion
 
-The clean-clone acquisition was reproduced locally in
-`E:\OpenRPG_Forge\OpenRPG_Forge-Rust-GateC-Validation-20260830`. It validates C-013 and acquisition
-idempotence, but it does not satisfy the stronger final requirement for two independent agents and
-two independent environments.
+Cadle code is MIT, copyright Ian Cadle 2026, subject to its notice. Forge excludes every Cadle media
+file from tracking and distribution, including paths not explicitly named by the notice. The complete
+qualification graph includes MPL and LGPL components and one high Sharp/libvips advisory. It is safe
+only under the local-reference policy: no lifecycle scripts, no redistribution, no product dependency.
+
+## Residual limitations
+
+- native Linux execution is not proven;
+- both isolated reproductions used the same physical Windows machine, not two physical machines;
+- the upstream lock remains invalid and would reopen Gate C if the tracked overlay or ADR exception
+  were removed;
+- Gate 1 still needs its own midrange GPU, native/WASM and Studio-authored comparative evidence.
+
+These limitations are explicit and do not invalidate the bounded Gate C objective. Roadmap state is
+advanced to Gate 0; any change to the snapshot, overlay hash, execution boundary or asset policy
+reopens Gate C.

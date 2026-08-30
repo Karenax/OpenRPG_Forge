@@ -42,7 +42,7 @@ if (-not (Test-Path -LiteralPath $lockPath -PathType Leaf)) {
 }
 
 $lock = Get-Content -LiteralPath $lockPath -Raw | ConvertFrom-Json
-if ($lock.schemaVersion -ne 1) {
+if ($lock.schemaVersion -notin @(1, 2)) {
     throw "Unsupported Cadle lock schemaVersion '$($lock.schemaVersion)'."
 }
 

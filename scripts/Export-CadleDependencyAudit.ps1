@@ -1,7 +1,8 @@
 [CmdletBinding()]
 param(
     [string]$RepositoryRoot = (Split-Path -Parent $PSScriptRoot),
-    [string]$OutputPath = "docs/evidence/cadle-dependency-audit.json"
+    [string]$OutputPath = "docs/evidence/cadle-dependency-audit.json",
+    [switch]$UseQualificationOverlay
 )
 
 $ErrorActionPreference = "Stop"
@@ -35,7 +36,11 @@ $root = [IO.Path]::GetFullPath($RepositoryRoot)
 $lock = Get-Content -LiteralPath (Join-Path $root "upstream/cadle.lock.json") -Raw | ConvertFrom-Json
 $cadle = Join-Path $root (([string]$lock.checkout.path).Replace("/", [IO.Path]::DirectorySeparatorChar))
 $packagePath = Join-Path $cadle "package.json"
-$packageLockPath = Join-Path $cadle "package-lock.json"
+$packageLockPath = if ($UseQualificationOverlay) {
+    Join-Path $root (([string]$lock.qualification.overlayPath).Replace("/", [IO.Path]::DirectorySeparatorChar))
+} else {
+    Join-Path $cadle "package-lock.json"
+}
 $package = Get-Content -LiteralPath $packagePath -Raw | ConvertFrom-Json
 $packageLock = Get-Content -LiteralPath $packageLockPath -Raw | ConvertFrom-Json -AsHashtable
 $lockRoot = $packageLock["packages"][""]
@@ -91,6 +96,7 @@ $evidence = [ordered]@{
         clean = -not [bool]$gitStatus
     }
     manifests = [ordered]@{
+        lockKind = if ($UseQualificationOverlay) { "forge-derived-qualification-overlay" } else { "cadle-upstream" }
         packageVersion = [string]$package.version
         packageLockRootVersion = [string]$lockRoot["version"]
         lockfileVersion = [int]$packageLock["lockfileVersion"]

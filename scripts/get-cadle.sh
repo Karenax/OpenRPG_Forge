@@ -28,7 +28,7 @@ expected_commit="$(read_lock repository.commit)"
 expected_tree="$(read_lock repository.tree)"
 checkout_relative="$(read_lock checkout.path)"
 
-if [[ "$schema_version" != "1" ]]; then
+if [[ "$schema_version" != "1" && "$schema_version" != "2" ]]; then
   echo "unsupported Cadle lock schemaVersion: $schema_version" >&2
   exit 1
 fi

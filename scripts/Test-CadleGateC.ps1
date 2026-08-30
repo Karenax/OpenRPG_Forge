@@ -16,7 +16,7 @@ if ($LASTEXITCODE -ne 0 -or $actualRoot -ne $root) {
 $lockPath = Join-Path $root "upstream/cadle.lock.json"
 $lock = Get-Content -LiteralPath $lockPath -Raw | ConvertFrom-Json
 if (
-    $lock.schemaVersion -ne 1 -or
+    $lock.schemaVersion -notin @(1, 2) -or
     $lock.repository.commit -notmatch "^[0-9a-f]{40}$" -or
     $lock.repository.tree -notmatch "^[0-9a-f]{40}$"
 ) {
@@ -37,12 +37,27 @@ if ($LASTEXITCODE -ne 0) {
     throw "Unable to enumerate tracked files."
 }
 
-$allowedUpstream = @("upstream/README.md", "upstream/cadle.lock.json")
+$allowedUpstream = @("upstream/README.md", "upstream/cadle.lock.json", "upstream/cadle.npm-lock.json")
 $unexpectedUpstream = @($tracked | Where-Object {
     $_ -like "upstream/*" -and $_ -notin $allowedUpstream
 })
 if ($unexpectedUpstream.Count -gt 0) {
     throw "Unexpected tracked upstream files:`n$($unexpectedUpstream -join [Environment]::NewLine)"
+}
+
+if ($lock.schemaVersion -eq 2) {
+    $overlayRelative = [string]$lock.qualification.overlayPath
+    if ($overlayRelative -ne "upstream/cadle.npm-lock.json") {
+        throw "Unexpected Cadle qualification overlay path: $overlayRelative"
+    }
+    $overlayAbsolute = Join-Path $root ($overlayRelative.Replace("/", [IO.Path]::DirectorySeparatorChar))
+    if (-not (Test-Path -LiteralPath $overlayAbsolute -PathType Leaf)) {
+        throw "Missing Cadle qualification overlay: $overlayAbsolute"
+    }
+    $overlayHash = (Get-FileHash -LiteralPath $overlayAbsolute -Algorithm SHA256).Hash.ToLowerInvariant()
+    if ($overlayHash -ne [string]$lock.qualification.overlaySha256) {
+        throw "Cadle qualification overlay hash mismatch: $overlayHash"
+    }
 }
 
 $mediaPattern = "(?i)\.(png|jpe?g|webp|gif|bmp|tiff?|svg|glb|gltf|bin|fbx|obj|wav|ogg|mp3|flac|mp4|webm)$"

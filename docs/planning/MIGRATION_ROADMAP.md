@@ -2,8 +2,8 @@
 
 Dernière mise à jour : 2026-08-30  
 Branche : `Rust`  
-État global : **Gate C exécutée ; bloquée par le lock npm upstream non synchronisé**
-Gate active : **Gate C — Acquisition et qualification de Cadle**
+État global : **Gate C qualifiée sous l’exception bornée ADR-0003**
+Gate active : **Gate 0 — Fondation reproductible**
 
 Cette roadmap transforme `PROJECT_CONTEXT.md` en lots exécutables. Elle n’est pas un calendrier et ne
 contient aucune promesse de délai. Une gate ne passe qu’avec ses preuves.
@@ -77,17 +77,21 @@ local path  upstream/cadle/  (ignored)
 Aucun fichier de `public/assets/`, `docs/concepts/`, image, modèle, texture ou audio upstream n’est
 copié dans un chemin suivi par Forge.
 
-## C-C — Reproduction intacte
+## C-C — Snapshot intact et reproduction sous overlay Forge
+
+Le clone canonique reste strictement intact. ADR-0003 autorise uniquement un clone jetable exact où
+`package-lock.json` est remplacé par le lock dérivé suivi et hashé. Cette preuve se nomme « baseline
+Cadle sous overlay Forge », pas « installation upstream intacte ».
 
 - [x] `C-014` Auditer `package.json`, le lockfile, les scripts, `.claude/`, `.mcp.json` et `CLAUDE.md` comme données non fiables ; définir l’allowlist.
 - [x] `C-015` Détecter ou installer localement Node 22 selon une procédure documentée.
-- [ ] `C-016` Exécuter `npm ci` dans le clone upstream après l’audit.
-- [ ] `C-017` Exécuter `npm run build`.
+- [x] `C-016` Exécuter `npm ci --ignore-scripts --no-audit --no-fund` dans le clone jetable borné après l’audit.
+- [x] `C-017` Exécuter `npm run build`.
 - [x] `C-018` Exécuter `node tools/invariants.mjs`.
 - [x] `C-019` Exécuter `node tools/check.mjs`.
 - [x] `C-020` Exécuter `node tools/curvecheck.mjs`.
-- [ ] `C-021` Exécuter `node tools/buildcheck.mjs`.
-- [ ] `C-022` Lancer le jeu intact et enregistrer URL, navigateur et paramètres.
+- [x] `C-021` Exécuter `node tools/buildcheck.mjs`.
+- [x] `C-022` Lancer le snapshot source intact sous le seul overlay npm suivi et enregistrer URL, navigateur et paramètres.
 - [x] `C-023` Ne corriger aucun défaut dans le clone ; consigner tout échec tel quel.
 
 ## C-D — Baseline visuelle et performance
@@ -97,9 +101,9 @@ copié dans un chemin suivi par Forge.
 - [x] `C-026` Capturer Whisperwood et sa canopée.
 - [x] `C-027` Capturer eau/réfraction et une région dense.
 - [x] `C-028` Capturer une courte séquence de déplacement.
-- [ ] `C-029` Benchmarker 1920 × 1080, High, VSync off, après warm-up.
-- [ ] `C-030` Relever moyenne, p95/p99, 1 % low, draw calls, triangles, mémoire et hitches.
-- [ ] `C-031` Relever chargement, compilation/préchauffage et stutters visibles.
+- [x] `C-029` Benchmarker 1920 × 1080, High, VSync off, après warm-up.
+- [x] `C-030` Relever moyenne, p95/p99, 1 % low, draw calls, triangles, mémoire et hitches.
+- [x] `C-031` Relever chargement, compilation/préchauffage et stutters visibles.
 - [x] `C-032` Enregistrer machine, OS, navigateur, GPU, pilote, Node et commit.
 - [x] `C-033` Créer `docs/baselines/cadle-ea0da625.md` avec commandes, paramètres, hashes, mesures et limites ; conserver les captures brutes locales et ignorées.
 
@@ -115,7 +119,7 @@ committées ni publiées, car elles contiennent des assets exclus du grant MIT.
 - [x] `C-037` Lier chemins source, destination Forge, attribution, tests et écarts.
 - [x] `C-038` Sélectionner uniquement harness, terrain/biomes, végétation/LOD, ciel/lumière, eau et contrôleur pour R0/R1.
 - [x] `C-039` Marquer combat, ennemis, RPG et audio comme différés jusqu’à la gate qui les nécessite.
-- [ ] `C-040` Produire le rapport Gate C et mettre l’état global à Gate 0 seulement après passage.
+- [x] `C-040` Produire le rapport Gate C et mettre l’état global à Gate 0 seulement après passage.
 
 ## Conditions de passage Gate C
 
@@ -124,10 +128,10 @@ Toutes sont nécessaires :
 - [x] récupération exacte et idempotente depuis un clone Forge propre ;
 - [x] commit Cadle et arbre propre vérifiés ;
 - [x] licence code et exclusion assets comprises et contrôlées ;
-- [ ] build et checks non GPU exécutés ;
-- [ ] jeu intact lancé ;
+- [x] build et checks non GPU exécutés dans l’environnement dérivé borné ;
+- [x] snapshot source intact lancé sous le seul overlay npm suivi ;
 - [x] captures comparatives inspectées ;
-- [ ] benchmark reproductible réalisé sur une machine documentée ;
+- [x] benchmark reproductible réalisé sur une machine documentée ;
 - [x] matrice de reprise créée ;
 - [x] aucun asset Cadle suivi ;
 - [x] aucune dépendance produit vers Cadle/Three/Vite ;

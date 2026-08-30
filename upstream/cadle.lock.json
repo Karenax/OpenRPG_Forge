@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "repository": {
     "url": "https://github.com/Humpalumps/Cadle.git",
     "branch": "main",
@@ -13,9 +13,27 @@
     "requireCleanTree": true
   },
   "runtime": {
+    "nodeVersion": "22.22.3",
+    "npmVersion": "10.9.8",
     "nodeMajor": 22,
     "packageManager": "npm",
-    "installCommand": "npm ci"
+    "installCommand": "npm ci --ignore-scripts --no-audit --no-fund"
+  },
+  "qualification": {
+    "mode": "forge-derived-package-lock-overlay",
+    "manifestSha256": "95952a2f2d4114c619a6c182b610c46d12db4c366aa59292c0a7ffc28650bcfc",
+    "upstreamPackageLockSha256": "1d01d9703a7679fecb0ce2f4144eef382c0adc832d0298da19a9efb515af82a3",
+    "licenseSha256": "8f653f3f69f17d2dabacaba945334989d0d459c05f8adb790d29057365cc1de9",
+    "noticeSha256": "cdca80e358e0d7b97fa0badf71bc22e8ffd2f4e7a3bfdd9da5243b92486a5f24",
+    "overlayPath": "upstream/cadle.npm-lock.json",
+    "overlaySha256": "2e84d2a98f193fd53a9af0dc68c9cb7e1f0773c1bf2459613824524b6abd7c25",
+    "allowedTrackedDelta": [
+      "package-lock.json"
+    ],
+    "generationEvidence": {
+      "command": "npm install --package-lock-only --ignore-scripts --no-audit --no-fund",
+      "independentByteIdenticalRuns": 2
+    }
   },
   "licensing": {
     "codeSpdx": "MIT",

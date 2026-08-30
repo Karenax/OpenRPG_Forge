@@ -16,8 +16,8 @@ migration de connaissances, de contrats, de données et d’assets sélectionné
 l’historique ni une traduction ligne par ligne du code existant.
 
 La branche ne part toutefois plus d’une page blanche fonctionnelle. Le dépôt public **Cadle** est
-adopté comme upstream exécutable de référence : le premier agent doit en obtenir une copie locale
-épinglée, lancer le jeu intact, mesurer sa baseline et utiliser ses systèmes MIT comme donneurs de
+adopté comme upstream exécutable de référence : l’agent obtient une copie locale épinglée, conserve
+le snapshot source intact, lance la baseline sous l’overlay npm borné d’ADR-0003 et utilise ses systèmes MIT comme donneurs de
 techniques et de contrats comportementaux. Cadle n’est ni une nouvelle dépendance de production ni le
 runtime final de Forge : son JavaScript/Three.js/WebGL2 doit être progressivement remplacé par des
 implémentations Rust/Bevy/wgpu/WebGPU, avec attribution et preuves comparatives.
@@ -253,7 +253,8 @@ Règles obligatoires :
 
 - cloner le snapshot dans `upstream/cadle/` comme copie locale ignorée par Git, via une procédure
   reproductible et un lockfile suivi ;
-- ne jamais modifier cette copie avant d’avoir enregistré la baseline ;
+- ne jamais modifier cette copie canonique ; la baseline exécutable est réalisée dans un clone
+  jetable où seul le lock npm dérivé et épinglé par ADR-0003 remplace le lock upstream défectueux ;
 - conserver `LICENSE`, `NOTICE`, le commit source et l’attribution de tout code copié ou dérivé ;
 - ne jamais recopier ni publier `public/assets/`, `docs/concepts/` ou les images du site comme assets
   Forge : leur inclusion dans Cadle ne constitue pas une autorisation de redistribution ;
@@ -280,6 +281,10 @@ Règles obligatoires :
 L’exception « copie locale de référence » n’autorise aucune seconde source de vérité. Les documents
 Forge restent canoniques ; Bevy/wgpu reste le runtime cible ; Cadle peut être supprimé du workspace
 local sans empêcher Forge de compiler, tester ou fonctionner.
+
+ADR-0003 distingue explicitement le snapshot source intact de la « baseline Cadle sous overlay
+Forge ». Le lock dérivé est une métadonnée d’acquisition locale, jamais une dépendance produit ni une
+autorisation de distribuer Cadle, son build, ses dépendances ou ses assets.
 
 ---
 
@@ -1174,9 +1179,9 @@ Avant le bootstrap Rust, rendre la référence reproductible sans l’introduire
 - aucune dépendance JavaScript ajoutée aux applications Forge ;
 - aucun asset Cadle ajouté au contenu distribuable.
 
-Cette gate passe lorsque deux agents partant d’un clone propre peuvent récupérer le même snapshot,
-reproduire le jeu de référence et retrouver les mêmes scènes de comparaison avec des commandes
-documentées.
+Cette gate passe lorsque deux environnements partant d’un clone propre peuvent récupérer le même
+snapshot source intact, appliquer le même overlay npm épinglé dans un clone jetable, reproduire le jeu
+de référence et retrouver les mêmes scènes de comparaison avec des commandes documentées.
 
 ### Gate 0 — Fondation reproductible
 
@@ -1554,7 +1559,7 @@ dans les crates Rust ni par construire un éditeur complet.
 ### Étape 0 — Préflight documentaire et Git
 
 1. confirmer la branche `Rust` et un worktree propre ;
-2. lire `AGENTS.md`, ce document, ADR-0001, ADR-0002 et la roadmap ;
+2. lire `AGENTS.md`, ce document, ADR-0001, ADR-0002, ADR-0003 et la roadmap ;
 3. vérifier les références `main` et Cadle épinglées ;
 4. créer un petit commit par résultat cohérent ;
 5. ne jamais modifier `main` ni fusionner son historique.
@@ -1568,7 +1573,8 @@ Sortie : rapport de préflight court avec toolchains réellement disponibles et 
 3. créer une commande reproductible Windows et une commande CI/Linux qui initialisent un dépôt local,
    fetchent le commit exact et checkoutent un HEAD détaché ;
 4. refuser un commit différent, un arbre sale ou une URL substituée ;
-5. conserver la copie upstream intacte ; les expériences vivent hors de ce dossier ;
+5. conserver la copie upstream intacte ; les expériences et la qualification sous overlay vivent
+   dans un clone jetable ignoré, hors de ce dossier ;
 6. ajouter les notices de code nécessaires sans recopier les assets.
 
 Sortie : un clone propre de Forge peut obtenir exactement Cadle `ea0da625...` dans
@@ -1576,10 +1582,10 @@ Sortie : un clone propre de Forge peut obtenir exactement Cadle `ea0da625...` da
 
 ### Lot C1 — Établir la baseline Cadle
 
-1. inspecter `package.json`, le lockfile et les scripts avant d’utiliser Node 22 et `npm ci` dans la
-   copie locale ;
+1. inspecter `package.json`, les deux lockfiles et les scripts avant d’utiliser Node 22 et `npm ci`
+   dans le clone jetable borné par ADR-0003 ;
 2. exécuter le build et uniquement les checks upstream explicitement qualifiés ;
-3. lancer le jeu intact ;
+3. lancer le snapshot source intact sous le seul overlay de métadonnées npm suivi ;
 4. capturer au minimum The Vale, Whisperwood, l’eau, une scène dense et une scène de déplacement avec
    seed/heure/qualité fixées ;
 5. exécuter un benchmark après préchauffage en 1080p High sans VSync ;
