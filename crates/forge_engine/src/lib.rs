@@ -10,6 +10,7 @@ use bevy::{
         renderer::{RenderAdapterInfo, RenderDevice},
         view::screenshot::{Screenshot, save_to_disk},
     },
+    window::{PresentMode, PrimaryWindow, WindowCloseRequested, WindowResized},
 };
 use forge_core::EntityId;
 use forge_project::{SceneProofDocument, SceneProofKind};
@@ -38,12 +39,23 @@ pub struct RuntimeAutomation {
     pub metrics_path: Option<PathBuf>,
     pub metrics_warmup_frames: u32,
     pub exit_after_frames: Option<u32>,
+    pub resize_request: Option<WindowResizeRequest>,
+    pub close_at_frame: Option<u32>,
+}
+
+/// Deterministic native-window resize used only by the proof harness.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
+pub struct WindowResizeRequest {
+    pub frame: u32,
+    pub width: u32,
+    pub height: u32,
 }
 
 #[derive(Clone, Debug, Default, Resource, Serialize)]
 pub struct ProofSceneStats {
     pub source_entities: usize,
-    pub mesh_draws_logical: usize,
+    /// Mesh instances materialized from the source document; never a GPU draw-call count.
+    pub source_mesh_instances: usize,
     pub source_hash: String,
 }
 
@@ -71,15 +83,58 @@ struct AdapterLogged(bool);
 #[derive(Resource, Default)]
 struct FrameLedger(Vec<f64>);
 
+#[derive(Clone, Debug, PartialEq, Serialize)]
+struct WindowStateReport {
+    logical_width: f32,
+    logical_height: f32,
+    physical_width: u32,
+    physical_height: u32,
+    scale_factor: f32,
+    resizable: bool,
+    present_mode_request: String,
+    vsync_requested: bool,
+}
+
+#[derive(Clone, Debug, Resource)]
+struct WindowLifecycle {
+    initial: Option<WindowStateReport>,
+    latest: Option<WindowStateReport>,
+    resize_request: Option<WindowResizeRequest>,
+    resize_request_issued: bool,
+    resize_request_issued_frame: Option<u32>,
+    resize_request_observed: bool,
+    resize_request_observed_frame: Option<u32>,
+    resize_events_observed: u32,
+    automated_close_frame: Option<u32>,
+    automated_close_issued: bool,
+    close_requests_observed: u32,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize)]
+struct WindowLifecycleReport {
+    initial: Option<WindowStateReport>,
+    final_state: Option<WindowStateReport>,
+    resize_request: Option<WindowResizeRequest>,
+    resize_request_issued: bool,
+    resize_request_issued_frame: Option<u32>,
+    resize_request_observed: bool,
+    resize_request_observed_frame: Option<u32>,
+    resize_events_observed: u32,
+    automated_close_frame: Option<u32>,
+    automated_close_issued: bool,
+    close_requests_observed: u32,
+}
+
 #[derive(Debug, Serialize)]
 struct RuntimeMetricsReport {
     schema: &'static str,
     schema_version: u32,
     source_hash: String,
     gpu: Option<GpuDiagnostic>,
+    window: WindowLifecycleReport,
     frame: FrameMetrics,
     render_diagnostics: Vec<NamedDiagnostic>,
-    render_work: ProofSceneStats,
+    render_work: RenderWorkReport,
 }
 
 #[derive(Debug, Serialize)]
@@ -97,12 +152,27 @@ struct FrameMetrics {
     hitches_over_33_3_ms: usize,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 struct NamedDiagnostic {
     path: String,
     value: f64,
     suffix: String,
 }
+
+#[derive(Clone, Debug, PartialEq, Serialize)]
+struct RenderWorkReport {
+    source_entities: usize,
+    source_mesh_instances: usize,
+    /// Deliberately null: Bevy 0.19 exposes no backend-neutral global draw-call counter.
+    gpu_draw_calls: Option<u64>,
+    gpu_draw_call_status: &'static str,
+    gpu_main_opaque_primitives: Option<f64>,
+    gpu_main_opaque_vertex_shader_invocations: Option<f64>,
+    gpu_main_opaque_fragment_shader_invocations: Option<f64>,
+    timed_render_spans_observed: usize,
+}
+
+const GPU_DRAW_CALL_STATUS: &str = "unavailable_bevy_0_19_no_global_counter";
 
 /// Installs the document adapter, diagnostics, deterministic capture and bounded-exit harness.
 pub struct ProofScenePlugin {
@@ -137,6 +207,10 @@ impl Plugin for ProofScenePlugin {
             .expect("ProofScenePlugin requires a validated document");
         app.insert_resource(ProofScene(self.document.clone()))
             .insert_resource(self.automation.clone())
+            .insert_resource(WindowLifecycle::new(
+                self.automation.resize_request,
+                self.automation.close_at_frame,
+            ))
             .init_resource::<ProofSceneStats>()
             .init_resource::<ProofSelection>()
             .init_resource::<AdapterLogged>()
@@ -147,16 +221,79 @@ impl Plugin for ProofScenePlugin {
                 RenderDiagnosticsPlugin,
                 MeshPickingPlugin,
             ))
-            .add_systems(Startup, spawn_proof_scene)
+            .add_systems(
+                Startup,
+                (spawn_proof_scene, initialize_window_lifecycle).chain(),
+            )
             .add_systems(
                 Update,
                 (
-                    update_overlay,
                     record_gpu_diagnostic,
+                    request_automated_resize,
+                    request_automated_close,
+                    observe_window_events,
+                    update_overlay,
                     capture_at_requested_frame,
-                ),
+                )
+                    .chain(),
             )
             .add_systems(Last, (collect_frame_sample, write_metrics_and_exit).chain());
+    }
+}
+
+impl WindowLifecycle {
+    const fn new(
+        resize_request: Option<WindowResizeRequest>,
+        automated_close_frame: Option<u32>,
+    ) -> Self {
+        Self {
+            initial: None,
+            latest: None,
+            resize_request,
+            resize_request_issued: false,
+            resize_request_issued_frame: None,
+            resize_request_observed: false,
+            resize_request_observed_frame: None,
+            resize_events_observed: 0,
+            automated_close_frame,
+            automated_close_issued: false,
+            close_requests_observed: 0,
+        }
+    }
+
+    #[allow(
+        clippy::cast_precision_loss,
+        reason = "window dimensions are validated human-scale pixel counts"
+    )]
+    fn observe_resize(&mut self, frame: u32, width: f32, height: f32) {
+        self.resize_events_observed = self.resize_events_observed.saturating_add(1);
+        if let Some(request) = self.resize_request {
+            let width_matches = (width - request.width as f32).abs() <= 0.5;
+            let height_matches = (height - request.height as f32).abs() <= 0.5;
+            let follows_request = self
+                .resize_request_issued_frame
+                .is_some_and(|issued_frame| frame > issued_frame);
+            if follows_request && width_matches && height_matches {
+                self.resize_request_observed = true;
+                self.resize_request_observed_frame.get_or_insert(frame);
+            }
+        }
+    }
+
+    fn report(&self, final_window: Option<WindowStateReport>) -> WindowLifecycleReport {
+        WindowLifecycleReport {
+            initial: self.initial.clone(),
+            final_state: final_window.or_else(|| self.latest.clone()),
+            resize_request: self.resize_request,
+            resize_request_issued: self.resize_request_issued,
+            resize_request_issued_frame: self.resize_request_issued_frame,
+            resize_request_observed: self.resize_request_observed,
+            resize_request_observed_frame: self.resize_request_observed_frame,
+            resize_events_observed: self.resize_events_observed,
+            automated_close_frame: self.automated_close_frame,
+            automated_close_issued: self.automated_close_issued,
+            close_requests_observed: self.close_requests_observed,
+        }
     }
 }
 
@@ -176,6 +313,194 @@ pub fn domain_transform_to_bevy(value: forge_core::Transform) -> Transform {
             value.rotation.w,
         ),
         scale: Vec3::new(value.scale.x, value.scale.y, value.scale.z),
+    }
+}
+
+fn present_mode_request_label(mode: PresentMode) -> &'static str {
+    match mode {
+        PresentMode::AutoVsync => "auto_vsync",
+        PresentMode::AutoNoVsync => "auto_no_vsync",
+        PresentMode::Fifo => "fifo",
+        PresentMode::FifoRelaxed => "fifo_relaxed",
+        PresentMode::Immediate => "immediate",
+        PresentMode::Mailbox => "mailbox",
+    }
+}
+
+const fn present_mode_requests_vsync(mode: PresentMode) -> bool {
+    matches!(
+        mode,
+        PresentMode::AutoVsync
+            | PresentMode::Fifo
+            | PresentMode::FifoRelaxed
+            | PresentMode::Mailbox
+    )
+}
+
+fn window_state_report(window: &Window) -> WindowStateReport {
+    WindowStateReport {
+        logical_width: window.resolution.width(),
+        logical_height: window.resolution.height(),
+        physical_width: window.resolution.physical_width(),
+        physical_height: window.resolution.physical_height(),
+        scale_factor: window.resolution.scale_factor(),
+        resizable: window.resizable,
+        present_mode_request: present_mode_request_label(window.present_mode).to_owned(),
+        vsync_requested: present_mode_requests_vsync(window.present_mode),
+    }
+}
+
+fn initialize_window_lifecycle(
+    windows: Query<&Window, With<PrimaryWindow>>,
+    mut lifecycle: ResMut<WindowLifecycle>,
+) {
+    let Ok(window) = windows.single() else {
+        warn!(
+            target: "forge::window",
+            schema = "forge.runtime-event",
+            schema_version = 1_u64,
+            event_kind = "window_initialization_unavailable",
+            "primary window state was not available"
+        );
+        return;
+    };
+    let state = window_state_report(window);
+    lifecycle.initial = Some(state.clone());
+    lifecycle.latest = Some(state.clone());
+    info!(
+        target: "forge::window",
+        schema = "forge.runtime-event",
+        schema_version = 1_u64,
+        event_kind = "window_initialized",
+        logical_width = state.logical_width,
+        logical_height = state.logical_height,
+        physical_width = state.physical_width,
+        physical_height = state.physical_height,
+        scale_factor = state.scale_factor,
+        resizable = state.resizable,
+        present_mode_request = %state.present_mode_request,
+        vsync_requested = state.vsync_requested,
+        "primary window initialized"
+    );
+}
+
+#[allow(
+    clippy::cast_precision_loss,
+    clippy::needless_pass_by_value,
+    reason = "Bevy systems own wrappers; validated pixel counts fit exactly at runtime sizes"
+)]
+fn request_automated_resize(
+    frame: Res<bevy::diagnostic::FrameCount>,
+    mut windows: Query<&mut Window, With<PrimaryWindow>>,
+    mut lifecycle: ResMut<WindowLifecycle>,
+) {
+    let Some(request) = lifecycle.resize_request else {
+        return;
+    };
+    if lifecycle.resize_request_issued || frame.0 < request.frame {
+        return;
+    }
+    let Ok(mut window) = windows.single_mut() else {
+        return;
+    };
+    window
+        .resolution
+        .set(request.width as f32, request.height as f32);
+    lifecycle.resize_request_issued = true;
+    lifecycle.resize_request_issued_frame = Some(frame.0);
+    lifecycle.latest = Some(window_state_report(&window));
+    info!(
+        target: "forge::window",
+        schema = "forge.runtime-event",
+        schema_version = 1_u64,
+        event_kind = "window_resize_requested",
+        frame = frame.0,
+        logical_width = request.width,
+        logical_height = request.height,
+        "window resize submitted to the backend"
+    );
+}
+
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "Bevy systems require owned system parameter wrappers"
+)]
+fn request_automated_close(
+    frame: Res<bevy::diagnostic::FrameCount>,
+    windows: Query<Entity, With<PrimaryWindow>>,
+    mut lifecycle: ResMut<WindowLifecycle>,
+    mut close_requests: MessageWriter<WindowCloseRequested>,
+) {
+    let Some(close_at_frame) = lifecycle.automated_close_frame else {
+        return;
+    };
+    if lifecycle.automated_close_issued || frame.0 < close_at_frame {
+        return;
+    }
+    let Ok(window) = windows.single() else {
+        return;
+    };
+    close_requests.write(WindowCloseRequested { window });
+    lifecycle.automated_close_issued = true;
+    info!(
+        target: "forge::window",
+        schema = "forge.runtime-event",
+        schema_version = 1_u64,
+        event_kind = "window_close_requested",
+        frame = frame.0,
+        origin = "automation",
+        "window close requested through the normal Bevy lifecycle"
+    );
+}
+
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "Bevy systems require owned system parameter wrappers"
+)]
+fn observe_window_events(
+    frame: Res<bevy::diagnostic::FrameCount>,
+    mut resize_events: MessageReader<WindowResized>,
+    mut close_events: MessageReader<WindowCloseRequested>,
+    windows: Query<(Entity, &Window), With<PrimaryWindow>>,
+    mut lifecycle: ResMut<WindowLifecycle>,
+) {
+    let Ok((primary_entity, primary_window)) = windows.single() else {
+        return;
+    };
+
+    for event in resize_events.read() {
+        if event.window != primary_entity {
+            continue;
+        }
+        lifecycle.observe_resize(frame.0, event.width, event.height);
+        lifecycle.latest = Some(window_state_report(primary_window));
+        info!(
+            target: "forge::window",
+            schema = "forge.runtime-event",
+            schema_version = 1_u64,
+            event_kind = "window_resize_observed",
+            frame = frame.0,
+            logical_width = event.width,
+            logical_height = event.height,
+            resize_events_observed = lifecycle.resize_events_observed,
+            requested_resize_observed = lifecycle.resize_request_observed,
+            "window backend confirmed a logical resize"
+        );
+    }
+
+    for event in close_events.read() {
+        if event.window != primary_entity {
+            continue;
+        }
+        lifecycle.close_requests_observed = lifecycle.close_requests_observed.saturating_add(1);
+        info!(
+            target: "forge::window",
+            schema = "forge.runtime-event",
+            schema_version = 1_u64,
+            event_kind = "window_close_observed",
+            close_requests_observed = lifecycle.close_requests_observed,
+            "window close request observed before teardown"
+        );
     }
 }
 
@@ -216,7 +541,7 @@ fn spawn_proof_scene(
                     material,
                     transform,
                 );
-                stats.mesh_draws_logical += 1;
+                stats.source_mesh_instances += 1;
             }
             SceneProofKind::Cube { edge_m } => {
                 let mesh = meshes.add(Cuboid::new(edge_m, edge_m, edge_m));
@@ -234,7 +559,7 @@ fn spawn_proof_scene(
                     material,
                     transform,
                 );
-                stats.mesh_draws_logical += 1;
+                stats.source_mesh_instances += 1;
             }
             SceneProofKind::DirectionalLight { illuminance_lux } => {
                 commands.spawn((
@@ -273,10 +598,13 @@ fn spawn_proof_scene(
 
     info!(
         target: "forge::scene",
+        schema = "forge.runtime-event",
+        schema_version = 1_u64,
+        event_kind = "scene_materialized",
         scene = %document.0.name,
         source_hash = %stats.source_hash,
         entities = stats.source_entities,
-        mesh_draws_logical = stats.mesh_draws_logical,
+        source_mesh_instances = stats.source_mesh_instances,
         "scene document materialized"
     );
 }
@@ -334,7 +662,14 @@ fn select_proof_entity(
         && selection.0 != Some(entity_id.0)
     {
         selection.0 = Some(entity_id.0);
-        info!(target: "forge::selection", entity_id = %entity_id.0, "proof entity selected from viewport");
+        info!(
+            target: "forge::selection",
+            schema = "forge.runtime-event",
+            schema_version = 1_u64,
+            event_kind = "viewport_entity_selected",
+            entity_id = %entity_id.0,
+            "proof entity selected from viewport"
+        );
     }
 }
 
@@ -359,10 +694,76 @@ fn update_overlay(
     let adapter = gpu
         .as_ref()
         .map_or("initialisation GPU", |gpu| gpu.name.as_str());
-    **overlay = Text::new(format!(
-        "OpenRPG Forge · Gate 0\n{adapter}\n{fps:6.1} FPS · {frame_ms:5.2} ms\n{} entités source · {} draws logiques\n{}",
-        stats.source_entities, stats.mesh_draws_logical, stats.source_hash
+    let render_work = build_render_work_report(&stats, &diagnostics);
+    **overlay = Text::new(format_diagnostics_overlay(
+        adapter,
+        fps,
+        frame_ms,
+        &stats,
+        &render_work,
     ));
+}
+
+fn format_diagnostics_overlay(
+    adapter: &str,
+    fps: f64,
+    frame_ms: f64,
+    stats: &ProofSceneStats,
+    render_work: &RenderWorkReport,
+) -> String {
+    let gpu_work = match (
+        render_work.gpu_main_opaque_primitives,
+        render_work.gpu_main_opaque_vertex_shader_invocations,
+    ) {
+        (Some(primitives), Some(vertices)) => {
+            format!("GPU opaque : {primitives:.0} primitives · {vertices:.0} invocations vertex")
+        }
+        (Some(primitives), None) => format!("GPU opaque : {primitives:.0} primitives"),
+        _ => "Statistiques pipeline GPU : indisponibles".to_owned(),
+    };
+    format!(
+        "OpenRPG Forge · Gate 0\n{adapter}\n{fps:6.1} FPS · {frame_ms:5.2} ms\n{} entités source · {} maillages source\nDraw calls GPU : indisponibles\n{gpu_work}\n{}",
+        stats.source_entities, stats.source_mesh_instances, stats.source_hash
+    )
+}
+
+fn build_render_work_report(
+    stats: &ProofSceneStats,
+    diagnostics: &DiagnosticsStore,
+) -> RenderWorkReport {
+    RenderWorkReport {
+        source_entities: stats.source_entities,
+        source_mesh_instances: stats.source_mesh_instances,
+        gpu_draw_calls: None,
+        gpu_draw_call_status: GPU_DRAW_CALL_STATUS,
+        gpu_main_opaque_primitives: diagnostic_value(
+            diagnostics,
+            "render/main_opaque_pass_3d/clipper_primitives_out",
+        ),
+        gpu_main_opaque_vertex_shader_invocations: diagnostic_value(
+            diagnostics,
+            "render/main_opaque_pass_3d/vertex_shader_invocations",
+        ),
+        gpu_main_opaque_fragment_shader_invocations: diagnostic_value(
+            diagnostics,
+            "render/main_opaque_pass_3d/fragment_shader_invocations",
+        ),
+        timed_render_spans_observed: diagnostics
+            .iter()
+            .filter(|diagnostic| {
+                let path = diagnostic.path().as_str();
+                path.starts_with("render/") && path.ends_with("/elapsed_cpu")
+            })
+            .count(),
+    }
+}
+
+fn diagnostic_value(diagnostics: &DiagnosticsStore, path: &str) -> Option<f64> {
+    diagnostics
+        .iter()
+        .find(|diagnostic| diagnostic.path().as_str() == path)
+        .and_then(bevy::diagnostic::Diagnostic::value)
+        .filter(|value| value.is_finite() && *value >= 0.0)
 }
 
 fn record_gpu_diagnostic(
@@ -393,6 +794,9 @@ fn record_gpu_diagnostic(
     };
     info!(
         target: "forge::gpu",
+        schema = "forge.runtime-event",
+        schema_version = 1_u64,
+        event_kind = "gpu_adapter_initialized",
         adapter = %diagnostic.name,
         backend = %diagnostic.backend,
         device_type = %diagnostic.device_type,
@@ -418,7 +822,15 @@ fn capture_at_requested_frame(
         commands
             .spawn(Screenshot::primary_window())
             .observe(save_to_disk(path.clone()));
-        info!(target: "forge::proof", path = %path.display(), frame = frame.0, "capture requested");
+        info!(
+            target: "forge::proof",
+            schema = "forge.runtime-event",
+            schema_version = 1_u64,
+            event_kind = "capture_requested",
+            path = %path.display(),
+            frame = frame.0,
+            "capture requested"
+        );
     }
 }
 
@@ -442,7 +854,8 @@ fn collect_frame_sample(
 
 #[allow(
     clippy::needless_pass_by_value,
-    reason = "Bevy systems require owned system parameter wrappers"
+    clippy::too_many_arguments,
+    reason = "Bevy systems require explicit owned system parameters for independent ECS access"
 )]
 fn write_metrics_and_exit(
     frame: Res<bevy::diagnostic::FrameCount>,
@@ -451,6 +864,8 @@ fn write_metrics_and_exit(
     stats: Res<ProofSceneStats>,
     gpu: Option<Res<GpuDiagnostic>>,
     diagnostics: Res<DiagnosticsStore>,
+    windows: Query<&Window, With<PrimaryWindow>>,
+    lifecycle: Res<WindowLifecycle>,
     mut exit: MessageWriter<AppExit>,
 ) {
     if automation
@@ -460,13 +875,42 @@ fn write_metrics_and_exit(
         return;
     }
 
+    if let Err(error) = ensure_resize_confirmed(&lifecycle) {
+        error!(
+            target: "forge::proof",
+            schema = "forge.runtime-event",
+            schema_version = 1_u64,
+            event_kind = "window_resize_unconfirmed",
+            %error,
+            "bounded runtime ended before the backend confirmed the requested resize"
+        );
+        exit.write(AppExit::error());
+        return;
+    }
+
     if let Some(path) = &automation.capture_path {
         match capture_artifact_size(path) {
             Ok(bytes) => {
-                info!(target: "forge::proof", path = %path.display(), bytes, "runtime capture verified");
+                info!(
+                    target: "forge::proof",
+                    schema = "forge.runtime-event",
+                    schema_version = 1_u64,
+                    event_kind = "capture_verified",
+                    path = %path.display(),
+                    bytes,
+                    "runtime capture verified"
+                );
             }
             Err(error) => {
-                error!(target: "forge::proof", path = %path.display(), %error, "runtime capture failed");
+                error!(
+                    target: "forge::proof",
+                    schema = "forge.runtime-event",
+                    schema_version = 1_u64,
+                    event_kind = "capture_failed",
+                    path = %path.display(),
+                    %error,
+                    "runtime capture failed"
+                );
                 exit.write(AppExit::error());
                 return;
             }
@@ -474,22 +918,68 @@ fn write_metrics_and_exit(
     }
 
     if let Some(path) = &automation.metrics_path {
-        match build_runtime_metrics(&ledger.0, &stats, gpu.as_deref(), &diagnostics)
-            .and_then(|report| write_metrics(path, &report))
+        let final_window = windows.single().ok().map(window_state_report);
+        match build_runtime_metrics(
+            &ledger.0,
+            &stats,
+            gpu.as_deref(),
+            &diagnostics,
+            &lifecycle,
+            final_window,
+        )
+        .and_then(|report| write_metrics(path, &report))
         {
             Ok(()) => {
-                info!(target: "forge::proof", path = %path.display(), samples = ledger.0.len(), "runtime metrics written");
+                info!(
+                    target: "forge::proof",
+                    schema = "forge.runtime-event",
+                    schema_version = 1_u64,
+                    event_kind = "runtime_metrics_written",
+                    path = %path.display(),
+                    samples = ledger.0.len(),
+                    "runtime metrics written"
+                );
             }
             Err(error) => {
-                error!(target: "forge::proof", path = %path.display(), %error, "runtime metrics failed");
+                error!(
+                    target: "forge::proof",
+                    schema = "forge.runtime-event",
+                    schema_version = 1_u64,
+                    event_kind = "runtime_metrics_failed",
+                    path = %path.display(),
+                    %error,
+                    "runtime metrics failed"
+                );
                 exit.write(AppExit::error());
                 return;
             }
         }
     }
 
-    info!(target: "forge::proof", frame = frame.0, "bounded runtime completed");
+    info!(
+        target: "forge::proof",
+        schema = "forge.runtime-event",
+        schema_version = 1_u64,
+        event_kind = "bounded_runtime_completed",
+        frame = frame.0,
+        "bounded runtime completed"
+    );
     exit.write(AppExit::Success);
+}
+
+fn ensure_resize_confirmed(lifecycle: &WindowLifecycle) -> Result<(), &'static str> {
+    if lifecycle.resize_request.is_some()
+        && !matches!(
+            (
+                lifecycle.resize_request_issued_frame,
+                lifecycle.resize_request_observed_frame,
+            ),
+            (Some(issued), Some(observed)) if observed > issued
+        )
+    {
+        return Err("requested resize was not confirmed by a later WindowResized backend event");
+    }
+    Ok(())
 }
 
 fn capture_artifact_size(path: &Path) -> Result<u64, String> {
@@ -509,6 +999,8 @@ fn build_runtime_metrics(
     stats: &ProofSceneStats,
     gpu: Option<&GpuDiagnostic>,
     diagnostics: &DiagnosticsStore,
+    lifecycle: &WindowLifecycle,
+    final_window: Option<WindowStateReport>,
 ) -> Result<RuntimeMetricsReport, String> {
     if samples.is_empty() {
         return Err("no post-warmup frame samples were collected".to_owned());
@@ -551,12 +1043,13 @@ fn build_runtime_metrics(
     render_diagnostics.sort_by(|left, right| left.path.cmp(&right.path));
     Ok(RuntimeMetricsReport {
         schema: "forge.runtime-metrics",
-        schema_version: 1,
+        schema_version: 2,
         source_hash: stats.source_hash.clone(),
         gpu: gpu.cloned(),
+        window: lifecycle.report(final_window),
         frame,
         render_diagnostics,
-        render_work: stats.clone(),
+        render_work: build_render_work_report(stats, diagnostics),
     })
 }
 
@@ -600,17 +1093,125 @@ mod tests {
         let samples = (1..=200).map(f64::from).collect::<Vec<_>>();
         let stats = ProofSceneStats {
             source_entities: 4,
-            mesh_draws_logical: 2,
+            source_mesh_instances: 2,
             source_hash: "abc".to_owned(),
         };
         let diagnostics = DiagnosticsStore::default();
-        let report = build_runtime_metrics(&samples, &stats, None, &diagnostics).unwrap();
+        let lifecycle = WindowLifecycle::new(None, None);
+        let report =
+            build_runtime_metrics(&samples, &stats, None, &diagnostics, &lifecycle, None).unwrap();
+        assert_eq!(report.schema_version, 2);
         assert_eq!(report.frame.samples, 200);
         assert!((report.frame.p50_ms - 100.0).abs() < f64::EPSILON);
         assert!((report.frame.p95_ms - 190.0).abs() < f64::EPSILON);
         assert!((report.frame.p99_ms - 198.0).abs() < f64::EPSILON);
         assert!((report.frame.max_ms - 200.0).abs() < f64::EPSILON);
         assert!((report.frame.one_percent_low_fps - (1_000.0 / 199.5)).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn render_work_never_invents_gpu_draw_calls() {
+        let stats = ProofSceneStats {
+            source_entities: 4,
+            source_mesh_instances: 2,
+            source_hash: "abc".to_owned(),
+        };
+        let mut diagnostics = DiagnosticsStore::default();
+        add_test_diagnostic(
+            &mut diagnostics,
+            "render/main_opaque_pass_3d/clipper_primitives_out",
+            14.0,
+        );
+        add_test_diagnostic(
+            &mut diagnostics,
+            "render/main_opaque_pass_3d/vertex_shader_invocations",
+            28.0,
+        );
+        add_test_diagnostic(
+            &mut diagnostics,
+            "render/main_opaque_pass_3d/fragment_shader_invocations",
+            1_086_894.0,
+        );
+        add_test_diagnostic(
+            &mut diagnostics,
+            "render/main_opaque_pass_3d/elapsed_cpu",
+            0.01,
+        );
+        let render_work = build_render_work_report(&stats, &diagnostics);
+
+        let text = format_diagnostics_overlay("test adapter", 120.0, 8.3, &stats, &render_work);
+        assert!(text.contains("2 maillages source"));
+        assert!(text.contains("Draw calls GPU : indisponibles"));
+        assert!(text.contains("GPU opaque : 14 primitives"));
+        assert!(!text.contains("draws logiques"));
+        assert_eq!(render_work.gpu_draw_calls, None);
+        assert_eq!(
+            render_work.gpu_draw_call_status,
+            "unavailable_bevy_0_19_no_global_counter"
+        );
+        assert_eq!(render_work.gpu_main_opaque_primitives, Some(14.0));
+        assert_eq!(render_work.timed_render_spans_observed, 1);
+    }
+
+    fn add_test_diagnostic(store: &mut DiagnosticsStore, path: &'static str, value: f64) {
+        let mut diagnostic =
+            bevy::diagnostic::Diagnostic::new(bevy::diagnostic::DiagnosticPath::const_new(path));
+        diagnostic.add_measurement(bevy::diagnostic::DiagnosticMeasurement {
+            time: std::time::Instant::now(),
+            value,
+        });
+        store.add(diagnostic);
+    }
+
+    #[test]
+    fn window_lifecycle_distinguishes_request_from_backend_observation() {
+        let request = WindowResizeRequest {
+            frame: 30,
+            width: 1280,
+            height: 720,
+        };
+        let mut lifecycle = WindowLifecycle::new(Some(request), Some(90));
+        lifecycle.resize_request_issued = true;
+        lifecycle.resize_request_issued_frame = Some(30);
+        assert!(ensure_resize_confirmed(&lifecycle).is_err());
+        lifecycle.observe_resize(30, 1280.0, 720.0);
+        assert!(!lifecycle.resize_request_observed);
+        lifecycle.observe_resize(31, 1024.0, 768.0);
+        assert!(!lifecycle.resize_request_observed);
+        assert!(ensure_resize_confirmed(&lifecycle).is_err());
+        lifecycle.observe_resize(32, 1280.0, 720.0);
+        assert!(lifecycle.resize_request_observed);
+        assert!(ensure_resize_confirmed(&lifecycle).is_ok());
+        assert_eq!(lifecycle.resize_request_observed_frame, Some(32));
+        assert_eq!(lifecycle.resize_events_observed, 3);
+
+        let mut window = Window {
+            present_mode: PresentMode::AutoNoVsync,
+            resizable: true,
+            ..default()
+        };
+        window.resolution.set(1280.0, 720.0);
+        let final_state = window_state_report(&window);
+        let report = lifecycle.report(Some(final_state));
+        assert_eq!(report.resize_request, Some(request));
+        assert!(report.resize_request_issued);
+        assert_eq!(report.resize_request_issued_frame, Some(30));
+        assert!(report.resize_request_observed);
+        assert_eq!(report.resize_request_observed_frame, Some(32));
+        assert_eq!(
+            report
+                .final_state
+                .as_ref()
+                .map(|state| state.present_mode_request.as_str()),
+            Some("auto_no_vsync")
+        );
+        assert_eq!(
+            report
+                .final_state
+                .as_ref()
+                .map(|state| state.vsync_requested),
+            Some(false)
+        );
     }
 
     #[test]

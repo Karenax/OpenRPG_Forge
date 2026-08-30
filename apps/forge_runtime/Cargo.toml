@@ -17,6 +17,11 @@ forge_core.workspace = true
 forge_engine.workspace = true
 forge_project.workspace = true
 forge_world.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
 
 [lints]
 workspace = true
