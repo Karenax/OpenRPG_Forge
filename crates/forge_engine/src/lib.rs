@@ -14,7 +14,10 @@ use bevy::{
 use forge_core::EntityId;
 use forge_project::{SceneProofDocument, SceneProofKind};
 use serde::Serialize;
-use std::{fs, path::PathBuf};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 
 /// Persistent identity carried by a transient Bevy entity.
 #[derive(Clone, Copy, Component, Debug, Eq, PartialEq)]
@@ -457,6 +460,19 @@ fn write_metrics_and_exit(
         return;
     }
 
+    if let Some(path) = &automation.capture_path {
+        match capture_artifact_size(path) {
+            Ok(bytes) => {
+                info!(target: "forge::proof", path = %path.display(), bytes, "runtime capture verified");
+            }
+            Err(error) => {
+                error!(target: "forge::proof", path = %path.display(), %error, "runtime capture failed");
+                exit.write(AppExit::error());
+                return;
+            }
+        }
+    }
+
     if let Some(path) = &automation.metrics_path {
         match build_runtime_metrics(&ledger.0, &stats, gpu.as_deref(), &diagnostics)
             .and_then(|report| write_metrics(path, &report))
@@ -474,6 +490,18 @@ fn write_metrics_and_exit(
 
     info!(target: "forge::proof", frame = frame.0, "bounded runtime completed");
     exit.write(AppExit::Success);
+}
+
+fn capture_artifact_size(path: &Path) -> Result<u64, String> {
+    let metadata = fs::metadata(path)
+        .map_err(|error| format!("cannot inspect {}: {error}", path.display()))?;
+    if !metadata.is_file() {
+        return Err(format!("{} is not a regular file", path.display()));
+    }
+    if metadata.len() == 0 {
+        return Err(format!("{} is empty", path.display()));
+    }
+    Ok(metadata.len())
 }
 
 fn build_runtime_metrics(
@@ -538,7 +566,10 @@ fn percentile(sorted: &[f64], numerator: usize, denominator: usize) -> f64 {
 }
 
 fn write_metrics(path: &PathBuf, report: &RuntimeMetricsReport) -> Result<(), String> {
-    if let Some(parent) = path.parent() {
+    if let Some(parent) = path
+        .parent()
+        .filter(|parent| !parent.as_os_str().is_empty())
+    {
         fs::create_dir_all(parent)
             .map_err(|error| format!("cannot create {}: {error}", parent.display()))?;
     }
@@ -580,5 +611,22 @@ mod tests {
         assert!((report.frame.p99_ms - 198.0).abs() < f64::EPSILON);
         assert!((report.frame.max_ms - 200.0).abs() < f64::EPSILON);
         assert!((report.frame.one_percent_low_fps - (1_000.0 / 199.5)).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn capture_artifact_must_exist_and_be_non_empty() {
+        let path = std::env::temp_dir().join(format!(
+            "openrpg-forge-capture-artifact-{}.png",
+            std::process::id()
+        ));
+        let _ = fs::remove_file(&path);
+        assert!(capture_artifact_size(&path).is_err());
+
+        fs::write(&path, []).unwrap();
+        assert!(capture_artifact_size(&path).is_err());
+
+        fs::write(&path, [1_u8]).unwrap();
+        assert_eq!(capture_artifact_size(&path).unwrap(), 1);
+        fs::remove_file(path).unwrap();
     }
 }

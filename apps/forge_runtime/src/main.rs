@@ -18,6 +18,10 @@ fn main() {
         eprintln!("forge_runtime: {message}");
         std::process::exit(2);
     });
+    options.prepare_output_paths().unwrap_or_else(|message| {
+        eprintln!("forge_runtime: {message}");
+        std::process::exit(2);
+    });
     let document = options.load_document().unwrap_or_else(|message| {
         eprintln!("forge_runtime: {message}");
         std::process::exit(2);
@@ -140,6 +144,39 @@ impl Options {
         }
         embedded_gate0_proof_document().map_err(|error| error.to_string())
     }
+
+    fn prepare_output_paths(&self) -> Result<(), String> {
+        for (label, path) in [
+            ("capture", self.capture_path.as_deref()),
+            ("metrics", self.metrics_path.as_deref()),
+        ] {
+            let Some(path) = path else {
+                continue;
+            };
+            if let Some(parent) = path
+                .parent()
+                .filter(|parent| !parent.as_os_str().is_empty())
+            {
+                fs::create_dir_all(parent).map_err(|error| {
+                    format!(
+                        "cannot create {label} directory {}: {error}",
+                        parent.display()
+                    )
+                })?;
+            }
+            match fs::remove_file(path) {
+                Ok(()) => {}
+                Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+                Err(error) => {
+                    return Err(format!(
+                        "cannot clear previous {label} output {}: {error}",
+                        path.display()
+                    ));
+                }
+            }
+        }
+        Ok(())
+    }
 }
 
 fn next_path(
@@ -188,5 +225,30 @@ mod tests {
             first.content_hash().unwrap(),
             second.content_hash().unwrap()
         );
+    }
+
+    #[test]
+    fn output_preflight_creates_parents_and_clears_stale_files() {
+        let root = env::temp_dir().join(format!(
+            "openrpg-forge-runtime-output-preflight-{}",
+            std::process::id()
+        ));
+        let capture = root.join("nested/proof.png");
+        let metrics = root.join("metrics.json");
+        fs::create_dir_all(capture.parent().unwrap()).unwrap();
+        fs::write(&capture, b"stale capture").unwrap();
+        fs::write(&metrics, b"stale metrics").unwrap();
+
+        let options = Options {
+            capture_path: Some(capture.clone()),
+            metrics_path: Some(metrics.clone()),
+            ..Options::default()
+        };
+        options.prepare_output_paths().unwrap();
+
+        assert!(capture.parent().unwrap().is_dir());
+        assert!(!capture.exists());
+        assert!(!metrics.exists());
+        fs::remove_dir_all(root).unwrap();
     }
 }

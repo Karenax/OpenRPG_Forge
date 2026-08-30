@@ -5,12 +5,12 @@
   "identifier": "org.openrpg.forge.studio",
   "build": {
     "beforeDevCommand": {
-      "script": "trunk serve --config Trunk.toml",
+      "script": "pwsh -NoProfile -File ../../scripts/Invoke-StudioTrunk.ps1 -Action serve",
       "cwd": "."
     },
     "devUrl": "http://localhost:1420",
     "beforeBuildCommand": {
-      "script": "trunk build --release --config Trunk.toml",
+      "script": "pwsh -NoProfile -File ../../scripts/Invoke-StudioTrunk.ps1 -Action build",
       "cwd": "."
     },
     "frontendDist": "dist"
