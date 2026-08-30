@@ -274,6 +274,23 @@ function Assert-PathWithinDirectory {
     return $canonicalPath
 }
 
+function Get-SampledUniqueColorCount {
+    param(
+        [Parameter(Mandatory)]
+        [System.Drawing.Bitmap]$Bitmap
+    )
+
+    $stepX = [Math]::Max(1, [int]($Bitmap.Width / 64))
+    $stepY = [Math]::Max(1, [int]($Bitmap.Height / 36))
+    $sampledColors = [System.Collections.Generic.HashSet[int]]::new()
+    for ($x = 0; $x -lt $Bitmap.Width; $x += $stepX) {
+        for ($y = 0; $y -lt $Bitmap.Height; $y += $stepY) {
+            [void]$sampledColors.Add($Bitmap.GetPixel($x, $y).ToArgb())
+        }
+    }
+    return $sampledColors.Count
+}
+
 function Assert-CaptureLedger {
     param(
         [Parameter(Mandatory)]
@@ -282,6 +299,8 @@ function Assert-CaptureLedger {
         [string]$ExpectedExecutablePath,
         [string]$ExpectedOutputDirectory,
         [string]$ExpectedLedgerPath,
+        [int]$ExpectedProcessId,
+        [string]$ExpectedWindowHandle,
         [switch]$ValidateFiles
     )
 
@@ -323,8 +342,23 @@ function Assert-CaptureLedger {
     if ($Ledger.telemetry.schema_validated -ne $true -or $Ledger.telemetry.semantic_checks_passed -ne $true) {
         throw 'The capture references telemetry that was not strictly validated.'
     }
-    if ($Ledger.window.title -ne $expectedWindowTitle -or $Ledger.window.foreground_requested -ne $true -or $Ledger.window.foreground_request_succeeded -ne $true -or $Ledger.window.foreground_verified -ne $true) {
-        throw 'The exact proof window was not verifiably foregrounded.'
+    if ($Ledger.schema -ne 'forge.gate0-studio-window-capture' -or $Ledger.schema_version -ne 2) {
+        throw 'Capture ledger identity is not the Gate 0 Studio capture v2 contract.'
+    }
+    if ($Ledger.window.title -ne $expectedWindowTitle -or $Ledger.window.visible -ne $true -or $Ledger.window.minimized -ne $false -or $Ledger.window.identity_verified_before_capture -ne $true -or $Ledger.window.identity_verified_after_capture -ne $true) {
+        throw 'The exact visible proof window identity was not verified before and after capture.'
+    }
+    if ($Ledger.window.owner_process_id -ne $Ledger.window.process_id -or $Ledger.capture.target_process_id -ne $Ledger.window.process_id -or $Ledger.capture.target_window_handle -cne $Ledger.window.hwnd) {
+        throw 'Capture target HWND/PID differs from the verified proof window identity.'
+    }
+    if ($ExpectedProcessId -gt 0 -and $Ledger.window.process_id -ne $ExpectedProcessId) {
+        throw 'Capture ledger process ID differs from the launched proof process.'
+    }
+    if (-not [string]::IsNullOrWhiteSpace($ExpectedWindowHandle) -and $Ledger.window.hwnd -cne $ExpectedWindowHandle) {
+        throw 'Capture ledger HWND differs from the launched proof window.'
+    }
+    if ($Ledger.capture.method -ne 'print_window_pw_renderfullcontent' -or $Ledger.capture.foreground_required -ne $false -or $Ledger.capture.win32_succeeded -ne $true -or $Ledger.capture.flags -ne 2) {
+        throw 'Capture was not acquired through the bounded HWND-targeted PrintWindow contract.'
     }
     if ($Ledger.capture.sampled_unique_colors -lt 4 -or $Ledger.capture.non_blank -ne $true) {
         throw 'The acquired image failed the minimum non-blank pixel check.'
@@ -368,10 +402,14 @@ function Assert-CaptureLedger {
         $linkedTelemetry = ConvertFrom-ExactJson -Json $linkedTelemetryJson
         Assert-TelemetryLedger -Ledger $linkedTelemetry -RawJson $linkedTelemetryJson
 
-        $linkedImage = [System.Drawing.Image]::FromFile([string]$Ledger.capture.path)
+        $linkedImage = [System.Drawing.Bitmap]::new([string]$Ledger.capture.path)
         try {
             if ($linkedImage.Width -ne $Ledger.capture.width_px -or $linkedImage.Height -ne $Ledger.capture.height_px) {
                 throw 'Capture image dimensions do not match the capture ledger.'
+            }
+            $linkedSampledColors = Get-SampledUniqueColorCount -Bitmap $linkedImage
+            if ($linkedSampledColors -ne $Ledger.capture.sampled_unique_colors -or $linkedSampledColors -lt 4) {
+                throw 'Capture image sampled-color count does not match the capture ledger.'
             }
         }
         finally {
@@ -638,7 +676,7 @@ function Invoke-SelfTest {
 
     $capture = [ordered]@{
         schema = 'forge.gate0-studio-window-capture'
-        schema_version = 1
+        schema_version = 2
         recorded_at_utc = '2026-08-30T10:01:00.0000000+00:00'
         ledger = [ordered]@{
             path = 'E:\proof\artifacts\capture-ledger.json'
@@ -683,10 +721,15 @@ function Invoke-SelfTest {
         }
         window = [ordered]@{
             process_id = 1234
+            hwnd = '0x00000000000004d2'
+            owner_process_id = 1234
             title = $expectedWindowTitle
-            foreground_requested = $true
-            foreground_request_succeeded = $true
-            foreground_verified = $true
+            visible = $true
+            minimized = $false
+            identity_verified_before_capture = $true
+            identity_verified_after_capture = $true
+            foreground_observed_before_capture = $false
+            foreground_observed_after_capture = $false
             left_px = 100
             top_px = 100
             width_px = 1600
@@ -700,7 +743,12 @@ function Invoke-SelfTest {
             height_px = 900
             sampled_unique_colors = 4
             non_blank = $true
-            method = 'foreground_copy_from_screen'
+            method = 'print_window_pw_renderfullcontent'
+            target_window_handle = '0x00000000000004d2'
+            target_process_id = 1234
+            foreground_required = $false
+            win32_succeeded = $true
+            flags = 2
         }
         review = [ordered]@{
             status = 'uninspected'
@@ -716,7 +764,7 @@ function Invoke-SelfTest {
         }
         limitations = @(
             'A human must inspect composition and readability.',
-            'Screen capture can include desktop occlusion.'
+            'PrintWindow support is verified at acquisition time.'
         )
     }
     $selfTestExecutablePath = [string]$capture.executable.path
@@ -755,8 +803,20 @@ function Invoke-SelfTest {
     }
 
     $negativeCapture = Copy-JsonValue -Value $capture
-    $negativeCapture.window.foreground_verified = $false
-    Assert-ActionThrows -Description 'unverified foreground focus' -Action {
+    $negativeCapture.window.identity_verified_after_capture = $false
+    Assert-ActionThrows -Description 'unverified post-capture window identity' -Action {
+        Assert-CaptureLedger -Ledger $negativeCapture -ExpectedExecutablePath $selfTestExecutablePath
+    }
+
+    $negativeCapture = Copy-JsonValue -Value $capture
+    $negativeCapture.capture.target_process_id = 4321
+    Assert-ActionThrows -Description 'capture target process mismatch' -Action {
+        Assert-CaptureLedger -Ledger $negativeCapture -ExpectedExecutablePath $selfTestExecutablePath
+    }
+
+    $negativeCapture = Copy-JsonValue -Value $capture
+    $negativeCapture.capture.target_window_handle = '0x00000000000010e1'
+    Assert-ActionThrows -Description 'capture target HWND mismatch' -Action {
         Assert-CaptureLedger -Ledger $negativeCapture -ExpectedExecutablePath $selfTestExecutablePath
     }
 
@@ -1458,10 +1518,21 @@ namespace ForgeGate0WindowCapture {
 
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool SetForegroundWindow(IntPtr window);
+        public static extern bool IsWindowVisible(IntPtr window);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool IsIconic(IntPtr window);
 
         [DllImport("user32.dll")]
         public static extern IntPtr GetForegroundWindow();
+
+        [DllImport("user32.dll")]
+        public static extern uint GetWindowThreadProcessId(IntPtr window, out uint processId);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool PrintWindow(IntPtr window, IntPtr destination, uint flags);
     }
 }
 '@
@@ -1540,30 +1611,20 @@ try {
         throw "Studio window title is '$($process.MainWindowTitle)', expected '$expectedWindowTitle'."
     }
 
-    $foregroundRequested = $true
-    $foregroundRequestSucceeded = [ForgeGate0WindowCapture.NativeMethods]::SetForegroundWindow($windowHandle)
-    if (-not $foregroundRequestSucceeded) {
-        throw 'SetForegroundWindow rejected the Gate 0 proof window.'
+    $windowHandleText = '0x{0:x16}' -f $windowHandle.ToInt64()
+    $windowOwnerProcessId = [uint32]0
+    $windowThreadId = [ForgeGate0WindowCapture.NativeMethods]::GetWindowThreadProcessId($windowHandle, [ref]$windowOwnerProcessId)
+    $windowVisibleBefore = [ForgeGate0WindowCapture.NativeMethods]::IsWindowVisible($windowHandle)
+    $windowMinimizedBefore = [ForgeGate0WindowCapture.NativeMethods]::IsIconic($windowHandle)
+    if ($windowThreadId -eq 0 -or $windowOwnerProcessId -ne $process.Id -or -not $windowVisibleBefore -or $windowMinimizedBefore) {
+        throw "The Gate 0 proof HWND is not a visible, non-minimized window owned by launched PID $($process.Id)."
     }
-    $foregroundDeadline = [DateTimeOffset]::UtcNow.AddSeconds(5)
-    $foregroundVerified = $false
-    while ([DateTimeOffset]::UtcNow -lt $foregroundDeadline) {
-        if ([ForgeGate0WindowCapture.NativeMethods]::GetForegroundWindow() -eq $windowHandle) {
-            $foregroundVerified = $true
-            break
-        }
-        Start-Sleep -Milliseconds 100
-    }
-    if (-not $foregroundVerified) {
-        throw 'The operating system did not foreground the Gate 0 proof window.'
-    }
+    $identityVerifiedBeforeCapture = $true
 
     if ($WarmupSeconds -gt 0) {
         Start-Sleep -Seconds $WarmupSeconds
     }
-    if ([ForgeGate0WindowCapture.NativeMethods]::GetForegroundWindow() -ne $windowHandle) {
-        throw 'The Gate 0 proof window lost foreground focus before capture.'
-    }
+    $foregroundObservedBeforeCapture = [ForgeGate0WindowCapture.NativeMethods]::GetForegroundWindow() -eq $windowHandle
 
     $rect = [ForgeGate0WindowCapture.Rect]::new()
     if (-not [ForgeGate0WindowCapture.NativeMethods]::GetWindowRect($windowHandle, [ref]$rect)) {
@@ -1578,35 +1639,42 @@ try {
 
     $bitmap = [System.Drawing.Bitmap]::new($width, $height)
     $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
-    $graphics.CopyFromScreen(
-        $rect.Left,
-        $rect.Top,
-        0,
-        0,
-        [System.Drawing.Size]::new($width, $height),
-        [System.Drawing.CopyPixelOperation]::SourceCopy
-    )
-    if ([ForgeGate0WindowCapture.NativeMethods]::GetForegroundWindow() -ne $windowHandle) {
-        throw 'The Gate 0 proof window lost foreground focus during capture.'
+    $captureDeviceContext = [IntPtr]::Zero
+    try {
+        $captureDeviceContext = $graphics.GetHdc()
+        $printWindowSucceeded = [ForgeGate0WindowCapture.NativeMethods]::PrintWindow($windowHandle, $captureDeviceContext, 2)
     }
-    $bitmap.Save($capturePath, [System.Drawing.Imaging.ImageFormat]::Png)
-
-    $stepX = [Math]::Max(1, [int]($width / 64))
-    $stepY = [Math]::Max(1, [int]($height / 36))
-    $sampledColors = [System.Collections.Generic.HashSet[int]]::new()
-    for ($x = 0; $x -lt $width; $x += $stepX) {
-        for ($y = 0; $y -lt $height; $y += $stepY) {
-            [void]$sampledColors.Add($bitmap.GetPixel($x, $y).ToArgb())
+    finally {
+        if ($captureDeviceContext -ne [IntPtr]::Zero) {
+            $graphics.ReleaseHdc($captureDeviceContext)
         }
     }
-    if ($sampledColors.Count -lt 4) {
-        throw "Captured image has only $($sampledColors.Count) sampled colors; the non-blank machine check requires at least four."
+    if (-not $printWindowSucceeded) {
+        $win32Error = [Runtime.InteropServices.Marshal]::GetLastWin32Error()
+        throw "PrintWindow(PW_RENDERFULLCONTENT) failed with Win32 error $win32Error."
+    }
+    $foregroundObservedAfterCapture = [ForgeGate0WindowCapture.NativeMethods]::GetForegroundWindow() -eq $windowHandle
+    $bitmap.Save($capturePath, [System.Drawing.Imaging.ImageFormat]::Png)
+
+    $sampledUniqueColors = Get-SampledUniqueColorCount -Bitmap $bitmap
+    if ($sampledUniqueColors -lt 4) {
+        throw "Captured image has only $sampledUniqueColors sampled colors; the non-blank machine check requires at least four."
     }
 
     $process.Refresh()
     if ($process.MainWindowTitle -cne $expectedWindowTitle) {
         throw 'The proof window title changed during capture.'
     }
+    $windowOwnerProcessIdAfter = [uint32]0
+    $windowThreadIdAfter = [ForgeGate0WindowCapture.NativeMethods]::GetWindowThreadProcessId($windowHandle, [ref]$windowOwnerProcessIdAfter)
+    $windowVisibleAfter = [ForgeGate0WindowCapture.NativeMethods]::IsWindowVisible($windowHandle)
+    $windowMinimizedAfter = [ForgeGate0WindowCapture.NativeMethods]::IsIconic($windowHandle)
+    $rectAfter = [ForgeGate0WindowCapture.Rect]::new()
+    $rectAfterSucceeded = [ForgeGate0WindowCapture.NativeMethods]::GetWindowRect($windowHandle, [ref]$rectAfter)
+    if ($windowThreadIdAfter -eq 0 -or $windowOwnerProcessIdAfter -ne $process.Id -or -not $windowVisibleAfter -or $windowMinimizedAfter -or -not $rectAfterSucceeded -or $rectAfter.Left -ne $rect.Left -or $rectAfter.Top -ne $rect.Top -or $rectAfter.Right -ne $rect.Right -or $rectAfter.Bottom -ne $rect.Bottom) {
+        throw 'The proof HWND identity, visibility, or bounds changed during capture.'
+    }
+    $identityVerifiedAfterCapture = $true
 
     $finalGit = Get-GitSnapshot
     Assert-GitSnapshot -Snapshot $finalGit -Description 'Capture source'
@@ -1630,7 +1698,7 @@ try {
 
     $ledger = [ordered]@{
         schema = 'forge.gate0-studio-window-capture'
-        schema_version = 1
+        schema_version = 2
         recorded_at_utc = [DateTimeOffset]::UtcNow.ToString('o')
         ledger = [ordered]@{
             path = $ledgerPath
@@ -1675,10 +1743,15 @@ try {
         }
         window = [ordered]@{
             process_id = $process.Id
+            hwnd = $windowHandleText
+            owner_process_id = $windowOwnerProcessIdAfter
             title = $process.MainWindowTitle
-            foreground_requested = $foregroundRequested
-            foreground_request_succeeded = $foregroundRequestSucceeded
-            foreground_verified = $foregroundVerified
+            visible = $windowVisibleBefore -and $windowVisibleAfter
+            minimized = $windowMinimizedBefore -or $windowMinimizedAfter
+            identity_verified_before_capture = $identityVerifiedBeforeCapture
+            identity_verified_after_capture = $identityVerifiedAfterCapture
+            foreground_observed_before_capture = $foregroundObservedBeforeCapture
+            foreground_observed_after_capture = $foregroundObservedAfterCapture
             left_px = $rect.Left
             top_px = $rect.Top
             width_px = $width
@@ -1690,9 +1763,14 @@ try {
             sha256 = $captureHash
             width_px = $width
             height_px = $height
-            sampled_unique_colors = $sampledColors.Count
+            sampled_unique_colors = $sampledUniqueColors
             non_blank = $true
-            method = 'foreground_copy_from_screen'
+            method = 'print_window_pw_renderfullcontent'
+            target_window_handle = $windowHandleText
+            target_process_id = $process.Id
+            foreground_required = $false
+            win32_succeeded = $printWindowSucceeded
+            flags = 2
         }
         review = [ordered]@{
             status = 'uninspected'
@@ -1707,16 +1785,16 @@ try {
             qualified = $false
         }
         limitations = @(
-            'The capture requires an interactive Windows desktop and can include occluding windows.',
+            'PrintWindow(PW_RENDERFULLCONTENT) is verified against the exact visible, non-minimized HWND before and after acquisition.',
             'Machine checks acquire pixels and runtime telemetry; human visual review remains required.'
         )
     }
     $ledgerJson = ConvertTo-CompactJson -Value $ledger
-    Assert-CaptureLedger -Ledger $ledger -RawJson $ledgerJson -ExpectedExecutablePath $canonicalExecutable -ExpectedOutputDirectory $resolvedOutput -ExpectedLedgerPath $ledgerPath -ValidateFiles
+    Assert-CaptureLedger -Ledger $ledger -RawJson $ledgerJson -ExpectedExecutablePath $canonicalExecutable -ExpectedOutputDirectory $resolvedOutput -ExpectedLedgerPath $ledgerPath -ExpectedProcessId $process.Id -ExpectedWindowHandle $windowHandleText -ValidateFiles
     [System.IO.File]::WriteAllText($ledgerPath, $ledgerJson, [System.Text.UTF8Encoding]::new($false))
     $persistedLedgerJson = Get-Content -LiteralPath $ledgerPath -Raw
     $persistedLedger = ConvertFrom-ExactJson -Json $persistedLedgerJson
-    Assert-CaptureLedger -Ledger $persistedLedger -RawJson $persistedLedgerJson -ExpectedExecutablePath $canonicalExecutable -ExpectedOutputDirectory $resolvedOutput -ExpectedLedgerPath $ledgerPath -ValidateFiles
+    Assert-CaptureLedger -Ledger $persistedLedger -RawJson $persistedLedgerJson -ExpectedExecutablePath $canonicalExecutable -ExpectedOutputDirectory $resolvedOutput -ExpectedLedgerPath $ledgerPath -ExpectedProcessId $process.Id -ExpectedWindowHandle $windowHandleText -ValidateFiles
 
     $acquisitionCompleted = $true
     Write-Output "FORGE_STUDIO_WINDOW_CAPTURE_ACQUIRED image=$capturePath telemetry=$telemetryPath ledger=$ledgerPath sha256=$captureHash qualified=false human_review_required=true"

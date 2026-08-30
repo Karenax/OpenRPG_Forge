@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:openrpg-forge:schema:forge.gate0-studio-window-capture:1",
-  "title": "OpenRPG Forge Gate 0 Studio capture acquisition v1",
+  "$id": "urn:openrpg-forge:schema:forge.gate0-studio-window-capture:2",
+  "title": "OpenRPG Forge Gate 0 Studio capture acquisition v2",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -21,7 +21,7 @@
   ],
   "properties": {
     "schema": { "const": "forge.gate0-studio-window-capture" },
-    "schema_version": { "const": 1 },
+    "schema_version": { "const": 2 },
     "recorded_at_utc": { "type": "string", "format": "date-time" },
     "ledger": { "$ref": "#/$defs/ledger" },
     "git": { "$ref": "#/$defs/git" },
@@ -145,10 +145,15 @@
       "additionalProperties": false,
       "required": [
         "process_id",
+        "hwnd",
+        "owner_process_id",
         "title",
-        "foreground_requested",
-        "foreground_request_succeeded",
-        "foreground_verified",
+        "visible",
+        "minimized",
+        "identity_verified_before_capture",
+        "identity_verified_after_capture",
+        "foreground_observed_before_capture",
+        "foreground_observed_after_capture",
         "left_px",
         "top_px",
         "width_px",
@@ -156,10 +161,15 @@
       ],
       "properties": {
         "process_id": { "type": "integer", "minimum": 1 },
+        "hwnd": { "type": "string", "pattern": "^0x[0-9a-f]{16}$" },
+        "owner_process_id": { "type": "integer", "minimum": 1 },
         "title": { "const": "OpenRPG Forge Studio · Gate 0 proof" },
-        "foreground_requested": { "const": true },
-        "foreground_request_succeeded": { "const": true },
-        "foreground_verified": { "const": true },
+        "visible": { "const": true },
+        "minimized": { "const": false },
+        "identity_verified_before_capture": { "const": true },
+        "identity_verified_after_capture": { "const": true },
+        "foreground_observed_before_capture": { "type": "boolean" },
+        "foreground_observed_after_capture": { "type": "boolean" },
         "left_px": { "type": "integer" },
         "top_px": { "type": "integer" },
         "width_px": { "type": "integer", "minimum": 1 },
@@ -177,7 +187,12 @@
         "height_px",
         "sampled_unique_colors",
         "non_blank",
-        "method"
+        "method",
+        "target_window_handle",
+        "target_process_id",
+        "foreground_required",
+        "win32_succeeded",
+        "flags"
       ],
       "properties": {
         "path": { "$ref": "#/$defs/non_blank_string" },
@@ -187,7 +202,12 @@
         "height_px": { "type": "integer", "minimum": 1 },
         "sampled_unique_colors": { "type": "integer", "minimum": 4 },
         "non_blank": { "const": true },
-        "method": { "const": "foreground_copy_from_screen" }
+        "method": { "const": "print_window_pw_renderfullcontent" },
+        "target_window_handle": { "type": "string", "pattern": "^0x[0-9a-f]{16}$" },
+        "target_process_id": { "type": "integer", "minimum": 1 },
+        "foreground_required": { "const": false },
+        "win32_succeeded": { "const": true },
+        "flags": { "const": 2 }
       }
     },
     "review": {
