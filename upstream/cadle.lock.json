@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "repository": {
+    "url": "https://github.com/Humpalumps/Cadle.git",
+    "branch": "main",
+    "commit": "ea0da62549980816a6a27e08b75808b1f56d70e7",
+    "tree": "f0d52e434454fe302052d22eafde203bc361cc1f",
+    "version": "0.6.0"
+  },
+  "checkout": {
+    "path": "upstream/cadle",
+    "detachedHead": true,
+    "requireCleanTree": true
+  },
+  "runtime": {
+    "nodeMajor": 22,
+    "packageManager": "npm",
+    "installCommand": "npm ci"
+  },
+  "licensing": {
+    "codeSpdx": "MIT",
+    "copyright": "Copyright 2026 Ian Cadle",
+    "licensePath": "LICENSE",
+    "noticePath": "NOTICE",
+    "excludedFromMitGrant": [
+      "public/assets/**",
+      "docs/concepts/**",
+      "recorded audio takes"
+    ],
+    "checkoutPolicy": "local-reference-only"
+  }
+}
