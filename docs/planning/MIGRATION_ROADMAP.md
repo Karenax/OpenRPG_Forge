@@ -290,6 +290,11 @@ et sans transformer une acquisition automatisée en revue humaine.
 
 Statut : **OUVERTE** après le passage automatisé local de Gate 0 sous ADR-0004, ADR-0005 et ADR-0006.
 
+Progression au commit `9bcdc02cc99cb918f94a8c952ecf461c7da8aca0` : `R1-001` est qualifié
+localement par le document `forge.terrain` v1, sa fixture Visual Valley 512 × 512 m et ses tests
+natifs/WASM. Voir `docs/evidence/gate1/R1_001_TERRAIN_DOCUMENT.md`. Aucun rendu terrain n'est encore
+revendiqué ; `R1-002` et les lots suivants restent ouverts.
+
 ## But
 
 Prouver que le nouveau socle produit un environnement plus convaincant que la base historique et au
@@ -316,7 +321,7 @@ qualité                   Low / Medium / High / Ultra
 
 ## R1-A — Terrain
 
-- [ ] `R1-001` Document de terrain versionné.
+- [x] `R1-001` Document de terrain versionné.
 - [ ] `R1-002` Découpage en chunks.
 - [ ] `R1-003` Mesh et normales.
 - [ ] `R1-004` Trois matériaux PBR minimum.
