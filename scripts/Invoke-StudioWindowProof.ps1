@@ -56,6 +56,17 @@ function ConvertTo-CompactJson {
     return ($Value | ConvertTo-Json -Depth 24 -Compress)
 }
 
+function Wait-NonGenericTask {
+    param(
+        [Parameter(Mandatory)]
+        [System.Threading.Tasks.Task]$Task
+    )
+
+    # PowerShell 7.6 / .NET 10 can surface the internal VoidTaskResult from a
+    # non-generic Task. Suppress it so callers return only their declared data.
+    [void]$Task.GetAwaiter().GetResult()
+}
+
 function Copy-JsonValue {
     param(
         [Parameter(Mandatory)]
@@ -375,6 +386,11 @@ function Assert-ActionThrows {
 }
 
 function Invoke-SelfTest {
+    $taskPipelineOutput = @(Wait-NonGenericTask -Task ([System.Threading.Tasks.Task]::CompletedTask))
+    if ($taskPipelineOutput.Count -ne 0) {
+        throw 'Non-generic Task completion leaked an object into the PowerShell pipeline.'
+    }
+
     $telemetry = [ordered]@{
         schema = 'forge.gate0-studio-telemetry'
         schema_version = 1
@@ -1031,7 +1047,7 @@ function Connect-CdpSocket {
     $socket = [System.Net.WebSockets.ClientWebSocket]::new()
     $timeout = [System.Threading.CancellationTokenSource]::new([TimeSpan]::FromSeconds(10))
     try {
-        $socket.ConnectAsync([Uri]$WebSocketUrl, $timeout.Token).GetAwaiter().GetResult()
+        Wait-NonGenericTask -Task ($socket.ConnectAsync([Uri]$WebSocketUrl, $timeout.Token))
     }
     catch {
         $socket.Dispose()
@@ -1066,7 +1082,7 @@ function Invoke-CdpExpression {
     $timeout = [System.Threading.CancellationTokenSource]::new([TimeSpan]::FromSeconds(10))
     try {
         $sendSegment = [ArraySegment[byte]]::new($payload)
-        $Socket.SendAsync($sendSegment, [System.Net.WebSockets.WebSocketMessageType]::Text, $true, $timeout.Token).GetAwaiter().GetResult()
+        Wait-NonGenericTask -Task ($Socket.SendAsync($sendSegment, [System.Net.WebSockets.WebSocketMessageType]::Text, $true, $timeout.Token))
 
         while ($true) {
             $stream = [System.IO.MemoryStream]::new()
@@ -1699,7 +1715,7 @@ finally {
             if ($socket.State -eq [System.Net.WebSockets.WebSocketState]::Open) {
                 $closeTimeout = [System.Threading.CancellationTokenSource]::new([TimeSpan]::FromSeconds(2))
                 try {
-                    $socket.CloseAsync([System.Net.WebSockets.WebSocketCloseStatus]::NormalClosure, 'Gate 0 acquisition complete', $closeTimeout.Token).GetAwaiter().GetResult()
+                    Wait-NonGenericTask -Task ($socket.CloseAsync([System.Net.WebSockets.WebSocketCloseStatus]::NormalClosure, 'Gate 0 acquisition complete', $closeTimeout.Token))
                 }
                 finally {
                     $closeTimeout.Dispose()
