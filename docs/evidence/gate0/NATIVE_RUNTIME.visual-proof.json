@@ -1,0 +1,167 @@
+{
+  "schema": "forge.visual-proof",
+  "schema_version": 1,
+  "recorded_at_utc": "2026-08-30T18:57:21.5856856Z",
+  "subject": {
+    "product": "forge",
+    "target": "native_runtime",
+    "gate": "Gate 0",
+    "commit_sha": "528a909738bde92a8831e5b41ba185ab35ffef7f",
+    "source_tree_clean": true,
+    "scene_id": "Gate 0 procedural proof",
+    "scene_document_sha256": "0ea53d539067f399e7e76678532144955f35e5a15e95d11becf3a174843c67df",
+    "build_profile": "release"
+  },
+  "environment": {
+    "os": "Microsoft Windows 11 Professionnel 10.0.26200",
+    "architecture": "x86_64",
+    "cpu": "AMD Ryzen 5 7600 6-Core Processor",
+    "logical_cpu_count": 12,
+    "ram_bytes": 33463984128,
+    "gpu": {
+      "name": "AMD Radeon RX 7800 XT",
+      "vendor_id": 4098,
+      "device_id": 29822,
+      "device_type": "DiscreteGpu",
+      "backend": "Vulkan",
+      "driver": "AMD proprietary driver",
+      "driver_info": "26.8.1 (LLPC)"
+    },
+    "runtime": {
+      "kind": "native",
+      "name": "forge_runtime",
+      "version": "528a909738bde92a8831e5b41ba185ab35ffef7f",
+      "renderer": "Bevy 0.19.1 / wgpu Vulkan"
+    }
+  },
+  "protocol": {
+    "viewport": {
+      "width_px": 1920,
+      "height_px": 1080,
+      "device_scale_factor": 1.0
+    },
+    "quality_profile": "Gate 0 procedural proof",
+    "vsync": false,
+    "warmup_frames": 120,
+    "sample_frames": 120,
+    "seed": "gate0-v1",
+    "one_percent_low_method": "inverse_mean_slowest_1_percent_frame_time",
+    "notes": [
+      "The release runtime created the absent output directory without external preparation.",
+      "Frame 180 was captured and the process exited after frame 240.",
+      "The protocol is compatible with the common envelope but the procedural Forge scene is not a performance comparison with Cadle."
+    ]
+  },
+  "metrics": {
+    "frame": {
+      "samples": 120,
+      "duration_ms": 454.8432999999999,
+      "mean_ms": 3.7903608333333323,
+      "p50_ms": 2.3067,
+      "p95_ms": 8.071200000000001,
+      "p99_ms": 8.7186,
+      "max_ms": 10.570400000000001,
+      "mean_fps": 263.82712463830956,
+      "one_percent_low_fps": 103.68603867489242,
+      "hitches_over_16_7_ms": 0,
+      "hitches_over_33_3_ms": 0
+    },
+    "render_work": {
+      "logical_draws": 2,
+      "source_entities": 4
+    }
+  },
+  "captures": [
+    {
+      "name": "Gate 0 clean-clone native runtime",
+      "target": "native_runtime",
+      "storage": "local_ignored",
+      "locator": "E:/OpenRPG_Forge/_gate0_clean_7d529a862aba/artifacts/gate-0/final-528a909/native-runtime.png",
+      "sha256": "0e3a206d2f984c0b42927801df3b2d54664a6ef13da76852a6008dcb5a332061",
+      "width_px": 1920,
+      "height_px": 1080,
+      "frame_index": 180,
+      "non_blank": true,
+      "notes": [
+        "Automated inspection found the green ground, centered blue cube and readable diagnostics overlay without corruption.",
+        "The raw PNG remains local and ignored; only its metadata and hash are tracked."
+      ]
+    }
+  ],
+  "review": {
+    "status": "uninspected",
+    "method": "automated_then_human",
+    "notes": [
+      "Automated visual inspection passed.",
+      "A human owner review has not yet been recorded, so this proof cannot close the Gate 0 inspection condition."
+    ]
+  },
+  "comparison": {
+    "reference": "docs/baselines/cadle-ea0da625.md",
+    "protocol_equivalence": "not_comparable",
+    "notes": [
+      "Gate 0 validates the proof harness and shared scene, not visual or performance parity with the Cadle baseline.",
+      "A controlled comparison begins only in Gate 1 after Gate 0 passes."
+    ]
+  },
+  "validation": {
+    "overall": "partial",
+    "checks": [
+      {
+        "id": "clean_checkout",
+        "status": "pass",
+        "evidence": "Rust at exact commit 528a909738bde92a8831e5b41ba185ab35ffef7f with empty git status before and after qualification.",
+        "command": "git status --porcelain; git rev-parse HEAD"
+      },
+      {
+        "id": "native_runtime_exit",
+        "status": "pass",
+        "evidence": "Release runtime exited with code 0 after creating its absent proof directory and writing both outputs.",
+        "command": "cargo run --release --locked -j 1 -p forge_runtime -- --capture artifacts/gate-0/final-528a909/native-runtime.png --capture-frame 180 --metrics artifacts/gate-0/final-528a909/native-runtime-metrics.json --metrics-warmup-frames 120 --exit-after-frames 240 --no-vsync"
+      },
+      {
+        "id": "capture_artifact",
+        "status": "pass",
+        "evidence": "PNG is non-empty, 1920 x 1080, and hashes to 0e3a206d2f984c0b42927801df3b2d54664a6ef13da76852a6008dcb5a332061."
+      },
+      {
+        "id": "scene_hash",
+        "status": "pass",
+        "evidence": "Runtime ledger contains the expected shared SceneProofDocument SHA-256."
+      },
+      {
+        "id": "cadle_isolation",
+        "status": "pass",
+        "evidence": "upstream/cadle was absent and no file under upstream/cadle was tracked during the clean-clone replay."
+      },
+      {
+        "id": "schema_validation",
+        "status": "pass",
+        "evidence": "The tracked envelope validates against VISUAL_PROOF.schema.json.",
+        "command": "Test-Json -LiteralPath docs/evidence/gate0/NATIVE_RUNTIME.visual-proof.json -SchemaFile docs/evidence/gate0/VISUAL_PROOF.schema.json"
+      },
+      {
+        "id": "true_gpu_draw_calls",
+        "status": "not_run",
+        "evidence": "Only source-level logical draws and renderer stage diagnostics are available; a true GPU draw-call count was not collected."
+      },
+      {
+        "id": "human_review",
+        "status": "not_run",
+        "evidence": "The owner has not recorded a human visual verdict."
+      },
+      {
+        "id": "remote_ci",
+        "status": "not_run",
+        "evidence": "The local commits and workflow have not been published to origin/Rust; GitHub Actions reports zero Rust runs."
+      }
+    ],
+    "limitations": [
+      "The raw capture and metrics remain intentionally local and ignored.",
+      "No human visual review is recorded.",
+      "No true GPU draw-call count is available.",
+      "No remote Windows, Linux or WASM CI run exists for this commit.",
+      "The Cadle baseline and the Gate 0 procedural scene are not performance-comparable."
+    ]
+  }
+}

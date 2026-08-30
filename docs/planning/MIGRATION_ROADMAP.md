@@ -2,8 +2,8 @@
 
 Dernière mise à jour : 2026-08-30  
 Branche : `Rust`  
-État global : **Gate C qualifiée sous l’exception bornée ADR-0003**
-Gate active : **Gate 0 — Fondation reproductible**
+État global : **Gate C qualifiée sous l’exception bornée ADR-0003 ; Gate 0 NON PASSÉE**
+Gate active : **Gate 0 — Fondation reproductible (NON PASSÉE)**
 
 Cette roadmap transforme `PROJECT_CONTEXT.md` en lots exécutables. Elle n’est pas un calendrier et ne
 contient aucune promesse de délai. Une gate ne passe qu’avec ses preuves.
@@ -144,6 +144,12 @@ mêmes scènes de référence avec les commandes documentées.
 
 # Gate 0 — Fondation reproductible native + WASM + Studio
 
+Statut au commit `528a909738bde92a8831e5b41ba185ab35ffef7f` : **ACTIVE — NON PASSÉE**.
+
+Le replay final Windows en clone propre passe 27 tests, WASM, Trunk, Tauri et le runtime sans Cadle
+ni correction manuelle. La gate reste bloquée par l'absence de CI distante, de revue visuelle humaine
+et de décision formelle sur le Studio ; Gate 1 n'est donc pas ouverte.
+
 ## But
 
 Prouver que la même base Rust/Bevy peut alimenter un runtime natif et un viewport WebGPU intégré dans
@@ -153,16 +159,16 @@ partie du runtime Forge.
 
 ## R0-A — Workspace et outillage
 
-- [ ] `R0-001` Créer le workspace Cargo minimal.
-- [ ] `R0-002` Ajouter `rust-toolchain.toml` avec une version stable épinglée.
-- [ ] `R0-003` Activer l’édition Rust 2024.
-- [ ] `R0-004` Définir les profils `dev`, `release` et `wasm-release`.
-- [ ] `R0-005` Ajouter `.gitignore` pour Cargo, Tauri, Trunk, WASM, caches et preuves locales.
-- [ ] `R0-006` Ajouter `cargo fmt` et clippy avec warnings projet en erreurs.
-- [ ] `R0-007` Ajouter `cargo-deny` et la politique de licences.
+- [x] `R0-001` Créer le workspace Cargo minimal.
+- [x] `R0-002` Ajouter `rust-toolchain.toml` avec une version stable épinglée.
+- [x] `R0-003` Activer l’édition Rust 2024.
+- [x] `R0-004` Définir les profils `dev`, `release` et `wasm-release`.
+- [x] `R0-005` Ajouter `.gitignore` pour Cargo, Tauri, Trunk, WASM, caches et preuves locales.
+- [x] `R0-006` Ajouter `cargo fmt` et clippy avec warnings projet en erreurs.
+- [x] `R0-007` Ajouter `cargo-deny` et la politique de licences.
 - [ ] `R0-008` Ajouter la journalisation structurée `tracing`.
-- [ ] `R0-009` Ajouter une commande unique vérifiée pour bootstrapper le développement Windows.
-- [ ] `R0-010` Documenter uniquement les commandes réellement exécutées.
+- [x] `R0-009` Ajouter une commande unique vérifiée pour bootstrapper le développement Windows.
+- [x] `R0-010` Documenter uniquement les commandes réellement exécutées.
 
 Critères : clone propre, toolchain automatique, aucune étape non documentée.
 
@@ -170,63 +176,63 @@ Critères : clone propre, toolchain automatique, aucune étape non documentée.
 
 Créer uniquement :
 
-- [ ] `R0-011` `crates/forge_core`.
-- [ ] `R0-012` `crates/forge_project`.
-- [ ] `R0-013` `crates/forge_world`.
-- [ ] `R0-014` `crates/forge_engine`.
-- [ ] `R0-015` `crates/forge_assets`.
-- [ ] `R0-016` `apps/forge_runtime`.
-- [ ] `R0-017` `apps/forge_studio`.
-- [ ] `R0-018` `tools/forge_cli`.
+- [x] `R0-011` `crates/forge_core`.
+- [x] `R0-012` `crates/forge_project`.
+- [x] `R0-013` `crates/forge_world`.
+- [x] `R0-014` `crates/forge_engine`.
+- [x] `R0-015` `crates/forge_assets`.
+- [x] `R0-016` `apps/forge_runtime`.
+- [x] `R0-017` `apps/forge_studio`.
+- [x] `R0-018` `tools/forge_cli`.
 
 Chaque crate possède un README court, une responsabilité et au moins un test pertinent. Ne pas ajouter
 de crate vide de « préparation future ».
 
 ## R0-C — Runtime natif
 
-- [ ] `R0-019` Ajouter Bevy 0.19.x avec features minimales nécessaires.
-- [ ] `R0-020` Ouvrir une fenêtre native.
-- [ ] `R0-021` Initialiser le backend `wgpu` haute performance.
-- [ ] `R0-022` Afficher une scène partagée simple : sol, objet PBR, lumière et caméra.
+- [x] `R0-019` Ajouter Bevy 0.19.x avec features minimales nécessaires.
+- [x] `R0-020` Ouvrir une fenêtre native.
+- [x] `R0-021` Initialiser le backend `wgpu` haute performance.
+- [x] `R0-022` Afficher une scène partagée simple : sol, objet PBR, lumière et caméra.
 - [ ] `R0-023` Ajouter redimensionnement, VSync et fermeture propre.
-- [ ] `R0-024` Afficher adapter GPU, backend et limites utiles.
+- [x] `R0-024` Afficher adapter GPU, backend et limites utiles.
 - [ ] `R0-025` Ajouter un overlay FPS/frame time/draw calls.
-- [ ] `R0-026` Capturer une image automatisable.
+- [x] `R0-026` Capturer une image automatisable.
 
 ## R0-D — WASM/WebGPU
 
-- [ ] `R0-027` Ajouter la cible `wasm32-unknown-unknown`.
-- [ ] `R0-028` Compiler Bevy avec la feature WebGPU appropriée.
-- [ ] `R0-029` Afficher la même scène partagée dans un canvas navigateur.
+- [x] `R0-027` Ajouter la cible `wasm32-unknown-unknown`.
+- [x] `R0-028` Compiler Bevy avec la feature WebGPU appropriée.
+- [x] `R0-029` Afficher la même scène partagée dans un canvas navigateur.
 - [ ] `R0-030` Détecter WebGPU et produire une erreur utilisateur claire s’il est indisponible.
-- [ ] `R0-031` Vérifier Chrome/Edge desktop.
+- [x] `R0-031` Vérifier Chrome/Edge desktop.
 - [ ] `R0-032` Mesurer chargement, mémoire et frame time.
-- [ ] `R0-033` Documenter les limites WASM observées.
+- [x] `R0-033` Documenter les limites WASM observées.
 
 Le fallback WebGL2 n’est pas requis pour la Gate 0.
 
 ## R0-E — Studio Tauri + Leptos
 
-- [ ] `R0-034` Créer le shell Tauri 2.
-- [ ] `R0-035` Créer le frontend Leptos/Trunk.
-- [ ] `R0-036` Ajouter un design system CSS minimal : tokens, surfaces, typographie, focus.
-- [ ] `R0-037` Intégrer le canvas Bevy/WASM dans la page Studio.
-- [ ] `R0-038` Garantir que les rerenders UI ne reconstruisent pas le monde 3D.
-- [ ] `R0-039` Ajouter un panneau hiérarchie factice alimenté par données Rust partagées.
-- [ ] `R0-040` Ajouter un inspecteur factice lié à la sélection 3D.
-- [ ] `R0-041` Ajouter un canal de commande typé frontend ↔ backend.
+- [x] `R0-034` Créer le shell Tauri 2.
+- [x] `R0-035` Créer le frontend Leptos/Trunk.
+- [x] `R0-036` Ajouter un design system CSS minimal : tokens, surfaces, typographie, focus.
+- [x] `R0-037` Intégrer le canvas Bevy/WASM dans la page Studio.
+- [x] `R0-038` Garantir que les rerenders UI ne reconstruisent pas le monde 3D.
+- [x] `R0-039` Ajouter un panneau hiérarchie factice alimenté par données Rust partagées.
+- [x] `R0-040` Ajouter un inspecteur factice lié à la sélection 3D.
+- [x] `R0-041` Ajouter un canal de commande typé frontend ↔ backend.
 - [ ] `R0-042` Borner les permissions Tauri au strict nécessaire.
 - [ ] `R0-043` Capturer la fenêtre complète du Studio.
 - [ ] `R0-044` Mesurer latence d’interaction et stabilité du canvas.
 
 ## R0-F — Données partagées
 
-- [ ] `R0-045` Définir `ProjectId`, `AreaId`, `EntityId`, `AssetId`, `Revision`.
-- [ ] `R0-046` Définir transform moteur-neutre, mètres, Y-up, droitier.
-- [ ] `R0-047` Définir un `SceneProofDocument` JSON versionné.
-- [ ] `R0-048` Charger ce document en natif et en WASM.
-- [ ] `R0-049` Vérifier round-trip sans perte.
-- [ ] `R0-050` Vérifier que les types persistants ne dépendent pas de Bevy.
+- [x] `R0-045` Définir `ProjectId`, `AreaId`, `EntityId`, `AssetId`, `Revision`.
+- [x] `R0-046` Définir transform moteur-neutre, mètres, Y-up, droitier.
+- [x] `R0-047` Définir un `SceneProofDocument` JSON versionné.
+- [x] `R0-048` Charger ce document en natif et en WASM.
+- [x] `R0-049` Vérifier round-trip sans perte.
+- [x] `R0-050` Vérifier que les types persistants ne dépendent pas de Bevy.
 
 ## R0-G — CI et preuves
 
@@ -236,26 +242,26 @@ Le fallback WebGL2 n’est pas requis pour la Gate 0.
 - [ ] `R0-054` CI build Windows.
 - [ ] `R0-055` CI build Linux.
 - [ ] `R0-056` CI build WASM.
-- [ ] `R0-057` Rapport de licences.
-- [ ] `R0-058` Capture runtime native.
+- [x] `R0-057` Rapport de licences.
+- [x] `R0-058` Capture runtime native.
 - [ ] `R0-059` Capture Studio.
-- [ ] `R0-060` Rapport Gate 0.
-- [ ] `R0-061` Schéma commun des captures et métriques compatible avec la baseline Cadle.
-- [ ] `R0-062` Test prouvant que build/tests Forge passent sans `upstream/cadle/`.
+- [x] `R0-060` Rapport Gate 0.
+- [x] `R0-061` Schéma commun des captures et métriques compatible avec la baseline Cadle.
+- [x] `R0-062` Test prouvant que build/tests Forge passent sans `upstream/cadle/`.
 
 ## Conditions de passage Gate 0
 
 Toutes sont nécessaires :
 
-- [ ] un clone propre compile sans correction manuelle ;
-- [ ] runtime natif lancé ;
-- [ ] build WASM WebGPU lancée ;
-- [ ] Studio Tauri/Leptos lancé avec canvas ;
-- [ ] même document source visible sur les deux cibles ;
-- [ ] sélection simple partagée ;
+- [x] un clone propre compile sans correction manuelle ;
+- [x] runtime natif lancé ;
+- [x] build WASM WebGPU lancée ;
+- [x] Studio Tauri/Leptos lancé avec canvas ;
+- [x] même document source visible sur les deux cibles ;
+- [x] sélection simple partagée ;
 - [ ] tests et CI verts ;
-- [ ] aucune règle métier en JavaScript ;
-- [ ] aucune dépendance à `main` à l’exécution ;
+- [x] aucune règle métier en JavaScript ;
+- [x] aucune dépendance à `main` à l’exécution ;
 - [ ] capture et rapport inspectés ;
 - [ ] décision « Studio web confirmé » ou « fallback natif » enregistrée.
 
