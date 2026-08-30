@@ -2,6 +2,13 @@
 
 //! Deterministic world recipes. Rendering remains an adapter responsibility.
 
+mod terrain;
+
+pub use terrain::{
+    VISUAL_VALLEY_SEED, VISUAL_VALLEY_SIZE_M, VISUAL_VALLEY_TERRAIN_JSON,
+    VisualValleyTerrainRecipe, embedded_visual_valley_terrain_document,
+};
+
 use forge_core::{AreaId, ProjectId, Revision, Transform, UnitQuaternion, Vec3};
 use forge_project::{SceneProofDocument, SceneProofEntity, SceneProofError, SceneProofKind};
 use serde::{Deserialize, Serialize};

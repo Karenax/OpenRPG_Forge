@@ -1,0 +1,42 @@
+{
+  "schema": "forge.terrain",
+  "schema_version": 1,
+  "project_id": "156abf3c-028c-5bb6-be3a-facc417a29bc",
+  "area_id": "55b4fcee-2e80-5855-aafa-d1942158ff67",
+  "revision": 1,
+  "coordinate_system": {
+    "length_unit": "metre",
+    "up_axis": "y",
+    "handedness": "right"
+  },
+  "name": "Visual Valley terrain",
+  "seed": 94838452929881,
+  "extent_m": {
+    "size_x_m": 512.0,
+    "size_z_m": 512.0
+  },
+  "height_sampling": {
+    "algorithm": "fractal_value_noise_v1",
+    "sample_spacing_m": 2.0,
+    "base_elevation_m": 8.0,
+    "amplitude_m": 48.0,
+    "base_frequency_cycles_per_m": 0.00390625,
+    "octaves": 5,
+    "lacunarity": 2.0,
+    "persistence": 0.5
+  },
+  "material_layers": [
+    {
+      "id": "meadow_grass",
+      "display_name": "Meadow grass"
+    },
+    {
+      "id": "valley_earth",
+      "display_name": "Valley earth"
+    },
+    {
+      "id": "ridge_rock",
+      "display_name": "Ridge rock"
+    }
+  ]
+}

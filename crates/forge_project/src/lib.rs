@@ -2,6 +2,15 @@
 
 //! Versioned source-of-truth documents used by both native and WASM consumers.
 
+mod terrain;
+
+pub use terrain::{
+    HeightSamplingAlgorithm, HeightSamplingParameters, MAX_TERRAIN_MATERIAL_LAYERS,
+    MAX_TERRAIN_SAMPLE_INTERVALS_PER_AXIS, MIN_TERRAIN_MATERIAL_LAYERS, TERRAIN_DOCUMENT_SCHEMA,
+    TERRAIN_DOCUMENT_SCHEMA_VERSION, TerrainDocument, TerrainDocumentError, TerrainExtent,
+    TerrainMaterialLayer, TerrainMaterialLayerId,
+};
+
 use forge_core::{
     AreaId, CanonicalJsonError, ContentHash, CoordinateSystem, EntityId, ProjectId, Revision,
     Transform, TransformError, canonical_json_sha256,
