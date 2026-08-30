@@ -1,8 +1,8 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "main-window",
-  "description": "Minimal Gate 0 capability for the local Forge Studio window.",
+  "description": "Gate 0 Studio exposes only its typed execute_studio_command application command. No privileged Tauri core command is granted; the title mutation denial is kept as an executable ACL proof.",
   "windows": ["main"],
   "local": true,
-  "permissions": ["core:default"]
+  "permissions": ["allow-execute-studio-command", "core:window:deny-set-title"]
 }

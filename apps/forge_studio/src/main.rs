@@ -43,6 +43,7 @@ fn main() {
 mod tests {
     use super::*;
     use forge_core::EntityId;
+    use serde_json::Value;
 
     #[test]
     fn selection_accepts_only_entities_from_the_shared_document() {
@@ -58,5 +59,32 @@ mod tests {
             execute_studio_command(StudioCommand::SelectEntity { entity_id: unknown }),
             StudioResponse::Rejected { .. }
         ));
+    }
+
+    #[test]
+    fn gate0_capability_grants_no_privileged_tauri_command() {
+        let capability: Value =
+            serde_json::from_str(include_str!("../capabilities/default.json")).unwrap();
+        let permissions = capability["permissions"].as_array().unwrap();
+        assert_eq!(permissions.len(), 2);
+        assert_eq!(permissions[0], "allow-execute-studio-command");
+        assert_eq!(permissions[1], "core:window:deny-set-title");
+        let granted: Vec<_> = permissions
+            .iter()
+            .filter_map(Value::as_str)
+            .filter(|identifier| !identifier.contains(":deny-"))
+            .collect();
+        assert_eq!(granted, ["allow-execute-studio-command"]);
+    }
+
+    #[test]
+    fn gate0_csp_blocks_remote_frames_objects_and_base_retargeting() {
+        let config: Value = serde_json::from_str(include_str!("../tauri.conf.json")).unwrap();
+        let csp = config["app"]["security"]["csp"].as_str().unwrap();
+        assert!(csp.contains("default-src 'self'"));
+        assert!(csp.contains("object-src 'none'"));
+        assert!(csp.contains("frame-src 'none'"));
+        assert!(csp.contains("base-uri 'none'"));
+        assert!(!csp.contains("https:"));
     }
 }

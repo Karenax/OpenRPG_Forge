@@ -1,0 +1,216 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:openrpg-forge:schema:forge.gate0-studio-window-capture:1",
+  "title": "OpenRPG Forge Gate 0 Studio capture acquisition v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "recorded_at_utc",
+    "ledger",
+    "git",
+    "build",
+    "executable",
+    "telemetry",
+    "window",
+    "capture",
+    "review",
+    "qualification",
+    "limitations"
+  ],
+  "properties": {
+    "schema": { "const": "forge.gate0-studio-window-capture" },
+    "schema_version": { "const": 1 },
+    "recorded_at_utc": { "type": "string", "format": "date-time" },
+    "ledger": { "$ref": "#/$defs/ledger" },
+    "git": { "$ref": "#/$defs/git" },
+    "build": { "$ref": "#/$defs/build" },
+    "executable": { "$ref": "#/$defs/executable" },
+    "telemetry": { "$ref": "#/$defs/telemetry" },
+    "window": { "$ref": "#/$defs/window" },
+    "capture": { "$ref": "#/$defs/capture" },
+    "review": { "$ref": "#/$defs/review" },
+    "qualification": { "$ref": "#/$defs/qualification" },
+    "limitations": {
+      "type": "array",
+      "minItems": 2,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/non_blank_string" }
+    }
+  },
+  "$defs": {
+    "non_blank_string": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "git_object_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256"],
+      "properties": {
+        "path": { "$ref": "#/$defs/non_blank_string" },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "ledger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path"],
+      "properties": {
+        "path": { "$ref": "#/$defs/non_blank_string" }
+      }
+    },
+    "git": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["branch", "commit_sha", "tree_sha", "source_tree_clean"],
+      "properties": {
+        "branch": { "const": "Rust" },
+        "commit_sha": { "$ref": "#/$defs/git_object_id" },
+        "tree_sha": { "$ref": "#/$defs/git_object_id" },
+        "source_tree_clean": { "const": true }
+      }
+    },
+    "build": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command",
+        "started_at_utc",
+        "completed_at_utc",
+        "head_commit_sha",
+        "head_tree_sha",
+        "configuration",
+        "succeeded"
+      ],
+      "properties": {
+        "command": {
+          "const": "cargo tauri build --no-bundle --config apps/forge_studio/tauri.gate0-proof.conf.json"
+        },
+        "started_at_utc": { "type": "string", "format": "date-time" },
+        "completed_at_utc": { "type": "string", "format": "date-time" },
+        "head_commit_sha": { "$ref": "#/$defs/git_object_id" },
+        "head_tree_sha": { "$ref": "#/$defs/git_object_id" },
+        "configuration": { "$ref": "#/$defs/file" },
+        "succeeded": { "const": true }
+      }
+    },
+    "executable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "file_name",
+        "launched_process_path",
+        "process_path_verified",
+        "bytes",
+        "sha256",
+        "last_write_utc",
+        "built_after_build_started"
+      ],
+      "properties": {
+        "path": { "$ref": "#/$defs/non_blank_string" },
+        "file_name": { "const": "forge-studio.exe" },
+        "launched_process_path": { "$ref": "#/$defs/non_blank_string" },
+        "process_path_verified": { "const": true },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "last_write_utc": { "type": "string", "format": "date-time" },
+        "built_after_build_started": { "const": true }
+      }
+    },
+    "telemetry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ledger", "schema_validated", "semantic_checks_passed"],
+      "properties": {
+        "ledger": { "$ref": "#/$defs/file" },
+        "schema_validated": { "const": true },
+        "semantic_checks_passed": { "const": true }
+      }
+    },
+    "window": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "process_id",
+        "title",
+        "foreground_requested",
+        "foreground_request_succeeded",
+        "foreground_verified",
+        "left_px",
+        "top_px",
+        "width_px",
+        "height_px"
+      ],
+      "properties": {
+        "process_id": { "type": "integer", "minimum": 1 },
+        "title": { "const": "OpenRPG Forge Studio · Gate 0 proof" },
+        "foreground_requested": { "const": true },
+        "foreground_request_succeeded": { "const": true },
+        "foreground_verified": { "const": true },
+        "left_px": { "type": "integer" },
+        "top_px": { "type": "integer" },
+        "width_px": { "type": "integer", "minimum": 1 },
+        "height_px": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "capture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "bytes",
+        "sha256",
+        "width_px",
+        "height_px",
+        "sampled_unique_colors",
+        "non_blank",
+        "method"
+      ],
+      "properties": {
+        "path": { "$ref": "#/$defs/non_blank_string" },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "width_px": { "type": "integer", "minimum": 1 },
+        "height_px": { "type": "integer", "minimum": 1 },
+        "sampled_unique_colors": { "type": "integer", "minimum": 4 },
+        "non_blank": { "const": true },
+        "method": { "const": "foreground_copy_from_screen" }
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "method", "human_review_performed", "human_review_required"],
+      "properties": {
+        "status": { "const": "uninspected" },
+        "method": { "const": "human_visual_review_required" },
+        "human_review_performed": { "const": false },
+        "human_review_required": { "const": true }
+      }
+    },
+    "qualification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["acquisition_status", "machine_checks_passed", "proof_status", "qualified"],
+      "properties": {
+        "acquisition_status": { "const": "acquired" },
+        "machine_checks_passed": { "const": true },
+        "proof_status": { "const": "pending_human_review" },
+        "qualified": { "const": false }
+      }
+    }
+  }
+}

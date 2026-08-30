@@ -1,0 +1,219 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:openrpg-forge:schema:forge.gate0-studio-telemetry:1",
+  "title": "OpenRPG Forge Gate 0 Studio telemetry ledger v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "recorded_at_utc",
+    "target",
+    "webgpu",
+    "loading",
+    "memory",
+    "frame",
+    "interaction",
+    "viewport",
+    "permissions",
+    "limitations"
+  ],
+  "properties": {
+    "schema": { "const": "forge.gate0-studio-telemetry" },
+    "schema_version": { "const": 1 },
+    "recorded_at_utc": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "target": {
+      "enum": ["wasm_browser", "tauri_studio"]
+    },
+    "webgpu": { "$ref": "#/$defs/webgpu" },
+    "loading": { "$ref": "#/$defs/loading" },
+    "memory": { "$ref": "#/$defs/memory" },
+    "frame": { "$ref": "#/$defs/frame" },
+    "interaction": { "$ref": "#/$defs/interaction" },
+    "viewport": { "$ref": "#/$defs/viewport" },
+    "permissions": { "$ref": "#/$defs/permissions" },
+    "limitations": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/non_blank_string" }
+    }
+  },
+  "$defs": {
+    "non_blank_string": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "nullable_non_blank_string": {
+      "type": ["string", "null"],
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "non_negative_number": {
+      "type": "number",
+      "minimum": 0
+    },
+    "nullable_non_negative_number": {
+      "type": ["number", "null"],
+      "minimum": 0
+    },
+    "positive_number": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "nullable_non_negative_integer": {
+      "type": ["integer", "null"],
+      "minimum": 0
+    },
+    "webgpu": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "diagnostic_injection", "reason"],
+      "properties": {
+        "status": {
+          "enum": ["checking", "ready", "unavailable"]
+        },
+        "diagnostic_injection": { "type": "boolean" },
+        "reason": { "$ref": "#/$defs/nullable_non_blank_string" }
+      }
+    },
+    "loading": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["wasm_started_ms", "webgpu_ready_ms", "scene_ready_ms"],
+      "properties": {
+        "wasm_started_ms": { "$ref": "#/$defs/non_negative_number" },
+        "webgpu_ready_ms": { "$ref": "#/$defs/nullable_non_negative_number" },
+        "scene_ready_ms": { "$ref": "#/$defs/nullable_non_negative_number" }
+      }
+    },
+    "memory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "wasm_linear_bytes",
+        "js_heap_used_bytes",
+        "js_heap_limit_bytes",
+        "js_heap_api_available"
+      ],
+      "properties": {
+        "wasm_linear_bytes": { "$ref": "#/$defs/nullable_non_negative_integer" },
+        "js_heap_used_bytes": { "$ref": "#/$defs/nullable_non_negative_integer" },
+        "js_heap_limit_bytes": { "$ref": "#/$defs/nullable_non_negative_integer" },
+        "js_heap_api_available": { "type": "boolean" }
+      }
+    },
+    "frame": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": [
+        "warmup_samples",
+        "samples",
+        "duration_ms",
+        "mean_ms",
+        "p50_ms",
+        "p95_ms",
+        "p99_ms",
+        "max_ms",
+        "mean_fps",
+        "one_percent_low_fps",
+        "hitches_over_16_7_ms",
+        "hitches_over_33_3_ms"
+      ],
+      "properties": {
+        "warmup_samples": { "type": "integer", "minimum": 0 },
+        "samples": { "type": "integer", "minimum": 1 },
+        "duration_ms": { "$ref": "#/$defs/positive_number" },
+        "mean_ms": { "$ref": "#/$defs/positive_number" },
+        "p50_ms": { "$ref": "#/$defs/positive_number" },
+        "p95_ms": { "$ref": "#/$defs/positive_number" },
+        "p99_ms": { "$ref": "#/$defs/positive_number" },
+        "max_ms": { "$ref": "#/$defs/positive_number" },
+        "mean_fps": { "$ref": "#/$defs/positive_number" },
+        "one_percent_low_fps": { "$ref": "#/$defs/positive_number" },
+        "hitches_over_16_7_ms": { "type": "integer", "minimum": 0 },
+        "hitches_over_33_3_ms": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "latency": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["samples", "mean_ms", "p50_ms", "p95_ms", "p99_ms", "max_ms"],
+      "properties": {
+        "samples": { "type": "integer", "minimum": 1 },
+        "mean_ms": { "$ref": "#/$defs/positive_number" },
+        "p50_ms": { "$ref": "#/$defs/positive_number" },
+        "p95_ms": { "$ref": "#/$defs/positive_number" },
+        "p99_ms": { "$ref": "#/$defs/positive_number" },
+        "max_ms": { "$ref": "#/$defs/positive_number" }
+      }
+    },
+    "interaction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "handler_to_post_paint",
+        "stable_canvas_observations",
+        "unstable_canvas_observations"
+      ],
+      "properties": {
+        "handler_to_post_paint": { "$ref": "#/$defs/latency" },
+        "stable_canvas_observations": { "type": "integer", "minimum": 0 },
+        "unstable_canvas_observations": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "viewport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["starts", "canvas_width_px", "canvas_height_px"],
+      "properties": {
+        "starts": { "type": "integer", "minimum": 0 },
+        "canvas_width_px": { "$ref": "#/$defs/nullable_non_negative_integer" },
+        "canvas_height_px": { "$ref": "#/$defs/nullable_non_negative_integer" }
+      }
+    },
+    "permissions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["allowed", "denied"],
+      "properties": {
+        "allowed": { "$ref": "#/$defs/allowed_permission" },
+        "denied": { "$ref": "#/$defs/denied_permission" }
+      }
+    },
+    "allowed_permission": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["command", "status", "reason"],
+      "properties": {
+        "command": { "const": "execute_studio_command" },
+        "status": {
+          "enum": ["not_run", "succeeded", "failed"]
+        },
+        "reason": { "$ref": "#/$defs/nullable_non_blank_string" }
+      }
+    },
+    "denied_permission": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["command", "status", "reason"],
+      "properties": {
+        "command": { "const": "plugin:window|set_title" },
+        "status": {
+          "enum": [
+            "not_run",
+            "browser_backend_absent",
+            "explicitly_denied",
+            "unexpectedly_allowed",
+            "probe_failed"
+          ]
+        },
+        "reason": { "$ref": "#/$defs/nullable_non_blank_string" }
+      }
+    }
+  }
+}
