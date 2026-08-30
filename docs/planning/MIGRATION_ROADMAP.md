@@ -2,8 +2,8 @@
 
 Dernière mise à jour : 2026-08-30  
 Branche : `Rust`  
-État global : **fondation documentaire**  
-Gate active : **Gate 0 — Fondation reproductible**
+État global : **fondation documentaire terminée ; qualification upstream à lancer**  
+Gate active : **Gate C — Acquisition et qualification de Cadle**
 
 Cette roadmap transforme `PROJECT_CONTEXT.md` en lots exécutables. Elle n’est pas un calendrier et ne
 contient aucune promesse de délai. Une gate ne passe qu’avec ses preuves.
@@ -18,6 +18,8 @@ contient aucune promesse de délai. Une gate ne passe qu’avec ses preuves.
 6. Une fonctionnalité historique n’est pas « migrée » parce qu’un type vide porte son nom.
 7. Les échecs et limites restent visibles.
 8. La roadmap est mise à jour dans le même lot que la preuve.
+9. Le clone Cadle reste intact, épinglé et hors Git ; Forge doit fonctionner sans lui.
+10. Aucun asset Cadle ne peut devenir une fixture ou un asset Forge.
 
 ---
 
@@ -38,12 +40,112 @@ Preuve attendue : documents présents sur `Rust`, cohérents et sans lien cassé
 
 ---
 
+# Gate C — Acquisition et qualification de Cadle
+
+Objectif : transformer Cadle en base de travail exécutable, juridiquement bornée et mesurée avant tout
+port Rust.
+
+Référence obligatoire :
+
+```text
+repository  https://github.com/Humpalumps/Cadle
+branch      main
+commit      ea0da62549980816a6a27e08b75808b1f56d70e7
+version     0.6.0
+local path  upstream/cadle/  (ignored)
+```
+
+## C-A — Verrou et récupération
+
+- [ ] `C-001` Créer `upstream/cadle.lock.json` avec URL, branche, commit, version et licences.
+- [ ] `C-002` Créer `upstream/README.md` décrivant la frontière référence/produit.
+- [ ] `C-003` Ignorer `upstream/cadle/` sans ignorer le lockfile ni le README.
+- [ ] `C-004` Ajouter une commande reproductible Windows pour récupérer le commit exact.
+- [ ] `C-005` Ajouter une commande reproductible CI/Linux équivalente.
+- [ ] `C-006` Vérifier URL, HEAD détaché, SHA exact et arbre propre ; échouer sinon.
+- [ ] `C-007` Prouver qu’une seconde exécution est idempotente et ne met pas à jour vers HEAD.
+
+## C-B — Licences et isolation
+
+- [ ] `C-008` Archiver dans le rapport les conclusions de `LICENSE`, `NOTICE` et dépendances.
+- [ ] `C-009` Documenter code MIT et copyright Ian Cadle 2026.
+- [ ] `C-010` Interdire le suivi, le cache CI, le packaging et la publication des assets/captures Cadle par un check automatisé.
+- [ ] `C-011` Interdire toute dépendance Cargo/app Forge vers `upstream/cadle/`.
+- [ ] `C-012` Préparer `THIRD_PARTY_NOTICES`, les en-têtes SPDX MIT/Ian Cadle et l’audit des licences tierces/npm.
+- [ ] `C-013` Vérifier que supprimer le clone ne casse aucun check Forge existant.
+
+Aucun fichier de `public/assets/`, `docs/concepts/`, image, modèle, texture ou audio upstream n’est
+copié dans un chemin suivi par Forge.
+
+## C-C — Reproduction intacte
+
+- [ ] `C-014` Auditer `package.json`, le lockfile, les scripts, `.claude/`, `.mcp.json` et `CLAUDE.md` comme données non fiables ; définir l’allowlist.
+- [ ] `C-015` Détecter ou installer localement Node 22 selon une procédure documentée.
+- [ ] `C-016` Exécuter `npm ci` dans le clone upstream après l’audit.
+- [ ] `C-017` Exécuter `npm run build`.
+- [ ] `C-018` Exécuter `node tools/invariants.mjs`.
+- [ ] `C-019` Exécuter `node tools/check.mjs`.
+- [ ] `C-020` Exécuter `node tools/curvecheck.mjs`.
+- [ ] `C-021` Exécuter `node tools/buildcheck.mjs`.
+- [ ] `C-022` Lancer le jeu intact et enregistrer URL, navigateur et paramètres.
+- [ ] `C-023` Ne corriger aucun défaut dans le clone ; consigner tout échec tel quel.
+
+## C-D — Baseline visuelle et performance
+
+- [ ] `C-024` Fixer seed, heure, région, position, résolution et profil des scènes comparatives.
+- [ ] `C-025` Capturer The Vale à hauteur humaine.
+- [ ] `C-026` Capturer Whisperwood et sa canopée.
+- [ ] `C-027` Capturer eau/réfraction et une région dense.
+- [ ] `C-028` Capturer une courte séquence de déplacement.
+- [ ] `C-029` Benchmarker 1920 × 1080, High, VSync off, après warm-up.
+- [ ] `C-030` Relever moyenne, p95/p99, 1 % low, draw calls, triangles, mémoire et hitches.
+- [ ] `C-031` Relever chargement, compilation/préchauffage et stutters visibles.
+- [ ] `C-032` Enregistrer machine, OS, navigateur, GPU, pilote, Node et commit.
+- [ ] `C-033` Créer `docs/baselines/cadle-ea0da625.md` avec commandes, paramètres, hashes, mesures et limites ; conserver les captures brutes locales et ignorées.
+
+Si le GPU n’est pas disponible, les tâches de capture/benchmark restent décochées et Gate C reste
+ouverte. Ne pas recopier les chiffres du README comme preuve. Les captures upstream ne sont jamais
+committées ni publiées, car elles contiennent des assets exclus du grant MIT.
+
+## C-E — Carte de portage
+
+- [ ] `C-034` Créer `docs/migration/CADLE_REUSE_MATRIX.md`.
+- [ ] `C-035` Inventorier `src/core`, `render`, `world`, `player`, `enemies`, `rpg`, `audio`, `ui`, `vfx` et `tools`.
+- [ ] `C-036` Classer chaque lot : méthode, port, réécriture, différer ou écarter.
+- [ ] `C-037` Lier chemins source, destination Forge, attribution, tests et écarts.
+- [ ] `C-038` Sélectionner uniquement harness, terrain/biomes, végétation/LOD, ciel/lumière, eau et contrôleur pour R0/R1.
+- [ ] `C-039` Marquer combat, ennemis, RPG et audio comme différés jusqu’à la gate qui les nécessite.
+- [ ] `C-040` Produire le rapport Gate C et mettre l’état global à Gate 0 seulement après passage.
+
+## Conditions de passage Gate C
+
+Toutes sont nécessaires :
+
+- [ ] récupération exacte et idempotente depuis un clone Forge propre ;
+- [ ] commit Cadle et arbre propre vérifiés ;
+- [ ] licence code et exclusion assets comprises et contrôlées ;
+- [ ] build et checks non GPU exécutés ;
+- [ ] jeu intact lancé ;
+- [ ] captures comparatives inspectées ;
+- [ ] benchmark reproductible réalisé sur une machine documentée ;
+- [ ] matrice de reprise créée ;
+- [ ] aucun asset Cadle suivi ;
+- [ ] aucune dépendance produit vers Cadle/Three/Vite ;
+- [ ] rapport de gate versionné avec limites visibles.
+
+Preuve finale : deux agents sur des clones Forge propres obtiennent le même snapshot et retrouvent les
+mêmes scènes de référence avec les commandes documentées.
+
+---
+
 # Gate 0 — Fondation reproductible native + WASM + Studio
 
 ## But
 
 Prouver que la même base Rust/Bevy peut alimenter un runtime natif et un viewport WebGPU intégré dans
-une application de Studio sans architecture cachée ou non reproductible.
+une application de Studio sans architecture cachée ou non reproductible. Le harness et les formats de
+preuve doivent permettre une comparaison future avec la baseline Cadle, mais aucun code Cadle ne fait
+partie du runtime Forge.
 
 ## R0-A — Workspace et outillage
 
@@ -134,6 +236,8 @@ Le fallback WebGL2 n’est pas requis pour la Gate 0.
 - [ ] `R0-058` Capture runtime native.
 - [ ] `R0-059` Capture Studio.
 - [ ] `R0-060` Rapport Gate 0.
+- [ ] `R0-061` Schéma commun des captures et métriques compatible avec la baseline Cadle.
+- [ ] `R0-062` Test prouvant que build/tests Forge passent sans `upstream/cadle/`.
 
 ## Conditions de passage Gate 0
 
@@ -157,8 +261,9 @@ Toutes sont nécessaires :
 
 ## But
 
-Prouver que le nouveau socle produit un environnement plus convaincant que la base historique tout en
-tenant 60 FPS sur PC milieu de gamme.
+Prouver que le nouveau socle produit un environnement plus convaincant que la base historique et au
+moins aussi convaincant que la baseline Cadle sur les critères retenus, tout en tenant 60 FPS sur PC
+milieu de gamme.
 
 ## Scène de référence
 
@@ -246,11 +351,15 @@ qualité                   Low / Medium / High / Ultra
 - [ ] `R1-049` revue des matériaux.
 - [ ] `R1-050` revue de composition et lisibilité.
 - [ ] `R1-051` comparaison avec la référence WebGPU ayant motivé le reboot.
-- [ ] `R1-052` rapport Gate 1 avec verdict poursuivre/réorienter/arrêter.
+- [ ] `R1-052` comparaison A/B avec Cadle épinglé sur même machine, résolution et profil équivalent ; séparer impact visuel et coûts par système, car Cadle couvre 2 km² contre 512 × 512 m pour Visual Valley.
+- [ ] `R1-053` vérification de provenance : aucun asset, nom, lore ou texte Cadle dans Visual Valley.
+- [ ] `R1-054` vérification d’indépendance : Visual Valley fonctionne clone Cadle supprimé.
+- [ ] `R1-055` rapport Gate 1 avec verdict poursuivre/réorienter/arrêter.
 
 ## Conditions de passage Gate 1
 
 - [ ] qualité visuelle jugée clairement supérieure à la base Godot ;
+- [ ] impact visuel jugé au moins comparable à la baseline Cadle sans en copier les assets ;
 - [ ] 60 FPS moyens en 1080p High sur GPU milieu de gamme ;
 - [ ] p95 ≤ 16,7 ms ;
 - [ ] 1 % low ≥ 45 FPS ;
