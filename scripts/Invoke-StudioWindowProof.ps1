@@ -769,6 +769,40 @@ function Invoke-SelfTest {
         }
     }
 
+    # A porcelain/stat-cache `.M` is intentionally not an input: canonical Git
+    # content equality is sufficient when both diffs and the untracked set are clean.
+    $statOnlyCleanliness = New-GitCleanlinessResult `
+        -IndexMatchesHead $true `
+        -WorktreeMatchesIndex $true `
+        -UntrackedOutput ''
+    if (-not $statOnlyCleanliness.IsClean -or -not [string]::IsNullOrWhiteSpace($statOnlyCleanliness.Status)) {
+        throw 'Content-clean Git self-test was rejected as stat-dirty.'
+    }
+
+    $stagedDirtyCleanliness = New-GitCleanlinessResult `
+        -IndexMatchesHead $false `
+        -WorktreeMatchesIndex $true `
+        -UntrackedOutput ''
+    if ($stagedDirtyCleanliness.IsClean -or $stagedDirtyCleanliness.Status -notmatch 'staged in the index') {
+        throw 'Staged-content Git self-test was incorrectly accepted.'
+    }
+
+    $worktreeDirtyCleanliness = New-GitCleanlinessResult `
+        -IndexMatchesHead $true `
+        -WorktreeMatchesIndex $false `
+        -UntrackedOutput ''
+    if ($worktreeDirtyCleanliness.IsClean -or $worktreeDirtyCleanliness.Status -notmatch 'worktree content') {
+        throw 'Tracked-worktree Git self-test was incorrectly accepted.'
+    }
+
+    $untrackedDirtyCleanliness = New-GitCleanlinessResult `
+        -IndexMatchesHead $true `
+        -WorktreeMatchesIndex $true `
+        -UntrackedOutput "first.tmp$([Environment]::NewLine)nested/second.tmp"
+    if ($untrackedDirtyCleanliness.IsClean -or $untrackedDirtyCleanliness.Status -notmatch 'untracked: first\.tmp' -or $untrackedDirtyCleanliness.Status -notmatch 'untracked: nested/second\.tmp') {
+        throw 'Untracked-content Git self-test was incorrectly accepted.'
+    }
+
     Write-Output 'FORGE_STUDIO_WINDOW_PROOF_SELF_TEST_OK'
 }
 
@@ -778,7 +812,7 @@ function Invoke-Git {
         [string[]]$Arguments
     )
 
-    $output = @(& git -C $repositoryRoot @Arguments 2>&1)
+    $output = @(& git --no-optional-locks -C $repositoryRoot @Arguments 2>&1)
     if ($LASTEXITCODE -ne 0) {
         $details = $output -join [Environment]::NewLine
         throw "Git command failed: git $($Arguments -join ' ')$([Environment]::NewLine)$details"
@@ -786,14 +820,78 @@ function Invoke-Git {
     return (($output -join [Environment]::NewLine).Trim())
 }
 
+function Test-GitContentDiff {
+    param(
+        [Parameter(Mandatory)]
+        [string[]]$Arguments
+    )
+
+    $output = @(& git --no-optional-locks -C $repositoryRoot @Arguments 2>&1)
+    $exitCode = $LASTEXITCODE
+    if ($exitCode -eq 0) {
+        return $true
+    }
+    if ($exitCode -eq 1) {
+        return $false
+    }
+
+    $details = $output -join [Environment]::NewLine
+    throw "Git content comparison failed: git $($Arguments -join ' ')$([Environment]::NewLine)$details"
+}
+
+function New-GitCleanlinessResult {
+    param(
+        [Parameter(Mandatory)]
+        [bool]$IndexMatchesHead,
+        [Parameter(Mandatory)]
+        [bool]$WorktreeMatchesIndex,
+        [AllowEmptyString()]
+        [string]$UntrackedOutput
+    )
+
+    $status = [System.Collections.Generic.List[string]]::new()
+    if (-not $IndexMatchesHead) {
+        $status.Add('tracked content staged in the index differs from HEAD')
+    }
+    if (-not $WorktreeMatchesIndex) {
+        $status.Add('tracked worktree content differs from the index')
+    }
+    foreach ($untrackedPath in @($UntrackedOutput -split '[\r\n]+' | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })) {
+        $status.Add("untracked: $untrackedPath")
+    }
+
+    return [pscustomobject]@{
+        IsClean = $status.Count -eq 0
+        Status = $status -join [Environment]::NewLine
+    }
+}
+
 function Get-GitSnapshot {
-    $statusOutput = Invoke-Git -Arguments @('status', '--porcelain=v1', '--untracked-files=all')
+    # `git status` can report a stat-only `.M` on Windows when Tauri rewrites a
+    # CRLF checkout as byte-identical canonical LF. Compare Git content instead
+    # and keep the proof read-only by disabling optional index locks.
+    $indexMatchesHead = Test-GitContentDiff -Arguments @(
+        'diff', '--cached', '--quiet', '--exit-code', '--no-ext-diff',
+        '--ignore-submodules=none', 'HEAD', '--'
+    )
+    $worktreeMatchesIndex = Test-GitContentDiff -Arguments @(
+        'diff', '--quiet', '--exit-code', '--no-ext-diff',
+        '--ignore-submodules=none', '--'
+    )
+    $untrackedOutput = Invoke-Git -Arguments @(
+        'ls-files', '--others', '--exclude-standard', '--directory',
+        '--no-empty-directory'
+    )
+    $cleanliness = New-GitCleanlinessResult `
+        -IndexMatchesHead $indexMatchesHead `
+        -WorktreeMatchesIndex $worktreeMatchesIndex `
+        -UntrackedOutput $untrackedOutput
     return [pscustomobject]@{
         Branch = Invoke-Git -Arguments @('branch', '--show-current')
         CommitSha = Invoke-Git -Arguments @('rev-parse', 'HEAD')
         TreeSha = Invoke-Git -Arguments @('rev-parse', 'HEAD^{tree}')
-        IsClean = [string]::IsNullOrWhiteSpace($statusOutput)
-        Status = $statusOutput
+        IsClean = $cleanliness.IsClean
+        Status = $cleanliness.Status
     }
 }
 
