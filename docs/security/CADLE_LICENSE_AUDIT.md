@@ -54,9 +54,10 @@ graph and must not be interpreted as a complete Cadle vulnerability audit.
 
 ADR-0003 tracks a byte-pinned derived lock solely for an ignored disposable qualification clone. It
 contains 118 package entries, matches all ten direct dependencies and has root version `0.6.0`.
-Two independent generations produced SHA-256
-`2e84d2a98f193fd53a9af0dc68c9cb7e1f0773c1bf2459613824524b6abd7c25`; the normal reproduction path
-uses that tracked file and does not regenerate it.
+Two independent raw Windows generations produced SHA-256
+`2e84d2a98f193fd53a9af0dc68c9cb7e1f0773c1bf2459613824524b6abd7c25`; the tracked UTF-8/LF
+normalization is `85f9b294da3d67fc698631b4b9903ad9a33214044573db82ed86e4b09d2f1c1f`. The normal reproduction path
+uses that tracked normalized file and does not regenerate it.
 
 Licence metadata in the complete graph is: MIT 45, Apache-2.0 27, MPL-2.0 12,
 LGPL-3.0-or-later 20, Apache-2.0 AND LGPL-3.0-or-later 6,
@@ -77,7 +78,7 @@ The deterministic machine-readable inventory is
 |---|---|
 | `package.json` | `95952a2f2d4114c619a6c182b610c46d12db4c366aa59292c0a7ffc28650bcfc` |
 | `package-lock.json` | `1d01d9703a7679fecb0ce2f4144eef382c0adc832d0298da19a9efb515af82a3` |
-| Forge qualification overlay | `2e84d2a98f193fd53a9af0dc68c9cb7e1f0773c1bf2459613824524b6abd7c25` |
+| Forge qualification overlay (tracked LF) | `85f9b294da3d67fc698631b4b9903ad9a33214044573db82ed86e4b09d2f1c1f` |
 | `LICENSE` | `8f653f3f69f17d2dabacaba945334989d0d459c05f8adb790d29057365cc1de9` |
 | `NOTICE` | `cdca80e358e0d7b97fa0badf71bc22e8ffd2f4e7a3bfdd9da5243b92486a5f24` |
 

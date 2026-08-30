@@ -22,11 +22,13 @@ un lock octet pour octet identique :
 ```text
 package.json SHA-256       95952a2f2d4114c619a6c182b610c46d12db4c366aa59292c0a7ffc28650bcfc
 lock upstream SHA-256      1d01d9703a7679fecb0ce2f4144eef382c0adc832d0298da19a9efb515af82a3
-lock dérivé SHA-256        2e84d2a98f193fd53a9af0dc68c9cb7e1f0773c1bf2459613824524b6abd7c25
+lock brut généré (CRLF)    2e84d2a98f193fd53a9af0dc68c9cb7e1f0773c1bf2459613824524b6abd7c25
+lock suivi normalisé LF    85f9b294da3d67fc698631b4b9903ad9a33214044573db82ed86e4b09d2f1c1f
 commande de provenance     npm install --package-lock-only --ignore-scripts --no-audit --no-fund
 ```
 
-Le lock dérivé corrige la version racine, verrouille les dix dépendances directes et conserve les
+Les deux fichiers bruts générés sous Windows étaient identiques. Git suit leur normalisation UTF-8/LF
+pour garantir les mêmes octets sur Windows et Linux. Le lock dérivé corrige la version racine, verrouille les dix dépendances directes et conserve les
 versions des 46 entrées déjà présentes. Il ajoute le graphe manquant avec URL registry et intégrité.
 
 ## Décision

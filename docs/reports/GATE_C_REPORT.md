@@ -40,12 +40,13 @@ where the only tracked delta is the reviewed Forge `package-lock.json` overlay. 
 | Cadle tree | `f0d52e434454fe302052d22eafde203bc361cc1f` |
 | `package.json` | `95952a2f2d4114c619a6c182b610c46d12db4c366aa59292c0a7ffc28650bcfc` |
 | upstream lock (defective, preserved) | `1d01d9703a7679fecb0ce2f4144eef382c0adc832d0298da19a9efb515af82a3` |
-| Forge qualification overlay | `2e84d2a98f193fd53a9af0dc68c9cb7e1f0773c1bf2459613824524b6abd7c25` |
+| Forge qualification overlay (tracked LF) | `85f9b294da3d67fc698631b4b9903ad9a33214044573db82ed86e4b09d2f1c1f` |
 | `LICENSE` | `8f653f3f69f17d2dabacaba945334989d0d459c05f8adb790d29057365cc1de9` |
 | `NOTICE` | `cdca80e358e0d7b97fa0badf71bc22e8ffd2f4e7a3bfdd9da5243b92486a5f24` |
 
-The overlay was independently generated twice with Node 22.22.3/npm 10.9.8 and was byte-identical.
-It changes the root version 0.1.0 → 0.6.0, locks ten rather than five direct dependencies and retains
+The raw CRLF overlay was independently generated twice with Node 22.22.3/npm 10.9.8 and was
+byte-identical (`2e84d2a9…`), then normalized to the tracked UTF-8/LF hash above. It changes the root
+version 0.1.0 → 0.6.0, locks ten rather than five direct dependencies and retains
 the versions of all 46 existing upstream entries.
 
 ## Exact validation ledger

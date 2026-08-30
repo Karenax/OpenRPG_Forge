@@ -26,12 +26,14 @@
     "licenseSha256": "8f653f3f69f17d2dabacaba945334989d0d459c05f8adb790d29057365cc1de9",
     "noticeSha256": "cdca80e358e0d7b97fa0badf71bc22e8ffd2f4e7a3bfdd9da5243b92486a5f24",
     "overlayPath": "upstream/cadle.npm-lock.json",
-    "overlaySha256": "2e84d2a98f193fd53a9af0dc68c9cb7e1f0773c1bf2459613824524b6abd7c25",
+    "overlaySha256": "85f9b294da3d67fc698631b4b9903ad9a33214044573db82ed86e4b09d2f1c1f",
     "allowedTrackedDelta": [
       "package-lock.json"
     ],
     "generationEvidence": {
       "command": "npm install --package-lock-only --ignore-scripts --no-audit --no-fund",
+      "rawWindowsCrLfSha256": "2e84d2a98f193fd53a9af0dc68c9cb7e1f0773c1bf2459613824524b6abd7c25",
+      "trackedNormalization": "UTF-8 with LF line endings",
       "independentByteIdenticalRuns": 2
     }
   },

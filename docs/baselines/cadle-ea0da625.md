@@ -8,8 +8,8 @@ The canonical snapshot stayed at commit `ea0da62549980816a6a27e08b75808b1f56d70e
 `f0d52e434454fe302052d22eafde203bc361cc1f`, with a clean tracked tree. Its stale npm lock is retained
 as evidence. Qualification ran in independent detached clones where the only tracked delta was
 `package-lock.json`, replaced by the reviewed Forge lock
-`2e84d2a98f193fd53a9af0dc68c9cb7e1f0773c1bf2459613824524b6abd7c25`. Two independent generations
-of that lock were byte-identical; two `npm ci` and builds succeeded. This is not described as an
+`85f9b294da3d67fc698631b4b9903ad9a33214044573db82ed86e4b09d2f1c1f`. Two independent raw Windows
+generations were byte-identical before their deterministic LF normalization; two `npm ci` and builds succeeded. This is not described as an
 intact upstream installation.
 
 ## Machine and runtime
