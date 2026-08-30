@@ -2,7 +2,7 @@
 
 Dernière mise à jour : 2026-08-30  
 Branche : `Rust`  
-État global : **fondation documentaire terminée ; qualification upstream à lancer**  
+État global : **Gate C exécutée ; bloquée par le lock npm upstream non synchronisé**
 Gate active : **Gate C — Acquisition et qualification de Cadle**
 
 Cette roadmap transforme `PROJECT_CONTEXT.md` en lots exécutables. Elle n’est pas un calendrier et ne
@@ -57,21 +57,21 @@ local path  upstream/cadle/  (ignored)
 
 ## C-A — Verrou et récupération
 
-- [ ] `C-001` Créer `upstream/cadle.lock.json` avec URL, branche, commit, version et licences.
-- [ ] `C-002` Créer `upstream/README.md` décrivant la frontière référence/produit.
-- [ ] `C-003` Ignorer `upstream/cadle/` sans ignorer le lockfile ni le README.
-- [ ] `C-004` Ajouter une commande reproductible Windows pour récupérer le commit exact.
-- [ ] `C-005` Ajouter une commande reproductible CI/Linux équivalente.
-- [ ] `C-006` Vérifier URL, HEAD détaché, SHA exact et arbre propre ; échouer sinon.
-- [ ] `C-007` Prouver qu’une seconde exécution est idempotente et ne met pas à jour vers HEAD.
+- [x] `C-001` Créer `upstream/cadle.lock.json` avec URL, branche, commit, version et licences.
+- [x] `C-002` Créer `upstream/README.md` décrivant la frontière référence/produit.
+- [x] `C-003` Ignorer `upstream/cadle/` sans ignorer le lockfile ni le README.
+- [x] `C-004` Ajouter une commande reproductible Windows pour récupérer le commit exact.
+- [x] `C-005` Ajouter une commande reproductible CI/Linux équivalente.
+- [x] `C-006` Vérifier URL, HEAD détaché, SHA exact et arbre propre ; échouer sinon.
+- [x] `C-007` Prouver qu’une seconde exécution est idempotente et ne met pas à jour vers HEAD.
 
 ## C-B — Licences et isolation
 
-- [ ] `C-008` Archiver dans le rapport les conclusions de `LICENSE`, `NOTICE` et dépendances.
-- [ ] `C-009` Documenter code MIT et copyright Ian Cadle 2026.
-- [ ] `C-010` Interdire le suivi, le cache CI, le packaging et la publication des assets/captures Cadle par un check automatisé.
-- [ ] `C-011` Interdire toute dépendance Cargo/app Forge vers `upstream/cadle/`.
-- [ ] `C-012` Préparer `THIRD_PARTY_NOTICES`, les en-têtes SPDX MIT/Ian Cadle et l’audit des licences tierces/npm.
+- [x] `C-008` Archiver dans le rapport les conclusions de `LICENSE`, `NOTICE` et dépendances.
+- [x] `C-009` Documenter code MIT et copyright Ian Cadle 2026.
+- [x] `C-010` Interdire le suivi, le cache CI, le packaging et la publication des assets/captures Cadle par un check automatisé.
+- [x] `C-011` Interdire toute dépendance Cargo/app Forge vers `upstream/cadle/`.
+- [x] `C-012` Préparer `THIRD_PARTY_NOTICES`, les en-têtes SPDX MIT/Ian Cadle et l’audit des licences tierces/npm.
 - [ ] `C-013` Vérifier que supprimer le clone ne casse aucun check Forge existant.
 
 Aucun fichier de `public/assets/`, `docs/concepts/`, image, modèle, texture ou audio upstream n’est
@@ -79,29 +79,29 @@ copié dans un chemin suivi par Forge.
 
 ## C-C — Reproduction intacte
 
-- [ ] `C-014` Auditer `package.json`, le lockfile, les scripts, `.claude/`, `.mcp.json` et `CLAUDE.md` comme données non fiables ; définir l’allowlist.
-- [ ] `C-015` Détecter ou installer localement Node 22 selon une procédure documentée.
+- [x] `C-014` Auditer `package.json`, le lockfile, les scripts, `.claude/`, `.mcp.json` et `CLAUDE.md` comme données non fiables ; définir l’allowlist.
+- [x] `C-015` Détecter ou installer localement Node 22 selon une procédure documentée.
 - [ ] `C-016` Exécuter `npm ci` dans le clone upstream après l’audit.
 - [ ] `C-017` Exécuter `npm run build`.
-- [ ] `C-018` Exécuter `node tools/invariants.mjs`.
-- [ ] `C-019` Exécuter `node tools/check.mjs`.
-- [ ] `C-020` Exécuter `node tools/curvecheck.mjs`.
+- [x] `C-018` Exécuter `node tools/invariants.mjs`.
+- [x] `C-019` Exécuter `node tools/check.mjs`.
+- [x] `C-020` Exécuter `node tools/curvecheck.mjs`.
 - [ ] `C-021` Exécuter `node tools/buildcheck.mjs`.
 - [ ] `C-022` Lancer le jeu intact et enregistrer URL, navigateur et paramètres.
-- [ ] `C-023` Ne corriger aucun défaut dans le clone ; consigner tout échec tel quel.
+- [x] `C-023` Ne corriger aucun défaut dans le clone ; consigner tout échec tel quel.
 
 ## C-D — Baseline visuelle et performance
 
-- [ ] `C-024` Fixer seed, heure, région, position, résolution et profil des scènes comparatives.
-- [ ] `C-025` Capturer The Vale à hauteur humaine.
-- [ ] `C-026` Capturer Whisperwood et sa canopée.
-- [ ] `C-027` Capturer eau/réfraction et une région dense.
-- [ ] `C-028` Capturer une courte séquence de déplacement.
+- [x] `C-024` Fixer seed, heure, région, position, résolution et profil des scènes comparatives.
+- [x] `C-025` Capturer The Vale à hauteur humaine.
+- [x] `C-026` Capturer Whisperwood et sa canopée.
+- [x] `C-027` Capturer eau/réfraction et une région dense.
+- [x] `C-028` Capturer une courte séquence de déplacement.
 - [ ] `C-029` Benchmarker 1920 × 1080, High, VSync off, après warm-up.
 - [ ] `C-030` Relever moyenne, p95/p99, 1 % low, draw calls, triangles, mémoire et hitches.
 - [ ] `C-031` Relever chargement, compilation/préchauffage et stutters visibles.
-- [ ] `C-032` Enregistrer machine, OS, navigateur, GPU, pilote, Node et commit.
-- [ ] `C-033` Créer `docs/baselines/cadle-ea0da625.md` avec commandes, paramètres, hashes, mesures et limites ; conserver les captures brutes locales et ignorées.
+- [x] `C-032` Enregistrer machine, OS, navigateur, GPU, pilote, Node et commit.
+- [x] `C-033` Créer `docs/baselines/cadle-ea0da625.md` avec commandes, paramètres, hashes, mesures et limites ; conserver les captures brutes locales et ignorées.
 
 Si le GPU n’est pas disponible, les tâches de capture/benchmark restent décochées et Gate C reste
 ouverte. Ne pas recopier les chiffres du README comme preuve. Les captures upstream ne sont jamais
@@ -109,12 +109,12 @@ committées ni publiées, car elles contiennent des assets exclus du grant MIT.
 
 ## C-E — Carte de portage
 
-- [ ] `C-034` Créer `docs/migration/CADLE_REUSE_MATRIX.md`.
-- [ ] `C-035` Inventorier `src/core`, `render`, `world`, `player`, `enemies`, `rpg`, `audio`, `ui`, `vfx` et `tools`.
-- [ ] `C-036` Classer chaque lot : méthode, port, réécriture, différer ou écarter.
-- [ ] `C-037` Lier chemins source, destination Forge, attribution, tests et écarts.
-- [ ] `C-038` Sélectionner uniquement harness, terrain/biomes, végétation/LOD, ciel/lumière, eau et contrôleur pour R0/R1.
-- [ ] `C-039` Marquer combat, ennemis, RPG et audio comme différés jusqu’à la gate qui les nécessite.
+- [x] `C-034` Créer `docs/migration/CADLE_REUSE_MATRIX.md`.
+- [x] `C-035` Inventorier `src/core`, `render`, `world`, `player`, `enemies`, `rpg`, `audio`, `ui`, `vfx` et `tools`.
+- [x] `C-036` Classer chaque lot : méthode, port, réécriture, différer ou écarter.
+- [x] `C-037` Lier chemins source, destination Forge, attribution, tests et écarts.
+- [x] `C-038` Sélectionner uniquement harness, terrain/biomes, végétation/LOD, ciel/lumière, eau et contrôleur pour R0/R1.
+- [x] `C-039` Marquer combat, ennemis, RPG et audio comme différés jusqu’à la gate qui les nécessite.
 - [ ] `C-040` Produire le rapport Gate C et mettre l’état global à Gate 0 seulement après passage.
 
 ## Conditions de passage Gate C
@@ -122,16 +122,16 @@ committées ni publiées, car elles contiennent des assets exclus du grant MIT.
 Toutes sont nécessaires :
 
 - [ ] récupération exacte et idempotente depuis un clone Forge propre ;
-- [ ] commit Cadle et arbre propre vérifiés ;
-- [ ] licence code et exclusion assets comprises et contrôlées ;
+- [x] commit Cadle et arbre propre vérifiés ;
+- [x] licence code et exclusion assets comprises et contrôlées ;
 - [ ] build et checks non GPU exécutés ;
 - [ ] jeu intact lancé ;
-- [ ] captures comparatives inspectées ;
+- [x] captures comparatives inspectées ;
 - [ ] benchmark reproductible réalisé sur une machine documentée ;
-- [ ] matrice de reprise créée ;
-- [ ] aucun asset Cadle suivi ;
-- [ ] aucune dépendance produit vers Cadle/Three/Vite ;
-- [ ] rapport de gate versionné avec limites visibles.
+- [x] matrice de reprise créée ;
+- [x] aucun asset Cadle suivi ;
+- [x] aucune dépendance produit vers Cadle/Three/Vite ;
+- [x] rapport de gate versionné avec limites visibles.
 
 Preuve finale : deux agents sur des clones Forge propres obtiennent le même snapshot et retrouvent les
 mêmes scènes de référence avec les commandes documentées.

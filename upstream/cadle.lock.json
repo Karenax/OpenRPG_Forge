@@ -27,6 +27,11 @@
       "docs/concepts/**",
       "recorded audio takes"
     ],
+    "forgeLocalOnlyPolicy": [
+      "all Cadle images and captures, regardless of path",
+      "all Cadle models, textures, audio and video",
+      "all raw benchmark and browser artifacts"
+    ],
     "checkoutPolicy": "local-reference-only"
   }
 }

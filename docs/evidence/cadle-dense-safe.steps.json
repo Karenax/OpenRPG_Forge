@@ -1,0 +1,12 @@
+[
+  { "wait": 31 },
+  { "eval": "window.__game.god(true);window.__game.passive(true);\"ok\"" },
+  { "hour": 12 },
+  { "eval": "(()=>{const x=118,z=-96,d=14,a=2.6;const px=x+Math.sin(a)*d,pz=z+Math.cos(a)*d;__game.teleport(px,null,pz);__game.look(Math.atan2(-(x-px),-(z-pz)),-0.1);return __game.state().pos})()" },
+  { "wait": 40 },
+  { "shot": "dense-alive" },
+  { "resetStats": true },
+  { "hold": "KeyW", "secs": 2 },
+  { "shot": "movement-end" },
+  { "perfWindow": { "secs": 4, "label": "dense-alive" } }
+]

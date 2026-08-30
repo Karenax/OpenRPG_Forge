@@ -39,8 +39,11 @@ branch, or if the Git tree is dirty.
 ## Licence and assets boundary
 
 The locked Cadle code is published under MIT with copyright 2026 Ian Cadle. Its `NOTICE` excludes
-`public/assets/`, `docs/concepts/` and recorded audio takes from that grant. Those files may exist in
-the ignored local checkout only so the upstream can be reproduced. They must not be copied, tracked,
+`public/assets/`, `docs/concepts/` and recorded audio takes from that grant. Cadle also contains other
+images and captures outside those two named directories (`docs/intro-ref/`, `progress/shots/` and
+scratch images under `tools/`). Forge therefore applies the conservative rule that **all** Cadle
+images, models, textures, audio, video and captures are local-only, regardless of path. They may exist
+in the ignored checkout only so the upstream can be reproduced. They must not be copied, tracked,
 cached in CI, packaged, or published by Forge.
 
 Raw screenshots and recordings containing Cadle assets stay under ignored local evidence directories.

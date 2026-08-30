@@ -45,8 +45,9 @@ if ($unexpectedUpstream.Count -gt 0) {
     throw "Unexpected tracked upstream files:`n$($unexpectedUpstream -join [Environment]::NewLine)"
 }
 
+$mediaPattern = "(?i)\.(png|jpe?g|webp|gif|bmp|tiff?|svg|glb|gltf|bin|fbx|obj|wav|ogg|mp3|flac|mp4|webm)$"
 $forbiddenCadleMedia = @($tracked | Where-Object {
-    $_ -match "(?i)cadle.*\.(png|jpe?g|webp|gif|bmp|tiff?|glb|gltf|bin|fbx|obj|wav|ogg|mp3|flac|mp4|webm)$"
+    $_ -match "(?i)cadle.*$mediaPattern"
 })
 if ($forbiddenCadleMedia.Count -gt 0) {
     throw "Cadle media must remain local and untracked:`n$($forbiddenCadleMedia -join [Environment]::NewLine)"
@@ -62,9 +63,39 @@ foreach ($relative in $productionManifests) {
     }
 }
 
+$distributionConfigs = @($tracked | Where-Object {
+    $_ -match "(?i)^(\.github/|\.gitlab-ci|azure-pipelines|buildkite|Dockerfile|docker-compose|packaging/|installer/|release/|distribution/)" -or
+    $_ -match "(?i)(package|publish|release|cache|artifact).*(\.ps1|\.sh|\.ya?ml|\.json|\.toml)$"
+})
+foreach ($relative in $distributionConfigs) {
+    $content = Get-Content -LiteralPath (Join-Path $root $relative) -Raw
+    if ($content -match "(?i)upstream[/\\]cadle|cadle-baseline|tools[/\\]out") {
+        throw "Distribution or CI configuration '$relative' references local Cadle material."
+    }
+}
+
 $checkoutPath = Join-Path $root (([string]$lock.checkout.path).Replace("/", [IO.Path]::DirectorySeparatorChar))
 if (Test-Path -LiteralPath $checkoutPath) {
     & (Join-Path $root "scripts/Get-Cadle.ps1") -RepositoryRoot $root -VerifyOnly | Out-Host
+
+    # Detect byte-identical media copied under a different filename. The comparison is local-only and
+    # stores no Cadle bytes or hashes in Git; it complements the path/configuration checks above.
+    $cadleMediaHashes = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+    foreach ($relative in @(& git -C $checkoutPath ls-files | Where-Object { $_ -match $mediaPattern })) {
+        $absolute = Join-Path $checkoutPath $relative
+        if (Test-Path -LiteralPath $absolute -PathType Leaf) {
+            [void]$cadleMediaHashes.Add((Get-FileHash -LiteralPath $absolute -Algorithm SHA256).Hash)
+        }
+    }
+    foreach ($relative in @($tracked | Where-Object { $_ -match $mediaPattern })) {
+        $absolute = Join-Path $root $relative
+        if (
+            (Test-Path -LiteralPath $absolute -PathType Leaf) -and
+            $cadleMediaHashes.Contains((Get-FileHash -LiteralPath $absolute -Algorithm SHA256).Hash)
+        ) {
+            throw "Tracked media '$relative' is byte-identical to Cadle media."
+        }
+    }
 } elseif ($RequireCheckout) {
     throw "Cadle checkout is required but absent: $checkoutPath"
 }
