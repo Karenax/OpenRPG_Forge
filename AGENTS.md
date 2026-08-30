@@ -17,17 +17,22 @@ Avant toute modification importante, lire dans cet ordre :
 2. `docs/ADR/ADR-0001-rust-webgpu-greenfield.md` ;
 3. `docs/ADR/ADR-0002-cadle-upstream-reference.md` ;
 4. `docs/ADR/ADR-0003-cadle-qualification-lock-overlay.md` ;
-5. `docs/planning/MIGRATION_ROADMAP.md` ;
-6. `docs/migration/LEGACY_REUSE_MATRIX.md` si la tâche reprend un besoin de `main` ;
-7. `docs/migration/CADLE_REUSE_MATRIX.md` dès sa création pendant Gate C ;
-8. les ADR et README du sous-système concerné.
+5. `docs/ADR/ADR-0004-gate0-draw-call-telemetry-exception.md` ;
+6. `docs/ADR/ADR-0005-studio-web-confirmed-gate0.md` ;
+7. `docs/ADR/ADR-0006-remote-ci-exception-gates-0-4.md` ;
+8. `docs/planning/MIGRATION_ROADMAP.md` ;
+9. `docs/migration/LEGACY_REUSE_MATRIX.md` si la tâche reprend un besoin de `main` ;
+10. `docs/migration/CADLE_REUSE_MATRIX.md` dès sa création pendant Gate C ;
+11. les ADR et README du sous-système concerné.
 
 `PROJECT_CONTEXT.md` est l’unique contexte narratif canonique de cette branche. Les documents de
 planning détaillent le travail mais ne redéfinissent pas la vision.
 
 Gate C est qualifiée par un snapshot source intact et une baseline sous overlay Forge, selon ADR-0003.
-Le développement suit strictement l’ordre Gate 0 → Gate 1 → Gate 2 → Gate 3 → Gate 4 et chaque gate
-doit conserver les preuves de la précédente.
+Gate 0 est passée sur preuves automatisées locales sous ADR-0004, ADR-0005 et ADR-0006 ; Gate 1 est
+la gate active. La CI distante des Gates 0 à 4 reste `NOT RUN` tant que le blocage de facturation
+empêche les runners de démarrer et ne doit jamais être décrite comme verte. Chaque gate conserve les
+preuves de la précédente.
 
 La branche `main` est une référence historique C#/Godot, pas une dépendance. Sa référence initiale est
 `a7f4a3f5dd0eeff1dc060ea1237b1d7d650b7ca0`.
@@ -40,7 +45,7 @@ La branche `main` est une référence historique C#/Godot, pas une dépendance. 
 - WGSL pour les shaders Forge ;
 - Rapier 3D pour la physique ;
 - Tauri 2 pour le shell Studio ;
-- Leptos + WASM + HTML/CSS pour la coque Studio, sous réserve de la Gate 0 ;
+- Leptos + WASM + HTML/CSS pour la coque Studio, confirmés par ADR-0005 ;
 - serde + JSON versionné pour les sources de vérité ;
 - glTF/GLB pour l’échange 3D ;
 - SHA-256, provenance et licence pour les assets.

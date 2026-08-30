@@ -33,20 +33,26 @@ Avant toute modification :
 2. lire [`AGENTS.md`](AGENTS.md) ;
 3. lire [`docs/ADR/ADR-0001-rust-webgpu-greenfield.md`](docs/ADR/ADR-0001-rust-webgpu-greenfield.md) ;
 4. lire [`docs/ADR/ADR-0002-cadle-upstream-reference.md`](docs/ADR/ADR-0002-cadle-upstream-reference.md) ;
-5. consulter [`docs/planning/MIGRATION_ROADMAP.md`](docs/planning/MIGRATION_ROADMAP.md) ;
-6. consulter [`docs/migration/LEGACY_REUSE_MATRIX.md`](docs/migration/LEGACY_REUSE_MATRIX.md) avant de reprendre une capacité de `main`.
+5. lire [`docs/ADR/ADR-0003-cadle-qualification-lock-overlay.md`](docs/ADR/ADR-0003-cadle-qualification-lock-overlay.md) ;
+6. lire les décisions Gate 0 [`ADR-0004`](docs/ADR/ADR-0004-gate0-draw-call-telemetry-exception.md), [`ADR-0005`](docs/ADR/ADR-0005-studio-web-confirmed-gate0.md) et [`ADR-0006`](docs/ADR/ADR-0006-remote-ci-exception-gates-0-4.md) ;
+7. consulter [`docs/planning/MIGRATION_ROADMAP.md`](docs/planning/MIGRATION_ROADMAP.md) ;
+8. consulter [`docs/migration/LEGACY_REUSE_MATRIX.md`](docs/migration/LEGACY_REUSE_MATRIX.md) avant de reprendre une capacité de `main`.
 
 `PROJECT_CONTEXT.md` est la source de vérité narrative de cette branche.
 
 ## État actuel
 
-La branche contient sa fondation documentaire et la décision d’utiliser Cadle v0.6.0, épinglé au
-commit `ea0da62549980816a6a27e08b75808b1f56d70e7`, comme upstream exécutable de référence. Aucun moteur,
-runtime, éditeur ou format Forge n’est encore déclaré fonctionnel.
+Gate C et Gate 0 sont passées. Le workspace Rust épinglé, le runtime Bevy natif, le viewport
+Bevy/WebGPU WASM et le Studio Tauri 2 + Leptos utilisent désormais la même scène Forge versionnée.
+Les preuves locales reproductibles et le rapport sont dans
+[`docs/evidence/gate0/LOCAL_VALIDATION.md`](docs/evidence/gate0/LOCAL_VALIDATION.md) et
+[`docs/reports/GATE_0_REPORT.md`](docs/reports/GATE_0_REPORT.md).
 
-La gate active est **Gate C** : récupérer Cadle dans une copie locale ignorée, auditer sa licence,
-mesurer la baseline et produire la matrice de reprise. Le code Cadle est MIT avec attribution ; ses
-assets ne sont pas couverts par ce grant et ne doivent jamais être copiés ou publiés dans Forge.
+La gate active est **Gate 1 — Visual Valley**. Les revues visuelles humaines de Gate 0 restent
+explicitement différées par ADR-0005. La CI GitHub distante est `NOT RUN` à cause du blocage de
+facturation du compte ; ADR-0006 autorise jusqu’à Gate 4 le passage sur preuves locales sans jamais
+présenter cette CI comme verte. Cadle reste une référence locale : aucun de ses assets n’est copié ou
+publié dans Forge.
 
 ## Référence historique
 

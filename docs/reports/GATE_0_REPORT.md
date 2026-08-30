@@ -1,176 +1,271 @@
 # Rapport Gate 0 — Fondation native, WASM et Studio
 
-Date : 30 août 2026
+Date du verdict : 31 août 2026
 Branche : `Rust`
-Commit de code qualifié : `528a909738bde92a8831e5b41ba185ab35ffef7f`
-Verdict : **NON PASSÉE — ARRÊT AVANT GATE 1**
+Commit qualifié : `a7c506f099b50100ad49f3ae6d01d541c9b63d49`
+Arbre qualifié : `7ca544c9eac98af558a4d91390c74ae08fa2ff11`
+Verdict : **PASS AUTOMATISÉ LOCAL SOUS ADR-0004, ADR-0005 ET ADR-0006 — GATE 1 AUTORISÉE**
 
 ## Résultat exécutif
 
-La fondation Gate 0 fonctionne localement et depuis un clone propre Windows : huit packages Cargo,
-runtime Bevy natif, viewport Bevy/WASM WebGPU, frontend Leptos, shell Tauri, scène JSON partagée,
-sélection typée et preuves reproductibles. Le replay final a passé 27 tests, formatage, Clippy strict,
-WASM, Trunk, Tauri, `cargo-deny`, RustSec et le runtime automatisé sans `upstream/cadle/` ni correction
-manuelle.
+Gate 0 est passée pour la progression séquentielle de la branche `Rust`. Le socle natif, le bundle
+WASM/WebGPU et le Studio Tauri/Leptos ont des preuves locales automatisées reproductibles. Le replay
+final commit-bound a reconstruit et lancé `forge-studio.exe`, collecté une télémétrie WebView2 valide,
+prouvé le succès de la commande Forge autorisée et le refus explicite de la commande Tauri non
+accordée, puis acquis une capture de la fenêtre exacte par HWND.
 
-Deux défauts de reproductibilité découverts pendant le premier clone propre ont été corrigés avant la
-qualification finale :
+Ce verdict applique trois décisions bornées :
 
-- Tauri normalise désormais un `NO_COLOR=1` hérité vers la valeur booléenne acceptée par Trunk ;
-- le runtime crée les parents de sortie absents, supprime les preuves périmées et refuse un succès si
-  la capture demandée n'existe pas ou est vide.
+- ADR-0004 accepte pour Gate 0 l'indisponibilité explicitement diagnostiquée d'un compteur global de
+  draw calls ; aucun proxy n'est présenté comme un nombre réel ;
+- ADR-0005 confirme le shell Tauri 2 + Leptos/WASM + Bevy/WebGPU et diffère les revues humaines sans
+  transformer les captures automatisées en captures humainement qualifiées ;
+- ADR-0006 autorise le passage automatisé local jusqu'à Gate 4 malgré des jobs GitHub refusés avant
+  allocation de runner pour facturation. La CI distante reste `NOT RUN`, jamais verte.
 
-Ces résultats ne suffisent pas à passer la gate. Les blocages formels restants sont :
-
-- aucun run CI distant Windows, Linux ou WASM : le workflow et les commits Rust ne sont pas publiés ;
-- aucune revue visuelle humaine consignée ;
-- aucune décision formelle « Studio web confirmé » ou « fallback natif » ;
-- aucun vrai compteur d'appels GPU, distinct des deux draws logiques de la scène ;
-- aucune fenêtre statistique qualifiée pour Chrome, Edge et le Studio ;
-- le chemin WebGPU indisponible et le refus effectif d'une permission Tauri non accordée ne sont pas
-  exécutés.
-
-**Gate 1, Gate 2, Gate 3 et Gate 4 n'ont pas commencé.** L'ordre imposé par `AGENTS.md` interdit de
-commencer Gate 1 tant que Gate 0 n'est pas passée.
-
-## Commits du lot
+Le passage administratif de Gate 0 ne modifie donc pas les champs probants du ledger de capture :
 
 ```text
-7d529a862aba7f5cf32d2b4111042c73debff02d
-feat(gate0): establish Rust runtime and Studio foundation
-
-528a909738bde92a8831e5b41ba185ab35ffef7f
-fix(gate0): harden reproducible proof outputs
+review.status = uninspected
+human_review_performed = false
+proof_status = pending_human_review
+qualified = false
 ```
 
-Les documents et l'enveloppe de preuve suivis sont :
+Les revues humaines et les risques de distribution restent ouverts. Ils sont détaillés ci-dessous et
+ne doivent pas être effacés lors des Gates 1 à 4.
 
-- `docs/evidence/gate0/LOCAL_VALIDATION.md` ;
-- `docs/evidence/gate0/BROWSER_STUDIO_VALIDATION.md` ;
-- `docs/evidence/gate0/NATIVE_RUNTIME.visual-proof.json` ;
-- `docs/evidence/gate0/VISUAL_PROOF.schema.json` ;
-- `docs/evidence/gate0/SCENE_PROOF.schema.json` ;
-- `docs/evidence/gate0/SUPPLY_CHAIN.md`.
+## Provenance Git et isolation
 
-Les médias et ledgers bruts restent locaux et ignorés. Aucun asset Cadle n'est copié dans Forge.
+L'audit indépendant du worktree de preuve
+`E:\OpenRPG_Forge\OpenRPG_Forge-Rust-gate0-proof-20260830-225957` donne :
 
-## Qualification en clone propre
+```text
+branche                   Rust
+HEAD                      a7c506f099b50100ad49f3ae6d01d541c9b63d49
+HEAD^{tree}               7ca544c9eac98af558a4d91390c74ae08fa2ff11
+origin/Rust               a7c506f099b50100ad49f3ae6d01d541c9b63d49
+divergence HEAD/origin    0 / 0
+index versus HEAD         identique par contenu
+worktree versus index     identique par contenu
+non suivis                0
+upstream/cadle/           absent
+fichiers Cadle suivis     0
+```
 
-Le clone `--no-local --single-branch --branch Rust` a été placé exactement à `528a9097`, avec un
-statut Git vide avant et après qualification. `upstream/cadle/` était absent et zéro fichier
-`upstream/cadle/**` était suivi.
+`git status --short` affiche encore deux entrées `.M` stat-only après le build Tauri :
+`apps/forge_studio/Cargo.toml` et
+`apps/forge_studio/permissions/autogenerated/execute_studio_command.toml`. Ce n'est pas un diff de
+contenu : `git diff --quiet` et `git diff --cached --quiet` retournent tous deux 0, sans fichier non
+suivi, et les blobs worktree/index/HEAD sont respectivement identiques :
+`a2b4388a752124e81f2b227a230963dd432af97e` et
+`ac0b7bca582315b3ededd13d21729fe9850b2d26`. Le contrat read-only du harness compare précisément le
+contenu Git canonique et qualifie donc honnêtement `source_tree_clean = true`.
 
-| Contrôle | Résultat |
+Aucun asset Cadle n'a été copié dans Forge et le replay final ne dépend pas de `upstream/cadle/`.
+
+## Chaîne de validation locale
+
+La qualification est cumulative et ne relabellise pas un test historique comme s'il avait été
+rejoué au commit final :
+
+| Lot | Preuve locale réellement obtenue |
 |---|---|
-| `CARGO_BUILD_JOBS=1; ./scripts/Test-Rust.ps1` | PASS |
-| formatage et Clippy strict | PASS |
-| tests workspace | 27 passés, 0 échec |
-| WASM, Clippy WASM et Trunk release | PASS |
-| `cargo deny` | PASS : advisories, bans, licences, sources |
-| politique RustSec | PASS : 0 vulnérabilité, 20 avertissements, 1 blocage distribution |
-| `NO_COLOR=1; cargo tauri build --no-bundle` | PASS sans correction externe |
-| runtime release automatisé | PASS, sortie 0 |
-| création automatique du dossier de preuve absent | PASS |
-| capture et métriques non vides | PASS |
-| statut Git final | vide |
+| `528a909738bde92a8831e5b41ba185ab35ffef7f` | replay complet en clone propre : formatage, Clippy strict, 27 tests workspace, WASM, Trunk, Tauri, `cargo-deny`, politique RustSec et runtime release |
+| `70127992de1c96c4e704d2b62765fca840db45fd` | runtime v2 : 12 tests ciblés, resize demandé/confirmé, présentation, métriques, fermeture normale et diagnostic draw calls honnête |
+| `7286740c18fe9afa6cc207e388d5f335495fc650` | Studio : formatage, Clippy natif/WASM, 11 tests ciblés, bundle Trunk release, Chrome positif/négatif et contrat de télémétrie |
+| `65dabeca` à `8ca49cb4` | durcissements du snapshot Git, des tâches asynchrones, du refus ACL exact et des timestamps JSON canoniques |
+| `a7c506f099b50100ad49f3ae6d01d541c9b63d49` | build et lancement Tauri final commit-bound, télémétrie/ACL, capture HWND, hashes, schémas et fermeture du processus |
 
-Marqueurs exacts :
+Le replay complet historique a donné 27 tests passés, 0 échec et les marqueurs :
 
 ```text
 FORGE_RUSTSEC_POLICY_PASS vulnerabilities=0 warnings=20 distribution_blockers=1
 FORGE_RUST_VALIDATION_PASS wasm=True supply_chain=True
 ```
 
-Le hash du document partagé est identique en natif et en WASM :
-`0ea53d539067f399e7e76678532144955f35e5a15e95d11becf3a174843c67df`.
-
-## Preuve runtime native propre
-
-La commande release a créé elle-même le dossier `artifacts/gate-0/final-528a909`, auparavant absent,
-puis a capturé la frame 180 et quitté après la frame 240.
-
-| Artefact local ignoré | Taille | SHA-256 |
-|---|---:|---|
-| `forge_runtime.exe` | 73 513 984 octets | `b5654c52a27920ffec7516b36231b0ddab6ad04b1d6b47b4e452329634a5184e` |
-| `native-runtime.png` | 1 027 592 octets, 1920 × 1080 | `0e3a206d2f984c0b42927801df3b2d54664a6ef13da76852a6008dcb5a332061` |
-| `native-runtime-metrics.json` | 3 581 octets | `225bb327f1311376d84d62c97723ebe0857b6371e6d67bc9c4b1c453563af950` |
-
-| Mesure post-warm-up | Valeur |
-|---|---:|
-| échantillons | 120 |
-| durée | 454,8433 ms |
-| moyenne | 3,7904 ms / 263,83 FPS |
-| p50 / p95 / p99 | 2,3067 / 8,0712 / 8,7186 ms |
-| maximum | 10,5704 ms |
-| 1 % low | 103,69 FPS |
-| hitches > 16,7 ms / > 33,3 ms | 0 / 0 |
-
-GPU observé : AMD Radeon RX 7800 XT, Vulkan, pilote `26.8.1 (LLPC)`. La capture montre le sol vert,
-le cube bleu centré et l'overlay lisible, sans corruption. Cette inspection est automatisée ;
-`NATIVE_RUNTIME.visual-proof.json` conserve donc honnêtement :
+Le document moteur-neutre reste commun au runtime et au Studio :
 
 ```text
-review.status = uninspected
-review.method = automated_then_human
-validation.overall = partial
+schema      forge.scene-proof
+version     1
+entities    4
+SHA-256     0ea53d539067f399e7e76678532144955f35e5a15e95d11becf3a174843c67df
 ```
 
-## Studio et navigateurs
+## Replay Tauri final — commit `a7c506f`
 
-Le bundle 528 a été chargé dans Chrome et Edge. Chrome a confirmé WebGPU, le document partagé, le
-monde initialisé une fois et la surface Studio ; la reprise de contrôle pour la capture et la
-sélection a expiré. Edge a confirmé en plus la capture visuelle, la sélection du cube, l'EntityId
-`ae91d914-98e9-52d4-80d1-4fddc482988d`, un rerender sans reconstruction du monde et l'absence de
-warning ou d'erreur console.
+Commande contrôlée enregistrée :
 
-Le shell Tauri exact a été reconstruit dans le clone propre avec le wrapper Trunk :
+```text
+cargo tauri build --no-bundle --config apps/forge_studio/tauri.gate0-proof.conf.json
+```
 
-| Artefact | Taille | SHA-256 |
+Chronologie UTC canonique :
+
+| Événement | Horodatage |
+|---|---|
+| début du build | `2026-08-30T22:25:01.2306453+00:00` |
+| dernière écriture de l'exécutable | `2026-08-30T22:27:16.3646685+00:00` |
+| fin du build | `2026-08-30T22:27:16.7336881+00:00` |
+| télémétrie qualifiée | `2026-08-30T22:27:20.998Z` |
+| ledger de capture | `2026-08-30T22:27:22.4741992+00:00` |
+
+Durée du build enregistrée : `135503,0428 ms`. L'ordre temporel est valide du début du build au
+ledger final.
+
+### Artefacts recalculés indépendamment
+
+| Artefact | Taille | SHA-256 recalculé |
 |---|---:|---|
-| `forge-studio.exe` | 16 304 640 octets | `4bb12eef7841b9bc4247b6cc12ea4012aa241d75c31f75dea1d43edc2a77efb0` |
-| `forge_studio_bg.wasm` | 34 879 512 octets | `d307e835f6aede2fb8cdc5b0939d2219a54354b79def6fb09f65805779086a28` |
-| `forge_studio.js` | 181 150 octets | `4751935be971a12ee33840bb93f9e39a1e92bce10d964a0e6b5c23d864399ecb` |
+| configuration `tauri.gate0-proof.conf.json` | 417 octets | `661dc1ea32788eec3f78df6c8b62ff366b2bc879c97aa02a83dad74741588695` |
+| `target/release/forge-studio.exe` | 16 116 224 octets | `2cd63455a8ba76762519a7194ea9ff66bc24b7d4fac6e262f0884d74dc77c458` |
+| `studio-window-20260830T222721105Z.telemetry.json` | 1 618 octets | `de03d21de9c0ee0574e09fbc56daaf160672653e06def4fee048891cacac720e` |
+| `studio-window-20260830T222721105Z.png` | 342 314 octets | `3e0f37b466a47fe75168d6a10f12caee1b82dbc127788da0d3bbd83e1820e6ed` |
+| `studio-window-20260830T222721105Z.json` | 3 225 octets | `b8ae014c5c8dd2927ac306db69a6fd00a82315d4d3173dd8f373115f2147ca75` |
 
-La validation Tauri interactive complète avait été réalisée sur le commit de fondation `7d529a86` :
-WebGPU, sélection hiérarchie et picking, IPC Rust typé et trois rerenders sans reconstruction. Le fix
-`528a9097` ne change pas ces chemins fonctionnels, mais la fenêtre Tauri finale n'a pas reçu une
-nouvelle capture commit-bound. `R0-059` reste donc ouvert.
+Tous les descripteurs `bytes`/`sha256` du ledger correspondent aux fichiers réellement relus. Les
+deux JSON sont parsés avec conservation exacte des chaînes de date et passent leurs schémas
+Draft 2020-12 : `forge.gate0-studio-telemetry@1` et
+`forge.gate0-studio-window-capture@2`.
 
-## Chaîne d'approvisionnement
+### Identité de fenêtre et capture
 
-`cargo deny` passe. RustSec ne signale aucune vulnérabilité connue au lockfile, mais conserve vingt
-avertissements documentés. `RUSTSEC-2024-0429` (`glib 0.18.5`, `unsound`) demeure un blocage explicite
-de distribution Linux.
+```text
+PID                         30324
+HWND                        0x000000000054056a
+titre                       OpenRPG Forge Studio · Gate 0 proof
+visible                     true
+minimized                   false
+identité avant/après        true / true
+foreground avant/après      false / false
+rectangle                   left=78 top=78 width=1616 height=939
+méthode                     print_window_pw_renderfullcontent
+flags PrintWindow           2 (PW_RENDERFULLCONTENT)
+foreground requis           false
+résultat Win32              true
+```
 
-La licence du code Forge doit aussi être tranchée par le propriétaire : les manifests déclarent
-`MIT OR Apache-2.0`, tandis que `PROJECT_CONTEXT.md` exprime une intention PolyForm Noncommercial.
-Ce conflit et `glib` bloquent la distribution, sans être à eux seuls la cause technique du refus de
-passage Gate 0.
+Le HWND, le PID propriétaire et la cible de capture sont identiques avant et après acquisition. Le
+PNG se décode en `1616 × 939`, `Format32bppArgb`, avec 2 405 pixels échantillonnés, 192 couleurs
+uniques et un alpha constant à 255. Les dimensions et le nombre de couleurs correspondent exactement
+au ledger. Le PID `30324` n'existe plus ; aucun processus utilisant cet exécutable et aucun processus
+`forge-studio.exe` ne subsistent après le replay.
 
-## Conditions de passage Gate 0
+## Télémétrie WebView2 et ACL
 
-Toutes les conditions sont nécessaires.
+Le ledger final cible `tauri_studio`. WebGPU est `ready`, sans injection diagnostique et sans raison
+de fallback.
 
-| Condition | Verdict | Motif |
+| Mesure | Valeur |
+|---|---:|
+| démarrage WASM | `490,9000000357628 ms` |
+| WebGPU prêt / scène prête | `1155,300000011921 ms` / `1155,300000011921 ms` |
+| mémoire linéaire WASM | `50 069 504` octets |
+| heap JS utilisé / limite | `9 323 224` / `4 395 630 592` octets |
+| warm-up / échantillons | `60` / `120` |
+| durée mesurée | `833,3999999999997 ms` |
+| moyenne | `6,944999999999998 ms` / `143,98848092152633 FPS` |
+| p50 / p95 / p99 / max | `6,9` / `7,5` / `7,7` / `8,1 ms` |
+| 1 % low | `126,58227848101264 FPS` |
+| hitches > 16,7 ms / > 33,3 ms | `0` / `0` |
+| viewport | 1 démarrage, canvas `1088 × 786` |
+| interaction post-paint | 1 échantillon, `316,29999999999995 ms`, canvas stable 1, instable 0 |
+
+Frontière Tauri observée :
+
+```text
+execute_studio_command = succeeded
+raison = SceneSummary accepté : 4 entités, source 0ea53d539067f399e7e76678532144955f35e5a15e95d11becf3a174843c67df
+
+plugin:window|set_title = explicitly_denied
+raison = Commande Tauri échouée : Command plugin:window|set_title not allowed by ACL
+```
+
+Le message d'erreur localisé conserve le fragment stable exact de Tauri ; le harness ne confond plus
+ce refus attendu avec un échec de sonde.
+
+## Exception CI distante ADR-0006
+
+Le run GitHub Actions HEAD [`33339077298`](https://github.com/Karenax/OpenRPG_Forge/actions/runs/33339077298)
+vise exactement `a7c506f099b50100ad49f3ae6d01d541c9b63d49`. GitHub affiche `failure`, mais les quatre jobs ont
+`steps = []`. Chacun porte la même annotation : le job n'a pas démarré en raison de paiements récents
+échoués ou d'un plafond de dépense à augmenter.
+
+| Job | ID | Étapes exécutées | Qualification Forge |
+|---|---:|---:|---|
+| `wasm` | `99331257192` | 0 | `NOT RUN — infrastructure billing` |
+| `native (ubuntu-24.04)` | `99331257267` | 0 | `NOT RUN — infrastructure billing` |
+| `native (windows-2025)` | `99331257296` | 0 | `NOT RUN — infrastructure billing` |
+| `supply-chain` | `99331257301` | 0 | `NOT RUN — infrastructure billing` |
+
+Formulation obligatoire du verdict :
+
+```text
+tests locaux automatisés = PASS
+CI distante Windows = NOT RUN — infrastructure billing
+CI distante Linux = NOT RUN — infrastructure billing
+CI distante WASM = NOT RUN — infrastructure billing
+CI distante supply-chain = NOT RUN — infrastructure billing
+```
+
+Ce résultat n'est pas un échec de tests Forge : aucun checkout, toolchain, build ou test n'a été
+exécuté. Il ne prouve toutefois ni Linux ni un environnement GitHub Windows/WASM. L'exception expire
+dès le retour des runners et reste automatiquement invalide avant toute distribution.
+
+## Revues humaines différées et défaut visuel connu
+
+Conformément à l'ordre explicite du propriétaire et à ADR-0005, restent à réaliser :
+
+- `G0-HR-001` — inspection humaine de la capture native et de son overlay ;
+- `G0-HR-002` — inspection humaine de la capture complète Tauri/WebView2 ;
+- `G0-HR-003` — parcours manuel court : redimensionnement, sélection/picking, stabilité du canvas,
+  fermeture normale et diagnostic WebGPU indisponible.
+
+Une inspection technique automatisée de la capture Tauri a relevé le défaut `G0-UI-001` : plusieurs
+glyphes de l'overlay Bevy/WASM sont rendus en carrés tofu, notamment les séparateurs `·` et le `é` de
+`entités`. Le shell HTML reste lisible et les pixels WebGPU, les métriques et l'ACL sont acquis ; ce
+défaut ne renverse donc pas le passage automatisé local de la fondation. Sa cause probable est une
+couverture de police/glyphes incomplète, à confirmer. Il doit être corrigé puis vérifié humainement
+avant de prétendre passer la revue visuelle comparative de Gate 1.
+
+La revue humaine comparative de Gate 1 n'est couverte par aucune dérogation Gate 0.
+
+## Limites et dettes conservées
+
+- le compteur global de draw calls reste indisponible sous Bevy `0.19.1` ; le statut exact demeure
+  `unavailable_bevy_0_19_no_global_counter` et la valeur reste `null` sous ADR-0004 ;
+- Edge desktop n'a pas été rejoué sur le bundle `7286740c` ; seule la preuve Edge historique du socle
+  `528a9097` existe, tandis que WebView2/Tauri est qualifié au commit final ;
+- la CI distante n'a exécuté aucune étape ; Linux et les runners GitHub restent non prouvés ;
+- `RUSTSEC-2024-0429` (`glib 0.18.5`) et le conflit entre l'intention PolyForm du contexte et les
+  manifests `MIT OR Apache-2.0` restent bloquants avant distribution ;
+- les captures automatisées restent `uninspected` au sens humain ;
+- Gate 0 ne prouve ni la parité visuelle ni la performance de la future `visual_valley` face à Cadle.
+
+## Matrice finale de passage
+
+| Condition | Verdict | Preuve ou décision |
 |---|---|---|
-| clone propre compile sans correction manuelle | PASS LOCAL | Test-Rust, Tauri et runtime passent à `528a9097`, arbre propre |
-| runtime natif lancé | PASS LOCAL | capture et ledger propres, schéma valide |
-| build WASM WebGPU lancé | PASS LOCAL | check, Clippy et bundle Trunk passent |
-| Studio Tauri/Leptos lancé avec canvas | PASS LOCAL | session Tauri fonctionnelle du socle et build final propre |
-| même document source visible sur les deux cibles | PASS LOCAL | hash partagé exact |
-| sélection simple partagée | PASS LOCAL | hiérarchie/picking vers inspecteur et IPC Rust |
-| tests et CI verts | **ÉCHEC GATE** | tests locaux verts, zéro run GitHub Actions Rust |
-| aucune règle métier en JavaScript | PASS STATIQUE | aucune source JS/TS métier suivie |
-| aucune dépendance à `main` à l'exécution | PASS STATIQUE/DYNAMIQUE | branche orpheline, clone propre sans `main` ni Cadle |
-| capture et rapport inspectés | **ÉCHEC GATE** | inspection automatisée seulement, revue humaine absente |
-| décision Studio web ou fallback natif | **OUVERT** | Studio web viable localement, décision formelle non enregistrée |
+| branche Rust indépendante et contenu source propre | PASS | commit/arbre exacts, divergence 0/0, diff de contenu vide, aucun non-suivi |
+| runtime natif lancé et mesuré | PASS LOCAL | runtime historique commit-bound et runtime v2 ciblé, sortie normale |
+| WASM/WebGPU construit et lancé | PASS LOCAL | bundle Trunk, Chrome et WebView2/Tauri prêts |
+| même document source natif/Studio | PASS LOCAL | SHA-256 commun `0ea53d…c67df` |
+| sélection et commande Rust typée | PASS LOCAL | interaction stable et `execute_studio_command = succeeded` |
+| permission non accordée effectivement refusée | PASS LOCAL | `plugin:window|set_title = explicitly_denied` |
+| capture complète Tauri commit-bound | PASS ACQUISITION | PNG/ledger v2, HWND/PID exacts, hashes et schémas valides |
+| vrai compteur global de draw calls | PASS PAR EXCEPTION | indisponibilité explicite et bornée par ADR-0004 ; aucun nombre inventé |
+| décision Studio | PASS DÉCISION | Tauri/Leptos/WebGPU confirmé par ADR-0005 |
+| revue humaine Gate 0 | DIFFÉRÉE | dette `G0-HR-001` à `003`, champs ledger inchangés |
+| CI distante Windows/Linux/WASM/supply-chain | NOT RUN | zéro étape, facturation ; exception temporaire ADR-0006 |
+| aucun asset/dépendance runtime Cadle | PASS | clone absent du worktree de preuve, zéro fichier suivi |
 
-## Verdict et arrêt
+## Verdict final et suite autorisée
 
-Gate 0 reste **NON PASSÉE**. `origin/Rust` est encore au commit
-`3f0e9e2d7575c53f9f57ee20d51cdfb580cbf526`, le workflow Rust n'y existe pas et GitHub Actions
-retourne zéro run pour cette branche. Aucun push n'a été effectué sans ordre explicite.
+Gate 0 est **PASSÉE SUR PREUVES AUTOMATISÉES LOCALES** au commit
+`a7c506f099b50100ad49f3ae6d01d541c9b63d49`, sous les exceptions et décisions explicites
+ADR-0004, ADR-0005 et ADR-0006. Gate 1 devient la gate active.
 
-La prochaine progression autorisée reste dans Gate 0 : publication explicitement autorisée pour
-obtenir la CI, revue humaine des captures et décision Studio. Jusqu'à leur résolution, commencer
-Gate 1–4 violerait la roadmap.
+Ce verdict n'autorise pas à écrire « CI verte », « revue visuelle passée », « draw calls livrés » ou
+« distribution qualifiée ». Les revues humaines, le défaut de glyphes tofu, les preuves distantes et
+les blocages de distribution restent visibles et doivent être repris au moment indiqué.

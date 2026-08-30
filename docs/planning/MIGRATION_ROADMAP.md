@@ -1,9 +1,10 @@
 # Roadmap de migration — OpenRPG Forge Rust/WebGPU
 
-Dernière mise à jour : 2026-08-30  
+Dernière mise à jour : 2026-08-31
 Branche : `Rust`  
-État global : **Gate C qualifiée sous l’exception bornée ADR-0003 ; Gate 0 NON PASSÉE**
-Gate active : **Gate 0 — Fondation reproductible (NON PASSÉE)**
+État global : **Gate C qualifiée sous l’exception bornée ADR-0003 ; Gate 0 passée sur preuves
+automatisées locales sous ADR-0004, ADR-0005 et ADR-0006**
+Gate active : **Gate 1 — Visual Valley (OUVERTE)**
 
 Cette roadmap transforme `PROJECT_CONTEXT.md` en lots exécutables. Elle n’est pas un calendrier et ne
 contient aucune promesse de délai. Une gate ne passe qu’avec ses preuves.
@@ -144,11 +145,21 @@ mêmes scènes de référence avec les commandes documentées.
 
 # Gate 0 — Fondation reproductible native + WASM + Studio
 
-Statut au commit `528a909738bde92a8831e5b41ba185ab35ffef7f` : **ACTIVE — NON PASSÉE**.
+Statut au commit `a7c506f099b50100ad49f3ae6d01d541c9b63d49`, arbre
+`7ca544c9eac98af558a4d91390c74ae08fa2ff11` : **PASS AUTOMATISÉ LOCAL SOUS ADR-0006**,
+avec les décisions bornées ADR-0004 et ADR-0005.
 
-Le replay final Windows en clone propre passe 27 tests, WASM, Trunk, Tauri et le runtime sans Cadle
-ni correction manuelle. La gate reste bloquée par l'absence de CI distante, de revue visuelle humaine
-et de décision formelle sur le Studio ; Gate 1 n'est donc pas ouverte.
+Le replay final Windows dans le clone de preuve propre construit et lance le runtime, WASM/Trunk et le
+Studio Tauri sans Cadle ni correction manuelle. Les ledgers Studio finaux valident leurs schémas,
+WebGPU, la scène partagée, l'ACL autorisée/refusée, la stabilité du canvas et la capture de la fenêtre
+exacte par HWND. Les tests locaux automatisés sont `PASS`.
+
+Le run GitHub Actions du commit final, `33339077298`, a quatre jobs en conclusion d'interface
+`failure`, mais zéro étape exécutée pour cause de facturation : CI distante Windows, Linux, WASM et
+supply-chain = **NOT RUN — infrastructure billing**. ADR-0006 neutralise administrativement ce blocage
+jusqu'à Gate 4 sans le transformer en CI verte. ADR-0005 enregistre la décision « Studio web confirmé »
+et diffère les revues humaines : les preuves concernées restent honnêtement `uninspected`,
+`pending_human_review` et `qualified = false`.
 
 ## But
 
@@ -166,7 +177,7 @@ partie du runtime Forge.
 - [x] `R0-005` Ajouter `.gitignore` pour Cargo, Tauri, Trunk, WASM, caches et preuves locales.
 - [x] `R0-006` Ajouter `cargo fmt` et clippy avec warnings projet en erreurs.
 - [x] `R0-007` Ajouter `cargo-deny` et la politique de licences.
-- [ ] `R0-008` Ajouter la journalisation structurée `tracing`.
+- [x] `R0-008` Ajouter la journalisation structurée `tracing`.
 - [x] `R0-009` Ajouter une commande unique vérifiée pour bootstrapper le développement Windows.
 - [x] `R0-010` Documenter uniquement les commandes réellement exécutées.
 
@@ -194,9 +205,10 @@ de crate vide de « préparation future ».
 - [x] `R0-020` Ouvrir une fenêtre native.
 - [x] `R0-021` Initialiser le backend `wgpu` haute performance.
 - [x] `R0-022` Afficher une scène partagée simple : sol, objet PBR, lumière et caméra.
-- [ ] `R0-023` Ajouter redimensionnement, VSync et fermeture propre.
+- [x] `R0-023` Ajouter redimensionnement, VSync et fermeture propre.
 - [x] `R0-024` Afficher adapter GPU, backend et limites utiles.
-- [ ] `R0-025` Ajouter un overlay FPS/frame time/draw calls.
+- [x] `R0-025` Ajouter un overlay FPS/frame time/draw calls — PASS par exception bornée ADR-0004 :
+  FPS/frame time réels, `gpu_draw_calls = null` et indisponibilité explicitement affichée.
 - [x] `R0-026` Capturer une image automatisable.
 
 ## R0-D — WASM/WebGPU
@@ -204,9 +216,9 @@ de crate vide de « préparation future ».
 - [x] `R0-027` Ajouter la cible `wasm32-unknown-unknown`.
 - [x] `R0-028` Compiler Bevy avec la feature WebGPU appropriée.
 - [x] `R0-029` Afficher la même scène partagée dans un canvas navigateur.
-- [ ] `R0-030` Détecter WebGPU et produire une erreur utilisateur claire s’il est indisponible.
+- [x] `R0-030` Détecter WebGPU et produire une erreur utilisateur claire s’il est indisponible.
 - [x] `R0-031` Vérifier Chrome/Edge desktop.
-- [ ] `R0-032` Mesurer chargement, mémoire et frame time.
+- [x] `R0-032` Mesurer chargement, mémoire et frame time.
 - [x] `R0-033` Documenter les limites WASM observées.
 
 Le fallback WebGL2 n’est pas requis pour la Gate 0.
@@ -221,9 +233,9 @@ Le fallback WebGL2 n’est pas requis pour la Gate 0.
 - [x] `R0-039` Ajouter un panneau hiérarchie factice alimenté par données Rust partagées.
 - [x] `R0-040` Ajouter un inspecteur factice lié à la sélection 3D.
 - [x] `R0-041` Ajouter un canal de commande typé frontend ↔ backend.
-- [ ] `R0-042` Borner les permissions Tauri au strict nécessaire.
-- [ ] `R0-043` Capturer la fenêtre complète du Studio.
-- [ ] `R0-044` Mesurer latence d’interaction et stabilité du canvas.
+- [x] `R0-042` Borner les permissions Tauri au strict nécessaire.
+- [x] `R0-043` Capturer la fenêtre complète du Studio.
+- [x] `R0-044` Mesurer latence d’interaction et stabilité du canvas.
 
 ## R0-F — Données partagées
 
@@ -236,22 +248,23 @@ Le fallback WebGL2 n’est pas requis pour la Gate 0.
 
 ## R0-G — CI et preuves
 
-- [ ] `R0-051` CI format.
-- [ ] `R0-052` CI clippy.
-- [ ] `R0-053` CI tests natifs.
-- [ ] `R0-054` CI build Windows.
-- [ ] `R0-055` CI build Linux.
-- [ ] `R0-056` CI build WASM.
+- [ ] `R0-051` CI format — NOT RUN — infrastructure billing ; dette ADR-0006.
+- [ ] `R0-052` CI clippy — NOT RUN — infrastructure billing ; dette ADR-0006.
+- [ ] `R0-053` CI tests natifs — NOT RUN — infrastructure billing ; dette ADR-0006.
+- [ ] `R0-054` CI build Windows — NOT RUN — infrastructure billing ; dette ADR-0006.
+- [ ] `R0-055` CI build Linux — NOT RUN — infrastructure billing ; dette ADR-0006.
+- [ ] `R0-056` CI build WASM — NOT RUN — infrastructure billing ; dette ADR-0006.
 - [x] `R0-057` Rapport de licences.
 - [x] `R0-058` Capture runtime native.
-- [ ] `R0-059` Capture Studio.
+- [x] `R0-059` Capture Studio.
 - [x] `R0-060` Rapport Gate 0.
 - [x] `R0-061` Schéma commun des captures et métriques compatible avec la baseline Cadle.
 - [x] `R0-062` Test prouvant que build/tests Forge passent sans `upstream/cadle/`.
 
 ## Conditions de passage Gate 0
 
-Toutes sont nécessaires :
+Le passage administratif distingue les résultats satisfaits des deux dettes explicitement différées.
+Les cases laissées décochées restent des preuves non acquises ; elles ne deviennent jamais des PASS :
 
 - [x] un clone propre compile sans correction manuelle ;
 - [x] runtime natif lancé ;
@@ -259,15 +272,23 @@ Toutes sont nécessaires :
 - [x] Studio Tauri/Leptos lancé avec canvas ;
 - [x] même document source visible sur les deux cibles ;
 - [x] sélection simple partagée ;
-- [ ] tests et CI verts ;
+- [x] tests locaux automatisés = PASS ;
+- [ ] CI distante Windows/Linux/WASM/supply-chain = NOT RUN — infrastructure billing ; exception
+  administrative ADR-0006, run `33339077298`, zéro étape exécutée ;
 - [x] aucune règle métier en JavaScript ;
 - [x] aucune dépendance à `main` à l’exécution ;
-- [ ] capture et rapport inspectés ;
-- [ ] décision « Studio web confirmé » ou « fallback natif » enregistrée.
+- [ ] captures et rapports inspectés humainement — revues différées sous ADR-0005 ; les ledgers restent
+  `uninspected`, `pending_human_review` et `qualified = false` ;
+- [x] décision « Studio web confirmé » enregistrée par ADR-0005.
+
+Ce verdict ouvre Gate 1 sans qualifier la CI distante, sans inventer un compteur global de draw calls
+et sans transformer une acquisition automatisée en revue humaine.
 
 ---
 
 # Gate 1 — Visual Valley
+
+Statut : **OUVERTE** après le passage automatisé local de Gate 0 sous ADR-0004, ADR-0005 et ADR-0006.
 
 ## But
 

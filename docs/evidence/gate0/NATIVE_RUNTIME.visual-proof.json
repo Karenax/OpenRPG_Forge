@@ -93,7 +93,8 @@
     "method": "automated_then_human",
     "notes": [
       "Automated visual inspection passed.",
-      "A human owner review has not yet been recorded, so this proof cannot close the Gate 0 inspection condition."
+      "A human owner review has not yet been recorded and remains explicitly deferred under ADR-0005.",
+      "The deferred review does not block the separate automated local Gate 0 decision, but this historical envelope remains uninspected."
     ]
   },
   "comparison": {
@@ -143,24 +144,24 @@
       {
         "id": "true_gpu_draw_calls",
         "status": "not_run",
-        "evidence": "Only source-level logical draws and renderer stage diagnostics are available; a true GPU draw-call count was not collected."
+        "evidence": "No true GPU draw-call count was collected in this historical 528a9097 envelope. ADR-0004 later qualifies only an explicit unavailable status for Gate 0; it does not turn source meshes, primitives or shader invocations into a count."
       },
       {
         "id": "human_review",
         "status": "not_run",
-        "evidence": "The owner has not recorded a human visual verdict."
+        "evidence": "The owner has explicitly deferred the human visual verdict under ADR-0005. It remains future work and is not represented as an automated success."
       },
       {
         "id": "remote_ci",
         "status": "not_run",
-        "evidence": "The local commits and workflow have not been published to origin/Rust; GitHub Actions reports zero Rust runs."
+        "evidence": "GitHub Actions run 33335683606 targeted later commit 7286740c18fe9afa6cc207e388d5f335495fc650, but all four jobs were blocked before runner allocation with zero steps because of account billing or spending limits. ADR-0006 classifies remote CI as NOT RUN, never green."
       }
     ],
     "limitations": [
       "The raw capture and metrics remain intentionally local and ignored.",
-      "No human visual review is recorded.",
-      "No true GPU draw-call count is available.",
-      "No remote Windows, Linux or WASM CI run exists for this commit.",
+      "No human visual review is recorded; it is explicitly deferred under ADR-0005.",
+      "No true GPU draw-call count is available; ADR-0004 qualifies only the explicit unavailable status in the later runtime v2 evidence.",
+      "No remote Windows, Linux or WASM CI job executed for this commit; later run 33335683606 also executed zero steps and is NOT RUN under ADR-0006.",
       "The Cadle baseline and the Gate 0 procedural scene are not performance-comparable."
     ]
   }

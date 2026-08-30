@@ -1,9 +1,9 @@
 # Contexte canonique — OpenRPG Forge Rust/WebGPU
 
-Dernière mise à jour : **30 août 2026**  
-Branche : **`Rust`**  
-Statut : **réécriture greenfield expérimentale, non qualifiée**  
-Référence historique : `main@a7f4a3f5dd0eeff1dc060ea1237b1d7d650b7ca0`  
+Dernière mise à jour : **31 août 2026**
+Branche : **`Rust`**
+Statut : **Gate 0 passée sur preuves automatisées locales ; Gate 1 active ; produit non qualifié**
+Référence historique : `main@a7f4a3f5dd0eeff1dc060ea1237b1d7d650b7ca0`
 Référence upstream exécutable : `Humpalumps/Cadle@ea0da62549980816a6a27e08b75808b1f56d70e7` (`v0.6.0`)
 
 Ce document est la source de vérité narrative de la branche `Rust`. Il doit permettre à un agent de
@@ -21,6 +21,12 @@ le snapshot source intact, lance la baseline sous l’overlay npm borné d’ADR
 techniques et de contrats comportementaux. Cadle n’est ni une nouvelle dépendance de production ni le
 runtime final de Forge : son JavaScript/Three.js/WebGL2 doit être progressivement remplacé par des
 implémentations Rust/Bevy/wgpu/WebGPU, avec attribution et preuves comparatives.
+
+Gate C et Gate 0 sont terminées. Le runtime natif, le viewport WASM/WebGPU et le Studio
+Tauri 2 + Leptos partagent une scène Forge versionnée. ADR-0005 confirme ce Studio pour la suite.
+Les revues humaines Gate 0 restent différées et la CI distante reste `NOT RUN` pour blocage de
+facturation ; ADR-0006 autorise jusqu’à Gate 4 une décision sur preuves automatisées locales sans
+jamais transformer ce statut en CI verte.
 
 ---
 
@@ -1183,6 +1189,9 @@ Cette gate passe lorsque deux environnements partant d’un clone propre peuvent
 snapshot source intact, appliquer le même overlay npm épinglé dans un clone jetable, reproduire le jeu
 de référence et retrouver les mêmes scènes de comparaison avec des commandes documentées.
 
+Résultat : **PASS**, selon ADR-0003 et `docs/reports/GATE_C_REPORT.md`. Le snapshot Cadle reste intact
+et aucun asset Cadle n’est entré dans Forge.
+
 ### Gate 0 — Fondation reproductible
 
 Livrables :
@@ -1200,6 +1209,13 @@ Livrables :
 - documentation de build.
 
 La gate passe si un clone propre compile, teste et lance les deux cibles sans étape manuelle cachée.
+
+Résultat : **PASS automatisé local sous ADR-0004, ADR-0005 et ADR-0006**. Le clone propre
+`a7c506f099b50100ad49f3ae6d01d541c9b63d49` a construit et lancé le Studio contrôlé ; WebGPU, la
+scène partagée, l’ACL, l’interaction, le cycle de vie natif et la capture HWND complète sont prouvés.
+La télémétrie globale des draw calls reste indisponible dans Bevy 0.19.1 sous l’exception bornée
+ADR-0004. Les revues humaines sont différées, et les jobs GitHub sont `NOT RUN` avant toute étape à
+cause du blocage de facturation couvert par ADR-0006. Gate 1 est ouverte.
 
 ### Gate 1 — Preuve visuelle et performance
 
@@ -1559,7 +1575,7 @@ dans les crates Rust ni par construire un éditeur complet.
 ### Étape 0 — Préflight documentaire et Git
 
 1. confirmer la branche `Rust` et un worktree propre ;
-2. lire `AGENTS.md`, ce document, ADR-0001, ADR-0002, ADR-0003 et la roadmap ;
+2. lire `AGENTS.md`, ce document, ADR-0001 à ADR-0006 et la roadmap ;
 3. vérifier les références `main` et Cadle épinglées ;
 4. créer un petit commit par résultat cohérent ;
 5. ne jamais modifier `main` ni fusionner son historique.
@@ -1618,7 +1634,8 @@ contrôleur/collisions. Combat, ennemis, quêtes, loot et audio restent différ�
 6. vérifier automatiquement que Forge compile et fonctionne lorsque `upstream/cadle/` est absent ;
 7. ne copier aucun runtime Three.js/JavaScript dans `apps/` ou `crates/`.
 
-Sortie : même scène Forge affichée en natif et dans le Studio, CI verte, outils de comparaison prêts.
+Sortie atteinte : même scène Forge affichée en natif et dans le Studio, validations locales vertes et
+outils de comparaison prêts. La CI distante reste explicitement `NOT RUN` sous ADR-0006.
 
 ### Lot R1 — Reconstruire une vallée Forge en s’appuyant sur Cadle
 
@@ -1669,9 +1686,9 @@ travail de moteur ne commence.
 
 ## 19. Décisions encore ouvertes
 
-Les décisions suivantes ne doivent pas être prises implicitement :
+ADR-0005 confirme Tauri 2 + Leptos/WASM + Bevy WebGPU pour le Studio ; le repli natif Bevy n’est pas
+activé. Les décisions suivantes ne doivent pas être prises implicitement :
 
-- Leptos/Tauri confirmé ou Studio natif Bevy ;
 - fournisseur de navigation ;
 - stratégie terrain exacte ;
 - représentation GPU de la végétation ;
@@ -1721,7 +1738,7 @@ Prouver d’abord une vallée 3D magnifique, éditable et fluide à 60 FPS sur P
 
 SOCLE
 Rust 2024 + Bevy 0.19.x + wgpu/WebGPU + Rapier.
-Studio : Tauri 2 + Leptos/WASM + canvas Bevy WebGPU, sous réserve de Gate 0.
+Studio : Tauri 2 + Leptos/WASM + canvas Bevy WebGPU, confirmé par ADR-0005.
 
 SOURCE DE VÉRITÉ
 Documents JSON versionnés. Jamais une scène Bevy sérialisée comme modèle métier.
@@ -1741,8 +1758,8 @@ UPSTREAM DE RÉFÉRENCE
 Cadle v0.6.0 @ ea0da625 : copie locale épinglée, intacte et mesurée. Code MIT réutilisable avec
 attribution ; assets exclus. Aucune dépendance Three.js/JavaScript dans le produit Forge.
 
-PREMIER TRAVAIL
-Gate C : copier localement Cadle, auditer licences, construire/lancer, capturer la baseline et écrire
-la matrice de reprise. Puis Gate 0 : workspace Cargo, natif, WASM WebGPU, Tauri/Leptos et CI.
-Puis Gate 1 : Visual Valley reconstruite par tranches et comparée à Cadle.
+TRAVAIL ACTIF
+Gate C et Gate 0 sont passées. Gate 1 : Visual Valley reconstruite par tranches et comparée à Cadle,
+avec validations locales ; la CI distante reste NOT RUN sous ADR-0006 tant que les runners ne démarrent
+pas.
 ```
