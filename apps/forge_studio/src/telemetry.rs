@@ -33,7 +33,10 @@ pub fn parse_gate0_probe(search: &str) -> Gate0ProbeMode {
 }
 
 pub fn is_explicit_acl_denial(reason: &str) -> bool {
-    reason.to_ascii_lowercase().contains("explicitly denied")
+    reason
+        .strip_prefix("Commande Tauri échouée : Command ")
+        .and_then(|verdict| verdict.strip_suffix(" not allowed by ACL"))
+        == Some(TAURI_DENIED_COMMAND)
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -384,18 +387,25 @@ mod tests {
     }
 
     #[test]
-    fn acl_denial_requires_the_explicit_tauri_verdict() {
+    fn acl_denial_requires_the_exact_tauri_verdict() {
         assert!(is_explicit_acl_denial(
-            "window.set_title explicitly denied on origin local"
-        ));
-        assert!(is_explicit_acl_denial(
-            "WINDOW.SET_TITLE EXPLICITLY DENIED ON ORIGIN LOCAL"
+            "Commande Tauri échouée : Command plugin:window|set_title not allowed by ACL"
         ));
         assert!(!is_explicit_acl_denial(
-            "command not allowed on any window/webview/URL context"
+            "Commande Tauri échouée : Command plugin:window|close not allowed by ACL"
         ));
-        assert!(!is_explicit_acl_denial("permission denied"));
-        assert!(!is_explicit_acl_denial("forbidden"));
+        assert!(!is_explicit_acl_denial(
+            "Commande Tauri échouée : Command plugin:window|set_title denied"
+        ));
+        assert!(!is_explicit_acl_denial(
+            "Command plugin:window|set_title not allowed by ACL"
+        ));
+        assert!(!is_explicit_acl_denial(
+            "Commande Tauri échouée : Command plugin:window|set_title not allowed by ACL (cached)"
+        ));
+        assert!(!is_explicit_acl_denial(
+            "window.set_title explicitly denied on origin local"
+        ));
     }
 
     #[test]
