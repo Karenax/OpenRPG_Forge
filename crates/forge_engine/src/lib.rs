@@ -2,6 +2,13 @@
 
 //! Bevy rendering adapter for shared Forge documents.
 
+mod visual_valley;
+
+pub use visual_valley::{
+    VisualValleyAdapterError, VisualValleyDebug, VisualValleyPlugin, VisualValleyStats,
+    VisualValleyTerrainChunk, VisualValleyTerrainExtension, VisualValleyTerrainMaterial,
+};
+
 use bevy::{
     diagnostic::{DiagnosticsStore, EntityCountDiagnosticsPlugin, FrameTimeDiagnosticsPlugin},
     prelude::*,
@@ -53,6 +60,8 @@ pub struct WindowResizeRequest {
 
 #[derive(Clone, Debug, Default, Resource, Serialize)]
 pub struct ProofSceneStats {
+    /// Canonical input records represented by this runtime scene. Visual Valley has one terrain
+    /// document; its 64 chunks are derived meshes, not 64 persistent source entities.
     pub source_entities: usize,
     /// Mesh instances materialized from the source document; never a GPU draw-call count.
     pub source_mesh_instances: usize,
@@ -135,6 +144,8 @@ struct RuntimeMetricsReport {
     frame: FrameMetrics,
     render_diagnostics: Vec<NamedDiagnostic>,
     render_work: RenderWorkReport,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    visual_valley: Option<VisualValleyStats>,
 }
 
 #[derive(Debug, Serialize)]
@@ -180,6 +191,55 @@ pub struct ProofScenePlugin {
     automation: RuntimeAutomation,
 }
 
+/// Shared diagnostics, capture, frame ledger and lifecycle plumbing for one rendered scene.
+///
+/// This remains crate-private: applications select a concrete scene plugin, never the evidence
+/// harness by itself.
+struct RuntimeEvidencePlugin {
+    automation: RuntimeAutomation,
+}
+
+impl RuntimeEvidencePlugin {
+    fn new(automation: RuntimeAutomation) -> Self {
+        Self { automation }
+    }
+}
+
+impl Plugin for RuntimeEvidencePlugin {
+    fn build(&self, app: &mut App) {
+        app.insert_resource(self.automation.clone())
+            .insert_resource(WindowLifecycle::new(
+                self.automation.resize_request,
+                self.automation.close_at_frame,
+            ))
+            .init_resource::<ProofSceneStats>()
+            .init_resource::<AdapterLogged>()
+            .init_resource::<FrameLedger>()
+            .add_plugins((
+                FrameTimeDiagnosticsPlugin::default(),
+                EntityCountDiagnosticsPlugin::default(),
+                RenderDiagnosticsPlugin,
+            ))
+            .add_systems(
+                Startup,
+                (initialize_diagnostics_overlay, initialize_window_lifecycle).chain(),
+            )
+            .add_systems(
+                Update,
+                (
+                    record_gpu_diagnostic,
+                    request_automated_resize,
+                    request_automated_close,
+                    observe_window_events,
+                    update_overlay,
+                    capture_at_requested_frame,
+                )
+                    .chain(),
+            )
+            .add_systems(Last, (collect_frame_sample, write_metrics_and_exit).chain());
+    }
+}
+
 impl ProofScenePlugin {
     #[must_use]
     pub fn new(document: SceneProofDocument) -> Self {
@@ -206,38 +266,12 @@ impl Plugin for ProofScenePlugin {
             .validate()
             .expect("ProofScenePlugin requires a validated document");
         app.insert_resource(ProofScene(self.document.clone()))
-            .insert_resource(self.automation.clone())
-            .insert_resource(WindowLifecycle::new(
-                self.automation.resize_request,
-                self.automation.close_at_frame,
-            ))
-            .init_resource::<ProofSceneStats>()
             .init_resource::<ProofSelection>()
-            .init_resource::<AdapterLogged>()
-            .init_resource::<FrameLedger>()
             .add_plugins((
-                FrameTimeDiagnosticsPlugin::default(),
-                EntityCountDiagnosticsPlugin::default(),
-                RenderDiagnosticsPlugin,
+                RuntimeEvidencePlugin::new(self.automation.clone()),
                 MeshPickingPlugin,
             ))
-            .add_systems(
-                Startup,
-                (spawn_proof_scene, initialize_window_lifecycle).chain(),
-            )
-            .add_systems(
-                Update,
-                (
-                    record_gpu_diagnostic,
-                    request_automated_resize,
-                    request_automated_close,
-                    observe_window_events,
-                    update_overlay,
-                    capture_at_requested_frame,
-                )
-                    .chain(),
-            )
-            .add_systems(Last, (collect_frame_sample, write_metrics_and_exit).chain());
+            .add_systems(Startup, spawn_proof_scene);
     }
 }
 
@@ -594,8 +628,6 @@ fn spawn_proof_scene(
         }
     }
 
-    spawn_diagnostics_overlay(&mut commands);
-
     info!(
         target: "forge::scene",
         schema = "forge.runtime-event",
@@ -628,6 +660,10 @@ fn spawn_diagnostics_overlay(commands: &mut Commands) {
         BackgroundColor(Color::srgba(0.01, 0.02, 0.04, 0.78)),
         ZIndex(100),
     ));
+}
+
+fn initialize_diagnostics_overlay(mut commands: Commands) {
+    spawn_diagnostics_overlay(&mut commands);
 }
 
 fn spawn_pickable_mesh(
@@ -680,6 +716,7 @@ fn select_proof_entity(
 fn update_overlay(
     diagnostics: Res<DiagnosticsStore>,
     stats: Res<ProofSceneStats>,
+    visual_valley: Option<Res<VisualValleyStats>>,
     gpu: Option<Res<GpuDiagnostic>>,
     mut overlay: Single<&mut Text, With<DiagnosticsOverlay>>,
 ) {
@@ -695,13 +732,20 @@ fn update_overlay(
         .as_ref()
         .map_or("initialisation GPU", |gpu| gpu.name.as_str());
     let render_work = build_render_work_report(&stats, &diagnostics);
-    **overlay = Text::new(format_diagnostics_overlay(
-        adapter,
-        fps,
-        frame_ms,
-        &stats,
-        &render_work,
-    ));
+    **overlay = Text::new(if let Some(visual_valley) = visual_valley {
+        let logical_details = visual_valley.overlay_details();
+        format_runtime_diagnostics_overlay(
+            "OpenRPG Forge · Gate 1 / Visual Valley",
+            adapter,
+            fps,
+            frame_ms,
+            &stats,
+            &render_work,
+            Some(&logical_details),
+        )
+    } else {
+        format_diagnostics_overlay(adapter, fps, frame_ms, &stats, &render_work)
+    });
 }
 
 fn format_diagnostics_overlay(
@@ -710,6 +754,26 @@ fn format_diagnostics_overlay(
     frame_ms: f64,
     stats: &ProofSceneStats,
     render_work: &RenderWorkReport,
+) -> String {
+    format_runtime_diagnostics_overlay(
+        "OpenRPG Forge · Gate 0",
+        adapter,
+        fps,
+        frame_ms,
+        stats,
+        render_work,
+        None,
+    )
+}
+
+fn format_runtime_diagnostics_overlay(
+    title: &str,
+    adapter: &str,
+    fps: f64,
+    frame_ms: f64,
+    stats: &ProofSceneStats,
+    render_work: &RenderWorkReport,
+    logical_details: Option<&str>,
 ) -> String {
     let gpu_work = match (
         render_work.gpu_main_opaque_primitives,
@@ -721,10 +785,15 @@ fn format_diagnostics_overlay(
         (Some(primitives), None) => format!("GPU opaque : {primitives:.0} primitives"),
         _ => "Statistiques pipeline GPU : indisponibles".to_owned(),
     };
-    format!(
-        "OpenRPG Forge · Gate 0\n{adapter}\n{fps:6.1} FPS · {frame_ms:5.2} ms\n{} entités source · {} maillages source\nDraw calls GPU : indisponibles\n{gpu_work}\n{}",
+    let mut output = format!(
+        "{title}\n{adapter}\n{fps:6.1} FPS · {frame_ms:5.2} ms\n{} entités source · {} maillages source\nDraw calls GPU : indisponibles\n{gpu_work}\n{}",
         stats.source_entities, stats.source_mesh_instances, stats.source_hash
-    )
+    );
+    if let Some(logical_details) = logical_details {
+        output.push('\n');
+        output.push_str(logical_details);
+    }
+    output
 }
 
 fn build_render_work_report(
@@ -862,6 +931,7 @@ fn write_metrics_and_exit(
     automation: Res<RuntimeAutomation>,
     ledger: Res<FrameLedger>,
     stats: Res<ProofSceneStats>,
+    visual_valley: Option<Res<VisualValleyStats>>,
     gpu: Option<Res<GpuDiagnostic>>,
     diagnostics: Res<DiagnosticsStore>,
     windows: Query<&Window, With<PrimaryWindow>>,
@@ -922,6 +992,7 @@ fn write_metrics_and_exit(
         match build_runtime_metrics(
             &ledger.0,
             &stats,
+            visual_valley.as_deref(),
             gpu.as_deref(),
             &diagnostics,
             &lifecycle,
@@ -997,6 +1068,7 @@ fn capture_artifact_size(path: &Path) -> Result<u64, String> {
 fn build_runtime_metrics(
     samples: &[f64],
     stats: &ProofSceneStats,
+    visual_valley: Option<&VisualValleyStats>,
     gpu: Option<&GpuDiagnostic>,
     diagnostics: &DiagnosticsStore,
     lifecycle: &WindowLifecycle,
@@ -1050,6 +1122,7 @@ fn build_runtime_metrics(
         frame,
         render_diagnostics,
         render_work: build_render_work_report(stats, diagnostics),
+        visual_valley: visual_valley.cloned(),
     })
 }
 
@@ -1099,14 +1172,56 @@ mod tests {
         let diagnostics = DiagnosticsStore::default();
         let lifecycle = WindowLifecycle::new(None, None);
         let report =
-            build_runtime_metrics(&samples, &stats, None, &diagnostics, &lifecycle, None).unwrap();
+            build_runtime_metrics(&samples, &stats, None, None, &diagnostics, &lifecycle, None)
+                .unwrap();
         assert_eq!(report.schema_version, 2);
+        assert!(report.visual_valley.is_none());
+        assert!(
+            serde_json::to_value(&report)
+                .unwrap()
+                .get("visual_valley")
+                .is_none()
+        );
         assert_eq!(report.frame.samples, 200);
         assert!((report.frame.p50_ms - 100.0).abs() < f64::EPSILON);
         assert!((report.frame.p95_ms - 190.0).abs() < f64::EPSILON);
         assert!((report.frame.p99_ms - 198.0).abs() < f64::EPSILON);
         assert!((report.frame.max_ms - 200.0).abs() < f64::EPSILON);
         assert!((report.frame.one_percent_low_fps - (1_000.0 / 199.5)).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn gate1_metrics_preserve_machine_readable_terrain_counts() {
+        let stats = ProofSceneStats {
+            source_entities: 1,
+            source_mesh_instances: 64,
+            source_hash: "terrain".to_owned(),
+        };
+        let visual_valley = VisualValleyStats {
+            source_hash: "terrain".to_owned(),
+            chunks: 64,
+            vertices: 69_696,
+            triangles: 131_072,
+            material_layers: 3,
+            lod_levels: 1,
+            lod_zero_chunks: 64,
+        };
+        let report = build_runtime_metrics(
+            &[8.0],
+            &stats,
+            Some(&visual_valley),
+            None,
+            &DiagnosticsStore::default(),
+            &WindowLifecycle::new(None, None),
+            None,
+        )
+        .unwrap();
+
+        assert_eq!(report.visual_valley, Some(visual_valley));
+        let serialized = serde_json::to_value(&report).unwrap();
+        assert_eq!(serialized["visual_valley"]["chunks"], 64);
+        assert_eq!(serialized["visual_valley"]["vertices"], 69_696);
+        assert_eq!(serialized["visual_valley"]["triangles"], 131_072);
     }
 
     #[test]

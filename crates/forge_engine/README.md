@@ -1,7 +1,9 @@
 # forge_engine
 
-Adapts the engine-neutral `SceneProofDocument` to Bevy entities. It owns rendering diagnostics and
-the procedural Gate 0 scene, but never becomes the persistent source of truth.
+Adapts engine-neutral Forge documents to Bevy entities. `ProofScenePlugin` keeps the Gate 0 scene
+API intact. `VisualValleyPlugin` consumes a validated `TerrainDocument`, asks `forge_world` for the
+deterministic derived terrain and materializes its 64 chunks without becoming a persistent source of
+truth.
 
 The `native` and `web` features are built separately so Cargo cannot accidentally unify platform
 requirements during qualification.
@@ -21,3 +23,13 @@ WebGL2, Bevy 0.19 also limits its built-in render diagnostics to CPU timings.
 The metrics report records requested presentation mode, resizability, initial/final dimensions,
 backend-confirmed resize events and clean close requests. Presentation mode is deliberately named a
 request because a platform surface may select a documented fallback internally.
+
+The first Gate 1 terrain adapter keeps positions, normals, global UVs and logical material weights in
+each `Mesh` with both `MAIN_WORLD` and `RENDER_WORLD` usage. `COLOR.rgb` carries grass/earth/rock
+weights into an original `ExtendedMaterial<StandardMaterial, _>` WGSL shader. The shader blends three
+procedural PBR palettes; it does not load any texture or external asset. `VisualValleyStats` exposes
+derived logical chunk, vertex, triangle, material-layer and current LOD-0 counts in both the overlay
+and the optional `visual_valley` section of the metrics ledger. The shared legacy fields count one
+canonical terrain document as `source_entities` and the 64 derived Bevy meshes as
+`source_mesh_instances`; neither field is a GPU draw-call count. Chunk/LOD boundaries use a dedicated
+opt-in gizmo group, never Bevy wireframe rendering.

@@ -3381,6 +3381,7 @@ dependencies = [
  "bevy",
  "forge_core",
  "forge_project",
+ "forge_world",
  "serde",
  "serde_json",
  "tracing",

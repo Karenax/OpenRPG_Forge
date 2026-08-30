@@ -3,10 +3,21 @@
 //! Deterministic world recipes. Rendering remains an adapter responsibility.
 
 mod terrain;
+mod terrain_generation;
 
 pub use terrain::{
     VISUAL_VALLEY_SEED, VISUAL_VALLEY_SIZE_M, VISUAL_VALLEY_TERRAIN_JSON,
     VisualValleyTerrainRecipe, embedded_visual_valley_terrain_document,
+};
+pub use terrain_generation::{
+    GeneratedTerrain, TERRAIN_CHUNK_COUNT, TERRAIN_CHUNK_INTERVALS,
+    TERRAIN_CHUNK_VERTICES_PER_AXIS, TERRAIN_CHUNKS_PER_AXIS, TERRAIN_EXTENT_M,
+    TERRAIN_GLOBAL_INTERVALS_PER_AXIS, TERRAIN_GLOBAL_VERTICES_PER_AXIS, TERRAIN_HALF_EXTENT_M,
+    TERRAIN_SAMPLE_SPACING_M, TERRAIN_TRIANGLE_COUNT, TERRAIN_VERTEX_COUNT,
+    TerrainChunkColliderData, TerrainChunkCoordinate, TerrainChunkId, TerrainChunkMesh,
+    TerrainColliderTriangleOrder, TerrainColliderVertexOrder, TerrainDirtyChunk, TerrainDirtyPlan,
+    TerrainGenerationError, TerrainGenerationPlan, TerrainMaterialWeights, TerrainSampleRegion,
+    sample_height,
 };
 
 use forge_core::{AreaId, ProjectId, Revision, Transform, UnitQuaternion, Vec3};
