@@ -72,7 +72,7 @@ local path  upstream/cadle/  (ignored)
 - [x] `C-010` Interdire le suivi, le cache CI, le packaging et la publication des assets/captures Cadle par un check automatisé.
 - [x] `C-011` Interdire toute dépendance Cargo/app Forge vers `upstream/cadle/`.
 - [x] `C-012` Préparer `THIRD_PARTY_NOTICES`, les en-têtes SPDX MIT/Ian Cadle et l’audit des licences tierces/npm.
-- [ ] `C-013` Vérifier que supprimer le clone ne casse aucun check Forge existant.
+- [x] `C-013` Vérifier que supprimer le clone ne casse aucun check Forge existant.
 
 Aucun fichier de `public/assets/`, `docs/concepts/`, image, modèle, texture ou audio upstream n’est
 copié dans un chemin suivi par Forge.
@@ -121,7 +121,7 @@ committées ni publiées, car elles contiennent des assets exclus du grant MIT.
 
 Toutes sont nécessaires :
 
-- [ ] récupération exacte et idempotente depuis un clone Forge propre ;
+- [x] récupération exacte et idempotente depuis un clone Forge propre ;
 - [x] commit Cadle et arbre propre vérifiés ;
 - [x] licence code et exclusion assets comprises et contrôlées ;
 - [ ] build et checks non GPU exécutés ;

@@ -38,6 +38,8 @@ useful characterization only and do not replace a reproducible intact install.
 | PowerShell acquisition and `-VerifyOnly` | PASS |
 | Git Bash `get-cadle.sh --verify-only` | PASS on Windows Git Bash; native Linux still unproven |
 | second acquisition | PASS, identical commit/tree/status |
+| clean Forge clone without Cadle checkout | PASS, boundary check reports `checkout_present=False` |
+| acquisition twice from clean Forge clone | PASS, exact commit/tree both times; Forge worktree remains clean |
 | Cadle checkout | detached, exact commit/tree, clean |
 | Forge boundary check | PASS; only lock/README allowed under tracked `upstream/` |
 | dependency audit export | PASS; 46 locked packages, 5 direct dependencies missing |
@@ -86,3 +88,8 @@ lock must live in a clearly derived environment and cannot be called the intact 
 Gate 0 may start only after a new Gate C report records a successful reproducible install, build,
 launch, visual/performance protocol and independent clean-clone reproduction. Until then the global
 state remains Gate C blocked.
+
+The clean-clone acquisition was reproduced locally in
+`E:\OpenRPG_Forge\OpenRPG_Forge-Rust-GateC-Validation-20260830`. It validates C-013 and acquisition
+idempotence, but it does not satisfy the stronger final requirement for two independent agents and
+two independent environments.
