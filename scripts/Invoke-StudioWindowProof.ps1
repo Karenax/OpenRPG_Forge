@@ -56,6 +56,21 @@ function ConvertTo-CompactJson {
     return ($Value | ConvertTo-Json -Depth 24 -Compress)
 }
 
+function ConvertFrom-ExactJson {
+    param(
+        [Parameter(Mandatory)]
+        [string]$Json
+    )
+
+    $parameters = @{ Depth = 24 }
+    if ((Get-Command ConvertFrom-Json).Parameters.ContainsKey('DateKind')) {
+        # PowerShell 7.5+ otherwise converts ISO timestamps to DateTime and
+        # destroys the exact canonical representation the proof must validate.
+        $parameters.DateKind = 'String'
+    }
+    return ($Json | ConvertFrom-Json @parameters)
+}
+
 function Wait-NonGenericTask {
     param(
         [Parameter(Mandatory)]
@@ -73,7 +88,7 @@ function Copy-JsonValue {
         [object]$Value
     )
 
-    return ((ConvertTo-CompactJson -Value $Value) | ConvertFrom-Json -Depth 24)
+    return (ConvertFrom-ExactJson -Json (ConvertTo-CompactJson -Value $Value))
 }
 
 function Assert-JsonSchema {
@@ -350,7 +365,7 @@ function Assert-CaptureLedger {
         Assert-FileDescriptor -Descriptor $Ledger.capture -Description 'Studio window capture'
 
         $linkedTelemetryJson = Get-Content -LiteralPath $Ledger.telemetry.ledger.path -Raw
-        $linkedTelemetry = $linkedTelemetryJson | ConvertFrom-Json -Depth 24
+        $linkedTelemetry = ConvertFrom-ExactJson -Json $linkedTelemetryJson
         Assert-TelemetryLedger -Ledger $linkedTelemetry -RawJson $linkedTelemetryJson
 
         $linkedImage = [System.Drawing.Image]::FromFile([string]$Ledger.capture.path)
@@ -386,6 +401,18 @@ function Assert-ActionThrows {
 }
 
 function Invoke-SelfTest {
+    foreach ($expectedTimestamp in @(
+        '2026-08-30T10:00:00.000Z',
+        '2026-08-30T10:00:00.0000000+00:00'
+    )) {
+        $timestampJson = ConvertTo-CompactJson -Value ([ordered]@{ recorded_at_utc = $expectedTimestamp })
+        $timestampLedger = ConvertFrom-ExactJson -Json $timestampJson
+        if ($timestampLedger.recorded_at_utc -isnot [string] -or $timestampLedger.recorded_at_utc -cne $expectedTimestamp) {
+            throw 'Exact JSON parsing changed a canonical UTC timestamp representation.'
+        }
+        [void](Assert-IsoTimestamp -Value $timestampLedger.recorded_at_utc -Name 'self-test.recorded_at_utc')
+    }
+
     $taskPipelineOutput = @(Wait-NonGenericTask -Task ([System.Threading.Tasks.Task]::CompletedTask))
     if ($taskPipelineOutput.Count -ne 0) {
         throw 'Non-generic Task completion leaked an object into the PowerShell pipeline.'
@@ -1104,7 +1131,7 @@ function Invoke-CdpExpression {
                 $stream.Dispose()
             }
 
-            $response = $responseText | ConvertFrom-Json -Depth 24
+            $response = ConvertFrom-ExactJson -Json $responseText
             if ($response.PSObject.Properties.Name -contains 'id' -and [int]$response.id -eq $messageId) {
                 if ($response.PSObject.Properties.Name -contains 'error') {
                     throw "CDP Runtime.evaluate failed: $($response.error.message)"
@@ -1248,7 +1275,7 @@ function Get-QualifiedTelemetryFromCdp {
 })()
 '@
         try {
-            $interactionAttempt = ([string]$interactionAttemptJson) | ConvertFrom-Json -Depth 24
+            $interactionAttempt = ConvertFrom-ExactJson -Json ([string]$interactionAttemptJson)
         }
         catch {
             throw "CDP interaction precondition response is not valid JSON: $($_.Exception.Message)"
@@ -1258,7 +1285,7 @@ function Get-QualifiedTelemetryFromCdp {
         }
         if (-not [string]::IsNullOrWhiteSpace([string]$interactionAttempt.ledger)) {
             try {
-                $preInteractionLedger = ([string]$interactionAttempt.ledger) | ConvertFrom-Json -Depth 24
+                $preInteractionLedger = ConvertFrom-ExactJson -Json ([string]$interactionAttempt.ledger)
             }
             catch {
                 throw "The hidden telemetry ledger is not valid JSON before interaction: $($_.Exception.Message)"
@@ -1299,7 +1326,7 @@ document.getElementById("gate0-telemetry-ledger")?.textContent ?? ""
 '@
         if (-not [string]::IsNullOrWhiteSpace([string]$rawJson)) {
             try {
-                $ledger = ([string]$rawJson) | ConvertFrom-Json -Depth 24
+                $ledger = ConvertFrom-ExactJson -Json ([string]$rawJson)
             }
             catch {
                 throw "The hidden telemetry ledger is not valid JSON: $($_.Exception.Message)"
@@ -1328,7 +1355,7 @@ Assert-FileExists -LiteralPath $captureSchemaPath -Description 'Capture schema'
 Assert-FileExists -LiteralPath $proofConfigurationPath -Description 'Gate 0 proof configuration'
 
 foreach ($jsonFile in @($telemetrySchemaPath, $captureSchemaPath, $proofConfigurationPath)) {
-    [void]((Get-Content -LiteralPath $jsonFile -Raw) | ConvertFrom-Json -Depth 24)
+    [void](ConvertFrom-ExactJson -Json (Get-Content -LiteralPath $jsonFile -Raw))
 }
 
 if ($SelfTest) {
@@ -1505,7 +1532,7 @@ try {
     $ledgerPath = Join-Path $resolvedOutput "studio-window-$stamp.json"
     [System.IO.File]::WriteAllText($telemetryPath, $telemetryEvidence.RawJson, [System.Text.UTF8Encoding]::new($false))
     $persistedTelemetryJson = Get-Content -LiteralPath $telemetryPath -Raw
-    $persistedTelemetry = $persistedTelemetryJson | ConvertFrom-Json -Depth 24
+    $persistedTelemetry = ConvertFrom-ExactJson -Json $persistedTelemetryJson
     Assert-TelemetryLedger -Ledger $persistedTelemetry -RawJson $persistedTelemetryJson
 
     $process.Refresh()
@@ -1688,7 +1715,7 @@ try {
     Assert-CaptureLedger -Ledger $ledger -RawJson $ledgerJson -ExpectedExecutablePath $canonicalExecutable -ExpectedOutputDirectory $resolvedOutput -ExpectedLedgerPath $ledgerPath -ValidateFiles
     [System.IO.File]::WriteAllText($ledgerPath, $ledgerJson, [System.Text.UTF8Encoding]::new($false))
     $persistedLedgerJson = Get-Content -LiteralPath $ledgerPath -Raw
-    $persistedLedger = $persistedLedgerJson | ConvertFrom-Json -Depth 24
+    $persistedLedger = ConvertFrom-ExactJson -Json $persistedLedgerJson
     Assert-CaptureLedger -Ledger $persistedLedger -RawJson $persistedLedgerJson -ExpectedExecutablePath $canonicalExecutable -ExpectedOutputDirectory $resolvedOutput -ExpectedLedgerPath $ledgerPath -ValidateFiles
 
     $acquisitionCompleted = $true
