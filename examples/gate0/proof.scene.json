@@ -1,0 +1,122 @@
+{
+  "schema": "forge.scene-proof",
+  "schema_version": 1,
+  "project_id": "9d277109-d4e2-5944-a176-dbd363b5e341",
+  "area_id": "fe97fac5-6865-5d8d-9744-f656f361eb88",
+  "revision": 1,
+  "coordinate_system": {
+    "length_unit": "metre",
+    "up_axis": "y",
+    "handedness": "right"
+  },
+  "name": "Gate 0 procedural proof",
+  "entities": [
+    {
+      "id": "995e5c6e-b70a-5793-b804-54e09058c181",
+      "name": "Procedural ground",
+      "transform": {
+        "translation_m": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "rotation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "w": 1.0
+        },
+        "scale": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        }
+      },
+      "kind": {
+        "type": "ground",
+        "size_x_m": 16.0,
+        "size_z_m": 16.0
+      }
+    },
+    {
+      "id": "ae91d914-98e9-52d4-80d1-4fddc482988d",
+      "name": "Procedural cube",
+      "transform": {
+        "translation_m": {
+          "x": 0.0,
+          "y": 0.5,
+          "z": 0.0
+        },
+        "rotation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "w": 1.0
+        },
+        "scale": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        }
+      },
+      "kind": {
+        "type": "cube",
+        "edge_m": 1.0
+      }
+    },
+    {
+      "id": "9830f2ff-c1fd-593e-8445-f961aafbb03b",
+      "name": "Proof sun",
+      "transform": {
+        "translation_m": {
+          "x": 0.0,
+          "y": 8.0,
+          "z": 0.0
+        },
+        "rotation": {
+          "x": -0.38268343,
+          "y": 0.0,
+          "z": 0.0,
+          "w": 0.9238795
+        },
+        "scale": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        }
+      },
+      "kind": {
+        "type": "directional_light",
+        "illuminance_lux": 30000.0
+      }
+    },
+    {
+      "id": "a00fa983-5e18-5d55-9b43-19aa0473c2e8",
+      "name": "Proof camera",
+      "transform": {
+        "translation_m": {
+          "x": 0.0,
+          "y": 2.0,
+          "z": 8.0
+        },
+        "rotation": {
+          "x": -0.09254,
+          "y": 0.0,
+          "z": 0.0,
+          "w": 0.995708
+        },
+        "scale": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        }
+      },
+      "kind": {
+        "type": "camera",
+        "vertical_fov_degrees": 60.0,
+        "near_m": 0.1,
+        "far_m": 1000.0
+      }
+    }
+  ]
+}

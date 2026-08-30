@@ -1,0 +1,243 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:openrpg-forge:schema:forge.scene-proof:1",
+  "title": "OpenRPG Forge SceneProofDocument v1",
+  "description": "Engine-neutral Gate 0 scene document. Semantic validation additionally requires unique entity IDs, exactly one camera, at least one directional light, normalized quaternions, and camera far_m greater than near_m.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "project_id",
+    "area_id",
+    "revision",
+    "coordinate_system",
+    "name",
+    "entities"
+  ],
+  "properties": {
+    "schema": {
+      "const": "forge.scene-proof"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "project_id": {
+      "$ref": "#/$defs/uuid"
+    },
+    "area_id": {
+      "$ref": "#/$defs/uuid"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0,
+      "$comment": "Rust deserialization additionally bounds this value to u64."
+    },
+    "coordinate_system": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["length_unit", "up_axis", "handedness"],
+      "properties": {
+        "length_unit": {
+          "const": "metre"
+        },
+        "up_axis": {
+          "const": "y"
+        },
+        "handedness": {
+          "const": "right"
+        }
+      }
+    },
+    "name": {
+      "$ref": "#/$defs/non_blank_string"
+    },
+    "entities": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/entity"
+      }
+    }
+  },
+  "$defs": {
+    "uuid": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "non_blank_string": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "finite_number": {
+      "type": "number"
+    },
+    "positive_number": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "vec3": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "z"],
+      "properties": {
+        "x": {
+          "$ref": "#/$defs/finite_number"
+        },
+        "y": {
+          "$ref": "#/$defs/finite_number"
+        },
+        "z": {
+          "$ref": "#/$defs/finite_number"
+        }
+      }
+    },
+    "positive_vec3": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "z"],
+      "properties": {
+        "x": {
+          "$ref": "#/$defs/positive_number"
+        },
+        "y": {
+          "$ref": "#/$defs/positive_number"
+        },
+        "z": {
+          "$ref": "#/$defs/positive_number"
+        }
+      }
+    },
+    "unit_quaternion": {
+      "type": "object",
+      "description": "Quaternion serialized in x, y, z, w order. Unit length is enforced by Rust semantic validation.",
+      "additionalProperties": false,
+      "required": ["x", "y", "z", "w"],
+      "properties": {
+        "x": {
+          "type": "number",
+          "minimum": -1,
+          "maximum": 1
+        },
+        "y": {
+          "type": "number",
+          "minimum": -1,
+          "maximum": 1
+        },
+        "z": {
+          "type": "number",
+          "minimum": -1,
+          "maximum": 1
+        },
+        "w": {
+          "type": "number",
+          "minimum": -1,
+          "maximum": 1
+        }
+      }
+    },
+    "transform": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["translation_m", "rotation", "scale"],
+      "properties": {
+        "translation_m": {
+          "$ref": "#/$defs/vec3"
+        },
+        "rotation": {
+          "$ref": "#/$defs/unit_quaternion"
+        },
+        "scale": {
+          "$ref": "#/$defs/positive_vec3"
+        }
+      }
+    },
+    "kind": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "size_x_m", "size_z_m"],
+          "properties": {
+            "type": {
+              "const": "ground"
+            },
+            "size_x_m": {
+              "$ref": "#/$defs/positive_number"
+            },
+            "size_z_m": {
+              "$ref": "#/$defs/positive_number"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "edge_m"],
+          "properties": {
+            "type": {
+              "const": "cube"
+            },
+            "edge_m": {
+              "$ref": "#/$defs/positive_number"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "illuminance_lux"],
+          "properties": {
+            "type": {
+              "const": "directional_light"
+            },
+            "illuminance_lux": {
+              "$ref": "#/$defs/positive_number"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "vertical_fov_degrees", "near_m", "far_m"],
+          "properties": {
+            "type": {
+              "const": "camera"
+            },
+            "vertical_fov_degrees": {
+              "type": "number",
+              "exclusiveMinimum": 1,
+              "exclusiveMaximum": 179
+            },
+            "near_m": {
+              "$ref": "#/$defs/positive_number"
+            },
+            "far_m": {
+              "$ref": "#/$defs/positive_number"
+            }
+          }
+        }
+      ]
+    },
+    "entity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "transform", "kind"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "name": {
+          "$ref": "#/$defs/non_blank_string"
+        },
+        "transform": {
+          "$ref": "#/$defs/transform"
+        },
+        "kind": {
+          "$ref": "#/$defs/kind"
+        }
+      }
+    }
+  }
+}

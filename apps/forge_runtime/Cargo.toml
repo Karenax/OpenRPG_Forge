@@ -1,0 +1,22 @@
+[package]
+name = "forge_runtime"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+description = "Native Bevy runtime for OpenRPG Forge."
+
+[features]
+default = ["native"]
+native = ["forge_engine/native"]
+
+[dependencies]
+bevy.workspace = true
+forge_core.workspace = true
+forge_engine.workspace = true
+forge_project.workspace = true
+forge_world.workspace = true
+
+[lints]
+workspace = true

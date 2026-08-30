@@ -1,0 +1,17 @@
+[package]
+name = "forge_project"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+description = "Versioned engine-neutral Forge project and scene-proof documents."
+
+[dependencies]
+forge_core.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+
+[lints]
+workspace = true

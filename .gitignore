@@ -2,3 +2,15 @@
 /artifacts/cadle-baseline/
 /artifacts/cadle-gate-c/
 /npm-debug.log*
+target/
+**/Cargo.lock
+!/Cargo.lock
+/apps/forge_studio/dist/
+/apps/forge_studio/.trunk/
+/apps/forge_studio/gen/
+/apps/forge_studio/src-tauri/target/
+/artifacts/forge-runtime/
+/artifacts/forge-studio/
+/artifacts/gate-0/
+*.pdb
+*.wasm.map

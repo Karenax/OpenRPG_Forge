@@ -1,0 +1,60 @@
+[package]
+name = "forge_studio"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+description = "Tauri 2 and Leptos shell hosting the OpenRPG Forge WebGPU viewport."
+
+[lib]
+name = "forge_studio_frontend"
+crate-type = ["cdylib", "rlib"]
+
+[[bin]]
+name = "forge-studio"
+path = "src/main.rs"
+required-features = ["desktop"]
+
+[features]
+default = ["desktop"]
+desktop = ["dep:tauri"]
+web = [
+    "dep:bevy",
+    "dep:console_error_panic_hook",
+    "dep:forge_engine",
+    "dep:leptos",
+    "dep:js-sys",
+    "dep:wasm-bindgen",
+    "dep:wasm-bindgen-futures",
+    "dep:web-sys",
+    "dep:serde-wasm-bindgen",
+    "forge_engine/web",
+]
+
+[dependencies]
+forge_core.workspace = true
+forge_project.workspace = true
+forge_world.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+tauri = { version = "=2.11.5", optional = true , features = [] }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+bevy = { workspace = true, features = ["webgpu"], optional = true }
+console_error_panic_hook = { workspace = true, optional = true }
+forge_engine = { workspace = true, optional = true }
+js-sys = { workspace = true, optional = true }
+leptos = { workspace = true, optional = true }
+serde-wasm-bindgen = { workspace = true, optional = true }
+wasm-bindgen = { workspace = true, optional = true }
+wasm-bindgen-futures = { workspace = true, optional = true }
+web-sys = { workspace = true, features = ["console", "CustomEvent", "CustomEventInit", "EventTarget", "Navigator", "Window"], optional = true }
+
+[build-dependencies]
+tauri-build = "=2.6.3"
+
+[lints]
+workspace = true

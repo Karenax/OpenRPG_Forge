@@ -1,0 +1,18 @@
+[package]
+name = "forge_cli"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+description = "Reproducible validation and hashing commands for OpenRPG Forge documents."
+
+[dependencies]
+clap = { version = "4.6.6", features = ["derive"] }
+forge_core.workspace = true
+forge_project.workspace = true
+forge_world.workspace = true
+thiserror.workspace = true
+
+[lints]
+workspace = true

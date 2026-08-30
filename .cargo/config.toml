@@ -1,0 +1,11 @@
+[alias]
+xcheck = "check --workspace --all-targets"
+xclippy = "clippy --workspace --all-targets -- -D warnings"
+xtest = "test --workspace --all-targets"
+xwasm = "build -p forge_studio --target wasm32-unknown-unknown --profile wasm-release --no-default-features --features web"
+
+[build]
+incremental = true
+
+[term]
+color = "always"
