@@ -32,16 +32,21 @@ Avant toute modification :
 1. lire [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) ;
 2. lire [`AGENTS.md`](AGENTS.md) ;
 3. lire [`docs/ADR/ADR-0001-rust-webgpu-greenfield.md`](docs/ADR/ADR-0001-rust-webgpu-greenfield.md) ;
-4. consulter [`docs/planning/MIGRATION_ROADMAP.md`](docs/planning/MIGRATION_ROADMAP.md) ;
-5. consulter [`docs/migration/LEGACY_REUSE_MATRIX.md`](docs/migration/LEGACY_REUSE_MATRIX.md) avant de reprendre une capacité de `main`.
+4. lire [`docs/ADR/ADR-0002-cadle-upstream-reference.md`](docs/ADR/ADR-0002-cadle-upstream-reference.md) ;
+5. consulter [`docs/planning/MIGRATION_ROADMAP.md`](docs/planning/MIGRATION_ROADMAP.md) ;
+6. consulter [`docs/migration/LEGACY_REUSE_MATRIX.md`](docs/migration/LEGACY_REUSE_MATRIX.md) avant de reprendre une capacité de `main`.
 
 `PROJECT_CONTEXT.md` est la source de vérité narrative de cette branche.
 
 ## État actuel
 
-La branche contient uniquement sa fondation documentaire. Aucun moteur, runtime, éditeur ou format
-n’est encore déclaré fonctionnel. Les commandes de compilation seront ajoutées avec le premier
-workspace Cargo vérifié.
+La branche contient sa fondation documentaire et la décision d’utiliser Cadle v0.6.0, épinglé au
+commit `ea0da62549980816a6a27e08b75808b1f56d70e7`, comme upstream exécutable de référence. Aucun moteur,
+runtime, éditeur ou format Forge n’est encore déclaré fonctionnel.
+
+La gate active est **Gate C** : récupérer Cadle dans une copie locale ignorée, auditer sa licence,
+mesurer la baseline et produire la matrice de reprise. Le code Cadle est MIT avec attribution ; ses
+assets ne sont pas couverts par ce grant et ne doivent jamais être copiés ou publiés dans Forge.
 
 ## Référence historique
 
@@ -53,3 +58,9 @@ a7f4a3f5dd0eeff1dc060ea1237b1d7d650b7ca0
 
 Cette référence sert à extraire les exigences et les données utiles. Elle ne devient jamais une
 dépendance d’exécution de la nouvelle architecture.
+
+## Référence exécutable
+
+Cadle sert de base de travail locale et de donneur de techniques pour le terrain, la végétation, le
+rendu et le harness. Il ne devient pas le runtime produit : Forge reste Rust + Bevy + wgpu/WebGPU et
+doit compiler, tester et fonctionner sans le clone Cadle.
