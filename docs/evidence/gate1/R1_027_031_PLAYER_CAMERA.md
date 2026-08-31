@@ -131,19 +131,22 @@ l'obstacle puis observé la récupération. La distance finale de 0,733 m est un
 récupération encore en cours au moment du retour troisième personne ; le test porte sur son caractère
 monotone et borné, pas sur un retour instantané à 4,5 m.
 
-## Artefacts natifs ignorés
+## Empreinte historique et artefacts natifs ignorés
 
-Les artefacts restent sous `artifacts/forge-runtime/`, chemin exclu de Git. Ils servent de preuves
-locales reproductibles et ne sont pas des assets produit.
+Les journaux, la capture et le ledger restent sous `artifacts/forge-runtime/`, chemin exclu de Git.
+Ils servent de preuves locales et ne sont pas des assets produit. L'exécutable producteur n'a pas été
+copié dans ce dossier : son empreinte et sa taille ont été consignées avant le probe, puis le même
+chemin de build a été remplacé par des commandes Cargo ultérieures. La reproduction repose donc sur le
+commit, la commande et les journaux, pas sur la conservation de ce binaire historique.
 
 | Artefact | SHA-256 | Taille |
 |---|---|---:|
-| `forge_runtime.exe` | `a5d06eb1a84f29de56c814f5cee4558c899b4b00c34e42409e7e5a497104a4c8` | 110 520 832 octets |
+| `forge_runtime.exe` au moment du run, empreinte ledger, binaire non archivé | `a5d06eb1a84f29de56c814f5cee4558c899b4b00c34e42409e7e5a497104a4c8` | 110 520 832 octets |
 | `probe.stderr.jsonl` | `19e0573707ee04e8f836bb32c11bce8193c02f6adf49ce176ea6358041c5e447` | 5 541 octets |
 | `probe.stdout.txt` | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` | 0 octet |
 | `player-camera-3p.png` | `87eaac2141ce8d253787db5b292e457be2123f96b020894e77593b296f82159f` | 1 656 111 octets |
 | `capture.stderr.jsonl` | `c08708730e419e59998ba8fd8290f36d04aa952d843816c608c760d9233c2110` | 4 869 octets |
-| `run-metadata.json` | `42b96c8c9a40e4eefb49de567ff4106d1f054ec0cdbc3eba7a6c99e255140ea1` | 1 632 octets |
+| `run-metadata.json` | `644676f54d57e957b2569df329bac418b53fcbf86d3cc157dfd8a0c726ad1592` | 1 638 octets |
 
 La capture 1920 × 1080 a été demandée à la frame 180 et le runtime s'est arrêté proprement à la frame
 240. Elle a été inspectée par Codex : terrain, capsule, cadrage et overlay sont visibles, sans image
