@@ -290,13 +290,16 @@ et sans transformer une acquisition automatisée en revue humaine.
 
 Statut : **OUVERTE** après le passage automatisé local de Gate 0 sous ADR-0004, ADR-0005 et ADR-0006.
 
-Progression au commit `decbb78f771130b5c69c82c858df29f606164f7b` : `R1-001` reste qualifié,
-puis `R1-002`, `R1-003`, `R1-004`, `R1-005`, `R1-006` et `R1-008` sont passés localement par le
-terrain dérivé déterministe, les meshes Bevy, le shader PBR trois couches, le debug chunks/LOD et les
-64 heightfields Rapier locaux. Voir
+Progression au commit `889f28df46b1a3a66da4e3a0cef075d790e26f6c` : `R1-001` reste qualifié,
+puis `R1-002` à `R1-008` sont passés fonctionnellement localement par le terrain dérivé
+déterministe, les meshes Bevy, le shader PBR trois couches, le debug chunks/LOD, les 64 heightfields
+Rapier et une transaction partielle qui régénère 3 meshes et 1 collider sans remplacer les 64
+identités runtime. Voir
 `docs/evidence/gate1/R1_001_TERRAIN_DOCUMENT.md` et
 `docs/evidence/gate1/R1_002_005_008_TERRAIN_RENDERING.md`, puis
-`docs/evidence/gate1/R1_006_TERRAIN_PHYSICS.md`. `R1-007` reste ouvert ; Gate 1 reste ouverte.
+`docs/evidence/gate1/R1_006_TERRAIN_PHYSICS.md` et
+`docs/evidence/gate1/R1_007_TERRAIN_PARTIAL_UPDATE.md`. R1-007 est qualifié localement sous ADR-0006
+par 97/97 tests workspace et un probe natif ECS/Rapier ; Gate 1 reste ouverte.
 
 ## But
 
@@ -330,7 +333,7 @@ qualité                   Low / Medium / High / Ultra
 - [x] `R1-004` Trois matériaux PBR minimum.
 - [x] `R1-005` Blend par masques.
 - [x] `R1-006` collisions locales.
-- [ ] `R1-007` mise à jour partielle.
+- [x] `R1-007` mise à jour partielle — 97/97 tests workspace et probe natif ECS/Rapier PASS local.
 - [x] `R1-008` debug chunks/LOD.
 
 ## R1-B — Végétation GPU
