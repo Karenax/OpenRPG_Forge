@@ -9,11 +9,13 @@ description = "Bevy adapter for engine-neutral OpenRPG Forge scene documents."
 
 [features]
 default = ["native"]
-native = []
-web = ["bevy/webgpu"]
+native = ["physics-rapier"]
+web = ["bevy/webgpu", "physics-rapier"]
+physics-rapier = ["dep:bevy_rapier3d"]
 
 [dependencies]
 bevy.workspace = true
+bevy_rapier3d = { workspace = true, optional = true }
 forge_core.workspace = true
 forge_project.workspace = true
 forge_world.workspace = true

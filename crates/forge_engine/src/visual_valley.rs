@@ -1,4 +1,6 @@
 use super::{ProofSceneStats, RuntimeAutomation, RuntimeEvidencePlugin};
+#[cfg(feature = "physics-rapier")]
+use crate::physics::TerrainPhysicsPlugin;
 use bevy::{
     asset::{RenderAssetUsages, embedded_asset},
     light::CascadeShadowConfigBuilder,
@@ -161,6 +163,9 @@ impl Plugin for VisualValleyPlugin {
             .init_gizmo_group::<VisualValleyChunkGizmos>()
             .add_systems(Startup, spawn_visual_valley)
             .add_systems(Update, draw_visual_valley_chunk_debug);
+
+        #[cfg(feature = "physics-rapier")]
+        app.add_plugins(TerrainPhysicsPlugin::new(self.document.clone()));
     }
 }
 

@@ -2,8 +2,15 @@
 
 //! Bevy rendering adapter for shared Forge documents.
 
+#[cfg(feature = "physics-rapier")]
+mod physics;
 mod visual_valley;
 
+#[cfg(feature = "physics-rapier")]
+pub use physics::{
+    TERRAIN_PHYSICS_HZ, TerrainHeightfieldCollider, TerrainPhysicsAdapterError,
+    TerrainPhysicsPlugin,
+};
 pub use visual_valley::{
     VisualValleyAdapterError, VisualValleyDebug, VisualValleyPlugin, VisualValleyStats,
     VisualValleyTerrainChunk, VisualValleyTerrainExtension, VisualValleyTerrainMaterial,
