@@ -59,9 +59,9 @@ pub use visual_valley::{
 };
 pub(crate) use visual_valley::{VisualValleyChunkDebugBounds, build_bevy_terrain_mesh};
 pub use water::{
-    VISUAL_VALLEY_WATER_CLEARANCE_M, VisualValleyRiverBankSurface, VisualValleyWaterPlugin,
-    VisualValleyWaterSurface, WaterAdapterError, WaterProjectionStats,
-    WaterRuntimeObservationStatus,
+    VISUAL_VALLEY_WATER_CLEARANCE_M, VisualValleyRiverBankSurface, VisualValleyWaterExtension,
+    VisualValleyWaterMaterial, VisualValleyWaterPlugin, VisualValleyWaterSurface,
+    WaterAdapterError, WaterProjectionStats, WaterRuntimeObservationStatus, WaterRuntimeState,
 };
 pub use weather::{
     MAX_WEATHER_BATCH_DROPS, VisualValleyRainBatch, VisualValleyRainExtension,

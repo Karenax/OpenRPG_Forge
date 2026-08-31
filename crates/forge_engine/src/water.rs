@@ -1,15 +1,17 @@
 use bevy::{
-    asset::RenderAssetUsages,
+    asset::{RenderAssetUsages, embedded_asset},
     core_pipeline::prepass::DeferredPrepass,
     material::OpaqueRendererMethod,
     mesh::Indices,
-    pbr::{ScreenSpaceReflections, ScreenSpaceTransmission},
+    pbr::{ExtendedMaterial, MaterialExtension, ScreenSpaceReflections, ScreenSpaceTransmission},
     prelude::*,
-    render::render_resource::PrimitiveTopology,
+    render::render_resource::{AsBindGroup, PrimitiveTopology},
+    shader::ShaderRef,
 };
 use forge_project::{
-    ResolvedWaterRefractionPath, TerrainDocument, WaterDocument, WaterDocumentError,
-    WaterOpticsCapabilities, WaterOpticsResolution, WaterReflectionProfile, WaterRefractionProfile,
+    ResolvedWaterReflectionPath, ResolvedWaterRefractionPath, TerrainDocument, WaterDocument,
+    WaterDocumentError, WaterOpticsCapabilities, WaterOpticsCapabilityStatus,
+    WaterOpticsResolution, WaterReflectionProfile, WaterRefractionProfile,
 };
 use forge_world::{
     RiverCenterlineSample, TerrainGenerationError, TerrainGenerationPlan, sample_river_centerline,
@@ -19,6 +21,11 @@ use std::{error::Error, fmt};
 
 /// Minimum Gate 1 adapter clearance used until the persistent water contract owns this value.
 pub const VISUAL_VALLEY_WATER_CLEARANCE_M: f32 = 0.14;
+
+const WATER_SHADER_PATH: &str = "embedded://forge_engine/shaders/visual_valley_water.wgsl";
+const WATER_SHADER_PHASE_WRAP_RADIANS: f64 = std::f64::consts::TAU;
+const WATER_IOR: f32 = 1.33;
+const WATER_REFLECTANCE: f32 = 0.36;
 
 const RIVER_LANE_COUNT: usize = 3;
 const RIVER_BANK_LANE_COUNT: usize = 2;
@@ -82,6 +89,13 @@ pub struct WaterProjectionStats {
     pub requested_flow_speed_mps: f32,
     pub requested_normal_strength: f32,
     pub wave_motion_status: &'static str,
+    pub shader_asset_path: &'static str,
+    pub shader_material_status: &'static str,
+    pub shader_material_assets: usize,
+    pub shader_material_entities: usize,
+    pub shader_uniforms_match_profile: bool,
+    pub animation_updates: u64,
+    pub animation_uniform_status: &'static str,
     pub minimum_sampled_bed_depth_m: f32,
     pub maximum_sampled_bed_depth_m: f32,
     pub bed_depth_status: &'static str,
@@ -115,7 +129,9 @@ pub struct WaterProjectionStats {
     pub ssr_camera_entities: usize,
     pub msaa_off_camera_entities: usize,
     pub transmission_disabled_camera_entities: usize,
+    pub cpu_ecs_application_status: &'static str,
     pub gpu_pass_observed: bool,
+    pub native_gpu_execution_status: &'static str,
     pub webgpu_execution_status: &'static str,
     pub evidence_source: &'static str,
 }
@@ -125,6 +141,93 @@ pub struct VisualValleyWaterSurface;
 
 #[derive(Clone, Copy, Component, Debug, Eq, PartialEq)]
 pub struct VisualValleyRiverBankSurface;
+
+/// Profile-driven parameters consumed by the Forge-original river shader.
+///
+/// All colours are linear. `flow_phase` stores a unit XZ downstream direction followed by the
+/// current and previous wrapped phase in radians. The two phases keep Bevy motion-vector
+/// prepasses deterministic without using wall-clock time in WGSL.
+#[derive(Asset, AsBindGroup, Clone, Debug, PartialEq, Reflect)]
+pub struct VisualValleyWaterExtension {
+    /// Linear shallow RGB and the resolved surface-tint fallback strength.
+    #[uniform(100)]
+    pub shallow_color_surface_tint: Vec4,
+    /// Linear deep RGB and the maximum sampled bed depth in metres.
+    #[uniform(100)]
+    pub deep_color_max_depth: Vec4,
+    /// Authored amplitude, wavelength, flow speed, and normal response.
+    #[uniform(100)]
+    pub wave_parameters: Vec4,
+    /// Downstream direction XZ and current/previous wrapped phase in radians.
+    #[uniform(100)]
+    pub flow_phase: Vec4,
+    /// Requested opacity, authored roughness, water IOR, and non-metal reflectance.
+    #[uniform(100)]
+    pub optical_parameters: Vec4,
+}
+
+impl MaterialExtension for VisualValleyWaterExtension {
+    fn vertex_shader() -> ShaderRef {
+        WATER_SHADER_PATH.into()
+    }
+
+    fn fragment_shader() -> ShaderRef {
+        WATER_SHADER_PATH.into()
+    }
+
+    fn prepass_vertex_shader() -> ShaderRef {
+        WATER_SHADER_PATH.into()
+    }
+
+    fn deferred_vertex_shader() -> ShaderRef {
+        WATER_SHADER_PATH.into()
+    }
+
+    fn deferred_fragment_shader() -> ShaderRef {
+        WATER_SHADER_PATH.into()
+    }
+}
+
+pub type VisualValleyWaterMaterial = ExtendedMaterial<StandardMaterial, VisualValleyWaterExtension>;
+
+/// Deterministic CPU animation state projected into the water material every Bevy update.
+#[derive(Clone, Debug, Resource)]
+pub struct WaterRuntimeState {
+    current_phase_radians: f64,
+    previous_phase_radians: f64,
+    angular_speed_radians_per_second: f64,
+    updates: u64,
+}
+
+impl WaterRuntimeState {
+    fn from_profile(water: &WaterDocument) -> Self {
+        let seed_fraction = f64::from((water.seed & 0xffff) as u16) / 65_536.0;
+        let phase = seed_fraction * WATER_SHADER_PHASE_WRAP_RADIANS;
+        Self {
+            current_phase_radians: phase,
+            previous_phase_radians: phase,
+            angular_speed_radians_per_second: WATER_SHADER_PHASE_WRAP_RADIANS
+                * f64::from(water.surface.flow_speed_mps)
+                / f64::from(water.surface.wave_length_m),
+            updates: 0,
+        }
+    }
+
+    #[must_use]
+    pub fn current_phase_radians(&self) -> f64 {
+        self.current_phase_radians
+    }
+
+    #[must_use]
+    pub fn previous_phase_radians(&self) -> f64 {
+        self.previous_phase_radians
+    }
+
+    #[must_use]
+    pub const fn updates(&self) -> u64 {
+        self.updates
+    }
+}
 
 /// Bevy adapter for the engine-neutral Visual Valley water document.
 pub struct VisualValleyWaterPlugin {
@@ -146,15 +249,25 @@ impl Plugin for VisualValleyWaterPlugin {
         });
         let stats = prepared.stats.clone();
         let ssr = prepared.ssr.clone();
+        let material_projection = prepared.water_material.extension.clone();
 
+        embedded_asset!(app, "shaders/visual_valley_water.wgsl");
         app.insert_resource(stats)
+            .insert_resource(WaterRuntimeState::from_profile(&self.water))
+            .insert_resource(WaterMaterialProjection(material_projection))
             .insert_resource(PreparedWaterSurface(Some(prepared)))
             .insert_resource(PreparedWaterCamera { ssr })
+            .add_plugins(MaterialPlugin::<VisualValleyWaterMaterial>::default())
             .add_systems(Startup, spawn_water_surface)
+            .add_systems(
+                Update,
+                (advance_water_runtime, project_water_animation).chain(),
+            )
             .add_systems(
                 PostStartup,
                 (configure_water_cameras, observe_water_components).chain(),
-            );
+            )
+            .add_systems(PostUpdate, observe_water_components);
     }
 }
 
@@ -269,7 +382,7 @@ struct PreparedWaterScene {
     name: String,
     water_geometry: RiverSurfaceGeometry,
     river_bank_geometry: RiverSurfaceGeometry,
-    water_material: StandardMaterial,
+    water_material: VisualValleyWaterMaterial,
     river_bank_material: StandardMaterial,
     stats: WaterProjectionStats,
     ssr: Option<ScreenSpaceReflections>,
@@ -280,6 +393,7 @@ struct RiverSurfaceGeometry {
     terrain_heights: Vec<f32>,
     normals: Vec<[f32; 3]>,
     uvs: Vec<[f32; 2]>,
+    colors: Option<Vec<[f32; 4]>>,
     indices: Vec<u32>,
 }
 
@@ -293,7 +407,14 @@ struct ProjectedLane {
 struct ProjectedSection {
     lanes: [ProjectedLane; RIVER_LANE_COUNT],
     bank_outer_lanes: [ProjectedLane; RIVER_BANK_LANE_COUNT],
+    bed_depth_m: f32,
 }
+
+#[derive(Clone, Resource)]
+struct WaterSurfaceMaterial(Handle<VisualValleyWaterMaterial>);
+
+#[derive(Clone, Resource)]
+struct WaterMaterialProjection(VisualValleyWaterExtension);
 
 #[derive(Clone, Copy)]
 struct MeshCounts {
@@ -437,6 +558,7 @@ fn prepare_water_surface(
         sections.push(ProjectedSection {
             lanes,
             bank_outer_lanes,
+            bed_depth_m: sample.bed_depth_m,
         });
     }
 
@@ -453,7 +575,7 @@ fn prepare_water_surface(
             (f32::INFINITY, f32::NEG_INFINITY),
             |(minimum, maximum), value| (minimum.min(value), maximum.max(value)),
         );
-    let resolved_optics = water.resolve_optics_path(WaterOpticsCapabilities::default());
+    let resolved_optics = water.resolve_optics_path(bevy_water_optics_capabilities());
     let (minimum_sampled_bed_depth_m, maximum_sampled_bed_depth_m) =
         samples.iter().map(|sample| sample.bed_depth_m).fold(
             (f32::INFINITY, f32::NEG_INFINITY),
@@ -468,7 +590,9 @@ fn prepare_water_surface(
         };
     let (requested_reflection_intensity, requested_reflection_max_distance_m) =
         requested_reflection_parameters(water);
-    let ssr = prepare_requested_ssr(water);
+    let ssr = prepare_resolved_ssr(water, resolved_optics.reflection);
+    let flow_direction = downstream_flow_direction(&samples);
+    let runtime_state = WaterRuntimeState::from_profile(water);
     let water_surface_queries = water_counts.vertices;
     let river_bank_surface_queries = samples.len().checked_mul(RIVER_BANK_LANE_COUNT).ok_or(
         WaterAdapterError::ArithmeticOverflow("river bank surface queries"),
@@ -521,10 +645,17 @@ fn prepare_water_surface(
         requested_wave_length_m: water.surface.wave_length_m,
         requested_flow_speed_mps: water.surface.flow_speed_mps,
         requested_normal_strength: water.surface.normal_strength,
-        wave_motion_status: "clearance_reserved_motion_shader_deferred",
+        wave_motion_status: "profile_projected_to_deterministic_vertex_wave_shader",
+        shader_asset_path: WATER_SHADER_PATH,
+        shader_material_status: "prepared_cpu_material_asset_gpu_pipeline_not_observed",
+        shader_material_assets: 0,
+        shader_material_entities: 0,
+        shader_uniforms_match_profile: false,
+        animation_updates: 0,
+        animation_uniform_status: "prepared_not_observed",
         minimum_sampled_bed_depth_m,
         maximum_sampled_bed_depth_m,
-        bed_depth_status: "authored_and_sampled_not_meshed_in_gate1",
+        bed_depth_status: "sampled_bed_depth_encoded_in_vertex_color_and_shader_palette",
         requested_bank_shoulder_width_m: water.banks.shoulder_width_m,
         requested_bank_blend_width_m: water.banks.blend_width_m,
         requested_bank_wet_margin_m: water.banks.wet_margin_m,
@@ -543,7 +674,7 @@ fn prepare_water_surface(
         reflection_max_distance_status: "requested_not_mapped_by_bevy_ssr_component",
         requested_refraction_strength,
         applied_surface_tint_strength,
-        refraction_status: "requested_screen_space_resolved_to_surface_tint_fallback",
+        refraction_status: "requested_screen_space_unavailable_for_opaque_deferred_resolved_surface_tint",
         requested_ssr_component_prepared: ssr.is_some(),
         forward_material_ssr_limit: "terrain_and_vegetation_remain_forward; ssr_component_is_not_runtime_qualification",
         resolved_optics,
@@ -555,8 +686,10 @@ fn prepare_water_surface(
         ssr_camera_entities: 0,
         msaa_off_camera_entities: 0,
         transmission_disabled_camera_entities: 0,
+        cpu_ecs_application_status: "prepared_cpu_assets_not_observed",
         gpu_pass_observed: false,
-        webgpu_execution_status: "not_run",
+        native_gpu_execution_status: "not_observed_by_water_metrics",
+        webgpu_execution_status: "not_observed_by_water_metrics",
         evidence_source: "cpu_geometry_and_main_world_components_not_gpu_execution",
     };
 
@@ -564,7 +697,13 @@ fn prepare_water_surface(
         name: water.name.clone(),
         water_geometry,
         river_bank_geometry,
-        water_material: water_material(water, applied_surface_tint_strength),
+        water_material: water_material(
+            water,
+            applied_surface_tint_strength,
+            maximum_sampled_bed_depth_m,
+            flow_direction,
+            &runtime_state,
+        ),
         river_bank_material: river_bank_material(),
         stats,
         ssr,
@@ -644,6 +783,7 @@ fn build_geometry(
     let mut positions = Vec::new();
     let mut terrain_heights = Vec::new();
     let mut uvs = Vec::new();
+    let mut colors = Vec::new();
     let mut indices = Vec::new();
     positions
         .try_reserve_exact(counts.vertices)
@@ -653,6 +793,9 @@ fn build_geometry(
         .map_err(|_| WaterAdapterError::AllocationFailed("terrain heights"))?;
     uvs.try_reserve_exact(counts.vertices)
         .map_err(|_| WaterAdapterError::AllocationFailed("UVs"))?;
+    colors
+        .try_reserve_exact(counts.vertices)
+        .map_err(|_| WaterAdapterError::AllocationFailed("depth colors"))?;
     indices
         .try_reserve_exact(counts.indices)
         .map_err(|_| WaterAdapterError::AllocationFailed("indices"))?;
@@ -665,6 +808,12 @@ fn build_geometry(
             positions.push(lane.position);
             terrain_heights.push(lane.terrain_height_m);
             uvs.push([lane_uv(lane_index), v]);
+            let depth_m = if lane_index == 1 {
+                section.bed_depth_m
+            } else {
+                0.0
+            };
+            colors.push([depth_m, 0.0, 0.0, 1.0]);
         }
     }
 
@@ -695,6 +844,7 @@ fn build_geometry(
             terrain_heights,
             normals,
             uvs,
+            colors: Some(colors),
             indices,
         },
         winding_corrections,
@@ -765,6 +915,7 @@ fn build_river_bank_geometry(
             terrain_heights,
             normals,
             uvs,
+            colors: None,
             indices,
         },
         winding_corrections,
@@ -872,22 +1023,113 @@ fn build_normals(
 fn water_material(
     water: &WaterDocument,
     applied_surface_tint_strength: Option<f32>,
-) -> StandardMaterial {
+    maximum_sampled_bed_depth_m: f32,
+    flow_direction: Vec2,
+    runtime_state: &WaterRuntimeState,
+) -> VisualValleyWaterMaterial {
     let shallow = water.surface.shallow_color_srgb;
     let deep = water.surface.deep_color_srgb;
     let tint_strength = applied_surface_tint_strength.unwrap_or(0.0);
     let shallow_strength = 1.0 - tint_strength;
-    StandardMaterial {
-        base_color: Color::srgb(
-            shallow.red * shallow_strength + deep.red * tint_strength,
-            shallow.green * shallow_strength + deep.green * tint_strength,
-            shallow.blue * shallow_strength + deep.blue * tint_strength,
+    VisualValleyWaterMaterial {
+        base: StandardMaterial {
+            base_color: Color::srgb(
+                shallow.red * shallow_strength + deep.red * tint_strength,
+                shallow.green * shallow_strength + deep.green * tint_strength,
+                shallow.blue * shallow_strength + deep.blue * tint_strength,
+            ),
+            alpha_mode: AlphaMode::Opaque,
+            metallic: 0.0,
+            perceptual_roughness: water.surface.roughness,
+            reflectance: WATER_REFLECTANCE,
+            ior: WATER_IOR,
+            diffuse_transmission: 0.0,
+            specular_transmission: 0.0,
+            opaque_render_method: OpaqueRendererMethod::Deferred,
+            ..default()
+        },
+        extension: water_extension(
+            water,
+            tint_strength,
+            maximum_sampled_bed_depth_m,
+            flow_direction,
+            runtime_state,
         ),
-        alpha_mode: AlphaMode::Opaque,
-        metallic: 0.0,
-        perceptual_roughness: water.surface.roughness,
-        opaque_render_method: OpaqueRendererMethod::Deferred,
-        ..default()
+    }
+}
+
+#[allow(
+    clippy::cast_possible_truncation,
+    reason = "wrapped shader phases are bounded to one f32-safe revolution"
+)]
+fn water_extension(
+    water: &WaterDocument,
+    surface_tint_strength: f32,
+    maximum_sampled_bed_depth_m: f32,
+    flow_direction: Vec2,
+    runtime_state: &WaterRuntimeState,
+) -> VisualValleyWaterExtension {
+    let shallow = linear_color(
+        water.surface.shallow_color_srgb.red,
+        water.surface.shallow_color_srgb.green,
+        water.surface.shallow_color_srgb.blue,
+    );
+    let deep = linear_color(
+        water.surface.deep_color_srgb.red,
+        water.surface.deep_color_srgb.green,
+        water.surface.deep_color_srgb.blue,
+    );
+    VisualValleyWaterExtension {
+        shallow_color_surface_tint: Vec4::new(
+            shallow.red,
+            shallow.green,
+            shallow.blue,
+            surface_tint_strength,
+        ),
+        deep_color_max_depth: Vec4::new(
+            deep.red,
+            deep.green,
+            deep.blue,
+            maximum_sampled_bed_depth_m,
+        ),
+        wave_parameters: Vec4::new(
+            water.surface.wave_amplitude_m,
+            water.surface.wave_length_m,
+            water.surface.flow_speed_mps,
+            water.surface.normal_strength,
+        ),
+        flow_phase: Vec4::new(
+            flow_direction.x,
+            flow_direction.y,
+            runtime_state.current_phase_radians as f32,
+            runtime_state.previous_phase_radians as f32,
+        ),
+        optical_parameters: Vec4::new(
+            water.surface.opacity,
+            water.surface.roughness,
+            WATER_IOR,
+            WATER_REFLECTANCE,
+        ),
+    }
+}
+
+fn linear_color(red: f32, green: f32, blue: f32) -> LinearRgba {
+    Color::srgb(red, green, blue).to_linear()
+}
+
+fn downstream_flow_direction(samples: &[RiverCenterlineSample]) -> Vec2 {
+    let Some((source, remaining)) = samples.split_first() else {
+        return Vec2::X;
+    };
+    let outlet = remaining.last().unwrap_or(source);
+    let delta = Vec2::new(
+        outlet.center_m.x - source.center_m.x,
+        outlet.center_m.z - source.center_m.z,
+    );
+    if delta.is_finite() && delta.length_squared() > f32::EPSILON {
+        delta.normalize()
+    } else {
+        Vec2::X
     }
 }
 
@@ -922,13 +1164,26 @@ fn requested_refraction_strength(water: &WaterDocument) -> Option<f32> {
     }
 }
 
-fn prepare_requested_ssr(water: &WaterDocument) -> Option<ScreenSpaceReflections> {
-    let WaterReflectionProfile::ScreenSpace {
-        max_steps,
-        thickness_m,
-        ..
-    } = water.optics.reflection
-    else {
+const fn bevy_water_optics_capabilities() -> WaterOpticsCapabilities {
+    WaterOpticsCapabilities {
+        // Bevy 0.19 exposes deferred SSR for native and the project's WebGPU path. This is a
+        // structural capability declaration, not evidence that either GPU pipeline ran.
+        screen_space_reflections: WaterOpticsCapabilityStatus::Available,
+        // StandardMaterial screen-space transmission enters the transmissive forward phase.
+        // This water stays opaque/deferred so SSR has its documented G-buffer inputs.
+        screen_space_refraction: WaterOpticsCapabilityStatus::Unavailable,
+        environment_reflections: WaterOpticsCapabilityStatus::NotQualified,
+    }
+}
+
+fn prepare_resolved_ssr(
+    water: &WaterDocument,
+    resolved: ResolvedWaterReflectionPath,
+) -> Option<ScreenSpaceReflections> {
+    let ResolvedWaterReflectionPath::ScreenSpace { max_steps } = resolved else {
+        return None;
+    };
+    let WaterReflectionProfile::ScreenSpace { thickness_m, .. } = water.optics.reflection else {
         return None;
     };
     Some(ScreenSpaceReflections {
@@ -974,7 +1229,8 @@ fn spawn_water_surface(
     mut commands: Commands,
     mut prepared: ResMut<PreparedWaterSurface>,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut water_materials: ResMut<Assets<VisualValleyWaterMaterial>>,
+    mut standard_materials: ResMut<Assets<StandardMaterial>>,
 ) {
     let prepared = prepared
         .0
@@ -983,31 +1239,75 @@ fn spawn_water_surface(
     let water_mesh = mesh_from_geometry(prepared.water_geometry);
     let river_bank_mesh = mesh_from_geometry(prepared.river_bank_geometry);
     let river_bank_name = format!("{} banks", prepared.name);
+    let water_material = water_materials.add(prepared.water_material);
     commands.spawn((
         Name::new(prepared.name),
         VisualValleyWaterSurface,
         Mesh3d(meshes.add(water_mesh)),
-        MeshMaterial3d(materials.add(prepared.water_material)),
+        MeshMaterial3d(water_material.clone()),
         Transform::IDENTITY,
     ));
     commands.spawn((
         Name::new(river_bank_name),
         VisualValleyRiverBankSurface,
         Mesh3d(meshes.add(river_bank_mesh)),
-        MeshMaterial3d(materials.add(prepared.river_bank_material)),
+        MeshMaterial3d(standard_materials.add(prepared.river_bank_material)),
         Transform::IDENTITY,
     ));
+    commands.insert_resource(WaterSurfaceMaterial(water_material));
 }
 
 fn mesh_from_geometry(geometry: RiverSurfaceGeometry) -> Mesh {
-    Mesh::new(
+    let mut mesh = Mesh::new(
         PrimitiveTopology::TriangleList,
         RenderAssetUsages::MAIN_WORLD | RenderAssetUsages::RENDER_WORLD,
     )
     .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, geometry.positions)
     .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, geometry.normals)
-    .with_inserted_attribute(Mesh::ATTRIBUTE_UV_0, geometry.uvs)
-    .with_inserted_indices(Indices::U32(geometry.indices))
+    .with_inserted_attribute(Mesh::ATTRIBUTE_UV_0, geometry.uvs);
+    if let Some(colors) = geometry.colors {
+        mesh.insert_attribute(Mesh::ATTRIBUTE_COLOR, colors);
+    }
+    mesh.with_inserted_indices(Indices::U32(geometry.indices))
+}
+
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "Bevy systems require owned system parameter wrappers"
+)]
+fn advance_water_runtime(time: Res<Time>, mut state: ResMut<WaterRuntimeState>) {
+    advance_runtime_state(&mut state, time.delta_secs());
+}
+
+fn advance_runtime_state(state: &mut WaterRuntimeState, delta_seconds: f32) {
+    if !delta_seconds.is_finite() || delta_seconds < 0.0 {
+        return;
+    }
+    state.previous_phase_radians = state.current_phase_radians;
+    state.current_phase_radians = (state.current_phase_radians
+        + state.angular_speed_radians_per_second * f64::from(delta_seconds))
+    .rem_euclid(WATER_SHADER_PHASE_WRAP_RADIANS);
+    state.updates = state.updates.saturating_add(1);
+}
+
+#[allow(
+    clippy::cast_possible_truncation,
+    clippy::needless_pass_by_value,
+    reason = "Bevy system wrappers are owned and wrapped phases are f32-safe"
+)]
+fn project_water_animation(
+    state: Res<WaterRuntimeState>,
+    material: Option<Res<WaterSurfaceMaterial>>,
+    mut materials: ResMut<Assets<VisualValleyWaterMaterial>>,
+) {
+    let Some(material) = material else {
+        return;
+    };
+    let Some(mut material) = materials.get_mut(&material.0) else {
+        return;
+    };
+    material.extension.flow_phase.z = state.current_phase_radians as f32;
+    material.extension.flow_phase.w = state.previous_phase_radians as f32;
 }
 
 #[allow(
@@ -1037,16 +1337,24 @@ fn configure_water_cameras(
 
 #[allow(
     clippy::too_many_arguments,
-    reason = "independent ECS queries make every reported component count auditable"
+    clippy::needless_pass_by_value,
+    reason = "Bevy system wrappers and independent ECS queries keep evidence auditable"
 )]
 fn observe_water_components(
     surfaces: Query<Entity, With<VisualValleyWaterSurface>>,
+    surface_materials: Query<
+        &MeshMaterial3d<VisualValleyWaterMaterial>,
+        With<VisualValleyWaterSurface>,
+    >,
     river_banks: Query<Entity, With<VisualValleyRiverBankSurface>>,
     cameras: Query<Entity, With<Camera3d>>,
     deferred_cameras: Query<Entity, (With<Camera3d>, With<DeferredPrepass>)>,
     ssr_cameras: Query<Entity, (With<Camera3d>, With<ScreenSpaceReflections>)>,
     msaa_cameras: Query<&Msaa, With<Camera3d>>,
     transmission_cameras: Query<&ScreenSpaceTransmission, With<Camera3d>>,
+    materials: Res<Assets<VisualValleyWaterMaterial>>,
+    projection: Res<WaterMaterialProjection>,
+    runtime: Res<WaterRuntimeState>,
     mut stats: ResMut<WaterProjectionStats>,
 ) {
     stats.water_mesh_entities = surfaces.iter().count();
@@ -1062,8 +1370,30 @@ fn observe_water_components(
         .iter()
         .filter(|transmission| transmission.steps == 0)
         .count();
+    stats.shader_material_assets = materials.len();
+    stats.shader_material_entities = surface_materials.iter().count();
+    let expected_extension = projected_water_extension(&projection.0, &runtime);
+    stats.shader_uniforms_match_profile = stats.shader_material_entities == 1
+        && surface_materials.iter().all(|handle| {
+            materials
+                .get(&handle.0)
+                .is_some_and(|material| material.extension == expected_extension)
+        });
+    stats.animation_updates = runtime.updates;
+    stats.animation_uniform_status = if stats.shader_uniforms_match_profile {
+        "cpu_uniform_projected_to_material_asset_gpu_not_observed"
+    } else {
+        "cpu_uniform_projection_not_observed"
+    };
+    stats.shader_material_status = if stats.shader_uniforms_match_profile {
+        "observed_cpu_material_asset_gpu_pipeline_not_observed"
+    } else {
+        "cpu_material_asset_incomplete_or_not_observed"
+    };
     stats.runtime_observation = if stats.water_mesh_entities == 1
         && stats.river_bank_mesh_entities == 1
+        && stats.shader_material_entities == 1
+        && stats.shader_uniforms_match_profile
         && stats.camera_3d_entities > 0
         && stats.deferred_camera_entities == stats.camera_3d_entities
         && stats.msaa_off_camera_entities == stats.camera_3d_entities
@@ -1075,6 +1405,27 @@ fn observe_water_components(
     } else {
         WaterRuntimeObservationStatus::ObservedIncompleteComponents
     };
+    stats.cpu_ecs_application_status = if stats.runtime_observation
+        == WaterRuntimeObservationStatus::ObservedMainWorldComponents
+    {
+        "observed_main_world_components_and_cpu_material_asset"
+    } else {
+        "incomplete_main_world_or_cpu_material_observation"
+    };
+}
+
+#[allow(
+    clippy::cast_possible_truncation,
+    reason = "wrapped shader phases are bounded to one f32-safe revolution"
+)]
+fn projected_water_extension(
+    projection: &VisualValleyWaterExtension,
+    runtime: &WaterRuntimeState,
+) -> VisualValleyWaterExtension {
+    let mut projected = projection.clone();
+    projected.flow_phase.z = runtime.current_phase_radians as f32;
+    projected.flow_phase.w = runtime.previous_phase_radians as f32;
+    projected
 }
 
 #[cfg(test)]
@@ -1200,27 +1551,71 @@ mod tests {
     }
 
     #[test]
-    fn material_and_metrics_never_claim_gpu_or_webgpu_execution() {
+    fn material_extension_maps_profile_and_keeps_deferred_surface_opaque() {
         let prepared = prepared();
-        assert_eq!(prepared.water_material.alpha_mode, AlphaMode::Opaque);
+        assert_eq!(prepared.water_material.base.alpha_mode, AlphaMode::Opaque);
         assert_eq!(
-            prepared.water_material.opaque_render_method,
+            prepared.water_material.base.opaque_render_method,
             OpaqueRendererMethod::Deferred
+        );
+        assert_eq!(
+            prepared.water_material.base.specular_transmission.to_bits(),
+            0.0_f32.to_bits()
+        );
+        assert_eq!(
+            prepared.water_material.base.diffuse_transmission.to_bits(),
+            0.0_f32.to_bits()
+        );
+        assert_eq!(
+            prepared.water_material.base.ior.to_bits(),
+            WATER_IOR.to_bits()
+        );
+        assert_eq!(
+            prepared.water_material.base.reflectance.to_bits(),
+            WATER_REFLECTANCE.to_bits()
         );
         assert_eq!(prepared.river_bank_material.alpha_mode, AlphaMode::Opaque);
         assert_eq!(prepared.stats.applied_surface_tint_strength, Some(0.18));
-        let tint = prepared.water_material.base_color.to_srgba();
+        let tint = prepared.water_material.base.base_color.to_srgba();
         assert!((tint.red - (0.12 * 0.82 + 0.02 * 0.18)).abs() < 1.0e-6);
         assert!((tint.green - (0.42 * 0.82 + 0.13 * 0.18)).abs() < 1.0e-6);
         assert!((tint.blue - (0.46 * 0.82 + 0.21 * 0.18)).abs() < 1.0e-6);
+        let extension = &prepared.water_material.extension;
+        assert_eq!(extension.wave_parameters, Vec4::new(0.12, 5.5, 0.72, 0.62));
+        assert_eq!(
+            extension.shallow_color_surface_tint.w.to_bits(),
+            0.18_f32.to_bits()
+        );
+        assert_eq!(
+            extension.deep_color_max_depth.w.to_bits(),
+            prepared.stats.maximum_sampled_bed_depth_m.to_bits()
+        );
+        assert!((extension.flow_phase.xy().length() - 1.0).abs() < 1.0e-6);
+        assert_eq!(
+            extension.optical_parameters,
+            Vec4::new(0.84, 0.16, WATER_IOR, WATER_REFLECTANCE)
+        );
+    }
+
+    #[test]
+    fn metrics_resolve_optics_without_claiming_gpu_or_webgpu_execution() {
+        let prepared = prepared();
         assert!(prepared.stats.requested_ssr_component_prepared);
+        let ssr = prepared.ssr.as_ref().unwrap();
+        assert_eq!(ssr.linear_steps, 48);
+        assert_eq!(ssr.thickness.to_bits(), 0.9_f32.to_bits());
         assert_eq!(
             prepared.stats.reflection_intensity_status,
             "requested_not_mapped_by_bevy_ssr_component"
         );
         assert_eq!(
             prepared.stats.wave_motion_status,
-            "clearance_reserved_motion_shader_deferred"
+            "profile_projected_to_deterministic_vertex_wave_shader"
+        );
+        assert_eq!(prepared.stats.shader_asset_path, WATER_SHADER_PATH);
+        assert_eq!(
+            prepared.stats.bed_depth_status,
+            "sampled_bed_depth_encoded_in_vertex_color_and_shader_palette"
         );
         assert_eq!(
             prepared.stats.bank_shoulder_status,
@@ -1231,33 +1626,63 @@ mod tests {
             "deferred_no_terrain_carving_adapter"
         );
         assert!(!prepared.stats.gpu_pass_observed);
-        assert_eq!(prepared.stats.webgpu_execution_status, "not_run");
+        assert_eq!(
+            prepared.stats.native_gpu_execution_status,
+            "not_observed_by_water_metrics"
+        );
+        assert_eq!(
+            prepared.stats.webgpu_execution_status,
+            "not_observed_by_water_metrics"
+        );
         assert_eq!(
             prepared.stats.resolved_optics.reflection,
-            ResolvedWaterReflectionPath::Disabled
+            ResolvedWaterReflectionPath::ScreenSpace { max_steps: 48 }
         );
-        assert!(prepared.stats.resolved_optics.reflection_fallback_used);
+        assert!(!prepared.stats.resolved_optics.reflection_fallback_used);
+        assert_eq!(
+            prepared.stats.resolved_optics.refraction,
+            ResolvedWaterRefractionPath::SurfaceTint
+        );
+        assert!(prepared.stats.resolved_optics.refraction_fallback_used);
+        assert_eq!(
+            prepared
+                .stats
+                .resolved_optics
+                .capabilities
+                .screen_space_reflections,
+            WaterOpticsCapabilityStatus::Available
+        );
+        assert_eq!(
+            prepared
+                .stats
+                .resolved_optics
+                .capabilities
+                .screen_space_refraction,
+            WaterOpticsCapabilityStatus::Unavailable
+        );
         let serialized = serde_json::to_value(&prepared.stats).unwrap();
         assert_eq!(serialized["gpu_pass_observed"], false);
-        assert_eq!(serialized["webgpu_execution_status"], "not_run");
+        assert_eq!(
+            serialized["native_gpu_execution_status"],
+            "not_observed_by_water_metrics"
+        );
+        assert_eq!(
+            serialized["webgpu_execution_status"],
+            "not_observed_by_water_metrics"
+        );
         assert!(serialized.get("draw_calls").is_none());
     }
 
     #[test]
     fn camera_preparation_is_observed_without_claiming_gpu_execution() {
-        let prepared = prepared();
+        let terrain = embedded_visual_valley_terrain_document().unwrap();
+        let water = embedded_visual_valley_water_document().unwrap();
         let mut app = App::new();
-        app.insert_resource(PreparedWaterCamera {
-            ssr: prepared.ssr.clone(),
-        })
-        .insert_resource(prepared.stats)
-        .add_systems(
-            Update,
-            (configure_water_cameras, observe_water_components).chain(),
-        );
+        app.add_plugins((MinimalPlugins, AssetPlugin::default()));
+        app.init_asset::<Mesh>();
+        app.init_asset::<StandardMaterial>();
         app.world_mut().spawn(Camera3d::default());
-        app.world_mut().spawn(VisualValleyWaterSurface);
-        app.world_mut().spawn(VisualValleyRiverBankSurface);
+        app.add_plugins(VisualValleyWaterPlugin::new(terrain, water));
         app.update();
 
         let stats = app.world().resource::<WaterProjectionStats>();
@@ -1270,7 +1695,95 @@ mod tests {
         assert_eq!(stats.ssr_camera_entities, 1);
         assert_eq!(stats.msaa_off_camera_entities, 1);
         assert_eq!(stats.transmission_disabled_camera_entities, 1);
+        assert_eq!(stats.shader_material_assets, 1);
+        assert_eq!(stats.shader_material_entities, 1);
+        assert!(stats.shader_uniforms_match_profile);
+        assert_eq!(stats.animation_updates, 1);
+        assert_eq!(
+            stats.cpu_ecs_application_status,
+            "observed_main_world_components_and_cpu_material_asset"
+        );
         assert!(!stats.gpu_pass_observed);
+    }
+
+    #[test]
+    fn bed_depth_is_encoded_at_each_center_lane_without_changing_projection() {
+        let water = embedded_visual_valley_water_document().unwrap();
+        let samples = sample_river_centerline(&water).unwrap();
+        let prepared = prepared();
+        let colors = prepared.water_geometry.colors.as_ref().unwrap();
+        assert_eq!(colors.len(), samples.len() * RIVER_LANE_COUNT);
+        for (sample, lanes) in samples.iter().zip(colors.as_chunks::<3>().0) {
+            assert_eq!(lanes[0][0].to_bits(), 0.0_f32.to_bits());
+            assert_eq!(lanes[1][0].to_bits(), sample.bed_depth_m.to_bits());
+            assert_eq!(lanes[2][0].to_bits(), 0.0_f32.to_bits());
+            assert!(
+                lanes
+                    .iter()
+                    .all(|color| color[3].to_bits() == 1.0_f32.to_bits())
+            );
+        }
+        assert!(prepared.river_bank_geometry.colors.is_none());
+    }
+
+    #[test]
+    fn shader_contract_contains_profile_waves_depth_normals_and_deferred_output() {
+        let shader = include_str!("shaders/visual_valley_water.wgsl");
+        for required in [
+            "struct VisualValleyWaterExtension",
+            "fn wave_response",
+            "@vertex",
+            "@fragment",
+            "MOTION_VECTOR_PREPASS",
+            "previous_world_position",
+            "sampled_bed_depth",
+            "depth_response",
+            "normal_strength",
+            "deferred_output",
+            "apply_pbr_lighting",
+        ] {
+            assert!(
+                shader.contains(required),
+                "missing shader contract: {required}"
+            );
+        }
+        assert!(!shader.contains("textureSample"));
+    }
+
+    #[test]
+    fn runtime_phase_is_seeded_repeatable_wrapped_and_profile_driven() {
+        let water = embedded_visual_valley_water_document().unwrap();
+        let mut first = WaterRuntimeState::from_profile(&water);
+        let mut second = WaterRuntimeState::from_profile(&water);
+        assert_eq!(
+            first.current_phase_radians.to_bits(),
+            second.current_phase_radians.to_bits()
+        );
+        let initial = first.current_phase_radians;
+        advance_runtime_state(&mut first, 1.25);
+        advance_runtime_state(&mut second, 1.25);
+        assert_eq!(
+            first.current_phase_radians.to_bits(),
+            second.current_phase_radians.to_bits()
+        );
+        assert_eq!(first.previous_phase_radians.to_bits(), initial.to_bits());
+        let expected = (initial
+            + WATER_SHADER_PHASE_WRAP_RADIANS * f64::from(water.surface.flow_speed_mps)
+                / f64::from(water.surface.wave_length_m)
+                * 1.25)
+            .rem_euclid(WATER_SHADER_PHASE_WRAP_RADIANS);
+        assert!((first.current_phase_radians - expected).abs() < f64::EPSILON);
+        assert_eq!(first.updates, 1);
+
+        let before_invalid = first.clone();
+        advance_runtime_state(&mut first, -1.0);
+        assert_eq!(
+            first.current_phase_radians.to_bits(),
+            before_invalid.current_phase_radians.to_bits()
+        );
+        assert_eq!(first.updates, before_invalid.updates);
+        advance_runtime_state(&mut first, 100_000.0);
+        assert!((0.0..WATER_SHADER_PHASE_WRAP_RADIANS).contains(&first.current_phase_radians));
     }
 
     fn assert_geometry_has_positive_winding(geometry: &RiverSurfaceGeometry) {
