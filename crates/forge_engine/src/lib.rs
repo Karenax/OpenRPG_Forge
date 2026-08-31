@@ -72,6 +72,7 @@ pub use weather::{
 
 use bevy::{
     diagnostic::{DiagnosticsStore, EntityCountDiagnosticsPlugin, FrameTimeDiagnosticsPlugin},
+    ecs::system::SystemParam,
     prelude::*,
     render::{
         diagnostic::RenderDiagnosticsPlugin,
@@ -84,6 +85,7 @@ use forge_core::EntityId;
 use forge_project::{SceneProofDocument, SceneProofKind};
 use serde::Serialize;
 use std::{
+    fmt::Write as _,
     fs,
     path::{Path, PathBuf},
 };
@@ -268,6 +270,10 @@ struct RuntimeMetricsReport {
     vegetation: Option<VegetationProjectionStats>,
     #[serde(skip_serializing_if = "Option::is_none")]
     environment: Option<EnvironmentProjectionStats>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    water: Option<WaterProjectionStats>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    weather: Option<WeatherProjectionStats>,
 }
 
 #[derive(Debug, Serialize)]
@@ -832,6 +838,14 @@ fn select_proof_entity(
     }
 }
 
+#[derive(SystemParam)]
+struct Gate1OverlayStats<'w> {
+    visual_valley: Option<Res<'w, VisualValleyStats>>,
+    vegetation: Option<Res<'w, VegetationProjectionStats>>,
+    water: Option<Res<'w, WaterProjectionStats>>,
+    weather: Option<Res<'w, WeatherProjectionStats>>,
+}
+
 #[allow(
     clippy::needless_pass_by_value,
     reason = "Bevy systems require owned system parameter wrappers"
@@ -839,8 +853,7 @@ fn select_proof_entity(
 fn update_overlay(
     diagnostics: Res<DiagnosticsStore>,
     stats: Res<ProofSceneStats>,
-    visual_valley: Option<Res<VisualValleyStats>>,
-    vegetation: Option<Res<VegetationProjectionStats>>,
+    gate1: Gate1OverlayStats,
     gpu: Option<Res<GpuDiagnostic>>,
     mut overlay: Single<&mut Text, With<DiagnosticsOverlay>>,
 ) {
@@ -856,11 +869,28 @@ fn update_overlay(
         .as_ref()
         .map_or("initialisation GPU", |gpu| gpu.name.as_str());
     let render_work = build_render_work_report(&stats, &diagnostics);
-    **overlay = Text::new(if let Some(visual_valley) = visual_valley {
+    **overlay = Text::new(if let Some(visual_valley) = gate1.visual_valley {
         let mut logical_details = visual_valley.overlay_details();
-        if let Some(vegetation) = vegetation {
+        if let Some(vegetation) = gate1.vegetation {
             logical_details.push('\n');
             logical_details.push_str(&vegetation.overlay_details());
+        }
+        if let Some(water) = gate1.water {
+            let _ = write!(
+                logical_details,
+                "\nEau : {} échantillons · {} triangles · {:?}",
+                water.centerline_samples, water.triangles, water.runtime_observation
+            );
+        }
+        if let Some(weather) = gate1.weather {
+            let _ = write!(
+                logical_details,
+                "\nMétéo : {:?} · {} gouttes · wetness {:.2} · {:?}",
+                weather.target_state,
+                weather.rain.generated_drops,
+                weather.wetness.current,
+                weather.status
+            );
         }
         format_runtime_diagnostics_overlay(
             "OpenRPG Forge · Gate 1 / Visual Valley",
@@ -1057,6 +1087,8 @@ fn write_metrics_and_exit(
     visual_valley_shadow: Option<Res<VisualValleyShadowStats>>,
     vegetation: Option<Res<VegetationProjectionStats>>,
     environment: Option<Res<EnvironmentProjectionStats>>,
+    water: Option<Res<WaterProjectionStats>>,
+    weather: Option<Res<WeatherProjectionStats>>,
     gpu: Option<Res<GpuDiagnostic>>,
     diagnostics: Res<DiagnosticsStore>,
     windows: Query<&Window, With<PrimaryWindow>>,
@@ -1121,6 +1153,8 @@ fn write_metrics_and_exit(
             visual_valley_shadow.as_deref(),
             vegetation.as_deref(),
             environment.as_deref(),
+            water.as_deref(),
+            weather.as_deref(),
             gpu.as_deref(),
             &diagnostics,
             &lifecycle,
@@ -1204,6 +1238,8 @@ fn build_runtime_metrics(
     visual_valley_shadow: Option<&VisualValleyShadowStats>,
     vegetation: Option<&VegetationProjectionStats>,
     environment: Option<&EnvironmentProjectionStats>,
+    water: Option<&WaterProjectionStats>,
+    weather: Option<&WeatherProjectionStats>,
     gpu: Option<&GpuDiagnostic>,
     diagnostics: &DiagnosticsStore,
     lifecycle: &WindowLifecycle,
@@ -1250,7 +1286,7 @@ fn build_runtime_metrics(
     render_diagnostics.sort_by(|left, right| left.path.cmp(&right.path));
     Ok(RuntimeMetricsReport {
         schema: "forge.runtime-metrics",
-        schema_version: 5,
+        schema_version: 6,
         source_hash: stats.source_hash.clone(),
         gpu: gpu.cloned(),
         window: lifecycle.report(final_window),
@@ -1261,6 +1297,8 @@ fn build_runtime_metrics(
         visual_valley_shadow: visual_valley_shadow.cloned(),
         vegetation: vegetation.cloned(),
         environment: environment.cloned(),
+        water: water.cloned(),
+        weather: weather.cloned(),
     })
 }
 
@@ -1417,16 +1455,20 @@ mod tests {
             None,
             None,
             None,
+            None,
+            None,
             &diagnostics,
             &lifecycle,
             None,
         )
         .unwrap();
-        assert_eq!(report.schema_version, 5);
+        assert_eq!(report.schema_version, 6);
         assert!(report.visual_valley.is_none());
         assert!(report.visual_valley_shadow.is_none());
         assert!(report.vegetation.is_none());
         assert!(report.environment.is_none());
+        assert!(report.water.is_none());
+        assert!(report.weather.is_none());
         assert!(
             serde_json::to_value(&report)
                 .unwrap()
@@ -1442,7 +1484,7 @@ mod tests {
     }
 
     #[test]
-    fn gate1_metrics_preserve_machine_readable_terrain_vegetation_and_environment() {
+    fn gate1_metrics_preserve_machine_readable_scene_projections() {
         let stats = ProofSceneStats {
             source_entities: 1,
             source_mesh_instances: 64,
@@ -1478,6 +1520,8 @@ mod tests {
             Some(&vegetation),
             Some(&environment),
             None,
+            None,
+            None,
             &DiagnosticsStore::default(),
             &WindowLifecycle::new(None, None),
             None,
@@ -1488,6 +1532,8 @@ mod tests {
         assert_eq!(report.visual_valley_shadow, Some(shadow));
         assert_eq!(report.vegetation, Some(vegetation));
         assert_eq!(report.environment, Some(environment));
+        assert!(report.water.is_none());
+        assert!(report.weather.is_none());
         let serialized = serde_json::to_value(&report).unwrap();
         assert_eq!(serialized["visual_valley"]["chunks"], 64);
         assert_eq!(serialized["visual_valley"]["vertices"], 69_696);

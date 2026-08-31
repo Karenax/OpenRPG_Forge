@@ -15,15 +15,18 @@ use bevy::{
 };
 use forge_engine::{
     ProofScenePlugin, RuntimeAutomation, VisualValleyEnvironmentPlugin, VisualValleyPlugin,
-    VisualValleyVegetationPlugin, WindowResizeRequest,
+    VisualValleyVegetationPlugin, VisualValleyWaterPlugin, VisualValleyWeatherPlugin,
+    WindowResizeRequest,
 };
 use forge_project::{
     EnvironmentProfileDocument, SceneProofDocument, TerrainDocument, VegetationDocument,
+    WaterDocument, WeatherProfileDocument, WeatherState,
 };
 use forge_world::{
     TerrainGenerationPlan, VegetationGenerationPlan, embedded_gate0_proof_document,
     embedded_visual_valley_environment_profile, embedded_visual_valley_player_controller_profile,
     embedded_visual_valley_terrain_document, embedded_visual_valley_vegetation_document,
+    embedded_visual_valley_water_document, embedded_visual_valley_weather_profile,
 };
 use player_camera_probe::PlayerCameraProbePlugin;
 use std::{env, fs, path::PathBuf};
@@ -67,6 +70,9 @@ fn main() -> AppExit {
     let player_input_enabled =
         options.player_camera.is_interactive() && !automated_runtime_requested(&automation);
     let primary_cursor_options = cursor_options_for_player_camera(player_input_enabled);
+    let weather_override = options
+        .weather_state
+        .map_or("document_default", weather_state_label);
     tracing::info!(
         target: "forge::runtime",
         schema = "forge.runtime-event",
@@ -83,6 +89,7 @@ fn main() -> AppExit {
         terrain_partial_update_probe = options.terrain_partial_update_probe.is_enabled(),
         player_camera = options.player_camera.is_interactive(),
         player_camera_probe = options.player_camera.is_probe(),
+        weather_override,
         player_input_enabled,
         player_cursor_locked = player_input_enabled,
         "native runtime starting"
@@ -111,11 +118,14 @@ fn main() -> AppExit {
     add_runtime_plugin(
         &mut app,
         document,
-        automation,
-        options.terrain_debug,
-        options.terrain_partial_update_probe,
-        options.player_camera,
-        player_input_enabled,
+        RuntimePluginConfiguration {
+            automation,
+            terrain_debug: options.terrain_debug,
+            terrain_partial_update_probe: options.terrain_partial_update_probe,
+            player_camera: options.player_camera,
+            weather_state: options.weather_state,
+            player_input_enabled,
+        },
     );
 
     let exit = app.run();
@@ -155,15 +165,28 @@ fn run_structured_log_probe() -> AppExit {
     AppExit::Success
 }
 
-fn add_runtime_plugin(
-    app: &mut App,
-    document: RuntimeDocument,
+struct RuntimePluginConfiguration {
     automation: RuntimeAutomation,
     terrain_debug: TerrainDebugMode,
     terrain_partial_update_probe: TerrainPartialUpdateProbeMode,
     player_camera: PlayerCameraRuntimeMode,
+    weather_state: Option<WeatherState>,
     player_input_enabled: bool,
+}
+
+fn add_runtime_plugin(
+    app: &mut App,
+    document: RuntimeDocument,
+    configuration: RuntimePluginConfiguration,
 ) {
+    let RuntimePluginConfiguration {
+        automation,
+        terrain_debug,
+        terrain_partial_update_probe,
+        player_camera,
+        weather_state,
+        player_input_enabled,
+    } = configuration;
     match document {
         RuntimeDocument::Gate0(document) => {
             app.add_plugins(ProofScenePlugin::new(document).with_automation(automation));
@@ -172,6 +195,8 @@ fn add_runtime_plugin(
             terrain: document,
             vegetation,
             environment,
+            water,
+            weather,
         } => {
             let player_profile = player_camera.is_enabled().then(|| {
                 embedded_visual_valley_player_controller_profile().unwrap_or_else(|error| {
@@ -189,6 +214,15 @@ fn add_runtime_plugin(
 
             let vegetation_plugin = vegetation
                 .map(|vegetation| VisualValleyVegetationPlugin::new(document.clone(), *vegetation));
+            let water_plugin =
+                water.map(|water| VisualValleyWaterPlugin::new(document.clone(), *water));
+            let weather_plugin = weather.map(|weather| {
+                let mut plugin = VisualValleyWeatherPlugin::new(*weather);
+                if let Some(state) = weather_state {
+                    plugin = plugin.with_initial_state(state);
+                }
+                plugin
+            });
             let mut visual_valley = VisualValleyPlugin::new(document)
                 .with_automation(automation)
                 .with_chunk_lod_gizmos(terrain_debug.is_enabled());
@@ -208,6 +242,12 @@ fn add_runtime_plugin(
             }
             if let Some(vegetation_plugin) = vegetation_plugin {
                 app.add_plugins(vegetation_plugin);
+            }
+            if let Some(water_plugin) = water_plugin {
+                app.add_plugins(water_plugin);
+            }
+            if let Some(weather_plugin) = weather_plugin {
+                app.add_plugins(weather_plugin);
             }
             if terrain_partial_update_probe.is_enabled() {
                 app.add_plugins(TerrainPartialUpdateProbePlugin::new());
@@ -229,6 +269,8 @@ enum RuntimeDocument {
         terrain: TerrainDocument,
         vegetation: Option<Box<VegetationDocument>>,
         environment: Option<Box<EnvironmentProfileDocument>>,
+        water: Option<Box<WaterDocument>>,
+        weather: Option<Box<WeatherProfileDocument>>,
     },
 }
 
@@ -252,6 +294,8 @@ fn validated_visual_valley_document(
     document: TerrainDocument,
     vegetation: Option<VegetationDocument>,
     environment: Option<EnvironmentProfileDocument>,
+    water: Option<WaterDocument>,
+    weather: Option<WeatherProfileDocument>,
     source: &str,
 ) -> Result<RuntimeDocument, String> {
     TerrainGenerationPlan::from_document(&document)
@@ -268,10 +312,22 @@ fn validated_visual_valley_document(
                 format!("unsupported Visual Valley environment for {source}: {error}")
             })?;
     }
+    if let Some(water) = &water {
+        water
+            .validate_identity(document.project_id, document.area_id, document.revision)
+            .map_err(|error| format!("unsupported Visual Valley water for {source}: {error}"))?;
+    }
+    if let Some(weather) = &weather {
+        weather
+            .validate_identity(document.project_id, document.area_id, document.revision)
+            .map_err(|error| format!("unsupported Visual Valley weather for {source}: {error}"))?;
+    }
     Ok(RuntimeDocument::VisualValley {
         terrain: document,
         vegetation: vegetation.map(Box::new),
         environment: environment.map(Box::new),
+        water: water.map(Box::new),
+        weather: weather.map(Box::new),
     })
 }
 
@@ -351,6 +407,7 @@ struct Options {
     terrain_debug: TerrainDebugMode,
     terrain_partial_update_probe: TerrainPartialUpdateProbeMode,
     player_camera: PlayerCameraRuntimeMode,
+    weather_state: Option<WeatherState>,
     capture_path: Option<PathBuf>,
     capture_frame: u32,
     metrics_path: Option<PathBuf>,
@@ -373,6 +430,7 @@ impl Default for Options {
             terrain_debug: TerrainDebugMode::Hidden,
             terrain_partial_update_probe: TerrainPartialUpdateProbeMode::Disabled,
             player_camera: PlayerCameraRuntimeMode::Disabled,
+            weather_state: None,
             capture_path: None,
             capture_frame: 120,
             metrics_path: None,
@@ -404,6 +462,12 @@ impl Options {
                 }
                 "--player-camera" => options.player_camera.select_interactive()?,
                 "--player-camera-probe" => options.player_camera.select_probe()?,
+                "--weather" => {
+                    if options.weather_state.is_some() {
+                        return Err("--weather may only be specified once".to_owned());
+                    }
+                    options.weather_state = Some(next_weather_state(&mut arguments)?);
+                }
                 "--capture" => {
                     options.capture_path = Some(next_path(&mut arguments, "--capture")?);
                 }
@@ -436,7 +500,7 @@ impl Options {
                 "--no-vsync" => options.vsync = false,
                 "--log-probe" => options.log_probe = true,
                 "--help" | "-h" => {
-                    return Err("usage: forge_runtime [--scene file.json | --visual-valley | --terrain terrain.json] [--terrain-debug] [--terrain-partial-update-probe] [--player-camera | --player-camera-probe] [--capture file.png] [--capture-frame n] [--metrics file.json] [--metrics-warmup-frames n] [--exit-after-frames n] [--resize-at-frame n --resize-width px --resize-height px] [--close-at-frame n] [--no-vsync] [--log-probe]".to_owned());
+                    return Err("usage: forge_runtime [--scene file.json | --visual-valley | --terrain terrain.json] [--terrain-debug] [--terrain-partial-update-probe] [--player-camera | --player-camera-probe] [--weather clear|rain] [--capture file.png] [--capture-frame n] [--metrics file.json] [--metrics-warmup-frames n] [--exit-after-frames n] [--resize-at-frame n --resize-width px --resize-height px] [--close-at-frame n] [--no-vsync] [--log-probe]".to_owned());
                 }
                 _ => return Err(format!("unknown option `{argument}`")),
             }
@@ -454,6 +518,9 @@ impl Options {
         }
         if self.terrain_debug.is_enabled() && self.terrain_path.is_none() && !self.visual_valley {
             return Err("--terrain-debug requires --visual-valley or --terrain".to_owned());
+        }
+        if self.weather_state.is_some() && !self.visual_valley {
+            return Err("--weather requires --visual-valley".to_owned());
         }
         self.validate_terrain_partial_update_probe()?;
         self.validate_player_camera()?;
@@ -521,6 +588,7 @@ impl Options {
                 || self.terrain_debug.is_enabled()
                 || self.terrain_partial_update_probe.is_enabled()
                 || self.player_camera.is_enabled()
+                || self.weather_state.is_some()
                 || self.capture_path.is_some()
                 || self.metrics_path.is_some()
                 || self.exit_after_frames.is_some()
@@ -616,7 +684,7 @@ impl Options {
             let document = TerrainDocument::from_json(&json)
                 .map_err(|error| format!("invalid terrain {}: {error}", path.display()))?;
             let source = path.display().to_string();
-            return validated_visual_valley_document(document, None, None, &source);
+            return validated_visual_valley_document(document, None, None, None, None, &source);
         }
         if self.visual_valley {
             let document = embedded_visual_valley_terrain_document()
@@ -625,10 +693,16 @@ impl Options {
                 .map_err(|error| format!("invalid embedded Visual Valley vegetation: {error}"))?;
             let environment = embedded_visual_valley_environment_profile()
                 .map_err(|error| format!("invalid embedded Visual Valley environment: {error}"))?;
+            let water = embedded_visual_valley_water_document()
+                .map_err(|error| format!("invalid embedded Visual Valley water: {error}"))?;
+            let weather = embedded_visual_valley_weather_profile()
+                .map_err(|error| format!("invalid embedded Visual Valley weather: {error}"))?;
             return validated_visual_valley_document(
                 document,
                 Some(vegetation),
                 Some(environment),
+                Some(water),
+                Some(weather),
                 "embedded Visual Valley terrain",
             );
         }
@@ -767,6 +841,26 @@ fn next_u32(arguments: &mut impl Iterator<Item = String>, option: &str) -> Resul
         .map_err(|_| format!("{option} requires an unsigned integer"))
 }
 
+fn next_weather_state(
+    arguments: &mut impl Iterator<Item = String>,
+) -> Result<WeatherState, String> {
+    match arguments.next().as_deref() {
+        Some("clear") => Ok(WeatherState::Clear),
+        Some("rain") => Ok(WeatherState::Rain),
+        Some(value) => Err(format!(
+            "--weather requires `clear` or `rain`, received `{value}`"
+        )),
+        None => Err("--weather requires `clear` or `rain`".to_owned()),
+    }
+}
+
+const fn weather_state_label(state: WeatherState) -> &'static str {
+    match state {
+        WeatherState::Clear => "clear",
+        WeatherState::Rain => "rain",
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -829,16 +923,22 @@ mod tests {
             terrain: loaded,
             vegetation: Some(loaded_vegetation),
             environment: Some(loaded_environment),
+            water: Some(loaded_water),
+            weather: Some(loaded_weather),
         } = loaded
         else {
-            panic!("--visual-valley must select the embedded terrain/vegetation/environment set");
+            panic!("--visual-valley must select the complete embedded Gate 1 document set");
         };
         let embedded = embedded_visual_valley_terrain_document().unwrap();
         let embedded_vegetation = embedded_visual_valley_vegetation_document().unwrap();
         let embedded_environment = embedded_visual_valley_environment_profile().unwrap();
+        let embedded_water = embedded_visual_valley_water_document().unwrap();
+        let embedded_weather = embedded_visual_valley_weather_profile().unwrap();
         assert_eq!(loaded, embedded);
         assert_eq!(*loaded_vegetation, embedded_vegetation);
         assert_eq!(*loaded_environment, embedded_environment);
+        assert_eq!(*loaded_water, embedded_water);
+        assert_eq!(*loaded_weather, embedded_weather);
         assert_eq!(
             loaded.content_hash().unwrap(),
             embedded.content_hash().unwrap()
@@ -854,6 +954,8 @@ mod tests {
         let error = validated_visual_valley_document(
             terrain,
             Some(vegetation),
+            None,
+            None,
             None,
             "mismatched test pair",
         )
@@ -872,11 +974,106 @@ mod tests {
             terrain,
             None,
             Some(environment),
+            None,
+            None,
             "mismatched environment",
         )
         .unwrap_err();
         assert!(error.contains("environment"));
         assert!(error.contains("area identity mismatch"), "{error}");
+    }
+
+    #[test]
+    fn visual_valley_rejects_incompatible_water_and_weather_before_bevy() {
+        let terrain = embedded_visual_valley_terrain_document().unwrap();
+        let mut water = embedded_visual_valley_water_document().unwrap();
+        water.area_id = forge_core::AreaId::deterministic("runtime-mismatched-water-area");
+        let error = validated_visual_valley_document(
+            terrain.clone(),
+            None,
+            None,
+            Some(water),
+            None,
+            "mismatched water",
+        )
+        .unwrap_err();
+        assert!(error.contains("water"));
+        assert!(error.contains("area identity mismatch"), "{error}");
+
+        let mut weather = embedded_visual_valley_weather_profile().unwrap();
+        weather.area_id = forge_core::AreaId::deterministic("runtime-mismatched-weather-area");
+        let error = validated_visual_valley_document(
+            terrain,
+            None,
+            None,
+            None,
+            Some(weather),
+            "mismatched weather",
+        )
+        .unwrap_err();
+        assert!(error.contains("weather"));
+        assert!(error.contains("area identity mismatch"), "{error}");
+    }
+
+    #[test]
+    fn weather_override_is_strict_and_requires_visual_valley() {
+        let clear = Options::parse(
+            [
+                "--visual-valley".to_owned(),
+                "--weather".to_owned(),
+                "clear".to_owned(),
+            ]
+            .into_iter(),
+        )
+        .unwrap();
+        assert_eq!(clear.weather_state, Some(WeatherState::Clear));
+
+        let rain = Options::parse(
+            [
+                "--visual-valley".to_owned(),
+                "--weather".to_owned(),
+                "rain".to_owned(),
+            ]
+            .into_iter(),
+        )
+        .unwrap();
+        assert_eq!(rain.weather_state, Some(WeatherState::Rain));
+
+        assert_eq!(
+            Options::parse(["--weather".to_owned(), "rain".to_owned()].into_iter()).unwrap_err(),
+            "--weather requires --visual-valley"
+        );
+        assert!(
+            Options::parse(
+                [
+                    "--visual-valley".to_owned(),
+                    "--weather".to_owned(),
+                    "storm".to_owned(),
+                ]
+                .into_iter(),
+            )
+            .unwrap_err()
+            .contains("received `storm`")
+        );
+        assert_eq!(
+            Options::parse(["--visual-valley".to_owned(), "--weather".to_owned()].into_iter())
+                .unwrap_err(),
+            "--weather requires `clear` or `rain`"
+        );
+        assert_eq!(
+            Options::parse(
+                [
+                    "--visual-valley".to_owned(),
+                    "--weather".to_owned(),
+                    "clear".to_owned(),
+                    "--weather".to_owned(),
+                    "rain".to_owned(),
+                ]
+                .into_iter(),
+            )
+            .unwrap_err(),
+            "--weather may only be specified once"
+        );
     }
 
     #[test]
