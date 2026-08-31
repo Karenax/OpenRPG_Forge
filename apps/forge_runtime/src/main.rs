@@ -14,14 +14,16 @@ use bevy::{
     window::{CursorGrabMode, CursorOptions, PresentMode, WindowResolution},
 };
 use forge_engine::{
-    ProofScenePlugin, RuntimeAutomation, VisualValleyPlugin, VisualValleyVegetationPlugin,
-    WindowResizeRequest,
+    ProofScenePlugin, RuntimeAutomation, VisualValleyEnvironmentPlugin, VisualValleyPlugin,
+    VisualValleyVegetationPlugin, WindowResizeRequest,
 };
-use forge_project::{SceneProofDocument, TerrainDocument, VegetationDocument};
+use forge_project::{
+    EnvironmentProfileDocument, SceneProofDocument, TerrainDocument, VegetationDocument,
+};
 use forge_world::{
     TerrainGenerationPlan, VegetationGenerationPlan, embedded_gate0_proof_document,
-    embedded_visual_valley_player_controller_profile, embedded_visual_valley_terrain_document,
-    embedded_visual_valley_vegetation_document,
+    embedded_visual_valley_environment_profile, embedded_visual_valley_player_controller_profile,
+    embedded_visual_valley_terrain_document, embedded_visual_valley_vegetation_document,
 };
 use player_camera_probe::PlayerCameraProbePlugin;
 use std::{env, fs, path::PathBuf};
@@ -169,6 +171,7 @@ fn add_runtime_plugin(
         RuntimeDocument::VisualValley {
             terrain: document,
             vegetation,
+            environment,
         } => {
             let player_profile = player_camera.is_enabled().then(|| {
                 embedded_visual_valley_player_controller_profile().unwrap_or_else(|error| {
@@ -200,6 +203,9 @@ fn add_runtime_plugin(
             }
 
             app.add_plugins(visual_valley);
+            if let Some(environment) = environment {
+                app.add_plugins(VisualValleyEnvironmentPlugin::new(*environment));
+            }
             if let Some(vegetation_plugin) = vegetation_plugin {
                 app.add_plugins(vegetation_plugin);
             }
@@ -222,6 +228,7 @@ enum RuntimeDocument {
     VisualValley {
         terrain: TerrainDocument,
         vegetation: Option<Box<VegetationDocument>>,
+        environment: Option<Box<EnvironmentProfileDocument>>,
     },
 }
 
@@ -244,6 +251,7 @@ impl RuntimeDocument {
 fn validated_visual_valley_document(
     document: TerrainDocument,
     vegetation: Option<VegetationDocument>,
+    environment: Option<EnvironmentProfileDocument>,
     source: &str,
 ) -> Result<RuntimeDocument, String> {
     TerrainGenerationPlan::from_document(&document)
@@ -253,9 +261,17 @@ fn validated_visual_valley_document(
             format!("unsupported Visual Valley vegetation for {source}: {error}")
         })?;
     }
+    if let Some(environment) = &environment {
+        environment
+            .validate_identity(document.project_id, document.area_id, document.revision)
+            .map_err(|error| {
+                format!("unsupported Visual Valley environment for {source}: {error}")
+            })?;
+    }
     Ok(RuntimeDocument::VisualValley {
         terrain: document,
         vegetation: vegetation.map(Box::new),
+        environment: environment.map(Box::new),
     })
 }
 
@@ -600,16 +616,19 @@ impl Options {
             let document = TerrainDocument::from_json(&json)
                 .map_err(|error| format!("invalid terrain {}: {error}", path.display()))?;
             let source = path.display().to_string();
-            return validated_visual_valley_document(document, None, &source);
+            return validated_visual_valley_document(document, None, None, &source);
         }
         if self.visual_valley {
             let document = embedded_visual_valley_terrain_document()
                 .map_err(|error| format!("invalid embedded Visual Valley terrain: {error}"))?;
             let vegetation = embedded_visual_valley_vegetation_document()
                 .map_err(|error| format!("invalid embedded Visual Valley vegetation: {error}"))?;
+            let environment = embedded_visual_valley_environment_profile()
+                .map_err(|error| format!("invalid embedded Visual Valley environment: {error}"))?;
             return validated_visual_valley_document(
                 document,
                 Some(vegetation),
+                Some(environment),
                 "embedded Visual Valley terrain",
             );
         }
@@ -809,14 +828,17 @@ mod tests {
         let RuntimeDocument::VisualValley {
             terrain: loaded,
             vegetation: Some(loaded_vegetation),
+            environment: Some(loaded_environment),
         } = loaded
         else {
-            panic!("--visual-valley must select the embedded terrain/vegetation pair");
+            panic!("--visual-valley must select the embedded terrain/vegetation/environment set");
         };
         let embedded = embedded_visual_valley_terrain_document().unwrap();
         let embedded_vegetation = embedded_visual_valley_vegetation_document().unwrap();
+        let embedded_environment = embedded_visual_valley_environment_profile().unwrap();
         assert_eq!(loaded, embedded);
         assert_eq!(*loaded_vegetation, embedded_vegetation);
+        assert_eq!(*loaded_environment, embedded_environment);
         assert_eq!(
             loaded.content_hash().unwrap(),
             embedded.content_hash().unwrap()
@@ -829,11 +851,32 @@ mod tests {
         let mut vegetation = embedded_visual_valley_vegetation_document().unwrap();
         vegetation.area_id = forge_core::AreaId::deterministic("runtime-mismatched-area");
 
-        let error =
-            validated_visual_valley_document(terrain, Some(vegetation), "mismatched test pair")
-                .unwrap_err();
+        let error = validated_visual_valley_document(
+            terrain,
+            Some(vegetation),
+            None,
+            "mismatched test pair",
+        )
+        .unwrap_err();
         assert!(error.contains("vegetation"));
         assert!(error.contains("area identities do not match"), "{error}");
+    }
+
+    #[test]
+    fn visual_valley_rejects_an_incompatible_environment_before_bevy() {
+        let terrain = embedded_visual_valley_terrain_document().unwrap();
+        let mut environment = embedded_visual_valley_environment_profile().unwrap();
+        environment.area_id = forge_core::AreaId::deterministic("runtime-mismatched-area");
+
+        let error = validated_visual_valley_document(
+            terrain,
+            None,
+            Some(environment),
+            "mismatched environment",
+        )
+        .unwrap_err();
+        assert!(error.contains("environment"));
+        assert!(error.contains("area identity mismatch"), "{error}");
     }
 
     #[test]

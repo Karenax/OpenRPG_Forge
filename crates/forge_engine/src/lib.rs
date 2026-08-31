@@ -253,6 +253,8 @@ struct RuntimeMetricsReport {
     visual_valley_shadow: Option<VisualValleyShadowStats>,
     #[serde(skip_serializing_if = "Option::is_none")]
     vegetation: Option<VegetationProjectionStats>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    environment: Option<EnvironmentProjectionStats>,
 }
 
 #[derive(Debug, Serialize)]
@@ -1041,6 +1043,7 @@ fn write_metrics_and_exit(
     visual_valley: Option<Res<VisualValleyStats>>,
     visual_valley_shadow: Option<Res<VisualValleyShadowStats>>,
     vegetation: Option<Res<VegetationProjectionStats>>,
+    environment: Option<Res<EnvironmentProjectionStats>>,
     gpu: Option<Res<GpuDiagnostic>>,
     diagnostics: Res<DiagnosticsStore>,
     windows: Query<&Window, With<PrimaryWindow>>,
@@ -1104,6 +1107,7 @@ fn write_metrics_and_exit(
             visual_valley.as_deref(),
             visual_valley_shadow.as_deref(),
             vegetation.as_deref(),
+            environment.as_deref(),
             gpu.as_deref(),
             &diagnostics,
             &lifecycle,
@@ -1186,6 +1190,7 @@ fn build_runtime_metrics(
     visual_valley: Option<&VisualValleyStats>,
     visual_valley_shadow: Option<&VisualValleyShadowStats>,
     vegetation: Option<&VegetationProjectionStats>,
+    environment: Option<&EnvironmentProjectionStats>,
     gpu: Option<&GpuDiagnostic>,
     diagnostics: &DiagnosticsStore,
     lifecycle: &WindowLifecycle,
@@ -1232,7 +1237,7 @@ fn build_runtime_metrics(
     render_diagnostics.sort_by(|left, right| left.path.cmp(&right.path));
     Ok(RuntimeMetricsReport {
         schema: "forge.runtime-metrics",
-        schema_version: 4,
+        schema_version: 5,
         source_hash: stats.source_hash.clone(),
         gpu: gpu.cloned(),
         window: lifecycle.report(final_window),
@@ -1242,6 +1247,7 @@ fn build_runtime_metrics(
         visual_valley: visual_valley.cloned(),
         visual_valley_shadow: visual_valley_shadow.cloned(),
         vegetation: vegetation.cloned(),
+        environment: environment.cloned(),
     })
 }
 
@@ -1273,6 +1279,50 @@ mod tests {
             metrics_warmup_frames: warmup,
             exit_after_frames: last_frame,
             ..default()
+        }
+    }
+
+    fn sample_environment_stats() -> EnvironmentProjectionStats {
+        EnvironmentProjectionStats {
+            source_hash: "environment".to_owned(),
+            status: EnvironmentProjectionStatus::ObservedApproximation,
+            evidence_source: "main_world_components_not_gpu_execution",
+            camera_3d_entities: 1,
+            active_camera_3d_entities: 1,
+            directional_light_entities: 1,
+            visual_valley_sun_entities: 1,
+            atmosphere_entities: 1,
+            fog_volume_entities: 0,
+            sky: EnvironmentSkyStats {
+                requested: true,
+                atmosphere_settings: true,
+                hdr: true,
+                exposure_ev100: Some(12.0),
+                tonemapping: Some("tony_mc_mapface"),
+                ambient_light: true,
+                aerial_view_max_distance_m: 1_600.0,
+            },
+            sun: EnvironmentSunStats {
+                illuminance_lux: Some(55_000.0),
+                color_linear_rgba: Some([1.0, 0.85, 0.57, 1.0]),
+                forward_world: Some([0.62, -0.62, -0.48]),
+                shadows_enabled: Some(true),
+                sun_disk: true,
+            },
+            distance_fog: EnvironmentDistanceFogStats {
+                requested: true,
+                component_present: true,
+                falloff_kind: "atmospheric",
+                measurement_distance_m: 640.0,
+                maximum_opacity: 0.82,
+            },
+            volumetric: EnvironmentVolumetricStats {
+                requested: true,
+                applied: false,
+                resolved_path: "distance_fog_fallback",
+                requested_step_count: 64,
+                fallback: "distance_fog",
+            },
         }
     }
 
@@ -1353,15 +1403,17 @@ mod tests {
             None,
             None,
             None,
+            None,
             &diagnostics,
             &lifecycle,
             None,
         )
         .unwrap();
-        assert_eq!(report.schema_version, 4);
+        assert_eq!(report.schema_version, 5);
         assert!(report.visual_valley.is_none());
         assert!(report.visual_valley_shadow.is_none());
         assert!(report.vegetation.is_none());
+        assert!(report.environment.is_none());
         assert!(
             serde_json::to_value(&report)
                 .unwrap()
@@ -1377,7 +1429,7 @@ mod tests {
     }
 
     #[test]
-    fn gate1_metrics_preserve_machine_readable_terrain_and_vegetation_counts() {
+    fn gate1_metrics_preserve_machine_readable_terrain_vegetation_and_environment() {
         let stats = ProofSceneStats {
             source_entities: 1,
             source_mesh_instances: 64,
@@ -1404,12 +1456,14 @@ mod tests {
             cascade_bounds_m: vec![24.0, 48.0, 80.0, 128.0],
             evidence_source: "visual_valley_sun_cascade_shadow_component",
         };
+        let environment = sample_environment_stats();
         let report = build_runtime_metrics(
             &[8.0],
             &stats,
             Some(&visual_valley),
             Some(&shadow),
             Some(&vegetation),
+            Some(&environment),
             None,
             &DiagnosticsStore::default(),
             &WindowLifecycle::new(None, None),
@@ -1420,6 +1474,7 @@ mod tests {
         assert_eq!(report.visual_valley, Some(visual_valley));
         assert_eq!(report.visual_valley_shadow, Some(shadow));
         assert_eq!(report.vegetation, Some(vegetation));
+        assert_eq!(report.environment, Some(environment));
         let serialized = serde_json::to_value(&report).unwrap();
         assert_eq!(serialized["visual_valley"]["chunks"], 64);
         assert_eq!(serialized["visual_valley"]["vertices"], 69_696);
@@ -1434,6 +1489,14 @@ mod tests {
             128.0
         );
         assert!(serialized["vegetation"].get("draw_calls").is_none());
+        assert_eq!(
+            serialized["environment"]["status"],
+            "observed_approximation"
+        );
+        assert_eq!(
+            serialized["environment"]["volumetric"]["resolved_path"],
+            "distance_fog_fallback"
+        );
     }
 
     #[test]
