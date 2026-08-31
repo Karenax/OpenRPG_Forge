@@ -290,7 +290,7 @@ et sans transformer une acquisition automatisée en revue humaine.
 
 Statut : **OUVERTE** après le passage automatisé local de Gate 0 sous ADR-0004, ADR-0005 et ADR-0006.
 
-Progression au commit `1f54b49bef7f086ef72d4f025c5059ec1860780d` : `R1-001` reste qualifié,
+Progression au commit `7e9681dd643c2b5c4959d704cf43691f39c3d636` : `R1-001` reste qualifié,
 puis `R1-002` à `R1-008` sont passés fonctionnellement localement par le terrain dérivé
 déterministe, les meshes Bevy, le shader PBR trois couches, le debug chunks/LOD, les 64 heightfields
 Rapier et une transaction partielle qui régénère 3 meshes et 1 collider sans remplacer les 64
@@ -315,6 +315,13 @@ sous ADR-0006 par 135/135 tests workspace et un probe natif ECS/Rapier ; `R1-009
 58/58 tests ciblés et ses deux goldens ; le lot de rendu végétation est qualifié par 92/92 tests
 engine/runtime, Clippy strict, compilation WASM, probes natifs, captures et métriques locales.
 `R1-014`, les performances finales et la revue comparative humaine restent dus. Gate 1 reste ouverte.
+
+`R1-019` à `R1-021` disposent maintenant d'un profil v1 strict et d'une projection native
+Atmosphere/HDR/soleil/brouillard de distance. Les captures overview et hauteur humaine, le schéma
+métrique v5 et le smoke RX 7800 XT passent localement. `R1-021` choisit explicitement
+l'approximation de distance tant que la volumétrie n'est pas qualifiée ; les trois items restent
+ouverts jusqu'au lancement réel du même profil dans le Studio WebGPU. Voir
+`docs/evidence/gate1/R1_019_021_ENVIRONMENT.md`.
 
 ## But
 
@@ -366,9 +373,10 @@ qualité                   Low / Medium / High / Ultra
 
 ## R1-C — Atmosphère et eau
 
-- [ ] `R1-019` ciel et soleil cohérents.
-- [ ] `R1-020` brouillard atmosphérique.
-- [ ] `R1-021` brouillard volumétrique ou approximation mesurée.
+- [ ] `R1-019` ciel et soleil cohérents — PASS natif local ; lancement Studio WebGPU dû.
+- [ ] `R1-020` brouillard atmosphérique — PASS natif local ; lancement Studio WebGPU dû.
+- [ ] `R1-021` brouillard volumétrique ou approximation mesurée — approximation PASS native,
+  WebGPU et comparaison finale dus.
 - [ ] `R1-022` eau de rivière.
 - [ ] `R1-023` réflexion/réfraction selon profil.
 - [ ] `R1-024` pluie.
