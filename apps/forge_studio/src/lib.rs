@@ -8,7 +8,390 @@
 )]
 
 use forge_core::EntityId;
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+use forge_project::{
+    EnvironmentProfileDocument, PlayerControllerProfileDocument, SceneProofDocument,
+    SceneProofKind, TerrainDocument, VegetationDocument,
+};
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+use forge_world::{
+    TerrainGenerationPlan, VegetationGenerationPlan, embedded_gate0_proof_document,
+    embedded_visual_valley_environment_profile, embedded_visual_valley_player_controller_profile,
+    embedded_visual_valley_terrain_document, embedded_visual_valley_vegetation_document,
+};
 use serde::{Deserialize, Serialize};
+
+const STUDIO_SCENE_QUERY_KEY: &str = "forge_scene";
+
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum StudioScene {
+    #[default]
+    Gate0,
+    VisualValley,
+}
+
+impl StudioScene {
+    #[must_use]
+    pub const fn mode(self) -> StudioViewportMode {
+        match self {
+            Self::Gate0 => StudioViewportMode::Gate0SceneProof,
+            Self::VisualValley => StudioViewportMode::Gate1VisualValley,
+        }
+    }
+
+    #[must_use]
+    pub const fn query_value(self) -> &'static str {
+        match self {
+            Self::Gate0 => "gate0",
+            Self::VisualValley => "visual-valley",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum StudioViewportMode {
+    Gate0SceneProof,
+    Gate1VisualValley,
+}
+
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum StudioSceneSelectionSource {
+    #[default]
+    Default,
+    QueryString,
+    UnknownQueryFallback,
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct StudioSceneSelection {
+    pub scene: StudioScene,
+    pub source: StudioSceneSelectionSource,
+    pub requested_value: Option<String>,
+}
+
+#[must_use]
+pub fn parse_studio_scene_selection(search: &str) -> StudioSceneSelection {
+    let requested_value = search
+        .trim_start_matches('?')
+        .split('&')
+        .filter_map(|entry| entry.split_once('='))
+        .find_map(|(key, value)| (key == STUDIO_SCENE_QUERY_KEY).then(|| value.to_owned()));
+
+    match requested_value.as_deref() {
+        None => StudioSceneSelection::default(),
+        Some("gate0") => StudioSceneSelection {
+            scene: StudioScene::Gate0,
+            source: StudioSceneSelectionSource::QueryString,
+            requested_value,
+        },
+        Some("visual-valley") => StudioSceneSelection {
+            scene: StudioScene::VisualValley,
+            source: StudioSceneSelectionSource::QueryString,
+            requested_value,
+        },
+        Some(_) => StudioSceneSelection {
+            scene: StudioScene::Gate0,
+            source: StudioSceneSelectionSource::UnknownQueryFallback,
+            requested_value,
+        },
+    }
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct StudioSceneSourceHashes {
+    pub scene_proof: Option<String>,
+    pub terrain: Option<String>,
+    pub vegetation: Option<String>,
+    pub environment: Option<String>,
+    pub player_controller: Option<String>,
+}
+
+impl StudioSceneSourceHashes {
+    #[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+    fn populated_count(&self) -> usize {
+        [
+            &self.scene_proof,
+            &self.terrain,
+            &self.vegetation,
+            &self.environment,
+            &self.player_controller,
+        ]
+        .into_iter()
+        .filter(|hash| hash.is_some())
+        .count()
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum StudioWaterAdapterStatus {
+    NotApplicable,
+    UnavailableNoEngineAdapter,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum StudioCameraOwner {
+    Gate0ProofDocument,
+    VisualValleyPlayerController,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct StudioSceneManifest {
+    pub mode: StudioViewportMode,
+    pub scene: StudioScene,
+    pub display_name: String,
+    pub source_hashes: StudioSceneSourceHashes,
+    pub camera_owner: StudioCameraOwner,
+    pub expected_active_camera_count: u32,
+    pub water_adapter: StudioWaterAdapterStatus,
+}
+
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum StudioSceneParityStatus {
+    #[default]
+    AwaitingRuntime,
+    SourceManifestMatched,
+    SourceManifestMismatch,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct StudioSceneRuntimeObservation {
+    pub first_real_frame_ms: f64,
+    pub camera_3d_entities: u32,
+    pub active_camera_3d_entities: u32,
+    pub evidence_source: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct StudioSceneTelemetry {
+    pub schema: String,
+    pub schema_version: u32,
+    pub selection: StudioSceneSelection,
+    pub selected_manifest: StudioSceneManifest,
+    pub runtime_manifest: Option<StudioSceneManifest>,
+    pub parity_status: StudioSceneParityStatus,
+    pub runtime_observation: Option<StudioSceneRuntimeObservation>,
+    pub limitations: Vec<String>,
+}
+
+impl StudioSceneTelemetry {
+    #[must_use]
+    pub fn new(selection: StudioSceneSelection, selected_manifest: StudioSceneManifest) -> Self {
+        Self {
+            schema: "forge.studio-scene-telemetry".to_owned(),
+            schema_version: 1,
+            selection,
+            selected_manifest,
+            runtime_manifest: None,
+            parity_status: StudioSceneParityStatus::AwaitingRuntime,
+            runtime_observation: None,
+            limitations: vec![
+                "A native or wasm32 build does not prove browser WebGPU execution.".to_owned(),
+                "first_real_frame_observed is a Bevy update-loop observation, not a GPU timestamp or pixel inspection."
+                    .to_owned(),
+            ],
+        }
+    }
+
+    pub fn observe_runtime(
+        &mut self,
+        runtime_manifest: StudioSceneManifest,
+        runtime_observation: StudioSceneRuntimeObservation,
+    ) {
+        self.parity_status = if self.selected_manifest == runtime_manifest {
+            StudioSceneParityStatus::SourceManifestMatched
+        } else {
+            StudioSceneParityStatus::SourceManifestMismatch
+        };
+        self.runtime_manifest = Some(runtime_manifest);
+        self.runtime_observation = Some(runtime_observation);
+    }
+}
+
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+#[derive(Clone, Debug)]
+enum LoadedStudioScene {
+    Gate0(SceneProofDocument),
+    VisualValley(Box<LoadedVisualValley>),
+}
+
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+#[derive(Clone, Debug)]
+struct LoadedVisualValley {
+    terrain: TerrainDocument,
+    vegetation: VegetationDocument,
+    environment: EnvironmentProfileDocument,
+    player_controller: PlayerControllerProfileDocument,
+}
+
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+impl LoadedStudioScene {
+    fn load(scene: StudioScene) -> Result<Self, String> {
+        match scene {
+            StudioScene::Gate0 => embedded_gate0_proof_document()
+                .map(Self::Gate0)
+                .map_err(|error| format!("invalid embedded Gate 0 scene: {error}")),
+            StudioScene::VisualValley => {
+                let terrain = embedded_visual_valley_terrain_document()
+                    .map_err(|error| format!("invalid embedded Visual Valley terrain: {error}"))?;
+                let vegetation = embedded_visual_valley_vegetation_document().map_err(|error| {
+                    format!("invalid embedded Visual Valley vegetation: {error}")
+                })?;
+                let environment =
+                    embedded_visual_valley_environment_profile().map_err(|error| {
+                        format!("invalid embedded Visual Valley environment: {error}")
+                    })?;
+                let player_controller = embedded_visual_valley_player_controller_profile()
+                    .map_err(|error| {
+                        format!("invalid embedded Visual Valley player controller: {error}")
+                    })?;
+
+                TerrainGenerationPlan::from_document(&terrain)
+                    .map_err(|error| format!("unsupported Visual Valley terrain: {error}"))?;
+                VegetationGenerationPlan::from_documents(&terrain, &vegetation)
+                    .map_err(|error| format!("unsupported Visual Valley vegetation: {error}"))?;
+                environment
+                    .validate_identity(terrain.project_id, terrain.area_id, terrain.revision)
+                    .map_err(|error| format!("incompatible Visual Valley environment: {error}"))?;
+
+                Ok(Self::VisualValley(Box::new(LoadedVisualValley {
+                    terrain,
+                    vegetation,
+                    environment,
+                    player_controller,
+                })))
+            }
+        }
+    }
+
+    fn manifest(&self) -> Result<StudioSceneManifest, String> {
+        match self {
+            Self::Gate0(document) => Ok(StudioSceneManifest {
+                mode: StudioViewportMode::Gate0SceneProof,
+                scene: StudioScene::Gate0,
+                display_name: document.name.clone(),
+                source_hashes: StudioSceneSourceHashes {
+                    scene_proof: Some(
+                        document
+                            .content_hash()
+                            .map_err(|error| format!("cannot hash Gate 0 scene: {error}"))?
+                            .to_string(),
+                    ),
+                    ..StudioSceneSourceHashes::default()
+                },
+                camera_owner: StudioCameraOwner::Gate0ProofDocument,
+                expected_active_camera_count: 1,
+                water_adapter: StudioWaterAdapterStatus::NotApplicable,
+            }),
+            Self::VisualValley(loaded) => {
+                let LoadedVisualValley {
+                    terrain,
+                    vegetation,
+                    environment,
+                    player_controller,
+                } = loaded.as_ref();
+                Ok(StudioSceneManifest {
+                    mode: StudioViewportMode::Gate1VisualValley,
+                    scene: StudioScene::VisualValley,
+                    display_name: "Visual Valley".to_owned(),
+                    source_hashes: StudioSceneSourceHashes {
+                        scene_proof: None,
+                        terrain: Some(
+                            terrain
+                                .content_hash()
+                                .map_err(|error| {
+                                    format!("cannot hash Visual Valley terrain: {error}")
+                                })?
+                                .to_string(),
+                        ),
+                        vegetation: Some(
+                            vegetation
+                                .content_hash()
+                                .map_err(|error| {
+                                    format!("cannot hash Visual Valley vegetation: {error}")
+                                })?
+                                .to_string(),
+                        ),
+                        environment: Some(
+                            environment
+                                .content_hash()
+                                .map_err(|error| {
+                                    format!("cannot hash Visual Valley environment: {error}")
+                                })?
+                                .to_string(),
+                        ),
+                        player_controller: Some(
+                            player_controller
+                                .content_hash()
+                                .map_err(|error| {
+                                    format!("cannot hash Visual Valley player controller: {error}")
+                                })?
+                                .to_string(),
+                        ),
+                    },
+                    camera_owner: StudioCameraOwner::VisualValleyPlayerController,
+                    expected_active_camera_count: 1,
+                    water_adapter: StudioWaterAdapterStatus::UnavailableNoEngineAdapter,
+                })
+            }
+        }
+    }
+
+    fn hierarchy(&self) -> Vec<StudioHierarchyEntry> {
+        match self {
+            Self::Gate0(document) => document
+                .entities
+                .iter()
+                .map(|entity| StudioHierarchyEntry {
+                    id: entity.id,
+                    name: entity.name.clone(),
+                    glyph: scene_proof_kind_glyph(&entity.kind),
+                })
+                .collect(),
+            Self::VisualValley(_) => [
+                ("terrain", "Terrain document", "▱"),
+                ("vegetation", "Vegetation document", "♧"),
+                ("environment", "Environment profile", "☀"),
+                ("player-controller", "Player controller", "◉"),
+            ]
+            .into_iter()
+            .map(|(key, name, glyph)| StudioHierarchyEntry {
+                id: EntityId::deterministic(format!("studio/visual-valley/{key}")),
+                name: name.to_owned(),
+                glyph,
+            })
+            .collect(),
+        }
+    }
+}
+
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+#[derive(Clone, Debug)]
+struct StudioHierarchyEntry {
+    id: EntityId,
+    name: String,
+    glyph: &'static str,
+}
+
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+const fn scene_proof_kind_glyph(kind: &SceneProofKind) -> &'static str {
+    match kind {
+        SceneProofKind::Ground { .. } => "▱",
+        SceneProofKind::Cube { .. } => "◈",
+        SceneProofKind::DirectionalLight { .. } => "☀",
+        SceneProofKind::Camera { .. } => "◉",
+    }
+}
 
 #[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
 mod telemetry;
@@ -65,7 +448,12 @@ mod web {
         ViewportObservation, ViewportReadyEvent, WebGpuProbeStatus, is_explicit_acl_denial,
         parse_gate0_probe,
     };
-    use super::{EntityId, StudioCommand, StudioResponse, validate_selection_response};
+    use super::{
+        EntityId, LoadedStudioScene, StudioCommand, StudioResponse, StudioScene,
+        StudioSceneManifest, StudioSceneParityStatus, StudioSceneRuntimeObservation,
+        StudioSceneTelemetry, StudioViewportMode, StudioWaterAdapterStatus,
+        parse_studio_scene_selection, validate_selection_response,
+    };
     use bevy::{
         prelude::*,
         render::{
@@ -74,9 +462,10 @@ mod web {
         },
         window::{PresentMode, WindowResolution},
     };
-    use forge_engine::{ProofScenePlugin, ProofSelection};
-    use forge_project::SceneProofKind;
-    use forge_world::embedded_gate0_proof_document;
+    use forge_engine::{
+        ProofScenePlugin, ProofSelection, VisualValleyEnvironmentPlugin, VisualValleyPlugin,
+        VisualValleyVegetationPlugin,
+    };
     use leptos::prelude::Update as LeptosUpdate;
     use leptos::prelude::*;
     use std::{
@@ -111,16 +500,25 @@ mod web {
     #[component]
     fn Studio() -> impl IntoView {
         let probe_mode = current_probe_mode();
-        let document =
-            embedded_gate0_proof_document().expect("embedded Gate 0 JSON must remain valid");
-        let scene_name = document.name.clone();
-        let schema_version = document.schema_version;
-        let initial_selection = document
-            .entities
+        let scene_selection = current_scene_selection();
+        let selected_scene = scene_selection.scene;
+        let loaded_scene = LoadedStudioScene::load(selected_scene)
+            .expect("embedded Studio scene documents must remain valid and compatible");
+        let scene_manifest = loaded_scene
+            .manifest()
+            .expect("validated embedded Studio scene documents must remain hashable");
+        let scene_name = scene_manifest.display_name.clone();
+        let scene_mode_label = studio_mode_label(scene_manifest.mode);
+        let scene_source_label = format!(
+            "{} source hash(es)",
+            scene_manifest.source_hashes.populated_count()
+        );
+        let water_status_label = water_adapter_label(scene_manifest.water_adapter);
+        let hierarchy = loaded_scene.hierarchy();
+        let initial_selection = hierarchy
             .first()
-            .expect("validated Gate 0 document must contain entities")
+            .expect("every embedded Studio scene must expose at least one hierarchy node")
             .id;
-        let hierarchy = document.entities;
 
         let (selected, set_selected) = signal(initial_selection);
         let (rerenders, set_rerenders) = signal(0_u32);
@@ -130,6 +528,10 @@ mod web {
             studio_telemetry_target(),
             performance_now(),
         ));
+        let (scene_telemetry, set_scene_telemetry) = signal(StudioSceneTelemetry::new(
+            scene_selection,
+            scene_manifest.clone(),
+        ));
 
         install_viewport_selection_listener(
             set_selected,
@@ -137,7 +539,7 @@ mod web {
             set_ipc_status,
             set_telemetry,
         );
-        install_runtime_telemetry_listener(set_telemetry, set_webgpu_status);
+        install_runtime_telemetry_listener(set_telemetry, set_scene_telemetry, set_webgpu_status);
 
         if probe_mode == Gate0ProbeMode::TauriPermission {
             wasm_bindgen_futures::spawn_local(run_tauri_permission_probe(set_telemetry));
@@ -146,7 +548,7 @@ mod web {
         wasm_bindgen_futures::spawn_local(async move {
             match preflight_webgpu(probe_mode).await {
                 Ok(()) => {
-                    start_viewport_once();
+                    start_viewport_once(selected_scene);
                 }
                 Err(reason) => {
                     set_webgpu_status.set(WebGpuStatus::Unavailable(reason.clone()));
@@ -162,7 +564,11 @@ mod web {
         });
 
         view! {
-            <main class="studio-shell">
+            <main
+                class="studio-shell"
+                data-forge-mode=scene_mode_label
+                data-forge-scene=selected_scene.query_value()
+            >
                 <header class="topbar">
                     <div>
                         <span class="eyebrow">"OPENRPG FORGE · RUST"</span>
@@ -191,7 +597,7 @@ mod web {
                         {hierarchy.into_iter().map(|entity| {
                             let entity_id = entity.id;
                             let entity_name = entity.name;
-                            let glyph = entity_kind_glyph(&entity.kind);
+                            let glyph = entity.glyph;
                             view! {
                                 <button
                                     class:selected=move || selected.get() == entity_id
@@ -199,7 +605,14 @@ mod web {
                                         let interaction_started_ms = performance_now();
                                         set_selected.set(entity_id);
                                         LeptosUpdate::update(&set_rerenders, |value| *value += 1);
-                                        dispatch_selection(entity_id, set_ipc_status);
+                                        if selected_scene == StudioScene::Gate0 {
+                                            dispatch_selection(entity_id, set_ipc_status);
+                                        } else {
+                                            set_ipc_status.set(
+                                                "Sélection locale d’un document Visual Valley"
+                                                    .to_owned(),
+                                            );
+                                        }
                                         schedule_interaction_observation(
                                             interaction_started_ms,
                                             set_telemetry,
@@ -227,9 +640,12 @@ mod web {
                     </section>
                     <aside class="panel inspector" aria-label="Inspecteur">
                         <h2>"Inspecteur"</h2>
-                        <label>"EntityId"<output>{move || selected.get().to_string()}</output></label>
+                        <label>"NodeId"<output>{move || selected.get().to_string()}</output></label>
+                        <label>"Mode"<output>{scene_mode_label}</output></label>
                         <label>"Scène"<output>{scene_name}</output></label>
-                        <label>"Source"<output>"SceneProofDocument v" {schema_version}</output></label>
+                        <label>"Sources"<output>{scene_source_label}</output></label>
+                        <label>"Eau"<output>{water_status_label}</output></label>
+                        <label>"Parité scène"<output id="studio-scene-parity-summary">{move || scene_parity_summary(&scene_telemetry.get())}</output></label>
                         <label>"Rerenders UI"<output>{move || rerenders.get()}</output></label>
                         <label>"IPC Rust"<output>{move || ipc_status.get()}</output></label>
                         <label>"Frames Web"<output id="gate0-frame-summary">{move || frame_summary(&telemetry.get())}</output></label>
@@ -241,18 +657,14 @@ mod web {
                                 format!("{{\"serialization_error\":\"{error}\"}}")
                             })
                         }}</pre>
+                        <pre id="forge-scene-telemetry-ledger" hidden>{move || {
+                            serde_json::to_string(&scene_telemetry.get()).unwrap_or_else(|error| {
+                                format!("{{\"serialization_error\":\"{error}\"}}")
+                            })
+                        }}</pre>
                     </aside>
                 </section>
             </main>
-        }
-    }
-
-    fn entity_kind_glyph(kind: &SceneProofKind) -> &'static str {
-        match kind {
-            SceneProofKind::Ground { .. } => "▱",
-            SceneProofKind::Cube { .. } => "◈",
-            SceneProofKind::DirectionalLight { .. } => "☀",
-            SceneProofKind::Camera { .. } => "◉",
         }
     }
 
@@ -311,13 +723,14 @@ mod web {
 
     fn install_runtime_telemetry_listener(
         telemetry: WriteSignal<Gate0StudioLedger>,
+        scene_telemetry: WriteSignal<StudioSceneTelemetry>,
         webgpu_status: WriteSignal<WebGpuStatus>,
     ) {
         let ready_listener =
             Closure::<dyn FnMut(web_sys::CustomEvent)>::new(move |event: web_sys::CustomEvent| {
                 let Some(encoded) = event.detail().as_string() else {
                     web_sys::console::error_1(&JsValue::from_str(
-                        "Gate 0 viewport-ready event did not contain JSON text",
+                        "Studio viewport-ready event did not contain JSON text",
                     ));
                     return;
                 };
@@ -325,18 +738,27 @@ mod web {
                     Ok(ready) => ready,
                     Err(error) => {
                         web_sys::console::error_1(&JsValue::from_str(&format!(
-                            "Gate 0 viewport-ready event was invalid: {error}"
+                            "Studio viewport-ready event was invalid: {error}"
                         )));
                         return;
                     }
                 };
+                let runtime_observation = StudioSceneRuntimeObservation {
+                    first_real_frame_ms: ready.first_real_frame_ms,
+                    camera_3d_entities: ready.camera_3d_entities,
+                    active_camera_3d_entities: ready.active_camera_3d_entities,
+                    evidence_source: "bevy_main_world_first_real_frame_observed".to_owned(),
+                };
                 webgpu_status.set(WebGpuStatus::Ready);
                 LeptosUpdate::update(&telemetry, |ledger| {
-                    ledger.recorded_at_utc = Some(ready.recorded_at_utc);
+                    ledger.recorded_at_utc = Some(ready.recorded_at_utc.clone());
                     ledger.webgpu.status = WebGpuProbeStatus::Ready;
                     ledger.loading.webgpu_ready_ms = Some(ready.first_real_frame_ms);
                     ledger.loading.scene_ready_ms = Some(ready.first_real_frame_ms);
-                    ledger.viewport = ready.viewport;
+                    ledger.viewport = ready.viewport.clone();
+                });
+                LeptosUpdate::update(&scene_telemetry, |ledger| {
+                    ledger.observe_runtime(ready.scene_manifest.clone(), runtime_observation);
                 });
             });
         let frame_listener =
@@ -460,6 +882,51 @@ mod web {
         parse_gate0_probe(&search)
     }
 
+    fn current_scene_selection() -> super::StudioSceneSelection {
+        let search = web_sys::window()
+            .and_then(|window| window.location().search().ok())
+            .unwrap_or_default();
+        parse_studio_scene_selection(&search)
+    }
+
+    const fn studio_mode_label(mode: StudioViewportMode) -> &'static str {
+        match mode {
+            StudioViewportMode::Gate0SceneProof => "gate0_scene_proof",
+            StudioViewportMode::Gate1VisualValley => "gate1_visual_valley",
+        }
+    }
+
+    const fn water_adapter_label(status: StudioWaterAdapterStatus) -> &'static str {
+        match status {
+            StudioWaterAdapterStatus::NotApplicable => "hors scène Gate 0",
+            StudioWaterAdapterStatus::UnavailableNoEngineAdapter => {
+                "non installée : adapter moteur indisponible"
+            }
+        }
+    }
+
+    fn scene_parity_summary(telemetry: &StudioSceneTelemetry) -> String {
+        match telemetry.parity_status {
+            StudioSceneParityStatus::AwaitingRuntime => {
+                "hashes sélectionnés · runtime non observé".to_owned()
+            }
+            StudioSceneParityStatus::SourceManifestMatched => {
+                let Some(runtime) = telemetry.runtime_observation.as_ref() else {
+                    return "hashes sources alignés · observation runtime absente".to_owned();
+                };
+                format!(
+                    "hashes sources alignés · caméras actives {}/{} (attendu {})",
+                    runtime.active_camera_3d_entities,
+                    runtime.camera_3d_entities,
+                    telemetry.selected_manifest.expected_active_camera_count
+                )
+            }
+            StudioSceneParityStatus::SourceManifestMismatch => {
+                "ÉCHEC : manifestes source sélection/runtime divergents".to_owned()
+            }
+        }
+    }
+
     fn studio_telemetry_target() -> StudioTelemetryTarget {
         if tauri_core().is_ok() {
             StudioTelemetryTarget::TauriStudio
@@ -580,7 +1047,7 @@ mod web {
     }
 
     async fn run_tauri_permission_probe(telemetry: WriteSignal<Gate0StudioLedger>) {
-        let document = embedded_gate0_proof_document();
+        let document = super::embedded_gate0_proof_document();
         let (allowed_status, allowed_reason) = match (
             document,
             invoke_tauri(&StudioCommand::SceneSummary).await,
@@ -710,16 +1177,19 @@ mod web {
         value.as_string().unwrap_or_else(|| format!("{value:?}"))
     }
 
-    fn start_viewport_once() {
+    fn start_viewport_once(scene: StudioScene) {
         if !VIEWPORT_LAUNCH_REQUESTED.swap(true, Ordering::SeqCst) {
             INITIAL_CANVAS.with(|initial| initial.replace(current_canvas()));
-            start_viewport();
+            start_viewport(scene);
         }
     }
 
-    fn start_viewport() {
-        let document =
-            embedded_gate0_proof_document().expect("embedded Gate 0 JSON must remain valid");
+    fn start_viewport(scene: StudioScene) {
+        let loaded_scene = LoadedStudioScene::load(scene)
+            .expect("embedded Studio scene documents must remain valid and compatible");
+        let scene_manifest = loaded_scene
+            .manifest()
+            .expect("validated embedded Studio scene documents must remain hashable");
         let render_plugin = RenderPlugin {
             render_creation: RenderCreation::Automatic(Box::new(WgpuSettings {
                 power_preference: bevy::render::settings::PowerPreference::HighPerformance,
@@ -727,14 +1197,15 @@ mod web {
             })),
             ..default()
         };
-        App::new()
-            .insert_resource(ClearColor(Color::srgb(0.015, 0.025, 0.055)))
-            .insert_non_send(BrowserFrameCollector::new())
+        let window_title = format!("OpenRPG Forge WebGPU · {}", scene_manifest.display_name);
+        let mut app = App::new();
+        app.insert_resource(ClearColor(Color::srgb(0.015, 0.025, 0.055)))
+            .insert_non_send(BrowserFrameCollector::new(scene_manifest))
             .add_plugins(
                 DefaultPlugins
                     .set(WindowPlugin {
                         primary_window: Some(Window {
-                            title: "OpenRPG Forge WebGPU".to_owned(),
+                            title: window_title,
                             canvas: Some("#forge-canvas".to_owned()),
                             fit_canvas_to_parent: true,
                             prevent_default_event_handling: false,
@@ -745,16 +1216,48 @@ mod web {
                         ..default()
                     })
                     .set(render_plugin),
-            )
-            .add_plugins(ProofScenePlugin::new(document))
-            .add_systems(
-                Update,
-                (publish_viewport_selection, collect_browser_frame_telemetry),
-            )
+            );
+
+        match loaded_scene {
+            LoadedStudioScene::Gate0(document) => {
+                app.add_plugins(ProofScenePlugin::new(document))
+                    .add_systems(Update, publish_viewport_selection);
+            }
+            LoadedStudioScene::VisualValley(loaded) => {
+                let loaded = *loaded;
+                install_visual_valley_plugins(
+                    &mut app,
+                    loaded.terrain,
+                    loaded.vegetation,
+                    loaded.environment,
+                    loaded.player_controller,
+                );
+            }
+        }
+        app.add_systems(Update, collect_browser_frame_telemetry)
             .run();
     }
 
+    fn install_visual_valley_plugins(
+        app: &mut App,
+        terrain: super::TerrainDocument,
+        vegetation: super::VegetationDocument,
+        environment: super::EnvironmentProfileDocument,
+        player_controller: super::PlayerControllerProfileDocument,
+    ) {
+        let visual_valley = VisualValleyPlugin::new(terrain.clone())
+            .with_player_controller(player_controller)
+            .with_player_interactive_input(false);
+        app.add_plugins(visual_valley)
+            .add_plugins(VisualValleyEnvironmentPlugin::new(environment))
+            .add_plugins(VisualValleyVegetationPlugin::new(terrain, vegetation));
+
+        // Water is intentionally localized here: install the future engine adapter in this function
+        // only after that adapter exists and its native/WebGPU fallback path is qualified.
+    }
+
     struct BrowserFrameCollector {
+        scene_manifest: StudioSceneManifest,
         first_real_frame_ms: Option<f64>,
         ready_reported: bool,
         warmup_samples: usize,
@@ -763,8 +1266,9 @@ mod web {
     }
 
     impl BrowserFrameCollector {
-        fn new() -> Self {
+        fn new(scene_manifest: StudioSceneManifest) -> Self {
             Self {
+                scene_manifest,
                 first_real_frame_ms: None,
                 ready_reported: false,
                 warmup_samples: 0,
@@ -780,6 +1284,7 @@ mod web {
     )]
     fn collect_browser_frame_telemetry(
         time: Res<Time<bevy::time::Real>>,
+        cameras: Query<&Camera, bevy::ecs::query::With<Camera3d>>,
         mut collector: NonSendMut<BrowserFrameCollector>,
     ) {
         if collector.metrics_reported {
@@ -794,10 +1299,17 @@ mod web {
             let first_real_frame_ms = performance_now();
             collector.first_real_frame_ms = Some(first_real_frame_ms);
             VIEWPORT_STARTS.fetch_add(1, Ordering::SeqCst);
+            let camera_3d_entities = u32::try_from(cameras.iter().count()).unwrap_or(u32::MAX);
+            let active_camera_3d_entities =
+                u32::try_from(cameras.iter().filter(|camera| camera.is_active).count())
+                    .unwrap_or(u32::MAX);
             let ready = ViewportReadyEvent {
                 recorded_at_utc: recorded_at_utc(),
                 first_real_frame_ms,
                 viewport: current_viewport_observation(),
+                scene_manifest: collector.scene_manifest.clone(),
+                camera_3d_entities,
+                active_camera_3d_entities,
             };
             match serde_json::to_string(&ready) {
                 Ok(encoded) => dispatch_json_event(VIEWPORT_READY_EVENT, &encoded),
@@ -979,6 +1491,136 @@ mod tests {
             )
             .unwrap_err()
             .contains("incohérente")
+        );
+    }
+
+    #[test]
+    fn scene_query_is_explicit_deterministic_and_gate0_compatible() {
+        assert_eq!(
+            parse_studio_scene_selection(""),
+            StudioSceneSelection::default()
+        );
+        assert_eq!(
+            parse_studio_scene_selection("?forge_gate0_probe=tauri-permission").scene,
+            StudioScene::Gate0
+        );
+        assert_eq!(
+            parse_studio_scene_selection(
+                "?forge_gate0_probe=tauri-permission&forge_scene=visual-valley"
+            ),
+            StudioSceneSelection {
+                scene: StudioScene::VisualValley,
+                source: StudioSceneSelectionSource::QueryString,
+                requested_value: Some("visual-valley".to_owned()),
+            }
+        );
+        assert_eq!(
+            parse_studio_scene_selection("?forge_scene=gate0").source,
+            StudioSceneSelectionSource::QueryString
+        );
+        assert_eq!(
+            parse_studio_scene_selection("?forge_scene=unknown"),
+            StudioSceneSelection {
+                scene: StudioScene::Gate0,
+                source: StudioSceneSelectionSource::UnknownQueryFallback,
+                requested_value: Some("unknown".to_owned()),
+            }
+        );
+        assert_eq!(
+            parse_studio_scene_selection("?forge_scene_extra=visual-valley").scene,
+            StudioScene::Gate0
+        );
+    }
+
+    #[test]
+    fn visual_valley_manifest_exposes_the_four_canonical_source_hashes() {
+        let loaded = LoadedStudioScene::load(StudioScene::VisualValley).unwrap();
+        let manifest = loaded.manifest().unwrap();
+
+        assert_eq!(manifest.mode, StudioViewportMode::Gate1VisualValley);
+        assert_eq!(manifest.scene, StudioScene::VisualValley);
+        assert_eq!(
+            manifest.source_hashes.terrain.as_deref(),
+            Some("9f16780a1de1e9dd4b65931624a8b45281713829434292bada320a578420b2ef")
+        );
+        assert_eq!(
+            manifest.source_hashes.vegetation.as_deref(),
+            Some("5c7619a6ee04533accbf998e3c12077363e4e3b06c86d28e9a62b76bae80a5b8")
+        );
+        assert_eq!(
+            manifest.source_hashes.environment.as_deref(),
+            Some("4b252f036887ec6dbe6ae0942862d15bdba589e7deab92e62a9091e21b6cdd6f")
+        );
+        assert_eq!(
+            manifest.source_hashes.player_controller.as_deref(),
+            Some("941eceefb29835c0949a9801f83f421839bcb5b0cd79583899c22d6832a74f90")
+        );
+        assert_eq!(manifest.source_hashes.populated_count(), 4);
+        assert_eq!(
+            manifest.camera_owner,
+            StudioCameraOwner::VisualValleyPlayerController
+        );
+        assert_eq!(manifest.expected_active_camera_count, 1);
+        assert_eq!(
+            manifest.water_adapter,
+            StudioWaterAdapterStatus::UnavailableNoEngineAdapter
+        );
+
+        let hierarchy = loaded.hierarchy();
+        let unique_ids = hierarchy
+            .iter()
+            .map(|entry| entry.id)
+            .collect::<std::collections::HashSet<_>>();
+        assert_eq!(hierarchy.len(), 4);
+        assert_eq!(unique_ids.len(), hierarchy.len());
+        assert!(hierarchy.iter().all(|entry| !entry.name.is_empty()));
+        assert!(hierarchy.iter().all(|entry| !entry.glyph.is_empty()));
+    }
+
+    #[test]
+    fn scene_telemetry_matches_source_manifests_without_claiming_webgpu_execution() {
+        let selection = StudioSceneSelection {
+            scene: StudioScene::VisualValley,
+            source: StudioSceneSelectionSource::QueryString,
+            requested_value: Some("visual-valley".to_owned()),
+        };
+        let manifest = LoadedStudioScene::load(selection.scene)
+            .unwrap()
+            .manifest()
+            .unwrap();
+        let mut telemetry = StudioSceneTelemetry::new(selection, manifest.clone());
+
+        assert_eq!(
+            telemetry.parity_status,
+            StudioSceneParityStatus::AwaitingRuntime
+        );
+        assert!(telemetry.runtime_observation.is_none());
+        assert!(
+            telemetry
+                .limitations
+                .iter()
+                .any(|limit| limit.contains("does not prove browser WebGPU execution"))
+        );
+
+        telemetry.observe_runtime(
+            manifest,
+            StudioSceneRuntimeObservation {
+                first_real_frame_ms: 12.5,
+                camera_3d_entities: 1,
+                active_camera_3d_entities: 1,
+                evidence_source: "synthetic_test_not_webgpu_execution".to_owned(),
+            },
+        );
+        assert_eq!(
+            telemetry.parity_status,
+            StudioSceneParityStatus::SourceManifestMatched
+        );
+        assert_eq!(
+            telemetry
+                .runtime_observation
+                .as_ref()
+                .map(|runtime| runtime.active_camera_3d_entities),
+            Some(1)
         );
     }
 }

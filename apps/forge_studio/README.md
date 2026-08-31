@@ -7,6 +7,24 @@ Bevy world: the viewport is started once and owns a stable canvas.
 `trunk serve --config Trunk.toml` serves the browser proof. `cargo tauri dev --no-watch` launches the
 same frontend inside WebView2 after the documented Gate 0 bootstrap.
 
+The default URL remains the Gate 0 proof. Visual Valley is an explicit, reload-only viewport choice:
+
+```powershell
+pwsh -NoProfile -File scripts/Invoke-StudioTrunk.ps1 -Action serve
+# Then open http://127.0.0.1:1420/?forge_scene=visual-valley
+```
+
+`forge_scene=visual-valley` loads the embedded terrain, vegetation, environment and player-controller
+documents, records their individual canonical hashes, and installs their existing Bevy adapters with
+the player controller owning the single requested camera. The river is intentionally not installed:
+`forge_engine` exposes no water adapter at this revision. Its future installation is localized in
+`install_visual_valley_plugins` after a native/WebGPU fallback has been qualified.
+
+The dedicated `#forge-scene-telemetry-ledger` records the selected and runtime source manifests plus
+the camera topology observed at Bevy's first positive real-time update. It does not claim a presented
+WebGPU frame or visual inspection. Compilation and unit tests likewise prove contracts and target
+compatibility only; a browser or WebView launch is still required to observe WebGPU execution.
+
 ## Gate 0 diagnostic protocol
 
 The page exposes a machine-readable JSON ledger in `#gate0-telemetry-ledger`. Its contract is

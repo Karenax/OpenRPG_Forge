@@ -315,6 +315,9 @@ pub struct ViewportReadyEvent {
     pub recorded_at_utc: String,
     pub first_real_frame_ms: f64,
     pub viewport: ViewportObservation,
+    pub scene_manifest: crate::StudioSceneManifest,
+    pub camera_3d_entities: u32,
+    pub active_camera_3d_entities: u32,
 }
 
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
