@@ -17,75 +17,561 @@
     "control_points": [
       {
         "center_m": {
-          "x": -232.0,
-          "y": 10.2,
-          "z": -168.0
+          "x": 96.0,
+          "y": 21.821,
+          "z": 160.0
         },
-        "surface_width_m": 12.0,
-        "bed_depth_m": 2.2
+        "surface_width_m": 3.0,
+        "bed_depth_m": 0.8
       },
       {
         "center_m": {
-          "x": -170.0,
-          "y": 9.8,
-          "z": -132.0
+          "x": 92.0,
+          "y": 21.77,
+          "z": 160.0
         },
-        "surface_width_m": 13.0,
-        "bed_depth_m": 2.5
+        "surface_width_m": 3.5,
+        "bed_depth_m": 0.844
       },
       {
         "center_m": {
-          "x": -112.0,
-          "y": 9.4,
-          "z": -82.0
+          "x": 88.0,
+          "y": 21.77,
+          "z": 160.0
         },
-        "surface_width_m": 14.5,
-        "bed_depth_m": 2.8
-      },
-      {
-        "center_m": {
-          "x": -48.0,
-          "y": 9.0,
-          "z": -36.0
-        },
-        "surface_width_m": 16.0,
-        "bed_depth_m": 3.2
-      },
-      {
-        "center_m": {
-          "x": 18.0,
-          "y": 8.6,
-          "z": 4.0
-        },
-        "surface_width_m": 17.0,
-        "bed_depth_m": 3.6
+        "surface_width_m": 3.75,
+        "bed_depth_m": 0.889
       },
       {
         "center_m": {
           "x": 84.0,
-          "y": 8.2,
-          "z": 52.0
+          "y": 21.544,
+          "z": 160.0
         },
-        "surface_width_m": 18.0,
-        "bed_depth_m": 4.0
+        "surface_width_m": 4.25,
+        "bed_depth_m": 0.933
       },
       {
         "center_m": {
-          "x": 154.0,
-          "y": 7.8,
+          "x": 80.0,
+          "y": 20.73,
+          "z": 160.0
+        },
+        "surface_width_m": 4.75,
+        "bed_depth_m": 0.977
+      },
+      {
+        "center_m": {
+          "x": 76.0,
+          "y": 19.563,
+          "z": 160.0
+        },
+        "surface_width_m": 5.0,
+        "bed_depth_m": 1.021
+      },
+      {
+        "center_m": {
+          "x": 72.0,
+          "y": 18.074,
+          "z": 160.0
+        },
+        "surface_width_m": 5.25,
+        "bed_depth_m": 1.066
+      },
+      {
+        "center_m": {
+          "x": 68.0,
+          "y": 16.655,
+          "z": 160.0
+        },
+        "surface_width_m": 5.25,
+        "bed_depth_m": 1.11
+      },
+      {
+        "center_m": {
+          "x": 64.0,
+          "y": 15.628,
+          "z": 160.0
+        },
+        "surface_width_m": 4.75,
+        "bed_depth_m": 1.154
+      },
+      {
+        "center_m": {
+          "x": 60.0,
+          "y": 14.891,
+          "z": 160.0
+        },
+        "surface_width_m": 4.5,
+        "bed_depth_m": 1.198
+      },
+      {
+        "center_m": {
+          "x": 56.0,
+          "y": 14.602,
+          "z": 160.0
+        },
+        "surface_width_m": 3.75,
+        "bed_depth_m": 1.243
+      },
+      {
+        "center_m": {
+          "x": 52.0,
+          "y": 14.306,
+          "z": 160.0
+        },
+        "surface_width_m": 3.25,
+        "bed_depth_m": 1.287
+      },
+      {
+        "center_m": {
+          "x": 48.0,
+          "y": 13.562,
+          "z": 160.0
+        },
+        "surface_width_m": 3.0,
+        "bed_depth_m": 1.331
+      },
+      {
+        "center_m": {
+          "x": 44.0,
+          "y": 12.613,
+          "z": 160.0
+        },
+        "surface_width_m": 2.5,
+        "bed_depth_m": 1.375
+      },
+      {
+        "center_m": {
+          "x": 40.0,
+          "y": 11.48,
+          "z": 160.0
+        },
+        "surface_width_m": 2.25,
+        "bed_depth_m": 1.42
+      },
+      {
+        "center_m": {
+          "x": 36.0,
+          "y": 10.459,
+          "z": 160.0
+        },
+        "surface_width_m": 2.0,
+        "bed_depth_m": 1.464
+      },
+      {
+        "center_m": {
+          "x": 32.0,
+          "y": 9.823,
+          "z": 160.0
+        },
+        "surface_width_m": 1.75,
+        "bed_depth_m": 1.508
+      },
+      {
+        "center_m": {
+          "x": 28.0,
+          "y": 9.216,
+          "z": 160.0
+        },
+        "surface_width_m": 1.5,
+        "bed_depth_m": 1.552
+      },
+      {
+        "center_m": {
+          "x": 24.0,
+          "y": 8.208,
+          "z": 160.0
+        },
+        "surface_width_m": 1.5,
+        "bed_depth_m": 1.597
+      },
+      {
+        "center_m": {
+          "x": 20.0,
+          "y": 7.151,
+          "z": 160.0
+        },
+        "surface_width_m": 1.25,
+        "bed_depth_m": 1.641
+      },
+      {
+        "center_m": {
+          "x": 16.0,
+          "y": 6.465,
+          "z": 160.0
+        },
+        "surface_width_m": 1.25,
+        "bed_depth_m": 1.685
+      },
+      {
+        "center_m": {
+          "x": 12.0,
+          "y": 6.074,
+          "z": 160.0
+        },
+        "surface_width_m": 1.25,
+        "bed_depth_m": 1.73
+      },
+      {
+        "center_m": {
+          "x": 8.0,
+          "y": 6.074,
+          "z": 160.0
+        },
+        "surface_width_m": 1.25,
+        "bed_depth_m": 1.774
+      },
+      {
+        "center_m": {
+          "x": 4.0,
+          "y": 4.254,
+          "z": 156.0
+        },
+        "surface_width_m": 1.5,
+        "bed_depth_m": 1.818
+      },
+      {
+        "center_m": {
+          "x": 0.0,
+          "y": 4.254,
+          "z": 156.0
+        },
+        "surface_width_m": 1.25,
+        "bed_depth_m": 1.862
+      },
+      {
+        "center_m": {
+          "x": -4.0,
+          "y": 4.254,
+          "z": 156.0
+        },
+        "surface_width_m": 1.5,
+        "bed_depth_m": 1.907
+      },
+      {
+        "center_m": {
+          "x": -8.0,
+          "y": 2.881,
+          "z": 152.0
+        },
+        "surface_width_m": 3.25,
+        "bed_depth_m": 1.951
+      },
+      {
+        "center_m": {
+          "x": -12.0,
+          "y": 2.245,
+          "z": 148.0
+        },
+        "surface_width_m": 3.5,
+        "bed_depth_m": 1.995
+      },
+      {
+        "center_m": {
+          "x": -16.0,
+          "y": 1.838,
+          "z": 144.0
+        },
+        "surface_width_m": 3.5,
+        "bed_depth_m": 2.039
+      },
+      {
+        "center_m": {
+          "x": -20.0,
+          "y": 1.574,
+          "z": 140.0
+        },
+        "surface_width_m": 3.0,
+        "bed_depth_m": 2.084
+      },
+      {
+        "center_m": {
+          "x": -24.0,
+          "y": 1.309,
+          "z": 136.0
+        },
+        "surface_width_m": 2.5,
+        "bed_depth_m": 2.128
+      },
+      {
+        "center_m": {
+          "x": -28.0,
+          "y": 1.309,
+          "z": 132.0
+        },
+        "surface_width_m": 1.75,
+        "bed_depth_m": 2.172
+      },
+      {
+        "center_m": {
+          "x": -32.0,
+          "y": 1.126,
+          "z": 128.0
+        },
+        "surface_width_m": 1.5,
+        "bed_depth_m": 2.216
+      },
+      {
+        "center_m": {
+          "x": -36.0,
+          "y": 0.652,
+          "z": 124.0
+        },
+        "surface_width_m": 1.25,
+        "bed_depth_m": 2.261
+      },
+      {
+        "center_m": {
+          "x": -40.0,
+          "y": 0.058,
+          "z": 120.0
+        },
+        "surface_width_m": 1.0,
+        "bed_depth_m": 2.305
+      },
+      {
+        "center_m": {
+          "x": -44.0,
+          "y": -0.344,
+          "z": 116.0
+        },
+        "surface_width_m": 1.0,
+        "bed_depth_m": 2.349
+      },
+      {
+        "center_m": {
+          "x": -48.0,
+          "y": -1.686,
+          "z": 112.0
+        },
+        "surface_width_m": 1.25,
+        "bed_depth_m": 2.393
+      },
+      {
+        "center_m": {
+          "x": -52.0,
+          "y": -3.975,
           "z": 108.0
         },
-        "surface_width_m": 17.0,
-        "bed_depth_m": 4.2
+        "surface_width_m": 1.0,
+        "bed_depth_m": 2.438
       },
       {
         "center_m": {
-          "x": 226.0,
-          "y": 7.4,
-          "z": 166.0
+          "x": -56.0,
+          "y": -4.086,
+          "z": 108.0
         },
-        "surface_width_m": 19.0,
-        "bed_depth_m": 4.0
+        "surface_width_m": 1.0,
+        "bed_depth_m": 2.482
+      },
+      {
+        "center_m": {
+          "x": -60.0,
+          "y": -4.213,
+          "z": 108.0
+        },
+        "surface_width_m": 1.0,
+        "bed_depth_m": 2.526
+      },
+      {
+        "center_m": {
+          "x": -64.0,
+          "y": -4.213,
+          "z": 108.0
+        },
+        "surface_width_m": 1.25,
+        "bed_depth_m": 2.57
+      },
+      {
+        "center_m": {
+          "x": -68.0,
+          "y": -4.228,
+          "z": 108.0
+        },
+        "surface_width_m": 1.25,
+        "bed_depth_m": 2.615
+      },
+      {
+        "center_m": {
+          "x": -72.0,
+          "y": -4.692,
+          "z": 108.0
+        },
+        "surface_width_m": 1.25,
+        "bed_depth_m": 2.659
+      },
+      {
+        "center_m": {
+          "x": -76.0,
+          "y": -5.143,
+          "z": 108.0
+        },
+        "surface_width_m": 1.25,
+        "bed_depth_m": 2.703
+      },
+      {
+        "center_m": {
+          "x": -80.0,
+          "y": -5.223,
+          "z": 108.0
+        },
+        "surface_width_m": 1.5,
+        "bed_depth_m": 2.748
+      },
+      {
+        "center_m": {
+          "x": -84.0,
+          "y": -5.422,
+          "z": 108.0
+        },
+        "surface_width_m": 1.75,
+        "bed_depth_m": 2.792
+      },
+      {
+        "center_m": {
+          "x": -88.0,
+          "y": -6.12,
+          "z": 108.0
+        },
+        "surface_width_m": 2.0,
+        "bed_depth_m": 2.836
+      },
+      {
+        "center_m": {
+          "x": -92.0,
+          "y": -7.171,
+          "z": 108.0
+        },
+        "surface_width_m": 2.25,
+        "bed_depth_m": 2.88
+      },
+      {
+        "center_m": {
+          "x": -96.0,
+          "y": -8.308,
+          "z": 108.0
+        },
+        "surface_width_m": 2.5,
+        "bed_depth_m": 2.925
+      },
+      {
+        "center_m": {
+          "x": -100.0,
+          "y": -9.245,
+          "z": 108.0
+        },
+        "surface_width_m": 2.5,
+        "bed_depth_m": 2.969
+      },
+      {
+        "center_m": {
+          "x": -104.0,
+          "y": -9.648,
+          "z": 108.0
+        },
+        "surface_width_m": 2.25,
+        "bed_depth_m": 3.013
+      },
+      {
+        "center_m": {
+          "x": -108.0,
+          "y": -10.211,
+          "z": 108.0
+        },
+        "surface_width_m": 1.75,
+        "bed_depth_m": 3.057
+      },
+      {
+        "center_m": {
+          "x": -112.0,
+          "y": -11.506,
+          "z": 108.0
+        },
+        "surface_width_m": 1.5,
+        "bed_depth_m": 3.102
+      },
+      {
+        "center_m": {
+          "x": -116.0,
+          "y": -12.901,
+          "z": 108.0
+        },
+        "surface_width_m": 1.5,
+        "bed_depth_m": 3.146
+      },
+      {
+        "center_m": {
+          "x": -120.0,
+          "y": -14.026,
+          "z": 108.0
+        },
+        "surface_width_m": 1.75,
+        "bed_depth_m": 3.19
+      },
+      {
+        "center_m": {
+          "x": -124.0,
+          "y": -14.729,
+          "z": 108.0
+        },
+        "surface_width_m": 1.75,
+        "bed_depth_m": 3.234
+      },
+      {
+        "center_m": {
+          "x": -128.0,
+          "y": -15.032,
+          "z": 108.0
+        },
+        "surface_width_m": 1.75,
+        "bed_depth_m": 3.279
+      },
+      {
+        "center_m": {
+          "x": -132.0,
+          "y": -15.376,
+          "z": 108.0
+        },
+        "surface_width_m": 2.0,
+        "bed_depth_m": 3.323
+      },
+      {
+        "center_m": {
+          "x": -136.0,
+          "y": -16.113,
+          "z": 108.0
+        },
+        "surface_width_m": 2.5,
+        "bed_depth_m": 3.367
+      },
+      {
+        "center_m": {
+          "x": -140.0,
+          "y": -16.85,
+          "z": 108.0
+        },
+        "surface_width_m": 3.0,
+        "bed_depth_m": 3.411
+      },
+      {
+        "center_m": {
+          "x": -144.0,
+          "y": -17.177,
+          "z": 108.0
+        },
+        "surface_width_m": 4.25,
+        "bed_depth_m": 3.456
+      },
+      {
+        "center_m": {
+          "x": -148.0,
+          "y": -17.441,
+          "z": 104.0
+        },
+        "surface_width_m": 6.0,
+        "bed_depth_m": 3.5
       }
     ]
   },

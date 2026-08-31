@@ -26,6 +26,10 @@ impl Default for VisualValleyWaterRecipe {
 }
 
 impl VisualValleyWaterRecipe {
+    #[allow(
+        clippy::too_many_lines,
+        reason = "the auditable fixture keeps all 62 terrain-following controls together"
+    )]
     pub fn build(self) -> Result<WaterDocument, WaterDocumentError> {
         let document = WaterDocument::new(
             ProjectId::deterministic("visual-valley-project"),
@@ -37,14 +41,68 @@ impl VisualValleyWaterRecipe {
                 algorithm: RiverPathAlgorithm::CentripetalCatmullRomV1,
                 sample_spacing_m: 2.0,
                 control_points: vec![
-                    control_point(-232.0, 10.2, -168.0, 12.0, 2.2),
-                    control_point(-170.0, 9.8, -132.0, 13.0, 2.5),
-                    control_point(-112.0, 9.4, -82.0, 14.5, 2.8),
-                    control_point(-48.0, 9.0, -36.0, 16.0, 3.2),
-                    control_point(18.0, 8.6, 4.0, 17.0, 3.6),
-                    control_point(84.0, 8.2, 52.0, 18.0, 4.0),
-                    control_point(154.0, 7.8, 108.0, 17.0, 4.2),
-                    control_point(226.0, 7.4, 166.0, 19.0, 4.0),
+                    control_point(96.0, 21.821, 160.0, 3.0, 0.800),
+                    control_point(92.0, 21.770, 160.0, 3.5, 0.844),
+                    control_point(88.0, 21.770, 160.0, 3.75, 0.889),
+                    control_point(84.0, 21.544, 160.0, 4.25, 0.933),
+                    control_point(80.0, 20.730, 160.0, 4.75, 0.977),
+                    control_point(76.0, 19.563, 160.0, 5.0, 1.021),
+                    control_point(72.0, 18.074, 160.0, 5.25, 1.066),
+                    control_point(68.0, 16.655, 160.0, 5.25, 1.110),
+                    control_point(64.0, 15.628, 160.0, 4.75, 1.154),
+                    control_point(60.0, 14.891, 160.0, 4.5, 1.198),
+                    control_point(56.0, 14.602, 160.0, 3.75, 1.243),
+                    control_point(52.0, 14.306, 160.0, 3.25, 1.287),
+                    control_point(48.0, 13.562, 160.0, 3.0, 1.331),
+                    control_point(44.0, 12.613, 160.0, 2.5, 1.375),
+                    control_point(40.0, 11.480, 160.0, 2.25, 1.420),
+                    control_point(36.0, 10.459, 160.0, 2.0, 1.464),
+                    control_point(32.0, 9.823, 160.0, 1.75, 1.508),
+                    control_point(28.0, 9.216, 160.0, 1.5, 1.552),
+                    control_point(24.0, 8.208, 160.0, 1.5, 1.597),
+                    control_point(20.0, 7.151, 160.0, 1.25, 1.641),
+                    control_point(16.0, 6.465, 160.0, 1.25, 1.685),
+                    control_point(12.0, 6.074, 160.0, 1.25, 1.730),
+                    control_point(8.0, 6.074, 160.0, 1.25, 1.774),
+                    control_point(4.0, 4.254, 156.0, 1.5, 1.818),
+                    control_point(0.0, 4.254, 156.0, 1.25, 1.862),
+                    control_point(-4.0, 4.254, 156.0, 1.5, 1.907),
+                    control_point(-8.0, 2.881, 152.0, 3.25, 1.951),
+                    control_point(-12.0, 2.245, 148.0, 3.5, 1.995),
+                    control_point(-16.0, 1.838, 144.0, 3.5, 2.039),
+                    control_point(-20.0, 1.574, 140.0, 3.0, 2.084),
+                    control_point(-24.0, 1.309, 136.0, 2.5, 2.128),
+                    control_point(-28.0, 1.309, 132.0, 1.75, 2.172),
+                    control_point(-32.0, 1.126, 128.0, 1.5, 2.216),
+                    control_point(-36.0, 0.652, 124.0, 1.25, 2.261),
+                    control_point(-40.0, 0.058, 120.0, 1.0, 2.305),
+                    control_point(-44.0, -0.344, 116.0, 1.0, 2.349),
+                    control_point(-48.0, -1.686, 112.0, 1.25, 2.393),
+                    control_point(-52.0, -3.975, 108.0, 1.0, 2.438),
+                    control_point(-56.0, -4.086, 108.0, 1.0, 2.482),
+                    control_point(-60.0, -4.213, 108.0, 1.0, 2.526),
+                    control_point(-64.0, -4.213, 108.0, 1.25, 2.570),
+                    control_point(-68.0, -4.228, 108.0, 1.25, 2.615),
+                    control_point(-72.0, -4.692, 108.0, 1.25, 2.659),
+                    control_point(-76.0, -5.143, 108.0, 1.25, 2.703),
+                    control_point(-80.0, -5.223, 108.0, 1.5, 2.748),
+                    control_point(-84.0, -5.422, 108.0, 1.75, 2.792),
+                    control_point(-88.0, -6.120, 108.0, 2.0, 2.836),
+                    control_point(-92.0, -7.171, 108.0, 2.25, 2.880),
+                    control_point(-96.0, -8.308, 108.0, 2.5, 2.925),
+                    control_point(-100.0, -9.245, 108.0, 2.5, 2.969),
+                    control_point(-104.0, -9.648, 108.0, 2.25, 3.013),
+                    control_point(-108.0, -10.211, 108.0, 1.75, 3.057),
+                    control_point(-112.0, -11.506, 108.0, 1.5, 3.102),
+                    control_point(-116.0, -12.901, 108.0, 1.5, 3.146),
+                    control_point(-120.0, -14.026, 108.0, 1.75, 3.190),
+                    control_point(-124.0, -14.729, 108.0, 1.75, 3.234),
+                    control_point(-128.0, -15.032, 108.0, 1.75, 3.279),
+                    control_point(-132.0, -15.376, 108.0, 2.0, 3.323),
+                    control_point(-136.0, -16.113, 108.0, 2.5, 3.367),
+                    control_point(-140.0, -16.850, 108.0, 3.0, 3.411),
+                    control_point(-144.0, -17.177, 108.0, 4.25, 3.456),
+                    control_point(-148.0, -17.441, 104.0, 6.0, 3.500),
                 ],
             },
             WaterSurfaceProfile {
@@ -270,8 +328,8 @@ pub fn embedded_visual_valley_water_document() -> Result<WaterDocument, WaterDoc
 mod tests {
     use super::*;
     use crate::{
-        embedded_visual_valley_environment_profile, embedded_visual_valley_terrain_document,
-        embedded_visual_valley_vegetation_document,
+        TerrainGenerationPlan, embedded_visual_valley_environment_profile,
+        embedded_visual_valley_terrain_document, embedded_visual_valley_vegetation_document,
     };
     use forge_core::canonical_json_sha256;
     use forge_project::{
@@ -295,7 +353,7 @@ mod tests {
         );
         assert_eq!(
             embedded.content_hash().unwrap().to_string(),
-            "d9689b9c4cad040877144f1d1db7c4451a13bb9572d6db14e542be7ea6c0128c"
+            "c581e9ef65ca1bc34d5f94908d5f43df77794da4ad5b97e1b3c4f8c0d025ebce"
         );
     }
 
@@ -336,8 +394,8 @@ mod tests {
             first.content_hash().unwrap(),
             changed.content_hash().unwrap()
         );
-        assert_eq!(first.river.control_points.len(), 8);
-        assert!(first.river.approximate_path_length_m() < 700.0);
+        assert_eq!(first.river.control_points.len(), 62);
+        assert!((267.0..268.0).contains(&first.river.approximate_path_length_m()));
         assert!(
             first.river.control_points.iter().all(|point| {
                 point.center_m.x.abs() <= 256.0 && point.center_m.z.abs() <= 256.0
@@ -369,8 +427,56 @@ mod tests {
         );
         assert_eq!(
             canonical_json_sha256(&first).unwrap().to_string(),
-            "26d94d3be8eaa14bb4374250f28e98fbb7c8de76eec17c4e725d6635a3248f2b"
+            "e3c5c7763fa0773ed867f8644cd17be8a29e881eed1c40eefc5f3d13e83b27f8"
         );
+    }
+
+    #[test]
+    fn authored_route_tracks_the_rendered_valley_and_requires_bank_projection() {
+        let terrain = embedded_visual_valley_terrain_document().unwrap();
+        let terrain = TerrainGenerationPlan::from_document(&terrain).unwrap();
+        let water = embedded_visual_valley_water_document().unwrap();
+        let samples = sample_river_centerline(&water).unwrap();
+        let mut minimum_center_clearance_m = f32::INFINITY;
+        let mut maximum_center_clearance_m = f32::NEG_INFINITY;
+        let mut minimum_raw_edge_clearance_m = f32::INFINITY;
+        let mut maximum_raw_edge_clearance_m = f32::NEG_INFINITY;
+
+        for (index, sample) in samples.iter().enumerate() {
+            let previous = samples[index.saturating_sub(1)].center_m;
+            let next = samples[(index + 1).min(samples.len() - 1)].center_m;
+            let delta_x = next.x - previous.x;
+            let delta_z = next.z - previous.z;
+            let inverse_length = delta_x.hypot(delta_z).recip();
+            let lateral_x = delta_z * inverse_length;
+            let lateral_z = -delta_x * inverse_length;
+            let center_surface = terrain
+                .surface_at(sample.center_m.x, sample.center_m.z)
+                .unwrap();
+            let center_clearance_m = sample.center_m.y - center_surface.height_m;
+            minimum_center_clearance_m = minimum_center_clearance_m.min(center_clearance_m);
+            maximum_center_clearance_m = maximum_center_clearance_m.max(center_clearance_m);
+
+            for side in [-1.0_f32, 1.0] {
+                let offset_m = side * sample.surface_width_m * 0.5;
+                let x_m = sample.center_m.x + lateral_x * offset_m;
+                let z_m = sample.center_m.z + lateral_z * offset_m;
+                let edge_surface = terrain.surface_at(x_m, z_m).unwrap();
+                let raw_edge_clearance_m = sample.center_m.y - edge_surface.height_m;
+                minimum_raw_edge_clearance_m =
+                    minimum_raw_edge_clearance_m.min(raw_edge_clearance_m);
+                maximum_raw_edge_clearance_m =
+                    maximum_raw_edge_clearance_m.max(raw_edge_clearance_m);
+            }
+        }
+
+        assert_eq!(samples.len(), 137);
+        assert!(minimum_center_clearance_m > 0.03);
+        assert!(maximum_center_clearance_m < 0.32);
+        assert!(minimum_raw_edge_clearance_m < -0.25);
+        assert!(minimum_raw_edge_clearance_m > -0.30);
+        assert!(maximum_raw_edge_clearance_m > 0.60);
+        assert!(maximum_raw_edge_clearance_m < 0.65);
     }
 
     #[test]
