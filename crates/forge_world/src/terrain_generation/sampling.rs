@@ -1,7 +1,7 @@
 use super::mesh::TerrainMaterialWeights;
 use super::{
     TERRAIN_GLOBAL_INTERVALS_PER_AXIS, TERRAIN_HALF_EXTENT_M, TERRAIN_SAMPLE_SPACING_M,
-    TerrainGenerationError, TerrainGenerationPlan,
+    TerrainGenerationError, TerrainGenerationPlan, TerrainSurfaceSample,
 };
 use forge_project::TerrainDocument;
 
@@ -56,6 +56,170 @@ pub fn sample_height(
     z_m: f32,
 ) -> Result<f32, TerrainGenerationError> {
     TerrainGenerationPlan::from_document(document)?.height_at(x_m, z_m)
+}
+
+/// Samples the exact split used by `mesh.rs`: `[a, c, b]` then `[b, c, d]`.
+#[allow(
+    clippy::many_single_char_names,
+    reason = "a/b/c/d and u/v mirror the versioned terrain triangle contract"
+)]
+pub(super) fn sample_surface(
+    plan: &TerrainGenerationPlan,
+    x_m: f32,
+    z_m: f32,
+) -> Result<TerrainSurfaceSample, TerrainGenerationError> {
+    if !x_m.is_finite() || !z_m.is_finite() {
+        return Err(TerrainGenerationError::NonFiniteSampleCoordinate);
+    }
+    if !(-TERRAIN_HALF_EXTENT_M..=TERRAIN_HALF_EXTENT_M).contains(&x_m)
+        || !(-TERRAIN_HALF_EXTENT_M..=TERRAIN_HALF_EXTENT_M).contains(&z_m)
+    {
+        return Err(TerrainGenerationError::SurfaceCoordinateOutOfBounds);
+    }
+
+    let grid_x = (x_m + TERRAIN_HALF_EXTENT_M) / TERRAIN_SAMPLE_SPACING_M;
+    let grid_z = (z_m + TERRAIN_HALF_EXTENT_M) / TERRAIN_SAMPLE_SPACING_M;
+    let maximum_cell = TERRAIN_GLOBAL_INTERVALS_PER_AXIS - 1;
+    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+    let cell_x = (grid_x.floor() as u16).min(maximum_cell);
+    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+    let cell_z = (grid_z.floor() as u16).min(maximum_cell);
+    let u = (grid_x - f32::from(cell_x)).clamp(0.0, 1.0);
+    let v = (grid_z - f32::from(cell_z)).clamp(0.0, 1.0);
+
+    let a = surface_vertex(plan.document(), cell_x, cell_z);
+    let b = surface_vertex(plan.document(), cell_x + 1, cell_z);
+    let c = surface_vertex(plan.document(), cell_x, cell_z + 1);
+    let d = surface_vertex(plan.document(), cell_x + 1, cell_z + 1);
+    let (vertices, barycentric) = if u + v <= 1.0 {
+        ([a, c, b], [1.0 - u - v, v, u])
+    } else {
+        ([b, c, d], [1.0 - v, 1.0 - u, u + v - 1.0])
+    };
+
+    let height_m = interpolate_height(
+        vertices[0].height_m,
+        vertices[1].height_m,
+        vertices[2].height_m,
+        barycentric,
+    )?;
+    let raw_weights = TerrainMaterialWeights {
+        grass: interpolate(
+            vertices[0].material_weights.grass,
+            vertices[1].material_weights.grass,
+            vertices[2].material_weights.grass,
+            barycentric,
+        ),
+        earth: interpolate(
+            vertices[0].material_weights.earth,
+            vertices[1].material_weights.earth,
+            vertices[2].material_weights.earth,
+            barycentric,
+        ),
+        rock: interpolate(
+            vertices[0].material_weights.rock,
+            vertices[1].material_weights.rock,
+            vertices[2].material_weights.rock,
+            barycentric,
+        ),
+    };
+    let material_weights = normalized_material_weights(raw_weights);
+    let (normal, slope_gradient_squared) = triangle_geometry(vertices);
+    Ok(TerrainSurfaceSample {
+        height_m,
+        normal,
+        slope_gradient_squared,
+        material_weights,
+    })
+}
+
+#[derive(Clone, Copy)]
+struct SurfaceVertex {
+    position_m: [f32; 3],
+    height_m: f32,
+    material_weights: TerrainMaterialWeights,
+}
+
+#[must_use]
+fn surface_vertex(document: &TerrainDocument, sample_x: u16, sample_z: u16) -> SurfaceVertex {
+    let x_m = -TERRAIN_HALF_EXTENT_M + f32::from(sample_x) * TERRAIN_SAMPLE_SPACING_M;
+    let z_m = -TERRAIN_HALF_EXTENT_M + f32::from(sample_z) * TERRAIN_SAMPLE_SPACING_M;
+    let height_m = sample_height_unchecked(document, x_m, z_m);
+    let normal = sample_normal(document, x_m, z_m);
+    SurfaceVertex {
+        position_m: [x_m, height_m, z_m],
+        height_m,
+        material_weights: material_weights_for(document, height_m, normal[1]),
+    }
+}
+
+#[must_use]
+fn interpolate(a: f32, b: f32, c: f32, weights: [f32; 3]) -> f32 {
+    a * weights[0] + b * weights[1] + c * weights[2]
+}
+
+fn interpolate_height(
+    a: f32,
+    b: f32,
+    c: f32,
+    weights: [f32; 3],
+) -> Result<f32, TerrainGenerationError> {
+    let value = f64::from(a) * f64::from(weights[0])
+        + f64::from(b) * f64::from(weights[1])
+        + f64::from(c) * f64::from(weights[2]);
+    #[allow(clippy::cast_possible_truncation)]
+    let converted = value as f32;
+    if converted.is_finite() {
+        Ok(converted)
+    } else {
+        Err(TerrainGenerationError::SurfaceOutputOutOfRange)
+    }
+}
+
+#[must_use]
+fn normalized_material_weights(weights: TerrainMaterialWeights) -> TerrainMaterialWeights {
+    let grass = weights.grass.max(0.0);
+    let earth = weights.earth.max(0.0);
+    let rock = weights.rock.max(0.0);
+    let total = grass + earth + rock;
+    if total <= 0.000_001 {
+        TerrainMaterialWeights {
+            grass: 1.0,
+            earth: 0.0,
+            rock: 0.0,
+        }
+    } else {
+        TerrainMaterialWeights {
+            grass: grass / total,
+            earth: earth / total,
+            rock: rock / total,
+        }
+    }
+}
+
+#[must_use]
+fn triangle_geometry(vertices: [SurfaceVertex; 3]) -> ([f32; 3], f64) {
+    let a = vertices[0].position_m;
+    let b = vertices[1].position_m;
+    let c = vertices[2].position_m;
+    let ab = [
+        f64::from(b[0]) - f64::from(a[0]),
+        f64::from(b[1]) - f64::from(a[1]),
+        f64::from(b[2]) - f64::from(a[2]),
+    ];
+    let ac = [
+        f64::from(c[0]) - f64::from(a[0]),
+        f64::from(c[1]) - f64::from(a[1]),
+        f64::from(c[2]) - f64::from(a[2]),
+    ];
+    let cross = [
+        ab[1] * ac[2] - ab[2] * ac[1],
+        ab[2] * ac[0] - ab[0] * ac[2],
+        ab[0] * ac[1] - ab[1] * ac[0],
+    ];
+    let slope_gradient_squared =
+        (cross[0] * cross[0] + cross[2] * cross[2]) / (cross[1] * cross[1]);
+    (normalize(cross), slope_gradient_squared)
 }
 
 /// `FractalValueNoiseV1` semantics:

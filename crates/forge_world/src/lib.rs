@@ -5,6 +5,7 @@
 mod player;
 mod terrain;
 mod terrain_generation;
+mod vegetation;
 
 pub use player::{
     VISUAL_VALLEY_PLAYER_CONTROLLER_JSON, VisualValleyPlayerControllerRecipe,
@@ -23,7 +24,15 @@ pub use terrain_generation::{
     TerrainColliderTriangleOrder, TerrainColliderVertexOrder, TerrainDirtyChunk, TerrainDirtyPlan,
     TerrainGenerationError, TerrainGenerationPlan, TerrainHeightSampleCoordinate,
     TerrainMaterialWeights, TerrainPartialUpdate, TerrainPartialUpdateCommit,
-    TerrainPartialUpdateError, TerrainPartialUpdateRequest, TerrainSampleRegion, sample_height,
+    TerrainPartialUpdateError, TerrainPartialUpdateRequest, TerrainSampleRegion,
+    TerrainSurfaceSample, sample_height,
+};
+pub use vegetation::{
+    GeneratedVegetation, VISUAL_VALLEY_VEGETATION_CELLS_PER_CHUNK_AXIS,
+    VISUAL_VALLEY_VEGETATION_JSON, VISUAL_VALLEY_VEGETATION_SEED, VegetationChunk,
+    VegetationChunkId, VegetationGenerationError, VegetationGenerationPlan, VegetationInstance,
+    VegetationInstanceId, VegetationKindCounts, VisualValleyVegetationRecipe,
+    embedded_visual_valley_vegetation_document,
 };
 
 use forge_core::{AreaId, ProjectId, Revision, Transform, UnitQuaternion, Vec3};

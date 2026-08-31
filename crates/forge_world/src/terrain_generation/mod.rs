@@ -18,7 +18,10 @@ pub use partial::{
 pub use sampling::sample_height;
 
 use forge_core::{ContentHash, EntityId};
-use forge_project::{HeightSamplingAlgorithm, TerrainDocument, TerrainDocumentError};
+use forge_project::{
+    HeightSamplingAlgorithm, TerrainDocument, TerrainDocumentError, TerrainMaterialLayerId,
+    TerrainMaterialRole,
+};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use thiserror::Error;
@@ -50,6 +53,19 @@ pub const TERRAIN_TRIANGLE_COUNT: usize = 131_072;
 const MATERIAL_ROLE_COUNT: usize = 3;
 const TERRAIN_PADDED_MINIMUM_M: f32 = -TERRAIN_HALF_EXTENT_M - TERRAIN_SAMPLE_SPACING_M;
 const TERRAIN_PADDED_MAXIMUM_M: f32 = TERRAIN_HALF_EXTENT_M + TERRAIN_SAMPLE_SPACING_M;
+
+/// Exact point sample on the same triangle surface emitted to rendering and collision adapters.
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct TerrainSurfaceSample {
+    pub height_m: f32,
+    /// Geometric normal of the selected collider triangle.
+    pub normal: [f32; 3],
+    /// Squared rise/run gradient of that triangle, computed without trigonometry.
+    pub slope_gradient_squared: f64,
+    /// Barycentrically interpolated and normalized logical material weights.
+    pub material_weights: TerrainMaterialWeights,
+}
 
 /// Stable integer coordinate of one terrain chunk.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
@@ -145,6 +161,12 @@ impl TerrainGenerationPlan {
         self.document_hash
     }
 
+    /// Resolves one stable semantic role to the corresponding authored material identity.
+    #[must_use]
+    pub fn material_layer_id(&self, role: TerrainMaterialRole) -> &TerrainMaterialLayerId {
+        &self.document.material_layers[role.index()].id
+    }
+
     /// Samples the versioned height function inside the terrain plus one normal-padding sample.
     pub fn height_at(&self, x_m: f32, z_m: f32) -> Result<f32, TerrainGenerationError> {
         if !x_m.is_finite() || !z_m.is_finite() {
@@ -156,6 +178,15 @@ impl TerrainGenerationPlan {
             return Err(TerrainGenerationError::SampleCoordinateOutOfBounds);
         }
         Ok(sampling::sample_height_unchecked(&self.document, x_m, z_m))
+    }
+
+    /// Samples the exact 2 metre triangle mesh surface, including interpolated material weights.
+    pub fn surface_at(
+        &self,
+        x_m: f32,
+        z_m: f32,
+    ) -> Result<TerrainSurfaceSample, TerrainGenerationError> {
+        sampling::sample_surface(self, x_m, z_m)
     }
 
     fn chunk_id(&self, coordinate: TerrainChunkCoordinate) -> TerrainChunkId {
@@ -192,6 +223,10 @@ pub enum TerrainGenerationError {
     NonFiniteSampleCoordinate,
     #[error("terrain sample coordinate exceeds the 512 metre extent and one-sample normal padding")]
     SampleCoordinateOutOfBounds,
+    #[error("terrain surface coordinate exceeds the closed 512 metre extent")]
+    SurfaceCoordinateOutOfBounds,
+    #[error("terrain surface interpolation cannot be represented as finite f32 output")]
+    SurfaceOutputOutOfRange,
     #[error("chunk coordinate ({x}, {z}) is outside the 8 by 8 plan")]
     ChunkCoordinateOutOfBounds { x: u16, z: u16 },
     #[error("dirty sample region has inverted bounds")]

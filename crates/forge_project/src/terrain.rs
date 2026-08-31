@@ -15,6 +15,29 @@ pub const MAX_TERRAIN_MATERIAL_LAYERS: usize = 32;
 pub const MAX_TERRAIN_SAMPLE_INTERVALS_PER_AXIS: u16 = 8_192;
 pub const MAX_TERRAIN_HEIGHT_DELTAS: usize = 65_536;
 
+/// Stable semantic slots used by the first terrain generator's three material weights.
+///
+/// Terrain material documents keep their authored IDs; this role makes the ordered weight slot
+/// explicit for consumers such as vegetation filters without coupling them to a module slug.
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TerrainMaterialRole {
+    Grass,
+    Earth,
+    Rock,
+}
+
+impl TerrainMaterialRole {
+    #[must_use]
+    pub const fn index(self) -> usize {
+        match self {
+            Self::Grass => 0,
+            Self::Earth => 1,
+            Self::Rock => 2,
+        }
+    }
+}
+
 /// Persistent, renderer-independent source of truth for one area's terrain.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]

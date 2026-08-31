@@ -1,0 +1,136 @@
+{
+  "schema": "forge.vegetation",
+  "schema_version": 1,
+  "project_id": "156abf3c-028c-5bb6-be3a-facc417a29bc",
+  "area_id": "55b4fcee-2e80-5855-aafa-d1942158ff67",
+  "revision": 1,
+  "coordinate_system": {
+    "length_unit": "metre",
+    "up_axis": "y",
+    "handedness": "right"
+  },
+  "name": "Visual Valley vegetation",
+  "seed": 6216453223746720837,
+  "extent_m": {
+    "size_x_m": 512.0,
+    "size_z_m": 512.0
+  },
+  "cells_per_chunk_axis": 8,
+  "layers": [
+    {
+      "id": "forge_trees",
+      "display_name": "Forge trees",
+      "kind": "tree",
+      "acceptance_probability": 0.1,
+      "attempts_per_cell": 2,
+      "minimum_spacing_m": 6.0,
+      "minimum_scale": 0.8,
+      "maximum_scale": 1.3,
+      "maximum_slope_gradient": 0.625,
+      "minimum_altitude_m": -40.0,
+      "maximum_altitude_m": 64.0,
+      "material_filter": {
+        "material_role": "grass",
+        "material_layer_id": "meadow_grass",
+        "minimum_weight": 0.25
+      },
+      "collision": {
+        "shape": "capsule",
+        "radius_m": 0.45,
+        "height_m": 5.0,
+        "activation_distance_m": 96.0
+      },
+      "wind_response": 0.35
+    },
+    {
+      "id": "forge_shrubs",
+      "display_name": "Forge shrubs",
+      "kind": "shrub",
+      "acceptance_probability": 0.16,
+      "attempts_per_cell": 2,
+      "minimum_spacing_m": 3.5,
+      "minimum_scale": 0.65,
+      "maximum_scale": 1.15,
+      "maximum_slope_gradient": 0.901,
+      "minimum_altitude_m": -40.0,
+      "maximum_altitude_m": 64.0,
+      "material_filter": {
+        "material_role": "grass",
+        "material_layer_id": "meadow_grass",
+        "minimum_weight": 0.18
+      },
+      "collision": null,
+      "wind_response": 0.55
+    },
+    {
+      "id": "forge_ferns",
+      "display_name": "Forge ferns",
+      "kind": "fern",
+      "acceptance_probability": 0.18,
+      "attempts_per_cell": 2,
+      "minimum_spacing_m": 2.5,
+      "minimum_scale": 0.75,
+      "maximum_scale": 1.2,
+      "maximum_slope_gradient": 0.532,
+      "minimum_altitude_m": -40.0,
+      "maximum_altitude_m": 56.0,
+      "material_filter": {
+        "material_role": "grass",
+        "material_layer_id": "meadow_grass",
+        "minimum_weight": 0.45
+      },
+      "collision": null,
+      "wind_response": 0.7
+    },
+    {
+      "id": "forge_grass",
+      "display_name": "Forge grass patches",
+      "kind": "grass",
+      "acceptance_probability": 0.32,
+      "attempts_per_cell": 4,
+      "minimum_spacing_m": 0.0,
+      "minimum_scale": 0.7,
+      "maximum_scale": 1.25,
+      "maximum_slope_gradient": 0.782,
+      "minimum_altitude_m": -40.0,
+      "maximum_altitude_m": 60.0,
+      "material_filter": {
+        "material_role": "grass",
+        "material_layer_id": "meadow_grass",
+        "minimum_weight": 0.35
+      },
+      "collision": null,
+      "wind_response": 0.9
+    }
+  ],
+  "exclusions": [
+    {
+      "shape": "circle",
+      "id": "forge_spawn_clearance",
+      "center_x_m": 0.0,
+      "center_z_m": -208.0,
+      "radius_m": 14.0
+    },
+    {
+      "shape": "corridor_segment",
+      "id": "forge_movement_corridor",
+      "start_x_m": 0.0,
+      "start_z_m": -224.0,
+      "end_x_m": 0.0,
+      "end_z_m": 224.0,
+      "half_width_m": 5.0
+    }
+  ],
+  "presentation": {
+    "near_lod_distance_m": 24.0,
+    "medium_lod_distance_m": 72.0,
+    "hlod_distance_m": 180.0,
+    "cull_distance_m": 384.0,
+    "shadow_distance_m": 128.0,
+    "wind_strength": 0.6,
+    "wind_speed_hz": 0.18,
+    "interaction_radius_m": 2.5,
+    "interaction_strength": 0.75,
+    "grass_blades_per_patch": 32
+  }
+}

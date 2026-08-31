@@ -71,6 +71,141 @@ fn golden_heights_lock_fractal_value_noise_v1_semantics() {
 }
 
 #[test]
+fn surface_samples_match_both_mesh_triangles_and_choose_first_on_diagonal() {
+    let plan = plan();
+    let terrain = generated();
+    let chunk = &terrain.chunks[0];
+    let vertices = usize::from(TERRAIN_CHUNK_VERTICES_PER_AXIS);
+    let a = 0;
+    let b = 1;
+    let c = vertices;
+    let d = vertices + 1;
+    assert_ne!(
+        triangle_geometry([
+            chunk.positions_m[a],
+            chunk.positions_m[c],
+            chunk.positions_m[b],
+        ])
+        .0
+        .map(f32::to_bits),
+        triangle_geometry([
+            chunk.positions_m[b],
+            chunk.positions_m[c],
+            chunk.positions_m[d],
+        ])
+        .0
+        .map(f32::to_bits),
+        "the diagonal oracle must distinguish the two triangle normals"
+    );
+
+    let cases = [
+        (-256.0, -256.0, [a, c, b], [1.0, 0.0, 0.0]),
+        (-255.5, -255.5, [a, c, b], [0.5, 0.25, 0.25]),
+        (-254.5, -254.5, [b, c, d], [0.25, 0.25, 0.5]),
+        (-255.5, -254.5, [a, c, b], [0.0, 0.75, 0.25]),
+    ];
+    for (x_m, z_m, indices, barycentric) in cases {
+        let surface = plan.surface_at(x_m, z_m).unwrap();
+        #[allow(clippy::cast_possible_truncation)]
+        let expected_height = (f64::from(chunk.positions_m[indices[0]][1])
+            * f64::from(barycentric[0])
+            + f64::from(chunk.positions_m[indices[1]][1]) * f64::from(barycentric[1])
+            + f64::from(chunk.positions_m[indices[2]][1]) * f64::from(barycentric[2]))
+            as f32;
+        assert_eq!(surface.height_m.to_bits(), expected_height.to_bits());
+
+        let expected_weights = normalized_weights(TerrainMaterialWeights {
+            grass: chunk.material_weights[indices[0]].grass * barycentric[0]
+                + chunk.material_weights[indices[1]].grass * barycentric[1]
+                + chunk.material_weights[indices[2]].grass * barycentric[2],
+            earth: chunk.material_weights[indices[0]].earth * barycentric[0]
+                + chunk.material_weights[indices[1]].earth * barycentric[1]
+                + chunk.material_weights[indices[2]].earth * barycentric[2],
+            rock: chunk.material_weights[indices[0]].rock * barycentric[0]
+                + chunk.material_weights[indices[1]].rock * barycentric[1]
+                + chunk.material_weights[indices[2]].rock * barycentric[2],
+        });
+        assert_eq!(surface.material_weights, expected_weights);
+        let expected_geometry = triangle_geometry([
+            chunk.positions_m[indices[0]],
+            chunk.positions_m[indices[1]],
+            chunk.positions_m[indices[2]],
+        ]);
+        assert_eq!(
+            surface.normal.map(f32::to_bits),
+            expected_geometry.0.map(f32::to_bits)
+        );
+        assert_eq!(
+            surface.slope_gradient_squared.to_bits(),
+            expected_geometry.1.to_bits()
+        );
+    }
+}
+
+#[test]
+fn surface_sampling_rejects_non_finite_and_out_of_bounds_coordinates() {
+    let plan = plan();
+    assert!(matches!(
+        plan.surface_at(f32::NAN, 0.0),
+        Err(TerrainGenerationError::NonFiniteSampleCoordinate)
+    ));
+    assert!(matches!(
+        plan.surface_at(256.1, 0.0),
+        Err(TerrainGenerationError::SurfaceCoordinateOutOfBounds)
+    ));
+}
+
+fn normalized_weights(weights: TerrainMaterialWeights) -> TerrainMaterialWeights {
+    let grass = weights.grass.max(0.0);
+    let earth = weights.earth.max(0.0);
+    let rock = weights.rock.max(0.0);
+    let total = grass + earth + rock;
+    if total <= 0.000_001 {
+        TerrainMaterialWeights {
+            grass: 1.0,
+            earth: 0.0,
+            rock: 0.0,
+        }
+    } else {
+        TerrainMaterialWeights {
+            grass: grass / total,
+            earth: earth / total,
+            rock: rock / total,
+        }
+    }
+}
+
+fn triangle_geometry(vertices: [[f32; 3]; 3]) -> ([f32; 3], f64) {
+    let first_edge = [
+        f64::from(vertices[1][0]) - f64::from(vertices[0][0]),
+        f64::from(vertices[1][1]) - f64::from(vertices[0][1]),
+        f64::from(vertices[1][2]) - f64::from(vertices[0][2]),
+    ];
+    let second_edge = [
+        f64::from(vertices[2][0]) - f64::from(vertices[0][0]),
+        f64::from(vertices[2][1]) - f64::from(vertices[0][1]),
+        f64::from(vertices[2][2]) - f64::from(vertices[0][2]),
+    ];
+    let cross = [
+        first_edge[1] * second_edge[2] - first_edge[2] * second_edge[1],
+        first_edge[2] * second_edge[0] - first_edge[0] * second_edge[2],
+        first_edge[0] * second_edge[1] - first_edge[1] * second_edge[0],
+    ];
+    let inverse_length = (cross[0] * cross[0] + cross[1] * cross[1] + cross[2] * cross[2])
+        .sqrt()
+        .recip();
+    #[allow(clippy::cast_possible_truncation)]
+    let normal = [
+        (cross[0] * inverse_length) as f32,
+        (cross[1] * inverse_length) as f32,
+        (cross[2] * inverse_length) as f32,
+    ];
+    let slope_gradient_squared =
+        (cross[0] * cross[0] + cross[2] * cross[2]) / (cross[1] * cross[1]);
+    (normal, slope_gradient_squared)
+}
+
+#[test]
 fn triangles_wind_counter_clockwise_from_above() {
     let generated = generated();
     for chunk in &generated.chunks {
@@ -358,10 +493,20 @@ fn maximum_finite_amplitude_stays_finite_through_derived_payloads() {
     document.height_sampling.amplitude_m = f32::MAX;
     assert!(document.validate().is_ok());
 
-    let generated = TerrainGenerationPlan::from_document(&document)
-        .unwrap()
-        .generate()
-        .unwrap();
+    let plan = TerrainGenerationPlan::from_document(&document).unwrap();
+    for (x_m, z_m) in [
+        (-256.0, -256.0),
+        (-255.5, -255.5),
+        (0.0, 0.0),
+        (255.5, 255.5),
+        (256.0, 256.0),
+    ] {
+        let surface = plan.surface_at(x_m, z_m).unwrap();
+        assert!(surface.height_m.is_finite());
+        assert!(surface.normal.into_iter().all(f32::is_finite));
+        assert!(surface.slope_gradient_squared.is_finite());
+    }
+    let generated = plan.generate().unwrap();
     for chunk in &generated.chunks {
         assert!(
             chunk
