@@ -7,6 +7,7 @@ use crate::player_controller::PlayerControllerPlugin;
 use crate::terrain_update::{
     TerrainRuntimeBindings, TerrainRuntimeState, TerrainRuntimeUpdatePlugin,
 };
+use crate::vegetation::VegetationPresentation;
 use bevy::{
     asset::{RenderAssetUsages, embedded_asset},
     light::CascadeShadowConfigBuilder,
@@ -31,6 +32,7 @@ use std::{error::Error, fmt};
 
 const TERRAIN_SHADER_PATH: &str = "embedded://forge_engine/shaders/visual_valley_terrain.wgsl";
 const VISUAL_VALLEY_LOD_LEVEL: u8 = 0;
+const DEFAULT_VISUAL_VALLEY_SHADOW_DISTANCE_M: f32 = 620.0;
 #[cfg(feature = "physics-rapier")]
 const DEFAULT_PLAYER_SPAWN_X_M: f32 = 16.0;
 #[cfg(feature = "physics-rapier")]
@@ -49,6 +51,40 @@ pub struct VisualValleyStats {
     pub material_layers: usize,
     pub lod_levels: usize,
     pub lod_zero_chunks: usize,
+}
+
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum VisualValleyShadowObservationStatus {
+    #[default]
+    NotObserved,
+    ObservedSingleSun,
+    UnavailableNoSun,
+    UnavailableMultipleSuns,
+}
+
+/// Runtime evidence copied from the `CascadeShadowConfig` attached to the actual valley sun.
+#[derive(Clone, Debug, PartialEq, Resource, Serialize)]
+pub struct VisualValleyShadowStats {
+    pub status: VisualValleyShadowObservationStatus,
+    pub sun_entities: usize,
+    pub shadow_maps_enabled: Option<bool>,
+    pub configured_maximum_distance_m: Option<f32>,
+    pub cascade_bounds_m: Vec<f32>,
+    pub evidence_source: &'static str,
+}
+
+impl Default for VisualValleyShadowStats {
+    fn default() -> Self {
+        Self {
+            status: VisualValleyShadowObservationStatus::NotObserved,
+            sun_entities: 0,
+            shadow_maps_enabled: None,
+            configured_maximum_distance_m: None,
+            cascade_bounds_m: Vec::new(),
+            evidence_source: "visual_valley_sun_cascade_shadow_component",
+        }
+    }
 }
 
 impl VisualValleyStats {
@@ -218,6 +254,7 @@ impl Plugin for VisualValleyPlugin {
 
         embedded_asset!(app, "shaders/visual_valley_terrain.wgsl");
         app.insert_resource(self.debug)
+            .init_resource::<VisualValleyShadowStats>()
             .insert_resource(VisualValleyOverviewCameraEnabled(
                 self.overview_camera && {
                     #[cfg(feature = "physics-rapier")]
@@ -244,6 +281,7 @@ impl Plugin for VisualValleyPlugin {
             ))
             .init_gizmo_group::<VisualValleyChunkGizmos>()
             .add_systems(Startup, spawn_visual_valley)
+            .add_systems(PostStartup, observe_visual_valley_shadow_config)
             .add_systems(Update, draw_visual_valley_chunk_debug);
 
         #[cfg(feature = "physics-rapier")]
@@ -520,6 +558,7 @@ fn spawn_visual_valley(
     mut commands: Commands,
     mut prepared: ResMut<PreparedVisualValley>,
     overview_camera_enabled: Res<VisualValleyOverviewCameraEnabled>,
+    vegetation_presentation: Option<Res<VegetationPresentation>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<VisualValleyTerrainMaterial>>,
     #[cfg(feature = "physics-rapier")] mut bindings: ResMut<TerrainRuntimeBindings>,
@@ -563,6 +602,7 @@ fn spawn_visual_valley(
         );
     }
 
+    let shadow_config = visual_valley_shadow_config(vegetation_presentation.as_deref());
     commands.spawn((
         Name::new("Visual Valley sun"),
         VisualValleySun,
@@ -573,12 +613,7 @@ fn spawn_visual_valley(
             ..default()
         },
         Transform::IDENTITY.looking_at(Vec3::new(-0.45, -1.0, -0.28), Vec3::Y),
-        CascadeShadowConfigBuilder {
-            first_cascade_far_bound: 24.0,
-            maximum_distance: 620.0,
-            ..default()
-        }
-        .build(),
+        shadow_config,
     ));
 
     if overview_camera_enabled.0 {
@@ -618,6 +653,52 @@ fn spawn_visual_valley(
         lod_zero_chunks = prepared.stats.lod_zero_chunks,
         "Visual Valley terrain materialized from the canonical document"
     );
+}
+
+fn visual_valley_shadow_config(
+    vegetation_presentation: Option<&VegetationPresentation>,
+) -> bevy::light::CascadeShadowConfig {
+    let maximum_distance = vegetation_presentation
+        .map_or(DEFAULT_VISUAL_VALLEY_SHADOW_DISTANCE_M, |presentation| {
+            presentation.0.shadow_distance_m
+        });
+    let first_cascade_far_bound = (maximum_distance * 0.5).min(24.0);
+    let mut builder = CascadeShadowConfigBuilder {
+        minimum_distance: 0.0,
+        maximum_distance,
+        first_cascade_far_bound,
+        ..default()
+    };
+    if first_cascade_far_bound == 0.0 {
+        builder.num_cascades = 1;
+    }
+    builder.build()
+}
+
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "Bevy systems own their system parameter wrappers"
+)]
+fn observe_visual_valley_shadow_config(
+    suns: Query<(&DirectionalLight, &bevy::light::CascadeShadowConfig), With<VisualValleySun>>,
+    mut stats: ResMut<VisualValleyShadowStats>,
+) {
+    stats.sun_entities = suns.iter().count();
+    let Ok((light, config)) = suns.single() else {
+        stats.status = if stats.sun_entities == 0 {
+            VisualValleyShadowObservationStatus::UnavailableNoSun
+        } else {
+            VisualValleyShadowObservationStatus::UnavailableMultipleSuns
+        };
+        stats.shadow_maps_enabled = None;
+        stats.configured_maximum_distance_m = None;
+        stats.cascade_bounds_m.clear();
+        return;
+    };
+    stats.status = VisualValleyShadowObservationStatus::ObservedSingleSun;
+    stats.shadow_maps_enabled = Some(light.shadow_maps_enabled);
+    stats.configured_maximum_distance_m = config.bounds.last().copied();
+    stats.cascade_bounds_m.clone_from(&config.bounds);
 }
 
 #[cfg(feature = "physics-rapier")]
@@ -675,9 +756,30 @@ mod tests {
     };
     use forge_world::{
         TERRAIN_TRIANGLE_COUNT, TERRAIN_VERTEX_COUNT, embedded_visual_valley_terrain_document,
+        embedded_visual_valley_vegetation_document,
     };
     #[cfg(feature = "physics-rapier")]
     use std::time::Duration;
+
+    #[test]
+    fn vegetation_profile_bounds_the_visual_valley_shadow_cascades() {
+        let vegetation = embedded_visual_valley_vegetation_document().unwrap();
+        let mut short_profile = vegetation.presentation;
+        short_profile.shadow_distance_m = 12.0;
+        let presentation = VegetationPresentation(vegetation.presentation);
+        let configured = visual_valley_shadow_config(Some(&presentation));
+        let short = visual_valley_shadow_config(Some(&VegetationPresentation(short_profile)));
+        let fallback = visual_valley_shadow_config(None);
+
+        assert!((configured.bounds.last().unwrap() - 128.0).abs() <= 0.001);
+        assert!(configured.bounds[0] <= 24.0);
+        assert!((short.bounds.last().unwrap() - 12.0).abs() <= 0.001);
+        assert!(short.bounds[0] < 12.0);
+        assert!(
+            (fallback.bounds.last().unwrap() - DEFAULT_VISUAL_VALLEY_SHADOW_DISTANCE_M).abs()
+                <= 0.001
+        );
+    }
 
     #[cfg(feature = "physics-rapier")]
     #[test]

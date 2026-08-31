@@ -5,7 +5,7 @@ use forge_engine::{
     ForgePlayerCamera, ForgePlayerCharacter, PendingPlayerControlCommand, PlayerCameraMode,
     PlayerControlCommand, PlayerControllerSet, PlayerRuntimeBindingSnapshot, PlayerRuntimeBindings,
     PlayerRuntimeSnapshot, TerrainRuntimeBindingSnapshot, TerrainRuntimeBindings,
-    TerrainRuntimeState,
+    TerrainRuntimeState, VegetationInteractionField,
 };
 use forge_project::{PlayerControllerProfileDocument, TerrainDocument};
 use forge_world::TerrainGenerationPlan;
@@ -35,6 +35,7 @@ const CAMERA_WALL_HALF_THICKNESS_M: f32 = 0.12;
 const POSITION_EPSILON_M: f32 = 0.03;
 const ROTATION_EPSILON: f32 = 1.0e-4;
 const FOV_EPSILON_RADIANS: f32 = 1.0e-5;
+const VEGETATION_INTERACTION_EPSILON_M: f32 = 1.0e-4;
 
 #[derive(Clone, Resource)]
 struct PlayerCameraProbeConfiguration {
@@ -189,6 +190,10 @@ struct PlayerCameraProbeState {
     third_person_sequence: Option<u64>,
     third_person_sequence_applied: bool,
     third_person_proven: bool,
+    vegetation_interaction_available: bool,
+    vegetation_interaction_walk_samples: u32,
+    vegetation_interaction_velocity_aligned_samples: u32,
+    vegetation_interaction_max_center_error_m: f32,
 }
 
 impl PlayerCameraProbeState {
@@ -229,6 +234,10 @@ impl PlayerCameraProbeState {
             third_person_sequence: None,
             third_person_sequence_applied: false,
             third_person_proven: false,
+            vegetation_interaction_available: false,
+            vegetation_interaction_walk_samples: 0,
+            vegetation_interaction_velocity_aligned_samples: 0,
+            vegetation_interaction_max_center_error_m: 0.0,
         }
     }
 }
@@ -355,6 +364,7 @@ fn observe_player_camera_probe(
     terrain_bindings: Res<TerrainRuntimeBindings>,
     player_bindings: Res<PlayerRuntimeBindings>,
     snapshot: Res<PlayerRuntimeSnapshot>,
+    vegetation_interaction: Option<Res<VegetationInteractionField>>,
     player_visibility: Query<&Visibility, With<ForgePlayerCharacter>>,
     camera: Query<(&Transform, &Projection), With<ForgePlayerCamera>>,
     mut probe: ResMut<PlayerCameraProbeState>,
@@ -372,6 +382,7 @@ fn observe_player_camera_probe(
         &terrain_bindings,
         &player_bindings,
         &snapshot,
+        vegetation_interaction.as_deref(),
         &player_visibility,
         &camera,
         &mut probe,
@@ -418,10 +429,12 @@ fn advance_probe(
     terrain_bindings: &TerrainRuntimeBindings,
     player_bindings: &PlayerRuntimeBindings,
     snapshot: &PlayerRuntimeSnapshot,
+    vegetation_interaction: Option<&VegetationInteractionField>,
     player_visibility: &Query<&Visibility, With<ForgePlayerCharacter>>,
     camera: &Query<(&Transform, &Projection), With<ForgePlayerCamera>>,
     probe: &mut PlayerCameraProbeState,
 ) -> Result<bool, String> {
+    observe_vegetation_interaction(vegetation_interaction, snapshot, probe)?;
     match probe.phase {
         PlayerCameraProbePhase::WarmingUp => {
             advance_warmup(
@@ -475,6 +488,71 @@ fn advance_probe(
         PlayerCameraProbePhase::Failed => {}
     }
     Ok(false)
+}
+
+fn observe_vegetation_interaction(
+    interaction: Option<&VegetationInteractionField>,
+    snapshot: &PlayerRuntimeSnapshot,
+    probe: &mut PlayerCameraProbeState,
+) -> Result<(), String> {
+    let Some(interaction) = interaction else {
+        return Ok(());
+    };
+    probe.vegetation_interaction_available = true;
+    if probe.phase == PlayerCameraProbePhase::WarmingUp
+        && interaction.radius_m == 0.0
+        && interaction.strength == 0.0
+    {
+        return Ok(());
+    }
+    if !interaction.center_m.is_finite()
+        || !interaction.push_direction_xz.is_finite()
+        || !interaction.radius_m.is_finite()
+        || !interaction.strength.is_finite()
+        || interaction.radius_m <= 0.0
+        || interaction.strength <= 0.0
+    {
+        return Err(format!(
+            "vegetation interaction is not finite and active: {interaction:?}"
+        ));
+    }
+    let center_error_m = interaction.center_m.distance(snapshot.player_position);
+    probe.vegetation_interaction_max_center_error_m = probe
+        .vegetation_interaction_max_center_error_m
+        .max(center_error_m);
+    if center_error_m > VEGETATION_INTERACTION_EPSILON_M {
+        return Err(format!(
+            "vegetation interaction center trails the post-physics player pose by {center_error_m} m"
+        ));
+    }
+
+    if probe.phase == PlayerCameraProbePhase::Walking {
+        let velocity = Vec2::new(
+            snapshot.horizontal_velocity.x,
+            snapshot.horizontal_velocity.z,
+        );
+        if let Some(direction) = velocity.try_normalize() {
+            probe.vegetation_interaction_walk_samples =
+                probe.vegetation_interaction_walk_samples.saturating_add(1);
+            let interaction_direction =
+                interaction
+                    .push_direction_xz
+                    .try_normalize()
+                    .ok_or_else(|| {
+                        "vegetation interaction direction is zero while walking".to_owned()
+                    })?;
+            if interaction_direction.dot(direction) >= 0.999 {
+                probe.vegetation_interaction_velocity_aligned_samples = probe
+                    .vegetation_interaction_velocity_aligned_samples
+                    .saturating_add(1);
+            } else {
+                return Err(format!(
+                    "vegetation interaction direction is not aligned with player velocity: interaction={interaction_direction:?}, velocity={direction:?}"
+                ));
+            }
+        }
+    }
+    Ok(())
 }
 
 #[allow(
@@ -1152,6 +1230,19 @@ fn verify_final_sources_and_bindings(
     if !probe.wall_removed || snapshot.camera_occluder.is_some() {
         return Err("procedural camera wall was not removed cleanly".to_owned());
     }
+    if probe.vegetation_interaction_available
+        && (probe.vegetation_interaction_walk_samples == 0
+            || probe.vegetation_interaction_velocity_aligned_samples
+                != probe.vegetation_interaction_walk_samples
+            || probe.vegetation_interaction_max_center_error_m > VEGETATION_INTERACTION_EPSILON_M)
+    {
+        return Err(format!(
+            "vegetation interaction runtime proof is incomplete: samples={}, aligned={}, max_center_error_m={}",
+            probe.vegetation_interaction_walk_samples,
+            probe.vegetation_interaction_velocity_aligned_samples,
+            probe.vegetation_interaction_max_center_error_m
+        ));
+    }
     Ok(())
 }
 
@@ -1209,10 +1300,14 @@ fn emit_completed_event(
         camera_recovery_monotone = true,
         first_person_visibility_fov_pose = probe.first_person_proven,
         third_person_visibility_fov_pose = probe.third_person_proven,
+        vegetation_interaction_available = probe.vegetation_interaction_available,
+        vegetation_interaction_walk_samples = probe.vegetation_interaction_walk_samples,
+        vegetation_interaction_velocity_aligned_samples = probe.vegetation_interaction_velocity_aligned_samples,
+        vegetation_interaction_max_center_error_m = f64::from(probe.vegetation_interaction_max_center_error_m),
         camera_mode_path = "third_person>first_person>third_person",
         final_camera_mode = ?snapshot.camera_mode,
         final_camera_boom_distance_m = f64::from(snapshot.camera_boom_distance_m),
-        "player controller, terrain seam and camera probe passed on ordered fixed schedules"
+        "player controller, terrain seam, camera and vegetation interaction probe passed on ordered fixed schedules"
     );
 }
 

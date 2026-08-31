@@ -10,6 +10,7 @@ mod player_camera;
 mod player_controller;
 #[cfg(feature = "physics-rapier")]
 mod terrain_update;
+mod vegetation;
 mod visual_valley;
 
 #[cfg(feature = "physics-rapier")]
@@ -33,8 +34,19 @@ pub use terrain_update::{
     TerrainRuntimeState, TerrainRuntimeUpdateError, TerrainRuntimeUpdateOutcome,
     TerrainRuntimeUpdateReport, TerrainRuntimeUpdateSet, TerrainUpdateSubmissionError,
 };
+pub use vegetation::{
+    MAX_VEGETATION_CANDIDATE_ATTEMPTS, MAX_VEGETATION_GRASS_BLADES,
+    MAX_VEGETATION_PROJECTION_ENTITIES, VegetationAdapterError, VegetationChunkBatchMarker,
+    VegetationInteractionField, VegetationLodRanges, VegetationMeshError, VegetationMeshKey,
+    VegetationPlacementMarker, VegetationPlacementStats, VegetationProjectionCounts,
+    VegetationProjectionLod, VegetationProjectionStats, VegetationRenderPathStats,
+    VegetationTriangleStats, VegetationVisibilityBucket, VegetationVisibilityObservationStatus,
+    VegetationVisibilityStats, VisualValleyVegetationExtension, VisualValleyVegetationMaterial,
+    VisualValleyVegetationPlugin, inspect_vegetation_projection,
+};
 pub use visual_valley::{
-    VisualValleyAdapterError, VisualValleyDebug, VisualValleyPlugin, VisualValleyStats,
+    VisualValleyAdapterError, VisualValleyDebug, VisualValleyPlugin,
+    VisualValleyShadowObservationStatus, VisualValleyShadowStats, VisualValleyStats,
     VisualValleyTerrainChunk, VisualValleyTerrainExtension, VisualValleyTerrainMaterial,
 };
 pub(crate) use visual_valley::{VisualValleyChunkDebugBounds, build_bevy_terrain_mesh};
@@ -231,6 +243,10 @@ struct RuntimeMetricsReport {
     render_work: RenderWorkReport,
     #[serde(skip_serializing_if = "Option::is_none")]
     visual_valley: Option<VisualValleyStats>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    visual_valley_shadow: Option<VisualValleyShadowStats>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    vegetation: Option<VegetationProjectionStats>,
 }
 
 #[derive(Debug, Serialize)]
@@ -803,6 +819,7 @@ fn update_overlay(
     diagnostics: Res<DiagnosticsStore>,
     stats: Res<ProofSceneStats>,
     visual_valley: Option<Res<VisualValleyStats>>,
+    vegetation: Option<Res<VegetationProjectionStats>>,
     gpu: Option<Res<GpuDiagnostic>>,
     mut overlay: Single<&mut Text, With<DiagnosticsOverlay>>,
 ) {
@@ -819,7 +836,11 @@ fn update_overlay(
         .map_or("initialisation GPU", |gpu| gpu.name.as_str());
     let render_work = build_render_work_report(&stats, &diagnostics);
     **overlay = Text::new(if let Some(visual_valley) = visual_valley {
-        let logical_details = visual_valley.overlay_details();
+        let mut logical_details = visual_valley.overlay_details();
+        if let Some(vegetation) = vegetation {
+            logical_details.push('\n');
+            logical_details.push_str(&vegetation.overlay_details());
+        }
         format_runtime_diagnostics_overlay(
             "OpenRPG Forge · Gate 1 / Visual Valley",
             adapter,
@@ -1012,6 +1033,8 @@ fn write_metrics_and_exit(
     ledger: Res<FrameLedger>,
     stats: Res<ProofSceneStats>,
     visual_valley: Option<Res<VisualValleyStats>>,
+    visual_valley_shadow: Option<Res<VisualValleyShadowStats>>,
+    vegetation: Option<Res<VegetationProjectionStats>>,
     gpu: Option<Res<GpuDiagnostic>>,
     diagnostics: Res<DiagnosticsStore>,
     windows: Query<&Window, With<PrimaryWindow>>,
@@ -1073,6 +1096,8 @@ fn write_metrics_and_exit(
             &ledger.samples_ms,
             &stats,
             visual_valley.as_deref(),
+            visual_valley_shadow.as_deref(),
+            vegetation.as_deref(),
             gpu.as_deref(),
             &diagnostics,
             &lifecycle,
@@ -1145,10 +1170,16 @@ fn capture_artifact_size(path: &Path) -> Result<u64, String> {
     Ok(metadata.len())
 }
 
+#[allow(
+    clippy::too_many_arguments,
+    reason = "the metrics serializer combines independent runtime evidence without hidden globals"
+)]
 fn build_runtime_metrics(
     samples: &[f64],
     stats: &ProofSceneStats,
     visual_valley: Option<&VisualValleyStats>,
+    visual_valley_shadow: Option<&VisualValleyShadowStats>,
+    vegetation: Option<&VegetationProjectionStats>,
     gpu: Option<&GpuDiagnostic>,
     diagnostics: &DiagnosticsStore,
     lifecycle: &WindowLifecycle,
@@ -1195,7 +1226,7 @@ fn build_runtime_metrics(
     render_diagnostics.sort_by(|left, right| left.path.cmp(&right.path));
     Ok(RuntimeMetricsReport {
         schema: "forge.runtime-metrics",
-        schema_version: 2,
+        schema_version: 4,
         source_hash: stats.source_hash.clone(),
         gpu: gpu.cloned(),
         window: lifecycle.report(final_window),
@@ -1203,6 +1234,8 @@ fn build_runtime_metrics(
         render_diagnostics,
         render_work: build_render_work_report(stats, diagnostics),
         visual_valley: visual_valley.cloned(),
+        visual_valley_shadow: visual_valley_shadow.cloned(),
+        vegetation: vegetation.cloned(),
     })
 }
 
@@ -1307,11 +1340,22 @@ mod tests {
         };
         let diagnostics = DiagnosticsStore::default();
         let lifecycle = WindowLifecycle::new(None, None);
-        let report =
-            build_runtime_metrics(&samples, &stats, None, None, &diagnostics, &lifecycle, None)
-                .unwrap();
-        assert_eq!(report.schema_version, 2);
+        let report = build_runtime_metrics(
+            &samples,
+            &stats,
+            None,
+            None,
+            None,
+            None,
+            &diagnostics,
+            &lifecycle,
+            None,
+        )
+        .unwrap();
+        assert_eq!(report.schema_version, 4);
         assert!(report.visual_valley.is_none());
+        assert!(report.visual_valley_shadow.is_none());
+        assert!(report.vegetation.is_none());
         assert!(
             serde_json::to_value(&report)
                 .unwrap()
@@ -1327,7 +1371,7 @@ mod tests {
     }
 
     #[test]
-    fn gate1_metrics_preserve_machine_readable_terrain_counts() {
+    fn gate1_metrics_preserve_machine_readable_terrain_and_vegetation_counts() {
         let stats = ProofSceneStats {
             source_entities: 1,
             source_mesh_instances: 64,
@@ -1342,10 +1386,24 @@ mod tests {
             lod_levels: 1,
             lod_zero_chunks: 64,
         };
+        let terrain = forge_world::embedded_visual_valley_terrain_document().unwrap();
+        let vegetation_document =
+            forge_world::embedded_visual_valley_vegetation_document().unwrap();
+        let vegetation = inspect_vegetation_projection(&terrain, &vegetation_document).unwrap();
+        let shadow = VisualValleyShadowStats {
+            status: VisualValleyShadowObservationStatus::ObservedSingleSun,
+            sun_entities: 1,
+            shadow_maps_enabled: Some(true),
+            configured_maximum_distance_m: Some(128.0),
+            cascade_bounds_m: vec![24.0, 48.0, 80.0, 128.0],
+            evidence_source: "visual_valley_sun_cascade_shadow_component",
+        };
         let report = build_runtime_metrics(
             &[8.0],
             &stats,
             Some(&visual_valley),
+            Some(&shadow),
+            Some(&vegetation),
             None,
             &DiagnosticsStore::default(),
             &WindowLifecycle::new(None, None),
@@ -1354,10 +1412,22 @@ mod tests {
         .unwrap();
 
         assert_eq!(report.visual_valley, Some(visual_valley));
+        assert_eq!(report.visual_valley_shadow, Some(shadow));
+        assert_eq!(report.vegetation, Some(vegetation));
         let serialized = serde_json::to_value(&report).unwrap();
         assert_eq!(serialized["visual_valley"]["chunks"], 64);
         assert_eq!(serialized["visual_valley"]["vertices"], 69_696);
         assert_eq!(serialized["visual_valley"]["triangles"], 131_072);
+        assert_eq!(
+            serialized["vegetation"]["placements"]["accepted_placements"],
+            8_282
+        );
+        assert_eq!(serialized["vegetation"]["projection"]["grass_batches"], 64);
+        assert_eq!(
+            serialized["visual_valley_shadow"]["configured_maximum_distance_m"],
+            128.0
+        );
+        assert!(serialized["vegetation"].get("draw_calls").is_none());
     }
 
     #[test]

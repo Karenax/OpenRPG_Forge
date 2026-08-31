@@ -13,11 +13,15 @@ use bevy::{
     },
     window::{CursorGrabMode, CursorOptions, PresentMode, WindowResolution},
 };
-use forge_engine::{ProofScenePlugin, RuntimeAutomation, VisualValleyPlugin, WindowResizeRequest};
-use forge_project::{SceneProofDocument, TerrainDocument};
+use forge_engine::{
+    ProofScenePlugin, RuntimeAutomation, VisualValleyPlugin, VisualValleyVegetationPlugin,
+    WindowResizeRequest,
+};
+use forge_project::{SceneProofDocument, TerrainDocument, VegetationDocument};
 use forge_world::{
-    TerrainGenerationPlan, embedded_gate0_proof_document,
+    TerrainGenerationPlan, VegetationGenerationPlan, embedded_gate0_proof_document,
     embedded_visual_valley_player_controller_profile, embedded_visual_valley_terrain_document,
+    embedded_visual_valley_vegetation_document,
 };
 use player_camera_probe::PlayerCameraProbePlugin;
 use std::{env, fs, path::PathBuf};
@@ -58,7 +62,9 @@ fn main() -> AppExit {
         ..default()
     };
     let automation = options.runtime_automation();
-    let primary_cursor_options = cursor_options_for_player_camera(options.player_camera);
+    let player_input_enabled =
+        options.player_camera.is_interactive() && !automated_runtime_requested(&automation);
+    let primary_cursor_options = cursor_options_for_player_camera(player_input_enabled);
     tracing::info!(
         target: "forge::runtime",
         schema = "forge.runtime-event",
@@ -75,7 +81,8 @@ fn main() -> AppExit {
         terrain_partial_update_probe = options.terrain_partial_update_probe.is_enabled(),
         player_camera = options.player_camera.is_interactive(),
         player_camera_probe = options.player_camera.is_probe(),
-        player_cursor_locked = options.player_camera.is_interactive(),
+        player_input_enabled,
+        player_cursor_locked = player_input_enabled,
         "native runtime starting"
     );
 
@@ -106,6 +113,7 @@ fn main() -> AppExit {
         options.terrain_debug,
         options.terrain_partial_update_probe,
         options.player_camera,
+        player_input_enabled,
     );
 
     let exit = app.run();
@@ -152,12 +160,16 @@ fn add_runtime_plugin(
     terrain_debug: TerrainDebugMode,
     terrain_partial_update_probe: TerrainPartialUpdateProbeMode,
     player_camera: PlayerCameraRuntimeMode,
+    player_input_enabled: bool,
 ) {
     match document {
         RuntimeDocument::Gate0(document) => {
             app.add_plugins(ProofScenePlugin::new(document).with_automation(automation));
         }
-        RuntimeDocument::VisualValley(document) => {
+        RuntimeDocument::VisualValley {
+            terrain: document,
+            vegetation,
+        } => {
             let player_profile = player_camera.is_enabled().then(|| {
                 embedded_visual_valley_player_controller_profile().unwrap_or_else(|error| {
                     panic!("embedded Visual Valley player-controller profile is invalid: {error}")
@@ -172,13 +184,15 @@ fn add_runtime_plugin(
                 _ => None,
             };
 
+            let vegetation_plugin = vegetation
+                .map(|vegetation| VisualValleyVegetationPlugin::new(document.clone(), *vegetation));
             let mut visual_valley = VisualValleyPlugin::new(document)
                 .with_automation(automation)
                 .with_chunk_lod_gizmos(terrain_debug.is_enabled());
             if let Some(profile) = player_profile {
                 visual_valley = visual_valley
                     .with_player_controller(profile)
-                    .with_player_interactive_input(!player_camera.is_probe())
+                    .with_player_interactive_input(player_input_enabled)
                     .with_overview_camera(false);
             }
             if let Some(probe) = &player_probe {
@@ -186,6 +200,9 @@ fn add_runtime_plugin(
             }
 
             app.add_plugins(visual_valley);
+            if let Some(vegetation_plugin) = vegetation_plugin {
+                app.add_plugins(vegetation_plugin);
+            }
             if terrain_partial_update_probe.is_enabled() {
                 app.add_plugins(TerrainPartialUpdateProbePlugin::new());
             }
@@ -202,32 +219,44 @@ const VISUAL_VALLEY_WINDOW_TITLE: &str = "OpenRPG Forge · Rust Gate 1 · Visual
 #[derive(Debug)]
 enum RuntimeDocument {
     Gate0(SceneProofDocument),
-    VisualValley(TerrainDocument),
+    VisualValley {
+        terrain: TerrainDocument,
+        vegetation: Option<Box<VegetationDocument>>,
+    },
 }
 
 impl RuntimeDocument {
     const fn mode_label(&self) -> &'static str {
         match self {
             Self::Gate0(_) => "gate0_scene_proof",
-            Self::VisualValley(_) => "gate1_visual_valley",
+            Self::VisualValley { .. } => "gate1_visual_valley",
         }
     }
 
     const fn window_title(&self) -> &'static str {
         match self {
             Self::Gate0(_) => GATE0_WINDOW_TITLE,
-            Self::VisualValley(_) => VISUAL_VALLEY_WINDOW_TITLE,
+            Self::VisualValley { .. } => VISUAL_VALLEY_WINDOW_TITLE,
         }
     }
 }
 
 fn validated_visual_valley_document(
     document: TerrainDocument,
+    vegetation: Option<VegetationDocument>,
     source: &str,
 ) -> Result<RuntimeDocument, String> {
     TerrainGenerationPlan::from_document(&document)
         .map_err(|error| format!("unsupported Visual Valley terrain {source}: {error}"))?;
-    Ok(RuntimeDocument::VisualValley(document))
+    if let Some(vegetation) = &vegetation {
+        VegetationGenerationPlan::from_documents(&document, vegetation).map_err(|error| {
+            format!("unsupported Visual Valley vegetation for {source}: {error}")
+        })?;
+    }
+    Ok(RuntimeDocument::VisualValley {
+        terrain: document,
+        vegetation: vegetation.map(Box::new),
+    })
 }
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
@@ -571,12 +600,18 @@ impl Options {
             let document = TerrainDocument::from_json(&json)
                 .map_err(|error| format!("invalid terrain {}: {error}", path.display()))?;
             let source = path.display().to_string();
-            return validated_visual_valley_document(document, &source);
+            return validated_visual_valley_document(document, None, &source);
         }
         if self.visual_valley {
             let document = embedded_visual_valley_terrain_document()
                 .map_err(|error| format!("invalid embedded Visual Valley terrain: {error}"))?;
-            return validated_visual_valley_document(document, "embedded Visual Valley terrain");
+            let vegetation = embedded_visual_valley_vegetation_document()
+                .map_err(|error| format!("invalid embedded Visual Valley vegetation: {error}"))?;
+            return validated_visual_valley_document(
+                document,
+                Some(vegetation),
+                "embedded Visual Valley terrain",
+            );
         }
         embedded_gate0_proof_document()
             .map(RuntimeDocument::Gate0)
@@ -668,8 +703,16 @@ const fn present_mode_label(mode: PresentMode) -> &'static str {
     }
 }
 
-fn cursor_options_for_player_camera(mode: PlayerCameraRuntimeMode) -> CursorOptions {
-    if mode.is_interactive() {
+fn automated_runtime_requested(automation: &RuntimeAutomation) -> bool {
+    automation.capture_path.is_some()
+        || automation.metrics_path.is_some()
+        || automation.exit_after_frames.is_some()
+        || automation.resize_request.is_some()
+        || automation.close_at_frame.is_some()
+}
+
+fn cursor_options_for_player_camera(player_input_enabled: bool) -> CursorOptions {
+    if player_input_enabled {
         CursorOptions {
             visible: false,
             grab_mode: CursorGrabMode::Locked,
@@ -763,15 +806,34 @@ mod tests {
 
         assert_eq!(loaded.mode_label(), "gate1_visual_valley");
         assert_eq!(loaded.window_title(), VISUAL_VALLEY_WINDOW_TITLE);
-        let RuntimeDocument::VisualValley(loaded) = loaded else {
-            panic!("--visual-valley must select a TerrainDocument");
+        let RuntimeDocument::VisualValley {
+            terrain: loaded,
+            vegetation: Some(loaded_vegetation),
+        } = loaded
+        else {
+            panic!("--visual-valley must select the embedded terrain/vegetation pair");
         };
         let embedded = embedded_visual_valley_terrain_document().unwrap();
+        let embedded_vegetation = embedded_visual_valley_vegetation_document().unwrap();
         assert_eq!(loaded, embedded);
+        assert_eq!(*loaded_vegetation, embedded_vegetation);
         assert_eq!(
             loaded.content_hash().unwrap(),
             embedded.content_hash().unwrap()
         );
+    }
+
+    #[test]
+    fn visual_valley_rejects_an_incompatible_vegetation_pair_before_bevy() {
+        let terrain = embedded_visual_valley_terrain_document().unwrap();
+        let mut vegetation = embedded_visual_valley_vegetation_document().unwrap();
+        vegetation.area_id = forge_core::AreaId::deterministic("runtime-mismatched-area");
+
+        let error =
+            validated_visual_valley_document(terrain, Some(vegetation), "mismatched test pair")
+                .unwrap_err();
+        assert!(error.contains("vegetation"));
+        assert!(error.contains("area identities do not match"), "{error}");
     }
 
     #[test]
@@ -1036,18 +1098,21 @@ mod tests {
 
     #[test]
     fn only_interactive_player_camera_locks_and_hides_the_cursor() {
-        let interactive = cursor_options_for_player_camera(PlayerCameraRuntimeMode::Interactive);
+        let interactive = cursor_options_for_player_camera(true);
         assert!(!interactive.visible);
         assert_eq!(interactive.grab_mode, CursorGrabMode::Locked);
 
-        for mode in [
-            PlayerCameraRuntimeMode::Disabled,
-            PlayerCameraRuntimeMode::Probe,
-        ] {
-            let cursor = cursor_options_for_player_camera(mode);
-            assert!(cursor.visible);
-            assert_eq!(cursor.grab_mode, CursorGrabMode::None);
-        }
+        let cursor = cursor_options_for_player_camera(false);
+        assert!(cursor.visible);
+        assert_eq!(cursor.grab_mode, CursorGrabMode::None);
+    }
+
+    #[test]
+    fn bounded_automation_disables_live_player_input_for_reproducible_capture() {
+        let mut automation = RuntimeAutomation::default();
+        assert!(!automated_runtime_requested(&automation));
+        automation.capture_path = Some(PathBuf::from("capture.png"));
+        assert!(automated_runtime_requested(&automation));
     }
 
     #[test]
@@ -1175,7 +1240,13 @@ mod tests {
                 .unwrap()
                 .load_document()
                 .unwrap();
-        assert!(matches!(valid, RuntimeDocument::VisualValley(_)));
+        assert!(matches!(
+            valid,
+            RuntimeDocument::VisualValley {
+                vegetation: None,
+                ..
+            }
+        ));
 
         let mut unknown_field: serde_json::Value =
             serde_json::from_str(forge_world::VISUAL_VALLEY_TERRAIN_JSON).unwrap();
