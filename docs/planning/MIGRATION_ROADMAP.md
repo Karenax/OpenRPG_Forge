@@ -290,7 +290,7 @@ et sans transformer une acquisition automatisée en revue humaine.
 
 Statut : **OUVERTE** après le passage automatisé local de Gate 0 sous ADR-0004, ADR-0005 et ADR-0006.
 
-Progression au commit `0a1c5655428938b8d47afa3bc024d20669e41657` : `R1-001` reste qualifié,
+Progression au commit `1f54b49bef7f086ef72d4f025c5059ec1860780d` : `R1-001` reste qualifié,
 puis `R1-002` à `R1-008` sont passés fonctionnellement localement par le terrain dérivé
 déterministe, les meshes Bevy, le shader PBR trois couches, le debug chunks/LOD, les 64 heightfields
 Rapier et une transaction partielle qui régénère 3 meshes et 1 collider sans remplacer les 64
@@ -299,15 +299,22 @@ troisième personne avec occlusion et le basculement première personne sur une 
 `R1-009` ajoute le document de végétation et un scatter logique déterministe borné : 8 282
 placements, dont 704 arbres, 1 228 arbustes, 1 282 fougères et 5 068 patches d'herbe, pour le golden
 de cache `82995caa4f17c315cdc42542b255e50945dc70b2e3c959a97b818ebbd60ceb98`.
+`R1-010` à `R1-013` et `R1-015` à `R1-018` projettent ce cache en représentations procédurales
+proches/moyennes, HLOD et 64 lots d'herbe, avec interaction joueur, culling observé et ombres CSM
+bornées. Le vent shader `R1-014` est prouvé en natif, mais reste ouvert sans lancement WebGPU ;
+`R1-032` est couvert par 150 échantillons dynamiques alignés sans retard sur la pose post-physique.
 Voir
 `docs/evidence/gate1/R1_001_TERRAIN_DOCUMENT.md` et
 `docs/evidence/gate1/R1_002_005_008_TERRAIN_RENDERING.md`, puis
 `docs/evidence/gate1/R1_006_TERRAIN_PHYSICS.md` et
 `docs/evidence/gate1/R1_007_TERRAIN_PARTIAL_UPDATE.md`, enfin
 `docs/evidence/gate1/R1_027_031_PLAYER_CAMERA.md` et
-`docs/evidence/gate1/R1_009_VEGETATION_SCATTER.md`. Le lot joueur/caméra est qualifié localement
+`docs/evidence/gate1/R1_009_VEGETATION_SCATTER.md`, puis
+`docs/evidence/gate1/R1_010_018_VEGETATION_RENDERING.md`. Le lot joueur/caméra est qualifié localement
 sous ADR-0006 par 135/135 tests workspace et un probe natif ECS/Rapier ; `R1-009` est qualifié par
-58/58 tests ciblés et ses deux goldens, sans preuve visuelle. Gate 1 reste ouverte.
+58/58 tests ciblés et ses deux goldens ; le lot de rendu végétation est qualifié par 92/92 tests
+engine/runtime, Clippy strict, compilation WASM, probes natifs, captures et métriques locales.
+`R1-014`, les performances finales et la revue comparative humaine restent dus. Gate 1 reste ouverte.
 
 ## But
 
@@ -347,15 +354,15 @@ qualité                   Low / Medium / High / Ultra
 ## R1-B — Végétation GPU
 
 - [x] `R1-009` Scatter déterministe — 58/58 tests ciblés et goldens document/cache PASS local.
-- [ ] `R1-010` Instances regroupées.
-- [ ] `R1-011` LOD arbres.
-- [ ] `R1-012` imposteurs ou HLOD lointain.
-- [ ] `R1-013` herbe dense sans entité par brin.
-- [ ] `R1-014` vent shader.
-- [ ] `R1-015` interaction locale avec personnage.
-- [ ] `R1-016` culling par chunks.
-- [ ] `R1-017` réglage des ombres par distance.
-- [ ] `R1-018` métriques instances visibles/cullées.
+- [x] `R1-010` Instances regroupées — handles partagés, éligibles au batching Bevy sans faux compteur de draws.
+- [x] `R1-011` LOD arbres — near/medium distincts et plages complémentaires testées.
+- [x] `R1-012` imposteurs ou HLOD lointain — 64 meshes HLOD de chunk observés.
+- [x] `R1-013` herbe dense sans entité par brin — 162 176 brins dans 64 lots.
+- [ ] `R1-014` vent shader — PASS natif et paire temporelle inspectée ; pipeline WebGPU non lancé.
+- [x] `R1-015` interaction locale avec personnage — champ borné aligné sur la pose post-physique.
+- [x] `R1-016` culling par chunks — instantané cohérent après 241 observations caméra/range.
+- [x] `R1-017` réglage des ombres par distance — CSM 128 m et règles caster/opt-out observés.
+- [x] `R1-018` métriques instances visibles/cullées — schéma v4, draw calls explicitement indisponibles.
 
 ## R1-C — Atmosphère et eau
 
@@ -375,7 +382,7 @@ qualité                   Low / Medium / High / Ultra
 - [x] `R1-029` caméra troisième personne — entité stable, pose, FOV et suivi profilés.
 - [x] `R1-030` occlusion caméra — sphere cast, exclusions, rapprochement et récupération monotone.
 - [x] `R1-031` option première personne — même entité, visibilité, hauteur d'yeux et retour 3P vérifiés.
-- [ ] `R1-032` interaction végétation.
+- [x] `R1-032` interaction végétation — 150/150 directions alignées, erreur de centre maximale 0 m.
 - [ ] `R1-033` animation minimale si asset disponible.
 
 ## R1-E — Performance
