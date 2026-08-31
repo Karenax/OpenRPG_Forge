@@ -1,3 +1,4 @@
+use crate::terrain_update::TerrainRuntimeBindings;
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::{Collider, NoUserData, RapierPhysicsPlugin, RigidBody, TimestepMode};
 use forge_project::TerrainDocument;
@@ -175,6 +176,19 @@ fn prepare_chunk_heightfield(
     })
 }
 
+/// Builds the Rapier shape for one already generated Forge chunk.
+pub(crate) fn build_terrain_heightfield_collider(
+    chunk: &TerrainChunkMesh,
+) -> Result<Collider, TerrainPhysicsAdapterError> {
+    let prepared = prepare_chunk_heightfield(chunk)?;
+    Ok(Collider::heightfield(
+        prepared.heights_column_major,
+        prepared.rows,
+        prepared.columns,
+        prepared.scale,
+    ))
+}
+
 fn validate_chunk_contract(chunk: &TerrainChunkMesh) -> Result<(), TerrainPhysicsAdapterError> {
     if chunk.collider.vertex_order != TerrainColliderVertexOrder::RowMajorZThenX {
         return Err(invalid_chunk(
@@ -349,6 +363,7 @@ fn invalid_chunk(chunk: &TerrainChunkMesh, reason: &'static str) -> TerrainPhysi
 fn spawn_terrain_heightfields(
     mut commands: Commands,
     mut prepared: ResMut<PreparedTerrainHeightfields>,
+    mut bindings: ResMut<TerrainRuntimeBindings>,
 ) {
     let heightfields = prepared
         .0
@@ -363,16 +378,19 @@ fn spawn_terrain_heightfields(
             heightfield.columns,
             heightfield.scale,
         );
-        commands.spawn((
-            Name::new(format!(
-                "Visual Valley terrain collider ({}, {})",
-                heightfield.marker.coordinate.x, heightfield.marker.coordinate.z
-            )),
-            heightfield.marker,
-            RigidBody::Fixed,
-            collider,
-            Transform::from_translation(heightfield.center),
-        ));
+        let entity = commands
+            .spawn((
+                Name::new(format!(
+                    "Visual Valley terrain collider ({}, {})",
+                    heightfield.marker.coordinate.x, heightfield.marker.coordinate.z
+                )),
+                heightfield.marker,
+                RigidBody::Fixed,
+                collider,
+                Transform::from_translation(heightfield.center),
+            ))
+            .id();
+        bindings.register_collider(heightfield.marker.id, heightfield.marker.coordinate, entity);
     }
 
     info!(

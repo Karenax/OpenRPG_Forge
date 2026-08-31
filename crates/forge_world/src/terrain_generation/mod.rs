@@ -1,5 +1,6 @@
 mod dirty;
 mod mesh;
+mod partial;
 mod sampling;
 
 #[cfg(test)]
@@ -9,6 +10,10 @@ pub use dirty::{TerrainDirtyChunk, TerrainDirtyPlan, TerrainSampleRegion};
 pub use mesh::{
     GeneratedTerrain, TerrainChunkColliderData, TerrainChunkMesh, TerrainColliderTriangleOrder,
     TerrainColliderVertexOrder, TerrainMaterialWeights,
+};
+pub use partial::{
+    TerrainHeightSampleCoordinate, TerrainPartialUpdate, TerrainPartialUpdateCommit,
+    TerrainPartialUpdateError, TerrainPartialUpdateRequest,
 };
 pub use sampling::sample_height;
 

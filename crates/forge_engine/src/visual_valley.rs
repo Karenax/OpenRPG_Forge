@@ -1,6 +1,10 @@
 use super::{ProofSceneStats, RuntimeAutomation, RuntimeEvidencePlugin};
 #[cfg(feature = "physics-rapier")]
 use crate::physics::TerrainPhysicsPlugin;
+#[cfg(feature = "physics-rapier")]
+use crate::terrain_update::{
+    TerrainRuntimeBindings, TerrainRuntimeState, TerrainRuntimeUpdatePlugin,
+};
 use bevy::{
     asset::{RenderAssetUsages, embedded_asset},
     light::CascadeShadowConfigBuilder,
@@ -12,6 +16,8 @@ use bevy::{
     shader::ShaderRef,
 };
 use forge_project::TerrainDocument;
+#[cfg(feature = "physics-rapier")]
+use forge_world::GeneratedTerrain;
 use forge_world::{
     TERRAIN_CHUNK_COUNT, TerrainChunkCoordinate, TerrainChunkId, TerrainChunkMesh,
     TerrainGenerationError, TerrainGenerationPlan,
@@ -142,9 +148,14 @@ impl VisualValleyPlugin {
 
 impl Plugin for VisualValleyPlugin {
     fn build(&self, app: &mut App) {
-        let prepared = prepare_visual_valley(&self.document)
+        let mut prepared = prepare_visual_valley(&self.document)
             .unwrap_or_else(|error| panic!("VisualValleyPlugin requires valid terrain: {error}"));
         let stats = prepared.stats.clone();
+        #[cfg(feature = "physics-rapier")]
+        let terrain_cache = prepared
+            .terrain_cache
+            .take()
+            .expect("the generated terrain cache is moved into runtime state exactly once");
 
         embedded_asset!(app, "shaders/visual_valley_terrain.wgsl");
         app.insert_resource(self.debug)
@@ -165,7 +176,15 @@ impl Plugin for VisualValleyPlugin {
             .add_systems(Update, draw_visual_valley_chunk_debug);
 
         #[cfg(feature = "physics-rapier")]
-        app.add_plugins(TerrainPhysicsPlugin::new(self.document.clone()));
+        app.insert_resource(TerrainRuntimeState::new(
+            self.document.clone(),
+            terrain_cache,
+        ))
+        .init_resource::<TerrainRuntimeBindings>()
+        .add_plugins((
+            TerrainPhysicsPlugin::new(self.document.clone()),
+            TerrainRuntimeUpdatePlugin,
+        ));
     }
 }
 
@@ -224,6 +243,8 @@ struct PreparedVisualValleyScene {
     stats: VisualValleyStats,
     minimum_height_m: f32,
     maximum_height_m: f32,
+    #[cfg(feature = "physics-rapier")]
+    terrain_cache: Option<GeneratedTerrain>,
 }
 
 struct PreparedTerrainChunk {
@@ -233,7 +254,7 @@ struct PreparedTerrainChunk {
 }
 
 #[derive(Clone, Copy, Component, Debug, PartialEq)]
-struct VisualValleyChunkDebugBounds {
+pub(crate) struct VisualValleyChunkDebugBounds {
     center: Vec3,
     size: Vec3,
     lod_level: u8,
@@ -293,10 +314,12 @@ fn prepare_visual_valley(
         stats,
         minimum_height_m,
         maximum_height_m,
+        #[cfg(feature = "physics-rapier")]
+        terrain_cache: Some(generated),
     })
 }
 
-fn build_bevy_terrain_mesh(
+pub(crate) fn build_bevy_terrain_mesh(
     chunk: &TerrainChunkMesh,
 ) -> Result<(Mesh, VisualValleyChunkDebugBounds), VisualValleyAdapterError> {
     let vertex_count = chunk.positions_m.len();
@@ -409,6 +432,7 @@ fn spawn_visual_valley(
     mut prepared: ResMut<PreparedVisualValley>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<VisualValleyTerrainMaterial>>,
+    #[cfg(feature = "physics-rapier")] mut bindings: ResMut<TerrainRuntimeBindings>,
 ) {
     let prepared = prepared
         .0
@@ -426,17 +450,27 @@ fn spawn_visual_valley(
     });
 
     for chunk in prepared.chunks {
-        commands.spawn((
-            Name::new(format!(
-                "Visual Valley terrain chunk ({}, {}) · LOD {}",
-                chunk.marker.coordinate.x, chunk.marker.coordinate.z, chunk.marker.lod_level
-            )),
-            chunk.marker,
-            chunk.debug_bounds,
-            Mesh3d(meshes.add(chunk.mesh)),
-            MeshMaterial3d(material.clone()),
-            Transform::IDENTITY,
-        ));
+        let mesh_handle = meshes.add(chunk.mesh);
+        let entity = commands
+            .spawn((
+                Name::new(format!(
+                    "Visual Valley terrain chunk ({}, {}) · LOD {}",
+                    chunk.marker.coordinate.x, chunk.marker.coordinate.z, chunk.marker.lod_level
+                )),
+                chunk.marker,
+                chunk.debug_bounds,
+                Mesh3d(mesh_handle.clone()),
+                MeshMaterial3d(material.clone()),
+                Transform::IDENTITY,
+            ))
+            .id();
+        #[cfg(feature = "physics-rapier")]
+        bindings.register_render(
+            chunk.marker.id,
+            chunk.marker.coordinate,
+            entity,
+            mesh_handle,
+        );
     }
 
     commands.spawn((

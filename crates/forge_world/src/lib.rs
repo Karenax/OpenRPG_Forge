@@ -16,8 +16,9 @@ pub use terrain_generation::{
     TERRAIN_SAMPLE_SPACING_M, TERRAIN_TRIANGLE_COUNT, TERRAIN_VERTEX_COUNT,
     TerrainChunkColliderData, TerrainChunkCoordinate, TerrainChunkId, TerrainChunkMesh,
     TerrainColliderTriangleOrder, TerrainColliderVertexOrder, TerrainDirtyChunk, TerrainDirtyPlan,
-    TerrainGenerationError, TerrainGenerationPlan, TerrainMaterialWeights, TerrainSampleRegion,
-    sample_height,
+    TerrainGenerationError, TerrainGenerationPlan, TerrainHeightSampleCoordinate,
+    TerrainMaterialWeights, TerrainPartialUpdate, TerrainPartialUpdateCommit,
+    TerrainPartialUpdateError, TerrainPartialUpdateRequest, TerrainSampleRegion, sample_height,
 };
 
 use forge_core::{AreaId, ProjectId, Revision, Transform, UnitQuaternion, Vec3};

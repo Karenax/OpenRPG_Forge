@@ -5,10 +5,11 @@
 mod terrain;
 
 pub use terrain::{
-    HeightSamplingAlgorithm, HeightSamplingParameters, MAX_TERRAIN_MATERIAL_LAYERS,
-    MAX_TERRAIN_SAMPLE_INTERVALS_PER_AXIS, MIN_TERRAIN_MATERIAL_LAYERS, TERRAIN_DOCUMENT_SCHEMA,
-    TERRAIN_DOCUMENT_SCHEMA_VERSION, TerrainDocument, TerrainDocumentError, TerrainExtent,
-    TerrainMaterialLayer, TerrainMaterialLayerId,
+    HeightSamplingAlgorithm, HeightSamplingParameters, MAX_TERRAIN_HEIGHT_DELTAS,
+    MAX_TERRAIN_MATERIAL_LAYERS, MAX_TERRAIN_SAMPLE_INTERVALS_PER_AXIS,
+    MIN_TERRAIN_MATERIAL_LAYERS, TERRAIN_DOCUMENT_SCHEMA, TERRAIN_DOCUMENT_SCHEMA_VERSION,
+    TERRAIN_DOCUMENT_SCHEMA_VERSION_V1, TerrainDocument, TerrainDocumentError, TerrainExtent,
+    TerrainHeightDelta, TerrainMaterialLayer, TerrainMaterialLayerId,
 };
 
 use forge_core::{

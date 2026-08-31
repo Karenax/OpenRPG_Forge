@@ -8,10 +8,12 @@ use std::fmt;
 use thiserror::Error;
 
 pub const TERRAIN_DOCUMENT_SCHEMA: &str = "forge.terrain";
-pub const TERRAIN_DOCUMENT_SCHEMA_VERSION: u32 = 1;
+pub const TERRAIN_DOCUMENT_SCHEMA_VERSION_V1: u32 = 1;
+pub const TERRAIN_DOCUMENT_SCHEMA_VERSION: u32 = 2;
 pub const MIN_TERRAIN_MATERIAL_LAYERS: usize = 1;
 pub const MAX_TERRAIN_MATERIAL_LAYERS: usize = 32;
 pub const MAX_TERRAIN_SAMPLE_INTERVALS_PER_AXIS: u16 = 8_192;
+pub const MAX_TERRAIN_HEIGHT_DELTAS: usize = 65_536;
 
 /// Persistent, renderer-independent source of truth for one area's terrain.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -27,6 +29,8 @@ pub struct TerrainDocument {
     pub seed: u64,
     pub extent_m: TerrainExtent,
     pub height_sampling: HeightSamplingParameters,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub height_deltas: Vec<TerrainHeightDelta>,
     pub material_layers: Vec<TerrainMaterialLayer>,
 }
 
@@ -54,18 +58,64 @@ impl TerrainDocument {
             seed,
             extent_m,
             height_sampling,
+            height_deltas: Vec::new(),
             material_layers,
         }
+    }
+
+    /// Builds the immutable version-1 shape used by the original Visual Valley fixture.
+    ///
+    /// Version 1 cannot contain authored height deltas. Keeping this constructor explicit avoids
+    /// silently changing the canonical JSON or content hash of existing sources.
+    #[must_use]
+    #[allow(clippy::too_many_arguments)]
+    pub fn new_v1(
+        project_id: ProjectId,
+        area_id: AreaId,
+        revision: Revision,
+        name: impl Into<String>,
+        seed: u64,
+        extent_m: TerrainExtent,
+        height_sampling: HeightSamplingParameters,
+        material_layers: Vec<TerrainMaterialLayer>,
+    ) -> Self {
+        let mut document = Self::new(
+            project_id,
+            area_id,
+            revision,
+            name,
+            seed,
+            extent_m,
+            height_sampling,
+            material_layers,
+        );
+        document.schema_version = TERRAIN_DOCUMENT_SCHEMA_VERSION_V1;
+        document
+    }
+
+    /// Returns the current version without otherwise changing the source document.
+    pub fn migrate_to_latest(&self) -> Result<Self, TerrainDocumentError> {
+        self.validate()?;
+        let mut migrated = self.clone();
+        migrated.schema_version = TERRAIN_DOCUMENT_SCHEMA_VERSION;
+        Ok(migrated)
     }
 
     pub fn validate(&self) -> Result<(), TerrainDocumentError> {
         if self.schema != TERRAIN_DOCUMENT_SCHEMA {
             return Err(TerrainDocumentError::InvalidSchema(self.schema.clone()));
         }
-        if self.schema_version != TERRAIN_DOCUMENT_SCHEMA_VERSION {
+        if self.schema_version != TERRAIN_DOCUMENT_SCHEMA_VERSION_V1
+            && self.schema_version != TERRAIN_DOCUMENT_SCHEMA_VERSION
+        {
             return Err(TerrainDocumentError::UnsupportedVersion(
                 self.schema_version,
             ));
+        }
+        if self.schema_version == TERRAIN_DOCUMENT_SCHEMA_VERSION_V1
+            && !self.height_deltas.is_empty()
+        {
+            return Err(TerrainDocumentError::LegacyVersionContainsHeightDeltas);
         }
         if self.coordinate_system != CoordinateSystem::METRES_Y_UP_RIGHT_HANDED {
             return Err(TerrainDocumentError::UnsupportedCoordinateSystem);
@@ -81,6 +131,7 @@ impl TerrainDocument {
 
         self.extent_m.validate()?;
         self.height_sampling.validate(self.extent_m)?;
+        self.validate_height_deltas()?;
 
         if self.material_layers.len() < MIN_TERRAIN_MATERIAL_LAYERS {
             return Err(TerrainDocumentError::TooFewMaterialLayers(
@@ -106,6 +157,62 @@ impl TerrainDocument {
         Ok(())
     }
 
+    fn validate_height_deltas(&self) -> Result<(), TerrainDocumentError> {
+        if self.height_deltas.len() > MAX_TERRAIN_HEIGHT_DELTAS {
+            return Err(TerrainDocumentError::TooManyHeightDeltas {
+                count: self.height_deltas.len(),
+                maximum: MAX_TERRAIN_HEIGHT_DELTAS,
+            });
+        }
+
+        let maximum_x = terrain_interval_count(
+            self.extent_m.size_x_m,
+            self.height_sampling.sample_spacing_m,
+        );
+        let maximum_z = terrain_interval_count(
+            self.extent_m.size_z_m,
+            self.height_sampling.sample_spacing_m,
+        );
+        let mut previous = None;
+        for delta in &self.height_deltas {
+            if delta.sample_x > maximum_x || delta.sample_z > maximum_z {
+                return Err(TerrainDocumentError::HeightDeltaOutOfBounds {
+                    sample_x: delta.sample_x,
+                    sample_z: delta.sample_z,
+                    maximum_x,
+                    maximum_z,
+                });
+            }
+            if !delta.delta_m.is_finite() {
+                return Err(TerrainDocumentError::NonFiniteHeightDelta {
+                    sample_x: delta.sample_x,
+                    sample_z: delta.sample_z,
+                });
+            }
+            if delta.delta_m == 0.0 {
+                return Err(TerrainDocumentError::ZeroHeightDelta {
+                    sample_x: delta.sample_x,
+                    sample_z: delta.sample_z,
+                });
+            }
+
+            let key = delta.sort_key();
+            if let Some(previous_key) = previous {
+                if key == previous_key {
+                    return Err(TerrainDocumentError::DuplicateHeightDelta {
+                        sample_x: delta.sample_x,
+                        sample_z: delta.sample_z,
+                    });
+                }
+                if key < previous_key {
+                    return Err(TerrainDocumentError::UnsortedHeightDeltas);
+                }
+            }
+            previous = Some(key);
+        }
+        Ok(())
+    }
+
     pub fn from_json(json: &str) -> Result<Self, TerrainDocumentError> {
         let document: Self = serde_json::from_str(json)?;
         document.validate()?;
@@ -120,6 +227,33 @@ impl TerrainDocument {
     pub fn content_hash(&self) -> Result<ContentHash, TerrainDocumentError> {
         self.validate()?;
         Ok(canonical_json_sha256(self)?)
+    }
+}
+
+/// Authored offset, in metres, applied to one source-grid height sample.
+///
+/// Persistent arrays are canonical only when entries are strictly sorted by `(sample_z, sample_x)`.
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct TerrainHeightDelta {
+    pub sample_x: u16,
+    pub sample_z: u16,
+    pub delta_m: f32,
+}
+
+impl TerrainHeightDelta {
+    #[must_use]
+    pub const fn new(sample_x: u16, sample_z: u16, delta_m: f32) -> Self {
+        Self {
+            sample_x,
+            sample_z,
+            delta_m,
+        }
+    }
+
+    #[must_use]
+    pub const fn sort_key(self) -> (u16, u16) {
+        (self.sample_z, self.sample_x)
     }
 }
 
@@ -298,6 +432,12 @@ fn validate_grid_axis(
     Ok(())
 }
 
+#[must_use]
+#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+fn terrain_interval_count(extent_m: f32, sample_spacing_m: f32) -> u16 {
+    (extent_m / sample_spacing_m).round() as u16
+}
+
 fn valid_logical_id(value: &str) -> bool {
     if value.is_empty() || value.len() > 64 {
         return false;
@@ -316,6 +456,8 @@ pub enum TerrainDocumentError {
     InvalidSchema(String),
     #[error("unsupported terrain schema version {0}")]
     UnsupportedVersion(u32),
+    #[error("terrain schema version 1 cannot contain authored height deltas")]
+    LegacyVersionContainsHeightDeltas,
     #[error("terrain coordinate system must be metres, Y-up, right-handed")]
     UnsupportedCoordinateSystem,
     #[error("terrain name cannot be empty")]
@@ -330,6 +472,25 @@ pub enum TerrainDocumentError {
     MisalignedHeightGrid(&'static str),
     #[error("terrain height grid on axis `{axis}` exceeds {maximum} sample intervals")]
     TooManyHeightSampleIntervals { axis: &'static str, maximum: u16 },
+    #[error("terrain contains {count} height deltas, exceeding the sparse limit of {maximum}")]
+    TooManyHeightDeltas { count: usize, maximum: usize },
+    #[error(
+        "terrain height delta ({sample_x}, {sample_z}) exceeds source-grid bounds (0..={maximum_x}, 0..={maximum_z})"
+    )]
+    HeightDeltaOutOfBounds {
+        sample_x: u16,
+        sample_z: u16,
+        maximum_x: u16,
+        maximum_z: u16,
+    },
+    #[error("terrain height delta ({sample_x}, {sample_z}) must be finite")]
+    NonFiniteHeightDelta { sample_x: u16, sample_z: u16 },
+    #[error("terrain height delta ({sample_x}, {sample_z}) is zero and must be omitted")]
+    ZeroHeightDelta { sample_x: u16, sample_z: u16 },
+    #[error("terrain contains duplicate height delta ({sample_x}, {sample_z})")]
+    DuplicateHeightDelta { sample_x: u16, sample_z: u16 },
+    #[error("terrain height deltas must be strictly sorted by sample_z, then sample_x")]
+    UnsortedHeightDeltas,
     #[error(
         "terrain needs at least {MIN_TERRAIN_MATERIAL_LAYERS} logical material layers, found {0}"
     )]
@@ -394,7 +555,8 @@ mod tests {
             document.content_hash().unwrap()
         );
         assert!(json.contains("\"schema\": \"forge.terrain\""));
-        assert!(json.contains("\"schema_version\": 1"));
+        assert!(json.contains("\"schema_version\": 2"));
+        assert!(!json.contains("height_deltas"));
     }
 
     #[test]
@@ -432,10 +594,10 @@ mod tests {
     #[test]
     fn unsupported_versions_and_invalid_sampling_are_rejected() {
         let mut document = valid_document(42);
-        document.schema_version = 2;
+        document.schema_version = 3;
         assert!(matches!(
             document.validate(),
-            Err(TerrainDocumentError::UnsupportedVersion(2))
+            Err(TerrainDocumentError::UnsupportedVersion(3))
         ));
 
         document.schema_version = TERRAIN_DOCUMENT_SCHEMA_VERSION;
@@ -484,6 +646,87 @@ mod tests {
         assert!(matches!(
             document.validate(),
             Err(TerrainDocumentError::InvalidMaterialLayerId(_))
+        ));
+    }
+
+    #[test]
+    fn version_one_round_trips_without_a_delta_field_and_migrates_explicitly() {
+        let mut legacy = valid_document(42);
+        legacy.schema_version = TERRAIN_DOCUMENT_SCHEMA_VERSION_V1;
+        let legacy_hash = legacy.content_hash().unwrap();
+        let legacy_json = legacy.to_pretty_json().unwrap();
+
+        assert!(legacy_json.contains("\"schema_version\": 1"));
+        assert!(!legacy_json.contains("height_deltas"));
+        let restored = TerrainDocument::from_json(&legacy_json).unwrap();
+        assert_eq!(restored, legacy);
+        assert_eq!(restored.content_hash().unwrap(), legacy_hash);
+
+        let migrated = restored.migrate_to_latest().unwrap();
+        assert_eq!(migrated.schema_version, TERRAIN_DOCUMENT_SCHEMA_VERSION);
+        assert!(migrated.height_deltas.is_empty());
+        assert_ne!(migrated.content_hash().unwrap(), legacy_hash);
+    }
+
+    #[test]
+    fn versioned_height_deltas_are_sparse_canonical_and_bounded() {
+        let mut document = valid_document(42);
+        document.height_deltas = vec![
+            TerrainHeightDelta::new(31, 31, 3.5),
+            TerrainHeightDelta::new(32, 31, -1.25),
+            TerrainHeightDelta::new(0, 32, 2.0),
+        ];
+        assert!(document.validate().is_ok());
+        let round_trip = TerrainDocument::from_json(&document.to_pretty_json().unwrap()).unwrap();
+        assert_eq!(round_trip, document);
+
+        let mut invalid = document.clone();
+        invalid.height_deltas.swap(0, 2);
+        assert!(matches!(
+            invalid.validate(),
+            Err(TerrainDocumentError::UnsortedHeightDeltas)
+        ));
+
+        invalid = document.clone();
+        invalid.height_deltas.insert(1, invalid.height_deltas[0]);
+        assert!(matches!(
+            invalid.validate(),
+            Err(TerrainDocumentError::DuplicateHeightDelta {
+                sample_x: 31,
+                sample_z: 31
+            })
+        ));
+
+        invalid = document.clone();
+        invalid.height_deltas = vec![TerrainHeightDelta::new(257, 0, 1.0)];
+        assert!(matches!(
+            invalid.validate(),
+            Err(TerrainDocumentError::HeightDeltaOutOfBounds { .. })
+        ));
+
+        invalid.height_deltas = vec![TerrainHeightDelta::new(0, 0, f32::NAN)];
+        assert!(matches!(
+            invalid.validate(),
+            Err(TerrainDocumentError::NonFiniteHeightDelta {
+                sample_x: 0,
+                sample_z: 0
+            })
+        ));
+
+        invalid.height_deltas = vec![TerrainHeightDelta::new(0, 0, 0.0)];
+        assert!(matches!(
+            invalid.validate(),
+            Err(TerrainDocumentError::ZeroHeightDelta {
+                sample_x: 0,
+                sample_z: 0
+            })
+        ));
+
+        invalid = document;
+        invalid.schema_version = TERRAIN_DOCUMENT_SCHEMA_VERSION_V1;
+        assert!(matches!(
+            invalid.validate(),
+            Err(TerrainDocumentError::LegacyVersionContainsHeightDeltas)
         ));
     }
 }

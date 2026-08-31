@@ -1,5 +1,7 @@
 use super::*;
 use crate::VisualValleyTerrainRecipe;
+use forge_core::{ContentHash, Revision};
+use forge_project::{TERRAIN_DOCUMENT_SCHEMA_VERSION, TerrainHeightDelta};
 
 fn plan() -> TerrainGenerationPlan {
     TerrainGenerationPlan::from_document(&VisualValleyTerrainRecipe::default().build().unwrap())
@@ -383,4 +385,321 @@ fn maximum_finite_amplitude_stays_finite_through_derived_payloads() {
         );
     }
     assert!(generated.content_hash().is_ok());
+}
+
+#[test]
+#[allow(
+    clippy::too_many_lines,
+    reason = "the end-to-end partial-update oracle keeps preparation, commit, rebuild parity, and allocation identity assertions in one auditable proof"
+)]
+fn sparse_delta_at_31_31_patches_three_meshes_one_collider_and_matches_full_rebuild() {
+    let source_document = VisualValleyTerrainRecipe::default().build().unwrap();
+    let source_document_before = source_document.clone();
+    let source_plan = TerrainGenerationPlan::from_document(&source_document).unwrap();
+    let mut source_cache = source_plan.generate().unwrap();
+    let source_cache_before = source_cache.clone();
+    let allocation_addresses_before = source_cache
+        .chunks
+        .iter()
+        .map(chunk_allocation_addresses)
+        .collect::<Vec<_>>();
+
+    let mut target_document = source_document.migrate_to_latest().unwrap();
+    target_document.revision = source_document.revision.next().unwrap();
+    target_document.height_deltas = vec![TerrainHeightDelta::new(31, 31, 5.0)];
+    assert_eq!(
+        target_document.schema_version,
+        TERRAIN_DOCUMENT_SCHEMA_VERSION
+    );
+    let update = source_plan
+        .apply_partial_update(
+            &source_cache,
+            TerrainPartialUpdateRequest {
+                base_revision: source_document.revision,
+                base_document_hash: source_plan.document_hash(),
+                target_document: target_document.clone(),
+            },
+        )
+        .unwrap();
+
+    assert_eq!(source_document, source_document_before);
+    assert_eq!(source_cache, source_cache_before);
+    assert_eq!(
+        update.changed_samples(),
+        &[TerrainHeightSampleCoordinate::new(31, 31)]
+    );
+    assert_eq!(update.replacement_chunks().len(), 3);
+    assert_eq!(
+        update
+            .mesh_chunks()
+            .iter()
+            .map(|chunk| chunk.coordinate)
+            .collect::<Vec<_>>(),
+        vec![
+            TerrainChunkCoordinate { x: 0, z: 0 },
+            TerrainChunkCoordinate { x: 1, z: 0 },
+            TerrainChunkCoordinate { x: 0, z: 1 },
+        ]
+    );
+    assert_eq!(
+        update
+            .collider_chunks()
+            .iter()
+            .map(|chunk| chunk.coordinate)
+            .collect::<Vec<_>>(),
+        vec![TerrainChunkCoordinate { x: 0, z: 0 }]
+    );
+    assert_eq!(update.source_document_hash(), source_plan.document_hash());
+    assert_eq!(update.target_document(), &target_document);
+
+    let full_rebuild = TerrainGenerationPlan::from_document(&target_document)
+        .unwrap()
+        .generate()
+        .unwrap();
+    assert_eq!(
+        update.target_document_hash(),
+        full_rebuild.source_document_hash
+    );
+    let commit = update.apply_to_cache(&mut source_cache).unwrap();
+    assert_eq!(commit.target_document(), &target_document);
+    assert_eq!(commit.source_document_hash(), source_plan.document_hash());
+    assert_eq!(
+        commit.target_document_hash(),
+        full_rebuild.source_document_hash
+    );
+    assert_eq!(
+        commit.changed_samples(),
+        &[TerrainHeightSampleCoordinate::new(31, 31)]
+    );
+    assert_eq!(commit.mesh_chunks().len(), 3);
+    assert_eq!(commit.collider_chunks().len(), 1);
+    assert_eq!(source_cache, full_rebuild);
+    assert_eq!(
+        source_cache.content_hash().unwrap(),
+        full_rebuild.content_hash().unwrap()
+    );
+
+    let changed_meshes = source_cache_before
+        .chunks
+        .iter()
+        .zip(&source_cache.chunks)
+        .filter(|(source, target)| source != target)
+        .count();
+    let changed_colliders = source_cache_before
+        .chunks
+        .iter()
+        .zip(&source_cache.chunks)
+        .filter(|(source, target)| source.collider != target.collider)
+        .count();
+    assert_eq!(changed_meshes, 3);
+    assert_eq!(changed_colliders, 1);
+    assert_eq!(TERRAIN_CHUNK_COUNT - changed_meshes, 61);
+    for (index, (source, target)) in source_cache_before
+        .chunks
+        .iter()
+        .zip(&source_cache.chunks)
+        .enumerate()
+    {
+        assert_eq!(source.id, target.id);
+        if !commit
+            .mesh_chunks()
+            .iter()
+            .any(|dirty| dirty.coordinate == target.coordinate)
+        {
+            assert_eq!(
+                allocation_addresses_before[index],
+                chunk_allocation_addresses(target),
+                "untouched chunk {:?} must retain all internal allocations",
+                target.coordinate
+            );
+        }
+    }
+}
+
+#[must_use]
+fn chunk_allocation_addresses(chunk: &TerrainChunkMesh) -> [usize; 8] {
+    [
+        std::ptr::from_ref(chunk) as usize,
+        chunk.positions_m.as_ptr() as usize,
+        chunk.normals.as_ptr() as usize,
+        chunk.uvs.as_ptr() as usize,
+        chunk.material_weights.as_ptr() as usize,
+        chunk.indices.as_ptr() as usize,
+        chunk.collider.vertices_m.as_ptr() as usize,
+        chunk.collider.triangles.as_ptr() as usize,
+    ]
+}
+
+#[test]
+fn sparse_delta_sampling_is_exact_on_grid_and_bilinear_between_samples() {
+    let source_document = VisualValleyTerrainRecipe::default().build().unwrap();
+    let mut target_document = source_document.migrate_to_latest().unwrap();
+    target_document.height_deltas = vec![TerrainHeightDelta::new(31, 31, 8.0)];
+    let source_plan = TerrainGenerationPlan::from_document(&source_document).unwrap();
+    let target_plan = TerrainGenerationPlan::from_document(&target_document).unwrap();
+    let x_m = -TERRAIN_HALF_EXTENT_M + 31.0 * TERRAIN_SAMPLE_SPACING_M;
+    let z_m = -TERRAIN_HALF_EXTENT_M + 31.0 * TERRAIN_SAMPLE_SPACING_M;
+
+    let exact_difference =
+        target_plan.height_at(x_m, z_m).unwrap() - source_plan.height_at(x_m, z_m).unwrap();
+    let halfway_difference = target_plan
+        .height_at(x_m + TERRAIN_SAMPLE_SPACING_M * 0.5, z_m)
+        .unwrap()
+        - source_plan
+            .height_at(x_m + TERRAIN_SAMPLE_SPACING_M * 0.5, z_m)
+            .unwrap();
+    assert!((exact_difference - 8.0).abs() <= 1.0e-5);
+    assert!((halfway_difference - 4.0).abs() <= 1.0e-5);
+}
+
+#[test]
+fn partial_update_rejects_stale_or_structural_requests_without_mutating_inputs() {
+    let source_document = VisualValleyTerrainRecipe::default().build().unwrap();
+    let source_plan = TerrainGenerationPlan::from_document(&source_document).unwrap();
+    let source_cache = source_plan.generate().unwrap();
+    let source_cache_before = source_cache.clone();
+    let mut target_document = source_document.migrate_to_latest().unwrap();
+    target_document.revision = source_document.revision.next().unwrap();
+    target_document.height_deltas = vec![TerrainHeightDelta::new(31, 31, 5.0)];
+
+    let stale_hash = source_plan.apply_partial_update(
+        &source_cache,
+        TerrainPartialUpdateRequest {
+            base_revision: source_document.revision,
+            base_document_hash: ContentHash::from_bytes([0x5a; 32]),
+            target_document: target_document.clone(),
+        },
+    );
+    assert!(matches!(
+        stale_hash,
+        Err(TerrainPartialUpdateError::StaleBaseDocumentHash { .. })
+    ));
+    assert_eq!(source_cache, source_cache_before);
+
+    let stale_revision = source_plan.apply_partial_update(
+        &source_cache,
+        TerrainPartialUpdateRequest {
+            base_revision: Revision::new(source_document.revision.get() + 1),
+            base_document_hash: source_plan.document_hash(),
+            target_document: target_document.clone(),
+        },
+    );
+    assert!(matches!(
+        stale_revision,
+        Err(TerrainPartialUpdateError::StaleBaseRevision { .. })
+    ));
+    assert_eq!(source_cache, source_cache_before);
+
+    let mut structural_target = target_document;
+    structural_target.seed = structural_target.seed.wrapping_add(1);
+    let structural = source_plan.apply_partial_update(
+        &source_cache,
+        TerrainPartialUpdateRequest {
+            base_revision: source_document.revision,
+            base_document_hash: source_plan.document_hash(),
+            target_document: structural_target,
+        },
+    );
+    assert!(matches!(
+        structural,
+        Err(TerrainPartialUpdateError::FullRebuildRequired)
+    ));
+    assert_eq!(source_cache, source_cache_before);
+}
+
+#[test]
+fn partial_update_rejects_non_next_revision_cache_mismatch_and_height_overflow() {
+    let source_document = VisualValleyTerrainRecipe::default().build().unwrap();
+    let source_plan = TerrainGenerationPlan::from_document(&source_document).unwrap();
+    let source_cache = source_plan.generate().unwrap();
+    let mut target_document = source_document.migrate_to_latest().unwrap();
+    target_document.revision = source_document.revision.next().unwrap();
+    target_document.height_deltas = vec![TerrainHeightDelta::new(31, 31, 5.0)];
+
+    let mut wrong_revision = target_document.clone();
+    wrong_revision.revision = Revision::new(target_document.revision.get() + 1);
+    assert!(matches!(
+        source_plan.apply_partial_update(
+            &source_cache,
+            TerrainPartialUpdateRequest {
+                base_revision: source_document.revision,
+                base_document_hash: source_plan.document_hash(),
+                target_document: wrong_revision,
+            }
+        ),
+        Err(TerrainPartialUpdateError::UnexpectedTargetRevision { .. })
+    ));
+
+    let mut stale_cache = source_cache.clone();
+    stale_cache.source_document_hash = ContentHash::from_bytes([0x33; 32]);
+    assert!(matches!(
+        source_plan.apply_partial_update(
+            &stale_cache,
+            TerrainPartialUpdateRequest {
+                base_revision: source_document.revision,
+                base_document_hash: source_plan.document_hash(),
+                target_document: target_document.clone(),
+            }
+        ),
+        Err(TerrainPartialUpdateError::SourceCacheHashMismatch { .. })
+    ));
+
+    let mut overflow = target_document;
+    overflow.height_sampling.base_elevation_m = 0.0;
+    overflow.height_sampling.amplitude_m = f32::MAX;
+    overflow.height_deltas = vec![TerrainHeightDelta::new(31, 31, f32::MAX)];
+    assert!(matches!(
+        TerrainGenerationPlan::from_document(&overflow),
+        Err(TerrainGenerationError::HeightOutputOutOfRange)
+    ));
+}
+
+#[test]
+fn prepared_update_revalidates_live_cache_atomically_before_commit() {
+    let source_document = VisualValleyTerrainRecipe::default().build().unwrap();
+    let source_plan = TerrainGenerationPlan::from_document(&source_document).unwrap();
+    let source_cache = source_plan.generate().unwrap();
+    let mut target_document = source_document.migrate_to_latest().unwrap();
+    target_document.revision = source_document.revision.next().unwrap();
+    target_document.height_deltas = vec![TerrainHeightDelta::new(31, 31, 5.0)];
+
+    let prepare = || {
+        source_plan
+            .apply_partial_update(
+                &source_cache,
+                TerrainPartialUpdateRequest {
+                    base_revision: source_document.revision,
+                    base_document_hash: source_plan.document_hash(),
+                    target_document: target_document.clone(),
+                },
+            )
+            .unwrap()
+    };
+
+    let mut stale_cache = source_cache.clone();
+    stale_cache.source_document_hash = ContentHash::from_bytes([0x44; 32]);
+    let stale_cache_before = stale_cache.clone();
+    assert!(matches!(
+        prepare().apply_to_cache(&mut stale_cache),
+        Err(TerrainPartialUpdateError::SourceCacheHashMismatch { .. })
+    ));
+    assert_eq!(stale_cache, stale_cache_before);
+
+    let mut reordered_cache = source_cache.clone();
+    reordered_cache.chunks.swap(0, 1);
+    let reordered_cache_before = reordered_cache.clone();
+    assert!(matches!(
+        prepare().apply_to_cache(&mut reordered_cache),
+        Err(TerrainPartialUpdateError::InvalidSourceCacheLayout(_))
+    ));
+    assert_eq!(reordered_cache, reordered_cache_before);
+
+    let mut wrong_identity_cache = source_cache.clone();
+    wrong_identity_cache.chunks[0].id = wrong_identity_cache.chunks[1].id;
+    let wrong_identity_cache_before = wrong_identity_cache.clone();
+    assert!(matches!(
+        prepare().apply_to_cache(&mut wrong_identity_cache),
+        Err(TerrainPartialUpdateError::InvalidSourceCacheLayout(_))
+    ));
+    assert_eq!(wrong_identity_cache, wrong_identity_cache_before);
 }

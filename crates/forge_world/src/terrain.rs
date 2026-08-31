@@ -25,7 +25,7 @@ impl Default for VisualValleyTerrainRecipe {
 
 impl VisualValleyTerrainRecipe {
     pub fn build(self) -> Result<TerrainDocument, TerrainDocumentError> {
-        let document = TerrainDocument::new(
+        let document = TerrainDocument::new_v1(
             ProjectId::deterministic("visual-valley-project"),
             AreaId::deterministic("visual-valley-area"),
             Revision::INITIAL,
@@ -77,6 +77,11 @@ mod tests {
             VISUAL_VALLEY_SIZE_M.to_bits()
         );
         assert_eq!(embedded.material_layers.len(), 3);
+        assert_eq!(
+            embedded.schema_version,
+            forge_project::TERRAIN_DOCUMENT_SCHEMA_VERSION_V1
+        );
+        assert!(!embedded.to_pretty_json().unwrap().contains("height_deltas"));
         assert_eq!(
             embedded.content_hash().unwrap(),
             generated.content_hash().unwrap()

@@ -1,5 +1,7 @@
 #![deny(unsafe_code)]
 
+mod terrain_partial_update_probe;
+
 use bevy::{
     app::AppExit,
     log::{DEFAULT_FILTER, LogPlugin},
@@ -16,6 +18,7 @@ use forge_world::{
     TerrainGenerationPlan, embedded_gate0_proof_document, embedded_visual_valley_terrain_document,
 };
 use std::{env, fs, path::PathBuf};
+use terrain_partial_update_probe::TerrainPartialUpdateProbePlugin;
 use tracing_subscriber::EnvFilter;
 
 fn main() -> AppExit {
@@ -30,26 +33,7 @@ fn main() -> AppExit {
     };
 
     if options.log_probe {
-        tracing::info!(
-            target: "forge::runtime",
-            schema = "forge.runtime-event",
-            schema_version = 1_u64,
-            event_kind = "structured_log_probe",
-            probe_sequence = 1_u64,
-            probe_ok = true,
-            "structured logging probe emitted"
-        );
-        tracing::info!(
-            target: "forge::runtime",
-            schema = "forge.runtime-event",
-            schema_version = 1_u64,
-            event_kind = "runtime_stopped",
-            success = true,
-            exit_code = 0_u64,
-            shutdown = "logging_probe",
-            "runtime stopped cleanly"
-        );
-        return AppExit::Success;
+        return run_structured_log_probe();
     }
 
     if let Err(message) = options.prepare_output_paths() {
@@ -84,6 +68,7 @@ fn main() -> AppExit {
         bounded_exit_frame = u64::from(automation.exit_after_frames.unwrap_or_default()),
         automated_close_configured = automation.close_at_frame.is_some(),
         automated_close_frame = u64::from(automation.close_at_frame.unwrap_or_default()),
+        terrain_partial_update_probe = options.terrain_partial_update_probe.is_enabled(),
         "native runtime starting"
     );
 
@@ -106,7 +91,13 @@ fn main() -> AppExit {
                 .disable::<LogPlugin>(),
         );
 
-    add_runtime_plugin(&mut app, document, automation, options.terrain_debug);
+    add_runtime_plugin(
+        &mut app,
+        document,
+        automation,
+        options.terrain_debug,
+        options.terrain_partial_update_probe,
+    );
 
     let exit = app.run();
     tracing::info!(
@@ -122,11 +113,35 @@ fn main() -> AppExit {
     exit
 }
 
+fn run_structured_log_probe() -> AppExit {
+    tracing::info!(
+        target: "forge::runtime",
+        schema = "forge.runtime-event",
+        schema_version = 1_u64,
+        event_kind = "structured_log_probe",
+        probe_sequence = 1_u64,
+        probe_ok = true,
+        "structured logging probe emitted"
+    );
+    tracing::info!(
+        target: "forge::runtime",
+        schema = "forge.runtime-event",
+        schema_version = 1_u64,
+        event_kind = "runtime_stopped",
+        success = true,
+        exit_code = 0_u64,
+        shutdown = "logging_probe",
+        "runtime stopped cleanly"
+    );
+    AppExit::Success
+}
+
 fn add_runtime_plugin(
     app: &mut App,
     document: RuntimeDocument,
     automation: RuntimeAutomation,
     terrain_debug: TerrainDebugMode,
+    terrain_partial_update_probe: TerrainPartialUpdateProbeMode,
 ) {
     match document {
         RuntimeDocument::Gate0(document) => {
@@ -138,6 +153,9 @@ fn add_runtime_plugin(
                     .with_automation(automation)
                     .with_chunk_lod_gizmos(terrain_debug.is_enabled()),
             );
+            if terrain_partial_update_probe.is_enabled() {
+                app.add_plugins(TerrainPartialUpdateProbePlugin::new());
+            }
         }
     }
 }
@@ -189,12 +207,26 @@ impl TerrainDebugMode {
     }
 }
 
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+enum TerrainPartialUpdateProbeMode {
+    #[default]
+    Disabled,
+    Enabled,
+}
+
+impl TerrainPartialUpdateProbeMode {
+    const fn is_enabled(self) -> bool {
+        matches!(self, Self::Enabled)
+    }
+}
+
 #[derive(Debug)]
 struct Options {
     scene_path: Option<PathBuf>,
     terrain_path: Option<PathBuf>,
     visual_valley: bool,
     terrain_debug: TerrainDebugMode,
+    terrain_partial_update_probe: TerrainPartialUpdateProbeMode,
     capture_path: Option<PathBuf>,
     capture_frame: u32,
     metrics_path: Option<PathBuf>,
@@ -215,6 +247,7 @@ impl Default for Options {
             terrain_path: None,
             visual_valley: false,
             terrain_debug: TerrainDebugMode::Hidden,
+            terrain_partial_update_probe: TerrainPartialUpdateProbeMode::Disabled,
             capture_path: None,
             capture_frame: 120,
             metrics_path: None,
@@ -241,6 +274,9 @@ impl Options {
                 }
                 "--visual-valley" => options.visual_valley = true,
                 "--terrain-debug" => options.terrain_debug = TerrainDebugMode::ChunkLodGizmos,
+                "--terrain-partial-update-probe" => {
+                    options.terrain_partial_update_probe = TerrainPartialUpdateProbeMode::Enabled;
+                }
                 "--capture" => {
                     options.capture_path = Some(next_path(&mut arguments, "--capture")?);
                 }
@@ -273,7 +309,7 @@ impl Options {
                 "--no-vsync" => options.vsync = false,
                 "--log-probe" => options.log_probe = true,
                 "--help" | "-h" => {
-                    return Err("usage: forge_runtime [--scene file.json | --visual-valley | --terrain terrain.json] [--terrain-debug] [--capture file.png] [--capture-frame n] [--metrics file.json] [--metrics-warmup-frames n] [--exit-after-frames n] [--resize-at-frame n --resize-width px --resize-height px] [--close-at-frame n] [--no-vsync] [--log-probe]".to_owned());
+                    return Err("usage: forge_runtime [--scene file.json | --visual-valley | --terrain terrain.json] [--terrain-debug] [--terrain-partial-update-probe] [--capture file.png] [--capture-frame n] [--metrics file.json] [--metrics-warmup-frames n] [--exit-after-frames n] [--resize-at-frame n --resize-width px --resize-height px] [--close-at-frame n] [--no-vsync] [--log-probe]".to_owned());
                 }
                 _ => return Err(format!("unknown option `{argument}`")),
             }
@@ -292,6 +328,7 @@ impl Options {
         if self.terrain_debug.is_enabled() && self.terrain_path.is_none() && !self.visual_valley {
             return Err("--terrain-debug requires --visual-valley or --terrain".to_owned());
         }
+        self.validate_terrain_partial_update_probe()?;
         if self.capture_path.is_some()
             && self
                 .exit_after_frames
@@ -341,7 +378,8 @@ impl Options {
             && (self.capture_path.is_some()
                 || self.metrics_path.is_some()
                 || self.exit_after_frames.is_some()
-                || self.resize_at_frame.is_some())
+                || self.resize_at_frame.is_some()
+                || self.terrain_partial_update_probe.is_enabled())
         {
             return Err(
                 "--close-at-frame is a standalone lifecycle probe and cannot be combined with capture, metrics, bounded exit or resize"
@@ -353,6 +391,7 @@ impl Options {
                 || self.terrain_path.is_some()
                 || self.visual_valley
                 || self.terrain_debug.is_enabled()
+                || self.terrain_partial_update_probe.is_enabled()
                 || self.capture_path.is_some()
                 || self.metrics_path.is_some()
                 || self.exit_after_frames.is_some()
@@ -361,6 +400,28 @@ impl Options {
                 || !self.vsync)
         {
             return Err("--log-probe cannot be combined with runtime options".to_owned());
+        }
+        Ok(())
+    }
+
+    fn validate_terrain_partial_update_probe(&self) -> Result<(), String> {
+        if self.terrain_partial_update_probe.is_enabled()
+            && self.terrain_path.is_none()
+            && !self.visual_valley
+        {
+            return Err(
+                "--terrain-partial-update-probe requires --visual-valley or --terrain".to_owned(),
+            );
+        }
+        if self.terrain_partial_update_probe.is_enabled()
+            && (self.capture_path.is_some()
+                || self.metrics_path.is_some()
+                || self.exit_after_frames.is_some()
+                || self.resize_at_frame.is_some()
+                || self.close_at_frame.is_some()
+                || self.log_probe)
+        {
+            return Err("--terrain-partial-update-probe is self-bounded and cannot be combined with capture, metrics, bounded exit, resize, close or logging probes".to_owned());
         }
         Ok(())
     }
@@ -633,6 +694,116 @@ mod tests {
         )
         .unwrap();
         assert_eq!(options.terrain_debug, TerrainDebugMode::ChunkLodGizmos);
+    }
+
+    #[test]
+    fn terrain_partial_update_probe_is_explicit_and_restricted_to_gate1_modes() {
+        let error =
+            Options::parse(["--terrain-partial-update-probe".to_owned()].into_iter()).unwrap_err();
+        assert_eq!(
+            error,
+            "--terrain-partial-update-probe requires --visual-valley or --terrain"
+        );
+
+        let scene_error = Options::parse(
+            [
+                "--scene".to_owned(),
+                "proof.json".to_owned(),
+                "--terrain-partial-update-probe".to_owned(),
+            ]
+            .into_iter(),
+        )
+        .unwrap_err();
+        assert_eq!(
+            scene_error,
+            "--terrain-partial-update-probe requires --visual-valley or --terrain"
+        );
+
+        let visual_valley = Options::parse(
+            [
+                "--visual-valley".to_owned(),
+                "--terrain-partial-update-probe".to_owned(),
+            ]
+            .into_iter(),
+        )
+        .unwrap();
+        assert!(visual_valley.terrain_partial_update_probe.is_enabled());
+
+        let terrain = Options::parse(
+            [
+                "--terrain".to_owned(),
+                "terrain.json".to_owned(),
+                "--terrain-partial-update-probe".to_owned(),
+            ]
+            .into_iter(),
+        )
+        .unwrap();
+        assert!(terrain.terrain_partial_update_probe.is_enabled());
+    }
+
+    #[test]
+    fn terrain_partial_update_probe_is_self_bounded_and_rejects_generic_automation() {
+        let bounded_exit = Options::parse(
+            [
+                "--visual-valley".to_owned(),
+                "--terrain-partial-update-probe".to_owned(),
+                "--exit-after-frames".to_owned(),
+                "120".to_owned(),
+            ]
+            .into_iter(),
+        )
+        .unwrap_err();
+        assert_eq!(
+            bounded_exit,
+            "--terrain-partial-update-probe is self-bounded and cannot be combined with capture, metrics, bounded exit, resize, close or logging probes"
+        );
+
+        let capture = Options::parse(
+            [
+                "--visual-valley".to_owned(),
+                "--terrain-partial-update-probe".to_owned(),
+                "--capture".to_owned(),
+                "probe.png".to_owned(),
+            ]
+            .into_iter(),
+        )
+        .unwrap_err();
+        assert_eq!(
+            capture,
+            "--terrain-partial-update-probe is self-bounded and cannot be combined with capture, metrics, bounded exit, resize, close or logging probes"
+        );
+    }
+
+    #[test]
+    fn terrain_partial_update_probe_cannot_overlap_standalone_probes() {
+        let close = Options::parse(
+            [
+                "--visual-valley".to_owned(),
+                "--terrain-partial-update-probe".to_owned(),
+                "--close-at-frame".to_owned(),
+                "120".to_owned(),
+            ]
+            .into_iter(),
+        )
+        .unwrap_err();
+        assert_eq!(
+            close,
+            "--terrain-partial-update-probe is self-bounded and cannot be combined with capture, metrics, bounded exit, resize, close or logging probes"
+        );
+
+        let logging = Options::parse(
+            [
+                "--visual-valley".to_owned(),
+                "--terrain-partial-update-probe".to_owned(),
+                "--log-probe".to_owned(),
+            ]
+            .into_iter(),
+        )
+        .unwrap_err();
+        assert_eq!(
+            logging,
+            "--terrain-partial-update-probe is self-bounded and cannot be combined with capture, metrics, bounded exit, resize, close or logging probes"
+        );
     }
 
     #[test]

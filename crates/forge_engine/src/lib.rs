@@ -4,17 +4,28 @@
 
 #[cfg(feature = "physics-rapier")]
 mod physics;
+#[cfg(feature = "physics-rapier")]
+mod terrain_update;
 mod visual_valley;
 
+#[cfg(feature = "physics-rapier")]
+pub(crate) use physics::build_terrain_heightfield_collider;
 #[cfg(feature = "physics-rapier")]
 pub use physics::{
     TERRAIN_PHYSICS_HZ, TerrainHeightfieldCollider, TerrainPhysicsAdapterError,
     TerrainPhysicsPlugin,
 };
+#[cfg(feature = "physics-rapier")]
+pub use terrain_update::{
+    PendingTerrainPartialUpdate, TerrainRuntimeBindingSnapshot, TerrainRuntimeBindings,
+    TerrainRuntimeState, TerrainRuntimeUpdateError, TerrainRuntimeUpdateOutcome,
+    TerrainRuntimeUpdateReport, TerrainRuntimeUpdateSet, TerrainUpdateSubmissionError,
+};
 pub use visual_valley::{
     VisualValleyAdapterError, VisualValleyDebug, VisualValleyPlugin, VisualValleyStats,
     VisualValleyTerrainChunk, VisualValleyTerrainExtension, VisualValleyTerrainMaterial,
 };
+pub(crate) use visual_valley::{VisualValleyChunkDebugBounds, build_bevy_terrain_mesh};
 
 use bevy::{
     diagnostic::{DiagnosticsStore, EntityCountDiagnosticsPlugin, FrameTimeDiagnosticsPlugin},
