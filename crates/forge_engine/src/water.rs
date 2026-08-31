@@ -1,0 +1,1292 @@
+use bevy::{
+    asset::RenderAssetUsages,
+    core_pipeline::prepass::DeferredPrepass,
+    material::OpaqueRendererMethod,
+    mesh::Indices,
+    pbr::{ScreenSpaceReflections, ScreenSpaceTransmission},
+    prelude::*,
+    render::render_resource::PrimitiveTopology,
+};
+use forge_project::{
+    ResolvedWaterRefractionPath, TerrainDocument, WaterDocument, WaterDocumentError,
+    WaterOpticsCapabilities, WaterOpticsResolution, WaterReflectionProfile, WaterRefractionProfile,
+};
+use forge_world::{
+    RiverCenterlineSample, TerrainGenerationError, TerrainGenerationPlan, sample_river_centerline,
+};
+use serde::Serialize;
+use std::{error::Error, fmt};
+
+/// Minimum Gate 1 adapter clearance used until the persistent water contract owns this value.
+pub const VISUAL_VALLEY_WATER_CLEARANCE_M: f32 = 0.14;
+
+const RIVER_LANE_COUNT: usize = 3;
+const RIVER_BANK_LANE_COUNT: usize = 2;
+const RIVER_BANK_VERTICES_PER_SECTION: usize = 4;
+const TRIANGLES_PER_SECTION_PAIR: usize = 4;
+const INDICES_PER_TRIANGLE: usize = 3;
+const WATER_CLEARANCE_ABOVE_WAVE_M: f32 = 0.02;
+const BANK_MESH_CLEARANCE_M: f32 = 0.015;
+const MIN_TANGENT_LENGTH_SQUARED: f64 = 1.0e-12;
+const MIN_TRIANGLE_NORMAL_LENGTH_SQUARED: f64 = 1.0e-18;
+const MIN_POSITIVE_WINDING_Y: f64 = 1.0e-9;
+
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum WaterRuntimeObservationStatus {
+    #[default]
+    NotObserved,
+    ObservedMainWorldComponents,
+    ObservedIncompleteComponents,
+}
+
+/// Honest logical and ECS observations for the derived river surface.
+///
+/// Counts describe source samples, CPU mesh data, and main-world components. They are not draw-call
+/// counts and do not prove that a native or WebGPU render pass executed.
+#[derive(Clone, Debug, PartialEq, Resource, Serialize)]
+#[allow(
+    clippy::struct_excessive_bools,
+    reason = "serialized evidence keeps independent yes/no observations explicit"
+)]
+pub struct WaterProjectionStats {
+    pub source_hash: String,
+    pub terrain_source_hash: String,
+    pub authored_control_points: usize,
+    pub centerline_samples: usize,
+    pub terrain_surface_queries: usize,
+    pub water_surface_queries: usize,
+    pub river_bank_surface_queries: usize,
+    pub vertices: usize,
+    pub triangles: usize,
+    pub water_vertices: usize,
+    pub water_triangles: usize,
+    pub river_bank_vertices: usize,
+    pub river_bank_triangles: usize,
+    pub positive_winding_triangles: usize,
+    pub winding_corrections: usize,
+    pub tangent_fallbacks: usize,
+    pub terrain_clearance_m: f32,
+    pub minimum_observed_clearance_m: f32,
+    pub maximum_observed_clearance_m: f32,
+    pub terrain_projection_lifts: usize,
+    pub downstream_monotone_lifts: usize,
+    pub authored_centerline_monotone_downstream: bool,
+    pub projected_lanes_monotone_downstream: bool,
+    pub material_alpha_mode: &'static str,
+    pub opaque_renderer_method: &'static str,
+    pub requested_opacity: f32,
+    pub opacity_status: &'static str,
+    pub requested_wave_amplitude_m: f32,
+    pub requested_wave_length_m: f32,
+    pub requested_flow_speed_mps: f32,
+    pub requested_normal_strength: f32,
+    pub wave_motion_status: &'static str,
+    pub minimum_sampled_bed_depth_m: f32,
+    pub maximum_sampled_bed_depth_m: f32,
+    pub bed_depth_status: &'static str,
+    pub requested_bank_shoulder_width_m: f32,
+    pub requested_bank_blend_width_m: f32,
+    pub requested_bank_wet_margin_m: f32,
+    pub requested_bank_horizontal_to_vertical_slope: f32,
+    pub requested_bank_erosion_amplitude_m: f32,
+    pub requested_bank_erosion_frequency_cycles_per_m: f32,
+    pub bank_shoulder_status: &'static str,
+    pub bank_blend_status: &'static str,
+    pub bank_wet_margin_status: &'static str,
+    pub bank_slope_status: &'static str,
+    pub bank_erosion_status: &'static str,
+    pub bank_material_status: &'static str,
+    pub requested_reflection_intensity: Option<f32>,
+    pub requested_reflection_max_distance_m: Option<f32>,
+    pub reflection_intensity_status: &'static str,
+    pub reflection_max_distance_status: &'static str,
+    pub requested_refraction_strength: Option<f32>,
+    pub applied_surface_tint_strength: Option<f32>,
+    pub refraction_status: &'static str,
+    pub requested_ssr_component_prepared: bool,
+    pub forward_material_ssr_limit: &'static str,
+    pub resolved_optics: WaterOpticsResolution,
+    pub runtime_observation: WaterRuntimeObservationStatus,
+    pub water_mesh_entities: usize,
+    pub river_bank_mesh_entities: usize,
+    pub camera_3d_entities: usize,
+    pub deferred_camera_entities: usize,
+    pub ssr_camera_entities: usize,
+    pub msaa_off_camera_entities: usize,
+    pub transmission_disabled_camera_entities: usize,
+    pub gpu_pass_observed: bool,
+    pub webgpu_execution_status: &'static str,
+    pub evidence_source: &'static str,
+}
+
+#[derive(Clone, Copy, Component, Debug, Eq, PartialEq)]
+pub struct VisualValleyWaterSurface;
+
+#[derive(Clone, Copy, Component, Debug, Eq, PartialEq)]
+pub struct VisualValleyRiverBankSurface;
+
+/// Bevy adapter for the engine-neutral Visual Valley water document.
+pub struct VisualValleyWaterPlugin {
+    terrain: TerrainDocument,
+    water: WaterDocument,
+}
+
+impl VisualValleyWaterPlugin {
+    #[must_use]
+    pub fn new(terrain: TerrainDocument, water: WaterDocument) -> Self {
+        Self { terrain, water }
+    }
+}
+
+impl Plugin for VisualValleyWaterPlugin {
+    fn build(&self, app: &mut App) {
+        let prepared = prepare_water_surface(&self.terrain, &self.water).unwrap_or_else(|error| {
+            panic!("VisualValleyWaterPlugin requires compatible terrain and water: {error}")
+        });
+        let stats = prepared.stats.clone();
+        let ssr = prepared.ssr.clone();
+
+        app.insert_resource(stats)
+            .insert_resource(PreparedWaterSurface(Some(prepared)))
+            .insert_resource(PreparedWaterCamera { ssr })
+            .add_systems(Startup, spawn_water_surface)
+            .add_systems(
+                PostStartup,
+                (configure_water_cameras, observe_water_components).chain(),
+            );
+    }
+}
+
+#[derive(Debug)]
+pub enum WaterAdapterError {
+    InvalidWater(WaterDocumentError),
+    InvalidTerrain(TerrainGenerationError),
+    SurfaceProjection {
+        sample_index: usize,
+        lane: &'static str,
+        source: TerrainGenerationError,
+    },
+    UphillCenterline {
+        sample_index: usize,
+    },
+    DegenerateTangent {
+        sample_index: usize,
+    },
+    ArithmeticOverflow(&'static str),
+    AllocationFailed(&'static str),
+    InvalidProjectedVertex {
+        sample_index: usize,
+        lane: &'static str,
+    },
+    DegenerateTriangle {
+        triangle_index: usize,
+    },
+}
+
+impl fmt::Display for WaterAdapterError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InvalidWater(error) => write!(formatter, "water document is invalid: {error}"),
+            Self::InvalidTerrain(error) => write!(formatter, "terrain plan is invalid: {error}"),
+            Self::SurfaceProjection {
+                sample_index,
+                lane,
+                source,
+            } => write!(
+                formatter,
+                "river sample {sample_index} {lane} projection failed: {source}"
+            ),
+            Self::UphillCenterline { sample_index } => write!(
+                formatter,
+                "river centreline rises between samples {sample_index} and {}",
+                sample_index + 1
+            ),
+            Self::DegenerateTangent { sample_index } => {
+                write!(
+                    formatter,
+                    "river sample {sample_index} has no robust plan-view tangent"
+                )
+            }
+            Self::ArithmeticOverflow(label) => {
+                write!(formatter, "river mesh arithmetic overflow for {label}")
+            }
+            Self::AllocationFailed(label) => {
+                write!(formatter, "river mesh allocation failed for {label}")
+            }
+            Self::InvalidProjectedVertex { sample_index, lane } => write!(
+                formatter,
+                "river sample {sample_index} {lane} projection is non-finite"
+            ),
+            Self::DegenerateTriangle { triangle_index } => {
+                write!(
+                    formatter,
+                    "river triangle {triangle_index} is degenerate in plan view"
+                )
+            }
+        }
+    }
+}
+
+impl Error for WaterAdapterError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            Self::InvalidWater(error) => Some(error),
+            Self::InvalidTerrain(error) | Self::SurfaceProjection { source: error, .. } => {
+                Some(error)
+            }
+            Self::UphillCenterline { .. }
+            | Self::DegenerateTangent { .. }
+            | Self::ArithmeticOverflow(_)
+            | Self::AllocationFailed(_)
+            | Self::InvalidProjectedVertex { .. }
+            | Self::DegenerateTriangle { .. } => None,
+        }
+    }
+}
+
+impl From<WaterDocumentError> for WaterAdapterError {
+    fn from(error: WaterDocumentError) -> Self {
+        Self::InvalidWater(error)
+    }
+}
+
+impl From<TerrainGenerationError> for WaterAdapterError {
+    fn from(error: TerrainGenerationError) -> Self {
+        Self::InvalidTerrain(error)
+    }
+}
+
+#[derive(Resource)]
+struct PreparedWaterSurface(Option<PreparedWaterScene>);
+
+#[derive(Resource)]
+struct PreparedWaterCamera {
+    ssr: Option<ScreenSpaceReflections>,
+}
+
+struct PreparedWaterScene {
+    name: String,
+    water_geometry: RiverSurfaceGeometry,
+    river_bank_geometry: RiverSurfaceGeometry,
+    water_material: StandardMaterial,
+    river_bank_material: StandardMaterial,
+    stats: WaterProjectionStats,
+    ssr: Option<ScreenSpaceReflections>,
+}
+
+struct RiverSurfaceGeometry {
+    positions: Vec<[f32; 3]>,
+    terrain_heights: Vec<f32>,
+    normals: Vec<[f32; 3]>,
+    uvs: Vec<[f32; 2]>,
+    indices: Vec<u32>,
+}
+
+#[derive(Clone, Copy)]
+struct ProjectedLane {
+    position: [f32; 3],
+    terrain_height_m: f32,
+}
+
+#[derive(Clone, Copy)]
+struct ProjectedSection {
+    lanes: [ProjectedLane; RIVER_LANE_COUNT],
+    bank_outer_lanes: [ProjectedLane; RIVER_BANK_LANE_COUNT],
+}
+
+#[derive(Clone, Copy)]
+struct MeshCounts {
+    vertices: usize,
+    triangles: usize,
+    indices: usize,
+}
+
+fn checked_mesh_counts(sample_count: usize) -> Result<MeshCounts, WaterAdapterError> {
+    checked_mesh_counts_for(sample_count, RIVER_LANE_COUNT, TRIANGLES_PER_SECTION_PAIR)
+}
+
+fn checked_bank_mesh_counts(sample_count: usize) -> Result<MeshCounts, WaterAdapterError> {
+    checked_mesh_counts_for(
+        sample_count,
+        RIVER_BANK_VERTICES_PER_SECTION,
+        TRIANGLES_PER_SECTION_PAIR,
+    )
+}
+
+fn checked_mesh_counts_for(
+    sample_count: usize,
+    vertices_per_section: usize,
+    triangles_per_section_pair: usize,
+) -> Result<MeshCounts, WaterAdapterError> {
+    let section_pairs = sample_count
+        .checked_sub(1)
+        .ok_or(WaterAdapterError::ArithmeticOverflow("section pairs"))?;
+    let vertices = sample_count
+        .checked_mul(vertices_per_section)
+        .ok_or(WaterAdapterError::ArithmeticOverflow("vertices"))?;
+    let triangles = section_pairs
+        .checked_mul(triangles_per_section_pair)
+        .ok_or(WaterAdapterError::ArithmeticOverflow("triangles"))?;
+    let indices = triangles
+        .checked_mul(INDICES_PER_TRIANGLE)
+        .ok_or(WaterAdapterError::ArithmeticOverflow("indices"))?;
+    u32::try_from(vertices.saturating_sub(1))
+        .map_err(|_| WaterAdapterError::ArithmeticOverflow("u32 vertex indices"))?;
+    Ok(MeshCounts {
+        vertices,
+        triangles,
+        indices,
+    })
+}
+
+#[allow(
+    clippy::too_many_lines,
+    reason = "the preparation transaction keeps validation, checked counts, and evidence atomic"
+)]
+fn prepare_water_surface(
+    terrain: &TerrainDocument,
+    water: &WaterDocument,
+) -> Result<PreparedWaterScene, WaterAdapterError> {
+    water.validate_identity(terrain.project_id, terrain.area_id, terrain.revision)?;
+    let terrain_plan = TerrainGenerationPlan::from_document(terrain)?;
+    let samples = sample_river_centerline(water)?;
+    verify_authored_downstream_monotone(&samples)?;
+    let water_counts = checked_mesh_counts(samples.len())?;
+    let river_bank_counts = checked_bank_mesh_counts(samples.len())?;
+    let water_clearance_m = (water.surface.wave_amplitude_m + WATER_CLEARANCE_ABOVE_WAVE_M)
+        .max(VISUAL_VALLEY_WATER_CLEARANCE_M);
+
+    let mut sections = Vec::new();
+    sections
+        .try_reserve_exact(samples.len())
+        .map_err(|_| WaterAdapterError::AllocationFailed("projected sections"))?;
+    let mut tangent_fallbacks = 0;
+    let mut terrain_projection_lifts = 0;
+    for sample_index in 0..samples.len() {
+        let (tangent, used_fallback) = robust_tangent(&samples, sample_index)?;
+        tangent_fallbacks += usize::from(used_fallback);
+        let sample = samples[sample_index];
+        let half_width_m = sample.surface_width_m * 0.5;
+        let left_xz = [
+            sample.center_m.x - tangent[1] * half_width_m,
+            sample.center_m.z + tangent[0] * half_width_m,
+        ];
+        let right_xz = [
+            sample.center_m.x + tangent[1] * half_width_m,
+            sample.center_m.z - tangent[0] * half_width_m,
+        ];
+        let bank_outer_offset_m = half_width_m + water.banks.shoulder_width_m;
+        let bank_outer_xz = [
+            [
+                sample.center_m.x - tangent[1] * bank_outer_offset_m,
+                sample.center_m.z + tangent[0] * bank_outer_offset_m,
+            ],
+            [
+                sample.center_m.x + tangent[1] * bank_outer_offset_m,
+                sample.center_m.z - tangent[0] * bank_outer_offset_m,
+            ],
+        ];
+        let lane_xz = [left_xz, [sample.center_m.x, sample.center_m.z], right_xz];
+        let mut lanes = [ProjectedLane {
+            position: [0.0; 3],
+            terrain_height_m: 0.0,
+        }; RIVER_LANE_COUNT];
+        for (lane_index, xz) in lane_xz.into_iter().enumerate() {
+            let lane = lane_label(lane_index);
+            let surface = terrain_plan.surface_at(xz[0], xz[1]).map_err(|source| {
+                WaterAdapterError::SurfaceProjection {
+                    sample_index,
+                    lane,
+                    source,
+                }
+            })?;
+            let required_y = surface.height_m + water_clearance_m;
+            let projected_y = sample.center_m.y.max(required_y);
+            terrain_projection_lifts += usize::from(required_y > sample.center_m.y);
+            if !projected_y.is_finite() {
+                return Err(WaterAdapterError::InvalidProjectedVertex { sample_index, lane });
+            }
+            lanes[lane_index] = ProjectedLane {
+                position: [xz[0], projected_y, xz[1]],
+                terrain_height_m: surface.height_m,
+            };
+        }
+        let mut bank_outer_lanes = [ProjectedLane {
+            position: [0.0; 3],
+            terrain_height_m: 0.0,
+        }; RIVER_BANK_LANE_COUNT];
+        for (bank_index, xz) in bank_outer_xz.into_iter().enumerate() {
+            let lane = bank_lane_label(bank_index);
+            let surface = terrain_plan.surface_at(xz[0], xz[1]).map_err(|source| {
+                WaterAdapterError::SurfaceProjection {
+                    sample_index,
+                    lane,
+                    source,
+                }
+            })?;
+            let projected_y = surface.height_m + BANK_MESH_CLEARANCE_M;
+            if !projected_y.is_finite() {
+                return Err(WaterAdapterError::InvalidProjectedVertex { sample_index, lane });
+            }
+            bank_outer_lanes[bank_index] = ProjectedLane {
+                position: [xz[0], projected_y, xz[1]],
+                terrain_height_m: surface.height_m,
+            };
+        }
+        sections.push(ProjectedSection {
+            lanes,
+            bank_outer_lanes,
+        });
+    }
+
+    let downstream_monotone_lifts = apply_downstream_monotone_pass(&mut sections);
+    let (water_geometry, water_winding_corrections) = build_geometry(&sections, water_counts)?;
+    let (river_bank_geometry, river_bank_winding_corrections) =
+        build_river_bank_geometry(&sections, river_bank_counts)?;
+    let (minimum_observed_clearance_m, maximum_observed_clearance_m) = water_geometry
+        .positions
+        .iter()
+        .zip(&water_geometry.terrain_heights)
+        .map(|(position, terrain_height)| position[1] - terrain_height)
+        .fold(
+            (f32::INFINITY, f32::NEG_INFINITY),
+            |(minimum, maximum), value| (minimum.min(value), maximum.max(value)),
+        );
+    let resolved_optics = water.resolve_optics_path(WaterOpticsCapabilities::default());
+    let (minimum_sampled_bed_depth_m, maximum_sampled_bed_depth_m) =
+        samples.iter().map(|sample| sample.bed_depth_m).fold(
+            (f32::INFINITY, f32::NEG_INFINITY),
+            |(minimum, maximum), depth| (minimum.min(depth), maximum.max(depth)),
+        );
+    let requested_refraction_strength = requested_refraction_strength(water);
+    let applied_surface_tint_strength =
+        if resolved_optics.refraction == ResolvedWaterRefractionPath::SurfaceTint {
+            requested_refraction_strength
+        } else {
+            None
+        };
+    let (requested_reflection_intensity, requested_reflection_max_distance_m) =
+        requested_reflection_parameters(water);
+    let ssr = prepare_requested_ssr(water);
+    let water_surface_queries = water_counts.vertices;
+    let river_bank_surface_queries = samples.len().checked_mul(RIVER_BANK_LANE_COUNT).ok_or(
+        WaterAdapterError::ArithmeticOverflow("river bank surface queries"),
+    )?;
+    let terrain_surface_queries = water_surface_queries
+        .checked_add(river_bank_surface_queries)
+        .ok_or(WaterAdapterError::ArithmeticOverflow(
+            "terrain surface queries",
+        ))?;
+    let vertices = water_counts
+        .vertices
+        .checked_add(river_bank_counts.vertices)
+        .ok_or(WaterAdapterError::ArithmeticOverflow("total vertices"))?;
+    let triangles = water_counts
+        .triangles
+        .checked_add(river_bank_counts.triangles)
+        .ok_or(WaterAdapterError::ArithmeticOverflow("total triangles"))?;
+    let winding_corrections = water_winding_corrections
+        .checked_add(river_bank_winding_corrections)
+        .ok_or(WaterAdapterError::ArithmeticOverflow("winding corrections"))?;
+    let stats = WaterProjectionStats {
+        source_hash: water.content_hash()?.to_string(),
+        terrain_source_hash: terrain_plan.document_hash().to_string(),
+        authored_control_points: water.river.control_points.len(),
+        centerline_samples: samples.len(),
+        terrain_surface_queries,
+        water_surface_queries,
+        river_bank_surface_queries,
+        vertices,
+        triangles,
+        water_vertices: water_counts.vertices,
+        water_triangles: water_counts.triangles,
+        river_bank_vertices: river_bank_counts.vertices,
+        river_bank_triangles: river_bank_counts.triangles,
+        positive_winding_triangles: triangles,
+        winding_corrections,
+        tangent_fallbacks,
+        terrain_clearance_m: water_clearance_m,
+        minimum_observed_clearance_m,
+        maximum_observed_clearance_m,
+        terrain_projection_lifts,
+        downstream_monotone_lifts,
+        authored_centerline_monotone_downstream: true,
+        projected_lanes_monotone_downstream: projected_lanes_are_monotone(&sections),
+        material_alpha_mode: "opaque",
+        opaque_renderer_method: "deferred",
+        requested_opacity: water.surface.opacity,
+        opacity_status: "requested_recorded_surface_forced_opaque_for_deferred_ssr",
+        requested_wave_amplitude_m: water.surface.wave_amplitude_m,
+        requested_wave_length_m: water.surface.wave_length_m,
+        requested_flow_speed_mps: water.surface.flow_speed_mps,
+        requested_normal_strength: water.surface.normal_strength,
+        wave_motion_status: "clearance_reserved_motion_shader_deferred",
+        minimum_sampled_bed_depth_m,
+        maximum_sampled_bed_depth_m,
+        bed_depth_status: "authored_and_sampled_not_meshed_in_gate1",
+        requested_bank_shoulder_width_m: water.banks.shoulder_width_m,
+        requested_bank_blend_width_m: water.banks.blend_width_m,
+        requested_bank_wet_margin_m: water.banks.wet_margin_m,
+        requested_bank_horizontal_to_vertical_slope: water.banks.horizontal_to_vertical_slope,
+        requested_bank_erosion_amplitude_m: water.banks.erosion_amplitude_m,
+        requested_bank_erosion_frequency_cycles_per_m: water.banks.erosion_frequency_cycles_per_m,
+        bank_shoulder_status: "procedural_outer_strip_projected_from_shoulder_width",
+        bank_blend_status: "deferred_no_terrain_carving_adapter",
+        bank_wet_margin_status: "deferred_no_wet_edge_shader",
+        bank_slope_status: "deferred_strip_bridges_water_edge_to_projected_terrain",
+        bank_erosion_status: "deferred_no_terrain_carving_adapter",
+        bank_material_status: "opaque_deferred_placeholder_no_authored_bank_colour",
+        requested_reflection_intensity,
+        requested_reflection_max_distance_m,
+        reflection_intensity_status: "requested_not_mapped_by_bevy_ssr_component",
+        reflection_max_distance_status: "requested_not_mapped_by_bevy_ssr_component",
+        requested_refraction_strength,
+        applied_surface_tint_strength,
+        refraction_status: "requested_screen_space_resolved_to_surface_tint_fallback",
+        requested_ssr_component_prepared: ssr.is_some(),
+        forward_material_ssr_limit: "terrain_and_vegetation_remain_forward; ssr_component_is_not_runtime_qualification",
+        resolved_optics,
+        runtime_observation: WaterRuntimeObservationStatus::NotObserved,
+        water_mesh_entities: 0,
+        river_bank_mesh_entities: 0,
+        camera_3d_entities: 0,
+        deferred_camera_entities: 0,
+        ssr_camera_entities: 0,
+        msaa_off_camera_entities: 0,
+        transmission_disabled_camera_entities: 0,
+        gpu_pass_observed: false,
+        webgpu_execution_status: "not_run",
+        evidence_source: "cpu_geometry_and_main_world_components_not_gpu_execution",
+    };
+
+    Ok(PreparedWaterScene {
+        name: water.name.clone(),
+        water_geometry,
+        river_bank_geometry,
+        water_material: water_material(water, applied_surface_tint_strength),
+        river_bank_material: river_bank_material(),
+        stats,
+        ssr,
+    })
+}
+
+fn verify_authored_downstream_monotone(
+    samples: &[RiverCenterlineSample],
+) -> Result<(), WaterAdapterError> {
+    for (sample_index, pair) in samples.windows(2).enumerate() {
+        if pair[1].center_m.y > pair[0].center_m.y {
+            return Err(WaterAdapterError::UphillCenterline { sample_index });
+        }
+    }
+    Ok(())
+}
+
+fn robust_tangent(
+    samples: &[RiverCenterlineSample],
+    sample_index: usize,
+) -> Result<([f32; 2], bool), WaterAdapterError> {
+    let current = samples[sample_index].center_m;
+    let previous = samples[sample_index.saturating_sub(1)].center_m;
+    let next = samples[(sample_index + 1).min(samples.len() - 1)].center_m;
+    let candidates = [
+        ([next.x - previous.x, next.z - previous.z], false),
+        ([next.x - current.x, next.z - current.z], true),
+        ([current.x - previous.x, current.z - previous.z], true),
+    ];
+    for (candidate, fallback) in candidates {
+        let length_squared = f64::from(candidate[0]) * f64::from(candidate[0])
+            + f64::from(candidate[1]) * f64::from(candidate[1]);
+        if length_squared.is_finite() && length_squared > MIN_TANGENT_LENGTH_SQUARED {
+            let inverse_length = length_squared.sqrt().recip();
+            #[allow(clippy::cast_possible_truncation)]
+            let tangent = [
+                (f64::from(candidate[0]) * inverse_length) as f32,
+                (f64::from(candidate[1]) * inverse_length) as f32,
+            ];
+            return Ok((tangent, fallback));
+        }
+    }
+    Err(WaterAdapterError::DegenerateTangent { sample_index })
+}
+
+fn apply_downstream_monotone_pass(sections: &mut [ProjectedSection]) -> usize {
+    let mut adjustments = 0;
+    for lane_index in 0..RIVER_LANE_COUNT {
+        let mut downstream_height = sections.last().map_or(f32::NEG_INFINITY, |section| {
+            section.lanes[lane_index].position[1]
+        });
+        for section in sections.iter_mut().rev().skip(1) {
+            let height = &mut section.lanes[lane_index].position[1];
+            if *height < downstream_height {
+                *height = downstream_height;
+                adjustments += 1;
+            } else {
+                downstream_height = *height;
+            }
+        }
+    }
+    adjustments
+}
+
+fn projected_lanes_are_monotone(sections: &[ProjectedSection]) -> bool {
+    (0..RIVER_LANE_COUNT).all(|lane_index| {
+        sections.windows(2).all(|pair| {
+            pair[1].lanes[lane_index].position[1] <= pair[0].lanes[lane_index].position[1]
+        })
+    })
+}
+
+fn build_geometry(
+    sections: &[ProjectedSection],
+    counts: MeshCounts,
+) -> Result<(RiverSurfaceGeometry, usize), WaterAdapterError> {
+    let mut positions = Vec::new();
+    let mut terrain_heights = Vec::new();
+    let mut uvs = Vec::new();
+    let mut indices = Vec::new();
+    positions
+        .try_reserve_exact(counts.vertices)
+        .map_err(|_| WaterAdapterError::AllocationFailed("positions"))?;
+    terrain_heights
+        .try_reserve_exact(counts.vertices)
+        .map_err(|_| WaterAdapterError::AllocationFailed("terrain heights"))?;
+    uvs.try_reserve_exact(counts.vertices)
+        .map_err(|_| WaterAdapterError::AllocationFailed("UVs"))?;
+    indices
+        .try_reserve_exact(counts.indices)
+        .map_err(|_| WaterAdapterError::AllocationFailed("indices"))?;
+
+    let denominator = sections.len().saturating_sub(1).max(1);
+    for (sample_index, section) in sections.iter().enumerate() {
+        #[allow(clippy::cast_precision_loss)]
+        let v = sample_index as f32 / denominator as f32;
+        for (lane_index, lane) in section.lanes.iter().enumerate() {
+            positions.push(lane.position);
+            terrain_heights.push(lane.terrain_height_m);
+            uvs.push([lane_uv(lane_index), v]);
+        }
+    }
+
+    let mut winding_corrections = 0;
+    for section_index in 0..sections.len() - 1 {
+        let row = section_index
+            .checked_mul(RIVER_LANE_COUNT)
+            .ok_or(WaterAdapterError::ArithmeticOverflow("row vertex offset"))?;
+        let next_row =
+            row.checked_add(RIVER_LANE_COUNT)
+                .ok_or(WaterAdapterError::ArithmeticOverflow(
+                    "next-row vertex offset",
+                ))?;
+        for strip in 0..2 {
+            let a = row + strip;
+            let b = next_row + strip;
+            let c = row + strip + 1;
+            let d = next_row + strip + 1;
+            winding_corrections += push_positive_triangle(&positions, &mut indices, [a, b, c])?;
+            winding_corrections += push_positive_triangle(&positions, &mut indices, [c, b, d])?;
+        }
+    }
+
+    let normals = build_normals(&positions, &indices)?;
+    Ok((
+        RiverSurfaceGeometry {
+            positions,
+            terrain_heights,
+            normals,
+            uvs,
+            indices,
+        },
+        winding_corrections,
+    ))
+}
+
+fn build_river_bank_geometry(
+    sections: &[ProjectedSection],
+    counts: MeshCounts,
+) -> Result<(RiverSurfaceGeometry, usize), WaterAdapterError> {
+    let mut positions = Vec::new();
+    let mut terrain_heights = Vec::new();
+    let mut uvs = Vec::new();
+    let mut indices = Vec::new();
+    positions
+        .try_reserve_exact(counts.vertices)
+        .map_err(|_| WaterAdapterError::AllocationFailed("river bank positions"))?;
+    terrain_heights
+        .try_reserve_exact(counts.vertices)
+        .map_err(|_| WaterAdapterError::AllocationFailed("river bank terrain heights"))?;
+    uvs.try_reserve_exact(counts.vertices)
+        .map_err(|_| WaterAdapterError::AllocationFailed("river bank UVs"))?;
+    indices
+        .try_reserve_exact(counts.indices)
+        .map_err(|_| WaterAdapterError::AllocationFailed("river bank indices"))?;
+
+    let denominator = sections.len().saturating_sub(1).max(1);
+    for (sample_index, section) in sections.iter().enumerate() {
+        #[allow(clippy::cast_precision_loss)]
+        let v = sample_index as f32 / denominator as f32;
+        let vertices = [
+            section.bank_outer_lanes[0],
+            section.lanes[0],
+            section.lanes[2],
+            section.bank_outer_lanes[1],
+        ];
+        for (vertex_index, vertex) in vertices.into_iter().enumerate() {
+            positions.push(vertex.position);
+            terrain_heights.push(vertex.terrain_height_m);
+            uvs.push([bank_lane_uv(vertex_index), v]);
+        }
+    }
+
+    let mut winding_corrections = 0;
+    for section_index in 0..sections.len() - 1 {
+        let row = section_index
+            .checked_mul(RIVER_BANK_VERTICES_PER_SECTION)
+            .ok_or(WaterAdapterError::ArithmeticOverflow(
+                "river bank row vertex offset",
+            ))?;
+        let next_row = row.checked_add(RIVER_BANK_VERTICES_PER_SECTION).ok_or(
+            WaterAdapterError::ArithmeticOverflow("river bank next-row vertex offset"),
+        )?;
+        for strip_start in [0, 2] {
+            let a = row + strip_start;
+            let b = next_row + strip_start;
+            let c = row + strip_start + 1;
+            let d = next_row + strip_start + 1;
+            winding_corrections += push_positive_triangle(&positions, &mut indices, [a, b, c])?;
+            winding_corrections += push_positive_triangle(&positions, &mut indices, [c, b, d])?;
+        }
+    }
+
+    let normals = build_normals(&positions, &indices)?;
+    Ok((
+        RiverSurfaceGeometry {
+            positions,
+            terrain_heights,
+            normals,
+            uvs,
+            indices,
+        },
+        winding_corrections,
+    ))
+}
+
+fn push_positive_triangle(
+    positions: &[[f32; 3]],
+    indices: &mut Vec<u32>,
+    triangle: [usize; 3],
+) -> Result<usize, WaterAdapterError> {
+    let triangle_index = indices.len() / INDICES_PER_TRIANGLE;
+    let normal_y = triangle_normal_y(positions, triangle);
+    if !normal_y.is_finite() || normal_y.abs() <= MIN_POSITIVE_WINDING_Y {
+        return Err(WaterAdapterError::DegenerateTriangle { triangle_index });
+    }
+    let (triangle, corrected) = if normal_y > 0.0 {
+        (triangle, 0)
+    } else {
+        ([triangle[0], triangle[2], triangle[1]], 1)
+    };
+    for index in triangle {
+        indices.push(
+            u32::try_from(index)
+                .map_err(|_| WaterAdapterError::ArithmeticOverflow("u32 triangle index"))?,
+        );
+    }
+    Ok(corrected)
+}
+
+fn triangle_normal_y(positions: &[[f32; 3]], triangle: [usize; 3]) -> f64 {
+    let a = positions[triangle[0]];
+    let b = positions[triangle[1]];
+    let c = positions[triangle[2]];
+    let first_edge_x = f64::from(b[0]) - f64::from(a[0]);
+    let first_edge_z = f64::from(b[2]) - f64::from(a[2]);
+    let second_edge_x = f64::from(c[0]) - f64::from(a[0]);
+    let second_edge_z = f64::from(c[2]) - f64::from(a[2]);
+    first_edge_z * second_edge_x - first_edge_x * second_edge_z
+}
+
+fn build_normals(
+    positions: &[[f32; 3]],
+    indices: &[u32],
+) -> Result<Vec<[f32; 3]>, WaterAdapterError> {
+    let mut accumulated = Vec::new();
+    accumulated
+        .try_reserve_exact(positions.len())
+        .map_err(|_| WaterAdapterError::AllocationFailed("normals"))?;
+    accumulated.resize(positions.len(), [0.0_f64; 3]);
+    for (triangle_index, triangle) in indices.as_chunks::<3>().0.iter().enumerate() {
+        let indices = [
+            usize::try_from(triangle[0])
+                .map_err(|_| WaterAdapterError::ArithmeticOverflow("usize triangle index"))?,
+            usize::try_from(triangle[1])
+                .map_err(|_| WaterAdapterError::ArithmeticOverflow("usize triangle index"))?,
+            usize::try_from(triangle[2])
+                .map_err(|_| WaterAdapterError::ArithmeticOverflow("usize triangle index"))?,
+        ];
+        let a = positions[indices[0]];
+        let b = positions[indices[1]];
+        let c = positions[indices[2]];
+        let ab = [
+            f64::from(b[0] - a[0]),
+            f64::from(b[1] - a[1]),
+            f64::from(b[2] - a[2]),
+        ];
+        let ac = [
+            f64::from(c[0] - a[0]),
+            f64::from(c[1] - a[1]),
+            f64::from(c[2] - a[2]),
+        ];
+        let normal = [
+            ab[1] * ac[2] - ab[2] * ac[1],
+            ab[2] * ac[0] - ab[0] * ac[2],
+            ab[0] * ac[1] - ab[1] * ac[0],
+        ];
+        let length_squared = normal.iter().map(|value| value * value).sum::<f64>();
+        if !length_squared.is_finite() || length_squared <= MIN_TRIANGLE_NORMAL_LENGTH_SQUARED {
+            return Err(WaterAdapterError::DegenerateTriangle { triangle_index });
+        }
+        for vertex in indices {
+            for axis in 0..3 {
+                accumulated[vertex][axis] += normal[axis];
+            }
+        }
+    }
+    accumulated
+        .into_iter()
+        .map(|normal| {
+            let length = normal.iter().map(|value| value * value).sum::<f64>().sqrt();
+            if !length.is_finite() || length <= f64::EPSILON {
+                return Err(WaterAdapterError::DegenerateTriangle { triangle_index: 0 });
+            }
+            #[allow(clippy::cast_possible_truncation)]
+            Ok([
+                (normal[0] / length) as f32,
+                (normal[1] / length) as f32,
+                (normal[2] / length) as f32,
+            ])
+        })
+        .collect()
+}
+
+fn water_material(
+    water: &WaterDocument,
+    applied_surface_tint_strength: Option<f32>,
+) -> StandardMaterial {
+    let shallow = water.surface.shallow_color_srgb;
+    let deep = water.surface.deep_color_srgb;
+    let tint_strength = applied_surface_tint_strength.unwrap_or(0.0);
+    let shallow_strength = 1.0 - tint_strength;
+    StandardMaterial {
+        base_color: Color::srgb(
+            shallow.red * shallow_strength + deep.red * tint_strength,
+            shallow.green * shallow_strength + deep.green * tint_strength,
+            shallow.blue * shallow_strength + deep.blue * tint_strength,
+        ),
+        alpha_mode: AlphaMode::Opaque,
+        metallic: 0.0,
+        perceptual_roughness: water.surface.roughness,
+        opaque_render_method: OpaqueRendererMethod::Deferred,
+        ..default()
+    }
+}
+
+fn river_bank_material() -> StandardMaterial {
+    StandardMaterial {
+        base_color: Color::srgb(0.16, 0.12, 0.075),
+        alpha_mode: AlphaMode::Opaque,
+        metallic: 0.0,
+        perceptual_roughness: 0.86,
+        opaque_render_method: OpaqueRendererMethod::Deferred,
+        ..default()
+    }
+}
+
+fn requested_reflection_parameters(water: &WaterDocument) -> (Option<f32>, Option<f32>) {
+    match water.optics.reflection {
+        WaterReflectionProfile::ScreenSpace {
+            intensity,
+            max_distance_m,
+            ..
+        } => (Some(intensity), Some(max_distance_m)),
+        WaterReflectionProfile::Environment { intensity } => (Some(intensity), None),
+        WaterReflectionProfile::Disabled => (None, None),
+    }
+}
+
+fn requested_refraction_strength(water: &WaterDocument) -> Option<f32> {
+    match water.optics.refraction {
+        WaterRefractionProfile::SurfaceTint { strength }
+        | WaterRefractionProfile::ScreenSpace { strength, .. } => Some(strength),
+        WaterRefractionProfile::Disabled => None,
+    }
+}
+
+fn prepare_requested_ssr(water: &WaterDocument) -> Option<ScreenSpaceReflections> {
+    let WaterReflectionProfile::ScreenSpace {
+        max_steps,
+        thickness_m,
+        ..
+    } = water.optics.reflection
+    else {
+        return None;
+    };
+    Some(ScreenSpaceReflections {
+        thickness: thickness_m,
+        linear_steps: u32::from(max_steps),
+        ..default()
+    })
+}
+
+fn lane_label(index: usize) -> &'static str {
+    match index {
+        0 => "left_bank",
+        1 => "centre",
+        2 => "right_bank",
+        _ => "invalid_lane",
+    }
+}
+
+fn bank_lane_label(index: usize) -> &'static str {
+    match index {
+        0 => "left_bank_outer",
+        1 => "right_bank_outer",
+        _ => "invalid_bank_lane",
+    }
+}
+
+fn lane_uv(index: usize) -> f32 {
+    match index {
+        1 => 0.5,
+        2 => 1.0,
+        _ => 0.0,
+    }
+}
+
+fn bank_lane_uv(index: usize) -> f32 {
+    match index {
+        1 | 3 => 1.0,
+        _ => 0.0,
+    }
+}
+
+fn spawn_water_surface(
+    mut commands: Commands,
+    mut prepared: ResMut<PreparedWaterSurface>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    let prepared = prepared
+        .0
+        .take()
+        .expect("water preparation is consumed exactly once at startup");
+    let water_mesh = mesh_from_geometry(prepared.water_geometry);
+    let river_bank_mesh = mesh_from_geometry(prepared.river_bank_geometry);
+    let river_bank_name = format!("{} banks", prepared.name);
+    commands.spawn((
+        Name::new(prepared.name),
+        VisualValleyWaterSurface,
+        Mesh3d(meshes.add(water_mesh)),
+        MeshMaterial3d(materials.add(prepared.water_material)),
+        Transform::IDENTITY,
+    ));
+    commands.spawn((
+        Name::new(river_bank_name),
+        VisualValleyRiverBankSurface,
+        Mesh3d(meshes.add(river_bank_mesh)),
+        MeshMaterial3d(materials.add(prepared.river_bank_material)),
+        Transform::IDENTITY,
+    ));
+}
+
+fn mesh_from_geometry(geometry: RiverSurfaceGeometry) -> Mesh {
+    Mesh::new(
+        PrimitiveTopology::TriangleList,
+        RenderAssetUsages::MAIN_WORLD | RenderAssetUsages::RENDER_WORLD,
+    )
+    .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, geometry.positions)
+    .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, geometry.normals)
+    .with_inserted_attribute(Mesh::ATTRIBUTE_UV_0, geometry.uvs)
+    .with_inserted_indices(Indices::U32(geometry.indices))
+}
+
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "Bevy systems receive Res by value as a system parameter"
+)]
+fn configure_water_cameras(
+    mut commands: Commands,
+    cameras: Query<Entity, With<Camera3d>>,
+    prepared: Res<PreparedWaterCamera>,
+) {
+    for camera in &cameras {
+        let mut entity = commands.entity(camera);
+        entity.insert((
+            Msaa::Off,
+            DeferredPrepass,
+            ScreenSpaceTransmission {
+                steps: 0,
+                ..default()
+            },
+        ));
+        if let Some(ssr) = &prepared.ssr {
+            entity.insert(ssr.clone());
+        }
+    }
+}
+
+#[allow(
+    clippy::too_many_arguments,
+    reason = "independent ECS queries make every reported component count auditable"
+)]
+fn observe_water_components(
+    surfaces: Query<Entity, With<VisualValleyWaterSurface>>,
+    river_banks: Query<Entity, With<VisualValleyRiverBankSurface>>,
+    cameras: Query<Entity, With<Camera3d>>,
+    deferred_cameras: Query<Entity, (With<Camera3d>, With<DeferredPrepass>)>,
+    ssr_cameras: Query<Entity, (With<Camera3d>, With<ScreenSpaceReflections>)>,
+    msaa_cameras: Query<&Msaa, With<Camera3d>>,
+    transmission_cameras: Query<&ScreenSpaceTransmission, With<Camera3d>>,
+    mut stats: ResMut<WaterProjectionStats>,
+) {
+    stats.water_mesh_entities = surfaces.iter().count();
+    stats.river_bank_mesh_entities = river_banks.iter().count();
+    stats.camera_3d_entities = cameras.iter().count();
+    stats.deferred_camera_entities = deferred_cameras.iter().count();
+    stats.ssr_camera_entities = ssr_cameras.iter().count();
+    stats.msaa_off_camera_entities = msaa_cameras
+        .iter()
+        .filter(|msaa| **msaa == Msaa::Off)
+        .count();
+    stats.transmission_disabled_camera_entities = transmission_cameras
+        .iter()
+        .filter(|transmission| transmission.steps == 0)
+        .count();
+    stats.runtime_observation = if stats.water_mesh_entities == 1
+        && stats.river_bank_mesh_entities == 1
+        && stats.camera_3d_entities > 0
+        && stats.deferred_camera_entities == stats.camera_3d_entities
+        && stats.msaa_off_camera_entities == stats.camera_3d_entities
+        && stats.transmission_disabled_camera_entities == stats.camera_3d_entities
+        && (!stats.requested_ssr_component_prepared
+            || stats.ssr_camera_entities == stats.camera_3d_entities)
+    {
+        WaterRuntimeObservationStatus::ObservedMainWorldComponents
+    } else {
+        WaterRuntimeObservationStatus::ObservedIncompleteComponents
+    };
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use forge_project::ResolvedWaterReflectionPath;
+    use forge_world::{
+        embedded_visual_valley_terrain_document, embedded_visual_valley_water_document,
+    };
+
+    fn prepared() -> PreparedWaterScene {
+        let terrain = embedded_visual_valley_terrain_document().unwrap();
+        let water = embedded_visual_valley_water_document().unwrap();
+        prepare_water_surface(&terrain, &water).unwrap()
+    }
+
+    #[test]
+    fn real_sixty_two_control_route_projects_three_lanes_independently() {
+        let terrain = embedded_visual_valley_terrain_document().unwrap();
+        let terrain_plan = TerrainGenerationPlan::from_document(&terrain).unwrap();
+        let prepared = prepared();
+        let stats = &prepared.stats;
+
+        assert_eq!(stats.authored_control_points, 62);
+        assert_eq!(stats.centerline_samples, 137);
+        assert_eq!(stats.water_surface_queries, stats.centerline_samples * 3);
+        assert_eq!(
+            stats.river_bank_surface_queries,
+            stats.centerline_samples * 2
+        );
+        assert_eq!(
+            stats.terrain_surface_queries,
+            stats.water_surface_queries + stats.river_bank_surface_queries
+        );
+        assert_eq!(stats.water_vertices, stats.centerline_samples * 3);
+        assert_eq!(stats.water_triangles, (stats.centerline_samples - 1) * 4);
+        assert_eq!(stats.river_bank_vertices, stats.centerline_samples * 4);
+        assert_eq!(
+            stats.river_bank_triangles,
+            (stats.centerline_samples - 1) * 4
+        );
+        assert_eq!(
+            stats.vertices,
+            stats.water_vertices + stats.river_bank_vertices
+        );
+        assert_eq!(
+            stats.triangles,
+            stats.water_triangles + stats.river_bank_triangles
+        );
+        assert!(stats.terrain_projection_lifts > 0);
+        assert!((stats.terrain_clearance_m - VISUAL_VALLEY_WATER_CLEARANCE_M).abs() < f32::EPSILON);
+        assert!(stats.terrain_clearance_m > stats.requested_wave_amplitude_m);
+        assert!(stats.minimum_observed_clearance_m + 1.0e-5 >= stats.terrain_clearance_m);
+
+        for (position, recorded_height) in prepared
+            .water_geometry
+            .positions
+            .iter()
+            .zip(&prepared.water_geometry.terrain_heights)
+        {
+            let sampled = terrain_plan.surface_at(position[0], position[2]).unwrap();
+            assert_eq!(sampled.height_m.to_bits(), recorded_height.to_bits());
+            assert!(position[1] - sampled.height_m + 1.0e-5 >= stats.terrain_clearance_m);
+        }
+        for (position, recorded_height) in prepared
+            .river_bank_geometry
+            .positions
+            .iter()
+            .zip(&prepared.river_bank_geometry.terrain_heights)
+        {
+            let sampled = terrain_plan.surface_at(position[0], position[2]).unwrap();
+            assert_eq!(sampled.height_m.to_bits(), recorded_height.to_bits());
+        }
+        assert!(
+            prepared
+                .water_geometry
+                .terrain_heights
+                .as_chunks::<3>()
+                .0
+                .iter()
+                .any(|lanes| {
+                    lanes[0].to_bits() != lanes[1].to_bits()
+                        || lanes[1].to_bits() != lanes[2].to_bits()
+                })
+        );
+    }
+
+    #[test]
+    fn projected_lanes_are_monotone_and_every_triangle_has_positive_winding() {
+        let prepared = prepared();
+        assert!(prepared.stats.authored_centerline_monotone_downstream);
+        assert!(prepared.stats.projected_lanes_monotone_downstream);
+        assert_eq!(
+            prepared.stats.positive_winding_triangles,
+            prepared.stats.triangles
+        );
+        assert_geometry_has_positive_winding(&prepared.water_geometry);
+        assert_geometry_has_positive_winding(&prepared.river_bank_geometry);
+    }
+
+    #[test]
+    fn tangent_fallback_handles_a_reversing_neighbourhood() {
+        let sample = |x: f32| RiverCenterlineSample {
+            center_m: forge_core::Vec3::new(x, 1.0, 0.0),
+            surface_width_m: 1.0,
+            bed_depth_m: 1.0,
+            source_segment_index: 0,
+            segment_fraction: 0.0,
+        };
+        let samples = [sample(-1.0), sample(0.0), sample(-1.0)];
+        let (tangent, fallback) = robust_tangent(&samples, 1).unwrap();
+        assert!(fallback);
+        assert!((tangent[0] + 1.0).abs() < f32::EPSILON);
+        assert!(tangent[1].abs() < f32::EPSILON);
+    }
+
+    #[test]
+    fn checked_mesh_arithmetic_rejects_impossible_sizes() {
+        assert!(matches!(
+            checked_mesh_counts(usize::MAX),
+            Err(WaterAdapterError::ArithmeticOverflow(_))
+        ));
+    }
+
+    #[test]
+    fn material_and_metrics_never_claim_gpu_or_webgpu_execution() {
+        let prepared = prepared();
+        assert_eq!(prepared.water_material.alpha_mode, AlphaMode::Opaque);
+        assert_eq!(
+            prepared.water_material.opaque_render_method,
+            OpaqueRendererMethod::Deferred
+        );
+        assert_eq!(prepared.river_bank_material.alpha_mode, AlphaMode::Opaque);
+        assert_eq!(prepared.stats.applied_surface_tint_strength, Some(0.18));
+        let tint = prepared.water_material.base_color.to_srgba();
+        assert!((tint.red - (0.12 * 0.82 + 0.02 * 0.18)).abs() < 1.0e-6);
+        assert!((tint.green - (0.42 * 0.82 + 0.13 * 0.18)).abs() < 1.0e-6);
+        assert!((tint.blue - (0.46 * 0.82 + 0.21 * 0.18)).abs() < 1.0e-6);
+        assert!(prepared.stats.requested_ssr_component_prepared);
+        assert_eq!(
+            prepared.stats.reflection_intensity_status,
+            "requested_not_mapped_by_bevy_ssr_component"
+        );
+        assert_eq!(
+            prepared.stats.wave_motion_status,
+            "clearance_reserved_motion_shader_deferred"
+        );
+        assert_eq!(
+            prepared.stats.bank_shoulder_status,
+            "procedural_outer_strip_projected_from_shoulder_width"
+        );
+        assert_eq!(
+            prepared.stats.bank_erosion_status,
+            "deferred_no_terrain_carving_adapter"
+        );
+        assert!(!prepared.stats.gpu_pass_observed);
+        assert_eq!(prepared.stats.webgpu_execution_status, "not_run");
+        assert_eq!(
+            prepared.stats.resolved_optics.reflection,
+            ResolvedWaterReflectionPath::Disabled
+        );
+        assert!(prepared.stats.resolved_optics.reflection_fallback_used);
+        let serialized = serde_json::to_value(&prepared.stats).unwrap();
+        assert_eq!(serialized["gpu_pass_observed"], false);
+        assert_eq!(serialized["webgpu_execution_status"], "not_run");
+        assert!(serialized.get("draw_calls").is_none());
+    }
+
+    #[test]
+    fn camera_preparation_is_observed_without_claiming_gpu_execution() {
+        let prepared = prepared();
+        let mut app = App::new();
+        app.insert_resource(PreparedWaterCamera {
+            ssr: prepared.ssr.clone(),
+        })
+        .insert_resource(prepared.stats)
+        .add_systems(
+            Update,
+            (configure_water_cameras, observe_water_components).chain(),
+        );
+        app.world_mut().spawn(Camera3d::default());
+        app.world_mut().spawn(VisualValleyWaterSurface);
+        app.world_mut().spawn(VisualValleyRiverBankSurface);
+        app.update();
+
+        let stats = app.world().resource::<WaterProjectionStats>();
+        assert_eq!(
+            stats.runtime_observation,
+            WaterRuntimeObservationStatus::ObservedMainWorldComponents
+        );
+        assert_eq!(stats.camera_3d_entities, 1);
+        assert_eq!(stats.deferred_camera_entities, 1);
+        assert_eq!(stats.ssr_camera_entities, 1);
+        assert_eq!(stats.msaa_off_camera_entities, 1);
+        assert_eq!(stats.transmission_disabled_camera_entities, 1);
+        assert!(!stats.gpu_pass_observed);
+    }
+
+    fn assert_geometry_has_positive_winding(geometry: &RiverSurfaceGeometry) {
+        for triangle in geometry.indices.as_chunks::<3>().0 {
+            let triangle = [
+                usize::try_from(triangle[0]).unwrap(),
+                usize::try_from(triangle[1]).unwrap(),
+                usize::try_from(triangle[2]).unwrap(),
+            ];
+            assert!(triangle_normal_y(&geometry.positions, triangle) > 0.0);
+        }
+        assert!(
+            geometry
+                .normals
+                .iter()
+                .all(|normal| { normal.iter().all(|value| value.is_finite()) && normal[1] > 0.0 })
+        );
+    }
+}
