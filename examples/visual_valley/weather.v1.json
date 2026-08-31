@@ -1,0 +1,74 @@
+{
+  "schema": "forge.weather-profile",
+  "schema_version": 1,
+  "project_id": "156abf3c-028c-5bb6-be3a-facc417a29bc",
+  "area_id": "55b4fcee-2e80-5855-aafa-d1942158ff67",
+  "revision": 1,
+  "coordinate_system": {
+    "length_unit": "metre",
+    "up_axis": "y",
+    "handedness": "right"
+  },
+  "name": "Visual Valley weather",
+  "seed": 6288504284938326577,
+  "initial_state": "clear",
+  "rain": {
+    "quality": "high",
+    "drop_budgets": {
+      "low": 2048,
+      "medium": 4096,
+      "high": 8192,
+      "ultra": 16384
+    },
+    "volume_size_m": {
+      "x": 96.0,
+      "y": 48.0,
+      "z": 96.0
+    },
+    "fall_speed_mps": 18.0,
+    "streak_length_m": 0.65,
+    "wind_velocity_mps": {
+      "x": -2.0,
+      "y": 0.0,
+      "z": 1.0
+    },
+    "color_srgb": {
+      "red": 0.68,
+      "green": 0.78,
+      "blue": 0.88
+    },
+    "opacity": 0.42
+  },
+  "wetness": {
+    "clear_target": 0.0,
+    "rain_target": 0.78,
+    "wetting_rate_per_second": 0.18,
+    "drying_rate_per_second": 0.07,
+    "full_wet_roughness_multiplier": 0.32,
+    "full_wet_albedo_multiplier": 0.72
+  },
+  "post_processing": {
+    "bloom": {
+      "enabled": true,
+      "intensity": 0.08,
+      "low_frequency_boost": 0.35,
+      "high_pass_frequency": 0.82
+    },
+    "clear_grade": {
+      "exposure_ev": 0.0,
+      "temperature": 0.08,
+      "tint": 0.01,
+      "saturation": 1.04,
+      "contrast": 1.06,
+      "gamma": 1.0
+    },
+    "rain_grade": {
+      "exposure_ev": -0.35,
+      "temperature": -0.12,
+      "tint": 0.02,
+      "saturation": 0.86,
+      "contrast": 1.08,
+      "gamma": 1.0
+    }
+  }
+}

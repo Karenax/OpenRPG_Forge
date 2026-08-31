@@ -7,6 +7,7 @@ mod player;
 mod terrain;
 mod vegetation;
 mod water;
+mod weather;
 
 pub use environment::{
     DistanceFogFalloff, DistanceFogProfile, ENVIRONMENT_PROFILE_SCHEMA,
@@ -48,6 +49,11 @@ pub use water::{
     WaterOpticsCapabilityStatus, WaterOpticsProfile, WaterOpticsResolution, WaterQualityTier,
     WaterReflectionFallback, WaterReflectionProfile, WaterRefractionFallback,
     WaterRefractionProfile, WaterSrgbColor, WaterSurfaceProfile,
+};
+pub use weather::{
+    BloomProfile, ColorGradeProfile, MAX_WEATHER_PROFILE_JSON_BYTES, PostProcessingProfile,
+    RainDropBudgets, RainProfile, WEATHER_PROFILE_SCHEMA, WEATHER_PROFILE_SCHEMA_VERSION,
+    WeatherProfileDocument, WeatherProfileError, WeatherQualityTier, WeatherState, WetnessProfile,
 };
 
 use forge_core::{

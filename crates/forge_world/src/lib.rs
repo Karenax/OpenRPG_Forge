@@ -8,6 +8,7 @@ mod terrain;
 mod terrain_generation;
 mod vegetation;
 mod water;
+mod weather;
 
 pub use environment::{
     VISUAL_VALLEY_ENVIRONMENT_JSON, VisualValleyEnvironmentRecipe,
@@ -44,6 +45,10 @@ pub use vegetation::{
 pub use water::{
     RiverCenterlineSample, VISUAL_VALLEY_WATER_JSON, VISUAL_VALLEY_WATER_SEED,
     VisualValleyWaterRecipe, embedded_visual_valley_water_document, sample_river_centerline,
+};
+pub use weather::{
+    VISUAL_VALLEY_WEATHER_JSON, VISUAL_VALLEY_WEATHER_SEED, VisualValleyWeatherRecipe,
+    embedded_visual_valley_weather_profile,
 };
 
 use forge_core::{AreaId, ProjectId, Revision, Transform, UnitQuaternion, Vec3};
