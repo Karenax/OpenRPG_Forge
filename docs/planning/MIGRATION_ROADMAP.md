@@ -290,19 +290,24 @@ et sans transformer une acquisition automatisée en revue humaine.
 
 Statut : **OUVERTE** après le passage automatisé local de Gate 0 sous ADR-0004, ADR-0005 et ADR-0006.
 
-Progression au commit `3bb82b2b802c591c5870dbad691f7e98a3e51534` : `R1-001` reste qualifié,
+Progression au commit `0a1c5655428938b8d47afa3bc024d20669e41657` : `R1-001` reste qualifié,
 puis `R1-002` à `R1-008` sont passés fonctionnellement localement par le terrain dérivé
 déterministe, les meshes Bevy, le shader PBR trois couches, le debug chunks/LOD, les 64 heightfields
 Rapier et une transaction partielle qui régénère 3 meshes et 1 collider sans remplacer les 64
 identités runtime. `R1-027` à `R1-031` ajoutent le contrôleur Rapier, les pentes/marches, une caméra
 troisième personne avec occlusion et le basculement première personne sur une seule entité caméra.
+`R1-009` ajoute le document de végétation et un scatter logique déterministe borné : 8 282
+placements, dont 704 arbres, 1 228 arbustes, 1 282 fougères et 5 068 patches d'herbe, pour le golden
+de cache `82995caa4f17c315cdc42542b255e50945dc70b2e3c959a97b818ebbd60ceb98`.
 Voir
 `docs/evidence/gate1/R1_001_TERRAIN_DOCUMENT.md` et
 `docs/evidence/gate1/R1_002_005_008_TERRAIN_RENDERING.md`, puis
 `docs/evidence/gate1/R1_006_TERRAIN_PHYSICS.md` et
 `docs/evidence/gate1/R1_007_TERRAIN_PARTIAL_UPDATE.md`, enfin
-`docs/evidence/gate1/R1_027_031_PLAYER_CAMERA.md`. Le lot joueur/caméra est qualifié localement sous
-ADR-0006 par 135/135 tests workspace et un probe natif ECS/Rapier ; Gate 1 reste ouverte.
+`docs/evidence/gate1/R1_027_031_PLAYER_CAMERA.md` et
+`docs/evidence/gate1/R1_009_VEGETATION_SCATTER.md`. Le lot joueur/caméra est qualifié localement
+sous ADR-0006 par 135/135 tests workspace et un probe natif ECS/Rapier ; `R1-009` est qualifié par
+58/58 tests ciblés et ses deux goldens, sans preuve visuelle. Gate 1 reste ouverte.
 
 ## But
 
@@ -341,7 +346,7 @@ qualité                   Low / Medium / High / Ultra
 
 ## R1-B — Végétation GPU
 
-- [ ] `R1-009` Scatter déterministe.
+- [x] `R1-009` Scatter déterministe — 58/58 tests ciblés et goldens document/cache PASS local.
 - [ ] `R1-010` Instances regroupées.
 - [ ] `R1-011` LOD arbres.
 - [ ] `R1-012` imposteurs ou HLOD lointain.
