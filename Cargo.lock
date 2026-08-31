@@ -3425,6 +3425,7 @@ name = "forge_runtime"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "bevy_rapier3d",
  "forge_core",
  "forge_engine",
  "forge_project",

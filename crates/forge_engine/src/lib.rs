@@ -5,6 +5,10 @@
 #[cfg(feature = "physics-rapier")]
 mod physics;
 #[cfg(feature = "physics-rapier")]
+mod player_camera;
+#[cfg(feature = "physics-rapier")]
+mod player_controller;
+#[cfg(feature = "physics-rapier")]
 mod terrain_update;
 mod visual_valley;
 
@@ -14,6 +18,14 @@ pub(crate) use physics::build_terrain_heightfield_collider;
 pub use physics::{
     TERRAIN_PHYSICS_HZ, TerrainHeightfieldCollider, TerrainPhysicsAdapterError,
     TerrainPhysicsPlugin,
+};
+#[cfg(feature = "physics-rapier")]
+pub use player_camera::PlayerCameraMode;
+#[cfg(feature = "physics-rapier")]
+pub use player_controller::{
+    ForgePlayerCamera, ForgePlayerCharacter, PendingPlayerControlCommand, PlayerControlCommand,
+    PlayerControlCommandError, PlayerControllerPlugin, PlayerControllerSet,
+    PlayerRuntimeBindingSnapshot, PlayerRuntimeBindings, PlayerRuntimeSnapshot, PlayerSpawnPoint,
 };
 #[cfg(feature = "physics-rapier")]
 pub use terrain_update::{

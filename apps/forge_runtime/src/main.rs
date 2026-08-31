@@ -1,5 +1,6 @@
 #![deny(unsafe_code)]
 
+mod player_camera_probe;
 mod terrain_partial_update_probe;
 
 use bevy::{
@@ -10,13 +11,15 @@ use bevy::{
         RenderPlugin,
         settings::{RenderCreation, WgpuSettings},
     },
-    window::{PresentMode, WindowResolution},
+    window::{CursorGrabMode, CursorOptions, PresentMode, WindowResolution},
 };
 use forge_engine::{ProofScenePlugin, RuntimeAutomation, VisualValleyPlugin, WindowResizeRequest};
 use forge_project::{SceneProofDocument, TerrainDocument};
 use forge_world::{
-    TerrainGenerationPlan, embedded_gate0_proof_document, embedded_visual_valley_terrain_document,
+    TerrainGenerationPlan, embedded_gate0_proof_document,
+    embedded_visual_valley_player_controller_profile, embedded_visual_valley_terrain_document,
 };
+use player_camera_probe::PlayerCameraProbePlugin;
 use std::{env, fs, path::PathBuf};
 use terrain_partial_update_probe::TerrainPartialUpdateProbePlugin;
 use tracing_subscriber::EnvFilter;
@@ -55,6 +58,7 @@ fn main() -> AppExit {
         ..default()
     };
     let automation = options.runtime_automation();
+    let primary_cursor_options = cursor_options_for_player_camera(options.player_camera);
     tracing::info!(
         target: "forge::runtime",
         schema = "forge.runtime-event",
@@ -69,6 +73,9 @@ fn main() -> AppExit {
         automated_close_configured = automation.close_at_frame.is_some(),
         automated_close_frame = u64::from(automation.close_at_frame.unwrap_or_default()),
         terrain_partial_update_probe = options.terrain_partial_update_probe.is_enabled(),
+        player_camera = options.player_camera.is_interactive(),
+        player_camera_probe = options.player_camera.is_probe(),
+        player_cursor_locked = options.player_camera.is_interactive(),
         "native runtime starting"
     );
 
@@ -85,6 +92,7 @@ fn main() -> AppExit {
                         resizable: true,
                         ..default()
                     }),
+                    primary_cursor_options: Some(primary_cursor_options),
                     ..default()
                 })
                 .set(render_plugin)
@@ -97,6 +105,7 @@ fn main() -> AppExit {
         automation,
         options.terrain_debug,
         options.terrain_partial_update_probe,
+        options.player_camera,
     );
 
     let exit = app.run();
@@ -142,19 +151,46 @@ fn add_runtime_plugin(
     automation: RuntimeAutomation,
     terrain_debug: TerrainDebugMode,
     terrain_partial_update_probe: TerrainPartialUpdateProbeMode,
+    player_camera: PlayerCameraRuntimeMode,
 ) {
     match document {
         RuntimeDocument::Gate0(document) => {
             app.add_plugins(ProofScenePlugin::new(document).with_automation(automation));
         }
         RuntimeDocument::VisualValley(document) => {
-            app.add_plugins(
-                VisualValleyPlugin::new(document)
-                    .with_automation(automation)
-                    .with_chunk_lod_gizmos(terrain_debug.is_enabled()),
-            );
+            let player_profile = player_camera.is_enabled().then(|| {
+                embedded_visual_valley_player_controller_profile().unwrap_or_else(|error| {
+                    panic!("embedded Visual Valley player-controller profile is invalid: {error}")
+                })
+            });
+            let player_probe = match (player_camera, player_profile.as_ref()) {
+                (PlayerCameraRuntimeMode::Probe, Some(profile)) => Some(
+                    PlayerCameraProbePlugin::new(&document, profile).unwrap_or_else(|error| {
+                        panic!("cannot prepare bounded player-camera probe: {error}")
+                    }),
+                ),
+                _ => None,
+            };
+
+            let mut visual_valley = VisualValleyPlugin::new(document)
+                .with_automation(automation)
+                .with_chunk_lod_gizmos(terrain_debug.is_enabled());
+            if let Some(profile) = player_profile {
+                visual_valley = visual_valley
+                    .with_player_controller(profile)
+                    .with_player_interactive_input(!player_camera.is_probe())
+                    .with_overview_camera(false);
+            }
+            if let Some(probe) = &player_probe {
+                visual_valley = visual_valley.with_player_spawn_position(probe.spawn_position());
+            }
+
+            app.add_plugins(visual_valley);
             if terrain_partial_update_probe.is_enabled() {
                 app.add_plugins(TerrainPartialUpdateProbePlugin::new());
+            }
+            if let Some(probe) = player_probe {
+                app.add_plugins(probe);
             }
         }
     }
@@ -220,6 +256,48 @@ impl TerrainPartialUpdateProbeMode {
     }
 }
 
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+enum PlayerCameraRuntimeMode {
+    #[default]
+    Disabled,
+    Interactive,
+    Probe,
+}
+
+impl PlayerCameraRuntimeMode {
+    const fn is_enabled(self) -> bool {
+        !matches!(self, Self::Disabled)
+    }
+
+    const fn is_interactive(self) -> bool {
+        matches!(self, Self::Interactive)
+    }
+
+    const fn is_probe(self) -> bool {
+        matches!(self, Self::Probe)
+    }
+
+    fn select_interactive(&mut self) -> Result<(), String> {
+        if self.is_probe() {
+            return Err(
+                "--player-camera and --player-camera-probe are mutually exclusive".to_owned(),
+            );
+        }
+        *self = Self::Interactive;
+        Ok(())
+    }
+
+    fn select_probe(&mut self) -> Result<(), String> {
+        if self.is_interactive() {
+            return Err(
+                "--player-camera and --player-camera-probe are mutually exclusive".to_owned(),
+            );
+        }
+        *self = Self::Probe;
+        Ok(())
+    }
+}
+
 #[derive(Debug)]
 struct Options {
     scene_path: Option<PathBuf>,
@@ -227,6 +305,7 @@ struct Options {
     visual_valley: bool,
     terrain_debug: TerrainDebugMode,
     terrain_partial_update_probe: TerrainPartialUpdateProbeMode,
+    player_camera: PlayerCameraRuntimeMode,
     capture_path: Option<PathBuf>,
     capture_frame: u32,
     metrics_path: Option<PathBuf>,
@@ -248,6 +327,7 @@ impl Default for Options {
             visual_valley: false,
             terrain_debug: TerrainDebugMode::Hidden,
             terrain_partial_update_probe: TerrainPartialUpdateProbeMode::Disabled,
+            player_camera: PlayerCameraRuntimeMode::Disabled,
             capture_path: None,
             capture_frame: 120,
             metrics_path: None,
@@ -277,6 +357,8 @@ impl Options {
                 "--terrain-partial-update-probe" => {
                     options.terrain_partial_update_probe = TerrainPartialUpdateProbeMode::Enabled;
                 }
+                "--player-camera" => options.player_camera.select_interactive()?,
+                "--player-camera-probe" => options.player_camera.select_probe()?,
                 "--capture" => {
                     options.capture_path = Some(next_path(&mut arguments, "--capture")?);
                 }
@@ -309,7 +391,7 @@ impl Options {
                 "--no-vsync" => options.vsync = false,
                 "--log-probe" => options.log_probe = true,
                 "--help" | "-h" => {
-                    return Err("usage: forge_runtime [--scene file.json | --visual-valley | --terrain terrain.json] [--terrain-debug] [--terrain-partial-update-probe] [--capture file.png] [--capture-frame n] [--metrics file.json] [--metrics-warmup-frames n] [--exit-after-frames n] [--resize-at-frame n --resize-width px --resize-height px] [--close-at-frame n] [--no-vsync] [--log-probe]".to_owned());
+                    return Err("usage: forge_runtime [--scene file.json | --visual-valley | --terrain terrain.json] [--terrain-debug] [--terrain-partial-update-probe] [--player-camera | --player-camera-probe] [--capture file.png] [--capture-frame n] [--metrics file.json] [--metrics-warmup-frames n] [--exit-after-frames n] [--resize-at-frame n --resize-width px --resize-height px] [--close-at-frame n] [--no-vsync] [--log-probe]".to_owned());
                 }
                 _ => return Err(format!("unknown option `{argument}`")),
             }
@@ -329,6 +411,7 @@ impl Options {
             return Err("--terrain-debug requires --visual-valley or --terrain".to_owned());
         }
         self.validate_terrain_partial_update_probe()?;
+        self.validate_player_camera()?;
         if self.capture_path.is_some()
             && self
                 .exit_after_frames
@@ -392,6 +475,7 @@ impl Options {
                 || self.visual_valley
                 || self.terrain_debug.is_enabled()
                 || self.terrain_partial_update_probe.is_enabled()
+                || self.player_camera.is_enabled()
                 || self.capture_path.is_some()
                 || self.metrics_path.is_some()
                 || self.exit_after_frames.is_some()
@@ -404,7 +488,35 @@ impl Options {
         Ok(())
     }
 
+    fn validate_player_camera(&self) -> Result<(), String> {
+        if self.player_camera.is_enabled() && self.terrain_partial_update_probe.is_enabled() {
+            return Err("--terrain-partial-update-probe cannot be combined with --player-camera or --player-camera-probe".to_owned());
+        }
+        if self.player_camera.is_enabled() && self.terrain_path.is_none() && !self.visual_valley {
+            let option = if self.player_camera.is_probe() {
+                "--player-camera-probe"
+            } else {
+                "--player-camera"
+            };
+            return Err(format!("{option} requires --visual-valley or --terrain"));
+        }
+        if self.player_camera.is_probe()
+            && (self.capture_path.is_some()
+                || self.metrics_path.is_some()
+                || self.exit_after_frames.is_some()
+                || self.resize_at_frame.is_some()
+                || self.close_at_frame.is_some()
+                || self.log_probe)
+        {
+            return Err("--player-camera-probe is self-bounded and cannot be combined with capture, metrics, bounded exit, resize, close or logging probes".to_owned());
+        }
+        Ok(())
+    }
+
     fn validate_terrain_partial_update_probe(&self) -> Result<(), String> {
+        if self.terrain_partial_update_probe.is_enabled() && self.player_camera.is_enabled() {
+            return Err("--terrain-partial-update-probe cannot be combined with --player-camera or --player-camera-probe".to_owned());
+        }
         if self.terrain_partial_update_probe.is_enabled()
             && self.terrain_path.is_none()
             && !self.visual_valley
@@ -556,6 +668,18 @@ const fn present_mode_label(mode: PresentMode) -> &'static str {
     }
 }
 
+fn cursor_options_for_player_camera(mode: PlayerCameraRuntimeMode) -> CursorOptions {
+    if mode.is_interactive() {
+        CursorOptions {
+            visible: false,
+            grab_mode: CursorGrabMode::Locked,
+            ..default()
+        }
+    } else {
+        CursorOptions::default()
+    }
+}
+
 fn app_exit_code(exit: &AppExit) -> u8 {
     match exit {
         AppExit::Success => 0,
@@ -694,6 +818,236 @@ mod tests {
         )
         .unwrap();
         assert_eq!(options.terrain_debug, TerrainDebugMode::ChunkLodGizmos);
+    }
+
+    #[test]
+    fn player_camera_modes_are_explicit_and_restricted_to_gate1_terrain() {
+        assert_eq!(
+            Options::default().player_camera,
+            PlayerCameraRuntimeMode::Disabled
+        );
+
+        let interactive_error =
+            Options::parse(["--player-camera".to_owned()].into_iter()).unwrap_err();
+        assert_eq!(
+            interactive_error,
+            "--player-camera requires --visual-valley or --terrain"
+        );
+
+        let probe_error =
+            Options::parse(["--player-camera-probe".to_owned()].into_iter()).unwrap_err();
+        assert_eq!(
+            probe_error,
+            "--player-camera-probe requires --visual-valley or --terrain"
+        );
+
+        let interactive_scene_error = Options::parse(
+            [
+                "--scene".to_owned(),
+                "proof.json".to_owned(),
+                "--player-camera".to_owned(),
+            ]
+            .into_iter(),
+        )
+        .unwrap_err();
+        assert_eq!(
+            interactive_scene_error,
+            "--player-camera requires --visual-valley or --terrain"
+        );
+
+        let probe_scene_error = Options::parse(
+            [
+                "--scene".to_owned(),
+                "proof.json".to_owned(),
+                "--player-camera-probe".to_owned(),
+            ]
+            .into_iter(),
+        )
+        .unwrap_err();
+        assert_eq!(
+            probe_scene_error,
+            "--player-camera-probe requires --visual-valley or --terrain"
+        );
+
+        let interactive = Options::parse(
+            ["--visual-valley".to_owned(), "--player-camera".to_owned()].into_iter(),
+        )
+        .unwrap();
+        assert_eq!(
+            interactive.player_camera,
+            PlayerCameraRuntimeMode::Interactive
+        );
+
+        let visual_valley_probe = Options::parse(
+            [
+                "--visual-valley".to_owned(),
+                "--player-camera-probe".to_owned(),
+            ]
+            .into_iter(),
+        )
+        .unwrap();
+        assert_eq!(
+            visual_valley_probe.player_camera,
+            PlayerCameraRuntimeMode::Probe
+        );
+
+        let terrain_interactive = Options::parse(
+            [
+                "--terrain".to_owned(),
+                "terrain.json".to_owned(),
+                "--player-camera".to_owned(),
+            ]
+            .into_iter(),
+        )
+        .unwrap();
+        assert_eq!(
+            terrain_interactive.player_camera,
+            PlayerCameraRuntimeMode::Interactive
+        );
+
+        let probe = Options::parse(
+            [
+                "--terrain".to_owned(),
+                "terrain.json".to_owned(),
+                "--player-camera-probe".to_owned(),
+            ]
+            .into_iter(),
+        )
+        .unwrap();
+        assert_eq!(probe.player_camera, PlayerCameraRuntimeMode::Probe);
+    }
+
+    #[test]
+    fn player_camera_interactive_and_probe_modes_are_mutually_exclusive() {
+        for arguments in [
+            [
+                "--visual-valley".to_owned(),
+                "--player-camera".to_owned(),
+                "--player-camera-probe".to_owned(),
+            ],
+            [
+                "--visual-valley".to_owned(),
+                "--player-camera-probe".to_owned(),
+                "--player-camera".to_owned(),
+            ],
+        ] {
+            let error = Options::parse(arguments.into_iter()).unwrap_err();
+            assert_eq!(
+                error,
+                "--player-camera and --player-camera-probe are mutually exclusive"
+            );
+        }
+    }
+
+    #[test]
+    fn terrain_partial_update_probe_rejects_every_player_camera_mode_in_any_order() {
+        for camera_option in ["--player-camera", "--player-camera-probe"] {
+            for options in [
+                vec![
+                    "--visual-valley".to_owned(),
+                    "--terrain-partial-update-probe".to_owned(),
+                    camera_option.to_owned(),
+                ],
+                vec![
+                    "--visual-valley".to_owned(),
+                    camera_option.to_owned(),
+                    "--terrain-partial-update-probe".to_owned(),
+                ],
+            ] {
+                let error = Options::parse(options.into_iter()).unwrap_err();
+                assert_eq!(
+                    error,
+                    "--terrain-partial-update-probe cannot be combined with --player-camera or --player-camera-probe"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn player_camera_probe_is_self_bounded_and_rejects_other_probes() {
+        let conflicts: &[&[&str]] = &[
+            &["--capture", "probe.png"],
+            &["--metrics", "probe-metrics.json"],
+            &["--exit-after-frames", "120"],
+            &[
+                "--resize-at-frame",
+                "30",
+                "--resize-width",
+                "1280",
+                "--resize-height",
+                "720",
+            ],
+            &["--close-at-frame", "120"],
+            &["--log-probe"],
+        ];
+        for conflict in conflicts {
+            let mut arguments = vec![
+                "--visual-valley".to_owned(),
+                "--player-camera-probe".to_owned(),
+            ];
+            arguments.extend(conflict.iter().map(|argument| (*argument).to_owned()));
+
+            let error = Options::parse(arguments.into_iter()).unwrap_err();
+            assert_eq!(
+                error,
+                "--player-camera-probe is self-bounded and cannot be combined with capture, metrics, bounded exit, resize, close or logging probes"
+            );
+        }
+    }
+
+    #[test]
+    fn interactive_player_camera_remains_compatible_with_capture_and_metrics() {
+        let options = Options::parse(
+            [
+                "--visual-valley".to_owned(),
+                "--player-camera".to_owned(),
+                "--capture".to_owned(),
+                "player-camera.png".to_owned(),
+                "--capture-frame".to_owned(),
+                "120".to_owned(),
+                "--metrics".to_owned(),
+                "player-camera-metrics.json".to_owned(),
+                "--metrics-warmup-frames".to_owned(),
+                "60".to_owned(),
+                "--exit-after-frames".to_owned(),
+                "180".to_owned(),
+            ]
+            .into_iter(),
+        )
+        .unwrap();
+
+        assert_eq!(options.player_camera, PlayerCameraRuntimeMode::Interactive);
+        assert_eq!(
+            options.capture_path,
+            Some(PathBuf::from("player-camera.png"))
+        );
+        assert_eq!(
+            options.metrics_path,
+            Some(PathBuf::from("player-camera-metrics.json"))
+        );
+        assert_eq!(options.exit_after_frames, Some(180));
+    }
+
+    #[test]
+    fn help_lists_both_player_camera_modes() {
+        let help = Options::parse(["--help".to_owned()].into_iter()).unwrap_err();
+        assert!(help.contains("[--player-camera | --player-camera-probe]"));
+    }
+
+    #[test]
+    fn only_interactive_player_camera_locks_and_hides_the_cursor() {
+        let interactive = cursor_options_for_player_camera(PlayerCameraRuntimeMode::Interactive);
+        assert!(!interactive.visible);
+        assert_eq!(interactive.grab_mode, CursorGrabMode::Locked);
+
+        for mode in [
+            PlayerCameraRuntimeMode::Disabled,
+            PlayerCameraRuntimeMode::Probe,
+        ] {
+            let cursor = cursor_options_for_player_camera(mode);
+            assert!(cursor.visible);
+            assert_eq!(cursor.grab_mode, CursorGrabMode::None);
+        }
     }
 
     #[test]

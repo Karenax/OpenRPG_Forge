@@ -1,0 +1,33 @@
+{
+  "schema": "forge.player-controller-profile",
+  "schema_version": 1,
+  "name": "Visual Valley player controller",
+  "controller": {
+    "capsule_radius_m": 0.35,
+    "capsule_half_segment_m": 0.55,
+    "walk_speed_mps": 5.0,
+    "sprint_multiplier": 1.6,
+    "acceleration_mps2": 24.0,
+    "braking_mps2": 32.0,
+    "gravity_mps2": -24.0,
+    "jump_speed_mps": 8.0,
+    "max_step_height_m": 0.4,
+    "min_step_width_m": 0.35,
+    "ground_snap_m": 0.25,
+    "max_slope_climb_degrees": 45.0,
+    "min_slope_slide_degrees": 50.0
+  },
+  "camera": {
+    "eye_height_m": 1.62,
+    "pivot_height_m": 1.5,
+    "third_person_distance_m": 4.5,
+    "third_person_min_distance_m": 0.6,
+    "collision_radius_m": 0.18,
+    "recovery_speed_mps": 8.0,
+    "pitch_min_degrees": -70.0,
+    "pitch_max_degrees": 70.0,
+    "third_person_vertical_fov_degrees": 60.0,
+    "first_person_vertical_fov_degrees": 75.0,
+    "look_sensitivity_degrees_per_unit": 0.12
+  }
+}

@@ -7,12 +7,18 @@ license.workspace = true
 publish.workspace = true
 description = "Native Bevy runtime for OpenRPG Forge."
 
+[[bin]]
+name = "forge_runtime"
+path = "src/main.rs"
+required-features = ["native"]
+
 [features]
 default = ["native"]
 native = ["forge_engine/native"]
 
 [dependencies]
 bevy.workspace = true
+bevy_rapier3d.workspace = true
 forge_core.workspace = true
 forge_engine.workspace = true
 forge_project.workspace = true

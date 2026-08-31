@@ -2,6 +2,8 @@ use super::{ProofSceneStats, RuntimeAutomation, RuntimeEvidencePlugin};
 #[cfg(feature = "physics-rapier")]
 use crate::physics::TerrainPhysicsPlugin;
 #[cfg(feature = "physics-rapier")]
+use crate::player_controller::PlayerControllerPlugin;
+#[cfg(feature = "physics-rapier")]
 use crate::terrain_update::{
     TerrainRuntimeBindings, TerrainRuntimeState, TerrainRuntimeUpdatePlugin,
 };
@@ -15,6 +17,8 @@ use bevy::{
     render::render_resource::{AsBindGroup, PrimitiveTopology},
     shader::ShaderRef,
 };
+#[cfg(feature = "physics-rapier")]
+use forge_project::PlayerControllerProfileDocument;
 use forge_project::TerrainDocument;
 #[cfg(feature = "physics-rapier")]
 use forge_world::GeneratedTerrain;
@@ -27,6 +31,10 @@ use std::{error::Error, fmt};
 
 const TERRAIN_SHADER_PATH: &str = "embedded://forge_engine/shaders/visual_valley_terrain.wgsl";
 const VISUAL_VALLEY_LOD_LEVEL: u8 = 0;
+#[cfg(feature = "physics-rapier")]
+const DEFAULT_PLAYER_SPAWN_X_M: f32 = 16.0;
+#[cfg(feature = "physics-rapier")]
+const DEFAULT_PLAYER_SPAWN_Z_M: f32 = 8.0;
 
 /// Derived logical, renderer-independent counts observed while adapting Visual Valley.
 ///
@@ -117,6 +125,13 @@ pub struct VisualValleyPlugin {
     document: TerrainDocument,
     automation: RuntimeAutomation,
     debug: VisualValleyDebug,
+    overview_camera: bool,
+    #[cfg(feature = "physics-rapier")]
+    player_controller: Option<PlayerControllerProfileDocument>,
+    #[cfg(feature = "physics-rapier")]
+    player_spawn_position: Option<Vec3>,
+    #[cfg(feature = "physics-rapier")]
+    player_interactive_input: bool,
 }
 
 impl VisualValleyPlugin {
@@ -130,6 +145,13 @@ impl VisualValleyPlugin {
                 ..default()
             },
             debug: VisualValleyDebug::default(),
+            overview_camera: true,
+            #[cfg(feature = "physics-rapier")]
+            player_controller: None,
+            #[cfg(feature = "physics-rapier")]
+            player_spawn_position: None,
+            #[cfg(feature = "physics-rapier")]
+            player_interactive_input: true,
         }
     }
 
@@ -144,10 +166,47 @@ impl VisualValleyPlugin {
         self.debug.chunk_lod_gizmos = enabled;
         self
     }
+
+    /// Enables the historical overview camera when no playable controller owns the view.
+    #[must_use]
+    pub const fn with_overview_camera(mut self, enabled: bool) -> Self {
+        self.overview_camera = enabled;
+        self
+    }
+
+    /// Adds the playable Rapier projection and reserves the only active camera for it.
+    #[cfg(feature = "physics-rapier")]
+    #[must_use]
+    pub fn with_player_controller(mut self, profile: PlayerControllerProfileDocument) -> Self {
+        self.player_controller = Some(profile);
+        self.overview_camera = false;
+        self
+    }
+
+    /// Overrides the default terrain-sampled capsule centre for a deterministic probe fixture.
+    #[cfg(feature = "physics-rapier")]
+    #[must_use]
+    pub const fn with_player_spawn_position(mut self, position: Vec3) -> Self {
+        self.player_spawn_position = Some(position);
+        self
+    }
+
+    /// Enables OS keyboard/mouse sampling for the player while retaining probe command injection.
+    #[cfg(feature = "physics-rapier")]
+    #[must_use]
+    pub const fn with_player_interactive_input(mut self, enabled: bool) -> Self {
+        self.player_interactive_input = enabled;
+        self
+    }
 }
 
 impl Plugin for VisualValleyPlugin {
     fn build(&self, app: &mut App) {
+        #[cfg(feature = "physics-rapier")]
+        assert!(
+            self.player_controller.is_some() || self.player_spawn_position.is_none(),
+            "a Visual Valley player spawn override requires a player-controller profile"
+        );
         let mut prepared = prepare_visual_valley(&self.document)
             .unwrap_or_else(|error| panic!("VisualValleyPlugin requires valid terrain: {error}"));
         let stats = prepared.stats.clone();
@@ -159,6 +218,18 @@ impl Plugin for VisualValleyPlugin {
 
         embedded_asset!(app, "shaders/visual_valley_terrain.wgsl");
         app.insert_resource(self.debug)
+            .insert_resource(VisualValleyOverviewCameraEnabled(
+                self.overview_camera && {
+                    #[cfg(feature = "physics-rapier")]
+                    {
+                        self.player_controller.is_none()
+                    }
+                    #[cfg(not(feature = "physics-rapier"))]
+                    {
+                        true
+                    }
+                },
+            ))
             .insert_resource(stats.clone())
             .insert_resource(ProofSceneStats {
                 source_entities: 1,
@@ -185,6 +256,17 @@ impl Plugin for VisualValleyPlugin {
             TerrainPhysicsPlugin::new(self.document.clone()),
             TerrainRuntimeUpdatePlugin,
         ));
+
+        #[cfg(feature = "physics-rapier")]
+        if let Some(profile) = &self.player_controller {
+            let spawn_position = self
+                .player_spawn_position
+                .unwrap_or_else(|| default_visual_valley_player_spawn(&self.document, profile));
+            app.add_plugins(
+                PlayerControllerPlugin::new(profile.clone(), spawn_position)
+                    .with_interactive_input(self.player_interactive_input),
+            );
+        }
     }
 }
 
@@ -265,6 +347,9 @@ struct VisualValleyChunkGizmos;
 
 #[derive(Component)]
 struct VisualValleyOverviewCamera;
+
+#[derive(Clone, Copy, Resource)]
+struct VisualValleyOverviewCameraEnabled(bool);
 
 #[derive(Component)]
 struct VisualValleySun;
@@ -427,9 +512,14 @@ const fn invalid_chunk(chunk: &TerrainChunkMesh, reason: &'static str) -> Visual
     }
 }
 
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "Bevy systems require owned system parameter wrappers"
+)]
 fn spawn_visual_valley(
     mut commands: Commands,
     mut prepared: ResMut<PreparedVisualValley>,
+    overview_camera_enabled: Res<VisualValleyOverviewCameraEnabled>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<VisualValleyTerrainMaterial>>,
     #[cfg(feature = "physics-rapier")] mut bindings: ResMut<TerrainRuntimeBindings>,
@@ -491,26 +581,28 @@ fn spawn_visual_valley(
         .build(),
     ));
 
-    let focus_height_m = f32::midpoint(prepared.minimum_height_m, prepared.maximum_height_m);
-    let camera_position = Vec3::new(-210.0, prepared.maximum_height_m + 125.0, 210.0);
-    commands.spawn((
-        Name::new("Visual Valley overview camera"),
-        VisualValleyOverviewCamera,
-        Camera3d::default(),
-        AmbientLight {
-            color: Color::srgb(0.48, 0.58, 0.72),
-            brightness: 95.0,
-            ..default()
-        },
-        Projection::Perspective(PerspectiveProjection {
-            fov: 52.0_f32.to_radians(),
-            near: 0.25,
-            far: 1_600.0,
-            ..default()
-        }),
-        Transform::from_translation(camera_position)
-            .looking_at(Vec3::new(0.0, focus_height_m, 0.0), Vec3::Y),
-    ));
+    if overview_camera_enabled.0 {
+        let focus_height_m = f32::midpoint(prepared.minimum_height_m, prepared.maximum_height_m);
+        let camera_position = Vec3::new(-210.0, prepared.maximum_height_m + 125.0, 210.0);
+        commands.spawn((
+            Name::new("Visual Valley overview camera"),
+            VisualValleyOverviewCamera,
+            Camera3d::default(),
+            AmbientLight {
+                color: Color::srgb(0.48, 0.58, 0.72),
+                brightness: 95.0,
+                ..default()
+            },
+            Projection::Perspective(PerspectiveProjection {
+                fov: 52.0_f32.to_radians(),
+                near: 0.25,
+                far: 1_600.0,
+                ..default()
+            }),
+            Transform::from_translation(camera_position)
+                .looking_at(Vec3::new(0.0, focus_height_m, 0.0), Vec3::Y),
+        ));
+    }
 
     info!(
         target: "forge::terrain",
@@ -526,6 +618,23 @@ fn spawn_visual_valley(
         lod_zero_chunks = prepared.stats.lod_zero_chunks,
         "Visual Valley terrain materialized from the canonical document"
     );
+}
+
+#[cfg(feature = "physics-rapier")]
+fn default_visual_valley_player_spawn(
+    document: &TerrainDocument,
+    profile: &PlayerControllerProfileDocument,
+) -> Vec3 {
+    let surface_height = TerrainGenerationPlan::from_document(document)
+        .and_then(|plan| plan.height_at(DEFAULT_PLAYER_SPAWN_X_M, DEFAULT_PLAYER_SPAWN_Z_M))
+        .unwrap_or_else(|error| panic!("cannot sample the Visual Valley player spawn: {error}"));
+    let capsule_half_height =
+        profile.controller.capsule_radius_m + profile.controller.capsule_half_segment_m;
+    Vec3::new(
+        DEFAULT_PLAYER_SPAWN_X_M,
+        surface_height + capsule_half_height + 0.02,
+        DEFAULT_PLAYER_SPAWN_Z_M,
+    )
 }
 
 #[allow(
@@ -557,9 +666,90 @@ fn draw_visual_valley_chunk_debug(
 mod tests {
     use super::*;
     use bevy::mesh::VertexAttributeValues;
+    #[cfg(feature = "physics-rapier")]
+    use bevy::{time::TimeUpdateStrategy, transform::TransformPlugin};
+    #[cfg(feature = "physics-rapier")]
+    use forge_world::{
+        TERRAIN_CHUNKS_PER_AXIS, TERRAIN_EXTENT_M, TERRAIN_HALF_EXTENT_M,
+        VisualValleyPlayerControllerRecipe,
+    };
     use forge_world::{
         TERRAIN_TRIANGLE_COUNT, TERRAIN_VERTEX_COUNT, embedded_visual_valley_terrain_document,
     };
+    #[cfg(feature = "physics-rapier")]
+    use std::time::Duration;
+
+    #[cfg(feature = "physics-rapier")]
+    #[test]
+    fn default_player_spawn_is_inside_one_chunk_and_grounds_on_generated_terrain() {
+        // A vertical KCC grounding request is projected onto the sampled triangle normal, so a
+        // sub-millimetre lateral correction is expected on this intentionally non-flat terrain.
+        const MAX_GROUNDING_LATERAL_CORRECTION_M: f32 = 0.001;
+
+        let document = embedded_visual_valley_terrain_document().unwrap();
+        let profile = VisualValleyPlayerControllerRecipe.build().unwrap();
+        let spawn = default_visual_valley_player_spawn(&document, &profile);
+        let chunk_size_m = TERRAIN_EXTENT_M / f32::from(TERRAIN_CHUNKS_PER_AXIS);
+        let expected_surface = TerrainGenerationPlan::from_document(&document)
+            .and_then(|plan| plan.height_at(spawn.x, spawn.z))
+            .unwrap();
+        let capsule_half_height =
+            profile.controller.capsule_radius_m + profile.controller.capsule_half_segment_m;
+
+        assert_eq!(spawn.x.to_bits(), DEFAULT_PLAYER_SPAWN_X_M.to_bits());
+        assert_eq!(spawn.z.to_bits(), DEFAULT_PLAYER_SPAWN_Z_M.to_bits());
+        assert!(spawn.x.rem_euclid(chunk_size_m) > 0.05);
+        assert!(spawn.z.rem_euclid(chunk_size_m) > 0.05);
+        assert!(spawn.x.abs() < TERRAIN_HALF_EXTENT_M);
+        assert!(spawn.z.abs() < TERRAIN_HALF_EXTENT_M);
+        assert!((spawn.y - (expected_surface + capsule_half_height + 0.02)).abs() <= f32::EPSILON);
+
+        let mut app = App::new();
+        app.add_plugins(MinimalPlugins)
+            .add_plugins(TransformPlugin)
+            .insert_resource(TimeUpdateStrategy::ManualDuration(Duration::from_secs_f64(
+                1.0 / 60.0,
+            )))
+            .init_resource::<TerrainRuntimeBindings>()
+            .add_plugins(TerrainPhysicsPlugin::new(document))
+            .add_plugins(PlayerControllerPlugin::new(profile, spawn));
+        app.update();
+        for _ in 0..8 {
+            let before = app
+                .world()
+                .resource::<crate::player_controller::PlayerRuntimeSnapshot>()
+                .fixed_tick;
+            app.update();
+            let after = app
+                .world()
+                .resource::<crate::player_controller::PlayerRuntimeSnapshot>()
+                .fixed_tick;
+            assert_eq!(
+                after,
+                before + 1,
+                "one manually advanced app update must execute exactly one fixed player tick"
+            );
+        }
+
+        let snapshot = app
+            .world()
+            .resource::<crate::player_controller::PlayerRuntimeSnapshot>();
+        assert!(
+            snapshot.grounded,
+            "default Visual Valley spawn did not ground"
+        );
+        assert_eq!(snapshot.horizontal_velocity, Vec3::ZERO);
+        assert!(!snapshot.sliding_down_slope);
+        assert!(snapshot.collisions > 0);
+        assert!(
+            (snapshot.player_position.x - spawn.x).abs() <= MAX_GROUNDING_LATERAL_CORRECTION_M,
+            "default spawn drifted on X: spawn={spawn:?}, snapshot={snapshot:?}"
+        );
+        assert!(
+            (snapshot.player_position.z - spawn.z).abs() <= MAX_GROUNDING_LATERAL_CORRECTION_M,
+            "default spawn drifted on Z: spawn={spawn:?}, snapshot={snapshot:?}"
+        );
+    }
 
     #[test]
     fn headless_adapter_prepares_exact_visual_valley_counts() {

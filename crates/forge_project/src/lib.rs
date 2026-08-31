@@ -2,7 +2,14 @@
 
 //! Versioned source-of-truth documents used by both native and WASM consumers.
 
+mod player;
 mod terrain;
+
+pub use player::{
+    PLAYER_CONTROLLER_PROFILE_SCHEMA, PLAYER_CONTROLLER_PROFILE_SCHEMA_VERSION,
+    PlayerCameraProfile, PlayerControllerProfile, PlayerControllerProfileDocument,
+    PlayerControllerProfileError,
+};
 
 pub use terrain::{
     HeightSamplingAlgorithm, HeightSamplingParameters, MAX_TERRAIN_HEIGHT_DELTAS,

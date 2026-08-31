@@ -2,9 +2,14 @@
 
 //! Deterministic world recipes. Rendering remains an adapter responsibility.
 
+mod player;
 mod terrain;
 mod terrain_generation;
 
+pub use player::{
+    VISUAL_VALLEY_PLAYER_CONTROLLER_JSON, VisualValleyPlayerControllerRecipe,
+    embedded_visual_valley_player_controller_profile,
+};
 pub use terrain::{
     VISUAL_VALLEY_SEED, VISUAL_VALLEY_SIZE_M, VISUAL_VALLEY_TERRAIN_JSON,
     VisualValleyTerrainRecipe, embedded_visual_valley_terrain_document,
