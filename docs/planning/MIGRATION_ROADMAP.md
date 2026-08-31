@@ -290,10 +290,12 @@ et sans transformer une acquisition automatisée en revue humaine.
 
 Statut : **OUVERTE** après le passage automatisé local de Gate 0 sous ADR-0004, ADR-0005 et ADR-0006.
 
-Progression au commit `9bcdc02cc99cb918f94a8c952ecf461c7da8aca0` : `R1-001` est qualifié
-localement par le document `forge.terrain` v1, sa fixture Visual Valley 512 × 512 m et ses tests
-natifs/WASM. Voir `docs/evidence/gate1/R1_001_TERRAIN_DOCUMENT.md`. Aucun rendu terrain n'est encore
-revendiqué ; `R1-002` et les lots suivants restent ouverts.
+Progression au commit `4e8364b1f05fb2826cfb19025b13e180e8db46a0` : `R1-001` reste qualifié,
+puis `R1-002`, `R1-003`, `R1-004`, `R1-005` et `R1-008` sont passés localement par le terrain
+dérivé déterministe, les meshes Bevy, le shader PBR trois couches et le debug chunks/LOD. Voir
+`docs/evidence/gate1/R1_001_TERRAIN_DOCUMENT.md` et
+`docs/evidence/gate1/R1_002_005_008_TERRAIN_RENDERING.md`. `R1-006` et `R1-007` restent ouverts ;
+Gate 1 reste ouverte.
 
 ## But
 
@@ -322,13 +324,13 @@ qualité                   Low / Medium / High / Ultra
 ## R1-A — Terrain
 
 - [x] `R1-001` Document de terrain versionné.
-- [ ] `R1-002` Découpage en chunks.
-- [ ] `R1-003` Mesh et normales.
-- [ ] `R1-004` Trois matériaux PBR minimum.
-- [ ] `R1-005` Blend par masques.
+- [x] `R1-002` Découpage en chunks.
+- [x] `R1-003` Mesh et normales.
+- [x] `R1-004` Trois matériaux PBR minimum.
+- [x] `R1-005` Blend par masques.
 - [ ] `R1-006` collisions locales.
 - [ ] `R1-007` mise à jour partielle.
-- [ ] `R1-008` debug chunks/LOD.
+- [x] `R1-008` debug chunks/LOD.
 
 ## R1-B — Végétation GPU
 
