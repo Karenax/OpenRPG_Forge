@@ -14,6 +14,7 @@ mod terrain_update;
 mod vegetation;
 mod visual_valley;
 mod water;
+mod weather;
 
 pub use environment::{
     EnvironmentDistanceFogStats, EnvironmentProjectionStats, EnvironmentProjectionStatus,
@@ -61,6 +62,12 @@ pub use water::{
     VISUAL_VALLEY_WATER_CLEARANCE_M, VisualValleyRiverBankSurface, VisualValleyWaterPlugin,
     VisualValleyWaterSurface, WaterAdapterError, WaterProjectionStats,
     WaterRuntimeObservationStatus,
+};
+pub use weather::{
+    MAX_WEATHER_BATCH_DROPS, VisualValleyRainBatch, VisualValleyRainExtension,
+    VisualValleyRainMaterial, VisualValleyWeatherPlugin, WeatherAdapterError,
+    WeatherPostProcessingStats, WeatherProjectionStats, WeatherProjectionStatus, WeatherRainStats,
+    WeatherRuntimeState, WeatherWetnessStats,
 };
 
 use bevy::{

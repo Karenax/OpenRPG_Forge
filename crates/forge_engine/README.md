@@ -33,3 +33,14 @@ and the optional `visual_valley` section of the metrics ledger. The shared legac
 canonical terrain document as `source_entities` and the 64 derived Bevy meshes as
 `source_mesh_instances`; neither field is a GPU draw-call count. Chunk/LOD boundaries use a dedicated
 opt-in gizmo group, never Bevy wireframe rendering.
+
+`VisualValleyWeatherPlugin` projects the versioned clear/rain contract without adding an asset or a
+second particle dependency. The selected quality tier becomes one procedural cross-quad mesh and one
+ECS batch entity; a WGSL vertex pass wraps every seeded streak inside a camera-relative volume. The
+public `WeatherRuntimeState` accepts deterministic clear/rain targets. Its scalar wetness is copied to
+terrain and vegetation material extensions, where zero is an identity and a completed dry transition
+restores the exact authored clear scalar. Bloom and color grading use bounded Bevy 0.19 components.
+
+`WeatherProjectionStats` observes main-world entities, camera components and CPU material uniforms.
+It deliberately reports GPU execution, native/WebGPU visual review, splashes/occlusion and advanced
+puddle response as deferred; those require the later runtime/Studio capture and qualification lot.

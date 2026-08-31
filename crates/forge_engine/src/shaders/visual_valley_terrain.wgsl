@@ -24,6 +24,7 @@ struct VisualValleyTerrainExtension {
     grass_metallic_reflectance: vec4<f32>,
     earth_metallic_reflectance: vec4<f32>,
     rock_metallic_reflectance: vec4<f32>,
+    wetness_parameters: vec4<f32>,
 }
 
 @group(#{MATERIAL_BIND_GROUP}) @binding(100)
@@ -80,8 +81,23 @@ fn fragment(
         weights,
     );
 
-    pbr_input.material.base_color = vec4(base_color, 1.0);
-    pbr_input.material.perceptual_roughness = clamp(perceptual_roughness, 0.04, 1.0);
+    let wetness = clamp(visual_valley.wetness_parameters.x, 0.0, 1.0);
+    let wet_albedo_multiplier = mix(
+        1.0,
+        visual_valley.wetness_parameters.z,
+        wetness,
+    );
+    let wet_roughness_multiplier = mix(
+        1.0,
+        visual_valley.wetness_parameters.y,
+        wetness,
+    );
+    pbr_input.material.base_color = vec4(base_color * wet_albedo_multiplier, 1.0);
+    pbr_input.material.perceptual_roughness = clamp(
+        perceptual_roughness * wet_roughness_multiplier,
+        0.04,
+        1.0,
+    );
     pbr_input.material.metallic = clamp(metallic, 0.0, 1.0);
     pbr_input.material.reflectance = vec3(clamp(reflectance, 0.0, 1.0));
     pbr_input.material.base_color = alpha_discard(

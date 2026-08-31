@@ -126,6 +126,9 @@ pub struct VisualValleyTerrainExtension {
     pub earth_metallic_reflectance: Vec4,
     #[uniform(100)]
     pub rock_metallic_reflectance: Vec4,
+    /// X is scalar wetness; Y/Z are the full-wet roughness/albedo multipliers.
+    #[uniform(100)]
+    pub wetness_parameters: Vec4,
 }
 
 impl Default for VisualValleyTerrainExtension {
@@ -139,6 +142,8 @@ impl Default for VisualValleyTerrainExtension {
             grass_metallic_reflectance: Vec4::new(0.0, 0.36, 0.0, 0.0),
             earth_metallic_reflectance: Vec4::new(0.0, 0.40, 0.0, 0.0),
             rock_metallic_reflectance: Vec4::new(0.015, 0.48, 0.0, 0.0),
+            // A zero wetness scalar is an exact identity for the original material output.
+            wetness_parameters: Vec4::new(0.0, 1.0, 1.0, 0.0),
         }
     }
 }

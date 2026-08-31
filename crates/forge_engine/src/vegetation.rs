@@ -361,6 +361,9 @@ pub struct VisualValleyVegetationExtension {
     /// XYZ is a normalized horizontal wind direction.
     #[uniform(100)]
     pub wind_direction: Vec4,
+    /// X is scalar wetness; Y/Z are the full-wet roughness/albedo multipliers.
+    #[uniform(100)]
+    pub wetness_parameters: Vec4,
 }
 
 impl Default for VisualValleyVegetationExtension {
@@ -376,6 +379,8 @@ impl Default for VisualValleyVegetationExtension {
             interaction_center_radius: Vec4::ZERO,
             interaction_direction_strength: Vec4::ZERO,
             wind_direction: Vec4::new(0.82, 0.0, 0.57, 0.0),
+            // A zero wetness scalar is an exact identity for the original material output.
+            wetness_parameters: Vec4::new(0.0, 1.0, 1.0, 0.0),
         }
     }
 }
@@ -1599,6 +1604,7 @@ fn update_vegetation_interaction_uniform(
     );
     let mut extension =
         VisualValleyVegetationExtension::from_profile_and_interaction(profile.0, bounded);
+    extension.wetness_parameters = material.extension.wetness_parameters;
     let wrap_period = time.wrap_period().as_secs_f32();
     let current_time = finite_clamp(time.elapsed_secs_wrapped(), 0.0, wrap_period);
     let previous_time =

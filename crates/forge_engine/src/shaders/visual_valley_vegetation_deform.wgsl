@@ -29,6 +29,7 @@ struct VisualValleyVegetationExtension {
     interaction_center_radius: vec4<f32>,
     interaction_direction_strength: vec4<f32>,
     wind_direction: vec4<f32>,
+    wetness_parameters: vec4<f32>,
 }
 
 @group(#{MATERIAL_BIND_GROUP}) @binding(100)
@@ -254,12 +255,14 @@ fn fragment(
     let palette = vec3(1.0, 0.0, 0.0);
 #endif
 
-    pbr_input.material.base_color = vec4(
+    let dry_base_color =
         vegetation.primary_color_roughness.rgb * palette.x
             + vegetation.secondary_color_roughness.rgb * palette.y
-            + vegetation.bark_color_roughness.rgb * palette.z,
-        1.0,
-    );
+            + vegetation.bark_color_roughness.rgb * palette.z;
+    let wetness = clamp(vegetation.wetness_parameters.x, 0.0, 1.0);
+    let wet_albedo_multiplier = mix(1.0, vegetation.wetness_parameters.z, wetness);
+    let wet_roughness_multiplier = mix(1.0, vegetation.wetness_parameters.y, wetness);
+    pbr_input.material.base_color = vec4(dry_base_color * wet_albedo_multiplier, 1.0);
     pbr_input.material.perceptual_roughness = clamp(
         dot(
             vec3(
@@ -268,7 +271,7 @@ fn fragment(
                 vegetation.bark_color_roughness.a,
             ),
             palette,
-        ),
+        ) * wet_roughness_multiplier,
         0.04,
         1.0,
     );
