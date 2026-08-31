@@ -2,6 +2,13 @@
 
 //! Engine-neutral primitives shared by Forge documents and tools.
 
+mod frame_distribution;
+
+pub use frame_distribution::{
+    FRAME_DISTRIBUTION_SCHEMA, FRAME_DISTRIBUTION_SCHEMA_VERSION, FRAME_TIME_30_FPS_BUDGET_MS,
+    FRAME_TIME_60_FPS_BUDGET_MS, FrameDistribution, FrameDistributionError, FrameTimeHistogram,
+};
+
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use sha2::{Digest, Sha256};
 use std::fmt;
