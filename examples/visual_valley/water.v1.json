@@ -1,0 +1,136 @@
+{
+  "schema": "forge.water",
+  "schema_version": 1,
+  "project_id": "156abf3c-028c-5bb6-be3a-facc417a29bc",
+  "area_id": "55b4fcee-2e80-5855-aafa-d1942158ff67",
+  "revision": 1,
+  "coordinate_system": {
+    "length_unit": "metre",
+    "up_axis": "y",
+    "handedness": "right"
+  },
+  "name": "Visual Valley river",
+  "seed": 5929365240144680497,
+  "river": {
+    "algorithm": "centripetal_catmull_rom_v1",
+    "sample_spacing_m": 2.0,
+    "control_points": [
+      {
+        "center_m": {
+          "x": -232.0,
+          "y": 10.2,
+          "z": -168.0
+        },
+        "surface_width_m": 12.0,
+        "bed_depth_m": 2.2
+      },
+      {
+        "center_m": {
+          "x": -170.0,
+          "y": 9.8,
+          "z": -132.0
+        },
+        "surface_width_m": 13.0,
+        "bed_depth_m": 2.5
+      },
+      {
+        "center_m": {
+          "x": -112.0,
+          "y": 9.4,
+          "z": -82.0
+        },
+        "surface_width_m": 14.5,
+        "bed_depth_m": 2.8
+      },
+      {
+        "center_m": {
+          "x": -48.0,
+          "y": 9.0,
+          "z": -36.0
+        },
+        "surface_width_m": 16.0,
+        "bed_depth_m": 3.2
+      },
+      {
+        "center_m": {
+          "x": 18.0,
+          "y": 8.6,
+          "z": 4.0
+        },
+        "surface_width_m": 17.0,
+        "bed_depth_m": 3.6
+      },
+      {
+        "center_m": {
+          "x": 84.0,
+          "y": 8.2,
+          "z": 52.0
+        },
+        "surface_width_m": 18.0,
+        "bed_depth_m": 4.0
+      },
+      {
+        "center_m": {
+          "x": 154.0,
+          "y": 7.8,
+          "z": 108.0
+        },
+        "surface_width_m": 17.0,
+        "bed_depth_m": 4.2
+      },
+      {
+        "center_m": {
+          "x": 226.0,
+          "y": 7.4,
+          "z": 166.0
+        },
+        "surface_width_m": 19.0,
+        "bed_depth_m": 4.0
+      }
+    ]
+  },
+  "surface": {
+    "shallow_color_srgb": {
+      "red": 0.12,
+      "green": 0.42,
+      "blue": 0.46
+    },
+    "deep_color_srgb": {
+      "red": 0.02,
+      "green": 0.13,
+      "blue": 0.21
+    },
+    "opacity": 0.84,
+    "roughness": 0.16,
+    "flow_speed_mps": 0.72,
+    "wave_amplitude_m": 0.12,
+    "wave_length_m": 5.5,
+    "normal_strength": 0.62
+  },
+  "banks": {
+    "shoulder_width_m": 5.0,
+    "blend_width_m": 9.0,
+    "wet_margin_m": 1.8,
+    "horizontal_to_vertical_slope": 2.8,
+    "erosion_amplitude_m": 0.55,
+    "erosion_frequency_cycles_per_m": 0.028
+  },
+  "optics": {
+    "quality": "high",
+    "reflection": {
+      "mode": "screen_space",
+      "intensity": 0.72,
+      "max_steps": 48,
+      "max_distance_m": 96.0,
+      "thickness_m": 0.9
+    },
+    "refraction": {
+      "mode": "screen_space",
+      "strength": 0.18,
+      "max_steps": 24,
+      "max_depth_m": 3.2
+    },
+    "reflection_fallback": "environment_then_disabled",
+    "refraction_fallback": "surface_tint"
+  }
+}

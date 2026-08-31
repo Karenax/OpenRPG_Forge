@@ -6,6 +6,7 @@ mod environment;
 mod player;
 mod terrain;
 mod vegetation;
+mod water;
 
 pub use environment::{
     DistanceFogFalloff, DistanceFogProfile, ENVIRONMENT_PROFILE_SCHEMA,
@@ -38,6 +39,15 @@ pub use vegetation::{
     VegetationDocumentError, VegetationExclusion, VegetationExclusionId, VegetationExtent,
     VegetationKind, VegetationLayer, VegetationLayerId, VegetationMaterialFilter,
     VegetationPresentationProfile,
+};
+pub use water::{
+    MAX_RIVER_CONTROL_POINTS, MAX_RIVER_SAMPLE_COUNT, MAX_WATER_DOCUMENT_JSON_BYTES,
+    MIN_RIVER_CONTROL_POINTS, ResolvedWaterReflectionPath, ResolvedWaterRefractionPath,
+    RiverBankProfile, RiverControlPoint, RiverPathAlgorithm, RiverProfile, WATER_DOCUMENT_SCHEMA,
+    WATER_DOCUMENT_SCHEMA_VERSION, WaterDocument, WaterDocumentError, WaterOpticsCapabilities,
+    WaterOpticsCapabilityStatus, WaterOpticsProfile, WaterOpticsResolution, WaterQualityTier,
+    WaterReflectionFallback, WaterReflectionProfile, WaterRefractionFallback,
+    WaterRefractionProfile, WaterSrgbColor, WaterSurfaceProfile,
 };
 
 use forge_core::{
