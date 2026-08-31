@@ -290,12 +290,13 @@ et sans transformer une acquisition automatisée en revue humaine.
 
 Statut : **OUVERTE** après le passage automatisé local de Gate 0 sous ADR-0004, ADR-0005 et ADR-0006.
 
-Progression au commit `4e8364b1f05fb2826cfb19025b13e180e8db46a0` : `R1-001` reste qualifié,
-puis `R1-002`, `R1-003`, `R1-004`, `R1-005` et `R1-008` sont passés localement par le terrain
-dérivé déterministe, les meshes Bevy, le shader PBR trois couches et le debug chunks/LOD. Voir
+Progression au commit `decbb78f771130b5c69c82c858df29f606164f7b` : `R1-001` reste qualifié,
+puis `R1-002`, `R1-003`, `R1-004`, `R1-005`, `R1-006` et `R1-008` sont passés localement par le
+terrain dérivé déterministe, les meshes Bevy, le shader PBR trois couches, le debug chunks/LOD et les
+64 heightfields Rapier locaux. Voir
 `docs/evidence/gate1/R1_001_TERRAIN_DOCUMENT.md` et
-`docs/evidence/gate1/R1_002_005_008_TERRAIN_RENDERING.md`. `R1-006` et `R1-007` restent ouverts ;
-Gate 1 reste ouverte.
+`docs/evidence/gate1/R1_002_005_008_TERRAIN_RENDERING.md`, puis
+`docs/evidence/gate1/R1_006_TERRAIN_PHYSICS.md`. `R1-007` reste ouvert ; Gate 1 reste ouverte.
 
 ## But
 
@@ -328,7 +329,7 @@ qualité                   Low / Medium / High / Ultra
 - [x] `R1-003` Mesh et normales.
 - [x] `R1-004` Trois matériaux PBR minimum.
 - [x] `R1-005` Blend par masques.
-- [ ] `R1-006` collisions locales.
+- [x] `R1-006` collisions locales.
 - [ ] `R1-007` mise à jour partielle.
 - [x] `R1-008` debug chunks/LOD.
 
