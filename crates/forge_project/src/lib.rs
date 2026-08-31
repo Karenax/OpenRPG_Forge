@@ -2,9 +2,18 @@
 
 //! Versioned source-of-truth documents used by both native and WASM consumers.
 
+mod environment;
 mod player;
 mod terrain;
 mod vegetation;
+
+pub use environment::{
+    DistanceFogFalloff, DistanceFogProfile, ENVIRONMENT_PROFILE_SCHEMA,
+    ENVIRONMENT_PROFILE_SCHEMA_VERSION, EnvironmentFogResolution, EnvironmentProfileDocument,
+    EnvironmentProfileError, EnvironmentQualityTier, MAX_ENVIRONMENT_PROFILE_JSON_BYTES,
+    SkyProfile, SrgbColor, SunProfile, VolumetricFogCapability, VolumetricFogFallback,
+    VolumetricFogProfile,
+};
 
 pub use player::{
     PLAYER_CONTROLLER_PROFILE_SCHEMA, PLAYER_CONTROLLER_PROFILE_SCHEMA_VERSION,

@@ -2,10 +2,16 @@
 
 //! Deterministic world recipes. Rendering remains an adapter responsibility.
 
+mod environment;
 mod player;
 mod terrain;
 mod terrain_generation;
 mod vegetation;
+
+pub use environment::{
+    VISUAL_VALLEY_ENVIRONMENT_JSON, VisualValleyEnvironmentRecipe,
+    embedded_visual_valley_environment_profile,
+};
 
 pub use player::{
     VISUAL_VALLEY_PLAYER_CONTROLLER_JSON, VisualValleyPlayerControllerRecipe,
