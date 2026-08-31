@@ -119,8 +119,63 @@ struct DiagnosticsOverlay;
 #[derive(Resource, Default)]
 struct AdapterLogged(bool);
 
-#[derive(Resource, Default)]
-struct FrameLedger(Vec<f64>);
+#[derive(Resource)]
+struct FrameLedger {
+    samples_ms: Vec<f64>,
+    first_frame: Option<u32>,
+    last_frame: Option<u32>,
+    last_recorded_frame: Option<u32>,
+    sample_limit: usize,
+}
+
+impl FrameLedger {
+    fn for_automation(automation: &RuntimeAutomation) -> Self {
+        let sample_window = automation
+            .metrics_path
+            .as_ref()
+            .and(automation.exit_after_frames)
+            .filter(|last_frame| *last_frame > automation.metrics_warmup_frames)
+            .map(|last_frame| {
+                let first_frame = automation.metrics_warmup_frames + 1;
+                let sample_count = last_frame - automation.metrics_warmup_frames;
+                let sample_limit = usize::try_from(sample_count)
+                    .unwrap_or(MAX_FRAME_LEDGER_SAMPLES)
+                    .min(MAX_FRAME_LEDGER_SAMPLES);
+                (first_frame, last_frame, sample_limit)
+            });
+        let (first_frame, last_frame, sample_limit) = sample_window.map_or(
+            (None, None, 0),
+            |(first_frame, last_frame, sample_limit)| {
+                (Some(first_frame), Some(last_frame), sample_limit)
+            },
+        );
+        Self {
+            samples_ms: Vec::with_capacity(sample_limit),
+            first_frame,
+            last_frame,
+            last_recorded_frame: None,
+            sample_limit,
+        }
+    }
+
+    fn record(&mut self, frame: u32, frame_ms: f64) {
+        let inside_window = self
+            .first_frame
+            .zip(self.last_frame)
+            .is_some_and(|(first_frame, last_frame)| (first_frame..=last_frame).contains(&frame));
+        if inside_window
+            && self.samples_ms.len() < self.sample_limit
+            && self
+                .last_recorded_frame
+                .is_none_or(|last_recorded_frame| frame > last_recorded_frame)
+            && frame_ms.is_finite()
+            && frame_ms > 0.0
+        {
+            self.samples_ms.push(frame_ms);
+            self.last_recorded_frame = Some(frame);
+        }
+    }
+}
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
 struct WindowStateReport {
@@ -214,6 +269,7 @@ struct RenderWorkReport {
 }
 
 const GPU_DRAW_CALL_STATUS: &str = "unavailable_bevy_0_19_no_global_counter";
+const MAX_FRAME_LEDGER_SAMPLES: usize = 1_000_000;
 
 /// Installs the document adapter, diagnostics, deterministic capture and bounded-exit harness.
 pub struct ProofScenePlugin {
@@ -238,13 +294,13 @@ impl RuntimeEvidencePlugin {
 impl Plugin for RuntimeEvidencePlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(self.automation.clone())
+            .insert_resource(FrameLedger::for_automation(&self.automation))
             .insert_resource(WindowLifecycle::new(
                 self.automation.resize_request,
                 self.automation.close_at_frame,
             ))
             .init_resource::<ProofSceneStats>()
             .init_resource::<AdapterLogged>()
-            .init_resource::<FrameLedger>()
             .add_plugins((
                 FrameTimeDiagnosticsPlugin::default(),
                 EntityCountDiagnosticsPlugin::default(),
@@ -939,16 +995,10 @@ fn capture_at_requested_frame(
 )]
 fn collect_frame_sample(
     frame: Res<bevy::diagnostic::FrameCount>,
-    automation: Res<RuntimeAutomation>,
     time: Res<Time<Real>>,
     mut ledger: ResMut<FrameLedger>,
 ) {
-    if frame.0 > automation.metrics_warmup_frames {
-        let frame_ms = time.delta_secs_f64() * 1_000.0;
-        if frame_ms.is_finite() && frame_ms > 0.0 {
-            ledger.0.push(frame_ms);
-        }
-    }
+    ledger.record(frame.0, time.delta_secs_f64() * 1_000.0);
 }
 
 #[allow(
@@ -1020,7 +1070,7 @@ fn write_metrics_and_exit(
     if let Some(path) = &automation.metrics_path {
         let final_window = windows.single().ok().map(window_state_report);
         match build_runtime_metrics(
-            &ledger.0,
+            &ledger.samples_ms,
             &stats,
             visual_valley.as_deref(),
             gpu.as_deref(),
@@ -1037,7 +1087,7 @@ fn write_metrics_and_exit(
                     schema_version = 1_u64,
                     event_kind = "runtime_metrics_written",
                     path = %path.display(),
-                    samples = ledger.0.len(),
+                    samples = ledger.samples_ms.len(),
                     "runtime metrics written"
                 );
             }
@@ -1177,6 +1227,62 @@ fn write_metrics(path: &PathBuf, report: &RuntimeMetricsReport) -> Result<(), St
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn bounded_metrics_automation(warmup: u32, last_frame: Option<u32>) -> RuntimeAutomation {
+        RuntimeAutomation {
+            metrics_path: Some(PathBuf::from("frame-ledger-test.json")),
+            metrics_warmup_frames: warmup,
+            exit_after_frames: last_frame,
+            ..default()
+        }
+    }
+
+    #[test]
+    fn frame_ledger_is_disabled_without_both_metrics_and_a_bounded_exit() {
+        let mut without_metrics = FrameLedger::for_automation(&RuntimeAutomation {
+            metrics_warmup_frames: 2,
+            exit_after_frames: Some(8),
+            ..default()
+        });
+        let mut without_exit = FrameLedger::for_automation(&bounded_metrics_automation(2, None));
+
+        for frame in 0..=32 {
+            without_metrics.record(frame, 8.0);
+            without_exit.record(frame, 8.0);
+        }
+
+        assert!(without_metrics.samples_ms.is_empty());
+        assert!(without_exit.samples_ms.is_empty());
+        assert_eq!(without_metrics.sample_limit, 0);
+        assert_eq!(without_exit.sample_limit, 0);
+    }
+
+    #[test]
+    fn frame_ledger_records_the_exact_post_warmup_bounded_window_once() {
+        let mut ledger = FrameLedger::for_automation(&bounded_metrics_automation(2, Some(5)));
+
+        ledger.record(2, 9.0);
+        ledger.record(3, 10.0);
+        ledger.record(3, 11.0);
+        ledger.record(4, f64::NAN);
+        ledger.record(4, 12.0);
+        ledger.record(5, 14.0);
+        ledger.record(6, 16.0);
+
+        assert_eq!(ledger.first_frame, Some(3));
+        assert_eq!(ledger.last_frame, Some(5));
+        assert_eq!(ledger.sample_limit, 3);
+        assert_eq!(ledger.samples_ms, vec![10.0, 12.0, 14.0]);
+    }
+
+    #[test]
+    fn frame_ledger_hard_cap_bounds_extreme_automation_requests() {
+        let ledger = FrameLedger::for_automation(&bounded_metrics_automation(0, Some(u32::MAX)));
+
+        assert_eq!(ledger.sample_limit, MAX_FRAME_LEDGER_SAMPLES);
+        assert_eq!(ledger.first_frame, Some(1));
+        assert_eq!(ledger.last_frame, Some(u32::MAX));
+    }
 
     #[test]
     fn domain_transform_conversion_keeps_all_components() {
