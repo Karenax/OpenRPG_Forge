@@ -2,6 +2,7 @@
 
 //! Bevy rendering adapter for shared Forge documents.
 
+mod environment;
 #[cfg(feature = "physics-rapier")]
 mod physics;
 #[cfg(feature = "physics-rapier")]
@@ -13,6 +14,11 @@ mod terrain_update;
 mod vegetation;
 mod visual_valley;
 
+pub use environment::{
+    EnvironmentDistanceFogStats, EnvironmentProjectionStats, EnvironmentProjectionStatus,
+    EnvironmentSkyStats, EnvironmentSunStats, EnvironmentVolumetricStats,
+    VisualValleyEnvironmentPlugin,
+};
 #[cfg(feature = "physics-rapier")]
 pub(crate) use physics::build_terrain_heightfield_collider;
 #[cfg(feature = "physics-rapier")]

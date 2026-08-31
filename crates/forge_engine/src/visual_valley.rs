@@ -390,7 +390,7 @@ struct VisualValleyOverviewCamera;
 struct VisualValleyOverviewCameraEnabled(bool);
 
 #[derive(Component)]
-struct VisualValleySun;
+pub(crate) struct VisualValleySun;
 
 fn prepare_visual_valley(
     document: &TerrainDocument,
