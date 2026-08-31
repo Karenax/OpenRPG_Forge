@@ -290,16 +290,19 @@ et sans transformer une acquisition automatisée en revue humaine.
 
 Statut : **OUVERTE** après le passage automatisé local de Gate 0 sous ADR-0004, ADR-0005 et ADR-0006.
 
-Progression au commit `889f28df46b1a3a66da4e3a0cef075d790e26f6c` : `R1-001` reste qualifié,
+Progression au commit `3bb82b2b802c591c5870dbad691f7e98a3e51534` : `R1-001` reste qualifié,
 puis `R1-002` à `R1-008` sont passés fonctionnellement localement par le terrain dérivé
 déterministe, les meshes Bevy, le shader PBR trois couches, le debug chunks/LOD, les 64 heightfields
 Rapier et une transaction partielle qui régénère 3 meshes et 1 collider sans remplacer les 64
-identités runtime. Voir
+identités runtime. `R1-027` à `R1-031` ajoutent le contrôleur Rapier, les pentes/marches, une caméra
+troisième personne avec occlusion et le basculement première personne sur une seule entité caméra.
+Voir
 `docs/evidence/gate1/R1_001_TERRAIN_DOCUMENT.md` et
 `docs/evidence/gate1/R1_002_005_008_TERRAIN_RENDERING.md`, puis
 `docs/evidence/gate1/R1_006_TERRAIN_PHYSICS.md` et
-`docs/evidence/gate1/R1_007_TERRAIN_PARTIAL_UPDATE.md`. R1-007 est qualifié localement sous ADR-0006
-par 97/97 tests workspace et un probe natif ECS/Rapier ; Gate 1 reste ouverte.
+`docs/evidence/gate1/R1_007_TERRAIN_PARTIAL_UPDATE.md`, enfin
+`docs/evidence/gate1/R1_027_031_PLAYER_CAMERA.md`. Le lot joueur/caméra est qualifié localement sous
+ADR-0006 par 135/135 tests workspace et un probe natif ECS/Rapier ; Gate 1 reste ouverte.
 
 ## But
 
@@ -362,11 +365,11 @@ qualité                   Low / Medium / High / Ultra
 
 ## R1-D — Personnage et caméra
 
-- [ ] `R1-027` contrôleur personnage Rapier.
-- [ ] `R1-028` pente et marches.
-- [ ] `R1-029` caméra troisième personne.
-- [ ] `R1-030` occlusion caméra.
-- [ ] `R1-031` option première personne.
+- [x] `R1-027` contrôleur personnage Rapier — profil v1 strict, commandes séquencées et probe natif.
+- [x] `R1-028` pente et marches — seuils, glisse, saut et atterrissage couverts automatiquement.
+- [x] `R1-029` caméra troisième personne — entité stable, pose, FOV et suivi profilés.
+- [x] `R1-030` occlusion caméra — sphere cast, exclusions, rapprochement et récupération monotone.
+- [x] `R1-031` option première personne — même entité, visibilité, hauteur d'yeux et retour 3P vérifiés.
 - [ ] `R1-032` interaction végétation.
 - [ ] `R1-033` animation minimale si asset disponible.
 
