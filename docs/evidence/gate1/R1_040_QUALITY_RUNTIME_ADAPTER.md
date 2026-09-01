@@ -45,6 +45,12 @@ applique le cooldown, borne les tiers à `minimum_tier..=maximum_tier` et ne cha
 transition. Les valeurs de démarrage qui nécessitent une reconstruction de mesh ou de ressource
 restent identifiées comme telles dans le ledger quand le tier courant change.
 
+La transaction ECS complète s'exécute uniquement au démarrage et lors d'un changement de tier ; le
+ledger continue toutefois de synchroniser ses compteurs à chaque frame. Bloom, color grading et la
+visibilité pluie consultent le preset courant dans le système météo : une transition Low vers
+Medium/High réinstalle le Bloom avec les paramètres authored du profil météo. Le test ECS démontre
+qu'à tier stable la transaction qualité ne marque pas de nouveau ses composants comme modifiés.
+
 ## Validation
 
 Exécution locale Windows depuis le worktree détaché :
@@ -52,6 +58,7 @@ Exécution locale Windows depuis le worktree détaché :
 | Commande | Résultat |
 |---|---|
 | `cargo test -p forge_project quality --lib` | succès, 7 passés, 0 échec, 37 filtrés |
+| `cargo test -p forge_engine quality::tests --lib` | succès, 5 passés, 0 échec, 88 filtrés ; retrait/réactivation et stabilité ECS couverts |
 | `cargo test -p forge_engine --lib` | succès, 93 passés, 0 échec |
 | `cargo test -p forge_runtime` | succès, 29 unitaires + 1 intégration, 0 échec |
 | `cargo test -p forge_studio --lib` | succès, 20 passés, 0 échec |

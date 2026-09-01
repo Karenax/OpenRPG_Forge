@@ -1,3 +1,4 @@
+use crate::VisualValleyQualityStats;
 use crate::{VisualValleyTerrainMaterial, VisualValleyVegetationMaterial};
 use bevy::{
     asset::{RenderAssetUsages, embedded_asset},
@@ -83,7 +84,7 @@ pub struct WeatherRuntimeState {
 }
 
 impl WeatherRuntimeState {
-    fn at_state(document: &WeatherProfileDocument, state: WeatherState) -> Self {
+    pub(crate) fn at_state(document: &WeatherProfileDocument, state: WeatherState) -> Self {
         Self {
             target_state: state,
             current_wetness: document.wetness.target_for(state),
@@ -364,9 +365,9 @@ const fn weather_quality_tier(tier: VisualQualityTier) -> WeatherQualityTier {
 }
 
 #[derive(Clone, Debug, Resource)]
-struct VisualValleyWeatherProfile {
-    document: WeatherProfileDocument,
-    source_hash: String,
+pub(crate) struct VisualValleyWeatherProfile {
+    pub(crate) document: WeatherProfileDocument,
+    pub(crate) source_hash: String,
 }
 
 #[derive(Clone, Copy, Debug, Resource)]
@@ -633,6 +634,7 @@ fn advance_runtime(
 fn project_rain_batch(
     profile: Res<VisualValleyWeatherProfile>,
     state: Res<WeatherRuntimeState>,
+    quality: Option<Res<VisualValleyQualityStats>>,
     material_handle: Option<Res<RainBatchMaterial>>,
     mut materials: ResMut<Assets<VisualValleyRainMaterial>>,
     cameras: Query<(&Camera, &GlobalTransform), With<Camera3d>>,
@@ -659,8 +661,11 @@ fn project_rain_batch(
         .map(|(_, transform)| transform.translation());
     let active_camera = active_cameras.next();
     let single_active_camera = active_camera.filter(|_| active_cameras.next().is_none());
+    let rain_enabled = quality
+        .as_deref()
+        .is_none_or(|quality| quality.requested_preset.rain.enabled);
     for (mut transform, mut visibility) in &mut batches {
-        *visibility = if precipitation > 0.0 {
+        *visibility = if precipitation > 0.0 && rain_enabled {
             Visibility::Visible
         } else {
             Visibility::Hidden
@@ -703,6 +708,7 @@ fn project_post_processing(
     mut commands: Commands,
     profile: Res<VisualValleyWeatherProfile>,
     state: Res<WeatherRuntimeState>,
+    quality: Option<Res<VisualValleyQualityStats>>,
     cameras: Query<(Entity, &Camera), With<Camera3d>>,
     mut binding: ResMut<WeatherCameraBinding>,
 ) {
@@ -724,17 +730,25 @@ fn project_post_processing(
 
     let precipitation = precipitation_factor(&profile.document, state.current_wetness);
     let grade = interpolated_grade(&profile.document, precipitation);
-    commands
-        .entity(camera)
-        .insert(color_grading_component(grade));
-    if profile.document.post_processing.bloom.enabled {
-        let bloom = profile.document.post_processing.bloom;
-        commands.entity(camera).insert(Bloom {
-            intensity: bloom.intensity,
-            low_frequency_boost: bloom.low_frequency_boost,
-            high_pass_frequency: bloom.high_pass_frequency,
-            ..Bloom::NATURAL
+    let color_grading_enabled = quality
+        .as_deref()
+        .is_none_or(|quality| quality.requested_preset.post_process.color_grading_enabled);
+    if color_grading_enabled {
+        commands
+            .entity(camera)
+            .insert(color_grading_component(grade));
+    } else {
+        commands.entity(camera).remove::<ColorGrading>();
+    }
+    let bloom_enabled = quality
+        .as_deref()
+        .map_or(profile.document.post_processing.bloom.enabled, |quality| {
+            quality.requested_preset.post_process.bloom_enabled
         });
+    if bloom_enabled {
+        commands
+            .entity(camera)
+            .insert(visual_valley_bloom_component(&profile.document));
     } else {
         commands.entity(camera).remove::<Bloom>();
     }
@@ -750,6 +764,7 @@ fn project_post_processing(
 fn observe_weather_projection(
     profile: Res<VisualValleyWeatherProfile>,
     runtime: Res<WeatherRuntimeState>,
+    quality: Option<Res<VisualValleyQualityStats>>,
     plan: Res<RainBatchPlan>,
     cameras: Query<
         (
@@ -853,7 +868,11 @@ fn observe_weather_projection(
         post_processing: WeatherPostProcessingStats {
             camera_3d_entities,
             active_camera_3d_entities,
-            bloom_requested: profile.document.post_processing.bloom.enabled,
+            bloom_requested: quality
+                .as_deref()
+                .map_or(profile.document.post_processing.bloom.enabled, |quality| {
+                    quality.requested_preset.post_process.bloom_enabled
+                }),
             bloom_component_present: active
                 .first()
                 .is_some_and(|(_, _, bloom, _)| bloom.is_some()),
@@ -936,6 +955,24 @@ fn interpolated_grade(document: &WeatherProfileDocument, precipitation: f32) -> 
         contrast: clear.contrast.lerp(rain.contrast, precipitation),
         gamma: clear.gamma.lerp(rain.gamma, precipitation),
     }
+}
+
+pub(crate) fn visual_valley_bloom_component(document: &WeatherProfileDocument) -> Bloom {
+    let bloom = document.post_processing.bloom;
+    Bloom {
+        intensity: bloom.intensity,
+        low_frequency_boost: bloom.low_frequency_boost,
+        high_pass_frequency: bloom.high_pass_frequency,
+        ..Bloom::NATURAL
+    }
+}
+
+pub(crate) fn visual_valley_color_grading_component(
+    profile: &VisualValleyWeatherProfile,
+    state: &WeatherRuntimeState,
+) -> ColorGrading {
+    let precipitation = precipitation_factor(&profile.document, state.current_wetness);
+    color_grading_component(interpolated_grade(&profile.document, precipitation))
 }
 
 fn color_grading_component(grade: ColorGradeProfile) -> ColorGrading {

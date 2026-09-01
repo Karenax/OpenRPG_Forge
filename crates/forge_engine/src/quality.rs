@@ -1,15 +1,19 @@
 use crate::vegetation::VegetationPresentation;
 use crate::visual_valley::VisualValleySun;
+use crate::weather::{
+    VisualValleyWeatherProfile, visual_valley_bloom_component,
+    visual_valley_color_grading_component,
+};
 use crate::{
     VegetationChunkBatchMarker, VegetationLodRanges, VegetationPlacementMarker,
     VegetationProjectionLod, VisualValleyRainBatch, VisualValleyShadowObservationStatus,
-    VisualValleyShadowStats,
+    VisualValleyShadowStats, WeatherRuntimeState,
 };
 use bevy::{
-    camera::{Hdr, visibility::VisibilityRange},
+    camera::visibility::VisibilityRange,
     core_pipeline::tonemapping::Tonemapping,
     light::{CascadeShadowConfig, CascadeShadowConfigBuilder, DirectionalLightShadowMap},
-    pbr::{AtmosphereSettings, ContactShadows, ScreenSpaceReflections},
+    pbr::{ContactShadows, ScreenSpaceReflections},
     post_process::bloom::Bloom,
     prelude::*,
     render::view::ColorGrading,
@@ -273,6 +277,7 @@ fn advance_quality_adaptation(
 }
 
 #[allow(
+    clippy::needless_pass_by_value,
     clippy::too_many_arguments,
     clippy::too_many_lines,
     clippy::type_complexity,
@@ -294,6 +299,8 @@ fn apply_quality_tier(
     mut suns: Query<(&mut DirectionalLight, &mut CascadeShadowConfig), With<VisualValleySun>>,
     mut shadow_stats: Option<ResMut<VisualValleyShadowStats>>,
     mut shadow_map: Option<ResMut<DirectionalLightShadowMap>>,
+    weather_profile: Option<Res<VisualValleyWeatherProfile>>,
+    weather_state: Option<Res<WeatherRuntimeState>>,
     cameras: Query<
         (
             Entity,
@@ -301,13 +308,15 @@ fn apply_quality_tier(
             Option<&Bloom>,
             Option<&ColorGrading>,
             Option<&Tonemapping>,
-            Option<&AtmosphereSettings>,
-            Option<&Hdr>,
         ),
         With<Camera3d>,
     >,
     mut rain_batches: Query<&mut Visibility, With<VisualValleyRainBatch>>,
 ) {
+    sync_quality_stats(&runtime, &mut stats);
+    if runtime.last_applied_tier == Some(runtime.current_tier) {
+        return;
+    }
     let preset = runtime.profile.preset(runtime.current_tier).clone();
 
     if let Some(presentation) = presentation.as_deref_mut() {
@@ -378,7 +387,7 @@ fn apply_quality_tier(
         }
     }
 
-    for (camera, ssr, bloom, color_grading, tonemapping, atmosphere, hdr) in &cameras {
+    for (camera, ssr, bloom, color_grading, tonemapping) in &cameras {
         if preset.shadows.contact_shadows_enabled {
             commands.entity(camera).insert(ContactShadows::default());
         } else {
@@ -394,10 +403,29 @@ fn apply_quality_tier(
                 commands.entity(camera).remove::<ScreenSpaceReflections>();
             }
         }
-        if !preset.post_process.bloom_enabled && bloom.is_some() {
+        if preset.post_process.bloom_enabled {
+            if bloom.is_none() {
+                let configured = weather_profile
+                    .as_deref()
+                    .map_or(Bloom::NATURAL, |profile| {
+                        visual_valley_bloom_component(&profile.document)
+                    });
+                commands.entity(camera).insert(configured);
+            }
+        } else if bloom.is_some() {
             commands.entity(camera).remove::<Bloom>();
         }
-        if !preset.post_process.color_grading_enabled && color_grading.is_some() {
+        if preset.post_process.color_grading_enabled {
+            if color_grading.is_none() {
+                let configured = weather_profile
+                    .as_deref()
+                    .zip(weather_state.as_deref())
+                    .map_or_else(ColorGrading::default, |(profile, state)| {
+                        visual_valley_color_grading_component(profile, state)
+                    });
+                commands.entity(camera).insert(configured);
+            }
+        } else if color_grading.is_some() {
             commands.entity(camera).remove::<ColorGrading>();
         }
         if preset.post_process.tonemapping_enabled {
@@ -406,14 +434,6 @@ fn apply_quality_tier(
             }
         } else {
             commands.entity(camera).remove::<Tonemapping>();
-        }
-        if !preset.environment.atmosphere_enabled {
-            if atmosphere.is_some() {
-                commands.entity(camera).remove::<AtmosphereSettings>();
-            }
-            if hdr.is_some() {
-                commands.entity(camera).remove::<Hdr>();
-            }
         }
     }
     for mut visibility in &mut rain_batches {
@@ -603,11 +623,25 @@ mod tests {
     }
 
     #[test]
-    fn low_tier_projects_real_shadow_water_weather_and_post_process_components() {
+    #[allow(
+        clippy::too_many_lines,
+        reason = "one ECS scenario proves both directions and stable-tier change detection"
+    )]
+    fn tier_projection_is_reversible_and_stable_between_transitions() {
         let profile = VisualValleyQualityProfileDocument::from_json(QUALITY_JSON).unwrap();
+        let weather = forge_world::embedded_visual_valley_weather_profile().unwrap();
+        let expected_high_bloom = visual_valley_bloom_component(&weather);
+        let weather_hash = weather.content_hash().unwrap().to_string();
+        let weather_state =
+            WeatherRuntimeState::at_state(&weather, forge_project::WeatherState::Rain);
         let mut app = App::new();
         app.add_plugins(MinimalPlugins)
             .insert_resource(DirectionalLightShadowMap::default())
+            .insert_resource(VisualValleyWeatherProfile {
+                document: weather,
+                source_hash: weather_hash,
+            })
+            .insert_resource(weather_state)
             .add_plugins(VisualValleyQualityPlugin::new(
                 profile,
                 VisualValleyQualitySelection::Fixed(VisualQualityTier::Low),
@@ -648,6 +682,7 @@ mod tests {
         assert!(world.get::<ContactShadows>(camera).is_none());
         assert!(world.get::<ScreenSpaceReflections>(camera).is_none());
         assert!(world.get::<Bloom>(camera).is_none());
+        assert!(world.get::<ColorGrading>(camera).is_some());
         assert_eq!(
             world.get::<Tonemapping>(camera),
             Some(&Tonemapping::TonyMcMapface)
@@ -663,5 +698,58 @@ mod tests {
         let ledger = serde_json::to_value(stats).unwrap();
         assert_eq!(ledger["current_tier"], "low");
         assert_eq!(ledger["selection"]["mode"], "fixed");
+
+        app.world_mut()
+            .resource_mut::<VisualValleyQualityRuntime>()
+            .current_tier = VisualQualityTier::High;
+        app.update();
+
+        let world = app.world();
+        let bloom = world.get::<Bloom>(camera).unwrap();
+        assert_eq!(
+            bloom.intensity.to_bits(),
+            expected_high_bloom.intensity.to_bits()
+        );
+        assert_eq!(
+            bloom.low_frequency_boost.to_bits(),
+            expected_high_bloom.low_frequency_boost.to_bits()
+        );
+        assert_eq!(
+            bloom.high_pass_frequency.to_bits(),
+            expected_high_bloom.high_pass_frequency.to_bits()
+        );
+        assert!(world.get::<ColorGrading>(camera).is_some());
+        assert!(world.get::<ContactShadows>(camera).is_some());
+        assert_eq!(
+            world
+                .get::<ScreenSpaceReflections>(camera)
+                .unwrap()
+                .linear_steps,
+            48
+        );
+        assert_eq!(
+            world
+                .resource::<VisualValleyQualityStats>()
+                .dynamically_applied_tier,
+            Some(VisualQualityTier::High)
+        );
+
+        app.world_mut().clear_trackers();
+        app.update();
+        let world = app.world();
+        assert!(
+            !world
+                .entity(sun)
+                .get_ref::<DirectionalLight>()
+                .unwrap()
+                .is_changed()
+        );
+        assert!(
+            !world
+                .entity(camera)
+                .get_ref::<Bloom>()
+                .unwrap()
+                .is_changed()
+        );
     }
 }
