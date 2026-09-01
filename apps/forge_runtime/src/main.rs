@@ -221,16 +221,20 @@ fn add_runtime_plugin(
             weather,
             quality,
         } => {
+            let visual_proof_enabled = gate1_visual_proof_output.is_some();
             let governed_metrics_required = vegetation.is_some()
                 && environment.is_some()
                 && water.is_some()
                 && weather.is_some()
                 && quality.is_some();
-            let player_profile = player_camera.is_enabled().then(|| {
-                embedded_visual_valley_player_controller_profile().unwrap_or_else(|error| {
-                    panic!("embedded Visual Valley player-controller profile is invalid: {error}")
-                })
-            });
+            let player_profile = player_controller_required(player_camera, visual_proof_enabled)
+                .then(|| {
+                    embedded_visual_valley_player_controller_profile().unwrap_or_else(|error| {
+                        panic!(
+                            "embedded Visual Valley player-controller profile is invalid: {error}"
+                        )
+                    })
+                });
             let player_probe = match (player_camera, player_profile.as_ref()) {
                 (PlayerCameraRuntimeMode::Probe, Some(profile)) => Some(
                     PlayerCameraProbePlugin::new(&document, profile).unwrap_or_else(|error| {
@@ -246,13 +250,10 @@ fn add_runtime_plugin(
                 let weather = weather.as_deref().unwrap_or_else(|| {
                     panic!("Gate 1 visual proof requires the embedded weather profile")
                 });
-                let player =
-                    embedded_visual_valley_player_controller_profile().unwrap_or_else(|error| {
-                        panic!(
-                            "embedded Visual Valley player-controller profile is invalid: {error}"
-                        )
-                    });
-                Gate1VisualProofPlugin::new(output_dir, &document, water, weather, &player)
+                let player = player_profile.as_ref().unwrap_or_else(|| {
+                    panic!("Gate 1 visual proof requires the embedded player-controller profile")
+                });
+                Gate1VisualProofPlugin::new(output_dir, &document, water, weather, player)
                     .unwrap_or_else(|error| {
                         panic!("cannot prepare Gate 1 visual proof harness: {error}")
                     })
@@ -308,6 +309,10 @@ fn add_runtime_plugin(
             if let Some(probe) = &player_probe {
                 visual_valley = visual_valley.with_player_spawn_position(probe.spawn_position());
             }
+            if let Some(proof) = &visual_proof_plugin {
+                visual_valley =
+                    visual_valley.with_player_spawn_position(proof.player_spawn_position());
+            }
 
             app.add_plugins(visual_valley);
             if let Some(environment) = environment {
@@ -343,6 +348,13 @@ fn add_runtime_plugin(
             }
         }
     }
+}
+
+const fn player_controller_required(
+    player_camera: PlayerCameraRuntimeMode,
+    gate1_visual_proof: bool,
+) -> bool {
+    player_camera.is_enabled() || gate1_visual_proof
 }
 
 const GATE0_WINDOW_TITLE: &str = "OpenRPG Forge · Rust Gate 0";
@@ -1396,6 +1408,11 @@ mod tests {
             accepted.quality_selection,
             Some(VisualValleyQualitySelection::Fixed(VisualQualityTier::High))
         );
+        assert!(player_controller_required(
+            accepted.player_camera,
+            accepted.gate1_visual_proof_output.is_some()
+        ));
+        assert!(!accepted.player_camera.is_enabled());
 
         assert_eq!(
             Options::parse(

@@ -55,9 +55,13 @@ forge_runtime --visual-valley --quality high \
 ```
 
 One process waits for stable pipelines, records distant and human-height views, frames the authored
-river in clear weather, transitions to rain, returns exactly to clear, then records 24 deterministic
-terrain-relative proof-camera positions. It writes five fixed PNGs, `movement/frame-000.png` through
-`frame-023.png`, and `gate1-visual-proof.json`.
+river in clear weather, transitions to rain, and returns exactly to clear. It then exercises the
+embedded third-person gameplay controller and Rapier terrain collision at 60 Hz: one forward command
+drives a central-seam crossing, the same `ForgePlayerCamera` is sampled at 24 exact fixed-tick
+checkpoints, and an immediately following stop command must settle inside 30 fixed ticks. The harness
+pauses virtual time and discards fixed overstep while each checkpoint screenshot is acquired. It
+writes five fixed PNGs, `movement/frame-000.png` through `frame-023.png`, and the schema-v2
+`gate1-visual-proof.json` ledger.
 
 The PowerShell validator can run an existing binary, validate all PNGs and endpoint evidence, hash
 the artifacts, and assemble the movement frames as an 8 FPS MP4:
@@ -71,10 +75,12 @@ pwsh -File scripts/Test-Gate1VisualProof.ps1 \
 
 The validator requires a clean worktree before and after acquisition, binds the embedded commit to
 that worktree, records the requested no-VSync mode, GPU/backend/driver and runtime logs, then rejects
-warning, error or panic entries. The movement sequence is an explicit proof-camera path, not a
-gameplay/controller claim. Screenshot acquisition proves that rendered artifacts were produced,
-while the weather ledger remains CPU/ECS projection evidence. For `R1-026`, automation observes the
-mapped color-grade endpoints and only the presence of the requested Bloom component, not numeric
-Bloom parameters or GPU execution. The harness and validator always leave GPU execution
-qualification, comparative visual quality and human review false; their output alone cannot close
-`R1-025`, `R1-026` or `R1-046` through `R1-048`.
+warning, error or panic entries. It validates the controller command sequences, stable player,
+camera and Rapier identities, exact 60 Hz checkpoints, grounded/collision continuity, bounded stop,
+canonical PNG paths, and the 24-frame H.264 artifact. Because the MP4 is assembled at 8 FPS from
+paused checkpoints, it does not qualify real-time stutter. Screenshot acquisition proves only that
+rendered artifacts were produced, while the weather ledger remains CPU/ECS projection evidence. For
+`R1-026`, automation observes the mapped color-grade endpoints and only the presence of the requested
+Bloom component, not numeric Bloom parameters or GPU execution. The harness and validator always
+leave real-time stutter, GPU execution, comparative visual quality and human review false; their
+output alone cannot close `R1-025`, `R1-026` or `R1-046` through `R1-048`.
