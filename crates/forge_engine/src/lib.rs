@@ -3,6 +3,7 @@
 //! Bevy rendering adapter for shared Forge documents.
 
 mod environment;
+mod gpu_performance;
 #[cfg(feature = "physics-rapier")]
 mod physics;
 #[cfg(feature = "physics-rapier")]
@@ -22,6 +23,10 @@ pub use environment::{
     EnvironmentDistanceFogStats, EnvironmentProjectionStats, EnvironmentProjectionStatus,
     EnvironmentSkyStats, EnvironmentSunStats, EnvironmentVolumetricStats,
     VisualValleyEnvironmentPlugin,
+};
+pub use gpu_performance::{
+    GpuMemoryObservation, PIPELINE_WARMUP_STABLE_FRAMES, PipelineWarmupObservation,
+    PipelineWarmupReport, PipelineWarmupStatus, WgpuAllocatorReportStatus,
 };
 #[cfg(feature = "physics-rapier")]
 pub(crate) use physics::build_terrain_heightfield_collider;
@@ -93,6 +98,9 @@ use bevy::{
 };
 use forge_core::{EntityId, FrameDistribution as CoreFrameDistribution, FrameTimeHistogram};
 use forge_project::{SceneProofDocument, SceneProofKind};
+use gpu_performance::{
+    GpuPerformancePlugin, collect_gpu_memory_observation, qualify_pipeline_warmup,
+};
 use serde::Serialize;
 use std::{
     fmt::Write as _,
@@ -169,6 +177,8 @@ struct FrameLedger {
     last_frame: Option<u32>,
     last_recorded_frame: Option<u32>,
     sample_limit: usize,
+    pipeline_ready_at_measurement_start: Option<bool>,
+    pipeline_ready_for_entire_measurement: bool,
 }
 
 impl FrameLedger {
@@ -198,14 +208,21 @@ impl FrameLedger {
             last_frame,
             last_recorded_frame: None,
             sample_limit,
+            pipeline_ready_at_measurement_start: None,
+            pipeline_ready_for_entire_measurement: true,
         }
     }
 
-    fn record(&mut self, frame: u32, frame_ms: f64) {
+    fn record(&mut self, frame: u32, frame_ms: f64, pipeline_ready: bool) {
         let inside_window = self
             .first_frame
             .zip(self.last_frame)
             .is_some_and(|(first_frame, last_frame)| (first_frame..=last_frame).contains(&frame));
+        if inside_window {
+            self.pipeline_ready_at_measurement_start
+                .get_or_insert(pipeline_ready);
+            self.pipeline_ready_for_entire_measurement &= pipeline_ready;
+        }
         if inside_window
             && self.samples_ms.len() < self.sample_limit
             && self
@@ -268,6 +285,8 @@ struct RuntimeMetricsReport {
     schema_version: u32,
     source_hash: String,
     gpu: Option<GpuDiagnostic>,
+    gpu_memory: GpuMemoryObservation,
+    pipeline_warmup: PipelineWarmupReport,
     window: WindowLifecycleReport,
     frame: FrameMetrics,
     render_diagnostics: Vec<NamedDiagnostic>,
@@ -363,6 +382,7 @@ impl Plugin for RuntimeEvidencePlugin {
                 FrameTimeDiagnosticsPlugin::default(),
                 EntityCountDiagnosticsPlugin::default(),
                 RenderDiagnosticsPlugin,
+                GpuPerformancePlugin,
             ))
             .add_systems(
                 Startup,
@@ -871,6 +891,13 @@ struct Gate1OverlayStats<'w> {
     quality: Option<Res<'w, VisualValleyQualityStats>>,
 }
 
+#[derive(SystemParam)]
+struct RuntimePerformanceEvidence<'w> {
+    render_device: Option<Res<'w, RenderDevice>>,
+    pipeline_warmup: Res<'w, PipelineWarmupObservation>,
+    diagnostics: Res<'w, DiagnosticsStore>,
+}
+
 #[allow(
     clippy::needless_pass_by_value,
     reason = "Bevy systems require owned system parameter wrappers"
@@ -1111,15 +1138,21 @@ fn capture_at_requested_frame(
 fn collect_frame_sample(
     frame: Res<bevy::diagnostic::FrameCount>,
     time: Res<Time<Real>>,
+    pipeline_warmup: Res<PipelineWarmupObservation>,
     mut ledger: ResMut<FrameLedger>,
 ) {
-    ledger.record(frame.0, time.delta_secs_f64() * 1_000.0);
+    ledger.record(
+        frame.0,
+        time.delta_secs_f64() * 1_000.0,
+        pipeline_warmup.is_ready(),
+    );
 }
 
 #[allow(
     clippy::needless_pass_by_value,
     clippy::too_many_arguments,
-    reason = "Bevy systems require explicit owned system parameters for independent ECS access"
+    clippy::too_many_lines,
+    reason = "Bevy lifecycle orchestration keeps independent proof failures explicit at the call site"
 )]
 fn write_metrics_and_exit(
     frame: Res<bevy::diagnostic::FrameCount>,
@@ -1128,7 +1161,7 @@ fn write_metrics_and_exit(
     stats: Res<ProofSceneStats>,
     gate1: Gate1OverlayStats,
     gpu: Option<Res<GpuDiagnostic>>,
-    diagnostics: Res<DiagnosticsStore>,
+    performance: RuntimePerformanceEvidence,
     windows: Query<&Window, With<PrimaryWindow>>,
     lifecycle: Res<WindowLifecycle>,
     mut exit: MessageWriter<AppExit>,
@@ -1184,24 +1217,40 @@ fn write_metrics_and_exit(
 
     if let Some(path) = &automation.metrics_path {
         let final_window = windows.single().ok().map(window_state_report);
-        match build_runtime_metrics(
-            &ledger.samples_ms,
-            &stats,
-            gate1.visual_valley.as_deref(),
-            gate1.visual_valley_shadow.as_deref(),
-            gate1.vegetation.as_deref(),
-            gate1.scenery.as_deref(),
-            gate1.environment.as_deref(),
-            gate1.water.as_deref(),
-            gate1.weather.as_deref(),
-            gate1.quality.as_deref(),
-            gpu.as_deref(),
-            &diagnostics,
-            &lifecycle,
-            final_window,
+        let result = collect_gpu_memory_observation(
+            performance.render_device.as_deref(),
+            &performance.diagnostics,
         )
-        .and_then(|report| write_metrics(path, &report))
-        {
+        .and_then(|gpu_memory| {
+            qualify_pipeline_warmup(
+                ledger.pipeline_ready_at_measurement_start,
+                ledger.pipeline_ready_for_entire_measurement,
+                &performance.pipeline_warmup,
+            )
+            .map(|pipeline_warmup| (gpu_memory, pipeline_warmup))
+        })
+        .and_then(|(gpu_memory, pipeline_warmup)| {
+            build_runtime_metrics(
+                &ledger.samples_ms,
+                &stats,
+                gate1.visual_valley.as_deref(),
+                gate1.visual_valley_shadow.as_deref(),
+                gate1.vegetation.as_deref(),
+                gate1.scenery.as_deref(),
+                gate1.environment.as_deref(),
+                gate1.water.as_deref(),
+                gate1.weather.as_deref(),
+                gate1.quality.as_deref(),
+                gpu.as_deref(),
+                &gpu_memory,
+                &pipeline_warmup,
+                &performance.diagnostics,
+                &lifecycle,
+                final_window,
+            )
+            .and_then(|report| write_metrics(path, &report))
+        });
+        match result {
             Ok(()) => {
                 info!(
                     target: "forge::proof",
@@ -1283,6 +1332,8 @@ fn build_runtime_metrics(
     weather: Option<&WeatherProjectionStats>,
     quality: Option<&VisualValleyQualityStats>,
     gpu: Option<&GpuDiagnostic>,
+    gpu_memory: &GpuMemoryObservation,
+    pipeline_warmup: &PipelineWarmupReport,
     diagnostics: &DiagnosticsStore,
     lifecycle: &WindowLifecycle,
     final_window: Option<WindowStateReport>,
@@ -1346,9 +1397,11 @@ fn build_runtime_metrics(
     render_diagnostics.sort_by(|left, right| left.path.cmp(&right.path));
     Ok(RuntimeMetricsReport {
         schema: "forge.runtime-metrics",
-        schema_version: 7,
+        schema_version: 8,
         source_hash: stats.source_hash.clone(),
         gpu: gpu.cloned(),
+        gpu_memory: gpu_memory.clone(),
+        pipeline_warmup: pipeline_warmup.clone(),
         window: lifecycle.report(final_window),
         frame,
         render_diagnostics,
@@ -1392,6 +1445,38 @@ mod tests {
             metrics_warmup_frames: warmup,
             exit_after_frames: last_frame,
             ..default()
+        }
+    }
+
+    fn sample_gpu_memory() -> GpuMemoryObservation {
+        GpuMemoryObservation {
+            wgpu_allocator_report_status: WgpuAllocatorReportStatus::UnsupportedOrUnavailable,
+            wgpu_allocator_allocated_bytes: None,
+            wgpu_allocator_reserved_bytes: None,
+            mesh_allocator_slabs_bytes: Some(4_096),
+            wgpu_allocator_scope: "current_wgpu_device_suballocations_not_total_vram_or_os_budget",
+            mesh_allocator_scope: "bevy_mesh_allocator_slab_capacity_only_not_total_gpu_memory",
+        }
+    }
+
+    fn sample_pipeline_warmup() -> PipelineWarmupReport {
+        PipelineWarmupReport {
+            ready_before_measurement: true,
+            ready_for_entire_measurement: true,
+            final_observation: PipelineWarmupObservation {
+                status: PipelineWarmupStatus::Ready,
+                total: 12,
+                queued: 0,
+                creating: 0,
+                ready: 12,
+                errors: 0,
+                waiting: 0,
+                stable_frames: PIPELINE_WARMUP_STABLE_FRAMES,
+                required_stable_frames: PIPELINE_WARMUP_STABLE_FRAMES,
+                observed_render_frames: 60,
+                stabilized_at_render_frame: Some(42),
+                scope: "pipelines_exercised_by_this_process_only_no_persistent_pipeline_cache",
+            },
         }
     }
 
@@ -1486,8 +1571,8 @@ mod tests {
         let mut without_exit = FrameLedger::for_automation(&bounded_metrics_automation(2, None));
 
         for frame in 0..=32 {
-            without_metrics.record(frame, 8.0);
-            without_exit.record(frame, 8.0);
+            without_metrics.record(frame, 8.0, true);
+            without_exit.record(frame, 8.0, true);
         }
 
         assert!(without_metrics.samples_ms.is_empty());
@@ -1500,18 +1585,32 @@ mod tests {
     fn frame_ledger_records_the_exact_post_warmup_bounded_window_once() {
         let mut ledger = FrameLedger::for_automation(&bounded_metrics_automation(2, Some(5)));
 
-        ledger.record(2, 9.0);
-        ledger.record(3, 10.0);
-        ledger.record(3, 11.0);
-        ledger.record(4, f64::NAN);
-        ledger.record(4, 12.0);
-        ledger.record(5, 14.0);
-        ledger.record(6, 16.0);
+        ledger.record(2, 9.0, false);
+        ledger.record(3, 10.0, true);
+        ledger.record(3, 11.0, true);
+        ledger.record(4, f64::NAN, true);
+        ledger.record(4, 12.0, true);
+        ledger.record(5, 14.0, true);
+        ledger.record(6, 16.0, false);
 
         assert_eq!(ledger.first_frame, Some(3));
         assert_eq!(ledger.last_frame, Some(5));
         assert_eq!(ledger.sample_limit, 3);
         assert_eq!(ledger.samples_ms, vec![10.0, 12.0, 14.0]);
+        assert_eq!(ledger.pipeline_ready_at_measurement_start, Some(true));
+        assert!(ledger.pipeline_ready_for_entire_measurement);
+    }
+
+    #[test]
+    fn frame_ledger_detects_pipeline_warmup_during_measurement() {
+        let mut ledger = FrameLedger::for_automation(&bounded_metrics_automation(2, Some(5)));
+
+        ledger.record(3, 10.0, true);
+        ledger.record(4, 11.0, false);
+        ledger.record(5, 12.0, true);
+
+        assert_eq!(ledger.pipeline_ready_at_measurement_start, Some(true));
+        assert!(!ledger.pipeline_ready_for_entire_measurement);
     }
 
     #[test]
@@ -1546,6 +1645,8 @@ mod tests {
         };
         let diagnostics = DiagnosticsStore::default();
         let lifecycle = WindowLifecycle::new(None, None);
+        let gpu_memory = sample_gpu_memory();
+        let pipeline_warmup = sample_pipeline_warmup();
         let report = build_runtime_metrics(
             &samples,
             &stats,
@@ -1557,12 +1658,17 @@ mod tests {
             None,
             None,
             None,
+            None,
+            &gpu_memory,
+            &pipeline_warmup,
             &diagnostics,
             &lifecycle,
             None,
         )
         .unwrap();
-        assert_eq!(report.schema_version, 7);
+        assert_eq!(report.schema_version, 8);
+        assert_eq!(report.gpu_memory, gpu_memory);
+        assert_eq!(report.pipeline_warmup, pipeline_warmup);
         assert!(report.visual_valley.is_none());
         assert!(report.visual_valley_shadow.is_none());
         assert!(report.vegetation.is_none());
@@ -1631,6 +1737,8 @@ mod tests {
             evidence_source: "visual_valley_sun_cascade_shadow_component",
         };
         let environment = sample_environment_stats();
+        let gpu_memory = sample_gpu_memory();
+        let pipeline_warmup = sample_pipeline_warmup();
         let report = build_runtime_metrics(
             &[8.0],
             &stats,
@@ -1643,6 +1751,8 @@ mod tests {
             None,
             Some(&quality),
             None,
+            &gpu_memory,
+            &pipeline_warmup,
             &DiagnosticsStore::default(),
             &WindowLifecycle::new(None, None),
             None,
@@ -1706,6 +1816,8 @@ mod tests {
         scenery.failed_models = 1;
         scenery.loaded_models = scenery.unique_models.saturating_sub(1);
         let quality = sample_applied_quality();
+        let gpu_memory = sample_gpu_memory();
+        let pipeline_warmup = sample_pipeline_warmup();
 
         let scenery_error = build_runtime_metrics(
             &[8.0],
@@ -1719,6 +1831,8 @@ mod tests {
             None,
             Some(&quality),
             None,
+            &gpu_memory,
+            &pipeline_warmup,
             &DiagnosticsStore::default(),
             &WindowLifecycle::new(None, None),
             None,
@@ -1743,6 +1857,8 @@ mod tests {
             None,
             Some(&unapplied_quality),
             None,
+            &gpu_memory,
+            &pipeline_warmup,
             &DiagnosticsStore::default(),
             &WindowLifecycle::new(None, None),
             None,
