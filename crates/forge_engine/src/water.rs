@@ -700,7 +700,7 @@ fn prepare_water_surface(
         bank_wet_margin_status: "deferred_no_wet_edge_shader",
         bank_slope_status: "deferred_strip_bridges_water_edge_to_projected_terrain",
         bank_erosion_status: "deferred_no_terrain_carving_adapter",
-        bank_material_status: "opaque_forward_placeholder_no_authored_bank_colour",
+        bank_material_status: "opaque_forward_matches_terrain_earth_palette",
         requested_reflection_intensity,
         requested_reflection_max_distance_m,
         reflection_intensity_status: "requested_unavailable_resolved_disabled",
@@ -1169,7 +1169,7 @@ fn downstream_flow_direction(samples: &[RiverCenterlineSample]) -> Vec2 {
 
 fn river_bank_material() -> StandardMaterial {
     StandardMaterial {
-        base_color: Color::srgb(0.16, 0.12, 0.075),
+        base_color: Color::linear_rgb(0.24, 0.105, 0.035),
         alpha_mode: AlphaMode::Opaque,
         metallic: 0.0,
         perceptual_roughness: 0.86,
@@ -1770,6 +1770,15 @@ mod tests {
             WATER_REFLECTANCE.to_bits()
         );
         assert_eq!(prepared.river_bank_material.alpha_mode, AlphaMode::Opaque);
+        let bank = prepared.river_bank_material.base_color.to_linear();
+        assert_eq!(bank.red.to_bits(), 0.24_f32.to_bits());
+        assert_eq!(bank.green.to_bits(), 0.105_f32.to_bits());
+        assert_eq!(bank.blue.to_bits(), 0.035_f32.to_bits());
+        assert_eq!(bank.alpha.to_bits(), 1.0_f32.to_bits());
+        assert_eq!(
+            prepared.stats.bank_material_status,
+            "opaque_forward_matches_terrain_earth_palette"
+        );
         assert_eq!(prepared.stats.applied_surface_tint_strength, Some(0.18));
         let tint = prepared.water_material.base.base_color.to_srgba();
         assert!((tint.red - (0.12 * 0.82 + 0.02 * 0.18)).abs() < 1.0e-6);
