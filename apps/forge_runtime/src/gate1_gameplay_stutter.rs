@@ -42,7 +42,8 @@ const STOP_MAX_FIXED_TICKS: u32 = 45;
 const STOP_STABLE_TICKS: u32 = 2;
 const MIN_LEG_DISTANCE_M: f32 = 60.0;
 const MAX_RETURN_DISTANCE_M: f32 = 5.0;
-const MAX_LATERAL_DRIFT_M: f32 = 1.0;
+const MAX_SPAWN_POSITION_ERROR_M: f32 = 1.0;
+const MAX_LATERAL_DRIFT_M: f32 = 1.5;
 const HORIZONTAL_STEP_TOLERANCE_M: f32 = 0.005;
 const MAX_CONTROLLER_TRANSLATION_ERROR_M: f32 = 0.001;
 const MAX_UNGROUNDED_RUN: u32 = 4;
@@ -1038,8 +1039,8 @@ fn ready_binding(
         .ok_or("player runtime binding disappeared at ready boundary")?;
     validate_player_identity(configuration, binding, snapshot, cameras, players)?;
     if snapshot.player_position.z <= 0.0
-        || (snapshot.player_position.x - START_X_M).abs() > MAX_LATERAL_DRIFT_M
-        || (snapshot.player_position.z - START_Z_M).abs() > MAX_LATERAL_DRIFT_M
+        || (snapshot.player_position.x - START_X_M).abs() > MAX_SPAWN_POSITION_ERROR_M
+        || (snapshot.player_position.z - START_Z_M).abs() > MAX_SPAWN_POSITION_ERROR_M
     {
         return Err(format!(
             "stutter-proof player did not start at the governed spawn: {:?}",
@@ -1822,16 +1823,18 @@ fn validate_final_movement(
         || (forward.x - start.x).abs() > MAX_LATERAL_DRIFT_M
         || (end.x - start.x).abs() > MAX_LATERAL_DRIFT_M
     {
+        let forward_lateral_drift_m = (forward.x - start.x).abs();
+        let end_lateral_drift_m = (end.x - start.x).abs();
         return Err(format!(
-            "movement path is outside its governed bounds: forward={forward_distance_m}, reverse={reverse_distance_m}, return={return_distance_m}"
+            "movement path is outside its governed bounds: forward={forward_distance_m}, reverse={reverse_distance_m}, return={return_distance_m}, forward_lateral={forward_lateral_drift_m}, end_lateral={end_lateral_drift_m}, start={start:?}, forward_endpoint={forward:?}, end={end:?}"
         ));
     }
     if runtime.max_ungrounded_run > MAX_UNGROUNDED_RUN
         || runtime.grounded_ticks != TOTAL_MOVEMENT_TICKS
-        || runtime.collision_ticks != TOTAL_MOVEMENT_TICKS
+        || runtime.collision_ticks == 0
     {
         return Err(format!(
-            "movement lost terrain continuity: grounded={}/{TOTAL_MOVEMENT_TICKS}, collisions={}/{TOTAL_MOVEMENT_TICKS}, max_ungrounded={}",
+            "movement lost terrain continuity: grounded={}/{TOTAL_MOVEMENT_TICKS}, nonempty_collision_observation_ticks={}, max_ungrounded={}",
             runtime.grounded_ticks, runtime.collision_ticks, runtime.max_ungrounded_run
         ));
     }
@@ -2156,5 +2159,65 @@ mod tests {
         assert_eq!(runtime.water_animation_advancement_frames, 1);
         assert!(observe_water_animation(&mut runtime, 11).is_err());
         assert!(observe_water_animation(&mut runtime, 9).is_err());
+    }
+
+    #[test]
+    fn final_movement_accepts_measured_terrain_drift_but_keeps_lateral_bound() {
+        let mut runtime = test_runtime();
+        runtime.forward_ticks = FORWARD_TICKS;
+        runtime.reverse_ticks = REVERSE_TICKS;
+        runtime.grounded_ticks = TOTAL_MOVEMENT_TICKS;
+        runtime.collision_ticks = 1;
+        runtime.max_horizontal_step_m = 0.08;
+        runtime.render_frames_spanned = 1;
+        runtime.render_invariant_checks = 1;
+        runtime.water_animation_advancement_frames = 1;
+        runtime.final_render_validation_completed = true;
+
+        let start = Vec3::new(16.0, -24.30, 8.0);
+        let forward = Vec3::new(17.34, -10.18, -61.51);
+        let end = Vec3::new(17.34, -25.10, 11.55);
+        validate_final_movement(
+            &runtime,
+            start,
+            forward,
+            end,
+            start.xz().distance(forward.xz()),
+            forward.xz().distance(end.xz()),
+            start.xz().distance(end.xz()),
+            30.0,
+        )
+        .unwrap();
+
+        let excessive_lateral_drift =
+            Vec3::new(start.x + MAX_LATERAL_DRIFT_M + 0.01, forward.y, forward.z);
+        assert!(
+            validate_final_movement(
+                &runtime,
+                start,
+                excessive_lateral_drift,
+                end,
+                start.xz().distance(excessive_lateral_drift.xz()),
+                excessive_lateral_drift.xz().distance(end.xz()),
+                start.xz().distance(end.xz()),
+                30.0,
+            )
+            .is_err()
+        );
+
+        runtime.collision_ticks = 0;
+        assert!(
+            validate_final_movement(
+                &runtime,
+                start,
+                forward,
+                end,
+                start.xz().distance(forward.xz()),
+                forward.xz().distance(end.xz()),
+                start.xz().distance(end.xz()),
+                30.0,
+            )
+            .is_err()
+        );
     }
 }

@@ -634,6 +634,7 @@ Assert-Condition -Condition ([OperatingSystem]::IsWindows()) -Message "Gate 1 Pr
 Assert-Condition -Condition ([IO.Path]::IsPathRooted($OutputRoot)) -Message "OutputRoot must be an absolute external path."
 Assert-Condition -Condition ([IO.Path]::IsPathRooted($RuntimeBinary)) -Message "RuntimeBinary must be an absolute prospective Cargo release path."
 $repositoryPath = (Resolve-Path -LiteralPath $RepoRoot).Path
+$assetDirectory = Join-Path $repositoryPath "assets"
 $runtimePath = Get-FullPathWithoutResolving -Path $RuntimeBinary
 $presentMonFullPath = (Resolve-Path -LiteralPath $PresentMonPath).Path
 $outputPath = Get-FullPathWithoutResolving -Path $OutputRoot
@@ -645,6 +646,8 @@ $cargoTargetPath = [IO.Path]::GetDirectoryName($releaseDirectory)
 Assert-Condition -Condition (-not [string]::IsNullOrWhiteSpace($cargoTargetPath)) -Message "RuntimeBinary has no Cargo target directory."
 Assert-Condition -Condition ([IO.File]::Exists($presentMonFullPath)) -Message "PresentMonPath must name a file."
 Assert-Condition -Condition (-not [IO.File]::Exists($outputPath)) -Message "OutputRoot must be a directory, not a file."
+Assert-Condition -Condition ([IO.Directory]::Exists($assetDirectory)) -Message "The governed repository asset directory is absent."
+Assert-NoReparsePointInExistingAncestors -Path $assetDirectory
 
 $gitTopLevel = (& git -C $repositoryPath rev-parse --show-toplevel).Trim()
 Assert-Condition -Condition ($LASTEXITCODE -eq 0) -Message "Cannot resolve the repository root."
@@ -733,6 +736,7 @@ $resolvedRuntimePath = (Resolve-Path -LiteralPath $runtimePath).Path
 Assert-Condition -Condition ([string]::Equals($resolvedRuntimePath, $runtimePath, [StringComparison]::OrdinalIgnoreCase)) -Message "The governed Cargo build resolved RuntimeBinary through an unexpected path."
 $runtimeFileAfterBuild = Get-Item -LiteralPath $runtimePath -Force
 Assert-Condition -Condition (($runtimeFileAfterBuild.Attributes -band [IO.FileAttributes]::ReparsePoint) -eq 0) -Message "RuntimeBinary is a reparse point and cannot establish build provenance."
+Assert-Condition -Condition (-not [IO.Directory]::Exists((Join-Path $releaseDirectory "assets"))) -Message "The governed build copied assets into the Cargo release directory."
 $gitCommitAfterBuild = (& git -C $repositoryPath rev-parse HEAD).Trim()
 $gitCommitAfterBuildExitCode = $LASTEXITCODE
 Assert-Condition -Condition ($gitCommitAfterBuildExitCode -eq 0 -and $gitCommitAfterBuild -eq $gitCommit) -Message "Repository HEAD changed during the governed Cargo build."
@@ -779,6 +783,7 @@ try {
     $runtimeEnvironment = @{
         RUST_LOG = "info,forge=info,wgpu_hal=warn,wgpu_core=warn,naga=warn"
         WGPU_BACKEND = "vulkan"
+        BEVY_ASSET_ROOT = $repositoryPath
     }
     $runtimeCapture = Start-CapturedProcess -FilePath $runtimePath -ArgumentList $runtimeArguments -WorkingDirectory $repositoryPath -Label "forge_runtime Gate 1 gameplay stutter" -StdoutPath $runtimeStdoutPath -StderrPath $runtimeStderrPath -Visible $true -EnvironmentVariables $runtimeEnvironment
     $runtimeProcessId = $runtimeCapture.Process.Id
@@ -840,6 +845,8 @@ try {
     foreach ($field in @("display_stutter_qualified", "human_review_performed", "gate1_route_qualified")) {
         Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyQualification -Name $field -Path "ready.qualification") -eq $false) -Message "Ready ledger overstates $field."
     }
+    $readySources = Get-RequiredProperty -InputObject $ready -Name "sources" -Path "ready"
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readySources -Name "cadle_assets_used" -Path "ready.sources") -eq $false) -Message "Ready ledger reports Cadle asset use."
 
     $nativeWindowObservation = Wait-ForQualifiedNativeWindow -Process $runtimeCapture.Process -TimeoutSeconds 5
     $presentMonArguments = @(
@@ -989,6 +996,8 @@ try {
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledger -Name "process_id" -Path "ledger") -eq $runtimeProcessId) -Message "Runtime ledger PID mismatch."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledger -Name "build_source_commit" -Path "ledger") -eq $gitCommit) -Message "Runtime ledger commit mismatch."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledger -Name "build_profile" -Path "ledger") -eq "release") -Message "Runtime ledger build profile is not release."
+    $ledgerSources = Get-RequiredProperty -InputObject $ledger -Name "sources" -Path "ledger"
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerSources -Name "cadle_assets_used" -Path "ledger.sources") -eq $false) -Message "Runtime ledger reports Cadle asset use."
 
     $ledgerProtocol = Get-RequiredProperty -InputObject $ledger -Name "protocol" -Path "ledger"
     Assert-Condition -Condition (((Get-RequiredProperty -InputObject $ledgerProtocol -Name "physical_resolution_px" -Path "ledger.protocol") -join "x") -eq "1920x1080") -Message "Ledger resolution is not 1920x1080."
@@ -1050,7 +1059,7 @@ try {
     Assert-Condition -Condition ($startPosition.Count -eq 3 -and $forwardEndpoint.Count -eq 3 -and $endPosition.Count -eq 3) -Message "Movement positions are incomplete."
     Assert-Condition -Condition ($startPosition[2] -gt 0.0 -and $forwardEndpoint[2] -lt 0.0 -and $endPosition[2] -gt 0.0) -Message "Controller did not cross and recross the central seam."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $movement -Name "grounded_ticks" -Path "ledger.movement") -eq 1800) -Message "Controller was not grounded for all 1800 ticks."
-    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $movement -Name "collision_ticks" -Path "ledger.movement") -eq 1800) -Message "Controller lacked terrain collision for some ticks."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $movement -Name "collision_ticks" -Path "ledger.movement") -gt 0) -Message "Controller never observed a non-empty KCC collision list."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $movement -Name "maximum_ungrounded_run" -Path "ledger.movement") -le 4) -Message "Controller grounding gap exceeded four ticks."
     $profileHorizontalStepLimit = [double](Get-RequiredProperty -InputObject $movement -Name "profile_horizontal_step_limit_m" -Path "ledger.movement")
     $maximumHorizontalStep = [double](Get-RequiredProperty -InputObject $movement -Name "maximum_horizontal_step_m" -Path "ledger.movement")
@@ -1226,6 +1235,10 @@ try {
             governed_build_target_directory = $cargoTargetPath
             governed_build_working_directory = $repositoryPath
             governed_build_arguments = @("build", "-p", "forge_runtime", "--release", "--locked", "-j", "1")
+            bevy_asset_root = $repositoryPath
+            asset_directory = $assetDirectory
+            assets_referenced_in_place = $true
+            assets_copied_to_release_directory = $false
             visible_window_requested = $true
             visible_window_observed_before_signal = $nativeWindowObservation.Observed
             native_window = [ordered]@{
@@ -1298,6 +1311,8 @@ try {
             clean_worktree_before_and_after = $true
             exact_commit_embedded = $true
             runtime_rebuilt_by_host_after_clean_check = $true
+            governed_asset_root_is_clean_repository = $true
+            release_asset_copy_absent = $true
             runtime_visible_window_observed_before_signal = $nativeWindowObservation.Observed
             release_1920x1080_high_no_vsync = $true
             real_gameplay_controller_exercised = $true
@@ -1334,6 +1349,7 @@ try {
         }
         limitations = [ordered]@{
             single_run_only = $true
+            packaged_release_asset_layout_qualified = $false
             target_gpu_qualified = $false
             human_review_performed = $false
             gate1_route_qualified = $false

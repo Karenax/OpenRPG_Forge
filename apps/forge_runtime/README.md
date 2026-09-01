@@ -97,6 +97,11 @@ the host script rebuilds the Release binary itself with `--locked`, embeds that 
 state, and launches the resulting executable. The mode does not request any screenshot and never
 pauses virtual time.
 
+The host passes the exact clean worktree as `BEVY_ASSET_ROOT`; Bevy therefore reads the governed
+`assets/` tree in place. The script rejects an `assets/` copy beside the external Release binary,
+and both runtime ledgers must report `cadle_assets_used=false`. This acquisition does not qualify a
+standalone packaged-asset layout.
+
 Acquire `PresentMon-2.4.1-x64.exe` only from the official
 [PresentMon v2.4.1 release](https://github.com/GameTechDev/PresentMon/releases/tag/v2.4.1). The host
 script pins its 927304-byte Intel-signed binary and SHA-256
