@@ -314,10 +314,25 @@ impl Gate0StudioLedger {
 pub struct ViewportReadyEvent {
     pub recorded_at_utc: String,
     pub first_real_frame_ms: f64,
+    pub runtime_ready_ms: f64,
     pub viewport: ViewportObservation,
     pub scene_manifest: crate::StudioSceneManifest,
     pub camera_3d_entities: u32,
     pub active_camera_3d_entities: u32,
+    pub water_observation: Option<String>,
+    pub weather_observation: Option<String>,
+    pub weather_target_state: Option<String>,
+    pub gpu_presentation: crate::StudioGpuPresentationStatus,
+}
+
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ViewportFailureEvent {
+    pub recorded_at_utc: String,
+    pub scene: crate::StudioScene,
+    pub waited_ms: f64,
+    pub reason: String,
 }
 
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
