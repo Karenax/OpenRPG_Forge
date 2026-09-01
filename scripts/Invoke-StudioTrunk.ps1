@@ -38,7 +38,7 @@ try {
         if ($Action -eq "build") {
             & trunk build --release --config Trunk.toml
         } else {
-            & trunk serve --config Trunk.toml
+            & trunk serve --config Trunk.toml --no-autoreload
         }
 
         if ($LASTEXITCODE -ne 0) {

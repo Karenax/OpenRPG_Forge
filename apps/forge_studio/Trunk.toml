@@ -4,6 +4,7 @@ dist = "dist"
 public_url = "/"
 filehash = false
 locked = true
+no_sri = true
 
 [serve]
 addresses = ["127.0.0.1"]

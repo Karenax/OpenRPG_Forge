@@ -10,6 +10,7 @@ $configPath = Join-Path $PSScriptRoot 'gate1-browser-temporal.v1.json'
 $protocolPath = Join-Path $repositoryRoot 'docs/evidence/gate1/R1_014_BROWSER_TEMPORAL_PROTOCOL.md'
 $roadmapPath = Join-Path $repositoryRoot 'docs/planning/MIGRATION_ROADMAP.md'
 $trunkPath = Join-Path $PSScriptRoot 'Invoke-StudioTrunk.ps1'
+$trunkConfigPath = Join-Path $repositoryRoot 'apps/forge_studio/Trunk.toml'
 $studioSourcePath = Join-Path $repositoryRoot 'apps/forge_studio/src/lib.rs'
 $studioStylesPath = Join-Path $repositoryRoot 'apps/forge_studio/styles.css'
 
@@ -24,7 +25,7 @@ function Assert-Condition {
     }
 }
 
-foreach ($path in @($driverPath, $configPath, $protocolPath, $roadmapPath, $trunkPath, $studioSourcePath, $studioStylesPath)) {
+foreach ($path in @($driverPath, $configPath, $protocolPath, $roadmapPath, $trunkPath, $trunkConfigPath, $studioSourcePath, $studioStylesPath)) {
     Assert-Condition -Condition (Test-Path -LiteralPath $path -PathType Leaf) -Message "Required R1-014 harness file is missing: $path"
 }
 
@@ -67,9 +68,13 @@ foreach ($requiredToken in @(
 $trunkDriver = Get-Content -LiteralPath $trunkPath -Raw
 Assert-Condition -Condition $trunkDriver.Contains('RequireExactCommit', [StringComparison]::Ordinal) -Message 'Trunk driver must expose the exact-commit build mode.'
 Assert-Condition -Condition $trunkDriver.Contains('FORGE_SOURCE_COMMIT', [StringComparison]::Ordinal) -Message 'Trunk driver must bind the embedded source commit.'
+Assert-Condition -Condition $trunkDriver.Contains('--no-autoreload', [StringComparison]::Ordinal) -Message 'The proof server must disable Trunk autoreload so served bytes remain identical to dist.'
+$trunkConfig = Get-Content -LiteralPath $trunkConfigPath -Raw
+Assert-Condition -Condition ($trunkConfig -cmatch '(?m)^no_sri\s*=\s*true\s*$') -Message 'The proof build must omit unsupported preload integrity attributes.'
 $studioSource = Get-Content -LiteralPath $studioSourcePath -Raw
 Assert-Condition -Condition $studioSource.Contains('option_env!("FORGE_SOURCE_COMMIT")', [StringComparison]::Ordinal) -Message 'Studio scene telemetry must embed the exact source commit.'
 Assert-Condition -Condition $studioSource.Contains('schema_version: 8', [StringComparison]::Ordinal) -Message 'Studio scene telemetry v8 is required.'
+Assert-Condition -Condition $studioSource.Contains('power_preference: bevy::render::settings::PowerPreference::None', [StringComparison]::Ordinal) -Message 'Studio WebGPU must leave adapter power preference unspecified on Windows.'
 $studioStyles = Get-Content -LiteralPath $studioStylesPath -Raw
 Assert-Condition -Condition $studioStyles.Contains('.panel { padding: 17px 14px; overflow: auto; }', [StringComparison]::Ordinal) -Message 'Studio side panels must scroll internally so the canvas remains inside the fixed viewport.'
 foreach ($forbiddenToken in @('npm install', 'npx ', 'playwright', 'upstream/cadle', 'assets/cadle')) {

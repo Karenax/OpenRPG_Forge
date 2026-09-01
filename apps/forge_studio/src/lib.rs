@@ -2315,7 +2315,7 @@ mod web {
             .expect("validated embedded Studio scene documents must remain hashable");
         let render_plugin = RenderPlugin {
             render_creation: RenderCreation::Automatic(Box::new(WgpuSettings {
-                power_preference: bevy::render::settings::PowerPreference::HighPerformance,
+                power_preference: bevy::render::settings::PowerPreference::None,
                 ..default()
             })),
             ..default()
@@ -2601,29 +2601,35 @@ mod web {
             quality_replacement_lod_end_m: Some(
                 quality.requested_preset.vegetation.hlod_distance_m,
             ),
-            scenery_observation: Some(StudioSceneryRuntimeObservation {
-                status: scenery_observation_label(scenery.status).to_owned(),
-                loaded_models: scenery.loaded_models,
-                failed_models: scenery.failed_models,
-                unique_models: scenery.unique_models,
-                requested_instances: scenery.requested_instances,
-                replacement_instances: scenery.replacement_instances,
-                detail_instances: scenery.detail_instances,
-                selected_by_kind: StudioSceneryInstanceCounts {
-                    trees: scenery.selected_by_kind.trees,
-                    shrubs: scenery.selected_by_kind.shrubs,
-                    ferns: scenery.selected_by_kind.ferns,
-                    rocks: scenery.selected_by_kind.rocks,
-                    details: scenery.selected_by_kind.details,
-                },
-                hidden_procedural_entities: scenery.hidden_procedural_entities,
-                tracked_files: scenery.tracked_files,
-                tracked_bytes: scenery.tracked_bytes,
-                replacement_lod_start_m: scenery.replacement_lod_start_m,
-                replacement_lod_end_m: scenery.replacement_lod_end_m,
-                detail_cull_distance_m: scenery.detail_cull_distance_m,
-            }),
+            scenery_observation: Some(studio_scenery_runtime_observation(scenery)),
         }))
+    }
+
+    fn studio_scenery_runtime_observation(
+        scenery: &SceneryProjectionStats,
+    ) -> StudioSceneryRuntimeObservation {
+        StudioSceneryRuntimeObservation {
+            status: scenery_observation_label(scenery.status).to_owned(),
+            loaded_models: scenery.loaded_models,
+            failed_models: scenery.failed_models,
+            unique_models: scenery.unique_models,
+            requested_instances: scenery.requested_instances,
+            replacement_instances: scenery.replacement_instances,
+            detail_instances: scenery.detail_instances,
+            selected_by_kind: StudioSceneryInstanceCounts {
+                trees: scenery.selected_by_kind.trees,
+                shrubs: scenery.selected_by_kind.shrubs,
+                ferns: scenery.selected_by_kind.ferns,
+                rocks: scenery.selected_by_kind.rocks,
+                details: scenery.selected_by_kind.details,
+            },
+            hidden_procedural_entities: scenery.hidden_procedural_entities,
+            tracked_files: scenery.tracked_files,
+            tracked_bytes: scenery.tracked_bytes,
+            replacement_lod_start_m: scenery.replacement_lod_start_m,
+            replacement_lod_end_m: scenery.replacement_lod_end_m,
+            detail_cull_distance_m: scenery.detail_cull_distance_m,
+        }
     }
 
     fn validate_visual_valley_projection_statuses(

@@ -73,6 +73,12 @@ hors viewport ou un backing store différent de `rectangle CSS x DPR`. Les captu
 `captureBeyondViewport=false` : masquer une scrollbar pendant la capture ne peut plus redimensionner
 le canvas ni déplacer les ROIs.
 
+Le serveur de preuve désactive aussi l'autoreload Trunk : le HTML servi reste ainsi identique au
+fichier `dist/index.html` contrôlé par hash. Le build omet les attributs SRI sur les destinations
+`preload` qui ne les appliquent pas, et Studio laisse la préférence de puissance de l'adaptateur
+WebGPU non spécifiée sur Windows. Ces réglages retirent leurs avertissements à la source sans modifier
+la règle stricte de zéro warning console.
+
 Terminal A :
 
 ```powershell
