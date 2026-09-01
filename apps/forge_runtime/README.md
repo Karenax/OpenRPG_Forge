@@ -33,3 +33,35 @@ Native logs are JSON Lines on stderr through `tracing`. Forge events carry
 dimensions, frame numbers, booleans and exit codes remain typed JSON values. `RUST_LOG` controls the
 filter. `--log-probe` emits a bounded machine-parseable event and exits successfully without opening
 a GPU window.
+
+## Gate 1 visual-proof acquisition
+
+`--gate1-visual-proof <output-dir>` is a strict, self-bounded Visual Valley mode. It requires
+`--visual-valley`, accepts only a fixed quality tier, and owns the camera, weather, screenshots and
+exit lifecycle. The output directory must be absent or empty. A typical native replay is:
+
+```text
+forge_runtime --visual-valley --quality high \
+  --gate1-visual-proof artifacts/gate1-visual-high --no-vsync
+```
+
+One process waits for stable pipelines, records distant and human-height views, frames the authored
+river in clear weather, transitions to rain, returns exactly to clear, then records 24 deterministic
+terrain-relative proof-camera positions. It writes five fixed PNGs, `movement/frame-000.png` through
+`frame-023.png`, and `gate1-visual-proof.json`.
+
+The PowerShell validator can run an existing binary, validate all PNGs and endpoint evidence, hash
+the artifacts, and assemble the movement frames as an 8 FPS MP4:
+
+```text
+pwsh -File scripts/Test-Gate1VisualProof.ps1 \
+  -EvidenceRoot artifacts/gate1-visual-high \
+  -RuntimePath target/release/forge_runtime.exe \
+  -Quality high -NoVsync
+```
+
+The movement sequence is an explicit proof-camera path, not a gameplay/controller claim. Screenshot
+acquisition proves that rendered artifacts were produced, while the weather ledger remains CPU/ECS
+projection evidence. The harness and validator always leave GPU execution qualification, comparative
+visual quality and human review false; their output alone cannot close `R1-025`, `R1-026` or
+`R1-046` through `R1-048`.

@@ -1,5 +1,6 @@
 #![deny(unsafe_code)]
 
+mod gate1_visual_proof;
 mod player_camera_probe;
 mod terrain_partial_update_probe;
 
@@ -30,8 +31,12 @@ use forge_world::{
     embedded_visual_valley_terrain_document, embedded_visual_valley_vegetation_document,
     embedded_visual_valley_water_document, embedded_visual_valley_weather_profile,
 };
+use gate1_visual_proof::Gate1VisualProofPlugin;
 use player_camera_probe::PlayerCameraProbePlugin;
-use std::{env, fs, path::PathBuf};
+use std::{
+    env, fs,
+    path::{Path, PathBuf},
+};
 use terrain_partial_update_probe::TerrainPartialUpdateProbePlugin;
 use tracing_subscriber::EnvFilter;
 
@@ -91,6 +96,7 @@ fn main() -> AppExit {
         terrain_partial_update_probe = options.terrain_partial_update_probe.is_enabled(),
         player_camera = options.player_camera.is_interactive(),
         player_camera_probe = options.player_camera.is_probe(),
+        gate1_visual_proof = options.gate1_visual_proof_output.is_some(),
         weather_override,
         player_input_enabled,
         player_cursor_locked = player_input_enabled,
@@ -125,6 +131,7 @@ fn main() -> AppExit {
             terrain_debug: options.terrain_debug,
             terrain_partial_update_probe: options.terrain_partial_update_probe,
             player_camera: options.player_camera,
+            gate1_visual_proof_output: options.gate1_visual_proof_output.clone(),
             weather_state: options.weather_state,
             quality_selection: options.quality_selection,
             player_input_enabled,
@@ -173,6 +180,7 @@ struct RuntimePluginConfiguration {
     terrain_debug: TerrainDebugMode,
     terrain_partial_update_probe: TerrainPartialUpdateProbeMode,
     player_camera: PlayerCameraRuntimeMode,
+    gate1_visual_proof_output: Option<PathBuf>,
     weather_state: Option<WeatherState>,
     quality_selection: Option<VisualValleyQualitySelection>,
     player_input_enabled: bool,
@@ -192,6 +200,7 @@ fn add_runtime_plugin(
         terrain_debug,
         terrain_partial_update_probe,
         player_camera,
+        gate1_visual_proof_output,
         weather_state,
         quality_selection,
         player_input_enabled,
@@ -226,6 +235,24 @@ fn add_runtime_plugin(
                 ),
                 _ => None,
             };
+            let visual_proof_plugin = gate1_visual_proof_output.map(|output_dir| {
+                let water = water.as_deref().unwrap_or_else(|| {
+                    panic!("Gate 1 visual proof requires the embedded water document")
+                });
+                let weather = weather.as_deref().unwrap_or_else(|| {
+                    panic!("Gate 1 visual proof requires the embedded weather profile")
+                });
+                let player =
+                    embedded_visual_valley_player_controller_profile().unwrap_or_else(|error| {
+                        panic!(
+                            "embedded Visual Valley player-controller profile is invalid: {error}"
+                        )
+                    });
+                Gate1VisualProofPlugin::new(output_dir, &document, water, weather, &player)
+                    .unwrap_or_else(|error| {
+                        panic!("cannot prepare Gate 1 visual proof harness: {error}")
+                    })
+            });
 
             let scenery_plugin = vegetation.as_deref().map(|vegetation| {
                 VisualValleySceneryPlugin::new(document.clone(), vegetation.clone())
@@ -306,6 +333,9 @@ fn add_runtime_plugin(
             }
             if let Some(probe) = player_probe {
                 app.add_plugins(probe);
+            }
+            if let Some(visual_proof_plugin) = visual_proof_plugin {
+                app.add_plugins(visual_proof_plugin);
             }
         }
     }
@@ -469,6 +499,7 @@ struct Options {
     terrain_debug: TerrainDebugMode,
     terrain_partial_update_probe: TerrainPartialUpdateProbeMode,
     player_camera: PlayerCameraRuntimeMode,
+    gate1_visual_proof_output: Option<PathBuf>,
     weather_state: Option<WeatherState>,
     quality_selection: Option<VisualValleyQualitySelection>,
     capture_path: Option<PathBuf>,
@@ -493,6 +524,7 @@ impl Default for Options {
             terrain_debug: TerrainDebugMode::Hidden,
             terrain_partial_update_probe: TerrainPartialUpdateProbeMode::Disabled,
             player_camera: PlayerCameraRuntimeMode::Disabled,
+            gate1_visual_proof_output: None,
             weather_state: None,
             quality_selection: None,
             capture_path: None,
@@ -526,6 +558,13 @@ impl Options {
                 }
                 "--player-camera" => options.player_camera.select_interactive()?,
                 "--player-camera-probe" => options.player_camera.select_probe()?,
+                "--gate1-visual-proof" => {
+                    if options.gate1_visual_proof_output.is_some() {
+                        return Err("--gate1-visual-proof may only be specified once".to_owned());
+                    }
+                    options.gate1_visual_proof_output =
+                        Some(next_path(&mut arguments, "--gate1-visual-proof")?);
+                }
                 "--weather" => {
                     if options.weather_state.is_some() {
                         return Err("--weather may only be specified once".to_owned());
@@ -574,7 +613,7 @@ impl Options {
                 "--no-vsync" => options.vsync = false,
                 "--log-probe" => options.log_probe = true,
                 "--help" | "-h" => {
-                    return Err("usage: forge_runtime [--scene file.json | --visual-valley | --terrain terrain.json] [--quality low|medium|high|ultra | --adaptive-quality | --benchmark-quality] [--terrain-debug] [--terrain-partial-update-probe] [--player-camera | --player-camera-probe] [--weather clear|rain] [--capture file.png] [--capture-frame n] [--metrics file.json] [--metrics-warmup-frames n] [--exit-after-frames n] [--resize-at-frame n --resize-width px --resize-height px] [--close-at-frame n] [--no-vsync] [--log-probe]".to_owned());
+                    return Err("usage: forge_runtime [--scene file.json | --visual-valley | --terrain terrain.json] [--quality low|medium|high|ultra | --adaptive-quality | --benchmark-quality] [--gate1-visual-proof output-dir] [--terrain-debug] [--terrain-partial-update-probe] [--player-camera | --player-camera-probe] [--weather clear|rain] [--capture file.png] [--capture-frame n] [--metrics file.json] [--metrics-warmup-frames n] [--exit-after-frames n] [--resize-at-frame n --resize-width px --resize-height px] [--close-at-frame n] [--no-vsync] [--log-probe]".to_owned());
                 }
                 _ => return Err(format!("unknown option `{argument}`")),
             }
@@ -599,6 +638,7 @@ impl Options {
         if self.quality_selection.is_some() && !self.visual_valley {
             return Err("quality selection requires --visual-valley".to_owned());
         }
+        self.validate_gate1_visual_proof()?;
         self.validate_terrain_partial_update_probe()?;
         self.validate_player_camera()?;
         self.validate_capture_and_metrics()?;
@@ -657,6 +697,7 @@ impl Options {
                 || self.terrain_debug.is_enabled()
                 || self.terrain_partial_update_probe.is_enabled()
                 || self.player_camera.is_enabled()
+                || self.gate1_visual_proof_output.is_some()
                 || self.weather_state.is_some()
                 || self.quality_selection.is_some()
                 || self.capture_path.is_some()
@@ -695,6 +736,44 @@ impl Options {
                     "--metrics-warmup-frames must be at least {PIPELINE_WARMUP_STABLE_FRAMES} frames after --capture-frame (minimum {earliest_metrics_warmup})"
                 ));
             }
+        }
+        Ok(())
+    }
+
+    fn validate_gate1_visual_proof(&self) -> Result<(), String> {
+        let Some(output_dir) = self.gate1_visual_proof_output.as_deref() else {
+            return Ok(());
+        };
+        if output_dir.as_os_str().is_empty() {
+            return Err("--gate1-visual-proof requires a non-empty output directory".to_owned());
+        }
+        if !self.visual_valley {
+            return Err("--gate1-visual-proof requires --visual-valley".to_owned());
+        }
+        if matches!(
+            self.quality_selection,
+            Some(VisualValleyQualitySelection::Adaptive | VisualValleyQualitySelection::Benchmark)
+        ) {
+            return Err(
+                "--gate1-visual-proof requires a fixed quality tier; adaptive and benchmark modes are not accepted"
+                    .to_owned(),
+            );
+        }
+        if self.terrain_debug.is_enabled()
+            || self.terrain_partial_update_probe.is_enabled()
+            || self.player_camera.is_enabled()
+            || self.weather_state.is_some()
+            || self.capture_path.is_some()
+            || self.metrics_path.is_some()
+            || self.exit_after_frames.is_some()
+            || self.resize_at_frame.is_some()
+            || self.close_at_frame.is_some()
+            || self.log_probe
+        {
+            return Err(
+                "--gate1-visual-proof owns camera, weather, capture and exit; it cannot be combined with debug, probe, player-camera, weather, capture, metrics, resize, close or logging modes"
+                    .to_owned(),
+            );
         }
         Ok(())
     }
@@ -857,8 +936,76 @@ impl Options {
                 }
             }
         }
+        if let Some(output_dir) = self.gate1_visual_proof_output.as_deref() {
+            prepare_gate1_visual_proof_directory(output_dir)?;
+        }
         Ok(())
     }
+}
+
+fn prepare_gate1_visual_proof_directory(output_dir: &Path) -> Result<(), String> {
+    match fs::symlink_metadata(output_dir) {
+        Ok(metadata) => {
+            if metadata.file_type().is_symlink() {
+                return Err(format!(
+                    "Gate 1 visual proof output cannot be a symlink: {}",
+                    output_dir.display()
+                ));
+            }
+            if !metadata.is_dir() {
+                return Err(format!(
+                    "Gate 1 visual proof output is not a directory: {}",
+                    output_dir.display()
+                ));
+            }
+            let mut entries = fs::read_dir(output_dir).map_err(|error| {
+                format!(
+                    "cannot inspect Gate 1 visual proof output {}: {error}",
+                    output_dir.display()
+                )
+            })?;
+            if entries
+                .next()
+                .transpose()
+                .map_err(|error| {
+                    format!(
+                        "cannot inspect Gate 1 visual proof output {}: {error}",
+                        output_dir.display()
+                    )
+                })?
+                .is_some()
+            {
+                return Err(format!(
+                    "Gate 1 visual proof output must be absent or empty: {}",
+                    output_dir.display()
+                ));
+            }
+        }
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            fs::create_dir_all(output_dir).map_err(|error| {
+                format!(
+                    "cannot create Gate 1 visual proof output {}: {error}",
+                    output_dir.display()
+                )
+            })?;
+        }
+        Err(error) => {
+            return Err(format!(
+                "cannot inspect Gate 1 visual proof output {}: {error}",
+                output_dir.display()
+            ));
+        }
+    }
+    for child in ["captures", "movement"] {
+        let path = output_dir.join(child);
+        fs::create_dir(&path).map_err(|error| {
+            format!(
+                "cannot create Gate 1 visual proof directory {}: {error}",
+                path.display()
+            )
+        })?;
+    }
+    Ok(())
 }
 
 fn initialize_structured_tracing() -> Result<(), String> {
@@ -1214,6 +1361,84 @@ mod tests {
             )
             .unwrap_err(),
             "--weather may only be specified once"
+        );
+    }
+
+    #[test]
+    fn gate1_visual_proof_is_a_strict_fixed_quality_owned_sequence() {
+        let accepted = Options::parse(
+            [
+                "--visual-valley".to_owned(),
+                "--quality".to_owned(),
+                "high".to_owned(),
+                "--gate1-visual-proof".to_owned(),
+                "proof-output".to_owned(),
+                "--no-vsync".to_owned(),
+            ]
+            .into_iter(),
+        )
+        .unwrap();
+        assert_eq!(
+            accepted.gate1_visual_proof_output,
+            Some(PathBuf::from("proof-output"))
+        );
+        assert_eq!(
+            accepted.quality_selection,
+            Some(VisualValleyQualitySelection::Fixed(VisualQualityTier::High))
+        );
+
+        assert_eq!(
+            Options::parse(
+                ["--gate1-visual-proof".to_owned(), "proof-output".to_owned(),].into_iter(),
+            )
+            .unwrap_err(),
+            "--gate1-visual-proof requires --visual-valley"
+        );
+        assert!(
+            Options::parse(
+                [
+                    "--visual-valley".to_owned(),
+                    "--adaptive-quality".to_owned(),
+                    "--gate1-visual-proof".to_owned(),
+                    "proof-output".to_owned(),
+                ]
+                .into_iter(),
+            )
+            .unwrap_err()
+            .contains("requires a fixed quality tier")
+        );
+        for conflicting in [
+            vec!["--weather", "rain"],
+            vec!["--player-camera"],
+            vec!["--capture", "other.png"],
+            vec!["--metrics", "metrics.json"],
+            vec!["--terrain-debug"],
+        ] {
+            let mut arguments = vec![
+                "--visual-valley".to_owned(),
+                "--gate1-visual-proof".to_owned(),
+                "proof-output".to_owned(),
+            ];
+            arguments.extend(conflicting.into_iter().map(str::to_owned));
+            assert!(
+                Options::parse(arguments.into_iter())
+                    .unwrap_err()
+                    .contains("owns camera, weather, capture and exit")
+            );
+        }
+        assert_eq!(
+            Options::parse(
+                [
+                    "--visual-valley".to_owned(),
+                    "--gate1-visual-proof".to_owned(),
+                    "first".to_owned(),
+                    "--gate1-visual-proof".to_owned(),
+                    "second".to_owned(),
+                ]
+                .into_iter(),
+            )
+            .unwrap_err(),
+            "--gate1-visual-proof may only be specified once"
         );
     }
 
@@ -1830,6 +2055,32 @@ mod tests {
         assert!(capture.parent().unwrap().is_dir());
         assert!(!capture.exists());
         assert!(!metrics.exists());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn gate1_visual_proof_preflight_refuses_stale_outputs_without_deleting_them() {
+        let unique = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let root = env::temp_dir().join(format!(
+            "openrpg-forge-gate1-visual-proof-{}-{unique}",
+            std::process::id()
+        ));
+        let options = Options {
+            visual_valley: true,
+            gate1_visual_proof_output: Some(root.clone()),
+            ..Options::default()
+        };
+        options.prepare_output_paths().unwrap();
+        assert!(root.join("captures").is_dir());
+        assert!(root.join("movement").is_dir());
+
+        let error = options.prepare_output_paths().unwrap_err();
+        assert!(error.contains("must be absent or empty"));
+        assert!(root.join("captures").is_dir());
+        assert!(root.join("movement").is_dir());
         fs::remove_dir_all(root).unwrap();
     }
 
