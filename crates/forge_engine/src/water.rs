@@ -130,6 +130,7 @@ pub struct WaterProjectionStats {
     pub deferred_camera_entities: usize,
     pub ssr_camera_entities: usize,
     pub msaa_off_camera_entities: usize,
+    pub msaa_sample4_camera_entities: usize,
     pub transmission_disabled_camera_entities: usize,
     pub cpu_ecs_application_status: &'static str,
     pub gpu_pass_observed: bool,
@@ -717,6 +718,7 @@ fn prepare_water_surface(
         deferred_camera_entities: 0,
         ssr_camera_entities: 0,
         msaa_off_camera_entities: 0,
+        msaa_sample4_camera_entities: 0,
         transmission_disabled_camera_entities: 0,
         cpu_ecs_application_status: "prepared_cpu_assets_not_observed",
         gpu_pass_observed: false,
@@ -1489,16 +1491,14 @@ fn configure_water_cameras(
 ) {
     for camera in &cameras {
         let mut entity = commands.entity(camera);
-        entity.insert((
-            Msaa::Off,
-            ScreenSpaceTransmission {
-                steps: 0,
-                ..default()
-            },
-        ));
+        entity.insert(ScreenSpaceTransmission {
+            steps: 0,
+            ..default()
+        });
         if let Some(ssr) = &prepared.ssr {
-            entity.insert((DeferredPrepass, ssr.clone()));
+            entity.insert((Msaa::Off, DeferredPrepass, ssr.clone()));
         } else {
+            entity.insert(Msaa::Sample4);
             entity.remove::<(ScreenSpaceReflections, DeferredPrepass)>();
         }
     }
@@ -1534,6 +1534,10 @@ fn observe_water_components(
     stats.msaa_off_camera_entities = msaa_cameras
         .iter()
         .filter(|msaa| **msaa == Msaa::Off)
+        .count();
+    stats.msaa_sample4_camera_entities = msaa_cameras
+        .iter()
+        .filter(|msaa| **msaa == Msaa::Sample4)
         .count();
     stats.transmission_disabled_camera_entities = transmission_cameras
         .iter()
@@ -1573,13 +1577,19 @@ fn observe_water_components(
     } else {
         stats.ssr_camera_entities == 0
     };
+    let msaa_cameras_match = if ssr_expected {
+        stats.msaa_off_camera_entities == stats.camera_3d_entities
+    } else {
+        stats.msaa_off_camera_entities == 0
+            && stats.msaa_sample4_camera_entities == stats.camera_3d_entities
+    };
     stats.runtime_observation = if stats.water_mesh_entities == 1
         && stats.river_bank_mesh_entities == 1
         && stats.shader_material_entities == 1
         && stats.shader_uniforms_match_profile
         && stats.camera_3d_entities > 0
         && deferred_cameras_match
-        && stats.msaa_off_camera_entities == stats.camera_3d_entities
+        && msaa_cameras_match
         && stats.transmission_disabled_camera_entities == stats.camera_3d_entities
         && ssr_cameras_match
     {
@@ -1913,11 +1923,14 @@ mod tests {
         app.add_plugins((MinimalPlugins, AssetPlugin::default()));
         app.init_asset::<Mesh>();
         app.init_asset::<StandardMaterial>();
-        app.world_mut().spawn((
-            Camera3d::default(),
-            DeferredPrepass,
-            ScreenSpaceReflections::default(),
-        ));
+        let camera = app
+            .world_mut()
+            .spawn((
+                Camera3d::default(),
+                DeferredPrepass,
+                ScreenSpaceReflections::default(),
+            ))
+            .id();
         app.add_plugins(VisualValleyWaterPlugin::new(terrain, water));
         app.update();
 
@@ -1929,7 +1942,8 @@ mod tests {
         assert_eq!(stats.camera_3d_entities, 1);
         assert_eq!(stats.deferred_camera_entities, 0);
         assert_eq!(stats.ssr_camera_entities, 0);
-        assert_eq!(stats.msaa_off_camera_entities, 1);
+        assert_eq!(stats.msaa_off_camera_entities, 0);
+        assert_eq!(stats.msaa_sample4_camera_entities, 1);
         assert_eq!(stats.transmission_disabled_camera_entities, 1);
         assert_eq!(stats.shader_material_assets, 1);
         assert_eq!(stats.shader_material_entities, 1);
@@ -1940,6 +1954,30 @@ mod tests {
             "observed_main_world_components_and_cpu_material_asset"
         );
         assert!(!stats.gpu_pass_observed);
+        assert_eq!(app.world().get::<Msaa>(camera), Some(&Msaa::Sample4));
+    }
+
+    #[test]
+    fn deferred_ssr_preparation_alone_disables_msaa() {
+        let mut app = App::new();
+        app.add_plugins(MinimalPlugins);
+        let camera = app.world_mut().spawn(Camera3d::default()).id();
+        app.insert_resource(PreparedWaterCamera {
+            ssr: Some(ScreenSpaceReflections::default()),
+        });
+        app.add_systems(Update, configure_water_cameras);
+        app.update();
+
+        let world = app.world();
+        assert_eq!(world.get::<Msaa>(camera), Some(&Msaa::Off));
+        assert!(world.get::<DeferredPrepass>(camera).is_some());
+        assert!(world.get::<ScreenSpaceReflections>(camera).is_some());
+        assert_eq!(
+            world
+                .get::<ScreenSpaceTransmission>(camera)
+                .map(|transmission| transmission.steps),
+            Some(0)
+        );
     }
 
     #[test]
@@ -1982,6 +2020,9 @@ mod tests {
         );
         assert_eq!(stats.ssr_camera_entities, 0);
         assert_eq!(stats.deferred_camera_entities, 0);
+        assert_eq!(stats.msaa_off_camera_entities, 0);
+        assert_eq!(stats.msaa_sample4_camera_entities, 1);
+        assert_eq!(world.get::<Msaa>(camera), Some(&Msaa::Sample4));
     }
 
     #[test]

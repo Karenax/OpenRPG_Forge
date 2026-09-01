@@ -790,6 +790,9 @@ mod tests {
         );
         assert!(world.get::<ScreenSpaceReflections>(camera).is_none());
         assert!(world.get::<DeferredPrepass>(camera).is_none());
+        assert_eq!(world.get::<Msaa>(camera), Some(&Msaa::Sample4));
+        assert_eq!(water.msaa_off_camera_entities, 0);
+        assert_eq!(water.msaa_sample4_camera_entities, 1);
     }
 
     #[test]
