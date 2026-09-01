@@ -32,7 +32,7 @@ use forge_world::{
     VegetationGenerationPlan, VegetationInstance, VegetationInstanceId, VegetationKindCounts,
 };
 use serde::Serialize;
-use std::{any::TypeId, collections::HashMap, error::Error, fmt};
+use std::{any::TypeId, collections::HashMap, error::Error, fmt, ops::Range};
 
 const VEGETATION_SHADER_PATH: &str =
     "embedded://forge_engine/shaders/visual_valley_vegetation_deform.wgsl";
@@ -42,6 +42,7 @@ const GRASS_PATCH_RADIUS_M: f32 = 1.15;
 const GOLDEN_ANGLE_RADIANS: f32 = 2.399_963_1;
 const TAG_PHASE_MASK: u32 = 0x00ff_ffff;
 const TAG_PHASE_SCALE: f32 = 16_777_215.0;
+const MAX_NEAR_MEDIUM_CROSSFADE_WIDTH_M: f32 = 6.0;
 
 /// Defensive Gate 1 budgets, applied before expensive generation or mesh allocation.
 pub const MAX_VEGETATION_CANDIDATE_ATTEMPTS: u64 = MAX_VEGETATION_PLACEMENT_ATTEMPTS;
@@ -307,7 +308,11 @@ pub struct VegetationLodRanges {
 impl VegetationLodRanges {
     #[must_use]
     pub fn from_profile(profile: VegetationPresentationProfile) -> Self {
-        let near_to_medium = profile.near_lod_distance_m..profile.medium_lod_distance_m;
+        let near_to_medium = centered_lod_crossfade(
+            profile.near_lod_distance_m,
+            profile.medium_lod_distance_m,
+            MAX_NEAR_MEDIUM_CROSSFADE_WIDTH_M,
+        );
         let medium_to_hlod = profile.medium_lod_distance_m..profile.hlod_distance_m;
         Self {
             near: VisibilityRange {
@@ -337,6 +342,17 @@ impl VegetationLodRanges {
             },
         }
     }
+}
+
+fn centered_lod_crossfade(
+    start_distance_m: f32,
+    end_distance_m: f32,
+    maximum_width_m: f32,
+) -> Range<f32> {
+    let interval_width_m = end_distance_m - start_distance_m;
+    let half_crossfade_width_m = interval_width_m.min(maximum_width_m) * 0.5;
+    let midpoint_m = start_distance_m + interval_width_m * 0.5;
+    (midpoint_m - half_crossfade_width_m)..(midpoint_m + half_crossfade_width_m)
 }
 
 /// Forge-original vegetation PBR palette, wind and bounded interaction uniforms.
@@ -2033,6 +2049,8 @@ mod tests {
     fn lod_ranges_are_complementary_at_both_dither_margins() {
         let ranges = VegetationLodRanges::from_profile(profile());
 
+        assert_eq!(ranges.near.end_margin, 47.0..53.0);
+        assert_eq!(ranges.medium.end_margin, 58.0..180.0);
         assert_eq!(ranges.near.end_margin, ranges.medium.start_margin);
         assert_eq!(ranges.medium.end_margin, ranges.hlod.start_margin);
         assert_eq!(ranges.individual.end_margin, ranges.hlod.start_margin);
@@ -2041,6 +2059,11 @@ mod tests {
         assert!(!ranges.near.is_abrupt());
         assert!(!ranges.medium.is_abrupt());
         assert!(!ranges.hlod.is_abrupt());
+    }
+
+    #[test]
+    fn near_crossfade_keeps_short_authored_intervals_intact() {
+        assert_eq!(centered_lod_crossfade(42.0, 46.0, 6.0), 42.0..46.0);
     }
 
     #[test]
