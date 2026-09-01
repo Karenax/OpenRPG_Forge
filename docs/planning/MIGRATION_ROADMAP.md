@@ -1,9 +1,10 @@
 # Roadmap de migration — OpenRPG Forge Rust/WebGPU
 
-Dernière mise à jour : 2026-08-31
+Dernière mise à jour : 2026-09-01
 Branche : `Rust`  
 État global : **Gate C qualifiée sous l’exception bornée ADR-0003 ; Gate 0 passée sur preuves
-automatisées locales sous ADR-0004, ADR-0005 et ADR-0006**
+automatisées locales sous ADR-0004, ADR-0005 et ADR-0006 ; Gate 1 ouverte ; Gate 2 interdite sans
+nouvelle dérogation explicite**
 Gate active : **Gate 1 — Visual Valley (OUVERTE)**
 
 Cette roadmap transforme `PROJECT_CONTEXT.md` en lots exécutables. Elle n’est pas un calendrier et ne
@@ -290,38 +291,30 @@ et sans transformer une acquisition automatisée en revue humaine.
 
 Statut : **OUVERTE** après le passage automatisé local de Gate 0 sous ADR-0004, ADR-0005 et ADR-0006.
 
-Progression au commit `7e9681dd643c2b5c4959d704cf43691f39c3d636` : `R1-001` reste qualifié,
-puis `R1-002` à `R1-008` sont passés fonctionnellement localement par le terrain dérivé
-déterministe, les meshes Bevy, le shader PBR trois couches, le debug chunks/LOD, les 64 heightfields
-Rapier et une transaction partielle qui régénère 3 meshes et 1 collider sans remplacer les 64
-identités runtime. `R1-027` à `R1-031` ajoutent le contrôleur Rapier, les pentes/marches, une caméra
-troisième personne avec occlusion et le basculement première personne sur une seule entité caméra.
-`R1-009` ajoute le document de végétation et un scatter logique déterministe borné : 8 282
-placements, dont 704 arbres, 1 228 arbustes, 1 282 fougères et 5 068 patches d'herbe, pour le golden
-de cache `82995caa4f17c315cdc42542b255e50945dc70b2e3c959a97b818ebbd60ceb98`.
-`R1-010` à `R1-013` et `R1-015` à `R1-018` projettent ce cache en représentations procédurales
-proches/moyennes, HLOD et 64 lots d'herbe, avec interaction joueur, culling observé et ombres CSM
-bornées. Le vent shader `R1-014` est prouvé en natif, mais reste ouvert sans lancement WebGPU ;
-`R1-032` est couvert par 150 échantillons dynamiques alignés sans retard sur la pose post-physique.
-Voir
-`docs/evidence/gate1/R1_001_TERRAIN_DOCUMENT.md` et
-`docs/evidence/gate1/R1_002_005_008_TERRAIN_RENDERING.md`, puis
-`docs/evidence/gate1/R1_006_TERRAIN_PHYSICS.md` et
-`docs/evidence/gate1/R1_007_TERRAIN_PARTIAL_UPDATE.md`, enfin
-`docs/evidence/gate1/R1_027_031_PLAYER_CAMERA.md` et
-`docs/evidence/gate1/R1_009_VEGETATION_SCATTER.md`, puis
-`docs/evidence/gate1/R1_010_018_VEGETATION_RENDERING.md`. Le lot joueur/caméra est qualifié localement
-sous ADR-0006 par 135/135 tests workspace et un probe natif ECS/Rapier ; `R1-009` est qualifié par
-58/58 tests ciblés et ses deux goldens ; le lot de rendu végétation est qualifié par 92/92 tests
-engine/runtime, Clippy strict, compilation WASM, probes natifs, captures et métriques locales.
-`R1-014`, les performances finales et la revue comparative humaine restent dus. Gate 1 reste ouverte.
+Progression consolidée au commit source final
+`a34596bd733131699c70028dab86cf2c612b896a`, arbre
+`8ccdf8cb2cb6a6aabd3a4569f22f1778e164ced6`. Le smoke Browser final High clear/rain passe ses
+**24/24 contrôles automatisés pour chaque météo** : manifeste sélectionné égal au manifeste runtime,
+huit hashes présents, 9/9 modèles chargés sans échec, 26/26 assets HTTP 200, aucune requête `.meta`,
+aucun échec réseau et aucun warning console. Les captures Browser 1920 × 1080 sont acquises.
 
-`R1-019` à `R1-021` disposent maintenant d'un profil v1 strict et d'une projection native
-Atmosphere/HDR/soleil/brouillard de distance. Les captures overview et hauteur humaine, le schéma
-métrique v5 et le smoke RX 7800 XT passent localement. `R1-021` choisit explicitement
-l'approximation de distance tant que la volumétrie n'est pas qualifiée ; les trois items restent
-ouverts jusqu'au lancement réel du même profil dans le Studio WebGPU. Voir
-`docs/evidence/gate1/R1_019_021_ENVIRONMENT.md`.
+La boucle WASM mesure 120 frames après 60 frames de warm-up. Clear relève 10,7283 ms de moyenne,
+p95 13,4 ms, 1 % low 54,945 FPS et deux hitches `>16,7 ms`; rain relève 9,1683 ms, p95 10,1 ms,
+1 % low 84,034 FPS et zéro hitch. Ces nombres décrivent la boucle Bevy WASM, pas un timestamp GPU ;
+`gpu_presentation` reste `not_observed` et le statut WebGPU du ledger reste `checking`.
+
+Les preuves natives RX 7800 XT/Vulkan et l'audit provenance/CC0 restent épinglés au commit exécuté
+`92286910a9bab622d5d54905551c0f03172e98e7`. Entre ce natif et le Browser final, le correctif décor a
+changé le hash scenery de
+`6b14244116a4bc2e2e0612caa23077c70ef892fc06bb80759f1ee242067d30cf` à
+`6b41ec73efde5b8a40ca0132e1d32462176d6b4810104f6bed69496569f81f5f`. Sans nouveau run natif
+Release sur `a34596bd`, `R1-043` et la condition de parité native/Studio restent ouvertes. La CI
+distante reste `NOT RUN` sous ADR-0006 ; ce statut n'est pas un PASS.
+
+Les captures natives et Browser restent très contrastées et montrent des artefacts noirs ; le log
+natif contient le warning wgpu `@builtin(position)` sans `@invariant` avec comparaison `Equal`.
+Matériel cible, profils dynamiques, stutter représentatif et revue humaine comparative restent dus.
+Verdict détaillé : `docs/reports/GATE_1_REPORT.md`. Gate 1 reste **OUVERTE**.
 
 ## But
 
@@ -365,7 +358,8 @@ qualité                   Low / Medium / High / Ultra
 - [x] `R1-011` LOD arbres — near/medium distincts et plages complémentaires testées.
 - [x] `R1-012` imposteurs ou HLOD lointain — 64 meshes HLOD de chunk observés.
 - [x] `R1-013` herbe dense sans entité par brin — 162 176 brins dans 64 lots.
-- [ ] `R1-014` vent shader — PASS natif et paire temporelle inspectée ; pipeline WebGPU non lancé.
+- [ ] `R1-014` vent shader — PASS natif et paire temporelle inspectée ; présentation du vent sous
+  WebGPU non qualifiée et `gpu_presentation` Browser non observée.
 - [x] `R1-015` interaction locale avec personnage — champ borné aligné sur la pose post-physique.
 - [x] `R1-016` culling par chunks — instantané cohérent après 241 observations caméra/range.
 - [x] `R1-017` réglage des ombres par distance — CSM 128 m et règles caster/opt-out observés.
@@ -373,13 +367,13 @@ qualité                   Low / Medium / High / Ultra
 
 ## R1-C — Atmosphère et eau
 
-- [ ] `R1-019` ciel et soleil cohérents — PASS natif local ; lancement Studio WebGPU dû.
-- [ ] `R1-020` brouillard atmosphérique — PASS natif local ; lancement Studio WebGPU dû.
-- [ ] `R1-021` brouillard volumétrique ou approximation mesurée — approximation PASS native,
-  WebGPU et comparaison finale dus.
-- [ ] `R1-022` eau de rivière.
+- [x] `R1-019` ciel et soleil cohérents — projection native et scène Browser clear/rain acquises.
+- [x] `R1-020` brouillard atmosphérique — projection native et scène Browser clear/rain acquises.
+- [x] `R1-021` brouillard volumétrique ou approximation mesurée — approximation de distance observée
+  en natif et dans la scène Browser ; volumétrie réelle non revendiquée.
+- [x] `R1-022` eau de rivière — géométrie/composants observés ; présentation GPU non revendiquée.
 - [ ] `R1-023` réflexion/réfraction selon profil.
-- [ ] `R1-024` pluie.
+- [x] `R1-024` pluie — clear/rain High acquis en natif et Browser ; animation GPU non revendiquée.
 - [ ] `R1-025` wetness réversible.
 - [ ] `R1-026` bloom et color grading bornés.
 
@@ -396,20 +390,21 @@ qualité                   Low / Medium / High / Ultra
 ## R1-E — Performance
 
 - [ ] `R1-034` overlay CPU/GPU.
-- [ ] `R1-035` frame histogram.
-- [ ] `R1-036` moyenne, p95, 1 % low.
+- [x] `R1-035` frame histogram — natif et boucle WASM Browser mesurés sur 120 frames.
+- [x] `R1-036` moyenne, p95, 1 % low — valeurs natives et Browser consignées avec leur portée.
 - [ ] `R1-037` draw calls, triangles, instances.
-- [ ] `R1-038` VRAM estimée.
+- [x] `R1-038` VRAM estimée — sous-allocations wgpu natives observées ; aucune VRAM Browser simulée.
 - [ ] `R1-039` préchauffage pipelines.
 - [ ] `R1-040` profil dynamique.
 - [ ] `R1-041` benchmark RTX 3060 ou RX 6600.
-- [ ] `R1-042` benchmark RX 7800 XT de développement.
-- [ ] `R1-043` comparaison native vs Studio WebGPU.
+- [x] `R1-042` benchmark RX 7800 XT de développement — smoke natif High clear/rain sur `92286910`.
+- [ ] `R1-043` comparaison native vs Studio WebGPU — Studio interne PASS sur `a34596bd`, mais aucun
+  run natif exact-commit après le changement du hash scenery.
 
 ## R1-F — Revue visuelle
 
-- [ ] `R1-044` captures fixes de jour.
-- [ ] `R1-045` captures sous pluie.
+- [x] `R1-044` captures fixes de jour — acquisitions natives et Browser hashées.
+- [x] `R1-045` captures sous pluie — acquisitions natives et Browser hashées.
 - [ ] `R1-046` vue à hauteur humaine.
 - [ ] `R1-047` vue lointaine.
 - [ ] `R1-048` vidéo de déplacement courte.
@@ -417,9 +412,9 @@ qualité                   Low / Medium / High / Ultra
 - [ ] `R1-050` revue de composition et lisibilité.
 - [ ] `R1-051` comparaison avec la référence WebGPU ayant motivé le reboot.
 - [ ] `R1-052` comparaison A/B avec Cadle épinglé sur même machine, résolution et profil équivalent ; séparer impact visuel et coûts par système, car Cadle couvre 2 km² contre 512 × 512 m pour Visual Valley.
-- [ ] `R1-053` vérification de provenance : aucun asset, nom, lore ou texte Cadle dans Visual Valley.
-- [ ] `R1-054` vérification d’indépendance : Visual Valley fonctionne clone Cadle supprimé.
-- [ ] `R1-055` rapport Gate 1 avec verdict poursuivre/réorienter/arrêter.
+- [x] `R1-053` vérification de provenance : aucun asset, nom, lore ou texte Cadle dans Visual Valley.
+- [x] `R1-054` vérification d’indépendance : Visual Valley fonctionne sans clone Cadle produit.
+- [x] `R1-055` rapport Gate 1 — verdict : poursuivre Gate 1 ; Gate 1 reste ouverte.
 
 ## Conditions de passage Gate 1
 
@@ -430,13 +425,18 @@ qualité                   Low / Medium / High / Ultra
 - [ ] 1 % low ≥ 45 FPS ;
 - [ ] absence de stutter récurrent ;
 - [ ] profils qualité fonctionnels ;
-- [ ] parité de données entre natif et Studio ;
-- [ ] code sans dépendance propriétaire obligatoire ;
-- [ ] rapport et captures versionnés.
+- [ ] parité de données entre natif et Studio — parité interne Studio PASS à `a34596bd`, mais natif
+  performance encore à `92286910` avec un hash scenery antérieur ;
+- [x] code sans dépendance propriétaire obligatoire — audit provenance/indépendance PASS local ;
+- [x] rapport et captures versionnés — rapport Gate 1, manifeste/ledgers Browser et captures Forge
+  clear/rain ajoutés au lot documentaire avec leurs SHA-256.
 
 ---
 
 # Gate 2 — Éditeur de monde
+
+Statut : **INTERDITE tant que Gate 1 reste ouverte**. Aucun travail Gate 2 ne commence sans passage
+formel de Gate 1 ou nouvelle dérogation explicite acceptée.
 
 ## But
 

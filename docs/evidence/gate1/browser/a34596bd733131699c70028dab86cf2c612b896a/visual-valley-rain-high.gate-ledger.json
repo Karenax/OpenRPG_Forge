@@ -1,0 +1,67 @@
+{
+  "schema": "forge.gate0-studio-telemetry",
+  "schema_version": 1,
+  "recorded_at_utc": "2026-09-01T06:30:55.957Z",
+  "target": "wasm_browser",
+  "webgpu": {
+    "status": "checking",
+    "diagnostic_injection": false,
+    "reason": "Gate 1 runtime CPU/ECS observed; GPU presentation remains not_observed"
+  },
+  "loading": {
+    "wasm_started_ms": 787.2000000476837,
+    "webgpu_ready_ms": null,
+    "scene_ready_ms": 4116.899999976158
+  },
+  "memory": {
+    "wasm_linear_bytes": 369426432,
+    "js_heap_used_bytes": 135770682,
+    "js_heap_limit_bytes": 4395630592,
+    "js_heap_api_available": true
+  },
+  "frame": {
+    "warmup_samples": 60,
+    "samples": 120,
+    "duration_ms": 1100.2,
+    "mean_ms": 9.168333333333331,
+    "p50_ms": 9.1,
+    "p95_ms": 10.1,
+    "p99_ms": 11.9,
+    "max_ms": 11.9,
+    "mean_fps": 109.07107798582076,
+    "one_percent_low_fps": 84.03361344537815,
+    "hitches_over_16_7_ms": 0,
+    "hitches_over_33_3_ms": 0,
+    "histogram": {
+      "frames_at_or_below_16_7_ms": 120,
+      "frames_over_16_7_ms_at_or_below_33_3_ms": 0,
+      "frames_over_33_3_ms": 0
+    }
+  },
+  "interaction": {
+    "handler_to_post_paint": null,
+    "stable_canvas_observations": 0,
+    "unstable_canvas_observations": 0
+  },
+  "viewport": {
+    "starts": 1,
+    "canvas_width_px": 1393,
+    "canvas_height_px": 1067
+  },
+  "permissions": {
+    "allowed": {
+      "command": "execute_studio_command",
+      "status": "not_run",
+      "reason": null
+    },
+    "denied": {
+      "command": "plugin:window|set_title",
+      "status": "not_run",
+      "reason": null
+    }
+  },
+  "limitations": [
+    "Frame time is measured from the Bevy WASM update loop, not a GPU timestamp query.",
+    "performance.memory is Chromium-specific and may be unavailable or quantized."
+  ]
+}

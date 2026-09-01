@@ -235,12 +235,12 @@ courant apporte les preuves automatisées suivantes :
 
 | Contrôle du correctif glyphes/overlay ASCII | Résultat courant |
 |---|---|
-| suite `forge_engine` | **PASS — 118/118**, dont les assertions `is_ascii()` des overlays Gate 0 et Gate 1 |
+| suite `forge_engine` | **PASS — 119/119**, dont les assertions `is_ascii()` des overlays Gate 0 et Gate 1 |
 | suite `forge_runtime` | **PASS — 32/32** (31 bin + 1 intégration) |
 | suite `forge_studio` | **PASS — 31/31** (28 lib + 3 bin) |
-| check WASM exact courant | **PASS — 7.45 s** |
+| check WASM exact courant | **PASS — 1.06 s** |
 | formatage et contrôle du diff | **PASS** |
-| Clippy strict exact | **PASS — 6.29 s** |
+| Clippy strict exact | **PASS — 12.04 s** |
 | smokes du candidat courant natif / Browser WebGPU | **NOT RUN** |
 
 `G0-UI-001` passe donc au statut **CORRECTIF — TESTS/FMT/DIFF/WASM/CLIPPY PASS ; REVUE HUMAINE
@@ -276,7 +276,7 @@ La revue humaine comparative de Gate 1 n'est couverte par aucune dérogation Gat
 | capture complète Tauri commit-bound | PASS ACQUISITION | PNG/ledger v2, HWND/PID exacts, hashes et schémas valides |
 | vrai compteur global de draw calls | PASS PAR EXCEPTION | indisponibilité explicite et bornée par ADR-0004 ; aucun nombre inventé |
 | décision Studio | PASS DÉCISION | Tauri/Leptos/WebGPU confirmé par ADR-0005 |
-| `G0-UI-001` glyphes tofu | TESTS/FMT/DIFF/WASM/CLIPPY PASS | `forge_engine` 118/118 dont overlays Gate 0/Gate 1 `is_ascii()`, `forge_runtime` 32/32 (31 bin + 1 intégration), `forge_studio` 31/31 (28 lib + 3 bin), check WASM 7.45 s, Clippy strict 6.29 s ; smokes du candidat courant natif/Browser WebGPU NOT RUN, aucune nouvelle capture ni revue humaine |
+| `G0-UI-001` glyphes tofu | TESTS/FMT/DIFF/WASM/CLIPPY PASS | `forge_engine` 119/119 dont overlays Gate 0/Gate 1 `is_ascii()`, `forge_runtime` 32/32 (31 bin + 1 intégration), `forge_studio` 31/31 (28 lib + 3 bin), check WASM 1.06 s, Clippy strict 12.04 s ; smokes Gate 0 du candidat courant natif/Browser WebGPU NOT RUN, aucune nouvelle revue humaine Gate 0 |
 | revue humaine Gate 0 | DIFFÉRÉE | dette `G0-HR-001` à `003`, champs ledger inchangés |
 | CI distante Windows/Linux/WASM/supply-chain | NOT RUN | zéro étape, facturation ; exception temporaire ADR-0006 |
 | aucun asset/dépendance runtime Cadle | PASS | clone absent du worktree de preuve, zéro fichier suivi |

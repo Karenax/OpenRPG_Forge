@@ -1,0 +1,209 @@
+{
+  "commit": "a34596bd733131699c70028dab86cf2c612b896a",
+  "clear": {
+    "weather": "clear",
+    "pass": true,
+    "checks": [
+      {
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "name": "parity",
+        "ok": true
+      },
+      {
+        "name": "manifests_equal",
+        "ok": true
+      },
+      {
+        "name": "eight_hashes",
+        "ok": true
+      },
+      {
+        "name": "weather",
+        "ok": true
+      },
+      {
+        "name": "camera",
+        "ok": true
+      },
+      {
+        "name": "water_weather_observed",
+        "ok": true
+      },
+      {
+        "name": "quality_high",
+        "ok": true
+      },
+      {
+        "name": "scenery_loaded",
+        "ok": true
+      },
+      {
+        "name": "scenery_counts",
+        "ok": true
+      },
+      {
+        "name": "scenery_invariants",
+        "ok": true
+      },
+      {
+        "name": "scenery_provenance",
+        "ok": true
+      },
+      {
+        "name": "gpu_honest",
+        "ok": true
+      },
+      {
+        "name": "timestamps",
+        "ok": true
+      },
+      {
+        "name": "gate_schema",
+        "ok": true
+      },
+      {
+        "name": "frame_window",
+        "ok": true
+      },
+      {
+        "name": "frame_metrics",
+        "ok": true
+      },
+      {
+        "name": "frame_histogram",
+        "ok": true
+      },
+      {
+        "name": "frame_thresholds",
+        "ok": true
+      },
+      {
+        "name": "webgpu_honest",
+        "ok": true
+      },
+      {
+        "name": "viewport",
+        "ok": true
+      },
+      {
+        "name": "network_assets",
+        "ok": true
+      },
+      {
+        "name": "console",
+        "ok": true
+      },
+      {
+        "name": "dom",
+        "ok": true
+      }
+    ],
+    "failed": []
+  },
+  "rain": {
+    "weather": "rain",
+    "pass": true,
+    "checks": [
+      {
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "name": "parity",
+        "ok": true
+      },
+      {
+        "name": "manifests_equal",
+        "ok": true
+      },
+      {
+        "name": "eight_hashes",
+        "ok": true
+      },
+      {
+        "name": "weather",
+        "ok": true
+      },
+      {
+        "name": "camera",
+        "ok": true
+      },
+      {
+        "name": "water_weather_observed",
+        "ok": true
+      },
+      {
+        "name": "quality_high",
+        "ok": true
+      },
+      {
+        "name": "scenery_loaded",
+        "ok": true
+      },
+      {
+        "name": "scenery_counts",
+        "ok": true
+      },
+      {
+        "name": "scenery_invariants",
+        "ok": true
+      },
+      {
+        "name": "scenery_provenance",
+        "ok": true
+      },
+      {
+        "name": "gpu_honest",
+        "ok": true
+      },
+      {
+        "name": "timestamps",
+        "ok": true
+      },
+      {
+        "name": "gate_schema",
+        "ok": true
+      },
+      {
+        "name": "frame_window",
+        "ok": true
+      },
+      {
+        "name": "frame_metrics",
+        "ok": true
+      },
+      {
+        "name": "frame_histogram",
+        "ok": true
+      },
+      {
+        "name": "frame_thresholds",
+        "ok": true
+      },
+      {
+        "name": "webgpu_honest",
+        "ok": true
+      },
+      {
+        "name": "viewport",
+        "ok": true
+      },
+      {
+        "name": "network_assets",
+        "ok": true
+      },
+      {
+        "name": "console",
+        "ok": true
+      },
+      {
+        "name": "dom",
+        "ok": true
+      }
+    ],
+    "failed": []
+  }
+}

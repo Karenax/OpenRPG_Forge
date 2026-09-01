@@ -1,22 +1,98 @@
 # Gate 1 — R1-053 / R1-054 — provenance et indépendance Cadle
 
-Date de qualification locale : **2026-09-01**
+Date du rejeu final local : **2026-09-01**
 
-Branche de travail : **worktree détaché depuis `d1f73e62e054695bdbf069a96bf83e7afd5edef1`**
+Commit candidat qualifié : **`92286910a9bab622d5d54905551c0f03172e98e7`**
 
-Commit technique qualifié : **`03a5ecb5d486f242488363a7aea6e961bb75dc69`**
+Tree Git qualifié : **`6d7cd4ab8612686e7f73f01abeb5b8ad0174ebbe`**
 
-Tree Git qualifié : **`1738e3906e892e469dfa8fe3125a7f946b3fbc0d`**
+Worktree qualifié : **`E:\OpenRPG_Forge\.gate1-candidate`**, propre avant et après l'audit.
 
-Verdict du lot : **PASS AUTOMATISÉ LOCAL DU CONTRAT D'AUDIT — REJEU OBLIGATOIRE SUR LE
-CANDIDAT FINAL CONTENANT LES ASSETS**
+Référence Cadle extérieure : commit **`ea0da62549980816a6a27e08b75808b1f56d70e7`**, tree
+**`f0d52e434454fe302052d22eafde203bc361cc1f`**, HEAD détaché et arbre propre.
 
-Ce lot ajoute un audit reproductible, sans importer de contenu Cadle et sans modifier la roadmap ou
-`PROJECT_CONTEXT.md`. Il qualifie l'état exact ci-dessus et rend vérifiable le futur lot d'assets
-Gate 1. Il ne ferme pas encore `R1-053` ou `R1-054` dans la roadmap : ce commit ne contient aucun
-asset externe sous `assets/visual_valley/`, et le candidat final évoluera après son intégration.
+Verdict de provenance et d'indépendance source : **PASS AUTOMATISÉ LOCAL**.
 
-## Résultat observé
+Verdict visuel, artistique, WebGPU navigateur et benchmark matériel : **OUVERT — NON QUALIFIÉ PAR CE
+RAPPORT**.
+
+Le candidat final contient le sous-ensemble CC0 gouverné. L'audit strict prouve ses tailles, hashes,
+licence et suivi Git, ainsi que l'absence de payload, dépendance ou copie Cadle. Ce PASS de provenance
+ne ferme aucune validation visuelle de Gate 1.
+
+## Rejeu final sur `92286910`
+
+Commandes réellement exécutées depuis `E:\OpenRPG_Forge\.gate1-candidate` :
+
+```powershell
+& '.\scripts\Test-Gate1Provenance.ps1' -Mode SelfTest
+
+& '.\scripts\Test-Gate1Provenance.ps1' -Mode Audit `
+  -RequireCleanTree `
+  -RequireAssetManifest `
+  -CadleReferenceRoot 'E:\OpenRPG_Forge\OpenRPG_Forge-Rust\upstream\cadle'
+
+git status --short
+git diff --check
+git rev-parse HEAD
+git rev-parse 'HEAD^{tree}'
+```
+
+Sorties exactes :
+
+```text
+FORGE_GATE1_PROVENANCE_SELF_TEST_PASS cases=7
+FORGE_GATE1_PROVENANCE_AUDIT_PASS manifests=1 files=27 models=9
+92286910a9bab622d5d54905551c0f03172e98e7
+6d7cd4ab8612686e7f73f01abeb5b8ad0174ebbe
+```
+
+`git status --short` et `git diff --check` ne produisent aucune ligne. Le self-test retourne le code
+`0` en **5,22 s** et l'audit strict le code `0` en **12,00 s**. Aucun `CargoCheck` n'a été demandé
+pendant ce rejeu afin de ne pas concurrencer les qualifications Cargo finales consignées ailleurs.
+
+| Contrôle final | Résultat observé |
+|---|---:|
+| fichiers Forge suivis | **235** |
+| fichiers produit dépendance/configuration inspectés | **68** |
+| fichiers canoniques Visual Valley comparés | **39** |
+| manifestes / fichiers / modèles validés | **1 / 27 / 9** |
+| fichiers suivis sous `upstream/cadle/**` | **0** |
+| dossier `upstream/cadle` dans le candidat | **absent** |
+| marqueurs de réutilisation Cadle | **0** |
+| fichiers Cadle hachés en lecture seule | **507** |
+| fichiers exactement identiques à Cadle | **0** |
+| lignes normalisées communes d'au moins 40 caractères | **0** |
+| arbres Forge et Cadle | **propres** |
+
+Le lock v2 `upstream/cadle.lock.json` porte le SHA-256
+`6e0608b93da299285304996a7d5769de2dce1581ed86f3e86c0b51a40b546630`. Il épingle l'URL
+`https://github.com/Humpalumps/Cadle.git`, le commit et le tree ci-dessus ; le clone reste extérieur
+au candidat et n'est utilisé qu'en lecture seule.
+
+Le manifeste
+`assets/visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/subset.manifest.json`
+porte le SHA-256 `c86c4454b3b0ae4ca0bb546d22b29f3e79a0bfd8107ef63b8af1f0ebbffd6677`.
+Il valide :
+
+- subset `visual-valley-quaternius-stylized-nature-standard-1.0` et pack
+  `quaternius:stylized-nature-megakit-standard-1.0` ;
+- archive de **104 088 529 octets**, SHA-256
+  `298f6732b872e4cf7b30e6e7abf9641c7f6dc6b326df37ac089533ed7e3d58c9` ;
+- métadonnées normalisées SHA-256
+  `e3286b81f3a6171eb844a83528eac55b2727b2ef8e3f96d1d4e29faddf5b458d` ;
+- **27 fichiers**, **9 modèles**, **16 652 493 octets**, tous `byte-for-byte-copy` ;
+- licence `CC0-1.0`, `verified=true`, attribution non requise ;
+- `License_Standard.txt`, hash déclaré et recalculé
+  `120710e542c3ebaf83856c4eb55b4a1e680593b39302eba7fdc5d942dfe78c58`.
+
+## Historique du lot d'outil `03a5ecb5`
+
+Le lot initial avait qualifié le mécanisme d'audit avant l'arrivée des assets. Les mesures ci-dessous
+sont conservées comme historique de construction de l'outil ; elles ne remplacent pas le rejeu final
+ci-dessus.
+
+## Résultat historique observé
 
 Le script [`scripts/Test-Gate1Provenance.ps1`](../../../scripts/Test-Gate1Provenance.ps1) a été ajouté
 avec trois modes :
@@ -95,7 +171,7 @@ Le manifeste prouve l'acquisition déclarée et l'intégrité des fichiers prés
 une expertise juridique de l'historique d'un tiers ni une revue humaine de la fidélité des
 métadonnées publiées par ce tiers.
 
-## Commandes de reproduction
+## Commandes historiques de construction
 
 Le premier chemin ci-dessous désigne le checkout Forge à qualifier. Le second est uniquement la
 référence Cadle locale épinglée ; l'étape autonome prouve ensuite que Forge n'en dépend pas.
@@ -117,28 +193,28 @@ pwsh -NoLogo -NoProfile -File "$Forge\scripts\Test-Gate1Provenance.ps1" `
   -OutputPath "$Forge\target\gate1-provenance\isolated.json"
 ```
 
-Après intégration des assets CC0, les deux dernières commandes doivent ajouter
-`-RequireAssetManifest`. Le résultat attendu doit alors avoir un nombre de manifestes et de fichiers
-strictement positif, avec toutes les licences et empreintes validées.
+Ces commandes décrivent le lot d'outil antérieur. La reproduction du candidat final doit utiliser les
+commandes `SelfTest` et `Audit -RequireCleanTree -RequireAssetManifest` données en tête de ce rapport.
+Le rejeu final a volontairement omis `IsolatedCheck` et Cargo ; il ne faut donc pas attribuer ces
+étapes au commit `92286910` dans cette preuve.
 
 ## Qualification exacte de R1-053 et R1-054
 
-| Item | Preuve acquise à ce commit | Statut de transition |
+| Item | Preuve acquise au candidat `92286910` | Verdict borné |
 |---|---|---|
-| `R1-053` | zéro payload Cadle suivi, zéro identité interdite, zéro copie exacte/ligne longue commune avec le snapshot épinglé ; audit strict des futurs manifestes testé | **Avancé, non fermé** : aucun asset externe n'est encore présent ; rejeu `-RequireAssetManifest` obligatoire après intégration |
-| `R1-054` | checkout autonome propre, zéro remote, zéro ref Cadle, dossier `upstream/cadle` absent, audit et `cargo check` ciblé PASS | **Avancé, non fermé** : preuve valide pour ce commit ; rejeu obligatoire sur le candidat Gate 1 final |
+| `R1-053` | manifeste CC0 strict, licence/hash/tailles exacts, zéro payload Cadle, zéro copie exacte et zéro ligne longue commune | **PASS automatisé de provenance** |
+| `R1-054` | aucun clone dans le candidat, aucun chemin de dépendance, lock seulement, clone de comparaison extérieur et propre | **PASS automatisé d'indépendance source** ; aucun Cargo n'a été relancé par cet audit final |
 
 ## Limites et validations différées
 
 - La comparaison exacte et lexicale détecte une copie textuelle ou binaire évidente ; elle ne prouve
   pas juridiquement l'absence de dérivation algorithmique ou sémantique.
-- Le check ciblé couvre `forge_core`, `forge_project` et `forge_world`. Le workspace complet, le
-  moteur de rendu, le runtime natif, WASM/WebGPU, Tauri et le Studio n'ont pas été recompilés par ce
-  lot afin de ne pas dupliquer les compilations Gate 1 déjà en cours.
+- L'ancien check ciblé couvrait `forge_core`, `forge_project` et `forge_world`. Le rejeu final de
+  provenance n'a lancé aucun Cargo afin de ne pas dupliquer les qualifications du candidat.
 - Aucun asset Cadle n'a été copié, généré ou déplacé. Le checkout de référence est resté propre et
   n'a servi qu'à la comparaison locale en lecture seule.
 - Le checkout autonome est produit depuis les fichiers suivis du commit. Il conserve donc les
   métadonnées de gouvernance `upstream/cadle.lock.json`, mais aucun clone, remote, ref, chemin de
   dépendance ou payload `upstream/cadle/`.
-- La roadmap et `PROJECT_CONTEXT.md` doivent être mis à jour seulement lors de l'intégration dans le
-  candidat Gate 1, après le rejeu strict sur les assets réellement retenus.
+- La provenance PASS ne vaut ni revue artistique, ni inspection GPU, ni benchmark. Ces critères
+  restent ouverts et sont traités dans des preuves séparées.

@@ -1,8 +1,9 @@
 # Contexte canonique — OpenRPG Forge Rust/WebGPU
 
-Dernière mise à jour : **31 août 2026**
+Dernière mise à jour : **1er septembre 2026**
 Branche : **`Rust`**
-Statut : **Gate 0 passée sur preuves automatisées locales ; Gate 1 active ; produit non qualifié**
+Statut : **Gate 0 passée sur preuves automatisées locales ; Gate 1 ouverte au commit source final
+`a34596bd733131699c70028dab86cf2c612b896a` ; Gate 2 interdite ; produit non qualifié**
 Référence historique : `main@a7f4a3f5dd0eeff1dc060ea1237b1d7d650b7ca0`
 Référence upstream exécutable : `Humpalumps/Cadle@ea0da62549980816a6a27e08b75808b1f56d70e7` (`v0.6.0`)
 
@@ -27,6 +28,26 @@ Tauri 2 + Leptos partagent une scène Forge versionnée. ADR-0005 confirme ce St
 Les revues humaines Gate 0 restent différées et la CI distante reste `NOT RUN` pour blocage de
 facturation ; ADR-0006 autorise jusqu’à Gate 4 une décision sur preuves automatisées locales sans
 jamais transformer ce statut en CI verte.
+
+Le snapshot courant de Gate 1 possède des preuves Browser High clear/rain sur `a34596bd` : 24/24
+contrôles automatisés passent pour chaque météo, le manifeste sélectionné égale le manifeste runtime,
+9/9 modèles sont chargés sans échec, 26/26 assets répondent HTTP 200, aucune requête `.meta`, aucun
+échec réseau et aucun warning console ne sont observés. Les métriques Browser mesurent la boucle Bevy
+WASM et non le GPU ; `gpu_presentation` reste `not_observed`. Le manifeste, les ledgers et les deux
+captures Forge clear/rain sont ajoutés sous `docs/evidence/gate1/` avec leurs SHA-256.
+
+La validation source finale de ce même commit passe **182/182 tests** : moteur 119/119, runtime
+32/32 et Studio 31/31 ; formatage, Clippy strict `-D warnings` et check Studio WASM passent aussi.
+Le seul avertissement de build est la future incompatibilité transitive connue de
+`proc-macro-error2 v2.0.1`.
+
+La preuve native performance/provenance reste épinglée à `92286910a9bab622d5d54905551c0f03172e98e7`.
+Le correctif intermédiaire a changé le hash décor de `6b142441…` à `6b41ec73…` ; sans rejeu natif
+Release sur `a34596bd`, la parité exacte native/Studio n'est pas acquise. Les captures natives et
+Browser restent très contrastées avec des artefacts noirs, le log natif contient un warning wgpu, et
+la revue humaine ainsi que le GPU cible restent dus. Le verdict détaillé de
+`docs/reports/GATE_1_REPORT.md` est **poursuivre Gate 1** ; Gate 2 ne peut commencer sans passage de
+Gate 1 ou nouvelle dérogation explicite acceptée.
 
 ---
 
@@ -1238,6 +1259,17 @@ Créer `examples/visual_valley` :
 - overlay complet ;
 - captures déterministes.
 
+État consolidé au commit source final `a34596bd733131699c70028dab86cf2c612b896a`, arbre
+`8ccdf8cb2cb6a6aabd3a4569f22f1778e164ced6` : les scènes Browser clear/rain et leurs captures sont
+acquises, ainsi que la parité interne `selected_manifest == runtime_manifest`. Clear mesure 10,7283 ms
+de moyenne, p95 13,4 ms, 1 % low 54,945 FPS et deux hitches ; rain mesure 9,1683 ms, p95 10,1 ms,
+1 % low 84,034 FPS et zéro hitch. Ces métriques sont celles de la boucle WASM, pas des timestamps GPU.
+
+Gate 1 reste **OUVERTE** : le natif RX 7800 XT date du commit `92286910`, le décor a changé avant le
+Browser final, la cible RTX 3060/RX 6600 n'est pas mesurée, les profils dynamiques ne sont pas
+qualifiés et aucune revue humaine comparative n'accepte les captures. Voir
+`docs/reports/GATE_1_REPORT.md`.
+
 La gate passe si :
 
 - l’objectif de performance O2 est tenu sur machine de référence ;
@@ -1251,6 +1283,9 @@ le renderer, le pipeline artistique ou le choix de shell, puis décider de pours
 couche ou arrêter le reboot.
 
 ### Gate 2 — Éditeur de monde
+
+Statut : **INTERDITE tant que Gate 1 reste ouverte**. Seul un passage formel de Gate 1 ou une nouvelle
+dérogation explicite acceptée peut autoriser son démarrage.
 
 Livrables :
 
@@ -1759,7 +1794,8 @@ Cadle v0.6.0 @ ea0da625 : copie locale épinglée, intacte et mesurée. Code MIT
 attribution ; assets exclus. Aucune dépendance Three.js/JavaScript dans le produit Forge.
 
 TRAVAIL ACTIF
-Gate C et Gate 0 sont passées. Gate 1 : Visual Valley reconstruite par tranches et comparée à Cadle,
-avec validations locales ; la CI distante reste NOT RUN sous ADR-0006 tant que les runners ne démarrent
-pas.
+Gate C et Gate 0 sont passées. Gate 1 reste ouverte au commit source a34596bd : Browser clear/rain
+automatisé acquis, natif exact-commit à rejouer, GPU cible/profils dynamiques/revue humaine encore dus.
+Poursuivre uniquement Gate 1. Gate 2 est interdite sans nouvelle dérogation explicite. La CI distante
+reste NOT RUN sous ADR-0006 tant que les runners ne démarrent pas.
 ```

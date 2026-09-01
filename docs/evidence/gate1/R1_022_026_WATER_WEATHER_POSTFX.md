@@ -2,41 +2,106 @@
 
 ## Verdict borné
 
-**NON QUALIFIÉ.** Le candidat contient des contrats Forge, des adapters Bevy, des shaders WGSL et
-des tests automatisés ciblant l'eau, la pluie, la wetness et le post-traitement. Les tests intégrés
-moteur/runtime/Studio et le check WASM passent sur l'état combiné courant, mais aucun smoke GPU,
-aucune capture et aucun lancement Browser WebGPU final n'ont encore été exécutés. Aucun résultat
-ci-dessous ne doit donc être présenté comme une observation de présentation native ou WebGPU.
+**NON QUALIFIÉ AU GLOBAL.** Le candidat contient des contrats Forge, des adapters Bevy, des shaders
+WGSL et des tests automatisés ciblant l'eau, la pluie, la wetness et le post-traitement. Deux smokes
+natifs High fixe, clear et rain, ont produit ledgers et captures sur le commit exact `92286910…`. Un
+smoke Browser clear/rain High distinct passe aussi au commit `a34596bd…`. Ces campagnes acquièrent
+des sous-preuves fonctionnelles CPU/ECS et visuelles bornées, mais ni les champs des ledgers ni les
+captures ne justifient une exécution GPU exhaustive, une parité native/Studio exact-commit ou une
+acceptation visuelle finale.
 
 Les cinq critères restent ouverts :
 
 | Critère | État de cette preuve |
 |---|---|
-| `R1-022` eau de rivière | projection CPU/ECS et shader présents ; présentation GPU non observée |
-| `R1-023` réflexion/réfraction selon profil | SSR préparé ; réfraction écran absente et repli `surface_tint` actif |
-| `R1-024` pluie | lot déterministe et animation WGSL présents ; pluie GPU non observée |
-| `R1-025` wetness réversible | transition et uniforms testables ; résultat visuel multi-cible non observé |
-| `R1-026` bloom et color grading bornés | composants Bevy bornés présents ; résultat GPU et revue visuelle dus |
+| `R1-022` eau de rivière | **acquis fonctionnellement** en natif et Browser : document/hash et composants observés ; eau non isolable visuellement, `gpu_pass_observed=false` et `gpu_presentation=not_observed` |
+| `R1-023` réflexion/réfraction selon profil | SSR préparé/diagnostiqué ; réfraction écran absente, repli `surface_tint` actif et résultat non inspectable |
+| `R1-024` pluie | **acquise fonctionnellement** en natif et Browser High : cible rain, lot visible et stries dans les PNG ; animation et présentation GPU non prouvées |
+| `R1-025` wetness réversible | endpoints clear=0/rain=0,78 observés ; aucune séquence réelle `clear → rain → clear` |
+| `R1-026` bloom et color grading bornés | composants/valeurs High observés ; changement global important et acceptation visuelle due |
 
-La roadmap et `PROJECT_CONTEXT.md` ne sont pas modifiés par ce document. La qualification exige au
-minimum les smokes et captures `clear`/`rain` du runtime natif **et** du Studio WebGPU, sur le commit
-final d'intégration.
+La roadmap et `PROJECT_CONTEXT.md` ne sont pas modifiés par ce document. Les sous-preuves
+fonctionnelles de `R1-022` et `R1-024` sont acquises ; les cinq critères restent ouverts au niveau
+global en raison des profils optiques/qualité, de la réversibilité dans une même exécution, de la
+présentation GPU non observée et de la qualification visuelle encore dues.
 
 ## Validation automatisée de l'état intégré courant
 
 | Validation intégrée | Résultat exact consigné |
 |---|---|
-| tests `forge_engine` | **118/118 PASS** |
+| tests `forge_engine` | **119/119 PASS** |
 | tests `forge_runtime` | **32/32 PASS** (31 bin + 1 intégration) |
 | tests `forge_studio` | **31/31 PASS** (28 lib + 3 bin) |
-| check de compilation WASM exact courant | **PASS — 7.45 s** |
+| check de compilation WASM exact courant | **PASS — 1.06 s** |
 | `cargo fmt --all -- --check` | **PASS** |
 | `git diff --check` | **PASS** |
-| Clippy strict exact de l'état combiné | **PASS — 6.29 s** |
-| smoke GPU natif, captures `clear`/`rain`, smoke/capture Browser WebGPU finaux | **NOT RUN** |
+| Clippy strict exact de l'état combiné | **PASS — 12.04 s** |
+| smoke GPU natif et captures `clear`/`rain` High | **ARTEFACTS PRODUITS ET AUDITÉS** — code de sortie non conservé |
+| smoke/captures Browser clear/rain High | **PASS AUTOMATISÉ BORNÉ** au commit `a34596bd…` — 24/24 contrôles chacun ; voir [`R1_BROWSER_WEBGPU_SMOKE.md`](R1_BROWSER_WEBGPU_SMOKE.md) |
 
-Ces résultats valident la compilation et les contrats automatisés intégrés. Ils ne prouvent ni la
-compilation réelle des pipelines sur un adaptateur donné, ni leur exécution, ni les pixels présentés.
+Ces résultats valident la compilation et les contrats automatisés intégrés. Les exécutions natives
+ci-dessous ajoutent une observation Vulkan et des pixels capturés. Le Browser charge 9/9 modèles et
+26/26 assets avec HTTP 200, sans requête `.meta`, échec réseau ni entrée console. Sa parité
+`source_manifest_matched` est interne à l'exécution Studio ; `gpu_presentation` reste
+`not_observed`, sans preuve exhaustive des shaders ou passes GPU.
+
+## Smoke natif exact clear/rain
+
+La preuve vise le commit exact exécuté, `HEAD` au moment des smokes,
+`92286910a9bab622d5d54905551c0f03172e98e7`, arbre
+`6d7cd4ab8612686e7f73f01abeb5b8ad0174ebbe`. Le binaire
+`E:\OpenRPG_Forge\.cargo-target-gate1-combined\release\forge_runtime.exe` a été lancé directement
+depuis `E:\OpenRPG_Forge\.gate1-candidate`, avec `BEVY_ASSET_ROOT` sur ce worktree,
+`--visual-valley --player-camera --weather clear|rain --quality high`, capture frame 240, warm-up
+métriques 300, sortie bornée frame 420 et VSync désactivée. La résolution 1920 x 1080 est attestée
+par les JSON et PNG, pas imposée par un argument.
+
+Le transcript shell exact n'est pas conservé. La reconstruction fidèle des deux commandes figure
+dans `docs/evidence/gate1/R1_034_043_PERFORMANCE_PARITY.md`. Le dossier local ne contient pas de
+manifeste liant cryptographiquement commit, binaire, commande, code de sortie et artefacts.
+
+| Artefact | SHA-256 |
+|---|---|
+| `visual-valley-clear-high.log` | `EA59E3FB006F5066E2751FE7CBACDC1CC3D52F25C3B61BF69BEE54C196B4DF32` |
+| `visual-valley-clear-high.metrics.json` | `09A6324A5668B5824816620A095CBE67B2BB172E3D7D757815D8306D7EABD6F3` |
+| `visual-valley-clear-high.png` | `5B458CAFC64A498C4BE552C888D74DFA795FD2FE1883E2ADC4EE6D17F285F122` |
+| `visual-valley-rain-high.log` | `648E30CA689EEA098E158BC583EB9FC1160F9617CF589809198A90A04E4F9033` |
+| `visual-valley-rain-high.metrics.json` | `F231A9ED74C7C3E0EDA97371B5374E7AE9107CFF2E896D14372887B562754385` |
+| `visual-valley-rain-high.png` | `6BF73A6146C46266CE0B2427B3D4F50C3C6AF9FFBC3D80965EF107B966FAA72D` |
+
+Les deux ledgers `forge.runtime-metrics` v8 portent le hash eau
+`c581e9ef65ca1bc34d5f94908d5f43df77794da4ad5b97e1b3c4f8c0d025ebce`, le hash météo
+`b0d8e12bd49d3510361d587463a3002e98741b68052b283fa3f8ca432c87dd9e` et le hash terrain
+`9f16780a1de1e9dd4b65931624a8b45281713829434292bada320a578420b2ef`.
+
+| Observation native High | Clear | Rain |
+|---|---:|---:|
+| eau : contrôles / samples / sommets / triangles | 62 / 137 / 959 / 1 088 | identique |
+| winding positif / corrections / fallbacks tangente | 1 088 / 8 / 0 | identique |
+| clearance min/max pour 0,14 m demandé | 0,13999939 / 0,6260648 m | identique |
+| composants eau / berge / caméra SSR | 1 / 1 / 1 | 1 / 1 / 1 |
+| `gpu_pass_observed` | `false` | `false` |
+| gouttes demandées/générées / batches / entités par goutte | 8 192 / 8 192 / 1 / 0 | identique |
+| pluie visible / opacité | `false` / 0 | `true` / 0,42 |
+| wetness courante/cible | 0 / 0, restauration claire exacte | 0,78 / 0,78 |
+| uniforms terrain/végétation concordants | oui / oui | oui / oui |
+| exposition / température / tint | 0 / 0,08 / 0,01 | -0,35 / -0,12 / 0,02 |
+| saturation / contraste / gamma | 1,04 / 1,06 / 1 | 0,86 / 1,08 / 1 |
+| Bloom et color grading présents | oui / oui | oui / oui |
+
+Le chemin eau résout High en SSR 48 pas sans fallback réflexion, mais l'intensité et la distance SSR
+restent non mappées. La réfraction écran est indisponible et le fallback `surface_tint` de force 0,18
+est actif. Les métriques eau gardent honnêtement `gpu_pass_observed=false`; les métriques météo
+gardent `gpu_execution_observed=false` et `status=observed_cpu_projection`.
+
+Chaque log contient exactement un warning `wgpu_core::validation` et aucun `ERROR` : un vertex shader
+écrit `@builtin(position)` sans `@invariant` alors que le pipeline utilise `Equal`, ce qui peut créer
+des artefacts selon la machine. Les captures montrent effectivement de nombreux motifs noirs
+stippled/jagged, sans permettre d'en attribuer la cause. La pluie cyan est visible dans le PNG rain,
+mais une image fixe ne prouve ni animation, ni suivi caméra temporel, ni impacts. L'eau, la SSR et la
+réfraction ne sont pas clairement inspectables. Une comparaison RGB pixel à pixel trouve au moins
+un canal différent pour 96,12 % des pixels entre clear et rain ; le changement ressemble donc à un
+étalonnage global très fort plutôt qu'à une seule mouillure localisée.
 
 ## Sources et identités inspectées
 
@@ -72,9 +137,10 @@ texture ou asset. Aucun asset Cadle n'est requis ou copié par ce lot.
   courant réellement appliqué et les mêmes bornes LOD côté qualité et décor ; une transition ou une
   empreinte non convergée réinitialise la fenêtre entière.
 
-Ces garde-fous prouvent des cohérences CPU/ECS et empêchent un ledger partiel ou mélangé. Les champs
-`gpu_pass_observed`, `gpu_execution_observed` et `gpu_presentation` restent volontairement négatifs
-ou non observés tant qu'un vrai smoke avec capture n'a pas été produit.
+Ces garde-fous prouvent des cohérences CPU/ECS et empêchent un ledger partiel ou mélangé. Même après
+le smoke natif avec capture, les champs `gpu_pass_observed`, `gpu_execution_observed` et
+`gpu_presentation` restent volontairement négatifs ou non observés : ils ne doivent pas être inversés
+par inférence depuis la seule existence d'un PNG.
 
 ## Matrice critères → API réelle → tests existants → preuve due
 
@@ -117,10 +183,12 @@ ou non observés tant qu'un vrai smoke avec capture n'a pas été produit.
 - la berge est une bande opaque de substitution : carving, blend authored, érosion et wet edge sont
   explicitement différés dans `WaterProjectionStats` ;
 - l'opacité authored est enregistrée mais la surface reste opaque pour le chemin deferred/SSR ;
-- exécuter et inspecter une capture 1920 × 1080 native `clear` puis `rain`, après warm-up, avec eau,
-  berges, mouvement, intersections terrain et stabilité temporelle visibles ;
-- reproduire les deux scènes dans le viewport Studio WebGPU et confirmer le même hash eau et le
-  statut ECS `observed_main_world_components` ; ce statut seul ne constitue pas une preuve GPU.
+- les captures natives 1920 × 1080 clear/rain sont acquises, mais l'eau et les berges n'y sont pas
+  suffisamment isolables pour juger mouvement, intersections, SSR, réfraction ou stabilité ; une
+  capture dédiée et une séquence temporelle restent dues ;
+- le Browser clear/rain High confirme le même hash eau et le statut ECS
+  `observed_main_world_components` dans les deux scene ledgers ; l'eau reste toutefois masquée par le
+  cadrage et `gpu_presentation=not_observed`, donc une capture dédiée et une preuve GPU restent dues.
 
 ### R1-023 — réflexion et réfraction selon profil
 
@@ -187,10 +255,12 @@ ou non observés tant qu'un vrai smoke avec capture n'a pas été produit.
 **Limites et preuve encore dues**
 
 - collisions au sol, éclaboussures et occlusion de la pluie sont explicitement différées ;
-- lancer le runtime natif en `clear` puis `rain`, capturer après warm-up et vérifier que le lot est
-  caché/visible, animé et centré sur la caméra sans hitch récurrent ;
-- refaire le smoke et les captures dans un navigateur/WebView avec WebGPU réellement actif, puis
-  conserver console, backend/adaptateur GPU, hash météo et ledger Studio ;
+- les endpoints natifs clear/rain sont acquis : le ledger cache/affiche le lot, la pluie est visible
+  dans le PNG rain et les 120 frames mesurées ne contiennent aucun hitch `>16,7 ms` ; une capture fixe
+  ne prouve toutefois ni animation continue ni centrage temporel sur la caméra ;
+- le smoke Browser clear/rain High est acquis : 24/24 contrôles chacun, cible météo correcte, 9/9
+  modèles, 26 assets HTTP 200 et console vide. Le ledger rain et la capture montrent la pluie, mais
+  `gpu_presentation=not_observed` et une image fixe ne prouvent pas son animation continue ;
 - inspecter la lisibilité de la pluie à hauteur humaine et son coût avant de cocher `R1-024`.
 
 ### R1-025 — wetness réversible
@@ -219,8 +289,9 @@ ou non observés tant qu'un vrai smoke avec capture n'a pas été produit.
 - pas encore de flaques, réaction de normal map ni wet edge de berge ;
 - l'adapter qualité documente `rain.wetness_enabled` comme appliqué au démarrage, pas comme une
   reconstruction dynamique de matériaux à chaque changement de tier ;
-- exécuter une séquence réelle `clear → rain → clear` en natif et WebGPU, capturer les états secs,
-  mouillés puis restaurés, et confirmer simultanément les uniforms/ledgers et le résultat visuel ;
+- les deux exécutions séparées prouvent les endpoints clear=0 et rain=0,78, mais pas une transition
+  réelle ni un retour au clair dans le même processus ; exécuter `clear → rain → clear` en natif et
+  WebGPU, puis confirmer simultanément uniforms, ledgers et résultat visuel ;
 - vérifier par inspection que le terrain et la végétation s'assombrissent et deviennent moins
   rugueux sans dérive permanente de palette.
 
@@ -251,8 +322,9 @@ ou non observés tant qu'un vrai smoke avec capture n'a pas été produit.
 **Limites et preuve encore dues**
 
 - ni la présence de composants ECS ni leur sérialisation ne prouvent le post-traitement final ;
-- produire les captures native et Studio WebGPU `clear`/`rain`, Low et High au minimum, puis vérifier
-  l'absence de clipping, pompage, halo excessif ou dérive colorimétrique ;
+- les captures natives et Browser High clear/rain sont acquises, mais montrent une dérive
+  colorimétrique globale importante, des noirs dominants et un overlay envahissant ; produire encore
+  Low et une inspection ciblée de clipping, pompage et halo ;
 - consigner backend, résolution, profil, seed, commit, warm-up, métriques et inspection humaine avant
   de cocher `R1-026`.
 
@@ -260,12 +332,15 @@ ou non observés tant qu'un vrai smoke avec capture n'a pas été produit.
 
 | Cible | Variantes obligatoires | Preuves minimales |
 |---|---|---|
-| Runtime natif | `clear` et `rain`, High, 1920 × 1080, VSync off, même seed/caméra | deux captures inspectées, métriques après warm-up, backend/GPU/driver, hashes eau/météo, absence d'erreur shader/pipeline |
-| Studio WebGPU | `forge_scene=visual-valley` avec `forge_weather=clear`, puis `rain`, High, même cadrage | WebGPU réellement actif, deux captures inspectées, ledger de parité avec hashes identiques, console et réseau sans échec d'asset/shader |
+| Runtime natif | `clear` et `rain`, High, 1920 × 1080, VSync off, même seed/caméra | **PARTIEL ACQUIS** : captures, métriques, backend/GPU/driver et hashes ; warning shader/pipeline présent et revue visuelle non acceptée |
+| Studio Browser | `forge_scene=visual-valley` avec `forge_weather=clear`, puis `rain`, High | **PARTIEL ACQUIS à `a34596bd…`** : 24/24 contrôles chacun, 9/9 modèles, 26 assets HTTP 200, hashes internes alignés, console/réseau propres et captures inspectées ; `gpu_presentation=not_observed` |
 | Réversibilité | `clear → rain → clear` sur une exécution instrumentée par cible | wetness terminale exacte et retour visuel sec, sans mutation des palettes |
 | Profils optiques/post-FX | Low/Medium/High/Ultra, au minimum captures Low/High | chemin SSR/fallback observé, paramètres appliqués, coût et artefacts comparés |
 
-Les résultats automatisés intégrés disponibles sont consignés ci-dessus. Le commit et l'arbre du
-candidat final, les smokes GPU natifs et Browser WebGPU, les hashes des nouveaux artefacts locaux et
-la revue humaine des captures restent dus. Tant que ces éléments manquent, `R1-022` à `R1-026` et
-Gate 1 restent **NON QUALIFIÉS**.
+Le commit/arbre, le smoke natif High clear/rain et le smoke Browser clear/rain sont désormais
+consignés. Les temps Browser mesurent la boucle WASM, pas le GPU : clear moyenne 10,7283 ms, p95
+13,4 ms, 1 % low 54,945 FPS et 2 hitches ; rain moyenne 9,1683 ms, p95 10,1 ms, 1 % low 84,034 FPS
+et 0 hitch. Restent dus : rejeu natif exact `a34596bd…`, séquence `clear → rain → clear`, matrice de
+profils, captures eau dédiées, sonde GPU, résolution des artefacts et acceptation visuelle humaine.
+`R1-023`, `R1-025` et `R1-026` restent explicitement ouverts ; `R1-022` et `R1-024` sont acquis
+fonctionnellement mais restent bornés visuellement/GPU. Gate 1 demeure **NON QUALIFIÉE**.
