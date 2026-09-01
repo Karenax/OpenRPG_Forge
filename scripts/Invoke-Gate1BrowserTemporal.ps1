@@ -649,7 +649,7 @@ function Start-ControlledBrowser {
     foreach ($argument in @(
         "--remote-debugging-address=127.0.0.1",
         "--remote-debugging-port=$Port",
-        '--remote-allow-origins=http://127.0.0.1',
+        '--remote-allow-origins=*',
         "--user-data-dir=$ProfileDirectory",
         '--no-first-run',
         '--no-default-browser-check',
