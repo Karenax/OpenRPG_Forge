@@ -14,8 +14,11 @@ R1-014 PARTIEL NATIF**
 Gate 1 reste **OUVERTE**. Ce verdict qualifie la projection procédurale de la végétation, ses LOD et
 HLOD, l'herbe groupée, le vent shader natif, l'interaction joueur, les règles d'ombre et les métriques
 de visibilité prévues par ADR-0007. `R1-014` reste ouvert : le check WASM embarque le WGSL, mais ne
-crée pas réellement son pipeline sous WebGPU. Le lot ne qualifie ni la performance finale, ni les
-draw calls réels, ni la qualité artistique comparative, ni les autres lots de Visual Valley.
+crée pas réellement son pipeline sous WebGPU. Un
+[protocole temporel Browser préenregistré](R1_014_BROWSER_TEMPORAL_PROTOCOL.md) existe désormais,
+avec le statut `HARNESS READY — ACQUISITION NOT RUN`; il ne change pas cette qualification. Le lot ne
+qualifie ni la performance finale, ni les draw calls réels, ni la qualité artistique comparative, ni
+les autres lots de Visual Valley.
 
 ## Résultat livré
 

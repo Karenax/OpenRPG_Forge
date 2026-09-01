@@ -376,7 +376,8 @@ qualité                   Low / Medium / High / Ultra
 - [x] `R1-012` imposteurs ou HLOD lointain — 64 meshes HLOD de chunk observés.
 - [x] `R1-013` herbe dense sans entité par brin — 162 176 brins dans 64 lots.
 - [ ] `R1-014` vent shader — PASS natif et paire temporelle inspectée ; présentation du vent sous
-  WebGPU non qualifiée et `gpu_presentation` Browser non observée.
+  WebGPU non qualifiée et `gpu_presentation` Browser non observée. Harnais temporel repo préenregistré :
+  **HARNESS READY / ACQUISITION NOT RUN** ; inspection humaine ultérieure obligatoire.
 - [x] `R1-015` interaction locale avec personnage — champ borné aligné sur la pose post-physique.
 - [x] `R1-016` culling par chunks — instantané cohérent après 241 observations caméra/range.
 - [x] `R1-017` réglage des ombres par distance — CSM 128 m et règles caster/opt-out observés.

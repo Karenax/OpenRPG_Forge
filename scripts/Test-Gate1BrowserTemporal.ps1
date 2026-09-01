@@ -1,0 +1,76 @@
+[CmdletBinding()]
+param()
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
+$repositoryRoot = [IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
+$driverPath = Join-Path $PSScriptRoot 'Invoke-Gate1BrowserTemporal.ps1'
+$configPath = Join-Path $PSScriptRoot 'gate1-browser-temporal.v1.json'
+$protocolPath = Join-Path $repositoryRoot 'docs/evidence/gate1/R1_014_BROWSER_TEMPORAL_PROTOCOL.md'
+$roadmapPath = Join-Path $repositoryRoot 'docs/planning/MIGRATION_ROADMAP.md'
+
+function Assert-Condition {
+    param(
+        [Parameter(Mandatory)][bool]$Condition,
+        [Parameter(Mandatory)][string]$Message
+    )
+
+    if (-not $Condition) {
+        throw $Message
+    }
+}
+
+foreach ($path in @($driverPath, $configPath, $protocolPath, $roadmapPath)) {
+    Assert-Condition -Condition (Test-Path -LiteralPath $path -PathType Leaf) -Message "Required R1-014 harness file is missing: $path"
+}
+
+foreach ($scriptPath in @($driverPath, $PSCommandPath)) {
+    $tokens = $null
+    $errors = $null
+    [void][Management.Automation.Language.Parser]::ParseFile($scriptPath, [ref]$tokens, [ref]$errors)
+    $parserDetails = @($errors | ForEach-Object { $_.Message }) -join ' | '
+    Assert-Condition -Condition ($errors.Count -eq 0) -Message "PowerShell parser rejected '$scriptPath': $parserDetails"
+}
+
+$validation = @(& pwsh -NoProfile -File $driverPath -ConfigPath $configPath -ValidateOnly 2>&1)
+Assert-Condition -Condition ($LASTEXITCODE -eq 0) -Message "Driver config validation failed: $($validation -join [Environment]::NewLine)"
+$selfTest = @(& pwsh -NoProfile -File $driverPath -ConfigPath $configPath -SelfTest 2>&1)
+Assert-Condition -Condition ($LASTEXITCODE -eq 0) -Message "Driver self-test failed: $($selfTest -join [Environment]::NewLine)"
+
+$driver = Get-Content -LiteralPath $driverPath -Raw
+foreach ($requiredToken in @(
+    'Page.addScriptToEvaluateOnNewDocument',
+    '__forgeGate1TemporalInputGuard',
+    'gate0-telemetry-ledger',
+    'forge-scene-telemetry-ledger',
+    'Page.captureScreenshot',
+    'requestAnimationFrame',
+    'Runtime.consoleAPICalled',
+    'Network.responseReceived',
+    'Get-FileHash',
+    'human_temporal_inspection_required'
+)) {
+    Assert-Condition -Condition $driver.Contains($requiredToken, [StringComparison]::Ordinal) -Message "Driver is missing required acquisition token '$requiredToken'."
+}
+foreach ($forbiddenToken in @('npm install', 'npx ', 'playwright', 'upstream/cadle', 'assets/cadle')) {
+    Assert-Condition -Condition (-not $driver.Contains($forbiddenToken, [StringComparison]::OrdinalIgnoreCase)) -Message "Driver unexpectedly depends on forbidden token '$forbiddenToken'."
+}
+
+$protocol = Get-Content -LiteralPath $protocolPath -Raw
+Assert-Condition -Condition $protocol.Contains('HARNESS READY — ACQUISITION NOT RUN', [StringComparison]::Ordinal) -Message 'Protocol must state that Browser acquisition has not run.'
+Assert-Condition -Condition $protocol.Contains('R1-014` reste ouvert', [StringComparison]::Ordinal) -Message 'Protocol must keep R1-014 open.'
+$roadmap = Get-Content -LiteralPath $roadmapPath -Raw
+Assert-Condition -Condition ($roadmap -cmatch '(?m)^- \[ \] `R1-014`') -Message 'Roadmap must keep R1-014 unchecked.'
+Assert-Condition -Condition $roadmap.Contains('HARNESS READY / ACQUISITION NOT RUN', [StringComparison]::Ordinal) -Message 'Roadmap must record the exact harness-only status.'
+
+[pscustomobject]@{
+    status = 'pass'
+    powershell_scripts_parsed = 2
+    config_mutations_rejected = 3
+    registered_vegetation_regions = 3
+    registered_terrain_witnesses = 1
+    minimum_request_animation_frames = 120
+    browser_run = 'not_performed'
+    cargo_build = 'not_performed'
+}

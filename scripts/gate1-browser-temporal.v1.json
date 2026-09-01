@@ -1,0 +1,134 @@
+{
+  "schema": "forge.gate1-browser-temporal-config",
+  "schema_version": 1,
+  "protocol_id": "r1-014-browser-webgpu-clear-high-temporal-v1",
+  "introduced_from_commit": "28985328f0d2de1fa79c705d5c3aa1bc522dbe35",
+  "registration_basis": {
+    "historical_capture": "docs/evidence/gate1/captures/visual-valley-browser-webgpu-clear-high-d9e26701.png",
+    "historical_capture_sha256": "819bd9994fafc8f4694d2e65300528bbf2d2b05f6e8946ae515305b58beb33d4",
+    "purpose": "ROI geometry and thresholds registered before the first R1-014 Browser temporal run; the historical still is not temporal evidence."
+  },
+  "route": {
+    "path": "/",
+    "query": {
+      "forge_scene": "visual-valley",
+      "forge_weather": "clear",
+      "forge_quality": "high"
+    }
+  },
+  "browser": {
+    "canvas_selector": "#forge-canvas",
+    "viewport_width_px": 1920,
+    "viewport_height_px": 1080,
+    "device_scale_factor": 1,
+    "headed_capture_required": true
+  },
+  "readiness": {
+    "timeout_seconds": 120,
+    "minimum_request_animation_frames": 120,
+    "require_navigator_gpu": true,
+    "require_single_viewport_start": true,
+    "require_completed_frame_window": true
+  },
+  "fixed_context": {
+    "scene": "visual_valley",
+    "weather": "clear",
+    "quality_mode": "fixed",
+    "quality_tier": "high",
+    "camera_owner": "visual_valley_player_controller",
+    "active_camera_count": 1,
+    "block_browser_input": true,
+    "blocked_event_types": [
+      "keydown",
+      "keyup",
+      "mousedown",
+      "mouseup",
+      "mousemove",
+      "wheel",
+      "touchstart",
+      "touchmove",
+      "touchend",
+      "pointerdown",
+      "pointerup",
+      "pointermove"
+    ]
+  },
+  "pixel_difference": {
+    "changed_channel_delta": 6,
+    "vegetation_min_changed_pixel_ratio": 0.002,
+    "vegetation_min_mean_absolute_rgb_delta": 0.1,
+    "terrain_max_changed_pixel_ratio": 0.01,
+    "terrain_max_mean_absolute_rgb_delta": 0.5
+  },
+  "excluded_regions": [
+    {
+      "id": "studio_overlay",
+      "x": 0.0,
+      "y": 0.0,
+      "width": 0.57,
+      "height": 0.31,
+      "basis": "Opaque Bevy diagnostic overlay in the fixed historical clear/high canvas."
+    },
+    {
+      "id": "sky",
+      "x": 0.57,
+      "y": 0.0,
+      "width": 0.43,
+      "height": 0.28,
+      "basis": "Visible sky band outside the diagnostic overlay."
+    },
+    {
+      "id": "water_guard",
+      "x": 0.34,
+      "y": 0.31,
+      "width": 0.3,
+      "height": 0.15,
+      "basis": "Conservative no-sample guard for the water/horizon corridor; no registered ROI intersects it."
+    }
+  ],
+  "regions": [
+    {
+      "id": "vegetation_left_foreground",
+      "kind": "vegetation",
+      "x": 0.02,
+      "y": 0.47,
+      "width": 0.17,
+      "height": 0.2,
+      "basis": "Flowers, broad leaves and grass at fixed camera left."
+    },
+    {
+      "id": "vegetation_right_midfield",
+      "kind": "vegetation",
+      "x": 0.69,
+      "y": 0.32,
+      "width": 0.27,
+      "height": 0.22,
+      "basis": "Grass, shrubs and tree line at fixed camera right."
+    },
+    {
+      "id": "vegetation_right_foreground",
+      "kind": "vegetation",
+      "x": 0.66,
+      "y": 0.69,
+      "width": 0.28,
+      "height": 0.2,
+      "basis": "Large foreground plant and neighboring grass at fixed camera right."
+    },
+    {
+      "id": "terrain_witness",
+      "kind": "terrain_witness",
+      "x": 0.56,
+      "y": 0.55,
+      "width": 0.08,
+      "height": 0.06,
+      "basis": "Open terrain patch away from the player capsule, vegetation, overlay, sky and water guard."
+    }
+  ],
+  "acceptance": {
+    "minimum_passing_vegetation_regions": 2,
+    "require_terrain_witness": true,
+    "maximum_console_errors": 0,
+    "maximum_network_failures": 0,
+    "human_temporal_inspection_required": true
+  }
+}
