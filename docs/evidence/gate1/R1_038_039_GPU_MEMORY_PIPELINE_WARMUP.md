@@ -1,13 +1,13 @@
 # R1-038 / R1-039 — Observation mémoire GPU et préchauffage des pipelines
 
-- Statut courant : **R1-038 ACQUISE ; HIGH CLEAR/RAIN PRÉCHAUFFÉ ; R1-039 RESTE OUVERTE POUR LES
-  AUTRES TIERS ET L'ADAPTATION**
+- Statut courant : **R1-038 ACQUISE ; R1-039 ACQUISE EN NATIF SUR LES QUATRE TIERS, CLEAR/RAIN,
+  ADAPTATION ET BENCHMARK**
 - Base de départ exacte du lot isolé : `f786a38aca2023f08d708687f99a47d14f34e6d4`
 - Portée du lot isolé : `forge_engine` et consommation par `forge_runtime` uniquement
-- Candidat courant observé : `d9e2670111624aa836ab138afc35cddf441865ef`, arbre
-  `d6e5a40f73b47934444bda4514d5cdcb1dab093d`
-- Résultat d9 : clear 69/69 pipelines, rain 71/71, prêts pendant toute la mesure ; allocations wgpu
-  530 273 124 / 534 407 108 octets et réservées 876 609 552 octets dans les deux runs
+- Candidat courant observé : `5eadec7f6f9f9b5b6734ce62ea3518f0297496f9`, arbre
+  `a2fb4df0b7e2eff4d686dda575d4a2bf18cb12a1`
+- Résultat courant : 10/10 ledgers avec 120 samples, pipelines prêts avant et pendant la mesure,
+  de 59/59 à 74/74 selon le profil ; voir `R1_039_040_NATIVE_QUALITY_MATRIX.md`
 - Les sections historiques ci-dessous documentent l'origine du lot ; la roadmap courante fait foi
 
 ## Objet du lot
@@ -159,11 +159,11 @@ Les tests nouveaux couvrent :
 |---|---|
 | `cargo fmt --all -- --check` | **PASS** |
 | `git diff --check` | **PASS** |
-| tests bibliothèque `forge_engine` | **PASS — 120/120** |
-| tests workspace/all-targets | **PASS — 296/296** |
-| check Studio WASM exact courant | **PASS — 8,71 s** |
+| tests bibliothèque `forge_engine` | **PASS — 122/122** |
+| tests workspace/all-targets | **PASS — 298/298** |
+| check Studio WASM exact courant | **PASS** |
 | Clippy workspace/all-targets `-D warnings` | **PASS**, zéro warning |
-| Smoke natif produisant un ledger `forge.runtime-metrics` v8 | **ACQUIS — High clear/rain, 120 samples chacun** |
+| Smoke natif produisant un ledger `forge.runtime-metrics` v8 | **ACQUIS — matrice 10/10, 120 samples chacun** |
 | Smoke GPU réel et observation allocateur/pipelines | **ACQUIS — RX 7800 XT/Vulkan** |
 | Smoke Browser clear/rain High et ledger Studio v7 | **PASS AUTOMATISÉ BORNÉ à `d9e2670…`** — 24/24 contrôles chacun ; voir [`R1_BROWSER_WEBGPU_SMOKE.md`](R1_BROWSER_WEBGPU_SMOKE.md) |
 
@@ -218,16 +218,19 @@ absence ne qualifie pas automatiquement les autres backends ni la présentation 
   clear et rain**.
 - Validation que `mesh_allocator_slabs_bytes > 0` sur Visual Valley rendue : **ACQUISE pour clear
   et rain**.
-- Replay séparé High `clear` et `rain` : **ACQUIS** ; Low/Medium/Ultra et adaptation : **NOT RUN**.
+- Replay Low/Medium/High/Ultra `clear` et `rain`, adaptatif clear et benchmark clear : **10/10
+  ACQUIS** au commit `5eadec7f`.
 - Browser clear/rain High : **ACQUIS à `d9e2670…`** avec 60 + 120 frames ; clear moyenne/p95/1 % low
   10,1175 ms/12,1 ms/77,519 FPS et rain 9,5633 ms/10,9 ms/85,106 FPS. Ces temps mesurent la loop WASM,
   pas le GPU ; `gpu_presentation=not_observed` et aucune convergence pipeline Browser n'est exposée.
 - CI distante du lot isolé : **NOT RUN dans cette preuve** ; aucun résultat d'une autre exécution
   n'est attribué à ce lot.
 
-En conséquence, `R1-038` est acquise sur le candidat natif exact. La sous-preuve High clear/rain de
-`R1-039` est acquise, mais la route reste ouverte : autres tiers/variantes, cache par nouveau
-processus, présentation GPU et acceptation visuelle ne sont pas couverts.
+En conséquence, `R1-038` et `R1-039` sont acquises sur le candidat natif exact. `R1-039` porte sur le
+préchauffage des pipelines exercés par chaque processus : elle ne revendique ni cache persistant, ni
+compteur de convergence Browser, ni acceptation visuelle. La matrice, les hashes et les deux runs
+locaux rejetés sont documentés dans
+[`R1_039_040_NATIVE_QUALITY_MATRIX.md`](R1_039_040_NATIVE_QUALITY_MATRIX.md).
 
 ## Frontières préservées par le lot isolé
 

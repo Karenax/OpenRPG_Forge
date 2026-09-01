@@ -292,9 +292,13 @@ et sans transformer une acquisition automatisée en revue humaine.
 Statut : **OUVERTE** après le passage automatisé local de Gate 0 sous ADR-0004, ADR-0005 et ADR-0006.
 
 Progression consolidée au commit source courant
-`d9e2670111624aa836ab138afc35cddf441865ef`, arbre
-`d6e5a40f73b47934444bda4514d5cdcb1dab093d`. La validation workspace passe **296/296 tests**, avec
-formatage, Clippy strict et check Studio WASM. Le smoke Browser High clear/rain passe ses **24/24
+`5eadec7f6f9f9b5b6734ce62ea3518f0297496f9`, arbre
+`a2fb4df0b7e2eff4d686dda575d4a2bf18cb12a1`. La validation workspace passe **298/298 tests**, avec
+formatage, Clippy strict et check Studio WASM. La matrice native RX 7800 XT/Vulkan qualifie 10/10
+runs Low/Medium/High/Ultra clear/rain, adaptatif clear et benchmark clear : 120 samples chacun,
+pipelines stables et tier eau toujours égal au tier appliqué. L'adaptation effectue High vers Ultra.
+
+Le smoke Browser High clear/rain reste épinglé au commit exact `d9e2670` et passe ses **24/24
 contrôles pour chaque météo** : huit hashes présents, 9/9 modèles, 26/26 assets HTTP 200, aucune
 requête `.meta`, aucun échec réseau et aucune entrée warning/erreur console.
 
@@ -304,15 +308,16 @@ les deux runs retenus. Ces nombres ne sont pas des timestamps GPU : `gpu_present
 `not_observed` et le statut WebGPU du ledger reste `checking`. Un premier passage sous le seuil 1 %
 low a été rejeté et conservé hors preuves versionnées ; aucun seuil n'a été abaissé.
 
-Le runtime natif RX 7800 XT/Vulkan a été reconstruit et rejoué sur le même commit : clear/rain High,
-1920 × 1080, 120 samples, zéro hitch et **46/46** contrôles croisés PASS. Les sept hashes communs aux
-ledgers natif/Studio concordent. Clear mesure 8,3478 ms de moyenne, p95 8,7132 ms et 1 % low
-113,775 FPS ; rain 8,2920 ms, p95 9,0950 ms et 1 % low 96,354 FPS.
+La paire native/Studio `d9e2670` conserve **46/46** contrôles croisés PASS et sept hashes communs
+concordants. La campagne native courante `5eadec7f` ajoute la preuve de profils : selon le run, la
+moyenne varie de 5,6130 à 10,2077 ms, le p95 de 6,7886 à 13,9956 ms et le 1 % low de 56,293 à
+134,937 FPS. Low/rain observe deux hitches ; les neuf autres runs zéro. Ces nombres RX 7800 XT ne
+remplacent ni le benchmark GPU cible ni le parcours représentatif.
 
 Le correctif forward + IBL empêche le SSR/différé non qualifié d'être réactivé, borne le grade météo
 et supprime le warning natif observé à `a34596bd`. Les palettes sont corrigées ; des contours sombres
 et du stipple/aliasing restent visibles, et l'eau n'est pas isolée dans ces cadrages. `R1-043` reste
-satisfaite ; `R1-023`, matériel cible, profils complets, stutter représentatif et revue humaine
+satisfaite ; `R1-023`, matériel cible, stutter représentatif et revue humaine
 restent dus. L'audit provenance/CC0 reste épinglé à `92286910…`. La CI distante reste `NOT RUN` sous
 ADR-0006 ; ce statut n'est pas un PASS. Gate 1 reste **OUVERTE**.
 
@@ -394,9 +399,10 @@ qualité                   Low / Medium / High / Ultra
 - [x] `R1-036` moyenne, p95, 1 % low — valeurs natives et Browser consignées avec leur portée.
 - [ ] `R1-037` draw calls, triangles, instances.
 - [x] `R1-038` VRAM estimée — sous-allocations wgpu natives observées ; aucune VRAM Browser simulée.
-- [ ] `R1-039` préchauffage pipelines — clear/rain High exact-commit prêts pendant les mesures ;
-  autres tiers et adaptation encore dus.
-- [ ] `R1-040` profil dynamique.
+- [x] `R1-039` préchauffage pipelines — 10/10 runs natifs exacts Low/Medium/High/Ultra,
+  clear/rain, adaptatif et benchmark prêts avant et pendant les 120 samples.
+- [x] `R1-040` profil dynamique — quatre tiers fixes, adaptation High vers Ultra, benchmark High,
+  LOD scenery et tier eau concordants au commit `5eadec7f`.
 - [ ] `R1-041` benchmark RTX 3060 ou RX 6600.
 - [x] `R1-042` benchmark RX 7800 XT de développement — smoke natif High clear/rain exact
   `d9e2670`, Vulkan, 1920 × 1080, zéro hitch.
@@ -426,7 +432,7 @@ qualité                   Low / Medium / High / Ultra
 - [ ] p95 ≤ 16,7 ms ;
 - [ ] 1 % low ≥ 45 FPS ;
 - [ ] absence de stutter récurrent ;
-- [ ] profils qualité fonctionnels ;
+- [x] profils qualité fonctionnels — matrice native 10/10 et transition réelle High vers Ultra ;
 - [x] parité de données entre natif et Studio — natif et Browser exacts `d9e2670`, 46/46 contrôles
   croisés et sept hashes communs MATCH, dont scenery `6b41ec73…` ;
 - [x] code sans dépendance propriétaire obligatoire — audit provenance/indépendance PASS local ;

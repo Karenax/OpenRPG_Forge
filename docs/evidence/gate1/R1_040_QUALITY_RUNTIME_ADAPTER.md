@@ -1,10 +1,11 @@
 # R1-040 — adapter runtime/Studio du profil qualité
 
-Statut courant : la paire native/Browser High fixe est acquise au commit exact
-`d9e2670111624aa836ab138afc35cddf441865ef`, arbre
-`d6e5a40f73b47934444bda4514d5cdcb1dab093d`. Les tests prouvent désormais qu'un changement de tier ne
-peut pas réactiver le SSR lorsque la matrice eau le déclare indisponible. Aucun parcours réel
-Low/Medium/High/Ultra ou mode adaptatif n'est encore qualifié ; `R1-040` reste ouverte.
+Statut courant : **R1-040 ACQUISE**. La matrice native exacte du commit
+`5eadec7f6f9f9b5b6734ce62ea3518f0297496f9`, arbre
+`a2fb4df0b7e2eff4d686dda575d4a2bf18cb12a1`, qualifie Low/Medium/High/Ultra clear/rain, une
+transition adaptative High vers Ultra et le benchmark fixe High. L'eau suit désormais strictement le
+tier appliqué et un ledger incohérent est rejeté. La paire native/Browser High `d9e2670` reste la
+preuve exacte de parité inter-cibles ; aucune présentation Browser multi-tier n'est revendiquée.
 
 ## Entrée et identité
 
@@ -48,7 +49,7 @@ fenêtre native doit contenir au minimum **120 échantillons post-warm-up** fini
 | Scenery gouvernée | la plage de visibilité des remplacements suit le preset appliqué : Low `48-128 m`, Medium `60-160 m`, High `72-180 m`, Ultra `96-240 m` | la concordance ECS/ledger ne constitue pas une preuve de présentation GPU ni une revue visuelle |
 | Ombres | activation, nombre de cascades, distance, résolution `DirectionalLightShadowMap` et `ContactShadows` | exécution GPU non déduite des composants main-world |
 | Environnement | activation atmosphère et résolution du milieu de diffusion au démarrage ; tonemapping projeté | volumétrie non qualifiée, donc trois champs `not_applicable` ; résolution atmosphère non reconstruite lors d'une transition |
-| Eau | la qualité consulte la réflexion réellement résolue ; aucun composant SSR/différé n'est réinséré quand elle vaut `disabled` | `water.reflection_steps` est `not_applicable` ; SSR et réfraction écran ne sont pas prétendus qualifiés |
+| Eau | le tier et le preset sont projetés dans le ledger eau à chaque démarrage/transition ; la qualité consulte ensuite la réflexion réellement résolue et aucun composant SSR/différé n'est réinséré quand elle vaut `disabled` | les capacités indisponibles restent des fallbacks explicites ; SSR et réfraction écran ne sont pas prétendus exécutés |
 | Météo | budget exact de gouttes appliqué au mesh de démarrage ; visibilité pluie projetée | budget de gouttes non reconstruit lors d'une transition ; wetness appliqué seulement au démarrage |
 | Post-traitement | bloom, color grading et tonemapping ajoutés/retirés via leurs composants réels | aucune présentation GPU n'est inférée |
 
@@ -104,14 +105,14 @@ validation du candidat combiné actuel.
 |---|---|
 | `cargo fmt --all -- --check` | **PASS** |
 | `git diff --check` | **PASS** |
-| tests bibliothèque `forge_engine` | **PASS — 120/120** |
-| tests workspace/all-targets | **PASS — 296/296** |
-| check Studio WASM exact courant | **PASS — 8,71 s** |
+| tests bibliothèque `forge_engine` | **PASS — 122/122** |
+| tests workspace/all-targets | **PASS — 298/298** |
+| check Studio WASM exact courant | **PASS** |
 | Clippy workspace/all-targets `-D warnings` | **PASS**, zéro warning |
-| Smoke runtime natif produisant `forge.runtime-metrics` v8 | **ACQUIS — High fixe clear/rain** |
-| Smoke GPU réel avec changement de tier et LOD scenery observé | **NOT RUN** |
+| Smoke runtime natif produisant `forge.runtime-metrics` v8 | **ACQUIS — 10/10 profils/météos retenus** |
+| Smoke GPU réel avec changement de tier, eau et LOD scenery observés | **PASS — High vers Ultra, frame 604** |
 | Smoke Browser clear/rain High produisant le ledger Studio v7 | **PASS AUTOMATISÉ BORNÉ à `d9e2670…`** — 24/24 contrôles chacun ; voir [`R1_BROWSER_WEBGPU_SMOKE.md`](R1_BROWSER_WEBGPU_SMOKE.md) |
-| Captures natives | **ACQUISES, MAIS NON ACCEPTÉES COMME QUALIFICATION VISUELLE** |
+| Captures natives | **10 PROFILS ACQUIS, MAIS NON ACCEPTÉS COMME QUALIFICATION ARTISTIQUE** |
 | Revue humaine finale et benchmark matériel cible | **PAS ENCORE EXÉCUTÉS** |
 
 ## Projection High fixe réellement observée
@@ -148,8 +149,9 @@ Les deux logs d9 sont vides. Les captures 1920 × 1080 corrigent la dérive colo
 grandes zones noires, mais conservent des contours sombres/stipple ; elles ne valent pas acceptation
 visuelle.
 
-Ainsi, les résultats automatisés et les smokes High fixe qualifient le contrat et sa projection de
-démarrage en natif et dans le Browser. Les métriques Browser (clear 10,1175 ms/p95 12,1 ms ; rain
-9,5633 ms/p95 10,9 ms) mesurent la loop WASM, pas le GPU, et `gpu_presentation=not_observed`.
-Sans transitions réelles, matrice Low/Medium/High/Ultra, mode adaptatif et acceptation visuelle, ils
-ne ferment pas `R1-040`.
+Cette section High `d9e2670` reste l'historique exact de la parité native/Browser. La campagne
+ultérieure `5eadec7f` ferme la dette multi-tier et transition dans
+[`R1_039_040_NATIVE_QUALITY_MATRIX.md`](R1_039_040_NATIVE_QUALITY_MATRIX.md) : dix ledgers natifs,
+dix captures, pipelines stables, eau/tier concordants et adaptation High vers Ultra. Les métriques
+Browser historiques mesurent la loop WASM, pas le GPU, et `gpu_presentation=not_observed` demeure
+honnête. `R1-040` est acquise fonctionnellement ; l'acceptation artistique reste séparée.

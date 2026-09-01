@@ -126,6 +126,7 @@ sombres, du stipple/aliasing et quelques facettes sombres restent visibles. L'ea
 Les images fixes ne prouvent ni vent, déplacement, réversibilité météo, stutter représentatif ni
 qualité artistique comparative.
 
-Gate 1 reste ouverte pour `R1-023`, les profils complets/adaptation, les parcours et vues
-qualifiantes, le GPU cible RTX 3060/RX 6600 et les revues humaines `R1-049` à `R1-052`. Aucun asset
-Cadle n'a été copié ou chargé par cette campagne.
+À la clôture de cette campagne d9, Gate 1 restait ouverte pour `R1-023`, les profils
+complets/adaptation, les parcours et vues qualifiantes, le GPU cible RTX 3060/RX 6600 et les revues
+humaines `R1-049` à `R1-052`. La matrice ultérieure `5eadec7f` ferme la dette profils/adaptation ; les
+autres limites restent dues. Aucun asset Cadle n'a été copié ou chargé par cette campagne.

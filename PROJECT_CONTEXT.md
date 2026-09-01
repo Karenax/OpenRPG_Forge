@@ -3,7 +3,7 @@
 Dernière mise à jour : **1er septembre 2026**
 Branche : **`Rust`**
 Statut : **Gate 0 passée sur preuves automatisées locales ; Gate 1 ouverte au commit source courant
-`d9e2670111624aa836ab138afc35cddf441865ef` ; Gate 2 interdite ; produit non qualifié**
+`5eadec7f6f9f9b5b6734ce62ea3518f0297496f9` ; Gate 2 interdite ; produit non qualifié**
 Référence historique : `main@a7f4a3f5dd0eeff1dc060ea1237b1d7d650b7ca0`
 Référence upstream exécutable : `Humpalumps/Cadle@ea0da62549980816a6a27e08b75808b1f56d70e7` (`v0.6.0`)
 
@@ -29,8 +29,8 @@ Les revues humaines Gate 0 restent différées et la CI distante reste `NOT RUN`
 facturation ; ADR-0006 autorise jusqu’à Gate 4 une décision sur preuves automatisées locales sans
 jamais transformer ce statut en CI verte.
 
-Le snapshot courant de Gate 1 est `d9e2670`, arbre
-`d6e5a40f73b47934444bda4514d5cdcb1dab093d`. Sa validation passe **296/296 tests workspace**, le
+Le snapshot source courant de Gate 1 est `5eadec7f`, arbre
+`a2fb4df0b7e2eff4d686dda575d4a2bf18cb12a1`. Sa validation passe **298/298 tests workspace**, le
 formatage, Clippy workspace strict `-D warnings` et le check Studio WASM. Le seul avertissement de
 build reste la future incompatibilité transitive connue de `proc-macro-error2 v2.0.1`.
 
@@ -41,17 +41,21 @@ pour chaque météo, 9/9 modèles sont chargés, 26/26 assets répondent HTTP 20
 1 % low 85,106 FPS. Les deux runs ont zéro hitch. Ces mesures décrivent la boucle Bevy WASM ;
 `gpu_presentation` reste honnêtement `not_observed`.
 
-Le runtime Release exact `d9e2670` a aussi été exécuté en clear/rain High, 1920 × 1080, sur RX 7800
-XT/Vulkan. Clear mesure 8,3478 ms de moyenne, p95 8,7132 ms et 1 % low 113,775 FPS ; rain 8,2920 ms,
-p95 9,0950 ms et 1 % low 96,354 FPS, sans hitch. Les **46/46** contrôles natif/Studio passent et les
-sept hashes communs concordent ; `R1-043` reste satisfaite sur la nouvelle paire exacte.
+Le runtime Release exact `5eadec7f` a été exécuté en Low/Medium/High/Ultra clear/rain, adaptatif
+clear et benchmark clear, 1920 x 1080, sur RX 7800 XT/Vulkan. Les dix ledgers contiennent 120
+samples, des pipelines prêts avant et pendant toute la mesure, et un tier eau égal au tier appliqué.
+L'adaptation effectue High vers Ultra à la frame 604. Selon le run, la moyenne va de 5,6130 à
+10,2077 ms, le p95 de 6,7886 à 13,9956 ms et le 1 % low de 56,293 à 134,937 FPS. Low/rain observe
+deux hitches ; les neuf autres runs zéro. `R1-039`, `R1-040` et la condition « profils qualité
+fonctionnels » sont acquises. La paire native/Studio exacte `d9e2670` conserve ses **46/46**
+contrôles et ses sept hashes communs concordants pour `R1-043`.
 
 Le correctif passe l'eau/les berges en forward, empêche le profil qualité de réactiver un SSR déclaré
 indisponible sous Bevy 0.19.1, ajoute l'IBL atmosphérique et borne la projection colorimétrique. Les
 logs natifs d9 sont vides : aucun warning wgpu ni `ERROR` n'y est enregistré. Les palettes
 rose/moutarde et les grandes zones noires sont corrigées ; des contours de végétation sombres et du
 stipple/aliasing restent visibles, et l'eau n'est pas isolable dans ces cadrages. `R1-023`, le GPU
-cible, les profils complets, le parcours temporel et les revues humaines restent dus. La preuve de
+cible, le parcours temporel et les revues humaines restent dus. La preuve de
 provenance reste épinglée à `92286910a9bab622d5d54905551c0f03172e98e7`. Gate 2 ne peut commencer
 sans passage de Gate 1 ou nouvelle dérogation explicite acceptée.
 
@@ -1265,16 +1269,17 @@ Créer `examples/visual_valley` :
 - overlay complet ;
 - captures déterministes.
 
-État consolidé au commit source courant `d9e2670111624aa836ab138afc35cddf441865ef`, arbre
-`d6e5a40f73b47934444bda4514d5cdcb1dab093d` : les scènes Browser et natives clear/rain et leurs
-captures sont acquises, les sept hashes communs concordent et `R1-043` est satisfaite par 46/46
-contrôles. Les deux Browser passent 24/24 contrôles et les deux natifs n'enregistrent ni warning ni
-erreur. La correction forward + IBL résout le warning et la dérive colorimétrique observés à
-`a34596bd`; cette campagne précédente reste une preuve historique intacte.
+État consolidé au commit source courant `5eadec7f6f9f9b5b6734ce62ea3518f0297496f9`, arbre
+`a2fb4df0b7e2eff4d686dda575d4a2bf18cb12a1` : la matrice native qualifie les quatre tiers fixes,
+clear/rain, l'adaptation High vers Ultra et le benchmark High. Les dix runs ont 120 samples,
+pipelines stables et tier eau concordant. La paire Browser/native `d9e2670` conserve ses sept hashes
+communs et ses 46/46 contrôles ; les deux Browser passent 24/24 contrôles. La correction forward +
+IBL résout le warning et la dérive colorimétrique observés à `a34596bd`; cette campagne précédente
+reste une preuve historique intacte.
 
-Gate 1 reste **OUVERTE** : la cible RTX 3060/RX 6600 n'est pas mesurée, les profils complets et le
-parcours temporel ne sont pas qualifiés, l'eau n'est pas isolée dans les captures et aucune revue
-humaine comparative n'accepte le rendu. Voir
+Gate 1 reste **OUVERTE** : la cible RTX 3060/RX 6600 n'est pas mesurée, le parcours temporel n'est
+pas qualifié, l'eau n'est pas isolée dans les captures et aucune revue humaine comparative n'accepte
+le rendu. Voir
 `docs/reports/GATE_1_REPORT.md`.
 
 La gate passe si :
@@ -1801,9 +1806,10 @@ Cadle v0.6.0 @ ea0da625 : copie locale épinglée, intacte et mesurée. Code MIT
 attribution ; assets exclus. Aucune dépendance Three.js/JavaScript dans le produit Forge.
 
 TRAVAIL ACTIF
-Gate C et Gate 0 sont passées. Gate 1 reste ouverte au commit source d9e2670 : correction graphique,
-Browser et natif clear/rain exact-commit acquis, 24/24 par météo et 46/46 croisés, R1-043 satisfaite.
-Restent dus : profils complets, parcours temporel, GPU cible, vues qualifiantes et revue humaine.
+Gate C et Gate 0 sont passées. Gate 1 reste ouverte au commit source 5eadec7f : matrice native
+10/10, profils et pipelines acquis, eau synchronisée ; la paire Browser/native d9e2670 conserve
+24/24 par météo et 46/46 croisés. Restent dus : parcours temporel, instrumentation exhaustive,
+GPU cible, vues qualifiantes et revue humaine.
 Poursuivre uniquement Gate 1. Gate 2 est interdite sans passage formel ou nouvelle dérogation
 explicite. La CI distante reste NOT RUN sous ADR-0006 tant que les runners ne démarrent pas.
 ```

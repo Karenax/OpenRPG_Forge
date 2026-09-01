@@ -12,7 +12,8 @@ n'y est enregistré. Le binaire natif porte le SHA-256
 `e44bc941b70eabab8b7e6155a262ab93491d9c2d4763454cb09bfd480e24cc75`.
 
 `R1-043` reste **PASS automatisé local borné** sur la paire d9. La présentation GPU Browser reste
-`not_observed`; le GPU cible, les profils complets et la revue humaine ne sont pas qualifiés. Les
+`not_observed`; le GPU cible et la revue humaine ne sont pas qualifiés. Les profils complets ont été
+qualifiés ultérieurement en natif au commit `5eadec7f`, sans étendre la présente preuve Browser. Les
 preuves et hashes courants sont regroupés dans
 [`R1_GRAPHICS_FORWARD_IBL_CORRECTION.md`](R1_GRAPHICS_FORWARD_IBL_CORRECTION.md).
 

@@ -8,17 +8,20 @@ Gate suivante : **Gate 2 interdite sans passage de Gate 1 ou nouvelle dérogatio
 
 ## Résumé de décision
 
-Visual Valley dispose d'une nouvelle paire native/Browser exacte au commit `d9e2670`, de captures
-fixes, de ledgers versionnés et d'une provenance CC0/Cadle auditée. Les deux variantes Browser passent
-chacune **24/24 contrôles automatisés**, sans échec réseau ni warning/erreur console. Le validateur
-croisé natif/Studio passe **46/46** contrôles et les sept hashes communs concordent.
+Visual Valley conserve une paire native/Browser exacte au commit `d9e2670`, des captures fixes, des
+ledgers versionnés et une provenance CC0/Cadle auditée. Les deux variantes Browser passent chacune
+**24/24 contrôles automatisés**, sans échec réseau ni warning/erreur console. Le validateur croisé
+natif/Studio passe **46/46** contrôles et les sept hashes communs concordent. Le commit source courant
+`5eadec7f` ajoute une matrice native 10/10 Low/Medium/High/Ultra, adaptatif et benchmark, avec
+pipelines stables et tier eau synchronisé.
 
 Ces résultats ne ferment pas Gate 1. Le correctif forward + IBL supprime le warning wgpu enregistré
 dans la campagne historique `a34596bd` et corrige les palettes rose/moutarde ainsi que les grandes
 ombres noires. Des contours de végétation sombres et du stipple/aliasing restent visibles ; l'eau
 n'est pas isolable dans ces cadrages. La présentation GPU Browser reste `not_observed`, la cible RTX
-3060/RX 6600 n'a pas été mesurée, les profils complets et le parcours temporel restent à qualifier,
-et les captures n'ont pas reçu d'acceptation humaine comparative.
+3060/RX 6600 n'a pas été mesurée, le parcours temporel reste à qualifier, et les captures n'ont pas
+reçu d'acceptation humaine comparative. Les profils sont fonctionnels, mais cela ne corrige pas leur
+stipple/aliasing visible et ne constitue pas une acceptation artistique.
 
 Le verdict `R1-055` est **poursuivre Gate 1**, corriger et requalifier les preuves manquantes. Il ne
 constitue ni un passage administratif de Gate 1, ni une autorisation implicite de commencer Gate 2.
@@ -27,6 +30,7 @@ constitue ni un passage administratif de Gate 1, ni une autorisation implicite d
 
 | Portée | Commit | Tree | Usage dans ce rapport |
 |---|---|---|---|
+| source courante et matrice profils | `5eadec7f6f9f9b5b6734ce62ea3518f0297496f9` | `a2fb4df0b7e2eff4d686dda575d4a2bf18cb12a1` | 10 ledgers/captures natifs, quatre tiers, adaptation High vers Ultra, benchmark High et eau synchronisée |
 | source courante Browser | `d9e2670111624aa836ab138afc35cddf441865ef` | `d6e5a40f73b47934444bda4514d5cdcb1dab093d` | Browser clear/rain, manifeste Studio, assets HTTP et captures Browser |
 | natif performance/captures exact-commit | `d9e2670111624aa836ab138afc35cddf441865ef` | `d6e5a40f73b47934444bda4514d5cdcb1dab093d` | RX 7800 XT/Vulkan, métriques v8, captures et logs natifs exacts |
 | campagne graphique historique | `a34596bd733131699c70028dab86cf2c612b896a` | `8ccdf8cb2cb6a6aabd3a4569f22f1778e164ced6` | ancienne paire exacte conservée byte-for-byte ; warning et dérive visuelle reproduits |
@@ -40,22 +44,43 @@ pour conclure la parité courante `R1-043`.
 
 ## Validation source finale
 
-La source exacte `d9e2670111624aa836ab138afc35cddf441865ef` a été rejouée séquentiellement :
+La source exacte courante `5eadec7f6f9f9b5b6734ce62ea3518f0297496f9` a été rejouée
+séquentiellement :
 
 | Contrôle | Résultat |
 |---|---|
 | `git diff --check` puis `cargo fmt --all -- --check` | **PASS** |
-| `cargo test -p forge_engine --lib --locked -j1` | **120/120 PASS** |
-| `cargo test --workspace --all-targets --locked -j1` | **296/296 PASS** — tous les crates et intégrations |
+| `cargo test -p forge_engine --lib --locked -j1` | **122/122 PASS** |
+| `cargo test --workspace --all-targets --locked -j1` | **298/298 PASS** — tous les crates et intégrations |
 | `cargo fmt --all -- --check` | **PASS** |
 | `cargo clippy --workspace --all-targets -- -D warnings` | **PASS**, zéro warning |
-| check Studio `wasm32-unknown-unknown`, features `web` | **PASS**, 8,71 s |
+| check Studio `wasm32-unknown-unknown`, features `web` | **PASS**, 17,94 s |
 
 Le check WASM conserve uniquement l'avertissement de future incompatibilité transitive connu pour
-`proc-macro-error2 v2.0.1`. Cette validation couvre la source et les contrats. Le rebuild et les deux
-smokes Release natifs exact-commit sont documentés séparément ci-dessous.
+`proc-macro-error2 v2.0.1`. Cette validation couvre la source et les contrats. Le rebuild Release et
+la matrice native exacte sont documentés ci-dessous ; la paire Browser/native d9 reste une campagne
+historique exacte distincte.
 
-## Preuve Browser finale clear/rain
+## Matrice native courante `5eadec7f`
+
+Le binaire Release courant mesure 81 743 872 octets et porte le SHA-256
+`33b3ea91dff8d5d0aa4af054aacf6f575bc1dc449572b914452518acdeb1c3eb`. Dix runs 1920 x 1080,
+VSync off, caméra joueur, ont été retenus sur RX 7800 XT/Vulkan : quatre tiers clear/rain,
+adaptatif clear et benchmark clear.
+
+Les dix ledgers v8 contiennent chacun 120 samples, 9/9 modèles CC0, des pipelines prêts avant et
+pendant la mesure et un tier eau identique au tier appliqué. Les comptes pipelines vont de 59/59 à
+74/74. L'adaptation effectue High vers Ultra à la frame 604 ; benchmark reste High. Les moyennes vont
+de 5,6130 à 10,2077 ms, les p95 de 6,7886 à 13,9956 ms et les 1 % low de 56,293 à 134,937 FPS.
+Low/rain contient deux hitches ; les neuf autres runs zéro.
+
+Les vingt artefacts, leur manifeste SHA-256, les deux séries rejetées et la revue visuelle bornée
+sont consignés dans
+[`R1_039_040_NATIVE_QUALITY_MATRIX.md`](../evidence/gate1/R1_039_040_NATIVE_QUALITY_MATRIX.md).
+Cette preuve ferme `R1-039`, `R1-040` et la condition « profils qualité fonctionnels ». Elle ne ferme
+ni le GPU cible, ni le parcours représentatif, ni l'acceptation artistique.
+
+## Preuve Browser d9 clear/rain
 
 Les artefacts locaux sont sous :
 
@@ -117,7 +142,7 @@ conserve `webgpu.status=checking`, `webgpu_ready_ms=null` et `gpu_presentation=n
 automatisé valide le chargement, les invariants CPU/ECS, le réseau, le DOM, les captures et les
 métriques de boucle ; il ne doit pas être renommé « présentation GPU WebGPU qualifiée ».
 
-## Preuve native RX 7800 XT exact-commit
+## Preuve native d9 RX 7800 XT exact-commit
 
 Le binaire Release reconstruit et exécuté sur `d9e2670` utilise une AMD Radeon RX 7800 XT, Vulkan
 et le pilote AMD `26.8.1 (LLPC)`, en 1920 × 1080 High fixe, VSync off. Le build Release termine en
@@ -171,6 +196,7 @@ Nouvelles cases fermées par les preuves consolidées :
 
 - `R1-019`, `R1-020`, `R1-021`, `R1-022` et `R1-024` ;
 - `R1-035`, `R1-036`, `R1-038` et `R1-042` ;
+- `R1-039` et `R1-040` par la matrice native exacte 10/10 et la transition High vers Ultra ;
 - `R1-043` pour la paire native/Studio exact-commit et les sept hashes communs concordants ;
 - `R1-044` et `R1-045` pour l'acquisition de captures fixes ;
 - `R1-053` et `R1-054` pour provenance et indépendance ;
@@ -179,7 +205,7 @@ Nouvelles cases fermées par les preuves consolidées :
 Restent explicitement ouvertes :
 
 - `R1-014`, `R1-023`, `R1-025`, `R1-026` et `R1-033` ;
-- `R1-034`, `R1-037`, `R1-039`, `R1-040` et `R1-041` ;
+- `R1-034`, `R1-037` et `R1-041` ;
 - `R1-046` à `R1-052`.
 
 `R1-043` est fermée : les deux cibles utilisent `d9e2670`, le scenery hash concorde et
@@ -197,7 +223,7 @@ huitième match de ledger.
 | p95 `<=16,7 ms` | **OUVERTE** | paire exact-commit dans le budget, mais pas sur GPU cible |
 | 1 % low `>=45 FPS` | **OUVERTE** | paire exact-commit dans le budget, mais pas sur GPU cible |
 | absence de stutter récurrent | **OUVERTE** | zéro hitch dans la paire d9, mais fenêtres courtes/fixes sans parcours représentatif |
-| profils qualité fonctionnels | **OUVERTE** | High fixe seulement ; transitions/adaptation non rejouées |
+| profils qualité fonctionnels | **SATISFAITE** | quatre tiers fixes, clear/rain, adaptation High vers Ultra et benchmark High sur 10/10 ledgers natifs |
 | parité de données native/Studio | **SATISFAITE** | commit/arbre exacts communs, 46/46 contrôles et sept hashes communs MATCH |
 | code sans dépendance propriétaire obligatoire | **SATISFAITE** | audits provenance/indépendance locaux PASS |
 | rapport et captures versionnés | **SATISFAITE** | rapport, manifeste/ledgers Browser et captures Forge clear/rain ajoutés avec hashes |
@@ -226,8 +252,9 @@ Verdict : **POURSUIVRE GATE 1**.
 
 Ordre minimal avant toute nouvelle décision de passage :
 
-1. qualifier Low/Medium/High/Ultra et l'adaptation, puis un parcours temporel représentatif ;
-2. acquérir vues hauteur humaine/lointaine, eau dédiée et vidéo courte ;
+1. acquérir un parcours temporel représentatif, les vues hauteur humaine/lointaine, l'eau dédiée et
+   une vidéo courte ;
+2. compléter l'overlay GPU et l'instrumentation exhaustive ou documenter une décision Gate 1 dédiée ;
 3. mesurer RTX 3060 ou RX 6600 en 1080p High ;
 4. effectuer la revue humaine comparative Godot/Cadle et statuer sur les routes visuelles restantes.
 

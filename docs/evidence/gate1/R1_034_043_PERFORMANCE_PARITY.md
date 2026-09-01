@@ -112,8 +112,8 @@ Le natif rejoué à `d9e2670…` fournit la paire exact-commit de données coura
 | `R1-036` moyenne, p95, 1 % low | natif clear : 119,792 FPS / 8,713 ms / 113,775 FPS ; natif rain : 120,598 / 9,095 / 96,354 ; loop WASM clear : 10,1175 ms / 12,1 ms / 77,519 FPS ; rain : 9,5633 / 10,9 / 85,106 | fenêtres courtes et caméra fixe ; la loop WASM n'est pas un temps GPU | **SOUS-PREUVES NATIVE ET BROWSER ACQUISES** |
 | `R1-037` draw calls, triangles, instances | triangles logiques du terrain, comptes de meshes source et projections ECS végétation/scenery ; primitives/invocations opaques quand le backend les expose | `gpu_draw_calls = null` avec statut `unavailable_bevy_0_19_no_global_counter` ; aucun total exhaustif whole-scene de triangles ou instances réellement soumis au GPU | **NON QUALIFIÉ** |
 | `R1-038` VRAM estimée | rapports allocateur Vulkan observés : 530 273 124/876 609 552 octets clear et 534 407 108/876 609 552 rain ; slabs 54 042 544 octets | sous-allocations seulement, pas la VRAM totale, le budget OS ou la résidence ; Browser doit rester `null` sans substitut | **SOUS-PREUVE NATIVE ACQUISE, ROUTE OUVERTE** |
-| `R1-039` préchauffage pipelines | natif clear 69/69 et rain 71/71 prêts, zéro queued/creating/error/waiting | le Browser atteint la readiness mais n'expose pas la convergence du cache pipeline ; aucun cache persistant ni autres tiers | **SOUS-PREUVE HIGH NATIVE ACQUISE, ROUTE OUVERTE** |
-| `R1-040` profil dynamique | High fixe sélectionné/courant/appliqué en natif et Browser ; LOD scenery 72–180 m concordant | adaptation désactivée, zéro transition, aucun Low/Medium/Ultra/adaptatif et limites visuelles présentes | **SOUS-PREUVE HIGH FIXE ACQUISE, ROUTE OUVERTE** |
+| `R1-039` préchauffage pipelines | matrice native `5eadec7f` : 10/10 runs, de 59/59 à 74/74 prêts avant et pendant les 120 samples | le Browser n'expose toujours pas la convergence du cache et aucun cache persistant n'est revendiqué | **ACQUIS EN NATIF** |
+| `R1-040` profil dynamique | matrice `5eadec7f` : quatre tiers fixes clear/rain, adaptation High vers Ultra, benchmark High, eau et LOD concordants | présentation Browser multi-tier et acceptation artistique non revendiquées | **ACQUIS FONCTIONNELLEMENT** |
 | `R1-041` benchmark RTX 3060 ou RX 6600 | le ledger v8 peut recevoir la mesure 1080p High et l'identité de l'adaptateur | aucun lancement sur RTX 3060 12 Go ou RX 6600 8 Go ; objectifs 60 FPS moyen, p95 `<= 16,7 ms`, 1 % low `>= 45 FPS` non mesurés | **NON QUALIFIÉ** |
 | `R1-042` benchmark RX 7800 XT | deux mesures v8 du candidat exact sur RX 7800 XT/Vulkan, 1080p High fixe, clear/rain et VSync off | benchmark court et fixe ; ne vaut ni cible milieu de gamme ni parcours représentatif | **SOUS-PREUVE DE DÉVELOPPEMENT ACQUISE** |
 | `R1-043` comparaison native vs Studio WebGPU | natif et Browser `d9e2670…`, clear/rain, 46/46 assertions et sept hashes communs MATCH, dont scenery `6b41ec73…` | loop WASM non GPU, `gpu_presentation=not_observed` et hash contrôleur non répété dans le ledger natif | **PASS AUTOMATISÉ LOCAL BORNÉ** |
@@ -167,9 +167,9 @@ machine cible.
 
 Le natif et le Browser `d9e2670…` possèdent chacun leurs preuves clear/rain. Les 46/46 assertions
 croisées ferment `R1-043`. `R1-034` reste partielle faute de temps GPU ; `R1-037` et `R1-041`
-restent non qualifiées ; `R1-039` et `R1-040` restent ouvertes faute de preuve pipeline Browser,
-transitions et matrice de tiers. Le GPU milieu de gamme et l'acceptation visuelle restent dus. Le
-les résidus visuels, `gpu_presentation=not_observed` et les fenêtres courtes interdisent un verdict
+restent non qualifiées. La matrice native ultérieure `5eadec7f` ferme `R1-039` et `R1-040` sans
+inventer de présentation Browser multi-tier. Le GPU milieu de gamme et l'acceptation visuelle restent
+dus. Les résidus visuels, `gpu_presentation=not_observed` et les fenêtres courtes interdisent un verdict
 global Gate 1.
 
 Références détaillées :

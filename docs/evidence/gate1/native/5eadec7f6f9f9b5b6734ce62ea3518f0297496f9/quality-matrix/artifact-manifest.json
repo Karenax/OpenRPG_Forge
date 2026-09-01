@@ -1,0 +1,119 @@
+{
+  "schema": "forge.gate1-native-quality-matrix-artifacts",
+  "schema_version": 1,
+  "source_commit": "5eadec7f6f9f9b5b6734ce62ea3518f0297496f9",
+  "source_tree": "a2fb4df0b7e2eff4d686dda575d4a2bf18cb12a1",
+  "binary": {
+    "file": "E:\\OpenRPG_Forge\\.cargo-target-gate1-combined\\release\\forge_runtime.exe",
+    "bytes": 81743872,
+    "sha256": "33b3ea91dff8d5d0aa4af054aacf6f575bc1dc449572b914452518acdeb1c3eb"
+  },
+  "machine": {
+    "gpu": "AMD Radeon RX 7800 XT",
+    "backend": "Vulkan",
+    "resolution": "1920x1080",
+    "vsync": false
+  },
+  "files": [
+    {
+      "file": "adaptive-clear.metrics.json",
+      "bytes": 27225,
+      "sha256": "58d40e178d66bb4c09041b62667a479c9450a20aa1c464eb29d217c3f47aec24"
+    },
+    {
+      "file": "adaptive-clear.png",
+      "bytes": 2192932,
+      "sha256": "59b9877272b782807c9b2f98aa99b66455c2b4a173cd642b52aa56f7323c331a"
+    },
+    {
+      "file": "benchmark-clear.metrics.json",
+      "bytes": 26726,
+      "sha256": "f660b105a75e46973c5a7a12d01831ef05525f193ce3027d0c9281da8621ef75"
+    },
+    {
+      "file": "benchmark-clear.png",
+      "bytes": 2230083,
+      "sha256": "685860e6ab86ecc695b4b1ca56e0988c774b366e418a51625b171c335a39c402"
+    },
+    {
+      "file": "high-clear.metrics.json",
+      "bytes": 26740,
+      "sha256": "3ac9b7845ae6e589cceeb2f371c70d3d9b730b1916eb125ce2dffc3bccfac04e"
+    },
+    {
+      "file": "high-clear.png",
+      "bytes": 2232692,
+      "sha256": "457deedce271419966b79b12389d97be2ed683c765d2b920fb6f16c2487eb2e7"
+    },
+    {
+      "file": "high-rain.metrics.json",
+      "bytes": 27531,
+      "sha256": "2fe9ae134df2d16e096e2f6973b0c20a6a2789a4237c0b89bac6b4d79511e7eb"
+    },
+    {
+      "file": "high-rain.png",
+      "bytes": 2254894,
+      "sha256": "d9b477668ae149ead4ce54e7b017b1952a836ffc12eb58f71f431799db77c10a"
+    },
+    {
+      "file": "low-clear.metrics.json",
+      "bytes": 25695,
+      "sha256": "5be748e18e7d905395173fc5c701d4a1288774de366e9cd60481ea5508a891a4"
+    },
+    {
+      "file": "low-clear.png",
+      "bytes": 2121103,
+      "sha256": "95985d87e60ad6c1cf36d9835ca35ee4ab9bc7eb83f66fb38b86255964473457"
+    },
+    {
+      "file": "low-rain.metrics.json",
+      "bytes": 26522,
+      "sha256": "9161a59754de378d9be54a053889a4619760eb652eae19ef2432f8b8ed1ecd24"
+    },
+    {
+      "file": "low-rain.png",
+      "bytes": 2125916,
+      "sha256": "bf3ade9578f57eb607117aed79bdf169d247537ec5a3359a44d8427d48386899"
+    },
+    {
+      "file": "medium-clear.metrics.json",
+      "bytes": 26017,
+      "sha256": "0334f73c9d5839d730cfbc7b05c22138e733a34095d6774d8b2e5615aaf4149c"
+    },
+    {
+      "file": "medium-clear.png",
+      "bytes": 2167050,
+      "sha256": "b51b003cc37816668746ff69ab717a471959ab6220365cbbe0b5ffbb00f1063c"
+    },
+    {
+      "file": "medium-rain.metrics.json",
+      "bytes": 26774,
+      "sha256": "9f5b02bfe1db541af1fb8ecbd28a8a59c56fb42528be955d931f032a1a0b7d16"
+    },
+    {
+      "file": "medium-rain.png",
+      "bytes": 2190373,
+      "sha256": "830e83486d2233ec001ec2860208834f6161fdaf8e94add5b7b924eecafa3f15"
+    },
+    {
+      "file": "ultra-clear.metrics.json",
+      "bytes": 26759,
+      "sha256": "e4ee8c4afa1239749b8dbd16bc145d3256c844abe020d9855b2aa08482f144fe"
+    },
+    {
+      "file": "ultra-clear.png",
+      "bytes": 2210265,
+      "sha256": "aa095e82906845271b37b14d386697e1ccb3d60ef0c12b7c5ae7114ebaef7bbc"
+    },
+    {
+      "file": "ultra-rain.metrics.json",
+      "bytes": 27492,
+      "sha256": "5528066ae169a96cdca293084a119486201b448e8b2f46ae74226fcd844b3d13"
+    },
+    {
+      "file": "ultra-rain.png",
+      "bytes": 2241434,
+      "sha256": "ee749753577297395c1b745d7ea041eef842da2d6d81b28089a4a90c0847e0cd"
+    }
+  ]
+}
