@@ -414,8 +414,12 @@ function Test-AssetManifests {
                     throw "model source_path differs from its file entry for '$($modelEntry.id)'"
                 }
                 $baseScale = @($modelEntry.base_scale)
-                if ($baseScale.Count -ne 3 -or @($baseScale | Where-Object { [double]$_ -le 0 }).Count -ne 0) {
-                    throw "model base_scale must contain three positive numbers for '$($modelEntry.id)'"
+                $invalidScaleComponents = @($baseScale | Where-Object {
+                    $value = [double]$_
+                    -not [double]::IsFinite($value) -or $value -le 0
+                })
+                if (($baseScale.Count -ne 1 -and $baseScale.Count -ne 3) -or $invalidScaleComponents.Count -ne 0) {
+                    throw "model base_scale must be one positive finite number or three positive finite numbers for '$($modelEntry.id)'"
                 }
                 $validatedModelCount++
             }

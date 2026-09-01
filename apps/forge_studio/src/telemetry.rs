@@ -326,6 +326,7 @@ pub struct ViewportReadyEvent {
     pub water_observation: Option<String>,
     pub weather_observation: Option<String>,
     pub weather_target_state: Option<String>,
+    pub scenery_observation: Option<crate::StudioSceneryRuntimeObservation>,
     pub gpu_presentation: crate::StudioGpuPresentationStatus,
 }
 

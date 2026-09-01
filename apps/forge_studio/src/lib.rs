@@ -8,6 +8,8 @@
 )]
 
 use forge_core::EntityId;
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+use forge_core::canonical_json_sha256;
 use forge_project::WeatherState;
 #[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
 use forge_project::{
@@ -25,6 +27,10 @@ use serde::{Deserialize, Serialize};
 
 const STUDIO_SCENE_QUERY_KEY: &str = "forge_scene";
 const STUDIO_WEATHER_QUERY_KEY: &str = "forge_weather";
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+const VISUAL_VALLEY_SCENERY_MANIFEST_JSON: &str = include_str!(
+    "../../../assets/visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/subset.manifest.json"
+);
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -208,6 +214,7 @@ pub struct StudioSceneSourceHashes {
     pub player_controller: Option<String>,
     pub water: Option<String>,
     pub weather: Option<String>,
+    pub scenery: Option<String>,
 }
 
 impl StudioSceneSourceHashes {
@@ -221,6 +228,7 @@ impl StudioSceneSourceHashes {
             &self.player_controller,
             &self.water,
             &self.weather,
+            &self.scenery,
         ]
         .into_iter()
         .filter(|hash| hash.is_some())
@@ -275,6 +283,23 @@ pub enum StudioGpuPresentationStatus {
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+pub struct StudioSceneryRuntimeObservation {
+    pub status: String,
+    pub loaded_models: usize,
+    pub failed_models: usize,
+    pub unique_models: usize,
+    pub hidden_procedural_entities: usize,
+    pub replacement_instances: usize,
+    pub detail_instances: usize,
+    pub tracked_files: usize,
+    pub tracked_bytes: u64,
+    pub replacement_lod_start_m: f32,
+    pub replacement_lod_end_m: f32,
+    pub detail_cull_distance_m: f32,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct StudioSceneRuntimeObservation {
     pub first_real_frame_ms: f64,
     pub runtime_ready_ms: f64,
@@ -283,6 +308,7 @@ pub struct StudioSceneRuntimeObservation {
     pub water_observation: Option<String>,
     pub weather_observation: Option<String>,
     pub weather_target_state: Option<String>,
+    pub scenery_observation: Option<StudioSceneryRuntimeObservation>,
     pub gpu_presentation: StudioGpuPresentationStatus,
     pub evidence_source: String,
 }
@@ -306,7 +332,7 @@ impl StudioSceneTelemetry {
     pub fn new(selection: StudioSceneSelection, selected_manifest: StudioSceneManifest) -> Self {
         Self {
             schema: "forge.studio-scene-telemetry".to_owned(),
-            schema_version: 3,
+            schema_version: 4,
             selection,
             selected_manifest,
             runtime_manifest: None,
@@ -405,6 +431,9 @@ fn validate_runtime_contract(
         ));
     }
     if selected.scene == StudioScene::VisualValley {
+        if selected.source_hashes.scenery.is_none() {
+            return Err("hash du manifeste de décor CC0 absent de la sélection".to_owned());
+        }
         if observation.water_observation.as_deref() != Some("observed_main_world_components") {
             return Err(format!(
                 "projection eau invalide : {}",
@@ -434,6 +463,36 @@ fn validate_runtime_contract(
                 expected_weather.unwrap_or("not_applicable")
             ));
         }
+        let Some(scenery) = observation.scenery_observation.as_ref() else {
+            return Err("projection décor CC0 not_observed".to_owned());
+        };
+        if scenery.status != "activated"
+            || scenery.failed_models != 0
+            || scenery.unique_models == 0
+            || scenery.loaded_models != scenery.unique_models
+            || scenery.replacement_instances == 0
+            || scenery.hidden_procedural_entities != scenery.replacement_instances
+            || scenery.tracked_files == 0
+            || scenery.tracked_bytes == 0
+            || !scenery.replacement_lod_start_m.is_finite()
+            || !scenery.replacement_lod_end_m.is_finite()
+            || !scenery.detail_cull_distance_m.is_finite()
+            || scenery.replacement_lod_start_m <= 0.0
+            || scenery.replacement_lod_end_m < scenery.replacement_lod_start_m
+            || scenery.detail_cull_distance_m <= 0.0
+        {
+            return Err(format!(
+                "projection décor CC0 invalide : statut={}, modèles={}/{}, échecs={}, remplacements cachés={}/{}, manifeste={} fichiers/{} octets",
+                scenery.status,
+                scenery.loaded_models,
+                scenery.unique_models,
+                scenery.failed_models,
+                scenery.hidden_procedural_entities,
+                scenery.replacement_instances,
+                scenery.tracked_files,
+                scenery.tracked_bytes
+            ));
+        }
     }
     Ok(())
 }
@@ -453,6 +512,15 @@ const fn weather_state_label_contract(state: WeatherState) -> &'static str {
         WeatherState::Clear => "clear",
         WeatherState::Rain => "rain",
     }
+}
+
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+fn visual_valley_scenery_manifest_hash() -> Result<String, String> {
+    let manifest: serde_json::Value = serde_json::from_str(VISUAL_VALLEY_SCENERY_MANIFEST_JSON)
+        .map_err(|error| format!("invalid embedded Visual Valley scenery manifest: {error}"))?;
+    canonical_json_sha256(&manifest)
+        .map(|hash| hash.to_string())
+        .map_err(|error| format!("cannot hash Visual Valley scenery manifest: {error}"))
 }
 
 #[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
@@ -611,6 +679,7 @@ impl LoadedStudioScene {
                                 })?
                                 .to_string(),
                         ),
+                        scenery: Some(visual_valley_scenery_manifest_hash()?),
                     },
                     camera_owner: StudioCameraOwner::VisualValleyPlayerController,
                     expected_active_camera_count: 1,
@@ -639,6 +708,7 @@ impl LoadedStudioScene {
                 ("player-controller", "Player controller", "◉"),
                 ("water", "Water document", "≈"),
                 ("weather", "Weather profile", "☂"),
+                ("scenery", "Governed CC0 scenery", "♣"),
             ]
             .into_iter()
             .map(|(key, name, glyph)| StudioHierarchyEntry {
@@ -727,9 +797,9 @@ mod web {
     use super::{
         EntityId, LoadedStudioScene, StudioCommand, StudioGpuPresentationStatus, StudioResponse,
         StudioScene, StudioSceneManifest, StudioSceneParityStatus, StudioSceneRuntimeObservation,
-        StudioSceneSourceHashes, StudioSceneTelemetry, StudioViewportMode,
-        StudioWaterAdapterStatus, is_validated_gate0_runtime, parse_studio_scene_selection,
-        parse_studio_weather_selection, validate_selection_response,
+        StudioSceneSourceHashes, StudioSceneTelemetry, StudioSceneryRuntimeObservation,
+        StudioViewportMode, StudioWaterAdapterStatus, is_validated_gate0_runtime,
+        parse_studio_scene_selection, parse_studio_weather_selection, validate_selection_response,
     };
     use bevy::{
         prelude::*,
@@ -741,8 +811,9 @@ mod web {
     };
     use forge_engine::{
         EnvironmentProjectionStats, EnvironmentProjectionStatus, PlayerRuntimeSnapshot, ProofScene,
-        ProofScenePlugin, ProofSelection, VegetationProjectionStats, VisualValleyEnvironmentPlugin,
-        VisualValleyPlugin, VisualValleyStats, VisualValleyVegetationPlugin,
+        ProofScenePlugin, ProofSelection, SceneryProjectionStats, SceneryProjectionStatus,
+        VegetationProjectionStats, VisualValleyEnvironmentPlugin, VisualValleyPlugin,
+        VisualValleySceneryPlugin, VisualValleyStats, VisualValleyVegetationPlugin,
         VisualValleyWaterPlugin, VisualValleyWeatherPlugin, WaterProjectionStats,
         WaterRuntimeObservationStatus, WeatherProjectionStats, WeatherProjectionStatus,
     };
@@ -1147,6 +1218,7 @@ mod web {
             water_observation: ready.water_observation.clone(),
             weather_observation: ready.weather_observation.clone(),
             weather_target_state: ready.weather_target_state.clone(),
+            scenery_observation: ready.scenery_observation.clone(),
             gpu_presentation: ready.gpu_presentation,
             evidence_source: "bevy_main_world_cpu_ecs_projection_observed_not_gpu_presentation"
                 .to_owned(),
@@ -1379,6 +1451,16 @@ mod web {
         }
     }
 
+    const fn scenery_observation_label(status: SceneryProjectionStatus) -> &'static str {
+        match status {
+            SceneryProjectionStatus::Pending => "pending",
+            SceneryProjectionStatus::Activated => "activated",
+            SceneryProjectionStatus::ProceduralFallbackLoadFailure => {
+                "procedural_fallback_load_failure"
+            }
+        }
+    }
+
     const fn weather_state_label(state: super::WeatherState) -> &'static str {
         match state {
             super::WeatherState::Clear => "clear",
@@ -1396,13 +1478,17 @@ mod web {
                     return "hashes sources alignés · observation runtime absente".to_owned();
                 };
                 format!(
-                    "hashes alignés · caméras {}/{} (attendu {}) · eau {} · météo {} ({})",
+                    "hashes alignés · caméras {}/{} (attendu {}) · eau {} · météo {} ({}) · décor {}",
                     runtime.active_camera_3d_entities,
                     runtime.camera_3d_entities,
                     telemetry.selected_manifest.expected_active_camera_count,
                     runtime.water_observation.as_deref().unwrap_or("n/a"),
                     runtime.weather_observation.as_deref().unwrap_or("n/a"),
-                    runtime.weather_target_state.as_deref().unwrap_or("n/a")
+                    runtime.weather_target_state.as_deref().unwrap_or("n/a"),
+                    runtime
+                        .scenery_observation
+                        .as_ref()
+                        .map_or("n/a", |scenery| scenery.status.as_str())
                 )
             }
             StudioSceneParityStatus::SourceManifestMismatch => {
@@ -1745,12 +1831,14 @@ mod web {
         let water_plugin = VisualValleyWaterPlugin::new(terrain.clone(), water);
         let weather_plugin =
             VisualValleyWeatherPlugin::new(weather).with_initial_state(weather_state);
+        let scenery_plugin = VisualValleySceneryPlugin::new(terrain.clone(), vegetation.clone());
         let visual_valley = VisualValleyPlugin::new(terrain.clone())
             .with_player_controller(player_controller)
             .with_player_interactive_input(false);
         app.add_plugins(visual_valley)
             .add_plugins(VisualValleyEnvironmentPlugin::new(environment))
             .add_plugins(VisualValleyVegetationPlugin::new(terrain, vegetation))
+            .add_plugins(scenery_plugin)
             .add_plugins(water_plugin)
             .add_plugins(weather_plugin);
     }
@@ -1784,11 +1872,12 @@ mod web {
         water_observation: Option<String>,
         weather_observation: Option<String>,
         weather_target_state: Option<String>,
+        scenery_observation: Option<StudioSceneryRuntimeObservation>,
     }
 
     enum RuntimeSceneProgress {
         Pending(String),
-        Ready(ObservedRuntimeScene),
+        Ready(Box<ObservedRuntimeScene>),
         Failed(String),
     }
 
@@ -1800,6 +1889,7 @@ mod web {
         player: Option<&'a PlayerRuntimeSnapshot>,
         water: Option<&'a WaterProjectionStats>,
         weather: Option<&'a WeatherProjectionStats>,
+        scenery: Option<&'a SceneryProjectionStats>,
         camera_3d_entities: u32,
         active_camera_3d_entities: u32,
     }
@@ -1821,7 +1911,7 @@ mod web {
                         ));
                     }
                 };
-                RuntimeSceneProgress::Ready(ObservedRuntimeScene {
+                RuntimeSceneProgress::Ready(Box::new(ObservedRuntimeScene {
                     manifest: StudioSceneManifest {
                         mode: StudioViewportMode::Gate0SceneProof,
                         scene: StudioScene::Gate0,
@@ -1838,7 +1928,8 @@ mod web {
                     water_observation: None,
                     weather_observation: None,
                     weather_target_state: None,
-                })
+                    scenery_observation: None,
+                }))
             }
             StudioScene::VisualValley => observe_visual_valley_runtime(resources),
         }
@@ -1865,6 +1956,7 @@ mod web {
             Some(player),
             Some(water),
             Some(weather),
+            Some(scenery),
         ) = (
             resources.terrain,
             resources.vegetation,
@@ -1872,6 +1964,7 @@ mod web {
             resources.player,
             resources.water,
             resources.weather,
+            resources.scenery,
         )
         else {
             return RuntimeSceneProgress::Pending(
@@ -1894,7 +1987,7 @@ mod web {
             return RuntimeSceneProgress::Failed(reason);
         }
 
-        RuntimeSceneProgress::Ready(ObservedRuntimeScene {
+        RuntimeSceneProgress::Ready(Box::new(ObservedRuntimeScene {
             manifest: StudioSceneManifest {
                 mode: StudioViewportMode::Gate1VisualValley,
                 scene: StudioScene::VisualValley,
@@ -1907,6 +2000,7 @@ mod web {
                     player_controller: Some(player_hash.to_string()),
                     water: Some(water.source_hash.clone()),
                     weather: Some(weather.source_hash.clone()),
+                    scenery: Some(scenery.manifest_hash.clone()),
                 },
                 camera_owner: super::StudioCameraOwner::VisualValleyPlayerController,
                 expected_active_camera_count: 1,
@@ -1916,7 +2010,21 @@ mod web {
             water_observation: Some(water_observation_label(water.runtime_observation).to_owned()),
             weather_observation: Some(weather_observation_label(weather.status).to_owned()),
             weather_target_state: Some(weather_state_label(weather.target_state).to_owned()),
-        })
+            scenery_observation: Some(StudioSceneryRuntimeObservation {
+                status: scenery_observation_label(scenery.status).to_owned(),
+                loaded_models: scenery.loaded_models,
+                failed_models: scenery.failed_models,
+                unique_models: scenery.unique_models,
+                hidden_procedural_entities: scenery.hidden_procedural_entities,
+                replacement_instances: scenery.replacement_instances,
+                detail_instances: scenery.detail_instances,
+                tracked_files: scenery.tracked_files,
+                tracked_bytes: scenery.tracked_bytes,
+                replacement_lod_start_m: scenery.replacement_lod_start_m,
+                replacement_lod_end_m: scenery.replacement_lod_end_m,
+                detail_cull_distance_m: scenery.detail_cull_distance_m,
+            }),
+        }))
     }
 
     fn validate_visual_valley_projection_statuses(
@@ -1946,6 +2054,14 @@ mod web {
             return Err(format!(
                 "projection météo invalide : {}",
                 weather_observation_label(weather.status)
+            ));
+        }
+        if let Some(scenery) = resources.scenery
+            && scenery.status == SceneryProjectionStatus::ProceduralFallbackLoadFailure
+        {
+            return Err(format!(
+                "projection décor CC0 en fallback après échec de chargement : modèles={}/{}, échecs={}",
+                scenery.loaded_models, scenery.unique_models, scenery.failed_models
             ));
         }
         Ok(())
@@ -1986,6 +2102,13 @@ mod web {
             }
             Some(weather) if weather.status == WeatherProjectionStatus::NotObserved => {
                 pending.push("WeatherProjectionStats.status");
+            }
+            Some(_) => {}
+        }
+        match resources.scenery {
+            None => pending.push("SceneryProjectionStats"),
+            Some(scenery) if scenery.status == SceneryProjectionStatus::Pending => {
+                pending.push("SceneryProjectionStats.status");
             }
             Some(_) => {}
         }
@@ -2089,6 +2212,7 @@ mod web {
             water_observation: observed.water_observation,
             weather_observation: observed.weather_observation,
             weather_target_state: observed.weather_target_state,
+            scenery_observation: observed.scenery_observation,
             gpu_presentation: StudioGpuPresentationStatus::NotObserved,
         };
         match serde_json::to_string(&ready) {
@@ -2116,6 +2240,7 @@ mod web {
         player: Option<Res<PlayerRuntimeSnapshot>>,
         water: Option<Res<WaterProjectionStats>>,
         weather: Option<Res<WeatherProjectionStats>>,
+        scenery: Option<Res<SceneryProjectionStats>>,
         mut collector: NonSendMut<BrowserFrameCollector>,
     ) {
         if collector.metrics_reported {
@@ -2142,6 +2267,7 @@ mod web {
                 player: player.as_deref(),
                 water: water.as_deref(),
                 weather: weather.as_deref(),
+                scenery: scenery.as_deref(),
                 camera_3d_entities,
                 active_camera_3d_entities,
             };
@@ -2416,7 +2542,7 @@ mod tests {
     }
 
     #[test]
-    fn visual_valley_manifest_exposes_the_six_canonical_source_hashes() {
+    fn visual_valley_manifest_exposes_the_seven_canonical_source_hashes() {
         let loaded = LoadedStudioScene::load(StudioScene::VisualValley).unwrap();
         let manifest = loaded.manifest(Some(WeatherState::Rain)).unwrap();
 
@@ -2446,7 +2572,14 @@ mod tests {
             manifest.source_hashes.weather.as_deref(),
             Some("b0d8e12bd49d3510361d587463a3002e98741b68052b283fa3f8ca432c87dd9e")
         );
-        assert_eq!(manifest.source_hashes.populated_count(), 6);
+        assert!(
+            manifest
+                .source_hashes
+                .scenery
+                .as_deref()
+                .is_some_and(|hash| hash.len() == 64)
+        );
+        assert_eq!(manifest.source_hashes.populated_count(), 7);
         assert_eq!(
             manifest.camera_owner,
             StudioCameraOwner::VisualValleyPlayerController
@@ -2463,7 +2596,7 @@ mod tests {
             .iter()
             .map(|entry| entry.id)
             .collect::<std::collections::HashSet<_>>();
-        assert_eq!(hierarchy.len(), 6);
+        assert_eq!(hierarchy.len(), 7);
         assert_eq!(unique_ids.len(), hierarchy.len());
         assert!(hierarchy.iter().all(|entry| !entry.name.is_empty()));
         assert!(hierarchy.iter().all(|entry| !entry.glyph.is_empty()));
@@ -2481,6 +2614,8 @@ mod tests {
             .manifest(Some(WeatherState::Rain))
             .unwrap();
         let mut telemetry = StudioSceneTelemetry::new(selection, manifest.clone());
+
+        assert_eq!(telemetry.schema_version, 4);
 
         assert_eq!(
             telemetry.parity_status,
@@ -2504,6 +2639,7 @@ mod tests {
                 water_observation: Some("observed_main_world_components".to_owned()),
                 weather_observation: Some("observed_cpu_projection".to_owned()),
                 weather_target_state: Some("rain".to_owned()),
+                scenery_observation: Some(valid_studio_scenery_observation()),
                 gpu_presentation: StudioGpuPresentationStatus::NotObserved,
                 evidence_source: "synthetic_test_not_webgpu_execution".to_owned(),
             },
@@ -2540,6 +2676,7 @@ mod tests {
                 water_observation: None,
                 weather_observation: None,
                 weather_target_state: None,
+                scenery_observation: None,
                 gpu_presentation: StudioGpuPresentationStatus::NotObserved,
                 evidence_source: "synthetic_gate0_contract_regression".to_owned(),
             },
@@ -2572,6 +2709,7 @@ mod tests {
                 water_observation: None,
                 weather_observation: None,
                 weather_target_state: None,
+                scenery_observation: None,
                 gpu_presentation: StudioGpuPresentationStatus::NotObserved,
                 evidence_source: "synthetic_gate0_contract_mismatch".to_owned(),
             },
@@ -2592,8 +2730,26 @@ mod tests {
             water_observation: Some("observed_main_world_components".to_owned()),
             weather_observation: Some("observed_cpu_projection".to_owned()),
             weather_target_state: Some("rain".to_owned()),
+            scenery_observation: Some(valid_studio_scenery_observation()),
             gpu_presentation: StudioGpuPresentationStatus::NotObserved,
             evidence_source: "synthetic_headless_contract_test".to_owned(),
+        }
+    }
+
+    fn valid_studio_scenery_observation() -> StudioSceneryRuntimeObservation {
+        StudioSceneryRuntimeObservation {
+            status: "activated".to_owned(),
+            loaded_models: 9,
+            failed_models: 0,
+            unique_models: 9,
+            hidden_procedural_entities: 12,
+            replacement_instances: 12,
+            detail_instances: 3,
+            tracked_files: 27,
+            tracked_bytes: 16_652_493,
+            replacement_lod_start_m: 72.0,
+            replacement_lod_end_m: 180.0,
+            detail_cull_distance_m: 120.0,
         }
     }
 
@@ -2629,6 +2785,67 @@ mod tests {
                 .failure_reason
                 .as_deref()
                 .is_some_and(|reason| reason.contains("hashes"))
+        );
+    }
+
+    #[test]
+    fn headless_runtime_missing_scenery_observation_is_explicit() {
+        let selected = visual_valley_rain_manifest();
+        let runtime = selected.clone();
+        let mut observation = valid_visual_valley_runtime_observation();
+        observation.scenery_observation = None;
+        let mut telemetry = StudioSceneTelemetry::new(
+            StudioSceneSelection {
+                scene: StudioScene::VisualValley,
+                source: StudioSceneSelectionSource::QueryString,
+                requested_value: Some("visual-valley".to_owned()),
+            },
+            selected,
+        );
+
+        telemetry.observe_runtime(runtime, observation);
+
+        assert_eq!(
+            telemetry.parity_status,
+            StudioSceneParityStatus::RuntimeContractMismatch
+        );
+        assert!(
+            telemetry
+                .failure_reason
+                .as_deref()
+                .is_some_and(|reason| reason.contains("décor CC0"))
+        );
+    }
+
+    #[test]
+    fn headless_runtime_scenery_fallback_is_explicit() {
+        let selected = visual_valley_rain_manifest();
+        let runtime = selected.clone();
+        let mut observation = valid_visual_valley_runtime_observation();
+        let scenery = observation.scenery_observation.as_mut().unwrap();
+        scenery.status = "procedural_fallback_load_failure".to_owned();
+        scenery.loaded_models = 8;
+        scenery.failed_models = 1;
+        let mut telemetry = StudioSceneTelemetry::new(
+            StudioSceneSelection {
+                scene: StudioScene::VisualValley,
+                source: StudioSceneSelectionSource::QueryString,
+                requested_value: Some("visual-valley".to_owned()),
+            },
+            selected,
+        );
+
+        telemetry.observe_runtime(runtime, observation);
+
+        assert_eq!(
+            telemetry.parity_status,
+            StudioSceneParityStatus::RuntimeContractMismatch
+        );
+        assert!(
+            telemetry
+                .failure_reason
+                .as_deref()
+                .is_some_and(|reason| reason.contains("décor CC0"))
         );
     }
 
