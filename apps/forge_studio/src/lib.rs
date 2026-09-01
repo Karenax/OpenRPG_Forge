@@ -3283,12 +3283,9 @@ mod tests {
             manifest.source_hashes.weather.as_deref(),
             Some("b0d8e12bd49d3510361d587463a3002e98741b68052b283fa3f8ca432c87dd9e")
         );
-        assert!(
-            manifest
-                .source_hashes
-                .scenery
-                .as_deref()
-                .is_some_and(|hash| hash.len() == 64)
+        assert_eq!(
+            manifest.source_hashes.scenery.as_deref(),
+            Some("6b41ec73efde5b8a40ca0132e1d32462176d6b4810104f6bed69496569f81f5f")
         );
         assert_eq!(
             manifest.source_hashes.quality.as_deref(),

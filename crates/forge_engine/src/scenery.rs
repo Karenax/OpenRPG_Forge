@@ -346,6 +346,11 @@ impl SceneryManifest {
         Ok(manifest)
     }
 
+    fn embedded_source_hash() -> Result<ContentHash, SceneryAdapterError> {
+        let source: serde_json::Value = serde_json::from_str(SCENERY_MANIFEST_JSON)?;
+        Ok(canonical_json_sha256(&source)?)
+    }
+
     #[allow(
         clippy::too_many_lines,
         reason = "the manifest gate keeps all pinned identity, provenance, license, file and model checks contiguous"
@@ -635,7 +640,7 @@ fn prepare_scenery_projection(
         .count();
     let detail_instances = instances.len().saturating_sub(replacement_instances);
     let stats = SceneryProjectionStats {
-        manifest_hash: canonical_json_sha256(&manifest)?.to_string(),
+        manifest_hash: SceneryManifest::embedded_source_hash()?.to_string(),
         subset_id: manifest.subset_id.clone(),
         pack_id: manifest.source.pack_id.clone(),
         license: manifest.license.spdx.clone(),
@@ -1053,6 +1058,14 @@ mod tests {
     }
 
     #[test]
+    fn embedded_manifest_hash_preserves_the_canonical_source_document() {
+        assert_eq!(
+            SceneryManifest::embedded_source_hash().unwrap().to_string(),
+            "6b41ec73efde5b8a40ca0132e1d32462176d6b4810104f6bed69496569f81f5f"
+        );
+    }
+
+    #[test]
     fn tracked_subset_matches_every_declared_byte_and_dependency() {
         let manifest = SceneryManifest::embedded().unwrap();
         let root = asset_subset_root();
@@ -1124,6 +1137,10 @@ mod tests {
 
         assert_eq!(first.instances, second.instances);
         assert_eq!(first.stats.manifest_hash, second.stats.manifest_hash);
+        assert_eq!(
+            first.stats.manifest_hash,
+            "6b41ec73efde5b8a40ca0132e1d32462176d6b4810104f6bed69496569f81f5f"
+        );
         assert_eq!(first.stats.requested_instances, first.instances.len());
         assert!(first.stats.requested_instances <= MAX_SCENERY_INSTANCES);
         assert!(first.stats.replacement_instances > 0);
