@@ -7,7 +7,8 @@ use bevy::{
     prelude::*,
 };
 use forge_project::{
-    DistanceFogFalloff, EnvironmentProfileDocument, SrgbColor, SunProfile, VolumetricFogCapability,
+    DistanceFogFalloff, EnvironmentProfileDocument, SrgbColor, SunProfile, VisualQualityPreset,
+    VolumetricFogCapability,
 };
 use serde::Serialize;
 
@@ -100,12 +101,23 @@ pub struct EnvironmentProjectionStats {
 /// proves that the combined atmosphere path is safe.
 pub struct VisualValleyEnvironmentPlugin {
     document: EnvironmentProfileDocument,
+    quality: Option<VisualQualityPreset>,
 }
 
 impl VisualValleyEnvironmentPlugin {
     #[must_use]
     pub const fn new(document: EnvironmentProfileDocument) -> Self {
-        Self { document }
+        Self {
+            document,
+            quality: None,
+        }
+    }
+
+    /// Applies startup-only atmosphere budgets from a validated quality preset.
+    #[must_use]
+    pub fn with_quality_preset(mut self, preset: VisualQualityPreset) -> Self {
+        self.quality = Some(preset);
+        self
     }
 }
 
@@ -119,8 +131,14 @@ impl Plugin for VisualValleyEnvironmentPlugin {
             .content_hash()
             .expect("validated environment profile must have a canonical hash")
             .to_string();
+        let mut projection_document = self.document.clone();
+        if let Some(quality) = &self.quality {
+            projection_document.sky.enabled &= quality.environment.atmosphere_enabled;
+            projection_document.sky.environment_resolution =
+                quality.environment.environment_map_resolution;
+        }
         app.insert_resource(VisualValleyEnvironmentProfile {
-            document: self.document.clone(),
+            document: projection_document,
             source_hash,
         })
         .add_systems(

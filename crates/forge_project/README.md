@@ -23,7 +23,9 @@ liaisons renderer sont produits par les crates d'exécution.
 
 Le profil qualité global est également moteur-neutre. Son preset High s'aligne sur les budgets déjà
 authorés lorsqu'ils existent dans les documents végétation, environnement, eau et météo de Visual
-Valley ; les distances LOD terrain et les budgets de shadow map restent des cibles documentaires. Il
-impose une progression monotone des coûts entre Low et Ultra. Le benchmark est toujours High avec
-adaptation explicitement désactivée ; les seuils d'hystérésis décrivent une politique future et ne
-sont encore consommés par aucun runtime ou viewport Studio.
+Valley ; les distances LOD terrain restent des cibles documentaires. Il impose une progression
+monotone des coûts entre Low et Ultra. Le benchmark est toujours High avec adaptation explicitement
+désactivée. `forge_engine` consomme désormais les sélections fixes et la politique d'hystérésis
+bornée dans le runtime et le viewport Studio. Son ledger distingue explicitement les champs projetés
+sur des APIs Bevy, ceux appliqués seulement à la construction d'un mesh ou d'une ressource, et ceux
+qui restent non applicables faute d'adapter qualifié.

@@ -10,12 +10,13 @@
 use forge_core::EntityId;
 #[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
 use forge_core::canonical_json_sha256;
-use forge_project::WeatherState;
 #[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
 use forge_project::{
     EnvironmentProfileDocument, PlayerControllerProfileDocument, SceneProofDocument,
-    SceneProofKind, TerrainDocument, VegetationDocument, WaterDocument, WeatherProfileDocument,
+    SceneProofKind, TerrainDocument, VegetationDocument, VisualValleyQualityProfileDocument,
+    WaterDocument, WeatherProfileDocument,
 };
+use forge_project::{VisualQualityTier, WeatherState};
 #[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
 use forge_world::{
     TerrainGenerationPlan, VegetationGenerationPlan, embedded_gate0_proof_document,
@@ -27,6 +28,7 @@ use serde::{Deserialize, Serialize};
 
 const STUDIO_SCENE_QUERY_KEY: &str = "forge_scene";
 const STUDIO_WEATHER_QUERY_KEY: &str = "forge_weather";
+const STUDIO_QUALITY_QUERY_KEY: &str = "forge_quality";
 #[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
 const VISUAL_VALLEY_SCENERY_MANIFEST_JSON: &str = include_str!(
     "../../../assets/visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/subset.manifest.json"
@@ -204,6 +206,92 @@ pub fn parse_studio_weather_selection(
     }
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "mode", content = "tier", rename_all = "snake_case")]
+pub enum StudioQualitySelection {
+    Fixed(VisualQualityTier),
+    Adaptive,
+    Benchmark,
+}
+
+impl Default for StudioQualitySelection {
+    fn default() -> Self {
+        Self::Fixed(VisualQualityTier::High)
+    }
+}
+
+impl StudioQualitySelection {
+    #[must_use]
+    pub const fn initial_tier(self) -> VisualQualityTier {
+        match self {
+            Self::Fixed(tier) => tier,
+            Self::Adaptive | Self::Benchmark => VisualQualityTier::High,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum StudioQualityQueryError {
+    DuplicateParameter { requested_values: Vec<String> },
+    UnsupportedValue { requested_value: String },
+    NotApplicableToScene { scene: StudioScene },
+}
+
+impl std::fmt::Display for StudioQualityQueryError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::DuplicateParameter { requested_values } => write!(
+                formatter,
+                "le paramètre forge_quality doit apparaître une seule fois (valeurs reçues : {})",
+                requested_values.join(", ")
+            ),
+            Self::UnsupportedValue { requested_value } => write!(
+                formatter,
+                "valeur forge_quality non prise en charge : {requested_value:?} (attendu : low, medium, high, ultra, adaptive ou benchmark)"
+            ),
+            Self::NotApplicableToScene { scene } => write!(
+                formatter,
+                "forge_quality est réservé à visual-valley (scène sélectionnée : {})",
+                scene.query_value()
+            ),
+        }
+    }
+}
+
+impl std::error::Error for StudioQualityQueryError {}
+
+pub fn parse_studio_quality_selection(
+    search: &str,
+    scene: StudioScene,
+) -> Result<StudioQualitySelection, StudioQualityQueryError> {
+    let requested_values = search
+        .trim_start_matches('?')
+        .split('&')
+        .map(|entry| entry.split_once('=').unwrap_or((entry, "")))
+        .filter(|(key, _)| *key == STUDIO_QUALITY_QUERY_KEY)
+        .map(|(_, value)| value.to_owned())
+        .collect::<Vec<_>>();
+    match requested_values.as_slice() {
+        [] => Ok(StudioQualitySelection::default()),
+        [_] if scene != StudioScene::VisualValley => {
+            Err(StudioQualityQueryError::NotApplicableToScene { scene })
+        }
+        [value] => match value.as_str() {
+            "low" => Ok(StudioQualitySelection::Fixed(VisualQualityTier::Low)),
+            "medium" => Ok(StudioQualitySelection::Fixed(VisualQualityTier::Medium)),
+            "high" => Ok(StudioQualitySelection::Fixed(VisualQualityTier::High)),
+            "ultra" => Ok(StudioQualitySelection::Fixed(VisualQualityTier::Ultra)),
+            "adaptive" => Ok(StudioQualitySelection::Adaptive),
+            "benchmark" => Ok(StudioQualitySelection::Benchmark),
+            _ => Err(StudioQualityQueryError::UnsupportedValue {
+                requested_value: value.clone(),
+            }),
+        },
+        _ => Err(StudioQualityQueryError::DuplicateParameter { requested_values }),
+    }
+}
+
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct StudioSceneSourceHashes {
@@ -215,6 +303,7 @@ pub struct StudioSceneSourceHashes {
     pub water: Option<String>,
     pub weather: Option<String>,
     pub scenery: Option<String>,
+    pub quality: Option<String>,
 }
 
 impl StudioSceneSourceHashes {
@@ -229,6 +318,7 @@ impl StudioSceneSourceHashes {
             &self.water,
             &self.weather,
             &self.scenery,
+            &self.quality,
         ]
         .into_iter()
         .filter(|hash| hash.is_some())
@@ -261,6 +351,8 @@ pub struct StudioSceneManifest {
     pub expected_active_camera_count: u32,
     pub water_adapter: StudioWaterAdapterStatus,
     pub weather_state: Option<WeatherState>,
+    pub quality_selection: Option<StudioQualitySelection>,
+    pub quality_tier: Option<VisualQualityTier>,
 }
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
@@ -332,7 +424,7 @@ impl StudioSceneTelemetry {
     pub fn new(selection: StudioSceneSelection, selected_manifest: StudioSceneManifest) -> Self {
         Self {
             schema: "forge.studio-scene-telemetry".to_owned(),
-            schema_version: 4,
+            schema_version: 5,
             selection,
             selected_manifest,
             runtime_manifest: None,
@@ -402,12 +494,16 @@ fn validate_runtime_contract(
     {
         return Err("horodatages runtime non finis, négatifs ou désordonnés".to_owned());
     }
+    let quality_tier_mismatch = selected.quality_tier != runtime.quality_tier
+        && selected.quality_selection != Some(StudioQualitySelection::Adaptive);
     if selected.mode != runtime.mode
         || selected.scene != runtime.scene
         || selected.display_name != runtime.display_name
         || selected.camera_owner != runtime.camera_owner
         || selected.expected_active_camera_count != runtime.expected_active_camera_count
         || selected.water_adapter != runtime.water_adapter
+        || selected.quality_selection != runtime.quality_selection
+        || quality_tier_mismatch
     {
         return Err(
             "le runtime observé ne correspond pas au mode, à l’identité, à la caméra ou aux adapters sélectionnés"
@@ -431,6 +527,12 @@ fn validate_runtime_contract(
         ));
     }
     if selected.scene == StudioScene::VisualValley {
+        if selected.source_hashes.quality.is_none()
+            || selected.quality_selection.is_none()
+            || selected.quality_tier.is_none()
+        {
+            return Err("profil qualité absent de la sélection Visual Valley".to_owned());
+        }
         if selected.source_hashes.scenery.is_none() {
             return Err("hash du manifeste de décor CC0 absent de la sélection".to_owned());
         }
@@ -539,6 +641,7 @@ struct LoadedVisualValley {
     player_controller: PlayerControllerProfileDocument,
     water: WaterDocument,
     weather: WeatherProfileDocument,
+    quality: VisualValleyQualityProfileDocument,
 }
 
 #[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
@@ -566,6 +669,12 @@ impl LoadedStudioScene {
                     .map_err(|error| format!("invalid embedded Visual Valley water: {error}"))?;
                 let weather = embedded_visual_valley_weather_profile()
                     .map_err(|error| format!("invalid embedded Visual Valley weather: {error}"))?;
+                let quality = VisualValleyQualityProfileDocument::from_json(include_str!(
+                    "../../../examples/visual_valley/quality-profile.v1.json"
+                ))
+                .map_err(|error| {
+                    format!("invalid embedded Visual Valley quality profile: {error}")
+                })?;
 
                 TerrainGenerationPlan::from_document(&terrain)
                     .map_err(|error| format!("unsupported Visual Valley terrain: {error}"))?;
@@ -580,6 +689,11 @@ impl LoadedStudioScene {
                 weather
                     .validate_identity(terrain.project_id, terrain.area_id, terrain.revision)
                     .map_err(|error| format!("incompatible Visual Valley weather: {error}"))?;
+                quality
+                    .validate_identity(terrain.project_id, terrain.area_id, terrain.revision)
+                    .map_err(|error| {
+                        format!("incompatible Visual Valley quality profile: {error}")
+                    })?;
 
                 Ok(Self::VisualValley(Box::new(LoadedVisualValley {
                     terrain,
@@ -588,14 +702,34 @@ impl LoadedStudioScene {
                     player_controller,
                     water,
                     weather,
+                    quality,
                 })))
             }
         }
     }
 
+    #[cfg_attr(
+        all(target_arch = "wasm32", feature = "web"),
+        allow(
+            dead_code,
+            reason = "native contract tests use the default-quality wrapper"
+        )
+    )]
     fn manifest(
         &self,
         selected_weather_state: Option<WeatherState>,
+    ) -> Result<StudioSceneManifest, String> {
+        self.manifest_with_quality(selected_weather_state, StudioQualitySelection::default())
+    }
+
+    #[allow(
+        clippy::too_many_lines,
+        reason = "one manifest projection preserves correlated canonical source hashes"
+    )]
+    fn manifest_with_quality(
+        &self,
+        selected_weather_state: Option<WeatherState>,
+        selected_quality: StudioQualitySelection,
     ) -> Result<StudioSceneManifest, String> {
         match self {
             Self::Gate0(document) => Ok(StudioSceneManifest {
@@ -615,6 +749,8 @@ impl LoadedStudioScene {
                 expected_active_camera_count: 1,
                 water_adapter: StudioWaterAdapterStatus::NotApplicable,
                 weather_state: None,
+                quality_selection: None,
+                quality_tier: None,
             }),
             Self::VisualValley(loaded) => {
                 let LoadedVisualValley {
@@ -624,6 +760,7 @@ impl LoadedStudioScene {
                     player_controller,
                     water,
                     weather,
+                    quality,
                 } = loaded.as_ref();
                 Ok(StudioSceneManifest {
                     mode: StudioViewportMode::Gate1VisualValley,
@@ -680,11 +817,21 @@ impl LoadedStudioScene {
                                 .to_string(),
                         ),
                         scenery: Some(visual_valley_scenery_manifest_hash()?),
+                        quality: Some(
+                            quality
+                                .content_hash()
+                                .map_err(|error| {
+                                    format!("cannot hash Visual Valley quality profile: {error}")
+                                })?
+                                .to_string(),
+                        ),
                     },
                     camera_owner: StudioCameraOwner::VisualValleyPlayerController,
                     expected_active_camera_count: 1,
                     water_adapter: StudioWaterAdapterStatus::InstalledEngineAdapter,
                     weather_state: selected_weather_state,
+                    quality_selection: Some(selected_quality),
+                    quality_tier: Some(selected_quality.initial_tier()),
                 })
             }
         }
@@ -709,6 +856,7 @@ impl LoadedStudioScene {
                 ("water", "Water document", "≈"),
                 ("weather", "Weather profile", "☂"),
                 ("scenery", "Governed CC0 scenery", "♣"),
+                ("quality", "Quality profile", "◇"),
             ]
             .into_iter()
             .map(|(key, name, glyph)| StudioHierarchyEntry {
@@ -795,10 +943,11 @@ mod web {
         is_explicit_acl_denial, parse_gate0_probe,
     };
     use super::{
-        EntityId, LoadedStudioScene, StudioCommand, StudioGpuPresentationStatus, StudioResponse,
-        StudioScene, StudioSceneManifest, StudioSceneParityStatus, StudioSceneRuntimeObservation,
-        StudioSceneSourceHashes, StudioSceneTelemetry, StudioSceneryRuntimeObservation,
-        StudioViewportMode, StudioWaterAdapterStatus, is_validated_gate0_runtime,
+        EntityId, LoadedStudioScene, StudioCommand, StudioGpuPresentationStatus,
+        StudioQualitySelection, StudioResponse, StudioScene, StudioSceneManifest,
+        StudioSceneParityStatus, StudioSceneRuntimeObservation, StudioSceneSourceHashes,
+        StudioSceneTelemetry, StudioSceneryRuntimeObservation, StudioViewportMode,
+        StudioWaterAdapterStatus, is_validated_gate0_runtime, parse_studio_quality_selection,
         parse_studio_scene_selection, parse_studio_weather_selection, validate_selection_response,
     };
     use bevy::{
@@ -813,6 +962,7 @@ mod web {
         EnvironmentProjectionStats, EnvironmentProjectionStatus, PlayerRuntimeSnapshot, ProofScene,
         ProofScenePlugin, ProofSelection, SceneryProjectionStats, SceneryProjectionStatus,
         VegetationProjectionStats, VisualValleyEnvironmentPlugin, VisualValleyPlugin,
+        VisualValleyQualityPlugin, VisualValleyQualitySelection, VisualValleyQualityStats,
         VisualValleySceneryPlugin, VisualValleyStats, VisualValleyVegetationPlugin,
         VisualValleyWaterPlugin, VisualValleyWeatherPlugin, WaterProjectionStats,
         WaterRuntimeObservationStatus, WeatherProjectionStats, WeatherProjectionStatus,
@@ -860,15 +1010,18 @@ mod web {
         let selected_scene = scene_selection.scene;
         let weather_selection = current_weather_selection(selected_scene);
         let weather_configuration_error = weather_selection.as_ref().err().map(ToString::to_string);
+        let quality_selection = current_quality_selection(selected_scene);
+        let quality_configuration_error = quality_selection.as_ref().err().map(ToString::to_string);
         let selected_weather_state = weather_selection
             .as_ref()
             .ok()
             .filter(|_| selected_scene == StudioScene::VisualValley)
             .map(|selection| selection.state);
+        let selected_quality = quality_selection.as_ref().copied().unwrap_or_default();
         let loaded_scene = LoadedStudioScene::load(selected_scene)
             .expect("embedded Studio scene documents must remain valid and compatible");
         let scene_manifest = loaded_scene
-            .manifest(selected_weather_state)
+            .manifest_with_quality(selected_weather_state, selected_quality)
             .expect("validated embedded Studio scene documents must remain hashable");
         let scene_name = scene_manifest.display_name.clone();
         let scene_mode_label = studio_mode_label(scene_manifest.mode);
@@ -890,6 +1043,18 @@ mod web {
                 "pluie · adapter installé".to_owned()
             }
         };
+        let quality_status_label = match selected_scene {
+            StudioScene::Gate0 => "hors scène Gate 0".to_owned(),
+            StudioScene::VisualValley => match selected_quality {
+                StudioQualitySelection::Fixed(tier) => {
+                    format!("{} · fixe", quality_tier_label(tier))
+                }
+                StudioQualitySelection::Adaptive => "high · adaptatif borné".to_owned(),
+                StudioQualitySelection::Benchmark => {
+                    "high · benchmark fixe · adaptation désactivée".to_owned()
+                }
+            },
+        };
         let hierarchy = loaded_scene.hierarchy();
         let initial_selection = hierarchy
             .first()
@@ -909,6 +1074,9 @@ mod web {
         if let Some(reason) = weather_configuration_error.as_ref() {
             initial_scene_telemetry.fail_configuration(reason.clone());
         }
+        if let Some(reason) = quality_configuration_error.as_ref() {
+            initial_scene_telemetry.fail_configuration(reason.clone());
+        }
         let (scene_telemetry, set_scene_telemetry) = signal(initial_scene_telemetry);
 
         install_viewport_selection_listener(
@@ -923,7 +1091,9 @@ mod web {
             wasm_bindgen_futures::spawn_local(run_tauri_permission_probe(set_telemetry));
         }
 
-        let launch_configuration_error = weather_configuration_error.clone();
+        let launch_configuration_error = weather_configuration_error
+            .clone()
+            .or_else(|| quality_configuration_error.clone());
         wasm_bindgen_futures::spawn_local(async move {
             if let Some(reason) = launch_configuration_error {
                 set_webgpu_status.set(WebGpuStatus::ConfigurationError(reason));
@@ -934,6 +1104,7 @@ mod web {
                     start_viewport_once(
                         selected_scene,
                         selected_weather_state.unwrap_or(super::WeatherState::Clear),
+                        selected_quality,
                     );
                 }
                 Err(reason) => {
@@ -1035,7 +1206,7 @@ mod web {
                                 <div class="webgpu-error" role="alert" data-testid="forge-weather-query-error">
                                     <strong>"Paramètre météo invalide."</strong>
                                     <span>{reason}</span>
-                                    <span>"Utilisez forge_weather=clear ou forge_weather=rain avec forge_scene=visual-valley."</span>
+                                    <span>"Utilisez forge_weather=clear|rain et forge_quality=low|medium|high|ultra|adaptive|benchmark avec forge_scene=visual-valley."</span>
                                 </div>
                             }.into_any()),
                             WebGpuStatus::RuntimeFailure(reason) => Some(view! {
@@ -1057,6 +1228,7 @@ mod web {
                         <label>"Sources"<output>{scene_source_label}</output></label>
                         <label>"Eau"<output>{water_status_label}</output></label>
                         <label>"Météo"<output>{weather_status_label}</output></label>
+                        <label>"Qualité"<output>{quality_status_label}</output></label>
                         <label>"Parité scène"<output id="studio-scene-parity-summary">{move || scene_parity_summary(&scene_telemetry.get())}</output></label>
                         <label>"Rerenders UI"<output>{move || rerenders.get()}</output></label>
                         <label>"IPC Rust"<output>{move || ipc_status.get()}</output></label>
@@ -1413,6 +1585,15 @@ mod web {
         parse_studio_weather_selection(&search, scene)
     }
 
+    fn current_quality_selection(
+        scene: StudioScene,
+    ) -> Result<super::StudioQualitySelection, super::StudioQualityQueryError> {
+        let search = web_sys::window()
+            .and_then(|window| window.location().search().ok())
+            .unwrap_or_default();
+        parse_studio_quality_selection(&search, scene)
+    }
+
     const fn studio_mode_label(mode: StudioViewportMode) -> &'static str {
         match mode {
             StudioViewportMode::Gate0SceneProof => "gate0_scene_proof",
@@ -1424,6 +1605,15 @@ mod web {
         match status {
             StudioWaterAdapterStatus::NotApplicable => "hors scène Gate 0",
             StudioWaterAdapterStatus::InstalledEngineAdapter => "adapter moteur installé",
+        }
+    }
+
+    const fn quality_tier_label(tier: super::VisualQualityTier) -> &'static str {
+        match tier {
+            super::VisualQualityTier::Low => "low",
+            super::VisualQualityTier::Medium => "medium",
+            super::VisualQualityTier::High => "high",
+            super::VisualQualityTier::Ultra => "ultra",
         }
     }
 
@@ -1761,18 +1951,29 @@ mod web {
         value.as_string().unwrap_or_else(|| format!("{value:?}"))
     }
 
-    fn start_viewport_once(scene: StudioScene, weather_state: super::WeatherState) {
+    fn start_viewport_once(
+        scene: StudioScene,
+        weather_state: super::WeatherState,
+        quality_selection: StudioQualitySelection,
+    ) {
         if !VIEWPORT_LAUNCH_REQUESTED.swap(true, Ordering::SeqCst) {
             INITIAL_CANVAS.with(|initial| initial.replace(current_canvas()));
-            start_viewport(scene, weather_state);
+            start_viewport(scene, weather_state, quality_selection);
         }
     }
 
-    fn start_viewport(scene: StudioScene, weather_state: super::WeatherState) {
+    fn start_viewport(
+        scene: StudioScene,
+        weather_state: super::WeatherState,
+        quality_selection: StudioQualitySelection,
+    ) {
         let loaded_scene = LoadedStudioScene::load(scene)
             .expect("embedded Studio scene documents must remain valid and compatible");
         let scene_manifest = loaded_scene
-            .manifest((scene == StudioScene::VisualValley).then_some(weather_state))
+            .manifest_with_quality(
+                (scene == StudioScene::VisualValley).then_some(weather_state),
+                quality_selection,
+            )
             .expect("validated embedded Studio scene documents must remain hashable");
         let render_plugin = RenderPlugin {
             render_creation: RenderCreation::Automatic(Box::new(WgpuSettings {
@@ -1808,7 +2009,7 @@ mod web {
                     .add_systems(Update, publish_viewport_selection);
             }
             LoadedStudioScene::VisualValley(loaded) => {
-                install_visual_valley_plugins(&mut app, *loaded, weather_state);
+                install_visual_valley_plugins(&mut app, *loaded, weather_state, quality_selection);
             }
         }
         app.add_systems(Update, collect_browser_frame_telemetry)
@@ -1819,6 +2020,7 @@ mod web {
         app: &mut App,
         loaded: super::LoadedVisualValley,
         weather_state: super::WeatherState,
+        quality_selection: StudioQualitySelection,
     ) {
         let super::LoadedVisualValley {
             terrain,
@@ -1827,20 +2029,36 @@ mod web {
             player_controller,
             water,
             weather,
+            quality,
         } = loaded;
-        let water_plugin = VisualValleyWaterPlugin::new(terrain.clone(), water);
-        let weather_plugin =
-            VisualValleyWeatherPlugin::new(weather).with_initial_state(weather_state);
         let scenery_plugin = VisualValleySceneryPlugin::new(terrain.clone(), vegetation.clone());
+        let engine_selection = match quality_selection {
+            StudioQualitySelection::Fixed(tier) => VisualValleyQualitySelection::Fixed(tier),
+            StudioQualitySelection::Adaptive => VisualValleyQualitySelection::Adaptive,
+            StudioQualitySelection::Benchmark => VisualValleyQualitySelection::Benchmark,
+        };
+        let quality_plugin = VisualValleyQualityPlugin::new(quality, engine_selection);
+        let startup_tier = quality_plugin.startup_tier();
+        let preset = quality_plugin.startup_preset();
+        let water_plugin = VisualValleyWaterPlugin::new(terrain.clone(), water)
+            .with_quality_preset(preset.clone());
+        let weather_plugin = VisualValleyWeatherPlugin::new(weather)
+            .with_initial_state(weather_state)
+            .with_quality_preset(preset.clone(), startup_tier);
         let visual_valley = VisualValleyPlugin::new(terrain.clone())
             .with_player_controller(player_controller)
             .with_player_interactive_input(false);
         app.add_plugins(visual_valley)
-            .add_plugins(VisualValleyEnvironmentPlugin::new(environment))
-            .add_plugins(VisualValleyVegetationPlugin::new(terrain, vegetation))
-            .add_plugins(scenery_plugin)
+            .add_plugins(
+                VisualValleyEnvironmentPlugin::new(environment).with_quality_preset(preset.clone()),
+            )
+            .add_plugins(
+                VisualValleyVegetationPlugin::new(terrain, vegetation).with_quality_preset(preset),
+            )
             .add_plugins(water_plugin)
-            .add_plugins(weather_plugin);
+            .add_plugins(weather_plugin)
+            .add_plugins(scenery_plugin)
+            .add_plugins(quality_plugin);
     }
 
     struct BrowserFrameCollector {
@@ -1890,6 +2108,7 @@ mod web {
         water: Option<&'a WaterProjectionStats>,
         weather: Option<&'a WeatherProjectionStats>,
         scenery: Option<&'a SceneryProjectionStats>,
+        quality: Option<&'a VisualValleyQualityStats>,
         camera_3d_entities: u32,
         active_camera_3d_entities: u32,
     }
@@ -1924,6 +2143,8 @@ mod web {
                         expected_active_camera_count: 1,
                         water_adapter: StudioWaterAdapterStatus::NotApplicable,
                         weather_state: None,
+                        quality_selection: None,
+                        quality_tier: None,
                     },
                     water_observation: None,
                     weather_observation: None,
@@ -1957,6 +2178,7 @@ mod web {
             Some(water),
             Some(weather),
             Some(scenery),
+            Some(quality),
         ) = (
             resources.terrain,
             resources.vegetation,
@@ -1965,6 +2187,7 @@ mod web {
             resources.water,
             resources.weather,
             resources.scenery,
+            resources.quality,
         )
         else {
             return RuntimeSceneProgress::Pending(
@@ -2001,11 +2224,20 @@ mod web {
                     water: Some(water.source_hash.clone()),
                     weather: Some(weather.source_hash.clone()),
                     scenery: Some(scenery.manifest_hash.clone()),
+                    quality: Some(quality.profile_hash.clone()),
                 },
                 camera_owner: super::StudioCameraOwner::VisualValleyPlayerController,
                 expected_active_camera_count: 1,
                 water_adapter: StudioWaterAdapterStatus::InstalledEngineAdapter,
                 weather_state: Some(weather.target_state),
+                quality_selection: Some(match quality.selection {
+                    VisualValleyQualitySelection::Fixed(tier) => {
+                        StudioQualitySelection::Fixed(tier)
+                    }
+                    VisualValleyQualitySelection::Adaptive => StudioQualitySelection::Adaptive,
+                    VisualValleyQualitySelection::Benchmark => StudioQualitySelection::Benchmark,
+                }),
+                quality_tier: Some(quality.current_tier),
             },
             water_observation: Some(water_observation_label(water.runtime_observation).to_owned()),
             weather_observation: Some(weather_observation_label(weather.status).to_owned()),
@@ -2111,6 +2343,9 @@ mod web {
                 pending.push("SceneryProjectionStats.status");
             }
             Some(_) => {}
+        }
+        if resources.quality.is_none() {
+            pending.push("VisualValleyQualityStats");
         }
         pending
     }
@@ -2241,6 +2476,7 @@ mod web {
         water: Option<Res<WaterProjectionStats>>,
         weather: Option<Res<WeatherProjectionStats>>,
         scenery: Option<Res<SceneryProjectionStats>>,
+        quality: Option<Res<VisualValleyQualityStats>>,
         mut collector: NonSendMut<BrowserFrameCollector>,
     ) {
         if collector.metrics_reported {
@@ -2268,6 +2504,7 @@ mod web {
                 water: water.as_deref(),
                 weather: weather.as_deref(),
                 scenery: scenery.as_deref(),
+                quality: quality.as_deref(),
                 camera_3d_entities,
                 active_camera_3d_entities,
             };
@@ -2542,7 +2779,64 @@ mod tests {
     }
 
     #[test]
-    fn visual_valley_manifest_exposes_the_seven_canonical_source_hashes() {
+    fn quality_query_is_strict_and_scene_scoped() {
+        assert_eq!(
+            parse_studio_quality_selection("", StudioScene::VisualValley).unwrap(),
+            StudioQualitySelection::Fixed(VisualQualityTier::High)
+        );
+        for (value, expected) in [
+            ("low", StudioQualitySelection::Fixed(VisualQualityTier::Low)),
+            (
+                "medium",
+                StudioQualitySelection::Fixed(VisualQualityTier::Medium),
+            ),
+            (
+                "high",
+                StudioQualitySelection::Fixed(VisualQualityTier::High),
+            ),
+            (
+                "ultra",
+                StudioQualitySelection::Fixed(VisualQualityTier::Ultra),
+            ),
+            ("adaptive", StudioQualitySelection::Adaptive),
+            ("benchmark", StudioQualitySelection::Benchmark),
+        ] {
+            assert_eq!(
+                parse_studio_quality_selection(
+                    &format!("?forge_scene=visual-valley&forge_quality={value}"),
+                    StudioScene::VisualValley,
+                )
+                .unwrap(),
+                expected
+            );
+        }
+        assert!(matches!(
+            parse_studio_quality_selection(
+                "?forge_quality=low&forge_quality=ultra",
+                StudioScene::VisualValley,
+            ),
+            Err(StudioQualityQueryError::DuplicateParameter { .. })
+        ));
+        assert!(matches!(
+            parse_studio_quality_selection("?forge_quality=cinematic", StudioScene::VisualValley),
+            Err(StudioQualityQueryError::UnsupportedValue { .. })
+        ));
+        assert!(matches!(
+            parse_studio_quality_selection("?forge_quality=high", StudioScene::Gate0),
+            Err(StudioQualityQueryError::NotApplicableToScene { .. })
+        ));
+        assert_eq!(
+            parse_studio_quality_selection(
+                "?forge_quality_extra=ultra",
+                StudioScene::VisualValley,
+            )
+            .unwrap(),
+            StudioQualitySelection::Fixed(VisualQualityTier::High)
+        );
+    }
+
+    #[test]
+    fn visual_valley_manifest_exposes_the_eight_canonical_source_hashes() {
         let loaded = LoadedStudioScene::load(StudioScene::VisualValley).unwrap();
         let manifest = loaded.manifest(Some(WeatherState::Rain)).unwrap();
 
@@ -2579,7 +2873,11 @@ mod tests {
                 .as_deref()
                 .is_some_and(|hash| hash.len() == 64)
         );
-        assert_eq!(manifest.source_hashes.populated_count(), 7);
+        assert_eq!(
+            manifest.source_hashes.quality.as_deref(),
+            Some("8dc219ad88ba1472b0ebbb13d8f4beac13f3fae1eeff688c928abb044d96d0e2")
+        );
+        assert_eq!(manifest.source_hashes.populated_count(), 8);
         assert_eq!(
             manifest.camera_owner,
             StudioCameraOwner::VisualValleyPlayerController
@@ -2596,7 +2894,7 @@ mod tests {
             .iter()
             .map(|entry| entry.id)
             .collect::<std::collections::HashSet<_>>();
-        assert_eq!(hierarchy.len(), 7);
+        assert_eq!(hierarchy.len(), 8);
         assert_eq!(unique_ids.len(), hierarchy.len());
         assert!(hierarchy.iter().all(|entry| !entry.name.is_empty()));
         assert!(hierarchy.iter().all(|entry| !entry.glyph.is_empty()));
@@ -2615,7 +2913,7 @@ mod tests {
             .unwrap();
         let mut telemetry = StudioSceneTelemetry::new(selection, manifest.clone());
 
-        assert_eq!(telemetry.schema_version, 4);
+        assert_eq!(telemetry.schema_version, 5);
 
         assert_eq!(
             telemetry.parity_status,
@@ -2654,6 +2952,31 @@ mod tests {
                 .as_ref()
                 .map(|runtime| runtime.active_camera_3d_entities),
             Some(1)
+        );
+    }
+
+    #[test]
+    fn adaptive_quality_runtime_tier_may_change_without_breaking_scene_parity() {
+        let loaded = LoadedStudioScene::load(StudioScene::VisualValley).unwrap();
+        let selected = loaded
+            .manifest_with_quality(Some(WeatherState::Rain), StudioQualitySelection::Adaptive)
+            .unwrap();
+        let mut runtime = selected.clone();
+        runtime.quality_tier = Some(VisualQualityTier::Medium);
+        let mut telemetry = StudioSceneTelemetry::new(
+            StudioSceneSelection {
+                scene: StudioScene::VisualValley,
+                source: StudioSceneSelectionSource::QueryString,
+                requested_value: Some("visual-valley".to_owned()),
+            },
+            selected,
+        );
+
+        telemetry.observe_runtime(runtime, valid_visual_valley_runtime_observation());
+
+        assert_eq!(
+            telemetry.parity_status,
+            StudioSceneParityStatus::SourceManifestMatched
         );
     }
 

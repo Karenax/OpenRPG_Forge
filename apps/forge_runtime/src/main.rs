@@ -15,12 +15,14 @@ use bevy::{
 };
 use forge_engine::{
     ProofScenePlugin, RuntimeAutomation, VisualValleyEnvironmentPlugin, VisualValleyPlugin,
-    VisualValleySceneryPlugin, VisualValleyVegetationPlugin, VisualValleyWaterPlugin,
-    VisualValleyWeatherPlugin, WindowResizeRequest,
+    VisualValleyQualityPlugin, VisualValleyQualitySelection, VisualValleySceneryPlugin,
+    VisualValleyVegetationPlugin, VisualValleyWaterPlugin, VisualValleyWeatherPlugin,
+    WindowResizeRequest,
 };
 use forge_project::{
     EnvironmentProfileDocument, SceneProofDocument, TerrainDocument, VegetationDocument,
-    WaterDocument, WeatherProfileDocument, WeatherState,
+    VisualQualityTier, VisualValleyQualityProfileDocument, WaterDocument, WeatherProfileDocument,
+    WeatherState,
 };
 use forge_world::{
     TerrainGenerationPlan, VegetationGenerationPlan, embedded_gate0_proof_document,
@@ -124,6 +126,7 @@ fn main() -> AppExit {
             terrain_partial_update_probe: options.terrain_partial_update_probe,
             player_camera: options.player_camera,
             weather_state: options.weather_state,
+            quality_selection: options.quality_selection,
             player_input_enabled,
         },
     );
@@ -171,9 +174,14 @@ struct RuntimePluginConfiguration {
     terrain_partial_update_probe: TerrainPartialUpdateProbeMode,
     player_camera: PlayerCameraRuntimeMode,
     weather_state: Option<WeatherState>,
+    quality_selection: Option<VisualValleyQualitySelection>,
     player_input_enabled: bool,
 }
 
+#[allow(
+    clippy::too_many_lines,
+    reason = "one composition point wires the correlated optional Visual Valley plugins"
+)]
 fn add_runtime_plugin(
     app: &mut App,
     document: RuntimeDocument,
@@ -185,6 +193,7 @@ fn add_runtime_plugin(
         terrain_partial_update_probe,
         player_camera,
         weather_state,
+        quality_selection,
         player_input_enabled,
     } = configuration;
     match document {
@@ -197,6 +206,7 @@ fn add_runtime_plugin(
             environment,
             water,
             weather,
+            quality,
         } => {
             let player_profile = player_camera.is_enabled().then(|| {
                 embedded_visual_valley_player_controller_profile().unwrap_or_else(|error| {
@@ -215,14 +225,35 @@ fn add_runtime_plugin(
             let scenery_plugin = vegetation.as_deref().map(|vegetation| {
                 VisualValleySceneryPlugin::new(document.clone(), vegetation.clone())
             });
-            let vegetation_plugin = vegetation
-                .map(|vegetation| VisualValleyVegetationPlugin::new(document.clone(), *vegetation));
-            let water_plugin =
-                water.map(|water| VisualValleyWaterPlugin::new(document.clone(), *water));
+            let resolved_quality = quality.map(|quality| {
+                let selection = quality_selection
+                    .unwrap_or(VisualValleyQualitySelection::Fixed(quality.default_tier));
+                let plugin = VisualValleyQualityPlugin::new(*quality, selection);
+                let tier = plugin.startup_tier();
+                let preset = plugin.startup_preset();
+                (plugin, preset, tier)
+            });
+            let vegetation_plugin = vegetation.map(|vegetation| {
+                let plugin = VisualValleyVegetationPlugin::new(document.clone(), *vegetation);
+                match &resolved_quality {
+                    Some((_, preset, _)) => plugin.with_quality_preset(preset.clone()),
+                    None => plugin,
+                }
+            });
+            let water_plugin = water.map(|water| {
+                let plugin = VisualValleyWaterPlugin::new(document.clone(), *water);
+                match &resolved_quality {
+                    Some((_, preset, _)) => plugin.with_quality_preset(preset.clone()),
+                    None => plugin,
+                }
+            });
             let weather_plugin = weather.map(|weather| {
                 let mut plugin = VisualValleyWeatherPlugin::new(*weather);
                 if let Some(state) = weather_state {
                     plugin = plugin.with_initial_state(state);
+                }
+                if let Some((_, preset, tier)) = &resolved_quality {
+                    plugin = plugin.with_quality_preset(preset.clone(), *tier);
                 }
                 plugin
             });
@@ -241,7 +272,11 @@ fn add_runtime_plugin(
 
             app.add_plugins(visual_valley);
             if let Some(environment) = environment {
-                app.add_plugins(VisualValleyEnvironmentPlugin::new(*environment));
+                let plugin = VisualValleyEnvironmentPlugin::new(*environment);
+                app.add_plugins(match &resolved_quality {
+                    Some((_, preset, _)) => plugin.with_quality_preset(preset.clone()),
+                    None => plugin,
+                });
             }
             if let Some(vegetation_plugin) = vegetation_plugin {
                 app.add_plugins(vegetation_plugin);
@@ -254,6 +289,9 @@ fn add_runtime_plugin(
             }
             if let Some(scenery_plugin) = scenery_plugin {
                 app.add_plugins(scenery_plugin);
+            }
+            if let Some((quality_plugin, _, _)) = resolved_quality {
+                app.add_plugins(quality_plugin);
             }
             if terrain_partial_update_probe.is_enabled() {
                 app.add_plugins(TerrainPartialUpdateProbePlugin::new());
@@ -277,6 +315,7 @@ enum RuntimeDocument {
         environment: Option<Box<EnvironmentProfileDocument>>,
         water: Option<Box<WaterDocument>>,
         weather: Option<Box<WeatherProfileDocument>>,
+        quality: Option<Box<VisualValleyQualityProfileDocument>>,
     },
 }
 
@@ -302,6 +341,7 @@ fn validated_visual_valley_document(
     environment: Option<EnvironmentProfileDocument>,
     water: Option<WaterDocument>,
     weather: Option<WeatherProfileDocument>,
+    quality: Option<VisualValleyQualityProfileDocument>,
     source: &str,
 ) -> Result<RuntimeDocument, String> {
     TerrainGenerationPlan::from_document(&document)
@@ -328,12 +368,20 @@ fn validated_visual_valley_document(
             .validate_identity(document.project_id, document.area_id, document.revision)
             .map_err(|error| format!("unsupported Visual Valley weather for {source}: {error}"))?;
     }
+    if let Some(quality) = &quality {
+        quality
+            .validate_identity(document.project_id, document.area_id, document.revision)
+            .map_err(|error| {
+                format!("unsupported Visual Valley quality profile for {source}: {error}")
+            })?;
+    }
     Ok(RuntimeDocument::VisualValley {
         terrain: document,
         vegetation: vegetation.map(Box::new),
         environment: environment.map(Box::new),
         water: water.map(Box::new),
         weather: weather.map(Box::new),
+        quality: quality.map(Box::new),
     })
 }
 
@@ -414,6 +462,7 @@ struct Options {
     terrain_partial_update_probe: TerrainPartialUpdateProbeMode,
     player_camera: PlayerCameraRuntimeMode,
     weather_state: Option<WeatherState>,
+    quality_selection: Option<VisualValleyQualitySelection>,
     capture_path: Option<PathBuf>,
     capture_frame: u32,
     metrics_path: Option<PathBuf>,
@@ -437,6 +486,7 @@ impl Default for Options {
             terrain_partial_update_probe: TerrainPartialUpdateProbeMode::Disabled,
             player_camera: PlayerCameraRuntimeMode::Disabled,
             weather_state: None,
+            quality_selection: None,
             capture_path: None,
             capture_frame: 120,
             metrics_path: None,
@@ -474,6 +524,16 @@ impl Options {
                     }
                     options.weather_state = Some(next_weather_state(&mut arguments)?);
                 }
+                "--quality" => {
+                    let tier = next_quality_tier(&mut arguments)?;
+                    options.select_quality(VisualValleyQualitySelection::Fixed(tier))?;
+                }
+                "--adaptive-quality" => {
+                    options.select_quality(VisualValleyQualitySelection::Adaptive)?;
+                }
+                "--benchmark-quality" => {
+                    options.select_quality(VisualValleyQualitySelection::Benchmark)?;
+                }
                 "--capture" => {
                     options.capture_path = Some(next_path(&mut arguments, "--capture")?);
                 }
@@ -506,7 +566,7 @@ impl Options {
                 "--no-vsync" => options.vsync = false,
                 "--log-probe" => options.log_probe = true,
                 "--help" | "-h" => {
-                    return Err("usage: forge_runtime [--scene file.json | --visual-valley | --terrain terrain.json] [--terrain-debug] [--terrain-partial-update-probe] [--player-camera | --player-camera-probe] [--weather clear|rain] [--capture file.png] [--capture-frame n] [--metrics file.json] [--metrics-warmup-frames n] [--exit-after-frames n] [--resize-at-frame n --resize-width px --resize-height px] [--close-at-frame n] [--no-vsync] [--log-probe]".to_owned());
+                    return Err("usage: forge_runtime [--scene file.json | --visual-valley | --terrain terrain.json] [--quality low|medium|high|ultra | --adaptive-quality | --benchmark-quality] [--terrain-debug] [--terrain-partial-update-probe] [--player-camera | --player-camera-probe] [--weather clear|rain] [--capture file.png] [--capture-frame n] [--metrics file.json] [--metrics-warmup-frames n] [--exit-after-frames n] [--resize-at-frame n --resize-width px --resize-height px] [--close-at-frame n] [--no-vsync] [--log-probe]".to_owned());
                 }
                 _ => return Err(format!("unknown option `{argument}`")),
             }
@@ -527,6 +587,9 @@ impl Options {
         }
         if self.weather_state.is_some() && !self.visual_valley {
             return Err("--weather requires --visual-valley".to_owned());
+        }
+        if self.quality_selection.is_some() && !self.visual_valley {
+            return Err("quality selection requires --visual-valley".to_owned());
         }
         self.validate_terrain_partial_update_probe()?;
         self.validate_player_camera()?;
@@ -595,6 +658,7 @@ impl Options {
                 || self.terrain_partial_update_probe.is_enabled()
                 || self.player_camera.is_enabled()
                 || self.weather_state.is_some()
+                || self.quality_selection.is_some()
                 || self.capture_path.is_some()
                 || self.metrics_path.is_some()
                 || self.exit_after_frames.is_some()
@@ -676,6 +740,17 @@ impl Options {
         }
     }
 
+    fn select_quality(&mut self, selection: VisualValleyQualitySelection) -> Result<(), String> {
+        if self.quality_selection.is_some() {
+            return Err(
+                "--quality, --adaptive-quality and --benchmark-quality are mutually exclusive and may only be specified once"
+                    .to_owned(),
+            );
+        }
+        self.quality_selection = Some(selection);
+        Ok(())
+    }
+
     fn load_document(&self) -> Result<RuntimeDocument, String> {
         if let Some(path) = &self.scene_path {
             let json = fs::read_to_string(path)
@@ -690,7 +765,9 @@ impl Options {
             let document = TerrainDocument::from_json(&json)
                 .map_err(|error| format!("invalid terrain {}: {error}", path.display()))?;
             let source = path.display().to_string();
-            return validated_visual_valley_document(document, None, None, None, None, &source);
+            return validated_visual_valley_document(
+                document, None, None, None, None, None, &source,
+            );
         }
         if self.visual_valley {
             let document = embedded_visual_valley_terrain_document()
@@ -703,12 +780,17 @@ impl Options {
                 .map_err(|error| format!("invalid embedded Visual Valley water: {error}"))?;
             let weather = embedded_visual_valley_weather_profile()
                 .map_err(|error| format!("invalid embedded Visual Valley weather: {error}"))?;
+            let quality = VisualValleyQualityProfileDocument::from_json(include_str!(
+                "../../../examples/visual_valley/quality-profile.v1.json"
+            ))
+            .map_err(|error| format!("invalid embedded Visual Valley quality profile: {error}"))?;
             return validated_visual_valley_document(
                 document,
                 Some(vegetation),
                 Some(environment),
                 Some(water),
                 Some(weather),
+                Some(quality),
                 "embedded Visual Valley terrain",
             );
         }
@@ -860,6 +942,21 @@ fn next_weather_state(
     }
 }
 
+fn next_quality_tier(
+    arguments: &mut impl Iterator<Item = String>,
+) -> Result<VisualQualityTier, String> {
+    match arguments.next().as_deref() {
+        Some("low") => Ok(VisualQualityTier::Low),
+        Some("medium") => Ok(VisualQualityTier::Medium),
+        Some("high") => Ok(VisualQualityTier::High),
+        Some("ultra") => Ok(VisualQualityTier::Ultra),
+        Some(value) => Err(format!(
+            "--quality requires `low`, `medium`, `high` or `ultra`, received `{value}`"
+        )),
+        None => Err("--quality requires `low`, `medium`, `high` or `ultra`".to_owned()),
+    }
+}
+
 const fn weather_state_label(state: WeatherState) -> &'static str {
     match state {
         WeatherState::Clear => "clear",
@@ -931,6 +1028,7 @@ mod tests {
             environment: Some(loaded_environment),
             water: Some(loaded_water),
             weather: Some(loaded_weather),
+            quality: Some(loaded_quality),
         } = loaded
         else {
             panic!("--visual-valley must select the complete embedded Gate 1 document set");
@@ -940,11 +1038,16 @@ mod tests {
         let embedded_environment = embedded_visual_valley_environment_profile().unwrap();
         let embedded_water = embedded_visual_valley_water_document().unwrap();
         let embedded_weather = embedded_visual_valley_weather_profile().unwrap();
+        let embedded_quality = VisualValleyQualityProfileDocument::from_json(include_str!(
+            "../../../examples/visual_valley/quality-profile.v1.json"
+        ))
+        .unwrap();
         assert_eq!(loaded, embedded);
         assert_eq!(*loaded_vegetation, embedded_vegetation);
         assert_eq!(*loaded_environment, embedded_environment);
         assert_eq!(*loaded_water, embedded_water);
         assert_eq!(*loaded_weather, embedded_weather);
+        assert_eq!(*loaded_quality, embedded_quality);
         assert_eq!(
             loaded.content_hash().unwrap(),
             embedded.content_hash().unwrap()
@@ -960,6 +1063,7 @@ mod tests {
         let error = validated_visual_valley_document(
             terrain,
             Some(vegetation),
+            None,
             None,
             None,
             None,
@@ -982,6 +1086,7 @@ mod tests {
             Some(environment),
             None,
             None,
+            None,
             "mismatched environment",
         )
         .unwrap_err();
@@ -1000,6 +1105,7 @@ mod tests {
             None,
             Some(water),
             None,
+            None,
             "mismatched water",
         )
         .unwrap_err();
@@ -1014,6 +1120,7 @@ mod tests {
             None,
             None,
             Some(weather),
+            None,
             "mismatched weather",
         )
         .unwrap_err();
@@ -1079,6 +1186,70 @@ mod tests {
             )
             .unwrap_err(),
             "--weather may only be specified once"
+        );
+    }
+
+    #[test]
+    fn quality_selection_is_explicit_strict_and_visual_valley_only() {
+        for (value, tier) in [
+            ("low", VisualQualityTier::Low),
+            ("medium", VisualQualityTier::Medium),
+            ("high", VisualQualityTier::High),
+            ("ultra", VisualQualityTier::Ultra),
+        ] {
+            let options = Options::parse(
+                [
+                    "--visual-valley".to_owned(),
+                    "--quality".to_owned(),
+                    value.to_owned(),
+                ]
+                .into_iter(),
+            )
+            .unwrap();
+            assert_eq!(
+                options.quality_selection,
+                Some(VisualValleyQualitySelection::Fixed(tier))
+            );
+        }
+        assert_eq!(
+            Options::parse(["--adaptive-quality".to_owned()].into_iter()).unwrap_err(),
+            "quality selection requires --visual-valley"
+        );
+        assert!(
+            Options::parse(
+                [
+                    "--visual-valley".to_owned(),
+                    "--quality".to_owned(),
+                    "cinematic".to_owned(),
+                ]
+                .into_iter(),
+            )
+            .unwrap_err()
+            .contains("received `cinematic`")
+        );
+        assert!(
+            Options::parse(
+                [
+                    "--visual-valley".to_owned(),
+                    "--adaptive-quality".to_owned(),
+                    "--benchmark-quality".to_owned(),
+                ]
+                .into_iter(),
+            )
+            .unwrap_err()
+            .contains("mutually exclusive")
+        );
+        let benchmark = Options::parse(
+            [
+                "--visual-valley".to_owned(),
+                "--benchmark-quality".to_owned(),
+            ]
+            .into_iter(),
+        )
+        .unwrap();
+        assert_eq!(
+            benchmark.quality_selection,
+            Some(VisualValleyQualitySelection::Benchmark)
         );
     }
 

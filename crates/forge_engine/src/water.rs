@@ -1,3 +1,4 @@
+use crate::VisualValleyQualityStats;
 use bevy::{
     asset::{RenderAssetUsages, embedded_asset},
     core_pipeline::prepass::DeferredPrepass,
@@ -9,9 +10,10 @@ use bevy::{
     shader::ShaderRef,
 };
 use forge_project::{
-    ResolvedWaterReflectionPath, ResolvedWaterRefractionPath, TerrainDocument, WaterDocument,
-    WaterDocumentError, WaterOpticsCapabilities, WaterOpticsCapabilityStatus,
-    WaterOpticsResolution, WaterReflectionProfile, WaterRefractionProfile,
+    QualityWaterReflection, ResolvedWaterReflectionPath, ResolvedWaterRefractionPath,
+    TerrainDocument, VisualQualityPreset, WaterDocument, WaterDocumentError,
+    WaterOpticsCapabilities, WaterOpticsCapabilityStatus, WaterOpticsResolution,
+    WaterReflectionProfile, WaterRefractionProfile,
 };
 use forge_world::{
     RiverCenterlineSample, TerrainGenerationError, TerrainGenerationPlan, sample_river_centerline,
@@ -233,20 +235,43 @@ impl WaterRuntimeState {
 pub struct VisualValleyWaterPlugin {
     terrain: TerrainDocument,
     water: WaterDocument,
+    quality: Option<VisualQualityPreset>,
 }
 
 impl VisualValleyWaterPlugin {
     #[must_use]
     pub fn new(terrain: TerrainDocument, water: WaterDocument) -> Self {
-        Self { terrain, water }
+        Self {
+            terrain,
+            water,
+            quality: None,
+        }
+    }
+
+    /// Applies the screen-space reflection path and step budget for the startup tier.
+    #[must_use]
+    pub fn with_quality_preset(mut self, preset: VisualQualityPreset) -> Self {
+        self.quality = Some(preset);
+        self
     }
 }
 
 impl Plugin for VisualValleyWaterPlugin {
     fn build(&self, app: &mut App) {
-        let prepared = prepare_water_surface(&self.terrain, &self.water).unwrap_or_else(|error| {
-            panic!("VisualValleyWaterPlugin requires compatible terrain and water: {error}")
-        });
+        let mut prepared =
+            prepare_water_surface(&self.terrain, &self.water).unwrap_or_else(|error| {
+                panic!("VisualValleyWaterPlugin requires compatible terrain and water: {error}")
+            });
+        if let Some(quality) = &self.quality {
+            prepared.ssr = match quality.water.reflection {
+                QualityWaterReflection::ScreenSpace => prepared.ssr.map(|mut settings| {
+                    settings.linear_steps = u32::from(quality.water.reflection_steps);
+                    settings
+                }),
+                QualityWaterReflection::Disabled | QualityWaterReflection::Environment => None,
+            };
+            prepared.stats.requested_ssr_component_prepared = prepared.ssr.is_some();
+        }
         let stats = prepared.stats.clone();
         let ssr = prepared.ssr.clone();
         let material_projection = prepared.water_material.extension.clone();
@@ -1355,6 +1380,7 @@ fn observe_water_components(
     materials: Res<Assets<VisualValleyWaterMaterial>>,
     projection: Res<WaterMaterialProjection>,
     runtime: Res<WaterRuntimeState>,
+    quality: Option<Res<VisualValleyQualityStats>>,
     mut stats: ResMut<WaterProjectionStats>,
 ) {
     stats.water_mesh_entities = surfaces.iter().count();
@@ -1390,6 +1416,11 @@ fn observe_water_components(
     } else {
         "cpu_material_asset_incomplete_or_not_observed"
     };
+    let ssr_expected = quality
+        .as_deref()
+        .map_or(stats.requested_ssr_component_prepared, |quality| {
+            quality.requested_preset.water.reflection == QualityWaterReflection::ScreenSpace
+        });
     stats.runtime_observation = if stats.water_mesh_entities == 1
         && stats.river_bank_mesh_entities == 1
         && stats.shader_material_entities == 1
@@ -1398,8 +1429,7 @@ fn observe_water_components(
         && stats.deferred_camera_entities == stats.camera_3d_entities
         && stats.msaa_off_camera_entities == stats.camera_3d_entities
         && stats.transmission_disabled_camera_entities == stats.camera_3d_entities
-        && (!stats.requested_ssr_component_prepared
-            || stats.ssr_camera_entities == stats.camera_3d_entities)
+        && (!ssr_expected || stats.ssr_camera_entities == stats.camera_3d_entities)
     {
         WaterRuntimeObservationStatus::ObservedMainWorldComponents
     } else {

@@ -25,6 +25,7 @@ use bevy::{
 use forge_project::{
     MAX_VEGETATION_EXPANDED_GRASS_BLADES, MAX_VEGETATION_PLACEMENT_ATTEMPTS, TerrainDocument,
     VEGETATION_CHUNK_SIZE_M, VegetationDocument, VegetationKind, VegetationPresentationProfile,
+    VisualQualityPreset,
 };
 use forge_world::{
     TERRAIN_HALF_EXTENT_M, TerrainGenerationPlan, VegetationGenerationError,
@@ -912,6 +913,7 @@ pub struct VisualValleyVegetationPlugin {
     terrain: TerrainDocument,
     vegetation: VegetationDocument,
     interaction: VegetationInteractionField,
+    quality: Option<VisualQualityPreset>,
 }
 
 impl VisualValleyVegetationPlugin {
@@ -921,6 +923,7 @@ impl VisualValleyVegetationPlugin {
             terrain,
             vegetation,
             interaction: VegetationInteractionField::disabled(),
+            quality: None,
         }
     }
 
@@ -929,12 +932,23 @@ impl VisualValleyVegetationPlugin {
         self.interaction = interaction;
         self
     }
+
+    /// Applies renderer budgets from a validated quality preset without mutating the source document.
+    #[must_use]
+    pub fn with_quality_preset(mut self, preset: VisualQualityPreset) -> Self {
+        self.quality = Some(preset);
+        self
+    }
 }
 
 impl Plugin for VisualValleyVegetationPlugin {
     fn build(&self, app: &mut App) {
-        let prepared = prepare_vegetation_projection(&self.terrain, &self.vegetation)
-            .unwrap_or_else(|error| panic!("vegetation plugin requires valid documents: {error}"));
+        let prepared = prepare_vegetation_projection_with_quality(
+            &self.terrain,
+            &self.vegetation,
+            self.quality.as_ref(),
+        )
+        .unwrap_or_else(|error| panic!("vegetation plugin requires valid documents: {error}"));
         let stats = prepared.stats.clone();
         let profile = prepared.profile;
         let interaction = VegetationInteractionField::bounded(
@@ -1101,6 +1115,19 @@ fn prepare_vegetation_projection(
     terrain: &TerrainDocument,
     vegetation: &VegetationDocument,
 ) -> Result<PreparedVegetationProjection, VegetationAdapterError> {
+    prepare_vegetation_projection_with_quality(terrain, vegetation, None)
+}
+
+#[allow(
+    clippy::similar_names,
+    clippy::too_many_lines,
+    reason = "one preparation pass validates correlated mesh, entity, LOD and evidence counts"
+)]
+fn prepare_vegetation_projection_with_quality(
+    terrain: &TerrainDocument,
+    vegetation: &VegetationDocument,
+    quality: Option<&VisualQualityPreset>,
+) -> Result<PreparedVegetationProjection, VegetationAdapterError> {
     let plan = VegetationGenerationPlan::from_documents(terrain, vegetation)?;
     let cells_per_axis = u64::from(plan.cells_per_axis());
     let attempts_per_cell = vegetation
@@ -1119,7 +1146,15 @@ fn prepare_vegetation_projection(
     )?;
 
     let generated = plan.generate()?;
-    let profile = vegetation.presentation;
+    let mut profile = vegetation.presentation;
+    if let Some(quality) = quality {
+        profile.near_lod_distance_m = quality.vegetation.near_lod_distance_m;
+        profile.medium_lod_distance_m = quality.vegetation.medium_lod_distance_m;
+        profile.hlod_distance_m = quality.vegetation.hlod_distance_m;
+        profile.cull_distance_m = quality.vegetation.cull_distance_m;
+        profile.shadow_distance_m = quality.shadows.maximum_distance_m;
+        profile.grass_blades_per_patch = quality.vegetation.grass_blades_per_patch;
+    }
     let kind_counts = generated.kind_counts;
     let trees = u64::from(kind_counts.trees);
     let shrubs = u64::from(kind_counts.shrubs);

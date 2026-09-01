@@ -9,6 +9,7 @@ mod physics;
 mod player_camera;
 #[cfg(feature = "physics-rapier")]
 mod player_controller;
+mod quality;
 mod scenery;
 #[cfg(feature = "physics-rapier")]
 mod terrain_update;
@@ -36,6 +37,10 @@ pub use player_controller::{
     ForgePlayerCamera, ForgePlayerCharacter, PendingPlayerControlCommand, PlayerControlCommand,
     PlayerControlCommandError, PlayerControllerPlugin, PlayerControllerSet,
     PlayerRuntimeBindingSnapshot, PlayerRuntimeBindings, PlayerRuntimeSnapshot, PlayerSpawnPoint,
+};
+pub use quality::{
+    QualityFieldProjection, QualityFieldProjectionStatus, QualityTierTransition,
+    VisualValleyQualityPlugin, VisualValleyQualitySelection, VisualValleyQualityStats,
 };
 pub use scenery::{
     SceneryAdapterError, SceneryInstanceCounts, SceneryProjectionStats, SceneryProjectionStatus,
@@ -279,6 +284,8 @@ struct RuntimeMetricsReport {
     water: Option<WaterProjectionStats>,
     #[serde(skip_serializing_if = "Option::is_none")]
     weather: Option<WeatherProjectionStats>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    quality: Option<VisualValleyQualityStats>,
 }
 
 #[derive(Debug, Serialize)]
@@ -1095,6 +1102,7 @@ fn write_metrics_and_exit(
     environment: Option<Res<EnvironmentProjectionStats>>,
     water: Option<Res<WaterProjectionStats>>,
     weather: Option<Res<WeatherProjectionStats>>,
+    quality: Option<Res<VisualValleyQualityStats>>,
     gpu: Option<Res<GpuDiagnostic>>,
     diagnostics: Res<DiagnosticsStore>,
     windows: Query<&Window, With<PrimaryWindow>>,
@@ -1161,6 +1169,7 @@ fn write_metrics_and_exit(
             environment.as_deref(),
             water.as_deref(),
             weather.as_deref(),
+            quality.as_deref(),
             gpu.as_deref(),
             &diagnostics,
             &lifecycle,
@@ -1246,6 +1255,7 @@ fn build_runtime_metrics(
     environment: Option<&EnvironmentProjectionStats>,
     water: Option<&WaterProjectionStats>,
     weather: Option<&WeatherProjectionStats>,
+    quality: Option<&VisualValleyQualityStats>,
     gpu: Option<&GpuDiagnostic>,
     diagnostics: &DiagnosticsStore,
     lifecycle: &WindowLifecycle,
@@ -1291,7 +1301,7 @@ fn build_runtime_metrics(
     render_diagnostics.sort_by(|left, right| left.path.cmp(&right.path));
     Ok(RuntimeMetricsReport {
         schema: "forge.runtime-metrics",
-        schema_version: 6,
+        schema_version: 7,
         source_hash: stats.source_hash.clone(),
         gpu: gpu.cloned(),
         window: lifecycle.report(final_window),
@@ -1304,6 +1314,7 @@ fn build_runtime_metrics(
         environment: environment.cloned(),
         water: water.cloned(),
         weather: weather.cloned(),
+        quality: quality.cloned(),
     })
 }
 
@@ -1462,18 +1473,20 @@ mod tests {
             None,
             None,
             None,
+            None,
             &diagnostics,
             &lifecycle,
             None,
         )
         .unwrap();
-        assert_eq!(report.schema_version, 6);
+        assert_eq!(report.schema_version, 7);
         assert!(report.visual_valley.is_none());
         assert!(report.visual_valley_shadow.is_none());
         assert!(report.vegetation.is_none());
         assert!(report.environment.is_none());
         assert!(report.water.is_none());
         assert!(report.weather.is_none());
+        assert!(report.quality.is_none());
         assert!(
             serde_json::to_value(&report)
                 .unwrap()
@@ -1543,6 +1556,7 @@ mod tests {
             None,
             None,
             None,
+            None,
             &DiagnosticsStore::default(),
             &WindowLifecycle::new(None, None),
             None,
@@ -1555,6 +1569,7 @@ mod tests {
         assert_eq!(report.environment, Some(environment));
         assert!(report.water.is_none());
         assert!(report.weather.is_none());
+        assert!(report.quality.is_none());
         let serialized = serde_json::to_value(&report).unwrap();
         assert_eq!(serialized["visual_valley"]["chunks"], 64);
         assert_eq!(serialized["visual_valley"]["vertices"], 69_696);

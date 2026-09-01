@@ -13,8 +13,8 @@ use bevy::{
     shader::ShaderRef,
 };
 use forge_project::{
-    ColorGradeProfile, WeatherProfileDocument, WeatherProfileError, WeatherQualityTier,
-    WeatherState,
+    ColorGradeProfile, VisualQualityPreset, VisualQualityTier, WeatherProfileDocument,
+    WeatherProfileError, WeatherQualityTier, WeatherState,
 };
 use serde::Serialize;
 use std::{error::Error, fmt};
@@ -256,6 +256,8 @@ impl From<WeatherProfileError> for WeatherAdapterError {
 pub struct VisualValleyWeatherPlugin {
     document: WeatherProfileDocument,
     initial_state: WeatherState,
+    quality: Option<VisualQualityPreset>,
+    quality_tier: Option<VisualQualityTier>,
 }
 
 impl VisualValleyWeatherPlugin {
@@ -265,6 +267,8 @@ impl VisualValleyWeatherPlugin {
         Self {
             document,
             initial_state,
+            quality: None,
+            quality_tier: None,
         }
     }
 
@@ -274,24 +278,59 @@ impl VisualValleyWeatherPlugin {
         self.initial_state = initial_state;
         self
     }
+
+    /// Applies startup mesh and post-processing budgets from a validated quality preset.
+    #[must_use]
+    pub fn with_quality_preset(
+        mut self,
+        preset: VisualQualityPreset,
+        tier: VisualQualityTier,
+    ) -> Self {
+        self.quality = Some(preset);
+        self.quality_tier = Some(tier);
+        self
+    }
 }
 
 impl Plugin for VisualValleyWeatherPlugin {
     fn build(&self, app: &mut App) {
-        let prepared = prepare_rain_batch(&self.document)
+        let mut projection_document = self.document.clone();
+        if let Some(quality) = &self.quality {
+            let tier = weather_quality_tier(
+                self.quality_tier
+                    .expect("a weather quality preset must carry its source tier"),
+            );
+            projection_document.rain.quality = tier;
+            match tier {
+                WeatherQualityTier::Low => {
+                    projection_document.rain.drop_budgets.low = quality.rain.drop_budget;
+                }
+                WeatherQualityTier::Medium => {
+                    projection_document.rain.drop_budgets.medium = quality.rain.drop_budget;
+                }
+                WeatherQualityTier::High => {
+                    projection_document.rain.drop_budgets.high = quality.rain.drop_budget;
+                }
+                WeatherQualityTier::Ultra => {
+                    projection_document.rain.drop_budgets.ultra = quality.rain.drop_budget;
+                }
+            }
+            projection_document.post_processing.bloom.enabled = quality.post_process.bloom_enabled;
+        }
+        let prepared = prepare_rain_batch(&projection_document)
             .unwrap_or_else(|error| panic!("weather plugin requires a supported profile: {error}"));
         let source_hash = self
             .document
             .content_hash()
             .expect("a validated weather profile must have a canonical hash")
             .to_string();
-        let runtime_state = WeatherRuntimeState::at_state(&self.document, self.initial_state);
+        let runtime_state = WeatherRuntimeState::at_state(&projection_document, self.initial_state);
         let initial_stats =
             WeatherProjectionStats::unobserved(source_hash.clone(), &runtime_state, prepared.plan);
 
         embedded_asset!(app, "shaders/visual_valley_rain.wgsl");
         app.insert_resource(VisualValleyWeatherProfile {
-            document: self.document.clone(),
+            document: projection_document,
             source_hash,
         })
         .insert_resource(runtime_state)
@@ -312,6 +351,15 @@ impl Plugin for VisualValleyWeatherPlugin {
                 .chain(),
         )
         .add_systems(PostUpdate, observe_weather_projection);
+    }
+}
+
+const fn weather_quality_tier(tier: VisualQualityTier) -> WeatherQualityTier {
+    match tier {
+        VisualQualityTier::Low => WeatherQualityTier::Low,
+        VisualQualityTier::Medium => WeatherQualityTier::Medium,
+        VisualQualityTier::High => WeatherQualityTier::High,
+        VisualQualityTier::Ultra => WeatherQualityTier::Ultra,
     }
 }
 
