@@ -54,6 +54,7 @@ foreach ($requiredToken in @(
     'Get-FileHash',
     'Get-ServedBundleEvidence',
     'build_source_commit',
+    'minimum_stable_layout_observations',
     'maximum_console_warnings',
     'human_temporal_inspection_required'
 )) {
@@ -85,6 +86,7 @@ Assert-Condition -Condition $roadmap.Contains('HARNESS READY / ACQUISITION NOT R
     registered_terrain_witnesses = 1
     served_bundles_required = 4
     minimum_request_animation_frames = 120
+    stable_layout_observations = 8
     browser_run = 'not_performed'
     cargo_build = 'not_performed'
 }

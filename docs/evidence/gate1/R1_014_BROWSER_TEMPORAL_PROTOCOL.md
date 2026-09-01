@@ -62,6 +62,11 @@ imbriquées avant de sélectionner une unique cible `page`. Cette normalisation 
 concaténer plusieurs URL WebSocket lorsque Chrome expose aussi des pages d'arrière-plan ; l'URL
 retenue doit rester un endpoint `ws://` loopback sur le port réservé.
 
+Après que les ledgers ont satisfait les invariants de scène et la fenêtre `60 + 120` frames, le pilote
+exige encore **8 observations identiques** du rectangle CSS, du backing store, du DPR et du scroll du
+canvas, espacées de **150 ms**. Cette garde absorbe le dernier reflow de l'inspecteur avant la première
+capture ; un redimensionnement ultérieur entre les deux images reste un échec strict.
+
 Terminal A :
 
 ```powershell

@@ -142,6 +142,8 @@ function Assert-TemporalConfig {
     Assert-Condition -Condition ($Config.browser.headed_capture_required -eq $true) -Message 'A headed Browser capture is required for qualification.'
     Assert-Condition -Condition ([int]$Config.readiness.minimum_request_animation_frames -ge 120) -Message 'Temporal separation must be at least 120 requestAnimationFrame callbacks.'
     Assert-Condition -Condition ([int]$Config.readiness.timeout_seconds -ge 30) -Message 'The readiness timeout must be at least 30 seconds.'
+    Assert-Condition -Condition ([int]$Config.readiness.minimum_stable_layout_observations -eq 8) -Message 'Eight stable layout observations are required before the first capture.'
+    Assert-Condition -Condition ([int]$Config.readiness.stable_layout_poll_interval_ms -eq 150) -Message 'The stable layout poll interval changed without a protocol version bump.'
     Assert-Condition -Condition ($Config.readiness.require_navigator_gpu -eq $true) -Message 'navigator.gpu must remain a readiness requirement.'
     Assert-Condition -Condition ($Config.readiness.require_single_viewport_start -eq $true) -Message 'Exactly one viewport start must remain required.'
     Assert-Condition -Condition ($Config.readiness.require_completed_frame_window -eq $true) -Message 'The completed Studio frame window must remain required.'
@@ -861,13 +863,27 @@ function Wait-ReadySnapshot {
 
     $deadline = [DateTimeOffset]::UtcNow.AddSeconds([int]$Config.readiness.timeout_seconds)
     $lastState = 'DOM not observed'
+    $stableLayoutObservations = 0
+    $lastCanvasSignature = $null
     while ([DateTimeOffset]::UtcNow -lt $deadline) {
         $snapshot = Get-ReadinessSnapshot -Socket $Socket
         try {
             [void](Assert-ReadySnapshot -Snapshot $snapshot -Config $Config -ExpectedCommit $ExpectedCommit)
-            return $snapshot
+            $canvasSignature = ConvertTo-CompactJson -Value $snapshot.canvas
+            if ($canvasSignature -ceq $lastCanvasSignature) {
+                $stableLayoutObservations += 1
+            } else {
+                $lastCanvasSignature = $canvasSignature
+                $stableLayoutObservations = 1
+            }
+            $lastState = "ready; canvas layout stable $stableLayoutObservations/$([int]$Config.readiness.minimum_stable_layout_observations) observations"
+            if ($stableLayoutObservations -ge [int]$Config.readiness.minimum_stable_layout_observations) {
+                return $snapshot
+            }
         } catch {
             $lastState = $_.Exception.Message
+            $stableLayoutObservations = 0
+            $lastCanvasSignature = $null
             if (-not [string]::IsNullOrWhiteSpace([string]$snapshot.scene_ledger)) {
                 try {
                     $scene = ConvertFrom-ExactJson -Json ([string]$snapshot.scene_ledger)
@@ -881,7 +897,7 @@ function Wait-ReadySnapshot {
                 }
             }
         }
-        Start-Sleep -Milliseconds 150
+        Start-Sleep -Milliseconds ([int]$Config.readiness.stable_layout_poll_interval_ms)
     }
     throw "Timed out waiting for the fixed clear/high Browser scene. Last state: $lastState"
 }

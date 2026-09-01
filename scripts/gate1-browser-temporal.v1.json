@@ -36,6 +36,8 @@
   "readiness": {
     "timeout_seconds": 120,
     "minimum_request_animation_frames": 120,
+    "minimum_stable_layout_observations": 8,
+    "stable_layout_poll_interval_ms": 150,
     "require_navigator_gpu": true,
     "require_single_viewport_start": true,
     "require_completed_frame_window": true
