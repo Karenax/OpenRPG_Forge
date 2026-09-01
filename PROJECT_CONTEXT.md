@@ -3,7 +3,7 @@
 Dernière mise à jour : **1er septembre 2026**
 Branche : **`Rust`**
 Statut : **Gate 0 passée sur preuves automatisées locales ; Gate 1 ouverte au commit source courant
-`5eadec7f6f9f9b5b6734ce62ea3518f0297496f9` ; Gate 2 interdite ; produit non qualifié**
+`afb270c328b7095a84d452b93b9fdd38e2737f33` ; Gate 2 interdite ; produit non qualifié**
 Référence historique : `main@a7f4a3f5dd0eeff1dc060ea1237b1d7d650b7ca0`
 Référence upstream exécutable : `Humpalumps/Cadle@ea0da62549980816a6a27e08b75808b1f56d70e7` (`v0.6.0`)
 
@@ -29,12 +29,12 @@ Les revues humaines Gate 0 restent différées et la CI distante reste `NOT RUN`
 facturation ; ADR-0006 autorise jusqu’à Gate 4 une décision sur preuves automatisées locales sans
 jamais transformer ce statut en CI verte.
 
-Le snapshot source courant de Gate 1 est `5eadec7f`, arbre
-`a2fb4df0b7e2eff4d686dda575d4a2bf18cb12a1`. Sa validation passe **298/298 tests workspace**, le
+Le snapshot source courant de Gate 1 est `afb270c3`, arbre
+`5eeb9098b8300dead8679de7d478f5096a572fd1`. Sa validation passe **298/298 tests workspace**, le
 formatage, Clippy workspace strict `-D warnings` et le check Studio WASM. Le seul avertissement de
 build reste la future incompatibilité transitive connue de `proc-macro-error2 v2.0.1`.
 
-Les preuves Browser High clear/rain ont été rejouées sur ce commit exact : **24/24 contrôles** passent
+Les preuves Browser High clear/rain restent épinglées au commit exact `d9e2670` : **24/24 contrôles** passent
 pour chaque météo, 9/9 modèles sont chargés, 26/26 assets répondent HTTP 200, sans requête `.meta`,
 échec réseau ni warning/erreur console. Après 60 frames de warm-up, les 120 frames clear mesurent
 10,1175 ms de moyenne, p95 12,1 ms et 1 % low 77,519 FPS ; rain mesure 9,5633 ms, p95 10,9 ms et
@@ -49,6 +49,11 @@ L'adaptation effectue High vers Ultra à la frame 604. Selon le run, la moyenne 
 deux hitches ; les neuf autres runs zéro. `R1-039`, `R1-040` et la condition « profils qualité
 fonctionnels » sont acquises. La paire native/Studio exacte `d9e2670` conserve ses **46/46**
 contrôles et ses sept hashes communs concordants pour `R1-043`.
+
+Le runtime Release exact `afb270c3` ajoute à l'overlay les temps CPU et GPU du pass opaque Bevy. Deux
+runs High clear/rain, 1920 x 1080 sur RX 7800 XT/Vulkan, affichent des valeurs lisibles dans les PNG,
+avec 120 samples, pipelines stables et logs vides. Les artefacts et leurs hashes ferment `R1-034`,
+mais ne constituent ni un temps GPU de frame entière ni l'instrumentation exhaustive de `R1-037`.
 
 Le correctif passe l'eau/les berges en forward, empêche le profil qualité de réactiver un SSR déclaré
 indisponible sous Bevy 0.19.1, ajoute l'IBL atmosphérique et borne la projection colorimétrique. Les
@@ -1269,9 +1274,10 @@ Créer `examples/visual_valley` :
 - overlay complet ;
 - captures déterministes.
 
-État consolidé au commit source courant `5eadec7f6f9f9b5b6734ce62ea3518f0297496f9`, arbre
-`a2fb4df0b7e2eff4d686dda575d4a2bf18cb12a1` : la matrice native qualifie les quatre tiers fixes,
-clear/rain, l'adaptation High vers Ultra et le benchmark High. Les dix runs ont 120 samples,
+État consolidé au commit source courant `afb270c328b7095a84d452b93b9fdd38e2737f33`, arbre
+`5eeb9098b8300dead8679de7d478f5096a572fd1` : l'overlay CPU/GPU du pass opaque est acquis sur deux
+captures exactes et lisibles. La matrice native `5eadec7f` qualifie les quatre tiers fixes, clear/rain,
+l'adaptation High vers Ultra et le benchmark High. Les dix runs ont 120 samples,
 pipelines stables et tier eau concordant. La paire Browser/native `d9e2670` conserve ses sept hashes
 communs et ses 46/46 contrôles ; les deux Browser passent 24/24 contrôles. La correction forward +
 IBL résout le warning et la dérive colorimétrique observés à `a34596bd`; cette campagne précédente
@@ -1806,9 +1812,9 @@ Cadle v0.6.0 @ ea0da625 : copie locale épinglée, intacte et mesurée. Code MIT
 attribution ; assets exclus. Aucune dépendance Three.js/JavaScript dans le produit Forge.
 
 TRAVAIL ACTIF
-Gate C et Gate 0 sont passées. Gate 1 reste ouverte au commit source 5eadec7f : matrice native
-10/10, profils et pipelines acquis, eau synchronisée ; la paire Browser/native d9e2670 conserve
-24/24 par météo et 46/46 croisés. Restent dus : parcours temporel, instrumentation exhaustive,
+Gate C et Gate 0 sont passées. Gate 1 reste ouverte au commit source afb270c3 : overlay CPU/GPU du
+pass opaque acquis ; matrice native 5eadec7f 10/10, profils et pipelines acquis, eau synchronisée ;
+la paire Browser/native d9e2670 conserve 24/24 par météo et 46/46 croisés. Restent dus : parcours temporel, instrumentation exhaustive,
 GPU cible, vues qualifiantes et revue humaine.
 Poursuivre uniquement Gate 1. Gate 2 est interdite sans passage formel ou nouvelle dérogation
 explicite. La CI distante reste NOT RUN sous ADR-0006 tant que les runners ne démarrent pas.

@@ -1,0 +1,41 @@
+{
+  "schema": "forge.gate1-native-overlay-validation",
+  "schema_version": 1,
+  "source_commit": "afb270c328b7095a84d452b93b9fdd38e2737f33",
+  "pass": true,
+  "checks": {
+    "runs": "2/2",
+    "metrics_schema_v8": "2/2",
+    "samples_120": "2/2",
+    "pipeline_stable": "2/2",
+    "stdout_stderr_empty": "4/4",
+    "cpu_opaque_timing_present": "2/2",
+    "gpu_opaque_timing_present": "2/2",
+    "overlay_visual_inspection": "2/2",
+    "gpu_draw_calls_remain_unavailable": "2/2",
+    "cadle_references": 0
+  },
+  "runs": [
+    {
+      "weather": "clear",
+      "cpu_opaque_ms_ledger": 0.0101,
+      "gpu_opaque_ms_ledger": 0.68072,
+      "overlay_cpu_opaque_ms": 0.010,
+      "overlay_gpu_opaque_ms": 0.674,
+      "samples": 120,
+      "p95_ms": 8.6078,
+      "pipelines": "69/69"
+    },
+    {
+      "weather": "rain",
+      "cpu_opaque_ms_ledger": 0.0153,
+      "gpu_opaque_ms_ledger": 0.7246,
+      "overlay_cpu_opaque_ms": 0.012,
+      "overlay_gpu_opaque_ms": 0.661,
+      "samples": 120,
+      "p95_ms": 8.8098,
+      "pipelines": "71/71"
+    }
+  ],
+  "note": "Overlay and final ledger are sampled at different frames; both values come from the same named Bevy render diagnostics and are expected to differ slightly."
+}

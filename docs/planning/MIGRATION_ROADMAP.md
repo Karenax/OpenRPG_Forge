@@ -292,11 +292,15 @@ et sans transformer une acquisition automatisée en revue humaine.
 Statut : **OUVERTE** après le passage automatisé local de Gate 0 sous ADR-0004, ADR-0005 et ADR-0006.
 
 Progression consolidée au commit source courant
-`5eadec7f6f9f9b5b6734ce62ea3518f0297496f9`, arbre
-`a2fb4df0b7e2eff4d686dda575d4a2bf18cb12a1`. La validation workspace passe **298/298 tests**, avec
-formatage, Clippy strict et check Studio WASM. La matrice native RX 7800 XT/Vulkan qualifie 10/10
-runs Low/Medium/High/Ultra clear/rain, adaptatif clear et benchmark clear : 120 samples chacun,
-pipelines stables et tier eau toujours égal au tier appliqué. L'adaptation effectue High vers Ultra.
+`afb270c328b7095a84d452b93b9fdd38e2737f33`, arbre
+`5eeb9098b8300dead8679de7d478f5096a572fd1`. La validation workspace passe **298/298 tests**, avec
+formatage, Clippy strict et check Studio WASM. Ce commit affiche dans l'overlay les temps CPU et GPU
+du pass opaque issus des diagnostics Bevy ; deux captures natives High clear/rain exactes, hashées et
+lisibles ferment `R1-034` sans prétendre fournir un temps GPU de frame entière ni fermer `R1-037`.
+
+La matrice native RX 7800 XT/Vulkan reste épinglée à `5eadec7f` et qualifie 10/10 runs
+Low/Medium/High/Ultra clear/rain, adaptatif clear et benchmark clear : 120 samples chacun, pipelines
+stables et tier eau toujours égal au tier appliqué. L'adaptation effectue High vers Ultra.
 
 Le smoke Browser High clear/rain reste épinglé au commit exact `d9e2670` et passe ses **24/24
 contrôles pour chaque météo** : huit hashes présents, 9/9 modèles, 26/26 assets HTTP 200, aucune
@@ -394,7 +398,8 @@ qualité                   Low / Medium / High / Ultra
 
 ## R1-E — Performance
 
-- [ ] `R1-034` overlay CPU/GPU.
+- [x] `R1-034` overlay CPU/GPU — commit exact `afb270c3`, temps CPU/GPU du pass opaque visibles et
+  fallback indisponible testé ; ne vaut ni temps GPU frame entière ni instrumentation `R1-037`.
 - [x] `R1-035` frame histogram — natif et boucle WASM Browser mesurés sur 120 frames.
 - [x] `R1-036` moyenne, p95, 1 % low — valeurs natives et Browser consignées avec leur portée.
 - [ ] `R1-037` draw calls, triangles, instances.

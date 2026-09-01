@@ -1,0 +1,38 @@
+{
+  "schema": "forge.gate1-native-overlay-artifacts",
+  "schema_version": 1,
+  "source_commit": "afb270c328b7095a84d452b93b9fdd38e2737f33",
+  "source_tree": "5eeb9098b8300dead8679de7d478f5096a572fd1",
+  "binary": {
+    "bytes": 81745408,
+    "sha256": "9c7a85d9719101e53a25f79d8846462561c81dd9f7e5b1f72743d0964f2caffa"
+  },
+  "machine": {
+    "gpu": "AMD Radeon RX 7800 XT",
+    "backend": "Vulkan",
+    "resolution": "1920x1080",
+    "vsync": false
+  },
+  "files": [
+    {
+      "file": "high-clear.metrics.json",
+      "bytes": 26740,
+      "sha256": "7bd9b82b2831a1271bc556ad242a3b47e55ed986334b4991dfa2d8b127b5e3cb"
+    },
+    {
+      "file": "high-clear.png",
+      "bytes": 2236003,
+      "sha256": "022dfcba04d0e7fea4927804f4e7d0004d7975625bc16e0e94af6fd09ac66202"
+    },
+    {
+      "file": "high-rain.metrics.json",
+      "bytes": 27538,
+      "sha256": "bde90a7542cb04a3d3fb60ccfdd7109c8643a36f9cb46b7ebe539da3b59148f2"
+    },
+    {
+      "file": "high-rain.png",
+      "bytes": 2262006,
+      "sha256": "4f506a2d3a1916b91cd069fa2373a492efdf55e269235bc0a44216f961c4191b"
+    }
+  ]
+}

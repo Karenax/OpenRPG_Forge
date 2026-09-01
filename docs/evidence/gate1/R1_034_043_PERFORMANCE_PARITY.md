@@ -1,24 +1,28 @@
 # R1-034 à R1-043 — instrumentation performance et parité native/Studio
 
-- Statut : **SMOKES NATIFS ET BROWSER CLEAR/RAIN ACQUIS AU MÊME COMMIT ; R1-043 FERMÉE ; GPU
-  CIBLE ET QUALIFICATION VISUELLE FINALE OUVERTS**
+- Statut : **R1-034, R1-039, R1-040 ET R1-043 ACQUISES ; GPU CIBLE, R1-037 ET QUALIFICATION
+  VISUELLE FINALE OUVERTS**
 - État natif exécuté (`HEAD` au moment des smokes) :
   `d9e2670111624aa836ab138afc35cddf441865ef`,
   arbre `d6e5a40f73b47934444bda4514d5cdcb1dab093d`
 - Contrat natif candidat : `forge.runtime-metrics` version 8
 - Contrat de scène Studio candidat : `forge.studio-scene-telemetry` version 7
-- Roadmap : `R1-043` fermée ; les sous-preuves encore ouvertes sont détaillées ci-dessous
+- Overlay CPU/GPU courant : `afb270c328b7095a84d452b93b9fdd38e2737f33`, arbre
+  `5eeb9098b8300dead8679de7d478f5096a572fd1`
+- Roadmap : `R1-034`, `R1-039`, `R1-040` et `R1-043` fermées ; les routes encore ouvertes sont
+  détaillées ci-dessous
 
-Ce rapport cartographie ce que le candidat sait réellement observer. Les résultats courants viennent
-du commit d9 exact. La campagne `a34596bd…` reste historique et byte-for-byte intacte.
+Ce rapport cartographie ce que le candidat sait réellement observer. La paire native/Browser vient
+du commit d9 exact, la matrice qualité de `5eadec7f` et l'overlay CPU/GPU de `afb270c3`. La campagne
+`a34596bd…` reste historique et byte-for-byte intacte.
 
 ## Validation automatisée de l'état intégré courant
 
 | Validation intégrée | Résultat exact consigné |
 |---|---|
-| tests `forge_engine` | **120/120 PASS** |
-| tests workspace/all-targets | **296/296 PASS** |
-| check de compilation WASM exact courant | **PASS — 8,71 s** |
+| tests `forge_engine` | **122/122 PASS** |
+| tests workspace/all-targets | **298/298 PASS** |
+| check de compilation WASM exact courant | **PASS — 8,24 s** |
 | `cargo fmt --all -- --check` | **PASS** |
 | `git diff --check` | **PASS** |
 | Clippy strict workspace/all-targets | **PASS**, zéro warning |
@@ -53,6 +57,36 @@ Les deux logs d9 sont vides : aucun warning ni `ERROR` n'y est enregistré. La c
 nettement observable, mais les contours sombres/stipple et l'absence d'une vue eau dédiée maintiennent
 la qualification artistique ouverte. Voir
 [`R1_GRAPHICS_FORWARD_IBL_CORRECTION.md`](R1_GRAPHICS_FORWARD_IBL_CORRECTION.md).
+
+## Overlay CPU/GPU exact `afb270c3`
+
+Le commit `afb270c328b7095a84d452b93b9fdd38e2737f33` ajoute à l'overlay les diagnostics Bevy nommés
+`render/main_opaque_pass_3d/elapsed_cpu` et `elapsed_gpu`. Le binaire Release mesure 81 745 408 octets
+et porte le SHA-256 `9c7a85d9719101e53a25f79d8846462561c81dd9f7e5b1f72743d0964f2caffa`.
+
+Deux runs High, clear puis rain, ont été rejoués sur RX 7800 XT/Vulkan, 1920 x 1080, caméra joueur et
+VSync off :
+
+| Preuve | Clear | Rain |
+|---|---:|---:|
+| temps CPU opaque du ledger | 0,0101 ms | 0,0153 ms |
+| temps GPU opaque du ledger | 0,68072 ms | 0,7246 ms |
+| valeur visible dans le PNG | CPU 0,010 / GPU 0,674 ms | CPU 0,012 / GPU 0,661 ms |
+| samples | 120 | 120 |
+| pipelines | 69/69 | 71/71 |
+| p95 frame | 8,6078 ms | 8,8098 ms |
+| stdout/stderr | vides | vides |
+
+L'overlay et le ledger sont échantillonnés à des frames différentes ; leur faible variation est donc
+attendue. Les deux PNG ont été inspectés à leur résolution originale et rendent les valeurs lisibles.
+Le fallback `Opaque pass: CPU unavailable | GPU unavailable` est couvert par test. Le test vérifie
+aussi que les projections destinées uniquement à l'overlay ne dupliquent aucun champ dans le schéma
+v8 : les valeurs restent sérialisées dans `render_diagnostics`.
+
+Les artefacts, hashes et validation sont sous
+[`native/afb270c328b7095a84d452b93b9fdd38e2737f33/overlay`](native/afb270c328b7095a84d452b93b9fdd38e2737f33/overlay).
+Le compteur global de draw calls reste explicitement indisponible ; cette preuve ferme `R1-034`, pas
+`R1-037`.
 
 ## Contrat de mesure candidat
 
@@ -107,7 +141,7 @@ Le natif rejoué à `d9e2670…` fournit la paire exact-commit de données coura
 
 | Route | Instrumentation réellement présente dans le candidat | Limite ou preuve encore requise | Statut |
 |---|---|---|---|
-| `R1-034` overlay CPU/GPU | overlay natif inspecté dans les deux PNG avec adaptateur, FPS, frame time et statistiques opaques | aucun timestamp de frame GPU affiché ; primitives et invocations shader ne sont pas un temps GPU | **OBSERVÉ, PARTIEL** |
+| `R1-034` overlay CPU/GPU | commit `afb270c3` : deux PNG inspectés affichent frame, CPU opaque et GPU opaque issus des diagnostics Bevy réels ; fallback indisponible testé | le temps du pass opaque n'est pas un temps GPU frame entière et ne remplace pas `R1-037` | **ACQUIS** |
 | `R1-035` frame histogram | natif et Browser clear/rain `120/0/0`, sommes exactement égales à 120 | paire exact-commit acquise, mais sans parcours | **SOUS-PREUVES NATIVE ET BROWSER ACQUISES** |
 | `R1-036` moyenne, p95, 1 % low | natif clear : 119,792 FPS / 8,713 ms / 113,775 FPS ; natif rain : 120,598 / 9,095 / 96,354 ; loop WASM clear : 10,1175 ms / 12,1 ms / 77,519 FPS ; rain : 9,5633 / 10,9 / 85,106 | fenêtres courtes et caméra fixe ; la loop WASM n'est pas un temps GPU | **SOUS-PREUVES NATIVE ET BROWSER ACQUISES** |
 | `R1-037` draw calls, triangles, instances | triangles logiques du terrain, comptes de meshes source et projections ECS végétation/scenery ; primitives/invocations opaques quand le backend les expose | `gpu_draw_calls = null` avec statut `unavailable_bevy_0_19_no_global_counter` ; aucun total exhaustif whole-scene de triangles ou instances réellement soumis au GPU | **NON QUALIFIÉ** |
@@ -152,7 +186,7 @@ fenêtre.
 |---|---|
 | Runtime natif, 1920 x 1080, High fixe, clear, VSync désactivée, ledger v8 avec au moins 120 samples qualifiés | **ACQUIS — 120 samples, artefacts hashés** |
 | Runtime natif, même protocole sous rain | **ACQUIS — 120 samples, artefacts hashés** |
-| Runtime natif, Low/Medium/High/Ultra puis adaptation bornée | **NOT RUN** |
+| Runtime natif, Low/Medium/High/Ultra puis adaptation bornée | **ACQUIS À `5eadec7f…`** — huit runs fixes clear/rain, adaptation High vers Ultra et benchmark High |
 | Benchmark de développement RX 7800 XT, mêmes scène/profil/résolution | **ACQUIS — protocole court à caméra fixe** |
 | Benchmark cible RTX 3060 12 Go ou RX 6600 8 Go, mêmes scène/profil/résolution | **NOT RUN** |
 | Studio Browser, Visual Valley High, clear puis rain, 60 + 120 frames | **ACQUIS À `d9e2670…`** — 24/24 contrôles chacun, captures et JSON versionnés ; présentation GPU non observée |
@@ -166,8 +200,8 @@ machine cible.
 ## Verdict de ce document
 
 Le natif et le Browser `d9e2670…` possèdent chacun leurs preuves clear/rain. Les 46/46 assertions
-croisées ferment `R1-043`. `R1-034` reste partielle faute de temps GPU ; `R1-037` et `R1-041`
-restent non qualifiées. La matrice native ultérieure `5eadec7f` ferme `R1-039` et `R1-040` sans
+croisées ferment `R1-043`. L'overlay exact `afb270c3` ferme `R1-034` ; `R1-037` et `R1-041`
+restent non qualifiées. La matrice native `5eadec7f` ferme `R1-039` et `R1-040` sans
 inventer de présentation Browser multi-tier. Le GPU milieu de gamme et l'acceptation visuelle restent
 dus. Les résidus visuels, `gpu_presentation=not_observed` et les fenêtres courtes interdisent un verdict
 global Gate 1.
