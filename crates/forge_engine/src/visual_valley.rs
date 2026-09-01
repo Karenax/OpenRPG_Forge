@@ -167,6 +167,7 @@ pub struct VisualValleyPlugin {
     automation: RuntimeAutomation,
     debug: VisualValleyDebug,
     overview_camera: bool,
+    governed_metrics_required: bool,
     #[cfg(feature = "physics-rapier")]
     player_controller: Option<PlayerControllerProfileDocument>,
     #[cfg(feature = "physics-rapier")]
@@ -187,6 +188,7 @@ impl VisualValleyPlugin {
             },
             debug: VisualValleyDebug::default(),
             overview_camera: true,
+            governed_metrics_required: false,
             #[cfg(feature = "physics-rapier")]
             player_controller: None,
             #[cfg(feature = "physics-rapier")]
@@ -212,6 +214,13 @@ impl VisualValleyPlugin {
     #[must_use]
     pub const fn with_overview_camera(mut self, enabled: bool) -> Self {
         self.overview_camera = enabled;
+        self
+    }
+
+    /// Requires the complete governed Gate 1 evidence contract when runtime metrics are written.
+    #[must_use]
+    pub const fn with_governed_metrics_required(mut self) -> Self {
+        self.governed_metrics_required = true;
         self
     }
 
@@ -288,6 +297,10 @@ impl Plugin for VisualValleyPlugin {
             .add_systems(Startup, spawn_visual_valley)
             .add_systems(PostStartup, observe_visual_valley_shadow_config)
             .add_systems(Update, draw_visual_valley_chunk_debug);
+
+        if self.governed_metrics_required {
+            app.init_resource::<crate::GovernedVisualValleyMetricsRequired>();
+        }
 
         #[cfg(feature = "physics-rapier")]
         app.insert_resource(TerrainRuntimeState::new(

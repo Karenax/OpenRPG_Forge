@@ -1,8 +1,8 @@
 # R1-038 / R1-039 — Observation mémoire GPU et préchauffage des pipelines
 
-- Statut : **IMPLÉMENTATION CANDIDATE TESTÉE, NON QUALIFIÉE SUR GPU RÉEL**
-- Base exacte : `f786a38aca2023f08d708687f99a47d14f34e6d4`
-- Portée : `forge_engine` et consommation par `forge_runtime` uniquement
+- Statut : **CANDIDAT COMBINÉ — FORMAT/TESTS/WASM/CLIPPY PASS ; SMOKES GPU NOT RUN**
+- Base de départ exacte du lot isolé : `f786a38aca2023f08d708687f99a47d14f34e6d4`
+- Portée du lot isolé : `forge_engine` et consommation par `forge_runtime` uniquement
 - Roadmap : `R1-038` et `R1-039` restent ouverts
 
 ## Objet du lot
@@ -89,7 +89,7 @@ exercés. Un cache stable ne prouve pas qu'une variante latente de météo, mat�
 compilée. Bevy transmet `cache: None` aux descripteurs wgpu : ce préchauffage est à rejouer à chaque
 processus et ne constitue pas un cache disque.
 
-## Contrat runtime-metrics isolé
+## Contrat runtime-metrics isolé et intégration candidate
 
 Sur la base `f786a38a`, le lot fait évoluer `forge.runtime-metrics` de la version 6 à la version 7 avec
 deux objets additifs :
@@ -97,11 +97,36 @@ deux objets additifs :
 - `gpu_memory` ;
 - `pipeline_warmup`.
 
-Une autre tranche d'intégration utilise déjà la version 7 pour le profil qualité. L'intégrateur doit
-combiner les deux extensions dans une **version 8** unique ; il ne doit pas conserver deux contrats
-différents portant le même numéro 7.
+Une autre tranche d'intégration utilisait déjà la version 7 pour le profil qualité. Le candidat
+combiné résout cette collision dans un contrat **`forge.runtime-metrics` version 8** unique. Il
+conserve simultanément `quality`, `scenery`, `gpu_memory` et `pipeline_warmup`, en plus des autres
+blocs Visual Valley. Pour une mesure gouvernée, la sérialisation refuse notamment une scenery en
+attente/repli, un tier qualité non appliqué, une plage LOD scenery différente du preset appliqué ou
+un pipeline non prêt pendant toute la fenêtre d'échantillonnage.
 
-## Validations locales
+Le ledger de scène Studio du candidat combiné est en version 7. Il observe le tier courant, le tier
+effectivement appliqué et les bornes LOD attendues, puis exige leur concordance avec l'observation
+scenery avant de déclarer Visual Valley prête. Ce ledger Studio n'est pas une observation de mémoire
+GPU ni une preuve de présentation GPU.
+
+La sérialisation native v8 exige la composition Gate 1 complète : terrain, ombres, végétation,
+scenery, environnement, eau, météo et qualité. Le ledger qualité doit contenir ses 34 champs uniques
+et documentés, répartis en 5 projections au démarrage, 15 projections lors d'une transition de tier
+et 14 champs explicitement `not_applicable`. Une mesure gouvernée contient au minimum **120
+échantillons de frame finis et positifs après le warm-up**.
+
+Le ledger natif suit en outre une empreinte de l'état de rendu : tier courant/appliqué, statut et
+comptes de chargement/remplacement scenery, ainsi que sa plage LOD. Cette empreinte doit être stable
+avant la première frame mesurée et pendant toute la fenêtre. Studio v7 emploie une empreinte propre
+sur la scène, les tiers courant/appliqué et les plages LOD qualité/scenery. Une empreinte incomplète
+ou modifiée réinitialise ses 60 frames de warm-up et ses 120 frames de mesure. L'empreinte SHA-256
+canonique du profil qualité est identique dans `quality.profile_hash` côté natif et
+`source_hashes.quality` côté Studio.
+
+## Validations locales du lot isolé
+
+Les résultats ci-dessous ont été obtenus avant l'intégration avec les tranches qualité, scenery et
+Studio. Ils valident le lot GPU/pipeline isolé ; ils ne sont pas attribués au candidat combiné.
 
 | Commande | Résultat |
 |---|---|
@@ -123,22 +148,46 @@ Les tests nouveaux couvrent :
 - conversion bornée de la mesure de slabs en octets ;
 - présence additive des deux objets dans la sérialisation de métriques v7.
 
+## Validation du candidat combiné
+
+| Validation finale sur l'état combiné exact | Résultat |
+|---|---|
+| `cargo fmt --all -- --check` | **PASS** |
+| `git diff --check` | **PASS** |
+| tests bibliothèque `forge_engine` | **PASS — 117/117** |
+| tests `forge_runtime` | **PASS — 30/30** |
+| tests bibliothèque `forge_studio` | **PASS — 29/29** |
+| `cargo check -p forge_studio --lib --target wasm32-unknown-unknown --no-default-features --features web` exact courant | **PASS — 6.83 s** |
+| `$env:CARGO_TARGET_DIR='E:\OpenRPG_Forge\.cargo-target-gate1-combined'; cargo clippy -p forge_engine -p forge_runtime -p forge_studio --all-targets --locked -j 1 -- -D warnings` | **PASS — 11.27 s** |
+| Smoke natif produisant un ledger `forge.runtime-metrics` v8 | **NOT RUN** |
+| Smoke GPU réel et observation allocateur/pipelines | **NOT RUN** |
+| Smoke Browser WebGPU et ledger Studio v7 | **NOT RUN** |
+
+Ces validations intégrées prouvent les tests CPU, le format, la compilation Studio WASM et le Clippy
+strict. Elles ne remplacent pas les smokes de présentation GPU.
+
 ## Limites et qualification restante
 
-- Smoke runtime avec adaptateur DX12/Vulkan réel : **NOT RUN**.
-- Rapport allocateur réellement observé et vérification `allocated <= reserved` : **NOT RUN**.
-- Validation que `mesh_allocator_slabs_bytes > 0` sur Visual Valley rendue : **NOT RUN**.
-- Replay séparé des variantes `clear` et `rain`, puis Low/Medium/High/Ultra : **NOT RUN**.
-- Browser WebGPU réel avec rapport allocateur `null` et convergence pipelines : **NOT RUN**.
-- CI distante : **NOT RUN — infrastructure billing**, conformément à ADR-0006.
+- Smoke runtime avec adaptateur DX12/Vulkan réel : **PAS ENCORE EXÉCUTÉ**.
+- Rapport allocateur réellement observé et vérification `allocated <= reserved` : **PAS ENCORE
+  EXÉCUTÉ**.
+- Validation que `mesh_allocator_slabs_bytes > 0` sur Visual Valley rendue : **PAS ENCORE
+  EXÉCUTÉ**.
+- Replay séparé des variantes `clear` et `rain`, puis Low/Medium/High/Ultra : **PAS ENCORE
+  EXÉCUTÉ**.
+- Browser WebGPU réel avec rapport allocateur `null` et convergence pipelines : **PAS ENCORE
+  EXÉCUTÉ**.
+- CI distante du lot isolé : **NOT RUN dans cette preuve** ; aucun résultat d'une autre exécution
+  n'est attribué à ce lot.
 
 En conséquence, ce lot livre le contrat, l'instrumentation et les tests ciblés, mais ne ferme pas
 `R1-038` ou `R1-039`. Leur qualification exige encore les smokes GPU réels et les variantes de profil
-sur le futur candidat intégré.
+sur le candidat intégré actuel.
 
-## Frontières préservées
+## Frontières préservées par le lot isolé
 
-- aucun fichier Studio modifié ;
+- aucun fichier Studio modifié par le lot GPU/pipeline isolé ; le candidat combiné contient par
+  ailleurs l'observation Studio v7 de qualité/scenery ;
 - aucune roadmap ni `PROJECT_CONTEXT.md` modifiés ;
 - aucun asset ajouté ;
 - aucune copie ou dépendance Cadle ;

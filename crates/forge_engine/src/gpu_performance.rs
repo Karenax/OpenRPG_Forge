@@ -321,6 +321,34 @@ pub(crate) fn qualify_pipeline_warmup(
             final_observation.status
         ));
     }
+    if final_observation.total == 0
+        || final_observation.queued != 0
+        || final_observation.creating != 0
+        || final_observation.errors != 0
+        || final_observation.waiting != 0
+        || final_observation.ready != final_observation.total
+        || final_observation.required_stable_frames != PIPELINE_WARMUP_STABLE_FRAMES
+        || final_observation.stable_frames < final_observation.required_stable_frames
+        || u64::from(final_observation.stable_frames) > final_observation.observed_render_frames
+    {
+        return Err(format!(
+            "pipeline cache ready observation is structurally inconsistent: {final_observation:?}"
+        ));
+    }
+    let stable_frames_after_qualification = u64::from(
+        final_observation
+            .stable_frames
+            .saturating_sub(final_observation.required_stable_frames),
+    );
+    let expected_stabilized_at = final_observation
+        .observed_render_frames
+        .checked_sub(stable_frames_after_qualification);
+    if final_observation.stabilized_at_render_frame != expected_stabilized_at {
+        return Err(format!(
+            "pipeline cache ready observation has an inconsistent stabilization frame: expected {expected_stabilized_at:?}, observed {:?}",
+            final_observation.stabilized_at_render_frame
+        ));
+    }
 
     Ok(PipelineWarmupReport {
         ready_before_measurement: true,
@@ -466,6 +494,24 @@ mod tests {
         assert!(qualify_pipeline_warmup(Some(false), true, &ready).is_err());
         assert!(qualify_pipeline_warmup(Some(true), false, &ready).is_err());
         assert!(qualify_pipeline_warmup(Some(true), true, &ready).is_ok());
+    }
+
+    #[test]
+    fn pipeline_qualification_revalidates_ready_counters_and_timing() {
+        let mut ready = PipelineWarmupObservation::default();
+        for _ in 0..PIPELINE_WARMUP_STABLE_FRAMES {
+            ready = advance_pipeline_warmup(&ready, settled_counts(2));
+        }
+
+        let mut empty_ready = ready.clone();
+        empty_ready.total = 0;
+        empty_ready.ready = 0;
+        assert!(qualify_pipeline_warmup(Some(true), true, &empty_ready).is_err());
+
+        let mut impossible_timing = ready;
+        impossible_timing.observed_render_frames = 60;
+        impossible_timing.stabilized_at_render_frame = Some(42);
+        assert!(qualify_pipeline_warmup(Some(true), true, &impossible_timing).is_err());
     }
 
     #[test]

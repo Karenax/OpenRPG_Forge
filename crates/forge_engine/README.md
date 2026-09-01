@@ -8,12 +8,20 @@ truth.
 The `native` and `web` features are built separately so Cargo cannot accidentally unify platform
 requirements during qualification.
 
-The Gate 0 overlay and `forge.runtime-metrics` v2 report separate three different facts:
+The Gate 0 overlay and the candidate `forge.runtime-metrics` v8 ledger keep source and renderer
+evidence separate:
 
 - source mesh instances materialized from the document;
 - GPU pipeline statistics exposed by Bevy's `RenderDiagnosticsPlugin`, such as opaque-pass clipper
   primitives and shader invocations on supported Vulkan/DX12 adapters;
 - GPU draw calls, explicitly reported as unavailable.
+
+The v8 ledger additionally records:
+
+- optional current-device wgpu allocator suballocations and Bevy mesh-slab capacity, neither of
+  which is relabeled as total VRAM or an operating-system budget;
+- the render/compute pipelines exercised by the current process and their thirty-render-frame
+  stability barrier, which is not a persistent pipeline cache.
 
 Bevy 0.19 has no backend-neutral global draw-call counter. Source meshes, render-phase items,
 primitives and shader invocations are therefore never relabeled as draw calls. A reliable draw-call
@@ -23,6 +31,23 @@ WebGL2, Bevy 0.19 also limits its built-in render diagnostics to CPU timings.
 The metrics report records requested presentation mode, resizability, initial/final dimensions,
 backend-confirmed resize events and clean close requests. Presentation mode is deliberately named a
 request because a platform surface may select a documented fallback internally.
+
+For governed Visual Valley measurements, v8 also carries the terrain, shadows, vegetation, scenery,
+environment, water, weather and quality ledgers. Report generation fails instead of silently
+qualifying a run when governed scenery is pending or in procedural fallback, when the current
+quality tier has not been applied, when the scenery replacement LOD range differs from the applied
+quality preset, or when the pipeline cache was not ready for the whole sampling window. The full
+composition is mandatory: terrain, shadows, vegetation, scenery, environment, water, weather and
+quality must all be present and internally consistent. The quality ledger must contain its 34 unique
+documented fields (5 applied at startup, 15 applied on tier transition and 14 explicitly not
+applicable), and a governed report requires at least 120 finite positive post-warmup frame samples.
+
+The native sampling window fingerprints the current/applied quality tier together with scenery load,
+replacement and LOD state. That fingerprint must already be stable at the first measured frame and
+must not change during the window. Studio uses the same canonical quality-profile SHA-256 in
+`source_hashes.quality` that native metrics expose as `quality.profile_hash`. Its scene ledger v7 has
+its own frame fingerprint over scene, current/applied tier and quality/scenery LOD ranges; an
+incomplete or changed fingerprint resets the 60-frame warm-up and the subsequent 120-frame measure.
 
 The first Gate 1 terrain adapter keeps positions, normals, global UVs and logical material weights in
 each `Mesh` with both `MAIN_WORLD` and `RENDER_WORLD` usage. `COLOR.rgb` carries grass/earth/rock
@@ -51,3 +76,16 @@ the models declared in the embedded governed-asset manifest. Imported roots rema
 glTF scenes and recursive dependencies are loaded. Only then are corresponding procedural visuals
 hidden; any failed load leaves the procedural projection visible. The source documents, placement
 IDs, collisions and persistence contracts are unchanged.
+
+Applied quality tiers drive the governed replacement visibility ranges without changing the source
+placements: Low `48-128 m`, Medium `60-160 m`, High `72-180 m` and Ultra `96-240 m`. The Studio scene
+ledger v7 observes both the current and actually applied tier plus the expected replacement LOD
+range. Visual Valley readiness remains pending until those values agree with the activated scenery
+observation. These are observable contracts; final combined native GPU and browser qualification is
+required separately from unit-test evidence.
+
+On the current combined candidate, `cargo fmt --all -- --check` and `git diff --check` pass, as do
+117/117 `forge_engine` library tests, 30/30 `forge_runtime` tests and 29/29 `forge_studio` library
+tests. The exact current `forge_studio` Web/WASM check passes in 6.83 s, and the exact strict Clippy
+command for all three packages passes in 11.27 s. Native GPU and Browser WebGPU smokes remain NOT RUN.
+These partial integration results do not qualify or close R1-038, R1-039 or R1-040.

@@ -251,11 +251,37 @@ utilisateur représentative. L'inspection automatisée indépendante du PNG orig
 Studio complet à trois colonnes, le terrain vert, le cube bleu sélectionné, le canvas non noir, les
 résumés WebGPU/IPC/ACL visibles et aucune occlusion grossière. Elle a aussi relevé plusieurs glyphes
 « tofu » dans l'overlay Bevy du canvas, notamment pour des séparateurs et certains caractères
-accentués ; ce défaut cosmétique de fonte reste à reprendre.
+accentués ; cette observation demeure la preuve historique exacte de `a7c506f`.
 
 Cette inspection n'est pas une revue humaine. Le ledger final conserve exactement
 `review.status = uninspected`, `human_review_performed = false`,
 `proof_status = pending_human_review` et `qualified = false`, conformément à ADR-0005.
+
+### Correctif candidat de `G0-UI-001` — preuves automatisées locales courantes
+
+L'analyse du code candidat confirme que la fonte Bevy utilisée par défaut pour l'overlay ne couvre
+que l'ASCII, alors que les textes de diagnostic historiques contenaient des caractères Unicode. Le
+correctif candidat normalise la chaîne finale de l'overlay en ASCII, en remplaçant chaque caractère
+non ASCII par `?`. Il n'ajoute ni fonte ni autre asset.
+
+La campagne exécutée sur l'état courant du worktree apporte les preuves suivantes :
+
+| Contrôle du correctif glyphes/overlay ASCII | Résultat courant |
+|---|---|
+| suite `forge_engine` | **PASS — 117/117**, dont les assertions `is_ascii()` des overlays Gate 0 et Gate 1 |
+| suite `forge_runtime` | **PASS — 30/30** |
+| suite `forge_studio` | **PASS — 29/29** |
+| check WASM exact courant | **PASS — 6.83 s** |
+| formatage et contrôle du diff | **PASS** |
+| Clippy strict exact | **PASS — 11.27 s** |
+| smokes du candidat courant natif / Browser WebGPU | **NOT RUN** |
+
+Le statut probant devient donc **CORRECTIF — TESTS/FMT/DIFF/WASM/CLIPPY PASS ; REVUE HUMAINE
+DIFFÉRÉE**. Ces résultats qualifient la validation automatisée obtenue sur le worktree courant ; ils
+ne constituent pas un replay commit-bound. Les smokes du candidat courant natif et Browser WebGPU
+restent **NOT RUN** ; aucune nouvelle capture native ou Tauri et aucune revue humaine n'ont été
+acquises. Le check WASM n'est pas une preuve visuelle. Ce correctif candidat ne modifie pas les
+ledgers historiques et ne lève aucune des revues humaines différées par ADR-0005.
 
 ## Runtime natif historique `528a9097`
 

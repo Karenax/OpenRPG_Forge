@@ -43,6 +43,7 @@ pub use player_controller::{
     PlayerControlCommandError, PlayerControllerPlugin, PlayerControllerSet,
     PlayerRuntimeBindingSnapshot, PlayerRuntimeBindings, PlayerRuntimeSnapshot, PlayerSpawnPoint,
 };
+use quality::QUALITY_FIELD_PROJECTION_CONTRACT;
 pub use quality::{
     QualityFieldProjection, QualityFieldProjectionStatus, QualityTierTransition,
     VisualValleyQualityPlugin, VisualValleyQualitySelection, VisualValleyQualityStats,
@@ -170,6 +171,42 @@ struct DiagnosticsOverlay;
 #[derive(Resource, Default)]
 struct AdapterLogged(bool);
 
+#[derive(Default, Resource)]
+pub(crate) struct GovernedVisualValleyMetricsRequired;
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+struct Gate1RenderState {
+    quality_current_tier: Option<forge_project::VisualQualityTier>,
+    quality_applied_tier: Option<forge_project::VisualQualityTier>,
+    scenery_status: Option<SceneryProjectionStatus>,
+    scenery_loaded_models: Option<usize>,
+    scenery_failed_models: Option<usize>,
+    scenery_hidden_procedural_entities: Option<usize>,
+    scenery_replacement_instances: Option<usize>,
+    scenery_lod_start_bits: Option<u32>,
+    scenery_lod_end_bits: Option<u32>,
+}
+
+impl Gate1RenderState {
+    fn from_evidence(
+        quality: Option<&VisualValleyQualityStats>,
+        scenery: Option<&SceneryProjectionStats>,
+    ) -> Option<Self> {
+        (quality.is_some() || scenery.is_some()).then_some(Self {
+            quality_current_tier: quality.map(|stats| stats.current_tier),
+            quality_applied_tier: quality.and_then(|stats| stats.dynamically_applied_tier),
+            scenery_status: scenery.map(|stats| stats.status),
+            scenery_loaded_models: scenery.map(|stats| stats.loaded_models),
+            scenery_failed_models: scenery.map(|stats| stats.failed_models),
+            scenery_hidden_procedural_entities: scenery
+                .map(|stats| stats.hidden_procedural_entities),
+            scenery_replacement_instances: scenery.map(|stats| stats.replacement_instances),
+            scenery_lod_start_bits: scenery.map(|stats| stats.replacement_lod_start_m.to_bits()),
+            scenery_lod_end_bits: scenery.map(|stats| stats.replacement_lod_end_m.to_bits()),
+        })
+    }
+}
+
 #[derive(Resource)]
 struct FrameLedger {
     samples_ms: Vec<f64>,
@@ -179,6 +216,9 @@ struct FrameLedger {
     sample_limit: usize,
     pipeline_ready_at_measurement_start: Option<bool>,
     pipeline_ready_for_entire_measurement: bool,
+    gate1_render_state_stable_at_measurement_start: Option<bool>,
+    gate1_render_state_stable_for_entire_measurement: bool,
+    last_gate1_render_state: Option<Gate1RenderState>,
 }
 
 impl FrameLedger {
@@ -210,10 +250,25 @@ impl FrameLedger {
             sample_limit,
             pipeline_ready_at_measurement_start: None,
             pipeline_ready_for_entire_measurement: true,
+            gate1_render_state_stable_at_measurement_start: None,
+            gate1_render_state_stable_for_entire_measurement: true,
+            last_gate1_render_state: None,
         }
     }
 
-    fn record(&mut self, frame: u32, frame_ms: f64, pipeline_ready: bool) {
+    fn record(
+        &mut self,
+        frame: u32,
+        frame_ms: f64,
+        pipeline_ready: bool,
+        gate1_render_state: Option<Gate1RenderState>,
+    ) {
+        let gate1_state_stable = match (self.last_gate1_render_state, gate1_render_state) {
+            (None, None) => true,
+            (Some(previous), Some(current)) => previous == current,
+            (None, Some(_)) | (Some(_), None) => false,
+        };
+        self.last_gate1_render_state = gate1_render_state;
         let inside_window = self
             .first_frame
             .zip(self.last_frame)
@@ -222,6 +277,9 @@ impl FrameLedger {
             self.pipeline_ready_at_measurement_start
                 .get_or_insert(pipeline_ready);
             self.pipeline_ready_for_entire_measurement &= pipeline_ready;
+            self.gate1_render_state_stable_at_measurement_start
+                .get_or_insert(gate1_state_stable);
+            self.gate1_render_state_stable_for_entire_measurement &= gate1_state_stable;
         }
         if inside_window
             && self.samples_ms.len() < self.sample_limit
@@ -347,6 +405,7 @@ struct RenderWorkReport {
 
 const GPU_DRAW_CALL_STATUS: &str = "unavailable_bevy_0_19_no_global_counter";
 const MAX_FRAME_LEDGER_SAMPLES: usize = 1_000_000;
+const GATE1_MINIMUM_FRAME_SAMPLES: usize = 120;
 
 /// Installs the document adapter, diagnostics, deterministic capture and bounded-exit harness.
 pub struct ProofScenePlugin {
@@ -881,6 +940,7 @@ fn select_proof_entity(
 
 #[derive(SystemParam)]
 struct Gate1OverlayStats<'w> {
+    governed_metrics_required: Option<Res<'w, GovernedVisualValleyMetricsRequired>>,
     visual_valley: Option<Res<'w, VisualValleyStats>>,
     visual_valley_shadow: Option<Res<'w, VisualValleyShadowStats>>,
     vegetation: Option<Res<'w, VegetationProjectionStats>>,
@@ -1142,12 +1202,15 @@ fn collect_frame_sample(
     frame: Res<bevy::diagnostic::FrameCount>,
     time: Res<Time<Real>>,
     pipeline_warmup: Res<PipelineWarmupObservation>,
+    quality: Option<Res<VisualValleyQualityStats>>,
+    scenery: Option<Res<SceneryProjectionStats>>,
     mut ledger: ResMut<FrameLedger>,
 ) {
     ledger.record(
         frame.0,
         time.delta_secs_f64() * 1_000.0,
         pipeline_warmup.is_ready(),
+        Gate1RenderState::from_evidence(quality.as_deref(), scenery.as_deref()),
     );
 }
 
@@ -1233,9 +1296,16 @@ fn write_metrics_and_exit(
             .map(|pipeline_warmup| (gpu_memory, pipeline_warmup))
         })
         .and_then(|(gpu_memory, pipeline_warmup)| {
+            if gate1.governed_metrics_required.is_some() {
+                qualify_gate1_render_state_stability(
+                    ledger.gate1_render_state_stable_at_measurement_start,
+                    ledger.gate1_render_state_stable_for_entire_measurement,
+                )?;
+            }
             build_runtime_metrics(
                 &ledger.samples_ms,
                 &stats,
+                gate1.governed_metrics_required.is_some(),
                 gate1.visual_valley.as_deref(),
                 gate1.visual_valley_shadow.as_deref(),
                 gate1.vegetation.as_deref(),
@@ -1307,6 +1377,25 @@ fn ensure_resize_confirmed(lifecycle: &WindowLifecycle) -> Result<(), &'static s
     Ok(())
 }
 
+fn qualify_gate1_render_state_stability(
+    stable_at_measurement_start: Option<bool>,
+    stable_for_entire_measurement: bool,
+) -> Result<(), String> {
+    if stable_at_measurement_start != Some(true) {
+        return Err(
+            "governed Gate 1 render-state fingerprint was not stable before performance measurement"
+                .to_owned(),
+        );
+    }
+    if !stable_for_entire_measurement {
+        return Err(
+            "governed Gate 1 render-state fingerprint changed during performance measurement"
+                .to_owned(),
+        );
+    }
+    Ok(())
+}
+
 fn capture_artifact_size(path: &Path) -> Result<u64, String> {
     let metadata = fs::metadata(path)
         .map_err(|error| format!("cannot inspect {}: {error}", path.display()))?;
@@ -1321,11 +1410,352 @@ fn capture_artifact_size(path: &Path) -> Result<u64, String> {
 
 #[allow(
     clippy::too_many_arguments,
+    reason = "governed Gate 1 qualification keeps each independent evidence resource explicit"
+)]
+fn validate_governed_gate1_evidence(
+    samples: &[f64],
+    visual_valley: Option<&VisualValleyStats>,
+    visual_valley_shadow: Option<&VisualValleyShadowStats>,
+    vegetation: Option<&VegetationProjectionStats>,
+    scenery: Option<&SceneryProjectionStats>,
+    environment: Option<&EnvironmentProjectionStats>,
+    water: Option<&WaterProjectionStats>,
+    weather: Option<&WeatherProjectionStats>,
+    quality: Option<&VisualValleyQualityStats>,
+) -> Result<(), String> {
+    let visual_valley = visual_valley.ok_or("governed Gate 1 metrics require VisualValleyStats")?;
+    let shadow =
+        visual_valley_shadow.ok_or("governed Gate 1 metrics require VisualValleyShadowStats")?;
+    let vegetation =
+        vegetation.ok_or("governed Gate 1 metrics require VegetationProjectionStats")?;
+    let scenery = scenery.ok_or("governed Gate 1 metrics require SceneryProjectionStats")?;
+    let environment =
+        environment.ok_or("governed Gate 1 metrics require EnvironmentProjectionStats")?;
+    let water = water.ok_or("governed Gate 1 metrics require WaterProjectionStats")?;
+    let weather = weather.ok_or("governed Gate 1 metrics require WeatherProjectionStats")?;
+    let quality = quality.ok_or("governed Gate 1 metrics require VisualValleyQualityStats")?;
+
+    validate_gate1_visual_valley_evidence(visual_valley)?;
+    validate_gate1_shadow_evidence(shadow)?;
+    validate_gate1_vegetation_evidence(vegetation, visual_valley)?;
+    validate_gate1_scenery_evidence(scenery)?;
+    validate_gate1_environment_evidence(environment)?;
+    validate_gate1_water_evidence(water, visual_valley)?;
+    validate_gate1_weather_evidence(weather)?;
+    validate_gate1_quality_projection_ledger(quality)?;
+    validate_gate1_applied_quality_tier(quality)?;
+    validate_gate1_scenery_quality_projection(scenery, quality)?;
+    validate_gate1_shadow_quality_projection(shadow, quality)?;
+    validate_gate1_sample_count(samples)
+}
+
+fn validate_gate1_visual_valley_evidence(visual_valley: &VisualValleyStats) -> Result<(), String> {
+    if visual_valley.source_hash.is_empty()
+        || visual_valley.chunks == 0
+        || visual_valley.vertices == 0
+        || visual_valley.triangles == 0
+        || visual_valley.material_layers < 3
+        || visual_valley.lod_levels == 0
+        || visual_valley.lod_zero_chunks == 0
+        || visual_valley.lod_zero_chunks > visual_valley.chunks
+    {
+        return Err(format!(
+            "governed Gate 1 Visual Valley evidence is not qualified: source_hash_present={}, chunks={}, vertices={}, triangles={}, material_layers={}, lod_levels={}, lod_zero_chunks={}",
+            !visual_valley.source_hash.is_empty(),
+            visual_valley.chunks,
+            visual_valley.vertices,
+            visual_valley.triangles,
+            visual_valley.material_layers,
+            visual_valley.lod_levels,
+            visual_valley.lod_zero_chunks
+        ));
+    }
+    Ok(())
+}
+
+fn validate_gate1_shadow_evidence(shadow: &VisualValleyShadowStats) -> Result<(), String> {
+    let shadow_maximum_distance_m = shadow
+        .configured_maximum_distance_m
+        .filter(|distance| distance.is_finite() && *distance > 0.0);
+    let shadow_bounds_are_finite_and_ordered = !shadow.cascade_bounds_m.is_empty()
+        && shadow
+            .cascade_bounds_m
+            .iter()
+            .all(|bound| bound.is_finite() && *bound > 0.0)
+        && shadow
+            .cascade_bounds_m
+            .windows(2)
+            .all(|bounds| bounds[0] < bounds[1])
+        && shadow_maximum_distance_m.is_some_and(|maximum| {
+            shadow
+                .cascade_bounds_m
+                .last()
+                .is_some_and(|last| last.to_bits() == maximum.to_bits())
+        });
+    if shadow.status != VisualValleyShadowObservationStatus::ObservedSingleSun
+        || shadow.sun_entities != 1
+        || shadow.shadow_maps_enabled != Some(true)
+        || !shadow_bounds_are_finite_and_ordered
+    {
+        return Err(format!(
+            "governed Gate 1 shadow evidence is not qualified: status={:?}, suns={}, enabled={:?}, maximum={:?}, cascades={:?}",
+            shadow.status,
+            shadow.sun_entities,
+            shadow.shadow_maps_enabled,
+            shadow.configured_maximum_distance_m,
+            shadow.cascade_bounds_m
+        ));
+    }
+    Ok(())
+}
+
+fn validate_gate1_vegetation_evidence(
+    vegetation: &VegetationProjectionStats,
+    visual_valley: &VisualValleyStats,
+) -> Result<(), String> {
+    if vegetation.terrain_document_hash != visual_valley.source_hash
+        || vegetation.vegetation_document_hash.is_empty()
+        || vegetation.placements.accepted_placements == 0
+        || vegetation.projection.total_entities == 0
+        || vegetation.projection.placement_entities == 0
+        || vegetation.projection.near_entities == 0
+        || vegetation.projection.medium_entities == 0
+        || vegetation.projection.grass_batches == 0
+        || vegetation.projection.hlod_batches == 0
+        || vegetation.visibility.status
+            != VegetationVisibilityObservationStatus::ObservedSingleActiveCamera
+        || vegetation.visibility.observation_frames == 0
+        || vegetation.visibility.active_camera_views != 1
+        || vegetation.visibility.visible_outside_range_inconsistencies != 0
+    {
+        return Err(format!(
+            "governed Gate 1 vegetation evidence is not qualified: terrain_hash_match={}, vegetation_hash_present={}, placements={}, projection=total:{}, placements:{}, near:{}, medium:{}, grass:{}, hlod:{}, visibility={:?}, frames={}, cameras={}, inconsistencies={}",
+            vegetation.terrain_document_hash == visual_valley.source_hash,
+            !vegetation.vegetation_document_hash.is_empty(),
+            vegetation.placements.accepted_placements,
+            vegetation.projection.total_entities,
+            vegetation.projection.placement_entities,
+            vegetation.projection.near_entities,
+            vegetation.projection.medium_entities,
+            vegetation.projection.grass_batches,
+            vegetation.projection.hlod_batches,
+            vegetation.visibility.status,
+            vegetation.visibility.observation_frames,
+            vegetation.visibility.active_camera_views,
+            vegetation.visibility.visible_outside_range_inconsistencies
+        ));
+    }
+    Ok(())
+}
+
+fn validate_gate1_scenery_evidence(scenery: &SceneryProjectionStats) -> Result<(), String> {
+    if scenery.status != SceneryProjectionStatus::Activated
+        || scenery.failed_models != 0
+        || scenery.unique_models == 0
+        || scenery.loaded_models != scenery.unique_models
+        || scenery.replacement_instances == 0
+        || scenery.hidden_procedural_entities != scenery.replacement_instances
+        || scenery.tracked_files == 0
+        || scenery.tracked_bytes == 0
+        || !scenery.replacement_lod_start_m.is_finite()
+        || !scenery.replacement_lod_end_m.is_finite()
+        || !scenery.detail_cull_distance_m.is_finite()
+        || scenery.replacement_lod_start_m <= 0.0
+        || scenery.replacement_lod_end_m < scenery.replacement_lod_start_m
+        || scenery.detail_cull_distance_m <= 0.0
+    {
+        return Err(format!(
+            "Visual Valley scenery is not qualified for metrics: status={:?}, models={}/{}, failures={}, hidden/replacements={}/{}, tracked={}/{}",
+            scenery.status,
+            scenery.loaded_models,
+            scenery.unique_models,
+            scenery.failed_models,
+            scenery.hidden_procedural_entities,
+            scenery.replacement_instances,
+            scenery.tracked_files,
+            scenery.tracked_bytes
+        ));
+    }
+    Ok(())
+}
+
+fn validate_gate1_environment_evidence(
+    environment: &EnvironmentProjectionStats,
+) -> Result<(), String> {
+    if environment.status != EnvironmentProjectionStatus::ObservedApproximation {
+        return Err(format!(
+            "governed Gate 1 environment evidence is not qualified: status={:?}",
+            environment.status
+        ));
+    }
+    Ok(())
+}
+
+fn validate_gate1_water_evidence(
+    water: &WaterProjectionStats,
+    visual_valley: &VisualValleyStats,
+) -> Result<(), String> {
+    if water.runtime_observation != WaterRuntimeObservationStatus::ObservedMainWorldComponents
+        || water.terrain_source_hash != visual_valley.source_hash
+    {
+        return Err(format!(
+            "governed Gate 1 water evidence is not qualified: status={:?}, terrain_hash_match={}",
+            water.runtime_observation,
+            water.terrain_source_hash == visual_valley.source_hash
+        ));
+    }
+    Ok(())
+}
+
+fn validate_gate1_weather_evidence(weather: &WeatherProjectionStats) -> Result<(), String> {
+    if weather.status != WeatherProjectionStatus::ObservedCpuProjection {
+        return Err(format!(
+            "governed Gate 1 weather evidence is not qualified: status={:?}",
+            weather.status
+        ));
+    }
+    Ok(())
+}
+
+fn validate_gate1_quality_projection_ledger(
+    quality: &VisualValleyQualityStats,
+) -> Result<(), String> {
+    let quality_fields_match_contract = quality.field_projections.len()
+        == QUALITY_FIELD_PROJECTION_CONTRACT.len()
+        && quality
+            .field_projections
+            .iter()
+            .zip(QUALITY_FIELD_PROJECTION_CONTRACT)
+            .all(|(observed, (expected_field, expected_status))| {
+                observed.field == expected_field && observed.status == expected_status
+            });
+    let quality_fields_are_unique_and_described =
+        quality
+            .field_projections
+            .iter()
+            .enumerate()
+            .all(|(index, projection)| {
+                !projection.field.is_empty()
+                    && !projection.evidence.is_empty()
+                    && !quality.field_projections[..index]
+                        .iter()
+                        .any(|previous| previous.field == projection.field)
+            });
+    let startup_projection_count = quality
+        .field_projections
+        .iter()
+        .filter(|projection| projection.status == QualityFieldProjectionStatus::AppliedAtStartup)
+        .count();
+    let transition_projection_count = quality
+        .field_projections
+        .iter()
+        .filter(|projection| {
+            projection.status == QualityFieldProjectionStatus::AppliedOnTierTransition
+        })
+        .count();
+    let not_applicable_projection_count = quality
+        .field_projections
+        .iter()
+        .filter(|projection| projection.status == QualityFieldProjectionStatus::NotApplicable)
+        .count();
+    if quality.schema != "forge.visual-valley-quality-runtime"
+        || quality.schema_version != 1
+        || quality.profile_hash.is_empty()
+        || !quality_fields_match_contract
+        || !quality_fields_are_unique_and_described
+        || startup_projection_count != 5
+        || transition_projection_count != 15
+        || not_applicable_projection_count != 14
+    {
+        return Err(format!(
+            "governed Gate 1 quality projection ledger is not qualified: schema={} v{}, profile_hash_present={}, fields={}/{}, exact_contract={}, unique_and_described={}, statuses=startup:{}, transition:{}, not_applicable:{}",
+            quality.schema,
+            quality.schema_version,
+            !quality.profile_hash.is_empty(),
+            quality.field_projections.len(),
+            QUALITY_FIELD_PROJECTION_CONTRACT.len(),
+            quality_fields_match_contract,
+            quality_fields_are_unique_and_described,
+            startup_projection_count,
+            transition_projection_count,
+            not_applicable_projection_count
+        ));
+    }
+    Ok(())
+}
+
+fn validate_gate1_applied_quality_tier(quality: &VisualValleyQualityStats) -> Result<(), String> {
+    if quality.dynamically_applied_tier != Some(quality.current_tier) {
+        return Err(format!(
+            "Visual Valley quality tier {:?} is not applied before metrics",
+            quality.current_tier
+        ));
+    }
+    Ok(())
+}
+
+fn validate_gate1_scenery_quality_projection(
+    scenery: &SceneryProjectionStats,
+    quality: &VisualValleyQualityStats,
+) -> Result<(), String> {
+    let expected_lod_start_m = quality.requested_preset.vegetation.medium_lod_distance_m;
+    let expected_lod_end_m = quality.requested_preset.vegetation.hlod_distance_m;
+    if scenery.replacement_lod_start_m.to_bits() != expected_lod_start_m.to_bits()
+        || scenery.replacement_lod_end_m.to_bits() != expected_lod_end_m.to_bits()
+    {
+        return Err(format!(
+            "Visual Valley scenery LOD range {:.1}-{:.1} m does not match applied {:?} quality {:.1}-{:.1} m",
+            scenery.replacement_lod_start_m,
+            scenery.replacement_lod_end_m,
+            quality.current_tier,
+            expected_lod_start_m,
+            expected_lod_end_m
+        ));
+    }
+    Ok(())
+}
+
+fn validate_gate1_shadow_quality_projection(
+    shadow: &VisualValleyShadowStats,
+    quality: &VisualValleyQualityStats,
+) -> Result<(), String> {
+    let expected_shadow_maximum_distance_m = quality.requested_preset.shadows.maximum_distance_m;
+    let expected_shadow_cascade_count = usize::from(quality.requested_preset.shadows.cascade_count);
+    if shadow
+        .configured_maximum_distance_m
+        .is_none_or(|distance| distance.to_bits() != expected_shadow_maximum_distance_m.to_bits())
+        || shadow.cascade_bounds_m.len() != expected_shadow_cascade_count
+    {
+        return Err(format!(
+            "Visual Valley shadow projection does not match applied {:?} quality: maximum={:?}/{:.1}, cascades={}/{}",
+            quality.current_tier,
+            shadow.configured_maximum_distance_m,
+            expected_shadow_maximum_distance_m,
+            shadow.cascade_bounds_m.len(),
+            expected_shadow_cascade_count
+        ));
+    }
+    Ok(())
+}
+
+fn validate_gate1_sample_count(samples: &[f64]) -> Result<(), String> {
+    if samples.len() < GATE1_MINIMUM_FRAME_SAMPLES {
+        return Err(format!(
+            "governed Gate 1 metrics require at least {GATE1_MINIMUM_FRAME_SAMPLES} post-warmup frame samples, observed {}",
+            samples.len()
+        ));
+    }
+    Ok(())
+}
+
+#[allow(
+    clippy::too_many_arguments,
     reason = "the metrics serializer combines independent runtime evidence without hidden globals"
 )]
 fn build_runtime_metrics(
     samples: &[f64],
     stats: &ProofSceneStats,
+    governed_gate1_required: bool,
     visual_valley: Option<&VisualValleyStats>,
     visual_valley_shadow: Option<&VisualValleyShadowStats>,
     vegetation: Option<&VegetationProjectionStats>,
@@ -1341,24 +1771,18 @@ fn build_runtime_metrics(
     lifecycle: &WindowLifecycle,
     final_window: Option<WindowStateReport>,
 ) -> Result<RuntimeMetricsReport, String> {
-    if visual_valley.is_some() {
-        let scenery = scenery.ok_or("Visual Valley metrics require SceneryProjectionStats")?;
-        if scenery.status != SceneryProjectionStatus::Activated
-            || scenery.failed_models != 0
-            || scenery.loaded_models != scenery.unique_models
-        {
-            return Err(format!(
-                "Visual Valley scenery is not qualified for metrics: status={:?}, models={}/{}, failures={}",
-                scenery.status, scenery.loaded_models, scenery.unique_models, scenery.failed_models
-            ));
-        }
-        let quality = quality.ok_or("Visual Valley metrics require VisualValleyQualityStats")?;
-        if quality.dynamically_applied_tier != Some(quality.current_tier) {
-            return Err(format!(
-                "Visual Valley quality tier {:?} is not applied before metrics",
-                quality.current_tier
-            ));
-        }
+    if governed_gate1_required {
+        validate_governed_gate1_evidence(
+            samples,
+            visual_valley,
+            visual_valley_shadow,
+            vegetation,
+            scenery,
+            environment,
+            water,
+            weather,
+            quality,
+        )?;
     }
     let distribution = CoreFrameDistribution::from_samples_ms(samples)
         .map_err(|error| format!("invalid post-warmup frame samples: {error}"))?;
@@ -1476,10 +1900,28 @@ mod tests {
                 waiting: 0,
                 stable_frames: PIPELINE_WARMUP_STABLE_FRAMES,
                 required_stable_frames: PIPELINE_WARMUP_STABLE_FRAMES,
-                observed_render_frames: 60,
+                observed_render_frames: 42,
                 stabilized_at_render_frame: Some(42),
                 scope: "pipelines_exercised_by_this_process_only_no_persistent_pipeline_cache",
             },
+        }
+    }
+
+    fn sample_gate1_render_state(
+        tier: forge_project::VisualQualityTier,
+        lod_start_m: f32,
+        lod_end_m: f32,
+    ) -> Gate1RenderState {
+        Gate1RenderState {
+            quality_current_tier: Some(tier),
+            quality_applied_tier: Some(tier),
+            scenery_status: Some(SceneryProjectionStatus::Activated),
+            scenery_loaded_models: Some(9),
+            scenery_failed_models: Some(0),
+            scenery_hidden_procedural_entities: Some(128),
+            scenery_replacement_instances: Some(128),
+            scenery_lod_start_bits: Some(lod_start_m.to_bits()),
+            scenery_lod_end_bits: Some(lod_end_m.to_bits()),
         }
     }
 
@@ -1544,24 +1986,158 @@ mod tests {
         ))
         .unwrap();
         let tier = forge_project::VisualQualityTier::High;
-        VisualValleyQualityStats {
-            schema: "forge.visual-valley-quality-runtime",
-            schema_version: 1,
-            profile_hash: profile.content_hash().unwrap().to_string(),
-            selection: VisualValleyQualitySelection::Fixed(tier),
-            startup_tier: tier,
-            current_tier: tier,
-            dynamically_applied_tier: Some(tier),
-            adaptation_enabled: false,
-            adaptation_policy: None,
-            benchmark_fixed_high: false,
-            observed_frames: 1,
-            cooldown_remaining_frames: 0,
-            transition_count: 0,
-            last_transition: None,
-            requested_preset: profile.preset(tier).clone(),
-            field_projections: Vec::new(),
+        let mut app = App::new();
+        app.add_plugins(VisualValleyQualityPlugin::new(
+            profile,
+            VisualValleyQualitySelection::Fixed(tier),
+        ));
+        app.update();
+        app.world().resource::<VisualValleyQualityStats>().clone()
+    }
+
+    fn sample_observed_water(terrain: forge_project::TerrainDocument) -> WaterProjectionStats {
+        let water = forge_world::embedded_visual_valley_water_document().unwrap();
+        let mut app = App::new();
+        app.add_plugins((MinimalPlugins, bevy::asset::AssetPlugin::default()));
+        app.init_asset::<Mesh>();
+        app.init_asset::<StandardMaterial>();
+        app.world_mut().spawn(Camera3d::default());
+        app.add_plugins(VisualValleyWaterPlugin::new(terrain, water));
+        app.update();
+        app.world().resource::<WaterProjectionStats>().clone()
+    }
+
+    fn sample_observed_weather() -> WeatherProjectionStats {
+        let mut app = App::new();
+        app.add_plugins((MinimalPlugins, bevy::asset::AssetPlugin::default()));
+        app.init_asset::<Mesh>();
+        app.init_asset::<VisualValleyTerrainMaterial>();
+        app.init_asset::<VisualValleyVegetationMaterial>();
+        let _terrain_material = app
+            .world_mut()
+            .resource_mut::<Assets<VisualValleyTerrainMaterial>>()
+            .add(VisualValleyTerrainMaterial {
+                base: StandardMaterial::default(),
+                extension: VisualValleyTerrainExtension::default(),
+            });
+        let _vegetation_material = app
+            .world_mut()
+            .resource_mut::<Assets<VisualValleyVegetationMaterial>>()
+            .add(VisualValleyVegetationMaterial {
+                base: StandardMaterial::default(),
+                extension: VisualValleyVegetationExtension::default(),
+            });
+        app.world_mut().spawn((
+            Camera3d::default(),
+            Camera::default(),
+            Transform::from_xyz(3.0, 4.0, 5.0),
+            GlobalTransform::from_xyz(3.0, 4.0, 5.0),
+        ));
+        app.add_plugins(
+            VisualValleyWeatherPlugin::new(
+                forge_world::embedded_visual_valley_weather_profile().unwrap(),
+            )
+            .with_initial_state(forge_project::WeatherState::Rain),
+        );
+        app.update();
+        app.world().resource::<WeatherProjectionStats>().clone()
+    }
+
+    struct SampleGate1Evidence {
+        visual_valley: VisualValleyStats,
+        shadow: VisualValleyShadowStats,
+        vegetation: VegetationProjectionStats,
+        scenery: SceneryProjectionStats,
+        environment: EnvironmentProjectionStats,
+        water: WaterProjectionStats,
+        weather: WeatherProjectionStats,
+        quality: VisualValleyQualityStats,
+    }
+
+    fn sample_gate1_evidence() -> SampleGate1Evidence {
+        let terrain = forge_world::embedded_visual_valley_terrain_document().unwrap();
+        let vegetation_document =
+            forge_world::embedded_visual_valley_vegetation_document().unwrap();
+        let mut vegetation = inspect_vegetation_projection(&terrain, &vegetation_document).unwrap();
+        vegetation.visibility.status =
+            VegetationVisibilityObservationStatus::ObservedSingleActiveCamera;
+        vegetation.visibility.observation_frames = 1;
+        vegetation.visibility.active_camera_views = 1;
+        let scenery = sample_activated_scenery(&terrain, &vegetation_document);
+        let quality = sample_applied_quality();
+        let visual_valley = VisualValleyStats {
+            source_hash: vegetation.terrain_document_hash.clone(),
+            chunks: 64,
+            vertices: 69_696,
+            triangles: 131_072,
+            material_layers: 3,
+            lod_levels: 1,
+            lod_zero_chunks: 64,
+        };
+        let shadow = VisualValleyShadowStats {
+            status: VisualValleyShadowObservationStatus::ObservedSingleSun,
+            sun_entities: 1,
+            shadow_maps_enabled: Some(true),
+            configured_maximum_distance_m: Some(
+                quality.requested_preset.shadows.maximum_distance_m,
+            ),
+            cascade_bounds_m: vec![24.0, 48.0, 80.0, 128.0],
+            evidence_source: "visual_valley_sun_cascade_shadow_component",
+        };
+        let water = sample_observed_water(terrain);
+        let weather = sample_observed_weather();
+        SampleGate1Evidence {
+            visual_valley,
+            shadow,
+            vegetation,
+            scenery,
+            environment: sample_environment_stats(),
+            water,
+            weather,
+            quality,
         }
+    }
+
+    fn build_sample_gate1_metrics(
+        samples: &[f64],
+        stats: &ProofSceneStats,
+        evidence: &SampleGate1Evidence,
+    ) -> Result<RuntimeMetricsReport, String> {
+        let gpu_memory = sample_gpu_memory();
+        let pipeline_warmup = sample_pipeline_warmup();
+        build_runtime_metrics(
+            samples,
+            stats,
+            true,
+            Some(&evidence.visual_valley),
+            Some(&evidence.shadow),
+            Some(&evidence.vegetation),
+            Some(&evidence.scenery),
+            Some(&evidence.environment),
+            Some(&evidence.water),
+            Some(&evidence.weather),
+            Some(&evidence.quality),
+            None,
+            &gpu_memory,
+            &pipeline_warmup,
+            &DiagnosticsStore::default(),
+            &WindowLifecycle::new(None, None),
+            None,
+        )
+    }
+
+    fn validate_sample_gate1_evidence(evidence: &SampleGate1Evidence) -> Result<(), String> {
+        validate_governed_gate1_evidence(
+            &[8.0; GATE1_MINIMUM_FRAME_SAMPLES],
+            Some(&evidence.visual_valley),
+            Some(&evidence.shadow),
+            Some(&evidence.vegetation),
+            Some(&evidence.scenery),
+            Some(&evidence.environment),
+            Some(&evidence.water),
+            Some(&evidence.weather),
+            Some(&evidence.quality),
+        )
     }
 
     #[test]
@@ -1574,8 +2150,8 @@ mod tests {
         let mut without_exit = FrameLedger::for_automation(&bounded_metrics_automation(2, None));
 
         for frame in 0..=32 {
-            without_metrics.record(frame, 8.0, true);
-            without_exit.record(frame, 8.0, true);
+            without_metrics.record(frame, 8.0, true, None);
+            without_exit.record(frame, 8.0, true, None);
         }
 
         assert!(without_metrics.samples_ms.is_empty());
@@ -1588,13 +2164,13 @@ mod tests {
     fn frame_ledger_records_the_exact_post_warmup_bounded_window_once() {
         let mut ledger = FrameLedger::for_automation(&bounded_metrics_automation(2, Some(5)));
 
-        ledger.record(2, 9.0, false);
-        ledger.record(3, 10.0, true);
-        ledger.record(3, 11.0, true);
-        ledger.record(4, f64::NAN, true);
-        ledger.record(4, 12.0, true);
-        ledger.record(5, 14.0, true);
-        ledger.record(6, 16.0, false);
+        ledger.record(2, 9.0, false, None);
+        ledger.record(3, 10.0, true, None);
+        ledger.record(3, 11.0, true, None);
+        ledger.record(4, f64::NAN, true, None);
+        ledger.record(4, 12.0, true, None);
+        ledger.record(5, 14.0, true, None);
+        ledger.record(6, 16.0, false, None);
 
         assert_eq!(ledger.first_frame, Some(3));
         assert_eq!(ledger.last_frame, Some(5));
@@ -1608,12 +2184,71 @@ mod tests {
     fn frame_ledger_detects_pipeline_warmup_during_measurement() {
         let mut ledger = FrameLedger::for_automation(&bounded_metrics_automation(2, Some(5)));
 
-        ledger.record(3, 10.0, true);
-        ledger.record(4, 11.0, false);
-        ledger.record(5, 12.0, true);
+        ledger.record(3, 10.0, true, None);
+        ledger.record(4, 11.0, false, None);
+        ledger.record(5, 12.0, true, None);
 
         assert_eq!(ledger.pipeline_ready_at_measurement_start, Some(true));
         assert!(!ledger.pipeline_ready_for_entire_measurement);
+        assert_eq!(
+            ledger.gate1_render_state_stable_at_measurement_start,
+            Some(true)
+        );
+        assert!(ledger.gate1_render_state_stable_for_entire_measurement);
+    }
+
+    #[test]
+    fn frame_ledger_rejects_a_gate1_render_state_transition_before_the_next_render_observation() {
+        let mut ledger = FrameLedger::for_automation(&bounded_metrics_automation(2, Some(5)));
+        let high = sample_gate1_render_state(forge_project::VisualQualityTier::High, 72.0, 180.0);
+        let low = sample_gate1_render_state(forge_project::VisualQualityTier::Low, 48.0, 128.0);
+
+        ledger.record(2, 9.0, true, Some(high));
+        ledger.record(3, 10.0, true, Some(high));
+        ledger.record(4, 11.0, true, Some(low));
+        ledger.record(5, 12.0, true, Some(low));
+
+        assert_eq!(ledger.pipeline_ready_at_measurement_start, Some(true));
+        assert!(ledger.pipeline_ready_for_entire_measurement);
+        assert_eq!(
+            ledger.gate1_render_state_stable_at_measurement_start,
+            Some(true)
+        );
+        assert!(!ledger.gate1_render_state_stable_for_entire_measurement);
+        let error = qualify_gate1_render_state_stability(
+            ledger.gate1_render_state_stable_at_measurement_start,
+            ledger.gate1_render_state_stable_for_entire_measurement,
+        )
+        .unwrap_err();
+        assert_eq!(
+            error,
+            "governed Gate 1 render-state fingerprint changed during performance measurement"
+        );
+    }
+
+    #[test]
+    fn frame_ledger_reports_a_gate1_fingerprint_that_was_not_stable_before_measurement() {
+        let mut ledger = FrameLedger::for_automation(&bounded_metrics_automation(2, Some(4)));
+        let high = sample_gate1_render_state(forge_project::VisualQualityTier::High, 72.0, 180.0);
+
+        ledger.record(3, 10.0, true, Some(high));
+        ledger.record(4, 11.0, true, Some(high));
+
+        assert_eq!(ledger.pipeline_ready_at_measurement_start, Some(true));
+        assert!(ledger.pipeline_ready_for_entire_measurement);
+        assert_eq!(
+            ledger.gate1_render_state_stable_at_measurement_start,
+            Some(false)
+        );
+        let error = qualify_gate1_render_state_stability(
+            ledger.gate1_render_state_stable_at_measurement_start,
+            ledger.gate1_render_state_stable_for_entire_measurement,
+        )
+        .unwrap_err();
+        assert_eq!(
+            error,
+            "governed Gate 1 render-state fingerprint was not stable before performance measurement"
+        );
     }
 
     #[test]
@@ -1653,6 +2288,7 @@ mod tests {
         let report = build_runtime_metrics(
             &samples,
             &stats,
+            false,
             None,
             None,
             None,
@@ -1710,49 +2346,36 @@ mod tests {
     }
 
     #[test]
-    fn gate1_metrics_preserve_machine_readable_scene_projections() {
+    fn terrain_only_metrics_do_not_invent_the_full_governed_gate1_contract() {
         let stats = ProofSceneStats {
             source_entities: 1,
-            source_mesh_instances: 64,
+            source_mesh_instances: 1,
             source_hash: "terrain".to_owned(),
         };
         let visual_valley = VisualValleyStats {
             source_hash: "terrain".to_owned(),
-            chunks: 64,
-            vertices: 69_696,
-            triangles: 131_072,
+            chunks: 1,
+            vertices: 3,
+            triangles: 1,
             material_layers: 3,
             lod_levels: 1,
-            lod_zero_chunks: 64,
+            lod_zero_chunks: 1,
         };
-        let terrain = forge_world::embedded_visual_valley_terrain_document().unwrap();
-        let vegetation_document =
-            forge_world::embedded_visual_valley_vegetation_document().unwrap();
-        let vegetation = inspect_vegetation_projection(&terrain, &vegetation_document).unwrap();
-        let scenery = sample_activated_scenery(&terrain, &vegetation_document);
-        let quality = sample_applied_quality();
-        let shadow = VisualValleyShadowStats {
-            status: VisualValleyShadowObservationStatus::ObservedSingleSun,
-            sun_entities: 1,
-            shadow_maps_enabled: Some(true),
-            configured_maximum_distance_m: Some(128.0),
-            cascade_bounds_m: vec![24.0, 48.0, 80.0, 128.0],
-            evidence_source: "visual_valley_sun_cascade_shadow_component",
-        };
-        let environment = sample_environment_stats();
         let gpu_memory = sample_gpu_memory();
         let pipeline_warmup = sample_pipeline_warmup();
+
         let report = build_runtime_metrics(
             &[8.0],
             &stats,
+            false,
             Some(&visual_valley),
-            Some(&shadow),
-            Some(&vegetation),
-            Some(&scenery),
-            Some(&environment),
             None,
             None,
-            Some(&quality),
+            None,
+            None,
+            None,
+            None,
+            None,
             None,
             &gpu_memory,
             &pipeline_warmup,
@@ -1763,13 +2386,45 @@ mod tests {
         .unwrap();
 
         assert_eq!(report.visual_valley, Some(visual_valley));
-        assert_eq!(report.visual_valley_shadow, Some(shadow));
-        assert_eq!(report.vegetation, Some(vegetation));
-        assert_eq!(report.scenery, Some(scenery));
-        assert_eq!(report.environment, Some(environment));
-        assert!(report.water.is_none());
-        assert!(report.weather.is_none());
-        assert_eq!(report.quality, Some(quality));
+        assert!(report.scenery.is_none());
+        assert!(report.quality.is_none());
+        assert_eq!(report.frame.samples, 1);
+    }
+
+    #[test]
+    fn gate1_metrics_preserve_machine_readable_scene_projections() {
+        let stats = ProofSceneStats {
+            source_entities: 1,
+            source_mesh_instances: 64,
+            source_hash: "terrain".to_owned(),
+        };
+        let evidence = sample_gate1_evidence();
+        let insufficient_window =
+            build_sample_gate1_metrics(&[8.0; GATE1_MINIMUM_FRAME_SAMPLES - 1], &stats, &evidence)
+                .unwrap_err();
+        assert!(
+            insufficient_window.contains("at least 120 post-warmup frame samples"),
+            "unexpected governed Gate 1 qualification error: {insufficient_window}"
+        );
+
+        let report =
+            build_sample_gate1_metrics(&[8.0; GATE1_MINIMUM_FRAME_SAMPLES], &stats, &evidence)
+                .unwrap();
+
+        assert_eq!(report.visual_valley.as_ref(), Some(&evidence.visual_valley));
+        assert_eq!(report.visual_valley_shadow.as_ref(), Some(&evidence.shadow));
+        assert_eq!(report.vegetation.as_ref(), Some(&evidence.vegetation));
+        assert_eq!(
+            serde_json::to_value(report.scenery.as_ref().unwrap()).unwrap(),
+            serde_json::to_value(&evidence.scenery).unwrap()
+        );
+        assert_eq!(report.environment.as_ref(), Some(&evidence.environment));
+        assert_eq!(report.water.as_ref(), Some(&evidence.water));
+        assert_eq!(report.weather.as_ref(), Some(&evidence.weather));
+        assert_eq!(
+            serde_json::to_value(report.quality.as_ref().unwrap()).unwrap(),
+            serde_json::to_value(&evidence.quality).unwrap()
+        );
         let serialized = serde_json::to_value(&report).unwrap();
         assert_eq!(serialized["visual_valley"]["chunks"], 64);
         assert_eq!(serialized["visual_valley"]["vertices"], 69_696);
@@ -1794,6 +2449,11 @@ mod tests {
             serialized["environment"]["volumetric"]["resolved_path"],
             "distance_fog_fallback"
         );
+        assert_eq!(
+            serialized["water"]["runtime_observation"],
+            "observed_main_world_components"
+        );
+        assert_eq!(serialized["weather"]["status"], "observed_cpu_projection");
     }
 
     #[test]
@@ -1803,71 +2463,204 @@ mod tests {
             source_mesh_instances: 1,
             source_hash: "terrain".to_owned(),
         };
-        let visual_valley = VisualValleyStats {
-            source_hash: "terrain".to_owned(),
-            chunks: 1,
-            vertices: 3,
-            triangles: 1,
-            material_layers: 3,
-            lod_levels: 1,
-            lod_zero_chunks: 1,
+        let mut evidence = sample_gate1_evidence();
+        let qualified_scenery = evidence.scenery.clone();
+        evidence.scenery.status = SceneryProjectionStatus::ProceduralFallbackLoadFailure;
+        evidence.scenery.failed_models = 1;
+        evidence.scenery.loaded_models = evidence.scenery.unique_models.saturating_sub(1);
+
+        let scenery_error =
+            build_sample_gate1_metrics(&[8.0; GATE1_MINIMUM_FRAME_SAMPLES], &stats, &evidence)
+                .unwrap_err();
+        assert!(
+            scenery_error.contains("scenery is not qualified"),
+            "unexpected governed Gate 1 qualification error: {scenery_error}"
+        );
+
+        evidence.scenery = qualified_scenery.clone();
+        evidence.scenery.loaded_models = 0;
+        evidence.scenery.unique_models = 0;
+        evidence.scenery.hidden_procedural_entities = 0;
+        evidence.scenery.replacement_instances = 0;
+        let structural_error =
+            build_sample_gate1_metrics(&[8.0; GATE1_MINIMUM_FRAME_SAMPLES], &stats, &evidence)
+                .unwrap_err();
+        assert!(
+            structural_error.contains("scenery is not qualified"),
+            "unexpected governed Gate 1 qualification error: {structural_error}"
+        );
+
+        evidence.scenery = qualified_scenery.clone();
+        evidence.quality.dynamically_applied_tier = None;
+        let quality_error =
+            build_sample_gate1_metrics(&[8.0; GATE1_MINIMUM_FRAME_SAMPLES], &stats, &evidence)
+                .unwrap_err();
+        assert!(
+            quality_error.contains("is not applied before metrics"),
+            "unexpected governed Gate 1 qualification error: {quality_error}"
+        );
+
+        evidence.quality = sample_applied_quality();
+        evidence.scenery = qualified_scenery;
+        evidence.scenery.replacement_lod_start_m += 1.0;
+        let lod_error =
+            build_sample_gate1_metrics(&[8.0; GATE1_MINIMUM_FRAME_SAMPLES], &stats, &evidence)
+                .unwrap_err();
+        assert!(
+            lod_error.contains("does not match applied"),
+            "unexpected governed Gate 1 qualification error: {lod_error}"
+        );
+    }
+
+    #[test]
+    fn governed_gate1_metrics_require_every_full_composition_projection() {
+        let evidence = sample_gate1_evidence();
+        let samples = [8.0; GATE1_MINIMUM_FRAME_SAMPLES];
+        let validate = |shadow: Option<&VisualValleyShadowStats>,
+                        vegetation: Option<&VegetationProjectionStats>,
+                        environment: Option<&EnvironmentProjectionStats>,
+                        water: Option<&WaterProjectionStats>,
+                        weather: Option<&WeatherProjectionStats>| {
+            validate_governed_gate1_evidence(
+                &samples,
+                Some(&evidence.visual_valley),
+                shadow,
+                vegetation,
+                Some(&evidence.scenery),
+                environment,
+                water,
+                weather,
+                Some(&evidence.quality),
+            )
         };
-        let terrain = forge_world::embedded_visual_valley_terrain_document().unwrap();
-        let vegetation = forge_world::embedded_visual_valley_vegetation_document().unwrap();
-        let mut scenery = sample_activated_scenery(&terrain, &vegetation);
-        scenery.status = SceneryProjectionStatus::ProceduralFallbackLoadFailure;
-        scenery.failed_models = 1;
-        scenery.loaded_models = scenery.unique_models.saturating_sub(1);
-        let quality = sample_applied_quality();
-        let gpu_memory = sample_gpu_memory();
-        let pipeline_warmup = sample_pipeline_warmup();
 
-        let scenery_error = build_runtime_metrics(
-            &[8.0],
-            &stats,
-            Some(&visual_valley),
-            None,
-            None,
-            Some(&scenery),
-            None,
-            None,
-            None,
-            Some(&quality),
-            None,
-            &gpu_memory,
-            &pipeline_warmup,
-            &DiagnosticsStore::default(),
-            &WindowLifecycle::new(None, None),
-            None,
-        )
-        .unwrap_err();
-        assert!(scenery_error.contains("scenery is not qualified"));
+        let missing = [
+            (
+                "VisualValleyShadowStats",
+                validate(
+                    None,
+                    Some(&evidence.vegetation),
+                    Some(&evidence.environment),
+                    Some(&evidence.water),
+                    Some(&evidence.weather),
+                ),
+            ),
+            (
+                "VegetationProjectionStats",
+                validate(
+                    Some(&evidence.shadow),
+                    None,
+                    Some(&evidence.environment),
+                    Some(&evidence.water),
+                    Some(&evidence.weather),
+                ),
+            ),
+            (
+                "EnvironmentProjectionStats",
+                validate(
+                    Some(&evidence.shadow),
+                    Some(&evidence.vegetation),
+                    None,
+                    Some(&evidence.water),
+                    Some(&evidence.weather),
+                ),
+            ),
+            (
+                "WaterProjectionStats",
+                validate(
+                    Some(&evidence.shadow),
+                    Some(&evidence.vegetation),
+                    Some(&evidence.environment),
+                    None,
+                    Some(&evidence.weather),
+                ),
+            ),
+            (
+                "WeatherProjectionStats",
+                validate(
+                    Some(&evidence.shadow),
+                    Some(&evidence.vegetation),
+                    Some(&evidence.environment),
+                    Some(&evidence.water),
+                    None,
+                ),
+            ),
+        ];
+        for (resource, result) in missing {
+            assert_eq!(
+                result.unwrap_err(),
+                format!("governed Gate 1 metrics require {resource}")
+            );
+        }
+    }
 
-        scenery.status = SceneryProjectionStatus::Activated;
-        scenery.failed_models = 0;
-        scenery.loaded_models = scenery.unique_models;
-        let mut unapplied_quality = quality;
-        unapplied_quality.dynamically_applied_tier = None;
-        let quality_error = build_runtime_metrics(
-            &[8.0],
-            &stats,
-            Some(&visual_valley),
-            None,
-            None,
-            Some(&scenery),
-            None,
-            None,
-            None,
-            Some(&unapplied_quality),
-            None,
-            &gpu_memory,
-            &pipeline_warmup,
-            &DiagnosticsStore::default(),
-            &WindowLifecycle::new(None, None),
-            None,
-        )
-        .unwrap_err();
-        assert!(quality_error.contains("is not applied before metrics"));
+    #[test]
+    fn governed_gate1_metrics_reject_unobserved_or_cross_document_evidence() {
+        let mut evidence = sample_gate1_evidence();
+
+        evidence.visual_valley.chunks = 0;
+        let valley_error = validate_sample_gate1_evidence(&evidence).unwrap_err();
+        assert!(valley_error.contains("Visual Valley evidence is not qualified"));
+        evidence.visual_valley.chunks = 64;
+
+        evidence.shadow.status = VisualValleyShadowObservationStatus::NotObserved;
+        let shadow_error = validate_sample_gate1_evidence(&evidence).unwrap_err();
+        assert!(shadow_error.contains("shadow evidence is not qualified"));
+        evidence.shadow.status = VisualValleyShadowObservationStatus::ObservedSingleSun;
+
+        evidence.vegetation.visibility.status = VegetationVisibilityObservationStatus::NotObserved;
+        let vegetation_error = validate_sample_gate1_evidence(&evidence).unwrap_err();
+        assert!(vegetation_error.contains("vegetation evidence is not qualified"));
+        evidence.vegetation.visibility.status =
+            VegetationVisibilityObservationStatus::ObservedSingleActiveCamera;
+        evidence.vegetation.terrain_document_hash = "different-terrain".to_owned();
+        let vegetation_hash_error = validate_sample_gate1_evidence(&evidence).unwrap_err();
+        assert!(vegetation_hash_error.contains("terrain_hash_match=false"));
+        evidence.vegetation.terrain_document_hash = evidence.visual_valley.source_hash.clone();
+
+        evidence.environment.status = EnvironmentProjectionStatus::IncompleteComponents;
+        let environment_error = validate_sample_gate1_evidence(&evidence).unwrap_err();
+        assert!(environment_error.contains("environment evidence is not qualified"));
+        evidence.environment.status = EnvironmentProjectionStatus::ObservedApproximation;
+
+        evidence.water.runtime_observation = WaterRuntimeObservationStatus::NotObserved;
+        let water_error = validate_sample_gate1_evidence(&evidence).unwrap_err();
+        assert!(water_error.contains("water evidence is not qualified"));
+        evidence.water.runtime_observation =
+            WaterRuntimeObservationStatus::ObservedMainWorldComponents;
+        evidence.water.terrain_source_hash = "different-terrain".to_owned();
+        let water_hash_error = validate_sample_gate1_evidence(&evidence).unwrap_err();
+        assert!(water_hash_error.contains("terrain_hash_match=false"));
+        evidence.water.terrain_source_hash = evidence.visual_valley.source_hash.clone();
+
+        evidence.weather.status = WeatherProjectionStatus::NotObserved;
+        let weather_error = validate_sample_gate1_evidence(&evidence).unwrap_err();
+        assert!(weather_error.contains("weather evidence is not qualified"));
+        evidence.weather.status = WeatherProjectionStatus::ObservedCpuProjection;
+
+        evidence.quality.field_projections.pop();
+        let quality_count_error = validate_sample_gate1_evidence(&evidence).unwrap_err();
+        assert!(quality_count_error.contains("quality projection ledger is not qualified"));
+        evidence.quality = sample_applied_quality();
+        let duplicate_field = evidence.quality.field_projections[0].field;
+        evidence.quality.field_projections[1].field = duplicate_field;
+        let quality_unique_error = validate_sample_gate1_evidence(&evidence).unwrap_err();
+        assert!(quality_unique_error.contains("unique_and_described=false"));
+        evidence.quality = sample_applied_quality();
+        evidence.quality.field_projections[0].field = "vegetation.substituted_field";
+        let quality_field_contract_error = validate_sample_gate1_evidence(&evidence).unwrap_err();
+        assert!(quality_field_contract_error.contains("exact_contract=false"));
+        evidence.quality = sample_applied_quality();
+        let transition_status = evidence.quality.field_projections[0].status;
+        evidence.quality.field_projections[0].status =
+            evidence.quality.field_projections[15].status;
+        evidence.quality.field_projections[15].status = transition_status;
+        let quality_status_contract_error = validate_sample_gate1_evidence(&evidence).unwrap_err();
+        assert!(quality_status_contract_error.contains("exact_contract=false"));
+        evidence.quality = sample_applied_quality();
+        evidence.quality.profile_hash.clear();
+        let quality_hash_error = validate_sample_gate1_evidence(&evidence).unwrap_err();
+        assert!(quality_hash_error.contains("profile_hash_present=false"));
     }
 
     #[test]

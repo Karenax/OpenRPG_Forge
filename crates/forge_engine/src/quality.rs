@@ -485,68 +485,164 @@ fn next_higher(tier: VisualQualityTier, maximum: VisualQualityTier) -> Option<Vi
     (candidate <= maximum).then_some(candidate)
 }
 
-fn quality_field_projections() -> Vec<QualityFieldProjection> {
-    use QualityFieldProjectionStatus::{AppliedAtStartup, AppliedOnTierTransition, NotApplicable};
-    let mut fields = Vec::new();
-    for field in [
+pub(crate) const QUALITY_FIELD_PROJECTION_CONTRACT: [(&str, QualityFieldProjectionStatus); 34] = [
+    (
         "vegetation.near_lod_distance_m",
+        QualityFieldProjectionStatus::AppliedOnTierTransition,
+    ),
+    (
         "vegetation.medium_lod_distance_m",
+        QualityFieldProjectionStatus::AppliedOnTierTransition,
+    ),
+    (
         "vegetation.hlod_distance_m",
+        QualityFieldProjectionStatus::AppliedOnTierTransition,
+    ),
+    (
         "vegetation.cull_distance_m",
+        QualityFieldProjectionStatus::AppliedOnTierTransition,
+    ),
+    (
         "shadows.enabled",
+        QualityFieldProjectionStatus::AppliedOnTierTransition,
+    ),
+    (
         "shadows.cascade_count",
+        QualityFieldProjectionStatus::AppliedOnTierTransition,
+    ),
+    (
         "shadows.map_resolution",
+        QualityFieldProjectionStatus::AppliedOnTierTransition,
+    ),
+    (
         "shadows.maximum_distance_m",
+        QualityFieldProjectionStatus::AppliedOnTierTransition,
+    ),
+    (
         "shadows.contact_shadows_enabled",
+        QualityFieldProjectionStatus::AppliedOnTierTransition,
+    ),
+    (
         "water.reflection",
+        QualityFieldProjectionStatus::AppliedOnTierTransition,
+    ),
+    (
         "water.reflection_steps",
+        QualityFieldProjectionStatus::AppliedOnTierTransition,
+    ),
+    (
         "rain.enabled",
+        QualityFieldProjectionStatus::AppliedOnTierTransition,
+    ),
+    (
         "post_process.bloom_enabled",
+        QualityFieldProjectionStatus::AppliedOnTierTransition,
+    ),
+    (
         "post_process.color_grading_enabled",
+        QualityFieldProjectionStatus::AppliedOnTierTransition,
+    ),
+    (
         "post_process.tonemapping_enabled",
-    ] {
-        fields.push(QualityFieldProjection {
-            field,
-            status: AppliedOnTierTransition,
-            evidence: "main_world_component_projection_gpu_execution_not_observed",
-        });
-    }
-    for field in [
+        QualityFieldProjectionStatus::AppliedOnTierTransition,
+    ),
+    (
         "vegetation.grass_blades_per_patch",
+        QualityFieldProjectionStatus::AppliedAtStartup,
+    ),
+    (
         "environment.atmosphere_enabled",
+        QualityFieldProjectionStatus::AppliedAtStartup,
+    ),
+    (
         "environment.environment_map_resolution",
+        QualityFieldProjectionStatus::AppliedAtStartup,
+    ),
+    (
         "rain.drop_budget",
+        QualityFieldProjectionStatus::AppliedAtStartup,
+    ),
+    (
         "rain.wetness_enabled",
-    ] {
-        fields.push(QualityFieldProjection {
-            field,
-            status: AppliedAtStartup,
-            evidence: "startup_projection_requires_resource_or_mesh_rebuild_for_later_tiers",
-        });
-    }
-    for field in [
+        QualityFieldProjectionStatus::AppliedAtStartup,
+    ),
+    (
         "terrain.lod0_distance_m",
+        QualityFieldProjectionStatus::NotApplicable,
+    ),
+    (
         "terrain.lod1_distance_m",
+        QualityFieldProjectionStatus::NotApplicable,
+    ),
+    (
         "terrain.lod2_distance_m",
+        QualityFieldProjectionStatus::NotApplicable,
+    ),
+    (
         "terrain.cull_distance_m",
+        QualityFieldProjectionStatus::NotApplicable,
+    ),
+    (
         "terrain.lod1_sample_stride",
+        QualityFieldProjectionStatus::NotApplicable,
+    ),
+    (
         "terrain.lod2_sample_stride",
+        QualityFieldProjectionStatus::NotApplicable,
+    ),
+    (
         "vegetation.density_multiplier",
+        QualityFieldProjectionStatus::NotApplicable,
+    ),
+    (
         "environment.volumetric_fog_enabled",
+        QualityFieldProjectionStatus::NotApplicable,
+    ),
+    (
         "environment.volumetric_fog_step_count",
+        QualityFieldProjectionStatus::NotApplicable,
+    ),
+    (
         "environment.volumetric_fog_max_distance_m",
+        QualityFieldProjectionStatus::NotApplicable,
+    ),
+    (
         "water.reflection_max_distance_m",
+        QualityFieldProjectionStatus::NotApplicable,
+    ),
+    (
         "water.refraction",
+        QualityFieldProjectionStatus::NotApplicable,
+    ),
+    (
         "water.refraction_steps",
+        QualityFieldProjectionStatus::NotApplicable,
+    ),
+    (
         "water.refraction_max_depth_m",
-    ] {
-        fields.push(QualityFieldProjection {
+        QualityFieldProjectionStatus::NotApplicable,
+    ),
+];
+
+fn quality_field_projections() -> Vec<QualityFieldProjection> {
+    QUALITY_FIELD_PROJECTION_CONTRACT
+        .iter()
+        .map(|(field, status)| QualityFieldProjection {
             field,
-            status: NotApplicable,
-            evidence: "no_qualified_runtime_mapping_in_current_bevy_adapter",
-        });
-    }
-    fields
+            status: *status,
+            evidence: match status {
+                QualityFieldProjectionStatus::AppliedAtStartup => {
+                    "startup_projection_requires_resource_or_mesh_rebuild_for_later_tiers"
+                }
+                QualityFieldProjectionStatus::AppliedOnTierTransition => {
+                    "main_world_component_projection_gpu_execution_not_observed"
+                }
+                QualityFieldProjectionStatus::NotApplicable => {
+                    "no_qualified_runtime_mapping_in_current_bevy_adapter"
+                }
+            },
+        })
+        .collect()
 }
 
 #[cfg(test)]

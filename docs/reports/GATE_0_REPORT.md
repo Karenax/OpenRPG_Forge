@@ -213,7 +213,7 @@ Ce résultat n'est pas un échec de tests Forge : aucun checkout, toolchain, bui
 exécuté. Il ne prouve toutefois ni Linux ni un environnement GitHub Windows/WASM. L'exception expire
 dès le retour des runners et reste automatiquement invalide avant toute distribution.
 
-## Revues humaines différées et défaut visuel connu
+## Revues humaines différées et résolution candidate de `G0-UI-001`
 
 Conformément à l'ordre explicite du propriétaire et à ADR-0005, restent à réaliser :
 
@@ -225,9 +225,29 @@ Conformément à l'ordre explicite du propriétaire et à ADR-0005, restent à r
 Une inspection technique automatisée de la capture Tauri a relevé le défaut `G0-UI-001` : plusieurs
 glyphes de l'overlay Bevy/WASM sont rendus en carrés tofu, notamment les séparateurs `·` et le `é` de
 `entités`. Le shell HTML reste lisible et les pixels WebGPU, les métriques et l'ACL sont acquis ; ce
-défaut ne renverse donc pas le passage automatisé local de la fondation. Sa cause probable est une
-couverture de police/glyphes incomplète, à confirmer. Il doit être corrigé puis vérifié humainement
-avant de prétendre passer la revue visuelle comparative de Gate 1.
+défaut ne renverse donc pas le passage automatisé local de la fondation. L'analyse du code candidat
+a confirmé la cause : l'overlay `Text` utilise la fonte Bevy par défaut, limitée à l'ASCII, alors que
+les textes de diagnostic contenaient des caractères Unicode.
+
+Le worktree d'intégration contient un correctif sans ajout d'asset : la chaîne finale de l'overlay est
+normalisée en ASCII et tout caractère non ASCII est remplacé par `?`. La campagne exécutée sur l'état
+courant apporte les preuves automatisées suivantes :
+
+| Contrôle du correctif glyphes/overlay ASCII | Résultat courant |
+|---|---|
+| suite `forge_engine` | **PASS — 117/117**, dont les assertions `is_ascii()` des overlays Gate 0 et Gate 1 |
+| suite `forge_runtime` | **PASS — 30/30** |
+| suite `forge_studio` | **PASS — 29/29** |
+| check WASM exact courant | **PASS — 6.83 s** |
+| formatage et contrôle du diff | **PASS** |
+| Clippy strict exact | **PASS — 11.27 s** |
+| smokes du candidat courant natif / Browser WebGPU | **NOT RUN** |
+
+`G0-UI-001` passe donc au statut **CORRECTIF — TESTS/FMT/DIFF/WASM/CLIPPY PASS ; REVUE HUMAINE
+DIFFÉRÉE**. Il s'agit de preuves du worktree courant, pas d'un replay commit-bound. Les smokes du
+candidat courant natif et Browser WebGPU restent **NOT RUN** ; aucune nouvelle capture native ou
+Tauri et aucune revue humaine n'ont été acquises. Le check WASM ne vaut pas preuve visuelle. Les
+ledgers historiques et les dérogations d'ADR-0005 restent inchangés.
 
 La revue humaine comparative de Gate 1 n'est couverte par aucune dérogation Gate 0.
 
@@ -256,6 +276,7 @@ La revue humaine comparative de Gate 1 n'est couverte par aucune dérogation Gat
 | capture complète Tauri commit-bound | PASS ACQUISITION | PNG/ledger v2, HWND/PID exacts, hashes et schémas valides |
 | vrai compteur global de draw calls | PASS PAR EXCEPTION | indisponibilité explicite et bornée par ADR-0004 ; aucun nombre inventé |
 | décision Studio | PASS DÉCISION | Tauri/Leptos/WebGPU confirmé par ADR-0005 |
+| `G0-UI-001` glyphes tofu | TESTS/FMT/DIFF/WASM/CLIPPY PASS | `forge_engine` 117/117 dont overlays Gate 0/Gate 1 `is_ascii()`, `forge_runtime` 30/30, `forge_studio` 29/29, check WASM 6.83 s, Clippy strict 11.27 s ; smokes du candidat courant natif/Browser WebGPU NOT RUN, aucune nouvelle capture ni revue humaine |
 | revue humaine Gate 0 | DIFFÉRÉE | dette `G0-HR-001` à `003`, champs ledger inchangés |
 | CI distante Windows/Linux/WASM/supply-chain | NOT RUN | zéro étape, facturation ; exception temporaire ADR-0006 |
 | aucun asset/dépendance runtime Cadle | PASS | clone absent du worktree de preuve, zéro fichier suivi |
@@ -267,5 +288,6 @@ Gate 0 est **PASSÉE SUR PREUVES AUTOMATISÉES LOCALES** au commit
 ADR-0004, ADR-0005 et ADR-0006. Gate 1 devient la gate active.
 
 Ce verdict n'autorise pas à écrire « CI verte », « revue visuelle passée », « draw calls livrés » ou
-« distribution qualifiée ». Les revues humaines, le défaut de glyphes tofu, les preuves distantes et
-les blocages de distribution restent visibles et doivent être repris au moment indiqué.
+« distribution qualifiée ». Les revues humaines, les smokes du candidat courant natif/Browser WebGPU
+toujours NOT RUN, l'absence de nouvelle capture qualifiée, les preuves distantes et les blocages de
+distribution restent visibles et doivent être repris au moment indiqué.

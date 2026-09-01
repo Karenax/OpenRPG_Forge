@@ -1,9 +1,9 @@
 use forge_core::{FrameDistribution as CoreFrameDistribution, FrameTimeHistogram};
 use serde::{Deserialize, Serialize};
 
-#[cfg(all(target_arch = "wasm32", feature = "web"))]
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
 pub const FRAME_WARMUP_SAMPLES: usize = 60;
-#[cfg(all(target_arch = "wasm32", feature = "web"))]
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
 pub const FRAME_MEASURED_SAMPLES: usize = 120;
 pub const TAURI_DENIED_COMMAND: &str = "plugin:window|set_title";
 
@@ -328,6 +328,8 @@ pub struct ViewportReadyEvent {
     pub weather_target_state: Option<String>,
     pub quality_current_tier: Option<crate::VisualQualityTier>,
     pub quality_applied_tier: Option<crate::VisualQualityTier>,
+    pub quality_replacement_lod_start_m: Option<f32>,
+    pub quality_replacement_lod_end_m: Option<f32>,
     pub scenery_observation: Option<crate::StudioSceneryRuntimeObservation>,
     pub gpu_presentation: crate::StudioGpuPresentationStatus,
 }

@@ -208,6 +208,11 @@ fn add_runtime_plugin(
             weather,
             quality,
         } => {
+            let governed_metrics_required = vegetation.is_some()
+                && environment.is_some()
+                && water.is_some()
+                && weather.is_some()
+                && quality.is_some();
             let player_profile = player_camera.is_enabled().then(|| {
                 embedded_visual_valley_player_controller_profile().unwrap_or_else(|error| {
                     panic!("embedded Visual Valley player-controller profile is invalid: {error}")
@@ -260,6 +265,9 @@ fn add_runtime_plugin(
             let mut visual_valley = VisualValleyPlugin::new(document)
                 .with_automation(automation)
                 .with_chunk_lod_gizmos(terrain_debug.is_enabled());
+            if governed_metrics_required {
+                visual_valley = visual_valley.with_governed_metrics_required();
+            }
             if let Some(profile) = player_profile {
                 visual_valley = visual_valley
                     .with_player_controller(profile)

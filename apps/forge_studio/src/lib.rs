@@ -402,9 +402,165 @@ pub struct StudioSceneRuntimeObservation {
     pub weather_target_state: Option<String>,
     pub quality_current_tier: Option<VisualQualityTier>,
     pub quality_applied_tier: Option<VisualQualityTier>,
+    pub quality_replacement_lod_start_m: Option<f32>,
+    pub quality_replacement_lod_end_m: Option<f32>,
     pub scenery_observation: Option<StudioSceneryRuntimeObservation>,
     pub gpu_presentation: StudioGpuPresentationStatus,
     pub evidence_source: String,
+}
+
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+struct FrameQualityFingerprint {
+    scene: StudioScene,
+    current_tier: Option<VisualQualityTier>,
+    applied_tier: Option<VisualQualityTier>,
+    quality_lod_start_bits: Option<u32>,
+    quality_lod_end_bits: Option<u32>,
+    scenery_lod_start_bits: Option<u32>,
+    scenery_lod_end_bits: Option<u32>,
+}
+
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+impl FrameQualityFingerprint {
+    const fn gate0() -> Self {
+        Self {
+            scene: StudioScene::Gate0,
+            current_tier: None,
+            applied_tier: None,
+            quality_lod_start_bits: None,
+            quality_lod_end_bits: None,
+            scenery_lod_start_bits: None,
+            scenery_lod_end_bits: None,
+        }
+    }
+
+    fn visual_valley(
+        current_tier: Option<VisualQualityTier>,
+        applied_tier: Option<VisualQualityTier>,
+        quality_lod_start_m: Option<f32>,
+        quality_lod_end_m: Option<f32>,
+        scenery_lod_start_m: Option<f32>,
+        scenery_lod_end_m: Option<f32>,
+    ) -> Self {
+        Self {
+            scene: StudioScene::VisualValley,
+            current_tier,
+            applied_tier,
+            quality_lod_start_bits: quality_lod_start_m.map(f32::to_bits),
+            quality_lod_end_bits: quality_lod_end_m.map(f32::to_bits),
+            scenery_lod_start_bits: scenery_lod_start_m.map(f32::to_bits),
+            scenery_lod_end_bits: scenery_lod_end_m.map(f32::to_bits),
+        }
+    }
+
+    fn is_converged(self) -> bool {
+        match self.scene {
+            StudioScene::Gate0 => {
+                self.current_tier.is_none()
+                    && self.applied_tier.is_none()
+                    && self.quality_lod_start_bits.is_none()
+                    && self.quality_lod_end_bits.is_none()
+                    && self.scenery_lod_start_bits.is_none()
+                    && self.scenery_lod_end_bits.is_none()
+            }
+            StudioScene::VisualValley => {
+                self.current_tier.is_some()
+                    && self.current_tier == self.applied_tier
+                    && valid_fingerprint_lod_range(
+                        self.quality_lod_start_bits,
+                        self.quality_lod_end_bits,
+                    )
+                    && valid_fingerprint_lod_range(
+                        self.scenery_lod_start_bits,
+                        self.scenery_lod_end_bits,
+                    )
+                    && self.quality_lod_start_bits == self.scenery_lod_start_bits
+                    && self.quality_lod_end_bits == self.scenery_lod_end_bits
+            }
+        }
+    }
+}
+
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+fn valid_fingerprint_lod_range(start_bits: Option<u32>, end_bits: Option<u32>) -> bool {
+    let (Some(start_bits), Some(end_bits)) = (start_bits, end_bits) else {
+        return false;
+    };
+    let start_m = f32::from_bits(start_bits);
+    let end_m = f32::from_bits(end_bits);
+    start_m.is_finite() && end_m.is_finite() && start_m > 0.0 && end_m >= start_m
+}
+
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum FrameSamplingProgress {
+    Reset,
+    WarmingUp,
+    Measuring,
+    Complete,
+}
+
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+#[derive(Debug)]
+struct StableQualityFrameWindow {
+    fingerprint: Option<FrameQualityFingerprint>,
+    warmup_samples: usize,
+    samples_ms: Vec<f64>,
+}
+
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+impl StableQualityFrameWindow {
+    fn new() -> Self {
+        Self {
+            fingerprint: None,
+            warmup_samples: 0,
+            samples_ms: Vec::with_capacity(telemetry::FRAME_MEASURED_SAMPLES),
+        }
+    }
+
+    fn record_frame(
+        &mut self,
+        fingerprint: FrameQualityFingerprint,
+        delta_ms: f64,
+    ) -> FrameSamplingProgress {
+        let fingerprint_changed = self.fingerprint.is_some_and(|stable| stable != fingerprint);
+        if !delta_ms.is_finite()
+            || delta_ms <= 0.0
+            || !fingerprint.is_converged()
+            || fingerprint_changed
+        {
+            self.reset();
+            return FrameSamplingProgress::Reset;
+        }
+        if self.fingerprint.is_none() {
+            self.fingerprint = Some(fingerprint);
+        }
+        if self.warmup_samples < telemetry::FRAME_WARMUP_SAMPLES {
+            self.warmup_samples += 1;
+            return FrameSamplingProgress::WarmingUp;
+        }
+        self.samples_ms.push(delta_ms);
+        if self.samples_ms.len() < telemetry::FRAME_MEASURED_SAMPLES {
+            FrameSamplingProgress::Measuring
+        } else {
+            FrameSamplingProgress::Complete
+        }
+    }
+
+    fn reset(&mut self) {
+        self.fingerprint = None;
+        self.warmup_samples = 0;
+        self.samples_ms.clear();
+    }
+
+    const fn warmup_samples(&self) -> usize {
+        self.warmup_samples
+    }
+
+    fn samples_ms(&self) -> &[f64] {
+        &self.samples_ms
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -426,7 +582,7 @@ impl StudioSceneTelemetry {
     pub fn new(selection: StudioSceneSelection, selected_manifest: StudioSceneManifest) -> Self {
         Self {
             schema: "forge.studio-scene-telemetry".to_owned(),
-            schema_version: 6,
+            schema_version: 7,
             selection,
             selected_manifest,
             runtime_manifest: None,
@@ -489,6 +645,18 @@ fn validate_runtime_contract(
     runtime: &StudioSceneManifest,
     observation: &StudioSceneRuntimeObservation,
 ) -> Result<(), String> {
+    validate_runtime_timestamps(observation)?;
+    validate_runtime_manifest(selected, runtime)?;
+    validate_runtime_camera_topology(selected, observation)?;
+
+    if selected.scene == StudioScene::VisualValley {
+        validate_visual_valley_runtime_contract(selected, runtime, observation)
+    } else {
+        validate_gate0_quality_contract(observation)
+    }
+}
+
+fn validate_runtime_timestamps(observation: &StudioSceneRuntimeObservation) -> Result<(), String> {
     if !observation.first_real_frame_ms.is_finite()
         || !observation.runtime_ready_ms.is_finite()
         || observation.first_real_frame_ms < 0.0
@@ -496,6 +664,13 @@ fn validate_runtime_contract(
     {
         return Err("horodatages runtime non finis, négatifs ou désordonnés".to_owned());
     }
+    Ok(())
+}
+
+fn validate_runtime_manifest(
+    selected: &StudioSceneManifest,
+    runtime: &StudioSceneManifest,
+) -> Result<(), String> {
     let quality_tier_mismatch = selected.quality_tier != runtime.quality_tier
         && selected.quality_selection != Some(StudioQualitySelection::Adaptive);
     if selected.mode != runtime.mode
@@ -518,6 +693,13 @@ fn validate_runtime_contract(
             runtime.weather_state, selected.weather_state
         ));
     }
+    Ok(())
+}
+
+fn validate_runtime_camera_topology(
+    selected: &StudioSceneManifest,
+    observation: &StudioSceneRuntimeObservation,
+) -> Result<(), String> {
     if observation.camera_3d_entities != selected.expected_active_camera_count
         || observation.active_camera_3d_entities != selected.expected_active_camera_count
     {
@@ -528,88 +710,158 @@ fn validate_runtime_contract(
             selected.expected_active_camera_count
         ));
     }
-    if selected.scene == StudioScene::VisualValley {
-        if selected.source_hashes.quality.is_none()
-            || selected.quality_selection.is_none()
-            || selected.quality_tier.is_none()
-        {
-            return Err("profil qualité absent de la sélection Visual Valley".to_owned());
-        }
-        if selected.source_hashes.scenery.is_none() {
-            return Err("hash du manifeste de décor CC0 absent de la sélection".to_owned());
-        }
-        let Some(runtime_quality_tier) = runtime.quality_tier else {
-            return Err("tier qualité absent du manifeste runtime Visual Valley".to_owned());
-        };
-        if observation.quality_current_tier != Some(runtime_quality_tier)
-            || observation.quality_applied_tier != Some(runtime_quality_tier)
-        {
-            return Err(format!(
-                "application qualité runtime invalide : tier courant={:?}, appliqué={:?}, manifeste={runtime_quality_tier:?}",
-                observation.quality_current_tier, observation.quality_applied_tier
-            ));
-        }
-        if observation.water_observation.as_deref() != Some("observed_main_world_components") {
-            return Err(format!(
-                "projection eau invalide : {}",
-                observation
-                    .water_observation
-                    .as_deref()
-                    .unwrap_or("not_observed")
-            ));
-        }
-        if observation.weather_observation.as_deref() != Some("observed_cpu_projection") {
-            return Err(format!(
-                "projection météo invalide : {}",
-                observation
-                    .weather_observation
-                    .as_deref()
-                    .unwrap_or("not_observed")
-            ));
-        }
-        let expected_weather = selected.weather_state.map(weather_state_label_contract);
-        if observation.weather_target_state.as_deref() != expected_weather {
-            return Err(format!(
-                "cible météo runtime invalide : {} (attendu {})",
-                observation
-                    .weather_target_state
-                    .as_deref()
-                    .unwrap_or("not_observed"),
-                expected_weather.unwrap_or("not_applicable")
-            ));
-        }
-        let Some(scenery) = observation.scenery_observation.as_ref() else {
-            return Err("projection décor CC0 not_observed".to_owned());
-        };
-        if scenery.status != "activated"
-            || scenery.failed_models != 0
-            || scenery.unique_models == 0
-            || scenery.loaded_models != scenery.unique_models
-            || scenery.replacement_instances == 0
-            || scenery.hidden_procedural_entities != scenery.replacement_instances
-            || scenery.tracked_files == 0
-            || scenery.tracked_bytes == 0
-            || !scenery.replacement_lod_start_m.is_finite()
-            || !scenery.replacement_lod_end_m.is_finite()
-            || !scenery.detail_cull_distance_m.is_finite()
-            || scenery.replacement_lod_start_m <= 0.0
-            || scenery.replacement_lod_end_m < scenery.replacement_lod_start_m
-            || scenery.detail_cull_distance_m <= 0.0
-        {
-            return Err(format!(
-                "projection décor CC0 invalide : statut={}, modèles={}/{}, échecs={}, remplacements cachés={}/{}, manifeste={} fichiers/{} octets",
-                scenery.status,
-                scenery.loaded_models,
-                scenery.unique_models,
-                scenery.failed_models,
-                scenery.hidden_procedural_entities,
-                scenery.replacement_instances,
-                scenery.tracked_files,
-                scenery.tracked_bytes
-            ));
-        }
-    } else if observation.quality_current_tier.is_some()
+    Ok(())
+}
+
+fn validate_visual_valley_runtime_contract(
+    selected: &StudioSceneManifest,
+    runtime: &StudioSceneManifest,
+    observation: &StudioSceneRuntimeObservation,
+) -> Result<(), String> {
+    validate_visual_valley_selection(selected)?;
+    let quality_lod_range = validate_visual_valley_quality(runtime, observation)?;
+    validate_visual_valley_water_and_weather(selected, observation)?;
+    validate_visual_valley_scenery(observation, quality_lod_range)
+}
+
+fn validate_visual_valley_selection(selected: &StudioSceneManifest) -> Result<(), String> {
+    if selected.source_hashes.quality.is_none()
+        || selected.quality_selection.is_none()
+        || selected.quality_tier.is_none()
+    {
+        return Err("profil qualité absent de la sélection Visual Valley".to_owned());
+    }
+    if selected.source_hashes.scenery.is_none() {
+        return Err("hash du manifeste de décor CC0 absent de la sélection".to_owned());
+    }
+    Ok(())
+}
+
+fn validate_visual_valley_quality(
+    runtime: &StudioSceneManifest,
+    observation: &StudioSceneRuntimeObservation,
+) -> Result<(f32, f32), String> {
+    let Some(runtime_quality_tier) = runtime.quality_tier else {
+        return Err("tier qualité absent du manifeste runtime Visual Valley".to_owned());
+    };
+    if observation.quality_current_tier != Some(runtime_quality_tier)
+        || observation.quality_applied_tier != Some(runtime_quality_tier)
+    {
+        return Err(format!(
+            "application qualité runtime invalide : tier courant={:?}, appliqué={:?}, manifeste={runtime_quality_tier:?}",
+            observation.quality_current_tier, observation.quality_applied_tier
+        ));
+    }
+    let Some(quality_lod_start_m) = observation.quality_replacement_lod_start_m else {
+        return Err("LOD de remplacement attendu du preset qualité absent".to_owned());
+    };
+    let Some(quality_lod_end_m) = observation.quality_replacement_lod_end_m else {
+        return Err("HLOD de remplacement attendu du preset qualité absent".to_owned());
+    };
+    if !quality_lod_start_m.is_finite()
+        || !quality_lod_end_m.is_finite()
+        || quality_lod_start_m <= 0.0
+        || quality_lod_end_m < quality_lod_start_m
+    {
+        return Err(format!(
+            "plage LOD du preset qualité invalide : {quality_lod_start_m}-{quality_lod_end_m} m"
+        ));
+    }
+    Ok((quality_lod_start_m, quality_lod_end_m))
+}
+
+fn validate_visual_valley_water_and_weather(
+    selected: &StudioSceneManifest,
+    observation: &StudioSceneRuntimeObservation,
+) -> Result<(), String> {
+    if observation.water_observation.as_deref() != Some("observed_main_world_components") {
+        return Err(format!(
+            "projection eau invalide : {}",
+            observation
+                .water_observation
+                .as_deref()
+                .unwrap_or("not_observed")
+        ));
+    }
+    if observation.weather_observation.as_deref() != Some("observed_cpu_projection") {
+        return Err(format!(
+            "projection météo invalide : {}",
+            observation
+                .weather_observation
+                .as_deref()
+                .unwrap_or("not_observed")
+        ));
+    }
+    let expected_weather = selected.weather_state.map(weather_state_label_contract);
+    if observation.weather_target_state.as_deref() != expected_weather {
+        return Err(format!(
+            "cible météo runtime invalide : {} (attendu {})",
+            observation
+                .weather_target_state
+                .as_deref()
+                .unwrap_or("not_observed"),
+            expected_weather.unwrap_or("not_applicable")
+        ));
+    }
+    Ok(())
+}
+
+fn validate_visual_valley_scenery(
+    observation: &StudioSceneRuntimeObservation,
+    quality_lod_range: (f32, f32),
+) -> Result<(), String> {
+    let Some(scenery) = observation.scenery_observation.as_ref() else {
+        return Err("projection décor CC0 not_observed".to_owned());
+    };
+    if scenery.status != "activated"
+        || scenery.failed_models != 0
+        || scenery.unique_models == 0
+        || scenery.loaded_models != scenery.unique_models
+        || scenery.replacement_instances == 0
+        || scenery.hidden_procedural_entities != scenery.replacement_instances
+        || scenery.tracked_files == 0
+        || scenery.tracked_bytes == 0
+        || !scenery.replacement_lod_start_m.is_finite()
+        || !scenery.replacement_lod_end_m.is_finite()
+        || !scenery.detail_cull_distance_m.is_finite()
+        || scenery.replacement_lod_start_m <= 0.0
+        || scenery.replacement_lod_end_m < scenery.replacement_lod_start_m
+        || scenery.detail_cull_distance_m <= 0.0
+    {
+        return Err(format!(
+            "projection décor CC0 invalide : statut={}, modèles={}/{}, échecs={}, remplacements cachés={}/{}, manifeste={} fichiers/{} octets",
+            scenery.status,
+            scenery.loaded_models,
+            scenery.unique_models,
+            scenery.failed_models,
+            scenery.hidden_procedural_entities,
+            scenery.replacement_instances,
+            scenery.tracked_files,
+            scenery.tracked_bytes
+        ));
+    }
+    let (quality_lod_start_m, quality_lod_end_m) = quality_lod_range;
+    if scenery.replacement_lod_start_m.to_bits() != quality_lod_start_m.to_bits()
+        || scenery.replacement_lod_end_m.to_bits() != quality_lod_end_m.to_bits()
+    {
+        return Err(format!(
+            "plage LOD du décor CC0 {}-{} m divergente du preset qualité {}-{} m",
+            scenery.replacement_lod_start_m,
+            scenery.replacement_lod_end_m,
+            quality_lod_start_m,
+            quality_lod_end_m
+        ));
+    }
+    Ok(())
+}
+
+fn validate_gate0_quality_contract(
+    observation: &StudioSceneRuntimeObservation,
+) -> Result<(), String> {
+    if observation.quality_current_tier.is_some()
         || observation.quality_applied_tier.is_some()
+        || observation.quality_replacement_lod_start_m.is_some()
+        || observation.quality_replacement_lod_end_m.is_some()
     {
         return Err(
             "la preuve Gate 0 doit conserver les tiers qualité à not_applicable".to_owned(),
@@ -956,13 +1208,14 @@ fn validate_selection_response(
 mod web {
     use super::telemetry::{
         AllowedCommandProbeStatus, BrowserMemoryObservation, DeniedCommandProbeStatus,
-        FRAME_MEASURED_SAMPLES, FRAME_WARMUP_SAMPLES, FrameDistribution, Gate0ProbeMode,
-        Gate0StudioLedger, RuntimeTelemetryEvent, StudioTelemetryTarget, TAURI_DENIED_COMMAND,
-        ViewportFailureEvent, ViewportObservation, ViewportReadyEvent, WebGpuProbeStatus,
-        is_explicit_acl_denial, parse_gate0_probe,
+        FRAME_MEASURED_SAMPLES, FrameDistribution, Gate0ProbeMode, Gate0StudioLedger,
+        RuntimeTelemetryEvent, StudioTelemetryTarget, TAURI_DENIED_COMMAND, ViewportFailureEvent,
+        ViewportObservation, ViewportReadyEvent, WebGpuProbeStatus, is_explicit_acl_denial,
+        parse_gate0_probe,
     };
     use super::{
-        EntityId, LoadedStudioScene, StudioCommand, StudioGpuPresentationStatus,
+        EntityId, FrameQualityFingerprint, FrameSamplingProgress, LoadedStudioScene,
+        StableQualityFrameWindow, StudioCommand, StudioGpuPresentationStatus,
         StudioQualitySelection, StudioResponse, StudioScene, StudioSceneManifest,
         StudioSceneParityStatus, StudioSceneRuntimeObservation, StudioSceneSourceHashes,
         StudioSceneTelemetry, StudioSceneryRuntimeObservation, StudioViewportMode,
@@ -1412,6 +1665,8 @@ mod web {
             weather_target_state: ready.weather_target_state.clone(),
             quality_current_tier: ready.quality_current_tier,
             quality_applied_tier: ready.quality_applied_tier,
+            quality_replacement_lod_start_m: ready.quality_replacement_lod_start_m,
+            quality_replacement_lod_end_m: ready.quality_replacement_lod_end_m,
             scenery_observation: ready.scenery_observation.clone(),
             gpu_presentation: ready.gpu_presentation,
             evidence_source: "bevy_main_world_cpu_ecs_projection_observed_not_gpu_presentation"
@@ -2068,6 +2323,7 @@ mod web {
             .with_initial_state(weather_state)
             .with_quality_preset(preset.clone(), startup_tier);
         let visual_valley = VisualValleyPlugin::new(terrain.clone())
+            .with_governed_metrics_required()
             .with_player_controller(player_controller)
             .with_player_interactive_input(false);
         app.add_plugins(visual_valley)
@@ -2088,8 +2344,8 @@ mod web {
         projection_wait_started_ms: Option<f64>,
         first_real_frame_ms: Option<f64>,
         ready_reported: bool,
-        warmup_samples: usize,
-        samples_ms: Vec<f64>,
+        viewport_start_counted: bool,
+        sampling_window: StableQualityFrameWindow,
         metrics_reported: bool,
     }
 
@@ -2100,8 +2356,8 @@ mod web {
                 projection_wait_started_ms: None,
                 first_real_frame_ms: None,
                 ready_reported: false,
-                warmup_samples: 0,
-                samples_ms: Vec::with_capacity(FRAME_MEASURED_SAMPLES),
+                viewport_start_counted: false,
+                sampling_window: StableQualityFrameWindow::new(),
                 metrics_reported: false,
             }
         }
@@ -2114,6 +2370,8 @@ mod web {
         weather_target_state: Option<String>,
         quality_current_tier: Option<VisualQualityTier>,
         quality_applied_tier: Option<VisualQualityTier>,
+        quality_replacement_lod_start_m: Option<f32>,
+        quality_replacement_lod_end_m: Option<f32>,
         scenery_observation: Option<StudioSceneryRuntimeObservation>,
     }
 
@@ -2175,6 +2433,8 @@ mod web {
                     weather_target_state: None,
                     quality_current_tier: None,
                     quality_applied_tier: None,
+                    quality_replacement_lod_start_m: None,
+                    quality_replacement_lod_end_m: None,
                     scenery_observation: None,
                 }))
             }
@@ -2270,6 +2530,12 @@ mod web {
             weather_target_state: Some(weather_state_label(weather.target_state).to_owned()),
             quality_current_tier: Some(quality.current_tier),
             quality_applied_tier: quality.dynamically_applied_tier,
+            quality_replacement_lod_start_m: Some(
+                quality.requested_preset.vegetation.medium_lod_distance_m,
+            ),
+            quality_replacement_lod_end_m: Some(
+                quality.requested_preset.vegetation.hlod_distance_m,
+            ),
             scenery_observation: Some(StudioSceneryRuntimeObservation {
                 status: scenery_observation_label(scenery.status).to_owned(),
                 loaded_models: scenery.loaded_models,
@@ -2379,6 +2645,23 @@ mod web {
             }
             Some(_) => {}
         }
+        if let (Some(scenery), Some(quality)) = (resources.scenery, resources.quality)
+            && quality.dynamically_applied_tier == Some(quality.current_tier)
+            && (scenery.replacement_lod_start_m.to_bits()
+                != quality
+                    .requested_preset
+                    .vegetation
+                    .medium_lod_distance_m
+                    .to_bits()
+                || scenery.replacement_lod_end_m.to_bits()
+                    != quality
+                        .requested_preset
+                        .vegetation
+                        .hlod_distance_m
+                        .to_bits())
+        {
+            pending.push("SceneryProjectionStats.quality_lod_range");
+        }
         pending
     }
 
@@ -2467,7 +2750,11 @@ mod web {
         };
         let runtime_ready_ms = performance_now();
         let first_real_frame_ms = collector.first_real_frame_ms.unwrap_or(runtime_ready_ms);
-        VIEWPORT_STARTS.fetch_add(1, Ordering::SeqCst);
+        if !collector.viewport_start_counted {
+            VIEWPORT_STARTS.fetch_add(1, Ordering::SeqCst);
+            collector.viewport_start_counted = true;
+        }
+        collector.projection_wait_started_ms = None;
         let ready = ViewportReadyEvent {
             recorded_at_utc: recorded_at_utc(),
             first_real_frame_ms,
@@ -2481,6 +2768,8 @@ mod web {
             weather_target_state: observed.weather_target_state,
             quality_current_tier: observed.quality_current_tier,
             quality_applied_tier: observed.quality_applied_tier,
+            quality_replacement_lod_start_m: observed.quality_replacement_lod_start_m,
+            quality_replacement_lod_end_m: observed.quality_replacement_lod_end_m,
             scenery_observation: observed.scenery_observation,
             gpu_presentation: StudioGpuPresentationStatus::NotObserved,
         };
@@ -2492,6 +2781,24 @@ mod web {
         }
         collector.ready_reported = true;
         true
+    }
+
+    fn current_frame_quality_fingerprint(
+        scene: StudioScene,
+        quality: Option<&VisualValleyQualityStats>,
+        scenery: Option<&SceneryProjectionStats>,
+    ) -> FrameQualityFingerprint {
+        match scene {
+            StudioScene::Gate0 => FrameQualityFingerprint::gate0(),
+            StudioScene::VisualValley => FrameQualityFingerprint::visual_valley(
+                quality.map(|stats| stats.current_tier),
+                quality.and_then(|stats| stats.dynamically_applied_tier),
+                quality.map(|stats| stats.requested_preset.vegetation.medium_lod_distance_m),
+                quality.map(|stats| stats.requested_preset.vegetation.hlod_distance_m),
+                scenery.map(|stats| stats.replacement_lod_start_m),
+                scenery.map(|stats| stats.replacement_lod_end_m),
+            ),
+        }
     }
 
     #[allow(
@@ -2546,18 +2853,28 @@ mod web {
                 return;
             }
         }
-        if collector.warmup_samples < FRAME_WARMUP_SAMPLES {
-            collector.warmup_samples += 1;
-            return;
-        }
-        collector.samples_ms.push(delta_ms);
-        if collector.samples_ms.len() < FRAME_MEASURED_SAMPLES {
-            return;
+        let fingerprint = current_frame_quality_fingerprint(
+            collector.scene,
+            quality.as_deref(),
+            scenery.as_deref(),
+        );
+        match collector
+            .sampling_window
+            .record_frame(fingerprint, delta_ms)
+        {
+            FrameSamplingProgress::Reset => {
+                collector.ready_reported = false;
+                collector.projection_wait_started_ms = None;
+                return;
+            }
+            FrameSamplingProgress::WarmingUp | FrameSamplingProgress::Measuring => return,
+            FrameSamplingProgress::Complete => {}
         }
 
-        let Some(frame) =
-            FrameDistribution::from_samples(collector.warmup_samples, &collector.samples_ms)
-        else {
+        let Some(frame) = FrameDistribution::from_samples(
+            collector.sampling_window.warmup_samples(),
+            collector.sampling_window.samples_ms(),
+        ) else {
             web_sys::console::error_1(&JsValue::from_str(
                 "Gate 0 frame telemetry contained invalid samples",
             ));
@@ -2947,7 +3264,7 @@ mod tests {
             .unwrap();
         let mut telemetry = StudioSceneTelemetry::new(selection, manifest.clone());
 
-        assert_eq!(telemetry.schema_version, 6);
+        assert_eq!(telemetry.schema_version, 7);
 
         assert_eq!(
             telemetry.parity_status,
@@ -2973,6 +3290,8 @@ mod tests {
                 weather_target_state: Some("rain".to_owned()),
                 quality_current_tier: Some(VisualQualityTier::High),
                 quality_applied_tier: Some(VisualQualityTier::High),
+                quality_replacement_lod_start_m: Some(72.0),
+                quality_replacement_lod_end_m: Some(180.0),
                 scenery_observation: Some(valid_studio_scenery_observation()),
                 gpu_presentation: StudioGpuPresentationStatus::NotObserved,
                 evidence_source: "synthetic_test_not_webgpu_execution".to_owned(),
@@ -3011,12 +3330,114 @@ mod tests {
         let mut observation = valid_visual_valley_runtime_observation();
         observation.quality_current_tier = Some(VisualQualityTier::Medium);
         observation.quality_applied_tier = Some(VisualQualityTier::Medium);
+        observation.quality_replacement_lod_start_m = Some(60.0);
+        observation.quality_replacement_lod_end_m = Some(160.0);
+        if let Some(scenery) = observation.scenery_observation.as_mut() {
+            scenery.replacement_lod_start_m = 60.0;
+            scenery.replacement_lod_end_m = 160.0;
+        }
         telemetry.observe_runtime(runtime, observation);
 
         assert_eq!(
             telemetry.parity_status,
             StudioSceneParityStatus::SourceManifestMatched
         );
+    }
+
+    #[test]
+    fn adaptive_transition_near_frame_90_restarts_the_entire_sampling_window() {
+        const ADAPTIVE_TRANSITION_FRAME: usize = 90;
+        let high = FrameQualityFingerprint::visual_valley(
+            Some(VisualQualityTier::High),
+            Some(VisualQualityTier::High),
+            Some(72.0),
+            Some(180.0),
+            Some(72.0),
+            Some(180.0),
+        );
+        let transitioning = FrameQualityFingerprint::visual_valley(
+            Some(VisualQualityTier::Medium),
+            Some(VisualQualityTier::High),
+            Some(60.0),
+            Some(160.0),
+            Some(72.0),
+            Some(180.0),
+        );
+        let medium = FrameQualityFingerprint::visual_valley(
+            Some(VisualQualityTier::Medium),
+            Some(VisualQualityTier::Medium),
+            Some(60.0),
+            Some(160.0),
+            Some(60.0),
+            Some(160.0),
+        );
+        let mut window = StableQualityFrameWindow::new();
+
+        for frame_index in 0..ADAPTIVE_TRANSITION_FRAME {
+            let progress = window.record_frame(high, 10.0);
+            if frame_index < telemetry::FRAME_WARMUP_SAMPLES {
+                assert_eq!(progress, FrameSamplingProgress::WarmingUp);
+            } else {
+                assert_eq!(progress, FrameSamplingProgress::Measuring);
+            }
+        }
+        assert_eq!(window.warmup_samples(), telemetry::FRAME_WARMUP_SAMPLES);
+        assert_eq!(
+            window.samples_ms().len(),
+            ADAPTIVE_TRANSITION_FRAME - telemetry::FRAME_WARMUP_SAMPLES
+        );
+
+        assert_eq!(
+            window.record_frame(transitioning, 11.0),
+            FrameSamplingProgress::Reset
+        );
+        assert_eq!(window.warmup_samples(), 0);
+        assert!(window.samples_ms().is_empty());
+
+        let mut atomic_transition = StableQualityFrameWindow::new();
+        assert_eq!(
+            atomic_transition.record_frame(high, 10.0),
+            FrameSamplingProgress::WarmingUp
+        );
+        assert_eq!(
+            atomic_transition.record_frame(medium, 20.0),
+            FrameSamplingProgress::Reset
+        );
+
+        for frame_index in 0..(telemetry::FRAME_WARMUP_SAMPLES + telemetry::FRAME_MEASURED_SAMPLES)
+        {
+            let progress = window.record_frame(medium, 20.0);
+            let expected = if frame_index < telemetry::FRAME_WARMUP_SAMPLES {
+                FrameSamplingProgress::WarmingUp
+            } else if frame_index + 1
+                < telemetry::FRAME_WARMUP_SAMPLES + telemetry::FRAME_MEASURED_SAMPLES
+            {
+                FrameSamplingProgress::Measuring
+            } else {
+                FrameSamplingProgress::Complete
+            };
+            assert_eq!(progress, expected);
+        }
+        assert_eq!(window.warmup_samples(), telemetry::FRAME_WARMUP_SAMPLES);
+        assert_eq!(window.samples_ms().len(), telemetry::FRAME_MEASURED_SAMPLES);
+        assert!(
+            window
+                .samples_ms()
+                .iter()
+                .all(|sample| sample.to_bits() == 20.0_f64.to_bits())
+        );
+    }
+
+    #[test]
+    fn gate0_sampling_fingerprint_remains_converged_without_quality_resources() {
+        let mut window = StableQualityFrameWindow::new();
+
+        assert_eq!(
+            window.record_frame(FrameQualityFingerprint::gate0(), 16.0),
+            FrameSamplingProgress::WarmingUp
+        );
+        assert_eq!(window.warmup_samples(), 1);
+        assert!(window.samples_ms().is_empty());
     }
 
     #[test]
@@ -3040,6 +3461,8 @@ mod tests {
                 weather_target_state: None,
                 quality_current_tier: None,
                 quality_applied_tier: None,
+                quality_replacement_lod_start_m: None,
+                quality_replacement_lod_end_m: None,
                 scenery_observation: None,
                 gpu_presentation: StudioGpuPresentationStatus::NotObserved,
                 evidence_source: "synthetic_gate0_contract_regression".to_owned(),
@@ -3056,6 +3479,8 @@ mod tests {
         assert!((runtime.runtime_ready_ms - 13.0).abs() < f64::EPSILON);
         assert_eq!(runtime.quality_current_tier, None);
         assert_eq!(runtime.quality_applied_tier, None);
+        assert_eq!(runtime.quality_replacement_lod_start_m, None);
+        assert_eq!(runtime.quality_replacement_lod_end_m, None);
         assert_eq!(
             runtime.gpu_presentation,
             StudioGpuPresentationStatus::NotObserved
@@ -3077,6 +3502,8 @@ mod tests {
                 weather_target_state: None,
                 quality_current_tier: None,
                 quality_applied_tier: None,
+                quality_replacement_lod_start_m: None,
+                quality_replacement_lod_end_m: None,
                 scenery_observation: None,
                 gpu_presentation: StudioGpuPresentationStatus::NotObserved,
                 evidence_source: "synthetic_gate0_contract_mismatch".to_owned(),
@@ -3100,6 +3527,8 @@ mod tests {
             weather_target_state: Some("rain".to_owned()),
             quality_current_tier: Some(VisualQualityTier::High),
             quality_applied_tier: Some(VisualQualityTier::High),
+            quality_replacement_lod_start_m: Some(72.0),
+            quality_replacement_lod_end_m: Some(180.0),
             scenery_observation: Some(valid_studio_scenery_observation()),
             gpu_presentation: StudioGpuPresentationStatus::NotObserved,
             evidence_source: "synthetic_headless_contract_test".to_owned(),
@@ -3213,6 +3642,39 @@ mod tests {
                 .failure_reason
                 .as_deref()
                 .is_some_and(|reason| reason.contains("qualité"))
+        );
+    }
+
+    #[test]
+    fn headless_runtime_scenery_lod_must_match_the_applied_quality_preset() {
+        let selected = visual_valley_rain_manifest();
+        let runtime = selected.clone();
+        let mut observation = valid_visual_valley_runtime_observation();
+        observation
+            .scenery_observation
+            .as_mut()
+            .unwrap()
+            .replacement_lod_start_m = 73.0;
+        let mut telemetry = StudioSceneTelemetry::new(
+            StudioSceneSelection {
+                scene: StudioScene::VisualValley,
+                source: StudioSceneSelectionSource::QueryString,
+                requested_value: Some("visual-valley".to_owned()),
+            },
+            selected,
+        );
+
+        telemetry.observe_runtime(runtime, observation);
+
+        assert_eq!(
+            telemetry.parity_status,
+            StudioSceneParityStatus::RuntimeContractMismatch
+        );
+        assert!(
+            telemetry
+                .failure_reason
+                .as_deref()
+                .is_some_and(|reason| reason.contains("plage LOD"))
         );
     }
 
