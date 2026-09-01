@@ -876,12 +876,13 @@ fn water_camera_pose(
     ];
     let (camera_xz, height) = candidates
         .into_iter()
-        .find_map(|candidate| {
+        .filter_map(|candidate| {
             terrain
                 .height_at(candidate.x, candidate.y)
                 .ok()
                 .map(|height| (candidate, height))
         })
+        .max_by(|(_, left_height), (_, right_height)| left_height.total_cmp(right_height))
         .ok_or_else(|| "proof water camera cannot be placed inside the terrain".to_owned())?;
     Ok(CameraPose {
         translation: Vec3::new(camera_xz.x, height + eye_height_m, camera_xz.y),
@@ -1306,6 +1307,63 @@ mod tests {
                 plugin.configuration.water_pose.target.x,
                 plugin.configuration.water_pose.target.z
             ) <= 4.0
+        );
+        let water_pose = plugin.configuration.water_pose;
+        let water_replay = water_camera_pose(
+            plan,
+            &water,
+            player.camera.eye_height_m,
+            player.camera.first_person_vertical_fov_degrees,
+        )
+        .unwrap();
+        let samples = sample_river_centerline(&water).unwrap();
+        let (focus_index, focus) = samples
+            .iter()
+            .enumerate()
+            .min_by(|(_, left), (_, right)| {
+                water_anchor_distance_squared(left.center_m.x, left.center_m.z).total_cmp(
+                    &water_anchor_distance_squared(right.center_m.x, right.center_m.z),
+                )
+            })
+            .unwrap();
+        let previous = samples[focus_index.saturating_sub(1)].center_m;
+        let next = samples[(focus_index + 1).min(samples.len() - 1)].center_m;
+        let tangent = Vec2::new(next.x - previous.x, next.z - previous.z).normalize();
+        let normal = Vec2::new(-tangent.y, tangent.x);
+        let expected_camera = [
+            Vec2::new(focus.center_m.x, focus.center_m.z) + normal * WATER_VIEW_DISTANCE_M,
+            Vec2::new(focus.center_m.x, focus.center_m.z) - normal * WATER_VIEW_DISTANCE_M,
+        ]
+        .into_iter()
+        .filter_map(|candidate| {
+            plan.height_at(candidate.x, candidate.y)
+                .ok()
+                .map(|height| (candidate, height))
+        })
+        .max_by(|(_, left_height), (_, right_height)| left_height.total_cmp(right_height))
+        .unwrap();
+        assert_eq!(
+            [water_pose.translation.x, water_pose.translation.z].map(f32::to_bits),
+            expected_camera.0.to_array().map(f32::to_bits)
+        );
+        assert_eq!(
+            water_pose.translation.y.to_bits(),
+            (expected_camera.1 + player.camera.eye_height_m).to_bits()
+        );
+        assert!(
+            ((water_pose.translation.xz() - water_pose.target.xz()).length()
+                - WATER_VIEW_DISTANCE_M)
+                .abs()
+                < 1.0e-4
+        );
+        assert!((water_pose.target - water_pose.translation).normalize().y < 0.0);
+        assert_eq!(
+            water_pose.translation.to_array().map(f32::to_bits),
+            water_replay.translation.to_array().map(f32::to_bits)
+        );
+        assert_eq!(
+            water_pose.target.to_array().map(f32::to_bits),
+            water_replay.target.to_array().map(f32::to_bits)
         );
         assert_eq!(plugin.configuration.terrain_hash.len(), 64);
         assert_eq!(plugin.configuration.water_hash.len(), 64);
