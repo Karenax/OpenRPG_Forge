@@ -9,10 +9,11 @@ use bevy::{
     shader::ShaderRef,
 };
 use forge_project::{
-    QualityWaterReflection, ResolvedWaterReflectionPath, ResolvedWaterRefractionPath,
-    TerrainDocument, VisualQualityPreset, WaterDocument, WaterDocumentError,
-    WaterOpticsCapabilities, WaterOpticsCapabilityStatus, WaterOpticsResolution,
-    WaterReflectionProfile, WaterRefractionProfile,
+    QualityWaterReflection, QualityWaterRefraction, ResolvedWaterReflectionPath,
+    ResolvedWaterRefractionPath, TerrainDocument, VisualQualityPreset, VisualQualityTier,
+    WaterDocument, WaterDocumentError, WaterOpticsCapabilities, WaterOpticsCapabilityStatus,
+    WaterOpticsResolution, WaterQualitySettings, WaterQualityTier, WaterReflectionProfile,
+    WaterRefractionProfile,
 };
 use forge_world::{
     RiverCenterlineSample, TerrainGenerationError, TerrainGenerationPlan, sample_river_centerline,
@@ -137,6 +138,11 @@ pub struct WaterProjectionStats {
     pub evidence_source: &'static str,
 }
 
+#[derive(Clone, Resource)]
+pub(crate) struct VisualValleyWaterProfile {
+    pub(crate) document: WaterDocument,
+}
+
 #[derive(Clone, Copy, Component, Debug, Eq, PartialEq)]
 pub struct VisualValleyWaterSurface;
 
@@ -234,7 +240,7 @@ impl WaterRuntimeState {
 pub struct VisualValleyWaterPlugin {
     terrain: TerrainDocument,
     water: WaterDocument,
-    quality: Option<VisualQualityPreset>,
+    quality: Option<(VisualQualityPreset, VisualQualityTier)>,
 }
 
 impl VisualValleyWaterPlugin {
@@ -249,8 +255,12 @@ impl VisualValleyWaterPlugin {
 
     /// Applies the screen-space reflection path and step budget for the startup tier.
     #[must_use]
-    pub fn with_quality_preset(mut self, preset: VisualQualityPreset) -> Self {
-        self.quality = Some(preset);
+    pub fn with_quality_preset(
+        mut self,
+        preset: VisualQualityPreset,
+        tier: VisualQualityTier,
+    ) -> Self {
+        self.quality = Some((preset, tier));
         self
     }
 }
@@ -261,15 +271,10 @@ impl Plugin for VisualValleyWaterPlugin {
             prepare_water_surface(&self.terrain, &self.water).unwrap_or_else(|error| {
                 panic!("VisualValleyWaterPlugin requires compatible terrain and water: {error}")
             });
-        if let Some(quality) = &self.quality {
-            prepared.ssr = match quality.water.reflection {
-                QualityWaterReflection::ScreenSpace => prepared.ssr.map(|mut settings| {
-                    settings.linear_steps = u32::from(quality.water.reflection_steps);
-                    settings
-                }),
-                QualityWaterReflection::Disabled | QualityWaterReflection::Environment => None,
-            };
-            prepared.stats.requested_ssr_component_prepared = prepared.ssr.is_some();
+        if let Some((quality, tier)) = &self.quality {
+            apply_quality_optics_projection(&mut prepared.stats, &self.water, quality.water, *tier);
+            prepared.ssr =
+                prepare_resolved_ssr(&self.water, prepared.stats.resolved_optics.reflection);
         }
         let stats = prepared.stats.clone();
         let ssr = prepared.ssr.clone();
@@ -277,6 +282,9 @@ impl Plugin for VisualValleyWaterPlugin {
 
         embedded_asset!(app, "shaders/visual_valley_water.wgsl");
         app.insert_resource(stats)
+            .insert_resource(VisualValleyWaterProfile {
+                document: self.water.clone(),
+            })
             .insert_resource(WaterRuntimeState::from_profile(&self.water))
             .insert_resource(WaterMaterialProjection(material_projection))
             .insert_resource(PreparedWaterSurface(Some(prepared)))
@@ -1201,6 +1209,141 @@ const fn bevy_water_optics_capabilities() -> WaterOpticsCapabilities {
     }
 }
 
+pub(crate) const fn quality_water_tier(tier: VisualQualityTier) -> WaterQualityTier {
+    match tier {
+        VisualQualityTier::Low => WaterQualityTier::Low,
+        VisualQualityTier::Medium => WaterQualityTier::Medium,
+        VisualQualityTier::High => WaterQualityTier::High,
+        VisualQualityTier::Ultra => WaterQualityTier::Ultra,
+    }
+}
+
+fn resolve_quality_optics(
+    quality: WaterQualitySettings,
+    tier: VisualQualityTier,
+    capabilities: WaterOpticsCapabilities,
+) -> WaterOpticsResolution {
+    let (reflection, reflection_fallback_used) = match quality.reflection {
+        QualityWaterReflection::Disabled => (ResolvedWaterReflectionPath::Disabled, false),
+        QualityWaterReflection::Environment => {
+            if capabilities.environment_reflections == WaterOpticsCapabilityStatus::Available {
+                (ResolvedWaterReflectionPath::Environment, false)
+            } else {
+                (ResolvedWaterReflectionPath::Disabled, true)
+            }
+        }
+        QualityWaterReflection::ScreenSpace => {
+            if capabilities.screen_space_reflections == WaterOpticsCapabilityStatus::Available {
+                (
+                    ResolvedWaterReflectionPath::ScreenSpace {
+                        max_steps: quality.reflection_steps,
+                    },
+                    false,
+                )
+            } else if capabilities.environment_reflections == WaterOpticsCapabilityStatus::Available
+            {
+                (ResolvedWaterReflectionPath::Environment, true)
+            } else {
+                (ResolvedWaterReflectionPath::Disabled, true)
+            }
+        }
+    };
+    let (refraction, refraction_fallback_used) = match quality.refraction {
+        QualityWaterRefraction::Disabled => (ResolvedWaterRefractionPath::Disabled, false),
+        QualityWaterRefraction::SurfaceTint => (ResolvedWaterRefractionPath::SurfaceTint, false),
+        QualityWaterRefraction::ScreenSpace => {
+            if capabilities.screen_space_refraction == WaterOpticsCapabilityStatus::Available {
+                (
+                    ResolvedWaterRefractionPath::ScreenSpace {
+                        max_steps: quality.refraction_steps,
+                    },
+                    false,
+                )
+            } else {
+                (ResolvedWaterRefractionPath::SurfaceTint, true)
+            }
+        }
+    };
+    WaterOpticsResolution {
+        requested_quality: quality_water_tier(tier),
+        capabilities,
+        reflection,
+        refraction,
+        reflection_fallback_used,
+        refraction_fallback_used,
+    }
+}
+
+pub(crate) fn apply_quality_optics_projection(
+    stats: &mut WaterProjectionStats,
+    water: &WaterDocument,
+    quality: WaterQualitySettings,
+    tier: VisualQualityTier,
+) {
+    let resolved = resolve_quality_optics(quality, tier, stats.resolved_optics.capabilities);
+    let (authored_reflection_intensity, _) = requested_reflection_parameters(water);
+    stats.requested_reflection_intensity = match quality.reflection {
+        QualityWaterReflection::Disabled => None,
+        QualityWaterReflection::Environment | QualityWaterReflection::ScreenSpace => {
+            authored_reflection_intensity
+        }
+    };
+    stats.requested_reflection_max_distance_m = match quality.reflection {
+        QualityWaterReflection::ScreenSpace => Some(quality.reflection_max_distance_m),
+        QualityWaterReflection::Disabled | QualityWaterReflection::Environment => None,
+    };
+    stats.reflection_intensity_status = match (quality.reflection, resolved.reflection) {
+        (QualityWaterReflection::Disabled, _) => "quality_profile_disabled",
+        (_, ResolvedWaterReflectionPath::Disabled) => {
+            "quality_profile_requested_unavailable_resolved_disabled"
+        }
+        (_, ResolvedWaterReflectionPath::Environment) => {
+            "quality_profile_environment_path_cpu_configured_gpu_not_observed"
+        }
+        (_, ResolvedWaterReflectionPath::ScreenSpace { .. }) => {
+            "quality_profile_screen_space_path_cpu_configured_gpu_not_observed"
+        }
+    };
+    stats.reflection_max_distance_status = match quality.reflection {
+        QualityWaterReflection::ScreenSpace => {
+            "quality_profile_screen_space_distance_requested_gpu_not_observed"
+        }
+        QualityWaterReflection::Disabled | QualityWaterReflection::Environment => "not_applicable",
+    };
+    stats.requested_refraction_strength = match quality.refraction {
+        QualityWaterRefraction::Disabled => None,
+        QualityWaterRefraction::SurfaceTint | QualityWaterRefraction::ScreenSpace => {
+            requested_refraction_strength(water)
+        }
+    };
+    stats.applied_surface_tint_strength = matches!(
+        resolved.refraction,
+        ResolvedWaterRefractionPath::SurfaceTint
+    )
+    .then_some(stats.requested_refraction_strength)
+    .flatten();
+    stats.refraction_status = match (quality.refraction, resolved.refraction) {
+        (QualityWaterRefraction::Disabled, _) => "quality_profile_disabled",
+        (QualityWaterRefraction::SurfaceTint, ResolvedWaterRefractionPath::SurfaceTint) => {
+            "quality_profile_surface_tint_applied"
+        }
+        (QualityWaterRefraction::ScreenSpace, ResolvedWaterRefractionPath::SurfaceTint) => {
+            "quality_profile_screen_space_unavailable_resolved_surface_tint"
+        }
+        (_, ResolvedWaterRefractionPath::Disabled) => {
+            "quality_profile_requested_unavailable_resolved_disabled"
+        }
+        (_, ResolvedWaterRefractionPath::ScreenSpace { .. }) => {
+            "quality_profile_screen_space_path_cpu_configured_gpu_not_observed"
+        }
+    };
+    stats.requested_ssr_component_prepared = matches!(
+        resolved.reflection,
+        ResolvedWaterReflectionPath::ScreenSpace { .. }
+    );
+    stats.resolved_optics = resolved;
+}
+
 fn prepare_resolved_ssr(
     water: &WaterDocument,
     resolved: ResolvedWaterReflectionPath,
@@ -1711,6 +1854,55 @@ mod tests {
             "not_observed_by_water_metrics"
         );
         assert!(serialized.get("draw_calls").is_none());
+    }
+
+    #[test]
+    fn quality_optics_projection_tracks_all_four_tiers_without_inventing_gpu_paths() {
+        let quality = VisualValleyQualityProfileDocument::from_json(include_str!(
+            "../../../examples/visual_valley/quality-profile.v1.json"
+        ))
+        .unwrap();
+        let water = embedded_visual_valley_water_document().unwrap();
+        for (tier, expected, expected_distance, refraction_fallback) in [
+            (VisualQualityTier::Low, WaterQualityTier::Low, None, false),
+            (
+                VisualQualityTier::Medium,
+                WaterQualityTier::Medium,
+                Some(64.0),
+                false,
+            ),
+            (
+                VisualQualityTier::High,
+                WaterQualityTier::High,
+                Some(96.0),
+                true,
+            ),
+            (
+                VisualQualityTier::Ultra,
+                WaterQualityTier::Ultra,
+                Some(128.0),
+                true,
+            ),
+        ] {
+            let mut stats = prepared().stats;
+            apply_quality_optics_projection(&mut stats, &water, quality.preset(tier).water, tier);
+            assert_eq!(stats.resolved_optics.requested_quality, expected);
+            assert_eq!(stats.requested_reflection_max_distance_m, expected_distance);
+            assert_eq!(
+                stats.resolved_optics.reflection,
+                ResolvedWaterReflectionPath::Disabled
+            );
+            assert!(stats.resolved_optics.reflection_fallback_used);
+            assert_eq!(
+                stats.resolved_optics.refraction,
+                ResolvedWaterRefractionPath::SurfaceTint
+            );
+            assert_eq!(
+                stats.resolved_optics.refraction_fallback_used,
+                refraction_fallback
+            );
+            assert!(!stats.requested_ssr_component_prepared);
+        }
     }
 
     #[test]

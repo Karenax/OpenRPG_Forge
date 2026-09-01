@@ -1446,6 +1446,7 @@ fn validate_governed_gate1_evidence(
     validate_gate1_weather_evidence(weather)?;
     validate_gate1_quality_projection_ledger(quality)?;
     validate_gate1_applied_quality_tier(quality)?;
+    validate_gate1_water_quality_projection(water, quality)?;
     validate_gate1_scenery_quality_projection(scenery, quality)?;
     validate_gate1_shadow_quality_projection(shadow, quality)?;
     validate_gate1_sample_count(samples)
@@ -1615,6 +1616,20 @@ fn validate_gate1_water_evidence(
             "governed Gate 1 water evidence is not qualified: status={:?}, terrain_hash_match={}",
             water.runtime_observation,
             water.terrain_source_hash == visual_valley.source_hash
+        ));
+    }
+    Ok(())
+}
+
+fn validate_gate1_water_quality_projection(
+    water: &WaterProjectionStats,
+    quality: &VisualValleyQualityStats,
+) -> Result<(), String> {
+    let expected = water::quality_water_tier(quality.current_tier);
+    if water.resolved_optics.requested_quality != expected {
+        return Err(format!(
+            "governed Gate 1 water quality projection does not match applied quality: water={:?}, quality={:?}",
+            water.resolved_optics.requested_quality, quality.current_tier
         ));
     }
     Ok(())
@@ -2762,6 +2777,11 @@ mod tests {
         let water_hash_error = validate_sample_gate1_evidence(&evidence).unwrap_err();
         assert!(water_hash_error.contains("terrain_hash_match=false"));
         evidence.water.terrain_source_hash = evidence.visual_valley.source_hash.clone();
+
+        evidence.water.resolved_optics.requested_quality = forge_project::WaterQualityTier::Low;
+        let water_quality_error = validate_sample_gate1_evidence(&evidence).unwrap_err();
+        assert!(water_quality_error.contains("water quality projection does not match"));
+        evidence.water.resolved_optics.requested_quality = forge_project::WaterQualityTier::High;
 
         evidence.weather.status = WeatherProjectionStatus::NotObserved;
         let weather_error = validate_sample_gate1_evidence(&evidence).unwrap_err();

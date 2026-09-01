@@ -2376,7 +2376,7 @@ mod web {
         let startup_tier = quality_plugin.startup_tier();
         let preset = quality_plugin.startup_preset();
         let water_plugin = VisualValleyWaterPlugin::new(terrain.clone(), water)
-            .with_quality_preset(preset.clone());
+            .with_quality_preset(preset.clone(), startup_tier);
         let weather_plugin = VisualValleyWeatherPlugin::new(weather)
             .with_initial_state(weather_state)
             .with_quality_preset(preset.clone(), startup_tier);

@@ -248,7 +248,7 @@ fn add_runtime_plugin(
             let water_plugin = water.map(|water| {
                 let plugin = VisualValleyWaterPlugin::new(document.clone(), *water);
                 match &resolved_quality {
-                    Some((_, preset, _)) => plugin.with_quality_preset(preset.clone()),
+                    Some((_, preset, tier)) => plugin.with_quality_preset(preset.clone(), *tier),
                     None => plugin,
                 }
             });

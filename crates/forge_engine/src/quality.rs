@@ -1,5 +1,6 @@
 use crate::vegetation::VegetationPresentation;
 use crate::visual_valley::VisualValleySun;
+use crate::water::{VisualValleyWaterProfile, apply_quality_optics_projection};
 use crate::weather::{
     VisualValleyWeatherProfile, visual_valley_bloom_component,
     visual_valley_color_grading_component,
@@ -308,7 +309,8 @@ fn apply_quality_tier(
     mut shadow_map: Option<ResMut<DirectionalLightShadowMap>>,
     weather_profile: Option<Res<VisualValleyWeatherProfile>>,
     weather_state: Option<Res<WeatherRuntimeState>>,
-    water_projection: Option<Res<WaterProjectionStats>>,
+    water_profile: Option<Res<VisualValleyWaterProfile>>,
+    mut water_projection: Option<ResMut<WaterProjectionStats>>,
     cameras: Query<
         (
             Entity,
@@ -395,6 +397,16 @@ fn apply_quality_tier(
         }
     }
 
+    if let Some(water_projection) = water_projection.as_deref_mut()
+        && let Some(water_profile) = water_profile.as_deref()
+    {
+        apply_quality_optics_projection(
+            water_projection,
+            &water_profile.document,
+            preset.water,
+            runtime.current_tier,
+        );
+    }
     let screen_space_reflections_available = water_projection.as_deref().is_some_and(|water| {
         matches!(
             water.resolved_optics.reflection,
@@ -720,6 +732,64 @@ mod tests {
             runtime.observe_frame(20.0).unwrap().to,
             VisualQualityTier::Low
         );
+    }
+
+    #[test]
+    fn runtime_tier_transition_updates_water_ledger_without_reenabling_ssr() {
+        let profile = VisualValleyQualityProfileDocument::from_json(QUALITY_JSON).unwrap();
+        let low = profile.preset(VisualQualityTier::Low).clone();
+        let terrain = forge_world::embedded_visual_valley_terrain_document().unwrap();
+        let water = forge_world::embedded_visual_valley_water_document().unwrap();
+        let mut app = App::new();
+        app.add_plugins((MinimalPlugins, bevy::asset::AssetPlugin::default()));
+        app.init_asset::<Mesh>();
+        app.init_asset::<StandardMaterial>();
+        let camera = app
+            .world_mut()
+            .spawn((
+                Camera3d::default(),
+                DeferredPrepass,
+                ScreenSpaceReflections::default(),
+            ))
+            .id();
+        app.add_plugins((
+            crate::VisualValleyWaterPlugin::new(terrain, water)
+                .with_quality_preset(low, VisualQualityTier::Low),
+            VisualValleyQualityPlugin::new(
+                profile,
+                VisualValleyQualitySelection::Fixed(VisualQualityTier::Low),
+            ),
+        ));
+        app.update();
+        app.update();
+        assert_eq!(
+            app.world()
+                .resource::<WaterProjectionStats>()
+                .resolved_optics
+                .requested_quality,
+            forge_project::WaterQualityTier::Low
+        );
+
+        {
+            let mut runtime = app.world_mut().resource_mut::<VisualValleyQualityRuntime>();
+            runtime.current_tier = VisualQualityTier::Ultra;
+        }
+        app.update();
+        app.update();
+
+        let world = app.world();
+        let water = world.resource::<WaterProjectionStats>();
+        assert_eq!(
+            water.resolved_optics.requested_quality,
+            forge_project::WaterQualityTier::Ultra
+        );
+        assert_eq!(water.requested_reflection_max_distance_m, Some(128.0));
+        assert_eq!(
+            water.resolved_optics.reflection,
+            ResolvedWaterReflectionPath::Disabled
+        );
+        assert!(world.get::<ScreenSpaceReflections>(camera).is_none());
+        assert!(world.get::<DeferredPrepass>(camera).is_none());
     }
 
     #[test]
