@@ -113,7 +113,7 @@ impl SceneryInstanceCounts {
 }
 
 /// Machine-readable evidence for the selected CC0 subset and its runtime activation.
-#[derive(Clone, Debug, Resource, Serialize)]
+#[derive(Clone, Debug, PartialEq, Resource, Serialize)]
 pub struct SceneryProjectionStats {
     pub manifest_hash: String,
     pub subset_id: String,

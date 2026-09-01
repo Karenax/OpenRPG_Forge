@@ -1,0 +1,1366 @@
+[CmdletBinding()]
+param(
+    [Parameter(Mandatory = $true)]
+    [ValidateNotNullOrEmpty()]
+    [string]$RepoRoot,
+
+    [Parameter(Mandatory = $true)]
+    [ValidateNotNullOrEmpty()]
+    [string]$RuntimeBinary,
+
+    [Parameter(Mandatory = $true)]
+    [ValidateNotNullOrEmpty()]
+    [string]$OutputRoot,
+
+    [Parameter(Mandatory = $true)]
+    [ValidateNotNullOrEmpty()]
+    [string]$PresentMonPath
+)
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
+
+$presentMonVersion = "2.4.1"
+$presentMonBytes = 927304L
+$presentMonSha256 = "d74183e7ae630f72cd3690be0373ecbfdc6cbb86578148aab8fa2a7166068f34"
+$readyFileName = "gate1-gameplay-stutter.ready.json"
+$signalFileName = "gate1-gameplay-stutter.start.signal.json"
+$ledgerFileName = "gate1-gameplay-stutter.json"
+$validationFileName = "gate1-gameplay-stutter.validation.json"
+$runtimeTimeoutSeconds = 120
+$readyTimeoutSeconds = 45
+$presentMonReadyTimeoutSeconds = 20
+$presentMonExitTimeoutSeconds = 15
+$drainTimeoutMilliseconds = 5000
+$expectedPresentMonColumns = @(
+    "Application",
+    "ProcessID",
+    "SwapChainAddress",
+    "PresentRuntime",
+    "SyncInterval",
+    "PresentFlags",
+    "AllowsTearing",
+    "PresentMode",
+    "CPUStartQPC",
+    "FrameTime",
+    "CPUBusy",
+    "CPUWait",
+    "GPULatency",
+    "GPUTime",
+    "GPUBusy",
+    "GPUWait",
+    "DisplayLatency",
+    "DisplayedTime",
+    "AnimationError",
+    "AnimationTime",
+    "MsFlipDelay",
+    "AllInputToPhotonLatency",
+    "ClickToPhotonLatency",
+    "EtwBufferFillPct",
+    "EtwBuffersInUse",
+    "EtwTotalBuffers",
+    "EtwEventsLost",
+    "EtwBuffersLost"
+)
+$expectedPresentMonHeader = $expectedPresentMonColumns -join ","
+
+function Assert-Condition {
+    param(
+        [Parameter(Mandatory = $true)][bool]$Condition,
+        [Parameter(Mandatory = $true)][string]$Message
+    )
+
+    if (-not $Condition) {
+        throw $Message
+    }
+}
+
+function Get-FullPathWithoutResolving {
+    param([Parameter(Mandatory = $true)][string]$Path)
+
+    if ([IO.Path]::IsPathRooted($Path)) {
+        return [IO.Path]::GetFullPath($Path)
+    }
+    return [IO.Path]::GetFullPath((Join-Path (Get-Location).Path $Path))
+}
+
+function Test-PathInsideRoot {
+    param(
+        [Parameter(Mandatory = $true)][string]$Root,
+        [Parameter(Mandatory = $true)][string]$Candidate
+    )
+
+    $relative = [IO.Path]::GetRelativePath($Root, $Candidate)
+    return -not [IO.Path]::IsPathRooted($relative) -and
+        $relative -ne ".." -and
+        -not $relative.StartsWith("..$([IO.Path]::DirectorySeparatorChar)", [StringComparison]::Ordinal) -and
+        -not $relative.StartsWith("../", [StringComparison]::Ordinal)
+}
+
+function Assert-NoReparsePointInExistingAncestors {
+    param([Parameter(Mandatory = $true)][string]$Path)
+
+    $cursor = if ([IO.Directory]::Exists($Path)) { $Path } else { [IO.Path]::GetDirectoryName($Path) }
+    while (-not [string]::IsNullOrWhiteSpace($cursor)) {
+        if ([IO.Directory]::Exists($cursor)) {
+            $item = Get-Item -LiteralPath $cursor -Force
+            Assert-Condition -Condition (($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -eq 0) -Message "OutputRoot ancestor is a reparse point and cannot establish external evidence: $cursor"
+        }
+        $trimmed = $cursor.TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar)
+        $parent = [IO.Path]::GetDirectoryName($trimmed)
+        if ([string]::IsNullOrWhiteSpace($parent) -or [string]::Equals($parent, $cursor, [StringComparison]::OrdinalIgnoreCase)) {
+            break
+        }
+        $cursor = $parent
+    }
+}
+
+if (-not ("ForgeGate1Stutter.NativeWindow" -as [type])) {
+    Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+
+namespace ForgeGate1Stutter {
+    [StructLayout(LayoutKind.Sequential)]
+    public struct Rect {
+        public int Left;
+        public int Top;
+        public int Right;
+        public int Bottom;
+    }
+
+    public static class NativeWindow {
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetWindowRect(IntPtr hWnd, out Rect rect);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool IsWindowVisible(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool IsIconic(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
+    }
+}
+'@
+}
+
+function Wait-ForQualifiedNativeWindow {
+    param(
+        [Parameter(Mandatory = $true)][Diagnostics.Process]$Process,
+        [int]$TimeoutSeconds = 5,
+        [int]$MinimumWidth = 1920,
+        [int]$MinimumHeight = 1080
+    )
+
+    $timer = [Diagnostics.Stopwatch]::StartNew()
+    $lastObservation = "HWND absent"
+    while ($timer.Elapsed.TotalSeconds -lt $TimeoutSeconds) {
+        if ($Process.HasExited) {
+            throw "forge_runtime exited before native-window observation with code $($Process.ExitCode)."
+        }
+
+        $Process.Refresh()
+        $windowHandle = $Process.MainWindowHandle
+        if ($windowHandle -ne [IntPtr]::Zero) {
+            [uint32]$ownerProcessId = 0
+            $windowThreadId = [ForgeGate1Stutter.NativeWindow]::GetWindowThreadProcessId($windowHandle, [ref]$ownerProcessId)
+            $visible = [ForgeGate1Stutter.NativeWindow]::IsWindowVisible($windowHandle)
+            $minimized = [ForgeGate1Stutter.NativeWindow]::IsIconic($windowHandle)
+            $rectangle = [ForgeGate1Stutter.Rect]::new()
+            $rectangleObserved = [ForgeGate1Stutter.NativeWindow]::GetWindowRect($windowHandle, [ref]$rectangle)
+            $width = if ($rectangleObserved) { $rectangle.Right - $rectangle.Left } else { 0 }
+            $height = if ($rectangleObserved) { $rectangle.Bottom - $rectangle.Top } else { 0 }
+            $lastObservation = "hwnd=$windowHandle owner=$ownerProcessId thread=$windowThreadId visible=$visible minimized=$minimized rect_observed=$rectangleObserved size=${width}x${height}"
+
+            if (
+                $windowThreadId -ne 0 -and
+                $ownerProcessId -eq [uint32]$Process.Id -and
+                $visible -and
+                -not $minimized -and
+                $rectangleObserved -and
+                $width -ge $MinimumWidth -and
+                $height -ge $MinimumHeight
+            ) {
+                return [pscustomobject]@{
+                    Observed = $true
+                    Handle = ("0x{0:x16}" -f $windowHandle.ToInt64())
+                    OwnerProcessId = $ownerProcessId
+                    Visible = $true
+                    Minimized = $false
+                    OuterWidthReportedPx = $width
+                    OuterHeightReportedPx = $height
+                    ObservedAfterWaitStartMilliseconds = $timer.Elapsed.TotalMilliseconds
+                }
+            }
+        }
+        Start-Sleep -Milliseconds 100
+    }
+
+    throw "forge_runtime native window was not qualified within $TimeoutSeconds seconds; last observation: $lastObservation"
+}
+
+function Get-RequiredProperty {
+    param(
+        [Parameter(Mandatory = $true)][AllowNull()][object]$InputObject,
+        [Parameter(Mandatory = $true)][string]$Name,
+        [Parameter(Mandatory = $true)][string]$Path
+    )
+
+    Assert-Condition -Condition ($null -ne $InputObject) -Message "$Path is absent."
+    $matches = @($InputObject.PSObject.Properties | Where-Object {
+            [string]::Equals($_.Name, $Name, [StringComparison]::Ordinal)
+        })
+    Assert-Condition -Condition ($matches.Count -eq 1) -Message "$Path.$Name is absent or duplicated."
+    Assert-Condition -Condition ($null -ne $matches[0].Value) -Message "$Path.$Name is null."
+    return $matches[0].Value
+}
+
+function Test-FiniteNumber {
+    param([AllowNull()][object]$Value)
+
+    if ($null -eq $Value) {
+        return $false
+    }
+    try {
+        return [double]::IsFinite([double]$Value)
+    }
+    catch {
+        return $false
+    }
+}
+
+function ConvertTo-InvariantDouble {
+    param(
+        [Parameter(Mandatory = $true)][string]$Value,
+        [Parameter(Mandatory = $true)][string]$Field,
+        [double]$Minimum = [double]::NegativeInfinity,
+        [switch]$StrictlyGreaterThanMinimum
+    )
+
+    $parsed = 0.0
+    $valid = [double]::TryParse(
+        $Value,
+        [Globalization.NumberStyles]::Float,
+        [Globalization.CultureInfo]::InvariantCulture,
+        [ref]$parsed
+    )
+    Assert-Condition -Condition ($valid -and [double]::IsFinite($parsed)) -Message "$Field is not a finite invariant number: '$Value'."
+    if ($StrictlyGreaterThanMinimum) {
+        Assert-Condition -Condition ($parsed -gt $Minimum) -Message "$Field must be greater than $Minimum, got $parsed."
+    }
+    else {
+        Assert-Condition -Condition ($parsed -ge $Minimum) -Message "$Field must be at least $Minimum, got $parsed."
+    }
+    return $parsed
+}
+
+function ConvertTo-PresentMonMetric {
+    param(
+        [Parameter(Mandatory = $true)][string]$Value,
+        [Parameter(Mandatory = $true)][string]$Field,
+        [switch]$AllowNa,
+        [double]$Minimum = [double]::NegativeInfinity,
+        [switch]$StrictlyGreaterThanMinimum
+    )
+
+    if ([string]::Equals($Value, "NA", [StringComparison]::Ordinal)) {
+        Assert-Condition -Condition $AllowNa.IsPresent -Message "$Field may not be NA."
+        return $null
+    }
+    return ConvertTo-InvariantDouble -Value $Value -Field $Field -Minimum $Minimum -StrictlyGreaterThanMinimum:$StrictlyGreaterThanMinimum
+}
+
+function Write-JsonAtomically {
+    param(
+        [Parameter(Mandatory = $true)][string]$Path,
+        [Parameter(Mandatory = $true)][object]$Value
+    )
+
+    Assert-Condition -Condition (-not [IO.File]::Exists($Path)) -Message "Refusing to replace existing artifact $Path."
+    $temporaryPath = "$Path.tmp-$([Guid]::NewGuid().ToString('N'))"
+    try {
+        $json = ($Value | ConvertTo-Json -Depth 64) + [Environment]::NewLine
+        [IO.File]::WriteAllText($temporaryPath, $json, [Text.UTF8Encoding]::new($false))
+        [IO.File]::Move($temporaryPath, $Path, $false)
+    }
+    finally {
+        if ([IO.File]::Exists($temporaryPath)) {
+            [IO.File]::Delete($temporaryPath)
+        }
+    }
+}
+
+function Get-FirstLineShared {
+    param([Parameter(Mandatory = $true)][string]$Path)
+
+    $stream = [IO.FileStream]::new(
+        $Path,
+        [IO.FileMode]::Open,
+        [IO.FileAccess]::Read,
+        [IO.FileShare]::ReadWrite
+    )
+    try {
+        $reader = [IO.StreamReader]::new($stream, [Text.Encoding]::UTF8, $true, 4096, $true)
+        try {
+            return $reader.ReadLine()
+        }
+        finally {
+            $reader.Dispose()
+        }
+    }
+    finally {
+        $stream.Dispose()
+    }
+}
+
+function Start-CapturedProcess {
+    param(
+        [Parameter(Mandatory = $true)][string]$FilePath,
+        [Parameter(Mandatory = $true)][AllowEmptyCollection()][string[]]$ArgumentList,
+        [Parameter(Mandatory = $true)][string]$WorkingDirectory,
+        [Parameter(Mandatory = $true)][string]$Label,
+        [Parameter(Mandatory = $true)][string]$StdoutPath,
+        [Parameter(Mandatory = $true)][string]$StderrPath,
+        [Parameter(Mandatory = $true)][bool]$Visible,
+        [hashtable]$EnvironmentVariables = @{}
+    )
+
+    $process = $null
+    try {
+        $startInfo = [Diagnostics.ProcessStartInfo]::new()
+        $startInfo.FileName = $FilePath
+        $startInfo.WorkingDirectory = $WorkingDirectory
+        $startInfo.UseShellExecute = $false
+        $startInfo.CreateNoWindow = -not $Visible
+        $startInfo.RedirectStandardOutput = $true
+        $startInfo.RedirectStandardError = $true
+        if (-not $Visible) {
+            $startInfo.WindowStyle = [Diagnostics.ProcessWindowStyle]::Hidden
+        }
+        foreach ($argument in $ArgumentList) {
+            [void]$startInfo.ArgumentList.Add($argument)
+        }
+        foreach ($name in $EnvironmentVariables.Keys) {
+            $startInfo.Environment[[string]$name] = [string]$EnvironmentVariables[$name]
+        }
+
+        $process = [Diagnostics.Process]::new()
+        $process.StartInfo = $startInfo
+        Assert-Condition -Condition ($process.Start()) -Message "Cannot start $Label."
+        return [pscustomobject]@{
+            Label = $Label
+            Process = $process
+            StdoutTask = $process.StandardOutput.ReadToEndAsync()
+            StderrTask = $process.StandardError.ReadToEndAsync()
+            StdoutPath = $StdoutPath
+            StderrPath = $StderrPath
+            OutputSaved = $false
+        }
+    }
+    catch {
+        if ($null -ne $process) {
+            try {
+                if (-not $process.HasExited) {
+                    $process.Kill($true)
+                    [void]$process.WaitForExit(5000)
+                }
+            }
+            catch {
+                # The outer watchdog cannot retain a capture object when startup itself failed.
+            }
+            $process.Dispose()
+        }
+        throw
+    }
+}
+
+function Stop-CapturedProcessBounded {
+    param([AllowNull()][object]$Capture)
+
+    if ($null -eq $Capture) {
+        return $true
+    }
+    try {
+        if ($Capture.Process.HasExited) {
+            return $true
+        }
+        $Capture.Process.Kill($true)
+        return $Capture.Process.WaitForExit(5000)
+    }
+    catch {
+        return $false
+    }
+}
+
+function Save-CapturedProcessOutput {
+    param(
+        [Parameter(Mandatory = $true)][object]$Capture,
+        [Parameter(Mandatory = $true)][int]$DrainTimeoutMilliseconds
+    )
+
+    if ($Capture.OutputSaved) {
+        return [pscustomobject]@{ StdoutDrained = $true; StderrDrained = $true }
+    }
+
+    $stdout = ""
+    $stderr = ""
+    $stdoutDrained = $false
+    $stderrDrained = $false
+    try {
+        $stdoutDrained = $Capture.StdoutTask.Wait($DrainTimeoutMilliseconds)
+        if ($stdoutDrained) {
+            $stdout = $Capture.StdoutTask.GetAwaiter().GetResult()
+        }
+    }
+    catch {
+        $stdout = "[$($Capture.Label) watchdog] stdout drainage failed: $($_.Exception.Message)"
+    }
+    try {
+        $stderrDrained = $Capture.StderrTask.Wait($DrainTimeoutMilliseconds)
+        if ($stderrDrained) {
+            $stderr = $Capture.StderrTask.GetAwaiter().GetResult()
+        }
+    }
+    catch {
+        $stderr = "[$($Capture.Label) watchdog] stderr drainage failed: $($_.Exception.Message)"
+    }
+    if (-not $stdoutDrained -and [string]::IsNullOrWhiteSpace($stdout)) {
+        $stdout = "[$($Capture.Label) watchdog] stdout did not drain within $DrainTimeoutMilliseconds ms."
+    }
+    if (-not $stderrDrained -and [string]::IsNullOrWhiteSpace($stderr)) {
+        $stderr = "[$($Capture.Label) watchdog] stderr did not drain within $DrainTimeoutMilliseconds ms."
+    }
+    [IO.File]::WriteAllText($Capture.StdoutPath, $stdout, [Text.UTF8Encoding]::new($false))
+    [IO.File]::WriteAllText($Capture.StderrPath, $stderr, [Text.UTF8Encoding]::new($false))
+    $Capture.OutputSaved = $true
+    return [pscustomobject]@{
+        StdoutDrained = $stdoutDrained
+        StderrDrained = $stderrDrained
+    }
+}
+
+function Wait-ForReadyJson {
+    param(
+        [Parameter(Mandatory = $true)][string]$Path,
+        [Parameter(Mandatory = $true)][Diagnostics.Process]$Process,
+        [Parameter(Mandatory = $true)][int]$TimeoutSeconds
+    )
+
+    $timer = [Diagnostics.Stopwatch]::StartNew()
+    $lastReadError = "file not observed"
+    while ($timer.Elapsed.TotalSeconds -lt $TimeoutSeconds) {
+        if ($Process.HasExited) {
+            throw "forge_runtime exited with code $($Process.ExitCode) before publishing the ready ledger."
+        }
+        if ([IO.File]::Exists($Path)) {
+            try {
+                return [IO.File]::ReadAllText($Path) | ConvertFrom-Json -Depth 64
+            }
+            catch {
+                $lastReadError = $_.Exception.Message
+            }
+        }
+        Start-Sleep -Milliseconds 100
+    }
+    throw "Timed out after $TimeoutSeconds seconds waiting for $Path; last read error: $lastReadError"
+}
+
+function Get-DisallowedRuntimeLogLines {
+    param([Parameter(Mandatory = $true)][string]$Path)
+
+    $issues = [Collections.Generic.List[string]]::new()
+    foreach ($line in [IO.File]::ReadAllLines($Path)) {
+        if ([string]::IsNullOrWhiteSpace($line)) {
+            continue
+        }
+        try {
+            $event = $line | ConvertFrom-Json -Depth 32
+            if ([string]$event.level -in @("WARN", "ERROR")) {
+                $issues.Add($line)
+            }
+        }
+        catch {
+            if ($line -match '(?i)\b(warn(?:ing)?|error|panic(?:ked)?|fatal|fail(?:ed|ure)?)\b') {
+                $issues.Add($line)
+            }
+        }
+    }
+    return @($issues)
+}
+
+function Get-RuntimeEventCount {
+    param(
+        [Parameter(Mandatory = $true)][string[]]$Paths,
+        [Parameter(Mandatory = $true)][string]$EventKind
+    )
+
+    $count = 0
+    foreach ($path in $Paths) {
+        foreach ($line in [IO.File]::ReadAllLines($path)) {
+            if ([string]::IsNullOrWhiteSpace($line)) {
+                continue
+            }
+            try {
+                $event = $line | ConvertFrom-Json -Depth 32
+                if ([string]::Equals([string]$event.event_kind, $EventKind, [StringComparison]::Ordinal)) {
+                    $count++
+                }
+            }
+            catch {
+            }
+        }
+    }
+    return $count
+}
+
+function Get-PresentMonLogAssessment {
+    param(
+        [Parameter(Mandatory = $true)][string]$StdoutPath,
+        [Parameter(Mandatory = $true)][string]$StderrPath
+    )
+
+    $stderrText = [IO.File]::ReadAllText($StderrPath).Trim()
+    $normalizedStderr = [regex]::Replace($stderrText, '\s+', ' ')
+    $allowedWarning = "warning: PresentMon requires elevated privilege in order to query processes that are short-running or started on another account. Without it, those processes will be listed as '<unknown>' and they can't be targeted by --process_name nor trigger --terminate_on_proc_exit."
+    $allowedCount = 0
+    $remainingStderr = $normalizedStderr
+    $offset = $remainingStderr.IndexOf($allowedWarning, [StringComparison]::Ordinal)
+    if ($offset -ge 0) {
+        $allowedCount = 1
+        $remainingStderr = $remainingStderr.Remove($offset, $allowedWarning.Length).Trim()
+        Assert-Condition -Condition ($remainingStderr.IndexOf($allowedWarning, [StringComparison]::Ordinal) -lt 0) -Message "PresentMon emitted the allowed non-admin warning more than once."
+    }
+    $issues = [Collections.Generic.List[string]]::new()
+    if (-not [string]::IsNullOrWhiteSpace($remainingStderr)) {
+        $issues.Add("stderr: $remainingStderr")
+    }
+    foreach ($line in [IO.File]::ReadAllLines($StdoutPath)) {
+        $trimmed = $line.Trim()
+        if ([string]::IsNullOrWhiteSpace($trimmed) -or $trimmed -in @("Started recording.", "Stopped recording.")) {
+            continue
+        }
+        $match = [regex]::Match($trimmed, '^\[ETW Status\] BufferFillPct=(?<fill>\d+(?:\.\d+)?)% BuffersInUse=(?<inuse>\d+) TotalBuffers=(?<total>\d+) EventsLost=0 BuffersLost=0$')
+        if (-not $match.Success) {
+            $issues.Add("stdout: $trimmed")
+            continue
+        }
+        $fill = ConvertTo-InvariantDouble -Value $match.Groups["fill"].Value -Field "PresentMon stdout ETW fill" -Minimum 0.0
+        $inUse = [uint64]::Parse($match.Groups["inuse"].Value, [Globalization.CultureInfo]::InvariantCulture)
+        $total = [uint64]::Parse($match.Groups["total"].Value, [Globalization.CultureInfo]::InvariantCulture)
+        if ($fill -ge 100.0 -or $total -eq 0 -or $inUse -gt $total) {
+            $issues.Add("stdout ETW status is invalid: $trimmed")
+        }
+    }
+    return [pscustomobject]@{
+        AllowedNonAdminWarningCount = $allowedCount
+        DisallowedTokens = @($issues)
+    }
+}
+
+function Get-NearestRankPercentile {
+    param(
+        [Parameter(Mandatory = $true)][double[]]$SortedValues,
+        [Parameter(Mandatory = $true)][ValidateRange(0.0, 1.0)][double]$Quantile
+    )
+
+    Assert-Condition -Condition ($SortedValues.Count -gt 0) -Message "Cannot compute a percentile from an empty sample."
+    $index = [Math]::Max(0, [Math]::Ceiling($Quantile * $SortedValues.Count) - 1)
+    return $SortedValues[[int]$index]
+}
+
+function Get-ThresholdSequences {
+    param(
+        [Parameter(Mandatory = $true)][object[]]$Rows,
+        [Parameter(Mandatory = $true)][double]$ThresholdMilliseconds
+    )
+
+    $sequences = [Collections.Generic.List[object]]::new()
+    $start = -1
+    $maximum = 0.0
+    for ($index = 0; $index -lt $Rows.Count; $index++) {
+        $value = [double]$Rows[$index].DisplayedTimeMs
+        if ($value -gt $ThresholdMilliseconds) {
+            if ($start -lt 0) {
+                $start = $index
+                $maximum = $value
+            }
+            else {
+                $maximum = [Math]::Max($maximum, $value)
+            }
+            continue
+        }
+        if ($start -ge 0) {
+            $sequences.Add([pscustomobject]@{
+                    first_sample_index = $start
+                    first_csv_row = $Rows[$start].CsvRow
+                    length = $index - $start
+                    maximum_ms = $maximum
+                })
+            $start = -1
+            $maximum = 0.0
+        }
+    }
+    if ($start -ge 0) {
+        $sequences.Add([pscustomobject]@{
+                first_sample_index = $start
+                first_csv_row = $Rows[$start].CsvRow
+                length = $Rows.Count - $start
+                maximum_ms = $maximum
+            })
+    }
+    return @($sequences)
+}
+
+function Get-ArtifactDescriptor {
+    param(
+        [Parameter(Mandatory = $true)][string]$Path,
+        [Parameter(Mandatory = $true)][string]$RelativePath
+    )
+
+    $file = Get-Item -LiteralPath $Path
+    return [ordered]@{
+        relative_path = $RelativePath
+        bytes = $file.Length
+        sha256 = (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash.ToLowerInvariant()
+    }
+}
+
+Assert-Condition -Condition ([OperatingSystem]::IsWindows()) -Message "Gate 1 PresentMon acquisition requires Windows."
+Assert-Condition -Condition ([IO.Path]::IsPathRooted($OutputRoot)) -Message "OutputRoot must be an absolute external path."
+Assert-Condition -Condition ([IO.Path]::IsPathRooted($RuntimeBinary)) -Message "RuntimeBinary must be an absolute prospective Cargo release path."
+$repositoryPath = (Resolve-Path -LiteralPath $RepoRoot).Path
+$runtimePath = Get-FullPathWithoutResolving -Path $RuntimeBinary
+$presentMonFullPath = (Resolve-Path -LiteralPath $PresentMonPath).Path
+$outputPath = Get-FullPathWithoutResolving -Path $OutputRoot
+Assert-Condition -Condition ([string]::Equals([IO.Path]::GetFileName($runtimePath), "forge_runtime.exe", [StringComparison]::OrdinalIgnoreCase)) -Message "RuntimeBinary must be forge_runtime.exe."
+$releaseDirectory = [IO.Path]::GetDirectoryName($runtimePath)
+Assert-Condition -Condition (-not [string]::IsNullOrWhiteSpace($releaseDirectory)) -Message "RuntimeBinary has no release directory."
+Assert-Condition -Condition ([string]::Equals([IO.Path]::GetFileName($releaseDirectory), "release", [StringComparison]::OrdinalIgnoreCase)) -Message "RuntimeBinary must come from a directory named release."
+$cargoTargetPath = [IO.Path]::GetDirectoryName($releaseDirectory)
+Assert-Condition -Condition (-not [string]::IsNullOrWhiteSpace($cargoTargetPath)) -Message "RuntimeBinary has no Cargo target directory."
+Assert-Condition -Condition ([IO.File]::Exists($presentMonFullPath)) -Message "PresentMonPath must name a file."
+Assert-Condition -Condition (-not [IO.File]::Exists($outputPath)) -Message "OutputRoot must be a directory, not a file."
+
+$gitTopLevel = (& git -C $repositoryPath rev-parse --show-toplevel).Trim()
+Assert-Condition -Condition ($LASTEXITCODE -eq 0) -Message "Cannot resolve the repository root."
+$gitTopLevel = [IO.Path]::GetFullPath($gitTopLevel)
+Assert-Condition -Condition ([string]::Equals($repositoryPath.TrimEnd('\'), $gitTopLevel.TrimEnd('\'), [StringComparison]::OrdinalIgnoreCase)) -Message "RepoRoot must be the exact Git worktree root."
+$gitCommit = (& git -C $repositoryPath rev-parse HEAD).Trim()
+Assert-Condition -Condition ($LASTEXITCODE -eq 0 -and $gitCommit -match '^[0-9a-f]{40}$') -Message "Cannot resolve the exact repository commit."
+$gitTree = (& git -C $repositoryPath show -s --format=%T HEAD).Trim()
+Assert-Condition -Condition ($LASTEXITCODE -eq 0 -and $gitTree -match '^[0-9a-f]{40}$') -Message "Cannot resolve the exact repository tree."
+$gitStatusBefore = @(& git -C $repositoryPath status --porcelain=v1 --untracked-files=all)
+Assert-Condition -Condition ($LASTEXITCODE -eq 0) -Message "Cannot inspect the repository worktree."
+Assert-Condition -Condition ($gitStatusBefore.Count -eq 0) -Message "Gate 1 gameplay stutter acquisition requires a clean exact-commit worktree."
+$worktreeList = @(& git -C $repositoryPath worktree list --porcelain)
+Assert-Condition -Condition ($LASTEXITCODE -eq 0) -Message "Cannot enumerate registered Git worktrees."
+$registeredWorktreePaths = @($worktreeList | Where-Object { $_.StartsWith("worktree ", [StringComparison]::Ordinal) } | ForEach-Object {
+        [IO.Path]::GetFullPath($_.Substring("worktree ".Length))
+    })
+Assert-Condition -Condition ($registeredWorktreePaths.Count -gt 0) -Message "Git did not report any registered worktree."
+foreach ($registeredWorktreePath in $registeredWorktreePaths) {
+    Assert-Condition -Condition (-not (Test-PathInsideRoot -Root $registeredWorktreePath -Candidate $outputPath)) -Message "OutputRoot must be outside every registered Git worktree; it overlaps $registeredWorktreePath."
+    Assert-Condition -Condition (-not (Test-PathInsideRoot -Root $registeredWorktreePath -Candidate $cargoTargetPath)) -Message "The governed Cargo target directory must be outside every registered Git worktree; it overlaps $registeredWorktreePath."
+}
+Assert-Condition -Condition (-not (Test-PathInsideRoot -Root $cargoTargetPath -Candidate $outputPath)) -Message "OutputRoot must not be inside the governed Cargo target directory."
+Assert-Condition -Condition (-not (Test-PathInsideRoot -Root $outputPath -Candidate $cargoTargetPath)) -Message "The governed Cargo target directory must not be inside OutputRoot."
+Assert-NoReparsePointInExistingAncestors -Path $outputPath
+Assert-NoReparsePointInExistingAncestors -Path $cargoTargetPath
+Assert-Condition -Condition (-not [IO.File]::Exists($cargoTargetPath)) -Message "The governed Cargo target path must not be a file."
+if ([IO.Directory]::Exists($cargoTargetPath)) {
+    Assert-Condition -Condition (@([IO.Directory]::EnumerateFileSystemEntries($cargoTargetPath)).Count -eq 0) -Message "The governed Cargo target directory must be empty to prevent stale artifact reuse."
+}
+if ([IO.Directory]::Exists($outputPath)) {
+    Assert-Condition -Condition (@([IO.Directory]::EnumerateFileSystemEntries($outputPath)).Count -eq 0) -Message "OutputRoot must be empty to prevent stale evidence reuse."
+}
+
+$presentMonFile = Get-Item -LiteralPath $presentMonFullPath
+Assert-Condition -Condition ($presentMonFile.Length -eq $presentMonBytes) -Message "PresentMon.exe size is $($presentMonFile.Length), expected $presentMonBytes bytes."
+$observedPresentMonSha256 = (Get-FileHash -LiteralPath $presentMonFullPath -Algorithm SHA256).Hash.ToLowerInvariant()
+Assert-Condition -Condition ([string]::Equals($observedPresentMonSha256, $presentMonSha256, [StringComparison]::Ordinal)) -Message "PresentMon.exe SHA-256 does not match the pinned 2.4.1 binary."
+$presentMonVersionInfo = [Diagnostics.FileVersionInfo]::GetVersionInfo($presentMonFullPath)
+Assert-Condition -Condition (
+    $presentMonVersionInfo.FileMajorPart -eq 2 -and
+    $presentMonVersionInfo.FileMinorPart -eq 4 -and
+    $presentMonVersionInfo.FileBuildPart -eq 1 -and
+    $presentMonVersionInfo.FilePrivatePart -eq 0
+) -Message "PresentMon.exe file version is not exactly 2.4.1.0."
+$presentMonSignature = Get-AuthenticodeSignature -LiteralPath $presentMonFullPath
+Assert-Condition -Condition ($presentMonSignature.Status -eq [Management.Automation.SignatureStatus]::Valid) -Message "PresentMon.exe Authenticode signature is not valid: $($presentMonSignature.Status)."
+Assert-Condition -Condition ($null -ne $presentMonSignature.SignerCertificate) -Message "PresentMon.exe has no signer certificate."
+$presentMonSigner = $presentMonSignature.SignerCertificate.GetNameInfo([Security.Cryptography.X509Certificates.X509NameType]::SimpleName, $false)
+Assert-Condition -Condition ([string]::Equals($presentMonSigner, "Intel Corporation", [StringComparison]::Ordinal)) -Message "PresentMon.exe signer is '$presentMonSigner', expected Intel Corporation."
+Assert-Condition -Condition ($presentMonSignature.SignerCertificate.Subject -match '(^|,\s*)O=Intel Corporation(,|$)') -Message "PresentMon.exe signer organization is not Intel Corporation."
+
+$cargoCommand = Get-Command cargo -CommandType Application -ErrorAction Stop | Select-Object -First 1
+Assert-Condition -Condition ($null -ne $cargoCommand -and [IO.File]::Exists($cargoCommand.Source)) -Message "Cannot resolve the Cargo executable."
+$cargoVersion = (& $cargoCommand.Source --version).Trim()
+Assert-Condition -Condition ($LASTEXITCODE -eq 0 -and $cargoVersion -match '^cargo 1\.98\.') -Message "Gate 1 acquisition requires the pinned Cargo 1.98 toolchain."
+$previousCargoTargetDir = [Environment]::GetEnvironmentVariable("CARGO_TARGET_DIR", "Process")
+$previousSourceCommit = [Environment]::GetEnvironmentVariable("FORGE_SOURCE_COMMIT", "Process")
+$cargoBuildExitCode = $null
+$cargoLocationPushed = $false
+try {
+    $env:CARGO_TARGET_DIR = $cargoTargetPath
+    $env:FORGE_SOURCE_COMMIT = $gitCommit
+    Push-Location -LiteralPath $repositoryPath
+    $cargoLocationPushed = $true
+    & $cargoCommand.Source build -p forge_runtime --release --locked -j 1
+    $cargoBuildExitCode = $LASTEXITCODE
+}
+finally {
+    if ($cargoLocationPushed) {
+        Pop-Location
+    }
+    if ($null -eq $previousCargoTargetDir) {
+        Remove-Item Env:CARGO_TARGET_DIR -ErrorAction SilentlyContinue
+    }
+    else {
+        $env:CARGO_TARGET_DIR = $previousCargoTargetDir
+    }
+    if ($null -eq $previousSourceCommit) {
+        Remove-Item Env:FORGE_SOURCE_COMMIT -ErrorAction SilentlyContinue
+    }
+    else {
+        $env:FORGE_SOURCE_COMMIT = $previousSourceCommit
+    }
+}
+Assert-Condition -Condition ($cargoBuildExitCode -eq 0) -Message "The governed Cargo release build failed with exit code $cargoBuildExitCode."
+Assert-Condition -Condition ([IO.File]::Exists($runtimePath)) -Message "The governed Cargo build did not produce RuntimeBinary."
+$resolvedRuntimePath = (Resolve-Path -LiteralPath $runtimePath).Path
+Assert-Condition -Condition ([string]::Equals($resolvedRuntimePath, $runtimePath, [StringComparison]::OrdinalIgnoreCase)) -Message "The governed Cargo build resolved RuntimeBinary through an unexpected path."
+$runtimeFileAfterBuild = Get-Item -LiteralPath $runtimePath -Force
+Assert-Condition -Condition (($runtimeFileAfterBuild.Attributes -band [IO.FileAttributes]::ReparsePoint) -eq 0) -Message "RuntimeBinary is a reparse point and cannot establish build provenance."
+$gitCommitAfterBuild = (& git -C $repositoryPath rev-parse HEAD).Trim()
+$gitCommitAfterBuildExitCode = $LASTEXITCODE
+Assert-Condition -Condition ($gitCommitAfterBuildExitCode -eq 0 -and $gitCommitAfterBuild -eq $gitCommit) -Message "Repository HEAD changed during the governed Cargo build."
+$gitTreeAfterBuild = (& git -C $repositoryPath show -s --format=%T HEAD).Trim()
+$gitTreeAfterBuildExitCode = $LASTEXITCODE
+Assert-Condition -Condition ($gitTreeAfterBuildExitCode -eq 0 -and $gitTreeAfterBuild -eq $gitTree) -Message "Repository tree changed during the governed Cargo build."
+$gitStatusAfterBuild = @(& git -C $repositoryPath status --porcelain=v1 --untracked-files=all)
+$gitStatusAfterBuildExitCode = $LASTEXITCODE
+Assert-Condition -Condition ($gitStatusAfterBuildExitCode -eq 0 -and $gitStatusAfterBuild.Count -eq 0) -Message "Repository worktree changed during the governed Cargo build."
+$runtimeBuildCompletedAtUtc = [DateTimeOffset]::UtcNow.ToString("O", [Globalization.CultureInfo]::InvariantCulture)
+
+if ([IO.Directory]::Exists($outputPath)) {
+    Assert-Condition -Condition (@([IO.Directory]::EnumerateFileSystemEntries($outputPath)).Count -eq 0) -Message "OutputRoot must be empty to prevent stale evidence reuse."
+}
+else {
+    [void][IO.Directory]::CreateDirectory($outputPath)
+}
+Assert-NoReparsePointInExistingAncestors -Path $outputPath
+
+$readyPath = Join-Path $outputPath $readyFileName
+$signalPath = Join-Path $outputPath $signalFileName
+$ledgerPath = Join-Path $outputPath $ledgerFileName
+$csvPath = Join-Path $outputPath "presentmon.csv"
+$runtimeStdoutPath = Join-Path $outputPath "runtime.stdout.log"
+$runtimeStderrPath = Join-Path $outputPath "runtime.stderr.log"
+$presentMonStdoutPath = Join-Path $outputPath "presentmon.stdout.log"
+$presentMonStderrPath = Join-Path $outputPath "presentmon.stderr.log"
+$validationPath = Join-Path $outputPath $validationFileName
+$runtimeCapture = $null
+$presentMonCapture = $null
+$runtimeOutput = $null
+$presentMonOutput = $null
+$nativeWindowObservation = $null
+$runtimeSha256 = (Get-FileHash -LiteralPath $runtimePath -Algorithm SHA256).Hash.ToLowerInvariant()
+$sessionId = "OpenRPGForge-Gate1-Stutter-$([Guid]::NewGuid().ToString('N'))"
+
+try {
+    $runtimeArguments = @(
+        "--visual-valley",
+        "--quality", "high",
+        "--gate1-gameplay-stutter", $outputPath,
+        "--no-vsync"
+    )
+    $runtimeEnvironment = @{
+        RUST_LOG = "info,forge=info,wgpu_hal=warn,wgpu_core=warn,naga=warn"
+        WGPU_BACKEND = "vulkan"
+    }
+    $runtimeCapture = Start-CapturedProcess -FilePath $runtimePath -ArgumentList $runtimeArguments -WorkingDirectory $repositoryPath -Label "forge_runtime Gate 1 gameplay stutter" -StdoutPath $runtimeStdoutPath -StderrPath $runtimeStderrPath -Visible $true -EnvironmentVariables $runtimeEnvironment
+    $runtimeProcessId = $runtimeCapture.Process.Id
+    $runtimeWatchdog = [Diagnostics.Stopwatch]::StartNew()
+
+    $ready = Wait-ForReadyJson -Path $readyPath -Process $runtimeCapture.Process -TimeoutSeconds $readyTimeoutSeconds
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ready -Name "schema" -Path "ready") -eq "forge.gate1-gameplay-stutter-ready") -Message "Unexpected ready schema."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ready -Name "schema_version" -Path "ready") -eq 1) -Message "Unexpected ready schema version."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ready -Name "status" -Path "ready") -eq "ready_waiting_for_presentmon_start_signal") -Message "Runtime is not waiting for the PresentMon start signal."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ready -Name "process_id" -Path "ready") -eq $runtimeProcessId) -Message "Ready PID does not match the launched runtime PID."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ready -Name "build_source_commit" -Path "ready") -eq $gitCommit) -Message "Ready ledger is not linked to the exact repository commit."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ready -Name "build_profile" -Path "ready") -eq "release") -Message "Runtime does not declare the exact Cargo release profile."
+
+    $readyProtocol = Get-RequiredProperty -InputObject $ready -Name "protocol" -Path "ready"
+    Assert-Condition -Condition (((Get-RequiredProperty -InputObject $readyProtocol -Name "physical_resolution_px" -Path "ready.protocol") -join "x") -eq "1920x1080") -Message "Ready resolution is not 1920x1080."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyProtocol -Name "present_mode" -Path "ready.protocol") -eq "auto_no_vsync") -Message "Ready present mode is not AutoNoVsync."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyProtocol -Name "vsync_requested" -Path "ready.protocol") -eq $false) -Message "Ready ledger reports VSync enabled."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyProtocol -Name "fixed_hz" -Path "ready.protocol") -eq 60) -Message "Ready fixed rate is not 60 Hz."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyProtocol -Name "no_pause" -Path "ready.protocol") -eq $true) -Message "Ready protocol permits pausing."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyProtocol -Name "screenshots_requested" -Path "ready.protocol") -eq $false) -Message "Ready protocol requests screenshots."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyProtocol -Name "presentmon_required" -Path "ready.protocol") -eq $true) -Message "Ready protocol does not require PresentMon."
+    $readySignalContract = Get-RequiredProperty -InputObject $ready -Name "start_signal_contract" -Path "ready"
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readySignalContract -Name "qpc_boundary_required" -Path "ready.start_signal_contract") -eq $true) -Message "Ready contract does not require an observed QPC boundary."
+
+    $readyPipeline = Get-RequiredProperty -InputObject $ready -Name "pipeline_warmup" -Path "ready"
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyPipeline -Name "status" -Path "ready.pipeline_warmup") -eq "ready") -Message "Pipelines are not ready before PresentMon attachment."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyPipeline -Name "errors" -Path "ready.pipeline_warmup") -eq 0) -Message "Pipeline warmup reports errors."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyPipeline -Name "stable_frames" -Path "ready.pipeline_warmup") -ge (Get-RequiredProperty -InputObject $readyPipeline -Name "required_stable_frames" -Path "ready.pipeline_warmup")) -Message "Pipeline warmup is not stable."
+    $readyQuality = Get-RequiredProperty -InputObject $ready -Name "quality" -Path "ready"
+    $readySelection = Get-RequiredProperty -InputObject $readyQuality -Name "selection" -Path "ready.quality"
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readySelection -Name "mode" -Path "ready.quality.selection") -eq "fixed") -Message "Ready quality is not fixed."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readySelection -Name "tier" -Path "ready.quality.selection") -eq "high") -Message "Ready quality is not High."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyQuality -Name "current_tier" -Path "ready.quality") -eq "high") -Message "Ready current quality is not High."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyQuality -Name "adaptation_enabled" -Path "ready.quality") -eq $false) -Message "Quality adaptation is enabled."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyQuality -Name "transition_count" -Path "ready.quality") -eq 0) -Message "Quality changed before measurement."
+    $readyScenery = Get-RequiredProperty -InputObject $ready -Name "scenery" -Path "ready"
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyScenery -Name "loaded_models" -Path "ready.scenery") -eq 9) -Message "Ready scenery did not load exactly 9 models."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyScenery -Name "unique_models" -Path "ready.scenery") -eq 9) -Message "Ready scenery does not describe exactly 9 models."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyScenery -Name "failed_models" -Path "ready.scenery") -eq 0) -Message "Ready scenery reports failed models."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyScenery -Name "status" -Path "ready.scenery") -eq "activated") -Message "Ready scenery is not activated."
+    $readyGovernedScene = Get-RequiredProperty -InputObject $ready -Name "governed_scene" -Path "ready"
+    foreach ($entry in @(
+            @("visual_valley", "source_hash"),
+            @("vegetation", "vegetation_document_hash"),
+            @("scenery", "manifest_hash"),
+            @("environment", "source_hash"),
+            @("water", "source_hash"),
+            @("weather", "source_hash")
+        )) {
+        $subsystem = Get-RequiredProperty -InputObject $readyGovernedScene -Name $entry[0] -Path "ready.governed_scene"
+        Assert-Condition -Condition (-not [string]::IsNullOrWhiteSpace([string](Get-RequiredProperty -InputObject $subsystem -Name $entry[1] -Path "ready.governed_scene.$($entry[0])"))) -Message "Ready governed scene $($entry[0]).$($entry[1]) is absent."
+    }
+    $readyGpu = Get-RequiredProperty -InputObject $ready -Name "gpu" -Path "ready"
+    foreach ($field in @("name", "driver", "backend")) {
+        Assert-Condition -Condition (-not [string]::IsNullOrWhiteSpace([string](Get-RequiredProperty -InputObject $readyGpu -Name $field -Path "ready.gpu"))) -Message "Ready GPU $field is absent."
+    }
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyGpu -Name "backend" -Path "ready.gpu") -eq "Vulkan") -Message "Ready GPU backend is not Vulkan."
+    $readyQualification = Get-RequiredProperty -InputObject $ready -Name "qualification" -Path "ready"
+    foreach ($field in @("display_stutter_qualified", "human_review_performed", "gate1_route_qualified")) {
+        Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyQualification -Name $field -Path "ready.qualification") -eq $false) -Message "Ready ledger overstates $field."
+    }
+
+    $nativeWindowObservation = Wait-ForQualifiedNativeWindow -Process $runtimeCapture.Process -TimeoutSeconds 5
+    $presentMonArguments = @(
+        "--process_id", [string]$runtimeProcessId,
+        "--output_file", $csvPath,
+        "--v2_metrics",
+        "--qpc_time",
+        "--track_etw_status",
+        "--session_name", $sessionId,
+        "--terminate_on_proc_exit",
+        "--no_console_stats",
+        "--set_circular_buffer_size", "4096"
+    )
+    $presentMonCapture = Start-CapturedProcess -FilePath $presentMonFullPath -ArgumentList $presentMonArguments -WorkingDirectory $outputPath -Label "PresentMon Gate 1 gameplay stutter" -StdoutPath $presentMonStdoutPath -StderrPath $presentMonStderrPath -Visible $false
+
+    $presentMonReadyTimer = [Diagnostics.Stopwatch]::StartNew()
+    $presentMonHeaderObserved = $false
+    while ($presentMonReadyTimer.Elapsed.TotalSeconds -lt $presentMonReadyTimeoutSeconds) {
+        if ($presentMonCapture.Process.HasExited) {
+            throw "PresentMon exited with code $($presentMonCapture.Process.ExitCode) before publishing its CSV header."
+        }
+        if ([IO.File]::Exists($csvPath)) {
+            try {
+                $header = Get-FirstLineShared -Path $csvPath
+                if (-not [string]::IsNullOrWhiteSpace($header)) {
+                    Assert-Condition -Condition ([string]::Equals($header, $expectedPresentMonHeader, [StringComparison]::Ordinal)) -Message "PresentMon CSV header is not the exact governed v2/QPC/ETW header."
+                    $presentMonHeaderObserved = $true
+                    break
+                }
+            }
+            catch {
+                if ($_.Exception.Message -like "PresentMon CSV header is not*") {
+                    throw
+                }
+            }
+        }
+        Start-Sleep -Milliseconds 100
+    }
+    Assert-Condition -Condition $presentMonHeaderObserved -Message "PresentMon did not publish its exact CSV header within $presentMonReadyTimeoutSeconds seconds."
+
+    $preSignalTimer = [Diagnostics.Stopwatch]::StartNew()
+    $preSignalObservedRows = 0
+    [uint64]$lastPreSignalQpc = 0
+    while ($preSignalTimer.Elapsed.TotalSeconds -lt $presentMonReadyTimeoutSeconds) {
+        if ($presentMonCapture.Process.HasExited) {
+            throw "PresentMon exited before observing a complete target-PID display row."
+        }
+        try {
+            $candidateRows = @(Import-Csv -LiteralPath $csvPath)
+            $completeRows = @($candidateRows | Where-Object {
+                    [string]$_.ProcessID -match '^\d+$' -and
+                    [int]$_.ProcessID -eq $runtimeProcessId -and
+                    [string]$_.CPUStartQPC -match '^\d+$' -and
+                    [string]$_.EtwBuffersLost -match '^\d+$' -and
+                    -not [string]::IsNullOrWhiteSpace([string]$_.DisplayedTime)
+                })
+            if ($completeRows.Count -gt 0) {
+                $lastPreSignalRow = $completeRows[$completeRows.Count - 1]
+                Assert-Condition -Condition ([string]::Equals([string]$lastPreSignalRow.Application, [IO.Path]::GetFileName($runtimePath), [StringComparison]::OrdinalIgnoreCase)) -Message "PresentMon pre-signal row names the wrong application."
+                Assert-Condition -Condition ([string]$lastPreSignalRow.SwapChainAddress -match '^0x[0-9A-Fa-f]+$') -Message "PresentMon pre-signal row has no valid swap chain."
+                $lastPreSignalQpc = [uint64]::Parse([string]$lastPreSignalRow.CPUStartQPC, [Globalization.CultureInfo]::InvariantCulture)
+                $preSignalObservedRows = $completeRows.Count
+                break
+            }
+        }
+        catch {
+            if ($_.Exception.Message -like "PresentMon pre-signal row*") {
+                throw
+            }
+        }
+        Start-Sleep -Milliseconds 100
+    }
+    Assert-Condition -Condition ($lastPreSignalQpc -gt 0 -and $preSignalObservedRows -gt 0) -Message "PresentMon did not observe a complete target-PID row before the start signal."
+    [uint64]$qpcFrequencyHz = [Diagnostics.Stopwatch]::Frequency
+    Assert-Condition -Condition ($qpcFrequencyHz -gt 0) -Message "The host QPC frequency is unavailable."
+    [uint64]$measurementNotBeforeQpc = [Diagnostics.Stopwatch]::GetTimestamp()
+    Assert-Condition -Condition ($measurementNotBeforeQpc -gt $lastPreSignalQpc) -Message "The signal publication QPC does not follow the observed pre-signal PresentMon row."
+
+    $signal = [ordered]@{
+        schema = "forge.gate1-gameplay-stutter-start-signal"
+        schema_version = 1
+        process_id = $runtimeProcessId
+        presentmon = [ordered]@{
+            capture_started = $true
+            target_process_id = $runtimeProcessId
+            session_id = $sessionId
+            tool_version = $presentMonVersion
+            tool_sha256 = $presentMonSha256
+            last_pre_signal_qpc = $lastPreSignalQpc
+            measurement_not_before_qpc = $measurementNotBeforeQpc
+            qpc_frequency_hz = $qpcFrequencyHz
+            pre_signal_observed_rows = $preSignalObservedRows
+        }
+    }
+    Write-JsonAtomically -Path $signalPath -Value $signal
+    [uint64]$signalPublishedQpc = [Diagnostics.Stopwatch]::GetTimestamp()
+    Assert-Condition -Condition ($signalPublishedQpc -ge $measurementNotBeforeQpc) -Message "The host QPC regressed while publishing the start signal."
+
+    while (-not $runtimeCapture.Process.HasExited) {
+        if ($presentMonCapture.Process.HasExited) {
+            throw "PresentMon exited with code $($presentMonCapture.Process.ExitCode) before forge_runtime completed."
+        }
+        if ($runtimeWatchdog.Elapsed.TotalSeconds -ge $runtimeTimeoutSeconds) {
+            throw "forge_runtime exceeded the host watchdog of $runtimeTimeoutSeconds seconds."
+        }
+        Start-Sleep -Milliseconds 100
+    }
+    Assert-Condition -Condition ($runtimeCapture.Process.ExitCode -eq 0) -Message "forge_runtime failed with exit code $($runtimeCapture.Process.ExitCode)."
+    Assert-Condition -Condition ($presentMonCapture.Process.WaitForExit($presentMonExitTimeoutSeconds * 1000)) -Message "PresentMon did not terminate within $presentMonExitTimeoutSeconds seconds after target PID $runtimeProcessId exited."
+    Assert-Condition -Condition ($presentMonCapture.Process.ExitCode -eq 0) -Message "PresentMon failed with exit code $($presentMonCapture.Process.ExitCode)."
+
+    $runtimeOutput = Save-CapturedProcessOutput -Capture $runtimeCapture -DrainTimeoutMilliseconds $drainTimeoutMilliseconds
+    $presentMonOutput = Save-CapturedProcessOutput -Capture $presentMonCapture -DrainTimeoutMilliseconds $drainTimeoutMilliseconds
+    Assert-Condition -Condition ($runtimeOutput.StdoutDrained -and $runtimeOutput.StderrDrained) -Message "Runtime output did not drain inside the bounded window."
+    Assert-Condition -Condition ($presentMonOutput.StdoutDrained -and $presentMonOutput.StderrDrained) -Message "PresentMon output did not drain inside the bounded window."
+
+    $gitCommitAfter = (& git -C $repositoryPath rev-parse HEAD).Trim()
+    $gitCommitAfterExitCode = $LASTEXITCODE
+    Assert-Condition -Condition ($gitCommitAfterExitCode -eq 0 -and $gitCommitAfter -match '^[0-9a-f]{40}$') -Message "Cannot re-resolve repository HEAD after acquisition."
+    $gitTreeAfter = (& git -C $repositoryPath show -s --format=%T HEAD).Trim()
+    $gitTreeAfterExitCode = $LASTEXITCODE
+    Assert-Condition -Condition ($gitTreeAfterExitCode -eq 0 -and $gitTreeAfter -match '^[0-9a-f]{40}$') -Message "Cannot re-resolve repository tree after acquisition."
+    $gitStatusAfter = @(& git -C $repositoryPath status --porcelain=v1 --untracked-files=all)
+    $gitStatusAfterExitCode = $LASTEXITCODE
+    Assert-Condition -Condition ($gitStatusAfterExitCode -eq 0) -Message "Cannot inspect repository worktree after acquisition."
+    Assert-Condition -Condition ($gitCommitAfter -eq $gitCommit) -Message "Repository HEAD changed during acquisition."
+    Assert-Condition -Condition ($gitTreeAfter -eq $gitTree) -Message "Repository tree changed during acquisition."
+    Assert-Condition -Condition ($gitStatusAfter.Count -eq 0) -Message "Repository worktree changed during acquisition."
+
+    $runtimeLogIssues = @(
+        @(Get-DisallowedRuntimeLogLines -Path $runtimeStdoutPath)
+        @(Get-DisallowedRuntimeLogLines -Path $runtimeStderrPath)
+    )
+    Assert-Condition -Condition ($runtimeLogIssues.Count -eq 0) -Message "Runtime logs contain warning, error, panic, fatal or failure entries."
+    $runtimeLogPaths = @($runtimeStdoutPath, $runtimeStderrPath)
+    foreach ($eventKind in @("runtime_started", "gate1_gameplay_stutter_ready", "gate1_gameplay_stutter_controller_window_completed", "runtime_stopped")) {
+        Assert-Condition -Condition ((Get-RuntimeEventCount -Paths $runtimeLogPaths -EventKind $eventKind) -eq 1) -Message "Runtime log event '$eventKind' is missing or duplicated."
+    }
+    $presentMonLogAssessment = Get-PresentMonLogAssessment -StdoutPath $presentMonStdoutPath -StderrPath $presentMonStderrPath
+    Assert-Condition -Condition ($presentMonLogAssessment.DisallowedTokens.Count -eq 0) -Message "PresentMon logs contain a disallowed warning/error/loss/failure token."
+
+    Assert-Condition -Condition ([IO.File]::Exists($ledgerPath)) -Message "Runtime did not publish $ledgerFileName."
+    $ledger = [IO.File]::ReadAllText($ledgerPath) | ConvertFrom-Json -Depth 64
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledger -Name "schema" -Path "ledger") -eq "forge.gate1-gameplay-stutter") -Message "Unexpected runtime ledger schema."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledger -Name "schema_version" -Path "ledger") -eq 1) -Message "Unexpected runtime ledger schema version."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledger -Name "status" -Path "ledger") -eq "controller_window_complete_pending_presentmon_analysis") -Message "Runtime controller window did not complete cleanly."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledger -Name "process_id" -Path "ledger") -eq $runtimeProcessId) -Message "Runtime ledger PID mismatch."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledger -Name "build_source_commit" -Path "ledger") -eq $gitCommit) -Message "Runtime ledger commit mismatch."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledger -Name "build_profile" -Path "ledger") -eq "release") -Message "Runtime ledger build profile is not release."
+
+    $ledgerProtocol = Get-RequiredProperty -InputObject $ledger -Name "protocol" -Path "ledger"
+    Assert-Condition -Condition (((Get-RequiredProperty -InputObject $ledgerProtocol -Name "physical_resolution_px" -Path "ledger.protocol") -join "x") -eq "1920x1080") -Message "Ledger resolution is not 1920x1080."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerProtocol -Name "present_mode" -Path "ledger.protocol") -eq "auto_no_vsync") -Message "Ledger present mode is not AutoNoVsync."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerProtocol -Name "vsync_requested" -Path "ledger.protocol") -eq $false) -Message "Ledger reports VSync enabled."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerProtocol -Name "no_pause" -Path "ledger.protocol") -eq $true) -Message "Ledger protocol allowed pausing."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerProtocol -Name "screenshots_requested" -Path "ledger.protocol") -eq $false) -Message "Ledger protocol requested screenshots."
+
+    $ledgerPresentMon = Get-RequiredProperty -InputObject $ledger -Name "presentmon" -Path "ledger"
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerPresentMon -Name "required" -Path "ledger.presentmon") -eq $true) -Message "Runtime ledger does not require PresentMon."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerPresentMon -Name "host_declared_capture_started" -Path "ledger.presentmon") -eq $true) -Message "Runtime did not observe the host PresentMon declaration."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerPresentMon -Name "target_process_id" -Path "ledger.presentmon") -eq $runtimeProcessId) -Message "Ledger PresentMon target PID mismatch."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerPresentMon -Name "session_id" -Path "ledger.presentmon") -eq $sessionId) -Message "Ledger PresentMon session mismatch."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerPresentMon -Name "tool_version" -Path "ledger.presentmon") -eq $presentMonVersion) -Message "Ledger PresentMon version mismatch."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerPresentMon -Name "tool_sha256" -Path "ledger.presentmon") -eq $presentMonSha256) -Message "Ledger PresentMon hash mismatch."
+    Assert-Condition -Condition ([uint64](Get-RequiredProperty -InputObject $ledgerPresentMon -Name "last_pre_signal_qpc" -Path "ledger.presentmon") -eq $lastPreSignalQpc) -Message "Ledger PresentMon pre-signal QPC mismatch."
+    Assert-Condition -Condition ([uint64](Get-RequiredProperty -InputObject $ledgerPresentMon -Name "measurement_not_before_qpc" -Path "ledger.presentmon") -eq $measurementNotBeforeQpc) -Message "Ledger PresentMon QPC boundary mismatch."
+    Assert-Condition -Condition ([uint64](Get-RequiredProperty -InputObject $ledgerPresentMon -Name "qpc_frequency_hz" -Path "ledger.presentmon") -eq $qpcFrequencyHz) -Message "Ledger PresentMon QPC frequency mismatch."
+    Assert-Condition -Condition ([int](Get-RequiredProperty -InputObject $ledgerPresentMon -Name "pre_signal_observed_rows" -Path "ledger.presentmon") -eq $preSignalObservedRows) -Message "Ledger PresentMon pre-signal row count mismatch."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerPresentMon -Name "runtime_verified_capture" -Path "ledger.presentmon") -eq $false) -Message "Runtime falsely claims it verified the external capture."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerPresentMon -Name "display_metrics_ingested" -Path "ledger.presentmon") -eq $false) -Message "Runtime falsely claims it ingested display metrics."
+
+    $ledgerGovernedScene = Get-RequiredProperty -InputObject $ledger -Name "governed_scene" -Path "ledger"
+    foreach ($field in @("qualified_before_measurement", "qualified_for_entire_measurement", "structural_identity_stable", "final_render_boundary_validated")) {
+        Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerGovernedScene -Name $field -Path "ledger.governed_scene") -eq $true) -Message "Governed scene failed $field."
+    }
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerGovernedScene -Name "water_animation_advanced_each_render_frame" -Path "ledger.governed_scene") -eq $true) -Message "Water animation did not advance on every rendered measurement frame."
+    $waterAnimationAdvancementFrames = [int](Get-RequiredProperty -InputObject $ledgerGovernedScene -Name "water_animation_advancement_frames" -Path "ledger.governed_scene")
+    Assert-Condition -Condition ($waterAnimationAdvancementFrames -gt 0) -Message "No water animation advancement was observed during measurement."
+
+    $ledgerPipeline = Get-RequiredProperty -InputObject $ledger -Name "pipeline_warmup" -Path "ledger"
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerPipeline -Name "ready_before_measurement" -Path "ledger.pipeline_warmup") -eq $true) -Message "Pipelines were not ready before measurement."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerPipeline -Name "ready_for_entire_measurement" -Path "ledger.pipeline_warmup") -eq $true) -Message "Pipelines were not ready for the whole measurement."
+    $ledgerQuality = Get-RequiredProperty -InputObject $ledger -Name "quality" -Path "ledger"
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerQuality -Name "fixed_high_before_measurement" -Path "ledger.quality") -eq $true) -Message "High was not fixed before measurement."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerQuality -Name "fixed_high_for_entire_measurement" -Path "ledger.quality") -eq $true) -Message "High was not fixed for the whole measurement."
+    $ledgerScenery = Get-RequiredProperty -InputObject $ledger -Name "scenery" -Path "ledger"
+    foreach ($field in @("nine_of_nine_before_measurement", "nine_of_nine_for_entire_measurement", "no_fallback_before_measurement", "no_fallback_for_entire_measurement")) {
+        Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerScenery -Name $field -Path "ledger.scenery") -eq $true) -Message "Ledger scenery failed $field."
+    }
+    $ledgerGpu = Get-RequiredProperty -InputObject $ledger -Name "gpu" -Path "ledger"
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerGpu -Name "present_before_measurement" -Path "ledger.gpu") -eq $true) -Message "GPU identity was absent before measurement."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerGpu -Name "identity_stable" -Path "ledger.gpu") -eq $true) -Message "GPU identity changed during measurement."
+
+    $movement = Get-RequiredProperty -InputObject $ledger -Name "movement" -Path "ledger"
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $movement -Name "kind" -Path "ledger.movement") -eq "uninterrupted_fixed_tick_gameplay_controller") -Message "Movement is not the uninterrupted gameplay controller."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $movement -Name "forward_ticks" -Path "ledger.movement") -eq 900) -Message "Forward controller window is not 900 ticks."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $movement -Name "reverse_ticks" -Path "ledger.movement") -eq 900) -Message "Reverse controller window is not 900 ticks."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $movement -Name "total_fixed_ticks" -Path "ledger.movement") -eq 1800) -Message "Controller window is not exactly 1800 ticks."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $movement -Name "nominal_duration_seconds" -Path "ledger.movement") -eq 30) -Message "Nominal controller duration is not 30 seconds."
+    $observedWallSeconds = [double](Get-RequiredProperty -InputObject $movement -Name "observed_wall_duration_seconds" -Path "ledger.movement")
+    Assert-Condition -Condition ([double]::IsFinite($observedWallSeconds) -and $observedWallSeconds -ge 29.5 -and $observedWallSeconds -le 30.5) -Message "Observed controller wall duration is outside 29.5..30.5 seconds."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $movement -Name "forward_distance_m" -Path "ledger.movement") -ge 60.0) -Message "Forward controller leg is shorter than 60 m."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $movement -Name "reverse_distance_m" -Path "ledger.movement") -ge 60.0) -Message "Reverse controller leg is shorter than 60 m."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $movement -Name "return_distance_m" -Path "ledger.movement") -le 5.0) -Message "Controller did not return within 5 m."
+    $startPosition = @(Get-RequiredProperty -InputObject $movement -Name "start_position_m" -Path "ledger.movement")
+    $forwardEndpoint = @(Get-RequiredProperty -InputObject $movement -Name "forward_endpoint_m" -Path "ledger.movement")
+    $endPosition = @(Get-RequiredProperty -InputObject $movement -Name "end_position_m" -Path "ledger.movement")
+    Assert-Condition -Condition ($startPosition.Count -eq 3 -and $forwardEndpoint.Count -eq 3 -and $endPosition.Count -eq 3) -Message "Movement positions are incomplete."
+    Assert-Condition -Condition ($startPosition[2] -gt 0.0 -and $forwardEndpoint[2] -lt 0.0 -and $endPosition[2] -gt 0.0) -Message "Controller did not cross and recross the central seam."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $movement -Name "grounded_ticks" -Path "ledger.movement") -eq 1800) -Message "Controller was not grounded for all 1800 ticks."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $movement -Name "collision_ticks" -Path "ledger.movement") -eq 1800) -Message "Controller lacked terrain collision for some ticks."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $movement -Name "maximum_ungrounded_run" -Path "ledger.movement") -le 4) -Message "Controller grounding gap exceeded four ticks."
+    $profileHorizontalStepLimit = [double](Get-RequiredProperty -InputObject $movement -Name "profile_horizontal_step_limit_m" -Path "ledger.movement")
+    $maximumHorizontalStep = [double](Get-RequiredProperty -InputObject $movement -Name "maximum_horizontal_step_m" -Path "ledger.movement")
+    $maximumControllerTranslationError = [double](Get-RequiredProperty -InputObject $movement -Name "maximum_controller_translation_error_m" -Path "ledger.movement")
+    Assert-Condition -Condition ([double]::IsFinite($profileHorizontalStepLimit) -and $profileHorizontalStepLimit -gt 0.0 -and $profileHorizontalStepLimit -lt 0.5) -Message "Profile-derived horizontal step limit is invalid."
+    Assert-Condition -Condition ([double]::IsFinite($maximumHorizontalStep) -and $maximumHorizontalStep -le $profileHorizontalStepLimit) -Message "Controller exceeded its profile-derived per-tick movement bound."
+    Assert-Condition -Condition ([double]::IsFinite($maximumControllerTranslationError) -and $maximumControllerTranslationError -le 0.001) -Message "Observed player movement diverged from the controller/KCC effective translation."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $movement -Name "render_frames_spanned" -Path "ledger.movement") -gt 0) -Message "Controller window spans no rendered frame."
+    $renderInvariantChecks = [int](Get-RequiredProperty -InputObject $movement -Name "render_invariant_checks" -Path "ledger.movement")
+    Assert-Condition -Condition ($renderInvariantChecks -gt 0) -Message "No rendered-frame invariant was validated."
+    Assert-Condition -Condition ($waterAnimationAdvancementFrames -eq $renderInvariantChecks) -Message "Water animation advancement count does not match validated rendered frames."
+    $firstFixedTick = [uint64](Get-RequiredProperty -InputObject $movement -Name "first_fixed_tick" -Path "ledger.movement")
+    $midpointFixedTick = [uint64](Get-RequiredProperty -InputObject $movement -Name "midpoint_fixed_tick" -Path "ledger.movement")
+    $lastFixedTick = [uint64](Get-RequiredProperty -InputObject $movement -Name "last_fixed_tick" -Path "ledger.movement")
+    Assert-Condition -Condition ($firstFixedTick -le $midpointFixedTick -and $midpointFixedTick -le $lastFixedTick) -Message "Movement fixed-tick boundaries are not monotonic."
+    Assert-Condition -Condition ($midpointFixedTick - $firstFixedTick -eq 899 -and $lastFixedTick - $midpointFixedTick -eq 900) -Message "Movement fixed-tick boundaries are not exactly consecutive 900+900 samples."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $movement -Name "stop_wait_ticks" -Path "ledger.movement") -le 45) -Message "Controller stop exceeded 45 ticks."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $movement -Name "stop_stable_ticks" -Path "ledger.movement") -gt 0) -Message "Controller stop never stabilized."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $movement -Name "camera_marker_verified" -Path "ledger.movement") -eq $true) -Message "ForgePlayerCamera was not verified."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $movement -Name "rapier_bindings_stable" -Path "ledger.movement") -eq $true) -Message "Rapier bindings changed."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $movement -Name "virtual_time_unpaused" -Path "ledger.movement") -eq $true) -Message "Virtual time was paused."
+    $virtualTimeScale = [double](Get-RequiredProperty -InputObject $movement -Name "virtual_time_scale" -Path "ledger.movement")
+    Assert-Condition -Condition ([Math]::Abs($virtualTimeScale - 1.0) -le 0.000001) -Message "Virtual time scale was not exactly 1.0."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $movement -Name "screenshots_observed" -Path "ledger.movement") -eq $false) -Message "Screenshots were observed during the real-time controller window."
+    $binding = Get-RequiredProperty -InputObject $movement -Name "binding" -Path "ledger.movement"
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $binding -Name "backend_identity_stable" -Path "ledger.movement.binding") -eq $true) -Message "Controller backend identity changed."
+    foreach ($field in @("player_entity", "camera_entity", "rapier_context_entity")) {
+        Assert-Condition -Condition (-not [string]::IsNullOrWhiteSpace([string](Get-RequiredProperty -InputObject $binding -Name $field -Path "ledger.movement.binding"))) -Message "Movement binding $field is absent."
+    }
+
+    $ledgerQualification = Get-RequiredProperty -InputObject $ledger -Name "qualification" -Path "ledger"
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerQualification -Name "real_gameplay_controller_exercised" -Path "ledger.qualification") -eq $true) -Message "Runtime did not exercise the real gameplay controller."
+    foreach ($field in @("display_stutter_qualified", "presentmon_analysis_completed", "human_review_performed", "gate1_route_qualified", "gate1_qualified")) {
+        Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerQualification -Name $field -Path "ledger.qualification") -eq $false) -Message "Runtime ledger overstates $field before host validation."
+    }
+
+    Assert-Condition -Condition ([IO.File]::Exists($csvPath)) -Message "PresentMon CSV is absent."
+    $finalHeader = Get-FirstLineShared -Path $csvPath
+    Assert-Condition -Condition ([string]::Equals($finalHeader, $expectedPresentMonHeader, [StringComparison]::Ordinal)) -Message "Final PresentMon CSV header changed."
+    $csvRows = @(Import-Csv -LiteralPath $csvPath)
+    Assert-Condition -Condition ($csvRows.Count -ge 120) -Message "PresentMon CSV contains fewer than 120 rows."
+    $parsedRows = [Collections.Generic.List[object]]::new()
+    $swapChains = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+    $presentModes = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+    $presentRuntimes = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+    $allowsTearingValues = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+    $syncIntervals = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+    $presentFlagsValues = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+    $displayedNaCount = 0
+    $previousQpc = $null
+    for ($index = 0; $index -lt $csvRows.Count; $index++) {
+        $row = $csvRows[$index]
+        $csvRowNumber = $index + 2
+        Assert-Condition -Condition ($row.PSObject.Properties.Count -eq $expectedPresentMonColumns.Count) -Message "CSV row $csvRowNumber does not have the exact v2/ETW column count."
+        $application = [string](Get-RequiredProperty -InputObject $row -Name "Application" -Path "csv[$csvRowNumber]")
+        Assert-Condition -Condition ([string]::Equals($application, [IO.Path]::GetFileName($runtimePath), [StringComparison]::OrdinalIgnoreCase)) -Message "CSV row $csvRowNumber names unexpected application '$application'."
+        $processIdText = [string](Get-RequiredProperty -InputObject $row -Name "ProcessID" -Path "csv[$csvRowNumber]")
+        $rowProcessId = 0
+        Assert-Condition -Condition ([int]::TryParse($processIdText, [Globalization.NumberStyles]::None, [Globalization.CultureInfo]::InvariantCulture, [ref]$rowProcessId) -and $rowProcessId -eq $runtimeProcessId) -Message "CSV row $csvRowNumber PID mismatch."
+        $swapChain = [string](Get-RequiredProperty -InputObject $row -Name "SwapChainAddress" -Path "csv[$csvRowNumber]")
+        Assert-Condition -Condition ($swapChain -match '^0x[0-9A-Fa-f]+$') -Message "CSV row $csvRowNumber has invalid SwapChainAddress '$swapChain'."
+        [void]$swapChains.Add($swapChain)
+        $presentRuntime = [string](Get-RequiredProperty -InputObject $row -Name "PresentRuntime" -Path "csv[$csvRowNumber]")
+        Assert-Condition -Condition ($presentRuntime -eq "Other") -Message "CSV row $csvRowNumber is not the governed Vulkan PresentRuntime `Other`: '$presentRuntime'."
+        [void]$presentRuntimes.Add($presentRuntime)
+        $presentMode = [string](Get-RequiredProperty -InputObject $row -Name "PresentMode" -Path "csv[$csvRowNumber]")
+        Assert-Condition -Condition (-not [string]::IsNullOrWhiteSpace($presentMode) -and $presentMode -ne "NA") -Message "CSV row $csvRowNumber has no PresentMode."
+        [void]$presentModes.Add($presentMode)
+        $allowsTearing = [string](Get-RequiredProperty -InputObject $row -Name "AllowsTearing" -Path "csv[$csvRowNumber]")
+        Assert-Condition -Condition ($allowsTearing -in @("0", "1")) -Message "CSV row $csvRowNumber has invalid AllowsTearing '$allowsTearing'."
+        [void]$allowsTearingValues.Add($allowsTearing)
+        $syncInterval = [string](Get-RequiredProperty -InputObject $row -Name "SyncInterval" -Path "csv[$csvRowNumber]")
+        Assert-Condition -Condition ($syncInterval -match '^\d+$') -Message "CSV row $csvRowNumber has invalid SyncInterval."
+        [void]$syncIntervals.Add($syncInterval)
+        $presentFlags = [string](Get-RequiredProperty -InputObject $row -Name "PresentFlags" -Path "csv[$csvRowNumber]")
+        Assert-Condition -Condition ($presentFlags -match '^(?:0x[0-9A-Fa-f]+|\d+)$') -Message "CSV row $csvRowNumber has invalid PresentFlags."
+        [void]$presentFlagsValues.Add($presentFlags)
+        $qpcText = [string](Get-RequiredProperty -InputObject $row -Name "CPUStartQPC" -Path "csv[$csvRowNumber]")
+        Assert-Condition -Condition ($qpcText -match '^\d+$') -Message "CSV row $csvRowNumber has invalid CPUStartQPC '$qpcText'."
+        $qpc = [decimal]::Parse($qpcText, [Globalization.CultureInfo]::InvariantCulture)
+        if ($null -ne $previousQpc) {
+            Assert-Condition -Condition ($qpc -gt $previousQpc) -Message "PresentMon CPUStartQPC is not strictly increasing at CSV row $csvRowNumber."
+        }
+        $previousQpc = $qpc
+        [void](ConvertTo-PresentMonMetric -Value ([string]$row.FrameTime) -Field "csv[$csvRowNumber].FrameTime" -Minimum 0.0 -StrictlyGreaterThanMinimum)
+        [void](ConvertTo-PresentMonMetric -Value ([string]$row.CPUBusy) -Field "csv[$csvRowNumber].CPUBusy" -Minimum 0.0)
+        [void](ConvertTo-PresentMonMetric -Value ([string]$row.CPUWait) -Field "csv[$csvRowNumber].CPUWait" -Minimum 0.0)
+        foreach ($field in @("GPULatency", "GPUTime", "GPUBusy", "GPUWait", "AnimationError", "AnimationTime", "MsFlipDelay", "AllInputToPhotonLatency", "ClickToPhotonLatency")) {
+            [void](ConvertTo-PresentMonMetric -Value ([string]$row.$field) -Field "csv[$csvRowNumber].$field" -AllowNa)
+        }
+        $displayLatencyText = [string](Get-RequiredProperty -InputObject $row -Name "DisplayLatency" -Path "csv[$csvRowNumber]")
+        $displayedText = [string](Get-RequiredProperty -InputObject $row -Name "DisplayedTime" -Path "csv[$csvRowNumber]")
+        $displayedTime = $null
+        if ([string]::Equals($displayedText, "NA", [StringComparison]::Ordinal)) {
+            Assert-Condition -Condition ([string]::Equals($displayLatencyText, "NA", [StringComparison]::Ordinal)) -Message "CSV row $csvRowNumber has mismatched DisplayLatency/DisplayedTime NA state."
+            Assert-Condition -Condition ($index -eq $csvRows.Count - 1) -Message "CSV row $csvRowNumber is an interior non-displayed frame."
+            $displayedNaCount++
+        }
+        else {
+            [void](ConvertTo-InvariantDouble -Value $displayLatencyText -Field "csv[$csvRowNumber].DisplayLatency" -Minimum 0.0)
+            $displayedTime = ConvertTo-InvariantDouble -Value $displayedText -Field "csv[$csvRowNumber].DisplayedTime" -Minimum 0.0 -StrictlyGreaterThanMinimum
+        }
+        $etwFill = ConvertTo-InvariantDouble -Value ([string]$row.EtwBufferFillPct -replace '%$', '') -Field "csv[$csvRowNumber].EtwBufferFillPct" -Minimum 0.0
+        Assert-Condition -Condition ($etwFill -lt 100.0) -Message "CSV row $csvRowNumber ETW buffer fill reached 100 percent."
+        foreach ($field in @("EtwBuffersInUse", "EtwTotalBuffers", "EtwEventsLost", "EtwBuffersLost")) {
+            Assert-Condition -Condition ([string]$row.$field -match '^\d+$') -Message "CSV row $csvRowNumber has invalid $field."
+        }
+        Assert-Condition -Condition ([uint64]$row.EtwTotalBuffers -gt 0) -Message "CSV row $csvRowNumber reports no ETW buffers."
+        Assert-Condition -Condition ([uint64]$row.EtwBuffersInUse -le [uint64]$row.EtwTotalBuffers) -Message "CSV row $csvRowNumber reports more ETW buffers in use than total."
+        Assert-Condition -Condition ([uint64]$row.EtwEventsLost -eq 0 -and [uint64]$row.EtwBuffersLost -eq 0) -Message "CSV row $csvRowNumber reports lost ETW events or buffers."
+        $parsedRows.Add([pscustomobject]@{
+                CsvRow = $csvRowNumber
+                Qpc = $qpc
+                DisplayedTimeMs = $displayedTime
+            })
+    }
+    Assert-Condition -Condition ($displayedNaCount -le 1) -Message "PresentMon recorded more than one terminal unresolved display row."
+    Assert-Condition -Condition ($swapChains.Count -eq 1) -Message "PresentMon recorded $($swapChains.Count) swap chains; one exact display surface is required."
+    Assert-Condition -Condition ($presentRuntimes.Count -eq 1) -Message "PresentRuntime changed during the capture."
+    Assert-Condition -Condition ($presentModes.Count -eq 1) -Message "PresentMode changed during the capture."
+    Assert-Condition -Condition ($allowsTearingValues.Count -eq 1) -Message "AllowsTearing changed during the capture."
+    Assert-Condition -Condition ($syncIntervals.Count -eq 1) -Message "SyncInterval changed during the capture."
+    Assert-Condition -Condition ($presentFlagsValues.Count -eq 1) -Message "PresentFlags changed during the capture."
+    Assert-Condition -Condition (@($syncIntervals)[0] -eq "0") -Message "PresentMon observed a non-zero SyncInterval despite the governed no-vsync protocol."
+
+    [decimal]$qpcFrequency = $qpcFrequencyHz
+    [decimal]$measurementStartQpc = $signalPublishedQpc
+    [decimal]$nominalMovementEndQpc = $measurementStartQpc + [decimal]([Math]::Ceiling($observedWallSeconds * [double]$qpcFrequencyHz))
+    $measurementEnvelopeRows = @($parsedRows | Where-Object {
+            [decimal]($_.Qpc) -gt $measurementStartQpc -and [decimal]($_.Qpc) -le $nominalMovementEndQpc
+        })
+    Assert-Condition -Condition ($measurementEnvelopeRows.Count -ge 120) -Message "The bounded post-signal display sample contains fewer than 120 rows."
+    $measurementUnresolvedRows = @($measurementEnvelopeRows | Where-Object { $null -eq $_.DisplayedTimeMs })
+    Assert-Condition -Condition ($measurementUnresolvedRows.Count -eq 0) -Message "The bounded display-sample window contains an unresolved DisplayedTime row."
+    $measurementRows = @($measurementEnvelopeRows | Where-Object { $null -ne $_.DisplayedTimeMs })
+    Assert-Condition -Condition ($measurementRows.Count -ge 120) -Message "The bounded post-signal display sample contains fewer than 120 displayed rows."
+    $firstQpc = [decimal]$measurementRows[0].Qpc
+    $lastQpc = [decimal]$measurementRows[$measurementRows.Count - 1].Qpc
+    $lastDisplayedSeconds = [decimal]([double]$measurementRows[$measurementRows.Count - 1].DisplayedTimeMs / 1000.0)
+    $measurementDurationSeconds = [double](($lastQpc - $firstQpc) / $qpcFrequency + $lastDisplayedSeconds)
+    $measurementStartDelayMilliseconds = [double](($firstQpc - $measurementStartQpc) * 1000 / $qpcFrequency)
+    Assert-Condition -Condition ($measurementStartDelayMilliseconds -ge 0.0 -and $measurementStartDelayMilliseconds -le 100.0) -Message "The bounded display sample begins $measurementStartDelayMilliseconds ms after the QPC signal boundary."
+    Assert-Condition -Condition ($measurementDurationSeconds -ge ($observedWallSeconds - 0.1) -and $measurementDurationSeconds -le ($observedWallSeconds + 0.15)) -Message "Bounded display-sample duration $measurementDurationSeconds s does not match reported controller wall duration $observedWallSeconds s within tolerance."
+
+    $displayedTimes = [double[]]@($measurementRows | ForEach-Object { [double]$_.DisplayedTimeMs })
+    $sortedDisplayedTimes = [double[]]@($displayedTimes | Sort-Object)
+    $meanMilliseconds = [double](($displayedTimes | Measure-Object -Average).Average)
+    $p95Milliseconds = Get-NearestRankPercentile -SortedValues $sortedDisplayedTimes -Quantile 0.95
+    $p99Milliseconds = Get-NearestRankPercentile -SortedValues $sortedDisplayedTimes -Quantile 0.99
+    $slowestOnePercentCount = [Math]::Max(1, [int][Math]::Ceiling($displayedTimes.Count / 100.0))
+    $slowestOnePercent = [double[]]@($sortedDisplayedTimes | Sort-Object -Descending | Select-Object -First $slowestOnePercentCount)
+    $slowestOnePercentMeanMilliseconds = [double](($slowestOnePercent | Measure-Object -Average).Average)
+    $onePercentLowFps = 1000.0 / $slowestOnePercentMeanMilliseconds
+    $over16Count = @($displayedTimes | Where-Object { $_ -gt 16.7 }).Count
+    $over33Count = @($displayedTimes | Where-Object { $_ -gt 33.3 }).Count
+    $over16Sequences = @(Get-ThresholdSequences -Rows @($measurementRows) -ThresholdMilliseconds 16.7)
+    $over33Sequences = @(Get-ThresholdSequences -Rows @($measurementRows) -ThresholdMilliseconds 33.3)
+    $maxConsecutiveOver16 = if ($over16Sequences.Count -eq 0) { 0 } else { [int](($over16Sequences | Measure-Object -Property length -Maximum).Maximum) }
+    $maxConsecutiveOver33 = if ($over33Sequences.Count -eq 0) { 0 } else { [int](($over33Sequences | Measure-Object -Property length -Maximum).Maximum) }
+    $boundedThresholdsPassed = $measurementUnresolvedRows.Count -eq 0 -and $p95Milliseconds -le 16.7 -and $onePercentLowFps -ge 45.0 -and $over33Count -eq 0 -and $maxConsecutiveOver16 -le 1
+
+    $validation = [ordered]@{
+        schema = "forge.gate1-gameplay-stutter-validation"
+        schema_version = 1
+        status = if ($boundedThresholdsPassed) { "bounded_sample_thresholds_passed_pending_exact_runtime_qpc" } else { "bounded_sample_thresholds_failed" }
+        repository_commit = $gitCommit
+        repository_tree = $gitTree
+        runtime = [ordered]@{
+            process_id = $runtimeProcessId
+            executable_sha256 = $runtimeSha256
+            governed_build_completed_at_utc = $runtimeBuildCompletedAtUtc
+            governed_build_cargo_version = $cargoVersion
+            governed_build_target_directory = $cargoTargetPath
+            governed_build_working_directory = $repositoryPath
+            governed_build_arguments = @("build", "-p", "forge_runtime", "--release", "--locked", "-j", "1")
+            visible_window_requested = $true
+            visible_window_observed_before_signal = $nativeWindowObservation.Observed
+            native_window = [ordered]@{
+                handle = $nativeWindowObservation.Handle
+                owner_process_id = $nativeWindowObservation.OwnerProcessId
+                ws_visible_observed = $nativeWindowObservation.Visible
+                minimized_observed = $nativeWindowObservation.Minimized
+                outer_rect_reported_px = @($nativeWindowObservation.OuterWidthReportedPx, $nativeWindowObservation.OuterHeightReportedPx)
+                minimum_outer_rect_reported_px = @(1920, 1080)
+                window_wait_elapsed_ms = $nativeWindowObservation.ObservedAfterWaitStartMilliseconds
+            }
+            release_profile_declared_by_runtime = $true
+            controller_wall_duration_seconds = $observedWallSeconds
+        }
+        presentmon = [ordered]@{
+            version = $presentMonVersion
+            bytes = $presentMonBytes
+            sha256 = $presentMonSha256
+            authenticode_status = [string]$presentMonSignature.Status
+            signer = $presentMonSigner
+            session_id = $sessionId
+            target_process_id = $runtimeProcessId
+            csv_schema = "presentmon_v2_qpc_with_etw_status"
+            csv_columns = $expectedPresentMonColumns
+            raw_csv_rows = $parsedRows.Count
+            raw_displayed_rows = $parsedRows.Count - $displayedNaCount
+            raw_terminal_unresolved_rows = $displayedNaCount
+            last_pre_signal_qpc = $lastPreSignalQpc
+            measurement_not_before_qpc = $measurementNotBeforeQpc
+            signal_published_qpc = $signalPublishedQpc
+            qpc_frequency_hz = $qpcFrequencyHz
+            pre_signal_observed_rows = $preSignalObservedRows
+            measurement_envelope_rows = $measurementEnvelopeRows.Count
+            measurement_displayed_rows = $measurementRows.Count
+            measurement_unresolved_rows = $measurementUnresolvedRows.Count
+            measurement_envelope_margin_seconds = 0.0
+            bounded_sample_first_row_delay_from_signal_ms = $measurementStartDelayMilliseconds
+            measurement_duration_seconds = $measurementDurationSeconds
+            swap_chain = @($swapChains)[0]
+            present_runtime = @($presentRuntimes)[0]
+            present_mode = @($presentModes)[0]
+            allows_tearing_values = @($allowsTearingValues)
+            sync_interval_values = @($syncIntervals)
+            present_flags_values = @($presentFlagsValues)
+            etw_events_lost = 0
+            etw_buffers_lost = 0
+            allowed_non_admin_warning_count = $presentMonLogAssessment.AllowedNonAdminWarningCount
+        }
+        display_metrics = [ordered]@{
+            source_column = "DisplayedTime"
+            percentile_method = "nearest_rank"
+            one_percent_low_method = "1000_divided_by_mean_of_slowest_ceil_one_percent_displayed_times"
+            sample_count = $displayedTimes.Count
+            mean_ms = $meanMilliseconds
+            p95_ms = $p95Milliseconds
+            p99_ms = $p99Milliseconds
+            slowest_one_percent_count = $slowestOnePercentCount
+            slowest_one_percent_mean_ms = $slowestOnePercentMeanMilliseconds
+            one_percent_low_fps = $onePercentLowFps
+            over_16_7_ms_count = $over16Count
+            over_33_3_ms_count = $over33Count
+            over_16_7_ms_sequences = $over16Sequences
+            over_33_3_ms_sequences = $over33Sequences
+            maximum_consecutive_over_16_7_ms = $maxConsecutiveOver16
+            maximum_consecutive_over_33_3_ms = $maxConsecutiveOver33
+        }
+        checks = [ordered]@{
+            clean_worktree_before_and_after = $true
+            exact_commit_embedded = $true
+            runtime_rebuilt_by_host_after_clean_check = $true
+            runtime_visible_window_observed_before_signal = $nativeWindowObservation.Observed
+            release_1920x1080_high_no_vsync = $true
+            real_gameplay_controller_exercised = $true
+            uninterrupted_1800_fixed_ticks = $true
+            governed_scene_qualified_and_stable = $true
+            presentmon_pid_exact = $true
+            presentmon_v2_qpc_header_exact = $true
+            presentmon_qpc_boundary_observed_before_signal = $true
+            exact_runtime_qpc_bounds_observed = $false
+            presentmon_single_stable_swapchain_epoch = $true
+            presentmon_etw_loss_zero = $true
+            bounded_sample_has_no_unresolved_display = $true
+            runtime_warning_error_panic_entries = 0
+            presentmon_disallowed_log_entries = 0
+            p95_at_most_16_7_ms = ($p95Milliseconds -le 16.7)
+            one_percent_low_at_least_45_fps = ($onePercentLowFps -ge 45.0)
+            no_displayed_time_over_33_3_ms = ($over33Count -eq 0)
+            no_two_consecutive_displayed_times_over_16_7_ms = ($maxConsecutiveOver16 -le 1)
+            bounded_display_thresholds_passed = $boundedThresholdsPassed
+            real_time_display_stutter_qualified = $false
+            human_review_performed = $false
+            gate1_route_qualified = $false
+            gate1_qualified = $false
+        }
+        artifacts = [ordered]@{
+            ready = Get-ArtifactDescriptor -Path $readyPath -RelativePath $readyFileName
+            start_signal = Get-ArtifactDescriptor -Path $signalPath -RelativePath $signalFileName
+            runtime_ledger = Get-ArtifactDescriptor -Path $ledgerPath -RelativePath $ledgerFileName
+            presentmon_csv = Get-ArtifactDescriptor -Path $csvPath -RelativePath "presentmon.csv"
+            runtime_stdout = Get-ArtifactDescriptor -Path $runtimeStdoutPath -RelativePath "runtime.stdout.log"
+            runtime_stderr = Get-ArtifactDescriptor -Path $runtimeStderrPath -RelativePath "runtime.stderr.log"
+            presentmon_stdout = Get-ArtifactDescriptor -Path $presentMonStdoutPath -RelativePath "presentmon.stdout.log"
+            presentmon_stderr = Get-ArtifactDescriptor -Path $presentMonStderrPath -RelativePath "presentmon.stderr.log"
+        }
+        limitations = [ordered]@{
+            single_run_only = $true
+            target_gpu_qualified = $false
+            human_review_performed = $false
+            gate1_route_qualified = $false
+            gate1_qualified = $false
+        }
+    }
+    Write-JsonAtomically -Path $validationPath -Value $validation
+    Assert-Condition -Condition $boundedThresholdsPassed -Message "PresentMon bounded display sample thresholds failed; see $validationPath."
+    Write-Output ("FORGE_GATE1_GAMEPLAY_STUTTER_BOUNDED_SAMPLE_RECORDED thresholds_passed=true samples={0} mean_ms={1:F4} p95_ms={2:F4} one_percent_low_fps={3:F3} over_16_7={4} over_33_3={5} max_consecutive_over_16_7={6}" -f $displayedTimes.Count, $meanMilliseconds, $p95Milliseconds, $onePercentLowFps, $over16Count, $over33Count, $maxConsecutiveOver16)
+}
+finally {
+    $presentMonStopped = Stop-CapturedProcessBounded -Capture $presentMonCapture
+    $runtimeStopped = Stop-CapturedProcessBounded -Capture $runtimeCapture
+    if ($null -ne $presentMonCapture -and -not $presentMonCapture.OutputSaved) {
+        [void](Save-CapturedProcessOutput -Capture $presentMonCapture -DrainTimeoutMilliseconds $drainTimeoutMilliseconds)
+    }
+    if ($null -ne $runtimeCapture -and -not $runtimeCapture.OutputSaved) {
+        [void](Save-CapturedProcessOutput -Capture $runtimeCapture -DrainTimeoutMilliseconds $drainTimeoutMilliseconds)
+    }
+    if ($null -ne $presentMonCapture) {
+        $presentMonCapture.Process.Dispose()
+    }
+    if ($null -ne $runtimeCapture) {
+        $runtimeCapture.Process.Dispose()
+    }
+    if (-not $presentMonStopped -or -not $runtimeStopped) {
+        Write-Warning "A process-tree watchdog could not confirm bounded termination."
+    }
+}

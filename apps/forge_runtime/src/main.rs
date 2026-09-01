@@ -1,5 +1,6 @@
 #![deny(unsafe_code)]
 
+mod gate1_gameplay_stutter;
 mod gate1_visual_proof;
 mod player_camera_probe;
 mod terrain_partial_update_probe;
@@ -31,6 +32,7 @@ use forge_world::{
     embedded_visual_valley_terrain_document, embedded_visual_valley_vegetation_document,
     embedded_visual_valley_water_document, embedded_visual_valley_weather_profile,
 };
+use gate1_gameplay_stutter::Gate1GameplayStutterPlugin;
 use gate1_visual_proof::Gate1VisualProofPlugin;
 use player_camera_probe::PlayerCameraProbePlugin;
 use std::{
@@ -100,6 +102,7 @@ fn main() -> AppExit {
         terrain_partial_update_probe = options.terrain_partial_update_probe.is_enabled(),
         player_camera = options.player_camera.is_interactive(),
         player_camera_probe = options.player_camera.is_probe(),
+        gate1_gameplay_stutter = options.gate1_gameplay_stutter_output.is_some(),
         gate1_visual_proof = options.gate1_visual_proof_output.is_some(),
         weather_override,
         player_input_enabled,
@@ -135,6 +138,7 @@ fn main() -> AppExit {
             terrain_debug: options.terrain_debug,
             terrain_partial_update_probe: options.terrain_partial_update_probe,
             player_camera: options.player_camera,
+            gate1_gameplay_stutter_output: options.gate1_gameplay_stutter_output.clone(),
             gate1_visual_proof_output: options.gate1_visual_proof_output.clone(),
             weather_state: options.weather_state,
             quality_selection: options.quality_selection,
@@ -184,6 +188,7 @@ struct RuntimePluginConfiguration {
     terrain_debug: TerrainDebugMode,
     terrain_partial_update_probe: TerrainPartialUpdateProbeMode,
     player_camera: PlayerCameraRuntimeMode,
+    gate1_gameplay_stutter_output: Option<PathBuf>,
     gate1_visual_proof_output: Option<PathBuf>,
     weather_state: Option<WeatherState>,
     quality_selection: Option<VisualValleyQualitySelection>,
@@ -204,6 +209,7 @@ fn add_runtime_plugin(
         terrain_debug,
         terrain_partial_update_probe,
         player_camera,
+        gate1_gameplay_stutter_output,
         gate1_visual_proof_output,
         weather_state,
         quality_selection,
@@ -221,20 +227,23 @@ fn add_runtime_plugin(
             weather,
             quality,
         } => {
+            let gameplay_stutter_enabled = gate1_gameplay_stutter_output.is_some();
             let visual_proof_enabled = gate1_visual_proof_output.is_some();
             let governed_metrics_required = vegetation.is_some()
                 && environment.is_some()
                 && water.is_some()
                 && weather.is_some()
                 && quality.is_some();
-            let player_profile = player_controller_required(player_camera, visual_proof_enabled)
-                .then(|| {
-                    embedded_visual_valley_player_controller_profile().unwrap_or_else(|error| {
-                        panic!(
-                            "embedded Visual Valley player-controller profile is invalid: {error}"
-                        )
-                    })
-                });
+            let player_profile = player_controller_required(
+                player_camera,
+                gameplay_stutter_enabled,
+                visual_proof_enabled,
+            )
+            .then(|| {
+                embedded_visual_valley_player_controller_profile().unwrap_or_else(|error| {
+                    panic!("embedded Visual Valley player-controller profile is invalid: {error}")
+                })
+            });
             let player_probe = match (player_camera, player_profile.as_ref()) {
                 (PlayerCameraRuntimeMode::Probe, Some(profile)) => Some(
                     PlayerCameraProbePlugin::new(&document, profile).unwrap_or_else(|error| {
@@ -243,6 +252,14 @@ fn add_runtime_plugin(
                 ),
                 _ => None,
             };
+            let gameplay_stutter_plugin = gate1_gameplay_stutter_output.map(|output_dir| {
+                let player = player_profile.as_ref().unwrap_or_else(|| {
+                    panic!("Gate 1 gameplay stutter proof requires the embedded player-controller profile")
+                });
+                Gate1GameplayStutterPlugin::new(output_dir, &document, player).unwrap_or_else(
+                    |error| panic!("cannot prepare Gate 1 gameplay stutter harness: {error}"),
+                )
+            });
             let visual_proof_plugin = gate1_visual_proof_output.map(|output_dir| {
                 let water = water.as_deref().unwrap_or_else(|| {
                     panic!("Gate 1 visual proof requires the embedded water document")
@@ -309,6 +326,10 @@ fn add_runtime_plugin(
             if let Some(probe) = &player_probe {
                 visual_valley = visual_valley.with_player_spawn_position(probe.spawn_position());
             }
+            if let Some(proof) = &gameplay_stutter_plugin {
+                visual_valley =
+                    visual_valley.with_player_spawn_position(proof.player_spawn_position());
+            }
             if let Some(proof) = &visual_proof_plugin {
                 visual_valley =
                     visual_valley.with_player_spawn_position(proof.player_spawn_position());
@@ -343,6 +364,9 @@ fn add_runtime_plugin(
             if let Some(probe) = player_probe {
                 app.add_plugins(probe);
             }
+            if let Some(gameplay_stutter_plugin) = gameplay_stutter_plugin {
+                app.add_plugins(gameplay_stutter_plugin);
+            }
             if let Some(visual_proof_plugin) = visual_proof_plugin {
                 app.add_plugins(visual_proof_plugin);
             }
@@ -352,9 +376,10 @@ fn add_runtime_plugin(
 
 const fn player_controller_required(
     player_camera: PlayerCameraRuntimeMode,
+    gate1_gameplay_stutter: bool,
     gate1_visual_proof: bool,
 ) -> bool {
-    player_camera.is_enabled() || gate1_visual_proof
+    player_camera.is_enabled() || gate1_gameplay_stutter || gate1_visual_proof
 }
 
 const GATE0_WINDOW_TITLE: &str = "OpenRPG Forge · Rust Gate 0";
@@ -515,6 +540,7 @@ struct Options {
     terrain_debug: TerrainDebugMode,
     terrain_partial_update_probe: TerrainPartialUpdateProbeMode,
     player_camera: PlayerCameraRuntimeMode,
+    gate1_gameplay_stutter_output: Option<PathBuf>,
     gate1_visual_proof_output: Option<PathBuf>,
     weather_state: Option<WeatherState>,
     quality_selection: Option<VisualValleyQualitySelection>,
@@ -540,6 +566,7 @@ impl Default for Options {
             terrain_debug: TerrainDebugMode::Hidden,
             terrain_partial_update_probe: TerrainPartialUpdateProbeMode::Disabled,
             player_camera: PlayerCameraRuntimeMode::Disabled,
+            gate1_gameplay_stutter_output: None,
             gate1_visual_proof_output: None,
             weather_state: None,
             quality_selection: None,
@@ -574,6 +601,15 @@ impl Options {
                 }
                 "--player-camera" => options.player_camera.select_interactive()?,
                 "--player-camera-probe" => options.player_camera.select_probe()?,
+                "--gate1-gameplay-stutter" => {
+                    if options.gate1_gameplay_stutter_output.is_some() {
+                        return Err(
+                            "--gate1-gameplay-stutter may only be specified once".to_owned()
+                        );
+                    }
+                    options.gate1_gameplay_stutter_output =
+                        Some(next_path(&mut arguments, "--gate1-gameplay-stutter")?);
+                }
                 "--gate1-visual-proof" => {
                     if options.gate1_visual_proof_output.is_some() {
                         return Err("--gate1-visual-proof may only be specified once".to_owned());
@@ -629,7 +665,7 @@ impl Options {
                 "--no-vsync" => options.vsync = false,
                 "--log-probe" => options.log_probe = true,
                 "--help" | "-h" => {
-                    return Err("usage: forge_runtime [--scene file.json | --visual-valley | --terrain terrain.json] [--quality low|medium|high|ultra | --adaptive-quality | --benchmark-quality] [--gate1-visual-proof output-dir] [--terrain-debug] [--terrain-partial-update-probe] [--player-camera | --player-camera-probe] [--weather clear|rain] [--capture file.png] [--capture-frame n] [--metrics file.json] [--metrics-warmup-frames n] [--exit-after-frames n] [--resize-at-frame n --resize-width px --resize-height px] [--close-at-frame n] [--no-vsync] [--log-probe]".to_owned());
+                    return Err("usage: forge_runtime [--scene file.json | --visual-valley | --terrain terrain.json] [--quality low|medium|high|ultra | --adaptive-quality | --benchmark-quality] [--gate1-gameplay-stutter output-dir | --gate1-visual-proof output-dir] [--terrain-debug] [--terrain-partial-update-probe] [--player-camera | --player-camera-probe] [--weather clear|rain] [--capture file.png] [--capture-frame n] [--metrics file.json] [--metrics-warmup-frames n] [--exit-after-frames n] [--resize-at-frame n --resize-width px --resize-height px] [--close-at-frame n] [--no-vsync] [--log-probe]".to_owned());
                 }
                 _ => return Err(format!("unknown option `{argument}`")),
             }
@@ -654,6 +690,7 @@ impl Options {
         if self.quality_selection.is_some() && !self.visual_valley {
             return Err("quality selection requires --visual-valley".to_owned());
         }
+        self.validate_gate1_gameplay_stutter()?;
         self.validate_gate1_visual_proof()?;
         self.validate_terrain_partial_update_probe()?;
         self.validate_player_camera()?;
@@ -713,6 +750,7 @@ impl Options {
                 || self.terrain_debug.is_enabled()
                 || self.terrain_partial_update_probe.is_enabled()
                 || self.player_camera.is_enabled()
+                || self.gate1_gameplay_stutter_output.is_some()
                 || self.gate1_visual_proof_output.is_some()
                 || self.weather_state.is_some()
                 || self.quality_selection.is_some()
@@ -724,6 +762,49 @@ impl Options {
                 || !self.vsync)
         {
             return Err("--log-probe cannot be combined with runtime options".to_owned());
+        }
+        Ok(())
+    }
+
+    fn validate_gate1_gameplay_stutter(&self) -> Result<(), String> {
+        let Some(output_dir) = self.gate1_gameplay_stutter_output.as_deref() else {
+            return Ok(());
+        };
+        if output_dir.as_os_str().is_empty() {
+            return Err(
+                "--gate1-gameplay-stutter requires a non-empty output directory".to_owned(),
+            );
+        }
+        if !self.visual_valley {
+            return Err("--gate1-gameplay-stutter requires --visual-valley".to_owned());
+        }
+        if self.quality_selection
+            != Some(VisualValleyQualitySelection::Fixed(VisualQualityTier::High))
+        {
+            return Err("--gate1-gameplay-stutter requires explicit --quality high".to_owned());
+        }
+        if self.terrain_debug.is_enabled()
+            || self.terrain_partial_update_probe.is_enabled()
+            || self.player_camera.is_enabled()
+            || self.gate1_visual_proof_output.is_some()
+            || self.weather_state.is_some()
+            || self.capture_path.is_some()
+            || self.metrics_path.is_some()
+            || self.exit_after_frames.is_some()
+            || self.resize_at_frame.is_some()
+            || self.close_at_frame.is_some()
+            || self.log_probe
+        {
+            return Err(
+                "--gate1-gameplay-stutter owns controller, camera, capture synchronization and exit; it cannot be combined with debug, other probes, weather, capture, metrics, resize, close or logging modes"
+                    .to_owned(),
+            );
+        }
+        if self.vsync {
+            return Err(
+                "--gate1-gameplay-stutter requires --no-vsync for the governed acquisition protocol"
+                    .to_owned(),
+            );
         }
         Ok(())
     }
@@ -961,8 +1042,67 @@ impl Options {
         if let Some(output_dir) = self.gate1_visual_proof_output.as_deref() {
             prepare_gate1_visual_proof_directory(output_dir)?;
         }
+        if let Some(output_dir) = self.gate1_gameplay_stutter_output.as_deref() {
+            prepare_gate1_gameplay_stutter_directory(output_dir)?;
+        }
         Ok(())
     }
+}
+
+fn prepare_gate1_gameplay_stutter_directory(output_dir: &Path) -> Result<(), String> {
+    match fs::symlink_metadata(output_dir) {
+        Ok(metadata) => {
+            if metadata.file_type().is_symlink() {
+                return Err(format!(
+                    "Gate 1 gameplay stutter output cannot be a symlink: {}",
+                    output_dir.display()
+                ));
+            }
+            if !metadata.is_dir() {
+                return Err(format!(
+                    "Gate 1 gameplay stutter output is not a directory: {}",
+                    output_dir.display()
+                ));
+            }
+            let mut entries = fs::read_dir(output_dir).map_err(|error| {
+                format!(
+                    "cannot inspect Gate 1 gameplay stutter output {}: {error}",
+                    output_dir.display()
+                )
+            })?;
+            if entries
+                .next()
+                .transpose()
+                .map_err(|error| {
+                    format!(
+                        "cannot inspect Gate 1 gameplay stutter output {}: {error}",
+                        output_dir.display()
+                    )
+                })?
+                .is_some()
+            {
+                return Err(format!(
+                    "Gate 1 gameplay stutter output must be absent or empty: {}",
+                    output_dir.display()
+                ));
+            }
+        }
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            fs::create_dir_all(output_dir).map_err(|error| {
+                format!(
+                    "cannot create Gate 1 gameplay stutter output {}: {error}",
+                    output_dir.display()
+                )
+            })?;
+        }
+        Err(error) => {
+            return Err(format!(
+                "cannot inspect Gate 1 gameplay stutter output {}: {error}",
+                output_dir.display()
+            ));
+        }
+    }
+    Ok(())
 }
 
 fn prepare_gate1_visual_proof_directory(output_dir: &Path) -> Result<(), String> {
@@ -1410,6 +1550,7 @@ mod tests {
         );
         assert!(player_controller_required(
             accepted.player_camera,
+            false,
             accepted.gate1_visual_proof_output.is_some()
         ));
         assert!(!accepted.player_camera.is_enabled());
@@ -1480,6 +1621,144 @@ mod tests {
             )
             .unwrap_err(),
             "--gate1-visual-proof requires --no-vsync for the governed acquisition protocol"
+        );
+    }
+
+    #[test]
+    #[allow(
+        clippy::too_many_lines,
+        reason = "one parser contract test enumerates every conflicting automation mode"
+    )]
+    fn gate1_gameplay_stutter_is_a_strict_high_no_vsync_owned_sequence() {
+        let accepted = Options::parse(
+            [
+                "--visual-valley".to_owned(),
+                "--quality".to_owned(),
+                "high".to_owned(),
+                "--gate1-gameplay-stutter".to_owned(),
+                "stutter-output".to_owned(),
+                "--no-vsync".to_owned(),
+            ]
+            .into_iter(),
+        )
+        .unwrap();
+        assert_eq!(
+            accepted.gate1_gameplay_stutter_output,
+            Some(PathBuf::from("stutter-output"))
+        );
+        assert!(player_controller_required(
+            accepted.player_camera,
+            accepted.gate1_gameplay_stutter_output.is_some(),
+            false,
+        ));
+        assert!(!accepted.player_camera.is_enabled());
+
+        assert_eq!(
+            Options::parse(
+                [
+                    "--gate1-gameplay-stutter".to_owned(),
+                    "stutter-output".to_owned(),
+                ]
+                .into_iter(),
+            )
+            .unwrap_err(),
+            "--gate1-gameplay-stutter requires --visual-valley"
+        );
+        for arguments in [
+            vec![
+                "--visual-valley",
+                "--gate1-gameplay-stutter",
+                "stutter-output",
+                "--no-vsync",
+            ],
+            vec![
+                "--visual-valley",
+                "--quality",
+                "low",
+                "--gate1-gameplay-stutter",
+                "stutter-output",
+                "--no-vsync",
+            ],
+        ] {
+            assert_eq!(
+                Options::parse(arguments.into_iter().map(str::to_owned)).unwrap_err(),
+                "--gate1-gameplay-stutter requires explicit --quality high"
+            );
+        }
+        assert_eq!(
+            Options::parse(
+                [
+                    "--visual-valley".to_owned(),
+                    "--quality".to_owned(),
+                    "high".to_owned(),
+                    "--gate1-gameplay-stutter".to_owned(),
+                    "stutter-output".to_owned(),
+                ]
+                .into_iter(),
+            )
+            .unwrap_err(),
+            "--gate1-gameplay-stutter requires --no-vsync for the governed acquisition protocol"
+        );
+        let conflict = Options::parse(
+            [
+                "--visual-valley".to_owned(),
+                "--quality".to_owned(),
+                "high".to_owned(),
+                "--gate1-gameplay-stutter".to_owned(),
+                "stutter-output".to_owned(),
+                "--gate1-visual-proof".to_owned(),
+                "visual-output".to_owned(),
+                "--no-vsync".to_owned(),
+            ]
+            .into_iter(),
+        )
+        .unwrap_err();
+        assert!(conflict.contains("owns controller, camera"));
+        let base = vec![
+            "--visual-valley",
+            "--quality",
+            "high",
+            "--gate1-gameplay-stutter",
+            "stutter-output",
+            "--no-vsync",
+        ];
+        for extra in [
+            vec!["--terrain-debug"],
+            vec!["--terrain-partial-update-probe"],
+            vec!["--player-camera"],
+            vec!["--player-camera-probe"],
+            vec!["--weather", "clear"],
+            vec!["--capture", "capture.png"],
+            vec!["--metrics", "metrics.json"],
+            vec!["--exit-after-frames", "120"],
+            vec!["--resize-at-frame", "60"],
+            vec!["--close-at-frame", "120"],
+            vec!["--log-probe"],
+        ] {
+            let mut arguments = base.clone();
+            arguments.extend(extra);
+            let error = Options::parse(arguments.into_iter().map(str::to_owned)).unwrap_err();
+            assert!(
+                error.contains("owns controller, camera"),
+                "unexpected conflict error: {error}"
+            );
+        }
+        assert_eq!(
+            Options::parse(
+                [
+                    "--visual-valley".to_owned(),
+                    "--quality".to_owned(),
+                    "high".to_owned(),
+                    "--gate1-gameplay-stutter".to_owned(),
+                    "first".to_owned(),
+                    "--gate1-gameplay-stutter".to_owned(),
+                    "second".to_owned(),
+                    "--no-vsync".to_owned(),
+                ]
+                .into_iter(),
+            )
+            .unwrap_err(),
+            "--gate1-gameplay-stutter may only be specified once"
         );
     }
 
@@ -2122,6 +2401,31 @@ mod tests {
         assert!(error.contains("must be absent or empty"));
         assert!(root.join("captures").is_dir());
         assert!(root.join("movement").is_dir());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn gate1_gameplay_stutter_preflight_refuses_stale_outputs_without_deleting_them() {
+        let unique = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let root = env::temp_dir().join(format!(
+            "openrpg-forge-gate1-gameplay-stutter-{}-{unique}",
+            std::process::id()
+        ));
+        let options = Options {
+            visual_valley: true,
+            gate1_gameplay_stutter_output: Some(root.clone()),
+            ..Options::default()
+        };
+        options.prepare_output_paths().unwrap();
+        assert!(root.is_dir());
+
+        fs::write(root.join("stale.json"), b"stale proof").unwrap();
+        let error = options.prepare_output_paths().unwrap_err();
+        assert!(error.contains("must be absent or empty"));
+        assert!(root.join("stale.json").is_file());
         fs::remove_dir_all(root).unwrap();
     }
 

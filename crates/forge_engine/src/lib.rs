@@ -1459,6 +1459,35 @@ fn validate_governed_gate1_evidence(
     let weather = weather.ok_or("governed Gate 1 metrics require WeatherProjectionStats")?;
     let quality = quality.ok_or("governed Gate 1 metrics require VisualValleyQualityStats")?;
 
+    validate_governed_gate1_render_state(
+        visual_valley,
+        shadow,
+        vegetation,
+        scenery,
+        environment,
+        water,
+        weather,
+        quality,
+    )?;
+    validate_gate1_sample_count(samples)
+}
+
+/// Validates that every governed Visual Valley subsystem still contributes its expected runtime
+/// evidence before or during an external performance acquisition.
+#[allow(
+    clippy::too_many_arguments,
+    reason = "the public qualification boundary keeps every independent render subsystem explicit"
+)]
+pub fn validate_governed_gate1_render_state(
+    visual_valley: &VisualValleyStats,
+    shadow: &VisualValleyShadowStats,
+    vegetation: &VegetationProjectionStats,
+    scenery: &SceneryProjectionStats,
+    environment: &EnvironmentProjectionStats,
+    water: &WaterProjectionStats,
+    weather: &WeatherProjectionStats,
+    quality: &VisualValleyQualityStats,
+) -> Result<(), String> {
     validate_gate1_visual_valley_evidence(visual_valley)?;
     validate_gate1_shadow_evidence(shadow)?;
     validate_gate1_vegetation_evidence(vegetation, visual_valley)?;
@@ -1470,8 +1499,7 @@ fn validate_governed_gate1_evidence(
     validate_gate1_applied_quality_tier(quality)?;
     validate_gate1_water_quality_projection(water, quality)?;
     validate_gate1_scenery_quality_projection(scenery, quality)?;
-    validate_gate1_shadow_quality_projection(shadow, quality)?;
-    validate_gate1_sample_count(samples)
+    validate_gate1_shadow_quality_projection(shadow, quality)
 }
 
 fn validate_gate1_visual_valley_evidence(visual_valley: &VisualValleyStats) -> Result<(), String> {
@@ -1538,6 +1566,22 @@ fn validate_gate1_vegetation_evidence(
     vegetation: &VegetationProjectionStats,
     visual_valley: &VisualValleyStats,
 ) -> Result<(), String> {
+    let visibility_counts_match_projection = vegetation_visibility_bucket_is_complete(
+        &vegetation.visibility.total,
+        vegetation.projection.total_entities,
+    ) && vegetation_visibility_bucket_is_complete(
+        &vegetation.visibility.near,
+        vegetation.projection.near_entities,
+    ) && vegetation_visibility_bucket_is_complete(
+        &vegetation.visibility.medium,
+        vegetation.projection.medium_entities,
+    ) && vegetation_visibility_bucket_is_complete(
+        &vegetation.visibility.hlod,
+        vegetation.projection.hlod_batches,
+    ) && vegetation_visibility_bucket_is_complete(
+        &vegetation.visibility.grass_batches,
+        vegetation.projection.grass_batches,
+    );
     if vegetation.terrain_document_hash != visual_valley.source_hash
         || vegetation.vegetation_document_hash.is_empty()
         || vegetation.placements.accepted_placements == 0
@@ -1552,9 +1596,10 @@ fn validate_gate1_vegetation_evidence(
         || vegetation.visibility.observation_frames == 0
         || vegetation.visibility.active_camera_views != 1
         || vegetation.visibility.visible_outside_range_inconsistencies != 0
+        || !visibility_counts_match_projection
     {
         return Err(format!(
-            "governed Gate 1 vegetation evidence is not qualified: terrain_hash_match={}, vegetation_hash_present={}, placements={}, projection=total:{}, placements:{}, near:{}, medium:{}, grass:{}, hlod:{}, visibility={:?}, frames={}, cameras={}, inconsistencies={}",
+            "governed Gate 1 vegetation evidence is not qualified: terrain_hash_match={}, vegetation_hash_present={}, placements={}, projection=total:{}, placements:{}, near:{}, medium:{}, grass:{}, hlod:{}, visibility={:?}, frames={}, cameras={}, inconsistencies={}, counts_match_projection={}",
             vegetation.terrain_document_hash == visual_valley.source_hash,
             !vegetation.vegetation_document_hash.is_empty(),
             vegetation.placements.accepted_placements,
@@ -1567,10 +1612,23 @@ fn validate_gate1_vegetation_evidence(
             vegetation.visibility.status,
             vegetation.visibility.observation_frames,
             vegetation.visibility.active_camera_views,
-            vegetation.visibility.visible_outside_range_inconsistencies
+            vegetation.visibility.visible_outside_range_inconsistencies,
+            visibility_counts_match_projection
         ));
     }
     Ok(())
+}
+
+fn vegetation_visibility_bucket_is_complete(
+    bucket: &VegetationVisibilityBucket,
+    expected_total: u64,
+) -> bool {
+    bucket.total == expected_total
+        && bucket.total
+            == bucket
+                .cpu_visible_for_camera
+                .saturating_add(bucket.range_culled)
+                .saturating_add(bucket.cpu_culled_after_range)
 }
 
 fn validate_gate1_scenery_evidence(scenery: &SceneryProjectionStats) -> Result<(), String> {
@@ -2133,6 +2191,16 @@ mod tests {
             VegetationVisibilityObservationStatus::ObservedSingleActiveCamera;
         vegetation.visibility.observation_frames = 1;
         vegetation.visibility.active_camera_views = 1;
+        vegetation.visibility.total =
+            sample_visible_vegetation_bucket(vegetation.projection.total_entities);
+        vegetation.visibility.near =
+            sample_visible_vegetation_bucket(vegetation.projection.near_entities);
+        vegetation.visibility.medium =
+            sample_visible_vegetation_bucket(vegetation.projection.medium_entities);
+        vegetation.visibility.hlod =
+            sample_visible_vegetation_bucket(vegetation.projection.hlod_batches);
+        vegetation.visibility.grass_batches =
+            sample_visible_vegetation_bucket(vegetation.projection.grass_batches);
         let scenery = sample_activated_scenery(&terrain, &vegetation_document);
         let quality = sample_applied_quality();
         let visual_valley = VisualValleyStats {
@@ -2165,6 +2233,14 @@ mod tests {
             water,
             weather,
             quality,
+        }
+    }
+
+    fn sample_visible_vegetation_bucket(total: u64) -> VegetationVisibilityBucket {
+        VegetationVisibilityBucket {
+            total,
+            cpu_visible_for_camera: total,
+            ..default()
         }
     }
 
@@ -2780,6 +2856,12 @@ mod tests {
         assert!(vegetation_error.contains("vegetation evidence is not qualified"));
         evidence.vegetation.visibility.status =
             VegetationVisibilityObservationStatus::ObservedSingleActiveCamera;
+        evidence.vegetation.visibility.total.total =
+            evidence.vegetation.visibility.total.total.saturating_sub(1);
+        let vegetation_count_error = validate_sample_gate1_evidence(&evidence).unwrap_err();
+        assert!(vegetation_count_error.contains("counts_match_projection=false"));
+        evidence.vegetation.visibility.total =
+            sample_visible_vegetation_bucket(evidence.vegetation.projection.total_entities);
         evidence.vegetation.terrain_document_hash = "different-terrain".to_owned();
         let vegetation_hash_error = validate_sample_gate1_evidence(&evidence).unwrap_err();
         assert!(vegetation_hash_error.contains("terrain_hash_match=false"));

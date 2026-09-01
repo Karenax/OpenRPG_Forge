@@ -84,3 +84,59 @@ rendered artifacts were produced, while the weather ledger remains CPU/ECS proje
 Bloom component, not numeric Bloom parameters or GPU execution. The harness and validator always
 leave real-time stutter, GPU execution, comparative visual quality and human review false; their
 output alone cannot close `R1-025`, `R1-026` or `R1-046` through `R1-048`.
+
+## Gate 1 gameplay-stutter acquisition
+
+`--gate1-gameplay-stutter <output-dir>` is a separate, self-bounded measurement mode. It requires
+`--visual-valley --quality high --no-vsync` and an absent or empty output directory. The governed
+host acquisition requires Windows, a Vulkan-capable adapter, a Bevy-observed physical 1920x1080
+surface and a visible, non-minimized native window whose reported outer rectangle is at least
+1920x1080. It additionally requires an absolute proof directory and a fresh, empty Cargo target
+directory outside every registered Git worktree. After verifying the exact commit and clean tree,
+the host script rebuilds the Release binary itself with `--locked`, embeds that commit, rechecks Git
+state, and launches the resulting executable. The mode does not request any screenshot and never
+pauses virtual time.
+
+Acquire `PresentMon-2.4.1-x64.exe` only from the official
+[PresentMon v2.4.1 release](https://github.com/GameTechDev/PresentMon/releases/tag/v2.4.1). The host
+script pins its 927304-byte Intel-signed binary and SHA-256
+`d74183e7ae630f72cd3690be0373ecbfdc6cbb86578148aab8fa2a7166068f34`. From a clean exact commit,
+set `FORGE_GATE1_EXTERNAL_ROOT` to an existing absolute directory outside every Git worktree and
+`FORGE_PRESENTMON_241` to the pinned executable, then run:
+
+```powershell
+$repo = (Resolve-Path .).Path
+$commit = (& git rev-parse HEAD).Trim()
+$externalRoot = (Resolve-Path $env:FORGE_GATE1_EXTERNAL_ROOT).Path
+$presentMon = (Resolve-Path $env:FORGE_PRESENTMON_241).Path
+$runId = [DateTimeOffset]::UtcNow.ToString("yyyyMMddTHHmmssfffZ")
+$cargoTarget = Join-Path $externalRoot "cargo-target\$commit-$runId"
+$outputRoot = Join-Path $externalRoot "evidence\gate1-stutter-$runId"
+pwsh -NoProfile -File scripts/Test-Gate1GameplayStutter.ps1 `
+  -RepoRoot $repo `
+  -RuntimeBinary (Join-Path $cargoTarget "release\forge_runtime.exe") `
+  -OutputRoot $outputRoot `
+  -PresentMonPath $presentMon
+```
+
+After every governed High subsystem (terrain, shadows, vegetation, scenery, environment, water and
+weather), the pipelines exercised by the process, the nine governed CC0 models and the
+player/Rapier/camera bindings are ready, the runtime writes
+`gate1-gameplay-stutter.ready.json`. It then waits for the host to attach the pinned PresentMon
+process to that exact PID and atomically publish
+`gate1-gameplay-stutter.start.signal.json`. The controller performs 900 fixed ticks forward and 900
+ticks backward at 60 Hz, crosses the central seam without teleportation, stops under a bounded
+watchdog, and writes `gate1-gameplay-stutter.json`.
+
+The runtime ledger deliberately leaves display qualification false: it can prove the uninterrupted
+controller, Rapier, camera, scene and pipeline window, but it cannot verify the external ETW trace.
+`scripts/Test-Gate1GameplayStutter.ps1` owns that host boundary. It accepts only the pinned,
+Authenticode-valid PresentMon 2.4.1 console binary, observes a complete target-PID row before
+publishing the QPC-bound start signal, captures v2 display rows and ETW-loss counters, then computes
+a bounded post-signal display distribution from `DisplayedTime`. `FrameTime` is retained as a diagnostic but
+is never substituted for a missing displayed frame; the 1 % low uses the mean of the slowest
+`ceil(samples / 100)` displayed times. The runtime does not yet expose exact QPC values for the first
+and last controller ticks, so the host records a bounded threshold sample but deliberately leaves
+`exact_runtime_qpc_bounds_observed` and `real_time_display_stutter_qualified` false. Human review,
+GPU-target qualification and the overall Gate 1 route remain separate. This protocol alone does not
+close `R1-048` or Gate 1, and Gate 2 remains forbidden while the remaining Gate 1 criteria are open.
