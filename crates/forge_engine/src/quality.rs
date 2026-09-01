@@ -1,4 +1,4 @@
-use crate::vegetation::VegetationPresentation;
+use crate::vegetation::{VegetationHlodBatchEnvelope, VegetationPresentation};
 use crate::visual_valley::VisualValleySun;
 use crate::water::{VisualValleyWaterProfile, apply_quality_optics_projection};
 use crate::weather::{
@@ -301,7 +301,11 @@ fn apply_quality_tier(
         Without<VegetationChunkBatchMarker>,
     >,
     mut batches: Query<
-        (&VegetationChunkBatchMarker, &mut VisibilityRange),
+        (
+            &VegetationChunkBatchMarker,
+            Option<&VegetationHlodBatchEnvelope>,
+            &mut VisibilityRange,
+        ),
         Without<VegetationPlacementMarker>,
     >,
     mut suns: Query<(&mut DirectionalLight, &mut CascadeShadowConfig), With<VisualValleySun>>,
@@ -345,10 +349,14 @@ fn apply_quality_tier(
                 _ => ranges.individual.clone(),
             };
         }
-        for (marker, mut range) in &mut batches {
+        for (marker, hlod_envelope, mut range) in &mut batches {
             *range = match marker.lod {
                 VegetationProjectionLod::GrassBatch => ranges.grass.clone(),
-                VegetationProjectionLod::Hlod => ranges.hlod.clone(),
+                VegetationProjectionLod::Hlod => ranges.conservative_hlod_batch_range(
+                    hlod_envelope
+                        .expect("every HLOD batch carries its conservative anchor envelope")
+                        .maximum_anchor_radius_m,
+                ),
                 VegetationProjectionLod::Near | VegetationProjectionLod::Medium => continue,
             };
         }

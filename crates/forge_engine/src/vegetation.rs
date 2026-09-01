@@ -43,6 +43,7 @@ const GOLDEN_ANGLE_RADIANS: f32 = 2.399_963_1;
 const TAG_PHASE_MASK: u32 = 0x00ff_ffff;
 const TAG_PHASE_SCALE: f32 = 16_777_215.0;
 const MAX_NEAR_MEDIUM_CROSSFADE_WIDTH_M: f32 = 6.0;
+const MAX_MEDIUM_HLOD_CROSSFADE_WIDTH_M: f32 = 12.0;
 
 /// Defensive Gate 1 budgets, applied before expensive generation or mesh allocation.
 pub const MAX_VEGETATION_CANDIDATE_ATTEMPTS: u64 = MAX_VEGETATION_PLACEMENT_ATTEMPTS;
@@ -88,6 +89,12 @@ pub struct VegetationChunkBatchMarker {
     pub chunk_z: u16,
     pub lod: VegetationProjectionLod,
     pub logical_placements: u32,
+}
+
+/// Exact 3D placement-anchor radius used to keep one HLOD chunk submitted conservatively.
+#[derive(Clone, Copy, Component, Debug, PartialEq)]
+pub(crate) struct VegetationHlodBatchEnvelope {
+    pub(crate) maximum_anchor_radius_m: f32,
 }
 
 /// Interaction published by gameplay and consumed only by the presentation adapter.
@@ -313,7 +320,11 @@ impl VegetationLodRanges {
             profile.medium_lod_distance_m,
             MAX_NEAR_MEDIUM_CROSSFADE_WIDTH_M,
         );
-        let medium_to_hlod = profile.medium_lod_distance_m..profile.hlod_distance_m;
+        let medium_to_hlod = centered_lod_crossfade(
+            profile.medium_lod_distance_m,
+            profile.hlod_distance_m,
+            MAX_MEDIUM_HLOD_CROSSFADE_WIDTH_M,
+        );
         Self {
             near: VisibilityRange {
                 start_margin: 0.0..0.0,
@@ -338,8 +349,27 @@ impl VegetationLodRanges {
             hlod: VisibilityRange {
                 start_margin: medium_to_hlod,
                 end_margin: profile.cull_distance_m..profile.cull_distance_m,
-                use_aabb: true,
+                use_aabb: false,
             },
+        }
+    }
+
+    /// Returns the CPU submission envelope for a chunk HLOD whose shader fades each placement
+    /// from its own 3D anchor. The triangle inequality guarantees that an anchor visible between
+    /// the authored transition and cull distances cannot be dropped with its parent chunk.
+    #[must_use]
+    pub(crate) fn conservative_hlod_batch_range(
+        &self,
+        maximum_anchor_radius_m: f32,
+    ) -> VisibilityRange {
+        let radius_m = maximum_anchor_radius_m.max(f32::EPSILON);
+        let transition_start_m = self.hlod.start_margin.start;
+        let conservative_start_m = (transition_start_m - radius_m).max(0.0);
+        let conservative_end_m = self.hlod.end_margin.end + radius_m;
+        VisibilityRange {
+            start_margin: conservative_start_m..transition_start_m,
+            end_margin: conservative_end_m..conservative_end_m,
+            use_aabb: false,
         }
     }
 }
@@ -381,6 +411,9 @@ pub struct VisualValleyVegetationExtension {
     /// X is scalar wetness; Y/Z are the full-wet roughness/albedo multipliers.
     #[uniform(100)]
     pub wetness_parameters: Vec4,
+    /// XY is the per-placement HLOD fade interval; Z is its authored cull distance.
+    #[uniform(100)]
+    pub hlod_visibility_parameters: Vec4,
 }
 
 impl Default for VisualValleyVegetationExtension {
@@ -398,6 +431,7 @@ impl Default for VisualValleyVegetationExtension {
             wind_direction: Vec4::new(0.82, 0.0, 0.57, 0.0),
             // A zero wetness scalar is an exact identity for the original material output.
             wetness_parameters: Vec4::new(0.0, 1.0, 1.0, 0.0),
+            hlod_visibility_parameters: Vec4::ZERO,
         }
     }
 }
@@ -408,6 +442,7 @@ impl VisualValleyVegetationExtension {
         profile: VegetationPresentationProfile,
         interaction: VegetationInteractionField,
     ) -> Self {
+        let ranges = VegetationLodRanges::from_profile(profile);
         Self {
             wind_parameters: Vec4::new(
                 profile.wind_strength * MAX_WIND_AMPLITUDE_M,
@@ -420,6 +455,12 @@ impl VisualValleyVegetationExtension {
                 interaction.push_direction_xz.x,
                 interaction.push_direction_xz.y,
                 interaction.strength * MAX_INTERACTION_AMPLITUDE_M,
+                0.0,
+            ),
+            hlod_visibility_parameters: Vec4::new(
+                ranges.hlod.start_margin.start,
+                ranges.hlod.start_margin.end,
+                ranges.hlod.end_margin.start,
                 0.0,
             ),
             ..Self::default()
@@ -468,6 +509,7 @@ pub(crate) struct DerivedVegetationMesh {
 pub enum VegetationMeshError {
     Empty,
     NonFiniteVertex,
+    IncompleteHlodAnchorAttribute,
     DegenerateTriangle,
     VertexCountOverflow,
     GrassBladeCountIsZero,
@@ -481,6 +523,8 @@ impl fmt::Display for VegetationMeshError {
             Self::NonFiniteVertex => {
                 formatter.write_str("vegetation mesh contains a non-finite vertex")
             }
+            Self::IncompleteHlodAnchorAttribute => formatter
+                .write_str("vegetation HLOD anchor attribute does not cover every mesh vertex"),
             Self::DegenerateTriangle => {
                 formatter.write_str("vegetation mesh contains a degenerate triangle")
             }
@@ -505,6 +549,7 @@ struct MeshAccumulator {
     normals: Vec<[f32; 3]>,
     colors: Vec<[f32; 4]>,
     uvs: Vec<[f32; 2]>,
+    secondary_uvs: Vec<[f32; 2]>,
     indices: Vec<u32>,
 }
 
@@ -521,6 +566,27 @@ impl MeshAccumulator {
         let fourth = self.push_vertex(points[3], normal, colors[3], [0.0, 1.0])?;
         self.indices
             .extend_from_slice(&[first, second, third, first, third, fourth]);
+        Ok(())
+    }
+
+    fn push_hlod_quad(
+        &mut self,
+        points: [Vec3; 4],
+        colors: [[f32; 4]; 4],
+        anchor: Vec3,
+    ) -> Result<(), VegetationMeshError> {
+        let first_vertex = self.positions.len();
+        if self.secondary_uvs.len() != first_vertex {
+            return Err(VegetationMeshError::IncompleteHlodAnchorAttribute);
+        }
+        self.push_quad(points, colors)?;
+        for uv in &mut self.uvs[first_vertex..] {
+            // HLOD currently has no texture or lightmap. UV0/UV1 are reserved together for the
+            // exact local XYZ anchor: UV0.x = Y and UV1 = XZ. Other vegetation keeps normal UV0.
+            *uv = [anchor.y, 0.0];
+        }
+        self.secondary_uvs
+            .extend(std::iter::repeat_n([anchor.x, anchor.z], 4));
         Ok(())
     }
 
@@ -567,6 +633,9 @@ impl MeshAccumulator {
         if self.positions.is_empty() || self.indices.is_empty() {
             return Err(VegetationMeshError::Empty);
         }
+        if !self.secondary_uvs.is_empty() && self.secondary_uvs.len() != self.positions.len() {
+            return Err(VegetationMeshError::IncompleteHlodAnchorAttribute);
+        }
         let first = Vec3::from_array(self.positions[0]);
         let (mut minimum, mut maximum) =
             self.positions
@@ -583,7 +652,7 @@ impl MeshAccumulator {
         maximum.z += margin;
         let aabb = Aabb::from_min_max(minimum, maximum);
         let triangles = self.indices.len() / 3;
-        let mesh = Mesh::new(
+        let mut mesh = Mesh::new(
             PrimitiveTopology::TriangleList,
             RenderAssetUsages::MAIN_WORLD | RenderAssetUsages::RENDER_WORLD,
         )
@@ -592,6 +661,9 @@ impl MeshAccumulator {
         .with_inserted_attribute(Mesh::ATTRIBUTE_UV_0, self.uvs)
         .with_inserted_attribute(Mesh::ATTRIBUTE_COLOR, self.colors)
         .with_inserted_indices(Indices::U32(self.indices));
+        if !self.secondary_uvs.is_empty() {
+            mesh.insert_attribute(Mesh::ATTRIBUTE_UV_1, self.secondary_uvs);
+        }
         Ok(DerivedVegetationMesh {
             mesh,
             aabb,
@@ -788,6 +860,14 @@ pub(crate) fn build_hlod_chunk_mesh(
     mesh.finish(deformation_margin_m)
 }
 
+fn maximum_hlod_anchor_radius_m(placements: &[ProceduralVegetationPlacement]) -> f32 {
+    placements
+        .iter()
+        .filter(|placement| placement.kind != VegetationKind::Grass)
+        .map(|placement| placement.position_m.length())
+        .fold(0.0, f32::max)
+}
+
 #[allow(
     clippy::too_many_arguments,
     reason = "the procedural primitive keeps its explicit geometry and palette inputs together"
@@ -857,9 +937,10 @@ fn append_crossed_silhouette(
         let right = Vec3::new(angle.cos(), 0.0, -angle.sin()) * (width * 0.5);
         let shoulder = base + Vec3::Y * (height * 0.34);
         let top = base + Vec3::Y * height;
-        mesh.push_quad(
+        mesh.push_hlod_quad(
             [base, shoulder + right, top, shoulder - right],
             [bottom_color, top_color, top_color, top_color],
+            base,
         )?;
     }
     Ok(())
@@ -1115,6 +1196,7 @@ struct PreparedProjectionEntity {
 enum PreparedProjectionMarker {
     Placement(VegetationPlacementMarker),
     Batch(VegetationChunkBatchMarker),
+    HlodBatch(VegetationChunkBatchMarker, VegetationHlodBatchEnvelope),
 }
 
 #[derive(Clone, Copy, Resource)]
@@ -1345,6 +1427,7 @@ fn prepare_vegetation_projection_with_quality(
                 x: chunk_x,
                 z: chunk_z,
             };
+            let maximum_anchor_radius_m = maximum_hlod_anchor_radius_m(&woody);
             let mesh = build_hlod_chunk_mesh(&woody, deformation_margin_m)
                 .map_err(|source| VegetationAdapterError::Mesh { key, source })?;
             let triangles = u64_count(mesh.triangles, "hlod_triangles")?;
@@ -1367,13 +1450,19 @@ fn prepare_vegetation_projection_with_quality(
                 mesh_key: key,
                 transform: Transform::from_translation(chunk_center),
                 mesh_tag: chunk_mesh_tag(chunk_x, chunk_z, 0x0048_0000),
-                visibility_range: ranges.hlod.clone(),
-                marker: PreparedProjectionMarker::Batch(VegetationChunkBatchMarker {
-                    chunk_x,
-                    chunk_z,
-                    lod: VegetationProjectionLod::Hlod,
-                    logical_placements: chunk.kind_counts.total() - chunk.kind_counts.grass_patches,
-                }),
+                visibility_range: ranges.conservative_hlod_batch_range(maximum_anchor_radius_m),
+                marker: PreparedProjectionMarker::HlodBatch(
+                    VegetationChunkBatchMarker {
+                        chunk_x,
+                        chunk_z,
+                        lod: VegetationProjectionLod::Hlod,
+                        logical_placements: chunk.kind_counts.total()
+                            - chunk.kind_counts.grass_patches,
+                    },
+                    VegetationHlodBatchEnvelope {
+                        maximum_anchor_radius_m,
+                    },
+                ),
                 casts_shadow: false,
             });
         }
@@ -1607,6 +1696,9 @@ fn spawn_vegetation_projection(
             }
             PreparedProjectionMarker::Batch(marker) => {
                 entity.insert(marker);
+            }
+            PreparedProjectionMarker::HlodBatch(marker, envelope) => {
+                entity.insert((marker, envelope));
             }
         }
         if !prepared_entity.casts_shadow {
@@ -1955,6 +2047,7 @@ mod tests {
 
         for mesh in [&near, &medium, &shrub, &fern] {
             assert_complete_mesh(mesh);
+            assert!(mesh.mesh.attribute(Mesh::ATTRIBUTE_UV_1).is_none());
             assert!(mesh.aabb.half_extents.x < 16.0);
             assert!(mesh.aabb.half_extents.y < 16.0);
             assert!(mesh.aabb.half_extents.z < 16.0);
@@ -2035,9 +2128,10 @@ mod tests {
     fn hlod_silhouette_tapers_around_one_bounded_shoulder() {
         const POSITION_EPSILON_M: f32 = 1.0e-6;
         let mut accumulator = MeshAccumulator::default();
+        let anchor = Vec3::new(3.0, 1.25, -4.0);
         append_crossed_silhouette(
             &mut accumulator,
-            Vec3::ZERO,
+            anchor,
             0.0,
             2.0,
             10.0,
@@ -2050,14 +2144,22 @@ mod tests {
             Some(VertexAttributeValues::Float32x3(values)) => values,
             other => panic!("unexpected HLOD positions: {other:?}"),
         };
+        let primary_uvs = match mesh.mesh.attribute(Mesh::ATTRIBUTE_UV_0) {
+            Some(VertexAttributeValues::Float32x2(values)) => values,
+            other => panic!("unexpected HLOD primary UVs: {other:?}"),
+        };
+        let anchors_xz = match mesh.mesh.attribute(Mesh::ATTRIBUTE_UV_1) {
+            Some(VertexAttributeValues::Float32x2(values)) => values,
+            other => panic!("unexpected HLOD anchor UVs: {other:?}"),
+        };
 
         assert_eq!(mesh.mesh.count_vertices(), 2 * 4);
         assert_eq!(mesh.triangles, 2 * 2);
         let expected = [
-            Vec3::ZERO,
-            Vec3::new(1.0, 3.4, 0.0),
-            Vec3::new(0.0, 10.0, 0.0),
-            Vec3::new(-1.0, 3.4, 0.0),
+            anchor,
+            anchor + Vec3::new(1.0, 3.4, 0.0),
+            anchor + Vec3::new(0.0, 10.0, 0.0),
+            anchor + Vec3::new(-1.0, 3.4, 0.0),
         ];
         for (actual, expected) in positions.iter().take(4).zip(expected) {
             assert!(
@@ -2065,6 +2167,18 @@ mod tests {
                     <= POSITION_EPSILON_M * POSITION_EPSILON_M
             );
         }
+        assert_eq!(primary_uvs.len(), 8);
+        assert_eq!(anchors_xz.len(), 8);
+        assert!(
+            primary_uvs
+                .iter()
+                .all(|uv| { (*uv).map(f32::to_bits) == [anchor.y, 0.0].map(f32::to_bits) })
+        );
+        assert!(
+            anchors_xz
+                .iter()
+                .all(|uv| { (*uv).map(f32::to_bits) == [anchor.x, anchor.z].map(f32::to_bits) })
+        );
     }
 
     #[test]
@@ -2087,7 +2201,7 @@ mod tests {
         let ranges = VegetationLodRanges::from_profile(profile());
 
         assert_eq!(ranges.near.end_margin, 47.0..53.0);
-        assert_eq!(ranges.medium.end_margin, 58.0..180.0);
+        assert_eq!(ranges.medium.end_margin, 113.0..125.0);
         assert_eq!(ranges.near.end_margin, ranges.medium.start_margin);
         assert_eq!(ranges.medium.end_margin, ranges.hlod.start_margin);
         assert_eq!(ranges.individual.end_margin, ranges.hlod.start_margin);
@@ -2096,6 +2210,36 @@ mod tests {
         assert!(!ranges.near.is_abrupt());
         assert!(!ranges.medium.is_abrupt());
         assert!(!ranges.hlod.is_abrupt());
+        assert!(!ranges.hlod.use_aabb);
+
+        let cpu_range = ranges.conservative_hlod_batch_range(45.0);
+        assert_eq!(cpu_range.start_margin, 68.0..113.0);
+        assert_eq!(cpu_range.end_margin, 465.0..465.0);
+        assert!(!cpu_range.use_aabb);
+        for anchor_distance_m in [113.0, 119.0, 124.999] {
+            for signed_radius_m in [-45.0, 45.0] {
+                let chunk_distance_m = anchor_distance_m + signed_radius_m;
+                if chunk_distance_m >= 0.0 {
+                    assert!(cpu_range.is_visible_at_all(chunk_distance_m));
+                }
+            }
+        }
+        assert!(cpu_range.is_visible_at_all(419.999 + 45.0));
+        assert!(!cpu_range.is_visible_at_all(420.0 + 45.0));
+    }
+
+    #[test]
+    fn medium_and_hlod_dither_masks_are_exact_complements() {
+        for quantized_fade in 0..=16 {
+            let medium_level = quantized_fade;
+            let hlod_level = quantized_fade - 16;
+            for threshold in 0..16 {
+                let medium_visible = medium_level < 16 && medium_level + threshold < 16;
+                let hlod_visible =
+                    hlod_level == 0 || (hlod_level > -16 && 1 + hlod_level + threshold > 0);
+                assert_ne!(medium_visible, hlod_visible);
+            }
+        }
     }
 
     #[test]
@@ -2128,6 +2272,13 @@ mod tests {
                 - profile.interaction_strength * MAX_INTERACTION_AMPLITUDE_M)
                 .abs()
                 <= f32::EPSILON
+        );
+        assert_eq!(
+            extension
+                .hlod_visibility_parameters
+                .to_array()
+                .map(f32::to_bits),
+            [113.0, 125.0, 420.0, 0.0].map(f32::to_bits)
         );
     }
 
@@ -2199,6 +2350,18 @@ mod tests {
                     assert!(!entity.casts_shadow);
                     assert!(marker.logical_placements > 0);
                 }
+                PreparedProjectionMarker::HlodBatch(marker, envelope) => {
+                    assert!(!entity.casts_shadow);
+                    assert_eq!(marker.lod, VegetationProjectionLod::Hlod);
+                    assert!(marker.logical_placements > 0);
+                    assert!(envelope.maximum_anchor_radius_m.is_finite());
+                    assert!(envelope.maximum_anchor_radius_m > 0.0);
+                    assert!(
+                        entity.visibility_range
+                            == VegetationLodRanges::from_profile(prepared.profile)
+                                .conservative_hlod_batch_range(envelope.maximum_anchor_radius_m,)
+                    );
+                }
             }
         }
         assert_eq!(
@@ -2224,7 +2387,7 @@ mod tests {
             prepared.stats.projection.total_entities
         );
         assert!(prepared.stats.projection.grass_batches <= 64);
-        assert!(prepared.stats.projection.hlod_batches <= 64);
+        assert_eq!(prepared.stats.projection.hlod_batches, 64);
         assert_eq!(
             prepared.stats.projection.grass_blades,
             u64::from(prepared.stats.placements.accepted_by_kind.grass_patches)
@@ -2241,10 +2404,15 @@ mod tests {
         assert!(shader.contains("mesh_functions::get_tag"));
         assert!(shader.contains("VISIBILITY_RANGE_DITHER"));
         assert!(shader.contains("get_visibility_range_dither_level"));
+        assert!(shader.contains("#ifdef VERTEX_UVS_B"));
+        assert!(shader.contains("vertex.uv_b.x, vertex.uv.x, vertex.uv_b.y"));
+        assert!(shader.contains("view.lod_view_world_position.xyz - world_anchor"));
+        assert!(shader.contains("return quantized_fade - 16;"));
+        assert!(shader.contains("hlod_visibility_parameters: vec4<f32>"));
         assert!(
             shader.contains("visibility_range_dither(in.position, in.visibility_range_dither)")
         );
-        assert!(shader.contains("#import bevy_pbr::pbr_functions::visibility_range_dither;"));
+        assert!(shader.contains("pbr_functions::visibility_range_dither"));
         let dither = shader
             .find("visibility_range_dither(in.position, in.visibility_range_dither)")
             .unwrap();

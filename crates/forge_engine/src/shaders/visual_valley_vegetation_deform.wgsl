@@ -15,7 +15,10 @@
 #endif
 
 #ifdef VISIBILITY_RANGE_DITHER
-#import bevy_pbr::pbr_functions::visibility_range_dither;
+#import bevy_pbr::{
+    mesh_view_bindings::view,
+    pbr_functions::visibility_range_dither,
+}
 #endif
 
 // Forge-original procedural vegetation shader. COLOR.rgb carries palette weights and
@@ -30,6 +33,7 @@ struct VisualValleyVegetationExtension {
     interaction_direction_strength: vec4<f32>,
     wind_direction: vec4<f32>,
     wetness_parameters: vec4<f32>,
+    hlod_visibility_parameters: vec4<f32>,
 }
 
 @group(#{MATERIAL_BIND_GROUP}) @binding(100)
@@ -69,6 +73,23 @@ fn instance_wind_response(instance_index: u32) -> f32 {
     let response = mesh_functions::get_tag(instance_index) >> 24u;
     return f32(response) / 255.0;
 }
+
+#ifdef VISIBILITY_RANGE_DITHER
+fn hlod_visibility_range_dither_level(world_anchor: vec3<f32>) -> i32 {
+    let camera_distance = length(view.lod_view_world_position.xyz - world_anchor);
+    let fade_start = vegetation.hlod_visibility_parameters.x;
+    let fade_end = vegetation.hlod_visibility_parameters.y;
+    let cull_distance = vegetation.hlod_visibility_parameters.z;
+    if camera_distance >= cull_distance {
+        return 16;
+    }
+    let fade_width = max(fade_end - fade_start, 0.000001);
+    let quantized_fade = i32(round(
+        clamp((camera_distance - fade_start) / fade_width, 0.0, 1.0) * 16.0,
+    ));
+    return quantized_fade - 16;
+}
+#endif
 
 fn bounded_deformation(
     world_position: vec3<f32>,
@@ -229,10 +250,21 @@ fn vertex(vertex: Vertex) -> VertexOutput {
     out.instance_index = vertex.instance_index;
 #endif
 #ifdef VISIBILITY_RANGE_DITHER
+#ifdef VERTEX_UVS_B
+    // HLOD UV0/UV1 carry the exact local placement anchor. The chunk's conservative CPU range
+    // only controls submission; the per-placement fade must match the individual LOD origin.
+    let hlod_anchor_local = vec3(vertex.uv_b.x, vertex.uv.x, vertex.uv_b.y);
+    let hlod_anchor_world = mesh_functions::mesh_position_local_to_world(
+        world_from_local,
+        vec4(hlod_anchor_local, 1.0),
+    );
+    out.visibility_range_dither = hlod_visibility_range_dither_level(hlod_anchor_world.xyz);
+#else
     out.visibility_range_dither = mesh_functions::get_visibility_range_dither_level(
         vertex.instance_index,
         world_from_local[3],
     );
+#endif
 #endif
     return out;
 }
