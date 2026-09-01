@@ -469,6 +469,14 @@ impl VisualValleyVegetationExtension {
 }
 
 impl MaterialExtension for VisualValleyVegetationExtension {
+    fn enable_prepass() -> bool {
+        // The camera depth prepass can retain dithered, wind-deformed vegetation depth where the
+        // forward color pass rejects the matching sample. Keep the material forward-only so HLOD
+        // cards and grass cannot become depth-only silhouettes. The custom prepass vertex shader
+        // remains available to Bevy's independent shadow-map path.
+        false
+    }
+
     fn vertex_shader() -> ShaderRef {
         VEGETATION_SHADER_PATH.into()
     }
@@ -2483,6 +2491,11 @@ mod tests {
             u64::from(prepared.stats.placements.accepted_by_kind.grass_patches)
                 * u64::from(vegetation.presentation.grass_blades_per_patch)
         );
+    }
+
+    #[test]
+    fn vegetation_material_is_forward_only_to_avoid_depth_only_silhouettes() {
+        assert!(!VisualValleyVegetationExtension::enable_prepass());
     }
 
     #[test]
