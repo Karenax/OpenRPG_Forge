@@ -1,0 +1,93 @@
+{
+  "schema": "forge.gate1-native-visual-proof-artifacts",
+  "schema_version": 1,
+  "source_commit": "a7c9b1e1d5e32f826b606778434a5fae91cc947d",
+  "source_tree": "2066fce699e4dd178c3d679cf4b0168d2e727d3d",
+  "binary": {
+    "bytes": 81944064,
+    "sha256": "5047b8e8016f1897882fc55ef9c78a03bdc25c4aabe4d94a7ebd968b93b07a4c"
+  },
+  "machine": {
+    "gpu": "AMD Radeon RX 7800 XT",
+    "backend": "Vulkan",
+    "driver": "AMD proprietary driver",
+    "resolution": "1920x1080",
+    "vsync": false
+  },
+  "selection": {
+    "local_acquisition_files": 34,
+    "local_acquisition_bytes": 62687771,
+    "local_png_files": 29,
+    "versioned_artifact_files": 13,
+    "versioned_artifact_bytes": 18444234,
+    "omitted_intermediate_movement_pngs": 21,
+    "omitted_files_remain_hashed_in": "gate1-visual-proof.validation.json"
+  },
+  "files": [
+    {
+      "file": "captures/distant-clear.png",
+      "bytes": 2040684,
+      "sha256": "db34c2b82e4d972e9e7fbf80e91ad3cc6d9f3be9c1e172bf9e18579e4d65e575"
+    },
+    {
+      "file": "captures/human-clear.png",
+      "bytes": 2177200,
+      "sha256": "9a81889c9ef9297171042ea3a3acda324975550e8bdbfa0780478ea9a45b2de2"
+    },
+    {
+      "file": "captures/water-clear.png",
+      "bytes": 2047688,
+      "sha256": "38e3639124769842ea5d79640dd1d2d6491618238d4ed1515e6346d7d984a08a"
+    },
+    {
+      "file": "captures/water-rain.png",
+      "bytes": 2076147,
+      "sha256": "d316b922d1234ccb86ebb62e43f36496b313857cd6f279b65c8829b1d7521e85"
+    },
+    {
+      "file": "captures/water-restored.png",
+      "bytes": 2041668,
+      "sha256": "816885560840c9239b9a48bc976470542a24c72eb8490f513f49c968e41fd999"
+    },
+    {
+      "file": "gate1-movement.mp4",
+      "bytes": 1666568,
+      "sha256": "d603e817304ed8fd6618c7d5c9aa7eb21ee7f43b41409f512027e87d059202bf"
+    },
+    {
+      "file": "gate1-visual-proof.json",
+      "bytes": 31121,
+      "sha256": "6e012a3fe92047bb2334c1abe9a1ad43abbcd452eec85d718d3de29bc762d99b"
+    },
+    {
+      "file": "gate1-visual-proof.validation.json",
+      "bytes": 8650,
+      "sha256": "02e4e6dbb65a63ee42f4b8abb36de20c40b27d9e90478dfe37269d6bc619f65e"
+    },
+    {
+      "file": "movement/frame-000.png",
+      "bytes": 2226384,
+      "sha256": "29cc300c94607e7a54419de1e4388f6ddc821f7cd879daf3a5601afbc430e398"
+    },
+    {
+      "file": "movement/frame-012.png",
+      "bytes": 2033384,
+      "sha256": "11252359b9cc1cca4665039697068b52aa8ad599ca8a27285de1cb8eff1dd58c"
+    },
+    {
+      "file": "movement/frame-023.png",
+      "bytes": 2094740,
+      "sha256": "0122b8c5a5094b372d22b83da2e0aa5b31a3d7136fcde2c48b89b9db4166f8ca"
+    },
+    {
+      "file": "runtime.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "runtime.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

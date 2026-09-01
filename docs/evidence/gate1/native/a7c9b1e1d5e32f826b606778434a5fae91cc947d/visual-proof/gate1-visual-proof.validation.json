@@ -1,0 +1,250 @@
+{
+  "schema": "forge.gate1-visual-proof-validation",
+  "schema_version": 1,
+  "status": "automated_artifacts_valid_pending_human_and_gpu_qualification",
+  "repository_commit": "a7c9b1e1d5e32f826b606778434a5fae91cc947d",
+  "repository_tree": "2066fce699e4dd178c3d679cf4b0168d2e727d3d",
+  "runtime_sha256": "5047b8e8016f1897882fc55ef9c78a03bdc25c4aabe4d94a7ebd968b93b07a4c",
+  "runtime_logs": {
+    "stdout": {
+      "relative_path": "runtime.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr": {
+      "relative_path": "runtime.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "disallowed_entries": 0
+  },
+  "ledger_sha256": "6e012a3fe92047bb2334c1abe9a1ad43abbcd452eec85d718d3de29bc762d99b",
+  "captures": [
+    {
+      "id": "distant-clear",
+      "relative_path": "captures/distant-clear.png",
+      "bytes": 2040684,
+      "sha256": "db34c2b82e4d972e9e7fbf80e91ad3cc6d9f3be9c1e172bf9e18579e4d65e575",
+      "sampled_unique_colors": 121
+    },
+    {
+      "id": "human-clear",
+      "relative_path": "captures/human-clear.png",
+      "bytes": 2177200,
+      "sha256": "9a81889c9ef9297171042ea3a3acda324975550e8bdbfa0780478ea9a45b2de2",
+      "sampled_unique_colors": 117
+    },
+    {
+      "id": "water-clear",
+      "relative_path": "captures/water-clear.png",
+      "bytes": 2047688,
+      "sha256": "38e3639124769842ea5d79640dd1d2d6491618238d4ed1515e6346d7d984a08a",
+      "sampled_unique_colors": 125
+    },
+    {
+      "id": "water-rain",
+      "relative_path": "captures/water-rain.png",
+      "bytes": 2076147,
+      "sha256": "d316b922d1234ccb86ebb62e43f36496b313857cd6f279b65c8829b1d7521e85",
+      "sampled_unique_colors": 140
+    },
+    {
+      "id": "water-restored",
+      "relative_path": "captures/water-restored.png",
+      "bytes": 2041668,
+      "sha256": "816885560840c9239b9a48bc976470542a24c72eb8490f513f49c968e41fd999",
+      "sampled_unique_colors": 125
+    },
+    {
+      "id": "movement-000",
+      "relative_path": "movement/frame-000.png",
+      "bytes": 2226384,
+      "sha256": "29cc300c94607e7a54419de1e4388f6ddc821f7cd879daf3a5601afbc430e398",
+      "sampled_unique_colors": 129
+    },
+    {
+      "id": "movement-001",
+      "relative_path": "movement/frame-001.png",
+      "bytes": 2189936,
+      "sha256": "a14560c84c68850cc2dce2e5d4758a9a54209e4ebcae49daa14395cb29692e76",
+      "sampled_unique_colors": 134
+    },
+    {
+      "id": "movement-002",
+      "relative_path": "movement/frame-002.png",
+      "bytes": 2215193,
+      "sha256": "2340c9876d8aaea531b18ae0726975990bbcb2ec7e15b9c72840e90975588f23",
+      "sampled_unique_colors": 129
+    },
+    {
+      "id": "movement-003",
+      "relative_path": "movement/frame-003.png",
+      "bytes": 2226621,
+      "sha256": "14029fe2e9a2b31c06e6ff77a7c5098e57d69c23a7fa10e7f0fbb8b6f6354b3e",
+      "sampled_unique_colors": 136
+    },
+    {
+      "id": "movement-004",
+      "relative_path": "movement/frame-004.png",
+      "bytes": 2176469,
+      "sha256": "9d9502d6639ed94972139f0093b25a68b5e3cf1c33cbfa759cead56a6c01d29a",
+      "sampled_unique_colors": 133
+    },
+    {
+      "id": "movement-005",
+      "relative_path": "movement/frame-005.png",
+      "bytes": 2148371,
+      "sha256": "6b7704288852757591311f9349e921871bc27c24dcd78b14f352d9b142dbccda",
+      "sampled_unique_colors": 132
+    },
+    {
+      "id": "movement-006",
+      "relative_path": "movement/frame-006.png",
+      "bytes": 2107683,
+      "sha256": "97081c80bc465798dbd7aaad45b4116ece18546d28815840e8f9f0ce01a40cf0",
+      "sampled_unique_colors": 134
+    },
+    {
+      "id": "movement-007",
+      "relative_path": "movement/frame-007.png",
+      "bytes": 2103516,
+      "sha256": "4fb975873cc264d78d839dce0fc3f7bc17977294f0e6627a3ba46338c83d9b55",
+      "sampled_unique_colors": 131
+    },
+    {
+      "id": "movement-008",
+      "relative_path": "movement/frame-008.png",
+      "bytes": 2081406,
+      "sha256": "cb43d584907cb686a356b09d4a5ff5ffce8f2aab27cb472513ae2ab11a2c331c",
+      "sampled_unique_colors": 128
+    },
+    {
+      "id": "movement-009",
+      "relative_path": "movement/frame-009.png",
+      "bytes": 2078127,
+      "sha256": "d9209e19c59dc69cef674ddf309c0ce10ed4a73b747ef112b00dd35fb5fe9d9f",
+      "sampled_unique_colors": 132
+    },
+    {
+      "id": "movement-010",
+      "relative_path": "movement/frame-010.png",
+      "bytes": 2046445,
+      "sha256": "2dc1d5c8996ac6d62f3d2fc4fcd950e1568f9034c52d3f841e49ea1cff71ea5b",
+      "sampled_unique_colors": 131
+    },
+    {
+      "id": "movement-011",
+      "relative_path": "movement/frame-011.png",
+      "bytes": 2052418,
+      "sha256": "d1a69194865a4c39ec6c529b4aae5a0b772b6d46488a666acbe0c691509c6f64",
+      "sampled_unique_colors": 120
+    },
+    {
+      "id": "movement-012",
+      "relative_path": "movement/frame-012.png",
+      "bytes": 2033384,
+      "sha256": "11252359b9cc1cca4665039697068b52aa8ad599ca8a27285de1cb8eff1dd58c",
+      "sampled_unique_colors": 123
+    },
+    {
+      "id": "movement-013",
+      "relative_path": "movement/frame-013.png",
+      "bytes": 2031757,
+      "sha256": "5a407557ac358d39932c4c3594b0fe4df3da18579a57a135a48e5db69ea7d4e8",
+      "sampled_unique_colors": 127
+    },
+    {
+      "id": "movement-014",
+      "relative_path": "movement/frame-014.png",
+      "bytes": 2046955,
+      "sha256": "cfc329a97627678d5ded3c8dcd1e9304fedf647a0cb6bf48660cfb5abc15f997",
+      "sampled_unique_colors": 125
+    },
+    {
+      "id": "movement-015",
+      "relative_path": "movement/frame-015.png",
+      "bytes": 2030389,
+      "sha256": "11269e7f727e258d9c0a3e8adef3b88915697ada246e05c9af4d026c57b8c5ee",
+      "sampled_unique_colors": 132
+    },
+    {
+      "id": "movement-016",
+      "relative_path": "movement/frame-016.png",
+      "bytes": 2045296,
+      "sha256": "fdc1e347ab8579b4e66d230581931a0acfb0ed535a9eb4cd8a76af87ec4a4ae8",
+      "sampled_unique_colors": 130
+    },
+    {
+      "id": "movement-017",
+      "relative_path": "movement/frame-017.png",
+      "bytes": 2056214,
+      "sha256": "1dc6ca389daa3e21a48d7f90504cf0ff055d6efa8c7eff3ef4381afb0575117c",
+      "sampled_unique_colors": 132
+    },
+    {
+      "id": "movement-018",
+      "relative_path": "movement/frame-018.png",
+      "bytes": 2086924,
+      "sha256": "704f1f79a4786ad68d0a65226149ee31aa197e9a57352a057ac35c6df858cd44",
+      "sampled_unique_colors": 135
+    },
+    {
+      "id": "movement-019",
+      "relative_path": "movement/frame-019.png",
+      "bytes": 2094453,
+      "sha256": "0036f1735e5f61044f4819d503e180248df914ca57a9651e807e366a0fcb2a2a",
+      "sampled_unique_colors": 132
+    },
+    {
+      "id": "movement-020",
+      "relative_path": "movement/frame-020.png",
+      "bytes": 2114056,
+      "sha256": "9f6ea301f7a8686c95624ab1281e5caeb34db92837b2cbe53ed2c33a66a19c25",
+      "sampled_unique_colors": 136
+    },
+    {
+      "id": "movement-021",
+      "relative_path": "movement/frame-021.png",
+      "bytes": 2137525,
+      "sha256": "ac68079ef8eabdc90c7b5048a391df1c0b0bcb924e45052466dacac88e32a35e",
+      "sampled_unique_colors": 132
+    },
+    {
+      "id": "movement-022",
+      "relative_path": "movement/frame-022.png",
+      "bytes": 2173783,
+      "sha256": "2f9ecd6c6fe1d8bc4c21a6282b7d9d78a2c3ab4a5b19f3d4ef2276157907f630",
+      "sampled_unique_colors": 132
+    },
+    {
+      "id": "movement-023",
+      "relative_path": "movement/frame-023.png",
+      "bytes": 2094740,
+      "sha256": "0122b8c5a5094b372d22b83da2e0aa5b31a3d7136fcde2c48b89b9db4166f8ca",
+      "sampled_unique_colors": 137
+    }
+  ],
+  "video": {
+    "relative_path": "gate1-movement.mp4",
+    "bytes": 1666568,
+    "sha256": "d603e817304ed8fd6618c7d5c9aa7eb21ee7f43b41409f512027e87d059202bf",
+    "source_frame_count": 24,
+    "framerate": 8
+  },
+  "checks": {
+    "clear_rain_clear_same_process": true,
+    "exact_wetness_restoration": true,
+    "bounded_grade_endpoints": true,
+    "fixed_quality": true,
+    "exact_commit_embedded": true,
+    "clean_worktree_before_and_after": true,
+    "no_vsync_requested": true,
+    "gpu_identity_recorded": true,
+    "runtime_warning_error_panic_entries": 0,
+    "png_1920x1080_nonuniform": true,
+    "cadle_assets_used": false,
+    "weather_gpu_execution_observed": false,
+    "human_review_performed": false,
+    "gate1_routes_qualified": false
+  }
+}

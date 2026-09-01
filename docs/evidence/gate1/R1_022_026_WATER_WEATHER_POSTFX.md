@@ -2,28 +2,34 @@
 
 ## Verdict borné
 
-**NON QUALIFIÉ AU GLOBAL.** Le candidat courant `d9e2670…` possède une paire native/Browser exacte,
+**NON QUALIFIÉ AU GLOBAL.** La paire `d9e2670…` possède une campagne native/Browser exacte,
 24/24 contrôles par météo et 46/46 contrôles croisés. L'eau et les berges utilisent le chemin
 forward ; le SSR écran est déclaré indisponible sous Bevy 0.19.1 et la réflexion se résout vers
 `disabled`, tandis que la réfraction utilise le fallback `surface_tint`. Zéro caméra SSR/différée est
 observée et les logs natifs n'enregistrent plus le warning historique. Cette correction ne transforme
-pas le fallback en réflexion/réfraction GPU qualifiée et l'eau reste hors cadrage.
+pas le fallback en réflexion/réfraction GPU qualifiée.
 
-Les cinq critères restent ouverts :
+Le commit courant `a7c9b1e1…` ajoute une acquisition même processus clair → pluie → clair et trois
+captures eau dédiées. Les endpoints CPU/ECS sont exacts, mais l'eau y reste étroite et masquée par les
+berges ; l'exécution GPU météo et l'acceptation visuelle restent explicitement fausses.
+
+État des cinq critères :
 
 | Critère | État de cette preuve |
 |---|---|
 | `R1-022` eau de rivière | **acquis fonctionnellement** en natif et Browser : document/hash et composants observés ; eau non isolable visuellement, `gpu_pass_observed=false` et `gpu_presentation=not_observed` |
-| `R1-023` réflexion/réfraction selon profil | demande authored conservée ; SSR indisponible → réflexion `disabled`, réfraction → `surface_tint` ; résultat non isolé visuellement, route ouverte |
+| `R1-023` réflexion/réfraction selon profil | demande authored conservée ; SSR indisponible → réflexion `disabled`, réfraction → `surface_tint` ; trois PNG eau dédiés `a7c9b1e1`, mais résultat toujours trop masqué pour être qualifié |
 | `R1-024` pluie | **acquise fonctionnellement** en natif et Browser High : cible rain, lot visible et stries dans les PNG ; animation et présentation GPU non prouvées |
-| `R1-025` wetness réversible | endpoints clear=0/rain=0,78 observés ; aucune séquence réelle `clear → rain → clear` |
-| `R1-026` bloom et color grading bornés | projection CIE bornée et IBL d9 corrigent rose/moutarde et grandes ombres noires ; revue humaine finale due |
+| `R1-025` wetness réversible | séquence réelle même processus `clear → rain → clear` et endpoints CPU/ECS 0 → 0,78 → 0 acquis ; exécution GPU et retour visuel accepté dus |
+| `R1-026` bloom et color grading bornés | endpoints de grade et présence du composant Bloom acquis ; paramètres numériques, exécution GPU et qualification visuelle dus |
 
 Les sous-preuves fonctionnelles de `R1-022` et `R1-024` sont acquises. `R1-023`, `R1-025` et
-`R1-026` restent ouvertes en raison des profils optiques/qualité, de la réversibilité dans une même
-exécution, de la présentation GPU non observée et de la qualification visuelle encore dues. Les
-sections historiques plus bas conservent les campagnes précédentes ; la preuve d9 autoritaire est
-[`R1_GRAPHICS_FORWARD_IBL_CORRECTION.md`](R1_GRAPHICS_FORWARD_IBL_CORRECTION.md).
+`R1-026` restent ouvertes en raison des profils optiques/qualité, de la présentation GPU non observée
+et de la qualification visuelle encore dues. Les sections historiques plus bas conservent les
+campagnes précédentes. La correction d9 est détaillée dans
+[`R1_GRAPHICS_FORWARD_IBL_CORRECTION.md`](R1_GRAPHICS_FORWARD_IBL_CORRECTION.md) et l'acquisition
+courante dans
+[`R1_025_026_046_048_NATIVE_VISUAL_PROOF.md`](R1_025_026_046_048_NATIVE_VISUAL_PROOF.md).
 
 ## Validation automatisée de l'état intégré courant
 
@@ -221,6 +227,8 @@ par inférence depuis la seule existence d'un PNG.
 - l'intensité et la distance SSR demandées ne sont pas mappées par le composant Bevy actuel ;
 - la réfraction écran demandée en High/Ultra n'est pas implémentée. Le repli tint est honnête mais ne
   permet pas de fermer le critère comme « réfraction écran » ;
+- les trois vues eau `a7c9b1e1` sont acquises, mais la bande d'eau est étroite et largement masquée
+  par des berges sombres ; elles refusent donc plutôt qu'elles ne ferment la qualification ;
 - capturer et comparer Low/Medium/High/Ultra en natif et WebGPU, vérifier visuellement la réflexion,
   le fallback de réfraction, les artefacts de bord et le coût ; décider explicitement si le critère
   accepte le fallback authored ou exige un vrai chemin de réfraction avant qualification.
@@ -288,11 +296,13 @@ par inférence depuis la seule existence d'un PNG.
 - pas encore de flaques, réaction de normal map ni wet edge de berge ;
 - l'adapter qualité documente `rain.wetness_enabled` comme appliqué au démarrage, pas comme une
   reconstruction dynamique de matériaux à chaque changement de tier ;
-- les deux exécutions séparées prouvent les endpoints clear=0 et rain=0,78, mais pas une transition
-  réelle ni un retour au clair dans le même processus ; exécuter `clear → rain → clear` en natif et
-  WebGPU, puis confirmer simultanément uniforms, ledgers et résultat visuel ;
-- vérifier par inspection que le terrain et la végétation s'assombrissent et deviennent moins
-  rugueux sans dérive permanente de palette.
+- le harness `a7c9b1e1` prouve désormais une transition native réelle dans le même processus et le
+  retour CPU/ECS exact 0 → 0,78 → 0 ; `weather_gpu_execution_observed=false` empêche de l'étendre au
+  GPU ou au Browser ;
+- `water-clear` et `water-restored` ont un SSIM de 0,946502. Ce score montre des images proches mais
+  non identiques et ne remplace pas l'inspection GPU dry → wet → dry ;
+- vérifier par inspection humaine que terrain et végétation s'assombrissent et deviennent moins
+  rugueux sans dérive permanente, puis rejouer la séquence sous WebGPU.
 
 ### R1-026 — bloom et color grading bornés
 
@@ -320,10 +330,12 @@ par inférence depuis la seule existence d'un PNG.
 
 **Limites et preuve encore dues**
 
-- ni la présence de composants ECS ni leur sérialisation ne prouvent le post-traitement final ;
-- les captures d9 corrigent la dérive colorimétrique et les grandes zones noires, mais montrent encore
-  contours sombres/stipple et un overlay envahissant ; produire Low et une inspection ciblée de l'eau,
-  du clipping, du pompage et du halo ;
+- ni la présence de composants ECS ni leur sérialisation ne prouvent le post-traitement final. Le
+  harness `a7c9b1e1` borne honnêtement son statut à
+  `color_grade_endpoints_and_bloom_component_presence_observed` ;
+- les captures d9 corrigent la dérive colorimétrique et les grandes zones noires, mais les captures
+  `a7c9b1e1` confirment contours sombres/stipple, aplats et cadrage eau insuffisant ; produire Low et
+  une inspection ciblée de l'eau, du clipping, du pompage et du halo ;
 - consigner backend, résolution, profil, seed, commit, warm-up, métriques et inspection humaine avant
   de cocher `R1-026`.
 
@@ -333,13 +345,14 @@ par inférence depuis la seule existence d'un PNG.
 |---|---|---|
 | Runtime natif | `clear` et `rain`, High, 1920 × 1080, VSync off, même seed/caméra | **PARTIEL ACQUIS à d9** : captures, métriques, backend/GPU/driver et logs sans warning/erreur ; revue visuelle non acceptée |
 | Studio Browser | `forge_scene=visual-valley` avec `forge_weather=clear`, puis `rain`, High | **PARTIEL ACQUIS à `d9e2670…`** : 24/24 contrôles chacun, 9/9 modèles, 26 assets HTTP 200, hashes alignés, console/réseau propres et captures inspectées ; `gpu_presentation=not_observed` |
-| Réversibilité | `clear → rain → clear` sur une exécution instrumentée par cible | wetness terminale exacte et retour visuel sec, sans mutation des palettes |
+| Réversibilité | `clear → rain → clear` sur une exécution instrumentée par cible | **PARTIEL NATIF `a7c9b1e1`** : wetness CPU/ECS terminale exacte ; exécution GPU, retour visuel accepté et Browser dus |
 | Profils optiques/post-FX | Low/Medium/High/Ultra, au minimum captures Low/High | chemin SSR/fallback observé, paramètres appliqués, coût et artefacts comparés |
 
 Le commit/arbre, le smoke natif High clear/rain et le smoke Browser clear/rain sont désormais
 consignés sur la paire d9 exacte. Les temps Browser mesurent la boucle WASM, pas le GPU : clear
 moyenne 10,1175 ms, p95 12,1 ms, 1 % low 77,519 FPS ; rain moyenne 9,5633 ms, p95 10,9 ms, 1 % low
-85,106 FPS ; zéro hitch. Restent dus : séquence `clear → rain → clear`, matrice de profils, captures
-eau dédiées, sonde GPU, résidus visuels et acceptation humaine.
+85,106 FPS ; zéro hitch. Le lot `a7c9b1e1` ajoute la séquence native et les captures eau dédiées,
+mais celles-ci échouent à isoler les effets. Restent dus : séquence Browser, matrice optique,
+sonde GPU, correction des résidus visuels et acceptation humaine.
 `R1-023`, `R1-025` et `R1-026` restent explicitement ouverts ; `R1-022` et `R1-024` sont acquis
 fonctionnellement mais restent bornés visuellement/GPU. Gate 1 demeure **NON QUALIFIÉE**.

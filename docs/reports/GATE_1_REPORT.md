@@ -13,16 +13,18 @@ ledgers versionnés et une provenance CC0/Cadle auditée. Les deux variantes Bro
 **24/24 contrôles automatisés**, sans échec réseau ni warning/erreur console. Le validateur croisé
 natif/Studio passe **46/46** contrôles et les sept hashes communs concordent. La matrice native
 `5eadec7f` qualifie 10/10 runs Low/Medium/High/Ultra, adaptatif et benchmark, avec pipelines stables et
-tier eau synchronisé. Le commit source courant `afb270c3` ajoute les temps CPU/GPU du pass opaque à
-l'overlay et les rend lisibles dans deux captures natives exactes clear/rain.
+tier eau synchronisé. Le commit `afb270c3` ajoute les temps CPU/GPU du pass opaque à l'overlay et les
+rend lisibles dans deux captures natives exactes clear/rain. Le commit source courant `a7c9b1e1`
+ajoute un harness visuel exact-commit et acquiert 29 PNG ainsi qu'une vidéo native de trois secondes.
 
 Ces résultats ne ferment pas Gate 1. Le correctif forward + IBL supprime le warning wgpu enregistré
 dans la campagne historique `a34596bd` et corrige les palettes rose/moutarde ainsi que les grandes
-ombres noires. Des contours de végétation sombres et du stipple/aliasing restent visibles ; l'eau
-n'est pas isolable dans ces cadrages. La présentation GPU Browser reste `not_observed`, la cible RTX
-3060/RX 6600 n'a pas été mesurée, le parcours temporel reste à qualifier, et les captures n'ont pas
-reçu d'acceptation humaine comparative. Les profils sont fonctionnels, mais cela ne corrige pas leur
-stipple/aliasing visible et ne constitue pas une acceptation artistique.
+ombres noires. Le nouveau lot exact confirme toutefois des contours/stipple noirs, des silhouettes
+lointaines crénelées, de grands aplats et une eau masquée par les berges. Le MP4 est produit par une
+caméra de preuve, pas par le contrôleur de gameplay. La présentation GPU Browser reste
+`not_observed`, la cible RTX 3060/RX 6600 n'a pas été mesurée et les captures n'ont pas reçu
+d'acceptation humaine comparative. Les profils sont fonctionnels, mais cela ne constitue pas une
+acceptation artistique.
 
 Le verdict `R1-055` est **poursuivre Gate 1**, corriger et requalifier les preuves manquantes. Il ne
 constitue ni un passage administratif de Gate 1, ni une autorisation implicite de commencer Gate 2.
@@ -31,7 +33,8 @@ constitue ni un passage administratif de Gate 1, ni une autorisation implicite d
 
 | Portée | Commit | Tree | Usage dans ce rapport |
 |---|---|---|---|
-| source courante et overlay CPU/GPU | `afb270c328b7095a84d452b93b9fdd38e2737f33` | `5eeb9098b8300dead8679de7d478f5096a572fd1` | temps CPU/GPU du pass opaque visibles, fallback indisponible testé, deux ledgers/captures High exacts |
+| source courante et harness visuel | `a7c9b1e1d5e32f826b606778434a5fae91cc947d` | `2066fce699e4dd178c3d679cf4b0168d2e727d3d` | acquisition native exact-commit de 29 PNG, séquence clair/pluie/clair et MP4 3 s ; qualification refusée |
+| overlay CPU/GPU | `afb270c328b7095a84d452b93b9fdd38e2737f33` | `5eeb9098b8300dead8679de7d478f5096a572fd1` | temps CPU/GPU du pass opaque visibles, fallback indisponible testé, deux ledgers/captures High exacts |
 | matrice profils | `5eadec7f6f9f9b5b6734ce62ea3518f0297496f9` | `a2fb4df0b7e2eff4d686dda575d4a2bf18cb12a1` | 10 ledgers/captures natifs, quatre tiers, adaptation High vers Ultra, benchmark High et eau synchronisée |
 | campagne Browser exacte | `d9e2670111624aa836ab138afc35cddf441865ef` | `d6e5a40f73b47934444bda4514d5cdcb1dab093d` | Browser clear/rain, manifeste Studio, assets HTTP et captures Browser |
 | natif performance/captures exact-commit | `d9e2670111624aa836ab138afc35cddf441865ef` | `d6e5a40f73b47934444bda4514d5cdcb1dab093d` | RX 7800 XT/Vulkan, métriques v8, captures et logs natifs exacts |
@@ -45,10 +48,10 @@ Le natif et le Browser forment une paire exacte d9. Le hash scenery
 manifestes Browser. Les preuves `a34596bd` et `92286910` restent historiques et ne sont pas utilisées
 pour conclure la parité courante `R1-043`.
 
-## Validation source finale
+## Validation source
 
-La source exacte courante `afb270c328b7095a84d452b93b9fdd38e2737f33` a été rejouée
-séquentiellement :
+Le dernier rejeu workspace complet reste épinglé à la source exacte
+`afb270c328b7095a84d452b93b9fdd38e2737f33` :
 
 | Contrôle | Résultat |
 |---|---|
@@ -64,7 +67,13 @@ Le check WASM conserve uniquement l'avertissement de future incompatibilité tra
 la preuve overlay afb et la matrice native 5e sont documentées ci-dessous ; la paire Browser/native d9
 reste une campagne historique exacte distincte.
 
-## Overlay CPU/GPU courant `afb270c3`
+Au commit courant `a7c9b1e1`, la validation proportionnée du nouveau harness passe 37/37 tests
+`forge_runtime`, le formatage, Clippy strict du runtime, la syntaxe PowerShell et l'acquisition native
+exacte. Un rejeu workspace a été commencé, puis interrompu pendant la recompilation des dépendances
+pour éviter un nouveau cycle d'environ une heure ; il n'a produit aucun verdict et n'est pas présenté
+comme PASS. Le résultat 298/298 reste donc attribué uniquement à `afb270c3`.
+
+## Overlay CPU/GPU exact `afb270c3`
 
 Le binaire Release exact mesure 81 745 408 octets et porte le SHA-256
 `9c7a85d9719101e53a25f79d8846462561c81dd9f7e5b1f72743d0964f2caffa`. Deux runs High,
@@ -95,6 +104,32 @@ sont consignés dans
 [`R1_039_040_NATIVE_QUALITY_MATRIX.md`](../evidence/gate1/R1_039_040_NATIVE_QUALITY_MATRIX.md).
 Cette preuve ferme `R1-039`, `R1-040` et la condition « profils qualité fonctionnels ». Elle ne ferme
 ni le GPU cible, ni le parcours représentatif, ni l'acceptation artistique.
+
+## Acquisition visuelle native courante `a7c9b1e1`
+
+Le harness courant lie le binaire Release au commit exact
+`a7c9b1e1d5e32f826b606778434a5fae91cc947d` et refuse une acquisition depuis un worktree sale. Le
+binaire de 81 944 064 octets porte le SHA-256
+`5047b8e8016f1897882fc55ef9c78a03bdc25c4aabe4d94a7ebd968b93b07a4c`. Le run 1920 × 1080 High,
+VSync désactivé, sur RX 7800 XT/Vulkan a produit 29 PNG, une vidéo H.264 de 24 frames à 8 FPS pendant
+trois secondes et deux logs vides.
+
+Le validateur passe l'identité source, la résolution physique, le present mode, l'identité
+GPU/backend/pilote, l'absence d'asset Cadle, la propreté avant/après et l'absence de
+warning/erreur/panic. Il observe côté CPU/ECS la séquence clair → pluie → clair, la wetness exacte
+0 → 0,78 → 0, les endpoints de grade et la présence du composant Bloom. Il laisse explicitement
+`weather_gpu_execution_observed=false`, `human_review_performed=false` et
+`gate1_routes_qualified=false`.
+
+L'inspection des PNG originaux refuse la qualification : végétation sombre et fortement crénelée,
+silhouettes lointaines en blocs, grands aplats et eau étroite/masquée par les berges. La vidéo utilise
+une caméra déterministe de preuve avec `gameplay_controller_exercised=false` ; elle ne qualifie ni un
+parcours gameplay ni le stutter. L'acquisition avance donc la preuve sans fermer `R1-023`, `R1-025`,
+`R1-026` ou `R1-046` à `R1-048`.
+
+Le protocole, les hashes, la sélection versionnée de 13 artefacts et la décision visuelle sont
+consignés dans
+[`R1_025_026_046_048_NATIVE_VISUAL_PROOF.md`](../evidence/gate1/R1_025_026_046_048_NATIVE_VISUAL_PROOF.md).
 
 ## Preuve Browser d9 clear/rain
 
@@ -240,6 +275,10 @@ Restent explicitement ouvertes :
 - `R1-037` et `R1-041` ;
 - `R1-046` à `R1-052`.
 
+Les fichiers `R1-046` à `R1-048` existent désormais au commit exact `a7c9b1e1`, mais « acquis » ne
+signifie pas « qualifié » : les vues échouent au contrôle visuel borné et la vidéo n'exerce pas le
+contrôleur de gameplay.
+
 `R1-043` est fermée : les deux cibles utilisent `d9e2670`, le scenery hash concorde et
 46/46 assertions croisées passent. Le ledger natif n'expose pas le hash autonome du contrôleur
 présent dans le manifeste Studio ; cette limite est documentée et ne doit pas être transformée en un
@@ -249,7 +288,7 @@ huitième match de ledger.
 
 | Condition | État | Motif |
 |---|---|---|
-| qualité visuelle clairement supérieure à la base Godot | **OUVERTE** | aucune revue humaine comparative acceptée |
+| qualité visuelle clairement supérieure à la base Godot | **OUVERTE** | contrôle borné `a7c9b1e1` refusé et aucune revue humaine comparative acceptée |
 | impact au moins comparable à Cadle | **OUVERTE** | pas de comparaison A/B humaine sur protocole équivalent |
 | 60 FPS moyens en 1080p High sur GPU milieu de gamme | **OUVERTE** | RX 7800 XT seulement ; Browser canvas et boucle WASM non équivalents |
 | p95 `<=16,7 ms` | **OUVERTE** | paire exact-commit dans le budget, mais pas sur GPU cible |
@@ -263,14 +302,15 @@ huitième match de ledger.
 ## Limites visuelles et qualification humaine
 
 Les captures d9 corrigent nettement la palette rose/moutarde et les grandes zones noires : le ciel
-est gris-bleu, le terrain vert et les ombres sont remplies. Des contours de végétation très sombres,
-du stipple/aliasing et quelques facettes sombres restent visibles. La pluie est visible, mais l'eau,
-la réflexion et la réfraction ne sont pas clairement inspectables ; une image fixe ne prouve ni
-animation, stabilité temporelle, impacts au sol ni wetness réversible.
+est gris-bleu, le terrain vert et les ombres sont remplies. Le lot `a7c9b1e1` rend les défauts
+restants plus explicites : contours/stipple noirs, herbe striée, silhouettes lointaines crénelées,
+grands aplats et eau peu lisible derrière les berges. La pluie et le changement de wetness sont
+visibles, mais la réflexion/réfraction ne sont pas inspectables honnêtement et le retour CPU/ECS exact
+au profil clair n'est pas une preuve d'identité GPU.
 
-Aucune affirmation de supériorité sur Godot ou de parité visuelle Cadle n'est acquise. La revue
-humaine FHD/QHD, les vues hauteur humaine/lointaine, une vidéo de déplacement et les comparaisons
-matériaux/composition/A-B restent dues.
+Aucune affirmation de supériorité sur Godot ou de parité visuelle Cadle n'est acquise. Les vues
+hauteur humaine/lointaine et le MP4 sont acquis mais rejetés/non représentatifs ; leur correction,
+la revue humaine FHD/QHD et les comparaisons matériaux/composition/A-B restent dues.
 
 ## CI distante
 
@@ -284,8 +324,8 @@ Verdict : **POURSUIVRE GATE 1**.
 
 Ordre minimal avant toute nouvelle décision de passage :
 
-1. acquérir un parcours temporel représentatif, les vues hauteur humaine/lointaine, l'eau dédiée et
-   une vidéo courte ;
+1. corriger le stipple/crénelage, les aplats et le cadrage eau, puis remplacer la caméra de preuve
+   par un parcours gameplay représentatif et requalifier les vues/vidéo ;
 2. acquérir l'instrumentation exhaustive `R1-037` ou documenter une décision Gate 1 dédiée ;
 3. mesurer RTX 3060 ou RX 6600 en 1080p High ;
 4. effectuer la revue humaine comparative Godot/Cadle et statuer sur les routes visuelles restantes.

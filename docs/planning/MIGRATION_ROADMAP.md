@@ -292,11 +292,16 @@ et sans transformer une acquisition automatisée en revue humaine.
 Statut : **OUVERTE** après le passage automatisé local de Gate 0 sous ADR-0004, ADR-0005 et ADR-0006.
 
 Progression consolidée au commit source courant
-`afb270c328b7095a84d452b93b9fdd38e2737f33`, arbre
-`5eeb9098b8300dead8679de7d478f5096a572fd1`. La validation workspace passe **298/298 tests**, avec
-formatage, Clippy strict et check Studio WASM. Ce commit affiche dans l'overlay les temps CPU et GPU
-du pass opaque issus des diagnostics Bevy ; deux captures natives High clear/rain exactes, hashées et
-lisibles ferment `R1-034` sans prétendre fournir un temps GPU de frame entière ni fermer `R1-037`.
+`a7c9b1e1d5e32f826b606778434a5fae91cc947d`, arbre
+`2066fce699e4dd178c3d679cf4b0168d2e727d3d`. Ce commit ajoute un harness natif exact-commit pour
+les vues hauteur humaine/lointaine/eau, la séquence clair → pluie → clair et une vidéo de trois
+secondes. Ses 37/37 tests ciblés, le formatage, Clippy strict du runtime et le validateur d'acquisition
+passent. La validation workspace 298/298 et le check Studio WASM restent épinglés au commit overlay
+`afb270c3` tant que le rejeu workspace du commit courant n'est pas consolidé.
+
+Le commit `afb270c3` affiche dans l'overlay les temps CPU et GPU du pass opaque issus des diagnostics
+Bevy ; deux captures natives High clear/rain exactes, hashées et lisibles ferment `R1-034` sans
+prétendre fournir un temps GPU de frame entière ni fermer `R1-037`.
 
 La matrice native RX 7800 XT/Vulkan reste épinglée à `5eadec7f` et qualifie 10/10 runs
 Low/Medium/High/Ultra clear/rain, adaptatif clear et benchmark clear : 120 samples chacun, pipelines
@@ -319,10 +324,13 @@ moyenne varie de 5,6130 à 10,2077 ms, le p95 de 6,7886 à 13,9956 ms et le 1 % 
 remplacent ni le benchmark GPU cible ni le parcours représentatif.
 
 Le correctif forward + IBL empêche le SSR/différé non qualifié d'être réactivé, borne le grade météo
-et supprime le warning natif observé à `a34596bd`. Les palettes sont corrigées ; des contours sombres
-et du stipple/aliasing restent visibles, et l'eau n'est pas isolée dans ces cadrages. `R1-043` reste
-satisfaite ; `R1-023`, matériel cible, stutter représentatif et revue humaine
-restent dus. L'audit provenance/CC0 reste épinglé à `92286910…`. La CI distante reste `NOT RUN` sous
+et supprime le warning natif observé à `a34596bd`. Le harness `a7c9b1e1` produit 29 PNG 1920 × 1080,
+un MP4 H.264 de 24 frames et des logs vides sur RX 7800 XT/Vulkan, sans asset Cadle. L'acquisition
+automatisée est valide, mais l'inspection originale refuse la qualification : contours/stipple noirs,
+silhouettes lointaines crénelées, grands aplats et eau masquée par les berges. Le trajet est une caméra
+de preuve, pas un parcours gameplay. `R1-023`, `R1-025`, `R1-026` et `R1-046` à `R1-048` restent donc
+ouverts. `R1-043` reste satisfaite ; matériel cible, stutter représentatif et revue humaine restent
+dus. L'audit provenance/CC0 reste épinglé à `92286910…`. La CI distante reste `NOT RUN` sous
 ADR-0006 ; ce statut n'est pas un PASS. Gate 1 reste **OUVERTE**.
 
 ## But
@@ -381,10 +389,13 @@ qualité                   Low / Medium / High / Ultra
 - [x] `R1-021` brouillard volumétrique ou approximation mesurée — approximation de distance observée
   en natif et dans la scène Browser ; volumétrie réelle non revendiquée.
 - [x] `R1-022` eau de rivière — géométrie/composants observés ; présentation GPU non revendiquée.
-- [ ] `R1-023` réflexion/réfraction selon profil.
+- [ ] `R1-023` réflexion/réfraction selon profil — captures eau `a7c9b1e1` acquises, mais eau trop
+  étroite/masquée pour inspecter honnêtement les effets optiques.
 - [x] `R1-024` pluie — clear/rain High acquis en natif et Browser ; animation GPU non revendiquée.
-- [ ] `R1-025` wetness réversible.
-- [ ] `R1-026` bloom et color grading bornés.
+- [ ] `R1-025` wetness réversible — endpoints CPU/ECS exacts 0 → 0,78 → 0 dans un même processus ;
+  exécution GPU et acceptation visuelle non acquises.
+- [ ] `R1-026` bloom et color grading bornés — endpoints de grade et présence du composant Bloom
+  observés ; paramètres numériques, exécution GPU et rendu accepté non acquis.
 
 ## R1-D — Personnage et caméra
 
@@ -421,9 +432,12 @@ qualité                   Low / Medium / High / Ultra
 
 - [x] `R1-044` captures fixes de jour — acquisitions natives et Browser hashées.
 - [x] `R1-045` captures sous pluie — acquisitions natives et Browser hashées.
-- [ ] `R1-046` vue à hauteur humaine.
-- [ ] `R1-047` vue lointaine.
-- [ ] `R1-048` vidéo de déplacement courte.
+- [ ] `R1-046` vue à hauteur humaine — PNG `a7c9b1e1` acquis, qualification refusée pour
+  stipple/crénelage et silhouettes en blocs.
+- [ ] `R1-047` vue lointaine — PNG `a7c9b1e1` acquis, qualification refusée pour LOD/silhouettes
+  bruités et eau peu lisible.
+- [ ] `R1-048` vidéo de déplacement courte — MP4 H.264 3 s acquis ; caméra de preuve seulement,
+  parcours gameplay/stutter et revue humaine non qualifiés.
 - [ ] `R1-049` revue des matériaux.
 - [ ] `R1-050` revue de composition et lisibilité.
 - [ ] `R1-051` comparaison avec la référence WebGPU ayant motivé le reboot.
@@ -434,7 +448,8 @@ qualité                   Low / Medium / High / Ultra
 
 ## Conditions de passage Gate 1
 
-- [ ] qualité visuelle jugée clairement supérieure à la base Godot ;
+- [ ] qualité visuelle jugée clairement supérieure à la base Godot — contrôle borné `a7c9b1e1`
+  refusé pour défauts visibles ; comparaison humaine toujours due ;
 - [ ] impact visuel jugé au moins comparable à la baseline Cadle sans en copier les assets ;
 - [ ] 60 FPS moyens en 1080p High sur GPU milieu de gamme ;
 - [ ] p95 ≤ 16,7 ms ;
