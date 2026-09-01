@@ -1277,6 +1277,7 @@ mod web {
         parse_studio_weather_selection, validate_selection_response,
     };
     use bevy::{
+        asset::{AssetMetaCheck, AssetPlugin},
         prelude::*,
         render::{
             RenderPlugin,
@@ -2330,7 +2331,11 @@ mod web {
                         }),
                         ..default()
                     })
-                    .set(render_plugin),
+                    .set(render_plugin)
+                    .set(AssetPlugin {
+                        meta_check: AssetMetaCheck::Never,
+                        ..default()
+                    }),
             );
 
         match loaded_scene {
