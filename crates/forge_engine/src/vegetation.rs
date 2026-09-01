@@ -273,15 +273,15 @@ impl VegetationProjectionStats {
     pub(crate) fn overlay_details(&self) -> String {
         let visibility = match self.visibility.status {
             VegetationVisibilityObservationStatus::ObservedSingleActiveCamera => format!(
-                "caméra : {} visibles · {} hors plage · {} exclus CPU après plage",
+                "camera: {} visible | {} out of range | {} CPU-culled after range",
                 self.visibility.total.cpu_visible_for_camera,
                 self.visibility.total.range_culled,
                 self.visibility.total.cpu_culled_after_range,
             ),
-            status => format!("caméra : métriques indisponibles ({status:?})"),
+            status => format!("camera: metrics unavailable ({status:?})"),
         };
         format!(
-            "{} placements · {} entités projection · {} lots herbe · {} lots HLOD\n{}",
+            "{} placements | {} projection entities | {} grass batches | {} HLOD batches\n{}",
             self.placements.accepted_placements,
             self.projection.total_entities,
             self.projection.grass_batches,

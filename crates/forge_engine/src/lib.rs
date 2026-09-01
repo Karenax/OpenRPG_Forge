@@ -919,7 +919,7 @@ fn update_overlay(
         .unwrap_or_default();
     let adapter = gpu
         .as_ref()
-        .map_or("initialisation GPU", |gpu| gpu.name.as_str());
+        .map_or("GPU initialising", |gpu| gpu.name.as_str());
     let render_work = build_render_work_report(&stats, &diagnostics);
     **overlay = Text::new(if let Some(visual_valley) = gate1.visual_valley {
         let mut logical_details = visual_valley.overlay_details();
@@ -930,14 +930,14 @@ fn update_overlay(
         if let Some(water) = gate1.water {
             let _ = write!(
                 logical_details,
-                "\nEau : {} échantillons · {} triangles · {:?}",
+                "\nWater: {} samples | {} triangles | {:?}",
                 water.centerline_samples, water.triangles, water.runtime_observation
             );
         }
         if let Some(weather) = gate1.weather {
             let _ = write!(
                 logical_details,
-                "\nMétéo : {:?} · {} gouttes · wetness {:.2} · {:?}",
+                "\nWeather: {:?} | {} drops | wetness {:.2} | {:?}",
                 weather.target_state,
                 weather.rain.generated_drops,
                 weather.wetness.current,
@@ -947,7 +947,7 @@ fn update_overlay(
         if let Some(scenery) = gate1.scenery {
             let _ = write!(
                 logical_details,
-                "\nDécor CC0 : {:?} · {}/{} modèles · LOD {:.0}-{:.0} m",
+                "\nCC0 scenery: {:?} | {}/{} models | LOD {:.0}-{:.0} m",
                 scenery.status,
                 scenery.loaded_models,
                 scenery.unique_models,
@@ -958,12 +958,12 @@ fn update_overlay(
         if let Some(quality) = gate1.quality {
             let _ = write!(
                 logical_details,
-                "\nQualité : {:?} · {:?} · appliqué {:?}",
+                "\nQuality: {:?} | {:?} | applied {:?}",
                 quality.selection, quality.current_tier, quality.dynamically_applied_tier
             );
         }
         format_runtime_diagnostics_overlay(
-            "OpenRPG Forge · Gate 1 / Visual Valley",
+            "OpenRPG Forge | Gate 1 / Visual Valley",
             adapter,
             fps,
             frame_ms,
@@ -984,7 +984,7 @@ fn format_diagnostics_overlay(
     render_work: &RenderWorkReport,
 ) -> String {
     format_runtime_diagnostics_overlay(
-        "OpenRPG Forge · Gate 0",
+        "OpenRPG Forge | Gate 0",
         adapter,
         fps,
         frame_ms,
@@ -1008,13 +1008,13 @@ fn format_runtime_diagnostics_overlay(
         render_work.gpu_main_opaque_vertex_shader_invocations,
     ) {
         (Some(primitives), Some(vertices)) => {
-            format!("GPU opaque : {primitives:.0} primitives · {vertices:.0} invocations vertex")
+            format!("GPU opaque: {primitives:.0} primitives | {vertices:.0} vertex invocations")
         }
-        (Some(primitives), None) => format!("GPU opaque : {primitives:.0} primitives"),
-        _ => "Statistiques pipeline GPU : indisponibles".to_owned(),
+        (Some(primitives), None) => format!("GPU opaque: {primitives:.0} primitives"),
+        _ => "GPU pipeline statistics: unavailable".to_owned(),
     };
     let mut output = format!(
-        "{title}\n{adapter}\n{fps:6.1} FPS · {frame_ms:5.2} ms\n{} entités source · {} maillages source\nDraw calls GPU : indisponibles\n{gpu_work}\n{}",
+        "{title}\n{adapter}\n{fps:6.1} FPS | {frame_ms:5.2} ms\n{} source entities | {} source meshes\nGPU draw calls: unavailable\n{gpu_work}\n{}",
         stats.source_entities, stats.source_mesh_instances, stats.source_hash
     );
     if let Some(logical_details) = logical_details {
@@ -1022,6 +1022,9 @@ fn format_runtime_diagnostics_overlay(
         output.push_str(logical_details);
     }
     output
+        .chars()
+        .map(|character| if character.is_ascii() { character } else { '?' })
+        .collect()
 }
 
 fn build_render_work_report(
@@ -1898,10 +1901,38 @@ mod tests {
         let render_work = build_render_work_report(&stats, &diagnostics);
 
         let text = format_diagnostics_overlay("test adapter", 120.0, 8.3, &stats, &render_work);
-        assert!(text.contains("2 maillages source"));
-        assert!(text.contains("Draw calls GPU : indisponibles"));
-        assert!(text.contains("GPU opaque : 14 primitives"));
+        assert!(text.contains("2 source meshes"));
+        assert!(text.contains("GPU draw calls: unavailable"));
+        assert!(text.contains("GPU opaque: 14 primitives"));
         assert!(!text.contains("draws logiques"));
+        assert!(text.is_ascii());
+
+        let visual_valley = VisualValleyStats {
+            source_hash: "terrain".to_owned(),
+            chunks: 64,
+            vertices: 69_696,
+            triangles: 131_072,
+            material_layers: 3,
+            lod_levels: 1,
+            lod_zero_chunks: 64,
+        };
+        let logical_details = format!(
+            "{}\n{}",
+            visual_valley.overlay_details(),
+            VegetationProjectionStats::default().overlay_details()
+        );
+        let gate1_text = format_runtime_diagnostics_overlay(
+            "OpenRPG Forge | Gate 1 / Visual Valley",
+            "GPU Etincelle é",
+            120.0,
+            8.3,
+            &stats,
+            &render_work,
+            Some(&logical_details),
+        );
+        assert!(gate1_text.is_ascii());
+        assert!(gate1_text.contains("3 PBR layers"));
+        assert!(gate1_text.contains("grass batches"));
         assert_eq!(render_work.gpu_draw_calls, None);
         assert_eq!(
             render_work.gpu_draw_call_status,

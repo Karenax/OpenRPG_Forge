@@ -90,7 +90,7 @@ impl Default for VisualValleyShadowStats {
 impl VisualValleyStats {
     pub(crate) fn overlay_details(&self) -> String {
         format!(
-            "{} chunks · {} vertices · {} triangles\n{} couches PBR · LOD 0 : {} chunks",
+            "{} chunks | {} vertices | {} triangles\n{} PBR layers | LOD 0: {} chunks",
             self.chunks, self.vertices, self.triangles, self.material_layers, self.lod_zero_chunks
         )
     }
