@@ -9,6 +9,8 @@ $driverPath = Join-Path $PSScriptRoot 'Invoke-Gate1BrowserTemporal.ps1'
 $configPath = Join-Path $PSScriptRoot 'gate1-browser-temporal.v1.json'
 $protocolPath = Join-Path $repositoryRoot 'docs/evidence/gate1/R1_014_BROWSER_TEMPORAL_PROTOCOL.md'
 $roadmapPath = Join-Path $repositoryRoot 'docs/planning/MIGRATION_ROADMAP.md'
+$trunkPath = Join-Path $PSScriptRoot 'Invoke-StudioTrunk.ps1'
+$studioSourcePath = Join-Path $repositoryRoot 'apps/forge_studio/src/lib.rs'
 
 function Assert-Condition {
     param(
@@ -21,11 +23,11 @@ function Assert-Condition {
     }
 }
 
-foreach ($path in @($driverPath, $configPath, $protocolPath, $roadmapPath)) {
+foreach ($path in @($driverPath, $configPath, $protocolPath, $roadmapPath, $trunkPath, $studioSourcePath)) {
     Assert-Condition -Condition (Test-Path -LiteralPath $path -PathType Leaf) -Message "Required R1-014 harness file is missing: $path"
 }
 
-foreach ($scriptPath in @($driverPath, $PSCommandPath)) {
+foreach ($scriptPath in @($driverPath, $PSCommandPath, $trunkPath)) {
     $tokens = $null
     $errors = $null
     [void][Management.Automation.Language.Parser]::ParseFile($scriptPath, [ref]$tokens, [ref]$errors)
@@ -49,10 +51,20 @@ foreach ($requiredToken in @(
     'Runtime.consoleAPICalled',
     'Network.responseReceived',
     'Get-FileHash',
+    'Get-ServedBundleEvidence',
+    'build_source_commit',
+    'maximum_console_warnings',
     'human_temporal_inspection_required'
 )) {
     Assert-Condition -Condition $driver.Contains($requiredToken, [StringComparison]::Ordinal) -Message "Driver is missing required acquisition token '$requiredToken'."
 }
+
+$trunkDriver = Get-Content -LiteralPath $trunkPath -Raw
+Assert-Condition -Condition $trunkDriver.Contains('RequireExactCommit', [StringComparison]::Ordinal) -Message 'Trunk driver must expose the exact-commit build mode.'
+Assert-Condition -Condition $trunkDriver.Contains('FORGE_SOURCE_COMMIT', [StringComparison]::Ordinal) -Message 'Trunk driver must bind the embedded source commit.'
+$studioSource = Get-Content -LiteralPath $studioSourcePath -Raw
+Assert-Condition -Condition $studioSource.Contains('option_env!("FORGE_SOURCE_COMMIT")', [StringComparison]::Ordinal) -Message 'Studio scene telemetry must embed the exact source commit.'
+Assert-Condition -Condition $studioSource.Contains('schema_version: 8', [StringComparison]::Ordinal) -Message 'Studio scene telemetry v8 is required.'
 foreach ($forbiddenToken in @('npm install', 'npx ', 'playwright', 'upstream/cadle', 'assets/cadle')) {
     Assert-Condition -Condition (-not $driver.Contains($forbiddenToken, [StringComparison]::OrdinalIgnoreCase)) -Message "Driver unexpectedly depends on forbidden token '$forbiddenToken'."
 }
@@ -66,10 +78,11 @@ Assert-Condition -Condition $roadmap.Contains('HARNESS READY / ACQUISITION NOT R
 
 [pscustomobject]@{
     status = 'pass'
-    powershell_scripts_parsed = 2
+    powershell_scripts_parsed = 3
     config_mutations_rejected = 3
     registered_vegetation_regions = 3
     registered_terrain_witnesses = 1
+    served_bundles_required = 4
     minimum_request_animation_frames = 120
     browser_run = 'not_performed'
     cargo_build = 'not_performed'

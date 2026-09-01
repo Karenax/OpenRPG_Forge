@@ -611,6 +611,8 @@ impl StableQualityFrameWindow {
 pub struct StudioSceneTelemetry {
     pub schema: String,
     pub schema_version: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub build_source_commit: Option<String>,
     pub selection: StudioSceneSelection,
     pub selected_manifest: StudioSceneManifest,
     pub runtime_manifest: Option<StudioSceneManifest>,
@@ -625,7 +627,12 @@ impl StudioSceneTelemetry {
     pub fn new(selection: StudioSceneSelection, selected_manifest: StudioSceneManifest) -> Self {
         Self {
             schema: "forge.studio-scene-telemetry".to_owned(),
-            schema_version: 7,
+            schema_version: 8,
+            build_source_commit: option_env!("FORGE_SOURCE_COMMIT")
+                .filter(|value| {
+                    value.len() == 40 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
+                })
+                .map(str::to_owned),
             selection,
             selected_manifest,
             runtime_manifest: None,
@@ -3327,7 +3334,15 @@ mod tests {
             .unwrap();
         let mut telemetry = StudioSceneTelemetry::new(selection, manifest.clone());
 
-        assert_eq!(telemetry.schema_version, 7);
+        assert_eq!(telemetry.schema_version, 8);
+        assert!(
+            telemetry
+                .build_source_commit
+                .as_deref()
+                .is_none_or(|commit| {
+                    commit.len() == 40 && commit.bytes().all(|byte| byte.is_ascii_hexdigit())
+                })
+        );
 
         assert_eq!(
             telemetry.parity_status,

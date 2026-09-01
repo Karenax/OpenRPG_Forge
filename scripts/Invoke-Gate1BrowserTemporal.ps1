@@ -130,6 +130,11 @@ function Assert-TemporalConfig {
     Assert-Condition -Condition ($Config.route.query.forge_scene -ceq 'visual-valley') -Message 'R1-014 Browser scene must be visual-valley.'
     Assert-Condition -Condition ($Config.route.query.forge_weather -ceq 'clear') -Message 'R1-014 Browser weather must be clear.'
     Assert-Condition -Condition ($Config.route.query.forge_quality -ceq 'high') -Message 'R1-014 Browser quality must be high.'
+    Assert-Condition -Condition ($Config.server.origin -ceq 'http://127.0.0.1:1420/') -Message 'The registered Trunk origin changed.'
+    Assert-Condition -Condition ($Config.server.dist_root -ceq 'apps/forge_studio/dist') -Message 'The registered Studio dist root changed.'
+    $bundleFiles = @($Config.server.bundle_files)
+    $expectedBundleFiles = @('index.html', 'forge_studio.js', 'forge_studio_bg.wasm', 'styles.css')
+    Assert-Condition -Condition ((ConvertTo-CompactJson -Value $bundleFiles) -ceq (ConvertTo-CompactJson -Value $expectedBundleFiles)) -Message 'The registered served-bundle set changed without a protocol version bump.'
     Assert-Condition -Condition ($Config.browser.canvas_selector -ceq '#forge-canvas') -Message 'The canonical Studio canvas selector changed.'
     Assert-Condition -Condition ([int]$Config.browser.viewport_width_px -eq 1920) -Message 'The registered viewport width must be 1920.'
     Assert-Condition -Condition ([int]$Config.browser.viewport_height_px -eq 1080) -Message 'The registered viewport height must be 1080.'
@@ -217,6 +222,7 @@ function Assert-TemporalConfig {
     Assert-Condition -Condition ([int]$Config.acceptance.minimum_passing_vegetation_regions -eq 2) -Message 'Two of three vegetation ROIs must pass.'
     Assert-Condition -Condition ($Config.acceptance.require_terrain_witness -eq $true) -Message 'The terrain witness must remain mandatory.'
     Assert-Condition -Condition ([int]$Config.acceptance.maximum_console_errors -eq 0) -Message 'Console errors must remain forbidden.'
+    Assert-Condition -Condition ([int]$Config.acceptance.maximum_console_warnings -eq 0) -Message 'Console warnings must remain forbidden.'
     Assert-Condition -Condition ([int]$Config.acceptance.maximum_network_failures -eq 0) -Message 'Network failures must remain forbidden.'
     Assert-Condition -Condition ($Config.acceptance.human_temporal_inspection_required -eq $true) -Message 'Human temporal inspection must remain explicitly required.'
 
@@ -271,6 +277,7 @@ function Get-AutomatedResult {
     param(
         [Parameter(Mandatory)][object[]]$RegionVerdicts,
         [Parameter(Mandatory)][int]$ConsoleErrorCount,
+        [Parameter(Mandatory)][int]$ConsoleWarningCount,
         [Parameter(Mandatory)][int]$NetworkFailureCount,
         [Parameter(Mandatory)][object]$Config
     )
@@ -281,6 +288,7 @@ function Get-AutomatedResult {
         $vegetationPassed -ge [int]$Config.acceptance.minimum_passing_vegetation_regions -and
         $terrainPassed -and
         $ConsoleErrorCount -le [int]$Config.acceptance.maximum_console_errors -and
+        $ConsoleWarningCount -le [int]$Config.acceptance.maximum_console_warnings -and
         $NetworkFailureCount -le [int]$Config.acceptance.maximum_network_failures
     )
     return [ordered]@{
@@ -289,6 +297,7 @@ function Get-AutomatedResult {
         vegetation_regions_required = [int]$Config.acceptance.minimum_passing_vegetation_regions
         terrain_witness_passed = $terrainPassed
         console_errors = $ConsoleErrorCount
+        console_warnings = $ConsoleWarningCount
         network_failures = $NetworkFailureCount
         human_temporal_inspection = 'required_not_performed_by_harness'
         r1_014_claim = 'not_made_by_harness'
@@ -337,10 +346,12 @@ function Invoke-SelfTest {
         [pscustomobject]@{ id = 'terrain_witness'; kind = 'terrain_witness'; pixel_rect = @{}; pixels = 10000; changed_pixels = 10; changed_pixel_ratio = 0.001; mean_absolute_rgb_delta = 0.05; rmse_rgb = 0.2; psnr_db = 62.11 }
     )
     $verdicts = Get-RegionVerdicts -Metrics $syntheticMetrics -Config $Config
-    $passResult = Get-AutomatedResult -RegionVerdicts $verdicts -ConsoleErrorCount 0 -NetworkFailureCount 0 -Config $Config
+    $passResult = Get-AutomatedResult -RegionVerdicts $verdicts -ConsoleErrorCount 0 -ConsoleWarningCount 0 -NetworkFailureCount 0 -Config $Config
     Assert-Condition -Condition ($passResult.status -ceq 'pass') -Message 'Synthetic positive matrix did not pass.'
-    $failureResult = Get-AutomatedResult -RegionVerdicts $verdicts -ConsoleErrorCount 1 -NetworkFailureCount 0 -Config $Config
+    $failureResult = Get-AutomatedResult -RegionVerdicts $verdicts -ConsoleErrorCount 1 -ConsoleWarningCount 0 -NetworkFailureCount 0 -Config $Config
     Assert-Condition -Condition ($failureResult.status -ceq 'fail') -Message 'Synthetic console failure was not rejected.'
+    $warningResult = Get-AutomatedResult -RegionVerdicts $verdicts -ConsoleErrorCount 0 -ConsoleWarningCount 1 -NetworkFailureCount 0 -Config $Config
+    Assert-Condition -Condition ($warningResult.status -ceq 'fail') -Message 'Synthetic console warning was not rejected.'
 
     [pscustomobject]@{
         protocol = $Config.protocol_id
@@ -348,6 +359,7 @@ function Invoke-SelfTest {
         route_validation = 'pass'
         mutation_rejections = 3
         synthetic_verdicts = 'pass'
+        console_warning_rejection = 'pass'
     }
 }
 
@@ -685,6 +697,7 @@ function Get-ExactRoute {
 
     Assert-Condition -Condition ($Root.Scheme -ceq 'http') -Message 'The local Trunk endpoint must use http.'
     Assert-Condition -Condition (Test-LoopbackHost -HostName $Root.DnsSafeHost) -Message 'The Trunk endpoint must resolve only to loopback.'
+    Assert-Condition -Condition ($Root.AbsoluteUri -ceq [string]$Config.server.origin) -Message 'BaseUrl does not match the registered Trunk origin.'
     Assert-Condition -Condition ([string]::IsNullOrEmpty($Root.Query)) -Message 'BaseUrl must not contain a query.'
     Assert-Condition -Condition ([string]::IsNullOrEmpty($Root.Fragment)) -Message 'BaseUrl must not contain a fragment.'
     $builder = [UriBuilder]::new($Root)
@@ -732,7 +745,8 @@ function Get-ReadinessSnapshot {
 function Assert-ReadySnapshot {
     param(
         [Parameter(Mandatory)][object]$Snapshot,
-        [Parameter(Mandatory)][object]$Config
+        [Parameter(Mandatory)][object]$Config,
+        [Parameter(Mandatory)][string]$ExpectedCommit
     )
 
     Assert-Condition -Condition ($Snapshot.document_ready_state -ceq 'complete') -Message 'Document is not complete.'
@@ -752,7 +766,8 @@ function Assert-ReadySnapshot {
     Assert-Condition -Condition ($gate.target -ceq 'wasm_browser') -Message 'Studio gate ledger target is not wasm_browser.'
     Assert-Condition -Condition ([int]$gate.viewport.starts -eq 1) -Message 'Studio viewport did not start exactly once.'
     Assert-Condition -Condition ([int]$gate.frame.warmup_samples -eq 60 -and [int]$gate.frame.samples -eq 120) -Message 'Studio frame evidence is not the completed 60+120 window.'
-    Assert-Condition -Condition ($scene.schema -ceq 'forge.studio-scene-telemetry' -and [int]$scene.schema_version -ge 7) -Message 'Unexpected Studio scene ledger contract.'
+    Assert-Condition -Condition ($scene.schema -ceq 'forge.studio-scene-telemetry' -and [int]$scene.schema_version -ge 8) -Message 'Unexpected Studio scene ledger contract.'
+    Assert-Condition -Condition ($scene.build_source_commit -ceq $ExpectedCommit) -Message 'The served Studio bundle is not embedded with the exact repository commit.'
     Assert-Condition -Condition ([string]::IsNullOrWhiteSpace([string]$scene.failure_reason)) -Message "Scene ledger reports a failure: $($scene.failure_reason)"
     Assert-Condition -Condition ($scene.parity_status -ceq 'source_manifest_matched') -Message 'Scene source/runtime manifests are not matched.'
     foreach ($manifest in @($scene.selected_manifest, $scene.runtime_manifest)) {
@@ -772,7 +787,8 @@ function Assert-ReadySnapshot {
 function Wait-ReadySnapshot {
     param(
         [Parameter(Mandatory)][System.Net.WebSockets.ClientWebSocket]$Socket,
-        [Parameter(Mandatory)][object]$Config
+        [Parameter(Mandatory)][object]$Config,
+        [Parameter(Mandatory)][string]$ExpectedCommit
     )
 
     $deadline = [DateTimeOffset]::UtcNow.AddSeconds([int]$Config.readiness.timeout_seconds)
@@ -780,7 +796,7 @@ function Wait-ReadySnapshot {
     while ([DateTimeOffset]::UtcNow -lt $deadline) {
         $snapshot = Get-ReadinessSnapshot -Socket $Socket
         try {
-            [void](Assert-ReadySnapshot -Snapshot $snapshot -Config $Config)
+            [void](Assert-ReadySnapshot -Snapshot $snapshot -Config $Config -ExpectedCommit $ExpectedCommit)
             return $snapshot
         } catch {
             $lastState = $_.Exception.Message
@@ -806,11 +822,13 @@ function Assert-FixedContextStable {
     param(
         [Parameter(Mandatory)][object]$Before,
         [Parameter(Mandatory)][object]$After,
-        [Parameter(Mandatory)][object]$Config
+        [Parameter(Mandatory)][object]$Config,
+        [Parameter(Mandatory)][string]$ExpectedCommit
     )
 
-    $beforeLedgers = Assert-ReadySnapshot -Snapshot $Before -Config $Config
-    $afterLedgers = Assert-ReadySnapshot -Snapshot $After -Config $Config
+    $beforeLedgers = Assert-ReadySnapshot -Snapshot $Before -Config $Config -ExpectedCommit $ExpectedCommit
+    $afterLedgers = Assert-ReadySnapshot -Snapshot $After -Config $Config -ExpectedCommit $ExpectedCommit
+    Assert-Condition -Condition ($beforeLedgers.Scene.build_source_commit -ceq $afterLedgers.Scene.build_source_commit) -Message 'Embedded build commit changed between captures.'
     foreach ($side in @('selected_manifest', 'runtime_manifest')) {
         $beforeManifest = $beforeLedgers.Scene.$side
         $afterManifest = $afterLedgers.Scene.$side
@@ -997,6 +1015,93 @@ function New-ArtifactDescriptor {
     }
 }
 
+function Get-ServedBundleEvidence {
+    param(
+        [Parameter(Mandatory)][uri]$Root,
+        [Parameter(Mandatory)][object]$Config
+    )
+
+    $distRoot = [IO.Path]::GetFullPath(
+        (Join-Path $repositoryRoot ([string]$Config.server.dist_root -replace '/', [IO.Path]::DirectorySeparatorChar))
+    )
+    $repositoryPrefix = $repositoryRoot.TrimEnd(
+        [IO.Path]::DirectorySeparatorChar,
+        [IO.Path]::AltDirectorySeparatorChar
+    ) + [IO.Path]::DirectorySeparatorChar
+    Assert-Condition -Condition ($distRoot.StartsWith($repositoryPrefix, [StringComparison]::OrdinalIgnoreCase)) -Message 'The registered dist root escaped the repository.'
+    Assert-Condition -Condition (Test-Path -LiteralPath $distRoot -PathType Container) -Message 'The Studio dist directory is missing; perform an exact Trunk build first.'
+
+    $handler = [Net.Http.SocketsHttpHandler]::new()
+    $handler.UseProxy = $false
+    $client = [Net.Http.HttpClient]::new($handler, $true)
+    $client.Timeout = [TimeSpan]::FromMinutes(5)
+    $evidence = [Collections.Generic.List[object]]::new()
+    try {
+        foreach ($relativePath in @($Config.server.bundle_files)) {
+            $normalizedRelativePath = ([string]$relativePath).Replace('/', [IO.Path]::DirectorySeparatorChar)
+            $localPath = [IO.Path]::GetFullPath((Join-Path $distRoot $normalizedRelativePath))
+            $distPrefix = $distRoot.TrimEnd(
+                [IO.Path]::DirectorySeparatorChar,
+                [IO.Path]::AltDirectorySeparatorChar
+            ) + [IO.Path]::DirectorySeparatorChar
+            Assert-Condition -Condition ($localPath.StartsWith($distPrefix, [StringComparison]::OrdinalIgnoreCase)) -Message "Bundle path escaped dist: $relativePath"
+            Assert-Condition -Condition (Test-Path -LiteralPath $localPath -PathType Leaf) -Message "Local Studio bundle is missing: $relativePath"
+
+            $localItem = Get-Item -LiteralPath $localPath
+            Assert-Condition -Condition ($localItem.Length -gt 0) -Message "Local Studio bundle is empty: $relativePath"
+            $localSha256 = Get-LowercaseSha256 -LiteralPath $localPath
+            $servedUri = [uri]::new($Root, [string]$relativePath)
+            Assert-Condition -Condition ($servedUri.Scheme -ceq 'http' -and (Test-LoopbackHost -HostName $servedUri.DnsSafeHost)) -Message "Bundle URL is not loopback HTTP: $servedUri"
+
+            $response = $client.GetAsync(
+                $servedUri,
+                [Net.Http.HttpCompletionOption]::ResponseHeadersRead
+            ).GetAwaiter().GetResult()
+            try {
+                Assert-Condition -Condition ([int]$response.StatusCode -eq 200) -Message "Bundle request failed with HTTP $([int]$response.StatusCode): $servedUri"
+                $stream = $response.Content.ReadAsStreamAsync().GetAwaiter().GetResult()
+                $algorithm = [Security.Cryptography.SHA256]::Create()
+                try {
+                    $buffer = [byte[]]::new(1048576)
+                    $servedBytes = [int64]0
+                    while (($read = $stream.Read($buffer, 0, $buffer.Length)) -gt 0) {
+                        [void]$algorithm.TransformBlock($buffer, 0, $read, $buffer, 0)
+                        $servedBytes += $read
+                    }
+                    [void]$algorithm.TransformFinalBlock([byte[]]::new(0), 0, 0)
+                    $servedSha256 = [Convert]::ToHexString($algorithm.Hash).ToLowerInvariant()
+                } finally {
+                    $algorithm.Dispose()
+                    $stream.Dispose()
+                }
+                Assert-Condition -Condition ($servedBytes -eq [int64]$localItem.Length) -Message "Served/local byte count mismatch for $relativePath."
+                Assert-Condition -Condition ($servedSha256 -ceq $localSha256) -Message "Served/local SHA-256 mismatch for $relativePath."
+                $contentType = if ($null -eq $response.Content.Headers.ContentType) {
+                    ''
+                } else {
+                    $response.Content.Headers.ContentType.ToString()
+                }
+                $evidence.Add([ordered]@{
+                    relative_path = ([string]$relativePath).Replace('\', '/')
+                    url = $servedUri.AbsoluteUri
+                    content_type = $contentType
+                    local_bytes = [int64]$localItem.Length
+                    served_bytes = $servedBytes
+                    local_sha256 = $localSha256
+                    served_sha256 = $servedSha256
+                    exact_match = $true
+                })
+            } finally {
+                $response.Dispose()
+            }
+        }
+    } finally {
+        $client.Dispose()
+    }
+    Assert-Condition -Condition ($evidence.Count -eq @($Config.server.bundle_files).Count) -Message 'Served bundle evidence is incomplete.'
+    return @($evidence)
+}
+
 if ($ValidateOnly -and $SelfTest) {
     throw '-ValidateOnly and -SelfTest are mutually exclusive.'
 }
@@ -1080,18 +1185,23 @@ try {
     [void](Invoke-CdpCommand -Socket $socket -Method 'Page.addScriptToEvaluateOnNewDocument' -Parameters ([ordered]@{ source = $inputGuardScript }))
     [void](Invoke-CdpCommand -Socket $socket -Method 'Page.navigate' -Parameters ([ordered]@{ url = $exactRoute }))
 
-    $before = Wait-ReadySnapshot -Socket $socket -Config $config
+    $before = Wait-ReadySnapshot -Socket $socket -Config $config -ExpectedCommit ([string]$gitIdentity.commit)
     $browserVersion = Invoke-CdpCommand -Socket $socket -Method 'Browser.getVersion'
     $capturedAtA = [DateTimeOffset]::UtcNow
     $captureA = Get-CanvasScreenshot -Socket $socket -Canvas $before.canvas
     $separation = Wait-RegisteredAnimationFrames -Socket $socket -MinimumFrames ([int]$config.readiness.minimum_request_animation_frames)
-    $after = Wait-ReadySnapshot -Socket $socket -Config $config
-    Assert-FixedContextStable -Before $before -After $after -Config $config
+    $after = Wait-ReadySnapshot -Socket $socket -Config $config -ExpectedCommit ([string]$gitIdentity.commit)
+    Assert-FixedContextStable -Before $before -After $after -Config $config -ExpectedCommit ([string]$gitIdentity.commit)
     $beforeSceneLedger = ConvertFrom-ExactJson -Json ([string]$before.scene_ledger)
     $capturedAtB = [DateTimeOffset]::UtcNow
     $captureB = Get-CanvasScreenshot -Socket $socket -Canvas $after.canvas
     $comparison = Get-ImageMetrics -Socket $socket -FirstPngBase64 $captureA -SecondPngBase64 $captureB -Config $config
     [void](Invoke-CdpExpression -Socket $socket -Expression '0')
+    $servedBundles = Get-ServedBundleEvidence -Root $BaseUrl -Config $config
+    $gitIdentityAfter = Get-GitIdentity
+    Assert-Condition -Condition ($gitIdentityAfter.commit -ceq $gitIdentity.commit) -Message 'Repository commit changed during temporal acquisition.'
+    Assert-Condition -Condition ($gitIdentityAfter.tree -ceq $gitIdentity.tree) -Message 'Repository tree changed during temporal acquisition.'
+    $gitIdentity['clean_after_acquisition'] = $true
 
     $regionVerdicts = Get-RegionVerdicts -Metrics @($comparison.metrics) -Config $config
     $responses = @($script:NetworkResponses.Values | Where-Object { -not ([string]$_.url).StartsWith('data:', [StringComparison]::OrdinalIgnoreCase) } | Sort-Object url, request_id)
@@ -1100,7 +1210,8 @@ try {
     $networkFailureCount = $networkFailures.Count + $httpFailures.Count
     $consoleEntries = @($script:ConsoleEvents | Sort-Object timestamp, source)
     $consoleErrors = @($consoleEntries | Where-Object { $_.level -cin @('error', 'assert') })
-    $automatedResult = Get-AutomatedResult -RegionVerdicts $regionVerdicts -ConsoleErrorCount $consoleErrors.Count -NetworkFailureCount $networkFailureCount -Config $config
+    $consoleWarnings = @($consoleEntries | Where-Object { $_.level -cin @('warn', 'warning') })
+    $automatedResult = Get-AutomatedResult -RegionVerdicts $regionVerdicts -ConsoleErrorCount $consoleErrors.Count -ConsoleWarningCount $consoleWarnings.Count -NetworkFailureCount $networkFailureCount -Config $config
 
     $captureAPath = Join-Path $runDirectory 'canvas-frame-a.png'
     $captureBPath = Join-Path $runDirectory 'canvas-frame-b.png'
@@ -1117,11 +1228,13 @@ try {
 
     $consolePath = Join-Path $runDirectory 'console.json'
     $networkPath = Join-Path $runDirectory 'network.json'
+    $servedBundlesPath = Join-Path $runDirectory 'served-bundles.json'
     Write-Utf8Json -LiteralPath $consolePath -Value ([ordered]@{
         schema = 'forge.gate1-browser-console'
         schema_version = 1
         entries = $consoleEntries
         error_count = $consoleErrors.Count
+        warning_count = $consoleWarnings.Count
     })
     Write-Utf8Json -LiteralPath $networkPath -Value ([ordered]@{
         schema = 'forge.gate1-browser-network'
@@ -1130,6 +1243,12 @@ try {
         loading_failures = $networkFailures
         http_failures = $httpFailures
         failure_count = $networkFailureCount
+    })
+    Write-Utf8Json -LiteralPath $servedBundlesPath -Value ([ordered]@{
+        schema = 'forge.gate1-browser-served-bundles'
+        schema_version = 1
+        exact_matches = @($servedBundles).Count
+        files = @($servedBundles)
     })
 
     $artifactDescriptors = [ordered]@{
@@ -1141,11 +1260,14 @@ try {
         scene_ledger_after = New-ArtifactDescriptor -LiteralPath $sceneAfterPath -Root $runDirectory
         console = New-ArtifactDescriptor -LiteralPath $consolePath -Root $runDirectory
         network = New-ArtifactDescriptor -LiteralPath $networkPath -Root $runDirectory
+        served_bundles = New-ArtifactDescriptor -LiteralPath $servedBundlesPath -Root $runDirectory
     }
     $protocolFiles = @(
         'scripts/gate1-browser-temporal.v1.json',
         'scripts/Invoke-Gate1BrowserTemporal.ps1',
         'scripts/Test-Gate1BrowserTemporal.ps1',
+        'scripts/Invoke-StudioTrunk.ps1',
+        'apps/forge_studio/src/lib.rs',
         'docs/evidence/gate1/R1_014_BROWSER_TEMPORAL_PROTOCOL.md'
     ) | ForEach-Object {
         $fullPath = Join-Path $repositoryRoot ($_ -replace '/', [IO.Path]::DirectorySeparatorChar)
@@ -1174,6 +1296,7 @@ try {
             }
         }
         fixed_context = [ordered]@{
+            build_source_commit = [string]$beforeSceneLedger.build_source_commit
             input_guard = $before.input_guard
             camera_owner = [string]$beforeSceneLedger.runtime_manifest.camera_owner
             active_camera_count = [int]$beforeSceneLedger.runtime_observation.active_camera_3d_entities
@@ -1200,8 +1323,14 @@ try {
             thresholds = $config.pixel_difference
         }
         difference_metrics = $regionVerdicts
-        console = [ordered]@{ entries = $consoleEntries.Count; errors = $consoleErrors.Count; artifact = $artifactDescriptors.console }
+        console = [ordered]@{ entries = $consoleEntries.Count; errors = $consoleErrors.Count; warnings = $consoleWarnings.Count; artifact = $artifactDescriptors.console }
         network = [ordered]@{ responses = $responses.Count; failures = $networkFailureCount; artifact = $artifactDescriptors.network }
+        served_bundles = [ordered]@{
+            exact_matches = @($servedBundles).Count
+            required_matches = @($config.server.bundle_files).Count
+            files = @($servedBundles)
+            artifact = $artifactDescriptors.served_bundles
+        }
         artifacts = $artifactDescriptors
         protocol_files = @($protocolFiles)
         automated_result = $automatedResult

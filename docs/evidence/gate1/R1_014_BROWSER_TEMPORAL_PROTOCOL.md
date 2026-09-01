@@ -17,6 +17,8 @@ La configuration [`scripts/gate1-browser-temporal.v1.json`](../../../scripts/gat
 fixe avant le premier run :
 
 - la route exacte `forge_scene=visual-valley&forge_weather=clear&forge_quality=high` ;
+- l'origine exacte `http://127.0.0.1:1420/` et les bundles `index.html`, `forge_studio.js`,
+  `forge_studio_bg.wasm` et `styles.css` ;
 - une page **headed**, un viewport émulé `1920 × 1080`, un facteur d'échelle `1` et le canvas
   `#forge-canvas` ;
 - le blocage, injecté avant le chargement de Studio, des entrées clavier, souris, tactile et pointeur ;
@@ -45,7 +47,7 @@ une preuve temporelle.
 Un pixel est changé si l'écart d'au moins un canal RGB atteint **6/255**. Une ROI végétation passe si
 son ratio de pixels changés est `>= 0,002` et son écart RGB absolu moyen `>= 0,1`. Au moins **deux des
 trois** ROIs végétation doivent passer. Le témoin terrain passe si son ratio est `<= 0,01` et son écart
-RGB absolu moyen `<= 0,5`. Toute erreur console ou défaillance réseau fait échouer le verdict
+RGB absolu moyen `<= 0,5`. Tout warning/erreur/assert console ou défaillance réseau fait échouer le verdict
 automatisé. Modifier une ROI ou un seuil après observation exige une nouvelle version de protocole :
 le run courant ne peut pas être réinterprété avec des seuils ajustés a posteriori.
 
@@ -58,7 +60,7 @@ temporaire isolé. Le serveur Trunk doit être lancé depuis le même checkout p
 Terminal A :
 
 ```powershell
-pwsh -NoProfile -File .\scripts\Invoke-StudioTrunk.ps1 -Action serve
+pwsh -NoProfile -File .\scripts\Invoke-StudioTrunk.ps1 -Action serve -RequireExactCommit
 ```
 
 Terminal B :
@@ -75,11 +77,14 @@ worktree sale et refuse d'écrire les preuves dans le worktree. Il enregistre no
 
 - commit et tree Git exacts, route, exécutable/version Browser, viewport et présence de
   `navigator.gpu` ;
+- commit exact embarqué dans le ledger Studio v8, identité Git propre avant/après et égalité
+  byte-for-byte des quatre bundles servis avec `apps/forge_studio/dist` ;
 - ledgers Gate et scène avant/après, propriétaire caméra, caméra active, hash du contrôleur joueur,
   météo et qualité ;
 - les deux PNG du canvas, timestamps et nombre de callbacks `requestAnimationFrame` observés ;
 - métriques par ROI : rectangle pixel, pixels changés, ratio, écart RGB absolu moyen, RMSE et PSNR ;
-- journal console et réponses/échecs réseau ;
+- journal console avec zéro warning/erreur/assert, réponses/échecs réseau et ledger
+  `served-bundles.json` ;
 - taille et SHA-256 de chaque capture, ledger et journal, plus les SHA-256 des fichiers du protocole.
 
 Le ledger principal est `r1-014-browser-temporal-ledger.json` et le manifeste final est
@@ -106,6 +111,7 @@ git diff --check
 
 Après un vrai run sur le commit Rust à qualifier, les deux captures doivent être inspectées à leur
 résolution originale et les ROIs doivent être confirmées hors overlay, ciel et eau. Il faut ensuite
-valider les hashes, l'absence d'erreur console/réseau, la stabilité caméra/joueur et les métriques.
+valider les hashes, les quatre égalités bundle servi/dist, le commit embarqué, l'absence de
+warning/erreur console ou réseau, la stabilité caméra/joueur et les métriques.
 Ce n'est qu'après cette inspection humaine versionnée que `R1-014` pourra être réévalué ; le présent
 lot ne revendique ni `R1-014 PASS`, ni Gate 1 PASS.

@@ -16,6 +16,16 @@
       "forge_quality": "high"
     }
   },
+  "server": {
+    "origin": "http://127.0.0.1:1420/",
+    "dist_root": "apps/forge_studio/dist",
+    "bundle_files": [
+      "index.html",
+      "forge_studio.js",
+      "forge_studio_bg.wasm",
+      "styles.css"
+    ]
+  },
   "browser": {
     "canvas_selector": "#forge-canvas",
     "viewport_width_px": 1920,
@@ -128,6 +138,7 @@
     "minimum_passing_vegetation_regions": 2,
     "require_terrain_witness": true,
     "maximum_console_errors": 0,
+    "maximum_console_warnings": 0,
     "maximum_network_failures": 0,
     "human_temporal_inspection_required": true
   }
