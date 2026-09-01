@@ -352,6 +352,13 @@ function Invoke-SelfTest {
     Assert-Condition -Condition ($failureResult.status -ceq 'fail') -Message 'Synthetic console failure was not rejected.'
     $warningResult = Get-AutomatedResult -RegionVerdicts $verdicts -ConsoleErrorCount 0 -ConsoleWarningCount 1 -NetworkFailureCount 0 -Config $Config
     Assert-Condition -Condition ($warningResult.status -ceq 'fail') -Message 'Synthetic console warning was not rejected.'
+    $syntheticTarget = Select-CdpTarget -Targets @(
+        [pscustomobject]@{
+            type = 'page'
+            webSocketDebuggerUrl = 'ws://127.0.0.1:54321/devtools/page/synthetic'
+        }
+    ) -Port 54321
+    Assert-Condition -Condition ($null -ne $syntheticTarget -and $syntheticTarget.webSocketDebuggerUrl -ceq 'ws://127.0.0.1:54321/devtools/page/synthetic') -Message 'Synthetic CDP target selection failed.'
 
     [pscustomobject]@{
         protocol = $Config.protocol_id
@@ -360,6 +367,7 @@ function Invoke-SelfTest {
         mutation_rejections = 3
         synthetic_verdicts = 'pass'
         console_warning_rejection = 'pass'
+        cdp_target_selection = 'pass'
     }
 }
 
@@ -643,6 +651,12 @@ function Start-ControlledBrowser {
         "--user-data-dir=$ProfileDirectory",
         '--no-first-run',
         '--no-default-browser-check',
+        '--disable-background-networking',
+        '--disable-component-update',
+        '--disable-default-apps',
+        '--disable-sync',
+        '--metrics-recording-only',
+        '--no-service-autorun',
         '--disable-background-timer-throttling',
         '--disable-backgrounding-occluded-windows',
         '--disable-renderer-backgrounding',
@@ -655,6 +669,34 @@ function Start-ControlledBrowser {
     $process = [Diagnostics.Process]::Start($startInfo)
     Assert-Condition -Condition ($null -ne $process) -Message 'Browser process did not start.'
     return $process
+}
+
+function Select-CdpTarget {
+    param(
+        [Parameter(Mandatory)][object[]]$Targets,
+        [Parameter(Mandatory)][int]$Port
+    )
+
+    $candidates = @(
+        $Targets |
+            Where-Object {
+                $_.type -ceq 'page' -and
+                -not [string]::IsNullOrWhiteSpace([string]$_.webSocketDebuggerUrl)
+            } |
+            Select-Object -First 1
+    )
+    if ($candidates.Count -ne 1) {
+        return $null
+    }
+    try {
+        $wsUri = [uri]([string]$candidates[0].webSocketDebuggerUrl)
+    } catch {
+        return $null
+    }
+    if ($wsUri.Scheme -ceq 'ws' -and $wsUri.Port -eq $Port -and (Test-LoopbackHost -HostName $wsUri.DnsSafeHost)) {
+        return $candidates[0]
+    }
+    return $null
 }
 
 function Wait-CdpTarget {
@@ -673,14 +715,11 @@ function Wait-CdpTarget {
         }
         try {
             $targets = @(Invoke-RestMethod -Uri $endpoint -TimeoutSec 2 -NoProxy)
-            $target = @($targets | Where-Object { $_.type -ceq 'page' -and -not [string]::IsNullOrWhiteSpace([string]$_.webSocketDebuggerUrl) } | Select-Object -First 1)
-            if ($target.Count -eq 1) {
-                $wsUri = [uri]$target[0].webSocketDebuggerUrl
-                if ($wsUri.Scheme -ceq 'ws' -and $wsUri.Port -eq $Port -and (Test-LoopbackHost -HostName $wsUri.DnsSafeHost)) {
-                    return $target[0]
-                }
-                $lastError = 'DevTools target did not use the reserved loopback endpoint.'
+            $target = Select-CdpTarget -Targets $targets -Port $Port
+            if ($null -ne $target) {
+                return $target
             }
+            $lastError = 'DevTools target did not use the reserved loopback endpoint.'
         } catch {
             $lastError = $_.Exception.Message
         }
