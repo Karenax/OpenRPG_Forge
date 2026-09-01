@@ -823,6 +823,9 @@ mod tests {
         );
         assert!(world.get::<ColorGrading>(camera).is_some());
         assert!(world.get::<ContactShadows>(camera).is_some());
+        let cascades = world.get::<CascadeShadowConfig>(sun).unwrap();
+        assert_eq!(cascades.bounds.len(), 4);
+        assert!((cascades.bounds.last().unwrap() - 128.0).abs() <= 0.001);
         assert_eq!(
             world
                 .get::<ScreenSpaceReflections>(camera)

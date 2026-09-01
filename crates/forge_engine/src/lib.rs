@@ -406,6 +406,8 @@ struct RenderWorkReport {
 const GPU_DRAW_CALL_STATUS: &str = "unavailable_bevy_0_19_no_global_counter";
 const MAX_FRAME_LEDGER_SAMPLES: usize = 1_000_000;
 const GATE1_MINIMUM_FRAME_SAMPLES: usize = 120;
+const SHADOW_DISTANCE_ABSOLUTE_TOLERANCE_M: f32 = 0.001;
+const SHADOW_DISTANCE_EPSILON_FACTOR: f32 = 8.0;
 
 /// Installs the document adapter, diagnostics, deterministic capture and bounded-exit harness.
 pub struct ProofScenePlugin {
@@ -1732,16 +1734,30 @@ fn validate_gate1_shadow_quality_projection(
 ) -> Result<(), String> {
     let expected_shadow_maximum_distance_m = quality.requested_preset.shadows.maximum_distance_m;
     let expected_shadow_cascade_count = usize::from(quality.requested_preset.shadows.cascade_count);
-    if shadow
+    let shadow_distance_tolerance_m = shadow
         .configured_maximum_distance_m
-        .is_none_or(|distance| distance.to_bits() != expected_shadow_maximum_distance_m.to_bits())
-        || shadow.cascade_bounds_m.len() != expected_shadow_cascade_count
+        .filter(|distance| distance.is_finite())
+        .map_or(SHADOW_DISTANCE_ABSOLUTE_TOLERANCE_M, |distance| {
+            SHADOW_DISTANCE_ABSOLUTE_TOLERANCE_M.max(
+                SHADOW_DISTANCE_EPSILON_FACTOR
+                    * f32::EPSILON
+                    * distance.abs().max(expected_shadow_maximum_distance_m.abs()),
+            )
+        });
+    if shadow.configured_maximum_distance_m.is_none_or(|distance| {
+        !distance.is_finite()
+            || distance <= 0.0
+            || !expected_shadow_maximum_distance_m.is_finite()
+            || expected_shadow_maximum_distance_m <= 0.0
+            || (distance - expected_shadow_maximum_distance_m).abs() > shadow_distance_tolerance_m
+    }) || shadow.cascade_bounds_m.len() != expected_shadow_cascade_count
     {
         return Err(format!(
-            "Visual Valley shadow projection does not match applied {:?} quality: maximum={:?}/{:.1}, cascades={}/{}",
+            "Visual Valley shadow projection does not match applied {:?} quality: maximum={:?}/{:.1} (tolerance {:.3} m), cascades={}/{}",
             quality.current_tier,
             shadow.configured_maximum_distance_m,
             expected_shadow_maximum_distance_m,
+            shadow_distance_tolerance_m,
             shadow.cascade_bounds_m.len(),
             expected_shadow_cascade_count
         ));
@@ -2651,6 +2667,58 @@ mod tests {
                 format!("governed Gate 1 metrics require {resource}")
             );
         }
+    }
+
+    #[test]
+    fn gate1_shadow_quality_accepts_bevy_rounding_and_rejects_invalid_contracts() {
+        let mut evidence = sample_gate1_evidence();
+        let expected_shadow_distance = evidence.quality.requested_preset.shadows.maximum_distance_m;
+        let tolerated_shadow_distance =
+            expected_shadow_distance + SHADOW_DISTANCE_ABSOLUTE_TOLERANCE_M * 0.5;
+        evidence.shadow.configured_maximum_distance_m = Some(tolerated_shadow_distance);
+        *evidence.shadow.cascade_bounds_m.last_mut().unwrap() = tolerated_shadow_distance;
+        validate_sample_gate1_evidence(&evidence).unwrap();
+
+        for rejected_shadow_distance in [
+            expected_shadow_distance + SHADOW_DISTANCE_ABSOLUTE_TOLERANCE_M * 2.0,
+            expected_shadow_distance - SHADOW_DISTANCE_ABSOLUTE_TOLERANCE_M * 2.0,
+        ] {
+            evidence.shadow.configured_maximum_distance_m = Some(rejected_shadow_distance);
+            assert!(
+                validate_gate1_shadow_quality_projection(&evidence.shadow, &evidence.quality)
+                    .is_err()
+            );
+        }
+
+        evidence.shadow.configured_maximum_distance_m = None;
+        assert!(
+            validate_gate1_shadow_quality_projection(&evidence.shadow, &evidence.quality).is_err()
+        );
+        for invalid_distance in [f32::NAN, f32::INFINITY, 0.0, -1.0] {
+            evidence.shadow.configured_maximum_distance_m = Some(invalid_distance);
+            assert!(
+                validate_gate1_shadow_quality_projection(&evidence.shadow, &evidence.quality)
+                    .is_err()
+            );
+        }
+
+        evidence.shadow.configured_maximum_distance_m = Some(expected_shadow_distance);
+        *evidence.shadow.cascade_bounds_m.last_mut().unwrap() = expected_shadow_distance;
+        let removed_cascade = evidence.shadow.cascade_bounds_m.remove(0);
+        assert!(
+            validate_gate1_shadow_quality_projection(&evidence.shadow, &evidence.quality).is_err()
+        );
+        evidence.shadow.cascade_bounds_m.insert(0, removed_cascade);
+
+        let mut large_scale_quality = evidence.quality.clone();
+        large_scale_quality
+            .requested_preset
+            .shadows
+            .maximum_distance_m = 6_734.0;
+        let mut large_scale_shadow = evidence.shadow;
+        large_scale_shadow.configured_maximum_distance_m = Some(6_734.002_4);
+        validate_gate1_shadow_quality_projection(&large_scale_shadow, &large_scale_quality)
+            .unwrap();
     }
 
     #[test]

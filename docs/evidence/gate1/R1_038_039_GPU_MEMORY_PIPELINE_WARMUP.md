@@ -154,11 +154,11 @@ Les tests nouveaux couvrent :
 |---|---|
 | `cargo fmt --all -- --check` | **PASS** |
 | `git diff --check` | **PASS** |
-| tests bibliothèque `forge_engine` | **PASS — 117/117** |
-| tests `forge_runtime` | **PASS — 30/30** |
-| tests bibliothèque `forge_studio` | **PASS — 29/29** |
-| `cargo check -p forge_studio --lib --target wasm32-unknown-unknown --no-default-features --features web` exact courant | **PASS — 6.83 s** |
-| `$env:CARGO_TARGET_DIR='E:\OpenRPG_Forge\.cargo-target-gate1-combined'; cargo clippy -p forge_engine -p forge_runtime -p forge_studio --all-targets --locked -j 1 -- -D warnings` | **PASS — 11.27 s** |
+| tests bibliothèque `forge_engine` | **PASS — 118/118** |
+| tests `forge_runtime` | **PASS — 32/32** (31 bin + 1 intégration) |
+| tests `forge_studio` | **PASS — 31/31** (28 lib + 3 bin) |
+| `cargo check -p forge_studio --lib --target wasm32-unknown-unknown --no-default-features --features web` exact courant | **PASS — 7.45 s** |
+| `$env:CARGO_TARGET_DIR='E:\OpenRPG_Forge\.cargo-target-gate1-combined'; cargo clippy -p forge_engine -p forge_runtime -p forge_studio --all-targets --locked -j 1 -- -D warnings` | **PASS — 6.29 s** |
 | Smoke natif produisant un ledger `forge.runtime-metrics` v8 | **NOT RUN** |
 | Smoke GPU réel et observation allocateur/pipelines | **NOT RUN** |
 | Smoke Browser WebGPU et ledger Studio v7 | **NOT RUN** |

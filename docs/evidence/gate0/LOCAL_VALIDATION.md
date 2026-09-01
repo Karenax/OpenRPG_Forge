@@ -268,12 +268,12 @@ La campagne exécutée sur l'état courant du worktree apporte les preuves suiva
 
 | Contrôle du correctif glyphes/overlay ASCII | Résultat courant |
 |---|---|
-| suite `forge_engine` | **PASS — 117/117**, dont les assertions `is_ascii()` des overlays Gate 0 et Gate 1 |
-| suite `forge_runtime` | **PASS — 30/30** |
-| suite `forge_studio` | **PASS — 29/29** |
-| check WASM exact courant | **PASS — 6.83 s** |
+| suite `forge_engine` | **PASS — 118/118**, dont les assertions `is_ascii()` des overlays Gate 0 et Gate 1 |
+| suite `forge_runtime` | **PASS — 32/32** (31 bin + 1 intégration) |
+| suite `forge_studio` | **PASS — 31/31** (28 lib + 3 bin) |
+| check WASM exact courant | **PASS — 7.45 s** |
 | formatage et contrôle du diff | **PASS** |
-| Clippy strict exact | **PASS — 11.27 s** |
+| Clippy strict exact | **PASS — 6.29 s** |
 | smokes du candidat courant natif / Browser WebGPU | **NOT RUN** |
 
 Le statut probant devient donc **CORRECTIF — TESTS/FMT/DIFF/WASM/CLIPPY PASS ; REVUE HUMAINE

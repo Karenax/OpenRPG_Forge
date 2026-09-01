@@ -15,13 +15,13 @@ un code non encore identifié par un commit final.
 
 | Validation intégrée | Résultat exact consigné |
 |---|---|
-| tests `forge_engine` | **117/117 PASS** |
-| tests `forge_runtime` | **30/30 PASS** |
-| tests `forge_studio` | **29/29 PASS** |
-| check de compilation WASM exact courant | **PASS — 6.83 s** |
+| tests `forge_engine` | **118/118 PASS** |
+| tests `forge_runtime` | **32/32 PASS** (31 bin + 1 intégration) |
+| tests `forge_studio` | **31/31 PASS** (28 lib + 3 bin) |
+| check de compilation WASM exact courant | **PASS — 7.45 s** |
 | `cargo fmt --all -- --check` | **PASS** |
 | `git diff --check` | **PASS** |
-| Clippy strict exact de l'état combiné | **PASS — 11.27 s** |
+| Clippy strict exact de l'état combiné | **PASS — 6.29 s** |
 | smoke GPU natif, capture finale et lancement Browser WebGPU final | **NOT RUN** |
 
 La campagne intégrée valide les contrats automatisés et la compilation WASM. Elle n'est ni un
@@ -138,9 +138,10 @@ machine cible.
 ## Verdict de ce document
 
 Le candidat fournit les contrats nécessaires pour produire une preuve performance plus fiable. Les
-117 tests moteur, 30 tests runtime, 29 tests Studio, le check WASM, le format et le contrôle de diff
-passent sur l'état intégré courant ; Clippy strict passe en 11.27 s et le check WASM exact courant en
-6.83 s. Les smokes GPU natifs et Browser WebGPU restent **NOT RUN** ; aucune capture ni aucun
+118 tests moteur, 32 tests runtime (31 bin + 1 intégration), 31 tests Studio (28 lib + 3 bin), le
+check WASM, le format et le contrôle de diff
+passent sur l'état intégré courant ; Clippy strict passe en 6.29 s et le check WASM exact courant en
+7.45 s. Les smokes GPU natifs et Browser WebGPU restent **NOT RUN** ; aucune capture ni aucun
 benchmark n'est attribué ici à cette intégration. `R1-037`, `R1-041` et `R1-043` sont explicitement
 non qualifiés ; toutes les routes `R1-034` à `R1-043` restent ouvertes jusqu'aux exécutions réelles,
 à l'inspection des artefacts et, pour l'overlay, à la couverture honnête du temps GPU manquant.

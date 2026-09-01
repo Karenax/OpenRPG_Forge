@@ -85,7 +85,8 @@ observation. These are observable contracts; final combined native GPU and brows
 required separately from unit-test evidence.
 
 On the current combined candidate, `cargo fmt --all -- --check` and `git diff --check` pass, as do
-117/117 `forge_engine` library tests, 30/30 `forge_runtime` tests and 29/29 `forge_studio` library
-tests. The exact current `forge_studio` Web/WASM check passes in 6.83 s, and the exact strict Clippy
-command for all three packages passes in 11.27 s. Native GPU and Browser WebGPU smokes remain NOT RUN.
+118/118 `forge_engine` library tests, 32/32 `forge_runtime` tests (31 bin + 1 integration) and
+31/31 `forge_studio` tests (28 lib + 3 bin). The exact current `forge_studio` Web/WASM check passes
+in 7.45 s, and the exact strict Clippy
+command for all three packages passes in 6.29 s. Native GPU and Browser WebGPU smokes remain NOT RUN.
 These partial integration results do not qualify or close R1-038, R1-039 or R1-040.

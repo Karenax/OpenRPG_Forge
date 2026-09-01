@@ -26,13 +26,13 @@ final d'intégration.
 
 | Validation intégrée | Résultat exact consigné |
 |---|---|
-| tests `forge_engine` | **117/117 PASS** |
-| tests `forge_runtime` | **30/30 PASS** |
-| tests `forge_studio` | **29/29 PASS** |
-| check de compilation WASM exact courant | **PASS — 6.83 s** |
+| tests `forge_engine` | **118/118 PASS** |
+| tests `forge_runtime` | **32/32 PASS** (31 bin + 1 intégration) |
+| tests `forge_studio` | **31/31 PASS** (28 lib + 3 bin) |
+| check de compilation WASM exact courant | **PASS — 7.45 s** |
 | `cargo fmt --all -- --check` | **PASS** |
 | `git diff --check` | **PASS** |
-| Clippy strict exact de l'état combiné | **PASS — 11.27 s** |
+| Clippy strict exact de l'état combiné | **PASS — 6.29 s** |
 | smoke GPU natif, captures `clear`/`rain`, smoke/capture Browser WebGPU finaux | **NOT RUN** |
 
 Ces résultats valident la compilation et les contrats automatisés intégrés. Ils ne prouvent ni la
