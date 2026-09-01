@@ -1,4 +1,3 @@
-use crate::VisualValleyQualityStats;
 use bevy::{
     asset::{RenderAssetUsages, embedded_asset},
     core_pipeline::prepass::DeferredPrepass,
@@ -663,9 +662,9 @@ fn prepare_water_surface(
         authored_centerline_monotone_downstream: true,
         projected_lanes_monotone_downstream: projected_lanes_are_monotone(&sections),
         material_alpha_mode: "opaque",
-        opaque_renderer_method: "deferred",
+        opaque_renderer_method: "forward",
         requested_opacity: water.surface.opacity,
-        opacity_status: "requested_recorded_surface_forced_opaque_for_deferred_ssr",
+        opacity_status: "requested_recorded_surface_forced_opaque_for_forward_surface_tint",
         requested_wave_amplitude_m: water.surface.wave_amplitude_m,
         requested_wave_length_m: water.surface.wave_length_m,
         requested_flow_speed_mps: water.surface.flow_speed_mps,
@@ -692,16 +691,16 @@ fn prepare_water_surface(
         bank_wet_margin_status: "deferred_no_wet_edge_shader",
         bank_slope_status: "deferred_strip_bridges_water_edge_to_projected_terrain",
         bank_erosion_status: "deferred_no_terrain_carving_adapter",
-        bank_material_status: "opaque_deferred_placeholder_no_authored_bank_colour",
+        bank_material_status: "opaque_forward_placeholder_no_authored_bank_colour",
         requested_reflection_intensity,
         requested_reflection_max_distance_m,
-        reflection_intensity_status: "requested_not_mapped_by_bevy_ssr_component",
-        reflection_max_distance_status: "requested_not_mapped_by_bevy_ssr_component",
+        reflection_intensity_status: "requested_unavailable_resolved_disabled",
+        reflection_max_distance_status: "requested_unavailable_resolved_disabled",
         requested_refraction_strength,
         applied_surface_tint_strength,
-        refraction_status: "requested_screen_space_unavailable_for_opaque_deferred_resolved_surface_tint",
+        refraction_status: "requested_screen_space_unavailable_for_opaque_forward_resolved_surface_tint",
         requested_ssr_component_prepared: ssr.is_some(),
-        forward_material_ssr_limit: "terrain_and_vegetation_remain_forward; ssr_component_is_not_runtime_qualification",
+        forward_material_ssr_limit: "bevy_0_19_1_deferred_ssr_disabled_after_native_validation_warning",
         resolved_optics,
         runtime_observation: WaterRuntimeObservationStatus::NotObserved,
         water_mesh_entities: 0,
@@ -1070,7 +1069,7 @@ fn water_material(
             ior: WATER_IOR,
             diffuse_transmission: 0.0,
             specular_transmission: 0.0,
-            opaque_render_method: OpaqueRendererMethod::Deferred,
+            opaque_render_method: OpaqueRendererMethod::Forward,
             ..default()
         },
         extension: water_extension(
@@ -1164,7 +1163,7 @@ fn river_bank_material() -> StandardMaterial {
         alpha_mode: AlphaMode::Opaque,
         metallic: 0.0,
         perceptual_roughness: 0.86,
-        opaque_render_method: OpaqueRendererMethod::Deferred,
+        opaque_render_method: OpaqueRendererMethod::Forward,
         ..default()
     }
 }
@@ -1191,11 +1190,12 @@ fn requested_refraction_strength(water: &WaterDocument) -> Option<f32> {
 
 const fn bevy_water_optics_capabilities() -> WaterOpticsCapabilities {
     WaterOpticsCapabilities {
-        // Bevy 0.19 exposes deferred SSR for native and the project's WebGPU path. This is a
-        // structural capability declaration, not evidence that either GPU pipeline ran.
-        screen_space_reflections: WaterOpticsCapabilityStatus::Available,
-        // StandardMaterial screen-space transmission enters the transmissive forward phase.
-        // This water stays opaque/deferred so SSR has its documented G-buffer inputs.
+        // Bevy 0.19.1's deferred SSR path emitted a validated wgpu invariant warning on the Gate 1
+        // Vulkan baseline. Keep the authored request visible, but resolve it through the declared
+        // fallback until a clean native and WebGPU path is qualified.
+        screen_space_reflections: WaterOpticsCapabilityStatus::Unavailable,
+        // StandardMaterial screen-space transmission enters the transmissive forward phase. The
+        // governed water remains opaque and uses the authored surface-tint fallback.
         screen_space_refraction: WaterOpticsCapabilityStatus::Unavailable,
         environment_reflections: WaterOpticsCapabilityStatus::NotQualified,
     }
@@ -1348,14 +1348,15 @@ fn configure_water_cameras(
         let mut entity = commands.entity(camera);
         entity.insert((
             Msaa::Off,
-            DeferredPrepass,
             ScreenSpaceTransmission {
                 steps: 0,
                 ..default()
             },
         ));
         if let Some(ssr) = &prepared.ssr {
-            entity.insert(ssr.clone());
+            entity.insert((DeferredPrepass, ssr.clone()));
+        } else {
+            entity.remove::<(ScreenSpaceReflections, DeferredPrepass)>();
         }
     }
 }
@@ -1380,7 +1381,6 @@ fn observe_water_components(
     materials: Res<Assets<VisualValleyWaterMaterial>>,
     projection: Res<WaterMaterialProjection>,
     runtime: Res<WaterRuntimeState>,
-    quality: Option<Res<VisualValleyQualityStats>>,
     mut stats: ResMut<WaterProjectionStats>,
 ) {
     stats.water_mesh_entities = surfaces.iter().count();
@@ -1416,20 +1416,29 @@ fn observe_water_components(
     } else {
         "cpu_material_asset_incomplete_or_not_observed"
     };
-    let ssr_expected = quality
-        .as_deref()
-        .map_or(stats.requested_ssr_component_prepared, |quality| {
-            quality.requested_preset.water.reflection == QualityWaterReflection::ScreenSpace
-        });
+    let ssr_expected = matches!(
+        stats.resolved_optics.reflection,
+        ResolvedWaterReflectionPath::ScreenSpace { .. }
+    );
+    let deferred_cameras_match = if ssr_expected {
+        stats.deferred_camera_entities == stats.camera_3d_entities
+    } else {
+        stats.deferred_camera_entities == 0
+    };
+    let ssr_cameras_match = if ssr_expected {
+        stats.ssr_camera_entities == stats.camera_3d_entities
+    } else {
+        stats.ssr_camera_entities == 0
+    };
     stats.runtime_observation = if stats.water_mesh_entities == 1
         && stats.river_bank_mesh_entities == 1
         && stats.shader_material_entities == 1
         && stats.shader_uniforms_match_profile
         && stats.camera_3d_entities > 0
-        && stats.deferred_camera_entities == stats.camera_3d_entities
+        && deferred_cameras_match
         && stats.msaa_off_camera_entities == stats.camera_3d_entities
         && stats.transmission_disabled_camera_entities == stats.camera_3d_entities
-        && (!ssr_expected || stats.ssr_camera_entities == stats.camera_3d_entities)
+        && ssr_cameras_match
     {
         WaterRuntimeObservationStatus::ObservedMainWorldComponents
     } else {
@@ -1461,7 +1470,10 @@ fn projected_water_extension(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use forge_project::ResolvedWaterReflectionPath;
+    use crate::{VisualValleyQualityPlugin, VisualValleyQualitySelection};
+    use forge_project::{
+        ResolvedWaterReflectionPath, VisualQualityTier, VisualValleyQualityProfileDocument,
+    };
     use forge_world::{
         embedded_visual_valley_terrain_document, embedded_visual_valley_water_document,
     };
@@ -1581,12 +1593,12 @@ mod tests {
     }
 
     #[test]
-    fn material_extension_maps_profile_and_keeps_deferred_surface_opaque() {
+    fn material_extension_maps_profile_and_keeps_forward_surface_opaque() {
         let prepared = prepared();
         assert_eq!(prepared.water_material.base.alpha_mode, AlphaMode::Opaque);
         assert_eq!(
             prepared.water_material.base.opaque_render_method,
-            OpaqueRendererMethod::Deferred
+            OpaqueRendererMethod::Forward
         );
         assert_eq!(
             prepared.water_material.base.specular_transmission.to_bits(),
@@ -1630,13 +1642,11 @@ mod tests {
     #[test]
     fn metrics_resolve_optics_without_claiming_gpu_or_webgpu_execution() {
         let prepared = prepared();
-        assert!(prepared.stats.requested_ssr_component_prepared);
-        let ssr = prepared.ssr.as_ref().unwrap();
-        assert_eq!(ssr.linear_steps, 48);
-        assert_eq!(ssr.thickness.to_bits(), 0.9_f32.to_bits());
+        assert!(!prepared.stats.requested_ssr_component_prepared);
+        assert!(prepared.ssr.is_none());
         assert_eq!(
             prepared.stats.reflection_intensity_status,
-            "requested_not_mapped_by_bevy_ssr_component"
+            "requested_unavailable_resolved_disabled"
         );
         assert_eq!(
             prepared.stats.wave_motion_status,
@@ -1666,9 +1676,9 @@ mod tests {
         );
         assert_eq!(
             prepared.stats.resolved_optics.reflection,
-            ResolvedWaterReflectionPath::ScreenSpace { max_steps: 48 }
+            ResolvedWaterReflectionPath::Disabled
         );
-        assert!(!prepared.stats.resolved_optics.reflection_fallback_used);
+        assert!(prepared.stats.resolved_optics.reflection_fallback_used);
         assert_eq!(
             prepared.stats.resolved_optics.refraction,
             ResolvedWaterRefractionPath::SurfaceTint
@@ -1680,7 +1690,7 @@ mod tests {
                 .resolved_optics
                 .capabilities
                 .screen_space_reflections,
-            WaterOpticsCapabilityStatus::Available
+            WaterOpticsCapabilityStatus::Unavailable
         );
         assert_eq!(
             prepared
@@ -1711,7 +1721,11 @@ mod tests {
         app.add_plugins((MinimalPlugins, AssetPlugin::default()));
         app.init_asset::<Mesh>();
         app.init_asset::<StandardMaterial>();
-        app.world_mut().spawn(Camera3d::default());
+        app.world_mut().spawn((
+            Camera3d::default(),
+            DeferredPrepass,
+            ScreenSpaceReflections::default(),
+        ));
         app.add_plugins(VisualValleyWaterPlugin::new(terrain, water));
         app.update();
 
@@ -1721,8 +1735,8 @@ mod tests {
             WaterRuntimeObservationStatus::ObservedMainWorldComponents
         );
         assert_eq!(stats.camera_3d_entities, 1);
-        assert_eq!(stats.deferred_camera_entities, 1);
-        assert_eq!(stats.ssr_camera_entities, 1);
+        assert_eq!(stats.deferred_camera_entities, 0);
+        assert_eq!(stats.ssr_camera_entities, 0);
         assert_eq!(stats.msaa_off_camera_entities, 1);
         assert_eq!(stats.transmission_disabled_camera_entities, 1);
         assert_eq!(stats.shader_material_assets, 1);
@@ -1734,6 +1748,48 @@ mod tests {
             "observed_main_world_components_and_cpu_material_asset"
         );
         assert!(!stats.gpu_pass_observed);
+    }
+
+    #[test]
+    fn high_quality_transition_cannot_reenable_unavailable_ssr() {
+        let terrain = embedded_visual_valley_terrain_document().unwrap();
+        let water = embedded_visual_valley_water_document().unwrap();
+        let quality = VisualValleyQualityProfileDocument::from_json(include_str!(
+            "../../../examples/visual_valley/quality-profile.v1.json"
+        ))
+        .unwrap();
+        let mut app = App::new();
+        app.add_plugins((MinimalPlugins, AssetPlugin::default()));
+        app.init_asset::<Mesh>();
+        app.init_asset::<StandardMaterial>();
+        let camera = app
+            .world_mut()
+            .spawn((
+                Camera3d::default(),
+                DeferredPrepass,
+                ScreenSpaceReflections::default(),
+            ))
+            .id();
+        app.add_plugins((
+            VisualValleyWaterPlugin::new(terrain, water),
+            VisualValleyQualityPlugin::new(
+                quality,
+                VisualValleyQualitySelection::Fixed(VisualQualityTier::High),
+            ),
+        ));
+        app.update();
+        app.update();
+
+        let world = app.world();
+        assert!(world.get::<ScreenSpaceReflections>(camera).is_none());
+        assert!(world.get::<DeferredPrepass>(camera).is_none());
+        let stats = world.resource::<WaterProjectionStats>();
+        assert_eq!(
+            stats.runtime_observation,
+            WaterRuntimeObservationStatus::ObservedMainWorldComponents
+        );
+        assert_eq!(stats.ssr_camera_entities, 0);
+        assert_eq!(stats.deferred_camera_entities, 0);
     }
 
     #[test]

@@ -7,11 +7,11 @@ use crate::weather::{
 use crate::{
     VegetationChunkBatchMarker, VegetationLodRanges, VegetationPlacementMarker,
     VegetationProjectionLod, VisualValleyRainBatch, VisualValleyShadowObservationStatus,
-    VisualValleyShadowStats, WeatherRuntimeState,
+    VisualValleyShadowStats, WaterProjectionStats, WeatherRuntimeState,
 };
 use bevy::{
     camera::visibility::VisibilityRange,
-    core_pipeline::tonemapping::Tonemapping,
+    core_pipeline::{prepass::DeferredPrepass, tonemapping::Tonemapping},
     light::{CascadeShadowConfig, CascadeShadowConfigBuilder, DirectionalLightShadowMap},
     pbr::{ContactShadows, ScreenSpaceReflections},
     post_process::bloom::Bloom,
@@ -19,8 +19,8 @@ use bevy::{
     render::view::ColorGrading,
 };
 use forge_project::{
-    DynamicQualityAdaptationProfile, QualityWaterReflection, VisualQualityPreset,
-    VisualQualityTier, VisualValleyQualityProfileDocument,
+    DynamicQualityAdaptationProfile, QualityWaterReflection, ResolvedWaterReflectionPath,
+    VisualQualityPreset, VisualQualityTier, VisualValleyQualityProfileDocument,
 };
 use serde::Serialize;
 
@@ -308,6 +308,7 @@ fn apply_quality_tier(
     mut shadow_map: Option<ResMut<DirectionalLightShadowMap>>,
     weather_profile: Option<Res<VisualValleyWeatherProfile>>,
     weather_state: Option<Res<WeatherRuntimeState>>,
+    water_projection: Option<Res<WaterProjectionStats>>,
     cameras: Query<
         (
             Entity,
@@ -394,6 +395,12 @@ fn apply_quality_tier(
         }
     }
 
+    let screen_space_reflections_available = water_projection.as_deref().is_some_and(|water| {
+        matches!(
+            water.resolved_optics.reflection,
+            ResolvedWaterReflectionPath::ScreenSpace { .. }
+        )
+    });
     for (camera, ssr, bloom, color_grading, tonemapping) in &cameras {
         if preset.shadows.contact_shadows_enabled {
             commands.entity(camera).insert(ContactShadows::default());
@@ -401,13 +408,17 @@ fn apply_quality_tier(
             commands.entity(camera).remove::<ContactShadows>();
         }
         match preset.water.reflection {
-            QualityWaterReflection::ScreenSpace => {
+            QualityWaterReflection::ScreenSpace if screen_space_reflections_available => {
                 let mut settings = ssr.cloned().unwrap_or_default();
                 settings.linear_steps = u32::from(preset.water.reflection_steps);
                 commands.entity(camera).insert(settings);
             }
-            QualityWaterReflection::Disabled | QualityWaterReflection::Environment => {
-                commands.entity(camera).remove::<ScreenSpaceReflections>();
+            QualityWaterReflection::ScreenSpace
+            | QualityWaterReflection::Disabled
+            | QualityWaterReflection::Environment => {
+                commands
+                    .entity(camera)
+                    .remove::<(ScreenSpaceReflections, DeferredPrepass)>();
             }
         }
         if preset.post_process.bloom_enabled {
@@ -528,7 +539,7 @@ pub(crate) const QUALITY_FIELD_PROJECTION_CONTRACT: [(&str, QualityFieldProjecti
     ),
     (
         "water.reflection_steps",
-        QualityFieldProjectionStatus::AppliedOnTierTransition,
+        QualityFieldProjectionStatus::NotApplicable,
     ),
     (
         "rain.enabled",
@@ -723,6 +734,10 @@ mod tests {
             field.field == "shadows.map_resolution"
                 && field.status == QualityFieldProjectionStatus::AppliedOnTierTransition
         }));
+        assert!(fields.iter().any(|field| {
+            field.field == "water.reflection_steps"
+                && field.status == QualityFieldProjectionStatus::NotApplicable
+        }));
     }
 
     #[test]
@@ -826,13 +841,8 @@ mod tests {
         let cascades = world.get::<CascadeShadowConfig>(sun).unwrap();
         assert_eq!(cascades.bounds.len(), 4);
         assert!((cascades.bounds.last().unwrap() - 128.0).abs() <= 0.001);
-        assert_eq!(
-            world
-                .get::<ScreenSpaceReflections>(camera)
-                .unwrap()
-                .linear_steps,
-            48
-        );
+        assert!(world.get::<ScreenSpaceReflections>(camera).is_none());
+        assert!(world.get::<DeferredPrepass>(camera).is_none());
         assert_eq!(
             world
                 .resource::<VisualValleyQualityStats>()

@@ -1677,8 +1677,8 @@ fn validate_gate1_quality_projection_ledger(
         || !quality_fields_match_contract
         || !quality_fields_are_unique_and_described
         || startup_projection_count != 5
-        || transition_projection_count != 15
-        || not_applicable_projection_count != 14
+        || transition_projection_count != 14
+        || not_applicable_projection_count != 15
     {
         return Err(format!(
             "governed Gate 1 quality projection ledger is not qualified: schema={} v{}, profile_hash_present={}, fields={}/{}, exact_contract={}, unique_and_described={}, statuses=startup:{}, transition:{}, not_applicable:{}",
@@ -1970,6 +1970,9 @@ mod tests {
                 exposure_ev100: Some(12.0),
                 tonemapping: Some("tony_mc_mapface"),
                 ambient_light: true,
+                atmosphere_environment_map_light: true,
+                environment_map_intensity: Some(1.0),
+                environment_map_resolution: Some([256, 256]),
                 aerial_view_max_distance_m: 1_600.0,
             },
             sun: EnvironmentSunStats {

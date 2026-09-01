@@ -349,7 +349,11 @@ impl BloomProfile {
 #[serde(deny_unknown_fields)]
 pub struct ColorGradeProfile {
     pub exposure_ev: f32,
+    /// Forge-normalized artistic control in `[-1, 1]`; renderer adapters map it to their native
+    /// white-balance representation rather than treating it as a direct chromaticity offset.
     pub temperature: f32,
+    /// Forge-normalized artistic control in `[-1, 1]`; renderer adapters map it to their native
+    /// white-balance representation rather than treating it as a direct chromaticity offset.
     pub tint: f32,
     pub saturation: f32,
     pub contrast: f32,

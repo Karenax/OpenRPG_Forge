@@ -26,6 +26,9 @@ const RAIN_TRIANGLES_PER_DROP: usize = 4;
 const RAIN_STREAK_HALF_WIDTH_M: f32 = 0.009;
 const WEATHER_EVIDENCE_SOURCE: &str = "main_world_ecs_and_cpu_material_assets_not_gpu_execution";
 const WEATHER_SHADER_TIME_WRAP_SECONDS: f64 = 4_096.0;
+// Forge stores temperature and tint as normalized artistic controls in [-1, 1]. Bevy expects
+// direct CIE 1931 xy offsets, where the same magnitudes would create extreme colour casts.
+const NORMALIZED_GRADE_TO_CIE_OFFSET: f32 = 0.1;
 
 const IMPLEMENTED_CAPABILITIES: &[&str] = &[
     "deterministic_clear_rain_clear_transition",
@@ -979,8 +982,8 @@ fn color_grading_component(grade: ColorGradeProfile) -> ColorGrading {
     ColorGrading::with_identical_sections(
         ColorGradingGlobal {
             exposure: grade.exposure_ev,
-            temperature: grade.temperature,
-            tint: grade.tint,
+            temperature: grade.temperature * NORMALIZED_GRADE_TO_CIE_OFFSET,
+            tint: grade.tint * NORMALIZED_GRADE_TO_CIE_OFFSET,
             post_saturation: grade.saturation,
             ..default()
         },
@@ -1163,6 +1166,14 @@ mod tests {
         assert_eq!(
             component.global.post_saturation.to_bits(),
             clear.saturation.to_bits()
+        );
+        assert_eq!(
+            component.global.temperature.to_bits(),
+            (clear.temperature * NORMALIZED_GRADE_TO_CIE_OFFSET).to_bits()
+        );
+        assert_eq!(
+            component.global.tint.to_bits(),
+            (clear.tint * NORMALIZED_GRADE_TO_CIE_OFFSET).to_bits()
         );
         assert_eq!(
             component.midtones.contrast.to_bits(),

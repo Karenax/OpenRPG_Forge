@@ -2,7 +2,7 @@ use crate::visual_valley::VisualValleySun;
 use bevy::{
     camera::{Exposure, Hdr},
     core_pipeline::tonemapping::Tonemapping,
-    light::{Atmosphere, SunDisk, atmosphere::ScatteringMedium},
+    light::{Atmosphere, AtmosphereEnvironmentMapLight, SunDisk, atmosphere::ScatteringMedium},
     pbr::{AtmosphereMode, AtmosphereSettings, DistanceFog, FogFalloff},
     prelude::*,
 };
@@ -44,6 +44,9 @@ pub struct EnvironmentSkyStats {
     pub exposure_ev100: Option<f32>,
     pub tonemapping: Option<&'static str>,
     pub ambient_light: bool,
+    pub atmosphere_environment_map_light: bool,
+    pub environment_map_intensity: Option<f32>,
+    pub environment_map_resolution: Option<[u32; 2]>,
     pub aerial_view_max_distance_m: f32,
 }
 
@@ -195,6 +198,11 @@ fn project_environment(
     if document.sky.enabled {
         commands.entity(camera).insert((
             Hdr,
+            AtmosphereEnvironmentMapLight {
+                intensity: 1.0,
+                size: UVec2::splat(u32::from(document.sky.environment_resolution)),
+                ..default()
+            },
             AtmosphereSettings {
                 aerial_view_lut_max_distance: document.sky.aerial_view_max_distance_m,
                 rendering_method: AtmosphereMode::LookupTexture,
@@ -214,7 +222,7 @@ fn project_environment(
     } else {
         commands
             .entity(camera)
-            .remove::<(Hdr, AtmosphereSettings)>();
+            .remove::<(Hdr, AtmosphereSettings, AtmosphereEnvironmentMapLight)>();
     }
 
     if document.distance_fog.enabled {
@@ -243,6 +251,7 @@ fn project_environment(
 #[allow(
     clippy::needless_pass_by_value,
     clippy::too_many_arguments,
+    clippy::too_many_lines,
     clippy::type_complexity,
     reason = "the observer records independent ECS evidence without hidden globals"
 )]
@@ -257,6 +266,7 @@ fn observe_environment_projection(
             Option<&Exposure>,
             Option<&Tonemapping>,
             Option<&AmbientLight>,
+            Option<&AtmosphereEnvironmentMapLight>,
             Option<&DistanceFog>,
         ),
         With<Camera3d>,
@@ -288,8 +298,9 @@ fn observe_environment_projection(
     let sun = valley_suns.first().copied();
 
     let camera_complete = camera.is_some_and(
-        |(_, hdr, atmosphere, exposure, tonemapping, ambient, distance_fog)| {
-            (!profile.document.sky.enabled || (hdr.is_some() && atmosphere.is_some()))
+        |(_, hdr, atmosphere, exposure, tonemapping, ambient, environment_map, distance_fog)| {
+            (!profile.document.sky.enabled
+                || (hdr.is_some() && atmosphere.is_some() && environment_map.is_some()))
                 && exposure.is_some()
                 && matches!(tonemapping, Some(Tonemapping::TonyMcMapface))
                 && ambient.is_some()
@@ -320,7 +331,13 @@ fn observe_environment_projection(
         tonemapping: camera.and_then(|(_, _, _, _, value, ..)| {
             matches!(value, Some(Tonemapping::TonyMcMapface)).then_some("tony_mc_mapface")
         }),
-        ambient_light: camera.is_some_and(|(_, _, _, _, _, value, _)| value.is_some()),
+        ambient_light: camera.is_some_and(|(_, _, _, _, _, value, ..)| value.is_some()),
+        atmosphere_environment_map_light: camera
+            .is_some_and(|(_, _, _, _, _, _, value, _)| value.is_some()),
+        environment_map_intensity: camera
+            .and_then(|(_, _, _, _, _, _, value, _)| value.map(|value| value.intensity)),
+        environment_map_resolution: camera
+            .and_then(|(_, _, _, _, _, _, value, _)| value.map(|value| value.size.to_array())),
         aerial_view_max_distance_m: profile.document.sky.aerial_view_max_distance_m,
     };
     let sun_stats = EnvironmentSunStats {
@@ -332,7 +349,7 @@ fn observe_environment_projection(
     };
     let distance_fog = EnvironmentDistanceFogStats {
         requested: profile.document.distance_fog.enabled,
-        component_present: camera.is_some_and(|(_, _, _, _, _, _, value)| value.is_some()),
+        component_present: camera.is_some_and(|(_, _, _, _, _, _, _, value)| value.is_some()),
         falloff_kind: match profile.document.distance_fog.falloff {
             DistanceFogFalloff::Linear { .. } => "linear",
             DistanceFogFalloff::Atmospheric { .. } => "atmospheric",
@@ -469,6 +486,9 @@ mod tests {
         assert_eq!(stats.visual_valley_sun_entities, 1);
         assert_eq!(stats.atmosphere_entities, 1);
         assert!(stats.sky.hdr);
+        assert!(stats.sky.atmosphere_environment_map_light);
+        assert_eq!(stats.sky.environment_map_intensity, Some(1.0));
+        assert_eq!(stats.sky.environment_map_resolution, Some([256, 256]));
         assert!(stats.distance_fog.component_present);
         assert!(!stats.volumetric.applied);
         assert_eq!(stats.volumetric.resolved_path, "distance_fog_fallback");
