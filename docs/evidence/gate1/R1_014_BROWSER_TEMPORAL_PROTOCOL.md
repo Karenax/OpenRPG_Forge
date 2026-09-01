@@ -57,6 +57,11 @@ Le harnais réutilise les ledgers DOM existants de Studio : `gate0-telemetry-led
 `forge-scene-telemetry-ledger`. Il pilote Edge ou Chrome par CDP sur une adresse loopback et un profil
 temporaire isolé. Le serveur Trunk doit être lancé depuis le même checkout propre.
 
+La découverte CDP normalise explicitement les réponses `/json/list` mono-cible, multi-cibles et
+imbriquées avant de sélectionner une unique cible `page`. Cette normalisation empêche PowerShell de
+concaténer plusieurs URL WebSocket lorsque Chrome expose aussi des pages d'arrière-plan ; l'URL
+retenue doit rester un endpoint `ws://` loopback sur le port réservé.
+
 Terminal A :
 
 ```powershell
@@ -97,7 +102,8 @@ seuils préenregistrés et les invariants de contexte. Le ledger conserve toujou
 Le test statique parse les scripts PowerShell, rejoue la validation de configuration, vérifie que les
 mutations `119 RAF`, `ROI dans le ciel` et `seuil modifié sans changement de version` sont rejetées,
 teste une matrice synthétique positive puis un échec console, et contrôle que la roadmap laisse
-`R1-014` décoché. Il ne lance ni Browser ni build :
+`R1-014` décoché. Le self-test couvre aussi une réponse CDP synthétique composée d'une page
+d'arrière-plan, de deux pages et de l'ancienne forme imbriquée. Il ne lance ni Browser ni build :
 
 ```powershell
 pwsh -NoProfile -File .\scripts\Invoke-Gate1BrowserTemporal.ps1 -ValidateOnly

@@ -352,13 +352,27 @@ function Invoke-SelfTest {
     Assert-Condition -Condition ($failureResult.status -ceq 'fail') -Message 'Synthetic console failure was not rejected.'
     $warningResult = Get-AutomatedResult -RegionVerdicts $verdicts -ConsoleErrorCount 0 -ConsoleWarningCount 1 -NetworkFailureCount 0 -Config $Config
     Assert-Condition -Condition ($warningResult.status -ceq 'fail') -Message 'Synthetic console warning was not rejected.'
-    $syntheticTarget = Select-CdpTarget -Targets @(
+    $syntheticTargets = @(
         [pscustomobject]@{
+            id = 'synthetic-background-page'
+            type = 'background_page'
+            webSocketDebuggerUrl = 'ws://127.0.0.1:54321/devtools/page/background'
+        },
+        [pscustomobject]@{
+            id = 'synthetic-page'
             type = 'page'
             webSocketDebuggerUrl = 'ws://127.0.0.1:54321/devtools/page/synthetic'
+        },
+        [pscustomobject]@{
+            id = 'synthetic-second-page'
+            type = 'page'
+            webSocketDebuggerUrl = 'ws://127.0.0.1:54321/devtools/page/second'
         }
-    ) -Port 54321
+    )
+    $syntheticTarget = Select-CdpTarget -Targets $syntheticTargets -Port 54321
     Assert-Condition -Condition ($null -ne $syntheticTarget -and $syntheticTarget.webSocketDebuggerUrl -ceq 'ws://127.0.0.1:54321/devtools/page/synthetic') -Message 'Synthetic CDP target selection failed.'
+    $nestedSyntheticTarget = Select-CdpTarget -Targets (,$syntheticTargets) -Port 54321
+    Assert-Condition -Condition ($null -ne $nestedSyntheticTarget -and $nestedSyntheticTarget.webSocketDebuggerUrl -ceq 'ws://127.0.0.1:54321/devtools/page/synthetic') -Message 'Nested multi-target CDP response normalization failed.'
 
     [pscustomobject]@{
         protocol = $Config.protocol_id
@@ -368,6 +382,7 @@ function Invoke-SelfTest {
         synthetic_verdicts = 'pass'
         console_warning_rejection = 'pass'
         cdp_target_selection = 'pass'
+        cdp_multi_target_normalization = 'pass'
     }
 }
 
@@ -679,10 +694,22 @@ function Select-CdpTarget {
         [Parameter(Mandatory)][int]$Port
     )
 
+    $flattenedTargets = @(
+        foreach ($target in $Targets) {
+            if ($target -is [Array]) {
+                foreach ($nestedTarget in $target) {
+                    $nestedTarget
+                }
+            } else {
+                $target
+            }
+        }
+    )
     $candidates = @(
-        $Targets |
+        $flattenedTargets |
             Where-Object {
                 $_.type -ceq 'page' -and
+                -not [string]::IsNullOrWhiteSpace([string]$_.id) -and
                 -not [string]::IsNullOrWhiteSpace([string]$_.webSocketDebuggerUrl)
             } |
             Select-Object -First 1
@@ -716,7 +743,7 @@ function Wait-CdpTarget {
             throw "Browser exited before exposing DevTools (exit code $($Process.ExitCode))."
         }
         try {
-            $targets = @(Invoke-RestMethod -Uri $endpoint -TimeoutSec 2 -NoProxy)
+            $targets = Invoke-RestMethod -Uri $endpoint -TimeoutSec 2 -NoProxy
             $target = Select-CdpTarget -Targets $targets -Port $Port
             if ($null -ne $target) {
                 return $target
