@@ -590,6 +590,7 @@ function Connect-CdpSocket {
     Assert-Condition -Condition ($uri.Scheme -ceq 'ws') -Message 'Only a local unencrypted CDP WebSocket is accepted.'
     Assert-Condition -Condition (Test-LoopbackHost -HostName $uri.DnsSafeHost) -Message 'The CDP WebSocket must resolve only to loopback.'
     $socket = [Net.WebSockets.ClientWebSocket]::new()
+    $socket.Options.SetRequestHeader('Origin', 'http://127.0.0.1')
     $timeout = [Threading.CancellationTokenSource]::new([TimeSpan]::FromSeconds(10))
     try {
         Wait-NonGenericTask -Task ($socket.ConnectAsync($uri, $timeout.Token))
@@ -648,6 +649,7 @@ function Start-ControlledBrowser {
     foreach ($argument in @(
         "--remote-debugging-address=127.0.0.1",
         "--remote-debugging-port=$Port",
+        '--remote-allow-origins=http://127.0.0.1',
         "--user-data-dir=$ProfileDirectory",
         '--no-first-run',
         '--no-default-browser-check',

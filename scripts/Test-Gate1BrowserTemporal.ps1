@@ -43,6 +43,7 @@ Assert-Condition -Condition ($LASTEXITCODE -eq 0) -Message "Driver self-test fai
 $driver = Get-Content -LiteralPath $driverPath -Raw
 foreach ($requiredToken in @(
     'Page.addScriptToEvaluateOnNewDocument',
+    '--remote-allow-origins=http://127.0.0.1',
     '__forgeGate1TemporalInputGuard',
     'gate0-telemetry-ledger',
     'forge-scene-telemetry-ledger',
