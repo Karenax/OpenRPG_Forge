@@ -4,6 +4,7 @@
 
 mod environment;
 mod player;
+mod quality;
 mod terrain;
 mod vegetation;
 mod water;
@@ -21,6 +22,15 @@ pub use player::{
     PLAYER_CONTROLLER_PROFILE_SCHEMA, PLAYER_CONTROLLER_PROFILE_SCHEMA_VERSION,
     PlayerCameraProfile, PlayerControllerProfile, PlayerControllerProfileDocument,
     PlayerControllerProfileError,
+};
+pub use quality::{
+    DynamicQualityAdaptationProfile, EnvironmentQualitySettings, FixedBenchmarkQualityProfile,
+    MAX_VISUAL_VALLEY_QUALITY_PROFILE_JSON_BYTES, PostProcessQualitySettings,
+    QualityWaterReflection, QualityWaterRefraction, RainQualitySettings, ShadowQualitySettings,
+    TerrainLodQualitySettings, VISUAL_VALLEY_QUALITY_PROFILE_SCHEMA,
+    VISUAL_VALLEY_QUALITY_PROFILE_SCHEMA_VERSION, VegetationQualitySettings, VisualQualityPreset,
+    VisualQualityPresets, VisualQualityTier, VisualValleyQualityProfileDocument,
+    VisualValleyQualityProfileError, WaterQualitySettings,
 };
 
 pub use terrain::{

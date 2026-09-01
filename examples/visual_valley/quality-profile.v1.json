@@ -1,0 +1,233 @@
+{
+  "schema": "forge.visual-valley-quality-profile",
+  "schema_version": 1,
+  "project_id": "156abf3c-028c-5bb6-be3a-facc417a29bc",
+  "area_id": "55b4fcee-2e80-5855-aafa-d1942158ff67",
+  "revision": 1,
+  "coordinate_system": {
+    "length_unit": "metre",
+    "up_axis": "y",
+    "handedness": "right"
+  },
+  "name": "Visual Valley quality profile",
+  "default_tier": "high",
+  "presets": {
+    "low": {
+      "terrain": {
+        "lod0_distance_m": 48.0,
+        "lod1_distance_m": 144.0,
+        "lod2_distance_m": 288.0,
+        "cull_distance_m": 384.0,
+        "lod1_sample_stride": 8,
+        "lod2_sample_stride": 16
+      },
+      "vegetation": {
+        "density_multiplier": 0.5,
+        "near_lod_distance_m": 16.0,
+        "medium_lod_distance_m": 48.0,
+        "hlod_distance_m": 128.0,
+        "cull_distance_m": 256.0,
+        "grass_blades_per_patch": 12
+      },
+      "shadows": {
+        "enabled": true,
+        "cascade_count": 2,
+        "map_resolution": 1024,
+        "maximum_distance_m": 64.0,
+        "contact_shadows_enabled": false
+      },
+      "environment": {
+        "atmosphere_enabled": true,
+        "environment_map_resolution": 64,
+        "volumetric_fog_enabled": false,
+        "volumetric_fog_step_count": 0,
+        "volumetric_fog_max_distance_m": 0.0
+      },
+      "water": {
+        "reflection": "environment",
+        "reflection_steps": 0,
+        "reflection_max_distance_m": 0.0,
+        "refraction": "surface_tint",
+        "refraction_steps": 0,
+        "refraction_max_depth_m": 0.0
+      },
+      "rain": {
+        "enabled": true,
+        "drop_budget": 2048,
+        "wetness_enabled": true
+      },
+      "post_process": {
+        "bloom_enabled": false,
+        "color_grading_enabled": true,
+        "tonemapping_enabled": true
+      }
+    },
+    "medium": {
+      "terrain": {
+        "lod0_distance_m": 64.0,
+        "lod1_distance_m": 176.0,
+        "lod2_distance_m": 352.0,
+        "cull_distance_m": 512.0,
+        "lod1_sample_stride": 4,
+        "lod2_sample_stride": 8
+      },
+      "vegetation": {
+        "density_multiplier": 0.75,
+        "near_lod_distance_m": 20.0,
+        "medium_lod_distance_m": 60.0,
+        "hlod_distance_m": 160.0,
+        "cull_distance_m": 320.0,
+        "grass_blades_per_patch": 20
+      },
+      "shadows": {
+        "enabled": true,
+        "cascade_count": 3,
+        "map_resolution": 2048,
+        "maximum_distance_m": 96.0,
+        "contact_shadows_enabled": false
+      },
+      "environment": {
+        "atmosphere_enabled": true,
+        "environment_map_resolution": 128,
+        "volumetric_fog_enabled": true,
+        "volumetric_fog_step_count": 32,
+        "volumetric_fog_max_distance_m": 240.0
+      },
+      "water": {
+        "reflection": "screen_space",
+        "reflection_steps": 24,
+        "reflection_max_distance_m": 64.0,
+        "refraction": "surface_tint",
+        "refraction_steps": 0,
+        "refraction_max_depth_m": 0.0
+      },
+      "rain": {
+        "enabled": true,
+        "drop_budget": 4096,
+        "wetness_enabled": true
+      },
+      "post_process": {
+        "bloom_enabled": true,
+        "color_grading_enabled": true,
+        "tonemapping_enabled": true
+      }
+    },
+    "high": {
+      "terrain": {
+        "lod0_distance_m": 96.0,
+        "lod1_distance_m": 224.0,
+        "lod2_distance_m": 448.0,
+        "cull_distance_m": 640.0,
+        "lod1_sample_stride": 2,
+        "lod2_sample_stride": 4
+      },
+      "vegetation": {
+        "density_multiplier": 1.0,
+        "near_lod_distance_m": 24.0,
+        "medium_lod_distance_m": 72.0,
+        "hlod_distance_m": 180.0,
+        "cull_distance_m": 384.0,
+        "grass_blades_per_patch": 32
+      },
+      "shadows": {
+        "enabled": true,
+        "cascade_count": 4,
+        "map_resolution": 4096,
+        "maximum_distance_m": 128.0,
+        "contact_shadows_enabled": true
+      },
+      "environment": {
+        "atmosphere_enabled": true,
+        "environment_map_resolution": 256,
+        "volumetric_fog_enabled": true,
+        "volumetric_fog_step_count": 64,
+        "volumetric_fog_max_distance_m": 320.0
+      },
+      "water": {
+        "reflection": "screen_space",
+        "reflection_steps": 48,
+        "reflection_max_distance_m": 96.0,
+        "refraction": "screen_space",
+        "refraction_steps": 24,
+        "refraction_max_depth_m": 3.2
+      },
+      "rain": {
+        "enabled": true,
+        "drop_budget": 8192,
+        "wetness_enabled": true
+      },
+      "post_process": {
+        "bloom_enabled": true,
+        "color_grading_enabled": true,
+        "tonemapping_enabled": true
+      }
+    },
+    "ultra": {
+      "terrain": {
+        "lod0_distance_m": 128.0,
+        "lod1_distance_m": 320.0,
+        "lod2_distance_m": 640.0,
+        "cull_distance_m": 896.0,
+        "lod1_sample_stride": 2,
+        "lod2_sample_stride": 4
+      },
+      "vegetation": {
+        "density_multiplier": 1.25,
+        "near_lod_distance_m": 32.0,
+        "medium_lod_distance_m": 96.0,
+        "hlod_distance_m": 240.0,
+        "cull_distance_m": 512.0,
+        "grass_blades_per_patch": 48
+      },
+      "shadows": {
+        "enabled": true,
+        "cascade_count": 4,
+        "map_resolution": 4096,
+        "maximum_distance_m": 192.0,
+        "contact_shadows_enabled": true
+      },
+      "environment": {
+        "atmosphere_enabled": true,
+        "environment_map_resolution": 512,
+        "volumetric_fog_enabled": true,
+        "volumetric_fog_step_count": 96,
+        "volumetric_fog_max_distance_m": 480.0
+      },
+      "water": {
+        "reflection": "screen_space",
+        "reflection_steps": 64,
+        "reflection_max_distance_m": 128.0,
+        "refraction": "screen_space",
+        "refraction_steps": 40,
+        "refraction_max_depth_m": 4.0
+      },
+      "rain": {
+        "enabled": true,
+        "drop_budget": 16384,
+        "wetness_enabled": true
+      },
+      "post_process": {
+        "bloom_enabled": true,
+        "color_grading_enabled": true,
+        "tonemapping_enabled": true
+      }
+    }
+  },
+  "benchmark": {
+    "fixed_tier": "high",
+    "adaptation_enabled": false
+  },
+  "adaptation": {
+    "policy_enabled": true,
+    "initial_tier": "high",
+    "minimum_tier": "low",
+    "maximum_tier": "ultra",
+    "target_frame_time_ms": 16.667,
+    "upgrade_below_frame_time_ms": 13.5,
+    "downgrade_above_frame_time_ms": 18.0,
+    "upgrade_sustain_frames": 600,
+    "downgrade_sustain_frames": 90,
+    "cooldown_frames": 240,
+    "maximum_tier_step": 1
+  }
+}

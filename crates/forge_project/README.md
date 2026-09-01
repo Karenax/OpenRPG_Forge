@@ -3,7 +3,9 @@
 Définit les documents JSON persistants et moteur-neutres de Forge :
 
 - `forge.scene-proof` version 1 pour la preuve native/WASM de Gate 0 ;
-- `forge.terrain` version 1 pour la source de vérité terrain de Visual Valley.
+- `forge.terrain` version 1 pour la source de vérité terrain de Visual Valley ;
+- `forge.visual-valley-quality-profile` version 1 pour les presets Low/Medium/High/Ultra, le mode
+  benchmark High fixe et la politique d'adaptation bornée.
 
 `TerrainDocument` conserve les identités projet/zone, la révision, les coordonnées en mètres Y-up,
 la seed, l'étendue, les paramètres logiques de height sampling et les identifiants des couches
@@ -18,3 +20,10 @@ canonique sont testés.
 
 Ces données ne contiennent aucun type Bevy, handle GPU, mesh, texture ou chemin d'asset. Les caches et
 liaisons renderer sont produits par les crates d'exécution.
+
+Le profil qualité global est également moteur-neutre. Son preset High s'aligne sur les budgets déjà
+authorés lorsqu'ils existent dans les documents végétation, environnement, eau et météo de Visual
+Valley ; les distances LOD terrain et les budgets de shadow map restent des cibles documentaires. Il
+impose une progression monotone des coûts entre Low et Ultra. Le benchmark est toujours High avec
+adaptation explicitement désactivée ; les seuils d'hystérésis décrivent une politique future et ne
+sont encore consommés par aucun runtime ou viewport Studio.
