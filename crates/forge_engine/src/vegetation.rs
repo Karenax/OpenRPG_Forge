@@ -574,6 +574,7 @@ impl MeshAccumulator {
         points: [Vec3; 4],
         colors: [[f32; 4]; 4],
         anchor: Vec3,
+        hemispheric_lighting_weight: f32,
     ) -> Result<(), VegetationMeshError> {
         let first_vertex = self.positions.len();
         if self.secondary_uvs.len() != first_vertex {
@@ -582,8 +583,9 @@ impl MeshAccumulator {
         self.push_quad(points, colors)?;
         for uv in &mut self.uvs[first_vertex..] {
             // HLOD currently has no texture or lightmap. UV0/UV1 are reserved together for the
-            // exact local XYZ anchor: UV0.x = Y and UV1 = XZ. Other vegetation keeps normal UV0.
-            *uv = [anchor.y, 0.0];
+            // exact local XYZ anchor plus its impostor-lighting weight: UV0 = [Y, weight] and
+            // UV1 = XZ. Other vegetation keeps normal UV0 and has no UV1.
+            *uv = [anchor.y, hemispheric_lighting_weight];
         }
         self.secondary_uvs
             .extend(std::iter::repeat_n([anchor.x, anchor.z], 4));
@@ -838,24 +840,33 @@ pub(crate) fn build_hlod_chunk_mesh(
 ) -> Result<DerivedVegetationMesh, VegetationMeshError> {
     let mut mesh = MeshAccumulator::default();
     for placement in placements {
-        if placement.kind == VegetationKind::Grass {
-            continue;
+        match placement.kind {
+            VegetationKind::Tree => append_crossed_tree_hlod(
+                &mut mesh,
+                placement.position_m,
+                placement.yaw_radians,
+                2.5 * placement.scale,
+                5.5 * placement.scale,
+                placement.wind_response,
+            )?,
+            VegetationKind::Shrub => append_crossed_tapered_hlod(
+                &mut mesh,
+                placement.position_m,
+                placement.yaw_radians,
+                1.15 * placement.scale,
+                1.35 * placement.scale,
+                placement.wind_response,
+            )?,
+            VegetationKind::Fern => append_crossed_tapered_hlod(
+                &mut mesh,
+                placement.position_m,
+                placement.yaw_radians,
+                0.9 * placement.scale,
+                0.82 * placement.scale,
+                placement.wind_response,
+            )?,
+            VegetationKind::Grass => {}
         }
-        let (width, height, bottom, top) = match placement.kind {
-            VegetationKind::Tree => (2.5, 5.5, bark_color(0.0), leaf_color(0, 0.82)),
-            VegetationKind::Shrub => (1.15, 1.35, leaf_color(0, 0.0), leaf_color(1, 0.72)),
-            VegetationKind::Fern => (0.9, 0.82, leaf_color(1, 0.0), leaf_color(0, 0.9)),
-            VegetationKind::Grass => continue,
-        };
-        append_crossed_silhouette(
-            &mut mesh,
-            placement.position_m,
-            placement.yaw_radians,
-            width * placement.scale,
-            height * placement.scale,
-            bottom,
-            with_wind_weight(top, placement.wind_response),
-        )?;
     }
     mesh.finish(deformation_margin_m)
 }
@@ -923,24 +934,84 @@ fn append_cone(
     Ok(())
 }
 
-fn append_crossed_silhouette(
+fn append_crossed_tree_hlod(
     mesh: &mut MeshAccumulator,
     base: Vec3,
     yaw: f32,
     width: f32,
     height: f32,
-    bottom_color: [f32; 4],
-    top_color: [f32; 4],
+    wind_response: f32,
 ) -> Result<(), VegetationMeshError> {
     for quarter_turn in [0.0, std::f32::consts::FRAC_PI_2] {
         let angle = yaw + quarter_turn;
-        let right = Vec3::new(angle.cos(), 0.0, -angle.sin()) * (width * 0.5);
-        let shoulder = base + Vec3::Y * (height * 0.34);
+        let axis = Vec3::new(angle.cos(), 0.0, -angle.sin());
+        let trunk_right = axis * (width * 0.10);
+        let trunk_top = base + Vec3::Y * (height * 0.38);
+        mesh.push_hlod_quad(
+            [
+                base - trunk_right,
+                base + trunk_right,
+                trunk_top + trunk_right,
+                trunk_top - trunk_right,
+            ],
+            [bark_color(0.0); 4],
+            base,
+            0.0,
+        )?;
+
+        let canopy_bottom = base + Vec3::Y * (height * 0.20);
+        let canopy_top = base + Vec3::Y * height;
+        let canopy_bottom_right = axis * (width * 0.50);
+        let canopy_top_right = axis * (width * 0.10);
+        mesh.push_hlod_quad(
+            [
+                canopy_bottom - canopy_bottom_right,
+                canopy_bottom + canopy_bottom_right,
+                canopy_top + canopy_top_right,
+                canopy_top - canopy_top_right,
+            ],
+            [
+                mixed_leaf_color(wind_response * 0.35),
+                mixed_leaf_color(wind_response * 0.35),
+                mixed_leaf_color(wind_response),
+                mixed_leaf_color(wind_response),
+            ],
+            base,
+            1.0,
+        )?;
+    }
+    Ok(())
+}
+
+fn append_crossed_tapered_hlod(
+    mesh: &mut MeshAccumulator,
+    base: Vec3,
+    yaw: f32,
+    width: f32,
+    height: f32,
+    wind_response: f32,
+) -> Result<(), VegetationMeshError> {
+    for quarter_turn in [0.0, std::f32::consts::FRAC_PI_2] {
+        let angle = yaw + quarter_turn;
+        let axis = Vec3::new(angle.cos(), 0.0, -angle.sin());
+        let bottom_right = axis * (width * 0.50);
+        let top_right = axis * (width * 0.20);
         let top = base + Vec3::Y * height;
         mesh.push_hlod_quad(
-            [base, shoulder + right, top, shoulder - right],
-            [bottom_color, top_color, top_color, top_color],
+            [
+                base - bottom_right,
+                base + bottom_right,
+                top + top_right,
+                top - top_right,
+            ],
+            [
+                mixed_leaf_color(0.0),
+                mixed_leaf_color(0.0),
+                mixed_leaf_color(wind_response),
+                mixed_leaf_color(wind_response),
+            ],
             base,
+            1.0,
         )?;
     }
     Ok(())
@@ -973,9 +1044,8 @@ fn grass_color(blade: u16, wind_weight: f32) -> [f32; 4] {
     }
 }
 
-fn with_wind_weight(mut color: [f32; 4], wind_weight: f32) -> [f32; 4] {
-    color[3] = wind_weight;
-    color
+fn mixed_leaf_color(wind_weight: f32) -> [f32; 4] {
+    [0.35, 0.65, 0.0, wind_weight]
 }
 
 fn finite_clamp(value: f32, minimum: f32, maximum: f32) -> f32 {
@@ -2120,25 +2190,16 @@ mod tests {
         let mesh = build_hlod_chunk_mesh(&woody, maximum_deformation_m(profile())).unwrap();
 
         assert_complete_mesh(&mesh);
-        assert_eq!(mesh.mesh.count_vertices(), 3 * 2 * 4);
-        assert_eq!(mesh.triangles, 3 * 2 * 2);
+        assert_eq!(mesh.mesh.count_vertices(), 16 + 8 + 8);
+        assert_eq!(mesh.triangles, 8 + 4 + 4);
     }
 
     #[test]
-    fn hlod_silhouette_tapers_around_one_bounded_shoulder() {
+    fn tree_hlod_separates_a_trunk_from_a_tapered_canopy_at_one_anchor() {
         const POSITION_EPSILON_M: f32 = 1.0e-6;
         let mut accumulator = MeshAccumulator::default();
         let anchor = Vec3::new(3.0, 1.25, -4.0);
-        append_crossed_silhouette(
-            &mut accumulator,
-            anchor,
-            0.0,
-            2.0,
-            10.0,
-            bark_color(0.0),
-            leaf_color(0, 1.0),
-        )
-        .unwrap();
+        append_crossed_tree_hlod(&mut accumulator, anchor, 0.0, 2.0, 10.0, 0.8).unwrap();
         let mesh = accumulator.finish(0.0).unwrap();
         let positions = match mesh.mesh.attribute(Mesh::ATTRIBUTE_POSITION) {
             Some(VertexAttributeValues::Float32x3(values)) => values,
@@ -2152,32 +2213,61 @@ mod tests {
             Some(VertexAttributeValues::Float32x2(values)) => values,
             other => panic!("unexpected HLOD anchor UVs: {other:?}"),
         };
+        let colors = match mesh.mesh.attribute(Mesh::ATTRIBUTE_COLOR) {
+            Some(VertexAttributeValues::Float32x4(values)) => values,
+            other => panic!("unexpected HLOD colors: {other:?}"),
+        };
 
-        assert_eq!(mesh.mesh.count_vertices(), 2 * 4);
-        assert_eq!(mesh.triangles, 2 * 2);
-        let expected = [
-            anchor,
-            anchor + Vec3::new(1.0, 3.4, 0.0),
-            anchor + Vec3::new(0.0, 10.0, 0.0),
-            anchor + Vec3::new(-1.0, 3.4, 0.0),
+        assert_eq!(mesh.mesh.count_vertices(), 2 * 2 * 4);
+        assert_eq!(mesh.triangles, 2 * 2 * 2);
+        let expected_trunk = [
+            anchor + Vec3::new(-0.2, 0.0, 0.0),
+            anchor + Vec3::new(0.2, 0.0, 0.0),
+            anchor + Vec3::new(0.2, 3.8, 0.0),
+            anchor + Vec3::new(-0.2, 3.8, 0.0),
         ];
-        for (actual, expected) in positions.iter().take(4).zip(expected) {
+        for (actual, expected) in positions.iter().take(4).zip(expected_trunk) {
             assert!(
                 Vec3::from_array(*actual).distance_squared(expected)
                     <= POSITION_EPSILON_M * POSITION_EPSILON_M
             );
         }
-        assert_eq!(primary_uvs.len(), 8);
-        assert_eq!(anchors_xz.len(), 8);
-        assert!(
-            primary_uvs
-                .iter()
-                .all(|uv| { (*uv).map(f32::to_bits) == [anchor.y, 0.0].map(f32::to_bits) })
-        );
+        let expected_canopy = [
+            anchor + Vec3::new(-1.0, 2.0, 0.0),
+            anchor + Vec3::new(1.0, 2.0, 0.0),
+            anchor + Vec3::new(0.2, 10.0, 0.0),
+            anchor + Vec3::new(-0.2, 10.0, 0.0),
+        ];
+        for (actual, expected) in positions.iter().skip(4).take(4).zip(expected_canopy) {
+            assert!(
+                Vec3::from_array(*actual).distance_squared(expected)
+                    <= POSITION_EPSILON_M * POSITION_EPSILON_M
+            );
+        }
+        assert_eq!(primary_uvs.len(), 16);
+        assert_eq!(anchors_xz.len(), 16);
         assert!(
             anchors_xz
                 .iter()
                 .all(|uv| { (*uv).map(f32::to_bits) == [anchor.x, anchor.z].map(f32::to_bits) })
+        );
+        for (index, uv) in primary_uvs.iter().enumerate() {
+            let expected_weight: f32 = if index % 8 < 4 { 0.0 } else { 1.0 };
+            assert_eq!(uv[0].to_bits(), anchor.y.to_bits());
+            assert_eq!(uv[1].to_bits(), expected_weight.to_bits());
+        }
+        assert!(
+            colors
+                .iter()
+                .take(4)
+                .all(|color| color[..3] == [0.0, 0.0, 1.0])
+        );
+        assert!(
+            colors
+                .iter()
+                .skip(4)
+                .take(4)
+                .all(|color| color[..3] == [0.35, 0.65, 0.0])
         );
     }
 
@@ -2409,6 +2499,8 @@ mod tests {
         assert!(shader.contains("view.lod_view_world_position.xyz - world_anchor"));
         assert!(shader.contains("return quantized_fade - 16;"));
         assert!(shader.contains("hlod_visibility_parameters: vec4<f32>"));
+        assert!(shader.contains("let hlod_hemispheric_normal = normalize"));
+        assert!(shader.contains("pbr_input.world_normal = hlod_lighting_normal"));
         assert!(
             shader.contains("visibility_range_dither(in.position, in.visibility_range_dither)")
         );

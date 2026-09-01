@@ -281,6 +281,25 @@ fn fragment(
 
     var pbr_input = pbr_input_from_standard_material(in, is_front);
 
+#ifdef VERTEX_UVS_B
+    // HLOD cards reserve UV0.y for a bounded hemispheric-lighting weight. This avoids turning
+    // vertical double-sided impostors almost black under a mostly zenithal light, while trunks
+    // and every non-HLOD mesh retain their geometric PBR normal.
+    let hlod_lighting_weight = clamp(in.uv.y, 0.0, 1.0);
+    let hlod_hemispheric_normal = normalize(vec3(
+        pbr_input.N.x * 0.35,
+        0.94,
+        pbr_input.N.z * 0.35,
+    ));
+    let hlod_lighting_normal = normalize(mix(
+        pbr_input.N,
+        hlod_hemispheric_normal,
+        hlod_lighting_weight,
+    ));
+    pbr_input.N = hlod_lighting_normal;
+    pbr_input.world_normal = hlod_lighting_normal;
+#endif
+
 #ifdef VERTEX_COLORS
     let palette = normalized_palette_weights(in.color.rgb);
 #else
