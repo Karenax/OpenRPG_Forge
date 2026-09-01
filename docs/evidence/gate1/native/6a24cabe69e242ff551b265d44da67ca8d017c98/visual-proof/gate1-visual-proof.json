@@ -1,0 +1,1127 @@
+{
+  "schema": "forge.gate1-visual-proof",
+  "schema_version": 1,
+  "status": "automated_capture_complete_pending_qualification",
+  "process_id": 34176,
+  "build_source_commit": "6a24cabe69e242ff551b265d44da67ca8d017c98",
+  "protocol": {
+    "physical_resolution_px": [
+      1920,
+      1080
+    ],
+    "requested_present_mode": "auto_no_vsync",
+    "vsync_requested": false,
+    "gpu": {
+      "name": "AMD Radeon RX 7800 XT",
+      "vendor": 4098,
+      "device": 29822,
+      "device_type": "DiscreteGpu",
+      "driver": "AMD proprietary driver",
+      "driver_info": "26.8.1 (LLPC)",
+      "backend": "Vulkan",
+      "max_texture_dimension_2d": 16384,
+      "max_bind_groups": 8,
+      "max_uniform_buffer_binding_size": 2147483647,
+      "max_storage_buffer_binding_size": 2147483644
+    }
+  },
+  "routes": [
+    {
+      "route": "R1-025",
+      "automated_status": "clear_rain_clear_cpu_ecs_endpoints_observed"
+    },
+    {
+      "route": "R1-026",
+      "automated_status": "color_grade_endpoints_and_bloom_component_presence_observed"
+    },
+    {
+      "route": "R1-046",
+      "automated_status": "human_height_png_acquired_pending_human_review"
+    },
+    {
+      "route": "R1-047",
+      "automated_status": "distant_png_acquired_pending_human_review"
+    },
+    {
+      "route": "R1-048",
+      "automated_status": "movement_frames_acquired_pending_mp4_and_human_review"
+    }
+  ],
+  "sources": {
+    "terrain_hash": "9f16780a1de1e9dd4b65931624a8b45281713829434292bada320a578420b2ef",
+    "water_hash": "c581e9ef65ca1bc34d5f94908d5f43df77794da4ad5b97e1b3c4f8c0d025ebce",
+    "weather_hash": "b0d8e12bd49d3510361d587463a3002e98741b68052b283fa3f8ca432c87dd9e",
+    "player_profile_hash": "941eceefb29835c0949a9801f83f421839bcb5b0cd79583899c22d6832a74f90",
+    "quality_profile_hash": "8dc219ad88ba1472b0ebbb13d8f4beac13f3fae1eeff688c928abb044d96d0e2",
+    "cadle_assets_used": false
+  },
+  "pipeline_warmup": {
+    "status": "ready",
+    "total": 73,
+    "queued": 0,
+    "creating": 0,
+    "ready": 73,
+    "errors": 0,
+    "waiting": 0,
+    "stable_frames": 1995,
+    "required_stable_frames": 30,
+    "observed_render_frames": 2216,
+    "stabilized_at_render_frame": 251,
+    "scope": "pipelines_exercised_by_this_process_only_no_persistent_pipeline_cache"
+  },
+  "quality": {
+    "schema": "forge.visual-valley-quality-runtime",
+    "schema_version": 1,
+    "profile_hash": "8dc219ad88ba1472b0ebbb13d8f4beac13f3fae1eeff688c928abb044d96d0e2",
+    "selection": {
+      "mode": "fixed",
+      "tier": "high"
+    },
+    "startup_tier": "high",
+    "current_tier": "high",
+    "dynamically_applied_tier": "high",
+    "adaptation_enabled": false,
+    "adaptation_policy": null,
+    "benchmark_fixed_high": false,
+    "observed_frames": 2216,
+    "cooldown_remaining_frames": 0,
+    "transition_count": 0,
+    "last_transition": null,
+    "requested_preset": {
+      "terrain": {
+        "lod0_distance_m": 96.0,
+        "lod1_distance_m": 224.0,
+        "lod2_distance_m": 448.0,
+        "cull_distance_m": 640.0,
+        "lod1_sample_stride": 2,
+        "lod2_sample_stride": 4
+      },
+      "vegetation": {
+        "density_multiplier": 1.0,
+        "near_lod_distance_m": 24.0,
+        "medium_lod_distance_m": 72.0,
+        "hlod_distance_m": 180.0,
+        "cull_distance_m": 384.0,
+        "grass_blades_per_patch": 32
+      },
+      "shadows": {
+        "enabled": true,
+        "cascade_count": 4,
+        "map_resolution": 4096,
+        "maximum_distance_m": 128.0,
+        "contact_shadows_enabled": true
+      },
+      "environment": {
+        "atmosphere_enabled": true,
+        "environment_map_resolution": 256,
+        "volumetric_fog_enabled": true,
+        "volumetric_fog_step_count": 64,
+        "volumetric_fog_max_distance_m": 320.0
+      },
+      "water": {
+        "reflection": "screen_space",
+        "reflection_steps": 48,
+        "reflection_max_distance_m": 96.0,
+        "refraction": "screen_space",
+        "refraction_steps": 24,
+        "refraction_max_depth_m": 3.2
+      },
+      "rain": {
+        "enabled": true,
+        "drop_budget": 8192,
+        "wetness_enabled": true
+      },
+      "post_process": {
+        "bloom_enabled": true,
+        "color_grading_enabled": true,
+        "tonemapping_enabled": true
+      }
+    },
+    "field_projections": [
+      {
+        "field": "vegetation.near_lod_distance_m",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "vegetation.medium_lod_distance_m",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "vegetation.hlod_distance_m",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "vegetation.cull_distance_m",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "shadows.enabled",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "shadows.cascade_count",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "shadows.map_resolution",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "shadows.maximum_distance_m",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "shadows.contact_shadows_enabled",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "water.reflection",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "water.reflection_steps",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "rain.enabled",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "post_process.bloom_enabled",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "post_process.color_grading_enabled",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "post_process.tonemapping_enabled",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "vegetation.grass_blades_per_patch",
+        "status": "applied_at_startup",
+        "evidence": "startup_projection_requires_resource_or_mesh_rebuild_for_later_tiers"
+      },
+      {
+        "field": "environment.atmosphere_enabled",
+        "status": "applied_at_startup",
+        "evidence": "startup_projection_requires_resource_or_mesh_rebuild_for_later_tiers"
+      },
+      {
+        "field": "environment.environment_map_resolution",
+        "status": "applied_at_startup",
+        "evidence": "startup_projection_requires_resource_or_mesh_rebuild_for_later_tiers"
+      },
+      {
+        "field": "rain.drop_budget",
+        "status": "applied_at_startup",
+        "evidence": "startup_projection_requires_resource_or_mesh_rebuild_for_later_tiers"
+      },
+      {
+        "field": "rain.wetness_enabled",
+        "status": "applied_at_startup",
+        "evidence": "startup_projection_requires_resource_or_mesh_rebuild_for_later_tiers"
+      },
+      {
+        "field": "terrain.lod0_distance_m",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "terrain.lod1_distance_m",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "terrain.lod2_distance_m",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "terrain.cull_distance_m",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "terrain.lod1_sample_stride",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "terrain.lod2_sample_stride",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "vegetation.density_multiplier",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "environment.volumetric_fog_enabled",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "environment.volumetric_fog_step_count",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "environment.volumetric_fog_max_distance_m",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "water.reflection_max_distance_m",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "water.refraction",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "water.refraction_steps",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "water.refraction_max_depth_m",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      }
+    ]
+  },
+  "timeline": {
+    "same_process": true,
+    "requested_states": [
+      "clear",
+      "rain",
+      "clear"
+    ],
+    "checkpoints": [
+      {
+        "capture_id": "distant-clear",
+        "state": "clear",
+        "requested_frame": 155,
+        "simulation_seconds": 1.3508656113408506,
+        "current_wetness": 0.0,
+        "target_wetness": 0.0,
+        "terrain_materials": 1,
+        "vegetation_materials": 1,
+        "terrain_uniforms_match": true,
+        "vegetation_uniforms_match": true,
+        "clear_target_restored_exactly": true,
+        "rain_visible": false,
+        "rain_rendered_opacity": 0.0,
+        "rain_shader_uniform_updated": true,
+        "rain_camera_followed": true,
+        "bloom_requested": true,
+        "bloom_component_present": true,
+        "color_grading_component_present": true,
+        "mapped_exposure_ev": 0.0,
+        "mapped_temperature": 0.008,
+        "mapped_tint": 0.001,
+        "mapped_post_saturation": 1.04,
+        "mapped_contrast": 1.06,
+        "mapped_gamma": 1.0,
+        "weather_gpu_execution_observed": false,
+        "evidence_source": "main_world_ecs_and_cpu_material_assets_not_gpu_execution"
+      },
+      {
+        "capture_id": "human-clear",
+        "state": "clear",
+        "requested_frame": 199,
+        "simulation_seconds": 1.765382713638246,
+        "current_wetness": 0.0,
+        "target_wetness": 0.0,
+        "terrain_materials": 1,
+        "vegetation_materials": 1,
+        "terrain_uniforms_match": true,
+        "vegetation_uniforms_match": true,
+        "clear_target_restored_exactly": true,
+        "rain_visible": false,
+        "rain_rendered_opacity": 0.0,
+        "rain_shader_uniform_updated": true,
+        "rain_camera_followed": true,
+        "bloom_requested": true,
+        "bloom_component_present": true,
+        "color_grading_component_present": true,
+        "mapped_exposure_ev": 0.0,
+        "mapped_temperature": 0.008,
+        "mapped_tint": 0.001,
+        "mapped_post_saturation": 1.04,
+        "mapped_contrast": 1.06,
+        "mapped_gamma": 1.0,
+        "weather_gpu_execution_observed": false,
+        "evidence_source": "main_world_ecs_and_cpu_material_assets_not_gpu_execution"
+      },
+      {
+        "capture_id": "water-clear",
+        "state": "clear",
+        "requested_frame": 213,
+        "simulation_seconds": 1.9060356132686138,
+        "current_wetness": 0.0,
+        "target_wetness": 0.0,
+        "terrain_materials": 1,
+        "vegetation_materials": 1,
+        "terrain_uniforms_match": true,
+        "vegetation_uniforms_match": true,
+        "clear_target_restored_exactly": true,
+        "rain_visible": false,
+        "rain_rendered_opacity": 0.0,
+        "rain_shader_uniform_updated": true,
+        "rain_camera_followed": true,
+        "bloom_requested": true,
+        "bloom_component_present": true,
+        "color_grading_component_present": true,
+        "mapped_exposure_ev": 0.0,
+        "mapped_temperature": 0.008,
+        "mapped_tint": 0.001,
+        "mapped_post_saturation": 1.04,
+        "mapped_contrast": 1.06,
+        "mapped_gamma": 1.0,
+        "weather_gpu_execution_observed": false,
+        "evidence_source": "main_world_ecs_and_cpu_material_assets_not_gpu_execution"
+      },
+      {
+        "capture_id": "water-rain",
+        "state": "rain",
+        "requested_frame": 686,
+        "simulation_seconds": 6.386558018624783,
+        "current_wetness": 0.78,
+        "target_wetness": 0.78,
+        "terrain_materials": 1,
+        "vegetation_materials": 1,
+        "terrain_uniforms_match": true,
+        "vegetation_uniforms_match": true,
+        "clear_target_restored_exactly": null,
+        "rain_visible": true,
+        "rain_rendered_opacity": 0.42,
+        "rain_shader_uniform_updated": true,
+        "rain_camera_followed": true,
+        "bloom_requested": true,
+        "bloom_component_present": true,
+        "color_grading_component_present": true,
+        "mapped_exposure_ev": -0.35,
+        "mapped_temperature": -0.012,
+        "mapped_tint": 0.002,
+        "mapped_post_saturation": 0.86,
+        "mapped_contrast": 1.08,
+        "mapped_gamma": 1.0,
+        "weather_gpu_execution_observed": false,
+        "evidence_source": "main_world_ecs_and_cpu_material_assets_not_gpu_execution"
+      },
+      {
+        "capture_id": "water-restored",
+        "state": "clear",
+        "requested_frame": 1875,
+        "simulation_seconds": 17.67213002126664,
+        "current_wetness": 0.0,
+        "target_wetness": 0.0,
+        "terrain_materials": 1,
+        "vegetation_materials": 1,
+        "terrain_uniforms_match": true,
+        "vegetation_uniforms_match": true,
+        "clear_target_restored_exactly": true,
+        "rain_visible": false,
+        "rain_rendered_opacity": 0.0,
+        "rain_shader_uniform_updated": true,
+        "rain_camera_followed": true,
+        "bloom_requested": true,
+        "bloom_component_present": true,
+        "color_grading_component_present": true,
+        "mapped_exposure_ev": 0.0,
+        "mapped_temperature": 0.008,
+        "mapped_tint": 0.001,
+        "mapped_post_saturation": 1.04,
+        "mapped_contrast": 1.06,
+        "mapped_gamma": 1.0,
+        "weather_gpu_execution_observed": false,
+        "evidence_source": "main_world_ecs_and_cpu_material_assets_not_gpu_execution"
+      }
+    ]
+  },
+  "captures": [
+    {
+      "id": "distant-clear",
+      "relative_path": "captures/distant-clear.png",
+      "requested_frame": 155,
+      "verified_frame": 161,
+      "bytes": 2031268,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          -210.0,
+          165.0455,
+          210.0
+        ],
+        "forward": [
+          0.623246,
+          -0.47236517,
+          -0.6232461
+        ],
+        "vertical_fov_degrees": 52.0
+      }
+    },
+    {
+      "id": "human-clear",
+      "relative_path": "captures/human-clear.png",
+      "requested_frame": 199,
+      "verified_frame": 205,
+      "bytes": 2084752,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          16.0,
+          -23.599913,
+          8.0
+        ],
+        "forward": [
+          -0.0,
+          0.09086368,
+          -0.99586326
+        ],
+        "vertical_fov_degrees": 75.0
+      }
+    },
+    {
+      "id": "water-clear",
+      "relative_path": "captures/water-clear.png",
+      "requested_frame": 213,
+      "verified_frame": 219,
+      "bytes": 2137297,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          16.0,
+          16.90482,
+          174.0
+        ],
+        "forward": [
+          -0.0,
+          -0.5884738,
+          -0.80851614
+        ],
+        "vertical_fov_degrees": 75.0
+      }
+    },
+    {
+      "id": "water-rain",
+      "relative_path": "captures/water-rain.png",
+      "requested_frame": 686,
+      "verified_frame": 692,
+      "bytes": 2178333,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          16.0,
+          16.90482,
+          174.0
+        ],
+        "forward": [
+          -0.0,
+          -0.5884738,
+          -0.80851614
+        ],
+        "vertical_fov_degrees": 75.0
+      }
+    },
+    {
+      "id": "water-restored",
+      "relative_path": "captures/water-restored.png",
+      "requested_frame": 1875,
+      "verified_frame": 1881,
+      "bytes": 2138189,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          16.0,
+          16.90482,
+          174.0
+        ],
+        "forward": [
+          -0.0,
+          -0.5884738,
+          -0.80851614
+        ],
+        "vertical_fov_degrees": 75.0
+      }
+    },
+    {
+      "id": "movement-000",
+      "relative_path": "movement/frame-000.png",
+      "requested_frame": 1889,
+      "verified_frame": 1895,
+      "bytes": 2090674,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          16.0,
+          -23.599913,
+          8.0
+        ],
+        "forward": [
+          -0.5273377,
+          0.10008372,
+          -0.84374046
+        ],
+        "vertical_fov_degrees": 75.0
+      }
+    },
+    {
+      "id": "movement-001",
+      "relative_path": "movement/frame-001.png",
+      "requested_frame": 1903,
+      "verified_frame": 1909,
+      "bytes": 2085836,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          14.26087,
+          -22.978241,
+          5.217391
+        ],
+        "forward": [
+          -0.5296299,
+          -0.037316673,
+          -0.8474076
+        ],
+        "vertical_fov_degrees": 75.0
+      }
+    },
+    {
+      "id": "movement-002",
+      "relative_path": "movement/frame-002.png",
+      "requested_frame": 1917,
+      "verified_frame": 1923,
+      "bytes": 2100885,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          12.521739,
+          -22.809175,
+          2.4347825
+        ],
+        "forward": [
+          -0.5204505,
+          -0.18896337,
+          -0.832721
+        ],
+        "vertical_fov_degrees": 75.0
+      }
+    },
+    {
+      "id": "movement-003",
+      "relative_path": "movement/frame-003.png",
+      "requested_frame": 1931,
+      "verified_frame": 1937,
+      "bytes": 2102377,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          10.782609,
+          -23.149012,
+          -0.347826
+        ],
+        "forward": [
+          -0.5167796,
+          -0.22195095,
+          -0.82684726
+        ],
+        "vertical_fov_degrees": 75.0
+      }
+    },
+    {
+      "id": "movement-004",
+      "relative_path": "movement/frame-004.png",
+      "requested_frame": 1945,
+      "verified_frame": 1951,
+      "bytes": 2084326,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          9.043478,
+          -23.604347,
+          -3.130435
+        ],
+        "forward": [
+          -0.5254647,
+          -0.13052523,
+          -0.84074354
+        ],
+        "vertical_fov_degrees": 75.0
+      }
+    },
+    {
+      "id": "movement-005",
+      "relative_path": "movement/frame-005.png",
+      "requested_frame": 1959,
+      "verified_frame": 1965,
+      "bytes": 2044278,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          7.304348,
+          -23.744745,
+          -5.913043
+        ],
+        "forward": [
+          -0.5289564,
+          0.06268719,
+          -0.8463305
+        ],
+        "vertical_fov_degrees": 75.0
+      }
+    },
+    {
+      "id": "movement-006",
+      "relative_path": "movement/frame-006.png",
+      "requested_frame": 1973,
+      "verified_frame": 1979,
+      "bytes": 2040015,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          5.565218,
+          -23.247038,
+          -8.695652
+        ],
+        "forward": [
+          -0.518673,
+          0.20562786,
+          -0.82987684
+        ],
+        "vertical_fov_degrees": 75.0
+      }
+    },
+    {
+      "id": "movement-007",
+      "relative_path": "movement/frame-007.png",
+      "requested_frame": 1987,
+      "verified_frame": 1993,
+      "bytes": 2064965,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          3.826088,
+          -22.265959,
+          -11.47826
+        ],
+        "forward": [
+          -0.5177852,
+          0.21344665,
+          -0.82845587
+        ],
+        "vertical_fov_degrees": 75.0
+      }
+    },
+    {
+      "id": "movement-008",
+      "relative_path": "movement/frame-008.png",
+      "requested_frame": 2001,
+      "verified_frame": 2007,
+      "bytes": 2047163,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          2.086956,
+          -21.257435,
+          -14.26087
+        ],
+        "forward": [
+          -0.5218595,
+          0.17458332,
+          -0.8349751
+        ],
+        "vertical_fov_degrees": 75.0
+      }
+    },
+    {
+      "id": "movement-009",
+      "relative_path": "movement/frame-009.png",
+      "requested_frame": 2015,
+      "verified_frame": 2021,
+      "bytes": 2032586,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          0.347826,
+          -20.384024,
+          -17.043478
+        ],
+        "forward": [
+          -0.5248087,
+          0.13960707,
+          -0.83969384
+        ],
+        "vertical_fov_degrees": 75.0
+      }
+    },
+    {
+      "id": "movement-010",
+      "relative_path": "movement/frame-010.png",
+      "requested_frame": 2029,
+      "verified_frame": 2035,
+      "bytes": 2015615,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          -1.391304,
+          -19.629787,
+          -19.826086
+        ],
+        "forward": [
+          -0.52910095,
+          0.058190856,
+          -0.84656113
+        ],
+        "vertical_fov_degrees": 75.0
+      }
+    },
+    {
+      "id": "movement-011",
+      "relative_path": "movement/frame-011.png",
+      "requested_frame": 2043,
+      "verified_frame": 2049,
+      "bytes": 2024900,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          -3.130436,
+          -19.146915,
+          -22.608696
+        ],
+        "forward": [
+          -0.52997386,
+          0.009629347,
+          -0.8479591
+        ],
+        "vertical_fov_degrees": 75.0
+      }
+    },
+    {
+      "id": "movement-012",
+      "relative_path": "movement/frame-012.png",
+      "requested_frame": 2057,
+      "verified_frame": 2063,
+      "bytes": 2020223,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          -4.869564,
+          -18.823715,
+          -25.391304
+        ],
+        "forward": [
+          -0.52968186,
+          0.034612663,
+          -0.84748995
+        ],
+        "vertical_fov_degrees": 75.0
+      }
+    },
+    {
+      "id": "movement-013",
+      "relative_path": "movement/frame-013.png",
+      "requested_frame": 2071,
+      "verified_frame": 2077,
+      "bytes": 2016075,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          -6.608696,
+          -18.418468,
+          -28.173912
+        ],
+        "forward": [
+          -0.5265468,
+          0.11394335,
+          -0.8424757
+        ],
+        "vertical_fov_degrees": 75.0
+      }
+    },
+    {
+      "id": "movement-014",
+      "relative_path": "movement/frame-014.png",
+      "requested_frame": 2085,
+      "verified_frame": 2091,
+      "bytes": 2016144,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          -8.347824,
+          -17.750525,
+          -30.95652
+        ],
+        "forward": [
+          -0.52165633,
+          0.17673478,
+          -0.8346494
+        ],
+        "vertical_fov_degrees": 75.0
+      }
+    },
+    {
+      "id": "movement-015",
+      "relative_path": "movement/frame-015.png",
+      "requested_frame": 2099,
+      "verified_frame": 2105,
+      "bytes": 2020042,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          -10.086958,
+          -16.869713,
+          -33.739132
+        ],
+        "forward": [
+          -0.51173663,
+          0.260244,
+          -0.81877875
+        ],
+        "vertical_fov_degrees": 75.0
+      }
+    },
+    {
+      "id": "movement-016",
+      "relative_path": "movement/frame-016.png",
+      "requested_frame": 2113,
+      "verified_frame": 2119,
+      "bytes": 2041928,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          -11.826088,
+          -15.693677,
+          -36.52174
+        ],
+        "forward": [
+          -0.49295074,
+          0.36731198,
+          -0.78872126
+        ],
+        "vertical_fov_degrees": 75.0
+      }
+    },
+    {
+      "id": "movement-017",
+      "relative_path": "movement/frame-017.png",
+      "requested_frame": 2127,
+      "verified_frame": 2133,
+      "bytes": 2046574,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          -13.565218,
+          -14.1062,
+          -39.304348
+        ],
+        "forward": [
+          -0.48757878,
+          0.39200833,
+          -0.7801259
+        ],
+        "vertical_fov_degrees": 75.0
+      }
+    },
+    {
+      "id": "movement-018",
+      "relative_path": "movement/frame-018.png",
+      "requested_frame": 2141,
+      "verified_frame": 2147,
+      "bytes": 2069544,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          -15.304348,
+          -12.416357,
+          -42.086956
+        ],
+        "forward": [
+          -0.5020981,
+          0.32017756,
+          -0.8033579
+        ],
+        "vertical_fov_degrees": 75.0
+      }
+    },
+    {
+      "id": "movement-019",
+      "relative_path": "movement/frame-019.png",
+      "requested_frame": 2155,
+      "verified_frame": 2161,
+      "bytes": 2074022,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          -17.043476,
+          -11.015751,
+          -44.869564
+        ],
+        "forward": [
+          -0.5196238,
+          0.19689985,
+          -0.8313972
+        ],
+        "vertical_fov_degrees": 75.0
+      }
+    },
+    {
+      "id": "movement-020",
+      "relative_path": "movement/frame-020.png",
+      "requested_frame": 2169,
+      "verified_frame": 2175,
+      "bytes": 2090454,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          -18.782608,
+          -10.0651455,
+          -47.652172
+        ],
+        "forward": [
+          -0.52701247,
+          0.10600609,
+          -0.8432201
+        ],
+        "vertical_fov_degrees": 75.0
+      }
+    },
+    {
+      "id": "movement-021",
+      "relative_path": "movement/frame-021.png",
+      "requested_frame": 2183,
+      "verified_frame": 2189,
+      "bytes": 2120473,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          -20.52174,
+          -9.423727,
+          -50.434784
+        ],
+        "forward": [
+          -0.52969736,
+          0.03374867,
+          -0.84751487
+        ],
+        "vertical_fov_degrees": 75.0
+      }
+    },
+    {
+      "id": "movement-022",
+      "relative_path": "movement/frame-022.png",
+      "requested_frame": 2197,
+      "verified_frame": 2203,
+      "bytes": 2143962,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          -22.260872,
+          -9.021321,
+          -53.217392
+        ],
+        "forward": [
+          -0.52934074,
+          0.049807042,
+          -0.84694606
+        ],
+        "vertical_fov_degrees": 75.0
+      }
+    },
+    {
+      "id": "movement-023",
+      "relative_path": "movement/frame-023.png",
+      "requested_frame": 2211,
+      "verified_frame": 2217,
+      "bytes": 2076103,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          -24.0,
+          -8.566082,
+          -56.0
+        ],
+        "forward": [
+          -0.52452576,
+          0.1433415,
+          -0.8392412
+        ],
+        "vertical_fov_degrees": 75.0
+      }
+    }
+  ],
+  "movement": {
+    "kind": "deterministic_terrain_relative_proof_camera",
+    "gameplay_controller_exercised": false,
+    "frame_count": 24,
+    "intended_video_fps": 8,
+    "start_xz_m": [
+      16.0,
+      8.0
+    ],
+    "end_xz_m": [
+      -24.0,
+      -56.0
+    ],
+    "frame_pattern": "movement/frame-%03d.png"
+  },
+  "qualification": {
+    "rendered_png_artifacts_acquired": true,
+    "weather_cpu_ecs_projection_observed": true,
+    "weather_gpu_execution_observed": false,
+    "human_review_performed": false,
+    "visual_quality_accepted": false,
+    "gate1_routes_qualified": false,
+    "limitation": "machine acquisition only: screenshot presence and CPU/ECS projections do not qualify GPU execution, gameplay movement, comparative visual quality, or human acceptance"
+  }
+}

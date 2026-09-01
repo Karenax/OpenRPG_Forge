@@ -2,7 +2,15 @@
 
 Date : **2026-09-01**
 
-Verdict : **ACQUISITION AUTOMATISÉE PASS — QUALIFICATION VISUELLE REFUSÉE — ROUTES OUVERTES**
+Verdict de la campagne initiale `a7c9b1e1` : **ACQUISITION AUTOMATISÉE PASS — QUALIFICATION
+VISUELLE REFUSÉE — ROUTES OUVERTES**
+
+Mise à jour : le correctif `6a24cabe` supprime le défaut depth-only majeur et réacquiert en Release
+29 PNG ainsi qu'un MP4, avec une réduction de 98,88 à 100 % du masque bleu-noir sur les six vues
+diagnostiques. Cette amélioration et ses artefacts sont documentés dans
+[`R1_046_048_VEGETATION_PREPASS_CORRECTION.md`](R1_046_048_VEGETATION_PREPASS_CORRECTION.md).
+La revue humaine comparative, l'exécution GPU météo, le parcours gameplay et le GPU cible restent dus ;
+les routes et Gate 1 restent ouvertes.
 
 Cette campagne ajoute un harness natif reproductible pour produire, dans un même processus, une
 séquence clair → pluie → clair, deux cadrages de composition, une vue eau et un parcours vidéo. Elle
@@ -108,7 +116,8 @@ Le lot et son manifeste sont sous
 
 ## Conclusion
 
-Le harness rend l'acquisition reproductible et empêche une preuve de provenance ambiguë. Il fournit
-les artefacts qui manquaient, mais ceux-ci établissent aussi que le rendu courant ne satisfait pas les
-routes visuelles. `R1-023`, `R1-025`, `R1-026` et `R1-046` à `R1-048` restent donc volontairement
-décochées. Gate 1 reste **OUVERTE** et Gate 2 reste interdite.
+Le harness rend l'acquisition reproductible et empêche une preuve de provenance ambiguë. La campagne
+historique établit le refus initial ; la campagne corrective `6a24cabe` établit ensuite la disparition
+mesurée du principal défaut bleu-noir sans se substituer à la revue humaine. `R1-023`, `R1-025`,
+`R1-026` et `R1-046` à `R1-048` restent donc volontairement décochées. Gate 1 reste **OUVERTE** et
+Gate 2 reste interdite.

@@ -299,6 +299,13 @@ secondes. Ses 37/37 tests ciblés, le formatage, Clippy strict du runtime et le 
 passent. La validation workspace 298/298 et le check Studio WASM restent épinglés au commit overlay
 `afb270c3` tant que le rejeu workspace du commit courant n'est pas consolidé.
 
+Le correctif courant `6a24cabe69e242ff551b265d44da67ca8d017c98`, arbre
+`38a6990ce02baa651773d23d1038b3ef9ff9e76d`, désactive la prépasse caméra du matériau de végétation
+afin d'éviter les silhouettes depth-only après dither/déformation. Le formatage, Clippy strict, 164
+tests moteur/runtime/intégration, l'audit de provenance et le build Release passent. La réacquisition
+Release produit 29 PNG et un MP4, zéro warning/erreur/panic, active une fois les neuf modèles CC0 sans
+fallback et réduit de 98,88 à 100 % le masque bleu-noir sur les six vues diagnostiques.
+
 Le commit `afb270c3` affiche dans l'overlay les temps CPU et GPU du pass opaque issus des diagnostics
 Bevy ; deux captures natives High clear/rain exactes, hashées et lisibles ferment `R1-034` sans
 prétendre fournir un temps GPU de frame entière ni fermer `R1-037`.
@@ -331,14 +338,14 @@ moyenne varie de 5,6130 à 10,2077 ms, le p95 de 6,7886 à 13,9956 ms et le 1 % 
 remplacent ni le benchmark GPU cible ni le parcours représentatif.
 
 Le correctif forward + IBL empêche le SSR/différé non qualifié d'être réactivé, borne le grade météo
-et supprime le warning natif observé à `a34596bd`. Le harness `a7c9b1e1` produit 29 PNG 1920 × 1080,
-un MP4 H.264 de 24 frames et des logs vides sur RX 7800 XT/Vulkan, sans asset Cadle. L'acquisition
-automatisée est valide, mais l'inspection originale refuse la qualification : contours/stipple noirs,
-silhouettes lointaines crénelées, grands aplats et eau masquée par les berges. Le trajet est une caméra
-de preuve, pas un parcours gameplay. `R1-023`, `R1-025`, `R1-026` et `R1-046` à `R1-048` restent donc
-ouverts. `R1-043` reste satisfaite ; matériel cible, stutter représentatif et revue humaine restent
-dus. L'audit provenance/CC0 reste épinglé à `92286910…`. La CI distante reste `NOT RUN` sous
-ADR-0006 ; ce statut n'est pas un PASS. Gate 1 reste **OUVERTE**.
+et supprime le warning natif observé à `a34596bd`. La campagne initiale `a7c9b1e1` refusait
+contours/stipple noirs, silhouettes lointaines crénelées, grands aplats et eau masquée. La campagne
+corrective `6a24cabe` élimine le principal défaut depth-only et rend `R1-046`/`R1-047` candidates à
+revue humaine, mais le trajet reste une caméra de preuve, pas un parcours gameplay. Le ledger conserve
+les qualifications humaine, GPU météo et routes à faux. `R1-023`, `R1-025`, `R1-026` et `R1-046` à
+`R1-048` restent donc ouverts. `R1-043` reste satisfaite ; matériel cible, stutter représentatif et
+revue humaine restent dus. L'audit provenance strict `6a24cabe` passe sans asset Cadle ; la CI distante
+reste `NOT RUN` sous ADR-0006. Ce statut n'est pas un PASS. Gate 1 reste **OUVERTE**.
 
 ## But
 
@@ -441,12 +448,12 @@ qualité                   Low / Medium / High / Ultra
 
 - [x] `R1-044` captures fixes de jour — acquisitions natives et Browser hashées.
 - [x] `R1-045` captures sous pluie — acquisitions natives et Browser hashées.
-- [ ] `R1-046` vue à hauteur humaine — PNG `a7c9b1e1` acquis, qualification refusée pour
-  stipple/crénelage et silhouettes en blocs.
-- [ ] `R1-047` vue lointaine — PNG `a7c9b1e1` acquis, qualification refusée pour LOD/silhouettes
-  bruités et eau peu lisible.
-- [ ] `R1-048` vidéo de déplacement courte — MP4 H.264 3 s acquis ; caméra de preuve seulement,
-  parcours gameplay/stutter et revue humaine non qualifiés.
+- [ ] `R1-046` vue à hauteur humaine — PNG Release `6a24cabe` réacquis ; défaut depth-only corrigé,
+  revue humaine comparative encore due.
+- [ ] `R1-047` vue lointaine — PNG Release `6a24cabe` réacquis ; masque bleu-noir réduit de 98,88 %,
+  revue humaine LOD/composition encore due.
+- [ ] `R1-048` vidéo de déplacement courte — MP4 H.264 Release 3 s réacquis ; caméra de preuve
+  seulement, parcours gameplay/stutter et revue humaine non qualifiés.
 - [ ] `R1-049` revue des matériaux.
 - [ ] `R1-050` revue de composition et lisibilité.
 - [ ] `R1-051` comparaison avec la référence WebGPU ayant motivé le reboot.
@@ -457,8 +464,8 @@ qualité                   Low / Medium / High / Ultra
 
 ## Conditions de passage Gate 1
 
-- [ ] qualité visuelle jugée clairement supérieure à la base Godot — contrôle borné `a7c9b1e1`
-  refusé pour défauts visibles ; comparaison humaine toujours due ;
+- [ ] qualité visuelle jugée clairement supérieure à la base Godot — défaut depth-only corrigé et
+  réacquis à `6a24cabe`, comparaison humaine toujours due ;
 - [ ] impact visuel jugé au moins comparable à la baseline Cadle sans en copier les assets ;
 - [ ] 60 FPS moyens en 1080p High sur GPU milieu de gamme ;
 - [ ] p95 ≤ 16,7 ms ;
@@ -468,8 +475,8 @@ qualité                   Low / Medium / High / Ultra
 - [x] parité de données entre natif et Studio — natif et Browser exacts `d9e2670`, 46/46 contrôles
   croisés et sept hashes communs MATCH, dont scenery `6b41ec73…` ;
 - [x] code sans dépendance propriétaire obligatoire — audit provenance/indépendance PASS local ;
-- [x] rapport et captures versionnés — rapport Gate 1, manifeste/ledgers Browser et captures Forge
-  clear/rain ajoutés au lot documentaire avec leurs SHA-256.
+- [x] rapport et captures versionnés — rapport Gate 1, preuves Browser et lot correctif Release
+  `6a24cabe` ajoutés avec leurs SHA-256 et audit de provenance.
 
 ---
 

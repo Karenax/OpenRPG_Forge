@@ -21,6 +21,13 @@ la qualification historique du présent lot et laisse la revue humaine de `R1-01
 ne qualifie ni la performance finale, ni les draw calls réels, ni la qualité artistique comparative,
 ni les autres lots de Visual Valley.
 
+Mise à jour corrective du 1er septembre : `6a24cabe` désactive la prépasse caméra du matériau de
+végétation afin d'empêcher des silhouettes depth-only après dither/déformation. Les 164 tests
+moteur/runtime passent, Clippy strict passe et la preuve Release réduit de 98,88 à 100 % le masque
+bleu-noir sur les six vues diagnostiques. Voir
+[`R1_046_048_VEGETATION_PREPASS_CORRECTION.md`](R1_046_048_VEGETATION_PREPASS_CORRECTION.md).
+Cette correction ne ferme ni `R1-014`, ni les routes de revue humaine, ni les critères de performance.
+
 ## Résultat livré
 
 - Le cache déterministe `R1-009` est projeté sans modifier ses documents ou ses deux empreintes

@@ -5,4 +5,5 @@
 *.sh text eol=lf
 assets/visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/License_Standard.txt binary
 docs/evidence/gate1/native/**/*.log binary
+docs/evidence/gate1/native/**/visual-proof/*.json binary -eol
 docs/evidence/gate1/browser/a4e9824abc3d0f5ec824edfa58155207467f3e99/temporal/*.json binary

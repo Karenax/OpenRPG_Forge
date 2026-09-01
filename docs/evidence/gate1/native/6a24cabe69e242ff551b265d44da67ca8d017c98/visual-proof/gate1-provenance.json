@@ -1,0 +1,34 @@
+{
+  "schema": "forge.gate1-provenance-audit",
+  "schema_version": 1,
+  "generated_at_utc": "2026-09-01T18:09:52.2125763+00:00",
+  "repository": {
+    "head": "6a24cabe69e242ff551b265d44da67ca8d017c98",
+    "tree": "38a6990ce02baa651773d23d1038b3ef9ff9e76d",
+    "tracked_files": 342
+  },
+  "boundaries": {
+    "tracked_cadle_payload_files": 0,
+    "declared_cadle_reuse_markers": 0,
+    "dependency_files_scanned": 69,
+    "canonical_files_scanned": 39
+  },
+  "assets": {
+    "manifests": 1,
+    "files": 27,
+    "models": 9,
+    "licenses": [
+      "CC0-1.0"
+    ]
+  },
+  "cadle_reference_comparison": {
+    "status": "PASS",
+    "commit": "ea0da62549980816a6a27e08b75808b1f56d70e7",
+    "tree": "f0d52e434454fe302052d22eafde203bc361cc1f",
+    "files_hashed": 507,
+    "forge_files_compared": 39,
+    "exact_matches": 0,
+    "normalized_line_matches": 0
+  },
+  "result": "PASS"
+}
