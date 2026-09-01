@@ -136,7 +136,24 @@
         "mean_fps": { "$ref": "#/$defs/positive_number" },
         "one_percent_low_fps": { "$ref": "#/$defs/positive_number" },
         "hitches_over_16_7_ms": { "type": "integer", "minimum": 0 },
-        "hitches_over_33_3_ms": { "type": "integer", "minimum": 0 }
+        "hitches_over_33_3_ms": { "type": "integer", "minimum": 0 },
+        "histogram": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "frames_at_or_below_16_7_ms",
+            "frames_over_16_7_ms_at_or_below_33_3_ms",
+            "frames_over_33_3_ms"
+          ],
+          "properties": {
+            "frames_at_or_below_16_7_ms": { "type": "integer", "minimum": 0 },
+            "frames_over_16_7_ms_at_or_below_33_3_ms": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "frames_over_33_3_ms": { "type": "integer", "minimum": 0 }
+          }
+        }
       }
     },
     "latency": {

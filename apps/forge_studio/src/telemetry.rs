@@ -1,3 +1,4 @@
+use forge_core::{FrameDistribution as CoreFrameDistribution, FrameTimeHistogram};
 use serde::{Deserialize, Serialize};
 
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
@@ -108,34 +109,37 @@ pub struct FrameDistribution {
     pub one_percent_low_fps: f64,
     pub hitches_over_16_7_ms: u32,
     pub hitches_over_33_3_ms: u32,
+    /// Exhaustive buckets emitted by current ledgers. `None` remains accepted when
+    /// reading historical Gate 0 v1 ledgers created before the shared contract.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub histogram: Option<FrameTimeHistogram>,
 }
 
 impl FrameDistribution {
     #[must_use]
     pub fn from_samples(warmup_samples: usize, samples_ms: &[f64]) -> Option<Self> {
-        let mut sorted = validated_samples(samples_ms)?;
+        let distribution = CoreFrameDistribution::from_samples_ms(samples_ms).ok()?;
+        let mut sorted = samples_ms.to_vec();
         sorted.sort_by(f64::total_cmp);
-        let sample_count = u32::try_from(sorted.len()).ok()?;
-        let duration_ms = sorted.iter().sum::<f64>();
-        let mean_ms = duration_ms / f64::from(sample_count);
-        let slowest_count = sorted.len().div_ceil(100).max(1);
-        let slowest_count_u32 = u32::try_from(slowest_count).ok()?;
-        let slowest_mean_ms =
-            sorted.iter().rev().take(slowest_count).sum::<f64>() / f64::from(slowest_count_u32);
+        let histogram = distribution.histogram;
+        let hitches_over_16_7_ms = histogram
+            .frames_over_16_7_ms_at_or_below_33_3_ms
+            .checked_add(histogram.frames_over_33_3_ms)?;
 
         Some(Self {
             warmup_samples: u32::try_from(warmup_samples).unwrap_or(u32::MAX),
-            samples: sample_count,
-            duration_ms,
-            mean_ms,
+            samples: distribution.samples,
+            duration_ms: distribution.duration_ms,
+            mean_ms: distribution.mean_ms,
             p50_ms: nearest_rank(&sorted, 50),
-            p95_ms: nearest_rank(&sorted, 95),
+            p95_ms: distribution.p95_ms,
             p99_ms: nearest_rank(&sorted, 99),
             max_ms: *sorted.last()?,
-            mean_fps: 1_000.0 / mean_ms,
-            one_percent_low_fps: 1_000.0 / slowest_mean_ms,
-            hitches_over_16_7_ms: count_over(&sorted, 16.7),
-            hitches_over_33_3_ms: count_over(&sorted, 33.3),
+            mean_fps: distribution.mean_fps,
+            one_percent_low_fps: distribution.one_percent_low_fps,
+            hitches_over_16_7_ms,
+            hitches_over_33_3_ms: histogram.frames_over_33_3_ms,
+            histogram: Some(histogram),
         })
     }
 }
@@ -362,16 +366,6 @@ fn nearest_rank(sorted: &[f64], percentile: usize) -> f64 {
     sorted[rank.saturating_sub(1).min(sorted.len() - 1)]
 }
 
-fn count_over(sorted: &[f64], threshold_ms: f64) -> u32 {
-    u32::try_from(
-        sorted
-            .iter()
-            .filter(|sample| **sample > threshold_ms)
-            .count(),
-    )
-    .unwrap_or(u32::MAX)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -436,7 +430,41 @@ mod tests {
         assert_approx_eq(distribution.p99_ms, 99.0);
         assert_approx_eq(distribution.max_ms, 100.0);
         assert_approx_eq(distribution.one_percent_low_fps, 10.0);
+        assert_eq!(distribution.hitches_over_16_7_ms, 84);
         assert_eq!(distribution.hitches_over_33_3_ms, 67);
+        assert_eq!(
+            distribution.histogram,
+            Some(FrameTimeHistogram {
+                frames_at_or_below_16_7_ms: 16,
+                frames_over_16_7_ms_at_or_below_33_3_ms: 17,
+                frames_over_33_3_ms: 67,
+            })
+        );
+    }
+
+    #[test]
+    fn historical_gate0_frame_distribution_without_histogram_remains_readable() {
+        let distribution =
+            FrameDistribution::from_samples(60, &[16.7, 16.700_001, 33.3, 33.300_001]).unwrap();
+        assert_eq!(
+            distribution.histogram,
+            Some(FrameTimeHistogram {
+                frames_at_or_below_16_7_ms: 1,
+                frames_over_16_7_ms_at_or_below_33_3_ms: 2,
+                frames_over_33_3_ms: 1,
+            })
+        );
+
+        let mut legacy = serde_json::to_value(distribution).unwrap();
+        assert!(
+            legacy
+                .as_object_mut()
+                .unwrap()
+                .remove("histogram")
+                .is_some()
+        );
+        let restored: FrameDistribution = serde_json::from_value(legacy).unwrap();
+        assert!(restored.histogram.is_none());
     }
 
     #[test]

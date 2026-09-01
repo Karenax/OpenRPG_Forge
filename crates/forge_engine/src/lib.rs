@@ -81,7 +81,7 @@ use bevy::{
     },
     window::{PresentMode, PrimaryWindow, WindowCloseRequested, WindowResized},
 };
-use forge_core::EntityId;
+use forge_core::{EntityId, FrameDistribution as CoreFrameDistribution, FrameTimeHistogram};
 use forge_project::{SceneProofDocument, SceneProofKind};
 use serde::Serialize;
 use std::{
@@ -289,6 +289,7 @@ struct FrameMetrics {
     one_percent_low_fps: f64,
     hitches_over_16_7_ms: usize,
     hitches_over_33_3_ms: usize,
+    histogram: FrameTimeHistogram,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -1245,32 +1246,31 @@ fn build_runtime_metrics(
     lifecycle: &WindowLifecycle,
     final_window: Option<WindowStateReport>,
 ) -> Result<RuntimeMetricsReport, String> {
-    if samples.is_empty() {
-        return Err("no post-warmup frame samples were collected".to_owned());
-    }
+    let distribution = CoreFrameDistribution::from_samples_ms(samples)
+        .map_err(|error| format!("invalid post-warmup frame samples: {error}"))?;
     let mut sorted = samples.to_vec();
     sorted.sort_by(f64::total_cmp);
-    let duration_ms = samples.iter().sum::<f64>();
-    let sample_count = u32::try_from(samples.len())
-        .map_err(|_| "frame sample count exceeds the supported u32 ledger".to_owned())?;
-    let mean_ms = duration_ms / f64::from(sample_count);
-    let slowest_count = samples.len().div_ceil(100).max(1);
-    let slowest_count_u32 = u32::try_from(slowest_count)
-        .map_err(|_| "slow-frame sample count exceeds the supported u32 ledger".to_owned())?;
-    let slowest_mean_ms =
-        sorted.iter().rev().take(slowest_count).sum::<f64>() / f64::from(slowest_count_u32);
+    let histogram = distribution.histogram;
+    let hitches_over_16_7_ms = usize::try_from(
+        u64::from(histogram.frames_over_16_7_ms_at_or_below_33_3_ms)
+            + u64::from(histogram.frames_over_33_3_ms),
+    )
+    .map_err(|_| "60 FPS hitch count exceeds the platform ledger size".to_owned())?;
+    let hitches_over_33_3_ms = usize::try_from(histogram.frames_over_33_3_ms)
+        .map_err(|_| "30 FPS hitch count exceeds the platform ledger size".to_owned())?;
     let frame = FrameMetrics {
         samples: samples.len(),
-        duration_ms,
-        mean_ms,
+        duration_ms: distribution.duration_ms,
+        mean_ms: distribution.mean_ms,
         p50_ms: percentile(&sorted, 50, 100),
-        p95_ms: percentile(&sorted, 95, 100),
+        p95_ms: distribution.p95_ms,
         p99_ms: percentile(&sorted, 99, 100),
         max_ms: *sorted.last().ok_or("missing sorted frame sample")?,
-        mean_fps: 1_000.0 / mean_ms,
-        one_percent_low_fps: 1_000.0 / slowest_mean_ms,
-        hitches_over_16_7_ms: samples.iter().filter(|value| **value > 16.7).count(),
-        hitches_over_33_3_ms: samples.iter().filter(|value| **value > 33.3).count(),
+        mean_fps: distribution.mean_fps,
+        one_percent_low_fps: distribution.one_percent_low_fps,
+        hitches_over_16_7_ms,
+        hitches_over_33_3_ms,
+        histogram,
     };
     let mut render_diagnostics = diagnostics
         .iter()
@@ -1481,6 +1481,22 @@ mod tests {
         assert!((report.frame.p99_ms - 198.0).abs() < f64::EPSILON);
         assert!((report.frame.max_ms - 200.0).abs() < f64::EPSILON);
         assert!((report.frame.one_percent_low_fps - (1_000.0 / 199.5)).abs() < f64::EPSILON);
+        assert_eq!(report.frame.hitches_over_16_7_ms, 184);
+        assert_eq!(report.frame.hitches_over_33_3_ms, 167);
+        assert_eq!(
+            report.frame.histogram,
+            FrameTimeHistogram {
+                frames_at_or_below_16_7_ms: 16,
+                frames_over_16_7_ms_at_or_below_33_3_ms: 17,
+                frames_over_33_3_ms: 167,
+            }
+        );
+        assert_eq!(report.frame.histogram.total_samples(), 200);
+        let serialized = serde_json::to_value(&report).unwrap();
+        assert_eq!(
+            serialized["frame"]["histogram"]["frames_at_or_below_16_7_ms"],
+            16
+        );
     }
 
     #[test]
