@@ -16,9 +16,10 @@ HLOD, l'herbe groupée, le vent shader natif, l'interaction joueur, les règles 
 de visibilité prévues par ADR-0007. `R1-014` reste ouvert : le check WASM embarque le WGSL, mais ne
 crée pas réellement son pipeline sous WebGPU. Un
 [protocole temporel Browser préenregistré](R1_014_BROWSER_TEMPORAL_PROTOCOL.md) existe désormais,
-avec le statut `HARNESS READY — ACQUISITION NOT RUN`; il ne change pas cette qualification. Le lot ne
-qualifie ni la performance finale, ni les draw calls réels, ni la qualité artistique comparative, ni
-les autres lots de Visual Valley.
+et son acquisition automatisée ultérieure `a4e9824a` est PASS. Ce résultat postérieur ne réécrit pas
+la qualification historique du présent lot et laisse la revue humaine de `R1-014` en attente. Le lot
+ne qualifie ni la performance finale, ni les draw calls réels, ni la qualité artistique comparative,
+ni les autres lots de Visual Valley.
 
 ## Résultat livré
 
@@ -295,7 +296,8 @@ portabilité distante.
 - L'écart d'origine spatiale entre les entités individuelles et le mesh HLOD de chunk peut produire
   du popping. La complémentarité numérique est testée, mais la transition en mouvement reste à juger.
 - La paire de vent est une preuve temporelle, pas une horloge de capture déterministe ni une revue de
-  qualité artistique. Le pipeline shader WebGPU n'est pas encore lancé, donc `R1-014` reste ouvert.
+  qualité artistique. Le run Browser ultérieur `a4e9824a` présente le shader et passe ses seuils
+  automatisés, mais l'inspection humaine reste en attente ; `R1-014` reste donc ouvert.
 - Les ombres lointaines sont volontairement désactivées sur medium, herbe et HLOD ; la capture ne
   mesure pas une coupure radiale par caster.
 - Le smoke RX 7800 XT court ne qualifie aucune performance Gate 1. Le benchmark 1080p High sur RTX

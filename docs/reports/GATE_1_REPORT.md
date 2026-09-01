@@ -14,8 +14,10 @@ ledgers versionnés et une provenance CC0/Cadle auditée. Les deux variantes Bro
 natif/Studio passe **46/46** contrôles et les sept hashes communs concordent. La matrice native
 `5eadec7f` qualifie 10/10 runs Low/Medium/High/Ultra, adaptatif et benchmark, avec pipelines stables et
 tier eau synchronisé. Le commit `afb270c3` ajoute les temps CPU/GPU du pass opaque à l'overlay et les
-rend lisibles dans deux captures natives exactes clear/rain. Le commit source courant `a7c9b1e1`
-ajoute un harness visuel exact-commit et acquiert 29 PNG ainsi qu'une vidéo native de trois secondes.
+rend lisibles dans deux captures natives exactes clear/rain. Le lot natif `a7c9b1e1` ajoute un
+harness visuel exact-commit et acquiert 29 PNG ainsi qu'une vidéo native de trois secondes. Le commit
+source courant `a4e9824a` qualifie en plus le harnais temporel Browser : 120 RAF, toutes les ROIs,
+les quatre bundles exacts et les journaux console/réseau passent.
 
 Ces résultats ne ferment pas Gate 1. Le correctif forward + IBL supprime le warning wgpu enregistré
 dans la campagne historique `a34596bd` et corrige les palettes rose/moutarde ainsi que les grandes
@@ -33,7 +35,8 @@ constitue ni un passage administratif de Gate 1, ni une autorisation implicite d
 
 | Portée | Commit | Tree | Usage dans ce rapport |
 |---|---|---|---|
-| source courante et harness visuel | `a7c9b1e1d5e32f826b606778434a5fae91cc947d` | `2066fce699e4dd178c3d679cf4b0168d2e727d3d` | acquisition native exact-commit de 29 PNG, séquence clair/pluie/clair et MP4 3 s ; qualification refusée |
+| source courante et temporel Browser | `a4e9824abc3d0f5ec824edfa58155207467f3e99` | `25ff4fd075050ae60ad1904a9de00900a2c8a1fc` | acquisition temporelle automatisée PASS, 120 RAF, deux PNG, 3/3 ROIs végétation, témoin terrain, 4/4 bundles et journaux propres ; revue humaine en attente |
+| harness visuel natif | `a7c9b1e1d5e32f826b606778434a5fae91cc947d` | `2066fce699e4dd178c3d679cf4b0168d2e727d3d` | acquisition native exact-commit de 29 PNG, séquence clair/pluie/clair et MP4 3 s ; qualification refusée |
 | overlay CPU/GPU | `afb270c328b7095a84d452b93b9fdd38e2737f33` | `5eeb9098b8300dead8679de7d478f5096a572fd1` | temps CPU/GPU du pass opaque visibles, fallback indisponible testé, deux ledgers/captures High exacts |
 | matrice profils | `5eadec7f6f9f9b5b6734ce62ea3518f0297496f9` | `a2fb4df0b7e2eff4d686dda575d4a2bf18cb12a1` | 10 ledgers/captures natifs, quatre tiers, adaptation High vers Ultra, benchmark High et eau synchronisée |
 | campagne Browser exacte | `d9e2670111624aa836ab138afc35cddf441865ef` | `d6e5a40f73b47934444bda4514d5cdcb1dab093d` | Browser clear/rain, manifeste Studio, assets HTTP et captures Browser |
@@ -67,11 +70,17 @@ Le check WASM conserve uniquement l'avertissement de future incompatibilité tra
 la preuve overlay afb et la matrice native 5e sont documentées ci-dessous ; la paire Browser/native d9
 reste une campagne historique exacte distincte.
 
-Au commit courant `a7c9b1e1`, la validation proportionnée du nouveau harness passe 37/37 tests
+Au lot natif `a7c9b1e1`, la validation proportionnée du nouveau harness passe 37/37 tests
 `forge_runtime`, le formatage, Clippy strict du runtime, la syntaxe PowerShell et l'acquisition native
 exacte. Un rejeu workspace a été commencé, puis interrompu pendant la recompilation des dépendances
 pour éviter un nouveau cycle d'environ une heure ; il n'a produit aucun verdict et n'est pas présenté
 comme PASS. Le résultat 298/298 reste donc attribué uniquement à `afb270c3`.
+
+Au commit courant `a4e9824a`, la validation ciblée supplémentaire passe 28/28 tests unitaires Studio,
+`cargo fmt --all -- --check`, le check WASM, Clippy strict Studio/WASM, les trois validations
+PowerShell du harnais et l'acquisition Browser exacte. L'avertissement de future incompatibilité
+transitive `proc-macro-error2 v2.0.1` reste distinct d'un warning projet. Aucun nouveau rejeu workspace
+complet n'est revendiqué à ce commit.
 
 ## Overlay CPU/GPU exact `afb270c3`
 
@@ -130,6 +139,27 @@ parcours gameplay ni le stutter. L'acquisition avance donc la preuve sans fermer
 Le protocole, les hashes, la sélection versionnée de 13 artefacts et la décision visuelle sont
 consignés dans
 [`R1_025_026_046_048_NATIVE_VISUAL_PROOF.md`](../evidence/gate1/R1_025_026_046_048_NATIVE_VISUAL_PROOF.md).
+
+## Preuve temporelle Browser exacte `a4e9824a`
+
+Le harnais préenregistré a exécuté Edge headed `152.0.4191.53` sur la route High/clear exacte, depuis
+un worktree propre avant et après. La page reste `1920 x 1080` sans scrollbar globale ; le canvas
+`1408 x 966` et son backing store sont stables entre les captures. L'identité embarquée correspond au
+commit `a4e9824abc3d0f5ec824edfa58155207467f3e99` et à l'arbre
+`25ff4fd075050ae60ad1904a9de00900a2c8a1fc`.
+
+Le verdict automatisé est **PASS** : 120/120 callbacks RAF, 3/3 ROIs végétation PASS, témoin terrain
+PASS, 4/4 bundles servis byte-for-byte identiques à `dist`, zéro erreur/warning console et zéro échec
+réseau. Les dix entrées du manifeste ont été revérifiées contre leurs tailles et SHA-256. Le ledger
+principal porte le SHA-256
+`df7d375aafbce9dffb817f5def12e1d4b4f9ce64c9706def024dd79828d039a9`.
+
+Les copies versionnées sont sous
+[`browser/a4e9824abc3d0f5ec824edfa58155207467f3e99/temporal`](../evidence/gate1/browser/a4e9824abc3d0f5ec824edfa58155207467f3e99/temporal).
+Les deux PNG ont été ouverts à leur résolution originale pendant la consolidation technique. Ils
+montrent bien une variation temporelle de la végétation, mais aussi le stipple noir, les silhouettes
+lointaines crénelées et les aplats déjà refusés côté natif. Le ledger conserve
+`human_temporal_inspection=required_not_performed_by_harness` : `R1-014` et Gate 1 restent ouvertes.
 
 ## Preuve Browser d9 clear/rain
 

@@ -1,0 +1,96 @@
+{
+  "schema": "forge.gate1-browser-console",
+  "schema_version": 1,
+  "entries": [
+    {
+      "source": "runtime_console",
+      "level": "log",
+      "timestamp": 1788270754007.587,
+      "text": "%cINFO%c C:\\Users\\karen\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\bevy_winit-0.19.1\\src\\system.rs:67%c Creating new window OpenRPG Forge WebGPU · Visual Valley (66v0) color: whitesmoke; background: #444 color: gray; font-style: italic color: inherit",
+      "url": "http://127.0.0.1:1420/forge_studio.js",
+      "line": 1565
+    },
+    {
+      "source": "runtime_console",
+      "level": "log",
+      "timestamp": 1788270754040.601,
+      "text": "%cINFO%c C:\\Users\\karen\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\bevy_render-0.19.1\\src\\renderer\\mod.rs:288%c AdapterInfo { name: \"\", vendor: 0, device: 0, device_type: Other, device_pci_bus_id: \"\", driver: \"\", driver_info: \"\", backend: BrowserWebGpu, subgroup_min_size: 4, subgroup_max_size: 128, transient_saves_memory: false } color: whitesmoke; background: #444 color: gray; font-style: italic color: inherit",
+      "url": "http://127.0.0.1:1420/forge_studio.js",
+      "line": 1565
+    },
+    {
+      "source": "runtime_console",
+      "level": "log",
+      "timestamp": 1788270754118.611,
+      "text": "%cINFO%c C:\\Users\\karen\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\bevy_pbr-0.19.1\\src\\cluster\\mod.rs:87%c GPU clustering is supported on this device. color: whitesmoke; background: #444 color: gray; font-style: italic color: inherit",
+      "url": "http://127.0.0.1:1420/forge_studio.js",
+      "line": 1565
+    },
+    {
+      "source": "runtime_console",
+      "level": "log",
+      "timestamp": 1788270754119.327,
+      "text": "%cINFO%c C:\\Users\\karen\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\bevy_render-0.19.1\\src\\batching\\gpu_preprocessing.rs:1372%c Some GPU preprocessing are limited on this device. color: whitesmoke; background: #444 color: gray; font-style: italic color: inherit",
+      "url": "http://127.0.0.1:1420/forge_studio.js",
+      "line": 1565
+    },
+    {
+      "source": "runtime_console",
+      "level": "log",
+      "timestamp": 1788270754137.668,
+      "text": "%cINFO%c crates\\forge_engine\\src\\physics\\terrain.rs:396%c static terrain heightfields materialized from generated Forge chunks schema = \"forge.runtime-event\";\nschema_version = 1;\nevent_kind = \"terrain_heightfields_materialized\";\ncolliders = 64;\nsimulation_hz = 60.0; color: whitesmoke; background: #444 color: gray; font-style: italic color: inherit",
+      "url": "http://127.0.0.1:1420/forge_studio.js",
+      "line": 1565
+    },
+    {
+      "source": "runtime_console",
+      "level": "log",
+      "timestamp": 1788270754138.757,
+      "text": "%cINFO%c crates\\forge_engine\\src\\visual_valley.rs:660%c Visual Valley terrain materialized from the canonical document schema = \"forge.runtime-event\";\nschema_version = 1;\nevent_kind = \"visual_valley_terrain_materialized\";\nscene = Visual Valley terrain;\nsource_hash = 9f16780a1de1e9dd4b65931624a8b45281713829434292bada320a578420b2ef;\nchunks = 64;\nvertices = 69696;\ntriangles = 131072;\nmaterial_layers = 3;\nlod_zero_chunks = 64; color: whitesmoke; background: #444 color: gray; font-style: italic color: inherit",
+      "url": "http://127.0.0.1:1420/forge_studio.js",
+      "line": 1565
+    },
+    {
+      "source": "runtime_console",
+      "level": "log",
+      "timestamp": 1788270754144.036,
+      "text": "%cINFO%c crates\\forge_engine\\src\\lib.rs:641%c primary window initialized schema = \"forge.runtime-event\";\nschema_version = 1;\nevent_kind = \"window_initialized\";\nlogical_width = 1408.0;\nlogical_height = 966.0;\nphysical_width = 1408;\nphysical_height = 966;\nscale_factor = 1.0;\nresizable = true;\npresent_mode_request = auto_vsync;\nvsync_requested = true; color: whitesmoke; background: #444 color: gray; font-style: italic color: inherit",
+      "url": "http://127.0.0.1:1420/forge_studio.js",
+      "line": 1565
+    },
+    {
+      "source": "runtime_console",
+      "level": "log",
+      "timestamp": 1788270754145.419,
+      "text": "%cINFO%c crates\\forge_engine\\src\\vegetation.rs:1600%c Visual Valley vegetation materialized from the canonical documents schema = \"forge.runtime-event\";\nschema_version = 1;\nevent_kind = \"visual_valley_vegetation_materialized\";\nterrain_document_hash = 9f16780a1de1e9dd4b65931624a8b45281713829434292bada320a578420b2ef;\nvegetation_document_hash = 5c7619a6ee04533accbf998e3c12077363e4e3b06c86d28e9a62b76bae80a5b8;\naccepted_placements = 8282;\nprojection_entities = 4046;\ngrass_batches = 64;\nhlod_batches = 64;\ngrass_blades = 162176; color: whitesmoke; background: #444 color: gray; font-style: italic color: inherit",
+      "url": "http://127.0.0.1:1420/forge_studio.js",
+      "line": 1565
+    },
+    {
+      "source": "runtime_console",
+      "level": "log",
+      "timestamp": 1788270754225.483,
+      "text": "%cINFO%c crates\\forge_engine\\src\\lib.rs:1179%c high-performance adapter initialized schema = \"forge.runtime-event\";\nschema_version = 1;\nevent_kind = \"gpu_adapter_initialized\";\nadapter = ;\nbackend = BrowserWebGpu;\ndevice_type = Other;\ndriver = ; color: whitesmoke; background: #444 color: gray; font-style: italic color: inherit",
+      "url": "http://127.0.0.1:1420/forge_studio.js",
+      "line": 1565
+    },
+    {
+      "source": "runtime_console",
+      "level": "log",
+      "timestamp": 1788270754226.475,
+      "text": "%cINFO%c crates\\forge_engine\\src\\lib.rs:748%c window backend confirmed a logical resize schema = \"forge.runtime-event\";\nschema_version = 1;\nevent_kind = \"window_resize_observed\";\nframe = 0;\nlogical_width = 1408.0;\nlogical_height = 966.0;\nresize_events_observed = 1;\nrequested_resize_observed = false; color: whitesmoke; background: #444 color: gray; font-style: italic color: inherit",
+      "url": "http://127.0.0.1:1420/forge_studio.js",
+      "line": 1565
+    },
+    {
+      "source": "runtime_console",
+      "level": "log",
+      "timestamp": 1788270759069.167,
+      "text": "%cINFO%c crates\\forge_engine\\src\\scenery.rs:1003%c governed CC0 scenery activated atomically after dependency loading schema = \"forge.runtime-event\";\nschema_version = 1;\nevent_kind = \"visual_valley_scenery_activated\";\nmanifest_hash = 6b41ec73efde5b8a40ca0132e1d32462176d6b4810104f6bed69496569f81f5f;\nsubset_id = visual-valley-quaternius-stylized-nature-standard-1.0;\npack_id = quaternius:stylized-nature-megakit-standard-1.0;\nlicense = CC0-1.0;\ntracked_files = 27;\ntracked_bytes = 16652493;\nunique_models = 9;\nrequested_instances = 125;\nreplacement_instances = 99;\ndetail_instances = 26;\nreplacement_lod_start_m = 72.0;\nreplacement_lod_end_m = 180.0;\ndetail_cull_distance_m = 120.0;\nhidden_procedural_entities = 147; color: whitesmoke; background: #444 color: gray; font-style: italic color: inherit",
+      "url": "http://127.0.0.1:1420/forge_studio.js",
+      "line": 1565
+    }
+  ],
+  "error_count": 0,
+  "warning_count": 0
+}

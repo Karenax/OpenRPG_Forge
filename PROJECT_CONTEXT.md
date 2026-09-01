@@ -3,7 +3,7 @@
 Dernière mise à jour : **1er septembre 2026**
 Branche : **`Rust`**
 Statut : **Gate 0 passée sur preuves automatisées locales ; Gate 1 ouverte au commit source courant
-`a7c9b1e1d5e32f826b606778434a5fae91cc947d` ; Gate 2 interdite ; produit non qualifié**
+`a4e9824abc3d0f5ec824edfa58155207467f3e99` ; Gate 2 interdite ; produit non qualifié**
 Référence historique : `main@a7f4a3f5dd0eeff1dc060ea1237b1d7d650b7ca0`
 Référence upstream exécutable : `Humpalumps/Cadle@ea0da62549980816a6a27e08b75808b1f56d70e7` (`v0.6.0`)
 
@@ -29,12 +29,12 @@ Les revues humaines Gate 0 restent différées et la CI distante reste `NOT RUN`
 facturation ; ADR-0006 autorise jusqu’à Gate 4 une décision sur preuves automatisées locales sans
 jamais transformer ce statut en CI verte.
 
-Le snapshot source courant de Gate 1 est `a7c9b1e1`, arbre
-`2066fce699e4dd178c3d679cf4b0168d2e727d3d`. Son harness visuel passe **37/37 tests ciblés**, le
-formatage et Clippy strict du runtime. La validation workspace **298/298** et le check Studio WASM
-restent épinglés au commit overlay `afb270c3` tant que leur rejeu au commit courant n'est pas
-consolidé. Le seul avertissement de build connu reste la future incompatibilité transitive de
-`proc-macro-error2 v2.0.1`.
+Le snapshot source courant de Gate 1 est `a4e9824a`, arbre
+`25ff4fd075050ae60ad1904a9de00900a2c8a1fc`. Sa validation ciblée passe 28/28 tests Studio, le
+formatage, le check et Clippy strict Studio/WASM, les validations PowerShell du harnais et
+l'acquisition temporelle Browser exacte. La validation workspace **298/298** reste épinglée au commit
+overlay `afb270c3` tant que son rejeu au commit courant n'est pas consolidé. Le seul avertissement de
+build connu reste la future incompatibilité transitive de `proc-macro-error2 v2.0.1`.
 
 Les preuves Browser High clear/rain restent épinglées au commit exact `d9e2670` : **24/24 contrôles** passent
 pour chaque météo, 9/9 modèles sont chargés, 26/26 assets répondent HTTP 200, sans requête `.meta`,
@@ -42,6 +42,12 @@ pour chaque météo, 9/9 modèles sont chargés, 26/26 assets répondent HTTP 20
 10,1175 ms de moyenne, p95 12,1 ms et 1 % low 77,519 FPS ; rain mesure 9,5633 ms, p95 10,9 ms et
 1 % low 85,106 FPS. Les deux runs ont zéro hitch. Ces mesures décrivent la boucle Bevy WASM ;
 `gpu_presentation` reste honnêtement `not_observed`.
+
+Le harnais temporel Browser exact `a4e9824a` qualifie désormais son acquisition automatisée High
+clear : 120/120 callbacks RAF, 3/3 ROIs végétation et témoin terrain PASS, 4/4 bundles servis
+identiques à `dist`, zéro warning/erreur console et zéro échec réseau. Les dix artefacts, dont les deux
+PNG du canvas, ont leurs tailles et SHA-256 revérifiés et sont versionnés. L'inspection humaine reste
+en attente ; les images montrent encore le stipple/crénelage et les aplats, donc `R1-014` reste ouvert.
 
 Le runtime Release exact `5eadec7f` a été exécuté en Low/Medium/High/Ultra clear/rain, adaptatif
 clear et benchmark clear, 1920 x 1080, sur RX 7800 XT/Vulkan. Les dix ledgers contiennent 120
@@ -1287,9 +1293,10 @@ Créer `examples/visual_valley` :
 - overlay complet ;
 - captures déterministes.
 
-État consolidé au commit source courant `a7c9b1e1d5e32f826b606778434a5fae91cc947d`, arbre
-`2066fce699e4dd178c3d679cf4b0168d2e727d3d` : le harness exact-commit acquiert cinq vues fixes,
-24 frames et un MP4 de trois secondes ; son contrôle visuel borné refuse la qualification. L'overlay
+État consolidé au commit source courant `a4e9824abc3d0f5ec824edfa58155207467f3e99`, arbre
+`25ff4fd075050ae60ad1904a9de00900a2c8a1fc` : le harnais temporel Browser passe son acquisition
+automatisée exacte, mais laisse la revue humaine en attente. Le harness natif `a7c9b1e1` acquiert cinq
+vues fixes, 24 frames et un MP4 de trois secondes ; son contrôle visuel borné refuse la qualification. L'overlay
 CPU/GPU `afb270c3` reste acquis sur deux captures exactes et lisibles. La matrice native `5eadec7f`
 qualifie les quatre tiers fixes, clear/rain, l'adaptation High vers Ultra et le benchmark High. Les
 dix runs ont 120 samples,
@@ -1829,8 +1836,10 @@ Cadle v0.6.0 @ ea0da625 : copie locale épinglée, intacte et mesurée. Code MIT
 attribution ; assets exclus. Aucune dépendance Three.js/JavaScript dans le produit Forge.
 
 TRAVAIL ACTIF
-Gate C et Gate 0 sont passées. Gate 1 reste ouverte au commit source a7c9b1e1 : harness natif exact
-acquis, 29 PNG et MP4 3 s valides mais qualification visuelle refusée ; overlay CPU/GPU afb270c3
+Gate C et Gate 0 sont passées. Gate 1 reste ouverte au commit source a4e9824a : harnais temporel
+Browser automatisé PASS, 120 RAF, 3/3 ROIs végétation, témoin terrain, 4/4 bundles et journaux propres,
+mais inspection humaine en attente ; harness natif a7c9b1e1 acquis, 29 PNG et MP4 3 s valides mais
+qualification visuelle refusée ; overlay CPU/GPU afb270c3
 acquis ; matrice native 5eadec7f 10/10, profils et pipelines acquis, eau synchronisée ; la paire
 Browser/native d9e2670 conserve 24/24 par météo et 46/46 croisés. R1-033 est fermé N/A conditionnel.
 Restent dus : corrections visuelles, parcours gameplay, instrumentation exhaustive, GPU cible, vues

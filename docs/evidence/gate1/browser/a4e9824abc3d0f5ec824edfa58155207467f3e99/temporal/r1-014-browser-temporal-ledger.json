@@ -1,0 +1,401 @@
+{
+  "schema": "forge.gate1-browser-temporal-ledger",
+  "schema_version": 1,
+  "protocol_id": "r1-014-browser-webgpu-clear-high-temporal-v1",
+  "recorded_at_utc": "2026-09-01T13:52:51.9913546+00:00",
+  "git": {
+    "commit": "a4e9824abc3d0f5ec824edfa58155207467f3e99",
+    "tree": "25ff4fd075050ae60ad1904a9de00900a2c8a1fc",
+    "worktree": "E:\\OpenRPG_Forge\\.gate1-candidate",
+    "clean_before_acquisition": true,
+    "clean_after_acquisition": true
+  },
+  "route": "http://127.0.0.1:1420/?forge_scene=visual-valley&forge_weather=clear&forge_quality=high",
+  "browser": {
+    "executable": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+    "product": "Edg/152.0.4191.53",
+    "revision": "@4ee8983fdce2559a0ae8f8376934c5ed353035cd",
+    "protocol_version": "1.3",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0",
+    "headed": true,
+    "navigator_gpu": true,
+    "viewport": {
+      "width_px": 1920,
+      "height_px": 1080,
+      "device_scale_factor": 1.0
+    }
+  },
+  "fixed_context": {
+    "build_source_commit": "a4e9824abc3d0f5ec824edfa58155207467f3e99",
+    "input_guard": {
+      "active": true,
+      "blocked_event_types": [
+        "keydown",
+        "keyup",
+        "mousedown",
+        "mouseup",
+        "mousemove",
+        "wheel",
+        "touchstart",
+        "touchmove",
+        "touchend",
+        "pointerdown",
+        "pointerup",
+        "pointermove"
+      ],
+      "dispatched_input_events": 0
+    },
+    "camera_owner": "visual_valley_player_controller",
+    "active_camera_count": 1,
+    "player_controller_hash": "941eceefb29835c0949a9801f83f421839bcb5b0cd79583899c22d6832a74f90",
+    "weather": "clear",
+    "quality_mode": "fixed",
+    "quality_tier": "high",
+    "stable_between_captures": true
+  },
+  "captures": {
+    "page": {
+      "inner_width": 1920,
+      "inner_height": 1080,
+      "client_width": 1920,
+      "client_height": 1080,
+      "scroll_width": 1920,
+      "scroll_height": 1080
+    },
+    "canvas": {
+      "left": 231,
+      "top": 114,
+      "width": 1408,
+      "height": 966,
+      "scroll_x": 0,
+      "scroll_y": 0,
+      "backing_width": 1408,
+      "backing_height": 966,
+      "device_pixel_ratio": 1
+    },
+    "frame_a_recorded_at_utc": "2026-09-01T13:52:47.8441934+00:00",
+    "frame_b_recorded_at_utc": "2026-09-01T13:52:50.7325246+00:00",
+    "request_animation_frame_separation": {
+      "requested_callbacks": 120,
+      "observed_callbacks": 120,
+      "first_callback_timestamp_ms": 15858.1,
+      "last_callback_timestamp_ms": 17108.1,
+      "elapsed_performance_ms": 1265.3999999761581
+    },
+    "decoded_width_px": 1408,
+    "decoded_height_px": 966
+  },
+  "registration": {
+    "config_sha256": "f27165c409a89a5dd3b2e4433ac0ce15e4f95b933775c4b9e79151d7fdc3623a",
+    "basis": {
+      "historical_capture": "docs/evidence/gate1/captures/visual-valley-browser-webgpu-clear-high-d9e26701.png",
+      "historical_capture_sha256": "819bd9994fafc8f4694d2e65300528bbf2d2b05f6e8946ae515305b58beb33d4",
+      "purpose": "ROI geometry and thresholds registered before the first R1-014 Browser temporal run; the historical still is not temporal evidence."
+    },
+    "changed_channel_delta": 6,
+    "excluded_regions": [
+      {
+        "id": "studio_overlay",
+        "x": 0.0,
+        "y": 0.0,
+        "width": 0.57,
+        "height": 0.31,
+        "basis": "Opaque Bevy diagnostic overlay in the fixed historical clear/high canvas."
+      },
+      {
+        "id": "sky",
+        "x": 0.57,
+        "y": 0.0,
+        "width": 0.43,
+        "height": 0.28,
+        "basis": "Visible sky band outside the diagnostic overlay."
+      },
+      {
+        "id": "water_guard",
+        "x": 0.34,
+        "y": 0.31,
+        "width": 0.3,
+        "height": 0.15,
+        "basis": "Conservative no-sample guard for the water/horizon corridor; no registered ROI intersects it."
+      }
+    ],
+    "regions": [
+      {
+        "id": "vegetation_left_foreground",
+        "kind": "vegetation",
+        "x": 0.02,
+        "y": 0.47,
+        "width": 0.17,
+        "height": 0.2,
+        "basis": "Flowers, broad leaves and grass at fixed camera left."
+      },
+      {
+        "id": "vegetation_right_midfield",
+        "kind": "vegetation",
+        "x": 0.69,
+        "y": 0.32,
+        "width": 0.27,
+        "height": 0.22,
+        "basis": "Grass, shrubs and tree line at fixed camera right."
+      },
+      {
+        "id": "vegetation_right_foreground",
+        "kind": "vegetation",
+        "x": 0.66,
+        "y": 0.69,
+        "width": 0.28,
+        "height": 0.2,
+        "basis": "Large foreground plant and neighboring grass at fixed camera right."
+      },
+      {
+        "id": "terrain_witness",
+        "kind": "terrain_witness",
+        "x": 0.56,
+        "y": 0.55,
+        "width": 0.08,
+        "height": 0.06,
+        "basis": "Open terrain patch away from the player capsule, vegetation, overlay, sky and water guard."
+      }
+    ],
+    "thresholds": {
+      "changed_channel_delta": 6,
+      "vegetation_min_changed_pixel_ratio": 0.002,
+      "vegetation_min_mean_absolute_rgb_delta": 0.1,
+      "terrain_max_changed_pixel_ratio": 0.01,
+      "terrain_max_mean_absolute_rgb_delta": 0.5
+    }
+  },
+  "difference_metrics": [
+    {
+      "id": "vegetation_left_foreground",
+      "kind": "vegetation",
+      "pixel_rect": {
+        "x": 28,
+        "y": 454,
+        "width": 240,
+        "height": 194
+      },
+      "pixels": 46560,
+      "changed_pixels": 8457,
+      "changed_pixel_ratio": 0.1816366,
+      "mean_absolute_rgb_delta": 10.15004296,
+      "rmse_rgb": 27.43010069,
+      "psnr_db": 19.36625557,
+      "passed": true
+    },
+    {
+      "id": "vegetation_right_midfield",
+      "kind": "vegetation",
+      "pixel_rect": {
+        "x": 971,
+        "y": 309,
+        "width": 381,
+        "height": 213
+      },
+      "pixels": 81153,
+      "changed_pixels": 4431,
+      "changed_pixel_ratio": 0.05460057,
+      "mean_absolute_rgb_delta": 2.14469788,
+      "rmse_rgb": 13.55489609,
+      "psnr_db": 25.48887976,
+      "passed": true
+    },
+    {
+      "id": "vegetation_right_foreground",
+      "kind": "vegetation",
+      "pixel_rect": {
+        "x": 929,
+        "y": 666,
+        "width": 395,
+        "height": 194
+      },
+      "pixels": 76630,
+      "changed_pixels": 4913,
+      "changed_pixel_ratio": 0.06411327,
+      "mean_absolute_rgb_delta": 1.9580843,
+      "rmse_rgb": 10.22775907,
+      "psnr_db": 27.93519383,
+      "passed": true
+    },
+    {
+      "id": "terrain_witness",
+      "kind": "terrain_witness",
+      "pixel_rect": {
+        "x": 788,
+        "y": 531,
+        "width": 114,
+        "height": 59
+      },
+      "pixels": 6726,
+      "changed_pixels": 0,
+      "changed_pixel_ratio": 0.0,
+      "mean_absolute_rgb_delta": 0.00332045,
+      "rmse_rgb": 0.05762333,
+      "psnr_db": 72.91883676,
+      "passed": true
+    }
+  ],
+  "console": {
+    "entries": 11,
+    "errors": 0,
+    "warnings": 0,
+    "artifact": {
+      "relative_path": "console.json",
+      "bytes": 7180,
+      "sha256": "89b7abe2f3803c1f970ef0f54ce14dbebcd99b3524dae1657c1a2ca197e9927a"
+    }
+  },
+  "network": {
+    "responses": 31,
+    "failures": 0,
+    "artifact": {
+      "relative_path": "network.json",
+      "bytes": 11087,
+      "sha256": "e09b0f99f24c29534ae46e994aa5cf9fbc067927a5f17702a24823d7f66cb512"
+    }
+  },
+  "served_bundles": {
+    "exact_matches": 4,
+    "required_matches": 4,
+    "files": [
+      {
+        "relative_path": "index.html",
+        "url": "http://127.0.0.1:1420/index.html",
+        "content_type": "text/html",
+        "local_bytes": 778,
+        "served_bytes": 778,
+        "local_sha256": "0cfd0aace44fa8cc1a0a8716ecf9bc4db1167ebffb1e5e57b1d0bc55a090f455",
+        "served_sha256": "0cfd0aace44fa8cc1a0a8716ecf9bc4db1167ebffb1e5e57b1d0bc55a090f455",
+        "exact_match": true
+      },
+      {
+        "relative_path": "forge_studio.js",
+        "url": "http://127.0.0.1:1420/forge_studio.js",
+        "content_type": "text/javascript",
+        "local_bytes": 186387,
+        "served_bytes": 186387,
+        "local_sha256": "5ed0d57d09470cd793bc4ae9311b2a62b4743d2d2645dcb606a71cd9216307b4",
+        "served_sha256": "5ed0d57d09470cd793bc4ae9311b2a62b4743d2d2645dcb606a71cd9216307b4",
+        "exact_match": true
+      },
+      {
+        "relative_path": "forge_studio_bg.wasm",
+        "url": "http://127.0.0.1:1420/forge_studio_bg.wasm",
+        "content_type": "application/wasm",
+        "local_bytes": 145046855,
+        "served_bytes": 145046855,
+        "local_sha256": "d66eb19928cbd464d0e3741201641725084c93f7aee7d5837c07db76a1ee902e",
+        "served_sha256": "d66eb19928cbd464d0e3741201641725084c93f7aee7d5837c07db76a1ee902e",
+        "exact_match": true
+      },
+      {
+        "relative_path": "styles.css",
+        "url": "http://127.0.0.1:1420/styles.css",
+        "content_type": "text/css",
+        "local_bytes": 3119,
+        "served_bytes": 3119,
+        "local_sha256": "a2b48000d71799432d5f97ec451b65cc3fa61d695c29b6f4d8ac82ec414de9ba",
+        "served_sha256": "a2b48000d71799432d5f97ec451b65cc3fa61d695c29b6f4d8ac82ec414de9ba",
+        "exact_match": true
+      }
+    ],
+    "artifact": {
+      "relative_path": "served-bundles.json",
+      "bytes": 1799,
+      "sha256": "dcb191d6a7449a3d8320288fcb76c173b61edfcdb39a4089f8573b50f4046c4a"
+    }
+  },
+  "artifacts": {
+    "canvas_frame_a": {
+      "relative_path": "canvas-frame-a.png",
+      "bytes": 1168678,
+      "sha256": "cb1bc0dce0266a43dc616b3a6a2b4b121f65d309a4a2812e331c579fe8c00673"
+    },
+    "canvas_frame_b": {
+      "relative_path": "canvas-frame-b.png",
+      "bytes": 1179872,
+      "sha256": "494029b2301f3dd8577ec1b557a71f2867b2036376c529de6c23fcba4ada5c95"
+    },
+    "gate_ledger_before": {
+      "relative_path": "gate-ledger-before.json",
+      "bytes": 1443,
+      "sha256": "931707ef89d6c057abd9f24b03b5bcde0d8dbf2292220788aa826c4750145490"
+    },
+    "gate_ledger_after": {
+      "relative_path": "gate-ledger-after.json",
+      "bytes": 1443,
+      "sha256": "931707ef89d6c057abd9f24b03b5bcde0d8dbf2292220788aa826c4750145490"
+    },
+    "scene_ledger_before": {
+      "relative_path": "scene-ledger-before.json",
+      "bytes": 3452,
+      "sha256": "b58d5fa809375b346f0bf0602863f3407eff5921b45eae80333d0aa387c91199"
+    },
+    "scene_ledger_after": {
+      "relative_path": "scene-ledger-after.json",
+      "bytes": 3452,
+      "sha256": "b58d5fa809375b346f0bf0602863f3407eff5921b45eae80333d0aa387c91199"
+    },
+    "console": {
+      "relative_path": "console.json",
+      "bytes": 7180,
+      "sha256": "89b7abe2f3803c1f970ef0f54ce14dbebcd99b3524dae1657c1a2ca197e9927a"
+    },
+    "network": {
+      "relative_path": "network.json",
+      "bytes": 11087,
+      "sha256": "e09b0f99f24c29534ae46e994aa5cf9fbc067927a5f17702a24823d7f66cb512"
+    },
+    "served_bundles": {
+      "relative_path": "served-bundles.json",
+      "bytes": 1799,
+      "sha256": "dcb191d6a7449a3d8320288fcb76c173b61edfcdb39a4089f8573b50f4046c4a"
+    }
+  },
+  "protocol_files": [
+    {
+      "path": "scripts/gate1-browser-temporal.v1.json",
+      "sha256": "f27165c409a89a5dd3b2e4433ac0ce15e4f95b933775c4b9e79151d7fdc3623a"
+    },
+    {
+      "path": "scripts/Invoke-Gate1BrowserTemporal.ps1",
+      "sha256": "d32c3ac9bf5637b9978d23ba386bd89c08c4269cbc1ae3508500ded70a6aa1f2"
+    },
+    {
+      "path": "scripts/Test-Gate1BrowserTemporal.ps1",
+      "sha256": "6a7f6febaae33be75e07973f0109794e4793c2a850e9f10d21fed999cd7fe561"
+    },
+    {
+      "path": "scripts/Invoke-StudioTrunk.ps1",
+      "sha256": "a616db1479fa400d5f5d0cb8c313a74befcd44f4451b6824244b07355d0fc502"
+    },
+    {
+      "path": "apps/forge_studio/src/lib.rs",
+      "sha256": "28c989af187d8f02c1edb3647ec05a8204ca13385513354e6ebe0c1ad7587a2f"
+    },
+    {
+      "path": "apps/forge_studio/styles.css",
+      "sha256": "a2b48000d71799432d5f97ec451b65cc3fa61d695c29b6f4d8ac82ec414de9ba"
+    },
+    {
+      "path": "docs/evidence/gate1/R1_014_BROWSER_TEMPORAL_PROTOCOL.md",
+      "sha256": "9a71cff70b290ae06b94a36e456126550b3b1a08c06dae6c3af5af5606409a4d"
+    }
+  ],
+  "automated_result": {
+    "status": "pass",
+    "vegetation_regions_passed": 3,
+    "vegetation_regions_required": 2,
+    "terrain_witness_passed": true,
+    "console_errors": 0,
+    "console_warnings": 0,
+    "network_failures": 0,
+    "human_temporal_inspection": "required_not_performed_by_harness",
+    "r1_014_claim": "not_made_by_harness"
+  },
+  "limitations": [
+    "requestAnimationFrame callbacks bound temporal separation but are not GPU timestamp queries.",
+    "Temporal canvas differences provide Browser presentation evidence without changing the Studio gpu_presentation field.",
+    "The harness does not close R1-014: human inspection of both captures and registered ROIs remains required."
+  ]
+}

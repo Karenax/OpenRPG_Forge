@@ -1,15 +1,16 @@
 # R1-014 — protocole temporel Browser WebGPU clear/High
 
-Statut : **HARNESS READY — ACQUISITION NOT RUN**
+Statut : **ACQUISITION AUTOMATISÉE PASS — INSPECTION HUMAINE EN ATTENTE**
 
 Branche cible : **`Rust`**
 
 Base de conception : commit **`28985328f0d2de1fa79c705d5c3aa1bc522dbe35`**, tree
 **`ec71501d231ea6469eb97dc0af3d0230f4daf6eb`**
 
-`R1-014` reste ouvert. Ce lot versionne un harnais reproductible ; il n'a lancé ni Browser, ni Cargo,
-ni build Trunk et ne produit donc aucune nouvelle preuve de présentation WebGPU. Aucun asset Cadle
-n'est copié dans Forge.
+`R1-014` reste ouvert. Le harnais reproductible a exécuté Browser sur le commit exact `a4e9824a`,
+produit une paire temporelle du canvas et satisfait ses critères automatisés préenregistrés. Cette
+acquisition ne remplace ni l'inspection humaine des deux images, ni la qualification artistique, ni
+une timestamp query GPU. Aucun asset Cadle n'est copié dans Forge.
 
 ## Contrat préenregistré
 
@@ -114,12 +115,36 @@ Le ledger principal est `r1-014-browser-temporal-ledger.json` et le manifeste fi
 seuils préenregistrés et les invariants de contexte. Le ledger conserve toujours
 `human_temporal_inspection=required_not_performed_by_harness` et `r1_014_claim=not_made_by_harness`.
 
+## Résultat automatisé exact `a4e9824a`
+
+L'acquisition du **1er septembre 2026 à 13:52 UTC** qualifie le commit
+`a4e9824abc3d0f5ec824edfa58155207467f3e99`, arbre
+`25ff4fd075050ae60ad1904a9de00900a2c8a1fc`, depuis un worktree propre avant et après. Les preuves
+versionnées sont sous
+[`browser/a4e9824abc3d0f5ec824edfa58155207467f3e99/temporal`](browser/a4e9824abc3d0f5ec824edfa58155207467f3e99/temporal).
+
+- manifeste : **10/10 artefacts** présents, tailles et SHA-256 revérifiés ;
+- ledger principal : SHA-256
+  `df7d375aafbce9dffb817f5def12e1d4b4f9ce64c9706def024dd79828d039a9` ;
+- Edge headed `152.0.4191.53`, `navigator.gpu=true`, page `1920 x 1080` sans scrollbar et canvas
+  `1408 x 966` entièrement visible ;
+- **120/120** callbacks RAF observés entre les deux captures ;
+- **3/3** ROIs végétation PASS et témoin terrain PASS ;
+- **4/4** bundles servis byte-for-byte identiques à `dist` ;
+- **0** erreur console, **0** warning console et **0** échec réseau.
+
+Les deux PNG ont été ouverts à leur résolution originale pendant la consolidation technique. Ils
+confirment une animation temporelle hors overlay/ciel/eau, mais montrent encore le stipple noir, les
+silhouettes lointaines crénelées et les aplats déjà refusés par la preuve native. Cela justifie le
+PASS automatisé du harnais, pas la fermeture humaine de `R1-014` ni le passage de Gate 1.
+
 ## Validation statique du lot
 
 Le test statique parse les scripts PowerShell, rejoue la validation de configuration, vérifie que les
 mutations `119 RAF`, `ROI dans le ciel` et `seuil modifié sans changement de version` sont rejetées,
 teste une matrice synthétique positive puis un échec console, et contrôle que la roadmap laisse
-`R1-014` décoché. Le self-test couvre aussi une réponse CDP synthétique composée d'une page
+`R1-014` décoché avec le PASS automatisé et l'inspection humaine en attente. Le self-test couvre aussi
+une réponse CDP synthétique composée d'une page
 d'arrière-plan, de deux pages et de l'ancienne forme imbriquée. Il ne lance ni Browser ni build :
 
 ```powershell

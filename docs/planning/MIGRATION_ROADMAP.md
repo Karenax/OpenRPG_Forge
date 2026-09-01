@@ -291,7 +291,7 @@ et sans transformer une acquisition automatisée en revue humaine.
 
 Statut : **OUVERTE** après le passage automatisé local de Gate 0 sous ADR-0004, ADR-0005 et ADR-0006.
 
-Progression consolidée au commit source courant
+La preuve native consolidée reste épinglée au commit
 `a7c9b1e1d5e32f826b606778434a5fae91cc947d`, arbre
 `2066fce699e4dd178c3d679cf4b0168d2e727d3d`. Ce commit ajoute un harness natif exact-commit pour
 les vues hauteur humaine/lointaine/eau, la séquence clair → pluie → clair et une vidéo de trois
@@ -310,6 +310,13 @@ stables et tier eau toujours égal au tier appliqué. L'adaptation effectue High
 Le smoke Browser High clear/rain reste épinglé au commit exact `d9e2670` et passe ses **24/24
 contrôles pour chaque météo** : huit hashes présents, 9/9 modèles, 26/26 assets HTTP 200, aucune
 requête `.meta`, aucun échec réseau et aucune entrée warning/erreur console.
+
+Le harnais temporel Browser qualifie désormais son acquisition automatisée exacte au commit
+`a4e9824abc3d0f5ec824edfa58155207467f3e99`, arbre
+`25ff4fd075050ae60ad1904a9de00900a2c8a1fc` : 120/120 callbacks RAF, 3/3 ROIs végétation et témoin
+terrain PASS, 4/4 bundles servis identiques à `dist`, zéro warning/erreur console et zéro échec
+réseau. Les deux PNG et les dix artefacts hashés sont versionnés. `R1-014` reste ouvert : l'inspection
+humaine est en attente et les images montrent encore le stipple/crénelage et les aplats déjà refusés.
 
 La boucle WASM mesure 120 frames après 60 frames de warm-up. Clear relève 10,1175 ms de moyenne,
 p95 12,1 ms, 1 % low 77,519 FPS ; rain 9,5633 ms, p95 10,9 ms, 1 % low 85,106 FPS ; zéro hitch dans
@@ -375,9 +382,10 @@ qualité                   Low / Medium / High / Ultra
 - [x] `R1-011` LOD arbres — near/medium distincts et plages complémentaires testées.
 - [x] `R1-012` imposteurs ou HLOD lointain — 64 meshes HLOD de chunk observés.
 - [x] `R1-013` herbe dense sans entité par brin — 162 176 brins dans 64 lots.
-- [ ] `R1-014` vent shader — PASS natif et paire temporelle inspectée ; présentation du vent sous
-  WebGPU non qualifiée et `gpu_presentation` Browser non observée. Harnais temporel repo préenregistré :
-  **HARNESS READY / ACQUISITION NOT RUN** ; inspection humaine ultérieure obligatoire.
+- [ ] `R1-014` vent shader — PASS natif et acquisition temporelle Browser automatisée `a4e9824a`
+  PASS : 120 RAF, 3/3 ROIs végétation, témoin terrain, 4/4 bundles exacts, console/réseau propres.
+  **ACQUISITION AUTOMATISÉE PASS / INSPECTION HUMAINE EN ATTENTE** ; `gpu_presentation` reste
+  `not_observed` et la paire ne ferme pas la route sans revue humaine versionnée.
 - [x] `R1-015` interaction locale avec personnage — champ borné aligné sur la pose post-physique.
 - [x] `R1-016` culling par chunks — instantané cohérent après 241 observations caméra/range.
 - [x] `R1-017` réglage des ombres par distance — CSM 128 m et règles caster/opt-out observés.

@@ -82,11 +82,13 @@ foreach ($forbiddenToken in @('npm install', 'npx ', 'playwright', 'upstream/cad
 }
 
 $protocol = Get-Content -LiteralPath $protocolPath -Raw
-Assert-Condition -Condition $protocol.Contains('HARNESS READY — ACQUISITION NOT RUN', [StringComparison]::Ordinal) -Message 'Protocol must state that Browser acquisition has not run.'
+Assert-Condition -Condition $protocol.Contains('ACQUISITION AUTOMATISÉE PASS — INSPECTION HUMAINE EN ATTENTE', [StringComparison]::Ordinal) -Message 'Protocol must record the automated Browser pass without claiming human inspection.'
+Assert-Condition -Condition $protocol.Contains('a4e9824abc3d0f5ec824edfa58155207467f3e99', [StringComparison]::Ordinal) -Message 'Protocol must bind the qualifying temporal acquisition commit.'
+Assert-Condition -Condition $protocol.Contains('df7d375aafbce9dffb817f5def12e1d4b4f9ce64c9706def024dd79828d039a9', [StringComparison]::Ordinal) -Message 'Protocol must bind the qualifying temporal ledger hash.'
 Assert-Condition -Condition $protocol.Contains('R1-014` reste ouvert', [StringComparison]::Ordinal) -Message 'Protocol must keep R1-014 open.'
 $roadmap = Get-Content -LiteralPath $roadmapPath -Raw
 Assert-Condition -Condition ($roadmap -cmatch '(?m)^- \[ \] `R1-014`') -Message 'Roadmap must keep R1-014 unchecked.'
-Assert-Condition -Condition $roadmap.Contains('HARNESS READY / ACQUISITION NOT RUN', [StringComparison]::Ordinal) -Message 'Roadmap must record the exact harness-only status.'
+Assert-Condition -Condition $roadmap.Contains('ACQUISITION AUTOMATISÉE PASS / INSPECTION HUMAINE EN ATTENTE', [StringComparison]::Ordinal) -Message 'Roadmap must record the automated pass and pending human inspection.'
 
 [pscustomobject]@{
     status = 'pass'
@@ -98,6 +100,8 @@ Assert-Condition -Condition $roadmap.Contains('HARNESS READY / ACQUISITION NOT R
     minimum_request_animation_frames = 120
     stable_layout_observations = 8
     canvas_containment_contract = 'pass'
-    browser_run = 'not_performed'
+    browser_run = 'not_performed_by_static_test'
+    qualifying_browser_evidence = 'pass_versioned'
+    human_temporal_inspection = 'pending'
     cargo_build = 'not_performed'
 }
