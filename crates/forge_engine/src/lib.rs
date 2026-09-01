@@ -400,6 +400,12 @@ struct RenderWorkReport {
     gpu_main_opaque_primitives: Option<f64>,
     gpu_main_opaque_vertex_shader_invocations: Option<f64>,
     gpu_main_opaque_fragment_shader_invocations: Option<f64>,
+    /// Overlay-only projection. The same value remains serialized in `render_diagnostics`.
+    #[serde(skip_serializing)]
+    main_opaque_cpu_elapsed_ms: Option<f64>,
+    /// Overlay-only projection. The same value remains serialized in `render_diagnostics`.
+    #[serde(skip_serializing)]
+    main_opaque_gpu_elapsed_ms: Option<f64>,
     timed_render_spans_observed: usize,
 }
 
@@ -1075,8 +1081,16 @@ fn format_runtime_diagnostics_overlay(
         (Some(primitives), None) => format!("GPU opaque: {primitives:.0} primitives"),
         _ => "GPU pipeline statistics: unavailable".to_owned(),
     };
+    let cpu_opaque_timing = render_work.main_opaque_cpu_elapsed_ms.map_or_else(
+        || "unavailable".to_owned(),
+        |elapsed_ms| format!("{elapsed_ms:.3} ms"),
+    );
+    let gpu_opaque_timing = render_work.main_opaque_gpu_elapsed_ms.map_or_else(
+        || "unavailable".to_owned(),
+        |elapsed_ms| format!("{elapsed_ms:.3} ms"),
+    );
     let mut output = format!(
-        "{title}\n{adapter}\n{fps:6.1} FPS | {frame_ms:5.2} ms\n{} source entities | {} source meshes\nGPU draw calls: unavailable\n{gpu_work}\n{}",
+        "{title}\n{adapter}\n{fps:6.1} FPS | frame {frame_ms:5.2} ms\nOpaque pass: CPU {cpu_opaque_timing} | GPU {gpu_opaque_timing}\n{} source entities | {} source meshes\nGPU draw calls: unavailable\n{gpu_work}\n{}",
         stats.source_entities, stats.source_mesh_instances, stats.source_hash
     );
     if let Some(logical_details) = logical_details {
@@ -1109,6 +1123,14 @@ fn build_render_work_report(
         gpu_main_opaque_fragment_shader_invocations: diagnostic_value(
             diagnostics,
             "render/main_opaque_pass_3d/fragment_shader_invocations",
+        ),
+        main_opaque_cpu_elapsed_ms: diagnostic_value(
+            diagnostics,
+            "render/main_opaque_pass_3d/elapsed_cpu",
+        ),
+        main_opaque_gpu_elapsed_ms: diagnostic_value(
+            diagnostics,
+            "render/main_opaque_pass_3d/elapsed_gpu",
         ),
         timed_render_spans_observed: diagnostics
             .iter()
@@ -2841,10 +2863,16 @@ mod tests {
             "render/main_opaque_pass_3d/elapsed_cpu",
             0.01,
         );
+        add_test_diagnostic(
+            &mut diagnostics,
+            "render/main_opaque_pass_3d/elapsed_gpu",
+            0.72,
+        );
         let render_work = build_render_work_report(&stats, &diagnostics);
 
         let text = format_diagnostics_overlay("test adapter", 120.0, 8.3, &stats, &render_work);
         assert!(text.contains("2 source meshes"));
+        assert!(text.contains("Opaque pass: CPU 0.010 ms | GPU 0.720 ms"));
         assert!(text.contains("GPU draw calls: unavailable"));
         assert!(text.contains("GPU opaque: 14 primitives"));
         assert!(!text.contains("draws logiques"));
@@ -2882,7 +2910,19 @@ mod tests {
             "unavailable_bevy_0_19_no_global_counter"
         );
         assert_eq!(render_work.gpu_main_opaque_primitives, Some(14.0));
+        assert_eq!(render_work.main_opaque_cpu_elapsed_ms, Some(0.01));
+        assert_eq!(render_work.main_opaque_gpu_elapsed_ms, Some(0.72));
         assert_eq!(render_work.timed_render_spans_observed, 1);
+        let serialized = serde_json::to_value(&render_work).unwrap();
+        assert!(serialized.get("main_opaque_cpu_elapsed_ms").is_none());
+        assert!(serialized.get("main_opaque_gpu_elapsed_ms").is_none());
+
+        let unavailable = build_render_work_report(&stats, &DiagnosticsStore::default());
+        let unavailable_text =
+            format_diagnostics_overlay("test adapter", 0.0, 0.0, &stats, &unavailable);
+        assert!(unavailable_text.contains("Opaque pass: CPU unavailable | GPU unavailable"));
+        assert_eq!(unavailable.main_opaque_cpu_elapsed_ms, None);
+        assert_eq!(unavailable.main_opaque_gpu_elapsed_ms, None);
     }
 
     fn add_test_diagnostic(store: &mut DiagnosticsStore, path: &'static str, value: f64) {
