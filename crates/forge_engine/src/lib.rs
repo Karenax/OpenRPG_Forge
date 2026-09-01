@@ -9,6 +9,7 @@ mod physics;
 mod player_camera;
 #[cfg(feature = "physics-rapier")]
 mod player_controller;
+mod scenery;
 #[cfg(feature = "physics-rapier")]
 mod terrain_update;
 mod vegetation;
@@ -35,6 +36,10 @@ pub use player_controller::{
     ForgePlayerCamera, ForgePlayerCharacter, PendingPlayerControlCommand, PlayerControlCommand,
     PlayerControlCommandError, PlayerControllerPlugin, PlayerControllerSet,
     PlayerRuntimeBindingSnapshot, PlayerRuntimeBindings, PlayerRuntimeSnapshot, PlayerSpawnPoint,
+};
+pub use scenery::{
+    SceneryAdapterError, SceneryInstanceCounts, SceneryProjectionStats, SceneryProjectionStatus,
+    VisualValleySceneryPlugin, inspect_scenery_projection,
 };
 #[cfg(feature = "physics-rapier")]
 pub use terrain_update::{

@@ -39,3 +39,22 @@ file-level provenance review and the corresponding complete licence texts.
 
 Evidence: `docs/security/CADLE_LICENSE_AUDIT.md` and
 `docs/evidence/cadle-dependency-audit.json`.
+
+## Quaternius Stylized Nature MegaKit — governed Visual Valley subset
+
+Forge includes a deliberately limited subset of nine models from the free Standard 1.0 edition of
+Quaternius' **Stylized Nature MegaKit**. The models, binary geometry, referenced textures and original
+pack notice are dedicated to the public domain under **CC0 1.0 Universal**. Attribution is not a
+licence condition; this notice is retained for transparent provenance.
+
+- Author: Quaternius
+- Pack page: <https://quaternius.itch.io/stylized-nature-megakit>
+- Audited archive route: <https://store.godotengine.org/asset/quaternius/stylized-nature-megakit/download/31/>
+- Licence: <https://creativecommons.org/publicdomain/zero/1.0/>
+- Exact subset, original paths, byte sizes and SHA-256 values:
+  `assets/visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/subset.manifest.json`
+- Original licence evidence:
+  `assets/visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/License_Standard.txt`
+
+No source archive, promotional media, engine project or unselected model from the pack is distributed
+by Forge. No Cadle asset is part of this subset.

@@ -15,8 +15,8 @@ use bevy::{
 };
 use forge_engine::{
     ProofScenePlugin, RuntimeAutomation, VisualValleyEnvironmentPlugin, VisualValleyPlugin,
-    VisualValleyVegetationPlugin, VisualValleyWaterPlugin, VisualValleyWeatherPlugin,
-    WindowResizeRequest,
+    VisualValleySceneryPlugin, VisualValleyVegetationPlugin, VisualValleyWaterPlugin,
+    VisualValleyWeatherPlugin, WindowResizeRequest,
 };
 use forge_project::{
     EnvironmentProfileDocument, SceneProofDocument, TerrainDocument, VegetationDocument,
@@ -212,6 +212,9 @@ fn add_runtime_plugin(
                 _ => None,
             };
 
+            let scenery_plugin = vegetation.as_deref().map(|vegetation| {
+                VisualValleySceneryPlugin::new(document.clone(), vegetation.clone())
+            });
             let vegetation_plugin = vegetation
                 .map(|vegetation| VisualValleyVegetationPlugin::new(document.clone(), *vegetation));
             let water_plugin =
@@ -248,6 +251,9 @@ fn add_runtime_plugin(
             }
             if let Some(weather_plugin) = weather_plugin {
                 app.add_plugins(weather_plugin);
+            }
+            if let Some(scenery_plugin) = scenery_plugin {
+                app.add_plugins(scenery_plugin);
             }
             if terrain_partial_update_probe.is_enabled() {
                 app.add_plugins(TerrainPartialUpdateProbePlugin::new());

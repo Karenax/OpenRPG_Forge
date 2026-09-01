@@ -1,0 +1,120 @@
+{
+  "schema": "forge.asset-subset-manifest",
+  "schema_version": 1,
+  "subset_id": "visual-valley-quaternius-stylized-nature-standard-1.0",
+  "source": {
+    "pack_id": "quaternius:stylized-nature-megakit-standard-1.0",
+    "name": "Stylized Nature MegaKit",
+    "version": "Standard-1.0",
+    "author": "Quaternius",
+    "source_page": "https://quaternius.itch.io/stylized-nature-megakit",
+    "distribution_page": "https://store.godotengine.org/asset/quaternius/stylized-nature-megakit/",
+    "archive_url": "https://store.godotengine.org/asset/quaternius/stylized-nature-megakit/download/31/",
+    "retrieved_at": "2026-08-07T06:24:10Z",
+    "archive_sha256": "298f6732b872e4cf7b30e6e7abf9641c7f6dc6b326df37ac089533ed7e3d58c9",
+    "archive_bytes": 104088529,
+    "normalized_metadata_sha256": "e3286b81f3a6171eb844a83528eac55b2727b2ef8e3f96d1d4e29faddf5b458d"
+  },
+  "license": {
+    "spdx": "CC0-1.0",
+    "url": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "verified": true,
+    "attribution_required": false,
+    "evidence_path": "License_Standard.txt",
+    "evidence_sha256": "120710e542c3ebaf83856c4eb55b4a1e680593b39302eba7fdc5d942dfe78c58"
+  },
+  "models": [
+    {
+      "id": "common-tree-1",
+      "kind": "tree",
+      "scene_path": "visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/CommonTree_1.gltf",
+      "source_path": "glTF/CommonTree_1.gltf",
+      "base_scale": 1.0
+    },
+    {
+      "id": "common-tree-3",
+      "kind": "tree",
+      "scene_path": "visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/CommonTree_3.gltf",
+      "source_path": "glTF/CommonTree_3.gltf",
+      "base_scale": 0.9
+    },
+    {
+      "id": "pine-2",
+      "kind": "tree",
+      "scene_path": "visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/Pine_2.gltf",
+      "source_path": "glTF/Pine_2.gltf",
+      "base_scale": 1.05
+    },
+    {
+      "id": "flowering-bush",
+      "kind": "shrub",
+      "scene_path": "visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/Bush_Common_Flowers.gltf",
+      "source_path": "glTF/Bush_Common_Flowers.gltf",
+      "base_scale": 1.0
+    },
+    {
+      "id": "fern-1",
+      "kind": "fern",
+      "scene_path": "visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/Fern_1.gltf",
+      "source_path": "glTF/Fern_1.gltf",
+      "base_scale": 0.3
+    },
+    {
+      "id": "rock-medium-1",
+      "kind": "rock",
+      "scene_path": "visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/Rock_Medium_1.gltf",
+      "source_path": "glTF/Rock_Medium_1.gltf",
+      "base_scale": 0.75
+    },
+    {
+      "id": "rock-medium-3",
+      "kind": "rock",
+      "scene_path": "visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/Rock_Medium_3.gltf",
+      "source_path": "glTF/Rock_Medium_3.gltf",
+      "base_scale": 0.65
+    },
+    {
+      "id": "laetiporus-mushroom",
+      "kind": "detail",
+      "scene_path": "visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/Mushroom_Laetiporus.gltf",
+      "source_path": "glTF/Mushroom_Laetiporus.gltf",
+      "base_scale": 0.85
+    },
+    {
+      "id": "flower-group-4",
+      "kind": "detail",
+      "scene_path": "visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/Flower_4_Group.gltf",
+      "source_path": "glTF/Flower_4_Group.gltf",
+      "base_scale": 0.35
+    }
+  ],
+  "files": [
+    { "path": "Bark_NormalTree_Normal.png", "source_path": "glTF/Bark_NormalTree_Normal.png", "bytes": 4384496, "sha256": "852f6155404b8c39e100e41e26970e02a6a5c81b482d3726618dab28e3ad03a2", "transformation": "byte-for-byte-copy" },
+    { "path": "Bark_NormalTree.png", "source_path": "glTF/Bark_NormalTree.png", "bytes": 3894788, "sha256": "f36e94fdd73255347325b998e02a0b2575fdf714b0315bfe5e8ff34bc8e13603", "transformation": "byte-for-byte-copy" },
+    { "path": "Bush_Common_Flowers.bin", "source_path": "glTF/Bush_Common_Flowers.bin", "bytes": 128928, "sha256": "15f56a013afe0eecaded0eb97fd8f323305af11e1f0f7bb9b68472ec4cdc20d5", "transformation": "byte-for-byte-copy" },
+    { "path": "Bush_Common_Flowers.gltf", "source_path": "glTF/Bush_Common_Flowers.gltf", "bytes": 3654, "sha256": "08768c680e3abeafd25858c9d3f369bcb7eed014661d3b6825a397f2a6a3deea", "transformation": "byte-for-byte-copy" },
+    { "path": "CommonTree_1.bin", "source_path": "glTF/CommonTree_1.bin", "bytes": 491576, "sha256": "9dd689e84e1aa2f5b08db8def591254d582783c73737af54ba0d89b3e549c3ae", "transformation": "byte-for-byte-copy" },
+    { "path": "CommonTree_1.gltf", "source_path": "glTF/CommonTree_1.gltf", "bytes": 3869, "sha256": "b51cdea6545edb51d102dd6c27caafe62aa75e3c328ac8f9039f4e7bfd690bfa", "transformation": "byte-for-byte-copy" },
+    { "path": "CommonTree_3.bin", "source_path": "glTF/CommonTree_3.bin", "bytes": 296984, "sha256": "24541f46fd9553e2389aba15575f2697009226e82118ed76868284114fd12b49", "transformation": "byte-for-byte-copy" },
+    { "path": "CommonTree_3.gltf", "source_path": "glTF/CommonTree_3.gltf", "bytes": 3864, "sha256": "17c6537aa8042bb7255fbb501bf7aeb2b6db87c16766f794f9c37be3ce70c976", "transformation": "byte-for-byte-copy" },
+    { "path": "Fern_1.bin", "source_path": "glTF/Fern_1.bin", "bytes": 11448, "sha256": "5e92b87a27f81a69fe15347a533df3c77d567b48298dceeef43168ccb7c22853", "transformation": "byte-for-byte-copy" },
+    { "path": "Fern_1.gltf", "source_path": "glTF/Fern_1.gltf", "bytes": 2058, "sha256": "d41915cffe9dbbde1ae88be381eb9c60f7caa2274511436cc78fe4de627468ab", "transformation": "byte-for-byte-copy" },
+    { "path": "Flower_4_Group.bin", "source_path": "glTF/Flower_4_Group.bin", "bytes": 62220, "sha256": "3ac30b4c9eaa5078a17c061aa29e2e9618cc9eb58cb6d5d2ab0c07fa0b851ae1", "transformation": "byte-for-byte-copy" },
+    { "path": "Flower_4_Group.gltf", "source_path": "glTF/Flower_4_Group.gltf", "bytes": 3645, "sha256": "69ead56b36b50f06a0cf18380797fce7434302e9b2da7bf68a85014b993c6134", "transformation": "byte-for-byte-copy" },
+    { "path": "Flowers.png", "source_path": "glTF/Flowers.png", "bytes": 444609, "sha256": "5c531f2329c241c625aafd6cb769de29f33b480ef2a16491c2489f3c68e62a6a", "transformation": "byte-for-byte-copy" },
+    { "path": "Leaf_Pine_C.png", "source_path": "glTF/Leaf_Pine_C.png", "bytes": 70055, "sha256": "86f7ff7a214f5424de48d269568f36a15485e61c80677e426c7be9f45181eef9", "transformation": "byte-for-byte-copy" },
+    { "path": "Leaves_NormalTree_C.png", "source_path": "glTF/Leaves_NormalTree_C.png", "bytes": 158796, "sha256": "998612bdf0b76a22f5f54d65cd7a457815d2842d89653fa4348a4ebb42933ad3", "transformation": "byte-for-byte-copy" },
+    { "path": "Leaves.png", "source_path": "glTF/Leaves.png", "bytes": 2586432, "sha256": "23248cebe28a24e78add32db3c2ee2f4d7b9219e9d2467279722f0197a7b6bd5", "transformation": "byte-for-byte-copy" },
+    { "path": "License_Standard.txt", "source_path": "License_Standard.txt", "bytes": 852, "sha256": "120710e542c3ebaf83856c4eb55b4a1e680593b39302eba7fdc5d942dfe78c58", "transformation": "byte-for-byte-copy" },
+    { "path": "Mushroom_Laetiporus.bin", "source_path": "glTF/Mushroom_Laetiporus.bin", "bytes": 77088, "sha256": "14f4835745947e7088bf706fbbbfde6b800f89bebf36122f40582fc8d45bb1ae", "transformation": "byte-for-byte-copy" },
+    { "path": "Mushroom_Laetiporus.gltf", "source_path": "glTF/Mushroom_Laetiporus.gltf", "bytes": 1833, "sha256": "88d264df9da6b0408ec276c36ae744ae79813046ba2938f03ed0837778f66fc9", "transformation": "byte-for-byte-copy" },
+    { "path": "Mushrooms.png", "source_path": "glTF/Mushrooms.png", "bytes": 1208660, "sha256": "e29eed2db831e44a29634fe25c62e9e31edf201e978a52912b9e5221ffd4a1f3", "transformation": "byte-for-byte-copy" },
+    { "path": "Pine_2.bin", "source_path": "glTF/Pine_2.bin", "bytes": 258336, "sha256": "5ba81ed2b131243bf02f5fb18e278083205ce16b0f30c364ccbe9355e7637c60", "transformation": "byte-for-byte-copy" },
+    { "path": "Pine_2.gltf", "source_path": "glTF/Pine_2.gltf", "bytes": 3833, "sha256": "57bd4732170b6c7e51bcf78fe5adaabf142f95a50378d8d3051d1f20a04d3c2f", "transformation": "byte-for-byte-copy" },
+    { "path": "Rock_Medium_1.bin", "source_path": "glTF/Rock_Medium_1.bin", "bytes": 13284, "sha256": "ea79527d4c2b3bdb7a28bf589bf0c1fd96d192a4d0738636753911dd58681e99", "transformation": "byte-for-byte-copy" },
+    { "path": "Rock_Medium_1.gltf", "source_path": "glTF/Rock_Medium_1.gltf", "bytes": 1831, "sha256": "5d1ab1fa03218f4a908728ed0eabe6486344a7e4f510b0d3d6f837fd1d011bd8", "transformation": "byte-for-byte-copy" },
+    { "path": "Rock_Medium_3.bin", "source_path": "glTF/Rock_Medium_3.bin", "bytes": 20124, "sha256": "63f94bce2d3fb3fe25b2d6c843a828b1bec76855dbaac93fcf5d43582309caad", "transformation": "byte-for-byte-copy" },
+    { "path": "Rock_Medium_3.gltf", "source_path": "glTF/Rock_Medium_3.gltf", "bytes": 1832, "sha256": "9a575b911372cf91693aa3a56aea8137ec2251c2b99fb34a31272ee64503047f", "transformation": "byte-for-byte-copy" },
+    { "path": "Rocks_Diffuse.png", "source_path": "glTF/Rocks_Diffuse.png", "bytes": 2517398, "sha256": "b813696df6081f469a127092eb0ce45cc39d56f3ccc0699152bfcd3804810b48", "transformation": "byte-for-byte-copy" }
+  ]
+}

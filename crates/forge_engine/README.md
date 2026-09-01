@@ -44,3 +44,10 @@ restores the exact authored clear scalar. Bloom and color grading use bounded Be
 `WeatherProjectionStats` observes main-world entities, camera components and CPU material uniforms.
 It deliberately reports GPU execution, native/WebGPU visual review, splashes/occlusion and advanced
 puddle response as deferred; those require the later runtime/Studio capture and qualification lot.
+
+`VisualValleySceneryPlugin` is an optional presentation adapter layered over the deterministic
+vegetation plan. It selects a bounded hero-area subset from the canonical placements and loads only
+the models declared in the embedded governed-asset manifest. Imported roots remain hidden until all
+glTF scenes and recursive dependencies are loaded. Only then are corresponding procedural visuals
+hidden; any failed load leaves the procedural projection visible. The source documents, placement
+IDs, collisions and persistence contracts are unchanged.
