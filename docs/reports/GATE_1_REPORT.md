@@ -9,10 +9,12 @@ Gate suivante : **Gate 2 interdite sans passage de Gate 1 ou nouvelle dérogatio
 ## Résumé de décision
 
 Visual Valley conserve une paire native/Browser exacte au commit `d9e2670`, des captures fixes, des
-ledgers versionnés et une provenance CC0/Cadle auditée. Le correctif source courant `6a24cabe`
-supprime le défaut depth-only majeur de la végétation ; 164 tests, Clippy strict, l'audit de provenance
-et le build Release passent. Sa réacquisition produit 29 PNG et un MP4 avec des logs propres, les neuf
-modèles CC0 actifs sans fallback et une réduction de 98,88 à 100 % du masque bleu-noir selon la vue.
+ledgers versionnés et une provenance CC0/Cadle auditée. Le correctif `6a24cabe` supprime le défaut
+depth-only majeur de la végétation. La source courante `873618af` conserve cette correction et exerce
+le vrai contrôleur gameplay, la caméra `ForgePlayerCamera` et Rapier ; 167 tests
+moteur/runtime/intégration, 40 tests runtime Release, Clippy strict, l'audit de provenance et le build
+Release exact passent. Sa réacquisition produit 29 PNG et un MP4 avec des logs propres et les neuf
+modèles CC0 actifs sans fallback.
 Les deux variantes Browser passent chacune
 **24/24 contrôles automatisés**, sans échec réseau ni warning/erreur console. Le validateur croisé
 natif/Studio passe **46/46** contrôles et les sept hashes communs concordent. La matrice native
@@ -21,12 +23,13 @@ tier eau synchronisé. Le commit `afb270c3` ajoute les temps CPU/GPU du pass opa
 rend lisibles dans deux captures natives exactes clear/rain. Le lot natif initial `a7c9b1e1` ajoute le
 harness visuel exact-commit. Le commit `a4e9824a` qualifie le harnais temporel Browser : 120 RAF,
 toutes les ROIs, les quatre bundles exacts et les journaux console/réseau passent ; cette preuve
-Browser n'a pas encore été rejouée sur `6a24cabe`.
+Browser n'a pas encore été rejouée sur `873618af`.
 
 Ces résultats ne ferment pas Gate 1. Le correctif forward + IBL supprime le warning wgpu enregistré
 dans la campagne historique `a34596bd` et corrige les palettes rose/moutarde. Le lot `6a24cabe`
-corrige ensuite les silhouettes bleu-noir laissées par la prépasse caméra. Le MP4 reste produit par
-une caméra de preuve, pas par le contrôleur de gameplay. La présentation GPU Browser reste
+corrige ensuite les silhouettes bleu-noir laissées par la prépasse caméra. Le lot `873618af` acquiert
+le déplacement du contrôleur réel sur 173 ticks avec collisions, mais le MP4 8 FPS est assemblé depuis
+des checkpoints pausés et ne qualifie pas le stutter temps réel. La présentation GPU Browser reste
 `not_observed`, la cible RTX 3060/RX 6600 n'a pas été mesurée et les captures n'ont pas reçu
 d'acceptation humaine comparative. Les profils sont fonctionnels, mais cela ne constitue pas une
 acceptation artistique.
@@ -38,8 +41,9 @@ constitue ni un passage administratif de Gate 1, ni une autorisation implicite d
 
 | Portée | Commit | Tree | Usage dans ce rapport |
 |---|---|---|---|
-| source courante et correctif prépasse | `6a24cabe69e242ff551b265d44da67ca8d017c98` | `38a6990ce02baa651773d23d1038b3ef9ff9e76d` | 164 tests, Clippy strict, provenance, build Release, 29 PNG + MP4 ; défaut depth-only corrigé, qualification humaine/GPU en attente |
-| temporel Browser antérieur | `a4e9824abc3d0f5ec824edfa58155207467f3e99` | `25ff4fd075050ae60ad1904a9de00900a2c8a1fc` | acquisition temporelle automatisée PASS, 120 RAF, deux PNG, 3/3 ROIs végétation, témoin terrain, 4/4 bundles et journaux propres ; non rejouée sur le correctif courant |
+| source courante et contrôleur réel | `873618af59eb2e2b6426b91d4fff0ec615fc70d8` | `9ba6455fd632d6532bda27457312c7d229d46e2f` | 167 tests moteur/runtime/intégration, 40 runtime Release, Clippy strict, provenance, build Release, 29 PNG + MP4 ; contrôleur/Rapier/caméra acquis, stutter/humain/GPU en attente |
+| correctif prépasse | `6a24cabe69e242ff551b265d44da67ca8d017c98` | `38a6990ce02baa651773d23d1038b3ef9ff9e76d` | défaut depth-only corrigé et réacquisition historique ; qualification humaine/GPU en attente |
+| temporel Browser antérieur | `a4e9824abc3d0f5ec824edfa58155207467f3e99` | `25ff4fd075050ae60ad1904a9de00900a2c8a1fc` | acquisition temporelle automatisée PASS, 120 RAF, deux PNG, 3/3 ROIs végétation, témoin terrain, 4/4 bundles et journaux propres ; non rejouée sur la source courante |
 | harness visuel natif | `a7c9b1e1d5e32f826b606778434a5fae91cc947d` | `2066fce699e4dd178c3d679cf4b0168d2e727d3d` | acquisition native exact-commit de 29 PNG, séquence clair/pluie/clair et MP4 3 s ; qualification refusée |
 | overlay CPU/GPU | `afb270c328b7095a84d452b93b9fdd38e2737f33` | `5eeb9098b8300dead8679de7d478f5096a572fd1` | temps CPU/GPU du pass opaque visibles, fallback indisponible testé, deux ledgers/captures High exacts |
 | matrice profils | `5eadec7f6f9f9b5b6734ce62ea3518f0297496f9` | `a2fb4df0b7e2eff4d686dda575d4a2bf18cb12a1` | 10 ledgers/captures natifs, quatre tiers, adaptation High vers Ultra, benchmark High et eau synchronisée |
@@ -86,6 +90,13 @@ PowerShell du harnais et l'acquisition Browser exacte. L'avertissement de future
 transitive `proc-macro-error2 v2.0.1` reste distinct d'un warning projet. Aucun nouveau rejeu workspace
 complet n'est revendiqué à ce commit.
 
+Au commit source courant `873618af`, les 6 tests R1-048 ciblés et les 40 tests runtime passent en
+Release. La matrice proportionnée moteur/runtime/intégration passe **167/167** en profil de test ;
+`cargo check --release --tests`, Clippy strict runtime, le formatage, la syntaxe PowerShell et les
+tests positifs/négatifs du watchdog passent également. Le build Release exact et l'acquisition native
+schema v2 sont rejoués depuis le worktree propre. Aucun rejeu workspace/all-targets complet ni nouveau
+check Studio WASM n'est revendiqué à `873618af`.
+
 ## Overlay CPU/GPU exact `afb270c3`
 
 Le binaire Release exact mesure 81 745 408 octets et porte le SHA-256
@@ -118,7 +129,7 @@ sont consignés dans
 Cette preuve ferme `R1-039`, `R1-040` et la condition « profils qualité fonctionnels ». Elle ne ferme
 ni le GPU cible, ni le parcours représentatif, ni l'acceptation artistique.
 
-## Acquisition visuelle native courante `a7c9b1e1`
+## Acquisition visuelle native initiale `a7c9b1e1`
 
 Le harness courant lie le binaire Release au commit exact
 `a7c9b1e1d5e32f826b606778434a5fae91cc947d` et refuse une acquisition depuis un worktree sale. Le
@@ -163,6 +174,29 @@ mesure et l'inspection technique confirment la correction du symptôme, pas une 
 Le ledger garde l'exécution GPU météo, la revue humaine, le contrôleur gameplay et la qualification
 des routes à faux. La preuve est documentée dans
 [`R1_046_048_VEGETATION_PREPASS_CORRECTION.md`](../evidence/gate1/R1_046_048_VEGETATION_PREPASS_CORRECTION.md).
+
+## Acquisition contrôleur gameplay réelle `873618af`
+
+Le commit propre `873618af59eb2e2b6426b91d4fff0ec615fc70d8`, arbre
+`9ba6455fd632d6532bda27457312c7d229d46e2f`, produit un binaire Release de **82 042 880 octets**,
+SHA-256 `ba55fd0c33a3a072d685cd93018e4e638d0f3f725df91978fe9c5ca7a8dec5b4`. Sur RX 7800 XT/Vulkan,
+1920 x 1080 High sans VSync, le harness schema v2 acquiert 29 PNG et un MP4 H.264 de 24 frames,
+8 FPS et 3 secondes. Les 103 événements runtime sont INFO ; aucun warning, erreur ou panic n'est
+présent. L'audit strict passe avec un manifeste, 27 fichiers, neuf modèles CC0 et aucun asset Cadle.
+
+Le ledger lie 24 checkpoints au même contrôleur, au même joueur, à la même caméra `ForgePlayerCamera`
+et aux mêmes identités Rapier. À 60 Hz, les 173 ticks de déplacement restent tous grounded et avec
+collision. Le joueur avance de 13,544837 m vers -Z, dérive de 0,172029 m en X, franchit la couture
+centrale puis s'arrête en 11 ticks après la commande stop immédiatement suivante. Les PNG 000, 012 et
+023 montrent le personnage-capsule et un déplacement net de la caméra ; les cinq vues fixes conservent
+la correction bleu-noir et le cycle clair → pluie → clair.
+
+Le statut runtime reste `automated_capture_complete_pending_stutter_and_qualification` et le statut
+hôte `automated_artifacts_valid_pending_stutter_human_and_gpu_qualification`. Les checkpoints sont
+pausés pendant la capture et le MP4 est assemblé ensuite : `real_time_stutter_qualified=false`.
+`weather_gpu_execution_observed`, `human_review_performed`, `visual_quality_accepted` et
+`gate1_routes_qualified` restent également faux. Le lot borné de 18 artefacts est versionné sous
+[`native/873618af59eb2e2b6426b91d4fff0ec615fc70d8/visual-proof`](../evidence/gate1/native/873618af59eb2e2b6426b91d4fff0ec615fc70d8/visual-proof).
 
 ## Preuve temporelle Browser exacte `a4e9824a`
 
@@ -329,9 +363,9 @@ Restent explicitement ouvertes :
 - `R1-037` et `R1-041` ;
 - `R1-046` à `R1-052`.
 
-Les fichiers `R1-046` à `R1-048` sont réacquis au commit exact `6a24cabe`. Le principal défaut
-depth-only est corrigé, mais « acquis » ne signifie pas « qualifié » : la revue humaine comparative
-reste due et la vidéo n'exerce pas le contrôleur de gameplay.
+Les fichiers `R1-046` à `R1-048` sont réacquis au commit exact `873618af`. Le principal défaut
+depth-only reste corrigé et la vidéo exerce le contrôleur gameplay réel, mais « acquis » ne signifie
+pas « qualifié » : la revue humaine comparative et le stutter temps réel restent dus.
 
 `R1-043` est fermée : les deux cibles utilisent `d9e2670`, le scenery hash concorde et
 46/46 assertions croisées passent. Le ledger natif n'expose pas le hash autonome du contrôleur
@@ -342,28 +376,29 @@ huitième match de ledger.
 
 | Condition | État | Motif |
 |---|---|---|
-| qualité visuelle clairement supérieure à la base Godot | **OUVERTE** | défaut depth-only corrigé à `6a24cabe`, mais aucune revue humaine comparative acceptée |
+| qualité visuelle clairement supérieure à la base Godot | **OUVERTE** | défaut depth-only corrigé et conservé à `873618af`, mais aucune revue humaine comparative acceptée |
 | impact au moins comparable à Cadle | **OUVERTE** | pas de comparaison A/B humaine sur protocole équivalent |
 | 60 FPS moyens en 1080p High sur GPU milieu de gamme | **OUVERTE** | RX 7800 XT seulement ; Browser canvas et boucle WASM non équivalents |
 | p95 `<=16,7 ms` | **OUVERTE** | paire exact-commit dans le budget, mais pas sur GPU cible |
 | 1 % low `>=45 FPS` | **OUVERTE** | paire exact-commit dans le budget, mais pas sur GPU cible |
-| absence de stutter récurrent | **OUVERTE** | zéro hitch dans la paire d9, mais fenêtres courtes/fixes sans parcours représentatif |
+| absence de stutter récurrent | **OUVERTE** | contrôleur réel acquis à `873618af`, mais MP4 8 FPS assemblé depuis des checkpoints pausés |
 | profils qualité fonctionnels | **SATISFAITE** | quatre tiers fixes, clear/rain, adaptation High vers Ultra et benchmark High sur 10/10 ledgers natifs |
 | parité de données native/Studio | **SATISFAITE** | commit/arbre exacts communs, 46/46 contrôles et sept hashes communs MATCH |
 | code sans dépendance propriétaire obligatoire | **SATISFAITE** | audits provenance/indépendance locaux PASS |
-| rapport et captures versionnés | **SATISFAITE** | rapport, manifeste/ledgers Browser et captures Forge clear/rain ajoutés avec hashes |
+| rapport et captures versionnés | **SATISFAITE** | rapports, preuves Browser et lot natif schema v2 `873618af` ajoutés avec hashes/provenance |
 
 ## Limites visuelles et qualification humaine
 
 Les captures d9 corrigent nettement la palette rose/moutarde. Le lot initial `a7c9b1e1` rendait les
 défauts restants explicites ; le lot `6a24cabe` supprime ensuite les grandes silhouettes/stries
-bleu-noir depth-only sur les vues lointaine, humaine, eau et mouvement. La pluie et le changement de
+bleu-noir depth-only sur les vues lointaine, humaine, eau et mouvement. Le lot `873618af` conserve la
+correction et ajoute le vrai contrôleur/Rapier. La pluie et le changement de
 wetness sont visibles, mais la réflexion/réfraction ne sont pas inspectables honnêtement et le retour
 CPU/ECS exact au profil clair n'est pas une preuve d'identité GPU.
 
 Aucune affirmation de supériorité sur Godot ou de parité visuelle Cadle n'est acquise. Les vues
 hauteur humaine/lointaine et le MP4 corrigés sont acquis mais non qualifiés ; la revue humaine FHD/QHD,
-le parcours gameplay et les comparaisons matériaux/composition/A-B restent dus.
+le stutter sur parcours temps réel et les comparaisons matériaux/composition/A-B restent dus.
 
 ## CI distante
 
@@ -377,8 +412,8 @@ Verdict : **POURSUIVRE GATE 1**.
 
 Ordre minimal avant toute nouvelle décision de passage :
 
-1. faire la revue humaine des vues corrigées, qualifier l'eau par profil et remplacer la caméra de
-   preuve par un parcours gameplay représentatif ;
+1. faire la revue humaine des vues corrigées, qualifier l'eau par profil et acquérir un parcours
+   temps réel représentatif avec qualification du stutter ;
 2. acquérir l'instrumentation exhaustive `R1-037` ou documenter une décision Gate 1 dédiée ;
 3. mesurer RTX 3060 ou RX 6600 en 1080p High ;
 4. effectuer la revue humaine comparative Godot/Cadle et statuer sur les routes visuelles restantes.

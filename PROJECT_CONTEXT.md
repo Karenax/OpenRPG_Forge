@@ -3,7 +3,7 @@
 Dernière mise à jour : **1er septembre 2026**
 Branche : **`Rust`**
 Statut : **Gate 0 passée sur preuves automatisées locales ; Gate 1 ouverte au commit source courant
-`6a24cabe69e242ff551b265d44da67ca8d017c98` ; Gate 2 interdite ; produit non qualifié**
+`873618af59eb2e2b6426b91d4fff0ec615fc70d8` ; Gate 2 interdite ; produit non qualifié**
 Référence historique : `main@a7f4a3f5dd0eeff1dc060ea1237b1d7d650b7ca0`
 Référence upstream exécutable : `Humpalumps/Cadle@ea0da62549980816a6a27e08b75808b1f56d70e7` (`v0.6.0`)
 
@@ -29,9 +29,9 @@ Les revues humaines Gate 0 restent différées et la CI distante reste `NOT RUN`
 facturation ; ADR-0006 autorise jusqu’à Gate 4 une décision sur preuves automatisées locales sans
 jamais transformer ce statut en CI verte.
 
-Le snapshot source courant de Gate 1 est `6a24cabe`, arbre
-`38a6990ce02baa651773d23d1038b3ef9ff9e76d`. Sa validation corrective passe le formatage, le diff,
-Clippy strict `forge_engine`/`forge_runtime`, 164 tests moteur/runtime/intégration, l'audit de
+Le snapshot source courant de Gate 1 est `873618af`, arbre
+`9ba6455fd632d6532bda27457312c7d229d46e2f`. Sa validation passe le formatage, le diff,
+Clippy strict runtime, 167 tests moteur/runtime/intégration, 40 tests runtime Release, l'audit de
 provenance strict et le build Release exact. Les 28/28 tests Studio et l'acquisition temporelle
 Browser restent épinglés à `a4e9824a` ; la validation workspace **298/298** reste épinglée au commit
 overlay `afb270c3` tant que son rejeu au commit courant n'est pas consolidé. Le seul avertissement de
@@ -78,13 +78,23 @@ six vues comparées ; l'inspection technique confirme la disparition des grandes
 depth-only. `R1-046` et `R1-047` deviennent candidates à revue humaine, sans être fermées. Le ledger
 conserve `weather_gpu_execution_observed=false`, `human_review_performed=false`,
 `gameplay_controller_exercised=false` et `gate1_routes_qualified=false`. `R1-023`, `R1-025`,
-`R1-026`, `R1-046` à `R1-048`, le GPU cible, le parcours représentatif et les revues humaines restent
-donc dus. L'audit de provenance strict courant est versionné avec `6a24cabe` ; la qualification
+`R1-026`, `R1-046` à `R1-048`, le GPU cible, le parcours représentatif et les revues humaines restaient
+donc dus à cette campagne. Son audit de provenance strict est versionné avec `6a24cabe` ; la qualification
 historique complète `R1-053`/`R1-054` reste épinglée à
 `92286910a9bab622d5d54905551c0f03172e98e7`. `R1-033` est fermé **N/A
 conditionnel** au snapshot `28985328` : les neuf glTF gouvernés n'ont aucune
 animation, le manifeste ne contient que du décor et le joueur est une capsule procédurale sans asset
-animé. Gate 2 ne peut commencer sans passage de Gate 1 ou nouvelle dérogation explicite acceptée.
+animé.
+
+La campagne courante schema v2 `873618af` exerce maintenant le vrai contrôleur gameplay, sa caméra
+`ForgePlayerCamera` et Rapier à 60 Hz. Elle acquiert 24 checkpoints sur 173 ticks tous grounded/avec
+collision, franchit la couture centrale sur 13,544837 m vers -Z, puis s'arrête en 11 ticks. Le run
+Release exact produit 29 PNG et un MP4 H.264 de 24 frames/3 s, sans warning/erreur/panic ; l'audit
+provenance passe avec 1 manifeste, 27 fichiers, 9 modèles CC0 et aucun asset Cadle. Le MP4 8 FPS est
+assemblé depuis des checkpoints pausés : `gameplay_controller_exercised=true`, mais
+`real_time_stutter_qualified=false`. L'exécution GPU météo, l'acceptation humaine, la qualité visuelle
+et les routes restent également à faux. `R1-048` et Gate 1 restent ouvertes. Gate 2 ne peut commencer
+sans passage de Gate 1 ou nouvelle dérogation explicite acceptée.
 
 ---
 
@@ -1296,12 +1306,14 @@ Créer `examples/visual_valley` :
 - overlay complet ;
 - captures déterministes.
 
-État consolidé au commit source courant `6a24cabe69e242ff551b265d44da67ca8d017c98`, arbre
-`38a6990ce02baa651773d23d1038b3ef9ff9e76d` : le correctif de prépasse végétation passe 164 tests,
-Clippy strict, provenance et build Release. Son harness natif acquiert cinq vues fixes, 24 frames et un
-MP4 de trois secondes ; le défaut depth-only bleu-noir baisse de 98,88 à 100 % selon la vue. Le
-harnais temporel Browser `a4e9824a` reste acquis mais n'a pas été rejoué sur ce correctif et laisse la
-revue humaine en attente. L'overlay CPU/GPU `afb270c3` reste acquis sur deux captures exactes et
+État consolidé au commit source courant `873618af59eb2e2b6426b91d4fff0ec615fc70d8`, arbre
+`9ba6455fd632d6532bda27457312c7d229d46e2f` : la correction de prépasse végétation est conservée et
+le contrôleur gameplay/Rapier réel passe 167 tests moteur/runtime/intégration, 40 tests runtime
+Release, Clippy strict, provenance et build Release. Son harness natif acquiert cinq vues fixes,
+24 checkpoints contrôleur 60 Hz et un MP4 de trois secondes ; le défaut depth-only bleu-noir ne
+réapparaît pas dans l'inspection bornée. Le harnais temporel Browser `a4e9824a` reste acquis mais n'a
+pas été rejoué sur ce commit et laisse la revue humaine en attente. L'overlay CPU/GPU `afb270c3`
+reste acquis sur deux captures exactes et
 lisibles. La matrice native `5eadec7f`
 qualifie les quatre tiers fixes, clear/rain, l'adaptation High vers Ultra et le benchmark High. Les
 dix runs ont 120 samples,
@@ -1312,9 +1324,9 @@ reste une preuve historique intacte. L'inventaire automatisé `28985328` ferme `
 conditionnel** : aucun des neuf glTF gouvernés n'est animé, aucun modèle joueur n'est manifesté et la
 représentation joueur reste une capsule procédurale sans asset.
 
-Gate 1 reste **OUVERTE** : la cible RTX 3060/RX 6600 n'est pas mesurée, la vidéo n'exerce pas le
-contrôleur de gameplay, l'eau n'est pas qualifiée par profil et aucune revue humaine comparative
-n'accepte encore le rendu corrigé. Voir
+Gate 1 reste **OUVERTE** : la cible RTX 3060/RX 6600 n'est pas mesurée, le MP4 issu de checkpoints
+pausés ne qualifie pas le stutter temps réel, l'eau n'est pas qualifiée par profil et aucune revue
+humaine comparative n'accepte encore le rendu corrigé. Voir
 `docs/reports/GATE_1_REPORT.md`.
 
 La gate passe si :
@@ -1841,15 +1853,16 @@ Cadle v0.6.0 @ ea0da625 : copie locale épinglée, intacte et mesurée. Code MIT
 attribution ; assets exclus. Aucune dépendance Three.js/JavaScript dans le produit Forge.
 
 TRAVAIL ACTIF
-Gate C et Gate 0 sont passées. Gate 1 reste ouverte au commit source `6a24cabe` : le correctif de
-prépasse végétation passe 164 tests, Clippy strict, provenance et preuve Release, avec 29 PNG, MP4 et
-une réduction de 98,88 à 100 % du masque bleu-noir ; revue humaine et GPU cible restent dus. Le
-harnais temporel Browser `a4e9824a` reste PASS sur 120 RAF, 3/3 ROIs végétation, témoin terrain, 4/4
+Gate C et Gate 0 sont passées. Gate 1 reste ouverte au commit source `873618af` : la correction de
+prépasse végétation est conservée et le contrôleur gameplay/Rapier réel passe 167 tests, Clippy strict,
+provenance et preuve Release, avec 29 PNG et un MP4 de 24 checkpoints ; stutter temps réel, revue
+humaine et GPU cible restent dus. Le harnais temporel Browser `a4e9824a` reste PASS sur 120 RAF,
+3/3 ROIs végétation, témoin terrain, 4/4
 bundles et journaux propres, mais n'a pas été rejoué sur le correctif ; overlay CPU/GPU afb270c3
 acquis ; matrice native 5eadec7f 10/10, profils et pipelines acquis, eau synchronisée ; la paire
 Browser/native d9e2670 conserve 24/24 par météo et 46/46 croisés. R1-033 est fermé N/A conditionnel.
-Restent dus : qualification visuelle, parcours gameplay, instrumentation exhaustive, GPU cible,
-preuves eau/Browser finales et revue humaine.
+Restent dus : qualification visuelle, stutter sur parcours temps réel, instrumentation exhaustive,
+GPU cible, preuves eau/Browser finales et revue humaine.
 Poursuivre uniquement Gate 1. Gate 2 est interdite sans passage formel ou nouvelle dérogation
 explicite. La CI distante reste NOT RUN sous ADR-0006 tant que les runners ne démarrent pas.
 ```
