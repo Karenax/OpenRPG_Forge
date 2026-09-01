@@ -37,6 +37,7 @@ constitue ni un passage administratif de Gate 1, ni une autorisation implicite d
 | natif performance/captures exact-commit | `d9e2670111624aa836ab138afc35cddf441865ef` | `d6e5a40f73b47934444bda4514d5cdcb1dab093d` | RX 7800 XT/Vulkan, métriques v8, captures et logs natifs exacts |
 | campagne graphique historique | `a34596bd733131699c70028dab86cf2c612b896a` | `8ccdf8cb2cb6a6aabd3a4569f22f1778e164ced6` | ancienne paire exacte conservée byte-for-byte ; warning et dérive visuelle reproduits |
 | provenance/indépendance | `92286910a9bab622d5d54905551c0f03172e98e7` | `6d7cd4ab8612686e7f73f01abeb5b8ad0174ebbe` | audit CC0, comparaison Cadle et absence de dépendance produit |
+| inventaire conditionnel `R1-033` | `28985328f0d2de1fa79c705d5c3aa1bc522dbe35` | `ec71501d231ea6469eb97dc0af3d0230f4daf6eb` | inventaire automatisé des glTF gouvernés, rôles du manifeste et représentation procédurale du joueur |
 | référence Cadle extérieure | `ea0da62549980816a6a27e08b75808b1f56d70e7` | `f0d52e434454fe302052d22eafde203bc361cc1f` | comparaison de provenance uniquement, clone local détaché et propre |
 
 Le natif et le Browser forment une paire exacte d9. Le hash scenery
@@ -205,6 +206,20 @@ Cela ne constitue ni une expertise juridique exhaustive, ni une revue artistique
 Voir [`R1_053_054_PROVENANCE_INDEPENDENCE.md`](../evidence/gate1/R1_053_054_PROVENANCE_INDEPENDENCE.md)
 et [`R1_CC0_SCENERY_OVERLAY.md`](../evidence/gate1/R1_CC0_SCENERY_OVERLAY.md).
 
+## R1-033 — N/A conditionnel au snapshot courant
+
+Le contrôle documentaire automatisé exact `28985328`, arbre `ec71501d`, établit que les neuf glTF
+gouvernés correspondent aux neuf modèles du manifeste et totalisent **0 animation**. Les seules
+catégories déclarées sont `tree`, `shrub`, `fern`, `rock` et `detail` : aucun personnage ou joueur
+n'est disponible. Le joueur courant est construit sans asset avec `Capsule3d::new`, sous le nom
+`Forge player capsule`, et son adapter ne référence aucune API d'animation Bevy.
+
+La condition « si asset disponible » de `R1-033` est donc fausse pour cette tranche. La route est
+fermée **N/A conditionnel**, et non PASS comme implémentation d'une animation. Elle se rouvre dès
+l'introduction d'un asset de personnage animé gouverné ou le remplacement de la capsule procédurale.
+La commande, les neuf résultats et les assertions de réouverture sont versionnés dans
+[`R1_033_PLAYER_ANIMATION_NA.md`](../evidence/gate1/R1_033_PLAYER_ANIMATION_NA.md).
+
 ## État conservateur des routes
 
 Nouvelles cases fermées par les preuves consolidées :
@@ -216,11 +231,12 @@ Nouvelles cases fermées par les preuves consolidées :
 - `R1-043` pour la paire native/Studio exact-commit et les sept hashes communs concordants ;
 - `R1-044` et `R1-045` pour l'acquisition de captures fixes ;
 - `R1-053` et `R1-054` pour provenance et indépendance ;
+- `R1-033` comme **N/A conditionnel**, faute d'asset joueur animé gouverné dans le snapshot courant ;
 - `R1-055` par le présent rapport, avec verdict « poursuivre Gate 1 ».
 
 Restent explicitement ouvertes :
 
-- `R1-014`, `R1-023`, `R1-025`, `R1-026` et `R1-033` ;
+- `R1-014`, `R1-023`, `R1-025` et `R1-026` ;
 - `R1-037` et `R1-041` ;
 - `R1-046` à `R1-052`.
 

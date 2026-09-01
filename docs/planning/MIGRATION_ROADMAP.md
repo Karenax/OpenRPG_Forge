@@ -394,7 +394,10 @@ qualité                   Low / Medium / High / Ultra
 - [x] `R1-030` occlusion caméra — sphere cast, exclusions, rapprochement et récupération monotone.
 - [x] `R1-031` option première personne — même entité, visibilité, hauteur d'yeux et retour 3P vérifiés.
 - [x] `R1-032` interaction végétation — 150/150 directions alignées, erreur de centre maximale 0 m.
-- [ ] `R1-033` animation minimale si asset disponible.
+- [x] `R1-033` animation minimale si asset disponible — **N/A conditionnel** au snapshot
+  `28985328` : les 9 glTF gouvernés totalisent 0 animation, le manifeste ne contient que du décor et
+  le joueur est une `Capsule3d` procédurale sans asset animé ;
+  [preuve automatisée](../evidence/gate1/R1_033_PLAYER_ANIMATION_NA.md).
 
 ## R1-E — Performance
 

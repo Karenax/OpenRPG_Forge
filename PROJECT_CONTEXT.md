@@ -61,8 +61,10 @@ logs natifs d9 sont vides : aucun warning wgpu ni `ERROR` n'y est enregistré. L
 rose/moutarde et les grandes zones noires sont corrigées ; des contours de végétation sombres et du
 stipple/aliasing restent visibles, et l'eau n'est pas isolable dans ces cadrages. `R1-023`, le GPU
 cible, le parcours temporel et les revues humaines restent dus. La preuve de
-provenance reste épinglée à `92286910a9bab622d5d54905551c0f03172e98e7`. Gate 2 ne peut commencer
-sans passage de Gate 1 ou nouvelle dérogation explicite acceptée.
+provenance reste épinglée à `92286910a9bab622d5d54905551c0f03172e98e7`. `R1-033` est fermé **N/A
+conditionnel** au snapshot `28985328` : les neuf glTF gouvernés n'ont aucune
+animation, le manifeste ne contient que du décor et le joueur est une capsule procédurale sans asset
+animé. Gate 2 ne peut commencer sans passage de Gate 1 ou nouvelle dérogation explicite acceptée.
 
 ---
 
@@ -1281,7 +1283,9 @@ l'adaptation High vers Ultra et le benchmark High. Les dix runs ont 120 samples,
 pipelines stables et tier eau concordant. La paire Browser/native `d9e2670` conserve ses sept hashes
 communs et ses 46/46 contrôles ; les deux Browser passent 24/24 contrôles. La correction forward +
 IBL résout le warning et la dérive colorimétrique observés à `a34596bd`; cette campagne précédente
-reste une preuve historique intacte.
+reste une preuve historique intacte. L'inventaire automatisé `28985328` ferme `R1-033` en **N/A
+conditionnel** : aucun des neuf glTF gouvernés n'est animé, aucun modèle joueur n'est manifesté et la
+représentation joueur reste une capsule procédurale sans asset.
 
 Gate 1 reste **OUVERTE** : la cible RTX 3060/RX 6600 n'est pas mesurée, le parcours temporel n'est
 pas qualifié, l'eau n'est pas isolée dans les captures et aucune revue humaine comparative n'accepte
@@ -1814,8 +1818,9 @@ attribution ; assets exclus. Aucune dépendance Three.js/JavaScript dans le prod
 TRAVAIL ACTIF
 Gate C et Gate 0 sont passées. Gate 1 reste ouverte au commit source afb270c3 : overlay CPU/GPU du
 pass opaque acquis ; matrice native 5eadec7f 10/10, profils et pipelines acquis, eau synchronisée ;
-la paire Browser/native d9e2670 conserve 24/24 par météo et 46/46 croisés. Restent dus : parcours temporel, instrumentation exhaustive,
-GPU cible, vues qualifiantes et revue humaine.
+la paire Browser/native d9e2670 conserve 24/24 par météo et 46/46 croisés. R1-033 est fermé N/A
+conditionnel : aucun asset joueur animé n'est disponible dans le sous-ensemble gouverné. Restent dus :
+parcours temporel, instrumentation exhaustive, GPU cible, vues qualifiantes et revue humaine.
 Poursuivre uniquement Gate 1. Gate 2 est interdite sans passage formel ou nouvelle dérogation
 explicite. La CI distante reste NOT RUN sous ADR-0006 tant que les runners ne démarrent pas.
 ```
