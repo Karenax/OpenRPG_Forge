@@ -81,6 +81,35 @@ impl SceneryInstanceCounts {
             .ok_or(SceneryAdapterError::CountOverflow("selected_by_kind"))?;
         Ok(())
     }
+
+    pub(crate) fn replacement_instances(self) -> Option<usize> {
+        u64::from(self.trees)
+            .checked_add(u64::from(self.shrubs))?
+            .checked_add(u64::from(self.ferns))?
+            .try_into()
+            .ok()
+    }
+
+    pub(crate) fn detail_instances(self) -> Option<usize> {
+        u64::from(self.rocks)
+            .checked_add(u64::from(self.details))?
+            .try_into()
+            .ok()
+    }
+
+    pub(crate) fn requested_instances(self) -> Option<usize> {
+        self.replacement_instances()?
+            .checked_add(self.detail_instances()?)
+    }
+
+    pub(crate) fn hidden_procedural_entities(self) -> Option<usize> {
+        u64::from(self.trees)
+            .checked_mul(2)?
+            .checked_add(u64::from(self.shrubs))?
+            .checked_add(u64::from(self.ferns))?
+            .try_into()
+            .ok()
+    }
 }
 
 /// Machine-readable evidence for the selected CC0 subset and its runtime activation.

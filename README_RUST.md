@@ -54,8 +54,8 @@ cargo run --release --locked -p forge_runtime -- `
   --capture artifacts/gate-0/native-runtime.png `
   --capture-frame 180 `
   --metrics artifacts/gate-0/native-runtime-metrics.json `
-  --metrics-warmup-frames 120 `
-  --exit-after-frames 240 `
+  --metrics-warmup-frames 240 `
+  --exit-after-frames 360 `
   --no-vsync
 ```
 

@@ -1549,12 +1549,19 @@ fn validate_gate1_vegetation_evidence(
 }
 
 fn validate_gate1_scenery_evidence(scenery: &SceneryProjectionStats) -> Result<(), String> {
+    let scenery_counts_match = scenery.selected_by_kind.requested_instances()
+        == Some(scenery.requested_instances)
+        && scenery.selected_by_kind.replacement_instances() == Some(scenery.replacement_instances)
+        && scenery.selected_by_kind.detail_instances() == Some(scenery.detail_instances)
+        && scenery.selected_by_kind.hidden_procedural_entities()
+            == Some(scenery.hidden_procedural_entities);
     if scenery.status != SceneryProjectionStatus::Activated
         || scenery.failed_models != 0
         || scenery.unique_models == 0
         || scenery.loaded_models != scenery.unique_models
+        || scenery.requested_instances == 0
         || scenery.replacement_instances == 0
-        || scenery.hidden_procedural_entities != scenery.replacement_instances
+        || !scenery_counts_match
         || scenery.tracked_files == 0
         || scenery.tracked_bytes == 0
         || !scenery.replacement_lod_start_m.is_finite()
@@ -1565,13 +1572,17 @@ fn validate_gate1_scenery_evidence(scenery: &SceneryProjectionStats) -> Result<(
         || scenery.detail_cull_distance_m <= 0.0
     {
         return Err(format!(
-            "Visual Valley scenery is not qualified for metrics: status={:?}, models={}/{}, failures={}, hidden/replacements={}/{}, tracked={}/{}",
+            "Visual Valley scenery is not qualified for metrics: status={:?}, models={}/{}, failures={}, counts_match={}, requested={}, replacements={}, details={}, hidden={}, selected={:?}, tracked={}/{}",
             scenery.status,
             scenery.loaded_models,
             scenery.unique_models,
             scenery.failed_models,
-            scenery.hidden_procedural_entities,
+            scenery_counts_match,
+            scenery.requested_instances,
             scenery.replacement_instances,
+            scenery.detail_instances,
+            scenery.hidden_procedural_entities,
+            scenery.selected_by_kind,
             scenery.tracked_files,
             scenery.tracked_bytes
         ));
@@ -1975,7 +1986,10 @@ mod tests {
     ) -> SceneryProjectionStats {
         let mut scenery = inspect_scenery_projection(terrain, vegetation).unwrap();
         scenery.loaded_models = scenery.unique_models;
-        scenery.hidden_procedural_entities = scenery.replacement_instances;
+        scenery.hidden_procedural_entities = scenery
+            .selected_by_kind
+            .hidden_procedural_entities()
+            .unwrap();
         scenery.status = SceneryProjectionStatus::Activated;
         scenery
     }
@@ -2488,6 +2502,51 @@ mod tests {
         assert!(
             structural_error.contains("scenery is not qualified"),
             "unexpected governed Gate 1 qualification error: {structural_error}"
+        );
+
+        evidence.scenery = qualified_scenery.clone();
+        evidence.scenery.hidden_procedural_entities = evidence
+            .scenery
+            .hidden_procedural_entities
+            .saturating_add(1);
+        let hidden_count_error =
+            build_sample_gate1_metrics(&[8.0; GATE1_MINIMUM_FRAME_SAMPLES], &stats, &evidence)
+                .unwrap_err();
+        assert!(
+            hidden_count_error.contains("counts_match=false"),
+            "unexpected governed Gate 1 qualification error: {hidden_count_error}"
+        );
+
+        evidence.scenery = qualified_scenery.clone();
+        evidence.scenery.requested_instances =
+            evidence.scenery.requested_instances.saturating_add(1);
+        let requested_count_error =
+            build_sample_gate1_metrics(&[8.0; GATE1_MINIMUM_FRAME_SAMPLES], &stats, &evidence)
+                .unwrap_err();
+        assert!(
+            requested_count_error.contains("counts_match=false"),
+            "unexpected governed Gate 1 qualification error: {requested_count_error}"
+        );
+
+        evidence.scenery = qualified_scenery.clone();
+        evidence.scenery.detail_instances = evidence.scenery.detail_instances.saturating_add(1);
+        let detail_count_error =
+            build_sample_gate1_metrics(&[8.0; GATE1_MINIMUM_FRAME_SAMPLES], &stats, &evidence)
+                .unwrap_err();
+        assert!(
+            detail_count_error.contains("counts_match=false"),
+            "unexpected governed Gate 1 qualification error: {detail_count_error}"
+        );
+
+        evidence.scenery = qualified_scenery.clone();
+        evidence.scenery.selected_by_kind.trees =
+            evidence.scenery.selected_by_kind.trees.saturating_add(1);
+        let selected_breakdown_error =
+            build_sample_gate1_metrics(&[8.0; GATE1_MINIMUM_FRAME_SAMPLES], &stats, &evidence)
+                .unwrap_err();
+        assert!(
+            selected_breakdown_error.contains("counts_match=false"),
+            "unexpected governed Gate 1 qualification error: {selected_breakdown_error}"
         );
 
         evidence.scenery = qualified_scenery.clone();

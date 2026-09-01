@@ -133,7 +133,7 @@ cargo run -j1 -p forge_runtime --locked -- --visual-valley --player-camera `
   --capture 'E:\OpenRPG_Forge\.gate1-cc0-scenery-artifacts\visual-valley-cc0-player.png' `
   --capture-frame 240 `
   --metrics 'E:\OpenRPG_Forge\.gate1-cc0-scenery-artifacts\visual-valley-cc0-metrics.json' `
-  --metrics-warmup-frames 180 --exit-after-frames 300 --no-vsync 2>&1 |
+  --metrics-warmup-frames 300 --exit-after-frames 420 --no-vsync 2>&1 |
   Tee-Object 'E:\OpenRPG_Forge\.gate1-cc0-scenery-artifacts\visual-valley-cc0-runtime.log'
 ```
 

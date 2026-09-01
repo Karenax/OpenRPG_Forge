@@ -373,6 +373,47 @@ pub enum StudioGpuPresentationStatus {
     NotObserved,
 }
 
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct StudioSceneryInstanceCounts {
+    pub trees: u32,
+    pub shrubs: u32,
+    pub ferns: u32,
+    pub rocks: u32,
+    pub details: u32,
+}
+
+impl StudioSceneryInstanceCounts {
+    fn replacement_instances(self) -> Option<usize> {
+        u64::from(self.trees)
+            .checked_add(u64::from(self.shrubs))?
+            .checked_add(u64::from(self.ferns))?
+            .try_into()
+            .ok()
+    }
+
+    fn detail_instances(self) -> Option<usize> {
+        u64::from(self.rocks)
+            .checked_add(u64::from(self.details))?
+            .try_into()
+            .ok()
+    }
+
+    fn requested_instances(self) -> Option<usize> {
+        self.replacement_instances()?
+            .checked_add(self.detail_instances()?)
+    }
+
+    fn hidden_procedural_entities(self) -> Option<usize> {
+        u64::from(self.trees)
+            .checked_mul(2)?
+            .checked_add(u64::from(self.shrubs))?
+            .checked_add(u64::from(self.ferns))?
+            .try_into()
+            .ok()
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct StudioSceneryRuntimeObservation {
@@ -380,9 +421,11 @@ pub struct StudioSceneryRuntimeObservation {
     pub loaded_models: usize,
     pub failed_models: usize,
     pub unique_models: usize,
-    pub hidden_procedural_entities: usize,
+    pub requested_instances: usize,
     pub replacement_instances: usize,
     pub detail_instances: usize,
+    pub selected_by_kind: StudioSceneryInstanceCounts,
+    pub hidden_procedural_entities: usize,
     pub tracked_files: usize,
     pub tracked_bytes: u64,
     pub replacement_lod_start_m: f32,
@@ -813,12 +856,19 @@ fn validate_visual_valley_scenery(
     let Some(scenery) = observation.scenery_observation.as_ref() else {
         return Err("projection décor CC0 not_observed".to_owned());
     };
+    let selected_counts_match = scenery.selected_by_kind.requested_instances()
+        == Some(scenery.requested_instances)
+        && scenery.selected_by_kind.replacement_instances() == Some(scenery.replacement_instances)
+        && scenery.selected_by_kind.detail_instances() == Some(scenery.detail_instances)
+        && scenery.selected_by_kind.hidden_procedural_entities()
+            == Some(scenery.hidden_procedural_entities);
     if scenery.status != "activated"
         || scenery.failed_models != 0
         || scenery.unique_models == 0
         || scenery.loaded_models != scenery.unique_models
+        || scenery.requested_instances == 0
         || scenery.replacement_instances == 0
-        || scenery.hidden_procedural_entities != scenery.replacement_instances
+        || !selected_counts_match
         || scenery.tracked_files == 0
         || scenery.tracked_bytes == 0
         || !scenery.replacement_lod_start_m.is_finite()
@@ -829,13 +879,16 @@ fn validate_visual_valley_scenery(
         || scenery.detail_cull_distance_m <= 0.0
     {
         return Err(format!(
-            "projection décor CC0 invalide : statut={}, modèles={}/{}, échecs={}, remplacements cachés={}/{}, manifeste={} fichiers/{} octets",
+            "projection décor CC0 invalide : statut={}, modèles={}/{}, échecs={}, instances demandées/remplacements/détails/cachées={}/{}/{}/{}, sélection={:?}, manifeste={} fichiers/{} octets",
             scenery.status,
             scenery.loaded_models,
             scenery.unique_models,
             scenery.failed_models,
-            scenery.hidden_procedural_entities,
+            scenery.requested_instances,
             scenery.replacement_instances,
+            scenery.detail_instances,
+            scenery.hidden_procedural_entities,
+            scenery.selected_by_kind,
             scenery.tracked_files,
             scenery.tracked_bytes
         ));
@@ -1218,9 +1271,9 @@ mod web {
         StableQualityFrameWindow, StudioCommand, StudioGpuPresentationStatus,
         StudioQualitySelection, StudioResponse, StudioScene, StudioSceneManifest,
         StudioSceneParityStatus, StudioSceneRuntimeObservation, StudioSceneSourceHashes,
-        StudioSceneTelemetry, StudioSceneryRuntimeObservation, StudioViewportMode,
-        StudioWaterAdapterStatus, VisualQualityTier, is_validated_gate0_runtime,
-        parse_studio_quality_selection, parse_studio_scene_selection,
+        StudioSceneTelemetry, StudioSceneryInstanceCounts, StudioSceneryRuntimeObservation,
+        StudioViewportMode, StudioWaterAdapterStatus, VisualQualityTier,
+        is_validated_gate0_runtime, parse_studio_quality_selection, parse_studio_scene_selection,
         parse_studio_weather_selection, validate_selection_response,
     };
     use bevy::{
@@ -2541,9 +2594,17 @@ mod web {
                 loaded_models: scenery.loaded_models,
                 failed_models: scenery.failed_models,
                 unique_models: scenery.unique_models,
-                hidden_procedural_entities: scenery.hidden_procedural_entities,
+                requested_instances: scenery.requested_instances,
                 replacement_instances: scenery.replacement_instances,
                 detail_instances: scenery.detail_instances,
+                selected_by_kind: StudioSceneryInstanceCounts {
+                    trees: scenery.selected_by_kind.trees,
+                    shrubs: scenery.selected_by_kind.shrubs,
+                    ferns: scenery.selected_by_kind.ferns,
+                    rocks: scenery.selected_by_kind.rocks,
+                    details: scenery.selected_by_kind.details,
+                },
+                hidden_procedural_entities: scenery.hidden_procedural_entities,
                 tracked_files: scenery.tracked_files,
                 tracked_bytes: scenery.tracked_bytes,
                 replacement_lod_start_m: scenery.replacement_lod_start_m,
@@ -3541,9 +3602,17 @@ mod tests {
             loaded_models: 9,
             failed_models: 0,
             unique_models: 9,
-            hidden_procedural_entities: 12,
+            requested_instances: 15,
             replacement_instances: 12,
             detail_instances: 3,
+            selected_by_kind: StudioSceneryInstanceCounts {
+                trees: 5,
+                shrubs: 4,
+                ferns: 3,
+                rocks: 2,
+                details: 1,
+            },
+            hidden_procedural_entities: 17,
             tracked_files: 27,
             tracked_bytes: 16_652_493,
             replacement_lod_start_m: 72.0,
@@ -3557,6 +3626,106 @@ mod tests {
             .unwrap()
             .manifest(Some(WeatherState::Rain))
             .unwrap()
+    }
+
+    #[test]
+    fn headless_runtime_scenery_counts_accept_exact_kind_contract() {
+        let selected = visual_valley_rain_manifest();
+        let runtime = selected.clone();
+        let mut telemetry = StudioSceneTelemetry::new(
+            StudioSceneSelection {
+                scene: StudioScene::VisualValley,
+                source: StudioSceneSelectionSource::QueryString,
+                requested_value: Some("visual-valley".to_owned()),
+            },
+            selected,
+        );
+
+        telemetry.observe_runtime(runtime, valid_visual_valley_runtime_observation());
+
+        assert_eq!(
+            telemetry.parity_status,
+            StudioSceneParityStatus::SourceManifestMatched
+        );
+        assert_eq!(telemetry.failure_reason, None);
+    }
+
+    #[test]
+    fn headless_runtime_scenery_counts_reject_each_derived_mismatch() {
+        let valid = valid_visual_valley_runtime_observation();
+
+        let mut requested_mismatch = valid.clone();
+        requested_mismatch
+            .scenery_observation
+            .as_mut()
+            .unwrap()
+            .requested_instances += 1;
+
+        let mut replacement_mismatch = valid.clone();
+        replacement_mismatch
+            .scenery_observation
+            .as_mut()
+            .unwrap()
+            .replacement_instances += 1;
+
+        let mut detail_mismatch = valid.clone();
+        detail_mismatch
+            .scenery_observation
+            .as_mut()
+            .unwrap()
+            .detail_instances += 1;
+
+        let mut hidden_mismatch = valid.clone();
+        hidden_mismatch
+            .scenery_observation
+            .as_mut()
+            .unwrap()
+            .hidden_procedural_entities -= 1;
+
+        let mut kind_mismatch = valid;
+        kind_mismatch
+            .scenery_observation
+            .as_mut()
+            .unwrap()
+            .selected_by_kind
+            .trees += 1;
+
+        for (case_index, observation) in [
+            requested_mismatch,
+            replacement_mismatch,
+            detail_mismatch,
+            hidden_mismatch,
+            kind_mismatch,
+        ]
+        .into_iter()
+        .enumerate()
+        {
+            let selected = visual_valley_rain_manifest();
+            let runtime = selected.clone();
+            let mut telemetry = StudioSceneTelemetry::new(
+                StudioSceneSelection {
+                    scene: StudioScene::VisualValley,
+                    source: StudioSceneSelectionSource::QueryString,
+                    requested_value: Some("visual-valley".to_owned()),
+                },
+                selected,
+            );
+
+            telemetry.observe_runtime(runtime, observation);
+
+            assert_eq!(
+                telemetry.parity_status,
+                StudioSceneParityStatus::RuntimeContractMismatch,
+                "scenery mismatch case {case_index}"
+            );
+            assert!(
+                telemetry
+                    .failure_reason
+                    .as_deref()
+                    .is_some_and(|reason| reason.contains("décor CC0")),
+                "scenery mismatch case {case_index}"
+            );
+        }
     }
 
     #[test]

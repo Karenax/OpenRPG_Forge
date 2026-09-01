@@ -14,10 +14,10 @@ use bevy::{
     window::{CursorGrabMode, CursorOptions, PresentMode, WindowResolution},
 };
 use forge_engine::{
-    ProofScenePlugin, RuntimeAutomation, VisualValleyEnvironmentPlugin, VisualValleyPlugin,
-    VisualValleyQualityPlugin, VisualValleyQualitySelection, VisualValleySceneryPlugin,
-    VisualValleyVegetationPlugin, VisualValleyWaterPlugin, VisualValleyWeatherPlugin,
-    WindowResizeRequest,
+    PIPELINE_WARMUP_STABLE_FRAMES, ProofScenePlugin, RuntimeAutomation,
+    VisualValleyEnvironmentPlugin, VisualValleyPlugin, VisualValleyQualityPlugin,
+    VisualValleyQualitySelection, VisualValleySceneryPlugin, VisualValleyVegetationPlugin,
+    VisualValleyWaterPlugin, VisualValleyWeatherPlugin, WindowResizeRequest,
 };
 use forge_project::{
     EnvironmentProfileDocument, SceneProofDocument, TerrainDocument, VegetationDocument,
@@ -601,15 +601,7 @@ impl Options {
         }
         self.validate_terrain_partial_update_probe()?;
         self.validate_player_camera()?;
-        if self.capture_path.is_some()
-            && self
-                .exit_after_frames
-                .is_some_and(|frame| frame <= self.capture_frame.saturating_add(5))
-        {
-            return Err(
-                "--exit-after-frames must be at least six frames after --capture-frame".to_owned(),
-            );
-        }
+        self.validate_capture_and_metrics()?;
         match (self.resize_at_frame, self.resize_width, self.resize_height) {
             (None, None, None) => {}
             (Some(_), Some(width), Some(height)) if width > 0 && height > 0 => {}
@@ -675,6 +667,34 @@ impl Options {
                 || !self.vsync)
         {
             return Err("--log-probe cannot be combined with runtime options".to_owned());
+        }
+        Ok(())
+    }
+
+    fn validate_capture_and_metrics(&self) -> Result<(), String> {
+        if self.capture_path.is_some()
+            && self
+                .exit_after_frames
+                .is_some_and(|frame| frame <= self.capture_frame.saturating_add(5))
+        {
+            return Err(
+                "--exit-after-frames must be at least six frames after --capture-frame".to_owned(),
+            );
+        }
+        if self.capture_path.is_some() && self.metrics_path.is_some() {
+            let earliest_metrics_warmup = self
+                .capture_frame
+                .checked_add(PIPELINE_WARMUP_STABLE_FRAMES)
+                .ok_or_else(|| {
+                    format!(
+                        "--capture-frame is too large to leave {PIPELINE_WARMUP_STABLE_FRAMES} stable pipeline frames before metrics warmup"
+                    )
+                })?;
+            if self.metrics_warmup_frames < earliest_metrics_warmup {
+                return Err(format!(
+                    "--metrics-warmup-frames must be at least {PIPELINE_WARMUP_STABLE_FRAMES} frames after --capture-frame (minimum {earliest_metrics_warmup})"
+                ));
+            }
         }
         Ok(())
     }
@@ -1495,9 +1515,9 @@ mod tests {
                 "--metrics".to_owned(),
                 "player-camera-metrics.json".to_owned(),
                 "--metrics-warmup-frames".to_owned(),
-                "60".to_owned(),
-                "--exit-after-frames".to_owned(),
                 "180".to_owned(),
+                "--exit-after-frames".to_owned(),
+                "240".to_owned(),
             ]
             .into_iter(),
         )
@@ -1512,7 +1532,75 @@ mod tests {
             options.metrics_path,
             Some(PathBuf::from("player-camera-metrics.json"))
         );
-        assert_eq!(options.exit_after_frames, Some(180));
+        assert_eq!(options.exit_after_frames, Some(240));
+    }
+
+    #[test]
+    fn capture_and_metrics_reject_sampling_before_pipeline_stability() {
+        let error = Options::parse(
+            [
+                "--capture".to_owned(),
+                "proof.png".to_owned(),
+                "--capture-frame".to_owned(),
+                "120".to_owned(),
+                "--metrics".to_owned(),
+                "metrics.json".to_owned(),
+                "--metrics-warmup-frames".to_owned(),
+                "149".to_owned(),
+                "--exit-after-frames".to_owned(),
+                "180".to_owned(),
+            ]
+            .into_iter(),
+        )
+        .unwrap_err();
+
+        assert_eq!(
+            error,
+            "--metrics-warmup-frames must be at least 30 frames after --capture-frame (minimum 150)"
+        );
+
+        let overflow = Options::parse(
+            [
+                "--capture".to_owned(),
+                "proof.png".to_owned(),
+                "--capture-frame".to_owned(),
+                u32::MAX.to_string(),
+                "--metrics".to_owned(),
+                "metrics.json".to_owned(),
+                "--metrics-warmup-frames".to_owned(),
+                u32::MAX.to_string(),
+            ]
+            .into_iter(),
+        )
+        .unwrap_err();
+
+        assert_eq!(
+            overflow,
+            "--capture-frame is too large to leave 30 stable pipeline frames before metrics warmup"
+        );
+    }
+
+    #[test]
+    fn capture_and_metrics_accept_exact_pipeline_stability_boundary() {
+        let options = Options::parse(
+            [
+                "--capture".to_owned(),
+                "proof.png".to_owned(),
+                "--capture-frame".to_owned(),
+                "120".to_owned(),
+                "--metrics".to_owned(),
+                "metrics.json".to_owned(),
+                "--metrics-warmup-frames".to_owned(),
+                "150".to_owned(),
+                "--exit-after-frames".to_owned(),
+                "180".to_owned(),
+            ]
+            .into_iter(),
+        )
+        .unwrap();
+
+        assert_eq!(options.capture_frame, 120);
+        assert_eq!(options.metrics_warmup_frames, 150);
     }
 
     #[test]

@@ -4,6 +4,15 @@ Native Bevy executable that loads a versioned Forge scene document. With no argu
 the deterministic procedural Gate 0 proof. Automation options are `--capture <png>`,
 `--capture-frame <n>`, `--metrics <json>` and `--exit-after-frames <n>`.
 
+When capture and metrics are requested together, `--metrics-warmup-frames` must be greater than or
+equal to `--capture-frame + PIPELINE_WARMUP_STABLE_FRAMES`. The current stability barrier is 30
+frames. This keeps screenshot-pipeline creation outside the measured window. For example:
+
+```text
+--capture proof.png --capture-frame 180 --metrics metrics.json \
+  --metrics-warmup-frames 240 --exit-after-frames 360
+```
+
 The primary window is resizable, requests VSync by default and keeps Bevy's normal close-button
 lifecycle. `--no-vsync` requests `AutoNoVsync`. The proof harness can exercise the real window path
 without UI automation:
