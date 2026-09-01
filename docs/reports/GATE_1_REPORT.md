@@ -8,17 +8,17 @@ Gate suivante : **Gate 2 interdite sans passage de Gate 1 ou nouvelle dérogatio
 
 ## Résumé de décision
 
-Visual Valley dispose désormais d'une scène native mesurée, de deux exécutions Browser clear/rain,
-de captures fixes, de ledgers versionnés et d'une provenance CC0/Cadle auditée. Les deux variantes
-Browser passent chacune **24/24 contrôles automatisés**, sans échec réseau ni warning console.
+Visual Valley dispose d'une nouvelle paire native/Browser exacte au commit `d9e2670`, de captures
+fixes, de ledgers versionnés et d'une provenance CC0/Cadle auditée. Les deux variantes Browser passent
+chacune **24/24 contrôles automatisés**, sans échec réseau ni warning/erreur console. Le validateur
+croisé natif/Studio passe **46/46** contrôles et les sept hashes communs concordent.
 
-Ces résultats ne ferment pas Gate 1. Le runtime natif Release a désormais aussi été reconstruit et
-rejoué sur le commit exact `a34596bd` : clear/rain High, 1920 × 1080, RX 7800 XT/Vulkan, 46/46
-contrôles croisés PASS et les sept hashes de source exposés par les deux formats de ledger concordent.
-`R1-043` et la condition de parité de données native/Studio sont satisfaites. La présentation GPU
-Browser reste `not_observed`, la cible RTX 3060/RX 6600 n'a pas été mesurée, les profils dynamiques ne
-sont pas rejoués, le warning wgpu et les artefacts noirs persistent, et les captures n'ont pas reçu
-d'acceptation humaine comparative.
+Ces résultats ne ferment pas Gate 1. Le correctif forward + IBL supprime le warning wgpu enregistré
+dans la campagne historique `a34596bd` et corrige les palettes rose/moutarde ainsi que les grandes
+ombres noires. Des contours de végétation sombres et du stipple/aliasing restent visibles ; l'eau
+n'est pas isolable dans ces cadrages. La présentation GPU Browser reste `not_observed`, la cible RTX
+3060/RX 6600 n'a pas été mesurée, les profils complets et le parcours temporel restent à qualifier,
+et les captures n'ont pas reçu d'acceptation humaine comparative.
 
 Le verdict `R1-055` est **poursuivre Gate 1**, corriger et requalifier les preuves manquantes. Il ne
 constitue ni un passage administratif de Gate 1, ni une autorisation implicite de commencer Gate 2.
@@ -27,30 +27,29 @@ constitue ni un passage administratif de Gate 1, ni une autorisation implicite d
 
 | Portée | Commit | Tree | Usage dans ce rapport |
 |---|---|---|---|
-| source finale Browser | `a34596bd733131699c70028dab86cf2c612b896a` | `8ccdf8cb2cb6a6aabd3a4569f22f1778e164ced6` | Browser clear/rain, manifeste Studio, assets HTTP et captures Browser |
-| natif performance/captures exact-commit | `a34596bd733131699c70028dab86cf2c612b896a` | `8ccdf8cb2cb6a6aabd3a4569f22f1778e164ced6` | RX 7800 XT/Vulkan, métriques v8, captures et logs natifs exacts |
+| source courante Browser | `d9e2670111624aa836ab138afc35cddf441865ef` | `d6e5a40f73b47934444bda4514d5cdcb1dab093d` | Browser clear/rain, manifeste Studio, assets HTTP et captures Browser |
+| natif performance/captures exact-commit | `d9e2670111624aa836ab138afc35cddf441865ef` | `d6e5a40f73b47934444bda4514d5cdcb1dab093d` | RX 7800 XT/Vulkan, métriques v8, captures et logs natifs exacts |
+| campagne graphique historique | `a34596bd733131699c70028dab86cf2c612b896a` | `8ccdf8cb2cb6a6aabd3a4569f22f1778e164ced6` | ancienne paire exacte conservée byte-for-byte ; warning et dérive visuelle reproduits |
 | provenance/indépendance | `92286910a9bab622d5d54905551c0f03172e98e7` | `6d7cd4ab8612686e7f73f01abeb5b8ad0174ebbe` | audit CC0, comparaison Cadle et absence de dépendance produit |
 | référence Cadle extérieure | `ea0da62549980816a6a27e08b75808b1f56d70e7` | `f0d52e434454fe302052d22eafde203bc361cc1f` | comparaison de provenance uniquement, clone local détaché et propre |
 
-Le natif et le Browser forment désormais une paire exact-commit. Le nouveau run natif porte le hash
-scenery corrigé `6b41ec73efde5b8a40ca0132e1d32462176d6b4810104f6bed69496569f81f5f`,
-identique aux deux manifestes Browser. Les anciennes preuves `92286910` restent historiques et ne
-sont plus utilisées pour conclure la parité `R1-043`.
+Le natif et le Browser forment une paire exacte d9. Le hash scenery
+`6b41ec73efde5b8a40ca0132e1d32462176d6b4810104f6bed69496569f81f5f` est identique aux deux
+manifestes Browser. Les preuves `a34596bd` et `92286910` restent historiques et ne sont pas utilisées
+pour conclure la parité courante `R1-043`.
 
 ## Validation source finale
 
-La source exacte `a34596bd733131699c70028dab86cf2c612b896a` a été rejouée séquentiellement
-avec `CARGO_TARGET_DIR=E:\OpenRPG_Forge\.cargo-target-gate1-combined` :
+La source exacte `d9e2670111624aa836ab138afc35cddf441865ef` a été rejouée séquentiellement :
 
 | Contrôle | Résultat |
 |---|---|
 | `git diff --check` puis `cargo fmt --all -- --check` | **PASS** |
-| `cargo test -p forge_engine --lib --locked -j1` | **119/119 PASS** |
-| `cargo test -p forge_runtime --all-targets --locked -j1` | **32/32 PASS** — 31 bin + 1 intégration |
-| `cargo test -p forge_studio --all-targets --locked -j1` | **31/31 PASS** — 28 lib + 3 bin |
-| total | **182/182 PASS** |
-| Clippy strict des trois packages, tous targets, `-D warnings` | **PASS**, zéro warning, 12,04 s Cargo |
-| check Studio `wasm32-unknown-unknown`, features `web` | **PASS**, 1,06 s Cargo |
+| `cargo test -p forge_engine --lib --locked -j1` | **120/120 PASS** |
+| `cargo test --workspace --all-targets --locked -j1` | **296/296 PASS** — tous les crates et intégrations |
+| `cargo fmt --all -- --check` | **PASS** |
+| `cargo clippy --workspace --all-targets -- -D warnings` | **PASS**, zéro warning |
+| check Studio `wasm32-unknown-unknown`, features `web` | **PASS**, 8,71 s |
 
 Le check WASM conserve uniquement l'avertissement de future incompatibilité transitive connu pour
 `proc-macro-error2 v2.0.1`. Cette validation couvre la source et les contrats. Le rebuild et les deux
@@ -61,26 +60,26 @@ smokes Release natifs exact-commit sont documentés séparément ci-dessous.
 Les artefacts locaux sont sous :
 
 ```text
-E:\OpenRPG_Forge\.gate1-browser-smoke-artifacts\a34596bd733131699c70028dab86cf2c612b896a
+E:\OpenRPG_Forge\.gate1-browser-smoke-artifacts\d9e2670111624aa836ab138afc35cddf441865ef
 ```
 
 Le lot documentaire contient leurs copies byte-for-byte sous
-`docs/evidence/gate1/browser/a34596bd733131699c70028dab86cf2c612b896a/` et les deux PNG sous
+`docs/evidence/gate1/browser/d9e2670111624aa836ab138afc35cddf441865ef/` et les deux PNG sous
 `docs/evidence/gate1/captures/`. Leur cartographie complète est fournie par
 [`R1_BROWSER_WEBGPU_SMOKE.md`](../evidence/gate1/R1_BROWSER_WEBGPU_SMOKE.md).
 
 Le manifeste externe mesure 2 503 octets et porte le SHA-256
-`a636033fc0fbf55cde89efc2c34a7f7b2772a2c49dfcf4b34c8aa83dfce7a97c`. Les principaux fichiers :
+`c566fe7d3b8f36ea27e4f428301236e659488d3ed909c9d50ccf2ff26b2b50c7`. Les principaux fichiers :
 
 | Artefact Browser | Taille | SHA-256 |
 |---|---:|---|
-| `validation.json` | 3 507 octets | `913819da6299cfba198cf74df90b31a7cc2feb34f4f62fe4ab5aba28cb78b4f8` |
-| `visual-valley-clear-high.browser.png` | 1 296 307 octets | `c30871ba1ca932de2f18b8dbb22b9c7013d4105c10927e068e17b47cd01ce646` |
-| `visual-valley-rain-high.browser.png` | 1 290 285 octets | `d3b3326a34c6226e0475d625d9bf53c628a676e7c448f5938ed913a1ad2b34b0` |
-| ledger scène clear | 4 042 octets | `36c99ceef5da02b5199ffbd7afe20eeaffba491ddcfcf738706275e6f0e524b3` |
-| ledger scène rain | 4 038 octets | `772f79c0db48c7c610d4da7e7d40c40c51ef3be3bb66e7e1ba421f7186cfb65f` |
-| ledger frame clear | 1 789 octets | `90afae69e4260be8d319e995bfea5afe53ea8e3fd8ca2f3b1454b3843ae3e9c0` |
-| ledger frame rain | 1 786 octets | `95d8dd92ffff6ce65ac4d25a13caaa1a631cff420a2b491012bb3c646857353b` |
+| `validation.json` | 3 507 octets | `cd6b196e06ca1e02a970c94d47ed64a6aa613f017284cd92616d8040ee6a792f` |
+| `visual-valley-clear-high.browser.png` | 1 293 570 octets | `819bd9994fafc8f4694d2e65300528bbf2d2b05f6e8946ae515305b58beb33d4` |
+| `visual-valley-rain-high.browser.png` | 1 323 858 octets | `7703f0c4207052010343585d12b4e6bc94ca076114f6e39a4acf4cd10be76e5a` |
+| ledger scène clear | 4 043 octets | `83093be5827ff053489a8636ba470b00d437ae928324af7ce06a65f37ba4383f` |
+| ledger scène rain | 4 038 octets | `30716870ca853948657bf05f3167e43221cc377ef1d5c06e0322dda3063d32c3` |
+| ledger frame clear | 1 771 octets | `1f606f2540a29b5d21c41188256d9464c9e8e6ee9ef565e363fd5cf383fd2e2f` |
+| ledger frame rain | 1 796 octets | `d8c8829c6c1297f8d5ed12ad8584869878a9aa5780c987f1c9e07f4370d3d21f` |
 
 ### Résultats automatisés
 
@@ -105,13 +104,13 @@ plein écran 1920 × 1080.
 | Mesure après 60 frames de warm-up | Clear | Rain |
 |---|---:|---:|
 | échantillons | 120 | 120 |
-| durée | 1 287,4 ms | 1 100,2 ms |
-| moyenne | 10,7283 ms | 9,1683 ms |
-| p50 / p95 / p99 | 10,3 / 13,4 / 17,1 ms | 9,1 / 10,1 / 11,9 ms |
-| FPS moyen | 93,211 | 109,071 |
-| 1 % low | 54,945 FPS | 84,034 FPS |
-| hitches `>16,7 ms` / `>33,3 ms` | 2 / 0 | 0 / 0 |
-| histogramme `<=16,7` / `16,7..33,3` / `>33,3` | 118 / 2 / 0 | 120 / 0 / 0 |
+| durée | 1 214,1 ms | 1 147,6 ms |
+| moyenne | 10,1175 ms | 9,5633 ms |
+| p50 / p95 / p99 | 9,8 / 12,1 / 12,8 ms | 9,3 / 10,9 / 11,6 ms |
+| FPS moyen | 98,839 | 104,566 |
+| 1 % low | 77,519 FPS | 85,106 FPS |
+| hitches `>16,7 ms` / `>33,3 ms` | 0 / 0 | 0 / 0 |
+| histogramme `<=16,7` / `16,7..33,3` / `>33,3` | 120 / 0 / 0 | 120 / 0 / 0 |
 
 Ces mesures proviennent de la boucle d'update Bevy WASM, pas d'une timestamp query GPU. Le ledger
 conserve `webgpu.status=checking`, `webgpu_ready_ms=null` et `gpu_presentation=not_observed`. Le PASS
@@ -120,28 +119,28 @@ métriques de boucle ; il ne doit pas être renommé « présentation GPU WebGPU
 
 ## Preuve native RX 7800 XT exact-commit
 
-Le binaire Release reconstruit et exécuté sur `a34596bd` utilise une AMD Radeon RX 7800 XT, Vulkan
+Le binaire Release reconstruit et exécuté sur `d9e2670` utilise une AMD Radeon RX 7800 XT, Vulkan
 et le pilote AMD `26.8.1 (LLPC)`, en 1920 × 1080 High fixe, VSync off. Le build Release termine en
-3 min 23 s ; le binaire de 81 728 000 octets porte le SHA-256
-`70966031f73569eecc31035497bb853cb7cd0251525dc4b2909a70c47093ee9e`. Les deux ledgers
+3 min 24 s ; le binaire de 81 735 680 octets porte le SHA-256
+`e44bc941b70eabab8b7e6155a262ab93491d9c2d4763454cb09bfd480e24cc75`. Les deux ledgers
 `forge.runtime-metrics` v8 contiennent 120 échantillons après warm-up :
 
 | Mesure native | Clear | Rain |
 |---|---:|---:|
-| moyenne | 7,4702 ms / 133,866 FPS | 7,6855 ms / 130,115 FPS |
-| p95 | 7,7622 ms | 8,1653 ms |
-| 1 % low | 125,519 FPS | 115,730 FPS |
+| moyenne | 8,3478 ms / 119,792 FPS | 8,2920 ms / 120,598 FPS |
+| p95 | 8,7132 ms | 9,0950 ms |
+| 1 % low | 113,775 FPS | 96,354 FPS |
 | hitches `>16,7 ms` / `>33,3 ms` | 0 / 0 | 0 / 0 |
-| mémoire wgpu allouée / réservée | 561 528 460 / 876 609 552 octets | 565 725 588 / 876 609 552 octets |
-| pipelines prêts | 68/68 | 69/69 |
+| mémoire wgpu allouée / réservée | 530 273 124 / 876 609 552 octets | 534 407 108 / 876 609 552 octets |
+| pipelines prêts | 69/69 | 71/71 |
 
 La fenêtre de mesure native dure environ 0,94 seconde à caméra fixe. Les valeurs mémoire décrivent
 les sous-allocations wgpu, pas la VRAM physique totale. `gpu_draw_calls` reste `null` et aucun total
 exhaustif de draw calls/triangles/instances GPU n'est disponible.
 
-Chaque log natif contient exactement un warning `wgpu_core::validation`, sans `ERROR` : un vertex
-shader écrit `@builtin(position)` sans `@invariant` alors que le pipeline utilise la comparaison
-`Equal`. wgpu signale un risque d'artefacts selon la machine ; les logs ne sont pas propres.
+Les deux logs natifs d9 sont vides : aucun warning `wgpu_core::validation` ni `ERROR` n'y est
+enregistré. Cette absence qualifie ces deux exécutions seulement ; elle n'est pas extrapolée à tous
+les backends ou GPU.
 
 Les commandes, 46 contrôles, six hashes natifs et limites détaillées sont consignés dans
 [`R1_043_NATIVE_STUDIO_EXACT_COMMIT.md`](../evidence/gate1/R1_043_NATIVE_STUDIO_EXACT_COMMIT.md),
@@ -183,7 +182,7 @@ Restent explicitement ouvertes :
 - `R1-034`, `R1-037`, `R1-039`, `R1-040` et `R1-041` ;
 - `R1-046` à `R1-052`.
 
-`R1-043` est fermée : les deux cibles utilisent `a34596bd`, le scenery hash corrigé concorde et
+`R1-043` est fermée : les deux cibles utilisent `d9e2670`, le scenery hash concorde et
 46/46 assertions croisées passent. Le ledger natif n'expose pas le hash autonome du contrôleur
 présent dans le manifeste Studio ; cette limite est documentée et ne doit pas être transformée en un
 huitième match de ledger.
@@ -197,7 +196,7 @@ huitième match de ledger.
 | 60 FPS moyens en 1080p High sur GPU milieu de gamme | **OUVERTE** | RX 7800 XT seulement ; Browser canvas et boucle WASM non équivalents |
 | p95 `<=16,7 ms` | **OUVERTE** | paire exact-commit dans le budget, mais pas sur GPU cible |
 | 1 % low `>=45 FPS` | **OUVERTE** | paire exact-commit dans le budget, mais pas sur GPU cible |
-| absence de stutter récurrent | **OUVERTE** | fenêtres courtes/fixes ; deux hitches Browser clear |
+| absence de stutter récurrent | **OUVERTE** | zéro hitch dans la paire d9, mais fenêtres courtes/fixes sans parcours représentatif |
 | profils qualité fonctionnels | **OUVERTE** | High fixe seulement ; transitions/adaptation non rejouées |
 | parité de données native/Studio | **SATISFAITE** | commit/arbre exacts communs, 46/46 contrôles et sept hashes communs MATCH |
 | code sans dépendance propriétaire obligatoire | **SATISFAITE** | audits provenance/indépendance locaux PASS |
@@ -205,16 +204,15 @@ huitième match de ledger.
 
 ## Limites visuelles et qualification humaine
 
-Les captures native et Browser clear/rain sont très contrastées : palette claire moutarde/rose et
-palette pluie verte/cyan. Elles montrent des motifs noirs stippled/jagged sur terrain, herbe,
-végétation et silhouettes. La pluie est visible, mais l'eau, la SSR et la réfraction ne sont pas
-clairement inspectables ; aucune capture fixe ne prouve l'animation, la stabilité temporelle, les
-impacts au sol ou la wetness réversible.
+Les captures d9 corrigent nettement la palette rose/moutarde et les grandes zones noires : le ciel
+est gris-bleu, le terrain vert et les ombres sont remplies. Des contours de végétation très sombres,
+du stipple/aliasing et quelques facettes sombres restent visibles. La pluie est visible, mais l'eau,
+la réflexion et la réfraction ne sont pas clairement inspectables ; une image fixe ne prouve ni
+animation, stabilité temporelle, impacts au sol ni wetness réversible.
 
-Le warning wgpu natif est compatible avec un risque d'artefacts de profondeur, sans permettre
-d'attribuer ces défauts à un shader précis. Aucune affirmation de supériorité sur Godot ou de parité
-visuelle Cadle n'est donc acquise. La revue humaine FHD/QHD, les vues hauteur humaine/lointaine, une
-vidéo de déplacement et les comparaisons matériaux/composition/A-B restent dues.
+Aucune affirmation de supériorité sur Godot ou de parité visuelle Cadle n'est acquise. La revue
+humaine FHD/QHD, les vues hauteur humaine/lointaine, une vidéo de déplacement et les comparaisons
+matériaux/composition/A-B restent dues.
 
 ## CI distante
 
@@ -228,8 +226,8 @@ Verdict : **POURSUIVRE GATE 1**.
 
 Ordre minimal avant toute nouvelle décision de passage :
 
-1. corriger ou expliquer le warning wgpu et les artefacts noirs, puis recapturer ;
-2. qualifier Low/Medium/High/Ultra et l'adaptation, puis un parcours temporel représentatif ;
+1. qualifier Low/Medium/High/Ultra et l'adaptation, puis un parcours temporel représentatif ;
+2. acquérir vues hauteur humaine/lointaine, eau dédiée et vidéo courte ;
 3. mesurer RTX 3060 ou RX 6600 en 1080p High ;
 4. effectuer la revue humaine comparative Godot/Cadle et statuer sur les routes visuelles restantes.
 

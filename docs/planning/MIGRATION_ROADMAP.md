@@ -291,30 +291,30 @@ et sans transformer une acquisition automatisée en revue humaine.
 
 Statut : **OUVERTE** après le passage automatisé local de Gate 0 sous ADR-0004, ADR-0005 et ADR-0006.
 
-Progression consolidée au commit source final
-`a34596bd733131699c70028dab86cf2c612b896a`, arbre
-`8ccdf8cb2cb6a6aabd3a4569f22f1778e164ced6`. Le smoke Browser final High clear/rain passe ses
-**24/24 contrôles automatisés pour chaque météo** : manifeste sélectionné égal au manifeste runtime,
-huit hashes présents, 9/9 modèles chargés sans échec, 26/26 assets HTTP 200, aucune requête `.meta`,
-aucun échec réseau et aucun warning console. Les captures Browser 1920 × 1080 sont acquises.
+Progression consolidée au commit source courant
+`d9e2670111624aa836ab138afc35cddf441865ef`, arbre
+`d6e5a40f73b47934444bda4514d5cdcb1dab093d`. La validation workspace passe **296/296 tests**, avec
+formatage, Clippy strict et check Studio WASM. Le smoke Browser High clear/rain passe ses **24/24
+contrôles pour chaque météo** : huit hashes présents, 9/9 modèles, 26/26 assets HTTP 200, aucune
+requête `.meta`, aucun échec réseau et aucune entrée warning/erreur console.
 
-La boucle WASM mesure 120 frames après 60 frames de warm-up. Clear relève 10,7283 ms de moyenne,
-p95 13,4 ms, 1 % low 54,945 FPS et deux hitches `>16,7 ms`; rain relève 9,1683 ms, p95 10,1 ms,
-1 % low 84,034 FPS et zéro hitch. Ces nombres décrivent la boucle Bevy WASM, pas un timestamp GPU ;
-`gpu_presentation` reste `not_observed` et le statut WebGPU du ledger reste `checking`.
+La boucle WASM mesure 120 frames après 60 frames de warm-up. Clear relève 10,1175 ms de moyenne,
+p95 12,1 ms, 1 % low 77,519 FPS ; rain 9,5633 ms, p95 10,9 ms, 1 % low 85,106 FPS ; zéro hitch dans
+les deux runs retenus. Ces nombres ne sont pas des timestamps GPU : `gpu_presentation` reste
+`not_observed` et le statut WebGPU du ledger reste `checking`. Un premier passage sous le seuil 1 %
+low a été rejeté et conservé hors preuves versionnées ; aucun seuil n'a été abaissé.
 
-Le runtime natif RX 7800 XT/Vulkan a été reconstruit et rejoué sur le commit exact `a34596bd` :
-clear/rain High, 1920 × 1080, 120 samples qualifiés, zéro hitch et 46/46 contrôles croisés PASS. Les
-sept hashes communs aux ledgers natif/Studio concordent, dont le hash scenery corrigé
-`6b41ec73efde5b8a40ca0132e1d32462176d6b4810104f6bed69496569f81f5f`. `R1-043` et la condition de
-parité de données native/Studio sont satisfaites. L'audit provenance/CC0 reste épinglé au commit
-exécuté `92286910a9bab622d5d54905551c0f03172e98e7`. La CI distante reste `NOT RUN` sous ADR-0006 ; ce
-statut n'est pas un PASS.
+Le runtime natif RX 7800 XT/Vulkan a été reconstruit et rejoué sur le même commit : clear/rain High,
+1920 × 1080, 120 samples, zéro hitch et **46/46** contrôles croisés PASS. Les sept hashes communs aux
+ledgers natif/Studio concordent. Clear mesure 8,3478 ms de moyenne, p95 8,7132 ms et 1 % low
+113,775 FPS ; rain 8,2920 ms, p95 9,0950 ms et 1 % low 96,354 FPS.
 
-Les captures natives et Browser restent très contrastées et montrent des artefacts noirs ; le log
-natif contient le warning wgpu `@builtin(position)` sans `@invariant` avec comparaison `Equal`.
-Matériel cible, profils dynamiques, stutter représentatif et revue humaine comparative restent dus.
-Verdict détaillé : `docs/reports/GATE_1_REPORT.md`. Gate 1 reste **OUVERTE**.
+Le correctif forward + IBL empêche le SSR/différé non qualifié d'être réactivé, borne le grade météo
+et supprime le warning natif observé à `a34596bd`. Les palettes sont corrigées ; des contours sombres
+et du stipple/aliasing restent visibles, et l'eau n'est pas isolée dans ces cadrages. `R1-043` reste
+satisfaite ; `R1-023`, matériel cible, profils complets, stutter représentatif et revue humaine
+restent dus. L'audit provenance/CC0 reste épinglé à `92286910…`. La CI distante reste `NOT RUN` sous
+ADR-0006 ; ce statut n'est pas un PASS. Gate 1 reste **OUVERTE**.
 
 ## But
 
@@ -399,8 +399,8 @@ qualité                   Low / Medium / High / Ultra
 - [ ] `R1-040` profil dynamique.
 - [ ] `R1-041` benchmark RTX 3060 ou RX 6600.
 - [x] `R1-042` benchmark RX 7800 XT de développement — smoke natif High clear/rain exact
-  `a34596bd`, Vulkan, 1920 × 1080, zéro hitch.
-- [x] `R1-043` comparaison native vs Studio WebGPU — paire exact-commit `a34596bd`, 46/46 contrôles
+  `d9e2670`, Vulkan, 1920 × 1080, zéro hitch.
+- [x] `R1-043` comparaison native vs Studio WebGPU — paire exact-commit `d9e2670`, 46/46 contrôles
   croisés et sept hashes de ledger communs MATCH ; présentation GPU Browser toujours non observée.
 
 ## R1-F — Revue visuelle
@@ -427,7 +427,7 @@ qualité                   Low / Medium / High / Ultra
 - [ ] 1 % low ≥ 45 FPS ;
 - [ ] absence de stutter récurrent ;
 - [ ] profils qualité fonctionnels ;
-- [x] parité de données entre natif et Studio — natif et Browser exacts `a34596bd`, 46/46 contrôles
+- [x] parité de données entre natif et Studio — natif et Browser exacts `d9e2670`, 46/46 contrôles
   croisés et sept hashes communs MATCH, dont scenery `6b41ec73…` ;
 - [x] code sans dépendance propriétaire obligatoire — audit provenance/indépendance PASS local ;
 - [x] rapport et captures versionnés — rapport Gate 1, manifeste/ledgers Browser et captures Forge

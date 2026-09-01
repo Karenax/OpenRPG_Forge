@@ -1,5 +1,26 @@
 # Gate 1 — smoke Browser WebGPU de Visual Valley
 
+## Campagne courante d9e2670
+
+La campagne courante vise `d9e2670111624aa836ab138afc35cddf441865ef`, arbre
+`d6e5a40f73b47934444bda4514d5cdcb1dab093d`. Clear et rain passent chacun **24/24** contrôles :
+9/9 modèles, 26/26 assets HTTP 200, zéro échec réseau, requête `.meta` ou entrée warning/erreur
+console. Après warm-up complet, clear mesure 10,1175 ms de moyenne, p95 12,1 ms et 1 % low
+77,519 FPS ; rain 9,5633 ms, p95 10,9 ms et 1 % low 85,106 FPS ; zéro hitch.
+
+Les preuves courantes sont sous
+[`browser/d9e2670111624aa836ab138afc35cddf441865ef/`](browser/d9e2670111624aa836ab138afc35cddf441865ef/)
+et les captures [`clear`](captures/visual-valley-browser-webgpu-clear-high-d9e26701.png) et
+[`rain`](captures/visual-valley-browser-webgpu-rain-high-d9e26701.png). Leur manifeste porte le
+SHA-256 `c566fe7d3b8f36ea27e4f428301236e659488d3ed909c9d50ccf2ff26b2b50c7`.
+
+Un premier passage 23/24, sous le seuil 1 % low, a été rejeté et conservé localement ; aucun seuil
+n'a été abaissé. La comparaison native/Studio d9 passe ensuite 46/46. `gpu_presentation` reste
+`not_observed`, Gate 1 reste ouverte. Voir
+[`R1_GRAPHICS_FORWARD_IBL_CORRECTION.md`](R1_GRAPHICS_FORWARD_IBL_CORRECTION.md).
+
+## Campagne historique a34596bd
+
 Date de la campagne locale : **2026-09-01**
 
 Commit Browser qualifié : **`a34596bd733131699c70028dab86cf2c612b896a`**

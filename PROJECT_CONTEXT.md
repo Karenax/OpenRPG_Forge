@@ -2,8 +2,8 @@
 
 Dernière mise à jour : **1er septembre 2026**
 Branche : **`Rust`**
-Statut : **Gate 0 passée sur preuves automatisées locales ; Gate 1 ouverte au commit source final
-`a34596bd733131699c70028dab86cf2c612b896a` ; Gate 2 interdite ; produit non qualifié**
+Statut : **Gate 0 passée sur preuves automatisées locales ; Gate 1 ouverte au commit source courant
+`d9e2670111624aa836ab138afc35cddf441865ef` ; Gate 2 interdite ; produit non qualifié**
 Référence historique : `main@a7f4a3f5dd0eeff1dc060ea1237b1d7d650b7ca0`
 Référence upstream exécutable : `Humpalumps/Cadle@ea0da62549980816a6a27e08b75808b1f56d70e7` (`v0.6.0`)
 
@@ -29,27 +29,31 @@ Les revues humaines Gate 0 restent différées et la CI distante reste `NOT RUN`
 facturation ; ADR-0006 autorise jusqu’à Gate 4 une décision sur preuves automatisées locales sans
 jamais transformer ce statut en CI verte.
 
-Le snapshot courant de Gate 1 possède des preuves Browser High clear/rain sur `a34596bd` : 24/24
-contrôles automatisés passent pour chaque météo, le manifeste sélectionné égale le manifeste runtime,
-9/9 modèles sont chargés sans échec, 26/26 assets répondent HTTP 200, aucune requête `.meta`, aucun
-échec réseau et aucun warning console ne sont observés. Les métriques Browser mesurent la boucle Bevy
-WASM et non le GPU ; `gpu_presentation` reste `not_observed`. Le manifeste, les ledgers et les deux
-captures Forge clear/rain sont ajoutés sous `docs/evidence/gate1/` avec leurs SHA-256.
+Le snapshot courant de Gate 1 est `d9e2670`, arbre
+`d6e5a40f73b47934444bda4514d5cdcb1dab093d`. Sa validation passe **296/296 tests workspace**, le
+formatage, Clippy workspace strict `-D warnings` et le check Studio WASM. Le seul avertissement de
+build reste la future incompatibilité transitive connue de `proc-macro-error2 v2.0.1`.
 
-La validation source finale de ce même commit passe **182/182 tests** : moteur 119/119, runtime
-32/32 et Studio 31/31 ; formatage, Clippy strict `-D warnings` et check Studio WASM passent aussi.
-Le seul avertissement de build est la future incompatibilité transitive connue de
-`proc-macro-error2 v2.0.1`.
+Les preuves Browser High clear/rain ont été rejouées sur ce commit exact : **24/24 contrôles** passent
+pour chaque météo, 9/9 modèles sont chargés, 26/26 assets répondent HTTP 200, sans requête `.meta`,
+échec réseau ni warning/erreur console. Après 60 frames de warm-up, les 120 frames clear mesurent
+10,1175 ms de moyenne, p95 12,1 ms et 1 % low 77,519 FPS ; rain mesure 9,5633 ms, p95 10,9 ms et
+1 % low 85,106 FPS. Les deux runs ont zéro hitch. Ces mesures décrivent la boucle Bevy WASM ;
+`gpu_presentation` reste honnêtement `not_observed`.
 
-Le runtime natif Release a désormais été reconstruit et rejoué sur ce même commit `a34596bd`, en
-clear/rain High, 1920 × 1080, sur RX 7800 XT/Vulkan. Les 46/46 contrôles croisés passent et les sept
-hashes exposés par les deux formats de ledger concordent, dont le hash décor corrigé `6b41ec73…` ;
-`R1-043` et la condition de parité de données native/Studio sont satisfaites. Les captures natives et
-Browser restent très contrastées avec des artefacts noirs, chaque log natif contient encore le
-warning wgpu `@builtin(position)`/`Equal`, et la revue humaine ainsi que le GPU cible restent dus. La
-preuve de provenance reste épinglée à `92286910a9bab622d5d54905551c0f03172e98e7`. Le verdict détaillé de
-`docs/reports/GATE_1_REPORT.md` est **poursuivre Gate 1** ; Gate 2 ne peut commencer sans passage de
-Gate 1 ou nouvelle dérogation explicite acceptée.
+Le runtime Release exact `d9e2670` a aussi été exécuté en clear/rain High, 1920 × 1080, sur RX 7800
+XT/Vulkan. Clear mesure 8,3478 ms de moyenne, p95 8,7132 ms et 1 % low 113,775 FPS ; rain 8,2920 ms,
+p95 9,0950 ms et 1 % low 96,354 FPS, sans hitch. Les **46/46** contrôles natif/Studio passent et les
+sept hashes communs concordent ; `R1-043` reste satisfaite sur la nouvelle paire exacte.
+
+Le correctif passe l'eau/les berges en forward, empêche le profil qualité de réactiver un SSR déclaré
+indisponible sous Bevy 0.19.1, ajoute l'IBL atmosphérique et borne la projection colorimétrique. Les
+logs natifs d9 sont vides : aucun warning wgpu ni `ERROR` n'y est enregistré. Les palettes
+rose/moutarde et les grandes zones noires sont corrigées ; des contours de végétation sombres et du
+stipple/aliasing restent visibles, et l'eau n'est pas isolable dans ces cadrages. `R1-023`, le GPU
+cible, les profils complets, le parcours temporel et les revues humaines restent dus. La preuve de
+provenance reste épinglée à `92286910a9bab622d5d54905551c0f03172e98e7`. Gate 2 ne peut commencer
+sans passage de Gate 1 ou nouvelle dérogation explicite acceptée.
 
 ---
 
@@ -1261,17 +1265,16 @@ Créer `examples/visual_valley` :
 - overlay complet ;
 - captures déterministes.
 
-État consolidé au commit source final `a34596bd733131699c70028dab86cf2c612b896a`, arbre
-`8ccdf8cb2cb6a6aabd3a4569f22f1778e164ced6` : les scènes Browser et natives clear/rain et leurs
-captures sont acquises. Les sept hashes communs des ledgers concordent et `R1-043` est satisfaite.
-Le Browser mesure la boucle WASM : clear 10,7283 ms de moyenne, p95 13,4 ms, 1 % low 54,945 FPS et
-deux hitches ; rain 9,1683 ms, p95 10,1 ms, 1 % low 84,034 FPS et zéro hitch. Le natif RX 7800 XT
-mesure respectivement 7,4702/7,7622 ms et 7,6855/8,1653 ms de moyenne/p95, sans hitch. Les métriques
-Browser ne sont pas des timestamps GPU.
+État consolidé au commit source courant `d9e2670111624aa836ab138afc35cddf441865ef`, arbre
+`d6e5a40f73b47934444bda4514d5cdcb1dab093d` : les scènes Browser et natives clear/rain et leurs
+captures sont acquises, les sept hashes communs concordent et `R1-043` est satisfaite par 46/46
+contrôles. Les deux Browser passent 24/24 contrôles et les deux natifs n'enregistrent ni warning ni
+erreur. La correction forward + IBL résout le warning et la dérive colorimétrique observés à
+`a34596bd`; cette campagne précédente reste une preuve historique intacte.
 
-Gate 1 reste **OUVERTE** : le warning wgpu et les artefacts noirs persistent, la cible RTX 3060/RX
-6600 n'est pas mesurée, les profils dynamiques ne sont pas qualifiés et aucune revue humaine
-comparative n'accepte les captures. Voir
+Gate 1 reste **OUVERTE** : la cible RTX 3060/RX 6600 n'est pas mesurée, les profils complets et le
+parcours temporel ne sont pas qualifiés, l'eau n'est pas isolée dans les captures et aucune revue
+humaine comparative n'accepte le rendu. Voir
 `docs/reports/GATE_1_REPORT.md`.
 
 La gate passe si :
@@ -1798,9 +1801,9 @@ Cadle v0.6.0 @ ea0da625 : copie locale épinglée, intacte et mesurée. Code MIT
 attribution ; assets exclus. Aucune dépendance Three.js/JavaScript dans le produit Forge.
 
 TRAVAIL ACTIF
-Gate C et Gate 0 sont passées. Gate 1 reste ouverte au commit source a34596bd : Browser et natif
-clear/rain exact-commit acquis, R1-043 satisfaite, mais warning/artefacts graphiques, GPU cible,
-profils dynamiques et revue humaine encore dus. Poursuivre uniquement Gate 1. Gate 2 est interdite
-sans nouvelle dérogation explicite. La CI distante reste NOT RUN sous ADR-0006 tant que les runners
-ne démarrent pas.
+Gate C et Gate 0 sont passées. Gate 1 reste ouverte au commit source d9e2670 : correction graphique,
+Browser et natif clear/rain exact-commit acquis, 24/24 par météo et 46/46 croisés, R1-043 satisfaite.
+Restent dus : profils complets, parcours temporel, GPU cible, vues qualifiantes et revue humaine.
+Poursuivre uniquement Gate 1. Gate 2 est interdite sans passage formel ou nouvelle dérogation
+explicite. La CI distante reste NOT RUN sous ADR-0006 tant que les runners ne démarrent pas.
 ```

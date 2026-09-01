@@ -2,42 +2,41 @@
 
 ## Verdict borné
 
-**NON QUALIFIÉ AU GLOBAL.** Le candidat contient des contrats Forge, des adapters Bevy, des shaders
-WGSL et des tests automatisés ciblant l'eau, la pluie, la wetness et le post-traitement. Deux smokes
-natifs High fixe, clear et rain, ont produit ledgers et captures sur le commit exact `92286910…`. Un
-smoke Browser clear/rain High distinct passe aussi au commit `a34596bd…`. Ces campagnes acquièrent
-des sous-preuves fonctionnelles CPU/ECS et visuelles bornées, mais ni les champs des ledgers ni les
-captures ne justifient une exécution GPU exhaustive, une parité native/Studio exact-commit ou une
-acceptation visuelle finale.
+**NON QUALIFIÉ AU GLOBAL.** Le candidat courant `d9e2670…` possède une paire native/Browser exacte,
+24/24 contrôles par météo et 46/46 contrôles croisés. L'eau et les berges utilisent le chemin
+forward ; le SSR écran est déclaré indisponible sous Bevy 0.19.1 et la réflexion se résout vers
+`disabled`, tandis que la réfraction utilise le fallback `surface_tint`. Zéro caméra SSR/différée est
+observée et les logs natifs n'enregistrent plus le warning historique. Cette correction ne transforme
+pas le fallback en réflexion/réfraction GPU qualifiée et l'eau reste hors cadrage.
 
 Les cinq critères restent ouverts :
 
 | Critère | État de cette preuve |
 |---|---|
 | `R1-022` eau de rivière | **acquis fonctionnellement** en natif et Browser : document/hash et composants observés ; eau non isolable visuellement, `gpu_pass_observed=false` et `gpu_presentation=not_observed` |
-| `R1-023` réflexion/réfraction selon profil | SSR préparé/diagnostiqué ; réfraction écran absente, repli `surface_tint` actif et résultat non inspectable |
+| `R1-023` réflexion/réfraction selon profil | demande authored conservée ; SSR indisponible → réflexion `disabled`, réfraction → `surface_tint` ; résultat non isolé visuellement, route ouverte |
 | `R1-024` pluie | **acquise fonctionnellement** en natif et Browser High : cible rain, lot visible et stries dans les PNG ; animation et présentation GPU non prouvées |
 | `R1-025` wetness réversible | endpoints clear=0/rain=0,78 observés ; aucune séquence réelle `clear → rain → clear` |
-| `R1-026` bloom et color grading bornés | composants/valeurs High observés ; changement global important et acceptation visuelle due |
+| `R1-026` bloom et color grading bornés | projection CIE bornée et IBL d9 corrigent rose/moutarde et grandes ombres noires ; revue humaine finale due |
 
-La roadmap et `PROJECT_CONTEXT.md` ne sont pas modifiés par ce document. Les sous-preuves
-fonctionnelles de `R1-022` et `R1-024` sont acquises ; les cinq critères restent ouverts au niveau
-global en raison des profils optiques/qualité, de la réversibilité dans une même exécution, de la
-présentation GPU non observée et de la qualification visuelle encore dues.
+Les sous-preuves fonctionnelles de `R1-022` et `R1-024` sont acquises. `R1-023`, `R1-025` et
+`R1-026` restent ouvertes en raison des profils optiques/qualité, de la réversibilité dans une même
+exécution, de la présentation GPU non observée et de la qualification visuelle encore dues. Les
+sections historiques plus bas conservent les campagnes précédentes ; la preuve d9 autoritaire est
+[`R1_GRAPHICS_FORWARD_IBL_CORRECTION.md`](R1_GRAPHICS_FORWARD_IBL_CORRECTION.md).
 
 ## Validation automatisée de l'état intégré courant
 
 | Validation intégrée | Résultat exact consigné |
 |---|---|
-| tests `forge_engine` | **119/119 PASS** |
-| tests `forge_runtime` | **32/32 PASS** (31 bin + 1 intégration) |
-| tests `forge_studio` | **31/31 PASS** (28 lib + 3 bin) |
-| check de compilation WASM exact courant | **PASS — 1.06 s** |
+| tests `forge_engine` | **120/120 PASS** |
+| tests workspace/all-targets | **296/296 PASS** |
+| check de compilation WASM exact courant | **PASS — 8,71 s** |
 | `cargo fmt --all -- --check` | **PASS** |
 | `git diff --check` | **PASS** |
-| Clippy strict exact de l'état combiné | **PASS — 12.04 s** |
-| smoke GPU natif et captures `clear`/`rain` High | **ARTEFACTS PRODUITS ET AUDITÉS** — code de sortie non conservé |
-| smoke/captures Browser clear/rain High | **PASS AUTOMATISÉ BORNÉ** au commit `a34596bd…` — 24/24 contrôles chacun ; voir [`R1_BROWSER_WEBGPU_SMOKE.md`](R1_BROWSER_WEBGPU_SMOKE.md) |
+| Clippy strict workspace/all-targets | **PASS**, zéro warning |
+| smoke GPU natif et captures `clear`/`rain` High | **PASS exact d9** — deux codes de sortie 0, logs sans warning/erreur |
+| smoke/captures Browser clear/rain High | **PASS exact d9** — 24/24 contrôles chacun ; voir [`R1_BROWSER_WEBGPU_SMOKE.md`](R1_BROWSER_WEBGPU_SMOKE.md) |
 
 Ces résultats valident la compilation et les contrats automatisés intégrés. Les exécutions natives
 ci-dessous ajoutent une observation Vulkan et des pixels capturés. Le Browser charge 9/9 modèles et
@@ -45,7 +44,7 @@ ci-dessous ajoutent une observation Vulkan et des pixels capturés. Le Browser c
 `source_manifest_matched` est interne à l'exécution Studio ; `gpu_presentation` reste
 `not_observed`, sans preuve exhaustive des shaders ou passes GPU.
 
-## Smoke natif exact clear/rain
+## Campagne historique 92286910 — smoke natif clear/rain
 
 La preuve vise le commit exact exécuté, `HEAD` au moment des smokes,
 `92286910a9bab622d5d54905551c0f03172e98e7`, arbre
@@ -157,7 +156,7 @@ par inférence depuis la seule existence d'un PNG.
   et deux bandes de berge. Les tests attendent 411 sommets/544 triangles pour l'eau et 548
   sommets/544 triangles pour les berges, avec winding positif et dégagement terrain minimal de
   0,14 m.
-- `VisualValleyWaterMaterial` est un matériau étendu Bevy opaque/deferred. Le shader Forge
+- `VisualValleyWaterMaterial` est un matériau étendu Bevy opaque/forward. Le shader Forge
   `visual_valley_water.wgsl` consomme amplitude, longueur d'onde, vitesse, direction, profondeur et
   force des normales ; `WaterRuntimeState` projette une phase animée déterministe.
 - `WaterProjectionStats` enregistre les hashes source/terrain, géométrie, clearance, uniforms,
@@ -173,7 +172,7 @@ par inférence depuis la seule existence d'un PNG.
   `authored_route_tracks_the_rendered_valley_and_requires_bank_projection` ;
 - adapter : `real_sixty_two_control_route_projects_three_lanes_independently`,
   `projected_lanes_are_monotone_and_every_triangle_has_positive_winding`,
-  `material_extension_maps_profile_and_keeps_deferred_surface_opaque`,
+  `material_extension_maps_profile_and_keeps_forward_surface_opaque`,
   `camera_preparation_is_observed_without_claiming_gpu_execution`,
   `shader_contract_contains_profile_waves_depth_normals_and_deferred_output` et
   `runtime_phase_is_seeded_repeatable_wrapped_and_profile_driven`.
@@ -182,7 +181,7 @@ par inférence depuis la seule existence d'un PNG.
 
 - la berge est une bande opaque de substitution : carving, blend authored, érosion et wet edge sont
   explicitement différés dans `WaterProjectionStats` ;
-- l'opacité authored est enregistrée mais la surface reste opaque pour le chemin deferred/SSR ;
+- l'opacité authored est enregistrée mais la surface reste opaque pour le chemin forward ;
 - les captures natives 1920 × 1080 clear/rain sont acquises, mais l'eau et les berges n'y sont pas
   suffisamment isolables pour juger mouvement, intersections, SSR, réfraction ou stabilité ; une
   capture dédiée et une séquence temporelle restent dues ;
@@ -199,13 +198,12 @@ par inférence depuis la seule existence d'un PNG.
   3,2 m, avec repli `surface_tint`.
 - `WaterDocument::resolve_optics_path` distingue capacité `available`, `unavailable` et
   `not_qualified`, sans confondre sélection logique et exécution GPU.
-- l'adapter installe réellement `ScreenSpaceReflections`, `DeferredPrepass`, `Msaa::Off` et une
-  transmission désactivée sur la caméra. Le chemin Bevy courant déclare la réfraction écran
-  indisponible et applique un tint de surface de force 0,18.
-- le profil qualité commande la réflexion : Low retire le SSR, Medium demande 24 pas, High 48 et
-  Ultra 64. L'intensité demandée est observée dans `WaterProjectionStats`, mais n'est pas mappée par
-  l'adapter eau courant. La distance maximale, la réfraction, ses pas et sa profondeur restent les
-  quatre champs `not_applicable` du profil qualité.
+- l'adapter retire `ScreenSpaceReflections` et `DeferredPrepass` lorsque le chemin résolu n'est pas
+  `screen_space`. Le chemin Bevy courant déclare SSR et réfraction écran indisponibles et applique un
+  tint de surface de force 0,18 ;
+- le profil qualité conserve l'intention Low/Medium/High/Ultra, mais consulte la résolution eau avant
+  toute projection. Il ne peut plus réactiver SSR après un changement de tier. Intensité, distance,
+  pas SSR et réfraction restent non appliqués dans le fallback courant.
 
 **Tests concernés inventoriés dans le candidat**
 
@@ -213,7 +211,8 @@ par inférence depuis la seule existence d'un PNG.
 - `requested_and_fallback_optics_are_observable` ;
 - `metrics_resolve_optics_without_claiming_gpu_or_webgpu_execution` ;
 - `tier_projection_is_reversible_and_stable_between_transitions` pour l'ajout/retrait du composant
-  SSR et son budget de pas.
+  SSR lorsque disponible, plus `high_quality_transition_cannot_reenable_unavailable_ssr` pour le
+  fallback courant.
 
 **Limites et preuve encore dues**
 
@@ -322,9 +321,9 @@ par inférence depuis la seule existence d'un PNG.
 **Limites et preuve encore dues**
 
 - ni la présence de composants ECS ni leur sérialisation ne prouvent le post-traitement final ;
-- les captures natives et Browser High clear/rain sont acquises, mais montrent une dérive
-  colorimétrique globale importante, des noirs dominants et un overlay envahissant ; produire encore
-  Low et une inspection ciblée de clipping, pompage et halo ;
+- les captures d9 corrigent la dérive colorimétrique et les grandes zones noires, mais montrent encore
+  contours sombres/stipple et un overlay envahissant ; produire Low et une inspection ciblée de l'eau,
+  du clipping, du pompage et du halo ;
 - consigner backend, résolution, profil, seed, commit, warm-up, métriques et inspection humaine avant
   de cocher `R1-026`.
 
@@ -332,15 +331,15 @@ par inférence depuis la seule existence d'un PNG.
 
 | Cible | Variantes obligatoires | Preuves minimales |
 |---|---|---|
-| Runtime natif | `clear` et `rain`, High, 1920 × 1080, VSync off, même seed/caméra | **PARTIEL ACQUIS** : captures, métriques, backend/GPU/driver et hashes ; warning shader/pipeline présent et revue visuelle non acceptée |
-| Studio Browser | `forge_scene=visual-valley` avec `forge_weather=clear`, puis `rain`, High | **PARTIEL ACQUIS à `a34596bd…`** : 24/24 contrôles chacun, 9/9 modèles, 26 assets HTTP 200, hashes internes alignés, console/réseau propres et captures inspectées ; `gpu_presentation=not_observed` |
+| Runtime natif | `clear` et `rain`, High, 1920 × 1080, VSync off, même seed/caméra | **PARTIEL ACQUIS à d9** : captures, métriques, backend/GPU/driver et logs sans warning/erreur ; revue visuelle non acceptée |
+| Studio Browser | `forge_scene=visual-valley` avec `forge_weather=clear`, puis `rain`, High | **PARTIEL ACQUIS à `d9e2670…`** : 24/24 contrôles chacun, 9/9 modèles, 26 assets HTTP 200, hashes alignés, console/réseau propres et captures inspectées ; `gpu_presentation=not_observed` |
 | Réversibilité | `clear → rain → clear` sur une exécution instrumentée par cible | wetness terminale exacte et retour visuel sec, sans mutation des palettes |
 | Profils optiques/post-FX | Low/Medium/High/Ultra, au minimum captures Low/High | chemin SSR/fallback observé, paramètres appliqués, coût et artefacts comparés |
 
 Le commit/arbre, le smoke natif High clear/rain et le smoke Browser clear/rain sont désormais
-consignés. Les temps Browser mesurent la boucle WASM, pas le GPU : clear moyenne 10,7283 ms, p95
-13,4 ms, 1 % low 54,945 FPS et 2 hitches ; rain moyenne 9,1683 ms, p95 10,1 ms, 1 % low 84,034 FPS
-et 0 hitch. Restent dus : rejeu natif exact `a34596bd…`, séquence `clear → rain → clear`, matrice de
-profils, captures eau dédiées, sonde GPU, résolution des artefacts et acceptation visuelle humaine.
+consignés sur la paire d9 exacte. Les temps Browser mesurent la boucle WASM, pas le GPU : clear
+moyenne 10,1175 ms, p95 12,1 ms, 1 % low 77,519 FPS ; rain moyenne 9,5633 ms, p95 10,9 ms, 1 % low
+85,106 FPS ; zéro hitch. Restent dus : séquence `clear → rain → clear`, matrice de profils, captures
+eau dédiées, sonde GPU, résidus visuels et acceptation humaine.
 `R1-023`, `R1-025` et `R1-026` restent explicitement ouverts ; `R1-022` et `R1-024` sont acquis
 fonctionnellement mais restent bornés visuellement/GPU. Gate 1 demeure **NON QUALIFIÉE**.

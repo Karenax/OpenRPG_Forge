@@ -1,5 +1,16 @@
 # R1-019 à R1-021 — environnement natif et approximation mesurée
 
+## Requalification courante d9
+
+Le commit `d9e2670111624aa836ab138afc35cddf441865ef` ajoute une vraie
+`AtmosphereEnvironmentMapLight` à la caméra (`intensity=1.0`, `256 × 256`) et l'observe dans le
+ledger. La paire native/Browser clear/rain exacte passe 24/24 par météo et 46/46 croisés ; les logs
+natifs sont sans warning/erreur et les grandes ombres noires sont corrigées. Cette requalification ne
+change ni le document environnement ni son hash. Voir
+[`R1_GRAPHICS_FORWARD_IBL_CORRECTION.md`](R1_GRAPHICS_FORWARD_IBL_CORRECTION.md).
+
+La section suivante conserve la campagne d'origine et ses identités historiques.
+
 ## Verdict borné
 
 **PASS AUTOMATISÉ LOCAL NATIF / PARTIEL MULTI-CIBLE** au commit

@@ -1,0 +1,10 @@
+{
+  "main": 1,
+  "canvas": 1,
+  "parity": "hashes alignés · caméras 1/1 (attendu 1) · eau observed_main_world_components · météo observed_cpu_projection (clear) · décor activated",
+  "sceneLedger": 1,
+  "gateLedger": 1,
+  "unavailable": 0,
+  "weatherError": 0,
+  "runtimeError": 0
+}

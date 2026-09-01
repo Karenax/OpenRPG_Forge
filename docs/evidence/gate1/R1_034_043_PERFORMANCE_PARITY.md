@@ -3,28 +3,27 @@
 - Statut : **SMOKES NATIFS ET BROWSER CLEAR/RAIN ACQUIS AU MÊME COMMIT ; R1-043 FERMÉE ; GPU
   CIBLE ET QUALIFICATION VISUELLE FINALE OUVERTS**
 - État natif exécuté (`HEAD` au moment des smokes) :
-  `a34596bd733131699c70028dab86cf2c612b896a`,
-  arbre `8ccdf8cb2cb6a6aabd3a4569f22f1778e164ced6`
+  `d9e2670111624aa836ab138afc35cddf441865ef`,
+  arbre `d6e5a40f73b47934444bda4514d5cdcb1dab093d`
 - Contrat natif candidat : `forge.runtime-metrics` version 8
 - Contrat de scène Studio candidat : `forge.studio-scene-telemetry` version 7
 - Roadmap : `R1-043` fermée ; les sous-preuves encore ouvertes sont détaillées ci-dessous
 
-Ce rapport cartographie ce que le candidat sait réellement observer. Les résultats natifs ci-dessous
-proviennent exclusivement du commit exact indiqué et ne réutilisent pas les anciens smokes RX 7800 XT.
+Ce rapport cartographie ce que le candidat sait réellement observer. Les résultats courants viennent
+du commit d9 exact. La campagne `a34596bd…` reste historique et byte-for-byte intacte.
 
 ## Validation automatisée de l'état intégré courant
 
 | Validation intégrée | Résultat exact consigné |
 |---|---|
-| tests `forge_engine` | **119/119 PASS** |
-| tests `forge_runtime` | **32/32 PASS** (31 bin + 1 intégration) |
-| tests `forge_studio` | **31/31 PASS** (28 lib + 3 bin) |
-| check de compilation WASM exact courant | **PASS — 1.06 s** |
+| tests `forge_engine` | **120/120 PASS** |
+| tests workspace/all-targets | **296/296 PASS** |
+| check de compilation WASM exact courant | **PASS — 8,71 s** |
 | `cargo fmt --all -- --check` | **PASS** |
 | `git diff --check` | **PASS** |
-| Clippy strict exact de l'état combiné | **PASS — 12.04 s** |
+| Clippy strict workspace/all-targets | **PASS**, zéro warning |
 | smoke GPU natif High fixe, `clear` puis `rain` | **PASS** — deux codes de sortie 0, 46/46 contrôles croisés |
-| smoke Browser clear/rain High | **PASS AUTOMATISÉ BORNÉ** au commit `a34596bd…` — 24/24 contrôles chacun ; voir [`R1_BROWSER_WEBGPU_SMOKE.md`](R1_BROWSER_WEBGPU_SMOKE.md) |
+| smoke Browser clear/rain High | **PASS AUTOMATISÉ BORNÉ** au commit `d9e2670…` — 24/24 contrôles chacun ; voir [`R1_BROWSER_WEBGPU_SMOKE.md`](R1_BROWSER_WEBGPU_SMOKE.md) |
 
 La campagne automatisée valide les contrats et la compilation WASM. Les deux exécutions natives
 séparées ajoutent une observation Vulkan et des captures. Le smoke Browser charge 9/9 modèles et
@@ -35,7 +34,7 @@ l'acceptation visuelle finale.
 
 ## Exécutions natives exactes et artefacts
 
-Le runtime Release a été reconstruit dans un worktree détaché propre sur `a34596bd…`, puis lancé
+Le runtime Release a été reconstruit dans un worktree détaché propre sur `d9e2670…`, puis lancé
 directement deux fois avec `BEVY_ASSET_ROOT` pointant vers ce même worktree. Clear et rain terminent
 avec le code 0. Les six artefacts versionnés, les commandes, le hash du binaire et les 46 assertions
 croisées sont détaillés dans
@@ -44,16 +43,16 @@ croisées sont détaillés dans
 | Mesure 1080p High, VSync off | Clear | Rain |
 |---|---:|---:|
 | échantillons | 120 | 120 |
-| moyenne | 7,4702 ms / 133,866 FPS | 7,6855 ms / 130,115 FPS |
-| p95 | 7,7622 ms | 8,1653 ms |
-| 1 % low | 125,519 FPS | 115,730 FPS |
+| moyenne | 8,3478 ms / 119,792 FPS | 8,2920 ms / 120,598 FPS |
+| p95 | 8,7132 ms | 9,0950 ms |
+| 1 % low | 113,775 FPS | 96,354 FPS |
 | hitches `>16,7 ms` / `>33,3 ms` | 0 / 0 | 0 / 0 |
 | histogramme `<=16,7` / `16,7..33,3` / `>33,3` | 120 / 0 / 0 | 120 / 0 / 0 |
 
-Chaque log contient exactement un événement `WARN` et aucun `ERROR`. Le warning
-`wgpu_core::validation` indique qu'un vertex shader écrit `@builtin(position)` sans attribut
-`@invariant` alors que le pipeline emploie une comparaison de profondeur `Equal`. Les captures
-reproduisent les motifs noirs ; la parité de données est acquise, pas l'acceptation visuelle.
+Les deux logs d9 sont vides : aucun warning ni `ERROR` n'y est enregistré. La correction visuelle est
+nettement observable, mais les contours sombres/stipple et l'absence d'une vue eau dédiée maintiennent
+la qualification artistique ouverte. Voir
+[`R1_GRAPHICS_FORWARD_IBL_CORRECTION.md`](R1_GRAPHICS_FORWARD_IBL_CORRECTION.md).
 
 ## Contrat de mesure candidat
 
@@ -99,25 +98,25 @@ L'histogramme est exhaustif et non recouvrant :
 | `frames_over_16_7_ms_at_or_below_33_3_ms` | `16,7 ms < frame <= 33,3 ms` |
 | `frames_over_33_3_ms` | frame `> 33,3 ms` |
 
-Le collecteur Studio partage les mêmes formules moteur-neutres. Le smoke Browser `a34596bd…` attend
+Le collecteur Studio partage les mêmes formules moteur-neutres. Le smoke Browser `d9e2670…` attend
 la readiness de la scène, ignore 60 frames et en mesure exactement 120 pour clear puis rain. Cette
 exécution acquiert les distributions de la boucle Bevy WASM ; elle ne mesure pas un timestamp GPU.
-Le natif rejoué à `a34596bd…` fournit désormais la paire exact-commit de données.
+Le natif rejoué à `d9e2670…` fournit la paire exact-commit de données courante.
 
 ## Cartographie R1-034 à R1-043
 
 | Route | Instrumentation réellement présente dans le candidat | Limite ou preuve encore requise | Statut |
 |---|---|---|---|
 | `R1-034` overlay CPU/GPU | overlay natif inspecté dans les deux PNG avec adaptateur, FPS, frame time et statistiques opaques | aucun timestamp de frame GPU affiché ; primitives et invocations shader ne sont pas un temps GPU | **OBSERVÉ, PARTIEL** |
-| `R1-035` frame histogram | natif clear/rain `120/0/0` ; Browser clear `118/2/0`, rain `120/0/0`, sommes exactement égales à 120 | paire exact-commit acquise, mais sans parcours | **SOUS-PREUVES NATIVE ET BROWSER ACQUISES** |
-| `R1-036` moyenne, p95, 1 % low | natif clear : 133,866 FPS / 7,762 ms / 125,519 FPS ; natif rain : 130,115 / 8,165 / 115,730 ; loop WASM clear : 10,7283 ms / 13,4 ms / 54,945 FPS ; rain : 9,1683 / 10,1 / 84,034 | fenêtres courtes et caméra fixe ; la loop WASM n'est pas un temps GPU | **SOUS-PREUVES NATIVE ET BROWSER ACQUISES** |
+| `R1-035` frame histogram | natif et Browser clear/rain `120/0/0`, sommes exactement égales à 120 | paire exact-commit acquise, mais sans parcours | **SOUS-PREUVES NATIVE ET BROWSER ACQUISES** |
+| `R1-036` moyenne, p95, 1 % low | natif clear : 119,792 FPS / 8,713 ms / 113,775 FPS ; natif rain : 120,598 / 9,095 / 96,354 ; loop WASM clear : 10,1175 ms / 12,1 ms / 77,519 FPS ; rain : 9,5633 / 10,9 / 85,106 | fenêtres courtes et caméra fixe ; la loop WASM n'est pas un temps GPU | **SOUS-PREUVES NATIVE ET BROWSER ACQUISES** |
 | `R1-037` draw calls, triangles, instances | triangles logiques du terrain, comptes de meshes source et projections ECS végétation/scenery ; primitives/invocations opaques quand le backend les expose | `gpu_draw_calls = null` avec statut `unavailable_bevy_0_19_no_global_counter` ; aucun total exhaustif whole-scene de triangles ou instances réellement soumis au GPU | **NON QUALIFIÉ** |
-| `R1-038` VRAM estimée | rapports allocateur Vulkan observés : 561 528 460/876 609 552 octets clear et 565 725 588/876 609 552 rain ; slabs 54 042 544 octets | sous-allocations seulement, pas la VRAM totale, le budget OS ou la résidence ; Browser doit rester `null` sans substitut | **SOUS-PREUVE NATIVE ACQUISE, ROUTE OUVERTE** |
-| `R1-039` préchauffage pipelines | natif clear 68/68 et rain 69/69 prêts, zéro queued/creating/error/waiting et 177 frames stables | le Browser atteint la readiness mais n'expose pas la convergence du cache pipeline ; aucun cache persistant ni autres tiers | **SOUS-PREUVE HIGH NATIVE ACQUISE, ROUTE OUVERTE** |
+| `R1-038` VRAM estimée | rapports allocateur Vulkan observés : 530 273 124/876 609 552 octets clear et 534 407 108/876 609 552 rain ; slabs 54 042 544 octets | sous-allocations seulement, pas la VRAM totale, le budget OS ou la résidence ; Browser doit rester `null` sans substitut | **SOUS-PREUVE NATIVE ACQUISE, ROUTE OUVERTE** |
+| `R1-039` préchauffage pipelines | natif clear 69/69 et rain 71/71 prêts, zéro queued/creating/error/waiting | le Browser atteint la readiness mais n'expose pas la convergence du cache pipeline ; aucun cache persistant ni autres tiers | **SOUS-PREUVE HIGH NATIVE ACQUISE, ROUTE OUVERTE** |
 | `R1-040` profil dynamique | High fixe sélectionné/courant/appliqué en natif et Browser ; LOD scenery 72–180 m concordant | adaptation désactivée, zéro transition, aucun Low/Medium/Ultra/adaptatif et limites visuelles présentes | **SOUS-PREUVE HIGH FIXE ACQUISE, ROUTE OUVERTE** |
 | `R1-041` benchmark RTX 3060 ou RX 6600 | le ledger v8 peut recevoir la mesure 1080p High et l'identité de l'adaptateur | aucun lancement sur RTX 3060 12 Go ou RX 6600 8 Go ; objectifs 60 FPS moyen, p95 `<= 16,7 ms`, 1 % low `>= 45 FPS` non mesurés | **NON QUALIFIÉ** |
 | `R1-042` benchmark RX 7800 XT | deux mesures v8 du candidat exact sur RX 7800 XT/Vulkan, 1080p High fixe, clear/rain et VSync off | benchmark court et fixe ; ne vaut ni cible milieu de gamme ni parcours représentatif | **SOUS-PREUVE DE DÉVELOPPEMENT ACQUISE** |
-| `R1-043` comparaison native vs Studio WebGPU | natif et Browser `a34596bd…`, clear/rain, 46/46 assertions et sept hashes communs MATCH, dont scenery `6b41ec73…` | loop WASM non GPU, `gpu_presentation=not_observed` et hash contrôleur non répété dans le ledger natif | **PASS AUTOMATISÉ LOCAL BORNÉ** |
+| `R1-043` comparaison native vs Studio WebGPU | natif et Browser `d9e2670…`, clear/rain, 46/46 assertions et sept hashes communs MATCH, dont scenery `6b41ec73…` | loop WASM non GPU, `gpu_presentation=not_observed` et hash contrôleur non répété dans le ledger natif | **PASS AUTOMATISÉ LOCAL BORNÉ** |
 
 ## Frontières des compteurs de rendu
 
@@ -156,8 +155,8 @@ fenêtre.
 | Runtime natif, Low/Medium/High/Ultra puis adaptation bornée | **NOT RUN** |
 | Benchmark de développement RX 7800 XT, mêmes scène/profil/résolution | **ACQUIS — protocole court à caméra fixe** |
 | Benchmark cible RTX 3060 12 Go ou RX 6600 8 Go, mêmes scène/profil/résolution | **NOT RUN** |
-| Studio Browser, Visual Valley High, clear puis rain, 60 + 120 frames | **ACQUIS À `a34596bd…`** — 24/24 contrôles chacun, captures et JSON versionnés ; présentation GPU non observée |
-| Comparaison native/Studio des distributions et de la parité de données sur conditions équivalentes | **ACQUISE À `a34596bd…`** — 46/46 assertions et sept hashes communs MATCH ; présentation GPU Browser non observée |
+| Studio Browser, Visual Valley High, clear puis rain, 60 + 120 frames | **ACQUIS À `d9e2670…`** — 24/24 contrôles chacun, captures et JSON versionnés ; présentation GPU non observée |
+| Comparaison native/Studio des distributions et de la parité de données sur conditions équivalentes | **ACQUISE À `d9e2670…`** — 46/46 assertions et sept hashes communs MATCH ; présentation GPU Browser non observée |
 
 Les deux profils matériels répondent à des questions différentes : la RX 7800 XT détecte les
 régressions sur la machine de développement (`R1-042`), tandis que seule une RTX 3060 ou RX 6600
@@ -166,11 +165,11 @@ machine cible.
 
 ## Verdict de ce document
 
-Le natif et le Browser `a34596bd…` possèdent chacun leurs preuves clear/rain. Les 46/46 assertions
+Le natif et le Browser `d9e2670…` possèdent chacun leurs preuves clear/rain. Les 46/46 assertions
 croisées ferment `R1-043`. `R1-034` reste partielle faute de temps GPU ; `R1-037` et `R1-041`
 restent non qualifiées ; `R1-039` et `R1-040` restent ouvertes faute de preuve pipeline Browser,
 transitions et matrice de tiers. Le GPU milieu de gamme et l'acceptation visuelle restent dus. Le
-warning natif wgpu, `gpu_presentation=not_observed` et les fenêtres courtes interdisent un verdict
+les résidus visuels, `gpu_presentation=not_observed` et les fenêtres courtes interdisent un verdict
 global Gate 1.
 
 Références détaillées :

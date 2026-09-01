@@ -1,0 +1,191 @@
+{
+  "responses": [
+    {
+      "url": "http://127.0.0.1:1420/?forge_scene=visual-valley&forge_weather=rain&forge_quality=high&build=d9e2670-rain",
+      "status": 200,
+      "mime": "text/html",
+      "type": "Document"
+    },
+    {
+      "url": "http://127.0.0.1:1420/styles.css",
+      "status": 200,
+      "mime": "text/css",
+      "type": "Stylesheet"
+    },
+    {
+      "url": "http://127.0.0.1:1420/forge_studio.js",
+      "status": 200,
+      "mime": "text/javascript",
+      "type": "Script"
+    },
+    {
+      "url": "http://127.0.0.1:1420/forge_studio_bg.wasm",
+      "status": 200,
+      "mime": "application/wasm",
+      "type": "Other"
+    },
+    {
+      "url": "http://127.0.0.1:1420/favicon.ico",
+      "status": 200,
+      "mime": "text/html",
+      "type": "Other"
+    },
+    {
+      "url": "http://127.0.0.1:1420/assets/visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/CommonTree_1.gltf",
+      "status": 200,
+      "mime": "model/gltf+json",
+      "type": "Fetch"
+    },
+    {
+      "url": "http://127.0.0.1:1420/assets/visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/CommonTree_3.gltf",
+      "status": 200,
+      "mime": "model/gltf+json",
+      "type": "Fetch"
+    },
+    {
+      "url": "http://127.0.0.1:1420/assets/visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/Pine_2.gltf",
+      "status": 200,
+      "mime": "model/gltf+json",
+      "type": "Fetch"
+    },
+    {
+      "url": "http://127.0.0.1:1420/assets/visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/Bush_Common_Flowers.gltf",
+      "status": 200,
+      "mime": "model/gltf+json",
+      "type": "Fetch"
+    },
+    {
+      "url": "http://127.0.0.1:1420/assets/visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/Fern_1.gltf",
+      "status": 200,
+      "mime": "model/gltf+json",
+      "type": "Fetch"
+    },
+    {
+      "url": "http://127.0.0.1:1420/assets/visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/Rock_Medium_1.gltf",
+      "status": 200,
+      "mime": "model/gltf+json",
+      "type": "Fetch"
+    },
+    {
+      "url": "http://127.0.0.1:1420/assets/visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/Rock_Medium_3.gltf",
+      "status": 200,
+      "mime": "model/gltf+json",
+      "type": "Fetch"
+    },
+    {
+      "url": "http://127.0.0.1:1420/assets/visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/Mushroom_Laetiporus.gltf",
+      "status": 200,
+      "mime": "model/gltf+json",
+      "type": "Fetch"
+    },
+    {
+      "url": "http://127.0.0.1:1420/assets/visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/Flower_4_Group.gltf",
+      "status": 200,
+      "mime": "model/gltf+json",
+      "type": "Fetch"
+    },
+    {
+      "url": "http://127.0.0.1:1420/assets/visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/CommonTree_1.bin",
+      "status": 200,
+      "mime": "application/octet-stream",
+      "type": "Fetch"
+    },
+    {
+      "url": "http://127.0.0.1:1420/assets/visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/CommonTree_3.bin",
+      "status": 200,
+      "mime": "application/octet-stream",
+      "type": "Fetch"
+    },
+    {
+      "url": "http://127.0.0.1:1420/assets/visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/Pine_2.bin",
+      "status": 200,
+      "mime": "application/octet-stream",
+      "type": "Fetch"
+    },
+    {
+      "url": "http://127.0.0.1:1420/assets/visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/Bush_Common_Flowers.bin",
+      "status": 200,
+      "mime": "application/octet-stream",
+      "type": "Fetch"
+    },
+    {
+      "url": "http://127.0.0.1:1420/assets/visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/Fern_1.bin",
+      "status": 200,
+      "mime": "application/octet-stream",
+      "type": "Fetch"
+    },
+    {
+      "url": "http://127.0.0.1:1420/assets/visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/Rock_Medium_1.bin",
+      "status": 200,
+      "mime": "application/octet-stream",
+      "type": "Fetch"
+    },
+    {
+      "url": "http://127.0.0.1:1420/assets/visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/Rock_Medium_3.bin",
+      "status": 200,
+      "mime": "application/octet-stream",
+      "type": "Fetch"
+    },
+    {
+      "url": "http://127.0.0.1:1420/assets/visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/Mushroom_Laetiporus.bin",
+      "status": 200,
+      "mime": "application/octet-stream",
+      "type": "Fetch"
+    },
+    {
+      "url": "http://127.0.0.1:1420/assets/visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/Flower_4_Group.bin",
+      "status": 200,
+      "mime": "application/octet-stream",
+      "type": "Fetch"
+    },
+    {
+      "url": "http://127.0.0.1:1420/assets/visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/Bark_NormalTree_Normal.png",
+      "status": 200,
+      "mime": "image/png",
+      "type": "Fetch"
+    },
+    {
+      "url": "http://127.0.0.1:1420/assets/visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/Bark_NormalTree.png",
+      "status": 200,
+      "mime": "image/png",
+      "type": "Fetch"
+    },
+    {
+      "url": "http://127.0.0.1:1420/assets/visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/Leaves_NormalTree_C.png",
+      "status": 200,
+      "mime": "image/png",
+      "type": "Fetch"
+    },
+    {
+      "url": "http://127.0.0.1:1420/assets/visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/Leaf_Pine_C.png",
+      "status": 200,
+      "mime": "image/png",
+      "type": "Fetch"
+    },
+    {
+      "url": "http://127.0.0.1:1420/assets/visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/Flowers.png",
+      "status": 200,
+      "mime": "image/png",
+      "type": "Fetch"
+    },
+    {
+      "url": "http://127.0.0.1:1420/assets/visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/Leaves.png",
+      "status": 200,
+      "mime": "image/png",
+      "type": "Fetch"
+    },
+    {
+      "url": "http://127.0.0.1:1420/assets/visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/Rocks_Diffuse.png",
+      "status": 200,
+      "mime": "image/png",
+      "type": "Fetch"
+    },
+    {
+      "url": "http://127.0.0.1:1420/assets/visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/Mushrooms.png",
+      "status": 200,
+      "mime": "image/png",
+      "type": "Fetch"
+    }
+  ],
+  "failures": []
+}

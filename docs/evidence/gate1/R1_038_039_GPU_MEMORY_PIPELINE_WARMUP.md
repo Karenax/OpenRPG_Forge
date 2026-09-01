@@ -1,11 +1,14 @@
 # R1-038 / R1-039 — Observation mémoire GPU et préchauffage des pipelines
 
-- Statut : **OBSERVATION NATIVE VULKAN ET SMOKE BROWSER CLEAR/RAIN ACQUIS ; R1-039 ET VARIANTES RESTENT OUVERTES**
+- Statut courant : **R1-038 ACQUISE ; HIGH CLEAR/RAIN PRÉCHAUFFÉ ; R1-039 RESTE OUVERTE POUR LES
+  AUTRES TIERS ET L'ADAPTATION**
 - Base de départ exacte du lot isolé : `f786a38aca2023f08d708687f99a47d14f34e6d4`
 - Portée du lot isolé : `forge_engine` et consommation par `forge_runtime` uniquement
-- Candidat natif observé : `92286910a9bab622d5d54905551c0f03172e98e7`, arbre
-  `6d7cd4ab8612686e7f73f01abeb5b8ad0174ebbe`
-- Roadmap : non modifiée ; les sous-preuves natives sont acquises, les routes complètes restent ouvertes
+- Candidat courant observé : `d9e2670111624aa836ab138afc35cddf441865ef`, arbre
+  `d6e5a40f73b47934444bda4514d5cdcb1dab093d`
+- Résultat d9 : clear 69/69 pipelines, rain 71/71, prêts pendant toute la mesure ; allocations wgpu
+  530 273 124 / 534 407 108 octets et réservées 876 609 552 octets dans les deux runs
+- Les sections historiques ci-dessous documentent l'origine du lot ; la roadmap courante fait foi
 
 ## Objet du lot
 
@@ -113,8 +116,8 @@ GPU ni une preuve de présentation GPU.
 
 La sérialisation native v8 exige la composition Gate 1 complète : terrain, ombres, végétation,
 scenery, environnement, eau, météo et qualité. Le ledger qualité doit contenir ses 34 champs uniques
-et documentés, répartis en 5 projections au démarrage, 15 projections lors d'une transition de tier
-et 14 champs explicitement `not_applicable`. Une mesure gouvernée contient au minimum **120
+et documentés, répartis en 5 projections au démarrage, 14 projections lors d'une transition de tier
+et 15 champs explicitement `not_applicable`. Une mesure gouvernée contient au minimum **120
 échantillons de frame finis et positifs après le warm-up**.
 
 Le ledger natif suit en outre une empreinte de l'état de rendu : tier courant/appliqué, statut et
@@ -156,14 +159,13 @@ Les tests nouveaux couvrent :
 |---|---|
 | `cargo fmt --all -- --check` | **PASS** |
 | `git diff --check` | **PASS** |
-| tests bibliothèque `forge_engine` | **PASS — 119/119** |
-| tests `forge_runtime` | **PASS — 32/32** (31 bin + 1 intégration) |
-| tests `forge_studio` | **PASS — 31/31** (28 lib + 3 bin) |
-| `cargo check -p forge_studio --lib --target wasm32-unknown-unknown --no-default-features --features web` exact courant | **PASS — 1.06 s** |
-| `$env:CARGO_TARGET_DIR='E:\OpenRPG_Forge\.cargo-target-gate1-combined'; cargo clippy -p forge_engine -p forge_runtime -p forge_studio --all-targets --locked -j 1 -- -D warnings` | **PASS — 12.04 s** |
+| tests bibliothèque `forge_engine` | **PASS — 120/120** |
+| tests workspace/all-targets | **PASS — 296/296** |
+| check Studio WASM exact courant | **PASS — 8,71 s** |
+| Clippy workspace/all-targets `-D warnings` | **PASS**, zéro warning |
 | Smoke natif produisant un ledger `forge.runtime-metrics` v8 | **ACQUIS — High clear/rain, 120 samples chacun** |
 | Smoke GPU réel et observation allocateur/pipelines | **ACQUIS — RX 7800 XT/Vulkan** |
-| Smoke Browser clear/rain High et ledger Studio v7 | **PASS AUTOMATISÉ BORNÉ à `a34596bd…`** — 24/24 contrôles chacun ; voir [`R1_BROWSER_WEBGPU_SMOKE.md`](R1_BROWSER_WEBGPU_SMOKE.md) |
+| Smoke Browser clear/rain High et ledger Studio v7 | **PASS AUTOMATISÉ BORNÉ à `d9e2670…`** — 24/24 contrôles chacun ; voir [`R1_BROWSER_WEBGPU_SMOKE.md`](R1_BROWSER_WEBGPU_SMOKE.md) |
 
 Ces validations intégrées prouvent les tests CPU, le format, la compilation Studio WASM et le Clippy
 strict. Les deux exécutions natives suivantes ajoutent l'observation allocateur/pipeline réelle sur
@@ -185,12 +187,12 @@ Les deux ledgers locaux ont néanmoins été relus et hashés directement :
 
 | Ledger `forge.runtime-metrics` v8 | Clear | Rain |
 |---|---:|---:|
-| SHA-256 JSON | `09A6324A5668B5824816620A095CBE67B2BB172E3D7D757815D8306D7EABD6F3` | `F231A9ED74C7C3E0EDA97371B5374E7AE9107CFF2E896D14372887B562754385` |
+| SHA-256 JSON | `384089ac53c74e47d9f7fadc5f51c3fc51ff27b614db46d80e4bfc9ec0b919c8` | `fa5fc0aae0f4c0478666217866fa1794875131654b8ef2edbc4299e226c5085b` |
 | `wgpu_allocator_report_status` | `observed` | `observed` |
-| alloué | 561 396 832 octets (535,390 MiB) | 565 656 524 octets (539,452 MiB) |
+| alloué | 530 273 124 octets | 534 407 108 octets |
 | réservé | 876 609 552 octets (836,000 MiB) | 876 609 552 octets (836,000 MiB) |
 | slabs meshes | 54 042 544 octets (51,539 MiB) | 54 042 544 octets (51,539 MiB) |
-| état final pipelines | 68/68 `ready` | 69/69 `ready` |
+| état final pipelines | 69/69 `ready` | 71/71 `ready` |
 | queued / creating / errors / waiting | 0 / 0 / 0 / 0 | 0 / 0 / 0 / 0 |
 | frames stables / minimum | 177 / 30 | 177 / 30 |
 | frames Render observées / stabilisation | 418 / frame 271 | 418 / frame 271 |
@@ -201,16 +203,13 @@ est de 4 259 692 octets, soit 4,062 MiB alloués. Les valeurs restent explicitem
 sous-allocations du périphérique wgpu courant et à la capacité des slabs Bevy : elles ne mesurent ni
 VRAM physique totale, ni budget OS, ni résidence globale.
 
-Rain rapporte un pipeline prêt de plus que clear et observe séparément le pass transparent de pluie.
+Rain rapporte deux pipelines prêts de plus que clear et observe séparément le pass transparent de pluie.
 Les artefacts ne lient toutefois pas le delta de compteur à un pipeline nommé. Cela ne prouve pas les
 variantes Low, Medium, Ultra ou adaptatives, ni un cache persistant. Le smoke Browser High est acquis,
 mais sa readiness CPU/ECS ne nomme ni ne compte les pipelines.
 
-Chaque log natif contient exactement un `WARN` `wgpu_core::validation` et aucun `ERROR` : un vertex
-shader produit `@builtin(position)` sans `@invariant` dans un pipeline à comparaison `Equal`. wgpu
-signale un risque d'artefact selon la machine. Le warning ne remet pas en cause les nombres
-allocateur/pipeline, mais interdit de qualifier les logs de propres ou la présentation visuelle de
-validée.
+Les deux logs d9 sont vides : aucun warning ni `ERROR` n'est enregistré dans ces exécutions. Cette
+absence ne qualifie pas automatiquement les autres backends ni la présentation visuelle.
 
 ## Limites et qualification restante
 
@@ -220,17 +219,15 @@ validée.
 - Validation que `mesh_allocator_slabs_bytes > 0` sur Visual Valley rendue : **ACQUISE pour clear
   et rain**.
 - Replay séparé High `clear` et `rain` : **ACQUIS** ; Low/Medium/Ultra et adaptation : **NOT RUN**.
-- Browser clear/rain High : **ACQUIS à `a34596bd…`** avec 60 + 120 frames ; clear moyenne/p95/1 % low
-  10,7283 ms/13,4 ms/54,945 FPS et rain 9,1683 ms/10,1 ms/84,034 FPS. Ces temps mesurent la loop WASM,
+- Browser clear/rain High : **ACQUIS à `d9e2670…`** avec 60 + 120 frames ; clear moyenne/p95/1 % low
+  10,1175 ms/12,1 ms/77,519 FPS et rain 9,5633 ms/10,9 ms/85,106 FPS. Ces temps mesurent la loop WASM,
   pas le GPU ; `gpu_presentation=not_observed` et aucune convergence pipeline Browser n'est exposée.
 - CI distante du lot isolé : **NOT RUN dans cette preuve** ; aucun résultat d'une autre exécution
   n'est attribué à ce lot.
 
-En conséquence, les sous-preuves natives d'allocations estimées (`R1-038`) et de convergence des
-pipelines High clear/rain (`R1-039`) sont acquises sur le candidat natif exact. Le smoke Browser est
-acquis séparément à `a34596bd…`, sans observation mémoire GPU/pipeline. Les deux routes restent
-ouvertes au niveau global : autres tiers/variantes, cache par nouveau processus, présentation GPU et
-acceptation visuelle ne sont pas couverts.
+En conséquence, `R1-038` est acquise sur le candidat natif exact. La sous-preuve High clear/rain de
+`R1-039` est acquise, mais la route reste ouverte : autres tiers/variantes, cache par nouveau
+processus, présentation GPU et acceptation visuelle ne sont pas couverts.
 
 ## Frontières préservées par le lot isolé
 

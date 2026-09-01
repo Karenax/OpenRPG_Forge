@@ -39,7 +39,7 @@ quality tier has not been applied, when the scenery replacement LOD range differ
 quality preset, or when the pipeline cache was not ready for the whole sampling window. The full
 composition is mandatory: terrain, shadows, vegetation, scenery, environment, water, weather and
 quality must all be present and internally consistent. The quality ledger must contain its 34 unique
-documented fields (5 applied at startup, 15 applied on tier transition and 14 explicitly not
+documented fields (5 applied at startup, 14 applied on tier transition and 15 explicitly not
 applicable), and a governed report requires at least 120 finite positive post-warmup frame samples.
 
 The native sampling window fingerprints the current/applied quality tier together with scenery load,
@@ -84,9 +84,8 @@ range. Visual Valley readiness remains pending until those values agree with the
 observation. These are observable contracts; final combined native GPU and browser qualification is
 required separately from unit-test evidence.
 
-On the current combined candidate, `cargo fmt --all -- --check` and `git diff --check` pass, as do
-118/118 `forge_engine` library tests, 32/32 `forge_runtime` tests (31 bin + 1 integration) and
-31/31 `forge_studio` tests (28 lib + 3 bin). The exact current `forge_studio` Web/WASM check passes
-in 7.45 s, and the exact strict Clippy
-command for all three packages passes in 6.29 s. Native GPU and Browser WebGPU smokes remain NOT RUN.
-These partial integration results do not qualify or close R1-038, R1-039 or R1-040.
+On the current `d9e2670` candidate, `cargo fmt --all -- --check` and strict workspace Clippy pass,
+as do 120/120 `forge_engine` library tests and **296/296** workspace/all-target tests. The exact
+`forge_studio` Web/WASM check passes. Native Release and Browser clear/rain High were replayed at the
+same commit: Browser passes 24/24 controls per weather and the native/Studio comparison passes 46/46.
+These bounded fixed-camera runs do not qualify R1-039/R1-040 across all tiers or adaptation.

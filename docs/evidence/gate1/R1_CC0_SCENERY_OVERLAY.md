@@ -128,9 +128,9 @@ d'une exécution à l'autre.
 La même logique Rust compile en natif et pour `wasm32-unknown-unknown`. Trunk copie `assets/` dans le
 bundle Studio afin que les URI AssetServer restent identiques. La configuration Trunk a été parsée,
 mais le lot d'origine n'avait construit aucun bundle : il s'agissait alors d'une préparation du
-packaging Web, pas d'une preuve WebGPU. Dans le candidat final, le chemin Visual Valley du Studio
+packaging Web, pas d'une preuve WebGPU. Dans le candidat courant, le chemin Visual Valley du Studio
 instancie `VisualValleySceneryPlugin` et expose son observation dans le ledger de scène. Le smoke
-Browser final `a34596bd…` active **9/9** modèles, charge les **26** payloads glTF/bin/PNG avec HTTP
+Browser courant `d9e2670…` active **9/9** modèles, charge les **26** payloads glTF/bin/PNG avec HTTP
 200 et ne produit ni requête `.meta`, ni échec réseau, ni entrée console. Voir
 [`R1_BROWSER_WEBGPU_SMOKE.md`](R1_BROWSER_WEBGPU_SMOKE.md).
 
@@ -146,7 +146,7 @@ doit demander `Option<Res<SceneryProjectionStats>>` dans son collecteur puis con
 - `manifest_hash`, `tracked_files` et `tracked_bytes` ;
 - `replacement_lod_start_m`, `replacement_lod_end_m` et `detail_cull_distance_m`.
 
-Le ledger du candidat final ne peut conclure à l'activation que si `status == activated`, les neuf
+Le ledger du candidat courant ne peut conclure à l'activation que si `status == activated`, les neuf
 modèles sont chargés, aucun modèle n'est en échec et les quatre comptes dérivés correspondent
 exactement à `selected_by_kind`. Le contrat courant est : remplacements = arbres + arbustes +
 fougères ; détails = rochers + détails ; demandées = remplacements + détails ; procéduraux cachés =
@@ -163,7 +163,7 @@ repli est conservé tel quel et ne peut jamais être présenté comme une activa
 | tests ciblés runtime `visual_valley` | **PASS — 3/3, 0 échec, 23 filtrés** |
 | Clippy strict moteur + runtime | **PASS — tous targets/features, `-D warnings`** |
 | check moteur `wasm32-unknown-unknown` feature `web` | **PASS — sans features natives par défaut** |
-| smoke Browser clear/rain High | **PASS AUTOMATISÉ BORNÉ à `a34596bd…`** — 24/24 contrôles chacun, activation 9/9, 26 assets HTTP 200 |
+| smoke Browser clear/rain High | **PASS AUTOMATISÉ BORNÉ à `d9e2670…`** — 24/24 contrôles chacun, activation 9/9, 26 assets HTTP 200 |
 | `git diff --cached --check` et audit du diff | **PASS — 37 fichiers code/assets, aucun écart d'espace ; 27/27 blobs source exacts** |
 
 Les tests ciblés refusent un manifeste non CC0, un chemin absolu ou traversant, une identité Cadle,
@@ -177,11 +177,11 @@ Les deux exécutions Browser clear/rain High passent chacune 24/24 contrôles st
 ledger observe `status=activated`, 9 modèles chargés, 0 échec, 125 instances demandées, 99
 remplacements, 26 détails et 147 entités procédurales cachées. La parité
 `source_manifest_matched` est interne au Studio ; `gpu_presentation=not_observed`. Les temps clear
-(moyenne 10,7283 ms, p95 13,4 ms, 1 % low 54,945 FPS) et rain (9,1683 ms, 10,1 ms, 84,034 FPS)
+(moyenne 10,1175 ms, p95 12,1 ms, 1 % low 77,519 FPS) et rain (9,5633 ms, 10,9 ms, 85,106 FPS)
 mesurent la boucle WASM et non le GPU.
 
-Les captures 1920 × 1080 sont versionnées et inspectées. Elles montrent bien le décor actif et la
-pluie, mais aussi une palette criarde, des noirs dominants et un overlay envahissant. L'activation
+Les captures 1920 × 1080 sont versionnées et inspectées. Elles montrent le décor actif, la pluie et
+la correction colorimétrique d9, mais aussi des contours sombres/stipple et un overlay envahissant. L'activation
 fonctionnelle est acquise ; la revue artistique humaine, la comparaison A/B Cadle, le GPU cible et
 la présentation GPU restent ouverts.
 

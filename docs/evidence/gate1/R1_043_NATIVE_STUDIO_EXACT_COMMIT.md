@@ -1,5 +1,23 @@
 # R1-043 — parité native / Studio au commit exact
 
+## Campagne courante d9e2670
+
+Source : `d9e2670111624aa836ab138afc35cddf441865ef`
+Arbre : `d6e5a40f73b47934444bda4514d5cdcb1dab093d`
+
+Le runtime Release et le Studio Browser ont été reconstruits et rejoués au même commit en clear/rain
+High, 1920 × 1080. Les deux Browser passent 24/24 contrôles et le validateur croisé passe **46/46**.
+Les sept hashes communs concordent. Les deux logs natifs sont vides : aucun warning wgpu ni `ERROR`
+n'y est enregistré. Le binaire natif porte le SHA-256
+`e44bc941b70eabab8b7e6155a262ab93491d9c2d4763454cb09bfd480e24cc75`.
+
+`R1-043` reste **PASS automatisé local borné** sur la paire d9. La présentation GPU Browser reste
+`not_observed`; le GPU cible, les profils complets et la revue humaine ne sont pas qualifiés. Les
+preuves et hashes courants sont regroupés dans
+[`R1_GRAPHICS_FORWARD_IBL_CORRECTION.md`](R1_GRAPHICS_FORWARD_IBL_CORRECTION.md).
+
+## Campagne historique a34596bd
+
 Date de campagne locale : **2026-09-01**
 
 Source qualifiée : **`a34596bd733131699c70028dab86cf2c612b896a`**

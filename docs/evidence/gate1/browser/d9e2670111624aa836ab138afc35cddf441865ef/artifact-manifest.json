@@ -1,0 +1,80 @@
+{
+  "schema": "forge.gate1-browser-artifacts",
+  "schema_version": 1,
+  "commit": "d9e2670111624aa836ab138afc35cddf441865ef",
+  "viewport": {
+    "width": 1920,
+    "height": 1080
+  },
+  "files": [
+    {
+      "file": "validation.json",
+      "bytes": 3507,
+      "sha256": "cd6b196e06ca1e02a970c94d47ed64a6aa613f017284cd92616d8040ee6a792f"
+    },
+    {
+      "file": "visual-valley-clear-high.browser.png",
+      "bytes": 1293570,
+      "sha256": "819bd9994fafc8f4694d2e65300528bbf2d2b05f6e8946ae515305b58beb33d4",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "file": "visual-valley-clear-high.console.json",
+      "bytes": 3,
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    {
+      "file": "visual-valley-clear-high.dom.json",
+      "bytes": 292,
+      "sha256": "eeaf3824bd247dae74a6060a1369fdf8bbd9ebd86767e441e7c7a76597ed36b8"
+    },
+    {
+      "file": "visual-valley-clear-high.gate-ledger.json",
+      "bytes": 1771,
+      "sha256": "1f606f2540a29b5d21c41188256d9464c9e8e6ee9ef565e363fd5cf383fd2e2f"
+    },
+    {
+      "file": "visual-valley-clear-high.network.json",
+      "bytes": 6620,
+      "sha256": "49d1b3e70e7f343ffd6eeb280a5f97697dafa2f8893c8c58e7802623f2ef6c10"
+    },
+    {
+      "file": "visual-valley-clear-high.scene-ledger.json",
+      "bytes": 4043,
+      "sha256": "83093be5827ff053489a8636ba470b00d437ae928324af7ce06a65f37ba4383f"
+    },
+    {
+      "file": "visual-valley-rain-high.browser.png",
+      "bytes": 1323858,
+      "sha256": "7703f0c4207052010343585d12b4e6bc94ca076114f6e39a4acf4cd10be76e5a",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "file": "visual-valley-rain-high.console.json",
+      "bytes": 3,
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    {
+      "file": "visual-valley-rain-high.dom.json",
+      "bytes": 291,
+      "sha256": "47e17cdcf3d38b268043fe8a04cfd7cf070fb4955b58f559e7f5319acf1daf00"
+    },
+    {
+      "file": "visual-valley-rain-high.gate-ledger.json",
+      "bytes": 1796,
+      "sha256": "d8c8829c6c1297f8d5ed12ad8584869878a9aa5780c987f1c9e07f4370d3d21f"
+    },
+    {
+      "file": "visual-valley-rain-high.network.json",
+      "bytes": 6618,
+      "sha256": "5082cccab199034b1caa4948aa51114bbbf24a6d7f774d296eccc960152ef180"
+    },
+    {
+      "file": "visual-valley-rain-high.scene-ledger.json",
+      "bytes": 4038,
+      "sha256": "30716870ca853948657bf05f3167e43221cc377ef1d5c06e0322dda3063d32c3"
+    }
+  ]
+}
