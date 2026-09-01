@@ -3431,6 +3431,7 @@ dependencies = [
  "forge_engine",
  "forge_project",
  "forge_world",
+ "serde",
  "serde_json",
  "tracing",
  "tracing-subscriber",

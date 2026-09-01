@@ -37,8 +37,17 @@ a GPU window.
 ## Gate 1 visual-proof acquisition
 
 `--gate1-visual-proof <output-dir>` is a strict, self-bounded Visual Valley mode. It requires
-`--visual-valley`, accepts only a fixed quality tier, and owns the camera, weather, screenshots and
-exit lifecycle. The output directory must be absent or empty. A typical native replay is:
+`--visual-valley`, a fixed quality tier and `--no-vsync`, and owns the camera, weather, screenshots
+and exit lifecycle. The output directory must be absent or empty. Build from the clean commit that
+will own the evidence so the ledger embeds its exact identity:
+
+```powershell
+$env:FORGE_SOURCE_COMMIT = (git rev-parse HEAD)
+cargo build --release -p forge_runtime --locked -j1
+Remove-Item Env:FORGE_SOURCE_COMMIT
+```
+
+A typical native replay is:
 
 ```text
 forge_runtime --visual-valley --quality high \
@@ -60,8 +69,12 @@ pwsh -File scripts/Test-Gate1VisualProof.ps1 \
   -Quality high -NoVsync
 ```
 
-The movement sequence is an explicit proof-camera path, not a gameplay/controller claim. Screenshot
-acquisition proves that rendered artifacts were produced, while the weather ledger remains CPU/ECS
-projection evidence. The harness and validator always leave GPU execution qualification, comparative
-visual quality and human review false; their output alone cannot close `R1-025`, `R1-026` or
-`R1-046` through `R1-048`.
+The validator requires a clean worktree before and after acquisition, binds the embedded commit to
+that worktree, records the requested no-VSync mode, GPU/backend/driver and runtime logs, then rejects
+warning, error or panic entries. The movement sequence is an explicit proof-camera path, not a
+gameplay/controller claim. Screenshot acquisition proves that rendered artifacts were produced,
+while the weather ledger remains CPU/ECS projection evidence. For `R1-026`, automation observes the
+mapped color-grade endpoints and only the presence of the requested Bloom component, not numeric
+Bloom parameters or GPU execution. The harness and validator always leave GPU execution
+qualification, comparative visual quality and human review false; their output alone cannot close
+`R1-025`, `R1-026` or `R1-046` through `R1-048`.

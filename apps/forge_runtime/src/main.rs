@@ -40,6 +40,10 @@ use std::{
 use terrain_partial_update_probe::TerrainPartialUpdateProbePlugin;
 use tracing_subscriber::EnvFilter;
 
+#[allow(
+    clippy::too_many_lines,
+    reason = "the executable entry point keeps CLI, logging and Bevy startup order explicit"
+)]
 fn main() -> AppExit {
     if let Err(message) = initialize_structured_tracing() {
         eprintln!("forge_runtime: cannot initialize structured tracing: {message}");
@@ -775,6 +779,12 @@ impl Options {
                     .to_owned(),
             );
         }
+        if self.vsync {
+            return Err(
+                "--gate1-visual-proof requires --no-vsync for the governed acquisition protocol"
+                    .to_owned(),
+            );
+        }
         Ok(())
     }
 
@@ -1439,6 +1449,20 @@ mod tests {
             )
             .unwrap_err(),
             "--gate1-visual-proof may only be specified once"
+        );
+        assert_eq!(
+            Options::parse(
+                [
+                    "--visual-valley".to_owned(),
+                    "--quality".to_owned(),
+                    "high".to_owned(),
+                    "--gate1-visual-proof".to_owned(),
+                    "proof-output".to_owned(),
+                ]
+                .into_iter(),
+            )
+            .unwrap_err(),
+            "--gate1-visual-proof requires --no-vsync for the governed acquisition protocol"
         );
     }
 

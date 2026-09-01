@@ -3,11 +3,11 @@ use bevy::{
     diagnostic::FrameCount,
     prelude::*,
     render::view::screenshot::{Screenshot, save_to_disk},
-    window::PrimaryWindow,
+    window::{PresentMode, PrimaryWindow},
 };
 use forge_engine::{
-    PipelineWarmupObservation, VisualValleyQualitySelection, VisualValleyQualityStats,
-    WeatherProjectionStats, WeatherProjectionStatus, WeatherRuntimeState,
+    GpuDiagnostic, PipelineWarmupObservation, VisualValleyQualitySelection,
+    VisualValleyQualityStats, WeatherProjectionStats, WeatherProjectionStatus, WeatherRuntimeState,
 };
 use forge_project::{
     PlayerControllerProfileDocument, TerrainDocument, WaterDocument, WeatherProfileDocument,
@@ -296,6 +296,7 @@ struct Gate1VisualProofLedger {
     status: &'static str,
     process_id: u32,
     build_source_commit: &'static str,
+    protocol: ProtocolEvidence,
     routes: [RouteEvidence; 5],
     sources: SourceEvidence,
     pipeline_warmup: PipelineWarmupObservation,
@@ -304,6 +305,14 @@ struct Gate1VisualProofLedger {
     captures: Vec<CaptureEvidence>,
     movement: MovementEvidence,
     qualification: QualificationBoundary,
+}
+
+#[derive(Serialize)]
+struct ProtocolEvidence {
+    physical_resolution_px: [u32; 2],
+    requested_present_mode: &'static str,
+    vsync_requested: bool,
+    gpu: GpuDiagnostic,
 }
 
 #[derive(Serialize)]
@@ -366,6 +375,7 @@ fn advance_gate1_visual_proof(
     frame: Res<FrameCount>,
     pipeline: Res<PipelineWarmupObservation>,
     quality: Res<VisualValleyQualityStats>,
+    gpu: Option<Res<GpuDiagnostic>>,
     weather_stats: Res<WeatherProjectionStats>,
     mut weather_runtime: ResMut<WeatherRuntimeState>,
     windows: Query<&Window, With<PrimaryWindow>>,
@@ -541,7 +551,7 @@ fn advance_gate1_visual_proof(
                 WeatherState::Clear,
             )
             .and_then(|()| validate_fixed_quality(&quality))
-            .and_then(|()| write_ledger(&runtime, &pipeline, &quality))
+            .and_then(|()| write_ledger(&runtime, &pipeline, &quality, gpu.as_deref(), &windows))
             {
                 fail_proof(&mut runtime, &mut exit, &error);
                 return;
@@ -783,8 +793,7 @@ fn movement_camera_pose(
 ) -> Result<CameraPose, String> {
     if index >= MOVEMENT_FRAME_COUNT {
         return Err(format!(
-            "movement frame {index} exceeds the {} frame proof path",
-            MOVEMENT_FRAME_COUNT
+            "movement frame {index} exceeds the {MOVEMENT_FRAME_COUNT} frame proof path"
         ));
     }
     let denominator = f32::from(MOVEMENT_FRAME_COUNT - 1);
@@ -915,8 +924,7 @@ fn validate_weather_endpoint(
         || stats.wetness.target.to_bits() != expected_wetness.to_bits()
     {
         return Err(format!(
-            "weather wetness has not reached the exact {:?} endpoint",
-            expected_state
+            "weather wetness has not reached the exact {expected_state:?} endpoint"
         ));
     }
     if stats.wetness.terrain_materials == 0
@@ -1067,6 +1075,8 @@ fn write_ledger(
     runtime: &Gate1VisualProofRuntime,
     pipeline: &PipelineWarmupObservation,
     quality: &VisualValleyQualityStats,
+    gpu: Option<&GpuDiagnostic>,
+    windows: &Query<&Window, With<PrimaryWindow>>,
 ) -> Result<(), String> {
     let expected_capture_count = usize::from(MOVEMENT_FRAME_COUNT) + 5;
     if runtime.captures.len() != expected_capture_count {
@@ -1075,6 +1085,28 @@ fn write_ledger(
             runtime.captures.len()
         ));
     }
+    let gpu =
+        gpu.ok_or_else(|| "GPU adapter identity is absent from the visual proof".to_owned())?;
+    let window = windows
+        .single()
+        .map_err(|_| "visual proof requires exactly one primary window".to_owned())?;
+    let physical_resolution_px = [
+        window.resolution.physical_width(),
+        window.resolution.physical_height(),
+    ];
+    if physical_resolution_px != [1920, 1080] {
+        return Err(format!(
+            "visual proof final resolution is {}x{}, expected 1920x1080",
+            physical_resolution_px[0], physical_resolution_px[1]
+        ));
+    }
+    if window.present_mode != PresentMode::AutoNoVsync {
+        return Err(format!(
+            "visual proof requested present mode is {:?}, expected AutoNoVsync",
+            window.present_mode
+        ));
+    }
+    let build_source_commit = embedded_source_commit()?;
     let weather_gpu_execution_observed = runtime
         .weather_checkpoints
         .iter()
@@ -1084,7 +1116,13 @@ fn write_ledger(
         schema_version: SCHEMA_VERSION,
         status: "automated_capture_complete_pending_qualification",
         process_id: std::process::id(),
-        build_source_commit: option_env!("FORGE_SOURCE_COMMIT").unwrap_or("not_embedded"),
+        build_source_commit,
+        protocol: ProtocolEvidence {
+            physical_resolution_px,
+            requested_present_mode: present_mode_label(window.present_mode),
+            vsync_requested: false,
+            gpu: gpu.clone(),
+        },
         routes: [
             RouteEvidence {
                 route: "R1-025",
@@ -1092,7 +1130,7 @@ fn write_ledger(
             },
             RouteEvidence {
                 route: "R1-026",
-                automated_status: "bounded_bloom_and_grade_endpoints_observed",
+                automated_status: "color_grade_endpoints_and_bloom_component_presence_observed",
             },
             RouteEvidence {
                 route: "R1-046",
@@ -1161,6 +1199,30 @@ fn write_ledger(
             path.display()
         )
     })
+}
+
+fn embedded_source_commit() -> Result<&'static str, String> {
+    let value = option_env!("FORGE_SOURCE_COMMIT").ok_or_else(|| {
+        "FORGE_SOURCE_COMMIT was not embedded; rebuild the runtime from a clean exact commit"
+            .to_owned()
+    })?;
+    if value.len() != 40 || !value.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+        return Err(format!(
+            "embedded FORGE_SOURCE_COMMIT `{value}` is not a 40-character Git object id"
+        ));
+    }
+    Ok(value)
+}
+
+const fn present_mode_label(mode: PresentMode) -> &'static str {
+    match mode {
+        PresentMode::AutoVsync => "auto_vsync",
+        PresentMode::AutoNoVsync => "auto_no_vsync",
+        PresentMode::Fifo => "fifo",
+        PresentMode::FifoRelaxed => "fifo_relaxed",
+        PresentMode::Immediate => "immediate",
+        PresentMode::Mailbox => "mailbox",
+    }
 }
 
 fn fail_proof(
@@ -1281,8 +1343,14 @@ mod tests {
 
         assert_eq!(first.len(), usize::from(MOVEMENT_FRAME_COUNT));
         for (left, right) in first.iter().zip(replay) {
-            assert_eq!(left.translation.to_array(), right.translation.to_array());
-            assert_eq!(left.target.to_array(), right.target.to_array());
+            assert_eq!(
+                left.translation.to_array().map(f32::to_bits),
+                right.translation.to_array().map(f32::to_bits)
+            );
+            assert_eq!(
+                left.target.to_array().map(f32::to_bits),
+                right.target.to_array().map(f32::to_bits)
+            );
             let terrain_y = plan
                 .height_at(left.translation.x, left.translation.z)
                 .unwrap();
