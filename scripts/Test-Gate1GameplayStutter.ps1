@@ -684,12 +684,9 @@ Assert-Condition -Condition ($presentMonFile.Length -eq $presentMonBytes) -Messa
 $observedPresentMonSha256 = (Get-FileHash -LiteralPath $presentMonFullPath -Algorithm SHA256).Hash.ToLowerInvariant()
 Assert-Condition -Condition ([string]::Equals($observedPresentMonSha256, $presentMonSha256, [StringComparison]::Ordinal)) -Message "PresentMon.exe SHA-256 does not match the pinned 2.4.1 binary."
 $presentMonVersionInfo = [Diagnostics.FileVersionInfo]::GetVersionInfo($presentMonFullPath)
-Assert-Condition -Condition (
-    $presentMonVersionInfo.FileMajorPart -eq 2 -and
-    $presentMonVersionInfo.FileMinorPart -eq 4 -and
-    $presentMonVersionInfo.FileBuildPart -eq 1 -and
-    $presentMonVersionInfo.FilePrivatePart -eq 0
-) -Message "PresentMon.exe file version is not exactly 2.4.1.0."
+$presentMonVersionResourcePresent = -not [string]::IsNullOrWhiteSpace($presentMonVersionInfo.FileVersion) -or
+    -not [string]::IsNullOrWhiteSpace($presentMonVersionInfo.ProductVersion)
+Assert-Condition -Condition (-not $presentMonVersionResourcePresent) -Message "The pinned PresentMon 2.4.1 asset unexpectedly contains a Windows version resource."
 $presentMonSignature = Get-AuthenticodeSignature -LiteralPath $presentMonFullPath
 Assert-Condition -Condition ($presentMonSignature.Status -eq [Management.Automation.SignatureStatus]::Valid) -Message "PresentMon.exe Authenticode signature is not valid: $($presentMonSignature.Status)."
 Assert-Condition -Condition ($null -ne $presentMonSignature.SignerCertificate) -Message "PresentMon.exe has no signer certificate."
@@ -1245,6 +1242,8 @@ try {
         }
         presentmon = [ordered]@{
             version = $presentMonVersion
+            version_identity_source = "official_release_asset_bytes_sha256_and_authenticode"
+            windows_version_resource_present = $presentMonVersionResourcePresent
             bytes = $presentMonBytes
             sha256 = $presentMonSha256
             authenticode_status = [string]$presentMonSignature.Status

@@ -100,7 +100,9 @@ pauses virtual time.
 Acquire `PresentMon-2.4.1-x64.exe` only from the official
 [PresentMon v2.4.1 release](https://github.com/GameTechDev/PresentMon/releases/tag/v2.4.1). The host
 script pins its 927304-byte Intel-signed binary and SHA-256
-`d74183e7ae630f72cd3690be0373ecbfdc6cbb86578148aab8fa2a7166068f34`. From a clean exact commit,
+`d74183e7ae630f72cd3690be0373ecbfdc6cbb86578148aab8fa2a7166068f34`. That official asset has no
+Windows file-version resource, so its release identity is established by the release source, exact
+bytes, hash and Authenticode signer rather than a PE version field. From a clean exact commit,
 set `FORGE_GATE1_EXTERNAL_ROOT` to an existing absolute directory outside every Git worktree and
 `FORGE_PRESENTMON_241` to the pinned executable, then run:
 
