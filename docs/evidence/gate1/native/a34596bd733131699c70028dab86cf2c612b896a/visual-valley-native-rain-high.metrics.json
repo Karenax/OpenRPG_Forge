@@ -1,0 +1,954 @@
+{
+  "schema": "forge.runtime-metrics",
+  "schema_version": 8,
+  "source_hash": "9f16780a1de1e9dd4b65931624a8b45281713829434292bada320a578420b2ef",
+  "gpu": {
+    "name": "AMD Radeon RX 7800 XT",
+    "vendor": 4098,
+    "device": 29822,
+    "device_type": "DiscreteGpu",
+    "driver": "AMD proprietary driver",
+    "driver_info": "26.8.1 (LLPC)",
+    "backend": "Vulkan",
+    "max_texture_dimension_2d": 16384,
+    "max_bind_groups": 8,
+    "max_uniform_buffer_binding_size": 2147483647,
+    "max_storage_buffer_binding_size": 2147483644
+  },
+  "gpu_memory": {
+    "wgpu_allocator_report_status": "observed",
+    "wgpu_allocator_allocated_bytes": 565725588,
+    "wgpu_allocator_reserved_bytes": 876609552,
+    "mesh_allocator_slabs_bytes": 54042544,
+    "wgpu_allocator_scope": "current_wgpu_device_suballocations_not_total_vram_or_os_budget",
+    "mesh_allocator_scope": "bevy_mesh_allocator_slab_capacity_only_not_total_gpu_memory"
+  },
+  "pipeline_warmup": {
+    "ready_before_measurement": true,
+    "ready_for_entire_measurement": true,
+    "final_observation": {
+      "status": "ready",
+      "total": 69,
+      "queued": 0,
+      "creating": 0,
+      "ready": 69,
+      "errors": 0,
+      "waiting": 0,
+      "stable_frames": 177,
+      "required_stable_frames": 30,
+      "observed_render_frames": 418,
+      "stabilized_at_render_frame": 271,
+      "scope": "pipelines_exercised_by_this_process_only_no_persistent_pipeline_cache"
+    }
+  },
+  "window": {
+    "initial": {
+      "logical_width": 1920.0,
+      "logical_height": 1080.0,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "scale_factor": 1.0,
+      "resizable": true,
+      "present_mode_request": "auto_no_vsync",
+      "vsync_requested": false
+    },
+    "final_state": {
+      "logical_width": 1920.0,
+      "logical_height": 1080.0,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "scale_factor": 1.0,
+      "resizable": true,
+      "present_mode_request": "auto_no_vsync",
+      "vsync_requested": false
+    },
+    "resize_request": null,
+    "resize_request_issued": false,
+    "resize_request_issued_frame": null,
+    "resize_request_observed": false,
+    "resize_request_observed_frame": null,
+    "resize_events_observed": 2,
+    "automated_close_frame": null,
+    "automated_close_issued": false,
+    "close_requests_observed": 0
+  },
+  "frame": {
+    "samples": 120,
+    "duration_ms": 922.2603999999999,
+    "mean_ms": 7.685503333333332,
+    "p50_ms": 7.6418,
+    "p95_ms": 8.1653,
+    "p99_ms": 8.5591,
+    "max_ms": 8.7225,
+    "mean_fps": 130.1150954762885,
+    "one_percent_low_fps": 115.73002499768539,
+    "hitches_over_16_7_ms": 0,
+    "hitches_over_33_3_ms": 0,
+    "histogram": {
+      "frames_at_or_below_16_7_ms": 120,
+      "frames_over_16_7_ms_at_or_below_33_3_ms": 0,
+      "frames_over_33_3_ms": 0
+    }
+  },
+  "render_diagnostics": [
+    {
+      "path": "render/bin_unpacking/compute_shader_invocations",
+      "value": 3200.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/bin_unpacking/elapsed_cpu",
+      "value": 0.0042,
+      "suffix": "ms"
+    },
+    {
+      "path": "render/bin_unpacking/elapsed_gpu",
+      "value": 0.051,
+      "suffix": "ms"
+    },
+    {
+      "path": "render/bloom/elapsed_cpu",
+      "value": 0.0277,
+      "suffix": "ms"
+    },
+    {
+      "path": "render/bloom/elapsed_gpu",
+      "value": 0.1608,
+      "suffix": "ms"
+    },
+    {
+      "path": "render/clustering/elapsed_cpu",
+      "value": 0.0103,
+      "suffix": "ms"
+    },
+    {
+      "path": "render/clustering/elapsed_gpu",
+      "value": 0.04724,
+      "suffix": "ms"
+    },
+    {
+      "path": "render/copy_deferred_lighting_id/clipper_invocations",
+      "value": 1.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/copy_deferred_lighting_id/clipper_primitives_out",
+      "value": 1.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/copy_deferred_lighting_id/elapsed_cpu",
+      "value": 0.0005,
+      "suffix": "ms"
+    },
+    {
+      "path": "render/copy_deferred_lighting_id/elapsed_gpu",
+      "value": 0.02276,
+      "suffix": "ms"
+    },
+    {
+      "path": "render/copy_deferred_lighting_id/fragment_shader_invocations",
+      "value": 2073600.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/copy_deferred_lighting_id/vertex_shader_invocations",
+      "value": 3.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/early deferred prepass/clipper_invocations",
+      "value": 0.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/early deferred prepass/clipper_primitives_out",
+      "value": 0.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/early deferred prepass/elapsed_cpu",
+      "value": 0.0007999999999999999,
+      "suffix": "ms"
+    },
+    {
+      "path": "render/early deferred prepass/elapsed_gpu",
+      "value": 0.0,
+      "suffix": "ms"
+    },
+    {
+      "path": "render/early deferred prepass/fragment_shader_invocations",
+      "value": 0.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/early deferred prepass/vertex_shader_invocations",
+      "value": 0.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/early prepass/clipper_invocations",
+      "value": 119698.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/early prepass/clipper_primitives_out",
+      "value": 113898.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/early prepass/elapsed_cpu",
+      "value": 0.0124,
+      "suffix": "ms"
+    },
+    {
+      "path": "render/early prepass/elapsed_gpu",
+      "value": 0.15324,
+      "suffix": "ms"
+    },
+    {
+      "path": "render/early prepass/fragment_shader_invocations",
+      "value": 958787.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/early prepass/vertex_shader_invocations",
+      "value": 187821.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/early_mesh_preprocessing/compute_shader_invocations",
+      "value": 1600.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/early_mesh_preprocessing/elapsed_cpu",
+      "value": 0.0023,
+      "suffix": "ms"
+    },
+    {
+      "path": "render/early_mesh_preprocessing/elapsed_gpu",
+      "value": 0.01684,
+      "suffix": "ms"
+    },
+    {
+      "path": "render/main_opaque_pass_3d/clipper_invocations",
+      "value": 119698.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/main_opaque_pass_3d/clipper_primitives_out",
+      "value": 113898.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/main_opaque_pass_3d/elapsed_cpu",
+      "value": 0.0070999999999999995,
+      "suffix": "ms"
+    },
+    {
+      "path": "render/main_opaque_pass_3d/elapsed_gpu",
+      "value": 0.64576,
+      "suffix": "ms"
+    },
+    {
+      "path": "render/main_opaque_pass_3d/fragment_shader_invocations",
+      "value": 2875957.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/main_opaque_pass_3d/vertex_shader_invocations",
+      "value": 187821.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/main_transparent_pass_3d/clipper_invocations",
+      "value": 32768.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/main_transparent_pass_3d/clipper_primitives_out",
+      "value": 14461.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/main_transparent_pass_3d/elapsed_cpu",
+      "value": 0.0045000000000000005,
+      "suffix": "ms"
+    },
+    {
+      "path": "render/main_transparent_pass_3d/elapsed_gpu",
+      "value": 0.01608,
+      "suffix": "ms"
+    },
+    {
+      "path": "render/main_transparent_pass_3d/fragment_shader_invocations",
+      "value": 11081.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/main_transparent_pass_3d/vertex_shader_invocations",
+      "value": 66576.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/ssr/clipper_invocations",
+      "value": 1.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/ssr/clipper_primitives_out",
+      "value": 1.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/ssr/elapsed_cpu",
+      "value": 0.001,
+      "suffix": "ms"
+    },
+    {
+      "path": "render/ssr/elapsed_gpu",
+      "value": 0.78828,
+      "suffix": "ms"
+    },
+    {
+      "path": "render/ssr/fragment_shader_invocations",
+      "value": 2073600.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/ssr/vertex_shader_invocations",
+      "value": 3.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/tonemapping/elapsed_cpu",
+      "value": 0.001,
+      "suffix": "ms"
+    },
+    {
+      "path": "render/tonemapping/elapsed_gpu",
+      "value": 0.04992,
+      "suffix": "ms"
+    },
+    {
+      "path": "render/ui/clipper_invocations",
+      "value": 1226.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/ui/clipper_primitives_out",
+      "value": 1226.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/ui/elapsed_cpu",
+      "value": 0.0029000000000000002,
+      "suffix": "ms"
+    },
+    {
+      "path": "render/ui/elapsed_gpu",
+      "value": 0.0086,
+      "suffix": "ms"
+    },
+    {
+      "path": "render/ui/fragment_shader_invocations",
+      "value": 290135.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/ui/vertex_shader_invocations",
+      "value": 2490.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/upscaling/elapsed_cpu",
+      "value": 0.0012,
+      "suffix": "ms"
+    },
+    {
+      "path": "render/upscaling/elapsed_gpu",
+      "value": 0.03192,
+      "suffix": "ms"
+    }
+  ],
+  "render_work": {
+    "source_entities": 1,
+    "source_mesh_instances": 64,
+    "gpu_draw_calls": null,
+    "gpu_draw_call_status": "unavailable_bevy_0_19_no_global_counter",
+    "gpu_main_opaque_primitives": 113898.0,
+    "gpu_main_opaque_vertex_shader_invocations": 187821.0,
+    "gpu_main_opaque_fragment_shader_invocations": 2875957.0,
+    "timed_render_spans_observed": 13
+  },
+  "visual_valley": {
+    "source_hash": "9f16780a1de1e9dd4b65931624a8b45281713829434292bada320a578420b2ef",
+    "chunks": 64,
+    "vertices": 69696,
+    "triangles": 131072,
+    "material_layers": 3,
+    "lod_levels": 1,
+    "lod_zero_chunks": 64
+  },
+  "visual_valley_shadow": {
+    "status": "observed_single_sun",
+    "sun_entities": 1,
+    "shadow_maps_enabled": true,
+    "configured_maximum_distance_m": 128.00003,
+    "cascade_bounds_m": [
+      24.0,
+      41.931866,
+      73.26172,
+      128.00003
+    ],
+    "evidence_source": "visual_valley_sun_cascade_shadow_component"
+  },
+  "vegetation": {
+    "terrain_document_hash": "9f16780a1de1e9dd4b65931624a8b45281713829434292bada320a578420b2ef",
+    "vegetation_document_hash": "5c7619a6ee04533accbf998e3c12077363e4e3b06c86d28e9a62b76bae80a5b8",
+    "placements": {
+      "candidate_attempts": 40960,
+      "accepted_placements": 8282,
+      "accepted_by_kind": {
+        "trees": 704,
+        "shrubs": 1228,
+        "ferns": 1282,
+        "grass_patches": 5068
+      }
+    },
+    "projection": {
+      "total_entities": 4046,
+      "placement_entities": 3918,
+      "near_entities": 3214,
+      "medium_entities": 704,
+      "grass_batches": 64,
+      "hlod_batches": 64,
+      "grass_blades": 162176,
+      "shared_mesh_assets": 4,
+      "chunk_mesh_assets": 128,
+      "material_assets": 1,
+      "shadow_caster_entities": 704,
+      "shadow_opt_out_entities": 3342
+    },
+    "triangles": {
+      "unique_mesh_asset_triangles": 337308,
+      "logically_selected_near_triangles": 398360,
+      "logically_selected_medium_triangles": 59224,
+      "logically_selected_hlod_triangles": 12856
+    },
+    "visibility": {
+      "observation_frames": 420,
+      "status": "observed_single_active_camera",
+      "active_camera_views": 1,
+      "visible_outside_range_inconsistencies": 0,
+      "total": {
+        "total": 4046,
+        "cpu_visible_for_camera": 306,
+        "range_culled": 2762,
+        "cpu_culled_after_range": 978
+      },
+      "near": {
+        "total": 3214,
+        "cpu_visible_for_camera": 225,
+        "range_culled": 2272,
+        "cpu_culled_after_range": 717
+      },
+      "medium": {
+        "total": 704,
+        "cpu_visible_for_camera": 57,
+        "range_culled": 426,
+        "cpu_culled_after_range": 221
+      },
+      "hlod": {
+        "total": 64,
+        "cpu_visible_for_camera": 21,
+        "range_culled": 4,
+        "cpu_culled_after_range": 39
+      },
+      "grass_batches": {
+        "total": 64,
+        "cpu_visible_for_camera": 3,
+        "range_culled": 60,
+        "cpu_culled_after_range": 1
+      }
+    },
+    "render_path": {
+      "batching_request": "bevy_shared_mesh_material_automatic",
+      "maximum_gpu_preprocessing": "culling",
+      "active_camera_gpu_preprocessing": "culling",
+      "culling_evidence": "bevy_visible_entities_and_visibility_range_cpu_tables"
+    }
+  },
+  "scenery": {
+    "manifest_hash": "6b41ec73efde5b8a40ca0132e1d32462176d6b4810104f6bed69496569f81f5f",
+    "subset_id": "visual-valley-quaternius-stylized-nature-standard-1.0",
+    "pack_id": "quaternius:stylized-nature-megakit-standard-1.0",
+    "license": "CC0-1.0",
+    "tracked_files": 27,
+    "tracked_bytes": 16652493,
+    "unique_models": 9,
+    "requested_instances": 125,
+    "replacement_instances": 99,
+    "detail_instances": 26,
+    "selected_by_kind": {
+      "trees": 48,
+      "shrubs": 33,
+      "ferns": 18,
+      "rocks": 22,
+      "details": 4
+    },
+    "replacement_lod_start_m": 72.0,
+    "replacement_lod_end_m": 180.0,
+    "detail_cull_distance_m": 120.0,
+    "loaded_models": 9,
+    "failed_models": 0,
+    "hidden_procedural_entities": 147,
+    "status": "activated",
+    "fallback": "procedural_vegetation_kept_until_all_cc0_models_and_dependencies_load"
+  },
+  "environment": {
+    "source_hash": "4b252f036887ec6dbe6ae0942862d15bdba589e7deab92e62a9091e21b6cdd6f",
+    "status": "observed_approximation",
+    "evidence_source": "main_world_components_not_gpu_execution",
+    "camera_3d_entities": 1,
+    "active_camera_3d_entities": 1,
+    "directional_light_entities": 1,
+    "visual_valley_sun_entities": 1,
+    "atmosphere_entities": 1,
+    "fog_volume_entities": 0,
+    "sky": {
+      "requested": true,
+      "atmosphere_settings": true,
+      "hdr": true,
+      "exposure_ev100": 12.0,
+      "tonemapping": "tony_mc_mapface",
+      "ambient_light": true,
+      "aerial_view_max_distance_m": 1600.0
+    },
+    "sun": {
+      "illuminance_lux": 55000.0,
+      "color_linear_rgba": [
+        1.0,
+        0.8480884,
+        0.5704816,
+        1.0
+      ],
+      "forward_world": [
+        0.620961,
+        -0.6156615,
+        -0.48514795
+      ],
+      "shadows_enabled": true,
+      "sun_disk": true
+    },
+    "distance_fog": {
+      "requested": true,
+      "component_present": true,
+      "falloff_kind": "atmospheric",
+      "measurement_distance_m": 640.0,
+      "maximum_opacity": 0.82
+    },
+    "volumetric": {
+      "requested": true,
+      "applied": false,
+      "resolved_path": "distance_fog_fallback",
+      "requested_step_count": 64,
+      "fallback": "distance_fog"
+    }
+  },
+  "water": {
+    "source_hash": "c581e9ef65ca1bc34d5f94908d5f43df77794da4ad5b97e1b3c4f8c0d025ebce",
+    "terrain_source_hash": "9f16780a1de1e9dd4b65931624a8b45281713829434292bada320a578420b2ef",
+    "authored_control_points": 62,
+    "centerline_samples": 137,
+    "terrain_surface_queries": 685,
+    "water_surface_queries": 411,
+    "river_bank_surface_queries": 274,
+    "vertices": 959,
+    "triangles": 1088,
+    "water_vertices": 411,
+    "water_triangles": 544,
+    "river_bank_vertices": 548,
+    "river_bank_triangles": 544,
+    "positive_winding_triangles": 1088,
+    "winding_corrections": 8,
+    "tangent_fallbacks": 0,
+    "terrain_clearance_m": 0.14,
+    "minimum_observed_clearance_m": 0.13999939,
+    "maximum_observed_clearance_m": 0.6260648,
+    "terrain_projection_lifts": 156,
+    "downstream_monotone_lifts": 21,
+    "authored_centerline_monotone_downstream": true,
+    "projected_lanes_monotone_downstream": true,
+    "material_alpha_mode": "opaque",
+    "opaque_renderer_method": "deferred",
+    "requested_opacity": 0.84,
+    "opacity_status": "requested_recorded_surface_forced_opaque_for_deferred_ssr",
+    "requested_wave_amplitude_m": 0.12,
+    "requested_wave_length_m": 5.5,
+    "requested_flow_speed_mps": 0.72,
+    "requested_normal_strength": 0.62,
+    "wave_motion_status": "profile_projected_to_deterministic_vertex_wave_shader",
+    "shader_asset_path": "embedded://forge_engine/shaders/visual_valley_water.wgsl",
+    "shader_material_status": "observed_cpu_material_asset_gpu_pipeline_not_observed",
+    "shader_material_assets": 1,
+    "shader_material_entities": 1,
+    "shader_uniforms_match_profile": true,
+    "animation_updates": 420,
+    "animation_uniform_status": "cpu_uniform_projected_to_material_asset_gpu_not_observed",
+    "minimum_sampled_bed_depth_m": 0.8,
+    "maximum_sampled_bed_depth_m": 3.5,
+    "bed_depth_status": "sampled_bed_depth_encoded_in_vertex_color_and_shader_palette",
+    "requested_bank_shoulder_width_m": 5.0,
+    "requested_bank_blend_width_m": 9.0,
+    "requested_bank_wet_margin_m": 1.8,
+    "requested_bank_horizontal_to_vertical_slope": 2.8,
+    "requested_bank_erosion_amplitude_m": 0.55,
+    "requested_bank_erosion_frequency_cycles_per_m": 0.028,
+    "bank_shoulder_status": "procedural_outer_strip_projected_from_shoulder_width",
+    "bank_blend_status": "deferred_no_terrain_carving_adapter",
+    "bank_wet_margin_status": "deferred_no_wet_edge_shader",
+    "bank_slope_status": "deferred_strip_bridges_water_edge_to_projected_terrain",
+    "bank_erosion_status": "deferred_no_terrain_carving_adapter",
+    "bank_material_status": "opaque_deferred_placeholder_no_authored_bank_colour",
+    "requested_reflection_intensity": 0.72,
+    "requested_reflection_max_distance_m": 96.0,
+    "reflection_intensity_status": "requested_not_mapped_by_bevy_ssr_component",
+    "reflection_max_distance_status": "requested_not_mapped_by_bevy_ssr_component",
+    "requested_refraction_strength": 0.18,
+    "applied_surface_tint_strength": 0.18,
+    "refraction_status": "requested_screen_space_unavailable_for_opaque_deferred_resolved_surface_tint",
+    "requested_ssr_component_prepared": true,
+    "forward_material_ssr_limit": "terrain_and_vegetation_remain_forward; ssr_component_is_not_runtime_qualification",
+    "resolved_optics": {
+      "requested_quality": "high",
+      "capabilities": {
+        "screen_space_reflections": "available",
+        "screen_space_refraction": "unavailable",
+        "environment_reflections": "not_qualified"
+      },
+      "reflection": {
+        "mode": "screen_space",
+        "max_steps": 48
+      },
+      "refraction": {
+        "mode": "surface_tint"
+      },
+      "reflection_fallback_used": false,
+      "refraction_fallback_used": true
+    },
+    "runtime_observation": "observed_main_world_components",
+    "water_mesh_entities": 1,
+    "river_bank_mesh_entities": 1,
+    "camera_3d_entities": 1,
+    "deferred_camera_entities": 1,
+    "ssr_camera_entities": 1,
+    "msaa_off_camera_entities": 1,
+    "transmission_disabled_camera_entities": 1,
+    "cpu_ecs_application_status": "observed_main_world_components_and_cpu_material_asset",
+    "gpu_pass_observed": false,
+    "native_gpu_execution_status": "not_observed_by_water_metrics",
+    "webgpu_execution_status": "not_observed_by_water_metrics",
+    "evidence_source": "cpu_geometry_and_main_world_components_not_gpu_execution"
+  },
+  "weather": {
+    "source_hash": "b0d8e12bd49d3510361d587463a3002e98741b68052b283fa3f8ca432c87dd9e",
+    "status": "observed_cpu_projection",
+    "evidence_source": "main_world_ecs_and_cpu_material_assets_not_gpu_execution",
+    "target_state": "rain",
+    "gpu_execution_observed": false,
+    "rain": {
+      "quality": "high",
+      "requested_drops": 8192,
+      "generated_drops": 8192,
+      "batch_entities": 1,
+      "per_drop_entities": 0,
+      "vertices": 65536,
+      "triangles": 32768,
+      "visible": true,
+      "camera_followed": true,
+      "shader_animation_uniform_updated": true,
+      "rendered_opacity": 0.42
+    },
+    "wetness": {
+      "current": 0.78,
+      "target": 0.78,
+      "terrain_materials": 1,
+      "vegetation_materials": 1,
+      "terrain_uniforms_match": true,
+      "vegetation_uniforms_match": true,
+      "clear_target_restored_exactly": null
+    },
+    "post_processing": {
+      "camera_3d_entities": 1,
+      "active_camera_3d_entities": 1,
+      "bloom_requested": true,
+      "bloom_component_present": true,
+      "color_grading_component_present": true,
+      "mapped_exposure_ev": -0.35,
+      "mapped_temperature": -0.12,
+      "mapped_tint": 0.02,
+      "mapped_post_saturation": 0.86,
+      "mapped_contrast": 1.08,
+      "mapped_gamma": 1.0
+    },
+    "implemented_capabilities": [
+      "deterministic_clear_rain_clear_transition",
+      "single_entity_procedural_rain_batch",
+      "shader_wrapped_rain_motion",
+      "terrain_wetness_uniform",
+      "vegetation_wetness_uniform",
+      "bevy_bloom_component",
+      "bevy_color_grading_component"
+    ],
+    "deferred_capabilities": [
+      "gpu_pipeline_execution_observation",
+      "native_visual_capture_and_review",
+      "studio_webgpu_execution_and_review",
+      "rain_ground_collision_splashes_and_occlusion",
+      "wetness_puddles_and_normal_map_response"
+    ]
+  },
+  "quality": {
+    "schema": "forge.visual-valley-quality-runtime",
+    "schema_version": 1,
+    "profile_hash": "8dc219ad88ba1472b0ebbb13d8f4beac13f3fae1eeff688c928abb044d96d0e2",
+    "selection": {
+      "mode": "fixed",
+      "tier": "high"
+    },
+    "startup_tier": "high",
+    "current_tier": "high",
+    "dynamically_applied_tier": "high",
+    "adaptation_enabled": false,
+    "adaptation_policy": null,
+    "benchmark_fixed_high": false,
+    "observed_frames": 419,
+    "cooldown_remaining_frames": 0,
+    "transition_count": 0,
+    "last_transition": null,
+    "requested_preset": {
+      "terrain": {
+        "lod0_distance_m": 96.0,
+        "lod1_distance_m": 224.0,
+        "lod2_distance_m": 448.0,
+        "cull_distance_m": 640.0,
+        "lod1_sample_stride": 2,
+        "lod2_sample_stride": 4
+      },
+      "vegetation": {
+        "density_multiplier": 1.0,
+        "near_lod_distance_m": 24.0,
+        "medium_lod_distance_m": 72.0,
+        "hlod_distance_m": 180.0,
+        "cull_distance_m": 384.0,
+        "grass_blades_per_patch": 32
+      },
+      "shadows": {
+        "enabled": true,
+        "cascade_count": 4,
+        "map_resolution": 4096,
+        "maximum_distance_m": 128.0,
+        "contact_shadows_enabled": true
+      },
+      "environment": {
+        "atmosphere_enabled": true,
+        "environment_map_resolution": 256,
+        "volumetric_fog_enabled": true,
+        "volumetric_fog_step_count": 64,
+        "volumetric_fog_max_distance_m": 320.0
+      },
+      "water": {
+        "reflection": "screen_space",
+        "reflection_steps": 48,
+        "reflection_max_distance_m": 96.0,
+        "refraction": "screen_space",
+        "refraction_steps": 24,
+        "refraction_max_depth_m": 3.2
+      },
+      "rain": {
+        "enabled": true,
+        "drop_budget": 8192,
+        "wetness_enabled": true
+      },
+      "post_process": {
+        "bloom_enabled": true,
+        "color_grading_enabled": true,
+        "tonemapping_enabled": true
+      }
+    },
+    "field_projections": [
+      {
+        "field": "vegetation.near_lod_distance_m",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "vegetation.medium_lod_distance_m",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "vegetation.hlod_distance_m",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "vegetation.cull_distance_m",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "shadows.enabled",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "shadows.cascade_count",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "shadows.map_resolution",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "shadows.maximum_distance_m",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "shadows.contact_shadows_enabled",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "water.reflection",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "water.reflection_steps",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "rain.enabled",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "post_process.bloom_enabled",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "post_process.color_grading_enabled",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "post_process.tonemapping_enabled",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "vegetation.grass_blades_per_patch",
+        "status": "applied_at_startup",
+        "evidence": "startup_projection_requires_resource_or_mesh_rebuild_for_later_tiers"
+      },
+      {
+        "field": "environment.atmosphere_enabled",
+        "status": "applied_at_startup",
+        "evidence": "startup_projection_requires_resource_or_mesh_rebuild_for_later_tiers"
+      },
+      {
+        "field": "environment.environment_map_resolution",
+        "status": "applied_at_startup",
+        "evidence": "startup_projection_requires_resource_or_mesh_rebuild_for_later_tiers"
+      },
+      {
+        "field": "rain.drop_budget",
+        "status": "applied_at_startup",
+        "evidence": "startup_projection_requires_resource_or_mesh_rebuild_for_later_tiers"
+      },
+      {
+        "field": "rain.wetness_enabled",
+        "status": "applied_at_startup",
+        "evidence": "startup_projection_requires_resource_or_mesh_rebuild_for_later_tiers"
+      },
+      {
+        "field": "terrain.lod0_distance_m",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "terrain.lod1_distance_m",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "terrain.lod2_distance_m",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "terrain.cull_distance_m",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "terrain.lod1_sample_stride",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "terrain.lod2_sample_stride",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "vegetation.density_multiplier",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "environment.volumetric_fog_enabled",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "environment.volumetric_fog_step_count",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "environment.volumetric_fog_max_distance_m",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "water.reflection_max_distance_m",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "water.refraction",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "water.refraction_steps",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "water.refraction_max_depth_m",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      }
+    ]
+  }
+}

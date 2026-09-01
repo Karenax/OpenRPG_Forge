@@ -303,13 +303,13 @@ p95 13,4 ms, 1 % low 54,945 FPS et deux hitches `>16,7 ms`; rain relève 9,1683 
 1 % low 84,034 FPS et zéro hitch. Ces nombres décrivent la boucle Bevy WASM, pas un timestamp GPU ;
 `gpu_presentation` reste `not_observed` et le statut WebGPU du ledger reste `checking`.
 
-Les preuves natives RX 7800 XT/Vulkan et l'audit provenance/CC0 restent épinglés au commit exécuté
-`92286910a9bab622d5d54905551c0f03172e98e7`. Entre ce natif et le Browser final, le correctif décor a
-changé le hash scenery de
-`6b14244116a4bc2e2e0612caa23077c70ef892fc06bb80759f1ee242067d30cf` à
-`6b41ec73efde5b8a40ca0132e1d32462176d6b4810104f6bed69496569f81f5f`. Sans nouveau run natif
-Release sur `a34596bd`, `R1-043` et la condition de parité native/Studio restent ouvertes. La CI
-distante reste `NOT RUN` sous ADR-0006 ; ce statut n'est pas un PASS.
+Le runtime natif RX 7800 XT/Vulkan a été reconstruit et rejoué sur le commit exact `a34596bd` :
+clear/rain High, 1920 × 1080, 120 samples qualifiés, zéro hitch et 46/46 contrôles croisés PASS. Les
+sept hashes communs aux ledgers natif/Studio concordent, dont le hash scenery corrigé
+`6b41ec73efde5b8a40ca0132e1d32462176d6b4810104f6bed69496569f81f5f`. `R1-043` et la condition de
+parité de données native/Studio sont satisfaites. L'audit provenance/CC0 reste épinglé au commit
+exécuté `92286910a9bab622d5d54905551c0f03172e98e7`. La CI distante reste `NOT RUN` sous ADR-0006 ; ce
+statut n'est pas un PASS.
 
 Les captures natives et Browser restent très contrastées et montrent des artefacts noirs ; le log
 natif contient le warning wgpu `@builtin(position)` sans `@invariant` avec comparaison `Equal`.
@@ -394,12 +394,14 @@ qualité                   Low / Medium / High / Ultra
 - [x] `R1-036` moyenne, p95, 1 % low — valeurs natives et Browser consignées avec leur portée.
 - [ ] `R1-037` draw calls, triangles, instances.
 - [x] `R1-038` VRAM estimée — sous-allocations wgpu natives observées ; aucune VRAM Browser simulée.
-- [ ] `R1-039` préchauffage pipelines.
+- [ ] `R1-039` préchauffage pipelines — clear/rain High exact-commit prêts pendant les mesures ;
+  autres tiers et adaptation encore dus.
 - [ ] `R1-040` profil dynamique.
 - [ ] `R1-041` benchmark RTX 3060 ou RX 6600.
-- [x] `R1-042` benchmark RX 7800 XT de développement — smoke natif High clear/rain sur `92286910`.
-- [ ] `R1-043` comparaison native vs Studio WebGPU — Studio interne PASS sur `a34596bd`, mais aucun
-  run natif exact-commit après le changement du hash scenery.
+- [x] `R1-042` benchmark RX 7800 XT de développement — smoke natif High clear/rain exact
+  `a34596bd`, Vulkan, 1920 × 1080, zéro hitch.
+- [x] `R1-043` comparaison native vs Studio WebGPU — paire exact-commit `a34596bd`, 46/46 contrôles
+  croisés et sept hashes de ledger communs MATCH ; présentation GPU Browser toujours non observée.
 
 ## R1-F — Revue visuelle
 
@@ -425,8 +427,8 @@ qualité                   Low / Medium / High / Ultra
 - [ ] 1 % low ≥ 45 FPS ;
 - [ ] absence de stutter récurrent ;
 - [ ] profils qualité fonctionnels ;
-- [ ] parité de données entre natif et Studio — parité interne Studio PASS à `a34596bd`, mais natif
-  performance encore à `92286910` avec un hash scenery antérieur ;
+- [x] parité de données entre natif et Studio — natif et Browser exacts `a34596bd`, 46/46 contrôles
+  croisés et sept hashes communs MATCH, dont scenery `6b41ec73…` ;
 - [x] code sans dépendance propriétaire obligatoire — audit provenance/indépendance PASS local ;
 - [x] rapport et captures versionnés — rapport Gate 1, manifeste/ledgers Browser et captures Forge
   clear/rain ajoutés au lot documentaire avec leurs SHA-256.

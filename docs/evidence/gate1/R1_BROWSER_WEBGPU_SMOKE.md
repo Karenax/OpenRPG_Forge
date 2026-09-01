@@ -4,8 +4,8 @@ Date de la campagne locale : **2026-09-01**
 
 Commit Browser qualifié : **`a34596bd733131699c70028dab86cf2c612b896a`**
 
-Verdict borné : **PASS AUTOMATISÉ LOCAL DU SMOKE BROWSER CLEAR/RAIN — GATE 1 ET R1-043 RESTENT
-OUVERTES**
+Verdict borné : **PASS AUTOMATISÉ LOCAL DU SMOKE BROWSER CLEAR/RAIN — R1-043 FERMÉE PAR LE REJEU
+NATIF EXACT-COMMIT ; GATE 1 RESTE OUVERTE**
 
 Le candidat charge Visual Valley dans le Studio Browser pour les variantes `clear` et `rain`, en
 qualité High. Les deux exécutions passent chacune les **24/24** contrôles structurés de
@@ -55,13 +55,11 @@ active sur une attendue, l'eau `observed_main_world_components`, la météo
 `observed_cpu_projection`, le tier courant/appliqué `high` et le décor `activated`.
 
 La parité `source_manifest_matched` ci-dessus est **interne à chaque exécution Browser** : elle
-compare le manifeste sélectionné au manifeste observé par le runtime WASM. Elle n'est pas la
-comparaison native/Studio finale de `R1-043`. Les métriques natives Release disponibles visent le
-commit `92286910a9bab622d5d54905551c0f03172e98e7`, tandis que cette campagne Browser vise
-`a34596bd733131699c70028dab86cf2c612b896a`. Le correctif intermédiaire a précisément changé le hash
-décor runtime de `6b142441…` vers `6b41ec73…`. Il faut donc rejouer le natif Release/performance au
-commit exact `a34596bd…` avant toute comparaison native/Studio commit-bound. **`R1-043` reste
-ouverte.**
+compare le manifeste sélectionné au manifeste observé par le runtime WASM. La comparaison croisée
+native/Studio a ensuite été exécutée au même commit `a34596bd…` : 46/46 assertions passent et les
+sept hashes communs aux deux formats de ledger concordent, dont scenery `6b41ec73…`.
+**`R1-043` est fermée** par la preuve bornée
+[`R1_043_NATIVE_STUDIO_EXACT_COMMIT.md`](R1_043_NATIVE_STUDIO_EXACT_COMMIT.md).
 
 ## Captures inspectées
 
@@ -94,9 +92,8 @@ est celui de la **boucle d'update Bevy WASM**, pas une requête de timestamp GPU
 ci-dessus ne peuvent donc pas être présentés comme un temps GPU, un benchmark matériel cible ou une
 preuve des budgets RTX 3060/RX 6600.
 
-Restent notamment ouverts : sonde de présentation GPU, timestamp GPU, campagne native exacte
-`a34596bd…`, GPU milieu de gamme, profils qualité complets, revue humaine corrective, comparaison A/B
-Cadle et verdict final Gate 1.
+Restent notamment ouverts : sonde de présentation GPU, timestamp GPU, GPU milieu de gamme, profils
+qualité complets, revue humaine corrective, comparaison A/B Cadle et verdict final Gate 1.
 
 ## Artefacts structurés versionnés et empreintes
 
@@ -127,6 +124,5 @@ L'empreinte du manifeste est recalculée localement.
 
 Le smoke Browser clear/rain est reproductiblement archivé et ses contrôles automatisés passent au
 commit `a34596bd…`. La présentation GPU reste non observée par le contrat, les métriques sont celles
-de la boucle WASM et la qualité visuelle observée appelle une passe corrective. Cette preuve ne
-ferme pas Gate 1 et ne doit pas être utilisée pour cocher la parité finale `R1-043` avant le rejeu
-natif exact-commit.
+de la boucle WASM et la qualité visuelle observée appelle une passe corrective. Le rejeu natif
+exact-commit ultérieur ferme `R1-043`, sans fermer Gate 1 ni qualifier la présentation GPU Browser.

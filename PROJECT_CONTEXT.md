@@ -41,11 +41,13 @@ La validation source finale de ce même commit passe **182/182 tests** : moteur 
 Le seul avertissement de build est la future incompatibilité transitive connue de
 `proc-macro-error2 v2.0.1`.
 
-La preuve native performance/provenance reste épinglée à `92286910a9bab622d5d54905551c0f03172e98e7`.
-Le correctif intermédiaire a changé le hash décor de `6b142441…` à `6b41ec73…` ; sans rejeu natif
-Release sur `a34596bd`, la parité exacte native/Studio n'est pas acquise. Les captures natives et
-Browser restent très contrastées avec des artefacts noirs, le log natif contient un warning wgpu, et
-la revue humaine ainsi que le GPU cible restent dus. Le verdict détaillé de
+Le runtime natif Release a désormais été reconstruit et rejoué sur ce même commit `a34596bd`, en
+clear/rain High, 1920 × 1080, sur RX 7800 XT/Vulkan. Les 46/46 contrôles croisés passent et les sept
+hashes exposés par les deux formats de ledger concordent, dont le hash décor corrigé `6b41ec73…` ;
+`R1-043` et la condition de parité de données native/Studio sont satisfaites. Les captures natives et
+Browser restent très contrastées avec des artefacts noirs, chaque log natif contient encore le
+warning wgpu `@builtin(position)`/`Equal`, et la revue humaine ainsi que le GPU cible restent dus. La
+preuve de provenance reste épinglée à `92286910a9bab622d5d54905551c0f03172e98e7`. Le verdict détaillé de
 `docs/reports/GATE_1_REPORT.md` est **poursuivre Gate 1** ; Gate 2 ne peut commencer sans passage de
 Gate 1 ou nouvelle dérogation explicite acceptée.
 
@@ -1260,14 +1262,16 @@ Créer `examples/visual_valley` :
 - captures déterministes.
 
 État consolidé au commit source final `a34596bd733131699c70028dab86cf2c612b896a`, arbre
-`8ccdf8cb2cb6a6aabd3a4569f22f1778e164ced6` : les scènes Browser clear/rain et leurs captures sont
-acquises, ainsi que la parité interne `selected_manifest == runtime_manifest`. Clear mesure 10,7283 ms
-de moyenne, p95 13,4 ms, 1 % low 54,945 FPS et deux hitches ; rain mesure 9,1683 ms, p95 10,1 ms,
-1 % low 84,034 FPS et zéro hitch. Ces métriques sont celles de la boucle WASM, pas des timestamps GPU.
+`8ccdf8cb2cb6a6aabd3a4569f22f1778e164ced6` : les scènes Browser et natives clear/rain et leurs
+captures sont acquises. Les sept hashes communs des ledgers concordent et `R1-043` est satisfaite.
+Le Browser mesure la boucle WASM : clear 10,7283 ms de moyenne, p95 13,4 ms, 1 % low 54,945 FPS et
+deux hitches ; rain 9,1683 ms, p95 10,1 ms, 1 % low 84,034 FPS et zéro hitch. Le natif RX 7800 XT
+mesure respectivement 7,4702/7,7622 ms et 7,6855/8,1653 ms de moyenne/p95, sans hitch. Les métriques
+Browser ne sont pas des timestamps GPU.
 
-Gate 1 reste **OUVERTE** : le natif RX 7800 XT date du commit `92286910`, le décor a changé avant le
-Browser final, la cible RTX 3060/RX 6600 n'est pas mesurée, les profils dynamiques ne sont pas
-qualifiés et aucune revue humaine comparative n'accepte les captures. Voir
+Gate 1 reste **OUVERTE** : le warning wgpu et les artefacts noirs persistent, la cible RTX 3060/RX
+6600 n'est pas mesurée, les profils dynamiques ne sont pas qualifiés et aucune revue humaine
+comparative n'accepte les captures. Voir
 `docs/reports/GATE_1_REPORT.md`.
 
 La gate passe si :
@@ -1794,8 +1798,9 @@ Cadle v0.6.0 @ ea0da625 : copie locale épinglée, intacte et mesurée. Code MIT
 attribution ; assets exclus. Aucune dépendance Three.js/JavaScript dans le produit Forge.
 
 TRAVAIL ACTIF
-Gate C et Gate 0 sont passées. Gate 1 reste ouverte au commit source a34596bd : Browser clear/rain
-automatisé acquis, natif exact-commit à rejouer, GPU cible/profils dynamiques/revue humaine encore dus.
-Poursuivre uniquement Gate 1. Gate 2 est interdite sans nouvelle dérogation explicite. La CI distante
-reste NOT RUN sous ADR-0006 tant que les runners ne démarrent pas.
+Gate C et Gate 0 sont passées. Gate 1 reste ouverte au commit source a34596bd : Browser et natif
+clear/rain exact-commit acquis, R1-043 satisfaite, mais warning/artefacts graphiques, GPU cible,
+profils dynamiques et revue humaine encore dus. Poursuivre uniquement Gate 1. Gate 2 est interdite
+sans nouvelle dérogation explicite. La CI distante reste NOT RUN sous ADR-0006 tant que les runners
+ne démarrent pas.
 ```
