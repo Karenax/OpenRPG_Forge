@@ -770,7 +770,7 @@ pub(crate) fn build_hlod_chunk_mesh(
             continue;
         }
         let (width, height, bottom, top) = match placement.kind {
-            VegetationKind::Tree => (1.55, 5.25, bark_color(0.0), leaf_color(0, 0.82)),
+            VegetationKind::Tree => (2.5, 5.5, bark_color(0.0), leaf_color(0, 0.82)),
             VegetationKind::Shrub => (1.15, 1.35, leaf_color(0, 0.0), leaf_color(1, 0.72)),
             VegetationKind::Fern => (0.9, 0.82, leaf_color(1, 0.0), leaf_color(0, 0.9)),
             VegetationKind::Grass => continue,
@@ -855,10 +855,11 @@ fn append_crossed_silhouette(
     for quarter_turn in [0.0, std::f32::consts::FRAC_PI_2] {
         let angle = yaw + quarter_turn;
         let right = Vec3::new(angle.cos(), 0.0, -angle.sin()) * (width * 0.5);
+        let shoulder = base + Vec3::Y * (height * 0.34);
         let top = base + Vec3::Y * height;
         mesh.push_quad(
-            [base - right, base + right, top + right, top - right],
-            [bottom_color, bottom_color, top_color, top_color],
+            [base, shoulder + right, top, shoulder - right],
+            [bottom_color, top_color, top_color, top_color],
         )?;
     }
     Ok(())
@@ -2028,6 +2029,42 @@ mod tests {
         assert_complete_mesh(&mesh);
         assert_eq!(mesh.mesh.count_vertices(), 3 * 2 * 4);
         assert_eq!(mesh.triangles, 3 * 2 * 2);
+    }
+
+    #[test]
+    fn hlod_silhouette_tapers_around_one_bounded_shoulder() {
+        const POSITION_EPSILON_M: f32 = 1.0e-6;
+        let mut accumulator = MeshAccumulator::default();
+        append_crossed_silhouette(
+            &mut accumulator,
+            Vec3::ZERO,
+            0.0,
+            2.0,
+            10.0,
+            bark_color(0.0),
+            leaf_color(0, 1.0),
+        )
+        .unwrap();
+        let mesh = accumulator.finish(0.0).unwrap();
+        let positions = match mesh.mesh.attribute(Mesh::ATTRIBUTE_POSITION) {
+            Some(VertexAttributeValues::Float32x3(values)) => values,
+            other => panic!("unexpected HLOD positions: {other:?}"),
+        };
+
+        assert_eq!(mesh.mesh.count_vertices(), 2 * 4);
+        assert_eq!(mesh.triangles, 2 * 2);
+        let expected = [
+            Vec3::ZERO,
+            Vec3::new(1.0, 3.4, 0.0),
+            Vec3::new(0.0, 10.0, 0.0),
+            Vec3::new(-1.0, 3.4, 0.0),
+        ];
+        for (actual, expected) in positions.iter().take(4).zip(expected) {
+            assert!(
+                Vec3::from_array(*actual).distance_squared(expected)
+                    <= POSITION_EPSILON_M * POSITION_EPSILON_M
+            );
+        }
     }
 
     #[test]
