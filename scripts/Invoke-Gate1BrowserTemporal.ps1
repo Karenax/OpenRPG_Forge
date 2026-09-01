@@ -145,6 +145,9 @@ function Assert-TemporalConfig {
     Assert-Condition -Condition ([int]$Config.readiness.minimum_stable_layout_observations -eq 8) -Message 'Eight stable layout observations are required before the first capture.'
     Assert-Condition -Condition ([int]$Config.readiness.stable_layout_poll_interval_ms -eq 150) -Message 'The stable layout poll interval changed without a protocol version bump.'
     Assert-Condition -Condition ($Config.readiness.require_navigator_gpu -eq $true) -Message 'navigator.gpu must remain a readiness requirement.'
+    Assert-Condition -Condition ($Config.readiness.require_no_page_scrollbars -eq $true) -Message 'The Browser page must remain free of global scrollbars.'
+    Assert-Condition -Condition ($Config.readiness.require_canvas_fully_visible -eq $true) -Message 'The full canvas must remain inside the registered viewport.'
+    Assert-Condition -Condition ($Config.readiness.require_backing_matches_css -eq $true) -Message 'The canvas backing store must match its CSS extent and DPR.'
     Assert-Condition -Condition ($Config.readiness.require_single_viewport_start -eq $true) -Message 'Exactly one viewport start must remain required.'
     Assert-Condition -Condition ($Config.readiness.require_completed_frame_window -eq $true) -Message 'The completed Studio frame window must remain required.'
 
@@ -795,6 +798,14 @@ function Get-ReadinessSnapshot {
     input_guard: window.__forgeGate1TemporalInputGuard ?? null,
     gate_ledger: gateNode?.textContent ?? "",
     scene_ledger: sceneNode?.textContent ?? "",
+    page: {
+      inner_width: window.innerWidth,
+      inner_height: window.innerHeight,
+      client_width: document.documentElement.clientWidth,
+      client_height: document.documentElement.clientHeight,
+      scroll_width: document.documentElement.scrollWidth,
+      scroll_height: document.documentElement.scrollHeight
+    },
     canvas: rect ? {
       left: rect.left,
       top: rect.top,
@@ -823,10 +834,18 @@ function Assert-ReadySnapshot {
     Assert-Condition -Condition ($Snapshot.navigator_gpu -eq $true) -Message 'navigator.gpu is not exposed.'
     Assert-Condition -Condition ($null -ne $Snapshot.input_guard -and $Snapshot.input_guard.active -eq $true) -Message 'The camera/player input guard is not active.'
     Assert-Condition -Condition ([int]$Snapshot.input_guard.dispatched_input_events -eq 0) -Message 'The harness unexpectedly dispatched an input event.'
+    Assert-Condition -Condition ([int]$Snapshot.page.inner_width -eq [int]$Config.browser.viewport_width_px -and [int]$Snapshot.page.inner_height -eq [int]$Config.browser.viewport_height_px) -Message 'The Browser inner viewport drifted from the registered 1920x1080 extent.'
+    Assert-Condition -Condition ([int]$Snapshot.page.client_width -eq [int]$Snapshot.page.inner_width -and [int]$Snapshot.page.client_height -eq [int]$Snapshot.page.inner_height) -Message 'The Browser page exposes a global scrollbar.'
+    Assert-Condition -Condition ([int]$Snapshot.page.scroll_width -le [int]$Snapshot.page.client_width -and [int]$Snapshot.page.scroll_height -le [int]$Snapshot.page.client_height) -Message 'The Browser document exceeds the registered viewport.'
     Assert-Condition -Condition ($null -ne $Snapshot.canvas) -Message 'The canonical canvas is missing.'
     Assert-Condition -Condition ([double]$Snapshot.canvas.width -gt 0 -and [double]$Snapshot.canvas.height -gt 0) -Message 'The canvas has no positive CSS extent.'
     Assert-Condition -Condition ([int]$Snapshot.canvas.backing_width -gt 0 -and [int]$Snapshot.canvas.backing_height -gt 0) -Message 'The canvas has no positive backing extent.'
     Assert-Condition -Condition ([double]$Snapshot.canvas.device_pixel_ratio -eq [double]$Config.browser.device_scale_factor) -Message 'The Browser device pixel ratio drifted.'
+    Assert-Condition -Condition ([double]$Snapshot.canvas.scroll_x -eq 0 -and [double]$Snapshot.canvas.scroll_y -eq 0) -Message 'The Browser page moved away from the registered scroll origin.'
+    Assert-Condition -Condition ([double]$Snapshot.canvas.left -ge 0 -and [double]$Snapshot.canvas.top -ge 0 -and ([double]$Snapshot.canvas.left + [double]$Snapshot.canvas.width) -le [double]$Snapshot.page.inner_width -and ([double]$Snapshot.canvas.top + [double]$Snapshot.canvas.height) -le [double]$Snapshot.page.inner_height) -Message 'The full canvas is not visible inside the registered viewport.'
+    $expectedBackingWidth = [int][Math]::Round([double]$Snapshot.canvas.width * [double]$Snapshot.canvas.device_pixel_ratio)
+    $expectedBackingHeight = [int][Math]::Round([double]$Snapshot.canvas.height * [double]$Snapshot.canvas.device_pixel_ratio)
+    Assert-Condition -Condition ([int]$Snapshot.canvas.backing_width -eq $expectedBackingWidth -and [int]$Snapshot.canvas.backing_height -eq $expectedBackingHeight) -Message 'The canvas backing store does not match its CSS extent and DPR.'
     Assert-Condition -Condition (-not [string]::IsNullOrWhiteSpace([string]$Snapshot.gate_ledger)) -Message 'Gate ledger is empty.'
     Assert-Condition -Condition (-not [string]::IsNullOrWhiteSpace([string]$Snapshot.scene_ledger)) -Message 'Scene ledger is empty.'
 
@@ -869,7 +888,7 @@ function Wait-ReadySnapshot {
         $snapshot = Get-ReadinessSnapshot -Socket $Socket
         try {
             [void](Assert-ReadySnapshot -Snapshot $snapshot -Config $Config -ExpectedCommit $ExpectedCommit)
-            $canvasSignature = ConvertTo-CompactJson -Value $snapshot.canvas
+            $canvasSignature = ConvertTo-CompactJson -Value ([ordered]@{ page = $snapshot.page; canvas = $snapshot.canvas })
             if ($canvasSignature -ceq $lastCanvasSignature) {
                 $stableLayoutObservations += 1
             } else {
@@ -923,6 +942,7 @@ function Assert-FixedContextStable {
     }
     Assert-Condition -Condition ([int]$Before.canvas.backing_width -eq [int]$After.canvas.backing_width -and [int]$Before.canvas.backing_height -eq [int]$After.canvas.backing_height) -Message 'Canvas backing dimensions changed between captures.'
     Assert-Condition -Condition ([double]$Before.canvas.left -eq [double]$After.canvas.left -and [double]$Before.canvas.top -eq [double]$After.canvas.top -and [double]$Before.canvas.width -eq [double]$After.canvas.width -and [double]$Before.canvas.height -eq [double]$After.canvas.height) -Message 'Canvas CSS rectangle changed between captures.'
+    Assert-Condition -Condition ((ConvertTo-CompactJson -Value $Before.page) -ceq (ConvertTo-CompactJson -Value $After.page)) -Message 'Browser page dimensions changed between captures.'
 }
 
 function Get-CanvasScreenshot {
@@ -934,7 +954,7 @@ function Get-CanvasScreenshot {
     $result = Invoke-CdpCommand -Socket $Socket -Method 'Page.captureScreenshot' -Parameters ([ordered]@{
         format = 'png'
         fromSurface = $true
-        captureBeyondViewport = $true
+        captureBeyondViewport = $false
         clip = [ordered]@{
             x = [double]$Canvas.left + [double]$Canvas.scroll_x
             y = [double]$Canvas.top + [double]$Canvas.scroll_y
@@ -1352,6 +1372,7 @@ try {
         'scripts/Test-Gate1BrowserTemporal.ps1',
         'scripts/Invoke-StudioTrunk.ps1',
         'apps/forge_studio/src/lib.rs',
+        'apps/forge_studio/styles.css',
         'docs/evidence/gate1/R1_014_BROWSER_TEMPORAL_PROTOCOL.md'
     ) | ForEach-Object {
         $fullPath = Join-Path $repositoryRoot ($_ -replace '/', [IO.Path]::DirectorySeparatorChar)
@@ -1391,6 +1412,7 @@ try {
             stable_between_captures = $true
         }
         captures = [ordered]@{
+            page = $before.page
             canvas = $before.canvas
             frame_a_recorded_at_utc = $capturedAtA.ToString('o')
             frame_b_recorded_at_utc = $capturedAtB.ToString('o')

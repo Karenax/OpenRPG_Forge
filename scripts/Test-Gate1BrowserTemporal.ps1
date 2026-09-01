@@ -11,6 +11,7 @@ $protocolPath = Join-Path $repositoryRoot 'docs/evidence/gate1/R1_014_BROWSER_TE
 $roadmapPath = Join-Path $repositoryRoot 'docs/planning/MIGRATION_ROADMAP.md'
 $trunkPath = Join-Path $PSScriptRoot 'Invoke-StudioTrunk.ps1'
 $studioSourcePath = Join-Path $repositoryRoot 'apps/forge_studio/src/lib.rs'
+$studioStylesPath = Join-Path $repositoryRoot 'apps/forge_studio/styles.css'
 
 function Assert-Condition {
     param(
@@ -23,7 +24,7 @@ function Assert-Condition {
     }
 }
 
-foreach ($path in @($driverPath, $configPath, $protocolPath, $roadmapPath, $trunkPath, $studioSourcePath)) {
+foreach ($path in @($driverPath, $configPath, $protocolPath, $roadmapPath, $trunkPath, $studioSourcePath, $studioStylesPath)) {
     Assert-Condition -Condition (Test-Path -LiteralPath $path -PathType Leaf) -Message "Required R1-014 harness file is missing: $path"
 }
 
@@ -55,6 +56,8 @@ foreach ($requiredToken in @(
     'Get-ServedBundleEvidence',
     'build_source_commit',
     'minimum_stable_layout_observations',
+    'require_no_page_scrollbars',
+    'captureBeyondViewport = $false',
     'maximum_console_warnings',
     'human_temporal_inspection_required'
 )) {
@@ -67,6 +70,8 @@ Assert-Condition -Condition $trunkDriver.Contains('FORGE_SOURCE_COMMIT', [String
 $studioSource = Get-Content -LiteralPath $studioSourcePath -Raw
 Assert-Condition -Condition $studioSource.Contains('option_env!("FORGE_SOURCE_COMMIT")', [StringComparison]::Ordinal) -Message 'Studio scene telemetry must embed the exact source commit.'
 Assert-Condition -Condition $studioSource.Contains('schema_version: 8', [StringComparison]::Ordinal) -Message 'Studio scene telemetry v8 is required.'
+$studioStyles = Get-Content -LiteralPath $studioStylesPath -Raw
+Assert-Condition -Condition $studioStyles.Contains('.panel { padding: 17px 14px; overflow: auto; }', [StringComparison]::Ordinal) -Message 'Studio side panels must scroll internally so the canvas remains inside the fixed viewport.'
 foreach ($forbiddenToken in @('npm install', 'npx ', 'playwright', 'upstream/cadle', 'assets/cadle')) {
     Assert-Condition -Condition (-not $driver.Contains($forbiddenToken, [StringComparison]::OrdinalIgnoreCase)) -Message "Driver unexpectedly depends on forbidden token '$forbiddenToken'."
 }
@@ -87,6 +92,7 @@ Assert-Condition -Condition $roadmap.Contains('HARNESS READY / ACQUISITION NOT R
     served_bundles_required = 4
     minimum_request_animation_frames = 120
     stable_layout_observations = 8
+    canvas_containment_contract = 'pass'
     browser_run = 'not_performed'
     cargo_build = 'not_performed'
 }

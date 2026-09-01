@@ -26,7 +26,7 @@ h1 { margin: 3px 0 0; font-size: 22px; font-weight: 600; }
 .status-error { color: var(--error); background: color-mix(in srgb, var(--error) 12%, transparent); }
 .workspace { min-height: 0; display: grid; grid-template-columns: 230px minmax(0, 1fr) 280px; gap: 1px; background: var(--line); }
 .panel, .viewport-panel { min-width: 0; background: var(--surface); }
-.panel { padding: 17px 14px; }
+.panel { padding: 17px 14px; overflow: auto; }
 .panel h2 { margin: 0 0 14px; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .12em; }
 .hierarchy button, .tree-static { width: 100%; padding: 9px 10px; border: 0; border-radius: 5px; text-align: left; color: var(--text); background: transparent; }
 .hierarchy button:hover { background: var(--surface-raised); }

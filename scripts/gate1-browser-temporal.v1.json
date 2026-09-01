@@ -39,6 +39,9 @@
     "minimum_stable_layout_observations": 8,
     "stable_layout_poll_interval_ms": 150,
     "require_navigator_gpu": true,
+    "require_no_page_scrollbars": true,
+    "require_canvas_fully_visible": true,
+    "require_backing_matches_css": true,
     "require_single_viewport_start": true,
     "require_completed_frame_window": true
   },

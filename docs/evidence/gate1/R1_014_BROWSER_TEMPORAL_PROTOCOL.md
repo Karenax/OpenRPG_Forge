@@ -67,6 +67,12 @@ exige encore **8 observations identiques** du rectangle CSS, du backing store, d
 canvas, espacées de **150 ms**. Cette garde absorbe le dernier reflow de l'inspecteur avant la première
 capture ; un redimensionnement ultérieur entre les deux images reste un échec strict.
 
+Les panneaux latéraux Studio défilent à l'intérieur de la grille ; la page ne doit exposer aucune
+scrollbar globale. Le pilote refuse un document plus grand que `1920 x 1080`, un canvas partiellement
+hors viewport ou un backing store différent de `rectangle CSS x DPR`. Les captures utilisent donc
+`captureBeyondViewport=false` : masquer une scrollbar pendant la capture ne peut plus redimensionner
+le canvas ni déplacer les ROIs.
+
 Terminal A :
 
 ```powershell
