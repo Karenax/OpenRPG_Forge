@@ -279,6 +279,8 @@ struct RuntimeMetricsReport {
     #[serde(skip_serializing_if = "Option::is_none")]
     vegetation: Option<VegetationProjectionStats>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    scenery: Option<SceneryProjectionStats>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     environment: Option<EnvironmentProjectionStats>,
     #[serde(skip_serializing_if = "Option::is_none")]
     water: Option<WaterProjectionStats>,
@@ -378,7 +380,13 @@ impl Plugin for RuntimeEvidencePlugin {
                 )
                     .chain(),
             )
-            .add_systems(Last, (collect_frame_sample, write_metrics_and_exit).chain());
+            .add_systems(
+                Last,
+                (collect_frame_sample, write_metrics_and_exit)
+                    .chain()
+                    .after(quality::VisualValleyQualitySet::Apply)
+                    .after(scenery::VisualValleyScenerySet::ApplyQuality),
+            );
     }
 }
 
@@ -854,9 +862,13 @@ fn select_proof_entity(
 #[derive(SystemParam)]
 struct Gate1OverlayStats<'w> {
     visual_valley: Option<Res<'w, VisualValleyStats>>,
+    visual_valley_shadow: Option<Res<'w, VisualValleyShadowStats>>,
     vegetation: Option<Res<'w, VegetationProjectionStats>>,
+    scenery: Option<Res<'w, SceneryProjectionStats>>,
+    environment: Option<Res<'w, EnvironmentProjectionStats>>,
     water: Option<Res<'w, WaterProjectionStats>>,
     weather: Option<Res<'w, WeatherProjectionStats>>,
+    quality: Option<Res<'w, VisualValleyQualityStats>>,
 }
 
 #[allow(
@@ -903,6 +915,24 @@ fn update_overlay(
                 weather.rain.generated_drops,
                 weather.wetness.current,
                 weather.status
+            );
+        }
+        if let Some(scenery) = gate1.scenery {
+            let _ = write!(
+                logical_details,
+                "\nDécor CC0 : {:?} · {}/{} modèles · LOD {:.0}-{:.0} m",
+                scenery.status,
+                scenery.loaded_models,
+                scenery.unique_models,
+                scenery.replacement_lod_start_m,
+                scenery.replacement_lod_end_m
+            );
+        }
+        if let Some(quality) = gate1.quality {
+            let _ = write!(
+                logical_details,
+                "\nQualité : {:?} · {:?} · appliqué {:?}",
+                quality.selection, quality.current_tier, quality.dynamically_applied_tier
             );
         }
         format_runtime_diagnostics_overlay(
@@ -1096,13 +1126,7 @@ fn write_metrics_and_exit(
     automation: Res<RuntimeAutomation>,
     ledger: Res<FrameLedger>,
     stats: Res<ProofSceneStats>,
-    visual_valley: Option<Res<VisualValleyStats>>,
-    visual_valley_shadow: Option<Res<VisualValleyShadowStats>>,
-    vegetation: Option<Res<VegetationProjectionStats>>,
-    environment: Option<Res<EnvironmentProjectionStats>>,
-    water: Option<Res<WaterProjectionStats>>,
-    weather: Option<Res<WeatherProjectionStats>>,
-    quality: Option<Res<VisualValleyQualityStats>>,
+    gate1: Gate1OverlayStats,
     gpu: Option<Res<GpuDiagnostic>>,
     diagnostics: Res<DiagnosticsStore>,
     windows: Query<&Window, With<PrimaryWindow>>,
@@ -1163,13 +1187,14 @@ fn write_metrics_and_exit(
         match build_runtime_metrics(
             &ledger.samples_ms,
             &stats,
-            visual_valley.as_deref(),
-            visual_valley_shadow.as_deref(),
-            vegetation.as_deref(),
-            environment.as_deref(),
-            water.as_deref(),
-            weather.as_deref(),
-            quality.as_deref(),
+            gate1.visual_valley.as_deref(),
+            gate1.visual_valley_shadow.as_deref(),
+            gate1.vegetation.as_deref(),
+            gate1.scenery.as_deref(),
+            gate1.environment.as_deref(),
+            gate1.water.as_deref(),
+            gate1.weather.as_deref(),
+            gate1.quality.as_deref(),
             gpu.as_deref(),
             &diagnostics,
             &lifecycle,
@@ -1252,6 +1277,7 @@ fn build_runtime_metrics(
     visual_valley: Option<&VisualValleyStats>,
     visual_valley_shadow: Option<&VisualValleyShadowStats>,
     vegetation: Option<&VegetationProjectionStats>,
+    scenery: Option<&SceneryProjectionStats>,
     environment: Option<&EnvironmentProjectionStats>,
     water: Option<&WaterProjectionStats>,
     weather: Option<&WeatherProjectionStats>,
@@ -1261,6 +1287,25 @@ fn build_runtime_metrics(
     lifecycle: &WindowLifecycle,
     final_window: Option<WindowStateReport>,
 ) -> Result<RuntimeMetricsReport, String> {
+    if visual_valley.is_some() {
+        let scenery = scenery.ok_or("Visual Valley metrics require SceneryProjectionStats")?;
+        if scenery.status != SceneryProjectionStatus::Activated
+            || scenery.failed_models != 0
+            || scenery.loaded_models != scenery.unique_models
+        {
+            return Err(format!(
+                "Visual Valley scenery is not qualified for metrics: status={:?}, models={}/{}, failures={}",
+                scenery.status, scenery.loaded_models, scenery.unique_models, scenery.failed_models
+            ));
+        }
+        let quality = quality.ok_or("Visual Valley metrics require VisualValleyQualityStats")?;
+        if quality.dynamically_applied_tier != Some(quality.current_tier) {
+            return Err(format!(
+                "Visual Valley quality tier {:?} is not applied before metrics",
+                quality.current_tier
+            ));
+        }
+    }
     let distribution = CoreFrameDistribution::from_samples_ms(samples)
         .map_err(|error| format!("invalid post-warmup frame samples: {error}"))?;
     let mut sorted = samples.to_vec();
@@ -1311,6 +1356,7 @@ fn build_runtime_metrics(
         visual_valley: visual_valley.cloned(),
         visual_valley_shadow: visual_valley_shadow.cloned(),
         vegetation: vegetation.cloned(),
+        scenery: scenery.cloned(),
         environment: environment.cloned(),
         water: water.cloned(),
         weather: weather.cloned(),
@@ -1390,6 +1436,43 @@ mod tests {
                 requested_step_count: 64,
                 fallback: "distance_fog",
             },
+        }
+    }
+
+    fn sample_activated_scenery(
+        terrain: &forge_project::TerrainDocument,
+        vegetation: &forge_project::VegetationDocument,
+    ) -> SceneryProjectionStats {
+        let mut scenery = inspect_scenery_projection(terrain, vegetation).unwrap();
+        scenery.loaded_models = scenery.unique_models;
+        scenery.hidden_procedural_entities = scenery.replacement_instances;
+        scenery.status = SceneryProjectionStatus::Activated;
+        scenery
+    }
+
+    fn sample_applied_quality() -> VisualValleyQualityStats {
+        let profile = forge_project::VisualValleyQualityProfileDocument::from_json(include_str!(
+            "../../../examples/visual_valley/quality-profile.v1.json"
+        ))
+        .unwrap();
+        let tier = forge_project::VisualQualityTier::High;
+        VisualValleyQualityStats {
+            schema: "forge.visual-valley-quality-runtime",
+            schema_version: 1,
+            profile_hash: profile.content_hash().unwrap().to_string(),
+            selection: VisualValleyQualitySelection::Fixed(tier),
+            startup_tier: tier,
+            current_tier: tier,
+            dynamically_applied_tier: Some(tier),
+            adaptation_enabled: false,
+            adaptation_policy: None,
+            benchmark_fixed_high: false,
+            observed_frames: 1,
+            cooldown_remaining_frames: 0,
+            transition_count: 0,
+            last_transition: None,
+            requested_preset: profile.preset(tier).clone(),
+            field_projections: Vec::new(),
         }
     }
 
@@ -1537,6 +1620,8 @@ mod tests {
         let vegetation_document =
             forge_world::embedded_visual_valley_vegetation_document().unwrap();
         let vegetation = inspect_vegetation_projection(&terrain, &vegetation_document).unwrap();
+        let scenery = sample_activated_scenery(&terrain, &vegetation_document);
+        let quality = sample_applied_quality();
         let shadow = VisualValleyShadowStats {
             status: VisualValleyShadowObservationStatus::ObservedSingleSun,
             sun_entities: 1,
@@ -1552,10 +1637,11 @@ mod tests {
             Some(&visual_valley),
             Some(&shadow),
             Some(&vegetation),
+            Some(&scenery),
             Some(&environment),
             None,
             None,
-            None,
+            Some(&quality),
             None,
             &DiagnosticsStore::default(),
             &WindowLifecycle::new(None, None),
@@ -1566,10 +1652,11 @@ mod tests {
         assert_eq!(report.visual_valley, Some(visual_valley));
         assert_eq!(report.visual_valley_shadow, Some(shadow));
         assert_eq!(report.vegetation, Some(vegetation));
+        assert_eq!(report.scenery, Some(scenery));
         assert_eq!(report.environment, Some(environment));
         assert!(report.water.is_none());
         assert!(report.weather.is_none());
-        assert!(report.quality.is_none());
+        assert_eq!(report.quality, Some(quality));
         let serialized = serde_json::to_value(&report).unwrap();
         assert_eq!(serialized["visual_valley"]["chunks"], 64);
         assert_eq!(serialized["visual_valley"]["vertices"], 69_696);
@@ -1579,6 +1666,8 @@ mod tests {
             8_282
         );
         assert_eq!(serialized["vegetation"]["projection"]["grass_batches"], 64);
+        assert_eq!(serialized["scenery"]["status"], "activated");
+        assert_eq!(serialized["quality"]["current_tier"], "high");
         assert_eq!(
             serialized["visual_valley_shadow"]["configured_maximum_distance_m"],
             128.0
@@ -1592,6 +1681,74 @@ mod tests {
             serialized["environment"]["volumetric"]["resolved_path"],
             "distance_fog_fallback"
         );
+    }
+
+    #[test]
+    fn gate1_metrics_reject_scenery_fallback_and_unapplied_quality() {
+        let stats = ProofSceneStats {
+            source_entities: 1,
+            source_mesh_instances: 1,
+            source_hash: "terrain".to_owned(),
+        };
+        let visual_valley = VisualValleyStats {
+            source_hash: "terrain".to_owned(),
+            chunks: 1,
+            vertices: 3,
+            triangles: 1,
+            material_layers: 3,
+            lod_levels: 1,
+            lod_zero_chunks: 1,
+        };
+        let terrain = forge_world::embedded_visual_valley_terrain_document().unwrap();
+        let vegetation = forge_world::embedded_visual_valley_vegetation_document().unwrap();
+        let mut scenery = sample_activated_scenery(&terrain, &vegetation);
+        scenery.status = SceneryProjectionStatus::ProceduralFallbackLoadFailure;
+        scenery.failed_models = 1;
+        scenery.loaded_models = scenery.unique_models.saturating_sub(1);
+        let quality = sample_applied_quality();
+
+        let scenery_error = build_runtime_metrics(
+            &[8.0],
+            &stats,
+            Some(&visual_valley),
+            None,
+            None,
+            Some(&scenery),
+            None,
+            None,
+            None,
+            Some(&quality),
+            None,
+            &DiagnosticsStore::default(),
+            &WindowLifecycle::new(None, None),
+            None,
+        )
+        .unwrap_err();
+        assert!(scenery_error.contains("scenery is not qualified"));
+
+        scenery.status = SceneryProjectionStatus::Activated;
+        scenery.failed_models = 0;
+        scenery.loaded_models = scenery.unique_models;
+        let mut unapplied_quality = quality;
+        unapplied_quality.dynamically_applied_tier = None;
+        let quality_error = build_runtime_metrics(
+            &[8.0],
+            &stats,
+            Some(&visual_valley),
+            None,
+            None,
+            Some(&scenery),
+            None,
+            None,
+            None,
+            Some(&unapplied_quality),
+            None,
+            &DiagnosticsStore::default(),
+            &WindowLifecycle::new(None, None),
+            None,
+        )
+        .unwrap_err();
+        assert!(quality_error.contains("is not applied before metrics"));
     }
 
     #[test]

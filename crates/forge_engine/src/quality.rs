@@ -182,6 +182,11 @@ pub struct VisualValleyQualityPlugin {
     selection: VisualValleyQualitySelection,
 }
 
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, SystemSet)]
+pub(crate) enum VisualValleyQualitySet {
+    Apply,
+}
+
 impl VisualValleyQualityPlugin {
     #[must_use]
     pub const fn new(
@@ -256,7 +261,9 @@ impl Plugin for VisualValleyQualityPlugin {
         })
         .add_systems(
             Last,
-            (advance_quality_adaptation, apply_quality_tier).chain(),
+            (advance_quality_adaptation, apply_quality_tier)
+                .chain()
+                .in_set(VisualValleyQualitySet::Apply),
         );
     }
 }

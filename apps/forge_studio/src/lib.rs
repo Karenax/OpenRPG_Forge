@@ -400,6 +400,8 @@ pub struct StudioSceneRuntimeObservation {
     pub water_observation: Option<String>,
     pub weather_observation: Option<String>,
     pub weather_target_state: Option<String>,
+    pub quality_current_tier: Option<VisualQualityTier>,
+    pub quality_applied_tier: Option<VisualQualityTier>,
     pub scenery_observation: Option<StudioSceneryRuntimeObservation>,
     pub gpu_presentation: StudioGpuPresentationStatus,
     pub evidence_source: String,
@@ -424,7 +426,7 @@ impl StudioSceneTelemetry {
     pub fn new(selection: StudioSceneSelection, selected_manifest: StudioSceneManifest) -> Self {
         Self {
             schema: "forge.studio-scene-telemetry".to_owned(),
-            schema_version: 5,
+            schema_version: 6,
             selection,
             selected_manifest,
             runtime_manifest: None,
@@ -536,6 +538,17 @@ fn validate_runtime_contract(
         if selected.source_hashes.scenery.is_none() {
             return Err("hash du manifeste de décor CC0 absent de la sélection".to_owned());
         }
+        let Some(runtime_quality_tier) = runtime.quality_tier else {
+            return Err("tier qualité absent du manifeste runtime Visual Valley".to_owned());
+        };
+        if observation.quality_current_tier != Some(runtime_quality_tier)
+            || observation.quality_applied_tier != Some(runtime_quality_tier)
+        {
+            return Err(format!(
+                "application qualité runtime invalide : tier courant={:?}, appliqué={:?}, manifeste={runtime_quality_tier:?}",
+                observation.quality_current_tier, observation.quality_applied_tier
+            ));
+        }
         if observation.water_observation.as_deref() != Some("observed_main_world_components") {
             return Err(format!(
                 "projection eau invalide : {}",
@@ -595,6 +608,12 @@ fn validate_runtime_contract(
                 scenery.tracked_bytes
             ));
         }
+    } else if observation.quality_current_tier.is_some()
+        || observation.quality_applied_tier.is_some()
+    {
+        return Err(
+            "la preuve Gate 0 doit conserver les tiers qualité à not_applicable".to_owned(),
+        );
     }
     Ok(())
 }
@@ -947,8 +966,9 @@ mod web {
         StudioQualitySelection, StudioResponse, StudioScene, StudioSceneManifest,
         StudioSceneParityStatus, StudioSceneRuntimeObservation, StudioSceneSourceHashes,
         StudioSceneTelemetry, StudioSceneryRuntimeObservation, StudioViewportMode,
-        StudioWaterAdapterStatus, is_validated_gate0_runtime, parse_studio_quality_selection,
-        parse_studio_scene_selection, parse_studio_weather_selection, validate_selection_response,
+        StudioWaterAdapterStatus, VisualQualityTier, is_validated_gate0_runtime,
+        parse_studio_quality_selection, parse_studio_scene_selection,
+        parse_studio_weather_selection, validate_selection_response,
     };
     use bevy::{
         prelude::*,
@@ -1390,6 +1410,8 @@ mod web {
             water_observation: ready.water_observation.clone(),
             weather_observation: ready.weather_observation.clone(),
             weather_target_state: ready.weather_target_state.clone(),
+            quality_current_tier: ready.quality_current_tier,
+            quality_applied_tier: ready.quality_applied_tier,
             scenery_observation: ready.scenery_observation.clone(),
             gpu_presentation: ready.gpu_presentation,
             evidence_source: "bevy_main_world_cpu_ecs_projection_observed_not_gpu_presentation"
@@ -2090,6 +2112,8 @@ mod web {
         water_observation: Option<String>,
         weather_observation: Option<String>,
         weather_target_state: Option<String>,
+        quality_current_tier: Option<VisualQualityTier>,
+        quality_applied_tier: Option<VisualQualityTier>,
         scenery_observation: Option<StudioSceneryRuntimeObservation>,
     }
 
@@ -2149,6 +2173,8 @@ mod web {
                     water_observation: None,
                     weather_observation: None,
                     weather_target_state: None,
+                    quality_current_tier: None,
+                    quality_applied_tier: None,
                     scenery_observation: None,
                 }))
             }
@@ -2242,6 +2268,8 @@ mod web {
             water_observation: Some(water_observation_label(water.runtime_observation).to_owned()),
             weather_observation: Some(weather_observation_label(weather.status).to_owned()),
             weather_target_state: Some(weather_state_label(weather.target_state).to_owned()),
+            quality_current_tier: Some(quality.current_tier),
+            quality_applied_tier: quality.dynamically_applied_tier,
             scenery_observation: Some(StudioSceneryRuntimeObservation {
                 status: scenery_observation_label(scenery.status).to_owned(),
                 loaded_models: scenery.loaded_models,
@@ -2344,8 +2372,12 @@ mod web {
             }
             Some(_) => {}
         }
-        if resources.quality.is_none() {
-            pending.push("VisualValleyQualityStats");
+        match resources.quality {
+            None => pending.push("VisualValleyQualityStats"),
+            Some(quality) if quality.dynamically_applied_tier != Some(quality.current_tier) => {
+                pending.push("VisualValleyQualityStats.dynamically_applied_tier");
+            }
+            Some(_) => {}
         }
         pending
     }
@@ -2447,6 +2479,8 @@ mod web {
             water_observation: observed.water_observation,
             weather_observation: observed.weather_observation,
             weather_target_state: observed.weather_target_state,
+            quality_current_tier: observed.quality_current_tier,
+            quality_applied_tier: observed.quality_applied_tier,
             scenery_observation: observed.scenery_observation,
             gpu_presentation: StudioGpuPresentationStatus::NotObserved,
         };
@@ -2913,7 +2947,7 @@ mod tests {
             .unwrap();
         let mut telemetry = StudioSceneTelemetry::new(selection, manifest.clone());
 
-        assert_eq!(telemetry.schema_version, 5);
+        assert_eq!(telemetry.schema_version, 6);
 
         assert_eq!(
             telemetry.parity_status,
@@ -2937,6 +2971,8 @@ mod tests {
                 water_observation: Some("observed_main_world_components".to_owned()),
                 weather_observation: Some("observed_cpu_projection".to_owned()),
                 weather_target_state: Some("rain".to_owned()),
+                quality_current_tier: Some(VisualQualityTier::High),
+                quality_applied_tier: Some(VisualQualityTier::High),
                 scenery_observation: Some(valid_studio_scenery_observation()),
                 gpu_presentation: StudioGpuPresentationStatus::NotObserved,
                 evidence_source: "synthetic_test_not_webgpu_execution".to_owned(),
@@ -2972,7 +3008,10 @@ mod tests {
             selected,
         );
 
-        telemetry.observe_runtime(runtime, valid_visual_valley_runtime_observation());
+        let mut observation = valid_visual_valley_runtime_observation();
+        observation.quality_current_tier = Some(VisualQualityTier::Medium);
+        observation.quality_applied_tier = Some(VisualQualityTier::Medium);
+        telemetry.observe_runtime(runtime, observation);
 
         assert_eq!(
             telemetry.parity_status,
@@ -2999,6 +3038,8 @@ mod tests {
                 water_observation: None,
                 weather_observation: None,
                 weather_target_state: None,
+                quality_current_tier: None,
+                quality_applied_tier: None,
                 scenery_observation: None,
                 gpu_presentation: StudioGpuPresentationStatus::NotObserved,
                 evidence_source: "synthetic_gate0_contract_regression".to_owned(),
@@ -3013,6 +3054,8 @@ mod tests {
         let runtime = telemetry.runtime_observation.as_ref().unwrap();
         assert!((runtime.first_real_frame_ms - 12.5).abs() < f64::EPSILON);
         assert!((runtime.runtime_ready_ms - 13.0).abs() < f64::EPSILON);
+        assert_eq!(runtime.quality_current_tier, None);
+        assert_eq!(runtime.quality_applied_tier, None);
         assert_eq!(
             runtime.gpu_presentation,
             StudioGpuPresentationStatus::NotObserved
@@ -3032,6 +3075,8 @@ mod tests {
                 water_observation: None,
                 weather_observation: None,
                 weather_target_state: None,
+                quality_current_tier: None,
+                quality_applied_tier: None,
                 scenery_observation: None,
                 gpu_presentation: StudioGpuPresentationStatus::NotObserved,
                 evidence_source: "synthetic_gate0_contract_mismatch".to_owned(),
@@ -3053,6 +3098,8 @@ mod tests {
             water_observation: Some("observed_main_world_components".to_owned()),
             weather_observation: Some("observed_cpu_projection".to_owned()),
             weather_target_state: Some("rain".to_owned()),
+            quality_current_tier: Some(VisualQualityTier::High),
+            quality_applied_tier: Some(VisualQualityTier::High),
             scenery_observation: Some(valid_studio_scenery_observation()),
             gpu_presentation: StudioGpuPresentationStatus::NotObserved,
             evidence_source: "synthetic_headless_contract_test".to_owned(),
@@ -3137,6 +3184,35 @@ mod tests {
                 .failure_reason
                 .as_deref()
                 .is_some_and(|reason| reason.contains("décor CC0"))
+        );
+    }
+
+    #[test]
+    fn headless_runtime_unapplied_quality_tier_is_explicit() {
+        let selected = visual_valley_rain_manifest();
+        let runtime = selected.clone();
+        let mut observation = valid_visual_valley_runtime_observation();
+        observation.quality_applied_tier = None;
+        let mut telemetry = StudioSceneTelemetry::new(
+            StudioSceneSelection {
+                scene: StudioScene::VisualValley,
+                source: StudioSceneSelectionSource::QueryString,
+                requested_value: Some("visual-valley".to_owned()),
+            },
+            selected,
+        );
+
+        telemetry.observe_runtime(runtime, observation);
+
+        assert_eq!(
+            telemetry.parity_status,
+            StudioSceneParityStatus::RuntimeContractMismatch
+        );
+        assert!(
+            telemetry
+                .failure_reason
+                .as_deref()
+                .is_some_and(|reason| reason.contains("qualité"))
         );
     }
 

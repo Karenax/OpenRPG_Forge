@@ -1,11 +1,11 @@
-use crate::VegetationPlacementMarker;
+use crate::{VegetationPlacementMarker, VisualValleyQualityStats};
 use bevy::{
     asset::{DependencyLoadState, LoadState, RecursiveDependencyLoadState},
     gltf::GltfAssetLabel,
     prelude::*,
 };
 use forge_core::{CanonicalJsonError, ContentHash, canonical_json_sha256};
-use forge_project::{TerrainDocument, VegetationDocument, VegetationKind};
+use forge_project::{TerrainDocument, VegetationDocument, VegetationKind, VisualQualityPreset};
 use forge_world::{
     VegetationGenerationError, VegetationGenerationPlan, VegetationInstance, VegetationInstanceId,
 };
@@ -117,6 +117,11 @@ pub struct VisualValleySceneryPlugin {
     vegetation: VegetationDocument,
 }
 
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, SystemSet)]
+pub(crate) enum VisualValleyScenerySet {
+    ApplyQuality,
+}
+
 impl VisualValleySceneryPlugin {
     #[must_use]
     pub const fn new(terrain: TerrainDocument, vegetation: VegetationDocument) -> Self {
@@ -139,6 +144,12 @@ impl Plugin for VisualValleySceneryPlugin {
             .add_systems(
                 Update,
                 (observe_scenery_loading, update_scenery_lod_visibility).chain(),
+            )
+            .add_systems(
+                Last,
+                apply_scenery_quality_lod
+                    .after(crate::quality::VisualValleyQualitySet::Apply)
+                    .in_set(VisualValleyScenerySet::ApplyQuality),
             );
     }
 }
@@ -518,6 +529,7 @@ struct PreparedSceneryProjection {
 
 #[derive(Component)]
 struct SceneryRoot {
+    replacement_lod_phase: Option<f32>,
     maximum_visibility_distance_m: f32,
 }
 
@@ -538,8 +550,8 @@ fn prepare_scenery_projection(
     let mut instances = Vec::new();
     let mut replacement_ids = HashSet::new();
     let mut selected_by_kind = SceneryInstanceCounts::default();
-    let replacement_lod_start_m = vegetation.presentation.medium_lod_distance_m;
-    let replacement_lod_end_m = vegetation.presentation.hlod_distance_m;
+    let (replacement_lod_start_m, replacement_lod_end_m) =
+        scenery_replacement_lod_range(vegetation, None);
 
     for source in generated
         .chunks
@@ -572,9 +584,11 @@ fn prepare_scenery_projection(
             scale: source.scale * model.base_scale,
             replaces_procedural: selection.replaces_procedural,
             maximum_visibility_distance_m: if selection.replaces_procedural {
-                replacement_lod_start_m
-                    + stable_lod_phase(source.id)
-                        * (replacement_lod_end_m - replacement_lod_start_m)
+                replacement_maximum_visibility_distance(
+                    replacement_lod_start_m,
+                    replacement_lod_end_m,
+                    stable_lod_phase(source.id),
+                )
             } else {
                 DETAIL_CULL_DISTANCE_M
             },
@@ -706,6 +720,30 @@ fn stable_lod_phase(id: VegetationInstanceId) -> f32 {
     f32::from(u16::from_le_bytes([bytes[8], bytes[9]])) / f32::from(u16::MAX)
 }
 
+fn scenery_replacement_lod_range(
+    vegetation: &VegetationDocument,
+    quality: Option<&VisualQualityPreset>,
+) -> (f32, f32) {
+    quality.map_or_else(
+        || {
+            (
+                vegetation.presentation.medium_lod_distance_m,
+                vegetation.presentation.hlod_distance_m,
+            )
+        },
+        |preset| {
+            (
+                preset.vegetation.medium_lod_distance_m,
+                preset.vegetation.hlod_distance_m,
+            )
+        },
+    )
+}
+
+fn replacement_maximum_visibility_distance(start_m: f32, end_m: f32, phase: f32) -> f32 {
+    start_m + phase * (end_m - start_m)
+}
+
 #[allow(
     clippy::needless_pass_by_value,
     reason = "Bevy systems own their system parameter wrappers"
@@ -736,6 +774,9 @@ fn spawn_scenery_projection(
                 model.id, instance.source_id
             )),
             SceneryRoot {
+                replacement_lod_phase: instance
+                    .replaces_procedural
+                    .then(|| stable_lod_phase(instance.source_id)),
                 maximum_visibility_distance_m: instance.maximum_visibility_distance_m,
             },
             WorldAssetRoot(handles[instance.model_index].clone()),
@@ -750,6 +791,43 @@ fn spawn_scenery_projection(
         replacement_ids: prepared.replacement_ids,
         terminal: false,
     });
+}
+
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "Bevy systems own their system parameter wrappers"
+)]
+fn apply_scenery_quality_lod(
+    quality: Option<Res<VisualValleyQualityStats>>,
+    mut stats: ResMut<SceneryProjectionStats>,
+    mut roots: Query<&mut SceneryRoot>,
+) {
+    let Some(quality) = quality.as_deref() else {
+        return;
+    };
+    if quality.dynamically_applied_tier != Some(quality.current_tier) {
+        return;
+    }
+    let replacement_lod_start_m = quality.requested_preset.vegetation.medium_lod_distance_m;
+    let replacement_lod_end_m = quality.requested_preset.vegetation.hlod_distance_m;
+    if stats.replacement_lod_start_m.to_bits() == replacement_lod_start_m.to_bits()
+        && stats.replacement_lod_end_m.to_bits() == replacement_lod_end_m.to_bits()
+    {
+        return;
+    }
+
+    for mut root in &mut roots {
+        let Some(phase) = root.replacement_lod_phase else {
+            continue;
+        };
+        root.maximum_visibility_distance_m = replacement_maximum_visibility_distance(
+            replacement_lod_start_m,
+            replacement_lod_end_m,
+            phase,
+        );
+    }
+    stats.replacement_lod_start_m = replacement_lod_start_m;
+    stats.replacement_lod_end_m = replacement_lod_end_m;
 }
 
 fn desired_root_visibility(
@@ -1055,6 +1133,98 @@ mod tests {
                         <= f32::EPSILON
                 }
         }));
+    }
+
+    #[test]
+    fn every_quality_tier_drives_the_cc0_replacement_lod_range() {
+        let vegetation = embedded_visual_valley_vegetation_document().unwrap();
+        let profile = forge_project::VisualValleyQualityProfileDocument::from_json(include_str!(
+            "../../../examples/visual_valley/quality-profile.v1.json"
+        ))
+        .unwrap();
+
+        for (tier, expected_start_m, expected_end_m) in [
+            (forge_project::VisualQualityTier::Low, 48.0_f32, 128.0_f32),
+            (
+                forge_project::VisualQualityTier::Medium,
+                60.0_f32,
+                160.0_f32,
+            ),
+            (forge_project::VisualQualityTier::High, 72.0_f32, 180.0_f32),
+            (forge_project::VisualQualityTier::Ultra, 96.0_f32, 240.0_f32),
+        ] {
+            let (start_m, end_m) =
+                scenery_replacement_lod_range(&vegetation, Some(profile.preset(tier)));
+            assert_eq!(start_m.to_bits(), expected_start_m.to_bits());
+            assert_eq!(end_m.to_bits(), expected_end_m.to_bits());
+            assert_eq!(
+                replacement_maximum_visibility_distance(start_m, end_m, 0.0).to_bits(),
+                expected_start_m.to_bits()
+            );
+            assert_eq!(
+                replacement_maximum_visibility_distance(start_m, end_m, 1.0).to_bits(),
+                expected_end_m.to_bits()
+            );
+        }
+    }
+
+    #[test]
+    fn applied_ultra_quality_updates_existing_cc0_roots_after_the_quality_transaction() {
+        let terrain = embedded_visual_valley_terrain_document().unwrap();
+        let vegetation = embedded_visual_valley_vegetation_document().unwrap();
+        let prepared = prepare_scenery_projection(&terrain, &vegetation).unwrap();
+        let profile = forge_project::VisualValleyQualityProfileDocument::from_json(include_str!(
+            "../../../examples/visual_valley/quality-profile.v1.json"
+        ))
+        .unwrap();
+        let mut app = App::new();
+        app.add_plugins(MinimalPlugins)
+            .insert_resource(prepared.stats)
+            .add_plugins(crate::VisualValleyQualityPlugin::new(
+                profile,
+                crate::VisualValleyQualitySelection::Fixed(forge_project::VisualQualityTier::Ultra),
+            ))
+            .add_systems(
+                Last,
+                apply_scenery_quality_lod.after(crate::quality::VisualValleyQualitySet::Apply),
+            );
+        let replacement = app
+            .world_mut()
+            .spawn(SceneryRoot {
+                replacement_lod_phase: Some(0.5),
+                maximum_visibility_distance_m: 1.0,
+            })
+            .id();
+        let detail = app
+            .world_mut()
+            .spawn(SceneryRoot {
+                replacement_lod_phase: None,
+                maximum_visibility_distance_m: DETAIL_CULL_DISTANCE_M,
+            })
+            .id();
+
+        app.update();
+
+        let world = app.world();
+        let stats = world.resource::<SceneryProjectionStats>();
+        assert_eq!(stats.replacement_lod_start_m.to_bits(), 96.0_f32.to_bits());
+        assert_eq!(stats.replacement_lod_end_m.to_bits(), 240.0_f32.to_bits());
+        assert_eq!(
+            world
+                .get::<SceneryRoot>(replacement)
+                .unwrap()
+                .maximum_visibility_distance_m
+                .to_bits(),
+            168.0_f32.to_bits()
+        );
+        assert_eq!(
+            world
+                .get::<SceneryRoot>(detail)
+                .unwrap()
+                .maximum_visibility_distance_m
+                .to_bits(),
+            DETAIL_CULL_DISTANCE_M.to_bits()
+        );
     }
 
     #[test]
