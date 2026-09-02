@@ -47,6 +47,24 @@ use tracing_subscriber::EnvFilter;
 #[cfg(feature = "render-profile")]
 use tracing_subscriber::{Layer as _, filter::LevelFilter};
 
+#[cfg(feature = "render-profile")]
+const NONQUALIFYING_RENDER_PROFILE_MARKER: &str = "NONQUALIFYING_RENDER_PROFILE.json";
+#[cfg(feature = "render-profile")]
+const NONQUALIFYING_RENDER_PROFILE_SCHEMA: &str = "forge.nonqualifying-render-profile";
+#[cfg(feature = "render-profile")]
+const NONQUALIFYING_RENDER_PROFILE_REASON: &str = "render-profile instrumentation changes runtime logging and render scheduling; this diagnostic run cannot qualify Gate 1";
+
+#[cfg(feature = "render-profile")]
+#[derive(serde::Serialize)]
+struct NonqualifyingRenderProfileMarker {
+    schema: &'static str,
+    schema_version: u32,
+    qualifying: bool,
+    source_commit: Option<&'static str>,
+    feature: &'static str,
+    reason: &'static str,
+}
+
 #[allow(
     clippy::too_many_lines,
     reason = "the executable entry point keeps CLI, logging and Bevy startup order explicit"
@@ -80,6 +98,10 @@ fn main() -> AppExit {
 
     if let Err(message) = options.prepare_output_paths() {
         return startup_error("output_preflight", &message);
+    }
+    #[cfg(feature = "render-profile")]
+    if let Err(message) = options.write_nonqualifying_render_profile_marker() {
+        return startup_error("render_profile_marker", &message);
     }
     let document = match options.load_document() {
         Ok(document) => document,
@@ -562,6 +584,21 @@ impl PlayerCameraRuntimeMode {
     }
 }
 
+#[cfg(feature = "render-profile")]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+enum RenderProfileGate1Diagnostic {
+    #[default]
+    Disabled,
+    Enabled,
+}
+
+#[cfg(feature = "render-profile")]
+impl RenderProfileGate1Diagnostic {
+    const fn is_enabled(self) -> bool {
+        matches!(self, Self::Enabled)
+    }
+}
+
 #[derive(Debug)]
 struct Options {
     scene_path: Option<PathBuf>,
@@ -572,6 +609,8 @@ struct Options {
     player_camera: PlayerCameraRuntimeMode,
     gate1_gameplay_stutter_output: Option<PathBuf>,
     gate1_visual_proof_output: Option<PathBuf>,
+    #[cfg(feature = "render-profile")]
+    render_profile_gate1_diagnostic: RenderProfileGate1Diagnostic,
     weather_state: Option<WeatherState>,
     quality_selection: Option<VisualValleyQualitySelection>,
     capture_path: Option<PathBuf>,
@@ -598,6 +637,8 @@ impl Default for Options {
             player_camera: PlayerCameraRuntimeMode::Disabled,
             gate1_gameplay_stutter_output: None,
             gate1_visual_proof_output: None,
+            #[cfg(feature = "render-profile")]
+            render_profile_gate1_diagnostic: RenderProfileGate1Diagnostic::Disabled,
             weather_state: None,
             quality_selection: None,
             capture_path: None,
@@ -646,6 +687,10 @@ impl Options {
                     }
                     options.gate1_visual_proof_output =
                         Some(next_path(&mut arguments, "--gate1-visual-proof")?);
+                }
+                #[cfg(feature = "render-profile")]
+                "--render-profile-gate1-diagnostic" => {
+                    options.render_profile_gate1_diagnostic = RenderProfileGate1Diagnostic::Enabled;
                 }
                 "--weather" => {
                     if options.weather_state.is_some() {
@@ -720,6 +765,8 @@ impl Options {
         if self.quality_selection.is_some() && !self.visual_valley {
             return Err("quality selection requires --visual-valley".to_owned());
         }
+        #[cfg(feature = "render-profile")]
+        self.validate_render_profile_gate1_diagnostic()?;
         self.validate_gate1_gameplay_stutter()?;
         self.validate_gate1_visual_proof()?;
         self.validate_terrain_partial_update_probe()?;
@@ -803,13 +850,39 @@ impl Options {
                 "NONQUALIFYING render-profile builds refuse --log-probe because Forge structured JSON tracing is disabled",
             );
         }
-        if self.gate1_gameplay_stutter_output.is_some() || self.gate1_visual_proof_output.is_some()
+        if self.gate1_visual_proof_output.is_some()
+            || (self.gate1_gameplay_stutter_output.is_some()
+                && !self.render_profile_gate1_diagnostic.is_enabled())
         {
             return Some(
                 "NONQUALIFYING render-profile builds refuse Gate 1 qualification routes; use a diagnostic --visual-valley route instead",
             );
         }
         None
+    }
+
+    #[cfg(feature = "render-profile")]
+    fn validate_render_profile_gate1_diagnostic(&self) -> Result<(), String> {
+        if !self.render_profile_gate1_diagnostic.is_enabled() {
+            return Ok(());
+        }
+        if self.gate1_visual_proof_output.is_some() {
+            return Err(
+                "--render-profile-gate1-diagnostic cannot be combined with --gate1-visual-proof"
+                    .to_owned(),
+            );
+        }
+        if self.log_probe {
+            return Err(
+                "--render-profile-gate1-diagnostic cannot be combined with --log-probe".to_owned(),
+            );
+        }
+        if self.gate1_gameplay_stutter_output.is_none() {
+            return Err(
+                "--render-profile-gate1-diagnostic requires --gate1-gameplay-stutter".to_owned(),
+            );
+        }
+        Ok(())
     }
 
     fn validate_gate1_gameplay_stutter(&self) -> Result<(), String> {
@@ -1100,6 +1173,94 @@ impl Options {
         }
         Ok(())
     }
+
+    #[cfg(feature = "render-profile")]
+    fn write_nonqualifying_render_profile_marker(&self) -> Result<(), String> {
+        if !self.render_profile_gate1_diagnostic.is_enabled() {
+            return Ok(());
+        }
+        self.validate_render_profile_gate1_diagnostic()?;
+        let output_dir = self
+            .gate1_gameplay_stutter_output
+            .as_deref()
+            .ok_or_else(|| {
+                "--render-profile-gate1-diagnostic requires --gate1-gameplay-stutter".to_owned()
+            })?;
+        let marker = NonqualifyingRenderProfileMarker {
+            schema: NONQUALIFYING_RENDER_PROFILE_SCHEMA,
+            schema_version: 1,
+            qualifying: false,
+            source_commit: option_env!("FORGE_SOURCE_COMMIT"),
+            feature: "render-profile",
+            reason: NONQUALIFYING_RENDER_PROFILE_REASON,
+        };
+        write_nonqualifying_render_profile_marker_atomic(
+            &output_dir.join(NONQUALIFYING_RENDER_PROFILE_MARKER),
+            &marker,
+        )
+    }
+}
+
+#[cfg(feature = "render-profile")]
+fn write_nonqualifying_render_profile_marker_atomic(
+    path: &Path,
+    marker: &NonqualifyingRenderProfileMarker,
+) -> Result<(), String> {
+    let file_name = path
+        .file_name()
+        .and_then(|name| name.to_str())
+        .ok_or_else(|| {
+            format!(
+                "render-profile marker has no UTF-8 filename: {}",
+                path.display()
+            )
+        })?;
+    let temporary = path.with_file_name(format!(".{file_name}.tmp"));
+    let json = serde_json::to_vec_pretty(marker)
+        .map_err(|error| format!("cannot serialize render-profile marker: {error}"))?;
+    let mut file = fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(&temporary)
+        .map_err(|error| {
+            format!(
+                "cannot create temporary render-profile marker {}: {error}",
+                temporary.display()
+            )
+        })?;
+    if let Err(error) = std::io::Write::write_all(&mut file, &json).and_then(|()| file.sync_all()) {
+        drop(file);
+        let _ = fs::remove_file(&temporary);
+        return Err(format!(
+            "cannot write temporary render-profile marker {}: {error}",
+            temporary.display()
+        ));
+    }
+    drop(file);
+
+    // `fs::rename` replaces an existing destination on Windows. Publishing through a hard link
+    // instead gives us one atomic, no-clobber directory entry because both paths share a parent.
+    if let Err(error) = fs::hard_link(&temporary, path) {
+        let _ = fs::remove_file(&temporary);
+        if error.kind() == std::io::ErrorKind::AlreadyExists {
+            return Err(format!(
+                "refusing to replace existing render-profile marker {}",
+                path.display()
+            ));
+        }
+        return Err(format!(
+            "cannot atomically publish render-profile marker {} as {}: {error}",
+            temporary.display(),
+            path.display()
+        ));
+    }
+    fs::remove_file(&temporary).map_err(|error| {
+        format!(
+            "render-profile marker {} was published but temporary link {} could not be removed: {error}",
+            path.display(),
+            temporary.display()
+        )
+    })
 }
 
 fn prepare_gate1_gameplay_stutter_directory(output_dir: &Path) -> Result<(), String> {
@@ -1381,6 +1542,8 @@ mod tests {
                 .render_profile_route_error()
                 .is_some_and(|message| message.contains("Gate 1 qualification routes"))
         );
+        options.render_profile_gate1_diagnostic = RenderProfileGate1Diagnostic::Enabled;
+        assert_eq!(options.render_profile_route_error(), None);
 
         options.gate1_gameplay_stutter_output = None;
         options.gate1_visual_proof_output = Some(PathBuf::from("visual-proof"));
@@ -1388,6 +1551,77 @@ mod tests {
             options
                 .render_profile_route_error()
                 .is_some_and(|message| message.contains("Gate 1 qualification routes"))
+        );
+    }
+
+    #[cfg(feature = "render-profile")]
+    #[test]
+    fn render_profile_gate1_diagnostic_is_an_explicit_gameplay_only_opt_in() {
+        let accepted = Options::parse(
+            [
+                "--visual-valley",
+                "--quality",
+                "high",
+                "--gate1-gameplay-stutter",
+                "stutter-output",
+                "--no-vsync",
+                "--render-profile-gate1-diagnostic",
+            ]
+            .into_iter()
+            .map(str::to_owned),
+        )
+        .unwrap();
+        assert!(accepted.render_profile_gate1_diagnostic.is_enabled());
+        assert_eq!(accepted.render_profile_route_error(), None);
+
+        assert_eq!(
+            Options::parse(
+                ["--render-profile-gate1-diagnostic"]
+                    .into_iter()
+                    .map(str::to_owned)
+            )
+            .unwrap_err(),
+            "--render-profile-gate1-diagnostic requires --gate1-gameplay-stutter"
+        );
+        assert_eq!(
+            Options::parse(
+                [
+                    "--visual-valley",
+                    "--quality",
+                    "high",
+                    "--gate1-visual-proof",
+                    "visual-output",
+                    "--no-vsync",
+                    "--render-profile-gate1-diagnostic",
+                ]
+                .into_iter()
+                .map(str::to_owned)
+            )
+            .unwrap_err(),
+            "--render-profile-gate1-diagnostic cannot be combined with --gate1-visual-proof"
+        );
+        assert_eq!(
+            Options::parse(
+                ["--log-probe", "--render-profile-gate1-diagnostic"]
+                    .into_iter()
+                    .map(str::to_owned)
+            )
+            .unwrap_err(),
+            "--render-profile-gate1-diagnostic cannot be combined with --log-probe"
+        );
+    }
+
+    #[cfg(not(feature = "render-profile"))]
+    #[test]
+    fn normal_build_does_not_recognize_render_profile_gate1_diagnostic() {
+        assert_eq!(
+            Options::parse(
+                ["--render-profile-gate1-diagnostic"]
+                    .into_iter()
+                    .map(str::to_owned)
+            )
+            .unwrap_err(),
+            "unknown option `--render-profile-gate1-diagnostic`"
         );
     }
 
@@ -2537,6 +2771,64 @@ mod tests {
         let error = options.prepare_output_paths().unwrap_err();
         assert!(error.contains("must be absent or empty"));
         assert!(root.join("stale.json").is_file());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[cfg(feature = "render-profile")]
+    #[test]
+    fn render_profile_gate1_diagnostic_writes_only_the_exact_nonqualifying_marker() {
+        let unique = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let root = env::temp_dir().join(format!(
+            "openrpg-forge-render-profile-marker-{}-{unique}",
+            std::process::id()
+        ));
+        let options = Options::parse(
+            [
+                "--visual-valley".to_owned(),
+                "--quality".to_owned(),
+                "high".to_owned(),
+                "--gate1-gameplay-stutter".to_owned(),
+                root.display().to_string(),
+                "--no-vsync".to_owned(),
+                "--render-profile-gate1-diagnostic".to_owned(),
+            ]
+            .into_iter(),
+        )
+        .unwrap();
+
+        options.prepare_output_paths().unwrap();
+        options.write_nonqualifying_render_profile_marker().unwrap();
+
+        let marker_path = root.join(NONQUALIFYING_RENDER_PROFILE_MARKER);
+        let marker: serde_json::Value =
+            serde_json::from_slice(&fs::read(&marker_path).unwrap()).unwrap();
+        assert_eq!(
+            marker,
+            serde_json::json!({
+                "schema": "forge.nonqualifying-render-profile",
+                "schema_version": 1,
+                "qualifying": false,
+                "source_commit": option_env!("FORGE_SOURCE_COMMIT"),
+                "feature": "render-profile",
+                "reason": "render-profile instrumentation changes runtime logging and render scheduling; this diagnostic run cannot qualify Gate 1",
+            })
+        );
+        assert_eq!(fs::read_dir(&root).unwrap().count(), 1);
+        assert!(
+            !root
+                .join(format!(".{NONQUALIFYING_RENDER_PROFILE_MARKER}.tmp"))
+                .exists()
+        );
+
+        let original = fs::read(&marker_path).unwrap();
+        let error = options
+            .write_nonqualifying_render_profile_marker()
+            .unwrap_err();
+        assert!(error.contains("refusing to replace existing render-profile marker"));
+        assert_eq!(fs::read(&marker_path).unwrap(), original);
         fs::remove_dir_all(root).unwrap();
     }
 

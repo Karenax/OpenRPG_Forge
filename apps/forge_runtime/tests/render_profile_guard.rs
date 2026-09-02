@@ -44,6 +44,57 @@ fn profiled_binary_refuses_structured_log_probe() {
     );
 }
 
+#[test]
+fn profiled_gate1_diagnostic_opt_in_requires_the_gameplay_stutter_route() {
+    let output = Command::new(env!("CARGO_BIN_EXE_forge_runtime"))
+        .arg("--render-profile-gate1-diagnostic")
+        .output()
+        .unwrap();
+
+    assert_eq!(output.status.code(), Some(2));
+    assert!(
+        String::from_utf8_lossy(&output.stderr)
+            .contains("--render-profile-gate1-diagnostic requires --gate1-gameplay-stutter")
+    );
+}
+
+#[test]
+fn profiled_gate1_diagnostic_opt_in_never_allows_visual_proof_or_log_probe() {
+    let visual_output_root = unique_absent_output_root("visual-proof-opt-in");
+    let visual = Command::new(env!("CARGO_BIN_EXE_forge_runtime"))
+        .args([
+            "--visual-valley",
+            "--quality",
+            "high",
+            "--no-vsync",
+            "--gate1-visual-proof",
+        ])
+        .arg(&visual_output_root)
+        .arg("--render-profile-gate1-diagnostic")
+        .output()
+        .unwrap();
+
+    assert_eq!(visual.status.code(), Some(2));
+    assert!(String::from_utf8_lossy(&visual.stderr).contains(
+        "--render-profile-gate1-diagnostic cannot be combined with --gate1-visual-proof"
+    ));
+    assert!(
+        !visual_output_root.exists(),
+        "profiled visual-proof route created forbidden output directory {}",
+        visual_output_root.display()
+    );
+
+    let log = Command::new(env!("CARGO_BIN_EXE_forge_runtime"))
+        .args(["--log-probe", "--render-profile-gate1-diagnostic"])
+        .output()
+        .unwrap();
+    assert_eq!(log.status.code(), Some(2));
+    assert!(
+        String::from_utf8_lossy(&log.stderr)
+            .contains("--render-profile-gate1-diagnostic cannot be combined with --log-probe")
+    );
+}
+
 fn unique_absent_output_root(label: &str) -> PathBuf {
     let nonce = SystemTime::now()
         .duration_since(UNIX_EPOCH)
